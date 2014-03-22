@@ -4,7 +4,7 @@ Created-By: 1.6.0_12-b04 (Sun Microsystems Inc.)
 MIDlet-1: HomeCenter,/hc/j2me/res/hc_64.png,hc.j2me.Main
 MIDlet-Name: HomeCenter
 MIDlet-Description: Mobile Remote Control PC
-MIDlet-Jar-Size: 820929
+MIDlet-Jar-Size: 822126
 MIDlet-Jar-URL: hcME.jar
 MIDlet-Vendor: HomeCenter.MOBI
 MIDlet-Version: 6.47
