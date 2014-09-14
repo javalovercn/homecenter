@@ -71,6 +71,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	private static final SimpleAttributeSet KEYWORDS_LIGHTER = build(Color.BLUE, true);
 	private static final SimpleAttributeSet NUM_LIGHTER = build(Color.RED, false);
 	private static final SimpleAttributeSet DEFAULT_LIGHTER = build(Color.BLACK, false);
+	private static final SimpleAttributeSet VAR_LIGHTER = build(Color.decode("#f19e37"), false);
 	
 	private static final Pattern str_pattern = Pattern.compile("\".*?(?<!\\\\)\"");
 	private static final Pattern keywords_pattern = Pattern.compile("\\b(BEGIN|END|__ENCODING__|__END__|__FILE__|__LINE__|alias|" +
@@ -82,6 +83,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	private static final Pattern num_pattern = Pattern.compile("\\b\\d+\\b", Pattern.MULTILINE);
 	private static final Pattern hc_map_pattern = Pattern.compile("\\$_hcmap\\b");
 	private static final Pattern rem_pattern = Pattern.compile("#.*(?=\n)?");
+	private static final Pattern var_pattern = Pattern.compile("@\\w+");
 
 	HPNode currItem;
 	final JScrollPane scrollpane;
@@ -488,8 +490,9 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		buildHighlight(jtaScript, hc_map_pattern, MAP_LIGHTER, offset, text);
 		buildHighlight(jtaScript, num_pattern, NUM_LIGHTER, offset, text);//要置于字符串之前，因为字符串中可能含有数字
 		buildHighlight(jtaScript, keywords_pattern, KEYWORDS_LIGHTER, offset, text);
-		buildHighlight(jtaScript, rem_pattern, REM_LIGHTER, offset, text);//字符串中含有#{}，所以要置于STR_LIGHTER之前
+		buildHighlight(jtaScript, var_pattern, VAR_LIGHTER, offset, text);
 		buildHighlight(jtaScript, str_pattern, STR_LIGHTER, offset, text);//?<!\\\"
+		buildHighlight(jtaScript, rem_pattern, REM_LIGHTER, offset, text);//字符串中含有#{}，所以要置于STR_LIGHTER之前
 	}
 	
 	private void buildHighlight(JTextPane jta, Pattern pattern, SimpleAttributeSet attributes, int offset, String text) {

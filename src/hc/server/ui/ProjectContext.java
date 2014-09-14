@@ -223,9 +223,9 @@ public class ProjectContext {
 	 * Shift : KeyEvent.VK_SHIFT<br>
 	 * Escape : KeyEvent.VK_ESCAPE<br>
 	 * Meta : KeyEvent.VK_META (Max OS X : Command)<p>
-	 * more key string , please refer http://docs.oracle.com/javase/6/docs/api/java/awt/event/KeyEvent.html<br>
+	 * more key string , please refer <a target="_blank" href="http://docs.oracle.com/javase/6/docs/api/java/awt/event/KeyEvent.html">http://docs.oracle.com/javase/6/docs/api/java/awt/event/KeyEvent.html</a><br>
 	 * NOTE : NOT all keys are supported
-	 * @param keys
+	 * @param keys for example, "Control+Shift+Escape" or "Tab"
 	 */
 	public void actionKeys(String keys){
 		KeyComper.actionKeys(keys);

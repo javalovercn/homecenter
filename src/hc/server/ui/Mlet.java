@@ -20,7 +20,9 @@ public class Mlet extends JPanel implements ICanvas{
 	
 	public Mlet(){
 		__context = ProjectContext.getProjectContext();
-		__target = __context.__getTargetFromInnerMethod();
+		if(__context != null){//测试用例时(TestMlet.java)，产生null
+			__target = __context.__getTargetFromInnerMethod();
+		}
 	}
 	
 	/**

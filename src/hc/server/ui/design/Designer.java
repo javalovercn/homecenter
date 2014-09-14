@@ -990,6 +990,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 			
 			return true;
 		}catch (Throwable e) {
+			e.printStackTrace();
 		}finally{
 		}
 		return false;

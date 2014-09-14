@@ -51,7 +51,7 @@ public class ScriptModelManager {
 		
 		final String str_line = "#----------------------------------------------\n";
 		
-		sb.append("# for the new API , see http://homecenter.mobi/download/javadoc/hc/util/BackServer.html\n\n");
+		sb.append("# for the new API , see http://homecenter.mobi/download/javadoc/hc/server/ui/ProjectContext.html\n\n");
 		
 		sb.append("#HOW TO execute system command\n");
 		sb.append(str_line);
@@ -63,7 +63,7 @@ public class ScriptModelManager {
 		sb.append("#HOW TO show tip on system tray and log in HomeCenter server\n");
 		sb.append(str_line);
 		sb.append("#uncomment the following three codes to show message on tray, and log\n");
-		sb.append("#server_class = Java::hc.util.BackServer\n");
+		sb.append("#server_class = Java::hc.server.ui.ProjectContext.getProjectContext\n");
 		sb.append("#server_class.tipOnTray \"Hello, system tray!\"\n");
 		sb.append("#server_class.log \"This is a test log\"\n\n");
 		
@@ -73,13 +73,13 @@ public class ScriptModelManager {
 		sb.append("#NOTE : NOT all keys are supported\n");
 		sb.append(str_line);
 		sb.append("#uncomment the following two codes to actionKeys Control+Shift+Escape\n");
-		sb.append("#server_class = Java::hc.util.BackServer\n");
+		sb.append("#server_class = Java::hc.server.ui.ProjectContext.getProjectContext\n");
 		sb.append("#server_class.actionKeys \"Control+Shift+Escape\"\n\n");
 		
 		sb.append("#HOW TO display message moving from right to left on mobile\n");
 		sb.append(str_line);
 		sb.append("#uncomment the following codes to display moving message on mobile.\n");
-		sb.append("#server_class = Java::hc.util.BackServer\n");
+		sb.append("#server_class = Java::hc.server.ui.ProjectContext.getProjectContext\n");
 		sb.append("#server_class.sendMovingMsg \"I am moving...\"\n\n");
 		
 		sb.append("#HOW TO send alert dialog to mobile, send(String caption, String text, int type)\n");
@@ -90,7 +90,7 @@ public class ScriptModelManager {
 		sb.append("# type = 5,	CONFIRMATION\n");
 		sb.append(str_line);
 		sb.append("#uncomment the follow codes to send message and log info.\n");
-		sb.append("#server_class = Java::hc.util.BackServer\n");
+		sb.append("#server_class = Java::hc.server.ui.ProjectContext.getProjectContext\n");
 		sb.append("#server_class.send \"CaptionText\", \"Hello, this is a message from server.\", 3\n\n");
 		
 		sb.append("#HOW TO send notification to mobile, sendNotification(String title, String body, int flags)\n");
@@ -98,8 +98,8 @@ public class ScriptModelManager {
 		sb.append("# flags = FLAG_NOTIFICATION_VIBRATE, please enable vibrate of Android\n");
 		sb.append(str_line);
 		sb.append("#uncomment the following codes to send notification to mobile.\n");
-		sb.append("#server_class = Java::hc.util.BackServer\n");
-		sb.append("#server_class.sendNotification \"Title\", \"this is a notification\", server_class::FLAG_NOTIFICATION_SOUND | server_class::FLAG_NOTIFICATION_VIBRATE\n\n");
+		sb.append("#server_class = Java::hc.server.ui.ProjectContext.getProjectContext\n");
+		sb.append("#server_class.sendNotification \"Title\", \"this is a notification\", Java::hc.server.ui.ProjectContext::FLAG_NOTIFICATION_SOUND | Java::hc.server.ui.ProjectContext::FLAG_NOTIFICATION_VIBRATE\n\n");
 
 		sb.append("#HOW TO play tone on mobile, please disable mute on mobile first\n");
 		sb.append("#playTone(int note, int duration, int volume)\n");
@@ -108,7 +108,7 @@ public class ScriptModelManager {
 		sb.append("#param volume Audio volume range from 0 to 100. 100 represents the maximum\n");
 		sb.append(str_line);
 		sb.append("#uncomment follow two codes to play a tone.\n");
-		sb.append("#server_class = Java::hc.util.BackServer\n");
+		sb.append("#server_class = Java::hc.server.ui.ProjectContext.getProjectContext\n");
 		sb.append("#server_class.playTone 100, 400, 75\n\n");
 		
 		sb.append("#HOW TO vibrate on mobile\n");
@@ -116,7 +116,7 @@ public class ScriptModelManager {
 		sb.append("#duration - the number of milliseconds the vibrator should be run\n");
 		sb.append(str_line);
 		sb.append("#uncomment follow two codes to vibrate on mobile.\n");
-		sb.append("#server_class = Java::hc.util.BackServer\n");
+		sb.append("#server_class = Java::hc.server.ui.ProjectContext.getProjectContext\n");
 		sb.append("#server_class.vibrate 300\n\n");
 		
 //		sb.append(str_line);

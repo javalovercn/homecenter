@@ -8,12 +8,14 @@ import hc.core.util.OutPortTranser;
 /**
  * a controller implementation in HomeCenter server
  * <br>if you want design a powerful controller with complex UI, see {@link hc.server.ui.Mlet Mlet}
- * <p>for demo, please goto <a target="_blank" href="http://homecenter.mobi/en/pc/steps_ctrl.htm">http://homecenter.mobi/en/pc/steps_ctrl.htm</a>
+ * <p>for demo of a controller, please goto <a target="_blank" href="http://homecenter.mobi/en/pc/steps_ctrl.htm">http://homecenter.mobi/en/pc/steps_ctrl.htm</a>
  */
 public abstract class CtrlResponse {
 	public CtrlResponse(){
 		__context = ProjectContext.getProjectContext();
-		__target = __context.__getTargetFromInnerMethod();
+		if(__context != null){//生成模板代码时，产生null
+			__target = __context.__getTargetFromInnerMethod();
+		}
 	}
 	
 	/**

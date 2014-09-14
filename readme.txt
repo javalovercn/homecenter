@@ -1,4 +1,6 @@
-1. main class : hc.App, project encode:utf-8.
-2. require JRE 6.0 or above.
-3. please read and agree the license file "hc_license.txt" and "mpl_license.txt".
-4. these two files, starter.jar and hc.pem in binary zip, are help to check new version, download, verify and start hc.App 
+1. these source file are HomeCenter Application Server on PC side. they are NOT mobile application.
+2. main class : hc.App, project encode:utf-8.
+3. require JRE 6.0 or above.
+4. please read and agree the license file "hc_license.txt" and "mpl_license.txt".
+5. install mobile side application for Android, iPhone, J2ME..., please download them from http://homecenter.mobi/en/pc/downloads.htm
+6. these two files, starter.jar and hc.pem in distribute zip (http://homecenter.mobi/download/HC_Server.zip), are used to check new version, download, verify and start up hc.App 
