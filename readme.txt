@@ -7,8 +7,8 @@
 7. any question, please contact : help at homecenter.mobi
 
 ![splash](http://homecenter.mobi/images/splash_n_txt.png)
-![screenshot](http://homecenter.mobi/images/sc6.png)
-![screenshot](http://homecenter.mobi/images/sc8.png)
-![screenshot](http://homecenter.mobi/images/sc7.png)
-![screenshot](http://homecenter.mobi/images/sc9.png)
+![screen shot](http://homecenter.mobi/images/sc6.png)
+![screen shot](http://homecenter.mobi/images/sc8.png)
+![screen shot](http://homecenter.mobi/images/sc7.png)
+![screen shot](http://homecenter.mobi/images/sc9.png)
 ![designer](http://homecenter.mobi/images/usage/pc_designer.png)
