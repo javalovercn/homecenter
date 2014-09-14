@@ -6,7 +6,7 @@
 6. these two files, starter.jar and hc.pem in distribute zip (http://homecenter.mobi/download/HC_Server.zip), are used to check new version, download, verify and start up hc.App
 7. any question, please contact : help at homecenter.mobi
 
-[![Screen](http://homecenter.mobi/images/splash_n_txt.png)](http://homecenter.mobi/images/splash_n_txt.png)
+![splash](http://homecenter.mobi/images/splash_n_txt.png)
 ![screenshot](http://homecenter.mobi/images/sc6.png)
 ![screenshot](http://homecenter.mobi/images/sc8.png)
 ![screenshot](http://homecenter.mobi/images/sc7.png)
