@@ -5,6 +5,7 @@ import hc.core.IConstant;
 import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RemoveableHCTimer;
+import hc.core.util.CCoreUtil;
 import hc.core.util.LinkedSet;
 import hc.core.util.LogManager;
 import hc.server.nio.ByteBufferCacher;
@@ -91,7 +92,7 @@ public class SessionConnector {
 		if(isLineOff){
 			if(resetTimer == null){
 				final SessionConnector self = this;
-				resetTimer = new RemoveableHCTimer("ResetTimer", 20000, true) {
+				resetTimer = new RemoveableHCTimer("ResetTimer", CCoreUtil.WAIT_MS_FOR_NEW_CONN - 1000, true) {//20秒改为3秒
 					@Override
 					public void doBiz() {
 						L.V = L.O ? false : LogManager.log("ResetTimer : Server/Client not reconnect, so close session pair.");

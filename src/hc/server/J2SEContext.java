@@ -1506,7 +1506,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				return ret;
 			}else if(out.equals("d")){
 				RootConfig.getInstance().setProperty(RootConfig.p_Color_On_Relay, "5");
-				RootConfig.getInstance().setProperty(RootConfig.p_MS_On_Relay, 50);
+				RootConfig.getInstance().setProperty(RootConfig.p_MS_On_Relay, 100);
 			}
 			
 			setTrayEnable(true);

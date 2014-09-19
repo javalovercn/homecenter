@@ -286,6 +286,7 @@ public class RelayManager {
 		SocketChannel c = sc.clientSide;
 		if(c != null){
 			try{
+//				L.V = L.O ? false : LogManager.log("close client channel : " + c.socket().getInetAddress().getHostAddress() + ":" + c.socket().getPort());
 				c.socket().close();
 			}catch (Exception e) {
 				
@@ -311,6 +312,7 @@ public class RelayManager {
 		SocketChannel c = sc.serverSide;
 		if(c != null){
 			try{
+//				L.V = L.O ? false : LogManager.log("close server channel : " + c.socket().getInetAddress().getHostAddress() + ":" + c.socket().getPort());
 				c.socket().close();
 			}catch (Exception e) {
 				
@@ -620,7 +622,9 @@ public class RelayManager {
 			if(erb != null){
 				if(erb.doExt(channel, buffer) == false){
 					L.V = L.O ? false : LogManager.log("skip unforward packet, force Exception and close channel.");
-					throw BBIOException;
+//					由于可能服务器重新连接Root后，其它线程仍有可能发送旧数据，可能会产生此异常。比如sendThundmail
+//					故注释下行代码ß
+//					throw BBIOException;
 					//unforward(channel);
 				}
 			}

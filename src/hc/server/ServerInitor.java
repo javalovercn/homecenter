@@ -67,21 +67,22 @@ public class ServerInitor {
 			KeepaliveManager.dServer.shutdown();
 		}
 
-		ConditionWatcher.cancelAllWatch();
 		JcipManager.clearAllTimer();
 		SIPManager.getSIPContext().resetNearDeployTime();
 		
-		if(isClientReq == false || SIPManager.isOnRelay()){
+//		if(isClientReq == false || SIPManager.isOnRelay()){
+		//旧连接要关闭，否则会导致新注入的连接会产生连接关闭异常
 			SIPManager.close();
-		}
+//		}
 		try{
 			//setClient(null)之前，稍等，以响应当前客户可能存在的包
-			Thread.sleep(300);
+			Thread.sleep(CCoreUtil.WAIT_MS_FOR_NEW_CONN);
 		}catch (Exception e) {
 			
 		}
 		
 		SIPManager.getSIPContext().resender.reset();
+		ConditionWatcher.cancelAllWatch();//释放在途EventBack事件，须在sleep之后
 		
 		KeepaliveManager.keepalive.doNowAsynchronous();
 		KeepaliveManager.keepalive.setEnable(true);

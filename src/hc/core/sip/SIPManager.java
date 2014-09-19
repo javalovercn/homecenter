@@ -12,6 +12,7 @@ import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
 import hc.core.data.DataReg;
+import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
 import hc.core.util.LogManager;
 
@@ -288,7 +289,7 @@ public class SIPManager {
 				return;
 			}
 		}else{
-			if(now - lastLineOff > 1000){
+			if(now - lastLineOff > CCoreUtil.WAIT_MS_FOR_NEW_CONN){
 				
 			}else{
 				L.V = L.O ? false : LogManager.log("skip recall lineoff clientReq");

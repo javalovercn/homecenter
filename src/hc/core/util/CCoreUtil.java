@@ -16,6 +16,7 @@ public class CCoreUtil {
 		}
 	}
 
+	public static final int WAIT_MS_FOR_NEW_CONN = 3000;
 	public static final String RECEIVE_CERT_OK = "OK";
 	public static final String RECEIVE_CERT_FORBID = "FORBID";
 	public final static String FORBID_UPDATE_CERT = "Forbid update certification in (unsafe) net";

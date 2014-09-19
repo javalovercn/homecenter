@@ -41,7 +41,7 @@ public class J2SESIPContext extends ISIPContext {
 						socket.send((DatagramPacket)packet);
 					}
 				}catch (Exception e) {
-					e.printStackTrace();
+//					e.printStackTrace();//UDP断线时，会输出很多的异常信息，故关闭
 					SIPManager.notifyRelineon(false);
 				}
 			}

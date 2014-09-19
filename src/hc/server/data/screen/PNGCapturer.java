@@ -349,6 +349,10 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	@Override
 	public void onExit() {
 		isShutDown = true;
+		try{
+			this.interrupt();
+		}catch (Exception e) {
+		}
 		synchronized (WAITING) {
 			WAITING.notify();
 		}
