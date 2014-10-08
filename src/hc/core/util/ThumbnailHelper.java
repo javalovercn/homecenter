@@ -1,5 +1,7 @@
 package hc.core.util;
 
+import hc.core.L;
+
 public class ThumbnailHelper {
 
 	/**
@@ -28,14 +30,27 @@ public class ThumbnailHelper {
 		return out;
 	}
 
-	public static int[] calNewLocXY(boolean isZoomIn, int locX, int locY, int pcW, int pcH, int mobileW, int mobileH){
-		if(isZoomIn){
-			locX += mobileW / 4;
-			locY += mobileH / 4;
+//	private static int convertZoomUnzoomXY(int xy, final int zoomMultiples){
+//		if(zoomMultiples != 1){
+//			int zoomSize = xy / zoomMultiples;
+//			if(zoomSize * zoomMultiples != xy){
+//				zoomSize++;//增加放大后，末尾舍掉的一位像素
+//			}
+//			return zoomSize;
+//		}
+//		return xy;
+//	}
+	
+	public static int[] calNewLocXY(int oldZoomMultiple, int zoomMultiples, int locX, int locY, int pcW, int pcH, int mobileW, int mobileH){
+		final int oldLocX = locX;
+		final int oldLocY = locY;
+		
+		if(zoomMultiples > oldZoomMultiple){
+			locX += (mobileW / oldZoomMultiple - mobileW / zoomMultiples) / 2;
+			locY += (mobileH / oldZoomMultiple - mobileH / zoomMultiples) / 2;
 		}else{
-			locX -= mobileW / 4;
-			locY -= mobileH / 4;
-			
+			locX -= (mobileW / zoomMultiples - mobileW / oldZoomMultiple) / 2;
+			locY -= (mobileH / zoomMultiples - mobileH / oldZoomMultiple) / 2;
 			if(locX > (pcW - mobileW)){
 				locX = pcW - mobileW;//有可能产生负值
 			}
@@ -53,7 +68,25 @@ public class ThumbnailHelper {
 			}
 		}
 		
-		final int[] back = {locX, locY};
+		final int zoomWidth = (zoomMultiples != 1)?(mobileW / zoomMultiples):mobileW;		
+		final int zoomHeight = (zoomMultiples != 1)?(mobileH / zoomMultiples):mobileH;		
+		
+		int pcBottomY = 0, pcMaxRightX = 0;
+		pcBottomY = pcH - zoomHeight;
+		if(pcBottomY < 0){
+			pcBottomY = 0;
+		}
+		pcMaxRightX = pcW - zoomWidth;
+		if(pcMaxRightX < 0){
+			pcMaxRightX = 0;
+		}
+//		L.V = L.O ? false : LogManager.log("oldZoomMulti : " + oldZoomMultiple + "currentZoomMulti : " + zoomMultiples + ", oldLocX : " + oldLocX + ", oldLocY : " + oldLocY 
+//		+ ", locX : " + locX + ", locY : " + locY + ", mobileW : " + mobileW + ", mobileH : " + mobileH + ", zoomW : " + zoomWidth + ", zoomH : " + zoomHeight + 
+//		"maxRightX : " + pcMaxRightX + ", bottomY : " + pcBottomY);
+
+		final int[] back = {locX, locY, zoomWidth, zoomHeight, pcMaxRightX, pcBottomY, 
+				(zoomWidth*zoomMultiples)==mobileW?0:1, //返回1表示，要补一个像素宽
+				(zoomHeight*zoomMultiples)==mobileH?0:1};//返回1表示，要补一个像素高
 		return back;
 	}
 

@@ -621,7 +621,7 @@ public class RelayManager {
 		}else{
 			if(erb != null){
 				if(erb.doExt(channel, buffer) == false){
-					L.V = L.O ? false : LogManager.log("skip unforward packet, force Exception and close channel.");
+					L.V = L.O ? false : LogManager.log("skip unforward packet.");// force Exception and close channel.
 //					由于可能服务器重新连接Root后，其它线程仍有可能发送旧数据，可能会产生此异常。比如sendThundmail
 //					故注释下行代码ß
 //					throw BBIOException;

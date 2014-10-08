@@ -897,8 +897,8 @@ public class App {
 	public static Window showCenterPanelOKDispose(JPanel panel, int width,
 			int height, String title, boolean isAddCancle, JButton jbOK,
 			String cancelButText, final ActionListener listener,
-			final ActionListener cancelListener, final boolean isOkDispose, JFrame frame,
-			boolean model, boolean isNewJFrame, Component relativeTo, boolean isResizable, boolean delay) {
+			final ActionListener cancelListener, final boolean isOkDispose, JFrame parentframe,
+			boolean model, boolean isNewJFrame, Component relativeToObj, boolean isResizable, boolean isDelay) {
 		JButton jbCancle = new JButton(((cancelButText == null)?(String) ResourceUtil.get(1018):cancelButText),
 				new ImageIcon(ImageSrc.CANCEL_ICON));
 		final UIActionListener cancelAction = new UIActionListener() {
@@ -947,7 +947,7 @@ public class App {
 		};
 
 		return showCenterPanelButtons(panel, width, height, title, isAddCancle, jbOK,
-				jbCancle, jbOKAction, cancelAction, frame, model, isNewJFrame, relativeTo, isResizable, delay);
+				jbCancle, jbOKAction, cancelAction, parentframe, model, isNewJFrame, relativeToObj, isResizable, isDelay);
 	}
 
 	public static Window showCenterPanelWindow(JPanel panel, int width,

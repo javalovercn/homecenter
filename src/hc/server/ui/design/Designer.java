@@ -274,7 +274,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	}
 	
 	public Designer() {
-		setTitle((String)ResourceUtil.get(9034));
+		setTitle((String)ResourceUtil.get(9034) + "[" + (String)ResourceUtil.get(9083) + "]");
 		
 		instance = this;
 		

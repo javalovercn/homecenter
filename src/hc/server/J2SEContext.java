@@ -291,16 +291,16 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					if(ScreenServer.isServing() == false){
 						ClientDesc.refreshClientInfo(Message.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA));
 
-						//如果手机版本过低，产生通知
-						String pcReqMobiVer = (String)doExtBiz(BIZ_GET_REQ_MOBI_VER_FROM_PC, null);
-						if(StringUtil.higer(pcReqMobiVer, ClientDesc.clientVer)){
-							send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS));
-							LogManager.err("Min required mobile version : [" + pcReqMobiVer + "], current mobile version : [" + ClientDesc.clientVer + "]");
-							L.V = L.O ? false : LogManager.log("Cancel mobile login process");
-							sleepAfterError();
-							SIPManager.notifyRelineon(false);
-							return true;
-						}
+//						//如果手机版本过低，产生通知
+//						String pcReqMobiVer = (String)doExtBiz(BIZ_GET_REQ_MOBI_VER_FROM_PC, null);
+//						if(StringUtil.higer(pcReqMobiVer, ClientDesc.clientVer)){
+//							send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS));
+//							LogManager.err("Min required mobile version : [" + pcReqMobiVer + "], current mobile version : [" + ClientDesc.clientVer + "]");
+//							L.V = L.O ? false : LogManager.log("Cancel mobile login process");
+//							sleepAfterError();
+//							SIPManager.notifyRelineon(false);
+//							return true;
+//						}
 						
 						//服务器产生一个随机数，用CertKey和密码处理后待用，
 						byte[] randomBS = new byte[MsgBuilder.UDP_BYTE_SIZE];
@@ -1004,11 +1004,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
         				}    					
     				}
 
-    				designer.setToolTipText("<html>powerful mobile menus and UI designer. " +
-    						"<BR>Load HAR project of smart devices for mobile accessing." +
-    						//"<BR>for example, import jar libs, program complex UI to control home smart devices and PC." +
-    						//"<BR>install JRuby engine online is required." +
-    						"</html>");
+    				designer.setToolTipText((String)ResourceUtil.get(9080));
 	            	designer.setIcon(designIco);
     	            designer.addActionListener(new ActionListener() {
     	                public void actionPerformed(ActionEvent e) {
@@ -1040,8 +1036,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
     						ResourceUtil.getResource("hc/res/menu_22.png"))));
     			} catch (IOException e1) {
     			}
-    			linkItem.setToolTipText("<html>add, delete, config project(s).<BR>select project to edit." +
-    					"</html>");
+    			linkItem.setToolTipText((String)ResourceUtil.get(9081));
             	linkItem.addActionListener(new ActionListener() {
     	            public void actionPerformed(ActionEvent e) {
 	            		LinkMenuManager.showLinkPanel(null);
@@ -1057,8 +1052,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						ResourceUtil.getResource("hc/res/map_22.png"))));
 			} catch (IOException e1) {
 			}
-			mapItem.setToolTipText("<html>when access desktop screen from mobile, " +
-					"<BR>click icon (mapping shortcut key) to execute shortcut key(s) on PC.</html>");
+			mapItem.setToolTipText("<html>" + (String)ResourceUtil.get(9082) + "</html>");
         	mapItem.addActionListener(new ActionListener() {
 	            public void actionPerformed(ActionEvent e) {
 	            	refreshActionMS(false);
@@ -1457,6 +1451,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				//abc###efg
 				ServerConfig sc = new ServerConfig("");
 				sc.setProperty(ServerConfig.p_HC_VERSION, StarterManager.getHCVersion());
+				sc.setProperty(ServerConfig.p_MIN_MOBI_VER_REQUIRED_BY_PC, minMobiVerRequiredByServer);
 				return sc.toTransString();
 			}else{
 				return null;
@@ -1686,8 +1681,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		}
 		if(bizNo == IContext.BIZ_VERSION_MID_OR_PC){
 			return StarterManager.getHCVersion();
-		}else if(bizNo == IContext.BIZ_GET_REQ_MOBI_VER_FROM_PC){
-			return "6.67";
+//		}else if(bizNo == IContext.BIZ_GET_REQ_MOBI_VER_FROM_PC){
+//			return "6.68";
 		}
 		return null;
 	}
@@ -1770,7 +1765,11 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 	private static void transNewCertKey() {
 //		LogManager.logInTest("send Cert : " + CUtil.toHexString(CUtil.CertKey));
-		ServerCUtil.transCertKey(CUtil.CertKey, MsgBuilder.E_TRANS_NEW_CERT_KEY, false);
+		if(ContextManager.cmStatus != ContextManager.STATUS_SERVER_SELF){
+			ServerCUtil.transCertKey(CUtil.CertKey, MsgBuilder.E_TRANS_NEW_CERT_KEY, false);
+		}else{
+			ServerCUtil.transCertKey(CUtil.CertKey, MsgBuilder.E_TRANS_NEW_CERT_KEY_IN_SECU_CHANNEL, false);
+		}
 	}
 	
 	private static boolean enableTransCertKey;
@@ -1905,14 +1904,16 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			nextpanel.add(new JLabel((String) ResourceUtil.get(9032), new ImageIcon(ImageIO.read(ImageSrc.OK_ICON)), SwingConstants.LEFT));
 		} catch (IOException e2) {
 		}
-		App.showCenterPanel(nextpanel, 0, 0, (String) ResourceUtil.get(IContext.INFO), false, null, null, new ActionListener() {
+		App.showCenterPanelOKDispose(nextpanel, 0, 0, (String) ResourceUtil.get(IContext.INFO), false, (JButton)null, (String)null, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 			}
-		}, null, null, false, false, null, false, false);
+		}, null, true, null, false, true, null, false, true);
+		
 	}
 
 	public static final String MAX_HC_VER = "9999999";//注意与Starter.NO_UPGRADE_VER保持同步
+	private final String minMobiVerRequiredByServer = "6.68";
 	
 	private void flipAutoUpgrade(final JCheckBoxMenuItem upgradeItem,
 			final boolean isAutoAfterClick) {
@@ -1976,8 +1977,11 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				long curr = System.currentTimeMillis();
 				@Override
 				public boolean watch() {
-					if(System.currentTimeMillis() - curr > 2000){
+					if(isTransedToMobileSize){
 						ProjectContext.sendStaticMessage((String) ResourceUtil.get(IContext.INFO), (String) ResourceUtil.get(9033), IContext.INFO, null, 0);
+						return true;
+					}
+					if(System.currentTimeMillis() - curr > 3000){
 						return true;
 					}
 					return false;
@@ -1997,8 +2001,9 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				}
 			});
 			final JPanel panel = new JPanel();
+			panel.setLayout(new BorderLayout());
 			try {
-				panel.add(new JLabel((String) ResourceUtil.get(9007), new ImageIcon(ImageIO.read(ImageSrc.OK_ICON)), SwingConstants.LEFT));
+				panel.add(new JLabel((String) ResourceUtil.get(9007), new ImageIcon(ImageIO.read(ImageSrc.OK_ICON)), SwingConstants.LEFT), BorderLayout.CENTER);
 			} catch (IOException e2) {
 			}
 			final Window window = App.showCenterPanel(panel, 0, 0, (String) ResourceUtil.get(IContext.INFO), false, null, null, new ActionListener() {
@@ -2021,10 +2026,10 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						}else{
 							doAfterCertIsNotTransed();
 						}
+						return true;
+					}else{
+						return false;
 					}
-
-					
-					return true;
 				}
 
 				@Override
@@ -2061,7 +2066,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	public static void appendTitleJRubyVer(JFrame frame) {
 		String ver = PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer);
 		if(ver != null){
-			frame.setTitle(frame.getTitle() + " - [JRuby:" + ver + "]");
+			frame.setTitle(frame.getTitle() + " - {JRuby:" + ver + "}");
 		}
 	}
 

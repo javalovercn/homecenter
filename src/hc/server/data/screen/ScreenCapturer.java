@@ -164,56 +164,74 @@ public class ScreenCapturer extends PNGCapturer{
 		hc.core.L.V=hc.core.L.O?false:LogManager.log(OP_STR + "Screen [" + HCURL.REMOTE_HOME_SCREEN + "] start");
 	
 		{
-			CLIENT_WIDTH = clientWidth/2;//初始时要拆半
-			CLIENT_HEIGHT = clientHeight/2;//初始时要拆半
+			client_width_zoomornot = clientWidth;
+			client_height_zoomornot = clientHeight;
 			
-			initMobileArea();
+			final_mobi_width = clientWidth;
+			final_mobi_height = clientHeight;
 			
-			rematchRect();
+			int[] out = ThumbnailHelper.calNewLocXY(2, 1, 0, 0, pcWidth, pcHeight, clientWidth, clientHeight);
+			
+
+			client_width_zoomornot = out[2];
+			client_height_zoomornot = out[3];
+			
+			MAX_RIGHT_X = out[4];
+			BOTTOM_Y = out[5];
+//			
+//			int by = screenHeigh - client_height_zoomornot;
+//			if(by < 0){
+//				BOTTOM_Y = 0;
+//			}else{
+//				BOTTOM_Y = by;
+//			}
+//			int rx = screenWidth - client_width_zoomornot;
+//			if(rx < 0){
+//				 = 0;
+//			initMobileArea();
+
+			locX = 0;
+			locY = BOTTOM_Y;
+
+			rematchRect(out[6], out[7]);
 		}
 	}
 
 	/**
 	 * 更新capRect和movNewRect的x,y,width, height
 	 */
-	private void rematchRect() {
+	private void rematchRect(final int addOnePixelW, final int addOnePixelH) {
 		capRect.x = locX;
 		capRect.y = locY;
-		matchRect(capRect);
+		matchRect(capRect, addOnePixelW, addOnePixelH);
 		
 		moveNewRect.x = locX;
 		moveNewRect.y = locY;
-		matchRect(moveNewRect);
+		matchRect(moveNewRect, addOnePixelW, addOnePixelH);
 	}
 	
-	private boolean isZoomIn = false;
+	private int zoomOldMultiples = 1;
 	
-	private int convertZoomUnzoomXY(int xy){
-		return isZoomIn?xy/2:xy*2;
-	}
-	
-	private void initMobileArea() {
-//		L.V = L.O ? false : LogManager.log("is ZoomIn : " + isZoomIn);
-		
-		CLIENT_WIDTH = convertZoomUnzoomXY(CLIENT_WIDTH);
-		CLIENT_HEIGHT = convertZoomUnzoomXY(CLIENT_HEIGHT);
-		
-		locX = 0;
-		int by = screenHeigh - CLIENT_HEIGHT;
-		if(by < 0){
-			BOTTOM_Y = 0;
-		}else{
-			BOTTOM_Y = by;
-		}
-		int rx = screenWidth - CLIENT_WIDTH;
-		if(rx < 0){
-			MAX_RIGHT_X = 0;
-		}else{
-			MAX_RIGHT_X = rx;
-		}
-		
-		locY = BOTTOM_Y;
-	}
+//	private void initMobileArea() {
+////		L.V = L.O ? false : LogManager.log("is ZoomIn : " + isZoomIn);
+//		
+//		client_width_zoomornot = convertZoomUnzoomXY(final_mobi_width);xx
+//		client_height_zoomornot = convertZoomUnzoomXY(final_mobi_height);
+//		
+//		int by = screenHeigh - client_height_zoomornot;
+//		if(by < 0){
+//			BOTTOM_Y = 0;
+//		}else{
+//			BOTTOM_Y = by;
+//		}
+//		int rx = screenWidth - client_width_zoomornot;
+//		if(rx < 0){
+//			MAX_RIGHT_X = 0;
+//		}else{
+//			MAX_RIGHT_X = rx;
+//		}
+//		L.V = L.O ? false : LogManager.log("BOTTOM_Y : " + BOTTOM_Y + ", MAX_RIGHT_X : " + MAX_RIGHT_X);
+//	}
 	
 	@Override
 	public void run(){
@@ -610,40 +628,62 @@ public class ScreenCapturer extends PNGCapturer{
 		hc.core.L.V=hc.core.L.O?false:LogManager.log(OP_STR + "drag from ["+startX + ", " + startY+"] to [" + endX + ", " + endY + "]");
 	}
 	
-	public void zoom(final int type){
+	public void zoom(final int zoomMultiPara){
 		synchronized (LOCK) {
-			int oldLocX = locX, oldLocY = locY;
-			
-			int mobileW = 0, mobileH = 0;
-			if(type == MsgBuilder.DATA_ZOOM_IN){
-				mobileW = CLIENT_WIDTH;
-				mobileH = CLIENT_HEIGHT;
-				isZoomIn = true;
-				initMobileArea();
-			}else if(type == MsgBuilder.DATA_ZOOM_OUT){
-				isZoomIn = false;
-				initMobileArea();
-				mobileW = CLIENT_WIDTH;
-				mobileH = CLIENT_HEIGHT;
+//			L.V = L.O ? false : LogManager.log("receive zoom cmd : " + zoomMultiPara + ", oldZoomMulti : " + zoomOldMultiples);
+			int[] outInts = null;;
+			if(zoomOldMultiples != 1){
+				outInts = zoomUnzoom(zoomOldMultiples, 1);
 			}
-			
-			final int[] newLocXY = ThumbnailHelper.calNewLocXY(isZoomIn, oldLocX, oldLocY, screenWidth, screenHeigh, mobileW, mobileH);
-			
-			locX = newLocXY[0];
-			locY = newLocXY[1];
+			if(zoomMultiPara != 1){
+				outInts = zoomUnzoom(1, zoomMultiPara);
+			}
+			zoomOldMultiples = zoomMultiPara;
 			
 //			L.V = L.O ? false : LogManager.log("oldLocX : " + oldLocX + ", oldLocY : " + oldLocY + ", locX : " + locX + ", locY : " + locY);
 			
-			rematchRect();
-			
+			if(outInts != null){
+				rematchRect(outInts[6], outInts[7]);
+			}else{
+				rematchRect(0, 0);
+			}
 			initClientSnap();
 		}
 		
 		try{
-			sendPNG(capRect, CLIENT_WIDTH, false);
+			sendPNG(capRect, client_width_zoomornot, false);
 		}catch (Exception e) {
 			//考虑数据溢出，故忽略
 		}
+	}
+
+	private int[] zoomUnzoom(final int fromZoom, final int toZoom) {
+		int oldLocX = locX, oldLocY = locY;
+		
+		if(toZoom != 1){
+//			mobileW = client_width_zoomornot;
+//			mobileH = client_height_zoomornot;
+//				isZoomIn = true;
+//			initMobileArea();
+		}else{
+//				isZoomIn = false;
+//			initMobileArea();
+//			mobileW = client_width_zoomornot;
+//			mobileH = client_height_zoomornot;
+		}
+//		initMobileArea();
+		final int[] newLocXY = ThumbnailHelper.calNewLocXY(fromZoom, toZoom, oldLocX, oldLocY, screenWidth, screenHeigh, final_mobi_width, final_mobi_height);
+		
+		locX = newLocXY[0];
+		locY = newLocXY[1];
+		
+		client_width_zoomornot = newLocXY[2];
+		client_height_zoomornot = newLocXY[3];
+		
+		MAX_RIGHT_X = newLocXY[4];
+		BOTTOM_Y = newLocXY[5];
+		
+		return newLocXY;
 	}
 
 	public void moveUp(final int pixle){
@@ -674,40 +714,40 @@ public class ScreenCapturer extends PNGCapturer{
 				//************************
 				//************************
 				//------------------------
-				final int len = (CLIENT_HEIGHT - pixle) * CLIENT_WIDTH;
+				final int len = (client_height_zoomornot - pixle) * client_width_zoomornot;
 				int fromRowIdx = len - 1;
-				for (int idxEnd = CLIENT_HEIGHT * CLIENT_WIDTH - 1; fromRowIdx >= 0;) {
+				for (int idxEnd = client_height_zoomornot * client_width_zoomornot - 1; fromRowIdx >= 0;) {
 					clientSnap[idxEnd--] = clientSnap[fromRowIdx--];
 				}
 				
-				for (int i = 0, lenM = pixle * CLIENT_WIDTH; i < lenM; ) {
+				for (int i = 0, lenM = pixle * client_width_zoomornot; i < lenM; ) {
 					clientSnap[i++] = DEFAULT_BACK_COLOR;
 				}
 			}else{
 				moveNewRect.height = pixle * (-1);
-				moveNewRect.y = locY + CLIENT_HEIGHT + pixle;
+				moveNewRect.y = locY + client_height_zoomornot + pixle;
 				
 				//------------------------
 				//************************
 				//************************
 				//************************
-				final int len = (CLIENT_HEIGHT + pixle) * CLIENT_WIDTH;
-				int fromRowIdx = (-pixle) * CLIENT_WIDTH;
+				final int len = (client_height_zoomornot + pixle) * client_width_zoomornot;
+				int fromRowIdx = (-pixle) * client_width_zoomornot;
 				for (int i = 0; i < len;) {
 					clientSnap[i++] = clientSnap[fromRowIdx++];
 				}
 				
-				final int toIdx = (CLIENT_HEIGHT + pixle) * CLIENT_WIDTH;
-				for (int i = toIdx, end = CLIENT_HEIGHT * CLIENT_WIDTH; i < end; ) {
+				final int toIdx = (client_height_zoomornot + pixle) * client_width_zoomornot;
+				for (int i = toIdx, end = client_height_zoomornot * client_width_zoomornot; i < end; ) {
 					clientSnap[i++] = DEFAULT_BACK_COLOR;
 				}
 			}
 	
 			capRect.y = locY;
 			
-			moveNewRect.width = CLIENT_WIDTH;
+			moveNewRect.width = client_width_zoomornot;
 	//		将新出生的空白块，发出
-			sendPNG(cutBlackBorder(moveNewRect), CLIENT_WIDTH, false);
+			sendPNG(cutBlackBorder(moveNewRect), client_width_zoomornot, false);
 		}
 		timeWatcher.watchTrigger();		
 	}
@@ -734,19 +774,19 @@ public class ScreenCapturer extends PNGCapturer{
 		synchronized (LOCK) {		
 			if(pixle > 0){
 				moveNewRect.width = pixle;
-				moveNewRect.x = locX + CLIENT_WIDTH - pixle;
+				moveNewRect.x = locX + client_width_zoomornot - pixle;
 
-				for (int row = 0, RowLen = CLIENT_HEIGHT; row < RowLen; row++) {
-					final int idxR = row * CLIENT_WIDTH;
+				for (int row = 0, RowLen = client_height_zoomornot; row < RowLen; row++) {
+					final int idxR = row * client_width_zoomornot;
 					int idxM = idxR + pixle;
 					//--********************
-					for (int x = idxR, end = idxR + CLIENT_WIDTH - pixle; x >= 0 && x < end;) {
+					for (int x = idxR, end = idxR + client_width_zoomornot - pixle; x >= 0 && x < end;) {
 //						if(row == 0){
 //							L.V = L.O ? false : LogManager.log("mov " + idxM + " to " + x);
 //						}
 						clientSnap[x++] = clientSnap[idxM++];
 					}
-					for (int end = idxR + CLIENT_WIDTH, i = end - pixle; i >= 0 && i < end; i++) {
+					for (int end = idxR + client_width_zoomornot, i = end - pixle; i >= 0 && i < end; i++) {
 //						if(row == 0){
 //							L.V = L.O ? false : LogManager.log("reset color idx " + i);
 //						}
@@ -757,11 +797,11 @@ public class ScreenCapturer extends PNGCapturer{
 				moveNewRect.width = pixle * (-1);
 				moveNewRect.x = locX;
 
-				for (int row = 0, RowLen = CLIENT_HEIGHT; row < RowLen; row++) {
-					final int idxR = row * CLIENT_WIDTH;
-					int idxM = idxR + CLIENT_WIDTH + pixle - 1;
+				for (int row = 0, RowLen = client_height_zoomornot; row < RowLen; row++) {
+					final int idxR = row * client_width_zoomornot;
+					int idxM = idxR + client_width_zoomornot + pixle - 1;
 					//********************--
-					for (int x = idxR + CLIENT_WIDTH - 1; idxM >= idxR;) {
+					for (int x = idxR + client_width_zoomornot - 1; idxM >= idxR;) {
 						clientSnap[x--] = clientSnap[idxM--];
 					}
 					for (int i = idxR, len = idxR-pixle; i >= 0 && i < len; i++) {
@@ -772,15 +812,16 @@ public class ScreenCapturer extends PNGCapturer{
 			
 			capRect.x = locX;
 	
-			moveNewRect.height = CLIENT_HEIGHT;
+			moveNewRect.height = client_height_zoomornot;
 			//将新出生的空白块，发出
-			sendPNG(cutBlackBorder(moveNewRect), CLIENT_WIDTH, false);
+			sendPNG(cutBlackBorder(moveNewRect), client_width_zoomornot, false);
 		}
 		timeWatcher.watchTrigger();
 	}
 	
 	private int BOTTOM_Y, MAX_RIGHT_X;
-	private int CLIENT_WIDTH, CLIENT_HEIGHT;
+	private int client_width_zoomornot, client_height_zoomornot;
+	private final int final_mobi_width, final_mobi_height;
 	
 	public void refreshRectange(final int x, final int y){	
 		capRect.x = x;
@@ -789,13 +830,13 @@ public class ScreenCapturer extends PNGCapturer{
 		locX = x;
 		locY = y;
 		
-		matchRect(moveNewRect);
+		matchRect(moveNewRect, 0, 0);
 		
 		for (int i = 0; i < clientSnap.length; i++) {
 			clientSnap[i] = -1;//不用DEFAULT_BACK_COLOR，而用-1，是强制更新全部
 		}
 		
-		sendPNG(cutBlackBorder(capRect), CLIENT_WIDTH, false);
+		sendPNG(cutBlackBorder(capRect), client_width_zoomornot, false);
 	}
 	
 	/**
@@ -817,9 +858,9 @@ public class ScreenCapturer extends PNGCapturer{
 		return r;
 	}
 
-	private void matchRect(final Rectangle rectangle) {
-		rectangle.width = ((CLIENT_WIDTH < screenWidth)?CLIENT_WIDTH:screenWidth);
-		rectangle.height = ((CLIENT_HEIGHT < screenHeigh)?CLIENT_HEIGHT:screenHeigh);
+	private void matchRect(final Rectangle rectangle, final int addOnePixelW, final int addOnePixelH) {
+		rectangle.width = (((client_width_zoomornot < screenWidth)?client_width_zoomornot:screenWidth)) + addOnePixelW;
+		rectangle.height = (((client_height_zoomornot < screenHeigh)?client_height_zoomornot:screenHeigh)) + addOnePixelH;
 	}
 	
 	/**

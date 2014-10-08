@@ -242,8 +242,8 @@ public class ScreenServer {
 				return MsgBuilder.E_SCREEN_ZOOM;
 			}
 			public boolean action(final byte[] bs) {
-				int type = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
-				cap.zoom(type);
+				int zoomMulti = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
+				cap.zoom(zoomMulti);
 				return true;
 			}});
 		

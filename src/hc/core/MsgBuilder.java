@@ -75,6 +75,7 @@ public class MsgBuilder {
 	
 	//用于服务器和手机端双向通知下线，需要加密，因为要保护Token
 	public static final byte E_TAG_SHUT_DOWN_BETWEEN_CS = 60;
+	public static final byte E_TRANS_NEW_CERT_KEY_IN_SECU_CHANNEL = 61;//在线更新情形时，传输证书于加密通道，
 	
 	public static final byte E_JCIP_FORM_EXIT = 70;
 	public static final byte E_JCIP_FORM_SUBMIT = 71;
@@ -127,9 +128,6 @@ public class MsgBuilder {
 	
 	public static final byte DATA_SUB_TAG_MSG_MTU_1472 = 1;
 	public static final byte DATA_SUB_TAG_MSG_UDP_CHECK_ALIVE = 2;
-	
-	public static final int DATA_ZOOM_IN = 1;
-	public static final int DATA_ZOOM_OUT = 2;
 	
 	public static final short LEN_CTRL_TAG = 1;
 	public static final short LEN_CTRL_SUB = 1;

@@ -1,5 +1,5 @@
 1. these source file are HomeCenter Application Server on PC side. they are NOT mobile application.
-2. main class : hc.App, project encode:utf-8.
+2. main class : hc.App, project encode:utf-8. Please keep the source code as the latest version, otherwise it may cause abnormal connections.
 3. require JRE 6.0 or above.
 4. please read and agree the license file "hc_license.txt" and "mpl_license.txt".
 5. install mobile side application for Android, iPhone, J2ME..., please download them from http://homecenter.mobi/en/pc/downloads.htm

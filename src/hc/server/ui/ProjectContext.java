@@ -27,6 +27,8 @@ import java.util.Hashtable;
 import javax.imageio.ImageIO;
 
 /**
+ * There is only a {@link ProjectContext} instance for a HAR Project at runtime.
+ * <br>Different HAR projects have their own separate instance of {@link ProjectContext}<br><br>
  * there are three way to get instance of ProjectContext
  * <br>1. call {@link hc.server.ui.Mlet#getProjectContext()}
  * <br>2. call {@link hc.server.ui.CtrlResponse#getProjectContext()}
@@ -36,7 +38,7 @@ public class ProjectContext {
 	private final String projectID;
 	private final String projectVer;
 	final Hashtable<String, Object> obj_map = new Hashtable<String, Object>();
-	private static ProjectContext staticContext;
+	private final static ProjectContext staticContext = new ProjectContext("static", "1.0");
 	/**
 	 * @deprecated
 	 * @param id
@@ -45,7 +47,6 @@ public class ProjectContext {
 	public ProjectContext(final String id, final String ver){
 		projectID = id;
 		projectVer =  ver;
-		staticContext = this;
 	}
 	
 	/**

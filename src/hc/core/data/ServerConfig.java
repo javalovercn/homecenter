@@ -6,6 +6,7 @@ public class ServerConfig extends HCConfig{
 	private static ServerConfig config;
 	
 	public static final short p_HC_VERSION = 0;
+	public static final short p_MIN_MOBI_VER_REQUIRED_BY_PC = 1;//服务器要求手机端最低版本
 	
 	public static void setInstance(ServerConfig sc){
 		config = sc;

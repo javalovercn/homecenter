@@ -3,6 +3,7 @@ package hc.core;
 import java.util.Vector;
 
 import hc.core.util.LogManager;
+import hc.core.util.ThreadPool;
 
 public abstract class HCTimer {
 	//默认为１０分
@@ -194,21 +195,25 @@ public abstract class HCTimer {
 	public static void shutDown() {
 		isShutDown = true;
 		
-		final int size = newThreadTimer.size();
-		for (int i = 0; i < size; i++) {
-			ThreadTimer tt = (ThreadTimer)newThreadTimer.elementAt(i);
-			tt.notifyShutdown();
-		}
-		
 		try{
-			ContextManager.getContextInstance().interrupt(thread);
-		}catch (Exception e) {
-			//可能NullPointerException
+			final int size = newThreadTimer.size();
+			for (int i = 0; i < size; i++) {
+				ThreadTimer tt = (ThreadTimer)newThreadTimer.elementAt(i);
+				tt.notifyShutdown();
+			}
+			
+			try{
+				ContextManager.getContextInstance().interrupt(thread);
+			}catch (Throwable e) {
+				//可能NullPointerException
+			}
+			//非j2me应用环境
+	//		if(IConstant.getInstance().getInt(IConstant.IS_J2ME) == 0){
+	//			thread.interrupt();
+	//		}
+		}finally{
+			ThreadPool.shutdown();
 		}
-		//非j2me应用环境
-//		if(IConstant.getInstance().getInt(IConstant.IS_J2ME) == 0){
-//			thread.interrupt();
-//		}
 	}
 
 	public static void remove(HCTimer t){

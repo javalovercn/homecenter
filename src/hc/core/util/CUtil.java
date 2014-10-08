@@ -141,7 +141,7 @@ public class CUtil {
 			superXor(data, index, TRANS_CERT_KEY_LEN, CertKey, true);
 			superXor(data, index, TRANS_CERT_KEY_LEN, password, true);
 		}else{
-			xor(data, index, TRANS_CERT_KEY_LEN, password);
+			superXor(data, index, TRANS_CERT_KEY_LEN, password, true);
 			
 			//注意与普通数据加解密的次序相反
 			if(userEncryptor != null){
@@ -168,7 +168,7 @@ public class CUtil {
 			if(userEncryptor != null){
 				userEncryptor.decryptCertKey(ts, index, TRANS_CERT_KEY_LEN);
 			}
-			xor(ts, index, TRANS_CERT_KEY_LEN, password);
+			superXor(ts, index, TRANS_CERT_KEY_LEN, password, false);
 		}
 		for (int i = 0, j = index; i < storebs.length; i++, j++) {
 			storebs[i] = ts[j];
@@ -310,8 +310,8 @@ public class CUtil {
 					}else if(status.equals(String.valueOf(IContext.BIZ_SERVER_AFTER_SERVICE_IS_FULL))){
 						LogManager.info("service is full");
 						ContextManager.getContextInstance().doExtBiz(IContext.BIZ_SERVER_AFTER_SERVICE_IS_FULL, null);
-					}else if(status.equals(String.valueOf(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS))){
-						ContextManager.getContextInstance().doExtBiz(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS, null);
+//					}else if(status.equals(String.valueOf(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS))){
+//						ContextManager.getContextInstance().doExtBiz(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS, null);
 					}else{
 						LogManager.info("account locked or unknown");
 						ContextManager.getContextInstance().doExtBiz(IContext.BIZ_SERVER_AFTER_UNKNOW_STATUS, null);
@@ -339,20 +339,23 @@ public class CUtil {
 							ContextManager.getContextInstance().doExtBiz(IContext.BIZ_FORBID_UPDATE_CERT, null);
 							return true;
 						}
+					}else{
+						L.V = L.O ? false : LogManager.log("Disable receive CertKey in status:" + ContextManager.STATUS_CLIENT_SELF);
+						return true;
 					}
 					CUtil.decodeFromTransCertKey(bs, MsgBuilder.INDEX_MSG_DATA, 
 							IConstant.passwordBS, CUtil.CertKey, false);
 //					LogManager.logInTest("receive cert : " + CUtil.toHexString(CUtil.CertKey));
 					IConstant.getInstance().setObject(IConstant.CertKey, CertKey);
 					
-					if(ContextManager.cmStatus == ContextManager.STATUS_CLIENT_SELF){
-						//仅保存新的证书，并通知新消息事件，HCCtrlGame会获得通知，并UI提示
-//						MsgNotifier.getInstance().notifyNewMsg("OK, update new cert!");
-						
-						//证书已送达
-						HCURLUtil.sendCmd(HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_CERT_RECEIVED, CCoreUtil.RECEIVE_CERT_OK);
-						return true;
-					}
+//					if(ContextManager.cmStatus == ContextManager.STATUS_CLIENT_SELF){
+//						//仅保存新的证书，并通知新消息事件，HCCtrlGame会获得通知，并UI提示
+////						MsgNotifier.getInstance().notifyNewMsg("OK, update new cert!");
+//						
+//						//证书已送达
+//						HCURLUtil.sendCmd(HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_CERT_RECEIVED, CCoreUtil.RECEIVE_CERT_OK);
+//						return true;
+//					}
 					
 					CertForbidManager.receiveUncheckCert();
 					
@@ -382,9 +385,43 @@ public class CUtil {
 					return MsgBuilder.E_TRANS_NEW_CERT_KEY;
 				}});
 
-		
 			EventCenter.addListener(new IEventHCListener(){
 				public boolean action(final byte[] bs) {
+//					L.V = L.O ? false : LogManager.log("Receive Cert in Security Channel.");
+					
+					if(ContextManager.cmStatus != ContextManager.STATUS_CLIENT_SELF){
+						L.V = L.O ? false : LogManager.log("Trans Cert in Security channel should in status:" + ContextManager.STATUS_CLIENT_SELF);
+						return true;
+					}
+					CUtil.decodeFromTransCertKey(bs, MsgBuilder.INDEX_MSG_DATA, 
+							IConstant.passwordBS, CUtil.CertKey, false);
+//					LogManager.logInTest("receive cert : " + CUtil.toHexString(CUtil.CertKey));
+					IConstant.getInstance().setObject(IConstant.CertKey, CertKey);
+					
+//					if(ContextManager.cmStatus == ContextManager.STATUS_CLIENT_SELF){
+						//仅保存新的证书，并通知新消息事件，HCCtrlGame会获得通知，并UI提示
+//						MsgNotifier.getInstance().notifyNewMsg("OK, update new cert!");
+						
+						//证书已送达
+						HCURLUtil.sendCmd(HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_CERT_RECEIVED, CCoreUtil.RECEIVE_CERT_OK);
+						return true;
+//					}
+					
+//					hc.core.L.V=hc.core.L.O?false:LogManager.log("check certification key and password back to server AFTER New Cert Key");
+				}
+
+				public byte getEventTag() {
+					return MsgBuilder.E_TRANS_NEW_CERT_KEY_IN_SECU_CHANNEL;
+				}});
+		
+			EventCenter.addListener(new IEventHCListener(){
+				boolean isReceived = false;
+				public boolean action(final byte[] bs) {
+					if(isReceived){
+						L.V = L.O ? false : LogManager.log("one time key should NOT transed in status:" + ContextManager.STATUS_CLIENT_SELF);
+						return true;
+					}
+					isReceived = true;
 					LogManager.info(RootServerConnector.unObfuscate("og tnercpy tnotemi eeky"));
 					
 					OneTimeCertKey = new byte[CCoreUtil.CERT_KEY_LEN];
