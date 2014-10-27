@@ -131,7 +131,7 @@ public class StarterManager {
 	}
 	
 	//从6.96(含)开始，源代码中内置版本信息，而无需从starter中获得
-	private static final String HCVertion = "6.96";
+	private static final String HCVertion = "6.98";
 
 	private static String getHCVersionFromStarter() {
 		try{

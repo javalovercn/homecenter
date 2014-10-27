@@ -19,9 +19,9 @@ import java.util.Map;
 import java.util.Vector;
 
 public class MobiUIResponsor extends BaseResponsor {
-	final private String[] contexts = new String[LinkProjectManager.MAX_LINK_PROJ_NUM];
-	final private ProjResponser[] responsors = new ProjResponser[LinkProjectManager.MAX_LINK_PROJ_NUM];
-	private int responserSize; 
+	final String[] contexts = new String[LinkProjectManager.MAX_LINK_PROJ_NUM];
+	final ProjResponser[] responsors = new ProjResponser[LinkProjectManager.MAX_LINK_PROJ_NUM];
+	int responserSize; 
 	
 	public MobiUIResponsor() {
 		final Iterator<LinkProjectStore> lpsIt = LinkProjectManager.getLinkProjsIterator(true);

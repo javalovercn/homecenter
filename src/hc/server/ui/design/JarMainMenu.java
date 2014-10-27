@@ -55,16 +55,18 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 				listener = new String[itemCount + appendMenuItemNum];
 				extendMap = new String[itemCount + appendMenuItemNum];
 				
+				int addedFolderNum = 0;
 				if(appendMenuItemNum > 0){
 					//添加LinkProject
 					Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(false);
-					int i = 0;
 					while(it.hasNext()) {
 						final LinkProjectStore lps = it.next();
-						if(!lps.isActive()){
+						if( lps.isActive() && findExistMenuItemNumInProj(lps.getProjectID())){
+						}else{
+							//如果工程内没有菜单项，则不显示。含事件或未来其它
 							continue;
 						}
-						final int itemIdx = (i++);
+						final int itemIdx = (addedFolderNum++);
 						items[itemIdx][ITEM_NAME_IDX] = lps.getLinkScriptName();
 						itemTypes[itemIdx] = 0;
 						items[itemIdx][ITEM_IMG_IDX] = ServerConfig.SYS_FOLDER_ICON;
@@ -79,7 +81,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 				for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
 					String header = Iheader + itemIdx + ".";
 					
-					final int storeIdx = itemIdx + appendMenuItemNum;
+					final int storeIdx = itemIdx + addedFolderNum;
 					
 					items[storeIdx][ITEM_NAME_IDX] = (String)map.get(header + HCjar.ITEM_NAME);
 					itemTypes[storeIdx] = Integer.parseInt((String)map.get(header + HCjar.ITEM_TYPE));
@@ -97,6 +99,26 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 				extendMap = new String[0];
 			}
 		}
+	}
+	
+	private boolean findExistMenuItemNumInProj(final String projID){
+		if(baseRe instanceof MobiUIResponsor){
+			try{
+				MobiUIResponsor mr = (MobiUIResponsor)baseRe;
+				for (int i = 0; i < mr.responserSize; i++) {
+					if(mr.contexts[i].equals(projID)){
+						JarMainMenu menu = mr.responsors[i].menu[0];
+						if(menu != null){
+							if(menu.listener != null && menu.listener[0] != null){
+								return true;
+							}
+						}
+					}
+				}
+			}catch (Exception e) {
+			}
+		}
+		return false;
 	}
 
 	public String[] getIconLabels() {

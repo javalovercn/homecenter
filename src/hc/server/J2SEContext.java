@@ -1915,7 +1915,9 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	}
 
 	public static final String MAX_HC_VER = "9999999";//注意与Starter.NO_UPGRADE_VER保持同步
-	private final String minMobiVerRequiredByServer = "6.69";//(含)
+	
+	private final String minMobiVerRequiredByServer = "6.69";//(含)，
+	//你可能 还 需要修改服务器版本，StarterManager HCVertion = "6.97";
 	
 	private void flipAutoUpgrade(final JCheckBoxMenuItem upgradeItem,
 			final boolean isAutoAfterClick) {
