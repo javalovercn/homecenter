@@ -123,7 +123,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		}else{
 			colorBit = IConstant.COLOR_8_BIT;
 		}
-		final int mask_one = 0xFF - ((0x01 << colorBit) - 1);
+		final int mask_one = ((0x01 << (colorBit - 1)) - 1);
 		return (mask_one << 16) | (mask_one << 8) | mask_one;
 	}
 	
@@ -162,8 +162,10 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 			
 //			L.V = L.O ? false : LogManager.log("Auto Refresh Rect:" + System.currentTimeMillis());
 			try{
-				sendPNG(capRect, capRect.width, true);
-			}catch (Exception e) {
+				synchronized (LOCK) {
+					sendPNG(capRect, capRect.width, true);
+				}
+			}catch (Throwable e) {
 				//考虑数据溢出，故忽略
 			}
 			
@@ -189,17 +191,23 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		}
 	}
 	
+	/**
+	 * 注意：synchronized (LOCK)置于外部
+	 * @param capRect
+	 * @param maxCapWidth
+	 * @param isAutoRefresh
+	 */
 	protected void sendPNG(final Rectangle capRect, final int maxCapWidth, final boolean isAutoRefresh) {
-			final int oriX = capRect.x;
-			final int oriY = capRect.y;
-			final int rectWidth = capRect.width;
-			final int rectHeight = capRect.height;
-			
 //			if(isAutoRefresh == false){
 //				L.V = L.O ? false : LogManager.log("Cap x : " + oriX + ", y : " + oriY + ", w : " + rectWidth + ", h : " + rectHeight);
 //			}
 			
-			synchronized (LOCK) {
+//			synchronized (LOCK) {
+				final int oriX = capRect.x;
+				final int oriY = capRect.y;
+				final int rectWidth = capRect.width;
+				final int rectHeight = capRect.height;
+
 				final int endY = oriY + rectHeight;
 				for (int j = oriY; j < endY; ) {
 					blockCapRect.y = j;
@@ -224,7 +232,10 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 						//非远屏传输画面时，采用全彩
 						final int currMask = isScreenCap?mask:fixColorMask;
 						for (int idxRGB = 0; idxRGB < length; idxRGB++) {
-							rgb[idxRGB] &= currMask;
+							final int c = rgb[idxRGB];
+							if(c != 0xFF000000){//纯黑保持不变
+								rgb[idxRGB] = c | currMask;
+							}
 						}
 						//比较色块
 						{
@@ -289,7 +300,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 					}
 					j += tailHeight;
 				}
-			}
+//			}
 		}
 	
 	void sendBlock(final int clientX, final int clientY, final int[] rgb,

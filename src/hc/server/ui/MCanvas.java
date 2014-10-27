@@ -595,31 +595,40 @@ public class MCanvas extends PNGCapturer{
 			if(fl.length == 0){
 				return false;
 			}
-			fl[fl.length - 1].focusGained((FocusEvent)event);
+			for (int i = 0; i < fl.length; i++) {
+				fl[i].focusGained((FocusEvent)event);
+			}
 			return true;
 		}else if(event instanceof ActionEvent){
 			ActionListener[] al = component.getListeners(ActionListener.class);
 			if(al.length == 0){
 				return false;
 			}
-			al[al.length - 1].actionPerformed((ActionEvent)event);
+			for (int i = 0; i < al.length; i++) {
+				al[i].actionPerformed((ActionEvent)event);
+			}
 			return true;
 		}else if(event instanceof MouseEvent){
 			MouseListener[] ml = component.getListeners(MouseListener.class);
 			if(ml.length == 0){
 				return false;
 			}
-			final MouseListener mouseListener = ml[ml.length - 1];
-			mouseListener.mousePressed((MouseEvent)event);
-			mouseListener.mouseReleased((MouseEvent)event);
-			mouseListener.mouseClicked((MouseEvent)event);
+			for (int i = 0; i < ml.length; i++) {
+				final MouseListener mouseListener = ml[i];
+				mouseListener.mousePressed((MouseEvent)event);
+				mouseListener.mouseReleased((MouseEvent)event);
+				mouseListener.mouseClicked((MouseEvent)event);			
+			}
+
 			return true;
 		}else if(event instanceof java.awt.event.KeyEvent){
 			KeyListener[] kl = component.getKeyListeners();
 			if(kl.length == 0){
 				return false;
 			}
-			kl[kl.length - 1].keyTyped((java.awt.event.KeyEvent)event);
+			for (int i = 0; i < kl.length; i++) {
+				kl[i].keyTyped((java.awt.event.KeyEvent)event);
+			}
 			return true;
 		}else{
 			

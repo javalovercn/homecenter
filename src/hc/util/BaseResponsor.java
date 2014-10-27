@@ -18,4 +18,6 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction{
 	public abstract void enterContext(String contextName);
 	
 	public abstract Object onEvent(Object event);
+	
+	public abstract void addProjectContext(ProjectContext pc);
 }

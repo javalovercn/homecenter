@@ -54,6 +54,8 @@ public abstract class IConstant {
 	public static final short COLOR_16_BIT = 5;//256 / 16;//16
 	public static final short COLOR_32_BIT = 4;//256 / 32;//8
 	public static final short COLOR_64_BIT = 3;
+	public static final short COLOR_STAR_TOP = 8;
+	
 	public static final String TRUE = "true";
 	public static final String FALSE = "false";
 	public abstract int getInt(String p);

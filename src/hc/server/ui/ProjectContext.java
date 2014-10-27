@@ -10,10 +10,14 @@ import hc.core.data.DataPNG;
 import hc.core.util.ByteUtil;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
+import hc.core.util.LinkedSet;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.server.StarterManager;
 import hc.server.data.screen.KeyComper;
+import hc.server.ui.design.MobiUIResponsor;
+import hc.server.util.SystemEventListener;
+import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
 import hc.util.PropertiesMap;
 import hc.util.ResourceUtil;
@@ -136,7 +140,7 @@ public class ProjectContext {
 	}
 	
 	/**
-	 * set a property with new value. Call saveProperties() method is required to save to persistent system.
+	 * set a property with new value. Calling <code>saveProperties()</code> method is required to save properties to persistent system.
 	 * @see #getProperty(String)
 	 * @see #removeProperty(String)
 	 * @see #saveProperties()
@@ -335,7 +339,7 @@ public class ProjectContext {
 	}
 
 	/**
-	 * important : this method is available in JRuby-executing thread, it will return null in new thread or event thread.
+	 * important : this method is available in JRuby-executing main thread. it will return null if the command line is not executed in JRuby scripts and executed in new thread or event thread.
 	 * @return
 	 */
 	public static ProjectContext getProjectContext(){
@@ -460,6 +464,46 @@ public class ProjectContext {
 			HCURLUtil.sendCmd(HCURL.DATA_CMD_CTRL_BTN_TXT, keys, values);
 		}
 	}
+	
+	private final LinkedSet systemEventStack = new LinkedSet();
+	
+	/**
+	 * Removes the specified system event listener so that it no longer receives system events from this system. If l is null, no exception is thrown and no action is performed.
+	 * @param l
+	 * @see #addSystemEventListener(SystemEventListener)
+	 */
+	public void removeSystemEventListener(SystemEventListener l){
+		if(l == null){
+			return;
+		}
+		synchronized (systemEventStack) {
+			systemEventStack.removeData(l);
+		}
+	}
+	
+	/**
+	 * Adds the specified system event listener to receive system events from this system. If l is null, no exception is thrown and no action is performed.
+	 * @param l
+	 * @see #removeSystemEventListener(SystemEventListener)
+	 */
+	public void addSystemEventListener(SystemEventListener l){
+		if(l == null){
+			return;
+		}
+		synchronized (systemEventStack) {
+			systemEventStack.addTail(l);
+		}
+	}
+	
+	/**
+	 * @deprecated
+	 * @return
+	 */
+	public Enumeration getSystemEventListener(){
+		synchronized (systemEventStack) {
+			return systemEventStack.elements();
+		}
+	}
 
 	/**
 	 * @deprecated
@@ -467,6 +511,7 @@ public class ProjectContext {
 	public String __tmp_target;
 	public static final int FLAG_NOTIFICATION_VIBRATE = ConfigManager.FLAG_NOTIFICATION_VIBRATE;
 	public static final int FLAG_NOTIFICATION_SOUND = ConfigManager.FLAG_NOTIFICATION_SOUND;
+	
 	public static final String EVENT_SYS_PROJ_SHUTDOWN = "SYS_PROJ_SHUTDOWN";
 	public static final String EVENT_SYS_PROJ_STARTUP = "SYS_PROJ_STARTUP";
 	public static final String EVENT_SYS_MOBILE_LOGIN = "SYS_MOBILE_LOGIN";

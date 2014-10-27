@@ -1,5 +1,8 @@
 package hc.core.util;
 
+import java.util.Enumeration;
+import java.util.Vector;
+
 /**
  * 先入先出
  *
@@ -15,6 +18,21 @@ public class LinkedSet {
 	
 	public boolean isTailNull(){
 		return tail == null;
+	}
+	
+	public Enumeration elements(){
+		final Vector v = new Vector();
+		
+		if(top == null){
+		}else{
+			LinkedNode temp = top;
+			do{
+				v.addElement(temp.data);
+				temp = temp.next;
+			}while(temp != null);
+		}
+		
+		return v.elements();
 	}
 	
 	public void addToFirst(Object obj){

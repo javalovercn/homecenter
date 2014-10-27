@@ -3,6 +3,7 @@ package hc.server.ui;
 import hc.App;
 import hc.core.IContext;
 import hc.core.util.Stack;
+import hc.core.util.StringUtil;
 import hc.server.JRubyInstaller;
 import hc.server.LinkMenuManager;
 import hc.util.ResourceUtil;
@@ -59,12 +60,14 @@ public class LinkProjectStatus {
 					showNotify(parent, "system is downloading and upgrading project(s), please wait for a moment.", IContext.ERROR);
 					return false;
 				}else if(manager_status == MANAGER_IMPORT){
-					JLabel label = new JLabel("<html>Window [" + (String)ResourceUtil.get(9059) + "] is open and maintenance now!" +
-							"<BR>click '" + (String) ResourceUtil.get(IContext.OK) + "' to close it.</html>", App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
+					
+					String replaced = isOpend((String)ResourceUtil.get(9059));
+	
+					JLabel label = new JLabel("<html>" + replaced + "</html>", App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
 					JPanel panel = new JPanel(new BorderLayout());
 					panel.add(label, BorderLayout.CENTER);
 					
-					App.showCenterPanel(panel, 0, 0, "close window?", true, null, null, new ActionListener() {
+					App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(9086), true, null, null, new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
 							LinkMenuManager.closeLinkPanel();
@@ -76,12 +79,13 @@ public class LinkProjectStatus {
 					if(toStatus == MANAGER_IMPORT && parent != null){
 						//仅放行从设计器调用工程选择器
 					}else{
-						JLabel label = new JLabel("<html>[" + (String)ResourceUtil.get(9034) + "] open and designing now!" +
-								"<BR>click '" + (String) ResourceUtil.get(IContext.OK) + "' to close it.</html>", App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
+						final String replaced = isOpend((String)ResourceUtil.get(9034));
+						
+						JLabel label = new JLabel("<html>" + replaced + "</html>", App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
 						JPanel panel = new JPanel(new BorderLayout());
 						panel.add(label, BorderLayout.CENTER);
 						
-						App.showCenterPanel(panel, 0, 0, "close window?", true, null, null, new ActionListener() {
+						App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(9086), true, null, null, new ActionListener() {
 							@Override
 							public void actionPerformed(ActionEvent e) {
 								if(LinkMenuManager.notifyCloseDesigner()){
@@ -92,11 +96,7 @@ public class LinkProjectStatus {
 						return false;
 					}
 				}else if(manager_status == MANAGER_JRUBY_INSTALL){
-					JRubyInstaller.needNotify();
-					showNotify(parent, "<html>please wait for a moment, system is downloading JRuby engine." +
-//							"<br>if we have finished, a notify window will display." +
-							"</html>", 
-							IContext.INFO);
+					JRubyInstaller.showProgressWindow(parent);
 					return false;
 				}else{
 					return false;
@@ -113,6 +113,14 @@ public class LinkProjectStatus {
 		}
 		setStatus(toStatus);
 		return true;
+	}
+
+	private static String isOpend(String winName) {
+		final String isOpend = (String)ResourceUtil.get(9085);
+				
+		String replaced = StringUtil.replace(isOpend, "{win_name}", winName);
+		replaced = StringUtil.replace(replaced, "{ok}", (String) ResourceUtil.get(IContext.OK));
+		return replaced;
 	}
 
 	private static void showNotify(JFrame parent, String msg, int type) {

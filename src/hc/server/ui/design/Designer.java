@@ -214,8 +214,8 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	JButton saveButton = new JButton("Save", loadImg("save_24.png"));
 	JButton activeButton = new JButton(ACTIVE, loadImg("deploy_24.png"));
 	JButton deactiveButton = new JButton(DEACTIVE, loadImg("undeploy_24.png"));
-	final JButton addItemButton = new JButton("Add", loadImg("controller_24.png"));
-	JButton newButton = new JButton("New", loadImg("new_24.png"));
+	final JButton addItemButton = new JButton("Add Item", loadImg("controller_24.png"));
+	JButton newButton = new JButton("New Project", loadImg("new_24.png"));
 	JButton saveAsButton = new JButton("Save as", loadImg("shareout_24.png"));
 	JButton loadButton = new JButton("Load", loadImg("sharein_24.png"));
 	JButton shiftProjButton = new JButton("Shift Project", new ImageIcon(ResourceUtil.loadImage("menu_22.png")));
@@ -584,8 +584,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 //				tree.updateUI();
 			}
 		});
-		newButton.setToolTipText("<html>clear the current project, ready to create new items for new project." +
-				"</html>");
+		newButton.setToolTipText("<html>create new HAR project.</html>");
 		toolbar.add(newButton);
 		
 		addItemButton.addActionListener(new ActionListener() {
@@ -594,7 +593,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 				MenuManager.addMenuItem(Designer.getInstance(), addItemButton);
 			}
 		});
-		addItemButton.setToolTipText("<html>add a controller, UI Panel(Mlet) or script of cmd." +
+		addItemButton.setToolTipText("<html>add a controller, UI Panel(Mlet), script of commands and etc." +
 				"</html>");
 		toolbar.add(addItemButton);
 		
@@ -603,7 +602,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 				"</html>");
 		toolbar.add(saveButton);
 		
-		activeButton.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + D)<BR>after activate, these designed menus will display to mobile when mobile login." +
+		activeButton.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + D)<BR>after activate, current project will be displayed to mobile when mobile login." +
 				"<BR>please re-activate after modifying." +
 				"</html>");
 		{
@@ -800,17 +799,17 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		shiftProjButton.setToolTipText("<html>add and delete projects, or choose other project for editing.</html>");
 
 		toolbar.add(shiftProjButton);
-		toolbar.addSeparator();
+//		toolbar.addSeparator();//末尾，故注释
 		
-		helpButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				showWizard();
-			}
-		});
+//		helpButton.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				showWizard();
+//			}
+//		});
 		helpButton.setToolTipText("show tutorial steps of using Mobile UI Designer.");
-		toolbar.add(helpButton);
-		toolbar.addSeparator();
+//		toolbar.add(helpButton);
+//		toolbar.addSeparator();
 		
 		JPanel treePanel = new JPanel();
 		treePanel.setBorder(new TitledBorder("Menu Tree :"));
@@ -874,7 +873,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 								ActionListener al = new ActionListener() {
 									@Override
 									public void actionPerformed(ActionEvent e) {
-										showWizard();
+//										showWizard();
 									}
 								};
 								App.showCenterPanel(jpanel, 0, 0, (String)ResourceUtil.get(IContext.INFO), 
@@ -1633,11 +1632,11 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		}
 	}
 
-	private void showWizard() {
-		JButton[] btns = {activeButton, deactiveButton, sampleButton, addItemButton, saveAsButton, loadButton};
-		Wizard wiz = new Wizard(btns);
-		wiz.showTip();
-	}
+//	private void showWizard() {
+//		JButton[] btns = {activeButton, deactiveButton, sampleButton, addItemButton, saveAsButton, loadButton};
+//		Wizard wiz = new Wizard(btns);
+//		wiz.showTip();
+//	}
 
 	public boolean notifyCloseWindow() {
 		if(isModified()){

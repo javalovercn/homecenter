@@ -36,6 +36,14 @@ public class MultiThreadDownloader {
 	String fileName;
 	DownloadThread[] dts;
 	
+	public MultiThreadDownloader(){
+		progress.setStringPainted(true);
+	}
+	
+	public JProgressBar getFinishPercent(){
+		return progress;
+	}
+	
 	public void download(final Vector url_download, final File file, final String md5,
 			final IBiz biz, final IBiz failBiz, final boolean isVisiable) {
 		this.fileName = file.getName();
@@ -72,28 +80,30 @@ public class MultiThreadDownloader {
             isError = true;  
         }  
         
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.add(progress, BorderLayout.NORTH);
-        final JLabel desc = new JLabel();
-        panel.add(desc, BorderLayout.CENTER);
 		final long startMS = System.currentTimeMillis();
 		final String dnFileName = firstURL.substring(firstURL.lastIndexOf("/") + 1);
 		final String desc_str = buildDownloadMsg(dnFileName, fileName, md5, downloadByte, totalByted, startMS);
+        final JLabel desc = new JLabel();
 		desc.setText(desc_str);
-        final ActionListener listener = new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				isCancel = true;
-				try{
-					if(frame != null){
-						frame.dispose();
-					}
-					RootServerConnector.notifyLineOffType("lof=MTD_cancel");
-				}catch (Exception ex) {
-				}
-			}
-		};
+
 		if(isVisiable){
+	        JPanel panel = new JPanel(new BorderLayout());
+	        panel.add(progress, BorderLayout.NORTH);
+	        panel.add(desc, BorderLayout.CENTER);
+	        final ActionListener listener = new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					isCancel = true;
+					try{
+						if(frame != null){
+							frame.dispose();
+						}
+						RootServerConnector.notifyLineOffType("lof=MTD_cancel");
+					}catch (Exception ex) {
+					}
+				}
+			};
+
 			frame = (JFrame)App.showCenterPanel(panel, 0, 0, "download...", false, 
         		new JButton((String)ResourceUtil.get(1018)), null, listener, listener, null, false, true, null, false, false);
 		}
@@ -109,7 +119,11 @@ public class MultiThreadDownloader {
 					}
         			final String desc_str = buildDownloadMsg(dnFileName, fileName, md5, downloadByte, totalByted, startMS);
         			desc.setText(desc_str);
-        			progress.setValue(downloadByte * 100 / totalByted);
+        			final int percent = downloadByte * 100 / totalByted;
+					progress.setValue(percent);
+					progress.setString("" + percent + "%");//need by JRubyInstaller
+					progress.repaint();
+					
         			int newMS = downloadByte / 1024 / 1024;
         			if(newMS != ms){
         				ms = newMS;

@@ -39,6 +39,7 @@ public class ProjResponser {
 		this.hcje = new HCJRubyEngine(new File(lps.getDeployTmpDir()).getAbsolutePath());
 		
 		context = new ProjectContext((String)map.get(HCjar.PROJ_ID), (String)map.get(HCjar.PROJ_VER));
+		baseRep.addProjectContext(context);
 		
 		Object object = map.get(HCjar.MENU_NUM);
 		if(object != null){

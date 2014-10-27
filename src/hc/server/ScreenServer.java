@@ -185,8 +185,8 @@ public class ScreenServer {
 				int mode = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				
 				if(SIPManager.isOnRelay()){
-					if((8 - mode) > colorOnRelay){
-						mode = (8 - colorOnRelay);
+					if((IConstant.COLOR_STAR_TOP - mode) > colorOnRelay){
+						mode = (IConstant.COLOR_STAR_TOP - colorOnRelay);
 					}
 				}else{
 					short connMode = ContextManager.getConnectionModeStatus();
@@ -201,7 +201,7 @@ public class ScreenServer {
 					
 				}
 
-				hc.core.L.V=hc.core.L.O?false:LogManager.log("Client change colorMode to level : " + (8 - mode) + " (after limited)");
+				hc.core.L.V=hc.core.L.O?false:LogManager.log("Client change colorMode to level : " + (IConstant.COLOR_STAR_TOP - mode) + " (after limited)");
 				PNGCapturer.setColorBit(mode);
 				return true;
 			}});

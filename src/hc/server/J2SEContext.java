@@ -291,16 +291,16 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					if(ScreenServer.isServing() == false){
 						ClientDesc.refreshClientInfo(Message.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA));
 
-//						//如果手机版本过低，产生通知
-//						String pcReqMobiVer = (String)doExtBiz(BIZ_GET_REQ_MOBI_VER_FROM_PC, null);
-//						if(StringUtil.higer(pcReqMobiVer, ClientDesc.clientVer)){
-//							send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS));
-//							LogManager.err("Min required mobile version : [" + pcReqMobiVer + "], current mobile version : [" + ClientDesc.clientVer + "]");
-//							L.V = L.O ? false : LogManager.log("Cancel mobile login process");
-//							sleepAfterError();
-//							SIPManager.notifyRelineon(false);
-//							return true;
-//						}
+						//TODO YYH 旧版本的通知，已被新版本替代，未来需要关闭。如果手机版本过低，产生通知
+						String pcReqMobiVer = (String)doExtBiz(BIZ_GET_REQ_MOBI_VER_FROM_PC, null);
+						if(StringUtil.higer(pcReqMobiVer, ClientDesc.clientVer)){
+							send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS));
+							LogManager.err("Min required mobile version : [" + pcReqMobiVer + "], current mobile version : [" + ClientDesc.clientVer + "]");
+							L.V = L.O ? false : LogManager.log("Cancel mobile login process");
+							sleepAfterError();
+							SIPManager.notifyRelineon(false);
+							return true;
+						}
 						
 						//服务器产生一个随机数，用CertKey和密码处理后待用，
 						byte[] randomBS = new byte[MsgBuilder.UDP_BYTE_SIZE];
@@ -541,7 +541,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		        }catch (Exception e) {
 				}
 		        multiUserMenu.setSelected(PropertiesManager.isTrue(PropertiesManager.p_isMultiUserMode));
-		        final String tipMsg = "it prevent your children (or other) to set this program when you are outside." +
+		        final String tipMsg = "it prevent your children (or other) to modify configuration when you are outside." +
 		        		"<BR>if the computer is only used by you, you don't need multi-user mode.";
 		        multiUserMenu.setToolTipText("<html>" + tipMsg + "</html>");
 		        multiUserMenu.addActionListener(new ActionListener() {
@@ -578,7 +578,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						}
 						PropertiesManager.setValue(PropertiesManager.p_isMultiUserMode, 
 								isMultMode?IConstant.TRUE:IConstant.FALSE);
-						PropertiesManager.saveFile();					}
+						PropertiesManager.saveFile();
+					}
 				});
 		        hcMenu.add(multiUserMenu);
 			}
@@ -1452,6 +1453,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				ServerConfig sc = new ServerConfig("");
 				sc.setProperty(ServerConfig.p_HC_VERSION, StarterManager.getHCVersion());
 				sc.setProperty(ServerConfig.p_MIN_MOBI_VER_REQUIRED_BY_PC, minMobiVerRequiredByServer);
+				sc.setProperty(ServerConfig.P_SERVER_COLOR_ON_RELAY, RootConfig.getInstance().getProperty(RootConfig.p_Color_On_Relay));
 				return sc.toTransString();
 			}else{
 				return null;
@@ -1681,8 +1683,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		}
 		if(bizNo == IContext.BIZ_VERSION_MID_OR_PC){
 			return StarterManager.getHCVersion();
-//		}else if(bizNo == IContext.BIZ_GET_REQ_MOBI_VER_FROM_PC){
-//			return "6.68";
+		}else if(bizNo == IContext.BIZ_GET_REQ_MOBI_VER_FROM_PC){
+			return minMobiVerRequiredByServer;
 		}
 		return null;
 	}
@@ -1913,7 +1915,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	}
 
 	public static final String MAX_HC_VER = "9999999";//注意与Starter.NO_UPGRADE_VER保持同步
-	private final String minMobiVerRequiredByServer = "6.68";
+	private final String minMobiVerRequiredByServer = "6.69";//(含)
 	
 	private void flipAutoUpgrade(final JCheckBoxMenuItem upgradeItem,
 			final boolean isAutoAfterClick) {

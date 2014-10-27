@@ -8,12 +8,15 @@ import hc.server.data.screen.ScreenCapturer;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.hpj.HCjar;
+import hc.server.util.SystemEventListener;
 import hc.util.BaseResponsor;
 
 import java.io.File;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Vector;
 
 public class MobiUIResponsor extends BaseResponsor {
 	final private String[] contexts = new String[LinkProjectManager.MAX_LINK_PROJ_NUM];
@@ -63,6 +66,8 @@ public class MobiUIResponsor extends BaseResponsor {
 				e.printStackTrace();
 			}
 		}
+		
+		listsProjectContext.clear();
 	}
 	
 	public Object onEvent(Object event) {
@@ -112,12 +117,33 @@ public class MobiUIResponsor extends BaseResponsor {
 			responsors[rootIdx].onEvent(event);
 		}
 		
+		Enumeration<ProjectContext> enu = listsProjectContext.elements();
+		while(enu.hasMoreElements()){
+			ProjectContext pc = enu.nextElement();
+			Enumeration sels = pc.getSystemEventListener();
+			while(sels.hasMoreElements()){
+				SystemEventListener sel = (SystemEventListener)sels.nextElement();
+				try{
+					sel.onEvent(event.toString());
+				}catch (Throwable e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
 		return null;
 	}
 
+	Vector<ProjectContext> listsProjectContext = new Vector<ProjectContext>();
+	
+	@Override
+	public void addProjectContext(ProjectContext pc){
+		listsProjectContext.add(pc);
+	}
+	
 	private String currContext;
 	private int rootIdx;
-	private boolean isMobileLogined = false, isProjStarted = false;
+	public boolean isMobileLogined = false, isProjStarted = false;
 	
 	public String findRootContextID(){
 		for (int i = 0; i < responserSize; i++) {

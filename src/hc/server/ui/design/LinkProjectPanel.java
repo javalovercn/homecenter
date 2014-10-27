@@ -614,7 +614,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 					"<BR><strong>is Root</strong> : root project will be presented as main menu, other active project(s) are presented as folders of main menu." +
 					"<BR>if mobile is online, " +
 						"click '<strong>" + saveAndApply + "</strong>' will break off service, " +
-								"and restart all active projects, you would <strong>NO</strong> restart HomeCenter.</html>"), BorderLayout.CENTER);
+								"and reload all active projects, you would <strong>NO</strong> restart HomeCenter.</html>"), BorderLayout.CENTER);
 			contentPane.add(panel, BorderLayout.SOUTH);
 		}
 		ImageIcon okIco = null;
@@ -901,7 +901,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 //								L.V = L.O ? false : LogManager.log("restarting service...");
 						Window[] tipWindow = {null};
 						if(ServerUIUtil.promptAndStop(true, self) == false){
-							App.showCenterMessageOnTop(self, true, "saving and apply ...", tipWindow);
+							App.showCenterMessageOnTop(self, true, saveAndApply + "...", tipWindow);
 						}
 						
 						checkAndStoreData();

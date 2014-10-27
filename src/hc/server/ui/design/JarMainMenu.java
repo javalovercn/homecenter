@@ -54,18 +54,6 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 				itemTypes = new int[itemCount + appendMenuItemNum];
 				listener = new String[itemCount + appendMenuItemNum];
 				extendMap = new String[itemCount + appendMenuItemNum];
-				final String Iheader = HCjar.replaceIdxPattern(HCjar.MENU_ITEM_HEADER, menuIdx);
-				for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
-					String header = Iheader + itemIdx + ".";
-					
-					items[itemIdx][ITEM_NAME_IDX] = (String)map.get(header + HCjar.ITEM_NAME);
-					itemTypes[itemIdx] = Integer.parseInt((String)map.get(header + HCjar.ITEM_TYPE));
-					items[itemIdx][ITEM_IMG_IDX] = (String)map.get(header + HCjar.ITEM_IMAGE);
-					items[itemIdx][ITEM_URL_IDX] = (String)map.get(header + HCjar.ITEM_URL);
-					
-					listener[itemIdx] = (String)map.get(header + HCjar.ITEM_LISTENER);
-					extendMap[itemIdx] = (String)map.get(header + HCjar.ITEM_EXTENDMAP); 
-				}
 				
 				if(appendMenuItemNum > 0){
 					//添加LinkProject
@@ -76,7 +64,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 						if(!lps.isActive()){
 							continue;
 						}
-						final int itemIdx = (i++) + itemCount;
+						final int itemIdx = (i++);
 						items[itemIdx][ITEM_NAME_IDX] = lps.getLinkScriptName();
 						itemTypes[itemIdx] = 0;
 						items[itemIdx][ITEM_IMG_IDX] = ServerConfig.SYS_FOLDER_ICON;
@@ -86,6 +74,22 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 						extendMap[itemIdx] = "";
 					}
 				}
+
+				final String Iheader = HCjar.replaceIdxPattern(HCjar.MENU_ITEM_HEADER, menuIdx);
+				for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
+					String header = Iheader + itemIdx + ".";
+					
+					final int storeIdx = itemIdx + appendMenuItemNum;
+					
+					items[storeIdx][ITEM_NAME_IDX] = (String)map.get(header + HCjar.ITEM_NAME);
+					itemTypes[storeIdx] = Integer.parseInt((String)map.get(header + HCjar.ITEM_TYPE));
+					items[storeIdx][ITEM_IMG_IDX] = (String)map.get(header + HCjar.ITEM_IMAGE);
+					items[storeIdx][ITEM_URL_IDX] = (String)map.get(header + HCjar.ITEM_URL);
+					
+					listener[storeIdx] = (String)map.get(header + HCjar.ITEM_LISTENER);
+					extendMap[storeIdx] = (String)map.get(header + HCjar.ITEM_EXTENDMAP); 
+				}
+				
 			}else{
 				items = new String[0][itemDescNum];
 				itemTypes = new int[0];

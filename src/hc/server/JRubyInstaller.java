@@ -17,18 +17,23 @@ import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Properties;
 
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
 
 public class JRubyInstaller {
 	static final String JRUBY_VER_1_7_3 = "1.7.3";
+	static MultiThreadDownloader mtd;
+
 	private static String getInnverJRubyMD5(String outerVersion, String outerMD5){
 		String[] versions = {JRUBY_VER_1_7_3};
 		String[] innerMD5 = {"75a612d9ba57a61f01dcd6e3e586a34b"};
@@ -109,7 +114,6 @@ public class JRubyInstaller {
 			rubyjar.delete();
 		}
 		
-		MultiThreadDownloader mtd = new MultiThreadDownloader();
 		IBiz biz = new IBiz() {
 			@Override
 			public void start() {
@@ -141,12 +145,19 @@ public class JRubyInstaller {
 			public void setMap(HashMap map) {
 			}
 		};
+		if(mtd == null){
+			mtd = new MultiThreadDownloader();
+		}
 		mtd.download(StringUtil.split(fromURL, RootConfig.CFG_SPLIT), rubyjar, md5, biz, failBiz, false);
 	}
 	
 	private static boolean needNotify = false;
 	
-	public static void needNotify(){
+	public static JProgressBar getFinishPercent(){
+		return mtd.getFinishPercent();
+	}
+	
+	private static void needNotify(){
 		needNotify = true;
 	}
 	
@@ -166,4 +177,27 @@ public class JRubyInstaller {
 			}, null, null, false, true, null, false, false);
 		}
 	}
+	
+	private static Window progressWindow;
+
+	public static void showProgressWindow(JFrame parent) {
+			needNotify();
+					
+			if(progressWindow == null || (progressWindow.isVisible() == false)){
+				JLabel label = new JLabel("<html>" + (String)ResourceUtil.get(9084) +
+		//							"<br>if we have finished, a notify window will display." +
+						"</html>", App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING);
+				JPanel panel = new JPanel(new BorderLayout());
+				panel.add(label, BorderLayout.CENTER);
+				final JProgressBar finishPercent = getFinishPercent();
+				if(finishPercent != null){
+					panel.add(finishPercent, BorderLayout.SOUTH);
+				}
+				
+				progressWindow = App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.INFO), 
+						false, null, null, null, null, parent, true, true, null, false, false);
+			}else{
+				progressWindow.toFront();
+			}
+		}
 }

@@ -5,11 +5,15 @@ import hc.core.util.HCURL;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class DefaultMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 	
 	private JPanel myCommand_Panel = new JPanel();
+	private JPanel noJRubyTip = new JPanel();
+	private JPanel centerPanel;
+	
 	public DefaultMenuItemNodeEditPanel() {
 		super();
 		
@@ -17,10 +21,18 @@ public class DefaultMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 		
 		myCommand_Panel.setLayout(new BorderLayout());
 		myCommand_Panel.add(jtascriptPanel, BorderLayout.CENTER);
+		
+		noJRubyTip.setLayout(new BorderLayout());
+		noJRubyTip.add(new JLabel("There is no other editable content for current type item."), BorderLayout.NORTH);
 
 		setLayout(new BorderLayout());
 		add(iconPanel, BorderLayout.NORTH);
-		add(myCommand_Panel, BorderLayout.CENTER);
+
+		centerPanel = new JPanel();
+		centerPanel.setLayout(new BorderLayout());
+		centerPanel.add(noJRubyTip, BorderLayout.CENTER);
+		
+		add(centerPanel, BorderLayout.CENTER);
 	}
 	
 	private void flip_cmd_screen(int type){
@@ -28,28 +40,34 @@ public class DefaultMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 		
 		if(type == HPNode.TYPE_MENU_ITEM_SCREEN){
 			if(element.equals(HCURL.REMOTE_HOME_SCREEN)){
-				myCommand_Panel.setVisible(false);
-				cmd_url_panel.setVisible(false);
+				flipCommandPanel(false);
 			}else{
-				myCommand_Panel.setVisible(true);
-				cmd_url_panel.setVisible(true);
+				flipCommandPanel(true);
 			}
 		}else if(type == HPNode.TYPE_MENU_ITEM_CMD){
 			if(element.equals(HCURL.DATA_CMD_EXIT)){
-				myCommand_Panel.setVisible(false);
-				cmd_url_panel.setVisible(false);
+				flipCommandPanel(false);
 			}else if(element.equals(HCURL.DATA_CMD_CONFIG)){
-				myCommand_Panel.setVisible(false);
-				cmd_url_panel.setVisible(false);
+				flipCommandPanel(false);
 			}else{
-				myCommand_Panel.setVisible(true);
-				cmd_url_panel.setVisible(true);
+				flipCommandPanel(true);
 			}
 		}
 		
 		if(myCommand_Panel.isVisible()){
 			initScript();
 		}
+	}
+
+	private void flipCommandPanel(final boolean v) {
+		centerPanel.removeAll();
+		if(v){
+			centerPanel.add(myCommand_Panel, BorderLayout.CENTER);
+		}else{
+			centerPanel.add(noJRubyTip, BorderLayout.CENTER);
+		}
+		
+		cmd_url_panel.setVisible(v);
 	}
 	
 	public void addTargetURLPanel(){

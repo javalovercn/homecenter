@@ -40,4 +40,7 @@ public class DefaultUIResponsor extends BaseResponsor{
 		return null;
 	}
 
+	@Override
+	public void addProjectContext(ProjectContext pc){
+	}
 }

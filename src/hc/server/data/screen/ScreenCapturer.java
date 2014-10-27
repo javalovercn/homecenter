@@ -119,7 +119,10 @@ public class ScreenCapturer extends PNGCapturer{
 						
 						//降低色彩度
 						for (int idxRGB = 0; idxRGB < thumbnailSize; idxRGB++) {
-							screenRGBData[idxRGB] &= mask;
+							final int c = screenRGBData[idxRGB];
+							if(c != 0xFF000000){//纯黑保持不变
+								screenRGBData[idxRGB] = c | mask;
+							}
 						}
 						
 						if(clearCacheThumbnail){
@@ -276,7 +279,7 @@ public class ScreenCapturer extends PNGCapturer{
 
 	private void isSameFullScreen() {
 		//产生一个模拟事件，以解除如屏保而导致的可自解锁型
-		L.V = L.O ? false : LogManager.log("Screen maybe in lock or screensave, create ctrl push event to active screen.");
+		L.V = L.O ? false : LogManager.log("Screen maybe in lock or screensave, create ctrl-key push event to active screen.");
 		
 //		Point mousepoint = MouseInfo.getPointerInfo().getLocation();  
 //		robot.mouseMove(0, 0);//会导致弹出移动，最小化菜单，故关闭
@@ -291,11 +294,25 @@ public class ScreenCapturer extends PNGCapturer{
 					Thread.sleep(500);
 				}catch (Exception e) {
 				}
-				isSameFullScreenDelay();
+				
+				if(isSameFullScreenDelay()){
+					LogManager.errToLog("Screen is in lock, no image is sended to mobile.");
+//					LogManager.errToLog("  screen is locked after pressed Win + L or screen save is triggered,");
+					LogManager.errToLog("  mobile displays black if server is in lock mode in some older OS");
+					LogManager.errToLog("  please disable screen lock or screen saver.");
+					ContextManager.getContextInstance().send(null, MsgBuilder.E_TAG_ROOT, 
+							MsgBuilder.DATA_ROOT_OS_IN_LOCK);
+							
+					SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_SCR_LOCKING, 
+							(String)ResourceUtil.get(9088), 
+							(String)ResourceUtil.get(9087), SingleMessageNotify.NEVER_AUTO_CLOSE, App.getSysIcon(App.SYS_ERROR_ICON));
+					
+					RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_LockScreen_STR);
+				}
 			}
 		});
 	}
-	private void isSameFullScreenDelay() {
+	private boolean isSameFullScreenDelay() {
 		final Rectangle testMinBlock = new Rectangle();
 		//进行全屏测试
 		testMinBlock.x = 0;
@@ -307,23 +324,14 @@ public class ScreenCapturer extends PNGCapturer{
 			final int[] fullScreenRGB = new int[screenWidth * screenHeigh];
 			
 			if(isSameColorBlock(testMinBlock, fullScreenRGB)){
-				LogManager.errToLog("Screen is in lock, no image is sended to mobile.");
-//				LogManager.errToLog("  screen is locked after pressed Win + L or screen save is triggered,");
-				LogManager.errToLog("  mobile displays black if server in lock mode in some older OS");
-				LogManager.errToLog("  please disable screen lock.");
-				ContextManager.getContextInstance().send(null, MsgBuilder.E_TAG_ROOT, 
-						MsgBuilder.DATA_ROOT_OS_IN_LOCK);
-						
-				SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_SCR_LOCKING, 
-						"In some older OS and JRE, mobile displays black if screen is locked!<BR><BR>Please disable screen locking or screen saver.", 
-						"Screen is LOCK!!!", SingleMessageNotify.NEVER_AUTO_CLOSE, App.getSysIcon(App.SYS_INFO_ICON));
-				
-				RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_LockScreen_STR);
+				return true;
 			}
 		}catch (Throwable e) {
 			LogManager.errToLog("Fail check screen lock mode.");
 			e.printStackTrace();
 		}
+		
+		return false;
 	}
 
 	private boolean isSameColorBlock(final Rectangle testMinBlock, final int[] colorRGB) {
@@ -648,12 +656,12 @@ public class ScreenCapturer extends PNGCapturer{
 				rematchRect(0, 0);
 			}
 			initClientSnap();
-		}
 		
-		try{
-			sendPNG(capRect, client_width_zoomornot, false);
-		}catch (Exception e) {
-			//考虑数据溢出，故忽略
+			try{
+				sendPNG(capRect, client_width_zoomornot, false);
+			}catch (Exception e) {
+				//考虑数据溢出，故忽略
+			}
 		}
 	}
 
@@ -824,19 +832,21 @@ public class ScreenCapturer extends PNGCapturer{
 	private final int final_mobi_width, final_mobi_height;
 	
 	public void refreshRectange(final int x, final int y){	
-		capRect.x = x;
-		capRect.y = y;
-		
-		locX = x;
-		locY = y;
-		
-		matchRect(moveNewRect, 0, 0);
-		
-		for (int i = 0; i < clientSnap.length; i++) {
-			clientSnap[i] = -1;//不用DEFAULT_BACK_COLOR，而用-1，是强制更新全部
+		synchronized (LOCK) {
+			capRect.x = x;
+			capRect.y = y;
+			
+			locX = x;
+			locY = y;
+			
+			matchRect(moveNewRect, 0, 0);
+
+			for (int i = 0; i < clientSnap.length; i++) {
+				clientSnap[i] = 0;//不用DEFAULT_BACK_COLOR，而用0，是强制更新全部，因为-1，可能为0xFF000000
+			}
+			
+			sendPNG(cutBlackBorder(capRect), client_width_zoomornot, false);
 		}
-		
-		sendPNG(cutBlackBorder(capRect), client_width_zoomornot, false);
 	}
 	
 	/**
