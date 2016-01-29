@@ -11,7 +11,7 @@ public class Stack {
 	short elementCount;
 	Object[] elementData;
 	
-	public Enumeration elements(){
+	public final Enumeration elements(){
 		return new Enumeration() {
 		    int count = 0;
 
@@ -43,7 +43,7 @@ public class Stack {
 	 * @param obj
 	 * @return
 	 */
-	public int search(Object obj){
+	public final int search(Object obj){
 		for (int i = 0; i < elementCount; i++) {
 			if(elementData[i].equals(obj)){
 				return i;
@@ -52,7 +52,7 @@ public class Stack {
 		return -1;
 	}
 	
-	public Object elementAt(int idx){
+	public final Object elementAt(int idx){
 		if(idx > elementCount){
 			return null;
 		}else{
@@ -60,7 +60,7 @@ public class Stack {
 		}
 	}
 	
-	public void removeAt(int idx){
+	public final void removeAt(int idx){
 		if(idx > elementCount){
 		}else{
 			for (int i = idx + 1; i < elementCount; i++) {
@@ -71,7 +71,7 @@ public class Stack {
 		
 	}
 	
-	public void push(Object item){
+	public final void push(Object item){
 		if(elementCount == elementData.length){
 			Object[] newElementData = new Object[elementCount * 2];
 			System.arraycopy(elementData, 0, newElementData, 0, elementCount);
@@ -80,7 +80,7 @@ public class Stack {
 		elementData[elementCount++] = item;
 	}
 	
-	public void removeAllElements(){
+	public final void removeAllElements(){
 		for (int i = 0; i < elementCount; i++) {
 			elementData[i] = null;
 		}
@@ -95,11 +95,11 @@ public class Stack {
 		}
 	}
 	
-	public int size(){
+	public final int size(){
 		return elementCount;
 	}
 	
-	public boolean isEmpty(){
+	public final boolean isEmpty(){
 		return elementCount == 0;
 	}
 }

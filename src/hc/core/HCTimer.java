@@ -1,9 +1,11 @@
 package hc.core;
 
-import java.util.Vector;
-
+import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPool;
+import hc.core.util.ThreadPriorityManager;
+
+import java.util.Vector;
 
 public abstract class HCTimer {
 	//默认为１０分
@@ -14,20 +16,24 @@ public abstract class HCTimer {
 	public static final int ONE_DAY = 86400000;
 	long nextExecMS;
 	final boolean isNewThread;
+	final int newThreadPrority;
+	
+	public static void doNothing(){
+	}
 	
 	/**
 	 * 默认为１０分
 	 */
-	public HCTimer(String name, boolean enable) {
-		this(name, 1000 * 60 * 10, enable, false);
+	public HCTimer(final String name, final boolean enable) {
+		this(name, 1000 * 60 * 10, enable, false, ThreadPriorityManager.LOWEST_PRIORITY);
 	}
 	
-	public String getName(){
+	public final String getName(){
 		return this.name;
 	}
 
-	public HCTimer(String name, int ms, boolean enable) {
-		this(name, ms, enable, false);
+	public HCTimer(final String name, final int ms, final boolean enable) {
+		this(name, ms, enable, false, ThreadPriorityManager.LOWEST_PRIORITY);
 	}
 	
 	/**
@@ -35,25 +41,29 @@ public abstract class HCTimer {
 	 * @param name
 	 * @param ms
 	 * @param enable
-	 * @param isNewThread true:表示另起线程来驱动本逻辑；false:共享线程来驱动本逻辑
+	 * @param isNewThread true:表示另起独立线程来驱动本逻辑；false:共享线程来驱动本逻辑
+	 * @param newThreadPrority
 	 */
-	public HCTimer(String name, int ms, boolean enable, boolean isNewThread) {
+	public HCTimer(final String name, final int ms, final boolean enable, final boolean isNewThread, final int newThreadPrority) {
 		interval = ms;
 		isEnable = enable;
 		this.name = name;
 		this.isNewThread = isNewThread;
+		this.newThreadPrority = newThreadPrority;
 		init();
 	}
 	
-	public void setBizObject(Object obj){
+	public final void setBizObject(final Object obj){
 		bizObj = obj;
 	}
 	
-	public Object getBizObject(){
+	public final Object getBizObject(){
 		return bizObj;
 	}
 
-	private void init() {
+	private final void init() {
+		CCoreUtil.checkAccess();
+		
 		if(isNewThread == false){
 			notifyToGenerailManager(this);
 		}else{
@@ -63,7 +73,7 @@ public abstract class HCTimer {
 	
 	boolean isEnable = true;
 	
-	public boolean isEnable(){
+	public final boolean isEnable(){
 		return isEnable;
 	}
 
@@ -76,16 +86,21 @@ public abstract class HCTimer {
 				}
 			}
 		}
+		if(enable && isNewThread){
+			synchronized (this) {
+				this.notify();
+			}
+		}
 	}
 	
 	/**
 	 * 计时器清零计算
 	 */
-	public void resetTimerCount(){
+	public final void resetTimerCount(){
 		resetToMS(interval);
 	}
 
-	private void resetToMS(final int ms) {
+	private final void resetToMS(final int ms) {
 		nextExecMS = getNextMS(ms);
 	}
 
@@ -93,7 +108,7 @@ public abstract class HCTimer {
 	 * 将下次执行时间设为最小，以获得最快执行，
 	 * 本方法内不调用doBiz
 	 */
-	public void doNowAsynchronous(){
+	public final void doNowAsynchronous(){
 		resetToMS(0);
 	}
 	
@@ -101,12 +116,12 @@ public abstract class HCTimer {
 	 * 设定替换旧成员的时间间隔，单位：MS
 	 * @param secondMS
 	 */
-	public void setIntervalMS(int secondMS) {
+	public final void setIntervalMS(final int secondMS) {
 		interval = secondMS;
 		nextExecMS = getNextMS(interval);
 	}
 
-	public int getIntervalMS() {
+	public final int getIntervalMS() {
 		return interval;
 	}
 
@@ -116,7 +131,7 @@ public abstract class HCTimer {
 	//数据
 	final private static Boolean LOCK = new Boolean(false);
 	private static int CURR_SIZE = 0;
-	private static final int HCTIME_MAX_SIZE = (IConstant.serverSide?3000:100);
+	private static final int HCTIME_MAX_SIZE = (IConstant.serverSide?1000:100);
 	final private static HCTimer[] HC_TIMERS = new HCTimer[HCTIME_MAX_SIZE];;
 	private static boolean isShutDown = false;
 	public static final long TEMP_MAX = 99999999999999999L;
@@ -125,6 +140,8 @@ public abstract class HCTimer {
 
 	//线程控制
 	private static Thread thread = new Thread() {//"HCTimer Thread"
+		final NestAction nestAction = EventCenter.nestAction;
+		
 		public void run() {
 			long min_wait_mill_second = TEMP_MAX;
 			while ((!isShutDown)) {
@@ -155,39 +172,55 @@ public abstract class HCTimer {
 
 					try {
 						Thread.sleep(sleepMS);
-	                } catch (Exception e) {
+	                } catch (final Exception e) {
 	                }
 					if(isContinue){
 						continue;
 					}
 				}
 				
-                try{
+            	int i = 0;
+            	HCTimer timer = null;
+            	while(true){
+                	boolean isFound = false;
+                	
 					synchronized(LOCK){
-						for (int i = 0; i < CURR_SIZE; i++) {
-							final HCTimer timer = HC_TIMERS[i];
+						for (; isFound == false && i < CURR_SIZE; i++) {
+							timer = HC_TIMERS[i];
 							if(timer.isEnable){
 								if (timer.nextExecMS <= min_wait_mill_second) {
-									//注意：
-									//调整nextExecMS要优先执行，如果doBize可能需要调整下次时间，由doBiz内部处理，如setInterval()
-									//本行只负责通用情形
-									timer.nextExecMS += timer.interval;		
-									
-									//严重滞时的情形，补正为下一段正确时间
-									if(timer.nextExecMS < nowExecMS){
-										timer.nextExecMS = getNextMS(timer.interval);
-									}
-//									long curr = System.currentTimeMillis();
-									timer.doBiz();
-//									hc.core.L.V=hc.core.L.O?false:LogManager.log("HCTimer[" + timer.name + "] exe cost: " + (System.currentTimeMillis() - curr));
+									isFound = true;
 								}
 							}
 						}
 					}
-                }catch (Exception e) {
-                	e.printStackTrace();
-				}
-			}
+					
+					if(isFound){
+						//注意：
+						//调整nextExecMS要优先执行，如果doBize可能需要调整下次时间，由doBiz内部处理，如setInterval()
+						//本行只负责通用情形
+						timer.nextExecMS += timer.interval;		
+						
+						//严重滞时的情形，补正为下一段正确时间
+						if(timer.nextExecMS < nowExecMS){
+							timer.nextExecMS = getNextMS(timer.interval);
+						}
+//							long curr = System.currentTimeMillis();
+		                try{
+							if(nestAction == null){
+								timer.doBiz();
+							}else{
+								nestAction.action(NestAction.HCTIMER, timer);
+							}
+//							hc.core.L.V=hc.core.L.O?false:LogManager.log("HCTimer[" + timer.name + "] exe cost: " + (System.currentTimeMillis() - curr));
+		                }catch (final Throwable e) {
+		                	e.printStackTrace();
+						}
+					}else{
+						break;
+					}
+            	}//while find executable timer
+			}//while isShutDown
 			hc.core.L.V=hc.core.L.O?false:LogManager.log("HCTimer shutdown");
 		}
 	};
@@ -196,27 +229,29 @@ public abstract class HCTimer {
 		isShutDown = true;
 		
 		try{
-			final int size = newThreadTimer.size();
-			for (int i = 0; i < size; i++) {
-				ThreadTimer tt = (ThreadTimer)newThreadTimer.elementAt(i);
-				tt.notifyShutdown();
+			synchronized (newThreadTimer) {
+				final int size = newThreadTimer.size();
+				for (int i = 0; i < size; i++) {
+					final ThreadTimer tt = (ThreadTimer)newThreadTimer.elementAt(i);
+					tt.notifyShutdown();
+				}
+				
+				try{
+					ContextManager.getContextInstance().interrupt(thread);
+				}catch (final Throwable e) {
+					//可能NullPointerException
+				}
 			}
-			
-			try{
-				ContextManager.getContextInstance().interrupt(thread);
-			}catch (Throwable e) {
-				//可能NullPointerException
-			}
-			//非j2me应用环境
-	//		if(IConstant.getInstance().getInt(IConstant.IS_J2ME) == 0){
-	//			thread.interrupt();
-	//		}
 		}finally{
 			ThreadPool.shutdown();
 		}
 	}
 
-	public static void remove(HCTimer t){
+	/**
+	 * 删除时，会将enable置于false。
+	 * @param t
+	 */
+	public static void remove(final HCTimer t){
 		if(t == null){
 			return ;
 		}
@@ -224,30 +259,49 @@ public abstract class HCTimer {
 		t.setEnable(false);
 		boolean isFound = false;
 		
-		synchronized(LOCK){
-			for (int i = 0; i < CURR_SIZE; i++) {
-				if(isFound == false && HC_TIMERS[i] == t){
-					isFound = true;
+		if(t.isNewThread == false){
+			//共享线程
+			synchronized(LOCK){
+				for (int i = 0; i < CURR_SIZE; i++) {
+					if(isFound == false && HC_TIMERS[i] == t){
+						isFound = true;
+					}
+					if(isFound){
+						if(i < (CURR_SIZE - 1)){
+							HC_TIMERS[i] = HC_TIMERS[i+1];
+						}					
+					}
 				}
+	
 				if(isFound){
-					if(i < (CURR_SIZE - 1)){
-						HC_TIMERS[i] = HC_TIMERS[i+1];
-					}					
+					--CURR_SIZE;
 				}
 			}
-
-			if(isFound){
-				--CURR_SIZE;
+		}else{
+			//自带线程
+			synchronized (newThreadTimer) {
+				final int size = newThreadTimer.size();
+				for (int i = 0; i < size; i++) {
+					final ThreadTimer threadTimer = (ThreadTimer)newThreadTimer.elementAt(i);
+					if(threadTimer.timer == t){
+						threadTimer.notifyShutdown();
+						newThreadTimer.removeElementAt(i);
+						return;
+					}
+				}
 			}
 		}
 	}
 	
 	private static final Vector newThreadTimer = new Vector();
-	protected static void notifyToNewThread(HCTimer byer) {
-		newThreadTimer.addElement(new ThreadTimer(byer));
+	protected static void notifyToNewThread(final HCTimer byer) {
+		final ThreadTimer threadTimer = new ThreadTimer(byer);
+		synchronized (newThreadTimer) {
+			newThreadTimer.addElement(threadTimer);
+		}
 	}
 	
-	protected static void notifyToGenerailManager(HCTimer byer) {
+	protected static void notifyToGenerailManager(final HCTimer byer) {
 		byer.nextExecMS = getNextMS(byer.interval);
 		synchronized (LOCK) {
 			if (CURR_SIZE == HCTIME_MAX_SIZE) {
@@ -256,12 +310,10 @@ public abstract class HCTimer {
 			}
 
 			HC_TIMERS[CURR_SIZE++] = byer;
-
-			LOCK.notify();
 		}
 	}
 
-	public static long getNextMS(int interv) {
+	public static long getNextMS(final int interv) {
 		final long currentTimeMillis = System.currentTimeMillis();
 		return currentTimeMillis - (currentTimeMillis % HC_INTERNAL_MS) + HC_INTERNAL_MS
 				+ interv;
@@ -270,7 +322,7 @@ public abstract class HCTimer {
 	static {
 		isShutDown = false;
 		//没有 必要 定为最高级
-		//thread.setPriority(Thread.MAX_PRIORITY);
+		thread.setPriority(ThreadPriorityManager.HCTIMER_PRIORITY);
 		thread.start();
 	}
 

@@ -1,11 +1,14 @@
 package hc.core.util;
 
+import hc.core.HCConfig;
 import hc.core.IConstant;
 
+import java.io.Reader;
+import java.util.Hashtable;
 import java.util.Vector;
 
 public class StringUtil {
-	public static String replace(String src, String find, String replaceTo){
+	public static String replace(String src, final String find, final String replaceTo){
 		int index = 0;
 		String out = src;
 		while(index >= 0){
@@ -19,12 +22,48 @@ public class StringUtil {
 		}
 		return out;
 	}
+
+	public static String toSerialBySplit(final String[] item){
+		if(item.length == 0){
+			return "";
+		}
+		
+		final StringBuffer sb = new StringBuffer("");
+		
+		final int minusOne = item.length - 1;
+		for (int i = 0; i < minusOne; i++) {
+			sb.append(item[i]);
+			sb.append(HCConfig.CFG_SPLIT);
+		}
+		sb.append(item[minusOne]);
+		return sb.toString();
+	}
+	
+	/**
+	 * int red => 00FF0000
+	 * 注意：对于CSS，不使用useAlpha，即useAlpha=false。因为A=0，颜色不出现
+	 */
+	public static String toARGB(final int color, final boolean useAlpha){
+		if(useAlpha){
+			return Integer.toHexString(color);
+		}else{
+			return Integer.toHexString(color & 0x00FFFFFF);
+		}
+	}
 	
 	public static byte[] getBytes(final String str){
 		try{
 			return str.getBytes(IConstant.UTF_8);
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			return str.getBytes();
+		}
+	}
+	
+	public static String bytesToString(final byte[] bs, final int offset, final int len){
+		try{
+			return new String(bs, offset, len, IConstant.UTF_8);
+		}catch (final Exception e) {
+			return new String(bs, offset, len);
 		}
 	}
 
@@ -33,15 +72,21 @@ public class StringUtil {
 	 * @param msg
 	 * @return
 	 */
-	public static String[] extractIPAndPort(String msg) {
-		String[] out = StringUtil.splitToArray(msg, ";");
+	public static String[] extractIPAndPort(final String msg) {
+		final String[] out = StringUtil.splitToArray(msg, ";");
 		return out;
 	}
 
-	public static String[] splitToArray(String src, String split){
-	    int split_length = split.length();
+	/**
+	 * 
+	 * @param src
+	 * @param split 支持如单字符:或组合###
+	 * @return
+	 */
+	public static String[] splitToArray(final String src, final String split){
+	    final int split_length = split.length();
 	
-	    String[] out = new String[StringUtil.splitCount(src, split)];
+	    final String[] out = new String[StringUtil.splitCount(src, split)];
 	    int c = 0;
 	    int idx = 0;
 	    int nextIdx = src.indexOf(split, 0);
@@ -56,8 +101,8 @@ public class StringUtil {
 	    return out;
 	}
 
-	private static int splitCount(String src, String split){
-		int split_length = split.length();
+	private static int splitCount(final String src, final String split){
+		final int split_length = split.length();
 	    int c = 0;
 	    int idx = 0;
 	    int nextIdx = src.indexOf(split, 0);
@@ -77,10 +122,10 @@ public class StringUtil {
 	 * @param ver2
 	 * @return
 	 */
-	public static boolean higer(String ver1, String ver2){
-		int s1_index = ver1.indexOf(".", 0);
+	public static boolean higer(final String ver1, final String ver2){
+		final int s1_index = ver1.indexOf(".", 0);
 		
-		int s2_index = ver2.indexOf(".", 0);
+		final int s2_index = ver2.indexOf(".", 0);
 		
 		int ss1, ss2;
 		if(s1_index > 0){
@@ -118,8 +163,8 @@ public class StringUtil {
 		}
 	}
 
-	public static Vector split(String msg, String split) {
-		Vector v = new Vector(8);
+	public static Vector split(final String msg, final String split) {
+		final Vector v = new Vector(8);
 		if(msg == null || msg.length() == 0){
 			return v;
 		}
@@ -136,4 +181,180 @@ public class StringUtil {
 		v.addElement(msg.substring(idx));
 		return v;
 	}
+
+	public static int adjustFontSize(int screenWidth, final int screenHeight) {
+		screenWidth=screenWidth>screenHeight?screenWidth:screenHeight;  
+	    final int rate = (int)(7*(float) screenWidth/320);
+	    if (rate<16){
+	    	return 16;
+	    }else if(rate > 36){//乐1 screenWidth:1854, rate:40
+	    	return rate;
+	    }else{
+	    	return rate;
+	    }
+	}
+
+	/**
+	 * 读取文件流到串
+	 */
+	public static String load(final Reader stream) {
+		final char[] buf = new char[1024];
+		final StringBuffer sb = new StringBuffer();
+		
+		try{
+			int len;
+			do{
+				len = stream.read(buf);
+				sb.append(buf, 0, len);
+			}while(len > 0);
+		}catch (final Exception e) {
+		}finally{
+			try{
+				stream.close();
+			}catch (final Throwable throwable) {
+			}
+		}
+		
+		return sb.toString();
+	}
+	
+	public static void load(final Reader stream, final Hashtable table) {
+		final LineInputStream line = new LineInputStream(stream);
+		final char[] Buf = new char[1024];
+		int limit;
+		int keyLen;
+		int start;
+		char c;
+		boolean hasSep;
+		boolean backslash;
+	
+		try {
+			while ((limit = line.readLine()) >= 0) {
+				c = 0;
+				keyLen = 0;
+				start = limit;
+				hasSep = false;
+	
+				backslash = false;
+				while (keyLen < limit) {
+					c = line.lineBuf[keyLen];
+					// need check if escaped.
+					if ((c == '=' || c == ':') && !backslash) {
+						start = keyLen + 1;
+						hasSep = true;
+						break;
+					} else if ((c == ' ' || c == '\t' || c == '\f')
+							&& !backslash) {
+						start = keyLen + 1;
+						break;
+					}
+					if (c == '\\') {
+						backslash = !backslash;
+					} else {
+						backslash = false;
+					}
+					keyLen++;
+				}
+				while (start < limit) {
+					c = line.lineBuf[start];
+					if (c != ' ' && c != '\t' && c != '\f') {
+						if (!hasSep && (c == '=' || c == ':')) {
+							hasSep = true;
+						} else {
+							break;
+						}
+					}
+					start++;
+				}
+				final String key = StringUtil.loadConvert(line.lineBuf, 0, keyLen, Buf);
+				final String value = StringUtil.loadConvert(line.lineBuf, start, limit - start, Buf);
+				
+				table.put(key, value);
+			}
+		} catch (final Exception e) {
+	
+		}finally{
+			try {
+				stream.close();
+			} catch (final Exception e) {
+			}
+		}
+	}
+
+	private static String loadConvert(final char[] in, int off, final int len,
+			char[] convtBuf) {
+		if (convtBuf.length < len) {
+			final int newLen = len * 2;
+			convtBuf = new char[newLen];
+		}
+		char aChar;
+		final char[] out = convtBuf;
+		int outLen = 0;
+		final int end = off + len;
+	
+		while (off < end) {
+			aChar = in[off++];
+			if (aChar == '\\') {
+				aChar = in[off++];
+				if (aChar == 'u') {
+					int value = 0;
+					for (int i = 0; i < 4; i++) {
+						aChar = in[off++];
+						switch (aChar) {
+						case '0':
+						case '1':
+						case '2':
+						case '3':
+						case '4':
+						case '5':
+						case '6':
+						case '7':
+						case '8':
+						case '9':
+							value = (value << 4) + aChar - '0';
+							break;
+						case 'a':
+						case 'b':
+						case 'c':
+						case 'd':
+						case 'e':
+						case 'f':
+							value = (value << 4) + 10 + aChar - 'a';
+							break;
+						case 'A':
+						case 'B':
+						case 'C':
+						case 'D':
+						case 'E':
+						case 'F':
+							value = (value << 4) + 10 + aChar - 'A';
+							break;
+						default:
+							throw new IllegalArgumentException("Error encoding.");
+						}
+					}
+					out[outLen++] = (char) value;
+				} else {
+					if (aChar == 't')
+						aChar = '\t';
+					else if (aChar == 'f')
+						aChar = '\f';
+					else if (aChar == 'r')
+						aChar = '\r';
+					else if (aChar == 'n')
+						aChar = '\n';
+					out[outLen++] = aChar;
+				}
+			} else {
+				out[outLen++] = aChar;
+			}
+		}
+		return new String(out, 0, outLen);
+	}
+
+	public static final String formatJS(final String js){
+		return js.replace('"', '\'');
+	}
+
+	public static final String split = "###";
 }

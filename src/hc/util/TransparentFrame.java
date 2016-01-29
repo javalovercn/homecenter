@@ -1,13 +1,14 @@
 package hc.util;
 
 import hc.res.ImageSrc;
+import hc.server.PlatformManager;
+import hc.server.util.HCJFrame;
+
 import java.awt.Graphics;
 import java.awt.Image;
 import java.io.IOException;
-import javax.swing.JFrame;
-import com.sun.awt.AWTUtilities;
  
-public class TransparentFrame extends JFrame {
+public class TransparentFrame extends HCJFrame {
  
     private Image img;
     public TransparentFrame(Image image) {
@@ -20,6 +21,9 @@ public class TransparentFrame extends JFrame {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        
+        setVisible(true);
+
     }
  
     /**
@@ -32,11 +36,10 @@ public class TransparentFrame extends JFrame {
         this.setUndecorated(true);
  
         //Shape形状
-        AWTUtilities.setWindowShape(this, ImageSrc.getImageShape(img));
+        PlatformManager.getService().setWindowShape(this, ImageSrc.getImageShape(img));
         //透明度
         //AWTUtilities.setWindowOpacity
         
-        setVisible(true);
     }
  
     @Override

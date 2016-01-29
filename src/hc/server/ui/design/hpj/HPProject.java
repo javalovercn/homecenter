@@ -2,21 +2,23 @@ package hc.server.ui.design.hpj;
 
 import hc.core.util.HCURL;
 import hc.server.ui.design.LinkProjectManager;
-
+import hc.server.util.ContextSecurityConfig;
 
 public class HPProject extends HPNode{
 	public static final String DEFAULT_VER = "1.0";
 	public static final String HAR_EXT = "har";
 	public static final String HAD_EXT = "had";
 	
-	public String id, ver, upgradeURL, contact, copyright, desc, license;
+	public String id, ver, upgradeURL, contact, copyright, desc, license, styles;
+	public ContextSecurityConfig csc;
 	
 	public static String convertProjectIDFromName(String name){
 		return LinkProjectManager.buildSysProjID();
 	}
 
 	public HPProject(int type, String name, String id, String ver, String url,
-			String contact, String copyright, String desc, String license) {
+			String contact, String copyright, String desc, String license,
+			ContextSecurityConfig csc, String styles) {
 		super(type, name);
 		
 		this.id = id;
@@ -26,6 +28,9 @@ public class HPProject extends HPNode{
 		this.copyright = copyright;
 		this.desc = desc;
 		this.license = license;
+		
+		this.csc = csc;
+		this.styles = styles;
 	}
 	
 	public String toString(){

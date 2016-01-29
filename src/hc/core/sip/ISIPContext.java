@@ -61,12 +61,12 @@ public abstract class ISIPContext {
 	 * 是发布Socket的唯一入口
 	 * @param socket
 	 */
-	public void deploySocket(Object socket, DataInputStream is, DataOutputStream os){
+	public void deploySocket(final Object socket) throws Exception{
 		enterDeployStatus();
 		
 		final ReceiveServer receiveServer = ContextManager.getReceiveServer();
-		receiveServer.setUdpServerSocket(is);
-		ContextManager.getContextInstance().setOutputStream(os);
+		receiveServer.setUdpServerSocket(socket);
+		ContextManager.getContextInstance().setOutputStream(socket);
 		setSocket(socket);
 	}
 	public void enterDeployStatus() {

@@ -1,7 +1,6 @@
 package hc.core.util;
 
 import hc.core.IConstant;
-
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -12,6 +11,9 @@ public class StoreableHashMap extends Hashtable {
 	private final String SPLIT_CHAR = ";";
 	private final String FAN_SPLIT = "&#-1x";
 	private final String EQUAL = "=";
+	//用于value是数组型的
+	protected final String ARRAY_SPLIT = "^";
+	protected final String DOUBLE_ARRAY_SPLIT = ARRAY_SPLIT + ARRAY_SPLIT;
 
 	public StoreableHashMap() {
 		super();

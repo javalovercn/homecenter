@@ -3,16 +3,11 @@ package hc.server.ui;
 import hc.App;
 import hc.core.IContext;
 import hc.res.ImageSrc;
+import hc.server.HCActionListener;
 import hc.util.ResourceUtil;
-
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.HashMap;
-
-import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -72,19 +67,13 @@ public class SingleMessageNotify {
 	public SingleMessageNotify(final String type, String msg, String title, final int disposeMS, final Icon icon){
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.add(new JLabel("<html><body>"+msg+"</body></html>", icon, SwingConstants.LEADING), BorderLayout.CENTER);
-		final ActionListener quitAction = new ActionListener() {
+		final ActionListener quitAction = new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				closeDialog(type);
 			}
-		};
-		BufferedImage okIcon = null;
-		try {
-			okIcon = ImageIO.read(ImageSrc.OK_ICON);
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		final JButton okButton = new JButton((String) ResourceUtil.get(IContext.OK), new ImageIcon(okIcon));
+		}, App.getThreadPoolToken());
+		final JButton okButton = new JButton((String) ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
 		final JDialog dialog = (JDialog)App.showCenterPanel(panel, 0, 0, title, false, okButton, null, quitAction, quitAction, null, false, false, null, false, false);
 		typeDialogs.put(type, dialog);
 		
@@ -120,6 +109,7 @@ public class SingleMessageNotify {
 			if(dialog != null){
 				setShowToType(type, false);
 				typeDialogs.put(type, null);
+				dialog.dispose();
 			}
 		}
 	}

@@ -1,9 +1,8 @@
 package hc.server.ui.design.hpj;
 
+import hc.App;
+import hc.server.HCActionListener;
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -18,7 +17,7 @@ public class JarNodeEditPanel extends NameEditPanel{
 		final VerTextField verTextField = verPanel.verTextField;
 		verTextField.getDocument().addDocumentListener(new DocumentListener() {
 			private void modify(){
-				((HPShareJar)item).ver = verTextField.getText();
+				((HCShareFileResource)item).ver = verTextField.getText();
 				notifyModified();
 			}
 			@Override
@@ -36,14 +35,14 @@ public class JarNodeEditPanel extends NameEditPanel{
 				modify();
 			}
 		});
-		verTextField.addActionListener(new ActionListener() {
+		verTextField.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				((HPShareJar)item).ver = verTextField.getText();
-				tree.updateUI();
+			public void run() {
+				((HCShareFileResource)item).ver = verTextField.getText();
+				App.invokeLaterUI(updateTreeRunnable);
 				item.getContext().modified.setModified(true);
 			}
-		});
+		}, threadPoolToken));
 		
 		JPanel center = new JPanel();
 		center.setLayout(new BorderLayout());
@@ -54,6 +53,6 @@ public class JarNodeEditPanel extends NameEditPanel{
 
 	@Override
 	public void extendInit(){
-		verPanel.verTextField.setText(((HPShareJar)item).ver);
+		verPanel.verTextField.setText(((HCShareFileResource)item).ver);
 	}
 }

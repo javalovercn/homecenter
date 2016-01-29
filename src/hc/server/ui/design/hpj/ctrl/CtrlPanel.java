@@ -1,8 +1,7 @@
 package hc.server.ui.design.hpj.ctrl;
 
 import hc.core.util.CtrlItem;
-import hc.core.util.CtrlKey;
-
+import hc.core.util.CtrlKeySet;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -26,7 +25,7 @@ public class CtrlPanel extends JPanel {
 	public static final int BLOCK_WIDTH = 240;
 	public static final int HALF_BLOCK_WIDTH = BLOCK_WIDTH / 2;
 	private int currSelectKeyValue = -1;
-	private final CtrlItem[] itemsOnCanvas = new CtrlItem[CtrlKey.MAX_CTRL_ITEM_NUM];
+	private final CtrlItem[] itemsOnCanvas = new CtrlItem[CtrlKeySet.MAX_CTRL_ITEM_NUM];
 	private final CtrlTotalPanel totalPanel;
 	private final Cursor moveCursor = Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
 	private final Cursor defaultCursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);

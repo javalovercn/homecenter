@@ -1,11 +1,9 @@
 package hc.server.ui.tip;
 
-
+import hc.server.HCActionListener;
+import hc.App;
 import java.awt.Point;
 import java.awt.TrayIcon.MessageType;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.JButton;
 
 public class Wizard {
@@ -16,13 +14,13 @@ public class Wizard {
 		this.buttons = btns;
 	}
 	
-	final ActionListener al = new ActionListener() {
+	final HCActionListener al = new HCActionListener(new Runnable() {
 		@Override
-		public void actionPerformed(ActionEvent e) {
+		public void run() {
 			index++;
 			showTip();
 		}
-	};
+	}, App.getThreadPoolToken());
 	
 	public void showTip(){
 		if(index == buttons.length){

@@ -8,7 +8,12 @@ public class ServCtrlCanvas implements ICanvas {
 	
 	@Override
 	public void onStart() {
-		cr.onLoad();
+		cr.getProjectContext().run(new Runnable() {
+			@Override
+			public void run() {
+				cr.onLoad();
+			}
+		});
 	}
 
 	@Override
@@ -21,7 +26,12 @@ public class ServCtrlCanvas implements ICanvas {
 
 	@Override
 	public void onExit() {
-		cr.onExit();
+		cr.getProjectContext().run(new Runnable() {
+			@Override
+			public void run() {
+				cr.onExit();
+			}
+		});
 	}
 
 }

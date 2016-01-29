@@ -2,6 +2,7 @@ package hc.server.ui.design;
 
 import hc.util.PropertiesManager;
 import hc.util.PropertiesSet;
+import hc.util.ResourceUtil;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -20,13 +21,21 @@ public class ProjectListPanel {
 	final int IDX_OBJ_STORE = 1;
 	final LinkProjectStore oldRootlps;
 
-	final PropertiesSet projIDSet = new PropertiesSet(PropertiesManager.S_LINK_PROJECTS);
+	final PropertiesSet projIDSet = AddHarHTMLMlet.getLinkProjSet();
 	final PropertiesSet projWidthSet = new PropertiesSet(PropertiesManager.S_LINK_PROJECTS_COLUMNS_WIDTH);
 
-	final String upgradeURL = "Upgrade URL";
-	final Object[] colNames = {"No", "is Root", "Project ID", "Version", "Active", "Link Name", "Comment", upgradeURL};
+	final String upgradeURL = (String)ResourceUtil.get(8023);
+	final Object[] colNames = {(String)ResourceUtil.get(9109),//No, 序号 
+			(String)ResourceUtil.get(8017),//"is Root", 
+			(String)ResourceUtil.get(8018),//"Project ID", 
+			(String)ResourceUtil.get(8019),//"Version", 
+			(String)ResourceUtil.get(8020),//"Active", 
+			(String)ResourceUtil.get(8021),//"Link Name", 
+			(String)ResourceUtil.get(8022),//"Comment", 
+			upgradeURL,//upgradeURL
+			};
 
-	final Object data[][] = new Object[LinkProjectManager.MAX_LINK_PROJ_NUM][COL_NUM];
+	final Vector<Object[]> data = new Vector<Object[]>();//[COL_NUM];
 	int dataRowNum = 0;
 	final Vector<LinkProjectStore> lpsVector;
 	public ProjectListPanel(){
@@ -34,8 +43,8 @@ public class ProjectListPanel {
 		lpsVector = new Vector<LinkProjectStore>(size);
 		LinkProjectStore tmp_lps = null;
 		for (int i = 0; i < size; i++) {
-			String item = projIDSet.getItem(i);
-			LinkProjectStore lp = new LinkProjectStore();
+			final String item = projIDSet.getItem(i);
+			final LinkProjectStore lp = new LinkProjectStore();
 			lp.restore(item);
 			if(lp.isRoot()){
 				tmp_lps = lp;
@@ -44,27 +53,29 @@ public class ProjectListPanel {
 		}
 		oldRootlps = tmp_lps;
 		
-		for (int i = 0; i < LinkProjectManager.MAX_LINK_PROJ_NUM; i++) {
-			for (int j = 0; j < COL_NUM; j++) {
-				if(j == 0){
-					data[i][j] = "";
-				}else if(j == IDX_OBJ_STORE){
-					data[i][j] = null;
-				}
-			}
-		}
+//		for (int i = 0; i < LinkProjectManager.MAX_LINK_PROJ_NUM; i++) {
+//			data.add(new Object[COL_NUM]);
+//			for (int j = 0; j < COL_NUM; j++) {
+//				if(j == 0){
+//					data.elementAt(i)[j] = "";
+//				}else if(j == IDX_OBJ_STORE){
+//					data.elementAt(i)[j] = null;
+//				}
+//			}
+//		}
 		
 		{
 			int i = 0;
-			Iterator<LinkProjectStore> itx = LinkProjectManager.getLinkProjsIterator(true);
+			final Iterator<LinkProjectStore> itx = LinkProjectManager.getLinkProjsIterator(true);
 			while(itx.hasNext()){
-				LinkEditData led = new LinkEditData();
+				final LinkEditData led = new LinkEditData();
 				led.lps = itx.next();
 				led.op = (LinkProjectManager.STATUS_NEW);
 				led.status = (LinkProjectManager.STATUS_DEPLOYED);
 
-				data[i][0] = String.valueOf(i+1);
-				data[i++][IDX_OBJ_STORE] = led;
+				data.add(new Object[COL_NUM]);
+				data.elementAt(i)[0] = String.valueOf(i+1);
+				data.elementAt(i++)[IDX_OBJ_STORE] = led;
 			}
 		}
 	}
@@ -77,29 +88,29 @@ public class ProjectListPanel {
 				for (int j = 0; j < projWidthSet.size() && j < columnCount; j++) {
 					table.getColumnModel().getColumn(j).setPreferredWidth(Integer.parseInt(projWidthSet.getItem(j)));
 				}
-			}catch (Exception e) {
+			}catch (final Exception e) {
 			}
 		}
 
 		//侦听事件，存储用户调整后的列宽度
 		table.getTableHeader().addMouseMotionListener(new MouseMotionListener() {
 			@Override
-			public void mouseMoved( MouseEvent e ){}
+			public void mouseMoved( final MouseEvent e ){}
 			@Override
-			public void mouseDragged( MouseEvent e ){
+			public void mouseDragged( final MouseEvent e ){
 				try{
-					TableColumn changedColumn = ((JTableHeader)e.getSource()).getResizingColumn();
+					final TableColumn changedColumn = ((JTableHeader)e.getSource()).getResizingColumn();
 					if(changedColumn != null){
-						TableColumnModel tcm = table.getTableHeader().getColumnModel();
+						final TableColumnModel tcm = table.getTableHeader().getColumnModel();
 						final int size = tcm.getColumnCount();
-						String[] widths = new String[size];
+						final String[] widths = new String[size];
 						for (int i = 0; i < size; i++) {
 							widths[i] = String.valueOf(tcm.getColumn(i).getWidth());
 						}
 						projWidthSet.refill(widths);
 						projWidthSet.save();
 					}
-				}catch (Exception ex) {
+				}catch (final Exception ex) {
 				}
 			}
 		});	}

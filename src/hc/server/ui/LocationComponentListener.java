@@ -1,5 +1,6 @@
 package hc.server.ui;
 
+import hc.core.ContextManager;
 import hc.util.PropertiesManager;
 
 import java.awt.Component;
@@ -8,6 +9,12 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 
 public class LocationComponentListener implements ComponentListener {
+	private final ThreadGroup threadPoolToken;
+	
+	public LocationComponentListener(ThreadGroup tg){
+		threadPoolToken = tg;
+	}
+	
 	@Override
 	public void componentShown(ComponentEvent e) {
 	}
@@ -26,18 +33,23 @@ public class LocationComponentListener implements ComponentListener {
 	public void componentHidden(ComponentEvent e) {
 	}
 	
-	private void saveLocation(Component component){
-		final String title = component.getName();
-		final Rectangle r = component.getBounds();
+	private void saveLocation(final Component component){
+		ContextManager.getThreadPool().run(new Runnable() {
+			@Override
+			public void run() {
+				final String title = component.getName();
+				final Rectangle r = component.getBounds();
 
-//		System.out.println("saveLocation, x:" + r.x + ", y:" + r.y + ", w:" + r.width + ", h:" + r.height);
+//				System.out.println("saveLocation, x:" + r.x + ", y:" + r.y + ", w:" + r.width + ", h:" + r.height);
 
-		PropertiesManager.setValue(title + PropertiesManager.p_WindowX, String.valueOf(r.x));
-		PropertiesManager.setValue(title + PropertiesManager.p_WindowY, String.valueOf(r.y));
-		PropertiesManager.setValue(title + PropertiesManager.p_WindowWidth, String.valueOf(r.width));
-		PropertiesManager.setValue(title + PropertiesManager.p_WindowHeight, String.valueOf(r.height));
-		
-		PropertiesManager.saveFile();
+				PropertiesManager.setValue(title + PropertiesManager.p_WindowX, String.valueOf(r.x));
+				PropertiesManager.setValue(title + PropertiesManager.p_WindowY, String.valueOf(r.y));
+				PropertiesManager.setValue(title + PropertiesManager.p_WindowWidth, String.valueOf(r.width));
+				PropertiesManager.setValue(title + PropertiesManager.p_WindowHeight, String.valueOf(r.height));
+				
+				PropertiesManager.saveFile();
+			}
+		}, threadPoolToken);
 	}
 	
 	public static boolean hasLocation(Component component){

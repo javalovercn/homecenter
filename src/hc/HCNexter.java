@@ -40,7 +40,7 @@ public class HCNexter {
 			}
 			
 			@Override
-			public boolean isNotCancelable() {
+			public boolean isCancelable() {
 				return false;
 			}
 			

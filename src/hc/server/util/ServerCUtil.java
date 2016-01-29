@@ -9,13 +9,11 @@ import hc.core.MsgBuilder;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
 import hc.core.util.LogManager;
+import hc.server.PlatformManager;
 import hc.server.ui.SingleMessageNotify;
-
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.SecureRandom;
-import java.security.Security;
-
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
@@ -66,7 +64,7 @@ public class ServerCUtil {
 				}
 			}
 		}
-		hc.core.L.V=hc.core.L.O?false:LogManager.log("Client pass certkey and password");
+		L.V = L.O ? false : LogManager.log("Client pass certkey and password");
 		return IContext.BIZ_SERVER_AFTER_CERTKEY_AND_PWD_PASS;
 	}
 
@@ -74,31 +72,40 @@ public class ServerCUtil {
 		IContext ic = ContextManager.getContextInstance();
 		final byte[] transCKBS = new byte[MsgBuilder.UDP_BYTE_SIZE];
 		
-		CUtil.generateTransCertKey(transCKBS, MsgBuilder.INDEX_MSG_DATA, oneTimeCertKey, IConstant.passwordBS, isOneTimeKeys);
+		CUtil.generateTransCertKey(App.getStartMS(), transCKBS, MsgBuilder.INDEX_MSG_DATA, oneTimeCertKey, IConstant.getPasswordBS(), isOneTimeKeys);
 		
 		ic.send(msgTag, transCKBS, CUtil.TRANS_CERT_KEY_LEN);
 	}
 
 
 	public static void transOneTimeCertKey() {
-		hc.core.L.V=hc.core.L.O?false:LogManager.log("transport one time certification key to client");
+		CCoreUtil.checkAccess();
+		
+		L.V = L.O ? false : LogManager.log("transport one time certification key to client");
 		
 		//传输OneTimeCertKey
-		if(CUtil.OneTimeCertKey == null){
-			CUtil.OneTimeCertKey = new byte[CCoreUtil.CERT_KEY_LEN];
+		byte[] oneTimeCertKey = CUtil.getOneTimeCertKey();
+		if(oneTimeCertKey == null){
+			oneTimeCertKey = new byte[CCoreUtil.CERT_KEY_LEN];
+			CUtil.setOneTimeCertKey(oneTimeCertKey);
 		}
-		CCoreUtil.generateRandomKey(CUtil.OneTimeCertKey, 0, CCoreUtil.CERT_KEY_LEN);
+		CCoreUtil.generateRandomKey(App.getStartMS(), oneTimeCertKey, 0, CCoreUtil.CERT_KEY_LEN);
 //		L.V = L.O ? false : LogManager.log("OneTime:" + CUtil.toHexString(CUtil.OneTimeCertKey));
-		transCertKey(CUtil.OneTimeCertKey, MsgBuilder.E_TRANS_ONE_TIME_CERT_KEY, true);
+		transCertKey(oneTimeCertKey, MsgBuilder.E_TRANS_ONE_TIME_CERT_KEY, true);
 	}
 	
 	private final static String Algorithm = "DES"; // 定义 加密算法,可用DES,DESede,Blowfish
-
+	public final static String oldCipherAlgorithm = "DES";
+	public final static String CipherAlgorithm = "DES/ECB/NoPadding";
+	
 	static {
-        Security.addProvider(new com.sun.crypto.provider.SunJCE()); 
+		try{
+			PlatformManager.getService().addJCEProvider();
+		}catch (Throwable e) {
+		}
 	}
 
-	public static InputStream decodeStream(InputStream in, byte[] key)
+	public static InputStream decodeStream(InputStream in, byte[] key, String cipherAlgorithm)
 			throws Exception {
 		key = doubePWD(key);
 		
@@ -111,7 +118,7 @@ public class ServerCUtil {
 		// 根据提供的密钥规范（密钥材料）生成 SecretKey 对象,利用密钥工厂把DESKeySpec转换成一个SecretKey对象
 		SecretKey sk = factroy.generateSecret(ks);
 		// 生成一个实现指定转换的 Cipher 对象。Cipher对象实际完成加解密操作
-		Cipher c = Cipher.getInstance(Algorithm);
+		Cipher c = Cipher.getInstance(cipherAlgorithm);
 		// 用密钥和随机源初始化此 cipher
 		c.init(Cipher.DECRYPT_MODE, sk, sr);
 
@@ -136,9 +143,9 @@ public class ServerCUtil {
 		
 //		// 秘密（对称）密钥(SecretKey继承(key))
 //		// 根据给定的字节数组构造一个密钥。
-//		SecretKey deskey = new SecretKeySpec(new DESKeySpec(key), Algorithm);
+//		SecretKey deskey = new SecretKeySpec(key, Algorithm);
 		// 生成一个实现指定转换的 Cipher 对象。Cipher对象实际完成加解密操作
-		Cipher c = Cipher.getInstance(Algorithm);
+		Cipher c = Cipher.getInstance(CipherAlgorithm);
 		// 用密钥初始化此 cipher
 		c.init(Cipher.ENCRYPT_MODE, sk);
 

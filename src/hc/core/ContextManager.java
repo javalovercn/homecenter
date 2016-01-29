@@ -2,6 +2,8 @@ package hc.core;
 
 import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
+import hc.core.util.RecycleThread;
+import hc.core.util.ThreadPool;
 
 public class ContextManager {
 	private static IContext instanceContext;
@@ -10,33 +12,42 @@ public class ContextManager {
 	public static IContext getContextInstance(){
 		return instanceContext;
 	}
+	
     public static void exit(){
     	if(instanceContext != null){
 	    	setStatus(STATUS_EXIT);
     	}
     }
     
-//    private static boolean isSimu = false;
-//    
-//    public static void setSimulate(boolean s){
-//    	isSimu = s;
-//    }
-//    
-//    public static boolean isSimulate(){
-//    	return isSimu;
-//    }
-    
-    public static void setContextInstance(IContext ib){
+    public static void setContextInstance(final IContext ib){
+    	if(instanceContext != null && IConstant.serverSide){//手机端初次连接失败后，再次连接会重新调用本方法
+    		if(L.isInWorkshop){
+    			LogManager.err("Error : ContextInstance is setted");
+    		}
+    		return;
+    	}
     	instanceContext = ib;
     	setStatus(STATUS_NEED_NAT);
+    	if(isNotifyShutdown){
+    		notifyShutdown();
+    	}
     }
-    
+    static boolean isNotifyShutdown = false;
     public static void notifyShutdown(){
-    	instanceContext.notifyShutdown();
+    	//用户请求关闭时，可能存在其它消息任务。消息任务须优先被执行。故增加缺省线程优先级来处理关闭逻辑
+    	ContextManager.getThreadPool().run(new Runnable() {
+    		public void run(){
+    	    	if(instanceContext != null){
+    	    		instanceContext.notifyShutdown();
+    	    	}else{
+    	    		isNotifyShutdown = true;
+    	    	}
+    		}
+    	});
     }
 
     
-    public static void displayMessage(String caption, String text, int type, int timeOut){
+    public static void displayMessage(final String caption, final String text, final int type, final int timeOut){
     	if(instanceContext != null){
     		instanceContext.displayMessage(caption, text, type, null, 0);
     	}
@@ -74,22 +85,6 @@ public class ContextManager {
 		}
 		return false;
 	}
-	
-//	public static boolean isRelayServerStatus(){
-//		int m = getStatus();
-//		if(m == STATUS_SERVER_AND_RELAY){
-//			return true;
-//		}
-//		return false;
-//	}
-	
-//	public static boolean isOnRelayStatus(){
-//		int m = getStatus();
-//		if(m == STATUS_CLIENT_ON_RELAY || m == STATUS_SERVER_ON_RELAY){
-//			return true;
-//		}
-//		return false;
-//	}
 	
 	public static boolean isNotWorkingStatus(){
 		final int[] notWorking = {STATUS_READY_TO_LINE_ON, STATUS_EXIT, STATUS_NEED_NAT, STATUS_LINEOFF};
@@ -129,7 +124,12 @@ public class ContextManager {
 		return modeStatus;
 	}
 	
-	public static void setStatus(short mode){
+	public static void setStatus(final short mode){
+		if(mode != ContextManager.STATUS_EXIT && cmStatus == ContextManager.STATUS_EXIT){
+			L.V = L.O ? false : LogManager.log("forbid change status from [" + cmStatus + "] to [" + mode + "]");
+			return;
+		}
+		
 		hc.core.L.V=hc.core.L.O?false:LogManager.log("Change Status, From [" + cmStatus + "] to [" + mode + "]");
 		if(statusListen != null){
 			statusListen.notify(cmStatus, mode);
@@ -158,7 +158,7 @@ public class ContextManager {
 				try{
 					//服务器稍等，提供客户初始化时间
 					Thread.sleep(200);
-				}catch (Exception e) {
+				}catch (final Exception e) {
 				}
 			}
 			
@@ -193,10 +193,45 @@ public class ContextManager {
 		CCoreUtil.globalExit();
 	}
 	
-	public static byte[] cloneDatagram(byte[] randomBS){
+	public static byte[] cloneDatagram(final byte[] randomBS){
 		final byte[] event = new byte[MsgBuilder.UDP_BYTE_SIZE];
 		
 		System.arraycopy(randomBS, 0, event, 0, (event.length > randomBS.length)?randomBS.length:event.length);
 		return event;
+	}
+
+	private static ThreadPool threadPool;
+	private static Object securityToken;
+	
+	public static final void setThreadPool(final ThreadPool tp, final Object t){
+		threadPool = tp;
+		securityToken = t;
+	}
+	
+	public static final Object getThreadPoolToken(){
+		CCoreUtil.checkAccess();
+		
+		if(securityToken == null){
+			throw new Error("Fail on initial ContextManager threadPoolToken.");
+		}
+		return securityToken;
+	}
+	
+	public static final ThreadPool getThreadPool(){
+		if(threadPool == null){
+			threadPool = new ThreadPool(null){
+				protected Thread buildThread(final RecycleThread rt) {
+					return new Thread(rt);
+				}
+				
+				protected void checkAccessPool(final Object token){
+				}
+			};
+		}
+		return threadPool;
+	}
+
+	public static final boolean isMobileLogin() {
+		return cmStatus == STATUS_SERVER_SELF;
 	}
 }

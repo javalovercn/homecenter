@@ -1,24 +1,25 @@
 package hc.server;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
+import java.util.Vector;
+import hc.App;
+import hc.core.IWatcher;
 import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
 public class HCTablePanel {
+	final ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	public final JTable table;
 	int size;
-	final Object[][] body;
+	final Vector<Object[]> body;
 	boolean isFirstColLineNo = false;
-	final Object[] defaultRow;
 	final int colNumber;
 	private final JButton upBut, editBut, downBut, removeBut;
-	public Object[][] getTabelData(){
+	public Vector<Object[]> getTabelData(){
 		return body;
 	}
 	
@@ -31,7 +32,7 @@ public class HCTablePanel {
 		Object[] out = new Object[size];
 		
 		for (int i = 0; i < out.length; i++) {
-			out[i] = body[i][idx];
+			out[i] = body.elementAt(i)[idx];
 		}
 		
 		return out;
@@ -46,7 +47,6 @@ public class HCTablePanel {
 	 * @param tableModel
 	 * @param libs
 	 * @param colName
-	 * @param dr 当增加一行时，需要赋予的初始值
 	 * @param initRows
 	 * @param upBut
 	 * @param downBut
@@ -57,14 +57,15 @@ public class HCTablePanel {
 	 * @param removeBiz
 	 * @param importBiz
 	 * @param isFirstColLineIdx
+	 * @param colNumber 列数。注意：有可能本值<>colName.length()。因为数据区可能使用复合对象
 	 */
-	public HCTablePanel(final AbstractTableModel tableModel, final Object[][] libs, 
-			final Object[] colName, final Object[] dr, final int initRows, 
+	public HCTablePanel(final AbstractTableModel tableModel, final Vector<Object[]> libs, 
+			final Object[] colName, final int initRows, 
 			final JButton upBut, final JButton downBut, 
 			final JButton removeBut, final JButton importBut, final JButton editBut,
 			final AbstractDelayBiz upOrDownMovingBiz,
 			final AbstractDelayBiz removeBiz, final AbstractDelayBiz importBiz, 
-			final boolean isFirstColLineIdx){
+			final boolean isFirstColLineIdx, final int colNumber){
 		body = libs;
 		this.isFirstColLineNo = isFirstColLineIdx;
 		this.upBut = upBut;
@@ -72,107 +73,160 @@ public class HCTablePanel {
 		this.removeBut = removeBut;
 		this.editBut = editBut;
 		
-		this.defaultRow = dr;
 		final HCTablePanel self = this;
 		size = initRows;
-		colNumber = body[0].length;
+		this.colNumber = colNumber;
 		
 		table = new JTable(tableModel);
 		
 		
-		upBut.addActionListener(new ActionListener() {
+		IWatcher checkUpOrDown = new IWatcher() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public boolean watch() {
+				if(upOrDownMovingBiz != null){
+					upOrDownMovingBiz.setPara(self);
+					upOrDownMovingBiz.doBiz();
+				}
+				return false;
+			}
+			@Override
+			public void setPara(Object p) {
+			}
+			@Override
+			public boolean isCancelable() {
+				return false;
+			}
+			@Override
+			public void cancel() {
+			}
+		};
+		upBut.addActionListener(new HCButtonEnabledActionListener(upBut, new Runnable() {
+			@Override
+			public void run() {
 				int currRow = table.getSelectedRow();
 				final int toIdx = currRow - 1;
 				swapRow(currRow, toIdx);
 				
-				table.setRowSelectionInterval(toIdx, toIdx);
-				table.updateUI();
-				
-				if(upOrDownMovingBiz != null){
-					upOrDownMovingBiz.setPara(self);
-					upOrDownMovingBiz.doBiz();
-				}
+				App.invokeLaterUI(new Runnable() {
+					public void run() {
+						table.setRowSelectionInterval(toIdx, toIdx);
+						table.updateUI();
+					}
+				});
 			}
-		});
+		}, threadPoolToken, checkUpOrDown));
 		
-		downBut.addActionListener(new ActionListener() {
+		downBut.addActionListener(new HCButtonEnabledActionListener(downBut, new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				int currRow = table.getSelectedRow();
 				final int toIdx = currRow + 1;
 				swapRow(currRow, toIdx);
 				
-				table.setRowSelectionInterval(toIdx, toIdx);
-				table.updateUI();
-				
-				if(upOrDownMovingBiz != null){
-					upOrDownMovingBiz.setPara(self);
-					upOrDownMovingBiz.doBiz();
-				}
+				App.invokeLaterUI(new Runnable() {
+					public void run() {
+						table.setRowSelectionInterval(toIdx, toIdx);
+						table.updateUI();
+					}
+				});
 			}
-		});
+		}, threadPoolToken, checkUpOrDown));
 		
-		removeBut.addActionListener(new ActionListener() {
+		IWatcher noDoneWatcher = new IWatcher() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				int currRow = table.getSelectedRow();
+			public boolean watch() {
+				refreshButton();
+				return false;
+			}
+			@Override
+			public void setPara(Object p) {
+			}
+			@Override
+			public boolean isCancelable() {
+				return false;
+			}
+			@Override
+			public void cancel() {
+			}
+		};
+		removeBut.addActionListener(new HCButtonEnabledActionListener(removeBut, new Runnable() {
+			int currRow;
+			@Override
+			public void run() {
+				currRow = table.getSelectedRow();
 				
 				Object[] rowValue = new Object[colNumber];
 				for (int i = 0; i < colNumber; i++) {
-					rowValue[i] = body[currRow][i];
+					rowValue[i] = body.elementAt(currRow)[i];
 				}
 				
 				while(removeBiz != null){
 					removeBiz.setPara(rowValue);
 					removeBiz.doBiz();
-					Object back = removeBiz.getPara();
-					if(back instanceof boolean[]){
-						boolean[] bb = (boolean[])back;
-						if(bb[0]){
+					boolean isBreak = false;
+					
+					while(true){
+						Object back = removeBiz.getPara();
+						if(back instanceof boolean[]){
+							boolean[] bb = (boolean[])back;
+							if(bb[0]){
+								isBreak = true;
+							}
 							break;
 						}
+						try{
+							Thread.sleep(200);
+						}catch (Exception e) {
+						}
+					}
+					if(isBreak){
+						break;
 					}
 					return;
 				}
 				
-				for (int i = currRow; i < size; i++) {
-					for (int l = 0; l < colNumber; l++) {
-						Object v1;
-						final int nextRowNum = i + 1;
+				for (int i = currRow; i < size - 1; i++) {
+					final int nextRowNum = i + 1;
+					for (int col = 0; col < colNumber; col++) {
 						if(nextRowNum != size){
-							v1 = body[nextRowNum][l];
-						}else{
-							v1 = defaultRow[l];
+							if(isFirstColLineNo && (col == 0)){
+								body.elementAt(i)[col] = i + 1;
+							}else{
+								body.elementAt(i)[col] = body.elementAt(nextRowNum)[col];
+							}
 						}
-						body[i][l] = v1;
 					}
 				}
+				body.remove(size - 1);
 				
 				size--;
-				table.clearSelection();
-				try{
-					if(currRow < size){
-						table.setRowSelectionInterval(currRow, currRow);
-					}else{
-						if(size == 0){
-							table.setRowSelectionInterval(0, 0);
-						}else{
-							table.setRowSelectionInterval(size - 1, size - 1);
-						}
-					}
-				}catch (Exception ex) {
-				}
-				table.updateUI();
 				
-				refreshButton();
+				App.invokeLaterUI(new Runnable() {
+					public void run() {
+						table.clearSelection();
+						table.updateUI();
+						try{
+							if(currRow < size){
+								table.setRowSelectionInterval(currRow, currRow);
+							}else{
+								if(size == 0){
+								}else{
+									table.setRowSelectionInterval(size - 1, size - 1);
+								}
+							}
+						}catch (Exception ex) {
+							ex.printStackTrace();
+						}
+						
+						refreshButton();
+					}
+				});
 			}
-		});
+		}, threadPoolToken, noDoneWatcher));
 		
-		importBut.addActionListener(new ActionListener() {
+		importBut.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				if(importBiz != null){
 					//由于添加har工程，所以另开线程
 					new Thread(){
@@ -181,24 +235,32 @@ public class HCTablePanel {
 							
 							Object[] row = (Object[])importBiz.getPara();
 							if(row != null){
+								Object[] newRow = new Object[colNumber];
 								for (int i = 0; i < colNumber; i++) {
 									if(isFirstColLineNo && (i == 0)){
-										body[size][0] = size + 1;
+										newRow[0] = size + 1;
 									}else{
-										body[size][i] = row[i];
+										newRow[i] = row[i];
 									}
 								}
+								body.insertElementAt(newRow, size);
 								size++;
-								int idx = table.getSelectedRow();
-								table.setRowSelectionInterval(idx, idx);
-								refreshButton();
-								table.updateUI();
+								
+								App.invokeLaterUI(new Runnable() {
+									@Override
+									public void run() {
+										int idx = size - 1;
+										table.setRowSelectionInterval(idx, idx);
+										refreshButton();
+										table.updateUI();
+									}
+								});
 							}
 						}
 					}.start();
 				}
 			}
-		});
+		}, threadPoolToken));
 		
 		ListSelectionModel rowSM = table.getSelectionModel();
 		rowSM.addListSelectionListener(new ListSelectionListener() {
@@ -206,54 +268,62 @@ public class HCTablePanel {
 				refreshButton();
 			}
 		});
-
-		table.setRowSelectionInterval(0, 0);
-		
+		if(initRows > 0){
+			table.setRowSelectionInterval(0, 0);
+		}else{
+			refreshButton();
+		}
 	}
 	
 	private void swapRow(final int fromIdx, final int toIdx){
-		for (int i = (isFirstColLineNo?1:0); i < colNumber; i++) {
-			Object v1 = body[toIdx][i];
-			body[toIdx][i] = body[fromIdx][i];
-			body[fromIdx][i] = v1;
+		for (int col = (isFirstColLineNo?1:0); col < colNumber; col++) {
+			Object v1 = body.elementAt(toIdx)[col];
+			body.elementAt(toIdx)[col] = body.elementAt(fromIdx)[col];
+			body.elementAt(fromIdx)[col] = v1;
 		}
 	}
 
 	public void refresh(int newSize){
 		size = newSize;
-		table.setRowSelectionInterval(0, 0);
+		if(newSize > 0){
+			table.setRowSelectionInterval(0, 0);
+		}
 		table.updateUI();
 		
 		refreshButton();
 	}
 	
 	private void refreshButton() {
-		int selectedRow = table.getSelectedRow();
-		int editRowNum = selectedRow + 1;
-		
-		if(editRowNum > size){
-			downBut.setEnabled(false);
-			upBut.setEnabled(false);
-			removeBut.setEnabled(false);
-			if(editBut != null){
-				editBut.setEnabled(false);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				int selectedRow = table.getSelectedRow();
+				
+				if(selectedRow == -1){
+					downBut.setEnabled(false);
+					upBut.setEnabled(false);
+					removeBut.setEnabled(false);
+					if(editBut != null){
+						editBut.setEnabled(false);
+					}
+				}else{
+					removeBut.setEnabled(true);
+					if(editBut != null){
+						editBut.setEnabled(true);
+					}
+					if(selectedRow < (size - 1)){
+						downBut.setEnabled(true);
+					}else{
+						downBut.setEnabled(false);
+					}
+					
+					if(selectedRow == 0){
+						upBut.setEnabled(false);
+					}else{
+						upBut.setEnabled(true);
+					}
+				}
 			}
-		}else{
-			removeBut.setEnabled(true);
-			if(editBut != null){
-				editBut.setEnabled(true);
-			}
-			if(editRowNum == size){
-				downBut.setEnabled(false);
-			}else{
-				downBut.setEnabled(true);
-			}
-			
-			if(editRowNum == 1){
-				upBut.setEnabled(false);
-			}else{
-				upBut.setEnabled(true);
-			}
-		}
+		});
 	}
 }

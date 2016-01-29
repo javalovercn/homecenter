@@ -52,7 +52,7 @@ public class Mno1Menu extends MCanvasMenu {
 //			images[i] = decodeBase64ToImage(base64Image[i]);
 //		}
 //		
-//		JDialog d = new JDialog();
+//		JDialog d = new HCJDialog();
 //		d.setSize(300, 200);
 //		d.setIconImage(images[1]);
 //		d.show();

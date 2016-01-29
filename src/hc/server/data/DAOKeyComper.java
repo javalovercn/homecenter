@@ -1,5 +1,7 @@
 package hc.server.data;
 
+import hc.App;
+import hc.core.L;
 import hc.core.util.LogManager;
 import hc.server.data.screen.KeyComper;
 import hc.server.data.screen.ScreenCapturer;
@@ -19,7 +21,7 @@ public class DAOKeyComper implements IDao{
 	
 	private static DAOKeyComper instance = null;
 	
-	public static DAOKeyComper getInstance(ScreenCapturer sc){
+	public static DAOKeyComper getInstance(final ScreenCapturer sc){
 		if(instance == null){
 			instance = new DAOKeyComper(sc);
 		}else{
@@ -47,7 +49,7 @@ public class DAOKeyComper implements IDao{
 	
 	public static String[] getImagesURL(){
 		if(key_images == null){
-			int standLen = MAX_KEYCOMP_NUM;
+			final int standLen = MAX_KEYCOMP_NUM;
 			key_images = new String[standLen + images.length];
 			for (int i = 0; i < standLen; ) {
 				key_images[i] = "/hc/res/k" + (++i) + "_16.png";
@@ -62,11 +64,11 @@ public class DAOKeyComper implements IDao{
 	}
 	
 	private ScreenCapturer sc;
-	public DAOKeyComper(ScreenCapturer sc) {
+	public DAOKeyComper(final ScreenCapturer sc) {
 		this.sc = sc;
 		
 		boolean isExist = false;
-		mu = new File(DAOKeyComper.MOBI_USER_ICONS);
+		mu = new File(App.getBaseDir(), DAOKeyComper.MOBI_USER_ICONS);
 		isExist = mu.exists();
 		
 		if(isExist == false){
@@ -85,7 +87,7 @@ public class DAOKeyComper implements IDao{
 		}
 	}
 	
-	public void put(int no, String keyComp, String imageURL){
+	public void put(final int no, final String keyComp, final String imageURL){
 		p.put(header + no, keyComp + ":" + imageURL);
 	}
 	
@@ -102,7 +104,7 @@ public class DAOKeyComper implements IDao{
 		try {
 			p.load(new FileInputStream(mu));
 			refresh();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return;
 		}		
@@ -116,7 +118,7 @@ public class DAOKeyComper implements IDao{
 			p.store(new FileOutputStream(mu), null);
 			
 			refresh();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return;
 		}
@@ -125,26 +127,26 @@ public class DAOKeyComper implements IDao{
 	public KeyComper getKeyComper(){
 		return comper;
 	}
-	
+	private final static int START_IDX = 1;
 	private KeyComper comper;
 	private void refresh(){
 		comper = new KeyComper();
 
 		try {
-			for (int i = 1, end = 1 + MAX_KEYCOMP_NUM; i < end; i++) {
-				String v = p.getProperty(DAOKeyComper.header + i);
+			for (int i = START_IDX, end = START_IDX + MAX_KEYCOMP_NUM; i < end; i++) {
+				final String v = p.getProperty(DAOKeyComper.header + i);
 				if(v == null){
 					break;
 				}else{
-					Vector vect = KeyComper.splitByChar(v, ':', 2);
-					if(vect == null || vect.size() == 0 || vect.size() != 2){
+					final String[] items = v.split(":");
+					if(items == null || items.length == 0 || items.length != 2){
 						LogManager.err("Unknows data : [" + v + "]");
 						break;
 					}
-					String k = ((String)vect.elementAt(0)).replaceAll(" ", "");
-					String imageurl = ((String)vect.elementAt(1));
+					final String k = items[0].replaceAll(" ", "");
+					final String imageurl = items[1];
 					
-					vect = KeyComper.convertStr(k);
+					final Vector vect = KeyComper.convertStr(k);
 					if(vect == null || vect.size() == 0 || 
 							(comper.addMap(vect, imageurl) == false)){
 						LogManager.err("Unknows data : [" + v + "]");
@@ -152,7 +154,27 @@ public class DAOKeyComper implements IDao{
 					}
 				}
 			}
-		} catch (Exception e) {
+			
+			//删除不用的图标
+			{
+				final File file = new File(App.getBaseDir(), "." + StoreDirManager.ICO_DIR);
+				final File[] icons = file.listFiles();
+				final int userSize = comper.size();
+				for (int i = 0; i < icons.length; i++) {
+					boolean isUsing = false;
+					for (int j = START_IDX; j <= userSize; j++) {
+						if(comper.getImagePath(j).endsWith(icons[i].getName())){
+							isUsing = true;
+							break;
+						}
+					}
+					if(isUsing == false){
+						L.V = L.O ? false : LogManager.log("delete unused keymap icon : " + icons[i].getAbsolutePath());
+						icons[i].delete();
+					}
+				}
+			}
+		} catch (final Exception e) {
 		}
 		
 		if(sc != null){

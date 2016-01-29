@@ -1,12 +1,14 @@
 package hc.server.ui.design.hpj;
 
 import hc.App;
-import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.res.ImageSrc;
+import hc.server.HCActionListener;
+import hc.server.HCWindowAdapter;
 import hc.server.ui.design.Designer;
+import hc.server.util.HCJDialog;
 import hc.util.ResourceUtil;
 import hc.util.UILang;
 
@@ -14,7 +16,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Container;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -28,10 +29,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
 
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -51,41 +49,78 @@ import javax.swing.border.TitledBorder;
 
 public class TypeWizard {
 	static int type;
-	static HPMenuItem wizardEnd;
-	private static final String DESKTOP = "desktop";
+	private static HPNode wizardEnd;
 	
-	public static HPMenuItem chooseWizard(final JFrame owner, final Component relativeTo){
+	public static HPNode getWizardEnd(){
+		if(type == 0){
+			return null;
+		}
+		return wizardEnd;
+	}
+	
+	final static ItemListener il = new ItemListener() {
+		@Override
+		public void itemStateChanged(final ItemEvent e) {
+			if(e.getStateChange() == ItemEvent.SELECTED){
+				int selectedType = type;
+				String text = ((JRadioButton)e.getSource()).getText().toLowerCase();
+				
+				if(text.equals("htmlmlet")){
+					selectedType = HPNode.TYPE_MENU_ITEM_FORM;
+				}
+				
+				if(text.equals(DESKTOP)){
+					text = HCURL.REMOTE_HOME_SCREEN;
+				}else if(text.equals(HCURL.DATA_CMD_EXIT) 
+						|| text.equals(HCURL.DATA_CMD_CONFIG)
+						){
+					
+				}else{
+					text += MenuManager.getNextNodeIdx();
+				}
+				final String url = HCURL.buildStandardURL(BaseMenuItemNodeEditPanel.getProtocal(selectedType), text);
+				final HCURL hcurl = HCURLUtil.extract(url);
+				wizardEnd = buildItem(selectedType, hcurl);
+				HCURLUtil.hcurlCacher.cycle(hcurl);
+			}
+		}
+	};
+	private static final String DESKTOP = "desktop";
+	/**
+	 * 
+	 * @param owner
+	 * @param relativeTo
+	 * @return 有可能是{@link HPMenuItem}，也有可能是{@link HPProcessor}
+	 */
+	public static HPNode chooseWizard(final JFrame owner, final Component relativeTo){
 		//初始化
 		type = 0;
 		wizardEnd = null;
 		
-		final JDialog dialog = new JDialog(owner, "select menu type", true);
+		final JDialog dialog = new HCJDialog(owner, "select menu type", true);
 		final ButtonGroup buttonGroup = new ButtonGroup();
-		final JPanel panel = new JPanel(new GridLayout(1, HPNode.TYPE_MENU_ITEM_SIZE));
-		panel.setBorder(new TitledBorder("Menu Item Type:"));
-		final JRadioButton[] rbs = new JRadioButton[HPNode.TYPE_MENU_ITEM_SIZE];
-		final JLabel[] dispButton = new JLabel[HPNode.TYPE_MENU_ITEM_SIZE];
-		BufferedImage image = null;
-		try {
-			image = ImageIO.read(ImageSrc.OK_ICON);
-		} catch (IOException e) {
-		}
+		final JPanel panel = new JPanel(new GridLayout(1, HPNode.WIZARD_SELECTABLE_MENU_ITEM_SIZE));
+		panel.setBorder(new TitledBorder("Item Type:"));
+		final JRadioButton[] rbs = new JRadioButton[HPNode.WIZARD_SELECTABLE_MENU_ITEM_SIZE];
+		final JLabel[] dispButton = new JLabel[HPNode.WIZARD_SELECTABLE_MENU_ITEM_SIZE];
 		final String nextStepStr = (String) ResourceUtil.get(1029);
-		final JButton ok = new JButton(nextStepStr, new ImageIcon(image));
+		final JButton ok = new JButton(nextStepStr, new ImageIcon(ImageSrc.OK_ICON));
 		final int[] typeDescs = {
 				HPNode.TYPE_MENU_ITEM_CONTROLLER, 
 				HPNode.TYPE_MENU_ITEM_CMD, 
-				HPNode.TYPE_MENU_ITEM_SCREEN};
-		String[] icons = {"controller_22.png", "cmd_22.png", "screen_22.png"};
+				HPNode.TYPE_MENU_ITEM_SCREEN,
+				HPNode.TYPE_MENU_ITEM_IOT};
+		final String[] icons = {"controller_22.png", "cmd_22.png", "screen_22.png", "iot_22.png"};
 		final String desc = "<html>" +
 				"<STRONG>CONTROLLER</STRONG> : simulate a controller of smart device on mobile.<BR><BR>" +
-				"<STRONG>CMD</STRONG> : such as exit/back, enter config form, run JRuby script on server.<BR><BR>" +
-				"<STRONG>SCREEN</STRONG> : display remote desktop, or a Mlet which contain many swing components." +
+				"<STRONG>CMD</STRONG> : 1. run JRuby script or executable command on server, 2. enter config form, 3. exit/back.<BR><BR>" +
+				"<STRONG>SCREEN</STRONG> : display remote desktop, or a Mlet which contain many swing components.<BR><BR>" +
+				"<STRONG>IoT</STRONG> : device, converter, robot (coordinate one or multiple devices) for Internet of Thing." +
 				"</html>";
 		
 		final ItemListener itemListener = new ItemListener() {
 			@Override
-			public void itemStateChanged(ItemEvent e) {
+			public void itemStateChanged(final ItemEvent e) {
 				if(e.getStateChange() != ItemEvent.SELECTED){
 					return;
 				}
@@ -113,72 +148,51 @@ public class TypeWizard {
 			}
 		};
 		ok.setEnabled(false);
-		ok.addActionListener(new ActionListener() {
+		ok.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				if(type == HPNode.TYPE_MENU_ITEM_CONTROLLER){
 					final String url = buildDefaultTypeURL(HCURL.CONTROLLER_PROTOCAL) + MenuManager.getNextNodeIdx();
-					HCURL hcurl = HCURLUtil.extract(url);
+					final HCURL hcurl = HCURLUtil.extract(url);
 					wizardEnd = buildItem(HPNode.TYPE_MENU_ITEM_CONTROLLER, hcurl);
 					dialog.dispose();
 				}else{
 					//进入下一步
 //					dialog.setVisible(false);
-					ItemListener il = new ItemListener() {
-						@Override
-						public void itemStateChanged(ItemEvent e) {
-							if(e.getStateChange() == ItemEvent.SELECTED){
-								String text = ((JRadioButton)e.getSource()).getText();
-								if(text.equals(DESKTOP)){
-									text = HCURL.REMOTE_HOME_SCREEN;
-								}else if(text.equals(HCURL.DATA_CMD_EXIT) 
-										|| text.equals(HCURL.DATA_CMD_CONFIG)
-										){
-									
-								}else{
-									text += MenuManager.getNextNodeIdx();
-								}
-								final String url = HCURL.buildStandardURL(BaseMenuItemNodeEditPanel.getProtocal(type), text);
-								HCURL hcurl = HCURLUtil.extract(url);
-								wizardEnd = buildItem(type, hcurl);
-								HCURLUtil.hcurlCacher.cycle(hcurl);
-							}
-						}
-					};
 					if(type == HPNode.TYPE_MENU_ITEM_CMD){
 						//exit = "exit current menu and return to parent menu or exit");
 						//config = "enter mobile config panel in mobile side when current item is clicked.");
 						//cmd - My Command "do some response biz in server side when current item is clicked from mobile side");
-						String[] subItems = {"my-command", HCURL.DATA_CMD_EXIT, HCURL.DATA_CMD_CONFIG};
-						String[] desc = {
+						final String[] subItems = {"my-command", HCURL.DATA_CMD_EXIT, HCURL.DATA_CMD_CONFIG};
+						final String[] desc = {
 								"run a JRuby script in server side when current item is clicked from mobile side",
 								"exit current menu and return to parent menu or exit",
 								"enter mobile config panel in mobile side when current item is clicked."
 								};
-						selectSub(owner, ok, subItems, desc, il);
+						selectSub(owner, ok, subItems, desc);
 					}else if(type == HPNode.TYPE_MENU_ITEM_SCREEN){
 						//screen -Desktop "enter disktop screen of PC in mobile side when current item is clicked.");
 						//screen -Mlet "<html>Mlet Screen is a panel in mobile side for dispaly and controlling status of PC side, <BR>which is instance from java class and JRuby in PC side.</html> ");
-						String[] subItems = {DESKTOP, "mlet"};
-						String[] desc = {
-								"enter and control disktop screen of PC.",
-								"a panel in mobile side for dispaly and controlling status of PC or smart devices, " +
-								"<BR>which is instance of class 'hc.server.ui.Mlet' and runing in PC side."
+						final String[] subItems = {DESKTOP, "Mlet", "HTMLMlet"};
+						final String[] desc = {
+								"enter and control disktop screen of server.",
+								"a snapshot panel is in mobile side for display and controlling status of server or smart devices, " +
+								"<BR>which is instance of class 'hc.server.ui.Mlet' and runing in server side.",
+								"a HTML panel is in mobile side for dispaly and controlling status of server or smart devices, " +
+								"<BR>which is instance of class 'hc.server.ui.HTMLMlet' and runing in server side."
 								};
-						selectSub(owner, ok, subItems, desc, il);
+						selectSub(owner, ok, subItems, desc);
+					}else if(type == HPNode.TYPE_MENU_ITEM_IOT){
+						selectIOT(owner, ok);
 					}
 					dialog.dispose();
 				}
 			}
-		});
-		try {
-			image = ImageIO.read(ImageSrc.CANCEL_ICON);
-		} catch (IOException e) {
-		}		
-		final JButton cancel = new JButton((String) ResourceUtil.get(1018), new ImageIcon(image));
-		cancel.addActionListener(new ActionListener() {
+		}, App.getThreadPoolToken()));
+		final JButton cancel = new JButton((String) ResourceUtil.get(1018), new ImageIcon(ImageSrc.CANCEL_ICON));
+		cancel.addActionListener(new HCActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(final ActionEvent e) {
 				dialog.dispose();
 				wizardEnd = null;
 			}
@@ -189,30 +203,30 @@ public class TypeWizard {
 			dispButton[i] = new JLabel(HPMenuItem.getTypeDesc(typeDescs[i]), Designer.loadImg(icons[i]), SwingConstants.LEADING);
 			dispButton[i].addMouseListener(new MouseListener() {
 				@Override
-				public void mouseReleased(MouseEvent e) {
+				public void mouseReleased(final MouseEvent e) {
 				}
 				
 				@Override
-				public void mousePressed(MouseEvent e) {
+				public void mousePressed(final MouseEvent e) {
 				}
 				
 				@Override
-				public void mouseExited(MouseEvent e) {
+				public void mouseExited(final MouseEvent e) {
 				}
 				
 				@Override
-				public void mouseEntered(MouseEvent e) {
+				public void mouseEntered(final MouseEvent e) {
 				}
 				
 				@Override
-				public void mouseClicked(MouseEvent e) {
+				public void mouseClicked(final MouseEvent e) {
 					rbs[radioIdx].setSelected(true);
 				}
 			});
 			rbs[i].addItemListener(itemListener);
 			buttonGroup.add(rbs[i]);
 			{
-				JPanel subPanel = new JPanel(new BorderLayout());
+				final JPanel subPanel = new JPanel(new BorderLayout());
 				subPanel.add(rbs[i], BorderLayout.WEST);
 				subPanel.add(dispButton[i], BorderLayout.CENTER);
 				panel.add(subPanel);
@@ -220,18 +234,18 @@ public class TypeWizard {
 		}
 		rbs[0].setSelected(true);
 		
-		Container container = dialog.getContentPane();
+		final Container container = dialog.getContentPane();
 		container.setLayout(new GridBagLayout());
 
 		
-		Insets insets = new Insets(5, 5, 5, 5);
+		final Insets insets = new Insets(5, 5, 5, 5);
 		{
-			JPanel _panel = new JPanel(new BorderLayout());
+			final JPanel _panel = new JPanel(new BorderLayout());
 			_panel.add(panel, BorderLayout.NORTH);
 			{
-				JPanel _subPanel = new JPanel(new BorderLayout());
+				final JPanel _subPanel = new JPanel(new BorderLayout());
 				_subPanel.add(new JLabel("Description:"), BorderLayout.NORTH);
-				JPanel _desc = new JPanel(new BorderLayout());
+				final JPanel _desc = new JPanel(new BorderLayout());
 				_desc.add(new JLabel(desc), BorderLayout.CENTER);
 				_desc.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 				_subPanel.add(_desc, BorderLayout.CENTER);
@@ -243,7 +257,7 @@ public class TypeWizard {
 				0));
 		}
 		{	
-			JPanel separatorPane = new JPanel();
+			final JPanel separatorPane = new JPanel();
 			separatorPane.setLayout(new BoxLayout(separatorPane, BoxLayout.PAGE_AXIS));
 			final JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
 			separatorPane.add(separator);
@@ -252,7 +266,7 @@ public class TypeWizard {
 				insets, 0, 0));
 		}
 		{
-			JPanel subPanel = new JPanel();
+			final JPanel subPanel = new JPanel();
 			subPanel.setLayout(new GridLayout(1, 2, 5, 5));
 			subPanel.add(ok);
 			subPanel.add(cancel);
@@ -261,17 +275,18 @@ public class TypeWizard {
 					insets, 0, 0));			
 		}
 		
-		dialog.getRootPane().registerKeyboardAction(new ActionListener() {
+		dialog.getRootPane().registerKeyboardAction(new HCActionListener() {
 					@Override
-					public void actionPerformed(ActionEvent e) {
+					public void actionPerformed(final ActionEvent e) {
 						dialog.dispose();
 						wizardEnd = null;
 					}
 				},
 				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 				JComponent.WHEN_IN_FOCUSED_WINDOW);
-		dialog.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {
+		dialog.addWindowListener(new HCWindowAdapter() {
+			@Override
+			public void windowClosing(final WindowEvent e) {
 				dialog.dispose();
 				wizardEnd = null;
 			}
@@ -290,43 +305,48 @@ public class TypeWizard {
 		return wizardEnd;
 	}
 	
-	private static HPMenuItem buildItem(final int type, final HCURL hcurl){
-		final HPMenuItem menuItem = new HPMenuItem(type,
-				"new node " + MenuManager.getNextNodeIdx());
-		menuItem.url = hcurl.url;
-		menuItem.listener = ScriptModelManager.buildDefaultScript(type, hcurl);
-		return menuItem;
+	private static HPNode buildItem(final int type, final HCURL hcurl){
+		if(type == HPNode.TYPE_MENU_ITEM_IOT){
+			int subType = 0;
+			if(hcurl.url.indexOf(HCURL.DATA_IOT_ROBOT.toLowerCase()) >= 0){
+				subType = HPNode.MASK_MSB_ROBOT;
+			}else if(hcurl.url.indexOf(HCURL.DATA_IOT_CONVERTER.toLowerCase()) >= 0){
+				subType = HPNode.MASK_MSB_CONVERTER;
+			}else if(hcurl.url.indexOf(HCURL.DATA_IOT_DEVICE.toLowerCase()) >= 0){
+				subType = HPNode.MASK_MSB_DEVICE;
+			}
+			final HPProcessor menuItem = new HPProcessor(subType,
+					hcurl.elementID);
+			menuItem.listener = ScriptModelManager.buildDefaultScript(type, hcurl);
+			return menuItem;
+		}else{
+			final HPMenuItem menuItem = new HPMenuItem(type,
+					"new node " + MenuManager.getNextNodeIdx());
+			menuItem.url = hcurl.url;
+			menuItem.listener = ScriptModelManager.buildDefaultScript(type, hcurl);
+			return menuItem;
+		}
 	}
 	
-	private static void selectSub(JFrame owner, Component relativeObj, String[] items, String[] desc, 
-			final ItemListener itemListener){
-		final JDialog dialog = new JDialog(owner, "Choose Sub Type", true);
+	private static void selectSub(final JFrame owner, final Component relativeObj, final String[] items, final String[] desc){
+		final JDialog dialog = new HCJDialog(owner, "Choose Sub Type", true);
 		final ButtonGroup buttonGroup = new ButtonGroup();
 		final JPanel panel = new JPanel(new GridLayout(1, items.length));
 		panel.setBorder(new TitledBorder("Sub Type:"));
 		final JRadioButton[] rbs = new JRadioButton[items.length];
-		BufferedImage image = null;
-		try {
-			image = ImageIO.read(ImageSrc.OK_ICON);
-		} catch (IOException e) {
-		}
-		final JButton ok = new JButton((String) ResourceUtil.get(IContext.OK), new ImageIcon(image));
-		ActionListener actionListen = new ActionListener() {
+		final JButton ok = new JButton((String) ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
+		final ActionListener actionListen = new HCActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(final ActionEvent e) {
 				dialog.dispose();
 			}
 		};
 		ok.addActionListener(actionListen);
 		
-		try {
-			image = ImageIO.read(ImageSrc.CANCEL_ICON);
-		} catch (IOException e) {
-		}		
-		final JButton cancel = new JButton((String) ResourceUtil.get(1018), new ImageIcon(image));
-		cancel.addActionListener(new ActionListener() {
+		final JButton cancel = new JButton((String) ResourceUtil.get(1018), new ImageIcon(ImageSrc.CANCEL_ICON));
+		cancel.addActionListener(new HCActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(final ActionEvent e) {
 				dialog.dispose();
 				type = 0;
 			}
@@ -338,25 +358,25 @@ public class TypeWizard {
 			}
 			descs += "<STRONG>" + items[i] + "</STRONG> : " + desc[i];
 			rbs[i] = new JRadioButton(items[i]);
-			rbs[i].addItemListener(itemListener);
+			rbs[i].addItemListener(il);
 			buttonGroup.add(rbs[i]);
 			panel.add(rbs[i]);
 		};
 		rbs[0].setSelected(true);
 		descs += "</html>";
 		
-		Container container = dialog.getContentPane();
+		final Container container = dialog.getContentPane();
 		container.setLayout(new GridBagLayout());
 
 		
-		Insets insets = new Insets(5, 5, 5, 5);
+		final Insets insets = new Insets(5, 5, 5, 5);
 		{
-			JPanel _panel = new JPanel(new BorderLayout());
+			final JPanel _panel = new JPanel(new BorderLayout());
 			_panel.add(panel, BorderLayout.NORTH);
 			{
-				JPanel _subPanel = new JPanel(new BorderLayout());
+				final JPanel _subPanel = new JPanel(new BorderLayout());
 				_subPanel.add(new JLabel("Description:"), BorderLayout.NORTH);
-				JPanel _desc = new JPanel(new BorderLayout());
+				final JPanel _desc = new JPanel(new BorderLayout());
 				_desc.add(new JLabel(descs), BorderLayout.CENTER);
 				_desc.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 				_subPanel.add(_desc, BorderLayout.CENTER);
@@ -369,7 +389,7 @@ public class TypeWizard {
 				0));
 		}
 		{	
-			JPanel separatorPane = new JPanel();
+			final JPanel separatorPane = new JPanel();
 			separatorPane.setLayout(new BoxLayout(separatorPane, BoxLayout.PAGE_AXIS));
 			final JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
 			separatorPane.add(separator);
@@ -378,7 +398,7 @@ public class TypeWizard {
 				insets, 0, 0));
 		}
 		{
-			JPanel subPanel = new JPanel();
+			final JPanel subPanel = new JPanel();
 			subPanel.setLayout(new GridLayout(1, 2, 5, 5));
 			subPanel.add(ok);
 			subPanel.add(cancel);
@@ -387,9 +407,9 @@ public class TypeWizard {
 					insets, 0, 0));			
 		}
 		
-		dialog.getRootPane().registerKeyboardAction(new ActionListener() {
+		dialog.getRootPane().registerKeyboardAction(new HCActionListener() {
 					@Override
-					public void actionPerformed(ActionEvent e) {
+					public void actionPerformed(final ActionEvent e) {
 						dialog.dispose();
 						type = 0;
 					}
@@ -397,7 +417,8 @@ public class TypeWizard {
 				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 				JComponent.WHEN_IN_FOCUSED_WINDOW);
 		dialog.addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {
+			@Override
+			public void windowClosing(final WindowEvent e) {
 				dialog.dispose();
 				type = 0;
 			}
@@ -413,6 +434,19 @@ public class TypeWizard {
 			return HCURL.buildStandardURL(protocal, "myctrl");
 		}
 		return null;
+	}
+
+	public static void selectIOT(final JFrame owner, final Component relativeTo) {
+		type = HPNode.TYPE_MENU_ITEM_IOT;//有可能被直接调用，故再次赋值
+		wizardEnd = null;
+		
+		final String[] subItems = {HCURL.DATA_IOT_ROBOT, HCURL.DATA_IOT_CONVERTER, HCURL.DATA_IOT_DEVICE};
+		final String[] desc = {
+				"real robot or smart module to control one or multiple devices.",
+				"converter message format between device and robot, if device is NOT standard to robot.",
+				"drive the real device and controlled by robot only."
+				};
+		selectSub(owner, relativeTo, subItems, desc);
 	}
 	
 //	public static void main(String[] args) {

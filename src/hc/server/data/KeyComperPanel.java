@@ -8,6 +8,7 @@ import hc.core.MsgBuilder;
 import hc.core.util.ByteUtil;
 import hc.core.util.LogManager;
 import hc.res.ImageSrc;
+import hc.server.HCActionListener;
 import hc.server.ScreenServer;
 import hc.server.SingleJFrame;
 import hc.server.data.screen.KeyComper;
@@ -48,21 +49,23 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.JTableHeader;
 
 public class KeyComperPanel extends DataEditorPanel implements ActionListener{
+	protected final ThreadGroup threadPoolToken = App.getThreadPoolToken();
+	
 	String body[][] = new String[DAOKeyComper.MAX_KEYCOMP_NUM][3];
 	ImageIcon[] icons = new ImageIcon[DAOKeyComper.MAX_KEYCOMP_NUM];
-	String colTitle[] = { "No", (String)ResourceUtil.get(9022), (String)ResourceUtil.get(9025) };
+	String colTitle[] = { (String)ResourceUtil.get(9109), //No, 序号
+			(String)ResourceUtil.get(9022), (String)ResourceUtil.get(9025) };
 
 	int[] combKeyCodes = buildComboKeyCodes();
 	String[] combKeys = buildKeyEvent(combKeyCodes);
@@ -84,8 +87,8 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		}
 	}
 	
-	private static String[] buildKeyEvent(int[] kcs) {
-		String[] out = new String[kcs.length];
+	public static String[] buildKeyEvent(final int[] kcs) {
+		final String[] out = new String[kcs.length];
 
 		for (int i = 0; i < kcs.length; i++) {
 			out[i] = getHCKeyText(kcs[i]);
@@ -94,7 +97,8 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 	}
 
 	private static int[] buildKeyCodes() {
-		int[] kc = { KeyEvent.VK_0, KeyEvent.VK_1, KeyEvent.VK_2,
+		//重要：如果以下添加，请同步添加到AndroidPlatformService.convertToAndroidKeyCodeAdAPI
+		final int[] kc = { KeyEvent.VK_0, KeyEvent.VK_1, KeyEvent.VK_2,
 				KeyEvent.VK_3, KeyEvent.VK_4, KeyEvent.VK_5, KeyEvent.VK_6,
 				KeyEvent.VK_7, KeyEvent.VK_8, KeyEvent.VK_9,
 
@@ -133,9 +137,10 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		return kc;
 	}
 
-	public static String getHCKeyText(int keyCode) {
+	public static String getHCKeyText(final int keyCode) {
 		final String finalBestText = KeyEvent.getKeyText(keyCode);
-		if(finalBestText.length() == 1){
+		if((keyCode != KeyEvent.VK_META || keyCode != KeyEvent.VK_ALT)
+				&& finalBestText.length() == 1){
 			// 因为后期的版本可能支持最优表意字符，如Mac下的option
 			return finalBestText;
 		}
@@ -189,20 +194,28 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 			
 		case KeyEvent.VK_META:
 			return (ResourceUtil.isMacOSX())?ResourceUtil.getMacOSCommandKeyText():finalBestText;//8984就是Mac的command键
+
+		case KeyEvent.VK_ALT:
+			return (ResourceUtil.isMacOSX())?ResourceUtil.getMacOSOptionKeyText():finalBestText;//8984就是Mac的command键
 		}
 		return finalBestText;
 	}
 
-	private Icon[] convert(String[] urls) {
-		Icon[] icos = new Icon[urls.length];
+	private final static int STANDARD_ICON_SIZE = 32;
+	
+	private Icon[] convert(final String[] urls) {
+		final Icon[] icos = new Icon[urls.length];
 		for (int i = 0; i < icos.length; i++) {
 			try {
 				BufferedImage bi = ImageIO.read(ResourceUtil.getAbsPathInputStream(urls[i]));
-				if(bi.getWidth() != 16){
-					bi = ResourceUtil.resizeImage(bi, 16, 16);
+				final int imgSize = bi.getWidth();
+				if(imgSize == STANDARD_ICON_SIZE){
+				}else if(imgSize == 16){
+				}else{
+					bi = ResourceUtil.resizeImage(bi, STANDARD_ICON_SIZE, STANDARD_ICON_SIZE);
 				}
 				icos[i] = new ImageIcon(bi);
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -246,32 +259,37 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 	JLabel jlKey3 = new JLabel();
 //	JLabel jlTip = new JLabel((String)ResourceUtil.get(9027));//停止使用
 	boolean needSave;
-	public KeyComperPanel(boolean needSave) {
+	public KeyComperPanel(final boolean needSave) {
 		this.needSave = needSave;
 		
 		table = new JTable();
 
 		table.setModel(new AbstractTableModel() {
-			public String getColumnName(int columnIndex) {
+			@Override
+			public String getColumnName(final int columnIndex) {
 				return colTitle[columnIndex];
 			}
 
+			@Override
 			public int getRowCount() {
 				return body.length;
 			}
 
+			@Override
 			public int getColumnCount() {
 				return colTitle.length;
 			}
 
-			public Object getValueAt(int rowIndex, int columnIndex) {
+			@Override
+			public Object getValueAt(final int rowIndex, final int columnIndex) {
 				return body[rowIndex][columnIndex];
 			}
 		});
 		table.getColumnModel().getColumn(2).setCellRenderer(new DefaultTableCellRenderer() {
-	        public Component getTableCellRendererComponent(
-	                JTable table, Object value, boolean isSelected,
-	                boolean hasFocus, int row, int column) {
+	        @Override
+			public Component getTableCellRendererComponent(
+	                final JTable table, final Object value, final boolean isSelected,
+	                final boolean hasFocus, final int row, final int column) {
 	        	if (isSelected || row == table.getSelectedRow()) {
 	                this.setForeground(table.getSelectionForeground());
 	                this.setBackground(table.getSelectionBackground());
@@ -280,7 +298,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
                     this.setBackground(table.getBackground()); //设置偶数行底色
 	            }
 				setBorder(null);
-				String cell = body[row][column];
+				final String cell = body[row][column];
 				if(cell != null && cell.length() > 0){
 					if(icons[row] == null){
 						try{
@@ -290,7 +308,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 							}
 							icons[row] = new ImageIcon(bImageFromConvert);
 				        	setHorizontalAlignment(CENTER);
-						}catch (Exception e) {
+						}catch (final Exception e) {
 							
 						}
 					}
@@ -304,17 +322,19 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 	        }
         });
 		table.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
-	        public Component getTableCellRendererComponent(
-	                JTable table, Object value, boolean isSelected,
-	                boolean hasFocus, int row, int column) {
+	        @Override
+			public Component getTableCellRendererComponent(
+	                final JTable table, final Object value, final boolean isSelected,
+	                final boolean hasFocus, final int row, final int column) {
 	        	setHorizontalAlignment(CENTER);
 		        return super.getTableCellRendererComponent(table, value,
                         isSelected, hasFocus, row, column);
 	        }
         });
-		ListSelectionModel rowSM = table.getSelectionModel();
+		final ListSelectionModel rowSM = table.getSelectionModel();
 		rowSM.addListSelectionListener(new ListSelectionListener() {
-			public void valueChanged(ListSelectionEvent e) {
+			@Override
+			public void valueChanged(final ListSelectionEvent e) {
 				refreshButton();
 			}
 		});
@@ -333,7 +353,6 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 
 		jbRemove.setText((String)ResourceUtil.get(9018));
 		jbTest.setText((String)ResourceUtil.get(9026));
-		jbDown.setSelected(true);
 		jbDown.setText((String)ResourceUtil.get(9020));
 		jbUp.setText((String)ResourceUtil.get(9019));
 		// titledBorder2.setTitle("GooDMor");
@@ -343,7 +362,8 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		jlKey2.setText(" + ");
 		jlKey3.setText(" + ");
 		jbSave.setText((String) ResourceUtil.get(1017));
-		jbCancel.setText((String) ResourceUtil.get(1018));
+		jbSave.setSelected(true);
+		jbCancel.setText((String) ResourceUtil.get(1011));//取消改为退出
 		
 		jPanel1.add(jcb1, null);
 		jPanel1.add(jlKey2, null);
@@ -352,7 +372,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		jPanel1.add(jcb3, null);
 		jPanel1.setBorder(new TitledBorder((String)ResourceUtil.get(9022)));
 		
-		JPanel jpImage = new JPanel();
+		final JPanel jpImage = new JPanel();
 		jpImage.setLayout(new BoxLayout(jpImage, BoxLayout.LINE_AXIS));
 		
 		jpImage.add(jcbImage, null);
@@ -361,17 +381,17 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		jpImage.add(jbBuildImage, null);
 		jpImage.add(new JLabel(" "));
 		jpImage.setBorder(new TitledBorder((String)ResourceUtil.get(9025)));
-		JPanel jpTop = new JPanel();
+		final JPanel jpTop = new JPanel();
 		jpTop.setBorder(new TitledBorder((String)ResourceUtil.get(9023)));
 		jpTop.setLayout(new GridBagLayout());
 		jpTop.add(jPanel1, new GridBagConstraints(0, 0, 2, 1, 1.0, 1.0,
 				GridBagConstraints.CENTER, GridBagConstraints.BOTH,
 				new Insets(2, 2, 2, 2), 0, 0));
 		{
-			JPanel panel = new JPanel();
+			final JPanel panel = new JPanel();
 			panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
 			panel.add(jpImage, null);
-			JPanel addPanel = new JPanel();
+			final JPanel addPanel = new JPanel();
 			addPanel.setBorder(new TitledBorder(MODIFY_TAG));
 			addPanel.add(jbAdd);
 			
@@ -383,39 +403,26 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 					new Insets(2, 2, 2, 2), 0, 0));
 		}
 
-		JPanel jpCenter = new JPanel();
+		final JPanel jpCenter = new JPanel();
 		jpCenter.setLayout(new BorderLayout());
-		JPanel jpTable = new JPanel();
-		jpTable.setLayout(new BorderLayout());
-		JTableHeader tableHeader = table.getTableHeader();
-		DefaultTableCellRenderer renderer = (DefaultTableCellRenderer)tableHeader.getDefaultRenderer();
-		renderer.setHorizontalAlignment(SwingConstants.CENTER); 
 		  
-		jpTable.add(tableHeader, BorderLayout.PAGE_START);
-		jpTable.add(table, BorderLayout.CENTER);
-		JPanel tableSet = new JPanel();
-		tableSet.setLayout(new GridBagLayout());
-		tableSet.add(jpTable, new GridBagConstraints(0, 0, 1, 1, 1.0, 1.0,
-				GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-				new Insets(2, 2, 2, 2), 0, 0));
-
-		jpCenter.add(tableSet, BorderLayout.CENTER);
+		jpCenter.add(new JScrollPane(table), BorderLayout.CENTER);
 		jpCenter.setBorder(new TitledBorder((String)ResourceUtil.get(9024)));
 		this.add(jpCenter, BorderLayout.CENTER);
 		this.add(jpTop, BorderLayout.NORTH);
-		JPanel bottom = new JPanel();
+		final JPanel bottom = new JPanel();
 		bottom.setLayout(new BorderLayout());
 		bottom.add(jPanel3, BorderLayout.CENTER);
 //		bottom.add(jlTip, BorderLayout.SOUTH);
 		
-		JPanel bottomSet = new JPanel();
+		final JPanel bottomSet = new JPanel();
 		bottomSet.setLayout(new GridBagLayout());
 		bottomSet.add(bottom, new GridBagConstraints(0, 0, 1, 1, 1.0, 1.0,
 				GridBagConstraints.CENTER, GridBagConstraints.BOTH,
 				new Insets(2, 2, 2, 2), 0, 0));
 		this.add(bottomSet, BorderLayout.SOUTH);
 		
-		int addButtonSize = (needSave)?5:3;
+		final int addButtonSize = (needSave)?5:3;
 		
 		jPanel3.setLayout(new GridLayout(1, addButtonSize, 5, 20));
 		jPanel3.add(jbRemove);
@@ -423,12 +430,21 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		jPanel3.add(jbUp);
 		jPanel3.add(jbDown);
 		if(needSave){
-			jPanel3.add(jbCancel);
 			jPanel3.add(jbSave);
+			jPanel3.add(jbCancel);
 		}
 		
 		jbRemove.addActionListener(this);
-		jbTest.addActionListener(this);
+		jbTest.addActionListener(new HCActionListener(new Runnable() {
+			@Override
+			public void run() {
+				final int out = App.showConfirmDialog(KeyComperPanel.this, ResourceUtil.get(9167), "Test Key Input?", JOptionPane.OK_CANCEL_OPTION);
+				if(out == JOptionPane.OK_OPTION){
+					final String keyDesc = body[table.getSelectedRow()][1];
+					KeyComper.actionKeys(keyDesc);
+				}
+			}
+		}, threadPoolToken));
 		jbDown.addActionListener(this);
 		jbUp.addActionListener(this);
 		jbSave.addActionListener(this);
@@ -444,10 +460,10 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 			body[i][0] = String.valueOf(++i);
 		}
 		
-		KeyComper kc = DAOKeyComper.getInstance(null).getKeyComper();
+		final KeyComper kc = DAOKeyComper.getInstance(null).getKeyComper();
 		size = kc.size();
 		for (int i = 1; i <= size; i++) {
-			Vector<String> vs = kc.getKeysDesc(i);
+			final Vector<String> vs = kc.getKeysDesc(i);
 			String desc = "";
 			for (int j = 0; j < vs.size(); j++) {
 				if(desc.length() > 0){
@@ -459,7 +475,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 			try {
 				body[i-1][2] = kc.getImagePath(i);
 				appendImgToCombox(body[i-1][2]);
-			} catch (Exception e1) {
+			} catch (final Exception e1) {
 				e1.printStackTrace();
 			}
 		}
@@ -470,32 +486,35 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		refreshButton();
 	}
 	
-	private void appendImgToCombox(String url){
+	private void appendImgToCombox(final String url){
 		for (int i = 0; i < imagesURL.length; i++) {
 			if(imagesURL[i].equals(url)){
 				return;
 			}
 		}
 		
-		String[] newImgURL = new String[imagesURL.length + 1];
+		final String[] newImgURL = new String[imagesURL.length + 1];
 		for (int i = 0; i < imagesURL.length; i++) {
 			newImgURL[i] = imagesURL[i];
 		}
 		newImgURL[imagesURL.length] = url;
 		imagesURL = newImgURL;
 		
-		Icon[] newIco = new Icon[imagesURL.length];
+		final Icon[] newIco = new Icon[imagesURL.length];
 		for (int i = 0; i < imagesIco.length; i++) {
 			newIco[i] = imagesIco[i];
 		}
 		try {
 			BufferedImage bi = ImageIO.read(ResourceUtil.getAbsPathInputStream(url));
-			if(bi.getWidth() != 16){
-				bi = ResourceUtil.resizeImage(bi, 16, 16);
+			final int imgSize= bi.getWidth();
+			if(imgSize == STANDARD_ICON_SIZE){
+			}else if(imgSize == 16){
+			}else{
+				bi = ResourceUtil.resizeImage(bi, STANDARD_ICON_SIZE, STANDARD_ICON_SIZE);
 			}
 			newIco[imagesIco.length] = new ImageIcon(bi);//
 			
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			newIco[imagesIco.length] = new ImageIcon(App.SYS_LOGO);
 			e.printStackTrace();
 		}
@@ -518,7 +537,113 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		'/', '?', ' '
 	};
 	
-	public void setInFrame(JFrame frame){
+	public static final int getCharKeyCode(final char ch){
+		switch (ch) {
+		case 'a':
+			return KeyEvent.VK_A;
+		case 'b':
+			return KeyEvent.VK_B;
+		case 'c':
+			return KeyEvent.VK_C;
+		case 'd':
+			return KeyEvent.VK_D;
+		case 'e':
+			return KeyEvent.VK_E;
+		case 'f':
+			return KeyEvent.VK_F;
+		case 'g':
+			return KeyEvent.VK_G;
+		case 'h':
+			return KeyEvent.VK_H;
+		case 'i':
+			return KeyEvent.VK_I;
+		case 'j':
+			return KeyEvent.VK_J;
+		case 'k':
+			return KeyEvent.VK_K;
+		case 'l':
+			return KeyEvent.VK_L;
+		case 'm':
+			return KeyEvent.VK_M;
+		case 'n':
+			return KeyEvent.VK_N;
+		case 'o':
+			return KeyEvent.VK_O;
+		case 'p':
+			return KeyEvent.VK_P;
+		case 'q':
+			return KeyEvent.VK_Q;
+		case 'r':
+			return KeyEvent.VK_R;
+		case 's':
+			return KeyEvent.VK_S;
+		case 't':
+			return KeyEvent.VK_T;
+		case 'u':
+			return KeyEvent.VK_U;
+		case 'v':
+			return KeyEvent.VK_V;
+		case 'w':
+			return KeyEvent.VK_W;
+		case 'x':
+			return KeyEvent.VK_X;
+		case 'y':
+			return KeyEvent.VK_Y;
+		case 'z':
+			return KeyEvent.VK_Z;
+		case '`':
+			return KeyEvent.VK_BACK_QUOTE;
+		case '0':
+			return KeyEvent.VK_0;
+		case '1':
+			return KeyEvent.VK_1;
+		case '2':
+			return KeyEvent.VK_2;
+		case '3':
+			return KeyEvent.VK_3;
+		case '4':
+			return KeyEvent.VK_4;
+		case '5':
+			return KeyEvent.VK_5;
+		case '6':
+			return KeyEvent.VK_6;
+		case '7':
+			return KeyEvent.VK_7;
+		case '8':
+			return KeyEvent.VK_8;
+		case '9':
+			return KeyEvent.VK_9;
+		case '-':
+			return KeyEvent.VK_MINUS;
+		case '=':
+			return KeyEvent.VK_EQUALS;
+		case '\t':
+			return KeyEvent.VK_TAB;
+		case '\n':
+			return KeyEvent.VK_ENTER;
+		case '[':
+			return KeyEvent.VK_OPEN_BRACKET;
+		case ']':
+			return KeyEvent.VK_CLOSE_BRACKET;
+		case '\\':
+			return KeyEvent.VK_BACK_SLASH;
+		case ';':
+			return KeyEvent.VK_SEMICOLON;
+		case '\'':
+			return KeyEvent.VK_QUOTE;
+		case ',':
+			return KeyEvent.VK_COMMA;
+		case '.':
+			return KeyEvent.VK_PERIOD;
+		case '/':
+			return KeyEvent.VK_SLASH;
+		case ' ':
+			return KeyEvent.VK_SPACE;
+		}
+		return KeyEvent.VK_UNDEFINED;
+	}
+	
+	public void setInFrame(final JFrame frame){
 		inFrame = frame;
 	}
 	
@@ -527,8 +652,8 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 	public static final String MODIFY_TAG = (String)ResourceUtil.get(9017);
 	public static final String ADD_TAG = (String)ResourceUtil.get(9016);
 	
-	private String[] reserve(String[] src){
-		String[] out = new String[src.length];
+	private String[] reserve(final String[] src){
+		final String[] out = new String[src.length];
 		
 		for (int i = src.length - 1, j = 0; i >= 0; i--, j++) {
 			out[j] = src[i];
@@ -536,8 +661,8 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		return out;
 	}
 	private void refreshButton(){
-		int selectedRow = table.getSelectedRow();
-		int editRowNum = selectedRow + 1;
+		final int selectedRow = table.getSelectedRow();
+		final int editRowNum = selectedRow + 1;
 		
 		jcb1.setSelectedIndex(0);
 		jcb2.setSelectedIndex(0);
@@ -548,12 +673,12 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 			jbAdd.setText(MODIFY_TAG);
 			jbAdd.setIcon(modifyIcon);
 			
-			String keys = body[selectedRow][1];
-			String[] keyArrs = reserve(keys.split("\\+"));
-			JComboBox[] jcbs = {jcb1, jcb2, jcb3};
-			int[][] mapKey = {combKeyCodes, combKeyCodes, keyCodes};
+			final String keys = body[selectedRow][1];
+			final String[] keyArrs = reserve(keys.split("\\+"));
+			final JComboBox[] jcbs = {jcb1, jcb2, jcb3};
+			final int[][] mapKey = {combKeyCodes, combKeyCodes, keyCodes};
 			for (int i = 0, j = 2; i < keyArrs.length; i++, j--) {
-				int[] tmpMap = mapKey[j];
+				final int[] tmpMap = mapKey[j];
 				for (int k = 0; k < tmpMap.length; k++) {
 					//由于用户手写，可能使用小写，所以要转为大写
 					if(keyArrs[i].toUpperCase().equals(fromKeyCodeToDesc(tmpMap[k]).toUpperCase())){
@@ -563,7 +688,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 				}
 			}
 			
-			String imagebdURL = body[selectedRow][2];
+			final String imagebdURL = body[selectedRow][2];
 			for (int i = 0; i < imagesURL.length; i++) {
 				if(imagebdURL.equals(imagesURL[i])){
 					jcbImage.setSelectedIndex(i);
@@ -610,7 +735,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 	public void notifySave() {
 		super.notifySave();
 		
-		DAOKeyComper kc = DAOKeyComper.getInstance(null);
+		final DAOKeyComper kc = DAOKeyComper.getInstance(null);
 		kc.getProperties().clear();
 		
 		for (int i = 0; i < size; i++) {
@@ -635,15 +760,15 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
+	public void actionPerformed(final ActionEvent e) {
 		int selectedRow = table.getSelectedRow();
 		if(e.getSource() == jbAdd){
 			if(jbAdd.getText() == MODIFY_TAG){
-				ResourceUtil.addMaybeUnusedResource(body[selectedRow][2], false);
+//				ResourceUtil.addMaybeUnusedResource(body[selectedRow][2], false);
 				body[selectedRow][1] = buildStoreDesc();
 				body[selectedRow][2] = getSelectImageURL();
 				icons[selectedRow] = null;
-				ResourceUtil.addMaybeUnusedResource(body[selectedRow][2], true);
+//				ResourceUtil.addMaybeUnusedResource(body[selectedRow][2], true);
 				table.updateUI();
 			}else{
 				body[size][1] = buildStoreDesc();
@@ -651,7 +776,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 				refreshButton();
 			}
 		}else if(e.getSource() == jbRemove){
-			ResourceUtil.addMaybeUnusedResource(body[selectedRow][2], false);
+//			ResourceUtil.addMaybeUnusedResource(body[selectedRow][2], false);
 			while((++selectedRow) < size){
 				body[selectedRow-1][1] = body[selectedRow][1];
 				body[selectedRow-1][2] = body[selectedRow][2];
@@ -663,18 +788,12 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 			size--;
 			
 			refreshButton();
-		}else if(e.getSource() == jbTest){
-			int out = JOptionPane.showConfirmDialog(this, "System will input your keys, Continue?", "Test Key Input?", JOptionPane.OK_CANCEL_OPTION);
-			if(out == JOptionPane.OK_OPTION){
-				String keyDesc = body[selectedRow][1];
-				KeyComper.actionKeys(keyDesc);
-			}
 		}else if(e.getSource() == jbUp){
-			int toIdx = selectedRow - 1;
+			final int toIdx = selectedRow - 1;
 			swapRow(selectedRow, toIdx);
 			table.setRowSelectionInterval(toIdx, toIdx);
 		}else if(e.getSource() == jbDown){
-			int toIdx = selectedRow + 1;
+			final int toIdx = selectedRow + 1;
 			swapRow(selectedRow, toIdx);
 			table.setRowSelectionInterval(toIdx, toIdx);
 		}else if(e.getSource() == jbCancel){
@@ -690,21 +809,21 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 				return;
 			}
 		}else if(e.getSource() == jbBuildImage){
-			BufferedImage bi = buildImage(buildImageDesc());
+			final BufferedImage bi = buildImage(buildImageDesc());
 			
 			StoreDirManager.createDirIfNeccesary(StoreDirManager.ICO_DIR);
-			String rid = ResourceUtil.createResourceID();
+			final String rid = ResourceUtil.createResourceID();
 			
-			String urlResource = StoreDirManager.ICO_DIR + "/" + rid + ".png";
-			File file = new File("." + urlResource);
+			final String urlResource = StoreDirManager.ICO_DIR + App.FILE_SEPARATOR + rid + ".png";
+			final File file = new File(App.getBaseDir(), "." + urlResource);
 			try {
 				ImageIO.write(bi, "png", file);
-				ResourceUtil.addMaybeUnusedResource(urlResource, true);
+//				ResourceUtil.addMaybeUnusedResource(urlResource, true);
 				
 				appendImgToCombox(urlResource);
 				jcbImage.setSelectedIndex(imagesURL.length - 1);
 				
-			} catch (IOException e1) {
+			} catch (final IOException e1) {
 				e1.printStackTrace();
 				return;
 			}
@@ -712,9 +831,34 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		}
 		table.updateUI();
 	}
+	
+	/**
+	 * 
+	 * @param width
+	 * @param height
+	 * @param tryFont
+	 * @param g
+	 * @param str
+	 * @param failBigSize 0:表示向上+1未尝试过；>0表示该尺寸已尝试并失败
+	 * @param pad
+	 * @return
+	 */
+	private static int searchBestFontSizeForImage(final int width, final int height, final Font tryFont, final Graphics2D g, final String str, final int failBigSize, final int pad){
+		final FontRenderContext frc = g.getFontRenderContext();
+		final Rectangle2D r2d = tryFont.getStringBounds(str, frc);
+		final int drawStrWidth = (int)r2d.getWidth();
+		final int drawStrHeight = (int)r2d.getHeight();
+		if(drawStrWidth + pad > width || drawStrHeight + pad > height){
+			return searchBestFontSizeForImage(width, height, new Font(tryFont.getName(), tryFont.getStyle(), tryFont.getSize() - 1), g, str, tryFont.getSize(), pad);
+		}else if(failBigSize > 0){
+			return tryFont.getSize();
+		}else{
+			return searchBestFontSizeForImage(width, height, new Font(tryFont.getName(), tryFont.getStyle(), tryFont.getSize() + 1), g, str, 0, pad);
+		}
+	}
 
-	private BufferedImage buildImage(String desc){
-		String[] items = desc.split("\\+");
+	private BufferedImage buildImage(final String desc){
+		final String[] items = desc.split("\\+");
 		String imgStr = "";
 		if(items.length == 1){
 			if(items[0].length() < 3){
@@ -727,22 +871,25 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		}else{
 			imgStr = items[0].substring(0, 1) + items[1].substring(0, 1) + items[2].substring(0, 1);
 		}
-		final int size = 32;
+		final int size = STANDARD_ICON_SIZE;
 		
 		Font font = new Font(Font.DIALOG, Font.BOLD, 12);
+		final BufferedImage bi = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+		final Graphics2D g = (Graphics2D)bi.getGraphics();
+		final int pad = 2;
+		final int bestFontSize = searchBestFontSizeForImage(size, size, font, g, imgStr, 0, pad);
+		font = new Font(font.getName(), font.getStyle(), bestFontSize);
 		
-		BufferedImage bi = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g = (Graphics2D)bi.getGraphics();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-//		g.setColor(Color.WHITE);
-//		g.fillRect(0, 0, 64, 64);
-		FontRenderContext frc = g.getFontRenderContext();
-		Rectangle2D r2d = font.getStringBounds(imgStr, frc);
-		int drawStrWidth = (int)r2d.getWidth();
-		int drawStrHeight = (int)r2d.getHeight();
+//		g.setColor(Color.BLUE);
+//		g.fillRect(0, 0, size, size);
+		final FontRenderContext frc = g.getFontRenderContext();
+		final Rectangle2D r2d = font.getStringBounds(imgStr, frc);
+		final int drawStrWidth = (int)r2d.getWidth();
+		final int drawStrHeight = (int)r2d.getHeight();
 		int p_x = 0, p_y = 0;
-		p_y = (32 - drawStrHeight) / 2 - (int)r2d.getY();
-		p_x = (32 - drawStrWidth) / 2;
+		p_y = (size - drawStrHeight) / 2 - (int)r2d.getY();
+		p_x = (size - drawStrWidth) / 2;
 		g.setFont(font);
 		
 		final int[] shiftX = {-1,0,1,-1,0,1,-1,0,1};
@@ -771,10 +918,10 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		return bi;
 	}
 
-	private void swapRow(int fromIdx, int toIdx){
-		String v1 = body[toIdx][1];
-		String v2 = body[toIdx][2];
-		ImageIcon ii = icons[toIdx];
+	private void swapRow(final int fromIdx, final int toIdx){
+		final String v1 = body[toIdx][1];
+		final String v2 = body[toIdx][2];
+		final ImageIcon ii = icons[toIdx];
 		
 		body[toIdx][1] = body[fromIdx][1];
 		body[toIdx][2] = body[fromIdx][2];
@@ -786,9 +933,9 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 	}
 	
 	public static BufferedImage rotateImage(final BufferedImage bufferedimage, final int degree){            
-		int w = bufferedimage.getWidth();        
-		int h = bufferedimage.getHeight();        
-		int type = bufferedimage.getColorModel().getTransparency();        
+		final int w = bufferedimage.getWidth();        
+		final int h = bufferedimage.getHeight();        
+		final int type = bufferedimage.getColorModel().getTransparency();        
 		BufferedImage img;        
 		Graphics2D graphics2d;        
 		(graphics2d = (img = new BufferedImage(w, h, type)).createGraphics()).setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);        
@@ -810,7 +957,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		if(desc.length() > 0){
 			desc += "+";
 		}
-		String keyCodeInputDesc = getKeyCodeInputDesc(jcb2, combKeyCodes);
+		final String keyCodeInputDesc = getKeyCodeInputDesc(jcb2, combKeyCodes);
 		desc += keyCodeInputDesc;
 		if(keyCodeInputDesc.length() > 0){
 			desc += "+";
@@ -823,7 +970,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		if(desc.length() > 0){
 			desc += "+";
 		}
-		String keyCodeInputDesc = getKeyCodeInputIcon(jcb2, combKeyCodes);
+		final String keyCodeInputDesc = getKeyCodeInputIcon(jcb2, combKeyCodes);
 		desc += keyCodeInputDesc;
 		if(keyCodeInputDesc.length() > 0){
 			desc += "+";
@@ -839,17 +986,17 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 	}
 
 
-	public String getKeyCodeInputDesc(JComboBox comboBox, int[] mapingArray) {
-		int keyCode = mapingArray[comboBox.getSelectedIndex()];
+	public String getKeyCodeInputDesc(final JComboBox comboBox, final int[] mapingArray) {
+		final int keyCode = mapingArray[comboBox.getSelectedIndex()];
 		return fromKeyCodeToDesc(keyCode);
 	}
 	
-	public String getKeyCodeInputIcon(JComboBox comboBox, int[] mapingArray) {
-		int keyCode = mapingArray[comboBox.getSelectedIndex()];
+	public String getKeyCodeInputIcon(final JComboBox comboBox, final int[] mapingArray) {
+		final int keyCode = mapingArray[comboBox.getSelectedIndex()];
 		return fromKeyCodeToDescIcon(keyCode);
 	}
 
-	private String fromKeyCodeToDesc(int keyCode) {
+	private String fromKeyCodeToDesc(final int keyCode) {
 		if(keyCode == KeyEvent.VK_UNDEFINED){
 			return "";
 		}else{
@@ -857,7 +1004,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		}
 	}
 	
-	private String fromKeyCodeToDescIcon(int keyCode) {
+	private String fromKeyCodeToDescIcon(final int keyCode) {
 		if(keyCode == KeyEvent.VK_UNDEFINED){
 			return "";
 		}else{
@@ -871,18 +1018,18 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 	/**
 	 * 从静态类中提取FIELD_NAME <==> KeyCode对应关系，以便调用
 	 */
-	private static String getKeyDescOfClassFromKeyCode(int keyCode){
+	private static String getKeyDescOfClassFromKeyCode(final int keyCode){
 		if(KEY_CODE_ALL_STATIC_FIELDS.size() == 0){
 			// 初始化
-			Field[] fields = KeyEvent.class.getDeclaredFields();
+			final Field[] fields = KeyEvent.class.getDeclaredFields();
 			for (int i = 0; i < fields.length; i++) {
-				Field field = fields[i];
-		        boolean isStatic = Modifier.isStatic(field.getModifiers());
+				final Field field = fields[i];
+		        final boolean isStatic = Modifier.isStatic(field.getModifiers());
 		        if(isStatic && field.getName().startsWith("VK_")) {
 		        	try{
 			        	KEY_CODE_ALL_STATIC_FIELDS.add((Integer)field.get(null));
 			        	KEY_DESC_ALL_STATIC_FIELDS.add(field.getName().substring(3));//去掉VK_，仅保留后段描述
-		        	}catch (Exception e) {
+		        	}catch (final Exception e) {
 					}
 		        }
 			}
@@ -901,7 +1048,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		//在Android环境下且内网下，需要进行延时操作
 		new HCTimer("", 2500, true) {
 			@Override
-			public void doBiz() {
+			public final void doBiz() {
 				sendExtMouseBiz();
 				remove(this);
 			}
@@ -932,34 +1079,34 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 				mis = ScreenServer.cap.mobiUserIcons;
 			}
 			if(mis != null){
-				int size = mis.size();
+				final int size = mis.size();
 	
-				String[] tempIcons = new String[size];
+				final String[] tempIcons = new String[size];
 				String path = null;
 				try {
 					for (int i = 1; i <= size; i++) {
 						path = mis.getImagePath(i);
-						byte[] imgDataBa = ResourceUtil.getAbsPathContent(path);
+						final byte[] imgDataBa = ResourceUtil.getAbsPathContent(path);
 						tempIcons[i - 1] = ByteUtil.encodeBase64(imgDataBa);
 					}
 	
 					icons = tempIcons;
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					LogManager.err("Unable load mobi ext image content:" + path);
 				}
 				
 			}
 			
 			if(icons == null){
-				String[] is = {"null"};
+				final String[] is = {"null"};
 				icons = is;
 			}
 	
-			StringBuilder sb = new StringBuilder();
+			final StringBuilder sb = new StringBuilder();
 			JcipManager.appendArray(sb, icons, false);
-			String out = sb.toString();
+			final String out = sb.toString();
 			ContextManager.getContextInstance().send(MsgBuilder.E_SCREEN_EXT_MOUSE_ICON, out);
-	//				hc.core.L.V=hc.core.L.O?false:LogManager.log("Send out ExtMouseIco");
+	//				L.V = L.O ? false : LogManager.log("Send out ExtMouseIco");
 		}
 
 }

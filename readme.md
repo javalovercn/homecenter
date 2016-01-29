@@ -1,10 +1,13 @@
-1. these source file are HomeCenter Application Server on PC side. they are NOT mobile application.
-2. main class : hc.App, project encode:utf-8. Please keep the source code as the latest version, otherwise it may cause abnormal connections.
-3. require JRE 6.0 or above.
+1. these source files are HomeCenter Application Server, which is on PC side. they are NOT client for mobile.
+2. main class : hc.App
+3. arguments for main method : debugOn serverOn verify
+4. VM arguments for main class : -Dsun.jnu.encoding=UTF-8
+5. please keep the source code for the latest version, otherwise it may causes abnormal connections.
+3. JRE/JDK 6.0 or above is required.
 4. please read and agree the license file "hc_license.txt" and "mpl_license.txt".
-5. install mobile side application for Android, iPhone, J2ME..., please download them from http://homecenter.mobi/en/pc/downloads.htm
-6. these two files, starter.jar and hc.pem in distribute zip (http://homecenter.mobi/download/HC_Server.zip), are used to check new version, download, verify and start up hc.App
-7. for usage, steps, guide, developing, please go http://homecenter.mobi/en/pc/steps.htm
+5. to install client-side (mobile) application for Android, iPhone, J2ME..., please download them from http://homecenter.mobi/en/pc/downloads.htm
+6. these two files (starter.jar and hc.pem) in distributed zip file (NOT source files, http://homecenter.mobi/en/pc/downloads.htm), are used to check new version, download, verify and start up application server(main class : hc.App)
+7. for help on usage, steps, guide, developing, please go http://homecenter.mobi/en/pc/steps.htm
 8. for API, please go http://homecenter.mobi/download/javadoc/index.html
 9. any question, please contact : help at homecenter.mobi
 

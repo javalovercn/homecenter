@@ -1,6 +1,5 @@
 package hc.core.util;
 
-import hc.core.L;
 
 public class ThumbnailHelper {
 
@@ -42,25 +41,38 @@ public class ThumbnailHelper {
 //	}
 	
 	public static int[] calNewLocXY(int oldZoomMultiple, int zoomMultiples, int locX, int locY, int pcW, int pcH, int mobileW, int mobileH){
-		final int oldLocX = locX;
-		final int oldLocY = locY;
-		
 		if(zoomMultiples > oldZoomMultiple){
 			locX += (mobileW / oldZoomMultiple - mobileW / zoomMultiples) / 2;
 			locY += (mobileH / oldZoomMultiple - mobileH / zoomMultiples) / 2;
+			
+			if(locX > pcW - mobileW/zoomMultiples){
+				//放大后，右下越界
+				locX = pcW - mobileW/zoomMultiples;
+			}
+			if(locX < 0){
+				locX = 0;
+			}
+			
+			if(locY > pcH - mobileH/zoomMultiples){
+				//放大后，右下越界
+				locY = pcH - mobileH/zoomMultiples;
+			}
+			if(locY < 0){
+				locY = 0;
+			}
 		}else{
 			locX -= (mobileW / zoomMultiples - mobileW / oldZoomMultiple) / 2;
 			locY -= (mobileH / zoomMultiples - mobileH / oldZoomMultiple) / 2;
-			if(locX > (pcW - mobileW)){
-				locX = pcW - mobileW;//有可能产生负值
+			if(locX > (pcW - mobileW/zoomMultiples)){
+				locX = pcW - mobileW/zoomMultiples;//有可能产生负值
 			}
 			//故locX要置于后
 			if(locX < 0){
 				locX = 0;
 			}
 
-			if(locY > (pcH - mobileH)){
-				locY = pcH - mobileH;//有可能产生负值
+			if(locY > (pcH - mobileH/zoomMultiples)){
+				locY = pcH - mobileH/zoomMultiples;//有可能产生负值
 			}
 			//有可能手机分辨率高于电脑，故locY要置于后
 			if(locY < 0){

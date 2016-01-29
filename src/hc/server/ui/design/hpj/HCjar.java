@@ -1,7 +1,15 @@
 package hc.server.ui.design.hpj;
 
 import hc.App;
+import hc.core.util.CCoreUtil;
 import hc.server.StarterManager;
+import hc.server.ui.ProjClassLoaderFinder;
+import hc.server.ui.ProjectContext;
+import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.design.LinkProjectStore;
+import hc.server.util.ContextSecurityConfig;
+import hc.server.util.ContextSecurityManager;
+import hc.server.util.HCLimitSecurityManager;
 import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
 
@@ -34,7 +42,11 @@ public class HCjar {
 	public static final String ITEM_LISTENER = "Listener";
 	public static final String ITEM_EXTENDMAP = "ExtendMap";
 
+	public static final String PROC_NAME = "ProcName";
+	public static final String PROC_LISTENER = "ProcListener";
+
 	public static final String MAP_FILE_PRE = "__MaP_fILe_pRE_";
+	public static final String MAP_FILE_TYPE_PRE = "__MaP_fILe_tYpE_pRE_";
 	public static final String VERSION_FILE_PRE = "__VeR_fILe_pRE_";
 	public static final String HOMECENTER_VER = "HomeCenter.Ver";
 	public static final String JRUBY_VER = "JRuby.Ver";
@@ -49,6 +61,7 @@ public class HCjar {
 	public static final String PROJ_COPYRIGHT = "Project.Copyright";
 	public static final String PROJ_DESC = "Project.Desc";
 	public static final String PROJ_LICENSE = "Project.License";
+	public static final String PROJ_STYLES = "Project.Styles";
 
 	public static final String IDX_PATTERN = "(\\d+)";
 
@@ -56,11 +69,44 @@ public class HCjar {
 	public static final String SHARE_JRUBY_FILES_NUM = "ShareJRuby.Num";
 	public static final String SHARE_JRUBY_FILE_NAME = "ShareJRuby." + IDX_PATTERN + ".File";
 	public static final String SHARE_JRUBY_FILE_CONTENT = "ShareJRuby." + IDX_PATTERN + ".Content";
+	public static final String SHARE_NATIVE_FILES_NUM = "Native.Num";
+	public static final String SHARE_NATIVE_FILE_NAME = "Native." + IDX_PATTERN + ".File";
 	
 //	public static final String SHARE_JAR_FILES_NUM = "ShareJar.Num";
 //	public static final String SHARE_JAR_FILE_NAME = "ShareJar." + IDX_PATTERN + ".File";
 //	public static final String SHARE_JAR_FILE_CONTENT = "ShareJar." + IDX_PATTERN + ".Content";
 
+	public static final String ROBOT_NUM = "Robot.Num";
+	public static final String ROBOT_ITEM_HEADER = "Robot.Item.";
+	
+	public static final String PERMISSION_HEADER = "Permission.";
+	public static final String PERMISSION_WRITE = PERMISSION_HEADER + "Write";
+	public static final String PERMISSION_EXECUTE = PERMISSION_HEADER + "Exec";
+	public static final String PERMISSION_DELETE = PERMISSION_HEADER + "Delete";
+	public static final String PERMISSION_EXIT = PERMISSION_HEADER + "Exit";
+	
+	private static final String PERMISSION_SYS_PROP = PERMISSION_HEADER + "SysProp.";
+	public static final String PERMISSION_SYS_PROP_READ = PERMISSION_SYS_PROP + "Read";
+	public static final String PERMISSION_SYS_PROP_WRITE = PERMISSION_SYS_PROP + "Write";
+	
+	public static final String PERMISSION_LOAD_LIB = PERMISSION_HEADER + "LoadLib";
+	public static final String PERMISSION_ROBOT = PERMISSION_HEADER + "Robot";
+//	public static final String PERMISSION_LISTEN_ALL_AWT_EVNTS = PERMISSION_HEADER + "AllAWTEvents";
+//	public static final String PERMISSION_ACCESS_CLIPBOARD = PERMISSION_HEADER + "Clipboard";
+	public static final String PERMISSION_SHUTDOWNHOOKS = PERMISSION_HEADER + "Hook";
+	public static final String PERMISSION_SETIO = PERMISSION_HEADER + "SetIO";
+	
+	private static final String PERMISSION_SOCK_HEADER = PERMISSION_HEADER + "Sock.";
+	public static final String PERMISSION_SOCK_ITEM_HEADER = PERMISSION_SOCK_HEADER + "Item.";
+	public static final String PERMISSION_SOCK_NUM = PERMISSION_SOCK_HEADER + "Num";
+	public static final String PERMISSION_SOCK_LIMIT_ON = PERMISSION_SOCK_HEADER + "LmtON";
+
+	public static final String DEVICE_NUM = "Device.Num";
+	public static final String DEVICE_ITEM_HEADER = "Device.Item.";
+	
+	public static final String CONVERTER_NUM = "Converter.Num";
+	public static final String CONVERTER_ITEM_HEADER = "Converter.Item.";
+	
 	public static final String MAIN_MENU_IDX = "MainMenu.Idx";
 	public static final String MENU_ID = "Menu." + IDX_PATTERN + ".Id";
 	public static final String MENU_NAME = "Menu." + IDX_PATTERN + ".Name";
@@ -75,9 +121,9 @@ public class HCjar {
 
 	public static final String JarConfigEntry = "config.properties";
 
-	public static byte[] readFromInputStream(InputStream jarInputStream)
+	public static byte[] readFromInputStream(final InputStream jarInputStream)
 			throws Throwable {
-		ByteArrayOutputStream classData = new ByteArrayOutputStream();
+		final ByteArrayOutputStream classData = new ByteArrayOutputStream();
 		int readSize = 0;
 		final int BUFFER_SIZE = 1024 * 4;
 		final byte[] buffer = new byte[BUFFER_SIZE];
@@ -91,34 +137,41 @@ public class HCjar {
 				break;
 			classData.write(buffer, 0, readSize);
 		}
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
 			try{
 				jarInputStream.close();
-			}catch (Exception ex) {
+			}catch (final Exception ex) {
 			}
 			throw e;
 		}
 		return classData.toByteArray();
 	}
 
-	public static final Map<String, Object> loadJar(String url){
-		Properties p = new Properties();
-		HashMap<String, Object> mapString = new HashMap<String, Object>();
+	/**
+	 * final String url = "http://homecenter.mobi/download/sample.har";或本地resourcepath
+	 * @param url
+	 * @return
+	 */
+	public static final Map<String, Object> loadJar(final String url){
+		CCoreUtil.checkAccess();
+		
+		final Properties p = new Properties();
+		final HashMap<String, Object> mapString = new HashMap<String, Object>();
 		
 		JarInputStream jis = null;
 		try{
-			URL jarurl = new URL(url);
+			final URL jarurl = new URL(url);
 			jis = new JarInputStream(jarurl.openStream());
 			JarEntry je;
 			while( (je = jis.getNextJarEntry()) != null){
 				loadToMap(je, jis, p, mapString, true);
 				jis.closeEntry();
 			}
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
 		}finally{
 			try {
 				jis.close();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 			}
 		}
 		
@@ -126,8 +179,8 @@ public class HCjar {
 		return mapString;
 	}
 
-	private static void loadToMap(JarEntry je, InputStream is,
-			Properties p, HashMap<String, Object> mapString, boolean loadFileByteArray) throws Throwable {
+	private static void loadToMap(final JarEntry je, final InputStream is,
+			final Properties p, final HashMap<String, Object> mapString, final boolean loadFileByteArray) throws Throwable {
 		final String jarEnterName = je.getName();
 		if(jarEnterName.equals(JarConfigEntry)){
 			pushStringMap(p, mapString, is);
@@ -135,21 +188,28 @@ public class HCjar {
 			//if(jarEnterName.endsWith(".jar"))
 			//如jar, png, au
 			if(loadFileByteArray){
-				byte[] data = readFromInputStream(is);
+				final byte[] data = readFromInputStream(is);
 				mapString.put(MAP_FILE_PRE + jarEnterName, data);
 			}
 		}
 	}
 	
-	private static void setNullDefaultValue(final HashMap<String, Object> map, final String key, final String defaultValue){
+	private static boolean setNullDefaultValue(final HashMap<String, Object> map, final String key, final String defaultValue){
 		if(map.get(key) == null){
 //			System.out.println("set key["+key+"] to default : " + defaultValue);
 			map.put(key, defaultValue);
+			return true;
 		}
+		return false;
 	}
 	
 	public static void initMap(final HashMap<String, Object> map){
-		setNullDefaultValue(map, PROJ_NAME, "My Project");
+		if(setNullDefaultValue(map, PROJ_NAME, "My Project")){
+			final ContextSecurityConfig csc = new ContextSecurityConfig("");
+			csc.buildNewProjectPermissions();
+			HCjarHelper.setBoolean(map, HCjar.PERMISSION_SOCK_LIMIT_ON, true);
+			ContextSecurityConfig.copyPermissionsFromConfig(map, csc);
+		}
 		setNullDefaultValue(map, PROJ_NEXT_NODE_IDX, "1");
 		setNullDefaultValue(map, PROJ_ID, HPProject.convertProjectIDFromName((String)map.get(PROJ_NAME)));
 		setNullDefaultValue(map, PROJ_VER, HPProject.DEFAULT_VER);
@@ -158,6 +218,13 @@ public class HCjar {
 		setNullDefaultValue(map, PROJ_COPYRIGHT, "");
 		setNullDefaultValue(map, PROJ_DESC, "");
 		setNullDefaultValue(map, PROJ_LICENSE, "");
+		setNullDefaultValue(map, PROJ_STYLES, "");
+		
+		if(map.get(HCjar.PERMISSION_WRITE) == null){
+			final ContextSecurityConfig csc = new ContextSecurityConfig("");
+			csc.buildDefaultPermissions();
+			ContextSecurityConfig.copyPermissionsFromConfig(map, csc);
+		}
 		
 		final Object object = map.get(MENU_NUM);
 		if(object != null){
@@ -166,12 +233,12 @@ public class HCjar {
 				final String key = replaceIdxPattern(MENU_COL_NUM, idx);
 				setNullDefaultValue(map, key, "0");		
 				
-				Object menuItemObj = map.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, idx));
+				final Object menuItemObj = map.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, idx));
 				if(menuItemObj != null){
 					final int itemCount = Integer.parseInt((String)menuItemObj);
 					final String Iheader = HCjar.replaceIdxPattern(HCjar.MENU_ITEM_HEADER, idx);
 					for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
-						String header = Iheader + itemIdx + ".";
+						final String header = Iheader + itemIdx + ".";
 						final String key2 = header + HCjar.ITEM_EXTENDMAP;
 						setNullDefaultValue(map, key2, "");
 					}
@@ -180,41 +247,51 @@ public class HCjar {
 		}
 	}
 	
-	public static final Map<String, Object> loadHar(File jarfile, boolean loadFileByteArray){
+	public static final Map<String, Object> loadHarFromLPS(final LinkProjectStore lps){
+		final File har_load = new File(new File(App.getBaseDir(), lps.getHarParentDir()), lps.getHarFile());
+		return HCjar.loadHar(har_load, false);
+	}
+	
+	public static final Map<String, Object> loadHar(final File jarfile, final boolean loadFileByteArray){
 		JarFile jf = null;
-		Properties p = new Properties();
-		HashMap<String, Object> mapString = new HashMap<String, Object>();
+		final Properties p = new Properties();
+		final HashMap<String, Object> mapString = new HashMap<String, Object>();
 		try{
+//			if(jarfile.exists() == false){
+//				throw new Exception("File["+jarfile.getName()+"] not exists!");
+//			}
+			
 			jf = new JarFile(jarfile);
 
-			for (Enumeration<JarEntry> em1 = jf.entries(); em1.hasMoreElements();) {
-				JarEntry je = em1.nextElement();
-				InputStream is = jf.getInputStream(je);
+			for (final Enumeration<JarEntry> em1 = jf.entries(); em1.hasMoreElements();) {
+				final JarEntry je = em1.nextElement();
+				final InputStream is = jf.getInputStream(je);
 				try {
 					loadToMap(je, is, p, mapString, loadFileByteArray);
 				} finally {
 					is.close();
 				}
 			}
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
+			e.printStackTrace();
 		}finally{
 			try {
 				jf.close();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 			}
 		}
 		pushStringMap(p, mapString);
 		return mapString;
 	}
 
-	private static void pushStringMap(Properties p,
-			HashMap<String, Object> map, InputStream is) throws IOException {
+	private static void pushStringMap(final Properties p,
+			final HashMap<String, Object> map, final InputStream is) throws IOException {
 		p.load(is);
 		pushStringMap(p, map);
 	}
 
-	private static void pushStringMap(Properties p, HashMap<String, Object> map) {
-		for(Map.Entry<Object, Object> entry:p.entrySet()){  
+	private static void pushStringMap(final Properties p, final HashMap<String, Object> map) {
+		for(final Map.Entry<Object, Object> entry:p.entrySet()){  
 			map.put((String)entry.getKey(), entry.getValue());
 		}
 		if(map.isEmpty() == false){
@@ -222,9 +299,9 @@ public class HCjar {
 		}
 	}
 	
-	public static final void toHar(Map<String, Object> map, File jarfile){
+	public static final void toHar(final Map<String, Object> map, final File jarfile){
 		
-		Properties p = new Properties();
+		final Properties p = new Properties();
 
 		if(jarfile.exists()){
 			jarfile.delete();
@@ -235,11 +312,11 @@ public class HCjar {
 			jaros = buildJarOutputStream(jarfile);
 
 			//去掉非String型的value
-			Iterator<Map.Entry<String, Object>> it = map.entrySet().iterator();  
+			final Iterator<Map.Entry<String, Object>> it = map.entrySet().iterator();  
 	        while(it.hasNext()){  
-	            Map.Entry<String, Object> entry=it.next();  
+	            final Map.Entry<String, Object> entry=it.next();  
 	            final String keyName = entry.getKey();
-	            if(keyName.startsWith(MAP_FILE_PRE)){
+	            if(keyName.startsWith(MAP_FILE_PRE, 0)){
 	            	final String fileName = keyName.substring(MAP_FILE_PRE.length());
 		            jaros.putNextEntry(new JarEntry(fileName));
 					jaros.write((byte[])entry.getValue());
@@ -256,21 +333,21 @@ public class HCjar {
 			p.store(jaros, "");
 			jaros.closeEntry();
 			
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}finally{
 			try {
 				jaros.close();
-			} catch (IOException e) {
+			} catch (final IOException e) {
 			}
 		}
 		
 	}
 
 	/**
-	 * 需要忽略的结点，如事件结点夹
+	 * 需要忽略的结点，如事件结点夹和MSB结点夹
 	 */
-	public static final int SKIP_SUB_MENU_ITEM_NUM = 1;
+	public static final int SKIP_SUB_MENU_ITEM_NUM = 2;
 
 	/**
 	 * 返回主菜单的Menu结点，如果是新建，则可能返回null
@@ -278,15 +355,33 @@ public class HCjar {
 	 * @param root
 	 * @return
 	 */
-	public static final DefaultMutableTreeNode toNode(Map<String, Object> map, final DefaultMutableTreeNode root, 
-			final DefaultMutableTreeNode[] scriptFolder){
+	public static final DefaultMutableTreeNode toNode(final Map<String, Object> map, final DefaultMutableTreeNode root, 
+			final DefaultMutableTreeNode msbFolder, final DefaultMutableTreeNode[] scriptFolder){
 		DefaultMutableTreeNode out_mainMenuNode = null;
 		//装填ROOT
 		{
+			final ContextSecurityConfig csc = ContextSecurityConfig.getPermissionFromHARMap(map);
+			ContextSecurityManager.putContextSecurityConfig(
+					(ThreadGroup)HCLimitSecurityManager.getTempLimitThreadPool().getThreadGroup(), csc);
+			
+			final String projID = (String)map.get(PROJ_ID);
+			final String projVer = (String)map.get(PROJ_VER);
+
+			final ProjectContext context = new ProjectContext(projID, projVer, HCLimitSecurityManager.getTempLimitThreadPool(), null, 
+					new ProjClassLoaderFinder() {
+						@Override
+						public ClassLoader findProjClassLoader() {
+							return ScriptEditPanel.runTestEngine.getProjClassLoader();
+						}
+					});
+			ServerUIAPIAgent.setTMPTarget(context, "", "");
+			csc.setProjectContext(context);
+			
 			root.setUserObject(new HPProject(HPNode.MASK_ROOT, 
-					(String)map.get(PROJ_NAME), (String)map.get(PROJ_ID),
-					(String)map.get(PROJ_VER), (String)map.get(PROJ_UPGRADE_URL),
-					(String)map.get(PROJ_CONTACT), (String)map.get(PROJ_COPYRIGHT), (String)map.get(PROJ_DESC), (String)map.get(PROJ_LICENSE)));
+					(String)map.get(PROJ_NAME), projID,
+					projVer, (String)map.get(PROJ_UPGRADE_URL),
+					(String)map.get(PROJ_CONTACT), (String)map.get(PROJ_COPYRIGHT), (String)map.get(PROJ_DESC), (String)map.get(PROJ_LICENSE),
+					csc, (String)map.get(PROJ_STYLES)));
 			MenuManager.setNextNodeIdx(Integer.parseInt((String)map.get(PROJ_NEXT_NODE_IDX)));
 		}
 		
@@ -299,14 +394,19 @@ public class HCjar {
 				final int MainMenuIdx = Integer.parseInt((String)map.get(MAIN_MENU_IDX));
 	
 				for (int idx = 0; idx < menuNum; idx++) {
-					String menuName = (String)map.get(replaceIdxPattern(MENU_NAME, idx));
-					String menuColNum = (String)map.get(replaceIdxPattern(MENU_COL_NUM, idx));
+					final String menuName = (String)map.get(replaceIdxPattern(MENU_NAME, idx));
+					final String menuColNum = (String)map.get(replaceIdxPattern(MENU_COL_NUM, idx));
 					final HPMenu menu = new HPMenu((String)map.get(replaceIdxPattern(MENU_ID, idx)), 
 							HPNode.MASK_MENU, menuName, (menuColNum==null)?0:Integer.parseInt(menuColNum),
 							MainMenuIdx == idx);
-					DefaultMutableTreeNode menuNode = new DefaultMutableTreeNode(menu);
+					final DefaultMutableTreeNode menuNode = new DefaultMutableTreeNode(menu);
 
+					//四大事件
 					buildMenuEventNodes(map, menuNode, idx);
+					
+					//MSB_FOLDER
+					menuNode.add(msbFolder);
+					buildMSBNodes(map, msbFolder);
 					
 					root.add(menuNode);
 					
@@ -316,12 +416,12 @@ public class HCjar {
 					
 					//装填MenuItem
 					{
-						Object menuItemObj = map.get(replaceIdxPattern(MENU_CHILD_COUNT, idx));
+						final Object menuItemObj = map.get(replaceIdxPattern(MENU_CHILD_COUNT, idx));
 						if(menuItemObj != null){
 							final int itemCount = Integer.parseInt((String)menuItemObj);
 							final String Iheader = replaceIdxPattern(MENU_ITEM_HEADER, idx);
 							for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
-								String header = Iheader + itemIdx + ".";
+								final String header = Iheader + itemIdx + ".";
 								final HPMenuItem userObject = new HPMenuItem(
 										Integer.parseInt((String)map.get(header + ITEM_TYPE)), 
 										(String)map.get(header + ITEM_NAME));
@@ -331,7 +431,7 @@ public class HCjar {
 								userObject.listener = (String)map.get(header + ITEM_LISTENER);
 								userObject.extendMap.restore((String)map.get(header + ITEM_EXTENDMAP));
 								
-								DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(userObject);
+								final DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(userObject);
 								menuNode.add(itemNode);
 							}
 						}
@@ -339,54 +439,113 @@ public class HCjar {
 				}
 			}
 			
-			//装填ShareJRubyFile
-			final Object shareJRubyFileNum = map.get(SHARE_JRUBY_FILES_NUM);
-			if(shareJRubyFileNum != null){
-				final int shareNum = Integer.parseInt((String)shareJRubyFileNum);
-	
-				for (int idx = 0; idx < shareNum; idx++) {
-					final String fileName = (String)map.get(replaceIdxPattern(SHARE_JRUBY_FILE_NAME, idx));
-					final String fileContent = (String)map.get(replaceIdxPattern(SHARE_JRUBY_FILE_CONTENT, idx));
-					final HPShareJRuby userObject = new HPShareJRuby(
-							HPNode.MASK_SHARE_RB, fileName);
-					userObject.content = fileContent;
-					DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(userObject);
-					scriptFolder[0].add(itemNode);
-				}				
+			{
+				//装填ShareJRubyFile
+				final Object shareJRubyFileNum = map.get(SHARE_JRUBY_FILES_NUM);
+				if(shareJRubyFileNum != null){
+					final int shareNum = Integer.parseInt((String)shareJRubyFileNum);
+		
+					for (int idx = 0; idx < shareNum; idx++) {
+						final String fileName = (String)map.get(replaceIdxPattern(SHARE_JRUBY_FILE_NAME, idx));
+						final String fileContent = (String)map.get(replaceIdxPattern(SHARE_JRUBY_FILE_CONTENT, idx));
+						final HPShareJRuby userObject = new HPShareJRuby(
+								HPNode.MASK_SHARE_RB, fileName);
+						userObject.content = fileContent;
+						final DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(userObject);
+						scriptFolder[0].add(itemNode);
+					}
+				}
+			}
+			
+			{
+				final Object shareNativeFileNum = map.get(SHARE_NATIVE_FILES_NUM);
+				if(shareNativeFileNum != null){
+					final int shareNum = Integer.parseInt((String)shareNativeFileNum);
+		
+					for (int idx = 0; idx < shareNum; idx++) {
+						final String fileName = (String)map.get(replaceIdxPattern(SHARE_NATIVE_FILE_NAME, idx));
+						final byte[] fileContent = (byte[])map.get(MAP_FILE_PRE + fileName);
+						final HPShareNative userObject = new HPShareNative(
+								HPNode.MASK_SHARE_NATIVE, fileName);
+						userObject.content = fileContent;
+						userObject.ver = (String)map.get(VERSION_FILE_PRE + fileName);
+						final DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(userObject);
+						scriptFolder[2].add(itemNode);
+					}				
+				}
 			}
 			
 			//装填shareFileResource，如jar, png, au
 			final DefaultMutableTreeNode shareJarFolder = scriptFolder[1];
-			for(Map.Entry<String, Object> entry:map.entrySet()){  
+			for(final Map.Entry<String, Object> entry:map.entrySet()){  
 				final String keyName = entry.getKey();
-				if(keyName.startsWith(MAP_FILE_PRE)){
+				if(keyName.startsWith(MAP_FILE_PRE, 0)){
 					final String realName = keyName.substring(MAP_FILE_PRE.length());
+					String type = (String)map.get(MAP_FILE_TYPE_PRE + realName);
+					if(type == null){
+						type = HPNode.MAP_FILE_JAR_TYPE;
+					}
 					
-					final HPShareJar jar = new HPShareJar(HPNode.MASK_RESOURCE_JAR, realName);
-					jar.ver = (String)map.get(VERSION_FILE_PRE + realName);
-					
-					jar.ID = realName;
-					jar.content = (byte[])entry.getValue();
-					
-					DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(jar);
-					shareJarFolder.add(itemNode);
+					final int typeInt = Integer.parseInt(type);
+					if(HPNode.isNodeType(typeInt, HPNode.MASK_RESOURCE_ITEM)){
+						final HPShareJar jar = new HPShareJar(typeInt, realName);
+						jar.ver = (String)map.get(VERSION_FILE_PRE + realName);
+						
+						jar.ID = realName;
+						jar.content = (byte[])entry.getValue();
+						
+						final DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(jar);
+						shareJarFolder.add(itemNode);
+					}
 				}
 			}
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
 			
 		}
 		return out_mainMenuNode;
 	}
 
-	public static void buildMenuEventNodes(Map<String, Object> map,
-			DefaultMutableTreeNode menuNode, int menuIdx) {
+	public static DefaultMutableTreeNode buildMSBNodes(final Map<String, Object> map, final DefaultMutableTreeNode eventFold) {
+		{
+			final int msbSize = HCjarHelper.getRobotNum(map);
+			for (int idx = 0; idx < msbSize; idx++) {
+				final HPProcessor eventItem = new HPProcessor(HPNode.MASK_MSB_ROBOT, HCjarHelper.getRobotNameAtIdx(map, idx));
+				eventItem.listener = HCjarHelper.getRobotListenerAtIdx(map, idx);
+				final DefaultMutableTreeNode eventItemNode = new DefaultMutableTreeNode(eventItem);
+				eventFold.add(eventItemNode);
+			}
+		}
+		{
+			final int msbSize = HCjarHelper.getConverterNum(map);
+			for (int idx = 0; idx < msbSize; idx++) {
+				final HPProcessor eventItem = new HPProcessor(HPNode.MASK_MSB_CONVERTER, HCjarHelper.getConverterNameAtIdx(map, idx));
+				eventItem.listener = HCjarHelper.getConverterListenerAtIdx(map, idx);
+				final DefaultMutableTreeNode eventItemNode = new DefaultMutableTreeNode(eventItem);
+				eventFold.add(eventItemNode);
+			}
+		}
+		{
+			final int msbSize = HCjarHelper.getDeviceNum(map);
+			for (int idx = 0; idx < msbSize; idx++) {
+				final HPProcessor eventItem = new HPProcessor(HPNode.MASK_MSB_DEVICE, HCjarHelper.getDeviceNameAtIdx(map, idx));
+				eventItem.listener = HCjarHelper.getDeviceListenerAtIdx(map, idx);
+				final DefaultMutableTreeNode eventItemNode = new DefaultMutableTreeNode(eventItem);
+				eventFold.add(eventItemNode);
+			}
+		}
+		
+		return eventFold;
+	}
+	
+	public static void buildMenuEventNodes(final Map<String, Object> map,
+			final DefaultMutableTreeNode menuNode, final int menuIdx) {
 		final HPMenuEvent folder = new HPMenuEvent(HPNode.MASK_EVENT_FOLDER, "Events");
-		DefaultMutableTreeNode eventFold = new DefaultMutableTreeNode(folder);
+		final DefaultMutableTreeNode eventFold = new DefaultMutableTreeNode(folder);
 		menuNode.add(eventFold);
 		
-		for (int i = 0; i < BaseResponsor.EVENT_LIST.length; i++) {
-			HPMenuEventItem eventItem = new HPMenuEventItem(HPNode.MASK_EVENT_ITEM, BaseResponsor.EVENT_LIST[i]);
-			DefaultMutableTreeNode eventItemNode = new DefaultMutableTreeNode(eventItem);
+		for (int i = 0; i < BaseResponsor.SCRIPT_EVENT_LIST.length; i++) {
+			final HPMenuEventItem eventItem = new HPMenuEventItem(HPNode.MASK_EVENT_ITEM, BaseResponsor.SCRIPT_EVENT_LIST[i]);
+			final DefaultMutableTreeNode eventItemNode = new DefaultMutableTreeNode(eventItem);
 			eventFold.add(eventItemNode);
 			
 			eventItem.content = (String)map.get(buildEventMapKey(menuIdx, eventItem.name));
@@ -396,9 +555,9 @@ public class HCjar {
 		}
 	}
 	
-	public static final Map<String, Object> toMap(DefaultMutableTreeNode root, 
-			DefaultMutableTreeNode[] folders) throws NodeInvalidException{
-		HashMap<String, Object> map = new HashMap<String, Object>();
+	public static final Map<String, Object> toMap(final DefaultMutableTreeNode root, 
+			final DefaultMutableTreeNode[] folders) throws NodeInvalidException{
+		final HashMap<String, Object> map = new HashMap<String, Object>();
 		
 		map.put(HOMECENTER_VER, StarterManager.getHCVersion());
 		map.put(JRE_VER, String.valueOf(App.getJREVer()));
@@ -410,24 +569,28 @@ public class HCjar {
 		return toMap(map, root, folders);
 	}
 	
-	private static final Map<String, Object> toMap(HashMap<String, Object> map, 
-			DefaultMutableTreeNode root, DefaultMutableTreeNode[] folders) throws NodeInvalidException{
+	private static final Map<String, Object> toMap(final HashMap<String, Object> map, 
+			final DefaultMutableTreeNode root, final DefaultMutableTreeNode[] folders) throws NodeInvalidException{
 		final int childCount = root.getChildCount();
 		checkSameNameNode(root, childCount);
 
-		HPNode item = (HPNode)root.getUserObject();
+		final HPNode item = (HPNode)root.getUserObject();
 		if(item.type == HPNode.MASK_ROOT){
 			map.put(PROJ_NAME, item.name);
-			map.put(PROJ_ID, ((HPProject)item).id);
-			map.put(PROJ_VER, ((HPProject)item).ver);
+			final HPProject hpProject = (HPProject)item;
+			map.put(PROJ_ID, hpProject.id);
+			map.put(PROJ_VER, hpProject.ver);
 			map.put(PROJ_NEXT_NODE_IDX, String.valueOf(MenuManager.getCurrNodeIdx()));
-			map.put(PROJ_UPGRADE_URL, ((HPProject)item).upgradeURL);
-			map.put(PROJ_CONTACT, ((HPProject)item).contact);
-			map.put(PROJ_COPYRIGHT, ((HPProject)item).copyright);
-			map.put(PROJ_DESC, ((HPProject)item).desc);
-			map.put(PROJ_LICENSE, ((HPProject)item).license);
+			map.put(PROJ_UPGRADE_URL, hpProject.upgradeURL);
+			map.put(PROJ_CONTACT, hpProject.contact);
+			map.put(PROJ_COPYRIGHT, hpProject.copyright);
+			map.put(PROJ_DESC, hpProject.desc);
+			map.put(PROJ_LICENSE, hpProject.license);
+			map.put(PROJ_STYLES, hpProject.styles);
+			
+			ContextSecurityConfig.copyPermissionsFromConfig(map, hpProject.csc);
 		}else if(item.type == HPNode.MASK_MENU){
-			int idx = addOne(map, MENU_NUM);
+			final int idx = addOne(map, MENU_NUM);
 			final String menuPattern = replaceIdxPattern(MENU_NAME, idx);
 			map.put(menuPattern, item.name);
 			map.put(replaceIdxPattern(MENU_COL_NUM, idx), String.valueOf(((HPMenu)item).colNum));
@@ -437,14 +600,39 @@ public class HCjar {
 				map.put(MAIN_MENU_IDX, String.valueOf(idx));
 			}
 			{
-				DefaultMutableTreeNode eventFold = (DefaultMutableTreeNode)root.getChildAt(0);
-				int size = eventFold.getChildCount();
+				//四大事件：start_proj, mobile_login, mobile_logout, shutdown_proj...
+				final DefaultMutableTreeNode eventFold = (DefaultMutableTreeNode)root.getChildAt(0);
+				final int size = eventFold.getChildCount();
 				for (int i = 0; i < size; i++) {
-					HPMenuEventItem eventItem = (HPMenuEventItem)((DefaultMutableTreeNode)eventFold.getChildAt(i)).getUserObject();
+					final HPMenuEventItem eventItem = (HPMenuEventItem)((DefaultMutableTreeNode)eventFold.getChildAt(i)).getUserObject();
 					
 					map.put(buildEventMapKey(idx, eventItem.name), eventItem.content);
 				}
-
+			}
+			{
+				final DefaultMutableTreeNode eventFold = (DefaultMutableTreeNode)root.getChildAt(1);
+				final int size = eventFold.getChildCount();
+				checkSameNameNode(eventFold, size);
+				//Iot
+				for (int i = 0; i < size; i++) {
+					final DefaultMutableTreeNode childAt = (DefaultMutableTreeNode)eventFold.getChildAt(i);
+					final HPProcessor menuItem = (HPProcessor)childAt.getUserObject();
+					String header = "";
+					int ito_idx = -1;
+					if(menuItem.type == HPNode.MASK_MSB_ROBOT){
+						ito_idx = addOne(map, ROBOT_NUM);
+						header = ROBOT_ITEM_HEADER;
+					}else if(menuItem.type == HPNode.MASK_MSB_DEVICE){
+						ito_idx = addOne(map, DEVICE_NUM);
+						header = DEVICE_ITEM_HEADER;
+					}else if(menuItem.type == HPNode.MASK_MSB_CONVERTER){
+						ito_idx = addOne(map, CONVERTER_NUM);
+						header = CONVERTER_ITEM_HEADER;
+					}
+					header += ito_idx + "."; 
+					map.put(header + PROC_NAME, menuItem.name);
+					map.put(header + PROC_LISTENER, String.valueOf(menuItem.listener));
+				}	
 			}
 			map.put(replaceIdxPattern(MENU_ID, idx), hpmenu.menuID);
 			final int size = childCount - SKIP_SUB_MENU_ITEM_NUM;//忽略事件结点
@@ -452,9 +640,9 @@ public class HCjar {
 			final String Iheader = replaceIdxPattern(MENU_ITEM_HEADER, idx);
 			
 			for (int i = 0; i < size; i++) {
-				String header = Iheader + i + "."; 
+				final String header = Iheader + i + "."; 
 				
-				HPMenuItem menuItem = (HPMenuItem)((DefaultMutableTreeNode)root.getChildAt(i + SKIP_SUB_MENU_ITEM_NUM)).getUserObject();
+				final HPMenuItem menuItem = (HPMenuItem)((DefaultMutableTreeNode)root.getChildAt(i + SKIP_SUB_MENU_ITEM_NUM)).getUserObject();
 				
 				map.put(header + ITEM_NAME, menuItem.name);
 				map.put(header + ITEM_TYPE, String.valueOf(menuItem.type));
@@ -473,23 +661,28 @@ public class HCjar {
 			}
 			return map;
 		}else if(item.type == HPNode.MASK_SHARE_RB_FOLDER){
+			return putMapFor(map, root, childCount, SHARE_JRUBY_FILES_NUM, SHARE_JRUBY_FILE_NAME, SHARE_JRUBY_FILE_CONTENT);
+		}else if(item.type == HPNode.MASK_SHARE_NATIVE_FOLDER){
 			if(childCount > 0){
-				map.put(SHARE_JRUBY_FILES_NUM, String.valueOf(childCount));
+				map.put(SHARE_NATIVE_FILES_NUM, String.valueOf(childCount));
 				
 				for (int i = 0; i < childCount; i++) {
-					HPShareJRuby childItem = (HPShareJRuby)((DefaultMutableTreeNode)root.getChildAt(i)).getUserObject();
+					final HPShareNative childItem = (HPShareNative)((DefaultMutableTreeNode)root.getChildAt(i)).getUserObject();
 					
-					map.put(replaceIdxPattern(SHARE_JRUBY_FILE_NAME, i), childItem.name);
-					map.put(replaceIdxPattern(SHARE_JRUBY_FILE_CONTENT, i), childItem.content);
+					map.put(replaceIdxPattern(SHARE_NATIVE_FILE_NAME, i), childItem.name);
+					map.put(MAP_FILE_PRE + childItem.name, childItem.content);
+					map.put(MAP_FILE_TYPE_PRE + childItem.name, String.valueOf(childItem.type));
+					map.put(VERSION_FILE_PRE + childItem.name, childItem.ver);
 				}
 			}
 			return map;
 		}else if(HPNode.isNodeType(item.type, HPNode.MASK_RESOURCE_FOLDER)){
 			if(childCount > 0){
 				for (int i = 0; i < childCount; i++) {
-					HPShareJar childItem = (HPShareJar)((DefaultMutableTreeNode)root.getChildAt(i)).getUserObject();
+					final HPShareJar childItem = (HPShareJar)((DefaultMutableTreeNode)root.getChildAt(i)).getUserObject();
 					
 					map.put(MAP_FILE_PRE + childItem.name, childItem.content);
+					map.put(MAP_FILE_TYPE_PRE + childItem.name, String.valueOf(childItem.type));//HPNode.MAP_FILE_JAR_TYPE);//注意：早期到6.69的版本不含此标识
 					map.put(VERSION_FILE_PRE + childItem.name, childItem.ver);
 				}
 			}
@@ -504,13 +697,29 @@ public class HCjar {
 		return map;
 	}
 
-	public static String buildEventMapKey(int idx, String eventName) {
+	private static Map<String, Object> putMapFor(final HashMap<String, Object> map,
+			final DefaultMutableTreeNode root, final int childCount, 
+			final String TagFileCount, final String TagFileName, final String TagFileContent) {
+		if(childCount > 0){
+			map.put(TagFileCount, String.valueOf(childCount));
+			
+			for (int i = 0; i < childCount; i++) {
+				final HPShareContent childItem = (HPShareContent)((DefaultMutableTreeNode)root.getChildAt(i)).getUserObject();
+				
+				map.put(replaceIdxPattern(TagFileName, i), childItem.name);
+				map.put(replaceIdxPattern(TagFileContent, i), childItem.content);
+			}
+		}
+		return map;
+	}
+
+	public static String buildEventMapKey(final int idx, final String eventName) {
 		return "Menu." + idx + "." + eventName;
 	}
 	
-	private static void checkSameNameNode(DefaultMutableTreeNode parentNode, 
+	private static void checkSameNameNode(final DefaultMutableTreeNode parentNode, 
 			final int childNum) throws NodeInvalidException{
-		HPNode proj = (HPNode)parentNode.getUserObject();
+		final HPNode proj = (HPNode)parentNode.getUserObject();
 		validate(parentNode, proj);
 			
 		for (int i = 1; i < childNum; i++) {
@@ -520,7 +729,7 @@ public class HCjar {
 			for (int j = 0; j < i; j++) {
 				final HPNode j_node = (HPNode)((DefaultMutableTreeNode)parentNode.getChildAt(j)).getUserObject();
 				if(i_node.equals(j_node)){
-					NodeInvalidException e = new NodeInvalidException(treeNode);
+					final NodeInvalidException e = new NodeInvalidException(treeNode);
 					e.setDesc("<strong>[" + i_node.name +"]</strong> has same <strong>display name</strong>" +
 							"(or <strong>target locator</strong>) with node [<strong>" + j_node.name + "</strong>].");
 					throw e;
@@ -530,16 +739,16 @@ public class HCjar {
 	}
 
 	private static void validate(final DefaultMutableTreeNode treeNode,
-			HPNode i_node) throws NodeInvalidException {
+			final HPNode i_node) throws NodeInvalidException {
 		final String v = i_node.validate();
 		if(v != null){
-			NodeInvalidException e = new NodeInvalidException(treeNode);
+			final NodeInvalidException e = new NodeInvalidException(treeNode);
 			e.setDesc(v);
 			throw e;
 		}
 	}
 	
-	public static String replaceIdxPattern(String src, int value){
+	public static String replaceIdxPattern(final String src, final int value){
 		return src.replace(IDX_PATTERN, String.valueOf(value));
 	}
 	
@@ -549,14 +758,14 @@ public class HCjar {
 	 * @param key
 	 * @return
 	 */
-	public static final int addOne(HashMap<String, Object> map, String key){
-		Object value = map.get(key);
+	public static final int addOne(final HashMap<String, Object> map, final String key){
+		final Object value = map.get(key);
 		if(value != null){
 			try{
-				int num = Integer.parseInt((String)value);
+				final int num = Integer.parseInt((String)value);
 				map.put(key, String.valueOf(num + 1));
 				return num;
-			}catch (Throwable e) {
+			}catch (final Throwable e) {
 				
 			}
 		}
@@ -564,19 +773,19 @@ public class HCjar {
 		return 0;
 	}
 	
-	public static final JarOutputStream buildJarOutputStream(File file) throws Exception{
-		FileOutputStream stream = new FileOutputStream(file);
+	public static final JarOutputStream buildJarOutputStream(final File file) throws Exception{
+		final FileOutputStream stream = new FileOutputStream(file);
 		return new JarOutputStream(stream);
 	}
 	
-	public static final void push(JarOutputStream jarOutStream, BufferedInputStream in, String jarEntryName) throws Exception {
-		JarEntry entry = new JarEntry(jarEntryName);
+	public static final void push(final JarOutputStream jarOutStream, final BufferedInputStream in, final String jarEntryName) throws Exception {
+		final JarEntry entry = new JarEntry(jarEntryName);
 //		entry.setTime(source.lastModified());
 		jarOutStream.putNextEntry(entry);
 		try {
 			final byte[] buffer = new byte[1024];
 			while (true) {
-				int count = in.read(buffer);
+				final int count = in.read(buffer);
 				if (count == -1)
 					break;
 				jarOutStream.write(buffer, 0, count);
@@ -588,9 +797,9 @@ public class HCjar {
 		}
 	}
 
-	public static final void push(JarOutputStream jarOutStream, final Map<String, String> mapAttributes) throws Exception{
+	public static final void push(final JarOutputStream jarOutStream, final Map<String, String> mapAttributes) throws Exception{
 		final Manifest manifest = new Manifest();
-		Iterator<String> it = mapAttributes.keySet().iterator();
+		final Iterator<String> it = mapAttributes.keySet().iterator();
 		final Attributes mainAttributes = manifest.getMainAttributes();
 		while(it.hasNext()){
 			final String key = it.next();

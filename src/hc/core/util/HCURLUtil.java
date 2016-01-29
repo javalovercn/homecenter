@@ -54,6 +54,7 @@ public class HCURLUtil {
 			hcurl.url = url;
 
 			boolean isSame = true;
+			int startCtxIdx = 0;
 			for (int i = 0; i < NUM_PROTOCAL; i++) {
 				isSame = true;
 				byte[] bytes = PROTOCALS_BYTES[i];
@@ -65,49 +66,51 @@ public class HCURLUtil {
 				}
 				if(isSame){
 					hcurl.protocal = PROTOCALS[i];
+					startCtxIdx = hcurl.protocal.length() + 3;
 					break;
 				}
 			}
 			
-			int end = bs.length;
-			for (int i = 0; i < end ; i++) {
-				if(bs[i] == '/' && bs[i+1] == '/'){
-					if(!isSame){
-						hcurl.protocal = new String(bs, 0, i - 1, IConstant.UTF_8);
-					}
-					int cmdIdx = end - 1;
-					for (int startIdx = i+2; cmdIdx >= startIdx; cmdIdx--) {
-						if(bs[cmdIdx] == '/'){
-							hcurl.context = new String(bs, startIdx, cmdIdx - startIdx, IConstant.UTF_8);
-							break;
-						}
-					}
-					for (int j = cmdIdx + 1; j < end; j++) {
-						boolean isReplace = false;
-						
-						int lenJ = end - j;
-						for (int j2 = j + 1; j2 < end; j2++) {
-							if(bs[j2] == '?'){
-								if(bs[j2 - 1] != '\\'){
-									lenJ = j2 - j;
-									
-									pushParaValues(hcurl, bs, j2 + 1, null, isDecodeValue);
-									break;
-								}
-							}else{
-								isReplace = true;
-							}
-						}
-
-						
-						String string = new String(bs, j, lenJ, IConstant.UTF_8);
-						hcurl.elementID = isReplace?StringUtil.replace(string, "\\?", "?"):string;
-						return hcurl;
-					}
-					
-					return hcurl;
+			final int end = bs.length;
+			int cmdIdx = startCtxIdx;
+			int lastSplashIdx = 0;
+			for (; cmdIdx < end; cmdIdx++) {
+				final byte b = bs[cmdIdx];
+				if(b == '/'){
+					lastSplashIdx = cmdIdx;
+				}else if(b == '?'){
+					break;
 				}
 			}
+			if(lastSplashIdx == 0){
+				hcurl.context = "";
+				cmdIdx = startCtxIdx;
+			}else{
+				hcurl.context = new String(bs, startCtxIdx, lastSplashIdx - startCtxIdx, IConstant.UTF_8);
+				cmdIdx = lastSplashIdx + 1;
+			}
+			
+			final int j = cmdIdx;
+			boolean isReplace = false;
+			
+			int lenJ = end - j;
+			for (int j2 = j + 1; j2 < end; j2++) {
+				if(bs[j2] == '?'){
+					if(bs[j2 - 1] != '\\'){
+						lenJ = j2 - j;
+						
+						pushParaValues(hcurl, bs, j2 + 1, null, isDecodeValue);
+						break;
+					}
+				}else{
+					isReplace = true;
+				}
+			}
+
+			
+			String string = new String(bs, j, lenJ, IConstant.UTF_8);
+			hcurl.elementID = isReplace?StringUtil.replace(string, "\\?", "?"):string;
+			return hcurl;
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
@@ -115,9 +118,19 @@ public class HCURLUtil {
 		return null;
 	}
 	
+	/**
+	 * 发布状态从手机到服务器，或从服务器到手机
+	 * @param id
+	 * @param status
+	 */
+	public final static void publishStatus(final String id, final String status){
+		final String[] paras = {HCURL.DATA_PARA_PUBLISH_STATUS_ID, HCURL.DATA_PARA_PUBLISH_STATUS_VALUE};
+		final String[] values = {id, status};
+		HCURLUtil.sendCmd(HCURL.DATA_CMD_SendPara, paras, values);
+	}
+	
 	private static void pushParaValues(HCURL url, byte[] bs, int index, String p, boolean isDecodeValue){
 		if(p == null){
-			boolean isReplace = false;
 			for (int i = index; i < bs.length; i++) {
 				if(bs[i] == '='){
 					if(bs[i - 1] != '\\'){
@@ -128,15 +141,16 @@ public class HCURLUtil {
 							string = new String(bs, index, i - index);
 							e.printStackTrace();
 						}
-						pushParaValues(url, bs, i + 1, isReplace?StringUtil.replace(string, "\\=", "="):string, isDecodeValue);
+						String v = StringUtil.replace(string, "\\&", "&");
+						v = StringUtil.replace(v, "\\=", "=");
+						pushParaValues(url, bs, i + 1, v, isDecodeValue);
 						return;
 					}else{
-						isReplace = true;
+						continue;
 					}
 				}
 			}
 		}else{
-			boolean isReplace = false;
 			for (int i = index; i < bs.length; i++) {
 				if(bs[i] == '&'){
 					if(bs[i - 1] != '\\'){
@@ -147,14 +161,15 @@ public class HCURLUtil {
 							string = new String(bs, index, i - index);
 							e.printStackTrace();
 						}
-						final String v = isReplace?StringUtil.replace(string, "\\&", "&"):string;
+						String v = StringUtil.replace(string, "\\&", "&");
+						v = StringUtil.replace(v, "\\=", "=");
 						url.addParaVales(p, isDecodeValue?decode(v, IConstant.UTF_8):v);
 						if(i + 1 < bs.length){
 							pushParaValues(url, bs, i + 1, null, isDecodeValue);
 						}
 						return;
 					}else{
-						isReplace = true;
+						continue;
 					}
 				}
 			}
@@ -165,7 +180,8 @@ public class HCURLUtil {
 				string = new String(bs, index, bs.length - index);
 				e.printStackTrace();
 			}
-			final String v = isReplace?StringUtil.replace(string, "\\&", "&"):string;
+			String v = StringUtil.replace(string, "\\&", "&");
+			v = StringUtil.replace(v, "\\=", "=");
 			url.addParaVales(p, isDecodeValue?decode(v, IConstant.UTF_8):v);
 		}
 	}
@@ -269,9 +285,15 @@ public class HCURLUtil {
 		pSendCmd(MsgBuilder.E_GOTO_URL, cmdType, encode(para), encode(value));
 	}
 
-	private static String encode(String value) {
-		if(value.indexOf("+") > 0){
+	public static String encode(String value) {
+		if(value.indexOf("+") >= 0){
 			value = StringUtil.replace(value, "+", "%2b");
+		}
+		if(value.indexOf("&") >= 0){
+			value = StringUtil.replace(value, "&", "\\&");
+		}
+		if(value.indexOf("=") >= 0){
+			value = StringUtil.replace(value, "=", "\\=");
 		}
 		return value;
 	}
@@ -283,8 +305,33 @@ public class HCURLUtil {
 	public static void sendCmdUnXOR(String cmdType, String para, String value){
 		pSendCmd(MsgBuilder.E_GOTO_URL_UN_XOR, cmdType, para, value);
 	}
+	
+	public static void sendEClass(String className, byte[] bs, int offset, int len){
+		final byte[] classBS = ByteUtil.getBytes(className, IConstant.UTF_8);
+		
+		//classNameLen(4) + classBS + paraLen(4) + paraBS
+		final int classBSLen = classBS.length;
+		final int newLen = 4 + classBSLen + 4 + len;
+		final ByteArrayCacher cache = ByteUtil.byteArrayCacher;
+		
+		final byte[] out = cache.getFree(newLen);
+		int nextStoreIdx = 0;
+		ByteUtil.integerToFourBytes(classBSLen, out, nextStoreIdx);
+		nextStoreIdx += 4;
+		System.arraycopy(classBS, 0, out, nextStoreIdx, classBSLen);
+		nextStoreIdx += classBSLen;
+		ByteUtil.integerToFourBytes(len, out, nextStoreIdx);
+		nextStoreIdx += 4;
+		System.arraycopy(bs, offset, out, nextStoreIdx, len);
+		
+		ContextManager.getContextInstance().sendWrap(MsgBuilder.E_CLASS, out, 0, newLen);
+		cache.cycle(out);
+	}
 
 	public static void sendCmd(String cmdType, String[] para, String[] value){
+//		sendWrap进行了拦截
+//		CCoreUtil.checkAccess();
+		
 		String pv = "";
 		for (int i = 0; i < para.length; i++) {
 			if(pv.length() > 0){

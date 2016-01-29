@@ -16,19 +16,19 @@ public class MessageCacher {
 	public MessageCacher(){
 	}
 	
-	public final Message getFree(){
+	public final HCMessage getFree(){
 		synchronized (free) {
 			if(stackSize == 0){
 //				hc.core.L.V=hc.core.L.O?false:LogManager.log("------MEM ALLOCATE [Message]------");
-				return new Message();
+				return new HCMessage();
 			}else{
 				stackSize--;
-				return (Message)free.pop();
+				return (HCMessage)free.pop();
 			}
         }
 	}
 	
-	public final void cycle(Message dp){
+	public final void cycle(HCMessage dp){
 		synchronized (free) {
 			free.push(dp);
 			stackSize++;

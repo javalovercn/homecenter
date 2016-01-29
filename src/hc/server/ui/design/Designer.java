@@ -1,29 +1,45 @@
 package hc.server.ui.design;
 
 import hc.App;
+import hc.UIActionListener;
+import hc.core.ConditionWatcher;
+import hc.core.ContextManager;
 import hc.core.IConstant;
 import hc.core.IContext;
-import hc.core.RootConfig;
+import hc.core.IWatcher;
+import hc.core.L;
+import hc.core.util.CCoreUtil;
 import hc.core.util.HCURL;
+import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
+import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.FileSelector;
+import hc.server.HCActionListener;
+import hc.server.HCButtonEnabledActionListener;
+import hc.server.HCWindowAdapter;
 import hc.server.J2SEContext;
 import hc.server.JRubyInstaller;
+import hc.server.ProcessingWindowManager;
 import hc.server.SingleJFrame;
 import hc.server.StarterManager;
 import hc.server.ThirdlibManager;
+import hc.server.data.StoreDirManager;
 import hc.server.ui.ClosableWindow;
 import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.LocationComponentListener;
 import hc.server.ui.ServerUIUtil;
+import hc.server.ui.design.code.CodeHelper;
+import hc.server.ui.design.code.CodeStaticHelper;
 import hc.server.ui.design.hpj.HCShareFileResource;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.ui.design.hpj.HPItemContext;
+import hc.server.ui.design.hpj.HPMenuEvent;
 import hc.server.ui.design.hpj.HPNode;
 import hc.server.ui.design.hpj.HPProject;
 import hc.server.ui.design.hpj.HPShareJRubyFolder;
+import hc.server.ui.design.hpj.HPShareJar;
 import hc.server.ui.design.hpj.HPShareJarFolder;
 import hc.server.ui.design.hpj.HPShareRoot;
 import hc.server.ui.design.hpj.IModifyStatus;
@@ -32,15 +48,18 @@ import hc.server.ui.design.hpj.NodeEditPanel;
 import hc.server.ui.design.hpj.NodeEditPanelManager;
 import hc.server.ui.design.hpj.NodeInvalidException;
 import hc.server.ui.design.hpj.ScriptEditPanel;
-import hc.server.ui.tip.Wizard;
+import hc.server.util.ContextSecurityConfig;
+import hc.util.BaseResponsor;
+import hc.util.Constant;
 import hc.util.IBiz;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.GridLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -48,20 +67,22 @@ import java.awt.event.ComponentListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
-import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -73,11 +94,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
-import javax.swing.border.EtchedBorder;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -87,7 +109,16 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
-public class Designer extends SingleJFrame implements IModifyStatus{
+public class Designer extends SingleJFrame implements IModifyStatus, BindButtonRefresher{
+	private static final String HC_RES_MY_FIRST_HAR = "/hc/res/MyFirst.har";
+
+	final Runnable updateTreeRunnable = new Runnable() {
+		@Override
+		public void run() {
+			tree.updateUI();
+		}
+	};
+	
 	public static final String HAR_EXT = ".har";
 	public static final String HAD_EXT = ".had";
 	public static final String JAR_EXT = ".jar";
@@ -101,7 +132,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	
 	private boolean needRebuildTestJRuby = true;
 
-	public void setNeedRebuildTestJRuby(boolean need){
+	public void setNeedRebuildTestJRuby(final boolean need){
 		needRebuildTestJRuby = need;
 	}
 	
@@ -110,18 +141,41 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 			JRubyInstaller.startInstall();
 		}else{		
 			try{
-				LinkProjectManager.appNewLinkedInProjNow(LinkProjectManager.lpsVector, false);
 				LinkProjectManager.startLinkedInProjectUpgradeTimer();
-			}catch (Throwable e) {
+			}catch (final Throwable e) {
 				e.printStackTrace();
 			}
 		}
 	}
 
-	public static ImageIcon loadImg(String path){
+	public static ImageIcon loadImg(final String path){
+//		return new ImageIcon("hc/server/ui/design/res/" + path);
+		return new ImageIcon(loadBufferedImage(path));
+	}
+
+	public static boolean isDirectKeycode(final int keycode){
+		if(keycode == KeyEvent.VK_LEFT || keycode == KeyEvent.VK_RIGHT || keycode == KeyEvent.VK_UP 
+				|| keycode == KeyEvent.VK_DOWN || keycode == KeyEvent.VK_HOME || keycode == KeyEvent.VK_END
+				|| keycode == KeyEvent.VK_PAGE_UP || keycode == KeyEvent.VK_PAGE_DOWN){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
+	public static boolean isCopyKeyEvent(final KeyEvent e, final boolean isJ2SEServer){
+		if(isJ2SEServer){
+			if(e.getKeyCode() == 157 && e.getModifiers() == 0){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static BufferedImage loadBufferedImage(final String path) {
 		try {
-			return new ImageIcon(ImageIO.read(Designer.class.getClassLoader().getResource("hc/server/ui/design/res/" + path)));
-		} catch (Exception e) {
+			return ImageIO.read(Designer.class.getClassLoader().getResource("hc/server/ui/design/res/" + path));
+		} catch (final Exception e) {
 			return null;
 		}
 	}
@@ -131,7 +185,12 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		LinkProjectStatus.exitStatus();
 		
 		instance = null;
+		codeHelper.release();
 		super.dispose();
+		
+		if(System.getProperty(Constant.DESIGNER_IN_TEST) != null){
+			System.exit(0);
+		}
 	}
 	
 	@Override
@@ -141,12 +200,13 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		mg.updateSkinUI();
 		nm.updateSkinUI();
 		
-		tree.updateUI();
+		App.invokeLaterUI(updateTreeRunnable);
 	}
 	
 	private boolean isModified;
 	final MenuManager mg = new MenuManager();
 
+	final JToolBar toolbar;
 	JTree tree;
 	// 上面JTree对象对应的model
 	DefaultTreeModel model;
@@ -154,6 +214,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	
 	// 定义几个初始节点
 	DefaultMutableTreeNode root = createNewRoot();
+	DefaultMutableTreeNode msbFolder = createMSBFoulder();
 	
 	public String getCurrProjID(){
 		return ((HPProject)root.getUserObject()).id;
@@ -163,42 +224,57 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		return ((HPProject)root.getUserObject()).ver;
 	}
 	
-	public static final int ROOT_SUB_FOLDER = 2;
+	public String getProjCSS(){
+		return ((HPProject)root.getUserObject()).styles;
+	}
+	
+	public void setProjCSS(final String css){
+		((HPProject)root.getUserObject()).styles = css;
+	}
+	
+	public static final int ROOT_SUB_FOLDER = 3;
 	final DefaultMutableTreeNode[] shareFolders = new DefaultMutableTreeNode[ROOT_SUB_FOLDER];
 
 	private DefaultMutableTreeNode createShareJRubyFolder() {
-		HPShareJRubyFolder sj = new HPShareJRubyFolder(HPNode.MASK_SHARE_RB_FOLDER, 
-				"Share JRuby Files");
+		final HPShareJRubyFolder sj = new HPShareJRubyFolder(HPNode.MASK_SHARE_RB_FOLDER, 
+				"share jruby files");
 		return new DefaultMutableTreeNode(sj);
 	}
 	
 	private DefaultMutableTreeNode createShareJarFolder() {
-		HPShareJarFolder sj = new HPShareJarFolder(HPNode.MASK_RESOURCE_FOLDER_JAR, 
-				"Share Jar Files");
+		final HPShareJarFolder sj = new HPShareJarFolder(HPNode.MASK_RESOURCE_FOLDER_JAR, 
+				"share jar files");
 		return new DefaultMutableTreeNode(sj);
 	}
 	
-	private DefaultMutableTreeNode createNewRoot() {
-		return new DefaultMutableTreeNode(new HPProject(
-				HPNode.MASK_ROOT, "Project", LinkProjectManager.buildSysProjID(), HPProject.DEFAULT_VER, "",
-				"", "", "", ""));
+	private DefaultMutableTreeNode createNativeLibFolder() {
+		final HPShareJarFolder sj = new HPShareJarFolder(HPNode.MASK_SHARE_NATIVE_FOLDER, 
+				"native lib files");
+		return new DefaultMutableTreeNode(sj);
 	}
-//	DefaultMutableTreeNode guangdong = new DefaultMutableTreeNode(new HPItem(
-//			HPItem.MASK_MENU, "firstMenu"));
-//	DefaultMutableTreeNode guangxi = new DefaultMutableTreeNode(new HPItem(
-//			HPItem.MASK_MENU, "广西"));
-//	DefaultMutableTreeNode foshan = new DefaultMutableTreeNode(
-//			new HPMenuItem(HPItem.TYPE_MENU_ITEM_SCREEN, "关机", "screen://home", ""));
-//	DefaultMutableTreeNode shantou = new DefaultMutableTreeNode(
-//			new HPMenuItem(HPItem.TYPE_MENU_ITEM_CMD, "退出", "cmd://exit", ""));
-//	DefaultMutableTreeNode mycommand = new DefaultMutableTreeNode(
-//			new HPMenuItem(HPItem.TYPE_MENU_ITEM_CMD, "播放音乐", "cmd://playMusic?loop=true&num=2", ""));
+	
+	private DefaultMutableTreeNode createMSBFoulder(){
+		final HPMenuEvent folder = new HPMenuEvent(HPNode.MASK_MSB_FOLDER, "IoT");
+		final DefaultMutableTreeNode eventFold = new DefaultMutableTreeNode(folder);
+		return eventFold;
+	}
+	
+	private DefaultMutableTreeNode createNewRoot() {
+		final String projID = LinkProjectManager.buildSysProjID();
+		
+		final ContextSecurityConfig csc = new ContextSecurityConfig(projID);
+		csc.buildDefaultPermissions();
+		
+		return new DefaultMutableTreeNode(new HPProject(
+				HPNode.MASK_ROOT, "Project", projID, HPProject.DEFAULT_VER, "",
+				"", "", "", "", csc, ""));
+	}
 
 	// 定义需要被拖动的TreePath
 	TreePath movePath;
 	public final static NodeEditPanel emptyNodeEditPanel = new NodeEditPanel() {
 		@Override
-		public void init(final MutableTreeNode data, JTree tree) {
+		public void init(final MutableTreeNode data, final JTree tree) {
 		}
 	};
 	
@@ -218,12 +294,13 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	JButton newButton = new JButton("New Project", loadImg("new_24.png"));
 	JButton saveAsButton = new JButton("Save as", loadImg("shareout_24.png"));
 	JButton loadButton = new JButton("Load", loadImg("sharein_24.png"));
-	JButton shiftProjButton = new JButton("Shift Project", new ImageIcon(ResourceUtil.loadImage("menu_22.png")));
+	JButton shiftProjButton = new JButton("Shift Project", new ImageIcon(ResourceUtil.loadImage("menu_24.png")));
 	JButton helpButton = new JButton("Help", loadImg("faq_24.png"));
+	JButton rebindButton = new JButton("Rebind", loadImg("device_24.png"));
 	DefaultMutableTreeNode selectedNode;
 	JPanel editPanel = new JPanel();
 
-	private NodeEditPanelManager nm = new NodeEditPanelManager();
+	private final NodeEditPanelManager nm = new NodeEditPanelManager();
 	
 	public final static ImageIcon iconMenuItem = loadImg("menuitem.png");
 
@@ -239,17 +316,27 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	
 	public final static ImageIcon iconShareRBFolder = loadImg("rb_folder.png");
 	
+	public final static ImageIcon iconShareNativeFolder = loadImg("native_folder.png");
+	
 	public final static ImageIcon iconShareRB = loadImg("jruby.png");
+	
+	public final static ImageIcon iconShareNative = loadImg("native.png");
 	
 	public final static ImageIcon iconJar = loadImg("jar.png");
 	
 	public final static ImageIcon iconJarFolder = loadImg("jar_folder.png");
-			
+		
+	public final static ImageIcon iconMSBFolder = loadImg("iot_16.png");
+	public final static ImageIcon iconRobot = loadImg("robot_16.png");
+	public final static ImageIcon iconDevice = loadImg("device_16.png");
+	public final static ImageIcon iconDeviceGray = loadImg("device_gray_16.png");
+	public final static ImageIcon iconConverter = loadImg("converter_16.png");
+	
 	public final static ImageIcon iconEventFolder = loadImg("radar.png");
 	
 	public final static ImageIcon iconEventItem = loadImg("radar_on.png");
 	
-	private void changeTreeNodeContext(DefaultMutableTreeNode _node, HPItemContext context){
+	private void changeTreeNodeContext(final DefaultMutableTreeNode _node, final HPItemContext context){
 		((HPNode)_node.getUserObject()).setContext(context);
 		
 		final int size = _node.getChildCount();
@@ -260,7 +347,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	
 	final HPItemContext itemContext;
 	
-	public static File switchHar(File jar, File har){
+	public static File switchHar(final File jar, final File har){
 		if(jar.exists()){
 			ThirdlibManager.copy(jar, har);
 			jar.delete();
@@ -269,8 +356,24 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	}
 	
 	private static Designer instance;
+	public final CodeHelper codeHelper;
+	
 	public static Designer getInstance(){
+		CCoreUtil.checkAccess();
+		
 		return instance;
+	}
+	
+	private static final int IDX_SHARE_JRUBY_FOLDER = 0;
+	private static final int IDX_SHARE_JAR_FOLDER = 1;
+	private static final int IDX_SHARE_NATIVE_FOLDER = 2;
+	
+	private DefaultMutableTreeNode getShareJarFolder(){
+		return shareFolders[IDX_SHARE_JAR_FOLDER];
+	}
+	
+	private final void setToolbarVisible(final JToolBar toolbar, final boolean isVisible){
+		toolbar.setVisible(isVisible);
 	}
 	
 	public Designer() {
@@ -280,12 +383,13 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		
 		setIconImage(App.SYS_LOGO);
 		setName("Designer");
-		ComponentListener cl = new LocationComponentListener();
+		final ComponentListener cl = new LocationComponentListener(threadPoolToken);
 		
 		addComponentListener(cl);
 		
-		shareFolders[0] = createShareJRubyFolder();
-		shareFolders[1] = createShareJarFolder();
+		shareFolders[IDX_SHARE_JRUBY_FOLDER] = createShareJRubyFolder();
+		shareFolders[IDX_SHARE_JAR_FOLDER] = createShareJarFolder();
+		shareFolders[IDX_SHARE_NATIVE_FOLDER] = createNativeLibFolder();
 		
 		
 		J2SEContext.appendTitleJRubyVer(this);
@@ -297,8 +401,6 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		tree.getSelectionModel().setSelectionMode(  
                 TreeSelectionModel.SINGLE_TREE_SELECTION); 
 		model = (DefaultTreeModel) tree.getModel();		
-		
-		File har = loadDefaultEdit();
 		
 		final ActionMap actionMap = tree.getActionMap();
 		actionMap.put( "cut", null );
@@ -327,83 +429,69 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		
 		final Designer self = this;
 		
-		MouseListener ml = new MouseListener() {
+		final MouseListener ml = new MouseListener() {
 			// 按下鼠标时候获得被拖动的节点
-			public void mousePressed(MouseEvent e) {
+			@Override
+			public void mousePressed(final MouseEvent e) {
 				// 如果需要唯一确定某个节点，必须通过TreePath来获取。
-				TreePath tp = tree.getPathForLocation(e.getX(), e.getY());
+				final TreePath tp = tree.getPathForLocation(e.getX(), e.getY());
 				if (tp != null) {
 					movePath = tp;
 				}
 			}
 
 			// 鼠标松开时获得需要拖到哪个父节点
-			public void mouseReleased(MouseEvent e) {
-				// 根据鼠标松开时的TreePath来获取TreePath
-				TreePath tp = tree.getPathForLocation(e.getX(), e.getY());
+			@Override
+			public void mouseReleased(final MouseEvent e) {
+				ContextManager.getThreadPool().run(new Runnable() {
+					@Override
+					public void run() {
+						// 根据鼠标松开时的TreePath来获取TreePath
+						final TreePath tp = tree.getPathForLocation(e.getX(), e.getY());
 
-//				Drag and Drop
-//				if (tp != null && movePath != null) {
-//					// 阻止向子节点拖动
-//					if (movePath.isDescendant(tp) && movePath != tp) {
-//						JOptionPane.showMessageDialog(this,
-//								"目标节点是被移动节点的子节点，无法移动！", "非法操作",
-//								JOptionPane.ERROR_MESSAGE);
-//						return;
-//					}
-//					// 既不是向子节点移动，而且鼠标按下、松开的不是同一个节点
-//					else if (movePath != tp) {
-//						System.out.println(tp.getLastPathComponent());
-//						// add方法可以先将原节点从原父节点删除，再添加到新父节点中
-//						((DefaultMutableTreeNode) tp.getLastPathComponent())
-//								.add((DefaultMutableTreeNode) movePath
-//										.getLastPathComponent());
-//						movePath = null;
-//						tree.updateUI();
-//					}
-//				}
-				
-				if(tp == null){
-					return;
-				}
-				
-				Object obj = tp.getLastPathComponent();
-				if (obj != null && (obj instanceof DefaultMutableTreeNode)) {
-					selectedNode = (DefaultMutableTreeNode) obj;
-				}else{
-					selectedNode = null;
-				}
-				
-				if (e.getButton() == MouseEvent.BUTTON3) {
-					if(selectedNode != null){
-						Object o = selectedNode.getUserObject();
-						if (o instanceof HPNode) {
-							jumpToNode(selectedNode);
+						if(tp == null){
+							return;
+						}
+						
+						final Object obj = tp.getLastPathComponent();
+						if (obj != null && (obj instanceof DefaultMutableTreeNode)) {
+							selectedNode = (DefaultMutableTreeNode) obj;
+						}else{
+							selectedNode = null;
+						}
+						
+						if (e.getButton() == MouseEvent.BUTTON3) {
+							if(selectedNode != null){
+								final Object o = selectedNode.getUserObject();
+								if (o instanceof HPNode) {
+									jumpToNode(selectedNode, model, tree);
 
-							mg.popUpMenu(((HPNode) o).type, selectedNode, tree, e, self);
+									mg.popUpMenu(((HPNode) o).type, selectedNode, tree, e, self);
+								}
+							}
+						}else if (e.getButton() == MouseEvent.BUTTON1) {
+							if(selectedNode != null){
+								final Object o = selectedNode.getUserObject();
+								if (o instanceof HPNode) {
+									final HPNode nodeData = (HPNode) o;
+									notifySelectNode(selectedNode, nodeData);
+								}
+							}
 						}
 					}
-				}else if (e.getButton() == MouseEvent.BUTTON1) {
-					if(selectedNode != null){
-						Object o = selectedNode.getUserObject();
-						if (o instanceof HPNode) {
-							final HPNode nodeData = (HPNode) o;
-							notifySelectNode(selectedNode, nodeData);
-						}
-					}
-				}
+				}, threadPoolToken);
 			}
 
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mouseClicked(final MouseEvent e) {
 			}
 
 			@Override
-			public void mouseEntered(MouseEvent e) {
+			public void mouseEntered(final MouseEvent e) {
 			}
 
 			@Override
-			public void mouseExited(MouseEvent e) {
+			public void mouseExited(final MouseEvent e) {
 			}
 		};
 
@@ -450,19 +538,20 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 //		});
 		tree.addMouseListener(ml);
 		
-		JToolBar toolbar = new JToolBar();
+		toolbar = new JToolBar();
+		setToolbarVisible(toolbar, false);
 		setModified(false);
 		
 		{
 			final Action saveAction = new AbstractAction() {
-				public void actionPerformed(ActionEvent event) {
-	//				TreePath selectedPath = tree.getSelectionPath();
-	//				if (selectedPath != null) {
-	//					// 编辑选中节点
-	//					tree.startEditingAtPath(selectedPath);
-	//				}
-					
-					save();
+				@Override
+				public void actionPerformed(final ActionEvent event) {
+					ContextManager.getThreadPool().run(new Runnable() {
+						@Override
+						public void run() {
+							save();
+						}
+					}, threadPoolToken);
 				}
 			};
 			ResourceUtil.buildAcceleratorKeyOnAction(saveAction, KeyEvent.VK_S);//同时支持Windows下的Ctrl+S和Mac下的Command+S
@@ -472,24 +561,27 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 			        (KeyStroke) saveAction.getValue(Action.ACCELERATOR_KEY), "myAction");
 		}
 		
-		//检查是否有新版本
+//		//检查是否有新版本
 		final String lastSampleVer = PropertiesManager.getValue(PropertiesManager.p_LastSampleVer, "1.0");
-		if(StringUtil.higer(RootConfig.getInstance().getProperty(RootConfig.p_Sample_Ver), lastSampleVer)){
+		if(StringUtil.higer(J2SEContext.getSampleHarVersion(), lastSampleVer)){
 			sampleButton.setIcon(loadImg("giftnew_24.png"));
 		}
-		sampleButton.addActionListener(new ActionListener() {
+		sampleButton.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				if(quitToNewProj(self) == false){
 					return;
 				}
 				
 				try {
-					final String url = "http://homecenter.mobi/download/sample.har";
-					final Map<String, Object> map = HCjar.loadJar(url);
+					final File tmpFileHar = ResourceUtil.getTempFileName(HAR_EXT);
+					copyHarFromPath(getResourcePath("/hc/res/sample.har"), tmpFileHar);
+					PropertiesManager.addDelFile(tmpFileHar);
+					PropertiesManager.saveFile();
+					final Map<String, Object> map = HCjar.loadHar(tmpFileHar, true);
 					if(map.isEmpty()){
-						JPanel panel = new JPanel();
-						panel.add(new JLabel("<html>Sorry, Load example har from remote server error." +
+						final JPanel panel = new JPanel();
+						panel.add(new JLabel("<html>Sorry, fail to load example project." +
 								"<BR>please try after a minute</html>", App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
 						App.showCenterPanel(panel, 0, 0, "Network Error", false, null, null, null, null, self, true, false, null, false, false);
 						return;
@@ -497,25 +589,27 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 					final IBiz succLoadBiz = new IBiz() {
 						@Override
 						public void start() {
-							showHCMessage("Success load example from server.", EXAMPLE + " OK", self, true);
+							showHCMessage("" +
+									"<html>Success load demo project." +
+									"<BR><BR>" +
+									"click '<STRONG>" + ACTIVE + "</STRONG>' button to apply it, login from mobile to view it.</html>", EXAMPLE + " OK", self, true);
 							
 							sampleButton.setIcon(getSampleIcon());
 							
-							PropertiesManager.setValue(PropertiesManager.p_LastSampleVer, 
-									RootConfig.getInstance().getProperty(RootConfig.p_Sample_Ver));
+							PropertiesManager.setValue(PropertiesManager.p_LastSampleVer, 	J2SEContext.getSampleHarVersion());
 							PropertiesManager.saveFile();
 						}
 						
 						@Override
-						public void setMap(HashMap map) {
+						public void setMap(final HashMap map) {
 						}
 					};
 					
 					final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
 					if(licenseURL.length() > 0){
-						IBiz biz = new IBiz(){
+						final IBiz biz = new IBiz(){
 							@Override
-							public void setMap(HashMap map) {
+							public void setMap(final HashMap map) {
 							}
 
 							@Override
@@ -525,7 +619,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 								}
 							}
 						};
-						App.showHARProjectAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", licenseURL, biz, true, self);
+						App.showAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", licenseURL, biz, null, true);
 						return;
 					}
 					if(checkAndLoad(map, succLoadBiz) == false){
@@ -540,26 +634,28 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 //								App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEFT));
 //						App.showCenterPanel(panel, 0, 0, "Deploy me later", false, null, null, null, self, true, false);
 //					}
-				} catch (Throwable e1) {
+				} catch (final Throwable e1) {
 					e1.printStackTrace();
-					JOptionPane.showMessageDialog(self, "Error download example, " +
-							"please try after few minutes.", "Error " + EXAMPLE, 
-							JOptionPane.ERROR_MESSAGE);
+//					App.showMessageDialog(self, "Error download example, " +
+//							"please try after few minutes.", "Error " + EXAMPLE, 
+//							JOptionPane.ERROR_MESSAGE);
 				}
 			}
-		});
-		sampleButton.setToolTipText("<html>load a example project online.<BR>there are many powerful mobile menu items and source code in it." +
-				"<BR><BR>Note : only one project is edited at same time." +
-				"<BR>Tip : when the version of online demo project is newer than you had imported, it will display new red star.</html>");
+		}, threadPoolToken));
+		sampleButton.setToolTipText("<html>" +
+				"load a example project.<BR>" +
+				"there are many powerful mobile menu items and source code in it." +
+//				"<BR><BR>Tip : when the version of online demo project is newer than you had imported, it will display new red star." +
+				"</html>");
 		toolbar.add(sampleButton);
-		newButton.addActionListener(new ActionListener() {
+		newButton.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				if(quitToNewProj(self) == false){
 					return;
 				}
 				
-				HashMap<String, Object> map = new HashMap<String, Object>();
+				final HashMap<String, Object> map = new HashMap<String, Object>();
 				HCjar.initMap(map);
 				map.put(HCjar.MENU_NUM, "1");
 				map.put(HCjar.MAIN_MENU_IDX, "0");
@@ -581,56 +677,97 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 //				notifySelectNode(mainMenuNode, (HPNode)mainMenuNode.getUserObject());
 //				
 //				addItemButton.setEnabled(true);
-//				tree.updateUI();
+//				App.invokeLater(updateTreeRunnable);
 			}
-		});
+		}, threadPoolToken));
 		newButton.setToolTipText("<html>create new HAR project.</html>");
 		toolbar.add(newButton);
 		
-		addItemButton.addActionListener(new ActionListener() {
+		addItemButton.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				MenuManager.addMenuItem(Designer.getInstance(), addItemButton);
+			public void run() {
+				MenuManager.addMenuItem(instance, addItemButton, mainMenuNode, msbFolder);
 			}
-		});
+		}, threadPoolToken));
 		addItemButton.setToolTipText("<html>add a controller, UI Panel(Mlet), script of commands and etc." +
 				"</html>");
 		toolbar.add(addItemButton);
 		
 		saveButton.setToolTipText("<html>save to disk ("+ResourceUtil.getAbstractCtrlKeyText()+" + S)<BR>current project will be auto loaded when open this designer." +
 //				"<BR><BR>Tip : Saving has no effect on a deployed project(which is maybe using by mobile)." +
+				"<BR><BR>Note : only one project is edited at same time." +
 				"</html>");
 		toolbar.add(saveButton);
 		
-		activeButton.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + D)<BR>after activate, current project will be displayed to mobile when mobile login." +
-				"<BR>please re-activate after modifying." +
+		activeButton.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + D)<BR>after click activate, current project will be active and displayed to mobile when mobile login." +
+				"<BR><BR><STRONG>Note :</STRONG>please <STRONG>re-activate</STRONG> after modifying current project." +
 				"</html>");
 		{
 			final Action deployAction = new AbstractAction() {
-				public void actionPerformed(ActionEvent e) {
-					Map<String, Object> map = null;
-					if(isModified){
-						int out = modifyNotify();
-						if(out == JOptionPane.YES_OPTION){
-							map = save();
-						}else{
-							return;
+				@Override
+				public void actionPerformed(final ActionEvent e) {
+					ContextManager.getThreadPool().run(new Runnable() {
+						@Override
+						public void run(){
+							App.invokeAndWaitUI(new Runnable(){
+								@Override
+								public void run(){
+									disableManageButtons();
+								}
+							});
+							
+							final Window[] w = new Window[1];
+							startDeploy(w);
+							if(w[0] != null){
+								w[0].dispose();
+							}
+							
+							App.invokeLaterUI(new Runnable(){
+								@Override
+								public void run(){
+									checkHARButtonsEnable();
+								}
+							});
 						}
-					}
+						
+						void startDeploy(final Window[] w) {
+							Map<String, Object> map = null;
+							if(isModified){
+								final int out = modifyNotify();
+								if(out == JOptionPane.YES_OPTION){
+									map = save();
+									if(map == null){
+										return;
+									}
+								}else{
+									return;
+								}
+							}
+							
+							w[0] = ProcessingWindowManager.showCenterMessage((String)ResourceUtil.get(9092));
+
+							if(map == null){
+								try{
+									map = buildMapFromTree();
+								}catch (final NodeInvalidException ex) {
+									displayError(ex);
+									return;
+								}
+							}
 					
-					if(map == null){
-						try{
-							map = buildMapFromTree();
-						}catch (NodeInvalidException ex) {
-							displayError(ex);
-							return;
+							if(deployProcess(map)){
+//								deactiveButton.setEnabled(true);
+
+//								App.invokeLater(new Runnable() {
+//									@Override
+//									public void run() {
+										showHCMessage("Successful activate project, " +
+												"mobile can access this resources now.", ACTIVE + " OK", self, true);
+//									}
+//								});
+							}
 						}
-					}
-					
-					if(deployProcess(map)){
-						showHCMessage("Successful activate project, " +
-							"mobile can access this resources now.", ACTIVE + " OK", self, true);
-					}
+					}, threadPoolToken);
 				}
 			};
 			ResourceUtil.buildAcceleratorKeyOnAction(deployAction, KeyEvent.VK_D);
@@ -642,15 +779,71 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		}
 		toolbar.addSeparator();
 		toolbar.add(activeButton);
-		deactiveButton.setToolTipText("<html>deactivate current project only, not all projects." +
-				"<BR>If no project is active, only screen desktop is accessed when mobile login." +
+		
+		buildRebindButton(rebindButton, threadPoolToken, this, self);
+		toolbar.add(rebindButton);
+		if(ServerUIUtil.isStarted() == false){
+			rebindButton.setEnabled(false);
+			activeButton.setEnabled(false);
+			deactiveButton.setEnabled(false);
+			checkHARButtonsEnableInBackground();
+		}else{
+			checkHARButtonsEnable();
+		}
+		
+		deactiveButton.setToolTipText("<html>deactivate current project, excluding other project." +
+				"<BR>If no project is active, then screen of desktop is accessed when mobile login." +
 				"</html>");
-		deactiveButton.addActionListener(new ActionListener() {
+		deactiveButton.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {				
+			public void run() {
+				App.invokeAndWaitUI(new Runnable(){
+					@Override
+					public void run(){
+						disableManageButtons();
+					}
+				});
+				
+				try{
+					doDeactive();
+				}catch (final Throwable e) {
+					e.printStackTrace();
+				}
+				
+				App.invokeLaterUI(new Runnable(){
+					@Override
+					public void run(){
+						checkHARButtonsEnable();
+					}
+				});
+			}
+			
+			public void doDeactive() {	
+				final String currProjID = getCurrProjID();
+
+				{
+					//检查本工程的依赖性
+					final Iterator<LinkProjectStore> its = LinkProjectManager.getLinkProjsIterator(true);
+					final Vector<LinkProjectStore> stores = new Vector<LinkProjectStore>();
+					while(its.hasNext()){
+						final LinkProjectStore lps = its.next();
+						if(lps.isActive()){
+							if(lps.getProjectID().equals(currProjID)){
+								//假定不含本工程
+								continue;
+							}
+							stores.add(lps);
+						}
+					}
+					
+					if(LinkProjectManager.checkReferencedDependency(self, stores) == false){
+						return;
+					}
+				}
+				
 				deactiveButton.setEnabled(false);
 
-				LinkProjectStore lps = LinkProjectManager.getProjByID(getCurrProjID());
+				final LinkProjectStore lps = LinkProjectManager.getProjByID(currProjID);
 				if(lps != null){
 					synchronized (ServerUIUtil.LOCK) {
 						ServerUIUtil.promptAndStop(true, self);
@@ -675,73 +868,62 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 							setProjectOff();
 	
 							//启动远屏或菜单
-							ServerUIUtil.restartResponsorServerDelayMode();
-							showHCMessage("Successful deactivate current project.", DEACTIVE + " OK", self, true);
+							ServerUIUtil.restartResponsorServerDelayMode(self, null);
+							App.invokeLaterUI(new Runnable() {
+								@Override
+								public void run() {
+									showHCMessage("Successful deactivate current project.", DEACTIVE + " OK", self, true);
+								}
+							});
 						}else{
 							//启动远屏或菜单
-							ServerUIUtil.restartResponsorServerDelayMode();
-							showHCMessage("Successful deactivate current project, " +
-									"other project(s) is restart and serving now.", DEACTIVE + " OK", self, true);
+							ServerUIUtil.restartResponsorServerDelayMode(self, null);
+//							App.invokeLater(new Runnable() {
+//								@Override
+//								public void run() {
+									showHCMessage("Successful deactivate current project, " +
+											"other project(s) is restart and serving now.", DEACTIVE + " OK", self, true);
+//								}
+//							});
 						}
+						
+						checkHARButtonsEnableInBackground();
 					}
 				}else{
-					JPanel panel = new JPanel(new BorderLayout());
-					panel.add(new JLabel("project [" + getCurrProjID() + "] is not active, you may have changed project ID!", App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
+					final JPanel panel = new JPanel(new BorderLayout());
+					panel.add(new JLabel("project [" + currProjID + "] is not active, you may have changed project ID!", App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
 					App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.ERROR), false, null, null, null, null, instance, true, false, null, false, false);
 					return;
 				}
-//				JOptionPane.showMessageDialog(this, "Successful undeploy project, " +
-//						"mobile will access PC screen only.", "Undeploy OK", 
-//						JOptionPane.INFORMATION_MESSAGE);
 			}
-		});
+		}, threadPoolToken));
 		toolbar.add(deactiveButton);
 		saveAsButton.setToolTipText("<html>save current project to a har file on your disk, not all projects.</html>");
-		saveAsButton.addActionListener(new ActionListener() {
+		saveAsButton.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-//				if(self.isModified()){
-//					JPanel panel = new JPanel();
-//					panel.add(new JLabel("Save this project before share?", App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEFT));
-//					App.showCenterPanel(panel, 0, 0, "save it before", true, null, new ActionListener() {
-//						@Override
-//						public void actionPerformed(ActionEvent e) {
-//							if(save() == false){
-//								return;
-//							}
-//							shareTo();
-//						}
-//					}, new ActionListener() {
-//						@Override
-//						public void actionPerformed(ActionEvent e) {
-//							shareTo();
-//						}
-//					}, self, true, false);
-//				}else{
-//					shareTo();
-//				}
+			public void run() {
 				try{
-					Map<String, Object> map = buildMapFromTree();
+					final Map<String, Object> map = buildMapFromTree();
 					saveAs(map);
-				}catch (NodeInvalidException ex) {
+				}catch (final NodeInvalidException ex) {
 					displayError(ex);
 				}
 			}
-		});
+		}, threadPoolToken));
 		toolbar.addSeparator();
 		toolbar.add(saveAsButton);
 //		if(new File(EDIT_HAR).exists() == false){
 //			deployButton.setEnabled(false);
 //			saveAsButton.setEnabled(false);
 //		}
-		loadButton.addActionListener(new ActionListener() {
+		loadButton.addActionListener(new HCButtonEnabledActionListener(loadButton, new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				File file = FileSelector.selectImageFile(loadButton, FileSelector.HAR_FILTER, true);
+			public void run() {
+				final File file = FileSelector.selectImageFile(loadButton, FileSelector.HAR_FILTER, true);
 				if(file != null){
 					final Map<String, Object> map = HCjar.loadHar(file, true);
 					if(map.isEmpty()){
-						JOptionPane.showMessageDialog(self, "Error load project from har file.", 
+						App.showMessageDialog(self, "Error load project from har file.", 
 								"Error load", JOptionPane.ERROR_MESSAGE);
 					}else{
 						final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
@@ -753,13 +935,13 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 							}
 							
 							@Override
-							public void setMap(HashMap map) {
+							public void setMap(final HashMap map) {
 							}
 						};
 						if(licenseURL.length() > 0){
-							IBiz biz = new IBiz(){
+							final IBiz biz = new IBiz(){
 								@Override
-								public void setMap(HashMap map) {
+								public void setMap(final HashMap map) {
 								}
 
 								@Override
@@ -769,30 +951,29 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 									}
 								}
 							};
-							App.showHARProjectAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", licenseURL, biz, true, self);
+							App.showAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", licenseURL, biz, null, true);
 							return;
 						}
 						if(checkAndLoad(map, succLoadBiz) == false){
 							return;
 						}
 
-//						JOptionPane.showMessageDialog(this, "Successful import project from jar file.", 
+//						App.showMessageDialog(this, "Successful import project from jar file.", 
 //									"Success load", JOptionPane.INFORMATION_MESSAGE);
 					}
 				}
 			}
-		});
+		}, threadPoolToken));
 		loadButton.setToolTipText("<html>load and edit a project from a har file." +
 				"<BR><BR>it will be setted as current project after click '" + saveButton.getText() + "'.</html>");
 		toolbar.add(loadButton);
 		
-		shiftProjButton.addActionListener(new ActionListener() {
+		shiftProjButton.addActionListener(new HCButtonEnabledActionListener(shiftProjButton, new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				showLinkPanel(self, false, shiftProjButton);
-//				new ShiftProjectPanel(self, false);
 			}
-		});
+		}, threadPoolToken, null));
 		
 		toolbar.addSeparator();
 
@@ -801,7 +982,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		toolbar.add(shiftProjButton);
 //		toolbar.addSeparator();//末尾，故注释
 		
-//		helpButton.addActionListener(new ActionListener() {
+//		helpButton.addActionListener(new HCActionListener(new Runnable() {
 //			@Override
 //			public void actionPerformed(ActionEvent e) {
 //				showWizard();
@@ -811,14 +992,14 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 //		toolbar.add(helpButton);
 //		toolbar.addSeparator();
 		
-		JPanel treePanel = new JPanel();
+		final JPanel treePanel = new JPanel();
 		treePanel.setBorder(new TitledBorder("Menu Tree :"));
 		final JScrollPane scrollPane = new JScrollPane(tree);
 		treePanel.setLayout(new BorderLayout());
 		treePanel.add(scrollPane, BorderLayout.CENTER);
 		
 		editPanel.setLayout(new BorderLayout());
-		editPanel.add(nodeEditPanel);
+		editPanel.add(nodeEditPanel.getMainPanel());
 		
 		final JSplitPane panelSubMRInfo = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 				treePanel, editPanel);
@@ -826,108 +1007,223 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		setLayout(new BorderLayout());
 		add(panelSubMRInfo, BorderLayout.CENTER);
 		
-		JPanel toolbarLeftPanel = new JPanel();
+		final JPanel toolbarLeftPanel = new JPanel();
 		toolbarLeftPanel.setLayout(new BorderLayout());
 		toolbarLeftPanel.add(toolbar, BorderLayout.WEST);
 		add(toolbarLeftPanel, BorderLayout.NORTH);
 		
 		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-		addWindowListener(new WindowAdapter() {
-			public void windowClosing(WindowEvent e) {
-				notifyCloseWindow();
+		addWindowListener(new HCWindowAdapter(new Runnable() {
+			@Override
+			public void run() {
+				notifyCloseWindow();				
 			}
-		});
+		}, threadPoolToken));
 
 		//该行命令不能置于loadMainProject之后，因为导致resize事件不正确
 		toVisiableAndLocation(panelSubMRInfo);
-		if(har == null || har.exists() == false){
-			new Thread(){
+		
+		//必须要提前
+		codeHelper = new CodeHelper();
+
+		ContextManager.getThreadPool().run(new Runnable(){
+			@Override
+			public void run() {
+				CodeStaticHelper.doNothing();
+			}
+		}, threadPoolToken);
+	}
+	
+	public static void buildRebindButton(final JButton rebindBut, final ThreadGroup tgt, final BindButtonRefresher refresher,
+			final Frame frameOwner){
+		rebindBut.setToolTipText("<html>" +
+				"rebind (Not bind) reference device(s) of robot in active projects to real device(s)." +
+				"<BR>service will be stopped before rebinding, and restart after rebinding." +
+				"<BR><BR>binding (Not rebind) dialog will automatic pop-up after '<STRONG>" + ACTIVE + "</STRONG>' project if binding is required." +
+				"<BR>this button will be disable if there is no reference device of robot in all active projects." +
+				"</html>");
+		
+		rebindBut.addActionListener(new HCActionListener(new Runnable() {
+			@Override
+			public void run(){
+				App.invokeAndWaitUI(new Runnable(){
+					@Override
+					public void run(){
+						refresher.disableManageButtons();
+					}
+				});
+				
+				ProcessingWindowManager.showCenterMessageOnTop(null, true, (String)ResourceUtil.get(9110), null);//processing...
+				
+				try{
+					doRebind();
+				}catch (final Throwable e) {
+					e.printStackTrace();
+					ProcessingWindowManager.disposeProcessingWindow();
+				}
+				
+				//由于改为JFrame型，不是JDialog，所以checkButtonsLaterUI置于action内
+			}
+
+			private void checkButtonsLaterUI() {
+				ProcessingWindowManager.disposeProcessingWindow();
+				
+				App.invokeLaterUI(new Runnable(){
+					@Override
+					public void run(){
+						refresher.checkHARButtonsEnable();
+					}
+				});
+			}
+			
+			public void doRebind() {
+				ServerUIUtil.stop();
+				
+				final MobiUIResponsor respo = (MobiUIResponsor)ServerUIUtil.buildMobiUIResponsorInstance();
+				final BindRobotSource bindSource = new BindRobotSource(respo);
+				
+				DeviceBinderWizard out = null;
+				try{
+					out = DeviceBinderWizard.getInstance(bindSource, false, frameOwner, respo, tgt);
+				}catch (final Throwable e) {
+					L.V = L.O ? false : LogManager.log("user cancel connect device or JRuby code error!");
+					ServerUIUtil.restartResponsorServerDelayMode(frameOwner, respo);
+					return;
+				}
+				
+				final DeviceBinderWizard binder = out;
+				final UIActionListener jbOKAction = new UIActionListener() {
+					@Override
+					public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
+						binder.save();
+						window.dispose();
+						ServerUIUtil.restartResponsorServerDelayMode(frameOwner, respo);
+						
+						checkButtonsLaterUI();
+					}
+				};
+				final UIActionListener cancelAction = new UIActionListener() {
+					@Override
+					public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
+						window.dispose();
+						ServerUIUtil.restartResponsorServerDelayMode(frameOwner, respo);
+						
+						checkButtonsLaterUI();
+					}
+				};
+				binder.setButtonAction(jbOKAction, cancelAction);
+				binder.show();
+			}
+		}, tgt));
+	}
+	
+	@Override
+	public void disableManageButtons(){
+		rebindButton.setEnabled(false);
+		activeButton.setEnabled(false);
+		deactiveButton.setEnabled(false);
+	}
+
+	@Override
+	public void checkHARButtonsEnable(){
+		checkBindEnable(rebindButton);
+		checkActiveEnable();
+		checkDeactiveEnable();
+	}
+	
+	private void checkHARButtonsEnableInBackground() {
+		if(System.getProperty(Constant.DESIGNER_IN_TEST) == null){
+			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-					try{
-						Thread.sleep(200);
-					}catch (Exception e) {
-					}
-					self.setEnabled(false);
-					final JDialog waiting = new JDialog(self, true);
-					waiting.setUndecorated(true);
-					final Container contentPane = waiting.getContentPane();
-					JPanel panel = new JPanel(new BorderLayout());
-					panel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
-					panel.add(new JLabel("loading default project ...", App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING),
-							BorderLayout.CENTER);
-					contentPane.add(panel);
-					waiting.pack();
-					
-					//必须先启thread，因为waiting是modal，会阻塞。
-					new Thread(){
-						public void run(){
-							if(loadMainProject(self)){
-								JPanel jpanel = new JPanel(new BorderLayout());
-								jpanel.add(new JLabel("<html>" +
-										"<IMG src='http://homecenter.mobi/images/ok_16.png' width='16' height='16'/>&nbsp;" +
-										"<STRONG>default project had been created successfully!</STRONG>" +
-										"</html>", App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING));
-								waiting.dispose();
-								
-								ActionListener al = new ActionListener() {
-									@Override
-									public void actionPerformed(ActionEvent e) {
-//										showWizard();
-									}
-								};
-								App.showCenterPanel(jpanel, 0, 0, (String)ResourceUtil.get(IContext.INFO), 
-										false, null, null, al, al, null, false, true, null, true, false);//jdk 8会出现漂移
-							}else{
-								waiting.dispose();
-							}
-							self.setEnabled(true);
+					//尚未初始化完成或active，deactive后，可能会自动弹出本Bind窗口，为防止冲突，需在初始后，开启本按钮
+					final int count = 0;
+					while(ServerUIUtil.isStarted() == false){
+						try{
+							Thread.sleep(500);
+						}catch (final Exception e) {
 						}
-					}.start();
-					App.showCenter(waiting);
+					}
+					checkHARButtonsEnable();
 				}
-			}.start();
+			}, threadPoolToken);
 		}
 	}
 	
+	private void checkActiveEnable(){
+		activeButton.setEnabled(ServerUIUtil.isStarted());
+	}
+	
+	private void checkDeactiveEnable(){
+		LinkProjectStore lps;
+		deactiveButton.setEnabled(ServerUIUtil.isStarted() && (lps = LinkProjectManager.getProjByID(getCurrProjID())) != null && lps.isActive());
+	}
+	
+	public static void checkBindEnable(final JButton rebindBut){
+		if(ServerUIUtil.useHARProject && ServerUIUtil.isStarted()){
+			final BaseResponsor base = ServerUIUtil.getResponsor();
+			if(base instanceof MobiUIResponsor){
+				if(((MobiUIResponsor)base).hasRobotReferenceDevice()){
+					rebindBut.setEnabled(true);
+					return ;
+				}
+			}
+		}
+		
+		rebindBut.setEnabled(false);
+	}
+	
 	private File loadDefaultEdit() {
-		boolean isOverride = false;
-		File edit_har = new File(LinkProjectManager.EDIT_HAR);
+		File edit_har = getDefaultEditFile();
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("try load default HAR : " + edit_har.getAbsolutePath());
+		}
 		if(edit_har.exists() == false){
 			return null;
 		}
 		
 		final String last_edit_id = PropertiesManager.getValue(PropertiesManager.p_LINK_CURR_EDIT_PROJ_ID);
 		if(last_edit_id != null){
-			final LinkProjectStore lps = LinkProjectManager.getProjByID(last_edit_id);
+			final LinkProjectStore lps = LinkProjectManager.getProjByID(last_edit_id);//有可能被删除，而为null
 			if(lps != null){
-				final String editVer = PropertiesManager.getValue(PropertiesManager.p_LINK_CURR_EDIT_PROJ_VER);
-				if(StringUtil.higer(lps.getVersion(), editVer)){
-					final int out = App.showOptionDialog(instance, "<html>the active version(" + lps.getVersion() + ", auto upgrade) is " +
-							"<font style='color:red'>higher</font> than the editing version(" + editVer + ")." +
-							"<br><br>override the editing version?</html>", "override the editing version?");
-					if(out == JOptionPane.YES_OPTION){
-						isOverride = true;
-						LinkProjectManager.copyCurrEditFromStorage(lps);
+				if(lps.isChangedBeforeUpgrade()){
+					final int out = App.showOptionDialog(instance,
+							"<html>current edited (modified) project is upgraded, " +
+							"<BR>" +
+							"<BR>click 'yes' to choose the newer version (lose old edited)," +
+							"<BR>otherwise to choose old edited version." +
+							"</html>",
+							"override edit?");
+					LinkProjectManager.copyCurrEditFromStorage(lps, out == JOptionPane.YES_OPTION);
+				}else if(StringUtil.higer(lps.getVersion(), PropertiesManager.getValue(PropertiesManager.p_LINK_CURR_EDIT_PROJ_VER))){
+					//升级后的版本高于edit_har(未修改)的版本
+					final int out = App.showOptionDialog(instance,
+							"<html>current edit (not modified) project is upgraded, " +
+							"<BR>" +
+							"<BR>click 'yes' to choose the newer version," +
+							"<BR>otherwise to choose old edit version." +
+							"</html>",
+							"override edit?");
+					if(out == JOptionPane.YES_OPTION){//仅在YES_OPTION下操作
+						LinkProjectManager.copyCurrEditFromStorage(lps, false);//由于未修改，所以false和true是同一文件
 					}
 				}
 			}
 		}
 		
 		try{
-			Map<String, Object> map = HCjar.loadHar(edit_har, true);
+			final Map<String, Object> map = HCjar.loadHar(edit_har, true);
 			if(map.isEmpty()){
-				ThirdlibManager.copy(edit_har, new File(LinkProjectManager.EDIT_BAK_HAR));
-				throw new Exception("default har file error!");
+				ThirdlibManager.copy(edit_har, new File(App.getBaseDir(), LinkProjectManager.EDIT_BAK_HAR));
+				throw new Exception("default har file error : empty properties map.");
 			}
 			loadNodeFromMap(map);
-			if(isOverride 
-					|| last_edit_id == null 
-					|| (last_edit_id.equals((String)map.get(HCjar.PROJ_ID)) == false)){
+			if(last_edit_id == null || (last_edit_id.equals(map.get(HCjar.PROJ_ID)) == false)){
 				recordEditProjInfo(map);
 			}
-		}catch (Throwable e) {
-			JOptionPane.showMessageDialog(null, "<html>default har project is error, which is copy to <strong>" + LinkProjectManager.EDIT_BAK_HAR + "</strong>!" +
+		}catch (final Throwable e) {
+			e.printStackTrace();
+			App.showMessageDialog(null, "<html>default har project is error, which is copied to <strong>" + LinkProjectManager.EDIT_BAK_HAR + "</strong>!" +
 					"<BR>system will create default project.</html>", 
 					"Project load error", 
 					JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
@@ -936,17 +1232,31 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		return edit_har;
 	}
 
+	private static final File getDefaultEditFile() {
+		return new File(App.getBaseDir(), LinkProjectManager.EDIT_HAR);
+	}
+
 	private void toVisiableAndLocation(final JSplitPane panelSubMRInfo) {
 		if(LocationComponentListener.hasLocation(this) && LocationComponentListener.loadLocation(this)){
-			setVisible(true);
+			App.invokeAndWaitUI(new Runnable() {
+				@Override
+				public void run() {
+					setVisible(true);
+				}
+			});
 		}else{
-			setPreferredSize(new Dimension(1024, 768));
-			pack();
+			App.invokeAndWaitUI(new Runnable() {
+				@Override
+				public void run() {
+					setPreferredSize(new Dimension(1024, 768));
+					pack();
+				}
+			});
 			App.showCenter(this);
 		}
 		
 		//一定要在setVisiable(true)之后
-		String dviLoca = PropertiesManager.getValue(PropertiesManager.p_DesignerDividerLocation);
+		final String dviLoca = PropertiesManager.getValue(PropertiesManager.p_DesignerDividerLocation);
 		if(dviLoca == null){
 			panelSubMRInfo.setDividerLocation(.3);
 		}else{
@@ -954,7 +1264,8 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		}
 		
 		panelSubMRInfo.addPropertyChangeListener(new java.beans.PropertyChangeListener() {  
-            public void propertyChange(java.beans.PropertyChangeEvent evt) {  
+            @Override
+			public void propertyChange(final java.beans.PropertyChangeEvent evt) {  
                 if (evt.getPropertyName().equals(JSplitPane.DIVIDER_LOCATION_PROPERTY)) {  
                     PropertiesManager.setValue(PropertiesManager.p_DesignerDividerLocation, 
                     		String.valueOf(panelSubMRInfo.getDividerLocation()));
@@ -964,17 +1275,9 @@ public class Designer extends SingleJFrame implements IModifyStatus{
         });
 	}
 	
-	public boolean loadMainProject(final JFrame self){
+	public final boolean loadMainProject(final JFrame self){
 		try {
-			final String url = "http://homecenter.mobi/download/main.har";
-			Map<String, Object> map = HCjar.loadJar(url);
-			if(map.isEmpty()){
-				JPanel panel = new JPanel();
-				panel.add(new JLabel("<html>Sorry, Load main har from remote server error." +
-						"<BR>please try after a minute</html>", App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
-				App.showCenterPanel(panel, 0, 0, "Network Error", false, null, null, null, null, this, true, false, null, false, false);
-				return false;
-			}
+			Map<String, Object> map = HCjar.loadJar(getResourcePath(HC_RES_MY_FIRST_HAR));
 			
 			loadNodeFromMap(map);
 			
@@ -988,38 +1291,72 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 			//deployProcess(map);
 			
 			return true;
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
 			e.printStackTrace();
 		}finally{
 		}
 		return false;
 	}
+
+	private static final String getResourcePath(final String path) {
+		return Class.class.getResource(path).toString();
+	}
 	
-	public static void expandTree(JTree tree) { 
-		tree.updateUI();
-        TreeNode root = (TreeNode) tree.getModel().getRoot(); 
-        expand(tree, new TreePath(root)); 
-    } 
+	/**
+	 * 本方法在JRuby安装完后，进行安装缺省har
+	 */
+	public static final void setupMyFirstAndApply(){
+		try{
+			final File fileHar = getDefaultEditFile();
+			
+			//因为有可能出现JRuby升级的情形
+			if(fileHar.exists() == false){
+				//复制/hc/res/MyFirst.har到myedit.har
+				copyHarFromPath(getResourcePath(HC_RES_MY_FIRST_HAR), fileHar);
+				L.V = L.O ? false : LogManager.log("successful create default edit har project.");
+				
+				//发布缺省工程
+				final Map<String, Object> map = AddHarHTMLMlet.getMap(fileHar);
+				AddHarHTMLMlet.appendMapToSavedLPS(fileHar, map, true, true, null);
+				LinkProjectManager.reloadLinkProjects();//不可少
+				
+				//active
+				ServerUIUtil.promptAndStop(true, null);
+				setProjectOn();
+				ServerUIUtil.restartResponsorServer(null, null);
+			}
+		}catch (final Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-   
-    private static void expand(JTree tree, TreePath parent) { 
-        TreeNode node = (TreeNode) parent.getLastPathComponent(); 
-        if (node.getChildCount() >= 0) { 
-            for (Enumeration e = node.children(); e.hasMoreElements(); ) { 
-                TreeNode n = (TreeNode) e.nextElement(); 
-                TreePath path = parent.pathByAddingChild(n); 
-                expand(tree, path); 
-            } 
-        } 
-
-        tree.expandPath(parent); 
-//      tree.collapsePath(parent); 
-    }
-
-	private void loadNodeFromMap(Map<String, Object> map) {
+	private static void copyHarFromPath(final String path, final File fileHar)	throws Exception {
+		final URL jarurl = new URL(path);
+		final InputStream is = jarurl.openStream();
+		final ByteArrayOutputStream outStream = new ByteArrayOutputStream();  
+		final int BUFFER_SIZE = 4096;
+		final byte[] data = new byte[BUFFER_SIZE];  
+		int count = -1;  
+		while((count = is.read(data,0,BUFFER_SIZE)) != -1) {
+		    outStream.write(data, 0, count);  
+		}
+		final FileOutputStream fos = new FileOutputStream(fileHar);
+		fos.write(outStream.toByteArray());
+		fos.flush();
+		fos.close();
+		
+		try{
+			is.close();
+		}catch (final Exception e) {
+		}
+	}
+	
+	private void loadNodeFromMap(final Map<String, Object> map) {
 		delAllChildren();
 		
-		mainMenuNode = HCjar.toNode(map, root, shareFolders);
+		msbFolder.removeFromParent();
+		msbFolder.removeAllChildren();
+		mainMenuNode = HCjar.toNode(map, root, msbFolder, shareFolders);
 		appendShareTop();
 		
 		changeTreeNodeContext(root, itemContext);
@@ -1032,7 +1369,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 			}else{
 				childNode = (DefaultMutableTreeNode)mainMenuNode.getChildAt(0);
 			}
-			jumpToNode(childNode);
+			jumpToNode(childNode, model, tree);
 			notifySelectNode(childNode, (HPNode)childNode.getUserObject());
 		}else{
 			//没有菜单的空工程情形
@@ -1043,18 +1380,48 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		refresh();
 		
 		needRebuildTestJRuby = true;
-		expandTree(tree);
+		Designer.expandTree(tree);
+		
+		final DefaultMutableTreeNode shareJarFolder = getShareJarFolder();
+		if(shareJarFolder.getChildCount() > 0){
+			ConditionWatcher.addWatcher(new IWatcher() {
+				final long startMS = System.currentTimeMillis();
+				@Override
+				public boolean watch() {
+					if(System.currentTimeMillis() - startMS > ThreadPriorityManager.UI_CODE_HELPER_DELAY_MS){
+						codeHelper.initCodeHelper(shareJarFolder);
+						return true;
+					}
+					return false;
+				}
+				
+				@Override
+				public void setPara(final Object p) {
+				}
+				
+				@Override
+				public boolean isCancelable() {
+					return false;
+				}
+				
+				@Override
+				public void cancel() {
+				}
+			});
+		}
 	}
 	
+	/**
+	 * 重新加载lps
+	 */
 	public void refresh(){
 		//由于可能切换，所以刷新
 		LinkProjectManager.reloadLinkProjects();
 		
-		LinkProjectStore lps = LinkProjectManager.getProjByID(getCurrProjID());
-		deactiveButton.setEnabled(lps != null && lps.isActive());
+		checkHARButtonsEnable();
 	}
 
-	public void addNode(DefaultMutableTreeNode parentNode, DefaultMutableTreeNode newNode) {
+	public void addNode(DefaultMutableTreeNode parentNode, final DefaultMutableTreeNode newNode) {
 		changeTreeNodeContext(newNode, itemContext);
 		
 		if(parentNode == null){
@@ -1063,83 +1430,146 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		
 		parentNode.add(newNode);
 		// --------下面代码实现显示新节点（自动展开父节点）-------
-		TreeNode[] nodes = model.getPathToRoot(newNode);
-		TreePath path = new TreePath(nodes);
+		final TreeNode[] nodes = model.getPathToRoot(newNode);
+		final TreePath path = new TreePath(nodes);
 		tree.setSelectionPath(path);
 //				tree.setExpandsSelectedPaths(true); 
 		tree.scrollPathToVisible(path);
-		tree.updateUI();
+		App.invokeLaterUI(updateTreeRunnable);
 		setModified(true);
 		
 		notifySelectNode(newNode, (HPNode)newNode.getUserObject());
+		
+		//检查是否是jar
+		{
+			if(isJarNode(newNode)){
+				codeHelper.loadLibToCodeHelper(newNode);
+			}
+		}
 	}
 	
-	public void saveJar(){
-		Object userobj = selectedNode.getUserObject();
-		if(userobj instanceof HCShareFileResource){
-			File saveTo = FileSelector.selectImageFile(this, FileSelector.JAR_FILTER, false);
-			if(saveTo != null){
-				if(saveTo.toString().endsWith(JAR_EXT)){
-					
+	private static boolean isJarNode(final DefaultMutableTreeNode node){
+		final HPNode hpnode = (HPNode)node.getUserObject();
+		if(hpnode instanceof HPShareJar){
+			final HPShareJar jar = (HPShareJar)hpnode;
+			if(jar.type == HPNode.MASK_RESOURCE_JAR){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public void saveFile(final int filter, final String ext){
+		final Object userobj = selectedNode.getUserObject();
+		File saveTo = FileSelector.selectImageFile(this, filter, false);
+		if(saveTo != null){
+			if(ext != null && ext.length() > 0){
+				if(saveTo.toString().endsWith(ext)){
 				}else{
-					saveTo = new File(saveTo.getPath() + JAR_EXT);
+					saveTo = new File(saveTo.getPath() + ext);//注意：无需getBaseDir
 				}
+			}
+			
+			FileOutputStream fos = null;
+			try{
+				fos = new FileOutputStream(saveTo);
+				fos.write(((HCShareFileResource)userobj).content);
+				fos.flush();
+				fos.close();
 				
-				FileOutputStream fos = null;
+				final JPanel ok = new JPanel();
+				ok.add(new JLabel("Successful save file!", new ImageIcon(ImageSrc.OK_ICON), SwingConstants.LEFT));
+				App.showCenterPanel(ok, 0, 0, "Save OK!", false, null, null, null, null, this, true, false, null, false, false);
+			}catch (final Exception e) {
+				final JPanel ok = new JPanel();
+				ok.add(new JLabel("Error save file!", new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
+				App.showCenterPanel(ok, 0, 0, "Save Error!", false, null, null, null, null, this, true, false, null, false, false);
+				e.printStackTrace();
+			}finally{
 				try{
-					fos = new FileOutputStream(saveTo);
-					fos.write(((HCShareFileResource)userobj).content);
-					fos.flush();
 					fos.close();
+				}catch (final Exception e) {
 					
-					JPanel ok = new JPanel();
-					try {
-						ok.add(new JLabel("Successful save jar file!", new ImageIcon(ImageIO.read(ImageSrc.OK_ICON)), SwingConstants.LEFT));
-					} catch (IOException e2) {
-					}
-					App.showCenterPanel(ok, 0, 0, "Save OK!", false, null, null, null, null, this, true, false, null, false, false);
-				}catch (Exception e) {
-					JPanel ok = new JPanel();
-					try {
-						ok.add(new JLabel("Error save jar file!", new ImageIcon(ImageIO.read(ImageSrc.CANCEL_ICON)), SwingConstants.LEFT));
-					} catch (IOException e2) {
-					}
-					App.showCenterPanel(ok, 0, 0, "Save Error!", false, null, null, null, null, this, true, false, null, false, false);
-					e.printStackTrace();
-				}finally{
-					try{
-						fos.close();
-					}catch (Exception e) {
-						
-					}
 				}
 			}
 		}
 	}
+	
+	private final void searchNode(final DefaultMutableTreeNode searchNodeResults, 
+			final Vector<DefaultMutableTreeNode> rootNode, 
+			final NodeMatcher matcher){
+		if(matcher.match((HPNode)searchNodeResults.getUserObject())){
+			rootNode.add(searchNodeResults);
+		}
+		final int count = searchNodeResults.getChildCount();
+		for (int i = 0; i < count; i++) {
+			searchNode((DefaultMutableTreeNode)searchNodeResults.getChildAt(i), rootNode, matcher);
+		}
+	}
 
 	public void delNode() {
-		DefaultMutableTreeNode parent = (DefaultMutableTreeNode)selectedNode.getParent();
+		final DefaultMutableTreeNode parent = (DefaultMutableTreeNode)selectedNode.getParent();
 		model.removeNodeFromParent(selectedNode);
-		setModified(true);
-		selectedNode = null;
 		
-		jumpToNode(parent);
+		//检查是否是jar文档
+		{
+			if(isJarNode(selectedNode)){
+				final HPShareJar jar = (HPShareJar)selectedNode.getUserObject();
+				codeHelper.unloadLibFromCodeHelper(jar.name);
+			}
+		}
+		
+		setModified(true);
+		
+		{
+			//检查如果是Mlet，则进行全局Styles删除检查
+			if(NodeEditPanelManager.isMletNode((HPNode)selectedNode.getUserObject())){
+				//如果不存在Mlet节点，则进行Styles清空
+				final Vector<DefaultMutableTreeNode> results = new Vector<DefaultMutableTreeNode>();
+				searchNode(root, results, new NodeMatcher() {
+					@Override
+					public boolean match(final HPNode node) {
+						return NodeEditPanelManager.isMletNode(node);
+					}
+				});
+				if(results.size() == 0){
+					setProjCSS("");
+				}
+			}
+		}
+		
+		selectedNode = null;
+
+		jumpToNode(parent, model, tree);
 		notifySelectNode(parent, (HPNode)parent.getUserObject());
 	}
 	
 	public TreeNode getCurrSelectedNode(){
+		CCoreUtil.checkAccess();
+		
 		return selectedNode;
 	}
 
 	public DefaultMutableTreeNode getMainMenuNode(){
+		CCoreUtil.checkAccess();
+		
 		return mainMenuNode;
 	}
+	
+	public DefaultMutableTreeNode getMSBFolderNode(){
+		CCoreUtil.checkAccess();
+		
+		return msbFolder;
+	}
 
-	public void notifySelectNode(DefaultMutableTreeNode sNode, final HPNode nodeData) {
+	public void notifySelectNode(final DefaultMutableTreeNode sNode, final HPNode nodeData) {
 		selectedNode = sNode;
 		
-		NodeEditPanel nep = nm.switchNodeEditPanel(nodeData.type);
-		editPanel.remove(nodeEditPanel);
+		final NodeEditPanel nep = nm.switchNodeEditPanel(nodeData.type, nodeData, this);
+		final NodeEditPanel oldPanel = nodeEditPanel;
+		if(nodeEditPanel != null){
+			nodeEditPanel.notifyLostEditPanelFocus();
+		}
 		
 		if(nep == null){
 			nodeEditPanel = Designer.emptyNodeEditPanel;
@@ -1149,10 +1579,16 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		
 		nodeEditPanel.init(sNode, tree);
 		
-		editPanel.add(nodeEditPanel);
-		editPanel.validate();
-		editPanel.revalidate();
-		editPanel.repaint();
+		App.invokeLaterUI(new Runnable() {
+			@Override
+			public void run() {
+				editPanel.remove(oldPanel.getMainPanel());
+				editPanel.add(nodeEditPanel.getMainPanel());
+				editPanel.validate();
+				editPanel.revalidate();
+				editPanel.repaint();
+			}
+		});
 	}
 
 	@Override
@@ -1161,7 +1597,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	}
 
 	@Override
-	public void setModified(boolean modified) {
+	public void setModified(final boolean modified) {
 		J2SEContext.refreshActionMS(false);
 		this.isModified = modified;
 		saveButton.setEnabled(modified);
@@ -1177,18 +1613,15 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 				"save project now?");
 	}
 	
-	private void jumpToNode(DefaultMutableTreeNode node) {
-		TreeNode[] nodes = model.getPathToRoot(node);
-		TreePath path = new TreePath(nodes);
-		tree.setSelectionPath(path);
+	public static void jumpToNode(final DefaultMutableTreeNode node, final DefaultTreeModel defaultTreeModel, final JTree tree2) {
+		final TreeNode[] nodes = defaultTreeModel.getPathToRoot(node);
+		final TreePath path = new TreePath(nodes);
+		tree2.setSelectionPath(path);
 	}
 	
-	private static void showHCMessage(final String message, final String title, JFrame frame, boolean model){
-		JPanel panel = new JPanel();
-		try {
-			panel.add(new JLabel(message, new ImageIcon(ImageIO.read(ImageSrc.OK_ICON)), SwingConstants.LEFT));
-		} catch (IOException e2) {
-		}
+	private static void showHCMessage(final String message, final String title, final JFrame frame, final boolean model){
+		final JPanel panel = new JPanel();
+		panel.add(new JLabel(message, new ImageIcon(ImageSrc.OK_ICON), SwingConstants.LEFT));
 		App.showCenterPanel(panel, 0, 0, title, false, null, null, null, null, frame, model, false, null, false, false);
 	}
 	
@@ -1199,7 +1632,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	 */
 	private boolean discardModiWhenShift(final Designer self) {
 		if(self.isModified()){
-			int out = discardQues(self);
+			final int out = discardQues(self);
 			if(out == JOptionPane.YES_OPTION){
 				setModified(false);
 				return true;
@@ -1222,9 +1655,9 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	 */
 	private boolean quitToNewProj(final Designer self) {
 		if(self.isModified()){
-			int out = modifyNotify();
+			final int out = modifyNotify();
 			if(out == JOptionPane.YES_OPTION){
-				Map<String, Object> map = save();
+				final Map<String, Object> map = save();
 				if(map == null){
 					return false;
 				}
@@ -1239,7 +1672,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	}
 
 	private Object buildInitRoot() {
-		DefaultMutableTreeNode tnode = createNewRoot();
+		final DefaultMutableTreeNode tnode = createNewRoot();
 		
 		delAllChildren();
 		
@@ -1263,9 +1696,9 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	private void appendShareTop() {
 		//加载共享库结点，
 		//注意：如果ROOT下增加新结点，请更新参数SUB_NODES_OF_ROOT_IN_NEW_PROJ + 1
-		HPShareRoot sr = new HPShareRoot(HPNode.MASK_SHARE_TOP, "resources");
+		final HPShareRoot sr = new HPShareRoot(HPNode.MASK_SHARE_TOP, "resources");
 		
-		DefaultMutableTreeNode shareRoot = new DefaultMutableTreeNode(sr);
+		final DefaultMutableTreeNode shareRoot = new DefaultMutableTreeNode(sr);
 		root.add(shareRoot);
 		
 		//加挂公用JRuby库
@@ -1279,12 +1712,12 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	 * @param map
 	 * @return
 	 */
-	private boolean checkLoadVer(Map<String, Object> map) {
-		String[] sample_ver = {(String)map.get(HCjar.HOMECENTER_VER), 
+	private boolean checkLoadVer(final Map<String, Object> map) {
+		final String[] sample_ver = {(String)map.get(HCjar.HOMECENTER_VER), 
 				(String)map.get(HCjar.JRE_VER), (String)map.get(HCjar.JRUBY_VER)};
-		String[] curr_ver = {StarterManager.getHCVersion(), String.valueOf(App.getJREVer()), 
+		final String[] curr_ver = {StarterManager.getHCVersion(), String.valueOf(App.getJREVer()), 
 				PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer, "1.0")};
-		boolean[] isSampleHigh = {false, false, false};
+		final boolean[] isSampleHigh = {false, false, false};
 		boolean isHigh = false;
 		for (int i = 0; i < sample_ver.length; i++) {
 			if(sample_ver[i] != null){
@@ -1302,12 +1735,12 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 			String sample = "";
 			String curr = "";
 			
-			String[] whatVer = {"HomeCenter Ver", "JRE Ver", "JRuby Ver"};
+			final String[] whatVer = {"HomeCenter Ver", "JRE Ver", "JRuby Ver"};
 			for (int i = 0; i < isSampleHigh.length; i++) {
 				if(isSampleHigh[i] == false){
 					continue;
 				}
-				boolean isNotFirst = (sample.length() > 0);
+				final boolean isNotFirst = (sample.length() > 0);
 				sample += whatVer[i] + ":" + sample_ver[i] + (isNotFirst?",   ":"");
 				curr += whatVer[i] + ":" + (isSampleHigh[i]?
 						("<font style='color:red'>" + curr_ver[i] + "</font>"):curr_ver[i]) + (isNotFirst?",":"");
@@ -1323,21 +1756,20 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 			sample = "required version : [" + sample + "]";
 			curr   = "current version : [" + curr + "]";
 			final boolean[] isContinue = {true};
-			JPanel panel = new JPanel();
+			final JPanel panel = new JPanel();
 			panel.add(new JLabel("<html><body>" + sample + "<BR>" + curr + "<BR><BR>" +
 					"some data may ignore, or run error.<BR><BR>continue any more?" + 
 //					(isSampleHigh[0]?("<BR>please 'enable auto upgrade' to upgrade HomeCenter Ver"):"") + 
 					"</body></html>", 
 					App.getSysIcon(App.SYS_WARN_ICON), SwingConstants.LEFT));
-			App.showCenterPanel(panel, 0, 0, "version warning", true, null, null, new ActionListener() {
+			App.showCenterPanel(panel, 0, 0, "version warning", true, null, null, new HCActionListener(){
 				
 				@Override
-				public void actionPerformed(ActionEvent e) {
+				public void actionPerformed(final ActionEvent e) {
 				}
-			}, new ActionListener() {
-				
+			}, new HCActionListener(){
 				@Override
-				public void actionPerformed(ActionEvent e) {
+				public void actionPerformed(final ActionEvent e) {
 					isContinue[0] = false;
 				}
 			}, this, true, false, null, false, false);
@@ -1356,10 +1788,10 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	public boolean tryBuildTestJRuby(){
 		if(needRebuildTestJRuby){
 			try{
-				Map<String, Object> map = buildMapFromTree();
+				final Map<String, Object> map = buildMapFromTree();
 				deployRunTest(map);
 				needRebuildTestJRuby = false;
-			}catch (NodeInvalidException e) {
+			}catch (final NodeInvalidException e) {
 				displayError(e);
 				return false;
 			}
@@ -1369,12 +1801,12 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 
 	private Map<String, Object> save() {
 		try{
-			Map<String, Object> map = buildMapFromTree();
+			final Map<String, Object> map = buildMapFromTree();
 			
-			final File edit_har = new File(LinkProjectManager.EDIT_HAR);
+			final File edit_har = getDefaultEditFile();
 			HCjar.toHar(map, edit_har);
 			
-			tree.updateUI();
+			App.invokeLaterUI(updateTreeRunnable);
 			
 			setModified(false);
 			
@@ -1383,7 +1815,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 			LinkProjectStore oldlps = LinkProjectManager.getProjByID(getCurrProjID());
 			if(oldlps == null){
 				oldlps = LinkProjectManager.getProjLPSWithCreate(getCurrProjID());
-				LinkProjectManager.importLinkProject(oldlps, edit_har);
+				LinkProjectManager.importLinkProject(oldlps, edit_har, false, null);
 
 //				final boolean isRoot = LinkProjectManager.getProjectSize()<2?true:oldlps.isRoot();
 				//缺省创建时，root=false, active=false
@@ -1394,26 +1826,26 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 			
 			LinkProjectManager.saveToLinkBack(oldlps, edit_har);
 			return map;
-		}catch (NodeInvalidException e) {
+		}catch (final NodeInvalidException e) {
 			displayError(e);
 			
 			return null;
 		}
 	}
 
-	public static void recordEditProjInfo(Map<String, Object> map) {
+	public static void recordEditProjInfo(final Map<String, Object> map) {
 		PropertiesManager.setValue(PropertiesManager.p_LINK_CURR_EDIT_PROJ_ID, (String)map.get(HCjar.PROJ_ID));
 		PropertiesManager.setValue(PropertiesManager.p_LINK_CURR_EDIT_PROJ_VER, (String)map.get(HCjar.PROJ_VER));
 		PropertiesManager.saveFile();
 	}
 
-	public void displayError(NodeInvalidException e) {
+	public void displayError(final NodeInvalidException e) {
 		final DefaultMutableTreeNode node1 = e.node;
-		jumpToNode(node1);
+		jumpToNode(node1, model, tree);
 		notifySelectNode(node1, (HPNode)node1.getUserObject());
 		
-		JPanel panel = new JPanel();
-		String name1 = ((HPNode)node1.getUserObject()).name;
+		final JPanel panel = new JPanel();
+		final String name1 = ((HPNode)node1.getUserObject()).name;
 		panel.add(new JLabel("<html><body>" + e.getDesc() + "</body></html>", 
 				App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
 		App.showCenterPanel(panel, 0, 0, "Error Node", false, null, null, null, null, this, true, false, null, false, false);
@@ -1423,7 +1855,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		ScriptEditPanel.terminateJRubyEngine();
 
 		//清空runtemp
-		File[] subFiles = UpgradeManager.RUN_TEST_DIR.listFiles();
+		final File[] subFiles = StoreDirManager.RUN_TEST_DIR.listFiles();
 		if(subFiles != null){
 			for (int i = 0; i < subFiles.length; i++) {
 				subFiles[i].delete();
@@ -1433,12 +1865,12 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		final boolean forceBuild = (deployMap == null);
 		if(forceBuild){
 			//toMap不能上述相同代码合并，因前者存储时，对map是一次使用，并删除了二进制数据
-			final File jarfile = new File(LinkProjectManager.EDIT_HAR);
+			final File jarfile = getDefaultEditFile();
 			deployMap = HCjar.loadHar(jarfile, true);
 		}
 
 		//因为升级到新版本时，可能恰好又是用户新装，所以需要检查文件是否存在
-		if(ProjResponser.deloyToWorkingDir(deployMap, UpgradeManager.RUN_TEST_DIR) 
+		if(ProjResponser.deloyToWorkingDir(deployMap, StoreDirManager.RUN_TEST_DIR) 
 				|| forceBuild //注意：forceBuild必须放后面
 				|| (ScriptEditPanel.runTestEngine == null)){//极端情形，即初始加载时，该对象为null，必须进行build
 			ScriptEditPanel.rebuildJRubyEngine();
@@ -1446,7 +1878,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	}
 
 	private void saveAs(final Map<String, Object> map) {
-		File file = FileSelector.selectImageFile(saveAsButton, FileSelector.HAR_FILTER, false);
+		File file = FileSelector.selectImageFile(saveAsButton, FileSelector.HAR_FILTER, false);//saveAsButton parent and relativeTo
 		if(file != null){
 			if(file.toString().endsWith(HAR_EXT)){
 				
@@ -1459,16 +1891,16 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 			final File fileHadExits = (upgradeURL.length() > 0 && upgradeURL.endsWith(HAD_EXT))?new File(HCjad.convertToExtHad(absolutePath)):null;
 			final Designer self = this;
 			if(file.exists()){
-				JPanel panel = new JPanel();
+				final JPanel panel = new JPanel();
 				panel.setLayout(new BorderLayout());
 				panel.add(new JLabel("Override exit har file?", App.getSysIcon(App.SYS_QUES_ICON), 
 						SwingConstants.LEADING));
-				App.showCenterPanel(panel, 0, 0, "Override?", true, null, null, new ActionListener() {
+				App.showCenterPanel(panel, 0, 0, "Override?", true, null, null, new HCActionListener(new Runnable() {
 					@Override
-					public void actionPerformed(ActionEvent e) {
+					public void run() {
 						doExportBiz(map, fileExits, fileHadExits, self);
 					}
-				}, null, this, true, false, null, false, false);
+				}, threadPoolToken), null, this, true, false, saveAsButton, false, false);
 			}else{
 				doExportBiz(map, fileExits, fileHadExits, self);
 			}
@@ -1480,30 +1912,29 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		if(oldlps != null){
 			final String curVer = (String)map.get(HCjar.PROJ_VER);
 			if(StringUtil.higer(oldlps.getVersion(), curVer)){
-				JPanel panel = new JPanel(new BorderLayout());
+				final JPanel panel = new JPanel(new BorderLayout());
 				panel.add(new JLabel("<html>the actived version is " + oldlps.getVersion() + ", and current version is " + curVer 
-						+ "<br><br>please override the current version!</html>", 
+						+ "<br><br>system can't override the current version!</html>", 
 						App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
 				App.showCenterPanel(panel, 0, 0, "fail activate current project", false, null, null, null, null, instance, true, false, null, false, false);
 				return false;
 			}
 		}
 		
-		setProjectOn();
-		
-		final File newVerHar = new File(LinkProjectManager.EDIT_HAR);
+		final File newVerHar = getDefaultEditFile();
 
-		deactiveButton.setEnabled(true);
-		
 		synchronized (ServerUIUtil.LOCK) {
 			ServerUIUtil.promptAndStop(true, this);
 			
+			setProjectOn();
+
+			File oldEditBackFile = null;
 			if(oldlps != null){
-				LinkProjectManager.removeLinkProjectPhic(oldlps, false);
+				oldEditBackFile = LinkProjectManager.removeLinkProjectPhic(oldlps, false);
 			}else{
 				oldlps = LinkProjectManager.getProjLPSWithCreate(getCurrProjID());
 			}
-			LinkProjectManager.importLinkProject(oldlps, newVerHar);
+			LinkProjectManager.importLinkProject(oldlps, newVerHar, false, oldEditBackFile);
 			
 			boolean changeToRoot = oldlps.isRoot();
 			
@@ -1517,13 +1948,20 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 			
 			LinkProjectManager.saveProjConfig(oldlps, changeToRoot, true);
 		
-			ServerUIUtil.restartResponsorServerDelayMode();
+			final BaseResponsor br = ServerUIUtil.restartResponsorServer(instance, null);
+			
+			checkHARButtonsEnableInBackground();
+			
+			if(br instanceof MobiUIResponsor){
+				return true;
+			}
 		}
-		return true;
+		return false;
 	}
 
 	public static void setProjectOn() {
-		ServerUIUtil.useMainCanvas = true;
+		ServerUIUtil.useHARProject = true;
+
 		if(PropertiesManager.isTrue(PropertiesManager.p_IsMobiMenu) == false){
 			PropertiesManager.setValue(PropertiesManager.p_IsMobiMenu, IConstant.TRUE);
 			PropertiesManager.saveFile();
@@ -1531,12 +1969,52 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	}
 
 	private void doExportBiz(final Map<String, Object> map, final File fileExits, final File fileHadExits, final Designer self) {
-		HCjar.toHar(map, fileExits);
-		if(fileHadExits != null){
-			HCjad.toHad(map, fileHadExits, ResourceUtil.getMD5(fileExits), (int)fileExits.length());
+		final JPanel panel = new JPanel(new GridLayout(3, 2));
+		panel.add(new JLabel("JRE version : "));
+		
+		final JTextField jre_field = new JTextField();
+		jre_field.setText((String)map.get(HCjar.JRE_VER));
+		panel.add(jre_field);
+		panel.add(new JLabel("HomeCenter version : "));
+		
+		final JTextField hc_field = new JTextField();
+		hc_field.setText((String)map.get(HCjar.HOMECENTER_VER));
+		panel.add(hc_field);
+		panel.add(new JLabel("JRuby version : "));
+		
+		final JTextField jruby_field = new JTextField();
+		jruby_field.setText((String)map.get(HCjar.JRUBY_VER));
+		panel.add(jruby_field);
+		
+		final JPanel centerPanel = new JPanel(new BorderLayout());
+		centerPanel.add(panel, BorderLayout.CENTER);
+		{
+			final JPanel descPanel = new JPanel(new BorderLayout());
+			descPanel.setBorder(new TitledBorder("Description :"));
+			descPanel.add(new JLabel("set versions for runtime enviroment."), BorderLayout.CENTER);
+			centerPanel.add(descPanel, BorderLayout.SOUTH);
 		}
-		showHCMessage("Successful save as project to har file.", 
-				"Success save as", self, true);
+		
+		final ActionListener listener = new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				map.put(HCjar.JRE_VER, jre_field.getText());
+				map.put(HCjar.HOMECENTER_VER, hc_field.getText());
+				map.put(HCjar.JRUBY_VER, jruby_field.getText());
+				
+//				System.out.println("JRE : " + map.get(HCjar.JRE_VER));
+//				System.out.println("HC : " + map.get(HCjar.HOMECENTER_VER));
+//				System.out.println("JRUBY : " + map.get(HCjar.JRUBY_VER));
+				
+				HCjar.toHar(map, fileExits);
+				if(fileHadExits != null){
+					HCjad.toHad(map, fileHadExits, ResourceUtil.getMD5(fileExits), (int)fileExits.length());
+				}
+				showHCMessage("Successful save project to [" + fileExits.getName() + "].", 
+						"Success save as", self, true);
+			}
+		};
+		App.showCenterPanel(centerPanel, 0, 0, "Confirm Versions?", false, null, null, listener, listener, self, true, false, saveAsButton, false, false);
 	}
 
 	private Map<String, Object> buildMapFromTree() throws NodeInvalidException {
@@ -1547,19 +2025,24 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	/**
 	 * 注意：本方法被反射引用，并不要更名。
 	 */
-	public static boolean notifyCloseDesigner(){
+	public static synchronized boolean notifyCloseDesigner(){
 		return Designer.getInstance().notifyCloseWindow();
 	}
 	
 	/**
 	 * 注意：本方法被反射引用，并不要更名。
 	 */
-	public static void closeLinkPanel() {
+	public static synchronized void closeLinkPanel() {
+		if(Designer.currLink == null){
+			return;
+		}
+		
 		if(Designer.currLink instanceof ClosableWindow){
 			((ClosableWindow)Designer.currLink).notifyClose();
 		}else{
 			Designer.currLink.dispose();
 		}
+		Designer.currLink = null;
 	}
 	
 	/**
@@ -1568,7 +2051,7 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 	 * @param newFrame
 	 * @param relativeTo
 	 */
-	public static void showLinkPanel(JFrame parent, final boolean newFrame, final Component relativeTo){
+	public static void showLinkPanel(final JFrame parent, final boolean newFrame, final Component relativeTo){
 		if(LinkProjectStatus.tryEnterStatus(parent, LinkProjectStatus.MANAGER_IMPORT) == false){
 			return;
 		}
@@ -1577,58 +2060,27 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		}else{
 			LinkProjectManager.reloadLinkProjects();
 			
-			LinkProjectPanel linkp = new LinkProjectPanel(parent, newFrame, relativeTo);
+			final LinkProjectPanel linkp = new LinkProjectPanel(parent, newFrame, relativeTo);
 			currLink = linkp.toShow();
 		}
 	}
 	
 	public void shiftProject(final LinkProjectStore lps){
-		if(getCurrProjID().equals(lps.getProjectID())){
-
-			refresh();
-			if(discardModiWhenShift(instance)){
-				String md5Editing = ResourceUtil.getMD5(new File(LinkProjectManager.EDIT_HAR));
-				String md5back = ResourceUtil.getMD5(LinkProjectManager.buildBackEditFile(lps));
-
-				if((md5Editing.equals(md5back) == false)){
-					int out = App.showOptionDialog(instance,
-							"current edit project is out of sync, override now?",
-							"override edit?");
-					if(out == JOptionPane.YES_OPTION){
-						//丢弃物理变更
-						LinkProjectManager.copyCurrEditFromStorage(lps);
-					}
-				}
-				//丢弃内存变更
-				loadDefaultEdit();
-			}
-		}else{
-			if(discardModiWhenShift(instance)){
-				LinkProjectStore oldlps = LinkProjectManager.getProjByID(getCurrProjID());
+		if(discardModiWhenShift(instance)){
+			final String newProjID = lps.getProjectID();
+			if(getCurrProjID().equals(newProjID)){
+//				final String md5Editing = ResourceUtil.getMD5(getDefaultEditFile());
+//				final String md5back = ResourceUtil.getMD5(LinkProjectManager.buildBackEditFile(lps));
+//				md5Editing.equals(md5back) == false
 				
-				if(oldlps != null){
-					String md5Editing = ResourceUtil.getMD5(new File(LinkProjectManager.EDIT_HAR));
-					String md5back = ResourceUtil.getMD5(LinkProjectManager.buildBackEditFile(oldlps));
-	
-					if((md5Editing.equals(md5back) == false)){
-						int out = discardQues(instance);
-						if(out == JOptionPane.YES_OPTION){
-							//放弃源已修编工程，切换到宿工程
-							LinkProjectManager.copyCurrEditFromStorage(lps);
-							loadDefaultEdit();
-						}
-					}else{
-						//切换到宿工程
-						LinkProjectManager.copyCurrEditFromStorage(lps);
-						loadDefaultEdit();
-					}
-				}else{
-					//Link中已删除，但default仍保留
-					//切换到宿工程
-					LinkProjectManager.copyCurrEditFromStorage(lps);
-					loadDefaultEdit();
-				}
-			}			
+				//拉新以获得isChangedBeforeUpgrade
+				refresh();
+			}else{
+				//切换新工程的backEdit
+				LinkProjectManager.copyCurrEditFromStorage(lps, false);
+			}
+
+			loadDefaultEdit();
 		}
 	}
 
@@ -1638,26 +2090,42 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 //		wiz.showTip();
 //	}
 
-	public boolean notifyCloseWindow() {
+	public synchronized boolean notifyCloseWindow() {
+		if(instance == null){
+			return false;
+		}
+		
 		if(isModified()){
-			int out = modifyNotify();
+			final int out = modifyNotify();
 			if(out == JOptionPane.YES_OPTION){
-				Map<String, Object> map = save();
+				final Map<String, Object> map = save();
 				if(map == null){
 				}
 			}
 			if(out == JOptionPane.YES_OPTION || out == JOptionPane.NO_OPTION){
-				dispose();
+				instance = null;
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						dispose();
+					}
+				});
 				return true;
 			}
 		}else{
-			dispose();
+			instance = null;
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					dispose();					
+				}
+			});
 			return true;
 		}
 		return false;
 	}
 
-	private boolean checkAndLoad(Map<String, Object> map, final IBiz succBiz) {
+	private boolean checkAndLoad(final Map<String, Object> map, final IBiz succBiz) {
 		if(checkLoadVer(map) == false){
 			return false;
 		}
@@ -1669,14 +2137,75 @@ public class Designer extends SingleJFrame implements IModifyStatus{
 		return true;
 	}
 
+	public final void loadInitProject(final boolean loadInit) {
+		if(loadInit){
+			final File har = loadDefaultEdit();
+			if(har == null || har.exists() == false){
+				//必须先启thread，因为waiting是modal，会阻塞。
+				ContextManager.getThreadPool().run(new Runnable(){
+					@Override
+					public void run(){
+						if(loadMainProject(instance)){
+							final JPanel jpanel = new JPanel(new BorderLayout());
+							jpanel.add(new JLabel("<html>" +
+									"<IMG src='http://homecenter.mobi/images/ok_16.png' width='16' height='16'/>&nbsp;" +
+									"<STRONG>default project had been created successfully!</STRONG>" +
+									"</html>", App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING));
+							
+							final ActionListener al = new HCActionListener(new Runnable() {
+								@Override
+								public void run() {
+	//										showWizard();
+								}
+							}, threadPoolToken);
+							App.showCenterPanel(jpanel, 0, 0, (String)ResourceUtil.get(IContext.INFO), 
+									false, null, null, al, al, null, false, true, null, true, false);//jdk 8会出现漂移
+						}else{
+						}
+						setToolbarVisible(toolbar, true);
+					}
+				});
+			}else{
+				setToolbarVisible(toolbar, true);
+			}
+		}else{
+			setToolbarVisible(toolbar, true);
+		}
+	}
+
+	public static void expandTree(final JTree tree) { 
+		App.invokeAndWaitUI(new Runnable() {
+			@Override
+			public void run() {
+				tree.updateUI();
+			    final TreeNode root = (TreeNode) tree.getModel().getRoot(); 
+			    expand(tree, new TreePath(root)); 
+			}
+		});
+	}
+
+	private static void expand(final JTree tree, final TreePath parent) { 
+	        final TreeNode node = (TreeNode) parent.getLastPathComponent(); 
+	        if (node.getChildCount() >= 0) { 
+	            for (final Enumeration e = node.children(); e.hasMoreElements(); ) { 
+	                final TreeNode n = (TreeNode) e.nextElement(); 
+	                final TreePath path = parent.pathByAddingChild(n); 
+	                expand(tree, path); 
+	            } 
+	        } 
+	
+	        tree.expandPath(parent); 
+	//      tree.collapsePath(parent); 
+	    }
+
 	public static void setProjectOff() {
-		ServerUIUtil.useMainCanvas = false;
+		ServerUIUtil.useHARProject = false;
 		
 		PropertiesManager.setValue(PropertiesManager.p_IsMobiMenu, IConstant.FALSE);
 		PropertiesManager.saveFile();
 	}
 
-	public static void main(String args[]) {
+	public static void main(final String args[]) {
 		//keepMethodFromKillByProguard
 		if(args.length > 10000000){
 			//provent proguard del unused method.
@@ -1691,13 +2220,14 @@ class NodeTreeCellRenderer extends DefaultTreeCellRenderer {
 	NodeTreeCellRenderer() {
 	}
 
-	public Component getTreeCellRendererComponent(JTree tree, Object value,
-			boolean selected, boolean expanded, boolean leaf, int row,
-			boolean hasFocus) {
-		Component compo = super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-		Object o = ((DefaultMutableTreeNode) value).getUserObject();
+	@Override
+	public Component getTreeCellRendererComponent(final JTree tree, final Object value,
+			final boolean selected, final boolean expanded, final boolean leaf, final int row,
+			final boolean hasFocus) {
+		final Component compo = super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+		final Object o = ((DefaultMutableTreeNode) value).getUserObject();
 		if (o instanceof HPNode) {
-			HPNode country = (HPNode) o;
+			final HPNode country = (HPNode) o;
 			if (HPNode.isNodeType(country.type, HPNode.MASK_ROOT)) {
 				((JLabel)compo).setIcon(Designer.iconRoot);
 			} else if (HPNode.isNodeType(country.type, HPNode.MASK_MENU_ITEM)) {
@@ -1710,6 +2240,18 @@ class NodeTreeCellRenderer extends DefaultTreeCellRenderer {
 				((JLabel)compo).setIcon(Designer.iconShareRBFolder);
 			} else if (HPNode.isNodeType(country.type, HPNode.MASK_SHARE_RB)) {
 				((JLabel)compo).setIcon(Designer.iconShareRB);
+			} else if (country.type == HPNode.MASK_SHARE_NATIVE_FOLDER) {
+				((JLabel)compo).setIcon(Designer.iconShareNativeFolder);
+			} else if (country.type == HPNode.MASK_SHARE_NATIVE) {
+				((JLabel)compo).setIcon(Designer.iconShareNative);
+			} else if (country.type == HPNode.MASK_MSB_FOLDER) {
+				((JLabel)compo).setIcon(Designer.iconMSBFolder);
+			} else if (country.type == HPNode.MASK_MSB_ROBOT) {
+				((JLabel)compo).setIcon(Designer.iconRobot);
+			} else if (country.type == HPNode.MASK_MSB_DEVICE) {
+				((JLabel)compo).setIcon(Designer.iconDevice);
+			} else if (country.type == HPNode.MASK_MSB_CONVERTER) {
+				((JLabel)compo).setIcon(Designer.iconConverter);
 			} else if (country.type == HPNode.MASK_RESOURCE_FOLDER_JAR) {
 				((JLabel)compo).setIcon(Designer.iconJarFolder);
 			} else if (country.type == HPNode.MASK_RESOURCE_JAR) {

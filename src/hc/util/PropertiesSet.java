@@ -22,7 +22,7 @@ public class PropertiesSet {
 		lists.removeAllElements();
 		
 		for (int i = 0; i < props.length; i++) {
-			lists.add(props[i].toString());
+			appendItem(props[i].toString());
 		}
 	}
 	
@@ -31,6 +31,9 @@ public class PropertiesSet {
 	}
 	
 	public void appendItem(String itemName){
+		if(lists.contains(itemName)){
+			return;
+		}
 		lists.add(itemName);
 	}
 	

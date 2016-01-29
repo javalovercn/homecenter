@@ -13,7 +13,9 @@ import hc.core.data.DataNatReqConn;
 import hc.core.sip.IPAndPort;
 import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
+import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
+import hc.core.util.ThreadPriorityManager;
 import hc.server.nio.NIOServer;
 import hc.server.relay.RelayActionRead;
 import hc.util.ConnectionManager;
@@ -51,6 +53,7 @@ public class KeepaliveManager {
 		if(IConstant.serverSide){
 			return new HCTimer("ConnBuilderWatcher", 15000, false){
 				final int doubleKeepTime = KEEPALIVE_MS + 5000;
+				@Override
 				public void doBiz(){
 					if(ContextManager.cmStatus == ContextManager.STATUS_SERVER_SELF){
 						setEnable(false);
@@ -62,13 +65,14 @@ public class KeepaliveManager {
 					}
 				}
 				long startTime ;
-				public void setEnable(boolean enable){
+				@Override
+				public void setEnable(final boolean enable){
 					startTime = System.currentTimeMillis();
 					
 //					if(enable == false){
-//						hc.core.L.V=hc.core.L.O?false:LogManager.log("-----------ConnBuilderWatcher DIS able----------");
+//						L.V = L.O ? false : LogManager.log("-----------ConnBuilderWatcher DIS able----------");
 //					}else{
-//						hc.core.L.V=hc.core.L.O?false:LogManager.log("-----------ConnBuilderWatcher EN able----------");
+//						L.V = L.O ? false : LogManager.log("-----------ConnBuilderWatcher EN able----------");
 //					}
 					super.setEnable(enable);
 				}
@@ -82,11 +86,22 @@ public class KeepaliveManager {
     public static String relayServerUPnPIP = "";
     public static String relayUPnPToken;
     
-    public static NIOServer nioRelay;
-    public static DirectServer dServer;
+    protected static NIOServer nioRelay;
+    protected static DirectServer dServer;
     
+    public final static NIOServer getNIORelay(){
+    	CCoreUtil.checkAccess();
+    	
+    	return nioRelay;
+    }
     
-    public static String getStunIP(String remoteIP, int remotePort){
+    public final static DirectServer getDirectServer(){
+    	CCoreUtil.checkAccess();
+    	
+    	return dServer;
+    }
+    
+    public static String getStunIP(final String remoteIP, final int remotePort){
     	byte[] bs = null;
     	Socket socket = null;
     	try{
@@ -96,7 +111,7 @@ public class KeepaliveManager {
 			}
 			bs = new byte[MsgBuilder.UDP_BYTE_SIZE];//DatagramPacketCacher.getInstance().getFree();
 			
-			DataNatReqConn nrn = new DataNatReqConn();
+			final DataNatReqConn nrn = new DataNatReqConn();
 			nrn.setBytes(bs);
 			
 			nrn.setRemotePort(0);
@@ -105,27 +120,30 @@ public class KeepaliveManager {
 			bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = MsgBuilder.DATA_ROOT_UPNP_TEST;		
 //			bs[MsgBuilder.INDEX_PACKET_SPLIT] = MsgBuilder.DATA_PACKET_NOT_SPLIT;
 		
-			OutputStream os = socket.getOutputStream();
-			int len = MsgBuilder.INDEX_MSG_DATA + nrn.getLength();
+			final OutputStream os = socket.getOutputStream();
+			final int len = MsgBuilder.INDEX_MSG_DATA + nrn.getLength();
 			
 			SIPManager.send(os, bs, 0, len);
 			
 			socket.setSoTimeout(6000);
 			
-			InputStream is = socket.getInputStream();
+			final InputStream is = socket.getInputStream();
 			is.read(bs);
 			
-			String natIP = nrn.getRemoteIP();
+			final String natIP = nrn.getRemoteIP();
 			
 			socket.close();
 			
 			return natIP;
-    	}catch (Exception e) {
+    	}catch (final Exception e) {
+    		if(L.isInWorkshop){
+    			e.printStackTrace();
+    		}
 		}
     	return "";
     }
     
-    public static boolean checkDirectPublic(InetAddress iaddress, String ip, boolean useUPnP){    	
+    public static boolean checkDirectPublic(final InetAddress iaddress, String ip, final boolean useUPnP){    	
     	String[] ups = null;
     	ServerSocket upnplisten = null;
     	try{
@@ -143,18 +161,18 @@ public class KeepaliveManager {
 				ip = ups[0];
 			}
 	
-			byte[] bs = new byte[MsgBuilder.UDP_BYTE_SIZE];//DatagramPacketCacher.getInstance().getFree();
+			final byte[] bs = new byte[MsgBuilder.UDP_BYTE_SIZE];//DatagramPacketCacher.getInstance().getFree();
 			if(pingRoot(ip, testDPPort, bs) == false){
 				return false;
 			}
 
-			Socket publicIn = upnplisten.accept();
+			final Socket publicIn = upnplisten.accept();
 			L.V = L.O ? false : LogManager.log("Finding public (UPnP) ip/port");
 			
 			publicIn.close();
 			
 			return true;
-		}catch (Exception e) {
+		}catch (final Exception e) {
 		}finally{
 			if(ups != null){
 				UPnPUtil.removeUPnPMapping(Integer.parseInt(ups[1]));
@@ -162,7 +180,7 @@ public class KeepaliveManager {
 			if(upnplisten != null){
 				try {
 					upnplisten.close();
-				} catch (IOException e1) {
+				} catch (final IOException e1) {
 					e1.printStackTrace();
 				}
 			}
@@ -171,8 +189,8 @@ public class KeepaliveManager {
 		return false;
     }
 
-	private static boolean pingRoot(String echoIP, int udpPort, byte[] bs) {
-		DataNatReqConn nrn = new DataNatReqConn();
+	private static boolean pingRoot(final String echoIP, final int udpPort, final byte[] bs) {
+		final DataNatReqConn nrn = new DataNatReqConn();
 		nrn.setBytes(bs);
 		nrn.setRemotePort(udpPort);
 		nrn.setRemoteIP(echoIP);
@@ -181,7 +199,7 @@ public class KeepaliveManager {
 		bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = MsgBuilder.DATA_ROOT_UPNP_TEST;
 //		bs[MsgBuilder.INDEX_PACKET_SPLIT] = MsgBuilder.DATA_PACKET_NOT_SPLIT;
 
-		Socket socket = (Socket)SIPManager.getSIPContext().buildSocket(0, 
+		final Socket socket = (Socket)SIPManager.getSIPContext().buildSocket(0, 
 				RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServer), 
 				Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServerPort)));
 		if(socket == null){
@@ -199,7 +217,10 @@ public class KeepaliveManager {
 			socket.close();
 			
 			return true;
-		}catch (Exception e) {
+		}catch (final Exception e) {
+			if(L.isInWorkshop){
+				e.printStackTrace();
+			}
 			//因为已经混淆，所以此处无必要。
 			//e.printStackTrace();
 			return false;
@@ -217,8 +238,8 @@ public class KeepaliveManager {
 		//使用情形：有可能网络中断后，又正常。
 		UPnPUtil.hcgd = null;
 		
-		String rootIP = RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServer);
-		int rootPort = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServerPort));
+		final String rootIP = RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServer);
+		final int rootPort = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServerPort));
 
 //		暂停stun IP
 //		L.V = L.O ? false : LogManager.log("try connect homecenter.mobi [" + rootIP + ":" + rootPort + "] for stun IP");
@@ -252,7 +273,7 @@ public class KeepaliveManager {
 	    		//localUPnPIP = publicShowIP; homeWirelessIpPort.ip = publicShowIP
 	    		relayServerUPnPIP = publicShowIP;
 	    		
-	    		boolean b = buildNIOs(ia, networkInterfacename, true);
+	    		final boolean b = buildNIOs(ia, networkInterfacename, true);
 	    		
 	    		relayServerUPnPPort = relayServerLocalPort;
 	    		
@@ -264,15 +285,15 @@ public class KeepaliveManager {
 				if(checkDirectPublic(ia, publicShowIP, true)){
 	    			usingUPnP = true;
 	    			
-	    			boolean b = buildNIOs(ia, networkInterfacename, true);
+	    			final boolean b = buildNIOs(ia, networkInterfacename, true);
 	    			
 	    			//startUPnP(ia, 0 0原为localPort成员变量
-	        		String[] ups = UPnPUtil.startUPnP(ia, 0, 
+	        		final String[] ups = UPnPUtil.startUPnP(ia, 0, 
 	        				getUPnPPortFromP(PropertiesManager.p_DirectUPnPExtPort), TokenManager.getToken());
 	        		homeWirelessIpPort.port = Integer.parseInt(ups[1]);
 	        		homeWirelessIpPort.ip = ups[0];
 
-	        		String[] relayUPnP = UPnPUtil.startUPnP(ia, relayServerLocalPort, 
+	        		final String[] relayUPnP = UPnPUtil.startUPnP(ia, relayServerLocalPort, 
 	        				getUPnPPortFromP(PropertiesManager.p_RelayServerUPnPExtPort), TokenManager.getRelayToken());
 	        		relayServerUPnPPort = Integer.parseInt(relayUPnP[1]);
 	        		relayServerUPnPIP = relayUPnP[0];
@@ -291,8 +312,8 @@ public class KeepaliveManager {
 		return buildRelay();
     }
 
-	private static int getUPnPPortFromP(String extPort) {
-		String directUPnPExtPort = PropertiesManager.getValue(extPort);
+	private static int getUPnPPortFromP(final String extPort) {
+		final String directUPnPExtPort = PropertiesManager.getValue(extPort);
 		if(directUPnPExtPort == null){
 			return 0;
 		}else{
@@ -302,7 +323,7 @@ public class KeepaliveManager {
 	
 	private static boolean buildRelay() {
 		//完全Relay
-		Vector relays = (Vector)RootServerConnector.getNewRelayServers(IConstant.uuid, TokenManager.getToken());
+		Vector relays = (Vector)RootServerConnector.getNewRelayServers(IConstant.getUUID(), TokenManager.getToken());
 		if(relays == null || relays.size() == 0){
 			LogManager.errToLog("No HomeCenter root relay server.");
 			RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_NO_ROOT_RELAY_Err_STR);
@@ -317,12 +338,12 @@ public class KeepaliveManager {
 
 		//测速，仅出现多个中继服务器时
 		if(size > 1){
-			UDPTestThread[] tts = new UDPTestThread[size];
-			Vector speedSortedRelays = new Vector();
+			final UDPTestThread[] tts = new UDPTestThread[size];
+			final Vector speedSortedRelays = new Vector();
 			for (int i = 0; i < size; i++) {
-				String[] ipAndPorts = (String[])relays.elementAt(i);
+				final String[] ipAndPorts = (String[])relays.elementAt(i);
 				
-				UDPTestThread tt = new UDPTestThread(speedSortedRelays, ipAndPorts);
+				final UDPTestThread tt = new UDPTestThread(speedSortedRelays, ipAndPorts);
 				tt.start();
 				tts[i] = tt;
 			}
@@ -337,12 +358,12 @@ public class KeepaliveManager {
 						break;
 					}
 				}
-			}catch (Exception e) {
+			}catch (final Exception e) {
 			}
 			for (int i = 0; i < tts.length; i++) {
 				try{
 					tts[i].interrupt();
-				}catch (Throwable e) {
+				}catch (final Throwable e) {
 				}
 			}
 			
@@ -356,9 +377,9 @@ public class KeepaliveManager {
 		for (int i = 0; i < size; i++) {
 			SIPManager.setOnRelay(true);
 
-			String[] ipAndPorts = (String[])relays.elementAt(i);
-			String ip = ipAndPorts[0];
-			String port = ipAndPorts[1];
+			final String[] ipAndPorts = (String[])relays.elementAt(i);
+			final String ip = ipAndPorts[0];
+			final String port = ipAndPorts[1];
 
 			//原为backPort
 			L.V = L.O ? false : LogManager.log("try connect relay server " 
@@ -376,7 +397,7 @@ public class KeepaliveManager {
 		return false;
 	}
 
-	private static boolean buildNIOs(InetAddress ia, String networkName, boolean buildNIO) {
+	private static boolean buildNIOs(final InetAddress ia, final String networkName, final boolean buildNIO) {
 //		try {
 //			ia = InetAddress.getByName("0.0.0.0");
 //		} catch (UnknownHostException e) {
@@ -395,7 +416,7 @@ public class KeepaliveManager {
 			dServer = null;
 			try{
 				Thread.sleep(200);
-			}catch (Exception e) {
+			}catch (final Exception e) {
 			}
     	}
 		dServer = new DirectServer(ia, networkName);
@@ -404,14 +425,15 @@ public class KeepaliveManager {
 		return true;
 	}
     
-    public static final HCTimer keepalive = new HCTimer("KeepAlive", KEEPALIVE_MS, false, true){
+    public static final HCTimer keepalive = new HCTimer("KeepAlive", KEEPALIVE_MS, false, true, ThreadPriorityManager.KEEP_ALIVE_PRIORITY){
     	private static final int ErrorNeedNatDelay = 30 * 1000;//比如连接Socket出错，而非Http。两分钟
     	private final int lineWatcherMS = RootConfig.getInstance().getIntProperty(RootConfig.p_enableLineWatcher);//60 * 1000 * 5;
     	private long sendLineMS;
     	private boolean isSendLive = false;
-    	private byte[] zeroUDPBS = new byte[0];
+    	private final byte[] zeroUDPBS = new byte[0];
 		
-		public void doBiz() {
+		@Override
+		public final void doBiz() {
 			final int mode = ContextManager.cmStatus;
 	    	if(mode == ContextManager.STATUS_EXIT){
 	    		return;
@@ -421,7 +443,7 @@ public class KeepaliveManager {
 	    		//执行重连前置逻辑
 	    		ConnectionManager.startBeforeConnectBiz();
 	    		
-				boolean isConn = reconnect();
+				final boolean isConn = reconnect();
 				if(isConn == false){
 //					if(getIntervalMS() == KEEPALIVE_MS){
 						//改为长时间，扫描网络状态
@@ -477,7 +499,7 @@ public class KeepaliveManager {
 						}else{
 							contextInstance.send(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_RELAY);
 						}
-					}catch (Exception e) {
+					}catch (final Exception e) {
 						SIPManager.notifyRelineon(false);
 					}
 					sendLineMS = System.currentTimeMillis();
@@ -486,12 +508,12 @@ public class KeepaliveManager {
 			}
 	    	
 		}
-		boolean isSendUDPCheckAlive = false;
-		public void setEnable(boolean enable){
+		@Override
+		public void setEnable(final boolean enable){
 			if(enable == false){
-				hc.core.L.V=hc.core.L.O?false:LogManager.log("Disable keepalive");
+				L.V = L.O ? false : LogManager.log("Disable keepalive");
 			}else{
-				hc.core.L.V=hc.core.L.O?false:LogManager.log("Enable keepalive");
+				L.V = L.O ? false : LogManager.log("Enable keepalive");
 			}
 			super.setEnable(enable);
 		}
@@ -502,19 +524,20 @@ class UDPTestThread extends Thread{
 	Vector sorted;
 	String[] updInfo;
 	
-	public UDPTestThread(Vector sorted, String[] updInfo) {
+	public UDPTestThread(final Vector sorted, final String[] updInfo) {
 		this.sorted = sorted;
 		this.updInfo = updInfo;
 	}
 	
+	@Override
 	public void run(){
 		final String udpTestIP = updInfo[3];
 		final String udpTestPort = updInfo[4];
 		
 		try{
 			final InetAddress inetAddr = InetAddress.getByName(udpTestIP);
-			InetSocketAddress isocket = new InetSocketAddress(inetAddr, Integer.parseInt(udpTestPort));
-			DatagramSocket udpSocket = new DatagramSocket();
+			final InetSocketAddress isocket = new InetSocketAddress(inetAddr, Integer.parseInt(udpTestPort));
+			final DatagramSocket udpSocket = new DatagramSocket();
 			udpSocket.connect(isocket);
 			
 			final byte[] helloServer = {'h', 'e', 'l', 'l', 'o', ',', 's','e','r', 'v', 'e', 'r'};
@@ -524,7 +547,7 @@ class UDPTestThread extends Thread{
 			for (int i = MsgBuilder.LEN_UDP_CONTROLLER_HEAD; i < bf.length; i++) {
 				bf[i] = helloServer[i - MsgBuilder.LEN_UDP_CONTROLLER_HEAD];
 			}
-			DatagramPacket dp = new DatagramPacket(bf, size);
+			final DatagramPacket dp = new DatagramPacket(bf, size);
 			udpSocket.send(dp);
 			
 			//receive和send不能在同一个线程中，
@@ -547,7 +570,7 @@ class UDPTestThread extends Thread{
 					udpSocket.close();
 				}
 			}
-		}catch (Exception e) {
+		}catch (final Exception e) {
 		}
 	}
 }

@@ -3,9 +3,10 @@ package hc.core;
 import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.LogManager;
+import hc.core.util.ThreadPriorityManager;
 
 public class RootTagEventHCListener extends IEventHCListener{
-	public byte getEventTag() {
+	public final byte getEventTag() {
 		return MsgBuilder.E_TAG_ROOT;
 	}
 	
@@ -23,11 +24,11 @@ public class RootTagEventHCListener extends IEventHCListener{
 	static{
 		//发送UDP_ADDRESS_REG包，进行转发器的地址注册，供正常数据转发时所需之地址
 		EventCenter.addListener(new IEventHCListener() {
-			public byte getEventTag() {
+			public final byte getEventTag() {
 				return MsgBuilder.E_TAG_ROOT_UDP_ADDR_REG;
 			}
 			
-			public boolean action(byte[] bs) {
+			public final boolean action(byte[] bs) {
 				//有可能收到，有可能收不到。不作任何处理。仅供UDP中继之用
 //				L.V = L.O ? false : LogManager.log("Receive E_TAG_ROOT_UDP_ADDR_REG");
 				final boolean isRight = UDPPacketResender.checkUDPBlockData(bs, MsgBuilder.UDP_MTU_DATA_MIN_SIZE);
@@ -42,7 +43,7 @@ public class RootTagEventHCListener extends IEventHCListener{
 		
 	}
 	
-	public boolean action(final byte[] bs) {
+	public final boolean action(final byte[] bs) {
 		final byte subTag = bs[MsgBuilder.INDEX_CTRL_SUB_TAG];
 //		L.V = L.O ? false : LogManager.log("Root Event , sub tag:" + subTag);
 		if(subTag == MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_RELAY){
@@ -99,7 +100,7 @@ public class RootTagEventHCListener extends IEventHCListener{
 				
 				try{
 					//以免某端完全先于对端发送完可通达性包，从而无法实现验证可通达性
-					Thread.sleep(500);
+					Thread.sleep(ThreadPriorityManager.UI_DELAY_MOMENT);
 				}catch (Exception e) {
 					
 				}

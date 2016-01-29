@@ -21,7 +21,7 @@ public class JRubyErrorHCTimer extends HCTimer {
 	}
 	
 	@Override
-	public void doBiz() {
+	public final void doBiz() {
 		errRunInfo.setBackground(testBtn.getBackground());
 		errRunInfo.setForeground(testBtn.getForeground());
 		

@@ -2,7 +2,11 @@ package hc.core;
 
 
 public abstract class IEventHCListener {
-	protected boolean enableSameEventTag = false;
+	public boolean enableSameEventTag = false;
+	
+	public final boolean isEnableSameEventTag(){
+		return enableSameEventTag;
+	}
 	
 	public IEventHCListener() {
 	}

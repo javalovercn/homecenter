@@ -2,20 +2,25 @@ package hc.server.ui.design;
 
 import hc.App;
 import hc.UIActionListener;
-import hc.core.ConditionWatcher;
+import hc.core.ContextManager;
 import hc.core.IConstant;
-import hc.core.IWatcher;
+import hc.core.L;
+import hc.core.cache.CacheManager;
+import hc.core.util.LogManager;
+import hc.core.util.StringUtil;
 import hc.res.ImageSrc;
 import hc.server.AbstractDelayBiz;
-import hc.server.DelayServer;
 import hc.server.FileSelector;
+import hc.server.HCActionListener;
 import hc.server.HCTablePanel;
 import hc.server.LinkMenuManager;
+import hc.server.ProcessingWindowManager;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
+import hc.server.util.ContextSecurityConfig;
 import hc.util.HttpUtil;
 import hc.util.IBiz;
 import hc.util.PropertiesManager;
@@ -65,21 +70,22 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
 public class LinkProjectPanel extends ProjectListPanel{
+	final ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	final String saveAndApply = (String) ResourceUtil.get(1017) + " + " + (String) ResourceUtil.get(9041);
 
 	final HCTablePanel tablePanel;
-	final JButton designBut, importBut, editBut, removeBut, upBut, downBut;
+	final JButton designBut, rebindBut, importBut, editBut, removeBut, upBut, downBut;
 	final Vector<LinkEditData> delList = new Vector<LinkEditData>(0);
 	boolean isChanged = false;
 	boolean isCancelOp = false;
-	public static final String OP_NEXT_START_UP = "nextStartUp";
-	public static final String OP_ASK = "ask";
-	public static final String OP_IMMEDIATE = "immediate";
+	public static final String OP_NEXT_START_UP = (String)ResourceUtil.get(9135);
+	public static final String OP_ASK = (String)ResourceUtil.get(9136);
+	public static final String OP_IMMEDIATE = (String)ResourceUtil.get(9137);
 	
 	final JRadioButton rb_startup = new JRadioButton(OP_NEXT_START_UP);
 	final JRadioButton rb_ask = new JRadioButton(OP_ASK);
 	final JRadioButton rb_imme = new JRadioButton(OP_IMMEDIATE);
-	final JCheckBox ch_autoUpgrade = new JCheckBox("auto download and upgrade project");
+	final JCheckBox ch_autoUpgrade = new JCheckBox((String)ResourceUtil.get(9138));
 	ListSelectionListener listSelectListener;
 	
 	public static final String getNewLinkedInProjOp(){
@@ -92,8 +98,9 @@ public class LinkProjectPanel extends ProjectListPanel{
 	}
 	
 	private void transRootToOtherActive(){
-		for (int i = 0; i < LinkProjectManager.MAX_LINK_PROJ_NUM; i++) {
-			LinkEditData led = (LinkEditData)data[i][IDX_OBJ_STORE];
+		final int length = data.size();
+		for (int i = 0; i < length; i++) {
+			final LinkEditData led = (LinkEditData)data.elementAt(i)[IDX_OBJ_STORE];
 			if(led != null){
 				if(led.lps.isActive()){
 					led.lps.setRoot(true);
@@ -105,8 +112,9 @@ public class LinkProjectPanel extends ProjectListPanel{
 	}
 	
 	private LinkProjectStore searchRoot(){
-		for (int i = 0; i < LinkProjectManager.MAX_LINK_PROJ_NUM; i++) {
-			LinkEditData led = (LinkEditData)data[i][IDX_OBJ_STORE];
+		final int size = data.size();
+		for (int i = 0; i < size; i++) {
+			final LinkEditData led = (LinkEditData)data.elementAt(i)[IDX_OBJ_STORE];
 			if(led != null){
 				if(led.lps.isRoot()){
 					return led.lps;
@@ -118,13 +126,16 @@ public class LinkProjectPanel extends ProjectListPanel{
 		return null;
 	}
 	final JPanel contentPane;
-	final JButton okBut;
-	final JButton jbCancle;
-	final UIActionListener jbOKAction;
-	final UIActionListener cancelAction;
+	final JButton saveAndApplyBtn;
+	boolean isOpenApply = false;
+	boolean isNotifyModi = false;
+
+	final JButton exitBtn;
+	final UIActionListener saveAction;
+	final UIActionListener exitAction;
 	final Window dialog;
 	final Component relativeTo;
-	public LinkProjectPanel(JFrame owner, final boolean newFrame, final Component relativeTo) {
+	public LinkProjectPanel(final JFrame owner, final boolean newFrame, final Component relativeTo) {
 		super();
 		final String title = (String)ResourceUtil.get(9059);
 		dialog = App.buildCloseableWindow(newFrame, owner, title, true);
@@ -138,30 +149,49 @@ public class LinkProjectPanel extends ProjectListPanel{
 		ImageIcon designIco = null;
 		try {
 			designIco = new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/designer_22.png")));
-		} catch (IOException e2) {
+		} catch (final IOException e2) {
 			e2.printStackTrace();
 		}    					
 
 		designBut = new JButton((String)ResourceUtil.get(9014), designIco);
-		designBut.setToolTipText("<html>load selected project to designer." +
-				"<br>all modifications will be discarded, please click '<strong>" + saveAndApply + "</strong>' first.</html>");
+		final String designTip = StringUtil.replace((String)ResourceUtil.get(9140), "{apply}", saveAndApply);
+		designBut.setToolTipText("<html>" + designTip + "</html>");
+		rebindBut = new JButton((String)ResourceUtil.get(9139), Designer.loadImg("device_24.png"));
+		final BindButtonRefresher bindBtnRefresher = new BindButtonRefresher() {
+			@Override
+			public void disableManageButtons() {
+				rebindBut.setEnabled(false);
+			}
+			
+			@Override
+			public void checkHARButtonsEnable() {
+				Designer.checkBindEnable(rebindBut);
+			}
+		};
+		Designer.buildRebindButton(rebindBut, threadPoolToken, bindBtnRefresher, self);
+		
 		upBut = new JButton((String)ResourceUtil.get(9019), new ImageIcon(ImageSrc.UP_SMALL_ICON));
 		downBut = new JButton((String)ResourceUtil.get(9020), new ImageIcon(ImageSrc.DOWN_SMALL_ICON));
 		removeBut = new JButton((String)ResourceUtil.get(9018), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
-		removeBut.setToolTipText("<html>Note : delete project in deploy area, not in editing area." +
-				"<br>the current editing project may be modified, so it is exist even if you click me.</html>");
+		removeBut.setToolTipText("<html>" + (String)ResourceUtil.get(9141) + "</html>");
 		importBut = new JButton((String)ResourceUtil.get(9016) + "▼", new ImageIcon(ImageSrc.ADD_SMALL_ICON));
-		importBut.setToolTipText("add HAR project.");
-		editBut = new JButton((String)ResourceUtil.get(9068), new ImageIcon(ImageSrc.MODIFY_SMALL_ICON));
-		editBut.setToolTipText("modify the link name and comment of selected project.");
-		Object[] defaultRow = {"", null};
+		importBut.setToolTipText((String)ResourceUtil.get(9142));
+		importBut.requestFocus();
+		{
+			String editBtnText = (String)ResourceUtil.get(9017);
+			if(ResourceUtil.isJ2SELimitFunction()){
+				editBtnText += " | " + (String)ResourceUtil.get(9094);
+			}
+			editBut = new JButton(editBtnText , new ImageIcon(ImageSrc.MODIFY_SMALL_ICON));
+		}
+		editBut.setToolTipText((String)ResourceUtil.get(9143));
 		final AbstractTableModel tableModel = new AbstractTableModel() {
 			@Override
-			public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+			public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
 				if(columnIndex == COL_NO){
-					data[rowIndex][columnIndex] = aValue;
+					data.elementAt(rowIndex)[columnIndex] = aValue;
 				} else {
-					final LinkEditData led = (LinkEditData)data[rowIndex][IDX_OBJ_STORE];
+					final LinkEditData led = (LinkEditData)data.elementAt(rowIndex)[IDX_OBJ_STORE];
 					final LinkProjectStore lps = led.lps;
 					if(lps == null){
 						return;
@@ -187,6 +217,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 							lps.setRoot((Boolean)aValue);
 							lps.setActive(true);
 						}
+						notifyNeedToSave();
 						led.op = (LinkProjectManager.STATUS_MODIFIED);
 						
 						tablePanel.table.repaint();
@@ -211,6 +242,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 								transRootToOtherActive();
 							}
 						}
+						notifyNeedToSave();
 						tablePanel.table.repaint();
 						led.op = (LinkProjectManager.STATUS_MODIFIED);
 					}else if(columnIndex == COL_PROJ_LINK_NAME){
@@ -224,11 +256,11 @@ public class LinkProjectPanel extends ProjectListPanel{
 			}
 			
 			@Override
-			public void removeTableModelListener(TableModelListener l) {
+			public void removeTableModelListener(final TableModelListener l) {
 			}
 			
 			@Override
-			public boolean isCellEditable(int rowIndex, int columnIndex) {
+			public boolean isCellEditable(final int rowIndex, final int columnIndex) {
 				if(rowIndex < dataRowNum 
 						&& (columnIndex == COL_PROJ_ACTIVE 
 						  ||columnIndex == COL_IS_ROOT)){
@@ -238,15 +270,15 @@ public class LinkProjectPanel extends ProjectListPanel{
 			}
 			
 			@Override
-			public Object getValueAt(int rowIndex, int columnIndex) {
+			public Object getValueAt(final int rowIndex, final int columnIndex) {
 				if(rowIndex >= dataRowNum){
 					return null;
 				}
 
 				if(columnIndex == COL_NO){
-					return data[rowIndex][columnIndex];
+					return data.elementAt(rowIndex)[columnIndex];
 				} else {
-					final LinkEditData led = (LinkEditData)data[rowIndex][IDX_OBJ_STORE];
+					final LinkEditData led = (LinkEditData)data.elementAt(rowIndex)[IDX_OBJ_STORE];
 					final LinkProjectStore lps = led==null?null:led.lps;
 					if(columnIndex == COL_IS_ROOT){
 						return (lps==null)?Boolean.FALSE:(lps.isRoot());
@@ -270,11 +302,11 @@ public class LinkProjectPanel extends ProjectListPanel{
 			
 			@Override
 			public int getRowCount() {
-				return data.length;
+				return data.size();
 			}
 			
 			@Override
-			public String getColumnName(int columnIndex) {
+			public String getColumnName(final int columnIndex) {
 				return colNames[columnIndex].toString();
 			}
 			
@@ -284,7 +316,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 			}
 			
 			@Override
-			public Class<?> getColumnClass(int columnIndex) {
+			public Class<?> getColumnClass(final int columnIndex) {
 				switch (columnIndex) {
                 case COL_IS_ROOT:
                     return Boolean.class;
@@ -296,37 +328,38 @@ public class LinkProjectPanel extends ProjectListPanel{
 			}
 			
 			@Override
-			public void addTableModelListener(TableModelListener l) {
+			public void addTableModelListener(final TableModelListener l) {
 			}
 		};
 		
 		dataRowNum = lpsVector.size();
 		
-		tablePanel = new HCTablePanel(tableModel, data, colNames, defaultRow, dataRowNum, 
+		tablePanel = new HCTablePanel(tableModel, data, colNames, dataRowNum, 
 				upBut, downBut, removeBut, importBut, editBut,
 				//upOrDownMovingBiz
 				new AbstractDelayBiz(null){
 					@Override
-					public void doBiz() {
+					public final void doBiz() {
 						isChanged = true;
+						notifyNeedToSave();
 					}},
 				//Remove
 				new AbstractDelayBiz(null) {
 					@Override
-					public void doBiz() {
+					public final void doBiz() {
 						final AbstractDelayBiz selfBiz = this;
 						final Object[] rows = (Object[])getPara();
-						JPanel askPanel = new JPanel();
-						askPanel.add(new JLabel("Are you sure to remove project?", App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEFT));
-						App.showCenterPanel(askPanel, 0, 0, "Confirm Delete?", true, null, null, new ActionListener() {
+						final JPanel askPanel = new JPanel();
+						askPanel.add(new JLabel((String)ResourceUtil.get(9144), App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEFT));
+						App.showCenterPanel(askPanel, 0, 0, (String)ResourceUtil.get(9145), true, null, null, new HCActionListener(new Runnable() {
 							@Override
-							public void actionPerformed(ActionEvent e) {
+							public void run() {
 								final LinkEditData led = (LinkEditData)rows[IDX_OBJ_STORE];
 								final LinkProjectStore lps = led.lps;
 								
 								if(lps.isRoot()){
 									for (int i = 0; i < dataRowNum; i++) {
-										final LinkEditData ledzero = (LinkEditData)data[i][IDX_OBJ_STORE];
+										final LinkEditData ledzero = (LinkEditData)data.elementAt(i)[IDX_OBJ_STORE];
 										if(lps != ledzero.lps && ledzero.lps.isActive()){
 											ledzero.lps.setRoot(true);
 											break;
@@ -336,33 +369,40 @@ public class LinkProjectPanel extends ProjectListPanel{
 								
 								delProjInList(led);
 								
-								boolean[] back = {true};
+								final boolean[] back = {true};
+								selfBiz.setPara(back);
+								notifyNeedToSave();
+							}
+						}, threadPoolToken), new ActionListener() {
+							@Override
+							public void actionPerformed(final ActionEvent e) {
+								final boolean[] back = {false};
 								selfBiz.setPara(back);
 							}
-						}, null, self, true, false, removeBut, false, false);
+						}, self, true, false, removeBut, false, false);
 					}
 				}, 
 				//import
 				new AbstractDelayBiz(null) {
 					@Override
-					public void doBiz() {
+					public final void doBiz() {
 						final AbstractDelayBiz selfBiz = this;
 						
 						final JPopupMenu pop = new JPopupMenu();
-						JMenuItem addFromRemote = new JMenuItem("from remote URL...");
-						JMenuItem addFromLocal = new JMenuItem("from local disk...");
+						final JMenuItem addFromLocal = new JMenuItem((String)ResourceUtil.get(9146));
+						final JMenuItem addFromRemote = new JMenuItem((String)ResourceUtil.get(9147));
 						
 						pop.addPopupMenuListener(new PopupMenuListener() {
 							@Override
-							public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+							public void popupMenuWillBecomeVisible(final PopupMenuEvent e) {
 							}
 							
 							@Override
-							public void popupMenuWillBecomeInvisible(PopupMenuEvent e) {
+							public void popupMenuWillBecomeInvisible(final PopupMenuEvent e) {
 							}
 							
 							@Override
-							public void popupMenuCanceled(PopupMenuEvent e) {
+							public void popupMenuCanceled(final PopupMenuEvent e) {
 								selfBiz.setPara(Boolean.FALSE);
 							}
 						});
@@ -370,20 +410,16 @@ public class LinkProjectPanel extends ProjectListPanel{
 						pop.add(addFromLocal);
 						pop.add(addFromRemote);
 						
-						addFromRemote.addActionListener(new ActionListener() {
-							public void actionPerformed(ActionEvent e) {
-								DelayServer.getInstance().addDelayBiz(new AbstractDelayBiz(null) {
-									@Override
-									public void doBiz() {
-										doAddOp();
-									}
-								});
+						addFromRemote.addActionListener(new HCActionListener(new Runnable() {
+							@Override
+							public void run() {
+								doAddOp();
 							}
-							public void doAddOp() {
+							void doAddOp() {
 								String url = null;
 								try{
-									url = JOptionPane.showInputDialog(self, "project download/upgrade URL : ");
-								}catch (Exception ex) {
+									url = App.showInputDialog(self, ResourceUtil.get(9148), "");
+								}catch (final Exception ex) {
 								}finally{
 									if(url == null){
 										selfBiz.setPara(Boolean.FALSE);
@@ -391,53 +427,30 @@ public class LinkProjectPanel extends ProjectListPanel{
 									}
 								}
 								
-								File fileHar = LinkProjectManager.getTempFileName(Designer.HAR_EXT);
-								Properties had = new Properties();
+								final File fileHar = ResourceUtil.getTempFileName(Designer.HAR_EXT);
+								final Properties had = new Properties();
 								try{
 									String strharurl = null;
 									//支持har和had下载
-									if(url.endsWith(Designer.HAR_EXT)){
+									final String lowerCaseURL = url.toLowerCase();
+									if(lowerCaseURL.startsWith("http") == false){
+										throw new Exception("it must be download file.");
+									}
+									if(lowerCaseURL.endsWith(Designer.HAR_EXT)){
 										strharurl = url;
-									}else{
+									}else if(lowerCaseURL.endsWith(Designer.HAD_EXT)){
 										LinkProjectManager.loadHAD(url, had);
 										strharurl = had.getProperty(HCjad.HAD_HAR_URL, HCjad.convertToExtHar(url));
+									}else{
+										throw new Exception("invaild url, it must be har, had file.");
 									}
 									PropertiesManager.addDelFile(fileHar);
 									
-									String hadmd5 = had.getProperty(HCjad.HAD_HAR_MD5, "");
-									
-									final Window[] waiting = {null};
-									
-									final boolean[] done = {false};
-									ConditionWatcher.addWatcher(new IWatcher() {
-										{
-											App.showCenterMessageOnTop(self, true, "downloading...", waiting);
-										}
-										@Override
-										public boolean watch() {
-											if(done[0] == true && waiting[0] != null){
-												waiting[0].dispose();
-												return true;
-											}else{
-												return false;
-											}
-										}
-										@Override
-										public void setPara(Object p) {
-										}
-										
-										@Override
-										public boolean isNotCancelable() {
-											return false;
-										}
-										
-										@Override
-										public void cancel() {
-										}
-									});
-									boolean succ = HttpUtil.download(fileHar, new URL(strharurl));
-									done[0] = true;
+									final String hadmd5 = had.getProperty(HCjad.HAD_HAR_MD5, "");
+									ProcessingWindowManager.showCenterMessage("downloading...");
+									final boolean succ = HttpUtil.download(fileHar, new URL(strharurl));
 									if(succ == false){
+										ProcessingWindowManager.disposeProcessingWindow();
 										throw new Exception("http connection error");
 									}
 									
@@ -447,31 +460,37 @@ public class LinkProjectPanel extends ProjectListPanel{
 							        }else{
 							        	throw new Exception("md5 error, try after a minute");
 							        }
-								}catch (Exception ex) {
-									JOptionPane.showConfirmDialog(self, "Fail download, Exception : " + ex.toString(), "Fail download", JOptionPane.OK_OPTION);
+								}catch (final Exception ex) {
+									ex.printStackTrace();
+									App.showConfirmDialog(self, "Fail download, Exception : " + ex.toString(), "Fail download", JOptionPane.OK_OPTION);
 									selfBiz.setPara(Boolean.FALSE);
 									return;
 								}
 							}
-						});
-						addFromLocal.addActionListener(new ActionListener() {
+						}, threadPoolToken));
+						addFromLocal.addActionListener(new HCActionListener(new Runnable() {
 							@Override
-							public void actionPerformed(ActionEvent e) {
-								File file = FileSelector.selectImageFile(importBut, FileSelector.HAR_FILTER, true);
+							public void run() {
+								final File file = FileSelector.selectImageFile(importBut, FileSelector.HAR_FILTER, true);
 								addProjFromLocal(self, selfBiz, file);
 							}
-						});
+						}, threadPoolToken));
 						
 						isCancelOp = false;
-						pop.show(importBut, importBut.getWidth() - pop.getPreferredSize().width, importBut.getHeight());
-						pop.updateUI();//在Window JRE 6环境下，需此行才正常，否则出现白框
+						App.invokeLaterUI(new Runnable() {
+							@Override
+							public void run() {
+								pop.show(importBut, importBut.getWidth() - pop.getPreferredSize().width, importBut.getHeight());
+								pop.updateUI();//在Window JRE 6环境下，需此行才正常，否则出现白框
+							}
+						});
 						
 						while(true){
 							try{
 								Thread.sleep(200);
-							}catch (Exception e) {
+							}catch (final Exception e) {
 							}
-							Object back = selfBiz.getPara();
+							final Object back = selfBiz.getPara();
 							if(back != null){
 								if(back instanceof Boolean){
 									selfBiz.setPara(null);
@@ -484,26 +503,29 @@ public class LinkProjectPanel extends ProjectListPanel{
 							}
 						}
 					}
-				}, true);
+				}, true, COL_NUM);
 		final DefaultTableCellRenderer centerCellRender = new DefaultTableCellRenderer(){
-	        public Component getTableCellRendererComponent(
-	                JTable table, Object value, boolean isSelected,
-	                boolean hasFocus, int row, int column) {
+	        @Override
+			public Component getTableCellRendererComponent(
+	                final JTable table, final Object value, final boolean isSelected,
+	                final boolean hasFocus, final int row, final int column) {
 	        	setHorizontalAlignment(CENTER);
 		        return super.getTableCellRendererComponent(table, value,
                         isSelected, hasFocus, row, column);
 			}
         };
         
-        ListSelectionModel selectModel = tablePanel.table.getSelectionModel();
+        final ListSelectionModel selectModel = tablePanel.table.getSelectionModel();
         selectModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         listSelectListener = new ListSelectionListener() {
 			@Override
-			public void valueChanged(ListSelectionEvent e) {
+			public void valueChanged(final ListSelectionEvent e) {
 				final int selectedRow = tablePanel.table.getSelectedRow();
 				if(selectedRow >= 0){
-					LinkEditData led = (LinkEditData)data[selectedRow][IDX_OBJ_STORE];
+					final LinkEditData led = (LinkEditData)data.elementAt(selectedRow)[IDX_OBJ_STORE];
 					designBut.setEnabled(led != null && led.status == LinkProjectManager.STATUS_DEPLOYED);
+				}else{
+					designBut.setEnabled(false);
 				}
 			}
 		};
@@ -513,22 +535,32 @@ public class LinkProjectPanel extends ProjectListPanel{
 
     	tablePanel.table.getColumnModel().getColumn(COL_NO).setCellRenderer(centerCellRender);
         tablePanel.table.getColumnModel().getColumn(COL_VER).setCellRenderer(centerCellRender);
+        tablePanel.table.getColumnModel().getColumn(COL_PROJ_DESC).setCellRenderer(new DefaultTableCellRenderer(){
+	        @Override
+			public Component getTableCellRendererComponent(
+	                final JTable table, final Object value, final boolean isSelected,
+	                final boolean hasFocus, final int row, final int column) {
+	        	setToolTipText((String)value);
+		        return super.getTableCellRendererComponent(table, value,
+                        isSelected, hasFocus, row, column);
+			}
+        });
         
         initTable(tablePanel.table);
 		
-		editBut.addActionListener(new ActionListener() {
+		editBut.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				LinkEditData led = (LinkEditData)data[tablePanel.table.getSelectedRow()][IDX_OBJ_STORE];
-				LinkProjectStore lps = led.lps;
+			public void run() {
+				final LinkEditData led = (LinkEditData)data.elementAt(tablePanel.table.getSelectedRow())[IDX_OBJ_STORE];
+				final LinkProjectStore lps = led.lps;
 				
-				LinkNamePanel panel = showInputLinkName(self, lps.getLinkName(), lps.getProjectRemark(), editBut);
+				final LinkNamePanel panel = showInputLinkName(self, lps.getLinkName(), lps.getProjectRemark(), editBut, lps);
 				if(checkIsCancle(panel)){
 					return;
 				}
 				final String newLinkName = panel.linkNameField.getText();
 				final String newComment = panel.projRemarkField.getText();
-				if(newLinkName.equals(lps.getLinkName())
+				if((panel.isModiPermission == false) && newLinkName.equals(lps.getLinkName())
 						&& newComment.equals(lps.getProjectRemark())){
 					//相同或取消
 				}else{
@@ -536,14 +568,39 @@ public class LinkProjectPanel extends ProjectListPanel{
 
 					lps.setLinkName(newLinkName);
 					lps.setProjectRemark(newComment);
-					
+					panel.csc.saveToMap();
+					ContextSecurityConfig.copyMapsToLPS(lps, panel.csc, true);
+
 					tablePanel.table.updateUI();
+					
+					notifyNeedToSave();
 				}
 			}
-		});
-		JPanel buttonsList = new JPanel();
+		}, threadPoolToken));
+		final JPanel buttonsList = new JPanel();
 		buttonsList.setLayout(new GridLayout(1, 6, ClientDesc.hgap, ClientDesc.vgap));
-		buttonsList.add(designBut);
+		if(ResourceUtil.isJ2SELimitFunction()){
+			buttonsList.add(designBut);
+		}
+		
+		//由于设计器可堆栈出本界面，而本界面又可堆栈出Bind窗口，在此情形下，会导致画面难以管理，故仅限Android
+		if(ResourceUtil.isAndroidServerPlatform()){
+			rebindBut.setEnabled(false);
+			buttonsList.add(rebindBut);//仅限android
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					while(ServerUIUtil.isStarted() == false){
+						try{
+							Thread.sleep(500);
+						}catch (final Exception e) {
+						}
+					}
+					Designer.checkBindEnable(rebindBut);
+				}
+			}, threadPoolToken);
+		}
+		
 		buttonsList.add(upBut);
 		buttonsList.add(downBut);
 		buttonsList.add(removeBut);
@@ -555,154 +612,211 @@ public class LinkProjectPanel extends ProjectListPanel{
 		contentPane.add(scrollpane, BorderLayout.CENTER);
 		contentPane.add(buttonsList, BorderLayout.NORTH);
 		{
-			final JLabel comp = new JLabel("choose apply mode :");
-			JPanel panel = new JPanel(new BorderLayout());
-			final JPanel group = new JPanel(new FlowLayout());
+			final JLabel comp = new JLabel((String)ResourceUtil.get(9149));
+			final JPanel panel = new JPanel(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
+			final JPanel group = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
 			{
-				String op = getNewLinkedInProjOp();
+				final String op = getNewLinkedInProjOp();
 				
 				final ButtonGroup bg = new ButtonGroup();
-				rb_startup.setToolTipText("new version project(s) will apply at next start up.");
+				
+				final ItemListener itemListener = new ItemListener() {
+					@Override
+					public void itemStateChanged(final ItemEvent e) {
+						notifyNeedToSave();
+					}
+				};
+				
+				rb_startup.setToolTipText((String)ResourceUtil.get(9150));
 				bg.add(rb_startup);
 				group.add(rb_startup);
 				if(op.equals(OP_NEXT_START_UP)){
 					rb_startup.setSelected(true);
 				}
 				
-				rb_ask.setToolTipText("ask whether apply immediately or not");
+				rb_ask.setToolTipText((String)ResourceUtil.get(9151));
 				bg.add(rb_ask);
 				group.add(rb_ask);
 				if(op.equals(OP_ASK)){
 					rb_ask.setSelected(true);
 				}
 				
-				rb_imme.setToolTipText("apply immediately automatically.");
+				rb_imme.setToolTipText((String)ResourceUtil.get(9152));
 				bg.add(rb_imme);
 				group.add(rb_imme);
 				if(op.equals(OP_IMMEDIATE)){
 					rb_imme.setSelected(true);
 				}
 				
+				rb_startup.addItemListener(itemListener);
+				rb_ask.addItemListener(itemListener);
+				rb_imme.addItemListener(itemListener);
+
+				final String autoUpgradeTip = StringUtil.replace((String)ResourceUtil.get(9153), "{upgradeurl}", upgradeURL);
+				ch_autoUpgrade.setToolTipText("<html>" + autoUpgradeTip + "</html>");
+				final boolean isEnableUpgrade = PropertiesManager.getValue(
+					PropertiesManager.p_EnableLinkedInProjUpgrade, IConstant.TRUE).equals(IConstant.TRUE);
+				ch_autoUpgrade.setSelected(isEnableUpgrade);
+				enableUpgradeMode(isEnableUpgrade);
+
 				ch_autoUpgrade.addItemListener(new ItemListener() {
 					@Override
-					public void itemStateChanged(ItemEvent e) {
-						final boolean selected = ch_autoUpgrade.isSelected();
-						comp.setEnabled(selected);
-						rb_startup.setEnabled(selected);
-						rb_ask.setEnabled(selected);
-						rb_imme.setEnabled(selected);
+					public void itemStateChanged(final ItemEvent e) {
+						enableUpgradeMode(ch_autoUpgrade.isSelected());
+						notifyNeedToSave();
 					}
 				});
-				ch_autoUpgrade.setToolTipText("<html>enable or disable upgrading for those projects which are <strong>active</strong> and with <strong>" + upgradeURL + "</strong></html>");
-				ch_autoUpgrade.setSelected(!PropertiesManager.getValue(
-					PropertiesManager.p_EnableLinkedInProjUpgrade, IConstant.TRUE).equals(IConstant.TRUE));
-				ch_autoUpgrade.doClick();
 			}
-			JPanel titl_group = new JPanel(new FlowLayout(FlowLayout.LEADING));
+			final JPanel titl_group = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
 			titl_group.add(comp);
 			titl_group.add(group);
 			
 			{
-				JPanel checkPanel = new JPanel(new BorderLayout());
+				final JPanel checkPanel = new JPanel(new BorderLayout());
 				checkPanel.setBorder(new TitledBorder(""));
 				
 				checkPanel.add(ch_autoUpgrade, BorderLayout.NORTH);
 				checkPanel.add(titl_group, BorderLayout.CENTER);
 				panel.add(checkPanel, BorderLayout.NORTH);				
 			}
-			panel.add(new JLabel("<html><STRONG>Description</STRONG>:" + 
-					"<BR><strong>is Root</strong> : root project will be presented as main menu, other active project(s) are presented as folders of main menu." +
-					"<BR>if mobile is online, " +
-						"click '<strong>" + saveAndApply + "</strong>' will break off service, " +
-								"and reload all active projects, you would <strong>NO</strong> restart HomeCenter.</html>"), BorderLayout.CENTER);
+			{
+				final String line1 = StringUtil.replace((String)ResourceUtil.get(9154), "{isRoot}", (String)ResourceUtil.get(8017));
+				final String line2 = StringUtil.replace((String)ResourceUtil.get(9155), "{apply}", saveAndApply);
+				final String line3 = (String)ResourceUtil.get(9156);
+				final JPanel descPanel = ServerUIUtil.buildDescPanel(
+						HttpUtil.getHtmlLineStartTag() + line1 +
+						"<BR>" +
+						HttpUtil.getHtmlLineStartTag() + line2 +
+						"<BR>" +
+						HttpUtil.getHtmlLineStartTag() + line3);
+				panel.add(descPanel, BorderLayout.CENTER);
+			}
 			contentPane.add(panel, BorderLayout.SOUTH);
 		}
-		ImageIcon okIco = null;
-		try {
-			okIco = new ImageIcon(ImageIO.read(ImageSrc.OK_ICON));
-		} catch (IOException e1) {
-		}
-		okBut = new JButton(saveAndApply, okIco);
-		final String exitText = (String) ResourceUtil.get(1011);
-		
-		final ActionListener cancelListener = new ActionListener() {
+		saveAndApplyBtn = new JButton(saveAndApply, new ImageIcon(ImageSrc.OK_ICON)){
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				LinkProjectStatus.exitStatus();
-				isCancelOp = true;
-			}
-		};
-		jbCancle = new JButton(((exitText == null)?(String) ResourceUtil.get(1018):exitText),
-				new ImageIcon(ImageSrc.CANCEL_ICON));
-		cancelAction = new UIActionListener() {
-			@Override
-			public void actionPerformed(Window window, JButton ok,
-					JButton cancel) {
-				window.dispose();
-				if (cancelListener != null) {
-					cancelListener.actionPerformed(null);
+			public void setEnabled(final boolean enabled){
+				if(enabled){
+					if(isOpenApply){
+						super.setEnabled(enabled);
+					}else{
+						isNotifyModi = true;
+					}
+				}else{
+					super.setEnabled(enabled);
 				}
 			}
 		};
-		final ActionListener listener = new ActionListener() {
+		saveAndApplyBtn.setEnabled(false);
+		if(ServerUIUtil.isStarted() == false){
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					while(ServerUIUtil.isStarted() == false){
+						try{
+							Thread.sleep(500);
+						}catch (final Exception e) {
+						}
+					}
+					isOpenApply = true;
+					if(isNotifyModi){
+						saveAndApplyBtn.setEnabled(true);
+					}
+				}
+			}, threadPoolToken);
+		}else{
+			isOpenApply = true;
+		}
+		final String exitText = (String) ResourceUtil.get(1011);
+		
+		final ActionListener cancelListener = new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				saveAndApply(self);
+			public void run() {
+				LinkProjectStatus.exitStatus();
+				isCancelOp = true;
+			}
+		}, threadPoolToken);
+		exitBtn = new JButton(((exitText == null)?(String) ResourceUtil.get(1018):exitText),
+				new ImageIcon(ImageSrc.CANCEL_ICON));
+		exitAction = new UIActionListener() {
+			@Override
+			public void actionPerformed(final Window window, final JButton ok,
+					final JButton cancel) {
+				if (cancelListener != null) {
+					cancelListener.actionPerformed(null);//尽快释放Project-Lock状态
+				}
+				window.dispose();
 			}
 		};
-		jbOKAction = new UIActionListener() {
+		final ActionListener listener = new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(Window window, JButton ok,
-					JButton cancel) {
+			public void run() {
+				saveAndApplyBtn.setEnabled(false);
+				
+				final Window[] back = new Window[1];
+				ProcessingWindowManager.showCenterMessageOnTop(self, true, saveAndApply + "...", back);
+				saveAndApply(self);
+				Designer.checkBindEnable(rebindBut);
+				back[0].dispose();
+			}
+		}, threadPoolToken);
+		saveAction = new UIActionListener() {
+			@Override
+			public void actionPerformed(final Window window, final JButton ok,
+					final JButton cancel) {
 				try {
 					if (listener != null) {
 						listener.actionPerformed(null);
 					}
-				} catch (Exception ex) {
+				} catch (final Exception ex) {
 					ex.printStackTrace();
 				}
 			}
 		};
 
-		designBut.addActionListener(new ActionListener() {
+		designBut.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				dialog.dispose();
 				LinkProjectStatus.exitStatus();
 				
-				final LinkEditData de_led = (LinkEditData)data[tablePanel.table.getSelectedRow()][IDX_OBJ_STORE];
-				LinkProjectStore lps = de_led.lps;
+				final LinkEditData de_led = (LinkEditData)data.elementAt(tablePanel.table.getSelectedRow())[IDX_OBJ_STORE];
 				
-				if(new File(LinkProjectManager.EDIT_HAR).exists() == false){
+				LinkProjectManager.reloadLinkProjects();//必须要拉新，否则有可能有修改，但不要保存的。
+				final LinkProjectStore lps = LinkProjectManager.getProjByID(de_led.lps.getProjectID());
+				final File defaultFile = new File(App.getBaseDir(), LinkProjectManager.EDIT_HAR);
+				if(L.isInWorkshop){
+					L.V = L.O ? false : LogManager.log("shift project check default HAR : " + defaultFile.getAbsolutePath() + " exists : " + defaultFile.exists());
+				}
+				if(defaultFile.exists() == false){
 					//如果第一次是从ProjManager进入到设计器，防止初始加载缺省工程，所以要进行复制
-					LinkProjectManager.copyCurrEditFromStorage(lps);
+					LinkProjectManager.copyCurrEditFromStorage(lps, false);
 				}
 				
-				Designer d = Designer.getInstance();
+				final Designer d = Designer.getInstance();
 				if(d == null){
-					LinkMenuManager.startDesigner();
+					LinkMenuManager.startDesigner(false);
 				}
 				Designer.getInstance().shiftProject(lps);
 			}
-		});
+		}, threadPoolToken));
 
 	}
 
 	public Window toShow(){
-		return App.showCenterPanelWindow(contentPane, 0, 0, true, okBut,
-				jbCancle, jbOKAction, cancelAction, dialog, relativeTo, true, false);//isResizabel=false,会导致漂移
+		return App.showCenterPanelWindow(contentPane, 0, 0, true, exitBtn, saveAndApplyBtn, 
+				true, exitAction, saveAction, dialog, relativeTo, true, false);//isResizabel=false,会导致漂移
 	}
 
 	private void checkAndStoreData() {
 		final int size = dataRowNum;
-		Object[] objs = new Object[size];
 		
 		//检查Root和Active条件相关约束
 		boolean hasRoot = false;
 		boolean hasActive = false;
 		LinkProjectStore firstActive = null;
 		for (int i = 0; i < size; i++) {
-			LinkProjectStore lps = ((LinkEditData)data[i][IDX_OBJ_STORE]).lps;
+			final LinkProjectStore lps = ((LinkEditData)data.elementAt(i)[IDX_OBJ_STORE]).lps;
 			if(lps.isRoot()){
 				lps.setActive(true);
 				hasRoot = true;
@@ -719,46 +833,48 @@ public class LinkProjectPanel extends ProjectListPanel{
 			firstActive.setRoot(true);
 		}
 		
-		
+		final LinkProjectStore[] lpss = new LinkProjectStore[size];
 		for (int i = 0; i < size; i++) {
-			objs[i] = ((LinkEditData)data[i][IDX_OBJ_STORE]).lps.toSerial();
+			lpss[i] = ((LinkEditData)data.elementAt(i)[IDX_OBJ_STORE]).lps;
 		}
-		
-		projIDSet.refill(objs);
-		projIDSet.save();
-		
-		LinkProjectManager.reloadLinkProjects();
+		AddHarHTMLMlet.saveLinkStore(lpss, projIDSet);
 	}
-	
-	protected LinkNamePanel showInputLinkName(final JFrame self, final String linkName, final String mem, final Component relativeTo) {
-		final LinkNamePanel panel = new LinkNamePanel(linkName, mem);
-		App.showCenterPanel(panel, 0, 0, "Input Link Name", false, null, null,
+
+	protected LinkNamePanel showInputLinkName(final JFrame self, final String linkName, final String mem, 
+			final Component relativeTo, final LinkProjectStore lps) {
+		final LinkNamePanel panel = new LinkNamePanel(linkName, mem, ContextSecurityConfig.getContextSecurityConfig(lps), lps);
+		App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(9017), true, null, null,
 			null, //cancel
-			new ActionListener() {
+			new HCActionListener(new Runnable() {
 				@Override
-				public void actionPerformed(ActionEvent e) {
+				public void run() {
 					panel.linkNameField.setText(panel.CANCLE);
 				}
-			}, self, true, false, relativeTo, false, false);//isNewFrame必须，因为JRE6会导致锁，所以不在addProjFromLocal中使用
+			}, threadPoolToken), self, true, false, relativeTo, false, false);//isNewFrame必须，因为JRE6会导致锁，所以不在addProjFromLocal中使用
 		return panel;
 	}
 
-	public boolean checkIsCancle(LinkNamePanel panel) {
+	public boolean checkIsCancle(final LinkNamePanel panel) {
+		try{
+			Thread.sleep(500);//等待上个CancelLister逻辑执行完成
+		}catch (final Exception e) {
+		}
 		return panel.linkNameField.getText().equals(panel.CANCLE);
 	}
 
 	private void addProjFromLocal(final JFrame self, final AbstractDelayBiz selfBiz, final File file) {
 		if(file != null){
-			final Map<String, Object> map = HCjar.loadHar(file, false);
+			final Map<String, Object> map = AddHarHTMLMlet.getMap(file);
 			if(map.isEmpty()){
-				JOptionPane.showMessageDialog(self, "Error link other project from har file.", 
-						"Error link other project", JOptionPane.ERROR_MESSAGE);
+				App.showMessageDialog(self, "HAR project file is corrupted or incomplete.", 
+						"fail to load HAR project", JOptionPane.ERROR_MESSAGE);
 			}else{
 				final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
 				if(licenseURL.length() > 0){
-					IBiz biz = new IBiz(){
+					ProcessingWindowManager.showCenterMessageOnTop(self, true, (String)ResourceUtil.get(9110), null);//processing...
+					final IBiz biz = new IBiz(){
 						@Override
-						public void setMap(HashMap map) {
+						public void setMap(final HashMap map) {
 						}
 
 						@Override
@@ -766,7 +882,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 							loadToTable(self, selfBiz, file, map);
 						}
 					};
-					App.showHARProjectAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", licenseURL, biz, true, self);
+					App.showAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", licenseURL, biz, null, true);
 					return;
 				}
 				loadToTable(self, selfBiz, file, map);
@@ -777,7 +893,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 	}
 
 	private void loadToTable(final JFrame self, final AbstractDelayBiz selfBiz,
-			final File file, Map<String, Object> map) {
+			final File file, final Map<String, Object> map) {
 		int delOldProjIndex = -1;
 		String linkName = "";
 		String linkRemark = "";
@@ -786,13 +902,14 @@ public class LinkProjectPanel extends ProjectListPanel{
 		//检查是否存在同名的工程
 		final String proj_id = (String)map.get(HCjar.PROJ_ID);
 		for (int i = 0; i < dataRowNum; i++) {
-			final LinkEditData led = (LinkEditData)data[i][IDX_OBJ_STORE];
+			final LinkEditData led = (LinkEditData)data.elementAt(i)[IDX_OBJ_STORE];
 			final LinkProjectStore lps = led.lps;
 			
 			if(lps.getProjectID().equals(proj_id)){
 //						tablePanel.table.setRowSelectionInterval(i, i);
-				
-				int out = App.showOptionDialog(self, "project ID [" + proj_id + "] is exists, overide it now? ", "override exists project");
+				//override project
+				final String overrideStr = StringUtil.replace((String)ResourceUtil.get(9157), "{id}", proj_id);
+				final int out = App.showOptionDialog(self, overrideStr, (String)ResourceUtil.get(9158));
 				if(out == JOptionPane.YES_OPTION){
 					delProjInList(led);
 					
@@ -800,6 +917,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 					linkName = lps.getLinkName();
 					linkRemark = lps.getProjectRemark();
 					delIsRoot = lps.isRoot();
+					led.isUpgrade = true;
 				}else{
 					selfBiz.setPara(Boolean.FALSE);
 					return;
@@ -819,29 +937,22 @@ public class LinkProjectPanel extends ProjectListPanel{
 //					}
 //				}
 		
-		final LinkEditData led = new LinkEditData();
-		final LinkProjectStore lps = new LinkProjectStore();
-		led.lps = lps;
-		led.filePath = (file.getAbsolutePath());
-		led.op = (LinkProjectManager.STATUS_NEW);
-		led.status = (LinkProjectManager.STATUS_NEW);
-		
-		lps.setActive(true);
-		lps.setLinkName(linkName);
-		lps.setProjectRemark(linkRemark);
-		lps.setProjectID(proj_id);
-		lps.copyFrom(map);
-		Object[] libName = {
+		final LinkEditData led = AddHarHTMLMlet.buildAddHarDesc(file, map, linkName, linkRemark);
+		final Object[] libName = {
 			"", led
 		};
 		
 		//必须要提前
 		dataRowNum++;
 		
+		notifyNeedToSave();
+		
 		if(delOldProjIndex < 0){
 			selfBiz.setPara(libName);
 		}else{
-			data[delOldProjIndex][IDX_OBJ_STORE] = led;
+			final LinkEditData oldLed = (LinkEditData)data.elementAt(delOldProjIndex)[IDX_OBJ_STORE];
+			oldLed.lps.copyBindTo(led.lps);
+			data.elementAt(delOldProjIndex)[IDX_OBJ_STORE] = led;
 			led.lps.setRoot(delIsRoot);
 			
 			//因为下行无对象返回，所以本处进行刷新
@@ -852,37 +963,88 @@ public class LinkProjectPanel extends ProjectListPanel{
 		return;
 	}
 
+	private void notifyNeedToSave(){
+		saveAndApplyBtn.setEnabled(true);
+	}
+	
 	private void delProjInList(final LinkEditData led) {
 		delList.add(led);
 		dataRowNum--;
 	}
 
 	private void saveAndApply(final JFrame self) {
-		synchronized (ServerUIUtil.LOCK) {
-			//将已发布，且准备进行删除的进行删除操作
-			for (int i = 0; i < delList.size(); i++) {
-				LinkEditData led = delList.elementAt(i);
-				LinkProjectStore lps = led.lps;
-				if(led.status == LinkProjectManager.STATUS_DEPLOYED){
-					final boolean result = LinkProjectManager.removeLinkProjectPhic(lps, true);
-					
-					isChanged = isChanged?true:result;
+		{
+			final Vector<LinkProjectStore> stores = new Vector<LinkProjectStore>();
+			
+			for (int i = 0; i < dataRowNum; i++) {
+				final LinkEditData led = (LinkEditData)data.elementAt(i)[IDX_OBJ_STORE];
+				final LinkProjectStore lps = led.lps;
+				
+				if(lps.isActive()){
+					stores.add(lps);
 				}
 			}
-			delList.removeAllElements();
+			
+			if(LinkProjectManager.checkReferencedDependency(self, stores) == false){
+				return;
+			}
+		}
+		
+		final HashMap<String, File> delBackFileMap = new HashMap<String, File>();
+		
+		synchronized (ServerUIUtil.LOCK) {
+			//将已发布，且准备进行删除的进行删除操作
+			{
+				final int size = delList.size();
+				final String[] delCacheProjIDS = new String[size];
+				for (int i = 0; i < size; i++) {
+					final LinkEditData led = delList.elementAt(i);
+					final LinkProjectStore lps = led.lps;
+					if(led.status == LinkProjectManager.STATUS_DEPLOYED){
+						final File oldBackEditFile = LinkProjectManager.removeLinkProjectPhic(lps, true);
+						if(oldBackEditFile != null){
+							delBackFileMap.put(lps.getProjectID(), oldBackEditFile);
+						}
+						isChanged = true;
+					}
+					
+					if(led.isUpgrade == false){
+//						LinkProjectManager.removeOnlyLPS(lps);
+						delCacheProjIDS[i] = lps.getProjectID();
+					}
+				}
+				delList.removeAllElements();
+				
+				//如果是升级型，则可能出现null
+				CacheManager.delProjects(delCacheProjIDS);
+			}
+			
+			final Vector<String> noActiveProjs = new Vector<String>();
+			
 			for (int i = 0; i < dataRowNum; i++) {
-				LinkEditData led = (LinkEditData)data[i][IDX_OBJ_STORE];
-				LinkProjectStore lps = led.lps;
+				final LinkEditData led = (LinkEditData)data.elementAt(i)[IDX_OBJ_STORE];
+				final LinkProjectStore lps = led.lps;
 				if(led.status == LinkProjectManager.STATUS_NEW){
-					File source = new File(led.filePath);
-					final boolean result = LinkProjectManager.importLinkProject(lps, source);
-					led.status = LinkProjectManager.STATUS_DEPLOYED;
+					final File oldBackEditFile = delBackFileMap.get(lps.getProjectID());
+					final boolean result = AddHarHTMLMlet.addHarToDeployArea(led, lps, false, true, oldBackEditFile);
 					isChanged = isChanged?true:result;
 				}else if(led.op == LinkProjectManager.STATUS_MODIFIED){
+					if(lps.isActive() == false){
+						noActiveProjs.add(lps.getProjectID());
+					}
 					isChanged = true;
 				}
 				led.op = (LinkProjectManager.STATUS_NEW);
 			}
+			
+			if(noActiveProjs.size() > 0){
+				final String[] noActive = new String[noActiveProjs.size()];
+				for (int i = 0; i < noActive.length; i++) {
+					noActive[i] = noActiveProjs.elementAt(i);
+				}
+				CacheManager.delProjects(noActive);//因为手机端会上线后，进行同步，所以noActive必须执行本操作
+			}
+			
 			if(rb_startup.isSelected()){
 				PropertiesManager.setValue(PropertiesManager.p_OpNewLinkedInProjVer, OP_NEXT_START_UP);
 			}else if(rb_ask.isSelected()){
@@ -895,47 +1057,45 @@ public class LinkProjectPanel extends ProjectListPanel{
 			
 			PropertiesManager.saveFile();
 			if(isChanged){
-				DelayServer.getInstance().addDelayBiz(new AbstractDelayBiz(null){
-					@Override
-					public void doBiz() {
 //								L.V = L.O ? false : LogManager.log("restarting service...");
-						Window[] tipWindow = {null};
-						if(ServerUIUtil.promptAndStop(true, self) == false){
-							App.showCenterMessageOnTop(self, true, saveAndApply + "...", tipWindow);
-						}
-						
-						checkAndStoreData();
-						
-						//由于上行已更新，所以可以采用searchRoot
-						final LinkProjectStore root = LinkProjectManager.searchRoot(true);//必须查询为active状态的。
-						if(root != null){
-							Designer.setProjectOn();
-						}else{
-							Designer.setProjectOff();	
-						}
-						
-						Designer design = Designer.getInstance();
-						if(design != null){
-							design.refresh();
-						}
-						
-						//启动远屏或菜单
-						ServerUIUtil.restartResponsorServerDelayMode();
-						if(tipWindow[0] != null){
-							try{
-								Thread.sleep(1000);
-							}catch (Exception e) {
-							}
-							tipWindow[0].dispose();
-						}
-						
-						listSelectListener.valueChanged(null);//强制刷新当前行
-						tablePanel.table.repaint();//检查完善Root,Active，故刷新
-						isChanged = false;
+				//启动时，需要较长时间初始化，有可能用户快速打开并更新保存，所以加锁。
+				synchronized (ServerUIUtil.LOCK) {
+					if(ServerUIUtil.promptAndStop(true, self) == false){
 					}
-				});
+					
+					checkAndStoreData();
+					
+					//更新后必须reload
+					LinkProjectManager.reloadLinkProjects();
+					
+					//由于上行已更新，所以可以采用searchRoot
+					final LinkProjectStore root = LinkProjectManager.searchRoot(true);//必须查询为active状态的。
+					if(root != null){
+						Designer.setProjectOn();
+					}else{
+						Designer.setProjectOff();	
+					}
+					
+					final Designer design = Designer.getInstance();
+					if(design != null){
+						design.refresh();
+					}
+				}
+				
+				//启动远屏或菜单
+				ServerUIUtil.restartResponsorServer(self, null);
+				
+				listSelectListener.valueChanged(null);//强制刷新当前行
+				tablePanel.table.repaint();//检查完善Root,Active，故刷新
+				isChanged = false;
 			}
 		}
+	}
+
+	private void enableUpgradeMode(final boolean selected) {
+		rb_startup.setEnabled(selected);
+		rb_ask.setEnabled(selected);
+		rb_imme.setEnabled(selected);
 	}
 
 }

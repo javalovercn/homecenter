@@ -10,17 +10,17 @@ import hc.core.data.DataInputEvent;
 import hc.core.sip.SIPManager;
 import hc.core.util.HCURL;
 import hc.core.util.LogManager;
+import hc.core.util.ThreadPriorityManager;
 import hc.core.util.ThumbnailHelper;
 import hc.core.util.TimeWatcher;
-import hc.server.AbstractDelayBiz;
-import hc.server.DelayServer;
+import hc.server.PlatformManager;
+import hc.server.PlatformService;
 import hc.server.data.DAOKeyComper;
 import hc.server.data.KeyComperPanel;
+import hc.server.ui.ClientDesc;
 import hc.server.ui.SingleMessageNotify;
 import hc.server.util.IDArrayGroup;
 import hc.util.ResourceUtil;
-
-import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
@@ -36,9 +36,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Random;
 import java.util.Vector;
 
-import sun.awt.ComponentFactory;
-
 public class ScreenCapturer extends PNGCapturer{
+	final private ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	final private Rectangle moveNewRect = new Rectangle();
 
 	private final int screenWidth, screenHeigh;
@@ -57,10 +56,7 @@ public class ScreenCapturer extends PNGCapturer{
 			robot = new Robot();
 			robot.setAutoDelay(50);
 		    robot.setAutoWaitForIdle(true);
-			robotPeer = ((ComponentFactory) Toolkit.getDefaultToolkit())
-					.createRobot(robot, GraphicsEnvironment
-							.getLocalGraphicsEnvironment()
-							.getDefaultScreenDevice());
+			robotPeer = PlatformManager.getService().createRobotPeer(robot);
 		} catch (Throwable e) {
 			//以上不能catch Exception
 			LogManager.err("Not Found : java.awt.peer.RobotPeer(Sun API), use java.awt.Robot");
@@ -75,11 +71,11 @@ public class ScreenCapturer extends PNGCapturer{
 	}
 
 	public ScreenCapturer(final int clientWidth, final int clientHeight, final int pcWidth, final int pcHeight) {
-		super(clientWidth, clientHeight, true, 0);
+		super(pcWidth, pcHeight, true, 0);//全屏式
 	
 		timeWatcher = new TimeWatcher(60 * 1000) {//超过一分钟
 			@Override
-			public void doBiz() {
+			public final void doBiz() {
 				//检查缓存是否全黑
 				randomCheckLock();
 			}
@@ -149,7 +145,7 @@ public class ScreenCapturer extends PNGCapturer{
 				}
 			}
 		};
-		t.setPriority(Thread.MIN_PRIORITY);
+		t.setPriority(ThreadPriorityManager.CAPTURER_PRIORITY);
 		t.start();
 		
 		//初始化扩展自定义按钮
@@ -162,9 +158,9 @@ public class ScreenCapturer extends PNGCapturer{
 			KeyComperPanel.sendExtMouse();
 		}
 
-		setCaptureID(HCURL.REMOTE_HOME_SCREEN);
+		setCaptureID(HCURL.REMOTE_HOME_SCREEN, HCURL.REMOTE_HOME_SCREEN);
 		
-		hc.core.L.V=hc.core.L.O?false:LogManager.log(OP_STR + "Screen [" + HCURL.REMOTE_HOME_SCREEN + "] start");
+		L.V = L.O ? false : LogManager.log(OP_STR + "Screen [" + HCURL.REMOTE_HOME_SCREEN + "] start");
 	
 		{
 			client_width_zoomornot = clientWidth;
@@ -269,9 +265,21 @@ public class ScreenCapturer extends PNGCapturer{
 	}
 
 	private void randomCheckLock() {
+		if(ResourceUtil.isAndroidServerPlatform()){
+			if(PlatformManager.getService().isLockScreen()){
+				doBizAfterIsLockScreen();
+			}
+		}else{
+			randomCheckLockJ2SE();
+		}
+	}
+	
+	private void randomCheckLockJ2SE() {
 		final Random r = new Random(System.currentTimeMillis());
-		final Rectangle testMinBlock = new Rectangle(r.nextInt(screenWidth - MIN_BLOCK_CAP), 
-				r.nextInt(screenHeigh - MIN_BLOCK_CAP), MIN_BLOCK_CAP, MIN_BLOCK_CAP);
+		int minW = screenWidth - MIN_BLOCK_CAP;
+		int minH = screenHeigh - MIN_BLOCK_CAP;
+		final Rectangle testMinBlock = new Rectangle(((minW==0)?0:r.nextInt(minW)), ((minH==0)?0:r.nextInt(minH)), 
+				MIN_BLOCK_CAP, MIN_BLOCK_CAP);
 		if(isSameColorBlock(testMinBlock, rgb)){
 			isSameFullScreen();
 		}
@@ -287,30 +295,19 @@ public class ScreenCapturer extends PNGCapturer{
 		robot.keyRelease(KeyEvent.VK_CONTROL);
 //		robot.mouseMove(mousepoint.x, mousepoint.y);
 		
-		DelayServer.getInstance().addDelayBiz(new AbstractDelayBiz(null) {
+		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
-			public void doBiz() {
+			public void run() {
 				try{
 					Thread.sleep(500);
 				}catch (Exception e) {
 				}
 				
 				if(isSameFullScreenDelay()){
-					LogManager.errToLog("Screen is in lock, no image is sended to mobile.");
-//					LogManager.errToLog("  screen is locked after pressed Win + L or screen save is triggered,");
-					LogManager.errToLog("  mobile displays black if server is in lock mode in some older OS");
-					LogManager.errToLog("  please disable screen lock or screen saver.");
-					ContextManager.getContextInstance().send(null, MsgBuilder.E_TAG_ROOT, 
-							MsgBuilder.DATA_ROOT_OS_IN_LOCK);
-							
-					SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_SCR_LOCKING, 
-							(String)ResourceUtil.get(9088), 
-							(String)ResourceUtil.get(9087), SingleMessageNotify.NEVER_AUTO_CLOSE, App.getSysIcon(App.SYS_ERROR_ICON));
-					
-					RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_LockScreen_STR);
+					doBizAfterIsLockScreen();
 				}
 			}
-		});
+		}, threadPoolToken);
 	}
 	private boolean isSameFullScreenDelay() {
 		final Rectangle testMinBlock = new Rectangle();
@@ -360,17 +357,17 @@ public class ScreenCapturer extends PNGCapturer{
 			robot.mouseMove(pointX, pointY);
 			L.V = L.O ? false : LogManager.log(OP_STR + "Mouse move to (" + pointX + ", " + pointY + ")");
 		}else if(type == DataInputEvent.TYPE_MOUSE_LEFT_CLICK){
-			hc.core.L.V=hc.core.L.O?false:LogManager.log(OP_STR + "Mouse left click at (" + pointX + ", " + pointY + ")");
+			L.V = L.O ? false : LogManager.log(OP_STR + "Mouse left click at (" + pointX + ", " + pointY + ")");
 			robot.mouseMove(pointX, pointY);
 			robot.mousePress(InputEvent.BUTTON1_MASK);
 			robot.mouseRelease(InputEvent.BUTTON1_MASK);
 		}else if(type == DataInputEvent.TYPE_MOUSE_RIGHT_CLICK){
-			hc.core.L.V=hc.core.L.O?false:LogManager.log(OP_STR + "Mouse right click at (" + pointX + ", " + pointY + ")");
+			L.V = L.O ? false : LogManager.log(OP_STR + "Mouse right click at (" + pointX + ", " + pointY + ")");
 			robot.mouseMove(pointX, pointY);
 			robot.mousePress(InputEvent.BUTTON3_MASK);
 			robot.mouseRelease(InputEvent.BUTTON3_MASK);			
 		}else if(type == DataInputEvent.TYPE_MOUSE_DOUBLE_CLICK){
-			hc.core.L.V=hc.core.L.O?false:LogManager.log(OP_STR + "Mouse double click at (" + pointX + ", " + pointY + ")");
+			L.V = L.O ? false : LogManager.log(OP_STR + "Mouse double click at (" + pointX + ", " + pointY + ")");
 			
 			robot.mouseMove(pointX, pointY);
 			
@@ -382,11 +379,11 @@ public class ScreenCapturer extends PNGCapturer{
 			try {
 				String s = e.getTextDataAsString();
 				if(inputKeyStr(s) == false){
-					hc.core.L.V=hc.core.L.O?false:LogManager.log(OP_STR + "Client paste txt:[" + s + "]!");
+					L.V = L.O ? false : LogManager.log(OP_STR + "Client paste txt:[" + s + "]!");
 					sendToClipboard(s);
 					ctrlSomeKey(KeyEvent.VK_V);
 				}else{
-					hc.core.L.V=hc.core.L.O?false:LogManager.log(OP_STR + "Client input txt:[" + s + "]!");
+					L.V = L.O ? false : LogManager.log(OP_STR + "Client input txt:[" + s + "]!");
 				}
 			} catch (Exception e1) {
 				e1.printStackTrace();
@@ -404,11 +401,12 @@ public class ScreenCapturer extends PNGCapturer{
 			int idx = type - DataInputEvent.TYPE_TAG_TRANS_TEXT_2_MOBI;
 			
 			if(mobiUserIcons != null){
-				Vector<Integer> vInt = mobiUserIcons.getKeys(idx);
+				String[] keysDesc = new String[1];
+				Vector<Integer> vInt = mobiUserIcons.getKeys(idx, keysDesc);
 				if(vInt == null){
 					L.V = L.O ? false : LogManager.log("Unknow ext icon idx:" + type);
 				}else{
-					KeyComper.keyAction(robot, vInt);
+					KeyComper.keyAction(robot, vInt, keysDesc[0]);
 				}
 			}
 		}
@@ -561,6 +559,12 @@ public class ScreenCapturer extends PNGCapturer{
 	}
 	
 	private void ctrlSomeKey(int key) {
+		if(ResourceUtil.isAndroidServerPlatform()){
+			if(key == KeyEvent.VK_V){
+				PlatformManager.getService().doExtBiz(PlatformService.BIZ_CTRL_V, null);
+				return;
+			}
+		}
 		final int abstractCtrlKeyCode = ResourceUtil.getAbstractCtrlKeyCode();
 		robot.keyPress(abstractCtrlKeyCode);
 		robot.keyPress(key);
@@ -574,7 +578,7 @@ public class ScreenCapturer extends PNGCapturer{
 		clipbd.setContents(clipString, clipString);
 	}
 	
-	private static String getTxtFromClipboard(){
+	public static String getTxtFromClipboard(){
 		Clipboard clipbd = Toolkit.getDefaultToolkit().getSystemClipboard();
 		Transferable clipT = clipbd.getContents(null);
 		String d = null;
@@ -604,7 +608,7 @@ public class ScreenCapturer extends PNGCapturer{
 		ctrlSomeKey(KeyEvent.VK_C);
 		
 		String txt = getTxtFromClipboard();
-//		hc.core.L.V=hc.core.L.O?false:LogManager.log("User ready copyTxtToMobi:" + txt);
+//		L.V = L.O ? false : LogManager.log("User ready copyTxtToMobi:" + txt);
 		if(txt.length() > 0){
     		DataInputEvent e = new DataInputEvent();
 			try {
@@ -621,7 +625,7 @@ public class ScreenCapturer extends PNGCapturer{
 				e1.printStackTrace();
 			}
 		}
-		hc.core.L.V=hc.core.L.O?false:LogManager.log(OP_STR + "copyTxtToMobi:" + ((txt.length()==0)?"null":txt));
+		L.V = L.O ? false : LogManager.log(OP_STR + "copyTxtToMobi:" + ((txt.length()==0)?"null":txt));
 	}
 	
 	public void dragAndDrop(int startX, int startY, int endX, int endY){
@@ -633,9 +637,14 @@ public class ScreenCapturer extends PNGCapturer{
 		
 //		ctrlSomeKey(KeyEvent.VK_C);
 		
-		hc.core.L.V=hc.core.L.O?false:LogManager.log(OP_STR + "drag from ["+startX + ", " + startY+"] to [" + endX + ", " + endY + "]");
+		L.V = L.O ? false : LogManager.log(OP_STR + "drag from ["+startX + ", " + startY+"] to [" + endX + ", " + endY + "]");
 	}
 	
+	/**
+	 * 由于采用全屏技术，所以不考虑zoom
+	 * @param zoomMultiPara
+	 */
+	@Deprecated
 	public void zoom(final int zoomMultiPara){
 		synchronized (LOCK) {
 //			L.V = L.O ? false : LogManager.log("receive zoom cmd : " + zoomMultiPara + ", oldZoomMulti : " + zoomOldMultiples);
@@ -831,21 +840,44 @@ public class ScreenCapturer extends PNGCapturer{
 	private int client_width_zoomornot, client_height_zoomornot;
 	private final int final_mobi_width, final_mobi_height;
 	
+	/**
+	 * 仅在初始发送时，以增强用户体验，而被调用
+	 * @param x
+	 * @param y
+	 */
 	public void refreshRectange(final int x, final int y){	
 		synchronized (LOCK) {
-			capRect.x = x;
-			capRect.y = y;
+//			locX = 0;
+//			locY = 0;
 			
-			locX = x;
-			locY = y;
-			
-			matchRect(moveNewRect, 0, 0);
-
-			for (int i = 0; i < clientSnap.length; i++) {
-				clientSnap[i] = 0;//不用DEFAULT_BACK_COLOR，而用0，是强制更新全部，因为-1，可能为0xFF000000
-			}
-			
-			sendPNG(cutBlackBorder(capRect), client_width_zoomornot, false);
+			Rectangle firstRect = new Rectangle(x, y, 
+					Math.min(ClientDesc.getClientWidth(), screenWidth), Math.min(ClientDesc.getClientHeight(), screenHeigh));
+//			L.V = L.O ? false : LogManager.log("First Screen x : " + x + ", y : " + y + ", w : " + firstRect.width + ", h : " + firstRect.height);
+			sendPNG(firstRect, firstRect.width, false);
+		}
+		
+		int[] screenSize = ResourceUtil.getSimuScreenSize();
+		
+		if(screenSize[0] > ClientDesc.getClientWidth() || screenSize[1] > ClientDesc.getClientHeight()){
+			//发送全部
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					int[] screenSize = ResourceUtil.getSimuScreenSize();
+					
+					synchronized (LOCK) {
+						locX = 0;
+						locY = 0;
+						
+						capRect.x = 0;
+						capRect.y = 0;
+						capRect.width = screenSize[0];
+						capRect.height = screenSize[1];
+						
+//						System.out.println("new capRect  w : " + capRect.width + ", h : " + capRect.height);
+					}
+				}
+			}, App.getThreadPoolToken());
 		}
 	}
 	
@@ -923,5 +955,20 @@ public class ScreenCapturer extends PNGCapturer{
 	@Override
 	public void onResume() {
 		enableStopCap(false);
+	}
+
+	private void doBizAfterIsLockScreen() {
+		LogManager.errToLog("Screen is in lock, no image is sended to mobile.");
+//					LogManager.errToLog("  screen is locked after pressed Win + L or screen save is triggered,");
+		LogManager.errToLog("  mobile displays black if server is in lock mode in some older OS");
+		LogManager.errToLog("  please disable screen lock or screen saver.");
+		ContextManager.getContextInstance().send(null, MsgBuilder.E_TAG_ROOT, 
+				MsgBuilder.DATA_ROOT_OS_IN_LOCK);
+				
+		SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_SCR_LOCKING, 
+				(String)ResourceUtil.get(9088), 
+				(String)ResourceUtil.get(9087), SingleMessageNotify.NEVER_AUTO_CLOSE, App.getSysIcon(App.SYS_ERROR_ICON));
+		
+		RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_LockScreen_STR);
 	}
 }

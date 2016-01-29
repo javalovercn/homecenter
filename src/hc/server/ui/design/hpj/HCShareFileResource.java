@@ -1,29 +1,30 @@
 package hc.server.ui.design.hpj;
 
-
 import java.io.File;
 import java.io.FileInputStream;
 
 public class HCShareFileResource extends HPNode {
-	public HCShareFileResource(int type, String name) {
+	public HCShareFileResource(final int type, final String name) {
 		super(type, name);
 		this.ID = name;
 	}
 	
-	public HCShareFileResource(int type, String name, File file) throws Throwable{
+	public HCShareFileResource(final int type, final String name, final File file) throws Throwable{
 		this(type, name);
 		this.ID = String.valueOf(MenuManager.getNextNodeIdx());
-		loadContent(file);
+		content = loadContent(file);
 	}
 
 	String ID = "";
 	public byte[] content = null;
 	String ver = "0.0.1";
 	
-	public void loadContent(File file) throws Throwable{
+	public static byte[] loadContent(final File file) throws Throwable{
 		try {
-			content = HCjar.readFromInputStream(new FileInputStream(file));
-		} catch (Exception e) {
+			return HCjar.readFromInputStream(new FileInputStream(file));
+		} catch (final Exception e) {
+			e.printStackTrace();
 		}
+		return null;
 	}
 }

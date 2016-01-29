@@ -96,4 +96,10 @@ public class LogServerPlaint implements ILog {
 		}
 	}
 
+	@Override
+	public void warning(String msg) {
+		System.out.println((new Timestamp(System.currentTimeMillis()))
+				.toString() + ILog.WARNING + msg);		
+	}
+
 }

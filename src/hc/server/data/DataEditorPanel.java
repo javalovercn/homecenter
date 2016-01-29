@@ -10,6 +10,6 @@ public class DataEditorPanel extends JPanel {
 	}
 	
 	public void notifyCancle(){
-		ResourceUtil.notifyCancle();
+		ResourceUtil.notifyCancel();
 	}
 }

@@ -5,28 +5,16 @@ import hc.core.util.StringUtil;
 import java.util.Vector;
 
 public class HCConfig {
-	public static final String CFG_SPLIT = "###";
+	public static final String CFG_SPLIT = StringUtil.split;
 
 	Vector v;
 	
 	public HCConfig(String msg){
 		v = StringUtil.split(msg, CFG_SPLIT);
 	}
-	
+
 	public static String toTransString(String[] item){
-		if(item.length == 0){
-			return "";
-		}
-		
-		StringBuffer sb = new StringBuffer("");
-		
-		final int minusOne = item.length - 1;
-		for (int i = 0; i < minusOne; i++) {
-			sb.append(item[i]);
-			sb.append(CFG_SPLIT);
-		}
-		sb.append(item[minusOne]);
-		return sb.toString();
+		return StringUtil.toSerialBySplit(item);
 	}
 	
 	public int getIntProperty(short propertyID) {

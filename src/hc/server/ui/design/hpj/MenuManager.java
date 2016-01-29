@@ -1,24 +1,19 @@
 package hc.server.ui.design.hpj;
 
 import hc.App;
-import hc.core.L;
-import hc.core.util.LogManager;
 import hc.res.ImageSrc;
 import hc.server.ConfigPane;
 import hc.server.FileSelector;
+import hc.server.HCActionListener;
 import hc.server.ui.design.Designer;
 
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -30,6 +25,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 
 public class MenuManager {
+	private final ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	private static int newNodeIdx = 1;
 	
 	public static void setNextNodeIdx(final int idx){
@@ -46,17 +42,17 @@ public class MenuManager {
 	}
 	
 	public void updateSkinUI(){
-		Iterator<JPopupMenu> it = map.values().iterator();
+		final Iterator<JPopupMenu> it = map.values().iterator();
 		while(it.hasNext()){
 			ConfigPane.updateComponentUI(it.next());
 		}
 	}
 	
-	public static final String ADD_MENU_ITEM = "add menu item";
+	public static final String ADD_ITEM = "add item";
 	
-	private Map<Integer, JPopupMenu> map = new HashMap<Integer, JPopupMenu>(); 
+	private final Map<Integer, JPopupMenu> map = new HashMap<Integer, JPopupMenu>(); 
 	
-	public void popUpMenu(int type, TreeNode treeNode, final JTree tree, MouseEvent e, final Designer designer){
+	public void popUpMenu(final int type, final TreeNode treeNode, final JTree tree, final MouseEvent e, final Designer designer){
 		final Integer integer_type = Integer.valueOf(type);
 		JPopupMenu pMenu = map.get(integer_type);
 		
@@ -66,7 +62,7 @@ public class MenuManager {
 //				pMenu = new JPopupMenu();
 //				JMenuItem addItem = new JMenuItem("new menu");
 //				addItem.setIcon(Designer.iconMenu);
-//				addItem.addActionListener(new ActionListener() {
+//				addItem.addActionListener(new HCActionListener(new Runnable() {
 //					public void actionPerformed(ActionEvent event) {
 //						DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(new HPMenu(
 //								HPNode.MASK_MENU,
@@ -83,20 +79,21 @@ public class MenuManager {
 //				map.put(integer_type, pMenu);
 			if(HPNode.isNodeType(type, HPNode.MASK_MENU)){
 				pMenu = new JPopupMenu();
-				final JMenuItem addItem = new JMenuItem(ADD_MENU_ITEM);
+				final JMenuItem addItem = new JMenuItem(ADD_ITEM);
 				addItem.setIcon(Designer.iconMenuItem);
-				addItem.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent event) {
-						addMenuItem(designer, null);
+				addItem.addActionListener(new HCActionListener(new Runnable() {
+					@Override
+					public void run() {
+						addMenuItem(designer, null, designer.getMainMenuNode(), designer.getMSBFolderNode());
 					}
-				});
+				}, threadPoolToken));
 				pMenu.add(addItem);
 				
 //				暂停删除menu，限制一个menu
 //				{
 //					JMenuItem delItem = new JMenuItem("del menu");
 //					delItem.setIcon(Designer.iconDel);
-//					delItem.addActionListener(new ActionListener() {
+//					delItem.addActionListener(new HCActionListener(new Runnable() {
 //						public void actionPerformed(ActionEvent event) {
 //							designer.delNode();
 //						}
@@ -105,55 +102,115 @@ public class MenuManager {
 //				}
 				
 				map.put(integer_type, pMenu);
-			}else if(HPNode.isNodeType(type, HPNode.MASK_MENU_ITEM)){
+			}else if(HPNode.isNodeType(type, HPNode.MASK_MSB_FOLDER)){
+				pMenu = new JPopupMenu();
+				final JMenuItem addItem = new JMenuItem(ADD_ITEM);
+				addItem.setIcon(Designer.iconMenuItem);
+				addItem.addActionListener(new HCActionListener(new Runnable() {
+					@Override
+					public void run() {
+						TypeWizard.selectIOT(designer, null);
+						final HPNode node = TypeWizard.getWizardEnd();
+						if(node == null){
+						}else{
+							final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
+									node);
+							final int menuType = node.type;
+							if(menuType == HPNode.MASK_MSB_ROBOT 
+									|| menuType == HPNode.MASK_MSB_CONVERTER
+									|| menuType == HPNode.MASK_MSB_DEVICE){
+								designer.addNode(designer.getMSBFolderNode(), newNode);
+							}
+						}
+					}
+				}, threadPoolToken));
+				pMenu.add(addItem);
+				
+				map.put(integer_type, pMenu);
+			}else if(HPNode.isNodeType(type, HPNode.MASK_MENU_ITEM)
+					|| HPNode.isNodeType(type, HPNode.MASK_MSB_ITEM)){
 				pMenu = new JPopupMenu();
 				
-				JMenuItem delItem = new JMenuItem("del menu item");
+				final JMenuItem delItem = new JMenuItem("del item");
 				delItem.setIcon(Designer.iconDel);
-				delItem.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent event) {
+				delItem.addActionListener(new HCActionListener(new Runnable() {
+					@Override
+					public void run() {
 						designer.delNode();
 					}
-				});
+				}, threadPoolToken));
 				pMenu.add(delItem);
 				
 				map.put(integer_type, pMenu);
 			}else if(HPNode.isNodeType(type, HPNode.MASK_SHARE_RB)){
 				pMenu = new JPopupMenu();
 				
-				JMenuItem delItem = new JMenuItem("del JRuby file");
+				final JMenuItem delItem = new JMenuItem("del JRuby file");
 				delItem.setIcon(Designer.iconDel);
-				delItem.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent event) {
+				delItem.addActionListener(new HCActionListener(new Runnable() {
+					@Override
+					public void run() {
 						designer.delNode();
 					}
-				});
+				}, threadPoolToken));
 				pMenu.add(delItem);
 				
 				map.put(integer_type, pMenu);
 			}else if(HPNode.isNodeType(type, HPNode.MASK_SHARE_RB_FOLDER)){
 				pMenu = new JPopupMenu();
-				JMenuItem addItem = new JMenuItem("add JRuby share file");
+				final JMenuItem addItem = new JMenuItem("add JRuby share file");
 				addItem.setIcon(Designer.iconShareRB);
-				addItem.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent event) {
-						DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
+				addItem.addActionListener(new HCActionListener(new Runnable() {
+					@Override
+					public void run() {
+						final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
 								new HPShareJRuby(
 								HPNode.MASK_SHARE_RB,
 								"share" + getNextNodeIdx() + ".rb"));
 						designer.addNode(null, newNode);
 					}
-				});
+				}, threadPoolToken));
+				pMenu.add(addItem);
+				
+				map.put(integer_type, pMenu);
+			}else if(HPNode.isNodeType(type, HPNode.MASK_SHARE_NATIVE_FOLDER)){
+				pMenu = new JPopupMenu();
+				final JMenuItem addItem = new JMenuItem("add native file");
+				addItem.setIcon(Designer.iconShareNative);
+				addItem.addActionListener(new HCActionListener(new Runnable() {
+					@Override
+					public void run() {
+						final File addNativeFile = FileSelector.selectImageFile(designer, FileSelector.NATIVE_FILTER, true);
+						if(addNativeFile != null){
+							DefaultMutableTreeNode newNode;
+							try {
+								newNode = new DefaultMutableTreeNode(
+										new HPShareNative(
+										HPNode.MASK_SHARE_NATIVE,
+										addNativeFile.getName(), addNativeFile));
+								designer.addNode(null, newNode);
+								designer.setNeedRebuildTestJRuby(true);
+							} catch (final Throwable e) {
+								final JPanel ok = new JPanel();
+								ok.add(new JLabel("Error add native file, desc : " + e.toString(), new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
+								App.showCenterPanel(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null, false, false);
+								
+								e.printStackTrace();
+							}
+						}
+					}
+				}, threadPoolToken));
 				pMenu.add(addItem);
 				
 				map.put(integer_type, pMenu);
 			}else if(HPNode.isNodeType(type, HPNode.MASK_RESOURCE_FOLDER)){
 				pMenu = new JPopupMenu();
-				JMenuItem addItem = new JMenuItem("add jar file");
+				final JMenuItem addItem = new JMenuItem("add jar file");
 				addItem.setIcon(Designer.iconJar);
-				addItem.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent event) {
-						File addJarFile = FileSelector.selectImageFile(designer, FileSelector.JAR_FILTER, true);
+				addItem.addActionListener(new HCActionListener(new Runnable() {
+					@Override
+					public void run() {
+						final File addJarFile = FileSelector.selectImageFile(designer, FileSelector.JAR_FILTER, true);
 						if(addJarFile != null){
 							DefaultMutableTreeNode newNode;
 							try {
@@ -163,44 +220,70 @@ public class MenuManager {
 										addJarFile.getName(), addJarFile));
 								designer.addNode(null, newNode);
 								designer.setNeedRebuildTestJRuby(true);
-							} catch (Throwable e) {
-								JPanel ok = new JPanel();
-								try {
-									ok.add(new JLabel("Error add jar file, desc : " + e.toString(), new ImageIcon(ImageIO.read(ImageSrc.CANCEL_ICON)), SwingConstants.LEFT));
-								} catch (IOException e2) {
-								}
+							} catch (final Throwable e) {
+								final JPanel ok = new JPanel();
+								ok.add(new JLabel("Error add jar file, desc : " + e.toString(), new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
 								App.showCenterPanel(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null, false, false);
 								
 								e.printStackTrace();
 							}
 						}
 					}
-				});
+				}, threadPoolToken));
 				pMenu.add(addItem);
 				
 				map.put(integer_type, pMenu);
 			}else if(type == HPNode.MASK_RESOURCE_JAR){
 				pMenu = new JPopupMenu();
 				{
-					JMenuItem delItem = new JMenuItem("save as ...");
+					final JMenuItem delItem = new JMenuItem("save as ...");
 					delItem.setIcon(Designer.iconSaveAs);
-					delItem.addActionListener(new ActionListener() {
-						public void actionPerformed(ActionEvent event) {
-							designer.saveJar();
+					delItem.addActionListener(new HCActionListener(new Runnable() {
+						@Override
+						public void run() {
+							designer.saveFile(FileSelector.JAR_FILTER, Designer.JAR_EXT);
 						}
-					});
+					}, threadPoolToken));
 					pMenu.add(delItem);					
 				}
 				
 				{
-					JMenuItem delItem = new JMenuItem("del jar file");
+					final JMenuItem delItem = new JMenuItem("del jar file");
 					delItem.setIcon(Designer.iconDel);
-					delItem.addActionListener(new ActionListener() {
-						public void actionPerformed(ActionEvent event) {
+					delItem.addActionListener(new HCActionListener(new Runnable() {
+						@Override
+						public void run() {
 							designer.delNode();
 							designer.setNeedRebuildTestJRuby(true);
 						}
-					});
+					}, threadPoolToken));
+					pMenu.add(delItem);
+				}
+				map.put(integer_type, pMenu);
+			}else if(type == HPNode.MASK_SHARE_NATIVE){
+				pMenu = new JPopupMenu();
+				{
+					final JMenuItem delItem = new JMenuItem("save as ...");
+					delItem.setIcon(Designer.iconSaveAs);
+					delItem.addActionListener(new HCActionListener(new Runnable() {
+						@Override
+						public void run() {
+							designer.saveFile(FileSelector.NATIVE_FILTER, "");
+						}
+					}, threadPoolToken));
+					pMenu.add(delItem);					
+				}
+				
+				{
+					final JMenuItem delItem = new JMenuItem("del native file");
+					delItem.setIcon(Designer.iconDel);
+					delItem.addActionListener(new HCActionListener(new Runnable() {
+						@Override
+						public void run() {
+							designer.delNode();
+							designer.setNeedRebuildTestJRuby(true);
+						}
+					}, threadPoolToken));
 					pMenu.add(delItem);
 				}
 				map.put(integer_type, pMenu);
@@ -216,28 +299,34 @@ public class MenuManager {
 		}
 	}
 	
-	public static void addMenuItem(final Designer _designer, final Component relativeTo) {
+	public static void addMenuItem(final Designer _designer, final Component relativeTo, 
+			final DefaultMutableTreeNode mainMenuNode, final DefaultMutableTreeNode msbFoulder) {
 		//超过菜单最大数
-		final DefaultMutableTreeNode mainMenuNode = _designer.getMainMenuNode();
 		if(mainMenuNode == null){
 			return;
 		}
 		final int currMenuItemNum = mainMenuNode.getChildCount();
 		if(currMenuItemNum >= MenuListEditPanel.MAX_MENUITEM){
-			JPanel panel = new JPanel();
+			final JPanel panel = new JPanel();
 			panel.add(new JLabel("Curr menu item number > " + MenuListEditPanel.MAX_MENUITEM, 
 					App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
 			App.showCenterPanel(panel, 0, 0, "Too much items!", false, null, null, null, null, _designer, true, false, null, false, false);
 			return;
 		}
 		
-		HPMenuItem menuItem = TypeWizard.chooseWizard(_designer, relativeTo);
-		if(menuItem == null){
-			
+		final HPNode node = TypeWizard.chooseWizard(_designer, relativeTo);
+		if(node == null){
 		}else{
-			DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
-					menuItem);
-			_designer.addNode(mainMenuNode, newNode);
+			final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
+					node);
+			final int menuType = node.type;
+			if(menuType == HPNode.MASK_MSB_ROBOT 
+					|| menuType == HPNode.MASK_MSB_CONVERTER
+					|| menuType == HPNode.MASK_MSB_DEVICE){
+				_designer.addNode(msbFoulder, newNode);
+			}else{
+				_designer.addNode(mainMenuNode, newNode);
+			}
 		}
 	}
 }

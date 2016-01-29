@@ -7,6 +7,7 @@ import hc.core.UDPController;
 import hc.core.util.ByteUtil;
 import hc.core.util.LinkedSet;
 import hc.core.util.LogManager;
+import hc.core.util.ThreadPriorityManager;
 import hc.server.KeepaliveManager;
 import hc.server.relay.RelayManager;
 import hc.server.relay.SessionConnector;
@@ -80,7 +81,7 @@ public class AcceptReadThread extends Thread {
 		udpSpeedChannel.socket().bind(new InetSocketAddress(ip, udpSpeedPort));
 		udpSpeedKey = udpSpeedChannel.register(connectSelector, SelectionKey.OP_READ, udpManagerAtt);
 
-		super.setPriority(MAX_PRIORITY);
+		super.setPriority(ThreadPriorityManager.DATA_TRANS_PRIORITY);
 		
 		start();
 	}

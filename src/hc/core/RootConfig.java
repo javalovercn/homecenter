@@ -1,14 +1,13 @@
 package hc.core;
 
 import hc.core.util.CCoreUtil;
-import hc.core.util.StringUtil;
-
-import java.util.Vector;
 
 public class RootConfig extends HCConfig{
 	private static RootConfig rc;
 	
 	public static RootConfig getInstance(){
+		CCoreUtil.checkAccess();
+		
 		if(rc == null){
 			reset();
 		}
@@ -16,6 +15,8 @@ public class RootConfig extends HCConfig{
 	}
 
 	public static void reset() {
+		CCoreUtil.checkAccess();
+		
 		String msg = RootServerConnector.getRootConfig();
 		if(msg != null){
 			boolean isExist = (rc != null);
@@ -27,6 +28,8 @@ public class RootConfig extends HCConfig{
 	}
 	
 	public static void setInstance(RootConfig rcfg){
+		CCoreUtil.checkAccess();
+		
 		rc = rcfg;
 	}
 	
@@ -66,11 +69,13 @@ public class RootConfig extends HCConfig{
 	public static final short p_Packet_Resend_Expired_MS = 33;
 	public static final short p_mobile_color_bit_install = 34;
 	public static final short p_First_Reg_Tuto = 35;
-	public static final short p_Sample_Ver = 36;
+	//deprecated
+	public static final short p_Sample_Ver = 36;//stop online, J2SEContext.getSampleHarVersion();
 	public static final short p_Lock_Warn_First_Login = 37;
 	public static final short p_Receive_Split_Max_Size = 38;
 	public static final short p_Receive_Split_Throw_MS = 39;
 	public static final short p_Encrypt_Factor = 40;
+	public static final short p_UpdateOneTimeMinMinutes = 41;
 	//如果增加一个，请修改如下本值
 
 	public RootConfig(String msg) {

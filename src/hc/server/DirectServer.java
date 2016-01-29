@@ -3,6 +3,7 @@ package hc.server;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.HCTimer;
+import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
@@ -32,7 +33,7 @@ public class DirectServer extends Thread {
 	final InetAddress ia;
 	final String networkAddressName;
 	
-	public DirectServer(InetAddress ia, String naName) {
+	public DirectServer(final InetAddress ia, final String naName) {
 		super("DirectServer");
 		this.ia = ia;
 		this.networkAddressName = naName;
@@ -52,7 +53,7 @@ public class DirectServer extends Thread {
 				boolean isAutoSelect = false;
 				try{
 					server.bind(new InetSocketAddress(ia, directServerPort), backlog);
-				}catch (Throwable e) {
+				}catch (final Throwable e) {
 					isAutoSelect = true;
 					server.bind(new InetSocketAddress(ia, 0), backlog);
 				}
@@ -61,7 +62,7 @@ public class DirectServer extends Thread {
 				KeepaliveManager.homeWirelessIpPort.port = server.getLocalPort();
 				
 				if(isAutoSelect){
-					JPanel panel = new JPanel(new BorderLayout());
+					final JPanel panel = new JPanel(new BorderLayout());
 					final String msg = "[Direct Home Server] port:" + directServerPort + " is used, select port:" + server.getLocalPort();
 					panel.add(new JLabel(msg, App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
 					App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.ERROR), false, 
@@ -76,7 +77,7 @@ public class DirectServer extends Thread {
 
 				LOCK.notify();
 			}
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			e.printStackTrace();
 		}
 		
@@ -89,7 +90,7 @@ public class DirectServer extends Thread {
 			try{
 				snapSocket.close();
 				L.V = L.O ? false : LogManager.log("Close client Session");
-			}catch (Throwable e) {
+			}catch (final Throwable e) {
 				e.printStackTrace();
 			}
 		}
@@ -100,7 +101,7 @@ public class DirectServer extends Thread {
 			try{
 				serverSnap.close();
 				L.V = L.O ? false : LogManager.log("successful close old Home Wireless Server");
-			}catch (Throwable e) {
+			}catch (final Throwable e) {
 				L.V = L.O ? false : LogManager.log("Error close home wireless server : " + e.toString());
 			}
 			
@@ -109,8 +110,8 @@ public class DirectServer extends Thread {
 					if(serverSnap.isClosed()){
 						break;
 					}
-					Thread.sleep(20);
-				}catch (Throwable e) {
+					Thread.sleep(IConstant.THREAD_WAIT_INNER_MS);
+				}catch (final Throwable e) {
 					L.V = L.O ? false : LogManager.log("Error check isClosed : " + e.toString());
 				}
 			}
@@ -120,6 +121,7 @@ public class DirectServer extends Thread {
 	final private Boolean LOCK = new Boolean(false);
 	private Socket socket;
 	
+	@Override
 	public void run(){
 		while(!isShutdown){
 			if(server == null){
@@ -127,7 +129,7 @@ public class DirectServer extends Thread {
 					if(server == null){
 						try{
 							LOCK.wait();
-						}catch (Exception e) {
+						}catch (final Exception e) {
 						}
 					}
 					continue;
@@ -142,7 +144,7 @@ public class DirectServer extends Thread {
 							":" + temp.getPort());
 					try{
 						temp.close();
-					}catch (Exception e) {
+					}catch (final Exception e) {
 						
 					}
 				}else{
@@ -163,19 +165,19 @@ public class DirectServer extends Thread {
 //					}catch (Exception e) {
 //						
 //					}
-					HCTimer watcher = new HCTimer("", 3000, true) {
+					final HCTimer watcher = new HCTimer("", 3000, true) {
 						@Override
-						public void doBiz() {
+						public final void doBiz() {
 							try {
 								temp.close();
-							} catch (IOException e) {
+							} catch (final IOException e) {
 							}
 						}
 					};
 					//echo back reg tag
 					final int BYTE_LEN = DataReg.LEN_DATA_REG + MsgBuilder.MIN_LEN_MSG;
 
-					byte[] bs = new byte[BYTE_LEN];//DatagramPacketCacher.getInstance().getFree();
+					final byte[] bs = new byte[BYTE_LEN];//DatagramPacketCacher.getInstance().getFree();
 					new DataInputStream(socket.getInputStream()).readFully(bs, 0, BYTE_LEN);
 //					if(len != BYTE_LEN){
 //						L.V = L.O ? false : LogManager.log("Unknow Reg");
@@ -185,9 +187,7 @@ public class DirectServer extends Thread {
 					socket.getOutputStream().flush();
 //					DatagramPacketCacher.getInstance().cycle(bs);
 					
-					SIPManager.getSIPContext().deploySocket(socket, 
-							SIPManager.getSIPContext().getInputStream(socket), 
-							SIPManager.getSIPContext().getOutputStream(socket));
+					SIPManager.getSIPContext().deploySocket(socket);
 					
 					//家庭直联模式下，关闭KeepAlive
 					setServerConfigPara(false, false);
@@ -198,7 +198,7 @@ public class DirectServer extends Thread {
 					HCTimer.remove(watcher);
 //					LogManager.info("Succ connect target");
 				}
-			}catch (Exception e) {
+			}catch (final Exception e) {
 				//L.V = L.O ? false : LogManager.log("DirectServer Exception : " + e.toString());
 //				e.printStackTrace();
 
@@ -206,7 +206,7 @@ public class DirectServer extends Thread {
 				socket = null;
 				try{
 					snapSocket.close();
-				}catch (Exception e1) {
+				}catch (final Exception e1) {
 					
 				}
 				
@@ -223,12 +223,11 @@ public class DirectServer extends Thread {
 //					
 //				}
 			}
-			L.V = L.O ? false : LogManager.log("shutdown old Home Wireless Server");
-		}
-		
+		}//end while
+		L.V = L.O ? false : LogManager.log("shutdown old Home Wireless Server");		
 	}
 
-	public static void setServerConfigPara(boolean keepalive, boolean isRelay) {
+	public static void setServerConfigPara(final boolean keepalive, final boolean isRelay) {
 		//家庭直联模式下，关闭KeepAlive
 		KeepaliveManager.keepalive.setEnable(keepalive);
 		KeepaliveManager.keepalive.resetTimerCount();

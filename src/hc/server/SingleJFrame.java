@@ -1,30 +1,61 @@
 package hc.server;
 
+import hc.App;
+import hc.core.util.CCoreUtil;
+import hc.server.util.HCJFrame;
+import java.awt.Container;
+import java.awt.Window;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-
+import java.util.Vector;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 
-public class SingleJFrame extends JFrame {
-	private static HashMap<String, SingleJFrame> frames = new HashMap<String, SingleJFrame>();
+public class SingleJFrame extends HCJFrame {
+	protected final ThreadGroup threadPoolToken = App.getThreadPoolToken();
+	private static HashMap<String, Window> frames = new HashMap<String, Window>();
+	
+	public static void disposeAll(){
+		CCoreUtil.checkAccess();
+		
+		Vector<String> vector = new Vector<String>();
+		Iterator<String> names = frames.keySet().iterator();
+		while(names.hasNext()){
+			vector.add(names.next());
+		}
+		
+		for (int i = 0; i < vector.size(); i++) {
+			frames.get(vector.elementAt(i)).dispose();
+		}
+		
+	}
 	
 	public static void updateAllJFrame(){
-		Collection<SingleJFrame> collect = frames.values();
-		Iterator<SingleJFrame> it = collect.iterator();
+		CCoreUtil.checkAccess();
+		
+		Collection<Window> collect = frames.values();
+		Iterator<Window> it = collect.iterator();
 		while(it.hasNext()){
-			SingleJFrame sf = it.next();
-			sf.updateSkinUI();
+			Window sf = it.next();
+			if(sf instanceof JDialog){
+				updateSkinUI(((JDialog)sf).getContentPane());
+			}else if(sf instanceof JFrame){
+				updateSkinUI(((JFrame)sf).getContentPane());
+			}
 		}
 	}
 	
-	public static SingleJFrame showJFrame(Class frameClass){
+	public static Window showJFrame(Class frameClass){
+		CCoreUtil.checkAccess();
+		
 		final String className = frameClass.getName();
-		SingleJFrame frame = frames.get(className);
+		Window frame = frames.get(className);
 		if(frame == null){
 			try {
 				frame = (SingleJFrame)frameClass.newInstance();
-				frames.put(className, frame);
+				addJFrame(className, frame);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -33,14 +64,35 @@ public class SingleJFrame extends JFrame {
 		}
 		return frame;
 	}
+
+	public static void addJFrame(final String className, Window frame) {
+		CCoreUtil.checkAccess();
+		
+		frames.put(className, frame);
+	}
 	
 	@Override
 	public void dispose(){
 		super.dispose();
-		frames.remove(this.getClass().getName());
+		removeJFrame(this.getClass().getName());
+	}
+
+	public static void removeJFrame(final String className) {
+		CCoreUtil.checkAccess();
+		
+		frames.remove(className);
 	}
 	
 	public void updateSkinUI(){
-		ConfigPane.updateComponentUI(getContentPane());
+		updateSkinUI(getContentPane());
+	}
+	
+	static void updateSkinUI(final Container container){
+		App.invokeLaterUI(new Runnable() {
+			@Override
+			public void run() {
+				ConfigPane.updateComponentUI(container);
+			}
+		});
 	}
 }

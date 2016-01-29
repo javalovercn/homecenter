@@ -161,13 +161,13 @@ public class UPnPUtil {
     private static boolean isCheckedUPnP = false;
     public static boolean isSupportUPnP(InetAddress ia){
     	if(isCheckedUPnP == false){
-//			hc.core.L.V=hc.core.L.O?false:LogManager.log("Starting UPnP Discovery Service");
-			hc.core.L.V=hc.core.L.O?false:LogManager.log("Looking for UPnP devices from [" + ia.toString() + "]");
+//			L.V = L.O ? false : LogManager.log("Starting UPnP Discovery Service");
+			L.V = L.O ? false : LogManager.log("Looking for UPnP devices from [" + ia.toString() + "]");
 			hcgd = discover(ia);
 			
 			if (null != hcgd) {
 				String idg = "["+hcgd.getFriendlyName()+"("+hcgd.getModelNumber()+")]";
-				hc.core.L.V=hc.core.L.O?false:LogManager.log("UPnP device found. " + idg);
+				L.V = L.O ? false : LogManager.log("UPnP device found. " + idg);
 				ContextManager.getContextInstance().displayMessage((String)ResourceUtil.get(IContext.INFO), 
 						"UPnP : " + idg, IContext.INFO, null, 0);
 			}
@@ -175,7 +175,7 @@ public class UPnPUtil {
 			isCheckedUPnP = true;
 			
 			if(hcgd == null){
-			    hc.core.L.V=hc.core.L.O?false:LogManager.log("No UPnP device.");
+			    L.V = L.O ? false : LogManager.log("No UPnP device.");
 			}
     	}
     	return (hcgd != null);
@@ -200,13 +200,13 @@ public class UPnPUtil {
 //			hcgd = new HCGateDevice(d);
 			
 	//		InetAddress localAddress = d.getLocalAddress();
-	//		hc.core.L.V=hc.core.L.O?false:LogManager.log("Using local address: "+localAddress );
+	//		L.V = L.O ? false : LogManager.log("Using local address: "+localAddress );
 			String externalIPAddress = hcgd.getOutterIP();
-//			hc.core.L.V=hc.core.L.O?false:LogManager.log("External address: "+ externalIPAddress);
+//			L.V = L.O ? false : LogManager.log("External address: "+ externalIPAddress);
 			UPnPMapping portMapping = new UPnPMapping();
 	
-//			hc.core.L.V=hc.core.L.O?false:LogManager.log("Attempting to map port "+localPort );
-//			hc.core.L.V=hc.core.L.O?false:LogManager.log("Querying device to see if mapping for port "+localPort+" already exists");
+//			L.V = L.O ? false : LogManager.log("Attempting to map port "+localPort );
+//			L.V = L.O ? false : LogManager.log("Querying device to see if mapping for port "+localPort+" already exists");
 	
 			if(oldUPnPPort != 0){
 				if(hcgd.getUPnPMapping(TCP,oldUPnPPort,portMapping)){
@@ -235,10 +235,10 @@ public class UPnPUtil {
 					beginExteralPort++;
 					continue;
 				}
-//			    hc.core.L.V=hc.core.L.O?false:LogManager.log("Sending port mapping request");
+//			    L.V = L.O ? false : LogManager.log("Sending port mapping request");
 	
 			    if (hcgd.addUPnPMapping(beginExteralPort, localPort, localAddress.getHostAddress(), TCP, upnpToken)) {
-			    	hc.core.L.V=hc.core.L.O?false:LogManager.log("Success add UPnP exteral PortMap [" + externalIPAddress + ":" + beginExteralPort + "]");
+			    	L.V = L.O ? false : LogManager.log("Success add UPnP exteral PortMap [" + externalIPAddress + ":" + beginExteralPort + "]");
 			    	String[] out = {HCURLUtil.convertIPv46(externalIPAddress),String.valueOf(beginExteralPort)};
 			        return out;
 			    } else {
@@ -248,7 +248,7 @@ public class UPnPUtil {
 			}
 		}catch (Exception e) {
 			e.printStackTrace();
-			hc.core.L.V=hc.core.L.O?false:LogManager.log(e.toString());
+			L.V = L.O ? false : LogManager.log(e.toString());
 		}
 		return null;		
 	}
@@ -268,8 +268,8 @@ public class UPnPUtil {
 				return hcgd.deleteUPnPMapping(externalPort,TCP);
 			}
 		}catch (Exception e) {
-	        hc.core.L.V=hc.core.L.O?false:LogManager.log("Failed at remove UPnP Port");
-			hc.core.L.V=hc.core.L.O?false:LogManager.log(e.toString());
+	        L.V = L.O ? false : LogManager.log("Failed at remove UPnP Port");
+			L.V = L.O ? false : LogManager.log(e.toString());
 			return false;
 		}
 	}

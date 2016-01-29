@@ -1,5 +1,6 @@
 package hc.server.ui.design.hpj.ctrl;
 
+import hc.App;
 import hc.server.ui.CtrlResponse;
 
 public class CtrlManager {
@@ -10,6 +11,7 @@ public class CtrlManager {
 	}
 	
 	public void ReceiveOnKey(final int keyValue){
+		App.showMessageDialog(null, "maybe unused code here ");
 		this.ctrler.click(keyValue);
 	}
 	

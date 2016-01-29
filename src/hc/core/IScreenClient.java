@@ -17,15 +17,10 @@ public interface IScreenClient extends IPNGScreen {
 	public void sendBackTxtToClient(String txt);
 	
 	/**
-	 * 小于0表示向左移成功，
+	 * pixleUp : 小于表示向下移成功
+	 * pixleRight : 小于0表示向左移成功，
 	 */
-	public void succMoveRight(int pixle);
-	
-	/**
-	 * 小于表示向下移成功
-	 * @param pixle
-	 */
-	public void succMoveUp(int pixle);
+	public void succMoveUpRight(int pixleUp, int pixleRight);
 	
 	public void enableMoveUp(boolean e);
 	public void enableMoveDown(boolean e);

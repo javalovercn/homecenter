@@ -1,7 +1,5 @@
 package hc.core.util;
 
-import hc.core.L;
-
 import java.util.Enumeration;
 
 public class CtrlMap {
@@ -37,7 +35,7 @@ public class CtrlMap {
 //		L.V = L.O ? false : LogManager.log("updateButtonOnCanvas x : " + center_x + ", y : " + center_y);
 	}
 
-	public void addButtonOnCanvas(final int keyValue, final int center_x, final int center_y){
+	public final void addButtonOnCanvas(final int keyValue, final int center_x, final int center_y){
 		map.put(HEAD_KEY + keyValue, "1");
 		map.put(HEAD_CENTER_X + keyValue, String.valueOf(center_x));
 		map.put(HEAD_CENTER_Y + keyValue, String.valueOf(center_y));
@@ -48,13 +46,14 @@ public class CtrlMap {
 //		L.V = L.O ? false : LogManager.log("addButtonOnCanvas size : " + size + ", x : " + center_x + ", y : " + center_y);
 	}
 	
-	public void setButtonTxt(final int keyValue, final String txt){
+	public final void setButtonTxt(final int keyValue, final String txt){
+		//忽略null或空串
 		if(txt != null && txt.length() > 0){
 			map.put(HEAD_KEY_TXT + keyValue, txt);
 		}
 	}
 	
-	public void removeButtonFromCanvas(final int keyValue){
+	public final void removeButtonFromCanvas(final int keyValue){
 		map.remove(HEAD_KEY + keyValue);
 		
 		map.remove(HEAD_CENTER_X + keyValue);
@@ -66,7 +65,7 @@ public class CtrlMap {
 		}
 	}
 	
-	public int[] getButtonsOnCanvas(){
+	public final int[] getButtonsOnCanvas(){
 		int[] out = new int[size];
 		int out_idx = 0;
 		Enumeration it = map.keys();
@@ -80,47 +79,47 @@ public class CtrlMap {
 		return out;
 	}
 	
-	public int getCenterXOfButton(final int keyValue){
+	public final int getCenterXOfButton(final int keyValue){
 		return Integer.parseInt((String)map.get(HEAD_CENTER_X + keyValue));
 	}
 	
-	public int getCenterYOfButton(final int keyValue){
+	public final int getCenterYOfButton(final int keyValue){
 		return Integer.parseInt((String)map.get(HEAD_CENTER_Y + keyValue));
 	}
 	
-	public String getTxtOfButton(final int keyValue){
+	public final String getTxtOfButton(final int keyValue){
 		return (String)map.get(HEAD_KEY_TXT + keyValue);
 	}
 	
-	public String getPNGBase64(final int keyValue){
+	public final String getPNGBase64(final int keyValue){
 		return (String)map.get(HEAD_PNG + keyValue);
 	}
 	
-	public void setPNGBase64(final int keyValue, final String pngBase64Data){
+	public final void setPNGBase64(final int keyValue, final String pngBase64Data){
 		map.put(HEAD_PNG + keyValue, pngBase64Data);
 	}
 	
-	public void setTitle(final String title){
+	public final void setTitle(final String title){
 		map.put(HEAD_CTRL_TITLE, title);
 	}
 	
-	public String getTitle(){
+	public final String getTitle(){
 		return (String)map.get(HEAD_CTRL_TITLE);
 	}
 	
-	public void setID(final String title){
+	public final void setID(final String title){
 		map.put(HEAD_CTRL_ID, title);
 	}
 	
-	public String getID(){
+	public final String getID(){
 		return (String)map.get(HEAD_CTRL_ID);
 	}
 	
-	public void setBlockWidth(final int width){
+	public final void setBlockWidth(final int width){
 		map.put(HEAD_BLOCK_WIDTH, String.valueOf(width));
 	}
 	
-	public int getBlockWidth(){
+	public final int getBlockWidth(){
 		return Integer.parseInt((String)map.get(HEAD_BLOCK_WIDTH));
 	}
 }

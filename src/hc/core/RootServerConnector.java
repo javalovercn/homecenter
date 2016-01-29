@@ -118,27 +118,29 @@ public class RootServerConnector {
 	 */
 	public static String retry(String url, boolean isTCP){
 		String msg = null;
-		int tryTims = 0;
-		while(true){
-			msg = IConstant.getInstance().getAjaxForSimu(url, isTCP);
-			if((msg == null && tryTims < 3) && (isTCP == false)){
+		if(IConstant.getInstance() != null){//有可能为null
+			int tryTims = 0;
+			while(true){
+				msg = IConstant.getInstance().getAjaxForSimu(url, isTCP);
+				if(msg == null && tryTims < 2){
+				}else{
+					break;
+				}
+				tryTims++;
+				try{
+					Thread.sleep(1000);
+				}catch (Exception e) {
+					
+				}
+			}
+			if(msg == null){
+				if(isLastUnConnServer == false){
+					LogManager.err(UN_CONN);
+					isLastUnConnServer = true;
+				}
 			}else{
-				break;
+				isLastUnConnServer = false;
 			}
-			tryTims++;
-			try{
-				Thread.sleep(1000);
-			}catch (Exception e) {
-				
-			}
-		}
-		if(msg == null){
-			if(isLastUnConnServer == false){
-				LogManager.err(UN_CONN);
-				isLastUnConnServer = true;
-			}
-		}else{
-			isLastUnConnServer = false;
 		}
 		return msg;
 	}
@@ -409,7 +411,7 @@ public class RootServerConnector {
 					
 				}
 				
-				public boolean isNotCancelable() {
+				public boolean isCancelable() {
 					return false;
 				}
 				
@@ -494,8 +496,8 @@ public class RootServerConnector {
 				ENCRYPTER_STR + "true", true);
 	}
 	
-	public static void refreshRootAlive(String token, boolean hideIP, String hideToken) {
-		retry(CALL_STR +
+	public static String refreshRootAlive(String token, boolean hideIP, String hideToken) {
+		return retry(CALL_STR +
 				alive_STR +
 				ID_STR + encryptePara(IConstant.uuid, token) + "&" +
 				TOKEN_STR + token + "&" +
@@ -547,5 +549,7 @@ public class RootServerConnector {
 			return "";
 		}
 	}
+
+	public static final String ROOT_AJAX_OK = "ok";
 
 }

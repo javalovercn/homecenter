@@ -11,15 +11,16 @@ import hc.core.RootServerConnector;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.server.ui.LinkProjectStatus;
+import hc.server.ui.design.Designer;
+import hc.util.HttpUtil;
 import hc.util.IBiz;
 import hc.util.MultiThreadDownloader;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
+import java.awt.Container;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Properties;
@@ -31,12 +32,15 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
 
 public class JRubyInstaller {
-	static final String JRUBY_VER_1_7_3 = "1.7.3";
 	static MultiThreadDownloader mtd;
 
-	private static String getInnverJRubyMD5(String outerVersion, String outerMD5){
-		String[] versions = {JRUBY_VER_1_7_3};
-		String[] innerMD5 = {"75a612d9ba57a61f01dcd6e3e586a34b"};
+	private static String getInnverJRubyMD5(final String outerVersion, final String outerMD5){
+		if(ResourceUtil.isAndroidServerPlatform()){
+			return getInnverAndroidJRubyMD5(outerVersion, outerMD5);
+		}
+		
+		final String[] versions = {"1.7.3"};
+		final String[] innerMD5 = {"75a612d9ba57a61f01dcd6e3e586a34b"};
 		
 		for (int i = 0; i < versions.length; i++) {
 			if(versions[i].equals(outerVersion)){
@@ -47,6 +51,18 @@ public class JRubyInstaller {
 		return outerMD5;
 	}
 
+	private static String getInnverAndroidJRubyMD5(final String outerVersion, final String outerMD5){
+		final String[] versions = {"1.7.18"};
+		final String[] innerMD5 = {"cb9d405beb4ffd202a226ec7d591d72a"};
+		
+		for (int i = 0; i < versions.length; i++) {
+			if(versions[i].equals(outerVersion)){
+				return innerMD5[i];
+			}
+		}
+		
+		return outerMD5;
+	}
 	public static boolean checkInstalledJRuby(){
 		return PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer) != null;
 	}
@@ -54,140 +70,198 @@ public class JRubyInstaller {
 	public static void startInstall(){
 		if(LinkProjectStatus.tryEnterStatus(null, LinkProjectStatus.MANAGER_JRUBY_INSTALL)){
 			new Thread(){
+				@Override
 				public void run(){
-					callDownload();
+					callDownload(false);
 				}
 			}.start();
 		}
 	}
 	
-	public static void callDownload(){
-		L.V = L.O ? false : LogManager.log("download JRuby engine...");
-
-		ConditionWatcher.addWatcher(new IWatcher() {
-			final long ms = System.currentTimeMillis();
-			@Override
-			public boolean watch() {
-				if(System.currentTimeMillis() - ms > 5000 || ContextManager.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON){
-					ContextManager.getContextInstance().displayMessage(
-							(String) ResourceUtil.get(IContext.INFO), 
-							StringUtil.replace((String)ResourceUtil.get(9066), "{design}", (String)ResourceUtil.get(9034)), 
-							IContext.INFO, null, 0);
-					return true;
-				}
-				return false;
-			}
-			
-			@Override
-			public void setPara(Object p) {
-			}
-			
-			@Override
-			public boolean isNotCancelable() {
-				return false;
-			}
-			
-			@Override
-			public void cancel() {
-			}
-		});
+	public static void callDownload(final boolean isRedownload){
+		if(isRedownload){
+			L.V = L.O ? false : LogManager.log("fail on download and retry download JRuby engine...");
+		}else{
+			L.V = L.O ? false : LogManager.log("download JRuby engine...");
+		}
+		String jruby_ver = "jruby.ver";
+		String jruby_md5 = "jruby.md5";
+		String jruby_urls = "jruby.url";
 		
+		if(ResourceUtil.isAndroidServerPlatform()){
+			jruby_ver = "android." + jruby_ver;
+			jruby_md5 = "android." + jruby_md5;
+			jruby_urls = "android." + jruby_urls;
+		}
+
+		if(isRedownload == false){
+			ConditionWatcher.addWatcher(new IWatcher() {
+				final long ms = System.currentTimeMillis();
+				@Override
+				public boolean watch() {
+					if(System.currentTimeMillis() - ms > 5000 || ContextManager.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON){
+						ContextManager.getContextInstance().displayMessage(
+								(String) ResourceUtil.get(IContext.INFO), 
+								StringUtil.replace((String)ResourceUtil.get(9066), "{design}", (String)ResourceUtil.get(9034)), 
+								IContext.INFO, null, 0);
+						return true;
+					}
+					return false;
+				}
+				@Override
+				public void setPara(final Object p) {
+				}
+				@Override
+				public boolean isCancelable() {
+					return false;
+				}
+				@Override
+				public void cancel() {
+				}
+			});
+		}
 
 		final Properties thirdlibs = ResourceUtil.loadThirdLibs();
 		if(thirdlibs == null){
-			try{
-				Thread.sleep(2000);
-				callDownload();
-			}catch (Exception e) {
-			}
+			redownload();
 			return;
+		}else{
+			L.V = L.O ? false : LogManager.log("success get download online lib information.");
 		}
 
-		final String _lastJrubyVer = JRUBY_VER_1_7_3;//thirdlibs.getProperty("jruby.ver");
-		final String _lastJrubyMd5 = thirdlibs.getProperty("jruby.md5");
+		final String _lastJrubyVer = thirdlibs.getProperty(jruby_ver);
+		final String _lastJrubyMd5 = thirdlibs.getProperty(jruby_md5);
 
 		final String md5 = getInnverJRubyMD5(_lastJrubyVer, _lastJrubyMd5);
-		String fromURL = thirdlibs.getProperty("jruby.url");
-		String storeFile = J2SEContext.jrubyjarname;
-		File rubyjar = new File(storeFile);
+		String fromURL = thirdlibs.getProperty(jruby_urls);
+		if(PropertiesManager.isTrue(PropertiesManager.p_IsSimu)){
+			fromURL = HttpUtil.replaceSimuURL(fromURL, true);
+		}
+		final String storeFile = J2SEContext.jrubyjarname;
+		final File rubyjar = new File(App.getBaseDir(), storeFile);
 		if(rubyjar.exists()){
+			L.V = L.O ? false : LogManager.log("remove fail download or old version file [" + storeFile + "].");
 			rubyjar.delete();
 		}
 		
-		IBiz biz = new IBiz() {
+		final IBiz biz = new IBiz() {
 			@Override
 			public void start() {
 				PropertiesManager.setValue(PropertiesManager.p_jrubyJarFile, J2SEContext.jrubyjarname);	
 				PropertiesManager.setValue(PropertiesManager.p_jrubyJarVer, _lastJrubyVer);
 				PropertiesManager.saveFile();
 				
-				L.V = L.O ? false : LogManager.log("successful installed JRuby.");
-				LinkProjectStatus.exitStatus();		
-				
-				RootServerConnector.notifyLineOffType("lof=jrubyOK");
-
-				if(needNotify){
+				try{
+					L.V = L.O ? false : LogManager.log("successful installed JRuby.");
+					
+					RootServerConnector.notifyLineOffType("lof=jrubyOK");
+					
 					notifySuccessInstalled();
+					
+					Designer.setupMyFirstAndApply();
+				}finally{
+					LinkProjectStatus.exitStatus();		
+					closeProgressWindow();
 				}
 			}
 			
 			@Override
-			public void setMap(HashMap map) {
+			public void setMap(final HashMap map) {
 			}
 		};
-		IBiz failBiz = new IBiz() {
+		final IBiz failBiz = new IBiz() {
 			@Override
 			public void start() {
-				callDownload();
+				redownload();
 			}
 			
 			@Override
-			public void setMap(HashMap map) {
+			public void setMap(final HashMap map) {
 			}
 		};
-		if(mtd == null){
-			mtd = new MultiThreadDownloader();
-		}
+		mtd = new MultiThreadDownloader();
+
+		refreshProgressWindow();
+
 		mtd.download(StringUtil.split(fromURL, RootConfig.CFG_SPLIT), rubyjar, md5, biz, failBiz, false);
 	}
-	
-	private static boolean needNotify = false;
+
+	private static void redownload() {
+		try{
+			L.V = L.O ? false : LogManager.log("fail to get download online lib information, wait for a moment...");
+			Thread.sleep(5000);
+			callDownload(true);
+		}catch (final Exception e) {
+		}
+	}
 	
 	public static JProgressBar getFinishPercent(){
+		while(mtd == null){
+			try{
+				Thread.sleep(100);
+			}catch (final Exception e) {
+			}
+		}
 		return mtd.getFinishPercent();
 	}
 	
-	private static void needNotify(){
-		needNotify = true;
+	private static void notifySuccessInstalled(){
+		ContextManager.getContextInstance().displayMessage(
+				(String) ResourceUtil.get(IContext.INFO),  (String)ResourceUtil.get(9108), 
+				IContext.INFO, null, 0);
+		
+		if(ResourceUtil.isEnableDesigner()){
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					try{
+						Thread.sleep(5 * 1000);//等待完全退出工程锁定状态。
+					}catch (final Exception e) {
+					}
+					
+					//开始第一个Har
+					final JPanel panel = new JPanel(new BorderLayout());
+					panel.add(new JLabel((String)ResourceUtil.get(9079), 
+								App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
+					
+					App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.INFO), true, null, null, new HCActionListener(new Runnable() {
+						@Override
+						public void run() {
+							LinkMenuManager.startDesigner(true);
+						}
+					}, App.getThreadPoolToken()), null, null, false, true, null, false, false);
+				}
+			});
+		}
 	}
 	
-	public static void notifySuccessInstalled(){
-		if(LinkProjectStatus.isIdle()){
-			JPanel panel = new JPanel(new BorderLayout());
-			panel.add(new JLabel((String)ResourceUtil.get(9079), 
-						App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
-			
-			App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.INFO), true, null, null, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if(LinkProjectStatus.isIdle()){
-						LinkMenuManager.startDesigner();
-					}
-				}
-			}, null, null, false, true, null, false, false);
+	public synchronized static void closeProgressWindow(){
+		final Window snapWindow = progressWindow;
+		if(snapWindow != null){
+			snapWindow.dispose();
+			progressWindow = null;
+		}
+	}
+	
+	public synchronized static void refreshProgressWindow(){
+		final Window snapWindow = progressWindow;
+		if(snapWindow != null && snapWindow.isVisible()){
+			final Container c = snapWindow.getParent();
+			snapWindow.dispose();
+			progressWindow = null;
+
+			showProgressWindow(((c != null && c instanceof JFrame)?(JFrame)c:null));
 		}
 	}
 	
 	private static Window progressWindow;
-
-	public static void showProgressWindow(JFrame parent) {
-			needNotify();
-					
+	
+	public synchronized static void showProgressWindow(final JFrame parent) {
 			if(progressWindow == null || (progressWindow.isVisible() == false)){
-				JLabel label = new JLabel("<html>" + (String)ResourceUtil.get(9084) +
+				final JLabel label = new JLabel("<html>" + (String)ResourceUtil.get(9084) +
 		//							"<br>if we have finished, a notify window will display." +
 						"</html>", App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING);
-				JPanel panel = new JPanel(new BorderLayout());
+				final JPanel panel = new JPanel(new BorderLayout());
 				panel.add(label, BorderLayout.CENTER);
 				final JProgressBar finishPercent = getFinishPercent();
 				if(finishPercent != null){

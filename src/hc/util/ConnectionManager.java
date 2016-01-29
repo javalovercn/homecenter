@@ -1,5 +1,6 @@
 package hc.util;
 
+import hc.core.util.CCoreUtil;
 import hc.core.util.Stack;
 import hc.server.AbstractDelayBiz;
 
@@ -12,6 +13,8 @@ public class ConnectionManager {
 	private static Stack delayBiz = null;
 	
 	public static void addBeforeConnectionBiz(AbstractDelayBiz biz){
+		CCoreUtil.checkAccess();
+		
 		if(delayBiz == null){
 			delayBiz = new Stack();
 		}
@@ -19,6 +22,8 @@ public class ConnectionManager {
 	}
 	
 	public static void startBeforeConnectBiz(){
+		CCoreUtil.checkAccess();
+		
 		if(delayBiz != null){
 			AbstractDelayBiz biz;
 			do{
@@ -27,6 +32,7 @@ public class ConnectionManager {
 					try{
 						biz.doBiz();
 					}catch (Throwable e) {
+						e.printStackTrace();
 					}
 				}
 			}while(biz != null);

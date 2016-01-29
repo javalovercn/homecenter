@@ -1,47 +1,325 @@
 package hc.server.ui.design;
 
+import hc.App;
+import hc.core.ConfigManager;
+import hc.core.ContextManager;
 import hc.core.IConstant;
+import hc.core.IContext;
 import hc.core.L;
 import hc.core.util.CtrlMap;
 import hc.core.util.HCURL;
+import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
+import hc.core.util.RecycleThread;
+import hc.core.util.ReturnableRunnable;
 import hc.core.util.StoreableHashMap;
+import hc.core.util.StringUtil;
+import hc.core.util.ThreadPool;
+import hc.core.util.ThreadPriorityManager;
+import hc.server.HCException;
 import hc.server.ScreenServer;
 import hc.server.data.screen.ScreenCapturer;
+import hc.server.html5.syn.MletHtmlCanvas;
+import hc.server.msb.Converter;
+import hc.server.msb.Device;
+import hc.server.msb.MSBAgent;
+import hc.server.msb.Robot;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.CtrlResponse;
-import hc.server.ui.MCanvas;
+import hc.server.ui.HTMLMlet;
+import hc.server.ui.ICanvas;
+import hc.server.ui.IMletCanvas;
 import hc.server.ui.MUIView;
 import hc.server.ui.Mlet;
+import hc.server.ui.MletSnapCanvas;
+import hc.server.ui.ProjClassLoaderFinder;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServCtrlCanvas;
+import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.hpj.HCjar;
+import hc.server.ui.design.hpj.HCjarHelper;
+import hc.server.ui.design.hpj.HPNode;
 import hc.server.ui.design.hpj.RubyExector;
+import hc.server.util.ContextSecurityConfig;
+import hc.server.util.ContextSecurityManager;
 import hc.util.BaseResponsor;
+import hc.util.ClassUtil;
+import hc.util.RecycleProjThreadPool;
+import hc.util.ResourceUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.charset.Charset;
 import java.util.Map;
+import java.util.Vector;
 
 public class ProjResponser {
-	final Map<String, Object> map;
+	public final Map<String, Object> map;
+	public final ThreadPool threadPool;
 	final JarMainMenu[] menu;
 	final int mainMenuIdx;
-	final HCJRubyEngine hcje;
-	final ProjectContext context;
-
-	public ProjResponser(final Map<String, Object> p_map, final BaseResponsor baseRep,
+	public final HCJRubyEngine hcje;
+	public final ProjectContext context;
+	Robot[] robots;
+	Device[] devices;
+	Converter[] converters;
+	
+	boolean isStoped = false;
+	
+	public final void stop(){
+		synchronized (this) {
+			isStoped = true;
+			try{
+				hcje.terminate();
+			}catch (final Throwable e) {
+				LogManager.errToLog("fail terminate JRuby engine : " + e.toString());
+				e.printStackTrace();
+			}
+		}
+		
+		RecycleProjThreadPool.recycle(context.getProjectID(), threadPool);
+		
+		ServerUIAPIAgent.set__projResponserMaybeNull(context, null);
+	}
+	
+	public final Converter[] getConverters() throws Exception{
+		if(converters != null){
+			return converters;
+		}
+		
+		final int size = HCjarHelper.getConverterNum(map);
+		
+		if(size <=0) {
+			final Converter[] out = {};
+			converters = out;
+			return converters;
+		}
+		
+		final Vector<String>[] vectors = HCjarHelper.getConvertersSrc(map);
+		final Vector<String> names = vectors[0];
+		final Vector<String> src = vectors[1];
+		
+		converters = new Converter[size];
+		
+		for (int itemIdx = 0; itemIdx < size; itemIdx++) {
+			Converter converter = null;
+			final String converterName = names.elementAt(itemIdx);
+				L.V = L.O ? false : LogManager.log("try build instance for Converter [" + converterName + "] in project [" + context.getProjectID() + "]...");
+				
+				//将转换器名称装入properties
+				ServerUIAPIAgent.setSuperProp(context, ServerUIAPIAgent.CONVERT_NAME_PROP, converterName);
+				converter = (Converter)RubyExector.run(src.elementAt(itemIdx), null, hcje, context);
+				if(converter != null){
+					L.V = L.O ? false : LogManager.log("succesful build instance for Converter [" + converterName + "] in project [" + context.getProjectID() + "].");
+				}else{
+					final String msg = "Fail instance Converter [" + converterName + "] in project [" + context.getProjectID() + "].";
+					LogManager.err(msg);
+					throw new HCException(msg);
+				}
+			
+			converters[itemIdx] = converter;
+		}
+		
+		return converters;
+	}
+	
+	
+	final void loadProcessors(final MSBAgent agent) throws Exception{
+		final Converter[] converters = getConverters();
+		if(converters != null){
+			for (int j = 0; j < converters.length; j++) {
+				agent.addConverter(converters[j]);
+			}
+		}
+		
+		final Device[] devices = getDevices();
+		if(devices != null){
+			for (int j = 0; j < devices.length; j++) {
+				agent.addDevice(devices[j]);
+			}
+		}
+		
+		final Robot[] robots = getRobots();
+		if(robots != null){
+			for (int j = 0; j < robots.length; j++) {
+				agent.addRobot(robots[j]);
+			}
+		}
+	}
+	
+	public final Device[] getDevices() throws Exception {
+		if(devices != null){
+			return devices;
+		}
+		
+		final int itemCount = HCjarHelper.getDeviceNum(map);
+		
+		if(itemCount <=0) {
+			final Device[] out = {};
+			devices = out;
+			return devices;
+		}
+		
+		final Vector<String>[] vectors = HCjarHelper.getDevicesSrc(map);
+		final Vector<String> names = vectors[0];
+		final Vector<String> src = vectors[1];
+		
+		devices = new Device[itemCount];
+		
+		for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
+			
+			final String devName = names.elementAt(itemIdx);
+			final String devListener = src.elementAt(itemIdx);
+			
+			Device device = null;
+			L.V = L.O ? false : LogManager.log("try build instance for Device [" + devName + "] in project [" + context.getProjectID() + "]...");
+			
+			//将设备名称装入properties
+			ServerUIAPIAgent.setSuperProp(context, ServerUIAPIAgent.DEVICE_NAME_PROP, devName);
+			device = (Device)RubyExector.run(devListener, null, hcje, context);
+			if(device != null){
+				L.V = L.O ? false : LogManager.log("successful build instance for Device [" + devName + "] in project [" + context.getProjectID() + "].");
+			}else{
+				final String msg = "Fail instance Device [" + devName + "] in project [" + context.getProjectID() + "].";
+				LogManager.err(msg);
+				throw new HCException(msg);
+			}
+			MSBAgent.addSuperRightSet(device);
+			
+			devices[itemIdx] = device;
+		}
+		return devices;
+	}
+	
+	public final Robot[] getRobots() throws Exception{
+		if(robots != null){
+			return robots;
+		}
+		
+		final int itemCount = HCjarHelper.getRobotNum(map);
+		
+		if(itemCount <=0) {
+			final Robot[] out = {};
+			robots = out;
+			return robots;
+		}
+		
+		final Vector<String>[] vectors = HCjarHelper.getRobotsSrc(map);
+		final Vector<String> names = vectors[0];
+		final Vector<String> src = vectors[1];
+		
+		robots = new Robot[itemCount];
+		
+		for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
+			
+			final String robotName = names.elementAt(itemIdx);
+			final String robotListener = src.elementAt(itemIdx);
+			
+			Robot robot = null;
+			L.V = L.O ? false : LogManager.log("try build intance for Robot [" + robotName + "] in project [" + context.getProjectID() + "]...");
+			
+			//将设备名称装入properties
+			ServerUIAPIAgent.setSuperProp(context, ServerUIAPIAgent.ROBOT_NAME_PROP, robotName);
+			robot = (Robot)RubyExector.run(robotListener, null, hcje, context);
+			if(robot != null){
+				L.V = L.O ? false : LogManager.log("successful build intance for Robot [" + robotName + "] in project [" + context.getProjectID() + "].");
+			}else{
+				final String msg = "Fail instance Robot [" + robotName + "] in project [" + context.getProjectID() + "].";
+				LogManager.err(msg);
+				throw new HCException(msg);
+			}
+			
+			robots[itemIdx] = robot;
+		}
+		
+		return robots;
+	}
+	
+	public ProjResponser(final String projID, final Map<String, Object> p_map, final BaseResponsor baseRep,
 			final LinkProjectStore lps) {
 		this.map = p_map;
-		this.hcje = new HCJRubyEngine(new File(lps.getDeployTmpDir()).getAbsolutePath());
+		final File deployPath = new File(App.getBaseDir(), lps.getDeployTmpDir());
+		final ClassLoader projClassLoader = ResourceUtil.buildProjClassLoader(deployPath, projID);
+		this.hcje = new HCJRubyEngine(deployPath.getAbsolutePath(), projClassLoader);
 		
-		context = new ProjectContext((String)map.get(HCjar.PROJ_ID), (String)map.get(HCjar.PROJ_VER));
+		final ThreadPool tmpPool = RecycleProjThreadPool.getFree(projID);
+		
+		ThreadGroup threadGroup;
+		if(tmpPool != null){
+			threadPool = tmpPool;
+			threadGroup = (ThreadGroup)threadPool.getThreadGroup();
+//			System.out.println("recycle threadPool for ProjResponser");
+		}else{
+			threadGroup = new ThreadGroup("HarLimitThreadPoolGroup");
+			ClassUtil.changeParentToNull(threadGroup);
+			threadPool =	new ThreadPool(threadGroup){
+				//每个工程实例下，用一个ThreadPool实例，以方便权限管理
+				@Override
+				public final Thread buildThread(final RecycleThread rt) {
+					final Thread thread = new Thread((ThreadGroup)threadGroup, rt);
+					thread.setName("lmtThread-in-" + ((ThreadGroup)threadGroup).getName());
+					thread.setPriority(ThreadPriorityManager.PROJ_CONTEXT_THREADPOOL_PRIORITY);
+					return thread;
+				}
+				
+				@Override
+				protected void checkAccessPool(final Object token){
+				}
+				
+				@Override
+				public void printStack(){
+					ClassUtil.printCurrentThreadStack("--------------nest stack--------------");
+				}
+			};
+		}
+		threadPool.setName(projID + "-ThreadPool");
+		context = new ProjectContext(projID, (String)map.get(HCjar.PROJ_VER), threadPool, this, new ProjClassLoaderFinder() {
+			@Override
+			public ClassLoader findProjClassLoader() {
+				return projClassLoader;
+			}
+		});
+		
+		final ContextSecurityConfig csc = ContextSecurityConfig.getContextSecurityConfig(lps);
+		csc.setProjResponser(this);
+		csc.initSocketPermissionCollection();
+		ContextSecurityManager.putContextSecurityConfig(threadGroup, csc);
+		
+		{
+			//加载全部native lib
+			final String str_NativeNum = (String)p_map.get(HCjar.SHARE_NATIVE_FILES_NUM);
+			if(str_NativeNum != null){
+				final int shareRubyNum = Integer.parseInt(str_NativeNum);
+				final boolean hasLoadNativeLibPermission = csc.isLoadLib();
+				for (int idx = 0; idx < shareRubyNum; idx++) {
+					final String nativeLibName = (String)p_map.get(HCjar.replaceIdxPattern(HCjar.SHARE_NATIVE_FILE_NAME, idx));
+					if(hasLoadNativeLibPermission){
+						final File nativeFile = new File(deployPath, nativeLibName);
+						final String absolutePath = nativeFile.getAbsolutePath();
+						try{
+							System.load(absolutePath);
+							L.V = L.O ? false : LogManager.log("successful load native lib [" + nativeLibName + "] in project [" + projID + "].");
+						}catch (final Throwable e) {
+							LogManager.err("Fail to load native lib [" + nativeLibName + "] in project [" + projID + "]");
+							e.printStackTrace();
+						}
+					}else{
+						LogManager.err("No permission to load native lib [" + nativeLibName + "] in project [" + projID + "]");
+					}
+				}
+				
+				if(shareRubyNum > 0 && hasLoadNativeLibPermission == false){
+					LogManager.err("please make sure enable permission in [Project Manage/project id/modify | permission/permission/load native lib]");
+					LogManager.errToLog("the permissions in [root node/permission/load native lib] are for designing, Not for running.");
+				}
+			}
+		}
+		
 		baseRep.addProjectContext(context);
 		
-		Object object = map.get(HCjar.MENU_NUM);
+		final Object object = map.get(HCjar.MENU_NUM);
 		if(object != null){
 			final int menuNum = Integer.parseInt((String)object);
 			mainMenuIdx = Integer.parseInt((String)map.get(HCjar.MAIN_MENU_IDX));
@@ -59,63 +337,93 @@ public class ProjResponser {
 	}
 
 
-	public static boolean deloyToWorkingDir(Map<String, Object> deployMap, File shareResourceTopDir) {
+	public static final boolean deloyToWorkingDir(final Map<String, Object> deployMap, final File shareResourceTopDir) {
 		if(!shareResourceTopDir.exists()){
-			shareResourceTopDir.mkdir();
+			shareResourceTopDir.mkdirs();
 		}
 		
 		boolean hasResource = false;
 		
 		//创建共享资源目录
 		try{
-			String str_shareRubyNum = (String)deployMap.get(HCjar.SHARE_JRUBY_FILES_NUM);
-			if(str_shareRubyNum != null){
-				
-				int shareRubyNum = Integer.parseInt(str_shareRubyNum);
-				for (int idx = 0; idx < shareRubyNum; idx++) {
-					final String fileName = (String)deployMap.get(HCjar.replaceIdxPattern(HCjar.SHARE_JRUBY_FILE_NAME, idx));
-					final String fileContent = (String)deployMap.get(HCjar.replaceIdxPattern(HCjar.SHARE_JRUBY_FILE_CONTENT, idx));
+			{
+				final String str_shareRubyNum = (String)deployMap.get(HCjar.SHARE_JRUBY_FILES_NUM);
+				if(str_shareRubyNum != null){
 					
-					final File jrubyFile = new File(shareResourceTopDir, fileName);
-					
-					FileOutputStream fos = new FileOutputStream(jrubyFile);
-					fos.write(fileContent.getBytes(Charset.forName(IConstant.UTF_8)));
-					fos.flush();
-					fos.close();
-					
-					hasResource = true;
+					final int shareRubyNum = Integer.parseInt(str_shareRubyNum);
+					for (int idx = 0; idx < shareRubyNum; idx++) {
+						final String fileName = (String)deployMap.get(HCjar.replaceIdxPattern(HCjar.SHARE_JRUBY_FILE_NAME, idx));
+						final String fileContent = (String)deployMap.get(HCjar.replaceIdxPattern(HCjar.SHARE_JRUBY_FILE_CONTENT, idx));
+						
+						final File jrubyFile = new File(shareResourceTopDir, fileName);
+						
+						final FileOutputStream fos = new FileOutputStream(jrubyFile);
+						fos.write(fileContent.getBytes(Charset.forName(IConstant.UTF_8)));
+						fos.flush();
+						fos.close();
+						
+						hasResource = true;
+					}
 				}
 			}
 			
+			{
+				final String str_NativeNum = (String)deployMap.get(HCjar.SHARE_NATIVE_FILES_NUM);
+				if(str_NativeNum != null){
+					
+					final int shareRubyNum = Integer.parseInt(str_NativeNum);
+					for (int idx = 0; idx < shareRubyNum; idx++) {
+						final String fileName = (String)deployMap.get(HCjar.replaceIdxPattern(HCjar.SHARE_NATIVE_FILE_NAME, idx));
+						final byte[] fileContent = (byte[])deployMap.get(HCjar.MAP_FILE_PRE + fileName);
+						
+						final File file = new File(shareResourceTopDir, fileName);
+						
+						final FileOutputStream fos = new FileOutputStream(file);
+						fos.write(fileContent);
+						fos.flush();
+						fos.close();
+						
+						hasResource = true;
+					}
+				}
+			}
 			
 			//创建共享jar
-			for(Map.Entry<String, Object> entry:deployMap.entrySet()){  
+			for(final Map.Entry<String, Object> entry:deployMap.entrySet()){  
 				final String keyName = entry.getKey();
 				if(keyName.startsWith(HCjar.VERSION_FILE_PRE)){
 					final String name = keyName.substring(HCjar.VERSION_FILE_PRE.length());
-					final byte[] content = (byte[])deployMap.get(HCjar.MAP_FILE_PRE + name);
 					
-					final File file = new File(shareResourceTopDir, name);
+					String type = (String)deployMap.get(HCjar.MAP_FILE_TYPE_PRE + name);
+					if(type == null){
+						type = HPNode.MAP_FILE_JAR_TYPE;
+					}
 					
-					FileOutputStream fos = new FileOutputStream(file);
-					fos.write(content);
-					fos.flush();
-					fos.close();
-					
-					hasResource = true;
+					if(HPNode.isNodeType(Integer.parseInt(type), HPNode.MASK_RESOURCE_ITEM)){
+						final byte[] content = (byte[])deployMap.get(HCjar.MAP_FILE_PRE + name);
+						
+						final File file = new File(shareResourceTopDir, name);
+						
+						final FileOutputStream fos = new FileOutputStream(file);
+						fos.write(content);
+						fos.flush();
+						fos.close();
+						
+						hasResource = true;
+					}
 				}
 			}
-		}catch(Throwable e){
+		}catch(final Throwable e){
 			e.printStackTrace();
 		}
 		
 		return hasResource;
 	}
 	
-	public Object onEvent(Object event) {
+	public final Object onScriptEvent(final Object event) {
 		if(event == null){
 			return null;
-		}else if(isSysEvent(event)){
+		}else if(isScriptEvent(event)){
 			
 			//优先执行主菜单的事件
 			String script = (String)map.get(HCjar.buildEventMapKey(mainMenuIdx, (String)event));
@@ -146,14 +454,14 @@ public class ProjResponser {
 	public final int PROP_EXTENDMAP = 2;
 	public final int PROP_ITEM_NAME = 3;
 	
-	private String getItemProp(HCURL url, final int type, boolean log) {
+	private final String getItemProp(final HCURL url, final int type, final boolean log) {
 		for (int i = 0; i < menu.length; i++) {
 			final JarMainMenu jarMainMenu = menu[i];
 			final String[][] menuItems = jarMainMenu.items;
 			for (int j = 0, size = menuItems.length; j < size; j++) {
 				if(menuItems[j][JarMainMenu.ITEM_URL_IDX].equals(url.url)){
 					if(log){
-						L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "click item : [" + menuItems[j][JarMainMenu.ITEM_NAME_IDX] + "]");
+						L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "click/go item : [" + menuItems[j][JarMainMenu.ITEM_NAME_IDX] + "]");
 					}
 					if(type == PROP_LISTENER){
 						return jarMainMenu.listener[j];
@@ -170,16 +478,36 @@ public class ProjResponser {
 		return null;
 	}
 	
-	public static boolean isSysEvent(Object event){
-		for (int i = 0; i < BaseResponsor.EVENT_LIST.length; i++) {
-			if(event == BaseResponsor.EVENT_LIST[i]){
+	public void preLoadJRubyScripts(){
+		for (int i = 0; i < menu.length; i++) {
+			final JarMainMenu jarMainMenu = menu[i];
+			
+			jarMainMenu.rebuildMenuItemArray();
+			
+			for (int j = 0; j < jarMainMenu.items.length; j++) {
+				final String script = jarMainMenu.listener[j];
+				
+				//与stop()互锁
+				synchronized (this) {
+					if(isStoped){
+						return;
+					}
+					RubyExector.parse(script, hcje);
+				}
+			}
+		}
+	}
+	
+	public static final boolean isScriptEvent(final Object event){
+		for (int i = 0; i < BaseResponsor.SCRIPT_EVENT_LIST.length; i++) {
+			if(event == BaseResponsor.SCRIPT_EVENT_LIST[i]){
 				return true;
 			}
 		}
 		return false;
 	}
 	
-	private boolean isMainElementID(String elementID){
+	private final boolean isMainElementID(final String elementID){
 		for (int i = 0; i < menu.length; i++) {
 			if(menu[i].menuId.equals(elementID)){
 				return menu[i].isRoot;
@@ -188,10 +516,10 @@ public class ProjResponser {
 		return false;
 	}
 
-	public boolean doBiz(HCURL url) {
-		context.__tmp_target = url.url;
+	public final boolean doBiz(final HCURL url) {//因为HCURL要回收，所以不能final
+		ServerUIAPIAgent.setTMPTarget(context, url.url, url.elementID);
 		
-		MUIView e = null;
+		final MUIView e = null;
 		if(url.protocal == HCURL.MENU_PROTOCAL){
 			int currMenuIdx = -1;
 			
@@ -229,7 +557,7 @@ public class ProjResponser {
 				return true;
 			}
 
-		}else if(url.protocal == HCURL.FORM_PROTOCAL){
+//		}else if(url.protocal == HCURL.FORM_PROTOCAL){//与下段进行合并
 //			if(url.elementID.equals("form1")){
 //				e = new TestMForm();
 //				JcipManager.addFormTimer("form1", new IFormTimer(){
@@ -253,7 +581,7 @@ public class ProjResponser {
 //							}
 //						}
 //						if(1+5 < 2){
-//							hc.core.L.V=hc.core.L.O?false:LogManager.log("Send out Alert");
+//							L.V = L.O ? false : LogManager.log("Send out Alert");
 //							if(count < 100){
 //								ServerUIUtil.alertOn();
 //							}else{
@@ -270,30 +598,22 @@ public class ProjResponser {
 //				ScreenServer.pushScreen(e);
 //				L.V = L.O ? false : LogManager.log("onStart Form : " + url.elementID);
 //			}
-		}else if(url.protocal == HCURL.SCREEN_PROTOCAL){
+		}else if(url.protocal == HCURL.SCREEN_PROTOCAL || url.protocal == HCURL.FORM_PROTOCAL){
 			//由于可能不同context，所以要进行全遍历，而非假定在前一当前打开的基础上。
 			final String listener = getItemProp(url, PROP_LISTENER, true);
 			if(listener != null && listener.trim().length() > 0){
 				final Map<String, String> mapRuby = RubyExector.toMap(url);
-
-				try{
-					Mlet mlet = (Mlet)RubyExector.run(listener, mapRuby, hcje, context);
-					if(mlet == null){
-						LogManager.errToLog("Error object return by JRuby, It should be " + Mlet.class.getName());
-						return true;
-					}
-					MCanvas mcanvas = new MCanvas(ClientDesc.clientWidth, ClientDesc.clientHeight);
-					
-					mcanvas.setMlet(mlet);
-					mcanvas.setCaptureID(url.elementID);
-					mcanvas.init();
-					
-					ScreenServer.pushScreen(mcanvas);
-
-					L.V = L.O ? false : LogManager.log(" onStart Mlet screen : [" + url.elementID + "]");
-				}catch (Exception e1) {
-					e1.printStackTrace();
+				final String elementID = url.elementID;
+				final String strUrl = url.url;
+				final String title = getItemProp(url, PROP_ITEM_NAME, false);
+				
+				if(ServerUIAPIAgent.isOnTopHistory(context, strUrl) 
+						|| ServerUIAPIAgent.pushMletURLToHistory(context, strUrl) == false){//已经打开，进行置顶操作
+					return true;
 				}
+				
+				//由于可能导致长时间占用Event线程，所以另起线程。同时因为url要回收，所以不能final
+				startMlet(listener, mapRuby, elementID, title, hcje, context);
 				return true;
 			}
 		}else if(url.protocal == HCURL.CONTROLLER_PROTOCAL){
@@ -303,36 +623,52 @@ public class ProjResponser {
 			map.restore(map_str);
 			final String listener = getItemProp(url, PROP_LISTENER, false);
 			if(listener != null && listener.trim().length() > 0){
-				final Map<String, String> mapRuby = null;//RubyExector.toMap(url);
+				final String url_url = url.url;
+				final String title = getItemProp(url, PROP_ITEM_NAME, false);
+				
+				//由于可能导致长时间占用Event线程，所以另起线程。同时因为url要回收，所以不能final
+				ContextManager.getThreadPool().run(new Runnable() {
+					@Override
+					public void run(){
+						final Map<String, String> mapRuby = null;//RubyExector.toMap(url);
 
-				try{
-					CtrlResponse responsor = (CtrlResponse)RubyExector.run(listener, mapRuby, hcje, context);
-					if(responsor == null){
-						LogManager.errToLog("Error object return by JRuby, It should be " + CtrlResponse.class.getName());
-						return true;
-					}
-					CtrlMap cmap = new CtrlMap(map);
-					
-					//添加初始按钮名
-					final int[] keys = cmap.getButtonsOnCanvas();
-					for (int i = 0; i < keys.length; i++) {
-						final String txt = responsor.getButtonInitText(keys[i]);
-						cmap.setButtonTxt(keys[i], txt);
-					}
-					
-					cmap.setTitle(getItemProp(url, PROP_ITEM_NAME, false));
-					cmap.setID(url.url);
-					ServerUIUtil.response(new MController(map, cmap.map.toSerial()).buildJcip());
-					
-					responsor.__hide_currentCtrlID = url.url;
-					
-					ServCtrlCanvas ccanvas = new ServCtrlCanvas(responsor);
-					ScreenServer.pushScreen(ccanvas);
+						try{
+							final CtrlResponse responsor = (CtrlResponse)RubyExector.run(listener, mapRuby, hcje, context);
+							if(responsor == null){
+								LogManager.err("Error instance CtrlResponse in project [" + context.getProjectID() + "].");
+								notifyMobileErrorScript(context, title);
+								return;
+							}
+							final CtrlMap cmap = new CtrlMap(map);
+							ServerUIAPIAgent.getThreadPoolFromProjectContext(responsor.getProjectContext()).runAndWait(new ReturnableRunnable() {
+								@Override
+								public Object run() {
+									//添加初始按钮名
+									final int[] keys = cmap.getButtonsOnCanvas();
+									for (int i = 0; i < keys.length; i++) {
+										final String txt = responsor.getButtonInitText(keys[i]);
+										cmap.setButtonTxt(keys[i], txt);
+									}
+									return null;
+								}
+							});
+							
+							cmap.setTitle(title);
+							cmap.setID(url_url);
+							ServerUIUtil.response(new MController(map, cmap.map.toSerial()).buildJcip());
+							
+							ServerUIAPIAgent.setCurrentCtrlID(responsor, url_url);
+							
+							final ServCtrlCanvas ccanvas = new ServCtrlCanvas(responsor);
+							ScreenServer.pushScreen(ccanvas);
 
-//					L.V = L.O ? false : LogManager.log("onLoad controller : " + url.elementID);
-				}catch (Exception e1) {
-					e1.printStackTrace();
-				}
+//							L.V = L.O ? false : LogManager.log("onLoad controller : " + url.elementID);
+						}catch (final Exception e1) {
+							e1.printStackTrace();
+						}
+					}
+				});
+
 				return true;
 			}
 		}
@@ -340,9 +676,76 @@ public class ProjResponser {
 			ServerUIUtil.response(e.buildJcip());
 			return true;
 		}else{
-			LogManager.err("Not found resource:" + url.url);
+			//没有找到相应的资源实现，比如:cmd://myCmd, screen://myScreen
+			final String resource = StringUtil.replace((String)ResourceUtil.get(9122), "{resource}", url.url);
+			context.sendMovingMsg(resource);
+			LogManager.err(resource);
+			return false;
 		}
-		return false;
+	}
+
+	public static final void startMlet(final String listener,
+			final Map<String, String> mapRuby, final String elementID,
+			final String title, final HCJRubyEngine hcje, final ProjectContext context) {
+		ContextManager.getThreadPool().run(new Runnable() {
+			@Override
+			public void run() {
+				try{
+					final Mlet mlet = (Mlet)RubyExector.run(listener, mapRuby, hcje, context);
+					if(mlet == null){
+						LogManager.err("Error instance Mlet in project [" + context.getProjectID() +"].");
+						notifyMobileErrorScript(context, title);
+						return;
+					}
+					
+					boolean isHTMLMlet = (mlet instanceof HTMLMlet);
+					final IMletCanvas mcanvas;
+					if(ClientDesc.getAgent().getOS().equals(ConfigManager.OS_J2ME_DESC) || mlet.getComponentCount() == 0 || isHTMLMlet == false){
+						if(isHTMLMlet){
+							L.V = L.O ? false : LogManager.log("force HTMLMlet to Mlet, because there is no component or for J2ME mobile.");
+							isHTMLMlet = false;
+						}
+						sendReceiver(HCURL.DATA_RECEIVER_MLET);
+						mcanvas = new MletSnapCanvas(ClientDesc.getClientWidth(), ClientDesc.getClientHeight());
+					}else{
+						sendReceiver(HCURL.DATA_RECEIVER_HTMLMLET);
+						mcanvas = new MletHtmlCanvas(ClientDesc.getClientWidth(), ClientDesc.getClientHeight());
+					}
+					
+					mcanvas.setScreenIDAndTitle(elementID, title);//注意：要在setMlet之前，因为后者可能用到本参数
+					mcanvas.setMlet(mlet, context);
+					ServerUIAPIAgent.getThreadPoolFromProjectContext(context).runAndWait(new ReturnableRunnable() {
+						@Override
+						public Object run() {
+							mcanvas.init();
+							return null;
+						}
+					});
+					
+					ScreenServer.pushScreen((ICanvas)mcanvas);
+
+					if(isHTMLMlet){
+						L.V = L.O ? false : LogManager.log(" onStart HTMLMlet screen : [" + title + "]");
+					}else{
+						L.V = L.O ? false : LogManager.log(" onStart Mlet screen : [" + title + "]");
+					}
+				}catch (final Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+
+			private void sendReceiver(final String receiver) {
+				final String[] paras = {HCURL.DATA_PARA_NOTIFY_RECEIVER, HCURL.DATA_PARA_NOTIFY_RECEIVER_PARA};
+				final String[] values = {receiver, elementID};
+				HCURLUtil.sendCmd(HCURL.DATA_CMD_SendPara, paras, values);
+			}
+		});
+	}
+	
+	private static final void notifyMobileErrorScript(final ProjectContext ctx, final String title){
+		String msg = (String)ResourceUtil.get(9163);
+		msg = StringUtil.replace(msg, "{title}", title);
+		ctx.send((String)ResourceUtil.get(IContext.ERROR), msg, ProjectContext.MESSAGE_ERROR);
 	}
 
 }

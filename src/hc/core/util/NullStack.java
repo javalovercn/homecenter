@@ -1,7 +1,7 @@
 package hc.core.util;
 
 public class NullStack extends Stack {
-	public Object pop(){
+	public final Object pop(){
 		if(elementCount == 0){
 			return null;
 		}else{

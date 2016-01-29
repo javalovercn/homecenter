@@ -1,21 +1,20 @@
 package hc.core;
 
+import hc.core.util.CCoreUtil;
 import hc.core.util.LinkedSet;
 
 /**
  * 依赖于HCTimer
- * @author homecenter
- *
  */
 public class ConditionWatcher {
 	//注意:
 	//由于本对象属于HCTimer，所以AckBatchHCTimer去掉锁，未来变动时，请开启AckBatchHCTimer的锁机制。
 	private static HCTimer instance = new HCTimer("CondWat", HCTimer.HC_INTERNAL_MS, false){
-		public void doBiz() {
+		public final void doBiz() {
 			IWatcher temp;
 			do{
 				synchronized (watchers) {
-					temp = (IWatcher)watchers.getFirst();
+					temp = (IWatcher)watchers.getFirst();//注意：必须先入先处理
 				}
 				
 				if(temp == null){
@@ -55,19 +54,22 @@ public class ConditionWatcher {
 		}
 	}
 
-	private static void cancelOp(LinkedSet ls) {
+	private static void cancelOp(final LinkedSet ls) {
 		IWatcher watcher;
 		LinkedSet unCancelSet = null;
 		
 		while((watcher = (IWatcher)ls.getFirst()) != null){
-			if(watcher.isNotCancelable()){
+			if(watcher.isCancelable()){//专为EventBack之用
+				if(L.isInWorkshop){
+					System.out.println("----------cancle EventBack : " + watcher.getClass().getName());
+				}
+				watcher.cancel();
+			}else{
 				//不可cancel
 				if(unCancelSet == null){
 					unCancelSet = new LinkedSet();
 				}
 				unCancelSet.addTail(watcher);
-			}else{
-				watcher.cancel();
 			}
 		}
 		
@@ -76,7 +78,7 @@ public class ConditionWatcher {
 		}
 	}
 
-	public static void removeWatch(IWatcher watcher){
+	public static void removeWatch(final IWatcher watcher){
 		synchronized (watcher) {
 			synchronized (watchers) {
 				watchers.removeData(watcher);
@@ -99,10 +101,12 @@ public class ConditionWatcher {
 	private final static LinkedSet usedRewatchers = new LinkedSet();
 	
 	/**
-	 * 如果服务器断线，则可能删除全部watcher，除非IWatcher声明isNotCancelable
+	 * 如果服务器断线，则可能删除全部watcher，除非IWatcher声明isCancelable
 	 * @param watcher
 	 */
-	public static void addWatcher(IWatcher watcher){
+	public static void addWatcher(final IWatcher watcher){
+		CCoreUtil.checkAccess();
+		
 		boolean isEmpty = false;
 		synchronized (watchers) {
 			isEmpty = watchers.isEmpty();

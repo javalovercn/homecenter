@@ -1,5 +1,8 @@
 package hc.core.util;
 
+import hc.core.EventBack;
+
+
 public class EventBackCacher {
 	private static EventBackCacher instance;
 	
@@ -18,7 +21,7 @@ public class EventBackCacher {
 	public EventBackCacher(){
 	}
 	
-	public final EventBack getFree(){
+	public final EventBack getFreeEB(){//iOS环境下会与出现JavaUtilArrayList getFree
 		synchronized (free) {
 			if(freeSize == 0){
 //				hc.core.L.V=hc.core.L.O?false:LogManager.log("------MEM ALLOCATE [EventBack]------");

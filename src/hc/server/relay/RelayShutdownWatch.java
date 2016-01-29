@@ -1,6 +1,7 @@
 package hc.server.relay;
 
 import hc.core.IWatcher;
+import hc.core.L;
 import hc.core.util.LogManager;
 
 public abstract class RelayShutdownWatch implements IWatcher {
@@ -18,7 +19,7 @@ public abstract class RelayShutdownWatch implements IWatcher {
 			//发现可替Relay，但是没有回应
 			RelayManager.notifyClientsLineOff();
 
-			hc.core.L.V=hc.core.L.O?false:LogManager.log("Stop relay task");
+			L.V = L.O ? false : LogManager.log("Stop relay task");
 			extShutdown();
 			return true;
 		}else{
@@ -37,7 +38,7 @@ public abstract class RelayShutdownWatch implements IWatcher {
 	}
 
 	@Override
-	public boolean isNotCancelable(){
+	public boolean isCancelable(){
 		return false;
 	}
 

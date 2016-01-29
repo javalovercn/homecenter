@@ -10,7 +10,7 @@ import java.util.Vector;
 public class LinkedSet {
 	LinkedNode top, tail;//分别指向首结点和最后一个可用结点。
 	
-	static final LinkedNodeCacher cacher = new LinkedNodeCacher();
+	static final LinkedNodeCacher cacher = new LinkedNodeCacher(32);
 	
 	public boolean isEmpty(){
 		return top == null;
@@ -35,7 +35,7 @@ public class LinkedSet {
 		return v.elements();
 	}
 	
-	public void addToFirst(Object obj){
+	public void addToFirst(final Object obj){
 		final LinkedNode addNode = cacher.getFree();
 		addNode.data = obj;
 		
@@ -47,7 +47,7 @@ public class LinkedSet {
 	 * 装入到最后端，即最后出
 	 * @param obj
 	 */
-	public void addTail(Object obj){
+	public void addTail(final Object obj){
 		final LinkedNode addNode = cacher.getFree();
 		addNode.data = obj;
 		
@@ -67,8 +67,8 @@ public class LinkedSet {
 		if(top == null){
 			return null;
 		}else{
-			Object out = top.data;
-			LinkedNode cyc = top;
+			final Object out = top.data;
+			final LinkedNode cyc = top;
 			top = top.next;
 			if(top == null){
 				tail = null;
@@ -87,7 +87,7 @@ public class LinkedSet {
 	 * 如果集合中存在多个相同实例，一并删除
 	 * @param obj
 	 */
-	public void removeData(Object obj){
+	public void removeData(final Object obj){
 		if(top == null){
 			return;
 		}
@@ -145,13 +145,18 @@ class LinkedNode {
 }
 
 class LinkedNodeCacher {
-	final private Stack free = new Stack();
+	final private Stack free;
 	
 	private int freeSize = 0;
 	
 	public LinkedNodeCacher(){
+		this(10);
 	}
 	
+	public LinkedNodeCacher(final int size){
+		free = new Stack(size);
+	}
+
 	public final LinkedNode getFree(){
 		synchronized (free) {
 			if(freeSize == 0){
@@ -165,7 +170,7 @@ class LinkedNodeCacher {
 		
 	}
 	
-	public final void cycle(LinkedNode dp){
+	public final void cycle(final LinkedNode dp){
 		synchronized (free) {
 			free.push(dp);
 			freeSize++;

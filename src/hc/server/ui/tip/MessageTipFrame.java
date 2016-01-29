@@ -2,7 +2,9 @@ package hc.server.ui.tip;
 
 import hc.App;
 import hc.res.ImageSrc;
+import hc.server.PlatformManager;
 import hc.server.ui.tip.TipPop.CornerPosition;
+import hc.server.util.HCJDialog;
 import hc.util.ResourceUtil;
 import hc.util.UILang;
 
@@ -30,7 +32,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-public class MessageTipFrame extends JDialog {
+public class MessageTipFrame extends HCJDialog {
 	static JLabel tipBorderLeftTop, tipBorderRightTop, tipBorderLeftDown, tipBorderRightDown;
 	static Dimension screenSize;
 	static Icon errImg, warnImg, infoImg;
@@ -132,7 +134,7 @@ public class MessageTipFrame extends JDialog {
 		setAlwaysOnTop(true);
 		setUndecorated(true);//去掉窗口的边框
 		try{
-			com.sun.awt.AWTUtilities.setWindowOpaque(this, false);//透明
+			PlatformManager.getService().setWindowOpaque(this, false);//透明
 		}catch (Throwable e) {
 			setBackground(new Color(0,0,0,0));
 		}
@@ -348,10 +350,7 @@ public class MessageTipFrame extends JDialog {
 		}
 	
 //		setSize(10, 10);
-		try{		
-			SwingUtilities.invokeLater(waitRun);
-		}catch (Throwable e) {
-		}
+		App.invokeLaterUI(waitRun);
 
 	}
 	

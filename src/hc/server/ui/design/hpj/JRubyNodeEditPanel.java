@@ -1,6 +1,6 @@
 package hc.server.ui.design.hpj;
 
-import hc.server.ui.design.Designer;
+import hc.core.util.ThreadPriorityManager;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -19,15 +19,15 @@ public class JRubyNodeEditPanel extends ScriptEditPanel {
 		super();
 		
 		
-		JPanel namePanel = new JPanel();
+		final JPanel namePanel = new JPanel();
 		namePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		namePanel.add(nameLabel);
 		nameField.setColumns(10);
 		namePanel.add(nameField);
 		namePanel.add(testBtn);
+		namePanel.add(formatBtn);
 		
-		
-		JPanel jtascriptPanel = new JPanel();
+		final JPanel jtascriptPanel = new JPanel();
 		jtascriptPanel.setBorder(new TitledBorder("JRuby script :"));
 		jtascriptPanel.setLayout(new BorderLayout());
 		
@@ -41,28 +41,45 @@ public class JRubyNodeEditPanel extends ScriptEditPanel {
 	}
 	
 	@Override
-	public void init(MutableTreeNode data, JTree tree) {
+	public void init(final MutableTreeNode data, final JTree tree) {
 		super.init(data, tree);
 
-		final String listener = ((HPShareJRuby)currItem).content;
-		jtaScript.setText(listener == null ? "" : listener);
+		final String listener = getListener();
+		final String scripts = listener == null ? "" : listener;
+		jtaScript.setText(scripts);
 		
 		//代码很长时，置于首行
 		jtaScript.setCaretPosition(0);
 		
 		initColor(true);
 		
+		extInit();
+		
+		try{
+			Thread.sleep(ThreadPriorityManager.UI_WAIT_MS);
+		}catch (final Exception e) {
+		}
+		
 		super.isInited = true;
 	}
 
+	public String getListener() {
+		return ((HPShareContent)currItem).content;
+	}
+
 	@Override
-	public void updateScript(String script) {
-		((HPShareJRuby)currItem).content = script;
-		Designer.getInstance().setNeedRebuildTestJRuby(true);
+	public void updateScript(final String script) {
+		((HPShareContent)currItem).content = script;
+		designer.setNeedRebuildTestJRuby(true);
 	}
 
 	@Override
 	Map<String, String> buildMapScriptParameter() {
 		return null;
+	}
+
+	@Override
+	public void extInit() {
+		updateScriptInInitProcess();
 	}
 }

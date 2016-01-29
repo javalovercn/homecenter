@@ -36,7 +36,7 @@ public class TipPop {
 	
 	static final HCTimer autoClose = new HCTimer("", 1000 * 20, false) {
 		@Override
-		public void doBiz() {
+		public final void doBiz() {
 			if(instanceMessageFrame != null){
 				instanceMessageFrame.close();
 			}

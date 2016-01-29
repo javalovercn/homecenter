@@ -21,7 +21,7 @@ public class LogManager {
 		}
 	}
 	
-	public static void exit(){
+	public static synchronized void exit(){
 		if(log != null){
 			log.exit();
 			log = null;
@@ -33,6 +33,15 @@ public class LogManager {
 			log.log(msg);
 		}else{
 			System.out.println(msg);
+		}
+		return false;
+	}
+	
+	public static boolean warning(String msg){
+		if(log != null){
+			log.warning(msg);
+		}else{
+			System.out.println(ILog.WARNING + msg);
 		}
 		return false;
 	}

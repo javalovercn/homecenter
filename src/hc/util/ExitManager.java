@@ -1,41 +1,44 @@
 package hc.util;
 
+import hc.App;
 import hc.core.ContextManager;
 import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.RootServerConnector;
 import hc.core.sip.SIPManager;
-import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
-import hc.core.util.Stack;
-import hc.server.AbstractDelayBiz;
-import hc.server.DelayServer;
 import hc.server.KeepaliveManager;
+import hc.server.PlatformManager;
+import hc.server.ProcessingWindowManager;
 import hc.server.ScreenServer;
+import hc.server.SingleJFrame;
+import hc.server.util.HCLimitSecurityManager;
 
 public class ExitManager {
-	private static Stack delayBiz = null;
-	
-	public static void addDelayBiz(AbstractDelayBiz biz){
-		if(delayBiz == null){
-			delayBiz = new Stack();
+	public static void startExitSystem(){
+		//直接采用主线程，会导致退出提示信息会延时显示，效果较差
+		ProcessingWindowManager.showCenterMessage((String)ResourceUtil.get(9067));
+		
+		SingleJFrame.disposeAll();
+
+		HttpUtil.notifyStopServer(false, null);
+		//以上逻辑不能置于notifyShutdown中，因为这些方法有可能被其它外部事件，如手机下线，中继下线触发。
+		
+		try{
+			RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_ServerReq_STR);
+		}catch (Exception e) {
+			//Anroid环境下，有可能不连接服务器时，产生异常。需catch。
+			e.printStackTrace();
 		}
-		delayBiz.push(biz);
+		ExitManager.startForceExitThread();
+		ContextManager.notifyShutdown();		
 	}
 	
 	public static void exit(){
-		hc.core.L.V=hc.core.L.O?false:LogManager.log("Start ExitManager");
+		L.V = L.O ? false : LogManager.log("Start ExitManager");
 		
 		startForceExitThread();
-		
-		
-		try{
-			//LoginDialog可能退出时，使用本逻辑
-			DelayServer.getInstance().shutDown();
-		}catch (Exception e) {
-			//可能出现NullPointerException
-		}
 		
 		try{
 			//清除等待客户上线的记录
@@ -47,51 +50,37 @@ public class ExitManager {
 					}
 				}catch (Exception e) {
 					//无网络会出现本情形
-					CCoreUtil.globalExit();
-					//可能出现NullPointerException
 				}
 			}
 			
-			try{
-				hc.server.ui.video.CapStream cs = hc.server.ui.video.CapStream.getInstance(true);
-				if(cs != null){
-					cs.stop();
-				}
-			}catch (Throwable e) {
-				//有可能未安装，会导致本异常
-			}
-			PropertiesManager.saveFile();
+			PlatformManager.getService().stopCapture();
 			
 			ScreenServer.emptyScreen();
 			
 			SIPManager.close();
 			
 			try{
-				if(KeepaliveManager.dServer != null){
-					KeepaliveManager.dServer.shutdown();
+				if(KeepaliveManager.getDirectServer() != null){
+					KeepaliveManager.getDirectServer().shutdown();
 				}
-				if(KeepaliveManager.nioRelay != null){
-					KeepaliveManager.nioRelay.shutdown();
+				if(KeepaliveManager.getNIORelay() != null){
+					KeepaliveManager.getNIORelay().shutdown();
 				}
 			}catch (Exception e) {
 				e.printStackTrace();
 			}
 			HCTimer.shutDown();
 
-			ContextManager.exit();
+//			ContextManager.exit();
 			
-			if(delayBiz != null){
-				int size = delayBiz.size();
-				for (int i = 0; i < size; i++) {
-					AbstractDelayBiz biz = (AbstractDelayBiz)delayBiz.elementAt(i);
-					biz.doBiz();
-				}
-			}
-		
 		}catch (Exception e) {
 			e.printStackTrace();
 		}
 		LogManager.exit();
+		
+		ProcessingWindowManager.disposeProcessingWindow();
+		
+		HCLimitSecurityManager.getHCSecurityManager().getHCEventQueue().shutdown();
 		//由于与starter包协同，所以不能执行该命令，因为starter可能正在下载中
 //		System.exit(0);
 	}
@@ -105,15 +94,25 @@ public class ExitManager {
 		
 		isStartedForceExitThread = true;
 		
-		new Thread(){
-			long curr = System.currentTimeMillis();
+		Thread foreceExit = new Thread(){
+			final long curr = System.currentTimeMillis();
 			
 			public void run(){
+				L.V = L.O ? false : LogManager.log("ready " + (App.EXIT_MAX_DELAY_MS/1000) + "-seconds to force exit...");
 				while(true){
-//					L.V = L.O ? false : LogManager.log("Start 10-Seconds ExitManager...");
-					if(System.currentTimeMillis() - curr > 10 * 1000){
-						L.V = L.O ? false : LogManager.log("force kill to exit.");
-						ContextManager.forceExit();
+					if(System.currentTimeMillis() - curr > App.EXIT_MAX_DELAY_MS){
+						L.V = L.O ? false : LogManager.log("force to exit.");
+						LogManager.exit();
+						
+						if(LogManager.INI_DEBUG_ON){
+							System.out.println("-------------------------------------------------------------------------------------------");
+							System.out.println("------------------------before force exit, print all thread stack----------------------");
+							System.out.println("-------------------------------------------------------------------------------------------");
+							ClassUtil.printThreadStack(null);
+							System.out.println("-------------------------------------------------------------------------------------------");
+						}
+						
+						PlatformManager.getService().exitSystem();
 					}else{
 						try{
 							Thread.sleep(1000);
@@ -123,6 +122,8 @@ public class ExitManager {
 					}
 				}
 			}
-		}.start();
+		};
+		foreceExit.setDaemon(true);
+		foreceExit.start();
 	}
 }

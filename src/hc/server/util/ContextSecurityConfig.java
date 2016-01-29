@@ -1,0 +1,354 @@
+package hc.server.util;
+
+import hc.core.IConstant;
+import hc.core.util.CCoreUtil;
+import hc.server.ui.ProjectContext;
+import hc.server.ui.design.LinkProjectStore;
+import hc.server.ui.design.ProjResponser;
+import hc.server.ui.design.hpj.HCjar;
+import hc.server.ui.design.hpj.HCjarHelper;
+import hc.util.SocketDesc;
+import hc.util.SocketEditPanel;
+import java.net.SocketPermission;
+import java.security.PermissionCollection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Vector;
+
+public class ContextSecurityConfig {
+	public final String projID;
+	final HashMap<String, Object> map = new HashMap<String, Object>();
+	Vector<SocketDesc> allowSockets;
+	protected String tempUserDir;
+	ProjResponser projResponser;
+	ThreadGroup threadGroup;
+	ProjectContext ctx;
+	private PermissionCollection sockCollection;
+	
+	public void copyToSocketPanel(SocketEditPanel sockPanel){
+		CCoreUtil.checkAccess();
+		
+		sockPanel.allowSockets = this.allowSockets;
+	}
+	
+	public final void setProjResponser(ProjResponser resp){
+		projResponser = resp;
+		threadGroup = (ThreadGroup)projResponser.threadPool.getThreadGroup();
+		this.ctx = projResponser.context;
+	}
+	
+	public final ProjectContext getProjectContext(){
+		return ctx;
+	}
+	
+	public final void setProjectContext(ProjectContext context){
+		ctx = context;
+	}
+	
+	public final void initSocketPermissionCollection(){
+		CCoreUtil.checkAccess();
+		
+		if(isSocketLimitOn(this)){
+			if(allowSockets == null){
+				loadToVector();
+			}
+
+			final int size = allowSockets.size();
+			if(size == 0){
+				sockCollection = new SocketPermission("localhost",SocketDesc.STR_ACCEPT).newPermissionCollection();
+			}else{
+				for (int i = 0; i < size; i++) {
+					SocketDesc desc = allowSockets.elementAt(i);
+					final String actionDesc = desc.getActionDesc();
+					String hostIP = desc.getHostIPDesc();
+					SocketPermission sockPerm = new SocketPermission(hostIP, actionDesc);
+					if(sockCollection == null){
+						sockCollection = sockPerm.newPermissionCollection();
+					}
+					sockCollection.add(sockPerm);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * 如果没有限制，则返回null
+	 * @return
+	 */
+	final PermissionCollection getSocketPermissionCollection(){
+		return sockCollection;
+	}
+	
+	public final void buildNewProjectPermissions(){
+		CCoreUtil.checkAccess();
+		
+		setWrite(false);
+		setExecute(false);
+		setDelete(false);
+		setExit(false);
+		
+		setSysPropRead(true);
+		setSysPropWrite(false);
+		setLoadLib(false);
+		setRobot(false);
+//		setListenAllAWTEvents(false);
+//		setAccessClipboard(false);
+		setShutdownHooks(false);
+		setSetIO(false);
+		
+		allowSockets = new Vector<SocketDesc>();
+		addDefaultNewSocket(allowSockets);
+		saveToMap();
+	}
+	
+	public final void buildDefaultPermissions(){
+		CCoreUtil.checkAccess();
+		
+		setWrite(true);
+		setExecute(true);
+		setDelete(true);
+		setExit(false);
+		
+	}
+	
+	public final void loadToVector(){
+		if(allowSockets == null){
+			allowSockets = new Vector<SocketDesc>();
+		}else{
+			allowSockets.removeAllElements();
+		}
+		
+		String num = (String)map.get(HCjar.PERMISSION_SOCK_NUM);
+		if(num != null){
+			int size = Integer.valueOf(num);
+			for (int i = 0; i < size; i++) {
+				String item = (String)map.get(HCjar.PERMISSION_SOCK_ITEM_HEADER + i);
+				allowSockets.add(SocketDesc.decode(item));
+			}
+		}
+	}
+	
+	public final void saveToMap(){
+		if(allowSockets == null){//升级时，旧系统未含此结构信息
+			return;
+		}
+		
+		HCjarHelper.removeHeaderStartWith(map, HCjar.PERMISSION_SOCK_ITEM_HEADER);
+		
+		final int size = allowSockets.size();
+		for (int i = 0; i < size; i++) {
+			SocketDesc socket = allowSockets.elementAt(i);
+			String serial = SocketDesc.encode(socket);
+			
+			map.put(HCjar.PERMISSION_SOCK_ITEM_HEADER + i, serial);
+		}
+		map.put(HCjar.PERMISSION_SOCK_NUM, String.valueOf(size));
+	}
+	
+	private final boolean isTrue(final String key, boolean defaultValue){
+		final Object v = map.get(key);
+		if(v == null){
+			return defaultValue;
+		}else if(v != null && v.equals(IConstant.TRUE)){
+			return true;
+		}
+		return false;
+	}
+	
+	private final boolean isTrue(final String key){
+		return isTrue(key, false);
+	}
+	
+	private final void setBoolean(final String key, boolean bool){
+		CCoreUtil.checkAccess();
+		
+		map.put(key, bool?IConstant.TRUE:IConstant.FALSE);
+	}
+	
+	public final boolean isWrite(){
+		return isTrue(HCjar.PERMISSION_WRITE);
+	}
+	
+	public final boolean isExecute(){
+		return isTrue(HCjar.PERMISSION_EXECUTE);
+	}
+	
+	public final boolean isExit(){
+		return isTrue(HCjar.PERMISSION_EXIT);
+	}
+	
+	public final boolean isDelete(){
+		return isTrue(HCjar.PERMISSION_DELETE);
+	}
+	
+	public final void setWrite(boolean bool){
+		setBoolean(HCjar.PERMISSION_WRITE, bool);
+	}
+	
+	public final void setExecute(boolean bool){
+		setBoolean(HCjar.PERMISSION_EXECUTE, bool);
+	}
+	
+	public final void setExit(boolean bool){
+		setBoolean(HCjar.PERMISSION_EXIT, bool);
+	}
+	
+	public final void setDelete(boolean bool){
+		setBoolean(HCjar.PERMISSION_DELETE, bool);
+	}
+	
+	public ContextSecurityConfig(final String projID){
+		this.projID = projID;
+	}
+	
+	public final boolean isSysPropWrite(){
+		return isTrue(HCjar.PERMISSION_SYS_PROP_WRITE, true);
+	}
+	
+	public final boolean isSysPropRead(){
+		return isTrue(HCjar.PERMISSION_SYS_PROP_READ, true);
+	}
+	
+	public final void setSysPropWrite(boolean bool){
+		setBoolean(HCjar.PERMISSION_SYS_PROP_WRITE, bool);
+	}
+	
+	public final void setSysPropRead(boolean bool){
+		setBoolean(HCjar.PERMISSION_SYS_PROP_READ, bool);
+	}
+	
+	public final void setLoadLib(boolean bool){
+		setBoolean(HCjar.PERMISSION_LOAD_LIB, bool);
+	}
+	
+	public final boolean isLoadLib(){
+		return isTrue(HCjar.PERMISSION_LOAD_LIB, true);
+	}
+	
+	public final void setRobot(boolean bool){
+		setBoolean(HCjar.PERMISSION_ROBOT, bool);
+	}
+	
+	public final boolean isRobot(){
+		return isTrue(HCjar.PERMISSION_ROBOT, true);
+	}
+	
+	//------------------注意：请开启buildNewProjectPermissions内的初值
+//	public final void setListenAllAWTEvents(boolean bool){
+//		setBoolean(HCjar.PERMISSION_LISTEN_ALL_AWT_EVNTS, bool);
+//	}
+//	
+//	public final boolean isListenAllAWTEvents(){
+//		return isTrue(HCjar.PERMISSION_LISTEN_ALL_AWT_EVNTS, true);
+//	}
+//	
+//	public final void setAccessClipboard(boolean bool){
+//		setBoolean(HCjar.PERMISSION_ACCESS_CLIPBOARD, bool);
+//	}
+//	
+//	public final boolean isAccessClipboard(){
+//		return isTrue(HCjar.PERMISSION_ACCESS_CLIPBOARD, true);
+//	}
+	
+	public final void setShutdownHooks(boolean bool){
+		setBoolean(HCjar.PERMISSION_SHUTDOWNHOOKS, bool);
+	}
+	
+	public final boolean isShutdownHooks(){
+		return isTrue(HCjar.PERMISSION_SHUTDOWNHOOKS, true);
+	}
+	
+	public final void setSetIO(boolean bool){
+		setBoolean(HCjar.PERMISSION_SETIO, bool);
+	}
+	
+	public final boolean isSetIO(){
+		return isTrue(HCjar.PERMISSION_SETIO, true);
+	}
+
+	public final static ContextSecurityConfig getContextSecurityConfig(LinkProjectStore linkProjectStore){
+		ContextSecurityConfig csc = new ContextSecurityConfig(linkProjectStore.getProjectID());
+		final HashMap<String, Object> targetMap = csc.map;
+		
+		final Iterator keys = linkProjectStore.keySet().iterator();
+		boolean hasKey = false;
+		while(keys.hasNext()){
+			final String key = (String)keys.next();
+			if(key.startsWith(HCjar.PERMISSION_HEADER, 0)){
+				hasKey = true;
+				targetMap.put(key, (String)linkProjectStore.get(key));
+			}
+		}
+		
+		if(hasKey == false){
+			csc.buildDefaultPermissions();
+		}
+		
+		return csc;
+	}
+
+	public static void copyMapsToLPS(LinkProjectStore linkProjectStore, final ContextSecurityConfig csc, final boolean forceUpdate) {
+		final HashMap<String, Object> map = csc.map;
+		final Iterator keys = map.keySet().iterator();
+		while(keys.hasNext()){
+			final String key = (String)keys.next();
+			//已存在的值，保留旧值
+			if(forceUpdate || (linkProjectStore.containsKey(key) == false)){
+				linkProjectStore.put(key, map.get(key));
+			}
+		}
+	}
+
+	public static final ContextSecurityConfig getPermissionFromHARMap(final Map<String, Object> map){
+		ContextSecurityConfig csc = new ContextSecurityConfig((String)map.get(HCjar.PROJ_ID));
+		final HashMap<String, Object> targetMap = csc.map;
+		
+		boolean hasKey = false;
+		final Iterator<String> keys = map.keySet().iterator();
+		while(keys.hasNext()){
+			final String key = keys.next();
+			if(key.startsWith(HCjar.PERMISSION_HEADER, 0)){
+				hasKey = true;
+				targetMap.put(key, (String)map.get(key));
+			}
+		}
+		
+		if(hasKey == false){
+			csc.buildDefaultPermissions();
+		}
+		
+		return csc;
+	}
+
+	public static final void copyPermissionsFromConfig(final Map<String, Object> map, ContextSecurityConfig csc){
+		csc.saveToMap();
+		map.putAll(csc.map);
+	}
+
+	public static boolean isSocketLimitOn(ContextSecurityConfig contextSecurityConfig){
+		return HCjarHelper.isTrue(contextSecurityConfig.map, HCjar.PERMISSION_SOCK_LIMIT_ON, false);
+	}
+
+	public static void setSocketLimitOn(ContextSecurityConfig contextSecurityConfig, boolean isOn) {
+		CCoreUtil.checkAccess();
+		
+		HCjarHelper.setBoolean(contextSecurityConfig.map, HCjar.PERMISSION_SOCK_LIMIT_ON, isOn);
+	}
+
+	public static void resetPermission(ContextSecurityConfig contextSecurityConfig, LinkProjectStore linkProjectStore) {
+		CCoreUtil.checkAccess();
+		
+		Map<String, Object> map = HCjar.loadHarFromLPS(linkProjectStore);
+		final ContextSecurityConfig defaultPermissions = ContextSecurityConfig.getPermissionFromHARMap(map);
+		final HashMap<String, Object> storeCSC = contextSecurityConfig.map;
+		storeCSC.clear();
+		storeCSC.putAll(defaultPermissions.map);
+	}
+
+	public static void addDefaultNewSocket(Vector<SocketDesc> vector) {
+		CCoreUtil.checkAccess();
+		
+		vector.add(new SocketDesc("localhost", "", "80", "", "", SocketDesc.STR_RESOLVE));
+	}
+}

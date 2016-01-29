@@ -56,7 +56,7 @@ public class HCVerify {
 	
 				Certificate[] certs = je.getCertificates();
 				if ((certs == null) || (certs.length == 0)) {
-					if (!je.getName().startsWith("META-INF"))
+					if (!je.getName().startsWith("META-INF", 0))
 						return false;
 				} else {
 					boolean signedByHC = false;

@@ -2,9 +2,8 @@ package hc.server.ui.design.hpj.ctrl;
 
 import hc.core.util.CNCtrlKey;
 import hc.core.util.CtrlItem;
-import hc.core.util.CtrlKey;
+import hc.core.util.CtrlKeySet;
 import hc.core.util.CtrlMap;
-import hc.server.ui.CtrlResponse;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.hpj.BaseMenuItemNodeEditPanel;
 import hc.util.PropertiesManager;
@@ -28,6 +27,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
 public class CtrlTotalPanel extends JPanel{
@@ -41,33 +41,34 @@ public class CtrlTotalPanel extends JPanel{
 	public CtrlMap ctrlMap;
 	private final CNCtrlKey ctrlKey = new CNCtrlKey();
 	
-	public void loadMap(CtrlMap ctrlMap){
+	private static final Cursor defaultCursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+
+	public void loadMap(final CtrlMap ctrlMap){
 		this.ctrlMap = ctrlMap;
 	}
 	
-	public CtrlTotalPanel(final JPanel sp, final BaseMenuItemNodeEditPanel base, JRadioButton h_button, JRadioButton v_button) {
+	public CtrlTotalPanel(final JPanel sp, final BaseMenuItemNodeEditPanel base, final JRadioButton h_button, final JRadioButton v_button) {
 		panel_canvas = new CtrlPanel(this);
 		this.scriptPanel = sp;
 		this.baseMenuItemPanel = base;
 		
-		MouseListener ml = new MouseListener() {
-			final Cursor defaultCursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+		final MouseListener ml = new MouseListener() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mouseClicked(final MouseEvent e) {
 			}
 
 			@Override
-			public void mousePressed(MouseEvent e) {
+			public void mousePressed(final MouseEvent e) {
 				if(((JButton)e.getSource()).isEnabled()){
-					int keyValue = findKeyValue(e);
-					Toolkit toolkit = Toolkit.getDefaultToolkit();
+					final int keyValue = findKeyValue(e);
+					final Toolkit toolkit = Toolkit.getDefaultToolkit();
 					final BufferedImage img = ResourceUtil.unAlphaImage(cursor_images[keyValue]);
-					Cursor c = toolkit.createCustomCursor(img, new Point(img.getWidth()/2,img.getHeight()/2), "img");
-					panle_but_list.setCursor(c);
+					final Cursor c = toolkit.createCustomCursor(img, new Point(img.getWidth()/2,img.getHeight()/2), "img");
+					updateCursor(c);
 				}
 			}
 
-			private int findKeyValue(MouseEvent e) {
+			private int findKeyValue(final MouseEvent e) {
 				final String keyDesc = ((JButton)e.getSource()).getText();
 				int keyValue = 0;
 				for (; keyValue < ctrlKey.desc.length; keyValue++) {
@@ -80,16 +81,16 @@ public class CtrlTotalPanel extends JPanel{
 			}
 
 			@Override
-			public void mouseReleased(MouseEvent e) {
+			public void mouseReleased(final MouseEvent e) {
 				if(((JButton)e.getSource()).isEnabled()){
-					panle_but_list.setCursor(defaultCursor);
+					updateCursor(defaultCursor);
 					final int x = e.getXOnScreen();
 					final int y = e.getYOnScreen();
 					final Point locationOnScreen = panel_canvas.getLocationOnScreen();
 					if(x > locationOnScreen.x && y > locationOnScreen.y
 							&& x < locationOnScreen.x + panel_canvas.getWidth()
 							&& y < locationOnScreen.y + panel_canvas.getHeight()){
-						int keyValue = findKeyValue(e);
+						final int keyValue = findKeyValue(e);
 						
 						final int center_x = x - locationOnScreen.x;
 						final int center_y = y - locationOnScreen.y;
@@ -104,22 +105,21 @@ public class CtrlTotalPanel extends JPanel{
 			}
 
 			@Override
-			public void mouseEntered(MouseEvent e) {
+			public void mouseEntered(final MouseEvent e) {
 			}
 
 			@Override
-			public void mouseExited(MouseEvent e) {
+			public void mouseExited(final MouseEvent e) {
 			}
 		};
 		{
-			int[] keys = ctrlKey.getDispKeys();
-			Toolkit tk = Toolkit.getDefaultToolkit();
+			final int[] keys = ctrlKey.getDispKeys();
+			final Toolkit tk = Toolkit.getDefaultToolkit();
 			Dimension d = null;
 			for (int i = 0; i < keys.length; i++) {
 				final int keyValue = keys[i];
 				final String pngName = ctrlKey.getPNGName(keyValue);
-				final ImageIcon img = Designer.loadImg(pngName);
-				final BufferedImage bufferedImage = (BufferedImage)img.getImage();
+				final BufferedImage bufferedImage = Designer.loadBufferedImage(pngName + CNCtrlKey.PNG_EXT);
 				if(d == null){
 					d = tk.getBestCursorSize(bufferedImage.getWidth(), bufferedImage.getHeight());
 				}
@@ -174,8 +174,7 @@ public class CtrlTotalPanel extends JPanel{
 	}
 	
 	private static BufferedImage findRoundImage(final String pngName){
-		final ImageIcon loadImg = Designer.loadImg(CNCtrlKey.getRoundImageName(pngName));
-		return (loadImg == null)?null:(BufferedImage)loadImg.getImage();
+		return Designer.loadBufferedImage(pngName + CNCtrlKey.CORNET_EXT + CNCtrlKey.PNG_EXT);
 	}
 
 	public void buildSplitPanel(final int splitType) {
@@ -187,15 +186,16 @@ public class CtrlTotalPanel extends JPanel{
 				new JScrollPane(panel_canvas, 
 						JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED), 
 						scriptPanel);
-		String dviLoca = PropertiesManager.getValue(PropertiesManager.p_DesignerCtrlDividerLocation);
+		final String dviLoca = PropertiesManager.getValue(PropertiesManager.p_DesignerCtrlDividerLocation);
 		if(dviLoca == null){
-			panelSubMRInfo.setDividerLocation(CtrlPanel.BLOCK_WIDTH * 2 + 30);
+			panelSubMRInfo.setDividerLocation(CtrlPanel.BLOCK_WIDTH);
 		}else{
 			panelSubMRInfo.setDividerLocation(Integer.parseInt(dviLoca));
 		}
 		comp.add(panelSubMRInfo, BorderLayout.CENTER);
 		panelSubMRInfo.addPropertyChangeListener(new java.beans.PropertyChangeListener() {  
-		    public void propertyChange(java.beans.PropertyChangeEvent evt) {  
+		    @Override
+			public void propertyChange(final java.beans.PropertyChangeEvent evt) {  
 		        if (evt.getPropertyName().equals(JSplitPane.DIVIDER_LOCATION_PROPERTY)) {  
 		            PropertiesManager.setValue(PropertiesManager.p_DesignerCtrlDividerLocation, 
 		            		String.valueOf(panelSubMRInfo.getDividerLocation()));
@@ -253,8 +253,19 @@ public class CtrlTotalPanel extends JPanel{
 		repainCanvas();
 	}
 
-	public final BufferedImage[] canvas_images = new BufferedImage[CtrlKey.MAX_CTRL_ITEM_NUM];
-	private final BufferedImage[] cursor_images = new BufferedImage[CtrlKey.MAX_CTRL_ITEM_NUM];
-	private final JButton[] listButtons = new JButton[CtrlKey.MAX_CTRL_ITEM_NUM];
+	private final void updateCursor(final Cursor c) {
+		SwingUtilities.invokeLater(new Runnable() {//否则后一个可能不执行不稳定
+			@Override
+			public void run() {
+				Designer.getInstance().setCursor(c);
+				panle_but_list.setCursor(c);
+				panel_canvas.setCursor(c);//必须，否则进入后无效
+			}
+		});
+	}
+
+	public final BufferedImage[] canvas_images = new BufferedImage[CtrlKeySet.MAX_CTRL_ITEM_NUM];
+	private final BufferedImage[] cursor_images = new BufferedImage[CtrlKeySet.MAX_CTRL_ITEM_NUM];
+	private final JButton[] listButtons = new JButton[CtrlKeySet.MAX_CTRL_ITEM_NUM];
 	
 }

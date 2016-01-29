@@ -19,7 +19,7 @@ public class UDPMerger {
      */
     private static final int SPLIT_MAX_SIZE = getReceiveSplitMaxSize();
     private static final HCUDPSubPacketEvent[] SPLIT_HCEVENT = new HCUDPSubPacketEvent[SPLIT_MAX_SIZE];
-    private static final Message[] SPLIT_MSG = new Message[SPLIT_MAX_SIZE];
+    private static final HCMessage[] SPLIT_MSG = new HCMessage[SPLIT_MAX_SIZE];
     private static final long[] STORE_TIME = new long[SPLIT_MAX_SIZE];
     private static final long THROW_TIME = Integer.parseInt(RootConfig.getInstance().
 			getProperty(RootConfig.p_Receive_Split_Throw_MS));
@@ -39,7 +39,7 @@ public class UDPMerger {
     		if(STORE_SPLIT_NUM == SPLIT_MAX_SIZE){
     			return null;
     		}
-    		Message msgNew = msgCacher.getFree();
+    		HCMessage msgNew = msgCacher.getFree();
     		msgNew.setFastByte(eventNew.data_bs);
 //	    		System.out.println("Enter blob msgID:" + SPLIT_MSG.getMsgID() + ", no:" + SPLIT_MSG.getSplitNO() + ", store Num:" + STORE_SPLIT_NUM);
     		int splitBlockNum = msgNew.SplitNum;
@@ -65,7 +65,7 @@ public class UDPMerger {
 		    			continue;
 		    		}else{
 		    			findEvent++;
-			    		Message message = SPLIT_MSG[i];
+			    		HCMessage message = SPLIT_MSG[i];
 		    			if(message.BlobGroupID == currGroupID){
 		    				splitNO = message.SplitNO;
 		    				TMP_SPLIT_EVENTS[splitNO] = event;
@@ -76,7 +76,7 @@ public class UDPMerger {
 		    					//取第一个
 		    					HCUDPSubPacketEvent eventTotal = TMP_SPLIT_EVENTS[0];
 		    					byte[] splitBS = eventTotal.data_bs;
-		    					final int splitPackageMaxDataSize = Message.getMsgLen(splitBS);
+		    					final int splitPackageMaxDataSize = HCMessage.getMsgLen(splitBS);
 		    					
 		    					int totalSize = splitBlockNum * splitPackageMaxDataSize + MsgBuilder.INDEX_UDP_MSG_DATA;
 		    					eventTotal.tryUseBlobBS(totalSize);
@@ -93,7 +93,7 @@ public class UDPMerger {
 									if(j < splitBlockNumMinusOne){
 										copyLen = splitPackageMaxDataSize;
 									}else{
-										copyLen = Message.getMsgLen(splitBS);
+										copyLen = HCMessage.getMsgLen(splitBS);
 									}
 									try{
 										System.arraycopy(splitBS, MsgBuilder.INDEX_UDP_MSG_DATA, totalbs, totalInIndex, copyLen);
@@ -105,7 +105,7 @@ public class UDPMerger {
 								}
 		    					
 								//更新合并后的真实长度
-								Message.setMsgLen(totalbs, totalInIndex - MsgBuilder.INDEX_UDP_MSG_DATA);
+								HCMessage.setMsgLen(totalbs, totalInIndex - MsgBuilder.INDEX_UDP_MSG_DATA);
 								
 								//合并拼接完成，清空已使用的
 								STORE_SPLIT_NUM -= splitBlockNumMinusOne;
@@ -218,7 +218,7 @@ public class UDPMerger {
 	final ISIPContext isip = SIPManager.getSIPContext();
 
     public static HCTimer HTReleaseUnusedSplit = new HCTimer("ReleaseUnusedSplit", 1000, true){
-		public void doBiz() {
+		public final void doBiz() {
 			releaseUnusedSplit();
 		}
 	};

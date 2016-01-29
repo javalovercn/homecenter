@@ -31,7 +31,7 @@ public class UPnPDeviceHandler extends DefaultHandler {
 	        element = "";
 			if (localName.equalsIgnoreCase("service")){
 		        String serviceType = upnpDevice.SERVICETYPE;
-	            if (serviceType != null && serviceType.startsWith("urn:schemas-upnp-org:service:WANCommonInterfaceConfig"))
+	            if (serviceType != null && serviceType.startsWith("urn:schemas-upnp-org:service:WANCommonInterfaceConfig", 0))
 	            	upnpDevice.isGateWay = true;
 	                mode = _CTRL_MODE;
 	        }

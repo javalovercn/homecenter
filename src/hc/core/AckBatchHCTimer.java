@@ -16,7 +16,7 @@ public class AckBatchHCTimer extends HCTimer {
 		this.resender = resend;
 	}
 
-	public void doBiz() {
+	public final void doBiz() {
 		//由于本逻辑完全被EventBack包围，且共属于HCTimer，所以关闭锁，ack方法同本
 //		synchronized (ackIDS) {
 			while(storeIdx > batchByteLen){

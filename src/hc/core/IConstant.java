@@ -1,5 +1,6 @@
 package hc.core;
 
+import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
 
 import java.io.UnsupportedEncodingException;
@@ -15,9 +16,36 @@ public abstract class IConstant {
 	public static final String RelayMax = "8";
 	public static final String IS_FORBID_UPDATE_CERT = "9";
 	
-	public static String propertiesFileName = null;
+	//当前线程要发起另一个线程任务，并等待其状态变化
+	public static final int THREAD_WAIT_INNER_MS = 10;
 	
-	public static String uuid, password;
+	public static String propertiesFileName = null;
+	public static boolean enableInitLock = true;
+	protected static String uuid, password;
+	
+	public static final String getUUID(){
+		CCoreUtil.checkAccess();
+		
+		return uuid;
+	}
+	
+	/**
+	 * 
+	 * @return true:is HC Server. false : Relay Server or other
+	 */
+	public static boolean isHCServer(){
+		if(propertiesFileName == null){//TestCase时可能为null
+			return false;
+		}
+		return propertiesFileName.startsWith("hc_config");
+	}
+	
+	public static final String getPassword(){
+		CCoreUtil.checkAccess();
+		
+		return password;
+	}
+	
 	public static boolean serverSide;
 
 	private static IConstant instance;
@@ -26,7 +54,9 @@ public abstract class IConstant {
 		return instance;
 	}
 
-	public static void setInstance(IConstant ic){
+	public static void setInstance(final IConstant ic){
+		CCoreUtil.checkAccess();
+		
 		instance = ic;
 	}
 
@@ -35,7 +65,22 @@ public abstract class IConstant {
 //	public static final String STATUS_ISBUSS = "S_IsB_E";
 	public static final String NO_CANVAS_MAIN = "N_Cvs";
 	
-	public static byte[] passwordBS, uuidBS;
+	static byte[] passwordBS, uuidBS;
+	
+	public static boolean isRegister(){
+		return getPasswordBS() != null;
+	}
+	
+	public static byte[] getPasswordBS(){
+		CCoreUtil.checkAccess();
+		return passwordBS;
+	}
+	
+	public static byte[] getUUIDBS(){
+		CCoreUtil.checkAccess();
+		return uuidBS;
+	}
+	
 	public static final String UTF_8 = "UTF-8";
 	public static final String ISO_8859_1 = "ISO-8859-1";
 //	public static final byte DATA_PROTOCAL_HEAD_H = 'H';
@@ -66,12 +111,12 @@ public abstract class IConstant {
 	public abstract String getAjaxForSimu(String url, boolean isTcp);
 
 	public abstract void setObject(String key, Object value);
-
-	public static boolean checkUUID(String uuid) {
+	
+	public static boolean checkUUID(final String uuid) {
 		byte[] bs;
 		try {
 			bs = uuid.getBytes(IConstant.UTF_8);
-		} catch (UnsupportedEncodingException e) {
+		} catch (final UnsupportedEncodingException e) {
 			bs = uuid.getBytes();
 		}
 		if(bs.length < 6 || bs.length > MsgBuilder.LEN_MAX_UUID_VALUE 
@@ -82,31 +127,31 @@ public abstract class IConstant {
 		return true;
 	}
 
-	public static void setServerSide(boolean s) {
+	public static void setServerSide(final boolean s) {
 		serverSide = s;
 	}
 
-	public static void setUUID(String uid){
+	public static void setUUID(final String uid){
 		uuid = uid;
 		
 		try {
 			uuidBS = uuid.getBytes(IConstant.UTF_8);
-		} catch (UnsupportedEncodingException e) {
+		} catch (final UnsupportedEncodingException e) {
 			uuidBS = uuid.getBytes();
 			e.printStackTrace();
 		}
 	}
 
-	public static void setPassword(String pwd){
+	public static void setPassword(final String pwd){
 		password = pwd;
 		try {
 			passwordBS = password.getBytes(IConstant.UTF_8);
-		} catch (UnsupportedEncodingException e) {
+		} catch (final UnsupportedEncodingException e) {
 			e.printStackTrace();
 			passwordBS = password.getBytes();
 		}
 //		hc.core.L.V=hc.core.L.O?false:LogManager.log("PWD byte len:" + passwordBS.length + ", " + password);
-		CUtil.CertKey = (byte[])IConstant.getInstance().getObject(IConstant.CertKey);
+		CUtil.setCertKey((byte[])IConstant.getInstance().getObject(IConstant.CertKey));
 	}
 
 }

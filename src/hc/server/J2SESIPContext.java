@@ -2,14 +2,15 @@ package hc.server;
 
 import hc.App;
 import hc.core.ContextManager;
+import hc.core.HCMessage;
 import hc.core.IContext;
 import hc.core.L;
-import hc.core.Message;
 import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.UDPPacketResender;
 import hc.core.sip.ISIPContext;
 import hc.core.sip.SIPManager;
+import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
 import hc.core.util.LogManager;
 import hc.server.ui.SingleMessageNotify;
@@ -35,38 +36,42 @@ public class J2SESIPContext extends ISIPContext {
 	
 	public J2SESIPContext() {
 		resender = new UDPPacketResender(){
-			protected final void resend(Object packet) {
+			@Override
+			protected final void resend(final Object packet) {
 				try{
 					if(socket != null){
 						socket.send((DatagramPacket)packet);
 					}
-				}catch (Exception e) {
+				}catch (final Exception e) {
 //					e.printStackTrace();//UDP断线时，会输出很多的异常信息，故关闭
 					SIPManager.notifyRelineon(false);
 				}
 			}
 			
+			@Override
 			public final Object getUDPSocket(){
 				return socket;
 			}
 			
 			DatagramSocket socket;
 			
-			public final void setUDPSocket(Object sender) {
+			@Override
+			public final void setUDPSocket(final Object sender) {
 				final DatagramSocket snapSocket = socket;
 				socket = (DatagramSocket)sender;
 				try{
 					snapSocket.close();
-				}catch (Exception e) {
+				}catch (final Exception e) {
 					
 				}
 			}
 	
-			private int real_len_upd_data = MsgBuilder.UDP_MTU_DATA_MIN_SIZE;
+			private final int real_len_upd_data = MsgBuilder.UDP_MTU_DATA_MIN_SIZE;
 			private InetAddress udpTargetAddr;
 			private int udpTargetPort;
 			
-			public void setUDPTargetAddress(Object address, int port){
+			@Override
+			public void setUDPTargetAddress(final Object address, final int port){
 				udpTargetAddr = (InetAddress)address;
 				udpTargetPort = port;
 			}
@@ -92,9 +97,9 @@ public class J2SESIPContext extends ISIPContext {
 					
 					//以下逻辑要与J2MEContext同步
 	//				Message.setSendUUID(bs, selfUUID, selfUUID.length);
-					Message.setMsgBody(bs, MsgBuilder.INDEX_UDP_MSG_DATA, jcip_bs, offset, realLen);
+					HCMessage.setMsgBody(bs, MsgBuilder.INDEX_UDP_MSG_DATA, jcip_bs, offset, realLen);
 					//生成序列号
-					groupID = Message.setSplitPara(bs, groupID, SplitNo++, split_num);
+					groupID = HCMessage.setSplitPara(bs, groupID, SplitNo++, split_num);
 					
 					bs[MsgBuilder.INDEX_CTRL_TAG] = ctrlTag;
 					bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = subCtrlTag;
@@ -114,10 +119,10 @@ public class J2SESIPContext extends ISIPContext {
 	        		if(realLen == 0 || ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN){
 	        			
 	        		}else{
-		        		CUtil.superXor(bs, MsgBuilder.INDEX_UDP_MSG_DATA, realLen, CUtil.OneTimeCertKey, true);
+		        		CUtil.superXor(bs, MsgBuilder.INDEX_UDP_MSG_DATA, realLen, null, true, true);//不作在线更新RandomKey
 	        		}
 	        		if(ctrlTag != MsgBuilder.E_TAG_ACK){
-	        			resender.needAckAtSend(p, Message.getAndSetAutoMsgID(bs));
+	        			resender.needAckAtSend(p, HCMessage.getAndSetAutoMsgID(bs));
 	        		}
 	        		if(isFlushNow){
 	        			socket.send(p);
@@ -129,28 +134,28 @@ public class J2SESIPContext extends ISIPContext {
 					len -= realLen;
 					offset += realLen;
 				}while(len > 0);
-				}catch (IOException e) {
+				}catch (final IOException e) {
 					cacher.cycle(p);
 				}
 				if(split_num > 50){
-//					hc.core.L.V=hc.core.L.O?false:LogManager.log("Send out blob UDP data. num:" + split_num);
+//					L.V = L.O ? false : LogManager.log("Send out blob UDP data. num:" + split_num);
 				}
 			}
 	    };
 	}
 	
 	@Override
-	public final byte[] getDatagramBytes(Object dp){
+	public final byte[] getDatagramBytes(final Object dp){
 		return ((DatagramPacket)dp).getData();
 	}
 
 	@Override
-	public final void setDatagramLength(Object dp, int len){
+	public final void setDatagramLength(final Object dp, final int len){
 		((DatagramPacket)dp).setLength(len);
 	}
 	
 	@Override
-	public final Object getDatagramPacket(Object dp) {
+	public final Object getDatagramPacket(final Object dp) {
 		DatagramPacket p;
 		if(dp == null){
 			p = (DatagramPacket)getDatagramPacketFromConnection(null);
@@ -160,10 +165,12 @@ public class J2SESIPContext extends ISIPContext {
 		return p;
 	}
 	
-	public Object getDatagramPacketFromConnection(Object conn){
+	@Override
+	public Object getDatagramPacketFromConnection(final Object conn){
 		return new DatagramPacket(new byte[MsgBuilder.UDP_BYTE_SIZE], MsgBuilder.UDP_BYTE_SIZE);
 	}
 	
+	@Override
 	public boolean tryRebuildUDPChannel(){
 		L.V = L.O ? false : LogManager.log("Server Side UDP rebuild NOT implement!");
 		return false;
@@ -192,30 +199,31 @@ public class J2SESIPContext extends ISIPContext {
 			ContextManager.getContextInstance().getUDPReceiveServer().setUdpServerSocket(udpSocket);
 			
 			return true;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		
 		return false;
 	}
 
+	@Override
 	public Object buildSocket(final int localPort, final String targetServer, final int targetPort){
 		try {
 			return buildSocketInnal(localPort, targetServer, targetPort);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			if(isFailed == false){
 				isFailed = true;
 				
 				SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_ERROR_CONNECTION, 
-						("<img src='http://homecenter.mobi/images/bad_32.png' width='32' height='32'></img><STRONG>" + (String)ResourceUtil.get(1000) + "</STRONG>"
-						+ "<BR><BR>" + new Date().toLocaleString())
+						(String)ResourceUtil.get(1000)
+						+ "<BR><BR>" + (new Date().toLocaleString())
 						+ "<BR>TCP IP : " + HttpUtil.replaceIPWithHC(targetServer) + ", port : " + targetPort
 						+ "<BR>Exception : " + e.getMessage()
 						+ "<BR><BR>Please contact administrator!", (String)ResourceUtil.get(IContext.ERROR),
 						60000 * 5, App.getSysIcon(App.SYS_ERROR_ICON));
 				
-				LogManager.errToLog("Fail build Socket to " + HttpUtil.replaceIPWithHC(targetServer) + ", port : " + targetPort + " from localPort: " + localPort);
-				LogManager.errToLog("Fail build Socket Exception : " + e.getMessage());
+				LogManager.errToLog("Fail build socket to " + HttpUtil.replaceIPWithHC(targetServer) + ", port : " + targetPort + " from localPort: " + localPort);
+				LogManager.errToLog("Fail build socket Exception : " + e.getMessage());
 			}
 		}
 		return null;
@@ -234,7 +242,7 @@ public class J2SESIPContext extends ISIPContext {
 		if(s == null){
 			try{
 				s = new Socket(InetAddress.getByName(targetServer), targetPort);
-			}catch (Throwable e) {
+			}catch (final Throwable e) {
 				s = null;
 				//无法到达，可能选用了错误的
 				//java.net.ConnectException: Connection refused: connect
@@ -243,9 +251,9 @@ public class J2SESIPContext extends ISIPContext {
 		if(s == null){
 			//遍历所有的可用NetworkInterface
 			try {
-				Enumeration nis = NetworkInterface.getNetworkInterfaces();
+				final Enumeration nis = NetworkInterface.getNetworkInterfaces();
 				while (nis.hasMoreElements()) {
-					NetworkInterface ni = (NetworkInterface) nis.nextElement();
+					final NetworkInterface ni = (NetworkInterface) nis.nextElement();
 					outputInetAddress = HttpUtil.filerInetAddress(ni);
 					if(outputInetAddress != null){
 						s = newSocket(targetServer, targetPort, outputInetAddress, localPort);
@@ -254,7 +262,7 @@ public class J2SESIPContext extends ISIPContext {
 						}
 					}
 				}
-			} catch (Throwable f) {
+			} catch (final Throwable f) {
 			}
 			if(s == null){
 				LogManager.errToLog("No response from server or no networkInterface to " + HttpUtil.replaceIPWithHC(targetServer));
@@ -262,7 +270,7 @@ public class J2SESIPContext extends ISIPContext {
 			}
 		}
 		
-		int tc = RootConfig.getInstance().getIntProperty(RootConfig.p_TrafficClass);
+		final int tc = RootConfig.getInstance().getIntProperty(RootConfig.p_TrafficClass);
 		if(tc != 0){
 			s.setTrafficClass(tc);
 		}
@@ -283,7 +291,7 @@ public class J2SESIPContext extends ISIPContext {
 //			L.V = L.O ? false : LogManager.log("SndBuf:" + s.getSendBufferSize());
 //			L.V = L.O ? false : LogManager.log("RcvBuf:" + s.getReceiveBufferSize());
 
-		L.V = L.O ? false : LogManager.log("Succ build Socket to " + HttpUtil.replaceIPWithHC(targetServer) +", port:" 
+		L.V = L.O ? false : LogManager.log("Succ build socket to " + HttpUtil.replaceIPWithHC(targetServer) +", port:" 
 				+ targetPort + " from local" + s.getLocalAddress() + ":" + s.getLocalPort());
 
 		isFailed = false;
@@ -296,7 +304,7 @@ public class J2SESIPContext extends ISIPContext {
 		outputInetAddress = localAddress;
 		try{
 			return new Socket(InetAddress.getByName(targetServer), targetPort, localAddress, localPort);
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
 			//无法到达，可能选用了错误的
 			//java.net.ConnectException: Connection refused: connect
 		}
@@ -304,37 +312,44 @@ public class J2SESIPContext extends ISIPContext {
 		return null;
 	}
 
-	public DataInputStream getInputStream(Object socket) throws IOException{
+	@Override
+	public DataInputStream getInputStream(final Object socket) throws IOException{
 		return new DataInputStream(((Socket)socket).getInputStream());
 	}
 	
-	public DataOutputStream getOutputStream(Object socket) throws IOException{
+	@Override
+	public DataOutputStream getOutputStream(final Object socket) throws IOException{
 		return new DataOutputStream(((Socket)socket).getOutputStream());
-	}
-		
-	public void closeSocket(Object socket) throws IOException{
-		
-		Socket socket2 = (Socket)socket;
+	}		
+	
+	@Override
+	public void closeSocket(final Object socket) throws IOException{
+		final Socket socket2 = (Socket)socket;
 		try{
 			socket2.shutdownInput();
 			socket2.shutdownOutput();
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			
 		}
 		socket2.close();
 	}
 	
+	@Override
 	public Object getSocket() {
+		CCoreUtil.checkAccess();
+		
 		return socket;
 	}
 	
 	private Socket socket;
 
+	@Override
 	public String getSTUNServerAndPort() {
 		return PropertiesManager.getValue(PropertiesManager.p_stunServerPorts);
 	}
 
-	public void saveStunServerAndPort(String serverAndPort) {
+	@Override
+	public void saveStunServerAndPort(final String serverAndPort) {
 		PropertiesManager.setValue(PropertiesManager.p_stunServerPorts, serverAndPort);
 		PropertiesManager.saveFile();
 	}
@@ -449,6 +464,7 @@ public class J2SESIPContext extends ISIPContext {
 //		return sd;
 //	}
 
+	@Override
 	public void closeDeploySocket(){
 		//必须要置前
 		KeepaliveManager.removeUPnPMapping();
@@ -463,7 +479,10 @@ public class J2SESIPContext extends ISIPContext {
 		isClose = true;		
 		Socket snapSocket = socket;
 		
-		deploySocket(null, null, null);
+		try{
+			deploySocket(null);
+		}catch (final Exception e) {
+		}
 		
 		if(KeepaliveManager.nioRelay != null){
 			KeepaliveManager.nioRelay.close();
@@ -472,20 +491,23 @@ public class J2SESIPContext extends ISIPContext {
 		try{
 			snapSocket.close();
 			snapSocket = null;
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			
 		}
 	}
 
-	public void setSocket(Object connector) {
+	@Override
+	public void setSocket(final Object connector) {
 		final Socket snapSocket = socket;
 		if(connector != null){
 			isClose = false;
 		}
 		this.socket = (Socket)(connector);
 		try{
-			snapSocket.close();
-		}catch (Exception e) {
+			if(snapSocket != null){
+				snapSocket.close();
+			}
+		}catch (final Exception e) {
 			
 		}
 	}

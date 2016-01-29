@@ -9,7 +9,10 @@ public interface IWatcher {
 	
 	public void setPara(Object p);
 	
+	/**
+	 * 由系统根据需要进行cancel操作，而非应用调用
+	 */
 	public void cancel();
 	
-	public boolean isNotCancelable();
+	public boolean isCancelable();
 }

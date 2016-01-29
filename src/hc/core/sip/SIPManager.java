@@ -3,11 +3,11 @@ package hc.core.sip;
 import hc.core.ContextManager;
 import hc.core.EnumNAT;
 import hc.core.EventCenter;
+import hc.core.HCMessage;
 import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
-import hc.core.Message;
 import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
@@ -15,6 +15,7 @@ import hc.core.data.DataReg;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
 import hc.core.util.LogManager;
+import hc.core.util.ThreadPriorityManager;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -24,7 +25,13 @@ import java.util.Vector;
 public class SIPManager {
 	
 	private static ISIPContext sipContext;
-	public static void setSIPContext(ISIPContext context){
+	public static void setSIPContext(final ISIPContext context){
+		if(sipContext != null){
+			if(L.isInWorkshop){
+				LogManager.errToLog("fail to setSIPContext");
+			}
+			return;
+		}
 		sipContext = context;
 	}
 	
@@ -47,14 +54,16 @@ public class SIPManager {
 		return isOnRelay;
 	}
 	
-	public static void setOnRelay(boolean onRelay){
+	public static void setOnRelay(final boolean onRelay){
+		CCoreUtil.checkAccess();
+		
 //		L.V = L.O ? false : LogManager.log("On Relay : " + onRelay);
 		isOnRelay = onRelay;
 //		ContextManager.getSendServer().notifyIsRelay(isOnRelay);
 	}
 	
-	public static void send(OutputStream os, byte[] bs, int off, int len) throws IOException{
-		Message.setMsgLen(bs, len - MsgBuilder.MIN_LEN_MSG);
+	public static void send(final OutputStream os, final byte[] bs, final int off, final int len) throws IOException{
+		HCMessage.setMsgLen(bs, len - MsgBuilder.MIN_LEN_MSG);
 		
 		synchronized (os) {
 			os.write(bs, off, len);
@@ -110,7 +119,7 @@ public class SIPManager {
 					idx_relayip = 5, idx_relayport = 6;
 			
 			//优先检查服务器上线，Open Cone等模式，以获得高性能
-			Object obj = RootServerConnector.getServerIPAndPort(RootServerConnector.getHideToken());
+			final Object obj = RootServerConnector.getServerIPAndPort(RootServerConnector.getHideToken());
 			if(obj == null || obj instanceof Vector){
 	              LogManager.info("server : off");
 //	              LogManager.info("please check as follow:");
@@ -123,13 +132,13 @@ public class SIPManager {
 			}
 			
 			LogManager.info("server : online");
-            String[] out = (String[])obj;
+            final String[] out = (String[])obj;
 
 			//优先尝试直接连接
             if(out[idx_localport].equals("0") == false){
             	//家庭内网直联
 				LogManager.info("try direct conn...");
-				IPAndPort ipport = new IPAndPort(out[idx_localip], Integer.parseInt(out[idx_localport]));
+				final IPAndPort ipport = new IPAndPort(out[idx_localip], Integer.parseInt(out[idx_localport]));
 				final IPAndPort l_directIpPort = tryBuildConnOnDirect(ipport, "Direct Mode", 
 						Integer.parseInt(out[idx_nattype]), 3000);//内网直联最长时间改为一秒
 				if(l_directIpPort != null){
@@ -151,7 +160,7 @@ public class SIPManager {
             
 			if(out[idx_relayport].equals("0") == false){
 				LogManager.info("try relay connect...");
-				IPAndPort ipport = new IPAndPort(out[idx_relayip], Integer.parseInt(out[idx_relayport]));
+				final IPAndPort ipport = new IPAndPort(out[idx_relayip], Integer.parseInt(out[idx_relayport]));
 				final IPAndPort l_relayIpPort = tryBuildConnOnDirect(ipport, 
 						"Relay Mode", EnumNAT.FULL_AGENT_BY_OTHER, SIPManager.REG_WAITING_MS);
 				if(l_relayIpPort != null){
@@ -178,7 +187,7 @@ public class SIPManager {
 			return false;
 		}
 
-		String[] out = (String[])ContextManager.getContextInstance().doExtBiz(IContext.BIZ_UPLOAD_LINE_ON, null);
+		final String[] out = (String[])ContextManager.getContextInstance().doExtBiz(IContext.BIZ_UPLOAD_LINE_ON, null);
 
 		if(IConstant.serverSide && out != null){
 			if(out[0].equals("false")){
@@ -203,7 +212,7 @@ public class SIPManager {
 		return relayIpPort.port - 1;
 	}
 	
-	public static void setUDPChannelPort(int udpPort){
+	public static void setUDPChannelPort(final int udpPort){
 		relayIpPort.udpPort = udpPort;
 	}
 	
@@ -218,8 +227,8 @@ public class SIPManager {
 	 * @param remoteNattype
 	 * @return
 	 */
-	private static IPAndPort tryBuildConnOnDirect(IPAndPort ipport, 
-			String memo, int nattype, final int waitMS) {
+	private static IPAndPort tryBuildConnOnDirect(final IPAndPort ipport, 
+			final String memo, final int nattype, final int waitMS) {
 		//LogManager.info("connect " + memo + " Server");
 
 		if(nattype == EnumNAT.FULL_AGENT_BY_OTHER){
@@ -233,18 +242,17 @@ public class SIPManager {
 	public static final int REG_WAITING_MS = 7000;
 
 	public static IPAndPort proccReg(final IPAndPort ipport, final byte firstOrReset, final int waitingMS) {
-		Object socket = sendRegister(ipport, firstOrReset, waitingMS);
+		final Object socket = sendRegister(ipport, firstOrReset, waitingMS);
 		if(socket != null){
 			try{
-				getSIPContext().deploySocket(socket, getSIPContext().getInputStream(socket), 
-					getSIPContext().getOutputStream(socket));
+				getSIPContext().deploySocket(socket);
 				
 				return ipport;
-			}catch (Exception e) {
+			}catch (final Exception e) {
 				e.printStackTrace();
 				try {
 					getSIPContext().closeSocket(socket);
-				} catch (IOException e1) {
+				} catch (final Exception e1) {
 					e1.printStackTrace();
 				}
 			}
@@ -258,7 +266,7 @@ public class SIPManager {
 	public static void close(){
 		try{
 			getSIPContext().closeDeploySocket();
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			//可能出现nullPointerException
 		}
 		setOnRelay(false);
@@ -266,10 +274,10 @@ public class SIPManager {
 
 
 	private static long lastLineOff = 0;
-	private static final byte[] line_off_bs = buildLineOff();
+	static final byte[] line_off_bs = buildLineOff();
 	
 	private static byte[] buildLineOff(){
-		byte[] e = new byte[MsgBuilder.UDP_BYTE_SIZE];
+		final byte[] e = new byte[MsgBuilder.UDP_BYTE_SIZE];
 		e[MsgBuilder.INDEX_CTRL_TAG] = MsgBuilder.E_LINE_OFF_EXCEPTION;
 		return e;
 	}
@@ -279,39 +287,51 @@ public class SIPManager {
 		lastLineOff = System.currentTimeMillis();
 	}
 	
-	public static void notifyRelineon(boolean isClientRequest) {
-		long now = System.currentTimeMillis();
+	public static void notifyRelineon(final boolean isClientRequest) {
+		final long now = System.currentTimeMillis();
 		if(isClientRequest == false){
 			//如果是有效连接，被客户端主动请求，且时间间隔极短，有可能产生本错误，而不去重新连接
-			if(now - lastLineOff > 10000){
+			if(now - lastLineOff > 5000){//10有可能较长，改小5000
 			}else{
 				L.V = L.O ? false : LogManager.log("skip recall lineoff autolineoff");
+				if(IConstant.serverSide){
+					ContextManager.getContextInstance().doExtBiz(IContext.BIZ_START_WATCH_KEEPALIVE_FOR_RECALL_LINEOFF, null);
+				}
 				return;
 			}
 		}else{
 			if(now - lastLineOff > CCoreUtil.WAIT_MS_FOR_NEW_CONN){
-				
 			}else{
 				L.V = L.O ? false : LogManager.log("skip recall lineoff clientReq");
+				if(IConstant.serverSide){
+					ContextManager.getContextInstance().doExtBiz(IContext.BIZ_START_WATCH_KEEPALIVE_FOR_RECALL_LINEOFF, null);
+				}
 				return;
+			}
+		}
+		if(isClientRequest && IConstant.serverSide){
+			try{
+				//服务器端要先等待用户断线，以免有客户端产生断线消息
+				Thread.sleep(ThreadPriorityManager.UI_DELAY_MOMENT);
+			}catch (final Exception e) {
 			}
 		}
 		startRelineonForce(isClientRequest);
 	}
 
-	public static void startRelineonForce(boolean isClientRequest) {
+	public static void startRelineonForce(final boolean isClientRequest) {
 		lastLineOff = System.currentTimeMillis();
 		
 		RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_LineEx_STR);
 		
 		ContextManager.setStatus(ContextManager.STATUS_LINEOFF);
 		CUtil.resetCheck();
-		String cr = String.valueOf(isClientRequest);
-		Message.setMsgBody(line_off_bs, cr);
+		final String cr = String.valueOf(isClientRequest);
+		HCMessage.setMsgBody(line_off_bs, cr);
 		
 		ContextManager.getContextInstance().reset();
 		
-		EventCenter.action(MsgBuilder.E_LINE_OFF_EXCEPTION, line_off_bs);
+		EventCenter.notifyLineOff(line_off_bs);
 	}
 
 	public static void notifyCertPwdPassAtClient() {
@@ -323,22 +343,22 @@ public class SIPManager {
 //		ContextManager.getContextInstance().send(MsgBuilder.E_CANVAS_MAIN, "menu:///root");			
 	}
 
-	public static Object sendRegister(final IPAndPort ipport, final byte firstOrReset, int waiteMS){
+	public static Object sendRegister(final IPAndPort ipport, final byte firstOrReset, final int waiteMS){
 		final Object send = getSIPContext().buildSocket(
 				0, ipport.ip, ipport.port);
 		if(send == null){
 			return null;
 		}
 		
-		DataReg reg = new DataReg();
-		byte[] bs = new byte[MsgBuilder.UDP_BYTE_SIZE];//DatagramPacketCacher.getInstance().getFree();
+		final DataReg reg = new DataReg();
+		final byte[] bs = new byte[MsgBuilder.UDP_BYTE_SIZE];//DatagramPacketCacher.getInstance().getFree();
 
 		reg.setBytes(bs);
 		
 		if(isOnRelay()){
 			if(IConstant.serverSide){
 				reg.setFromServer(MsgBuilder.DATA_IS_SERVER_TO_RELAY);
-				byte[] tokenBS = (byte[])ContextManager.getContextInstance().doExtBiz(IContext.BIZ_GET_TOKEN, null);
+				final byte[] tokenBS = (byte[])ContextManager.getContextInstance().doExtBiz(IContext.BIZ_GET_TOKEN, null);
 				reg.setTokenDataIn(tokenBS, 0, tokenBS.length);
 			}else{
 				reg.setFromServer(MsgBuilder.DATA_IS_CLIENT_TO_RELAY);
@@ -346,30 +366,31 @@ public class SIPManager {
 		}
 		bs[MsgBuilder.INDEX_CTRL_TAG] = MsgBuilder.E_TAG_RELAY_REG;
 		bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = firstOrReset;
-		reg.setUUIDDataIn(IConstant.uuidBS, 0, IConstant.uuidBS.length);
+		final byte[] uuidbs = IConstant.getUUIDBS();
+		reg.setUUIDDataIn(uuidbs, 0, uuidbs.length);
 		
 		final int regLen = DataReg.LEN_DATA_REG + MsgBuilder.INDEX_MSG_DATA;
-		byte[] bsClone = new byte[regLen];
+		final byte[] bsClone = new byte[regLen];
 		System.arraycopy(bs, 0, bsClone, 0, bsClone.length);
 		
 		try{
 			send(getSIPContext().getOutputStream(send), 
 				bs, 0, regLen);
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			e.printStackTrace();
 			try {
 				getSIPContext().closeSocket(send);
-			} catch (IOException e1) {
+			} catch (final Exception e1) {
 				e1.printStackTrace();
 			}
 			return null;
 		}
-		HCTimer closeTimer = new HCTimer("closeTimer", waiteMS, true) {
-			public void doBiz() {
+		final HCTimer closeTimer = new HCTimer("closeTimer", waiteMS, true) {
+			public final void doBiz() {
 				try {
 //					L.V = L.O ? false : LogManager.log("CloseTimer close Reg Socket");
 					SIPManager.getSIPContext().closeSocket(send);					
-				} catch (IOException e) {
+				} catch (final Exception e) {
 					e.printStackTrace();
 				}
 				
@@ -377,7 +398,7 @@ public class SIPManager {
 			}
 		};
 		try{
-			DataInputStream is = getSIPContext().getInputStream(send);
+			final DataInputStream is = getSIPContext().getInputStream(send);
 			is.readFully(bs, 0, regLen);
 			//验证是正确的回应，以免连接到已存在在，但是偶巧的端口上
 			for (int i = MsgBuilder.INDEX_MSG_DATA, endIdx = regLen; i < endIdx; i++) {
@@ -389,10 +410,11 @@ public class SIPManager {
 			HCTimer.remove(closeTimer);
 			L.V = L.O ? false : LogManager.log("Receive Echo");
 			return send;
-		}catch (Exception e) {
+		}catch (final Exception e) {
+			e.printStackTrace();
 			try {
 				getSIPContext().closeSocket(send);
-			} catch (IOException e1) {
+			} catch (final Exception e1) {
 			}
 		}
 		return null;

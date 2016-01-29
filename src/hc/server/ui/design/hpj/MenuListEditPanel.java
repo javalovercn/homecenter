@@ -1,16 +1,14 @@
 package hc.server.ui.design.hpj;
 
+import hc.App;
+import hc.server.HCActionListener;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.NumberFormatTextField;
 import hc.server.ui.design.Designer;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -20,6 +18,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
@@ -65,27 +64,27 @@ public class MenuListEditPanel extends NodeEditPanel {
 
 		table.setRowSelectionAllowed(true);
 
-		final ActionListener actionListener = new ActionListener() {
-			
+		upButton.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				int selectedRow = table.getSelectedRow();
 				
-				if(e.getSource() == upButton){
-					int toIdx = selectedRow - 1;
-					swapRow(selectedRow, toIdx);
-					table.setRowSelectionInterval(toIdx, toIdx);
-					notifyModified();
-				}else if(e.getSource() == downButton){
-					int toIdx = selectedRow + 1;
-					swapRow(selectedRow, toIdx);
-					table.setRowSelectionInterval(toIdx, toIdx);
-					notifyModified();
-				}
-		}};
-		
-		upButton.addActionListener(actionListener);
-		downButton.addActionListener(actionListener);
+				int toIdx = selectedRow - 1;
+				swapRow(selectedRow, toIdx);
+				table.setRowSelectionInterval(toIdx, toIdx);
+				notifyModified();
+			}
+		}, threadPoolToken));
+		downButton.addActionListener(new HCActionListener(new Runnable() {
+			public void run() {
+				int selectedRow = table.getSelectedRow();
+				
+				int toIdx = selectedRow + 1;
+				swapRow(selectedRow, toIdx);
+				table.setRowSelectionInterval(toIdx, toIdx);
+				notifyModified();
+			}
+		}, threadPoolToken));
 		
 		ListSelectionModel rowSM = table.getSelectionModel();
 		rowSM.addListSelectionListener(new ListSelectionListener() {
@@ -130,14 +129,14 @@ public class MenuListEditPanel extends NodeEditPanel {
 				modify();
 			}
 		});
-		nameFiled.addActionListener(new ActionListener() {
+		nameFiled.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				currItem.name = nameFiled.getText();
-				tree.updateUI();
+				App.invokeLaterUI(updateTreeRunnable);
 				notifyModified();
 			}
-		});
+		}, threadPoolToken));
 		nameFiled.setColumns(10);
 		namePanel.add(nameFiled);
 		
@@ -167,14 +166,14 @@ public class MenuListEditPanel extends NodeEditPanel {
 				modify();
 			}
 		});
-		colNumFiled.addActionListener(new ActionListener() {
+		colNumFiled.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				currItem.colNum = Integer.parseInt(colNumFiled.getText());
-				tree.updateUI();
+				App.invokeLaterUI(updateTreeRunnable);
 				notifyModified();
 			}
-		});
+		}, threadPoolToken));
 		colNumLabel.setToolTipText("<html>column number of each row, which display current menu in mobile." +
 				"<BR>set 0 to auto</html>");
 		colNumFiled.setColumns(5);
@@ -228,7 +227,7 @@ public class MenuListEditPanel extends NodeEditPanel {
 		currNode.remove(fromIdx + HCjar.SKIP_SUB_MENU_ITEM_NUM);
 		currNode.insert((MutableTreeNode)fromNode, toIdx + HCjar.SKIP_SUB_MENU_ITEM_NUM);
 		
-		tree.updateUI();
+		App.invokeLaterUI(updateTreeRunnable);
 	}
 	
 	@Override

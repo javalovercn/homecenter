@@ -1,5 +1,12 @@
 package hc.core.util;
 
+/**
+ * It is not required to implement this interface to enhance the encryption.
+ * <br>
+ * Powerful and efficient encryption system is built in HomeCenter system.
+ * <br><br>
+ * How to develop a encryptor, please see <a target="_blank" href="http://homecenter.mobi/en/pc/faq.htm#item7">http://homecenter.mobi/en/pc/faq.htm#item7</a>
+ */
 public interface IEncrypter {
 	/**
 	 * 

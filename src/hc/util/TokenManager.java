@@ -2,7 +2,7 @@ package hc.util;
 
 import hc.core.IConstant;
 import hc.core.RootServerConnector;
-
+import hc.core.util.CCoreUtil;
 import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 
@@ -43,6 +43,8 @@ public class TokenManager {
 	}
 	
 	public static void refreshToken(String t){
+		CCoreUtil.checkAccess();
+		
 		token = t;
 		refreshTokenBS();
 	}
@@ -52,23 +54,33 @@ public class TokenManager {
 	}
 	
 	public static String getToken(){
+		CCoreUtil.checkAccess();
+		
 		return token;
 	}
 	
 	public static byte[] getTokenBS(){
+		CCoreUtil.checkAccess();
+		
 		return tokenBS;
 	}
 	
 	public static String getRelayToken(){
+		CCoreUtil.checkAccess();
+		
 		return relayToken;
 	}
 	
 	public static byte[] getRelayTokenBS(){
+		CCoreUtil.checkAccess();
+		
 		return relayTokenBS;
 	}
 	
 	public static boolean isDonateToken(){
-		return RootServerConnector.isRegedToken(IConstant.uuid, token);
+		CCoreUtil.checkAccess();
+		
+		return RootServerConnector.isRegedToken(IConstant.getUUID(), token);
 	}
 	
 	public static void clearUPnPPort(){

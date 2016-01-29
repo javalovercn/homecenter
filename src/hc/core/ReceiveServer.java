@@ -3,26 +3,25 @@ package hc.core;
 import hc.core.sip.SIPManager;
 import hc.core.util.ByteArrayCacher;
 import hc.core.util.ByteUtil;
-import hc.core.util.EventBack;
 import hc.core.util.EventBackCacher;
 import hc.core.util.LogManager;
+import hc.core.util.ThreadPriorityManager;
 
 import java.io.DataInputStream;
 
 public class ReceiveServer implements Runnable{
 	DataInputStream dataInputStream;
 	public static final ByteArrayCacher recBytesCacher = ByteUtil.byteArrayCacher;
-	
     public Thread thread;
 	public ReceiveServer(){
 		thread = new Thread(this);//"Receive Server"
-		thread.setPriority(Thread.MAX_PRIORITY);
+		thread.setPriority(ThreadPriorityManager.DATA_TRANS_PRIORITY);
         //J2ME不支持setName
 		//thread.setName("Receive Server");
     }
 	
 	public void start(){
-		if(thread != null){
+		if(thread != null && thread.isAlive() == false){//手机端登录时，服务器正忙，导致重连
 			thread.start();
 		}
 	}
@@ -71,15 +70,18 @@ public class ReceiveServer implements Runnable{
 //		}
 //	}
 	
+	public static boolean isInitialCloseReceive = false;
+	
 	public void run(){
 		final int initSize = 2048;
 		final int initMaxDataLen = initSize - MsgBuilder.MIN_LEN_MSG;
 		byte[] bs = null;
 		final EventBackCacher ebCacher = EventBackCacher.getInstance();
-		final int MAX_DATA_LEN = 1024 * 1024;
 		final Exception maxDataLenException = new Exception("Max DataLen, maybe clientReset Error");
 		long lastReconnAfterResetMS = System.currentTimeMillis();
 		final int WAIT_MODI_STATUS_MS = HCTimer.HC_INTERNAL_MS + 100;
+		final boolean isInWorkshop = L.isInWorkshop;
+		final boolean isClient = ! IConstant.serverSide;
 		
     	while (!isShutdown) {
 			if(dataInputStream == null){
@@ -87,7 +89,7 @@ public class ReceiveServer implements Runnable{
 	    			if(dataInputStream == null){
 	    				try {
 							LOCK.wait();
-						} catch (Exception e) {
+						} catch (final Exception e) {
 //							e.printStackTrace();
 						}
 						continue;
@@ -96,30 +98,30 @@ public class ReceiveServer implements Runnable{
 			}
             try {
             	bs = recBytesCacher.getFree(initSize);
-            	
             	dataInputStream.readFully(bs, 0, MsgBuilder.MIN_LEN_MSG);
 //				L.V = L.O ? false : LogManager.log("Receive head len:" + len);
 				
-//				final byte ctrlTag = bs[MsgBuilder.INDEX_CTRL_TAG];
-				
-//				System.out.println("Receive One packet [" + bs[MsgBuilder.INDEX_CTRL_TAG] + "][" + bs[MsgBuilder.INDEX_CTRL_SUB_TAG] + "]");
+				final byte ctrlTag = bs[MsgBuilder.INDEX_CTRL_TAG];
 				
 				final int temp0 = bs[MsgBuilder.INDEX_MSG_LEN_HIGH] & 0xFF;
 				final int temp1 = bs[MsgBuilder.INDEX_MSG_LEN_MID] & 0xFF;
 				final int temp2 = bs[MsgBuilder.INDEX_MSG_LEN_LOW] & 0xFF;
 				final int dataLen = ((temp0 << 16) + (temp1 << 8) + temp2);
 
-//				L.V = L.O ? false : LogManager.log("Receive head data len:" + dataLen);
+				if(isInWorkshop){
+					L.V = L.O ? false : LogManager.log("[workshop] Receive One packet [" + ctrlTag + "][" + bs[MsgBuilder.INDEX_CTRL_SUB_TAG] + "], data len : " + dataLen);
+				}
 				
 				//有可能因ClientReset而导致收到不完整包，产生虚假大数据
-				if(dataLen > MAX_DATA_LEN){
+				if(dataLen > MsgBuilder.MAX_LEN_TCP_PACKAGE_BLOCK_BUF){
 					throw maxDataLenException;
 				}
 				
-				
 				if(initMaxDataLen < dataLen){
-					byte[] temp = recBytesCacher.getFree(dataLen + MsgBuilder.MIN_LEN_MSG);
-					System.arraycopy(bs, 0, temp, 0, MsgBuilder.MIN_LEN_MSG);
+					final byte[] temp = recBytesCacher.getFree(dataLen + MsgBuilder.MIN_LEN_MSG);
+					for (int i = 0; i < MsgBuilder.MIN_LEN_MSG; i++) {
+						temp[i] = bs[i];
+					}
 					recBytesCacher.cycle(bs);
 					bs = temp;
 				}
@@ -129,20 +131,44 @@ public class ReceiveServer implements Runnable{
 					dataInputStream.readFully(bs, MsgBuilder.MIN_LEN_MSG, dataLen);
 				}
 
-//				L.V = L.O ? false : LogManager.log("Receive data len:" + dataLen);
-				EventBack eb = ebCacher.getFree();
-				eb.setBSAndDatalen(null, bs, dataLen);
-				ConditionWatcher.addWatcher(eb);
+//				if(ctrlTag == MsgBuilder.E_PACKAGE_SPLIT_TCP){
+//					L.V = L.O ? false : LogManager.log("[workshop] skip E_PACKAGE_SPLIT_TCP");
+//					recBytesCacher.cycle(bs);
+//					continue;
+//				}
 				
+//				L.V = L.O ? false : LogManager.log("Receive data len:" + dataLen);
+				if(isClient && ctrlTag == MsgBuilder.E_TAG_ROOT){
+					//由于大数据可能导致过载，所以此处直接处理。
+					ClientInitor.rootTagListener.action(bs);
+					recBytesCacher.cycle(bs);
+				}else{
+					final EventBack eb = ebCacher.getFreeEB();
+					eb.setBSAndDatalen(null, bs, dataLen);
+					ConditionWatcher.addWatcher(eb);
+				}
 //				L.V = L.O ? false : LogManager.log("Finished Receive Biz Action");
-            }catch (Exception e) {
+            }catch (final Exception e) {
 				//因为重连手机端,可能导致bs重分配，而导致错误
             	recBytesCacher.cycle(bs);
 
+            	if(isInitialCloseReceive){
+            		//比如：需要返回重新登录
+            		L.V = L.O ? false : LogManager.log("close is initial closed, ready to connection.");
+            		continue;
+            	}
+            	
+            	if(System.currentTimeMillis() - receiveUpdateMS < 100){
+            		if(L.isInWorkshop){
+            			L.V = L.O ? false : LogManager.log("receive is changing new socket. continue");
+            		}
+            		continue;
+            	}
+            	
             	if(ContextManager.cmStatus == ContextManager.STATUS_EXIT){
             		try{
             			Thread.sleep(100);
-            		}catch (Exception ex) {
+            		}catch (final Exception ex) {
 						
 					}
             		continue;
@@ -162,16 +188,19 @@ public class ReceiveServer implements Runnable{
             		//无线内网接入时，会关闭RelaySocket，并将新本地连接替换，所以会出现此情形，中继模式下测试通过
             		try{
             			Thread.sleep(100);
-            		}catch (Exception ex) {
+            		}catch (final Exception ex) {
 						
 					}
             		continue;
             	}
             	
-            	L.V = L.O ? false : LogManager.log("Receive Exception:[" + e.getMessage() + "], maybe skip receive.");
-
-    			SIPManager.getSIPContext().deploySocket(null, null, null);
-    			
+            	LogManager.errToLog("Receive Exception:[" + e.getMessage() + "], maybe skip receive.");
+            	
+            	try{
+            		SIPManager.getSIPContext().deploySocket(null);
+            	}catch (final Exception ex) {
+				}
+            	
 				if(maxDataLenException == e){
             		//请求关闭
             		L.V = L.O ? false : LogManager.log("Unvalid data len, stop application");
@@ -184,7 +213,7 @@ public class ReceiveServer implements Runnable{
     				try{
 						Thread.sleep(WAIT_MODI_STATUS_MS);
     					//***等待相应线程(如用户主动退出，或切换Relay)会更新状态后，不需要进行reConnectAfterResetExcep***
-    				}catch (Exception ee) {
+    				}catch (final Exception ee) {
     					
     				}
             		if(isShutdown == false && (System.currentTimeMillis() - lastReconnAfterResetMS > 2000)//1000稍小，改为2000   
@@ -208,7 +237,7 @@ public class ReceiveServer implements Runnable{
             				//仅重建TCP，不建UDP
 							try{
             					Thread.sleep(sleep_internal_ms);
-            				}catch (Exception eee) {
+            				}catch (final Exception eee) {
 								
 							}
             				if((++maxTry > try_num) || isShutdown){
@@ -228,7 +257,7 @@ public class ReceiveServer implements Runnable{
             		}else{          
             			try{
             				dataInputStream.close();
-            			}catch (Throwable ex) {
+            			}catch (final Throwable ex) {
 						}
 						dataInputStream = null;
 //						if(!isShutdown){
@@ -248,12 +277,18 @@ public class ReceiveServer implements Runnable{
 	
 	public void shutDown() {
     	isShutdown = true;
+    	synchronized (LOCK) {
+			LOCK.notify();
+		}
 	}
 
-	public void setUdpServerSocket(DataInputStream s) {
-		this.dataInputStream = s;
-		if(s != null){
-//			hc.core.L.V=hc.core.L.O?false:LogManager.log("Changed Receive Socket:" + s.hashCode());
+	long receiveUpdateMS;
+	
+	public void setUdpServerSocket(final Object tcpOrUDPsocket) throws Exception{
+		this.dataInputStream = (tcpOrUDPsocket==null)?null:SIPManager.getSIPContext().getInputStream(tcpOrUDPsocket);
+		if(dataInputStream != null){
+			receiveUpdateMS = System.currentTimeMillis();
+//			hc.core.L.V=hc.core.L.O?false:LogManager.log("Changed Receive Socket:" + dataInputStream.hashCode());
 			synchronized (LOCK) {
 				LOCK.notify();
 			}

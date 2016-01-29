@@ -2,15 +2,15 @@ package hc.core;
 
 import hc.core.sip.ISIPContext;
 import hc.core.sip.SIPManager;
-import hc.core.util.EventBack;
 import hc.core.util.EventBackCacher;
 import hc.core.util.LogManager;
+import hc.core.util.ThreadPriorityManager;
 
 import java.io.IOException;
 
 public abstract class UDPReceiveServer extends Thread{
 	public UDPReceiveServer(){
-		setPriority(Thread.MAX_PRIORITY);
+		setPriority(ThreadPriorityManager.DATA_TRANS_PRIORITY);
         //J2ME不支持setName
 		//thread.setName("Receive Server");
     }
@@ -43,7 +43,7 @@ public abstract class UDPReceiveServer extends Thread{
             try {
             	receiveUDP(dp);
             	
-				final EventBack eb = ebCacher.getFree();
+				final EventBack eb = ebCacher.getFreeEB();
 				eb.setBSAndDatalen(dp, null, 0);
 				ConditionWatcher.addWatcher(eb);
             }catch (Exception e) {
@@ -70,7 +70,12 @@ public abstract class UDPReceiveServer extends Thread{
 	
 	public abstract void receiveUDP(Object dp) throws IOException;
 	
-	public abstract void shutDown();
+	public void shutDown(){
+		isShutdown = true;
+		synchronized (LOCK) {
+			LOCK.notify();
+		}
+	}
 	
 	public abstract void closeOldSocket();
 

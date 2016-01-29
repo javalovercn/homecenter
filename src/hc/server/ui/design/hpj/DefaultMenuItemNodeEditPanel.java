@@ -10,9 +10,9 @@ import javax.swing.JPanel;
 
 public class DefaultMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 	
-	private JPanel myCommand_Panel = new JPanel();
-	private JPanel noJRubyTip = new JPanel();
-	private JPanel centerPanel;
+	private final JPanel myCommand_Panel = new JPanel();
+	private final JPanel noJRubyTip = new JPanel();
+	private final JPanel centerPanel;
 	
 	public DefaultMenuItemNodeEditPanel() {
 		super();
@@ -35,7 +35,7 @@ public class DefaultMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 		add(centerPanel, BorderLayout.CENTER);
 	}
 	
-	private void flip_cmd_screen(int type){
+	private void flip_cmd_screen(final int type){
 		final String element = hcurl.elementID;
 		
 		if(type == HPNode.TYPE_MENU_ITEM_SCREEN){
@@ -52,6 +52,8 @@ public class DefaultMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 			}else{
 				flipCommandPanel(true);
 			}
+		}else if(type == HPNode.TYPE_MENU_ITEM_FORM){
+			flipCommandPanel(true);
 		}
 		
 		if(myCommand_Panel.isVisible()){
@@ -59,26 +61,29 @@ public class DefaultMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 		}
 	}
 
-	private void flipCommandPanel(final boolean v) {
+	private final void flipCommandPanel(final boolean enableScriptPanel) {
 		centerPanel.removeAll();
-		if(v){
+		if(enableScriptPanel){
 			centerPanel.add(myCommand_Panel, BorderLayout.CENTER);
 		}else{
 			centerPanel.add(noJRubyTip, BorderLayout.CENTER);
 		}
 		
-		cmd_url_panel.setVisible(v);
+		cmd_url_panel.setVisible(enableScriptPanel);
 	}
 	
+	@Override
 	public void addTargetURLPanel(){
 		cmd_url_panel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		cmd_url_panel.add(targetLoca);
 		cmd_url_panel.add(jtfMyCommand);
 		cmd_url_panel.add(testBtn);
+		cmd_url_panel.add(formatBtn);
 		cmd_url_panel.add(errCommandTip);
 	}
 
-	protected void extInit(){
+	@Override
+	public void extInit(){
 		flip_cmd_screen(currItem.type);
 	}
 }

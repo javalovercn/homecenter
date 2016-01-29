@@ -1,17 +1,15 @@
 package hc.server.ui.design.hpj;
 
+import hc.App;
+import hc.server.HCActionListener;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 
 public class NameEditPanel extends NodeEditPanel {
@@ -38,14 +36,14 @@ public class NameEditPanel extends NodeEditPanel {
 				modify();
 			}
 		});
-		nameFiled.addActionListener(new ActionListener() {
+		nameFiled.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void run() {
 				item.name = nameFiled.getText();
-				tree.updateUI();
+				App.invokeLaterUI(updateTreeRunnable);
 				item.getContext().modified.setModified(true);
 			}
-		});
+		}, threadPoolToken));
 		nameFiled.setColumns(20);
 		namePanel.add(nameFiled);
 		

@@ -2,10 +2,9 @@ package hc.server.ui.design.hpj;
 
 import hc.core.IConstant;
 import hc.core.util.HCURL;
-import hc.server.AbstractDelayBiz;
-import hc.server.DelayServer;
+import hc.core.util.ReturnableRunnable;
 import hc.server.ui.ProjectContext;
-import hc.server.ui.ProjectContextManager;
+import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.engine.HCJRubyEngine;
 
 import java.net.URLDecoder;
@@ -15,17 +14,73 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RubyExector {
-	private static Pattern linePattern = Pattern.compile("<script>:(\\d+)");
+	private static final Pattern linePattern = Pattern.compile("<script>:(\\d+)");
 	
-	public static void runLater(final String script, final Map map, final HCJRubyEngine hcje, final ProjectContext context){
-		DelayServer.getInstance().addDelayBiz(new AbstractDelayBiz(null) {
+	public static final void removeCache(final String script, final HCJRubyEngine hcje){
+		hcje.removeCache(script);
+	}
+	
+	public final static void runLater(final String script, final Map map, final HCJRubyEngine hcje, final ProjectContext context){
+		context.run(new Runnable() {
 			@Override
-			public void doBiz() {
-				RubyExector.run(script, map, hcje, context);
+			public void run() {
+				RubyExector.parse(script, hcje);
+				if(hcje.isError){
+					return;
+				}
+				RubyExector.runNoWait(script, map, hcje);
 			}
 		});
 	}
+	
 	public static final Object run(final String script, final Map map, final HCJRubyEngine hcje, final ProjectContext context) {
+		RubyExector.parse(script, hcje);
+		
+		if(hcje.isError){
+			return null;
+		}
+		
+		return ServerUIAPIAgent.getThreadPoolFromProjectContext(context).runAndWait(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				return RubyExector.runNoWait(script, map, hcje);
+			}
+		});
+	}
+
+	public static synchronized final void parse(final String script, final HCJRubyEngine hcje) {
+		try {
+			if(hcje.isError){
+				hcje.errorWriter.reset();
+				hcje.isError = false;
+			}
+			
+			hcje.parse(script);
+		} catch (final Throwable e) {
+			final String err = hcje.errorWriter.getMessage();
+			hcje.isError = true;
+			
+//			L.V = L.O ? false : LogManager.log("JRuby Script Error : " + err);
+			
+			final char[] chars = err.toCharArray();
+			for (int i = 0; i < chars.length; i++) {
+				if(chars[i] == '\n'){
+					hcje.sexception.setMessage(new String(chars, 0, i));
+					break;
+				}
+			}
+			
+			final Matcher matcher = linePattern.matcher(err);
+			if(matcher.find()){
+				final String group = matcher.group(1);
+				hcje.sexception.setLineNumber(Integer.parseInt(group));
+			}
+		}finally{
+//			System.setProperty(USER_DIR_KEY, userDir);
+		}
+	}
+	
+	public static synchronized final Object runNoWait(final String script, final Map map, final HCJRubyEngine hcje) {
 //		final String USER_DIR_KEY = "user.dir";
 		
 		try {
@@ -56,7 +111,6 @@ public class RubyExector {
 //				bindings.put("_hcmap", map);
 //				return hcje.engine.eval(script, bindings);
 			}
-			ProjectContextManager.setThreadObject(context);
 			return hcje.runScriptlet(script);
 			
 //			ScriptEngineManager manager = new ScriptEngineManager();  
@@ -70,14 +124,15 @@ public class RubyExector {
 //				return engine.eval(script, bindings);
 //			}
 			
-		} catch (Throwable e) {
-			
-			String err = hcje.errorWriter.getMessage();
+		} catch (final Throwable e) {
+			e.printStackTrace();
+			final String err = hcje.errorWriter.getMessage();
+			System.err.println("------------------error on JRuby script : " + err + "------------------\n" + script + "\n--------------------end error on script---------------------");
 			hcje.isError = true;
 			
 //			L.V = L.O ? false : LogManager.log("JRuby Script Error : " + err);
 			
-			char[] chars = err.toCharArray();
+			final char[] chars = err.toCharArray();
 			for (int i = 0; i < chars.length; i++) {
 				if(chars[i] == '\n'){
 					hcje.sexception.setMessage(new String(chars, 0, i));
@@ -85,7 +140,7 @@ public class RubyExector {
 				}
 			}
 			
-			Matcher matcher = linePattern.matcher(err);
+			final Matcher matcher = linePattern.matcher(err);
 			if(matcher.find()){
 				final String group = matcher.group(1);
 				hcje.sexception.setLineNumber(Integer.parseInt(group));
@@ -96,7 +151,7 @@ public class RubyExector {
 		}
 	}
 
-	public static Map<String, String> toMap(final HCURL _hcurl) {
+	public final static Map<String, String> toMap(final HCURL _hcurl) {
 		Map<String, String> map = null;
 		final int size = _hcurl.getParaSize();
 		if(size > 0){
@@ -105,12 +160,20 @@ public class RubyExector {
 				final String key = _hcurl.getParaAtIdx(i);
 				try {
 					map.put(key, URLDecoder.decode(_hcurl.getValueofPara(key), IConstant.UTF_8));
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					e.printStackTrace();
 				}
 			}
 		}
 		return map;
+	}
+
+	public static void initActive(final HCJRubyEngine hcje) {
+		final String script = 
+				"require 'java'\n" +
+				"str_class = Java::java.lang.String\n";
+		parse(script, hcje);
+		runNoWait(script, null, hcje);
 	}
 	
 	

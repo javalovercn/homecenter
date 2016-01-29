@@ -1,5 +1,6 @@
 package hc.core;
 
+import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
 
 public class EventCenter {
@@ -11,6 +12,8 @@ public class EventCenter {
 	private static int size = 0;
 	
 	public static void addListener(IEventHCListener listener){
+		CCoreUtil.checkAccess();
+		
 		boolean enableSameEventTag = listener.enableSameEventTag;
 		
 		synchronized (listens) {
@@ -37,6 +40,10 @@ public class EventCenter {
 	}
 	
 	public static void remove(IEventHCListener listener){
+		if(listener == null){
+			return;
+		}
+		
 		synchronized (listens) {
 			for (int i = 0; i < size; i++) {
 				if(listens[i] == listener){
@@ -52,7 +59,12 @@ public class EventCenter {
 	}
 	
 	//不回收
-	public static void action(final byte ctrlTag, byte[] event){
+	static final void action(final byte ctrlTag, final byte[] event, final NestAction nestAction){
+		if (nestAction != null){
+			nestAction.action(ctrlTag, event);
+			return;
+		}
+		
 		boolean finished = false;
 		try{
 			synchronized (listens) {
@@ -77,5 +89,13 @@ public class EventCenter {
 //		packetCacher.cycle(event.data_bs);
 //		eventCacher.cycle(event);
 	}
+	
+	public static void notifyLineOff(final byte[] bs) {
+		CCoreUtil.checkAccess();
+		
+		action(MsgBuilder.E_LINE_OFF_EXCEPTION, bs, nestAction);
+	}
+
+	public static final NestAction nestAction = (NestAction)ConfigManager.get(ConfigManager.BUILD_NESTACTION, null);
 
 }

@@ -8,8 +8,10 @@ public class ServerConfig extends HCConfig{
 	public static final short p_HC_VERSION = 0;
 	public static final short p_MIN_MOBI_VER_REQUIRED_BY_PC = 1;//服务器要求手机端最低版本
 	public static final short P_SERVER_COLOR_ON_RELAY = 2;
+	public static final short P_SERVER_WIDTH = 3;
+	public static final short P_SERVER_HEIGHT = 4;
 	
-	public static void setInstance(ServerConfig sc){
+	public static void setInstance(final ServerConfig sc){
 		config = sc;
 	}
 	
@@ -32,10 +34,6 @@ public class ServerConfig extends HCConfig{
 //	
 //	private String serverToken;
 
-	public static final String SYS_FOLDER_ICON = "Sys_Folder";
-
-	public static final String SYS_DEFAULT_ICON = "Sys_Img";
-	
 //	public String getServerTokenXXX() {
 //		return serverToken;
 //	}

@@ -1,13 +1,22 @@
 package hc.util;
 
+import hc.App;
+import hc.core.ContextManager;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
+import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
+import hc.core.util.WiFiDeviceManager;
+import hc.server.J2SEContext;
+import hc.server.PlatformManager;
+import hc.server.PlatformService;
 import hc.server.StarterManager;
 import hc.server.data.KeyComperPanel;
+import hc.server.data.StoreDirManager;
+import hc.server.ui.ClientDesc;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -19,21 +28,22 @@ import java.awt.Toolkit;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
-import java.lang.reflect.Method;
+import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.sql.Timestamp;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -43,26 +53,102 @@ import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 public class ResourceUtil {
+	private static final String USER_PROJ = "user.proj.";
 	private final static Class starterClass = getStarterClass();
 	
-	public static boolean validEmail(String email) {
-		String email_pattern = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+	public final static Object moveToDoubleArraySize(final Object srcArray){
+		final int length = Array.getLength(srcArray);
+		final Object newArray = Array.newInstance(srcArray.getClass().getComponentType(), length * 2);
+		System.arraycopy(srcArray, 0, newArray, 0, length);
+		return newArray;
+	}
+	
+	/**
+	 * 将window下的path转为unix标准格式
+	 * @param path
+	 * @return
+	 */
+	public static String toStandardPath(final String path){
+		return path.replace(App.WINDOW_PATH_SEPARATOR, '/');
+	}
+
+	private static ClassLoader buildProjClassPath(final File deployPath, final ClassLoader jrubyClassLoader, final String projID){
+		final Vector<File> jars = new Vector<File>();
+		final String[] subFileNames = deployPath.list();
+		for (int i = 0; subFileNames != null && i < subFileNames.length; i++) {
+			final String lowerCaseFileName = subFileNames[i].toLowerCase();
+			if(lowerCaseFileName.endsWith(EXT_JAR) && (lowerCaseFileName.endsWith(EXT_DEX_JAR) == false)){
+				jars.add(new File(deployPath, subFileNames[i]));
+			}
+		}
+		final File[] jars_arr = new File[jars.size()];
+		return PlatformManager.getService().loadClasses(jars.toArray(jars_arr), jrubyClassLoader, false, USER_PROJ + projID);
+	}
+	
+	public static void delProjOptimizeDir(final String projID){
+		PlatformManager.getService().doExtBiz(PlatformService.BIZ_DEL_HAR_OPTIMIZE_DIR, USER_PROJ + projID);
+	}
+	
+	public static ClassLoader buildProjClassLoader(final File libAbsPath, final String projID){
+		CCoreUtil.checkAccess();
+
+		return buildProjClassPath(libAbsPath, ResourceUtil.getJRubyClassLoader(false), projID);
+	}
+	
+	private static ClassLoader rubyAnd3rdLibsClassLoaderCache;
+	
+	public static synchronized ClassLoader getJRubyClassLoader(final boolean forceRebuild){
+		CCoreUtil.checkAccess();
+
+		if(rubyAnd3rdLibsClassLoaderCache == null || forceRebuild){
+		}else{
+			return rubyAnd3rdLibsClassLoaderCache;
+		}
+		
+		final File jruby = new File(App.getBaseDir(), J2SEContext.jrubyjarname);
+		final File[] files = {jruby};
+		rubyAnd3rdLibsClassLoaderCache = PlatformManager.getService().loadClasses(files, PlatformManager.getService().get3rdClassLoader(null), true, "hc.jruby");
+		if(rubyAnd3rdLibsClassLoaderCache == null){
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					App.showMessageDialog(null, "Load JRuby lib error!", "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}, App.getThreadPoolToken());
+		}else{
+			L.V = L.O ? false : LogManager.log("Successful (re) create JRuby engine classLoader.");
+		}
+		return rubyAnd3rdLibsClassLoaderCache;
+	}
+	
+	public static int[] getSimuScreenSize(){
+//		int[] out = {220, 240};
+//		return out;
+		
+		final Toolkit toolkit = Toolkit.getDefaultToolkit();
+		final Dimension screenSize = toolkit.getScreenSize();
+		final int[] out = {screenSize.width, screenSize.height};
+		return out;
+	}
+	
+	public static boolean validEmail(final String email) {
+		final String email_pattern = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
 				+ "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
-		Pattern pattern = Pattern.compile(email_pattern);
-		Matcher m = pattern.matcher(email);
+		final Pattern pattern = Pattern.compile(email_pattern);
+		final Matcher m = pattern.matcher(email);
 		return m.find();
 	}
 	
 	public static boolean checkEmailID(final String donateIDStr, final Component parent){
 		if (donateIDStr.startsWith("0") == false && ResourceUtil.validEmail(donateIDStr) == false) {//保留旧HomeCenterID支持
-			JOptionPane.showMessageDialog(parent,
+			App.showMessageDialog(parent,
 					(String)ResourceUtil.get(9073),
 					(String) ResourceUtil.get(IContext.ERROR),
 					JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 		if (IConstant.checkUUID(donateIDStr) == false) {
-			JOptionPane.showMessageDialog(parent, 
+			App.showMessageDialog(parent, 
 					StringUtil.replace((String)ResourceUtil.get(9072), "{max}", "" + MsgBuilder.LEN_MAX_UUID_VALUE),
 					(String) ResourceUtil.get(IContext.ERROR),
 					JOptionPane.ERROR_MESSAGE);
@@ -106,13 +192,13 @@ public class ResourceUtil {
 		//替换{1234}为相应值
 		while(true){
 			final String regua = "\\{.*?\\}";
-			Pattern p = Pattern.compile(regua);
-			Matcher ma = p.matcher(str);
+			final Pattern p = Pattern.compile(regua);
+			final Matcher ma = p.matcher(str);
 			if(ma.find()){
-				String g = ma.group();
-				String key = g.substring(1, g.length() - 1);
+				final String g = ma.group();
+				final String key = g.substring(1, g.length() - 1);
 				if(key.equals("uuid")){
-					str = str.replace(g, IConstant.uuid);
+					str = str.replace(g, IConstant.getUUID());
 				}else{
 					str = str.replace(g, (String)ResourceUtil.get(Integer.parseInt(key)));
 				}
@@ -167,6 +253,10 @@ public class ResourceUtil {
 		return String.valueOf((char)Integer.parseInt("8984"));
 	}
 	
+	public static String getMacOSOptionKeyText(){
+		return "Option/Alt";
+	}
+	
 	public static void buildAcceleratorKeyOnAction(final Action action, final int keyCode){
 		action.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(keyCode, 
 				Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
@@ -175,21 +265,21 @@ public class ResourceUtil {
 	private static Class getStarterClass(){
 		try {
 			return Class.forName(StarterManager.CLASSNAME_STARTER_STARTER);
-		} catch (ClassNotFoundException e) {
+		} catch (final ClassNotFoundException e) {
 //			LogManager.err("Cant find Class : " + starterClass);
 //			e.printStackTrace();
 		}
 		return null;
 	}
 	
-	public static String toMD5(byte tmp[]){
-		char hexDigits[] = {       // 用来将字节转换成 16 进制表示的字符
+	public static String toMD5(final byte tmp[]){
+		final char hexDigits[] = {       // 用来将字节转换成 16 进制表示的字符
 			     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',  'e', 'f'};
-		char str[] = new char[16 * 2];   // 每个字节用 16 进制表示的话，使用两个字符，
+		final char str[] = new char[16 * 2];   // 每个字节用 16 进制表示的话，使用两个字符，
 		int k = 0;                                // 表示转换结果中对应的字符位置
 		for (int i = 0; i < 16; i++) {          // 从第一个字节开始，对 MD5 的每一个字节
 		                                 // 转换成 16 进制字符的转换
-			byte byte0 = tmp[i];                 // 取第 i 个字节
+			final byte byte0 = tmp[i];                 // 取第 i 个字节
 			str[k++] = hexDigits[byte0 >>> 4 & 0xf];  // 取字节中高 4 位的数字转换, 
 		                                             // >>> 为逻辑右移，将符号位一起右移
 			str[k++] = hexDigits[byte0 & 0xf];            // 取字节中低 4 位的数字转换
@@ -198,7 +288,7 @@ public class ResourceUtil {
 	}
 
 	
-	public static Object get(int id){
+	public static Object get(final int id){
 		if(id < 10000){
 			return UILang.getUILang(id);
 		}
@@ -207,47 +297,57 @@ public class ResourceUtil {
 	
 	private static final ClassLoader cldr = ResourceUtil.class.getClassLoader();
 	
-	public static URL getResource(String fileName){
+	public static URL getResource(final String fileName){
 	    return cldr.getResource(fileName);
 	}
 
-	public static byte[] getAbsPathContent(String path) throws Exception{
+	public static BufferedImage getImage(final URL url){
+		try {
+			return ImageIO.read(url);
+		} catch (final IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static byte[] getAbsPathContent(final String path) throws Exception{
 		return getResource(getAbsPathInputStream(path));
 	}
 	
-	public static DataInputStream getAbsPathInputStream(String path) throws Exception{
+	public static DataInputStream getAbsPathInputStream(final String path) throws Exception{
 		URL uri = null;
 		try{
 			if(starterClass != null){
 				uri = starterClass.getResource(path);
 				return getInputStream(uri);
 			}
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
 		}
 		
 		try{
 			return getInputStream(ResourceUtil.class.getResource(path));
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
 		}
 		
-		uri = new File("." + path).toURI().toURL();
+		uri = new File(App.getBaseDir(), "." + path).toURI().toURL();
 		return getInputStream(uri);
 	}
 	
-	private static DataInputStream getInputStream(URL url) throws Exception {
+	private static DataInputStream getInputStream(final URL url) throws Exception {
 		return new DataInputStream(url.openStream());
 	}
 	
 	public static BufferedImage loadImage(final String imageFileName){
 		try {
 			return ImageIO.read(ResourceUtil.getResource("hc/res/" + imageFileName));
-		} catch (Exception e) {
+		} catch (final Exception e) {
+			e.printStackTrace();
 		}
 		return null;
 	}
 
-	public static byte[] getResource(DataInputStream dataIs) throws Exception {
-		byte[] imgDataBa = new byte[dataIs.available()];
+	public static byte[] getResource(final DataInputStream dataIs) throws Exception {
+		final byte[] imgDataBa = new byte[dataIs.available()];
 //		DataInputStream dataIs = new DataInputStream(uri.openStream());
 		dataIs.readFully(imgDataBa);
 		dataIs.close();
@@ -267,40 +367,35 @@ public class ResourceUtil {
 		return p_id;
 	}
 	
-	static {
-		//初始时，要删除上次可能因停电产生的需要待删除的资源。
-		notifyCancle();
-	}
-	
 	public static void notifySave(){
 		PropertiesManager.setValue(PropertiesManager.p_ResourcesMaybeUnusedNew, "");
 		removeUnused(PropertiesManager.p_ResourcesMaybeUnusedOld);
 		PropertiesManager.saveFile();
 	}
 	
-	public static void notifyCancle() {
+	public static void notifyCancel() {
 		PropertiesManager.setValue(PropertiesManager.p_ResourcesMaybeUnusedOld, "");
 		removeUnused(PropertiesManager.p_ResourcesMaybeUnusedNew);
 		PropertiesManager.saveFile();
 	}
 
-	private static void removeUnused(String pNew) {
-		String rr = PropertiesManager.getValue(pNew);
+	private static void removeUnused(final String pNew) {
+		final String rr = PropertiesManager.getValue(pNew);
 		if(rr == null){
 			return;
 		}
-		String baseDir = System.getProperty("user.dir");
-		String[] toRemove = rr.split(";");
+		final String baseDir = System.getProperty("user.dir");
+		final String[] toRemove = rr.split(";");
 		for (int i = 0; i < toRemove.length; i++) {
-			String url = toRemove[i];
+			final String url = toRemove[i];
 			if(url.length() > 0){
 				if(url.indexOf("hc/res/") >= 0){
 					continue;
 				}
-				File file = new File(baseDir + url);
+				final File file = new File(baseDir + url);
 				//强制释放可能没有关闭的资源。
 				System.gc();
-				boolean b = file.delete();
+				final boolean b = file.delete();
 				//强制释放可能没有关闭的资源。
 				System.gc();
 //				System.out.println("Del ico : " + file.toString() + ", succe:" + b);
@@ -310,7 +405,7 @@ public class ResourceUtil {
 		PropertiesManager.saveFile();
 	}
 	
-	public static void addMaybeUnusedResource(String url, boolean isNew){
+	public static void addMaybeUnusedResource(final String url, final boolean isNew){
 		String p = null;
 		if(isNew){
 			p = PropertiesManager.p_ResourcesMaybeUnusedNew;
@@ -320,7 +415,7 @@ public class ResourceUtil {
 		addUnused(url, p);
 	}
 
-	private static void addUnused(String url, String p_new) {
+	private static void addUnused(final String url, final String p_new) {
 		String rr = PropertiesManager.getValue(p_new);
 		if(rr == null){
 			rr = "";
@@ -334,27 +429,12 @@ public class ResourceUtil {
 		PropertiesManager.saveFile();
 	}
 
-	public static void addJar(final ClassLoader cl, final File jarfile) throws Exception{
-		Method addPath = null;
-	    addPath = URLClassLoader.class.getDeclaredMethod("addURL", new Class[] { URL.class });
-	    addPath.setAccessible(true);
-		addPath.invoke(cl, new Object[] { jarfile.toURI().toURL() });
-	}
+//	public static void loadJar(File file){
+//		PlatformManager.getService().addSystemLib(file);
+//	}
 	
-	public static void loadJar(File jarfile) throws Exception{
-		URLClassLoader loader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-
-		addJar(loader, jarfile);
-	}
-
 	public static BufferedImage resizeImage(final BufferedImage bufferedimage, final int w, final int h){
-		int type = bufferedimage.getColorModel().getTransparency();        
-		BufferedImage img;        
-		Graphics2D graphics2d;        
-		(graphics2d = (img = new BufferedImage(w, h, type)).createGraphics()).setRenderingHint(RenderingHints.KEY_INTERPOLATION,RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		graphics2d.drawImage(bufferedimage, 0, 0, w, h, 0, 0, bufferedimage.getWidth(), bufferedimage.getHeight(), null);
-		graphics2d.dispose();        
-		return img;        
+		return PlatformManager.getService().resizeImage(bufferedimage, w, h);
 	}
 	
 	/**
@@ -373,41 +453,58 @@ public class ResourceUtil {
 				data[i] = 0xFFFFFFFF;
 			}
 		}
-		BufferedImage out = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		final BufferedImage out = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		out.setRGB(0, 0, w, h, data, 0, w);
-		Graphics g = out.getGraphics();
+		final Graphics g = out.getGraphics();
 		g.drawImage(src, 0, 0, null);
 		g.dispose();
 		return out;
 	}
+	
+	public static boolean isJ2SELimitFunction(){
+		return isStandardJ2SEServer();
+	}
+	
+	public static boolean isStandardJ2SEServer(){
+		final String osPlatform = System.getProperty(CCoreUtil.SYS_SERVER_OS_PLATFORM);
+		return (osPlatform == null);
+	}
+	
+	public static boolean isAndroidServerPlatform(){
+		final String androidplatform = System.getProperty(CCoreUtil.SYS_SERVER_OS_PLATFORM);
+		if(androidplatform != null){
+			return androidplatform.equalsIgnoreCase(CCoreUtil.SYS_SERVER_OS_ANDROID_SERVER);
+		}
+		return false;
+	}
 
 	public static boolean isWindowsOS() {
-		String os = System.getProperty("os.name");
+		final String os = System.getProperty("os.name");
 		final boolean isWindow = os.toLowerCase().indexOf("windows") >= 0;
 		return isWindow;
 	}
 	
-	public static boolean isLinuxRelease(String issue){
+	public static boolean isLinuxRelease(final String issue){
 		final String lowIssue = issue.toLowerCase();
 		boolean isRelease = false;
 		try {
-			Process process = Runtime.getRuntime().exec("lsb_release -a");//cat /etc/issue
-			InputStreamReader ir = new InputStreamReader(
+			final Process process = Runtime.getRuntime().exec("lsb_release -a");//cat /etc/issue
+			final InputStreamReader ir = new InputStreamReader(
 					process.getInputStream());
-			LineNumberReader input = new LineNumberReader(ir);
+			final LineNumberReader input = new LineNumberReader(ir);
 			String line;
 			while ((line = input.readLine()) != null){
 				if((isRelease == false) && (line.toLowerCase().indexOf(lowIssue) >= 0)){
 					isRelease = true;
 				}
 			}
-		} catch (Throwable e) {
+		} catch (final Throwable e) {
 		}
 		return isRelease;
 	}
 	
 	public static boolean isLinux() {
-		String os = System.getProperty("os.name");
+		final String os = System.getProperty("os.name");
 		final boolean isLinux = os.toLowerCase().indexOf("linux") >= 0;
 		return isLinux;
 	}
@@ -446,9 +543,10 @@ public class ResourceUtil {
 		try {
 			String url = "http://homecenter.mobi/ajax/thirdlib.php";
 			url = HttpUtil.replaceSimuURL(url, PropertiesManager.isTrue(PropertiesManager.p_IsSimu));
+			L.V = L.O ? false : LogManager.log("try get download online lib information from : " + url);
 			thirdlibs.load(new URL(url).openStream());
-		} catch (Exception e1) {
-			JOptionPane.showMessageDialog(null, "Can NOT connect HomeCenter, please try after few seconds!", "Error Connect", JOptionPane.ERROR_MESSAGE);
+		} catch (final Exception e1) {
+			App.showMessageDialog(null, "Can NOT connect HomeCenter, please try after few seconds!", "Error Connect", JOptionPane.ERROR_MESSAGE);
 			return null;
 		}
 		return thirdlibs;
@@ -456,8 +554,8 @@ public class ResourceUtil {
 
 	public static BufferedImage rotateImage(final BufferedImage bufferedimage,
 	        final int degree) {
-	    int w = bufferedimage.getWidth();
-	    int h = bufferedimage.getHeight();
+	    final int w = bufferedimage.getWidth();
+	    final int h = bufferedimage.getHeight();
 	    //int type = bufferedimage.getColorModel().getTransparency();
 	    BufferedImage img;
 	    Graphics2D graphics2d;
@@ -476,9 +574,9 @@ public class ResourceUtil {
 	 * @param bufferedImage
 	 * @return
 	 */
-	public static BufferedImage flipHorizontalJ2D(BufferedImage bufferedimage) {
-		int w = bufferedimage.getWidth();
-        int h = bufferedimage.getHeight();
+	public static BufferedImage flipHorizontalJ2D(final BufferedImage bufferedimage) {
+		final int w = bufferedimage.getWidth();
+        final int h = bufferedimage.getHeight();
         BufferedImage img;
         Graphics2D graphics2d;
         (graphics2d = (img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)).createGraphics())
@@ -488,34 +586,40 @@ public class ResourceUtil {
     }
 	
 	public static Dimension getScreenSize(){
-		Toolkit toolkit = Toolkit.getDefaultToolkit();
+		final Toolkit toolkit = Toolkit.getDefaultToolkit();
 		return toolkit.getScreenSize();
 	}
 	
-	public static BufferedImage toBufferedImage(Image img)
+	public static BufferedImage toBufferedImage(final Image img)
 	{
 	    if (img instanceof BufferedImage){
 	        return (BufferedImage)img;
 	    }
 
-	    BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+	    final BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
 
-	    Graphics2D g = bimage.createGraphics();
+	    final Graphics2D g = bimage.createGraphics();
 	    g.drawImage(img, 0, 0, null);
 	    g.dispose();
 
 	    return bimage;
 	}
 
+	/**
+	 * 注意：与HCAndroidStarter同步
+	 * @param parent
+	 * @param ext with ., such as ".har", ".had"
+	 * @return
+	 */
 	public static String createRandomFileNameWithExt(final File parent, final String ext) {
-		Random random = new Random();
+		final Random random = new Random();
 		random.setSeed(System.currentTimeMillis());
 		while(true){
-			int r = random.nextInt(99999999);
+			final int r = random.nextInt(99999999);
 			final String str_r = String.valueOf(r) + ext;
 			File file_r;
 			if(parent == null){
-				file_r = new File(str_r);
+				file_r = new File(App.getBaseDir(), str_r);
 			}else{
 				file_r = new File(parent, str_r);
 			}
@@ -524,29 +628,153 @@ public class ResourceUtil {
 			}
 		}
 	}
+	
+	public static String createRandomVariable(final int length, final int startR){
+		final char[] chars = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_'};
+		final int charsLen = chars.length;
+		
+		final char[] out = new char[length];
+		try{
+			Thread.sleep(20);
+		}catch (final Exception e) {
+		}
+		long rand = System.currentTimeMillis()+ startR;
+		for (int i = 0; i < length; i++){
+			final Random random = new Random();
+			random.setSeed(rand);
+			final int r = random.nextInt(99999999);
+			rand += r;
+			out[i] = chars[r % charsLen];
+		}
+		
+		return String.valueOf(out);
+	}
 
 	public static String getMD5(final File file) {
-		String filemd5 = "";
+		MessageDigest digest = null;
 		FileInputStream in = null;
+		final byte buffer[] = new byte[1024];
+		int len;
 		try {
+			digest = MessageDigest.getInstance("MD5");
 			in = new FileInputStream(file);
-			MappedByteBuffer byteBuffer = in.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, file.length());
-			MessageDigest md5 = MessageDigest.getInstance("MD5");
-			md5.update(byteBuffer);
-			BigInteger bi = new BigInteger(1, md5.digest());
-			filemd5 = bi.toString(16);
-		} catch (Exception e) {
-			L.V = L.O ? false : LogManager.log("Error get MD5 of file : " + file.toString());
+			while ((len = in.read(buffer, 0, 1024)) != -1) {
+				digest.update(buffer, 0, len);
+			}
+			final BigInteger bigInt = new BigInteger(1, digest.digest());
+			return bigInt.toString(16);
+		} catch (final Exception e) {
 			e.printStackTrace();
-		} finally {
-			if(null != in) {
-				try {
-					in.close();
-				} catch (Throwable e) {
-					e.printStackTrace();
-				}
+		}finally{
+			try{
+				in.close();
+			}catch (final Throwable e) {
 			}
 		}
-		return filemd5;
+		return "";
+	}
+
+	public static final String EXT_APK = ".apk";
+	public static final String EXT_DEX_JAR = ".dex.jar";
+	public static final String EXT_JAR = ".jar";
+	
+	public static final boolean deleteDirectoryNowAndExit(final File directory) {
+		CCoreUtil.checkAccess();
+	
+	    if(directory.exists()){
+	        final File[] files = directory.listFiles();
+	        if(null!=files){
+	            for(int i=0; i<files.length; i++) {
+	                if(files[i].isDirectory()) {
+	                    deleteDirectoryNowAndExit(files[i]);
+	                }
+	                else {
+	                    if(files[i].delete() == false){
+	                    	L.V = L.O ? false : LogManager.log("fail del file : " + files[i].getAbsolutePath());
+	                    }
+	                }
+	            }
+	        }
+	        
+		    final boolean isDel = directory.delete();
+		    if(isDel == false){
+		    	L.V = L.O ? false : LogManager.log("fail del dir/file : " + directory.getAbsolutePath());
+		    }
+		    return isDel;
+	    }
+	    return true;
+	}
+
+	public static int getIntervalSecondsForNextStartup() {
+		try{
+			return Integer.parseInt(PropertiesManager.getValue(PropertiesManager.p_intervalSecondsNextStartup, "5"));
+		}catch (final Exception e) {
+			return 5;
+		}
+	}
+
+	public static int getSecondsForPreloadJRuby() {
+		final String preloadAfterStartup = PropertiesManager.getValue(PropertiesManager.p_preloadAfterStartup, "120");
+		int seconds = 0;
+		try{
+			seconds = Integer.parseInt(preloadAfterStartup);
+		}catch (final Throwable e) {
+		}finally{
+			if(seconds < 0){
+				seconds = -1;
+			}
+		}
+		return seconds;
+	}
+
+	public static boolean writeToFile(final byte[] bfile, final File fileName) {  
+	    BufferedOutputStream bos = null;  
+	    FileOutputStream fos = null;  
+	    try {  
+	        fos = new FileOutputStream(fileName);  
+	        bos = new BufferedOutputStream(fos);  
+	        bos.write(bfile);
+	        return true;
+	    } catch (final Exception e) {  
+	        e.printStackTrace();  
+	    } finally {  
+	        if (bos != null) {  
+	            try {  
+	                bos.close();  
+	            } catch (final IOException e1) {  
+	               e1.printStackTrace();  
+	            }  
+	        }  
+	        if (fos != null) {  
+	            try {  
+	                fos.close();  
+	            } catch (final IOException e1) {  
+	                e1.printStackTrace();  
+	            }  
+	        }  
+	    }
+	    return false;
+	}
+
+	/**
+	 * 手机或服务器能否发布WiFi广播
+	 * @return
+	 */
+	public static final boolean canCtrlWiFi() {
+		return ClientDesc.getAgent().ctrlWiFi() || WiFiDeviceManager.getInstance().canCreateWiFiAccount();
+	}
+
+	public static String getLibNameForAllPlatforms(final String libName) {
+		return libName + (isAndroidServerPlatform()?EXT_APK:"");
+	}
+
+	public static boolean isEnableDesigner(){
+		return isJ2SELimitFunction();
+	}
+
+	public static File getTempFileName(final String extFileName){
+		final String fileName = createRandomFileNameWithExt(StoreDirManager.TEMP_DIR, extFileName);
+		final File outTempFile = new File(StoreDirManager.TEMP_DIR, fileName);
+		return outTempFile;
 	}
 }

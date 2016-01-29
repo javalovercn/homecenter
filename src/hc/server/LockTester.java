@@ -1,16 +1,10 @@
 package hc.server;
 
 import hc.App;
-import hc.res.ImageSrc;
 import hc.util.ResourceUtil;
-
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -19,7 +13,7 @@ import javax.swing.SwingConstants;
 public class LockTester {
 	private final static int step0Cancle = 0, step1Query = 1, step2Login = 2, step3LockScreen = 3, step5Finish = 5;
 	
-	private final static ActionListener cancleListener = new ActionListener() {
+	private final static ActionListener cancleListener = new HCActionListener() {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			stepNow = step0Cancle;
@@ -40,33 +34,33 @@ public class LockTester {
 		final String testLockingScreen = (String)ResourceUtil.get(9070);
 		ActionListener nextActoin = null;
 		if(stepNow == step0Cancle){
-			nextActoin = new ActionListener() {
+			nextActoin = new HCActionListener(new Runnable() {
 				@Override
-				public void actionPerformed(ActionEvent e) {
+				public void run() {
 					stepNow = step1Query;
 					startLockTest();
 				}
-			};
+			}, App.getThreadPoolToken());
 		}else if(stepNow == step1Query){
-			nextActoin = new ActionListener() {
+			nextActoin = new HCActionListener(new Runnable() {
 				@Override
-				public void actionPerformed(ActionEvent e) {
+				public void run() {
 					stepNow = step2Login;
 					startLockTest();
 				}
-			};
+			}, App.getThreadPoolToken());
 		}else if(stepNow == step2Login){
-			nextActoin = new ActionListener() {
+			nextActoin = new HCActionListener(new Runnable() {
 				@Override
-				public void actionPerformed(ActionEvent e) {
+				public void run() {
 					stepNow = step3LockScreen;
 					startLockTest();
 				}
-			};
+			}, App.getThreadPoolToken());
 		}else if(stepNow == step3LockScreen){
-			nextActoin = new ActionListener() {
+			nextActoin = new HCActionListener(new Runnable() {
 				@Override
-				public void actionPerformed(ActionEvent e) {
+				public void run() {
 					String howToLock = (String)ResourceUtil.get(9071);
 					if(ResourceUtil.isWindowsOS()){
 						howToLock = "<UL><LI>按下Win+L</LI><LI>选择“开始→注销”，然后点击“切换用户”</LI></UL>";
@@ -75,7 +69,7 @@ public class LockTester {
 					
 					stepNow = step0Cancle;
 				}
-			};
+			}, App.getThreadPoolToken());
 		}
 		
 		showStepDialog(testLockingScreen, 

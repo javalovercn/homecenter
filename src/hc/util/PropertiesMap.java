@@ -28,7 +28,7 @@ public class PropertiesMap extends HashMap<String, String>{
 		}
 	}
 	
-	public void save(){
+	public final synchronized void save(){
 		if(size() == 0){
 			return;
 		}

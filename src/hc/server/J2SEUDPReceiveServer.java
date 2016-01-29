@@ -14,13 +14,13 @@ public class J2SEUDPReceiveServer extends UDPReceiveServer{
 	}
 	
 	@Override
-	public void shutDown() {
-    	isShutdown = true;
+	public final void shutDown() {
+		super.shutDown();
+		
     	try {
     		((DatagramSocket)socket).close();
 		} catch (Exception e) {
 		}
-//    	thread.stop();
 	}
 
 	@Override

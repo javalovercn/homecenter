@@ -58,6 +58,7 @@ public class MsgBuilder {
 	public static final byte E_TRANS_SERVER_CONFIG = 24;
 	public static final byte E_CLIENT_INFO = 25;
 	public static final byte E_GOTO_URL_UN_XOR = 26;
+	public static final byte E_RANDOM_FOR_CHECK_SERVER = 27;
 	//UN_XOR_MSG_TAG_MIN以上(含)，低于(含)此值，强制使用TCP
 	public static final byte UN_XOR_MSG_TAG_MIN = 39;
 	
@@ -72,14 +73,17 @@ public class MsgBuilder {
 	public static final byte E_GOTO_URL = 51;
 	
 	public static final byte E_INPUT_EVENT = 52;
+	public static final byte E_MENU_REFRESH = 53;
 	
 	//用于服务器和手机端双向通知下线，需要加密，因为要保护Token
 	public static final byte E_TAG_SHUT_DOWN_BETWEEN_CS = 60;
 	public static final byte E_TRANS_NEW_CERT_KEY_IN_SECU_CHANNEL = 61;//在线更新情形时，传输证书于加密通道，
+	public static final byte E_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL = 62;//传输OneTime证书于加密通道，
+	public static final byte E_REPLY_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL= 63;//应答 传输OneTime证书于加密通道，
 	
-	public static final byte E_JCIP_FORM_EXIT = 70;
-	public static final byte E_JCIP_FORM_SUBMIT = 71;
-	public static final byte E_JCIP_REQUEST = 73;
+	public static final byte E_CTRL_STATUS = 70;//从未使用
+	public static final byte E_CTRL_SUBMIT = 71;//E_JCIP_FORM_SUBMIT = 71;//从未使用
+//	public static final byte E_JCIP_REQUEST = 73;//从未使用
 	public static final byte E_SOUND = 74;
 	public static final byte E_IMAGE_PNG = 75;
 	public static final byte E_IMAGE_PNG_THUMBNAIL = 76;
@@ -89,15 +93,27 @@ public class MsgBuilder {
 	public static final byte E_SCREEN_MOVE_LEFT = 81;
 	public static final byte E_SCREEN_MOVE_DOWN = 82;
 	public static final byte E_SCREEN_MOVE_RIGHT = 83;
+	
+	//由于采用全屏方式，所以不需要向服务器传送
 	public static final byte E_SCREEN_ZOOM = 84;
-	//CS进行RemoteScreenSize双向通讯
+	
+	//CS进行RemoteScreenSize双向通讯，保留旧方法，新的传输见E_TRANS_SERVER_CONFIG
 	public static final byte E_SCREEN_REMOTE_SIZE = 86;
 	public static final byte E_SCREEN_COLOR_MODE = 87;
 	public static final byte E_SCREEN_REFRESH_MILLSECOND = 88;
 	public static final byte E_SCREEN_REFRESH_RECTANGLE = 89;
+	public static final byte E_BIG_MSG_JS_TO_MOBILE = 90;
+	public static final byte E_JS_EVENT_TO_SERVER = 91;
+	public static final byte E_STREAM_MANAGE = 92;
+	public static final byte E_STREAM_DATA = 93;
 	
-	public static final byte E_JCIP_FORM_REFRESH = 101;
+//	public static final byte E_JCIP_FORM_REFRESH = 101;//停止使用
 	public static final byte E_SCREEN_BLOCK_COPY = 102;
+	public static final byte E_LOAD_CACHE = 103;
+	public static final byte E_RESP_CACHE_OK = 104;
+	
+	public static final byte E_CLASS = 126;
+	public static final byte E_PACKAGE_SPLIT_TCP = 127;
 	
 	//以下段属于UDP_CONTROLLER段专属
 	public static final byte LEN_UDP_CONTROLLER_HEAD = 2;
@@ -141,6 +157,21 @@ public class MsgBuilder {
 	public static final short LEN_MAX_UUID_VALUE = 39;//注意同步DataNatReqConn内的UUID 39
 	public static final short LEN_MAX_UUID_UDP_VALUE = 0;//注意同步DataNatReqConn内的UUID 39
 	
+	public static final int TCP_PACKAGE_SPLIT_EXT_BUF_SIZE = 1024;
+	public static final int MAX_LEN_TCP_PACKAGE_BLOCK_BUF = 1 << 17;//128K
+	public static final int MAX_LEN_TCP_PACKAGE_SPLIT = MAX_LEN_TCP_PACKAGE_BLOCK_BUF - TCP_PACKAGE_SPLIT_EXT_BUF_SIZE;
+	public static final short LEN_TCP_PACKAGE_SPLIT_TAG = 1;
+	public static final short LEN_TCP_PACKAGE_SPLIT_SUB_TAG = 1;
+//	public static final short LEN_TCP_PACKAGE_SPLIT_GROUP_ID_HIGH = 1;
+//	public static final short LEN_TCP_PACKAGE_SPLIT_GROUP_ID_MID_HIGH = 1;
+//	public static final short LEN_TCP_PACKAGE_SPLIT_GROUP_ID_MID_LOW = 1;
+//	public static final short LEN_TCP_PACKAGE_SPLIT_GROUP_ID_LOW = 1;
+//	public static final short LEN_TCP_PACKAGE_SPLIT_NUM_HIGH = 1;//分组内的总块数
+//	public static final short LEN_TCP_PACKAGE_SPLIT_NUM_MID_HIGH = 1;
+//	public static final short LEN_TCP_PACKAGE_SPLIT_NUM_MID_LOW = 1;
+//	public static final short LEN_TCP_PACKAGE_SPLIT_NUM_LOW = 1;
+	public static final short LEN_TCP_PACKAGE_SPLIT_DATA_BLOCK_LEN = 10;//需要从标准数据块中，切取另用的长度
+	
 	public static final short LEN_NEED_ACK = 1;//需要接收确认
 	public static final short LEN_PACKET_SPLIT = 1;//分包
 	public static final short LEN_PACKET_SPLIT_NUM_HIGH = 1;//分包总数
@@ -162,10 +193,10 @@ public class MsgBuilder {
 	public static final byte NULL_CTRL_SUB_TAG = (byte)255;
 	
 	public static final short INDEX_CTRL_TAG = 0;
-	public static final short INDEX_CTRL_SUB_TAG = INDEX_CTRL_TAG + LEN_CTRL_TAG;
+	public static final short INDEX_CTRL_SUB_TAG = INDEX_CTRL_TAG + LEN_CTRL_TAG;//注意：由于sub_tag与msg_len可能合并成大串。参见setBigMsgLen
 	
 	
-	public static final short INDEX_MSG_LEN_HIGH = INDEX_CTRL_SUB_TAG + LEN_CTRL_SUB;
+	public static final short INDEX_MSG_LEN_HIGH = INDEX_CTRL_SUB_TAG + LEN_CTRL_SUB;//注意：由于sub_tag与msg_len可能合并成大串。参见setBigMsgLen
 	public static final short INDEX_MSG_LEN_MID = INDEX_MSG_LEN_HIGH + LEN_MSG_LEN_HIGH;
 	public static final short INDEX_MSG_LEN_LOW = INDEX_MSG_LEN_MID + LEN_MSG_LEN_MID;
 
@@ -173,7 +204,12 @@ public class MsgBuilder {
 	//只含有头标识的消息体，不需要更多内容。但含零长度信息
 	public static final short MIN_LEN_MSG = INDEX_MSG_DATA;
 			
-
+	public static final int TCP_SPLIT_STORE_IDX = MsgBuilder.INDEX_MSG_DATA + MsgBuilder.LEN_TCP_PACKAGE_SPLIT_DATA_BLOCK_LEN;
+	public static final int INDEX_TCP_SPLIT_TAG = MsgBuilder.INDEX_MSG_DATA;
+	public static final int INDEX_TCP_SPLIT_SUB_TAG = INDEX_TCP_SPLIT_TAG + LEN_TCP_PACKAGE_SPLIT_TAG;
+	public static final int INDEX_TCP_SPLIT_SUB_GROUP_ID = INDEX_TCP_SPLIT_SUB_TAG + LEN_TCP_PACKAGE_SPLIT_SUB_TAG;
+	public static final int INDEX_TCP_SPLIT_SUB_GROUP_NUM = INDEX_TCP_SPLIT_SUB_GROUP_ID + 4;//分组内的总块数
+	
 	/**
 	 * UDP数组结构区
 	 */

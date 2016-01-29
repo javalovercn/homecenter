@@ -94,7 +94,7 @@ public class SessionConnector {
 				final SessionConnector self = this;
 				resetTimer = new RemoveableHCTimer("ResetTimer", CCoreUtil.WAIT_MS_FOR_NEW_CONN - 1000, true) {//20秒改为3秒
 					@Override
-					public void doBiz() {
+					public final void doBiz() {
 						L.V = L.O ? false : LogManager.log("ResetTimer : Server/Client not reconnect, so close session pair.");
 						RelayManager.closePare(self, true);
 						setEnable(false);

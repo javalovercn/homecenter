@@ -66,7 +66,7 @@ public class QRTool {
 //	}
 //
 //	private static void qrCertification() {
-//		final ActionListener okListener = new ActionListener() {
+//		final ActionListener okListener = new HCActionListener(new Runnable() {
 //			@Override
 //			public void actionPerformed(ActionEvent e) {
 //				PropertiesManager.setValue(PropertiesManager.p_NewCertIsNotTransed, IConstant.FALSE);

@@ -1,8 +1,12 @@
 package hc.util;
 
+import hc.App;
 import hc.core.IConstant;
 import hc.core.L;
+import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
+import hc.core.util.ThreadPriorityManager;
+import hc.server.PlatformManager;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,7 +16,13 @@ import java.util.Properties;
 import javax.swing.JOptionPane;
 
 public class PropertiesManager {
-	static String fileName = IConstant.propertiesFileName;
+	public static long PropertiesLockThreadID = 0;//置于最前
+	private static String fileName = IConstant.propertiesFileName;
+	private static boolean enableLock = IConstant.enableInitLock;
+	
+	public final static String getPropertiesFileName(){
+		return fileName;
+	}
 	
 	public static final String p_stunServerPorts = "StunServerPorts";
 	public static final String p_IsSimu = "isSimu";
@@ -41,7 +51,10 @@ public class PropertiesManager {
 	public static final String PWD_ERR_LOCK_MINUTES = "pwdErrLockMinutes";
 	public static final String p_LogPassword1 = "log1";
 	public static final String p_LogPassword2 = "log2";
-	public static final String p_IAgree = "iAgree";
+	public static final String p_LogCipherAlgorithm1 = "logCipherAlgorithm1";
+	public static final String p_LogCipherAlgorithm2 = "logCipherAlgorithm2";
+	public static final String p_IAgree = "iAgree";//停止使用，由p_AgreeVersion代替
+	public static final String p_AgreeVersion = "AgreeVersion";
 	public static final String p_RelayServerLocalIP = "ServerIP";
 	public static final String p_RelayServerLocalPort = "ServerPort";
 	public static final String p_RelayBlockNum = "RelayBlockNum";
@@ -77,11 +90,24 @@ public class PropertiesManager {
 	 */
 	public static final String p_DeployTmpDir = "DeployTmpDir";
 	
+	public static final String p_isEnableMSBLog = "isEnableMSBLog";
+	public static final String p_isEnableMSBExceptionDialog = "isEnableMSBExceptionDialog";
+	public static final String p_isEnableLimitHAR = "isEnableLimitHAR";
+	
+	public static final String p_wordCompletionModifierCode = "wordCompModCode";
+	public static final String p_wordCompletionKeyCode = "wordCompKeyCode";
+	public static final String p_wordCompletionKeyChar = "wordCompKeyChar";
+	
 	public static final String p_DesignerDividerLocation = "DesignerDividerLocation";
 	public static final String p_DesignerCtrlDividerLocation = "DesignerCtrlDividerLocation";
 	public static final String p_DesignerCtrlHOrV = "DesignerCtrlHOrV";
 
 	public static final String p_ReadedMsgID = "ReadedMsgID";
+	
+	/**
+	 * 初次安装的版本号，与后续升级无关
+	 */
+	public static final String p_InitVersion = "InitVersion";
 	
 	public static final String p_WindowX = "_wx";
 	public static final String p_WindowY = "_wy";
@@ -106,6 +132,23 @@ public class PropertiesManager {
 	public static final String p_selectedNetwork = "selectedNetwork";
 	public static final String p_selectedNetworkPort = "selectedNetworkPort";
 	
+	public static final String p_autoStart = "autoStart";
+	
+	public static final String p_intervalSecondsNextStartup = "intervalSecondsNextStartup";
+	public static final String p_preloadAfterStartup = "preloadAfterStartup";
+	
+	public static final String p_WiFi_currSSID = "wifi_currSSID";
+	public static final String p_WiFi_currPassword = "wifi_currpwd";
+	public static final String p_WiFi_currSecurityOption = "wifi_currSO";
+	public static final String p_WiFi_currIsAutoCreated = "wifi_currIsAutoCreated";
+	public static final String p_WiFi_hasWiFiModule = "wifi_hasModu";
+	public static final String p_WiFi_canCreateAP = "wifi_canCreateAP";
+
+	//用于设置WiFi密码，表示曾经走WiFi的手机连接过
+	public static final String p_WiFi_isMobileViaWiFi = "wifi_isMobiViaWiFi";
+	
+	public static final String p_DesignerDocFontSize = "DesignerDocFontSize";
+
 	public static final String S_THIRD_DIR = "3libs";
 	public static final String S_USER_LOOKANDFEEL = "lookfeel";
 	public static final String S_LINK_PROJECTS = "linkProjs";
@@ -122,8 +165,8 @@ public class PropertiesManager {
 	
 	public static final String p_PROJ_RECORD = PRE_USER_PROJ + "record_";
 
-	private static int getDelDirNum(){
-		String v = getValue(p_DelDirNum);
+	private static final int getDelDirNum(){
+		final String v = getValue(p_DelDirNum);
 		if(v == null){
 			return 0;
 		}else{
@@ -133,7 +176,9 @@ public class PropertiesManager {
 	
 	private static int delDirNum = 0;
 	
-	public static void addDelFile(final File file){
+	public static final void addDelFile(final File file){
+		CCoreUtil.checkAccess();
+		
 		addDelDir(file.getPath());
 	}
 	
@@ -141,21 +186,25 @@ public class PropertiesManager {
 	 * 增加一个待删除的目录或文件，不含自动存储指令
 	 * @param dirName
 	 */
-	public static void addDelDir(String dirName){
+	public static final void addDelDir(final String dirName){
+		CCoreUtil.checkAccess();
+		
 		setValue(p_DelDirPre + delDirNum, dirName);
 		++delDirNum;
 		setValue(p_DelDirNum, String.valueOf(delDirNum));
 	}
 	
-	
-	public static void emptyDelDir(){
+	public static final void emptyDelDir(){
 		delDirNum = getDelDirNum();
 		for (int i = 0; i < delDirNum; i++) {
 			final String key = p_DelDirPre + i;
 			final String delFileName = getValue(key);
 			if(delFileName != null){
-//				System.out.println("delete file : " + new File(delFileName).getAbsolutePath());
-				deleteDirectoryNowAndExit(new File(delFileName));
+				final File delFile = new File(delFileName);
+				if(L.isInWorkshop){
+					L.V = L.O ? false : LogManager.log("delete file/dir : " + delFile.getAbsolutePath());
+				}
+				ResourceUtil.deleteDirectoryNowAndExit(delFile);
 				remove(key);
 			}
 		}
@@ -165,77 +214,121 @@ public class PropertiesManager {
 		saveFile();
 	}
 	
-	private static boolean deleteDirectoryNowAndExit(File directory) {
-	    if(directory.exists()){
-	        File[] files = directory.listFiles();
-	        if(null!=files){
-	            for(int i=0; i<files.length; i++) {
-	                if(files[i].isDirectory()) {
-	                    deleteDirectoryNowAndExit(files[i]);
-	                }
-	                else {
-	                    if(files[i].delete() == false){
-	                    	L.V = L.O ? false : LogManager.log("fail del file : " + files[i].getAbsolutePath());
-	                    }
-	                }
-	            }
-	        }
-	    }
-	    boolean isDel = directory.delete();
-	    if(isDel == false){
-	    	L.V = L.O ? false : LogManager.log("fail del dir/file : " + directory.getAbsolutePath());
-	    }
-	    return isDel;
-	}
-	
-
-	
 	//"DonateKey" 做特殊处理
 
 	static boolean statusChanged = false;
 	
-	static Properties propertie;
+	private static Properties propertie;
 	static FileLocker locker;
-	public static boolean enableLock = true;
-
-	public static synchronized void saveFile(){
+	private static final Boolean LOCK = new Boolean(true);
+	private static final Thread saveThread = buildAndStart();
+	
+	private static boolean isShutdownHook = false;
+	
+	public static void notifyShutdownHook(){
+		CCoreUtil.checkAccess();
+		isShutdownHook = true;
+	}
+	
+	private static Thread buildAndStart(){
+		init();
+		
+		if(enableLock == false){
+			return null;
+		}
+		
+		final Thread t = new Thread(){
+			Object globalLock;
+			
+			@Override
+			public void run(){
+				while(true){
+					synchronized (LOCK) {
+						try{
+							LOCK.wait();
+						}catch (final Exception e) {
+						}
+						
+						if(isShutdownHook){
+							continue;
+						}
+						
+						if(globalLock == null){
+							globalLock = CCoreUtil.getGlobalLock();
+						}
+						save(globalLock);
+					}
+				}
+			}
+		};
+		t.setDaemon(true);
+		t.setPriority(ThreadPriorityManager.FILE_SAVE_PRIORITY);
+		t.start();
+		
+		PropertiesLockThreadID = t.getId();
+		
+		return t;
+	}
+	
+	private static final void save(final Object globalLock){
 		if(propertie == null
 				|| (statusChanged == false)){
 			return;
 		}
         try{
-        	if(enableLock){
-        		locker.release();
-        	}
-        	
-        	FileOutputStream outputFile = new FileOutputStream(fileName);
-            propertie.store(outputFile, null);
-            outputFile.close();
-            
-            if(enableLock){
-            	locker.lock();
-            }
-        } catch (Exception e) {
-        	JOptionPane.showMessageDialog(null, "write data to properties file error!", "Error", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
+        	synchronized (LOCK) {
+        		if(enableLock && locker.lockFile.exists()){
+            		locker.release();
+        		}
+            	
+            	synchronized (globalLock) {
+                	final FileOutputStream outputFile = new FileOutputStream(fileName);
+                    propertie.store(outputFile, null);
+                    outputFile.close();
+				}
+                
+                if(enableLock){
+                	locker.lock();
+                }
+			}
+        } catch (final Exception e) {
+        	e.printStackTrace();
+        	App.showMessageDialog(null, "write data to properties file error!", "Error", JOptionPane.ERROR_MESSAGE);
+//            System.exit(0);
         }
     }
-	
-	public static void setValue(String key, String value){
-		if(propertie == null){
-			init();
-		}
-		final String oldValue = (String)propertie.get(key);
-		if(oldValue != null && value.equals(oldValue)){
-			
+
+	public static final void saveFile(){
+//		CCoreUtil.checkAccess();此处不需限权，
+		if(enableLock){
+			synchronized (LOCK) {
+				LOCK.notify();
+			}
 		}else{
-			statusChanged = true;
-			propertie.setProperty(key, value);
+			save(CCoreUtil.getGlobalLock());
 		}
     }
 	
-	public static boolean isTrue(String key){
-		String v = getValue(key);
+	public static final void setValue(final String key, final String value){
+		if(key.startsWith(PropertiesManager.p_PROJ_RECORD, 0)){
+			
+		}else{
+			CCoreUtil.checkAccess();
+		}
+		
+		synchronized (LOCK) {
+			final String oldValue = (String)propertie.get(key);
+			if(oldValue != null && value.equals(oldValue)){
+				
+			}else{
+				statusChanged = true;
+				propertie.setProperty(key, value);
+			}
+		}
+    }
+
+	public static final boolean isTrue(final String key){
+		final String v = getValue(key);
 		if(v == null){
 			return false;
 		}else{
@@ -248,9 +341,11 @@ public class PropertiesManager {
 	 * @param key
 	 * @return
 	 */
-	public static String getValue(String key){
-		if(propertie == null){
-			init();
+	public static final String getValue(final String key){
+		if(key.startsWith(PropertiesManager.p_PROJ_RECORD, 0)){
+			
+		}else{
+			CCoreUtil.checkAccess();
 		}
 		
         if(propertie.containsKey(key)){
@@ -260,7 +355,7 @@ public class PropertiesManager {
         }
     }
 	
-	public static String getValue(String key, String defaultValue){
+	public static final String getValue(final String key, final String defaultValue){
 		final String v = getValue(key);
 		if(v == null){
 			return defaultValue;
@@ -269,14 +364,13 @@ public class PropertiesManager {
 		}
 	}
 	
-	public static void remove(String key){
-		if(propertie == null){
-			init();
-		}
+	public static final void remove(final String key){
+		CCoreUtil.checkAccess();
+		
 		propertie.remove(key);
 	}
 	
-	public static void init(){
+	private static final void init(){
 		propertie = new Properties();
 		
     	if(fileName == null){
@@ -284,18 +378,25 @@ public class PropertiesManager {
     	}
 
     	try{
-    		locker = new FileLocker(new File(fileName), FileLocker.READ_WRITE_MODE);
-    		FileInputStream inputFile = new FileInputStream(fileName);
-            propertie.load(inputFile);
-            inputFile.close();
-            
-            if(enableLock){
-            	locker.lock();
+    		final File file = new File(new File(System.getProperty("user.dir")), fileName);
+    		locker = new FileLocker(file, FileLocker.READ_WRITE_MODE);
+    		
+    		if(file.exists()){
+	    		final FileInputStream inputFile = new FileInputStream(fileName);
+	            propertie.load(inputFile);
+	            inputFile.close();
+	    		
+	            if(enableLock){
+	            	while(locker.lock() == false){
+	            		Thread.sleep(100);
+	            	}
+	    		}
             }
-        } catch (Exception ex){
-        	//因为可以初次使用，会产生异常
-        	//ex.printStackTrace();
+        } catch (final Exception ex){
+        	App.showMessageDialog(null, "<html>error on read data from properties file!" +
+        			"<BR><BR>file may be using by application!</html>", "Error", JOptionPane.ERROR_MESSAGE);
+        	PlatformManager.getService().exitSystem();
         }
-	}
+ 	}
 
 }

@@ -5,7 +5,7 @@ public class ThreadTimer extends Thread {
 	boolean isShutDown = false;
 	public ThreadTimer(final HCTimer timer){
 		this.timer = timer;
-		setPriority(MIN_PRIORITY);
+		setPriority(timer.newThreadPrority);
 		start();
 	}
 	
@@ -13,17 +13,30 @@ public class ThreadTimer extends Thread {
 	
 	public void notifyShutdown(){
 		isShutDown = true;
+		synchronized (timer) {
+			timer.notify();
+		}
 	}
 	
 	public void run(){
+		final NestAction nestAction = EventCenter.nestAction;
 		long min_wait_mill_second = HCTimer.TEMP_MAX;
-		while ((!isShutDown)) {
+		while (!isShutDown) {
 			min_wait_mill_second = HCTimer.TEMP_MAX;
 			
 			if(timer.isEnable){
 				final long left = timer.nextExecMS;
 				if(min_wait_mill_second > left){
 					min_wait_mill_second = left;
+				}
+			}else{
+				synchronized (timer) {
+					try {
+						timer.wait();
+					} catch (final InterruptedException e) {
+						e.printStackTrace();
+					}
+					continue;
 				}
 			}
 			
@@ -41,7 +54,7 @@ public class ThreadTimer extends Thread {
 				try {
 //					L.V = L.O ? false : LogManager.log("ThreadTimer sleep : " + sleepMS);
 					Thread.sleep(sleepMS);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                 }
 				if(isContinue){
 					continue;
@@ -50,12 +63,16 @@ public class ThreadTimer extends Thread {
 			
             try{
 				if(timer.isEnable){
-						timer.nextExecMS += timer.interval;		
+					timer.nextExecMS += timer.interval;		
 						
-//						L.V = L.O ? false : LogManager.log("ThreadTimer do Biz...");
+//					L.V = L.O ? false : LogManager.log("ThreadTimer do Biz...");
+					if(nestAction == null){
 						timer.doBiz();
+					}else{
+						nestAction.action(NestAction.HCTIMER, timer);
+					}
 				}
-            }catch (Exception e) {
+            }catch (final Throwable e) {
             	e.printStackTrace();
 			}
 		}
