@@ -135,7 +135,7 @@ public class StringUtil {
 				ss2 = Integer.parseInt(ver2);
 				
 				if( ss1 == ss2 ){
-					return true;
+					return higer(ver1.substring(s1_index + 1), "0");//fix 7.0 > 7
 				}else {
 					return ss1 > ss2;
 				}

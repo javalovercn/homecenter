@@ -28,7 +28,7 @@ public class ConfigValueGroup {
 		return null;
 	}
 	
-	public void doSave(){
+	public final void doSaveUI(){
 		try{
 			applyAll(ConfigPane.OPTION_OK);
 		}catch (Exception e) {

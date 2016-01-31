@@ -1,5 +1,7 @@
 package hc.util;
 
+import java.util.regex.Pattern;
+
 public class JSUtil {
 	/**
 	 * 将单个双引号转为字面码
@@ -7,8 +9,11 @@ public class JSUtil {
 	 * @return
 	 */
 	public static final String replaceShuanYinHao(final String js){
-		return js.replaceAll("\"", "\\\\\"");
+//		return js.replaceAll("\"", "\\\\\"");
+		return SHUAN_YIN_HAO.matcher(js).replaceAll("\\\\\"");
 	}
+	
+	private static final Pattern SHUAN_YIN_HAO = Pattern.compile("\"");
 	
 	/**
 	 * 换行转成字面码
@@ -16,14 +21,22 @@ public class JSUtil {
 	 * @return
 	 */
 	public static final String replaceNewLine(final String js){
-		return js.replaceAll("\n", "\\\\n");
+//		return js.replaceAll("\n", "\\\\n");
+		return NEW_LINE.matcher(js).replaceAll("\\\\n");
 	}
 	
+	private static final Pattern NEW_LINE = Pattern.compile("\n");
+	
 	public static final String replaceReturnWithEmtpySpace(final String js){
-		return js.replaceAll("\r", "");
+//		return js.replaceAll("\r", "");
+		return RETURN.matcher(js).replaceAll("");
 	}
+	
+	private static final Pattern RETURN = Pattern.compile("\r");
 
 	public static final String replaceNewLineWithEmtpySpace(final String js){
-		return js.replaceAll("\n", " ");
+//		return js.replaceAll("\n", " ");
+		return NEW_LINE.matcher(js).replaceAll(" ");
 	}
+	
 }

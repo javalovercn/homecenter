@@ -12,10 +12,13 @@ public class HCPermissionConstant {
 	public static final String WRITE_SYSTEM_PROPERTIES = "write system properties";
 
 	public static final String READ_SYSTEM_PROPERTIES = "read system properties";
-
+	public static final String MEMBER_ACCESS_SYSTEM = "memberAccess java.lang.System";
+	
 	public static final String WRITE_PROP_TIP = "<html>allows <STRONG>System</STRONG>.setProperty to be called.</html>";
 
 	public static final String READ_PROP_TIP = "<html>allows <STRONG>System</STRONG>.getProperty to be called.</html>";
+	public static final String MEMBER_ACCESS_SYSTEM_TIP = "<html>memberAccess on java.lang.System." +
+			"<br><STRONG>Note :</STRONG>malicious code may obtain system privileges if JRE &lt; 1.7</html>";
 	
 	public static final String LOAD_LIB_TIP = "<html>dynamic linking of the specified native code library." +
 			"<br>see <STRONG>java.lang.Runtime</STRONG>.loadXXX()</html>";

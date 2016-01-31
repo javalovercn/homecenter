@@ -6,9 +6,11 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.util.ContextSecurityConfig;
 import hc.util.ResourceUtil;
 import hc.util.SocketEditPanel;
+
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -31,6 +33,8 @@ public class LinkNamePanel  extends JPanel {
 
 	private final JCheckBox checkReadProperty = new JCheckBox(HCPermissionConstant.READ_SYSTEM_PROPERTIES);
 	private final JCheckBox checkWriteProperty = new JCheckBox(HCPermissionConstant.WRITE_SYSTEM_PROPERTIES);
+	final JCheckBox perm_memAccessSystem = new JCheckBox(HCPermissionConstant.MEMBER_ACCESS_SYSTEM);
+	
 	private final JCheckBox checkLoadLib = new JCheckBox("load native lib");
 	private final JCheckBox checkRobot = new JCheckBox("create java.awt.Robot");
 //	private final JCheckBox checkListenAllAWTEvents = new JCheckBox("listen all AWT events");
@@ -52,7 +56,7 @@ public class LinkNamePanel  extends JPanel {
 		
 		perm_sock_panel = new SocketEditPanel() {
 			@Override
-			public void notifySocketLimitOn(boolean isOn) {
+			public void notifySocketLimitOn(final boolean isOn) {
 				ContextSecurityConfig.setSocketLimitOn(csc, isOn);
 			}
 			
@@ -92,6 +96,7 @@ public class LinkNamePanel  extends JPanel {
 		
 		checkReadProperty.setToolTipText(HCPermissionConstant.READ_PROP_TIP);
 		checkWriteProperty.setToolTipText(HCPermissionConstant.WRITE_PROP_TIP);
+		perm_memAccessSystem.setToolTipText(HCPermissionConstant.MEMBER_ACCESS_SYSTEM_TIP);
 		
 		checkLoadLib.setToolTipText(HCPermissionConstant.LOAD_LIB_TIP);
 		checkRobot.setToolTipText(HCPermissionConstant.ROBOT_TIP);
@@ -187,11 +192,18 @@ public class LinkNamePanel  extends JPanel {
 				isModiPermission = true;
 			}
 		}, threadPoolToken));	
+		perm_memAccessSystem.addItemListener(new HCActionListener(new Runnable() {
+			@Override
+			public void run() {
+				csc.setMemberAccessSystem(perm_memAccessSystem.isSelected());
+				isModiPermission = true;
+			}
+		}, threadPoolToken));	
 		
-		JPanel composeLinkName = new JPanel(new GridLayout(2, 1));
-		JPanel composeComment = new JPanel(new GridLayout(2, 1));
+		final JPanel composeLinkName = new JPanel(new GridLayout(2, 1));
+		final JPanel composeComment = new JPanel(new GridLayout(2, 1));
 		{
-			JPanel panel = new JPanel(new BorderLayout());
+			final JPanel panel = new JPanel(new BorderLayout());
 			
 			final JLabel nameLabel = new JLabel((String)ResourceUtil.get(8021));
 			final Font oldfont = nameLabel.getFont();
@@ -206,7 +218,7 @@ public class LinkNamePanel  extends JPanel {
 			composeLinkName.setBorder(new TitledBorder((String)ResourceUtil.get(8021)));
 		}
 		{
-			JPanel panel = new JPanel(new BorderLayout());
+			final JPanel panel = new JPanel(new BorderLayout());
 			panel.add(new JLabel((String)ResourceUtil.get(8022)), BorderLayout.LINE_START);
 			panel.add(projRemarkField, BorderLayout.CENTER);
 			
@@ -217,28 +229,31 @@ public class LinkNamePanel  extends JPanel {
 		}
 		
 		setLayout(new BorderLayout());
-		JTabbedPane tabbedPane = new JTabbedPane();
+		final JTabbedPane tabbedPane = new JTabbedPane();
 		{
-			JComponent[] components = {composeLinkName, composeComment};
+			final JComponent[] components = {composeLinkName, composeComment};
 			tabbedPane.addTab((String)ResourceUtil.get(9095), ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER));
 		}
 		
-		JPanel osPermPanel = new JPanel(new GridLayout(2, 2));
+		final JPanel osPermPanel = new JPanel(new GridLayout(2, 2));
 		osPermPanel.add(perm_write);
 		osPermPanel.add(perm_exec);
 		osPermPanel.add(perm_del);
 		osPermPanel.add(perm_exit);
-		JPanel sysPropPanel = new JPanel(new GridLayout(1, 2));
+		final JPanel sysPropPanel = new JPanel(new GridLayout(1, 4));
 		sysPropPanel.add(checkReadProperty);
 		sysPropPanel.add(checkWriteProperty);
-		JPanel sysOtherPropPanel = new JPanel(new GridLayout(2, 2));
+		
+		sysPropPanel.add(perm_memAccessSystem);
+		
+		final JPanel sysOtherPropPanel = new JPanel(new GridLayout(2, 2));
 		sysOtherPropPanel.add(checkLoadLib);
 		sysOtherPropPanel.add(checkRobot);
 		sysOtherPropPanel.add(checkSetIO);
 		sysOtherPropPanel.add(checkShutdownHooks);
 //		sysOtherPropPanel.add(checkListenAllAWTEvents);
 //		sysOtherPropPanel.add(checkAccessClipboard);
-		JComponent[] components = {osPermPanel, new JSeparator(SwingConstants.HORIZONTAL), 
+		final JComponent[] components = {osPermPanel, new JSeparator(SwingConstants.HORIZONTAL), 
 				sysPropPanel, new JSeparator(SwingConstants.HORIZONTAL), 
 				perm_sock_panel, new JSeparator(SwingConstants.HORIZONTAL),
 				sysOtherPropPanel
@@ -246,7 +261,7 @@ public class LinkNamePanel  extends JPanel {
 		final JPanel buildNorthPanel =  ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER);
 		
 		{
-			JPanel permission = new JPanel();
+			final JPanel permission = new JPanel();
 			permission.setLayout(new BorderLayout());
 			permission.add(buildNorthPanel, BorderLayout.CENTER);
 			permission.add(resetPermission, BorderLayout.SOUTH);
@@ -259,7 +274,7 @@ public class LinkNamePanel  extends JPanel {
 		add(tabbedPane, BorderLayout.CENTER);		
 	}
 
-	private void refreshUI(ContextSecurityConfig contextSecurityConfig) {
+	private void refreshUI(final ContextSecurityConfig contextSecurityConfig) {
 		perm_write.setSelected(contextSecurityConfig.isWrite());
 		perm_exec.setSelected(contextSecurityConfig.isExecute());
 		perm_del.setSelected(contextSecurityConfig.isDelete());
@@ -267,6 +282,7 @@ public class LinkNamePanel  extends JPanel {
 		
 		checkReadProperty.setSelected(contextSecurityConfig.isSysPropRead());
 		checkWriteProperty.setSelected(contextSecurityConfig.isSysPropWrite());
+		perm_memAccessSystem.setSelected(contextSecurityConfig.isMemberAccessSystem());
 		
 		checkLoadLib.setSelected(contextSecurityConfig.isLoadLib());
 		checkRobot.setSelected(contextSecurityConfig.isRobot());

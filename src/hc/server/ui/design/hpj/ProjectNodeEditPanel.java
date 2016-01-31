@@ -53,6 +53,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 	
 	private final JCheckBox checkReadProperty = new JCheckBox(HCPermissionConstant.READ_SYSTEM_PROPERTIES);
 	private final JCheckBox checkWriteProperty = new JCheckBox(HCPermissionConstant.WRITE_SYSTEM_PROPERTIES);
+	final JCheckBox perm_memAccessSystem = new JCheckBox(HCPermissionConstant.MEMBER_ACCESS_SYSTEM);
 	
 	private final JCheckBox checkLoadLib = new JCheckBox("load native lib");
 	private final JCheckBox checkRobot = new JCheckBox("create java.awt.Robot");
@@ -322,6 +323,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		
 		checkReadProperty.setToolTipText(HCPermissionConstant.READ_PROP_TIP);
 		checkWriteProperty.setToolTipText(HCPermissionConstant.WRITE_PROP_TIP);
+		perm_memAccessSystem.setToolTipText(HCPermissionConstant.MEMBER_ACCESS_SYSTEM_TIP);
 		
 		checkLoadLib.setToolTipText(HCPermissionConstant.LOAD_LIB_TIP);
 		checkRobot.setToolTipText(HCPermissionConstant.ROBOT_TIP);
@@ -436,6 +438,13 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				notifyModified();	
 			}
 		}, threadPoolToken));	
+		perm_memAccessSystem.addItemListener(new HCActionListener(new Runnable() {
+			@Override
+			public void run() {
+				((HPProject)item).csc.setMemberAccessSystem(perm_memAccessSystem.isSelected());
+				notifyModified();	
+			}
+		}, threadPoolToken));	
 		final JPanel osPermPanel = new JPanel(new GridLayout(1, 4));
 		osPermPanel.add(perm_write);
 		osPermPanel.add(perm_exec);
@@ -444,6 +453,9 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		final JPanel sysPropPanel = new JPanel(new GridLayout(1, 4));
 		sysPropPanel.add(checkReadProperty);
 		sysPropPanel.add(checkWriteProperty);
+		
+		sysPropPanel.add(perm_memAccessSystem);
+		
 		final JPanel sysOtherPropPanel = new JPanel(new GridLayout(1, 4));
 		sysOtherPropPanel.add(checkLoadLib);
 		sysOtherPropPanel.add(checkRobot);
@@ -485,6 +497,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		
 		checkReadProperty.setSelected(hpProject.csc.isSysPropRead());
 		checkWriteProperty.setSelected(hpProject.csc.isSysPropWrite());
+		perm_memAccessSystem.setSelected(hpProject.csc.isMemberAccessSystem());
 		
 		checkLoadLib.setSelected(hpProject.csc.isLoadLib());
 		checkRobot.setSelected(hpProject.csc.isRobot());

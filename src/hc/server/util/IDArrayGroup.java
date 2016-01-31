@@ -19,6 +19,7 @@ public class IDArrayGroup {
 	public static final String MSG_ID_LOCK_SCREEN = "S2";
 	public static final String MSG_NOTIFIED_SERVER_DIRECT_MODE = "S3";
 	public static final String MSG_JRUBY_RUN_NO_COVER = "S4";
+	public static final String MSG_SYSTEM_CLASS_LIMITED = "S5";
 	
 	public static final void showMsg(final String msgId, final String sys_icon_str, final String title, final String message){
 		if(checkAndAdd(msgId)){
@@ -28,7 +29,7 @@ public class IDArrayGroup {
     		ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-		    		App.showCenterPanel(panel, 0, 0, title, false, null, null, null, null, null, true, false, null, false, false);
+		    		App.showCenterPanel(panel, 0, 0, title, false, null, null, null, null, null, true, true, null, false, false);//改为isNewFrame
 				}
 			});
     	}

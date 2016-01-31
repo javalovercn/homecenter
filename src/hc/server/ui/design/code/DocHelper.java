@@ -120,14 +120,15 @@ public class DocHelper {
 	}
 	
 	public final void popDocTipWindow(final JFrame codeWindow, String fmClass, String fieldOrMethodName, final int type){
-		if(fmClass == null){
-			setInvisible();
-			return;
-		}
+		final boolean isForClassDoc = (type==CodeItem.TYPE_CLASS);
 		
 		//支持类的doc描述
-		fmClass = (type==CodeItem.TYPE_CLASS)?fieldOrMethodName:fmClass;
-		fieldOrMethodName = (type==CodeItem.TYPE_CLASS)?CLASS_DESC:fieldOrMethodName;
+		fmClass = isForClassDoc?fieldOrMethodName:fmClass;
+		if(fmClass == null){
+			setInvisible();
+		}
+
+		fieldOrMethodName = isForClassDoc?CLASS_DESC:fieldOrMethodName;
 		
 		this.codeFrame = codeWindow;
 		final String doc = getDoc(fmClass, fieldOrMethodName);
@@ -245,8 +246,13 @@ public class DocHelper {
 		{
 			final Matcher matcher = classDescPattern.matcher(docContent);
 			if (matcher.find()) {
-				final String desc = matcher.group(1);
-				docMap.put(CLASS_DESC, desc);
+				String doc = matcher.group(1);
+				final String hr = "<hr>\n<br>\n";
+				final int hrIdx = doc.indexOf(hr, 0);
+				if(hrIdx >= 0){
+					doc = doc.substring(hrIdx + hr.length());
+				}
+				docMap.put(CLASS_DESC, doc);
 			}
 		}
 		

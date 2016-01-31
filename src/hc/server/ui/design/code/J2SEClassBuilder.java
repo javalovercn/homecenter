@@ -26,43 +26,11 @@ public class J2SEClassBuilder {
 		final String classFullName = J2SEClassBuilder.class.getName();
 		final String packageName = classFullName.substring(0, classFullName.lastIndexOf("."));
 		
+		final String blockSystemClass = "java.lang.System";
+		
 		builder.append("package " + packageName + ";\n");
 		builder.append("\n");
 		builder.append("public class " + className + " {\n");
-		{
-			final ArrayList<String> apiList = new ArrayList<String>();
-			{
-				apiList.add("hc.server.ui.Mlet");
-				apiList.add("hc.server.ui.HTMLMlet");
-//				apiList.add("hc.server.ui.HCFont");
-				apiList.add("hc.server.ui.ProjectContext");
-				apiList.add("hc.server.util.SystemEventListener");
-				apiList.add("hc.server.ui.CtrlResponse");
-//				apiList.add("hc.server.msb.WiFiAccount");
-				apiList.add("hc.server.msb.Device");
-				apiList.add("hc.server.msb.Robot");
-				apiList.add("hc.server.msb.Message");
-				apiList.add("hc.server.msb.Converter");
-				apiList.add("hc.server.msb.DeviceCompatibleDesc");
-				apiList.add("hc.core.util.IEncrypter");
-				apiList.add("hc.core.util.CtrlKey");
-				
-				Collections.sort(apiList);
-			}
-			builder.append("\tpublic static java.util.ArrayList<String> getAPIList() {\n");
-			{
-				builder.append("\t\tfinal java.util.ArrayList<String> out = new java.util.ArrayList<String>();\n");
-				{
-					final int size = apiList.size();
-					for (int i = 0; i < size; i++) {
-						builder.append("\t\tout.add(\"" + apiList.get(i) + "\");\n");
-					}
-				}
-				builder.append("\t\treturn out;\n");
-			}
-			builder.append("\t}\n");
-		}
-		builder.append("\n");
 		{
 			builder.append("\tpublic static java.util.ArrayList<String> getList() {\n");
 			{
@@ -70,7 +38,11 @@ public class J2SEClassBuilder {
 				{
 					final int size = list.size();
 					for (int i = 0; i < size; i++) {
-						builder.append("\t\tout.add(\"" + list.get(i) + "\");\n");
+						final String cName = list.get(i);
+						if(cName.equals(blockSystemClass)){
+							continue;
+						}
+						builder.append("\t\tout.add(\"" + cName + "\");\n");
 					}
 				}
 				builder.append("\t\treturn out;\n");

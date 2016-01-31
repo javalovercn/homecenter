@@ -2057,7 +2057,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	//你可能 还 需要修改服务器版本，StarterManager HCVertion = "6.97";
 	
 	public static final String getSampleHarVersion(){
-		return "7.0";
+		return "7.1";
 	}
 	
 	private void flipAutoUpgrade(final JCheckBoxMenuItem upgradeItem,

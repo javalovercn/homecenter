@@ -1005,11 +1005,11 @@ public void run() {
 		ok.addActionListener(new HCButtonEnabledActionListener(ok, new Runnable() {
 			@Override
 			public void run() {
+				group.doSaveUI();//可能弹出对话框，所以不能置于SwingUtilities
+
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						group.doSave();
-						
 						if(CurrLookFeelJar != null && newNameLookFeelLib != null 
 								&& addLookFeel.contains(UIManager.getLookAndFeel().getClass().getName())){
 							final int size = addLookFeel.size();

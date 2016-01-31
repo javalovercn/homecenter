@@ -14,7 +14,7 @@ public class HCSecurityChecker implements SecurityChecker {
 	final ArrayList<Thread> allowedThread = new ArrayList<Thread>(128);
 	
 	@Override
-	public void check(final Object token) {
+	public final void check(final Object token) {
 		ThreadGroup g = null;
 		Thread currentThread = null;
 		boolean isEventDispatchThread = false;
@@ -52,7 +52,7 @@ public class HCSecurityChecker implements SecurityChecker {
 	}
 
 	@Override
-	public void resetFastCheckThreads() {
+	public final void resetFastCheckThreads() {
 		CCoreUtil.checkAccess();
 		
 		synchronized (this) {

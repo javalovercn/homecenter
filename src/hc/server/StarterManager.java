@@ -128,7 +128,9 @@ public class StarterManager {
 	}
 	
 	public static String getHCVersion(){
-		return HCVertion;
+		//从6.96(含)开始，源代码中内置版本信息，而无需从starter中获得
+		//注意：如果AgreeLicense发生变化，请同时更改App.getAgreeVersion()
+		return "7.1";
 //		final String ver = getHCVersionFromStarter();
 //		if(ver.equals(J2SEContext.MAX_HC_VER)){
 //			return PropertiesManager.getValue(PropertiesManager.p_LasterAutoUpgradeVer);
@@ -136,10 +138,6 @@ public class StarterManager {
 //			return ver;
 //		}
 	}
-	
-	//从6.96(含)开始，源代码中内置版本信息，而无需从starter中获得
-	//注意：如果AgreeLicense发生变化，请同时更改App.getAgreeVersion()
-	private static final String HCVertion = "7.0";
 
 	private static String getHCVersionFromStarter() {
 		try{

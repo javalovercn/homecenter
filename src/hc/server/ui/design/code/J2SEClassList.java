@@ -1,26 +1,6 @@
 package hc.server.ui.design.code;
 
 public class J2SEClassList {
-	public static java.util.ArrayList<String> getAPIList() {
-		final java.util.ArrayList<String> out = new java.util.ArrayList<String>();
-		out.add("hc.core.util.CtrlKey");
-		out.add("hc.core.util.IEncrypter");
-		out.add("hc.server.msb.Converter");
-		out.add("hc.server.msb.Device");
-		out.add("hc.server.msb.DeviceCompatibleDescription");
-		out.add("hc.server.msb.Message");
-		out.add("hc.server.msb.Robot");
-		out.add("hc.server.msb.RobotEvent");
-		out.add("hc.server.msb.RobotListener");
-		out.add("hc.server.ui.CtrlResponse");
-		out.add("hc.server.ui.HCFont");
-		out.add("hc.server.ui.HTMLMlet");
-		out.add("hc.server.ui.Mlet");
-		out.add("hc.server.ui.ProjectContext");
-		out.add("hc.server.util.SystemEventListener");
-		return out;
-	}
-
 	public static java.util.ArrayList<String> getList() {
 		final java.util.ArrayList<String> out = new java.util.ArrayList<String>(3626);
 		out.add("java.applet.Applet");
@@ -656,7 +636,6 @@ public class J2SEClassList {
 		out.add("java.lang.StringCoding");
 		out.add("java.lang.StringIndexOutOfBoundsException");
 		out.add("java.lang.SuppressWarnings");
-		out.add("java.lang.System");
 		out.add("java.lang.SystemClassLoaderAction");
 		out.add("java.lang.Terminator");
 		out.add("java.lang.Thread");

@@ -67,7 +67,6 @@ public class ClassUtil {
 	}
 	
 	public static final Object invoke(final Class claz, final Object obj, final String methodName, final Class[] paraTypes, final Object[] para, final boolean needModiAccessible){
-		final Method addPath = null;
 		try{
 		    return invokeWithExceptionOut(claz, obj, methodName, paraTypes,
 					para, needModiAccessible);

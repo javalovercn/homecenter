@@ -95,6 +95,7 @@ public class HCjar {
 //	public static final String PERMISSION_ACCESS_CLIPBOARD = PERMISSION_HEADER + "Clipboard";
 	public static final String PERMISSION_SHUTDOWNHOOKS = PERMISSION_HEADER + "Hook";
 	public static final String PERMISSION_SETIO = PERMISSION_HEADER + "SetIO";
+	public static final String PERMISSION_MEMBER_ACCESS_SYSTEM = PERMISSION_HEADER + "MemberAccessSystem";
 	
 	private static final String PERMISSION_SOCK_HEADER = PERMISSION_HEADER + "Sock.";
 	public static final String PERMISSION_SOCK_ITEM_HEADER = PERMISSION_SOCK_HEADER + "Item.";

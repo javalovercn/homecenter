@@ -33,6 +33,7 @@ import hc.util.ResourceUtil;
 import java.awt.AWTPermission;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.SocketPermission;
 import java.security.Permission;
@@ -53,9 +54,21 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 	private static ThreadPool tempLimitThreadPool;
 	private static ThreadGroup tempLimitThreadgroup;
 	private final Locale locale = Locale.getDefault();
+	private final float jreVersion = App.getJREVer();
 	private static final HCEventQueue hcEventQueue = buildHCEventQueue();
 	private static final Thread eventDispatchThread = hcEventQueue.eventDispatchThread;
 	private static long propertiesLockThreadID = PropertiesManager.PropertiesLockThreadID;
+	
+	private final static boolean isExistSeurityField = getSecurityField();
+
+	private static boolean getSecurityField(){
+		try{
+			final Field field = System.class.getDeclaredField("security");
+			return field != null;
+		}catch (final Throwable e) {
+		}
+		return false;
+	}
 	
 	private static HCEventQueue buildHCEventQueue(){
 		try{
@@ -159,7 +172,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 
 	    	{
 		    	final String[] writebats = {"HomeCenter.bat", "HomeCenter.sh", "HomeCenter.command",  
-		    			"splash.png", "starter.jar", "starter.properties", "jruby.jar", "hc.pem", "hc.jar", "hcdesign.jar"};
+		    			"splash.png", "starter.jar", "starter.properties", "jruby.jar", "hc.pem", "hc.jar"};
 		    	blockWriteFullPathLists = new String[writebats.length];
 		    	for (int i = 0; i < writebats.length; i++) {
 		    		final String file = writebats[i];
@@ -175,10 +188,15 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 	    	{
     			final Vector<String> blockVect = new Vector<String>();
     			
-    			final String[] classNames = {"java.lang.UNIXProcess","java.lang.System", "sun.security.util.SecurityConstants"};//Runtime.thread, "java.awt.EventQueue", 
+    			//remove "java.lang.UNIXProcess" from classNames
+    			final String SystemClass = "java.lang.System";
+				final String[] classNames = {SystemClass, "sun.security.util.SecurityConstants"};//Runtime.thread, "java.awt.EventQueue", 
     			for (int i = 0; i < classNames.length; i++) {
     				try{
     	    			final String processName = classNames[i];
+    	    			if(processName.equals(SystemClass) && isExistSeurityField == false){
+    	    				continue;
+    	    			}
     					final Class clazz = Class.forName(processName);
     					if(clazz != null){
     						final String className = clazz.getName();
@@ -203,7 +221,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 	    			Converter.class, Device.class, Message.class, Robot.class, RobotEvent.class, RobotListener.class,
 	    			DeviceCompatibleDescription.class,
 	    			CtrlResponse.class, Mlet.class, HTMLMlet.class, ICanvas.class,
-	    			WiFiAccount.class, SystemEventListener.class, CtrlKey.class, HCFont.class};//按API类单列
+	    			WiFiAccount.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class, HCFont.class};//按API类单列
 //	    	{
 //	    		Vector<Class> allowVect = new Vector<Class>();
 //				
@@ -354,10 +372,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 //			}else if(perm instanceof ReflectPermission){
 //				final String permissionName = perm.getName();
 //				if (permissionName.equals("suppressAccessChecks")){
-//					if(limitRootThreadGroup.parentOf(currentThreadGroup)){
-//						System.out.println("Field.setAccessible in HAR project.");
+//					if(csc != null && csc.isAccessPrivateField() == false){
+//						throw new HCSecurityException("block Field/Method/Constructor setAccessible in HAR Project  [" + csc.projID + "]."
+//								+ buildPermissionOnDesc(HCjar.PERMISSION_ACCESS_PRIVATE_FIELD));
 //					}
-//					throw new HCSecurityException("block Field.setAccessible in HAR project.");
 //				}
 			}
 		}
@@ -371,6 +389,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 			ContextSecurityConfig csc = null;
 			final Thread currentThread = Thread.currentThread();
 			if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
+				if(clazz == System.class){
+					LogManager.warning("memberAccess(reflection) on Class [java.lang.System] in JRuby script, it is recommended to use Class [" + JavaLangSystemAgent.class.getName() + "].");
+				}
+				
 				boolean containmemberAccessLists = false;
 				for (int i = 0; i < memberAccessLists.length; i++) {
 					if(memberAccessLists[i] == clazz){
@@ -391,7 +413,13 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 					boolean startWithHC = false;
 					if(containblockMemberAccessLists || (startWithHC = name.startsWith("hc.", 0))){//|| name.startsWith("sun.", 0)
 						if(containblockMemberAccessLists){
-							throw new HCSecurityException("block memberAccess(reflection) on Class [" + name + "] in JRuby, please create agent/wrap class for it and use agent/wrap class in JRuby script.");
+							if(clazz == System.class){
+								if(jreVersion < 1.7 && csc.isMemberAccessSystem() == false){
+									throw new HCSecurityException("block memberAccess(reflection) on Class [" + name + "] in JRuby, please use methods in [" + JavaLangSystemAgent.class.getName() + "].");
+								}
+							}else{
+								throw new HCSecurityException("block memberAccess(reflection) on Class [" + name + "] in JRuby, please create agent/wrap class for it.");
+							}
 						}else{
 							if(startWithHC){
 								throw new HCSecurityException("block memberAccess on Class [" + name + "] in package [hc.]");

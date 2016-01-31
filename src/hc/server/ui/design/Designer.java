@@ -49,6 +49,8 @@ import hc.server.ui.design.hpj.NodeEditPanelManager;
 import hc.server.ui.design.hpj.NodeInvalidException;
 import hc.server.ui.design.hpj.ScriptEditPanel;
 import hc.server.util.ContextSecurityConfig;
+import hc.server.util.IDArrayGroup;
+import hc.server.util.JavaLangSystemAgent;
 import hc.util.BaseResponsor;
 import hc.util.Constant;
 import hc.util.IBiz;
@@ -1032,6 +1034,14 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				CodeStaticHelper.doNothing();
 			}
 		}, threadPoolToken);
+		
+		IDArrayGroup.showMsg(IDArrayGroup.MSG_SYSTEM_CLASS_LIMITED, App.SYS_INFO_ICON, (String)ResourceUtil.get(IContext.INFO), 
+				"<html><font color=\"red\">Important</font> : " +
+				"<BR>" +
+				"<BR>the current HomeCenter provide build-in SecurityManager for HAR project." +
+				"<BR>each JRuby code is based on reflection, java.lang.System (private SecurityManager security) is limited for reflection, " +
+				"<BR><BR>please replace java.lang.System with " + JavaLangSystemAgent.class.getName() + " or upgrade JRE to 1.7" +
+				"<BR><BR>for more, please read Java Doc about " + JavaLangSystemAgent.class.getName() + "</html>");
 	}
 	
 	public static void buildRebindButton(final JButton rebindBut, final ThreadGroup tgt, final BindButtonRefresher refresher,
