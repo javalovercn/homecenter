@@ -166,7 +166,8 @@ public class SIPManager {
 				if(l_relayIpPort != null){
 					LogManager.info("relay mode : yes");
 
-					LogManager.info("3G/4G/...");//more time and unreliable
+//中继时，可能并非3G/4G，也许是WiFi，3G/4G由其它逻辑提示
+//					LogManager.info("3G/4G/...");//more time and unreliable
 //					LogManager.info("Busy network and congestion may cause error");
 					
 					ContextManager.setConnectionModeStatus(ContextManager.MODE_CONNECTION_RELAY);

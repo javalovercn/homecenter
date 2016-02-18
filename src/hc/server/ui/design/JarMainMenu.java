@@ -1,9 +1,13 @@
 package hc.server.ui.design;
 
 import hc.core.L;
+import hc.core.sip.SIPManager;
 import hc.core.util.HCURL;
 import hc.core.util.LogManager;
+import hc.core.util.StoreableHashMap;
 import hc.core.util.UIUtil;
+import hc.server.data.screen.PNGCapturer;
+import hc.server.data.screen.ScreenCapturer;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.HCByteArrayOutputStream;
 import hc.server.ui.ICanvas;
@@ -11,6 +15,7 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.hpj.HCjar;
 import hc.util.BaseResponsor;
 import hc.util.ResourceUtil;
+import hc.util.StoreableHashMapWithModifyFlag;
 
 import java.awt.image.BufferedImage;
 import java.util.Iterator;
@@ -19,11 +24,11 @@ import java.util.Map;
 public class JarMainMenu extends MCanvasMenu implements ICanvas {
 	private final HCByteArrayOutputStream baos = ServerUIUtil.buildForMaxIcon();
 	public String[][] items;
+	private StoreableHashMapWithModifyFlag[] i18nTitles;
 	private BufferedImage[] cacheOriImage;
 	public int[] itemTypes;
 	public String[] extendMap;
 	public static final int itemDescNum = 3;
-	private final String menuName;
 	public final String menuId;
 	private final int menuColNum;
 	public String[] listener;
@@ -33,17 +38,22 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 	public static final int ITEM_IMG_IDX = 1;
 	public static final int ITEM_URL_IDX = 2;
 	private final BaseResponsor baseRe;
-	private final String linkMenuName;
+	public final String linkName, linkOrProjectName, projectID;
 	private final int menuIdx;
 	boolean enableQR, enableWiFi;
 	final Map map;
+	final StoreableHashMapWithModifyFlag projNameI18nMap;
 	
 	public JarMainMenu(final int menuIdx, final Map map, final boolean isRoot, final BaseResponsor baseRep, final String linkMenuName) {
 		this.isRoot = isRoot;
 		this.baseRe  = baseRep;
-		this.linkMenuName = linkMenuName;
+		this.linkName = linkMenuName;
+		this.linkOrProjectName = (linkMenuName == null || linkMenuName.length() == 0)?(String)map.get(HCjar.PROJ_NAME):linkMenuName;
+		this.projectID = (String)map.get(HCjar.PROJ_ID);
 		
-		menuName = HCjar.getMenuName(map, menuIdx);
+		//menuName = linkMenuName;//HCjar.getMenuName(map, menuIdx);
+		projNameI18nMap = HCjar.buildI18nMapFromSerial((String)map.get(HCjar.PROJ_I18N_NAME));
+		
 		menuId = (String)map.get(HCjar.replaceIdxPattern(HCjar.MENU_ID, menuIdx));
 		menuColNum = Integer.parseInt((String)map.get(HCjar.replaceIdxPattern(HCjar.MENU_COL_NUM, menuIdx)));
 		this.menuIdx = menuIdx;
@@ -83,6 +93,8 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 			listener = new String[itemCount + appendMenuItemNum];
 			extendMap = new String[itemCount + appendMenuItemNum];
 			
+			i18nTitles = new StoreableHashMapWithModifyFlag[itemCount + appendMenuItemNum];
+			
 			final int fold_type = 0;
 			
 			if(appendMenuItemNum > 0){
@@ -97,10 +109,16 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 						continue;
 					}
 					final int itemIdx = (i++);
-					items[itemIdx][ITEM_NAME_IDX] = lps.getLinkScriptName();
+					final Map subProjmap = ((MobiUIResponsor)baseRe).getProjResponser(lps.getProjectID()).map;
+					final String linkName = lps.getLinkName();
+					items[itemIdx][ITEM_NAME_IDX] = (linkName==null||linkName.length()==0)?(String)subProjmap.get(HCjar.PROJ_NAME):linkName;
 					itemTypes[itemIdx] = fold_type;
 					items[itemIdx][ITEM_IMG_IDX] = UIUtil.SYS_FOLDER_ICON;
 					items[itemIdx][ITEM_URL_IDX] = HCURL.buildStandardURL(HCURL.MENU_PROTOCAL, lps.getProjectID());
+					
+					{
+						i18nTitles[itemIdx] = HCjar.buildI18nMapFromSerial((String)subProjmap.get(HCjar.PROJ_I18N_NAME));
+					}
 					
 					listener[itemIdx] = ""; 
 					extendMap[itemIdx] = "";
@@ -119,27 +137,34 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 				items[storeIdx][ITEM_IMG_IDX] = (String)map.get(header + HCjar.ITEM_IMAGE);
 				items[storeIdx][ITEM_URL_IDX] = (String)map.get(header + HCjar.ITEM_URL);
 				
+				i18nTitles[storeIdx] = HCjar.buildI18nMapFromSerial((String)map.get(header + HCjar.ITEM_I18N_NAME));
+				
 				listener[storeIdx] = (String)map.get(header + HCjar.ITEM_LISTENER);
 				extendMap[storeIdx] = (String)map.get(header + HCjar.ITEM_EXTENDMAP); 
 			}
 			
 			//添加"增加设备"按钮
+			final int res_add = 9016;
 			if(enableQR){
 				final int itemIdx = (++storeIdx);
-				items[itemIdx][ITEM_NAME_IDX] = (String)ResourceUtil.get(9016);
+				items[itemIdx][ITEM_NAME_IDX] = (String)ResourceUtil.get(res_add);
 				itemTypes[itemIdx] = fold_type;
 				items[itemIdx][ITEM_IMG_IDX] = UIUtil.SYS_ADD_DEVICE_BY_QR_ICON;
 				items[itemIdx][ITEM_URL_IDX] = HCURL.URL_CFG_ADD_DEVICE_BY_QR;
+				
+				i18nTitles[itemIdx] = ResourceUtil.getI18NByResID(res_add);
 				
 				listener[itemIdx] = ""; 
 				extendMap[itemIdx] = "";
 			}
 			if(enableWiFi){
 				final int itemIdx = (++storeIdx);
-				items[itemIdx][ITEM_NAME_IDX] = (String)ResourceUtil.get(9016);
+				items[itemIdx][ITEM_NAME_IDX] = (String)ResourceUtil.get(res_add);
 				itemTypes[itemIdx] = fold_type;
 				items[itemIdx][ITEM_IMG_IDX] = UIUtil.SYS_ADD_DEVICE_BY_WIFI_ICON;
 				items[itemIdx][ITEM_URL_IDX] = HCURL.URL_CFG_ADD_DEVICE_BY_WIFI;
+				
+				i18nTitles[itemIdx] = ResourceUtil.getI18NByResID(res_add);
 				
 				listener[itemIdx] = ""; 
 				extendMap[itemIdx] = "";
@@ -147,6 +172,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 
 		}else{
 			items = new String[0][itemDescNum];
+			i18nTitles = new StoreableHashMapWithModifyFlag[0];
 			itemTypes = new int[0];
 			listener = new String[0];
 			extendMap = new String[0];
@@ -177,14 +203,85 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 		}
 		return false;
 	}
+	
+	private final String getMapLanguage(final StoreableHashMap storeMap, final String mobileLocale){
+		if(storeMap != null){
+			{
+				final String match = (String)storeMap.get(mobileLocale);//zh-CN
+				if(match != null){
+					return match;
+				}
+			}
+			
+			{
+				final String shortMobileLocale = (mobileLocale.length() >= 2 ? mobileLocale.substring(0, 2) : "");
+				final String match = (String)storeMap.get(shortMobileLocale);//zh
+				if(match != null){
+					return match;
+				}
+			}
+		}
+		return null;
+	}
 
 	@Override
 	public String[] getIconLabels() {
+		final String mobileLocale = ClientDesc.getClientLang();
+		
 		final String[] out = new String[items.length];
 		for (int i = 0; i < out.length; i++) {
-			out[i] = items[i][ITEM_NAME_IDX];
+			if(i18nTitles != null){
+				try{
+					final StoreableHashMap storeMap = i18nTitles[i];
+					final String mapLang = getMapLanguage(storeMap, mobileLocale);
+					if(mapLang != null){
+						out[i] = mapLang;
+						continue;
+					}
+				}catch (final Throwable e) {
+					e.printStackTrace();
+				}
+			}
+			out[i] = items[i][ITEM_NAME_IDX];//缺省名字
 		}
 		return out;
+	}
+	
+	private final static int[] base64PngData = new int[UIUtil.ICON_MAX * UIUtil.ICON_MAX];
+	
+	private final String getBitmapBase64ForMobile(final BufferedImage bi, final String unChangedBase64){
+		final boolean menuTrueColor = ClientDesc.getAgent().isMenuTrueColor();
+		
+		if(unChangedBase64 != null && (menuTrueColor || SIPManager.isOnRelay() == false)){
+			return unChangedBase64;
+		}
+		
+		if(menuTrueColor){
+			return ServerUIUtil.imageToBase64(bi, baos);
+		}
+		
+		final int mobileMask = PNGCapturer.getUserMobileColorMask();
+		final int height = bi.getHeight();
+		final int width = bi.getWidth();
+		final int pngSize = height * width;
+		final int pngDataLen = pngSize;
+		
+		final BufferedImage transImg;
+		synchronized (base64PngData) {
+			bi.getRGB(0, 0, width, height, base64PngData, 0, width);
+			
+			for (int i = 0; i < pngDataLen; i++) {
+				final int c = base64PngData[i];
+				if(c != 0xFF000000){//纯黑保持不变
+					base64PngData[i] = c | mobileMask;
+				}
+			}
+			
+			transImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+			transImg.setRGB(0, 0, width, height, base64PngData, 0, width);
+		}
+		
+		return ServerUIUtil.imageToBase64(transImg, baos);
 	}
 
 	@Override
@@ -223,12 +320,15 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 				}
 				if(oriImage != null){
 					if(UIUtil.isIntBeiShu(targetMobileIconSize, oriImage.getWidth())){
+						imgData = getBitmapBase64ForMobile(oriImage, imgData);
 					}else{
 						//服务器端进行图片缩放
 						final BufferedImage newImg = ResourceUtil.resizeImage(oriImage, targetMobileIconSize, targetMobileIconSize);
 						//使用适应尺寸的base64图标
-						imgData = ServerUIUtil.imageToBase64(newImg, baos);
+						imgData = getBitmapBase64ForMobile(newImg, null);
 					}
+				}else{
+					imgData = getBitmapBase64ForMobile(oriImage, imgData);
 				}
 			}
 			out[i] = imgData;
@@ -253,7 +353,18 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 
 	@Override
 	public String getTitle() {
-		return menuName;
+		//优先返回linkName
+		if(linkName != null && linkName.length() > 0){
+			return linkName;
+		}
+		
+		final String mobileLocale = ClientDesc.getClientLang();
+		final String mapLang = getMapLanguage(projNameI18nMap, mobileLocale);
+		if(mapLang != null){
+			return mapLang;
+		}else{
+			return linkOrProjectName;
+		}
 	}
 
 	@Override
@@ -288,7 +399,8 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 		if(isRoot){
 			//当前是root
 		}else{
-			L.V = L.O ? false : LogManager.log(" exit/back link menu [" + linkMenuName + "]");
+			L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "exit/back menu [" + linkOrProjectName + "]");
+			L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "exit/back project : [" + projectID + "]");
 			if(baseRe instanceof MobiUIResponsor){
 				final MobiUIResponsor mobiUIResponsor = (MobiUIResponsor)baseRe;
 				mobiUIResponsor.enterContext(mobiUIResponsor.findRootContextID());

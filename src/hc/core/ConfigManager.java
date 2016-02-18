@@ -48,6 +48,7 @@ public class ConfigManager {
 	public static final String UI_FORM_SIZE = "hc.ui.formSize";
 	public static final String UI_RELEASE_OBJECT = "hc.ui.releaseObject";
 	public static final String BUILD_NESTACTION = "hc.buildNestAction";
+	public static final String UI_CHECK_BACKGROUND_ENABLE = "hc.ui.checkBackground";
 	
 	/**
 	 * 判断客户端是否是后台运行。

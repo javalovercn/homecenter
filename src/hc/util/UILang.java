@@ -24,7 +24,7 @@ public class UILang {
 		resources = buildResourceBundle();
 	}
 	
-	public static String getUILang(int id){
+	public static String getUILang(final int id){
 		return resources.get(String.valueOf(id));
 	}
 	
@@ -32,7 +32,7 @@ public class UILang {
 		return locale;
 	}
 	
-	public static void setLocale(Locale loc){
+	public static void setLocale(final Locale loc){
 		if(loc == null){
 			locale = sysDefaultLocale;
 		}else{
@@ -42,34 +42,39 @@ public class UILang {
 		resources = buildResourceBundle();
 	}
 	
+	public static final String UI_LANG_FILE_NAME_PREFIX = "/uilang_";
+
 	private static Hashtable<String, String> buildResourceBundle() {
 		final String userLang = locale.getLanguage() + "_" + locale.getCountry();
 		
-		Hashtable<String, String> table = new Hashtable<String, String>();
+		return buildResourceBundle(userLang);
+	}
 
-		final String fileName = "/uilang_";
+	public static Hashtable<String, String> buildResourceBundle(final String userLang) {
+		final Hashtable<String, String> table = new Hashtable<String, String>();
+
 		InputStream is = null;
 		final Class<UILang> baseClass = UILang.class;
 		try {
-			is = baseClass.getResourceAsStream(fileName + userLang + ".properties");
-		} catch (Exception e) {
+			is = baseClass.getResourceAsStream(UI_LANG_FILE_NAME_PREFIX + userLang + ".properties");
+		} catch (final Exception e) {
 		}
 		if(is == null){
 			try {
-				is = baseClass.getResourceAsStream(fileName + userLang.substring(0, 2) + ".properties");
-			} catch (Exception e) {
+				is = baseClass.getResourceAsStream(UI_LANG_FILE_NAME_PREFIX + userLang.substring(0, 2) + ".properties");
+			} catch (final Exception e) {
 			}
 			if(is == null){
 				locale = EN_LOCALE;
 				sysDefaultLocale = locale;
 				Locale.setDefault(locale);
-				is = baseClass.getResourceAsStream(fileName + "en_US.properties");
+				is = baseClass.getResourceAsStream(UI_LANG_FILE_NAME_PREFIX + "en_US.properties");
 			}
 		}
 		Reader stream = null;
 		try {
 			stream = new InputStreamReader(is, "ISO-8859-1");
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
 		}

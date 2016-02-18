@@ -29,7 +29,7 @@ public class UPnPUtil {
 	 * @param localPort
 	 * @return
 	 */
-	public static String[] startUPnP(InetAddress ia, int localPort, int oldUPnPPort, String upnpToken){
+	public static String[] startUPnP(final InetAddress ia, final int localPort, final int oldUPnPPort, final String upnpToken){
 //		if(hcgd != null){
 //			try {
 //				if(hcgd.isLineOn()){
@@ -55,7 +55,7 @@ public class UPnPUtil {
 	 * 退出时，关闭开放的UPnP
 	 * @return
 	 */
-	public static boolean removeUPnPMapping(int port){
+	public static boolean removeUPnPMapping(final int port){
 		if(removeUPnPMapping(port, localAds)){
 			L.V = L.O ? false : LogManager.log("Remove UPnP Mapping at extPort:" + port);
 			return true;
@@ -70,22 +70,22 @@ public class UPnPUtil {
     public static final String UPNPIP = "239.255.255.250";
     private static final int TIMEOUT = 10000;
 
-    private static UPnPDevice findLocation(byte[] reply, int len) {
+    private static UPnPDevice findLocation(final byte[] reply, final int len) {
 
-        UPnPDevice device = new UPnPDevice();
+        final UPnPDevice device = new UPnPDevice();
 
-        BufferedReader brLine = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(reply, 0, len)));
+        final BufferedReader brLine = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(reply, 0, len)));
         String line = null;
         try {
             line = brLine.readLine().trim();
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
         	ex.printStackTrace();
         }
 
         while (line != null) {
         	line = line.trim();
         	if(line.length() > 0){
-                int idx = line.indexOf(':');
+                final int idx = line.indexOf(':');
                 if(idx > 0){
 					String key = line.substring(0, idx);
 	
@@ -98,12 +98,12 @@ public class UPnPUtil {
                 }
 	            try {
 	                line = brLine.readLine().trim();
-	            } catch (IOException ex) {
+	            } catch (final IOException ex) {
 	            }
         	}else{
 	        	try {
 	                line = brLine.readLine().trim();
-	            } catch (IOException ex) {
+	            } catch (final IOException ex) {
 	            }
         	}
         }
@@ -111,7 +111,7 @@ public class UPnPUtil {
         return device;
     }
 
-    public static UPnPDevice discover(InetAddress localAddress){
+    public static UPnPDevice discover(final InetAddress localAddress){
     	UPnPDevice d = null;
     	
         final String searchHttp = "M-SEARCH * HTTP/1.1\r\n" +
@@ -124,7 +124,7 @@ public class UPnPUtil {
         	socket = new DatagramSocket(0, localAddress);
             socket.setSoTimeout(TIMEOUT);
 
-            byte[] bs = searchHttp.getBytes();
+            final byte[] bs = searchHttp.getBytes();
             DatagramPacket dp = new DatagramPacket(bs, bs.length);
             dp.setAddress(InetAddress.getByName(UPNPIP));
             dp.setPort(UPNPPORT);
@@ -145,28 +145,30 @@ public class UPnPUtil {
                     }else{
                     	d = null;
                     }
-                } catch (Exception ste) {
+                } catch (final Exception ste) {
                 	break;
                 }
             }
-        }catch (Exception e) {
+        }catch (final Exception e) {
 			e.printStackTrace();
 		}finally{
-            socket.close();
+			if(socket != null){
+				socket.close();
+			}
         }
         
         return d;
     }
 
     private static boolean isCheckedUPnP = false;
-    public static boolean isSupportUPnP(InetAddress ia){
+    public static boolean isSupportUPnP(final InetAddress ia){
     	if(isCheckedUPnP == false){
 //			L.V = L.O ? false : LogManager.log("Starting UPnP Discovery Service");
 			L.V = L.O ? false : LogManager.log("Looking for UPnP devices from [" + ia.toString() + "]");
 			hcgd = discover(ia);
 			
 			if (null != hcgd) {
-				String idg = "["+hcgd.getFriendlyName()+"("+hcgd.getModelNumber()+")]";
+				final String idg = "["+hcgd.getFriendlyName()+"("+hcgd.getModelNumber()+")]";
 				L.V = L.O ? false : LogManager.log("UPnP device found. " + idg);
 				ContextManager.getContextInstance().displayMessage((String)ResourceUtil.get(IContext.INFO), 
 						"UPnP : " + idg, IContext.INFO, null, 0);
@@ -189,8 +191,8 @@ public class UPnPUtil {
 	 * @param oldUPnPPort TODO
 	 * @return {exteralAddress, exteralPort}，失败返回null
 	 */
-	private static String[] addMapping(int beginExteralPort, InetAddress localAddress, int localPort, 
-			int oldUPnPPort, String upnpToken){
+	private static String[] addMapping(int beginExteralPort, final InetAddress localAddress, final int localPort, 
+			final int oldUPnPPort, final String upnpToken){
 		try{
 			if (null != hcgd) {
 			} else {
@@ -201,7 +203,7 @@ public class UPnPUtil {
 			
 	//		InetAddress localAddress = d.getLocalAddress();
 	//		L.V = L.O ? false : LogManager.log("Using local address: "+localAddress );
-			String externalIPAddress = hcgd.getOutterIP();
+			final String externalIPAddress = hcgd.getOutterIP();
 //			L.V = L.O ? false : LogManager.log("External address: "+ externalIPAddress);
 			UPnPMapping portMapping = new UPnPMapping();
 	
@@ -229,7 +231,7 @@ public class UPnPUtil {
 							continue;
 						}
 					}
-				}catch (Exception e) {
+				}catch (final Exception e) {
 					//UTF-8时，会出现异常
 //					e.printStackTrace();
 					beginExteralPort++;
@@ -239,35 +241,35 @@ public class UPnPUtil {
 	
 			    if (hcgd.addUPnPMapping(beginExteralPort, localPort, localAddress.getHostAddress(), TCP, upnpToken)) {
 			    	L.V = L.O ? false : LogManager.log("Success add UPnP exteral PortMap [" + externalIPAddress + ":" + beginExteralPort + "]");
-			    	String[] out = {HCURLUtil.convertIPv46(externalIPAddress),String.valueOf(beginExteralPort)};
+			    	final String[] out = {HCURLUtil.convertIPv46(externalIPAddress),String.valueOf(beginExteralPort)};
 			        return out;
 			    } else {
 			    	beginExteralPort++;
 			    }
 			    
 			}
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			e.printStackTrace();
 			L.V = L.O ? false : LogManager.log(e.toString());
 		}
 		return null;		
 	}
 	
-	public static boolean isSelfMapDesc(String desc, String upnpToken){
+	public static boolean isSelfMapDesc(final String desc, final String upnpToken){
 		if(desc == null){
 			return false;
 		}
 		return upnpToken.startsWith(desc);
 	}
 	
-	private static boolean removeUPnPMapping(int externalPort, InetAddress localAddress){
+	private static boolean removeUPnPMapping(final int externalPort, final InetAddress localAddress){
 		try{
 			if (null == hcgd) {
 			    return false;
 			}else{
 				return hcgd.deleteUPnPMapping(externalPort,TCP);
 			}
-		}catch (Exception e) {
+		}catch (final Exception e) {
 	        L.V = L.O ? false : LogManager.log("Failed at remove UPnP Port");
 			L.V = L.O ? false : LogManager.log(e.toString());
 			return false;
@@ -281,12 +283,12 @@ public class UPnPUtil {
 	public static InetAddress loadUserInetAddress(){
 		//TODO 优先加载用户指定的网卡，注意：为多网卡环境下
 		try{
-			Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
+			final Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
 			while (ifaces.hasMoreElements()) {
-				NetworkInterface iface = ifaces.nextElement();
-				Enumeration<InetAddress> iaddresses = iface.getInetAddresses();
+				final NetworkInterface iface = ifaces.nextElement();
+				final Enumeration<InetAddress> iaddresses = iface.getInetAddresses();
 				while (iaddresses.hasMoreElements()) {
-					InetAddress iaddress = iaddresses.nextElement();
+					final InetAddress iaddress = iaddresses.nextElement();
 					if (java.net.Inet4Address.class.isInstance(iaddress) || 
 							java.net.Inet6Address.class.isInstance(iaddress)) {
 						if ((!iaddress.isLoopbackAddress()) && (!iaddress.isLinkLocalAddress())) {
@@ -295,7 +297,7 @@ public class UPnPUtil {
 					}
 				}
 			}
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			
 		}
 		return null;

@@ -40,14 +40,30 @@
 		addJButton: function(containerHashID, index, hashID){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 
-			var jsOnClick = "javascript:window.hcserver.clickJButton(" + hashID + ");";
+			var jsOnClick = "javascript:window.hcj2se.clickJButton(" + hashID + ");";//注意：是window.hcj2se，不是window.hcserver
 			newdiv.setAttribute("onclick", jsOnClick);
 
 			var newButton = document.createElement('button');
 			newButton.setAttribute('id',CONS.HC_CMP + hashID);
 			newButton.setAttribute('type','button');
+			newButton.clickMS = 0;
 
 			newdiv.appendChild(newButton);
+		},
+
+		clickJButton: function(hashID){
+			var btnID = CONS.HC_CMP + hashID;
+			var btn = document.getElementById(btnID);
+			if(btn){
+				var d = new Date();
+				var curr_msec = d.getTime();
+				var minInternalMS = 1000;//点击间隔不小于1000毫秒
+				if(btn.clickMS + minInternalMS < curr_msec){
+					//console.log("btn last clickMS : " + btn.clickMS);
+					btn.clickMS = curr_msec;
+					window.hcserver.clickJButton(hashID);
+				}
+			}
 		},
 
 		addJCheckbox: function(containerHashID, index, hashID){

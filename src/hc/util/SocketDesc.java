@@ -4,7 +4,7 @@ import hc.core.util.StringUtil;
 import hc.server.ui.design.HCPermissionConstant;
 
 public class SocketDesc {
-	private static final String SPLIT = ",";
+	public static final String SPLIT = ",";
 	public static final String ACCEPT_TIP = "<html>accept TCP connect (server mode) or UDP data (maybe client mode) from remote." +
 			"<br>Related API :" +
 			"<br> <STRONG>·</STRONG> <STRONG>java.net.ServerSocket</STRONG>.accept()" +
@@ -49,10 +49,10 @@ public class SocketDesc {
 	
 	private static final String ITEM_JOIN = "|";
 	
-	public static final SocketDesc decode(String serial){
-		SocketDesc socket = new SocketDesc("", "", "", "", "", "");
+	public static final SocketDesc decode(final String serial){
+		final SocketDesc socket = new SocketDesc("", "", "", "", "", "");
 		
-		String[] items = StringUtil.splitToArray(serial, SPLIT);
+		final String[] items = StringUtil.splitToArray(serial, SPLIT);
 		
 		int idx = 0;
 		
@@ -66,15 +66,15 @@ public class SocketDesc {
 		return socket;
 	}
 	
-	private static String getValueAt(String[] items, int idx){
-		String item = items[idx];
+	private static String getValueAt(final String[] items, final int idx){
+		final String item = items[idx];
 		return item.substring(item.indexOf(ITEM_JOIN) + 1);
 	}
 	
-	public static final String encode(SocketDesc socket){
-		StringBuilder sb = new StringBuilder();
+	public static final String encode(final SocketDesc socket){
+		final StringBuilder sb = new StringBuilder();
 		
-		String[] items = {socket.host, socket.ip, socket.port, socket.portFrom, socket.portTo, String.valueOf(socket.action)};
+		final String[] items = {socket.host, socket.ip, socket.port, socket.portFrom, socket.portTo, String.valueOf(socket.action)};
 		for (int i = 0; i < items.length; i++) {
 			if(i != 0){
 				sb.append(SPLIT);
@@ -87,7 +87,7 @@ public class SocketDesc {
 		return sb.toString();
 	}
 	
-	public SocketDesc(String host, String ip, String port, String portFrom, String portTo, String action){
+	public SocketDesc(final String host, final String ip, final String port, final String portFrom, final String portTo, String action){
 		this.host = (host==null?"":host);
 		this.ip = (ip==null?"":ip);
 		this.port = (port==null?"":port);
@@ -95,7 +95,7 @@ public class SocketDesc {
 		this.portTo = (portTo==null?"":portTo);
 		
 		action = ((action==null)?"":action);
-		String[] list = StringUtil.splitToArray(action, SPLIT);
+		final String[] list = StringUtil.splitToArray(action, SPLIT);
 		for (int i = 0; i < list.length; i++) {
 			list[i] = list[i].trim();
 		}
@@ -113,7 +113,7 @@ public class SocketDesc {
 		}
 	}
 	
-	private final boolean isAction(String[] actions, String targetAction){
+	private final boolean isAction(final String[] actions, final String targetAction){
 		for (int i = 0; i < actions.length; i++) {
 			if(actions[i].equals(targetAction)){
 				return true;
@@ -123,7 +123,7 @@ public class SocketDesc {
 	}
 	
 	public final String getHostIPDesc(){
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		
 		if(isIPMode() == false){
 			final String hostIP = getHost();
@@ -138,7 +138,7 @@ public class SocketDesc {
 				int to = Integer.parseInt(getPortTo());
 				
 				if(from > to){
-					int swap = to;
+					final int swap = to;
 					to = from;
 					from = swap;
 	
@@ -150,7 +150,7 @@ public class SocketDesc {
 					sb.append("-");
 					sb.append(getPortTo());
 				}
-			}catch (Throwable e) {
+			}catch (final Throwable e) {
 				sb.append(getPortFrom());
 				sb.append("-");
 				sb.append(getPortTo());
@@ -163,7 +163,7 @@ public class SocketDesc {
 	}
 	
 	public final String getActionDesc(){
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		
 		if(isAcceptAction()){
 			sb.append(STR_ACCEPT);
@@ -190,7 +190,7 @@ public class SocketDesc {
 		return sb.toString();
 	}
 	
-	public void setAction(int action, boolean checked){
+	public void setAction(final int action, final boolean checked){
 		if(checked){
 			this.action |= action;
 		}else{
@@ -224,7 +224,7 @@ public class SocketDesc {
 	
 	private boolean forceIP = false;
 	
-	public final void setIPMode(boolean ip){
+	public final void setIPMode(final boolean ip){
 		forceIP = ip;
 	}
 	
@@ -235,7 +235,7 @@ public class SocketDesc {
 	
 	private boolean forcePort = false;
 	
-	public final void setPortMode(boolean port){
+	public final void setPortMode(final boolean port){
 		forcePort = port;
 	}
 	
@@ -247,7 +247,7 @@ public class SocketDesc {
 				&& (!((portFrom.length() == 0) && (portTo.length() == 0)));
 	}
 	
-	public void setHost(String host) {
+	public void setHost(final String host) {
 		this.host = host;
 	}
 	
@@ -255,19 +255,19 @@ public class SocketDesc {
 		return ip;
 	}
 	
-	public void setIp(String ip) {
+	public void setIp(final String ip) {
 		this.ip = ip;
 	}
 	
 	public String getPort() {
 		if(port.length() == 0){
-			return "80";
+			return "";//"80";
 		}else{
 			return port;
 		}
 	}
 	
-	public void setPort(String port) {
+	public void setPort(final String port) {
 		this.port = port;
 	}
 	
@@ -275,7 +275,7 @@ public class SocketDesc {
 		return portFrom;
 	}
 	
-	public void setPortFrom(String portFrom) {
+	public void setPortFrom(final String portFrom) {
 		this.portFrom = portFrom;
 	}
 	
@@ -283,7 +283,7 @@ public class SocketDesc {
 		return portTo;
 	}
 	
-	public void setPortTo(String portTo) {
+	public void setPortTo(final String portTo) {
 		this.portTo = portTo;
 	}
 }

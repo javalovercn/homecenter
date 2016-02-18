@@ -425,11 +425,17 @@ public class KeepaliveManager {
 		return true;
 	}
     
-    public static final HCTimer keepalive = new HCTimer("KeepAlive", KEEPALIVE_MS, false, true, ThreadPriorityManager.KEEP_ALIVE_PRIORITY){
+	private static boolean isSendLive = false;
+	
+	public static final void resetSendData(){
+		CCoreUtil.checkAccess();
+		isSendLive = false;
+	}
+
+	public static final HCTimer keepalive = new HCTimer("KeepAlive", KEEPALIVE_MS, false, true, ThreadPriorityManager.KEEP_ALIVE_PRIORITY){
     	private static final int ErrorNeedNatDelay = 30 * 1000;//比如连接Socket出错，而非Http。两分钟
     	private final int lineWatcherMS = RootConfig.getInstance().getIntProperty(RootConfig.p_enableLineWatcher);//60 * 1000 * 5;
     	private long sendLineMS;
-    	private boolean isSendLive = false;
     	private final byte[] zeroUDPBS = new byte[0];
 		
 		@Override

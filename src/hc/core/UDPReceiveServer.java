@@ -15,7 +15,7 @@ public abstract class UDPReceiveServer extends Thread{
 		//thread.setName("Receive Server");
     }
 	
-	protected final Boolean LOCK = new Boolean(false);
+	protected final Object LOCK = new Object();
 	
 	protected Object socket;
 

@@ -2,6 +2,7 @@ package hc.server.ui;
 
 import hc.App;
 import hc.core.ContextManager;
+import hc.core.util.CCoreUtil;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.Stack;
@@ -87,6 +88,14 @@ public class ServerUIAPIAgent {
 
 	public final static String getMobileUID(){
 		return ClientDesc.getAgent().getUID();
+	}
+	
+	public final static void setHCSysProperties(final ProjectContext ctx, final String key, final String value){
+		ctx.__setPropertySuper(key, value);
+	}
+	
+	public final static String getHCSysProperties(final ProjectContext ctx, final String key){
+		return ctx.__getPropertySuper(key);
 	}
 	
 	public final static void loadStyles(final HTMLMlet mlet) {
@@ -235,7 +244,7 @@ public class ServerUIAPIAgent {
 	final static boolean isToMobile() {
 		return ContextManager.cmStatus == ContextManager.STATUS_SERVER_SELF;
 	}
-
+	
 	final static ProjectContext staticContext = new ProjectContext("static", "1.0", 
 			HCLimitSecurityManager.getTempLimitThreadPool(), null, (ProjClassLoaderFinder)null);
 

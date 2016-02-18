@@ -30,7 +30,7 @@ public class HCMessage {
 	
 	private static int AUTO_GROUP_ID_GROW = 0;
 	private static int AUTO_MSG_ID_GROW = 0;
-	private static final Boolean LOCK = new Boolean(false);
+	private static final Object LOCK = new Object();
 	
 	public static void reset(){
 		AUTO_GROUP_ID_GROW = 0;

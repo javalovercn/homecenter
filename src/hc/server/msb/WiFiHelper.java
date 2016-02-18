@@ -354,10 +354,10 @@ public class WiFiHelper {
 //		CCoreUtil.checkAccess();
 		
 		final String pwd = ResourceUtil.createRandomVariable(63, 0);
-		try{
-			Thread.sleep(Math.abs(pwd.hashCode()) % 300);
-		}catch (final Exception e) {
-		}
+//		try{
+//			Thread.sleep(Math.abs(pwd.hashCode()) % 300);
+//		}catch (final Exception e) {
+//		}
 		final String password = PropertiesManager.getValue(PropertiesManager.p_password, "");
 		final String ssid = "hc_" + ResourceUtil.createRandomVariable(32 - 3, password.hashCode());//SSID最长为32
 		final String securityOption = ConfigManager.WIFI_SECURITY_OPTION_WPA_WPA2_PSK;

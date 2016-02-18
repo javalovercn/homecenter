@@ -27,10 +27,8 @@ import javax.imageio.ImageIO;
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
 
 public class MessageTipFrame extends HCJDialog {
 	static JLabel tipBorderLeftTop, tipBorderRightTop, tipBorderLeftDown, tipBorderRightDown;
@@ -46,7 +44,7 @@ public class MessageTipFrame extends HCJDialog {
 	TipPop.CornerPosition position = CornerPosition.UN_KNOWN;
 	TransparentPanel box;
 	ActionListener al;
-	public void setNextMode(boolean mode, ActionListener listener){
+	public void setNextMode(final boolean mode, final ActionListener listener){
 		isNextMode = mode;
 		al = listener;
 	}
@@ -62,7 +60,7 @@ public class MessageTipFrame extends HCJDialog {
 		}
 	};
 	
-	public void setCornerPosition(CornerPosition p, final int trayLocX, final int trayLocY, final int trayWidth, final int trayHeight){
+	public void setCornerPosition(final CornerPosition p, final int trayLocX, final int trayLocY, final int trayWidth, final int trayHeight){
 		this.trayLocX = trayLocX;
 		this.trayLocY = trayLocY;
 		this.trayWidth = trayWidth;
@@ -135,16 +133,16 @@ public class MessageTipFrame extends HCJDialog {
 		setUndecorated(true);//去掉窗口的边框
 		try{
 			PlatformManager.getService().setWindowOpaque(this, false);//透明
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
 			setBackground(new Color(0,0,0,0));
 		}
 		{
 			BufferedImage RightDown = null;
 			try {
 				RightDown = ImageIO.read(ResourceUtil.getResource("hc/res/tip_foot.png"));
-			} catch (IOException e) {
+			} catch (final IOException e) {
 			}
-			final BufferedImage LeftTop = ResourceUtil.rotateImage(RightDown, 180);
+			final BufferedImage LeftTop = (RightDown!=null)?ResourceUtil.rotateImage(RightDown, 180):null;
 			footLeftTop = new JLabel(new ImageIcon(LeftTop));
 			footLeftTop.setOpaque(false);
 			footRightTop = new JLabel(new ImageIcon(ResourceUtil.flipHorizontalJ2D(LeftTop)));
@@ -195,7 +193,7 @@ public class MessageTipFrame extends HCJDialog {
 			tipBorderLeftDown = new JLabel(new ImageIcon(LeftDown));
 			tipBorderLeftDown.setOpaque(false);
 
-		} catch (IOException e) {
+		} catch (final IOException e) {
 		}
 		
 		try{
@@ -207,7 +205,7 @@ public class MessageTipFrame extends HCJDialog {
 			
 			icon = App.getSysIcon(App.SYS_ERROR_ICON);
 			errImg = new ImageIcon(ResourceUtil.resizeImage(ImageSrc.iconToImage(icon), 22, 22));
-		}catch (Exception e) {
+		}catch (final Exception e) {
 		}
 		
 		screenSize = ResourceUtil.getScreenSize();
@@ -243,7 +241,7 @@ public class MessageTipFrame extends HCJDialog {
 			
 			{
 				
-				JPanel titlePanel = new JPanel(new BorderLayout());
+				final JPanel titlePanel = new JPanel(new BorderLayout());
 				titlePanel.setBackground(Color.decode(TipPop.BACKGROUND_COLOR));
 				titlePanel.setOpaque(true);
 				
@@ -261,30 +259,30 @@ public class MessageTipFrame extends HCJDialog {
 					titlePanel.add(closeLabel, BorderLayout.LINE_END);	
 					closeLabel.addMouseListener(new MouseListener() {
 						@Override
-						public void mouseReleased(MouseEvent e) {
+						public void mouseReleased(final MouseEvent e) {
 						}
 						
 						@Override
-						public void mousePressed(MouseEvent e) {
+						public void mousePressed(final MouseEvent e) {
 						}
 						
 						@Override
-						public void mouseExited(MouseEvent e) {
+						public void mouseExited(final MouseEvent e) {
 						}
 						
 						@Override
-						public void mouseEntered(MouseEvent e) {
+						public void mouseEntered(final MouseEvent e) {
 						}
 						
 						@Override
-						public void mouseClicked(MouseEvent e) {
+						public void mouseClicked(final MouseEvent e) {
 							if(al != null){
 								al.actionPerformed(null);
 							}
 							self.close();
 						}
 					});
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					e.printStackTrace();
 				}
 				
@@ -335,7 +333,7 @@ public class MessageTipFrame extends HCJDialog {
 		box.add(tipBorderRightDown, c);
 	}
 	
-	public void showMessage(String caption, final String msg, final MessageType messageType){
+	public void showMessage(final String caption, final String msg, final MessageType messageType){
 		msgLabel.setText(msg);
 		capLabel.setText(caption);
 		

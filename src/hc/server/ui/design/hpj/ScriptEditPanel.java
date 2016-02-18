@@ -108,10 +108,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	private static final char[][] backIndent = {
 		elseChar,
 		elsifChar,
-		{'r', 'e', 's', 'c', 'u', 'e', ' '}
+		{'r', 'e', 's', 'c', 'u', 'e'},//可以没有异常类型段，所以去掉空格
+		{'e', 'n', 's', 'u', 'r', 'e'}
 	};
-	private static final String[] backIndentStr = {"end", "else", "elsif ", "rescue ", "}"};//带end，是供全局format之用
-	private static final String[] nextIndentStr = {"else", "elsif ", "rescue "};//带end，是供全局format之用
+	private static final String[] backIndentStr = {"end", "else", "elsif ", "rescue", "ensure", "}"};//带end，是供全局format之用
+	private static final String[] nextIndentStr = {"else", "elsif ", "rescue", "ensure"};//带end，是供全局format之用
 	
 	private static final Pattern num_pattern = Pattern.compile("\\b\\d+\\b", Pattern.MULTILINE);
 	private static final Pattern hc_map_pattern = Pattern.compile("\\$_hcmap\\b");
@@ -261,12 +262,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					ContextManager.getThreadPool().run(new Runnable() {
 						@Override
 						public void run(){
-							App.invokeAndWaitUI(new Runnable() {
-								@Override
-								public void run() {
-									testBtn.setEnabled(false);
-								}
-							});
+//							开启下行，会导致format获得焦点
+//							App.invokeAndWaitUI(new Runnable() {
+//								@Override
+//								public void run() {
+//									testBtn.setEnabled(false);
+//								}
+//							});
 							
 							IDArrayGroup.showMsg(IDArrayGroup.MSG_JRUBY_RUN_NO_COVER, App.SYS_WARN_ICON, (String)ResourceUtil.get(IContext.INFO), 
 									"<html>" + runTip + "</html>");
@@ -277,17 +279,17 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 								e.printStackTrace();
 							}
 							
-							App.invokeLaterUI(new Runnable() {
-								@Override
-								public void run() {
-									testBtn.setEnabled(true);
-								}
-							});
+//							App.invokeLaterUI(new Runnable() {
+//								@Override
+//								public void run() {
+//									testBtn.setEnabled(true);
+//								}
+//							});
 						}
 					}, threadPoolToken);
 				}
 			};
-			ResourceUtil.buildAcceleratorKeyOnAction(testAction, KeyEvent.VK_T);//同时支持Windows下的Ctrl+S和Mac下的Command+S
+			ResourceUtil.buildAcceleratorKeyOnAction(testAction, KeyEvent.VK_T);//同时支持Windows下的Ctrl+T和Mac下的Command+T
 			testBtn.addActionListener(testAction);
 			testBtn.getActionMap().put("testAction", testAction);
 			testBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
@@ -305,7 +307,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					});
 				}
 			};
-			ResourceUtil.buildAcceleratorKeyOnAction(formatAction, KeyEvent.VK_F);
+			ResourceUtil.buildAcceleratorKeyOnAction(formatAction, KeyEvent.VK_F);//执行太快，感觉没反应
 			formatBtn.addActionListener(formatAction);
 			formatBtn.getActionMap().put("formatAction", formatAction);
 			formatBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
@@ -455,13 +457,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						//end if VK_ENTER
 					}else{
 //						final int keyCode = e.getKeyCode();
-						if(inputChar == KeyEvent.VK_ESCAPE){
-							TabHelper.pushEscKey();
-							return;
-						}
 						
 						refreshCurrLineAfterKey(line, doc, jtaScript, ScriptEditPanel.this);
-						TabHelper.notifyInputKey(e.getKeyCode() == KeyEvent.VK_BACK_SPACE, e, inputChar);
+						
+						TabHelper.notifyInputKey(inputChar == KeyEvent.VK_BACK_SPACE, e, inputChar);
 						
 						final boolean isDot = inputChar == '.';
 						final boolean isPathSplit = inputChar == '/';
@@ -478,7 +477,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 									countYinHao++;
 								}
 							}
-					        if(countYinHao > 0 && countYinHao % 2 == 1){
+					        if(countYinHao % 2 == 1){//countYinHao > 0 && 
 					        	if(isPathSplit){
 					        		popUpAuto(codeHelper);
 					        		return;
@@ -590,6 +589,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				final int wordCompletionModifyMaskCode = codeHelper.wordCompletionModifyMaskCode;
 				//无输入字符时的触发提示代码
 				if(keycode == codeHelper.wordCompletionCode && (modifiers & wordCompletionModifyMaskCode) == wordCompletionModifyMaskCode){
+					//注意：请同步到MletNodeEditPanel
 					try {
 						codeHelper.input(ScriptEditPanel.this, jtaScript, doc, fontHeight, true, 
 								jtaScript.getCaret().getMagicCaretPosition(), jtaScript.getCaretPosition());
@@ -609,7 +609,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	                    redo();
 	                }
 	            }else if(keycode == KeyEvent.VK_Z){
-	            	if(ResourceUtil.isMacOSX()){
+					if(isMacOS){
 		                if (modifiers == KeyEvent.META_MASK) {
 		                	//cmd+z
 		                    undo();
@@ -618,6 +618,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		                }
 	            	}
 	            }
+	            
+	            if(keycode == KeyEvent.VK_ESCAPE){
+					TabHelper.pushEscKey();
+					return;
+				}
+	            
 		    }
 		});
 
@@ -1251,7 +1257,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		runTestEngine = new HCJRubyEngine(StoreDirManager.RUN_TEST_DIR.getAbsolutePath(), ResourceUtil.buildProjClassLoader(StoreDirManager.RUN_TEST_DIR, "hc.testDir"));
 	}
 
-	public static void terminateJRubyEngine() {
+	public static synchronized void terminateJRubyEngine() {
 		if(runTestEngine != null){
 			runTestEngine.terminate();
 			runTestEngine = null;

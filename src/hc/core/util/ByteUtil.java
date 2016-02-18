@@ -279,7 +279,7 @@ public class ByteUtil {
 
 	public static byte[] integerToFourBytes(final int value) {
 		final byte[] result = new byte[4];
-		if ((value > TWO_63) || (value < 0)) {
+		if (value < 0) {
 			return result;
 		}
 		result[0] = (byte) ((value >>> 24) & 0xFF);
@@ -290,7 +290,7 @@ public class ByteUtil {
 	}
 
 	public static void integerToFourBytes(final int value, final byte[] bs, int store_index) {
-		if ((value > TWO_63) || (value < 0)) {
+		if (value < 0) {
 			return ;
 		}
 		bs[store_index++] = (byte) ((value >>> 24) & 0xFF);

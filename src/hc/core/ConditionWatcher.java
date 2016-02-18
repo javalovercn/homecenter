@@ -2,6 +2,7 @@ package hc.core;
 
 import hc.core.util.CCoreUtil;
 import hc.core.util.LinkedSet;
+import hc.core.util.LogManager;
 
 /**
  * 依赖于HCTimer
@@ -12,6 +13,7 @@ public class ConditionWatcher {
 	private static HCTimer instance = new HCTimer("CondWat", HCTimer.HC_INTERNAL_MS, false){
 		public final void doBiz() {
 			IWatcher temp;
+			boolean isAddUnUsed = false;
 			do{
 				synchronized (watchers) {
 					temp = (IWatcher)watchers.getFirst();//注意：必须先入先处理
@@ -26,21 +28,25 @@ public class ConditionWatcher {
 					if(temp.watch() == false){
 						synchronized (watchers) {
 							usedRewatchers.addTail(temp);
+							isAddUnUsed = true;
 						}
 					}
 				}
 			}while(true);
-
 			
-			synchronized (watchers) {
-				Object rewatcher;
-				while((rewatcher = usedRewatchers.getFirst()) != null){
-					watchers.addTail(rewatcher);
+			if(isAddUnUsed){
+				synchronized (watchers) {
+					Object rewatcher;
+					while((rewatcher = usedRewatchers.getFirst()) != null){
+						watchers.addTail(rewatcher);
+					}
 				}
-				
-				if(watchers.isEmpty()){
-					setEnable(false);
-					return;
+			}else{
+				synchronized (watchers) {
+					if(watchers.isEmpty()){
+						setEnable(false);
+						return;
+					}
 				}
 			}
 		}

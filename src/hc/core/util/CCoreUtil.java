@@ -46,12 +46,12 @@ public class CCoreUtil {
 	public static final int WAIT_MS_FOR_NEW_CONN = 3000;
 	public static final String RECEIVE_CERT_OK = "OK";
 	public static final String RECEIVE_CERT_FORBID = "FORBID";
-	private static final Boolean GLOBAL_LOCK = new Boolean(true);
+	private static final Object GLOBAL_LOCK = new Object();
 	//非标准J2SE环境，设置此值到System.setProperty
 	public static final String SYS_SERVER_OS_PLATFORM = "user.hc.server.os";
 	public static final String SYS_SERVER_OS_ANDROID_SERVER = "Android";
 	
-	public static final Boolean getGlobalLock(){
+	public static final Object getGlobalLock(){
 		checkAccess();
 		
 		return GLOBAL_LOCK;

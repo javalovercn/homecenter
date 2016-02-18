@@ -1,5 +1,7 @@
 package hc.server.ui.design.hpj;
 
+import hc.util.StoreableHashMapWithModifyFlag;
+
 public class HPNode {
 	public static final int MASK_ROOT = 1 << 10;
 	public static final int MASK_MENU = 1 << 9;
@@ -64,6 +66,7 @@ public class HPNode {
 
 	public int type;
 	public String name;
+	public StoreableHashMapWithModifyFlag i18nMap = new StoreableHashMapWithModifyFlag();
 	private HPItemContext context;
 	
 	public HPItemContext getContext() {

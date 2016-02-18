@@ -6,6 +6,7 @@ import hc.core.L;
 import hc.core.util.LogManager;
 import hc.core.util.MobileAgent;
 import hc.core.util.StringUtil;
+import hc.server.data.screen.PNGCapturer;
 import hc.util.PropertiesManager;
 
 import java.util.Hashtable;
@@ -51,7 +52,7 @@ public class ClientDesc {
 	}
 	
 	public static String getClientLang(){
-		return clientLang;
+		return (clientLang == null) ? "en-US" : clientLang;
 	}
 	
 	public static String getHCClientVer(){
@@ -78,6 +79,9 @@ public class ClientDesc {
 			serialMobileAgent = HCConfig.getProperty(v, (short)8);
 			agent = MobileAgent.toObject(serialMobileAgent);
 			
+			PNGCapturer.updateColorBit(agent.getColorBit());
+			PNGCapturer.updateRefreshMS(agent.getRefreshMS());
+			
 			final String pWifiIsmobileviawifi = PropertiesManager.p_WiFi_isMobileViaWiFi;
 			if(PropertiesManager.getValue(pWifiIsmobileviawifi) == null || PropertiesManager.isTrue(pWifiIsmobileviawifi) != agent.ctrlWiFi()){
 				PropertiesManager.setValue(pWifiIsmobileviawifi, agent.ctrlWiFi()?IConstant.TRUE:IConstant.FALSE);
@@ -86,8 +90,9 @@ public class ClientDesc {
 		}catch (final Throwable e) {
 		}
 
+		L.V = L.O ? false : LogManager.log("Receive client agent : [" + serialMobileAgent + "]");
 		L.V = L.O ? false : LogManager.log("Receive client desc, w:" + clientWidth + ", h:" + clientHeight 
-				+ ", dpi:" + dpi + ((dpi==0)?"(unknow)":"") + ", hcClientVer:" + hcClientVer + ", xdpi:" + xdpi + ", ydpi:" + ydpi + ", density:" + density + ", agent:[" + serialMobileAgent + "]");
+				+ ", dpi:" + dpi + ((dpi==0)?"(unknow)":"") + ", hcClientVer:" + hcClientVer + ", xdpi:" + xdpi + ", ydpi:" + ydpi + ", density:" + density);
 		L.V = L.O ? false : LogManager.log("  Important : the w (h) maybe not equal to the real width (height) of mobile in pixels, UI may be scaled to the best size.");
 	}
 	public static final int vgap = 5;

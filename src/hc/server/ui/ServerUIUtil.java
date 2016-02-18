@@ -34,7 +34,7 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 
 public class ServerUIUtil {
-	public static final Boolean LOCK = new Boolean(true);
+	public static final Object LOCK = new Object();
 	
 	public static boolean useHARProject = PropertiesManager.isTrue(PropertiesManager.p_IsMobiMenu);
 	private static BaseResponsor responsor;
@@ -196,15 +196,23 @@ public class ServerUIUtil {
 	public static void stop() {
 		CCoreUtil.checkAccess();
 		
-		if(responsor != null && isStared){
-			isStared = false;
+		BaseResponsor snap;
+		synchronized (LOCK) {
+			snap = responsor;
+			if(snap != null && isStared){
+				isStared = false;
+				responsor = null;
+			}
+		}
+		
+		if(snap != null){
 			try{
-				responsor.stop();
+				snap.stop();
 			}catch (final Throwable e) {
 				e.printStackTrace();
 			}
 			
-			if(responsor instanceof MobiUIResponsor){
+			if(snap instanceof MobiUIResponsor){
 				try{
 					final int halfSleep = ResourceUtil.getIntervalSecondsForNextStartup() * 1000 / 2;
 					
@@ -215,8 +223,6 @@ public class ServerUIUtil {
 				}catch (final Exception e) {
 				}
 			}
-
-			responsor = null;
 		}
 	}
 

@@ -339,10 +339,12 @@ class DownloadThread extends Thread {
         	main = null;
         	RootServerConnector.notifyLineOffType("lof=MTD_" + url.toString());
         }  
-        try {
-			raf.close();
-		} catch (final Throwable e) {
-		}
+        if(raf != null){
+	        try {
+				raf.close();
+			} catch (final Throwable e) {
+			}
+        }
     }
 
 	public HttpURLConnection downloadHttp206(final RandomAccessFile raf)

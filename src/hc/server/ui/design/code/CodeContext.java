@@ -34,6 +34,10 @@ public class CodeContext {
 	}
 	
 	private final Node searchBottomNode(final Node startNode, final int rowIdxAtScript){
+		if(startNode == null){
+			return null;
+		}
+		
 		final List<Node> list = startNode.childNodes();
 		if(list == null){
 			return null;

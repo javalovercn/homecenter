@@ -8,6 +8,7 @@ import hc.core.ContextManager;
 import hc.server.util.HCJFrame;
 import hc.util.ResourceUtil;
 import hc.util.UILang;
+
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.Image;
@@ -28,7 +29,7 @@ import javax.swing.event.PopupMenuListener;
 
 public class JPTrayIcon implements PlatformTrayIcon{
 	private final ThreadGroup threadGroupToken = App.getThreadPoolToken();
-	private HashMap<String, String> tip = new HashMap<String, String>();
+	private final HashMap<String, String> tip = new HashMap<String, String>();
 	
 	final ITrayIcon trayIcon;
 	
@@ -53,17 +54,18 @@ public class JPTrayIcon implements PlatformTrayIcon{
 		dialog.setAlwaysOnTop(true);
 	}
 
+	@Override
 	public void exit() {
 		dialog.dispose();
 	}
 	
-	public void putTip(String key, String value){
+	public void putTip(final String key, final String value){
 		tip.put(key, value);
 		
 		//重算ToolTip
 		String toolTip = "";
 		
-		Iterator<String> it = tip.keySet().iterator();
+		final Iterator<String> it = tip.keySet().iterator();
 		while(it.hasNext()){
 			if(toolTip.length() > 0){
 				toolTip += "\n";
@@ -74,28 +76,33 @@ public class JPTrayIcon implements PlatformTrayIcon{
 		trayIcon.setToolTip(toolTip);
 	}
 	
+	@Override
 	public String getToolTip(){
 		return this.toolTip;
 	}
 	
-	public void setToolTip(String tooltip){
+	@Override
+	public void setToolTip(final String tooltip){
 		this.toolTip = tooltip;
 		trayIcon.setToolTip(tooltip);
 	}
 	
+	@Override
 	public void remove(){
 		trayIcon.removeTray();
 	}
 	
-	public void setImage(Image image){
+	@Override
+	public void setImage(final Image image){
 		trayIcon.setImage(image);
 	}
 	
+	@Override
 	public Image getImage(){
 		return trayIcon.getImage();
 	}
 	
-	private ITrayIcon buildTrayIcon(Image image){
+	private ITrayIcon buildTrayIcon(final Image image){
 //		if(ResourceUtil.isWindowsOS()){
 //			return new WindowTrayIcon();
 //		}else{
@@ -116,7 +123,7 @@ public class JPTrayIcon implements PlatformTrayIcon{
 		return new WindowTrayIcon();
 	}
 
-	public JPTrayIcon(final Image image, String toolTip, final JPopupMenu menu) {
+	public JPTrayIcon(final Image image, final String toolTip, final JPopupMenu menu) {
 		trayIcon = buildTrayIcon(image);
 		
 		//要置于setImage之前
@@ -127,13 +134,13 @@ public class JPTrayIcon implements PlatformTrayIcon{
 		trayIcon.setToolTip(toolTip);
 		dialog.addWindowFocusListener(new WindowFocusListener() {
 			@Override
-			public void windowLostFocus(WindowEvent e) {
+			public void windowLostFocus(final WindowEvent e) {
 //				L.V = L.O ? false : LogManager.log("Dialog Lose Focus");
 				App.invokeLaterUI(toDisvisibleRun);
 			}
 			
 			@Override
-			public void windowGainedFocus(WindowEvent e) {
+			public void windowGainedFocus(final WindowEvent e) {
 			}
 		});
 		popupListener = new TrayPopupListener(dialog);
@@ -147,6 +154,7 @@ public class JPTrayIcon implements PlatformTrayIcon{
 //		menu.applyComponentOrientation(ComponentOrientation.getOrientation(l));
 	}
 	
+	@Override
 	public void displayMessage(final String caption, final String text, final MessageType messageType){
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
@@ -161,7 +169,7 @@ public class JPTrayIcon implements PlatformTrayIcon{
 		},threadGroupToken);
 	}
 	
-	public void setDefaultActionListener(ActionListener listen){
+	public void setDefaultActionListener(final ActionListener listen){
 		trayIcon.setDefaultActionListener(listen);
 	}
 
@@ -178,13 +186,13 @@ public class JPTrayIcon implements PlatformTrayIcon{
 	 * @param popmenu
 	 */
 	private final void setJPopupMenu(final JPopupMenu popmenu) {
-		popmenu.applyComponentOrientation(ComponentOrientation.getOrientation(UILang.getUsedLocale()));
-		
 		if (this.menu != null) {
 			this.menu.removePopupMenuListener(popupListener);
 			trayIcon.removeTrayMouseListener(mouseListener);
 		}
 		if (popmenu != null) {
+			popmenu.applyComponentOrientation(ComponentOrientation.getOrientation(UILang.getUsedLocale()));
+
 			this.menu = popmenu;
 			this.menu.addPopupMenuListener(popupListener);
 			trayIcon.addTrayMouseListener(mouseListener);
@@ -212,8 +220,8 @@ public class JPTrayIcon implements PlatformTrayIcon{
 						menu.setVisible(false);
 					}
 
-					int w = menu.getWidth();
-					int h = menu.getHeight();
+					final int w = menu.getWidth();
+					final int h = menu.getHeight();
 
 					if (loc_x + w > screenSize.width) {
 						loc_x = loc_x - w;
@@ -231,10 +239,12 @@ public class JPTrayIcon implements PlatformTrayIcon{
 			});
 		}
 
+		@Override
 		public void mousePressed(final MouseEvent evt) {
 //			showJPopupMenu(evt);
 		}
 
+		@Override
 		public void mouseReleased(final MouseEvent evt) {
 			if (menu != null) {
 				if(evt.isPopupTrigger() ||
@@ -244,6 +254,7 @@ public class JPTrayIcon implements PlatformTrayIcon{
 			}
 		}
 
+		@Override
 		public void mouseClicked(final MouseEvent evt) {
 //			showJPopupMenu(evt);
 		}
@@ -252,7 +263,7 @@ public class JPTrayIcon implements PlatformTrayIcon{
 	private class TrayPopupListener implements PopupMenuListener {
 		Window dialog;
 
-		TrayPopupListener(Window dialog) {
+		TrayPopupListener(final Window dialog) {
 			this.dialog = dialog;
 		}
 

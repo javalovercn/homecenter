@@ -117,6 +117,8 @@ public class PropertiesManager {
 	public static final String p_TrayX = "_Tray_x";
 	public static final String p_TrayY = "_Tray_y";
 	
+	public static final String p_ProjModiTabIdx = "_w_ModiTabIdx";
+
 	public static final String p_LastSampleVer = "LastSampleVer";
 	
 	public static final String p_CapPreview = "CapPreview";
@@ -220,7 +222,7 @@ public class PropertiesManager {
 	
 	private static Properties propertie;
 	static FileLocker locker;
-	private static final Boolean LOCK = new Boolean(true);
+	private static final Object LOCK = new Object();
 	private static final Thread saveThread = buildAndStart();
 	
 	private static boolean isShutdownHook = false;

@@ -131,6 +131,8 @@ public class Mlet extends JPanel implements ICanvas {
 		return __context;
 	}
 	
+	private boolean isKeyOnExit;
+	
 	/**
 	 * you can go to resources as following:<BR>
 	 * 1. open and show a screen/form ({@link #URL_SCREEN}, screen://myMlet, or form://myHtmlMlet), <BR>
@@ -143,6 +145,15 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @since 7.0
 	 */
 	public final void go(final String url){
+		if(url.equals(URL_EXIT)){
+			synchronized (this) {
+		    	if(isKeyOnExit){
+		    		return;
+		    	}
+		    	isKeyOnExit = true;
+	    	}
+		}
+		
 		try {
 //			不需要转码，可直接支持"screen://我的Mlet"
 //			final String encodeURL = URLEncoder.encode(url, IConstant.UTF_8);

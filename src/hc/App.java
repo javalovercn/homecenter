@@ -809,7 +809,7 @@ public class App {
 		}
 	}
 
-	public static void initGlobalFontSetting(final Font fnt) {
+	public static synchronized void initGlobalFontSetting(final Font fnt) {
 		if(defaultFontSetting == null || defaultFontSetting.keySet().size() == 0){
 			defaultFontSetting = new HashMap<Object, Object>();
 			saveDefaultGlobalFontSetting();
@@ -983,10 +983,11 @@ public class App {
 				} else if (dialog instanceof JDialog){
 					rootPane = ((JDialog) dialog).getRootPane();
 				}
-				rootPane.registerKeyboardAction(quitAction,
+				if(rootPane != null){
+					rootPane.registerKeyboardAction(quitAction,
 						KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 						JComponent.WHEN_IN_FOCUSED_WINDOW);
-				
+				}
 				final JPanel bottomPanel = new JPanel();
 				bottomPanel.setLayout(new GridBagLayout());
 		
@@ -1032,7 +1033,9 @@ public class App {
 					} else if (dialog instanceof JDialog){
 						c = ((JDialog) dialog).getContentPane();
 					}
-					c.setLayout(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
+					if(c != null){
+						c.setLayout(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
+					}
 					{
 						final JPanel insetPanel = new JPanel(new GridBagLayout());
 						final GridBagConstraints gc = new GridBagConstraints();
@@ -1042,10 +1045,13 @@ public class App {
 						gc.weightx = 1.0;
 						gc.weighty = 1.0;
 						insetPanel.add(panel, gc);
-						
-						c.add(insetPanel, BorderLayout.CENTER);
+						if(c != null){
+							c.add(insetPanel, BorderLayout.CENTER);
+						}
 					}
-					c.add(bottomPanel, BorderLayout.SOUTH);
+					if(c != null){
+						c.add(bottomPanel, BorderLayout.SOUTH);
+					}
 				}
 				
 				if (dialog instanceof JFrame) {
@@ -1062,7 +1068,9 @@ public class App {
 					}
 				});
 				jbOK.setFocusable(true);
-				rootPane.setDefaultButton(jbOK);
+				if(rootPane != null){
+					rootPane.setDefaultButton(jbOK);
+				}
 				jbOK.requestFocus();
 		
 				if (width == 0 || height == 0) {
@@ -1996,21 +2004,21 @@ public class App {
 			toVIP = new JButton("buy token to be VIP",
 					new ImageIcon(ImageIO.read(ResourceUtil
 							.getResource("hc/res/vip_22.png"))));
+			toVIP.addActionListener(new HCActionListener(new Runnable() {
+				@Override
+				public void run() {
+					String targetURL;
+					try {
+						targetURL = HttpUtil.buildLangURL("pc/vip.htm", null);
+						HttpUtil.browseLangURL(targetURL);
+					} catch (final Exception e1) {
+					}
+				}
+			}, threadPoolToken));
+			jPanel3.add(toVIP, null);
 		} catch (final IOException e1) {
 			e1.printStackTrace();
 		}
-		toVIP.addActionListener(new HCActionListener(new Runnable() {
-			@Override
-			public void run() {
-				String targetURL;
-				try {
-					targetURL = HttpUtil.buildLangURL("pc/vip.htm", null);
-					HttpUtil.browseLangURL(targetURL);
-				} catch (final Exception e1) {
-				}
-			}
-		}, threadPoolToken));
-		jPanel3.add(toVIP, null);
 		jPanel3.add(jbExit, null);
 		showDonate.add(allPanel);
 		showDonate.pack();

@@ -26,7 +26,7 @@ public class ReceiveServer implements Runnable{
 		}
 	}
     
-	private final Boolean LOCK = new Boolean(false);
+	private final Object LOCK = new Object();
 	
 //	private int readFullyShort(final DataInputStream in, final byte b[], final int off, final int len) throws Exception {
 //		int c = 0;
@@ -81,7 +81,6 @@ public class ReceiveServer implements Runnable{
 		long lastReconnAfterResetMS = System.currentTimeMillis();
 		final int WAIT_MODI_STATUS_MS = HCTimer.HC_INTERNAL_MS + 100;
 		final boolean isInWorkshop = L.isInWorkshop;
-		final boolean isClient = ! IConstant.serverSide;
 		
     	while (!isShutdown) {
 			if(dataInputStream == null){
@@ -138,7 +137,7 @@ public class ReceiveServer implements Runnable{
 //				}
 				
 //				L.V = L.O ? false : LogManager.log("Receive data len:" + dataLen);
-				if(isClient && ctrlTag == MsgBuilder.E_TAG_ROOT){
+				if(ctrlTag == MsgBuilder.E_TAG_ROOT){//服务器客户端都走E_TAG_ROOT捷径 isClient && 
 					//由于大数据可能导致过载，所以此处直接处理。
 					ClientInitor.rootTagListener.action(bs);
 					recBytesCacher.cycle(bs);
@@ -223,8 +222,18 @@ public class ReceiveServer implements Runnable{
 						
 						//手机端，因网络不稳定导致意外reset，进入重连模式
             			L.V = L.O ? false : LogManager.log("Network reset error, reconnect...");
-            			ContextManager.getContextInstance().doExtBiz(IContext.BIZ_MOVING_SCREEN_TIP, 
-            					ContextManager.getContextInstance().doExtBiz(IContext.BIZ_I18N_KEY, "m21"));
+            			
+            			if(IConstant.serverSide == false){
+//            				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_MOVING_SCREEN_TIP, 
+//            				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_I18N_KEY, "m21"));
+	        				ContextManager.getContextInstance().displayMessage(
+	        						(String)ContextManager.getContextInstance().doExtBiz(IContext.BIZ_I18N_KEY, String.valueOf(IContext.INFO)), 
+	        						(String)ContextManager.getContextInstance().doExtBiz(IContext.BIZ_I18N_KEY, "m21"), 
+	        						IContext.INFO, null, 0);
+	            			if(ConfigManager.isBackground()){
+	            				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_VIBRATE, new Integer(100));
+	            			}
+            			}
             			
             			boolean succRecon = false;
             			int maxTry = 0;

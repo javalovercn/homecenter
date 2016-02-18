@@ -12,15 +12,15 @@ public class HPProject extends HPNode{
 	public String id, ver, upgradeURL, contact, copyright, desc, license, styles;
 	public ContextSecurityConfig csc;
 	
-	public static String convertProjectIDFromName(String name){
+	public static String convertProjectIDFromName(final String name){
 		return LinkProjectManager.buildSysProjID();
 	}
 
-	public HPProject(int type, String name, String id, String ver, String url,
-			String contact, String copyright, String desc, String license,
-			ContextSecurityConfig csc, String styles) {
+	public HPProject(final int type, final String name, final String i18nName, final String id, final String ver, final String url,
+			final String contact, final String copyright, final String desc, final String license,
+			final ContextSecurityConfig csc, final String styles) {
 		super(type, name);
-		
+		this.i18nMap = HCjar.buildI18nMapFromSerial(i18nName);
 		this.id = id;
 		this.ver = ver;
 		this.upgradeURL = url;
@@ -33,13 +33,15 @@ public class HPProject extends HPNode{
 		this.styles = styles;
 	}
 	
+	@Override
 	public String toString(){
 		return name + ", ver:" + ver;//, ID : " + id + "
 	}
 	
-	public boolean equals(Object obj){
+	@Override
+	public boolean equals(final Object obj){
 		if(obj instanceof HPProject){
-			HPProject cp = (HPProject)obj;
+			final HPProject cp = (HPProject)obj;
 			return cp.id.equals(id);
 		}
 		return false;

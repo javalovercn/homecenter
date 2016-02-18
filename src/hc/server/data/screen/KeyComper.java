@@ -17,14 +17,15 @@ import java.util.Vector;
 public class KeyComper {
 	public static final String ANDROID_KEYEVENT_PREFIX = "KEYCODE_";
 	public static final String J2SE_KEYEVENT_PREFIX = "VK_";
-	private static Robot robot;
+	private static final Robot robot = buildDefaultRobot();
 	
-	public static void init(){
+	private static Robot buildDefaultRobot(){
 		try {
-			robot = new Robot();
+			return new Robot();
 		} catch (final AWTException e) {
 			e.printStackTrace();
 		}
+		return null;
 	}
 	
 	private final HashMap<Integer, Vector<Integer>> keys = new HashMap<Integer, Vector<Integer>>(6);

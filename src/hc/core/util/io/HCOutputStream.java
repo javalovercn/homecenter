@@ -41,7 +41,7 @@ public class HCOutputStream extends OutputStream implements IHCStream{
 	
 	byte[] oneByte;
 	
-	public void write(final int arg0) throws IOException {
+	public final void write(final int arg0) throws IOException {
 		synchronized (this) {
 			if(oneByte == null){
 				oneByte = new byte[1];
@@ -51,7 +51,7 @@ public class HCOutputStream extends OutputStream implements IHCStream{
 		}
 	}
 
-	public void write(final byte[] b) throws IOException{
+	public final void write(final byte[] b) throws IOException{
 		write_0(b, 0, b.length);
 	}
 
@@ -82,14 +82,14 @@ public class HCOutputStream extends OutputStream implements IHCStream{
 		}
 	}
 
-	public void write(final byte[] b, final int off, final int len) throws IOException{
+	public final void write(final byte[] b, final int off, final int len) throws IOException{
 		write_0(b, off, len);
 	}
 	
-	public void flush() throws IOException{
+	public final void flush() throws IOException{
 	}
 	
-	public void close() throws IOException{
+	public final void close() throws IOException{
 		if(L.isInWorkshop){
 			L.V = L.O ? false : LogManager.log("close HCOutputStream : " + streamID);
 		}

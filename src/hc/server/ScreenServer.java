@@ -1,17 +1,14 @@
 package hc.server;
 
-import hc.core.ContextManager;
 import hc.core.EventCenter;
 import hc.core.HCMessage;
 import hc.core.IConstant;
 import hc.core.IEventHCListener;
 import hc.core.L;
 import hc.core.MsgBuilder;
-import hc.core.RootConfig;
 import hc.core.data.DataClientAgent;
 import hc.core.data.DataInputEvent;
 import hc.core.data.DataSelectTxt;
-import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLCacher;
@@ -301,28 +298,9 @@ public class ScreenServer {
 			@Override
 			public final boolean action(final byte[] bs) {
 				//Donate会变量此值，所以不宜做属性。
-				final int colorOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_Color_On_Relay));
-				int mode = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
+				final int mode = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				
-				if(SIPManager.isOnRelay()){
-					if((IConstant.COLOR_STAR_TOP - mode) > colorOnRelay){
-						mode = (IConstant.COLOR_STAR_TOP - colorOnRelay);
-					}
-				}else{
-					final short connMode = ContextManager.getConnectionModeStatus();
-					if(connMode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
-						//取最大值
-						mode = IConstant.COLOR_64_BIT;
-					}else if(connMode == ContextManager.MODE_CONNECTION_PUBLIC_UPNP_DIRECT){
-						mode = Math.min(mode, IConstant.COLOR_16_BIT);
-					}else if(connMode == ContextManager.MODE_CONNECTION_PUBLIC_DIRECT){
-						mode = Math.min(mode, IConstant.COLOR_32_BIT);
-					}
-					
-				}
-
-				L.V = L.O ? false : LogManager.log("Client change colorMode to level : " + (IConstant.COLOR_STAR_TOP - mode) + " (after limited)");
-				PNGCapturer.setColorBit(mode);
+				PNGCapturer.updateColorBit(mode);
 				return true;
 			}});
 		
@@ -335,27 +313,10 @@ public class ScreenServer {
 			@Override
 			public final boolean action(final byte[] bs) {
 				//Donate会变量此值，所以不宜做属性。
-				final int msOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_MS_On_Relay));
 				
-				int millSecond = (int)ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_MSG_DATA);
+				final int millSecond = (int)ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_MSG_DATA);
 				
-				if(SIPManager.isOnRelay()){
-					if(millSecond < msOnRelay){
-						millSecond = msOnRelay;
-					}
-				}else{
-					final short mode = ContextManager.getConnectionModeStatus();
-					if(mode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
-						millSecond = 100;
-					}else if(mode == ContextManager.MODE_CONNECTION_PUBLIC_UPNP_DIRECT){
-						millSecond = Math.min(millSecond, 1000);
-					}else if(mode == ContextManager.MODE_CONNECTION_PUBLIC_DIRECT){
-						millSecond = Math.min(millSecond, 1000);
-					}
-				}
-				
-				L.V = L.O ? false : LogManager.log("Client change refresh MillSecond to:" + millSecond);
-				PNGCapturer.setRefreshMillSecond(millSecond);
+				PNGCapturer.updateRefreshMS(millSecond);
 				return true;
 			}});
 
@@ -375,7 +336,7 @@ public class ScreenServer {
 	}
 	
 	private static boolean isServing = false;
-	private static final Boolean LOCK = new Boolean(false);
+	private static final Object LOCK = new Object();
 		
 	public static boolean isServing(){
 		return isServing;

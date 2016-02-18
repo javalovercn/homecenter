@@ -25,7 +25,7 @@ public class UDPMerger {
 			getProperty(RootConfig.p_Receive_Split_Throw_MS));
     private static int STORE_SPLIT_NUM = 0;
     
-    private static final Boolean LOCK = new Boolean(false);
+    private static final Object LOCK = new Object();
 	private static final HCUDPSubPacketEvent[] TMP_SPLIT_EVENTS = new HCUDPSubPacketEvent[SPLIT_MAX_SIZE];
 	private static final int[] TMP_SPLIT_EVENTS_INDEX = new int[SPLIT_MAX_SIZE];
 	private static final MessageCacher msgCacher = MessageCacher.getInstance();

@@ -34,6 +34,7 @@ public class AcceptReadThread extends Thread {
 	};
 	
 	public static final ByteBufferCacher udpBBCache = new ByteBufferCacher() {
+		@Override
 		public ByteBuffer buildOne() {
 			return ByteBuffer.allocateDirect(
 				RootConfig.getInstance().getIntProperty(RootConfig.p_DefaultUDPSize));
@@ -43,9 +44,9 @@ public class AcceptReadThread extends Thread {
 	private final static ByteBuffer udpBB = udpBBCache.getFree();
 	private final static ByteBuffer udpCtrlBB = ByteBuffer.allocate(1024);
 
-	private ServerSocketChannel ssc;
+	private final ServerSocketChannel ssc;
 	public static final Selector connectSelector = buildSelector();
-	private String ip;
+	private final String ip;
 	private final ActionRead read;
 	private final SelectionKey acceptKey;
 	private final SelectionKey udpSpeedKey;
@@ -53,19 +54,19 @@ public class AcceptReadThread extends Thread {
 	private static Selector buildSelector(){
 		try {
 			return Selector.open();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			return null;
 		}
 	}
 	
-	public AcceptReadThread(String ip, int localPort, int udpSpeedPort, ActionRead ar) throws Exception {
+	public AcceptReadThread(final String ip, final int localPort, final int udpSpeedPort, final ActionRead ar) throws Exception {
 		super("Acceptor");
 		this.read = ar;
 
 		ssc = ServerSocketChannel.open();
 		ssc.configureBlocking(false);
 		this.ip = ip;
-		InetSocketAddress address = new InetSocketAddress(ip, localPort);
+		final InetSocketAddress address = new InetSocketAddress(ip, localPort);
 		ssc.socket().setPerformancePreferences(5, 2, 1);
 		ssc.socket().setReuseAddress(true);
 		ssc.socket().bind(address);
@@ -98,9 +99,11 @@ public class AcceptReadThread extends Thread {
 		try{
 			p1 = UDPPair.getOneInstance();
 			buildUDPPort(ip, p1);
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			e.printStackTrace();
-			p1.reset();
+			if(p1 != null){
+				p1.reset();
+			}
 			return null;
 		}
 			
@@ -108,10 +111,14 @@ public class AcceptReadThread extends Thread {
 		try{
 			p2 = UDPPair.getOneInstance();
 			buildUDPPort(ip, p2);
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			e.printStackTrace();
-			p2.reset();
-			p1.reset();
+			if(p2 != null){
+				p2.reset();
+			}
+			if(p1 != null){
+				p1.reset();
+			}
 			return null;
 		}
 			
@@ -122,8 +129,8 @@ public class AcceptReadThread extends Thread {
 	}
 	
 
-	private void buildUDPPort(String ip, UDPPair up) throws Exception {
-		DatagramChannel channel = DatagramChannel.open();
+	private void buildUDPPort(final String ip, final UDPPair up) throws Exception {
+		final DatagramChannel channel = DatagramChannel.open();
 		channel.configureBlocking(false);
 		channel.socket().bind(new InetSocketAddress(ip, 0));
 //		if(selector == null){
@@ -159,7 +166,7 @@ public class AcceptReadThread extends Thread {
 					udpBBCache.cycle(byteBuf);
 				}
 			}
-		}catch (IOException e) {
+		}catch (final IOException e) {
 			//发生异常时，clear并回收以防泄漏。当进行interestOps时，可能出现为null情形
 			if(byteBuf != null){
 				byteBuf.clear();
@@ -177,13 +184,14 @@ public class AcceptReadThread extends Thread {
 	public void close(){
 		try{
 			ssc.close();
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			e.printStackTrace();
 			L.V = L.O ? false : LogManager.log("close:" + e.getMessage());
 		}
 	}
 
 	
+	@Override
 	public void run() {
 		try{
 			while (true)
@@ -225,7 +233,7 @@ public class AcceptReadThread extends Thread {
 									udpBB.flip();
 									up.target.channel.send(udpBB, up.target.addr);
 								}
-							}catch (Exception e) {
+							}catch (final Exception e) {
 								//复用对象，不回收，遇异常进行clear
 								
 								//此处不能回收
@@ -271,7 +279,7 @@ public class AcceptReadThread extends Thread {
 								
 								L.V = L.O ? false : LogManager.log("UDP setAddrNull for uuid[" + new String(bs, startIdxUUID, bufferDatalen - startIdxUUID) + "], from " + sa.toString());
 							}
-						}catch (Throwable e) {
+						}catch (final Throwable e) {
 							e.printStackTrace();
 						}
 						udpCtrlBB.clear();
@@ -296,7 +304,7 @@ public class AcceptReadThread extends Thread {
 //								L.V = L.O ? false : LogManager.log("[RelayCache] Close OP_WRITE");
 								
 								//关闭OP_WRITE
-								SelectionKey currChannelkey = currChannel.keyFor(connectSelector);
+								final SelectionKey currChannelkey = currChannel.keyFor(connectSelector);
 								currChannelkey.interestOps(SelectionKey.OP_READ);
 							}else{
 								//准备输出数据
@@ -313,7 +321,7 @@ public class AcceptReadThread extends Thread {
 										continue;
 										//继续，所以不用break;
 									}
-								}catch (Exception e) {
+								}catch (final Exception e) {
 									e.printStackTrace();
 									writeBB.clear();
 									bufferDirectCacher.cycle(writeBB);
@@ -322,7 +330,7 @@ public class AcceptReadThread extends Thread {
 									try{
 										//特殊情形下，调用本行是有益的。
 										key.cancel();
-									}catch (Exception e1) {
+									}catch (final Exception e1) {
 									}
 									
 								}
@@ -334,31 +342,31 @@ public class AcceptReadThread extends Thread {
 						acceptSession(key);
 					}
 				}
-				} catch (Exception ex) {
+				} catch (final Exception ex) {
 					//有可能被Cancle的到此
 //					ContextManager.getContextInstance().shutDown();
 				}
 			}
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			L.V = L.O ? false : LogManager.log("Exception : connectSelector.select()");
 //			e.printStackTrace();
 		}
 	}
 	
-	private void acceptSession(SelectionKey key){
+	private void acceptSession(final SelectionKey key){
 		try{
-			ServerSocketChannel readyChannel = (ServerSocketChannel) key.channel();
-			SocketChannel incomingChannel = readyChannel.accept();
+			final ServerSocketChannel readyChannel = (ServerSocketChannel) key.channel();
+			final SocketChannel incomingChannel = readyChannel.accept();
 			
 			if(read.isTop(incomingChannel)){
 				try {
 					incomingChannel.socket().close();
-				} catch (IOException e) {
+				} catch (final IOException e) {
 				}
 				
 				try{
 					incomingChannel.close();
-				}catch (Exception e) {
+				}catch (final Exception e) {
 					
 				}
 				L.V = L.O ? false : LogManager.log("Max channel , close connection!");
@@ -372,11 +380,11 @@ public class AcceptReadThread extends Thread {
 	//			 高可靠性: 0x04 (二进制的倒数第三位为1)
 	//			 最高吞吐量: 0x08 (二进制的倒数第四位为1)
 	//			 最小延迟: 0x10 (二进制的倒数第五位为1)
-				int tc = RootConfig.getInstance().getIntProperty(RootConfig.p_TrafficClass);
+				final int tc = RootConfig.getInstance().getIntProperty(RootConfig.p_TrafficClass);
 				if(tc != 0){
 					try{
 						incomingChannel.socket().setTrafficClass(tc);
-					}catch (Exception e) {
+					}catch (final Exception e) {
 						//部分虚拟机可能不支持该参数
 					}
 				}
@@ -398,11 +406,11 @@ public class AcceptReadThread extends Thread {
 				//KeepAlive_Tag
 				incomingChannel.socket().setKeepAlive(true);
 				incomingChannel.socket().setTcpNoDelay(true);
-				int sendBuff = RootConfig.getInstance().getIntProperty(RootConfig.p_ServerSendBufferSize);
+				final int sendBuff = RootConfig.getInstance().getIntProperty(RootConfig.p_ServerSendBufferSize);
 				if(sendBuff != 0){
 					incomingChannel.socket().setSendBufferSize(sendBuff);
 				}
-				int receiveBuff = RootConfig.getInstance().getIntProperty(RootConfig.p_ServerReceiveBufferSize);
+				final int receiveBuff = RootConfig.getInstance().getIntProperty(RootConfig.p_ServerReceiveBufferSize);
 				if(receiveBuff != 0){
 					incomingChannel.socket().setReceiveBufferSize(receiveBuff);
 				}
@@ -411,7 +419,7 @@ public class AcceptReadThread extends Thread {
 				incomingChannel.register(connectSelector, SelectionKey.OP_READ);
 	
 			}
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -422,24 +430,24 @@ public class AcceptReadThread extends Thread {
 //		isShutdown = true;
 		try {
 			acceptKey.cancel();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 		}
 		try {
 			udpSpeedKey.cancel();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 		}
 		try{
 		connectSelector.close();
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			
 		}
 		try {
 			ssc.close();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 		}
 		try{
 			udpSpeedChannel.close();
-		}catch (Exception e) {
+		}catch (final Exception e) {
 		}
 	}
 

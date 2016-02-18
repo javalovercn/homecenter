@@ -2,13 +2,9 @@ package hc.core.util;
 
 
 public class HCURLCacher {
-	private static HCURLCacher instance;
+	private static final HCURLCacher instance = new HCURLCacher();
 	
 	public final static HCURLCacher getInstance(){
-		if(instance != null){
-		}else{
-			instance = new HCURLCacher();
-		}
 		return instance;
 	}
 	

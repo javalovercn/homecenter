@@ -1,6 +1,7 @@
 package hc.core.util;
 
 import hc.core.IConstant;
+
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -23,12 +24,12 @@ public class StoreableHashMap extends Hashtable {
 		super(initialCapacity);
 	}
 
-	protected String getValueDefault(String key, String defaultValue) {
+	protected final String getValueDefault(String key, String defaultValue) {
 		String v = (String)get(key);
 		return (v == null)?defaultValue:v;
 	}
 
-	public String toSerial() {
+	public final String toSerial() {
 		if(size() == 0){
 			return "";
 		}
@@ -55,7 +56,7 @@ public class StoreableHashMap extends Hashtable {
 		return sb.toString();
 	}
 	
-	private String replace(final String src, final String replaceFrom, final String replaceWith, int startIdx){
+	private final String replace(final String src, final String replaceFrom, final String replaceWith, int startIdx){
 		final StringBuffer sb = new StringBuffer();
 		int oldStartIdx = startIdx;
 		startIdx = src.indexOf(replaceFrom, oldStartIdx);
@@ -76,7 +77,7 @@ public class StoreableHashMap extends Hashtable {
 		return sb.toString();
 	}
 
-	public void restore(String serial) {
+	public final void restore(String serial) {
 		if(serial == null || serial.length() == 0){
 			return;
 		}
@@ -95,7 +96,7 @@ public class StoreableHashMap extends Hashtable {
 		}
 	}
 
-	protected boolean isTrue(String key) {
+	protected final boolean isTrue(String key) {
 		String v = (String)get(key);
 		if(v == null){
 			return false;

@@ -8,6 +8,7 @@ import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
+import hc.core.util.StoreableHashMap;
 import hc.core.util.StringUtil;
 import hc.core.util.WiFiDeviceManager;
 import hc.server.J2SEContext;
@@ -38,14 +39,19 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
+import java.net.URI;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Random;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.imageio.ImageIO;
 import javax.swing.Action;
@@ -293,6 +299,63 @@ public class ResourceUtil {
 			return UILang.getUILang(id);
 		}
 		return null;
+	}
+	
+	private static final HashMap<Integer, StoreableHashMapWithModifyFlag> i18nMap = new HashMap<Integer, StoreableHashMapWithModifyFlag>(4);
+	
+	/**
+	 * 返回全部可用的指定id的uilang的全部map
+	 * @param id
+	 * @return 结果不为null。key = en-US(不是_), value = i18n(id)
+	 */
+	public static StoreableHashMapWithModifyFlag getI18NByResID(final int id){
+		StoreableHashMapWithModifyFlag out = i18nMap.get(id);
+		if(out != null){
+			return out;
+		}
+		
+		out = new StoreableHashMapWithModifyFlag(32);
+		try{
+			final Pattern pattern = Pattern.compile(UILang.UI_LANG_FILE_NAME_PREFIX + "(\\w+)\\.properties$");
+			final URL url = UILang.class.getResource(UILang.UI_LANG_FILE_NAME_PREFIX + "en_US.properties");
+			final URI uri = url.toURI();
+		    if (uri != null && uri.getScheme().equals("jar")) {
+		        final ZipInputStream zip = new ZipInputStream(cldr.getResource("/").openStream());
+		        ZipEntry ze = null;
+		        while( ( ze = zip.getNextEntry() ) != null ) {
+		            final String entryName = ze.getName();
+		            addItem(id, out, pattern, entryName);
+		        }
+		    } else {
+		    	final File file_base = new File(App.getBaseDir(), ".");
+		    	final File[] files = file_base.listFiles();
+		    	for (int i = 0; i < files.length; i++) {
+		    		final File file_temp = files[i];
+		    		final String path = file_temp.getAbsolutePath();
+					addItem(id, out, pattern, path);
+				}
+		    	
+		    }
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}
+		
+	    i18nMap.put(id, out);
+	    return out;
+	}
+
+	private static void addItem(final int id, final StoreableHashMap out,
+			final Pattern pattern, final String path) {
+		final Matcher matcher = pattern.matcher(path.replace('\\', '/'));
+		if(matcher.find()){
+			final String local_ = matcher.group(1);
+			final Hashtable table = UILang.buildResourceBundle(local_);
+			final Object value = table.get(String.valueOf(id));
+			if(value != null){
+				out.put(local_.replace('_', '-'), value);
+//				L.V = L.O ? false : LogManager.log(local_ + " : " + value);
+			}
+		}
 	}
 	
 	private static final ClassLoader cldr = ResourceUtil.class.getClassLoader();

@@ -381,13 +381,13 @@ public class LinkProjectStore extends StoreableHashMap{
 		put(FIELD_PROJ_IS_ACTIVE, (active?IConstant.TRUE:IConstant.FALSE));
 	}
 	
-	public String getLinkScriptName() {
-		String link_Name = getLinkName();
-		if(link_Name.length() == 0){
-			link_Name = getMenuName();
-		}
-		return link_Name;
-	}
+//	public String getLinkScriptName() {
+//		String link_Name = getLinkName();
+//		if(link_Name.length() == 0){
+//			link_Name = getMenuName();
+//		}
+//		return link_Name;
+//	}
 
 	public void copyFrom(final Map<String, Object> map) {
 		setVersion((String)map.get(HCjar.PROJ_VER));

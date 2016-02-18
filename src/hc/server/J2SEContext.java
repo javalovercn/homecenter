@@ -1018,16 +1018,16 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 							iconPower.setFont(font);
 //									iconPower.setBorderPainted(true);
 							iconPower.setBorder(BorderFactory.createEmptyBorder());
+							iconPower.addActionListener(new HCActionListener(new Runnable() {
+								@Override
+								public void run() {
+									HttpUtil.browse("http://www.artdesigner.lv");
+								}
+							}, threadPoolToken));
+							iconPower.setFocusable(false);
+							panel.add(iconPower);
 						} catch (final IOException e2) {
 						}
-						iconPower.addActionListener(new HCActionListener(new Runnable() {
-							@Override
-							public void run() {
-								HttpUtil.browse("http://www.artdesigner.lv");
-							}
-						}, threadPoolToken));
-						iconPower.setFocusable(false);
-						panel.add(iconPower);
 					}
 					JButton jbMail = null;
 					try {
@@ -1040,27 +1040,27 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						jbMail.setFont(font);
 						jbMail.setBorderPainted(true);
 						jbMail.setBorder(BorderFactory.createEmptyBorder());
+						jbMail.addActionListener(new HCActionListener(new Runnable() {
+							@Override
+							public void run() {
+					            final Desktop desktop = Desktop.getDesktop();  
+					            if (Desktop.isDesktopSupported() && desktop.isSupported(Desktop.Action.MAIL)) {  
+					                try {
+										desktop.mail(new java.net.URI("mailto:help@homecenter.mobi?subject=[HomeCenter.MOBI]%20Help%20:%20"));
+									} catch (final Exception e1) {
+						            	App.showConfirmDialog(dialog, "Unable call operating system sending mail function!", "Error", JOptionPane.ERROR_MESSAGE);
+									}  
+					            }else{
+					            	App.showConfirmDialog(dialog, "Unable call operating system sending mail function!", "Error", JOptionPane.ERROR_MESSAGE);
+					            }
+		
+							}
+						}, threadPoolToken));
+						jbMail.setFocusable(false);
+						panel.add(jbMail);
 					} catch (final IOException e2) {
 						e2.printStackTrace();
 					}
-					jbMail.addActionListener(new HCActionListener(new Runnable() {
-						@Override
-						public void run() {
-				            final Desktop desktop = Desktop.getDesktop();  
-				            if (Desktop.isDesktopSupported() && desktop.isSupported(Desktop.Action.MAIL)) {  
-				                try {
-									desktop.mail(new java.net.URI("mailto:help@homecenter.mobi?subject=[HomeCenter.MOBI]%20Help%20:%20"));
-								} catch (final Exception e1) {
-					            	App.showConfirmDialog(dialog, "Unable call operating system sending mail function!", "Error", JOptionPane.ERROR_MESSAGE);
-								}  
-				            }else{
-				            	App.showConfirmDialog(dialog, "Unable call operating system sending mail function!", "Error", JOptionPane.ERROR_MESSAGE);
-				            }
-	
-						}
-					}, threadPoolToken));
-					jbMail.setFocusable(false);
-					panel.add(jbMail);
 	
 					jbOK.addActionListener(disposeAction);
 					panel.add(jbOK);
@@ -1988,6 +1988,12 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		if(statusTo == ContextManager.STATUS_SERVER_SELF){
 //			L.V = L.O ? false : LogManager.log("set setIntervalMS to " + KeepaliveManager.KEEPALIVE_MS);
 			KeepaliveManager.keepalive.setIntervalMS(KeepaliveManager.KEEPALIVE_MS);
+			
+			//由于接收菜单大数据可能需要消耗较多时间，故resetTimerCount变相增加时间量。
+			//注意：要置于上行之后，以使用新的时间间隔来重算
+			KeepaliveManager.keepalive.resetTimerCount();
+			
+			KeepaliveManager.resetSendData();//为接收Menu增加时间
 		}
 	}
 	
@@ -2053,11 +2059,11 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 	public static final String MAX_HC_VER = "9999999";//注意与Starter.NO_UPGRADE_VER保持同步
 	
-	private final String minMobiVerRequiredByServer = "7.0";//(含)，
+	private final String minMobiVerRequiredByServer = "7.1";//(含)，
 	//你可能 还 需要修改服务器版本，StarterManager HCVertion = "6.97";
 	
 	public static final String getSampleHarVersion(){
-		return "7.1";
+		return "7.2";
 	}
 	
 	private void flipAutoUpgrade(final JCheckBoxMenuItem upgradeItem,

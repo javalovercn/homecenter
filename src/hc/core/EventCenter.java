@@ -39,24 +39,25 @@ public class EventCenter {
 		}
 	}
 	
-	public static void remove(IEventHCListener listener){
-		if(listener == null){
-			return;
-		}
-		
-		synchronized (listens) {
-			for (int i = 0; i < size; i++) {
-				if(listens[i] == listener){
-					for (int j = i, endIdx = size - 1; j < endIdx; ) {
-						listens[j] = listens[j + 1];
-						listen_types[j] = listen_types[++j];
-					}
-					size--;
-					return;
-				}
-			}
-		}
-	}
+//	由于remove导致不可预知的问题，比如在action返回false时，导致消息被重复执行。所以关闭
+//	public static void remove(IEventHCListener listener){
+//		if(listener == null){
+//			return;
+//		}
+//		
+//		synchronized (listens) {
+//			for (int i = 0; i < size; i++) {
+//				if(listens[i] == listener){
+//					for (int j = i, endIdx = size - 1; j < endIdx; ) {
+//						listens[j] = listens[j + 1];
+//						listen_types[j] = listen_types[++j];
+//					}
+//					size--;
+//					return;
+//				}
+//			}
+//		}
+//	}
 	
 	//不回收
 	static final void action(final byte ctrlTag, final byte[] event, final NestAction nestAction){
@@ -65,22 +66,27 @@ public class EventCenter {
 			return;
 		}
 		
-		boolean finished = false;
-		try{
-			synchronized (listens) {
-				for (int i = 0; i < size; i++) {
-					if(listen_types[i] == ctrlTag && listens[i].action(event)){
-						finished = true;
-						break;
-					}
+		int i = 0;
+		final int searchSize = size;//注意：没有remove(listener)
+		while(i < searchSize){
+			IEventHCListener listener = null;
+			for (; true; i++) {
+				if(listen_types[i] == ctrlTag){
+					listener = listens[i];
+					break;
 				}
 			}
-			if(finished == false){
-				hc.core.L.V=hc.core.L.O?false:LogManager.log("Unused HCEvent, [BizType:" + ctrlTag + "]");
+			if(listener != null){
+				try{
+					if(listener.action(event)){
+						return;
+					}
+				}catch (Throwable e) {
+					e.printStackTrace();
+				}
 			}
-		}catch (Exception e) {
-			e.printStackTrace();
 		}
+		L.V = L.O ? false : LogManager.log("Unused HCEvent, [BizType:" + ctrlTag + "]");
 		
 //		if(event.isUseNormalBS == false){
 //			event.releaseUseBlobBs();

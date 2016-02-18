@@ -31,8 +31,6 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -40,7 +38,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
 
 public abstract class SocketEditPanel extends JPanel{
 	final ThreadGroup threadPoolToken = App.getThreadPoolToken();
@@ -76,7 +73,7 @@ public abstract class SocketEditPanel extends JPanel{
 	JPanel mainEditPanel = new JPanel();
 	private boolean isSelectModify = true;
 	
-	public final void switchEditable(boolean isEdit){
+	public final void switchEditable(final boolean isEdit){
 		mainEditPanel.setEnabled(isEdit);
 		tableList.setEnabled(isEdit);
 		hostField.setEnabled(isEdit);
@@ -134,18 +131,18 @@ public abstract class SocketEditPanel extends JPanel{
 		
 		final AbstractTableModel modelSocket = new AbstractTableModel() {
 			@Override
-			public Object getValueAt(int rowIndex, int columnIndex) {
+			public Object getValueAt(final int rowIndex, final int columnIndex) {
 				if(rowIndex >= allowSockets.size()){
 					return "";
 				}
 				
-				SocketDesc socket = allowSockets.elementAt(rowIndex);
+				final SocketDesc socket = allowSockets.elementAt(rowIndex);
 				if(columnIndex == columnHost){
 					return socket.isIPMode()?socket.getIp():socket.getHost();
 				}else if(columnIndex == columnPort){
-					String port = socket.getPort();
-					String portFrom = socket.getPortFrom();
-					String portTo = socket.getPortTo();
+					final String port = socket.getPort();
+					final String portFrom = socket.getPortFrom();
+					final String portTo = socket.getPortTo();
 					return socket.isRangeMode()?(((portFrom==null)?"":portFrom) + " - " + ((portTo==null)?"":portTo)):port;
 				}else if(columnIndex == columnAction){
 					return socket.getActionDesc();
@@ -161,7 +158,7 @@ public abstract class SocketEditPanel extends JPanel{
 				return columnNum;
 			}
 			@Override
-			public String getColumnName(int columnIndex) {
+			public String getColumnName(final int columnIndex) {
 				if(columnIndex == columnHost){
 					return "Host";
 				}else if(columnIndex == columnPort){
@@ -176,7 +173,7 @@ public abstract class SocketEditPanel extends JPanel{
 		tableList = new JTable(modelSocket);
 		tableList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 		
-		HCEnableHeaderRenderer oldRend = new HCEnableHeaderRenderer(tableList.getTableHeader().getDefaultRenderer());
+		final HCEnableHeaderRenderer oldRend = new HCEnableHeaderRenderer(tableList.getTableHeader().getDefaultRenderer());
 		tableList.getTableHeader().setDefaultRenderer(oldRend);
 		
 		tableList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -187,18 +184,19 @@ public abstract class SocketEditPanel extends JPanel{
 			        if (lsm.isSelectionEmpty()) {
 			        	return;
 			        } else {
-			            int minIndex = lsm.getMinSelectionIndex();
-			            int maxIndex = lsm.getMaxSelectionIndex();
+			            final int minIndex = lsm.getMinSelectionIndex();
+			            final int maxIndex = lsm.getMaxSelectionIndex();
 			            for (int i = minIndex; i <= maxIndex; i++) {
 			                if (lsm.isSelectedIndex(i)) {
 			                	currRow = i;
 			                	ContextManager.getThreadPool().run(new Runnable() {
-			    					public void run() {
+			    					@Override
+									public void run() {
 					                	isSelectModify = true;
 					                	updateFieldsFromTable();
 					                	try{
 					                		Thread.sleep(ThreadPriorityManager.UI_WAIT_MS);
-					                	}catch (Exception e) {
+					                	}catch (final Exception e) {
 										}
 					                	isSelectModify = false;
 			    					}}, threadPoolToken);
@@ -210,27 +208,27 @@ public abstract class SocketEditPanel extends JPanel{
 			}
 		});
 		
-		int columnSize = 10;
-		int portColumnSize = 4;
+		final int columnSize = 10;
+		final int portColumnSize = 4;
 		
 		final KeyListener refreshListener = new KeyListener() {
 			@Override
-			public void keyTyped(KeyEvent e) {
+			public void keyTyped(final KeyEvent e) {
 			}
 			
 			@Override
-			public void keyReleased(KeyEvent e) {
-			}
-			
-			@Override
-			public void keyPressed(KeyEvent e) {
+			public void keyReleased(final KeyEvent e) {
 				App.invokeLaterUI(updateTableFromFields);
+			}
+			
+			@Override
+			public void keyPressed(final KeyEvent e) {
 			}
 		};
 		
 		final ChangeListener changeListener = new ChangeListener() {
 			@Override
-			public void stateChanged(ChangeEvent e) {
+			public void stateChanged(final ChangeEvent e) {
 				App.invokeLaterUI(updateTableFromFields);
 			}
 		};
@@ -265,16 +263,16 @@ public abstract class SocketEditPanel extends JPanel{
 		hostAndIPGroup.add(hostRadioBtn);
 		hostRadioBtn.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				boolean isHost = hostRadioBtn.isSelected();
+			public void actionPerformed(final ActionEvent e) {
+				final boolean isHost = hostRadioBtn.isSelected();
 				switchToHost(isHost);
 			}
 		});
 		hostAndIPGroup.add(ipRadioBtn);
 		ipRadioBtn.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				boolean isIP = ipRadioBtn.isSelected();
+			public void actionPerformed(final ActionEvent e) {
+				final boolean isIP = ipRadioBtn.isSelected();
 				switchToHost(!isIP);
 			}
 		});
@@ -282,22 +280,22 @@ public abstract class SocketEditPanel extends JPanel{
 		portAndRangeGroup.add(portRadioBtn);
 		portRadioBtn.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				boolean isPort = portRadioBtn.isSelected();
+			public void actionPerformed(final ActionEvent e) {
+				final boolean isPort = portRadioBtn.isSelected();
 				switchToPort(isPort);
 			}
 		});
 		portAndRangeGroup.add(rangeRadioBtn);
 		rangeRadioBtn.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				boolean isRange = rangeRadioBtn.isSelected();
+			public void actionPerformed(final ActionEvent e) {
+				final boolean isRange = rangeRadioBtn.isSelected();
 				switchToPort(!isRange);
 			}
 		});
 		
-		JPanel editPanel = new JPanel(new GridBagLayout());
-		GridBagConstraints editgc = new GridBagConstraints();
+		final JPanel editPanel = new JPanel(new GridBagLayout());
+		final GridBagConstraints editgc = new GridBagConstraints();
 		editgc.fill = GridBagConstraints.BOTH;
 		editgc.weightx = 1.0;
 		editgc.weighty = 1.0;
@@ -322,8 +320,8 @@ public abstract class SocketEditPanel extends JPanel{
 			portPanel.add(rangeRadioBtn);
 			
 			{
-				JPanel subPanel = new JPanel(new GridBagLayout());
-				GridBagConstraints c = new GridBagConstraints();
+				final JPanel subPanel = new JPanel(new GridBagLayout());
+				final GridBagConstraints c = new GridBagConstraints();
 				c.fill = GridBagConstraints.BOTH;
 				c.weightx = 1.0;
 				c.weighty = 1.0;
@@ -373,18 +371,18 @@ public abstract class SocketEditPanel extends JPanel{
 		
 		mainEditPanel.setLayout(new GridBagLayout());
 		{
-			GridBagConstraints c = new GridBagConstraints();
+			final GridBagConstraints c = new GridBagConstraints();
 			c.gridy = 0;
 			c.fill = GridBagConstraints.BOTH;
 			c.weightx = 1.0;
 			c.weighty = 1.0;
 			final JScrollPane scrollPane = new JScrollPane(tableList);
 			scrollPane.setPreferredSize(new Dimension(500, 80));
-			JPanel panel = new JPanel(new BorderLayout());
+			final JPanel panel = new JPanel(new BorderLayout());
 			panel.add(scrollPane, BorderLayout.CENTER);
 			{
-				JPanel btnList = new JPanel(new GridBagLayout());
-				GridBagConstraints gc = new GridBagConstraints();
+				final JPanel btnList = new JPanel(new GridBagLayout());
+				final GridBagConstraints gc = new GridBagConstraints();
 				gc.fill = GridBagConstraints.NONE;
 				btnList.add(addBtn, gc);
 				gc.gridy = 1;
@@ -394,7 +392,7 @@ public abstract class SocketEditPanel extends JPanel{
 			mainEditPanel.add(panel, c);
 		}
 		{
-			GridBagConstraints c = new GridBagConstraints();
+			final GridBagConstraints c = new GridBagConstraints();
 			c.gridy = 1;
 			c.fill = GridBagConstraints.BOTH;
 			c.weightx = 1.0;
@@ -402,7 +400,7 @@ public abstract class SocketEditPanel extends JPanel{
 			mainEditPanel.add(editPanel, c);
 		}
 		{
-			GridBagConstraints c = new GridBagConstraints();
+			final GridBagConstraints c = new GridBagConstraints();
 			c.gridy = 2;
 			c.fill = GridBagConstraints.BOTH;
 			c.weightx = 1.0;
@@ -410,9 +408,9 @@ public abstract class SocketEditPanel extends JPanel{
 			formatPanel = new JPanel(new BorderLayout());
 			formatPanel.setBorder(new TitledBorder("host and port examples :"));
 			descLabel = new JLabel("<html>" +
-					" <STRONG>·</STRONG> www.sun.com:80" +
+					" <STRONG>·</STRONG> www.sun.com" +
 					//", *.sun.com:80" +
-					", [::ffff:8.8.8.8]:80" +
+					", [::ffff:8.8.8.8]" +
 					"<br> <STRONG>·</STRONG> 8.8.8.8:1234" +
 					", 8.8.8.8:1234-" +
 					"<br> <STRONG>·</STRONG> localhost:1024-" +
@@ -444,12 +442,13 @@ public abstract class SocketEditPanel extends JPanel{
 	public abstract boolean isSocketLimitOn();
 	
 	private final Runnable updateTableFromFields = new Runnable() {
+		@Override
 		public void run() {
 			if(allowSockets == null || allowSockets.size() == 0){
 				return;
 			}
 			
-			SocketDesc socket = allowSockets.elementAt(currRow);
+			final SocketDesc socket = allowSockets.elementAt(currRow);
 			
 			if(hostField.isEnabled()){
 				socket.setHost(hostField.getText());
@@ -485,7 +484,7 @@ public abstract class SocketEditPanel extends JPanel{
 		}
 	};
 	
-	public final void refresh(ContextSecurityConfig csc){
+	public final void refresh(final ContextSecurityConfig csc){
 		if(csc != null){//有可能为null，比如测试
 			loadFromCSC(csc);
 		}
@@ -504,7 +503,7 @@ public abstract class SocketEditPanel extends JPanel{
 			return;
 		}
 		
-		SocketDesc socket = allowSockets.elementAt(currRow);
+		final SocketDesc socket = allowSockets.elementAt(currRow);
 		
 		{
 			final boolean isIPAddr = socket.isIPMode();
@@ -524,7 +523,7 @@ public abstract class SocketEditPanel extends JPanel{
 		}
 		
 		{
-			boolean isRange = socket.isRangeMode();
+			final boolean isRange = socket.isRangeMode();
 			
 			if(isRange){
 				portField.setText("");
@@ -569,7 +568,7 @@ public abstract class SocketEditPanel extends JPanel{
 		rangeRadioBtn.setSelected(false);
 	}
 	
-	private final void setInitEditPanelEnable(boolean isEnable){
+	private final void setInitEditPanelEnable(final boolean isEnable){
 		hostRadioBtn.setEnabled(isEnable);
 		portRadioBtn.setEnabled(isEnable);
 		ipRadioBtn.setEnabled(isEnable);
@@ -594,7 +593,7 @@ public abstract class SocketEditPanel extends JPanel{
 				setInitEditPanelEnable(true);
 				
 				ContextSecurityConfig.addDefaultNewSocket(allowSockets);
-				int size = allowSockets.size();
+				final int size = allowSockets.size();
 				tableList.setRowSelectionInterval(size - 1, size - 1);
 				
 				deleteBtn.setEnabled(true);
@@ -610,10 +609,10 @@ public abstract class SocketEditPanel extends JPanel{
 		
 		deleteBtn.addActionListener(new HCActionListener(){
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(final ActionEvent e) {
 				notifyModify();
 				
-				int currRow = tableList.getSelectedRow();
+				final int currRow = tableList.getSelectedRow();
 				
 				allowSockets.remove(currRow);
 				
@@ -637,7 +636,7 @@ public abstract class SocketEditPanel extends JPanel{
 							tableList.setRowSelectionInterval(size - 1, size - 1);
 						}
 					}
-				}catch (Exception ex) {
+				}catch (final Exception ex) {
 					ex.printStackTrace();
 				}
 				tableList.updateUI();
@@ -645,7 +644,7 @@ public abstract class SocketEditPanel extends JPanel{
 		});
 	}
 	
-	private final void switchToHost(boolean isHost) {
+	private final void switchToHost(final boolean isHost) {
 		hostField.setEnabled(isHost);
 		ipField.setEnabled(!isHost);
 
@@ -665,13 +664,13 @@ public abstract class SocketEditPanel extends JPanel{
 		tableList.updateUI();
 	}
 	
-	public final void loadFromCSC(ContextSecurityConfig csc){
+	public final void loadFromCSC(final ContextSecurityConfig csc){
 		csc.loadToVector();
 		csc.copyToSocketPanel(this);
 		updateFieldsFromTable();
 	}
 
-	private final void switchToPort(boolean isPort) {
+	private final void switchToPort(final boolean isPort) {
 		portField.setEnabled(isPort);
 		portFromField.setEnabled(!isPort);
 		portToField.setEnabled(!isPort);
@@ -697,10 +696,10 @@ public abstract class SocketEditPanel extends JPanel{
 		notifySocketLimitOn(limitOn);
 		switchEditable(limitOn);
 		
-		HCEnableHeaderRenderer hr = (HCEnableHeaderRenderer)tableList.getTableHeader().getDefaultRenderer();
+		final HCEnableHeaderRenderer hr = (HCEnableHeaderRenderer)tableList.getTableHeader().getDefaultRenderer();
 		hr.setEnabled(limitOn);
 		
-		DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer();
+		final DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer();
 		dtcr.setEnabled(limitOn);
 		for (int i = 0; i < columnNum; i++) {
 			tableList.getColumnModel().getColumn(i).setCellRenderer(dtcr);

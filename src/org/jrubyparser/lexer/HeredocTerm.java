@@ -60,19 +60,20 @@ public class HeredocTerm extends StrTerm {
     // since it parses in order (so it has no need to put lastLine back).
     private final String lastLine;
     
-    public HeredocTerm(String marker, int func, String lastLine) {
+    public HeredocTerm(final String marker, final int func, final String lastLine) {
         this.marker = marker;
         this.flags = func;
         this.lastLine = lastLine;
     }
     
-    public int parseString(Lexer lexer, LexerSource src) throws java.io.IOException {
-        boolean indent = (flags & Lexer.STR_FUNC_INDENT) != 0;
+    @Override
+	public int parseString(final Lexer lexer, final LexerSource src) throws java.io.IOException {
+        final boolean indent = (flags & Lexer.STR_FUNC_INDENT) != 0;
 
         if (src.peek(Lexer.EOF)) syntaxError(src);
 
         if (lexer.getPreserveSpaces()) {
-            boolean done = src.matchMarker(marker, indent, true);
+            final boolean done = src.matchMarker(marker, indent, true);
             if (done) {
                 lexer.yaccValue = new StrNode(lexer.getPosition(), "");
                 lexer.setStrTerm(new StringTerm(-1, '\0', '\0'));
@@ -88,7 +89,7 @@ public class HeredocTerm extends StrTerm {
             return Tokens.tSTRING_END;
         }
 
-        CStringBuilder str = new CStringBuilder();
+        final CStringBuilder str = new CStringBuilder();
         SourcePosition position;
         
         if ((flags & Lexer.STR_FUNC_EXPAND) == 0) {
@@ -125,7 +126,7 @@ public class HeredocTerm extends StrTerm {
             // MRI has extra pointer which makes our code look a little bit more strange 
             // in comparison.
             do {
-                StringTerm stringTerm = new StringTerm(flags, '\0', '\n');
+                final StringTerm stringTerm = new StringTerm(flags, '\0', '\n');
                 stringTerm.processingEmbedded = processingEmbedded;
                 if ((c = stringTerm.parseStringIntoBuffer(lexer, src, str)) == Lexer.EOF) {
                      syntaxError(src);
@@ -163,7 +164,7 @@ public class HeredocTerm extends StrTerm {
         return Tokens.tSTRING_CONTENT;
     }
     
-    private void syntaxError(LexerSource src) {
+    private void syntaxError(final LexerSource src) {
         throw new SyntaxException(PID.STRING_MARKER_MISSING, src.getPosition(), "can't find string \"" + marker
                 + "\" anywhere before EOF", marker);
     }
@@ -172,7 +173,8 @@ public class HeredocTerm extends StrTerm {
      * Report whether this string should be substituting things like \n into newlines.
      * E.g. are we dealing with a "" string or a '' string (or their alternate representations)
      */
-    public boolean isSubstituting() {
+    @Override
+	public boolean isSubstituting() {
         return (flags & Lexer.STR_FUNC_EXPAND) != 0;
     }
 
@@ -183,7 +185,8 @@ public class HeredocTerm extends StrTerm {
      * lexing parts of a string (since they can be split up due to
      * Ruby embedding like "Evaluated by Ruby: #{foo}".
      */
-    public Object getMutableState() {
+    @Override
+	public Object getMutableState() {
         return new MutableTermState(processingEmbedded);
     }
 
@@ -191,28 +194,30 @@ public class HeredocTerm extends StrTerm {
      * Apply the given state object (earlier returned by {@link getMutableState})
      * to this StringTerm to revert state to the earlier snapshot.
      */
-    public void setMutableState(Object o) {
-        MutableTermState state = (MutableTermState) o;
+    @Override
+	public void setMutableState(final Object o) {
+        final MutableTermState state = (MutableTermState) o;
 
         if (state != null) processingEmbedded = state.processingEmbedded;
     }
 
-    public void splitEmbeddedTokens() {
+    @Override
+	public void splitEmbeddedTokens() {
         if (processingEmbedded == IGNORE_EMBEDDED) processingEmbedded = LOOKING_FOR_EMBEDDED;
     }
 
-    private void unreadLastLine(LexerSource src) {
+    private void unreadLastLine(final LexerSource src) {
         if (lastLine != null) src.unreadMany(lastLine);
     }
 
     private class MutableTermState {
-        private MutableTermState(int embeddedCode) {
+        private MutableTermState(final int embeddedCode) {
             this.processingEmbedded = embeddedCode;
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if (obj == null && getClass() != obj.getClass()) return false;
+        public boolean equals(final Object obj) {
+            if (obj == null) return false;
 
             final MutableTermState other = (MutableTermState) obj;
 
@@ -229,13 +234,13 @@ public class HeredocTerm extends StrTerm {
             return "HeredocTermState[" + processingEmbedded + "]";
         }
 
-        private int processingEmbedded;
+        private final int processingEmbedded;
     }
 
     // Equals - primarily for unit testing (incremental lexing tests
     // where we do full-file-lexing and compare state to incremental lexing)
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null || getClass() != obj.getClass()) return false;
 
         final HeredocTerm other = (HeredocTerm) obj;

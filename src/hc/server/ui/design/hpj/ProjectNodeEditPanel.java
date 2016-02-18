@@ -5,6 +5,7 @@ import hc.core.IContext;
 import hc.server.HCActionListener;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.HCPermissionConstant;
+import hc.server.ui.design.I18nTitlesEditor;
 import hc.server.util.ContextSecurityConfig;
 import hc.util.ResourceUtil;
 import hc.util.SocketEditPanel;
@@ -15,6 +16,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.net.URL;
@@ -66,6 +69,27 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 	
 	public ProjectNodeEditPanel(){
 		super();
+		
+		{
+			final JButton i18nBtn = new JButton(BaseMenuItemNodeEditPanel.I18N_BTN_TEXT);
+			i18nBtn.setToolTipText(BaseMenuItemNodeEditPanel.buildI18nButtonTip(nameLabel));
+			i18nBtn.addActionListener(new HCActionListener(new Runnable() {
+				@Override
+				public void run() {
+					I18nTitlesEditor.showEditor(item.i18nMap, new ActionListener() {
+						@Override
+						public void actionPerformed(final ActionEvent e) {
+							if(item.i18nMap.isModified()){
+								notifyModified();
+								item.i18nMap.clearModifyTag();
+							}
+						}
+					}, i18nBtn, designer);
+					
+				}
+			}, threadPoolToken));
+			namePanel.add(i18nBtn);
+		}
 		
 		idPanel.setLayout(new FlowLayout(FlowLayout.LEADING));
 		final JLabel idLabel = new JLabel("ID : ");

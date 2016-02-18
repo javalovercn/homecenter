@@ -1,5 +1,6 @@
 package hc.core;
 
+
 public class ThreadTimer extends Thread {
 	final HCTimer timer;
 	boolean isShutDown = false;
@@ -9,9 +10,7 @@ public class ThreadTimer extends Thread {
 		start();
 	}
 	
-	private static final int TT_INTERNAL_MS = 1000;
-	
-	public void notifyShutdown(){
+	public final void notifyShutdown(){
 		isShutDown = true;
 		synchronized (timer) {
 			timer.notify();
@@ -20,14 +19,20 @@ public class ThreadTimer extends Thread {
 	
 	public void run(){
 		final NestAction nestAction = EventCenter.nestAction;
-		long min_wait_mill_second = HCTimer.TEMP_MAX;
+		
 		while (!isShutDown) {
-			min_wait_mill_second = HCTimer.TEMP_MAX;
-			
 			if(timer.isEnable){
-				final long left = timer.nextExecMS;
-				if(min_wait_mill_second > left){
-					min_wait_mill_second = left;
+				final long nowMS = System.currentTimeMillis();
+				final long sleepMS = timer.nextExecMS - nowMS;
+				if(sleepMS > 0){
+					synchronized (timer) {
+						try {
+							timer.wait(sleepMS);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						continue;
+					}		
 				}
 			}else{
 				synchronized (timer) {
@@ -36,27 +41,6 @@ public class ThreadTimer extends Thread {
 					} catch (final InterruptedException e) {
 						e.printStackTrace();
 					}
-					continue;
-				}
-			}
-			
-//			L.V = L.O ? false : LogManager.log("HCTimer Main sleep:" + min_wait_mill_second);
-			final long nowExecMS = System.currentTimeMillis();
-			
-			long sleepMS = min_wait_mill_second - nowExecMS;
-			if(sleepMS > 0){
-				boolean isContinue = false;
-				if(min_wait_mill_second > (nowExecMS + TT_INTERNAL_MS)){
-					sleepMS = TT_INTERNAL_MS;
-					isContinue = true;
-				}
-
-				try {
-//					L.V = L.O ? false : LogManager.log("ThreadTimer sleep : " + sleepMS);
-					Thread.sleep(sleepMS);
-                } catch (final Exception e) {
-                }
-				if(isContinue){
 					continue;
 				}
 			}

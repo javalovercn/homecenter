@@ -48,7 +48,7 @@ public class SessionConnector {
 	//投入使用，则状态为false；回收后，则状态为true
 	public boolean isNewStatus = true;
 	
-	public static boolean resetXXSideUDPAddressNull(final byte[] bs, int offset, int len, final boolean isServer,
+	public static boolean resetXXSideUDPAddressNull(final byte[] bs, final int offset, final int len, final boolean isServer,
 			final byte udpRandomHead0, final byte udpRandomHead1){
 		final SessionConnector sc = RelayManager.tdn[len].getNodeData(bs, offset, offset + len);
 		if(sc != null){
@@ -70,24 +70,25 @@ public class SessionConnector {
 		return false;
 	}
 	
-	public SessionConnector(ByteBufferCacher bbCache) {
+	public SessionConnector(final ByteBufferCacher bbCache) {
 		writeToServerBackSet = new LinkedSet();
 		writeToClientBackSet = new LinkedSet();
 		
 		this.bbCache = bbCache;
 	}
 	
-	public boolean isReset(boolean serverOrClient){
+	public boolean isReset(final boolean serverOrClient){
 		return serverOrClient?isServerReset:isClientReset;
 	}
 	
-	public void setReset(boolean serverOrClient, boolean isLineOff){
-		if((serverOrClient == false)//手机端 
-				&& isLineOff){//产生断线事件
-			//手机端不能启动重置连接逻辑，因为手机端的环境复杂性，将保持手机端支持无TCP下，仅UDP的工作状态。
-			L.V = L.O ? false : LogManager.log("mobile offline, skip resetTimer");
-			return;
-		}
+	public final void setReset(final boolean serverOrClient, final boolean isLineOff){
+//		改为仅TCP模式
+//		if((serverOrClient == false)//手机端 
+//				&& isLineOff){//产生断线事件
+//			//手机端不能启动重置连接逻辑，因为手机端的环境复杂性，将保持手机端支持无TCP下，仅UDP的工作状态。
+//			L.V = L.O ? false : LogManager.log("mobile offline, skip resetTimer");
+//			return;
+//		}
 		
 		if(isLineOff){
 			if(resetTimer == null){
@@ -102,7 +103,7 @@ public class SessionConnector {
 					}
 					
 					@Override
-					public void setEnable(boolean enable){
+					public void setEnable(final boolean enable){
 						L.V = L.O ? false : LogManager.log("ResetTimer : " + enable);
 						super.setEnable(enable);
 					}
@@ -213,7 +214,7 @@ public class SessionConnector {
 	public String getUUIDString(){
 		try {
 			return new String(uuidbs.bytes, 0, uuidbs.len, IConstant.UTF_8);
-		} catch (UnsupportedEncodingException e) {
+		} catch (final UnsupportedEncodingException e) {
 			return new String(uuidbs.bytes, 0, uuidbs.len);
 		}
 	}
@@ -224,7 +225,7 @@ public class SessionConnector {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean isServerChannel(SocketChannel channel) {
+	public boolean isServerChannel(final SocketChannel channel) {
 		if(serverSide == channel){
 			return true;
 		}else {//if(fromClient == channel){
@@ -234,7 +235,7 @@ public class SessionConnector {
 		}
 	}
 	
-	public SocketChannel getTarget(SocketChannel channel){
+	public SocketChannel getTarget(final SocketChannel channel){
 		if(serverSide == channel){
 			return clientSide;
 		}else if(clientSide == channel){
@@ -244,7 +245,7 @@ public class SessionConnector {
 		}
 	}
 	
-	public void setKey(SocketChannel channel, SelectionKey sk, boolean isFromServer){
+	public void setKey(final SocketChannel channel, final SelectionKey sk, final boolean isFromServer){
 		if(isFromServer){
 			if(serverSide != null){
 				L.V = L.O ? false : LogManager.log("override old Server channel:" + serverSide.hashCode());
@@ -297,7 +298,7 @@ public class SessionConnector {
 	 * @param channel
 	 * @return
 	 */
-	public void setNullKey(SocketChannel channel){
+	public void setNullKey(final SocketChannel channel){
 		if(channel == serverSide){
 			serverSide = null;
 		}else if(channel == clientSide){

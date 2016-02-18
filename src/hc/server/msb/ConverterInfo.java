@@ -18,7 +18,7 @@ public class ConverterInfo {
 			final ConverterInfo target = (ConverterInfo)obj;
 			try{
 				return target.proj_id.equals(proj_id) && target.name.equals(name);
-			}catch (final Exception e) {
+			}catch (final Throwable e) {
 			}
 		}
 		return false;

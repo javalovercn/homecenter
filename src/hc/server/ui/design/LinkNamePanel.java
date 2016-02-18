@@ -4,6 +4,7 @@ import hc.App;
 import hc.server.HCActionListener;
 import hc.server.ui.ServerUIUtil;
 import hc.server.util.ContextSecurityConfig;
+import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 import hc.util.SocketEditPanel;
 
@@ -21,6 +22,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public class LinkNamePanel  extends JPanel {
 	final ThreadGroup threadPoolToken = App.getThreadPoolToken();
@@ -270,6 +273,17 @@ public class LinkNamePanel  extends JPanel {
 				tabbedPane.addTab((String)ResourceUtil.get(9094), permission);
 			}
 		}
+		
+		final int defaultIdx = Integer.parseInt(PropertiesManager.getValue(PropertiesManager.p_ProjModiTabIdx, "0"));
+		tabbedPane.setSelectedIndex(defaultIdx);
+		
+		tabbedPane.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(final ChangeEvent e) {
+				final String newTabIdx = String.valueOf(tabbedPane.getSelectedIndex());
+				PropertiesManager.setValue(PropertiesManager.p_ProjModiTabIdx, newTabIdx);
+			}
+		});
 		
 		add(tabbedPane, BorderLayout.CENTER);		
 	}

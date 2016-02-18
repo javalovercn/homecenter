@@ -17,12 +17,12 @@ public class ClientInitor {
 	}
 	public static final RootTagEventHCListener rootTagListener = new RootTagEventHCListener(); 
 	static{
-		new HCTimer("", 1000 * 60, true) {
-			public final void doBiz() {
-				//无论客户端，服务器
-				Runtime.getRuntime().gc();
-			}
-		};
+//		new HCTimer("", 1000 * 60, true) {
+//			public final void doBiz() {
+//				//无论客户端，服务器
+//				Runtime.getRuntime().gc();
+//			}
+//		};
 		
 		//无论客户端，服务器都设置
 		EventCenter.addListener(rootTagListener);

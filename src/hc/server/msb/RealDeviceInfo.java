@@ -19,7 +19,7 @@ public class RealDeviceInfo {
 			final RealDeviceInfo targetRDI = (RealDeviceInfo)obj;
 			try{
 				return targetRDI.proj_id.equals(proj_id) && targetRDI.dev_name.equals(dev_name) && targetRDI.dev_id.equals(dev_id);
-			}catch (final Exception e) {
+			}catch (final Throwable e) {
 			}
 		}
 		return false;

@@ -347,7 +347,10 @@ public class CodeWindow {
 		final int preLen = preCode.length();
 		for (int i = 0; i < size; i++) {
 			final CodeItem codeItem = fullList.get(i);
-			if(preLen == 0 || codeItem.codeLowMatch.startsWith(preCode)){
+			if(preLen == 0 
+					|| (codeItem.type == CodeItem.TYPE_CLASS && codeItem.codeLowMatch.indexOf(preCode) >= 0)
+					|| codeItem.codeLowMatch.startsWith(preCode) 
+					){
 				classData.add(codeItem);
 			}
 		}
@@ -443,8 +446,6 @@ public class CodeWindow {
 							final String insertedCode = item.code;
 							document.insertString(oriScriptIdx, insertedCode, null);
 							final int position = oriScriptIdx + insertedCode.length();
-							textPane.updateUI();
-							textPane.setCaretPosition(position);
 							
 							ScriptEditPanel.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, oriScriptIdx),
 									document, textPane, sep);
@@ -454,6 +455,10 @@ public class CodeWindow {
 							final int parameterNum = TabBlock.countParameterNum(insertedCodeChars);
 							if(parameterNum > 0){
 								TabHelper.setCurrentTabBlock(oriScriptIdx, insertedCodeChars, parameterNum);
+//								setCurrentTabBlock方法内有setCaretPosition，故不用
+//								textPane.setCaretPosition(position);
+							}else{
+								textPane.setCaretPosition(position);
 							}
 						} catch (final BadLocationException ex) {
 							ex.printStackTrace();

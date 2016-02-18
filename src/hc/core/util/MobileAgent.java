@@ -4,6 +4,9 @@ import hc.core.ConfigManager;
 import hc.core.IConstant;
 
 public class MobileAgent {
+	public static final String UN_KNOW = "-1";
+	public static final int INT_UN_KNOW = Integer.parseInt(UN_KNOW);
+	
 	final VectorMap vectorMap = new VectorMap(10);
 	
 	private final static String TAG_OS = "os";
@@ -13,6 +16,11 @@ public class MobileAgent {
 	private final static String TAG_CONTROL_WIFI = "ctrlWiFi";
 	private final static String TAG_EncryptionStrength = "encryptionStrength";
 	private final static String TAG_IS_BACKGROUND = ConfigManager.UI_IS_BACKGROUND;
+	private final static String TAG_COLOR_BIT = "colorBit";
+	private final static String TAG_REFRESH_MS = "refreshMS";
+	private final static String TAG_IOS_MAX_BG_MINUTES = "iOSBGMinute";
+	private final static String TAG_MENU_TRUE_COLOR = "MenuTrueColor";
+	
 	private final static String SPLIT = ";";
 	private final static String EQUAL = "=";
 	
@@ -65,6 +73,39 @@ public class MobileAgent {
 	
 	public final void setOS(final String osName){
 		set(TAG_OS, osName);
+	}
+	
+	public final int getColorBit(){
+		return Integer.parseInt(get(TAG_COLOR_BIT, UN_KNOW));
+	}
+	
+	public final void setColorBit(final int colorBit){
+		set(TAG_COLOR_BIT, String.valueOf(colorBit));
+	}
+	
+	public final int getIOSMaxBGMinutes(){
+		return Integer.parseInt(get(TAG_IOS_MAX_BG_MINUTES, UN_KNOW));
+	}
+	
+	public final void setIOSMaxBGMinutes(final int minutes){
+		set(TAG_IOS_MAX_BG_MINUTES, String.valueOf(minutes));
+	}
+	
+	public final int getRefreshMS(){
+		return Integer.parseInt(get(TAG_REFRESH_MS, UN_KNOW));
+	}
+	
+	public final void setRefreshMS(final int ms){
+		set(TAG_REFRESH_MS, String.valueOf(ms));
+	}
+	
+	public final boolean isMenuTrueColor(){
+		final String color = get(TAG_MENU_TRUE_COLOR, IConstant.FALSE);
+		return color.equals(IConstant.TRUE);
+	}
+	
+	public final void setMenuTrueColor(final boolean trueColor){
+		set(TAG_MENU_TRUE_COLOR, trueColor?IConstant.TRUE:IConstant.FALSE);
 	}
 	
 	public final int getEncryptionStrength(){

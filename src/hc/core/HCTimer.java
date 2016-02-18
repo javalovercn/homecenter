@@ -11,7 +11,7 @@ public abstract class HCTimer {
 	//默认为１０分
 	int interval;
 	private Object bizObj;
-	String name;
+	final String name;
 	public static final int ONE_HOUR = 1000 * 60 * 60;
 	public static final int ONE_DAY = 86400000;
 	long nextExecMS;
@@ -81,14 +81,27 @@ public abstract class HCTimer {
 		if(this.isEnable != enable){
 			this.isEnable = enable;
 			if(enable){
-				if(this.nextExecMS < System.currentTimeMillis()){
-					this.nextExecMS = getNextMS(interval);
+				final long nowMS = System.currentTimeMillis();
+				if(this.nextExecMS < nowMS){
+					this.nextExecMS = getNextMS(nowMS, interval);
 				}
+				wakeUp();
 			}
 		}
-		if(enable && isNewThread){
+	}
+
+	private final void wakeUp() {
+		if(isNewThread){
 			synchronized (this) {
 				this.notify();
+			}
+		}else{
+			if(isMinInternalWait){
+//				L.V = L.O ? false : LogManager.log("skip notify for min internal ms wait");
+				return;
+			}
+			synchronized (LOCK) {
+				LOCK.notify();
 			}
 		}
 	}
@@ -101,7 +114,7 @@ public abstract class HCTimer {
 	}
 
 	private final void resetToMS(final int ms) {
-		nextExecMS = getNextMS(ms);
+		nextExecMS = getNextMS(0, ms);
 	}
 
 	/**
@@ -110,6 +123,7 @@ public abstract class HCTimer {
 	 */
 	public final void doNowAsynchronous(){
 		resetToMS(0);
+		wakeUp();
 	}
 	
 	/**
@@ -118,7 +132,11 @@ public abstract class HCTimer {
 	 */
 	public final void setIntervalMS(final int secondMS) {
 		interval = secondMS;
-		nextExecMS = getNextMS(interval);
+		nextExecMS = getNextMS(0, interval);
+		
+		if(isEnable){
+			wakeUp();
+		}
 	}
 
 	public final int getIntervalMS() {
@@ -129,67 +147,75 @@ public abstract class HCTimer {
 	public abstract void doBiz();
 
 	//数据
-	final private static Boolean LOCK = new Boolean(false);
+	final private static Object LOCK = new Object();
 	private static int CURR_SIZE = 0;
 	private static final int HCTIME_MAX_SIZE = (IConstant.serverSide?1000:100);
-	final private static HCTimer[] HC_TIMERS = new HCTimer[HCTIME_MAX_SIZE];;
+	final private static HCTimer[] HC_TIMERS = new HCTimer[HCTIME_MAX_SIZE];
 	private static boolean isShutDown = false;
 	public static final long TEMP_MAX = 99999999999999999L;
 	public static final int HC_INTERNAL_MS = 100;
+	public static final int HC_HALF_INTERNAL_MS = HC_INTERNAL_MS / 2;
+	
 //	private static boolean isPause = false;
 
+	private static boolean isMinInternalWait = false;
+	
 	//线程控制
-	private static Thread thread = new Thread() {//"HCTimer Thread"
+	private final static Thread shareThread = new Thread() {//"HCTimer Thread"
 		final NestAction nestAction = EventCenter.nestAction;
 		
 		public void run() {
-			long min_wait_mill_second = TEMP_MAX;
+			final long maxMS = TEMP_MAX;
+			long min_next_exec_mill_second;
 			while ((!isShutDown)) {
-				min_wait_mill_second = TEMP_MAX;
+				min_next_exec_mill_second = maxMS;
 				
+//				L.V = L.O ? false : LogManager.log("HCTimer Main sleep:" + min_wait_mill_second);
+				final long nowMS = System.currentTimeMillis();
+
 				synchronized(LOCK){
 					for (int i = 0; i < CURR_SIZE; i++) {
 						final HCTimer hcTimer = HC_TIMERS[i];
 						if(hcTimer.isEnable){
-							final long left = hcTimer.nextExecMS;
-							if(min_wait_mill_second > left){
-								min_wait_mill_second = left;
+							final long next = hcTimer.nextExecMS;
+							if(min_next_exec_mill_second > next){
+								min_next_exec_mill_second = next;
 							}
 						}
 	                }
-				}
-				
-//				L.V = L.O ? false : LogManager.log("HCTimer Main sleep:" + min_wait_mill_second);
-				final long nowExecMS = System.currentTimeMillis();
-				
-				long sleepMS = min_wait_mill_second - nowExecMS;
-				if(sleepMS > 0){
-					boolean isContinue = false;
-					if(min_wait_mill_second > (nowExecMS + HC_INTERNAL_MS)){
-						sleepMS = HC_INTERNAL_MS;
-						isContinue = true;
-					}
-
-					try {
-						Thread.sleep(sleepMS);
-	                } catch (final Exception e) {
-	                }
-					if(isContinue){
+					final long sleepMS = min_next_exec_mill_second - nowMS;
+					if(sleepMS > 0){
+						final boolean isMinMS = sleepMS <= HC_INTERNAL_MS;
+						if(isMinMS){
+							isMinInternalWait = true;
+						}
+						try {
+//							L.V = L.O ? false : LogManager.log("HCTimer wait ms : " + sleepMS);
+							LOCK.wait(sleepMS);
+//							L.V = L.O ? false : LogManager.log("HCTimer break wait.");
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						if(isMinMS){
+							isMinInternalWait = false;
+						}
 						continue;
-					}
+					}				
 				}
 				
             	int i = 0;
             	HCTimer timer = null;
+            	final long min_next_exec_with_half = min_next_exec_mill_second + HC_HALF_INTERNAL_MS;//增加half量，以执行相近
             	while(true){
                 	boolean isFound = false;
                 	
 					synchronized(LOCK){
-						for (; isFound == false && i < CURR_SIZE; i++) {
+						for (; i < CURR_SIZE; i++) {
 							timer = HC_TIMERS[i];
 							if(timer.isEnable){
-								if (timer.nextExecMS <= min_wait_mill_second) {
+								if (timer.nextExecMS <= min_next_exec_with_half) {
 									isFound = true;
+									break;
 								}
 							}
 						}
@@ -202,8 +228,8 @@ public abstract class HCTimer {
 						timer.nextExecMS += timer.interval;		
 						
 						//严重滞时的情形，补正为下一段正确时间
-						if(timer.nextExecMS < nowExecMS){
-							timer.nextExecMS = getNextMS(timer.interval);
+						if(timer.nextExecMS < nowMS){
+							timer.nextExecMS = getNextMS(nowMS, timer.interval);
 						}
 //							long curr = System.currentTimeMillis();
 		                try{
@@ -226,7 +252,10 @@ public abstract class HCTimer {
 	};
 
 	public static void shutDown() {
-		isShutDown = true;
+		synchronized (LOCK) {
+			isShutDown = true;
+			LOCK.notify();
+		}
 		
 		try{
 			synchronized (newThreadTimer) {
@@ -234,12 +263,6 @@ public abstract class HCTimer {
 				for (int i = 0; i < size; i++) {
 					final ThreadTimer tt = (ThreadTimer)newThreadTimer.elementAt(i);
 					tt.notifyShutdown();
-				}
-				
-				try{
-					ContextManager.getContextInstance().interrupt(thread);
-				}catch (final Throwable e) {
-					//可能NullPointerException
 				}
 			}
 		}finally{
@@ -302,7 +325,7 @@ public abstract class HCTimer {
 	}
 	
 	protected static void notifyToGenerailManager(final HCTimer byer) {
-		byer.nextExecMS = getNextMS(byer.interval);
+		byer.nextExecMS = getNextMS(0, byer.interval);
 		synchronized (LOCK) {
 			if (CURR_SIZE == HCTIME_MAX_SIZE) {
 				LogManager.err("HCTimer overflow:" + String.valueOf(CURR_SIZE));
@@ -310,20 +333,20 @@ public abstract class HCTimer {
 			}
 
 			HC_TIMERS[CURR_SIZE++] = byer;
+			LOCK.notify();
 		}
 	}
 
-	public static long getNextMS(final int interv) {
-		final long currentTimeMillis = System.currentTimeMillis();
-		return currentTimeMillis - (currentTimeMillis % HC_INTERNAL_MS) + HC_INTERNAL_MS
-				+ interv;
+	public static long getNextMS(final long nowMS, final int interv) {
+		final long currentTimeMillis = (nowMS==0?System.currentTimeMillis():nowMS);
+		return currentTimeMillis - (currentTimeMillis % HC_INTERNAL_MS) + interv;
 	}
 
 	static {
 		isShutDown = false;
 		//没有 必要 定为最高级
-		thread.setPriority(ThreadPriorityManager.HCTIMER_PRIORITY);
-		thread.start();
+		shareThread.setPriority(ThreadPriorityManager.HCTIMER_PRIORITY);
+		shareThread.start();
 	}
 
 }

@@ -133,7 +133,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	public static final int SUB_NODES_OF_ROOT_IN_NEW_PROJ = 1;
 	
 	private boolean needRebuildTestJRuby = true;
-
+	
 	public void setNeedRebuildTestJRuby(final boolean need){
 		needRebuildTestJRuby = need;
 	}
@@ -268,7 +268,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		csc.buildDefaultPermissions();
 		
 		return new DefaultMutableTreeNode(new HPProject(
-				HPNode.MASK_ROOT, "Project", projID, HPProject.DEFAULT_VER, "",
+				HPNode.MASK_ROOT, "Project", "", projID, HPProject.DEFAULT_VER, "",
 				"", "", "", "", csc, ""));
 	}
 
@@ -2027,9 +2027,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		App.showCenterPanel(centerPanel, 0, 0, "Confirm Versions?", false, null, null, listener, listener, self, true, false, saveAsButton, false, false);
 	}
 
-	private Map<String, Object> buildMapFromTree() throws NodeInvalidException {
+	private final Map<String, Object> buildMapFromTree() throws NodeInvalidException {
 		return HCjar.toMap(root, shareFolders);
 	}
+	
 	public static Window currLink;
 	
 	/**
@@ -2061,7 +2062,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	 * @param newFrame
 	 * @param relativeTo
 	 */
-	public static void showLinkPanel(final JFrame parent, final boolean newFrame, final Component relativeTo){
+	public static synchronized void showLinkPanel(final JFrame parent, final boolean newFrame, final Component relativeTo){
 		if(LinkProjectStatus.tryEnterStatus(parent, LinkProjectStatus.MANAGER_IMPORT) == false){
 			return;
 		}

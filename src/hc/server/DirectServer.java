@@ -118,7 +118,7 @@ public class DirectServer extends Thread {
 		}
 	}
 	
-	final private Boolean LOCK = new Boolean(false);
+	final private Object LOCK = new Object();
 	private Socket socket;
 	
 	@Override

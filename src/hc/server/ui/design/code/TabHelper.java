@@ -54,7 +54,7 @@ public class TabHelper {
 		
 		scriptPanel.setSelectionStart(currFocusHighlightStartIdx);
 		scriptPanel.setSelectionEnd(currFocusHighlightEndIdx);
-		scriptPanel.setCaretPosition(currFocusHighlightStartIdx);
+		scriptPanel.setCaretPosition(currFocusHighlightEndIdx);
 		isFocusFullParameter = true;
 	}
 
@@ -86,8 +86,9 @@ public class TabHelper {
 	}
 	
 	public static void clearAll(){
+		clearHighlight();
+		
 		if(currentTabBlock != null){
-			clearHighlight();
 			tabBlockStack.removeAllElements();
 			currentTabBlock = null;
 		}
@@ -154,11 +155,12 @@ public class TabHelper {
 				return;
 			}
 		
-			if(isFocusFullParameter){
+			final boolean snapIsFocusFull = isFocusFullParameter;
+			if(snapIsFocusFull){
 				isFocusFullParameter = false;
 				try {
 					final int removeLen = currFocusHighlightEndIdx - currFocusHighlightStartIdx;
-					scriptPanel.getDocument().remove(currFocusHighlightStartIdx, removeLen);
+					scriptPanel.getDocument().remove(currFocusHighlightStartIdx, removeLen - (isBackspace?1:0));
 					inputShiftOffset -= removeLen;
 					currFocusHighlightEndIdx = currFocusHighlightStartIdx;
 					currentTabBlock.parameterEndOffsetIdx[parameterIdx] = 0;
@@ -167,9 +169,11 @@ public class TabHelper {
 				}
 			}
 			if(isBackspace){
-				currentTabBlock.parameterEndOffsetIdx[parameterIdx]--;
-				currFocusHighlightEndIdx--;
-				inputShiftOffset--;
+				if(snapIsFocusFull == false){
+					currentTabBlock.parameterEndOffsetIdx[parameterIdx]--;
+					currFocusHighlightEndIdx--;
+					inputShiftOffset--;
+				}
 			}else{
 				currentTabBlock.parameterEndOffsetIdx[parameterIdx]++;
 				currFocusHighlightEndIdx++;
@@ -187,7 +191,9 @@ public class TabHelper {
 //				if(L.isInWorkshop){
 //					System.out.println("lighter startIdx : " + currFocusHighlightStartIdx + ", endIdx : " + currFocusHighlightEndIdx);
 //				}
-				currFocusHighlight = scriptPanel.getHighlighter().addHighlight(currFocusHighlightStartIdx, currFocusHighlightEndIdx, CODE_LIGHTER);
+				if(currFocusHighlightEndIdx > currFocusHighlightStartIdx){
+					currFocusHighlight = scriptPanel.getHighlighter().addHighlight(currFocusHighlightStartIdx, currFocusHighlightEndIdx, CODE_LIGHTER);
+				}
 			} catch (final BadLocationException e) {
 				e.printStackTrace();
 			}

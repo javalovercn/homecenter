@@ -1,6 +1,5 @@
 package hc.core.util;
 
-import hc.core.IConstant;
 import java.util.Vector;
 
 public abstract class ThreadPool {
@@ -18,7 +17,7 @@ public abstract class ThreadPool {
 	 * @param run 如果产生异常，则返回null
 	 * @return
 	 */
-	public Object runAndWait(final ReturnableRunnable run){
+	public final Object runAndWait(final ReturnableRunnable run){
 		return this.runAndWait(run, null);
 	}
 	
@@ -29,7 +28,7 @@ public abstract class ThreadPool {
 	 * @param threadToken
 	 * @return
 	 */
-	public Object runAndWait(final ReturnableRunnable run, final Object threadToken){
+	public final Object runAndWait(final ReturnableRunnable run, final Object threadToken){
 		Object[] wait;
 		synchronized (waitStack) {
 			wait = (Object[])waitStack.pop();
@@ -56,14 +55,14 @@ public abstract class ThreadPool {
 			}
 		}, threadToken);
 		
-		try{
-			synchronized (finalWait) {
-				if(finalWait[1] == null){
+		synchronized (finalWait) {
+			if(finalWait[1] == null){
+				try{
 					finalWait.wait();
+				}catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
-		}catch (Exception e) {
-			e.printStackTrace();
 		}
 		
 		Object out = finalWait[0];
@@ -84,7 +83,7 @@ public abstract class ThreadPool {
 		
 	}
 	
-	public void setName(String n){
+	public final void setName(String n){
 		name = n;
 	}
 	
@@ -107,49 +106,59 @@ public abstract class ThreadPool {
 	
 	protected abstract void checkAccessPool(Object token);
 	
-	public final synchronized void run(Runnable run, Object token){
+	public final void run(Runnable run, Object token){
 		checkAccessPool(token);
 		
 		RecycleThread rt;
 		
-		boolean buildOne = false;
-
-		while(freeThreads.isEmpty()){
-			try{
-				Thread.sleep(IConstant.THREAD_WAIT_INNER_MS);
-			}catch (Exception e) {
+		if(isShutDown){
+			return;
+		}
+		
+		synchronized (freeThreads) {
+			while((rt = (RecycleThread)freeThreads.getFirst()) == null){
+				try {
+					freeThreads.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		
 		if(isShutDown){
 			return;
 		}
-		synchronized (freeThreads) {
-			rt = (RecycleThread)freeThreads.getFirst();
-		}
+		
 //			System.out.println("[" + name + "] -> RecycleThead : " + rt.toString());
 		if(freeThreads.isEmpty()){
-			rt.setRunnable(new Runnable() {
+			final boolean[] isDoneNextOne = new boolean[1];
+			final Runnable tmpRun = new Runnable() {
 				public void run() {
 					buildNextOne();
+					synchronized (isDoneNextOne) {
+						isDoneNextOne[0] = true;
+						isDoneNextOne.notify();
+					}
 				}
-			});
-			buildOne = true;
-		}
-		
-		if(buildOne){
-			do{
-				try{
-					Thread.sleep(IConstant.THREAD_WAIT_INNER_MS);
-				}catch (Exception e) {
+			};
+			
+			rt.setRunnable(tmpRun);//请求另外一个线程生成一个新的，
+			
+			synchronized (isDoneNextOne) {
+				if(isDoneNextOne[0] == false){
+					try {
+						isDoneNextOne.wait();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
 				}
-			}while(freeThreads.isEmpty());
-				
-			this.run(run, token);
+			}
+			
+			this.run(run, token);//必须调用此，以重新找一个，而不能直接rt.setRunnable(run);
 			
 			return;
 		}
-
+		
 		rt.setRunnable(run);
 	}
 

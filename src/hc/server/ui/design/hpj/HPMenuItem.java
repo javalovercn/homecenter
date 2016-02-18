@@ -4,6 +4,7 @@ import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.StoreableHashMap;
 import hc.core.util.UIUtil;
+import hc.util.StoreableHashMapWithModifyFlag;
 
 public class HPMenuItem extends HPNode {
 	public String url = "";
@@ -12,12 +13,12 @@ public class HPMenuItem extends HPNode {
 	public StoreableHashMap extendMap = new StoreableHashMap();
 	
 	public HPMenuItem(final int type, final String name){
-		this(type, name, HCURL.URL_CMD_EXIT, UIUtil.SYS_DEFAULT_ICON);
+		this(type, name, new StoreableHashMapWithModifyFlag(), HCURL.URL_CMD_EXIT, UIUtil.SYS_DEFAULT_ICON);
 	}
 	
-	public HPMenuItem(final int type, final String name, final String url, final String imageData) {
+	public HPMenuItem(final int type, final String name, final StoreableHashMapWithModifyFlag i18nMap, final String url, final String imageData) {
 		super(type, name);
-		
+		this.i18nMap = i18nMap;
 		this.url = url;
 		this.imageData = imageData;
 	}

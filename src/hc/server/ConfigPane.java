@@ -121,7 +121,7 @@ public class ConfigPane extends SingleJFrame {
 
 			final JCheckBox useSysFont = new JCheckBox((String)ResourceUtil.get(9057));
 
-			final ConfigValue cvName = new ConfigValue(PropertiesManager.C_FONT_NAME, oldName, group) {
+			new ConfigValue(PropertiesManager.C_FONT_NAME, oldName, group) {
 				@Override
 				public void applyBiz(final int option) {
 					if(useSysFont.isSelected() == false){
@@ -163,7 +163,7 @@ public class ConfigPane extends SingleJFrame {
 			});
 			final String isSysFont = PropertiesManager.getValue(PropertiesManager.C_SYSTEM_DEFAULT_FONT_SIZE, IConstant.TRUE);
 			useSysFont.setSelected(IConstant.TRUE.equals(isSysFont));
-			final ConfigValue cvSysDefaultFont = new ConfigValue(PropertiesManager.C_SYSTEM_DEFAULT_FONT_SIZE, isSysFont, group) {
+			new ConfigValue(PropertiesManager.C_SYSTEM_DEFAULT_FONT_SIZE, isSysFont, group) {
 				@Override
 				public void applyBiz(final int option) {
 					if(option == OPTION_CANCEL){
@@ -194,7 +194,7 @@ public class ConfigPane extends SingleJFrame {
 			final JComboBox skins = new JComboBox();
 			skins.setModel(new DefaultComboBoxModel(getInstalledLookAndFeelNames(null)));
 			skins.setSelectedItem(getSystemSkin());
-			final ConfigValue skincf = new ConfigValue(PropertiesManager.C_SKIN, (String)skins.getSelectedItem(), group) {
+			new ConfigValue(PropertiesManager.C_SKIN, (String)skins.getSelectedItem(), group) {
 				
 				@Override
 				public String getNewValue() {
@@ -756,7 +756,7 @@ public void run() {
 			
 			final NumberFormatTextField networkPort = new NumberFormatTextField();
 			networkPort.setText(PropertiesManager.getValue(PropertiesManager.p_selectedNetworkPort, "0"));
-			final ConfigValue cvNetworkPort = new ConfigValue(PropertiesManager.p_selectedNetworkPort, networkPort.getText(), group){
+			new ConfigValue(PropertiesManager.p_selectedNetworkPort, networkPort.getText(), group){
 				String newOldValue = getOldValue();
 				String realWorkingValue = getOldValue();
 				@Override
@@ -874,7 +874,7 @@ public void run() {
 				}
 			};
 
-			final ConfigValue modiThirdLibs = new ConfigValue(null, null, group) {
+			new ConfigValue(null, null, group) {
 				@Override
 				public String getNewValue() {
 					return null;

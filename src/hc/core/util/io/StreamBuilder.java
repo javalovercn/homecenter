@@ -12,7 +12,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 public class StreamBuilder {
-	public static final Boolean LOCK = new Boolean(true);
+	public static final Object LOCK = new Object();
 	
 	private static int currentStreamID = 1;
 	

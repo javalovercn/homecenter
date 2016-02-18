@@ -150,7 +150,7 @@ public class MletNodeEditPanel extends DefaultMenuItemNodeEditPanel {
 						&& ((codeHelper.wordCompletionModifyCode == KeyEvent.VK_ALT && modifiers == 0) 
 									|| (codeHelper.wordCompletionModifyMaskCode == modifiers)))){//注意：请同步从ScriptEditPanel
 					try {
-						codeHelper.inputVariable(cssEditPane, cssEditPane.getCaret().getMagicCaretPosition(), fontHeight, cssEditPane.getCaretPosition());
+						codeHelper.inputVariableForCSS(cssEditPane, cssEditPane.getCaret().getMagicCaretPosition(), fontHeight, cssEditPane.getCaretPosition());
 					} catch (final Exception ex) {
 						if(L.isInWorkshop){
 							ex.printStackTrace();
@@ -182,6 +182,22 @@ public class MletNodeEditPanel extends DefaultMenuItemNodeEditPanel {
 			
 			@Override
 			public void keyPressed(final KeyEvent e) {
+				final int keycode = e.getKeyCode();
+	            final int modifiers = e.getModifiers();
+	            final CodeHelper codeHelper = designer.codeHelper;
+				final int wordCompletionModifyMaskCode = codeHelper.wordCompletionModifyMaskCode;
+				//无输入字符时的触发提示代码
+				if(keycode == codeHelper.wordCompletionCode && (modifiers & wordCompletionModifyMaskCode) == wordCompletionModifyMaskCode){
+					//注意：请同步从ScriptEditPanel
+					try {
+						codeHelper.inputVariableForCSS(cssEditPane, cssEditPane.getCaret().getMagicCaretPosition(), fontHeight, cssEditPane.getCaretPosition());
+					} catch (final Exception ex) {
+						if(L.isInWorkshop){
+							ex.printStackTrace();
+						}
+					}
+					ScriptEditPanel.consumeEvent(e);
+				}
 			}
 		});
 		

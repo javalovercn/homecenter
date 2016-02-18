@@ -46,7 +46,7 @@ public class EventBack implements IWatcher{
 
 			ctrlTag = bs[MsgBuilder.INDEX_CTRL_TAG];
 			
-//			L.V = L.O ? false : LogManager.log("Receive ctrlTag : " + ctrlTag);
+//			L.V = L.O ? false : LogManager.log("EventBack Receive ctrlTag : " + ctrlTag);
 			
 			//内容服务Tag必须系统处于服务状态
 			//注意：与TCP段同步
@@ -121,7 +121,7 @@ public class EventBack implements IWatcher{
 			//TCP数据包
 			ctrlTag = bs[MsgBuilder.INDEX_CTRL_TAG];
 			
-//			L.V = L.O ? false : LogManager.log("Receive ctrlTag : " + ctrlTag);
+//			L.V = L.O ? false : LogManager.log("EventBack Receive ctrlTag : " + ctrlTag);
 
 			if(serverSide && ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN){
 				if(ContextManager.cmStatus == ContextManager.STATUS_SERVER_SELF){

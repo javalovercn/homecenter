@@ -132,7 +132,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 		return hcEventQueue;
 	}
 	
-	public static final ThreadPool getTempLimitThreadPool(){
+	public static synchronized final ThreadPool getTempLimitThreadPool(){
 		CCoreUtil.checkAccess();
 		
 		if(tempLimitThreadPool == null){
@@ -160,7 +160,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 		return tempLimitThreadPool;
 	}
 	
-	public static final HCLimitSecurityManager getHCSecurityManager(){
+	public static synchronized final HCLimitSecurityManager getHCSecurityManager(){
 		CCoreUtil.checkAccess();
 		
 		final Object nullObject = "";
@@ -405,7 +405,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 		
 					boolean containblockMemberAccessLists = false;
 					for (int i = 0; i < blockMemberAccessLists.length; i++) {
-						if(blockMemberAccessLists[i] == name){
+						if(blockMemberAccessLists[i].equals(name)){
 							containblockMemberAccessLists = true;
 							break;
 						}

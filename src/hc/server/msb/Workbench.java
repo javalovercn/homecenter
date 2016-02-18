@@ -63,7 +63,7 @@ public class Workbench{
 			
 			final int type = proc.procType;
 			final String projID = proc.project_id;
-			HashMap<String, Processor> names_proc;
+			HashMap<String, Processor> names_proc = null;
 			ConcurrentHashMap<String, HashMap<String, Processor>> projID_XXX_proc = null;
 			
 			if(type == TYPE_CONVERTER_PROC){
@@ -76,8 +76,9 @@ public class Workbench{
 				V = O ? false : log("remove Device : " + proc.toString());
 				projID_XXX_proc = projID_devName_Proc;
 			}
-			
-			names_proc = projID_XXX_proc.get(projID);
+			if(projID_XXX_proc != null){
+				names_proc = projID_XXX_proc.get(projID);
+			}
 			if(names_proc != null){
 				final Processor remove = names_proc.remove(proc.name);
 				if(remove != null && remove == proc){
@@ -183,7 +184,7 @@ public class Workbench{
 		
 		final int type = proc.procType;
 		final String projID = proc.project_id;
-		HashMap<String, Processor> names_proc;
+		HashMap<String, Processor> names_proc = null;
 		ConcurrentHashMap<String, HashMap<String, Processor>> projID_XXX_proc = null;
 		
 		if(type == TYPE_CONVERTER_PROC){
@@ -197,7 +198,10 @@ public class Workbench{
 			projID_XXX_proc = projID_devName_Proc;
 		}
 		
-		names_proc = projID_XXX_proc.get(projID);
+		if(projID_XXX_proc != null){
+			names_proc = projID_XXX_proc.get(projID);
+		}
+		
 		if(names_proc == null){
 			names_proc = new HashMap<String, Processor>();
 			projID_XXX_proc.put(projID, names_proc);

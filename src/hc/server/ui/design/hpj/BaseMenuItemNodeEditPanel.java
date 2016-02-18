@@ -10,6 +10,7 @@ import hc.server.FileSelector;
 import hc.server.HCActionListener;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.Designer;
+import hc.server.ui.design.I18nTitlesEditor;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
@@ -18,6 +19,8 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +42,9 @@ import javax.swing.event.DocumentListener;
 import javax.swing.tree.MutableTreeNode;
 
 public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
+	public static final String I18N_BTN_TEXT = "Internationalize...";
 	final int cornDegree = 30;
+	final String displayName = "Display Name";
 	private final JPanel localnamePanel = new JPanel();
 	protected HCURL hcurl;
 	protected JFormattedTextField jtfMyCommand = new JFormattedTextField();
@@ -58,8 +63,13 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 
 	public abstract void addTargetURLPanel();
 	
-	private final void setItemIcon(final ImageIcon icon){
+	private final void setItemIcon(final ImageIcon icon, final int size){
 		iconLabel.setIcon(icon);
+		if(size > 0){
+			iconLabel.setToolTipText(String.valueOf(size) + " X " + String.valueOf(size));
+		}else{
+			iconLabel.setToolTipText("");
+		}
 	}
 	
 	public boolean verify(final boolean refresh) {
@@ -163,7 +173,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 	        
 	        gridbag.setConstraints(iconLabel, c);  
 	        
-			setItemIcon(sys_icon);
+			setItemIcon(sys_icon, 0);
 			iPanel.add(iconLabel);
 			iconLabel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 			
@@ -171,9 +181,10 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 		}
 		
 		localnamePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		localnamePanel.add(new JLabel("Display Name :"));
+		localnamePanel.add(new JLabel(displayName + " :"));
 		nameField.setColumns(10);
 		localnamePanel.add(nameField);
+		browIconBtn.setToolTipText("All icons of items should be same size, if they are 64, please choose 64 X 64.");
 		browIconBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -213,12 +224,38 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 		localnamePanel.add(browIconBtn);
 		
 		{
+			final JButton i18nBtn = new JButton(I18N_BTN_TEXT);
+			i18nBtn.setToolTipText(buildI18nButtonTip(displayName));
+			i18nBtn.addActionListener(new HCActionListener(new Runnable() {
+				@Override
+				public void run() {
+					I18nTitlesEditor.showEditor(currItem.i18nMap, new ActionListener() {
+						@Override
+						public void actionPerformed(final ActionEvent e) {
+							if (currItem.i18nMap.isModified()){
+								currItem.i18nMap.clearModifyTag();
+								notifyModified();
+							}
+						}
+					}, i18nBtn, designer);
+					
+				}
+			}, threadPoolToken));
+			localnamePanel.add(i18nBtn);
+		}
+		
+		{
 			final JPanel iconTotal = new JPanel(new BorderLayout());
 			iconTotal.add(localnamePanel, BorderLayout.CENTER);
 			iconTotal.add(cmd_url_panel, BorderLayout.SOUTH);
 			
 			iconPanel.add(iconTotal, BorderLayout.CENTER);
 		}
+	}
+
+	public static String buildI18nButtonTip(final String displayName) {
+		return "<html>input names for international. " +
+				"<BR>if name for locale is not found, then <STRONG>" + displayName + "</STRONG> as default.</html>";
 	}
 
 	@Override
@@ -235,7 +272,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 		currItem.type = (HCURL.getURLProtocalIdx(hcurl.protocal) + HPNode.TYPE_MENU_ITEM_CMD);
 	
 		if(((HPMenuItem)currItem).imageData.equals(UIUtil.SYS_DEFAULT_ICON)){
-			setItemIcon(sys_icon);
+			setItemIcon(sys_icon, 0);
 		}else{
 			setItemIcon64(ServerUIUtil.base64ToBufferedImage(((HPMenuItem)currItem).imageData));
 		}
@@ -279,11 +316,12 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 	}
 
 	private final void setItemIcon64(BufferedImage oriImage) {
-		if(oriImage.getWidth() != UIUtil.ICON_DESIGN_SHOW_SIZE || oriImage.getHeight() != UIUtil.ICON_DESIGN_SHOW_SIZE){
+		final int oriWidth = oriImage.getWidth();
+		if(oriWidth != UIUtil.ICON_DESIGN_SHOW_SIZE || oriImage.getHeight() != UIUtil.ICON_DESIGN_SHOW_SIZE){
 			oriImage = ResourceUtil.resizeImage(oriImage, UIUtil.ICON_DESIGN_SHOW_SIZE, UIUtil.ICON_DESIGN_SHOW_SIZE);
 			oriImage = ImageSrc.makeRoundedCorner(oriImage, cornDegree);
 		}
-		setItemIcon(new ImageIcon(oriImage));
+		setItemIcon(new ImageIcon(oriImage), oriWidth);
 	}
 
 }

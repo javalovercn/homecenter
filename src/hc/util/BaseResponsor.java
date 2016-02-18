@@ -3,6 +3,7 @@ package hc.util;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.IContext;
+import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
@@ -10,6 +11,9 @@ import hc.core.sip.SIPManager;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
 import hc.core.util.IHCURLAction;
+import hc.core.util.LogManager;
+import hc.server.J2SEServerURLAction;
+import hc.server.ui.ClientDesc;
 import hc.server.ui.ProjectContext;
 import hc.server.util.ServerCUtil;
 
@@ -43,11 +47,11 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction{
 		}
 	}
 	
-	protected void notifyMobileLogin(){
+	protected final void notifyMobileLogin(){
 		startUpdateOneTimeKeysProcess();
 	}
 
-	protected void notifyMobileLogout(final boolean isStopStatus){
+	protected final void notifyMobileLogout(final boolean isStopStatus){
 		if(updateOneTimeRunnable != null){
 			updateOneTimeRunnable.isStopRunning = true;
 		}
@@ -77,7 +81,7 @@ class UpdateOneTimeRunnable implements Runnable{
 	private static final int SLEEP_INTERNAL_MS = 50;
 	public boolean isStopRunning = false;
 	byte[] oneTime = new byte[CCoreUtil.CERT_KEY_LEN];
-
+	
 	@Override
 	public void run() {
 		long waitMSTotal;
@@ -101,6 +105,13 @@ class UpdateOneTimeRunnable implements Runnable{
 				break;
 			}
 			
+			if(J2SEServerURLAction.isIOSForBackgroundCond()){
+				if(ClientDesc.getAgent().isBackground()){
+					L.V = L.O ? false : LogManager.log("skip trans one time for iOS in background mode.");
+					continue;
+				}
+			}
+
 			final Object outStreamLock = contextInstance.getOutputStreamLockObject();
 			
 			contextInstance.isReceivedOneTimeInSecuChannalFromMobile = false;
@@ -112,6 +123,7 @@ class UpdateOneTimeRunnable implements Runnable{
 			synchronized (outStreamLock) {
 				ServerCUtil.transCertKey(oneTime, MsgBuilder.E_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL, true);
 				
+				//waitMSTotal清零在while
 				while(contextInstance.isReceivedOneTimeInSecuChannalFromMobile == false){
 					try{
 						Thread.sleep(SLEEP_INTERNAL_MS);
@@ -144,4 +156,5 @@ class UpdateOneTimeRunnable implements Runnable{
 		
 //		System.out.println("--------done UpdateOneTimeRunnable--------------");
 	}
+
 }

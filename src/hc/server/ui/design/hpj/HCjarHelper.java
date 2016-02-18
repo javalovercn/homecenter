@@ -40,12 +40,12 @@ public class HCjarHelper {
 
 	private static String getMSBXXXNameAtIdx(final Map<String, Object> map,
 			final String keyName, final int idx) {
-		return (String)map.get(keyName + idx + "." + HCjar.PROC_NAME);
+		return (String)map.get(keyName + idx + "." + HCjar.PROCESSOR_NAME);
 	}
 	
 	private static String getMSBXXXListenerAtIdx(final Map<String, Object> map,
 			final String keyName, final int idx) {
-		return (String)map.get(keyName + idx + "." + HCjar.PROC_LISTENER);
+		return (String)map.get(keyName + idx + "." + HCjar.PROCESSOR_LISTENER);
 	}
 	
 	public static String getDeviceNameAtIdx(final Map<String, Object> map, final int idx){

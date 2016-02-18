@@ -27,7 +27,7 @@ public class ExitManager {
 		
 		try{
 			RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_ServerReq_STR);
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			//Anroid环境下，有可能不连接服务器时，产生异常。需catch。
 			e.printStackTrace();
 		}
@@ -44,11 +44,11 @@ public class ExitManager {
 			//清除等待客户上线的记录
 			if(IConstant.serverSide){
 				try{
-					String out = RootServerConnector.delLineInfo(TokenManager.getToken(), false);
+					final String out = RootServerConnector.delLineInfo(TokenManager.getToken(), false);
 					if(out != null && out.length() == 0){
 						TokenManager.clearUPnPPort();
 					}
-				}catch (Exception e) {
+				}catch (final Exception e) {
 					//无网络会出现本情形
 				}
 			}
@@ -66,14 +66,14 @@ public class ExitManager {
 				if(KeepaliveManager.getNIORelay() != null){
 					KeepaliveManager.getNIORelay().shutdown();
 				}
-			}catch (Exception e) {
+			}catch (final Exception e) {
 				e.printStackTrace();
 			}
 			HCTimer.shutDown();
 
 //			ContextManager.exit();
 			
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			e.printStackTrace();
 		}
 		LogManager.exit();
@@ -94,9 +94,10 @@ public class ExitManager {
 		
 		isStartedForceExitThread = true;
 		
-		Thread foreceExit = new Thread(){
+		final Thread foreceExit = new Thread(){
 			final long curr = System.currentTimeMillis();
 			
+			@Override
 			public void run(){
 				L.V = L.O ? false : LogManager.log("ready " + (App.EXIT_MAX_DELAY_MS/1000) + "-seconds to force exit...");
 				while(true){
@@ -116,8 +117,8 @@ public class ExitManager {
 					}else{
 						try{
 							Thread.sleep(1000);
-						}catch (Exception e) {
-							
+						}catch (final Exception e) {
+							e.printStackTrace();
 						}
 					}
 				}

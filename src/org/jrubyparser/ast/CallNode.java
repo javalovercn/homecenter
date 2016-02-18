@@ -42,12 +42,12 @@ public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcc
     protected String lexicalName;
     private boolean hasParens = false;
 
-    public CallNode(SourcePosition position, Node receiverNode, String name, Node argsNode) {
+    public CallNode(final SourcePosition position, final Node receiverNode, final String name, final Node argsNode) {
         this(position, receiverNode, name, argsNode, null);
     }
     
-    public CallNode(SourcePosition position, Node receiverNode, String name, Node argsNode, 
-            Node iterNode) {
+    public CallNode(final SourcePosition position, final Node receiverNode, final String name, final Node argsNode, 
+            final Node iterNode) {
         super(position);
         
         assert receiverNode != null : "receiverNode is not null";
@@ -67,12 +67,13 @@ public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcc
      * @return Returns a boolean
      */
     @Override
-    public boolean isSame(Node node) {
+    public boolean isSame(final Node node) {
         return super.isSame(node) && isNameMatch(((CallNode) node).getName());
     }
 
 
-    public NodeType getNodeType() {
+    @Override
+	public NodeType getNodeType() {
         return NodeType.CALLNODE;
     }
     
@@ -80,7 +81,8 @@ public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcc
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
-    public Object accept(NodeVisitor iVisitor) {
+    @Override
+	public Object accept(final NodeVisitor iVisitor) {
         return iVisitor.visitCallNode(this);
     }
     
@@ -89,17 +91,19 @@ public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcc
         return getIter();
     }
     
-    public Node getIter() {
+    @Override
+	public Node getIter() {
         return iterNode;
     }
     
-    public Node setIterNode(Node iterNode) {
+    public Node setIterNode(final Node iterNode) {
         setIter(iterNode);
         
         return this;
     }
     
-    public void setIter(Node iter) {
+    @Override
+	public void setIter(final Node iter) {
         this.iterNode = adopt(iter);
     }
 
@@ -112,7 +116,8 @@ public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcc
         return getArgs();
     }
     
-    public Node getArgs() {
+    @Override
+	public Node getArgs() {
         return argsNode;
     }
     
@@ -122,28 +127,32 @@ public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcc
      * @param argsNode set the arguments for this node.
      */
     @Deprecated
-    public Node setArgsNode(Node argsNode) {
+    public Node setArgsNode(final Node argsNode) {
         setArgs(argsNode);
         
         return getArgs();
     }
     
-    public void setArgs(Node argsNode) {
+    @Override
+	public void setArgs(Node argsNode) {
         if (argsNode == null) {
 	    argsNode = new ListNode(getReceiver().getPosition());
         }
         this.argsNode = adopt(argsNode);
     }
 
-    public boolean hasParens() {
+    @Override
+	public boolean hasParens() {
         return hasParens;
     }
 
-    public void setHasParens(boolean hasParens) {
+    @Override
+	public void setHasParens(final boolean hasParens) {
         this.hasParens = hasParens;
     }
     
-    public String getLexicalName() {
+    @Override
+	public String getLexicalName() {
         return lexicalName;
     }
 
@@ -152,20 +161,23 @@ public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcc
 	 * name is the name of the method called
      * @return name
      */
-    public String getName() {
+    @Override
+	public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    @Override
+	public void setName(final String name) {
         this.name = name;
     }
 
-    public void setLexicalName(String lexcicalName) {
-        this.lexicalName = lexicalName;
+    public void setLexicalName(final String lexcicalName) {
+        this.lexicalName = lexcicalName;
     }
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+    @Override
+	public boolean isNameMatch(final String name) {
+        final String thisName = getName();
         
         return thisName != null && thisName.equals(name);
     }
@@ -184,18 +196,20 @@ public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcc
         return receiverNode;
     }
     
-    public void setReceiver(Node receiver) {
+    public void setReceiver(final Node receiver) {
         this.receiverNode = adopt(receiver);
     }
 
-    public SourcePosition getNamePosition() {
-        SourcePosition pos = receiverNode.getPosition();
+    @Override
+	public SourcePosition getNamePosition() {
+        final SourcePosition pos = receiverNode.getPosition();
         
         return new SourcePosition(pos.getFile(), pos.getStartLine(), pos.getEndLine(),
                 pos.getEndOffset(), pos.getEndOffset() + getName().length());
     }
     
-    public SourcePosition getLexicalNamePosition() {
+    @Override
+	public SourcePosition getLexicalNamePosition() {
         return getNamePosition();
     }
 }

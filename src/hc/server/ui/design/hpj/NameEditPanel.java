@@ -2,8 +2,10 @@ package hc.server.ui.design.hpj;
 
 import hc.App;
 import hc.server.HCActionListener;
+
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -13,26 +15,28 @@ import javax.swing.event.DocumentListener;
 import javax.swing.tree.MutableTreeNode;
 
 public class NameEditPanel extends NodeEditPanel {
+	protected final String nameLabel = "Name";
+	
 	public NameEditPanel() {
 		namePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		namePanel.add(new JLabel("Name : "));
+		namePanel.add(new JLabel(nameLabel + " : "));
 		nameFiled.getDocument().addDocumentListener(new DocumentListener() {
 			private void modify(){
 				item.name = nameFiled.getText();
 				notifyModified();
 			}
 			@Override
-			public void removeUpdate(DocumentEvent e) {
+			public void removeUpdate(final DocumentEvent e) {
 				modify();
 			}
 			
 			@Override
-			public void insertUpdate(DocumentEvent e) {
+			public void insertUpdate(final DocumentEvent e) {
 				modify();
 			}
 			
 			@Override
-			public void changedUpdate(DocumentEvent e) {
+			public void changedUpdate(final DocumentEvent e) {
 				modify();
 			}
 		});
@@ -53,7 +57,7 @@ public class NameEditPanel extends NodeEditPanel {
 	
 
 	
-	final JPanel namePanel = new JPanel();
+	protected final JPanel namePanel = new JPanel();
 	final JTextField nameFiled = new JTextField();
 	
 	HPNode item;
@@ -66,7 +70,7 @@ public class NameEditPanel extends NodeEditPanel {
 	}
 
 	@Override
-	public void init(MutableTreeNode data, JTree tree){
+	public void init(final MutableTreeNode data, final JTree tree){
 		isInited = false;
 		super.init(data, tree);
 		

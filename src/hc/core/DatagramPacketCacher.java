@@ -5,13 +5,9 @@ import hc.core.sip.SIPManager;
 import hc.core.util.Stack;
 
 public class DatagramPacketCacher {
-	private static DatagramPacketCacher instance;
+	private final static DatagramPacketCacher instance = new DatagramPacketCacher();
 	
 	public final static DatagramPacketCacher getInstance(){
-		if(instance != null){
-		}else{
-			instance = new DatagramPacketCacher();
-		}
 		return instance;
 	}
 	

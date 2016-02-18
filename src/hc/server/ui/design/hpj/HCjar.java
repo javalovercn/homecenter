@@ -12,6 +12,7 @@ import hc.server.util.ContextSecurityManager;
 import hc.server.util.HCLimitSecurityManager;
 import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
+import hc.util.StoreableHashMapWithModifyFlag;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -36,14 +37,16 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 public class HCjar {
 	public static final String ITEM_NAME = "Name";
+	public static final String ITEM_I18N_NAME = "I18nTitle";
 	public static final String ITEM_TYPE = "Type";
 	public static final String ITEM_URL = "Url";
 	public static final String ITEM_IMAGE = "Image";
 	public static final String ITEM_LISTENER = "Listener";
 	public static final String ITEM_EXTENDMAP = "ExtendMap";
 
-	public static final String PROC_NAME = "ProcName";
-	public static final String PROC_LISTENER = "ProcListener";
+	//注意：不能用PROC_NAME，极易与PROJ_NAME混淆
+	public static final String PROCESSOR_NAME = "ProcName";
+	public static final String PROCESSOR_LISTENER = "ProcListener";
 
 	public static final String MAP_FILE_PRE = "__MaP_fILe_pRE_";
 	public static final String MAP_FILE_TYPE_PRE = "__MaP_fILe_tYpE_pRE_";
@@ -52,6 +55,7 @@ public class HCjar {
 	public static final String JRUBY_VER = "JRuby.Ver";
 	public static final String JRE_VER = "JRE.Ver";
 	public static final String PROJ_NAME = "Project.Name";
+	public static final String PROJ_I18N_NAME = "Project.I18NName";
 	public static final String PROJ_ID = "Project.ID";
 	public static final String PROJ_NEXT_NODE_IDX = "Project.NodeIdx";
 	public static final String PROJ_VER = "Project.Ver";
@@ -62,7 +66,7 @@ public class HCjar {
 	public static final String PROJ_DESC = "Project.Desc";
 	public static final String PROJ_LICENSE = "Project.License";
 	public static final String PROJ_STYLES = "Project.Styles";
-
+	
 	public static final String IDX_PATTERN = "(\\d+)";
 
 	public static final String MENU_NUM = "Menu.Num";
@@ -211,6 +215,7 @@ public class HCjar {
 			HCjarHelper.setBoolean(map, HCjar.PERMISSION_SOCK_LIMIT_ON, true);
 			ContextSecurityConfig.copyPermissionsFromConfig(map, csc);
 		}
+		setNullDefaultValue(map, PROJ_I18N_NAME, "");
 		setNullDefaultValue(map, PROJ_NEXT_NODE_IDX, "1");
 		setNullDefaultValue(map, PROJ_ID, HPProject.convertProjectIDFromName((String)map.get(PROJ_NAME)));
 		setNullDefaultValue(map, PROJ_VER, HPProject.DEFAULT_VER);
@@ -337,9 +342,11 @@ public class HCjar {
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}finally{
-			try {
-				jaros.close();
-			} catch (final IOException e) {
+			if(jaros != null){
+				try {
+					jaros.close();
+				} catch (final IOException e) {
+				}
 			}
 		}
 		
@@ -379,7 +386,7 @@ public class HCjar {
 			csc.setProjectContext(context);
 			
 			root.setUserObject(new HPProject(HPNode.MASK_ROOT, 
-					(String)map.get(PROJ_NAME), projID,
+					(String)map.get(PROJ_NAME), (String)map.get(PROJ_I18N_NAME), projID,
 					projVer, (String)map.get(PROJ_UPGRADE_URL),
 					(String)map.get(PROJ_CONTACT), (String)map.get(PROJ_COPYRIGHT), (String)map.get(PROJ_DESC), (String)map.get(PROJ_LICENSE),
 					csc, (String)map.get(PROJ_STYLES)));
@@ -425,10 +432,11 @@ public class HCjar {
 								final String header = Iheader + itemIdx + ".";
 								final HPMenuItem userObject = new HPMenuItem(
 										Integer.parseInt((String)map.get(header + ITEM_TYPE)), 
-										(String)map.get(header + ITEM_NAME));
+										(String)map.get(header + ITEM_NAME), 
+										HCjar.buildI18nMapFromSerial((String)map.get(header + ITEM_I18N_NAME)),
+										(String)map.get(header + ITEM_URL), 
+										(String)map.get(header + ITEM_IMAGE));
 								
-								userObject.url = (String)map.get(header + ITEM_URL);
-								userObject.imageData = (String)map.get(header + ITEM_IMAGE);
 								userObject.listener = (String)map.get(header + ITEM_LISTENER);
 								userObject.extendMap.restore((String)map.get(header + ITEM_EXTENDMAP));
 								
@@ -578,6 +586,7 @@ public class HCjar {
 		final HPNode item = (HPNode)root.getUserObject();
 		if(item.type == HPNode.MASK_ROOT){
 			map.put(PROJ_NAME, item.name);
+			map.put(PROJ_I18N_NAME, item.i18nMap.toSerial());
 			final HPProject hpProject = (HPProject)item;
 			map.put(PROJ_ID, hpProject.id);
 			map.put(PROJ_VER, hpProject.ver);
@@ -631,8 +640,8 @@ public class HCjar {
 						header = CONVERTER_ITEM_HEADER;
 					}
 					header += ito_idx + "."; 
-					map.put(header + PROC_NAME, menuItem.name);
-					map.put(header + PROC_LISTENER, String.valueOf(menuItem.listener));
+					map.put(header + PROCESSOR_NAME, menuItem.name);
+					map.put(header + PROCESSOR_LISTENER, String.valueOf(menuItem.listener));
 				}	
 			}
 			map.put(replaceIdxPattern(MENU_ID, idx), hpmenu.menuID);
@@ -646,6 +655,7 @@ public class HCjar {
 				final HPMenuItem menuItem = (HPMenuItem)((DefaultMutableTreeNode)root.getChildAt(i + SKIP_SUB_MENU_ITEM_NUM)).getUserObject();
 				
 				map.put(header + ITEM_NAME, menuItem.name);
+				map.put(header + ITEM_I18N_NAME, menuItem.i18nMap.toSerial());
 				map.put(header + ITEM_TYPE, String.valueOf(menuItem.type));
 				
 				map.put(header + ITEM_URL, menuItem.url);
@@ -818,6 +828,12 @@ public class HCjar {
 	
 	public static String getMenuName(final Map<String, Object> map, final int menuIdx){
 		return (String)map.get(HCjar.replaceIdxPattern(HCjar.MENU_NAME, menuIdx));
+	}
+
+	public static StoreableHashMapWithModifyFlag buildI18nMapFromSerial(final String serial) {
+		final StoreableHashMapWithModifyFlag storeMap = new StoreableHashMapWithModifyFlag();
+		storeMap.restore(serial);
+		return storeMap;
 	}
 
 //	public static final boolean save(final String baseDir, final Map<String, String> mapAttributes, File harName) throws Exception{

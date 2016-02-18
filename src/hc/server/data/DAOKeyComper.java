@@ -21,7 +21,7 @@ public class DAOKeyComper implements IDao{
 	
 	private static DAOKeyComper instance = null;
 	
-	public static DAOKeyComper getInstance(final ScreenCapturer sc){
+	public static synchronized DAOKeyComper getInstance(final ScreenCapturer sc){
 		if(instance == null){
 			instance = new DAOKeyComper(sc);
 		}else{
@@ -47,7 +47,7 @@ public class DAOKeyComper implements IDao{
 
 	public static final int MAX_KEYCOMP_NUM = 6;
 	
-	public static String[] getImagesURL(){
+	public static synchronized String[] getImagesURL(){
 		if(key_images == null){
 			final int standLen = MAX_KEYCOMP_NUM;
 			key_images = new String[standLen + images.length];

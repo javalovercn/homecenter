@@ -357,4 +357,20 @@ public class StringUtil {
 	}
 
 	public static final String split = "###";
+
+	/**
+	 * 将三段的zh-Hans-CN转为两段zh-CN
+	 * @param userLang
+	 * @return
+	 */
+	public static String toStandardLocale(final String userLang){
+		final int firstIdx = userLang.indexOf('-');
+		if(firstIdx > 0){
+			final int secondIdx = userLang.indexOf('-', firstIdx + 1);
+			if(secondIdx > 0){
+				return userLang.substring(0, firstIdx) + userLang.substring(secondIdx, userLang.length());
+			}
+		}
+		return userLang;
+	}
 }

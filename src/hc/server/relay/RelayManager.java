@@ -798,10 +798,11 @@ public class RelayManager {
 							if(L.isInWorkshop){
 								e.printStackTrace();
 							}
-							try{
-								socket.close();
-							}catch (final Exception e１) {
-								
+							if(socket != null){
+								try{
+									socket.close();
+								}catch (final Exception e１) {
+								}
 							}
 						}
 					}

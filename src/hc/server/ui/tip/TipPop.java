@@ -1,22 +1,12 @@
 package hc.server.ui.tip;
 
-import hc.App;
 import hc.core.HCTimer;
-import hc.res.ImageSrc;
 import hc.server.ui.tip.TipPop.CornerPosition;
-import hc.util.ResourceUtil;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.TrayIcon.MessageType;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class TipPop {
@@ -43,8 +33,8 @@ public class TipPop {
 		}
 	};
 	
-	public static void setCornerPosition(final int trayLocX, final int trayLocY, final int trayWidth, final int trayHeight){
-		CornerPosition position = MessageTipFrame.converTo(trayLocX, trayLocY);
+	public static synchronized void setCornerPosition(final int trayLocX, final int trayLocY, final int trayWidth, final int trayHeight){
+		final CornerPosition position = MessageTipFrame.converTo(trayLocX, trayLocY);
 		
 		if(instanceMessageFrame == null){
 			instanceMessageFrame = new MessageTipFrame();
@@ -73,7 +63,7 @@ public class TipPop {
 		instanceMessageFrame.showMessage(caption, msg, messageType);
 	}
 		
-	public static void exit(){
+	public static synchronized void exit(){
 		if(instanceMessageFrame != null){
 			instanceMessageFrame.dispose();
 			instanceMessageFrame = null;
@@ -85,7 +75,7 @@ class BorderPanel extends JPanel{
 	final int startX, startY, endX, endY;
 	final MessageTipFrame mtf;
 	
-	BorderPanel(MessageTipFrame mtf, int startX, int startY, int endX, int endY){
+	BorderPanel(final MessageTipFrame mtf, final int startX, final int startY, final int endX, final int endY){
 		this.mtf = mtf;
 		
 		this.startX = startX;
@@ -100,7 +90,8 @@ class BorderPanel extends JPanel{
 //        return new Dimension(6, 6);
 //    }
 	
-	public void paint(Graphics g){
+	@Override
+	public void paint(final Graphics g){
 		g.setColor(Color.decode(TipPop.BACKGROUND_COLOR));
 		g.fillRect(0, 0, getWidth(), getHeight());
 		
@@ -111,7 +102,7 @@ class BorderPanel extends JPanel{
 				g.drawLine(startX, startY, getWidth(), endY);
 				
 				//绘制缺口，连接Footer部分
-				CornerPosition p = mtf.position;
+				final CornerPosition p = mtf.position;
 				final int foot_width_minus_two = TipPop.FOOT_WIDTH - 2;
 				g.setColor(Color.decode(TipPop.BACKGROUND_COLOR));
 				if(p == CornerPosition.LEFT_TOP || p == CornerPosition.RIGHT_TOP){
@@ -136,7 +127,7 @@ class BorderPanel extends JPanel{
 				g.drawLine(startX, getHeight() - 1, getWidth(), getHeight() - 1);
 
 				//绘制缺口，连接Footer部分
-				CornerPosition p = mtf.position;
+				final CornerPosition p = mtf.position;
 				final int foot_width_minus_two = TipPop.FOOT_WIDTH - 2;
 				g.setColor(Color.decode(TipPop.BACKGROUND_COLOR));
 				if(p == CornerPosition.LEFT_DOWN || p == CornerPosition.RIGHT_DOWN){
@@ -162,7 +153,7 @@ class TransparentPanel extends JPanel{
 class CornerPanel extends JPanel{
 	final BufferedImage bi;
 	boolean isPainted = false;
-	CornerPanel(BufferedImage bi){
+	CornerPanel(final BufferedImage bi){
 		this.bi = bi;
 		setOpaque(false);
 	}
@@ -172,7 +163,8 @@ class CornerPanel extends JPanel{
         return new Dimension(bi.getWidth(), bi.getHeight());
     }
 	
-	public void paint(Graphics g){
+	@Override
+	public void paint(final Graphics g){
 		if(isPainted){
 			return;
 		}

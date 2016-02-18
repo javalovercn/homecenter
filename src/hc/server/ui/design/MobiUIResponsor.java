@@ -582,8 +582,8 @@ public class MobiUIResponsor extends BaseResponsor {
 				
 				enterContext(newContext);
 
-				L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "open link menu : [" 
-						+ LinkProjectManager.getProjByID(newContext).getLinkScriptName() + "]");
+				L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "enter project : [" + linkMenu.projectID + "]");
+				L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "open menu : [" + linkMenu.linkOrProjectName + "]");
 				return true;
 			}
 		}

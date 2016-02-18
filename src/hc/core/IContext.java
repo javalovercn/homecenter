@@ -113,6 +113,7 @@ public abstract class IContext {
 	public static final short BIZ_MOBILE_AGENT = 25;
 	public static final short BIZ_GET_FORBID_UPDATE_CERT_I18N = 26;//服务器、客户端重复该配置值
 	public static final short BIZ_START_WATCH_KEEPALIVE_FOR_RECALL_LINEOFF = 27;
+	public static final short BIZ_VIBRATE = 28;
 	
 	public final ReceiveServer getReceiveServer() {
 		return rServer;
@@ -153,8 +154,8 @@ public abstract class IContext {
 		
 	}
 	
-	private final Boolean BIGLOCK = new Boolean(true);
-	private final Boolean LOCK = new Boolean(false);
+	private final Object BIGLOCK = new Object();
+	private final Object LOCK = new Object();
 	
 	private final boolean isInWorkshop = L.isInWorkshop;
 	

@@ -27,7 +27,7 @@ public class URLEncoder {
             try {
                 writer = new OutputStreamWriter(buf,defaultEncName);
             } catch (UnsupportedEncodingException e) {
-                //never reach
+                writer = new OutputStreamWriter(buf);
             }
         }
         
@@ -41,9 +41,8 @@ public class URLEncoder {
                 out.append((char)c);
                 wroteUnencodedChar = true;
             } else {
-                // convert to external encoding before hex conversion
                 try {
-                    if (wroteUnencodedChar) { // Fix for 4407610
+                    if (wroteUnencodedChar) {
                         writer = new OutputStreamWriter(buf, enc);
                         wroteUnencodedChar = false;
                     }

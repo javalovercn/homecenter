@@ -21,6 +21,7 @@ import hc.server.ui.ClientDesc;
 import hc.server.ui.SingleMessageNotify;
 import hc.server.util.IDArrayGroup;
 import hc.util.ResourceUtil;
+
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
@@ -43,7 +44,7 @@ public class ScreenCapturer extends PNGCapturer{
 	private final int screenWidth, screenHeigh;
 	public static Object robotPeer;
 	public static Robot robot;
-	public KeyComper mobiUserIcons = null;
+	public KeyComper mobiUserIcons;
 	private final TimeWatcher timeWatcher;
 	private boolean clearCacheThumbnail = false;
 	
@@ -57,7 +58,7 @@ public class ScreenCapturer extends PNGCapturer{
 			robot.setAutoDelay(50);
 		    robot.setAutoWaitForIdle(true);
 			robotPeer = PlatformManager.getService().createRobotPeer(robot);
-		} catch (Throwable e) {
+		} catch (final Throwable e) {
 			//以上不能catch Exception
 			LogManager.err("Not Found : java.awt.peer.RobotPeer(Sun API), use java.awt.Robot");
 		}
@@ -83,8 +84,9 @@ public class ScreenCapturer extends PNGCapturer{
 		
 		final Thread t = new Thread(){
 			//发送远屏缩略图
+			@Override
 			public void run(){
-				int[] outSize = ThumbnailHelper.calcThumbnail(clientWidth, clientHeight, pcWidth, pcHeight);
+				final int[] outSize = ThumbnailHelper.calcThumbnail(clientWidth, clientHeight, pcWidth, pcHeight);
 				final int thumbnailWidth = outSize[0];
 				final int thumbnailHeight = outSize[1];
 				
@@ -141,7 +143,7 @@ public class ScreenCapturer extends PNGCapturer{
 							}
 						}
 					}
-				}catch (Exception e) {
+				}catch (final Exception e) {
 				}
 			}
 		};
@@ -169,7 +171,7 @@ public class ScreenCapturer extends PNGCapturer{
 			final_mobi_width = clientWidth;
 			final_mobi_height = clientHeight;
 			
-			int[] out = ThumbnailHelper.calNewLocXY(2, 1, 0, 0, pcWidth, pcHeight, clientWidth, clientHeight);
+			final int[] out = ThumbnailHelper.calNewLocXY(2, 1, 0, 0, pcWidth, pcHeight, clientWidth, clientHeight);
 			
 
 			client_width_zoomornot = out[2];
@@ -243,7 +245,7 @@ public class ScreenCapturer extends PNGCapturer{
 	
 	public static boolean isDirectServerMode(){
 		if(SIPManager.isOnRelay() == false){
-			short connMode = ContextManager.getConnectionModeStatus();
+			final short connMode = ContextManager.getConnectionModeStatus();
 			if(connMode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
 				return true;
 			}
@@ -276,8 +278,8 @@ public class ScreenCapturer extends PNGCapturer{
 	
 	private void randomCheckLockJ2SE() {
 		final Random r = new Random(System.currentTimeMillis());
-		int minW = screenWidth - MIN_BLOCK_CAP;
-		int minH = screenHeigh - MIN_BLOCK_CAP;
+		final int minW = screenWidth - MIN_BLOCK_CAP;
+		final int minH = screenHeigh - MIN_BLOCK_CAP;
 		final Rectangle testMinBlock = new Rectangle(((minW==0)?0:r.nextInt(minW)), ((minH==0)?0:r.nextInt(minH)), 
 				MIN_BLOCK_CAP, MIN_BLOCK_CAP);
 		if(isSameColorBlock(testMinBlock, rgb)){
@@ -300,7 +302,7 @@ public class ScreenCapturer extends PNGCapturer{
 			public void run() {
 				try{
 					Thread.sleep(500);
-				}catch (Exception e) {
+				}catch (final Exception e) {
 				}
 				
 				if(isSameFullScreenDelay()){
@@ -323,7 +325,7 @@ public class ScreenCapturer extends PNGCapturer{
 			if(isSameColorBlock(testMinBlock, fullScreenRGB)){
 				return true;
 			}
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
 			LogManager.errToLog("Fail check screen lock mode.");
 			e.printStackTrace();
 		}
@@ -349,7 +351,8 @@ public class ScreenCapturer extends PNGCapturer{
 		return isSame;
 	}
 
-	public boolean actionInput(DataInputEvent e){
+	@Override
+	public boolean actionInput(final DataInputEvent e){
 		final int type = e.getType();
 		final int pointX = e.getX();
 		final int pointY = e.getY();
@@ -377,7 +380,7 @@ public class ScreenCapturer extends PNGCapturer{
 			robot.mouseRelease(InputEvent.BUTTON1_MASK);			
 		}else if(type == DataInputEvent.TYPE_TRANS_TEXT){
 			try {
-				String s = e.getTextDataAsString();
+				final String s = e.getTextDataAsString();
 				if(inputKeyStr(s) == false){
 					L.V = L.O ? false : LogManager.log(OP_STR + "Client paste txt:[" + s + "]!");
 					sendToClipboard(s);
@@ -385,7 +388,7 @@ public class ScreenCapturer extends PNGCapturer{
 				}else{
 					L.V = L.O ? false : LogManager.log(OP_STR + "Client input txt:[" + s + "]!");
 				}
-			} catch (Exception e1) {
+			} catch (final Exception e1) {
 				e1.printStackTrace();
 			}
 		}else if(type == DataInputEvent.TYPE_BACKSPACE){
@@ -398,11 +401,11 @@ public class ScreenCapturer extends PNGCapturer{
 			type(robot, (char)pointX);
 		}else{
 			//自定义扩展MouseIcon
-			int idx = type - DataInputEvent.TYPE_TAG_TRANS_TEXT_2_MOBI;
+			final int idx = type - DataInputEvent.TYPE_TAG_TRANS_TEXT_2_MOBI;
 			
 			if(mobiUserIcons != null){
-				String[] keysDesc = new String[1];
-				Vector<Integer> vInt = mobiUserIcons.getKeys(idx, keysDesc);
+				final String[] keysDesc = new String[1];
+				final Vector<Integer> vInt = mobiUserIcons.getKeys(idx, keysDesc);
 				if(vInt == null){
 					L.V = L.O ? false : LogManager.log("Unknow ext icon idx:" + type);
 				}else{
@@ -415,7 +418,7 @@ public class ScreenCapturer extends PNGCapturer{
 		return true;
 	}
 
-	public static void type(Robot r, char character) {
+	public static void type(final Robot r, final char character) {
         switch (character) {
         case '\b': doType(r, KeyEvent.VK_BACK_SPACE); break;
         case 'a': doType(r, KeyEvent.VK_A); break;
@@ -520,12 +523,12 @@ public class ScreenCapturer extends PNGCapturer{
         }
     }
 	
-	private static void doType(Robot r, int keyCode) {
+	private static void doType(final Robot r, final int keyCode) {
         r.keyPress(keyCode);
         r.keyRelease(keyCode);
     }
 	
-	private static void doType(Robot r, int keyCode1, int keyCode2) {
+	private static void doType(final Robot r, final int keyCode1, final int keyCode2) {
         r.keyPress(keyCode1);
 
         r.keyPress(keyCode2);
@@ -534,8 +537,8 @@ public class ScreenCapturer extends PNGCapturer{
         r.keyRelease(keyCode1);
     }
 	
-	private boolean inputKeyStr(String txt){
-		char[] chars = txt.toCharArray();
+	private boolean inputKeyStr(final String txt){
+		final char[] chars = txt.toCharArray();
 		for (int i = 0; i < chars.length; i++) {
 			final char testChar = chars[i];
 			boolean isFinded = false;
@@ -558,7 +561,7 @@ public class ScreenCapturer extends PNGCapturer{
 		return true;
 	}
 	
-	private void ctrlSomeKey(int key) {
+	private void ctrlSomeKey(final int key) {
 		if(ResourceUtil.isAndroidServerPlatform()){
 			if(key == KeyEvent.VK_V){
 				PlatformManager.getService().doExtBiz(PlatformService.BIZ_CTRL_V, null);
@@ -572,22 +575,22 @@ public class ScreenCapturer extends PNGCapturer{
 		robot.keyRelease(abstractCtrlKeyCode);
 	}
 	
-	public static void sendToClipboard(String to_url) {
-		Clipboard clipbd = Toolkit.getDefaultToolkit().getSystemClipboard();
-		StringSelection clipString = new StringSelection(to_url);
+	public static void sendToClipboard(final String to_url) {
+		final Clipboard clipbd = Toolkit.getDefaultToolkit().getSystemClipboard();
+		final StringSelection clipString = new StringSelection(to_url);
 		clipbd.setContents(clipString, clipString);
 	}
 	
 	public static String getTxtFromClipboard(){
-		Clipboard clipbd = Toolkit.getDefaultToolkit().getSystemClipboard();
-		Transferable clipT = clipbd.getContents(null);
+		final Clipboard clipbd = Toolkit.getDefaultToolkit().getSystemClipboard();
+		final Transferable clipT = clipbd.getContents(null);
 		String d = null;
 		if (clipT != null) {
 			// 检查内容是否是文本类型
 			if (clipT.isDataFlavorSupported(DataFlavor.stringFlavor)){
 				try {
 					d = (String) clipT.getTransferData(DataFlavor.stringFlavor);
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					e.printStackTrace();
 				}
 			}
@@ -607,12 +610,12 @@ public class ScreenCapturer extends PNGCapturer{
 	public void copytxtToMobi(){
 		ctrlSomeKey(KeyEvent.VK_C);
 		
-		String txt = getTxtFromClipboard();
+		final String txt = getTxtFromClipboard();
 //		L.V = L.O ? false : LogManager.log("User ready copyTxtToMobi:" + txt);
 		if(txt.length() > 0){
-    		DataInputEvent e = new DataInputEvent();
+    		final DataInputEvent e = new DataInputEvent();
 			try {
-	    		byte[] txt_bs = txt.getBytes(IConstant.UTF_8);
+	    		final byte[] txt_bs = txt.getBytes(IConstant.UTF_8);
 	    		
 	    		final byte[] txtToMobiBS = new byte[DataInputEvent.text_index + DataInputEvent.MAX_MOBI_UI_TXT_LEN];
 	    		e.setBytes(txtToMobiBS);
@@ -621,14 +624,14 @@ public class ScreenCapturer extends PNGCapturer{
 	    		e.setTextData(txt_bs, 0, txt_bs.length);
 	    		ContextManager.getContextInstance().send(
 	    				MsgBuilder.E_INPUT_EVENT, txtToMobiBS, e.getLength());
-			} catch (UnsupportedEncodingException e1) {
+			} catch (final UnsupportedEncodingException e1) {
 				e1.printStackTrace();
 			}
 		}
 		L.V = L.O ? false : LogManager.log(OP_STR + "copyTxtToMobi:" + ((txt.length()==0)?"null":txt));
 	}
 	
-	public void dragAndDrop(int startX, int startY, int endX, int endY){
+	public void dragAndDrop(final int startX, final int startY, final int endX, final int endY){
 		robot.mouseMove(startX, startY);
 		robot.mousePress(InputEvent.BUTTON1_MASK);
 		
@@ -668,14 +671,14 @@ public class ScreenCapturer extends PNGCapturer{
 		
 			try{
 				sendPNG(capRect, client_width_zoomornot, false);
-			}catch (Exception e) {
+			}catch (final Exception e) {
 				//考虑数据溢出，故忽略
 			}
 		}
 	}
 
 	private int[] zoomUnzoom(final int fromZoom, final int toZoom) {
-		int oldLocX = locX, oldLocY = locY;
+		final int oldLocX = locX, oldLocY = locY;
 		
 		if(toZoom != 1){
 //			mobileW = client_width_zoomornot;
@@ -850,20 +853,20 @@ public class ScreenCapturer extends PNGCapturer{
 //			locX = 0;
 //			locY = 0;
 			
-			Rectangle firstRect = new Rectangle(x, y, 
+			final Rectangle firstRect = new Rectangle(x, y, 
 					Math.min(ClientDesc.getClientWidth(), screenWidth), Math.min(ClientDesc.getClientHeight(), screenHeigh));
 //			L.V = L.O ? false : LogManager.log("First Screen x : " + x + ", y : " + y + ", w : " + firstRect.width + ", h : " + firstRect.height);
 			sendPNG(firstRect, firstRect.width, false);
 		}
 		
-		int[] screenSize = ResourceUtil.getSimuScreenSize();
+		final int[] screenSize = ResourceUtil.getSimuScreenSize();
 		
 		if(screenSize[0] > ClientDesc.getClientWidth() || screenSize[1] > ClientDesc.getClientHeight()){
 			//发送全部
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-					int[] screenSize = ResourceUtil.getSimuScreenSize();
+					final int[] screenSize = ResourceUtil.getSimuScreenSize();
 					
 					synchronized (LOCK) {
 						locX = 0;

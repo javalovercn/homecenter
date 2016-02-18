@@ -27,8 +27,6 @@ public class RecycleThread implements Runnable{
 					runnable.run();
 				}catch (Throwable e) {
 					e.printStackTrace();
-				}finally{
-					runnable = null;
 				}
 			}			
 			
@@ -40,6 +38,7 @@ public class RecycleThread implements Runnable{
 						return;
 					}
 					free.addTail(this);
+					free.notifyAll();//注意：不能notify()
 	//				System.out.println("[" + pool.name + "] <- RecycleThead : " + toString());
 				}
 			

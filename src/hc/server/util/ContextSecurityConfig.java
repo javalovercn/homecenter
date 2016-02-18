@@ -367,6 +367,9 @@ public class ContextSecurityConfig {
 	public static void addDefaultNewSocket(final Vector<SocketDesc> vector) {
 		CCoreUtil.checkAccess();
 		
-		vector.add(new SocketDesc("localhost", "", "80", "", "", SocketDesc.STR_RESOLVE));
+		final String defaultPort = "";
+		final String defaultAction = SocketDesc.STR_ACCEPT + SocketDesc.SPLIT + 
+				SocketDesc.STR_CONNECT + SocketDesc.SPLIT + SocketDesc.STR_LISTEN;
+		vector.add(new SocketDesc("localhost", "", defaultPort, "", "", defaultAction));
 	}
 }

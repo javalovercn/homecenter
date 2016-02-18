@@ -72,9 +72,14 @@ public class HCJRubyEngine {
 			evalUnit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse", parseParaTypes, para, false);
 			lruCache.put(script, evalUnit);
 		}
-		final Object runOut = ClassUtil.invokeWithExceptionOut(classEvalUnit, evalUnit, "run", emptyParaTypes, emptyPara, false);
-		final Object[] para = {runOut};
-		return ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils, classJavaEmbedUtils, "rubyToJava", rubyToJavaParaTypes, para, false);
+		try{
+			final Object runOut = ClassUtil.invokeWithExceptionOut(classEvalUnit, evalUnit, "run", emptyParaTypes, emptyPara, false);
+			final Object[] para = {runOut};
+			return ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils, classJavaEmbedUtils, "rubyToJava", rubyToJavaParaTypes, para, false);
+		}catch (final Exception e) {
+			lruCache.remove(script);//执行错误后，需重新编译
+			throw e;
+		}
 	}
 
 	/**

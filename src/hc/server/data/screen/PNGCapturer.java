@@ -9,7 +9,9 @@ import hc.core.RootConfig;
 import hc.core.data.DataInputEvent;
 import hc.core.data.DataPNG;
 import hc.core.sip.SIPManager;
+import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
+import hc.core.util.MobileAgent;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPriorityManager;
 import hc.server.ui.HCByteArrayOutputStream;
@@ -33,12 +35,12 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	 * @param captureID
 	 * @param title 仅用于日志提示
 	 */
-	public void setCaptureID(String captureID, String title){
+	public void setCaptureID(final String captureID, final String title){
 		this.title = title;
 		pngCaptureID = StringUtil.getBytes(captureID);
 	}
 	
-	final Boolean LOCK = new Boolean(false);
+	final Object LOCK = new Object();
 	final int MIN_BLOCK_CAP;
 	final int[] rgb;
 	
@@ -46,7 +48,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		try{
 			return Integer.parseInt(RootConfig.getInstance().getProperty(
 				RootConfig.p_ScreenCapMinBlockSize));
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
 			return 240;
 		}
 	}
@@ -63,7 +65,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 
 	protected final DataPNG dataPNG = new DataPNG();
 	protected final HCByteArrayOutputStream byteArrayOutputStream = new HCByteArrayOutputStream();
-	protected final Boolean WAITING = new Boolean(false);
+	protected final Object WAITING = new Object();
 	protected boolean isShutDown = false;
 	final IContext ic = ContextManager.getContextInstance();
 
@@ -72,7 +74,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	final boolean isScreenCap;
 	final int fixColorMask;
 	
-	public PNGCapturer(int w, int h, boolean isScreenCap, int fixMask) {
+	public PNGCapturer(final int w, final int h, final boolean isScreenCap, final int fixMask) {
 		super();
 		this.isScreenCap = isScreenCap;
 		this.fixColorMask = fixMask;//非电脑远屏，指定色彩级别
@@ -110,8 +112,8 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	public abstract int grabImage(Rectangle bc, int[] rgb);
 	public abstract boolean actionInput(DataInputEvent e);
 	
-	public static void setColorBit(final int cBit){
-		mask = getMaskFromBit(cBit);
+	public static int getUserMobileColorMask(){
+		return mask;
 	}
 
 	public static int getMaskFromBit(final int cBit) {
@@ -140,13 +142,13 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		//多次调用，也只出现一次
 		L.V = L.O ? false : LogManager.log(OP_STR + ((!isStopCap && sc)?"pause":"resume") + " Screen [" + title + "]");
 		
-		this.isStopCap = sc;
-		
 		synchronized (WAITING) {
+			this.isStopCap = sc;
 			WAITING.notify();
 		}
 	}
 	
+	@Override
 	public void run() {	
 		sleepBeforeRun();
 
@@ -159,7 +161,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 				synchronized (WAITING) {
 					try {
 						WAITING.wait();
-					} catch (InterruptedException ignored) {
+					} catch (final InterruptedException ignored) {
 						ignored.printStackTrace();
 					}
 				}
@@ -171,7 +173,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 				synchronized (LOCK) {
 					sendPNG(capRect, capRect.width, true);
 				}
-			}catch (Throwable e) {
+			}catch (final Throwable e) {
 				//考虑数据溢出，故忽略
 			}
 			
@@ -179,7 +181,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 			
 			try{
 				Thread.sleep(refreshMillSecond);
-			}catch (Exception e) {
+			}catch (final Exception e) {
 				
 			}
 		}
@@ -193,7 +195,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 				delayMS = 1000;
 			}
 			Thread.sleep(delayMS);
-		}catch (Exception e) {
+		}catch (final Exception e) {
 		}
 	}
 	
@@ -332,7 +334,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 						}
 						try {
 							ImageIO.write(bi, "png", byteArrayOutputStream);
-						} catch (IOException e1) {
+						} catch (final IOException e1) {
 							L.V = L.O ? false : LogManager.log("Trans Screen Exception:" + e1.toString());
 							e1.printStackTrace();
 							return;
@@ -360,10 +362,6 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 					}
 				}
 
-	public static void setRefreshMillSecond(int ms) {
-		refreshMillSecond = ms;		
-	}
-
 	@Override
 	public void onExit() {
 		isShutDown = true;
@@ -371,6 +369,63 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		synchronized (WAITING) {
 			WAITING.notify();
 		}
+	}
+
+	public static void updateRefreshMS(int millSecond) {
+		if(millSecond == MobileAgent.INT_UN_KNOW){
+			return;
+		}
+		
+		CCoreUtil.checkAccess();
+		
+		final int msOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_MS_On_Relay));
+		if(SIPManager.isOnRelay()){
+			if(millSecond < msOnRelay){
+				millSecond = msOnRelay;
+			}
+		}else{
+			final short mode = ContextManager.getConnectionModeStatus();
+			if(mode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
+				millSecond = 100;
+			}else if(mode == ContextManager.MODE_CONNECTION_PUBLIC_UPNP_DIRECT){
+				millSecond = Math.min(millSecond, 1000);
+			}else if(mode == ContextManager.MODE_CONNECTION_PUBLIC_DIRECT){
+				millSecond = Math.min(millSecond, 1000);
+			}
+		}
+		
+		L.V = L.O ? false : LogManager.log("Client change refresh MillSecond to:" + millSecond);
+		refreshMillSecond = millSecond;
+	}
+
+	public static void updateColorBit(int mode) {
+		if(mode == MobileAgent.INT_UN_KNOW){
+			return;
+		}
+		
+		CCoreUtil.checkAccess();
+		
+		final int colorOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_Color_On_Relay));
+		if(SIPManager.isOnRelay()){
+			if((IConstant.COLOR_STAR_TOP - mode) > colorOnRelay){
+				mode = (IConstant.COLOR_STAR_TOP - colorOnRelay);
+			}
+		}else{
+			final short connMode = ContextManager.getConnectionModeStatus();
+			if(connMode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
+				//取最大值
+				mode = IConstant.COLOR_64_BIT;
+			}else if(connMode == ContextManager.MODE_CONNECTION_PUBLIC_UPNP_DIRECT){
+				mode = Math.min(mode, IConstant.COLOR_16_BIT);
+			}else if(connMode == ContextManager.MODE_CONNECTION_PUBLIC_DIRECT){
+				mode = Math.min(mode, IConstant.COLOR_32_BIT);
+			}
+			
+		}
+	
+		L.V = L.O ? false : LogManager.log("Client change colorMode to level : " + (IConstant.COLOR_STAR_TOP - mode) + " (after limited)");
+
+		mask = getMaskFromBit(mode);
 	}
 
 }

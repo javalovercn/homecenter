@@ -8,27 +8,31 @@ import hc.util.PropertiesManager;
 
 public class J2SEConstant extends IConstant {
 
-	public int getInt(String p) {
-		if(p == IConstant.RelayMax){
+	@Override
+	public int getInt(final String p) {
+		if(p.equals(IConstant.RelayMax)){
 			return 1024;
-		}else if(p == IConstant.IS_J2ME){
+		}else if(p.equals(IConstant.IS_J2ME)){
 			return 0;
 		}
 		return 20;
 	}
 
-	public String getAjax(String url) {
+	@Override
+	public String getAjax(final String url) {
 		return HttpUtil.getAjax(url);
 	}
 
-	public String getAjaxForSimu(String url, boolean isTCP) {
+	@Override
+	public String getAjaxForSimu(final String url, final boolean isTCP) {
 		return HttpUtil.getAjaxForSimu(url, false);
 	}
 
-	public Object getObject(String p) {
-		if(p == IConstant.CertKey){
+	@Override
+	public Object getObject(final String p) {
+		if(p.equals(IConstant.CertKey)){
 			byte[] keys = null;
-			String ck = PropertiesManager.getValue(PropertiesManager.p_CertKey);
+			final String ck = PropertiesManager.getValue(PropertiesManager.p_CertKey);
 			if(ck == null){
 				keys = CUtil.INI_CERTKEY.getBytes();
 			}else{
@@ -40,8 +44,9 @@ public class J2SEConstant extends IConstant {
 		}
 	}
 
-	public void setObject(String key, Object value) {
-		if(key == IConstant.CertKey){
+	@Override
+	public void setObject(final String key, final Object value) {
+		if(key.equals(IConstant.CertKey)){
 			PropertiesManager.setValue(PropertiesManager.p_CertKey, ByteUtil.encodeBase64((byte[])value));
 			PropertiesManager.saveFile();
 			return;

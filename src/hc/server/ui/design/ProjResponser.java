@@ -328,7 +328,7 @@ public class ProjResponser {
 			for (int i = 0; i < menuNum; i++) {
 				menu[i] = new JarMainMenu(i, map, 
 						lps.isRoot(), 
-						baseRep, lps.getLinkScriptName());
+						baseRep, lps.getLinkName());
 			}
 		}else{
 			menu = new JarMainMenu[0];
@@ -500,7 +500,7 @@ public class ProjResponser {
 	
 	public static final boolean isScriptEvent(final Object event){
 		for (int i = 0; i < BaseResponsor.SCRIPT_EVENT_LIST.length; i++) {
-			if(event == BaseResponsor.SCRIPT_EVENT_LIST[i]){
+			if(event.equals(BaseResponsor.SCRIPT_EVENT_LIST[i])){
 				return true;
 			}
 		}

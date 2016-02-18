@@ -8,6 +8,7 @@ import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.data.DataPNG;
+import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
@@ -937,8 +938,7 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final String getMobileLocale() {
-		return (ClientDesc.getClientLang() == null) ? "en-US"
-				: ClientDesc.getClientLang();
+		return ClientDesc.getClientLang();
 	}
 
 	/**
@@ -1196,6 +1196,17 @@ public class ProjectContext {
 	public final String getLoginID() {
 		return IConstant.getUUID();
 	}
+	
+	/**
+	 * <code>SoftUID</code> is an identifier created when mobile application is installed on mobile.
+	 * if mobile application is removed and install again, the <code>SoftID</code> is changed.
+	 * <BR><BR>Important : it is NOT ID from hardware.
+	 * @return
+	 * @since 7.2
+	 */
+	public final String getMobileSoftUID(){
+		return ClientDesc.getAgent().getUID();
+	}
 
 	/**
 	 * return the projectContext instance of the current project even if there
@@ -1387,7 +1398,7 @@ public class ProjectContext {
 	}
 
 	/**
-	 * @return true : if a mobile is log-in and keep connecting;
+	 * @return true : if a mobile is log-in and keep connecting, maybe in background;
 	 * @see #addSystemEventListener(SystemEventListener)
 	 * @see #removeSystemEventListener(SystemEventListener)
 	 * @see #isMobileInBackground()
@@ -1395,6 +1406,15 @@ public class ProjectContext {
 	 */
 	public final boolean isMobileConnecting() {
 		return ContextManager.isMobileLogin();
+	}
+	
+	/**
+	 * Important : if on relay, the data translated to mobile may be slowly.
+	 * @return true, if the connection is on relay server, not directly connect to your server.
+	 * @since 7.2
+	 */
+	public final boolean isMobileOnRelay(){
+		return SIPManager.isOnRelay();
 	}
 
 	/**

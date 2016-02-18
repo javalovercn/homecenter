@@ -120,45 +120,44 @@ public class HCInputStream extends InputStream implements IHCStream{
 	 * Reads the next byte of data from the input stream. The value byte is returned as an int in the range 0 to 255. 
 	 * This method blocks until input data is available, the end of the stream is detected, or an exception is thrown.
 	 */
-	public int read() throws IOException {
-		if(unread != null){
+	public final int read() throws IOException {
+		while(true){
 			synchronized (this) {
-				final int out = unread[offreadidx++] & 0xFF;//0~255
-				if(offreadidx == storeEndIdx){
-					cacher.cycle(unread);
-					unread = null;
-					storeEndIdx = 0;
-					offreadidx = 0;
-				}
-				return out;
-			}
-		}
-		if(isEof){
-			return -1;
-		}
-		synchronized (this) {
-			while(true){
-				if(isclosed){
-					return -1;
-				}
-				
-				if(exception != null){
-					throw exception;
-				}
-				
-				if(unread == null){
-					try {
-						this.wait();
-					} catch (final InterruptedException e) {
-						e.printStackTrace();
+				if(unread != null){
+					final int out = unread[offreadidx++] & 0xFF;//0~255
+					if(offreadidx == storeEndIdx){
+						cacher.cycle(unread);
+						unread = null;
+						storeEndIdx = 0;
+						offreadidx = 0;
+					}
+					return out;
+				}else{
+					if(isEof){
+						return -1;
+					}
+					
+					if(isclosed){
+						return -1;
+					}
+					
+					if(exception != null){
+						throw exception;
+					}
+					
+					if(unread == null){
+						try {
+							this.wait();
+						} catch (final InterruptedException e) {
+							e.printStackTrace();
+						}
 					}
 				}
-				return read();
 			}
 		}
 	}
 
-	public int read(final byte[] b) throws IOException {
+	public final int read(final byte[] b) throws IOException {
 		return read_0(b, 0, b.length);
 	}
 	
@@ -206,14 +205,14 @@ public class HCInputStream extends InputStream implements IHCStream{
 		}
 	}
 
-	public int read(final byte[] b, final int off, final int len) throws IOException {
+	public final int read(final byte[] b, final int off, final int len) throws IOException {
 		return read_0(b, off, len);
 	}
 
 	/**
 	 * return the actual number of bytes skipped.
 	 */
-	public long skip(final long n) throws IOException {
+	public final long skip(final long n) throws IOException {
 		synchronized (this) {
 			if(isclosed){
 				throw new IOException("IO is closed");
@@ -244,7 +243,7 @@ public class HCInputStream extends InputStream implements IHCStream{
 	/**
 	 * Returns the number of bytes that can be read
 	 */
-	public int available() throws IOException {
+	public final int available() throws IOException {
 		synchronized (this) {
 			if(isclosed){
 				throw new IOException("IO is closed");
@@ -258,7 +257,7 @@ public class HCInputStream extends InputStream implements IHCStream{
 
 	boolean isclosed;
 	
-	public void close() throws IOException {
+	public final void close() throws IOException {
 		if(L.isInWorkshop){
 			L.V = L.O ? false : LogManager.log("close HCInputStream : " + streamID);
 		}
@@ -280,10 +279,10 @@ public class HCInputStream extends InputStream implements IHCStream{
 		}
 	}
 
-	public void mark(final int readlimit) {
+	public final void mark(final int readlimit) {
 	}
 
-	public void reset() throws IOException {
+	public final void reset() throws IOException {
 		synchronized (this) {
 			if(isclosed){
 				throw new IOException("IO is closed");
@@ -294,7 +293,7 @@ public class HCInputStream extends InputStream implements IHCStream{
 		}
 	}
 
-	public boolean markSupported() {
+	public final boolean markSupported() {
 		return false;
 	}
 }

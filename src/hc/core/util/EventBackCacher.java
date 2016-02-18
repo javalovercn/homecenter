@@ -4,13 +4,9 @@ import hc.core.EventBack;
 
 
 public class EventBackCacher {
-	private static EventBackCacher instance;
+	private static final EventBackCacher instance = new EventBackCacher();
 	
 	public final static EventBackCacher getInstance(){
-		if(instance != null){
-		}else{
-			instance = new EventBackCacher();
-		}
 		return instance;
 	}
 	
