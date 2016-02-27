@@ -3,6 +3,7 @@ package hc.server.ui;
 import hc.core.HCConfig;
 import hc.core.IConstant;
 import hc.core.L;
+import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
 import hc.core.util.MobileAgent;
 import hc.core.util.StringUtil;
@@ -13,6 +14,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 public class ClientDesc {
+	//专为不能直接访问projectContext服务的
 	static final Hashtable<String, Object> sys_attribute = new Hashtable<String, Object>();
 
 	public static int getClientWidth(){
@@ -32,6 +34,7 @@ public class ClientDesc {
 	private static MobileAgent agent = new MobileAgent();
 	
 	public static MobileAgent getAgent(){
+		CCoreUtil.checkAccess();
 		return agent;
 	}
 	

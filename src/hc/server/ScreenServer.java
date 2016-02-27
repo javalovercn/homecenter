@@ -362,7 +362,7 @@ public class ScreenServer {
 		projectContext.run(new Runnable() {
 			@Override
 			public void run() {
-				mlet.notifyStatusChanged(Mlet.STATUS_RUNNING);
+				mlet.notifyStatusChanged(Mlet.STATUS_RUNNING);//in user thread
 				mlet.onStart();
 			}
 		});
@@ -374,7 +374,7 @@ public class ScreenServer {
 		projectContext.run(new Runnable() {
 			@Override
 			public void run() {
-				mlet.notifyStatusChanged(Mlet.STATUS_EXIT);
+				mlet.notifyStatusChanged(Mlet.STATUS_EXIT);//in user thread
 				mlet.onExit();
 			}
 		});
@@ -384,7 +384,7 @@ public class ScreenServer {
 		projectContext.run(new Runnable() {
 			@Override
 			public void run() {
-				mlet.notifyStatusChanged(Mlet.STATUS_PAUSE);
+				mlet.notifyStatusChanged(Mlet.STATUS_PAUSE);//in user thread
 				mlet.onPause();
 			}
 		});
@@ -394,7 +394,7 @@ public class ScreenServer {
 		projectContext.run(new Runnable() {
 			@Override
 			public void run() {
-				mlet.notifyStatusChanged(Mlet.STATUS_RUNNING);
+				mlet.notifyStatusChanged(Mlet.STATUS_RUNNING);//in user thread
 				mlet.onResume();
 			}
 		});

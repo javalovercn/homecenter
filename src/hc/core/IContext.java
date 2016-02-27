@@ -1,9 +1,12 @@
 package hc.core;
 
 import hc.core.sip.SIPManager;
+import hc.core.util.ByteArrayCacher;
+import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
 import hc.core.util.IHCURLAction;
+import hc.core.util.LinkedSet;
 import hc.core.util.LogManager;
 import hc.core.util.WiFiDeviceManager;
 
@@ -15,9 +18,85 @@ import java.io.OutputStream;
 public abstract class IContext {
 	final boolean isServerSide = IConstant.serverSide;
 	
+	private final ByteArrayCacher cache = ByteUtil.byteArrayCacher;
+	private final LinkedSet sendBSBuffer = new LinkedSet();
+	private final LinkedSet sendBSLenBuffer = new LinkedSet();
+	private final LinkedSet screenIDBuffer = new LinkedSet();
+	private byte[] toServerBS = new byte[1024];
+	
+	public IContext(){
+		sendThread.start();
+	}
+	
+	final Thread sendThread = new Thread(){
+		public final void run(){
+			byte[] bs;
+			int cmdLen = -1;
+			byte[] screenIDBS = null;
+			while(isExit == false){
+				synchronized (this) {
+					bs = (byte[])sendBSBuffer.getFirst();
+					if(bs != null){
+						cmdLen = ((Integer)sendBSLenBuffer.getFirst()).intValue();
+						screenIDBS = (byte[])screenIDBuffer.getFirst();
+					}else{
+						cmdLen = -1;
+					}
+				}
+				
+				if(cmdLen >= 0){
+					sendMobileUIEventToServer(bs, 0, cmdLen, screenIDBS);
+					cache.cycle(bs);
+					continue;
+				}
+				
+				synchronized (this) {
+					try {
+						this.wait();
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	};
+	
 	public final void init(final ReceiveServer rs, final UDPReceiveServer udpRS){
 		rServer = rs;
 		udpReceivServer = udpRS;
+	}
+	
+	public final void sendMobileUIEventToBackServer(final byte[] cmdBS, final int offset, final int cmdLen,
+			final byte[] screenIDBS){
+		final byte[] bs = cache.getFree(cmdLen);
+		System.arraycopy(cmdBS, offset, bs, 0, cmdLen);
+		
+		synchronized (sendThread) {
+			sendBSBuffer.addTail(bs);
+			sendBSLenBuffer.addTail(new Integer(cmdLen));
+			screenIDBuffer.addTail(screenIDBS);
+			sendThread.notify();
+		}
+	}
+
+	public final void sendMobileUIEventToServer(final byte[] cmdBS, final int offset, final int cmdLen,
+			final byte[] screenIDBS){
+		final int idLen = screenIDBS.length;
+		final int toServerScreenIDStoreIdx = 1;
+		final int maxLen = cmdLen + idLen + toServerScreenIDStoreIdx;
+		synchronized (sendBSBuffer) {
+			if(toServerBS.length < maxLen){
+				toServerBS = new byte[maxLen<1024?1024:maxLen];
+			}
+			
+			toServerBS[0] = ByteUtil.integerToOneByte(idLen);
+			System.arraycopy(screenIDBS, 0, toServerBS, toServerScreenIDStoreIdx, idLen);
+
+			final int cmdStoreIdx = toServerScreenIDStoreIdx + idLen;
+			System.arraycopy(cmdBS, offset, toServerBS, cmdStoreIdx, cmdLen);
+			
+			sendWrap(MsgBuilder.E_JS_EVENT_TO_SERVER, toServerBS, 0, cmdStoreIdx + cmdLen);
+		}
 	}
 	
 	public boolean isInLimitThread(){
@@ -35,6 +114,10 @@ public abstract class IContext {
 		}
 		isExit = true;
 
+		synchronized (sendThread) {
+			sendThread.notify();
+		}
+		
 		ContextManager.setStatus(ContextManager.STATUS_EXIT);
 		
 		if(CUtil.getUserEncryptor() != null){

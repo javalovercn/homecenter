@@ -10,16 +10,16 @@ public class ConverterWrapper extends Processor {
 	
 	@Override
 	protected final void __startup() {
-		fp.startup();
+		fp.startup();//in user thread group
 	}
 
 	@Override
 	protected final void __shutdown() {
-		fp.shutdown();
+		fp.shutdown();//in user thread group
 	}
 
 	@Override
-	public final void response(final Message msg){
+	public final void response(final Message msg){//in user thread group
 		final Message target = Workbench.messagePool.getFreeMessage();
 		
 		if(msg.ctrl_is_downward == false){
@@ -50,7 +50,12 @@ public class ConverterWrapper extends Processor {
 	}
 	
 	@Override
-	public final String toString() {
-		return this.getClass().getSimpleName() + super.toString();
+	public final String getIoTDesc(){
+		return this.classSimpleName + super.getIoTDesc();
 	}
+	
+//	@Override
+//	public final String toString() {//please use getIoTDesc
+//		return this.getClass().getSimpleName() + super.getProcDesc();
+//	}
 }

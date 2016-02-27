@@ -378,6 +378,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		toolbar.setVisible(isVisible);
 	}
 	
+	private final boolean isToolbarVisible(){
+		return toolbar.isVisible();
+	}
+	
 	public Designer() {
 		setTitle((String)ResourceUtil.get(9034) + "[" + (String)ResourceUtil.get(9083) + "]");
 		
@@ -433,8 +437,26 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		
 		final MouseListener ml = new MouseListener() {
 			// 按下鼠标时候获得被拖动的节点
+			boolean isBusy = false;
+			boolean isBlockedEvent = false;
+			long busyStartMS;
+			
 			@Override
 			public void mousePressed(final MouseEvent e) {
+				if(isToolbarVisible() == false){
+					return;
+				}
+				
+				final long nowMS = System.currentTimeMillis();
+				if(isBusy && (nowMS - busyStartMS) < 5000){
+					isBlockedEvent = true;
+					return;
+				}else{
+					isBlockedEvent = false;
+					isBusy = true;
+					busyStartMS = nowMS;
+				}
+				
 				// 如果需要唯一确定某个节点，必须通过TreePath来获取。
 				final TreePath tp = tree.getPathForLocation(e.getX(), e.getY());
 				if (tp != null) {
@@ -445,6 +467,14 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			// 鼠标松开时获得需要拖到哪个父节点
 			@Override
 			public void mouseReleased(final MouseEvent e) {
+				if(isToolbarVisible() == false){
+					return;
+				}
+				
+				if(isBlockedEvent){
+					return;
+				}
+				
 				ContextManager.getThreadPool().run(new Runnable() {
 					@Override
 					public void run() {
@@ -480,6 +510,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 								}
 							}
 						}
+						isBusy = false;
 					}
 				}, threadPoolToken);
 			}
@@ -594,7 +625,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 							showHCMessage("" +
 									"<html>Success load demo project." +
 									"<BR><BR>" +
-									"click '<STRONG>" + ACTIVE + "</STRONG>' button to apply it, login from mobile to view it.</html>", EXAMPLE + " OK", self, true);
+									"click '<STRONG>" + ACTIVE + "</STRONG>' button to apply it, login from mobile to view it.</html>", 
+									EXAMPLE + " OK", self, true, null);
 							
 							sampleButton.setIcon(getSampleIcon());
 							
@@ -732,6 +764,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 							});
 						}
 						
+						/**
+						 * 重要，请勿在Event线程中调用，
+						 * @param w
+						 */
 						void startDeploy(final Window[] w) {
 							Map<String, Object> map = null;
 							if(isModified){
@@ -764,7 +800,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 //									@Override
 //									public void run() {
 										showHCMessage("Successful activate project, " +
-												"mobile can access this resources now.", ACTIVE + " OK", self, true);
+												"mobile can access this resources now.", ACTIVE + " OK", self, true, null);
 //									}
 //								});
 							}
@@ -874,7 +910,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 							App.invokeLaterUI(new Runnable() {
 								@Override
 								public void run() {
-									showHCMessage("Successful deactivate current project.", DEACTIVE + " OK", self, true);
+									showHCMessage("Successful deactivate current project.", DEACTIVE + " OK", self, true, null);
 								}
 							});
 						}else{
@@ -884,7 +920,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 //								@Override
 //								public void run() {
 									showHCMessage("Successful deactivate current project, " +
-											"other project(s) is restart and serving now.", DEACTIVE + " OK", self, true);
+											"other project(s) is restart and serving now.", DEACTIVE + " OK", self, true, null);
 //								}
 //							});
 						}
@@ -933,7 +969,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 							@Override
 							public void start() {
 								showHCMessage("Successful load project from har file.", 
-										"Success load", self, true);
+										"Success load", self, true, null);//不需要relativeTo
 							}
 							
 							@Override
@@ -1183,6 +1219,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		rebindBut.setEnabled(false);
 	}
 	
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @return
+	 */
 	private File loadDefaultEdit() {
 		File edit_har = getDefaultEditFile();
 		if(L.isInWorkshop){
@@ -1614,10 +1654,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 
 	/**
-	 * 
+	 * 重要，请勿在Event线程中调用，
 	 * @return 返回0表示，忽略修改
 	 */
-	private int modifyNotify() {
+	private final int modifyNotify() {
 		return App.showOptionDialog(instance,
 				"project is modified and save now?",
 				"save project now?");
@@ -1629,13 +1669,15 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		tree2.setSelectionPath(path);
 	}
 	
-	private static void showHCMessage(final String message, final String title, final JFrame frame, final boolean model){
+	private static void showHCMessage(final String message, final String title, final JFrame frame, final boolean model,
+			final JComponent relativeTo){
 		final JPanel panel = new JPanel();
 		panel.add(new JLabel(message, new ImageIcon(ImageSrc.OK_ICON), SwingConstants.LEFT));
-		App.showCenterPanel(panel, 0, 0, title, false, null, null, null, null, frame, model, false, null, false, false);
+		App.showCenterPanel(panel, 0, 0, title, false, null, null, null, null, frame, model, false, relativeTo, false, false);
 	}
 	
 	/**
+	 * 重要，请勿在Event线程中调用，
 	 * 检查内存变更
 	 * @param self
 	 * @return
@@ -1652,6 +1694,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		return true;
 	}
 
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @param self
+	 * @return
+	 */
 	private int discardQues(final Designer self) {
 		return App.showOptionDialog(self,
 				"project is modified, discard all now?",
@@ -1659,7 +1706,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 
 	/**
-	 * 
+	 * 重要，请勿在Event线程中调用，
 	 * @param self
 	 * @return true:继续后续操作；false:中止
 	 */
@@ -2020,8 +2067,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				if(fileHadExits != null){
 					HCjad.toHad(map, fileHadExits, ResourceUtil.getMD5(fileExits), (int)fileExits.length());
 				}
-				showHCMessage("Successful save project to [" + fileExits.getName() + "].", 
-						"Success save as", self, true);
+				final String hadDesc = (fileHadExits != null)?(", " + fileHadExits.getName()):"";
+				showHCMessage("Successful save project to [" + fileExits.getName() + hadDesc + "]", 
+						"Success save as", self, true, saveAsButton);
 			}
 		};
 		App.showCenterPanel(centerPanel, 0, 0, "Confirm Versions?", false, null, null, listener, listener, self, true, false, saveAsButton, false, false);
@@ -2034,6 +2082,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	public static Window currLink;
 	
 	/**
+	 * 重要，请勿在Event线程中调用，
 	 * 注意：本方法被反射引用，并不要更名。
 	 */
 	public static synchronized boolean notifyCloseDesigner(){
@@ -2076,7 +2125,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}
 	}
 	
-	public void shiftProject(final LinkProjectStore lps){
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @param lps
+	 */
+	public final void shiftProject(final LinkProjectStore lps){
 		if(discardModiWhenShift(instance)){
 			final String newProjID = lps.getProjectID();
 			if(getCurrProjID().equals(newProjID)){
@@ -2101,7 +2154,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 //		wiz.showTip();
 //	}
 
-	public synchronized boolean notifyCloseWindow() {
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @return
+	 */
+	public final synchronized boolean notifyCloseWindow() {
 		if(instance == null){
 			return false;
 		}
@@ -2148,6 +2205,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		return true;
 	}
 
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @param loadInit
+	 */
 	public final void loadInitProject(final boolean loadInit) {
 		if(loadInit){
 			final File har = loadDefaultEdit();

@@ -46,6 +46,7 @@ public class DocHelper {
 	static final String codeRule = "code { font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
 
 	private JFrame codeFrame;
+	private DocLayoutLimit layoutLimit;
 	private final JEditorPane docPane = new JEditorPane();
 	private final JScrollPane scrollPanel = new JScrollPane(docPane);
 	private final JFrame docFrame = new JFrame("");
@@ -69,11 +70,11 @@ public class DocHelper {
 		docFrame.setPreferredSize(new Dimension(CodeWindow.MAX_WIDTH, CodeWindow.MAX_HEIGHT));
 	}
 	
+	final Dimension docFrameSize = new Dimension();
+	final Dimension codeFrameSize = new Dimension();
+	final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
 	private final Runnable repainRunnable = new Runnable() {
-		final Dimension docFrameSize = new Dimension();
-		final Dimension codeFrameSize = new Dimension();
-		final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		
 		@Override
 		public void run() {
 			docFrame.validate();
@@ -88,7 +89,10 @@ public class DocHelper {
 			int showY = codeFrame.getY();
 			if(showX + codeFrameSize.width + docFrameSize.width > screenSize.width){
 				if(showX - docFrameSize.width < 0){
-					if (showY + codeFrameSize.height + docFrameSize.height > screenSize.height){
+					if (layoutLimit.isNotUpLayout == false 
+							&& (layoutLimit.isNotDownLayout 
+									|| showY + codeFrameSize.height + docFrameSize.height > screenSize.height)
+						){
 						showY -= docFrameSize.height;//上置
 					}else{
 						showY += codeFrameSize.height;//下置
@@ -119,7 +123,8 @@ public class DocHelper {
 		}
 	}
 	
-	public final void popDocTipWindow(final JFrame codeWindow, String fmClass, String fieldOrMethodName, final int type){
+	public final void popDocTipWindow(final JFrame codeWindow, String fmClass, String fieldOrMethodName, final int type,
+			final DocLayoutLimit layoutLimit){
 		final boolean isForClassDoc = (type==CodeItem.TYPE_CLASS);
 		
 		//支持类的doc描述
@@ -131,6 +136,8 @@ public class DocHelper {
 		fieldOrMethodName = isForClassDoc?CLASS_DESC:fieldOrMethodName;
 		
 		this.codeFrame = codeWindow;
+		this.layoutLimit = layoutLimit;
+		
 		final String doc = getDoc(fmClass, fieldOrMethodName);
 		if(doc != null && doc.length() > 0){
 			docPane.setText("<html><body style=\"background-color:#FAFBC5\">" + doc +"</body></html>");

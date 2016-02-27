@@ -2,6 +2,7 @@ package hc.server.ui.design.hpj.ctrl;
 
 import hc.core.util.CtrlItem;
 import hc.core.util.CtrlKeySet;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -18,6 +19,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
+
 import javax.swing.JPanel;
 
 
@@ -40,13 +42,13 @@ public class CtrlPanel extends JPanel {
 		
 		addMouseListener(new MouseListener() {
 			@Override
-			public void mouseReleased(MouseEvent e) {
+			public void mouseReleased(final MouseEvent e) {
 				final int currSelect = currSelectKeyValue;
 				if(doMove(e)){
 					resetPressXY();
 					
 					if(currSelect >= 0){
-						CtrlItem ci = itemsOnCanvas[currSelect];
+						final CtrlItem ci = itemsOnCanvas[currSelect];
 						ajustCanvasSize(ci.center_x, ci.center_y);
 					}
 					return;
@@ -54,14 +56,14 @@ public class CtrlPanel extends JPanel {
 			}
 			
 			@Override
-			public void mousePressed(MouseEvent e) {
+			public void mousePressed(final MouseEvent e) {
 				totalPanel.panel_canvas.requestFocus();
 				
 				final int x = e.getX();
 				final int y = e.getY();
 				resetPressXY();
 				for (int i = 0; i < itemsOnCanvas.length; i++) {
-					CtrlItem ci = itemsOnCanvas[i];
+					final CtrlItem ci = itemsOnCanvas[i];
 					if(ci != null && x > (ci.center_x - ci.halfWidth) && x < (ci.center_x + ci.halfWidth)
 							&& y > (ci.center_y - ci.halfHeight) && y < (ci.center_y + ci.halfHeight)){
 						setCurrSelectedItem(i);
@@ -76,25 +78,25 @@ public class CtrlPanel extends JPanel {
 			}
 
 			@Override
-			public void mouseExited(MouseEvent e) {
+			public void mouseExited(final MouseEvent e) {
 			}
 			
 			@Override
-			public void mouseEntered(MouseEvent e) {
+			public void mouseEntered(final MouseEvent e) {
 			}
 			
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void mouseClicked(final MouseEvent e) {
 			}
 		});
 		
 		addMouseMotionListener(new MouseMotionListener() {
 			@Override
-			public void mouseMoved(MouseEvent e) {
+			public void mouseMoved(final MouseEvent e) {
 			}
 			
 			@Override
-			public void mouseDragged(MouseEvent e) {
+			public void mouseDragged(final MouseEvent e) {
 				if(doMove(e)){
 					return;
 				}
@@ -103,11 +105,11 @@ public class CtrlPanel extends JPanel {
 		
 		addKeyListener(new KeyListener() {
 			@Override
-			public void keyTyped(KeyEvent e) {
+			public void keyTyped(final KeyEvent e) {
 			}
 			
 			@Override
-			public void keyReleased(KeyEvent e) {
+			public void keyReleased(final KeyEvent e) {
 				final int k = e.getKeyCode();
 				if(k == KeyEvent.VK_DELETE || k == KeyEvent.VK_BACK_SPACE){
 					if(currSelectKeyValue >=0){
@@ -123,19 +125,19 @@ public class CtrlPanel extends JPanel {
 			}
 			
 			@Override
-			public void keyPressed(KeyEvent e) {
+			public void keyPressed(final KeyEvent e) {
 			}
 		});
 		
 		addFocusListener(new FocusListener() {
 			@Override
-			public void focusLost(FocusEvent e) {
+			public void focusLost(final FocusEvent e) {
 				resetSelectItem();
 				repaint();
 			}
 			
 			@Override
-			public void focusGained(FocusEvent e) {
+			public void focusGained(final FocusEvent e) {
 			}
 		});
 	}
@@ -148,7 +150,7 @@ public class CtrlPanel extends JPanel {
 	public void findInitSize(){
 		int maxWidth = 0, maxHeight = 0;
 		for (int i = 0; i < itemsOnCanvas.length; i++) {
-			CtrlItem ci = itemsOnCanvas[i];
+			final CtrlItem ci = itemsOnCanvas[i];
 			if(ci != null){
 				if(ci.center_x > maxWidth){
 					maxWidth = ci.center_x;
@@ -159,7 +161,7 @@ public class CtrlPanel extends JPanel {
 			}
 		}
 		
-		Dimension newDimension = new Dimension(maxWidth / BLOCK_WIDTH * BLOCK_WIDTH + BLOCK_WIDTH + HALF_BLOCK_WIDTH, 
+		final Dimension newDimension = new Dimension(maxWidth / BLOCK_WIDTH * BLOCK_WIDTH + BLOCK_WIDTH + HALF_BLOCK_WIDTH, 
 				maxHeight / BLOCK_WIDTH * BLOCK_WIDTH + BLOCK_WIDTH + HALF_BLOCK_WIDTH);
 //		System.out.println("MaxWidth : " + newDimension.width + ", MaxHeight : " + newDimension.height);
 		setPreferredSize(newDimension);
@@ -167,10 +169,10 @@ public class CtrlPanel extends JPanel {
 	}
 	
 	@Override
-	public void paintComponent(Graphics g) {
+	public void paintComponent(final Graphics g) {
 		super.paintComponent(g);
 		
-		int width = getWidth(), height = getHeight();
+		final int width = getWidth(), height = getHeight();
 
 		g.setColor(Color.WHITE);
 	    g.fillRect(0, 0, width, height);
@@ -217,10 +219,10 @@ public class CtrlPanel extends JPanel {
 	    {
 		    final int lineWidth = 4;
 	    	final int halfLineWidth = lineWidth/2;
-			BasicStroke bs=new BasicStroke(lineWidth, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND);
-		    Graphics2D g2d = (Graphics2D)g;
-		    Stroke oldStrok = g2d.getStroke();
-		    Object oldRender = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
+			final BasicStroke bs=new BasicStroke(lineWidth, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND);
+		    final Graphics2D g2d = (Graphics2D)g;
+		    final Stroke oldStrok = g2d.getStroke();
+		    final Object oldRender = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
 		    g2d.setStroke(bs);
 		    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		    final int arcSize = 30;
@@ -254,7 +256,7 @@ public class CtrlPanel extends JPanel {
 	    }
 	}
 	
-	private void drawSelectedBox(Graphics g, 
+	private void drawSelectedBox(final Graphics g, 
 			final int startX, final int startY, final int endX, final int endY){
 		final int width = endX - startX, height = endY - startY;
 		g.setColor(Color.DARK_GRAY);
@@ -280,7 +282,7 @@ public class CtrlPanel extends JPanel {
 	}
 	
 	public CtrlItem addItemToCanvas(final int keyValue, final int center_x, final int center_y){
-		CtrlItem ci = new CtrlItem();
+		final CtrlItem ci = new CtrlItem();
 		final BufferedImage bi = totalPanel.canvas_images[keyValue];
 		ci.halfWidth = bi.getWidth()/2;
 		ci.halfHeight = bi.getHeight()/2;
@@ -344,7 +346,7 @@ public class CtrlPanel extends JPanel {
 		setCursor(defaultCursor);
 	}
 
-	private boolean doMove(MouseEvent e) {
+	private boolean doMove(final MouseEvent e) {
 		if(pressMouseX >= 0 && pressMouseY >= 0){
 			final int x = e.getX();
 			final int y = e.getY();

@@ -1,5 +1,9 @@
 package hc.core.util;
 
+/**
+ * 最底层参数
+ *
+ */
 public class UIUtil {
 	/**
 	 * 乐1分辨率:1920*1080像素
@@ -85,5 +89,8 @@ public class UIUtil {
 	public static final String SYS_ADD_DEVICE_BY_QR_ICON = SYS_ICON_PREFIX + "AddDeviceQR";
 	public static final String SYS_ADD_DEVICE_BY_WIFI_ICON = SYS_ICON_PREFIX + "AddDeviceWiFi";
 	public static final String SYS_DEFAULT_ICON = SYS_ICON_PREFIX + "Img";
+	
+	public static final int COLOR_TRANS_LAY = 0xcc847139;
+	public static final int DEFAULT_COLOR_BACKGROUND = COLOR_TRANS_LAY & 0x00FFFFFF;
 	
 }

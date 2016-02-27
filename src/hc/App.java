@@ -159,8 +159,13 @@ public class App {
 		return UIManager.getIcon(key);
 	}
 	
+	private static File baseDir;
+	
 	public static File getBaseDir(){
-		return PlatformManager.getService().getBaseDir();
+		if(baseDir == null){
+			baseDir = PlatformManager.getService().getBaseDir();
+		}
+		return baseDir;
 	}
 
 	public static float getJREVer() {
@@ -721,13 +726,19 @@ public class App {
 			area.setWrapStyleWord(true);
 		} catch (final Throwable e) {
 			e.printStackTrace();
-			final String[] options = { "O K" };
-			App.showOptionDialog(null,
-					"Cant connect server, please try late!", "HomeCenter",
-					JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
-					null, options, options[0]);
-			dialog.dispose();
-			PlatformManager.getService().exitSystem();
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					final String[] options = { "O K" };
+					App.showOptionDialog(null,
+							"Cant connect server, please try late!", "HomeCenter",
+							JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
+							null, options, options[0]);
+					dialog.dispose();
+					PlatformManager.getService().exitSystem();
+				}
+			});
+			return;
 		}
 		dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		final java.awt.event.ActionListener exitActionListener = new HCActionListener(new Runnable() {
@@ -1196,36 +1207,40 @@ public class App {
 
 	private static JTextField jtfuuid;
 	
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 */
 	public static String showInputDialog(final Component parentComponent, final Object message, final Object initialSelectionValue) {
 		return (String)showInputDialog(parentComponent, message,
 				getOptionPaneTitle("OptionPane.inputDialogTitle", parentComponent), JOptionPane.QUESTION_MESSAGE, null, null,
 				initialSelectionValue);
 	}
 	
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 */
 	public static String showInputDialog(final Component parentComponent,
 	        final Object message, final String title, final int messageType) {
 	        return (String)showInputDialog(parentComponent, message, title,
 	                                       messageType, null, null, null);
     }
 	
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 */
     public static Object showInputDialog(final Component parentComponent,
             final Object message, final String title, final int messageType, final Icon icon,
             final Object[] selectionValues, final Object initialSelectionValue){
     	CCoreUtil.checkAccess();
     	ProcessingWindowManager.disposeProcessingWindow();
     	
-    	final Object[] out = new Object[1];
-    	try{
-	    	SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					out[0] = JOptionPane.showInputDialog(parentComponent, message, title, messageType, 
-			    			icon, selectionValues, initialSelectionValue);
-				}
-			});
-    	}catch (final Throwable e) {
-		}
-    	return out[0];
+    	return ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				return JOptionPane.showInputDialog(parentComponent, message, title, messageType, 
+		    			icon, selectionValues, initialSelectionValue);
+			}
+		});
     }
 
     public static final String[] showHARInputDialog(final String title, final String[] fieldName, final String[] fieldDesc){
@@ -1314,6 +1329,13 @@ public class App {
 		return false;
 	}
 	
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @param parentComponent
+	 * @param message
+	 * @param title
+	 * @return
+	 */
 	public static int showOptionDialog(final Component parentComponent, final Object message, final String title) {
 		final Object[] options = {ResourceUtil.get(1032),
                 ResourceUtil.get(1033),
@@ -1328,16 +1350,43 @@ public class App {
 			options[0]);
 	}
 	
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @param parentComponent
+	 * @param message
+	 * @param title
+	 * @param optionType
+	 * @return
+	 */
 	public static int showConfirmDialog(final Component parentComponent,
 	        final Object message, final String title, final int optionType){
 		return showConfirmDialog(parentComponent, message, title, optionType, JOptionPane.QUESTION_MESSAGE);
 	}
 	
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @param parentComponent
+	 * @param message
+	 * @param title
+	 * @param optionType
+	 * @param messageType
+	 * @return
+	 */
 	public static int showConfirmDialog(final Component parentComponent,
 	        final Object message, final String title, final int optionType, final int messageType){
 		return showConfirmDialog(parentComponent, message, title, optionType, messageType, null);
 	}
 	
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @param parentComponent
+	 * @param message
+	 * @param title
+	 * @param optionType
+	 * @param messageType
+	 * @param icon
+	 * @return
+	 */
 	public static int showConfirmDialog(final Component parentComponent,
 	        final Object message, final String title, final int optionType,
 	        final int messageType, final Icon icon){
@@ -1345,37 +1394,38 @@ public class App {
 
 		ProcessingWindowManager.disposeProcessingWindow();
 		
-		final int[] out = new int[1];
-		try{
-			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					out[0] = JOptionPane.showConfirmDialog(parentComponent, message, title, optionType, messageType, icon);
-				}
-			});
-		}catch (final Throwable e) {
-		}
-		return out[0];
+		return (Integer)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				return JOptionPane.showConfirmDialog(parentComponent, message, title, optionType, messageType, icon);
+			}
+		});
 	}
 	
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @param parentComponent
+	 * @param message
+	 * @param title
+	 * @param optionType
+	 * @param messageType
+	 * @param icon
+	 * @param options
+	 * @param initialValue
+	 * @return
+	 */
 	public static int showOptionDialog(final Component parentComponent,
 	        final Object message, final String title, final int optionType, final int messageType,
 	        final Icon icon, final Object[] options, final Object initialValue){
 		
 		ProcessingWindowManager.disposeProcessingWindow();
 		
-		final int[] out = new int[1];
-		try{
-			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
-				public void run() {
-					out[0] = JOptionPane.showOptionDialog(parentComponent, message, title, optionType, messageType, icon, options, initialValue);
-				}
-			});
-		}catch (final Exception e) {
-			e.printStackTrace();
-		}
-		return out[0];
+		return (Integer)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				return JOptionPane.showOptionDialog(parentComponent, message, title, optionType, messageType, icon, options, initialValue);
+			}
+		});
 	}
 	
 	private static String getOptionPaneTitle(final String uiTitle, final Component parentComponent) {
@@ -1431,18 +1481,18 @@ public class App {
 	public static final int QUESTION_MESSAGE = JOptionPane.QUESTION_MESSAGE;
 	public static final int PLAIN_MESSAGE = JOptionPane.PLAIN_MESSAGE;
 	
-	public static void showHARMessageDialog(final Object message){
+	public static void showHARMessageDialog(final String message){
 		final String title = getOptionPaneTitle("OptionPane.messageDialogTitle", null);
 		showHARMessageDialog(message, appendProjectIDForTitle(title), 
 				INFORMATION_MESSAGE);
 	}
 
-	public static void showHARMessageDialog(final Object message,
+	public static void showHARMessageDialog(final String message,
 	        final String title, final int messageType){
 		showHARMessageDialog(message, title, messageType, null);
 	}
 	
-	public static void showHARMessageDialog(final Object message,
+	public static void showHARMessageDialog(final String message,
 	        final String title, final int messageType, final Icon icon){
 		synchronized (displayHARMsg) {
 			if(displayHARMsg.contains(message)){
@@ -1450,10 +1500,13 @@ public class App {
 			}
 			displayHARMsg.add(message);
 		}
+		
+		final Icon clearedIcon = ResourceUtil.clearIcon(icon);
+
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
-				showMessageDialog(null, message, title, messageType, icon);
+				showMessageDialog(null, message, title, messageType, clearedIcon);
 				synchronized (displayHARMsg) {
 					displayHARMsg.remove(message);
 				}

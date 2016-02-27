@@ -91,12 +91,12 @@ public abstract class CtrlResponse {
 	 */
 	public final void setButtonText(final int keyValue, final String text){
 		if(text != null && text.length() > 0){
-			ContextManager.getThreadPool().run(new Runnable() {
+			ServerUIAPIAgent.runInSysThread(new Runnable() {
 				@Override
 				public void run() {
 					ServerUIAPIAgent.__sendTextOfCtrlButton(keyValue, text);
 				}
-			}, ServerUIAPIAgent.threadToken);
+			});
 		}
 	}
 	
@@ -157,12 +157,12 @@ public abstract class CtrlResponse {
 		opt.out(values);
 		opt.out(isRTL);
 		
-		ContextManager.getThreadPool().run(new Runnable() {
+		ServerUIAPIAgent.runInSysThread(new Runnable() {
 			@Override
 			public void run() {
 				ContextManager.getContextInstance().send(MsgBuilder.E_CTRL_STATUS, opt.getSubmitString());
 			}
-		}, ServerUIAPIAgent.threadToken);
+		});
 		
 	}
 }

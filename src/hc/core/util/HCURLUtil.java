@@ -306,6 +306,13 @@ public class HCURLUtil {
 		pSendCmd(MsgBuilder.E_GOTO_URL_UN_XOR, cmdType, para, value);
 	}
 	
+	/**
+	 * 可以从服务器端调用，也可从手机端调用
+	 * @param className
+	 * @param bs
+	 * @param offset
+	 * @param len
+	 */
 	public static void sendEClass(String className, byte[] bs, int offset, int len){
 		final byte[] classBS = ByteUtil.getBytes(className, IConstant.UTF_8);
 		
@@ -327,6 +334,8 @@ public class HCURLUtil {
 		ContextManager.getContextInstance().sendWrap(MsgBuilder.E_CLASS, out, 0, newLen);
 		cache.cycle(out);
 	}
+	
+	public static final String CLASS_BODY_TO_MOBI = "BODY_TO_MOBI";
 
 	public static void sendCmd(String cmdType, String[] para, String[] value){
 //		sendWrap进行了拦截

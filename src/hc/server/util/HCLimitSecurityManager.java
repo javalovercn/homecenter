@@ -1,6 +1,7 @@
 package hc.server.util;
 
 import hc.App;
+import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CtrlKey;
@@ -53,7 +54,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 	private static HCLimitSecurityManager hcSecurityManager;
 	private static ThreadPool tempLimitThreadPool;
 	private static ThreadGroup tempLimitThreadgroup;
-	private final Locale locale = Locale.getDefault();
+	private static final Locale locale = Locale.getDefault();
 	private final float jreVersion = App.getJREVer();
 	private static final HCEventQueue hcEventQueue = buildHCEventQueue();
 	private static final Thread eventDispatchThread = hcEventQueue.eventDispatchThread;
@@ -74,15 +75,20 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 		try{
 			return new HCEventQueue();
 		}catch (final Exception e) {
-			App.showOptionDialog(null, "Fail to modify Thread.group to null", "JVM Error");
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {//重要，请勿在Event线程中调用，
+					App.showOptionDialog(null, "Fail to modify Thread.group to null", "JVM Error");
+				}
+			});
 		}
 		return null;
 	}
 	
-	public final String getUserHARDataDir(final ContextSecurityConfig csc) {
+	public final String getUserDataBaseDir(final ContextSecurityConfig csc) {
 		final String tempUserDir = csc.tempUserDir;
 		if(tempUserDir == null){
-			csc.tempUserDir = getUserHARDataDir(csc.projID);
+			csc.tempUserDir = getUserDataBaseDir(csc.projID);
 			return csc.tempUserDir;
 		}else{
 			return tempUserDir;
@@ -94,8 +100,8 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 	 * @param projID
 	 * @return
 	 */
-	public final String getUserHARDataDir(final String projID) {
-		return user_data_dir + HttpUtil.encodeFileName(projID) + System.getProperty("file.separator");
+	public static final String getUserDataBaseDir(final String projID) {
+		return user_data_dir + HttpUtil.encodeFileName(projID) + App.FILE_SEPARATOR;
 	}
 	
 	public static final ProjectContext getProjectContextFromDispatchThread(){
@@ -261,10 +267,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 	private final String[] blockMemberAccessLists;
 	private final Class[] memberAccessLists;
 	
-	private final String hcRootPath = FileLocker.toFileCanonicalPath("./") + System.getProperty("file.separator");
-	private final String hcRootPathLower = hcRootPath.toLowerCase(locale);
-	private final String user_data_dir = hcRootPath + USER_DATA + System.getProperty("file.separator");
-	private final String user_data_dirLower = user_data_dir.toLowerCase(locale);
+	private static final String hcRootPath = FileLocker.toFileCanonicalPath("./") + App.FILE_SEPARATOR;
+	private static final String hcRootPathLower = hcRootPath.toLowerCase(locale);
+	private static final String user_data_dir = hcRootPath + USER_DATA + App.FILE_SEPARATOR;
+	private static final String user_data_dirLower = user_data_dir.toLowerCase(locale);
 	private final String propertiesName;
 	
 	public HCLimitSecurityManager(final SecurityManager sm, 
@@ -466,7 +472,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 		}
 		String harDir;
 		if(csc != null 
-				&& (fileCanonicalPath.startsWith((harDir = getUserHARDataDir(csc)), 0)
+				&& (fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
 						|| ((harDir.startsWith(fileCanonicalPath, 0) 
 								&& 
 							harDir.length() == fileCanonicalPath.length() + 1)))){
@@ -495,7 +501,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 		}
 		String harDir;
 		if(csc != null 
-				&& (fileCanonicalPath.startsWith((harDir = getUserHARDataDir(csc)), 0)
+				&& (fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
 						|| ((harDir.startsWith(fileCanonicalPath, 0) 
 								&& 
 							harDir.length() == fileCanonicalPath.length() + 1)))){
@@ -524,7 +530,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 		}
 		String harDir;
 		if(csc != null 
-				&& (fileCanonicalPath.startsWith((harDir = getUserHARDataDir(csc)), 0)
+				&& (fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
 						|| ((harDir.startsWith(fileCanonicalPath, 0) 
 								&& 
 							harDir.length() == fileCanonicalPath.length() + 1)))){
@@ -612,7 +618,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 		}			
 		String harDir;
 		if(csc != null 
-				&& (fileCanonicalPath.startsWith((harDir = getUserHARDataDir(csc)), 0)
+				&& (fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
 						|| ((harDir.startsWith(fileCanonicalPath, 0) 
 								&& 
 							harDir.length() == fileCanonicalPath.length() + 1)))){

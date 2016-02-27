@@ -1,6 +1,7 @@
 package hc.server.data.screen;
 
 import hc.core.L;
+import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
@@ -126,6 +127,7 @@ public class KeyComper {
 	 * @param keyDesc Ctrl+Alt+A
 	 */
 	public static void actionKeys(final String keyDesc) {
+//		CCoreUtil.checkAccess();
 		keyAction(robot, convert(convertStr(keyDesc)), keyDesc);
 	}
 

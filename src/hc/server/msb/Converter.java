@@ -25,6 +25,7 @@ public abstract class Converter {
 	Workbench __workbench;
 	
 	private String __name;
+	final String classSimpleName;
 	
 	/**
 	 * @deprecated
@@ -39,6 +40,7 @@ public abstract class Converter {
 	 */
 	@Deprecated
 	public Converter(final String name){
+		this.classSimpleName = this.getClass().getSimpleName();
 		__context = ProjectContext.getProjectContext();
 		this.__name = ServerUIAPIAgent.getProcessorNameFromCtx(__context, name, ServerUIAPIAgent.CONVERT_NAME_PROP);
 	}
@@ -126,4 +128,11 @@ public abstract class Converter {
 	public void shutdown() {
 	}
 
+	/**
+	 * @return the description of Device.
+	 * @since 7.3
+	 */
+	public final String getIoTDesc(){
+		return this.classSimpleName + Processor.buildDesc(__name, __context);
+	}
 }

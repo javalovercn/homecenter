@@ -118,7 +118,7 @@ public abstract class ThreadPool {
 		synchronized (freeThreads) {
 			while((rt = (RecycleThread)freeThreads.getFirst()) == null){
 				try {
-					freeThreads.wait();
+					freeThreads.wait();//RecycleThread {addTail() + notify()}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}

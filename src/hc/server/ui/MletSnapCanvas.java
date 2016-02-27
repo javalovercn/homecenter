@@ -345,7 +345,25 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	}
 	
 	@Override
-	public boolean actionInput(final DataInputEvent e) {
+	public final boolean actionInput(final DataInputEvent e) {
+		final boolean[] out = new boolean[1];
+		
+		projectContext.runAndWait(new Runnable() {
+			@Override
+			public void run() {
+				out[0] = actionInputInUserThread(e);
+			}
+		});
+		
+		return out[0];
+	}
+	
+	/**
+	 * 可能重载某些方法，故全inUserThread
+	 * @param e
+	 * @return
+	 */
+	private final boolean actionInputInUserThread(final DataInputEvent e) {
 		final int eventType = e.getType();
 		final int x = e.getX();
 		final int y = e.getY();
@@ -353,10 +371,10 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 			L.V = L.O ? false : LogManager.log("[workbench] inputEvent at x : " + x + ", y : " + y + ", type : " + eventType);
 		}
 		if(eventType == DataInputEvent.TYPE_TAG_KEY_PRESS_V_SCREEN){
-			keyPressed(x, y);
+			keyPressed(x, y);//in user thread
 			return true;
 		}else if(eventType == DataInputEvent.TYPE_TAG_KEY_RELEASE_V_SCREEN){
-			keyReleased(x, y);
+			keyReleased(x, y);//in user thread
 			return true;
 		}else if(eventType == DataInputEvent.TYPE_TRANS_TEXT){
 			try {
@@ -417,7 +435,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	}
 	
 	@Override
-	public void init(){	
+	public void init(){//in user thread
 		scrolPanel = new JScrollPane(mlet, 
 				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 //		scrolPanel.setOpaque(true); //content panes must be opaque
@@ -445,16 +463,11 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		mlet.setFocusTraversalKeys(traverKey, newForwardKeys);
 	}
 	
-	public void keyPressed(final int keyStates, final int gameAction){
-		projectContext.run(new Runnable() {
-			@Override
-			public void run() {
-				doKeyAction(keyStates, gameAction, true);
-			}
-		});
+	public final void keyPressed(final int keyStates, final int gameAction){//in user thread
+		doKeyAction(keyStates, gameAction, true);//in user thread
 	}
 
-	public void keyReleased(final int keyCode, final int gameAction){
+	public final void keyReleased(final int keyCode, final int gameAction){
 //		doKeyAction(keyCode, gameAction, false);		
 //		ctx.run(new Runnable() {
 //			@Override
@@ -480,7 +493,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 				); 
 	}
 	
-	private Component focusNext(final Component c, final boolean isContainIn){
+	private Component focusNext(final Component c, final boolean isContainIn){//in user thread
 		if(c instanceof Container && isContainIn){
 			if(((Container)c).getComponentCount() > 0){
 				final Component component = ((Container)c).getComponent(0);
@@ -495,7 +508,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		return focusNext(c);
 	}
 	
-	private Component focusNext(final Component c) {		
+	private Component focusNext(final Component c) {//in user thread
 		if(c instanceof Mlet){
 			return null;
 		}
@@ -508,7 +521,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 					focus(nextFocus);
 					return nextFocus;
 				}else{
-					return focusNext(nextFocus, true);
+					return focusNext(nextFocus, true);//in user thread
 				}
 			}else{
 				return null;
@@ -599,15 +612,15 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		return preFocus;
 	}
 
-	private void doKeyAction(final int keyStates, final int gameAction, final boolean isPressNotRelease) {
+	private void doKeyAction(final int keyStates, final int gameAction, final boolean isPressNotRelease) {//in user thread
 		if (gameAction == LEFT || keyStates == KEY_NUM4) {
 			focusPrevious(currFocusObject);
 		} else if (gameAction == RIGHT || keyStates == KEY_NUM6) {
-			focusNext(currFocusObject);
+			focusNext(currFocusObject);//in user thread
 		} else if (gameAction == UP || keyStates == KEY_NUM2) {
 			focusPrevious(currFocusObject);
 		} else if (gameAction == DOWN || keyStates == KEY_NUM8) {
-			focusNext(currFocusObject);
+			focusNext(currFocusObject);//in user thread
 		} else if (gameAction == FIRE || keyStates == KEY_NUM5) {
 			if(doActon(currFocusObject) == false){
 				dispatchEvent(currFocusObject, new java.awt.event.KeyEvent(currFocusObject, 
@@ -620,31 +633,26 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		}
 	}
 	
-	public void pointerPressed(final int x, final int y, final Component componentAt){
+	public final void pointerPressed(final int x, final int y, final Component componentAt){
 //		L.V = L.O ? false : LogManager.log("Pressed on MCanvas at x:" + x + ", y:" + y);
-		projectContext.runAndWait(new Runnable() {
-			@Override
-			public void run() {
-			    //先执行focusLost
-			    if(currFocusObject != null && currFocusObject != componentAt){
-			    	loseFocus(currFocusObject);
-			    }
-			    //再执行focusGained
-				focus(componentAt);
-				
-				final MouseListener[] ml = componentAt.getListeners(MouseListener.class);
-				if(ml.length == 0){
-					return;
-				}
-				
-				final MouseEvent event = new MouseEvent(componentAt, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(),
-			    		MouseEvent.BUTTON1_MASK, x, y, 1, false);
-				
-				for (int i = getStartMouseListenerIdx(componentAt); i < ml.length; i++) {
-					ml[i].mousePressed(event);
-				}
-			}
-		});
+	    //先执行focusLost
+	    if(currFocusObject != null && currFocusObject != componentAt){
+	    	loseFocus(currFocusObject);
+	    }
+	    //再执行focusGained
+		focus(componentAt);
+		
+		final MouseListener[] ml = componentAt.getListeners(MouseListener.class);
+		if(ml.length == 0){
+			return;
+		}
+		
+		final MouseEvent event = new MouseEvent(componentAt, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(),
+	    		MouseEvent.BUTTON1_MASK, x, y, 1, false);
+		
+		for (int i = getStartMouseListenerIdx(componentAt); i < ml.length; i++) {
+			ml[i].mousePressed(event);
+		}
 	}
 	
 	private Component currFocusObject;
@@ -710,13 +718,8 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	private JList listForJComboBox;
 	private JComboBox oriComboBox;
 	
-	public void pointerReleased(final int x, final int y){
-		projectContext.run(new Runnable() {
-			@Override
-			public void run() {
-				doPointerReleased(x, y);
-			}
-		});
+	public final void pointerReleased(final int x, final int y){
+		doPointerReleased(x, y);
 	}
 	
 	private void doPointerReleased(final int x, final int y){
@@ -940,7 +943,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		}
 	}
 	
-	public void pointerDragged(final int x, final int y, final Component componentAt){
+	public final void pointerDragged(final int x, final int y, final Component componentAt){
 		L.V = L.O ? false : LogManager.log("Dragged on MCanvas at x:" + x + ", y:" + y);
 		
 		final MouseMotionListener[] ml = componentAt.getListeners(MouseMotionListener.class);
@@ -951,16 +954,11 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		final MouseEvent event = new MouseEvent(componentAt, MouseEvent.MOUSE_DRAGGED, System.currentTimeMillis(),
 	    		MouseEvent.BUTTON1_MASK, x, y, 1, false);
 
-		projectContext.runAndWait(new Runnable() {
-			@Override
-			public void run() {
-				for (int i = 0; i < ml.length; i++) {
-					final MouseMotionListener mouseListener = ml[i];
+		for (int i = 0; i < ml.length; i++) {
+			final MouseMotionListener mouseListener = ml[i];
 //					mouseListener.mouseMoved((MouseEvent)event);
-					mouseListener.mouseDragged(event);
-				}
-			}
-		});
+			mouseListener.mouseDragged(event);
+		}
 	}
 	
 	@Override

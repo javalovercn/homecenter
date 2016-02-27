@@ -139,10 +139,19 @@ public abstract class Robot extends Processor{
 	 */
 	public abstract DeviceCompatibleDescription getDeviceCompatibleDescription(final String referenceDeviceID);
 	
+	/**
+	 * @return the description of Robot.
+	 * @since 7.3
+	 */
 	@Override
-	public String toString() {
-		return this.getClass().getSimpleName() + super.toString();
+	public final String getIoTDesc(){
+		return this.classSimpleName + super.getIoTDesc();
 	}
+	
+//	@Override
+//	public String toString() {//please use getIoTDesc
+//		return this.getClass().getSimpleName() + super.getProcDesc();
+//	}
 	
 	ArrayList<RobotListener> robotListeners;
 	
@@ -244,7 +253,7 @@ public abstract class Robot extends Processor{
 	@Deprecated
 	@Override
 	final void __startup(){
-		startup();
+		startup();//in user thread group
 	}
 	
 	/**
@@ -260,7 +269,7 @@ public abstract class Robot extends Processor{
 	@Deprecated
 	@Override
 	final void __shutdown(){
-		shutdown();
+		shutdown();//in user thread group
 	}
 	
 	/**

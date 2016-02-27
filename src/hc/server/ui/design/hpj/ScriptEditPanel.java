@@ -93,15 +93,15 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	private static final Pattern str_pattern = Pattern.compile("\".*?(?<!\\\\)\"");
 	private static final Pattern keywords_pattern = Pattern.compile("\\b(BEGIN|END|__ENCODING__|__END__|__FILE__|__LINE__|alias|" +
 			"and|begin|break|case|class|def|defined?|do|else|elsif|end|" +
-			"ensure|false|for|if|in|import|include|module|next|nil|not|or|raise|redo|require|rescue|retry|return|" +
+			"ensure|extend|false|for|if|in|import|include|module|next|nil|not|or|raise|redo|require|rescue|retry|return|" +
 			"self|super|then|true|undef|unless|until|when|while|yield)\\b", Pattern.MULTILINE);
 //	private static final String[] Indentation = {"begin", "case ", "class ", "def ", "else", 
 //		"elsif ", "for ", "if ", "module ", "when ", "while ", "rescue "};
 	private static final String[] WithEndIndentation = {"begin", "case ", "class ", "def ", "for ", "if ", "module ", "when "};//由于while[ ]后有do，所以在此移去
 	private static final String[] doIndentation = {" do", " do\n"};
 	
-	//addActionListener{|exception|。|exception|段可能有，可能没有。如果测试，参见TestEndIndentKuoHao
-	private static final Pattern WithEndIndentationKuoHao = Pattern.compile("\\{\\s*?(\\|\\s*?\\w+?\\s*?\\|)?\\s*?(?<!\\})\\s*?(#.*)?$");
+	//addActionListener{|exception| or do |exception|。|exception|段可能有，可能没有。如果测试，参见TestEndIndentKuoHao
+	private static final Pattern WithEndIndentationKuoHao = Pattern.compile("(\\{|\\s+do)\\s*?(\\|\\s*?\\w+?\\s*?\\|)?\\s*?(?<!\\})\\s*?(#.*)?$");
 	
 	private static final char[] elsifChar = {'e', 'l', 's', 'i', 'f', ' '};
 	private static final char[] elseChar = {'e', 'l', 's', 'e'};

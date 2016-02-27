@@ -15,7 +15,7 @@ class ProcessorRunnable extends StartableRunnable{
 	@Override
 	public final void start(){
 		try{
-			processor.__startup();
+			processor.__startup();//in user thread group
 		}catch (final Throwable e) {
 			new MSBException("[startup] " + e.toString(), e, null, processor);
 			e.printStackTrace();
@@ -62,7 +62,7 @@ class ProcessorRunnable extends StartableRunnable{
 			}
 			
 			try{
-				processor.preprocess(msg);
+				processor.preprocess(msg);//in user thread group
 //				workbench.V = workbench.O ? false : workbench.log("finish process message " + msg.toString() + "\n in processor [" + toString() + "]");
 			}catch (final Throwable e) {
 				e.printStackTrace();
@@ -72,7 +72,7 @@ class ProcessorRunnable extends StartableRunnable{
 		}//while
 		
 		try{
-			processor.__shutdown();
+			processor.__shutdown();//in user thread group
 		}catch (final Throwable e) {
 			new MSBException("[shutdown] " + e.toString(), e, null, processor);
 			e.printStackTrace();

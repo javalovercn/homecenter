@@ -1,6 +1,7 @@
 package hc.util;
 
 import hc.App;
+import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.util.LogManager;
 import hc.server.HCException;
@@ -39,7 +40,12 @@ public class ClassUtil {
 		try{
 			ClassUtil.changeField(ThreadGroup.class, threadGroup, "parent", null);
 		}catch (final Exception e) {
-			App.showOptionDialog(null, "Fail to modify ThreadGroup.parent to null", "JVM Error");
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {//重要，请勿在Event线程中调用，
+					App.showOptionDialog(null, "Fail to modify ThreadGroup.parent to null", "JVM Error");
+				}
+			});
 		}
 	}
 	

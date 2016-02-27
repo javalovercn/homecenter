@@ -1,6 +1,7 @@
 package hc.server;
 
 import hc.App;
+import hc.core.ContextManager;
 import hc.core.RootServerConnector;
 import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.design.Designer;
@@ -12,16 +13,21 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 public class LinkMenuManager {
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @return
+	 */
 	public static boolean notifyCloseDesigner(){
-		try {
-			final Class c = getDesignerClass();
-			final Method m = c.getMethod("notifyCloseDesigner", new Class[] {});
-			return((Boolean)m.invoke(c, new Object[] {})).booleanValue();
-		} catch (final Throwable e) {
-			e.printStackTrace();
-			App.showConfirmDialog(null, "load link panel error : " + e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
-		}
-		return false;
+		return Designer.notifyCloseDesigner();
+//		try {
+//			final Class c = getDesignerClass();
+//			final Method m = c.getMethod("notifyCloseDesigner", new Class[] {});
+//			return((Boolean)m.invoke(c, new Object[] {})).booleanValue();
+//		} catch (final Throwable e) {
+//			e.printStackTrace();
+//			App.showConfirmDialog(null, "load link panel error : " + e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
+//		}
+//		return false;
 	}
 
 	private static Class<?> getDesignerClass() throws ClassNotFoundException {
@@ -50,6 +56,10 @@ public class LinkMenuManager {
 		}
 	}
 	
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @param loadInit
+	 */
 	public static void startDesigner(final boolean loadInit){
 		if(LinkProjectStatus.tryEnterStatus(null, LinkProjectStatus.MANAGER_DESIGN)){
 			try{
@@ -58,8 +68,13 @@ public class LinkMenuManager {
 				Designer.getInstance().loadInitProject(loadInit);
 			}catch (final Exception ee) {
 				ee.printStackTrace();
-				App.showConfirmDialog(null, "Cant load Designer", 
-						"Error", JOptionPane.CLOSED_OPTION, JOptionPane.ERROR_MESSAGE);
+				ContextManager.getThreadPool().run(new Runnable() {
+					@Override
+					public void run() {
+						App.showConfirmDialog(null, "Cant load Designer", 
+								"Error", JOptionPane.CLOSED_OPTION, JOptionPane.ERROR_MESSAGE);
+					}
+				});
 			}
 		}
 	}

@@ -862,7 +862,13 @@ public class LinkProjectPanel extends ProjectListPanel{
 		return panel.linkNameField.getText().equals(panel.CANCLE);
 	}
 
-	private void addProjFromLocal(final JFrame self, final AbstractDelayBiz selfBiz, final File file) {
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @param self
+	 * @param selfBiz
+	 * @param file
+	 */
+	private final void addProjFromLocal(final JFrame self, final AbstractDelayBiz selfBiz, final File file) {
 		if(file != null){
 			final Map<String, Object> map = AddHarHTMLMlet.getMap(file);
 			if(map.isEmpty()){
@@ -892,7 +898,14 @@ public class LinkProjectPanel extends ProjectListPanel{
 		selfBiz.setPara(Boolean.FALSE);
 	}
 
-	private void loadToTable(final JFrame self, final AbstractDelayBiz selfBiz,
+	/**
+	 * 重要，请勿在Event线程中调用，
+	 * @param self
+	 * @param selfBiz
+	 * @param file
+	 * @param map
+	 */
+	private final void loadToTable(final JFrame self, final AbstractDelayBiz selfBiz,
 			final File file, final Map<String, Object> map) {
 		int delOldProjIndex = -1;
 		String linkName = "";

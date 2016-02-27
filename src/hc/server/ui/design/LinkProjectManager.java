@@ -747,7 +747,7 @@ public class LinkProjectManager{
 		
 		if(delPersistent){
 			PropertiesManager.remove(PropertiesManager.p_PROJ_RECORD + lps.getProjectID());
-			final String userProjIDPath = HCLimitSecurityManager.getHCSecurityManager().getUserHARDataDir(lps.getProjectID());
+			final String userProjIDPath = HCLimitSecurityManager.getUserDataBaseDir(lps.getProjectID());
 			final String delPath = userProjIDPath.substring(0, userProjIDPath.length() - 1);//去掉最后一个/
 			PropertiesManager.addDelDir(delPath);
 		}

@@ -23,9 +23,9 @@ public abstract class IoTSource {
 	
 	public abstract void getDeviceCompatibleDescByDevice(final ProjResponser pr, final RealDeviceInfo deviceInfo);
 	
-	public abstract void getConverterDescUpDown(final ProjResponser pr, final ConverterInfo converterInfo);
+	public abstract void getConverterDescUpDownToUserThread(final ProjResponser pr, final ConverterInfo converterInfo);
 	
-	public abstract DeviceCompatibleDescription getDeviceCompatibleDescByRobot(final ProjResponser pr, final Robot r, final String referenceDeviceID);
+	public abstract DeviceCompatibleDescription getDeviceCompatibleDescByRobotToUserThread(final ProjResponser pr, final Robot r, final String referenceDeviceID);
 	
 	/**
 	 * @param pr

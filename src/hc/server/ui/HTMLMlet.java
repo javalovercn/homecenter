@@ -57,12 +57,12 @@ public class HTMLMlet extends Mlet {
 	DifferTodo diffTodo;
 
 	/**
-	 * invoke this method to load special styles before invoke {@link #setCSS(JComponent, String, String)}.
-	 * <BR><BR><STRONG>Important</STRONG> : The <i>CSS Styles</i> tab for {@link HTMLMlet} item in designer is shared to all {@link HTMLMlet}s in current project.
+	 * invoke this method to load special styles for current {@link HTMLMlet} before invoke {@link #setCSS(JComponent, String, String)}.
+	 * <BR><BR><STRONG>Important</STRONG> : The <i>CSS Styles</i> tab in designer for {@link HTMLMlet} is shared to all {@link HTMLMlet}s in current project.
 	 * In other words, it will be loaded automatically by server for <STRONG>each</STRONG> HTMLMlet in current project.
 	 * <BR><BR>
-	 * this method can be invoked as many times as you want.
-	 * <BR>
+	 * you can load multiple CSS styles for a {@link HTMLMlet}, in other words, this method can be invoked as many times as you want.
+	 * <BR><BR>
 	 * this method can be invoked in constructor method (initialize method in JRuby).
 	 * <BR><BR>
 	 * <STRONG>Tip : </STRONG>you don't worry about styles too large for re-translating to mobile, 
@@ -100,7 +100,7 @@ public class HTMLMlet extends Mlet {
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.0
 	 */
-	public final void setCSSForDiv(final JComponent component, String className, final String styles){
+	public final void setCSSForDiv(final JComponent component, String className, final String styles){//in user thread
 		if(diffTodo == null && status > STATUS_INIT){
 			//MletSnapCanvas模式
 			return;
@@ -119,7 +119,7 @@ public class HTMLMlet extends Mlet {
 				return;
 			}
 			if(diffTodo != null && status < STATUS_EXIT){//由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
-				diffTodo.setStyleForDiv(diffTodo.buildHcCode(component), className, styles);
+				diffTodo.setStyleForDiv(diffTodo.buildHcCode(component), className, styles);//in user thread
 			}
 		}
 	}
@@ -136,7 +136,12 @@ public class HTMLMlet extends Mlet {
 	 * <BR>
 	 * 2. To get environment of mobile, please reference {@link ProjectContext#getMobileOS()} and {@link ProjectContext#getMobileOSVer()}.
 	 * <BR>
-	 * 3. If your UI is ugly, please ask your CSS artist for pleasantly surprised!
+	 * 3. If you need resize image for mobile, please resize them into a jar library first, or {@link #resizeImage(java.awt.image.BufferedImage, int, int)}.
+	 * <BR>It is not recommend to resize image by your implementation, because the HAR project may be executed in environment which is NOT standard J2SE.
+	 * <BR>
+	 * 4. The best practice is <STRONG>JComponent + LayoutManager + Event + CSS</STRONG>(basic layout, basic event listener).
+	 * <BR>
+	 * 5. If your UI is ugly, please ask your CSS artist for pleasantly surprised!
 	 * <BR><BR>
 	 * Swing {@link JComponent}s are translated to HTML as following:
 	 * <table border='1'>
@@ -264,7 +269,7 @@ public class HTMLMlet extends Mlet {
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.0
 	 */
-	public final void setCSS(final JComponent component, String className, final String styles){
+	public final void setCSS(final JComponent component, String className, final String styles){//in user thread
 		if(diffTodo == null && status > STATUS_INIT){
 			//MletSnapCanvas模式
 			return;
@@ -275,14 +280,14 @@ public class HTMLMlet extends Mlet {
 		}
 		
 		if(component instanceof JPanel){
-			setCSSForDiv(component, className, styles);
+			setCSSForDiv(component, className, styles);//in user thread
 			return;
 		}else if(component instanceof JToggleButton){
-			doForLabelTag((JToggleButton)component, className, styles);
+			doForLabelTag((JToggleButton)component, className, styles);//in user thread
 			return;
 		}
 		
-		doForInputTag(StyleItem.FOR_JCOMPONENT, component, className, styles);
+		doForInputTag(StyleItem.FOR_JCOMPONENT, component, className, styles);//in user thread
 	}
 
 	/**
@@ -293,7 +298,7 @@ public class HTMLMlet extends Mlet {
 	 */
 	@Deprecated
 	private final void doForInputTag(final int forType, final JComponent component, final String className,
-			final String styles) {
+			final String styles) {//in user thread
 		synchronized(this){
 			if(status == STATUS_INIT){
 				if(styleItemToDeliver == null){
@@ -303,7 +308,7 @@ public class HTMLMlet extends Mlet {
 				return;
 			}
 			if(diffTodo != null && status < STATUS_EXIT){
-				diffTodo.setStyleForInputTag(diffTodo.buildHcCode(component), className, styles);
+				diffTodo.setStyleForInputTag(diffTodo.buildHcCode(component), className, styles);//in user thread
 			}
 		}
 	}
@@ -332,14 +337,14 @@ public class HTMLMlet extends Mlet {
 			className = null;
 		}
 		
-		doForInputTag(StyleItem.FOR_JTOGGLEBUTTON, togButton, className, styles);
+		doForInputTag(StyleItem.FOR_JTOGGLEBUTTON, togButton, className, styles);//in user thread
 	}
 
 	/**
 	 * @deprecated
 	 */
 	@Deprecated
-	private final void doForLabelTag(final JToggleButton togButton, final String className, final String styles) {
+	private final void doForLabelTag(final JToggleButton togButton, final String className, final String styles) {//in user thread
 		synchronized(this){
 			if(status == STATUS_INIT){
 				if(styleItemToDeliver == null){
@@ -349,7 +354,7 @@ public class HTMLMlet extends Mlet {
 				return;
 			}
 			if(diffTodo != null && status < STATUS_EXIT){
-				diffTodo.setStyleForJCheckBoxText(diffTodo.buildHcCode(togButton), className, styles);
+				diffTodo.setStyleForJCheckBoxText(diffTodo.buildHcCode(togButton), className, styles);//in user thread
 			}
 		}
 	}
@@ -428,10 +433,29 @@ public class HTMLMlet extends Mlet {
 		return buttonHeight;
 	}
 	
+	/**
+	 * the width pixel of login mobile.
+	 * <BR>it is equals with <code>getProjectContext().getMobileWidth()</code>
+	 * @return
+	 * @since 7.3
+	 */
+	public final int getMobileWidth(){
+		return __context.getMobileWidth();
+	}
+	
+	/**
+	 * the height pixel of login mobile.
+	 * <BR>it is equals with <code>getProjectContext().getMobileHeight()</code>
+	 * @return
+	 * @since 7.3
+	 */
+	public final int getMobileHeight(){
+		return __context.getMobileHeight();
+	}
+	
 	private final void initFontSize(){
-		final ProjectContext ctx = getProjectContext();
-		final int width = ctx.getMobileWidth();
-		final int height = ctx.getMobileHeight();
+		final int width = __context.getMobileWidth();
+		final int height = __context.getMobileHeight();
 		
 		final int maxWH = Math.max(width, height);
 		

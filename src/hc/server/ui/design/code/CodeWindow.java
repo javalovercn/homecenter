@@ -36,7 +36,7 @@ import javax.swing.text.Document;
 
 public class CodeWindow {
 	public static final int MAX_HEIGHT = scaleWindowSizeByFontSize(230);
-	public static final int MAX_WIDTH = scaleWindowSizeByFontSize(500);
+	public static final int MAX_WIDTH = limitThreeOf(scaleWindowSizeByFontSize(500));
 	
 	private static final int scaleWindowSizeByFontSize(final int w_h){
 		try{
@@ -46,11 +46,22 @@ public class CodeWindow {
 		}
 	}
 	
+	private static final int limitThreeOf(final int width){
+		final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		final int threeOf = screenSize.width / 3;
+		if(width > threeOf){
+			return threeOf;
+		}else{
+			return width;
+		}
+	}
+	
 	private int loc_x, loc_y, fontHeight;
 	private final JList codeList = new JList();//JRE 1.6 not gerneric
 	Class codeBelongClass;
 	private final ArrayList<CodeItem> classData = new ArrayList<CodeItem>();
 	private final JFrame classFrame = new JFrame();
+	private final DocLayoutLimit layoutLimit = new DocLayoutLimit();
 	private final JScrollPane classPanel = new JScrollPane(codeList);
 	private final DocTipTimer autoPopTip = new DocTipTimer("", 500, false);
 	private final DocHelper docHelper;
@@ -281,6 +292,7 @@ public class CodeWindow {
 							autoPopTip.fmClass = item.fmClass;
 							autoPopTip.fieldOrMethodName = item.code;
 							autoPopTip.type = item.type;
+							autoPopTip.layoutLimit = layoutLimit;
 							autoPopTip.setEnable(true);
 						}
 					}else{
@@ -417,13 +429,25 @@ public class CodeWindow {
 			
 			int showX = loc_x;
 			int showY;
+			
+			layoutLimit.isNotDownLayout = false;
+			layoutLimit.isNotUpLayout = false;
+			boolean isIgnoreLayoutLimit = false;
+
 			if(loc_x + frameSize.width > screenSize.width){
 				showX = loc_x - frameSize.width;//右边没有空间，左展式
+				isIgnoreLayoutLimit = true;
 			}
 			if(loc_y + fontHeight + frameSize.height > screenSize.height){
 				showY = loc_y - frameSize.height;//底部没有空间，上展式
+				if(isIgnoreLayoutLimit == false){
+					layoutLimit.isNotDownLayout = true;
+				}
 			}else{
 				showY = loc_y + fontHeight;//下展式
+				if(isIgnoreLayoutLimit == false){
+					layoutLimit.isNotUpLayout = true;
+				}
 			}
 			
 			classFrame.setLocation(showX, showY);
@@ -483,6 +507,7 @@ class DocTipTimer extends HCTimer{
 	String fieldOrMethodName;
 	String fmClass;
 	int type;
+	DocLayoutLimit layoutLimit;
 	
 	public DocTipTimer(final String name, final int ms, final boolean enable){
 		super(name, ms, enable);
@@ -490,14 +515,18 @@ class DocTipTimer extends HCTimer{
 
 	@Override
 	public final void doBiz() {
-		if(type == CodeItem.TYPE_CLASS){
-			try {
-				final Class c = Class.forName(fieldOrMethodName);
-				DocHelper.processDoc(c, false);
-			} catch (final ClassNotFoundException e) {
+		synchronized (this) {//与hide互斥
+			if(isEnable()){//重新检查条件，必须的
+				if(type == CodeItem.TYPE_CLASS){
+					try {
+						final Class c = Class.forName(fieldOrMethodName);
+						DocHelper.processDoc(c, false);
+					} catch (final ClassNotFoundException e) {
+					}
+				}
+				docHelper.popDocTipWindow(classFrame, fmClass, fieldOrMethodName, type, layoutLimit);
+				setEnable(false);
 			}
 		}
-		docHelper.popDocTipWindow(classFrame, fmClass, fieldOrMethodName, type);
-		setEnable(false);
 	}
 }

@@ -24,7 +24,7 @@ public class MSBException extends Error {
 //	protected static final String EMPTY_BIND_ID = Message.class.getSimpleName() + " error in isInitiative value of dispatch method.";
 	protected static final String SAME_KEY_PROC = Message.class.getSimpleName() + " can't be added in same key processor";
 	
-	public MSBException(String message, Message msg, Processor proc) {
+	public MSBException(final String message, final Message msg, final Processor proc) {
         super(message);
         this.msg = msg;
         this.proc = proc;
@@ -32,7 +32,7 @@ public class MSBException extends Error {
         doExt();
     }
 	
-	public MSBException(String message, Throwable cause, Message msg, Processor proc) {
+	public MSBException(final String message, final Throwable cause, final Message msg, final Processor proc) {
         super(message, cause);
         this.msg = msg;
         this.proc = proc;
@@ -40,7 +40,7 @@ public class MSBException extends Error {
         doExt();
     }
 	
-	public MSBException(Throwable cause, Message msg, Processor proc) {
+	public MSBException(final Throwable cause, final Message msg, final Processor proc) {
         super(cause);
         this.msg = msg;
         this.proc = proc;
@@ -54,10 +54,10 @@ public class MSBException extends Error {
 			tmp += " at " + msg.toString() + ",";
 		}
 		if(proc != null){
-			tmp += " at " + proc.toString();
+			tmp += " at " + proc.getIoTDesc();
 		}else{
 			ContextSecurityConfig csc = null;
-			Thread currentThread = Thread.currentThread();
+			final Thread currentThread = Thread.currentThread();
 			if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
 				tmp += " in project[" + csc.projID + "]";
 			}

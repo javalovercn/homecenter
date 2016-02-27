@@ -13,6 +13,7 @@ public abstract class Processor{
 	final int procType;
 	final String project_id;
 	boolean isFinishStarted = false;
+	final String classSimpleName;
 
 	final ArrayDeque<Message> todo = new ArrayDeque<Message>();
 	boolean isShutdown = false;
@@ -25,9 +26,14 @@ public abstract class Processor{
 				return;
 			}
 			isStarted = true;	
-			startableRunnable.start();
-			__context.run(startableRunnable);
 		}
+		__context.runAndWait(new Runnable() {
+			@Override
+			public void run() {
+				startableRunnable.start();
+			}
+		});
+		__context.run(startableRunnable);
 	}
 
 	final void __response(final Message msg, final boolean isDownward){
@@ -132,6 +138,7 @@ public abstract class Processor{
 	
 	public Processor(final String n, final int procType, final ProjectContext ctx) {
 		super();
+		this.classSimpleName = this.getClass().getSimpleName();
 		__context = ctx;
 		if(__context != null){
 			project_id = __context.getProjectID();
@@ -187,9 +194,17 @@ public abstract class Processor{
 	 */
 	public abstract void response(Message msg);
 	
-	@Override
-	public String toString(){
-		return " [" + name + "] in project [" + __context.getProjectID() + "]";// + super.toString();
+	String getIoTDesc(){
+		return buildDesc(name, __context);// + super.toString();
 	}
+
+	static final String buildDesc(final String name, final ProjectContext ctx) {
+		return " [" + name + "] in project [" + ctx.getProjectID() + "]";
+	}
+	
+//	@Override
+//	public String toString(){//please use getIoTDesc
+//		return " [" + name + "] in project [" + __context.getProjectID() + "]";// + super.toString();
+//	}
 	
 }

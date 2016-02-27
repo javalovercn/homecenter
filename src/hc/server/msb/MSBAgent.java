@@ -6,6 +6,7 @@ import hc.core.util.ReturnableRunnable;
 import hc.core.util.WiFiDeviceManager;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.design.AddHarHTMLMlet;
+import hc.server.ui.design.ProjResponser;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -18,8 +19,17 @@ import java.util.HashSet;
  */
 public final class MSBAgent {
 	
-	public final static String[] getCompatibleItem(final DeviceCompatibleDescription compDesc){
-		return compDesc.getCompatibleItem();
+	public final static String[] getCompatibleItemToUserThread(final ProjResponser pr, final boolean isInUserThread, final DeviceCompatibleDescription compDesc){
+		if(isInUserThread){
+			return compDesc.getCompatibleItem();
+		}else{
+			return (String[])pr.threadPool.runAndWait(new ReturnableRunnable() {
+				@Override
+				public Object run() {
+					return compDesc.getCompatibleItem();
+				}
+			});
+		}
 	}
 	
 	public final static Workbench buildWorkbench(final NameMapper mapper){

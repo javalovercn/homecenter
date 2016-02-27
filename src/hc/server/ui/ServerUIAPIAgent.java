@@ -2,9 +2,9 @@ package hc.server.ui;
 
 import hc.App;
 import hc.core.ContextManager;
-import hc.core.util.CCoreUtil;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
+import hc.core.util.ReturnableRunnable;
 import hc.core.util.Stack;
 import hc.core.util.ThreadPool;
 import hc.server.ScreenServer;
@@ -23,6 +23,9 @@ public class ServerUIAPIAgent {
 	public final static String CONVERT_NAME_PROP = Workbench.SYS_RESERVED_KEYS_START + "convert_name_prop";
 	public final static String DEVICE_NAME_PROP = Workbench.SYS_RESERVED_KEYS_START + "device_name_prop";
 	public final static String ROBOT_NAME_PROP = Workbench.SYS_RESERVED_KEYS_START + "robot_name_prop";
+	
+	public final static String ATTRIBUTE_IS_TRANSED_MLET_BODY = Workbench.SYS_RESERVED_KEYS_START + "mlet_html_body";
+	
 	final static Object threadToken = App.getThreadPoolToken();
 	
 	public final static String ATTRIBUTE_PEND_CACHE = "pend_cache_att";
@@ -109,17 +112,17 @@ public class ServerUIAPIAgent {
 		}
 	}
 	
-	public final static void flushCSS(final HTMLMlet mlet, final DifferTodo diffTodo) {
+	public final static void flushCSS(final HTMLMlet mlet, final DifferTodo diffTodo) {//in user thread
 		if(mlet.styleItemToDeliver != null){
 			final int count = mlet.styleItemToDeliver.size();
 			for (int i = 0; i < count; i++) {
 				final StyleItem item = mlet.styleItemToDeliver.elementAt(i);
 				if(item.forType == StyleItem.FOR_DIV){
-					mlet.setCSSForDiv(item.component, item.className, item.styles);
+					mlet.setCSSForDiv(item.component, item.className, item.styles);//in user thread
 				}else if(item.forType == StyleItem.FOR_JCOMPONENT){
-					mlet.setCSS(item.component, item.className, item.styles);
+					mlet.setCSS(item.component, item.className, item.styles);//in user thread
 				}else if(item.forType == StyleItem.FOR_JTOGGLEBUTTON){
-					mlet.setCSSForToggle((JToggleButton)item.component, item.className, item.styles);
+					mlet.setCSSForToggle((JToggleButton)item.component, item.className, item.styles);//in user thread
 				}
 			}
 			mlet.styleItemToDeliver.clear();
@@ -291,6 +294,18 @@ public class ServerUIAPIAgent {
 		return ctx.__getPropertySuper(propName);
 	}
 
+	public final static void setSuperAttribute(final ProjectContext ctx, final String attributeName, final Object value){
+		ctx.__setAttributeSuper(attributeName, value);
+	}
+
+	public final static void removeSuperAttribute(final ProjectContext ctx, final String attributeName){
+		ctx.__removeAttributeSuper(attributeName);
+	}
+
+	public final static Object getSuperAttribute(final ProjectContext ctx, final String attributeName){
+		return ctx.__getAttributeSuper(attributeName);
+	}
+
 	public static String getProcessorNameFromCtx(final ProjectContext ctx, String name, final String prop) {
 		if(name != null && name.length() > 0){
 		}else{
@@ -301,5 +316,15 @@ public class ServerUIAPIAgent {
 			name = "";
 		}
 		return name;
+	}
+
+
+	static final Object runAndWaitInSysThread(final ReturnableRunnable returnRun){
+		return ContextManager.getThreadPool().runAndWait(returnRun, threadToken);
+	}
+
+
+	static final void runInSysThread(final Runnable run){
+		ContextManager.getThreadPool().run(run, threadToken);
 	}
 }

@@ -67,13 +67,13 @@ public class Workbench{
 			ConcurrentHashMap<String, HashMap<String, Processor>> projID_XXX_proc = null;
 			
 			if(type == TYPE_CONVERTER_PROC){
-				V = O ? false : log("remove Converter : " + proc.toString());
+				V = O ? false : log("remove Converter : " + proc.getIoTDesc());
 				projID_XXX_proc = projID_convName_Proc;
 			}else if(type == TYPE_ROBOT_PROC){
-				V = O ? false : log("remove Robot : " + proc.toString());
+				V = O ? false : log("remove Robot : " + proc.getIoTDesc());
 				projID_XXX_proc = projID_robotName_Proc;
 			}else if(type == TYPE_DEVICE_PROC){
-				V = O ? false : log("remove Device : " + proc.toString());
+				V = O ? false : log("remove Device : " + proc.getIoTDesc());
 				projID_XXX_proc = projID_devName_Proc;
 			}
 			if(projID_XXX_proc != null){
@@ -82,7 +82,7 @@ public class Workbench{
 			if(names_proc != null){
 				final Processor remove = names_proc.remove(proc.name);
 				if(remove != null && remove == proc){
-					V = O ? false : log("success remove processor : " + proc.toString());
+					V = O ? false : log("success remove processor : " + proc.getIoTDesc());
 					return true;
 				}
 			}
@@ -188,13 +188,13 @@ public class Workbench{
 		ConcurrentHashMap<String, HashMap<String, Processor>> projID_XXX_proc = null;
 		
 		if(type == TYPE_CONVERTER_PROC){
-			V = O ? false : log("add Converter : " + proc.toString());
+			V = O ? false : log("add Converter : " + proc.getIoTDesc());
 			projID_XXX_proc = projID_convName_Proc;
 		}else if(type == TYPE_ROBOT_PROC){
-			V = O ? false : log("add Robot : " + proc.toString());
+			V = O ? false : log("add Robot : " + proc.getIoTDesc());
 			projID_XXX_proc = projID_robotName_Proc;
 		}else if(type == TYPE_DEVICE_PROC){
-			V = O ? false : log("add Device : " + proc.toString());
+			V = O ? false : log("add Device : " + proc.getIoTDesc());
 			projID_XXX_proc = projID_devName_Proc;
 		}
 		

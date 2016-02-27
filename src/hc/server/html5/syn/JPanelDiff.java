@@ -31,7 +31,7 @@ public class JPanelDiff extends JComponentDiff{
 //	private final java.util.List<JComponentDiff> componentDiff = new java.util.ArrayList<JComponentDiff>();
 	
 	@Override
-	public void diff(final int hcCode, final Object src, final DifferTodo todo) {
+	public void diff(final int hcCode, final Object src, final DifferTodo todo) {//in user thread
 		super.diff(hcCode, src, todo);
 		
 		final JPanel jpanelSrc = (JPanel)src;
@@ -39,11 +39,11 @@ public class JPanelDiff extends JComponentDiff{
 		
 		synchronized (jpanelSrc) {
 			//再比较是否有新增加的及属性差异
-			final int compSize = jpanelSrc.getComponentCount();
+			final int compSize = jpanelSrc.getComponentCount();//in user thread
 			
 			for (int i = 0; i < compSize; i++) {
 				final Component comp = jpanelSrc.getComponent(i);
-				addOneComponent(containHashID, comp, i, todo, todo.searchHcCode(comp));
+				addOneComponent(containHashID, comp, i, todo, todo.searchHcCode(comp));//in user thread
 			}
 		}
 		
@@ -70,15 +70,15 @@ public class JPanelDiff extends JComponentDiff{
 			public void componentAdded(final ContainerEvent e) {
 				final Component component = e.getChild();
 				
-				component.validate();
-				final Container container = jpanelSrc;//e.getContainer();
-				final int containHashID = todo.buildHcCode(jpanelSrc);
-				container.validate();//必须，否则组件bounds全为0
-				ClassUtil.revalidate(container);
-				
 				todo.mlet.getProjectContext().run(new Runnable() {
 					@Override
 					public void run() {
+						component.validate();
+						final Container container = jpanelSrc;//e.getContainer();
+						final int containHashID = todo.buildHcCode(jpanelSrc);
+						container.validate();//必须，否则组件bounds全为0
+						ClassUtil.revalidate(container);
+						
 						try{
 							//等待事件全部触发完毕
 							Thread.sleep(ThreadPriorityManager.UI_WAIT_MS);
@@ -86,7 +86,7 @@ public class JPanelDiff extends JComponentDiff{
 						}
 						int index = -1;
 						
-						final int size = container.getComponentCount();
+						final int size = container.getComponentCount();//in user thread
 						for (int i = 0; i < size; i++) {
 							if(container.getComponent(i) == component){
 								index = i;
@@ -98,7 +98,7 @@ public class JPanelDiff extends JComponentDiff{
 							LogManager.errToLog("unknow added component index at container : " + container);
 						}else{
 							synchronized (jpanelSrc) {
-								addOneComponent(containHashID, component, index, todo, todo.searchHcCode(component));
+								addOneComponent(containHashID, component, index, todo, todo.searchHcCode(component));//in user thread
 							}
 						}
 					}
@@ -107,14 +107,16 @@ public class JPanelDiff extends JComponentDiff{
 		});
 	}
 
+	//in user thread
 	private static void addOneComponent(final int containHashID, final Component comp, final int i, final DifferTodo todo, final boolean isAddedEvent) {
 		if(comp instanceof JComponent){
-			addComponent(containHashID, (JComponent)comp, i, todo, isAddedEvent);
+			addComponent(containHashID, (JComponent)comp, i, todo, isAddedEvent);//in user thread
 		}else{
 			LogManager.err("Component [" + comp.toString() + "] at " + i + " must be JComponent!");
 		}
 	}
 	
+	//in user thread
 	private final static void addComponent(final int containHashID, final JComponent jcomp, final int index, final DifferTodo todo, final boolean isAddedEvent){
 		final int compHcCode = todo.buildHcCode(jcomp);
 		Class diffClass = null;
@@ -181,7 +183,7 @@ public class JPanelDiff extends JComponentDiff{
 		if(isAddedEvent == false){
 			todo.addEventListener(index, jcomp);
 		}
-		DiffManager.getDiff(diffClass).diff(compHcCode, jcomp, todo);
+		DiffManager.getDiff(diffClass).diff(compHcCode, jcomp, todo);//in user thread
 	}
 
 	public static boolean isTextMultLinesEditor(final JComponent jcomp) {

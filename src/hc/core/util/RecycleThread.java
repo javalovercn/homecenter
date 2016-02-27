@@ -19,7 +19,7 @@ public class RecycleThread implements Runnable{
 	}
 	
 	public final void run(){
-		final LinkedSet free = pool.freeThreads;
+		final LinkedSet freeThreads = pool.freeThreads;
 
 		while(!ThreadPool.isShutDown){
 			if(runnable != null){
@@ -33,12 +33,12 @@ public class RecycleThread implements Runnable{
 			notifyBack();//本行要置于push之前，以关闭完成前项逻辑。
 			
 			synchronized(this){
-				synchronized (free) {
+				synchronized (freeThreads) {
 					if(ThreadPool.isShutDown){
 						return;
 					}
-					free.addTail(this);
-					free.notifyAll();//注意：不能notify()
+					freeThreads.addTail(this);
+					freeThreads.notify();//通知一个，生成一个后，再通知！不用notifyAll()
 	//				System.out.println("[" + pool.name + "] <- RecycleThead : " + toString());
 				}
 			

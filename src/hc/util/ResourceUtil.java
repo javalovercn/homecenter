@@ -55,6 +55,8 @@ import java.util.zip.ZipInputStream;
 
 import javax.imageio.ImageIO;
 import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
@@ -67,6 +69,15 @@ public class ResourceUtil {
 		final Object newArray = Array.newInstance(srcArray.getClass().getComponentType(), length * 2);
 		System.arraycopy(srcArray, 0, newArray, 0, length);
 		return newArray;
+	}
+	
+	public final static BufferedImage toBufferedImage(final Icon icon){
+		final BufferedImage bi = new BufferedImage(icon.getIconWidth(),
+				icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+		final Graphics g = bi.createGraphics();
+		icon.paintIcon(null, g, 0, 0);
+		g.dispose();
+		return bi;
 	}
 	
 	/**
@@ -653,6 +664,10 @@ public class ResourceUtil {
 		return toolkit.getScreenSize();
 	}
 	
+	public static final Icon toIcon(final BufferedImage bi){
+		return new ImageIcon(bi);
+	}
+	
 	public static BufferedImage toBufferedImage(final Image img)
 	{
 	    if (img instanceof BufferedImage){
@@ -839,5 +854,22 @@ public class ResourceUtil {
 		final String fileName = createRandomFileNameWithExt(StoreDirManager.TEMP_DIR, extFileName);
 		final File outTempFile = new File(StoreDirManager.TEMP_DIR, fileName);
 		return outTempFile;
+	}
+
+	/**
+	 * 必须在用户线程
+	 * @param icon
+	 * @return
+	 */
+	public static Icon clearIcon(final Icon icon){
+		if(icon == null){
+			return null;
+		}
+		
+		try{
+			return toIcon(toBufferedImage(icon));
+		}catch (final Throwable e) {
+		}
+		return null;
 	}
 }

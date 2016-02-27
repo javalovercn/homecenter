@@ -87,7 +87,7 @@ public class ProjectContext {
 	 * @deprecated
 	 */
 	@Deprecated
-	public static final int CLASSLOADER_SERVER_LEVEL = 1;
+	static final int CLASSLOADER_SERVER_LEVEL = 1;
 	/**
 	 * the level for third libraries class loader.
 	 * 
@@ -95,7 +95,7 @@ public class ProjectContext {
 	 * @deprecated
 	 */
 	@Deprecated
-	public static final int CLASSLOADER_THIRD_LIBS_LEVEL = 2;
+	static final int CLASSLOADER_THIRD_LIBS_LEVEL = 2;
 	/**
 	 * the level for project class loader.
 	 * 
@@ -103,7 +103,7 @@ public class ProjectContext {
 	 * @deprecated
 	 */
 	@Deprecated
-	public static final int CLASSLOADER_PROJECT_LEVEL = 3;
+	static final int CLASSLOADER_PROJECT_LEVEL = 3;
 
 	/**
 	 * 1. classloader_system_level is created first, it includes HomeCenter
@@ -169,7 +169,7 @@ public class ProjectContext {
 	@Deprecated
 	ProjResponser __projResponserMaybeNull;
 
-	private final Hashtable<String, Object> obj_map = new Hashtable<String, Object>();
+	private final Hashtable<String, Object> attribute_map = new Hashtable<String, Object>();
 	private final ProjClassLoaderFinder finder;
 
 	/**
@@ -254,7 +254,7 @@ public class ProjectContext {
 	 *            the body of message.
 	 * @since 7.0
 	 */
-	public static void showMessageDialog(final String message) {
+	public static final void showMessageDialog(final String message) {
 		App.showHARMessageDialog(message);
 	}
 
@@ -278,7 +278,7 @@ public class ProjectContext {
 	 *            <code>{@link JOptionPane#PLAIN_MESSAGE}</code>
 	 * @since 7.0
 	 */
-	public static void showMessageDialog(final String message,
+	public static final void showMessageDialog(final String message,
 			final String title, final int messageType) {
 		App.showHARMessageDialog(message, appendProjectIDForTitle(title),
 				messageType);
@@ -306,7 +306,7 @@ public class ProjectContext {
 	 *            the icon of message. null for no icon.
 	 * @since 7.0
 	 */
-	public static void showMessageDialog(final String message,
+	public final static void showMessageDialog(final String message,
 			final String title, final int messageType, final Icon icon) {
 		App.showHARMessageDialog(message, appendProjectIDForTitle(title),
 				messageType, icon);
@@ -407,7 +407,7 @@ public class ProjectContext {
 	public final void runAndWait(final Runnable runnable) {
 		threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public final Object run() {
 				runnable.run();
 				return null;
 			}
@@ -488,14 +488,14 @@ public class ProjectContext {
 		final String[] para = { HCURL.DATA_PARA_QUESTION_ID, "caption", "text",
 				"image", "withCancel" };
 		final String[] values = { String.valueOf(question.questionID), caption,
-				text, imageData, (cancelRunnable != null) ? "1" : "0" };
+				text, imageData, (cancelRunnable != null) ? "1" : "0" };//注意：必须在外部转换
 
-		ContextManager.getThreadPool().run(new Runnable() {
+		ServerUIAPIAgent.runInSysThread(new Runnable() {
 			@Override
 			public void run() {
 				HCURLUtil.sendCmd(HCURL.DATA_CMD_SendPara, para, values);
 			}
-		}, ServerUIAPIAgent.threadToken);
+		});
 
 	}
 
@@ -534,7 +534,36 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final void setAttribute(final String name, final Object obj) {
-		obj_map.put(name, obj);
+		if (name.startsWith(Workbench.SYS_RESERVED_KEYS_START, 0)) {
+			throw new Error("the name of attribute can't start with '"
+					+ Workbench.SYS_RESERVED_KEYS_START
+					+ "', it is reserved by system.");
+		}
+		
+		__setAttributeSuper(name, obj);
+	}
+	
+	/**
+	 * @deprecated
+	 * @param key
+	 * @return the attribute of name.
+	 */
+	@Deprecated
+	final void __setAttributeSuper(final String name, final Object obj) {
+		synchronized (attribute_map) {
+			attribute_map.put(name, obj);
+		}
+	}
+	
+	/**
+	 * @deprecated
+	 * @param name
+	 */
+	@Deprecated
+	final void __removeAttributeSuper(final String name) {
+		synchronized (attribute_map) {
+			attribute_map.remove(name);
+		}
 	}
 
 	/**
@@ -548,7 +577,12 @@ public class ProjectContext {
 	 * @param name
 	 */
 	public final void removeAttribute(final String name) {
-		obj_map.remove(name);
+		if (name.startsWith(Workbench.SYS_RESERVED_KEYS_START, 0)) {
+			throw new Error("the name of attribute can't start with '"
+					+ Workbench.SYS_RESERVED_KEYS_START + "'");
+		}
+		
+		__removeAttributeSuper(name);
 	}
 
 	/**
@@ -575,7 +609,24 @@ public class ProjectContext {
 	 * @since 6.98
 	 */
 	public final Object getAttribute(final String name) {
-		return obj_map.get(name);
+		if (name.startsWith(Workbench.SYS_RESERVED_KEYS_START, 0)) {
+			throw new Error("the name of attribute can't start with '"
+					+ Workbench.SYS_RESERVED_KEYS_START + "'");
+		}
+		
+		return __getAttributeSuper(name);
+	}
+	
+	/**
+	 * @deprecated
+	 * @param key
+	 * @return the attribute of name.
+	 */
+	@Deprecated
+	final Object __getAttributeSuper(final String name) {
+		synchronized (attribute_map) {
+			return attribute_map.get(name);
+		}
 	}
 
 	/**
@@ -610,7 +661,31 @@ public class ProjectContext {
 	 * @since 6.98
 	 */
 	public final Enumeration getAttributeNames() {
-		return obj_map.keys();
+		final HashSet<String> set = new HashSet<String>();
+		synchronized (attribute_map) {
+			final Enumeration<String> en = attribute_map.keys();
+			while (en.hasMoreElements()) {
+				final String item = en.nextElement();
+				if (item.startsWith(Workbench.SYS_RESERVED_KEYS_START, 0)) {
+					continue;
+				} else {
+					set.add(item);
+				}
+			}
+		}
+
+		final Iterator<String> setit = set.iterator();
+		return new Enumeration() {
+			@Override
+			public boolean hasMoreElements() {
+				return setit.hasNext();
+			}
+
+			@Override
+			public Object nextElement() {
+				return setit.next();
+			}
+		};
 	}
 
 	/**
@@ -839,8 +914,8 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final File getPrivateFile(final String fileName) {
-		final String relaPath = HCLimitSecurityManager.getHCSecurityManager()
-				.getUserHARDataDir(projectID);
+		//注意：不能入runInSysThread
+		final String relaPath = HCLimitSecurityManager.getUserDataBaseDir(projectID);
 		final File userDir = new File(App.getBaseDir(), relaPath);
 
 		if (userDir.exists() == false) {
@@ -904,8 +979,18 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final String getMobileOSVer() {
-		return ClientDesc.getAgent().getVer();
+		if(mobileOSVer == null){
+			mobileOSVer = (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+				@Override
+				public Object run() {
+					return ClientDesc.getAgent().getVer();
+				}
+			});
+		}
+		return mobileOSVer;
 	}
+	
+	String mobileOSVer;
 
 	/**
 	 * @return one of the following: <br>
@@ -917,15 +1002,25 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final String getMobileOS() {
-		final String oldOS = ClientDesc.getAgent().getOS();
-		for (int i = 0; i < allOS.length; i++) {
-			final String oneOS = allOS[i];
-			if(oneOS.equals(oldOS)){
-				return oneOS;
-			}
+		if(mobileOS == null){
+			mobileOS = (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+				@Override
+				public Object run() {
+					final String oldOS = ClientDesc.getAgent().getOS();
+					for (int i = 0; i < allOS.length; i++) {
+						final String oneOS = allOS[i];
+						if(oneOS.equals(oldOS)){
+							return oneOS;
+						}
+					}
+					return oldOS;
+				}
+			});
 		}
-		return oldOS;
+		return mobileOS;
 	}
+	
+	String mobileOS;
 
 	private static final String[] allOS = {OS_ANDROID, OS_IOS, OS_J2ME};
 
@@ -983,7 +1078,12 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final void actionKeys(final String keys) {
-		KeyComper.actionKeys(keys);
+		ServerUIAPIAgent.runInSysThread(new Runnable() {
+			@Override
+			public void run() {
+				KeyComper.actionKeys(keys);
+			}
+		});
 	}
 
 	/**
@@ -1018,35 +1118,35 @@ public class ProjectContext {
 	private final static void sendCmd(final String cmdType, final String para,
 			final String value) {
 		if (ServerUIAPIAgent.isToMobile()) {
-			ContextManager.getThreadPool().run(new Runnable() {
+			ServerUIAPIAgent.runInSysThread(new Runnable() {
 				@Override
 				public void run() {
 					HCURLUtil.sendCmd(cmdType, para, value);
 				}
-			}, ServerUIAPIAgent.threadToken);
+			});
 		}
 	}
 
 	private final static void sendCmd(final String cmdType,
 			final String[] para, final String[] value) {
 		if (ServerUIAPIAgent.isToMobile()) {
-			ContextManager.getThreadPool().run(new Runnable() {
+			ServerUIAPIAgent.runInSysThread(new Runnable() {
 				@Override
 				public void run() {
 					HCURLUtil.sendCmd(cmdType, para, value);
 				}
-			}, ServerUIAPIAgent.threadToken);
+			});
 		}
 	}
 
 	private final static void sendClass(final String[] para) {
-		ContextManager.getThreadPool().run(new Runnable() {
+		ServerUIAPIAgent.runInSysThread(new Runnable() {
 			@Override
 			public void run() {
 				ProjectContext.sendCmd(HCURL.DATA_CMD_SendPara,
 						ProjectContext.buildParaForClass(para.length - 1), para);
 			}
-		}, ServerUIAPIAgent.threadToken);
+		});
 	}
 
 	/**
@@ -1097,8 +1197,18 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final int getIntervalMSForRestart(){
-		return ResourceUtil.getIntervalSecondsForNextStartup() * 1000;
+		if(msForRestart == 0){
+			msForRestart = (Integer)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+				@Override
+				public Object run() {
+					return ResourceUtil.getIntervalSecondsForNextStartup() * 1000;
+				}
+			});
+		}
+		return msForRestart;
 	}
+	
+	int msForRestart;
 	
 	/**
 	 * check current HAR project is running on Android server or J2SE platform.
@@ -1109,8 +1219,18 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final boolean isAndroidPlatform() {
-		return ResourceUtil.isAndroidServerPlatform();
+		if(isAndroidPlatform == null){
+			isAndroidPlatform = (Boolean)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+				@Override
+				public Object run() {
+					return ResourceUtil.isAndroidServerPlatform();
+				}
+			});
+		}
+		return isAndroidPlatform;
 	}
+	
+	Boolean isAndroidPlatform;
 
 	/**
 	 * check current HAR project is running on J2SE platform.
@@ -1120,8 +1240,18 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final boolean isJ2SEPlatform() {
-		return ResourceUtil.isStandardJ2SEServer();
+		if(isJ2SEPlatform == null){
+			isJ2SEPlatform = (Boolean)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+				@Override
+				public Object run() {
+					return ResourceUtil.isStandardJ2SEServer();
+				}
+			});
+		}
+		return isJ2SEPlatform;
 	}
+	
+	Boolean isJ2SEPlatform;
 
 	/**
 	 * requests operation of the mobile device's vibrator, some mobile will do
@@ -1142,12 +1272,12 @@ public class ProjectContext {
 	 * @since 6.98
 	 */
 	public final void alertOff() {
-		ContextManager.getThreadPool().run(new Runnable() {
+		ServerUIAPIAgent.runInSysThread(new Runnable() {
 			@Override
 			public void run() {
 				ProjectContext.sendCmd(HCURL.DATA_CMD_ALERT, "status", "off");
 			}
-		}, ServerUIAPIAgent.threadToken);
+		});
 	}
 
 	/**
@@ -1156,12 +1286,12 @@ public class ProjectContext {
 	 * @since 6.98
 	 */
 	public final void alertOn() {
-		ContextManager.getThreadPool().run(new Runnable() {
+		ServerUIAPIAgent.runInSysThread(new Runnable() {
 			@Override
 			public void run() {
 				ProjectContext.sendCmd(HCURL.DATA_CMD_ALERT, "status", "on");
 			}
-		}, ServerUIAPIAgent.threadToken);
+		});
 	}
 
 	/**
@@ -1194,8 +1324,18 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final String getLoginID() {
-		return IConstant.getUUID();
+		if(loginID == null){
+			loginID = (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+				@Override
+				public Object run() {
+					return IConstant.getUUID();
+				}
+			});
+		}
+		return loginID;
 	}
+	
+	String loginID;
 	
 	/**
 	 * <code>SoftUID</code> is an identifier created when mobile application is installed on mobile.
@@ -1205,8 +1345,18 @@ public class ProjectContext {
 	 * @since 7.2
 	 */
 	public final String getMobileSoftUID(){
-		return ClientDesc.getAgent().getUID();
+		if(mobileSoftUID == null){
+			mobileSoftUID = (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+				@Override
+				public Object run() {
+					return ClientDesc.getAgent().getUID();
+				}
+			});
+		}
+		return mobileSoftUID;
 	}
+	
+	String mobileSoftUID;
 
 	/**
 	 * return the projectContext instance of the current project even if there
@@ -1335,15 +1485,15 @@ public class ProjectContext {
 					+ "?caption=" + StringUtil.replace(caption, "&", "\\&")
 					+ "&text=" + StringUtil.replace(text, "&", "\\&")
 					+ "&timeOut=" + timeOut + "&type=" + String.valueOf(type)
-					+ (imageData);
+					+ (imageData);//注意：必须在外部进行转换
 
-			ContextManager.getThreadPool().run(new Runnable() {
+			ServerUIAPIAgent.runInSysThread(new Runnable() {
 				@Override
 				public void run() {
 					ContextManager.getContextInstance().send(
 							MsgBuilder.E_GOTO_URL, url);
 				}
-			}, ServerUIAPIAgent.threadToken);
+			});
 		}
 	}
 
@@ -1368,7 +1518,7 @@ public class ProjectContext {
 			blob.bs = bytes;
 
 			blob.setPNGDataLen((int) length, 0, 0, 0, 0);
-			ContextManager.getThreadPool().run(new Runnable() {
+			ServerUIAPIAgent.runInSysThread(new Runnable() {
 				@Override
 				public void run() {
 					ContextManager.getContextInstance().sendWrap(
@@ -1379,7 +1529,7 @@ public class ProjectContext {
 					ByteUtil.byteArrayCacher.cycle(bytes);
 					LogManager.log("AU length:" + length);
 				}
-			}, ServerUIAPIAgent.threadToken);
+			});
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
@@ -1393,8 +1543,13 @@ public class ProjectContext {
 	 * @since 6.98
 	 */
 	public final void tipOnTray(final String msg) {
-		ContextManager.displayMessage((String) ResourceUtil.get(IContext.INFO),
-				msg, IContext.INFO, 0);
+		ServerUIAPIAgent.runInSysThread(new Runnable() {
+			@Override
+			public void run() {
+				ContextManager.displayMessage((String) ResourceUtil.get(IContext.INFO),
+						msg, IContext.INFO, 0);				
+			}
+		});
 	}
 
 	/**
@@ -1418,14 +1573,23 @@ public class ProjectContext {
 	}
 
 	/**
+	 * <STRONG>Important</STRONG> : Background mode may be NOT supported by mobile implementation. 
+	 * <BR>Application may be killed when turn to background.
 	 * @return true : mobile is log-in, keep connecting and run in background.
 	 * @see #isMobileConnecting()
 	 * @since 7.0
 	 */
 	public final boolean isMobileInBackground() {
-		return ClientDesc.getAgent().isBackground();
+		//TODO 为优化性能，将来mobileagent置于projectContext之中
+		//注意：不能用变量暂存
+		return (Boolean)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				return ClientDesc.getAgent().isBackground();
+			}
+		});
 	}
-
+	
 	/**
 	 * display a message moving from right to left on mobile <BR>
 	 * <BR>
@@ -1438,12 +1602,12 @@ public class ProjectContext {
 	 */
 	public final void sendMovingMsg(final String msg) {
 		if (ServerUIAPIAgent.isToMobile()) {
-			ContextManager.getThreadPool().run(new Runnable() {
+			ServerUIAPIAgent.runInSysThread(new Runnable() {
 				@Override
 				public void run() {
 					HCURLUtil.sendCmd(HCURL.DATA_CMD_MOVING_MSG, "value", msg);
 				}
-			}, ServerUIAPIAgent.threadToken);
+			});
 		}
 	}
 

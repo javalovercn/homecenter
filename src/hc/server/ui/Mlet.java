@@ -1,8 +1,8 @@
 package hc.server.ui;
 
-import hc.core.ContextManager;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
+import hc.core.util.ReturnableRunnable;
 import hc.server.html5.syn.DiffManager;
 import hc.server.html5.syn.DifferTodo;
 import hc.server.html5.syn.JPanelDiff;
@@ -60,7 +60,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @deprecated
 	 */
 	@Deprecated
-	public final void notifyStatusChanged(final int newStatus){
+	public final void notifyStatusChanged(final int newStatus){//in user thread
 		synchronized (this) {//要置于外部
 			status = newStatus;
 			
@@ -76,8 +76,12 @@ public class Mlet extends JPanel implements ICanvas {
 					
 					//有可能为MletSnapCanvas模式调用本方法
 					ServerUIAPIAgent.loadStyles(htmlMlet);
-					JPanelDiff.addContainerEvent(this, diffTodo);
+					
+					JPanelDiff.addContainerEvent(this, diffTodo);//in user thread
+					
+					//in user thread
 					DiffManager.getDiff(JPanelDiff.class).diff(0, this, diffTodo);//必须置于onStart之前，因为要初始手机端对象结构树
+					
 					ServerUIAPIAgent.flushCSS(htmlMlet, diffTodo);
 				}
 			}
@@ -157,12 +161,12 @@ public class Mlet extends JPanel implements ICanvas {
 		try {
 //			不需要转码，可直接支持"screen://我的Mlet"
 //			final String encodeURL = URLEncoder.encode(url, IConstant.UTF_8);
-			ContextManager.getThreadPool().run(new Runnable() {
+			ServerUIAPIAgent.runInSysThread(new Runnable() {
 				@Override
 				public void run() {
 					HCURLUtil.sendCmd(HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_TRANSURL, url);
 				}
-			}, ServerUIAPIAgent.threadToken);
+			});
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
@@ -176,7 +180,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @return the resized image.
 	 */
 	public final static BufferedImage resizeImage(final BufferedImage src, final int to_width, final int to_height){
-		return ResourceUtil.resizeImage(src, to_width, to_height);
+		return ResourceUtil.resizeImage(src, to_width, to_height);//注意：不能进入runAndWaitInSysThread
 	}
 	
 	

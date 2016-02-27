@@ -1,6 +1,7 @@
 package hc.server.ui.design.code;
 
 import hc.core.L;
+import hc.core.util.LogManager;
 import hc.server.data.KeyComperPanel;
 import hc.server.data.StoreDirManager;
 import hc.server.ui.design.hpj.HPShareJar;
@@ -68,6 +69,8 @@ import org.jrubyparser.ast.VCallNode;
 import org.jrubyparser.parser.ParserConfiguration;
 
 public class CodeHelper {
+	private static final String TO_UPPER_CASE = "upcase";
+	private static final String TO_DOWN_CASE = "downcase";
 	private static final String TO_S = "to_s";
 	private static final String TO_F = "to_f";
 	private static final String TO_I = "to_i";
@@ -109,6 +112,8 @@ public class CodeHelper {
 		final int methodSize = allMethods.length;
 
 		if(c == String.class){
+			addToMethod(list, TO_DOWN_CASE, "String", String.class.getSimpleName());
+			addToMethod(list, TO_UPPER_CASE, "String", String.class.getSimpleName());
 			addToMethod(list, TO_I, "int", String.class.getSimpleName());
 			addToMethod(list, TO_F, "float", String.class.getSimpleName());
 		}else if(c == int.class){
@@ -680,11 +685,12 @@ public class CodeHelper {
 		}
 	}
 	
+	static final Parser rubyParser = new Parser();
+	static final CompatVersion version = CompatVersion.RUBY2_0;
+	static final ParserConfiguration config = new ParserConfiguration(0, version);
+
     public static Node parseScripts(final String cmds) {
-        final Parser rubyParser = new Parser();
         final StringReader in = new StringReader(cmds);
-        final CompatVersion version = CompatVersion.RUBY2_0;
-        final ParserConfiguration config = new ParserConfiguration(0, version);
     	return rubyParser.parse("<code>", in, config);
     }
     
@@ -1580,6 +1586,7 @@ public class CodeHelper {
 			return true;
 		}catch (final Throwable e) {
 			if(L.isInWorkshop){
+				L.V = L.O ? false : LogManager.log("[workbench]:");
 				e.printStackTrace();
 			}
 			root = buildMiniNode(scripts, sep);

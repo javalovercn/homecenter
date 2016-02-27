@@ -219,47 +219,63 @@ public class BindManager {
 		return isNewUnbind;
 	}
 
-	private static final ConverterInfo searchConverterForCompatible(final BindRobotSource source, final ProjResponser pr,
+	/**
+	 * 必须在用户线程
+	 */
+	private static final ConverterInfo searchConverterForCompatibleToUserThread(final BindRobotSource source, final ProjResponser pr,
 			final DeviceCompatibleDescription compDesc, final ArrayList<ConverterInfo> cbi){
-		if(compDesc == null){
-			return null;
-		}
-		
-		final String[] source_compatibleItem = MSBAgent.getCompatibleItem(compDesc);
-	
-		final int size = cbi.size();
-		for (int i = 0; i < size; i++) {
-			final ConverterInfo cInfo = cbi.get(i);
-			source.getConverterDescUpDown(pr, cInfo);
-			final boolean match = DeviceMatchManager.match(
-					source_compatibleItem, MSBAgent.getCompatibleItem(cInfo.upDeviceCompatibleDescriptionCache));
-			if(match){
-				return cInfo;
+		return (ConverterInfo)pr.threadPool.runAndWait(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				if(compDesc == null){
+					return null;
+				}
+				
+				final String[] source_compatibleItem = MSBAgent.getCompatibleItemToUserThread(pr, true, compDesc);
+			
+				final int size = cbi.size();
+				for (int i = 0; i < size; i++) {
+					final ConverterInfo cInfo = cbi.get(i);
+					source.getConverterDescUpDownToUserThread(pr, cInfo);
+					final boolean match = DeviceMatchManager.match(
+							source_compatibleItem, MSBAgent.getCompatibleItemToUserThread(pr, true, cInfo.upDeviceCompatibleDescriptionCache));
+					if(match){
+						return cInfo;
+					}
+				}
+				return null;
 			}
-		}
-		return null;
+		});
 	}
 
-	private static final RealDeviceInfo searchDeviceForCompatible(final BindRobotSource source,  final ProjResponser pr,
+	/**
+	 * 必须在用户线程
+	 */
+	private static final RealDeviceInfo searchDeviceForCompatibleToUserThread(final BindRobotSource source,  final ProjResponser pr,
 			final DeviceCompatibleDescription compDesc, final ArrayList<RealDeviceInfo> rdbi){
-		if(compDesc == null){
-			return null;
-		}
-		
-		final String[] source_compatibleItem = MSBAgent.getCompatibleItem(compDesc);
-	
-		final int size = rdbi.size();
-		for (int i = 0; i < size; i++) {
-			final RealDeviceInfo rdi = rdbi.get(i);
-			source.getDeviceCompatibleDescByDevice(pr, rdi);
-			final boolean match = DeviceMatchManager.match(
-					source_compatibleItem, MSBAgent.getCompatibleItem(rdi.deviceCompatibleDescriptionCache));
-			if(match){
-				return rdi;
+		return (RealDeviceInfo)pr.threadPool.runAndWait(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				if(compDesc == null){
+					return null;
+				}
+				
+				final String[] source_compatibleItem = MSBAgent.getCompatibleItemToUserThread(pr, true, compDesc);
+			
+				final int size = rdbi.size();
+				for (int i = 0; i < size; i++) {
+					final RealDeviceInfo rdi = rdbi.get(i);
+					source.getDeviceCompatibleDescByDevice(pr, rdi);
+					final boolean match = DeviceMatchManager.match(
+							source_compatibleItem, MSBAgent.getCompatibleItemToUserThread(pr, true, rdi.deviceCompatibleDescriptionCache));
+					if(match){
+						return rdi;
+					}
+				}
+				
+				return null;
 			}
-		}
-		
-		return null;
+		});
 	}
 
 	/**
@@ -270,15 +286,19 @@ public class BindManager {
 		public static boolean autoBind(final BindRobotSource bindSource){
 			boolean isNotFullBinded = false;
 			
-			ArrayList<RealDeviceInfo> rdbi = null;
-			ArrayList<ConverterInfo> cbi = null;
+			ArrayList<RealDeviceInfo> rdbiTemp = null;
+			ArrayList<ConverterInfo> cbiTemp = null;
+
 			try{
-				rdbi = bindSource.getRealDeviceInAllProject();
-				cbi = bindSource.getConverterInAllProject();
+				rdbiTemp = bindSource.getRealDeviceInAllProject();
+				cbiTemp = bindSource.getConverterInAllProject();
 			}catch (final Exception e) {
 				e.printStackTrace();
 				return true;
 			}
+			
+			final ArrayList<RealDeviceInfo> rdbi = rdbiTemp;
+			final ArrayList<ConverterInfo> cbi = cbiTemp;
 			
 			final Set<LinkProjectStore> set = getNoBindedProjSet();
 			final Iterator<LinkProjectStore> itlps = set.iterator();
@@ -364,16 +384,11 @@ public class BindManager {
 							
 							final String ref_dev_id = robot_dbinfo.ref_dev_id;
 							final DeviceCompatibleDescription compDesc = bindSource.getDeviceCompatibleDescByRobotName(projectID, robotName, ref_dev_id);
-							pr.threadPool.runAndWait(new ReturnableRunnable() {
-								@Override
-								public Object run() {
-									MSBAgent.getCompatibleItem(compDesc);//初始化
-									return null;
-								}
-							});
+							MSBAgent.getCompatibleItemToUserThread(pr, false, compDesc);//初始化
 							
 							//先直接从设备集中找匹配的设备
-							final RealDeviceInfo rdi = searchDeviceForCompatible(bindSource, pr, compDesc, rdbi);
+							final RealDeviceInfo rdi = searchDeviceForCompatibleToUserThread(bindSource, pr, compDesc, rdbi);
+								
 							if(rdi != null){
 								//成功找到匹配设备
 								dev_id_vector.add(bind_id);
@@ -382,12 +397,14 @@ public class BindManager {
 								continue;
 							}else{
 								//从转换器中upCap的转换器
-								final ConverterInfo cInfo = searchConverterForCompatible(bindSource, pr, compDesc, cbi);
+								
+								final ConverterInfo cInfo = searchConverterForCompatibleToUserThread(bindSource, pr, compDesc, cbi);
+									
 								if(cInfo != null){
 									//找到匹配upCap转换器
 									
 									//找downCap的设备
-									final RealDeviceInfo realDevBind = searchDeviceForCompatible(bindSource, pr, cInfo.downDeviceCompatibleDescriptionCache, rdbi);
+									final RealDeviceInfo realDevBind = searchDeviceForCompatibleToUserThread(bindSource, pr, cInfo.downDeviceCompatibleDescriptionCache, rdbi);
 									if(realDevBind != null){
 										dev_id_vector.add(bind_id);
 										conv_id_vector.add(bind_id);

@@ -83,7 +83,7 @@ public abstract class Device extends Processor{
 	@Override
 	final void __startup(){
 		try{
-			connectedDevices = connect();
+			connectedDevices = connect();//in user thread group
 		}finally{
 			if(isUseCmdGroup){
 				MSBAgent.clearWiFiAccountGroup(this, getCmdGroup());
@@ -98,7 +98,7 @@ public abstract class Device extends Processor{
 	@Deprecated
 	@Override
 	final void __shutdown(){
-		disconnect();
+		disconnect();//in user thread group
 		synchronized (this) {
 			this.notifyAll();
 		}
@@ -435,9 +435,18 @@ public abstract class Device extends Processor{
 		return name;
 	}
 	
+	/**
+	 * @return the description of Device.
+	 * @since 7.3
+	 */
 	@Override
-	public String toString() {
-		return this.getClass().getSimpleName() + super.toString();
+	public final String getIoTDesc(){
+		return this.classSimpleName + super.getIoTDesc();
 	}
+	
+//	@Override
+//	public String toString() {//please use getIoTDesc
+//		return this.getClass().getSimpleName() + super.getProcDesc();
+//	}
 	
 }

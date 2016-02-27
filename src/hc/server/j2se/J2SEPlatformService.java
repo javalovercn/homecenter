@@ -287,7 +287,8 @@ public class J2SEPlatformService implements PlatformService {
 	}
 
 	@Override
-	public File getBaseDir() {
+	public final File getBaseDir() {
+		//getPrivateFile, 请勿checkAccess
 		return baseDir;
 	}
 	

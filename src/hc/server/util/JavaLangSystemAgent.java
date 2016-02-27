@@ -80,7 +80,7 @@ public class JavaLangSystemAgent {
      * @return a Console or null
      * @since 7.1
      */
-    public static Console console() {
+    public final static Console console() {
     	return System.console();
     }
 
@@ -89,7 +89,7 @@ public class JavaLangSystemAgent {
      * @return a Channel or null
      * @since 7.1
      */
-    public static Channel inheritedChannel() throws IOException {
+    public final static Channel inheritedChannel() throws IOException {
         return System.inheritedChannel();
     }
 
@@ -97,7 +97,7 @@ public class JavaLangSystemAgent {
      * the agent method for <code>System.setSecurityManager</code>.
      * @since 7.1
      */
-    public static void setSecurityManager(final SecurityManager s) {
+    public final static void setSecurityManager(final SecurityManager s) {
     	System.setSecurityManager(s);
     }
 
@@ -106,7 +106,7 @@ public class JavaLangSystemAgent {
      * @return a SecurityManager or null
      * @since 7.1
      */
-    public static SecurityManager getSecurityManager() {
+    public final static SecurityManager getSecurityManager() {
         return System.getSecurityManager();
     }
 
@@ -115,7 +115,7 @@ public class JavaLangSystemAgent {
      * @return current time
      * @since 7.1
      */
-    public static long currentTimeMillis(){
+    public final static long currentTimeMillis(){
     	return System.currentTimeMillis();
     }
 
@@ -124,7 +124,7 @@ public class JavaLangSystemAgent {
      * @return nano time
      * @since 7.1
      */
-    public static long nanoTime(){
+    public final static long nanoTime(){
     	return System.nanoTime();
     }
 
@@ -132,7 +132,7 @@ public class JavaLangSystemAgent {
      * the agent method for <code>System.arraycopy</code>.
      * @since 7.1
      */
-    public static void arraycopy(final Object src,  final int  srcPos,
+    public final static void arraycopy(final Object src,  final int  srcPos,
                                         final Object dest, final int destPos,
                                         final int length){
     	System.arraycopy(src, srcPos, dest, destPos, length);
@@ -143,7 +143,7 @@ public class JavaLangSystemAgent {
      * @return identity hash code
      * @since 7.1
      */
-    public static int identityHashCode(final Object x){
+    public final static int identityHashCode(final Object x){
     	return System.identityHashCode(x);
     }
 
@@ -152,7 +152,7 @@ public class JavaLangSystemAgent {
      * @return the system properties
      * @since 7.1
      */
-    public static Properties getProperties() {
+    public final static Properties getProperties() {
         return System.getProperties();
     }
 
@@ -164,7 +164,7 @@ public class JavaLangSystemAgent {
      * Windows systems it returns {@code "\r\n"}.
      * @since 7.1
      */
-    public static String lineSeparator() {
+    public final static String lineSeparator() {
     	return (String)ClassUtil.invoke(System.class, System.class, "lineSeparator", ClassUtil.nullParaTypes, ClassUtil.nullParas, false);
 //        return System.lineSeparator();//不是java 1.6的API
     }
@@ -173,7 +173,7 @@ public class JavaLangSystemAgent {
      * the agent method for <code>System.setProperties</code>.
      * @since 7.1
      */
-    public static void setProperties(final Properties props) {
+    public final static void setProperties(final Properties props) {
         System.setProperties(props);
     }
 
@@ -182,7 +182,7 @@ public class JavaLangSystemAgent {
      * @return the string value of the system property or null
      * @since 7.1
      */
-    public static String getProperty(final String key) {
+    public final static String getProperty(final String key) {
         return System.getProperty(key);
     }
 
@@ -191,7 +191,7 @@ public class JavaLangSystemAgent {
      * @return the string value of the system property or the def value
      * @since 7.1
      */
-    public static String getProperty(final String key, final String def) {
+    public final static String getProperty(final String key, final String def) {
         return System.getProperty(key, def);
     }
 
@@ -200,7 +200,7 @@ public class JavaLangSystemAgent {
      * @return the previous value of the system property or null
      * @since 7.1
      */
-    public static String setProperty(final String key, final String value) {
+    public final static String setProperty(final String key, final String value) {
         return System.setProperty(key, value);
     }
 
@@ -209,7 +209,7 @@ public class JavaLangSystemAgent {
      * @return the previous string value of the system property or null
      * @since 7.1
      */
-    public static String clearProperty(final String key) {
+    public final static String clearProperty(final String key) {
         return System.clearProperty(key);
     }
 
@@ -218,7 +218,7 @@ public class JavaLangSystemAgent {
      * @return the string value of the variable or null
      * @since 7.1
      */
-    public static String getenv(final String name) {
+    public final static String getenv(final String name) {
         return System.getenv(name);
     }
 
@@ -227,7 +227,7 @@ public class JavaLangSystemAgent {
      * @return the environment as a map of variable names to values
      * @since 7.1
      */
-    public static java.util.Map<String,String> getenv() {
+    public final static java.util.Map<String,String> getenv() {
         return System.getenv();
     }
 
@@ -235,7 +235,7 @@ public class JavaLangSystemAgent {
      * the agent method for <code>System.exit</code>.
      * @since 7.1
      */
-    public static void exit(final int status) {
+    public final static void exit(final int status) {
         System.exit(status);
     }
 
@@ -243,7 +243,7 @@ public class JavaLangSystemAgent {
      * the agent method for <code>System.gc</code>.
      * @since 7.1
      */
-    public static void gc() {
+    public final static void gc() {
         System.gc();
     }
 
@@ -251,7 +251,7 @@ public class JavaLangSystemAgent {
      * the agent method for <code>System.runFinalization</code>.
      * @since 7.1
      */
-    public static void runFinalization() {
+    public final static void runFinalization() {
         System.runFinalization();
     }
 
@@ -259,7 +259,7 @@ public class JavaLangSystemAgent {
      * the agent method for <code>System.runFinalizersOnExit</code>.
      * @since 7.1
      */
-    public static void runFinalizersOnExit(final boolean value) {
+    public final static void runFinalizersOnExit(final boolean value) {
     	System.runFinalizersOnExit(value);
     }
 
@@ -267,7 +267,7 @@ public class JavaLangSystemAgent {
      * the agent method for <code>System.load</code>.
      * @since 7.1
      */
-    public static void load(final String filename) {
+    public final static void load(final String filename) {
         System.load(filename);
     }
 
@@ -275,7 +275,7 @@ public class JavaLangSystemAgent {
      * the agent method for <code>System.loadLibrary</code>.
      * @since 7.1
      */
-    public static void loadLibrary(final String libname) {
+    public final static void loadLibrary(final String libname) {
         System.loadLibrary(libname);
     }
 
@@ -284,7 +284,7 @@ public class JavaLangSystemAgent {
      * @return a platform-dependent native library name.
      * @since 7.1
      */
-    public static String mapLibraryName(final String libname){
+    public final static String mapLibraryName(final String libname){
     	return System.mapLibraryName(libname);
     }
 

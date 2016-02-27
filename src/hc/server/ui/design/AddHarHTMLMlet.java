@@ -86,11 +86,11 @@ public class AddHarHTMLMlet extends HTMLMlet {
 //		}
 		setLayout(new BorderLayout());
 		final String fontSizeCSS = "font-size:" + fontSizePX + "px";
-		setCSS(this, null, fontSizeCSS);
+		setCSS(this, null, fontSizeCSS);//系统Mlet, //不考虑in user thread
 		addProcessingPanel.add(processingLabel, BorderLayout.CENTER);
 		exitButton.setIcon(new ImageIcon(okIcon));
 		exitButton.setEnabled(false);
-		setCSS(exitButton, null, "text-align:center;vertical-align:middle;width:100%;height:100%" + ";" + fontSizeCSS);
+		setCSS(exitButton, null, "text-align:center;vertical-align:middle;width:100%;height:100%" + ";" + fontSizeCSS);//系统Mlet, //不考虑in user thread
 		exitButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
@@ -344,13 +344,13 @@ public class AddHarHTMLMlet extends HTMLMlet {
 				if(ssidField.getText().length() == 0){
 					statusReport.setText((String)ResourceUtil.get(9126));
 					ssidField.requestFocusInWindow();
-					addHarHTMLMlet.setCSS(statusReport, null, css_error);
+					addHarHTMLMlet.setCSS(statusReport, null, css_error);//系统Mlet, //不考虑in user thread
 					return;
 				}
 				
 				if(pass1.getText().equals(pass2.getText()) == false){
 					statusReport.setText((String)ResourceUtil.get(9127));
-					addHarHTMLMlet.setCSS(statusReport, null, css_error);
+					addHarHTMLMlet.setCSS(statusReport, null, css_error);//系统Mlet, //不考虑in user thread
 					return;
 				}
 				

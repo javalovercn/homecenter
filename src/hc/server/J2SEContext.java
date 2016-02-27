@@ -472,7 +472,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
     public static long lastCheckMS = System.currentTimeMillis();
     
     /**
-     * 
+     * 重要，请勿在Event线程中调用，
      * @param checkTime true表示仅当时间超过3分钟后，才进行验证；false表示只要是多模式，则必需验证
      * @param opName
      * @return
@@ -645,11 +645,16 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			area.setWrapStyleWord(true);
 		} catch (final Throwable e) {
 			e.printStackTrace();
-			final String[] options = { "O K" };
-			App.showOptionDialog(null,
-					"Cant connect server, please try late!", "HomeCenter",
-					JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
-					null, options, options[0]);
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					final String[] options = { "O K" };
+					App.showOptionDialog(null,
+							"Cant connect server, please try late!", "HomeCenter",
+							JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
+							null, options, options[0]);
+				}
+			});
 			dialog.dispose();
 			return;
 		}
@@ -1960,9 +1965,10 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						final BaseResponsor responsor = ServerUIUtil.getResponsor();
 						
 //						ClientDesc.agent.set(ConfigManager.UI_IS_BACKGROUND, IConstant.TRUE);
-//						responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
-						
-						responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_LOGOUT);
+						if(responsor != null){//退出时，多进程可能导致已关闭为null
+//							responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
+							responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_LOGOUT);
+						}
 					}
 				});
 			}
@@ -2059,7 +2065,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 	public static final String MAX_HC_VER = "9999999";//注意与Starter.NO_UPGRADE_VER保持同步
 	
-	private final String minMobiVerRequiredByServer = "7.1";//(含)，
+	private final String minMobiVerRequiredByServer = "7.2";//(含)，
 	//你可能 还 需要修改服务器版本，StarterManager HCVertion = "6.97";
 	
 	public static final String getSampleHarVersion(){

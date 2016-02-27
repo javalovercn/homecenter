@@ -904,7 +904,7 @@ public class DeviceBinderWizard extends JPanel{
 						if(leafNodeType == BindDeviceNode.CONVERTER_NODE){
 							try{
 								final ConverterInfo convertInfo = bdn.convBind;
-								rs.getConverterDescUpDown(projResponser, convertInfo);
+								rs.getConverterDescUpDownToUserThread(projResponser, convertInfo);
 								desc.setText(buildConverterCapDescStr(projResponser, 
 										convertInfo.upDeviceCompatibleDescriptionCache, convertInfo.downDeviceCompatibleDescriptionCache));
 							}catch (final Throwable e) {

@@ -10,17 +10,17 @@ import java.util.Vector;
 public class LinkedSet {
 	LinkedNode top, tail;//分别指向首结点和最后一个可用结点。
 	
-	static final LinkedNodeCacher cacher = new LinkedNodeCacher(32);
+	static final LinkedNodeCacher cacher = new LinkedNodeCacher(64);
 	
-	public boolean isEmpty(){
+	public final boolean isEmpty(){
 		return top == null;
 	}
 	
-	public boolean isTailNull(){
+	public final boolean isTailNull(){
 		return tail == null;
 	}
 	
-	public Enumeration elements(){
+	public final Enumeration elements(){
 		final Vector v = new Vector();
 		
 		if(top == null){
@@ -35,7 +35,7 @@ public class LinkedSet {
 		return v.elements();
 	}
 	
-	public void addToFirst(final Object obj){
+	public final void addToFirst(final Object obj){
 		final LinkedNode addNode = cacher.getFree();
 		addNode.data = obj;
 		
@@ -47,7 +47,7 @@ public class LinkedSet {
 	 * 装入到最后端，即最后出
 	 * @param obj
 	 */
-	public void addTail(final Object obj){
+	public final void addTail(final Object obj){
 		final LinkedNode addNode = cacher.getFree();
 		addNode.data = obj;
 		
@@ -63,7 +63,7 @@ public class LinkedSet {
 	 * 如果没有对象，则返回null
 	 * @return
 	 */
-	public Object getFirst(){
+	public final Object getFirst(){
 		if(top == null){
 			return null;
 		}else{
@@ -87,7 +87,7 @@ public class LinkedSet {
 	 * 如果集合中存在多个相同实例，一并删除
 	 * @param obj
 	 */
-	public void removeData(final Object obj){
+	public final void removeData(final Object obj){
 		if(top == null){
 			return;
 		}

@@ -29,8 +29,11 @@ public class ProcessingWindowManager {
 	private static Window pauseWindow;
 	
 	public static void pause(){
-		if(isPause){
-			return;
+		synchronized (ProcessingWindowManager.class) {
+			if(isPause){
+				return;
+			}
+			isPause = true;
 		}
 		
 		pauseWindow = processing;
@@ -39,12 +42,14 @@ public class ProcessingWindowManager {
 		}
 		processing = null;
 		
-		isPause = true;
 	}
 	
 	public static void resume(){
-		if(isPause == false){
-			return;
+		synchronized (ProcessingWindowManager.class) {
+			if(isPause == false){
+				return;
+			}
+			isPause = false;
 		}
 		
 		final Window currProcessing = processing;
@@ -58,7 +63,6 @@ public class ProcessingWindowManager {
 			pauseWindow.toFront();
 		}
 		
-		isPause = false;
 	}
 	
 	/**

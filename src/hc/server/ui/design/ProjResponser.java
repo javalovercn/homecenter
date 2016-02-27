@@ -16,6 +16,7 @@ import hc.core.util.StoreableHashMap;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
 import hc.core.util.ThreadPriorityManager;
+import hc.core.util.UIUtil;
 import hc.server.HCException;
 import hc.server.ScreenServer;
 import hc.server.data.screen.ScreenCapturer;
@@ -640,16 +641,15 @@ public class ProjResponser {
 								return;
 							}
 							final CtrlMap cmap = new CtrlMap(map);
-							ServerUIAPIAgent.getThreadPoolFromProjectContext(responsor.getProjectContext()).runAndWait(new ReturnableRunnable() {
+							responsor.getProjectContext().runAndWait(new Runnable() {
 								@Override
-								public Object run() {
+								public void run() {
 									//添加初始按钮名
 									final int[] keys = cmap.getButtonsOnCanvas();
 									for (int i = 0; i < keys.length; i++) {
 										final String txt = responsor.getButtonInitText(keys[i]);
 										cmap.setButtonTxt(keys[i], txt);
 									}
-									return null;
 								}
 							});
 							
@@ -683,11 +683,49 @@ public class ProjResponser {
 			return false;
 		}
 	}
+	
+	private static final void sendMletBodyOneTime(final ProjectContext ctx){
+		final String attBody = ServerUIAPIAgent.ATTRIBUTE_IS_TRANSED_MLET_BODY;
+		
+		final Object result = ServerUIAPIAgent.getSuperAttribute(ctx, attBody);
+		if(result == null){
+			ServerUIAPIAgent.setSuperAttribute(ctx, attBody, Boolean.TRUE);
+		}
+		
+		final String defaultRGB = StringUtil.toARGB(UIUtil.DEFAULT_COLOR_BACKGROUND, false);
+//		final boolean isAndroid = ConfigManager.getOSType()==ConfigManager.OS_ANDROID;
+		final String initHTML = 
+				"<html dir='ltr'><head>" +
+				"<meta charset=\"utf-8\" />" +
+				"<meta name=\"viewport\" content=\"user-scalable=no, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0\"/>" +
+				"<style>div > img {vertical-align:middle;}div > input {vertical-align:middle;}div > label{vertical-align:middle;}</style>" +
+				"</head>" +
+				"<body style=\"position:relative;margin:0px;\" onload=\"window.hcserver.finishOnLoad();\">" +
+				"<div id=\"hc_div_0\"></div>" +
+				"<div id=\"hc_div_loading\" style=\"position:absolute;background:#" + defaultRGB + ";" +
+						"width:" + ctx.getMobileWidth() + "px;" +
+						"height:" + ctx.getMobileHeight() + "px;\"></div>" +
+				"<div id=\"hc_div_tip\" style=\"pointer-events:none;font-size:" + (int)(ClientDesc.getDPI() * 1.4 /10) + "px;position:absolute;visibility:hidden;height:auto;top:30px;\">" +
+				"</div>" +
+				"</body></html>";
+		final byte[] bs = StringUtil.getBytes(initHTML);
+		HCURLUtil.sendEClass(HCURLUtil.CLASS_BODY_TO_MOBI, bs, 0, bs.length);
+	}
+	
+	public static final int getMletComponentCount(final ProjectContext ctx, final Mlet mlet){
+		return (Integer)ServerUIAPIAgent.getThreadPoolFromProjectContext(ctx).runAndWait(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				return mlet.getComponentCount();
+			}
+		});
+	}
 
 	public static final void startMlet(final String listener,
 			final Map<String, String> mapRuby, final String elementID,
 			final String title, final HCJRubyEngine hcje, final ProjectContext context) {
 		ContextManager.getThreadPool().run(new Runnable() {
+			
 			@Override
 			public void run() {
 				try{
@@ -700,7 +738,7 @@ public class ProjResponser {
 					
 					boolean isHTMLMlet = (mlet instanceof HTMLMlet);
 					final IMletCanvas mcanvas;
-					if(ClientDesc.getAgent().getOS().equals(ConfigManager.OS_J2ME_DESC) || mlet.getComponentCount() == 0 || isHTMLMlet == false){
+					if(isHTMLMlet == false || ClientDesc.getAgent().getOS().equals(ConfigManager.OS_J2ME_DESC) || getMletComponentCount(context, mlet) == 0){
 						if(isHTMLMlet){
 							L.V = L.O ? false : LogManager.log("force HTMLMlet to Mlet, because there is no component or for J2ME mobile.");
 							isHTMLMlet = false;
@@ -708,17 +746,17 @@ public class ProjResponser {
 						sendReceiver(HCURL.DATA_RECEIVER_MLET);
 						mcanvas = new MletSnapCanvas(ClientDesc.getClientWidth(), ClientDesc.getClientHeight());
 					}else{
+						sendMletBodyOneTime(context);
 						sendReceiver(HCURL.DATA_RECEIVER_HTMLMLET);
 						mcanvas = new MletHtmlCanvas(ClientDesc.getClientWidth(), ClientDesc.getClientHeight());
 					}
 					
 					mcanvas.setScreenIDAndTitle(elementID, title);//注意：要在setMlet之前，因为后者可能用到本参数
 					mcanvas.setMlet(mlet, context);
-					ServerUIAPIAgent.getThreadPoolFromProjectContext(context).runAndWait(new ReturnableRunnable() {
+					context.runAndWait(new Runnable() {
 						@Override
-						public Object run() {
-							mcanvas.init();
-							return null;
+						public void run() {
+							mcanvas.init();//in user thread
 						}
 					});
 					
