@@ -1,5 +1,7 @@
 package hc.server.ui.design.hpj;
 
+import hc.core.util.ExceptionReporter;
+
 import java.io.File;
 import java.io.FileInputStream;
 
@@ -23,7 +25,7 @@ public class HCShareFileResource extends HPNode {
 		try {
 			return HCjar.readFromInputStream(new FileInputStream(file));
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}

@@ -2566,18 +2566,18 @@
 package jay.yydebug;
 
 import java.awt.BorderLayout;
-import java.awt.Checkbox;
+import javax.swing.JCheckBox;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Frame;
-import java.awt.Label;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import java.awt.Menu;
 import java.awt.MenuBar;
 import java.awt.MenuItem;
-import java.awt.Panel;
-import java.awt.TextArea;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -2594,7 +2594,12 @@ import java.io.PrintStream;
 		waiting for a different stream.
 		@see java.lang.System#setIn
   */
-public class yyAnim extends Frame implements yyDebug {
+public class yyAnim extends JFrame implements yyDebug {
+	/**
+	 * change log by HomeCenter
+	 * change awt to Swing, for example, Frame=>JFrame, Label => JLabel
+	 */
+	
   /** counts instances to exit on last close.
     */
   protected static int nFrames;
@@ -2647,15 +2652,15 @@ public class yyAnim extends Frame implements yyDebug {
 		add(panel = new yyAnimPanel(font), "Center");
 		
 		if ((io & (IN|OUT)) != 0) {
-			final Panel p = new Panel(new BorderLayout());
+			final JPanel p = new JPanel(new BorderLayout());
 			switch (io) {
 			case IN:
-				p.add(new Label("terminal input"), "North");
+				p.add(new JLabel("terminal input"), "North");
 				break;
 			case OUT: case IN|OUT:
-				Checkbox c;
+				JCheckBox c;
 				final String ct = (io&IN) != 0 ? "terminal i/o" : "terminal output";
-				p.add(c = new Checkbox(ct, outputBreak), "North");
+				p.add(c = new JCheckBox(ct, outputBreak), "North");
 				c.addItemListener(new ItemListener() {
 				  @Override
 				public void itemStateChanged (final ItemEvent ie) {
@@ -2665,8 +2670,8 @@ public class yyAnim extends Frame implements yyDebug {
 				});
 			}
 			
-			final TextArea t;
-			p.add(t = new TextArea(10, 50), "Center");
+			final JTextArea t;
+			p.add(t = new JTextArea(10, 50), "Center");
 			t.setBackground(Color.white); t.setFont(font);
 			
 			if ((io&IN) != 0) {

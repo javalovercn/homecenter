@@ -3,10 +3,12 @@ package hc.server.util;
 import hc.App;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.Stack;
 import hc.server.HCSecurityException;
 import hc.util.ClassUtil;
+
 import java.awt.AWTEvent;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
@@ -17,6 +19,7 @@ import java.lang.reflect.Field;
 import java.util.EmptyStackException;
 import java.util.Iterator;
 import java.util.Map;
+
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
@@ -30,8 +33,9 @@ public class HCEventQueue extends EventQueue {
 	final ThreadGroup rootThreadGroup = App.getRootThreadGroup();
 	
 	final Thread antiAutoShutdown = new Thread(){
+		@Override
 		public void run(){
-			Runnable runnable = new Runnable() {
+			final Runnable runnable = new Runnable() {
 				@Override
 				public void run() {
 				}
@@ -43,19 +47,19 @@ public class HCEventQueue extends EventQueue {
 				}
 				
 				while(true){
-					Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
-					Iterator<Thread> it = map.keySet().iterator();
+					final Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
+					final Iterator<Thread> it = map.keySet().iterator();
 					int aliveCount = map.size();
 					int remainCount = 0;
 					while(it.hasNext()){
-						Thread t = it.next();
+						final Thread t = it.next();
 						if(t.isDaemon() == false){
 							if(ContextSecurityManager.getConfig(t.getThreadGroup()) != null){
 								aliveCount = -1;
 								break;
 							}
 							
-							String threadName = t.getName();
+							final String threadName = t.getName();
 							if(threadName.startsWith("AWT-Shutdown") 
 									|| threadName.startsWith("AWT-EventQueue-") 
 									|| threadName.startsWith("DestroyJavaVM")){
@@ -74,13 +78,13 @@ public class HCEventQueue extends EventQueue {
 						Thread.sleep(100);
 					}
 				}
-			}catch (Exception e) {
+			}catch (final Exception e) {
 			}
 		}
 	};
 	
 	public final void shutdown(){
-		EventQueue old = Toolkit.getDefaultToolkit().getSystemEventQueue();
+		final EventQueue old = Toolkit.getDefaultToolkit().getSystemEventQueue();
 		if(old != null){
 			if(old instanceof HCEventQueue){
 				((HCEventQueue)old).pop();
@@ -105,7 +109,7 @@ public class HCEventQueue extends EventQueue {
 		
 		try{
 			Thread.sleep(50);
-		}catch (Exception e) {
+		}catch (final Exception e) {
 		}
 		
 		eventDispatchThread = buildToGetEventQueueThread();
@@ -124,7 +128,7 @@ public class HCEventQueue extends EventQueue {
 				final Thread currentThread = Thread.currentThread();
 				try{
 					ClassUtil.changeField(Thread.class, currentThread, "group", null);
-				}catch (Exception e) {
+				}catch (final Exception e) {
 					failModiGroup[0] = true;
 				}
 				eventQueueThreadArray[0] = currentThread;
@@ -132,19 +136,20 @@ public class HCEventQueue extends EventQueue {
 		});
 		if(failModiGroup[0]){
 			new Thread(){
+				@Override
 				public void run(){
 					App.showMessageDialog(null, "Fail to modify Thread.group = null in " + eventQueueThreadArray[0].getName(), 
 							"JVM Error", JOptionPane.INFORMATION_MESSAGE);
 				}
 			}.start();
 		}
-		Thread thread = eventQueueThreadArray[0];
+		final Thread thread = eventQueueThreadArray[0];
 		if(thread != null){
 			thread.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 				@Override
-				public void uncaughtException(Thread t, Throwable e) {
+				public void uncaughtException(final Thread t, final Throwable e) {
 					L.V = L.O ? false : LogManager.log("This is UncaughtExceptionHandler for thread : " + t.getName() + ", Message : " + e.getMessage());
-				    e.printStackTrace();
+				    ExceptionReporter.printStackTrace(e);
 				}
 			});
 		}
@@ -178,14 +183,15 @@ public class HCEventQueue extends EventQueue {
 //			return eventDispatchThread;
 //		}catch (Throwable e) {
 //			App.showMessageDialog(null, "fail to create EventDispathThread!", "Error", JOptionPane.ERROR_MESSAGE);
-//			e.printStackTrace();
+//			ExceptionReporter.printStackTrace(e);
 //		}
 //		return null;
 //	}
 //	
-	public final void postEvent(AWTEvent theEvent) {
+	@Override
+	public final void postEvent(final AWTEvent theEvent) {
 		ContextSecurityConfig csc = null;
-		Thread currentThread = Thread.currentThread();
+		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
 //			if(csc == null){
 //				ClassUtil.printCurrentThreadStack("-------------------Non ContextSecurityConfig to postEvent-------------------");
@@ -193,7 +199,7 @@ public class HCEventQueue extends EventQueue {
 //			}
 			boolean isOpenWindow = false;
 			if(theEvent.getID() == WindowEvent.WINDOW_OPENED && theEvent instanceof WindowEvent){
-				Object src = theEvent.getSource();
+				final Object src = theEvent.getSource();
 				if(src instanceof HCJFrame || src instanceof HCJDialog){
 				}else{
 					isOpenWindow = true;
@@ -240,13 +246,13 @@ public class HCEventQueue extends EventQueue {
 	@Override
 	protected final void dispatchEvent(AWTEvent event) {
 		if(event instanceof HCAWTEvent){
-			HCAWTEvent hcawtEvent = (HCAWTEvent)event;
+			final HCAWTEvent hcawtEvent = (HCAWTEvent)event;
 			event = hcawtEvent.relaEvent;
 			currentConfig = hcawtEvent.csc;
 			
 			try{
 				parentGroupField.set(eventDispatchThread, currentConfig.threadGroup);
-			}catch (Exception e) {
+			}catch (final Exception e) {
 				throw new HCSecurityException(e.toString());
 			}
 			synchronized (list) {
@@ -256,7 +262,7 @@ public class HCEventQueue extends EventQueue {
 			currentConfig = null;
 			try{
 				parentGroupField.set(eventDispatchThread, rootThreadGroup);
-			}catch (Exception e) {
+			}catch (final Exception e) {
 				throw new HCSecurityException(e.toString());
 			}
 		}
@@ -264,7 +270,8 @@ public class HCEventQueue extends EventQueue {
 		super.dispatchEvent(event);
 	}
 	
-	public final void push(EventQueue newEventQueue) {
+	@Override
+	public final void push(final EventQueue newEventQueue) {
 //		CCoreUtil.checkAccess();
 		throw new HCSecurityException("block push EventQueue over HCEventQueue");
 //		super.push(newEventQueue);

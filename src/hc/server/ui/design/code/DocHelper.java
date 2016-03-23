@@ -4,11 +4,13 @@ import hc.core.ContextManager;
 import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.L;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
 import hc.server.DefaultManager;
 import hc.server.ui.LinkProjectStatus;
 import hc.util.ClassUtil;
+import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -205,14 +207,14 @@ public class DocHelper {
 //		System.out.println("-----processDocForOneLevel : " + claz.getName());
 
 		if(clasName.startsWith("java")){
-			read(clasName, "/hc/server/docs/jdk_docs/api/" + clasName.replace('.', '/') + ".html");
+			read(clasName, "hc/server/docs/jdk_docs/api/" + clasName.replace('.', '/') + ".html");
 		}else if(clasName.startsWith("hc.")){
-			read(clasName, "/hc/server/docs/" + clasName.replace('.', '/') + ".html");
+			read(clasName, "hc/server/docs/" + clasName.replace('.', '/') + ".html");
 		}
 	}
 
 	private static void read(final String clasName, final String docPath) {
-		final InputStream in = Class.class.getResourceAsStream(docPath);
+		final InputStream in = ResourceUtil.getResourceAsStream(docPath);
 		if(in == null){
 			synchronized (cache) {
 				cache.put(clasName, new HashMap<String, String>());
@@ -229,7 +231,7 @@ public class DocHelper {
 		    final String docContent = new String(outStream.toByteArray(), IConstant.UTF_8);
 		    toCache(clasName, docContent);
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			synchronized (cache) {
 		    	cache.put(clasName, new HashMap<String, String>());
 			}

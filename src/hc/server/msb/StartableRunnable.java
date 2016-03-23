@@ -1,5 +1,7 @@
 package hc.server.msb;
 
+import hc.core.util.ExceptionReporter;
+
 public abstract class StartableRunnable implements Runnable {
 	boolean isStarted = false;
 	
@@ -18,15 +20,15 @@ public abstract class StartableRunnable implements Runnable {
 			if(isStarted == false){
 				try{
 					wait();
-				}catch (Exception e) {
+				}catch (final Exception e) {
 				}
 			}
 		}
 		
 		try{
 			runAfterStart();
-		}catch (Throwable e) {
-			e.printStackTrace();
+		}catch (final Throwable e) {
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	

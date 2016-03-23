@@ -7,15 +7,16 @@ import hc.core.IContext;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.res.ImageSrc;
 import hc.server.util.ServerCUtil;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.sql.Timestamp;
@@ -41,8 +42,8 @@ public class LogServerSide implements ILog {
 				newLog.renameTo(filebak);
 				
 				//迁移log1的密码到log2上
-				String p1 = PropertiesManager.getValue(PropertiesManager.p_LogPassword1);
-				String ca1 = PropertiesManager.getValue(PropertiesManager.p_LogCipherAlgorithm1, ServerCUtil.oldCipherAlgorithm);
+				final String p1 = PropertiesManager.getValue(PropertiesManager.p_LogPassword1);
+				final String ca1 = PropertiesManager.getValue(PropertiesManager.p_LogCipherAlgorithm1, ServerCUtil.oldCipherAlgorithm);
 				if(p1 != null){
 					PropertiesManager.setValue(PropertiesManager.p_LogPassword2, p1);
 				}
@@ -51,7 +52,7 @@ public class LogServerSide implements ILog {
 			}
 
 			//记存log1的密码
-			String pwd = PropertiesManager.getValue(PropertiesManager.p_password);
+			final String pwd = PropertiesManager.getValue(PropertiesManager.p_password);
 			PropertiesManager.setValue(PropertiesManager.p_LogPassword1, pwd);
 			PropertiesManager.setValue(PropertiesManager.p_LogCipherAlgorithm1, ServerCUtil.CipherAlgorithm);
 			PropertiesManager.saveFile();
@@ -59,25 +60,25 @@ public class LogServerSide implements ILog {
 			FlushPrintStream printStream = null;
 			try{
 				outLogger = new FileOutputStream(newLog,false);
-				final PrintStream ps = new PrintStream(ServerCUtil.encodeStream((OutputStream)outLogger, IConstant.getPasswordBS()));
+				final PrintStream ps = new PrintStream(ServerCUtil.encodeStream(outLogger, IConstant.getPasswordBS()));
 				printStream = new FlushPrintStream(ps, this);
 				osw = new OutputStreamWriter(ps, "UTF-8");
 				bw = new BufferedWriter(osw);
 				System.setOut(printStream);
 				
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				App.showMessageDialog(null, e.toString());
 				CCoreUtil.globalExit();
 			}
 	
 			try{
 				System.setErr(printStream);//new PrintStream((OutputStream)errLogger));
-			}catch (Exception e) {
-				e.printStackTrace();
+			}catch (final Exception e) {
+				ExceptionReporter.printStackTrace(e);
 			}
 			
 			//记录加密器信息到日志中
-			String encryptClass = (String)IConstant.getInstance().getObject("encryptClass");
+			final String encryptClass = (String)IConstant.getInstance().getObject("encryptClass");
 			if(encryptClass != null){
 				if(CUtil.getUserEncryptor() != null){
 					L.V = L.O ? false : LogManager.log("Enable user Encryptor [" + encryptClass + "]");
@@ -87,17 +88,22 @@ public class LogServerSide implements ILog {
 			}else{
 				L.V = L.O ? false : LogManager.log("use inner encryptor, no customized encryptor.");
 			}
+			
+			if(PropertiesManager.isTrue(PropertiesManager.p_isReportException)){
+				ExceptionReporter.appendToLog();
+			}
 		}
 	}
 	
+	@Override
 	public void exit(){
 		if(outLogger != null){
 			flush();
 			
 			try{
 				outLogger.close();
-			}catch (Exception e) {
-				e.printStackTrace();
+			}catch (final Exception e) {
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		
@@ -113,8 +119,9 @@ public class LogServerSide implements ILog {
 
 	private final Calendar calendar = Calendar.getInstance();
 	
-	public void log(String msg){
-		StringBuilder sb = new StringBuilder(25 + msg.length() + 1);
+	@Override
+	public void log(final String msg){
+		final StringBuilder sb = new StringBuilder(25 + msg.length() + 1);
 
 		calendar.setTimeInMillis(System.currentTimeMillis());
 		
@@ -136,24 +143,26 @@ public class LogServerSide implements ILog {
 		sb.append(msg);
 		sb.append("\n");
 		
-		String pMsg = sb.toString();
+		final String pMsg = sb.toString();
 		try {
 			if(osw != null){
 				bw.append(pMsg);
 			}else{
 				System.out.print(pMsg);
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
+		} catch (final IOException e) {
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	
-	public void errWithTip(String msg){
+	@Override
+	public void errWithTip(final String msg){
 		err(msg);
 		ContextManager.displayMessage((String)ResourceUtil.get(IContext.ERROR), msg, IContext.ERROR, 0);
 	}
 
-	public void err(String msg) {
+	@Override
+	public void err(final String msg) {
 		flush();
 
 		final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
@@ -176,7 +185,8 @@ public class LogServerSide implements ILog {
 		flush();
 	}
 	
-	public void info(String msg) {
+	@Override
+	public void info(final String msg) {
 		
 	}
 
@@ -187,14 +197,14 @@ public class LogServerSide implements ILog {
 				bw.flush();
 //				osw.flush();
 //				outLogger.flush();
-			}catch (Exception e) {
-				e.printStackTrace();
+			}catch (final Exception e) {
+				ExceptionReporter.printStackTrace(e);
 			}
 		}		
 	}
 
 	@Override
-	public void warning(String msg) {
+	public void warning(final String msg) {
 		log(WARNING + msg);
 	}
 

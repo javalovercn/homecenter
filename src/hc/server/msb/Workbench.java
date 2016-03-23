@@ -578,7 +578,6 @@ class WaitingForMessage {
 					this.wait(timeout);
 				}
 			}catch (final Exception e) {
-				e.printStackTrace();
 			}
 		}
 		

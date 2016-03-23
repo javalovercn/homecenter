@@ -2,6 +2,7 @@ package hc.server.nio;
 
 import hc.core.L;
 import hc.core.RootConfig;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LinkedSet;
 import hc.core.util.LogManager;
 import hc.core.util.Stack;
@@ -19,6 +20,7 @@ public class UDPPair {
 	public boolean isServerPort;
 	public final LinkedSet writeToBackSet = new LinkedSet();
 	private static final ByteBufferCacher bbCache = new ByteBufferCacher() {
+		@Override
 		public ByteBuffer buildOne() {
 			return ByteBuffer.allocateDirect(
 				RootConfig.getInstance().getIntProperty(RootConfig.p_DefaultUDPSize));
@@ -43,7 +45,7 @@ public class UDPPair {
 		if(selectionKey != null){
 			try{
 				selectionKey.cancel();
-			}catch (Exception e) {
+			}catch (final Exception e) {
 				
 			}
 			selectionKey = null;
@@ -52,13 +54,13 @@ public class UDPPair {
 		if(channel != null){
 			try{
 				channel.disconnect();
-			}catch (Exception e) {
+			}catch (final Exception e) {
 				L.V = L.O ? false : LogManager.log("Fail disconnect udp channel");
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 			try{
 				channel.close();
-			}catch (Exception e) {
+			}catch (final Exception e) {
 				
 			}
 			channel = null;
@@ -67,7 +69,7 @@ public class UDPPair {
 		bbCache.cycleSet(writeToBackSet);
 		
 		if(target != null){
-			UDPPair temp = target;
+			final UDPPair temp = target;
 			
 			target.target = null;
 			target = null;

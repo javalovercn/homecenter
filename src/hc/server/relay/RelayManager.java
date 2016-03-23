@@ -11,6 +11,7 @@ import hc.core.data.DataNatReqConn;
 import hc.core.data.DataReg;
 import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
 import hc.core.util.Stack;
@@ -186,7 +187,7 @@ public class RelayManager {
 					closeServer(sc);
 				}
 				
-	//				e.printStackTrace();
+	//				ExceptionReporter.printStackTrace(e);
 //					//断线
 //					L.V = L.O ? false : LogManager.log("close channel or pair at channel : " 
 //						+ sourceChannel.socket().getInetAddress().getHostAddress());
@@ -209,26 +210,26 @@ public class RelayManager {
 					LogManager.flush();
 				}
 			}catch (final Exception e) {
-//				e.printStackTrace();
+//				ExceptionReporter.printStackTrace(e);
 				//断线
 				L.V = L.O ? false : LogManager.log("lineOff or Exception [" + e.getMessage() + "] [hashCode: " + sourceChannel.socket().hashCode() + ", remotePort:" + sourceChannel.socket().getPort() + "] at channel!");
 				try{
 					sourceChannel.socket().close();
 				}catch (final Throwable e1) {
-//					e1.printStackTrace();
+//					e1ExceptionReporter.printStackTrace(e);
 				}
 				try{
 					sourceChannel.close();
 				}catch (final Exception e1) {
 //					System.out.println("try channel close...");
-//					e1.printStackTrace();
+//					e1ExceptionReporter.printStackTrace(e);
 				}
 				try{
 					//特殊情形下，调用本行是有益的。
 					key.cancel();
 				}catch (final Exception e1) {
 //					System.out.println("try channel key close...");
-//					e1.printStackTrace();
+//					e1ExceptionReporter.printStackTrace(e);
 				}
 			}
 		}
@@ -854,7 +855,7 @@ public class RelayManager {
 							tdn[i].delNode(c.uuidbs.bytes, 0, c.uuidbs.len);
 							moveCount++;
 						}catch (final Exception e) {
-							e.printStackTrace();
+							ExceptionReporter.printStackTrace(e);
 							
 							return moveCount;
 						}
@@ -863,7 +864,7 @@ public class RelayManager {
 					
 //					lineOffSessionConn(c);
 				}catch (final Exception e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 			}
 		}
@@ -890,7 +891,7 @@ public class RelayManager {
 						sendLineOff(c.clientSide);
 					}
 				}catch (final Exception e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 				//因为要关闭，所以无需更改此状态
 //				uuid_len[i] = 0;
@@ -930,7 +931,7 @@ public class RelayManager {
 //			outputStream.flush();
 		}catch (final Exception e) {
 			L.V = L.O ? false : LogManager.log(e.getMessage());
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	
@@ -948,7 +949,7 @@ public class RelayManager {
 			bb.limit(totalLen);
 			sc.write(bb);
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	

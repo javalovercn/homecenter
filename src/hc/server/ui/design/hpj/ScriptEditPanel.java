@@ -4,6 +4,7 @@ import hc.App;
 import hc.core.ContextManager;
 import hc.core.IContext;
 import hc.core.L;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.HCActionListener;
 import hc.server.data.StoreDirManager;
@@ -168,10 +169,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		final String script = jtaScript.getText();
 		ScriptException evalException = null;
 		try{
-			RubyExector.parse(script, runTestEngine);
+			RubyExector.parse(script, null, runTestEngine);
 			evalException = runTestEngine.getEvalException();
 			if(evalException == null && (isRun || isCompileOnly == false)){
-				RubyExector.run(script, map, runTestEngine, context);
+				RubyExector.run(script, null, map, runTestEngine, context);
 				RubyExector.removeCache(script, runTestEngine);
 				evalException = runTestEngine.getEvalException();
 			}
@@ -276,7 +277,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							try{
 								doTest(true, false);
 							}catch (final Exception e) {
-								e.printStackTrace();
+								ExceptionReporter.printStackTrace(e);
 							}
 							
 //							App.invokeLaterUI(new Runnable() {
@@ -365,15 +366,15 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		{
 			final AbstractAction tabAction = new AbstractAction() {
 				@Override
-				public void actionPerformed(final ActionEvent e) {
+				public void actionPerformed(final ActionEvent event) {
 			    	if(TabHelper.pushTabOrEnterKey()){
 			    	}else{
 			    		final int posi = jtaScript.getCaretPosition();
 			    		try {
 							jtaScript.getDocument().insertString(posi, "\t", null);
 							jtaScript.setCaretPosition(posi + 1);
-						} catch (final BadLocationException e1) {
-							e1.printStackTrace();
+						} catch (final BadLocationException e) {
+							ExceptionReporter.printStackTrace(e);
 						}
 			    	}
 			    }
@@ -414,10 +415,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			final boolean isMacOS = ResourceUtil.isMacOSX();
 			
 			@Override
-			public void keyTyped(final KeyEvent e) {
+			public void keyTyped(final KeyEvent event) {
 				
-				final char inputChar = e.getKeyChar();
-				final int modifiers = e.getModifiers();
+				final char inputChar = event.getKeyChar();
+				final int modifiers = event.getModifiers();
 				
 //				final int keycode = e.getKeyCode();
 //				System.out.println("keyCode : " + keycode + ", inputChar : " + inputChar + ", modifyMask : " + modifiers);
@@ -432,10 +433,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					try {
 						codeHelper.input(ScriptEditPanel.this, jtaScript, doc, fontHeight, true, 
 								jtaScript.getCaret().getMagicCaretPosition(), jtaScript.getCaretPosition());
-					} catch (final Exception ex) {
-						if(L.isInWorkshop){
-							ex.printStackTrace();
-						}
+					} catch (final Exception e) {
+//						if(L.isInWorkshop){
+							ExceptionReporter.printStackTrace(e);
+//						}
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override
 							public void run() {
@@ -443,7 +444,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							}
 						});
 					}
-					consumeEvent(e);
+					consumeEvent(event);
 					return;
 				}
 				
@@ -460,7 +461,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						
 						refreshCurrLineAfterKey(line, doc, jtaScript, ScriptEditPanel.this);
 						
-						TabHelper.notifyInputKey(inputChar == KeyEvent.VK_BACK_SPACE, e, inputChar);
+						TabHelper.notifyInputKey(inputChar == KeyEvent.VK_BACK_SPACE, event, inputChar);
 						
 						final boolean isDot = inputChar == '.';
 						final boolean isPathSplit = inputChar == '/';
@@ -533,8 +534,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					        popUpAuto(codeHelper);
 						}
 					}
-				}catch (final Exception ex) {
-					ex.printStackTrace();
+				}catch (final Exception e) {
+					ExceptionReporter.printStackTrace(e);
 				}//end try
 			}
 
@@ -574,8 +575,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			final int fontHeight = jtaScript.getFontMetrics(jtaScript.getFont()).getHeight();
 			
 			@Override
-		    public void keyPressed(final KeyEvent e) {
-	            final int keycode = e.getKeyCode();
+		    public void keyPressed(final KeyEvent event) {
+	            final int keycode = event.getKeyCode();
 //				switch (keycode) {
 //				case KeyEvent.VK_ALT:
 //				case KeyEvent.VK_SHIFT:
@@ -584,7 +585,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 //				case KeyEvent.VK_ESCAPE:
 //					return;
 //				}
-	            final int modifiers = e.getModifiers();
+	            final int modifiers = event.getModifiers();
 	            final CodeHelper codeHelper = designer.codeHelper;
 				final int wordCompletionModifyMaskCode = codeHelper.wordCompletionModifyMaskCode;
 				//无输入字符时的触发提示代码
@@ -593,10 +594,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					try {
 						codeHelper.input(ScriptEditPanel.this, jtaScript, doc, fontHeight, true, 
 								jtaScript.getCaret().getMagicCaretPosition(), jtaScript.getCaretPosition());
-					} catch (final Throwable ex) {
-						ex.printStackTrace();
+					} catch (final Throwable e) {
+						ExceptionReporter.printStackTrace(e);
 					}
-					consumeEvent(e);
+					consumeEvent(event);
 					return;
 				}
 	            
@@ -753,7 +754,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					}
 				});
 			}catch (final Throwable e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		@Override
@@ -891,7 +892,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}catch (final Exception e) {
 			if(e instanceof BadLocationException){
 			}else{
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 	}
@@ -909,7 +910,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					updateScript(scripts);		
 				}
 			}catch (final Throwable e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 	};
@@ -966,7 +967,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			initBlock(text, finalColorOffSet);
 //			System.out.println("context : \n" + jtaScript.getText());
 		}catch (final Exception e) {
-			e.printStackTrace();
+			e.printStackTrace();//注意：不javax.swing.text.BadLocationException
+//			ExceptionReporter.printStackTrace(e);
 		}
 		undoInProcess = true;
 //		buildHighlight(jtaScript, first_rem_pattern, REM_LIGHTER);
@@ -1003,7 +1005,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				try{
 					jtaScript.setCaretPosition(undoManager.getPostion());
 				}catch (final Exception e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 				App.invokeLaterUI(modifyAndColorAll);
 			}
@@ -1150,10 +1152,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							if((charIdxNextRemovedTab + (isElse?1:0)) > charIdxRemovedTab){
 								isNextIndentAlready = true;
 							}
-						}catch (final Exception e1) {
-							if(e1 instanceof BadLocationException){
+						}catch (final Exception e) {
+							if(e instanceof BadLocationException){
 							}else{
-								e1.printStackTrace();
+								ExceptionReporter.printStackTrace(e);
 							}
 						}
 					}
@@ -1187,18 +1189,18 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 //									line--;
 						break;
 					}
-					}catch (final Throwable ex) {
-						ex.printStackTrace();
+					}catch (final Throwable e) {
+						ExceptionReporter.printStackTrace(e);
 					}finally{
 						if(inputSelfBackEnd && charNewIdxRemovedTab > 0){
 							doc.remove(startIdx, 1);//end之前的字符去掉一个缩位
 						}
 					}
 				}
-			} catch (final Throwable e1) {
-				if(e1 instanceof BadLocationException){
+			} catch (final Throwable e) {
+				if(e instanceof BadLocationException){
 				}else{
-					e1.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 			}
 		}
@@ -1254,7 +1256,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 	public static synchronized void rebuildJRubyEngine() {
 		terminateJRubyEngine();
-		runTestEngine = new HCJRubyEngine(StoreDirManager.RUN_TEST_DIR.getAbsolutePath(), ResourceUtil.buildProjClassLoader(StoreDirManager.RUN_TEST_DIR, "hc.testDir"));
+		runTestEngine = new HCJRubyEngine(StoreDirManager.RUN_TEST_DIR.getAbsolutePath(), ResourceUtil.buildProjClassLoader(StoreDirManager.RUN_TEST_DIR, "hc.testDir"), true);
 	}
 
 	public static synchronized void terminateJRubyEngine() {
@@ -1381,7 +1383,7 @@ class PositionUndoManager extends UndoManager{
 			}
 			this.skipNext = skipNext;
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	

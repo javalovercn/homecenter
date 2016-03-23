@@ -2,8 +2,10 @@ package hc.core;
 
 import hc.core.data.DataPNG;
 import hc.core.sip.SIPManager;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
+import hc.core.util.RootBuilder;
 import hc.core.util.StringUtil;
 import hc.core.util.URLEncoder;
 
@@ -118,29 +120,27 @@ public class RootServerConnector {
 	 */
 	public static String retry(String url, boolean isTCP){
 		String msg = null;
-		if(IConstant.getInstance() != null){//有可能为null
-			int tryTims = 0;
-			while(true){
-				msg = IConstant.getInstance().getAjaxForSimu(url, isTCP);
-				if(msg == null && tryTims < 2){
-				}else{
-					break;
-				}
-				tryTims++;
-				try{
-					Thread.sleep(1000);
-				}catch (Exception e) {
-					
-				}
-			}
-			if(msg == null){
-				if(isLastUnConnServer == false){
-					LogManager.err(UN_CONN);
-					isLastUnConnServer = true;
-				}
+		int tryTims = 0;
+		while(true){
+			msg = RootBuilder.getInstance().getAjaxForSimu(url, isTCP);
+			if(msg == null && tryTims < 2){
 			}else{
-				isLastUnConnServer = false;
+				break;
 			}
+			tryTims++;
+			try{
+				Thread.sleep(1000);
+			}catch (Exception e) {
+				
+			}
+		}
+		if(msg == null){
+			if(isLastUnConnServer == false){
+				LogManager.err(UN_CONN);
+				isLastUnConnServer = true;
+			}
+		}else{
+			isLastUnConnServer = false;
 		}
 		return msg;
 	}
@@ -452,7 +452,7 @@ public class RootServerConnector {
 //			System.out.println("Receive : " + out_str);
 			return out_str;
     	}catch (Throwable e) {
-    		e.printStackTrace();
+    		ExceptionReporter.printStackTrace(e);
 		}finally{
 			try{
 				SIPManager.getSIPContext().closeSocket(socket);

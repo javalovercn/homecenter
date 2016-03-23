@@ -1,8 +1,8 @@
 package hc.server.ui;
 
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
-import hc.core.util.ReturnableRunnable;
 import hc.server.html5.syn.DiffManager;
 import hc.server.html5.syn.DifferTodo;
 import hc.server.html5.syn.JPanelDiff;
@@ -168,7 +168,7 @@ public class Mlet extends JPanel implements ICanvas {
 				}
 			});
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	

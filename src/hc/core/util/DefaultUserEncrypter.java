@@ -15,7 +15,7 @@ public class DefaultUserEncrypter implements IEncrypter {
 				return encryptData.getBytes("UTF-8");
 			}
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890zyxwvutsrqponmlkjihgfedcba".getBytes();
 	}

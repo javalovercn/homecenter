@@ -1,17 +1,17 @@
 package hc.server.ui.design.hpj;
 
 import hc.App;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.server.ConfigPane;
 import hc.server.ui.design.Designer;
+
 import java.util.HashMap;
 import java.util.Iterator;
 
 public class NodeEditPanelManager {
-	private ThreadGroup threadPoolToken = App.getThreadPoolToken();
-	
 	public void updateSkinUI(){
-		Iterator<NodeEditPanel> it = map.values().iterator();
+		final Iterator<NodeEditPanel> it = map.values().iterator();
 		while(it.hasNext()){
 			ConfigPane.updateComponentUI(it.next());
 		}
@@ -35,7 +35,7 @@ public class NodeEditPanelManager {
 		return node.type == HPNode.TYPE_MENU_ITEM_FORM;
 	}
 	
-	public NodeEditPanel switchNodeEditPanel(final int nodeType, final HPNode hpnode, Designer designer){
+	public NodeEditPanel switchNodeEditPanel(final int nodeType, final HPNode hpnode, final Designer designer){
 		NodeEditPanel nep = null;
 		if(HPNode.isNodeType(nodeType, HPNode.MASK_MENU)){
 			nep = getInstance(MenuListEditPanel.class);
@@ -79,8 +79,8 @@ public class NodeEditPanelManager {
 				map.put(className, nep);
 				
 				return nep;
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (final Exception e) {
+				ExceptionReporter.printStackTrace(e);
 			}
 			return null;
 		}

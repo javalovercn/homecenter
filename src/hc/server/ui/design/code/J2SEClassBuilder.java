@@ -1,5 +1,7 @@
 package hc.server.ui.design.code;
 
+import hc.core.util.ExceptionReporter;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -74,13 +76,13 @@ public class J2SEClassBuilder {
                     
                     System.out.println("successful create file " + pathname + ", total : " + list.size());
             } catch (final IOException e) { 
-                    e.printStackTrace(); 
+                    ExceptionReporter.printStackTrace(e); 
             } finally { 
                     if (bufferedReader != null) { 
                             try { 
                                     bufferedReader.close(); 
                             } catch (final IOException e) { 
-                                    e.printStackTrace(); 
+                                    ExceptionReporter.printStackTrace(e); 
                             } 
                     } 
             } 
@@ -123,7 +125,7 @@ public class J2SEClassBuilder {
 				}
 			}
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 
 		Collections.sort(myClassName);
@@ -160,7 +162,7 @@ public class J2SEClassBuilder {
 				}
 			}
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 		Collections.sort(myClassAndRes);

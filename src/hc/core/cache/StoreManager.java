@@ -2,6 +2,7 @@ package hc.core.cache;
 
 import hc.core.L;
 import hc.core.util.ByteUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 
 import java.util.Vector;
@@ -22,7 +23,7 @@ public class StoreManager {
 		try {
 			rwBuilder.deleteRecordStore(rmsName);
 		} catch (Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 
@@ -64,13 +65,13 @@ public class StoreManager {
 					rs.setRecord(1, firstDataItem.bs, 0, firstDataItem.bs.length);//总记录数只能在存储时，进行更新。
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			} finally {
 				if(rs != null){
 					try{
 						rs.closeRecordStore();
 					}catch (Throwable e) {
-						e.printStackTrace();
+						ExceptionReporter.printStackTrace(e);
 					}
 				}
 			}
@@ -117,7 +118,7 @@ public class StoreManager {
 				return getRecordNum(bs);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return 0;
 	}
@@ -157,7 +158,7 @@ public class StoreManager {
 				v.addElement(item);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		} finally {
 			if(rs != null){
 				try{

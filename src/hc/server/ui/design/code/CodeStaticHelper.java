@@ -64,7 +64,6 @@ public class CodeStaticHelper {
 		final ArrayList<String> out = new ArrayList<String>();
 		{
 			//重要：请执行一遍，并刷新J2SEClassList.java
-//			apiList.add("hc.server.ui.HCFont");
 //			apiList.add("hc.server.msb.WiFiAccount");
 			
 			out.add("hc.core.util.CtrlKey");

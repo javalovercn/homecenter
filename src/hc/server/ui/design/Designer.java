@@ -9,6 +9,7 @@ import hc.core.IContext;
 import hc.core.IWatcher;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
@@ -112,7 +113,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 public class Designer extends SingleJFrame implements IModifyStatus, BindButtonRefresher{
-	private static final String HC_RES_MY_FIRST_HAR = "/hc/res/MyFirst.har";
+	private static final String HC_RES_MY_FIRST_HAR = "hc/res/MyFirst.har";
 
 	final Runnable updateTreeRunnable = new Runnable() {
 		@Override
@@ -145,7 +146,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			try{
 				LinkProjectManager.startLinkedInProjectUpgradeTimer();
 			}catch (final Throwable e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 	}
@@ -267,9 +268,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final ContextSecurityConfig csc = new ContextSecurityConfig(projID);
 		csc.buildDefaultPermissions();
 		
-		return new DefaultMutableTreeNode(new HPProject(
-				HPNode.MASK_ROOT, "Project", "", projID, HPProject.DEFAULT_VER, "",
-				"", "", "", "", csc, ""));
+		return new DefaultMutableTreeNode(new HPProject(HPNode.MASK_ROOT, "Project", projID, HPProject.DEFAULT_VER, csc));
+//				HPNode.MASK_ROOT, "Project", "", projID, HPProject.DEFAULT_VER, "",
+//				null, "", "", "", "", csc, ""));
 	}
 
 	// 定义需要被拖动的TreePath
@@ -608,7 +609,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				
 				try {
 					final File tmpFileHar = ResourceUtil.getTempFileName(HAR_EXT);
-					copyHarFromPath(getResourcePath("/hc/res/sample.har"), tmpFileHar);
+					copyHarFromPath(ResourceUtil.getResource("hc/res/sample.har"), tmpFileHar);
 					PropertiesManager.addDelFile(tmpFileHar);
 					PropertiesManager.saveFile();
 					final Map<String, Object> map = HCjar.loadHar(tmpFileHar, true);
@@ -668,8 +669,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 //								App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEFT));
 //						App.showCenterPanel(panel, 0, 0, "Deploy me later", false, null, null, null, self, true, false);
 //					}
-				} catch (final Throwable e1) {
-					e1.printStackTrace();
+				} catch (final Throwable e) {
+					ExceptionReporter.printStackTrace(e);
 //					App.showMessageDialog(self, "Error download example, " +
 //							"please try after few minutes.", "Error " + EXAMPLE, 
 //							JOptionPane.ERROR_MESSAGE);
@@ -678,7 +679,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}, threadPoolToken));
 		sampleButton.setToolTipText("<html>" +
 				"load a example project.<BR>" +
-				"there are many powerful mobile menu items and source code in it." +
+				"there are many powerful mobile menu items and sample code in it." +
 //				"<BR><BR>Tip : when the version of online demo project is newer than you had imported, it will display new red star." +
 				"</html>");
 		toolbar.add(sampleButton);
@@ -845,7 +846,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				try{
 					doDeactive();
 				}catch (final Throwable e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 				
 				App.invokeLaterUI(new Runnable(){
@@ -1104,7 +1105,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				try{
 					doRebind();
 				}catch (final Throwable e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 					ProcessingWindowManager.disposeProcessingWindow();
 				}
 				
@@ -1272,7 +1273,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				recordEditProjInfo(map);
 			}
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			App.showMessageDialog(null, "<html>default har project is error, which is copied to <strong>" + LinkProjectManager.EDIT_BAK_HAR + "</strong>!" +
 					"<BR>system will create default project.</html>", 
 					"Project load error", 
@@ -1327,7 +1328,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	
 	public final boolean loadMainProject(final JFrame self){
 		try {
-			Map<String, Object> map = HCjar.loadJar(getResourcePath(HC_RES_MY_FIRST_HAR));
+			Map<String, Object> map = HCjar.loadJar(ResourceUtil.getResource(HC_RES_MY_FIRST_HAR));
 			
 			loadNodeFromMap(map);
 			
@@ -1342,16 +1343,12 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			
 			return true;
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}finally{
 		}
 		return false;
 	}
 
-	private static final String getResourcePath(final String path) {
-		return Class.class.getResource(path).toString();
-	}
-	
 	/**
 	 * 本方法在JRuby安装完后，进行安装缺省har
 	 */
@@ -1362,7 +1359,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			//因为有可能出现JRuby升级的情形
 			if(fileHar.exists() == false){
 				//复制/hc/res/MyFirst.har到myedit.har
-				copyHarFromPath(getResourcePath(HC_RES_MY_FIRST_HAR), fileHar);
+				copyHarFromPath(ResourceUtil.getResource(HC_RES_MY_FIRST_HAR), fileHar);
 				L.V = L.O ? false : LogManager.log("successful create default edit har project.");
 				
 				//发布缺省工程
@@ -1376,13 +1373,12 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				ServerUIUtil.restartResponsorServer(null, null);
 			}
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 
-	private static void copyHarFromPath(final String path, final File fileHar)	throws Exception {
-		final URL jarurl = new URL(path);
-		final InputStream is = jarurl.openStream();
+	private static void copyHarFromPath(final URL url, final File fileHar)	throws Exception {
+		final InputStream is = url.openStream();
 		final ByteArrayOutputStream outStream = new ByteArrayOutputStream();  
 		final int BUFFER_SIZE = 4096;
 		final byte[] data = new byte[BUFFER_SIZE];  
@@ -1534,7 +1530,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				final JPanel ok = new JPanel();
 				ok.add(new JLabel("Error save file!", new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
 				App.showCenterPanel(ok, 0, 0, "Save Error!", false, null, null, null, null, this, true, false, null, false, false);
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}finally{
 				try{
 					fos.close();

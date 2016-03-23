@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import hc.core.IConstant;
 import hc.core.MsgBuilder;
 import hc.core.util.ByteUtil;
+import hc.core.util.ExceptionReporter;
 
 public class DataInputEvent extends HCData {
 	public static final int TYPE_MOUSE_LEFT_CLICK = 0;
@@ -56,7 +57,7 @@ public class DataInputEvent extends HCData {
 		try {
 			return new String(bs, DataInputEvent.text_index, getTextDataLen(), IConstant.UTF_8);
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}		
 		return "";
 	}

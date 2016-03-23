@@ -14,6 +14,7 @@ import hc.core.sip.IPAndPort;
 import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
 import hc.server.nio.NIOServer;
@@ -137,7 +138,7 @@ public class KeepaliveManager {
 			return natIP;
     	}catch (final Exception e) {
     		if(L.isInWorkshop){
-    			e.printStackTrace();
+    			ExceptionReporter.printStackTrace(e);
     		}
 		}
     	return "";
@@ -181,7 +182,6 @@ public class KeepaliveManager {
 				try {
 					upnplisten.close();
 				} catch (final IOException e1) {
-					e1.printStackTrace();
 				}
 			}
 		}
@@ -219,10 +219,10 @@ public class KeepaliveManager {
 			return true;
 		}catch (final Exception e) {
 			if(L.isInWorkshop){
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 			//因为已经混淆，所以此处无必要。
-			//e.printStackTrace();
+			//ExceptionReporter.printStackTrace(e);
 			return false;
 		}
 	}
@@ -401,7 +401,7 @@ public class KeepaliveManager {
 //		try {
 //			ia = InetAddress.getByName("0.0.0.0");
 //		} catch (UnknownHostException e) {
-//			e.printStackTrace();
+//			ExceptionReporter.printStackTrace(e);
 //		}
     	if(nioRelay != null && nioRelay.isOpen()){
     		return true;

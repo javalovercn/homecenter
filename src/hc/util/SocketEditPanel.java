@@ -2,6 +2,7 @@ package hc.util;
 
 import hc.App;
 import hc.core.ContextManager;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.HCActionListener;
@@ -609,7 +610,7 @@ public abstract class SocketEditPanel extends JPanel{
 		
 		deleteBtn.addActionListener(new HCActionListener(){
 			@Override
-			public void actionPerformed(final ActionEvent e) {
+			public void actionPerformed(final ActionEvent event) {
 				notifyModify();
 				
 				final int currRow = tableList.getSelectedRow();
@@ -636,8 +637,8 @@ public abstract class SocketEditPanel extends JPanel{
 							tableList.setRowSelectionInterval(size - 1, size - 1);
 						}
 					}
-				}catch (final Exception ex) {
-					ex.printStackTrace();
+				}catch (final Exception e) {
+					ExceptionReporter.printStackTrace(e);
 				}
 				tableList.updateUI();
 			}

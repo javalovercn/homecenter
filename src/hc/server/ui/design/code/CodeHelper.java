@@ -1,6 +1,7 @@
 package hc.server.ui.design.code;
 
 import hc.core.L;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.data.KeyComperPanel;
 import hc.server.data.StoreDirManager;
@@ -1324,7 +1325,7 @@ public class CodeHelper {
 			return getClassLoader().loadClass(className);
 		} catch (final ClassNotFoundException e) {
 			if(printError){
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		return null;
@@ -1553,7 +1554,7 @@ public class CodeHelper {
 	}
 	
 	private final Node buildMiniNode(final String script, final ScriptEditPanel sep){
-		RubyExector.parse(script, sep.getRunTestEngine());
+		RubyExector.parse(script, null, sep.getRunTestEngine());
 		final ScriptException evalException = sep.getRunTestEngine().getEvalException();
 		if(evalException == null){
 			return parseScripts(script);
@@ -1587,7 +1588,7 @@ public class CodeHelper {
 		}catch (final Throwable e) {
 			if(L.isInWorkshop){
 				L.V = L.O ? false : LogManager.log("[workbench]:");
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 			root = buildMiniNode(scripts, sep);
 		}
@@ -2020,6 +2021,40 @@ public class CodeHelper {
 			preCode = "";
 			getReqAndImp(out);
 			return PRE_TYPE_NEWLINE;
+		}
+		
+		{
+			// "#@valuable~~#@volatile~~#@precious"
+			//"Before: obj = #{obj}"
+			final char var_char = '#';
+			int varCharIdx = -1;
+			int yinhaoIdx = -1;
+			for (int i = 0; i < columnIdx; i++) {
+				final char oneChar = lineHeader[i];
+				if(oneChar == '\"'){
+					if(yinhaoIdx >=0){
+						yinhaoIdx = -1;
+						varCharIdx = -1;
+						continue;
+					}
+					
+					yinhaoIdx = i;
+					continue;
+				}else if(oneChar == '#'){
+					varCharIdx = i;
+					continue;
+				}
+			}
+			
+//			if(varCharIdx > 0 && (varCharIdx + 1) < lineHeader.length){
+//				preCode = String.valueOf(lineHeader, varCharIdx + 2, columnIdx - (varCharIdx + 2));
+//				if(lineHeader[varCharIdx + 1] == '@'){
+//					return PRE_TYPE_BEFORE_INSTANCE
+//					
+//					zzz
+//				}
+//	        	return PRE_TYPE_RESOURCES;
+//			}
 		}
 		
 		{

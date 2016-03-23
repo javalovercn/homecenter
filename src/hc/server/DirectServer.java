@@ -9,6 +9,7 @@ import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.data.DataReg;
 import hc.core.sip.SIPManager;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
@@ -47,8 +48,13 @@ public class DirectServer extends Thread {
 //				不能重用端口，因为有可能会与其它系统产生共用该端口
 //				server.setReuseAddress(true);
 				
-				final int directServerPort = Integer.parseInt(
-						PropertiesManager.getValue(PropertiesManager.p_selectedNetworkPort, "0"));
+				final String defaultPort = PropertiesManager.getValue(PropertiesManager.p_selectedNetworkPort, "0");
+				int directServerPort = 0;
+				try{
+					directServerPort = Integer.parseInt(defaultPort);
+				}catch (final Throwable e) {
+					LogManager.errToLog("invalid port for direct server, use zero as port.");
+				}
 				final int backlog = 2;
 				boolean isAutoSelect = false;
 				try{
@@ -78,7 +84,7 @@ public class DirectServer extends Thread {
 				LOCK.notify();
 			}
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 	}
@@ -91,7 +97,6 @@ public class DirectServer extends Thread {
 				snapSocket.close();
 				L.V = L.O ? false : LogManager.log("Close client Session");
 			}catch (final Throwable e) {
-				e.printStackTrace();
 			}
 		}
 		
@@ -200,7 +205,7 @@ public class DirectServer extends Thread {
 				}
 			}catch (final Exception e) {
 				//L.V = L.O ? false : LogManager.log("DirectServer Exception : " + e.toString());
-//				e.printStackTrace();
+//				ExceptionReporter.printStackTrace(e);
 
 				final Socket snapSocket = socket;
 				socket = null;

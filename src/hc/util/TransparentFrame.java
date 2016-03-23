@@ -1,5 +1,6 @@
 package hc.util;
 
+import hc.core.util.ExceptionReporter;
 import hc.res.ImageSrc;
 import hc.server.PlatformManager;
 import hc.server.util.HCJFrame;
@@ -11,15 +12,15 @@ import java.io.IOException;
 public class TransparentFrame extends HCJFrame {
  
     private Image img;
-    public TransparentFrame(Image image) {
+    public TransparentFrame(final Image image) {
         super();
  
         img = image;
 
         try {
             initialize();// 窗体初始化
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (final IOException e) {
+            ExceptionReporter.printStackTrace(e);
         }
         
         setVisible(true);
@@ -43,12 +44,12 @@ public class TransparentFrame extends HCJFrame {
     }
  
     @Override
-    public void paint(Graphics g) {
+    public void paint(final Graphics g) {
         // super //闪烁
         g.drawImage(img, 0, 0, null);
     }
     
-    public void refresh(Image image) {
+    public void refresh(final Image image) {
     	this.img = image;
     	repaint();
     }

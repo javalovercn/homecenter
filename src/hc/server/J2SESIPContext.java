@@ -12,6 +12,7 @@ import hc.core.sip.ISIPContext;
 import hc.core.sip.SIPManager;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.ui.SingleMessageNotify;
 import hc.util.HttpUtil;
@@ -43,7 +44,7 @@ public class J2SESIPContext extends ISIPContext {
 						socket.send((DatagramPacket)packet);
 					}
 				}catch (final Exception e) {
-//					e.printStackTrace();//UDP断线时，会输出很多的异常信息，故关闭
+//					ExceptionReporter.printStackTrace(e);//UDP断线时，会输出很多的异常信息，故关闭
 					SIPManager.notifyRelineon(false);
 				}
 			}
@@ -200,7 +201,7 @@ public class J2SESIPContext extends ISIPContext {
 			
 			return true;
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 		return false;
@@ -385,13 +386,13 @@ public class J2SESIPContext extends ISIPContext {
 ////			try {
 ////				upnplisten.setSoTimeout(0);
 ////			} catch (SocketException e) {
-////				e.printStackTrace();
+////				ExceptionReporter.printStackTrace(e);
 ////			}
 //			sd.setSocket(upnplisten);
 //
 //			return sd;
 //		}catch (Exception e) {
-//			e.printStackTrace();
+//			ExceptionReporter.printStackTrace(e);
 //			
 //			//超时关闭本连接
 //			upnplisten.close();
@@ -450,7 +451,7 @@ public class J2SESIPContext extends ISIPContext {
 //					ContextManager.getSendServer().send(dp, len);
 //					
 //				} catch (Exception e) {
-//					e.printStackTrace();
+//					ExceptionReporter.printStackTrace(e);
 //				}
 //			}
 //		};

@@ -3,7 +3,6 @@ package hc.server;
 import hc.core.IConstant;
 import hc.core.util.ByteUtil;
 import hc.core.util.CUtil;
-import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 
 public class J2SEConstant extends IConstant {
@@ -16,16 +15,6 @@ public class J2SEConstant extends IConstant {
 			return 0;
 		}
 		return 20;
-	}
-
-	@Override
-	public String getAjax(final String url) {
-		return HttpUtil.getAjax(url);
-	}
-
-	@Override
-	public String getAjaxForSimu(final String url, final boolean isTCP) {
-		return HttpUtil.getAjaxForSimu(url, false);
 	}
 
 	@Override

@@ -30,6 +30,8 @@ public interface PlatformService {
 	
 	public boolean isLockScreen();
 	
+	public String[] listAssets(final Object path);
+	
 	public WiFiDeviceManager getWiFiManager();
 	
 	/**

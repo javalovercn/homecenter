@@ -1,6 +1,7 @@
 package hc.server.ui.tip;
 
 import hc.App;
+import hc.core.util.ExceptionReporter;
 import hc.res.ImageSrc;
 import hc.server.PlatformManager;
 import hc.server.ui.tip.TipPop.CornerPosition;
@@ -283,7 +284,7 @@ public class MessageTipFrame extends HCJDialog {
 						}
 					});
 				} catch (final IOException e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 				
 				titlePanel.applyComponentOrientation(ComponentOrientation

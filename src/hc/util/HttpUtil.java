@@ -9,6 +9,7 @@ import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
 import hc.core.util.ByteUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.core.util.URLEncoder;
@@ -52,7 +53,7 @@ public class HttpUtil {
 				return true;
 			}
 		} catch (final SocketException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return false;
 	}
@@ -130,7 +131,7 @@ public class HttpUtil {
 				}
 			}
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		final String[] out = new String[count];
 		for (int i = 0; i < out.length; i++) {
@@ -323,7 +324,7 @@ public class HttpUtil {
 				}
 			}
 		} catch (final Exception e) {
-//			e.printStackTrace();
+//			ExceptionReporter.printStackTrace(e);
 			L.V = L.O ? false : LogManager.log("http execption : " + e.getMessage());
 		}
 		return null;
@@ -335,7 +336,7 @@ public class HttpUtil {
 			inet = InetAddress.getLocalHost();
 	        return inet.getHostAddress();
 		} catch (final UnknownHostException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}
@@ -465,7 +466,7 @@ public class HttpUtil {
 				}
 			}
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}
@@ -680,7 +681,7 @@ public class HttpUtil {
 		            conn.disconnect();
 		            return true;
 	            }catch (final Exception e) {
-	            	e.printStackTrace();
+	            	ExceptionReporter.printStackTrace(e);
 	            	L.V = L.O ? false : LogManager.log("try more time to download.");
 	            	tryNum++;
 	            	try{

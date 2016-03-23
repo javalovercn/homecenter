@@ -1,6 +1,7 @@
 package hc.core;
 
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.RecycleThread;
 import hc.core.util.ThreadPool;
@@ -34,6 +35,8 @@ public class ContextManager {
 	}
 	static boolean isNotifyShutdown = false;
 	public static void notifyShutdown(){
+		ExceptionReporter.shutdown();
+		
 		//用户请求关闭时，可能存在其它消息任务。消息任务须优先被执行。故增加缺省线程优先级来处理关闭逻辑
 		ContextManager.getThreadPool().run(new Runnable() {
 			public void run(){
@@ -204,6 +207,8 @@ public class ContextManager {
 	private static Object securityToken;
 
 	public static final void setThreadPool(final ThreadPool tp, final Object t){
+		CCoreUtil.checkAccess();
+		
 		ContextManager.threadPool = tp;
 		ContextManager.securityToken = t;
 	}

@@ -4,6 +4,7 @@ import hc.App;
 import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.util.HCVerify;
@@ -114,7 +115,7 @@ public class StarterManager {
 						}
 					}catch (final Throwable e) {
 						LogManager.errToLog("fail upgrade file " + STR_STARTER + ", exception : " + e.toString());
-						e.printStackTrace();
+						ExceptionReporter.printStackTrace(e);
 					}
 					hadUpgradeError = true;
 					// 刷新主菜单，增加手工升级starter
@@ -130,7 +131,7 @@ public class StarterManager {
 	public static String getHCVersion(){
 		//从6.96(含)开始，源代码中内置版本信息，而无需从starter中获得
 		//注意：如果AgreeLicense发生变化，请同时更改App.getAgreeVersion()
-		return "7.3";
+		return "7.4";
 //		final String ver = getHCVersionFromStarter();
 //		if(ver.equals(J2SEContext.MAX_HC_VER)){
 //			return PropertiesManager.getValue(PropertiesManager.p_LasterAutoUpgradeVer);

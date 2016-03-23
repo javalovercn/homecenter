@@ -2,6 +2,7 @@ package hc.server.ui.design.hpj;
 
 import hc.App;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.server.StarterManager;
 import hc.server.ui.ProjClassLoaderFinder;
 import hc.server.ui.ProjectContext;
@@ -60,6 +61,7 @@ public class HCjar {
 	public static final String PROJ_NEXT_NODE_IDX = "Project.NodeIdx";
 	public static final String PROJ_VER = "Project.Ver";
 	public static final String PROJ_UPGRADE_URL = "Project.upgradeURL";
+	public static final String PROJ_EXCEPTION_REPORT_URL = "Project.exceptionReportURL";
 	
 	public static final String PROJ_CONTACT = "Project.Contact";
 	public static final String PROJ_COPYRIGHT = "Project.Copyright";
@@ -157,7 +159,7 @@ public class HCjar {
 	 * @param url
 	 * @return
 	 */
-	public static final Map<String, Object> loadJar(final String url){
+	public static final Map<String, Object> loadJar(final URL url){
 		CCoreUtil.checkAccess();
 		
 		final Properties p = new Properties();
@@ -165,8 +167,7 @@ public class HCjar {
 		
 		JarInputStream jis = null;
 		try{
-			final URL jarurl = new URL(url);
-			jis = new JarInputStream(jarurl.openStream());
+			jis = new JarInputStream(url.openStream());
 			JarEntry je;
 			while( (je = jis.getNextJarEntry()) != null){
 				loadToMap(je, jis, p, mapString, true);
@@ -220,6 +221,7 @@ public class HCjar {
 		setNullDefaultValue(map, PROJ_ID, HPProject.convertProjectIDFromName((String)map.get(PROJ_NAME)));
 		setNullDefaultValue(map, PROJ_VER, HPProject.DEFAULT_VER);
 		setNullDefaultValue(map, PROJ_UPGRADE_URL, "");
+		setNullDefaultValue(map, PROJ_EXCEPTION_REPORT_URL, "");
 		setNullDefaultValue(map, PROJ_CONTACT, "");
 		setNullDefaultValue(map, PROJ_COPYRIGHT, "");
 		setNullDefaultValue(map, PROJ_DESC, "");
@@ -279,7 +281,7 @@ public class HCjar {
 				}
 			}
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}finally{
 			try {
 				jf.close();
@@ -340,7 +342,7 @@ public class HCjar {
 			jaros.closeEntry();
 			
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}finally{
 			if(jaros != null){
 				try {
@@ -386,10 +388,8 @@ public class HCjar {
 			csc.setProjectContext(context);
 			
 			root.setUserObject(new HPProject(HPNode.MASK_ROOT, 
-					(String)map.get(PROJ_NAME), (String)map.get(PROJ_I18N_NAME), projID,
-					projVer, (String)map.get(PROJ_UPGRADE_URL),
-					(String)map.get(PROJ_CONTACT), (String)map.get(PROJ_COPYRIGHT), (String)map.get(PROJ_DESC), (String)map.get(PROJ_LICENSE),
-					csc, (String)map.get(PROJ_STYLES)));
+					(String)map.get(PROJ_NAME), (String)map.get(PROJ_I18N_NAME), projID, projVer, csc, map));
+			
 			MenuManager.setNextNodeIdx(Integer.parseInt((String)map.get(PROJ_NEXT_NODE_IDX)));
 		}
 		
@@ -592,6 +592,7 @@ public class HCjar {
 			map.put(PROJ_VER, hpProject.ver);
 			map.put(PROJ_NEXT_NODE_IDX, String.valueOf(MenuManager.getCurrNodeIdx()));
 			map.put(PROJ_UPGRADE_URL, hpProject.upgradeURL);
+			map.put(PROJ_EXCEPTION_REPORT_URL, hpProject.exceptionURL);
 			map.put(PROJ_CONTACT, hpProject.contact);
 			map.put(PROJ_COPYRIGHT, hpProject.copyright);
 			map.put(PROJ_DESC, hpProject.desc);

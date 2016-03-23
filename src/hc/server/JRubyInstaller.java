@@ -221,7 +221,9 @@ public class JRubyInstaller {
 					
 					//开始第一个Har
 					final JPanel panel = new JPanel(new BorderLayout());
-					panel.add(new JLabel((String)ResourceUtil.get(9079), 
+					final String notRestart = (String)ResourceUtil.get(9156);
+					final String firstHAR = (String)ResourceUtil.get(9079);
+					panel.add(new JLabel("<html>" + firstHAR  + "<BR><BR>" + notRestart + "</html>", 
 								App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
 					
 					App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.INFO), true, null, null, new HCActionListener(new Runnable() {

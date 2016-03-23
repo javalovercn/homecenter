@@ -2,6 +2,7 @@ package hc.server.ui.design;
 
 import hc.core.L;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.server.msb.ConverterInfo;
@@ -200,7 +201,7 @@ public class BindManager {
 						isModiLPS = true;
 					}
 				}catch (final Throwable e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 			}
 		}
@@ -293,7 +294,7 @@ public class BindManager {
 				rdbiTemp = bindSource.getRealDeviceInAllProject();
 				cbiTemp = bindSource.getConverterInAllProject();
 			}catch (final Exception e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 				return true;
 			}
 			
@@ -420,7 +421,7 @@ public class BindManager {
 							}
 						}
 					}catch (final Exception e) {
-						e.printStackTrace();
+						ExceptionReporter.printStackTrace(e);
 						continue;
 					}
 				}

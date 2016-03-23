@@ -1,9 +1,5 @@
 package hc.util;
 
-import hc.App;
-import hc.core.L;
-import hc.core.util.LogManager;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -37,15 +33,14 @@ public class FileLocker {
 		try{
 			channel.close();
 			raf.close();
-		}catch (Exception e) {
-			e.printStackTrace();
+		}catch (final Exception e) {
 		}
 	}
 
-	public static final String toFileCanonicalPath(String fileName) {
+	public static final String toFileCanonicalPath(final String fileName) {
 		try{
 			return new File(fileName).getCanonicalPath();//注意：不getBaseDir
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			return fileName;
 		}
 	}

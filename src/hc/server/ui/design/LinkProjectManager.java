@@ -6,6 +6,7 @@ import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.server.HCActionListener;
@@ -69,7 +70,7 @@ public class LinkProjectManager{
 				lpsVector.add(lp);
 			}
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	
@@ -500,7 +501,7 @@ public class LinkProjectManager{
         } catch (final Throwable e) { 
         	setError(lps, e.toString());
         	log("Error downloading HAR project : " + url_har);
-        	e.printStackTrace();
+        	ExceptionReporter.printStackTrace(e);
         	
         	updateToLinkProject();
         }
@@ -579,7 +580,7 @@ public class LinkProjectManager{
         		try {
 					raf.close();
 				} catch (final Exception e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
         	}
         }
@@ -733,7 +734,7 @@ public class LinkProjectManager{
 		try{
 			UpgradeManager.upgradeToLinkProjectsMode();
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 		//仅在启动时，更新上次下载的升级包

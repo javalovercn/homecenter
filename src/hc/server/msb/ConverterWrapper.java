@@ -1,5 +1,7 @@
 package hc.server.msb;
 
+import hc.core.util.ExceptionReporter;
+
 public class ConverterWrapper extends Processor {
 	Converter fp;
 	
@@ -31,7 +33,7 @@ public class ConverterWrapper extends Processor {
 				fp.__forward(target);
 			}catch (final Throwable e) {
 				workbench.err("fail upProcess on Converter [" + name + "] at " + msg.toString());
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 				Workbench.messagePool.recycle(target, workbench);
 			}
 		}else{
@@ -43,7 +45,7 @@ public class ConverterWrapper extends Processor {
 				fp.__forward(target);
 			}catch (final Throwable e) {
 				workbench.err("fail downProcess on Converter [" + name + "] at " + msg.toString());
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 				Workbench.messagePool.recycle(target, workbench);
 			}
 		}

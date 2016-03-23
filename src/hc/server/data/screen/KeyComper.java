@@ -1,7 +1,7 @@
 package hc.server.data.screen;
 
 import hc.core.L;
-import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
@@ -24,7 +24,7 @@ public class KeyComper {
 		try {
 			return new Robot();
 		} catch (final AWTException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}

@@ -3,6 +3,7 @@ package hc.util;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.L;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.HCException;
 
@@ -31,7 +32,7 @@ public class ClassUtil {
 		    field.set(obj, value);
 		    field.setAccessible(false);
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			throw new HCException(e.toString());
 		}
 	}
@@ -61,7 +62,7 @@ public class ClassUtil {
 		    }
 		    return out;
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}
@@ -77,7 +78,7 @@ public class ClassUtil {
 		    return invokeWithExceptionOut(claz, obj, methodName, paraTypes,
 					para, needModiAccessible);
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}
@@ -153,8 +154,8 @@ public class ClassUtil {
 			if((name == null || name.equals(threadName)) && isDaemon == false){
 				sb.append("--------------- Thread Name : ");
 				sb.append(t.toString());
-				sb.append("@:");
-				sb.append(Integer.toHexString(t.hashCode()));
+//				sb.append("@:");
+//				sb.append(Integer.toHexString(t.hashCode()));//非final，
 				sb.append(", isDaemon : ");
 				sb.append(isDaemon);
 				sb.append("--------------------\n");

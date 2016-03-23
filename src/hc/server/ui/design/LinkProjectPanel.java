@@ -6,6 +6,7 @@ import hc.core.ContextManager;
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.cache.CacheManager;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.res.ImageSrc;
@@ -149,8 +150,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 		ImageIcon designIco = null;
 		try {
 			designIco = new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/designer_22.png")));
-		} catch (final IOException e2) {
-			e2.printStackTrace();
+		} catch (final IOException e) {
+			e.printStackTrace();
 		}    					
 
 		designBut = new JButton((String)ResourceUtil.get(9014), designIco);
@@ -460,9 +461,9 @@ public class LinkProjectPanel extends ProjectListPanel{
 							        }else{
 							        	throw new Exception("md5 error, try after a minute");
 							        }
-								}catch (final Exception ex) {
-									ex.printStackTrace();
-									App.showConfirmDialog(self, "Fail download, Exception : " + ex.toString(), "Fail download", JOptionPane.OK_OPTION);
+								}catch (final Exception e) {
+									ExceptionReporter.printStackTrace(e);
+									App.showConfirmDialog(self, "Fail download, Exception : " + e.toString(), "Fail download", JOptionPane.OK_OPTION);
 									selfBiz.setPara(Boolean.FALSE);
 									return;
 								}
@@ -768,8 +769,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 					if (listener != null) {
 						listener.actionPerformed(null);
 					}
-				} catch (final Exception ex) {
-					ex.printStackTrace();
+				} catch (final Exception e) {
+					ExceptionReporter.printStackTrace(e);
 				}
 			}
 		};

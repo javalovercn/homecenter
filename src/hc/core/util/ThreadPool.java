@@ -45,7 +45,7 @@ public abstract class ThreadPool {
 					finalWait[0] = run.run();
 				}catch (Throwable e) {
 					finalWait[0] = e;
-					e.printStackTrace();
+					ExceptionReporter.printStackTraceFromThreadPool(e);
 				}
 				
 				synchronized (finalWait) {
@@ -60,7 +60,7 @@ public abstract class ThreadPool {
 				try{
 					finalWait.wait();
 				}catch (Exception e) {
-					e.printStackTrace();
+//					ExceptionReporter.printStackTrace(e);
 				}
 			}
 		}
@@ -120,7 +120,7 @@ public abstract class ThreadPool {
 				try {
 					freeThreads.wait();//RecycleThread {addTail() + notify()}
 				} catch (InterruptedException e) {
-					e.printStackTrace();
+//					ExceptionReporter.printStackTrace(e);
 				}
 			}
 		}
@@ -149,7 +149,7 @@ public abstract class ThreadPool {
 					try {
 						isDoneNextOne.wait();
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						ExceptionReporter.printStackTrace(e);
 					}
 				}
 			}

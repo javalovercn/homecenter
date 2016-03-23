@@ -1,7 +1,13 @@
 package hc.server.ui.design.hpj;
 
 import hc.App;
+import hc.core.ContextManager;
 import hc.core.IContext;
+import hc.core.util.ExceptionChecker;
+import hc.core.util.ExceptionJSON;
+import hc.core.util.HarHelper;
+import hc.core.util.HarInfoForJSON;
+import hc.core.util.RootBuilder;
 import hc.server.HCActionListener;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.HCPermissionConstant;
@@ -43,7 +49,10 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 	final JTextField idField = new JTextField();
 	final VerTextPanel verPanel = new VerTextPanel("project");
 	final JTextField urlField = new JTextField();
-	
+	final JTextField exceptionField = new JTextField();
+	final JButton testExceptionBtn = new JButton("Test Exception Post");
+	final JButton testHADBtn = new JButton("Test HAD");
+
 	final JTextField contact = new JTextField();
 	final JTextField copyright = new JTextField();
 	final JTextField desc = new JTextField();
@@ -67,8 +76,107 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 	
 	SocketEditPanel perm_sock_panel;
 	
+	private final JPanel buildExceptionPanel(){
+		final JPanel exceptionPanel = new JPanel(new BorderLayout());
+		{
+			final JPanel fieldPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+			exceptionField.setColumns(30);
+			exceptionField.getDocument().addDocumentListener(new DocumentListener() {
+				private void modify(){
+					final String newInputURL = getExceptionURLFromEdit();
+					testExceptionBtn.setEnabled(newInputURL.length() > 0);
+					
+					((HPProject)item).exceptionURL = newInputURL;
+					notifyModified();
+				}
+				@Override
+				public void removeUpdate(final DocumentEvent e) {
+					modify();
+				}
+				
+				@Override
+				public void insertUpdate(final DocumentEvent e) {
+					modify();
+				}
+				
+				@Override
+				public void changedUpdate(final DocumentEvent e) {
+					modify();
+				}
+			});
+			
+			final String reURL = "Report Exception URL";//注意：请与ProjectContext.printAndReportStackTrace使用描述字段保持一致
+			
+			fieldPanel.add(new JLabel("Receive URL / Email address : "));
+			fieldPanel.add(exceptionField);
+			testExceptionBtn.setToolTipText("<html>" +
+					"post a exception to current URL or email address," +
+					"<BR><BR><STRONG>URL</STRONG> : refresh log to view response (UTF-8 is required). it is very useful to debug the receiving codes." +
+					"<BR><STRONG>Email</STRONG> : no attachment in Email, if it is not received, change it and try again!" +
+					"</html>");
+			testExceptionBtn.addActionListener(new HCActionListener(new Runnable() {
+				final HarHelper harhelper = new HarHelper() {
+					@Override
+					public final String getExceptionReportURL() {
+						return getExceptionURLFromEdit();
+					}
+
+					@Override
+					public final HarInfoForJSON getHarInfoForJSON() {
+						final HarInfoForJSON harInfo = new HarInfoForJSON();
+						harInfo.projectID = getHarIDFromEdit();
+						harInfo.projectVersion = getHarVersionFromEdit();
+						return harInfo;
+					}
+				};
+				
+				final ExceptionChecker checker = new ExceptionChecker(){
+					@Override
+					public final boolean isPosted(final String projectID, final String stackTrace){
+						return false;
+					}
+				};
+				@Override
+				public void run() {
+					testExceptionBtn.setEnabled(false);
+					
+					Throwable t = null;
+					try{
+						Integer.parseInt("Hello");
+					}catch (final Throwable e) {
+						t = e;
+					}
+					final ExceptionJSON json = RootBuilder.getInstance().getExceptionJSONBuilder().buildJSON(harhelper, checker, t, ExceptionJSON.HC_EXCEPTION_URL, "puts \"This is test script\\n\";\nputs \"this is second line.\"", "Hello, 你好, Bonjour");
+					final String urlOrEmail = getExceptionURLFromEdit();
+					if(ResourceUtil.validEmail(urlOrEmail)){
+						json.setReceiveExceptionForHC(false);
+						json.setAttToEmail(urlOrEmail);
+					}else{
+//						json.setReceiveExceptionForHC(false);
+						json.setToURL(urlOrEmail);
+					}
+					json.isForTest = true;
+					ContextManager.getContextInstance().doExtBiz(IContext.BIZ_REPORT_EXCEPTION, json);
+					
+					testExceptionBtn.setEnabled(true);
+				}
+			}, threadPoolToken));
+			fieldPanel.add(testExceptionBtn);
+			
+			exceptionPanel.add(fieldPanel, BorderLayout.NORTH);
+			exceptionPanel.add(new JLabel("<html>report exception to HAR provider via URL or Email, NOT both. if blank then disable report." +
+					"<BR><BR>for more, please reference API ProjectContext.<STRONG>printAndReportStackTrace</STRONG>(throwable, isCopyToHomeCenter).</html>"),
+					BorderLayout.CENTER);
+			exceptionPanel.setBorder(new TitledBorder(reURL));
+		}
+		return exceptionPanel;
+	}
+	
 	public ProjectNodeEditPanel(){
 		super();
+		
+		testExceptionBtn.setEnabled(false);
+		testHADBtn.setEnabled(false);
 		
 		{
 			final JButton i18nBtn = new JButton(BaseMenuItemNodeEditPanel.I18N_BTN_TEXT);
@@ -121,7 +229,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		});	
 		idField.getDocument().addDocumentListener(new DocumentListener() {
 			private void modify(){
-				((HPProject)item).id = idField.getText();
+				((HPProject)item).id = getHarIDFromEdit();
 				notifyModified();
 			}
 			@Override
@@ -158,7 +266,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 			compose.add(tipLabel);
 			
 			compose.setBorder(new TitledBorder("Project ID"));
-			
+			int idxGridY = 1;
 			{
 				final JPanel composeAndVer = new JPanel(new GridBagLayout());
 				final GridBagConstraints c = new GridBagConstraints(0, 0, 1, 1, 0, 0,
@@ -166,7 +274,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 						new Insets(0, 0, 0, 0), 0, 0);
 				
 				composeAndVer.add(compose, c);
-				c.gridy = 1;
+				c.gridy = idxGridY++;
 				composeAndVer.add(verPanel, c);
 				final JPanel upgradePanel = new JPanel(new BorderLayout());
 				{
@@ -174,7 +282,9 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 					urlField.setColumns(30);
 					urlField.getDocument().addDocumentListener(new DocumentListener() {
 						private void modify(){
-							((HPProject)item).upgradeURL = urlField.getText();
+							final String newURL = urlField.getText().trim();
+							testHADBtn.setEnabled(newURL.length() > 0);
+							((HPProject)item).upgradeURL = newURL;
 							notifyModified();
 						}
 						@Override
@@ -194,8 +304,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 					});
 					urlPanel.add(new JLabel("URL : "));
 					urlPanel.add(urlField);
-					final JButton test = new JButton("Test HAD");
-					test.addActionListener(new HCActionListener(new Runnable() {
+					testHADBtn.addActionListener(new HCActionListener(new Runnable() {
 						@Override
 						public void run() {
 							final Properties had = new Properties();
@@ -232,7 +341,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 							}
 						}
 					}, threadPoolToken));
-					urlPanel.add(test);
+					urlPanel.add(testHADBtn);
 					
 					upgradePanel.add(urlPanel, BorderLayout.NORTH);
 					upgradePanel.add(new JLabel("<html>the auto upgrade URL of new version of current project. if no upgrade, please keep blank." +
@@ -243,10 +352,13 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 							BorderLayout.CENTER);
 					upgradePanel.setBorder(new TitledBorder("Upgrade URL"));
 				}
-				c.gridy = 2;
+				c.gridy = idxGridY++;
 				composeAndVer.add(upgradePanel, c);
 				
-				c.gridy = 3;
+				c.gridy = idxGridY++;
+				composeAndVer.add(buildExceptionPanel(), c);
+				
+				c.gridy = idxGridY++;
 				desc.setColumns(30);
 				desc.getDocument().addDocumentListener(new ModifyDocumentListener() {
 					@Override
@@ -256,7 +368,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 					}
 				});
 				composeAndVer.add(buildItemPanel(desc, "Description : ", 30), c);
-				c.gridy = 4;
+				c.gridy = idxGridY++;
 				license.getDocument().addDocumentListener(new ModifyDocumentListener() {
 					@Override
 					public void modify() {
@@ -265,7 +377,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 					}
 				});
 				composeAndVer.add(buildItemPanel(license, "Text license URL for current project : ", 30), c);
-				c.gridy = 5;
+				c.gridy = idxGridY++;
 				contact.setColumns(30);
 				contact.getDocument().addDocumentListener(new ModifyDocumentListener() {
 					@Override
@@ -275,7 +387,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 					}
 				});
 				composeAndVer.add(buildItemPanel(contact, "Contact : ", 30), c);
-				c.gridy = 6;
+				c.gridy = idxGridY++;
 				copyright.setColumns(30);
 				copyright.getDocument().addDocumentListener(new ModifyDocumentListener() {
 					@Override
@@ -289,7 +401,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				final VerTextField verField = verPanel.verTextField;
 				verField.getDocument().addDocumentListener(new DocumentListener() {
 					private void modify(){
-						((HPProject)item).ver = verField.getText();
+						((HPProject)item).ver = getHarVersionFromEdit();
 						notifyModified();
 					}
 					@Override
@@ -509,6 +621,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		idField.setText(hpProject.id);
 		verPanel.verTextField.setText(hpProject.ver);
 		urlField.setText(hpProject.upgradeURL);
+		exceptionField.setText(hpProject.exceptionURL);
 		license.setText(hpProject.license);
 		desc.setText(hpProject.desc);
 		copyright.setText(hpProject.copyright);
@@ -542,5 +655,17 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		tmpPanel.add(field);
 		
 		return tmpPanel;
+	}
+
+	private final String getHarVersionFromEdit() {
+		return verPanel.verTextField.getText().trim();
+	}
+
+	private final String getHarIDFromEdit() {
+		return idField.getText().trim();
+	}
+
+	private final String getExceptionURLFromEdit() {
+		return exceptionField.getText().trim();
 	}
 }

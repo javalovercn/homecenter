@@ -1,6 +1,7 @@
 package hc.core;
 
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 
 public class EventCenter {
@@ -82,7 +83,7 @@ public class EventCenter {
 						return;
 					}
 				}catch (Throwable e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 			}
 		}

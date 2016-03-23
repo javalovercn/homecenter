@@ -5,6 +5,7 @@ import hc.UIActionListener;
 import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.cache.CacheManager;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
@@ -259,7 +260,7 @@ public class MobiUIResponsor extends BaseResponsor {
 						try{
 							out = DeviceBinderWizard.getInstance(bindSource, false, owner, bindSource.respo, threadPoolToken);
 						}catch (final Throwable e) {
-							e.printStackTrace();
+							ExceptionReporter.printStackTrace(e);
 							isDoneBind[0] = false;
 							LinkProjectManager.reloadLinkProjects();
 							return;
@@ -294,7 +295,7 @@ public class MobiUIResponsor extends BaseResponsor {
 					try{
 						Thread.sleep(500);
 					}catch (final Exception e) {
-						e.printStackTrace();
+						ExceptionReporter.printStackTrace(e);
 					}
 				}
 				if(isDoneBind[0]){
@@ -341,7 +342,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		try{
 			startupIOT();
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			throw new Error(e.toString());
 		}
 		
@@ -480,7 +481,7 @@ public class MobiUIResponsor extends BaseResponsor {
 			try{
 				resp[i].loadProcessors(msbAgent);
 			}catch (final Exception e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		
@@ -520,7 +521,7 @@ public class MobiUIResponsor extends BaseResponsor {
 					try{
 						sel.onEvent(event.toString());
 					}catch (final Throwable e) {
-						e.printStackTrace();
+						ExceptionReporter.printStackTrace(e);
 					}
 				}
 			}

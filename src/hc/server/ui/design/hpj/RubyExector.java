@@ -1,6 +1,7 @@
 package hc.server.ui.design.hpj;
 
 import hc.core.IConstant;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.ReturnableRunnable;
 import hc.server.ui.ProjectContext;
@@ -20,21 +21,21 @@ public class RubyExector {
 		hcje.removeCache(script);
 	}
 	
-	public final static void runLater(final String script, final Map map, final HCJRubyEngine hcje, final ProjectContext context){
+	public final static void runLater(final String script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context){
 		context.run(new Runnable() {
 			@Override
 			public void run() {
-				RubyExector.parse(script, hcje);
+				RubyExector.parse(script, scriptName, hcje);
 				if(hcje.isError){
 					return;
 				}
-				RubyExector.runNoWait(script, map, hcje);
+				RubyExector.runNoWait(script, scriptName, map, hcje);
 			}
 		});
 	}
 	
-	public static final Object run(final String script, final Map map, final HCJRubyEngine hcje, final ProjectContext context) {
-		RubyExector.parse(script, hcje);
+	public static final Object run(final String script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context) {
+		RubyExector.parse(script, scriptName, hcje);
 		
 		if(hcje.isError){
 			return null;
@@ -43,19 +44,19 @@ public class RubyExector {
 		return ServerUIAPIAgent.getThreadPoolFromProjectContext(context).runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() {
-				return RubyExector.runNoWait(script, map, hcje);
+				return RubyExector.runNoWait(script, scriptName, map, hcje);
 			}
 		});
 	}
 
-	public static synchronized final void parse(final String script, final HCJRubyEngine hcje) {
+	public static synchronized final void parse(final String script, final String scriptName, final HCJRubyEngine hcje) {
 		try {
 			if(hcje.isError){
 				hcje.errorWriter.reset();
 				hcje.isError = false;
 			}
 			
-			hcje.parse(script);
+			hcje.parse(script, scriptName);
 		} catch (final Throwable e) {
 			final String err = hcje.errorWriter.getMessage();
 			hcje.isError = true;
@@ -80,7 +81,7 @@ public class RubyExector {
 		}
 	}
 	
-	public static synchronized final Object runNoWait(final String script, final Map map, final HCJRubyEngine hcje) {
+	public static synchronized final Object runNoWait(final String script, final String scriptName, final Map map, final HCJRubyEngine hcje) {
 //		final String USER_DIR_KEY = "user.dir";
 		
 		try {
@@ -111,7 +112,7 @@ public class RubyExector {
 //				bindings.put("_hcmap", map);
 //				return hcje.engine.eval(script, bindings);
 			}
-			return hcje.runScriptlet(script);
+			return hcje.runScriptlet(script, scriptName);
 			
 //			ScriptEngineManager manager = new ScriptEngineManager();  
 //			ScriptEngine engine = manager.getEngineByName("jruby");
@@ -125,8 +126,8 @@ public class RubyExector {
 //			}
 			
 		} catch (final Throwable e) {
-			e.printStackTrace();
 			final String err = hcje.errorWriter.getMessage();
+			ExceptionReporter.printStackTraceFromRunException(e, script, err);
 			System.err.println("------------------error on JRuby script : " + err + "------------------\n" + script + "\n--------------------end error on script---------------------");
 			hcje.isError = true;
 			
@@ -161,7 +162,7 @@ public class RubyExector {
 				try {
 					map.put(key, URLDecoder.decode(_hcurl.getValueofPara(key), IConstant.UTF_8));
 				} catch (final Exception e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 			}
 		}
@@ -172,8 +173,9 @@ public class RubyExector {
 		final String script = 
 				"require 'java'\n" +
 				"str_class = Java::java.lang.String\n";
-		parse(script, hcje);
-		runNoWait(script, null, hcje);
+		final String scriptName = null;
+		parse(script, scriptName, hcje);
+		runNoWait(script, scriptName, null, hcje);
 	}
 	
 	

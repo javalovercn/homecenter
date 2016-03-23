@@ -149,7 +149,6 @@ public class HCInputStream extends InputStream implements IHCStream{
 						try {
 							this.wait();
 						} catch (final InterruptedException e) {
-							e.printStackTrace();
 						}
 					}
 				}

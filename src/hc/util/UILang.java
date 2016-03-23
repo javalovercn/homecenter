@@ -1,5 +1,6 @@
 package hc.util;
 
+import hc.core.util.ExceptionReporter;
 import hc.core.util.StringUtil;
 
 import java.io.InputStream;
@@ -42,7 +43,8 @@ public class UILang {
 		resources = buildResourceBundle();
 	}
 	
-	public static final String UI_LANG_FILE_NAME_PREFIX = "/uilang_";
+	public static final String UI_LANG_FILE_NAME = "uilang_";
+	public static final String UI_LANG_FILE_NAME_PREFIX = "/" + UI_LANG_FILE_NAME;
 
 	private static Hashtable<String, String> buildResourceBundle() {
 		final String userLang = locale.getLanguage() + "_" + locale.getCountry();
@@ -75,7 +77,7 @@ public class UILang {
 		try {
 			stream = new InputStreamReader(is, "ISO-8859-1");
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			return null;
 		}
 

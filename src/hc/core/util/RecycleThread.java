@@ -26,7 +26,7 @@ public class RecycleThread implements Runnable{
 				try{
 					runnable.run();
 				}catch (Throwable e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTraceFromThreadPool(e);
 				}
 			}			
 			

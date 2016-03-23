@@ -1,5 +1,7 @@
 package hc.core;
 
+import hc.core.util.ExceptionReporter;
+
 import java.io.UnsupportedEncodingException;
 
 public class Message {
@@ -106,7 +108,7 @@ public class Message {
 				bs[bs_index++] = bb[i]; 
 			}
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	
@@ -128,7 +130,7 @@ public class Message {
 		try {
 			return new String(bs, storeIdx, len, IConstant.UTF_8);
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return new String(bs, storeIdx, len);
 	}	

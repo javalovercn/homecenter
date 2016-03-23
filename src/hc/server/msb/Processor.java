@@ -1,6 +1,7 @@
 package hc.server.msb;
 
 import hc.core.L;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
@@ -71,7 +72,6 @@ public abstract class Processor{
 					try{
 						this.wait();
 					}catch (final Exception e) {
-						e.printStackTrace();
 					}
 				}
 			}

@@ -1,5 +1,7 @@
 package hc.core;
 
+import hc.core.util.ExceptionReporter;
+
 
 public class ThreadTimer extends Thread {
 	final HCTimer timer;
@@ -29,7 +31,6 @@ public class ThreadTimer extends Thread {
 						try {
 							timer.wait(sleepMS);
 						} catch (InterruptedException e) {
-							e.printStackTrace();
 						}
 						continue;
 					}		
@@ -39,7 +40,6 @@ public class ThreadTimer extends Thread {
 					try {
 						timer.wait();
 					} catch (final InterruptedException e) {
-						e.printStackTrace();
 					}
 					continue;
 				}
@@ -57,7 +57,7 @@ public class ThreadTimer extends Thread {
 					}
 				}
             }catch (final Throwable e) {
-            	e.printStackTrace();
+            	ExceptionReporter.printStackTrace(e);
 			}
 		}
 //		hc.core.L.V=hc.core.L.O?false:LogManager.log("shutdown ThreadTimer:" + timer.name);

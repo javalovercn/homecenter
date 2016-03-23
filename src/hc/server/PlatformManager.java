@@ -1,5 +1,6 @@
 package hc.server;
 
+import hc.core.util.ExceptionReporter;
 import hc.util.ResourceUtil;
 
 public class PlatformManager {
@@ -15,7 +16,7 @@ public class PlatformManager {
 				return (PlatformService)c.newInstance();
 			}
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}

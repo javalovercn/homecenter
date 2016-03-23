@@ -5,6 +5,7 @@ import hc.core.HCConfig;
 public class ServerConfig extends HCConfig{
 	private static ServerConfig config;
 	
+	//注意：以下每项依赖于HCConfig，不能删除或变动索引结构
 	public static final short p_HC_VERSION = 0;
 	public static final short p_MIN_MOBI_VER_REQUIRED_BY_PC = 1;//服务器要求手机端最低版本
 	public static final short P_SERVER_COLOR_ON_RELAY = 2;

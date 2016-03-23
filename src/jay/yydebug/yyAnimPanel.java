@@ -2567,29 +2567,35 @@ package jay.yydebug;
 
 import java.awt.BorderLayout;
 import java.awt.Button;
-import java.awt.Checkbox;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Panel;
 import java.awt.ScrollPane;
-import java.awt.TextArea;
-import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 /** animates messages with a graphical interface.
     This is not {@link java.io.Serializable}.
   */
-public class yyAnimPanel extends Panel implements yyDebug {
+public class yyAnimPanel extends JPanel implements yyDebug {
+	/**
+	 * change log by HomeCenter
+	 * change awt to Swing, for example, Frame=>JFrame, Label => JLabel
+	 */
+	
   /** current token and value.
     */
-  protected transient TextField token, value;
+  protected transient JTextField token, value;
   /** running explanations.
     */
-  protected transient TextArea comments;
+  protected transient JTextArea comments;
   /** state/value stack.
     */
   protected transient Stack stack;
@@ -2601,22 +2607,22 @@ public class yyAnimPanel extends Panel implements yyDebug {
     super(new BorderLayout());
 
     Button b;
-    Checkbox c;
-    Panel p, q;
+    JCheckBox c;
+    JPanel p, q;
 
-    p = new Panel(new BorderLayout());
-      p.add(c = new Checkbox("token ", tokenBreak), "West");
+    p = new JPanel(new BorderLayout());
+      p.add(c = new JCheckBox("token ", tokenBreak), "West");
         c.addItemListener(new ItemListener() {
 	  @Override
 	public void itemStateChanged (final ItemEvent ie) {
 	    tokenBreak = ie.getStateChange() == ie.SELECTED;
           }
         });
-      q = new Panel(new BorderLayout());
-        q.add(token = new TextField(12), "West");
+      q = new JPanel(new BorderLayout());
+        q.add(token = new JTextField(12), "West");
           token.setEditable(false); token.setBackground(Color.white);
           token.setFont(font);
-        q.add(value = new TextField(24), "Center");
+        q.add(value = new JTextField(24), "Center");
           value.setEditable(false); value.setBackground(Color.white);
           value.setFont(font);
       p.add(q, "Center");
@@ -2631,9 +2637,9 @@ public class yyAnimPanel extends Panel implements yyDebug {
         });
     add(p, "North");
 
-    p = new Panel(new BorderLayout());
-      q = new Panel(new BorderLayout());
-        q.add(c = new Checkbox("stack", stackBreak), "North");
+    p = new JPanel(new BorderLayout());
+      q = new JPanel(new BorderLayout());
+        q.add(c = new JCheckBox("stack", stackBreak), "North");
           c.addItemListener(new ItemListener() {
 	    @Override
 		public void itemStateChanged (final ItemEvent ie) {
@@ -2642,15 +2648,15 @@ public class yyAnimPanel extends Panel implements yyDebug {
           });
         q.add(stack = new Stack(font), "Center");
       p.add(q, "Center");
-      q = new Panel(new BorderLayout());
-        q.add(c = new Checkbox("comments", commentsBreak), "North");
+      q = new JPanel(new BorderLayout());
+        q.add(c = new JCheckBox("comments", commentsBreak), "North");
           c.addItemListener(new ItemListener() {
 	    @Override
 		public void itemStateChanged (final ItemEvent ie) {
 	      commentsBreak = ie.getStateChange() == ie.SELECTED;
             }
           });
-        q.add(comments = new TextArea(10, 40), "Center");
+        q.add(comments = new JTextArea(10, 40), "Center");
           comments.setEditable(false); comments.setBackground(Color.white);
           comments.setFont(font);
       p.add(q, "East");
@@ -2674,21 +2680,21 @@ public class yyAnimPanel extends Panel implements yyDebug {
     protected final Font font;
 	/** real display area.
 	  */
-    protected final Panel panel;
+    protected final JPanel panel;
 
     public Stack (final Font font) {
       super(SCROLLBARS_AS_NEEDED);
       this.font = font;
       setSize(50, 100);
-      add(panel = new Panel(new GridBagLayout()));
+      add(panel = new JPanel(new GridBagLayout()));
     }
 
     public void push (final int state, final Object value) {
-      final Panel q = new Panel(new BorderLayout());
-      TextField t;
-      q.add(t = new TextField(""+state, 5), "West");
+      final JPanel q = new JPanel(new BorderLayout());
+      JTextField t;
+      q.add(t = new JTextField(""+state, 5), "West");
 	t.setEditable(false); t.setBackground(Color.white); t.setFont(font);
-      q.add(t = new TextField(value != null ? value.toString() : ""), "Center");
+      q.add(t = new JTextField(value != null ? value.toString() : ""), "Center");
 	t.setEditable(false); t.setBackground(Color.white); t.setFont(font);
       panel.add(q, level, 0); validate();
     }

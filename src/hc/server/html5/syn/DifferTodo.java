@@ -233,7 +233,7 @@ public class DifferTodo {
 //				index = 0;
 //				len = bs.length;
 //			}catch (Exception e) {
-//				e.printStackTrace();
+//				ExceptionReporter.printStackTrace(e);
 //				return;
 //			}
 //		}
@@ -551,7 +551,6 @@ public class DifferTodo {
 			sendJSBytes(pngBS, 0, nextIndex + js_header3_len, false, false);
 			
 		} catch (final IOException e1) {
-			e1.printStackTrace();
 		}
 	}
 

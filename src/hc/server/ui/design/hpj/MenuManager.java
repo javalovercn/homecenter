@@ -1,6 +1,7 @@
 package hc.server.ui.design.hpj;
 
 import hc.App;
+import hc.core.util.ExceptionReporter;
 import hc.res.ImageSrc;
 import hc.server.ConfigPane;
 import hc.server.FileSelector;
@@ -195,7 +196,7 @@ public class MenuManager {
 								ok.add(new JLabel("Error add native file, desc : " + e.toString(), new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
 								App.showCenterPanel(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null, false, false);
 								
-								e.printStackTrace();
+								ExceptionReporter.printStackTrace(e);
 							}
 						}
 					}
@@ -225,7 +226,7 @@ public class MenuManager {
 								ok.add(new JLabel("Error add jar file, desc : " + e.toString(), new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
 								App.showCenterPanel(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null, false, false);
 								
-								e.printStackTrace();
+								ExceptionReporter.printStackTrace(e);
 							}
 						}
 					}

@@ -162,7 +162,6 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 					try {
 						WAITING.wait();
 					} catch (final InterruptedException ignored) {
-						ignored.printStackTrace();
 					}
 				}
 				continue;
@@ -334,9 +333,9 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 						}
 						try {
 							ImageIO.write(bi, "png", byteArrayOutputStream);
-						} catch (final IOException e1) {
-							L.V = L.O ? false : LogManager.log("Trans Screen Exception:" + e1.toString());
-							e1.printStackTrace();
+						} catch (final IOException e) {
+							L.V = L.O ? false : LogManager.log("Trans Screen Exception:" + e.toString());
+							e.printStackTrace();
 							return;
 						}
 			//			byte[] out = byteArrayOutputStream.toByteArray();

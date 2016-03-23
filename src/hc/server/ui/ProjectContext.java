@@ -10,6 +10,7 @@ import hc.core.MsgBuilder;
 import hc.core.data.DataPNG;
 import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LinkedSet;
@@ -367,12 +368,19 @@ public class ProjectContext {
 	 */
 	public final Object eval(final String shell) {
 		// synchronized (this) {
+		final HCJRubyEngine engine = (__projResponserMaybeNull == null ? ScriptEditPanel.runTestEngine
+				: __projResponserMaybeNull.hcje);
 		try {
-			final HCJRubyEngine engine = (__projResponserMaybeNull == null ? ScriptEditPanel.runTestEngine
-					: __projResponserMaybeNull.hcje);
-			return engine.runScriptlet(shell);
+			
+			if(engine.isError){
+				engine.errorWriter.reset();
+				engine.isError = false;
+			}
+			
+			return engine.runScriptlet(shell, "evalInProjectContext");
 		} catch (final Throwable e) {
-			e.printStackTrace();
+			final String err = engine.errorWriter.getMessage();
+			ExceptionReporter.printStackTraceFromRunException(e, shell, err);
 		}
 		return null;
 		// }
@@ -476,8 +484,8 @@ public class ProjectContext {
 				final byte[] out = byteArrayOutputStream.toByteArray();
 				imageData = ByteUtil.encodeBase64(out);
 				byteArrayOutputStream.close();
-			} catch (final IOException e1) {
-				e1.printStackTrace();
+			} catch (final IOException e) {
+				ExceptionReporter.printStackTrace(e);
 				return;
 			}
 		}
@@ -767,6 +775,34 @@ public class ProjectContext {
 				return setit.next();
 			}
 		};
+	}
+	
+	/**
+	 * print stack trace to logger and report it to project provider explicitly.
+	 * <BR><BR><STRONG>Important : </STRONG>
+	 * <UL>
+	 * <LI>
+	 *  enable option->developer-><STRONG>report exception</STRONG> is required.
+	 * </LI>
+	 * <LI>
+	 * if there is an error in script and is caught by server, NOT by project, it will be reported project provider implicitly.</LI>
+	 * <LI>if field <STRONG>Report Exception URL</STRONG> of project is blank, then reporting is DISABLED and print stack trace only.</LI>
+	 * <LI>it is NOT required to apply for the permission of connection for current project.</LI>
+	 * <LI>it reports stack trace for project on server, NOT for mobile.</LI>
+	 * </UL>
+	 * <BR>sample code for PHP to receive exception:<BR>
+	 * <BR><code>if ('POST' == $_SERVER['REQUEST_METHOD']){//POST to server<BR>
+	 * &nbsp;&nbsp;$exception = json_decode(file_get_contents('php://input'), true);//JSON object is UTF-8<BR>
+	 * &nbsp;&nbsp;//print_r($exception);//all fields are string even if tag_structureVersion.<BR>
+	 * <BR>
+	 * &nbsp;&nbsp;//echo $exception['tag_structureVersion'];<BR>
+	 * &nbsp;&nbsp;//tag_structureVersion is used to check the structure version of description. if new field is added, it will be upgraded.<BR>
+	 * }</code>
+	 * @param throwable
+	 * @since 7.4
+	 */
+	public static final void printAndReportStackTrace(final Throwable throwable){
+		ExceptionReporter.printStackTrace(throwable, null, null, ExceptionReporter.INVOKE_HAR);
 	}
 
 	/**
@@ -1476,8 +1512,8 @@ public class ProjectContext {
 					final byte[] out = byteArrayOutputStream.toByteArray();
 					imageData = "&image=" + ByteUtil.encodeBase64(out);
 					byteArrayOutputStream.close();
-				} catch (final IOException e1) {
-					e1.printStackTrace();
+				} catch (final IOException e) {
+					ExceptionReporter.printStackTrace(e);
 					return;
 				}
 			}
@@ -1531,7 +1567,7 @@ public class ProjectContext {
 				}
 			});
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 

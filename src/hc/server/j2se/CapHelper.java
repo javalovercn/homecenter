@@ -1,5 +1,6 @@
 package hc.server.j2se;
 
+import hc.core.util.ExceptionReporter;
 import hc.core.util.IMsgNotifier;
 import hc.util.ClassUtil;
 
@@ -19,7 +20,7 @@ public class CapHelper {
 		try{
 			CapHelper.addListener(CapHelper.capNotify);
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	
@@ -30,7 +31,7 @@ public class CapHelper {
 			ClassUtil.invoke(getCapManagerClass(), getCapManagerClass(), "addListener", paraTypes, para, true);
 //		CapManager.addListener(capNotify);
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	
@@ -39,7 +40,7 @@ public class CapHelper {
 			final Class c = Class.forName(CapNotify_CLASS);
 			return c.newInstance();
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}
@@ -48,7 +49,7 @@ public class CapHelper {
 		try {
 			return Class.forName(CapManager_CLASS);
 		} catch (final ClassNotFoundException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}

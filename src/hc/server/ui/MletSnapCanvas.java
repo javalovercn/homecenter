@@ -320,7 +320,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 					}
 				}catch (final Exception e) {
 					//忽略超出边界的数据
-//					e.printStackTrace();
+//					ExceptionReporter.printStackTrace(e);
 				}
 			}
 		}

@@ -20,7 +20,7 @@ import java.util.Vector;
 public class ContextSecurityConfig {
 	
 	public final String projID;
-	final HashMap<String, Object> map = new HashMap<String, Object>();
+	final HashMap<String, Object> permissionMap = new HashMap<String, Object>();
 	Vector<SocketDesc> allowSockets;
 	protected String tempUserDir;
 	ProjResponser projResponser;
@@ -35,6 +35,8 @@ public class ContextSecurityConfig {
 	}
 	
 	public final void setProjResponser(final ProjResponser resp){
+		CCoreUtil.checkAccess();
+		
 		projResponser = resp;
 		threadGroup = (ThreadGroup)projResponser.threadPool.getThreadGroup();
 		this.ctx = projResponser.context;
@@ -45,6 +47,8 @@ public class ContextSecurityConfig {
 	}
 	
 	public final void setProjectContext(final ProjectContext context){
+		CCoreUtil.checkAccess();
+		
 		ctx = context;
 	}
 	
@@ -58,7 +62,10 @@ public class ContextSecurityConfig {
 
 			final int size = allowSockets.size();
 			if(size == 0){
-				sockCollection = new SocketPermission("localhost",SocketDesc.STR_ACCEPT).newPermissionCollection();
+				final String action = SocketDesc.STR_ACCEPT + SocketDesc.SPLIT + 
+						SocketDesc.STR_CONNECT + SocketDesc.SPLIT +
+						SocketDesc.STR_LISTEN;
+				sockCollection = new SocketPermission("localhost",action).newPermissionCollection();
 			}else{
 				for (int i = 0; i < size; i++) {
 					final SocketDesc desc = allowSockets.elementAt(i);
@@ -71,6 +78,7 @@ public class ContextSecurityConfig {
 					sockCollection.add(sockPerm);
 				}
 			}
+			sockCollection.setReadOnly();
 		}
 	}
 	
@@ -123,11 +131,11 @@ public class ContextSecurityConfig {
 			allowSockets.removeAllElements();
 		}
 		
-		final String num = (String)map.get(HCjar.PERMISSION_SOCK_NUM);
+		final String num = (String)permissionMap.get(HCjar.PERMISSION_SOCK_NUM);
 		if(num != null){
 			final int size = Integer.valueOf(num);
 			for (int i = 0; i < size; i++) {
-				final String item = (String)map.get(HCjar.PERMISSION_SOCK_ITEM_HEADER + i);
+				final String item = (String)permissionMap.get(HCjar.PERMISSION_SOCK_ITEM_HEADER + i);
 				allowSockets.add(SocketDesc.decode(item));
 			}
 		}
@@ -138,16 +146,16 @@ public class ContextSecurityConfig {
 			return;
 		}
 		
-		HCjarHelper.removeHeaderStartWith(map, HCjar.PERMISSION_SOCK_ITEM_HEADER);
+		HCjarHelper.removeHeaderStartWith(permissionMap, HCjar.PERMISSION_SOCK_ITEM_HEADER);
 		
 		final int size = allowSockets.size();
 		for (int i = 0; i < size; i++) {
 			final SocketDesc socket = allowSockets.elementAt(i);
 			final String serial = SocketDesc.encode(socket);
 			
-			map.put(HCjar.PERMISSION_SOCK_ITEM_HEADER + i, serial);
+			permissionMap.put(HCjar.PERMISSION_SOCK_ITEM_HEADER + i, serial);
 		}
-		map.put(HCjar.PERMISSION_SOCK_NUM, String.valueOf(size));
+		permissionMap.put(HCjar.PERMISSION_SOCK_NUM, String.valueOf(size));
 	}
 	
 	/**
@@ -157,7 +165,7 @@ public class ContextSecurityConfig {
 	 * @return
 	 */
 	private final boolean isTrue(final String key, final boolean defaultValue){
-		final Object v = map.get(key);
+		final Object v = permissionMap.get(key);
 		if(v == null){
 			return defaultValue;
 		}else if(v != null && v.equals(IConstant.TRUE)){
@@ -173,7 +181,7 @@ public class ContextSecurityConfig {
 	private final void setBoolean(final String key, final boolean bool){
 		CCoreUtil.checkAccess();
 		
-		map.put(key, bool?IConstant.TRUE:IConstant.FALSE);
+		permissionMap.put(key, bool?IConstant.TRUE:IConstant.FALSE);
 	}
 	
 	public final boolean isWrite(){
@@ -287,7 +295,7 @@ public class ContextSecurityConfig {
 
 	public final static ContextSecurityConfig getContextSecurityConfig(final LinkProjectStore linkProjectStore){
 		final ContextSecurityConfig csc = new ContextSecurityConfig(linkProjectStore.getProjectID());
-		final HashMap<String, Object> targetMap = csc.map;
+		final HashMap<String, Object> targetMap = csc.permissionMap;
 		
 		final Iterator keys = linkProjectStore.keySet().iterator();
 		boolean hasKey = false;
@@ -307,7 +315,7 @@ public class ContextSecurityConfig {
 	}
 
 	public static void copyMapsToLPS(final LinkProjectStore linkProjectStore, final ContextSecurityConfig csc, final boolean forceUpdate) {
-		final HashMap<String, Object> map = csc.map;
+		final HashMap<String, Object> map = csc.permissionMap;
 		final Iterator keys = map.keySet().iterator();
 		while(keys.hasNext()){
 			final String key = (String)keys.next();
@@ -320,7 +328,7 @@ public class ContextSecurityConfig {
 
 	public static final ContextSecurityConfig getPermissionFromHARMap(final Map<String, Object> map){
 		final ContextSecurityConfig csc = new ContextSecurityConfig((String)map.get(HCjar.PROJ_ID));
-		final HashMap<String, Object> targetMap = csc.map;
+		final HashMap<String, Object> targetMap = csc.permissionMap;
 		
 		boolean hasKey = false;
 		final Iterator<String> keys = map.keySet().iterator();
@@ -341,17 +349,17 @@ public class ContextSecurityConfig {
 
 	public static final void copyPermissionsFromConfig(final Map<String, Object> map, final ContextSecurityConfig csc){
 		csc.saveToMap();
-		map.putAll(csc.map);
+		map.putAll(csc.permissionMap);
 	}
 
 	public static boolean isSocketLimitOn(final ContextSecurityConfig contextSecurityConfig){
-		return HCjarHelper.isTrue(contextSecurityConfig.map, HCjar.PERMISSION_SOCK_LIMIT_ON, false);
+		return HCjarHelper.isTrue(contextSecurityConfig.permissionMap, HCjar.PERMISSION_SOCK_LIMIT_ON, false);
 	}
 
 	public static void setSocketLimitOn(final ContextSecurityConfig contextSecurityConfig, final boolean isOn) {
 		CCoreUtil.checkAccess();
 		
-		HCjarHelper.setBoolean(contextSecurityConfig.map, HCjar.PERMISSION_SOCK_LIMIT_ON, isOn);
+		HCjarHelper.setBoolean(contextSecurityConfig.permissionMap, HCjar.PERMISSION_SOCK_LIMIT_ON, isOn);
 	}
 
 	public static void resetPermission(final ContextSecurityConfig contextSecurityConfig, final LinkProjectStore linkProjectStore) {
@@ -359,9 +367,9 @@ public class ContextSecurityConfig {
 		
 		final Map<String, Object> map = HCjar.loadHarFromLPS(linkProjectStore);
 		final ContextSecurityConfig defaultPermissions = ContextSecurityConfig.getPermissionFromHARMap(map);
-		final HashMap<String, Object> storeCSC = contextSecurityConfig.map;
+		final HashMap<String, Object> storeCSC = contextSecurityConfig.permissionMap;
 		storeCSC.clear();
-		storeCSC.putAll(defaultPermissions.map);
+		storeCSC.putAll(defaultPermissions.permissionMap);
 	}
 
 	public static void addDefaultNewSocket(final Vector<SocketDesc> vector) {

@@ -7,6 +7,7 @@ import hc.core.IConstant;
 import hc.core.L;
 import hc.core.RootServerConnector;
 import hc.core.sip.SIPManager;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.KeepaliveManager;
 import hc.server.PlatformManager;
@@ -29,7 +30,6 @@ public class ExitManager {
 			RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_ServerReq_STR);
 		}catch (final Exception e) {
 			//Anroid环境下，有可能不连接服务器时，产生异常。需catch。
-			e.printStackTrace();
 		}
 		ExitManager.startForceExitThread();
 		ContextManager.notifyShutdown();		
@@ -67,14 +67,14 @@ public class ExitManager {
 					KeepaliveManager.getNIORelay().shutdown();
 				}
 			}catch (final Exception e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 			HCTimer.shutDown();
 
 //			ContextManager.exit();
 			
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		LogManager.exit();
 		
@@ -118,7 +118,6 @@ public class ExitManager {
 						try{
 							Thread.sleep(1000);
 						}catch (final Exception e) {
-							e.printStackTrace();
 						}
 					}
 				}

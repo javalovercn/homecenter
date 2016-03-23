@@ -6,6 +6,7 @@ import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.MsgBuilder;
 import hc.core.util.ByteUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.res.ImageSrc;
 import hc.server.HCActionListener;
@@ -216,7 +217,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 				}
 				icos[i] = new ImageIcon(bi);
 			} catch (final Exception e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		return icos;
@@ -475,8 +476,8 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 			try {
 				body[i-1][2] = kc.getImagePath(i);
 				appendImgToCombox(body[i-1][2]);
-			} catch (final Exception e1) {
-				e1.printStackTrace();
+			} catch (final Exception e) {
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		
@@ -516,7 +517,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 			
 		} catch (final Exception e) {
 			newIco[imagesIco.length] = new ImageIcon(App.SYS_LOGO);
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		imagesIco = newIco;
 		jcbImage.setModel(new DefaultComboBoxModel(imagesIco));
@@ -760,9 +761,9 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 	}
 
 	@Override
-	public void actionPerformed(final ActionEvent e) {
+	public void actionPerformed(final ActionEvent event) {
 		int selectedRow = table.getSelectedRow();
-		if(e.getSource() == jbAdd){
+		if(event.getSource() == jbAdd){
 			if(jbAdd.getText() == MODIFY_TAG){
 //				ResourceUtil.addMaybeUnusedResource(body[selectedRow][2], false);
 				body[selectedRow][1] = buildStoreDesc();
@@ -775,7 +776,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 				body[size++][2] = getSelectImageURL();
 				refreshButton();
 			}
-		}else if(e.getSource() == jbRemove){
+		}else if(event.getSource() == jbRemove){
 //			ResourceUtil.addMaybeUnusedResource(body[selectedRow][2], false);
 			while((++selectedRow) < size){
 				body[selectedRow-1][1] = body[selectedRow][1];
@@ -788,27 +789,27 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 			size--;
 			
 			refreshButton();
-		}else if(e.getSource() == jbUp){
+		}else if(event.getSource() == jbUp){
 			final int toIdx = selectedRow - 1;
 			swapRow(selectedRow, toIdx);
 			table.setRowSelectionInterval(toIdx, toIdx);
-		}else if(e.getSource() == jbDown){
+		}else if(event.getSource() == jbDown){
 			final int toIdx = selectedRow + 1;
 			swapRow(selectedRow, toIdx);
 			table.setRowSelectionInterval(toIdx, toIdx);
-		}else if(e.getSource() == jbCancel){
+		}else if(event.getSource() == jbCancel){
 			notifyCancle();
 			if(inFrame != null){
 				inFrame.dispose();
 				return;
 			}
-		}else if(e.getSource() == jbSave){
+		}else if(event.getSource() == jbSave){
 			notifySave();
 			if(inFrame != null){
 				inFrame.dispose();
 				return;
 			}
-		}else if(e.getSource() == jbBuildImage){
+		}else if(event.getSource() == jbBuildImage){
 			final BufferedImage bi = buildImage(buildImageDesc());
 			
 			StoreDirManager.createDirIfNeccesary(StoreDirManager.ICO_DIR);
@@ -823,8 +824,8 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 				appendImgToCombox(urlResource);
 				jcbImage.setSelectedIndex(imagesURL.length - 1);
 				
-			} catch (final IOException e1) {
-				e1.printStackTrace();
+			} catch (final IOException e) {
+				ExceptionReporter.printStackTrace(e);
 				return;
 			}
 			return;

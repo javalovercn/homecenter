@@ -2,14 +2,13 @@ package hc.util;
 
 import hc.core.ContextManager;
 import hc.core.IContext;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
-import hc.res.ImageSrc;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -21,34 +20,35 @@ public class LogServerPlaint implements ILog {
 	public LogServerPlaint() {
 		if (LogManager.INI_DEBUG_ON) {
 		} else {
-			SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd_hhmmss");
+			final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd_hhmmss");
 
-			File newLog = new File("hc_" + df.format(new Date()) + ".log");
+			final File newLog = new File("hc_" + df.format(new Date()) + ".log");
 
 			PrintStream printStream = null;
 			try {
 				outLogger = new FileOutputStream(newLog, true);
-				printStream = new PrintStream((OutputStream) outLogger);
+				printStream = new PrintStream(outLogger);
 				System.setOut(printStream);
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (final IOException e) {
+				ExceptionReporter.printStackTrace(e);
 			}
 
 			try {
 				System.setErr(printStream);// new
 											// PrintStream((OutputStream)errLogger));
-			} catch (Exception e) {
+			} catch (final Exception e) {
 
 			}
 		}
 	}
 
+	@Override
 	public void exit() {
 		if (outLogger != null) {
 			try {
 				outLogger.flush();
 				outLogger.close();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 
 			}
 		}
@@ -63,12 +63,14 @@ public class LogServerPlaint implements ILog {
 		// }
 	}
 
-	public void log(String msg) {
+	@Override
+	public void log(final String msg) {
 		System.out.println((new Timestamp(System.currentTimeMillis()))
 				.toString() + " " + msg);
 	}
 
-	public void errWithTip(String msg) {
+	@Override
+	public void errWithTip(final String msg) {
 		err(msg);
 		ContextManager.displayMessage(
 				(String) ResourceUtil.get(IContext.ERROR), msg, IContext.ERROR,
@@ -76,12 +78,14 @@ public class LogServerPlaint implements ILog {
 	}
 
 
-	public void err(String msg) {
+	@Override
+	public void err(final String msg) {
 		System.err.println((new Timestamp(System.currentTimeMillis()))
 				.toString() + ILog.ERR + msg);
 	}
 	
-	public void info(String msg) {
+	@Override
+	public void info(final String msg) {
 
 	}
 
@@ -90,14 +94,14 @@ public class LogServerPlaint implements ILog {
 		if (outLogger != null) {
 			try {
 				outLogger.flush();
-			} catch (Exception e) {
+			} catch (final Exception e) {
 
 			}
 		}
 	}
 
 	@Override
-	public void warning(String msg) {
+	public void warning(final String msg) {
 		System.out.println((new Timestamp(System.currentTimeMillis()))
 				.toString() + ILog.WARNING + msg);		
 	}

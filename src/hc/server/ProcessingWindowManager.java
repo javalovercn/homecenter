@@ -3,6 +3,7 @@ package hc.server;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.server.util.HCJDialog;
 import hc.server.util.HCJFrame;
 import hc.util.UILang;
@@ -168,7 +169,7 @@ public class ProcessingWindowManager {
 				}
 			});
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	

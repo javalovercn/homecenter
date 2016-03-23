@@ -7,6 +7,7 @@ import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.util.CtrlMap;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
@@ -76,7 +77,7 @@ public class ProjResponser {
 				hcje.terminate();
 			}catch (final Throwable e) {
 				LogManager.errToLog("fail terminate JRuby engine : " + e.toString());
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		
@@ -107,11 +108,13 @@ public class ProjResponser {
 		for (int itemIdx = 0; itemIdx < size; itemIdx++) {
 			Converter converter = null;
 			final String converterName = names.elementAt(itemIdx);
+			final String scriptName = converterName;
+			
 				L.V = L.O ? false : LogManager.log("try build instance for Converter [" + converterName + "] in project [" + context.getProjectID() + "]...");
 				
 				//将转换器名称装入properties
 				ServerUIAPIAgent.setSuperProp(context, ServerUIAPIAgent.CONVERT_NAME_PROP, converterName);
-				converter = (Converter)RubyExector.run(src.elementAt(itemIdx), null, hcje, context);
+				converter = (Converter)RubyExector.run(src.elementAt(itemIdx), scriptName, null, hcje, context);
 				if(converter != null){
 					L.V = L.O ? false : LogManager.log("succesful build instance for Converter [" + converterName + "] in project [" + context.getProjectID() + "].");
 				}else{
@@ -173,13 +176,14 @@ public class ProjResponser {
 			
 			final String devName = names.elementAt(itemIdx);
 			final String devListener = src.elementAt(itemIdx);
+			final String scriptName = devName;
 			
 			Device device = null;
 			L.V = L.O ? false : LogManager.log("try build instance for Device [" + devName + "] in project [" + context.getProjectID() + "]...");
 			
 			//将设备名称装入properties
 			ServerUIAPIAgent.setSuperProp(context, ServerUIAPIAgent.DEVICE_NAME_PROP, devName);
-			device = (Device)RubyExector.run(devListener, null, hcje, context);
+			device = (Device)RubyExector.run(devListener, scriptName, null, hcje, context);
 			if(device != null){
 				L.V = L.O ? false : LogManager.log("successful build instance for Device [" + devName + "] in project [" + context.getProjectID() + "].");
 			}else{
@@ -217,13 +221,14 @@ public class ProjResponser {
 			
 			final String robotName = names.elementAt(itemIdx);
 			final String robotListener = src.elementAt(itemIdx);
+			final String scriptName = robotName;
 			
 			Robot robot = null;
 			L.V = L.O ? false : LogManager.log("try build intance for Robot [" + robotName + "] in project [" + context.getProjectID() + "]...");
 			
 			//将设备名称装入properties
 			ServerUIAPIAgent.setSuperProp(context, ServerUIAPIAgent.ROBOT_NAME_PROP, robotName);
-			robot = (Robot)RubyExector.run(robotListener, null, hcje, context);
+			robot = (Robot)RubyExector.run(robotListener, scriptName, null, hcje, context);
 			if(robot != null){
 				L.V = L.O ? false : LogManager.log("successful build intance for Robot [" + robotName + "] in project [" + context.getProjectID() + "].");
 			}else{
@@ -243,7 +248,8 @@ public class ProjResponser {
 		this.map = p_map;
 		final File deployPath = new File(App.getBaseDir(), lps.getDeployTmpDir());
 		final ClassLoader projClassLoader = ResourceUtil.buildProjClassLoader(deployPath, projID);
-		this.hcje = new HCJRubyEngine(deployPath.getAbsolutePath(), projClassLoader);
+		final String reportExceptionURL = (String)this.map.get(HCjar.PROJ_EXCEPTION_REPORT_URL);
+		this.hcje = new HCJRubyEngine(deployPath.getAbsolutePath(), projClassLoader, reportExceptionURL != null && reportExceptionURL.length() > 0);
 		
 		final ThreadPool tmpPool = RecycleProjThreadPool.getFree(projID);
 		
@@ -253,7 +259,13 @@ public class ProjResponser {
 			threadGroup = (ThreadGroup)threadPool.getThreadGroup();
 //			System.out.println("recycle threadPool for ProjResponser");
 		}else{
-			threadGroup = new ThreadGroup("HarLimitThreadPoolGroup");
+			threadGroup = new ThreadGroup("HarLimitThreadPoolGroup"){
+				@Override
+				public final void uncaughtException(final Thread t, final Throwable e) {
+//					L.V = L.O ? false : LogManager.log("******************uncaughtException*****************=>" + e.getMessage());
+					ExceptionReporter.printStackTraceFromRunException(e, null, null);
+				}
+			};
 			ClassUtil.changeParentToNull(threadGroup);
 			threadPool =	new ThreadPool(threadGroup){
 				//每个工程实例下，用一个ThreadPool实例，以方便权限管理
@@ -304,7 +316,7 @@ public class ProjResponser {
 							L.V = L.O ? false : LogManager.log("successful load native lib [" + nativeLibName + "] in project [" + projID + "].");
 						}catch (final Throwable e) {
 							LogManager.err("Fail to load native lib [" + nativeLibName + "] in project [" + projID + "]");
-							e.printStackTrace();
+							ExceptionReporter.printStackTrace(e);
 						}
 					}else{
 						LogManager.err("No permission to load native lib [" + nativeLibName + "] in project [" + projID + "]");
@@ -415,7 +427,7 @@ public class ProjResponser {
 				}
 			}
 		}catch(final Throwable e){
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 		return hasResource;
@@ -427,10 +439,12 @@ public class ProjResponser {
 		}else if(isScriptEvent(event)){
 			
 			//优先执行主菜单的事件
-			String script = (String)map.get(HCjar.buildEventMapKey(mainMenuIdx, (String)event));
+			String script = (String)map.get(HCjar.buildEventMapKey(mainMenuIdx, event.toString()));
 			if(script != null && script.trim().length() > 0){
+				final String scriptName = event.toString();
+				
 //				System.out.println("OnEvent : " + event + ", script : " + script + ", scriptcontain : " + hcje.container);
-				RubyExector.run(script, null, hcje, context);//考虑到PROJ_SHUTDOWN，所以改为阻塞模式
+				RubyExector.run(script, scriptName, null, hcje, context);//考虑到PROJ_SHUTDOWN，所以改为阻塞模式
 			}
 			
 			//其次执行非主菜单的事件脚本，依自然序列
@@ -438,10 +452,12 @@ public class ProjResponser {
 				if(i == mainMenuIdx){
 					continue;
 				}
-				script = (String)map.get(HCjar.buildEventMapKey(i, (String)event));
+				script = (String)map.get(HCjar.buildEventMapKey(i, event.toString()));
 				if(script != null && script.trim().length() > 0){
+					final String scriptName = event.toString();
+					
 //					System.out.println("OnEvent : " + event + ", script : " + script + ", scriptcontain : " + hcje.container);
-					RubyExector.run(script, null, hcje, context);//考虑到PROJ_SHUTDOWN，所以改为阻塞模式
+					RubyExector.run(script, scriptName, null, hcje, context);//考虑到PROJ_SHUTDOWN，所以改为阻塞模式
 				}
 			}
 
@@ -479,7 +495,7 @@ public class ProjResponser {
 		return null;
 	}
 	
-	public void preLoadJRubyScripts(){
+	public final void preLoadJRubyScripts(){
 		for (int i = 0; i < menu.length; i++) {
 			final JarMainMenu jarMainMenu = menu[i];
 			
@@ -487,13 +503,14 @@ public class ProjResponser {
 			
 			for (int j = 0; j < jarMainMenu.items.length; j++) {
 				final String script = jarMainMenu.listener[j];
+				final String scriptName = jarMainMenu.items[j][JarMainMenu.ITEM_NAME_IDX];
 				
 				//与stop()互锁
 				synchronized (this) {
 					if(isStoped){
 						return;
 					}
-					RubyExector.parse(script, hcje);
+					RubyExector.parse(script, scriptName, hcje);
 				}
 			}
 		}
@@ -552,9 +569,10 @@ public class ProjResponser {
 			final String listener = getItemProp(url, PROP_LISTENER, true);
 			if(listener != null && listener.trim().length() > 0){
 				final Map<String, String> mapRuby = RubyExector.toMap(url);
-				
+				final String scriptName = getItemProp(url, PROP_ITEM_NAME, false);
+						
 				//由于某些长任务，可能导致KeepAlive被长时间等待，而导致手机端侦测断线，所以本处采用后台模式
-				RubyExector.runLater(listener, mapRuby, hcje, context);
+				RubyExector.runLater(listener, scriptName, mapRuby, hcje, context);
 				return true;
 			}
 
@@ -575,10 +593,10 @@ public class ProjResponser {
 //								try {
 //									ServerUIUtil.sendAUSound(ResourceUtil.getAbsPathContent("/hc/server/ui/ship.au"));
 //								} catch (Exception e) {
-//									e.printStackTrace();
+//									ExceptionReporter.printStackTrace(e);
 //								}
 //							} catch (IOException e1) {
-//								e1.printStackTrace();
+//								e1ExceptionReporter.printStackTrace(e);
 //							}
 //						}
 //						if(1+5 < 2){
@@ -626,6 +644,7 @@ public class ProjResponser {
 			if(listener != null && listener.trim().length() > 0){
 				final String url_url = url.url;
 				final String title = getItemProp(url, PROP_ITEM_NAME, false);
+				final String scriptName = title;
 				
 				//由于可能导致长时间占用Event线程，所以另起线程。同时因为url要回收，所以不能final
 				ContextManager.getThreadPool().run(new Runnable() {
@@ -634,7 +653,7 @@ public class ProjResponser {
 						final Map<String, String> mapRuby = null;//RubyExector.toMap(url);
 
 						try{
-							final CtrlResponse responsor = (CtrlResponse)RubyExector.run(listener, mapRuby, hcje, context);
+							final CtrlResponse responsor = (CtrlResponse)RubyExector.run(listener, scriptName, mapRuby, hcje, context);
 							if(responsor == null){
 								LogManager.err("Error instance CtrlResponse in project [" + context.getProjectID() + "].");
 								notifyMobileErrorScript(context, title);
@@ -663,8 +682,8 @@ public class ProjResponser {
 							ScreenServer.pushScreen(ccanvas);
 
 //							L.V = L.O ? false : LogManager.log("onLoad controller : " + url.elementID);
-						}catch (final Exception e1) {
-							e1.printStackTrace();
+						}catch (final Exception e) {
+							ExceptionReporter.printStackTrace(e);
 						}
 					}
 				});
@@ -729,7 +748,8 @@ public class ProjResponser {
 			@Override
 			public void run() {
 				try{
-					final Mlet mlet = (Mlet)RubyExector.run(listener, mapRuby, hcje, context);
+					final String scriptName = title;
+					final Mlet mlet = (Mlet)RubyExector.run(listener, scriptName, mapRuby, hcje, context);
 					if(mlet == null){
 						LogManager.err("Error instance Mlet in project [" + context.getProjectID() +"].");
 						notifyMobileErrorScript(context, title);
@@ -767,8 +787,8 @@ public class ProjResponser {
 					}else{
 						L.V = L.O ? false : LogManager.log(" onStart Mlet screen : [" + title + "]");
 					}
-				}catch (final Exception e1) {
-					e1.printStackTrace();
+				}catch (final Exception e) {
+					ExceptionReporter.printStackTrace(e);
 				}
 			}
 

@@ -2,6 +2,7 @@ package hc.server.html5.syn;
 
 import hc.core.IConstant;
 import hc.core.util.ByteUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCJSInterface;
 import hc.core.util.JSCore;
 import hc.core.util.LangUtil;
@@ -77,7 +78,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 			final InputStreamReader isr = new InputStreamReader(inputStream, IConstant.UTF_8);
 			return StringUtil.load(isr);
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
         return "";
 	}
@@ -280,7 +281,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 //		try {
 //			L.V = L.O ? false : LogManager.log("action JS input : " + new String(bs, offset, len, IConstant.UTF_8));
 //		} catch (final UnsupportedEncodingException e1) {
-//			e1.printStackTrace();
+//			e1ExceptionReporter.printStackTrace(e);
 //		}
 		
 		try{
@@ -338,7 +339,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				return;
 			}
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 		try{
@@ -346,7 +347,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 			final String[] splits = StringUtil.splitToArray(cmds, StringUtil.split);
 			LogManager.err("unknow JS input event : " + splits[0] + ", cmd : " + cmds);
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	
@@ -493,7 +494,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 //		try {
 //			final String str = new String(bs, offset, len, IConstant.UTF_8);
 //		} catch (final UnsupportedEncodingException e) {
-//			e.printStackTrace();
+//			ExceptionReporter.printStackTrace(e);
 //		}
 		
 		final int firstValueIdx = offset + actionBS.length + JSCore.splitBS.length;

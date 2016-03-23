@@ -1,6 +1,7 @@
 package hc.server.ui.design.code;
 
 import hc.core.HCTimer;
+import hc.core.util.ExceptionReporter;
 import hc.server.DefaultManager;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.hpj.ScriptEditPanel;
@@ -484,8 +485,8 @@ public class CodeWindow {
 							}else{
 								textPane.setCaretPosition(position);
 							}
-						} catch (final BadLocationException ex) {
-							ex.printStackTrace();
+						} catch (final BadLocationException e) {
+							ExceptionReporter.printStackTrace(e);
 						}
 					}
 				});

@@ -4,33 +4,42 @@ import hc.core.util.HCURL;
 import hc.server.ui.design.LinkProjectManager;
 import hc.server.util.ContextSecurityConfig;
 
+import java.util.Map;
+
 public class HPProject extends HPNode{
 	public static final String DEFAULT_VER = "1.0";
 	public static final String HAR_EXT = "har";
 	public static final String HAD_EXT = "had";
 	
-	public String id, ver, upgradeURL, contact, copyright, desc, license, styles;
+	public String id, ver, upgradeURL = "", exceptionURL = "", contact = "", copyright = "", desc = "", license = "", styles = "";
 	public ContextSecurityConfig csc;
 	
 	public static String convertProjectIDFromName(final String name){
 		return LinkProjectManager.buildSysProjID();
 	}
 
-	public HPProject(final int type, final String name, final String i18nName, final String id, final String ver, final String url,
-			final String contact, final String copyright, final String desc, final String license,
-			final ContextSecurityConfig csc, final String styles) {
+	public HPProject(final int type, final String name, final String id, final String ver, final ContextSecurityConfig csc) {
+		this(type, name, "", id, ver, csc, null);
+	}
+	
+	public HPProject(final int type, final String name, final String i18nName, final String id, final String ver, 
+			final ContextSecurityConfig csc, final Map<String, Object> map) {
 		super(type, name);
 		this.i18nMap = HCjar.buildI18nMapFromSerial(i18nName);
 		this.id = id;
 		this.ver = ver;
-		this.upgradeURL = url;
-		this.contact = contact;
-		this.copyright = copyright;
-		this.desc = desc;
-		this.license = license;
-		
 		this.csc = csc;
-		this.styles = styles;
+
+		if(map != null){
+			//注意：请初始其值为""
+			this.upgradeURL = (String)map.get(HCjar.PROJ_UPGRADE_URL);
+			this.exceptionURL = (String)map.get(HCjar.PROJ_EXCEPTION_REPORT_URL);
+			this.contact = (String)map.get(HCjar.PROJ_CONTACT);
+			this.copyright = (String)map.get(HCjar.PROJ_COPYRIGHT);
+			this.desc = (String)map.get(HCjar.PROJ_DESC);
+			this.license = (String)map.get(HCjar.PROJ_LICENSE);
+			this.styles = (String)map.get(HCjar.PROJ_STYLES);
+		}
 	}
 	
 	@Override

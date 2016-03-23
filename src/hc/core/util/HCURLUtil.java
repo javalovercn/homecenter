@@ -23,7 +23,7 @@ public class HCURLUtil {
 			try {
 				out[i] = array[i].getBytes(IConstant.UTF_8);
 			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 				out[i] = array[i].getBytes();
 			}
 		}
@@ -112,7 +112,7 @@ public class HCURLUtil {
 			hcurl.elementID = isReplace?StringUtil.replace(string, "\\?", "?"):string;
 			return hcurl;
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 		return null;
@@ -139,7 +139,7 @@ public class HCURLUtil {
 							string = new String(bs, index, i - index, IConstant.UTF_8);
 						} catch (UnsupportedEncodingException e) {
 							string = new String(bs, index, i - index);
-							e.printStackTrace();
+							ExceptionReporter.printStackTrace(e);
 						}
 						String v = StringUtil.replace(string, "\\&", "&");
 						v = StringUtil.replace(v, "\\=", "=");
@@ -159,7 +159,7 @@ public class HCURLUtil {
 							string = new String(bs, index, i - index, IConstant.UTF_8);
 						} catch (UnsupportedEncodingException e) {
 							string = new String(bs, index, i - index);
-							e.printStackTrace();
+							ExceptionReporter.printStackTrace(e);
 						}
 						String v = StringUtil.replace(string, "\\&", "&");
 						v = StringUtil.replace(v, "\\=", "=");
@@ -178,7 +178,7 @@ public class HCURLUtil {
 				string = new String(bs, index, bs.length - index, IConstant.UTF_8);
 			} catch (UnsupportedEncodingException e) {
 				string = new String(bs, index, bs.length - index);
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 			String v = StringUtil.replace(string, "\\&", "&");
 			v = StringUtil.replace(v, "\\=", "=");
@@ -257,7 +257,7 @@ public class HCURLUtil {
 		try{
 			isDone = action.doBiz(hu);
 		}catch (Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		hcurlCacher.cycle(hu);
 		return isDone;

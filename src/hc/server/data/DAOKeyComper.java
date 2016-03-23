@@ -2,6 +2,7 @@ package hc.server.data;
 
 import hc.App;
 import hc.core.L;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.data.screen.KeyComper;
 import hc.server.data.screen.ScreenCapturer;
@@ -105,7 +106,7 @@ public class DAOKeyComper implements IDao{
 			p.load(new FileInputStream(mu));
 			refresh();
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			return;
 		}		
 	}
@@ -119,7 +120,7 @@ public class DAOKeyComper implements IDao{
 			
 			refresh();
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			return;
 		}
 	}

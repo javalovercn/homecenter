@@ -5,6 +5,7 @@ import hc.PlatformTrayIcon;
 import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.WiFiDeviceManager;
 import hc.server.PlatformService;
@@ -33,7 +34,10 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.Security;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Vector;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -56,6 +60,36 @@ public class J2SEPlatformService implements PlatformService {
 	public boolean isLockScreen(){
 		//不实现，仍用ScreenCaptureer的逻辑，但分条件
 		return false;
+	}
+	
+	@Override
+	public String[] listAssets(final Object pathurl){
+		final Vector<String> out = new Vector<String>();
+		
+		ZipFile file = null;
+		try{  
+			file = new ZipFile(new File(((URL)pathurl).toURI()));  
+		    final Enumeration<? extends ZipEntry> entries = file.entries();  
+		    while ( entries.hasMoreElements()){
+		        final ZipEntry entry = entries.nextElement();  
+		        final String entryName = entry.getName();
+		        if(entryName.indexOf("/") > 0){//目录层级
+		        	continue;
+		        }
+				out.add(entryName);
+		        //use entry input stream:  
+//		        readInputStream( file.getInputStream( entry ) )  
+		    }  
+		}catch (final Throwable e) {
+			ExceptionReporter.printStackTrace(e);
+		}finally	{
+			try{
+				file.close();
+			}catch (final Throwable e) {
+			}
+		}
+		
+		return out.toArray(new String[out.size()]);
 	}
 	
 	@Override
@@ -98,7 +132,7 @@ public class J2SEPlatformService implements PlatformService {
 			return new URLClassLoader(url, parent);
 		}catch (final Exception e) {
 			LogManager.err("fail to load jar class : " + filePaths[i]);
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}
@@ -216,7 +250,7 @@ public class J2SEPlatformService implements PlatformService {
 		try{
 			com.sun.awt.AWTUtilities.setWindowShape(win, shape);
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 
@@ -310,7 +344,7 @@ public class J2SEPlatformService implements PlatformService {
 		try {
 			addJar(loader, jardexFile);
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			App.showMessageDialog(null, e.toString(), "fail to load jar lib!!!", JOptionPane.ERROR_MESSAGE);
 		}
 	}

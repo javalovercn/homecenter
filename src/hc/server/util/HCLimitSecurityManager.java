@@ -5,6 +5,9 @@ import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CtrlKey;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.HarHelper;
+import hc.core.util.HarInfoForJSON;
 import hc.core.util.LogManager;
 import hc.core.util.RecycleThread;
 import hc.core.util.ThreadPool;
@@ -19,7 +22,6 @@ import hc.server.msb.RobotEvent;
 import hc.server.msb.RobotListener;
 import hc.server.msb.WiFiAccount;
 import hc.server.ui.CtrlResponse;
-import hc.server.ui.HCFont;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.ICanvas;
 import hc.server.ui.Mlet;
@@ -40,10 +42,11 @@ import java.net.SocketPermission;
 import java.security.Permission;
 import java.security.PermissionCollection;
 import java.util.Locale;
+import java.util.Map;
 import java.util.PropertyPermission;
 import java.util.Vector;
 
-public class HCLimitSecurityManager extends WrapperSecurityManager {
+public class HCLimitSecurityManager extends WrapperSecurityManager implements HarHelper{
 	private final String OUTSIDE_HAR_WORKING_THREAD = " in EventQueue thread, try using ProjectContext.invokeLater and ProjectContext.getUserFile";
 	public static final String USER_DATA = "user_data";
 	public static final String SYS_THREAD_POOL = "block access system level ThreadPool instance.";
@@ -69,6 +72,43 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 		}catch (final Throwable e) {
 		}
 		return false;
+	}
+	
+	@Override
+	public final String getExceptionReportURL(){
+		ContextSecurityConfig csc = null;
+		final Thread currentThread = Thread.currentThread();
+		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
+			try{
+				final String url = (String)csc.projResponser.map.get(HCjar.PROJ_EXCEPTION_REPORT_URL);
+				if(url != null && url.length() == 0){//作null处理
+					return null;
+				}
+				return url;
+			}catch (final Throwable e) {
+				//开发环境下，可能为null
+			}
+		}
+		return null;
+	}
+	
+	@Override
+	public final HarInfoForJSON getHarInfoForJSON(){
+		final HarInfoForJSON harInfo = new HarInfoForJSON();
+		
+		ContextSecurityConfig csc = null;
+		final Thread currentThread = Thread.currentThread();
+		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
+			try{
+				final Map<String, Object> map = csc.projResponser.map;
+				harInfo.projectID = (String)map.get(HCjar.PROJ_ID);
+				harInfo.projectVersion = (String)map.get(HCjar.PROJ_VER);
+				return harInfo;
+			}catch (final Throwable e) {
+				//开发环境下，可能为null
+			}
+		}
+		return harInfo;
 	}
 	
 	private static HCEventQueue buildHCEventQueue(){
@@ -185,7 +225,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 		    		try {
 		    			blockWriteFullPathLists[i] = new File(App.getBaseDir(), file).getCanonicalPath();
 		    		} catch (final IOException e) {
-		    			e.printStackTrace();
+		    			ExceptionReporter.printStackTrace(e);
 		    			blockWriteFullPathLists[i] = file;
 		    		}
 				}
@@ -212,7 +252,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
     	    			//非Android环境报错
     	    			if(ResourceUtil.isJ2SELimitFunction()){
     	    				System.err.println(classNames[i] + " is NOT in some JVM (Not Oracle/Sun JVM).");
-    	    				e.printStackTrace();
+    	    				ExceptionReporter.printStackTrace(e);
     	    			}
     				}
 				}
@@ -227,7 +267,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 	    			Converter.class, Device.class, Message.class, Robot.class, RobotEvent.class, RobotListener.class,
 	    			DeviceCompatibleDescription.class,
 	    			CtrlResponse.class, Mlet.class, HTMLMlet.class, ICanvas.class,
-	    			WiFiAccount.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class, HCFont.class};//按API类单列
+	    			WiFiAccount.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
 //	    	{
 //	    		Vector<Class> allowVect = new Vector<Class>();
 //				
@@ -246,7 +286,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 //							allowVect.add(clazz);//由于是String==，所以采用getName以增加性能
 //						}
 //		    		}catch (Throwable e) {
-//		    			e.printStackTrace();
+//		    			ExceptionReporter.printStackTrace(e);
 //					}
 //				}
 //				
@@ -714,7 +754,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager {
 //		try {
 //			blockReadFullPathLists.add(new File(file).getCanonicalPath().toLowerCase(locale));
 //		} catch (IOException e) {
-//			e.printStackTrace();
+//			ExceptionReporter.printStackTrace(e);
 //			blockReadFullPathLists.add(file);
 //		}
 //	}

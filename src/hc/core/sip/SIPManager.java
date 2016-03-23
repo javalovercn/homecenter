@@ -14,6 +14,7 @@ import hc.core.RootServerConnector;
 import hc.core.data.DataReg;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
 
@@ -86,7 +87,7 @@ public class SIPManager {
 	//					getSIPContext().getOutputStream(socket));
 	//		}catch (Exception e) {
 	//			L.V = L.O ? false : LogManager.log("setOnStun Exception:" + e.getMessage());
-	//			e.printStackTrace();
+	//			ExceptionReporter.printStackTrace(e);
 	//		}
 	//	}
 
@@ -107,7 +108,7 @@ public class SIPManager {
 	//		try {
 	//			desc = sipContext.stun(iaddress, rip, rport, udpPort);
 	//		} catch (Exception e) {
-	//			e.printStackTrace();
+	//			ExceptionReporter.printStackTrace(e);
 	//		}
 	//		if(desc != null){
 	//    		LogManager.info("launched Root Server");
@@ -253,7 +254,7 @@ public class SIPManager {
 
 				return ipport;
 			}catch (final Exception e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 				try {
 					SIPManager.getSIPContext().closeSocket(socket);
 				} catch (final Exception e1) {
@@ -381,11 +382,10 @@ public class SIPManager {
 			SIPManager.send(SIPManager.getSIPContext().getOutputStream(send),
 					bs, 0, regLen);
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			try {
 				SIPManager.getSIPContext().closeSocket(send);
 			} catch (final Exception e1) {
-				e1.printStackTrace();
 			}
 			return null;
 		}
@@ -395,7 +395,7 @@ public class SIPManager {
 					//					L.V = L.O ? false : LogManager.log("CloseTimer close Reg Socket");
 					SIPManager.getSIPContext().closeSocket(send);
 				} catch (final Exception e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 
 				HCTimer.remove(this);
@@ -415,7 +415,8 @@ public class SIPManager {
 			L.V = L.O ? false : LogManager.log("Receive Echo");
 			return send;
 		}catch (final Exception e) {
-			e.printStackTrace();
+			e.printStackTrace();//注意：不能进行ExceptionReporter
+//			ExceptionReporter.printStackTrace(e);
 			try {
 				SIPManager.getSIPContext().closeSocket(send);
 			} catch (final Exception e1) {

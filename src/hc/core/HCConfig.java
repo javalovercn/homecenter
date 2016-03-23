@@ -4,12 +4,19 @@ import hc.core.util.StringUtil;
 
 import java.util.Vector;
 
+/**
+ * 将数组值转为对应索引位来进行访问，故结构不许删除或变动。
+ */
 public class HCConfig {
 	public static final String CFG_SPLIT = StringUtil.split;
 
 	Vector v;
 	
 	public HCConfig(String msg){
+		refresh(msg);
+	}
+	
+	public final void refresh(final String msg){
 		v = StringUtil.split(msg, CFG_SPLIT);
 	}
 
@@ -17,11 +24,11 @@ public class HCConfig {
 		return StringUtil.toSerialBySplit(item);
 	}
 	
-	public int getIntProperty(short propertyID) {
+	public final int getIntProperty(final short propertyID) {
 		return getIntProperty(v, propertyID);
 	}
 
-	public static int getIntProperty(Vector vector, short propertyID) {
+	public static int getIntProperty(final Vector vector, final short propertyID) {
 		if(vector == null){
 			return 0;
 		}
@@ -32,11 +39,11 @@ public class HCConfig {
 		return Integer.parseInt(obj);
 	}
 	
-	public boolean isTrue(short propertyID) {
+	public final boolean isTrue(final short propertyID) {
 		return isTrue(v, propertyID);
 	}
 
-	public static boolean isTrue(Vector vector, short propertyID) {
+	private static boolean isTrue(final Vector vector, final short propertyID) {
 		if(vector == null){
 			return false;
 		}
@@ -48,7 +55,7 @@ public class HCConfig {
 		}
 	}
 
-	public String getProperty(short propertyID) {
+	public final String getProperty(short propertyID) {
 		return getProperty(v, propertyID);
 	}
 
@@ -62,11 +69,11 @@ public class HCConfig {
 		return (String)vector.elementAt(propertyID);
 	}
 	
-	public void setPropertyNull(short propertyID){
+	public final void setPropertyNull(final short propertyID){
 		setProperty(propertyID, null);
 	}
 
-	public void setProperty(short propertyID, Object value){
+	public final void setProperty(final short propertyID, final Object value){
 		if(v == null){
 			return;
 		}
@@ -77,8 +84,8 @@ public class HCConfig {
 		}
 	}
 	
-	public String toTransString(){
-		StringBuffer sb = new StringBuffer("");
+	public final String toTransString(){
+		final StringBuffer sb = new StringBuffer("");
 		final int size = v.size();
 		for (int i = 0; i < size; i++) {
 			sb.append((String)v.elementAt(i));

@@ -1,10 +1,14 @@
 package hc.server.ui.design.engine;
 
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LRUCache;
+import hc.core.util.StringUtil;
 import hc.server.ui.design.hpj.HCScriptException;
 import hc.server.ui.design.hpj.RubyWriter;
 import hc.util.ClassUtil;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -28,7 +32,11 @@ public class HCJRubyEngine {
 	private Object container;	
 	private final LRUCache lruCache = new LRUCache(64);
 	
-	final Class[] putparaTypes = {String.class, Object.class};
+	static final Class[] putparaTypes = {String.class, Object.class};
+	static final Class[] parseParaTypes = {String.class, int[].class};
+	static final Class[] parseStreamParaTypes = {InputStream.class, String.class, int[].class};
+	static final int[] zero = {0};
+	
 	public final void put(final String key, final Object value){
 //		container.put(key, value);
 		final Object[] paras = {key, value};
@@ -43,17 +51,30 @@ public class HCJRubyEngine {
 		}
 	}
 	
-	final Class[] parseParaTypes = {String.class, int[].class};
-	final int[] zero = {0};
-	public final synchronized Object parse(final String script) throws Exception{
+	public final synchronized Object parse(final String script, final String scriptName) throws Exception{
 		Object unit;
 		unit = lruCache.get(script);
 		if(unit == null){
 //			EvalUnit unit = container.parse(script);//后面的int是可选参数
+			unit = putCompileUnit(script, scriptName);
+		}
+		return unit;
+	}
+
+	private final Object putCompileUnit(final String script, String scriptName) throws Exception {
+		final Object unit;
+		if(isReportException){
+//			InputStream istream, String filename, int... lines
+			final InputStream in = new ByteArrayInputStream(StringUtil.getBytes(script)); 
+			scriptName = (scriptName==null||scriptName.length()==0)?"<script>":("<" + scriptName + ">");
+//			L.V = L.O ? false : LogManager.log("compile name : " + scriptName + " for src : " + script);
+			final Object[] para = {in, scriptName, zero};
+			unit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse", parseStreamParaTypes, para, false);
+		}else{
 			final Object[] para = {script, zero};
 			unit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse", parseParaTypes, para, false);
-			lruCache.put(script, unit);
 		}
+		lruCache.put(script, unit);
 		return unit;
 	}
 	
@@ -63,20 +84,18 @@ public class HCJRubyEngine {
 	Class classJavaEmbedUtils;
 	Class classIRubyObject;
 	Class[] rubyToJavaParaTypes;// = {classIRubyObject};
-	public final synchronized Object runScriptlet(final String script) throws Exception{
+	public final synchronized Object runScriptlet(final String script, final String scriptName) throws Throwable{
 //        return JavaEmbedUtils.rubyToJava(evalUnitMap.get(script).run());
 		Object evalUnit;
 		evalUnit = lruCache.get(script);
 		if(evalUnit == null){
-			final Object[] para = {script, zero};
-			evalUnit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse", parseParaTypes, para, false);
-			lruCache.put(script, evalUnit);
+			evalUnit = putCompileUnit(script, scriptName);
 		}
 		try{
 			final Object runOut = ClassUtil.invokeWithExceptionOut(classEvalUnit, evalUnit, "run", emptyParaTypes, emptyPara, false);
 			final Object[] para = {runOut};
 			return ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils, classJavaEmbedUtils, "rubyToJava", rubyToJavaParaTypes, para, false);
-		}catch (final Exception e) {
+		}catch (final Throwable e) {
 			lruCache.remove(script);//执行错误后，需重新编译
 			throw e;
 		}
@@ -110,7 +129,8 @@ public class HCJRubyEngine {
 		
 	}
 	
-	private ClassLoader projClassLoader;
+	private final ClassLoader projClassLoader;
+	private final boolean isReportException;
 	
 	public ClassLoader getProjClassLoader(){
 		return projClassLoader;
@@ -121,9 +141,11 @@ public class HCJRubyEngine {
 	 * @param absPath 可以为null
 	 * @param projClassLoader
 	 */
-	public HCJRubyEngine(final String absPath, final ClassLoader projClassLoader){
-		try{
+	public HCJRubyEngine(final String absPath, final ClassLoader projClassLoader, final boolean isReportException){
 		this.projClassLoader = projClassLoader;
+		this.isReportException = isReportException;
+		
+		try{
 		classJavaEmbedUtils = projClassLoader.loadClass("org.jruby.javasupport.JavaEmbedUtils");
 		classEvalUnit = projClassLoader.loadClass("org.jruby.javasupport.JavaEmbedUtils$EvalUnit");
 		classIRubyObject = projClassLoader.loadClass("org.jruby.runtime.builtin.IRubyObject");
@@ -158,6 +180,25 @@ public class HCJRubyEngine {
 				Boolean.TRUE};
 		container = constr.newInstance(constrPara);
 		
+		
+//		container.setProfile(org.jruby.Profile.DEBUG_ALLOW);
+//		{
+//			final Class profile = projClassLoader.loadClass("org.jruby.Profile");
+//			final Object debugAllow = ClassUtil.getField(profile, profile, "DEBUG_ALLOW", false);
+//			final Class[] paraTypes = {profile};
+//			final Object[] para = {debugAllow};
+//			ClassUtil.invoke(classScriptingContainer, container, "setProfile", paraTypes, para, false);
+//		}
+
+//		container.setCompileMode(org.jruby.RubyInstanceConfig$CompileMode.FORCE);
+		if(isReportException){
+			final Class CompileMode = projClassLoader.loadClass("org.jruby.RubyInstanceConfig$CompileMode");
+			final Object force = ClassUtil.getField(CompileMode, CompileMode, "FORCE", false);
+			final Class[] paraTypes = {CompileMode};
+			final Object[] para = {force};
+			ClassUtil.invoke(classScriptingContainer, container, "setCompileMode", paraTypes, para, false);
+		}
+		
 		if(absPath != null && absPath.length() > 0){
 			final ArrayList<String> loadPaths = new ArrayList<String>(1);
 			loadPaths.add(absPath);
@@ -186,7 +227,7 @@ public class HCJRubyEngine {
 		final Object[] para = {projClassLoader};
 		ClassUtil.invoke(classScriptingContainer, container, "setClassLoader", paraType, para, false);
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 }

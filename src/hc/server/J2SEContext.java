@@ -25,6 +25,8 @@ import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
+import hc.core.util.ExceptionJSON;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.IHCURLAction;
@@ -78,12 +80,14 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.font.TextAttribute;
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -644,7 +648,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			area.setLineWrap(true);
 			area.setWrapStyleWord(true);
 		} catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
@@ -810,8 +814,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 								try {
 									pwdBS = App.getFromBASE64(pwd).getBytes(IConstant.UTF_8);
 									lv = viewLog(ImageSrc.HC_LOG, pwdBS, ca1, (String)ResourceUtil.get(9002));
-								} catch (final UnsupportedEncodingException e1) {
-									e1.printStackTrace();
+								} catch (final UnsupportedEncodingException e) {
+									ExceptionReporter.printStackTrace(e);
 								}
 							}else{
 								lv.setVisible(true);
@@ -843,8 +847,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 										try {
 											pwdBS = App.getFromBASE64(pwd).getBytes(IConstant.UTF_8);
 											lv = viewLog(ImageSrc.HC_LOG_BAK, pwdBS, ca2, (String)ResourceUtil.get(9003));
-										} catch (final UnsupportedEncodingException e1) {
-											e1.printStackTrace();
+										} catch (final UnsupportedEncodingException e) {
+											ExceptionReporter.printStackTrace(e);
 										}
 									}else{
 										runBrowser(ImageSrc.HC_LOG_BAK);
@@ -900,7 +904,6 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	        try {
 	        	faqItem.setIcon(new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/faq22.png"))));
 			} catch (final IOException e1) {
-				e1.printStackTrace();
 			}
 	        faqItem.addActionListener(new HCActionListener(new Runnable() {
 				@Override
@@ -910,8 +913,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					try {
 						targetURL = HttpUtil.buildLangURL("pc/faq.htm", null);
 		            	HttpUtil.browseLangURL(targetURL);
-					} catch (final UnsupportedEncodingException e1) {
-						e1.printStackTrace();
+					} catch (final UnsupportedEncodingException e) {
+						ExceptionReporter.printStackTrace(e);
 					}
 				}
 			}, threadPoolToken));
@@ -968,8 +971,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						final JLabel icon = new JLabel(new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/hc_32.png"))));
 						panel.add(icon);
 						
-					} catch (final IOException e1) {
-						e1.printStackTrace();
+					} catch (final IOException e) {
+						ExceptionReporter.printStackTrace(e);
 					}
 					
 					final JLabel productName = new JLabel("HomeCenter - connect PC and IoT mobile platform", null, JLabel.CENTER);
@@ -1063,8 +1066,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						}, threadPoolToken));
 						jbMail.setFocusable(false);
 						panel.add(jbMail);
-					} catch (final IOException e2) {
-						e2.printStackTrace();
+					} catch (final IOException e) {
+						ExceptionReporter.printStackTrace(e);
 					}
 	
 					jbOK.addActionListener(disposeAction);
@@ -1214,14 +1217,14 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
     				if(StringUtil.higer(J2SEContext.getSampleHarVersion(), lastSampleVer)){
     					try {
         					designIco = new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/designernew_22.png")));
-        				} catch (final IOException e2) {
-        					e2.printStackTrace();
+        				} catch (final IOException e) {
+        					ExceptionReporter.printStackTrace(e);
         				}
     				}else{
         				try {
         					designIco = new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/designer_22.png")));
-        				} catch (final IOException e2) {
-        					e2.printStackTrace();
+        				} catch (final IOException e) {
+        					ExceptionReporter.printStackTrace(e);
         				}    					
     				}
 
@@ -1278,8 +1281,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	        try {
 	        	verifyItem.setIcon(new ImageIcon(ImageIO.read(
 	        			ResourceUtil.getResource("hc/res/verify_22.png"))));
-			} catch (final IOException e1) {
-				e1.printStackTrace();
+			} catch (final IOException e) {
+				ExceptionReporter.printStackTrace(e);
 			}
 	        
 	        verifyItem.addActionListener(new HCActionListener(new Runnable() {
@@ -1342,8 +1345,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 //			if(aboutAction != null){
 //				ti.setDefaultActionListener(aboutAction);
 //			}
-		} catch (final Exception e1) {
-			e1.printStackTrace();
+		} catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
 		}// 图标，标题，右键弹出菜单
     }
 
@@ -1452,8 +1455,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				hc_Disable = ImageIO.read(appClassLoader.getResource("hc/res/hc_dis_48.jpg"));
 				hc_mobi = ImageIO.read(appClassLoader.getResource("hc/res/hc_mobi_48.jpg"));
 			}
-		} catch (final IOException e1) {
-			e1.printStackTrace();
+		} catch (final IOException e) {
+			ExceptionReporter.printStackTrace(e);
 		}
 
 		buildMenu(UILang.getUsedLocale());
@@ -1499,9 +1502,9 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	public static LogViewer viewLog(final String fileName, final byte[] pwdBS, final String cipherAlgorithm, final String title) { 
         try {  
             return LogViewer.loadFile(fileName, pwdBS, cipherAlgorithm, title);
-        } catch (final Exception ex) {  
-            ex.printStackTrace();  
-            App.showMessageDialog(null, ex.toString());
+        } catch (final Exception e) {  
+            ExceptionReporter.printStackTrace(e);  
+            App.showMessageDialog(null, e.toString());
         }  
         return null;
     }  
@@ -1521,8 +1524,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
             	ContextManager.getContextInstance().displayMessage((String) ResourceUtil.get(IContext.ERROR), 
 						(String) ResourceUtil.get(9005), IContext.ERROR, null, 0);
             }
-        } catch (final IOException ex) {  
-            ex.printStackTrace();  
+        } catch (final IOException e) {  
+            ExceptionReporter.printStackTrace(e);  
         }  
     }  
 	
@@ -1575,14 +1578,14 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 //				tp.clientPort = Integer.parseInt(port);
 //				KeepaliveManager.setClient(tp);
 //			} catch (Exception e) {
-//				e.printStackTrace();
+//				ExceptionReporter.printStackTrace(e);
 //			}
 //		}else{
 //			DatagramPacket packet = (DatagramPacket)datagram;
 //			try {
 //				packet.setAddress(InetAddress.getByName(ip));
 //			} catch (UnknownHostException e) {
-//				e.printStackTrace();
+//				ExceptionReporter.printStackTrace(e);
 //			}
 //			packet.setPort(Integer.parseInt(port));
 //		}
@@ -1813,7 +1816,78 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		}else if(bizNo == IContext.BIZ_GET_REQ_MOBI_VER_FROM_PC){
 			return minMobiVerRequiredByServer;
 		}
+		if(bizNo == IContext.BIZ_REPORT_EXCEPTION){
+			reportException((ExceptionJSON)newParam);
+			return null;
+		}
 		return null;
+	}
+	
+	private final void reportException(final ExceptionJSON json){
+		final boolean forTest = json.isForTest;
+		HttpURLConnection connection = null;
+		DataOutputStream out = null;
+		try {
+			String urlStr = json.getToURL();
+			urlStr = HttpUtil.replaceSimuURL(urlStr, App.isSimu());
+			
+			final String email = json.getAttToEmail();
+			
+			if(forTest){
+				System.out.println("[test] report exception to : " + (email!=null?email:urlStr));
+			}
+			// 创建连接
+			final URL url = new URL(urlStr);
+			connection = (HttpURLConnection)url.openConnection();
+			connection.setDoOutput(true);
+			connection.setConnectTimeout(15000);
+			if(forTest){
+				connection.setReadTimeout(15000);
+				connection.setDoInput(true);//for test only
+			}
+			connection.setRequestMethod("POST");
+			connection.setUseCaches(false);
+			connection.setInstanceFollowRedirects(true);
+
+			connection.setRequestProperty("Content-Type", ExceptionJSON.APPLICATION_JSON_CHARSET_UTF_8);
+			connection.connect();
+
+			// POST请求
+			out = new DataOutputStream(connection.getOutputStream());
+			out.write(json.getJSONBytesCache());
+			out.flush();
+
+			//--------------------------以下接收响应--------------------------
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			String lines;
+			final StringBuffer sb = new StringBuffer(1024);
+			
+			sb.append("[test] response of report exception (the response will be ignore if NOT test) :\n");
+			while ((lines = reader.readLine()) != null) {
+				lines = new String(lines.getBytes(), "utf-8");
+				sb.append(lines);
+				sb.append("\n");
+			}
+			reader.close();//必须接收，否则发送不成功!
+			
+			if (forTest && email == null) {
+				L.V = L.O ? false : LogManager.log(sb.toString());
+			}
+		} catch (final Throwable e) {
+			// 不处理异常
+			if(forTest){
+				e.printStackTrace();
+			}
+		}finally{
+			try{
+				out.close();
+			}catch (final Throwable e) {
+			}
+			try{
+				connection.disconnect();
+			}catch (final Throwable e) {
+			}
+		}
 	}
 
 	public final void startTransMobileContent() {
@@ -2283,7 +2357,7 @@ class PWDDialog extends HCJDialog {
 		try {
 			init();
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	

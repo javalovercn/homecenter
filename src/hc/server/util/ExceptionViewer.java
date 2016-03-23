@@ -30,7 +30,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelListener;
@@ -41,7 +40,7 @@ public class ExceptionViewer {
 	private static final Calendar calendar = Calendar.getInstance();
 	private static boolean isPopup = false;
 	
-	public static final void notifyPopup(boolean p){
+	public static final void notifyPopup(final boolean p){
 		CCoreUtil.checkAccess();
 		
 		isPopup = p;
@@ -79,28 +78,29 @@ public class ExceptionViewer {
 	public ExceptionViewer(){
 		
 		clearBtn.addActionListener(new HCActionListener(){
-			public void actionPerformed(ActionEvent e) {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
 				reset();
 			}
 		});
 		
 		modelException = new AbstractTableModel() {
 			@Override
-			public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+			public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
 				return;
 			}
 			
 			@Override
-			public void removeTableModelListener(TableModelListener l) {
+			public void removeTableModelListener(final TableModelListener l) {
 			}
 			
 			@Override
-			public boolean isCellEditable(int rowIndex, int columnIndex) {
+			public boolean isCellEditable(final int rowIndex, final int columnIndex) {
 				return false;
 			}
 			
 			@Override
-			public Object getValueAt(int rowIndex, int columnIndex) {
+			public Object getValueAt(final int rowIndex, final int columnIndex) {
 				final String rowValue = exception.elementAt(rowIndex);
 				return rowValue==null?"":rowValue;
 			}
@@ -111,7 +111,7 @@ public class ExceptionViewer {
 			}
 			
 			@Override
-			public String getColumnName(int columnIndex) {
+			public String getColumnName(final int columnIndex) {
 				return "Exception Descrition";
 			}
 			
@@ -121,32 +121,32 @@ public class ExceptionViewer {
 			}
 			
 			@Override
-			public Class<?> getColumnClass(int columnIndex) {
+			public Class<?> getColumnClass(final int columnIndex) {
 				return String.class;
 			}
 			
 			@Override
-			public void addTableModelListener(TableModelListener l) {
+			public void addTableModelListener(final TableModelListener l) {
 			}
 		};
 		
 		modelStacks = new AbstractTableModel() {
 			@Override
-			public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+			public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
 				return;
 			}
 			
 			@Override
-			public void removeTableModelListener(TableModelListener l) {
+			public void removeTableModelListener(final TableModelListener l) {
 			}
 			
 			@Override
-			public boolean isCellEditable(int rowIndex, int columnIndex) {
+			public boolean isCellEditable(final int rowIndex, final int columnIndex) {
 				return false;
 			}
 			
 			@Override
-			public Object getValueAt(int rowIndex, int columnIndex) {
+			public Object getValueAt(final int rowIndex, final int columnIndex) {
 				if(rowIndex >= getRowCount()){
 					return "";
 				}
@@ -171,7 +171,7 @@ public class ExceptionViewer {
 			}
 			
 			@Override
-			public String getColumnName(int columnIndex) {
+			public String getColumnName(final int columnIndex) {
 				return "StackTraceElement";
 			}
 			
@@ -181,12 +181,12 @@ public class ExceptionViewer {
 			}
 			
 			@Override
-			public Class<?> getColumnClass(int columnIndex) {
+			public Class<?> getColumnClass(final int columnIndex) {
 				return String.class;
 			}
 			
 			@Override
-			public void addTableModelListener(TableModelListener l) {
+			public void addTableModelListener(final TableModelListener l) {
 			}
 		};
 		
@@ -205,14 +205,14 @@ public class ExceptionViewer {
 		
 		tableException.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			@Override
-			public void valueChanged(ListSelectionEvent e) {
+			public void valueChanged(final ListSelectionEvent e) {
 				if(e.getValueIsAdjusting() == false){
 					final ListSelectionModel lsm = (ListSelectionModel)e.getSource();
 			        if (lsm.isSelectionEmpty()) {
 			        	return;
 			        } else {
-			            int minIndex = lsm.getMinSelectionIndex();
-			            int maxIndex = lsm.getMaxSelectionIndex();
+			            final int minIndex = lsm.getMinSelectionIndex();
+			            final int maxIndex = lsm.getMaxSelectionIndex();
 			            for (int i = minIndex; i <= maxIndex; i++) {
 			                if (lsm.isSelectedIndex(i)) {
 			                	currRow = i;
@@ -237,10 +237,10 @@ public class ExceptionViewer {
 			return;
 		}
 		
-		JPanel panel = new JPanel(new GridBagLayout());
-		Insets insets = new Insets(ClientDesc.hgap, ClientDesc.hgap, 0, ClientDesc.vgap);
+		final JPanel panel = new JPanel(new GridBagLayout());
+		final Insets insets = new Insets(ClientDesc.hgap, ClientDesc.hgap, 0, ClientDesc.vgap);
 		{
-			GridBagConstraints c = new GridBagConstraints();
+			final GridBagConstraints c = new GridBagConstraints();
 			c.insets = insets;
 			c.gridy = 0;
 			c.anchor = GridBagConstraints.CENTER;
@@ -256,7 +256,7 @@ public class ExceptionViewer {
 		}
 		
 		{
-			GridBagConstraints c = new GridBagConstraints();
+			final GridBagConstraints c = new GridBagConstraints();
 			c.insets = insets;
 			c.gridy = 1;
 			c.anchor = GridBagConstraints.CENTER;
@@ -273,9 +273,9 @@ public class ExceptionViewer {
 		tableException.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 		tableStacks.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 
-		JPanel total = new JPanel(new BorderLayout(0, 0));
+		final JPanel total = new JPanel(new BorderLayout(0, 0));
 		{
-			JToolBar toolbar = new JToolBar(JToolBar.HORIZONTAL);
+			final JToolBar toolbar = new JToolBar(JToolBar.HORIZONTAL);
 			toolbar.add(clearBtn);
 //			toolbar.setRequestFocusEnabled(false);
 			
@@ -284,7 +284,7 @@ public class ExceptionViewer {
 		}
 		
 		final ActionListener listener = null;
-		JButton closeBtn = App.buildDefaultCloseButton();
+		final JButton closeBtn = App.buildDefaultCloseButton();
 		dialog = (JFrame)App.showCenterPanel(total, 0, 0, "Exception List", false, closeBtn, null, 
 				listener, null, null, false, true, null, true, false);
 		App.setDisposeListener(dialog, new DisposeListener() {
@@ -304,6 +304,7 @@ public class ExceptionViewer {
 	}
 
 	private static final Thread daemon = new Thread("ExceptionViewWriter"){
+		@Override
 		public void run(){
 			Object[] para;
 			while(true){
@@ -312,8 +313,7 @@ public class ExceptionViewer {
 					if(para == null){
 						try {
 							array.wait();
-						} catch (Exception e) {
-							e.printStackTrace();
+						} catch (final Exception e) {
 						}
 						continue;
 					}
@@ -323,8 +323,8 @@ public class ExceptionViewer {
 			}
 		}
 		
-		public void pushIn(String paraMessage, StackTraceElement[] ste) {
-			StringBuilder sb = new StringBuilder(13);
+		public void pushIn(final String paraMessage, final StackTraceElement[] ste) {
+			final StringBuilder sb = new StringBuilder(13);
 			
 			calendar.setTimeInMillis(System.currentTimeMillis());
 			sb.append(calendar.get(Calendar.HOUR_OF_DAY));
@@ -336,7 +336,7 @@ public class ExceptionViewer {
 			sb.append(calendar.get(Calendar.MILLISECOND));
 			sb.append(" ");
 			
-			String tmp = sb.toString() + paraMessage;
+			final String tmp = sb.toString() + paraMessage;
 			
 			synchronized (exception) {
 				exception.add(tmp);
@@ -353,7 +353,7 @@ public class ExceptionViewer {
 
 	public static void pushIn(final String tmpMsg) {
 		if(isPopup){
-			Object[] para = {tmpMsg, Thread.currentThread().getStackTrace()};
+			final Object[] para = {tmpMsg, Thread.currentThread().getStackTrace()};
 			synchronized (array) {
 				array.addLast(para);
 				array.notify();
@@ -361,7 +361,7 @@ public class ExceptionViewer {
 		}else{
 			if(LogManager.INI_DEBUG_ON){
 				System.err.println("Exception : " + tmpMsg);
-				StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+				final StackTraceElement[] ste = Thread.currentThread().getStackTrace();
 				final int size = ste.length;
 				for (int i = 0; i < size; i++) {
 					System.err.print("\tat : " + ste[i] + "\n");

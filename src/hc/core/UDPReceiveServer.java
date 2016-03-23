@@ -31,7 +31,6 @@ public abstract class UDPReceiveServer extends Thread{
 	    				try {
 							LOCK.wait();
 						} catch (InterruptedException e) {
-							e.printStackTrace();
 						}
 						continue;
 	    			}
@@ -60,7 +59,7 @@ public abstract class UDPReceiveServer extends Thread{
 //						SIPManager.notifyRelineon(false);
 //					}
 //				}else{
-//	            	e.printStackTrace();					
+//	            	ExceptionReporter.printStackTrace(e);					
 //				}
 			}  
         }//while

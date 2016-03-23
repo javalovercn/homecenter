@@ -1,5 +1,7 @@
 package hc.util;
 
+import hc.core.util.ExceptionReporter;
+
 import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.image.BufferedImage;
@@ -15,8 +17,8 @@ public class HCRobot  {
 		if(robot == null){
 			try {
 				robot = new Robot();
-			} catch (AWTException e) {
-				e.printStackTrace();
+			} catch (final AWTException e) {
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		return robot;

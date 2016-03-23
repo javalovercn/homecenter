@@ -7,6 +7,7 @@ import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StoreableHashMap;
 import hc.core.util.StringUtil;
@@ -35,6 +36,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.lang.reflect.Array;
@@ -50,8 +52,6 @@ import java.util.Random;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import javax.imageio.ImageIO;
 import javax.swing.Action;
@@ -284,7 +284,7 @@ public class ResourceUtil {
 			return Class.forName(StarterManager.CLASSNAME_STARTER_STARTER);
 		} catch (final ClassNotFoundException e) {
 //			LogManager.err("Cant find Class : " + starterClass);
-//			e.printStackTrace();
+//			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}
@@ -327,16 +327,21 @@ public class ResourceUtil {
 		
 		out = new StoreableHashMapWithModifyFlag(32);
 		try{
-			final Pattern pattern = Pattern.compile(UILang.UI_LANG_FILE_NAME_PREFIX + "(\\w+)\\.properties$");
+			final Pattern pattern = Pattern.compile(UILang.UI_LANG_FILE_NAME + "(\\w+)\\.properties$");
 			final URL url = UILang.class.getResource(UILang.UI_LANG_FILE_NAME_PREFIX + "en_US.properties");
 			final URI uri = url.toURI();
-		    if (uri != null && uri.getScheme().equals("jar")) {
-		        final ZipInputStream zip = new ZipInputStream(cldr.getResource("/").openStream());
-		        ZipEntry ze = null;
-		        while( ( ze = zip.getNextEntry() ) != null ) {
-		            final String entryName = ze.getName();
-		            addItem(id, out, pattern, entryName);
+		    if (uri != null && uri.getScheme().equals("jar")) {//此条件支持android服务器
+		        Object pathurl;
+		        if(isAndroidServerPlatform()){
+			    	//jar:file:/data/app/homecenter.mobi.server-2.apk!/uilang_en_US.properties
+		        	pathurl = "/";
+		        }else{
+		        	pathurl = UILang.class.getProtectionDomain().getCodeSource().getLocation();  
 		        }
+		        final String[] enterNames = PlatformManager.getService().listAssets(pathurl);
+		        for (int i = 0; i < enterNames.length; i++) {
+		        	addItem(id, out, pattern, enterNames[i]);
+				}
 		    } else {
 		    	final File file_base = new File(App.getBaseDir(), ".");
 		    	final File[] files = file_base.listFiles();
@@ -348,7 +353,7 @@ public class ResourceUtil {
 		    	
 		    }
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 	    i18nMap.put(id, out);
@@ -357,7 +362,7 @@ public class ResourceUtil {
 
 	private static void addItem(final int id, final StoreableHashMap out,
 			final Pattern pattern, final String path) {
-		final Matcher matcher = pattern.matcher(path.replace('\\', '/'));
+		final Matcher matcher = pattern.matcher(path);
 		if(matcher.find()){
 			final String local_ = matcher.group(1);
 			final Hashtable table = UILang.buildResourceBundle(local_);
@@ -375,11 +380,15 @@ public class ResourceUtil {
 	    return cldr.getResource(fileName);
 	}
 
+	public static InputStream getResourceAsStream(final String fileName){
+	    return cldr.getResourceAsStream(fileName);
+	}
+
 	public static BufferedImage getImage(final URL url){
 		try {
 			return ImageIO.read(url);
 		} catch (final IOException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}
@@ -415,7 +424,7 @@ public class ResourceUtil {
 		try {
 			return ImageIO.read(ResourceUtil.getResource("hc/res/" + imageFileName));
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}
@@ -742,7 +751,7 @@ public class ResourceUtil {
 			final BigInteger bigInt = new BigInteger(1, digest.digest());
 			return bigInt.toString(16);
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}finally{
 			try{
 				in.close();
@@ -814,20 +823,18 @@ public class ResourceUtil {
 	        bos.write(bfile);
 	        return true;
 	    } catch (final Exception e) {  
-	        e.printStackTrace();  
+	        ExceptionReporter.printStackTrace(e);  
 	    } finally {  
 	        if (bos != null) {  
 	            try {  
 	                bos.close();  
-	            } catch (final IOException e1) {  
-	               e1.printStackTrace();  
+	            } catch (final IOException e) {  
 	            }  
 	        }  
 	        if (fos != null) {  
 	            try {  
 	                fos.close();  
-	            } catch (final IOException e1) {  
-	                e1.printStackTrace();  
+	            } catch (final IOException e) {  
 	            }  
 	        }  
 	    }

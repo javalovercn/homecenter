@@ -38,7 +38,7 @@ public class DefaultCalendarResources implements CalendarResources {
 
 	private static final String DEFAULT_LANGUAGE = "en";
 
-	private Properties strings = new Properties();
+	private final Properties strings = new Properties();
 
 	/**
 	 * Constructor.
@@ -47,13 +47,14 @@ public class DefaultCalendarResources implements CalendarResources {
 		try {
 			strings.load(DefaultCalendarResources.class
 					.getResourceAsStream(RESOURCE_FILE));
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public String getResource(String key, Locale locale) {
-		String language = locale.getLanguage();
+	@Override
+	public String getResource(final String key, final Locale locale) {
+		final String language = locale.getLanguage();
 		String word = (String) strings.get(language + "." + key);
 		if (word == null)
 			word = (String) strings.get(DEFAULT_LANGUAGE + "." + key);

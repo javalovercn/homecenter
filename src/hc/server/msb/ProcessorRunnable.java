@@ -1,6 +1,7 @@
 package hc.server.msb;
 
 import hc.core.L;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 
 import java.util.ArrayDeque;
@@ -18,7 +19,7 @@ class ProcessorRunnable extends StartableRunnable{
 			processor.__startup();//in user thread group
 		}catch (final Throwable e) {
 			new MSBException("[startup] " + e.toString(), e, null, processor);
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 		super.start();
@@ -55,7 +56,6 @@ class ProcessorRunnable extends StartableRunnable{
 					try {
 						r_todo.wait();
 					} catch (final Throwable t) {
-						t.printStackTrace();
 					}
 					continue;
 				}
@@ -65,7 +65,7 @@ class ProcessorRunnable extends StartableRunnable{
 				processor.preprocess(msg);//in user thread group
 //				workbench.V = workbench.O ? false : workbench.log("finish process message " + msg.toString() + "\n in processor [" + toString() + "]");
 			}catch (final Throwable e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 			
 			msg.tryRecycle(r_workbench, false);
@@ -75,7 +75,7 @@ class ProcessorRunnable extends StartableRunnable{
 			processor.__shutdown();//in user thread group
 		}catch (final Throwable e) {
 			new MSBException("[shutdown] " + e.toString(), e, null, processor);
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 }

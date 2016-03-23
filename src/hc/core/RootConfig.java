@@ -5,32 +5,44 @@ import hc.core.util.CCoreUtil;
 public class RootConfig extends HCConfig{
 	private static RootConfig rc;
 	
+	/**
+	 * 注意：实例引用不能改变，但内容可能被reset刷新
+	 * @return
+	 */
 	public static RootConfig getInstance(){
 		CCoreUtil.checkAccess();
 		
 		if(rc == null){
-			reset();
+			reset(false);//可能因网络故障，没有获得数据
 		}
 		return rc;
 	}
 
-	public static void reset() {
+	public static void reset(boolean isStillForData) {
 		CCoreUtil.checkAccess();
 		
-		String msg = RootServerConnector.getRootConfig();
-		if(msg != null){
-			boolean isExist = (rc != null);
-			rc = new RootConfig(msg);
-			if(isExist){
-				CCoreUtil.resetFactor();//不建议直接走CUtil，因为可能初始化问题
+		String msg = null;
+		boolean lineOff;
+		do{
+			msg = RootServerConnector.getRootConfig();
+			if(msg != null){
+				if(rc == null){
+					rc = new RootConfig(msg);
+				}else{
+					rc.refresh(msg);
+					CCoreUtil.resetFactor();//不建议直接走CUtil，因为可能初始化问题
+				}
 			}
-		}
-	}
-	
-	public static void setInstance(RootConfig rcfg){
-		CCoreUtil.checkAccess();
-		
-		rc = rcfg;
+			
+			lineOff = (isStillForData && msg == null);
+			
+			if(lineOff){
+				try {
+					Thread.sleep(10 * 1000);
+				} catch (Throwable e) {
+				}
+			}
+		}while(lineOff);
 	}
 	
 	public static final short p_ShowDonate = 0;//停止使用
@@ -76,7 +88,8 @@ public class RootConfig extends HCConfig{
 	public static final short p_Receive_Split_Throw_MS = 39;
 	public static final short p_Encrypt_Factor = 40;
 	public static final short p_UpdateOneTimeMinMinutes = 41;
-	//如果增加一个，请修改如下本值
+	public static final short p_blockExceptionReport = 42;
+	public static final short p_isMovToGooglePlayStore = 43;
 
 	public RootConfig(String msg) {
 //		System.out.println(msg);

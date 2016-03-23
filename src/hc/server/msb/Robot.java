@@ -1,5 +1,6 @@
 package hc.server.msb;
 
+import hc.core.util.ExceptionReporter;
 import hc.server.ui.CtrlResponse;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.Mlet;
@@ -240,7 +241,7 @@ public abstract class Robot extends Processor{
 			}catch (final IndexOutOfBoundsException outOfBound) {
 				//越界或不存在或已删除
 			}catch (final Throwable e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		

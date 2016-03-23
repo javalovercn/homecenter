@@ -6,6 +6,7 @@ import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.RootServerConnector;
 import hc.core.sip.SIPManager;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.data.KeyComperPanel;
@@ -267,8 +268,8 @@ public void run() {
 								addLookFeel = list;
 								
 								cancelAddedSkinLibNames.add(newNameLookFeelLib);
-							} catch (final Exception e1) {
-								e1.printStackTrace();
+							} catch (final Exception e) {
+								ExceptionReporter.printStackTrace(e);
 								return;
 							}
 							
@@ -397,7 +398,8 @@ public void run() {
 			
 			final JCheckBox enableMSBLog = new JCheckBox((String)ResourceUtil.get(8014));
 			final JCheckBox enableMSBDialog = new JCheckBox((String)ResourceUtil.get(8015));
-			
+			final JCheckBox enableReportException = App.buildReportExceptionCheckBox(false);
+
 			wordShift.addKeyListener(keyListener);
 			final ActionListener actionListener = new ActionListener() {
 				@Override
@@ -433,7 +435,7 @@ public void run() {
 				}
 			};
 			
-			{
+			if(ResourceUtil.isEnableDesigner()){
 				wordKey.setText(CodeHelper.getWordCompletionKeyText());
 				wordShift.setSelectedItem(CodeHelper.getWordCompletionModifierText());
 				
@@ -476,7 +478,7 @@ public void run() {
 						return wordKey.getText();
 					}
 				};
-			}
+			}//end word key
 			
 			enableMSBLog.setToolTipText("<html>log MSB messages between Robot, Converter and Device." +
 					"<br>it is very useful to debug modules in HAR project." +
@@ -485,9 +487,27 @@ public void run() {
 			
 			final String isOldLog = PropertiesManager.getValue(PropertiesManager.p_isEnableMSBLog, IConstant.FALSE);
 			final String isOldMSBDialog = PropertiesManager.getValue(PropertiesManager.p_isEnableMSBExceptionDialog, IConstant.FALSE);
+			final String isOldReportException = PropertiesManager.getValue(PropertiesManager.p_isReportException, IConstant.FALSE);
+			
 			enableMSBLog.setSelected(isOldLog.equals(IConstant.TRUE));
 			enableMSBDialog.setSelected(isOldMSBDialog.equals(IConstant.TRUE));
-
+			
+			final ConfigValue cvIsEnableReportException = new ConfigValue(PropertiesManager.p_isReportException, isOldReportException, group) {
+				@Override
+				public String getNewValue() {
+					return enableReportException.isSelected()?IConstant.TRUE:IConstant.FALSE;
+				}
+				
+				@Override
+				public void applyBiz(final int option) {
+					final boolean isReportException = ((option == OPTION_CANCEL)?isOldReportException.equals(IConstant.TRUE):enableReportException.isSelected());
+					if(isReportException){
+						ExceptionReporter.start();
+					}else{
+						ExceptionReporter.stop();
+					}
+				}
+			};
 			final ConfigValue cvIsEnableMSBLog = new ConfigValue(PropertiesManager.p_isEnableMSBLog, isOldLog, group) {
 				@Override
 				public void applyBiz(final int option) {
@@ -522,10 +542,12 @@ public void run() {
 				final BoxLayout boxLayout = new BoxLayout(panel, BoxLayout.Y_AXIS);
 				panel.setLayout(boxLayout);
 				
+				panel.add(enableReportException);
 				panel.add(enableMSBLog);
 				panel.add(enableMSBDialog);
-				panel.add(new JSeparator(SwingConstants.HORIZONTAL));
-				{
+				if(ResourceUtil.isEnableDesigner()){
+					panel.add(new JSeparator(SwingConstants.HORIZONTAL));
+
 					final String tip = "set shortcut keys for word completion of Designer.";
 					
 					wordShift.setToolTipText(tip);
@@ -542,7 +564,7 @@ public void run() {
 					wordComp.setAlignmentX(Component.LEFT_ALIGNMENT);
 					panel.add(wordComp);
 				}
-				{
+				if(ResourceUtil.isEnableDesigner()){
 					final String oldDocFontSize = DefaultManager.getDesignerDocFontSize();
 					
 					final JPanel docFontSize = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -569,8 +591,8 @@ public void run() {
 					
 					docFontSize.setAlignmentX(Component.LEFT_ALIGNMENT);
 					panel.add(docFontSize);
-				}
-				
+				}//end docFontSize
+
 				developerPane.add(panel, BorderLayout.NORTH);
 			}
 			
@@ -1022,8 +1044,8 @@ public void run() {
 						try{
 							((J2SEContext)ContextManager.getContextInstance()).buildMenu(UILang.getUsedLocale());
 							SingleJFrame.updateAllJFrame();
-						}catch (final Throwable t) {
-							t.printStackTrace();
+						}catch (final Throwable e) {
+							ExceptionReporter.printStackTrace(e);
 						}
 						exit();
 					}
@@ -1092,7 +1114,7 @@ public void run() {
 		pack();
 		App.showCenter(this);
 	}
-	
+
 	private boolean isNewSkinLib(final String fileName){
 		final Vector<Object[]> libs = tablePanel.body;
 		for (int i = 0; i < libs.size(); i++) {
@@ -1307,7 +1329,7 @@ public void run() {
 				((JComponent) container).updateUI();
 			}
 		}catch (final Exception e) {
-//			e.printStackTrace();
+//			ExceptionReporter.printStackTrace(e);
 		}
 	}
 

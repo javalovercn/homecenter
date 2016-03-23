@@ -5,6 +5,7 @@ import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.res.ImageSrc;
@@ -229,7 +230,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		        }
 		        processingLabel.setText((String)ResourceUtil.get(9128));
 			}catch (final Throwable e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 				processingLabel.setIcon(new ImageIcon(cancelIcon));
 				processingLabel.setText(e.getMessage());
 			}finally{
@@ -377,8 +378,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		synchronized (this) {
 			try {
 				wait();
-			} catch (final InterruptedException e1) {
-				e1.printStackTrace();
+			} catch (final InterruptedException e) {
 			}
 		}
 	}
@@ -414,7 +414,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 			ProjResponser.startMlet(scripts, null, "SYS_AddHarMlet", "add HAR", hcje, (ProjectContext)para[1]);
 //						hcje.terminate();//注意：切勿关闭，因为可能被或再次使用
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 

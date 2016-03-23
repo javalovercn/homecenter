@@ -1,5 +1,7 @@
 package hc.server.nio;
 
+import hc.core.util.ExceptionReporter;
+
 import java.io.IOException;
 import java.nio.channels.Selector;
 import java.util.EmptyStackException;
@@ -14,21 +16,21 @@ public class SelectorFactory {
 			try {
 				if (selectors.size() != 0)
 					s = selectors.pop();
-			} catch (EmptyStackException ex) {
+			} catch (final EmptyStackException ex) {
 			}
 
 			if(s == null){
 				try {
 					s = Selector.open();
-				} catch (IOException e) {
-					e.printStackTrace();
+				} catch (final IOException e) {
+					ExceptionReporter.printStackTrace(e);
 				}
 			}
 			return s;
 		}
 	}
 
-	public final static void returnSelector(Selector s) {
+	public final static void returnSelector(final Selector s) {
 		synchronized (selectors) {
 			selectors.push(s);
 		}

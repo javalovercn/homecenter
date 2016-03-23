@@ -8,6 +8,7 @@ import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
@@ -346,7 +347,7 @@ public class WiFiHelper {
 		try{
 			WiFiDeviceManager.getInstance().startWiFiAP(ssid, pwd, option);
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	

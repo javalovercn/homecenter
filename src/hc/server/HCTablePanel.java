@@ -1,8 +1,11 @@
 package hc.server;
 
-import java.util.Vector;
 import hc.App;
 import hc.core.IWatcher;
+import hc.core.util.ExceptionReporter;
+
+import java.util.Vector;
+
 import javax.swing.JButton;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
@@ -28,8 +31,8 @@ public class HCTablePanel {
 	 * @param idx
 	 * @return
 	 */
-	public Object[] getColumnAt(int idx){
-		Object[] out = new Object[size];
+	public Object[] getColumnAt(final int idx){
+		final Object[] out = new Object[size];
 		
 		for (int i = 0; i < out.length; i++) {
 			out[i] = body.elementAt(i)[idx];
@@ -80,7 +83,7 @@ public class HCTablePanel {
 		table = new JTable(tableModel);
 		
 		
-		IWatcher checkUpOrDown = new IWatcher() {
+		final IWatcher checkUpOrDown = new IWatcher() {
 			@Override
 			public boolean watch() {
 				if(upOrDownMovingBiz != null){
@@ -90,7 +93,7 @@ public class HCTablePanel {
 				return false;
 			}
 			@Override
-			public void setPara(Object p) {
+			public void setPara(final Object p) {
 			}
 			@Override
 			public boolean isCancelable() {
@@ -103,11 +106,12 @@ public class HCTablePanel {
 		upBut.addActionListener(new HCButtonEnabledActionListener(upBut, new Runnable() {
 			@Override
 			public void run() {
-				int currRow = table.getSelectedRow();
+				final int currRow = table.getSelectedRow();
 				final int toIdx = currRow - 1;
 				swapRow(currRow, toIdx);
 				
 				App.invokeLaterUI(new Runnable() {
+					@Override
 					public void run() {
 						table.setRowSelectionInterval(toIdx, toIdx);
 						table.updateUI();
@@ -119,11 +123,12 @@ public class HCTablePanel {
 		downBut.addActionListener(new HCButtonEnabledActionListener(downBut, new Runnable() {
 			@Override
 			public void run() {
-				int currRow = table.getSelectedRow();
+				final int currRow = table.getSelectedRow();
 				final int toIdx = currRow + 1;
 				swapRow(currRow, toIdx);
 				
 				App.invokeLaterUI(new Runnable() {
+					@Override
 					public void run() {
 						table.setRowSelectionInterval(toIdx, toIdx);
 						table.updateUI();
@@ -132,14 +137,14 @@ public class HCTablePanel {
 			}
 		}, threadPoolToken, checkUpOrDown));
 		
-		IWatcher noDoneWatcher = new IWatcher() {
+		final IWatcher noDoneWatcher = new IWatcher() {
 			@Override
 			public boolean watch() {
 				refreshButton();
 				return false;
 			}
 			@Override
-			public void setPara(Object p) {
+			public void setPara(final Object p) {
 			}
 			@Override
 			public boolean isCancelable() {
@@ -155,7 +160,7 @@ public class HCTablePanel {
 			public void run() {
 				currRow = table.getSelectedRow();
 				
-				Object[] rowValue = new Object[colNumber];
+				final Object[] rowValue = new Object[colNumber];
 				for (int i = 0; i < colNumber; i++) {
 					rowValue[i] = body.elementAt(currRow)[i];
 				}
@@ -166,9 +171,9 @@ public class HCTablePanel {
 					boolean isBreak = false;
 					
 					while(true){
-						Object back = removeBiz.getPara();
+						final Object back = removeBiz.getPara();
 						if(back instanceof boolean[]){
-							boolean[] bb = (boolean[])back;
+							final boolean[] bb = (boolean[])back;
 							if(bb[0]){
 								isBreak = true;
 							}
@@ -176,7 +181,7 @@ public class HCTablePanel {
 						}
 						try{
 							Thread.sleep(200);
-						}catch (Exception e) {
+						}catch (final Exception e) {
 						}
 					}
 					if(isBreak){
@@ -202,6 +207,7 @@ public class HCTablePanel {
 				size--;
 				
 				App.invokeLaterUI(new Runnable() {
+					@Override
 					public void run() {
 						table.clearSelection();
 						table.updateUI();
@@ -214,8 +220,8 @@ public class HCTablePanel {
 									table.setRowSelectionInterval(size - 1, size - 1);
 								}
 							}
-						}catch (Exception ex) {
-							ex.printStackTrace();
+						}catch (final Exception e) {
+							ExceptionReporter.printStackTrace(e);
 						}
 						
 						refreshButton();
@@ -230,12 +236,13 @@ public class HCTablePanel {
 				if(importBiz != null){
 					//由于添加har工程，所以另开线程
 					new Thread(){
+						@Override
 						public void run(){
 							importBiz.doBiz();
 							
-							Object[] row = (Object[])importBiz.getPara();
+							final Object[] row = (Object[])importBiz.getPara();
 							if(row != null){
-								Object[] newRow = new Object[colNumber];
+								final Object[] newRow = new Object[colNumber];
 								for (int i = 0; i < colNumber; i++) {
 									if(isFirstColLineNo && (i == 0)){
 										newRow[0] = size + 1;
@@ -249,7 +256,7 @@ public class HCTablePanel {
 								App.invokeLaterUI(new Runnable() {
 									@Override
 									public void run() {
-										int idx = size - 1;
+										final int idx = size - 1;
 										table.setRowSelectionInterval(idx, idx);
 										refreshButton();
 										table.updateUI();
@@ -262,9 +269,10 @@ public class HCTablePanel {
 			}
 		}, threadPoolToken));
 		
-		ListSelectionModel rowSM = table.getSelectionModel();
+		final ListSelectionModel rowSM = table.getSelectionModel();
 		rowSM.addListSelectionListener(new ListSelectionListener() {
-			public void valueChanged(ListSelectionEvent e) {
+			@Override
+			public void valueChanged(final ListSelectionEvent e) {
 				refreshButton();
 			}
 		});
@@ -277,13 +285,13 @@ public class HCTablePanel {
 	
 	private void swapRow(final int fromIdx, final int toIdx){
 		for (int col = (isFirstColLineNo?1:0); col < colNumber; col++) {
-			Object v1 = body.elementAt(toIdx)[col];
+			final Object v1 = body.elementAt(toIdx)[col];
 			body.elementAt(toIdx)[col] = body.elementAt(fromIdx)[col];
 			body.elementAt(fromIdx)[col] = v1;
 		}
 	}
 
-	public void refresh(int newSize){
+	public void refresh(final int newSize){
 		size = newSize;
 		if(newSize > 0){
 			table.setRowSelectionInterval(0, 0);
@@ -297,7 +305,7 @@ public class HCTablePanel {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				int selectedRow = table.getSelectedRow();
+				final int selectedRow = table.getSelectedRow();
 				
 				if(selectedRow == -1){
 					downBut.setEnabled(false);

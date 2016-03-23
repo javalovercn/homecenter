@@ -27,14 +27,14 @@ public class Mno1Menu extends MCanvasMenu {
 //			try {
 //				bi = ImageIO.read(in);
 //			} catch (IOException e) {
-//				e.printStackTrace();
+//				ExceptionReporter.printStackTrace(e);
 //			}
 //
 //		    ByteUtil.byteArrayCacher.cycle(out);
 //		    
 //		    return bi;
 //		} catch (UnsupportedEncodingException e) {
-//			e.printStackTrace();
+//			ExceptionReporter.printStackTrace(e);
 //		}    
 //		return null;
 //	}

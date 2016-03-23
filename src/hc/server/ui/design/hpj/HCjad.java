@@ -1,5 +1,6 @@
 package hc.server.ui.design.hpj;
 
+import hc.core.util.ExceptionReporter;
 import hc.server.ui.design.Designer;
 
 import java.io.File;
@@ -31,13 +32,13 @@ public class HCjad {
 		out.write(key + ": " + value + "\r\n");
 	}
 	
-	public static final void toHad(Map<String, Object> map, File hadfile, final String harmd5, final int length){
+	public static final void toHad(final Map<String, Object> map, final File hadfile, final String harmd5, final int length){
 		if (hadfile.exists()) {
 			hadfile.delete();
 		}
 		try {
-			FileOutputStream fos = new FileOutputStream(hadfile);
-			Writer out = new OutputStreamWriter(fos, "UTF-8");
+			final FileOutputStream fos = new FileOutputStream(hadfile);
+			final Writer out = new OutputStreamWriter(fos, "UTF-8");
 			
 			writeHadLine(out, HAD_ID, map.get(HCjar.PROJ_ID));
 			writeHadLine(out, HAD_VERSION, map.get(HCjar.PROJ_VER));
@@ -56,9 +57,9 @@ public class HCjad {
 			
 			out.close();
 			fos.close();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			System.err.println("err on write to had file.");
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 

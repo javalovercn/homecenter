@@ -1,6 +1,7 @@
 package hc.server.nio;
 
 import hc.core.L;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 
 public class NIOServer {
@@ -17,12 +18,12 @@ public class NIOServer {
 	 * @param udpSpeedPort
 	 * @param read
 	 */
-	public NIOServer(String ip, int localPort, int udpSpeedPort, ActionRead read) {
+	public NIOServer(final String ip, final int localPort, final int udpSpeedPort, final ActionRead read) {
 		try{
 			at = new AcceptReadThread(ip, localPort, udpSpeedPort, read);
-		}catch (Exception e) {
+		}catch (final Exception e) {
 			LogManager.err("Unable NIO Server, IP:" + ip + ", Port:" + localPort);
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	
@@ -34,7 +35,7 @@ public class NIOServer {
 //		try {
 //			at.rebuildServerChannel(ip);
 //		} catch (Exception e) {
-//			e.printStackTrace();
+//			ExceptionReporter.printStackTrace(e);
 //			L.V = L.O ? false : LogManager.log("rebuildServerChannel:" + e.getMessage());
 //		}
 //	}
@@ -42,8 +43,8 @@ public class NIOServer {
 	public void close(){
 		try{
 			at.close();
-		}catch (Exception e) {
-			e.printStackTrace();
+		}catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
 			L.V = L.O ? false : LogManager.log("buildServerChannel:" + e.getMessage());
 		}
 

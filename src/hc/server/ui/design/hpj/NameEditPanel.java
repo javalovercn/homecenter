@@ -79,6 +79,11 @@ public class NameEditPanel extends NodeEditPanel {
 		
 		extendInit();
 		
+		try{
+			Thread.sleep(500);//等待事件完成
+		}catch (final Exception e) {
+		}
+		
 		isInited = true;
 	}
 	

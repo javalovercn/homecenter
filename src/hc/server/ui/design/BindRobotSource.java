@@ -2,6 +2,7 @@ package hc.server.ui.design;
 
 import hc.App;
 import hc.core.L;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.server.ProcessingWindowManager;
@@ -292,7 +293,7 @@ public class BindRobotSource extends IoTSource{
 					}
 				}
 			}catch (final Throwable e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		
@@ -322,7 +323,7 @@ public class BindRobotSource extends IoTSource{
 					}
 				}
 			}catch (final Throwable e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		

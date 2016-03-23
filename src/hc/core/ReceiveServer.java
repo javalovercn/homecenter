@@ -89,7 +89,7 @@ public class ReceiveServer implements Runnable{
 	    				try {
 							LOCK.wait();
 						} catch (final Exception e) {
-//							e.printStackTrace();
+//							ExceptionReporter.printStackTrace(e);
 						}
 						continue;
 	    			}

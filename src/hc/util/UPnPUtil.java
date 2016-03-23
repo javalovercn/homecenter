@@ -3,6 +3,7 @@ package hc.util;
 import hc.core.ContextManager;
 import hc.core.IContext;
 import hc.core.L;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
 import hc.util.upnp.UPnPDevice;
@@ -36,7 +37,7 @@ public class UPnPUtil {
 //					return true;
 //				}
 //			} catch (Exception e) {
-//				e.printStackTrace();
+//				ExceptionReporter.printStackTrace(e);
 //			}
 //		}
 		String[] out = null;
@@ -78,8 +79,8 @@ public class UPnPUtil {
         String line = null;
         try {
             line = brLine.readLine().trim();
-        } catch (final IOException ex) {
-        	ex.printStackTrace();
+        } catch (final IOException e) {
+        	ExceptionReporter.printStackTrace(e);
         }
 
         while (line != null) {
@@ -150,7 +151,7 @@ public class UPnPUtil {
                 }
             }
         }catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}finally{
 			if(socket != null){
 				socket.close();
@@ -233,7 +234,7 @@ public class UPnPUtil {
 					}
 				}catch (final Exception e) {
 					//UTF-8时，会出现异常
-//					e.printStackTrace();
+//					ExceptionReporter.printStackTrace(e);
 					beginExteralPort++;
 					continue;
 				}
@@ -249,7 +250,7 @@ public class UPnPUtil {
 			    
 			}
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			L.V = L.O ? false : LogManager.log(e.toString());
 		}
 		return null;		

@@ -2,6 +2,7 @@ package hc.server.ui.design;
 
 import hc.core.L;
 import hc.core.sip.SIPManager;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.LogManager;
 import hc.core.util.StoreableHashMap;
@@ -239,7 +240,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 						continue;
 					}
 				}catch (final Throwable e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 			}
 			out[i] = items[i][ITEM_NAME_IDX];//缺省名字

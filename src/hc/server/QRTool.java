@@ -102,7 +102,7 @@ public class QRTool {
 //			App.showCenterPanel(panel, 0, 0, "Certification String", true, jb_ok, 
 //					null, okListener, null, null, false, true);
 //		} catch (Exception e1) {
-//			e1.printStackTrace();
+//			e1ExceptionReporter.printStackTrace(e);
 //		}
 //	}
 

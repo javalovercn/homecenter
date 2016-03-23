@@ -8,6 +8,7 @@ import hc.core.MsgBuilder;
 import hc.core.RootServerConnector;
 import hc.core.data.DataInputEvent;
 import hc.core.sip.SIPManager;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
@@ -327,7 +328,7 @@ public class ScreenCapturer extends PNGCapturer{
 			}
 		}catch (final Throwable e) {
 			LogManager.errToLog("Fail check screen lock mode.");
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 		return false;
@@ -352,10 +353,10 @@ public class ScreenCapturer extends PNGCapturer{
 	}
 
 	@Override
-	public boolean actionInput(final DataInputEvent e){
-		final int type = e.getType();
-		final int pointX = e.getX();
-		final int pointY = e.getY();
+	public boolean actionInput(final DataInputEvent event){
+		final int type = event.getType();
+		final int pointX = event.getX();
+		final int pointY = event.getY();
 		if(type == DataInputEvent.TYPE_MOUSE_MOVE){
 			robot.mouseMove(pointX, pointY);
 			L.V = L.O ? false : LogManager.log(OP_STR + "Mouse move to (" + pointX + ", " + pointY + ")");
@@ -380,7 +381,7 @@ public class ScreenCapturer extends PNGCapturer{
 			robot.mouseRelease(InputEvent.BUTTON1_MASK);			
 		}else if(type == DataInputEvent.TYPE_TRANS_TEXT){
 			try {
-				final String s = e.getTextDataAsString();
+				final String s = event.getTextDataAsString();
 				if(inputKeyStr(s) == false){
 					L.V = L.O ? false : LogManager.log(OP_STR + "Client paste txt:[" + s + "]!");
 					sendToClipboard(s);
@@ -388,8 +389,8 @@ public class ScreenCapturer extends PNGCapturer{
 				}else{
 					L.V = L.O ? false : LogManager.log(OP_STR + "Client input txt:[" + s + "]!");
 				}
-			} catch (final Exception e1) {
-				e1.printStackTrace();
+			} catch (final Exception e) {
+				ExceptionReporter.printStackTrace(e);
 			}
 		}else if(type == DataInputEvent.TYPE_BACKSPACE){
 			backspace();
@@ -591,7 +592,7 @@ public class ScreenCapturer extends PNGCapturer{
 				try {
 					d = (String) clipT.getTransferData(DataFlavor.stringFlavor);
 				} catch (final Exception e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 			}
 		}
@@ -613,8 +614,8 @@ public class ScreenCapturer extends PNGCapturer{
 		final String txt = getTxtFromClipboard();
 //		L.V = L.O ? false : LogManager.log("User ready copyTxtToMobi:" + txt);
 		if(txt.length() > 0){
-    		final DataInputEvent e = new DataInputEvent();
 			try {
+	    		final DataInputEvent e = new DataInputEvent();
 	    		final byte[] txt_bs = txt.getBytes(IConstant.UTF_8);
 	    		
 	    		final byte[] txtToMobiBS = new byte[DataInputEvent.text_index + DataInputEvent.MAX_MOBI_UI_TXT_LEN];
@@ -624,8 +625,8 @@ public class ScreenCapturer extends PNGCapturer{
 	    		e.setTextData(txt_bs, 0, txt_bs.length);
 	    		ContextManager.getContextInstance().send(
 	    				MsgBuilder.E_INPUT_EVENT, txtToMobiBS, e.getLength());
-			} catch (final UnsupportedEncodingException e1) {
-				e1.printStackTrace();
+			} catch (final UnsupportedEncodingException e) {
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		L.V = L.O ? false : LogManager.log(OP_STR + "copyTxtToMobi:" + ((txt.length()==0)?"null":txt));

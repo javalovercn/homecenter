@@ -14,10 +14,12 @@ import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.IEncrypter;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
+import hc.core.util.RootBuilder;
 import hc.core.util.Stack;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
@@ -41,6 +43,7 @@ import hc.server.rms.J2SERecordWriterBuilder;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.ClosableWindow;
 import hc.server.ui.ServerUIUtil;
+import hc.server.ui.SingleMessageNotify;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.ExceptionViewer;
 import hc.server.util.HCInitor;
@@ -49,6 +52,7 @@ import hc.server.util.HCJFrame;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.HCSecurityChecker;
 import hc.server.util.IDArrayGroup;
+import hc.server.util.J2SERootBuilder;
 import hc.util.ClassUtil;
 import hc.util.ConnectionManager;
 import hc.util.HttpUtil;
@@ -92,10 +96,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -134,7 +140,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.plaf.FontUIResource;
 
-public class App {
+public class App {//注意：本类名被工程HCAndroidServer的ServerMainActivity反射引用，请勿改名
 	public static final int EXIT_MAX_DELAY_MS = 15 * 1000;//10秒不够
 
 	public static final String TAG_INI_DEBUG_ON = "debugOn";
@@ -168,20 +174,25 @@ public class App {
 		return baseDir;
 	}
 
+	private static Float jreVer;
 	public static float getJREVer() {
-		final String ver = System.getProperty("java.version");
-		final Pattern pattern = Pattern.compile("^(\\d\\.\\d)");
-		final Matcher matcher = pattern.matcher(ver);
-		if (matcher.find()) {
-			return Float.parseFloat(matcher.group(1));
-		} else {
-			try{
-				final Integer verint = Integer.parseInt(ver);
-				return verint.floatValue();
-			}catch (final Throwable e) {
+		if(jreVer == null){
+			final String ver = System.getProperty("java.version");
+			final Pattern pattern = Pattern.compile("^(\\d\\.\\d)");
+			final Matcher matcher = pattern.matcher(ver);
+			if (matcher.find()) {
+				jreVer = Float.parseFloat(matcher.group(1));
+			} else {
+				try{
+					final Integer verint = Integer.parseInt(ver);
+					jreVer = verint.floatValue();
+				}catch (final Throwable e) {
+				}
+				jreVer = 1.0F;
 			}
-			return 1.0F;
 		}
+		
+		return jreVer.floatValue();
 	}
 
 	/**
@@ -196,7 +207,7 @@ public class App {
 				try{
 					execMain(args);
 				}catch (final Throwable e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 			}
 		}.start();
@@ -238,7 +249,7 @@ public class App {
 		try{
 			new MouseEvent(new JLabel(""), 0, 0, 0, 0, 0, 0, false, 0);
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 		// 创建锁文件
@@ -329,6 +340,8 @@ public class App {
 		threadPoolToken = getRootThreadGroup();
 		ContextManager.setThreadPool(threadPool, threadPoolToken);
 
+		RootBuilder.setInstance(new J2SERootBuilder(threadPoolToken));
+		
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
@@ -345,6 +358,14 @@ public class App {
 		
 		{
 			HCTimer.doNothing();//trig init process
+		}
+		
+		if(RootConfig.getInstance() == null){
+			SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_ERROR_CONNECTION, 
+					(String)ResourceUtil.get(1000)
+					+ "<BR><BR>" + (new Date().toLocaleString()), (String)ResourceUtil.get(IContext.ERROR),
+					60000 * 5, App.getSysIcon(App.SYS_ERROR_ICON));
+			RootConfig.reset(true);
 		}
 		
 		MSBException.init();
@@ -495,6 +516,19 @@ public class App {
 		}
 		IConstant.setInstance(new J2SEConstant());
 		
+		//依赖RootConfig的IConstant，故置于上行之后
+		ExceptionReporter.setHarHelper(HCLimitSecurityManager.getHCSecurityManager());//系统线程进行初始化，防止用户线程来初始化
+		if(PropertiesManager.isTrue(PropertiesManager.p_isReportException)){
+			ExceptionReporter.start(false);//false:由于log系统尚未完成初始化
+		}
+		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+			@Override
+			public final void uncaughtException(final Thread t, final Throwable e) {
+//					L.V = L.O ? false : LogManager.log("******************uncaughtException*****************=>" + e.getMessage());
+					ExceptionReporter.printStackTraceFromThreadPool(e);
+			}
+		});
+		
 		if(PropertiesManager.getValue(PropertiesManager.p_CertKey) == null){
 			L.V = L.O ? false : LogManager.log("create new certification for new install.");
 			generateCert();
@@ -539,7 +573,7 @@ public class App {
 					}catch (final Throwable e) {
 						//由于某些皮肤包导致本错误
 						LogManager.err("initGlobalFontSetting error : " + e.toString());
-						e.printStackTrace();
+						ExceptionReporter.printStackTrace(e);
 						
 						L.V = L.O ? false : LogManager.log("(set default font and LookAndFeel)");
 						applyLookFeel(ConfigPane.getDefaultSkin(), "");
@@ -626,8 +660,13 @@ public class App {
 		L.enable(true);
 	}
 
+	private static Boolean isSimuCache;
+	
 	public static boolean isSimu() {
-		return PropertiesManager.isTrue(PropertiesManager.p_IsSimu);
+		if(isSimuCache == null){
+			isSimuCache = PropertiesManager.isTrue(PropertiesManager.p_IsSimu);
+		}
+		return isSimuCache.booleanValue();
 	}
 
 	public static void startAfterInfo() {
@@ -658,7 +697,7 @@ public class App {
 
 			ContextManager.start();
 		} catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			App
 					.showMessageDialog(
 							null,
@@ -694,16 +733,28 @@ public class App {
 					SwingConstants.LEADING);
 			c.add(label, "North");
 		} catch (final IOException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 
 		final JTextArea area = new JTextArea(30, 30);
 		try {
-			final URL oracle = new URL(HttpUtil.replaceSimuURL(license_url, isSimu()));
-			BufferedReader in;
-			in = new BufferedReader(new InputStreamReader(oracle.openStream()));
-			area.read(in, null);
-
+			boolean isSucc = false;
+			if(license_url.endsWith("bcl.txt")){
+				try{
+					final URL bclurl = ResourceUtil.getResource("hc/res/bcl.txt");
+					final BufferedReader in = new BufferedReader(new InputStreamReader(bclurl.openStream()));
+					area.read(in, null);
+					isSucc = true;
+				}catch (final Throwable e) {
+				}
+			}
+			
+			if(isSucc == false){
+				final URL url = new URL(HttpUtil.replaceSimuURL(license_url, isSimu()));
+				final BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+				area.read(in, null);
+			}
+			
 			area.setEditable(false);
 			area.addMouseListener(new MouseAdapter() {
 				@Override
@@ -725,7 +776,7 @@ public class App {
 			area.setLineWrap(true);
 			area.setWrapStyleWord(true);
 		} catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
@@ -816,7 +867,7 @@ public class App {
 			App.SYS_LOGO = ImageIO.read(App.class.getClassLoader().getResource(
 					"hc/res/hc_16.png"));
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 
@@ -942,8 +993,8 @@ public class App {
 				if (listener != null) {
 					try {
 						listener.actionPerformed(null);//有可能上一个窗口会导致下一个死锁
-					} catch (final Exception ex) {
-						ex.printStackTrace();
+					} catch (final Exception e) {
+						ExceptionReporter.printStackTrace(e);
 					}
 				}
 				loadDelayWindow();
@@ -1122,7 +1173,7 @@ public class App {
 			}
 		});
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return dialog;
 	}
@@ -1175,7 +1226,7 @@ public class App {
 			try{
 				SwingUtilities.invokeAndWait(run);
 			}catch (final Exception e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 	}
@@ -1697,8 +1748,8 @@ public class App {
 								StringUtil.replace((String)ResourceUtil.get(9077), "{min}", "" + App.MIN_PWD_LEN),
 								(String)ResourceUtil.get(9076), JOptionPane.ERROR_MESSAGE);
 					}
-				} catch (final UnsupportedEncodingException e1) {
-					e1.printStackTrace();
+				} catch (final UnsupportedEncodingException e) {
+					ExceptionReporter.printStackTrace(e);
 				}
 			}
 		};
@@ -1744,7 +1795,7 @@ public class App {
 			frame.setSize(300, 300);
 			frame.setVisible(true);
 		} catch (final MalformedURLException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 
@@ -1794,7 +1845,7 @@ public class App {
 			final byte[] b = ByteUtil.decodeBase64(s);
 			return new String(b, IConstant.UTF_8);
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			return null;
 		}
 	}
@@ -1830,7 +1881,7 @@ public class App {
 			}
 		} catch (final Throwable e) {
 			LogManager.err("Loading look and feel error : " + newSkin);
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 		PropertiesManager.setValue(PropertiesManager.C_SKIN, errorSkin);
@@ -1845,7 +1896,7 @@ public class App {
 		try {
 			return ByteUtil.encodeBase64(s.getBytes(IConstant.UTF_8));
 		} catch (final UnsupportedEncodingException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}
@@ -1868,7 +1919,6 @@ public class App {
 								.getResource("hc/res/next_22.png"))));
 				jbOK = okButton;
 			} catch (final IOException e1) {
-				e1.printStackTrace();
 			}
 			final Icon nextIco = jbOK.getIcon();
 			final JButton nextBtn = jbOK;
@@ -1879,7 +1929,6 @@ public class App {
 								.getResource("hc/res/prev_22.png"))));
 				jbpre.setEnabled(false);
 			} catch (final IOException e1) {
-				e1.printStackTrace();
 			}
 			imgLabel.setIcon(new ImageIcon(next.imgs[0]));
 			final UIActionListener nextal = new UIActionListener() {
@@ -1927,7 +1976,7 @@ public class App {
 					(String) ResourceUtil.get(9029), true, jbOK, jbpre, nextal,
 					preal, null, false, false, null, false, false);
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 
@@ -2070,7 +2119,6 @@ public class App {
 			}, threadPoolToken));
 			jPanel3.add(toVIP, null);
 		} catch (final IOException e1) {
-			e1.printStackTrace();
 		}
 		jPanel3.add(jbExit, null);
 		showDonate.add(allPanel);
@@ -2252,6 +2300,14 @@ public class App {
 		}else{
 			lockPanel.add(congPanel, BorderLayout.CENTER);
 		}
+		
+		if(PropertiesManager.getValue(PropertiesManager.p_isReportException) == null){
+			PropertiesManager.setValue(PropertiesManager.p_isReportException, IConstant.TRUE);
+			PropertiesManager.saveFile();
+		}
+		
+		lockPanel.add(buildReportExceptionCheckBox(true), BorderLayout.SOUTH);
+		
 		App.showCenterPanelOKDispose(
 				lockPanel,
 				0, 0,
@@ -2328,6 +2384,31 @@ public class App {
 
 	public static String getErrorI18N() {
 		return (String) ResourceUtil.get(IContext.ERROR);
+	}
+
+	public static final JCheckBox buildReportExceptionCheckBox(final boolean withActionListener) {
+		final JCheckBox enableReportException = new JCheckBox((String)ResourceUtil.get(9168));
+		enableReportException.setToolTipText((String)ResourceUtil.get(9169));
+		
+		final String isOldReportException = PropertiesManager.getValue(PropertiesManager.p_isReportException, IConstant.FALSE);
+		enableReportException.setSelected(isOldReportException.equals(IConstant.TRUE));
+		
+		if(withActionListener){
+			enableReportException.addActionListener(new HCActionListener(new Runnable() {
+				@Override
+				public void run() {
+					final boolean isSelected = enableReportException.isSelected();
+					PropertiesManager.setValue(PropertiesManager.p_isReportException, isSelected?IConstant.TRUE:IConstant.FALSE);
+					if(isSelected){
+						ExceptionReporter.start();
+					}else{
+						ExceptionReporter.stop();
+					}
+					PropertiesManager.saveFile();
+				}
+			}, threadPoolToken));
+		}
+		return enableReportException;
 	}
 
 }

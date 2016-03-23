@@ -71,9 +71,12 @@ public class CCoreUtil {
 		int f = 2;
 		try{
 			//加密强度指数，指数越大，加密运算越多
-			f = RootConfig.getInstance().getIntProperty(RootConfig.p_Encrypt_Factor);
+			final RootConfig instance = RootConfig.getInstance();
+			if(instance != null){//可能为null
+				f = instance.getIntProperty(RootConfig.p_Encrypt_Factor);
+			}
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 		CUtil.initFactor = f;//服务器断线，更新所以必须

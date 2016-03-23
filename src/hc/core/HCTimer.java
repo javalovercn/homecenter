@@ -1,6 +1,7 @@
 package hc.core;
 
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPool;
 import hc.core.util.ThreadPriorityManager;
@@ -194,7 +195,6 @@ public abstract class HCTimer {
 							LOCK.wait(sleepMS);
 //							L.V = L.O ? false : LogManager.log("HCTimer break wait.");
 						} catch (InterruptedException e) {
-							e.printStackTrace();
 						}
 						if(isMinMS){
 							isMinInternalWait = false;
@@ -240,7 +240,7 @@ public abstract class HCTimer {
 							}
 //							hc.core.L.V=hc.core.L.O?false:LogManager.log("HCTimer[" + timer.name + "] exe cost: " + (System.currentTimeMillis() - curr));
 		                }catch (final Throwable e) {
-		                	e.printStackTrace();
+		                	ExceptionReporter.printStackTrace(e);
 						}
 					}else{
 						break;

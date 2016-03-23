@@ -3,6 +3,7 @@ package hc.server.ui.design;
 import hc.App;
 import hc.UIActionListener;
 import hc.core.ContextManager;
+import hc.core.util.ExceptionReporter;
 import hc.server.HCActionListener;
 import hc.server.HCWindowAdapter;
 import hc.server.msb.ConverterInfo;
@@ -1003,7 +1004,7 @@ class BindDeviceNode extends BindNode{
 						realDevBind = rdbi;
 					}
 				}catch (final Throwable e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 				
 				try{
@@ -1012,7 +1013,7 @@ class BindDeviceNode extends BindNode{
 						convBind = cbi;
 					}
 				}catch (final Throwable e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 				
 				try{

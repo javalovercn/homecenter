@@ -3,7 +3,9 @@ package hc.server;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.IWatcher;
+
 import java.awt.event.ActionEvent;
+
 import javax.swing.AbstractButton;
 
 public class HCButtonEnabledActionListener extends HCActionListener {
@@ -35,7 +37,7 @@ public class HCButtonEnabledActionListener extends HCActionListener {
 	}
 	
 	@Override
-	public final void actionPerformed(ActionEvent e) {
+	public final void actionPerformed(final ActionEvent e) {
 		final Runnable wrapRun = new Runnable() {
 			@Override
 			public void run() {
@@ -49,7 +51,7 @@ public class HCButtonEnabledActionListener extends HCActionListener {
 				try{
 					Thread.sleep(100);
 					run.run();
-				}catch (Throwable e) {
+				}catch (final Throwable e) {
 					e.printStackTrace();
 				}
 				

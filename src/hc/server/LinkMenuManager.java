@@ -3,6 +3,7 @@ package hc.server;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.RootServerConnector;
+import hc.core.util.ExceptionReporter;
 import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.design.Designer;
 
@@ -24,7 +25,7 @@ public class LinkMenuManager {
 //			final Method m = c.getMethod("notifyCloseDesigner", new Class[] {});
 //			return((Boolean)m.invoke(c, new Object[] {})).booleanValue();
 //		} catch (final Throwable e) {
-//			e.printStackTrace();
+//			ExceptionReporter.printStackTrace(e);
 //			App.showConfirmDialog(null, "load link panel error : " + e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
 //		}
 //		return false;
@@ -40,7 +41,7 @@ public class LinkMenuManager {
 			final Method m = c.getMethod("showLinkPanel", new Class[] {JFrame.class, boolean.class, Component.class});
 			m.invoke(c, new Object[] {frame, Boolean.TRUE, null});
 		} catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			App.showConfirmDialog(null, "load link panel error : " + e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
@@ -51,7 +52,7 @@ public class LinkMenuManager {
 			final Method m = c.getMethod("closeLinkPanel", new Class[] {});
 			m.invoke(c, new Object[] {});
 		} catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			App.showConfirmDialog(null, "load link panel error : " + e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
@@ -66,8 +67,8 @@ public class LinkMenuManager {
 				final Class design = getDesignerClass();
 				SingleJFrame.showJFrame(design);
 				Designer.getInstance().loadInitProject(loadInit);
-			}catch (final Exception ee) {
-				ee.printStackTrace();
+			}catch (final Exception e) {
+				ExceptionReporter.printStackTrace(e);
 				ContextManager.getThreadPool().run(new Runnable() {
 					@Override
 					public void run() {

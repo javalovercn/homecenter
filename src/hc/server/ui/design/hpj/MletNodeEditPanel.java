@@ -1,6 +1,7 @@
 package hc.server.ui.design.hpj;
 
 import hc.core.L;
+import hc.core.util.ExceptionReporter;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.code.CodeHelper;
@@ -96,7 +97,7 @@ public class MletNodeEditPanel extends DefaultMenuItemNodeEditPanel {
 					colorStyle();
 				}
 			}catch (final Throwable e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		@Override
@@ -140,9 +141,9 @@ public class MletNodeEditPanel extends DefaultMenuItemNodeEditPanel {
 			final int fontHeight = cssEditPane.getFontMetrics(cssEditPane.getFont()).getHeight();
 			
 			@Override
-			public void keyTyped(final KeyEvent e) {
-				final char inputChar = e.getKeyChar();
-				final int modifiers = e.getModifiers();
+			public void keyTyped(final KeyEvent event) {
+				final char inputChar = event.getKeyChar();
+				final int modifiers = event.getModifiers();
 
 				final CodeHelper codeHelper = designer.codeHelper;
 				
@@ -151,12 +152,12 @@ public class MletNodeEditPanel extends DefaultMenuItemNodeEditPanel {
 									|| (codeHelper.wordCompletionModifyMaskCode == modifiers)))){//注意：请同步从ScriptEditPanel
 					try {
 						codeHelper.inputVariableForCSS(cssEditPane, cssEditPane.getCaret().getMagicCaretPosition(), fontHeight, cssEditPane.getCaretPosition());
-					} catch (final Exception ex) {
+					} catch (final Exception e) {
 						if(L.isInWorkshop){
-							ex.printStackTrace();
+							ExceptionReporter.printStackTrace(e);
 						}
 					}
-					ScriptEditPanel.consumeEvent(e);
+					ScriptEditPanel.consumeEvent(event);
 				}
 			}
 			
@@ -181,9 +182,9 @@ public class MletNodeEditPanel extends DefaultMenuItemNodeEditPanel {
 			}
 			
 			@Override
-			public void keyPressed(final KeyEvent e) {
-				final int keycode = e.getKeyCode();
-	            final int modifiers = e.getModifiers();
+			public void keyPressed(final KeyEvent event) {
+				final int keycode = event.getKeyCode();
+	            final int modifiers = event.getModifiers();
 	            final CodeHelper codeHelper = designer.codeHelper;
 				final int wordCompletionModifyMaskCode = codeHelper.wordCompletionModifyMaskCode;
 				//无输入字符时的触发提示代码
@@ -191,12 +192,12 @@ public class MletNodeEditPanel extends DefaultMenuItemNodeEditPanel {
 					//注意：请同步从ScriptEditPanel
 					try {
 						codeHelper.inputVariableForCSS(cssEditPane, cssEditPane.getCaret().getMagicCaretPosition(), fontHeight, cssEditPane.getCaretPosition());
-					} catch (final Exception ex) {
+					} catch (final Exception e) {
 						if(L.isInWorkshop){
-							ex.printStackTrace();
+							ExceptionReporter.printStackTrace(e);
 						}
 					}
-					ScriptEditPanel.consumeEvent(e);
+					ScriptEditPanel.consumeEvent(event);
 				}
 			}
 		});

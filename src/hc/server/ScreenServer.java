@@ -10,6 +10,7 @@ import hc.core.data.DataClientAgent;
 import hc.core.data.DataInputEvent;
 import hc.core.data.DataSelectTxt;
 import hc.core.util.ByteUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLCacher;
 import hc.core.util.HCURLUtil;
@@ -71,7 +72,7 @@ public class ScreenServer {
 		try{
 			currScreen.onStart();
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 
@@ -111,7 +112,7 @@ public class ScreenServer {
 				L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "back / exit");
 				currScreen.onExit();
 			}catch (final Throwable e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		if(MOBI_SCREEN_MAP.size() == 0){
@@ -129,7 +130,7 @@ public class ScreenServer {
 		try{
 			currScreen.onResume();
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	

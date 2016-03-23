@@ -122,4 +122,6 @@ public class ConfigManager {
 	public static int getDPIInt() {
 		return Integer.parseInt(getDPI());
 	}
+
+	public static final boolean isEnableExceptionReportForAndroid = true;
 }

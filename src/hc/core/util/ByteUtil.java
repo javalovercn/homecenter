@@ -232,7 +232,7 @@ public class ByteUtil {
 		try {
 			System.arraycopy(s.getBytes(IConstant.UTF_8), 0, target, 0, fixLen);
 		} catch (final UnsupportedEncodingException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	
@@ -240,7 +240,7 @@ public class ByteUtil {
 		try {
 			return new String(bytes, offset, len, IConstant.UTF_8);
 		} catch (final UnsupportedEncodingException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}
@@ -520,7 +520,7 @@ public class ByteUtil {
 		    }    
 		    return buf.toByteArray();    
 		} catch (final UnsupportedEncodingException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}    
 		return null;
 	}

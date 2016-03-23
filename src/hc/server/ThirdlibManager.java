@@ -32,7 +32,7 @@ public class ThirdlibManager {
 //				ResourceUtil.loadJar(new File(App.getBaseDir(), lib));
 ////				L.V = L.O ? false : LogManager.log("load classpath : " + lib);
 //			} catch (Exception e) {
-//				e.printStackTrace();
+//				ExceptionReporter.printStackTrace(e);
 //			}
 //		}
 //	}
@@ -119,7 +119,7 @@ public class ThirdlibManager {
 //		try {
 //			ResourceUtil.loadJar(targetFile);
 //		} catch (Exception e1) {
-//			e1.printStackTrace();
+//			e1ExceptionReporter.printStackTrace(e);
 //		}
 		
 		return targetFile;

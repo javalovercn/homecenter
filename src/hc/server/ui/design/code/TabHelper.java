@@ -1,6 +1,7 @@
 package hc.server.ui.design.code;
 
 import hc.core.L;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.Stack;
 
 import java.awt.Color;
@@ -49,7 +50,7 @@ public class TabHelper {
 		try {
 			currFocusHighlight = scriptPanel.getHighlighter().addHighlight(currFocusHighlightStartIdx, currFocusHighlightEndIdx, CODE_LIGHTER);
 		} catch (final BadLocationException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 		scriptPanel.setSelectionStart(currFocusHighlightStartIdx);
@@ -165,7 +166,7 @@ public class TabHelper {
 					currFocusHighlightEndIdx = currFocusHighlightStartIdx;
 					currentTabBlock.parameterEndOffsetIdx[parameterIdx] = 0;
 				} catch (final BadLocationException e) {
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 			}
 			if(isBackspace){
@@ -195,7 +196,7 @@ public class TabHelper {
 					currFocusHighlight = scriptPanel.getHighlighter().addHighlight(currFocusHighlightStartIdx, currFocusHighlightEndIdx, CODE_LIGHTER);
 				}
 			} catch (final BadLocationException e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
 	};

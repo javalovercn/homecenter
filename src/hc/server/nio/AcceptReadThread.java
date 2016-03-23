@@ -5,6 +5,7 @@ import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.UDPController;
 import hc.core.util.ByteUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LinkedSet;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
@@ -100,7 +101,7 @@ public class AcceptReadThread extends Thread {
 			p1 = UDPPair.getOneInstance();
 			buildUDPPort(ip, p1);
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			if(p1 != null){
 				p1.reset();
 			}
@@ -112,7 +113,7 @@ public class AcceptReadThread extends Thread {
 			p2 = UDPPair.getOneInstance();
 			buildUDPPort(ip, p2);
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			if(p2 != null){
 				p2.reset();
 			}
@@ -185,7 +186,7 @@ public class AcceptReadThread extends Thread {
 		try{
 			ssc.close();
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			L.V = L.O ? false : LogManager.log("close:" + e.getMessage());
 		}
 	}
@@ -280,7 +281,7 @@ public class AcceptReadThread extends Thread {
 								L.V = L.O ? false : LogManager.log("UDP setAddrNull for uuid[" + new String(bs, startIdxUUID, bufferDatalen - startIdxUUID) + "], from " + sa.toString());
 							}
 						}catch (final Throwable e) {
-							e.printStackTrace();
+							ExceptionReporter.printStackTrace(e);
 						}
 						udpCtrlBB.clear();
 						continue;
@@ -322,7 +323,7 @@ public class AcceptReadThread extends Thread {
 										//继续，所以不用break;
 									}
 								}catch (final Exception e) {
-									e.printStackTrace();
+									ExceptionReporter.printStackTrace(e);
 									writeBB.clear();
 									bufferDirectCacher.cycle(writeBB);
 									
@@ -349,7 +350,7 @@ public class AcceptReadThread extends Thread {
 			}
 		}catch (final Exception e) {
 			L.V = L.O ? false : LogManager.log("Exception : connectSelector.select()");
-//			e.printStackTrace();
+//			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	
@@ -420,7 +421,7 @@ public class AcceptReadThread extends Thread {
 	
 			}
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	

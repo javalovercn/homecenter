@@ -13,6 +13,7 @@ import hc.core.data.DataClientAgent;
 import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.IHCURLAction;
 import hc.core.util.LogManager;
@@ -223,7 +224,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 //							J2SEContext.notifyExitByMobi();
 //						}
 					} catch (final UnsupportedEncodingException e) {
-						e.printStackTrace();
+						ExceptionReporter.printStackTrace(e);
 					}
 					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_RELOAD_THUMBNAIL)){
@@ -331,7 +332,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 	 */
 	public static final synchronized Object[] getProjectContextForSystemLevelNoTerminate(){
 		if(SYS_JRUBY_ENGINE[0] == null){
-			final HCJRubyEngine hcje = new HCJRubyEngine(null, ResourceUtil.getJRubyClassLoader(false));
+			final HCJRubyEngine hcje = new HCJRubyEngine(null, ResourceUtil.getJRubyClassLoader(false), true);
 			final ProjectContext context = new ProjectContext("", "", ContextManager.getThreadPool(), null, null);
 			SYS_JRUBY_ENGINE[0] = hcje;
 			SYS_JRUBY_ENGINE[1] = context;

@@ -5,6 +5,7 @@ import hc.core.util.ByteArrayCacher;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.IHCURLAction;
 import hc.core.util.LinkedSet;
 import hc.core.util.LogManager;
@@ -54,7 +55,6 @@ public abstract class IContext {
 					try {
 						this.wait();
 					} catch (InterruptedException e) {
-						e.printStackTrace();
 					}
 				}
 			}
@@ -197,6 +197,7 @@ public abstract class IContext {
 	public static final short BIZ_GET_FORBID_UPDATE_CERT_I18N = 26;//服务器、客户端重复该配置值
 	public static final short BIZ_START_WATCH_KEEPALIVE_FOR_RECALL_LINEOFF = 27;
 	public static final short BIZ_VIBRATE = 28;
+	public static final short BIZ_REPORT_EXCEPTION = 29;
 	
 	public final ReceiveServer getReceiveServer() {
 		return rServer;
@@ -232,7 +233,7 @@ public abstract class IContext {
 			final byte[] jcip_bs = body.getBytes(IConstant.UTF_8);
 			sendWrap(event_type, jcip_bs, 0, jcip_bs.length);
 		} catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 		
 	}
@@ -334,7 +335,7 @@ public abstract class IContext {
 				}catch (final Exception e) {
 					if(L.isInWorkshop){
 						LogManager.errToLog("[workshop] Error sendWrapAction(bigData)");
-						e.printStackTrace();
+						ExceptionReporter.printStackTrace(e);
 					}
 				}
 			}
@@ -370,9 +371,9 @@ public abstract class IContext {
 				}catch (final Exception e) {
 					if(L.isInWorkshop){
 						LogManager.errToLog("[workshop] Error sendWrapAction");
-						e.printStackTrace();
+						ExceptionReporter.printStackTrace(e);
 					}
-	//				e.printStackTrace();
+	//				ExceptionReporter.printStackTrace(e);
 	//				SIPManager.notifyRelineon(false);
 	//				L.V = L.O ? false : LogManager.log("Exception:" + e.getMessage() + ", Lose package");
 				}
@@ -425,7 +426,7 @@ public abstract class IContext {
 				outStream.flush();
 			}
 		} catch (final Exception e) {
-//			e.printStackTrace();
+//			ExceptionReporter.printStackTrace(e);
 			L.V = L.O ? false : LogManager.log("Exception:" + e.getMessage() + ", Lose package");
 			//因为reset重连时，有可能outStream为空，所以，异常问题由ReceiveServer来处理，不在本处调用。
 //			SIPManager.notifyRelineon(false);
@@ -461,7 +462,7 @@ public abstract class IContext {
 					outStream.flush();
 				}
 			} catch (final IOException e) {
-//				e.printStackTrace();
+//				ExceptionReporter.printStackTrace(e);
 				L.V = L.O ? false : LogManager.log("Exception:" + e.getMessage() + ", Lose package");
 //				SIPManager.notifyRelineon(false);
 			}
@@ -486,7 +487,7 @@ public abstract class IContext {
 				os.flush();
 			}
 		} catch (final IOException e) {
-//				e.printStackTrace();
+//				ExceptionReporter.printStackTrace(e);
 			L.V = L.O ? false : LogManager.log("Exception:" + e.getMessage() + ", Lose package");
 //				SIPManager.notifyRelineon(false);
 		}
@@ -519,7 +520,7 @@ public abstract class IContext {
 					os.flush();
 				}
 			} catch (final IOException e) {//不能拦截os为null的异常，因为KeepaliveManager.java保活需要此异常
-//				e.printStackTrace();
+//				ExceptionReporter.printStackTrace(e);
 				L.V = L.O ? false : LogManager.log("Exception:" + e.getMessage() + ", Lose package");
 //				SIPManager.notifyRelineon(false);
 			}

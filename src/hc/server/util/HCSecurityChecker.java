@@ -23,7 +23,7 @@ public class HCSecurityChecker implements SecurityChecker {
 		}else{
 			currentThread = Thread.currentThread();
 			
-			if(allowedThread.contains(currentThread)){
+			if(allowedThread.contains(currentThread)){//多线程下安全
 				return;
 			}
 			

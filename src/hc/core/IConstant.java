@@ -2,6 +2,7 @@ package hc.core;
 
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
+import hc.core.util.ExceptionReporter;
 
 import java.io.UnsupportedEncodingException;
 
@@ -106,9 +107,6 @@ public abstract class IConstant {
 	public abstract int getInt(String p);
 	
 	public abstract Object getObject(String p);
-	
-	public abstract String getAjax(String url);
-	public abstract String getAjaxForSimu(String url, boolean isTcp);
 
 	public abstract void setObject(String key, Object value);
 	
@@ -138,7 +136,7 @@ public abstract class IConstant {
 			uuidBS = uuid.getBytes(IConstant.UTF_8);
 		} catch (final UnsupportedEncodingException e) {
 			uuidBS = uuid.getBytes();
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 
@@ -147,7 +145,7 @@ public abstract class IConstant {
 		try {
 			passwordBS = password.getBytes(IConstant.UTF_8);
 		} catch (final UnsupportedEncodingException e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			passwordBS = password.getBytes();
 		}
 //		hc.core.L.V=hc.core.L.O?false:LogManager.log("PWD byte len:" + passwordBS.length + ", " + password);

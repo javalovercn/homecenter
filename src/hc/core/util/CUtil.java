@@ -263,7 +263,7 @@ public class CUtil {
 				return en;
 			} catch (final Exception e) {
 				LogManager.err("Error Load Encryptor [" + encryptClass + "]");
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 				userEncryptor = null;
 			}
 		}else{

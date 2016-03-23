@@ -1,6 +1,7 @@
 package hc.util;
 
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.Stack;
 import hc.server.AbstractDelayBiz;
 
@@ -12,7 +13,7 @@ import hc.server.AbstractDelayBiz;
 public class ConnectionManager {
 	private static Stack delayBiz = null;
 	
-	public static void addBeforeConnectionBiz(AbstractDelayBiz biz){
+	public static void addBeforeConnectionBiz(final AbstractDelayBiz biz){
 		CCoreUtil.checkAccess();
 		
 		if(delayBiz == null){
@@ -31,8 +32,8 @@ public class ConnectionManager {
 				if(biz != null){
 					try{
 						biz.doBiz();
-					}catch (Throwable e) {
-						e.printStackTrace();
+					}catch (final Throwable e) {
+						ExceptionReporter.printStackTrace(e);
 					}
 				}
 			}while(biz != null);

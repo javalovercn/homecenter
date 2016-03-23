@@ -100,7 +100,7 @@ public class TypeWizard {
 		final JDialog dialog = new HCJDialog(owner, "select menu type", true);
 		final ButtonGroup buttonGroup = new ButtonGroup();
 		final JPanel panel = new JPanel(new GridLayout(1, HPNode.WIZARD_SELECTABLE_MENU_ITEM_SIZE));
-		panel.setBorder(new TitledBorder("Item Type:"));
+		panel.setBorder(new TitledBorder("Select Menu Item Type Categories:"));
 		final JRadioButton[] rbs = new JRadioButton[HPNode.WIZARD_SELECTABLE_MENU_ITEM_SIZE];
 		final JLabel[] dispButton = new JLabel[HPNode.WIZARD_SELECTABLE_MENU_ITEM_SIZE];
 		final String nextStepStr = (String) ResourceUtil.get(1029);

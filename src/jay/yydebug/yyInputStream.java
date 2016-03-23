@@ -2565,7 +2565,7 @@
  */
 package jay.yydebug;
 
-import java.awt.TextArea;
+import javax.swing.JTextArea;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
@@ -2577,6 +2577,11 @@ import java.util.ArrayList;
     read from within the event thread.
  */
 public class yyInputStream extends InputStream implements KeyListener {
+	/**
+	 * change log by HomeCenter
+	 * change awt to Swing, for example, Frame=>JFrame, Label => JLabel
+	 */
+	
   /** line edit buffer.
     */
   protected final StringBuffer line = new StringBuffer();
@@ -2658,7 +2663,7 @@ public long skip (final long len) {
     */
   @Override
 public void keyPressed (final KeyEvent ke) {
-    final TextArea ta = (TextArea)ke.getComponent();
+    final JTextArea ta = (JTextArea)ke.getComponent();
 	final int pos = ta.getText().length();
 	ta.select(pos, pos);
 	ta.setCaretPosition(pos);
@@ -2669,7 +2674,7 @@ public void keyPressed (final KeyEvent ke) {
 
   @Override
 public void keyTyped (final KeyEvent ke) {
-    final TextArea ta = (TextArea)ke.getComponent();
+    final JTextArea ta = (JTextArea)ke.getComponent();
     final char ch = ke.getKeyChar();
 
     switch (ch) {

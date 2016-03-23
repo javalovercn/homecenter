@@ -2,6 +2,7 @@ package hc.server.ui;
 
 import hc.App;
 import hc.core.ContextManager;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.ReturnableRunnable;
@@ -85,7 +86,7 @@ public class ServerUIAPIAgent {
 				}
 			}
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 		}
 	}
 

@@ -56,7 +56,7 @@ public class ServerInitor {
 		RootServerConnector.delLineInfo(TokenManager.getToken(), false);
 		
 		//可能更新p_Encrypt_Factor，故刷新(不论正常断线或手机请求)
-		RootConfig.reset();
+		RootConfig.reset(true);
 
 		CUtil.resetCheck();
 		

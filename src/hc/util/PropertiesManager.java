@@ -4,6 +4,7 @@ import hc.App;
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
 import hc.server.PlatformManager;
@@ -150,6 +151,8 @@ public class PropertiesManager {
 	public static final String p_WiFi_isMobileViaWiFi = "wifi_isMobiViaWiFi";
 	
 	public static final String p_DesignerDocFontSize = "DesignerDocFontSize";
+	
+	public static final String p_isReportException = "isReportException";
 
 	public static final String S_THIRD_DIR = "3libs";
 	public static final String S_USER_LOOKANDFEEL = "lookfeel";
@@ -294,7 +297,7 @@ public class PropertiesManager {
                 }
 			}
         } catch (final Exception e) {
-        	e.printStackTrace();
+        	ExceptionReporter.printStackTrace(e);
         	App.showMessageDialog(null, "write data to properties file error!", "Error", JOptionPane.ERROR_MESSAGE);
 //            System.exit(0);
         }
@@ -350,11 +353,7 @@ public class PropertiesManager {
 			CCoreUtil.checkAccess();
 		}
 		
-        if(propertie.containsKey(key)){
-        	return propertie.getProperty(key);//得到某一属
-        }else{
-            return null;
-        }
+    	return propertie.getProperty(key);//得到某一属
     }
 	
 	public static final String getValue(final String key, final String defaultValue){
@@ -367,8 +366,10 @@ public class PropertiesManager {
 	}
 	
 	public static final void remove(final String key){
-		CCoreUtil.checkAccess();
-		
+		if(key.startsWith(PropertiesManager.p_PROJ_RECORD, 0)){
+		}else{
+			CCoreUtil.checkAccess();
+		}
 		propertie.remove(key);
 	}
 	

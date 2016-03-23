@@ -7,6 +7,7 @@ import hc.core.cache.CacheManager;
 import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.UIUtil;
 import hc.server.ProcessingWindowManager;
@@ -93,7 +94,7 @@ public class ServerUIUtil {
 		try {
 			return (BaseResponsor)Class.forName(className).newInstance();
 		}catch (final Throwable e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			LogManager.err("load class:"+className);
 			return null;
 		}
@@ -136,7 +137,7 @@ public class ServerUIUtil {
 					responsor = respo.checkAndReady(owner);
 				}catch (final Throwable e) {
 					//出现构建失败
-					e.printStackTrace();
+					ExceptionReporter.printStackTrace(e);
 				}
 				if(responsor == null){
 					cancelHAR(respo);
@@ -158,7 +159,7 @@ public class ServerUIUtil {
 					((MobiUIResponsor)responsor).preLoadJRubyScripts();
 				}
 			}catch (final Throwable e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 				
 				//出现启动失败
 				cancelHAR(responsor);
@@ -209,7 +210,7 @@ public class ServerUIUtil {
 			try{
 				snap.stop();
 			}catch (final Throwable e) {
-				e.printStackTrace();
+				ExceptionReporter.printStackTrace(e);
 			}
 			
 			if(snap instanceof MobiUIResponsor){

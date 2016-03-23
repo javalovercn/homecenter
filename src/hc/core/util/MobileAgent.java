@@ -125,7 +125,7 @@ public class MobileAgent {
 		try{
 			return Integer.parseInt(get(TAG_HAS_CAMERA, "0")) > 0;
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			return false;
 		}
 	}
@@ -146,7 +146,7 @@ public class MobileAgent {
 		try{
 			return Integer.parseInt(get(TAG_CONTROL_WIFI, "0")) > 0;
 		}catch (final Exception e) {
-			e.printStackTrace();
+			ExceptionReporter.printStackTrace(e);
 			return false;
 		}
 	}
