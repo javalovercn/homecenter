@@ -63,6 +63,11 @@ public class J2SEPlatformService implements PlatformService {
 	}
 	
 	@Override
+	public long getAvailableSize(){
+		return App.getBaseDir().getFreeSpace();
+	}
+	
+	@Override
 	public String[] listAssets(final Object pathurl){
 		final Vector<String> out = new Vector<String>();
 		
@@ -427,5 +432,10 @@ public class J2SEPlatformService implements PlatformService {
 			};
 		}
 		return wifiDeviceManager;
+	}
+
+	@Override
+	public void setJRubyHome(final String version, final String absPath) {
+		//do nothing for standard JRE, 
 	}
 }

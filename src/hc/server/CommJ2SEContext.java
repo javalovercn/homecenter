@@ -8,11 +8,11 @@ import hc.core.RootConfig;
 import hc.core.RootServerConnector;
 import hc.core.sip.SIPManager;
 import hc.core.util.LogManager;
-import hc.util.TokenManager;
+import hc.util.ResourceUtil;
 
 public abstract class CommJ2SEContext extends IContext{
 	final boolean isRoot;
-	public CommJ2SEContext(boolean isRoot) {
+	public CommJ2SEContext(final boolean isRoot) {
 		this.isRoot = isRoot;
 	}
 	
@@ -24,14 +24,14 @@ public abstract class CommJ2SEContext extends IContext{
 			//每小时刷新alive变量到Root服务器
 			//采用58秒，能保障两小时内可刷新两次。
 			
-			int refreshMS = isRoot?(1000 * 60 * 5):RootConfig.getInstance().getIntProperty(RootConfig.p_RootDelNotAlive);
+			final int refreshMS = isRoot?(1000 * 60 * 5):RootConfig.getInstance().getIntProperty(RootConfig.p_RootDelNotAlive);
 			new HCTimer("AliveRefresher", refreshMS, true){
+				@Override
 				public final void doBiz() {
 					if(isRoot == false){
 						L.V = L.O ? false : LogManager.log("refresh server online info.");
 					}
-					String back = RootServerConnector.refreshRootAlive(TokenManager.getToken(),
-							!J2SEContext.isEnableTransNewCertNow(), RootServerConnector.getHideToken());
+					final String back = ResourceUtil.refreshRootAlive();
 					if(back == null || (back.equals(RootServerConnector.ROOT_AJAX_OK) == false)){
 						if(isRoot){
 							//服务器出现错误，需要进行重启服务

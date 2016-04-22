@@ -14,19 +14,21 @@ public class SystemLockManager {
 	public static void updateMaxLock(){
 		SystemLockManager.MAXTIMES = getConfigErrTry();
 		
-		int lock_minutes = getConfigLockMinutes();
+		final int lock_minutes = getConfigLockMinutes();
 		SystemLockManager.LOCK_MS = lock_minutes * 60 * 1000;
 	}
 
 	public static int getConfigLockMinutes() {
-		return (PropertiesManager.getValue(PropertiesManager.PWD_ERR_LOCK_MINUTES)==null)
-				?3
-				:Integer.parseInt(PropertiesManager.getValue(PropertiesManager.PWD_ERR_LOCK_MINUTES));
+		final String lockMin = PropertiesManager.getValue(PropertiesManager.PWD_ERR_LOCK_MINUTES);
+		
+		return (lockMin==null)
+				?DefaultManager.LOCK_MINUTES
+				:Integer.parseInt(lockMin);
 	}
 
 	public static int getConfigErrTry() {
 		return (PropertiesManager.getValue(PropertiesManager.PWD_ERR_TRY)==null)
-				?10
+				?DefaultManager.ERR_TRY_TIMES
 				:Integer.parseInt(PropertiesManager.getValue(PropertiesManager.PWD_ERR_TRY));
 	}
 

@@ -102,6 +102,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -128,7 +129,7 @@ import javax.swing.event.ChangeListener;
 
 public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	private static PlatformTrayIcon ti;
-    private static JMenuItem transNewCertKey;
+    private static JMenuItem transNewCertKey, hideIDForErrCert;
 	private final HCEventQueue hcEventQueue = HCLimitSecurityManager.getHCSecurityManager().getHCEventQueue();
 	private final Thread eventDispatchThread = HCLimitSecurityManager.getHCSecurityManager().getEventDispatchThread();
     protected final ThreadGroup threadPoolToken = App.getThreadPoolToken();
@@ -555,8 +556,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				"<BR>" + transmitCert + ":<STRONG>" + tipOff + "</STRONG>, " +
 				transOffTip +
 				".</html>");
-		initEnableTransNewCert();
-		if(isEnableTransNewCertNow()){
+		if(DefaultManager.isEnableTransNewCertNow()){
 			transNewCertKey.setIcon(dl_certkey);
 			transNewCertKey.setText((String)ResourceUtil.get(1021));
 		}else{
@@ -564,7 +564,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			transNewCertKey.setText((String)ResourceUtil.get(1020));			
 		}
 		if(PropertiesManager.isTrue(PropertiesManager.p_NewCertIsNotTransed) 
-            			&& (isEnableTransNewCertNow())){
+            			&& (DefaultManager.isEnableTransNewCertNow())){
 			transNewCertKey.setEnabled(false);
 		}
 		
@@ -576,13 +576,39 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
             		ConditionWatcher.addWatcher(new LineonAndServingExecWatcher(transNewCertKey.getText()){
 						@Override
 						public final void doBiz() {
-			            	flipTransable(!isEnableTransNewCertNow(), false);
+			            	flipTransable(!DefaultManager.isEnableTransNewCertNow(), false);
 						}});
             	}
 			}
 		}, threadPoolToken));
 		certMenu.add(transNewCertKey);
         
+		//控制显示或隐身
+		{
+			hideIDForErrCert = new JMenuItem("");//菜单项
+			
+			ResourceUtil.refreshHideCheckBox(null, hideIDForErrCert);
+
+			hideIDForErrCert.addActionListener(new HCActionListener(new Runnable() {
+				@Override
+				public void run() {
+	            	refreshActionMS(false);
+	            	if(checkPassword(true, hideIDForErrCert.getText())){
+						final boolean toStatus = !DefaultManager.isHideIDForErrCert();
+						ResourceUtil.setHideIDForErrCertAndSave(toStatus);
+						ResourceUtil.refreshHideCheckBox(null, hideIDForErrCert);
+						if(toStatus){
+							App.showMessageDialog(null, ResourceUtil.getHideTip(), ResourceUtil.getHideText(), App.INFORMATION_MESSAGE, App.getSysIcon(App.SYS_INFO_ICON));
+						}else{
+							App.showMessageDialog(null, ResourceUtil.getShowTip(), ResourceUtil.getShowText(), App.INFORMATION_MESSAGE, App.getSysIcon(App.SYS_INFO_ICON));
+						}
+	            	}
+				}
+			}, threadPoolToken));
+			certMenu.add(hideIDForErrCert);
+		}
+		
+		
 //        {
 //        	//QR
 //            final JMenuItem qrInput = new JMenuItem("QR " + str_certification);
@@ -1177,30 +1203,30 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
                 
         popupTi.addSeparator();
         
-    	
-		final JMenuItem mapItem = new JMenuItem((String)ResourceUtil.get(9035));//菜单项
-    	try {
-    		mapItem.setIcon(new ImageIcon(ImageIO.read(
-					ResourceUtil.getResource("hc/res/map_22.png"))));
-		} catch (final IOException e1) {
-		}
-		mapItem.setToolTipText("<html>" + (String)ResourceUtil.get(9082) + "</html>");
-    	mapItem.addActionListener(new HCActionListener(new Runnable() {
-            @Override
-			public void run() {
-            	refreshActionMS(false);
-            	
-            	try{
-            		KeyComperPanel.showKeyComperPanel();
-            	}catch (final Exception ee) {
-					App.showConfirmDialog(null, "Cant load Key", 
-							"Error", JOptionPane.CLOSED_OPTION, JOptionPane.ERROR_MESSAGE);
-				}
-            }
-        }, threadPoolToken));
-        
-        popupTi.add(mapItem);
-        
+    	if(ResourceUtil.isJ2SELimitFunction()){//由于Android服务器版本布局不美观，故暂关闭
+			final JMenuItem mapItem = new JMenuItem((String)ResourceUtil.get(9035));//菜单项
+	    	try {
+	    		mapItem.setIcon(new ImageIcon(ImageIO.read(
+						ResourceUtil.getResource("hc/res/map_22.png"))));
+			} catch (final IOException e1) {
+			}
+			mapItem.setToolTipText("<html>" + (String)ResourceUtil.get(9082) + "</html>");
+	    	mapItem.addActionListener(new HCActionListener(new Runnable() {
+	            @Override
+				public void run() {
+	            	refreshActionMS(false);
+	            	
+	            	try{
+	            		KeyComperPanel.showKeyComperPanel();
+	            	}catch (final Exception ee) {
+						App.showConfirmDialog(null, "Cant load Key", 
+								"Error", JOptionPane.CLOSED_OPTION, JOptionPane.ERROR_MESSAGE);
+					}
+	            }
+	        }, threadPoolToken));
+	        
+	        popupTi.add(mapItem);
+    	}
 //        popupTi.addSeparator();
         
         {
@@ -1445,6 +1471,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		try {
 			disable_dl_certkey = new ImageIcon(ImageSrc.DISABLE_DL_CERTKEY_ICON);
 			dl_certkey = new ImageIcon(ImageSrc.DL_CERTKEY_ICON);
+			
 			final ClassLoader appClassLoader = App.class.getClassLoader();
 			if(ResourceUtil.isMacOSX() || ResourceUtil.isAndroidServerPlatform()){
 				hc_Enable = ImageIO.read(appClassLoader.getResource("hc/res/hc_48.png"));
@@ -1652,7 +1679,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					KeepaliveManager.homeWirelessIpPort.port, 0, 1, 
 					KeepaliveManager.relayServerUPnPIP, KeepaliveManager.relayServerUPnPPort,
 					SIPManager.relayIpPort.ip, SIPManager.relayIpPort.port, TokenManager.getToken(), 
-					!isEnableTransNewCertNow(), RootServerConnector.getHideToken());
+					DefaultManager.isHideIDForErrCert(), RootServerConnector.getHideToken());
 			
 			if(out == null){
 				LogManager.err("unable to connect root server");
@@ -1946,7 +1973,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	}
 
 	private static void doAfterCertKeyError() {
-		if(isEnableTransNewCertNow()){
+		if(DefaultManager.isEnableTransNewCertNow()){
 			//传输证书
 			transNewCertKey();
 //			try{
@@ -1959,9 +1986,10 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		}else{
 			L.V = L.O ? false : LogManager.log("reject a mobile login with invalid certification.");
 			ContextManager.getContextInstance().send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_CERTKEY_ERROR));
+			final String errCertTitle = (String)ResourceUtil.get(9182);
+			final String errCert = (String)ResourceUtil.get(9183);
 			SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_ERROR_CERT, 
-					"a mobile try login with ERROR certification<BR><BR>If you had created new certification, please enable transmit, " +
-					"<BR>then the new certification will be transmitted to mobile.", "Error Certification", 1000 * 60,
+					errCert, errCertTitle, 1000 * 60,
 					App.getSysIcon(App.SYS_ERROR_ICON));
 //			LogManager.errToLog("Mobile login with ERROR CertKey");
 			sleepAfterError();
@@ -1978,32 +2006,15 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		}
 	}
 	
-	private static boolean enableTransCertKey;
-	
-	public static void enableTransCertKey(final boolean enable){
+	private static void enableTransCertKey(final boolean enable){
 		if(enable){
 			PropertiesManager.setValue(PropertiesManager.p_EnableTransNewCertKeyNow, IConstant.TRUE);
 		}else{
 			PropertiesManager.setValue(PropertiesManager.p_EnableTransNewCertKeyNow, IConstant.FALSE);
 		}
 		PropertiesManager.saveFile();
-		enableTransCertKey = enable;
-
-		RootServerConnector.refreshRootAlive(TokenManager.getToken(),
-				!isEnableTransNewCertNow(), RootServerConnector.getHideToken());
-	}
-	
-	public static boolean isEnableTransNewCertNow(){
-		return enableTransCertKey;
-	}
-	
-	public static void initEnableTransNewCert(){
-		final String out = PropertiesManager.getValue(PropertiesManager.p_EnableTransNewCertKeyNow);
-		if(out == null || out.equals(IConstant.TRUE)){
-			enableTransCertKey = true;
-		}else{
-			enableTransCertKey = false;
-		}
+		
+		ResourceUtil.refreshRootAlive();//可能转为显示或隐身
 	}
 
 	@Override
@@ -2100,8 +2111,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	private void doAfterCertIsNotTransed() {
 		App.setNoTransCert();
 		
-		if(!isEnableTransNewCertNow()){
-			flipTransable(!isEnableTransNewCertNow(), false);
+		if(!DefaultManager.isEnableTransNewCertNow()){
+			flipTransable(!DefaultManager.isEnableTransNewCertNow(), false);
 		}
 		transNewCertKey.setEnabled(false);
 		
@@ -2287,9 +2298,10 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			frame.setTitle(frame.getTitle() + " - {JRuby:" + ver + "}");
 		}
 	}
-
+	
 	public static void flipTransable(final boolean isEnable, final boolean isCallAfterTrans) {
 		enableTransCertKey(isEnable);
+
 		if(isEnable){
 			transNewCertKey.setIcon(dl_certkey);
 			transNewCertKey.setText((String)ResourceUtil.get(1021));	
@@ -2297,6 +2309,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			transNewCertKey.setIcon(disable_dl_certkey);
 			transNewCertKey.setText((String)ResourceUtil.get(1020));			
 		}
+		
+		ResourceUtil.refreshHideCheckBox(null, hideIDForErrCert);
 		
 		final JPanel iconPanle = new JPanel();
 		iconPanle.setLayout(new BoxLayout(iconPanle, BoxLayout.X_AXIS));
@@ -2315,10 +2329,50 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			final JPanel msgPanel = new JPanel(new BorderLayout());
 			msgPanel.add(new JLabel("<html><body style='width:450' align='left'><strong>"+(String)ResourceUtil.get(IContext.TIP)+"</strong> : <BR>"+(isEnable?transOnTip:transOffTip)+"</body></html>"), 
 					BorderLayout.CENTER);
+			if(isEnable == false){
+				final JCheckBox hideCheck = new JCheckBox();
+				final JCheckBox checkBox = new JCheckBox();
+				
+				hideCheck.setSelected(ResourceUtil.refreshHideCheckBox(hideCheck, hideIDForErrCert));
+				checkBox.setSelected(hideCheck.isSelected());
+				
+				hideCheck.addActionListener(new HCActionListener(new Runnable() {
+					@Override
+					public void run() {
+						final boolean newSelected = hideCheck.isSelected();
+						setHideForErrCert(newSelected, hideCheck);
+						checkBox.setSelected(newSelected);
+					}
+				}, App.getThreadPoolToken()));
+				
+				checkBox.addActionListener(new HCActionListener(new Runnable() {
+					@Override
+					public void run() {
+						final boolean newSelected = checkBox.isSelected();
+						setHideForErrCert(newSelected, hideCheck);
+						hideCheck.setSelected(newSelected);
+					}
+				}, App.getThreadPoolToken()));
+				
+				final JPanel checkPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+				if(ResourceUtil.isJ2SELimitFunction()){
+					checkPanel.add(checkBox);//Android实现会出现两个选项框
+				}
+				checkPanel.add(hideCheck);
+				
+				msgPanel.add(checkPanel, BorderLayout.SOUTH);
+			}
 			tipPanle.add(msgPanel, BorderLayout.SOUTH);
 		}
 
 		App.showCenterPanel(tipPanle, 0, 0, (isEnable?(String)ResourceUtil.get(1020):(String)ResourceUtil.get(1021)), false, null, null, null, null, null, false, false, null, false, false);
+	}
+
+	private static void setHideForErrCert(final boolean newSelected,
+			final JCheckBox hideCheck) {
+		ResourceUtil.setHideIDForErrCertAndSave(newSelected);
+
+		ResourceUtil.refreshHideCheckBox(hideCheck, hideIDForErrCert);
 	}
 
 	@Override

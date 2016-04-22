@@ -69,6 +69,19 @@ public class HCTablePanel {
 			final AbstractDelayBiz upOrDownMovingBiz,
 			final AbstractDelayBiz removeBiz, final AbstractDelayBiz importBiz, 
 			final boolean isFirstColLineIdx, final int colNumber){
+//		{
+//			System.out.println("print table value");
+//			final int size = tableModel.getRowCount();
+//			for (int i = 0; i < size; i++) {
+//				final int len = tableModel.getColumnCount();
+//				for (int j = 0; j < len; j++) {
+//					System.out.print(tableModel.getValueAt(i, j));
+//					System.out.print("------");
+//				}
+//				System.out.print("\n");
+//			}
+//		}
+		
 		body = libs;
 		this.isFirstColLineNo = isFirstColLineIdx;
 		this.upBut = upBut;

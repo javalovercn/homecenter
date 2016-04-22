@@ -382,7 +382,7 @@ public class SIPManager {
 			SIPManager.send(SIPManager.getSIPContext().getOutputStream(send),
 					bs, 0, regLen);
 		}catch (final Exception e) {
-			ExceptionReporter.printStackTrace(e);
+//			ExceptionReporter.printStackTrace(e);
 			try {
 				SIPManager.getSIPContext().closeSocket(send);
 			} catch (final Exception e1) {

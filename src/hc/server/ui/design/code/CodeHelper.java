@@ -1554,7 +1554,7 @@ public class CodeHelper {
 	}
 	
 	private final Node buildMiniNode(final String script, final ScriptEditPanel sep){
-		RubyExector.parse(script, null, sep.getRunTestEngine());
+		RubyExector.parse(script, null, sep.getRunTestEngine(), false);
 		final ScriptException evalException = sep.getRunTestEngine().getEvalException();
 		if(evalException == null){
 			return parseScripts(script);

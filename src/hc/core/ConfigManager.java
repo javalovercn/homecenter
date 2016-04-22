@@ -49,6 +49,8 @@ public class ConfigManager {
 	public static final String UI_RELEASE_OBJECT = "hc.ui.releaseObject";
 	public static final String BUILD_NESTACTION = "hc.buildNestAction";
 	public static final String UI_CHECK_BACKGROUND_ENABLE = "hc.ui.checkBackground";
+	public static final String UI_SET_EXCEPTION_HANDLER_FOR_THREAD = "hc.ui.setExceptionHandler";
+	public static final String UI_ENABLE_SCREEN_ADAPTER = "hc.ui.screenAdapter";
 	
 	/**
 	 * 判断客户端是否是后台运行。

@@ -496,7 +496,7 @@ public class RootServerConnector {
 				ENCRYPTER_STR + "true", true);
 	}
 	
-	public static String refreshRootAlive(String token, boolean hideIP, String hideToken) {
+	public static String refreshRootAlive_impl(String token, boolean hideIP, String hideToken) {
 		return retry(CALL_STR +
 				alive_STR +
 				ID_STR + encryptePara(IConstant.uuid, token) + "&" +

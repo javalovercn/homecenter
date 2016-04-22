@@ -37,10 +37,6 @@ see Appendix B
 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-The JavaMail reference implementation is licensed under the Common Development and Distribution License (CDDL) v1.1 and GNU General Public License (GPL) v2 with Classpath Exception
-<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 JRuby is Copyright (c) 2007-2014 The JRuby project, and is released under a tri CPL/GPL/LGPL license. You can use it, redistribute it and/or modify it under the terms of the:
 Common Public License version 1.0
 GNU General Public License version 2

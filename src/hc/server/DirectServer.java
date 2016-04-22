@@ -48,8 +48,8 @@ public class DirectServer extends Thread {
 //				不能重用端口，因为有可能会与其它系统产生共用该端口
 //				server.setReuseAddress(true);
 				
-				final String defaultPort = PropertiesManager.getValue(PropertiesManager.p_selectedNetworkPort, "0");
-				int directServerPort = 0;
+				final String defaultPort = DefaultManager.getDirectServerPort();
+				int directServerPort = DefaultManager.DEFAULT_DIRECT_SERVER_PORT;
 				try{
 					directServerPort = Integer.parseInt(defaultPort);
 				}catch (final Throwable e) {

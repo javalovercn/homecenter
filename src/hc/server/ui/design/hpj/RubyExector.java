@@ -1,8 +1,10 @@
 package hc.server.ui.design.hpj;
 
 import hc.core.IConstant;
+import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
+import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
@@ -25,7 +27,7 @@ public class RubyExector {
 		context.run(new Runnable() {
 			@Override
 			public void run() {
-				RubyExector.parse(script, scriptName, hcje);
+				RubyExector.parse(script, scriptName, hcje, true);
 				if(hcje.isError){
 					return;
 				}
@@ -35,7 +37,7 @@ public class RubyExector {
 	}
 	
 	public static final Object run(final String script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context) {
-		RubyExector.parse(script, scriptName, hcje);
+		RubyExector.parse(script, scriptName, hcje, true);
 		
 		if(hcje.isError){
 			return null;
@@ -49,7 +51,7 @@ public class RubyExector {
 		});
 	}
 
-	public static synchronized final void parse(final String script, final String scriptName, final HCJRubyEngine hcje) {
+	public static synchronized final void parse(final String script, final String scriptName, final HCJRubyEngine hcje, final boolean isReportException) {
 		try {
 			if(hcje.isError){
 				hcje.errorWriter.reset();
@@ -58,6 +60,10 @@ public class RubyExector {
 			
 			hcje.parse(script, scriptName);
 		} catch (final Throwable e) {
+			if(isReportException){
+				ExceptionReporter.printStackTrace(e, script, e.toString(), ExceptionReporter.INVOKE_NORMAL);
+			}
+			
 			final String err = hcje.errorWriter.getMessage();
 			hcje.isError = true;
 			
@@ -172,10 +178,11 @@ public class RubyExector {
 	public static void initActive(final HCJRubyEngine hcje) {
 		final String script = 
 				"require 'java'\n" +
-				"str_class = Java::java.lang.String\n";
+				"str_class = Java::java.lang.String\n" +
+				"return str_class::valueOf(\"1\")\n";//初始引擎及调试之用
 		final String scriptName = null;
-		parse(script, scriptName, hcje);
-		runNoWait(script, scriptName, null, hcje);
+		parse(script, scriptName, hcje, false);
+		final Object out = runNoWait(script, scriptName, null, hcje);
 	}
 	
 	

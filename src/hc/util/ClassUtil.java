@@ -50,7 +50,7 @@ public class ClassUtil {
 		}
 	}
 	
-	public final static Object getField(final Class clazz, final Object obj, final String name, final boolean needModiAccessible) {
+	public final static Object getField(final Class clazz, final Object obj, final String name, final boolean needModiAccessible, final boolean isReportException) {
 		try{
 		    final Field field = clazz.getDeclaredField(name);
 		    if(needModiAccessible){
@@ -62,7 +62,9 @@ public class ClassUtil {
 		    }
 		    return out;
 		}catch (final Exception e) {
-			ExceptionReporter.printStackTrace(e);
+			if(isReportException){
+				ExceptionReporter.printStackTrace(e);
+			}
 		}
 		return null;
 	}

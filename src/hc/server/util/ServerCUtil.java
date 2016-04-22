@@ -11,9 +11,12 @@ import hc.core.util.CUtil;
 import hc.core.util.LogManager;
 import hc.server.PlatformManager;
 import hc.server.ui.SingleMessageNotify;
+import hc.util.ResourceUtil;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.SecureRandom;
+
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
@@ -30,18 +33,18 @@ public class ServerCUtil {
 	 * @param storeVerifyIdx
 	 * @return
 	 */
-	public static short checkCertKeyAndPwd(byte[] data, int offset, byte[] pwd, byte[] certKey, byte[] oldData){
+	public static short checkCertKeyAndPwd(final byte[] data, final int offset, final byte[] pwd, final byte[] certKey, final byte[] oldData){
 //		LogManager.logInTest("before : \n" + CUtil.toHexString(oldData, CUtil.VERIFY_CERT_IDX + offset, CCoreUtil.CERT_KEY_LEN));
 		CUtil.buildCheckCertKeyAndPwd(oldData, offset, pwd, certKey, true);
 //		LogManager.logInTest("after : \n" + CUtil.toHexString(oldData, CUtil.VERIFY_CERT_IDX + offset, CCoreUtil.CERT_KEY_LEN));
 //		LogManager.logInTest("receive ckp : \n" + CUtil.toHexString(data, CUtil.VERIFY_CERT_IDX + offset, CCoreUtil.CERT_KEY_LEN));
-		int endIdx = CUtil.VERIFY_CERT_IDX + CCoreUtil.CERT_KEY_LEN;
-		int firstHalfEndIdx = CUtil.VERIFY_CERT_IDX + CCoreUtil.CERT_KEY_LEN / 2;
+		final int endIdx = CUtil.VERIFY_CERT_IDX + CCoreUtil.CERT_KEY_LEN;
+		final int firstHalfEndIdx = CUtil.VERIFY_CERT_IDX + CCoreUtil.CERT_KEY_LEN / 2;
 //		String str1, str2;
 //		str1 = "";
 //		str2 = "";
 		for (int i = endIdx - 1; i >= CUtil.VERIFY_CERT_IDX; i--) {
-			int dataIdx = offset + i;
+			final int dataIdx = offset + i;
 //			str1 += " " + (Integer.toHexString(0xFF & oldData[i]));
 //			str2 += " " + (Integer.toHexString(0xFF & data[i]));
 			
@@ -51,10 +54,7 @@ public class ServerCUtil {
 			if(i < firstHalfEndIdx){
 //				System.out.println("security i:" + i);
 				if(oldData[dataIdx] != data[dataIdx]){
-					SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_ERROR_PASS, 
-							"a mobile try login with ERROR password", "Error Password", 1000 * 60, 
-							App.getSysIcon(App.SYS_ERROR_ICON));
-					LogManager.errToLog("a mobile try login with ERROR password");
+					notifyErrPWDDialog();
 					return IContext.BIZ_SERVER_AFTER_PWD_ERROR;
 				}
 			}else{
@@ -68,8 +68,19 @@ public class ServerCUtil {
 		return IContext.BIZ_SERVER_AFTER_CERTKEY_AND_PWD_PASS;
 	}
 
-	public static void transCertKey(byte[] oneTimeCertKey, byte msgTag, boolean isOneTimeKeys) {
-		IContext ic = ContextManager.getContextInstance();
+	public static void notifyErrPWDDialog() {
+		CCoreUtil.checkAccess();
+		
+		final String errPwd = (String)ResourceUtil.get(9185);
+		final String errPwdTitle = (String)ResourceUtil.get(9184);
+		SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_ERROR_PASS, 
+				errPwd, errPwdTitle, 1000 * 60, 
+				App.getSysIcon(App.SYS_ERROR_ICON));
+		LogManager.errToLog(errPwd);
+	}
+
+	public static void transCertKey(final byte[] oneTimeCertKey, final byte msgTag, final boolean isOneTimeKeys) {
+		final IContext ic = ContextManager.getContextInstance();
 		final byte[] transCKBS = new byte[MsgBuilder.UDP_BYTE_SIZE];
 		
 		CUtil.generateTransCertKey(App.getStartMS(), transCKBS, MsgBuilder.INDEX_MSG_DATA, oneTimeCertKey, IConstant.getPasswordBS(), isOneTimeKeys);
@@ -101,63 +112,63 @@ public class ServerCUtil {
 	static {
 		try{
 			PlatformManager.getService().addJCEProvider();
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
 		}
 	}
 
-	public static InputStream decodeStream(InputStream in, byte[] key, String cipherAlgorithm)
+	public static InputStream decodeStream(final InputStream in, byte[] key, final String cipherAlgorithm)
 			throws Exception {
 		key = doubePWD(key);
 		
 		// DES算法要求有一个可信任的随机数源
-		SecureRandom sr = new SecureRandom();
+		final SecureRandom sr = new SecureRandom();
 		// 创建一个 DESKeySpec 对象,指定一个 DES 密钥
-		DESKeySpec ks = new DESKeySpec(key);
+		final DESKeySpec ks = new DESKeySpec(key);
 		// 生成指定秘密密钥算法的 SecretKeyFactory 对象。
-		SecretKeyFactory factroy = SecretKeyFactory.getInstance(Algorithm);
+		final SecretKeyFactory factroy = SecretKeyFactory.getInstance(Algorithm);
 		// 根据提供的密钥规范（密钥材料）生成 SecretKey 对象,利用密钥工厂把DESKeySpec转换成一个SecretKey对象
-		SecretKey sk = factroy.generateSecret(ks);
+		final SecretKey sk = factroy.generateSecret(ks);
 		// 生成一个实现指定转换的 Cipher 对象。Cipher对象实际完成加解密操作
-		Cipher c = Cipher.getInstance(cipherAlgorithm);
+		final Cipher c = Cipher.getInstance(cipherAlgorithm);
 		// 用密钥和随机源初始化此 cipher
 		c.init(Cipher.DECRYPT_MODE, sk, sr);
 
 		// 从 InputStream 和 Cipher 构造 CipherInputStream。
 		// read() 方法在从基础 InputStream 读入已经由 Cipher 另外处理(加密或解密)
-		CipherInputStream cin = new CipherInputStream(in, c);
+		final CipherInputStream cin = new CipherInputStream(in, c);
 
 		return cin;
 	}
 
-	public static OutputStream encodeStream(OutputStream out, byte[] key)
+	public static OutputStream encodeStream(final OutputStream out, byte[] key)
 			throws Exception {
 		key = doubePWD(key);
 		
 		// 创建一个 DESKeySpec 对象,指定一个 DES 密钥
-		DESKeySpec ks = new DESKeySpec(key);
+		final DESKeySpec ks = new DESKeySpec(key);
 		// 生成指定秘密密钥算法的 SecretKeyFactory 对象。
-		SecretKeyFactory factroy = SecretKeyFactory.getInstance(Algorithm);
+		final SecretKeyFactory factroy = SecretKeyFactory.getInstance(Algorithm);
 		// 根据提供的密钥规范（密钥材料）生成 SecretKey 对象,利用密钥工厂把DESKeySpec转换成一个SecretKey对象
-		SecretKey sk = factroy.generateSecret(ks);
+		final SecretKey sk = factroy.generateSecret(ks);
 		
 		
 //		// 秘密（对称）密钥(SecretKey继承(key))
 //		// 根据给定的字节数组构造一个密钥。
 //		SecretKey deskey = new SecretKeySpec(key, Algorithm);
 		// 生成一个实现指定转换的 Cipher 对象。Cipher对象实际完成加解密操作
-		Cipher c = Cipher.getInstance(CipherAlgorithm);
+		final Cipher c = Cipher.getInstance(CipherAlgorithm);
 		// 用密钥初始化此 cipher
 		c.init(Cipher.ENCRYPT_MODE, sk);
 
 		// CipherOutputStream 由一个 OutputStream 和一个 Cipher 组成
 		// write() 方法在将数据写出到基础 OutputStream 之前先对该数据进行处理(加密或解密)
-		CipherOutputStream cout = new CipherOutputStream(out, c);
+		final CipherOutputStream cout = new CipherOutputStream(out, c);
 		return cout;
 	}
 
-	private static byte[] doubePWD(byte[] key) {
+	private static byte[] doubePWD(final byte[] key) {
 		if(key.length <= 8){
-			byte[] newKey = new byte[key.length * 2];
+			final byte[] newKey = new byte[key.length * 2];
 			for (int i = 0; i < key.length; i++) {
 				newKey[i] = key[i];
 			}

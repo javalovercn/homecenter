@@ -510,7 +510,7 @@ public class ProjResponser {
 					if(isStoped){
 						return;
 					}
-					RubyExector.parse(script, scriptName, hcje);
+					RubyExector.parse(script, scriptName, hcje, true);
 				}
 			}
 		}
@@ -751,7 +751,11 @@ public class ProjResponser {
 					final String scriptName = title;
 					final Mlet mlet = (Mlet)RubyExector.run(listener, scriptName, mapRuby, hcje, context);
 					if(mlet == null){
+						if(hcje.isError){
+							LogManager.errToLog("parse script error : " + hcje.sexception.getMessage() + ", for script : \n" + listener);
+						}
 						LogManager.err("Error instance Mlet in project [" + context.getProjectID() +"].");
+						//Fail to add HAR message
 						notifyMobileErrorScript(context, title);
 						return;
 					}

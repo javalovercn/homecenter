@@ -32,7 +32,7 @@ public class StarterManager {
 	}
 	
 	private static String getNewStarterVersion(){
-		return "7.2";
+		return "7.3";
 	}
 	
 	public static boolean hadUpgradeError = false;
@@ -131,13 +131,8 @@ public class StarterManager {
 	public static String getHCVersion(){
 		//从6.96(含)开始，源代码中内置版本信息，而无需从starter中获得
 		//注意：如果AgreeLicense发生变化，请同时更改App.getAgreeVersion()
-		return "7.4";
-//		final String ver = getHCVersionFromStarter();
-//		if(ver.equals(J2SEContext.MAX_HC_VER)){
-//			return PropertiesManager.getValue(PropertiesManager.p_LasterAutoUpgradeVer);
-//		}else{
-//			return ver;
-//		}
+		
+		return "7.6";//请同步修改go.php, android.php
 	}
 
 	private static String getHCVersionFromStarter() {

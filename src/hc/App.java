@@ -177,6 +177,15 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	private static Float jreVer;
 	public static float getJREVer() {
 		if(jreVer == null){
+			if(ResourceUtil.isAndroidServerPlatform()){
+				try{
+					jreVer = Float.parseFloat(System.getProperty(CCoreUtil.SYS_ANDROID_SERVER_JAVA_VERSION));
+					return jreVer.floatValue();
+				}catch (final Throwable e) {
+					ExceptionReporter.printStackTrace(e);
+				}
+			}
+			
 			final String ver = System.getProperty("java.version");
 			final Pattern pattern = Pattern.compile("^(\\d\\.\\d)");
 			final Matcher matcher = pattern.matcher(ver);
@@ -521,13 +530,22 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		if(PropertiesManager.isTrue(PropertiesManager.p_isReportException)){
 			ExceptionReporter.start(false);//false:由于log系统尚未完成初始化
 		}
-		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-			@Override
-			public final void uncaughtException(final Thread t, final Throwable e) {
-//					L.V = L.O ? false : LogManager.log("******************uncaughtException*****************=>" + e.getMessage());
-					ExceptionReporter.printStackTraceFromThreadPool(e);
-			}
-		});
+		{
+			final UncaughtExceptionHandler oldhandler = Thread.getDefaultUncaughtExceptionHandler();
+			
+			final UncaughtExceptionHandler handler = new UncaughtExceptionHandler() {
+				@Override
+				public final void uncaughtException(final Thread t, final Throwable e) {
+	//					L.V = L.O ? false : LogManager.log("******************uncaughtException*****************=>" + e.getMessage());
+						ExceptionReporter.printStackTraceFromThreadPool(e);
+//						if(oldhandler != null){//for Android存在重复printStackTrace
+//							oldhandler.uncaughtException(t, e);//for Android异常退出
+//						}
+				}
+			};
+			
+			Thread.setDefaultUncaughtExceptionHandler(handler);
+		}
 		
 		if(PropertiesManager.getValue(PropertiesManager.p_CertKey) == null){
 			L.V = L.O ? false : LogManager.log("create new certification for new install.");
@@ -849,7 +867,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		c.add(jsp, "Center");
 		c.add(botton, "South");
 
-		dialog.setSize(700, 600);
+		dialog.setSize(800, 700);//Android服务器调大
 		dialog.setResizable(false);
 		showCenter(dialog);
 	}
@@ -867,7 +885,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			App.SYS_LOGO = ImageIO.read(App.class.getClassLoader().getResource(
 					"hc/res/hc_16.png"));
 		} catch (final Exception e) {
-			ExceptionReporter.printStackTrace(e);
+			e.printStackTrace();
 		}
 	}
 

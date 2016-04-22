@@ -189,9 +189,18 @@ public class ProjectContext {
 
 	/**
 	 * @return the version of HomeCenter server.
+	 * @since 7.0
 	 */
 	public final String getHomeCenterVersion() {
 		return StarterManager.getHCVersion();
+	}
+	
+	/**
+	 * @return the version of JRE of standard JVM of Oracle or implementation of AWT/Swing for Android server.
+	 * @since 7.5
+	 */
+	public final String getJREVersion() {
+		return String.valueOf(App.getJREVer());
 	}
 
 	/**

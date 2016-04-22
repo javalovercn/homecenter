@@ -169,7 +169,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		final String script = jtaScript.getText();
 		ScriptException evalException = null;
 		try{
-			RubyExector.parse(script, null, runTestEngine);
+			RubyExector.parse(script, null, runTestEngine, false);
 			evalException = runTestEngine.getEvalException();
 			if(evalException == null && (isRun || isCompileOnly == false)){
 				RubyExector.run(script, null, map, runTestEngine, context);

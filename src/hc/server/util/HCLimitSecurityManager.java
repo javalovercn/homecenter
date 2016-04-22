@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ReflectPermission;
 import java.net.SocketPermission;
 import java.security.Permission;
 import java.security.PermissionCollection;
@@ -45,6 +46,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.PropertyPermission;
 import java.util.Vector;
+import java.util.logging.LoggingPermission;
 
 public class HCLimitSecurityManager extends WrapperSecurityManager implements HarHelper{
 	private final String OUTSIDE_HAR_WORKING_THREAD = " in EventQueue thread, try using ProjectContext.invokeLater and ProjectContext.getUserFile";
@@ -335,7 +337,16 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
-			if(perm instanceof SocketPermission){
+			if(perm instanceof ReflectPermission){
+				if(perm.getName().equals("suppressAccessChecks")){//JRuby使用反射
+//					if(csc != null && csc.isAccessPrivateField() == false){
+//						throw new HCSecurityException("block Field/Method/Constructor setAccessible in HAR Project  [" + csc.projID + "]."
+//							+ buildPermissionOnDesc(HCjar.PERMISSION_ACCESS_PRIVATE_FIELD));
+//					}
+				}else{
+					throw new HCSecurityException("block ReflectPermission : " + perm.toString() + " in HAR Project  [" + csc.projID + "].");
+				}
+			}else if(perm instanceof SocketPermission){
 				if(csc != null){
 					final PermissionCollection collection = csc.getSocketPermissionCollection();
 					if(collection != null){
@@ -407,6 +418,17 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 						throw new HCSecurityException("block java.lang.System.setIn/setOut/setErr in HAR Project  [" + csc.projID + "]."
 								+ buildPermissionOnDesc(HCjar.PERMISSION_SETIO));
 					}
+				}else if(permissionName.equals("getClassLoader") 
+						|| permissionName.equals("getProtectionDomain")
+						|| permissionName.equals("createClassLoader")
+						|| permissionName.startsWith("accessClassInPackage")//accessClassInPackage.sun.reflect, accessClassInPackage.sun.misc
+						){//JRuby正常反射需要
+				}else if(permissionName.equals("setDefaultUncaughtExceptionHandler")){
+					throw new HCSecurityException("block RuntimePermission [setDefaultUncaughtExceptionHandler] in HAR Project  [" + csc.projID + "].");
+				}else{
+//					if(csc != null){//阻止其它RuntimePermission，比如setDefaultUncaughtExceptionHandler
+//						throw new HCSecurityException("block RuntimePermission [" + permissionName + "] in HAR Project  [" + csc.projID + "].");
+//					}
 				}
 //			}else if(perm instanceof NetPermission){
 //				System.out.println("NetPermission : " + perm.toString());
@@ -415,13 +437,15 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 //					|| permissionName.equals("specifyStreamHandler")){
 //					throw new HCSecurityException("block " + perm.toString());
 //				}
-//			}else if(perm instanceof ReflectPermission){
-//				final String permissionName = perm.getName();
-//				if (permissionName.equals("suppressAccessChecks")){
-//					if(csc != null && csc.isAccessPrivateField() == false){
-//						throw new HCSecurityException("block Field/Method/Constructor setAccessible in HAR Project  [" + csc.projID + "]."
-//								+ buildPermissionOnDesc(HCjar.PERMISSION_ACCESS_PRIVATE_FIELD));
-//					}
+			}else if(perm instanceof LoggingPermission){
+				final String permissionName = perm.getName();
+				if(permissionName.equals("control")){//JRuby正常反射需要
+				}else{
+//					throw new HCSecurityException("block LoggingPermission [" + permissionName + "] in HAR Project  [" + csc.projID + "].");
+				}
+			}else{
+//				if(csc != null){//阻止其它Permission，
+//					throw new HCSecurityException("block " + perm.getClass().getSimpleName() + " [" + perm.getName() + "] in HAR Project  [" + csc.projID + "].");
 //				}
 			}
 		}

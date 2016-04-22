@@ -104,9 +104,9 @@ public class ConfigPane extends SingleJFrame {
 			final String[] fontlist =
 					   GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
 			final JComboBox fontNames = new JComboBox(fontlist);
-			final NumberFormatTextField fontSize = new NumberFormatTextField();
+			final NumberFormatTextField fontSize = new NumberFormatTextField(DefaultManager.DEFAULT_FONT_SIZE);
 			final String oldName = PropertiesManager.getValue(PropertiesManager.C_FONT_NAME, "Dialog");
-			final String oldFontSize = PropertiesManager.getValue(PropertiesManager.C_FONT_SIZE, "16");
+			final String oldFontSize = PropertiesManager.getValue(PropertiesManager.C_FONT_SIZE, DefaultManager.DEFAULT_FONT_SIZE);
 			final ConfigValue cvSize = new ConfigValue(PropertiesManager.C_FONT_SIZE, oldFontSize, group) {
 				@Override
 				public String getNewValue() {
@@ -571,7 +571,7 @@ public void run() {
 					final JLabel label = new JLabel("API docs font size :");
 					label.setToolTipText("the font size of API docs in designer.");
 					
-					final NumberFormatTextField sizeField = new NumberFormatTextField();
+					final NumberFormatTextField sizeField = new NumberFormatTextField(DefaultManager.DEFAULT_DOC_FONT_SIZE_INPUT);
 					sizeField.setColumns(4);
 					sizeField.setText(oldDocFontSize);
 					
@@ -635,10 +635,10 @@ public void run() {
 				}
 				
 				{
-					final JLabel intervalSecondsNextStartLabel = new JLabel("interval seconds between stop and restart HAR project : ");
-					final NumberFormatTextField intervalSecondsNextStartField = new NumberFormatTextField();
+					final JLabel intervalSecondsNextStartLabel = new JLabel((String)ResourceUtil.get(9175) + " : ");
+					final NumberFormatTextField intervalSecondsNextStartField = new NumberFormatTextField(DefaultManager.INTERVAL_SECONDS_FOR_NEXT_STARTUP);
 					intervalSecondsNextStartField.setColumns(5);
-					final String tooltip = "<html>it is used for waiting resource to be released after stopping HAR.</html>";
+					final String tooltip = "<html>" + (String)ResourceUtil.get(9176) + "</html>";
 					intervalSecondsNextStartLabel.setToolTipText(tooltip);
 					
 					final String oldIntervalSeconds = String.valueOf(ResourceUtil.getIntervalSecondsForNextStartup());
@@ -666,11 +666,17 @@ public void run() {
 				}
 				
 				{
-					final JLabel preloadAfterStartup = new JLabel("pre load and compile JRuby scripts after");
-					final JLabel back = new JLabel("seconds when startup.");
-					final NumberFormatTextField seconds = new NumberFormatTextField(true);
+					final String split = "{split}";
+					final String preload = (String)ResourceUtil.get(9177);
+					final int splitIdx = preload.indexOf(split);
+					final String p1 = preload.substring(0, splitIdx);
+					final String p2 = preload.substring(splitIdx + split.length());
+					
+					final JLabel preloadAfterStartup = new JLabel(p1);
+					final JLabel back = new JLabel(p2);
+					final NumberFormatTextField seconds = new NumberFormatTextField(true, DefaultManager.PRELOAD_AFTER_STARTUP_FOR_INPUT);
 					seconds.setColumns(5);
-					final String tooltip = "<html>if input -1, then never pre-load and compile JRuby scripts.</html>";
+					final String tooltip = "<html>" + (String)ResourceUtil.get(9178) + "</html>";
 					preloadAfterStartup.setToolTipText(tooltip);
 					
 					final String oldIntervalSeconds = String.valueOf(ResourceUtil.getSecondsForPreloadJRuby());
@@ -705,7 +711,7 @@ public void run() {
 		{
 			securityPane.setLayout(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
 			
-			final String tooltip = "If error password or certification try login some times, then lock ID for some minutes.";
+			final String tooltip = (String)ResourceUtil.get(9174);
 			
 			final JPanel panel = new JPanel();
 			panel.setLayout(new FlowLayout(FlowLayout.LEADING, ClientDesc.hgap, ClientDesc.vgap));
@@ -719,21 +725,27 @@ public void run() {
 			panel.add(label);
 			panel.add(new JLabel(" >= "));
 			label.setToolTipText(tooltip);
-			final NumberFormatTextField jtfMaxTimers = new NumberFormatTextField();
+			final NumberFormatTextField jtfMaxTimers = new NumberFormatTextField(DefaultManager.ERR_TRY_TIMES);
 			jtfMaxTimers.setToolTipText(tooltip);
 			jtfMaxTimers.setText(String.valueOf(SystemLockManager.getConfigErrTry()));
 			jtfMaxTimers.setColumns(5);
 			panel.add(jtfMaxTimers);
 			
 			panel.add(new JLabel(", "));
-			panel.add(new JLabel(new ImageIcon(ImageSrc.LOCK_ICON)));
-			final NumberFormatTextField jtfLockMinutes = new NumberFormatTextField();
+			final JLabel lockLabel = new JLabel(new ImageIcon(ImageSrc.LOCK_ICON));
+			lockLabel.setToolTipText(tooltip);
+			panel.add(lockLabel);
+			final NumberFormatTextField jtfLockMinutes = new NumberFormatTextField(DefaultManager.LOCK_MINUTES);
 			jtfLockMinutes.setToolTipText(tooltip);
 			jtfLockMinutes.setText(String.valueOf(SystemLockManager.getConfigLockMinutes()));
 			jtfLockMinutes.setColumns(5);
 			panel.add(jtfLockMinutes);
-			panel.add(new JLabel(new ImageIcon(ResourceUtil.getImage(ResourceUtil.getResource("hc/res/timer_22.png")))));
-			panel.add(new JLabel((String)ResourceUtil.get(9047)));
+			final JLabel timeLabel = new JLabel(new ImageIcon(ResourceUtil.getImage(ResourceUtil.getResource("hc/res/timer_22.png"))));
+			timeLabel.setToolTipText(tooltip);
+			panel.add(timeLabel);
+			final JLabel minuteLabel = new JLabel((String)ResourceUtil.get(9047));
+			minuteLabel.setToolTipText(tooltip);
+			panel.add(minuteLabel);
 			
 			final ConfigValue cvErrTry = new ConfigValue(PropertiesManager.PWD_ERR_TRY, jtfMaxTimers.getText(), group){
 				@Override
@@ -776,8 +788,8 @@ public void run() {
 
 			final ConfigValueNetwork cvNetwork = new ConfigValueNetwork(network, self, PropertiesManager.p_selectedNetwork, (String)network.getSelectedItem(), group);
 			
-			final NumberFormatTextField networkPort = new NumberFormatTextField();
-			networkPort.setText(PropertiesManager.getValue(PropertiesManager.p_selectedNetworkPort, "0"));
+			final NumberFormatTextField networkPort = new NumberFormatTextField(DefaultManager.DEFAULT_DIRECT_SERVER_PORT_FOR_INPUT);
+			networkPort.setText(DefaultManager.getDirectServerPort());
 			new ConfigValue(PropertiesManager.p_selectedNetworkPort, networkPort.getText(), group){
 				String newOldValue = getOldValue();
 				String realWorkingValue = getOldValue();
@@ -805,22 +817,19 @@ public void run() {
 				}
 			};
 			final JPanel networkPane = new JPanel(new BorderLayout(0, vgap));
-			panel.setBorder(new TitledBorder("Security : "));
+			panel.setBorder(new TitledBorder((String)ResourceUtil.get(9045) + " : "));
 			networkPane.add(panel, BorderLayout.NORTH);
 			final JPanel borderPane = new JPanel(new BorderLayout());
-			borderPane.setBorder(new TitledBorder("Network Interface of Direct Server : "));
-			final JPanel descPane = ServerUIUtil.buildDescPanel("it is priority for mobile to connect to this server directly." +
-					"<BR>if fail on direct connection, mobile try build connection on relay server, <BR>which exchange data between mobile and your server." +
-					"<BR><BR>it is required to rebuild connection if network interface is modified!");
+			borderPane.setBorder(new TitledBorder((String)ResourceUtil.get(9170) + " : "));
+			final JPanel descPane = ServerUIUtil.buildDescPanel((String)ResourceUtil.get(9171));
 			borderPane.add(descPane, 
 					BorderLayout.CENTER);
 			{
 				final JPanel networkPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 				networkPanel.add(network);
-				final JLabel port = new JLabel("local port : ");
+				final JLabel port = new JLabel((String)ResourceUtil.get(9172) + " : ");
 				final String porttooltip = "<html>" +
-						"0-65535, 0 : select random port" +
-						"<br>the port for mobile to connect to this server directly." +
+						(String)ResourceUtil.get(9173) +
 						"</html>";
 				port.setToolTipText(porttooltip);
 				networkPort.setToolTipText(porttooltip);

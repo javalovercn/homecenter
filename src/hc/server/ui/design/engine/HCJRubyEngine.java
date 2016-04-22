@@ -1,11 +1,14 @@
 package hc.server.ui.design.engine;
 
+import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LRUCache;
+import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.server.ui.design.hpj.HCScriptException;
 import hc.server.ui.design.hpj.RubyWriter;
 import hc.util.ClassUtil;
+import hc.util.ResourceUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -63,6 +66,13 @@ public class HCJRubyEngine {
 
 	private final Object putCompileUnit(final String script, String scriptName) throws Exception {
 		final Object unit;
+//		final Object currentDirectory = getCurrentDirectory();
+//		L.V = L.O ? false : LogManager.log("JRubyEngine getCurrentDirectory : " + currentDirectory);
+//		if(currentDirectory == null){
+//			setCurrentDirectory();
+//			L.V = L.O ? false : LogManager.log("JRubyEngine getCurrentDirectory : " + currentDirectory);
+//		}
+//		L.V = L.O ? false : LogManager.log("JRubyEngine getHomeDirectory : " + getHomeDirectory());
 		if(isReportException){
 //			InputStream istream, String filename, int... lines
 			final InputStream in = new ByteArrayInputStream(StringUtil.getBytes(script)); 
@@ -175,11 +185,13 @@ public class HCJRubyEngine {
 		final Class[] construParaTypes = {classLocalContextScope, classLocalVariableBehavior, boolean.class};
 		final Constructor constr = classScriptingContainer.getConstructor(construParaTypes);
 		final Object[] constrPara = {
-				ClassUtil.getField(classLocalContextScope, classLocalContextScope, "SINGLETHREAD", false),//SINGLETHREAD : ScriptingContainer will not do any multiplexing at all.
-				ClassUtil.getField(classLocalVariableBehavior, classLocalVariableBehavior, "TRANSIENT", false),//TRANSIENT
+				ClassUtil.getField(classLocalContextScope, classLocalContextScope, "SINGLETHREAD", false, true),//SINGLETHREAD : ScriptingContainer will not do any multiplexing at all.
+				ClassUtil.getField(classLocalVariableBehavior, classLocalVariableBehavior, "TRANSIENT", false, true),//TRANSIENT
 				Boolean.TRUE};
 		container = constr.newInstance(constrPara);
 		
+//		System.out.println("getHomeDirectory : " + getHomeDirectory());
+//		System.out.println("getCurrentDirectory : " + getCurrentDirectory());
 		
 //		container.setProfile(org.jruby.Profile.DEBUG_ALLOW);
 //		{
@@ -192,10 +204,23 @@ public class HCJRubyEngine {
 
 //		container.setCompileMode(org.jruby.RubyInstanceConfig$CompileMode.FORCE);
 		if(isReportException){
-			final Class CompileMode = projClassLoader.loadClass("org.jruby.RubyInstanceConfig$CompileMode");
-			final Object force = ClassUtil.getField(CompileMode, CompileMode, "FORCE", false);
-			final Class[] paraTypes = {CompileMode};
-			final Object[] para = {force};
+			Object compileMode;
+			final Class compileModeClass = projClassLoader.loadClass("org.jruby.RubyInstanceConfig$CompileMode");
+////			TRUFFLE
+//			compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "TRUFFLE", false, false);
+//			if(compileMode != null){
+//				L.V = L.O ? false : LogManager.log("JRubyEngine compileMode : TRUFFLE");
+//			}else{
+				if(ResourceUtil.isAndroidServerPlatform()){
+					compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "JIT", false, true);
+					L.V = L.O ? false : LogManager.log("JRubyEngine compileMode : JIT");
+				}else{
+					compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "FORCE", false, true);
+					L.V = L.O ? false : LogManager.log("JRubyEngine compileMode : FORCE");
+				}
+//			}
+			final Class[] paraTypes = {compileModeClass};
+			final Object[] para = {compileMode};
 			ClassUtil.invoke(classScriptingContainer, container, "setCompileMode", paraTypes, para, false);
 		}
 		
@@ -209,11 +234,11 @@ public class HCJRubyEngine {
 		}
 		
 //		container.setCurrentDirectory(absPath);
-		{
-			final Class[] paraType = {String.class};
-			final Object[] para = {absPath};
-			ClassUtil.invoke(classScriptingContainer, container, "setCurrentDirectory", paraType, para, false);
-		}
+//		if(absPath != null){
+//			final Class[] paraType = {String.class};
+//			final Object[] para = {absPath};
+//			ClassUtil.invoke(classScriptingContainer, container, "setCurrentDirectory", paraType, para, false);
+//		}
 		
 //		container.setError(errorWriter);
 		{
@@ -229,5 +254,20 @@ public class HCJRubyEngine {
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
+	}
+
+	private Object getCurrentDirectory() {
+		return ClassUtil.invoke(classScriptingContainer, container, "getCurrentDirectory", ClassUtil.nullParaTypes, ClassUtil.nullParas, false);
+	}
+
+	private Object setCurrentDirectory() {
+		final Class[] paraTypes = {String.class};
+		final Object[] para = {"/data/data/homecenter.mobi.server/files/jruby.jar.apk!/jruby.home/"};//{getHomeDirectory() + "!/"};
+		//[jruby.home] : file:/data/data/homecenter.mobi.server/files/jruby.jar.apk!/jruby.home
+		return ClassUtil.invoke(classScriptingContainer, container, "setCurrentDirectory", paraTypes, para, false);
+	}
+	
+	private Object getHomeDirectory() {
+		return ClassUtil.invoke(classScriptingContainer, container, "getHomeDirectory", ClassUtil.nullParaTypes, ClassUtil.nullParas, false);
 	}
 }

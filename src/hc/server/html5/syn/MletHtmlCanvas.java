@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
 
 import javax.swing.AbstractButton;
 import javax.swing.JCheckBox;
@@ -72,10 +71,9 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	private static final String iOS2serverScript = loadLocalJS("ios2server.js");
 	
 	private static String loadLocalJS(final String name){
-		final URL url = ResourceUtil.getResource("hc/server/html5/res/" + name);
 		try{
-			final InputStream inputStream = new FileInputStream(new File(url.toURI()));
-			final InputStreamReader isr = new InputStreamReader(inputStream, IConstant.UTF_8);
+			//支持源码和jar模式
+			final InputStreamReader isr = new InputStreamReader(ResourceUtil.getResourceAsStream("hc/server/html5/res/" + name), IConstant.UTF_8);
 			return StringUtil.load(isr);
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);

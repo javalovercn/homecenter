@@ -125,10 +125,10 @@ public class HTMLMlet extends Mlet {
 	}
 	
 	/**
-	 * set <i>class</i> and <i>style</i> for your {@link JComponent}.
+	 * set <i>class</i> and/or <i>style</i> for your {@link JComponent}.
 	 * <BR><BR>
-	 * the <i>class</i> and <i>style</i> will be translated to mobile immediately.<BR>
-	 * you can also invoke this method in constructor of {@link HTMLMlet}.
+	 * the <i>class</i> and/or <i>style</i> will be translated to mobile immediately.<BR>
+	 * invoking this method in constructor of {@link HTMLMlet} is allowed.
 	 * <BR><BR>
 	 * <STRONG>Important</STRONG> : 
 	 * <BR>
@@ -136,10 +136,10 @@ public class HTMLMlet extends Mlet {
 	 * <BR>
 	 * 2. To get environment of mobile, please reference {@link ProjectContext#getMobileOS()} and {@link ProjectContext#getMobileOSVer()}.
 	 * <BR>
-	 * 3. If you need resize image for mobile, please resize them into a jar library first, or {@link #resizeImage(java.awt.image.BufferedImage, int, int)}.
-	 * <BR>It is not recommend to resize image by your implementation, because the HAR project may be executed in environment which is NOT standard J2SE.
+	 * 3. If you need resize image for mobile, please resize them first and save them into a jar library, or invoke {@link #resizeImage(java.awt.image.BufferedImage, int, int)}.
+	 * <BR>It is not recommend to resize image by your implementation, because the HAR project may be executed in Swing/J2SE environment for Android which is NOT standard J2SE.
 	 * <BR>
-	 * 4. The best practice is <STRONG>JComponent + LayoutManager + Event + CSS</STRONG>(basic layout, basic event listener).
+	 * 4. The best practice is <STRONG>JComponent + LayoutManager + Event + CSS</STRONG>(Note : the implementation of Swing/J2SE for Android is differentiated from Oracle J2SE, if your HAR runs in Android server).
 	 * <BR>
 	 * 5. If your UI is ugly, please ask your CSS artist for pleasantly surprised!
 	 * <BR><BR>

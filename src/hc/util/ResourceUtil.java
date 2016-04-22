@@ -6,12 +6,14 @@ import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
+import hc.core.RootServerConnector;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StoreableHashMap;
 import hc.core.util.StringUtil;
 import hc.core.util.WiFiDeviceManager;
+import hc.server.DefaultManager;
 import hc.server.J2SEContext;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
@@ -57,12 +59,109 @@ import javax.imageio.ImageIO;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 public class ResourceUtil {
 	private static final String USER_PROJ = "user.proj.";
 	private final static Class starterClass = getStarterClass();
+	
+	public static ImageIcon getHideIcon(){
+		try {
+			return new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/hide_22.png")));
+		} catch (final IOException e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+		return null;
+	}
+	
+	public static String getHideText(){
+		return (String)ResourceUtil.get(9179);
+	}
+	
+	public static String getShowText(){
+		return (String)ResourceUtil.get(9180);
+	}
+	
+	public static String getHideTip(){
+		return (String)ResourceUtil.get(9181);
+	}
+	
+	public static String getShowTip(){
+		return (String)ResourceUtil.get(9186);
+	}
+	
+	public static boolean refreshHideCheckBox(final JCheckBox checkBox, final JMenuItem hideIDForErrCert){
+		final boolean isHide = DefaultManager.isHideIDForErrCert();
+		final String tip = "<html>" +
+				"<STRONG>" + getHideText() + "</STRONG>&nbsp;" + getHideTip() +
+				"<BR>" +
+				"<STRONG>" + getShowText() + "</STRONG>&nbsp;" + getShowTip() +
+				"</html>";
+		
+		final String hideCheckText;
+		if(isHide){
+			hideCheckText = ResourceUtil.getShowText();
+		}else{
+			hideCheckText = ResourceUtil.getHideText();
+		}
+		final ImageIcon hideCheckIcon;
+		if(isHide){
+			hideCheckIcon = ResourceUtil.getHideIcon();
+		}else{
+			hideCheckIcon = ResourceUtil.getShowIcon();
+		}
+		
+		if(checkBox != null){
+			checkBox.setText(hideCheckText);
+			checkBox.setIcon(hideCheckIcon);
+			
+			checkBox.setToolTipText(tip);
+		}
+		
+		hideIDForErrCert.setText(hideCheckText);
+		hideIDForErrCert.setIcon(hideCheckIcon);
+		hideIDForErrCert.setToolTipText(tip);
+		
+		if(DefaultManager.isEnableTransNewCertNow()){
+			hideIDForErrCert.setEnabled(false);//允许传送证书时，不能修改此项
+		}else{
+			hideIDForErrCert.setEnabled(true);
+		}
+		
+		return isHide;
+	}
+	
+	public static String refreshRootAlive() {
+		final String token = TokenManager.getToken();
+		final boolean isEnableTrans = DefaultManager.isEnableTransNewCertNow();
+		final boolean hideIP = isEnableTrans?false:DefaultManager.isHideIDForErrCert();
+		final String hideToken = RootServerConnector.getHideToken();
+		
+		return RootServerConnector.refreshRootAlive_impl(token, hideIP, hideToken);
+	}
+	
+	/**
+	 * 
+	 * @param isShow true : is hide , false : is show
+	 */
+	public static void setHideIDForErrCertAndSave(final boolean isHide){
+		PropertiesManager.setValue(PropertiesManager.p_HideIDForErrCert, isHide?IConstant.TRUE:IConstant.FALSE);
+		PropertiesManager.saveFile();
+		
+		ResourceUtil.refreshRootAlive();
+	}
+	
+	public static ImageIcon getShowIcon(){
+		try {
+			return new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/show_22.png")));
+		} catch (final IOException e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+		return null;
+	}
 	
 	public final static Object moveToDoubleArraySize(final Object srcArray){
 		final int length = Array.getLength(srcArray);
@@ -123,13 +222,18 @@ public class ResourceUtil {
 		}
 		
 		final File jruby = new File(App.getBaseDir(), J2SEContext.jrubyjarname);
+		
+		PlatformManager.getService().setJRubyHome(PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer), jruby.getAbsolutePath());
+		
 		final File[] files = {jruby};
 		rubyAnd3rdLibsClassLoaderCache = PlatformManager.getService().loadClasses(files, PlatformManager.getService().get3rdClassLoader(null), true, "hc.jruby");
 		if(rubyAnd3rdLibsClassLoaderCache == null){
+			final String message = "Error to get JRuby/3rdLibs ClassLoader!";
+			LogManager.errToLog(message);
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-					App.showMessageDialog(null, "Load JRuby lib error!", "Error", JOptionPane.ERROR_MESSAGE);
+					App.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}, App.getThreadPoolToken());
 		}else{
@@ -794,14 +898,14 @@ public class ResourceUtil {
 
 	public static int getIntervalSecondsForNextStartup() {
 		try{
-			return Integer.parseInt(PropertiesManager.getValue(PropertiesManager.p_intervalSecondsNextStartup, "5"));
+			return Integer.parseInt(PropertiesManager.getValue(PropertiesManager.p_intervalSecondsNextStartup, DefaultManager.INTERVAL_SECONDS_FOR_NEXT_STARTUP));
 		}catch (final Exception e) {
 			return 5;
 		}
 	}
 
 	public static int getSecondsForPreloadJRuby() {
-		final String preloadAfterStartup = PropertiesManager.getValue(PropertiesManager.p_preloadAfterStartup, "120");
+		final String preloadAfterStartup = PropertiesManager.getValue(PropertiesManager.p_preloadAfterStartup, DefaultManager.PRELOAD_AFTER_STARTUP_FOR_INPUT);
 		int seconds = 0;
 		try{
 			seconds = Integer.parseInt(preloadAfterStartup);

@@ -50,6 +50,7 @@ public class CCoreUtil {
 	//非标准J2SE环境，设置此值到System.setProperty
 	public static final String SYS_SERVER_OS_PLATFORM = "user.hc.server.os";
 	public static final String SYS_SERVER_OS_ANDROID_SERVER = "Android";
+	public static final String SYS_ANDROID_SERVER_JAVA_VERSION = "user.hc.android.server.java.version";//android环境下，AWT/Swing采用的版本
 	
 	public static final Object getGlobalLock(){
 		checkAccess();

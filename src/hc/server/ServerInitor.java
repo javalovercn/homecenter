@@ -170,7 +170,7 @@ public class ServerInitor {
 														@Override
 														public void run() {
 															SingleMessageNotify.setShowToType(SingleMessageNotify.TYPE_DIALOG_TRANS_OFF, false);
-															if(J2SEContext.isEnableTransNewCertNow()){
+															if(DefaultManager.isEnableTransNewCertNow()){
 																J2SEContext.flipTransable(false, true);																
 															}
 														}
@@ -321,7 +321,10 @@ public class ServerInitor {
 						L.V = L.O ? false : LogManager.log("Error Pwd OR Certifcation try "+ (++pwdErrTry) +" time(s)");
 
 						ContextManager.getContextInstance().send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_PWD_ERROR));
-						L.V = L.O ? false : LogManager.log("Second Cert Key Error, send Err Password status");						
+						L.V = L.O ? false : LogManager.log("Second Cert Key Error, send Err Password status");		
+						
+						ServerCUtil.notifyErrPWDDialog();
+						
 						SIPManager.notifyRelineon(true);
 					}else{
 						ContextManager.getContextInstance().doExtBiz(b, null);

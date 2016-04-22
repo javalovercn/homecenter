@@ -213,7 +213,7 @@ public class MenuListEditPanel extends NodeEditPanel {
 	
 	final JPanel namePanel = new JPanel();
 	final JTextField nameFiled = new JTextField();
-	final NumberFormatTextField colNumFiled = new NumberFormatTextField();
+	final NumberFormatTextField colNumFiled = new NumberFormatTextField(0);
 	final JTextField menuIDField = new JTextField();
 	
 	final JButton upButton = new JButton("up", Designer.loadImg("up_22.png"));

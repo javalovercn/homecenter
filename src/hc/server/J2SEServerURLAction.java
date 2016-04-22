@@ -293,7 +293,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 							}
 							
 							if(isNotifyPressStart == false){
-								mlet.setProcessingMessage((String)ResourceUtil.get(9134));
+								mlet.appendMessage((String)ResourceUtil.get(9134));
 								isNotifyPressStart = true;
 							}
 							try{
@@ -304,7 +304,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 						}while(url == null && totalSleep < maxSleepMS);
 						
 						if(url == null && totalSleep >= maxSleepMS){
-							mlet.setProcessingMessage((String)ResourceUtil.get(9133));
+							mlet.appendMessage((String)ResourceUtil.get(9133));
 							mlet.exitButton.setEnabled(true);
 							return;
 						}

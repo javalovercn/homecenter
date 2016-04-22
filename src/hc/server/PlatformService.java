@@ -28,11 +28,15 @@ public interface PlatformService {
 	
 	public void setAutoStart(boolean isAutoStart);
 	
+	public void setJRubyHome(final String version, final String absPath);
+	
 	public boolean isLockScreen();
 	
 	public String[] listAssets(final Object path);
 	
 	public WiFiDeviceManager getWiFiManager();
+	
+	public long getAvailableSize();
 	
 	/**
 	 * 

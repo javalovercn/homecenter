@@ -19,6 +19,7 @@ import javax.swing.JOptionPane;
 public class PropertiesManager {
 	public static long PropertiesLockThreadID = 0;//置于最前
 	private static String fileName = IConstant.propertiesFileName;
+	private static File propFile;
 	private static boolean enableLock = IConstant.enableInitLock;
 	
 	public final static String getPropertiesFileName(){
@@ -59,6 +60,7 @@ public class PropertiesManager {
 	public static final String p_RelayServerLocalIP = "ServerIP";
 	public static final String p_RelayServerLocalPort = "ServerPort";
 	public static final String p_RelayBlockNum = "RelayBlockNum";
+	public static final String p_HideIDForErrCert = "HideIDForErrCert";
 	
 	//本地Relay服务器IP从p_RelayServerLocalIP中取
 	@Deprecated
@@ -287,7 +289,7 @@ public class PropertiesManager {
         		}
             	
             	synchronized (globalLock) {
-                	final FileOutputStream outputFile = new FileOutputStream(fileName);
+                	final FileOutputStream outputFile = new FileOutputStream(propFile);
                     propertie.store(outputFile, null);
                     outputFile.close();
 				}
@@ -381,11 +383,15 @@ public class PropertiesManager {
     	}
 
     	try{
-    		final File file = new File(new File(System.getProperty("user.dir")), fileName);
-    		locker = new FileLocker(file, FileLocker.READ_WRITE_MODE);
+    		if(ResourceUtil.isAndroidServerPlatform()){
+    			propFile = new File(App.getBaseDir(), fileName);
+    		}else{
+    			propFile = new File(fileName);
+    		}
+    		locker = new FileLocker(propFile, FileLocker.READ_WRITE_MODE);
     		
-    		if(file.exists()){
-	    		final FileInputStream inputFile = new FileInputStream(fileName);
+    		if(propFile.exists()){
+	    		final FileInputStream inputFile = new FileInputStream(propFile);
 	            propertie.load(inputFile);
 	            inputFile.close();
 	    		
@@ -395,7 +401,8 @@ public class PropertiesManager {
 	            	}
 	    		}
             }
-        } catch (final Exception ex){
+        } catch (final Throwable ex){
+        	ExceptionReporter.printStackTrace(ex);
         	App.showMessageDialog(null, "<html>error on read data from properties file!" +
         			"<BR><BR>file may be using by application!</html>", "Error", JOptionPane.ERROR_MESSAGE);
         	PlatformManager.getService().exitSystem();

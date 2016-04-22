@@ -106,6 +106,13 @@ public class ExceptionReporter {
 		printStackTrace(throwable, script, errMessage, INVOKE_HAR);
 	}
 	
+	/**
+	 * 
+	 * @param throwable
+	 * @param script
+	 * @param errMessage
+	 * @param invokeFrom one of {@link #INVOKE_NORMAL}, {@link #INVOKE_HAR}, {@link #INVOKE_THREADPOOL}
+	 */
 	public static final void printStackTrace(final Throwable throwable, final String script, final String errMessage, final int invokeFrom){
 		throwable.printStackTrace();
 		

@@ -1,6 +1,7 @@
 package hc.server.ui;
 
 import hc.core.ContextManager;
+import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootServerConnector;
 import hc.core.cache.CacheManager;
@@ -140,6 +141,7 @@ public class ServerUIUtil {
 					ExceptionReporter.printStackTrace(e);
 				}
 				if(responsor == null){
+					L.V = L.O ? false : LogManager.log("cancel all HAR projects.");
 					cancelHAR(respo);
 				}
 				if(responsor == null){
@@ -156,6 +158,7 @@ public class ServerUIUtil {
 				responsor.start();
 				
 				if(responsor instanceof MobiUIResponsor){
+					L.V = L.O ? false : LogManager.log("successful start all HAR projects");
 					((MobiUIResponsor)responsor).preLoadJRubyScripts();
 				}
 			}catch (final Throwable e) {
@@ -209,6 +212,9 @@ public class ServerUIUtil {
 		if(snap != null){
 			try{
 				snap.stop();
+				if(snap instanceof MobiUIResponsor){
+					L.V = L.O ? false : LogManager.log("stop all projects.");
+				}
 			}catch (final Throwable e) {
 				ExceptionReporter.printStackTrace(e);
 			}

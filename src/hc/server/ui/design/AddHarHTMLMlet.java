@@ -1,5 +1,6 @@
 package hc.server.ui.design;
 
+import hc.App;
 import hc.core.ContextManager;
 import hc.core.IContext;
 import hc.core.L;
@@ -11,6 +12,7 @@ import hc.core.util.StringUtil;
 import hc.res.ImageSrc;
 import hc.server.HCActionListener;
 import hc.server.J2SEServerURLAction;
+import hc.server.PlatformManager;
 import hc.server.ScreenServer;
 import hc.server.msb.ConverterInfo;
 import hc.server.msb.DeviceBindInfo;
@@ -52,18 +54,22 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
 import javax.swing.JRadioButton;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 public class AddHarHTMLMlet extends HTMLMlet {
 	final JPanel addProcessingPanel = new JPanel(new BorderLayout());
-	final String processingMsg = (String)ResourceUtil.get(9130);
-	final JLabel processingLabel = new JLabel(processingMsg, null, SwingConstants.CENTER);
+	final JTextArea msgArea = new JTextArea();
 	public final JButton exitButton = new JButton((String)ResourceUtil.get(9131));
 	final String css = "errorStatus {color:red}";
 	final String css_error = "errorStatus";
 	final BufferedImage okIcon, cancelIcon;
+	
+	public final synchronized void appendMessage(final String msg){
+		msgArea.append(msg + "\n");
+	}
 	
 	public AddHarHTMLMlet(final String url){
 		this();
@@ -85,10 +91,18 @@ public class AddHarHTMLMlet extends HTMLMlet {
 //		if(fontSizePX > 40){
 //			fontSizePX = 40;
 //		}
+		
 		setLayout(new BorderLayout());
+		setCSS(msgArea, null, "width:100%;height:100%;font-size:" + getFontSizeForNormal() + "px;");
+
+		{
+			final String processingMsg = (String)ResourceUtil.get(9130);
+			appendMessage(processingMsg);
+		}
+
 		final String fontSizeCSS = "font-size:" + fontSizePX + "px";
 		setCSS(this, null, fontSizeCSS);//系统Mlet, //不考虑in user thread
-		addProcessingPanel.add(processingLabel, BorderLayout.CENTER);
+		addProcessingPanel.add(msgArea, BorderLayout.CENTER);
 		exitButton.setIcon(new ImageIcon(okIcon));
 		exitButton.setEnabled(false);
 		setCSS(exitButton, null, "text-align:center;vertical-align:middle;width:100%;height:100%" + ";" + fontSizeCSS);//系统Mlet, //不考虑in user thread
@@ -132,11 +146,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 	
 	public void notifyBroadcastWifiAccout(final String projID, final String device){
 		final String isBroadcast = (String)ResourceUtil.get(9132);
-		processingLabel.setText(StringUtil.replace(StringUtil.replace(isBroadcast, "{projID}", projID), "{devName}", device));
-	}
-	
-	public final void setProcessingMessage(final String msg){
-		processingLabel.setText(msg);
+		appendMessage(StringUtil.replace(StringUtil.replace(isBroadcast, "{projID}", projID), "{devName}", device));
 	}
 	
 	private void startAddHar(final String url){
@@ -148,7 +158,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 			final String linkProjectMenuItem = (String)ResourceUtil.get(9059);
 			final String closeStr = (String)ResourceUtil.get(9129);
 			
-			processingLabel.setText(StringUtil.replace(StringUtil.replace(closeStr, "{designer}", designMenuItem), "{panel}", linkProjectMenuItem));
+			appendMessage(StringUtil.replace(StringUtil.replace(closeStr, "{designer}", designMenuItem), "{panel}", linkProjectMenuItem));
 			exitButton.setEnabled(true);
 			return;
 		}
@@ -228,11 +238,10 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		        	final String errMsg = "md5 error, try after a minute";
 					throw new Exception(errMsg);
 		        }
-		        processingLabel.setText((String)ResourceUtil.get(9128));
+		        appendMessage((String)ResourceUtil.get(9128));
 			}catch (final Throwable e) {
 				ExceptionReporter.printStackTrace(e);
-				processingLabel.setIcon(new ImageIcon(cancelIcon));
-				processingLabel.setText(e.getMessage());
+				appendMessage(App.getErrorI18N() + " : " + e.getMessage());
 			}finally{
 				LinkProjectStatus.exitStatus();
 				exitButton.setEnabled(true);
@@ -544,11 +553,30 @@ public class AddHarHTMLMlet extends HTMLMlet {
 			final boolean isRoot, final boolean isUpgrade, final File oldBackFile) {
 		final File source = new File(led.filePath);//不能加App.getBaseDir(), 它是绝对路径。适合J2SE, Android
 		final boolean result = LinkProjectManager.importLinkProject(lps, source, isUpgrade, oldBackFile);
+		
+		final int requMin = 200;
+		if(PlatformManager.getService().getAvailableSize() < requMin * 1024 * 1024){// <200M
+			final String warnMsg = StringUtil.replace((String)ResourceUtil.get(9187), "{min}", String.valueOf(requMin));
+			final int msgType = IContext.WARN;
+			showMsgForAddHar(msgType, warnMsg);		
+		}
+		
 		led.status = LinkProjectManager.STATUS_DEPLOYED;
 		if(isRoot){
 			lps.setRoot(true);
 		}
 		return result;
+	}
+
+	public static void showMsgForAddHar(final int msgType, final String msg) {
+		if(ContextManager.isMobileLogin()){
+			final AddHarHTMLMlet currMlet = AddHarHTMLMlet.getCurrAddHarHTMLMlet();
+			if(currMlet != null){
+				currMlet.appendMessage(msg);
+			}
+		}
+		ContextManager.displayMessage((String) ResourceUtil.get(msgType),
+				msg, msgType, 0);
 	}
 
 	static PropertiesSet getLinkProjSet() {

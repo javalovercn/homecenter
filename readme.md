@@ -15,7 +15,7 @@
 13. any question, please contact : help at homecenter.mobi
 
 ***
-### Features
+### Main Features
 
 1. my machine, my cloud, it runs on the most popular computing environments JVM and is cloud for your mobile, just double-click no configuration.
 2. scan QRcode from mobile to download and setup HAR project, plug and play, not required to restart server.
@@ -23,6 +23,7 @@
 4. HTMLMlet is implements with Java(JRuby)+CSS on server and it will be translated HTML5+JavaScript+CSS to your mobile (Android, iPhone).
 5. integrated with Java API Doc in designer, IDE for JRuby, code and resource file(in jar library) will be auto completion.
 6. stratify IoT, Robot+Converter+Device, provides powerful device adaptability and data format conversion.
+7. exception is automatically reported to email or website of HAR project provider.
 7. each HAR project will be upgraded automatically.
 
 ***

@@ -52,8 +52,14 @@ public class JRubyInstaller {
 	}
 
 	private static String getInnverAndroidJRubyMD5(final String outerVersion, final String outerMD5){
-		final String[] versions = {"1.7.18"};
-		final String[] innerMD5 = {"cb9d405beb4ffd202a226ec7d591d72a"};
+//		RubotoCore version 1.0.5
+//		1. Updated to JRuby 1.7.19
+//		2. Updated to Ruboto 1.3.0
+//		3. Updated to ActiveRecord 4.1.10
+//		4. Updated to activerecord-jdbc-adapter 1.3.15
+//		5. Added thread_safe gem
+		final String[] versions = {"1.7.19"};
+		final String[] innerMD5 = {"999424ce2b20b8b1b2de0ffbbdda25e1"};
 		
 		for (int i = 0; i < versions.length; i++) {
 			if(versions[i].equals(outerVersion)){
