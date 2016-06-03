@@ -13,7 +13,7 @@ public class HCMessage {
 	 * 数据包分块时，专用，以获得高性能
 	 * @param bs
 	 */
-	public final void setFastByte(byte[] bs){
+	public final void setFastByte(final byte[] bs){
 		int temp0 = bs[MsgBuilder.INDEX_GROUP_ID_HIGH] & 0xFF;
 		int temp1 = bs[MsgBuilder.INDEX_GROUP_ID_LOW] & 0xFF;
 		BlobGroupID = ((temp0 << 8) + temp1);

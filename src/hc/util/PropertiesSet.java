@@ -5,20 +5,24 @@ import hc.core.util.StringUtil;
 
 import java.util.Vector;
 
+/**
+ * for map, see PropertiesMap
+ *
+ */
 public class PropertiesSet {
 	private final String itemsPrefix;
 	private final Vector<String> lists;
 	
 	private final String SPLIT = HCConfig.CFG_SPLIT;
 	
-	public PropertiesSet(String itemType) {
-		this.itemsPrefix = itemType + "Lists";
+	public PropertiesSet(final String itemPrefix) {
+		this.itemsPrefix = itemPrefix + "Lists";
 		
-		String v = PropertiesManager.getValue(itemsPrefix, "");
+		final String v = PropertiesManager.getValue(itemsPrefix, "");
 		lists = StringUtil.split(v, SPLIT);
 	}
 	
-	public void refill(Object[] props){
+	public final void refill(final Object[] props){
 		lists.removeAllElements();
 		
 		for (int i = 0; i < props.length; i++) {
@@ -26,23 +30,31 @@ public class PropertiesSet {
 		}
 	}
 	
-	public int size(){
+	public final int size(){
 		return lists.size();
 	}
 	
-	public void appendItem(String itemName){
+	/**
+	 * 如果已存在，则返回，否则添加到最后。
+	 * @param itemName
+	 */
+	public final void appendItem(final String itemName){
 		if(lists.contains(itemName)){
 			return;
 		}
 		lists.add(itemName);
 	}
 	
-	public boolean contains(String itemName){
+	public final int indexOf(final String itemName){
+		return lists.indexOf(itemName);
+	}
+	
+	public final boolean contains(final String itemName){
 		return lists.contains(itemName);
 	}
 	
-	public void save(){
-		StringBuilder v = new StringBuilder();
+	public final void save(){
+		final StringBuilder v = new StringBuilder();
 		boolean isAppended = false;
 		for (int i = 0; i < lists.size(); i++) {
 			if(isAppended){
@@ -58,15 +70,19 @@ public class PropertiesSet {
 		PropertiesManager.saveFile();
 	}
 	
-	public String getItem(int idx){
+	public final String getItem(final int idx){
 		return lists.elementAt(idx);
 	}
 	
-	public void updateItem(int idx, String value){
+	public final void updateItem(final int idx, final String value){
 		lists.setElementAt(value, idx);
 	}
 	
-	public void delItem(String itemName){
+	public final void delItem(final int idx){
+		lists.remove(idx);
+	}
+
+	public final void delItem(final String itemName){
 		lists.remove(itemName);
 	}
 }

@@ -36,12 +36,4 @@ public class FileLocker {
 		}catch (final Exception e) {
 		}
 	}
-
-	public static final String toFileCanonicalPath(final String fileName) {
-		try{
-			return new File(fileName).getCanonicalPath();//注意：不getBaseDir
-		}catch (final Exception e) {
-			return fileName;
-		}
-	}
 }

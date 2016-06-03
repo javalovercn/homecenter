@@ -1,6 +1,8 @@
 package hc.core.util;
 
 public interface HCJSInterface {
+	public void actionExt(String cmd);
+	
 	public void clickJButton(int id);
 
 	public void selectSlider(int id, int value);

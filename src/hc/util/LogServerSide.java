@@ -13,6 +13,8 @@ import hc.core.util.LogManager;
 import hc.res.ImageSrc;
 import hc.server.util.ServerCUtil;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,6 +23,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.sql.Timestamp;
 import java.util.Calendar;
+
+import javax.swing.JPanel;
 
 public class LogServerSide implements ILog {
 	private FileOutputStream outLogger = null;	
@@ -67,8 +71,23 @@ public class LogServerSide implements ILog {
 				System.setOut(printStream);
 				
 			} catch (final Exception e) {
-				App.showMessageDialog(null, e.toString());
-				CCoreUtil.globalExit();
+				ExceptionReporter.printStackTrace(e);
+				
+				final JPanel panel = App.buildMessagePanel(e.toString(), App.getSysIcon(App.SYS_ERROR_ICON));
+				App.showCenterPanel(panel, 0, 0, (String) ResourceUtil	.get(IContext.ERROR), false, null, null, new ActionListener() {
+					@Override
+					public void actionPerformed(final ActionEvent e) {
+						CCoreUtil.globalExit();							
+					}
+				}, null, null, false, true, null, false, false);
+				
+				//等待上行关闭退出
+				while(true){
+					try {
+						Thread.sleep(100 * 1000);
+					} catch (final InterruptedException e1) {
+					}
+				}
 			}
 	
 			try{
@@ -90,7 +109,7 @@ public class LogServerSide implements ILog {
 			}
 			
 			if(PropertiesManager.isTrue(PropertiesManager.p_isReportException)){
-				ExceptionReporter.appendToLog();
+				ExceptionReporter.printReporterStatusToLog();
 			}
 		}
 	}

@@ -2563,83 +2563,146 @@
  *   after the cause of action arose. Each party waives its rights to a jury trial in
  *   any resulting litigation.
  */
-package jay.yydebug;
+package org.jay.yydebug;
 
-import java.io.PrintStream;
-/** writes one-line messages to standard output or a stream.
-  */
-public class yyDebugAdapter implements yyDebug {
-  /** message stream.
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+
+import javax.swing.JTextArea;
+/** used to reroute standard input from a {@link javax.swing.JTextArea}.
+    Feeds all read methods from listening to typed keys.
+	Should not deadlock because one should generally not
+    read from within the event thread.
+ */
+public class yyJInputStream extends InputStream implements KeyListener {
+  /** line edit buffer.
     */
-  protected final PrintStream out;
-
-  public yyDebugAdapter (final PrintStream out) {
-    this.out = out;
-  }
-
-  public yyDebugAdapter () {
-    this(System.out);
+  protected final StringBuffer line = new StringBuffer();
+  /** completed lines, ready to be read.
+      Invariant: null after {@link #close}.
+    */
+  protected ArrayList queue = new ArrayList();
+  
+  @Override
+public synchronized int available () throws IOException {
+	if (queue == null) throw new IOException("closed");
+	return queue.isEmpty() ? 0 : ((byte[])queue.get(0)).length;
   }
 
   @Override
-public void push (final int state, final Object value) {
-    out.println("push\tstate "+state+"\tvalue "+value);
+public synchronized void close () throws IOException {
+	if (queue == null) throw new IOException("closed");
+	queue = null;
   }
 
   @Override
-public void lex (final int state, final int token, final String name, final Object value) {
-    out.println("lex\tstate "+state+"\treading "+name+"\tvalue "+value);
+public synchronized int read () throws IOException {
+	if (queue == null) throw new IOException("closed");
+	while (queue.isEmpty())
+	  try {
+		wait();
+	  } catch (final InterruptedException ie) {
+		throw new IOException("interrupted");
+	  }
+
+	final byte[] buf = (byte[])queue.get(0);
+	switch (buf.length) {
+	case 0:
+	  return -1;
+	case 1:
+	  queue.remove(0);
+	  break;
+	default:
+	  final byte[] nbuf = new byte[buf.length-1];
+	  System.arraycopy(buf, 1, nbuf, 0, nbuf.length);
+	  queue.set(0, nbuf); notifyAll(); // others could be waiting...
+	}
+	return buf[0] & 255;
   }
 
   @Override
-public void shift (final int from, final int to, final int errorFlag) {
-    switch (errorFlag) {
-    default:				// normally
-      out.println("shift\tfrom state "+from+" to "+to);
-      break;
-    case 0: case 1: case 2:		// in error recovery
-      out.println("shift\tfrom state "+from+" to "+to
-				+"\t"+errorFlag+" left to recover");
-      break;
-    case 3:				// normally
-      out.println("shift\tfrom state "+from+" to "+to+"\ton error");
-      break;
+public synchronized int read(final byte[] b, final int off, final int len) throws IOException {
+	if (queue == null) throw new IOException("closed");
+	while (queue.isEmpty())
+	  try {
+		wait();
+	  } catch (final InterruptedException ie) {
+		throw new IOException("interrupted");
+	  }
+
+	final byte[] buf = (byte[])queue.get(0);
+	if (buf.length == 0) return -1;
+
+	if (buf.length <= len) {
+	  System.arraycopy(buf, 0, b, off, buf.length);
+	  queue.remove(0);
+	  return buf.length;
+	}
+	
+	System.arraycopy(buf, 0, b, off, len);
+	final byte[] nbuf = new byte[buf.length-len];
+	System.arraycopy(buf, len, nbuf, 0, nbuf.length);
+	queue.set(0, nbuf); notifyAll(); // others could be waiting...
+	return len;
+  }
+  /** returns 0: cannot skip on a terminal.
+    */
+  @Override
+public long skip (final long len) {
+    return 0;
+  }
+  /** this one ensures that you can only type at the end.
+      This is executed within the event thread.
+    */
+  @Override
+public void keyPressed (final KeyEvent ke) {
+    final JTextArea ta = (JTextArea)ke.getComponent();
+	final int pos = ta.getText().length();
+	ta.setCaretPosition(pos);
+  }
+  
+  // BUG: Rhapsody DR2 seems to not send some keys to keyTyped()
+  //	e.g. German keyboard + is dropped, but numeric pad + is processed
+
+  @Override
+public void keyTyped (final KeyEvent ke) {
+    final JTextArea ta = (JTextArea)ke.getComponent();
+    final char ch = ke.getKeyChar();
+
+    switch (ch) {
+      case '\n': case '\r':		// \n|\r -> \n, release line
+		line.append('\n');
+		break;
+
+      case 'D'&31:			// ^D: release line
+		ta.append("^D"); ta.setCaretPosition(ta.getText().length());
+		break;
+
+      case '\b':			// \b: erase char, if any
+		final int len = line.length();
+		if (len > 0) line.setLength(len-1);
+		return;
+
+      case 'U'&31:			// ^U: erase line, if any
+		line.setLength(0);
+		ta.append("^U\n"); ta.setCaretPosition(ta.getText().length());
+		return;
+
+      default:
+		line.append(ch);
+		return;
     }
+    synchronized (this) {
+      queue.add(line.toString().getBytes());
+      notifyAll(); // there could be several reading threads 
+    }
+    line.setLength(0);
   }
 
   @Override
-public void pop (final int state) {
-    out.println("pop\tstate "+state+"\ton error");
-  }
-
-  @Override
-public void discard (final int state, final int token, final String name, final Object value) {
-    out.println("discard\tstate "+state+"\ttoken "+name+"\tvalue "+value);
-  }
-
-  @Override
-public void reduce (final int from, final int to, final int rule, final String text, final int len) {
-    out.println("reduce\tstate "+from+"\tuncover "+to
-						+"\trule ("+rule+") "+text);
-  }
-
-  @Override
-public void shift (final int from, final int to) {
-    out.println("goto\tfrom state "+from+" to "+to);
-  }
-
-  @Override
-public void accept (final Object value) {
-    out.println("accept\tvalue "+value);
-  }
-
-  @Override
-public void error (final String message) {
-    out.println("error\t"+message);
-  }
-
-  @Override
-public void reject () {
-    out.println("reject");
+public void keyReleased (final KeyEvent ke) {
   }
 }

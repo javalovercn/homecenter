@@ -38,11 +38,11 @@ public class JPTrayIcon implements PlatformTrayIcon{
 //	public static final String PUBLIC_PORT = "Pub_Port";
 	
 	private JPopupMenu menu;
-	private final HCJFrame dialog = new HCJFrame();
+	private final HCJFrame frame = new HCJFrame();
 	final Runnable toDisvisibleRun = new Runnable() {
 		@Override
 		public void run() {
-			dialog.setVisible(false);						
+			frame.setVisible(false);						
 		}
 	};
 	private final PopupMenuListener popupListener;
@@ -50,13 +50,13 @@ public class JPTrayIcon implements PlatformTrayIcon{
 	private String toolTip;
 	
 	{
-		dialog.setUndecorated(true);
-		dialog.setAlwaysOnTop(true);
+		frame.setUndecorated(true);
+		frame.setAlwaysOnTop(true);
 	}
 
 	@Override
 	public void exit() {
-		dialog.dispose();
+		frame.dispose();
 	}
 	
 	public void putTip(final String key, final String value){
@@ -132,7 +132,7 @@ public class JPTrayIcon implements PlatformTrayIcon{
 		trayIcon.setImage(image);
 		this.toolTip = toolTip;
 		trayIcon.setToolTip(toolTip);
-		dialog.addWindowFocusListener(new WindowFocusListener() {
+		frame.addWindowFocusListener(new WindowFocusListener() {
 			@Override
 			public void windowLostFocus(final WindowEvent e) {
 //				L.V = L.O ? false : LogManager.log("Dialog Lose Focus");
@@ -143,7 +143,7 @@ public class JPTrayIcon implements PlatformTrayIcon{
 			public void windowGainedFocus(final WindowEvent e) {
 			}
 		});
-		popupListener = new TrayPopupListener(dialog);
+		popupListener = new TrayPopupListener(frame);
 		mouseListener = new TrayMouseAdapter();
 		this.setJPopupMenu(menu);
 		
@@ -209,10 +209,10 @@ public class JPTrayIcon implements PlatformTrayIcon{
 					int loc_x = evt.getXOnScreen();
 					int loc_y = evt.getYOnScreen();
 					
-					dialog.setLocation(evt.getX(), evt.getY()
+					frame.setLocation(evt.getX(), evt.getY()
 								- menu.getPreferredSize().height);
-					dialog.setVisible(true);
-					menu.show(dialog.getContentPane(), 0, 0);
+					frame.setVisible(true);
+					menu.show(frame.getContentPane(), 0, 0);
 					// popup works only for focused windows
 
 					if (menu.getWidth() == 0) {
@@ -232,9 +232,9 @@ public class JPTrayIcon implements PlatformTrayIcon{
 					}
 					menu.setLocation(loc_x, loc_y);
 					menu.setVisible(true);
-					menu.setInvoker(dialog.getContentPane());
+					menu.setInvoker(frame.getContentPane());
 
-					dialog.toFront();
+					frame.toFront();
 				}
 			});
 		}

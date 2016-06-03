@@ -437,83 +437,74 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final Designer self = this;
 		
 		final MouseListener ml = new MouseListener() {
-			// 按下鼠标时候获得被拖动的节点
-			boolean isBusy = false;
-			boolean isBlockedEvent = false;
-			long busyStartMS;
-			
 			@Override
 			public void mousePressed(final MouseEvent e) {
-				if(isToolbarVisible() == false){
-					return;
-				}
-				
-				final long nowMS = System.currentTimeMillis();
-				if(isBusy && (nowMS - busyStartMS) < 5000){
-					isBlockedEvent = true;
-					return;
-				}else{
-					isBlockedEvent = false;
-					isBusy = true;
-					busyStartMS = nowMS;
-				}
-				
-				// 如果需要唯一确定某个节点，必须通过TreePath来获取。
-				final TreePath tp = tree.getPathForLocation(e.getX(), e.getY());
-				if (tp != null) {
-					movePath = tp;
-				}
 			}
 
 			// 鼠标松开时获得需要拖到哪个父节点
 			@Override
 			public void mouseReleased(final MouseEvent e) {
-				if(isToolbarVisible() == false){
-					return;
-				}
-				
-				if(isBlockedEvent){
-					return;
-				}
-				
-				ContextManager.getThreadPool().run(new Runnable() {
+				ConditionWatcher.addWatcher(new IWatcher(){//确保正常次序处理完成
 					@Override
-					public void run() {
-						// 根据鼠标松开时的TreePath来获取TreePath
-						final TreePath tp = tree.getPathForLocation(e.getX(), e.getY());
-
-						if(tp == null){
-							return;
+					public boolean watch() {
+						if(isToolbarVisible() == false){
+							return false;
 						}
 						
-						final Object obj = tp.getLastPathComponent();
-						if (obj != null && (obj instanceof DefaultMutableTreeNode)) {
-							selectedNode = (DefaultMutableTreeNode) obj;
-						}else{
-							selectedNode = null;
-						}
-						
-						if (e.getButton() == MouseEvent.BUTTON3) {
-							if(selectedNode != null){
-								final Object o = selectedNode.getUserObject();
-								if (o instanceof HPNode) {
-									jumpToNode(selectedNode, model, tree);
+						try{
+							// 根据鼠标松开时的TreePath来获取TreePath
+							final TreePath tp = tree.getPathForLocation(e.getX(), e.getY());
 
-									mg.popUpMenu(((HPNode) o).type, selectedNode, tree, e, self);
+							if(tp == null){
+								return true;
+							}else{
+								movePath = tp;
+							}
+							
+							final Object obj = tp.getLastPathComponent();
+							if (obj != null && (obj instanceof DefaultMutableTreeNode)) {
+								selectedNode = (DefaultMutableTreeNode) obj;
+							}else{
+								selectedNode = null;
+							}
+							
+							if (e.getButton() == MouseEvent.BUTTON3) {
+								if(selectedNode != null){
+									final Object o = selectedNode.getUserObject();
+									if (o instanceof HPNode) {
+										jumpToNode(selectedNode, model, tree);
+
+										mg.popUpMenu(((HPNode) o).type, selectedNode, tree, e, self);
+									}
+								}
+							}else if (e.getButton() == MouseEvent.BUTTON1) {
+								if(selectedNode != null){
+									final Object o = selectedNode.getUserObject();
+									if (o instanceof HPNode) {
+										final HPNode nodeData = (HPNode) o;
+										notifySelectNode(selectedNode, nodeData);
+									}
 								}
 							}
-						}else if (e.getButton() == MouseEvent.BUTTON1) {
-							if(selectedNode != null){
-								final Object o = selectedNode.getUserObject();
-								if (o instanceof HPNode) {
-									final HPNode nodeData = (HPNode) o;
-									notifySelectNode(selectedNode, nodeData);
-								}
-							}
+						}catch (final Throwable e) {
+							ExceptionReporter.printStackTrace(e);
 						}
-						isBusy = false;
+						return true;
 					}
-				}, threadPoolToken);
+
+					@Override
+					public void setPara(final Object p) {
+					}
+
+					@Override
+					public void cancel() {
+					}
+
+					@Override
+					public boolean isCancelable() {
+						return false;
+					}
+				});
 			}
 
 			@Override
@@ -597,7 +588,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		
 //		//检查是否有新版本
 		final String lastSampleVer = PropertiesManager.getValue(PropertiesManager.p_LastSampleVer, "1.0");
-		if(StringUtil.higer(J2SEContext.getSampleHarVersion(), lastSampleVer)){
+		if(StringUtil.higher(J2SEContext.getSampleHarVersion(), lastSampleVer)){
 			sampleButton.setIcon(loadImg("giftnew_24.png"));
 		}
 		sampleButton.addActionListener(new HCActionListener(new Runnable() {
@@ -950,7 +941,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 		}, threadPoolToken));
 		toolbar.addSeparator();
-		toolbar.add(saveAsButton);
 //		if(new File(EDIT_HAR).exists() == false){
 //			deployButton.setEnabled(false);
 //			saveAsButton.setEnabled(false);
@@ -1005,8 +995,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}, threadPoolToken));
 		loadButton.setToolTipText("<html>load and edit a project from a har file." +
 				"<BR><BR>it will be setted as current project after click '" + saveButton.getText() + "'.</html>");
+
 		toolbar.add(loadButton);
-		
+		toolbar.add(saveAsButton);
+
 		shiftProjButton.addActionListener(new HCButtonEnabledActionListener(shiftProjButton, new Runnable() {
 			@Override
 			public void run() {
@@ -1087,7 +1079,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				"rebind (Not bind) reference device(s) of robot in active projects to real device(s)." +
 				"<BR>service will be stopped before rebinding, and restart after rebinding." +
 				"<BR><BR>binding (Not rebind) dialog will automatic pop-up after '<STRONG>" + ACTIVE + "</STRONG>' project if binding is required." +
-				"<BR>this button will be disable if there is no reference device of robot in all active projects." +
+				"<BR>this button will be disable if there is no reference device of robot in <STRONG>all</STRONG> active (not current) projects." +
 				"</html>");
 		
 		rebindBut.addActionListener(new HCActionListener(new Runnable() {
@@ -1172,7 +1164,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 
 	@Override
-	public void checkHARButtonsEnable(){
+	public final void checkHARButtonsEnable(){
 		checkBindEnable(rebindButton);
 		checkActiveEnable();
 		checkDeactiveEnable();
@@ -1197,11 +1189,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}
 	}
 	
-	private void checkActiveEnable(){
+	private final void checkActiveEnable(){
 		activeButton.setEnabled(ServerUIUtil.isStarted());
 	}
 	
-	private void checkDeactiveEnable(){
+	private final void checkDeactiveEnable(){
 		LinkProjectStore lps;
 		deactiveButton.setEnabled(ServerUIUtil.isStarted() && (lps = LinkProjectManager.getProjByID(getCurrProjID())) != null && lps.isActive());
 	}
@@ -1246,7 +1238,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 							"</html>",
 							"override edit?");
 					LinkProjectManager.copyCurrEditFromStorage(lps, out == JOptionPane.YES_OPTION);
-				}else if(StringUtil.higer(lps.getVersion(), PropertiesManager.getValue(PropertiesManager.p_LINK_CURR_EDIT_PROJ_VER))){
+				}else if(StringUtil.higher(lps.getVersion(), PropertiesManager.getValue(PropertiesManager.p_LINK_CURR_EDIT_PROJ_VER))){
 					//升级后的版本高于edit_har(未修改)的版本
 					final int out = App.showOptionDialog(instance,
 							"<html>current edit (not modified) project is upgraded, " +
@@ -1397,7 +1389,14 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}
 	}
 	
-	private void loadNodeFromMap(final Map<String, Object> map) {
+	private final void loadNodeFromMap(final Map<String, Object> map) {
+		{
+			L.V = L.O ? false : LogManager.log("Project [" + (String)map.get(HCjar.PROJ_ID) + "] " +
+				"JRE version : " + (String)map.get(HCjar.JRE_VER) + ", " +
+				"HomeCenter version : " + (String)map.get(HCjar.HOMECENTER_VER) + ", " +
+				"JRuby version : " + (String)map.get(HCjar.JRUBY_VER) + "");
+		}
+		
 		delAllChildren();
 		
 		msbFolder.removeFromParent();
@@ -1460,7 +1459,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	/**
 	 * 重新加载lps
 	 */
-	public void refresh(){
+	public final void refresh(){
 		//由于可能切换，所以刷新
 		LinkProjectManager.reloadLinkProjects();
 		
@@ -1623,11 +1622,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			nodeEditPanel = nep;
 		}
 		
-		nodeEditPanel.init(sNode, tree);
-		
 		App.invokeLaterUI(new Runnable() {
 			@Override
 			public void run() {
+				nodeEditPanel.init(sNode, tree);//放入UI
+				
 				editPanel.remove(oldPanel.getMainPanel());
 				editPanel.add(nodeEditPanel.getMainPanel());
 				editPanel.validate();
@@ -1774,7 +1773,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		boolean isHigh = false;
 		for (int i = 0; i < sample_ver.length; i++) {
 			if(sample_ver[i] != null){
-				if(StringUtil.higer(sample_ver[i], curr_ver[i])){
+				if(StringUtil.higher(sample_ver[i], curr_ver[i])){
 					isSampleHigh[i] = true;
 					isHigh = true;
 				}
@@ -1892,16 +1891,21 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		PropertiesManager.saveFile();
 	}
 
-	public void displayError(final NodeInvalidException e) {
-		final DefaultMutableTreeNode node1 = e.node;
-		jumpToNode(node1, model, tree);
-		notifySelectNode(node1, (HPNode)node1.getUserObject());
-		
-		final JPanel panel = new JPanel();
-		final String name1 = ((HPNode)node1.getUserObject()).name;
-		panel.add(new JLabel("<html><body>" + e.getDesc() + "</body></html>", 
-				App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
-		App.showCenterPanel(panel, 0, 0, "Error Node", false, null, null, null, null, this, true, false, null, false, false);
+	public final void displayError(final NodeInvalidException e) {
+		ContextManager.getThreadPool().run(new Runnable() {//注意：上述方法可能在EventDispatcher中。所以要入pool
+			@Override
+			public void run() {
+				final DefaultMutableTreeNode node1 = e.node;
+				jumpToNode(node1, model, tree);
+				notifySelectNode(node1, (HPNode)node1.getUserObject());
+				
+				final JPanel panel = new JPanel();
+//				final String name1 = ((HPNode)node1.getUserObject()).name;
+				panel.add(new JLabel("<html><body>" + e.getDesc() + "</body></html>", 
+						App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
+				App.showCenterPanel(panel, 0, 0, "Error Node", false, null, null, null, null, instance, true, false, null, false, false);
+			}
+		}, threadPoolToken);
 	}
 
 	public static void deployRunTest(Map<String, Object> deployMap) {
@@ -1964,7 +1968,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		LinkProjectStore oldlps = LinkProjectManager.getProjByID(getCurrProjID());
 		if(oldlps != null){
 			final String curVer = (String)map.get(HCjar.PROJ_VER);
-			if(StringUtil.higer(oldlps.getVersion(), curVer)){
+			if(StringUtil.higher(oldlps.getVersion(), curVer)){
 				final JPanel panel = new JPanel(new BorderLayout());
 				panel.add(new JLabel("<html>the actived version is " + oldlps.getVersion() + ", and current version is " + curVer 
 						+ "<br><br>system can't override the current version!</html>", 
@@ -2044,7 +2048,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		{
 			final JPanel descPanel = new JPanel(new BorderLayout());
 			descPanel.setBorder(new TitledBorder("Description :"));
-			descPanel.add(new JLabel("set versions for runtime enviroment."), BorderLayout.CENTER);
+			descPanel.add(new JLabel("<html>these versions are design enviroment,<BR>you can change them for runtime enviroment.</html>"), BorderLayout.CENTER);
 			centerPanel.add(descPanel, BorderLayout.SOUTH);
 		}
 		

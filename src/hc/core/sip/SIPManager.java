@@ -29,7 +29,7 @@ public class SIPManager {
 	public static void setSIPContext(final ISIPContext context){
 		if(SIPManager.sipContext != null){
 			if(L.isInWorkshop){
-				LogManager.errToLog("fail to setSIPContext");
+				LogManager.errToLog("fail to setSIPContext, you may ignore it while server is offline and reconnect.");
 			}
 			return;
 		}
@@ -223,7 +223,13 @@ public class SIPManager {
 
 	public static IPAndPort reConnectAfterResetExcep(){
 		L.V = L.O ? false : LogManager.log("reConnectAfterExcepReset to " + SIPManager.relayIpPort.ip + ":" + SIPManager.relayIpPort.port);
-		return SIPManager.proccReg(SIPManager.relayIpPort, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_RESET, SIPManager.REG_WAITING_MS);
+		try{
+			return SIPManager.proccReg(SIPManager.relayIpPort, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_RESET, SIPManager.REG_WAITING_MS);
+		}catch (Throwable e) {
+			//主要拦截hc.core.sip.SIPManager.send，java.net.SocketException
+			e.printStackTrace();//不作ExceptionReport处理。因为较为频繁。
+		}
+		return null;
 	}
 
 	/**

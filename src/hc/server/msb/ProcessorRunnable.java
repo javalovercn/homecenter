@@ -18,8 +18,8 @@ class ProcessorRunnable extends StartableRunnable{
 		try{
 			processor.__startup();//in user thread group
 		}catch (final Throwable e) {
-			new MSBException("[startup] " + e.toString(), e, null, processor);
 			ExceptionReporter.printStackTrace(e);
+			new MSBException(e.toString(), e, null, processor);
 		}
 		
 		super.start();

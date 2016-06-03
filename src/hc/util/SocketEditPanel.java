@@ -33,17 +33,17 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableModel;
 
 public abstract class SocketEditPanel extends JPanel{
 	final ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	
 	private final JCheckBox checkLimitOn;
+	private final JCheckBox accessPrivateAddress;
 	JPanel formatPanel;
 	JPanel actionPanel;
 	JPanel portPanel;
@@ -75,6 +75,8 @@ public abstract class SocketEditPanel extends JPanel{
 	private boolean isSelectModify = true;
 	
 	public final void switchEditable(final boolean isEdit){
+		accessPrivateAddress.setEnabled(isEdit);
+		
 		mainEditPanel.setEnabled(isEdit);
 		tableList.setEnabled(isEdit);
 		hostField.setEnabled(isEdit);
@@ -119,7 +121,32 @@ public abstract class SocketEditPanel extends JPanel{
 
 	public SocketEditPanel(){
 		checkLimitOn = new JCheckBox("limit socket/connect");
-		checkLimitOn.setToolTipText("if limit socket is enabled and there is no record in table, it means limit all for current project.");
+		checkLimitOn.setToolTipText("" +
+				"<html>" +
+				"if not selected, then allow access all public address and private address." +
+				"<BR>" +
+				"if selected and there is no record in table, it means block all for current project." +
+				"</html>");
+		
+		accessPrivateAddress = new JCheckBox("access private address");
+		accessPrivateAddress.setToolTipText("" +
+				"<html>" +
+				"access private address :" +
+				"<BR>" +
+				"&nbsp;·&nbsp;10.*.*.*<BR>" +
+				"&nbsp;·&nbsp;127.*.*.*, localhost<BR>" +
+				"&nbsp;·&nbsp;169.254.*.*<BR>" +
+				"&nbsp;·&nbsp;172.16.*.*, 172.31.*.*<BR>" +
+				"&nbsp;·&nbsp;192.168.*.*" +
+				"</html>");
+		
+		accessPrivateAddress.addActionListener(new HCActionListener(new Runnable() {
+			@Override
+			public void run() {
+				getCSCSource().setAccessPrivateAddress(accessPrivateAddress.isSelected());
+				notifyModify();
+			}
+		}, threadPoolToken));			
 		
 		checkLimitOn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
@@ -227,16 +254,31 @@ public abstract class SocketEditPanel extends JPanel{
 			}
 		};
 		
-		final ChangeListener changeListener = new ChangeListener() {
+		final ActionListener actionActionListener = new ActionListener() {
 			@Override
-			public void stateChanged(final ChangeEvent e) {
-				App.invokeLaterUI(updateTableFromFields);
+			public void actionPerformed(final ActionEvent e) {
+				if(checkMinAction((JCheckBox)e.getSource())){
+					return;
+				}
+				
+				final SocketDesc socket = allowSockets.elementAt(currRow);
+				updateCheckToDataBlock(socket);
+				notifyModify();
+			}
+
+			private final boolean checkMinAction(final JCheckBox checkBox){
+				if(checkAccept.isSelected() == false && checkconnect.isSelected() == false && checklisten.isSelected() == false){
+					checkBox.setSelected(true);
+					return true;
+				}
+				return false;
 			}
 		};
-		checkAccept.addChangeListener(changeListener);
-		checkconnect.addChangeListener(changeListener);
-		checklisten.addChangeListener(changeListener);
-		checkresolve.addChangeListener(changeListener);
+		
+		checkAccept.addActionListener(actionActionListener);
+		checkconnect.addActionListener(actionActionListener);
+		checklisten.addActionListener(actionActionListener);
+		checkresolve.addActionListener(actionActionListener);
 		
 		checkresolve.setEnabled(false);
 
@@ -371,9 +413,10 @@ public abstract class SocketEditPanel extends JPanel{
 		}
 		
 		mainEditPanel.setLayout(new GridBagLayout());
+		int gridyIdx = 0;
 		{
 			final GridBagConstraints c = new GridBagConstraints();
-			c.gridy = 0;
+			c.gridy = gridyIdx++;
 			c.fill = GridBagConstraints.BOTH;
 			c.weightx = 1.0;
 			c.weighty = 1.0;
@@ -394,7 +437,7 @@ public abstract class SocketEditPanel extends JPanel{
 		}
 		{
 			final GridBagConstraints c = new GridBagConstraints();
-			c.gridy = 1;
+			c.gridy = gridyIdx++;
 			c.fill = GridBagConstraints.BOTH;
 			c.weightx = 1.0;
 			c.weighty = 1.0;
@@ -402,7 +445,7 @@ public abstract class SocketEditPanel extends JPanel{
 		}
 		{
 			final GridBagConstraints c = new GridBagConstraints();
-			c.gridy = 2;
+			c.gridy = gridyIdx++;
 			c.fill = GridBagConstraints.BOTH;
 			c.weightx = 1.0;
 			c.weighty = 1.0;
@@ -421,12 +464,19 @@ public abstract class SocketEditPanel extends JPanel{
 			formatPanel.add(descLabel, BorderLayout.CENTER);
 			mainEditPanel.add(formatPanel, c);
 		}
-		mainEditPanel.setBorder(new TitledBorder("allowable sockets list :"));
+		mainEditPanel.setBorder(new TitledBorder("allowable public/private address list :"));
 		
 		{
 			setLayout(new BorderLayout());
+			
 			add(checkLimitOn, BorderLayout.NORTH);
-			add(mainEditPanel, BorderLayout.CENTER);
+			{
+				final JPanel panel = new JPanel(new BorderLayout());
+				panel.add(accessPrivateAddress, BorderLayout.NORTH);
+				panel.add(mainEditPanel, BorderLayout.CENTER);
+				
+				add(panel, BorderLayout.CENTER);
+			}
 			add(new JLabel("      "), BorderLayout.LINE_START);
 		}
 		
@@ -438,9 +488,15 @@ public abstract class SocketEditPanel extends JPanel{
 	
 	public abstract void notifyModify();
 	
-	public abstract void notifySocketLimitOn(boolean isOn);
+	public abstract ContextSecurityConfig getCSCSource();
 	
-	public abstract boolean isSocketLimitOn();
+	public final void notifySocketLimitOn(final boolean isOn){
+		ContextSecurityConfig.setSocketLimitOn(getCSCSource(), isOn);
+	}
+	
+	public final boolean isSocketLimitOn(){
+		return ContextSecurityConfig.isSocketLimitOn(getCSCSource());
+	}
 	
 	private final Runnable updateTableFromFields = new Runnable() {
 		@Override
@@ -464,20 +520,7 @@ public abstract class SocketEditPanel extends JPanel{
 				socket.setPortTo(portToField.getText());
 			}
 			
-			final boolean isAccept = checkAccept.isSelected();
-			final boolean isConnect = checkconnect.isSelected();
-			final boolean isListen = checklisten.isSelected();
-			
-//			if(isAccept || isConnect || isListen){
-//				checkresolve.setSelected(true);
-//			}
-			
-			socket.setAction(SocketDesc.ACCEPT, isAccept);
-			socket.setAction(SocketDesc.CONNECT, isConnect);
-			socket.setAction(SocketDesc.LISTEN, isListen);
-			socket.setAction(SocketDesc.RESOLVE, checkresolve.isSelected());
-			
-			tableList.updateUI();
+			updateCheckToDataBlock(socket);
 			
 			if(isSelectModify == false){
 				notifyModify();
@@ -485,15 +528,30 @@ public abstract class SocketEditPanel extends JPanel{
 		}
 	};
 	
-	public final void refresh(final ContextSecurityConfig csc){
+	public final void refresh(final ContextSecurityConfig cscOld){
+		final ContextSecurityConfig csc = getCSCSource();
+		
+//		if(cscOld != csc){
+//			System.err.println("refresh must the same object!");
+//			throw new Error("refresh must the same object!");
+//		}
+		
 		if(csc != null){//有可能为null，比如测试
 			loadFromCSC(csc);
 		}
 		
 		final boolean isLimitOn = isSocketLimitOn();
 		forceSwitchEdit(isLimitOn);
+		
 		checkLimitOn.setSelected(isLimitOn);
+		accessPrivateAddress.setSelected(isLimitOn && csc.isAccessPrivateAddress());
 
+		final TableModel model = tableList.getModel();
+		if(model instanceof AbstractTableModel){
+			((AbstractTableModel)model).fireTableDataChanged(); 
+		}
+		tableList.repaint();
+		
 		if(isLimitOn && allowSockets != null && allowSockets.size() > 0){
 			tableList.getSelectionModel().setSelectionInterval(0, 0);
 		}
@@ -557,6 +615,8 @@ public abstract class SocketEditPanel extends JPanel{
 		portFromField.setText("");
 		portToField.setText("");
 		
+//		accessPrivateAddress.setSelected(false);//与record数无关
+		
 		checkAccept.setSelected(false);
 		checkconnect.setSelected(false);
 		checklisten.setSelected(false);
@@ -569,7 +629,13 @@ public abstract class SocketEditPanel extends JPanel{
 		rangeRadioBtn.setSelected(false);
 	}
 	
+	/**
+	 * 记录数为0或转新增时，切换编辑状态。
+	 * @param isEnable
+	 */
 	private final void setInitEditPanelEnable(final boolean isEnable){
+//		accessPrivateAddress.setEnabled(isEnable);//此行与记录数为0或多条无关。
+		
 		hostRadioBtn.setEnabled(isEnable);
 		portRadioBtn.setEnabled(isEnable);
 		ipRadioBtn.setEnabled(isEnable);
@@ -595,16 +661,31 @@ public abstract class SocketEditPanel extends JPanel{
 				
 				ContextSecurityConfig.addDefaultNewSocket(allowSockets);
 				final int size = allowSockets.size();
-				tableList.setRowSelectionInterval(size - 1, size - 1);
+				tableList.clearSelection();
 				
 				deleteBtn.setEnabled(true);
 				hostField.setEnabled(true);
 				portField.setEnabled(true);
 				
 				hostField.requestFocus();
-				hostField.selectAll();
 				
-				tableList.updateUI();
+				final TableModel model = tableList.getModel();
+				if(model instanceof AbstractTableModel){
+					((AbstractTableModel)model).fireTableDataChanged(); 
+				}
+				
+				tableList.setRowSelectionInterval(size - 1, size - 1);
+				
+				ContextManager.getThreadPool().run(new Runnable() {
+					@Override
+					public void run() {
+						try{
+							Thread.sleep(500);
+						}catch (final Exception e) {
+						}
+						hostField.selectAll();
+					}
+				}, threadPoolToken);
 			}
 		}, threadPoolToken));
 		
@@ -665,7 +746,7 @@ public abstract class SocketEditPanel extends JPanel{
 		tableList.updateUI();
 	}
 	
-	public final void loadFromCSC(final ContextSecurityConfig csc){
+	private final void loadFromCSC(final ContextSecurityConfig csc){
 		csc.loadToVector();
 		csc.copyToSocketPanel(this);
 		updateFieldsFromTable();
@@ -705,5 +786,24 @@ public abstract class SocketEditPanel extends JPanel{
 		for (int i = 0; i < columnNum; i++) {
 			tableList.getColumnModel().getColumn(i).setCellRenderer(dtcr);
 		}
+	}
+
+	private final void updateCheckToDataBlock(final SocketDesc socket) {
+		final boolean isAccept = checkAccept.isSelected();
+		final boolean isConnect = checkconnect.isSelected();
+		final boolean isListen = checklisten.isSelected();
+		
+		if(isAccept || isConnect || isListen){
+			if(checkresolve.isSelected() == false){
+				checkresolve.setSelected(true);
+			}
+		}
+		
+		socket.setAction(SocketDesc.ACCEPT, isAccept);
+		socket.setAction(SocketDesc.CONNECT, isConnect);
+		socket.setAction(SocketDesc.LISTEN, isListen);
+		socket.setAction(SocketDesc.RESOLVE, checkresolve.isSelected());
+		
+		tableList.updateUI();//有可能更新check_resolve，所以要刷新
 	}
 }

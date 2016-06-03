@@ -1,6 +1,7 @@
 package hc.server.ui.design.hpj;
 
 import hc.core.util.ThreadPriorityManager;
+import hc.server.ui.design.code.TabHelper;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -46,12 +47,11 @@ public class JRubyNodeEditPanel extends ScriptEditPanel {
 
 		final String listener = getListener();
 		final String scripts = listener == null ? "" : listener;
+		
 		jtaScript.setText(scripts);
+		TabHelper.initScriptPanel(jtaScript, this);
 		
-		//代码很长时，置于首行
-		jtaScript.setCaretPosition(0);
-		
-		initColor(true);
+		initColor(true, false);
 		
 		extInit();
 		
@@ -80,6 +80,5 @@ public class JRubyNodeEditPanel extends ScriptEditPanel {
 
 	@Override
 	public void extInit() {
-		updateScriptInInitProcess();
 	}
 }

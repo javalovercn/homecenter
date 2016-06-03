@@ -1,5 +1,6 @@
 package hc.server.ui.design.hpj;
 
+import hc.core.util.CCoreUtil;
 import hc.util.StoreableHashMapWithModifyFlag;
 
 public class HPNode {
@@ -42,7 +43,7 @@ public class HPNode {
 	public static final int TYPE_MENU_ITEM_SUB_MENU = 5 | MASK_MENU_ITEM;
 	public static final int TYPE_MENU_ITEM_IOT = 6 | MASK_MENU_ITEM;
 	public static final int TYPE_MENU_ITEM_CFG = 7 | MASK_MENU_ITEM;
-	public static final int WIZARD_SELECTABLE_MENU_ITEM_SIZE = 4;
+	public static final int WIZARD_SELECTABLE_MENU_ITEM_SIZE = 5;
 
 	public static String getTypeDesc(final int type) {
 		if(type == TYPE_MENU_ITEM_CMD){
@@ -97,6 +98,10 @@ public class HPNode {
 	}
 	
 	public String validate(){
+		if(name.startsWith(CCoreUtil.SYS_PREFIX)){
+			return "Error [" + name + "] : <strong>" + CCoreUtil.SYS_PREFIX + "</strong> is system reserved prefix.";
+		}
+		
 		return null;
 	}
 }

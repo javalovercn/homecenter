@@ -17,7 +17,7 @@ public class ExceptionReporter {
 			IContext contextInstance = null;
 			while(contextInstance == null && isShutDown == false){
 				try{
-					Thread.sleep(1000);
+					Thread.sleep(50);
 				}catch (Throwable e) {
 				}
 				contextInstance = ContextManager.getContextInstance();
@@ -53,6 +53,11 @@ public class ExceptionReporter {
 		harHelper = helper;
 	}
 
+	private static ExceptionJSONBuilder builder;
+	private static ExceptionChecker checker;
+	private static boolean SERVER_SIDE;
+	private static RootConfig rootConfig;
+
 	public static final void start(final boolean withLog){
 		CCoreUtil.checkAccess();
 		
@@ -61,6 +66,13 @@ public class ExceptionReporter {
 				return;
 			}
 			if(isStartThread == false){
+				
+				//初始化
+				builder = RootBuilder.getInstance().getExceptionJSONBuilder();
+				checker = ExceptionChecker.getInstance();
+				SERVER_SIDE = IConstant.serverSide;
+				rootConfig = RootConfig.getInstance();
+				
 				backThread.start();
 				isStartThread = true;
 			}
@@ -68,11 +80,11 @@ public class ExceptionReporter {
 		}
 		
 		if(withLog){
-			appendToLog();
+			printReporterStatusToLog();
 		}
 	}
 
-	public static void appendToLog() {
+	public static void printReporterStatusToLog() {
 		CCoreUtil.checkAccess();
 		
 		if(status){
@@ -82,15 +94,9 @@ public class ExceptionReporter {
 		}
 	}
 	
-	private static final ExceptionJSONBuilder builder = RootBuilder.getInstance().getExceptionJSONBuilder();
-	private static final ExceptionChecker checker = ExceptionChecker.getInstance();
-	
 	public static final void printStackTrace(final Throwable throwable){
 		printStackTrace(throwable, null, null, INVOKE_NORMAL);
 	}
-	
-	private static final boolean SERVER_SIDE = IConstant.serverSide;
-	private static final RootConfig rootConfig = RootConfig.getInstance();
 	
 	private static HarHelper harHelper;
 	
@@ -102,7 +108,7 @@ public class ExceptionReporter {
 		printStackTrace(throwable, null, null, INVOKE_THREADPOOL);
 	}
 	
-	public static final void printStackTraceFromRunException(final Throwable throwable, final String script, final String errMessage){
+	public static final void printStackTraceFromHAR(final Throwable throwable, final String script, final String errMessage){
 		printStackTrace(throwable, script, errMessage, INVOKE_HAR);
 	}
 	
@@ -221,6 +227,6 @@ public class ExceptionReporter {
 			status = false;
 		}
 		
-		appendToLog();
+		printReporterStatusToLog();
 	}
 }

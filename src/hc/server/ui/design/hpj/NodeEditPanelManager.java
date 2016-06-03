@@ -1,6 +1,5 @@
 package hc.server.ui.design.hpj;
 
-import hc.App;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.server.ConfigPane;
@@ -10,7 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 public class NodeEditPanelManager {
-	public void updateSkinUI(){
+	public final void updateSkinUI(){
 		final Iterator<NodeEditPanel> it = map.values().iterator();
 		while(it.hasNext()){
 			ConfigPane.updateComponentUI(it.next());
@@ -35,7 +34,7 @@ public class NodeEditPanelManager {
 		return node.type == HPNode.TYPE_MENU_ITEM_FORM;
 	}
 	
-	public NodeEditPanel switchNodeEditPanel(final int nodeType, final HPNode hpnode, final Designer designer){
+	public final NodeEditPanel switchNodeEditPanel(final int nodeType, final HPNode hpnode, final Designer designer){
 		NodeEditPanel nep = null;
 		if(HPNode.isNodeType(nodeType, HPNode.MASK_MENU)){
 			nep = getInstance(MenuListEditPanel.class);
@@ -68,7 +67,7 @@ public class NodeEditPanelManager {
 		return nep;
 	}
 
-	public synchronized NodeEditPanel getInstance(final Class c){
+	public final synchronized NodeEditPanel getInstance(final Class c){
 		final String className = c.getName();
 		NodeEditPanel nep = map.get(className);
 		if(nep != null){
@@ -86,7 +85,7 @@ public class NodeEditPanelManager {
 		}
 	}
 
-	NodeEditPanel noneNodeEditPanel = new NodeEditPanel();
-	HashMap<String, NodeEditPanel> map = new HashMap<String, NodeEditPanel>();
+	final NodeEditPanel noneNodeEditPanel = new NodeEditPanel();
+	final HashMap<String, NodeEditPanel> map = new HashMap<String, NodeEditPanel>();
 
 }

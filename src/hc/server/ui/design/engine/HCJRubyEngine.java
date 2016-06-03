@@ -1,16 +1,18 @@
 package hc.server.ui.design.engine;
 
-import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LRUCache;
-import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
+import hc.server.PlatformManager;
+import hc.server.PlatformService;
+import hc.server.data.StoreDirManager;
 import hc.server.ui.design.hpj.HCScriptException;
 import hc.server.ui.design.hpj.RubyWriter;
 import hc.util.ClassUtil;
 import hc.util.ResourceUtil;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
@@ -27,6 +29,8 @@ import javax.script.ScriptException;
 //import org.jruby.javasupport.JavaEmbedUtils.EvalUnit;
 
 public class HCJRubyEngine {
+	private static final boolean isAndroidServerPlatform = ResourceUtil.isAndroidServerPlatform();
+	
 	public boolean isError = false;
 	public final RubyWriter errorWriter = new RubyWriter();
 	public final HCScriptException sexception = new HCScriptException("");
@@ -145,6 +149,8 @@ public class HCJRubyEngine {
 	public ClassLoader getProjClassLoader(){
 		return projClassLoader;
 	}
+	
+	private static boolean isInit = false;
 
 	/**
 	 * 
@@ -152,6 +158,81 @@ public class HCJRubyEngine {
 	 * @param projClassLoader
 	 */
 	public HCJRubyEngine(final String absPath, final ClassLoader projClassLoader, final boolean isReportException){
+		if(isInit == false){
+			isInit = true;
+			
+			if(isAndroidServerPlatform){
+				final File optimizBaseDir = PlatformManager.getService().getJRubyAndroidOptimizBaseDir();
+
+				//System.setProperty("jruby.compile.mode", "OFF"); // OFF OFFIR JITIR? FORCE FORCEIR
+		        //System.setProperty("jruby.compile.backend", "DALVIK");
+		        System.setProperty("jruby.bytecode.version", "1.6");
+//		        System.setProperty("jruby.interfaces.useProxy", "true");
+//		        System.setProperty("jruby.management.enabled", "false");
+//		        System.setProperty("jruby.objectspace.enabled", "false");
+//		        System.setProperty("jruby.thread.pooling", "true");
+//		        System.setProperty("jruby.native.enabled", "true");//不能开启，ruboto-core-1.0.5.apk，会出现jnr-ffi
+//		        System.setProperty("jruby.native.verbose", "true");
+//		         System.setProperty("jruby.compat.version", "RUBY1_8"); // RUBY1_9 is the default in JRuby 1.7
+//		        System.setProperty("jruby.ir.passes", "LocalOptimizationPass,DeadCodeElimination");
+//		        System.setProperty("jruby.backtrace.style", "normal"); // normal raw full mri
+
+		        // Uncomment these to debug/profile Ruby source loading
+		        // System.setProperty("jruby.debug.loadService", "true");
+		        // System.setProperty("jruby.debug.loadService.timing", "true");
+
+	            // Used to enable JRuby to generate proxy classes
+	            System.setProperty("jruby.ji.proxyClassFactory", "org.ruboto.DalvikProxyClassFactory");
+	            System.setProperty("jruby.ji.upper.case.package.name.allowed", "true");
+	    		//the following property is for System.setProperty("jruby.ji.proxyClassFactory", "org.ruboto.DalvikProxyClassFactory");
+	            System.setProperty("java.io.tmpdir", StoreDirManager.TEMP_DIR.getAbsolutePath());
+	   		 
+		        {
+		        	final File proxyCache = new File(optimizBaseDir, "ruboto_cache");
+		        	proxyCache.mkdirs();
+		        	System.out.println("creaet dir : " + proxyCache.getAbsolutePath());
+		        	System.setProperty("jruby.class.cache.path", proxyCache.getAbsolutePath());
+		        }
+		        
+	            System.setProperty("jruby.backtrace.style", "normal"); // normal raw full mri
+	            System.setProperty("jruby.bytecode.version", "1.6");
+	            // BEGIN Ruboto RubyVersion
+	            // System.setProperty("jruby.compat.version", "RUBY2_0"); // RUBY1_9 is the default in JRuby 1.7
+	            // END Ruboto RubyVersion
+	            // System.setProperty("jruby.compile.backend", "DALVIK");
+	            System.setProperty("jruby.compile.mode", "OFF"); // OFF OFFIR JITIR? FORCE FORCEIR
+	            System.setProperty("jruby.interfaces.useProxy", "true");
+	            System.setProperty("jruby.ir.passes", "LocalOptimizationPass,DeadCodeElimination");
+	            System.setProperty("jruby.management.enabled", "false");
+	            System.setProperty("jruby.native.enabled", "false");
+	            System.setProperty("jruby.objectspace.enabled", "false");
+	            System.setProperty("jruby.rewrite.java.trace", "true");
+	            System.setProperty("jruby.thread.pooling", "true");
+
+	            // Uncomment these to debug/profile Ruby source loading
+	            // Analyse the output: grep "LoadService:   <-" | cut -f5 -d- | cut -c2- | cut -f1 -dm | awk '{total = total + $1}END{print total}'
+	            // System.setProperty("jruby.debug.loadService", "true");
+	            // System.setProperty("jruby.debug.loadService.timing", "true");
+
+		        try{
+			        final Class scriptingContainerClass = Class.forName("org.jruby.embed.ScriptingContainer", true, projClassLoader);
+			        
+		            final Class rubyClass = Class.forName("org.jruby.Ruby", true, scriptingContainerClass.getClassLoader());
+		            final Class rubyInstanceConfigClass = Class.forName("org.jruby.RubyInstanceConfig", true, scriptingContainerClass.getClassLoader());
+		
+		            final Object config = rubyInstanceConfigClass.getConstructor().newInstance();
+		            rubyInstanceConfigClass.getMethod("setDisableGems", boolean.class).invoke(config, true);
+		            rubyInstanceConfigClass.getMethod("setLoader", ClassLoader.class).invoke(config, projClassLoader);
+		            
+	                // This will become the global runtime and be used by our ScriptingContainer
+	                rubyClass.getMethod("newInstance", rubyInstanceConfigClass).invoke(null, config);
+	                
+		        }catch (final Throwable e) {
+		        	e.printStackTrace();
+		        }
+			}
+		}
+		
 		this.projClassLoader = projClassLoader;
 		this.isReportException = isReportException;
 		
@@ -201,6 +282,15 @@ public class HCJRubyEngine {
 //			final Object[] para = {debugAllow};
 //			ClassUtil.invoke(classScriptingContainer, container, "setProfile", paraTypes, para, false);
 //		}
+		
+//		container.setCompatVersion(org.jruby.CompatVersion.RUBY2_0);
+		if(isAndroidServerPlatform){
+			final Class compatVersionClass = projClassLoader.loadClass("org.jruby.CompatVersion");
+			final Object rubyVersion = ClassUtil.getField(compatVersionClass, compatVersionClass, "RUBY1_8", false, true);
+			final Class[] paraTypes = {compatVersionClass};
+			final Object[] para = {rubyVersion};
+			ClassUtil.invoke(classScriptingContainer, container, "setCompatVersion", paraTypes, para, false);
+		}
 
 //		container.setCompileMode(org.jruby.RubyInstanceConfig$CompileMode.FORCE);
 		if(isReportException){
@@ -211,12 +301,12 @@ public class HCJRubyEngine {
 //			if(compileMode != null){
 //				L.V = L.O ? false : LogManager.log("JRubyEngine compileMode : TRUFFLE");
 //			}else{
-				if(ResourceUtil.isAndroidServerPlatform()){
+				if(isAndroidServerPlatform){
 					compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "JIT", false, true);
-					L.V = L.O ? false : LogManager.log("JRubyEngine compileMode : JIT");
+//					L.V = L.O ? false : LogManager.log("JRubyEngine compileMode : JIT");//多实例，无意义
 				}else{
-					compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "FORCE", false, true);
-					L.V = L.O ? false : LogManager.log("JRubyEngine compileMode : FORCE");
+					compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "FORCE", false, true);//in Android, 1.8，2.0均不能parse(AddHAR)
+//					L.V = L.O ? false : LogManager.log("JRubyEngine compileMode : FORCE");//多实例，无意义
 				}
 //			}
 			final Class[] paraTypes = {compileModeClass};
@@ -253,6 +343,10 @@ public class HCJRubyEngine {
 		ClassUtil.invoke(classScriptingContainer, container, "setClassLoader", paraType, para, false);
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
+		}
+		
+		if(isAndroidServerPlatform){
+			PlatformManager.getService().doExtBiz(PlatformService.BIZ_INIT_RUBOTO_ENVIROMENT, container);
 		}
 	}
 

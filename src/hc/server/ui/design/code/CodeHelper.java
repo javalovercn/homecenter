@@ -1587,7 +1587,7 @@ public class CodeHelper {
 			return true;
 		}catch (final Throwable e) {
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("[workbench]:");
+				L.V = L.O ? false : LogManager.log("[============>workbench]:");
 				ExceptionReporter.printStackTrace(e);
 			}
 			root = buildMiniNode(scripts, sep);

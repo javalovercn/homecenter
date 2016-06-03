@@ -1,13 +1,12 @@
 package hc.server.html5.syn;
 
+import hc.App;
 import hc.core.ContextManager;
 import hc.core.FastSender;
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.cache.CacheManager;
-import hc.core.cache.PendStore;
-import hc.core.data.DataCache;
 import hc.core.util.ByteUtil;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
@@ -15,6 +14,7 @@ import hc.core.util.ThreadPriorityManager;
 import hc.server.ui.HCByteArrayOutputStream;
 import hc.server.ui.Mlet;
 import hc.server.ui.ServerUIAPIAgent;
+import hc.server.util.CacheComparator;
 import hc.util.JSUtil;
 
 import java.awt.Graphics2D;
@@ -30,7 +30,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractButton;
@@ -135,7 +134,15 @@ public class DifferTodo {
 		this.urlID = tmpURLID==null?"":tmpURLID;
 		this.urlIDbs = ByteUtil.getBytes(urlID, IConstant.UTF_8);
 		
-		dataCache.setBytes(new byte[2048]);
+		jsCacheComparer = new CacheComparator(projID, uuid, urlID, projIDbs, uuidBS, urlIDbs) {
+			@Override
+			public void sendData(final Object[] paras) {
+				final byte[] scriptBS = (byte[])paras[0];
+				final boolean needGzip = (Boolean)paras[1];
+				
+				sendJSBytes(scriptBS, 0, scriptBS.length, needGzip, true);//注意：需要通知进行cache
+			}
+		};
 		
 		map.put(HC_CODE_MLET, mlet);
 		
@@ -144,73 +151,34 @@ public class DifferTodo {
 		this.screenIDBS = ByteUtil.getBytes(screenID, IConstant.UTF_8);
 		screenIDLen = this.screenIDBS.length;
 
-		initTotoBS(CACHE_MIN_SIZE);
+		initTotoBS(CacheManager.getMinCacheSize() * 2);
 		scriptIndex = screenIDIdx + screenIDLen + 2 + projIDbs.length;//screenIDLen + screenID
 	}
 	
-	private final DataCache dataCache = new DataCache();
-	private final byte[] code = new byte[CacheManager.CODE_LEN];
-	
-	private final static int CACHE_MIN_SIZE = 50 * 1024;
-	
 	private final void sendJavaScript(final String script, final boolean needGzip, final boolean enableCache){
+		if(isSimu){
+			if(script.length() < 1024){//不显示基础脚本
+				L.V = L.O ? false : LogManager.log(script);
+			}
+		}
+		
 		final byte[] scriptBS = ByteUtil.getBytes(script, IConstant.UTF_8);
 		
 		sendJSOrCache(scriptBS, needGzip, enableCache);
 	}
 
-	private synchronized void sendJSOrCache(final byte[] scriptBS, final boolean needGzip, final boolean enableCache) {
-		final boolean isNeedCacheCheck = scriptBS.length > CACHE_MIN_SIZE;
+	private final void sendJSOrCache(final byte[] scriptBS, final boolean needGzip, final boolean enableCache) {
+		final boolean isNeedCacheCheck = CacheManager.isMeetCacheLength(scriptBS.length);
 		
 		if(enableCache && isNeedCacheCheck){
-			boolean isNeedCache = false;
-			ByteUtil.encodeFileXOR(scriptBS, 0, scriptBS.length, code, 0, code.length);
-//			L.V = L.O ? false : LogManager.log("-----------cache code : " + ByteUtil.encodeBase64(code));
-			final byte[] cacheScriptBS = CacheManager.getCacheFileBS(projID, uuid, urlID, code, 0, code.length);
-			
-			if(cacheScriptBS != null){
-				final int scriptBSSize = scriptBS.length;
-				final int cacheScriptBSSize = cacheScriptBS.length;
-				
-				if(cacheScriptBSSize != scriptBSSize){
-					isNeedCache = true;
-				}else{
-					for (int i = 0; i < cacheScriptBS.length; i++) {
-						if(scriptBS[i] != cacheScriptBS[i]){
-							isNeedCache = true;
-							break;
-						}
-					}
-				}
-			}else{
-				isNeedCache = true;
-			}
-			
-			if(isNeedCache){
-				sendJSBytes(scriptBS, 0, scriptBS.length, needGzip, true);//注意：需要通知进行cache
-				
-				pendStore(new PendStore(projID, uuid, urlID, 
-						projIDbs, uuidBS, urlIDbs, 
-						code, scriptBS));
-			}else{
-				final int dataLen = dataCache.setCacheInfo(projIDbs, 0, projIDbs.length, urlIDbs, 0, urlIDbs.length, code, 0, code.length);
-				
-				//服务端发送
-				ContextManager.getContextInstance().sendWrap(MsgBuilder.E_LOAD_CACHE, dataCache.bs, MsgBuilder.INDEX_MSG_DATA, dataLen);		
-				L.V = L.O ? false : LogManager.log("[cache] find match cache item for [" + projID + "/" + uuid + "/" + urlID + "]");
-			}
+			final Object[] paras = {scriptBS, needGzip};
+			jsCacheComparer.encodeGetCompare(scriptBS, 0, scriptBS.length, paras);
 		}else{
 			sendJSBytes(scriptBS, 0, scriptBS.length, needGzip, false);//注意：不需要通知进行cache
 		}
 	}
 
-	final Vector<PendStore> pendStoreVector = new Vector(4);
-	
-	private final void pendStore(final PendStore ps){
-		synchronized(pendStoreVector){
-			pendStoreVector.addElement(ps);
-		}
-	}
+	final CacheComparator jsCacheComparer;
 	
 	final byte isNeedGzip = 1;
 	final byte isNotNeedGzip = 0;
@@ -276,29 +244,64 @@ public class DifferTodo {
 	private final static byte[] BS_LOAD_STYLE = ByteUtil.getBytes("window.hcj2se.loadStyles(\"", IConstant.UTF_8);
 	private final static byte[] BS_LOAD_STYLE_END = ByteUtil.getBytes("\");", IConstant.UTF_8);
 	
+	private final static byte[] BS_LOAD_JS = ByteUtil.getBytes("window.hcj2se.loadJS(\"", IConstant.UTF_8);
+	private final static byte[] BS_LOAD_JS_END = ByteUtil.getBytes("\");", IConstant.UTF_8);
+
 	/**
+	 * 加载CSS到html->header->style段
 	 * for example : body{background-color:#f00;}
 	 * @param css
 	 */
 	public final void loadStyles(String css){
-		css = StringUtil.formatJS(css);
+		css = css.replace("\"", "\\\"");//改"为\"
 		css = JSUtil.replaceNewLine(JSUtil.replaceReturnWithEmtpySpace(css));//修复换行不能执行的问题
 		final boolean needGzip = ((css.length()>GZIP_MIN_SIZE)?true:false);
 		final byte[] cssBS = ByteUtil.getBytes(css, IConstant.UTF_8);
 		
-		final int maxLen = BS_LOAD_STYLE.length + cssBS.length + BS_LOAD_STYLE_END.length;
+		final int cssBSLen = cssBS.length;
+		
+		final int maxLen = BS_LOAD_STYLE.length + cssBSLen + BS_LOAD_STYLE_END.length;
 		final byte[] cycleBS = new byte[maxLen];
 		
+		//转调为window.hcj2se.loadStyles
 		System.arraycopy(BS_LOAD_STYLE, 0, cycleBS, 0, BS_LOAD_STYLE.length);
-		System.arraycopy(cssBS, 0, cycleBS, BS_LOAD_STYLE.length, cssBS.length);
-		System.arraycopy(BS_LOAD_STYLE_END, 0, cycleBS, BS_LOAD_STYLE.length + cssBS.length, BS_LOAD_STYLE_END.length);
+		System.arraycopy(cssBS, 0, cycleBS, BS_LOAD_STYLE.length, cssBSLen);
+		System.arraycopy(BS_LOAD_STYLE_END, 0, cycleBS, BS_LOAD_STYLE.length + cssBSLen, BS_LOAD_STYLE_END.length);
+		
+		sendJSOrCache(cycleBS, needGzip, true);
+	}
+	
+	/**
+	 * 加载JS到html->header->script段。
+	 * 注意：它不同于{@link #executeJS(String)}
+	 * for example : body{background-color:#f00;}
+	 * @param js
+	 */
+	public final void loadJS(String js){
+		js = js.replace("\"", "\\\"");//改"为\"
+		js = JSUtil.replaceNewLine(JSUtil.replaceReturnWithEmtpySpace(js));//修复换行不能执行的问题
+		final boolean needGzip = ((js.length()>GZIP_MIN_SIZE)?true:false);
+		final byte[] jsBS = ByteUtil.getBytes(js, IConstant.UTF_8);
+		
+		final int maxLen = BS_LOAD_JS.length + jsBS.length + BS_LOAD_JS_END.length;
+		final byte[] cycleBS = new byte[maxLen];
+		
+		//转调为window.hcj2se.loadJS
+		System.arraycopy(BS_LOAD_JS, 0, cycleBS, 0, BS_LOAD_JS.length);
+		System.arraycopy(jsBS, 0, cycleBS, BS_LOAD_JS.length, jsBS.length);
+		System.arraycopy(BS_LOAD_JS_END, 0, cycleBS, BS_LOAD_JS.length + jsBS.length, BS_LOAD_JS_END.length);
 		
 		sendJSOrCache(cycleBS, needGzip, true);
 	}
 
 	private static final int GZIP_MIN_SIZE = 1024 * 100;
 	
-	public final void loadJS(final String script){
+	/**
+	 * 立即执行script。
+	 * 它不同于{@link #loadJS(String)}
+	 * @param script
+	 */
+	public final void executeJS(final String script){
 		final boolean needGzip = ((script.length()>GZIP_MIN_SIZE)?true:false);
 		sendJavaScript(script, needGzip, true);
 	}
@@ -323,7 +326,7 @@ public class DifferTodo {
 
 		for (int i = 0; i < size; i++) {
 			if(sb.length() > 0){
-				sb.append(StringUtil.split);
+				sb.append(StringUtil.SPLIT_LEVEL_2_JING);
 			}
 			sb.append(combo.getItemAt(i).toString());
 		}
@@ -553,9 +556,15 @@ public class DifferTodo {
 		} catch (final IOException e1) {
 		}
 	}
+	
+	private final boolean isSimu = App.isSimu();
 
 	public final void notifyJComponentLocation(final JComponent component){
 		final Rectangle rect = component.getBounds();
+		
+		if(isSimu){
+			L.V = L.O ? false : LogManager.log("send Component Location, " + component.toString() + " [x : " + rect.x + ", y : " + rect.y + ", w : " + rect.width + ", h : " + rect.height + "]");
+		}
 		
 		final String script = "window.hcj2se.setLocation(" + buildHcCode(component) + "," + rect.x + "," + rect.y + "," + rect.width + "," + rect.height + ");";
 		

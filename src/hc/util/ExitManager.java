@@ -7,6 +7,7 @@ import hc.core.IConstant;
 import hc.core.L;
 import hc.core.RootServerConnector;
 import hc.core.sip.SIPManager;
+import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.KeepaliveManager;
@@ -14,14 +15,22 @@ import hc.server.PlatformManager;
 import hc.server.ProcessingWindowManager;
 import hc.server.ScreenServer;
 import hc.server.SingleJFrame;
+import hc.server.rms.RMSLastAccessTimeManager;
 import hc.server.util.HCLimitSecurityManager;
 
 public class ExitManager {
 	public static void startExitSystem(){
+		CCoreUtil.checkAccess();
+
 		//直接采用主线程，会导致退出提示信息会延时显示，效果较差
 		ProcessingWindowManager.showCenterMessage((String)ResourceUtil.get(9067));
 		
 		SingleJFrame.disposeAll();
+
+		L.V = L.O ? false : LogManager.log("Start ExitManager");
+		
+		RMSLastAccessTimeManager.checkIdleAndRemove();
+		RMSLastAccessTimeManager.save();
 
 		HttpUtil.notifyStopServer(false, null);
 		//以上逻辑不能置于notifyShutdown中，因为这些方法有可能被其它外部事件，如手机下线，中继下线触发。
@@ -36,7 +45,7 @@ public class ExitManager {
 	}
 	
 	public static void exit(){
-		L.V = L.O ? false : LogManager.log("Start ExitManager");
+		CCoreUtil.checkAccess();
 		
 		startForceExitThread();
 		

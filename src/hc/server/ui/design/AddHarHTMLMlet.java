@@ -2,13 +2,17 @@ package hc.server.ui.design;
 
 import hc.App;
 import hc.core.ContextManager;
+import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
+import hc.core.cache.CacheManager;
+import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
+import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.HCActionListener;
 import hc.server.J2SEServerURLAction;
@@ -24,16 +28,19 @@ import hc.server.ui.HTMLMlet;
 import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
+import hc.server.util.CacheComparator;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.PropertiesSet;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -100,12 +107,13 @@ public class AddHarHTMLMlet extends HTMLMlet {
 			appendMessage(processingMsg);
 		}
 
-		final String fontSizeCSS = "font-size:" + fontSizePX + "px";
+		final String fontSizeCSS = "font-size:" + fontSizePX + "px;";
 		setCSS(this, null, fontSizeCSS);//系统Mlet, //不考虑in user thread
 		addProcessingPanel.add(msgArea, BorderLayout.CENTER);
 		exitButton.setIcon(new ImageIcon(okIcon));
 		exitButton.setEnabled(false);
-		setCSS(exitButton, null, "text-align:center;vertical-align:middle;width:100%;height:100%" + ";" + fontSizeCSS);//系统Mlet, //不考虑in user thread
+		exitButton.setPreferredSize(new Dimension(getMobileWidth(), Math.max(fontSizePX + getFontSizeForNormal(), getButtonHeight())));
+		setCSS(exitButton, null, "text-align:center;vertical-align:middle;width:100%;height:100%;" + fontSizeCSS);//系统Mlet, //不考虑in user thread
 		exitButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
@@ -127,7 +135,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 				return (AddHarHTMLMlet)currMlet;
 			}
 			try{
-				Thread.currentThread().sleep(200);
+				Thread.sleep(200);
 			}catch (final Exception e) {
 			}
 		}while(++count < 20);
@@ -135,7 +143,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		return null;
 	}
 
-	public void startAddHarProcess(final String url) {
+	public final void startAddHarProcess(final String url) {
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
@@ -149,7 +157,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		appendMessage(StringUtil.replace(StringUtil.replace(isBroadcast, "{projID}", projID), "{devName}", device));
 	}
 	
-	private void startAddHar(final String url){
+	private final void startAddHar(final String url){
 		L.V = L.O ? false : LogManager.log("try ready to download HAR [" + url.toString() + "]...");
 		
 		//关闭可能资源锁窗口，比如Designer或LinkProjectPanel
@@ -202,43 +210,90 @@ public class AddHarHTMLMlet extends HTMLMlet {
 //					}
 					
 					final String proj_id = (String)map.get(HCjar.PROJ_ID);
+
 					final boolean isUpgrade = (LinkProjectManager.getProjByID(proj_id) != null);
 					final File oldBackEditFile = null;
 					if(isUpgrade){
-						final String errMsg = "project [" + proj_id + "] is added or using now!";
-						throw new Exception(errMsg);
+						//is added, can NOT be added again.
+						throw new Exception(StringUtil.replace((String)ResourceUtil.get(9192), "{projID}", proj_id));//是否覆盖为resID=9157
 					}
 					
-					final ArrayList<LinkProjectStore> appendLPS = appendMapToSavedLPS(fileHar, map, false, isUpgrade, oldBackEditFile);
-					LinkProjectManager.reloadLinkProjects();//十分重要
-					
-					final MobiUIResponsor mobiResp = (MobiUIResponsor)ServerUIUtil.getResponsor();
-					
-					final ProjResponser[] appendResp = mobiResp.appendNewHarProject();//仅扩展新工程，不启动或不运行
-					BindRobotSource bindSource = mobiResp.bindRobotSource;
-					if(bindSource == null){
-						bindSource = new BindRobotSource(mobiResp);
+					final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
+					if(licenseURL != null && licenseURL.length() > 0){
+						ContextManager.getThreadPool().run(new Runnable() {
+							@Override
+							public void run() {
+								LogManager.log("\n==================License for [" + proj_id + "]==================\n" +
+															ResourceUtil.getStringFromURL(licenseURL, true) +
+															"\n====================End License===================");
+							}
+						});
+					}else{
+						LogManager.log("\n==================License for [" + proj_id + "]==================\n" +
+								"" +
+								"\n====================End License===================");
 					}
 					
-					if(BindManager.findNewUnbind(bindSource)){//进行自动绑定
-						//TODO mobile bind 
-						final String errMsg = "please bind on Server";
-						throw new Exception(errMsg);
+					final Boolean[] isDone = new Boolean[1];
+					isDone[0] = false;
+					final Exception[] runException = new Exception[1];
+					final Boolean[] isOvertime = new Boolean[1];
+					isOvertime[0] = false;
+					
+					final String iAgree = (String)ResourceUtil.get(9193);//I agree the license of current project in logger.
+					final ThreadGroup token = App.getThreadPoolToken();
+					final Runnable yesRunnable = new Runnable() {
+						@Override
+						public void run() {
+							ContextManager.getThreadPool().run(new Runnable() {
+								@Override
+								public void run() {
+									synchronized (isOvertime) {
+										if(isOvertime[0]){
+											return;
+										}
+										try{
+											startAddAfterAgreeInQuestionThread(fileHar, map, isUpgrade, oldBackEditFile);
+										}catch (final Exception e) {
+											runException[0] = e;
+										}
+										isDone[0] = true;
+									}
+								}
+							}, token);//转主线程
+						}
+					};
+					final Runnable noRunnable = new Runnable() {
+						@Override
+						public void run() {
+							isDone[0] = true;
+						}
+					};
+					final String strLicense = (String)ResourceUtil.get(9194);//License
+					getProjectContext().sendQuestion(strLicense, iAgree, null, yesRunnable, noRunnable, null);
+					
+					final long startMS = System.currentTimeMillis();
+					while(isDone[0] == false && isOnExit == false){
+						if(System.currentTimeMillis() - startMS > 1000 * 60 * 10){//10分钟
+							synchronized (isOvertime) {
+								isOvertime[0] = true;
+							}
+							break;
+						}
+						
+						try{
+							Thread.sleep(ThreadPriorityManager.UI_WAIT_MS);
+						}catch (final Exception e) {
+						}
 					}
 					
-					mobiResp.fireSystemEventListenerOnAppendProject(appendResp, appendLPS);//进入运行状态
-					
-					final ProjResponser resp = mobiResp.findContext(mobiResp.getCurrentContext());
-					final JarMainMenu linkMenu = resp.menu[resp.mainMenuIdx];
-					linkMenu.rebuildMenuItemArray();
-					ContextManager.getContextInstance().send(MsgBuilder.E_MENU_REFRESH, linkMenu.buildJcip());
-					
-					L.V = L.O ? false : LogManager.log("successful apply added project to ACTIVE status.");
+					if(runException[0] != null){
+						throw runException[0];
+					}
 		        }else{
 		        	final String errMsg = "md5 error, try after a minute";
 					throw new Exception(errMsg);
 		        }
-		        appendMessage((String)ResourceUtil.get(9128));
 			}catch (final Throwable e) {
 				ExceptionReporter.printStackTrace(e);
 				appendMessage(App.getErrorI18N() + " : " + e.getMessage());
@@ -247,6 +302,65 @@ public class AddHarHTMLMlet extends HTMLMlet {
 				exitButton.setEnabled(true);
 			}
 		}
+	}
+	
+	boolean isOnExit = false;
+	
+	@Override
+	public void onExit() {
+		isOnExit = true;
+		super.onExit();
+	}
+
+	private final void startAddAfterAgreeInQuestionThread(final File fileHar,
+			final Map<String, Object> map, final boolean isUpgrade,
+			final File oldBackEditFile) throws Exception {
+		final ArrayList<LinkProjectStore> appendLPS = appendMapToSavedLPS(fileHar, map, false, isUpgrade, oldBackEditFile);
+		LinkProjectManager.reloadLinkProjects();//十分重要
+		
+		final MobiUIResponsor mobiResp = (MobiUIResponsor)ServerUIUtil.getResponsor();
+		
+		final ProjResponser[] appendResp = mobiResp.appendNewHarProject();//仅扩展新工程，不启动或不运行
+		BindRobotSource bindSource = mobiResp.bindRobotSource;
+		if(bindSource == null){
+			bindSource = new BindRobotSource(mobiResp);
+		}
+		
+		if(BindManager.findNewUnbind(bindSource)){//进行自动绑定
+			//TODO mobile bind 
+			final String errMsg = "please bind on Server";
+			throw new Exception(errMsg);
+		}
+		
+		mobiResp.fireSystemEventListenerOnAppendProject(appendResp, appendLPS);//进入运行状态
+		
+		final ProjResponser resp = mobiResp.findContext(mobiResp.getCurrentContext());
+		final JarMainMenu linkMenu = resp.menu[resp.mainMenuIdx];
+		linkMenu.rebuildMenuItemArray();
+		final String menuData = linkMenu.buildJcip();
+		
+		{
+			final String projID = resp.context.getProjectID();
+			final byte[] projIDbs = StringUtil.getBytes(projID);
+			final String uuid = ServerUIAPIAgent.getMobileUID();
+			final byte[] uuidBS = ByteUtil.getBytes(uuid, IConstant.UTF_8);
+			final String urlID = CacheManager.ELE_URL_ID_MENU;
+			final byte[] urlIDbs = CacheManager.ELE_URL_ID_MENU_BS;
+			
+			final CacheComparator menuRefreshComp = new CacheComparator(projID, uuid, urlID, projIDbs, uuidBS, urlIDbs) {
+				@Override
+				public void sendData(final Object[] paras) {
+					ContextManager.getContextInstance().send(MsgBuilder.E_MENU_REFRESH, menuData);
+//					HCURLUtil.sendEClass(HCURLUtil.CLASS_BODY_TO_MOBI, bodyBS, 0, bodyBS.length);
+				}
+			};
+			final byte[] data = StringUtil.getBytes(menuData);
+			menuRefreshComp.encodeGetCompare(data, 0, data.length, null);
+		}
+		
+		
+		L.V = L.O ? false : LogManager.log("successful apply added project to ACTIVE status.");
+		appendMessage((String)ResourceUtil.get(9128));
 	}
 
 	/**

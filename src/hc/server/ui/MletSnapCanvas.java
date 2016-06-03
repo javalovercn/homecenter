@@ -61,7 +61,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	final static boolean isAndroidServer = ResourceUtil.isAndroidServerPlatform();
 	final boolean isJ2SEPanelInset = ResourceUtil.isJ2SELimitFunction();
     private JScrollPane scrolPanel;
-	ProjectContext projectContext;
+	public ProjectContext projectContext;
 	
 	public MletSnapCanvas(final int w, final int h) {
 		super(w, h, false, getMaskFromBit(IConstant.COLOR_64_BIT));
@@ -963,7 +963,12 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	
 	@Override
 	public void onExit() {
-		ScreenServer.onExitForMlet(projectContext, mlet);
+		onExit(false);
+	}
+	
+	@Override
+	public void onExit(final boolean isAutoReleaseAfterGo){
+		ScreenServer.onExitForMlet(projectContext, mlet, isAutoReleaseAfterGo);
 		frame.dispose();
 		frameCombobox.dispose();
 		

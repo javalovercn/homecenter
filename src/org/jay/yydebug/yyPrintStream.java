@@ -2563,251 +2563,75 @@
  *   after the cause of action arose. Each party waives its rights to a jury trial in
  *   any resulting litigation.
  */
-package jay.yydebug;
+package org.jay.yydebug;
 
-import java.awt.BorderLayout;
-import java.awt.Button;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.ScrollPane;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-
-import javax.swing.JCheckBox;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-/** animates messages with a graphical interface.
-    This is not {@link java.io.Serializable}.
+import java.io.FilterOutputStream;
+import java.io.PrintStream;
+/** used to reroute standard and diagnostic output, auto-flushes.
+    All print methods delegate to the write-buffer method;
+    subclass must implement the write and close methods
+	to route the actual output.
   */
-public class yyAnimPanel extends JPanel implements yyDebug {
-	/**
-	 * change log by HomeCenter
-	 * change awt to Swing, for example, Frame=>JFrame, Label => JLabel
-	 */
-	
-  /** current token and value.
+public abstract class yyPrintStream extends PrintStream {
+  /** <tt>line.separator</tt> property.
     */
-  protected transient JTextField token, value;
-  /** running explanations.
-    */
-  protected transient JTextArea comments;
-  /** state/value stack.
-    */
-  protected transient Stack stack;
-  /** breakpoints, set in GUI.
-    */
-  protected transient boolean tokenBreak = true, stackBreak, commentsBreak;
-
-  public yyAnimPanel (final Font font) {
-    super(new BorderLayout());
-
-    Button b;
-    JCheckBox c;
-    JPanel p, q;
-
-    p = new JPanel(new BorderLayout());
-      p.add(c = new JCheckBox("token ", tokenBreak), "West");
-        c.addItemListener(new ItemListener() {
-	  @Override
-	public void itemStateChanged (final ItemEvent ie) {
-	    tokenBreak = ie.getStateChange() == ie.SELECTED;
-          }
-        });
-      q = new JPanel(new BorderLayout());
-        q.add(token = new JTextField(12), "West");
-          token.setEditable(false); token.setBackground(Color.white);
-          token.setFont(font);
-        q.add(value = new JTextField(24), "Center");
-          value.setEditable(false); value.setBackground(Color.white);
-          value.setFont(font);
-      p.add(q, "Center");
-      p.add(b = new Button(" continue "), "East");
-        b.addActionListener(new ActionListener() {
-	  @Override
-	public void actionPerformed (final ActionEvent ae) {
-	    synchronized (yyAnimPanel.this) {
-	      yyAnimPanel.this.notify();
-	    }
-          }
-        });
-    add(p, "North");
-
-    p = new JPanel(new BorderLayout());
-      q = new JPanel(new BorderLayout());
-        q.add(c = new JCheckBox("stack", stackBreak), "North");
-          c.addItemListener(new ItemListener() {
-	    @Override
-		public void itemStateChanged (final ItemEvent ie) {
-	      stackBreak = ie.getStateChange() == ie.SELECTED;
-            }
-          });
-        q.add(stack = new Stack(font), "Center");
-      p.add(q, "Center");
-      q = new JPanel(new BorderLayout());
-        q.add(c = new JCheckBox("comments", commentsBreak), "North");
-          c.addItemListener(new ItemListener() {
-	    @Override
-		public void itemStateChanged (final ItemEvent ie) {
-	      commentsBreak = ie.getStateChange() == ie.SELECTED;
-            }
-          });
-        q.add(comments = new JTextArea(10, 40), "Center");
-          comments.setEditable(false); comments.setBackground(Color.white);
-          comments.setFont(font);
-      p.add(q, "East");
-    add(p, "Center");
+  protected static final String nl = System.getProperty("line.separator", "\n");
+  /** layered on top of a {@link java.io.FilterOutputStream} which is
+      itself layered on <tt>null</tt>. Any access would cause a <tt>NullPointerException</tt>.
+	*/
+  public yyPrintStream () {
+    super(new FilterOutputStream(null), true);	// null results in NullPointerException...
   }
-  /** animates state/value stack.
-    */
-  protected final static class Stack extends ScrollPane {
-    /** describes one level.
-	  */
-    protected static final GridBagConstraints level = new GridBagConstraints();
-    static {
-      level.anchor = level.NORTH;
-      level.fill = level.HORIZONTAL;
-      level.gridheight = 1; level.gridwidth = level.REMAINDER;
-      level.gridx = 0; level.gridy = level.RELATIVE;
-      level.weightx = 1.0;
-    }
-	/** font for the entries.
-	  */
-    protected final Font font;
-	/** real display area.
-	  */
-    protected final JPanel panel;
-
-    public Stack (final Font font) {
-      super(SCROLLBARS_AS_NEEDED);
-      this.font = font;
-      setSize(50, 100);
-      add(panel = new JPanel(new GridBagLayout()));
-    }
-
-    public void push (final int state, final Object value) {
-      final JPanel q = new JPanel(new BorderLayout());
-      JTextField t;
-      q.add(t = new JTextField(""+state, 5), "West");
-	t.setEditable(false); t.setBackground(Color.white); t.setFont(font);
-      q.add(t = new JTextField(value != null ? value.toString() : ""), "Center");
-	t.setEditable(false); t.setBackground(Color.white); t.setFont(font);
-      panel.add(q, level, 0); validate();
-    }
-
-    public void pop (final int len) {
-      for (int n = 0; n < len; ++ n) {
-	panel.remove(0);
-        validate();	// Rhapsody DR2 java crashes if this is outside loop
-      }
-    }
-
-    public void pop () {
-      panel.removeAll(); validate();
-    }
-  }
-  /** post a comment.
-    */
-  protected synchronized void explain (final String what) {
-    if (comments.getText().length() > 0) comments.append("\n");
-    comments.append(what);
-    if (commentsBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
-  }
-
   @Override
-public synchronized void lex (final int state, final int token, final String name, final Object value)
-  { this.token.setText(name);
-    this.value.setText(value == null ? "" : value.toString());
-    explain("read "+name);
-    if (tokenBreak && !commentsBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
-  }
-
+public boolean checkError () { return false; } // fake
   @Override
-public void shift (final int from, final int to, final int errorFlag) {
-    switch (errorFlag) {
-    default:				// normally
-      explain("shift to "+to);
-      break;
-    case 0: case 1: case 2:		// in error recovery
-      explain("shift to "+to+", "+errorFlag+" left to recover");
-      break;
-    case 3:				// normally
-      explain("shift to "+to+" on error");
-    }
-  }
-
+public abstract void close ();
   @Override
-public void discard (final int state, final int token, final String name, final Object value) {
-    explain("discard token "+name+", value "+value);
-  }
-
+public void flush() { } // nothing to do, avoid NullPointerException
   @Override
-public void shift (final int from, final int to) {
-    explain("go to "+to);
-  }
-
+public void print (final boolean b) { print(""+b); }
   @Override
-public synchronized void accept (final Object value) {
-    explain("accept, value "+value);
-    stack.pop();
-    if (stackBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
-  }
-
+public void print (final char c) { print(""+c); }
   @Override
-public void error (final String message) {
-    explain("error message");
-  }
-
+public void print (final char[] s) { print(s != null ? ""+s : ""+null); }
   @Override
-public void reject () {
-    explain("reject");
-    stack.pop();
-    if (stackBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
-  }
-
+public void print (final double d) { print(""+d); }
   @Override
-public synchronized void push (final int state, final Object value) {
-    stack.push(state, value);
-    if (stackBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
-  }
-
+public void print (final float f) { print(""+f); }
   @Override
-public synchronized void pop (final int state) {
-    explain("pop "+state+" on error");
-    stack.pop(1);
-    if (stackBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
-  }
-
+public void print (final int i) { print(""+i); }
   @Override
-public synchronized void reduce (final int from, final int to, final int rule, final String text,
-								final int len) {
-    explain("reduce ("+rule+"), uncover "+to+"\n("+rule+") "+ text);
-    stack.pop(len);
-    if (stackBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
+public void print (final long l) { print(""+l); }
+  @Override
+public void print (final Object obj) { print(""+obj); }
+  @Override
+public void print (final String s) {
+    final byte[] buf = (s != null ? s : ""+null).getBytes();
+    if (buf.length > 0) write(buf, 0, buf.length);
   }
+  @Override
+public void println () { print(nl); }
+  @Override
+public void println (final boolean b) { print(""+b+nl); }
+  @Override
+public void println (final char c) { print(""+c+nl); }
+  @Override
+public void println (final char[] s) { print(s != null ? s+nl : null+nl); }
+  @Override
+public void println (final double d) { print(""+d+nl); }
+  @Override
+public void println (final float f) { print(""+f+nl); }
+  @Override
+public void println (final int i) { print(""+i+nl); }
+  @Override
+public void println (final long l) { print(""+l+nl); }
+  @Override
+public void println (final Object obj) { print(""+obj+nl); }
+  @Override
+public void println (final String s) { print(s != null ? s+nl : null+nl); }
+// inherited, not supported   public void setError ()
+  @Override
+public abstract void write (byte[] buf, int off, int len);
+  @Override
+public abstract void write (int b);
 }

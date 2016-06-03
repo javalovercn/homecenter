@@ -107,8 +107,9 @@ public class ContextManager {
 	//	public static final short STATUS_READY_FOR_CLIENT = 4;//MTU后，但是尚未验证客户
 	public static final short STATUS_SERVER_SELF = 5;
 	public static final short STATUS_CLIENT_SELF = 6;
-	public static final short STATUS_EXIT = 7;
-
+	public static final short STATUS_READY_EXIT = 7;
+	public static final short STATUS_EXIT = 8;
+	
 	public static IStatusListen statusListen;
 
 	public static final short MODE_CONNECTION_NONE = 0;
@@ -143,7 +144,15 @@ public class ContextManager {
 		}
 
 		if((ContextManager.cmStatus == mode) && (mode == ContextManager.STATUS_EXIT)){
-			ContextManager.forceExit();
+			ContextManager.getThreadPool().run(new Runnable() {
+				public void run() {
+					try{
+						Thread.sleep(5000);
+					}catch (Throwable e) {
+					}
+					ContextManager.forceExit();
+				}
+			});
 		}
 
 		ContextManager.cmStatus = mode;

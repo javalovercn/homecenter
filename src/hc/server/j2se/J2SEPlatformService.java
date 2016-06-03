@@ -51,6 +51,11 @@ public class J2SEPlatformService implements PlatformService {
 	}
 	
 	@Override
+	public File getJRubyAndroidOptimizBaseDir(){
+		return null;//do nothing for standard JRE
+	}
+	
+	@Override
 	public void setAutoStart(final boolean isAutoStart){
 		//不实现
 //		System.out.println("set AutoStart : " +  isAutoStart);
@@ -321,8 +326,7 @@ public class J2SEPlatformService implements PlatformService {
 
 	@Override
 	public void startExitSystem() {
-		CCoreUtil.checkAccess();
-		ExitManager.startExitSystem();
+		ExitManager.startExitSystem();//移入CCoreUtil.checkAccess();
 	}
 
 	@Override

@@ -19,6 +19,7 @@ public interface PlatformService {
 	public static final int BIZ_CTRL_V = 3;
 	public static final int BIZ_DEL_HAR_OPTIMIZE_DIR = 4;
 	public static final int BIZ_BIND_FORCE_ANDROID_KEYCODE = 5;
+	public static final int BIZ_INIT_RUBOTO_ENVIROMENT = 6;
 	
 	public Object doExtBiz(int bizID, Object para);
 	
@@ -31,6 +32,8 @@ public interface PlatformService {
 	public void setJRubyHome(final String version, final String absPath);
 	
 	public boolean isLockScreen();
+	
+	public File getJRubyAndroidOptimizBaseDir();
 	
 	public String[] listAssets(final Object path);
 	

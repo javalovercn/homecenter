@@ -3,6 +3,8 @@ package hc.core.util;
 
 public class HCURL {
 
+	public static final String HTTP_SPLITTER = "://";
+
 	public String toString(){
 		String ps = "";
 
@@ -52,9 +54,10 @@ public class HCURL {
 	public static final String DATA_PARA_REPORT_JUMP_EXCEPTION = "jmpExcp";
 	public static final String DATA_PARA_NOTIFY_RECEIVER = "notiRecv";
 	public static final String DATA_PARA_NOTIFY_RECEIVER_PARA = "notiRecvPara";
+	public static final String DATA_PARA_REMOVE_SCREEN_BY_IDX = "removeScreenByIdx";
 	public static final String DATA_PARA_SHIFT_SCREEN_TO_TOP_FROM_IDX = "sftTopIdx";
 	public static final String DATA_PARA_SHIFT_SCREEN_TO_TOP_SIZE = "sftTopSize";
-	public static final String DATA_PARA_NOTIFY_PROJ_LIST = "notiProjList";
+	public static final String DATA_PARA_NOTIFY_PROJ_LIST = "notiCacheProjList";
 	public static final String DATA_PARA_QUESTION_ID = "ques_id";
 	public static final String DATA_PARA_QUESTION_RESULT = "ques_result";
 	public static final String DATA_PARA_PROC_ADD_HAR_URL = "addHARUrl";
@@ -81,6 +84,8 @@ public class HCURL {
 	public static final String URL_CFG_ADD_DEVICE_BY_QR = buildStandardURL(HCURL.CFG_PROTOCAL, ADD_HAR_QR);
 	public static final String URL_CFG_ADD_DEVICE_BY_WIFI = buildStandardURL(HCURL.CFG_PROTOCAL, ADD_HAR_WIFI);
 	
+	public static final String URL_DEFAULT_MLET_ALIAS = "";
+	
 	public static final boolean isUsingWiFiWPS = false;
 	
 	public static final String[] URL_PROTOCAL = {CMD_PROTOCAL, SCREEN_PROTOCAL, CONTROLLER_PROTOCAL,
@@ -89,7 +94,35 @@ public class HCURL {
 		FORM_PROTOCAL, CFG_PROTOCAL, MENU_PROTOCAL};
 	
 	public static String buildStandardURL(final String protocal, final String target){
-		return protocal + "://" + target;
+		return protocal + HTTP_SPLITTER + target;
+	}
+	
+	private static String FORM_MLET_PREFIX = buildStandardURL(FORM_PROTOCAL, "");
+	
+	/**
+	 * 将新版的form://xx生成一个支持旧版的screen://xx。以兼容旧的。
+	 * @param mletURL
+	 * @return
+	 */
+	public static String buildMletAliasURL(final String mletURL){
+		if(mletURL.startsWith(FORM_MLET_PREFIX)){
+			return SCREEN_PROTOCAL + mletURL.substring(FORM_PROTOCAL.length());
+		}
+		return URL_DEFAULT_MLET_ALIAS;
+	}
+	
+	/**
+	 * 不用考虑Designer合并创建时的相同逻辑，因为Designer比较复杂且case化。
+	 * @param mletLocator
+	 * @param isHTMLMlet
+	 * @return
+	 */
+	public static final String buildLocatorURL(final String mletLocator, final boolean isHTMLMlet){
+		if(isHTMLMlet){
+			return buildStandardURL(FORM_PROTOCAL, mletLocator);
+		}else{
+			return buildStandardURL(SCREEN_PROTOCAL, mletLocator);
+		}
 	}
 
 	public static int getURLProtocalIdx(final String protocal){

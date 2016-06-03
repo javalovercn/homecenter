@@ -438,7 +438,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 			final JLabel noteLabel = new JLabel("<html><BR><font color='red'>Note : </font><BR>" +
 					"1. these permissions are NOT for running-time, they are for designing-time.<BR>" +
 					"2. for running-time, please click /Shift Project/{project}/Modify|Permission.<BR>" +
-					"3. these permissions works on standard J2SE JVM, NOT for server on Android or other.<BR>" +
+					"3. these permissions for running-time will hold its value even if the project is upgraded/re-activated/restarted.<BR>" +
+//					"3. these permissions works on standard J2SE JVM, NOT for server on Android or other.<BR>" +
 					"&nbsp;</html>");
 //			noteLabel.setHorizontalAlignment(SwingConstants.CENTER);
 			//new JSeparator(SwingConstants.HORIZONTAL), 
@@ -473,20 +474,15 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 			public void notifyModify(){
 				notifyModified();
 			}
-
-			@Override
-			public void notifySocketLimitOn(final boolean isOn) {
-				ContextSecurityConfig.setSocketLimitOn(((HPProject)item).csc, isOn);
-			}
-
-			@Override
-			public boolean isSocketLimitOn() {
-				return ContextSecurityConfig.isSocketLimitOn(((HPProject)item).csc);
-			}
 			
 			@Override
 			public void notifyLostEditPanelFocus(){
 				((HPProject)item).csc.saveToMap();
+			}
+			
+			@Override
+			public final ContextSecurityConfig getCSCSource(){
+				return ((HPProject)item).csc;
 			}
 		};
 		

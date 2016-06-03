@@ -48,7 +48,7 @@ public class StarterManager {
 			//Source code run mode or develop mode, skip download and upgrade starter.jar
 			return;
 		}
-		if(StringUtil.higer(getNewStarterVersion(), currStartVer)){
+		if(StringUtil.higher(getNewStarterVersion(), currStartVer)){
 			if(3 > 2){//Windows下文件被锁，无法升级
 				return;
 			}
@@ -132,7 +132,11 @@ public class StarterManager {
 		//从6.96(含)开始，源代码中内置版本信息，而无需从starter中获得
 		//注意：如果AgreeLicense发生变化，请同时更改App.getAgreeVersion()
 		
-		return "7.6";//请同步修改go.php, android.php
+		//服务器对客户端最低版本要求，在J2SEContext.minMobiVerRequiredByServer
+		
+		//客户端对服务器最低版本要求，在J2MEContext.miniHCServerVer
+		
+		return "7.7";//请同步修改go.php, android.php
 	}
 
 	private static String getHCVersionFromStarter() {

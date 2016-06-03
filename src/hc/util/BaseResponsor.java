@@ -3,7 +3,6 @@ package hc.util;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.IContext;
-import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
@@ -11,9 +10,6 @@ import hc.core.sip.SIPManager;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
 import hc.core.util.IHCURLAction;
-import hc.core.util.LogManager;
-import hc.server.J2SEServerURLAction;
-import hc.server.ui.ClientDesc;
 import hc.server.ui.ProjectContext;
 import hc.server.util.ServerCUtil;
 
@@ -26,15 +22,15 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction{
 		ProjectContext.EVENT_SYS_MOBILE_LOGOUT,
 		ProjectContext.EVENT_SYS_PROJ_SHUTDOWN};
 
-	UpdateOneTimeRunnable updateOneTimeRunnable;
+	UpdateOneTimeRunnable updateOneTimeKeysRunnable;
 	
 	private final void startUpdateOneTimeKeysProcess(){
 		final IContext contextInstance = ContextManager.getContextInstance();
 		if(contextInstance.isBuildedUPDChannel && contextInstance.isDoneUDPChannelCheck){
 //			L.V = L.O ? false : LogManager.log("is using UDP, skip startUpdateOneTimeKeysProcess");
 		}else if(SIPManager.isOnRelay()){
-			updateOneTimeRunnable = new UpdateOneTimeRunnable();
-			ContextManager.getThreadPool().run(updateOneTimeRunnable);
+			updateOneTimeKeysRunnable = new UpdateOneTimeRunnable();
+			ContextManager.getThreadPool().run(updateOneTimeKeysRunnable);
 //			System.out.println("---------startUpdateOneTimeKeysProcess---------------- ");
 		}
 	}
@@ -42,19 +38,21 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction{
 	public final void activeNewOneTimeKeys(){
 		final IContext contextInstance = ContextManager.getContextInstance();
 		contextInstance.isReceivedOneTimeInSecuChannalFromMobile = true;
-		if(updateOneTimeRunnable != null){
-			CUtil.setOneTimeCertKey(updateOneTimeRunnable.oneTime);
+		if(updateOneTimeKeysRunnable != null){
+			CUtil.setOneTimeCertKey(updateOneTimeKeysRunnable.oneTime);
 		}
 	}
 	
 	protected final void notifyMobileLogin(){
+		createClientSession();
 		startUpdateOneTimeKeysProcess();
 	}
 
 	protected final void notifyMobileLogout(final boolean isStopStatus){
-		if(updateOneTimeRunnable != null){
-			updateOneTimeRunnable.isStopRunning = true;
+		if(updateOneTimeKeysRunnable != null){
+			updateOneTimeKeysRunnable.isStopRunning = true;
 		}
+		releaseClientSession();
 	}
 	
 	public void stop(){
@@ -74,6 +72,10 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction{
 	public abstract Object getObject(int funcID, Object para);
 	
 	public abstract void addProjectContext(ProjectContext pc);
+	
+	public abstract void createClientSession();
+	
+	public abstract void releaseClientSession();
 }
 
 
@@ -105,12 +107,12 @@ class UpdateOneTimeRunnable implements Runnable{
 				break;
 			}
 			
-			if(J2SEServerURLAction.isIOSForBackgroundCond()){
-				if(ClientDesc.getAgent().isBackground()){
-					L.V = L.O ? false : LogManager.log("skip trans one time for iOS in background mode.");
-					continue;
-				}
-			}
+//			if(IOSBackgroundManager.isIOSForBackgroundCond()){
+//				if(ClientDesc.getAgent().isBackground()){
+//					L.V = L.O ? false : LogManager.log("skip trans one time for iOS in background mode.");
+//					continue;
+//				}
+//			}
 
 			final Object outStreamLock = contextInstance.getOutputStreamLockObject();
 			

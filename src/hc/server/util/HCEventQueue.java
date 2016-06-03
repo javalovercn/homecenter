@@ -22,6 +22,7 @@ import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 public class HCEventQueue extends EventQueue {
 //	private static final String JAVA_AWT_EVENT_DISPATCH_THREAD = "java.awt.EventDispatchThread";
@@ -135,13 +136,8 @@ public class HCEventQueue extends EventQueue {
 			}
 		});
 		if(failModiGroup[0]){
-			new Thread(){
-				@Override
-				public void run(){
-					App.showMessageDialog(null, "Fail to modify Thread.group = null in " + eventQueueThreadArray[0].getName(), 
-							"JVM Error", JOptionPane.INFORMATION_MESSAGE);
-				}
-			}.start();
+				final JPanel panel = App.buildMessagePanel("Fail to modify Thread.group = null in " + eventQueueThreadArray[0].getName(), App.getSysIcon(App.SYS_ERROR_ICON));
+				App.showCenterPanel(panel, 0, 0, "JVM Error", false, null, null, null, null, null, false, true, null, false, false);
 		}
 		final Thread thread = eventQueueThreadArray[0];
 		if(thread != null){

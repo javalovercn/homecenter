@@ -7,6 +7,7 @@ import hc.core.util.HCURLUtil;
 import hc.res.ImageSrc;
 import hc.server.HCActionListener;
 import hc.server.HCWindowAdapter;
+import hc.server.ui.HTMLMlet;
 import hc.server.ui.design.Designer;
 import hc.server.util.HCJDialog;
 import hc.util.ResourceUtil;
@@ -58,34 +59,31 @@ public class TypeWizard {
 		return wizardEnd;
 	}
 	
+	public static final String htmlmlet = HTMLMlet.class.getSimpleName().toLowerCase();
+	
 	final static ItemListener il = new ItemListener() {
 		@Override
 		public void itemStateChanged(final ItemEvent e) {
 			if(e.getStateChange() == ItemEvent.SELECTED){
-				int selectedType = type;
 				String text = ((JRadioButton)e.getSource()).getText().toLowerCase();
 				
-				if(text.equals("htmlmlet")){
-					selectedType = HPNode.TYPE_MENU_ITEM_FORM;
+				if(text.equals(htmlmlet)){
 				}
 				
-				if(text.equals(DESKTOP)){
-					text = HCURL.REMOTE_HOME_SCREEN;
-				}else if(text.equals(HCURL.DATA_CMD_EXIT) 
+				if(text.equals(HCURL.DATA_CMD_EXIT) 
 						|| text.equals(HCURL.DATA_CMD_CONFIG)
 						){
-					
 				}else{
 					text += MenuManager.getNextNodeIdx();
 				}
-				final String url = HCURL.buildStandardURL(BaseMenuItemNodeEditPanel.getProtocal(selectedType), text);
+				final String url = HCURL.buildStandardURL(BaseMenuItemNodeEditPanel.getProtocal(type), text);
 				final HCURL hcurl = HCURLUtil.extract(url);
-				wizardEnd = buildItem(selectedType, hcurl);
+				wizardEnd = buildItem(type, hcurl);
 				HCURLUtil.hcurlCacher.cycle(hcurl);
 			}
 		}
 	};
-	private static final String DESKTOP = "desktop";
+
 	/**
 	 * 
 	 * @param owner
@@ -106,15 +104,17 @@ public class TypeWizard {
 		final String nextStepStr = (String) ResourceUtil.get(1029);
 		final JButton ok = new JButton(nextStepStr, new ImageIcon(ImageSrc.OK_ICON));
 		final int[] typeDescs = {
+				HPNode.TYPE_MENU_ITEM_FORM,
 				HPNode.TYPE_MENU_ITEM_CONTROLLER, 
 				HPNode.TYPE_MENU_ITEM_CMD, 
 				HPNode.TYPE_MENU_ITEM_SCREEN,
 				HPNode.TYPE_MENU_ITEM_IOT};
-		final String[] icons = {"controller_22.png", "cmd_22.png", "screen_22.png", "iot_22.png"};
+		final String[] icons = {"form_22.png", "controller_22.png", "cmd_22.png", "screen_22.png", "iot_22.png"};
 		final String desc = "<html>" +
+				"<STRONG>FORM</STRONG> : a Mlet/HTMLMlet which contain many J2SE Swing components.<BR><BR>" +
 				"<STRONG>CONTROLLER</STRONG> : simulate a controller of smart device on mobile.<BR><BR>" +
 				"<STRONG>CMD</STRONG> : 1. run JRuby script or executable command on server, 2. enter config form, 3. exit/back.<BR><BR>" +
-				"<STRONG>SCREEN</STRONG> : display remote desktop, or a Mlet which contain many swing components.<BR><BR>" +
+				"<STRONG>SCREEN</STRONG> : display remote desktop.<BR><BR>" +
 				"<STRONG>IoT</STRONG> : device, converter, robot (coordinate one or multiple devices) for Internet of Thing." +
 				"</html>";
 		
@@ -135,7 +135,7 @@ public class TypeWizard {
 						break;
 					}
 				}
-				if(type == HPNode.TYPE_MENU_ITEM_CONTROLLER){
+				if(type == HPNode.TYPE_MENU_ITEM_CONTROLLER || type == HPNode.TYPE_MENU_ITEM_SCREEN){
 					final String ok_text = (String)ResourceUtil.get(IContext.OK);
 					if(ok.getText().equals(ok_text) == false) {
 						ok.setText(ok_text);
@@ -156,6 +156,9 @@ public class TypeWizard {
 					final HCURL hcurl = HCURLUtil.extract(url);
 					wizardEnd = buildItem(HPNode.TYPE_MENU_ITEM_CONTROLLER, hcurl);
 					dialog.dispose();
+				}else if(type == HPNode.TYPE_MENU_ITEM_SCREEN){
+					wizardEnd = buildItem(HPNode.TYPE_MENU_ITEM_SCREEN, HCURLUtil.extract(HCURL.URL_HOME_SCREEN));
+					dialog.dispose();
 				}else{
 					//进入下一步
 //					dialog.setVisible(false);
@@ -163,19 +166,18 @@ public class TypeWizard {
 						//exit = "exit current menu and return to parent menu or exit");
 						//config = "enter mobile config panel in mobile side when current item is clicked.");
 						//cmd - My Command "do some response biz in server side when current item is clicked from mobile side");
-						final String[] subItems = {"my-command", HCURL.DATA_CMD_EXIT, HCURL.DATA_CMD_CONFIG};
+						final String[] subItems = {"command", HCURL.DATA_CMD_EXIT, HCURL.DATA_CMD_CONFIG};
 						final String[] desc = {
 								"run a JRuby script in server side when current item is clicked from mobile side",
 								"exit current menu and return to parent menu or exit",
 								"enter mobile config panel in mobile side when current item is clicked."
 								};
 						selectSub(owner, ok, subItems, desc);
-					}else if(type == HPNode.TYPE_MENU_ITEM_SCREEN){
+					}else if(type == HPNode.TYPE_MENU_ITEM_FORM){
 						//screen -Desktop "enter disktop screen of PC in mobile side when current item is clicked.");
 						//screen -Mlet "<html>Mlet Screen is a panel in mobile side for dispaly and controlling status of PC side, <BR>which is instance from java class and JRuby in PC side.</html> ");
-						final String[] subItems = {DESKTOP, "Mlet", "HTMLMlet"};
+						final String[] subItems = {"Mlet", "HTMLMlet"};
 						final String[] desc = {
-								"enter and control disktop screen of server.",
 								"a snapshot panel is in mobile side for display and controlling status of server or smart devices, " +
 								"<BR>which is instance of class 'hc.server.ui.Mlet' and runing in server side.",
 								"a HTML panel is in mobile side for dispaly and controlling status of server or smart devices, " +

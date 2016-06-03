@@ -8,7 +8,7 @@ public class SMobiMainMenu extends MCanvasMenu {
 				"rAgNDbNgYaZGytJKKRvFQqaQ3DsTJhYyGJpZkG8rSnHvxkZqSucc19R1z9znb3HPNde/3nqf932e/8cDgAVgIQAoJK2AE/aHLnVwpOcZpWbxMGP0+aIRICPwVe3HAv5BIQMW8EkhawEEG7ufo1VCGUO+EWfEyVq/L0AJgQKuKqRoAYv+EcK+e71cXC7O+sY7v0oiX1wB8K3mIqTPQmQBewC0I3mHp4LROsUWX4xkhHzRX4vQ"+
 				"qJCKBXykDgabDKTqaa3/8439vpjKGPNSznFMwgOG66wvFLxP7gCvBEscTApwHvczRsU5elGRUf1CEm3JQLvBG0FbzYHBYcFtQXu9kyXikMcEnXoJaqfVYEzwGkg5eOuqQ0NUdzEteC0YMzgoGrZd6Uk1pR6d7zqz58PjScF6YD6Aq1NxSQwHLomjkr956c+D5+62xpUYTDvrFjdXcFwwYdCmmSV2C+4YbAH4cl/t+aGK8sN6"+
 				"mKLISiKtI+0+e1ACrht8czDBjHpOsMyDHwCzpuKtVWv2xANGgAeEtqLmxINxQb9gOonTURtOcBhhkm5Vy8hOE5oR6oQLKrMSZU/wwmAc4PeGXQAUcvHefK6sQrbcx3+IdIPQRKTvRLqEtPuz3zIoOFBryWfLTYVcXCzkyoPVOgYizZCEdopQRiQxJXVfG5JgI0AhW15TyMUf89nyQK29kItJkXYQGaQ9WOBdJrSb4HqBrlJD"+
-				"w3aaO1u+XphYrPL0Uoc6Vh+dE+VzZRwOv2c2fwEzP0r3y/J05gAAAABJRU5ErkJggg==", HCURL.SCREEN_PROTOCAL + "://" + HCURL.REMOTE_HOME_SCREEN},
+				"w3aaO1u+XphYrPL0Uoc6Vh+dE+VzZRwOv2c2fwEzP0r3y/J05gAAAABJRU5ErkJggg==", HCURL.SCREEN_PROTOCAL + HCURL.HTTP_SPLITTER + HCURL.REMOTE_HOME_SCREEN},
 			{"SubMenu", "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAKT2lDQ1BQaG90b3Nob3AgSUNDIHByb2ZpbGUAAHjanVNnVFPpFj333vRCS4iAlEtvUhUIIFJCi4AUkSYqIQkQSoghodkVUcERRUUEG8igiAOOjoCMFVEsDIoK2AfkIaKOg6OIisr74Xuja9a89+bN/rXXPues852zzwfACAyWSDNRNYAMqUIeEeCDx8TG4eQu"+
 					"QIEKJHAAEAizZCFz/SMBAPh+PDwrIsAHvgABeNMLCADATZvAMByH/w/qQplcAYCEAcB0kThLCIAUAEB6jkKmAEBGAYCdmCZTAKAEAGDLY2LjAFAtAGAnf+bTAICd+Jl7AQBblCEVAaCRACATZYhEAGg7AKzPVopFAFgwABRmS8Q5ANgtADBJV2ZIALC3AMDOEAuyAAgMADBRiIUpAAR7AGDIIyN4AISZABRG8lc88SuuEOcq"+
 					"AAB4mbI8uSQ5RYFbCC1xB1dXLh4ozkkXKxQ2YQJhmkAuwnmZGTKBNA/g88wAAKCRFRHgg/P9eM4Ors7ONo62Dl8t6r8G/yJiYuP+5c+rcEAAAOF0ftH+LC+zGoA7BoBt/qIl7gRoXgugdfeLZrIPQLUAoOnaV/Nw+H48PEWhkLnZ2eXk5NhKxEJbYcpXff5nwl/AV/1s+X48/Pf14L7iJIEyXYFHBPjgwsz0TKUcz5IJhGLc"+
@@ -101,46 +101,54 @@ public class SMobiMainMenu extends MCanvasMenu {
 //		d.show();
 //	}
 //	
+	@Override
 	public String[] getIconLabels() {
-		String[] out = new String[items.length];
+		final String[] out = new String[items.length];
 		for (int i = 0; i < out.length; i++) {
 			out[i] = items[i][0];
 		}
 		return out;
 	}
 
+	@Override
 	public String[] getIcons() {
-		String[] out = new String[items.length];
+		final String[] out = new String[items.length];
 		for (int i = 0; i < out.length; i++) {
 			out[i] = items[i][1];
 		}
 		return out;
 	}
 
+	@Override
 	public int getNumCol() {
 		return 3;
 	}
 
+	@Override
 	public int getNumRow() {
 		return (items.length/3 + 1);
 	}
 
+	@Override
 	public int getSize() {
 		return items.length;
 	}
 
+	@Override
 	public String getTitle() {
 		return "";//"你好，远屏HelloRemote";//;
 	}
 
+	@Override
 	public String[] getURLs() {
-		String[] out = new String[items.length];
+		final String[] out = new String[items.length];
 		for (int i = 0; i < out.length; i++) {
 			out[i] = items[i][2];
 		}
 		return out;
 	}
 
+	@Override
 	public boolean isFullMode() {
 		return false;
 	}

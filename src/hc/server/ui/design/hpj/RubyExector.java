@@ -1,14 +1,16 @@
 package hc.server.ui.design.hpj;
 
 import hc.core.IConstant;
-import hc.core.L;
+import hc.core.IContext;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
+import hc.core.util.StringUtil;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.engine.HCJRubyEngine;
+import hc.util.ResourceUtil;
 
 import java.net.URLDecoder;
 import java.util.HashMap;
@@ -34,6 +36,27 @@ public class RubyExector {
 				RubyExector.runNoWait(script, scriptName, map, hcje);
 			}
 		});
+	}
+	
+	public static final Object run(final String script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context, final Class requireReturnClass) {
+		Object out = null;
+		try{
+			out = requireReturnClass.cast(RubyExector.run(script, scriptName, map, hcje, context));
+		}catch (final Throwable e) {
+			e.printStackTrace();
+			//不return，因为需要后续报告错误。
+		}
+		if(out == null){
+			String message = "";
+			if(hcje.isError){
+				message = hcje.sexception.getMessage();
+			}
+			LogManager.errToLog("parse script error : " + message + ", for script : \n" + script);
+			LogManager.err("Error instance " + requireReturnClass.getSimpleName() + " in project [" + context.getProjectID() +"].");
+			//Fail to add HAR message
+			notifyMobileErrorScript(context, scriptName);
+		}
+		return out;
 	}
 	
 	public static final Object run(final String script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context) {
@@ -88,8 +111,6 @@ public class RubyExector {
 	}
 	
 	public static synchronized final Object runNoWait(final String script, final String scriptName, final Map map, final HCJRubyEngine hcje) {
-//		final String USER_DIR_KEY = "user.dir";
-		
 		try {
 			if(hcje.isError){
 				hcje.errorWriter.reset();
@@ -133,7 +154,7 @@ public class RubyExector {
 			
 		} catch (final Throwable e) {
 			final String err = hcje.errorWriter.getMessage();
-			ExceptionReporter.printStackTraceFromRunException(e, script, err);
+			ExceptionReporter.printStackTraceFromHAR(e, script, err);
 			System.err.println("------------------error on JRuby script : " + err + "------------------\n" + script + "\n--------------------end error on script---------------------");
 			hcje.isError = true;
 			
@@ -182,7 +203,13 @@ public class RubyExector {
 				"return str_class::valueOf(\"1\")\n";//初始引擎及调试之用
 		final String scriptName = null;
 		parse(script, scriptName, hcje, false);
-		final Object out = runNoWait(script, scriptName, null, hcje);
+		runNoWait(script, scriptName, null, hcje);
+	}
+
+	private static final void notifyMobileErrorScript(final ProjectContext ctx, final String title){
+		String msg = (String)ResourceUtil.get(9163);
+		msg = StringUtil.replace(msg, "{title}", title);
+		ctx.send((String)ResourceUtil.get(IContext.ERROR), msg, ProjectContext.MESSAGE_ERROR);
 	}
 	
 	

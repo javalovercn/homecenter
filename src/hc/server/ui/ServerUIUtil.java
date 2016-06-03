@@ -1,6 +1,7 @@
 package hc.server.ui;
 
 import hc.core.ContextManager;
+import hc.core.IConstant;
 import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootServerConnector;
@@ -10,12 +11,14 @@ import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
+import hc.core.util.StringUtil;
 import hc.core.util.UIUtil;
 import hc.server.ProcessingWindowManager;
 import hc.server.ThirdlibManager;
 import hc.server.msb.MSBAgent;
 import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.ProjResponser;
+import hc.server.util.CacheComparator;
 import hc.util.BaseResponsor;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
@@ -37,6 +40,21 @@ import javax.swing.border.TitledBorder;
 
 public class ServerUIUtil {
 	public static final Object LOCK = new Object();
+	
+	/**
+	 * 仅在ctx.clientSession==null，进行set操作。
+	 * @param ctx
+	 * @param session
+	 */
+	public static void setClientSession(final ProjectContext ctx, final ClientSession session){
+		if(ctx.clientSession == null){
+			ctx.clientSession = session;
+		}
+	}
+	
+	public static void releaseClientSession(final ProjectContext ctx){
+		ctx.clientSession = null;
+	}
 	
 	public static boolean useHARProject = PropertiesManager.isTrue(PropertiesManager.p_IsMobiMenu);
 	private static BaseResponsor responsor;
@@ -233,6 +251,25 @@ public class ServerUIUtil {
 		}
 	}
 
+	public static void transMenuWithCache(final String menuData, final String projID) {
+		final byte[] data = StringUtil.getBytes(menuData);
+		
+		final byte[] projIDbs = ByteUtil.getBytes(projID, IConstant.UTF_8);
+		final String uuid = ServerUIAPIAgent.getMobileUID();
+		final byte[] uuidBS = ByteUtil.getBytes(uuid, IConstant.UTF_8);
+		final String urlID = CacheManager.ELE_URL_ID_MENU;
+		final byte[] urlIDbs = CacheManager.ELE_URL_ID_MENU_BS;
+		
+		final CacheComparator menuCacheComparer = new CacheComparator(projID, uuid, urlID, projIDbs, uuidBS, urlIDbs) {
+			@Override
+			public void sendData(final Object[] paras) {
+				response(menuData);
+			}
+		};
+		
+		menuCacheComparer.encodeGetCompare(data, 0, data.length, null);
+	}
+	
 	public static boolean response(final String out) {
 		CCoreUtil.checkAccess();
 		

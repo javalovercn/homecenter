@@ -40,6 +40,11 @@ public class SocketDesc {
 	public static final String STR_LISTEN = "listen";
 	public static final String STR_RESOLVE = "resolve";
 	
+	public static final String defaultAction = STR_ACCEPT + SPLIT + 
+			STR_CONNECT + SPLIT + STR_LISTEN + SPLIT + STR_RESOLVE;
+
+	public static final String LOCAL_HOST_FOR_SOCK_PERMISSION = "localhost";
+
 	private String host;
 	private String ip;
 	private String port;
@@ -62,6 +67,10 @@ public class SocketDesc {
 		socket.portFrom = getValueAt(items, idx++);
 		socket.portTo = getValueAt(items, idx++);
 		socket.action = Integer.valueOf(getValueAt(items, idx++));
+		
+		if(socket.action != 0){
+			socket.setAction(SocketDesc.RESOLVE, true);
+		}
 		
 		return socket;
 	}

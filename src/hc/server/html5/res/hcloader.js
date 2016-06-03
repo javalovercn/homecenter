@@ -16,7 +16,7 @@
 			this.isStopLoading = true;
 			var delDiv = document.getElementById(this.loadRootDiv);
 			window.hcj2se.setComponentVisible(this.loadingTag, false);
-			// delDiv.parentNode.removeChild(delDiv);
+			/* delDiv.parentNode.removeChild(delDiv);*/
 
 			window.hcserver.notifyLastGone();
 		},
@@ -66,7 +66,7 @@
 			if(this.isStopLoading == true){
 				return;
 			}
-
+			
 			var leftdiv = document.getElementById(this.leftMovDiv);
 			var rightdiv = document.getElementById(this.rightMovDiv);
 			var step = 10;

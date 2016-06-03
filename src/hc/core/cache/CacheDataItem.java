@@ -3,7 +3,7 @@ package hc.core.cache;
 import java.util.Vector;
 import hc.core.util.ByteUtil;
 
-public class DataItem {
+public class CacheDataItem {
 	//记录已存在，可能为空记录
 	public static final int STATUS_EXISTS = 1;
 	
@@ -20,7 +20,7 @@ public class DataItem {
 	public byte[] bs;
 	public int status;
 	public String stringValue;
-	int emptyIdx;
+	int emptyVectorIdx;
 	
 	public final String toStringValue(){
 		if(isEmpty){
@@ -34,14 +34,14 @@ public class DataItem {
 	}
 	
 	public final void setEmpty(){
-		bs = StoreManager.EMPTY_BS;
+		bs = CacheStoreManager.EMPTY_BS;
 		isEmpty = true;
 		stringValue = null;
 	}
 	
-	public DataItem(byte[] bs, int status){
+	public CacheDataItem(byte[] bs, int status){
 		this.bs = bs;
-		if(StoreManager.isEmptyBS(bs)){
+		if(CacheStoreManager.isEmptyBS(bs)){
 			isEmpty = true;
 		}
 		this.status = status;
@@ -70,53 +70,73 @@ public class DataItem {
 			System.arraycopy(value, offset, copybs, 0, len);//必须是拷贝方式，因为数据源是EventCenter和压缩可复用对象
 		}
 		
-		synchronized (vector) {
-			DataItem item = getEmptyRecord(vector);
-			if(isEmptyFirst && item != null){
-				item.bs = copybs;
-				item.status = STATUS_TO_UPDATE;
-				item.stringValue = null;
-				item.isEmpty = false;
+//		synchronized (vector) {
+			CacheDataItem item;
+			if(isEmptyFirst && (item = getEmptyRecord(vector)) != null){
+				item.setUpdate(copybs);
 				
-				final int lastStoreIdx = item.emptyIdx;
-				StoreManager.storeData(rmsName, vector);
+				final int lastStoreIdx = item.emptyVectorIdx;
+				CacheStoreManager.storeData(rmsName, vector);
 				return lastStoreIdx;
 			}else{
-				item = new DataItem(copybs, STATUS_TO_ADD);
+				item = new CacheDataItem(copybs, STATUS_TO_ADD);
 				vector.addElement(item);
 				
-				StoreManager.storeData(rmsName, vector);
-				return -1;
+				CacheStoreManager.storeData(rmsName, vector);
+				return vector.size() - 1;
 			}
-		}
+//		}
 	}
+	
+	public static boolean isEmptyFirst = true;
 	
 	/**
 	 * 
 	 * @param vector
 	 * @param value
-	 * @return > 0: exits vector index, < 0 : not exists and added
+	 * @return > 0: exits/add vector index
 	 */
 	public final static int addRecrodIfNotExists(final String rmsName, final Vector vector, final byte[] value, final int offset, final int len){
-		synchronized (vector) {
-			final int endIdx = vector.size();
-			for (int i = endIdx - 1; i >= 1; i--) {//因为尾部可能存在存储不一致产生的空位。
-				DataItem item = (DataItem)vector.elementAt(i);
-				if(item.equalBS(value, offset, len)){
-					return i;
-				}
-			}
-			return addRecrodAndSave(rmsName, vector, value, offset, len, false, true);
+		final int idx = searchMatchVectorIdx(vector, value, offset, len);
+		if(idx == -1){
+			return addRecrodAndSave(rmsName, vector, value, offset, len, false, isEmptyFirst);
+		}else{
+			return idx;
 		}
 	}
-	
-	public static void setUpdate(final DataItem item){
-		item.status = STATUS_TO_UPDATE;
-		item.isEmpty = false;
+
+	/**
+	 * 没找到，返回-1。找到，返回vector index
+	 * @param vector
+	 * @param value
+	 * @param offset
+	 * @param len
+	 * @return
+	 */
+	public static int searchMatchVectorIdx(final Vector vector, final byte[] value, final int offset, final int len) {
+		final int endIdx = vector.size();
+		for (int i = endIdx - 1; i >= 1; i--) {//因为尾部可能存在存储不一致产生的空位。
+			CacheDataItem item = (CacheDataItem)vector.elementAt(i);
+			if(item.isEmpty){
+				continue;
+			}
+			
+			if(item.equalBS(value, offset, len)){
+				return i;
+			}
+		}
+		return -1;
 	}
 	
-	public static void setDel(final DataItem item){
-		item.status = STATUS_TO_DEL;
+	public final void setUpdate(final byte[] newBS){
+		bs = newBS;
+		status = STATUS_TO_UPDATE;
+		stringValue = null;
+		isEmpty = false;
+	}
+	
+	public final void setDel(){
+		status = STATUS_TO_DEL;
 	}
 	
 	/**
@@ -124,12 +144,12 @@ public class DataItem {
 	 * @param vector
 	 * @return
 	 */
-	private static DataItem getEmptyRecord(final Vector vector){
+	private static CacheDataItem getEmptyRecord(final Vector vector){
 		final int endIdx = vector.size();
 		for (int i = 1; i < endIdx; i++) {
-			DataItem item = (DataItem)vector.elementAt(i);
+			CacheDataItem item = (CacheDataItem)vector.elementAt(i);
 			if(item.isEmpty){
-				item.emptyIdx = i;
+				item.emptyVectorIdx = i;
 				return item;
 			}
 		}

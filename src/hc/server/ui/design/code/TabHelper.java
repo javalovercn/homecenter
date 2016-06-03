@@ -3,6 +3,7 @@ package hc.server.ui.design.code;
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.Stack;
+import hc.server.ui.design.hpj.ScriptEditPanel;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
@@ -21,8 +22,11 @@ public class TabHelper {
 	static boolean isFocusFullParameter;
 	static int currFocusHighlightStartIdx, currFocusHighlightEndIdx, inputShiftOffset;
 	
-	public static void setScriptPanel(final JTextPane sPanel){
+	public static void initScriptPanel(final JTextPane sPanel, final ScriptEditPanel sep){
+		sep.updateScriptInInitProcess();
+		
 		scriptPanel = sPanel;
+		scriptPanel.setCaretPosition(0);
 	}
 	
 	public final static Stack tabBlockStack = new Stack(2);

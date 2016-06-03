@@ -44,6 +44,11 @@ public class HTMLMlet extends Mlet {
 	 */
 	@Deprecated
 	Vector<String> stylesToDeliver;
+	/**
+	 * @deprecated
+	 */
+	@Deprecated
+	Vector<String> jsToDeliver;
 	
 	/**
 	 * @deprecated
@@ -86,6 +91,21 @@ public class HTMLMlet extends Mlet {
 		}
 	}
 	
+	final void loadJS(final String js){
+		synchronized(this){
+			if(status == STATUS_INIT){
+				if(jsToDeliver == null){
+					jsToDeliver = new Vector<String>();
+				}
+				jsToDeliver.add(js);
+				return;
+			}
+			if(diffTodo != null && status < STATUS_EXIT){//由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
+				diffTodo.loadJS(js);
+			}
+		}
+	}
+	
 	/**
 	 * set <i>class</i> and <i>style</i> for <code>div</code> of {@link JComponent}.
 	 * <BR><BR>
@@ -94,8 +114,8 @@ public class HTMLMlet extends Mlet {
 	 * <BR><BR>
 	 * for more, see {@link #setCSS(JComponent, String, String)}.
 	 * @param component the JComponent to set style.
-	 * @param className the class name of styles defined in designer or {@link #loadCSS(String)}. null to ignore.
-	 * @param styles the new styles of HTML tag for the current JComponent. null to ignore.
+	 * @param className the class name of styles defined in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
+	 * @param styles the new styles of HTML tag for the current JComponent. Null for ignore and keep old value. Empty string for clear.
 	 * @see #setCSS(JComponent, String, String)
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.0
@@ -474,7 +494,7 @@ public class HTMLMlet extends Mlet {
 		}
 		fontSizeForLarge = fontSizeForButton;
 		
-		buttonHeight = fontSizeForButton * 3;
+		buttonHeight = fontSizeForButton * 2;//原 * 3在800X600的机器上偏大
 	}
 
 }

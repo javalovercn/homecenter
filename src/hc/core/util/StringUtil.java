@@ -4,10 +4,19 @@ import hc.core.HCConfig;
 import hc.core.IConstant;
 
 import java.io.Reader;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.Vector;
 
 public class StringUtil {
+	public static final String SPLIT_LEVEL_1_AT = "@@@";
+	public static final String SPLIT_LEVEL_2_JING = "###";
+	public static final String SPLIT_LEVEL_3_DOLLAR = "$$$";
+
+	public final static String JAD_EXT = ".jad";
+	public final static String URL_EXTERNAL_PREFIX = "http";
+	
 	public static String replace(String src, final String find, final String replaceTo){
 		int index = 0;
 		String out = src;
@@ -117,12 +126,22 @@ public class StringUtil {
 	}
 
 	/**
+	 * 如果ver1(1.2.1.3)低于ver2(1.2.11)，则返回true;
+	 * @param ver1
+	 * @param ver2
+	 * @return
+	 */
+	public static boolean lower(final String ver1, final String ver2){
+		return ((ver1.equals(ver2) || higher(ver1, ver2)) == false);
+	}
+	
+	/**
 	 * 如果ver1(1.2.11)高于ver2(1.2.1.3)，则返回true;
 	 * @param ver1
 	 * @param ver2
 	 * @return
 	 */
-	public static boolean higer(final String ver1, final String ver2){
+	public static boolean higher(final String ver1, final String ver2){
 		final int s1_index = ver1.indexOf(".", 0);
 		
 		final int s2_index = ver2.indexOf(".", 0);
@@ -135,7 +154,7 @@ public class StringUtil {
 				ss2 = Integer.parseInt(ver2);
 				
 				if( ss1 == ss2 ){
-					return higer(ver1.substring(s1_index + 1), "0");//fix 7.0 > 7
+					return higher(ver1.substring(s1_index + 1), "0");//fix 7.0 > 7
 				}else {
 					return ss1 > ss2;
 				}
@@ -143,7 +162,7 @@ public class StringUtil {
 				ss2 = Integer.parseInt(ver2.substring(0, s2_index));
 				
 				if(ss1 == ss2){
-					return higer(ver1.substring(s1_index + 1), ver2.substring(s2_index + 1));
+					return higher(ver1.substring(s1_index + 1), ver2.substring(s2_index + 1));
 				}else{
 					return (ss1 > ss2);
 				}
@@ -356,8 +375,6 @@ public class StringUtil {
 		return js.replace('"', '\'');
 	}
 
-	public static final String split = "###";
-
 	/**
 	 * 将三段的zh-Hans-CN转为两段zh-CN
 	 * @param userLang
@@ -372,5 +389,31 @@ public class StringUtil {
 			}
 		}
 		return userLang;
+	}
+
+	/**
+	 * 注意：长度不固定
+	 * @return
+	 */
+	public static String genUID(final long random){
+		byte[] bs = new byte[6];
+		CCoreUtil.generateRandomKey(random, bs, 0, bs.length);
+		
+		final Calendar c = Calendar.getInstance();
+		c.setTime(new Date());
+		StringBuffer sb = new StringBuffer();
+		sb.append(c.get(Calendar.YEAR));
+		sb.append(c.get(Calendar.MONTH) + 1);
+		sb.append(c.get(Calendar.DAY_OF_MONTH));
+		sb.append(c.get(Calendar.HOUR_OF_DAY));
+		sb.append(c.get(Calendar.MINUTE));
+		sb.append(c.get(Calendar.SECOND));
+		sb.append(c.get(Calendar.MILLISECOND));
+		
+		sb.append(ByteUtil.encodeBase64(bs));
+		String out = replace(sb.toString(), "=", "");
+		out = replace(out, "+", "");
+		out = replace(out, "/", "");
+		return out;
 	}
 }

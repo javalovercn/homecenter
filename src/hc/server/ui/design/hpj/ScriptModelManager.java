@@ -29,19 +29,21 @@ public class ScriptModelManager {
 		}else if(type == HPNode.TYPE_MENU_ITEM_SCREEN || type == HPNode.TYPE_MENU_ITEM_FORM){
 			if(url.elementID.equals(HCURL.REMOTE_HOME_SCREEN)){
 			}else if(type == HPNode.TYPE_MENU_ITEM_FORM){
-				final String instanceName = "MyHTMLMlet";
-				final String superClassName = HTMLMlet.class.getName();
-				final String[] methods = {"onStart", "onPause", "onResume", "onExit"};
-				final boolean[] isEmpty = {true, true, true, true};
-				final String superAndMem = "super";
-				return buildScript(null, instanceName, superClassName, superAndMem, isEmpty, methods, null);
-			}else{
-				final String instanceName = "MyMlet";
-				final String superClassName = Mlet.class.getName();
-				final String[] methods = {"onStart", "onPause", "onResume", "onExit"};
-				final boolean[] isEmpty = {true, true, true, true};
-				final String superAndMem = "super";
-				return buildScript(null, instanceName, superClassName, superAndMem, isEmpty, methods, null);
+				if(url.elementID.indexOf(TypeWizard.htmlmlet) >= 0){
+					final String instanceName = "MyHTMLMlet";
+					final String superClassName = HTMLMlet.class.getName();
+					final String[] methods = {"onStart", "onPause", "onResume", "onExit"};
+					final boolean[] isEmpty = {true, true, true, true};
+					final String superAndMem = "super";
+					return buildScript(null, instanceName, superClassName, superAndMem, isEmpty, methods, null);
+				}else{
+					final String instanceName = "MyMlet";
+					final String superClassName = Mlet.class.getName();
+					final String[] methods = {"onStart", "onPause", "onResume", "onExit"};
+					final boolean[] isEmpty = {true, true, true, true};
+					final String superAndMem = "super";
+					return buildScript(null, instanceName, superClassName, superAndMem, isEmpty, methods, null);
+				}
 			}
 		}else if(type == HPNode.TYPE_MENU_ITEM_CMD){
 			if(url.elementID.equals(HCURL.DATA_CMD_EXIT) 
@@ -53,9 +55,9 @@ public class ScriptModelManager {
 		}else if(type == HPNode.TYPE_MENU_ITEM_IOT){
 			if(url.url.indexOf(HCURL.DATA_IOT_ROBOT.toLowerCase()) >= 0){
 				final String[] imports = {
-						"# for Robot API, http://homecenter.mobi/download/javadoc/hc/server/msb/Robot.html\n\n"
+//						"# for Robot API, http://homecenter.mobi/download/javadoc/hc/server/msb/Robot.html\n\n"
 //						,"# for demo, http://homecenter.mobi/en/pc/steps_iot.htm\n\n"
-						,"import Java::hc.server.msb.Message\n\n"
+						"import Java::hc.server.msb.Message\n\n"
 						};
 				final String instanceName = "MyRobot";
 				final String superClassName = Robot.class.getName();
@@ -88,9 +90,9 @@ public class ScriptModelManager {
 				return buildScript(imports, instanceName, superClassName, "@refDev = \"DemoRefDevID\"", isEmpty, methods, codes);
 			}else if(url.url.indexOf(HCURL.DATA_IOT_CONVERTER.toLowerCase()) >= 0){
 				final String[] imports = {
-						"# for Converter API, http://homecenter.mobi/download/javadoc/hc/server/msb/Converter.html\n\n"
+//						"# for Converter API, http://homecenter.mobi/download/javadoc/hc/server/msb/Converter.html\n\n"
 //						,"# for demo, http://homecenter.mobi/en/pc/steps_iot.htm\n\n"
-						,"import Java::hc.server.msb.Message\n\n"
+						"import Java::hc.server.msb.Message\n\n"
 						};
 				final String instanceName = "MyConverter";
 				final String superClassName = Converter.class.getName();
@@ -111,9 +113,9 @@ public class ScriptModelManager {
 				return buildScript(imports, instanceName, superClassName, null, isEmpty, methods, codes);
 			}else if(url.url.indexOf(HCURL.DATA_IOT_DEVICE.toLowerCase()) >= 0){
 				final String[] imports = {
-						"# for Device API , http://homecenter.mobi/download/javadoc/hc/server/msb/Device.html\n\n"
+//						"# for Device API , http://homecenter.mobi/download/javadoc/hc/server/msb/Device.html\n\n"
 //						,"# for demo, http://homecenter.mobi/en/pc/steps_iot.htm\n\n"
-						,"import Java::hc.server.msb.Message\n\n"
+						"import Java::hc.server.msb.Message\n\n"
 						};
 				final String instanceName = "MyDevice";
 				final String superClassName = Device.class.getName();

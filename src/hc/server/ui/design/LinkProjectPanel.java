@@ -32,6 +32,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -176,7 +177,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 		removeBut = new JButton((String)ResourceUtil.get(9018), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
 		removeBut.setToolTipText("<html>" + (String)ResourceUtil.get(9141) + "</html>");
 		importBut = new JButton((String)ResourceUtil.get(9016) + "▼", new ImageIcon(ImageSrc.ADD_SMALL_ICON));
-		importBut.setToolTipText((String)ResourceUtil.get(9142));
+		importBut.setToolTipText("<html>" + (String)ResourceUtil.get(9142)  + "</html>");
 		importBut.requestFocus();
 		{
 			String editBtnText = (String)ResourceUtil.get(9017);
@@ -546,6 +547,30 @@ public class LinkProjectPanel extends ProjectListPanel{
                         isSelected, hasFocus, row, column);
 			}
         });
+        tablePanel.table.getColumnModel().getColumn(COL_UPGRADE_URL).setCellRenderer(new DefaultTableCellRenderer(){
+	        @Override
+			public Component getTableCellRendererComponent(
+	                final JTable table, final Object value, final boolean isSelected,
+	                final boolean hasFocus, final int row, final int column) {
+		        final JLabel label = (JLabel)super.getTableCellRendererComponent(table, value,
+                        isSelected, hasFocus, row, column);
+
+	        	String url = (String)value;
+	        	label.setToolTipText(url);
+	        	try{
+		        	if(url.length() > 0){
+			    		final int httpIdx = url.indexOf("//");
+			    		final int pathIdx = url.indexOf("/", httpIdx + 2);
+			    		url = url.substring(0, pathIdx + 1) + "...";
+		        	}
+	        	}catch (final Throwable e) {
+	        		ExceptionReporter.printStackTrace(e);
+	        	}
+	        	label.setText(url);
+	        	
+	        	return label;
+			}
+        });
         
         initTable(tablePanel.table);
 		
@@ -609,7 +634,15 @@ public class LinkProjectPanel extends ProjectListPanel{
 		buttonsList.add(importBut);
 
 		final JScrollPane scrollpane = new JScrollPane(tablePanel.table);
-		scrollpane.setPreferredSize(new Dimension(800, 250));
+		int tableHeight = 200;
+		if(ResourceUtil.isAndroidServerPlatform()){
+			final Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
+			final int heightOfLetvOne = 1080;
+			if(screensize.height <= heightOfLetvOne){
+				tableHeight = tableHeight * screensize.height / heightOfLetvOne;
+			}
+		}
+		scrollpane.setPreferredSize(new Dimension(950, tableHeight));
 		contentPane.add(scrollpane, BorderLayout.CENTER);
 		contentPane.add(buttonsList, BorderLayout.NORTH);
 		{
@@ -1089,16 +1122,18 @@ public class LinkProjectPanel extends ProjectListPanel{
 					}else{
 						Designer.setProjectOff();	
 					}
-					
-					final Designer design = Designer.getInstance();
-					if(design != null){
-						design.refresh();
-					}
 				}
 				
 				//启动远屏或菜单
 				ServerUIUtil.restartResponsorServer(self, null);
 				
+				if(isChanged){
+					final Designer design = Designer.getInstance();
+					if(design != null){
+						design.refresh();//注意：要在restartResponsorServer之后
+					}
+				}
+
 				listSelectListener.valueChanged(null);//强制刷新当前行
 				tablePanel.table.repaint();//检查完善Root,Active，故刷新
 				isChanged = false;

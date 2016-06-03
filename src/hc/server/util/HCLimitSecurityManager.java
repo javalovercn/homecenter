@@ -10,6 +10,7 @@ import hc.core.util.HarHelper;
 import hc.core.util.HarInfoForJSON;
 import hc.core.util.LogManager;
 import hc.core.util.RecycleThread;
+import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
 import hc.server.HCSecurityException;
 import hc.server.msb.Converter;
@@ -28,10 +29,10 @@ import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.design.hpj.HCjar;
 import hc.util.ClassUtil;
-import hc.util.FileLocker;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
+import hc.util.SocketDesc;
 
 import java.awt.AWTPermission;
 import java.io.File;
@@ -49,7 +50,7 @@ import java.util.Vector;
 import java.util.logging.LoggingPermission;
 
 public class HCLimitSecurityManager extends WrapperSecurityManager implements HarHelper{
-	private final String OUTSIDE_HAR_WORKING_THREAD = " in EventQueue thread, try using ProjectContext.invokeLater and ProjectContext.getUserFile";
+	private final String OUTSIDE_HAR_WORKING_THREAD = " in EventQueue thread, try using ProjectContext.invokeLater and ProjectContext.getPrivateFile";
 	public static final String USER_DATA = "user_data";
 	public static final String SYS_THREAD_POOL = "block access system level ThreadPool instance.";
 	public static final String SYS_PROPERTIES = "block access properties in PropertiesManager.";
@@ -66,6 +67,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	private static long propertiesLockThreadID = PropertiesManager.PropertiesLockThreadID;
 	
 	private final static boolean isExistSeurityField = getSecurityField();
+	
+	public static boolean isSecurityManagerOn(){
+		return ResourceUtil.isJ2SELimitFunction();
+	}
 
 	private static boolean getSecurityField(){
 		try{
@@ -157,8 +162,8 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	}
 	
 	public static final void switchHCSecurityManager(final boolean on){
-		if(ResourceUtil.isAndroidServerPlatform()){
-			L.V = L.O ? false : LogManager.log("Stop SecurityManager in Android Server!");
+		if(isSecurityManagerOn() == false){
+			L.V = L.O ? false : LogManager.log("stop SecurityManager in current server!");
 			return;
 		}
 		
@@ -309,7 +314,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	private final String[] blockMemberAccessLists;
 	private final Class[] memberAccessLists;
 	
-	private static final String hcRootPath = FileLocker.toFileCanonicalPath("./") + App.FILE_SEPARATOR;
+	private static final String hcRootPath = getCanonicalPath("./") + App.FILE_SEPARATOR;
 	private static final String hcRootPathLower = hcRootPath.toLowerCase(locale);
 	private static final String user_data_dir = hcRootPath + USER_DATA + App.FILE_SEPARATOR;
 	private static final String user_data_dirLower = user_data_dir.toLowerCase(locale);
@@ -319,7 +324,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			final String[] blockWrite, final String[] blockMem, final Class[] allowClazz){
 		super(sm);
 		
-		propertiesName = FileLocker.toFileCanonicalPath(PropertiesManager.getPropertiesFileName());
+		propertiesName = getCanonicalPath(PropertiesManager.getPropertiesFileName());
 		
 		if(propertiesLockThreadID == 0){
 			throw new HCSecurityException("unknow propertiesLockThreadID!");
@@ -328,6 +333,15 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		this.blockWriteFullPathLists = blockWrite;
 		this.blockMemberAccessLists = blockMem;
 		this.memberAccessLists = allowClazz;
+	}
+
+	private static String getCanonicalPath(final String fileName) {
+		try{
+			return new File(App.getBaseDir(), fileName).getCanonicalPath();
+		}catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+		return fileName;
 	}
 
 	@Override
@@ -349,9 +363,45 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			}else if(perm instanceof SocketPermission){
 				if(csc != null){
 					final PermissionCollection collection = csc.getSocketPermissionCollection();
-					if(collection != null){
-						if(collection.implies(perm) == false){
-							throw new HCSecurityException("block Socket : " + perm.toString() + " in HAR Project  [" + csc.projID + "]. To enable socket, add it to permission list.");
+					if(collection != null){//enable socket limit
+						boolean passPrivateCheck = false;
+						if(csc.isAccessPrivateAddress()){
+//								私有IP地址
+//								A：10.0.0.0-10.255.255.255
+//								B：172.16.0.0-172.31.255.255，169.254.0.0-169.254.255.255
+//								C：192.168.0.0-192.168.255.255
+							final SocketPermission sp = (SocketPermission)perm;
+							final String ipAndPortAddress = sp.getName();
+							final String[] ipAndPort = StringUtil.splitToArray(ipAndPortAddress, ":");
+							final String ip = ipAndPort[0];
+							if(ip.equals(SocketDesc.LOCAL_HOST_FOR_SOCK_PERMISSION)){
+								passPrivateCheck = true;
+							}else if(ip.indexOf(".") > 0){
+								if(ip.startsWith("192.168.") || ip.startsWith("10.") || ip.startsWith("127.") 
+										|| ip.startsWith("172.16.") || ip.startsWith("172.31.") || ip.startsWith("169.254.")){
+									passPrivateCheck = true;
+								}
+								
+								if(passPrivateCheck){
+									final String[] ipv4 = StringUtil.splitToArray(ip, ".");
+									if(ipv4.length != 4){
+										passPrivateCheck = false;
+									}else{
+										try{
+											for (int i = 0; i < ipv4.length; i++) {
+												Integer.parseInt(ipv4[i]);
+											}
+										}catch (final NumberFormatException e) {
+											passPrivateCheck = false;
+										}
+									}
+								}
+							}
+						}
+						if(passPrivateCheck == false){
+							if(collection.implies(perm) == false){
+								throw new HCSecurityException("block Socket : " + perm.toString() + " in HAR Project  [" + csc.projID + "]. To enable socket, add it to permission list.");
+							}
 						}
 					}
 				}
@@ -529,7 +579,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	
 	@Override
 	public final void checkRead(final String file) {
-		final String fileCanonicalPath = FileLocker.toFileCanonicalPath(file);
+		final String fileCanonicalPath = HCLimitSecurityManager.toFileCanonicalPathForCheck(file);
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
@@ -547,7 +597,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				}
 			}
 			final String fileCanonicalPathLower = fileCanonicalPath.toLowerCase(locale);
-			if(fileCanonicalPathLower.startsWith(user_data_dirLower, 0)){
+			if(csc != null && fileCanonicalPathLower.startsWith(user_data_dirLower, 0)){
 				//非法读取其它工程
 				throw new HCSecurityException("block read file :" + file + OUTSIDE_HAR_WORKING_THREAD);
 			}
@@ -558,7 +608,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	
     @Override
 	public final void checkRead(final String file, final Object context) {
-		final String fileCanonicalPath = FileLocker.toFileCanonicalPath(file);
+		final String fileCanonicalPath = HCLimitSecurityManager.toFileCanonicalPathForCheck(file);
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
@@ -576,7 +626,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				}
 			}
 			final String fileCanonicalPathLower = fileCanonicalPath.toLowerCase(locale);
-			if(fileCanonicalPathLower.startsWith(user_data_dirLower, 0)){
+			if(csc != null && fileCanonicalPathLower.startsWith(user_data_dirLower, 0)){
 				//非法读取其它工程
 				throw new HCSecurityException("block read file :" + file + OUTSIDE_HAR_WORKING_THREAD);
 			}
@@ -587,7 +637,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
     
 	@Override
 	public final void checkWrite(final String file) {
-		final String fileCanonicalPath = FileLocker.toFileCanonicalPath(file);
+		final String fileCanonicalPath = HCLimitSecurityManager.toFileCanonicalPathForCheck(file);
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
@@ -621,7 +671,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				}
 
 				canonicalLowerPath = fileCanonicalPath.toLowerCase(locale);
-				if(canonicalLowerPath.startsWith(user_data_dirLower, 0)){
+				if(csc != null && canonicalLowerPath.startsWith(user_data_dirLower, 0)){
 					//非法读取其它工程
 					throw new HCSecurityException("block write file :" + file + OUTSIDE_HAR_WORKING_THREAD);
 				}
@@ -675,7 +725,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
     
     @Override
 	public final void checkDelete(final String file) {
-    	final String fileCanonicalPath = FileLocker.toFileCanonicalPath(file);
+    	final String fileCanonicalPath = HCLimitSecurityManager.toFileCanonicalPathForCheck(file);
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
@@ -773,6 +823,14 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 //    	}
     	return super.getThreadGroup();
     }
+
+	private static final String toFileCanonicalPathForCheck(final String fileName) {
+		try{
+			return new File(fileName).getCanonicalPath();//注意：不getBaseDir
+		}catch (final Exception e) {
+			return fileName;
+		}
+	}
 
 //	public final void addBlockReadFile(String file){
 //		try {

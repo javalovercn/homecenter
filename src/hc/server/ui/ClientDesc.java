@@ -21,8 +21,19 @@ public class ClientDesc {
 		return clientWidth;
 	}
 	
+	public static String getClientScale(){
+		return agent.getScale();
+	}
+	
 	public static int getClientHeight(){
 		return clientHeight;
+	}
+	
+	/*
+	 * 是否为竖屏
+	 */
+	public static boolean isClientPortrait(){
+		return clientHeight > clientWidth;
 	}
 	
 	private static int clientWidth;
@@ -93,7 +104,25 @@ public class ClientDesc {
 		}catch (final Throwable e) {
 		}
 
-		L.V = L.O ? false : LogManager.log("Receive client agent : [" + serialMobileAgent + "]");
+		final StringBuilder sb = new StringBuilder(1024);
+		{
+			sb.append("Receive client agent information : ");
+			final int size = agent.size();
+			final Object[] kv = new Object[2];
+			
+			for (int i = 0; i < size; i++) {
+				agent.get(i, kv);
+				
+				final String key = (String)kv[0];
+				if(key.startsWith(MobileAgent.TAG_HIDE_PREFIX)){//节省log及美观
+					continue;
+				}
+
+				
+				sb.append("\n  [" + key + " = " + kv[1] + "]");
+			}
+		}
+		L.V = L.O ? false : LogManager.log(sb.toString());
 		L.V = L.O ? false : LogManager.log("Receive client desc, w:" + clientWidth + ", h:" + clientHeight 
 				+ ", dpi:" + dpi + ((dpi==0)?"(unknow)":"") + ", hcClientVer:" + hcClientVer + ", xdpi:" + xdpi + ", ydpi:" + ydpi + ", density:" + density);
 		L.V = L.O ? false : LogManager.log("  Important : the w (h) maybe not equal to the real width (height) of mobile in pixels, UI may be scaled to the best size.");

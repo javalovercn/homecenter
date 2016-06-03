@@ -18,4 +18,6 @@ public interface IMletCanvas {
 	 * @param len cmdBs
 	 */
 	public void actionJSInput(byte[] bs, int offset, int len);
+	
+	public void onExit(final boolean isAutoReleaseAfterGo);
 }

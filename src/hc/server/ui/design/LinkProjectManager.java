@@ -137,7 +137,7 @@ public class LinkProjectManager{
 					{
 					final String p_jvm_ver = p_had.getProperty(HCjad.HAD_JRE_MIN_VERSION);
 					if(p_jvm_ver != null){
-						if(StringUtil.higer(p_jvm_ver, curr_jvm_ver)){
+						if(StringUtil.higher(p_jvm_ver, curr_jvm_ver)){
 							if(sb.length() > 0){
 								sb.append("<br>");
 							}
@@ -149,7 +149,7 @@ public class LinkProjectManager{
 					{
 					final String p_hc_ver = p_had.getProperty(HCjad.HAD_HC_MIN_VERSION);
 					if(p_hc_ver != null){
-						if(StringUtil.higer(p_hc_ver, curr_hc_ver)){
+						if(StringUtil.higher(p_hc_ver, curr_hc_ver)){
 							if(sb.length() > 0){
 								sb.append("<br>");
 							}
@@ -161,7 +161,7 @@ public class LinkProjectManager{
 					{
 						final String p_jruby_ver = p_had.getProperty(HCjad.HAD_JRUBY_MIN_VERSION);
 						if(p_jruby_ver != null){
-							if(StringUtil.higer(p_jruby_ver, curr_jruby_ver)){
+							if(StringUtil.higher(p_jruby_ver, curr_jruby_ver)){
 								if(sb.length() > 0){
 									sb.append("<br>");
 								}
@@ -177,10 +177,10 @@ public class LinkProjectManager{
 							final String version = lp.getVersion();
 							final String downVer = lp.getDownloadingVer();
 							if(!version.equals(LinkProjectStore.DEFAULT_UNKOWN_VER) 
-									&& StringUtil.higer(p_ver, version) 
+									&& StringUtil.higher(p_ver, version) 
 									&& (downVer.equals(LinkProjectStore.DEFAULT_UNKOWN_VER)
-											|| StringUtil.higer(p_ver, downVer))){
-								if(!downVer.equals(LinkProjectStore.DEFAULT_UNKOWN_VER) && StringUtil.higer(p_ver, downVer)){
+											|| StringUtil.higher(p_ver, downVer))){
+								if(!downVer.equals(LinkProjectStore.DEFAULT_UNKOWN_VER) && StringUtil.higher(p_ver, downVer)){
 									//已下载，但未被应用，又产生了新版本。
 									log("project [" + lp.getProjectID() + "] remote version is higher the local un-apply new version.");
 								}
@@ -426,7 +426,7 @@ public class LinkProjectManager{
 			if(isDelProj
 					|| 
 				(!newVersion.equals(LinkProjectStore.DEFAULT_UNKOWN_VER) 
-					&& StringUtil.higer(newVersion, oldVersion)
+					&& StringUtil.higher(newVersion, oldVersion)
 					&& lps.getDownloadingErr().length() == 0
 					&& lps.getDownloadingPosition() > 0)){
 				if(upgraded == false){

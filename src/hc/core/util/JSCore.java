@@ -1,6 +1,8 @@
 package hc.core.util;
 
 public class JSCore {
+	public static final byte[] actionExt = "actionExt".getBytes();
+
 	public static final byte[] clickJButton = "clickJButton".getBytes();
 	public static final byte[] selectSlider = "selectSlider".getBytes();
 	public static final byte[] selectComboBox = "selectComboBox".getBytes();
@@ -16,6 +18,6 @@ public class JSCore {
 	public static final byte[] mouseClicked = "mouseClicked".getBytes();
 	public static final byte[] mouseDragged = "mouseDragged".getBytes();
 	
-	public static final byte[] splitBS = StringUtil.split.getBytes();
+	public static final byte[] splitBS = StringUtil.SPLIT_LEVEL_2_JING.getBytes();
 	
 }

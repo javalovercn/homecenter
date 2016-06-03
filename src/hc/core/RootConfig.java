@@ -1,5 +1,7 @@
 package hc.core;
 
+import java.util.Vector;
+
 import hc.core.util.CCoreUtil;
 
 public class RootConfig extends HCConfig{
@@ -17,6 +19,20 @@ public class RootConfig extends HCConfig{
 		}
 		return rc;
 	}
+	
+	private final static Vector listenerVector = new Vector(4);
+	
+	/**
+	 * 添加RootConfig更新事件。不含初始化获得。
+	 * @param listener
+	 */
+	public static void addListener(final RootConfigListener listener){
+		CCoreUtil.checkAccess();
+		
+		synchronized (listenerVector) {
+			listenerVector.addElement(listener);
+		}
+	}
 
 	public static void reset(boolean isStillForData) {
 		CCoreUtil.checkAccess();
@@ -31,6 +47,14 @@ public class RootConfig extends HCConfig{
 				}else{
 					rc.refresh(msg);
 					CCoreUtil.resetFactor();//不建议直接走CUtil，因为可能初始化问题
+					
+					synchronized (listenerVector) {
+						final int size = listenerVector.size();
+						for (int i = size - 1; i >= 0; i--) {
+							RootConfigListener listener = (RootConfigListener)listenerVector.elementAt(i);
+							listener.onRefresh();
+						}
+					}
 				}
 			}
 			
@@ -90,6 +114,7 @@ public class RootConfig extends HCConfig{
 	public static final short p_UpdateOneTimeMinMinutes = 41;
 	public static final short p_blockExceptionReport = 42;
 	public static final short p_isMovToGooglePlayStore = 43;
+	public static final short p_CacheMinSize = 44;
 
 	public RootConfig(String msg) {
 //		System.out.println(msg);

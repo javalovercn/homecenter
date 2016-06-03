@@ -9,17 +9,22 @@ public class MobileAgent {
 	
 	final VectorMap vectorMap = new VectorMap(10);
 	
+	public static final String DEFAULT_SCALE = "1.0";
+	
+	public static final String TAG_HIDE_PREFIX = "hide_";
+	
 	private final static String TAG_OS = "os";
 	private final static String TAG_VER = "osver";
 	private final static String TAG_UID = "uid";
-	private final static String TAG_HAS_CAMERA = "camera";
-	private final static String TAG_CONTROL_WIFI = "ctrlWiFi";
+	private final static String TAG_HAS_CAMERA = TAG_HIDE_PREFIX + "camera";
+	private final static String TAG_CONTROL_WIFI = TAG_HIDE_PREFIX + "ctrlWiFi";
 	private final static String TAG_EncryptionStrength = "encryptionStrength";
 	private final static String TAG_IS_BACKGROUND = ConfigManager.UI_IS_BACKGROUND;
 	private final static String TAG_COLOR_BIT = "colorBit";
 	private final static String TAG_REFRESH_MS = "refreshMS";
 	private final static String TAG_IOS_MAX_BG_MINUTES = "iOSBGMinute";
 	private final static String TAG_MENU_TRUE_COLOR = "MenuTrueColor";
+	private final static String TAG_SCALE = TAG_HIDE_PREFIX + "Scale";//iOS screen scale
 	
 	private final static String SPLIT = ";";
 	private final static String EQUAL = "=";
@@ -34,6 +39,20 @@ public class MobileAgent {
 		}
 		
 		return ma;
+	}
+	
+	public final int size(){
+		return vectorMap.size();
+	}
+	
+	/**
+	 * 将指定idx的key-value放入数组kv中，并返回。
+	 * @param idx
+	 * @param kv
+	 * @return
+	 */
+	public final Object[] get(final int idx, final Object[] kv){
+		return vectorMap.get(idx, kv);
 	}
 	
 	public final String toSerial(){
@@ -73,6 +92,14 @@ public class MobileAgent {
 	
 	public final void setOS(final String osName){
 		set(TAG_OS, osName);
+	}
+	
+	public final String getScale(){
+		return get(TAG_SCALE, DEFAULT_SCALE);
+	}
+	
+	public final void setScale(final String scale){
+		set(TAG_SCALE, scale);
 	}
 	
 	public final int getColorBit(){

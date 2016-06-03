@@ -299,11 +299,16 @@ public class HCURLUtil {
 	}
 
 	private static void pSendCmd(byte tag, String cmdType, String para, String value) {
-		ContextManager.getContextInstance().send(tag, HCURL.CMD_PROTOCAL + "://" + cmdType + "?" + para + "=" + value);
+		ContextManager.getContextInstance().send(tag, HCURL.CMD_PROTOCAL + HCURL.HTTP_SPLITTER + cmdType + "?" + para + "=" + value);
 	}
 
 	public static void sendCmdUnXOR(String cmdType, String para, String value){
 		pSendCmd(MsgBuilder.E_GOTO_URL_UN_XOR, cmdType, para, value);
+	}
+	
+	public static void sendEClass(final String className, final String classPara){
+		final byte[] bs = StringUtil.getBytes(classPara);
+		sendEClass(className, bs, 0, bs.length);
 	}
 	
 	/**
@@ -313,7 +318,7 @@ public class HCURLUtil {
 	 * @param offset
 	 * @param len
 	 */
-	public static void sendEClass(String className, byte[] bs, int offset, int len){
+	public static void sendEClass(final String className, final byte[] bs, final int offset, final int len){
 		final byte[] classBS = ByteUtil.getBytes(className, IConstant.UTF_8);
 		
 		//classNameLen(4) + classBS + paraLen(4) + paraBS
@@ -336,6 +341,10 @@ public class HCURLUtil {
 	}
 	
 	public static final String CLASS_BODY_TO_MOBI = "BODY_TO_MOBI";
+	public static final String CLASS_GO_EXTERNAL_URL = "goExternalURL";
+	public static final String CLASS_CHANGE_PROJECT_ID = "changeProjID";
+	public static final String CLASS_ERR_ON_CACHE = "errOnCache";
+	public static final String CLASS_TRANS_SERVER_UID = "transServerUID";
 
 	public static void sendCmd(String cmdType, String[] para, String[] value){
 //		sendWrap进行了拦截
@@ -349,7 +358,7 @@ public class HCURLUtil {
 			pv += encode(para[i]) + "=" + encode(value[i]);
 		}
 		ContextManager.getContextInstance().send(MsgBuilder.E_GOTO_URL, 
-				HCURL.CMD_PROTOCAL + "://" + cmdType + "?" + pv);
+				HCURL.CMD_PROTOCAL + HCURL.HTTP_SPLITTER + cmdType + "?" + pv);
 	}
 
 }

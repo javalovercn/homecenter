@@ -11,7 +11,7 @@ import java.util.HashMap;
 public class DefaultUIResponsor extends BaseResponsor{
 
 	@Override
-	public boolean doBiz(HCURL url) {
+	public boolean doBiz(final HCURL url) {
 		if(url.protocal == HCURL.MENU_PROTOCAL){
 			if(url.elementID.equals(HCURL.ROOT_MENU)){
 				ServerUIUtil.response(IConstant.NO_CANVAS_MAIN);
@@ -22,7 +22,7 @@ public class DefaultUIResponsor extends BaseResponsor{
 	}
 
 	@Override
-	public Object getObject(int funcID, Object para){
+	public Object getObject(final int funcID, final Object para){
 		return null;
 	}
 	
@@ -32,7 +32,7 @@ public class DefaultUIResponsor extends BaseResponsor{
 	}
 	
 	@Override
-	public void setMap(HashMap map) {
+	public void setMap(final HashMap map) {
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public class DefaultUIResponsor extends BaseResponsor{
 	}
 
 	@Override
-	public void enterContext(String contextName){
+	public void enterContext(final String contextName){
 	}
 	
 	@Override
@@ -50,7 +50,7 @@ public class DefaultUIResponsor extends BaseResponsor{
 	}
 
 	@Override
-	public Object onEvent(Object event) {
+	public Object onEvent(final Object event) {
 		if(ProjResponser.isScriptEvent(event)){
 			//处理可能没有mobile_login，而导致调用mobile_logout事件
 			if(event == ProjectContext.EVENT_SYS_MOBILE_LOGIN){
@@ -63,10 +63,18 @@ public class DefaultUIResponsor extends BaseResponsor{
 	}
 
 	@Override
-	public void addProjectContext(ProjectContext pc){
+	public void addProjectContext(final ProjectContext pc){
 	}
 
 	@Override
-	public void enableLog(boolean enable) {
+	public void enableLog(final boolean enable) {
+	}
+
+	@Override
+	public void createClientSession() {
+	}
+
+	@Override
+	public void releaseClientSession() {
 	}
 }

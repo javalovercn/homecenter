@@ -1,6 +1,7 @@
 package hc.server.data;
 
 import hc.App;
+import hc.util.ResourceUtil;
 
 import java.io.File;
 
@@ -9,7 +10,7 @@ public class StoreDirManager {
 
 	public static final String ICO_DIR = App.FILE_SEPARATOR + "user_ico";
 	public static final String HC_RMS = "hc_rms";
-	public static final String TEMP_DIR_NAME = "temp";
+	private static final String TEMP_DIR_NAME = "temp";
 	public static final String LINK_DIR_NAME = "link";
 	
 	public static void createDirIfNeccesary(final String dir){
@@ -29,6 +30,7 @@ public class StoreDirManager {
 		if(TEMP_DIR.exists() == false){
 			TEMP_DIR.mkdirs();
 		}
+		ResourceUtil.clearDir(TEMP_DIR);
 		
 		if(LINK_DIR.exists() == false){
 			LINK_DIR.mkdirs();

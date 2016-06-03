@@ -159,12 +159,13 @@ public class ReceiveServer implements Runnable{
             	
             	if(System.currentTimeMillis() - receiveUpdateMS < 100){
             		if(L.isInWorkshop){
-            			L.V = L.O ? false : LogManager.log("receive is changing new socket. continue");
+            			L.V = L.O ? false : LogManager.log("[workshop] receive is changing new socket. continue");
             		}
             		continue;
             	}
             	
-            	if(ContextManager.cmStatus == ContextManager.STATUS_EXIT){
+            	final int cmStatus = ContextManager.cmStatus;
+            	if(cmStatus == ContextManager.STATUS_EXIT || cmStatus == ContextManager.STATUS_READY_EXIT){
             		try{
             			Thread.sleep(100);
             		}catch (final Exception ex) {

@@ -16,6 +16,10 @@
 			window.location.href = 'int_iosj2se' + '¢¢¢' + cmds + '¢¢¢' + para1;
 		},
 
+		actionExt: function(cmd){
+			this.sendCmdOnePara('actionExt', cmd);
+		},
+
 		clickJButton: function(hashID){
 			this.sendCmdOnePara('clickJButton', '' + hashID);
 		},
@@ -25,7 +29,7 @@
 		},
 
 		finishOnLoad: function(){
-			//this.sendCmdOnePara('finishOnLoad', '');//by agent
+			/*this.sendCmdOnePara('finishOnLoad', '');*/
 		},
 
 		selectComboBox: function(hashID, selectedIndex){

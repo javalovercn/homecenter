@@ -3,14 +3,11 @@ package hc.server;
 import hc.App;
 import hc.core.ConfigManager;
 import hc.core.ContextManager;
-import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
-import hc.core.RootServerConnector;
 import hc.core.data.DataClientAgent;
-import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
@@ -42,59 +39,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 public class J2SEServerURLAction implements IHCURLAction {
-	private static HCTimer closeIOSLongConnection;
-	
-	private final static HCTimer buildCloseIOSLongConnection(){
-		final int iosMaxBGMinutes = ClientDesc.getAgent().getIOSMaxBGMinutes();
-		return new HCTimer("iOSLongConnection", 1000 * 60 * iosMaxBGMinutes, true) {
-			@Override
-			public void doBiz() {
-				L.V = L.O ? false : LogManager.log("force close connection when iOS keep in background for max minutes!");
-				RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_ServerReq_STR);
-				SIPManager.notifyRelineon(false);
-				setEnable(false);
-			}
-		};
-	}
-
-	private final static void clearIOSLongConnectionTimer() {
-		if(closeIOSLongConnection != null){
-			L.V = L.O ? false : LogManager.log("remove iOS long connection watch timer.");
-			HCTimer.remove(closeIOSLongConnection);
-		}
-	}
-	
-	private static boolean isKeepaliveEnableOld;
-	
-	private static void flipIOSBackground(final boolean isBackground){
-		L.V = L.O ? false : LogManager.log("client iOS background : [" + isBackground + "]");
-		
-		if(isBackground){
-			if(closeIOSLongConnection != null){
-				clearIOSLongConnectionTimer();
-			}
-			closeIOSLongConnection = buildCloseIOSLongConnection();
-		}else{
-			clearIOSLongConnectionTimer();
-		}
-
-		if(isBackground){
-			LogManager.warning("iOS will do nothing when in background!!!");
-			
-			isKeepaliveEnableOld = KeepaliveManager.keepalive.isEnable();
-			if(isKeepaliveEnableOld){
-				L.V = L.O ? false : LogManager.log("disable keepalive when iOS in background!");
-				KeepaliveManager.keepalive.setEnable(false);
-			}
-		}else{
-			if(isKeepaliveEnableOld){
-				L.V = L.O ? false : LogManager.log("enable keepalive when iOS resume from background!");
-				KeepaliveManager.resetSendData();
-				KeepaliveManager.keepalive.resetTimerCount();
-				KeepaliveManager.keepalive.setEnable(true);
-			}
-		}
-	}
 	
 	@Override
 	public boolean doBiz(final HCURL url) {
@@ -189,10 +133,9 @@ public class J2SEServerURLAction implements IHCURLAction {
 							public void run() {
 								final BaseResponsor responsor = ServerUIUtil.getResponsor();
 								responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
-								
-								if(isIOSForBackgroundCond()){
-									flipIOSBackground(ClientDesc.getAgent().isBackground());
-								}
+//								if(isIOSForBackgroundCond()){
+//									flipIOSBackground(ClientDesc.getAgent().isBackground());
+//								}
 							}
 						});
 					}
@@ -349,10 +292,6 @@ public class J2SEServerURLAction implements IHCURLAction {
 		ScreenCapturer.robot.mouseRelease(InputEvent.BUTTON1_MASK);
 
 		ScreenCapturer.robot.keyRelease(mode);
-	}
-
-	public static boolean isIOSForBackgroundCond() {
-		return ClientDesc.getAgent().getOS().equals(ProjectContext.OS_IOS);
 	}
 
 }

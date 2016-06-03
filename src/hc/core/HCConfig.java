@@ -8,7 +8,7 @@ import java.util.Vector;
  * 将数组值转为对应索引位来进行访问，故结构不许删除或变动。
  */
 public class HCConfig {
-	public static final String CFG_SPLIT = StringUtil.split;
+	public static final String CFG_SPLIT = StringUtil.SPLIT_LEVEL_2_JING;
 
 	Vector v;
 	
@@ -24,6 +24,11 @@ public class HCConfig {
 		return StringUtil.toSerialBySplit(item);
 	}
 	
+	/**
+	 * 如果没有，返回0
+	 * @param propertyID
+	 * @return
+	 */
 	public final int getIntProperty(final short propertyID) {
 		return getIntProperty(v, propertyID);
 	}

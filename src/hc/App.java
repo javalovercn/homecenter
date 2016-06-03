@@ -9,7 +9,8 @@ import hc.core.IWatcher;
 import hc.core.L;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
-import hc.core.cache.StoreManager;
+import hc.core.cache.CacheManager;
+import hc.core.cache.CacheStoreManager;
 import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
@@ -37,9 +38,11 @@ import hc.server.ProcessingWindowManager;
 import hc.server.ServerInitor;
 import hc.server.StarterManager;
 import hc.server.ThirdlibManager;
+import hc.server.data.StoreDirManager;
 import hc.server.msb.MSBException;
 import hc.server.msb.WiFiHelper;
 import hc.server.rms.J2SERecordWriterBuilder;
+import hc.server.rms.RMSLastAccessTimeManager;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.ClosableWindow;
 import hc.server.ui.ServerUIUtil;
@@ -148,6 +151,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	public static final String TAG_SERVER_MODE = "serverOn";
 	public static final String TAG_SERVER_OFF_MODE = "serverOff";
 	public static final String TAG_STARTER_VER = "starterVer";
+	
 	private static ThreadGroup threadPoolToken;
 	public static boolean DEBUG_THREAD_POOL_ON = false;
 	
@@ -313,7 +317,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 					try{
 						final String[] values = arg.split("=");
 						StarterManager.setCurrStarterVer(values[1]);
-					}catch (final Exception e) {
+					}catch (final Throwable e) {
 					}
 				}else if(arg.equals(TAG_INI_DEBUG_THREAD_POOL_ON)){
 					DEBUG_THREAD_POOL_ON = true;
@@ -324,8 +328,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		}
 		IConstant.propertiesFileName = "hc_config.properties";
 
-		StoreManager.setRecrodWriterBuilder(new J2SERecordWriterBuilder());
-		
 		if(isSimu){
 			//只做强制isSimu，不做isSimu为false的情形，因为原配置可能为true
 			PropertiesManager.setValue(PropertiesManager.p_IsSimu, IConstant.TRUE);
@@ -335,7 +337,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			L.setInWorkshop(true);
 			L.V = L.O ? false : LogManager.log("isSimu : true");
 		}
-
+		
 		//依赖isInWorkshop
 		PropertiesManager.emptyDelDir();
 		
@@ -377,6 +379,54 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			RootConfig.reset(true);
 		}
 		
+		//------------------------------------------------------------------------
+		//取得RootConfig之后
+		//------------------------------------------------------------------------
+		
+		//依赖RootConfig，故置于上行之后
+		ExceptionReporter.setHarHelper(HCLimitSecurityManager.getHCSecurityManager());//系统线程进行初始化，防止用户线程来初始化
+		if(PropertiesManager.isTrue(PropertiesManager.p_isReportException)){
+			ExceptionReporter.start(false);//false:由于log系统尚未完成初始化
+		}
+		{
+			final UncaughtExceptionHandler oldhandler = Thread.getDefaultUncaughtExceptionHandler();
+			
+			final UncaughtExceptionHandler handler = new UncaughtExceptionHandler() {
+				@Override
+				public final void uncaughtException(final Thread t, final Throwable e) {
+	//					L.V = L.O ? false : LogManager.log("******************uncaughtException*****************=>" + e.getMessage());
+						ExceptionReporter.printStackTraceFromThreadPool(e);
+//						if(oldhandler != null){//for Android存在重复printStackTrace
+//							oldhandler.uncaughtException(t, e);//for Android异常退出
+//						}
+				}
+			};
+			
+			Thread.setDefaultUncaughtExceptionHandler(handler);
+		}
+		
+		final String hcVersion = StarterManager.getHCVersion();
+
+		final String ver7_7 = "7.7";
+		final boolean isLower7_7;
+		{//专门处理低7.4的版本逻辑
+			final String clearRMSCacheVersion = PropertiesManager.getValue(PropertiesManager.p_clearRMSCacheVersion, "1.0");
+			if(isLower7_7 = StringUtil.lower(clearRMSCacheVersion, ver7_7)){
+				ResourceUtil.clearDir(StoreDirManager.RMS_DIR);
+				
+				PropertiesManager.setValue(PropertiesManager.p_clearRMSCacheVersion, ver7_7);
+				PropertiesManager.saveFile();
+			}
+		}
+		
+		if(isLower7_7){//不再处理
+		}else if(StringUtil.higher(hcVersion, ver7_7)){//处理其它版本需要清空RMSCache的逻辑
+		}
+		
+		CacheStoreManager.setRecrodWriterBuilder(new J2SERecordWriterBuilder());
+		CacheManager.clearBuffer();
+		RMSLastAccessTimeManager.doNothing();
+		
 		MSBException.init();
 		ExceptionViewer.init();
 		ExceptionViewer.notifyPopup(PropertiesManager.isTrue(PropertiesManager.p_isEnableMSBExceptionDialog));
@@ -385,7 +435,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		{
 			final String initVersion = PropertiesManager.getValue(PropertiesManager.p_InitVersion);
 			if(initVersion == null){
-				PropertiesManager.setValue(PropertiesManager.p_InitVersion, StarterManager.getHCVersion());
+				PropertiesManager.setValue(PropertiesManager.p_InitVersion, hcVersion);
 			}
 		}
 		
@@ -400,7 +450,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		PropertiesManager.remove(PropertiesManager.p_IAgree);
 		final String agreeVersion = PropertiesManager.getValue(PropertiesManager.p_AgreeVersion, "1.0");
-		if (StringUtil.higer(getLastAgreeVersion(), agreeVersion)) {
+		if (StringUtil.higher(getLastAgreeVersion(), agreeVersion)) {
 			final IBiz biz = new IBiz() {
 				@Override
 				public void start() {
@@ -525,28 +575,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		}
 		IConstant.setInstance(new J2SEConstant());
 		
-		//依赖RootConfig的IConstant，故置于上行之后
-		ExceptionReporter.setHarHelper(HCLimitSecurityManager.getHCSecurityManager());//系统线程进行初始化，防止用户线程来初始化
-		if(PropertiesManager.isTrue(PropertiesManager.p_isReportException)){
-			ExceptionReporter.start(false);//false:由于log系统尚未完成初始化
-		}
-		{
-			final UncaughtExceptionHandler oldhandler = Thread.getDefaultUncaughtExceptionHandler();
-			
-			final UncaughtExceptionHandler handler = new UncaughtExceptionHandler() {
-				@Override
-				public final void uncaughtException(final Thread t, final Throwable e) {
-	//					L.V = L.O ? false : LogManager.log("******************uncaughtException*****************=>" + e.getMessage());
-						ExceptionReporter.printStackTraceFromThreadPool(e);
-//						if(oldhandler != null){//for Android存在重复printStackTrace
-//							oldhandler.uncaughtException(t, e);//for Android异常退出
-//						}
-				}
-			};
-			
-			Thread.setDefaultUncaughtExceptionHandler(handler);
-		}
-		
 		if(PropertiesManager.getValue(PropertiesManager.p_CertKey) == null){
 			L.V = L.O ? false : LogManager.log("create new certification for new install.");
 			generateCert();
@@ -555,6 +583,11 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			setNoTransCert();
 		}
 
+		if(PropertiesManager.getValue(PropertiesManager.p_RMSServerUID) == null){
+			PropertiesManager.setValue(PropertiesManager.p_RMSServerUID, StringUtil.genUID(getStartMS()));
+			PropertiesManager.saveFile();
+		}
+		
 		ServerInitor.doNothing();
 
 		// JRE 6 install
@@ -684,7 +717,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		if(isSimuCache == null){
 			isSimuCache = PropertiesManager.isTrue(PropertiesManager.p_IsSimu);
 		}
-		return isSimuCache.booleanValue();
+		return isSimuCache;
 	}
 
 	public static void startAfterInfo() {
@@ -714,6 +747,24 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			WiFiHelper.startAPIfExists();//依赖context
 
 			ContextManager.start();
+			
+			if(ResourceUtil.isJ2SELimitFunction()){
+				//最低JRE要求7
+				final String msgMinJre7 = IDArrayGroup.MSG_MIN_JRE_7;
+				if(getJREVer() < 1.7 && IDArrayGroup.check(msgMinJre7) == false){
+					String msg = (String)ResourceUtil.get(9191);
+					msg = StringUtil.replace(msg, "{curr}", "6");
+					msg = StringUtil.replace(msg, "{to}", "7");
+					final JPanel panel = buildMessagePanel("<html>" + msg + "</html>", getSysIcon(SYS_WARN_ICON));
+					final ActionListener okListener = new ActionListener() {
+						@Override
+						public void actionPerformed(final ActionEvent e) {
+							IDArrayGroup.checkAndAdd(msgMinJre7);
+						}
+					};
+					showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.WARN), false, null, null, okListener, null, null, false, true, null, false, true);
+				}
+			}
 		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 			App
@@ -1383,11 +1434,17 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				return null;
 			}
 		}, threadPoolToken);
-				
+		
 		ProcessingWindowManager.resume();
 		
 		return value;
 	}
+    
+    public static JPanel buildMessagePanel(final String message, final Icon icon){
+		final JPanel panel = new JPanel(new BorderLayout());
+		panel.add(new JLabel(message, icon, SwingConstants.LEADING), BorderLayout.CENTER);
+		return panel;
+    }
     
 	private static final boolean searchNull(final String[] array){
 		for (int i = 0; i < array.length; i++) {
@@ -1532,6 +1589,13 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		CCoreUtil.checkAccess();
 		ProcessingWindowManager.disposeProcessingWindow();
 		
+//		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+//			@Override
+//			public Object run() {
+//				JOptionPane.showMessageDialog(parentComponent, message, title, messageType, icon);
+//				return null;
+//			}
+//		});
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {

@@ -8,16 +8,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+/**
+ * 线程安全。
+ *
+ */
 public class J2SERMSRecordWriter implements RecordWriter{
+	private static final boolean isDebug = false;
+	
 	public static final int USER_BLOCK_SIZE = 1024;
 	
 	//---------------------------------------------------------------------------------------------------------------------
-	//                                 每个块结构如下
+	//                                 每个数据块结构如下（非首记录表）
 	//---------------------------------------------------------------------------------------------------------------------
-	//[using_size] [next_block_no] [user_data]
-	public static final int IDX_2_USER_USING_SIZE = 0;//当前块使用的字节数，2位
-	public static final int IDX_4_USER_NEXT_BLOCK_NO = IDX_2_USER_USING_SIZE + 2;//下一块物理索引，4位。如果没有下一个块，则置为0
-	public static final int IDX_USER_DATA = IDX_4_USER_NEXT_BLOCK_NO + 4;//数据写入起始位
+	//[using_size 4位] [next_block_no 4位] [user_data]
+	public static final int IDX_LEN4_USER_USING_SIZE = 0;//当前块使用的字节数，4位
+	public static final int IDX_LEN4_USER_NEXT_BLOCK_NO = IDX_LEN4_USER_USING_SIZE + 4;//下一块物理索引，4位。如果没有下一个块，则置为0
+	public static final int IDX_USER_DATA = IDX_LEN4_USER_NEXT_BLOCK_NO + 4;//数据写入起始位
 	
 	public static final int MAX_USER_BLOCK_DATA_NUM = USER_BLOCK_SIZE - IDX_USER_DATA;
 	
@@ -32,17 +38,27 @@ public class J2SERMSRecordWriter implements RecordWriter{
     //---------------------------------------------------------------------------------------------------------------------
     //                                   首记录结构如下，注意：起始记录号为1，不是0，这是RMS的规范
     //---------------------------------------------------------------------------------------------------------------------
-    //------[last_tail] [empty_first] [empty_end]-------[rec_1] [start_no] [end_no]-------[rec_2...] [start_no] [end_no]
-    private static final int IDX_4_HEADER_LAST_FILE_BLOCK = 0;
-    private static final int IDX_4_HEADER_EMPTY_START_BLOCK = IDX_4_HEADER_LAST_FILE_BLOCK + 4;
-    private static final int IDX_4_HEADER_EMPTY_END_BLOCK = IDX_4_HEADER_EMPTY_START_BLOCK + 4;
-    private static final int IDX_4_HEADER_LAST_FILE_BLOCK_ABS = IDX_USER_DATA;
-    private static final int IDX_4_HEADER_EMPTY_START_BLOCK_ABS = IDX_4_HEADER_EMPTY_START_BLOCK + IDX_USER_DATA;
-    private static final int IDX_4_HEADER_EMPTY_END_BLOCK_ABS = IDX_4_HEADER_EMPTY_END_BLOCK + IDX_USER_DATA;
-    private static final int IDX_HEADER_FIRST_USER_BLOCK_IDX = IDX_4_HEADER_EMPTY_END_BLOCK + 4;
+    //------[last_tail] [empty_first] [empty_end]-------[rec_1] [start_no] [end_no]...-------[0, if del, never use again] [start_no] [end_no]
+    private static final int IDX_LEN4_HEADER_LAST_FILE_BLOCK = 0;
+    private static final int IDX_LEN4_HEADER_EMPTY_START_BLOCK = IDX_LEN4_HEADER_LAST_FILE_BLOCK + 4;
+    private static final int IDX_LEN4_HEADER_EMPTY_END_BLOCK = IDX_LEN4_HEADER_EMPTY_START_BLOCK + 4;
+    private static final int IDX_LEN4_HEADER_LAST_FILE_BLOCK_ABS = IDX_USER_DATA;
+    private static final int IDX_LEN4_HEADER_EMPTY_START_BLOCK_ABS = IDX_LEN4_HEADER_EMPTY_START_BLOCK + IDX_USER_DATA;
+    private static final int IDX_LEN4_HEADER_EMPTY_END_BLOCK_ABS = IDX_LEN4_HEADER_EMPTY_END_BLOCK + IDX_USER_DATA;
+    private static final int IDX_HEADER_FIRST_USER_BLOCK_IDX = IDX_LEN4_HEADER_EMPTY_END_BLOCK + 4;
     private static final int HEADER_USER_BLOCK_LEN = 4 + 4 * 2;//4，逻辑块索引编号；4，块存储首物理块索引；4块存储尾物理块索引
     
-    public J2SERMSRecordWriter(final RandomAccessFile raf) throws Exception{
+    static final ByteArrayOutputStream baos = new ByteArrayOutputStream(USER_BLOCK_SIZE * 200);
+    
+    final String logicTableName;
+    
+	@Override
+	public String getLogicTableName() {
+		return logicTableName;
+	}
+	
+    public J2SERMSRecordWriter(final RandomAccessFile raf, final String logicTableName) throws Exception{
+    	this.logicTableName = logicTableName;
     	this.raf = raf;
     	
     	if(raf.length() == 0){
@@ -55,29 +71,26 @@ public class J2SERMSRecordWriter implements RecordWriter{
     		headerBufEndIdx = HEADER_USER_BLOCK_LEN;
     		
     		//仅使用头块，初始设置下一个可用块索引
-    		ByteUtil.integerToFourBytes((int)lastFileBlockNo, headerBuf, IDX_4_HEADER_LAST_FILE_BLOCK);
+    		ByteUtil.integerToFourBytes((int)lastFileBlockNo, headerBuf, IDX_LEN4_HEADER_LAST_FILE_BLOCK);
     		
-    		raf.seek(IDX_4_HEADER_LAST_FILE_BLOCK_ABS);
+    		raf.seek(IDX_LEN4_HEADER_LAST_FILE_BLOCK_ABS);
     		raf.write(headerBuf, 0, headerBufEndIdx);
     		
     		//初始块字节使用量
     		raf.seek(0);
-    		ByteUtil.integerToTwoBytes(headerBufEndIdx, fourByteBuf, 0);
-    		raf.write(fourByteBuf, 0, 2);
+    		ByteUtil.integerToFourBytes(headerBufEndIdx, fourByteBuf, 0);
+    		raf.write(fourByteBuf, 0, 4);
     		
 //    		//初始块的下一个块索引为0
 //    		raf.seek(2);
 //    		ByteUtil.integerToFourBytes(0, fourByteBuf, 0);
 //    		raf.write(fourByteBuf, 0, 4);
     	}else{
-    		byte[] firstLinkHeader = new byte[IDX_USER_DATA];
+    		final byte[] firstLinkHeader = new byte[IDX_USER_DATA];
     		raf.seek(0);
     		raf.read(firstLinkHeader);
     		
-    		ByteArrayOutputStream baos = new ByteArrayOutputStream(ByteUtil.twoBytesToInteger(firstLinkHeader, IDX_2_USER_USING_SIZE));
-	    	readStream(0, baos);
-	    	
-	    	final byte[] storedHeaderBuf = baos.toByteArray();
+	    	final byte[] storedHeaderBuf = readStream(0);
 	    	if(storedHeaderBuf.length > headerBuf.length){
 		    	headerBuf = baos.toByteArray();
 		    	headerBufEndIdx = headerBuf.length;
@@ -86,33 +99,43 @@ public class J2SERMSRecordWriter implements RecordWriter{
 	    		headerBufEndIdx = storedHeaderBuf.length;
 	    	}
 	    	
-	    	lastFileBlockNo = ByteUtil.fourBytesToLong(headerBuf, IDX_4_HEADER_LAST_FILE_BLOCK);
-	    	emptyStartBlockNo = ByteUtil.fourBytesToLong(headerBuf, IDX_4_HEADER_EMPTY_START_BLOCK);
-	    	emptyEndBlockNo = ByteUtil.fourBytesToLong(headerBuf, IDX_4_HEADER_EMPTY_END_BLOCK);
+	    	lastFileBlockNo = ByteUtil.fourBytesToLong(headerBuf, IDX_LEN4_HEADER_LAST_FILE_BLOCK);
+	    	emptyStartBlockNo = ByteUtil.fourBytesToLong(headerBuf, IDX_LEN4_HEADER_EMPTY_START_BLOCK);
+	    	emptyEndBlockNo = ByteUtil.fourBytesToLong(headerBuf, IDX_LEN4_HEADER_EMPTY_END_BLOCK);
     	}
     	
     }
     
-	public void readStream(final long startBlockNo, final ByteArrayOutputStream baos) throws Exception{
-		long nextBlockNo = startBlockNo;
-		
-		do{
-			raf.seek(nextBlockNo * USER_BLOCK_SIZE);
-			raf.read(standardBlockBuf);
-	        
-	        final int currLen = ByteUtil.twoBytesToInteger(standardBlockBuf, IDX_2_USER_USING_SIZE);
-	        baos.write(standardBlockBuf, IDX_USER_DATA, currLen);
-	        
-        	nextBlockNo = ByteUtil.fourBytesToLong(standardBlockBuf, IDX_4_USER_NEXT_BLOCK_NO);
-	        
-		}while(nextBlockNo > 0);
+	private final byte[] readStream(final long startBlockNo) throws Exception{
+		synchronized (baos) {//注意：由于是表态变量，全局共享，所以加锁。
+			baos.reset();
+			
+			long nextBlockNo = startBlockNo;
+			
+			do{
+				raf.seek(nextBlockNo * USER_BLOCK_SIZE);
+				raf.read(standardBlockBuf);
+		        
+				if(isDebug){
+					System.out.println("read block [" + nextBlockNo + "]");
+				}
+				
+		        final long currLen = ByteUtil.fourBytesToLong(standardBlockBuf, IDX_LEN4_USER_USING_SIZE);
+		        baos.write(standardBlockBuf, IDX_USER_DATA, (int)currLen);
+		        
+	        	nextBlockNo = ByteUtil.fourBytesToLong(standardBlockBuf, IDX_LEN4_USER_NEXT_BLOCK_NO);
+		        
+			}while(nextBlockNo > 0);
+			
+			return baos.toByteArray();
+		}
 	}
 	
 	/**
 	 * 将
 	 * @param startBlockNo
 	 */
-	private void addUnusedOverrideTailToEmpty(final long startBlockNo, final long endBlockNo) throws Exception{
+	private final void addUnusedOverrideTailToEmpty(long startBlockNo, final long endBlockNo) throws Exception{
 		if(startBlockNo == 0){//一个Overrid段，正好全使用完，到0出现
 			return;
 		}
@@ -121,20 +144,43 @@ public class J2SERMSRecordWriter implements RecordWriter{
 			emptyStartBlockNo = startBlockNo;
 			emptyEndBlockNo = endBlockNo;
 			
-			ByteUtil.integerToFourBytes((int)emptyStartBlockNo, headerBuf, IDX_4_HEADER_EMPTY_START_BLOCK);
-		}else{
-			//新添加的首块，追加到旧empty尾部，
-			raf.seek(emptyEndBlockNo * USER_BLOCK_SIZE + IDX_4_USER_NEXT_BLOCK_NO);
-			ByteUtil.integerToFourBytes((int)startBlockNo, fourByteBuf, 0);
-			raf.write(fourByteBuf, 0, 4);
+			if(isDebug){
+				System.out.println("free blocks start-end [" + emptyStartBlockNo + "-" + emptyEndBlockNo + "]");
+			}
 			
-			emptyEndBlockNo = endBlockNo;
+			ByteUtil.integerToFourBytes((int)emptyStartBlockNo, headerBuf, IDX_LEN4_HEADER_EMPTY_START_BLOCK);
+		}else{
+			long preStartBlockNo;
+			while(true){
+				final long pos = startBlockNo * USER_BLOCK_SIZE;
+				raf.seek(pos + IDX_LEN4_USER_NEXT_BLOCK_NO);
+		        raf.read(fourByteBuf);
+		        
+		        preStartBlockNo = ByteUtil.fourBytesToLong(fourByteBuf, 0);//读取出后继块号
+		        
+		        if(isDebug){
+		        	System.out.println("free block [" + startBlockNo + "]");
+		        }
+		        
+				//新添加的首块，追加到旧empty尾部，
+				raf.seek(emptyEndBlockNo * USER_BLOCK_SIZE + IDX_LEN4_USER_NEXT_BLOCK_NO);
+				ByteUtil.integerToFourBytes((int)startBlockNo, fourByteBuf, 0);//更新下一条的记录号
+				raf.write(fourByteBuf, 0, 4);
+				
+				emptyEndBlockNo = startBlockNo;
+				
+				if(preStartBlockNo == 0){
+					break;
+				}else{
+					startBlockNo = preStartBlockNo;
+				}
+			}
 		}
 		
-		ByteUtil.integerToFourBytes((int)emptyEndBlockNo, headerBuf, IDX_4_HEADER_EMPTY_END_BLOCK);
+		ByteUtil.integerToFourBytes((int)emptyEndBlockNo, headerBuf, IDX_LEN4_HEADER_EMPTY_END_BLOCK);
 		
-		raf.seek(IDX_4_HEADER_EMPTY_START_BLOCK_ABS);
-		raf.write(headerBuf, IDX_4_HEADER_EMPTY_START_BLOCK, 4 * 2);
+		raf.seek(IDX_LEN4_HEADER_EMPTY_START_BLOCK_ABS);
+		raf.write(headerBuf, IDX_LEN4_HEADER_EMPTY_START_BLOCK, 4 * 2);
 	}
 	
 	/**
@@ -145,13 +191,13 @@ public class J2SERMSRecordWriter implements RecordWriter{
 	 * @return 返回最后已更新的块号，以此更新到header的索引块中
 	 * @throws Exception
 	 */
-	public long writeStreamOverride(final long startBlockNo, final long endBlockNo, final ByteArrayInputStream bais) throws Exception{
+	public final long writeStreamOverride(final long startBlockNo, final long endBlockNo, final ByteArrayInputStream bais) throws Exception{
 		long nextBlockNo = startBlockNo;
 		long preNextBlockNo;
 		do{
 			final long pos = nextBlockNo * USER_BLOCK_SIZE;
-			
-			raf.seek(pos + IDX_4_USER_NEXT_BLOCK_NO);
+			logUse(nextBlockNo);
+			raf.seek(pos + IDX_LEN4_USER_NEXT_BLOCK_NO);
 	        raf.read(fourByteBuf);
 
 	        preNextBlockNo = ByteUtil.fourBytesToLong(fourByteBuf, 0);
@@ -178,10 +224,10 @@ public class J2SERMSRecordWriter implements RecordWriter{
 	            	}else{
 	            		nextStoreRecordNo = preNextBlockNo;
 	            	}
-	    			ByteUtil.integerToFourBytes((int)nextStoreRecordNo, standardBlockBuf, IDX_4_USER_NEXT_BLOCK_NO);
+	    			ByteUtil.integerToFourBytes((int)nextStoreRecordNo, standardBlockBuf, IDX_LEN4_USER_NEXT_BLOCK_NO);
     			}
     			
-    			ByteUtil.integerToTwoBytes(currWriteLen, standardBlockBuf, IDX_2_USER_USING_SIZE);
+    			ByteUtil.integerToFourBytes(currWriteLen, standardBlockBuf, IDX_LEN4_USER_USING_SIZE);
     			raf.seek(pos);
     			raf.write(standardBlockBuf);
     			
@@ -196,7 +242,7 @@ public class J2SERMSRecordWriter implements RecordWriter{
 		}while(true);
 	}
 	
-	private long getNextEmptyBlockNo(){
+	private final long getNextEmptyBlockNo(){
 		//检查空位，返回空位，如果没有，返回IDX_4_HEADER_LAST_FILE_BLOCK
 		if(emptyStartBlockNo == 0){
 			return lastFileBlockNo;
@@ -210,7 +256,7 @@ public class J2SERMSRecordWriter implements RecordWriter{
 	 * @return 返回最后已更新的块号，以此更新到header的索引块中
 	 * @throws Exception
 	 */
-	public long writeStreamToEmptyLink(final ByteArrayInputStream bais) throws Exception{
+	public final long writeStreamToEmptyLink(final ByteArrayInputStream bais) throws Exception{
 		if(emptyStartBlockNo == 0){
 			return writeStreamTailAppend(bais);
 		}
@@ -220,8 +266,10 @@ public class J2SERMSRecordWriter implements RecordWriter{
 		boolean isNoEmptyLink = false;
 		do{
 			final long pos = nextBlockNo * USER_BLOCK_SIZE;
-			
-			raf.seek(pos + IDX_4_USER_NEXT_BLOCK_NO);
+
+			logUse(nextBlockNo);
+
+			raf.seek(pos + IDX_LEN4_USER_NEXT_BLOCK_NO);
 			raf.read(fourByteBuf);
 			
 			preNextBlockNo = ByteUtil.fourBytesToLong(fourByteBuf, 0);
@@ -238,8 +286,8 @@ public class J2SERMSRecordWriter implements RecordWriter{
 					hasNext = true;
     			}
 
-				ByteUtil.integerToFourBytes((int)preNextBlockNo, standardBlockBuf, IDX_4_USER_NEXT_BLOCK_NO);
-    			ByteUtil.integerToTwoBytes(currWriteLen, standardBlockBuf, IDX_2_USER_USING_SIZE);
+				ByteUtil.integerToFourBytes((int)preNextBlockNo, standardBlockBuf, IDX_LEN4_USER_NEXT_BLOCK_NO);
+    			ByteUtil.integerToFourBytes(currWriteLen, standardBlockBuf, IDX_LEN4_USER_USING_SIZE);
     			
     			raf.seek(nextBlockNo * USER_BLOCK_SIZE);
     			raf.write(standardBlockBuf);
@@ -257,8 +305,8 @@ public class J2SERMSRecordWriter implements RecordWriter{
     					emptyEndBlockNo = 0;
     				}
     				
-    				updateBlockNoToHeaderAndStorage(IDX_4_HEADER_EMPTY_START_BLOCK, emptyStartBlockNo, false);
-    				updateBlockNoToHeaderAndStorage(IDX_4_HEADER_EMPTY_END_BLOCK, emptyEndBlockNo, false);
+    				updateBlockNoToHeaderAndStorage(IDX_LEN4_HEADER_EMPTY_START_BLOCK, emptyStartBlockNo, true);//必须保存
+    				updateBlockNoToHeaderAndStorage(IDX_LEN4_HEADER_EMPTY_END_BLOCK, emptyEndBlockNo, true);
     				
     				if(hasNext == false){
     					return nextBlockNo;
@@ -277,7 +325,7 @@ public class J2SERMSRecordWriter implements RecordWriter{
 	 * @return 返回最后已更新的块号，以此更新到header的索引块中
 	 * @throws Exception
 	 */
-	public long writeStreamTailAppend(final ByteArrayInputStream bais) throws Exception{
+	public final long writeStreamTailAppend(final ByteArrayInputStream bais) throws Exception{
 		do{
         	final int currWriteLen = bais.read(standardBlockBuf, IDX_USER_DATA, MAX_USER_BLOCK_DATA_NUM);
         	
@@ -288,18 +336,21 @@ public class J2SERMSRecordWriter implements RecordWriter{
     			}
 
     			if(hasNext){
-    				ByteUtil.integerToFourBytes((int)(lastFileBlockNo + 1), standardBlockBuf, IDX_4_USER_NEXT_BLOCK_NO);
+    				ByteUtil.integerToFourBytes((int)(lastFileBlockNo + 1), standardBlockBuf, IDX_LEN4_USER_NEXT_BLOCK_NO);
+    			}else{
+    				ByteUtil.integerToFourBytes(0, standardBlockBuf, IDX_LEN4_USER_NEXT_BLOCK_NO);//收尾，标记后继块号为0
     			}
-    			ByteUtil.integerToTwoBytes(currWriteLen, standardBlockBuf, IDX_2_USER_USING_SIZE);
+    			logUse(lastFileBlockNo);
+    			ByteUtil.integerToFourBytes(currWriteLen, standardBlockBuf, IDX_LEN4_USER_USING_SIZE);
     			raf.seek(lastFileBlockNo * USER_BLOCK_SIZE);
     			raf.write(standardBlockBuf);
     			
 				lastFileBlockNo++;
     			
     			if(hasNext == false){
-    				ByteUtil.integerToFourBytes((int)lastFileBlockNo, headerBuf, IDX_4_HEADER_LAST_FILE_BLOCK);
-					raf.seek(IDX_4_HEADER_LAST_FILE_BLOCK_ABS);
-					raf.write(headerBuf, IDX_4_HEADER_LAST_FILE_BLOCK, 4);
+    				ByteUtil.integerToFourBytes((int)lastFileBlockNo, headerBuf, IDX_LEN4_HEADER_LAST_FILE_BLOCK);
+					raf.seek(IDX_LEN4_HEADER_LAST_FILE_BLOCK_ABS);
+					raf.write(headerBuf, IDX_LEN4_HEADER_LAST_FILE_BLOCK, 4);
 
 					return lastFileBlockNo - 1;
             	}
@@ -312,11 +363,11 @@ public class J2SERMSRecordWriter implements RecordWriter{
 	 * @param recordID
 	 * @return
 	 */
-	private int searchRecordIDFromHeader(final int recordID){
+	private final int searchRecordIDFromHeader(final int recordID){
 		final int searchEndIdx = headerBufEndIdx;
 		
 		for (int i = HEADER_USER_BLOCK_LEN; i < searchEndIdx; ) {//忽略[last_tail] [empty_first] [empty_end]
-			long currRecordID = ByteUtil.fourBytesToLong(headerBuf, i);
+			final long currRecordID = ByteUtil.fourBytesToLong(headerBuf, i);
 			
 			if(currRecordID == recordID){
 				return i;
@@ -328,18 +379,24 @@ public class J2SERMSRecordWriter implements RecordWriter{
 	}
 
 	@Override
-	public final void setRecord(int recordId, byte[] data, int offset, int len) throws Exception {
+	public final synchronized void setRecord(final int recordId, final byte[] data, final int offset, final int len) throws Exception {
 		final int recordBlockIdx = searchRecordIDFromHeader(recordId);
 		if(recordBlockIdx == -1){
 			throw new Exception("InvalidRecordIDException");
 		}
 		
-		ByteArrayInputStream bais = new ByteArrayInputStream(data, offset, len);
+		final ByteArrayInputStream bais = new ByteArrayInputStream(data, offset, len);
 		final long startBlockNo = ByteUtil.fourBytesToLong(headerBuf, recordBlockIdx + 4);
 		final int endBlockHeaderIdx = recordBlockIdx + 8;
 		final long endBlockNo = ByteUtil.fourBytesToLong(headerBuf, endBlockHeaderIdx);
 		
+		if(isDebug){
+			System.out.println("\n>>>override writing data...");
+		}
 		final long writeAfterEndBlock = writeStreamOverride(startBlockNo, endBlockNo, bais);
+		if(isDebug){
+			System.out.println("<<<end override writing data.\n");
+		}
 		
 		updateEndBlockNoNextBlockToZero(writeAfterEndBlock);
 		updateBlockNoToHeaderAndStorage(endBlockHeaderIdx, writeAfterEndBlock, true);
@@ -352,7 +409,7 @@ public class J2SERMSRecordWriter implements RecordWriter{
 		
 		final long pos = endBlockNo * USER_BLOCK_SIZE;
 		
-		raf.seek(pos + IDX_4_USER_NEXT_BLOCK_NO);
+		raf.seek(pos + IDX_LEN4_USER_NEXT_BLOCK_NO);
 		
 		ByteUtil.integerToFourBytes(0, fourByteBuf, 0);
         raf.write(fourByteBuf, 0, fourByteBuf.length);
@@ -369,24 +426,17 @@ public class J2SERMSRecordWriter implements RecordWriter{
 	}
 	
 	private final long searchNextRecordNo(){
-		long maxRecordNo = 0;
-		for (int i = HEADER_USER_BLOCK_LEN; i < headerBufEndIdx; ) {
-			final long recordNo = ByteUtil.fourBytesToLong(headerBuf, i);
-			if(recordNo > maxRecordNo){
-				maxRecordNo = recordNo;
-			}
-			i += HEADER_USER_BLOCK_LEN;
-		}
-		
-		return maxRecordNo + 1;
+		return (headerBufEndIdx - HEADER_USER_BLOCK_LEN) / HEADER_USER_BLOCK_LEN + 1;//删除的记录号仍占位，所以表的后继号可直接计算出来。
 	}
 
 	@Override
-	public final int addRecord(byte[] data, int offset, int len) throws Exception {
-		ByteArrayInputStream bais = new ByteArrayInputStream(data, offset, len);
+	public final synchronized int addRecord(final byte[] data, final int offset, final int len) throws Exception {
+		final ByteArrayInputStream bais = new ByteArrayInputStream(data, offset, len);
 		
-		final long nextRecordNo = searchNextRecordNo();
-		
+		//写数据
+		if(isDebug){
+			System.out.println("\n>>>writing data...");
+		}
 		final long startBlockNo, endBlockNo;
 		if(emptyStartBlockNo > 0){
 			startBlockNo = emptyStartBlockNo;
@@ -395,12 +445,17 @@ public class J2SERMSRecordWriter implements RecordWriter{
 			startBlockNo = lastFileBlockNo;
 			endBlockNo = writeStreamTailAppend(bais);
 		}
+		if(isDebug){
+			System.out.println("<<<end writing data.\n");
+		}
 		
 		updateEndBlockNoNextBlockToZero(endBlockNo);
 		
-		int nextHeaderEndIdx = headerBufEndIdx + HEADER_USER_BLOCK_LEN;
+		final long nextRecordNo = searchNextRecordNo();
+		
+		final int nextHeaderEndIdx = headerBufEndIdx + HEADER_USER_BLOCK_LEN;
 		if(nextHeaderEndIdx > headerBuf.length){
-			byte[] newHeader = new byte[headerBuf.length * 2];
+			final byte[] newHeader = new byte[headerBuf.length * 2];
 			System.arraycopy(headerBuf, 0, newHeader, 0, headerBufEndIdx);
 			headerBuf = newHeader;
 		}
@@ -411,12 +466,18 @@ public class J2SERMSRecordWriter implements RecordWriter{
 
 		headerBufEndIdx = nextHeaderEndIdx;
 		
-		raf.seek(IDX_4_USER_NEXT_BLOCK_NO);
+		raf.seek(IDX_LEN4_USER_NEXT_BLOCK_NO);
 		raf.read(fourByteBuf);
 		
 		writeStreamOverride(0, ByteUtil.fourBytesToLong(fourByteBuf), new ByteArrayInputStream(headerBuf, 0, headerBufEndIdx));
 		
 		return (int)nextRecordNo;
+	}
+
+	private final void logUse(final long startBlockNo) {
+		if(isDebug){
+			System.out.println("use block [" + startBlockNo + "]");
+		}
 	}
 
 	@Override
@@ -425,7 +486,7 @@ public class J2SERMSRecordWriter implements RecordWriter{
 	}
 
 	@Override
-	public final byte[] getRecord(int recordId) throws Exception {
+	public final synchronized byte[] getRecord(final int recordId) throws Exception {
 		final int recordBlockIdx = searchRecordIDFromHeader(recordId);
 		if(recordBlockIdx == -1){
 			throw new Exception("InvalidRecordIDException");
@@ -433,19 +494,18 @@ public class J2SERMSRecordWriter implements RecordWriter{
 		
 		final long startBlockNo = ByteUtil.fourBytesToLong(headerBuf, recordBlockIdx + 4);
 		
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		readStream(startBlockNo, baos);
-		
-		return baos.toByteArray();
+		return readStream(startBlockNo);
 	}
 
-	public final void deleteRecord(int recordId) throws Exception{
+	@Override
+	public final synchronized void deleteRecord(final int recordId) throws Exception{
 		//将header块中的索引号标记为0
 		final int recordBlockIdx = searchRecordIDFromHeader(recordId);
 		if(recordBlockIdx == -1){
 			throw new Exception("InvalidRecordIDException");
 		}
 		
+		//将不用的记录号，标记为0，以占位。生成下一记录号时，自动累进。
 		ByteUtil.integerToFourBytes(0, headerBuf, recordBlockIdx);
 		raf.seek(IDX_USER_DATA + recordBlockIdx);
 		raf.write(headerBuf, recordBlockIdx, 4);

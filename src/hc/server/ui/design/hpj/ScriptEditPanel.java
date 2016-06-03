@@ -115,6 +115,40 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	private static final String[] backIndentStr = {"end", "else", "elsif ", "rescue", "ensure", "}"};//带end，是供全局format之用
 	private static final String[] nextIndentStr = {"else", "elsif ", "rescue", "ensure"};//带end，是供全局format之用
 	
+	private static final char STRING_PRE_CHAR = '"';
+	
+	//不提示弹出如"http://aa"的资源
+	private static final char P_CHAR = 'p';
+	private static final char[] httpPrefix = {STRING_PRE_CHAR, 'h', 't', 't', P_CHAR};
+	private static final int httpPreLen = httpPrefix.length;
+	private static final int httpLastIdx = httpPreLen - 1;
+	
+	private static final boolean isHttpResource(final char[] lineChars, final int currIdx){
+		for (int i = currIdx; i >= 0; i--) {
+			final char oneChar = lineChars[i];
+			if(oneChar == STRING_PRE_CHAR){
+				return false;
+			}
+			
+			if(oneChar == P_CHAR){
+				if(i - httpLastIdx >= 0){
+					boolean isMatch = true;
+					for (int j = 1; j < httpPreLen; j++) {
+						if(lineChars[i - j] != httpPrefix[httpLastIdx - j]){
+							isMatch = false;
+							break;
+						}
+					}
+					if(isMatch){
+						return true;
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
+	
 	private static final Pattern num_pattern = Pattern.compile("\\b\\d+\\b", Pattern.MULTILINE);
 	private static final Pattern hc_map_pattern = Pattern.compile("\\$_hcmap\\b");
 	private static final Pattern rem_pattern = Pattern.compile("#.*(?=\n)?");
@@ -135,20 +169,20 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 	abstract Map<String, String> buildMapScriptParameter();
 	
-	final protected void updateScriptInInitProcess() {
+	final public void updateScriptInInitProcess() {
 		final boolean result = designer.codeHelper.updateScriptASTNode(this, jtaScript.getText(), true);
 //		if(result == false){
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					try{
-						format(jtaScript.getDocument());
-						
-						doTest(false, true);
-					}catch (final Throwable e) {
-					}
-				}
-			});
+//			SwingUtilities.invokeLater(new Runnable() {
+//				@Override
+//				public void run() {
+//					try{
+//						format(jtaScript.getDocument());//init中调用，导致系统变慢，并buildMap可能检查错误。
+//						
+//						doTest(false, true);
+//					}catch (final Throwable e) {
+//					}
+//				}
+//			});
 //		}
 	}
 	
@@ -247,8 +281,6 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		});
 	}
 	public ScriptEditPanel() {
-		TabHelper.setScriptPanel(jtaScript);
-		
 		errRunInfo.setForeground(Color.RED);
 		errRunInfo.setOpaque(true);
 
@@ -470,6 +502,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					        final int lineIdx = position - lineStartIdx;
 					        final char[] lineChars = doc.getText(lineStartIdx, lineIdx).toCharArray();
 					        final int lineCharsLen = lineChars.length;
+					        
+					        if(isHttpResource(lineChars, lineCharsLen - 1)){
+					        	return;//对于http型的资源，不弹出本地库资源代码提示
+					        }
 					        
 					        //处于""之中
 					        int countYinHao = 0;
@@ -904,7 +940,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		public void run() {
 			try{
 				synchronized (modifyAndColorAll) {
-					initColor(false);
+					initColor(false, true);
 					notifyModified();
 					final String scripts = jtaScript.getText();
 					updateScript(scripts);		
@@ -914,7 +950,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			}
 		}
 	};
-	void initColor(final boolean isLoadColor){
+	
+	final void initColor(final boolean isLoadColor, final boolean useOldPosition){
 		if(isLoadColor){//等待其它事件完成
 			try{
 				Thread.sleep(50);
@@ -943,7 +980,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 		try{
 			int colorOffset = 0, colorLen = -1;
-			if(position != 0){
+			if(useOldPosition && position != 0){
 				final int lineNo = getLineOfOffset(document, position);
 				if(newline){
 					colorOffset = getLineStartOffset(document, lineNo - 1);
@@ -951,9 +988,9 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					colorOffset = getLineStartOffset(document, lineNo);
 				}
 				colorLen = getLineEndOffset(document, lineNo) - colorOffset;
-				position = 0;
 			}else{
 			}
+			position = 0;
 			newline = false;
 			
 			final String text = jtaScript.getText(colorOffset, (colorLen==-1)?jtaScript.getText().length():colorLen);

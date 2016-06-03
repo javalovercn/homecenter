@@ -17,6 +17,7 @@ import hc.server.util.HCLimitSecurityManager;
 import java.awt.image.BufferedImage;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Vector;
 
 import javax.swing.JToggleButton;
 
@@ -25,11 +26,10 @@ public class ServerUIAPIAgent {
 	public final static String DEVICE_NAME_PROP = Workbench.SYS_RESERVED_KEYS_START + "device_name_prop";
 	public final static String ROBOT_NAME_PROP = Workbench.SYS_RESERVED_KEYS_START + "robot_name_prop";
 	
-	public final static String ATTRIBUTE_IS_TRANSED_MLET_BODY = Workbench.SYS_RESERVED_KEYS_START + "mlet_html_body";
+	public final static String CLIENT_SESSION_ATTRIBUTE_IS_TRANSED_MLET_BODY = Workbench.SYS_RESERVED_KEYS_START + "mlet_html_body";
 	
 	final static Object threadToken = App.getThreadPoolToken();
 	
-	public final static String ATTRIBUTE_PEND_CACHE = "pend_cache_att";
 	private final static HashMap<Integer, QuestionParameter> questionMap = new HashMap<Integer, QuestionParameter>();
 	private static int questionID = 1;
 	
@@ -103,13 +103,28 @@ public class ServerUIAPIAgent {
 	}
 	
 	public final static void loadStyles(final HTMLMlet mlet) {
-		if(mlet.stylesToDeliver != null){
-			final int count = mlet.stylesToDeliver.size();
+		final Vector<String> stylesToDeliver = mlet.stylesToDeliver;
+		
+		if(stylesToDeliver != null){
+			final int count = stylesToDeliver.size();
 			for (int i = 0; i < count; i++) {
-				final String styles = mlet.stylesToDeliver.elementAt(i);
+				final String styles = stylesToDeliver.elementAt(i);
 				mlet.loadCSS(styles);
 			}
-			mlet.stylesToDeliver.clear();
+			stylesToDeliver.clear();
+		}
+	}
+	
+	public final static void loadJS(final HTMLMlet mlet) {
+		final Vector<String> jsToDeliver = mlet.jsToDeliver;
+		
+		if(jsToDeliver != null){
+			final int count = jsToDeliver.size();
+			for (int i = 0; i < count; i++) {
+				final String JS = jsToDeliver.elementAt(i);
+				mlet.loadJS(JS);
+			}
+			jsToDeliver.clear();
 		}
 	}
 	
@@ -148,7 +163,8 @@ public class ServerUIAPIAgent {
 			if(ctx.mletHistoryUrl != null){
 				final int size = ctx.mletHistoryUrl.size();
 				if(size > 0){
-					return ctx.mletHistoryUrl.elementAt(size - 1).equals(url);
+					final Object targetURL = ctx.mletHistoryUrl.elementAt(size - 1);
+					return targetURL.equals(url) || targetURL.equals(HCURL.buildMletAliasURL(url));
 				}
 			}
 			return false;
@@ -161,12 +177,16 @@ public class ServerUIAPIAgent {
 				ctx.mletHistoryUrl = new Stack();
 			}
 			
-			final int size = ctx.mletHistoryUrl.size();
+			final Stack mletHistoryUrl = ctx.mletHistoryUrl;
+			
+			final int size = mletHistoryUrl.size();
 			if(size > 0){
-				final int idx = ctx.mletHistoryUrl.search(url);
-				if(idx >= 0){
-					ctx.mletHistoryUrl.removeAt(idx);//从队列中删除
-					ctx.mletHistoryUrl.push(url);//置于顶
+				final String mletAliasURL = HCURL.buildMletAliasURL(url);
+				
+				int idx = mletHistoryUrl.search(url);
+				if(idx >= 0 || ((idx = mletHistoryUrl.search(mletAliasURL)) >= 0)){
+					mletHistoryUrl.removeAt(idx);//从队列中删除
+					mletHistoryUrl.push(url);//置于顶
 					
 					ScreenServer.pushToTopForMlet(url);
 					
@@ -175,7 +195,7 @@ public class ServerUIAPIAgent {
 			}
 	
 	//		System.out.println("----------pushMletURLToHistory : " + url);
-			ctx.mletHistoryUrl.push(url);
+			mletHistoryUrl.push(url);//注意：有可能对HTMLMlet的form://xx，但实际手机效果为Mlet。
 			return true;
 		}
 	}
@@ -307,6 +327,18 @@ public class ServerUIAPIAgent {
 		return ctx.__getAttributeSuper(attributeName);
 	}
 
+	public final static void removeSuperClientSessionAttribute(final ProjectContext ctx, final String attributeName){
+		ctx.clientSession.removeAttribute(attributeName);
+	}
+
+	public final static Object getClientSessionAttribute(final ProjectContext ctx, final String attributeName){
+		return ctx.clientSession.getAttribute(attributeName);
+	}
+
+	public final static void setClientSessionAttribute(final ProjectContext ctx, final String attributeName, final Object value){
+		ctx.clientSession.setAttribute(attributeName, value);
+	}
+	
 	public static String getProcessorNameFromCtx(final ProjectContext ctx, String name, final String prop) {
 		if(name != null && name.length() > 0){
 		}else{

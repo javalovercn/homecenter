@@ -5,7 +5,7 @@ import hc.core.util.ExceptionReporter;
 import hc.res.ImageSrc;
 import hc.server.PlatformManager;
 import hc.server.ui.tip.TipPop.CornerPosition;
-import hc.server.util.HCJDialog;
+import hc.server.util.HCJFrame;
 import hc.util.ResourceUtil;
 import hc.util.UILang;
 
@@ -31,7 +31,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class MessageTipFrame extends HCJDialog {
+public class MessageTipFrame extends HCJFrame {//LinuxTrayIcon下需要改为HCJFrame，否则HCJDialog会导致UI阻塞。
 	static JLabel tipBorderLeftTop, tipBorderRightTop, tipBorderLeftDown, tipBorderRightDown;
 	static Dimension screenSize;
 	static Icon errImg, warnImg, infoImg;

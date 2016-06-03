@@ -28,7 +28,7 @@ public class UDPMerger {
     private static final Object LOCK = new Object();
 	private static final HCUDPSubPacketEvent[] TMP_SPLIT_EVENTS = new HCUDPSubPacketEvent[SPLIT_MAX_SIZE];
 	private static final int[] TMP_SPLIT_EVENTS_INDEX = new int[SPLIT_MAX_SIZE];
-	private static final MessageCacher msgCacher = MessageCacher.getInstance();
+	private static final HCMessageBuffer msgCacher = HCMessageBuffer.getInstance();
 	
 	
     /**

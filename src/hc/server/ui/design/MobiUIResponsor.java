@@ -14,6 +14,7 @@ import hc.server.ScreenServer;
 import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.Device;
 import hc.server.msb.MSBAgent;
+import hc.server.ui.ClientSession;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
@@ -48,7 +49,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	final Vector<ProjectContext> listsProjectContext = new Vector<ProjectContext>();
 	
 	@Override
-	public void enableLog(final boolean enable){
+	public final void enableLog(final boolean enable){
 		msbAgent.enableDebugInfo(enable);
 	}
 	
@@ -96,7 +97,8 @@ public class MobiUIResponsor extends BaseResponsor {
 			
 			final String serialProjs = StringUtil.toSerialBySplit(projList);
 			HCURLUtil.sendCmd(HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_NOTIFY_PROJ_LIST, serialProjs);//将最新的工程名列表，通知到手机的cache
-			CacheManager.checkAndDelCacheOverload();//可能超载，只限于服务器端
+//			以下逻辑置于用户下线时操作，以节省用户时间。
+//			CacheManager.checkAndDelCacheOverflow(ServerUIAPIAgent.getMobileUID());//可能超载，只限于服务器端
 		}
 	}
 	
@@ -160,9 +162,14 @@ public class MobiUIResponsor extends BaseResponsor {
 			appResp[i] = responsors[nextIdx];
 		}
 		
-		responserSize = newRespSize;
+		setRespSize(newRespSize);
 		
 		return appResp;
+	}
+
+	private final void setRespSize(final int newRespSize) {
+		responserSize = newRespSize;
+		createClientSession();
 	}
 	
 	public MobiUIResponsor() {
@@ -349,10 +356,18 @@ public class MobiUIResponsor extends BaseResponsor {
 		onEvent(ProjectContext.EVENT_SYS_PROJ_STARTUP);
 	}
 	
-
 	@Override
 	public void enterContext(final String contextName){
 		this.currContext = contextName;
+		
+		changeProjectID(currContext);
+	}
+
+	private static void changeProjectID(final String projID) {
+		final int recordNum = CacheManager.getRecordNum(projID, ServerUIAPIAgent.getMobileUID());
+		final String splitter = projID + StringUtil.SPLIT_LEVEL_2_JING + recordNum;
+//		System.out.println("CLASS_CHANGE_PROJECT_ID : " + splitter);
+		HCURLUtil.sendEClass(HCURLUtil.CLASS_CHANGE_PROJECT_ID, splitter);
 	}
 	
 	private void startupIOT() throws Exception{
@@ -411,8 +426,11 @@ public class MobiUIResponsor extends BaseResponsor {
 			if(event == ProjectContext.EVENT_SYS_MOBILE_LOGIN){//注意：请与fireSystemEventListenerOnAppendProject保持同步
 				isMobileLogined = true;
 				
-				notifyMobileLogin();
 				notifyMobileCacheProjList();
+				changeProjectID(CacheManager.ELE_PROJ_ID_HTML_PROJ);//必须先于enterContext(root)
+				enterContext(findRootContextID());
+				
+				notifyMobileLogin();
 			}else if(event == ProjectContext.EVENT_SYS_MOBILE_LOGOUT){
 				notifyMobileLogout(false);
 				
@@ -537,7 +555,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	private int rootIdx;
 	public boolean isMobileLogined = false, isProjStarted = false;
 	
-	public String findRootContextID(){
+	public final String findRootContextID(){
 		for (int i = 0; i < responserSize; i++) {
 			final ProjResponser projResponser = responsors[i];
 			if(projResponser.menu[projResponser.mainMenuIdx].isRoot){
@@ -574,15 +592,15 @@ public class MobiUIResponsor extends BaseResponsor {
 			
 			if(newContext.equals(HCURL.ROOT_MENU) == false //保留支持旧的ROOT_ID
 					&& newContext.equals(currContext) == false){
+				enterContext(newContext);//内部含CLASS_CHANGE_PROJECT_ID
+				
 				final ProjResponser resp = findContext(newContext);
 				final JarMainMenu linkMenu = resp.menu[resp.mainMenuIdx];
 				
-				ServerUIUtil.response(linkMenu.buildJcip());
+				ServerUIUtil.transMenuWithCache(linkMenu.buildJcip(), resp.context.getProjectID());//newContext
 				
 				ScreenServer.pushScreen(linkMenu);
 				
-				enterContext(newContext);
-
 				L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "enter project : [" + linkMenu.projectID + "]");
 				L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "open menu : [" + linkMenu.linkOrProjectName + "]");
 				return true;
@@ -590,6 +608,25 @@ public class MobiUIResponsor extends BaseResponsor {
 		}
 		
 		return findContext(currContext).doBiz(url);
+	}
+
+	@Override
+	public void createClientSession() {
+		for (int i = 0; i < responserSize; i++) {
+			final ProjResponser pr = responsors[i];
+			final ProjectContext ctx = pr.context;
+			final ClientSession sessionMaybeIgnoreIfNotNullInCtx = new ClientSession();
+			ServerUIUtil.setClientSession(ctx, sessionMaybeIgnoreIfNotNullInCtx);//注意：仅在ctx.clientSession为null时，进行set操作。
+		}
+	}
+
+	@Override
+	public void releaseClientSession() {
+		for (int i = 0; i < responserSize; i++) {
+			final ProjResponser pr = responsors[i];
+			final ProjectContext ctx = pr.context;
+			ServerUIUtil.releaseClientSession(ctx);
+		}
 	}
 	
 }

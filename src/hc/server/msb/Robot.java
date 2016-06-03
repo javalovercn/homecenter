@@ -158,6 +158,8 @@ public abstract class Robot extends Processor{
 	
 	/**
 	 * add a listener to receive {@link RobotEvent} about status of {@link Robot}.
+	 * <BR>
+	 * it is thread safe.
 	 * @param listener
 	 * @see #removeRobotListener(RobotListener)
 	 * @see #dispatchRobotEvent(RobotEvent)
@@ -178,6 +180,8 @@ public abstract class Robot extends Processor{
 	
 	/**
 	 * remove a listener.
+	 * <BR>
+	 * it is thread safe.
 	 * @param listener
 	 * @see #addRobotListener(RobotListener)
 	 * @see #dispatchRobotEvent(RobotEvent)
@@ -195,7 +199,7 @@ public abstract class Robot extends Processor{
 	 * build a {@link RobotEvent} instance.
 	 * @param propertyName the property name of event.
 	 * @param oldValue the old value of property of current event. Maybe null.
-	 * @param newValue the new value of property of current event.
+	 * @param newValue the new value of property of current event. Maybe null.
 	 * @return a {@link RobotEvent} instance which {@link RobotEvent#getSource()} is self. If there are multiple {@link Robot}(s) in current project, {@link RobotEvent#getSource()} is used to distinguish between different sources.
 	 * @see #dispatchRobotEvent(RobotEvent)
 	 * @see #addRobotListener(RobotListener)

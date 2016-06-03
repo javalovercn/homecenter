@@ -1,13 +1,4 @@
 (function(){
-	String.prototype.endWith=function(s){
-		if(s==null||s==''||this.length==0||s.length>this.length)
-			return false;
-		if(this.substring(this.length-s.length)==s)
-			return true;
-		else
-			return false;
-		return true;
-	};
 
 	function hcj2se() {
 		this.ltr = true;
@@ -40,7 +31,7 @@
 		addJButton: function(containerHashID, index, hashID){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 
-			var jsOnClick = 'javascript:window.hcj2se.clickJButton(' + hashID + ');';//注意：是window.hcj2se，不是window.hcserver
+			var jsOnClick = 'javascript:window.hcj2se.clickJButton(' + hashID + ');';/*注意：是window.hcj2se，不是window.hcserver*/
 			newdiv.setAttribute('onclick', jsOnClick);
 
 			var newButton = document.createElement('button');
@@ -57,9 +48,9 @@
 			if(btn){
 				var d = new Date();
 				var curr_msec = d.getTime();
-				var minInternalMS = 1000;//点击间隔不小于1000毫秒
+				var minInternalMS = 1000;/*点击间隔不小于1000毫秒*/
 				if(btn.clickMS + minInternalMS < curr_msec){
-					//console.log('btn last clickMS : ' + btn.clickMS);
+					/*console.log('btn last clickMS : ' + btn.clickMS);*/
 					btn.clickMS = curr_msec;
 					window.hcserver.clickJButton(hashID);
 				}
@@ -72,12 +63,12 @@
 			var jsOnClick = 'javascript:window.hcserver.clickJCheckbox(' + hashID + ');';
 			newdiv.setAttribute('onclick', jsOnClick);
 
-			//newdiv.setAttribute('class','JCheckbox');
+			/*newdiv.setAttribute('class','JCheckbox');*/
 			
 			var newCheckbox = document.createElement('input');
 			newCheckbox.setAttribute('id',CONS.HC_CMP + hashID);
 			newCheckbox.setAttribute('type','checkbox');
-			// newCheckbox.setAttribute('onclick', jsOnClick);
+			/* newCheckbox.setAttribute('onclick', jsOnClick);*/
 
 			newdiv.appendChild(newCheckbox);
 
@@ -93,13 +84,13 @@
 			var jsOnClick = 'javascript:window.hcserver.clickJRadioButton(' + hashID + ');';
 			newdiv.setAttribute('onclick', jsOnClick);
 			
-			//newdiv.setAttribute('class','JRadioButton');
+			/*newdiv.setAttribute('class','JRadioButton');*/
 			
 			var newRadioButton = document.createElement('input');
 			newRadioButton.setAttribute('id',CONS.HC_CMP + hashID);
 			newRadioButton.setAttribute('type','radio');
-			newRadioButton.setAttribute('name',CONS.HC_CMP + groupHashID);//name='radiobutton'则为一组，以实现单选
-			// newRadioButton.setAttribute('onclick', jsOnClick);
+			newRadioButton.setAttribute('name',CONS.HC_CMP + groupHashID);/*name='radiobutton'则为一组，以实现单选*/
+			/* newRadioButton.setAttribute('onclick', jsOnClick);*/
 			
 			newdiv.appendChild(newRadioButton);
 
@@ -126,10 +117,10 @@
 						compNode.appendChild(img);
 					}
 				}else{
-					//jLable
+					/*jLable*/
 					var divNode = document.getElementById(CONS.HC_DIV + hashID);
 
-					//JLabel置于外，JButton置于内
+					/*JLabel置于外，JButton置于内*/
 					if(divNode.firstChild){
 						divNode.insertBefore(img, divNode.firstChild);
 					}else{
@@ -173,7 +164,7 @@
 		addJTextField: function(containerHashID, index, hashID, isPassword, tip){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 
-			//newdiv.setAttribute('class','JTextField');
+			/*newdiv.setAttribute('class','JTextField');*/
 			
 			var newTextField = document.createElement('input');
 			var typeValue = 'text';
@@ -184,7 +175,7 @@
 			newTextField.setAttribute('id',CONS.HC_CMP + hashID);
 			if(tip == 'null'){
 			}else{
-				newTextField.setAttribute('placeholder', tip);//input tip
+				newTextField.setAttribute('placeholder', tip);/*input tip*/
 			}
 			newTextField.setAttribute('onblur', 'javascript:window.hcj2se.lostFocusFromJTextField(' + hashID + ');');
 			
@@ -199,14 +190,14 @@
 		addJTextArea: function(containerHashID, index, hashID, tip){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 
-			//newdiv.setAttribute('class','JTextField');
+			/*newdiv.setAttribute('class','JTextField');*/
 			
 			var newTextArea = document.createElement('textarea');
 			newTextArea.setAttribute('id',CONS.HC_CMP + hashID);
 			newTextArea.setAttribute('wrap', 'hard');
 			if(tip == 'null'){
 			}else{
-				newTextField.setAttribute('placeholder', tip);//input tip
+				newTextField.setAttribute('placeholder', tip);/*input tip*/
 			}
 			newTextArea.setAttribute('onblur', 'javascript:window.hcj2se.lostFocusFromJTextArea(' + hashID + ');');
 			
@@ -269,7 +260,7 @@
 
 			var oldSelected = oldSelect.selectedIndex;
 
-			oldSelect.options.length=0;//删除全部旧的
+			oldSelect.options.length=0;/*删除全部旧的*/
 
 			this.appendComboBoxOption(oldSelect, selectionValues);
 
@@ -304,16 +295,16 @@
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 			var j2se = this;
 
-			//newdiv.setAttribute('class','JPanel');
+			/*newdiv.setAttribute('class','JPanel');*/
 			newdiv.addEventListener('mouseup', function(e){
 				if(!e) e=window.event;
 				if(e.target != newdiv){
 					return;
 				}
-				// var scroll=getScrollOffsets();
-				// elementToDrag.style.left=(e.offsetX+scroll.x-deltaX)+'px';
-				// elementToDrag.style.top=(e.offsetY+scroll.y-deltaY)+'px';
-				// e.stopPropagation();
+				/* var scroll=getScrollOffsets();*/
+				/* elementToDrag.style.left=(e.offsetX+scroll.x-deltaX)+'px';*/
+				/* elementToDrag.style.top=(e.offsetY+scroll.y-deltaY)+'px';*/
+				/* e.stopPropagation();*/
 				window.hcserver.mouseReleased(hashID, e.offsetX, e.offsetY);
 				}, false);
 			newdiv.addEventListener('mousedown', function(e){
@@ -342,7 +333,7 @@
 					if(e.target != newdiv){
 						return;
 					}
-					// console.log('mouseClick id : ' + hashID + ', x : ' + e.offsetX + ', y : ' + e.offsetY);
+					/* console.log('mouseClick id : ' + hashID + ', x : ' + e.offsetX + ', y : ' + e.offsetY);*/
 					window.hcserver.mouseClicked(hashID, e.offsetX, e.offsetY);
 				}, false);
 			newdiv.addEventListener('touchmove', function(e){
@@ -350,18 +341,18 @@
 					if(e.target != newdiv){
 						return;
 					}
-					// e.preventDefault();
-					// console.log('touchmove id : ' + hashID + ', getDivTop : ' + j2se.getDivTop(newdiv) + ', y : ' + e.touches[0].clientX);
-					// console.log('touchmove id : ' + hashID + ', x : ' + (e.touches[0].clientX - j2se.getDivLeft(newdiv)) + ', y : ' + e.touches[0].clientX);
+					/* e.preventDefault();*/
+					/* console.log('touchmove id : ' + hashID + ', getDivTop : ' + j2se.getDivTop(newdiv) + ', y : ' + e.touches[0].clientX);*/
+					/* console.log('touchmove id : ' + hashID + ', x : ' + (e.touches[0].clientX - j2se.getDivLeft(newdiv)) + ', y : ' + e.touches[0].clientX);*/
 					window.hcserver.mouseDragged(hashID, 
 						e.touches[0].clientX - j2se.getDivLeft(newdiv), 
-						e.touches[0].clientY - j2se.getDivTop(newdiv));//注意：offsetX是undefined
+						e.touches[0].clientY - j2se.getDivTop(newdiv));/*注意：offsetX是undefined*/
 				}, false);
 		},
 
 		getScrollOffsets: function(w){
 			w=w|| window;
-			// if(w.pageXOffset!=null)
+			/* if(w.pageXOffset!=null)*/
 			return {x:w.pageXOffset,y:w.pageYOffset};
 		},
 
@@ -517,7 +508,7 @@
 		setCheckboxText: function(hashID, text) {
 			var lableTmp = this.getLabelForID(hashID);
 			if(lableTmp){
-				lableTmp.innerText = text;//注意：与下面的showTip同步
+				lableTmp.innerText = text;/*注意：与下面的showTip同步*/
 				lableTmp.textContent = text;
 				return;
 			}
@@ -549,7 +540,7 @@
 			if(isEditable){
 				document.getElementById(CONS.HC_CMP + hashID).removeAttribute('readonly');
 			}else{
-				document.getElementById(CONS.HC_CMP + hashID).setAttribute('readonly', 'readonly');//W3C standara
+				document.getElementById(CONS.HC_CMP + hashID).setAttribute('readonly', 'readonly');/*W3C standara*/
 			}
 		},
 		
@@ -567,12 +558,13 @@
 
 		setTextAreaText: function(hashID, text){
 			var eleID = document.getElementById(CONS.HC_CMP + hashID);
-			//eleID.value = text;
+			/*eleID.value = text;*/
 			eleID.innerText = text;
 			eleID.textContent = text;
 		},
 
 		loadStyles: function(css){
+			css = css.replace('\\"', '"');
 			var style = document.createElement('style');
 			style.type = 'text/css';
 			try{
@@ -585,6 +577,7 @@
 		},
 
 		loadJS: function(js){
+			js = js.replace('\\"', '"');
 			var jsScript = document.createElement('script');
 			
 			jsScript.language = 'javascript';
@@ -593,7 +586,7 @@
 			try{
 				jsScript.appendChild(document.createTextNode(js))
 			}catch(ex){
-				jsScript.innerText = js;//pass : opera
+				jsScript.innerText = js;/*pass : opera*/
 			}
 			var head = document.getElementsByTagName('head')[0];
 			head.appendChild(jsScript);
@@ -622,7 +615,7 @@
 					var childNode = tipdiv.childNodes[i];
 					tipdiv.removeChild(childNode);
 				} 
-			}catch(ex){//synchronize clearCurrentDisplayTip
+			}catch(ex){/*synchronize clearCurrentDisplayTip*/
 			}
 		},
 
@@ -661,19 +654,19 @@
 			firstLabel.setAttribute('style', labelStyle + 'left:' + (level - 1) + 'px;top:' + (level - 1) + 'px;color:' + fontRGBColor + ';');
 			tipdiv.appendChild(firstLabel);
 
-			// var div_0 = document.getElementById(CONS.HC_DIV + 0);
+			/* var div_0 = document.getElementById(CONS.HC_DIV + 0);*/
 			var screenWidth = parseInt(this.getDiv('loading').style.width);
 			tipdiv.style.left = screenWidth + 'px';
 			this.setComponentVisible(CONS.HC_TIP_DIV, true);
 			var visibleWidth = firstLabel.offsetWidth;
-			//console.log('screenWidth : ' + screenWidth + ', label width : ' + visibleWidth);
+			/*console.log('screenWidth : ' + screenWidth + ', label width : ' + visibleWidth);*/
 			tipdiv.style.left = (screenWidth - visibleWidth - level) + 'px';
-			// tipdiv.style.left = (parseInt(div_0.style.width) - visibleWidth) + 'px';
+			/* tipdiv.style.left = (parseInt(div_0.style.width) - visibleWidth) + 'px';*/
 
 			setTimeout('window.hcj2se.moveTip(1)', 100);
 		}
 	};
 
 	window.hcj2se = new hcj2se();
-
+	window.hcserver.finishOnLoad();
 }());

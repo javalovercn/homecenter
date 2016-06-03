@@ -11,6 +11,7 @@ import hc.server.HCActionListener;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.I18nTitlesEditor;
+import hc.server.ui.design.code.TabHelper;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
@@ -53,7 +54,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 	protected final JButton browIconBtn = new JButton("Change Icon [" + UIUtil.ICON_MAX + " X " + UIUtil.ICON_MAX + "]");
 	protected final ImageIcon sys_icon = Designer.loadImg("hc_" + UIUtil.ICON_DESIGN_SHOW_SIZE + ".png");
 	final JPanel jtascriptPanel = new JPanel();
-	final JLabel targetLoca = new JLabel("target locator :");
+	final JLabel targetLoca = new JLabel(HPMenuItem.TARGET_LOCATOR + " :");
 	final JPanel cmd_url_panel = new JPanel();
 	final JPanel iconPanel = new JPanel();
 
@@ -89,8 +90,13 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 				errCommandTip.setText("invalid char /");
 				return false;
 			}
+			if (text.indexOf("\\") >= 0) {
+				errCommandTip.setVisible(true);
+				errCommandTip.setText("invalid char \\");
+				return false;
+			}
 			errCommandTip.setVisible(false);
-			((HPMenuItem)currItem).url = hcurl.protocal + "://" + text;
+			((HPMenuItem)currItem).url = hcurl.protocal + HCURL.HTTP_SPLITTER + text;
 			try{
 				hcurl = HCURLUtil.extract(((HPMenuItem)currItem).url);
 			}catch (final Exception e) {
@@ -301,13 +307,11 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 		jtfMyCommand.setText(hcurl.elementID
 				+ ((pv.length() > 0) ? ("?" + pv) : ""));
 		final String listener = ((HPMenuItem)currItem).listener;
+		
 		jtaScript.setText(listener == null ? "" : listener);
+		TabHelper.initScriptPanel(jtaScript, this);
 		
-		//代码很长时，置于首行
-		jtaScript.setCaretPosition(0);
-		
-		initColor(true);
-		updateScriptInInitProcess();
+		initColor(true, false);
 	}
 	
 	@Override

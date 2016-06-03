@@ -5,12 +5,13 @@ import hc.core.util.ByteUtil;
 
 public class DataCache extends HCData {
 	private static final int proj_len_index = MsgBuilder.INDEX_MSG_DATA;
-	private static final int proj_data_index = proj_len_index + 2;
+	public static final int LEN_STORE_LEN = 2;
+	private static final int proj_data_index = proj_len_index + LEN_STORE_LEN;
 	
 	public final int setCacheInfo(final byte[] projID, final int projIdx, final int projLen,
 			final byte[] urlID, final int urlIdx, final int urlLen,
 			final byte[] codeID, final int codeIdx, final int codeLen){
-		final int dataLen = projLen + urlLen + codeLen + 2 * 3;
+		final int dataLen = projLen + urlLen + codeLen + LEN_STORE_LEN * 3;
 		final int maxLen = dataLen + MsgBuilder.INDEX_MSG_DATA;
 		if(maxLen > bs.length){
 			byte[] newbs = new byte[maxLen];
@@ -46,7 +47,7 @@ public class DataCache extends HCData {
 	}
 	
 	public int getEleIndex(final int eleLenIdx) {
-		return eleLenIdx + 2;
+		return eleLenIdx + LEN_STORE_LEN;
 	}
 
 	public int getEleLength(final int eleLenIdx) {
@@ -58,7 +59,7 @@ public class DataCache extends HCData {
 	}
 	
 	public int getCodeIndex(final int codeLenIndex) {
-		return codeLenIndex + 2;
+		return codeLenIndex + LEN_STORE_LEN;
 	}
 	
 	public int getCodeLength(final int codeLenIndex) {

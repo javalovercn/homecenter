@@ -62,10 +62,7 @@ public class ContextSecurityConfig {
 
 			final int size = allowSockets.size();
 			if(size == 0){
-				final String action = SocketDesc.STR_ACCEPT + SocketDesc.SPLIT + 
-						SocketDesc.STR_CONNECT + SocketDesc.SPLIT +
-						SocketDesc.STR_LISTEN;
-				sockCollection = new SocketPermission("localhost",action).newPermissionCollection();
+				sockCollection = new SocketPermission(SocketDesc.LOCAL_HOST_FOR_SOCK_PERMISSION, SocketDesc.defaultAction).newPermissionCollection();
 			}else{
 				for (int i = 0; i < size; i++) {
 					final SocketDesc desc = allowSockets.elementAt(i);
@@ -292,7 +289,19 @@ public class ContextSecurityConfig {
 	public final boolean isMemberAccessSystem(){
 		return isTrue(HCjar.PERMISSION_MEMBER_ACCESS_SYSTEM, true);
 	}
+	
+	public final boolean isAccessPrivateAddress(){
+		if(isSocketLimitOn(this)){
+			return isTrue(HCjar.PERMISSION_ACCESS_PRIVATE_ADDRESS, false);
+		}else{
+			return false;
+		}
+	}
 
+	public final void setAccessPrivateAddress(final boolean bool){
+		setBoolean(HCjar.PERMISSION_ACCESS_PRIVATE_ADDRESS, bool);
+	}
+	
 	public final static ContextSecurityConfig getContextSecurityConfig(final LinkProjectStore linkProjectStore){
 		final ContextSecurityConfig csc = new ContextSecurityConfig(linkProjectStore.getProjectID());
 		final HashMap<String, Object> targetMap = csc.permissionMap;
@@ -376,8 +385,6 @@ public class ContextSecurityConfig {
 		CCoreUtil.checkAccess();
 		
 		final String defaultPort = "";
-		final String defaultAction = SocketDesc.STR_ACCEPT + SocketDesc.SPLIT + 
-				SocketDesc.STR_CONNECT + SocketDesc.SPLIT + SocketDesc.STR_LISTEN;
-		vector.add(new SocketDesc("localhost", "", defaultPort, "", "", defaultAction));
+		vector.add(new SocketDesc(SocketDesc.LOCAL_HOST_FOR_SOCK_PERMISSION, "", defaultPort, "", "", SocketDesc.defaultAction));
 	}
 }

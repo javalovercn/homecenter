@@ -6,15 +6,16 @@ public class NodeInvalidException extends Exception {
 	public DefaultMutableTreeNode node;
 	private String desc;
 	
-	public NodeInvalidException(DefaultMutableTreeNode node) {
+	public NodeInvalidException(final DefaultMutableTreeNode node, final String desc) {
 		this.node = node;
-	}
-	
-	public void setDesc(String desc){
 		this.desc = desc;
 	}
 	
-	public String getDesc(){
+	public final void setDesc(final String desc){
+		this.desc = desc;
+	}
+	
+	public final String getDesc(){
 		return desc;
 	}
 }

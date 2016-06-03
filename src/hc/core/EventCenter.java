@@ -71,7 +71,7 @@ public class EventCenter {
 		final int searchSize = size;//注意：没有remove(listener)
 		while(i < searchSize){
 			IEventHCListener listener = null;
-			for (; true; i++) {
+			for (; i < searchSize; i++) {
 				if(listen_types[i] == ctrlTag){
 					listener = listens[i];
 					break;

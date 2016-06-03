@@ -3,17 +3,17 @@ package hc.core;
 
 import hc.core.util.Stack;
 
-public class MessageCacher {
-	private final static MessageCacher instance = new MessageCacher();
+public class HCMessageBuffer {
+	private final static HCMessageBuffer instance = new HCMessageBuffer();
 	
-	public final static MessageCacher getInstance(){
+	public final static HCMessageBuffer getInstance(){
 		return instance;
 	}
 	
 	final private Stack free = new Stack();
 	private short stackSize = 0;
 
-	public MessageCacher(){
+	public HCMessageBuffer(){
 	}
 	
 	public final HCMessage getFree(){

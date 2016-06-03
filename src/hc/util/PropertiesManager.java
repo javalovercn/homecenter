@@ -9,12 +9,15 @@ import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
 import hc.server.PlatformManager;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Properties;
 
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 public class PropertiesManager {
 	public static long PropertiesLockThreadID = 0;//置于最前
@@ -31,6 +34,7 @@ public class PropertiesManager {
 	public static final String p_IsMobiMenu = "mMenu";
 	public static final String p_uuid = "uuid";
 	public static final String p_password = "password";
+	public static final String p_enableCache = "enableCache";
 	public static final String p_ServerSide = "serverSide";
 	public static final String p_AutoStart = "AutoStart";
 	public static final String p_TCPPortFrom = "PortFrom";
@@ -156,6 +160,9 @@ public class PropertiesManager {
 	
 	public static final String p_isReportException = "isReportException";
 
+	public static final String p_RMSServerUID = "RMSServerUID";
+	public static final String p_clearRMSCacheVersion = "clearRMSCacheVersion";
+
 	public static final String S_THIRD_DIR = "3libs";
 	public static final String S_USER_LOOKANDFEEL = "lookfeel";
 	public static final String S_LINK_PROJECTS = "linkProjs";
@@ -171,6 +178,8 @@ public class PropertiesManager {
 	public static final String PRE_USER_PROJ = "+";
 	
 	public static final String p_PROJ_RECORD = PRE_USER_PROJ + "record_";
+	
+	public static final String p_PROJ_CACHE_LAST_ACCESS_TIME = "projCacheLastAccessTime";
 
 	private static final int getDelDirNum(){
 		final String v = getValue(p_DelDirNum);
@@ -207,11 +216,26 @@ public class PropertiesManager {
 			final String key = p_DelDirPre + i;
 			final String delFileName = getValue(key);
 			if(delFileName != null){
-				final File delFile = new File(delFileName);
-				if(L.isInWorkshop){
-					L.V = L.O ? false : LogManager.log("delete file/dir : " + delFile.getAbsolutePath());
+//				System.out.println("del path in emptyDelDir : " + delFileName);
+				
+				//删除相对型
+				{
+					final File delFile = new File(App.getBaseDir(), delFileName);
+					if(L.isInWorkshop){
+						L.V = L.O ? false : LogManager.log("delete file/dir : " + delFile.getAbsolutePath());
+					}
+					ResourceUtil.deleteDirectoryNowAndExit(delFile);
 				}
-				ResourceUtil.deleteDirectoryNowAndExit(delFile);
+				
+				//删除绝对路径型，如privateFiel/user_data
+				{
+					final File delFile = new File(delFileName);
+					if(L.isInWorkshop){
+						L.V = L.O ? false : LogManager.log("delete file/dir : " + delFile.getAbsolutePath());
+					}
+					ResourceUtil.deleteDirectoryNowAndExit(delFile);
+				}
+				
 				remove(key);
 			}
 		}
@@ -335,9 +359,13 @@ public class PropertiesManager {
     }
 
 	public static final boolean isTrue(final String key){
+		return isTrue(key, false);
+	}
+
+	public static final boolean isTrue(final String key, final boolean defaultValue){
 		final String v = getValue(key);
 		if(v == null){
-			return false;
+			return defaultValue;
 		}else{
 			return v.equals(IConstant.TRUE);
 		}
@@ -403,9 +431,22 @@ public class PropertiesManager {
             }
         } catch (final Throwable ex){
         	ExceptionReporter.printStackTrace(ex);
-        	App.showMessageDialog(null, "<html>error on read data from properties file!" +
-        			"<BR><BR>file may be using by application!</html>", "Error", JOptionPane.ERROR_MESSAGE);
-        	PlatformManager.getService().exitSystem();
+        	
+        	final JPanel panel = App.buildMessagePanel("<html>error on read data from properties file!" +
+        			"<BR><BR>file may be using by application!</html>", App.getSysIcon(App.SYS_ERROR_ICON));
+        	App.showCenterPanel(panel, 0, 0, "Error", false, null, null, new ActionListener() {
+				@Override
+				public void actionPerformed(final ActionEvent e) {
+					PlatformManager.getService().exitSystem();
+				}
+			}, null, null, false, true, null, false, false);
+        	
+        	while(true){
+        		try {
+					Thread.sleep(100 * 1000);
+				} catch (final InterruptedException e) {
+				}
+        	}
         }
  	}
 

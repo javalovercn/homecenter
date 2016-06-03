@@ -9,6 +9,7 @@ public class ExceptionChecker {
 		return instance;
 	}
 	
+	//一直保留到关机。
 	final Vector table = new Vector(12);
 	
 	public boolean isPosted(final String projectID, final String stackTrace){

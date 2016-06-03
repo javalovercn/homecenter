@@ -10,6 +10,23 @@ public class VectorMap extends Vector{
 		super(size);
 	}
 	
+	/**
+	 * 将指定idx的key-value放入数组kv中，并返回。
+	 * @param idx
+	 * @param kv
+	 * @return
+	 */
+	public final Object[] get(final int idx, Object[] kv){
+		final KeyValue keyValue = (KeyValue)super.elementAt(idx);
+		if(kv != null && kv.length >= 2){
+		}else{
+			kv = new Object[2];
+		}
+		kv[0] = keyValue.key;
+		kv[1] = keyValue.value;
+		return kv;
+	}
+	
 	public final Object get(final Object key, final Object defaultValue){
 		final int size = super.size();
 		

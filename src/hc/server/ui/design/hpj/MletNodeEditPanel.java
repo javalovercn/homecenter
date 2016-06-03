@@ -221,8 +221,9 @@ public class MletNodeEditPanel extends DefaultMenuItemNodeEditPanel {
 			if(mainPanel.getTabCount() < 2){
 				mainPanel.addTab("CSS Styles", cssPanel);
 			}
-			mainPanel.setTitleAt(0, "HTMLMlet");
+			mainPanel.setTitleAt(0, "Mlet/HTMLMlet");
 		}else{
+			//兼容以前的screen://myMlet
 			if(mainPanel.getTabCount() == 2){
 				mainPanel.remove(1);
 			}

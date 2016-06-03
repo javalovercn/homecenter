@@ -11,7 +11,6 @@ import hc.core.data.DataReg;
 import hc.core.sip.SIPManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
-import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
@@ -195,7 +194,7 @@ public class DirectServer extends Thread {
 					SIPManager.getSIPContext().deploySocket(socket);
 					
 					//家庭直联模式下，关闭KeepAlive
-					setServerConfigPara(false, false);
+					setServerConfigPara(true, false);
 					ContextManager.setConnectionModeStatus(ContextManager.MODE_CONNECTION_HOME_WIRELESS);
 					
 					ContextManager.setStatus(ContextManager.STATUS_READY_MTU);
@@ -233,7 +232,7 @@ public class DirectServer extends Thread {
 	}
 
 	public static void setServerConfigPara(final boolean keepalive, final boolean isRelay) {
-		//家庭直联模式下，关闭KeepAlive
+		//家庭直联模式下，开启keepalive，不关闭KeepAlive
 		KeepaliveManager.keepalive.setEnable(keepalive);
 		KeepaliveManager.keepalive.resetTimerCount();
 		

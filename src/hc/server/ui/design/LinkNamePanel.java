@@ -59,18 +59,13 @@ public class LinkNamePanel  extends JPanel {
 		
 		perm_sock_panel = new SocketEditPanel() {
 			@Override
-			public void notifySocketLimitOn(final boolean isOn) {
-				ContextSecurityConfig.setSocketLimitOn(csc, isOn);
-			}
-			
-			@Override
 			public void notifyModify() {
 				isModiPermission = true;
 			}
 			
 			@Override
-			public boolean isSocketLimitOn() {
-				return ContextSecurityConfig.isSocketLimitOn(csc);
+			public final ContextSecurityConfig getCSCSource(){
+				return csc;
 			}
 		};
 		

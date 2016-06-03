@@ -1,8 +1,11 @@
 package hc.server.ui.design.hpj;
 
+import hc.core.HCConfig;
+import hc.core.util.CCoreUtil;
 import hc.core.util.HCURL;
 import hc.server.ui.design.LinkProjectManager;
 import hc.server.util.ContextSecurityConfig;
+import hc.util.PropertiesMap;
 
 import java.util.Map;
 
@@ -60,6 +63,12 @@ public class HPProject extends HPNode{
 	public String validate(){
 		if(id.equals(HCURL.ROOT_MENU)){
 			return "<strong>root</strong> is system reserved ID.";
+		}else if(id.indexOf(PropertiesMap.EQUAL) >= 0){
+			return "invalid char [" + PropertiesMap.EQUAL + "].";
+		}else if(id.indexOf(HCConfig.CFG_SPLIT) >= 0){
+			return "invalid string [" + HCConfig.CFG_SPLIT + "].";
+		}else if(id.startsWith(CCoreUtil.SYS_PREFIX)){
+			return "Error project ID [" + id + "] : <strong>" + CCoreUtil.SYS_PREFIX + "</strong> is system reserved prefix.";
 		}
 		
 		upgradeURL = upgradeURL.trim();
@@ -71,6 +80,7 @@ public class HPProject extends HPNode{
 				return "upgrade url must start with <strong>http</strong>.";
 			}
 		}
-		return null;
+		
+		return super.validate();
 	}
 }

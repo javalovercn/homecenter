@@ -9,13 +9,14 @@ import java.util.Hashtable;
 public class ConfigManager {
 	public static final boolean isTCPOnly = true;
 	
-	/**
-	 * 考虑并发问题，请锁定本类
-	 */
 	public final static Hashtable table = new Hashtable(32);
 	
 	public final static void put(final Object p, final Object value){
 		table.put(p, value);
+	}
+	
+	public final static void remove(final Object key){
+		table.remove(key);
 	}
 	
 	public final static Object get(final Object p, final Object defalutValue){
@@ -23,6 +24,7 @@ public class ConfigManager {
 		return (v == null?defalutValue:v);
 	}
 
+	public static final String INIT_MOBILE_CLIENT = "hc.InitMobileClient";
 	public static final String ANTI_ALIAS = "hc.font.antiAlias";
 	public static final String UI_BUILDER = "hc.ui.builder";
 	public static final String RESOURCES = "hc.resources";
@@ -51,6 +53,8 @@ public class ConfigManager {
 	public static final String UI_CHECK_BACKGROUND_ENABLE = "hc.ui.checkBackground";
 	public static final String UI_SET_EXCEPTION_HANDLER_FOR_THREAD = "hc.ui.setExceptionHandler";
 	public static final String UI_ENABLE_SCREEN_ADAPTER = "hc.ui.screenAdapter";
+	public static final String UI_JUMP_TO_HOME = "hc.ui.jumpHome";
+	public static final String UI_SCALE_OF_SCREEN = "hc.ui.scale";//iOS
 	
 	/**
 	 * 判断客户端是否是后台运行。

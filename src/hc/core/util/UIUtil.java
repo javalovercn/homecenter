@@ -92,5 +92,34 @@ public class UIUtil {
 	
 	public static final int COLOR_TRANS_LAY = 0xcc847139;
 	public static final int DEFAULT_COLOR_BACKGROUND = COLOR_TRANS_LAY & 0x00FFFFFF;
+
+	/**
+	 * 为AndroidServer环境使用本功能，故移到此。
+	 * @param fromColor
+	 * @param light
+	 * @return
+	 */
+	public static int adjustColor(final int fromColor, final int light){
+		int r = (fromColor >> 16 & 0x000000FF) + light;
+		int g = (fromColor >> 8 & 0x000000FF) + light;
+		int b = (fromColor & 0x000000FF) + light;
+		
+		if(r > 255){
+			r = 255;
+		}else if(r < 0){
+			r = 0;
+		}
+		if(g > 255){
+			g = 255;
+		}else if(g < 0){
+			g = 0;
+		}
+		if(b > 255){
+			b = 255;
+		}else if(b < 0){
+			b = 0;
+		}
+		return (fromColor & 0xFF000000) | (r << 16) | (g << 8) | b;
+	}
 	
 }

@@ -18,9 +18,11 @@ import hc.core.util.LogManager;
 import hc.core.util.Stack;
 import hc.server.data.screen.PNGCapturer;
 import hc.server.data.screen.ScreenCapturer;
+import hc.server.html5.syn.MletHtmlCanvas;
 import hc.server.ui.ICanvas;
 import hc.server.ui.IMletCanvas;
 import hc.server.ui.Mlet;
+import hc.server.ui.MletSnapCanvas;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 
@@ -75,13 +77,41 @@ public class ScreenServer {
 			ExceptionReporter.printStackTrace(e);
 		}
 	}
+	
+	private static void removeRemoteDispalyByIdx(){
+		final int i = MOBI_SCREEN_MAP.size();
+		final String[] para = {HCURL.DATA_PARA_REMOVE_SCREEN_BY_IDX};
+		final String[] values = {String.valueOf(i + 1)};//mobile端是入stack后显示。
+		HCURLUtil.sendCmd(HCURL.DATA_CMD_SendPara, para, values);
+	}
 
 	private static void pauseAndPushOldScreen() {
 		if(currScreen != null){
+			if(currScreen instanceof MletHtmlCanvas || currScreen instanceof MletSnapCanvas){
+				
+				//进入isAutoReleaseAfterGo
+				
+				if(currScreen instanceof MletHtmlCanvas){
+					final MletHtmlCanvas mletHtmlCanvas = (MletHtmlCanvas)currScreen;
+					if(MletHtmlCanvas.isAutoReleaseAfterGo(mletHtmlCanvas.projectContext, mletHtmlCanvas.mlet)){
+						removeRemoteDispalyByIdx();
+						mletHtmlCanvas.onExit(true);
+						return;
+					}
+				}else if(currScreen instanceof MletSnapCanvas){
+					final MletSnapCanvas mletSnapCanvas = (MletSnapCanvas)currScreen;
+					if(MletHtmlCanvas.isAutoReleaseAfterGo(mletSnapCanvas.projectContext, mletSnapCanvas.mlet)){
+						removeRemoteDispalyByIdx();
+						mletSnapCanvas.onExit(true);
+						return;
+					}
+				}
+			}
+			
+			//进入pause，并且压入stack
 			try{
 				currScreen.onPause();
 			}catch (final Throwable e) {
-				
 			}
 			MOBI_SCREEN_MAP.push(currScreen);
 		}
@@ -369,8 +399,12 @@ public class ScreenServer {
 		});
 	}
 
-	public static void onExitForMlet(final ProjectContext projectContext, final Mlet mlet) {
+	public static void onExitForMlet(final ProjectContext projectContext, final Mlet mlet, final boolean isAutoReleaseAfterGo) {
 		ServerUIAPIAgent.popMletURLHistory(projectContext);
+		
+		if(isAutoReleaseAfterGo){
+			L.V = L.O ? false : LogManager.log("last Mlet/HTMLMlet is auto released after go to other Mlet/HTMLMlet.");
+		}
 		
 		projectContext.run(new Runnable() {
 			@Override

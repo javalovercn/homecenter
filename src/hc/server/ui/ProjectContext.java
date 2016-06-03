@@ -333,7 +333,7 @@ public class ProjectContext {
 	public final Robot getRobot(final String name) {
 		if (__projResponserMaybeNull == null) {
 			LogManager
-					.err("In edit JRuby panel, no robots is instanced for testing script.");
+					.err("In designer panel, no robots is instanced for testing script.");
 			return null;
 		}
 
@@ -351,6 +351,7 @@ public class ProjectContext {
 				}
 			}
 		}
+		LogManager.errToLog("no Robot [" + name + "] in project [" + projectID + "].");
 		return null;
 	}
 
@@ -389,7 +390,7 @@ public class ProjectContext {
 			return engine.runScriptlet(shell, "evalInProjectContext");
 		} catch (final Throwable e) {
 			final String err = engine.errorWriter.getMessage();
-			ExceptionReporter.printStackTraceFromRunException(e, shell, err);
+			ExceptionReporter.printStackTraceFromHAR(e, shell, err);
 		}
 		return null;
 		// }
@@ -507,10 +508,12 @@ public class ProjectContext {
 		final String[] values = { String.valueOf(question.questionID), caption,
 				text, imageData, (cancelRunnable != null) ? "1" : "0" };//注意：必须在外部转换
 
-		ServerUIAPIAgent.runInSysThread(new Runnable() {
+		//如果同时发出两个Ques，则可能不同步，所以以下要wait
+		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public void run() {
+			public Object run() {
 				HCURLUtil.sendCmd(HCURL.DATA_CMD_SendPara, para, values);
+				return null;
 			}
 		});
 
@@ -567,9 +570,9 @@ public class ProjectContext {
 	 */
 	@Deprecated
 	final void __setAttributeSuper(final String name, final Object obj) {
-		synchronized (attribute_map) {
+//		synchronized (attribute_map) {
 			attribute_map.put(name, obj);
-		}
+//		}
 	}
 	
 	/**
@@ -578,9 +581,9 @@ public class ProjectContext {
 	 */
 	@Deprecated
 	final void __removeAttributeSuper(final String name) {
-		synchronized (attribute_map) {
+//		synchronized (attribute_map) {
 			attribute_map.remove(name);
-		}
+//		}
 	}
 
 	/**
@@ -641,9 +644,9 @@ public class ProjectContext {
 	 */
 	@Deprecated
 	final Object __getAttributeSuper(final String name) {
-		synchronized (attribute_map) {
+//		synchronized (attribute_map) {
 			return attribute_map.get(name);
-		}
+//		}
 	}
 
 	/**
@@ -665,6 +668,16 @@ public class ProjectContext {
 		} else {
 			return value;
 		}
+	}
+	
+	ClientSession clientSession;
+	
+	/**
+	 * return null before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}
+	 * @return
+	 */
+	public final ClientSession getClientSession(){
+		return clientSession;
 	}
 
 	/**
@@ -959,16 +972,21 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final File getPrivateFile(final String fileName) {
-		//注意：不能入runInSysThread
-		final String relaPath = HCLimitSecurityManager.getUserDataBaseDir(projectID);
-		final File userDir = new File(App.getBaseDir(), relaPath);
+		final String absProjBasePath = HCLimitSecurityManager.getUserDataBaseDir(projectID);
+		final File userDir = new File(absProjBasePath);//不能使用App.getBaseDir
 
-		if (userDir.exists() == false) {
-			userDir.mkdirs();
-		}
+		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				if (userDir.exists() == false) {
+					userDir.mkdirs();
+				}
+				return null;
+			}
+		});
 
-		final String pathname = relaPath + HttpUtil.encodeFileName(fileName);
-		return new File(App.getBaseDir(), pathname);
+		final String absPathname = absProjBasePath + HttpUtil.encodeFileName(fileName);
+		return new File(absPathname);//App.getBaseDir
 	}
 
 	/**
@@ -1123,10 +1141,11 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final void actionKeys(final String keys) {
-		ServerUIAPIAgent.runInSysThread(new Runnable() {
+		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public void run() {
+			public Object run() {
 				KeyComper.actionKeys(keys);
+				return null;
 			}
 		});
 	}
@@ -1163,10 +1182,11 @@ public class ProjectContext {
 	private final static void sendCmd(final String cmdType, final String para,
 			final String value) {
 		if (ServerUIAPIAgent.isToMobile()) {
-			ServerUIAPIAgent.runInSysThread(new Runnable() {
+			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
-				public void run() {
+				public Object run() {
 					HCURLUtil.sendCmd(cmdType, para, value);
+					return null;
 				}
 			});
 		}
@@ -1175,21 +1195,23 @@ public class ProjectContext {
 	private final static void sendCmd(final String cmdType,
 			final String[] para, final String[] value) {
 		if (ServerUIAPIAgent.isToMobile()) {
-			ServerUIAPIAgent.runInSysThread(new Runnable() {
+			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
-				public void run() {
+				public Object run() {
 					HCURLUtil.sendCmd(cmdType, para, value);
+					return null;
 				}
 			});
 		}
 	}
 
 	private final static void sendClass(final String[] para) {
-		ServerUIAPIAgent.runInSysThread(new Runnable() {
+		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public void run() {
+			public Object run() {
 				ProjectContext.sendCmd(HCURL.DATA_CMD_SendPara,
 						ProjectContext.buildParaForClass(para.length - 1), para);
+				return null;
 			}
 		});
 	}
@@ -1317,10 +1339,11 @@ public class ProjectContext {
 	 * @since 6.98
 	 */
 	public final void alertOff() {
-		ServerUIAPIAgent.runInSysThread(new Runnable() {
+		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public void run() {
+			public Object run() {
 				ProjectContext.sendCmd(HCURL.DATA_CMD_ALERT, "status", "off");
+				return null;
 			}
 		});
 	}
@@ -1331,10 +1354,11 @@ public class ProjectContext {
 	 * @since 6.98
 	 */
 	public final void alertOn() {
-		ServerUIAPIAgent.runInSysThread(new Runnable() {
+		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public void run() {
+			public Object run() {
 				ProjectContext.sendCmd(HCURL.DATA_CMD_ALERT, "status", "on");
+				return null;
 			}
 		});
 	}
@@ -1394,7 +1418,7 @@ public class ProjectContext {
 			mobileSoftUID = (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
 				public Object run() {
-					return ClientDesc.getAgent().getUID();
+					return ServerUIAPIAgent.getMobileUID();
 				}
 			});
 		}
@@ -1526,17 +1550,19 @@ public class ProjectContext {
 					return;
 				}
 			}
-			final String url = HCURL.CMD_PROTOCAL + "://" + HCURL.DATA_CMD_MSG
+			final String url = HCURL.CMD_PROTOCAL + HCURL.HTTP_SPLITTER + HCURL.DATA_CMD_MSG
 					+ "?caption=" + StringUtil.replace(caption, "&", "\\&")
 					+ "&text=" + StringUtil.replace(text, "&", "\\&")
 					+ "&timeOut=" + timeOut + "&type=" + String.valueOf(type)
 					+ (imageData);//注意：必须在外部进行转换
 
-			ServerUIAPIAgent.runInSysThread(new Runnable() {
+			//如果同时发出两个msg，则可能不同步，所以以下要wait
+			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
-				public void run() {
+				public Object run() {
 					ContextManager.getContextInstance().send(
 							MsgBuilder.E_GOTO_URL, url);
+					return null;
 				}
 			});
 		}
@@ -1563,16 +1589,17 @@ public class ProjectContext {
 			blob.bs = bytes;
 
 			blob.setPNGDataLen((int) length, 0, 0, 0, 0);
-			ServerUIAPIAgent.runInSysThread(new Runnable() {
+			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
-				public void run() {
+				public Object run() {
 					ContextManager.getContextInstance().sendWrap(
 							MsgBuilder.E_SOUND, bytes,
 							MsgBuilder.INDEX_MSG_DATA,
 							(int) length + DataPNG.HEAD_LENGTH);
 
 					ByteUtil.byteArrayCacher.cycle(bytes);
-					LogManager.log("AU length:" + length);
+//					LogManager.log("AU length:" + length);
+					return null;
 				}
 			});
 		} catch (final Exception e) {
@@ -1588,11 +1615,12 @@ public class ProjectContext {
 	 * @since 6.98
 	 */
 	public final void tipOnTray(final String msg) {
-		ServerUIAPIAgent.runInSysThread(new Runnable() {
+		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public void run() {
+			public Object run() {
 				ContextManager.displayMessage((String) ResourceUtil.get(IContext.INFO),
-						msg, IContext.INFO, 0);				
+						msg, IContext.INFO, 0);		
+				return null;
 			}
 		});
 	}
@@ -1647,10 +1675,11 @@ public class ProjectContext {
 	 */
 	public final void sendMovingMsg(final String msg) {
 		if (ServerUIAPIAgent.isToMobile()) {
-			ServerUIAPIAgent.runInSysThread(new Runnable() {
+			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
-				public void run() {
+				public Object run() {
 					HCURLUtil.sendCmd(HCURL.DATA_CMD_MOVING_MSG, "value", msg);
+					return null;
 				}
 			});
 		}

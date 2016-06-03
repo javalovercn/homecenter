@@ -224,7 +224,7 @@ public class RootServerConnector {
 	/**
 	 * 返回空串，表示成功。
 	 * again表示重装
-	 * @param uuid
+	 * @param loginID
 	 * @param email
 	 * @param donateKey
 	 * @return

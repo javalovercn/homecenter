@@ -998,7 +998,7 @@ public void run() {
 			buttonsList.add(importBut);
 
 			final JScrollPane scrollpane = new JScrollPane(tablePanel.table);
-			scrollpane.setPreferredSize(new Dimension(300, 100));
+			scrollpane.setPreferredSize(new Dimension(600, 100));
 			
 			final JPanel descPane = ServerUIUtil.buildDescPanel(
 					"1. these libraries are available to all HAR projects.<BR>" +

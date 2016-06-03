@@ -36,6 +36,7 @@ import hc.core.util.WiFiDeviceManager;
 import hc.res.ImageSrc;
 import hc.server.data.KeyComperPanel;
 import hc.server.msb.WiFiHelper;
+import hc.server.rms.RMSLastAccessTimeManager;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.JcipManager;
 import hc.server.ui.LogViewer;
@@ -43,6 +44,7 @@ import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SingleMessageNotify;
+import hc.server.util.CacheComparator;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.HCEventQueue;
@@ -289,7 +291,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					if(IConstant.serverSide){
 						//客户端主动下线
 						final String token = HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA);
-						if(token.equals(RootServerConnector.getHideToken())){					
+						if(token.equals(RootServerConnector.getHideToken())){//注意：此逻辑一般只在HCCtrl内触发。
 							notifyExitByMobi();
 						}else{
 							L.V = L.O ? false : LogManager.log("Error Token at client shutdown");
@@ -351,7 +353,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 						//TODO YYH 旧版本的通知，已被新版本替代，未来需要关闭。如果手机版本过低，产生通知
 						final String pcReqMobiVer = (String)doExtBiz(BIZ_GET_REQ_MOBI_VER_FROM_PC, null);
-						if(StringUtil.higer(pcReqMobiVer, ClientDesc.getHCClientVer())){
+						if(StringUtil.higher(pcReqMobiVer, ClientDesc.getHCClientVer())){
 							send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS));
 							LogManager.err("Min required mobile version : [" + pcReqMobiVer + "], current mobile version : [" + ClientDesc.getHCClientVer() + "]");
 							L.V = L.O ? false : LogManager.log("Cancel mobile login process");
@@ -359,6 +361,11 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 							SIPManager.notifyRelineon(false);
 							return true;
 						}
+						
+//						if(ClientDesc.getAgent().getRMSCacheServerUID().length() == 0){
+//							//有可能手机端删除了曾登录账号，又重新连接时，出现此情况。
+//							CacheManager.removeUIDFrom(ServerUIAPIAgent.getMobileUID());
+//						}//注意：如果不一致，serverUID到客户端时，手机会主动断开。
 						
 						CUtil.setUserExtFactor(ClientDesc.getAgent().getEncryptionStrength());
 						
@@ -388,23 +395,32 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				}});
 			
 			EventCenter.addListener(new IEventHCListener() {
+				final Vector<PendStore> vector = CacheComparator.getPendStoreVector();
+				
 				@Override
 				public final boolean action(final byte[] bs) {
-					final Vector<PendStore> vector = (Vector<PendStore>)ServerUIAPIAgent.getMobileAttribute(ServerUIAPIAgent.ATTRIBUTE_PEND_CACHE);
-					savePendStore(vector, bs, MsgBuilder.INDEX_MSG_DATA, HCMessage.getMsgLen(bs));
-					return true;
-				}
-				
-				private final void savePendStore(final Vector<PendStore> pendStoreVector, final byte[] code, final int offset, final int len){
-					synchronized(pendStoreVector){
-						final int size = pendStoreVector.size();
-						for (int i = 0; i < size; i++) {
-							final PendStore ps = pendStoreVector.elementAt(i);
+					final int offset = MsgBuilder.INDEX_MSG_DATA;
+					final int len = HCMessage.getMsgLen(bs);
+					
+					final long currMS = System.currentTimeMillis();
+					
+					synchronized(vector){
+						final int size = vector.size();
+						for (int k = size; k > 0; k--) {
+							final int index = k - 1;
+							final PendStore ps = vector.elementAt(index);
+							
+							if(currMS - ps.createMS > 20000){//删除超时的。
+								L.V = L.O ? false : LogManager.log("delete overtime pending cache store item.");
+								vector.removeElementAt(index);
+								continue;
+							}
+							
 							final byte[] psCode = ps.codeBS;
 							boolean match = (len == psCode.length);
 							if(match){
 								for (int j = 0; j < len; j++) {
-									if(psCode[j] != code[j + offset]){
+									if(psCode[j] != bs[j + offset]){
 										match = false;
 										break;
 									}
@@ -418,12 +434,15 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 										ps.urlIDBS, 0, ps.urlIDBS.length, 
 										ps.codeBS, 0, ps.codeBS.length, 
 										ps.scriptBS, 0, ps.scriptBS.length, true);
-								pendStoreVector.removeElementAt(i);
-								return;
+								vector.removeElementAt(index);
+								return true;
 							}
 						}
 					}
-					LogManager.errToLog("[cache] pend store is not matched.");
+					
+					LogManager.errToLog("[cache] pend store is not matched. [" + ByteUtil.toHex(bs, offset, len) + "]");
+					
+					return true;
 				}
 
 				@Override
@@ -457,6 +476,10 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
     @Override
 	public void displayMessage(final String caption, final String text, final int type, final Object imageData, final int timeOut){
+    	if(text.startsWith("<html>")){
+    		LogManager.errToLog("HTML tag can NOT be in TrayIcon displayMessage method.");
+    	}
+    	
     	MessageType mtype = null;
     	if(type == IContext.ERROR){
     		mtype = MessageType.ERROR;
@@ -1240,7 +1263,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
     		        
 //    				//检查是否有新版本
     				final String lastSampleVer = PropertiesManager.getValue(PropertiesManager.p_LastSampleVer, "1.0");
-    				if(StringUtil.higer(J2SEContext.getSampleHarVersion(), lastSampleVer)){
+    				if(StringUtil.higher(J2SEContext.getSampleHarVersion(), lastSampleVer)){
     					try {
         					designIco = new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/designernew_22.png")));
         				} catch (final IOException e) {
@@ -1688,20 +1711,20 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				return ret;
 			}else if(out.equals("e")){
 				String msg = (String)ResourceUtil.get(9113);
-				msg = StringUtil.replace(msg, "{uuid}", IConstant.getUUID());
-//				LogManager.err(msg);
+				msg = StringUtil.replace(msg, "{uuid}", IConstant.getUUID());//html tag is in it.
 				
-				App.showMessageDialog(null,
-					msg, (String) ResourceUtil
-							.get(IContext.ERROR), JOptionPane.ERROR_MESSAGE);
+				LogManager.errToLog(msg);//html can't be displayMessage in TrayIcon.
 				
-				notifyShutdown();
+				LineFailManager.showLineFailWindow(msg);
+				
 				final String[] ret = {"false"};
 				return ret;
 			}else if(out.equals("d")){
 				RootConfig.getInstance().setProperty(RootConfig.p_Color_On_Relay, "5");
 				RootConfig.getInstance().setProperty(RootConfig.p_MS_On_Relay, 100);
 			}
+			
+			LineFailManager.closeLineFailWindow();//外部网络故障消失，关闭窗口。
 			
 			setTrayEnable(true);
 			final String msg = (String) ResourceUtil.get(9008);
@@ -1844,12 +1867,14 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			return minMobiVerRequiredByServer;
 		}
 		if(bizNo == IContext.BIZ_REPORT_EXCEPTION){
+			RMSLastAccessTimeManager.save();//故障可能导致数据丢失前，进行一次保存。
+			
 			reportException((ExceptionJSON)newParam);
 			return null;
 		}
 		return null;
 	}
-	
+
 	private final void reportException(final ExceptionJSON json){
 		final boolean forTest = json.isForTest;
 		HttpURLConnection connection = null;
@@ -1922,6 +1947,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			ServerCUtil.transOneTimeCertKey();
 			
 			L.V = L.O ? false : LogManager.log("Pass Certification Key and password");
+			
+			HCURLUtil.sendEClass(HCURLUtil.CLASS_TRANS_SERVER_UID, PropertiesManager.getValue(PropertiesManager.p_RMSServerUID));
 			
 			//由于会传送OneTimeKey，所以不需要下步
 			//instance.send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_CERTKEY_AND_PWD_PASS));
@@ -2150,7 +2177,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 	public static final String MAX_HC_VER = "9999999";//注意与Starter.NO_UPGRADE_VER保持同步
 	
-	private final String minMobiVerRequiredByServer = "7.2";//(含)，
+	private final String minMobiVerRequiredByServer = "7.4";//(含)，
 	//你可能 还 需要修改服务器版本，StarterManager HCVertion = "6.97";
 	
 	public static final String getSampleHarVersion(){
@@ -2286,6 +2313,15 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		ContextManager.getContextInstance().displayMessage(
 				(String)ResourceUtil.get(IContext.INFO), 
 				(String)ResourceUtil.get(9006), IContext.INFO, null, 0);
+
+		final String mobileUID = ServerUIAPIAgent.getMobileUID();//注意：需提前取得，否则可能关闭ClientSession，而得不到。
+		ContextManager.getThreadPool().run(new Runnable() {
+			@Override
+			public void run() {
+				//不在用户上线时，传递数据前处理，而是置于下线时。以节省用户时间。
+				CacheManager.checkAndDelCacheOverflow(mobileUID);//可能超载，只限于服务器端		
+			}
+		});
 
 		RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_MobReqExitToPC_STR);
 

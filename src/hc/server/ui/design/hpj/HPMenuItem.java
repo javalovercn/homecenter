@@ -1,5 +1,6 @@
 package hc.server.ui.design.hpj;
 
+import hc.core.util.CCoreUtil;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.StoreableHashMap;
@@ -7,6 +8,8 @@ import hc.core.util.UIUtil;
 import hc.util.StoreableHashMapWithModifyFlag;
 
 public class HPMenuItem extends HPNode {
+	public static final String TARGET_LOCATOR = "target locator";
+	
 	public String url = "";
 	public String imageData = UIUtil.SYS_DEFAULT_ICON;
 	public String listener = "";
@@ -39,5 +42,16 @@ public class HPMenuItem extends HPNode {
 			}
 		}
 		return false;
+	}
+	
+	@Override
+	public String validate(){
+		final HCURL hcurl1 = HCURLUtil.extract(url);
+		final String elementID = hcurl1.elementID;
+		if(elementID.startsWith(CCoreUtil.SYS_PREFIX)){
+			return "Error " + TARGET_LOCATOR + " [" + elementID + "] : <strong>" + CCoreUtil.SYS_PREFIX + "</strong> is system reserved prefix.";
+		}
+		
+		return super.validate();
 	}
 }

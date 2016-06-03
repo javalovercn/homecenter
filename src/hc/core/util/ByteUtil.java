@@ -188,6 +188,21 @@ public class ByteUtil {
 		final String hexStringB = Integer.toHexString(v&0xff);
 		return ((hexStringB.length()%2==0)?hexStringB:("0"+hexStringB));
 	}
+
+	/**
+	 * 与toBytesFromHexStr相反
+	 * @param bs
+	 * @param offset
+	 * @param len
+	 * @return
+	 */
+	public static String toHex(final byte[] bs, final int offset, final int len){
+		final StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < len; i++) {
+			sb.append(toHexEnableZeroBegin(bs[i + offset]));
+		}
+		return sb.toString();
+	}
 	
 	/**
 	 * 与toBytesFromHexStr相反
@@ -196,11 +211,7 @@ public class ByteUtil {
 	 * @see #toBytesFromHexStr(String)
 	 */
 	public static String toHex(final byte[] bs){
-		final StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < bs.length; i++) {
-			sb.append(toHexEnableZeroBegin(bs[i]));
-		}
-		return sb.toString();
+		return toHex(bs, 0, bs.length);
 	}
 	
 	public static byte toByteFromHexStr(final String hex){
@@ -526,7 +537,7 @@ public class ByteUtil {
 	}
 
 	public static void encodeFileXOR(final byte[] bs, final int offset, final int len, final byte[] coderbs, final int offsetCoder, final int lenCoder) {
-			{
+			{//重置code数组。
 				final int endIdx = offsetCoder + lenCoder;
 				for (int i = offsetCoder; i < endIdx; i++) {
 	//				System.out.println("--------coderBs index : " + i);

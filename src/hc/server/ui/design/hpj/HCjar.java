@@ -102,6 +102,7 @@ public class HCjar {
 	public static final String PERMISSION_SHUTDOWNHOOKS = PERMISSION_HEADER + "Hook";
 	public static final String PERMISSION_SETIO = PERMISSION_HEADER + "SetIO";
 	public static final String PERMISSION_MEMBER_ACCESS_SYSTEM = PERMISSION_HEADER + "MemberAccessSystem";
+	public static final String PERMISSION_ACCESS_PRIVATE_ADDRESS = PERMISSION_HEADER + "PrivateAddress";
 	
 	private static final String PERMISSION_SOCK_HEADER = PERMISSION_HEADER + "Sock.";
 	public static final String PERMISSION_SOCK_ITEM_HEADER = PERMISSION_SOCK_HEADER + "Item.";
@@ -741,10 +742,9 @@ public class HCjar {
 			for (int j = 0; j < i; j++) {
 				final HPNode j_node = (HPNode)((DefaultMutableTreeNode)parentNode.getChildAt(j)).getUserObject();
 				if(i_node.equals(j_node)){
-					final NodeInvalidException e = new NodeInvalidException(treeNode);
-					e.setDesc("<strong>[" + i_node.name +"]</strong> has same <strong>display name</strong>" +
-							"(or <strong>target locator</strong>) with node [<strong>" + j_node.name + "</strong>].");
-					throw e;
+					final String desc = "<strong>[" + i_node.name +"]</strong> has same <strong>display name</strong>" +
+							"(or <strong>target locator</strong>) with node [<strong>" + j_node.name + "</strong>].";
+					throw new NodeInvalidException(treeNode, desc);
 				}
 			}
 		}
@@ -754,9 +754,7 @@ public class HCjar {
 			final HPNode i_node) throws NodeInvalidException {
 		final String v = i_node.validate();
 		if(v != null){
-			final NodeInvalidException e = new NodeInvalidException(treeNode);
-			e.setDesc(v);
-			throw e;
+			throw new NodeInvalidException(treeNode, v);
 		}
 	}
 	

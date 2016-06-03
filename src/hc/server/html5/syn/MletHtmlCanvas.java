@@ -1,6 +1,8 @@
 package hc.server.html5.syn;
 
+import hc.App;
 import hc.core.IConstant;
+import hc.core.L;
 import hc.core.util.ByteUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCJSInterface;
@@ -16,6 +18,7 @@ import hc.server.ui.Mlet;
 import hc.server.ui.MletSnapCanvas;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.code.StyleManager;
 import hc.server.ui.design.hpj.HCjar;
@@ -28,10 +31,6 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
 import javax.swing.AbstractButton;
 import javax.swing.JCheckBox;
@@ -43,6 +42,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.JViewport;
 import javax.swing.plaf.ScrollBarUI;
 import javax.swing.text.JTextComponent;
 
@@ -52,33 +52,21 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	final int width, height;
 	
 	public HTMLMlet mlet;
-	ProjectContext projectContext;
+	public ProjectContext projectContext;
 	private JScrollPane scrolPanel;
 	public final JFrame frame;
 	private byte[] screenIDbs;
 	private String screenID, title;
 	private DifferTodo differTodo;
+	private final boolean isSimu;
 	
 	public MletHtmlCanvas(final int w, final int h){
+		isSimu = App.isSimu();
+		
 		this.width = w;
 		this.height = h;
 		
 		frame = new HCJFrame();
-	}
-	
-	private static final String hcloaderScript = loadLocalJS("hcloader.js");
-	private static final String hcj2seScript = loadLocalJS("hcj2se.js");
-	private static final String iOS2serverScript = loadLocalJS("ios2server.js");
-	
-	private static String loadLocalJS(final String name){
-		try{
-			//支持源码和jar模式
-			final InputStreamReader isr = new InputStreamReader(ResourceUtil.getResourceAsStream("hc/server/html5/res/" + name), IConstant.UTF_8);
-			return StringUtil.load(isr);
-		}catch (final Exception e) {
-			ExceptionReporter.printStackTrace(e);
-		}
-        return "";
 	}
 	
 //	private void printComp(Component comp, int deep){
@@ -98,11 +86,9 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	
 	@Override
 	public final void onStart() {
-		if(projectContext.getMobileOS().equals(ProjectContext.OS_IOS)){
-			differTodo.loadJS(iOS2serverScript);
-		}
-		differTodo.loadJS(hcloaderScript);
-		differTodo.loadJS(hcj2seScript);
+//		differTodo.executeJS(hcj2seScript);
+		
+//		differTodo.loadJS("msg = \"hello'  abc   \\'world\";");
 
 		//必须置于上两段初始代码传送之后
 		final boolean rtl = LangUtil.isRTL(projectContext.getMobileLocale());
@@ -141,9 +127,25 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 
 	@Override
 	public final void onExit() {
-		ScreenServer.onExitForMlet(projectContext, mlet);
+		onExit(false);
+	}
+	
+	@Override
+	public void onExit(final boolean isAutoReleaseAfterGo){
+		ScreenServer.onExitForMlet(projectContext, mlet, isAutoReleaseAfterGo);
 		
 		frame.dispose();
+	}
+	
+	public static final boolean isAutoReleaseAfterGo(final ProjectContext pc, final Mlet mt){
+		final boolean[] out = new boolean[1];
+		pc.runAndWait(new Runnable() {
+			@Override
+			public void run() {
+				out[0] = mt.isAutoReleaseAfterGo();
+			}
+		});
+		return out[0];
 	}
 
 	@Override
@@ -152,7 +154,24 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		ServerUIAPIAgent.setProjectContext(mlet, projectCtx);
 		projectContext = projectCtx;
 		differTodo = new DifferTodo(screenID, mlet);
-		ServerUIAPIAgent.setMobileAttribute(ServerUIAPIAgent.ATTRIBUTE_PEND_CACHE, differTodo.pendStoreVector);
+	}
+	
+	/**
+	 * in Android server, AddHarHTMLMlet is NOT need to adapter size.
+	 * @param scrollPane
+	 * @return
+	 */
+	public static boolean isForAddHtml(final JScrollPane scrollPane){
+		if(scrollPane != null){
+			final JViewport jviewport = scrollPane.getViewport();
+			if(jviewport != null){
+				final Component view = jviewport.getView();
+				if(view != null && view instanceof AddHarHTMLMlet){
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -276,14 +295,20 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	}
 	
 	private final void actionJSInputInUser(final byte[] bs, final int offset, final int len) {
-//		try {
-//			L.V = L.O ? false : LogManager.log("action JS input : " + new String(bs, offset, len, IConstant.UTF_8));
-//		} catch (final UnsupportedEncodingException e1) {
-//			e1ExceptionReporter.printStackTrace(e);
-//		}
+		if(isSimu){
+			try {
+				L.V = L.O ? false : LogManager.log("action JS input : " + new String(bs, offset, len, IConstant.UTF_8));
+			} catch (final Throwable e1) {
+				e1.printStackTrace();
+			}
+		}
 		
 		try{
-			if(matchCmd(JSCore.clickJButton, bs, offset)){
+			if(matchCmd(JSCore.actionExt, bs, offset)){
+				final String cmd = getOneValue(JSCore.actionExt, bs, offset, len);
+				actionExt(cmd);
+				return;
+			}else if(matchCmd(JSCore.clickJButton, bs, offset)){
 				final String id = getOneValue(JSCore.clickJButton, bs, offset, len);
 				clickJButton(Integer.parseInt(id));
 				return;
@@ -342,7 +367,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		
 		try{
 			final String cmds = new String(bs, offset, len, IConstant.UTF_8);
-			final String[] splits = StringUtil.splitToArray(cmds, StringUtil.split);
+			final String[] splits = StringUtil.splitToArray(cmds, StringUtil.SPLIT_LEVEL_2_JING);
 			LogManager.err("unknow JS input event : " + splits[0] + ", cmd : " + cmds);
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
@@ -530,6 +555,12 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		return id;
 	}
 
+	@Override
+	public final void actionExt(final String cmd) {
+		//TODO
+		System.out.println("actionExt : " + cmd);
+	}
+	
 	@Override
 	public final void clickJButton(final int id) {
 		final Component btn = searchComponentByHcCode(mlet, id);//in user thread

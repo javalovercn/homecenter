@@ -37,7 +37,6 @@ public abstract class J2SEExceptionJSONBuilder extends ExceptionJSONBuilder {
 	@Override
 	public final ExceptionJSON buildJSON(final HarHelper helper, final ExceptionChecker checker, final Throwable throwable, final String reportURL, 
 			final String script, final String scriptErrMsg) {
-		
 		String projectID = "";
 		String projectVersion = "";
 		if(helper != null){

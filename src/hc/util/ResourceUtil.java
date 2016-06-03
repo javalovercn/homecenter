@@ -1,7 +1,6 @@
 package hc.util;
 
 import hc.App;
-import hc.core.ContextManager;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
@@ -33,6 +32,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -62,6 +62,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
 public class ResourceUtil {
@@ -80,6 +81,80 @@ public class ResourceUtil {
 	public static String getHideText(){
 		return (String)ResourceUtil.get(9179);
 	}
+	
+	public static String getStringFromURL(final String url, final boolean keepReturnChar) {
+		try{
+			return getStringFromInputStream(new URL(url).openStream(), IConstant.UTF_8, keepReturnChar, false);
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
+	static final String rem_format1 = "//";
+
+	public static String getStringFromInputStream(final InputStream is, final String charset, final boolean keepReturnChar, final boolean removeRem) {
+		BufferedReader br = null;
+		final StringBuilder sb = new StringBuilder();
+
+		String line;
+		try {
+			br = new BufferedReader(new InputStreamReader(is, charset));
+			while ((line = br.readLine()) != null) {
+				if(removeRem){
+					final String lineTrim = line.trim();
+					if(lineTrim.startsWith(rem_format1)){
+						continue;
+					}
+					if(lineTrim.indexOf(rem_format1) > 0){
+						LogManager.warning("please replace // with /**/ for rem!!!");
+					}
+				}
+				sb.append(line);
+				if(keepReturnChar){
+					sb.append("\n");
+				}
+			}
+		} catch (final IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (final IOException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			try{
+				is.close();
+			}catch (final Throwable e) {
+			}
+		}
+		return sb.toString();
+	}
+	
+	/**
+	 * 清空指定目录，但保留目录不删除。
+	 * @param tmpDir
+	 * @return
+	 */
+	public static boolean clearDir(final File tmpDir){
+        final File TrxFiles[] = tmpDir.listFiles();
+        try{
+	        for(final File curFile:TrxFiles ){
+	        	if(curFile.isDirectory()){
+	        		deleteDirectoryNowAndExit(curFile);
+	        	}else{
+	        		curFile.delete();  
+	        	}
+	        }
+	        return true;
+        }catch (final Throwable e) {
+        	e.printStackTrace();
+        }
+        return false;
+    }
 	
 	public static String getShowText(){
 		return (String)ResourceUtil.get(9180);
@@ -136,9 +211,14 @@ public class ResourceUtil {
 	
 	public static String refreshRootAlive() {
 		final String token = TokenManager.getToken();
-		final boolean isEnableTrans = DefaultManager.isEnableTransNewCertNow();
-		final boolean hideIP = isEnableTrans?false:DefaultManager.isHideIDForErrCert();
 		final String hideToken = RootServerConnector.getHideToken();
+
+		boolean hideIP = false;
+		
+		if(IConstant.isHCServer()){
+			final boolean isEnableTrans = DefaultManager.isEnableTransNewCertNow();
+			hideIP = isEnableTrans?false:DefaultManager.isHideIDForErrCert();
+		}
 		
 		return RootServerConnector.refreshRootAlive_impl(token, hideIP, hideToken);
 	}
@@ -230,12 +310,8 @@ public class ResourceUtil {
 		if(rubyAnd3rdLibsClassLoaderCache == null){
 			final String message = "Error to get JRuby/3rdLibs ClassLoader!";
 			LogManager.errToLog(message);
-			ContextManager.getThreadPool().run(new Runnable() {
-				@Override
-				public void run() {
-					App.showMessageDialog(null, message, "Error", JOptionPane.ERROR_MESSAGE);
-				}
-			}, App.getThreadPoolToken());
+			final JPanel panel = App.buildMessagePanel(message, App.getSysIcon(App.SYS_ERROR_ICON));
+			App.showCenterPanel(panel, 0, 0, "Error", false, null, null, null, null, null, false, true, null, false, false);//JFrame
 		}else{
 			L.V = L.O ? false : LogManager.log("Successful (re) create JRuby engine classLoader.");
 		}
@@ -277,6 +353,52 @@ public class ResourceUtil {
 		}
 		return true;
 	}
+	
+	public static synchronized String getUniqueTimeStamp(){
+		try{
+			Thread.sleep(10);//足够可以错开
+		}catch (final Exception e) {
+		}
+
+		final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		final StringBuffer timestampBuf = new StringBuffer(25);
+		timestampBuf.append((timestamp.getYear() + 1900));
+		final int month = (timestamp.getMonth() + 1);
+		timestampBuf.append((month < 10?("0"+month):month));
+		final int day = timestamp.getDate();
+		timestampBuf.append(day < 10?("0"+day):day);
+		final int hour = timestamp.getHours();
+		timestampBuf.append("_");
+		timestampBuf.append(hour < 10?("0"+hour):hour);
+		final int minute = timestamp.getMinutes();
+		timestampBuf.append((minute < 10?("0"+minute):minute));
+		final int second = timestamp.getSeconds();
+		timestampBuf.append((second < 10?("0"+second):second));
+		final int nanos = timestamp.getNanos();
+		final String zeros = "000000000";
+		String nanosString;
+        if (nanos == 0) {
+            nanosString = "0";
+        } else {
+            nanosString = Integer.toString(nanos);
+
+            nanosString = zeros.substring(0, (9-nanosString.length())) +
+                nanosString;
+
+            final char[] nanosChar = new char[nanosString.length()];
+            nanosString.getChars(0, nanosString.length(), nanosChar, 0);
+            int truncIndex = 8;
+            while (nanosChar[truncIndex] == '0') {
+                truncIndex--;
+            }
+
+            nanosString = new String(nanosChar, 0, truncIndex + 1);
+        }
+		timestampBuf.append(nanosString);
+		
+		return timestampBuf.toString();
+	}
+
 	public static String getTimeStamp(){
 		final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		final StringBuffer timestampBuf = new StringBuffer(25);
@@ -571,7 +693,13 @@ public class ResourceUtil {
 		if(rr == null){
 			return;
 		}
-		final String baseDir = System.getProperty("user.dir");
+		String baseDir = null;
+		try{
+			//注意：服务器停止使用System.getProperty("user.dir")
+			baseDir = App.getBaseDir().getCanonicalPath();//System.getProperty("user.dir");
+		}catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
+		}
 		final String[] toRemove = rr.split(";");
 		for (int i = 0; i < toRemove.length; i++) {
 			final String url = toRemove[i];
@@ -870,7 +998,7 @@ public class ResourceUtil {
 	public static final String EXT_JAR = ".jar";
 	
 	public static final boolean deleteDirectoryNowAndExit(final File directory) {
-		CCoreUtil.checkAccess();
+		//CCoreUtil.checkAccess();
 	
 	    if(directory.exists()){
 	        final File[] files = directory.listFiles();

@@ -2,6 +2,7 @@ package hc.server.ui.design;
 
 import hc.App;
 import hc.res.ImageSrc;
+import hc.server.HCActionListener;
 import hc.server.ui.design.hpj.BaseMenuItemNodeEditPanel;
 import hc.util.ResourceUtil;
 import hc.util.StoreableHashMapWithModifyFlag;
@@ -133,7 +134,7 @@ public class I18nTitlesEditor extends JPanel{
 		addBtn = new JButton((String)ResourceUtil.get(9016) + "/" + (String)ResourceUtil.get(9017), new ImageIcon(ImageSrc.ADD_SMALL_ICON));
 		editPanel.add(addBtn);
 		
-		addBtn.addActionListener(new ActionListener() {
+		addBtn.addActionListener(new HCActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				final String lang = (String)jcbLanguage.getSelectedItem();
