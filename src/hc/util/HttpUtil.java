@@ -237,7 +237,7 @@ public class HttpUtil {
 
 	public static String replaceSimuURL(String url, final boolean isSimu) {
 		if(isSimu){
-			final String hostString = ResourceUtil.isAndroidServerPlatform()?"192.168.1.102:80":"localhost:80";
+			final String hostString = "192.168.1.102:80";//localhost:80
 			url = StringUtil.replace(url, "homecenter.mobi", hostString);//192.168.1.101
 			url = StringUtil.replace(url, ":80", ":8080");//192.168.1.101
 			url = StringUtil.replace(url, "call.php", "callsimu.php");//192.168.1.101

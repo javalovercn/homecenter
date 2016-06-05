@@ -12,6 +12,7 @@ import hc.core.util.LogManager;
 import hc.core.util.RecycleThread;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
+import hc.res.ImageSrc;
 import hc.server.HCSecurityException;
 import hc.server.msb.Converter;
 import hc.server.msb.Device;
@@ -22,11 +23,13 @@ import hc.server.msb.Robot;
 import hc.server.msb.RobotEvent;
 import hc.server.msb.RobotListener;
 import hc.server.msb.WiFiAccount;
+import hc.server.ui.ClientSession;
 import hc.server.ui.CtrlResponse;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.ICanvas;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.hpj.HCjar;
 import hc.util.ClassUtil;
 import hc.util.HttpUtil;
@@ -273,7 +276,8 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    	final Class[] arrClazz = {ProjectContext.class, Processor.class, 
 	    			Converter.class, Device.class, Message.class, Robot.class, RobotEvent.class, RobotListener.class,
 	    			DeviceCompatibleDescription.class,
-	    			CtrlResponse.class, Mlet.class, HTMLMlet.class, ICanvas.class,
+	    			AddHarHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
+	    			ClientSession.class, CtrlResponse.class, Mlet.class, HTMLMlet.class, ICanvas.class,
 	    			WiFiAccount.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
 //	    	{
 //	    		Vector<Class> allowVect = new Vector<Class>();
@@ -342,6 +346,13 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			ExceptionReporter.printStackTrace(e);
 		}
 		return fileName;
+	}
+	
+	boolean allowAccessSystemResource = false;
+	
+	public final void setAllowAccessSystemImageResource(final boolean allow){
+		//不需要加checkAccess，因为本实例是安全的。
+		allowAccessSystemResource = allow;
 	}
 
 	@Override
@@ -579,36 +590,39 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	
 	@Override
 	public final void checkRead(final String file) {
-		final String fileCanonicalPath = HCLimitSecurityManager.toFileCanonicalPathForCheck(file);
-		ContextSecurityConfig csc = null;
-		final Thread currentThread = Thread.currentThread();
-		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
-		}
-		String harDir;
-		if(csc != null 
-				&& (fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
-						|| ((harDir.startsWith(fileCanonicalPath, 0) 
-								&& 
-							harDir.length() == fileCanonicalPath.length() + 1)))){
-		}else{
-			if(currentThread.getId() != propertiesLockThreadID){
-				if(fileCanonicalPath.equalsIgnoreCase(propertiesName)){
-					throw new HCSecurityException("block read file :" + file);
-				}
-			}
-			final String fileCanonicalPathLower = fileCanonicalPath.toLowerCase(locale);
-			if(csc != null && fileCanonicalPathLower.startsWith(user_data_dirLower, 0)){
-				//非法读取其它工程
-				throw new HCSecurityException("block read file :" + file + OUTSIDE_HAR_WORKING_THREAD);
-			}
-		}
+		checkReadImpl(file);
 		
-		super.checkRead(file);
+		this.checkRead(file, null);
 	}
 	
     @Override
 	public final void checkRead(final String file, final Object context) {
-		final String fileCanonicalPath = HCLimitSecurityManager.toFileCanonicalPathForCheck(file);
+		checkReadImpl(file);
+		
+    	super.checkRead(file, context);
+    }
+    
+    final boolean isWindowPlatform = ResourceUtil.isWindowsOS();
+    
+	private final void checkReadImpl(final String file) {
+		final String fileCanonicalPath = toFileCanonicalPathForCheck(file);
+		if(allowAccessSystemResource){
+			if(fileCanonicalPath.endsWith(".png")){
+				if(isWindowPlatform && 
+						(
+								(fileCanonicalPath.indexOf(ImageSrc.HC_RES_PATH_FOR_WIN) > 0) 
+								|| 
+								(fileCanonicalPath.indexOf(ImageSrc.HC_SERVER_UI_DESIGN_RES_FOR_WIN) > 0)
+						)){
+					return;
+				}else if((fileCanonicalPath.indexOf(ImageSrc.HC_RES_PATH) > 0) 
+						|| 
+						(fileCanonicalPath.indexOf(ImageSrc.HC_SERVER_UI_DESIGN_RES) > 0)){
+					return;
+				}
+			}
+		}
+		
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
@@ -631,13 +645,11 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				throw new HCSecurityException("block read file :" + file + OUTSIDE_HAR_WORKING_THREAD);
 			}
 		}
-		
-    	super.checkRead(file, context);
-    }
-    
+	}
+	
 	@Override
 	public final void checkWrite(final String file) {
-		final String fileCanonicalPath = HCLimitSecurityManager.toFileCanonicalPathForCheck(file);
+		final String fileCanonicalPath = toFileCanonicalPathForCheck(file);
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
@@ -725,7 +737,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
     
     @Override
 	public final void checkDelete(final String file) {
-    	final String fileCanonicalPath = HCLimitSecurityManager.toFileCanonicalPathForCheck(file);
+    	final String fileCanonicalPath = toFileCanonicalPathForCheck(file);
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
@@ -824,8 +836,9 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
     	return super.getThreadGroup();
     }
 
-	private static final String toFileCanonicalPathForCheck(final String fileName) {
+	private final String toFileCanonicalPathForCheck(final String fileName) {
 		try{
+			//注意：返回window/linux分隔符不同
 			return new File(fileName).getCanonicalPath();//注意：不getBaseDir
 		}catch (final Exception e) {
 			return fileName;

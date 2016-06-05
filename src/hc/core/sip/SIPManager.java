@@ -24,8 +24,8 @@ import java.io.OutputStream;
 import java.util.Vector;
 
 public class SIPManager {
-
 	private static ISIPContext sipContext;
+
 	public static void setSIPContext(final ISIPContext context){
 		if(SIPManager.sipContext != null){
 			if(L.isInWorkshop){
@@ -141,10 +141,14 @@ public class SIPManager {
 			//优先尝试直接连接
 			if(out[idx_localport].equals("0") == false){
 				//家庭内网直联
-				LogManager.info("try direct conn...");
-				final IPAndPort ipport = new IPAndPort(out[idx_localip], Integer.parseInt(out[idx_localport]));
-				final IPAndPort l_directIpPort = SIPManager.tryBuildConnOnDirect(ipport, "Direct Mode",
+				LogManager.info("try direct connect...");
+				IPAndPort l_directIpPort = null;
+				try{
+					final IPAndPort ipport = new IPAndPort(out[idx_localip], Integer.parseInt(out[idx_localport]));
+					l_directIpPort = SIPManager.tryBuildConnOnDirect(ipport, "Direct Mode",
 						Integer.parseInt(out[idx_nattype]), 3000);//内网直联最长时间改为一秒
+				}catch (Throwable e) {
+				}
 				if(l_directIpPort != null){
 					//EnumNAT.OPEN_INTERNET or Symmetric
 					LogManager.info("direct mode : yes");

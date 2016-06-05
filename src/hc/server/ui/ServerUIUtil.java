@@ -41,21 +41,6 @@ import javax.swing.border.TitledBorder;
 public class ServerUIUtil {
 	public static final Object LOCK = new Object();
 	
-	/**
-	 * 仅在ctx.clientSession==null，进行set操作。
-	 * @param ctx
-	 * @param session
-	 */
-	public static void setClientSession(final ProjectContext ctx, final ClientSession session){
-		if(ctx.clientSession == null){
-			ctx.clientSession = session;
-		}
-	}
-	
-	public static void releaseClientSession(final ProjectContext ctx){
-		ctx.clientSession = null;
-	}
-	
 	public static boolean useHARProject = PropertiesManager.isTrue(PropertiesManager.p_IsMobiMenu);
 	private static BaseResponsor responsor;
 	

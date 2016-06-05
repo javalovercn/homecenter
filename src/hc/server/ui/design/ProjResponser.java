@@ -29,6 +29,7 @@ import hc.server.msb.Device;
 import hc.server.msb.MSBAgent;
 import hc.server.msb.Robot;
 import hc.server.ui.ClientDesc;
+import hc.server.ui.ClientSession;
 import hc.server.ui.CtrlResponse;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.ICanvas;
@@ -70,6 +71,15 @@ public class ProjResponser {
 	Robot[] robots;
 	Device[] devices;
 	Converter[] converters;
+	final MobiUIResponsor mobiResp;
+	
+	public final ClientSession getClientSession(){
+		if(mobiResp != null){
+			return mobiResp.sessionForClient;
+		}else{
+			return null;
+		}
+	}
 	
 	boolean isStoped = false;
 	
@@ -245,6 +255,7 @@ public class ProjResponser {
 	
 	public ProjResponser(final String projID, final Map<String, Object> p_map, final BaseResponsor baseRep,
 			final LinkProjectStore lps) {
+		this.mobiResp = (MobiUIResponsor)baseRep;
 		this.map = p_map;
 		final File deployPath = new File(App.getBaseDir(), lps.getDeployTmpDir());
 		final ClassLoader projClassLoader = ResourceUtil.buildProjClassLoader(deployPath, projID);
@@ -643,7 +654,8 @@ public class ProjResponser {
 					final String title = getItemProp(url, PROP_ITEM_NAME, false);
 					
 					//由于可能导致长时间占用Event线程，所以另起线程。同时因为url要回收，所以不能final
-					startMlet(listener, mapRuby, elementID, title, hcje, context);
+					final boolean isSynchronized = false;
+					startMlet(listener, mapRuby, elementID, title, hcje, context, isSynchronized);
 				}
 				return true;
 			}
@@ -833,28 +845,20 @@ public class ProjResponser {
 		});
 	}
 
-	public static final void startMlet(final String listener,
+	public static final Mlet startMlet(final String listener,
 			final Map<String, String> mapRuby, final String elementID,
-			final String title, final HCJRubyEngine hcje, final ProjectContext context) {
-		ContextManager.getThreadPool().run(new Runnable() {
-			
-			@Override
-			public void run() {
-				try{
-					final String scriptName = title;
-					final Object obj = RubyExector.run(listener, scriptName, mapRuby, hcje, context, Mlet.class);
-					if(obj == null){
-						return;
-					}
-					
-					final Mlet mlet = (Mlet)obj;
-					
-					openMlet(elementID, title, context, mlet);
-				}catch (final Exception e) {
-					ExceptionReporter.printStackTrace(e);
+			final String title, final HCJRubyEngine hcje, final ProjectContext context, final boolean isSynchronized) {
+		if(isSynchronized){
+			return pushInMlet(listener, mapRuby, elementID, title, hcje, context);
+		}else{
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					pushInMlet(listener, mapRuby, elementID, title, hcje, context);
 				}
-			}
-		});
+			});
+			return null;
+		}
 	}
 	
 	public static boolean isMletMobileEnv() {
@@ -913,6 +917,28 @@ public class ProjResponser {
 		}else{
 			L.V = L.O ? false : LogManager.log(" onStart Mlet screen : [" + title + "]");
 		}
+	}
+
+	private static Mlet pushInMlet(final String listener,
+			final Map<String, String> mapRuby, final String elementID,
+			final String title, final HCJRubyEngine hcje,
+			final ProjectContext context) {
+		try{
+			final String scriptName = title;
+			final Object obj = RubyExector.run(listener, scriptName, mapRuby, hcje, context, Mlet.class);
+			if(obj == null){
+				return null;
+			}
+			
+			final Mlet mlet = (Mlet)obj;
+			
+			openMlet(elementID, title, context, mlet);
+			
+			return mlet;
+		}catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+		return null;
 	}
 
 }

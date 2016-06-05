@@ -241,16 +241,10 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		}
 		
 //		L.V = L.O ? false : LogManager.log("Receive Req:" + url);
-		ContextManager.getThreadPool().run(new Runnable() {
-			@Override
-			public void run() {
-				final BaseResponsor responsor = ServerUIUtil.getResponsor();
-				responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_LOGIN);
-				
-				ClientDesc.getAgent().set(ConfigManager.UI_IS_BACKGROUND, IConstant.FALSE);
-				responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
-			}
-		});
+		
+		//不能入pool，必须synchronized
+		final BaseResponsor responsor = ServerUIUtil.getResponsor();
+		responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_LOGIN);
 		
 		HCURLUtil.process(url, ContextManager.getContextInstance().getHCURLAction());
 	}
@@ -2070,19 +2064,14 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		if(statusTo == ContextManager.STATUS_LINEOFF){
 			
 			if(statusFrom == ContextManager.STATUS_SERVER_SELF){
-				ContextManager.getThreadPool().run(new Runnable() {
-					@Override
-					public void run() {
-						ScreenServer.emptyScreen();
-						final BaseResponsor responsor = ServerUIUtil.getResponsor();
-						
+				ScreenServer.emptyScreen();
+				final BaseResponsor responsor = ServerUIUtil.getResponsor();
+			
 //						ClientDesc.agent.set(ConfigManager.UI_IS_BACKGROUND, IConstant.TRUE);
-						if(responsor != null){//退出时，多进程可能导致已关闭为null
+				if(responsor != null){//退出时，多进程可能导致已关闭为null
 //							responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
-							responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_LOGOUT);
-						}
-					}
-				});
+					responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_LOGOUT);
+				}
 			}
 		}
 		

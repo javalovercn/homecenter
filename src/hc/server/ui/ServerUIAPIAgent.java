@@ -328,15 +328,15 @@ public class ServerUIAPIAgent {
 	}
 
 	public final static void removeSuperClientSessionAttribute(final ProjectContext ctx, final String attributeName){
-		ctx.clientSession.removeAttribute(attributeName);
+		ctx.getClientSession().removeAttribute(attributeName);
 	}
 
 	public final static Object getClientSessionAttribute(final ProjectContext ctx, final String attributeName){
-		return ctx.clientSession.getAttribute(attributeName);
+		return ctx.getClientSession().getAttribute(attributeName);
 	}
 
 	public final static void setClientSessionAttribute(final ProjectContext ctx, final String attributeName, final Object value){
-		ctx.clientSession.setAttribute(attributeName, value);
+		ctx.getClientSession().setAttribute(attributeName, value);
 	}
 	
 	public static String getProcessorNameFromCtx(final ProjectContext ctx, String name, final String prop) {

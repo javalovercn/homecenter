@@ -177,7 +177,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	
 	public static BufferedImage loadBufferedImage(final String path) {
 		try {
-			return ImageIO.read(Designer.class.getClassLoader().getResource("hc/server/ui/design/res/" + path));
+			return ImageIO.read(Designer.class.getClassLoader().getResource(ImageSrc.HC_SERVER_UI_DESIGN_RES + path));
 		} catch (final Exception e) {
 			return null;
 		}

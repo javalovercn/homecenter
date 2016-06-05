@@ -128,16 +128,11 @@ public class J2SEServerURLAction implements IHCURLAction {
 							publishID, 
 							url.getValueofPara(HCURL.DATA_PARA_PUBLISH_STATUS_VALUE));
 					if(publishID.equals(ConfigManager.UI_IS_BACKGROUND)){
-						ContextManager.getThreadPool().run(new Runnable() {
-							@Override
-							public void run() {
-								final BaseResponsor responsor = ServerUIUtil.getResponsor();
-								responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
+						final BaseResponsor responsor = ServerUIUtil.getResponsor();
+						responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
 //								if(isIOSForBackgroundCond()){
 //									flipIOSBackground(ClientDesc.getAgent().isBackground());
 //								}
-							}
-						});
 					}
 					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_WIFI_MANAGER)){
@@ -256,7 +251,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 							@Override
 							public void run() {
 //								System.out.println("----------start download test : " + downloadURL);
-								mlet.startAddHarProcess(downloadURL);								
+								mlet.startAddHarProcessInSysThread(downloadURL);								
 							}
 						}, null, null);
 					}

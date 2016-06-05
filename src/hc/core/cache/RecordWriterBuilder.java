@@ -12,7 +12,7 @@ public abstract class RecordWriterBuilder {
 	final RecordWriter tableMapperWritter;
 	protected final String tableNameForMapper = "SYS_TableMapper";
 	protected final String end_tableNameForMapper = CacheManager.TABLE_NAME_SPLITTER + tableNameForMapper;
-	
+	private final String rsPrefixForMobile;
 //	如果没有数据，返回长度为1(只含记录总数为0)；否则每条记录的byte[]存放到Vector中
 	protected final Vector mapSnap;
 	protected static boolean isMapName = true;
@@ -22,7 +22,9 @@ public abstract class RecordWriterBuilder {
 		isMapName = isMap;
 	}
 
-	public RecordWriterBuilder(){
+	public RecordWriterBuilder(final String rsPrefixForMobile){
+		this.rsPrefixForMobile = rsPrefixForMobile;
+		
 		tableMapperWritter = buildMapStore();
 		mapSnap = CacheStoreManager.getDataList(tableMapperWritter, tableNameForMapper);
 		
@@ -38,7 +40,13 @@ public abstract class RecordWriterBuilder {
 //		}
 	}
 	
-	public String getTableRealName(final String rmsName){
+	public final String getTableRealName(String rmsName){
+		if(rsPrefixForMobile != null){
+			rmsName = rsPrefixForMobile + rmsName;
+		}
+		
+//		System.out.println("getTableRealName : " + rmsName);
+		
 		boolean isEndTableNameMapper = false;
 		if(tableNameForMapper.equals(rmsName) //for J2SE的不转换特殊表
 				|| (isEndTableNameMapper = rmsName.endsWith(end_tableNameForMapper))//for J2ME关联登录账号

@@ -529,8 +529,8 @@ public class CUtil {
 		CertForbidManager.reset();
 		if(SERVER_READY_TO_CHECK != null){
 			SERVER_READY_TO_CHECK = null;
-			isSecondCertKeyError = false;
 		}
+		isSecondCertKeyError = false;
 	}
 
 }

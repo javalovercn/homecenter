@@ -25,7 +25,9 @@ import hc.server.StarterManager;
 import hc.server.data.screen.KeyComper;
 import hc.server.msb.Converter;
 import hc.server.msb.Device;
+import hc.server.msb.DeviceCompatibleDescription;
 import hc.server.msb.MSBAgent;
+import hc.server.msb.Message;
 import hc.server.msb.Robot;
 import hc.server.msb.Workbench;
 import hc.server.ui.design.ProjResponser;
@@ -332,9 +334,37 @@ public class ProjectContext {
 	 */
 	public final Robot getRobot(final String name) {
 		if (__projResponserMaybeNull == null) {
-			LogManager
-					.err("In designer panel, no robots is instanced for testing script.");
-			return null;
+			LogManager.err("In designer panel, create simu robot for testing script.");
+			return new Robot() {
+				@Override
+				public void startup() {
+				}
+				
+				@Override
+				public void shutdown() {
+				}
+				
+				@Override
+				public void response(final Message msg) {
+				}
+				
+				@Override
+				public Object operate(final long functionID, final Object parameter) {
+					LogManager.err("In designer panel, create simu result object (empty string) for method [operate] of simu Robot.");
+					return "";
+				}
+				
+				@Override
+				public DeviceCompatibleDescription getDeviceCompatibleDescription(
+						final String referenceDeviceID) {
+					return null;
+				}
+				
+				@Override
+				public String[] declareReferenceDeviceID() {
+					return null;
+				}
+			};
 		}
 
 		Robot[] robots = null;
@@ -670,14 +700,22 @@ public class ProjectContext {
 		}
 	}
 	
-	ClientSession clientSession;
-	
 	/**
 	 * return null before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}
 	 * @return
 	 */
 	public final ClientSession getClientSession(){
-		return clientSession;
+		ClientSession out = null;
+		if(__projResponserMaybeNull != null){
+			out = __projResponserMaybeNull.getClientSession();
+		}
+		
+		if(out == null){
+			LogManager.warning("In designer panel, create simu " + ClientSession.class.getName() + ".");
+			return new ClientSession();
+		}
+		
+		return out;
 	}
 
 	/**
@@ -1650,6 +1688,8 @@ public class ProjectContext {
 	 * <BR>Application may be killed when turn to background.
 	 * @return true : mobile is log-in, keep connecting and run in background.
 	 * @see #isMobileConnecting()
+	 * @see #addSystemEventListener(SystemEventListener)
+	 * @see #EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND
 	 * @since 7.0
 	 */
 	public final boolean isMobileInBackground() {

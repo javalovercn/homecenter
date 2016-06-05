@@ -136,7 +136,7 @@ public class StarterManager {
 		
 		//客户端对服务器最低版本要求，在J2MEContext.miniHCServerVer
 		
-		return "7.7";//请同步修改go.php, android.php
+		return "7.8";//请同步修改go.php, android.php
 	}
 
 	private static String getHCVersionFromStarter() {

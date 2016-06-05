@@ -9,6 +9,10 @@ import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 
 public class J2SERecordWriterBuilder extends RecordWriterBuilder {
+	public J2SERecordWriterBuilder(){
+		super(null);
+	}
+	
 	@Override
 	public RecordWriter openRecordStore(final String rmsName, final boolean createIfNecessary) throws Exception {
 		return new J2SERMSRecordWriter(getFileForRMS(getTableRealName(rmsName)), rmsName);

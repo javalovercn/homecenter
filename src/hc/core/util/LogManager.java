@@ -37,6 +37,11 @@ public class LogManager {
 		return false;
 	}
 	
+	/**
+	 * warning to log only.
+	 * @param msg
+	 * @return
+	 */
 	public static boolean warning(String msg){
 		if(log != null){
 			log.warning(msg);

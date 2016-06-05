@@ -13,6 +13,7 @@ import java.util.Iterator;
  * invoke {@link ProjectContext#getClientSession()} to get it.
  * <BR>
  * it is thread safe.
+ * @since 7.7
  */
 public class ClientSession {
 	private final Hashtable<String, Object> attribute_map = new Hashtable<String, Object>();

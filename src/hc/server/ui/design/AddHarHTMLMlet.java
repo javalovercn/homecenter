@@ -11,11 +11,11 @@ import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
+import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.HCActionListener;
-import hc.server.J2SEServerURLAction;
 import hc.server.PlatformManager;
 import hc.server.ScreenServer;
 import hc.server.msb.ConverterInfo;
@@ -23,17 +23,15 @@ import hc.server.msb.DeviceBindInfo;
 import hc.server.msb.RealDeviceInfo;
 import hc.server.msb.WiFiAccount;
 import hc.server.msb.WiFiHelper;
-import hc.server.ui.ClientDesc;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.Mlet;
-import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
-import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.CacheComparator;
+import hc.server.util.HCLimitSecurityManager;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.PropertiesSet;
@@ -69,43 +67,68 @@ import javax.swing.SwingUtilities;
 public class AddHarHTMLMlet extends HTMLMlet {
 	final JPanel addProcessingPanel = new JPanel(new BorderLayout());
 	final JTextArea msgArea = new JTextArea();
-	public final JButton exitButton = new JButton((String)ResourceUtil.get(9131));
 	final String css = "errorStatus {color:red}";
 	final String css_error = "errorStatus";
+	public final JButton exitButton;
 	final BufferedImage okIcon, cancelIcon;
-	
+
+	//need system level resource.
+	String processingMsg, exitButtonStr;
+
 	public final synchronized void appendMessage(final String msg){
 		msgArea.append(msg + "\n");
 	}
 	
-	public AddHarHTMLMlet(final String url){
-		this();
-		startAddHarProcess(url);
+	static ThreadGroup token;
+	
+	public static void initToken(){
+		if(token == null){
+			token = App.getThreadPoolToken();
+		}
+	}
+	
+	public static void clearToken(){
+		token = null;
 	}
 	
 	public AddHarHTMLMlet(){
-		loadCSS(css);
-		final int dpi = ClientDesc.getDPI();
+		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				exitButtonStr = (String)ResourceUtil.get(9131);
+				processingMsg = (String)ResourceUtil.get(9130);
+				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(true);
+				return null;
+			}
+		}, token);
+		
+		final int dpi = getProjectContext().getMobileDPI();
 		if(dpi < 300){
-			okIcon = ImageSrc.OK_ICON;
-			cancelIcon = ImageSrc.CANCEL_ICON;
+			//因为Android服务器会对自动缩放图片（ImageSrc.OK_ICON），所以必须重新提取。
+			//并如上，调用setAllowAccessSystemResource，及如下关闭allow
+			okIcon = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_OK_22_PNG_PATH);
+			cancelIcon = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_CANCEL_22_PNG_PATH);
 		}else{
-			okIcon = ImageSrc.OK_44_ICON;
-			cancelIcon = ImageSrc.CANCEL_44_ICON;
+			okIcon = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_OK_44_PNG_PATH);
+			cancelIcon = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_CANCEL_44_PNG_PATH);
 		}
+
+		ContextManager.getThreadPool().run(new Runnable() {
+			@Override
+			public void run() {
+				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(false);
+			}
+		}, token);
+		
+		exitButton = new JButton(exitButtonStr);
+		loadCSS(css);
+		
 		final int fontSizePX = okIcon.getHeight();
-//		int fontSizePX = (dpi < 200)?20:(dpi / 10);
-//		if(fontSizePX > 40){
-//			fontSizePX = 40;
-//		}
 		
 		setLayout(new BorderLayout());
 		setCSS(msgArea, null, "width:100%;height:100%;font-size:" + getFontSizeForNormal() + "px;");
 
-		{
-			final String processingMsg = (String)ResourceUtil.get(9130);
-			appendMessage(processingMsg);
-		}
+		appendMessage(processingMsg);
 
 		final String fontSizeCSS = "font-size:" + fontSizePX + "px;";
 		setCSS(this, null, fontSizeCSS);//系统Mlet, //不考虑in user thread
@@ -143,7 +166,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		return null;
 	}
 
-	public final void startAddHarProcess(final String url) {
+	public final void startAddHarProcessInSysThread(final String url) {
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
@@ -320,7 +343,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		
 		final MobiUIResponsor mobiResp = (MobiUIResponsor)ServerUIUtil.getResponsor();
 		
-		final ProjResponser[] appendResp = mobiResp.appendNewHarProject();//仅扩展新工程，不启动或不运行
+		final ProjResponser[] appendRespNotAll = mobiResp.appendNewHarProject();//仅扩展新工程，不启动或不运行
 		BindRobotSource bindSource = mobiResp.bindRobotSource;
 		if(bindSource == null){
 			bindSource = new BindRobotSource(mobiResp);
@@ -332,7 +355,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 			throw new Exception(errMsg);
 		}
 		
-		mobiResp.fireSystemEventListenerOnAppendProject(appendResp, appendLPS);//进入运行状态
+		mobiResp.fireSystemEventListenerOnAppendProject(appendRespNotAll, appendLPS);//进入运行状态
 		
 		final ProjResponser resp = mobiResp.findContext(mobiResp.getCurrentContext());
 		final JarMainMenu linkMenu = resp.menu[resp.mainMenuIdx];
@@ -526,19 +549,26 @@ public class AddHarHTMLMlet extends HTMLMlet {
 	public static void startAddHTMLHarUI(final String urlStr) {
 		CCoreUtil.checkAccess();
 	
+		initToken();
+		
 		try{
-			AddHarHTMLMlet.class.getName();
-			final Object[] para = J2SEServerURLAction.getProjectContextForSystemLevelNoTerminate();
-			final HCJRubyEngine hcje = (HCJRubyEngine)para[0];
+			final MobiUIResponsor responsor = (MobiUIResponsor)ServerUIUtil.getResponsor();
+			final ProjResponser pr = responsor.getCurrentProjResponser();//必须使用用户级实例，比如clientSession
+			
 			final String scripts = "" +
 					"#encoding:utf-8\n" +
 					"import Java::" + AddHarHTMLMlet.class.getName() + "\n" +
-					"return " + AddHarHTMLMlet.class.getSimpleName() + ".new(" + (urlStr==null?"":("\"" + urlStr + "\"")) + ")\n";
-			ProjResponser.startMlet(scripts, null, "SYS_AddHarMlet", "add HAR", hcje, (ProjectContext)para[1]);
-//						hcje.terminate();//注意：切勿关闭，因为可能被或再次使用
-		}catch (final Exception e) {
+					"return " + AddHarHTMLMlet.class.getSimpleName() + ".new()\n";
+			
+			final boolean isSynchronized = true;
+			final AddHarHTMLMlet addHar = (AddHarHTMLMlet)ProjResponser.startMlet(scripts, null, "SYS_AddHarMlet", "add HAR", pr.hcje, pr.context, isSynchronized);
+
+			addHar.startAddHarProcessInSysThread(urlStr);
+		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
+
+		clearToken();
 	}
 
 	/**

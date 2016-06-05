@@ -52,7 +52,6 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction{
 		if(updateOneTimeKeysRunnable != null){
 			updateOneTimeKeysRunnable.isStopRunning = true;
 		}
-		releaseClientSession();
 	}
 	
 	public void stop(){

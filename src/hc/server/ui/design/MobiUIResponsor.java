@@ -2,7 +2,9 @@ package hc.server.ui.design;
 
 import hc.App;
 import hc.UIActionListener;
+import hc.core.ConfigManager;
 import hc.core.ContextManager;
+import hc.core.IConstant;
 import hc.core.L;
 import hc.core.cache.CacheManager;
 import hc.core.util.ExceptionReporter;
@@ -14,6 +16,7 @@ import hc.server.ScreenServer;
 import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.Device;
 import hc.server.msb.MSBAgent;
+import hc.server.ui.ClientDesc;
 import hc.server.ui.ClientSession;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
@@ -47,7 +50,8 @@ public class MobiUIResponsor extends BaseResponsor {
 	MSBAgent msbAgent;
 	BindRobotSource bindRobotSource;
 	final Vector<ProjectContext> listsProjectContext = new Vector<ProjectContext>();
-	
+	public ClientSession sessionForClient;
+
 	@Override
 	public final void enableLog(final boolean enable){
 		msbAgent.enableDebugInfo(enable);
@@ -169,7 +173,6 @@ public class MobiUIResponsor extends BaseResponsor {
 
 	private final void setRespSize(final int newRespSize) {
 		responserSize = newRespSize;
-		createClientSession();
 	}
 	
 	public MobiUIResponsor() {
@@ -359,7 +362,6 @@ public class MobiUIResponsor extends BaseResponsor {
 	@Override
 	public void enterContext(final String contextName){
 		this.currContext = contextName;
-		
 		changeProjectID(currContext);
 	}
 
@@ -454,25 +456,62 @@ public class MobiUIResponsor extends BaseResponsor {
 				isProjStarted = false;
 			}
 			
-			if(isReturnBack == false){
-				//login或start时，先执行ROOT
-				responsors[rootIdx].onScriptEvent(event);
-			}
-			
-			//执行非ROOT
-			for (int i = 0; i < responserSize; i++) {
-				if(i != rootIdx){
-					responsors[i].onScriptEvent(event);//注意：请与fireSystemEventListenerOnAppendProject保持同步
-				}
-			}
+			final boolean isReturnBackFinal = isReturnBack;
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					if(isReturnBackFinal == false){
+						//login或start时，先执行ROOT
+						responsors[rootIdx].onScriptEvent(event);
+					}
+					
+					//执行非ROOT
+					for (int i = 0; i < responserSize; i++) {
+						if(i != rootIdx){
+							responsors[i].onScriptEvent(event);//注意：请与fireSystemEventListenerOnAppendProject保持同步
+						}
+					}
 
-			if(isReturnBack){
-				//logout或shutdown时，最后执行ROOT
-				responsors[rootIdx].onScriptEvent(event);
-			}
+					if(isReturnBackFinal){
+						//logout或shutdown时，最后执行ROOT
+						responsors[rootIdx].onScriptEvent(event);
+					}
+					
+					fireSystemEvent(event);
+					
+					if(event == ProjectContext.EVENT_SYS_MOBILE_LOGIN){
+						ClientDesc.getAgent().set(ConfigManager.UI_IS_BACKGROUND, IConstant.FALSE);
+						fireSystemEvent(ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
+					}
+				}
+			});
 			//以上是触发脚本，而非SystemEventListener
+		}else{
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					fireSystemEvent(event);
+				}
+			});
 		}
 		
+		if(event == ProjectContext.EVENT_SYS_MOBILE_LOGOUT){
+			ContextManager.getThreadPool().run(new Runnable() {//上面动作异步
+				@Override
+				public void run() {
+					try{
+						Thread.sleep(3 * 1000);//时间不定，releaseClientSession所以为虚操作
+					}catch (final Throwable e) {
+					}
+					releaseClientSession();//必须最后释放
+				}
+			});
+		}
+		
+		return null;
+	}
+
+	private void fireSystemEvent(final Object event) {
 		//以下是触发SystemEventListener。
 		final Enumeration<ProjectContext> enu = listsProjectContext.elements();
 		while(enu.hasMoreElements()){
@@ -480,8 +519,6 @@ public class MobiUIResponsor extends BaseResponsor {
 			//必须使用run。如果同步，可能导致异常程序占住服务器线程。参见SystemEventListener.onEvent
 			fireSystemEventListener(pc, event);//注意：请与fireSystemEventListenerOnAppendProject保持同步
 		}
-		
-		return null;
 	}
 	
 	/**
@@ -612,21 +649,15 @@ public class MobiUIResponsor extends BaseResponsor {
 
 	@Override
 	public void createClientSession() {
-		for (int i = 0; i < responserSize; i++) {
-			final ProjResponser pr = responsors[i];
-			final ProjectContext ctx = pr.context;
-			final ClientSession sessionMaybeIgnoreIfNotNullInCtx = new ClientSession();
-			ServerUIUtil.setClientSession(ctx, sessionMaybeIgnoreIfNotNullInCtx);//注意：仅在ctx.clientSession为null时，进行set操作。
+		sessionForClient = new ClientSession();
+		if(App.isSimu()){
+			L.V = L.O ? false : LogManager.log("create clientSession for MobiUIResponsor.");
 		}
 	}
 
 	@Override
 	public void releaseClientSession() {
-		for (int i = 0; i < responserSize; i++) {
-			final ProjResponser pr = responsors[i];
-			final ProjectContext ctx = pr.context;
-			ServerUIUtil.releaseClientSession(ctx);
-		}
+//		sessionForClient = null;//虚操作
 	}
 	
 }
