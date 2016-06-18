@@ -11,6 +11,8 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.res.ImageSrc;
+import hc.server.PlatformManager;
+import hc.server.PlatformService;
 import hc.server.util.ServerCUtil;
 
 import java.awt.event.ActionEvent;
@@ -30,14 +32,20 @@ public class LogServerSide implements ILog {
 	private FileOutputStream outLogger = null;	
 	private OutputStreamWriter osw;
 	private BufferedWriter bw;
+	private final boolean isAndroidPlatform = ResourceUtil.isAndroidServerPlatform();
+	private final PlatformService pService = PlatformManager.getService();
 	
 	public LogServerSide() {
 		buildOutStream();
 	}
 
-	public void buildOutStream() {
+	public synchronized void buildOutStream() {
 		if(LogManager.INI_DEBUG_ON || (IConstant.isRegister() == false)){
 		}else{
+			if(osw != null){
+				return;
+			}
+			
 			final File filebak = new File(App.getBaseDir(), ImageSrc.HC_LOG_BAK);
 			filebak.delete();
 			
@@ -165,6 +173,9 @@ public class LogServerSide implements ILog {
 		final String pMsg = sb.toString();
 		try {
 			if(osw != null){
+				if(isAndroidPlatform){
+					pService.extLog(PlatformService.LOG_LEVEL_INFO, msg);
+				}
 				bw.append(pMsg);
 			}else{
 				System.out.print(pMsg);
@@ -201,6 +212,9 @@ public class LogServerSide implements ILog {
 		timestampBuf.append("." + (nanos==0?"000":String.valueOf(nanos).substring(0, 3)));
 
 		System.err.println(timestampBuf.toString() + ILog.ERR + msg);
+		if(isAndroidPlatform){
+			pService.extLog(PlatformService.LOG_LEVEL_ERROR, msg);
+		}
 		flush();
 	}
 	

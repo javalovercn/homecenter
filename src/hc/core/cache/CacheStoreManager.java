@@ -192,7 +192,7 @@ public class CacheStoreManager {
 				v.addElement(item);
 			}
 			
-			L.V = L.O ? false : LogManager.log(logicTableName + " total record num : " + totalProjNum);
+//			L.V = L.O ? false : LogManager.log(logicTableName + " total record num : " + totalProjNum);
 		} catch (Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		} finally {

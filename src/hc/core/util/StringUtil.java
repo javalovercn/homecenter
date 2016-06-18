@@ -54,9 +54,29 @@ public class StringUtil {
 	 */
 	public static String toARGB(final int color, final boolean useAlpha){
 		if(useAlpha){
-			return Integer.toHexString(color);
+			final String hex = Integer.toHexString(color);
+//			if(hex.length() < 7){
+//				return addZeroToFront(hex, 6);
+//			}else{
+				return addZeroToFront(hex, 8);
+//			}
 		}else{
-			return Integer.toHexString(color & 0x00FFFFFF);
+			final String hex = Integer.toHexString(color & 0x00FFFFFF);
+			return addZeroToFront(hex, 6);
+		}
+	}
+
+	private static String addZeroToFront(final String hex, final int fixStringLen) {
+		final int zeroNum = fixStringLen - hex.length();
+		if(zeroNum > 0){
+			StringBuffer sb = new StringBuffer(fixStringLen);
+			while(sb.length() < zeroNum){
+				sb.append("0");
+			}
+			sb.append(hex);
+			return sb.toString();
+		}else{
+			return hex;
 		}
 	}
 	

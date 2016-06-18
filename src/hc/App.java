@@ -311,6 +311,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				}
 				if (arg.equals(TAG_INI_DEBUG_ON)) {
 					LogManager.INI_DEBUG_ON = true;
+					System.out.println("debugOn");
 				} else if (arg.equals(TAG_SERVER_MODE)) {
 				} else if (arg.equals(TAG_SERVER_OFF_MODE)) {
 				}else if(arg.startsWith(TAG_STARTER_VER)){//starter传入其自身版本

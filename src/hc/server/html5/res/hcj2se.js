@@ -194,7 +194,7 @@
 			
 			var newTextArea = document.createElement('textarea');
 			newTextArea.setAttribute('id',CONS.HC_CMP + hashID);
-			newTextArea.setAttribute('wrap', 'hard');
+			newTextArea.setAttribute('wrap', 'soft');
 			if(tip == 'null'){
 			}else{
 				newTextField.setAttribute('placeholder', tip);/*input tip*/

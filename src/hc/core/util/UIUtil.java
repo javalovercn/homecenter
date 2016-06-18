@@ -121,5 +121,17 @@ public class UIUtil {
 		}
 		return (fromColor & 0xFF000000) | (r << 16) | (g << 8) | b;
 	}
+
+	public static final short BLUE = 1;
+	public static final short RED = 2;
+	public static final short WHITE = 3;
+	public static final short BLACK = 4;
+	public static final short GRAY = 5;
+	public static final short YELLOW = 6;
+	public static final short GREEN = 7;
+	public static final short DARK_GRAY = 8;
+	
+	public static final short TXT_FONT_COLOR = GREEN;//如果更改，请与下行同步
+	public static final int TXT_FONT_COLOR_INT_FOR_ANDROID = 0xFF20B900;//green - 70, 不接受ff00ff这种6个的颜色表示
 	
 }

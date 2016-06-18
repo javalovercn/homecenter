@@ -238,7 +238,7 @@ public class ProjectContext {
 		return App.showHARInputDialog(appendProjectIDForTitle(title),
 				fieldNames, fieldDescs);
 	}
-
+	
 	private static final String appendProjectIDForTitle(final String title) {
 		final String partOne = " in Project [";
 		final String partTwo = "]";

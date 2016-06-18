@@ -1,5 +1,6 @@
 package hc.server.ui;
 
+import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
@@ -73,6 +74,10 @@ public class Mlet extends JPanel implements ICanvas {
 	@Deprecated
 	public final void notifyStatusChanged(final int newStatus){//in user thread
 		synchronized (this) {//要置于外部
+			if(L.isInWorkshop){
+				L.V = L.O ? false : LogManager.log("change Mlet/HTMLMlet [" + this.toString() + "] from [" + status + "] to [" + newStatus + "].");
+			}
+			
 			status = newStatus;
 			
 			if(this instanceof HTMLMlet){

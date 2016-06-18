@@ -174,7 +174,7 @@ public class JPanelDiff extends JComponentDiff{
 			todo.notifyAddSlider(containHashID, index, compHcCode, brm.getMinimum(), brm.getMaximum(), brm.getValue(), step);
 			diffClass = JSliderDiff.class;
 		}else if(jcomp instanceof JComponent){//必须置于最后
-			final String error = "[" + jcomp.getClass().getName() + "] is NOT supported now, please use other SWING Component in Mlet.";
+			final String error = "[" + jcomp.getClass().getName() + "] is NOT supported now, please use other JComponent or invoke setPreferredSize to adjust size in Mlet.";
 			LogManager.err(error);
 			return;
 //			throw new Error(error);不能停止，仅忽略

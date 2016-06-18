@@ -108,7 +108,7 @@ public class JRubyInstaller {
 					if(System.currentTimeMillis() - ms > 5000 || ContextManager.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON){
 						ContextManager.getContextInstance().displayMessage(
 								(String) ResourceUtil.get(IContext.INFO), 
-								StringUtil.replace((String)ResourceUtil.get(9066), "{design}", (String)ResourceUtil.get(9034)), 
+								(String)ResourceUtil.get(9066), 
 								IContext.INFO, null, 0);
 						return true;
 					}

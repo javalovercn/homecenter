@@ -158,7 +158,7 @@ public class MultiThreadDownloader {
         				biz.start();
         			}else{
         				RootServerConnector.notifyLineOffType("lof=MTD_ERR_MD5");
-    					final String message = "File MD5 error, please try download it later!";
+    					final String message = "File [" + fileName + "] MD5 error, please try download it later!";
     					L.V = L.O ? false : LogManager.log(message);
         				if(isVisiable){
 							App.showMessageDialog(null, message, 

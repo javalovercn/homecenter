@@ -30,6 +30,7 @@ import hc.server.ui.ICanvas;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.design.AddHarHTMLMlet;
+import hc.server.ui.design.LicenseHTMLMlet;
 import hc.server.ui.design.hpj.HCjar;
 import hc.util.ClassUtil;
 import hc.util.HttpUtil;
@@ -276,7 +277,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    	final Class[] arrClazz = {ProjectContext.class, Processor.class, 
 	    			Converter.class, Device.class, Message.class, Robot.class, RobotEvent.class, RobotListener.class,
 	    			DeviceCompatibleDescription.class,
-	    			AddHarHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
+	    			AddHarHTMLMlet.class, LicenseHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
 	    			ClientSession.class, CtrlResponse.class, Mlet.class, HTMLMlet.class, ICanvas.class,
 	    			WiFiAccount.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
 //	    	{

@@ -26,6 +26,7 @@ import hc.server.msb.WiFiHelper;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.Mlet;
+import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.hpj.HCjad;
@@ -38,6 +39,7 @@ import hc.util.PropertiesSet;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -70,11 +72,15 @@ public class AddHarHTMLMlet extends HTMLMlet {
 	final String css = "errorStatus {color:red}";
 	final String css_error = "errorStatus";
 	public final JButton exitButton;
-	final BufferedImage okIcon, cancelIcon;
-
+	final ProjectContext ctx;
+	
+	final BufferedImage okImage, cancelImage;//该值同时被LicenseHTMLMlet引用
+	String iagreeStr, acceptStr, cancelStr;//该值被LicenseHTMLMlet引用
+	String license;
+	
 	//need system level resource.
 	String processingMsg, exitButtonStr;
-
+	
 	public final synchronized void appendMessage(final String msg){
 		msgArea.append(msg + "\n");
 	}
@@ -97,20 +103,28 @@ public class AddHarHTMLMlet extends HTMLMlet {
 			public Object run() {
 				exitButtonStr = (String)ResourceUtil.get(9131);
 				processingMsg = (String)ResourceUtil.get(9130);
+				
+				iagreeStr = (String)ResourceUtil.get(9115);
+				acceptStr = (String)ResourceUtil.get(9114);
+				acceptStr = StringUtil.replace(acceptStr, "{iagree}", iagreeStr);
+				cancelStr = (String) ResourceUtil.get(IContext.CANCEL);
+				
 				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(true);
 				return null;
 			}
 		}, token);
 		
-		final int dpi = getProjectContext().getMobileDPI();
+		ctx = getProjectContext();
+		
+		final int dpi = ctx.getMobileDPI();
 		if(dpi < 300){
 			//因为Android服务器会对自动缩放图片（ImageSrc.OK_ICON），所以必须重新提取。
 			//并如上，调用setAllowAccessSystemResource，及如下关闭allow
-			okIcon = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_OK_22_PNG_PATH);
-			cancelIcon = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_CANCEL_22_PNG_PATH);
+			okImage = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_OK_22_PNG_PATH);
+			cancelImage = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_CANCEL_22_PNG_PATH);
 		}else{
-			okIcon = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_OK_44_PNG_PATH);
-			cancelIcon = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_CANCEL_44_PNG_PATH);
+			okImage = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_OK_44_PNG_PATH);
+			cancelImage = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_CANCEL_44_PNG_PATH);
 		}
 
 		ContextManager.getThreadPool().run(new Runnable() {
@@ -123,17 +137,20 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		exitButton = new JButton(exitButtonStr);
 		loadCSS(css);
 		
-		final int fontSizePX = okIcon.getHeight();
+		final int fontSizePX = okImage.getHeight();
 		
 		setLayout(new BorderLayout());
-		setCSS(msgArea, null, "width:100%;height:100%;font-size:" + getFontSizeForNormal() + "px;");
+		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
+		setCSS(msgArea, null, "width:100%;height:100%;" +
+				"background-color:" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.getColorForFontByHexString() + ";" +
+				"font-size:" + (int)(fontSizePX * 0.7) + "px;");
 
 		appendMessage(processingMsg);
 
 		final String fontSizeCSS = "font-size:" + fontSizePX + "px;";
 		setCSS(this, null, fontSizeCSS);//系统Mlet, //不考虑in user thread
 		addProcessingPanel.add(msgArea, BorderLayout.CENTER);
-		exitButton.setIcon(new ImageIcon(okIcon));
+		exitButton.setIcon(new ImageIcon(okImage));
 		exitButton.setEnabled(false);
 		exitButton.setPreferredSize(new Dimension(getMobileWidth(), Math.max(fontSizePX + getFontSizeForNormal(), getButtonHeight())));
 		setCSS(exitButton, null, "text-align:center;vertical-align:middle;width:100%;height:100%;" + fontSizeCSS);//系统Mlet, //不考虑in user thread
@@ -242,20 +259,6 @@ public class AddHarHTMLMlet extends HTMLMlet {
 					}
 					
 					final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
-					if(licenseURL != null && licenseURL.length() > 0){
-						ContextManager.getThreadPool().run(new Runnable() {
-							@Override
-							public void run() {
-								LogManager.log("\n==================License for [" + proj_id + "]==================\n" +
-															ResourceUtil.getStringFromURL(licenseURL, true) +
-															"\n====================End License===================");
-							}
-						});
-					}else{
-						LogManager.log("\n==================License for [" + proj_id + "]==================\n" +
-								"" +
-								"\n====================End License===================");
-					}
 					
 					final Boolean[] isDone = new Boolean[1];
 					isDone[0] = false;
@@ -263,7 +266,6 @@ public class AddHarHTMLMlet extends HTMLMlet {
 					final Boolean[] isOvertime = new Boolean[1];
 					isOvertime[0] = false;
 					
-					final String iAgree = (String)ResourceUtil.get(9193);//I agree the license of current project in logger.
 					final ThreadGroup token = App.getThreadPoolToken();
 					final Runnable yesRunnable = new Runnable() {
 						@Override
@@ -286,18 +288,60 @@ public class AddHarHTMLMlet extends HTMLMlet {
 							}, token);//转主线程
 						}
 					};
+					final String opIsCanceled = (String)ResourceUtil.get(9193);//需要系统特权。不能入Runnable
 					final Runnable noRunnable = new Runnable() {
 						@Override
 						public void run() {
+							appendMessage(opIsCanceled);
 							isDone[0] = true;
 						}
 					};
-					final String strLicense = (String)ResourceUtil.get(9194);//License
-					getProjectContext().sendQuestion(strLicense, iAgree, null, yesRunnable, noRunnable, null);
+					
+					try{
+						license = ResourceUtil.getStringFromURL(licenseURL, true);
+						
+						if(license != null && license.length() == 0){
+							license = licenseURL;
+						}
+					}catch (final Throwable e) {
+						license = licenseURL;
+					}
+					
+					final ActionListener acceptListener = new ActionListener() {
+						@Override
+						public void actionPerformed(final ActionEvent e) {
+							yesRunnable.run();
+						}
+					};
+					
+					final ActionListener cancelListener = new ActionListener() {
+						@Override
+						public void actionPerformed(final ActionEvent e) {
+							noRunnable.run();
+						}
+					};
+
+					final LicenseHTMLMlet[] result = new LicenseHTMLMlet[1];
+					
+					ctx.runAndWait(new Runnable() {
+						@Override
+						public void run() {
+							result[0] = new LicenseHTMLMlet(license, acceptListener, cancelListener,
+									okImage, cancelImage,
+									iagreeStr, acceptStr, cancelStr);
+						}
+					});
+					
+					final LicenseHTMLMlet licenseHtmlMlet = result[0];
+					
+					goMlet(licenseHtmlMlet, CCoreUtil.SYS_PREFIX + "licenseHTMLMlet", false);
+					
+//					final String strLicense = (String)ResourceUtil.get(9194);//License
+//					getProjectContext().sendQuestion(strLicense, iAgree, null, yesRunnable, noRunnable, null);
 					
 					final long startMS = System.currentTimeMillis();
-					while(isDone[0] == false && isOnExit == false){
-						if(System.currentTimeMillis() - startMS > 1000 * 60 * 10){//10分钟
+					while(isDone[0] == false && getStatus() != Mlet.STATUS_EXIT){
+						if(System.currentTimeMillis() - startMS > 1000 * 60 * 30){//30分钟
 							synchronized (isOvertime) {
 								isOvertime[0] = true;
 							}
@@ -327,14 +371,6 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		}
 	}
 	
-	boolean isOnExit = false;
-	
-	@Override
-	public void onExit() {
-		isOnExit = true;
-		super.onExit();
-	}
-
 	private final void startAddAfterAgreeInQuestionThread(final File fileHar,
 			final Map<String, Object> map, final boolean isUpgrade,
 			final File oldBackEditFile) throws Exception {
@@ -566,9 +602,9 @@ public class AddHarHTMLMlet extends HTMLMlet {
 			addHar.startAddHarProcessInSysThread(urlStr);
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
+		}finally{
+			clearToken();
 		}
-
-		clearToken();
 	}
 
 	/**

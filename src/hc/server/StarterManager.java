@@ -32,7 +32,7 @@ public class StarterManager {
 	}
 	
 	private static String getNewStarterVersion(){
-		return "7.3";
+		return "7.4";
 	}
 	
 	public static boolean hadUpgradeError = false;
@@ -136,7 +136,7 @@ public class StarterManager {
 		
 		//客户端对服务器最低版本要求，在J2MEContext.miniHCServerVer
 		
-		return "7.8";//请同步修改go.php, android.php
+		return "7.9";//请同步修改go.php, android.php
 	}
 
 	private static String getHCVersionFromStarter() {

@@ -10,14 +10,16 @@ public class StyleManager {
 	
 	//注意：如果增加，请同步更改replaceVariable
 	public static final String[] variables = {"$smallFontSize$", "$normalFontSize$", "$largeFontSize$", "$buttonFontSize$", 
-			"$buttonHeight$", "$mobileWidth$", "$mobileHeight$"};
+			"$buttonHeight$", "$mobileWidth$", "$mobileHeight$", 
+			"$colorForBodyByHexString$", "$colorForFontByHexString$"};
 	
 	private static final Pattern variableForPattern = Pattern.compile("\\$\\w+\\$");
 	
 	public static String replaceVariable(final String styles, final HTMLMlet htmlmlet, final ProjectContext ctx){
 		if(styles.indexOf('$', 0) > 0){
-			final int[] values = {htmlmlet.getFontSizeForSmall(), htmlmlet.getFontSizeForNormal(), htmlmlet.getFontSizeForLarge(),
-					htmlmlet.getFontSizeForButton(), htmlmlet.getButtonHeight(), ctx.getMobileWidth(), ctx.getMobileHeight()};
+			final Object[] values = {htmlmlet.getFontSizeForSmall(), htmlmlet.getFontSizeForNormal(), htmlmlet.getFontSizeForLarge(),
+					htmlmlet.getFontSizeForButton(), htmlmlet.getButtonHeight(), ctx.getMobileWidth(), ctx.getMobileHeight(),
+					HTMLMlet.getColorForBodyByHexString(), HTMLMlet.getColorForFontByHexString()};
 			
 			final Matcher matcher = variableForPattern.matcher(styles);
 			int appendIdx = 0;

@@ -391,7 +391,7 @@ public class SIPManager {
 		try{
 			SIPManager.send(SIPManager.getSIPContext().getOutputStream(send),
 					bs, 0, regLen);
-		}catch (final Exception e) {
+		}catch (final Throwable e) {
 //			ExceptionReporter.printStackTrace(e);
 			try {
 				SIPManager.getSIPContext().closeSocket(send);
@@ -424,12 +424,12 @@ public class SIPManager {
 			HCTimer.remove(closeTimer);
 			L.V = L.O ? false : LogManager.log("Receive Echo");
 			return send;
-		}catch (final Exception e) {
-			e.printStackTrace();//注意：不能进行ExceptionReporter
+		}catch (final Throwable e) {
+//			e.printStackTrace();//注意：在服务器的keepalive中，下线时，有可能关闭时，输出此异常，故关闭。不能进行ExceptionReporter
 //			ExceptionReporter.printStackTrace(e);
 			try {
 				SIPManager.getSIPContext().closeSocket(send);
-			} catch (final Exception e1) {
+			} catch (final Throwable e1) {
 			}
 		}
 		return null;

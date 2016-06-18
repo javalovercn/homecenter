@@ -13,6 +13,7 @@ import hc.core.util.StringUtil;
 import hc.core.util.ThreadPriorityManager;
 import hc.server.ui.HCByteArrayOutputStream;
 import hc.server.ui.Mlet;
+import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.util.CacheComparator;
 import hc.util.JSUtil;
@@ -115,7 +116,8 @@ public class DifferTodo {
 	final int screenIDIdx = screenIDLenIdx + 2;
 	final int screenIDLen;
 	final Mlet mlet;
-	
+	private final int mobileWarningWidth, mobileWarningHeight;
+
 	byte[] todoBs;
 	final int scriptIndex;
 	
@@ -124,13 +126,17 @@ public class DifferTodo {
 	
 	public DifferTodo(final String screenID, final Mlet mlet) {
 		this.mlet = mlet;
+		final ProjectContext projectContext = mlet.getProjectContext();
+
+		this.mobileWarningWidth = projectContext.getMobileWidth() + 2;//标准J2SE会比实际宽度多一个像素。
+		this.mobileWarningHeight = projectContext.getMobileHeight() + 2;
 		
-		this.projID = mlet.getProjectContext().getProjectID();
+		this.projID = projectContext.getProjectID();
 		this.projIDbs = ByteUtil.getBytes(projID, IConstant.UTF_8);
 		this.uuid = ServerUIAPIAgent.getMobileUID();
 		this.uuidBS = ByteUtil.getBytes(uuid, IConstant.UTF_8);
 		//AddHar可能为null
-		final String tmpURLID = ServerUIAPIAgent.__getTargetElementIDFromInnerMethod(mlet.getProjectContext());
+		final String tmpURLID = ServerUIAPIAgent.__getTargetElementIDFromInnerMethod(projectContext);
 		this.urlID = tmpURLID==null?"":tmpURLID;
 		this.urlIDbs = ByteUtil.getBytes(urlID, IConstant.UTF_8);
 		
@@ -205,6 +211,10 @@ public class DifferTodo {
 //				return;
 //			}
 //		}
+		
+		if(mlet.getStatus() == Mlet.STATUS_EXIT){
+			return;
+		}
 		
 		final int maxLen = screenIDIdx + screenIDLen + 2 + projIDbs.length + len;
 		if(todoBs.length < maxLen){
@@ -562,11 +572,18 @@ public class DifferTodo {
 	public final void notifyJComponentLocation(final JComponent component){
 		final Rectangle rect = component.getBounds();
 		
+		final int compWidth = rect.width;
+		final int compHeight = rect.height;
+		
 		if(isSimu){
-			L.V = L.O ? false : LogManager.log("send Component Location, " + component.toString() + " [x : " + rect.x + ", y : " + rect.y + ", w : " + rect.width + ", h : " + rect.height + "]");
+			L.V = L.O ? false : LogManager.log("send Component Location, " + component.toString() + " [x : " + rect.x + ", y : " + rect.y + ", w : " + compWidth + ", h : " + compHeight + "]");
 		}
 		
-		final String script = "window.hcj2se.setLocation(" + buildHcCode(component) + "," + rect.x + "," + rect.y + "," + rect.width + "," + rect.height + ");";
+		if(compWidth > mobileWarningWidth || compHeight > mobileWarningHeight){
+			LogManager.warning("size is more than width/height of client, setPreferredSize may be required for component [" + component.toString() + "].");
+		}
+		
+		final String script = "window.hcj2se.setLocation(" + buildHcCode(component) + "," + rect.x + "," + rect.y + "," + compWidth + "," + compHeight + ");";
 		
 		sendJavaScript(script, false, false);
 	}

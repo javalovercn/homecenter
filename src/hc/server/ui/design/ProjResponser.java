@@ -19,7 +19,6 @@ import hc.core.util.StoreableHashMap;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
 import hc.core.util.ThreadPriorityManager;
-import hc.core.util.UIUtil;
 import hc.server.HCException;
 import hc.server.ScreenServer;
 import hc.server.data.screen.ScreenCapturer;
@@ -762,7 +761,6 @@ public class ProjResponser {
 			return;//已发送，无需再发送。
 		}
 		
-		final String defaultRGB = StringUtil.toARGB(UIUtil.DEFAULT_COLOR_BACKGROUND, false);
 //		final boolean isAndroid = ConfigManager.getOSType()==ConfigManager.OS_ANDROID;
 		
 		final boolean isIOS = ctx.getMobileOS().equals(ProjectContext.OS_IOS);
@@ -777,6 +775,12 @@ public class ProjResponser {
 			scale = MobileAgent.DEFAULT_SCALE;
 		}
 		
+		if(App.isSimu()){
+			L.V = L.O ? false : LogManager.log("HTMLMlet scale : " + scale);
+		}
+		
+		final String colorForBodyByHexString = HTMLMlet.getColorForBodyByHexString();
+		
 		final String startBody = 
 				"<html dir='ltr'>" +
 				"<head>" +
@@ -784,9 +788,9 @@ public class ProjResponser {
 				"<meta name=\"viewport\" content=\"user-scalable=no, width=" + ctx.getMobileWidth() + ", initial-scale=" + scale + ", minimum-scale=" + scale + ", maximum-scale=" + scale + "\"/>" +
 				"<style>div > img {vertical-align:middle;}div > input {vertical-align:middle;}div > label{vertical-align:middle;}</style>" +
 				"</head>" +
-				"<body style=\"position:relative;margin:0px;\">" +
+				"<body style=\"position:relative;margin:0px;background-color:#" + colorForBodyByHexString + ";color:#" + HTMLMlet.getColorForFontByHexString() + ";\">" +
 				"<div id=\"hc_div_0\"></div>" +
-				"<div id=\"hc_div_loading\" style=\"position:absolute;background:#" + defaultRGB + ";" +
+				"<div id=\"hc_div_loading\" style=\"position:absolute;background-color:#" + colorForBodyByHexString + ";" +
 						"width:" + ctx.getMobileWidth() + "px;" +
 						"height:" + ctx.getMobileHeight() + "px;\"></div>" +
 				"<div id=\"hc_div_tip\" style=\"pointer-events:none;font-size:" + (int)(ClientDesc.getDPI() * 1.4 /10) + "px;position:absolute;visibility:hidden;height:auto;top:30px;\">" +
@@ -897,10 +901,10 @@ public class ProjResponser {
 		
 		mcanvas.setScreenIDAndTitle(elementID, title);//注意：要在setMlet之前，因为后者可能用到本参数
 		
-		try{
-			Thread.sleep(ThreadPriorityManager.UI_WAIT_MS * 3);//如果手机性能较差，可能会导致手机端对象正在初始中，而后续数据已送达。
-		}catch (final Throwable e) {
-		}
+//		try{
+//			Thread.sleep(ThreadPriorityManager.UI_WAIT_MS * 3);//如果手机性能较差，可能会导致手机端对象正在初始中，而后续数据已送达。
+//		}catch (final Throwable e) {
+//		}
 
 		mcanvas.setMlet(mlet, context);
 		context.runAndWait(new Runnable() {
@@ -913,9 +917,9 @@ public class ProjResponser {
 		ScreenServer.pushScreen((ICanvas)mcanvas);
 
 		if(isHTMLMlet){
-			L.V = L.O ? false : LogManager.log(" onStart HTMLMlet screen : [" + title + "]");
+			L.V = L.O ? false : LogManager.log(" onStart HTMLMlet form : [" + title + "]");
 		}else{
-			L.V = L.O ? false : LogManager.log(" onStart Mlet screen : [" + title + "]");
+			L.V = L.O ? false : LogManager.log(" onStart Mlet form : [" + title + "]");
 		}
 	}
 

@@ -20,6 +20,11 @@ public interface PlatformService {
 	public static final int BIZ_DEL_HAR_OPTIMIZE_DIR = 4;
 	public static final int BIZ_BIND_FORCE_ANDROID_KEYCODE = 5;
 	public static final int BIZ_INIT_RUBOTO_ENVIROMENT = 6;
+	public static final int BIZ_GO_HOME = 7;
+	
+	public static final int LOG_LEVEL_INFO = 1;
+	public static final int LOG_LEVEL_WARN = 2;
+	public static final int LOG_LEVEL_ERROR = 3;
 	
 	public Object doExtBiz(int bizID, Object para);
 	
@@ -55,6 +60,8 @@ public interface PlatformService {
 	public BufferedImage composeImage(BufferedImage base, BufferedImage cover);
 	
 	public Shape getImageShape(Image img);
+	
+	public void extLog(final int level, final String msg);
 	
 	public void setWindowShape(Window win, Shape shape);
 	

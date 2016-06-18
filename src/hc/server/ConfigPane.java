@@ -605,7 +605,7 @@ public void run() {
 				{
 					if(ResourceUtil.isAndroidServerPlatform()){
 						final JCheckBox cbAutoStart = new JCheckBox((String)ResourceUtil.get(6001));
-						cbAutoStart.setToolTipText("<html>some YunOS is <STRONG>NOT</STRONG> support auto-start.</html>");
+						cbAutoStart.setToolTipText("<html>" + (String)ResourceUtil.get(9195) + "</html>");
 						final String isAutoStart = PropertiesManager.getValue(PropertiesManager.p_autoStart, IConstant.FALSE);
 						cbAutoStart.setSelected(IConstant.TRUE.equals(isAutoStart));
 						new ConfigValue(PropertiesManager.p_autoStart, isAutoStart, group) {

@@ -42,9 +42,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.lang.reflect.Array;
-import java.math.BigInteger;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -82,9 +82,13 @@ public class ResourceUtil {
 		return (String)ResourceUtil.get(9179);
 	}
 	
-	public static String getStringFromURL(final String url, final boolean keepReturnChar) {
+	public static String getStringFromURL(final String urlPath, final boolean keepReturnChar) {
 		try{
-			return getStringFromInputStream(new URL(url).openStream(), IConstant.UTF_8, keepReturnChar, false);
+			final URL url = new URL(urlPath);
+			final URLConnection con = url.openConnection();
+			con.setConnectTimeout(10 * 1000);
+			con.setReadTimeout(10 * 1000);
+			return getStringFromInputStream(con.getInputStream(), IConstant.UTF_8, keepReturnChar, false);
 		}catch (final Throwable e) {
 			e.printStackTrace();
 		}
@@ -980,8 +984,17 @@ public class ResourceUtil {
 			while ((len = in.read(buffer, 0, 1024)) != -1) {
 				digest.update(buffer, 0, len);
 			}
-			final BigInteger bigInt = new BigInteger(1, digest.digest());
-			return bigInt.toString(16);
+			final char hexDigits[]={'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+			final byte[] result = digest.digest();
+            final int j = result.length;
+            final char str[] = new char[j * 2];
+            int k = 0;
+            for (int i = 0; i < j; i++) {
+                final byte byte0 = result[i];
+                str[k++] = hexDigits[byte0 >>> 4 & 0xf];
+                str[k++] = hexDigits[byte0 & 0xf];
+            }
+            return new String(str);
 		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}finally{

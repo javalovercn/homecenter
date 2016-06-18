@@ -531,7 +531,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		final int threeValueIdx = threeSplitIdx + JSCore.splitBS.length;
 		final String value3 = new String(bs, threeValueIdx, (len + offset) - threeValueIdx);
 		
-		final String[] out = {value1, value2, value3};
+		final String[] out = {JSCore.decode(value1), JSCore.decode(value2), JSCore.decode(value3)};
 		return out;
 	}
 	
@@ -544,7 +544,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		final int secondValueIdx = secondSplitIdx + JSCore.splitBS.length;
 		final String value2 = new String(bs, secondValueIdx, (len + offset) - secondValueIdx);
 		
-		final String[] out = {value1, value2};
+		final String[] out = {JSCore.decode(value1), JSCore.decode(value2)};
 		return out;
 	}
 	
@@ -552,7 +552,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		final int firstValueIdx = offset + actionBS.length + JSCore.splitBS.length;
 		
 		final String id = new String(bs, firstValueIdx, len + offset - firstValueIdx);
-		return id;
+		return JSCore.decode(id);
 	}
 
 	@Override

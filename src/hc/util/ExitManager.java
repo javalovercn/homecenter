@@ -12,6 +12,7 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.KeepaliveManager;
 import hc.server.PlatformManager;
+import hc.server.PlatformService;
 import hc.server.ProcessingWindowManager;
 import hc.server.ScreenServer;
 import hc.server.SingleJFrame;
@@ -24,6 +25,19 @@ public class ExitManager {
 
 		//直接采用主线程，会导致退出提示信息会延时显示，效果较差
 		ProcessingWindowManager.showCenterMessage((String)ResourceUtil.get(9067));
+		
+		if(ResourceUtil.isAndroidServerPlatform()){
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					try{
+						Thread.sleep(2000);
+					}catch (final Exception e) {
+					}
+					PlatformManager.getService().doExtBiz(PlatformService.BIZ_GO_HOME, null);
+				}
+			});
+		}
 		
 		SingleJFrame.disposeAll();
 

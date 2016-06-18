@@ -442,4 +442,8 @@ public class J2SEPlatformService implements PlatformService {
 	public void setJRubyHome(final String version, final String absPath) {
 		//do nothing for standard JRE, 
 	}
+
+	@Override
+	public void extLog(final int level, final String msg) {
+	}
 }

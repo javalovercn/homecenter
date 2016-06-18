@@ -5,15 +5,18 @@
 
 	iosj2se.prototype = {
 		sendCmdThreePara: function(cmds, para1, para2, para3){
-			window.location.href = 'int_iosj2se' + '¢¢¢' + cmds + '¢¢¢' + para1 + '¢¢¢' + para2 + '¢¢¢' + para3;
+			var post = {'num' : '3', 'cmds' : cmds, 'para1' : ('' + para1), 'para2' : ('' + para2), 'para3' : ('' + para3)};
+			window.webkit.messageHandlers.hcj2se.postMessage(post);
 		},
 
 		sendCmdTwoPara: function(cmds, para1, para2){
-			window.location.href = 'int_iosj2se' + '¢¢¢' + cmds + '¢¢¢' + para1 + '¢¢¢' + para2;
+			var post = {'num' : '2', 'cmds' : cmds, 'para1' : ('' + para1), 'para2' : ('' + para2)};
+			window.webkit.messageHandlers.hcj2se.postMessage(post);
 		},
 
 		sendCmdOnePara: function(cmds, para1){
-			window.location.href = 'int_iosj2se' + '¢¢¢' + cmds + '¢¢¢' + para1;
+			var post = {'num' : '1', 'cmds' : cmds, 'para1' : ('' + para1)};
+			window.webkit.messageHandlers.hcj2se.postMessage(post);
 		},
 
 		actionExt: function(cmd){
@@ -28,6 +31,7 @@
 			this.sendCmdOnePara('notifyLastGone', '');
 		},
 
+		/* webView call didFinishNavigation */
 		finishOnLoad: function(){
 			/*this.sendCmdOnePara('finishOnLoad', '');*/
 		},

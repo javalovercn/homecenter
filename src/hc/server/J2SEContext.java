@@ -784,8 +784,10 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			}, threadPoolToken));
             hcMenu.add(option);
             
-			buildAutoUpgradMenuItem(hcMenu);
-	        
+            if(ResourceUtil.isJ2SELimitFunction()){
+            	buildAutoUpgradMenuItem(hcMenu);
+            }
+            
 			{
 		        //Multi user mode
 		        final JCheckBoxMenuItem multiUserMenu = new JCheckBoxMenuItem((String)ResourceUtil.get(9058));
@@ -943,25 +945,27 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 //	        }
 	        
 			//FAQ
-			final JMenuItem faqItem = new JMenuItem((String)ResourceUtil.get(9013));//菜单项
-	        try {
-	        	faqItem.setIcon(new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/faq22.png"))));
-			} catch (final IOException e1) {
-			}
-	        faqItem.addActionListener(new HCActionListener(new Runnable() {
-				@Override
-				public void run() {
-					refreshActionMS(false);
-	    			String targetURL;
-					try {
-						targetURL = HttpUtil.buildLangURL("pc/faq.htm", null);
-		            	HttpUtil.browseLangURL(targetURL);
-					} catch (final UnsupportedEncodingException e) {
-						ExceptionReporter.printStackTrace(e);
-					}
+	        if(ResourceUtil.isJ2SELimitFunction()){
+				final JMenuItem faqItem = new JMenuItem((String)ResourceUtil.get(9013));//菜单项
+		        try {
+		        	faqItem.setIcon(new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/faq22.png"))));
+				} catch (final IOException e1) {
 				}
-			}, threadPoolToken));
-	        hcMenu.add(faqItem);
+		        faqItem.addActionListener(new HCActionListener(new Runnable() {
+					@Override
+					public void run() {
+						refreshActionMS(false);
+		    			String targetURL;
+						try {
+							targetURL = HttpUtil.buildLangURL("pc/faq.htm", null);
+			            	HttpUtil.browseLangURL(targetURL);
+						} catch (final UnsupportedEncodingException e) {
+							ExceptionReporter.printStackTrace(e);
+						}
+					}
+				}, threadPoolToken));
+		        hcMenu.add(faqItem);
+	        }
 	        
 //	        hcMenu.addSeparator();
 	        
@@ -2166,7 +2170,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 	public static final String MAX_HC_VER = "9999999";//注意与Starter.NO_UPGRADE_VER保持同步
 	
-	private final String minMobiVerRequiredByServer = "7.4";//(含)，
+	private final String minMobiVerRequiredByServer = "7.5";//(含)，
 	//你可能 还 需要修改服务器版本，StarterManager HCVertion = "6.97";
 	
 	public static final String getSampleHarVersion(){
