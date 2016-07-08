@@ -291,9 +291,9 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 		final boolean oldEnableWiFi  = enableWiFi;
 		if(isRoot){
 			//可能新用户重新登录，手机WiFi状态不一
-			enableQR = ClientDesc.getAgent().hasCamera();// || PropertiesManager.isTrue(PropertiesManager.p_IsSimu);
+			enableQR = ClientDesc.getAgent().hasCamera();// || PropertiesManager.isSimu();
 			//关闭WiFi广播HAR
-			enableWiFi = HCURL.isUsingWiFiWPS && ResourceUtil.canCtrlWiFi();// || PropertiesManager.isTrue(PropertiesManager.p_IsSimu);
+			enableWiFi = HCURL.isUsingWiFiWPS && ResourceUtil.canCtrlWiFi();// || PropertiesManager.isSimu();
 		}
 		
 		if(items == null || oldEnableQR != enableQR || oldEnableWiFi != enableWiFi){

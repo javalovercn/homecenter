@@ -10,9 +10,11 @@ import hc.core.RootConfig;
 import hc.core.RootServerConnector;
 import hc.core.util.ByteUtil;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.core.util.URLEncoder;
+import hc.j2se.HCAjaxX509TrustManager;
 import hc.server.HCActionListener;
 
 import java.awt.BorderLayout;
@@ -44,9 +46,11 @@ import javax.swing.SwingConstants;
 
 public class HttpUtil {
 	static {
-		System.setProperty("sun.net.client.defaultConnectTimeout", "5000");
-		System.setProperty("sun.net.client.defaultReadTimeout", "5000");	 
+		//注意：不适用于Android服务器
+		System.setProperty("sun.net.client.defaultConnectTimeout", "8000");//原值为5000，考虑SSL增至8000
+		System.setProperty("sun.net.client.defaultReadTimeout", "8000");//原值为5000，考虑SSL增至8000
 	}
+	
 	public static boolean checkExistNetworkInterface(final String name) {
 		try {
 			if (NetworkInterface.getByName(name) != null) {
@@ -216,60 +220,69 @@ public class HttpUtil {
 		}
 	}
 	
-	public static String getAjaxForSimu(String url, final boolean isTCP) {
-		final boolean isSimu = PropertiesManager.isTrue(PropertiesManager.p_IsSimu);
+	public static String getAjaxForSimu(String url) {
+		final boolean isSimu = PropertiesManager.isSimu();
 		url = replaceSimuURL(url, isSimu);
 		//---------reuseThisCode
-		return isTCP?RootServerConnector.getAjaxTCP(url, isSimu):getAjax(url);
-		
-//		String out = null;
-//		if(isTCP){
-//			out = RootServerConnector.getAjaxTCP(url, isSimu);
-//		}
-//		
-//		String out2 = getAjax(url);
-//		if(out != null){
-//			return out;
-//		}else{
-//			return out2;
-//		}
+		return getAjax(url);
 	}
-
+	
 	public static String replaceSimuURL(String url, final boolean isSimu) {
 		if(isSimu){
-			final String hostString = "192.168.1.102:80";//localhost:80
-			url = StringUtil.replace(url, "homecenter.mobi", hostString);//192.168.1.101
-			url = StringUtil.replace(url, ":80", ":8080");//192.168.1.101
+			final String hostString = RootServerConnector.IP_192_168_1_102 + ":80";//localhost:80
+			url = StringUtil.replace(url, RootServerConnector.HOST_HOMECENTER_MOBI, hostString);//192.168.1.101
+			url = StringUtil.replace(url, ":80", RootServerConnector.PORT_8080_WITH_MAOHAO);//192.168.1.101
+			url = StringUtil.replace(url, RootServerConnector.PORT_808044X, RootServerConnector.PORT_44X_WITH_MAOHAO);
 			url = StringUtil.replace(url, "call.php", "callsimu.php");//192.168.1.101
 		}
+		
+		url = RootServerConnector.convertToHttpAjax(url);
+		
 		return url;
 	}
 
 	private static final int MAX_BLOCK_SIZE = 1024 * 1024;
-
 	
 	/**
 	 * 如果没有成功，则返回null
 	 * 注意：限制最长为MAX_BLOCK_SIZE
-	 * @param url_forward
+	 * @param url_str 支持HomeCenter内部ajax转换和外部https两种url
 	 * @return
 	 */
-	public static String getAjax(final String url_forward) {
+	public static String getAjax(final String url_str) {
+		if(PropertiesManager.isSimu()){//由于RootRelayReceiveServer，所以不能使用App.isSimu
+			L.V = L.O ? false : LogManager.log("getAjax : " + url_str);
+		}
+		
+		URL url = null;
 		try {
-			final URLConnection conn = new URL(url_forward).openConnection();
+			url = new URL(url_str);
+			final URLConnection conn = url.openConnection();
 			if(IConstant.isHCServer()){
-				conn.setConnectTimeout(10 * 1000);
-				conn.setReadTimeout(10 * 1000);
+				conn.setConnectTimeout(HCURLUtil.HTTPS_CONN_TIMEOUT);
+				conn.setReadTimeout(HCURLUtil.HTTPS_READ_TIMEOUT);
 			}else{
 				//Relay Server
 				conn.setConnectTimeout(10 * 1000);//有可能服务重启时，先加载RelayServer
 				conn.setReadTimeout(8 * 1000);
 			}
 			
-			if (conn instanceof HttpURLConnection) {
+			HCAjaxX509TrustManager.setAjaxSSLSocketFactory(url, conn);
+			
+			if (conn instanceof HttpURLConnection) {//HttpsURLConnection extends HttpURLConnection
 				final HttpURLConnection httpconn = (HttpURLConnection) conn;
 				httpconn.setInstanceFollowRedirects(true);
 				httpconn.connect();
+				
+//				if(httpconn instanceof HttpsURLConnection){
+//					final HttpsURLConnection httpsConn = (HttpsURLConnection)conn;
+//					final Certificate[] serverCerts = httpsConn.getServerCertificates();
+//					if(serverCerts != null){
+//						for (int i = 0; i < serverCerts.length; i++) {
+//							System.out.println(serverCerts[i]);
+//						}
+//					}
+//				}
 				
 				final int responseCode = httpconn.getResponseCode();
 				if (responseCode == 200) {
@@ -323,13 +336,22 @@ public class HttpUtil {
 					httpconn.disconnect();
 				}
 			}
-		} catch (final Exception e) {
-//			ExceptionReporter.printStackTrace(e);
+		} catch (final Throwable e) {
+			if(url.getProtocol().equals("https")){
+				if(url.getHost().equals(RootServerConnector.HOST_HOMECENTER_MOBI)){
+					if(e.getClass().getName().indexOf("SSL") >= 0){//SSLHandshakeException
+						//服务器无SSL私钥：java.security.cert.CertificateException: No subject alternative DNS name matching unioncard.mobi found.
+						//客户端无SSL公钥：sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+						LogManager.errToLog("HTTPS error [" + e.getMessage() + "], maybe ajax.crt/ajax.key is missing or invalid! [" + url_str + "]");
+					}
+					ExceptionReporter.printStackTrace(e);
+				}
+			}
 			L.V = L.O ? false : LogManager.log("http execption : " + e.getMessage());
 		}
 		return null;
 	}
-	
+
 	public static String getLocalIP(){
 		InetAddress inet;
 		try {
@@ -531,8 +553,8 @@ public class HttpUtil {
 		for (int i = 0; i < fs.length; i++) {
 			final String fileName = fs[i];
 			final String tmpFileName = "tmpV" + fileName;
-			final File tmpDownFile = new File(App.getBaseDir(), fileName);
-			final File filev = new File(App.getBaseDir(), tmpFileName);
+			final File tmpDownFile = new File(ResourceUtil.getBaseDir(), fileName);
+			final File filev = new File(ResourceUtil.getBaseDir(), tmpFileName);
 			oldFs[i] = tmpDownFile;
 			newFs[i] = filev;
 			if(HttpUtil.downloadFile(tmpDownFile, filev, fileName, base) == false){

@@ -21,6 +21,7 @@ public interface PlatformService {
 	public static final int BIZ_BIND_FORCE_ANDROID_KEYCODE = 5;
 	public static final int BIZ_INIT_RUBOTO_ENVIROMENT = 6;
 	public static final int BIZ_GO_HOME = 7;
+	public static final int BIZ_BCL = 8;
 	
 	public static final int LOG_LEVEL_INFO = 1;
 	public static final int LOG_LEVEL_WARN = 2;

@@ -1,6 +1,5 @@
 package hc.server;
 
-import hc.App;
 import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
@@ -43,7 +42,7 @@ public class StarterManager {
 		}
 		
 		//检查是否存在starter.jar
-		final File starterFile = new File(App.getBaseDir(), STR_STARTER);
+		final File starterFile = new File(ResourceUtil.getBaseDir(), STR_STARTER);
 		if(starterFile.exists() == false){
 			//Source code run mode or develop mode, skip download and upgrade starter.jar
 			return;
@@ -66,7 +65,7 @@ public class StarterManager {
 
 						L.V = L.O ? false : LogManager.log("find new ver starter, try downloading...");
 						
-						final File starterTmp = new File(App.getBaseDir(), STR_STARTER_TMP_UP);
+						final File starterTmp = new File(ResourceUtil.getBaseDir(), STR_STARTER_TMP_UP);
 						
 						if(HttpUtil.download(starterTmp, new URL("http://homecenter.mobi/download/starter.jar"))){
 							//检查签名
@@ -136,7 +135,7 @@ public class StarterManager {
 		
 		//客户端对服务器最低版本要求，在J2MEContext.miniHCServerVer
 		
-		return "7.9";//请同步修改go.php, android.php
+		return "7.10";//请同步修改go.php, android.php
 	}
 
 	private static String getHCVersionFromStarter() {

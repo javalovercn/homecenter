@@ -140,11 +140,11 @@ public class JRubyInstaller {
 
 		final String md5 = getInnverJRubyMD5(_lastJrubyVer, _lastJrubyMd5);
 		String fromURL = thirdlibs.getProperty(jruby_urls);
-		if(PropertiesManager.isTrue(PropertiesManager.p_IsSimu)){
+		if(PropertiesManager.isSimu()){
 			fromURL = HttpUtil.replaceSimuURL(fromURL, true);
 		}
 		final String storeFile = J2SEContext.jrubyjarname;
-		final File rubyjar = new File(App.getBaseDir(), storeFile);
+		final File rubyjar = new File(ResourceUtil.getBaseDir(), storeFile);
 		if(rubyjar.exists()){
 			L.V = L.O ? false : LogManager.log("remove fail download or old version file [" + storeFile + "].");
 			rubyjar.delete();

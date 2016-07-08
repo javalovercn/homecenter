@@ -1,6 +1,5 @@
 package hc.server.html5.syn;
 
-import hc.App;
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.util.ByteUtil;
@@ -23,6 +22,7 @@ import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.code.StyleManager;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.HCJFrame;
+import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.awt.Component;
@@ -61,7 +61,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	private final boolean isSimu;
 	
 	public MletHtmlCanvas(final int w, final int h){
-		isSimu = App.isSimu();
+		isSimu = PropertiesManager.isSimu();
 		
 		this.width = w;
 		this.height = h;

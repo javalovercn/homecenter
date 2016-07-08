@@ -1,6 +1,5 @@
 package hc.server.html5.syn;
 
-import hc.App;
 import hc.core.ContextManager;
 import hc.core.FastSender;
 import hc.core.IConstant;
@@ -17,6 +16,7 @@ import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.util.CacheComparator;
 import hc.util.JSUtil;
+import hc.util.PropertiesManager;
 
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -440,7 +440,7 @@ public class DifferTodo {
 	private final void notifyModifyButtonText(final int hashID, final String text){
 //		var text = document.getElementById(button_id).firstChild;
 //		text.data = text.data == "Lock" ? "Unlock" : "Lock";
-//		<button> http://www.w3school.com.cn/tags/tag_button.asp
+//		<button> www.w3school.com.cn/tags/tag_button.asp
 		sendJavaScript("window.hcj2se.setButtonText(" + hashID + ",\"" + text + "\");", false, false);
 	}
 	
@@ -567,7 +567,7 @@ public class DifferTodo {
 		}
 	}
 	
-	private final boolean isSimu = App.isSimu();
+	private final boolean isSimu = PropertiesManager.isSimu();
 
 	public final void notifyJComponentLocation(final JComponent component){
 		final Rectangle rect = component.getBounds();

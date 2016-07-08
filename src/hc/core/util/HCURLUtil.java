@@ -346,6 +346,10 @@ public class HCURLUtil {
 	public static final String CLASS_ERR_ON_CACHE = "errOnCache";
 	public static final String CLASS_TRANS_SERVER_UID = "transServerUID";
 
+	
+	public static final int HTTPS_CONN_TIMEOUT = 10 * 1000;
+	public static final int HTTPS_READ_TIMEOUT = 10 * 1000;
+			
 	public static void sendCmd(String cmdType, String[] para, String[] value){
 //		sendWrap进行了拦截
 //		CCoreUtil.checkAccess();

@@ -83,7 +83,7 @@ public class ServerCUtil {
 		final IContext ic = ContextManager.getContextInstance();
 		final byte[] transCKBS = new byte[MsgBuilder.UDP_BYTE_SIZE];
 		
-		CUtil.generateTransCertKey(App.getStartMS(), transCKBS, MsgBuilder.INDEX_MSG_DATA, oneTimeCertKey, IConstant.getPasswordBS(), isOneTimeKeys);
+		CUtil.generateTransCertKey(ResourceUtil.getStartMS(), transCKBS, MsgBuilder.INDEX_MSG_DATA, oneTimeCertKey, IConstant.getPasswordBS(), isOneTimeKeys);
 		
 		ic.send(msgTag, transCKBS, CUtil.TRANS_CERT_KEY_LEN);
 	}
@@ -100,7 +100,7 @@ public class ServerCUtil {
 			oneTimeCertKey = new byte[CCoreUtil.CERT_KEY_LEN];
 			CUtil.setOneTimeCertKey(oneTimeCertKey);
 		}
-		CCoreUtil.generateRandomKey(App.getStartMS(), oneTimeCertKey, 0, CCoreUtil.CERT_KEY_LEN);
+		CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), oneTimeCertKey, 0, CCoreUtil.CERT_KEY_LEN);
 //		L.V = L.O ? false : LogManager.log("OneTime:" + CUtil.toHexString(CUtil.OneTimeCertKey));
 		transCertKey(oneTimeCertKey, MsgBuilder.E_TRANS_ONE_TIME_CERT_KEY, true);
 	}

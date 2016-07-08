@@ -11,6 +11,7 @@ import hc.core.util.WiFiDeviceManager;
 import hc.server.PlatformService;
 import hc.util.ClassUtil;
 import hc.util.ExitManager;
+import hc.util.ResourceUtil;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
@@ -47,6 +48,9 @@ public class J2SEPlatformService implements PlatformService {
 	
 	@Override
 	public Object doExtBiz(final int bizID, final Object para){
+		if(bizID == BIZ_BCL){
+			return "bcl.txt";
+		}
 		return null;
 	}
 	
@@ -69,7 +73,7 @@ public class J2SEPlatformService implements PlatformService {
 	
 	@Override
 	public long getAvailableSize(){
-		return App.getBaseDir().getFreeSpace();
+		return ResourceUtil.getBaseDir().getFreeSpace();
 	}
 	
 	@Override

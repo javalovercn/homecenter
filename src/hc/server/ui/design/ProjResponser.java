@@ -1,6 +1,5 @@
 package hc.server.ui.design;
 
-import hc.App;
 import hc.core.ConfigManager;
 import hc.core.ContextManager;
 import hc.core.IConstant;
@@ -51,6 +50,7 @@ import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
 import hc.util.BaseResponsor;
 import hc.util.ClassUtil;
+import hc.util.PropertiesManager;
 import hc.util.RecycleProjThreadPool;
 import hc.util.ResourceUtil;
 
@@ -256,7 +256,7 @@ public class ProjResponser {
 			final LinkProjectStore lps) {
 		this.mobiResp = (MobiUIResponsor)baseRep;
 		this.map = p_map;
-		final File deployPath = new File(App.getBaseDir(), lps.getDeployTmpDir());
+		final File deployPath = new File(ResourceUtil.getBaseDir(), lps.getDeployTmpDir());
 		final ClassLoader projClassLoader = ResourceUtil.buildProjClassLoader(deployPath, projID);
 		final String reportExceptionURL = (String)this.map.get(HCjar.PROJ_EXCEPTION_REPORT_URL);
 		this.hcje = new HCJRubyEngine(deployPath.getAbsolutePath(), projClassLoader, reportExceptionURL != null && reportExceptionURL.length() > 0);
@@ -775,7 +775,7 @@ public class ProjResponser {
 			scale = MobileAgent.DEFAULT_SCALE;
 		}
 		
-		if(App.isSimu()){
+		if(PropertiesManager.isSimu()){
 			L.V = L.O ? false : LogManager.log("HTMLMlet scale : " + scale);
 		}
 		

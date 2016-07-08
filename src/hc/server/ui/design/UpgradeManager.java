@@ -1,10 +1,10 @@
 package hc.server.ui.design;
 
-import hc.App;
 import hc.core.util.HCURL;
 import hc.server.ThirdlibManager;
 import hc.server.ui.design.hpj.HCjar;
 import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
 
 import java.io.File;
 import java.util.HashMap;
@@ -17,9 +17,9 @@ import java.util.Map;
 public class UpgradeManager {
 
 	public static void upgradeToLinkProjectsMode() {
-		final File edit = Designer.switchHar(new File(App.getBaseDir(), Designer.OLD_EDIT_JAR), new File(App.getBaseDir(), LinkProjectManager.EDIT_HAR));
-		final File har = Designer.switchHar(new File(App.getBaseDir(), Designer.MY_DEPLOY_PROJ), 
-				new File(App.getBaseDir(), Designer.MY_DEPLOY_PROJ_HAR));
+		final File edit = Designer.switchHar(new File(ResourceUtil.getBaseDir(), Designer.OLD_EDIT_JAR), new File(ResourceUtil.getBaseDir(), LinkProjectManager.EDIT_HAR));
+		final File har = Designer.switchHar(new File(ResourceUtil.getBaseDir(), Designer.MY_DEPLOY_PROJ), 
+				new File(ResourceUtil.getBaseDir(), Designer.MY_DEPLOY_PROJ_HAR));
 	
 		{
 			final Map<String, Object> map = (har.exists()?HCjar.loadHar(har, false):new HashMap<String, Object>());//loadHar会产生异常信息，故先行判断
@@ -66,7 +66,7 @@ public class UpgradeManager {
 			final LinkProjectStore lps = it.next();
 			final File edit_file = LinkProjectManager.buildBackEditFile(lps);
 			if(edit_file.exists() == false){
-				ThirdlibManager.copy(new File(new File(App.getBaseDir(), lps.getHarParentDir()), lps.getHarFile()), 
+				ThirdlibManager.copy(new File(new File(ResourceUtil.getBaseDir(), lps.getHarParentDir()), lps.getHarFile()), 
 						edit_file);
 			}
 		}

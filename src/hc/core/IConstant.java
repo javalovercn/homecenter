@@ -20,7 +20,7 @@ public abstract class IConstant {
 	//当前线程要发起另一个线程任务，并等待其状态变化
 	public static final int THREAD_WAIT_INNER_MS = 10;
 	
-	public static String propertiesFileName = null;
+	public static String propertiesFileName = "hc_config.properties";
 	public static boolean enableInitLock = true;
 	protected static String uuid, password;
 	

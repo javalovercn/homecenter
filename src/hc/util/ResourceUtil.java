@@ -6,6 +6,7 @@ import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootServerConnector;
+import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
@@ -41,6 +42,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.net.URI;
 import java.net.URL;
@@ -305,7 +308,7 @@ public class ResourceUtil {
 			return rubyAnd3rdLibsClassLoaderCache;
 		}
 		
-		final File jruby = new File(App.getBaseDir(), J2SEContext.jrubyjarname);
+		final File jruby = new File(ResourceUtil.getBaseDir(), J2SEContext.jrubyjarname);
 		
 		PlatformManager.getService().setJRubyHome(PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer), jruby.getAbsolutePath());
 		
@@ -573,7 +576,7 @@ public class ResourceUtil {
 		        	addItem(id, out, pattern, enterNames[i]);
 				}
 		    } else {
-		    	final File file_base = new File(App.getBaseDir(), ".");
+		    	final File file_base = new File(ResourceUtil.getBaseDir(), ".");
 		    	final File[] files = file_base.listFiles();
 		    	for (int i = 0; i < files.length; i++) {
 		    		final File file_temp = files[i];
@@ -642,7 +645,7 @@ public class ResourceUtil {
 		}catch (final Throwable e) {
 		}
 		
-		uri = new File(App.getBaseDir(), "." + path).toURI().toURL();
+		uri = new File(ResourceUtil.getBaseDir(), "." + path).toURI().toURL();
 		return getInputStream(uri);
 	}
 	
@@ -700,7 +703,7 @@ public class ResourceUtil {
 		String baseDir = null;
 		try{
 			//注意：服务器停止使用System.getProperty("user.dir")
-			baseDir = App.getBaseDir().getCanonicalPath();//System.getProperty("user.dir");
+			baseDir = ResourceUtil.getBaseDir().getCanonicalPath();//System.getProperty("user.dir");
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}
@@ -859,16 +862,25 @@ public class ResourceUtil {
 	
 	public static Properties loadThirdLibs() {
 		final Properties thirdlibs = new Properties();
-		try {
-			String url = "http://homecenter.mobi/ajax/thirdlib.php";
-			url = HttpUtil.replaceSimuURL(url, PropertiesManager.isTrue(PropertiesManager.p_IsSimu));
-			L.V = L.O ? false : LogManager.log("try get download online lib information from : " + url);
-			thirdlibs.load(new URL(url).openStream());
-		} catch (final Exception e1) {
+		final String url = RootServerConnector.AJAX_HTTPS_44X_URL_PREFIX + "thirdlib.php";
+		L.V = L.O ? false : LogManager.log("try get download online lib information from : " + url);
+		try{
+			loadFromURL(thirdlibs, url);
+		}catch (final Exception e) {
+		}
+		if(thirdlibs.isEmpty()){
 			App.showMessageDialog(null, "Can NOT connect HomeCenter, please try after few seconds!", "Error Connect", JOptionPane.ERROR_MESSAGE);
-			return null;
 		}
 		return thirdlibs;
+	}
+
+	public static void loadFromURL(final Properties thirdlibs, String url) throws Exception {
+		url = HttpUtil.replaceSimuURL(url, PropertiesManager.isSimu());
+		final String libs = HttpUtil.getAjax(url);
+		if(libs == null){
+			return;
+		}
+		thirdlibs.load(new StringReader(libs));//否则new URL(url).openStream()会出现字符集不正确
 	}
 
 	public static BufferedImage rotateImage(final BufferedImage bufferedimage,
@@ -942,7 +954,7 @@ public class ResourceUtil {
 			final String str_r = String.valueOf(r) + ext;
 			File file_r;
 			if(parent == null){
-				file_r = new File(App.getBaseDir(), str_r);
+				file_r = new File(ResourceUtil.getBaseDir(), str_r);
 			}else{
 				file_r = new File(parent, str_r);
 			}
@@ -1121,6 +1133,38 @@ public class ResourceUtil {
 		try{
 			return toIcon(toBufferedImage(icon));
 		}catch (final Throwable e) {
+		}
+		return null;
+	}
+
+	public static URL getBCLURL() {
+		return getResource("hc/res/" + PlatformManager.getService().doExtBiz(PlatformService.BIZ_BCL, null));
+	}
+
+	private final static long startMS = System.currentTimeMillis();
+
+	public final static long getStartMS(){
+		CCoreUtil.checkAccess();
+		return startMS;
+	}
+
+	private static File baseDir;
+
+	public static File getBaseDir(){
+		if(baseDir == null){
+			baseDir = PlatformManager.getService().getBaseDir();
+		}
+		return baseDir;
+	}
+
+	// 将 s 进行 BASE64 编码
+	public static String getBASE64(final String s) {
+		if (s == null)
+			return null;
+		try {
+			return ByteUtil.encodeBase64(s.getBytes(IConstant.UTF_8));
+		} catch (final UnsupportedEncodingException e) {
+			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}

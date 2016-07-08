@@ -44,6 +44,7 @@ public class LinkNamePanel  extends JPanel {
 //	private final JCheckBox checkAccessClipboard = new JCheckBox("access clipboard");
 	private final JCheckBox checkShutdownHooks = new JCheckBox("access shutdown hooks");
 	private final JCheckBox checkSetIO = new JCheckBox("set system IO");
+	private final JCheckBox checkSetFactory = new JCheckBox("set Factory");
 	
 	public SocketEditPanel perm_sock_panel;
 	boolean isModiPermission = false;
@@ -102,6 +103,7 @@ public class LinkNamePanel  extends JPanel {
 //		checkAccessClipboard.setToolTipText(HCPermissionConstant.ACCESS_CLIPBOARD_TIP);
 		checkShutdownHooks.setToolTipText(HCPermissionConstant.SHUTDOWN_HOOKS_TIP);
 		checkSetIO.setToolTipText(HCPermissionConstant.SETIO_TIP);
+		checkSetFactory.setToolTipText(HCPermissionConstant.SET_FACTORY_TIP);
 		
 		refreshUI(csc);
 		
@@ -158,6 +160,13 @@ public class LinkNamePanel  extends JPanel {
 			@Override
 			public void run() {
 				csc.setSetIO(checkSetIO.isSelected());
+				isModiPermission = true;
+			}
+		}, threadPoolToken));	
+		checkSetFactory.addItemListener(new HCActionListener(new Runnable() {
+			@Override
+			public void run() {
+				csc.setSetFactory(checkSetFactory.isSelected());
 				isModiPermission = true;
 			}
 		}, threadPoolToken));	
@@ -244,11 +253,12 @@ public class LinkNamePanel  extends JPanel {
 		
 		sysPropPanel.add(perm_memAccessSystem);
 		
-		final JPanel sysOtherPropPanel = new JPanel(new GridLayout(2, 2));
+		final JPanel sysOtherPropPanel = new JPanel(new GridLayout(2, 3));
 		sysOtherPropPanel.add(checkLoadLib);
 		sysOtherPropPanel.add(checkRobot);
 		sysOtherPropPanel.add(checkSetIO);
 		sysOtherPropPanel.add(checkShutdownHooks);
+		sysOtherPropPanel.add(checkSetFactory);
 //		sysOtherPropPanel.add(checkListenAllAWTEvents);
 //		sysOtherPropPanel.add(checkAccessClipboard);
 		final JComponent[] components = {osPermPanel, new JSeparator(SwingConstants.HORIZONTAL), 
@@ -299,6 +309,7 @@ public class LinkNamePanel  extends JPanel {
 //		checkAccessClipboard.setSelected(contextSecurityConfig.isAccessClipboard());
 		checkShutdownHooks.setSelected(contextSecurityConfig.isShutdownHooks());
 		checkSetIO.setSelected(contextSecurityConfig.isSetIO());
+		checkSetFactory.setSelected(contextSecurityConfig.isSetFactory());
 		
 		perm_sock_panel.refresh(contextSecurityConfig);
 	}

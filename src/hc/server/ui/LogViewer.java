@@ -88,7 +88,7 @@ public class LogViewer extends HCJFrame {
 		}
 	}
 	public static LogViewer loadFile(final String fileName, final byte[] pwdBS, final String cipherAlgorithm, final String title) throws Exception{
-        final File file = new File(App.getBaseDir(), fileName);
+        final File file = new File(ResourceUtil.getBaseDir(), fileName);
         if(file.exists() == false){
         	final JPanel panel = new JPanel(new BorderLayout());
         	panel.add(new JLabel((String) ResourceUtil.get(9004), App.getSysIcon(App.SYS_ERROR_ICON), JLabel.LEADING), 

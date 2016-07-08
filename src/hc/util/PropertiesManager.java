@@ -190,6 +190,15 @@ public class PropertiesManager {
 		}
 	}
 	
+	private static Boolean isSimuCache;
+	
+	public static boolean isSimu() {
+		if(isSimuCache == null){
+			isSimuCache = isTrue(p_IsSimu);
+		}
+		return isSimuCache;
+	}
+
 	private static int delDirNum = 0;
 	
 	public static final void addDelFile(final File file){
@@ -220,7 +229,7 @@ public class PropertiesManager {
 				
 				//删除相对型
 				{
-					final File delFile = new File(App.getBaseDir(), delFileName);
+					final File delFile = new File(ResourceUtil.getBaseDir(), delFileName);
 					if(L.isInWorkshop){
 						L.V = L.O ? false : LogManager.log("delete file/dir : " + delFile.getAbsolutePath());
 					}
@@ -412,7 +421,7 @@ public class PropertiesManager {
 
     	try{
     		if(ResourceUtil.isAndroidServerPlatform()){
-    			propFile = new File(App.getBaseDir(), fileName);
+    			propFile = new File(ResourceUtil.getBaseDir(), fileName);
     		}else{
     			propFile = new File(fileName);
     		}

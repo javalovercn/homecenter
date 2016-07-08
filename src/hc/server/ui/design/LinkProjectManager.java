@@ -308,7 +308,7 @@ public class LinkProjectManager{
 	}
 
 	public static void loadHAD(final String upgradeurl, final Properties p_had) throws Exception {
-		p_had.load(new URL(upgradeurl).openStream());
+		ResourceUtil.loadFromURL(p_had, upgradeurl);
 	}
 	
 	private static JScrollPane buildErroDownloadingPanel(){
@@ -356,7 +356,7 @@ public class LinkProjectManager{
 					public void run(){
 						while(true){
 							try{
-								Thread.sleep((App.isSimu()?5:60) * 1000);
+								Thread.sleep((PropertiesManager.isSimu()?5:60) * 1000);
 							}catch (final Exception e) {
 							}
 							if(PropertiesManager.getValue(PropertiesManager.p_EnableLinkedInProjUpgrade, IConstant.TRUE).equals(IConstant.TRUE)){
@@ -670,7 +670,7 @@ public class LinkProjectManager{
 	}
 	
 	static File buildBackEditFile(final LinkProjectStore lps){
-		return new File(new File(App.getBaseDir(), lps.getHarParentDir()), "edit_" + lps.getHarFile());
+		return new File(new File(ResourceUtil.getBaseDir(), lps.getHarParentDir()), "edit_" + lps.getHarFile());
 	}
 	
 	static final void saveToLinkBack(final LinkProjectStore lps, final File edit){
@@ -688,7 +688,7 @@ public class LinkProjectManager{
 			
 			sourceFile = deployFile;
 		}
-		ThirdlibManager.copy(sourceFile, new File(App.getBaseDir(), EDIT_HAR));
+		ThirdlibManager.copy(sourceFile, new File(ResourceUtil.getBaseDir(), EDIT_HAR));
 		
 		PropertiesManager.setValue(PropertiesManager.p_LINK_CURR_EDIT_PROJ_ID, lps.getProjectID());
 		PropertiesManager.setValue(PropertiesManager.p_LINK_CURR_EDIT_PROJ_VER, lps.getVersion());
@@ -722,9 +722,9 @@ public class LinkProjectManager{
 	static String deployToRandomDir(final File har) {
 		String randomShareFolder;
 		//系统资源处于未拆分到随机目录下，需要重新读取并拆分
-		randomShareFolder = ResourceUtil.createRandomFileNameWithExt(App.getBaseDir(), "");
+		randomShareFolder = ResourceUtil.createRandomFileNameWithExt(ResourceUtil.getBaseDir(), "");
 		final Map<String, Object> map = HCjar.loadHar(har, true);
-		ProjResponser.deloyToWorkingDir(map, new File(App.getBaseDir(), randomShareFolder));
+		ProjResponser.deloyToWorkingDir(map, new File(ResourceUtil.getBaseDir(), randomShareFolder));
 		return randomShareFolder;
 	}
 
@@ -754,7 +754,7 @@ public class LinkProjectManager{
 		}
 		
 		//删除jar文件
-		final File harFile = new File(new File(App.getBaseDir(), lps.getHarParentDir()), lps.getHarFile());
+		final File harFile = new File(new File(ResourceUtil.getBaseDir(), lps.getHarParentDir()), lps.getHarFile());
 //			harFile.delete();
 		PropertiesManager.addDelFile(harFile);
 		final File oldBackEditFile = buildBackEditFile(lps);

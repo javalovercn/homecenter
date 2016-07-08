@@ -2,6 +2,7 @@ package hc.core.util;
 
 import hc.core.ConfigManager;
 import hc.core.IConstant;
+import hc.core.L;
 
 public class MobileAgent {
 	public static final String UN_KNOW = "-1";
@@ -78,6 +79,7 @@ public class MobileAgent {
 	}
 	
 	public final void set(final String key, final String value){
+//		L.V = L.O ? false : LogManager.log("client mobile [" + key + ":" + value + "]");
 		vectorMap.set(key, value);
 	}
 	

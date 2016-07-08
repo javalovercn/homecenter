@@ -340,8 +340,8 @@ public class Mlet extends JPanel implements ICanvas {
 	 * <BR>socket/connect permissions is required even if the domain of external URL is the same with the domain of upgrade HAR project URL.
 	 * <BR><BR>
 	 * <STRONG>Warning : </STRONG>
-	 * <BR>the external URL may be sniffed when in moving.
-	 * <BR>In iOS (not Android), when go external URL and leave application, the application will be closed (in background). In future, it maybe keep alive in background.
+	 * <BR>the external URL may be sniffed when in moving (exclude HTTPS).
+	 * <BR>In iOS (not Android), when go external URL and leave application, the application will be released (in background). In future, it maybe keep alive in background.
 	 * @param url
 	 * @param isUseExtBrowser true : use system web browser to open URL; false : the URL will be opened in HomeCenter client application.
 	 * @since 7.7

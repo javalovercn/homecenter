@@ -53,6 +53,8 @@ import java.util.PropertyPermission;
 import java.util.Vector;
 import java.util.logging.LoggingPermission;
 
+import javax.net.ssl.SSLPermission;
+
 public class HCLimitSecurityManager extends WrapperSecurityManager implements HarHelper{
 	private final String OUTSIDE_HAR_WORKING_THREAD = " in EventQueue thread, try using ProjectContext.invokeLater and ProjectContext.getPrivateFile";
 	public static final String USER_DATA = "user_data";
@@ -101,6 +103,22 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			}
 		}
 		return null;
+	}
+	
+	@Override
+	public void checkSetFactory() {
+		//比如HttpsURLConnection.setDefaultSSLSocketFactory
+		
+		ContextSecurityConfig csc = null;
+		final Thread currentThread = Thread.currentThread();
+		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
+			if(csc.isSetFactory() == false){
+				throw new HCSecurityException("block SetFactory in HAR Project  [" + csc.projID + "]."
+					+ buildPermissionOnDesc(HCjar.PERMISSION_SET_FACTORY));
+
+			}
+		}
+		super.checkSetFactory();
 	}
 	
 	@Override
@@ -234,7 +252,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		    	for (int i = 0; i < writebats.length; i++) {
 		    		final String file = writebats[i];
 		    		try {
-		    			blockWriteFullPathLists[i] = new File(App.getBaseDir(), file).getCanonicalPath();
+		    			blockWriteFullPathLists[i] = new File(ResourceUtil.getBaseDir(), file).getCanonicalPath();
 		    		} catch (final IOException e) {
 		    			ExceptionReporter.printStackTrace(e);
 		    			blockWriteFullPathLists[i] = file;
@@ -342,7 +360,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 
 	private static String getCanonicalPath(final String fileName) {
 		try{
-			return new File(App.getBaseDir(), fileName).getCanonicalPath();
+			return new File(ResourceUtil.getBaseDir(), fileName).getCanonicalPath();
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}
@@ -504,6 +522,12 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				if(permissionName.equals("control")){//JRuby正常反射需要
 				}else{
 //					throw new HCSecurityException("block LoggingPermission [" + permissionName + "] in HAR Project  [" + csc.projID + "].");
+				}
+			}else if(perm instanceof SSLPermission){
+				final String setHostVerifier = "setHostnameVerifier";
+				if(perm.getName().equals(setHostVerifier)){
+					//HttpsURLConnection.setDefaultHostnameVerifier new SSLPermission("setHostnameVerifier")
+					throw new HCSecurityException("block SSLPermission [" + setHostVerifier + "] in HAR Project  [" + csc.projID + "].");
 				}
 			}else{
 //				if(csc != null){//阻止其它Permission，

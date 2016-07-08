@@ -650,7 +650,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	@Override
 	public void createClientSession() {
 		sessionForClient = new ClientSession();
-		if(App.isSimu()){
+		if(PropertiesManager.isSimu()){
 			L.V = L.O ? false : LogManager.log("create clientSession for MobiUIResponsor.");
 		}
 	}

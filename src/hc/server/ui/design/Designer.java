@@ -645,7 +645,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 								}
 							}
 						};
-						App.showAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", licenseURL, biz, null, true);
+						App.showAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", false, licenseURL, biz, null, true);
 						return;
 					}
 					if(checkAndLoad(map, succLoadBiz) == false){
@@ -980,7 +980,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 									}
 								}
 							};
-							App.showAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", licenseURL, biz, null, true);
+							App.showAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", false, licenseURL, biz, null, true);
 							return;
 						}
 						if(checkAndLoad(map, succLoadBiz) == false){
@@ -1257,7 +1257,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		try{
 			final Map<String, Object> map = HCjar.loadHar(edit_har, true);
 			if(map.isEmpty()){
-				ThirdlibManager.copy(edit_har, new File(App.getBaseDir(), LinkProjectManager.EDIT_BAK_HAR));
+				ThirdlibManager.copy(edit_har, new File(ResourceUtil.getBaseDir(), LinkProjectManager.EDIT_BAK_HAR));
 				throw new Exception("default har file error : empty properties map.");
 			}
 			loadNodeFromMap(map);
@@ -1276,8 +1276,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 
 	private static final File getDefaultEditFile() {
-		return new File(App.getBaseDir(), LinkProjectManager.EDIT_HAR);
+		return new File(ResourceUtil.getBaseDir(), LinkProjectManager.EDIT_HAR);
 	}
+	
+	public static final int STANDARD_WIDTH = 1024;
+	public static final int STANDARD_HEIGHT = 768;
 
 	private void toVisiableAndLocation(final JSplitPane panelSubMRInfo) {
 		if(LocationComponentListener.hasLocation(this) && LocationComponentListener.loadLocation(this)){
@@ -1291,7 +1294,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			App.invokeAndWaitUI(new Runnable() {
 				@Override
 				public void run() {
-					setPreferredSize(new Dimension(1024, 768));
+					setPreferredSize(new Dimension(STANDARD_WIDTH, STANDARD_HEIGHT));
 					pack();
 				}
 			});

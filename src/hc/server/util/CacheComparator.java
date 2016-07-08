@@ -1,6 +1,5 @@
 package hc.server.util;
 
-import hc.App;
 import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.MsgBuilder;
@@ -21,7 +20,7 @@ public abstract class CacheComparator {
 	//仅禁用cache检查在服务器端（即：不发送E_LOAD_CACHE标识信息体），手机端仍会进行cache操作。
 	//更改后，需要重启。
 	static final boolean enableCache = PropertiesManager.isTrue(PropertiesManager.p_enableCache, true);
-	static final boolean isSimu = App.isSimu();
+	static final boolean isSimu = PropertiesManager.isSimu();
 	
 	public static Vector<PendStore> getPendStoreVector(){
 		CCoreUtil.checkAccess();

@@ -33,6 +33,7 @@ import hc.core.util.IHCURLAction;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.core.util.WiFiDeviceManager;
+import hc.j2se.HCAjaxX509TrustManager;
 import hc.res.ImageSrc;
 import hc.server.data.KeyComperPanel;
 import hc.server.msb.WiFiHelper;
@@ -365,7 +366,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						
 						//服务器产生一个随机数，用CertKey和密码处理后待用，
 						final byte[] randomBS = new byte[MsgBuilder.UDP_BYTE_SIZE];
-						CCoreUtil.generateRandomKey(App.getStartMS(), randomBS, MsgBuilder.INDEX_MSG_DATA, CUtil.TRANS_CERT_KEY_LEN);
+						CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), randomBS, MsgBuilder.INDEX_MSG_DATA, CUtil.TRANS_CERT_KEY_LEN);
 						CUtil.resetCheck();
 						CUtil.SERVER_READY_TO_CHECK = randomBS;
 						
@@ -647,7 +648,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
         popupMenu.add(certMenu);
 	}
 	
-	private final void showLicense(final String title, final String license_url) {
+	private final void showLicense(final String title) {
 		final JDialog dialog = new HCJDialog();
 		dialog.setModal(true);
 		dialog.setTitle(title);
@@ -665,7 +666,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 		final JTextArea area = new JTextArea(30, 30);
 		try {
-			final URL oracle = new URL(HttpUtil.replaceSimuURL(license_url, PropertiesManager.isTrue(PropertiesManager.p_IsSimu)));
+			final URL oracle = ResourceUtil.getBCLURL();
 			BufferedReader in;
 			in = new BufferedReader(new InputStreamReader(oracle.openStream()));
 			area.read(in, null);
@@ -872,7 +873,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				hcMenu.add(browseCurrLog);
 				
 				//浏览前次的日志
-				final File file = new File(App.getBaseDir(), ImageSrc.HC_LOG_BAK);
+				final File file = new File(ResourceUtil.getBaseDir(), ImageSrc.HC_LOG_BAK);
 	            if(file.exists()){
 			        final JMenuItem browseLogBak = new JMenuItem((String)ResourceUtil.get(9003));
 					browseLogBak.setIcon(new ImageIcon(ImageSrc.LOG_BAK_ICON));
@@ -1055,7 +1056,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						licenseBtn.addActionListener(new HCActionListener(new Runnable() {
 							@Override
 							public void run() {
-								showLicense("HomeCenter : License Agreement", "http://homecenter.mobi/bcl.txt");
+								showLicense("HomeCenter : License Agreement");
 							}
 						}, threadPoolToken));
 						panel.add(licenseBtn);
@@ -1559,7 +1560,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	
 	public static void runBrowser(final String fileName) {  
         try {  
-            final File file = new File(App.getBaseDir(), fileName);
+            final File file = new File(ResourceUtil.getBaseDir(), fileName);
             if(file.exists() == false){
             	ContextManager.getContextInstance().displayMessage((String) ResourceUtil.get(IContext.ERROR), 
 						(String) ResourceUtil.get(9004), IContext.ERROR, null, 0);
@@ -1879,7 +1880,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		DataOutputStream out = null;
 		try {
 			String urlStr = json.getToURL();
-			urlStr = HttpUtil.replaceSimuURL(urlStr, App.isSimu());
+			urlStr = HttpUtil.replaceSimuURL(urlStr, PropertiesManager.isSimu());
 			
 			final String email = json.getAttToEmail();
 			
@@ -1895,13 +1896,16 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				connection.setReadTimeout(15000);
 				connection.setDoInput(true);//for test only
 			}
+			
+			HCAjaxX509TrustManager.setAjaxSSLSocketFactory(url, connection);
+
 			connection.setRequestMethod("POST");
 			connection.setUseCaches(false);
 			connection.setInstanceFollowRedirects(true);
-
+			
 			connection.setRequestProperty("Content-Type", ExceptionJSON.APPLICATION_JSON_CHARSET_UTF_8);
 			connection.connect();
-
+			
 			// POST请求
 			out = new DataOutputStream(connection.getOutputStream());
 			out.write(json.getJSONBytesCache());

@@ -1,6 +1,5 @@
 package hc.util;
 
-import hc.App;
 import hc.core.ContextManager;
 import hc.core.IContext;
 import hc.core.MsgBuilder;
@@ -117,7 +116,7 @@ class UpdateOneTimeRunnable implements Runnable{
 			
 			contextInstance.isReceivedOneTimeInSecuChannalFromMobile = false;
 			
-			CCoreUtil.generateRandomKey(App.getStartMS(), oneTime, 0, CCoreUtil.CERT_KEY_LEN);
+			CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), oneTime, 0, CCoreUtil.CERT_KEY_LEN);
 //			L.V = L.O ? false : LogManager.log("OneTime:" + CUtil.toHexString(CUtil.OneTimeCertKey));
 			
 //			L.V = L.O ? false : LogManager.log("transport new one time certification key to client");

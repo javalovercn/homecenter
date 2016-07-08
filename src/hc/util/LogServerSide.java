@@ -46,10 +46,10 @@ public class LogServerSide implements ILog {
 				return;
 			}
 			
-			final File filebak = new File(App.getBaseDir(), ImageSrc.HC_LOG_BAK);
+			final File filebak = new File(ResourceUtil.getBaseDir(), ImageSrc.HC_LOG_BAK);
 			filebak.delete();
 			
-			File newLog = new File(App.getBaseDir(), ImageSrc.HC_LOG);
+			File newLog = new File(ResourceUtil.getBaseDir(), ImageSrc.HC_LOG);
 			if(newLog.exists()){
 				newLog.renameTo(filebak);
 				
@@ -60,7 +60,7 @@ public class LogServerSide implements ILog {
 					PropertiesManager.setValue(PropertiesManager.p_LogPassword2, p1);
 				}
 				PropertiesManager.setValue(PropertiesManager.p_LogCipherAlgorithm2, ca1);
-				newLog = new File(App.getBaseDir(), ImageSrc.HC_LOG);
+				newLog = new File(ResourceUtil.getBaseDir(), ImageSrc.HC_LOG);
 			}
 
 			//记存log1的密码

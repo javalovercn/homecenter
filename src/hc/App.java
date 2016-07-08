@@ -24,6 +24,7 @@ import hc.core.util.RootBuilder;
 import hc.core.util.Stack;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
+import hc.j2se.HCAjaxX509TrustManager;
 import hc.res.ImageSrc;
 import hc.server.AbstractDelayBiz;
 import hc.server.AppThreadPool;
@@ -169,15 +170,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		return UIManager.getIcon(key);
 	}
 	
-	private static File baseDir;
-	
-	public static File getBaseDir(){
-		if(baseDir == null){
-			baseDir = PlatformManager.getService().getBaseDir();
-		}
-		return baseDir;
-	}
-
 	private static Float jreVer;
 	public static float getJREVer() {
 		if(jreVer == null){
@@ -242,13 +234,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		return group;
 	}
 	
-	private final static long startMS = System.currentTimeMillis();
-	
-	public final static long getStartMS(){
-		CCoreUtil.checkAccess();
-		return startMS;
-	}
-	
 	private static void execMain(final String args[]) {
 		if (ResourceUtil.isJ2SELimitFunction() && getJREVer() < 1.6) {
 			App.showMessageDialog(null, "JRE 1.6 or above!", "Error",
@@ -268,7 +253,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		// 创建锁文件
 		try {
 			// Get a file channel for the file
-			final File file = new File(App.getBaseDir(), "lockme.hc");
+			final File file = new File(ResourceUtil.getBaseDir(), "lockme.hc");
 			final FileChannel channel = new RandomAccessFile(file, "rw").getChannel();
 			
 			final long startMS = System.currentTimeMillis();
@@ -331,10 +316,10 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 
 		if(isSimu){
 			//只做强制isSimu，不做isSimu为false的情形，因为原配置可能为true
-			PropertiesManager.setValue(PropertiesManager.p_IsSimu, IConstant.TRUE);
+			PropertiesManager.setValue(PropertiesManager.p_IsSimu, IConstant.TRUE);//注意：须在下行isSimu之前
 		}
 		
-		if (isSimu()) {
+		if (PropertiesManager.isSimu()) {//注意：须在上行setValue(PropertiesManager.p_IsSimu, IConstant.TRUE);之后
 			L.setInWorkshop(true);
 			L.V = L.O ? false : LogManager.log("isSimu : true");
 		}
@@ -432,6 +417,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		ExceptionViewer.init();
 		ExceptionViewer.notifyPopup(PropertiesManager.isTrue(PropertiesManager.p_isEnableMSBExceptionDialog));
 		
+		HCAjaxX509TrustManager.initSSLSocketFactory();
+		
 		StarterManager.startUpgradeStarter();
 		{
 			final String initVersion = PropertiesManager.getValue(PropertiesManager.p_InitVersion);
@@ -477,7 +464,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			};
 			// 同意使用许可
 			showAgreeLicense("HomeCenter : License Agreement",
-					"http://homecenter.mobi/bcl.txt", biz, cancelBiz, true);
+					true, null, biz, cancelBiz, true);
 			return;
 		}
 
@@ -548,7 +535,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		if(CUtil.getCertKey() == null){
 			CUtil.setCertKey(new byte[CCoreUtil.CERT_KEY_LEN]);
 		}
-		CCoreUtil.generateRandomKey(getStartMS(), CUtil.getCertKey(), 0, CCoreUtil.CERT_KEY_LEN);
+		CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), CUtil.getCertKey(), 0, CCoreUtil.CERT_KEY_LEN);
 		IConstant.getInstance().setObject(IConstant.CertKey, CUtil.getCertKey());
 	}
 	
@@ -585,7 +572,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		}
 
 		if(PropertiesManager.getValue(PropertiesManager.p_RMSServerUID) == null){
-			PropertiesManager.setValue(PropertiesManager.p_RMSServerUID, StringUtil.genUID(getStartMS()));
+			PropertiesManager.setValue(PropertiesManager.p_RMSServerUID, StringUtil.genUID(ResourceUtil.getStartMS()));
 			PropertiesManager.saveFile();
 		}
 		
@@ -594,7 +581,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		// JRE 6 install
 		// http://www.oracle.com/technetwork/java/javase/downloads/jre-6u27-download-440425.html
 
-//		if (PropertiesManager.isTrue(PropertiesManager.p_IsSimu)) {
+//		if (PropertiesManager.isSimu()) {
 //			RootConfig.getInstance().setProperty(RootConfig.p_RootRelayServer,
 //					RootServerConnector.SIMU_ROOT_IP);
 //			RootConfig.getInstance().setProperty(
@@ -712,15 +699,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		L.enable(true);
 	}
 
-	private static Boolean isSimuCache;
-	
-	public static boolean isSimu() {
-		if(isSimuCache == null){
-			isSimuCache = PropertiesManager.isTrue(PropertiesManager.p_IsSimu);
-		}
-		return isSimuCache;
-	}
-
 	public static void startAfterInfo() {
 		final String password = PropertiesManager
 				.getValue(PropertiesManager.p_password);
@@ -778,7 +756,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		}
 	}
 
-	public static void showAgreeLicense(final String title, final String license_url,
+	public static void showAgreeLicense(final String title, final boolean isBCLLicense, final String license_url, 
 			final IBiz biz, final IBiz cancelBiz, final boolean logoHC) {
 		final JDialog dialog = new HCJDialog();
 		dialog.setModal(true);
@@ -808,19 +786,15 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 
 		final JTextArea area = new JTextArea(30, 30);
 		try {
-			boolean isSucc = false;
-			if(license_url.endsWith("bcl.txt")){
+			if(isBCLLicense){
 				try{
-					final URL bclurl = ResourceUtil.getResource("hc/res/bcl.txt");
+					final URL bclurl = ResourceUtil.getBCLURL();
 					final BufferedReader in = new BufferedReader(new InputStreamReader(bclurl.openStream()));
 					area.read(in, null);
-					isSucc = true;
 				}catch (final Throwable e) {
 				}
-			}
-			
-			if(isSucc == false){
-				final URL url = new URL(HttpUtil.replaceSimuURL(license_url, isSimu()));
+			}else{
+				final URL url = new URL(HttpUtil.replaceSimuURL(license_url, PropertiesManager.isSimu()));
 				final BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
 				area.read(in, null);
 			}
@@ -1326,7 +1300,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				null, null, false, false, null, false, false);
 	}
 
-	private static JTextField jtfuuid;
 	
 	/**
 	 * 重要，请勿在Event线程中调用，
@@ -1677,7 +1650,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				0, 0));
 
 		final int columns = 15;
-		jtfuuid = new JTextField(uuid, columns);
+		final JTextField jtfuuid = new JTextField(uuid, columns);
 		jtfuuid.setEditable(isToLogin);
 		jtfuuid.setForeground(Color.BLUE);
 		jtfuuid.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -1887,7 +1860,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	public static void storePWD(final String pwd) {
 		CCoreUtil.checkAccess();
 		
-		final String base64 = App.getBASE64(pwd);
+		final String base64 = ResourceUtil.getBASE64(pwd);
 		PropertiesManager.setValue(PropertiesManager.p_password,
 				base64);
 		IConstant.setPassword(pwd);
@@ -1970,18 +1943,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		PropertiesManager.setValue(PropertiesManager.C_SKIN, errorSkin);
 		PropertiesManager.saveFile();
 		
-	}
-
-	// 将 s 进行 BASE64 编码
-	public static String getBASE64(final String s) {
-		if (s == null)
-			return null;
-		try {
-			return ByteUtil.encodeBase64(s.getBytes(IConstant.UTF_8));
-		} catch (final UnsupportedEncodingException e) {
-			ExceptionReporter.printStackTrace(e);
-		}
-		return null;
 	}
 
 	public static void showTuto() {
@@ -2161,9 +2122,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 							SwingConstants.LEFT));
 					App.showCenterPanel(jpanel, 0, 0, "Success");
 
-					if (jtfuuid != null) {
-						jtfuuid.setText(donateIDStr);
-					}
 					return;
 				} else {
 					final JPanel jpanel = new JPanel();
@@ -2494,4 +2452,9 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		return enableReportException;
 	}
 
+	static {
+		if(IConstant.isHCServer() == false){
+			throw new Error("Cant invoke App method in Relay/Monitor Server!");
+		}
+	}
 }

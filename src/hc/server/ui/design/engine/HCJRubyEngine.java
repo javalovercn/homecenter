@@ -79,7 +79,7 @@ public class HCJRubyEngine {
 //		L.V = L.O ? false : LogManager.log("JRubyEngine getHomeDirectory : " + getHomeDirectory());
 		if(isReportException){
 //			InputStream istream, String filename, int... lines
-			final InputStream in = new ByteArrayInputStream(StringUtil.getBytes(script)); 
+			final InputStream in = new ByteArrayInputStream(StringUtil.getBytes(script));//支持中文
 			scriptName = (scriptName==null||scriptName.length()==0)?"<script>":("<" + scriptName + ">");
 //			L.V = L.O ? false : LogManager.log("compile name : " + scriptName + " for src : " + script);
 			final Object[] para = {in, scriptName, zero};

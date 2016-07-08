@@ -1,5 +1,6 @@
 package hc.util;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.cert.Certificate;
@@ -18,31 +19,32 @@ public class HCVerify {
 	 * @param fileName 非DER格式
 	 * @return
 	 */
-	private static X509Certificate readPublicKeyFromPEM(String fileName) {
+	private static X509Certificate readPublicKeyFromPEM(final File file) {
 		try{
-			CertificateFactory factory = CertificateFactory.getInstance("X.509");
-			X509Certificate cert = (X509Certificate) factory
-					.generateCertificate(new FileInputStream(fileName));
+			final FileInputStream inStream = new FileInputStream(file);
+			final CertificateFactory factory = CertificateFactory.getInstance("X.509");
+			final X509Certificate cert = (X509Certificate) factory.generateCertificate(inStream);
 			return cert;
-		}catch (Exception e) {
+		}catch (final Exception e) {
+			e.printStackTrace();
 		}
 		return null;
 	}
 
-	public static boolean verifyJar(String filename, X509Certificate trustedSigner) {
+	public static boolean verifyJar(final String filename, final X509Certificate trustedSigner) {
 		JarFile jf = null;
 		try{
 			jf = new JarFile(filename);
 			final byte[] buf = new byte[4096];
 	
-			Manifest manifest = jf.getManifest();
+			final Manifest manifest = jf.getManifest();
 			if (manifest == null)
 				return false;
 	
 			final Enumeration<JarEntry> ent = jf.entries();
 			while (ent.hasMoreElements()) {
-				JarEntry je = ent.nextElement();
-				InputStream is = jf.getInputStream(je);
+				final JarEntry je = ent.nextElement();
+				final InputStream is = jf.getInputStream(je);
 				int n;
 				try {
 					while ((n = is.read(buf, 0, buf.length)) != -1) {
@@ -54,7 +56,7 @@ public class HCVerify {
 				if (je.isDirectory())
 					continue;
 	
-				Certificate[] certs = je.getCertificates();
+				final Certificate[] certs = je.getCertificates();
 				if ((certs == null) || (certs.length == 0)) {
 					if (!je.getName().startsWith("META-INF", 0))
 						return false;
@@ -74,20 +76,20 @@ public class HCVerify {
 			}
 	
 			return true;
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
 		}finally{
 			try {
 				jf.close();
-			} catch (Throwable e) {
+			} catch (final Throwable e) {
 			}
 		}
 		return false;
 	}
 
 	public static X509Certificate getCert(){
-		byte[] bs = {'h', 'c', '.', 'p', 'e', 'm'};
+		final byte[] bs = {'h', 'c', '.', 'p', 'e', 'm'};
 		final String fileName = new String(bs);
-		X509Certificate c = readPublicKeyFromPEM(fileName);
+		final X509Certificate c = readPublicKeyFromPEM(new File(ResourceUtil.getBaseDir(), fileName));//注意：此方式不适合于Android服务器
 		if(c == null){
 			HCVerify.isPassVerify = false;
 		}

@@ -14,17 +14,17 @@ public class StoreDirManager {
 	public static final String LINK_DIR_NAME = "link";
 	
 	public static void createDirIfNeccesary(final String dir){
-		final File file = new File(App.getBaseDir(), "." + dir);
+		final File file = new File(ResourceUtil.getBaseDir(), "." + dir);
 		if(file.isDirectory()){
 		}else{
 			file.mkdirs();
 		}
 	}
 
-	public static final File TEMP_DIR = new File(App.getBaseDir(), TEMP_DIR_NAME);
-	public static final File RMS_DIR = new File(App.getBaseDir(), HC_RMS);
-	public static final File LINK_DIR = new File(App.getBaseDir(), LINK_DIR_NAME);
-	public static final File RUN_TEST_DIR = new File(App.getBaseDir(), "runtest");
+	public static final File TEMP_DIR = new File(ResourceUtil.getBaseDir(), TEMP_DIR_NAME);
+	public static final File RMS_DIR = new File(ResourceUtil.getBaseDir(), HC_RMS);
+	public static final File LINK_DIR = new File(ResourceUtil.getBaseDir(), LINK_DIR_NAME);
+	public static final File RUN_TEST_DIR = new File(ResourceUtil.getBaseDir(), "runtest");
 
 	static {
 		if(TEMP_DIR.exists() == false){

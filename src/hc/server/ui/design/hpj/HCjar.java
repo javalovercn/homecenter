@@ -13,6 +13,7 @@ import hc.server.util.ContextSecurityManager;
 import hc.server.util.HCLimitSecurityManager;
 import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
 import hc.util.StoreableHashMapWithModifyFlag;
 
 import java.io.BufferedInputStream;
@@ -103,7 +104,8 @@ public class HCjar {
 	public static final String PERMISSION_SETIO = PERMISSION_HEADER + "SetIO";
 	public static final String PERMISSION_MEMBER_ACCESS_SYSTEM = PERMISSION_HEADER + "MemberAccessSystem";
 	public static final String PERMISSION_ACCESS_PRIVATE_ADDRESS = PERMISSION_HEADER + "PrivateAddress";
-	
+	public static final String PERMISSION_SET_FACTORY = PERMISSION_HEADER + "SetFactory";
+
 	private static final String PERMISSION_SOCK_HEADER = PERMISSION_HEADER + "Sock.";
 	public static final String PERMISSION_SOCK_ITEM_HEADER = PERMISSION_SOCK_HEADER + "Item.";
 	public static final String PERMISSION_SOCK_NUM = PERMISSION_SOCK_HEADER + "Num";
@@ -257,7 +259,7 @@ public class HCjar {
 	}
 	
 	public static final Map<String, Object> loadHarFromLPS(final LinkProjectStore lps){
-		final File har_load = new File(new File(App.getBaseDir(), lps.getHarParentDir()), lps.getHarFile());
+		final File har_load = new File(new File(ResourceUtil.getBaseDir(), lps.getHarParentDir()), lps.getHarFile());
 		return HCjar.loadHar(har_load, false);
 	}
 	

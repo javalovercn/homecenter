@@ -29,7 +29,7 @@ public class ProjectListPanel {
 			(String)ResourceUtil.get(8017),//"is Root", 
 			(String)ResourceUtil.get(8018),//"Project ID", 
 			(String)ResourceUtil.get(8019),//"Version", 
-			(String)ResourceUtil.get(8020),//"Active", 
+			LinkProjectPanel.ACTIVE,//"Active", 
 			(String)ResourceUtil.get(8021),//"Link Name", 
 			(String)ResourceUtil.get(8022),//"Comment", 
 			upgradeURL,//upgradeURL

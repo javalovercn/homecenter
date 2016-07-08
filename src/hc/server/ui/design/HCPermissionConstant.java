@@ -45,4 +45,7 @@ public class HCPermissionConstant {
 	
 	public static final String SETIO_TIP = "<html>changing the value of the standard system streams of <STRONG>System.out</STRONG>, " +
 			"<STRONG>System.in</STRONG>, or <STRONG>System.err</STRONG></html>";
+	
+	public static final String SET_FACTORY_TIP = "<html>set global factory object for <STRONG>socket</STRONG>, " +
+			"<STRONG>URL</STRONG>, <STRONG>Naming</STRONG> or other.</html>";
 }

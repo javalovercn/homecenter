@@ -26,6 +26,7 @@ import hc.server.ui.SingleMessageNotify;
 import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.util.BaseResponsor;
+import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
@@ -218,7 +219,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 						boolean isNotifyPressStart = false;
 						int totalSleep = 0;
 						final int sleepMS = 1000;
-						final int maxSleepMS = (App.isSimu()?5:30) * sleepMS;
+						final int maxSleepMS = (PropertiesManager.isSimu()?5:30) * sleepMS;
 						String url;
 						do{
 //							final String[] commands = {"hello_1", "hello_world"};

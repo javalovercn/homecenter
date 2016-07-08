@@ -1,6 +1,9 @@
 package hc.core.util;
 
 public abstract class RootBuilder {
+	public static final short ROOT_BIZ_AJAX_X509_PATH = 1;
+	public static final short ROOT_BIZ_IS_SIMU = 2;
+	
 	private static RootBuilder instance;
 	
 	public static void setInstance(RootBuilder builder){
@@ -15,6 +18,7 @@ public abstract class RootBuilder {
 	public abstract ExceptionJSONBuilder getExceptionJSONBuilder();
 	
 	public abstract String getAjax(String url);
-	public abstract String getAjaxForSimu(String url, boolean isTcp);
+	public abstract String getAjaxForSimu(String url);
 
+	public abstract Object doBiz(final int rootBizNo, final Object para);
 }

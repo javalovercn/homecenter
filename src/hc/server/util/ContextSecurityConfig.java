@@ -103,6 +103,7 @@ public class ContextSecurityConfig {
 //		setAccessClipboard(false);
 		setShutdownHooks(false);
 		setSetIO(false);
+		setSetFactory(false);
 		
 		setMemberAccessSystem(false);
 		
@@ -288,6 +289,14 @@ public class ContextSecurityConfig {
 
 	public final boolean isMemberAccessSystem(){
 		return isTrue(HCjar.PERMISSION_MEMBER_ACCESS_SYSTEM, true);
+	}
+	
+	public final boolean isSetFactory(){
+		return isTrue(HCjar.PERMISSION_SET_FACTORY, true);
+	}
+	
+	public final void setSetFactory(final boolean bool){
+		setBoolean(HCjar.PERMISSION_SET_FACTORY, bool);
 	}
 	
 	public final boolean isAccessPrivateAddress(){

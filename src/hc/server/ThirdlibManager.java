@@ -39,7 +39,7 @@ public class ThirdlibManager {
 	
 	public static PropertiesSet libsSet = new PropertiesSet(PropertiesManager.S_THIRD_DIR);
 	static {
-		final File lib_dir = new File(App.getBaseDir(), PropertiesManager.S_THIRD_DIR);
+		final File lib_dir = new File(ResourceUtil.getBaseDir(), PropertiesManager.S_THIRD_DIR);
 		if(lib_dir.exists()){
 		}else{
 			lib_dir.mkdirs();
@@ -59,13 +59,13 @@ public class ThirdlibManager {
 		final File[] libFiles = new File[size];
 		for (int i = 0; i < size; i++) {
 			final String item = libsSet.getItem(i);
-			libFiles[i] = new File(App.getBaseDir(), item);
+			libFiles[i] = new File(ResourceUtil.getBaseDir(), item);
 		}
 		PlatformManager.getService().get3rdClassLoader(libFiles);
 	}
 	
 	public static File buildTarget(final String libNameWithoutJarExt){
-		return new File(App.getBaseDir(), buildPath(libNameWithoutJarExt));
+		return new File(ResourceUtil.getBaseDir(), buildPath(libNameWithoutJarExt));
 	}
 
 	/**
@@ -84,7 +84,7 @@ public class ThirdlibManager {
 	 * @return
 	 */
 	public static String removePath(final String pathName, final boolean keepExtJar){
-		final String name = new File(App.getBaseDir(), pathName).getName();
+		final String name = new File(ResourceUtil.getBaseDir(), pathName).getName();
 		if(keepExtJar){
 			return name;
 		}else{

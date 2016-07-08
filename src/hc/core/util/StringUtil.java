@@ -32,6 +32,13 @@ public class StringUtil {
 		return out;
 	}
 
+	public static String replaceStartStr(final String src, final String find, final String replaceTo) {
+		if(src.startsWith(find)){
+			return replaceTo + src.substring(find.length());
+		}
+		return src;
+	}
+
 	public static String toSerialBySplit(final String[] item){
 		if(item.length == 0){
 			return "";

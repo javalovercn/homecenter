@@ -290,7 +290,7 @@ public class ISOBuilder {
 	}
 	
 	/**
-	 *http://www.foreign-trade.com/reference/hscode.cfm?cat=13
+	 *www.foreign-trade.com/reference/hscode.cfm?cat=13
 	 * @return
 	 */
 	private static HashMap<Integer, String> buildHSCode(){

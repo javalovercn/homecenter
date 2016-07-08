@@ -53,7 +53,18 @@ public class J2SERootBuilder extends RootBuilder {
 	}
 
 	@Override
-	public String getAjaxForSimu(final String url, final boolean isTCP) {
-		return HttpUtil.getAjaxForSimu(url, false);
+	public String getAjaxForSimu(final String url) {
+		return HttpUtil.getAjaxForSimu(url);
+	}
+
+	@Override
+	public Object doBiz(final int rootBizNo, final Object para) {
+		 if(rootBizNo == ROOT_BIZ_AJAX_X509_PATH){
+			 return "/hc/res/ajax.der";
+		 }else if(rootBizNo == ROOT_BIZ_IS_SIMU){
+			 return PropertiesManager.isSimu();
+		 }
+		 
+		 return null;
 	}
 }

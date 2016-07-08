@@ -15,10 +15,19 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 public class RootServerConnector {
+	public static final String PORT_8080_WITH_MAOHAO = ":8080";
+	public static final int PORT_44X = 444;
+	public static final String PORT_44X_WITH_MAOHAO = ":" + String.valueOf(PORT_44X);
+	public static final String PORT_808044X = PORT_8080_WITH_MAOHAO + PORT_44X_WITH_MAOHAO;
+	public static final String PORT_44X_WITH_MAOHAO_PATH = PORT_44X_WITH_MAOHAO + "/";
+	public static final String HOST_HOMECENTER_MOBI = "homecenter.mobi";
+	private static final String AJAX_HTTP_URL_PREFIX = "http://" + HOST_HOMECENTER_MOBI + "/ajax/";
+	public static final String AJAX_HTTPS_44X_URL_PREFIX = "https://" + HOST_HOMECENTER_MOBI + PORT_44X_WITH_MAOHAO + "/ajax/";
+	
 //	"Unable Connect the server"
 	final static String UN_CONN = unObfuscate("nUbaelC noentct ehs reevr");
 	//http://homecenter.mobi/ajax/call.php?
-	public final static String CALL_STR = unObfuscate("thpt/:h/moceneet.romiba/aj/xacllp.ph?");
+	public final static String CALL_STR = AJAX_HTTPS_44X_URL_PREFIX + "call.php?";
 	//id=
 	final static String ID_STR = unObfuscate("di=");
 	//"token="
@@ -104,7 +113,7 @@ public class RootServerConnector {
 				unObfuscate("=fsieRTg&K") +
 				ID_STR + encryptePara(uuid, token) + "&" +
 				TOKEN_STR + token + "&" +
-				ENCRYPTER_STR + "true", false);
+				ENCRYPTER_STR + "true");
 		if(out != null && out.equals("1")){
 			return true;
 		}
@@ -118,11 +127,11 @@ public class RootServerConnector {
 	 * @param url 支持内含UTF-8的参数
 	 * @return
 	 */
-	public static String retry(String url, boolean isTCP){
+	public static String retry(String url){
 		String msg = null;
 		int tryTims = 0;
 		while(true){
-			msg = RootBuilder.getInstance().getAjaxForSimu(url, isTCP);
+			msg = RootBuilder.getInstance().getAjaxForSimu(url);
 			if(msg == null && tryTims < 2){
 			}else{
 				break;
@@ -203,7 +212,7 @@ public class RootServerConnector {
 				TOKEN_STR + token + "&" +
 				HIDE_IP_STR + hideIP + "&" +
 				HIDE_TOKEN_STR + hideToken + "&" +
-				ENCRYPTER_STR + "true", true);
+				ENCRYPTER_STR + "true");
 	}
 	
 	/**
@@ -218,7 +227,7 @@ public class RootServerConnector {
 			ID_STR + encryptePara(IConstant.uuid, token) + "&" +
 			serverNum_STR + serverNum + "&" +
 			TOKEN_STR + token + "&" +
-			ENCRYPTER_STR + "true", false);
+			ENCRYPTER_STR + "true");
 	}
 	
 	/**
@@ -238,7 +247,7 @@ public class RootServerConnector {
 //				unObfuscate("meia=l") + email + "&" +
 //				"donateKey="
 				unObfuscate("odaneteK=y") + donateKey + "&" +
-				ENCRYPTER_STR + "true", false);
+				ENCRYPTER_STR + "true");
 	}
 	
 	public static String getHideToken(){
@@ -269,7 +278,7 @@ public class RootServerConnector {
 					IP_STR + relayIP + "&" +
 					PORT_STR + relayPort + "&" +
 					TOKEN_STR + token + "&" +
-					ENCRYPTER_STR + "true", true);
+					ENCRYPTER_STR + "true");
 	}
 		
 	/**
@@ -284,7 +293,7 @@ public class RootServerConnector {
 				sip_STR +
 				ID_STR + encryptePara(IConstant.uuid, hideToken) + "&" +
 				HIDE_TOKEN_STR + hideToken + "&" +
-				ENCRYPTER_STR + "true", true);
+				ENCRYPTER_STR + "true");
 		
 		if(msg == null || msg.length() == 0){
 			return null;
@@ -298,7 +307,7 @@ public class RootServerConnector {
 				newrelay_STR + "&" +
 				ID_STR + encryptePara(uuid, token) + "&" +
 				TOKEN_STR + token + "&" +
-				ENCRYPTER_STR + "true", true);
+				ENCRYPTER_STR + "true");
 		
 		if(msg == null || msg.length() == 0){
 			return null;
@@ -379,93 +388,93 @@ public class RootServerConnector {
 		return url.substring(url.indexOf("?") + 1);
 	}
 	
-	public static String sendTCPToRoot(String ip, int port, byte ctrlTag, String msg){
-    	Object socket = null;
-    	try{
-    		socket = SIPManager.getSIPContext().buildSocket(0, ip, port);
-			if(socket == null){
-				return "";
-			}
-			
-//			System.out.println("sendTCP msg : " + msg);
-			
-			final Object f_socket = socket;
-			final boolean[] isDone = {false};
-			ConditionWatcher.addWatcher(new IWatcher() {
-				final long now = System.currentTimeMillis();
-				public boolean watch() {
-					if(System.currentTimeMillis() - now > 3000){
-						System.out.println("Over timer sendTCPToRoot");
-						try{
-							SIPManager.getSIPContext().closeSocket(f_socket);
-						}catch(Exception e){
-						}
-						return true;
-					}else if(isDone[0]){
-						return true;
-					}
-					return false;
-				}
-				
-				public void setPara(Object p) {
-					
-				}
-				
-				public boolean isCancelable() {
-					return false;
-				}
-				
-				public void cancel() {
-				}
-			});
-			//本处假定访问服务器的，最大数据块长度为5K，
-			//如果修改此大小，请同步更改RootRelayReceiveServer.lineOnBB
-	    	final byte[] bs = new byte[1024 * 5];//DatagramPacketCacher.getInstance().getFree();
-			
-			DataPNG dataStr = new DataPNG();
-			dataStr.setBytes(bs);
-			
-			byte[] msgBS = msg.getBytes(IConstant.UTF_8);
-			final int bsLength = msgBS.length;
-			dataStr.setPNGDataLen(bsLength, 0, 0, 0, 0);
-			System.arraycopy(msgBS, 0, bs, DataPNG.png_index, bsLength);
-			dataStr.setTargetID(bsLength, bs, 0, 0);
-			
-			bs[MsgBuilder.INDEX_CTRL_TAG] = MsgBuilder.E_TAG_ROOT;
-			bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = ctrlTag;		
-//				bs[MsgBuilder.INDEX_PACKET_SPLIT] = MsgBuilder.DATA_PACKET_NOT_SPLIT;
-		
-			OutputStream os = SIPManager.getSIPContext().getOutputStream(socket);
-			int len = MsgBuilder.INDEX_MSG_DATA + dataStr.getLength();
-			
-			InputStream is = SIPManager.getSIPContext().getInputStream(socket);
-
-			SIPManager.send(os, bs, 0, len);
-			
-			
-			is.read(bs);
-//			System.out.println("Receive SendTCP backLen :  " + backLen);int backLen = 
-			
-			isDone[0] = true;
-//			System.out.println("Receive SendTCP PNGDataLen : " + dataStr.getPNGDataLen());
-			final String out_str = new String(bs, DataPNG.png_index, dataStr.getPNGDataLen(), IConstant.UTF_8);
-//			System.out.println("Receive : " + out_str);
-			return out_str;
-    	}catch (Throwable e) {
-    		ExceptionReporter.printStackTrace(e);
-		}finally{
-			try{
-				SIPManager.getSIPContext().closeSocket(socket);
-			}catch(Exception e){
-				
-			}
-		}
-		return "";
-	}
+//	public static String sendTCPToRoot(String ip, int port, byte ctrlTag, String msg){
+//    	Object socket = null;
+//    	try{
+//    		socket = SIPManager.getSIPContext().buildSocket(0, ip, port);
+//			if(socket == null){
+//				return "";
+//			}
+//			
+////			System.out.println("sendTCP msg : " + msg);
+//			
+//			final Object f_socket = socket;
+//			final boolean[] isDone = {false};
+//			ConditionWatcher.addWatcher(new IWatcher() {
+//				final long now = System.currentTimeMillis();
+//				public boolean watch() {
+//					if(System.currentTimeMillis() - now > 3000){
+//						System.out.println("Over timer sendTCPToRoot");
+//						try{
+//							SIPManager.getSIPContext().closeSocket(f_socket);
+//						}catch(Exception e){
+//						}
+//						return true;
+//					}else if(isDone[0]){
+//						return true;
+//					}
+//					return false;
+//				}
+//				
+//				public void setPara(Object p) {
+//					
+//				}
+//				
+//				public boolean isCancelable() {
+//					return false;
+//				}
+//				
+//				public void cancel() {
+//				}
+//			});
+//			//本处假定访问服务器的，最大数据块长度为5K，
+//			//如果修改此大小，请同步更改RootRelayReceiveServer.lineOnBB
+//	    	final byte[] bs = new byte[1024 * 5];//DatagramPacketCacher.getInstance().getFree();
+//			
+//			DataPNG dataStr = new DataPNG();
+//			dataStr.setBytes(bs);
+//			
+//			byte[] msgBS = msg.getBytes(IConstant.UTF_8);
+//			final int bsLength = msgBS.length;
+//			dataStr.setPNGDataLen(bsLength, 0, 0, 0, 0);
+//			System.arraycopy(msgBS, 0, bs, DataPNG.png_index, bsLength);
+//			dataStr.setTargetID(bsLength, bs, 0, 0);
+//			
+//			bs[MsgBuilder.INDEX_CTRL_TAG] = MsgBuilder.E_TAG_ROOT;
+//			bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = ctrlTag;		
+////				bs[MsgBuilder.INDEX_PACKET_SPLIT] = MsgBuilder.DATA_PACKET_NOT_SPLIT;
+//		
+//			OutputStream os = SIPManager.getSIPContext().getOutputStream(socket);
+//			int len = MsgBuilder.INDEX_MSG_DATA + dataStr.getLength();
+//			
+//			InputStream is = SIPManager.getSIPContext().getInputStream(socket);
+//
+//			SIPManager.send(os, bs, 0, len);
+//			
+//			
+//			is.read(bs);
+////			System.out.println("Receive SendTCP backLen :  " + backLen);int backLen = 
+//			
+//			isDone[0] = true;
+////			System.out.println("Receive SendTCP PNGDataLen : " + dataStr.getPNGDataLen());
+//			final String out_str = new String(bs, DataPNG.png_index, dataStr.getPNGDataLen(), IConstant.UTF_8);
+////			System.out.println("Receive : " + out_str);
+//			return out_str;
+//    	}catch (Throwable e) {
+//    		ExceptionReporter.printStackTrace(e);
+//		}finally{
+//			try{
+//				SIPManager.getSIPContext().closeSocket(socket);
+//			}catch(Exception e){
+//				
+//			}
+//		}
+//		return "";
+//	}
 
 	public static String getRootConfig() {
 		return retry(CALL_STR +
-				rootcfg_STR, false);
+				rootcfg_STR);
 	}
 
 	private static boolean isDelLineInfo = false;
@@ -493,7 +502,7 @@ public class RootServerConnector {
 				lineOffStr +
 				ID_STR + encryptePara(uuid, token) + "&" +
 				TOKEN_STR + token + "&" +
-				ENCRYPTER_STR + "true", true);
+				ENCRYPTER_STR + "true");
 	}
 	
 	public static String refreshRootAlive_impl(String token, boolean hideIP, String hideToken) {
@@ -503,7 +512,7 @@ public class RootServerConnector {
 				TOKEN_STR + token + "&" +
 				HIDE_IP_STR + hideIP + "&" +
 				HIDE_TOKEN_STR + hideToken + "&" +
-				ENCRYPTER_STR + "true", true);
+				ENCRYPTER_STR + "true");
 	}
 	
 	public static void notifyLineOffType(final String type) {
@@ -513,27 +522,34 @@ public class RootServerConnector {
 		if(ci != null){
 			ver = (String)ci.doExtBiz(IContext.BIZ_VERSION_MID_OR_PC, null);
 		}
-		retry(CALL_STR + type + (ver==null?"":ver), false);
+		retry(CALL_STR + type + (ver==null?"":ver));
 	}
 	
-	public static final String SIMU_ROOT_IP = "localhost";//"192.168.1.101";
-	public static final int SIMU_ROOT_PORT = 33333;
+	public static final String SIMU_LOCALHOST = "localhost";//"192.168.1.101";
+	public static final int SIMU_PORT = 33333;
+	public final static String IP_192_168_1_102 = "192.168.1.102";
 	
-	public static String getAjaxTCP(String url, boolean isSimu){
-		String ip;
-		int port;
-		if(isSimu){
-			ip = SIMU_ROOT_IP;
-			port = SIMU_ROOT_PORT;
-		}else{
-			ip = RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServer);
-			port = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServerPort));
-		}
-		
-		return sendTCPToRoot(ip, port, 
-				MsgBuilder.DATA_ROOT_ONLINE_DB_EXEC, 
-				getParameterFromURL(url));
+	public static final boolean checkAjaxSSLDomain(final String host){
+		return (host.equals(RootServerConnector.HOST_HOMECENTER_MOBI)
+			||  host.equals(RootServerConnector.SIMU_LOCALHOST) 
+			|| host.equals(IP_192_168_1_102));
 	}
+	
+//	public static String getAjaxTCP(String url, boolean isSimu){
+//		String ip;
+//		int port;
+//		if(isSimu){
+//			ip = SIMU_LOCALHOST;
+//			port = SIMU_PORT;
+//		}else{
+//			ip = RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServer);
+//			port = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServerPort));
+//		}
+//		
+//		return sendTCPToRoot(ip, port, 
+//				MsgBuilder.DATA_ROOT_ONLINE_DB_EXEC, 
+//				getParameterFromURL(url));
+//	}
 
 	public static String encryptePara(final String str, final String hideToken){
 		final byte[] str_bs = StringUtil.getBytes(str);
@@ -551,5 +567,26 @@ public class RootServerConnector {
 	}
 
 	public static final String ROOT_AJAX_OK = "ok";
+	private static final String HTTPS = "https";
+	private static final String HTTP = "http";
 
+	public static final String convertToHttpAjax(String https_url){
+		if(IConstant.serverSide == false 
+				&& (
+						(ConfigManager.getOSType() == ConfigManager.OS_J2ME)
+						||
+						(
+							ConfigManager.getOSType() == ConfigManager.OS_IPHONE
+							&&
+							((Boolean)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_IS_SIMU, null)).booleanValue()
+						))){
+			https_url = StringUtil.replaceStartStr(https_url, AJAX_HTTPS_44X_URL_PREFIX, AJAX_HTTP_URL_PREFIX);
+			
+			//InSimu下的测试，有可能上行返回原值，故须执行一次
+			https_url = StringUtil.replaceStartStr(https_url, HTTPS, HTTP);
+		}
+		
+		return https_url;
+	}
+	
 }

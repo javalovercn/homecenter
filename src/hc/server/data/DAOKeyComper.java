@@ -1,11 +1,11 @@
 package hc.server.data;
 
-import hc.App;
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.data.screen.KeyComper;
 import hc.server.data.screen.ScreenCapturer;
+import hc.util.ResourceUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -69,7 +69,7 @@ public class DAOKeyComper implements IDao{
 		this.sc = sc;
 		
 		boolean isExist = false;
-		mu = new File(App.getBaseDir(), DAOKeyComper.MOBI_USER_ICONS);
+		mu = new File(ResourceUtil.getBaseDir(), DAOKeyComper.MOBI_USER_ICONS);
 		isExist = mu.exists();
 		
 		if(isExist == false){
@@ -158,7 +158,7 @@ public class DAOKeyComper implements IDao{
 			
 			//删除不用的图标
 			{
-				final File file = new File(App.getBaseDir(), "." + StoreDirManager.ICO_DIR);
+				final File file = new File(ResourceUtil.getBaseDir(), "." + StoreDirManager.ICO_DIR);
 				final File[] icons = file.listFiles();
 				final int userSize = comper.size();
 				for (int i = 0; i < icons.length; i++) {

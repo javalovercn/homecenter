@@ -73,6 +73,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 //	private final JCheckBox checkAccessClipboard = new JCheckBox("access clipboard");
 	private final JCheckBox checkShutdownHooks = new JCheckBox("access shutdown hooks");
 	private final JCheckBox checkSetIO = new JCheckBox("set system IO");
+	private final JCheckBox checkSetFactory = new JCheckBox("set Factory");
 	
 	SocketEditPanel perm_sock_panel;
 	
@@ -309,7 +310,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 						public void run() {
 							final Properties had = new Properties();
 							try{
-								had.load(new URL(urlField.getText()).openStream());
+								final String url = urlField.getText();
+								ResourceUtil.loadFromURL(had, url);
 								
 								final JPanel jpanel = new JPanel(new BorderLayout());
 								final StringBuffer sb = new StringBuffer();
@@ -468,6 +470,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 //		checkAccessClipboard.setToolTipText(HCPermissionConstant.ACCESS_CLIPBOARD_TIP);
 		checkShutdownHooks.setToolTipText(HCPermissionConstant.SHUTDOWN_HOOKS_TIP);
 		checkSetIO.setToolTipText(HCPermissionConstant.SETIO_TIP);
+		checkSetFactory.setToolTipText(HCPermissionConstant.SET_FACTORY_TIP);
 		
 		perm_sock_panel = new SocketEditPanel(){
 			@Override
@@ -542,6 +545,13 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				notifyModified();	
 			}
 		}, threadPoolToken));	
+		checkSetFactory.addItemListener(new HCActionListener(new Runnable() {
+			@Override
+			public void run() {
+				((HPProject)item).csc.setSetFactory(checkSetFactory.isSelected());
+				notifyModified();	
+			}
+		}, threadPoolToken));	
 		perm_write.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -588,11 +598,12 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		
 		sysPropPanel.add(perm_memAccessSystem);
 		
-		final JPanel sysOtherPropPanel = new JPanel(new GridLayout(1, 4));
+		final JPanel sysOtherPropPanel = new JPanel(new GridLayout(2, 4));
 		sysOtherPropPanel.add(checkLoadLib);
 		sysOtherPropPanel.add(checkRobot);
 		sysOtherPropPanel.add(checkSetIO);
 		sysOtherPropPanel.add(checkShutdownHooks);
+		sysOtherPropPanel.add(checkSetFactory);
 //		sysOtherPropPanel.add(checkListenAllAWTEvents);
 //		sysOtherPropPanel.add(checkAccessClipboard);
 		final JComponent[] components = {osPermPanel, new JSeparator(SwingConstants.HORIZONTAL), 
@@ -623,23 +634,26 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		copyright.setText(hpProject.copyright);
 		contact.setText(hpProject.contact);
 		
-		perm_write.setSelected(hpProject.csc.isWrite());
-		perm_exec.setSelected(hpProject.csc.isExecute());
-		perm_del.setSelected(hpProject.csc.isDelete());
-		perm_exit.setSelected(hpProject.csc.isExit());
+		final ContextSecurityConfig csc = hpProject.csc;
 		
-		checkReadProperty.setSelected(hpProject.csc.isSysPropRead());
-		checkWriteProperty.setSelected(hpProject.csc.isSysPropWrite());
-		perm_memAccessSystem.setSelected(hpProject.csc.isMemberAccessSystem());
+		perm_write.setSelected(csc.isWrite());
+		perm_exec.setSelected(csc.isExecute());
+		perm_del.setSelected(csc.isDelete());
+		perm_exit.setSelected(csc.isExit());
 		
-		checkLoadLib.setSelected(hpProject.csc.isLoadLib());
-		checkRobot.setSelected(hpProject.csc.isRobot());
-//		checkListenAllAWTEvents.setSelected(hpProject.csc.isListenAllAWTEvents());
-//		checkAccessClipboard.setSelected(hpProject.csc.isAccessClipboard());
-		checkShutdownHooks.setSelected(hpProject.csc.isShutdownHooks());
-		checkSetIO.setSelected(hpProject.csc.isSetIO());
+		checkReadProperty.setSelected(csc.isSysPropRead());
+		checkWriteProperty.setSelected(csc.isSysPropWrite());
+		perm_memAccessSystem.setSelected(csc.isMemberAccessSystem());
 		
-		perm_sock_panel.refresh(hpProject.csc);
+		checkLoadLib.setSelected(csc.isLoadLib());
+		checkRobot.setSelected(csc.isRobot());
+//		checkListenAllAWTEvents.setSelected(csc.isListenAllAWTEvents());
+//		checkAccessClipboard.setSelected(csc.isAccessClipboard());
+		checkShutdownHooks.setSelected(csc.isShutdownHooks());
+		checkSetIO.setSelected(csc.isSetIO());
+		checkSetFactory.setSelected(csc.isSetFactory());
+		
+		perm_sock_panel.refresh(csc);
 	}
 	
 	private JPanel buildItemPanel(final JTextField field, final String label, final int colNum){

@@ -83,7 +83,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 	public static final String OP_NEXT_START_UP = (String)ResourceUtil.get(9135);
 	public static final String OP_ASK = (String)ResourceUtil.get(9136);
 	public static final String OP_IMMEDIATE = (String)ResourceUtil.get(9137);
-	
+	public static String ACTIVE = (String)ResourceUtil.get(8020);
+
 	final JRadioButton rb_startup = new JRadioButton(OP_NEXT_START_UP);
 	final JRadioButton rb_ask = new JRadioButton(OP_ASK);
 	final JRadioButton rb_imme = new JRadioButton(OP_IMMEDIATE);
@@ -634,12 +635,16 @@ public class LinkProjectPanel extends ProjectListPanel{
 		buttonsList.add(importBut);
 
 		final JScrollPane scrollpane = new JScrollPane(tablePanel.table);
-		int tableHeight = 200;
+		int tableHeight = 200;//100在乐1下正好一行
 		if(ResourceUtil.isAndroidServerPlatform()){
 			final Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
 			final int heightOfLetvOne = 1080;
-			if(screensize.height <= heightOfLetvOne){
-				tableHeight = tableHeight * screensize.height / heightOfLetvOne;
+			final int screenHeight = screensize.height;
+			if(screenHeight >= 1080){
+				tableHeight = 150;
+			}
+			if(screenHeight <= heightOfLetvOne){
+				tableHeight = tableHeight * screenHeight / heightOfLetvOne;
 			}
 		}
 		scrollpane.setPreferredSize(new Dimension(950, tableHeight));
@@ -686,7 +691,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 				rb_ask.addItemListener(itemListener);
 				rb_imme.addItemListener(itemListener);
 
-				final String autoUpgradeTip = StringUtil.replace((String)ResourceUtil.get(9153), "{upgradeurl}", upgradeURL);
+				String autoUpgradeTip = StringUtil.replace((String)ResourceUtil.get(9153), "{upgradeurl}", upgradeURL);
+				autoUpgradeTip = StringUtil.replace(autoUpgradeTip, "{active}", ACTIVE);
 				ch_autoUpgrade.setToolTipText("<html>" + autoUpgradeTip + "</html>");
 				final boolean isEnableUpgrade = PropertiesManager.getValue(
 					PropertiesManager.p_EnableLinkedInProjUpgrade, IConstant.TRUE).equals(IConstant.TRUE);
@@ -818,7 +824,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 				
 				LinkProjectManager.reloadLinkProjects();//必须要拉新，否则有可能有修改，但不要保存的。
 				final LinkProjectStore lps = LinkProjectManager.getProjByID(de_led.lps.getProjectID());
-				final File defaultFile = new File(App.getBaseDir(), LinkProjectManager.EDIT_HAR);
+				final File defaultFile = new File(ResourceUtil.getBaseDir(), LinkProjectManager.EDIT_HAR);
 				if(L.isInWorkshop){
 					L.V = L.O ? false : LogManager.log("shift project check default HAR : " + defaultFile.getAbsolutePath() + " exists : " + defaultFile.exists());
 				}
@@ -922,7 +928,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 							loadToTable(self, selfBiz, file, map);
 						}
 					};
-					App.showAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", licenseURL, biz, null, true);
+					App.showAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", false, licenseURL, biz, null, true);
 					return;
 				}
 				loadToTable(self, selfBiz, file, map);

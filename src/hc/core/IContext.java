@@ -368,10 +368,13 @@ public abstract class IContext {
 						outStream.write(bs, 0, minSize);
 						outStream.flush();
 					}
-				}catch (final Exception e) {
-					if(L.isInWorkshop){
-						LogManager.errToLog("[workshop] Error sendWrapAction");
-						ExceptionReporter.printStackTrace(e);
+				}catch (final Throwable e) {
+					if(e.getMessage().equals(CUtil.SECURITY_CONN_NOT_ESTABLISHED)){
+					}else{
+						if(L.isInWorkshop){
+							LogManager.errToLog("[workshop] Error sendWrapAction");
+							e.printStackTrace();
+						}
 					}
 	//				ExceptionReporter.printStackTrace(e);
 	//				SIPManager.notifyRelineon(false);

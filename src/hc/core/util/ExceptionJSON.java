@@ -1,6 +1,7 @@
 package hc.core.util;
 
 import hc.core.IConstant;
+import hc.core.RootServerConnector;
 
 import java.io.UnsupportedEncodingException;
 
@@ -27,7 +28,7 @@ public class ExceptionJSON {
 	private String toURL;
 	public boolean isForTest;
 	
-	public static final String HC_EXCEPTION_URL = "http://homecenter.mobi/ajax/exception.php";
+	public static final String HC_EXCEPTION_URL = RootServerConnector.AJAX_HTTPS_44X_URL_PREFIX + "exception.php";
 	public static final String APPLICATION_JSON_CHARSET_UTF_8 = "application/json; charset=UTF-8";
 	
 	public final String getToURL(){

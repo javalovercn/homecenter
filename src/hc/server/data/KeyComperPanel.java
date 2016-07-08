@@ -816,7 +816,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 			final String rid = ResourceUtil.createResourceID();
 			
 			final String urlResource = StoreDirManager.ICO_DIR + App.FILE_SEPARATOR + rid + ".png";
-			final File file = new File(App.getBaseDir(), "." + urlResource);
+			final File file = new File(ResourceUtil.getBaseDir(), "." + urlResource);
 			try {
 				ImageIO.write(bi, "png", file);
 //				ResourceUtil.addMaybeUnusedResource(urlResource, true);

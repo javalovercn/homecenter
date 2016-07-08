@@ -33,8 +33,15 @@ public class CUtil {
 //		superXor(src, offset, len, keys, 0, keys.length, isEncode);
 //	}
 	
+	public static final String SECURITY_CONN_NOT_ESTABLISHED = "Security connection is NOT established.";
+	
 	public static final void superXor(final byte[] src, final int offset, final int s_len, final byte[] someKeys, final boolean isEncode, final boolean isUseRandomKeys){
 		final byte[] keys = (isUseRandomKeys?OneTimeCertKey:someKeys);
+		
+		if(keys == null){
+			//比如连接未建立，但MIDletActivity.onResume通知background
+			throw new Error(SECURITY_CONN_NOT_ESTABLISHED);
+		}
 		
 		final int k_len = keys.length;
 		if(k_len == 0){//密码为空
