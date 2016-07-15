@@ -1,6 +1,5 @@
 package hc.server;
 
-import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
@@ -9,7 +8,6 @@ import hc.core.util.StringUtil;
 import hc.util.HCVerify;
 import hc.util.HttpUtil;
 import hc.util.ResourceUtil;
-import hc.util.UILang;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -118,10 +116,7 @@ public class StarterManager {
 					}
 					hadUpgradeError = true;
 					// 刷新主菜单，增加手工升级starter
-					((J2SEContext) ContextManager
-							.getContextInstance())
-							.buildMenu(UILang
-									.getUsedLocale());
+					ResourceUtil.buildMenu();
 				}
 			}.start();
 		}
@@ -135,7 +130,7 @@ public class StarterManager {
 		
 		//客户端对服务器最低版本要求，在J2MEContext.miniHCServerVer
 		
-		return "7.10";//请同步修改go.php, android.php
+		return "7.12";//请同步修改go.php, android.php
 	}
 
 	private static String getHCVersionFromStarter() {

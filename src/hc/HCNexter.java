@@ -15,7 +15,7 @@ public class HCNexter {
 	public int idx;
 	BufferedImage[] imgs;
 	
-	public HCNexter(String[] urls) throws Exception{
+	public HCNexter(final String[] urls) throws Exception{
 		this.imgUrl = urls;
 		imgs = new BufferedImage[urls.length];
 		
@@ -29,14 +29,14 @@ public class HCNexter {
 					for (int i = 1; i < imgUrl.length; i++) {
 						imgs[i] = getImg(i);
 					}
-				}catch (Exception e) {
+				}catch (final Exception e) {
 					
 				}
 				return true;
 			}
 			
 			@Override
-			public void setPara(Object p) {
+			public void setPara(final Object p) {
 			}
 			
 			@Override
@@ -50,7 +50,7 @@ public class HCNexter {
 		});
 	}
 
-	private BufferedImage getImg(int idx) throws IOException, MalformedURLException {
-		return ImageIO.read(new URL("http://homecenter.mobi/images/" + imgUrl[idx]));
+	private BufferedImage getImg(final int idx) throws IOException, MalformedURLException {
+		return ImageIO.read(new URL("https://homecenter.mobi/images/" + imgUrl[idx]));
 	}
 }

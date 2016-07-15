@@ -1,16 +1,11 @@
 package hc.core;
 
-import hc.core.data.DataPNG;
-import hc.core.sip.SIPManager;
-import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
 import hc.core.util.RootBuilder;
 import hc.core.util.StringUtil;
 import hc.core.util.URLEncoder;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Hashtable;
 import java.util.Vector;
 
@@ -27,17 +22,17 @@ public class RootServerConnector {
 //	"Unable Connect the server"
 	final static String UN_CONN = unObfuscate("nUbaelC noentct ehs reevr");
 	//http://homecenter.mobi/ajax/call.php?
-	public final static String CALL_STR = AJAX_HTTPS_44X_URL_PREFIX + "call.php?";
+	private final static String CALL_STR = AJAX_HTTPS_44X_URL_PREFIX + "call.php?";
 	//id=
-	final static String ID_STR = unObfuscate("di=");
+	private final static String ID_STR = unObfuscate("di=");
 	//"token="
-	final static String TOKEN_STR = unObfuscate("otek=n");
+	private final static String TOKEN_STR = unObfuscate("otek=n");
 	
 	final static String HIDE_IP_STR = "hideIP=";
 	
 	final static String HIDE_TOKEN_STR = "hideToken=";
 	
-	final static String ENCRYPTER_STR = "encode=";
+	private final static String ENCRYPTER_STR = "encode=";
 	
 	//"ip=" 
 	final static String IP_STR = unObfuscate("pi=");
@@ -154,6 +149,15 @@ public class RootServerConnector {
 		return msg;
 	}
 	
+	public static String buildWaitForCheckURL(final String id,
+			final String tokenNotVerifyToken) {
+		return CALL_STR +
+				"f=waitForCheck&" +
+				ID_STR + encryptePara(id, tokenNotVerifyToken) + "&" +
+				TOKEN_STR + tokenNotVerifyToken + "&" +
+				ENCRYPTER_STR + "true";
+	}
+	
 	private static boolean isLastUnConnServer = false; 
 
 	/**
@@ -176,7 +180,7 @@ public class RootServerConnector {
 	 * @param upnp_port
 	 * @param token 
 	 * @param serverNum
-	 * @return 如果同ID已被其它服务器正占用，则返回'e'；正常上线返回空串，返回d，表示donate
+	 * @return 如果同ID已被其它服务器正占用，则返回'e'；正常上线返回空串，返回d，表示donate；返回v，表示verifiedEmal
 	 */
 	public static String lineOn(String uuid, String hostAddress, int port, int nattype, int agent, 
 			String upnp_ip, int upnp_port, String relayip, int relayport, String token, 
@@ -212,6 +216,15 @@ public class RootServerConnector {
 				TOKEN_STR + token + "&" +
 				HIDE_IP_STR + hideIP + "&" +
 				HIDE_TOKEN_STR + hideToken + "&" +
+				ENCRYPTER_STR + "true");
+	}
+	
+	public static String submitEmail(final String id, final String token, final String verifytoken){
+		return retry(CALL_STR +
+				"f=submitEmail&" +
+				ID_STR + encryptePara(id, token) + "&" +
+				TOKEN_STR + token + "&" +
+				"verifytoken=" + verifytoken + "&" +
 				ENCRYPTER_STR + "true");
 	}
 	

@@ -22,7 +22,6 @@ import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.PropertiesSet;
 import hc.util.ResourceUtil;
-import hc.util.UILang;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -1051,7 +1050,7 @@ public void run() {
 						}
 
 						try{
-							((J2SEContext)ContextManager.getContextInstance()).buildMenu(UILang.getUsedLocale());
+							ResourceUtil.buildMenu();
 							SingleJFrame.updateAllJFrame();
 						}catch (final Throwable e) {
 							ExceptionReporter.printStackTrace(e);

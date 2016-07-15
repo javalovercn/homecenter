@@ -60,6 +60,9 @@ public class ImageSrc {
 	
 //	public static final BufferedImage CRYPTED_ICON = loadImageFromPath("hc/res/halfencrypted_22.png");
 	
+	public static final BufferedImage ACCOUNT_ICON = loadImageFromPath("hc/res/idsmile_22.png");
+	public static final BufferedImage ACCOUNT_LOCK_ICON = loadImageFromPath("hc/res/id_lock_22.png");
+
 	public static final BufferedImage PASSWORD_ICON = loadImageFromPath("hc/res/password_22.png");
 	
 	public static final BufferedImage LOG_ICON = loadImageFromPath("hc/res/logdoc_22.png");

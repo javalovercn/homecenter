@@ -52,6 +52,7 @@ import hc.server.util.HCEventQueue;
 import hc.server.util.HCJDialog;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.ServerCUtil;
+import hc.server.util.VerifyEmailManager;
 import hc.util.BaseResponsor;
 import hc.util.ExitManager;
 import hc.util.HttpUtil;
@@ -135,7 +136,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
     private static JMenuItem transNewCertKey, hideIDForErrCert;
 	private final HCEventQueue hcEventQueue = HCLimitSecurityManager.getHCSecurityManager().getHCEventQueue();
 	private final Thread eventDispatchThread = HCLimitSecurityManager.getHCSecurityManager().getEventDispatchThread();
-    protected final ThreadGroup threadPoolToken = App.getThreadPoolToken();
+	protected final ThreadGroup threadPoolToken = App.getThreadPoolToken();
     
     @Override
     public final boolean isInLimitThread(){
@@ -980,7 +981,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	        	vip.addActionListener(new HCActionListener(new Runnable() {
 					@Override
 					public void run() {
-						App.showUnlock();
+						App.showVIP();
 					}
 				}, threadPoolToken));
 	        	hcMenu.add(vip);
@@ -1143,8 +1144,6 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
         }
         popupTi.add(hcMenu);
         
-        popupTi.addSeparator();
-        
         //选择语言
         final JMenu langSubItem = new JMenu((String)ResourceUtil.get(9165));
     	langSubItem.setIcon(new ImageIcon(ImageSrc.LANG_ICON));
@@ -1165,7 +1164,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					UILang.setLocale(null);
 					PropertiesManager.setValue(PropertiesManager.p_ForceEn, IConstant.FALSE);
 					PropertiesManager.saveFile();
-					buildMenu(UILang.getUsedLocale());
+					ResourceUtil.buildMenu();
 				}
 			}, threadPoolToken));
 	
@@ -1186,21 +1185,30 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					UILang.setLocale(locale);
 					PropertiesManager.setValue(PropertiesManager.p_ForceEn, IConstant.TRUE);
 					PropertiesManager.saveFile();
-					buildMenu(UILang.getUsedLocale());
+					ResourceUtil.buildMenu();
 				}
 			}, threadPoolToken));
         }
         popupTi.add(langSubItem);
         
-        //注意：通过false，强制关闭WiFi密码配置界面
-    	final boolean hasWiFiAccount = HCURL.isUsingWiFiWPS && (PropertiesManager.isTrue(PropertiesManager.p_WiFi_isMobileViaWiFi) || WiFiDeviceManager.getInstance().canCreateWiFiAccount());
-    	if(hasWiFiAccount){
-    		addPwdSubMenu(hasWiFiAccount);//管理系统和WiFi的密码子菜单
-    	}else{
-    		addSysPwdMenuItem(null, popupTi);//只添加系统密码菜单项到PopupMenu
-    	}
+        {
+	        //注意：通过false，强制关闭WiFi密码配置界面
+	    	final boolean hasWiFiAccount = HCURL.isUsingWiFiWPS && (PropertiesManager.isTrue(PropertiesManager.p_WiFi_isMobileViaWiFi) || WiFiDeviceManager.getInstance().canCreateWiFiAccount());
+	    	if(hasWiFiAccount){
+	    		addPwdSubMenu(hasWiFiAccount, popupTi);//管理系统和WiFi的密码子菜单
+	    	}else{
+	        	final JMenu accountMenu = buildAccountMenu();
+	    		addSysPwdMenuItem(accountMenu);//只添加系统密码菜单项到PopupMenu
+	    		popupTi.add(accountMenu);
+	    	}
+        }
         
-       if(ResourceUtil.isJ2SELimitFunction()) {
+        {
+        	//建菜单
+        	buildCertMenu(popupTi);
+        }
+                
+        if(ResourceUtil.isJ2SELimitFunction()) {
         	Class checkJMFClass = null;
     		try{
     			checkJMFClass = Class.forName("javax.media.CaptureDeviceManager");
@@ -1216,13 +1224,6 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
     		}
         }
         
-        popupTi.addSeparator();
-
-        {
-        	//建菜单
-        	buildCertMenu(popupTi);
-        }
-                
         popupTi.addSeparator();
         
     	if(ResourceUtil.isJ2SELimitFunction()){//由于Android服务器版本布局不美观，故暂关闭
@@ -1322,7 +1323,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
         }
 
         
-        if(StarterManager.hadUpgradeError){
+        if(StarterManager.hadUpgradeError && ResourceUtil.isStandardJ2SEServer()){
 	        popupTi.addSeparator();
 	        final String downloadMe = "download me";
 			final JMenuItem verifyItem = new JMenuItem(downloadMe);
@@ -1347,7 +1348,13 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					App.showCenterPanel(panel, 0, 0, "Fail on upgrade starter!", false, null, null, new HCActionListener(new Runnable() {
 						@Override
 						public void run() {
-							HttpUtil.browse("http://homecenter.mobi/download/HC_Server.zip?verifyme");
+							String os = "Win";
+							if(ResourceUtil.isLinux()){
+								os = "Linux";
+							}else if(ResourceUtil.isMacOSX()){
+								os = "Mac";
+							}
+							HttpUtil.browse("https://homecenter.mobi/download/HC_Server_For_" + os + ".zip");
 						}
 					}, threadPoolToken), null, null, false, false, null, false, false);
 				}
@@ -1398,12 +1405,10 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		}// 图标，标题，右键弹出菜单
     }
 
-	private final void addPwdSubMenu(final boolean hasWiFiAccount) {
-		final JMenu accountItem = new JMenu((String)ResourceUtil.get(9124));
-        final ImageIcon passwordIcon = new ImageIcon(ImageSrc.PASSWORD_ICON);
-		accountItem.setIcon(passwordIcon);
+	private final void addPwdSubMenu(final boolean hasWiFiAccount, final JPopupMenu popMenu) {
+		final JMenu accountItem = buildAccountMenu();
         {
-    		addSysPwdMenuItem(accountItem, null);
+    		addSysPwdMenuItem(accountItem);
             
 			if(hasWiFiAccount){
         		final JMenuItem wifiItem = new JMenuItem("WiFi");//菜单项
@@ -1418,10 +1423,35 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
                 accountItem.add(wifiItem);
         	}
         }
-        popupTi.add(accountItem);
+        popMenu.add(accountItem);
 	}
 
-	private final void addSysPwdMenuItem(final JMenu subMenu, final JPopupMenu popMenu) {
+	private final JMenu buildAccountMenu() {
+		final JMenu accountItem = new JMenu((String)ResourceUtil.get(9124));
+        final ImageIcon passwordIcon = new ImageIcon(ImageSrc.ACCOUNT_ICON);
+		accountItem.setIcon(passwordIcon);
+		return accountItem;
+	}
+
+	private final void addSysPwdMenuItem(final JMenu subMenu) {
+		{
+			final JMenuItem verifyItem = new JMenuItem(VerifyEmailManager.getVerifyEmailButtonText());
+			final ImageIcon verifyIcon = new ImageIcon(ImageSrc.ACCOUNT_LOCK_ICON);
+			verifyItem.setIcon(verifyIcon);
+//			verifyItem.setToolTipText("verify email");
+			verifyItem.addActionListener(new HCActionListener(new Runnable() {
+				@Override
+				public void run() {
+					VerifyEmailManager.startVerifyProcess();
+				}
+			}, threadPoolToken));
+			subMenu.add(verifyItem);
+			
+			if(VerifyEmailManager.isVerifiedEmail()){
+				verifyItem.setEnabled(false);
+			}
+		}
+		
 		//登录改为密码
 		{
 			final JMenuItem loginItem = new JMenuItem((String)ResourceUtil.get(1007));//菜单项
@@ -1438,12 +1468,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		        	}
 				}
 			}, threadPoolToken));
-		    if(subMenu != null){
-		    	subMenu.add(loginItem);
-		    }else{
-		    	popMenu.add(loginItem);
-		    }
-		}
+	    	subMenu.add(loginItem);
+	    }
 	}
 
 	/**
@@ -1508,7 +1534,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			ExceptionReporter.printStackTrace(e);
 		}
 
-		buildMenu(UILang.getUsedLocale());
+		ResourceUtil.buildMenu();
         
         Runtime.getRuntime().addShutdownHook(new Thread(){
         	@Override
@@ -1721,6 +1747,16 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			}else if(out.equals("d")){
 				RootConfig.getInstance().setProperty(RootConfig.p_Color_On_Relay, "5");
 				RootConfig.getInstance().setProperty(RootConfig.p_MS_On_Relay, 100);
+			}else if(out.equals("v")){
+				if(VerifyEmailManager.isVerifiedEmail() == false){
+					PropertiesManager.setValue(PropertiesManager.p_IsVerifiedEmail, IConstant.TRUE);
+				}
+			}else if(out.equals("ov")){
+				VerifyEmailManager.showVerifyEmailWarning(threadPoolToken);
+			}else if(out.length() == 0){
+				if(VerifyEmailManager.isVerifiedEmail()){//本机以前认证过，但是又有后认证的机器替换掉本机token
+					VerifyEmailManager.showVerifyEmailWarning(threadPoolToken);
+				}
 			}
 			
 			LineFailManager.closeLineFailWindow();//外部网络故障消失，关闭窗口。

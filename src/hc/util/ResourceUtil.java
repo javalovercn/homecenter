@@ -1,6 +1,7 @@
 package hc.util;
 
 import hc.App;
+import hc.core.ContextManager;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
@@ -71,6 +72,13 @@ import javax.swing.KeyStroke;
 public class ResourceUtil {
 	private static final String USER_PROJ = "user.proj.";
 	private final static Class starterClass = getStarterClass();
+	
+	public static void buildMenu(){
+		((J2SEContext) ContextManager
+				.getContextInstance())
+				.buildMenu(UILang
+						.getUsedLocale());
+	}
 	
 	public static ImageIcon getHideIcon(){
 		try {
@@ -857,7 +865,7 @@ public class ResourceUtil {
 	public static boolean isMacOSX(){
 		//Mac OS X
 		final String os = System.getProperty("os.name");
-		return (os.toLowerCase().indexOf("mac os x") >= 0);
+		return (os.toLowerCase().indexOf("mac") >= 0);//改mac os x => mac
 	}
 	
 	public static Properties loadThirdLibs() {

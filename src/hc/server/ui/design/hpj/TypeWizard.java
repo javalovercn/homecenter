@@ -98,7 +98,7 @@ public class TypeWizard {
 		final JDialog dialog = new HCJDialog(owner, "select menu type", true);
 		final ButtonGroup buttonGroup = new ButtonGroup();
 		final JPanel panel = new JPanel(new GridLayout(1, HPNode.WIZARD_SELECTABLE_MENU_ITEM_SIZE));
-		panel.setBorder(new TitledBorder("Select Menu Item Type Categories:"));
+		panel.setBorder(new TitledBorder("Select Menu Item Type:"));
 		final JRadioButton[] rbs = new JRadioButton[HPNode.WIZARD_SELECTABLE_MENU_ITEM_SIZE];
 		final JLabel[] dispButton = new JLabel[HPNode.WIZARD_SELECTABLE_MENU_ITEM_SIZE];
 		final String nextStepStr = (String) ResourceUtil.get(1029);
@@ -111,11 +111,11 @@ public class TypeWizard {
 				HPNode.TYPE_MENU_ITEM_IOT};
 		final String[] icons = {"form_22.png", "controller_22.png", "cmd_22.png", "screen_22.png", "iot_22.png"};
 		final String desc = "<html>" +
-				"<STRONG>FORM</STRONG> : a Mlet/HTMLMlet which contain many J2SE Swing components.<BR><BR>" +
+				"<STRONG>FORM</STRONG> : Mlet/HTMLMlet contains J2SE Swing JComponents.<BR><BR>" +
 				"<STRONG>CONTROLLER</STRONG> : simulate a controller of smart device on mobile.<BR><BR>" +
-				"<STRONG>CMD</STRONG> : 1. run JRuby script or executable command on server, 2. enter config form, 3. exit/back.<BR><BR>" +
-				"<STRONG>SCREEN</STRONG> : display remote desktop.<BR><BR>" +
-				"<STRONG>IoT</STRONG> : device, converter, robot (coordinate one or multiple devices) for Internet of Thing." +
+				"<STRONG>CMD</STRONG> : run JRuby script or executable command on server; or enter configration form of mobile; or exit/back current project.<BR><BR>" +
+				"<STRONG>SCREEN</STRONG> : display desktop of current server on mobile.<BR><BR>" +
+				"<STRONG>IoT</STRONG> : device, converter, or robot (coordinate zero or multiple devices) for IoT." +
 				"</html>";
 		
 		final ItemListener itemListener = new ItemListener() {
@@ -176,12 +176,12 @@ public class TypeWizard {
 					}else if(type == HPNode.TYPE_MENU_ITEM_FORM){
 						//screen -Desktop "enter disktop screen of PC in mobile side when current item is clicked.");
 						//screen -Mlet "<html>Mlet Screen is a panel in mobile side for dispaly and controlling status of PC side, <BR>which is instance from java class and JRuby in PC side.</html> ");
-						final String[] subItems = {"Mlet", "HTMLMlet"};
+						final String[] subItems = {"HTMLMlet", "Mlet"};
 						final String[] desc = {
+								"a HTML panel is in mobile side to display and control status of server or smart devices, " +
+								"<BR>which is runs in server side.",
 								"a snapshot panel is in mobile side for display and controlling status of server or smart devices, " +
-								"<BR>which is instance of class 'hc.server.ui.Mlet' and runing in server side.",
-								"a HTML panel is in mobile side for dispaly and controlling status of server or smart devices, " +
-								"<BR>which is instance of class 'hc.server.ui.HTMLMlet' and runing in server side."
+								"<BR>which is runs in server side."
 								};
 						selectSub(owner, ok, subItems, desc);
 					}else if(type == HPNode.TYPE_MENU_ITEM_IOT){

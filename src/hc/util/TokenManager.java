@@ -1,8 +1,12 @@
 package hc.util;
 
+import hc.App;
 import hc.core.IConstant;
 import hc.core.RootServerConnector;
+import hc.core.sip.SIPManager;
 import hc.core.util.CCoreUtil;
+import hc.server.AbstractDelayBiz;
+
 import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 
@@ -29,7 +33,7 @@ public class TokenManager {
 		}
 		try {
 			relayTokenBS = relayToken.getBytes(IConstant.UTF_8);
-		} catch (UnsupportedEncodingException e) {
+		} catch (final UnsupportedEncodingException e) {
 			relayTokenBS = relayToken.getBytes();
 		}
 	}
@@ -37,26 +41,26 @@ public class TokenManager {
 	private static void refreshTokenBS() {
 		try {
 			tokenBS = token.getBytes(IConstant.UTF_8);
-		} catch (UnsupportedEncodingException e) {
+		} catch (final UnsupportedEncodingException e) {
 			tokenBS = token.getBytes();
 		}
 	}
 	
-	public static void refreshToken(String t){
+	public static void refreshToken(final String t){
 		CCoreUtil.checkAccess();
 		
 		token = t;
 		refreshTokenBS();
 	}
 
-	private static String buildToken() {
+	public static String buildToken() {
 		return UUID.randomUUID().toString();
 	}
 	
 	public static String getToken(){
 		CCoreUtil.checkAccess();
 		
-		return token;
+		return token;//存储donateToken或Email绑定Token
 	}
 	
 	public static byte[] getTokenBS(){
@@ -92,5 +96,28 @@ public class TokenManager {
 		PropertiesManager.setValue(PropertiesManager.p_RelayServerUPnPExtPort, "0");
 		
 		PropertiesManager.saveFile();
+	}
+
+	public static void changeTokenFromUI(final String id, final String token) {
+		ConnectionManager.addBeforeConnectionBiz(new AbstractDelayBiz(null){
+			@Override
+			public final void doBiz() {
+				PropertiesManager.setValue(PropertiesManager.p_uuid, id);
+				PropertiesManager.setValue(PropertiesManager.p_Token, token);
+				PropertiesManager.setValue(PropertiesManager.p_IsVerifiedEmail, IConstant.TRUE);
+				
+				PropertiesManager.saveFile();
+	
+				IConstant.setUUID(id);
+				refreshToken(token);
+	
+				ResourceUtil.buildMenu();
+	
+				App.reloadEncrypt();
+			}
+		});
+		
+		//强制重连
+		SIPManager.startRelineonForce(false);
 	}
 }

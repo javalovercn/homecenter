@@ -250,9 +250,9 @@ public class HttpUtil {
 	 * @return
 	 */
 	public static String getAjax(final String url_str) {
-		if(PropertiesManager.isSimu()){//由于RootRelayReceiveServer，所以不能使用App.isSimu
-			L.V = L.O ? false : LogManager.log("getAjax : " + url_str);
-		}
+//		if(PropertiesManager.isSimu()){//由于RootRelayReceiveServer，所以不能使用App.isSimu
+//			L.V = L.O ? false : LogManager.log("getAjax : " + url_str);
+//		}
 		
 		URL url = null;
 		try {
@@ -267,75 +267,7 @@ public class HttpUtil {
 				conn.setReadTimeout(8 * 1000);
 			}
 			
-			HCAjaxX509TrustManager.setAjaxSSLSocketFactory(url, conn);
-			
-			if (conn instanceof HttpURLConnection) {//HttpsURLConnection extends HttpURLConnection
-				final HttpURLConnection httpconn = (HttpURLConnection) conn;
-				httpconn.setInstanceFollowRedirects(true);
-				httpconn.connect();
-				
-//				if(httpconn instanceof HttpsURLConnection){
-//					final HttpsURLConnection httpsConn = (HttpsURLConnection)conn;
-//					final Certificate[] serverCerts = httpsConn.getServerCertificates();
-//					if(serverCerts != null){
-//						for (int i = 0; i < serverCerts.length; i++) {
-//							System.out.println(serverCerts[i]);
-//						}
-//					}
-//				}
-				
-				final int responseCode = httpconn.getResponseCode();
-				if (responseCode == 200) {
-					int expectedLength = conn.getContentLength();
-					if (expectedLength == 0) {
-						// 长度为0的特殊情形
-						httpconn.disconnect();
-						return "";
-					}
-					InputStream in;
-					in = httpconn.getInputStream();
-					if (expectedLength == -1) {
-						expectedLength = 1024;
-					} else if (expectedLength > MAX_BLOCK_SIZE) {
-						expectedLength = MAX_BLOCK_SIZE;
-					}
-					byte[] buf = new byte[expectedLength];
-					int n;
-					int total = 0;
-
-					while ((n = in.read(buf, total, buf.length - total)) != -1) {
-						total += n;
-						if (total == buf.length) {
-							// try to read one more character
-							final int c = in.read();
-							if (c == -1)
-								break; // EOF, we're done
-							else {
-								if (buf.length * 2 <= MAX_BLOCK_SIZE) {
-									// need more space in array. Double the
-									// array, but don't make
-									// it bigger than maxBytes.
-									final byte[] newbuf = new byte[buf.length * 2];
-									System.arraycopy(buf, 0, newbuf, 0,
-											buf.length);
-									buf = newbuf;
-									buf[total++] = (byte) c;
-								} else {
-									break;
-								}
-							}
-						}
-					}
-
-					in.close();
-					httpconn.disconnect();
-
-					return new String(buf, 0, total, IConstant.UTF_8);
-
-				} else {
-					httpconn.disconnect();
-				}
-			}
+			return getAjax(url, conn);
 		} catch (final Throwable e) {
 			if(url.getProtocol().equals("https")){
 				if(url.getHost().equals(RootServerConnector.HOST_HOMECENTER_MOBI)){
@@ -348,6 +280,79 @@ public class HttpUtil {
 				}
 			}
 			L.V = L.O ? false : LogManager.log("http execption : " + e.getMessage());
+		}
+		return null;
+	}
+
+	public static String getAjax(final URL url, final URLConnection conn) throws Exception {
+		HCAjaxX509TrustManager.setAjaxSSLSocketFactory(url, conn);
+		
+		if (conn instanceof HttpURLConnection) {//HttpsURLConnection extends HttpURLConnection
+			final HttpURLConnection httpconn = (HttpURLConnection) conn;
+			httpconn.setInstanceFollowRedirects(true);
+			httpconn.connect();
+			
+//				if(httpconn instanceof HttpsURLConnection){
+//					final HttpsURLConnection httpsConn = (HttpsURLConnection)conn;
+//					final Certificate[] serverCerts = httpsConn.getServerCertificates();
+//					if(serverCerts != null){
+//						for (int i = 0; i < serverCerts.length; i++) {
+//							System.out.println(serverCerts[i]);
+//						}
+//					}
+//				}
+			
+			final int responseCode = httpconn.getResponseCode();
+			if (responseCode == 200) {
+				int expectedLength = conn.getContentLength();
+				if (expectedLength == 0) {
+					// 长度为0的特殊情形
+					httpconn.disconnect();
+					return "";
+				}
+				InputStream in;
+				in = httpconn.getInputStream();
+				if (expectedLength == -1) {
+					expectedLength = 1024;
+				} else if (expectedLength > MAX_BLOCK_SIZE) {
+					expectedLength = MAX_BLOCK_SIZE;
+				}
+				byte[] buf = new byte[expectedLength];
+				int n;
+				int total = 0;
+
+				while ((n = in.read(buf, total, buf.length - total)) != -1) {
+					total += n;
+					if (total == buf.length) {
+						// try to read one more character
+						final int c = in.read();
+						if (c == -1)
+							break; // EOF, we're done
+						else {
+							if (buf.length * 2 <= MAX_BLOCK_SIZE) {
+								// need more space in array. Double the
+								// array, but don't make
+								// it bigger than maxBytes.
+								final byte[] newbuf = new byte[buf.length * 2];
+								System.arraycopy(buf, 0, newbuf, 0,
+										buf.length);
+								buf = newbuf;
+								buf[total++] = (byte) c;
+							} else {
+								break;
+							}
+						}
+					}
+				}
+
+				in.close();
+				httpconn.disconnect();
+
+				return new String(buf, 0, total, IConstant.UTF_8);
+
+			} else {
+				httpconn.disconnect();
+			}
 		}
 		return null;
 	}
@@ -508,13 +513,13 @@ public class HttpUtil {
 
 	public static String buildLangURL(final String langURL, final String lang)
 			throws UnsupportedEncodingException {
-		String url = URLEncoder.encode("http://homecenter.mobi/_lang_/" + langURL, IConstant.UTF_8);
+		String url = URLEncoder.encode("https://homecenter.mobi/_lang_/" + langURL, IConstant.UTF_8);
 		if(lang == null){
 			url = "?to=" + url;
 		}else{
 			url = "?lang=" + lang + "&to=" + url;
 		}
-		return "http://homecenter.mobi/gotolang.php" + url;
+		return "https://homecenter.mobi/gotolang.php" + url;
 	}
 
 	public static boolean browse(final String donateURL) {

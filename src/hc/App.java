@@ -11,7 +11,6 @@ import hc.core.RootConfig;
 import hc.core.RootServerConnector;
 import hc.core.cache.CacheManager;
 import hc.core.cache.CacheStoreManager;
-import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
@@ -26,7 +25,6 @@ import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
 import hc.j2se.HCAjaxX509TrustManager;
 import hc.res.ImageSrc;
-import hc.server.AbstractDelayBiz;
 import hc.server.AppThreadPool;
 import hc.server.ConfigPane;
 import hc.server.DebugThreadPool;
@@ -57,8 +55,8 @@ import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.HCSecurityChecker;
 import hc.server.util.IDArrayGroup;
 import hc.server.util.J2SERootBuilder;
+import hc.server.util.VerifyEmailManager;
 import hc.util.ClassUtil;
-import hc.util.ConnectionManager;
 import hc.util.HttpUtil;
 import hc.util.IBiz;
 import hc.util.LogServerSide;
@@ -986,16 +984,17 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	 * @param cancelListener
 	 * @param frame
 	 * @param model
-	 * @param relativeTo
+	 * @param relativeToComponent
 	 * @param isResizable
 	 * @param delay 延时显示，如果当前有正在显示的CenterPanel，则当前对话关闭后，才后加载显示
 	 */
 	public static Window showCenterPanel(final JPanel panel, final int width, final int height,
 			final String title, final boolean isAddCancle, final JButton jbOK,
 			final String cancelButText, final ActionListener listener,
-			final ActionListener cancelListener, final JFrame frame, final boolean model, final boolean isNewJFrame, final Component relativeTo, final boolean isResizable, final boolean delay) {
+			final ActionListener cancelListener, final JFrame frame, final boolean model, final boolean isNewJFrame, 
+			final Component relativeToComponent, final boolean isResizable, final boolean delay) {
 		return showCenterPanelOKDispose(panel, width, height, title, isAddCancle, jbOK,
-				cancelButText, listener, cancelListener, true, frame, model, isNewJFrame, relativeTo, isResizable, delay);
+				cancelButText, listener, cancelListener, true, frame, model, isNewJFrame, relativeToComponent, isResizable, delay);
 	}
 	
 	public static Window showCenterPanelOKDispose(final JPanel panel, final int width,
@@ -1638,18 +1637,17 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		panel.setBorder(new TitledBorder(""));
 
 		final JLabel jluuid = new JLabel();
-		jluuid.setIcon(new ImageIcon(ResourceUtil
-				.getResource("hc/res/idsmile_22.png")));
+		jluuid.setIcon(new ImageIcon(ImageSrc.ACCOUNT_ICON));
 		final JPanel uuidPanelflow = new JPanel();
 		uuidPanelflow.setLayout(new FlowLayout());
 		uuidPanelflow.add(jluuid);
-		uuidPanelflow.add(new JLabel((String)ResourceUtil.get(9074)));
+		uuidPanelflow.add(new JLabel(VerifyEmailManager.getEmailI18N()));
 		uuidPanelflow.add(new JLabel(":"));
 		panel.add(uuidPanelflow, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
 				GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets,
 				0, 0));
 
-		final int columns = 15;
+		final int columns = 20;
 		final JTextField jtfuuid = new JTextField(uuid, columns);
 		jtfuuid.setEditable(isToLogin);
 		jtfuuid.setForeground(Color.BLUE);
@@ -2024,7 +2022,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		}
 	}
 
-	public static void showUnlock() {
+	public static void showVIP() {
 		final JDialog showDonate = new HCJDialog();
 		showDonate.setTitle("VIP Register");
 		showDonate.setIconImage(App.SYS_LOGO);
@@ -2048,16 +2046,15 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		final JPanel panel = new JPanel();
 		panel.setLayout(new GridLayout(2, 2, 10, 10));
 		// panel.setBorder(new TitledBorder((String)ResourceUtil.get(9010)));
-		final JLabel label_ID = new JLabel("Email");
+		final JLabel label_ID = new JLabel(VerifyEmailManager.getEmailI18N());
 		label_ID.setHorizontalAlignment(SwingConstants.LEFT);
-		label_ID.setIcon(new ImageIcon(ResourceUtil
-				.getResource("hc/res/idsmile_22.png")));
+		label_ID.setIcon(new ImageIcon(ImageSrc.ACCOUNT_ICON));
 		panel.add(label_ID);
 		final JTextField donateID = new JTextField("");
 		donateID.setColumns(15);
-		if(ResourceUtil.validEmail(IConstant.getUUID())){
-			donateID.setText(IConstant.getUUID());
-		}
+//		if(ResourceUtil.validEmail(IConstant.getUUID())){
+			donateID.setText(IConstant.getUUID());//使用旧0帐号或邮箱
+//		}
 		panel.add(donateID);
 		final JLabel label_key = new JLabel("Token");
 		label_key.setIcon(new ImageIcon(ResourceUtil
@@ -2076,14 +2073,19 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		jbOK.addActionListener(new HCActionListener(new Runnable() {
             @Override
 			public void run() {
-				final String donateIDStr = donateID.getText().trim();
-				if(ResourceUtil.checkEmailID(donateIDStr, showDonate) == false){
+				final String emailID = donateID.getText().trim();
+				if(ResourceUtil.validEmail(emailID) == false){
+					App.showMessageDialog(showDonate,
+							(String)ResourceUtil.get(9073),
+							(String) ResourceUtil.get(IContext.ERROR),
+							JOptionPane.ERROR_MESSAGE);
+					donateID.selectAll();
 					return;
 				}
 
-				final String donateKeyStr = donateKey.getText().trim();
+				final String donateToken = donateKey.getText().trim();
 
-				final String result = RootServerConnector.bindDonateKey(donateIDStr, donateKeyStr);
+				final String result = RootServerConnector.bindDonateKey(emailID, donateToken);
 				if (result == null) {
 					App.showMessageDialog(null,
 							"Error connect to server! try again.",
@@ -2093,31 +2095,11 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				} else if (result.equals(RootServerConnector.ROOT_AJAX_OK)) {
 					showDonate.dispose();
 
-					ConnectionManager.addBeforeConnectionBiz(new AbstractDelayBiz(null){
-						@Override
-						public final void doBiz() {
-							PropertiesManager.setValue(PropertiesManager.p_uuid, donateIDStr);
-							PropertiesManager.setValue(PropertiesManager.p_Token, donateKeyStr);
-							PropertiesManager.saveFile();
-
-							IConstant.setUUID(donateIDStr);
-							TokenManager.refreshToken(donateKeyStr);
-
-							((J2SEContext) ContextManager
-									.getContextInstance())
-									.buildMenu(UILang
-											.getUsedLocale());
-
-							reloadEncrypt();
-						}
-					});
-					
-					//强制重连
-					SIPManager.startRelineonForce(false);
+					TokenManager.changeTokenFromUI(emailID, donateToken);
 					
 					final JPanel jpanel = new JPanel();
 					jpanel.add(new JLabel(
-							"<html>success active VIP token. Login ID is [<STRONG>" + donateIDStr + "</STRONG>]</html>",
+							"<html>success active VIP token. Login ID is [<STRONG>" + emailID + "</STRONG>]</html>",
 							new ImageIcon(ImageSrc.OK_ICON),
 							SwingConstants.LEFT));
 					App.showCenterPanel(jpanel, 0, 0, "Success");

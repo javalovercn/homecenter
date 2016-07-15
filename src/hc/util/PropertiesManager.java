@@ -163,6 +163,8 @@ public class PropertiesManager {
 	public static final String p_RMSServerUID = "RMSServerUID";
 	public static final String p_clearRMSCacheVersion = "clearRMSCacheVersion";
 
+	public static final String p_IsVerifiedEmail = "isVerifiedEmail";
+
 	public static final String S_THIRD_DIR = "3libs";
 	public static final String S_USER_LOOKANDFEEL = "lookfeel";
 	public static final String S_LINK_PROJECTS = "linkProjs";

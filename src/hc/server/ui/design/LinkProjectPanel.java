@@ -666,7 +666,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 					}
 				};
 				
-				rb_startup.setToolTipText((String)ResourceUtil.get(9150));
+				rb_startup.setToolTipText("<html><STRONG>" + (String)ResourceUtil.get(9150) + "</STRONG></html>");
 				bg.add(rb_startup);
 				group.add(rb_startup);
 				if(op.equals(OP_NEXT_START_UP)){
