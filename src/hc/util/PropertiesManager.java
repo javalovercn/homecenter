@@ -31,6 +31,7 @@ public class PropertiesManager {
 	
 	public static final String p_stunServerPorts = "StunServerPorts";
 	public static final String p_IsSimu = "isSimu";
+	public static final String p_IsLoggerOn = "isLoggerOn";
 	public static final String p_IsMobiMenu = "mMenu";
 	public static final String p_uuid = "uuid";
 	public static final String p_password = "password";

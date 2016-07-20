@@ -445,7 +445,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 										LinkProjectManager.loadHAD(url, had);
 										strharurl = had.getProperty(HCjad.HAD_HAR_URL, HCjad.convertToExtHar(url));
 									}else{
-										throw new Exception("invaild url, it must be har, had file.");
+										throw new Exception("invaild url, it must be har or had file.");
 									}
 									PropertiesManager.addDelFile(fileHar);
 									

@@ -198,12 +198,10 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		return jreVer.floatValue();
 	}
 
-	/**
-	 * valid main method arguments : debugOn serverOn verify
-	 * VM arguments : -Dsun.jnu.encoding=UTF-8
-	 * @param args
-	 */
 	public static void main(final String args[]) {
+		//VM arguments : -Dsun.jnu.encoding=UTF-8
+		System.setProperty("sun.jnu.encoding", "UTF-8");//JRE 6缺省可能为EUC_CN，JRE 7缺省为此值
+		
 		new Thread(getRootThreadGroup(), "hc_main"){
 			@Override
 			public void run(){
@@ -293,8 +291,11 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 					break;
 				}
 				if (arg.equals(TAG_INI_DEBUG_ON)) {
+					System.err.println("main method arguments [debugOn] is deprecated, you may need option/developer/Logger." +
+							"\nyou should remove main method arguments : 'debugOn serverOn verify'," +
+							"\nand VM arguments for main class : -Dsun.jnu.encoding=UTF-8");
 					LogManager.INI_DEBUG_ON = true;
-					System.out.println("debugOn");
+					System.out.println(TAG_INI_DEBUG_ON);
 				} else if (arg.equals(TAG_SERVER_MODE)) {
 				} else if (arg.equals(TAG_SERVER_OFF_MODE)) {
 				}else if(arg.startsWith(TAG_STARTER_VER)){//starter传入其自身版本
@@ -312,6 +313,9 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		}
 		IConstant.propertiesFileName = "hc_config.properties";
 
+		if(ResourceUtil.isLoggerOn() == false){
+			LogManager.INI_DEBUG_ON = true;
+		}
 		if(isSimu){
 			//只做强制isSimu，不做isSimu为false的情形，因为原配置可能为true
 			PropertiesManager.setValue(PropertiesManager.p_IsSimu, IConstant.TRUE);//注意：须在下行isSimu之前
@@ -471,7 +475,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		doExtTestAfterStartup();
 	}
-	
+
 	private static String getLastAgreeVersion(){
 		//注意：此处是AgreeVersion，而非StarterManager.getHCVersion()。如果License没有变动，即使版本变动也无需改动。
 		return "7.0";

@@ -315,6 +315,7 @@ public class VerifyEmailManager {
 		}else{
 			jtfuuid.setText(initEmail);
 		}
+//		jtfuuid.requestFocus();//注释此代码，供Focus测试之用
 		
 		panel.add(uuidPanelflow, BorderLayout.CENTER);
 		

@@ -395,6 +395,7 @@ public void run() {
 				}
 			};
 			
+			final JCheckBox enableLoggerOn = new JCheckBox((String)ResourceUtil.get(9206));
 			final JCheckBox enableMSBLog = new JCheckBox((String)ResourceUtil.get(8014));
 			final JCheckBox enableMSBDialog = new JCheckBox((String)ResourceUtil.get(8015));
 			final JCheckBox enableReportException = App.buildReportExceptionCheckBox(false);
@@ -479,16 +480,20 @@ public void run() {
 				};
 			}//end word key
 			
+			enableLoggerOn.setToolTipText("<html>log all information, event, and exception. If unselected, print to console for debug." +
+					"<BR>it will take effect after restart this server.</html>");
 			enableMSBLog.setToolTipText("<html>log MSB messages between Robot, Converter and Device." +
 					"<br>it is very useful to debug modules in HAR project." +
 					"</html>");
 			enableMSBDialog.setToolTipText("When MSBException/HCSecurityException is thrown, system pop up Exception-Browse window automaticly.");
 			
-			final String isOldLog = PropertiesManager.getValue(PropertiesManager.p_isEnableMSBLog, IConstant.FALSE);
+			final String isOldLogger = PropertiesManager.getValue(PropertiesManager.p_IsLoggerOn, IConstant.TRUE);
+			final String isOldMSBLog = PropertiesManager.getValue(PropertiesManager.p_isEnableMSBLog, IConstant.FALSE);
 			final String isOldMSBDialog = PropertiesManager.getValue(PropertiesManager.p_isEnableMSBExceptionDialog, IConstant.FALSE);
 			final String isOldReportException = PropertiesManager.getValue(PropertiesManager.p_isReportException, IConstant.FALSE);
 			
-			enableMSBLog.setSelected(isOldLog.equals(IConstant.TRUE));
+			enableLoggerOn.setSelected(ResourceUtil.isLoggerOn());
+			enableMSBLog.setSelected(isOldMSBLog.equals(IConstant.TRUE));
 			enableMSBDialog.setSelected(isOldMSBDialog.equals(IConstant.TRUE));
 			
 			final ConfigValue cvIsEnableReportException = new ConfigValue(PropertiesManager.p_isReportException, isOldReportException, group) {
@@ -507,10 +512,10 @@ public void run() {
 					}
 				}
 			};
-			final ConfigValue cvIsEnableMSBLog = new ConfigValue(PropertiesManager.p_isEnableMSBLog, isOldLog, group) {
+			final ConfigValue cvIsEnableMSBLog = new ConfigValue(PropertiesManager.p_isEnableMSBLog, isOldMSBLog, group) {
 				@Override
 				public void applyBiz(final int option) {
-					final boolean isToNewLog = ((option == OPTION_CANCEL)?isOldLog.equals(IConstant.TRUE):enableMSBLog.isSelected());
+					final boolean isToNewLog = ((option == OPTION_CANCEL)?isOldMSBLog.equals(IConstant.TRUE):enableMSBLog.isSelected());
 					final BaseResponsor br = ServerUIUtil.getResponsor();
 					if(br != null){
 						br.enableLog(isToNewLog);
@@ -520,6 +525,17 @@ public void run() {
 				@Override
 				public String getNewValue() {
 					return enableMSBLog.isSelected()?IConstant.TRUE:IConstant.FALSE;
+				}
+			};
+			new ConfigValue(PropertiesManager.p_IsLoggerOn, isOldLogger, group) {
+				
+				@Override
+				public String getNewValue() {
+					return enableLoggerOn.isSelected()?IConstant.TRUE:IConstant.FALSE;
+				}
+				
+				@Override
+				public void applyBiz(final int option) {
 				}
 			};
 			final ConfigValue cvIsEnableMSBDialog = new ConfigValue(PropertiesManager.p_isEnableMSBExceptionDialog, isOldMSBDialog, group) {
@@ -542,6 +558,7 @@ public void run() {
 				panel.setLayout(boxLayout);
 				
 				panel.add(enableReportException);
+				panel.add(enableLoggerOn);
 				panel.add(enableMSBLog);
 				panel.add(enableMSBDialog);
 				if(ResourceUtil.isEnableDesigner()){

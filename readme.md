@@ -21,16 +21,14 @@
 1. these source files are HomeCenter Application Server, which is on PC/Android side. It are NOT client for mobile.
 2. JRE/JDK 7.0 or above is required.
 3. main class : hc.App
-4. arguments for main method : debugOn serverOn verify
-5. VM arguments for main class : -Dsun.jnu.encoding=UTF-8
-6. set [Compiler compliance level] of Eclipse to 1.7 or upper
-7. please keep the source code for the latest version, otherwise it may causes abnormal connections.
-8. to install client-side (mobile) application for Android, iPhone, J2ME, please download them from http://homecenter.mobi/en/pc/downloads.htm
-9. these two files (starter.jar and hc.pem) in distributed zip file (NOT source files), are used to check new version, download, verify and start up this application server
-10. there is a sample HAR project (NOT "MyFirst" project) in designer on server, please read source code and annotation carefully, it will be simple and joyful to develop your HAR project for mobile.
-11. for help on usage, steps, guide, developing, please go http://homecenter.mobi/en/pc/steps.htm
-12. for API, please go http://homecenter.mobi/download/javadoc/index.html or press alt+/ for code hints and java docs in designer.
-13. any question, please contact : help at homecenter.mobi
+4. set [Compiler compliance level] of Eclipse to 1.7 or upper
+5. please keep the source code for the latest version, otherwise it may causes abnormal connections.
+6. to install client-side (mobile) application for Android, iPhone, J2ME, please download them from http://homecenter.mobi/en/pc/downloads.htm
+7. these two files (starter.jar and hc.pem) in distributed zip file (NOT source files), are used to check new version, download, verify and start up this application server
+8. there is a sample HAR project (NOT "MyFirst" project) in designer on server, please read source code and annotation carefully, it will be simple and joyful to develop your HAR project for mobile.
+9. for help on usage, steps, guide, developing, please go http://homecenter.mobi/en/pc/steps.htm
+10. for API, please go http://homecenter.mobi/download/javadoc/index.html or press alt+/ for code hints and java docs in designer.
+11. any question, please contact : help at homecenter.mobi
 
 ***
 

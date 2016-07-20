@@ -1176,4 +1176,8 @@ public class ResourceUtil {
 		}
 		return null;
 	}
+
+	public static boolean isLoggerOn() {
+		return PropertiesManager.isTrue(PropertiesManager.p_IsLoggerOn, true);
+	}
 }

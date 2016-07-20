@@ -367,9 +367,13 @@ public class LogViewer extends HCJFrame {
 		btnPre.setToolTipText("Find Previous ("+ResourceUtil.getAbstractCtrlInputEventText()+" + Shift + K)");
 		btnRefresh.setToolTipText("Refresh (" + ResourceUtil.getRefreshKeyText() + ")");
 		
-		toolbar.add(btnSearch);
-		toolbar.add(btnNext);
-		toolbar.add(btnPre);
+		if(ResourceUtil.isAndroidServerPlatform()){
+			//由于Android效果较差，关闭
+		}else{
+			toolbar.add(btnSearch);
+			toolbar.add(btnNext);
+			toolbar.add(btnPre);
+		}
 		toolbar.add(btnRefresh);
 		
 		toolbar.addSeparator();
