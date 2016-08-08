@@ -28,7 +28,7 @@ public class DefaultUIResponsor extends BaseResponsor{
 	
 	@Override
 	public BaseResponsor checkAndReady(final Frame owner) throws Exception{
-		return null;
+		return this;
 	}
 	
 	@Override

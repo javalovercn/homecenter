@@ -93,13 +93,10 @@ public class ServerUIUtil {
 	public static BaseResponsor buildMobiUIResponsorInstance(){
 		CCoreUtil.checkAccess();
 		
-		//MobiUIResponsor
-		final String className = RootServerConnector.unObfuscate("chs.reev.riud.segi.noMibIUeRpsnoosr");
 		try {
-			return (BaseResponsor)Class.forName(className).newInstance();
+			return new MobiUIResponsor();
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
-			LogManager.err("load class:"+className);
 			return null;
 		}
 	}

@@ -740,7 +740,7 @@ public class ProjResponser {
 		try{
 			//支持源码和jar模式
 			return ResourceUtil.getStringFromInputStream(
-					ResourceUtil.getResourceAsStream("hc/server/html5/res/" + name), IConstant.UTF_8, true, true);
+					ResourceUtil.getResourceAsStream("hc/res/js/" + name), IConstant.UTF_8, true, true);
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}

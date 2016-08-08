@@ -7,6 +7,7 @@ import hc.server.ConfigPane;
 import hc.server.FileSelector;
 import hc.server.HCActionListener;
 import hc.server.ui.design.Designer;
+import hc.util.ResourceUtil;
 
 import java.awt.Component;
 import java.awt.event.MouseEvent;
@@ -213,6 +214,14 @@ public class MenuManager {
 					public void run() {
 						final File addJarFile = FileSelector.selectImageFile(designer, FileSelector.JAR_FILTER, true);
 						if(addJarFile != null){
+							//检查包中不能含有系统保留包名
+							if(ResourceUtil.checkSysPackageNameInJar(addJarFile)){
+								final JPanel ok = new JPanel();
+								ok.add(new JLabel(ResourceUtil.RESERVED_PACKAGE_NAME_IS_IN_HAR, new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
+								App.showCenterPanel(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null, false, false);
+								return;
+							}
+							
 							DefaultMutableTreeNode newNode;
 							try {
 								newNode = new DefaultMutableTreeNode(

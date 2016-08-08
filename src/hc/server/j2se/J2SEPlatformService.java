@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.net.NetworkInterface;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.Security;
@@ -367,6 +368,7 @@ public class J2SEPlatformService implements PlatformService {
 	    addPath = URLClassLoader.class.getDeclaredMethod("addURL", new Class[] { URL.class });
 	    addPath.setAccessible(true);
 		addPath.invoke(cl, new Object[] { jarfile.toURI().toURL() });
+		addPath.setAccessible(false);
 	}
 	
 	@Override
@@ -450,4 +452,10 @@ public class J2SEPlatformService implements PlatformService {
 	@Override
 	public void extLog(final int level, final String msg) {
 	}
+
+	@Override
+	public long getFreeMem() {
+		return Runtime.getRuntime().freeMemory() >> 20;
+	}
+
 }

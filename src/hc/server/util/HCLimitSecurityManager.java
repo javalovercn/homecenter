@@ -2,8 +2,10 @@ package hc.server.util;
 
 import hc.App;
 import hc.core.ContextManager;
+import hc.core.IConstant;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
+import hc.core.util.CUtil;
 import hc.core.util.CtrlKey;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HarHelper;
@@ -36,6 +38,7 @@ import hc.util.ClassUtil;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
+import hc.util.SecurityDataProtector;
 import hc.util.SocketDesc;
 
 import java.awt.AWTPermission;
@@ -44,7 +47,9 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ReflectPermission;
+import java.net.NetPermission;
 import java.net.SocketPermission;
+import java.net.URLClassLoader;
 import java.security.Permission;
 import java.security.PermissionCollection;
 import java.util.Locale;
@@ -58,6 +63,7 @@ import javax.net.ssl.SSLPermission;
 public class HCLimitSecurityManager extends WrapperSecurityManager implements HarHelper{
 	private final String OUTSIDE_HAR_WORKING_THREAD = " in EventQueue thread, try using ProjectContext.invokeLater and ProjectContext.getPrivateFile";
 	public static final String USER_DATA = "user_data";
+	public static final String PATH_USER_DATA_OF_OS = USER_DATA + File.separator;//前部不能用File.separator，因为是当前目录
 	public static final String SYS_THREAD_POOL = "block access system level ThreadPool instance.";
 	public static final String SYS_PROPERTIES = "block access properties in PropertiesManager.";
 	public static final String HC_FAIL_TO_ACCESS_HOME_CENTER_NON_PUBLIC_API = "block access HomeCenter non-public API.";
@@ -75,7 +81,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	private final static boolean isExistSeurityField = getSecurityField();
 	
 	public static boolean isSecurityManagerOn(){
-		return ResourceUtil.isJ2SELimitFunction();
+		return ResourceUtil.isJ2SELimitFunction();//System.setSecurityManager in Android will rise java.lang.SecurityException
 	}
 
 	private static boolean getSecurityField(){
@@ -115,7 +121,6 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			if(csc.isSetFactory() == false){
 				throw new HCSecurityException("block SetFactory in HAR Project  [" + csc.projID + "]."
 					+ buildPermissionOnDesc(HCjar.PERMISSION_SET_FACTORY));
-
 			}
 		}
 		super.checkSetFactory();
@@ -247,7 +252,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 
 	    	{
 		    	final String[] writebats = {"HomeCenter.bat", "HomeCenter.sh", "HomeCenter.command",  
-		    			"splash.png", "starter.jar", "starter.properties", "jruby.jar", "hc.pem", "hc.jar"};
+		    			"splash.png", "starter.jar", "starter.properties", "jruby.jar", "hc.pem", "hc.jar", "hc_hard_id.txt"};
 		    	blockWriteFullPathLists = new String[writebats.length];
 		    	for (int i = 0; i < writebats.length; i++) {
 		    		final String file = writebats[i];
@@ -369,6 +374,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	
 	boolean allowAccessSystemResource = false;
 	
+	/**
+	 * 暂时开放读取资源文件权限或关闭
+	 * @param allow
+	 */
 	public final void setAllowAccessSystemImageResource(final boolean allow){
 		//不需要加checkAccess，因为本实例是安全的。
 		allowAccessSystemResource = allow;
@@ -409,7 +418,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 							}else if(ip.indexOf(".") > 0){
 								if(ip.startsWith("192.168.") || ip.startsWith("10.") || ip.startsWith("127.") 
 										|| ip.startsWith("172.16.") || ip.startsWith("172.31.") || ip.startsWith("169.254.")){
-									passPrivateCheck = true;
+									passPrivateCheck = true;//需要进行后续ipv4的检查
 								}
 								
 								if(passPrivateCheck){
@@ -505,14 +514,20 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 						){//JRuby正常反射需要
 				}else if(permissionName.equals("setDefaultUncaughtExceptionHandler")){
 					throw new HCSecurityException("block RuntimePermission [setDefaultUncaughtExceptionHandler] in HAR Project  [" + csc.projID + "].");
+//				}else if(permissionName.equals("getFileSystemAttributes")){//block getBaseDir().getTotalSpace() for getPrivateHardwareCode
+//					throw new HCSecurityException("block RuntimePermission [getFileSystemAttributes] in HAR Project  [" + csc.projID + "], you may need ProjectContext.getFreeSpace(File).");
 				}else{
 //					if(csc != null){//阻止其它RuntimePermission，比如setDefaultUncaughtExceptionHandler
 //						throw new HCSecurityException("block RuntimePermission [" + permissionName + "] in HAR Project  [" + csc.projID + "].");
 //					}
 				}
-//			}else if(perm instanceof NetPermission){
+			}else if(perm instanceof NetPermission){
 //				System.out.println("NetPermission : " + perm.toString());
-//				final String permissionName = perm.getName();
+				final String permissionName = perm.getName();
+				//new NetPermission("getNetworkInformation") to getMacAddress in getPrivateHardwareCode
+				if(permissionName.equals("getNetworkInformation")){//禁止csc访问getMacAddress
+					throw new HCSecurityException("block NetPermission [" + permissionName + "] in HAR Project  [" + csc.projID + "].");
+				}
 //				if(permissionName.equals("setProxySelector") || permissionName.equals("setCookieHandler")
 //					|| permissionName.equals("specifyStreamHandler")){
 //					throw new HCSecurityException("block " + perm.toString());
@@ -534,6 +549,26 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 //					throw new HCSecurityException("block " + perm.getClass().getSimpleName() + " [" + perm.getName() + "] in HAR Project  [" + csc.projID + "].");
 //				}
 			}
+		}else{
+			//No in csc
+			if(perm instanceof NetPermission){
+//				System.out.println("NetPermission : " + perm.toString());
+				final String permissionName = perm.getName();
+				//new NetPermission("getNetworkInformation") to getMacAddress in getPrivateHardwareCode
+				if(permissionName.equals("getNetworkInformation")){//禁止非法类访问getMacAddress
+					//有可能为J2SEPlatformService，hc.util.HttpUtil.getServerInetAddress
+					ResourceUtil.checkHCStackTraceInclude(null, null);//不能class.getName，因为Android环境没有
+				}
+			}else if(perm instanceof RuntimePermission) {
+				final String permissionName = perm.getName();
+				if (permissionName.equals("setSecurityManager")){
+					ResourceUtil.checkHCStackTraceInclude(HCLimitSecurityManager.class.getName(), null);
+//				}else if(permissionName.equals("getFileSystemAttributes")){//block getBaseDir().getTotalSpace() for getPrivateHardwareCode
+//					ResourceUtil.checkHCStackTraceInclude(null, null);
+				}
+			}else if(perm instanceof SocketPermission){
+				ResourceUtil.checkHCStackTraceInclude(null, null);
+			}
 		}
 		
 		super.checkPermission(perm);
@@ -547,6 +582,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
 				if(clazz == System.class){
 					LogManager.warning("memberAccess(reflection) on Class [java.lang.System] in JRuby script, it is recommended to use Class [" + JavaLangSystemAgent.class.getName() + "].");
+				}else if(clazz == URLClassLoader.class){
+					//由于GET_CLASSLOADER_PERMISSION = new RuntimePermission("getClassLoader");
+					//防止URLClassLoader.class.getDeclaredMethod("addURL", new Class[] { URL.class });
+					throw new HCSecurityException("block checkMemberAccess [URLClassLoader.class] in HAR Project  [" + csc.projID + "].");
 				}
 				
 				boolean containmemberAccessLists = false;
@@ -585,6 +624,18 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 						}
 					}
 				}
+			}else{
+				//Not in csc
+				if(clazz == SecurityManager.class || clazz == IConstant.class || clazz == CUtil.class
+						|| clazz == HCLimitSecurityManager.class || clazz == SecurityDataProtector.class){//禁止反射操作的类
+					ResourceUtil.checkHCStackTraceInclude(null, null);
+				}
+				
+				//HCJRubyEngine.parse时，会出现如下：
+				//at : Users.homecenter.Documents.eclipse_workspace.homecenter.$_dot_.jruby_dot_jar.jruby.java.java_ext.__file__(file:/Users/homecenter/Documents/eclipse_workspace/homecenter/./jruby.jar!/jruby/java/java_ext.rb:3)
+				//at : Users.homecenter.Documents.eclipse_workspace.homecenter.$_dot_.jruby_dot_jar.jruby.java.java_ext.load(file:/Users/homecenter/Documents/eclipse_workspace/homecenter/./jruby.jar!/jruby/java/java_ext.rb)
+				//故关闭下行
+//				ResourceUtil.checkHCStackTraceInclude(null, jrubyClassLoad);//不能用系统ResourceUtil.class.Loader，因为JRuby引擎初始化时，会触发此处。
 			}
 			//白名单方式
 //			final String name = clazz.getName();
@@ -598,6 +649,16 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 //		}
 //		System.out.println("checkMemberAccess : " + clazz.getName() + ", which :" + which);
 		super.checkMemberAccess(clazz, which);
+	}
+	
+	private static ClassLoader jrubyClassLoad;
+	
+	public static final void refreshJRubyClassLoader(final ClassLoader loader){
+		CCoreUtil.checkAccess();
+		
+		ResourceUtil.checkHCStackTraceInclude(null, null);
+		
+		jrubyClassLoad = loader;
 	}
 	
 	@Override
@@ -653,21 +714,29 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
 		}
 		String harDir;
-		if(csc != null 
-				&& (fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
-						|| ((harDir.startsWith(fileCanonicalPath, 0) 
-								&& 
-							harDir.length() == fileCanonicalPath.length() + 1)))){
-		}else{
-			if(currentThread.getId() != propertiesLockThreadID){
-				if(fileCanonicalPath.equalsIgnoreCase(propertiesName)){
-					throw new HCSecurityException("block read file :" + file);
-				}
+		if(csc == null){
+			//checkHCStackTraceInclude会导致运算加重
+			
+			if(fileCanonicalPath.endsWith("hc_hard_id.txt")){
+				ResourceUtil.checkHCStackTraceInclude(null, null);
 			}
-			final String fileCanonicalPathLower = fileCanonicalPath.toLowerCase(locale);
-			if(csc != null && fileCanonicalPathLower.startsWith(user_data_dirLower, 0)){
-				//非法读取其它工程
-				throw new HCSecurityException("block read file :" + file + OUTSIDE_HAR_WORKING_THREAD);
+		}else{
+			if(csc != null 
+					&& (fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
+							|| ((harDir.startsWith(fileCanonicalPath, 0) 
+									&& 
+								harDir.length() == fileCanonicalPath.length() + 1)))){
+			}else{
+				if(currentThread.getId() != propertiesLockThreadID){
+					if(fileCanonicalPath.equalsIgnoreCase(propertiesName)){
+						throw new HCSecurityException("block read file :" + file);
+					}
+				}
+				final String fileCanonicalPathLower = fileCanonicalPath.toLowerCase(locale);
+				if(csc != null && fileCanonicalPathLower.startsWith(user_data_dirLower, 0)){
+					//非法读取其它工程
+					throw new HCSecurityException("block read file :" + file + OUTSIDE_HAR_WORKING_THREAD);
+				}
 			}
 		}
 	}
@@ -680,48 +749,53 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
 		}
 		String harDir;
-		if(csc != null 
-				&& (fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
-						|| ((harDir.startsWith(fileCanonicalPath, 0) 
-								&& 
-							harDir.length() == fileCanonicalPath.length() + 1)))){
+		if(csc == null){
+//			System.out.println("==> check write : " + file.toString());
+			ResourceUtil.checkHCStackTraceInclude(null, null);
 		}else{
-			if(csc != null){
-				if(csc.isWrite() == false){
-					throw new HCSecurityException("block write file :" + file + " in HAR security permission in project [" + csc.projID + "]." 
-							+ buildPermissionOnDesc(HCjar.PERMISSION_WRITE));
+			if(csc != null 
+					&& (fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
+							|| ((harDir.startsWith(fileCanonicalPath, 0) 
+									&& 
+								harDir.length() == fileCanonicalPath.length() + 1)))){
+			}else{
+				if(csc != null){
+					if(csc.isWrite() == false){
+						throw new HCSecurityException("block write file :" + file + " in HAR security permission in project [" + csc.projID + "]." 
+								+ buildPermissionOnDesc(HCjar.PERMISSION_WRITE));
+					}
 				}
-			}
-			
-			if(currentThread.getId() != propertiesLockThreadID){
-				if(fileCanonicalPath.equalsIgnoreCase(propertiesName)){
-					throw new HCSecurityException("block write file :" + file);
-				}
-			}
-
-			String canonicalLowerPath = null;
-			if(csc != null){
-				for (int i = 0; i < blockWriteFullPathLists.length; i++) {
-					if(blockWriteFullPathLists[i].equalsIgnoreCase(fileCanonicalPath)){
+				
+				if(currentThread.getId() != propertiesLockThreadID){
+					if(fileCanonicalPath.equalsIgnoreCase(propertiesName)){
 						throw new HCSecurityException("block write file :" + file);
 					}
 				}
-
-				canonicalLowerPath = fileCanonicalPath.toLowerCase(locale);
-				if(csc != null && canonicalLowerPath.startsWith(user_data_dirLower, 0)){
-					//非法读取其它工程
-					throw new HCSecurityException("block write file :" + file + OUTSIDE_HAR_WORKING_THREAD);
-				}
-				{
-					final String[] forbidExt = {".jar", ".rb", ".har"};
-					for (int i = 0; i < forbidExt.length; i++) {
-						if(canonicalLowerPath.endsWith(forbidExt[i])){
-							throw new HCSecurityException("block write file :" + file + ", file type [" + forbidExt[i] + "] is forbid.");
+	
+				String canonicalLowerPath = null;
+				if(csc != null){
+					for (int i = 0; i < blockWriteFullPathLists.length; i++) {
+						if(blockWriteFullPathLists[i].equalsIgnoreCase(fileCanonicalPath)){
+							throw new HCSecurityException("block write file :" + file);
 						}
 					}
-				}
-				if(canonicalLowerPath.startsWith(hcRootPathLower, 0) == false){
-					throw new HCSecurityException("block write file :" + file + ", outside dir:" + hcRootPath);
+	
+					canonicalLowerPath = fileCanonicalPath.toLowerCase(locale);
+					if(csc != null && canonicalLowerPath.startsWith(user_data_dirLower, 0)){
+						//非法读取其它工程
+						throw new HCSecurityException("block write file :" + file + OUTSIDE_HAR_WORKING_THREAD);
+					}
+					{
+						final String[] forbidExt = {".jar", ".rb", ".har"};
+						for (int i = 0; i < forbidExt.length; i++) {
+							if(canonicalLowerPath.endsWith(forbidExt[i])){
+								throw new HCSecurityException("block write file :" + file + ", file type [" + forbidExt[i] + "] is forbid.");
+							}
+						}
+					}
+					if(canonicalLowerPath.startsWith(hcRootPathLower, 0) == false){
+						throw new HCSecurityException("block write file :" + file + ", outside dir:" + hcRootPath);
+					}
 				}
 			}
 		}
@@ -756,7 +830,11 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				throw new HCSecurityException("block execute [exit] by HAR security permission in project [" + csc.projID + "]." 
 						+ buildPermissionOnDesc(HCjar.PERMISSION_EXIT));
 			}
+    	}else{
+    		//Not in csc
+    		ResourceUtil.checkHCStackTraceInclude(null, null);
     	}
+		
     	super.checkExit(status);
     }
     
@@ -811,7 +889,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
     }
 
 	public static final String buildPermissionOnDesc(final String permssionStr) {
-		return " To enable permission, check item [" + permssionStr + "] or reset permissions.";
+		return " To enable permission, select item [" + permssionStr + "] or reset permissions.";
 	}
     
     @Override
@@ -824,6 +902,14 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			if(csc.isExecute() == false){
 				throw new HCSecurityException("block execute [" + cmd + "] in HAR security permission in project [" + csc.projID + "]." 
 						+ buildPermissionOnDesc(HCjar.PERMISSION_EXECUTE));
+			}else{
+				//工程开启了Execute权限
+				
+				if(cmd.indexOf("hc_hard_id.txt", 0) >= 0){
+					throw new HCSecurityException("block execute [" + cmd + "] in project [" + csc.projID + "] for security data [hc_hard_id.txt].");
+//				}else if(cmd.indexOf(PATH_USER_DATA_OF_OS, 0) >= 0){
+//					throw new HCSecurityException("block execute [" + cmd + "] in project [" + csc.projID + "] for security data [" + PATH_USER_DATA_OF_OS + "].");
+				}
 			}
 //    		final Iterator<String> it = blockReadFullPathLists.iterator();
 //    		while(it.hasNext()){
@@ -832,6 +918,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 //    				throw new HCSecurityException("block exec on file :" + blockFile);
 //    			}
 //    		}
+			L.V = L.O ? false : LogManager.log("execute OS cmd : [" + cmd + "] in project [" + csc.projID + "].");
+    	}else{
+    		//Not in csc
+    		ResourceUtil.checkHCStackTraceInclude(null, null);
     	}
     	
     	super.checkExec(cmd);

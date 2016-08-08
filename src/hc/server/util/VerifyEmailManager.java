@@ -146,7 +146,7 @@ public class VerifyEmailManager {
 		final int[] verifiedStatus = new int[1];//0 : 未send, 1 : send one/two/..., 2 : 通过
 		
 		sendBtn.addActionListener(new HCActionListener(new Runnable() {
-			final String verifytoken = TokenManager.buildToken();
+			final String tokenForVerifyEmailHideRealToken = ResourceUtil.buildUUID();
 			
 			@Override
 			public void run() {
@@ -155,7 +155,7 @@ public class VerifyEmailManager {
 				}
 				
 				final String token = PropertiesManager.getValue(PropertiesManager.p_Token);
-				if(RootServerConnector.submitEmail(emailID, token, verifytoken) == null){
+				if(RootServerConnector.submitEmail(emailID, token, tokenForVerifyEmailHideRealToken) == null){
 					App.showMessageDialog(sendEmailFrame, ResourceUtil.get(9205));
 					return;
 				}else{
@@ -402,7 +402,7 @@ public class VerifyEmailManager {
 						startVerifyProcess();
 					}
 				}, threadPoolToken);
-				App.showCenterPanel(panel, 0, 0, App.getErrorI18N(), true, jbVerifyEmail, null, verifyListener, null, (JFrame)null, false, true, null, false, true);
+				App.showCenterPanel(panel, 0, 0, ResourceUtil.getErrorI18N(), true, jbVerifyEmail, null, verifyListener, null, (JFrame)null, false, true, null, false, true);
 			}
 		});
 	}

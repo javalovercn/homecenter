@@ -17,6 +17,7 @@ import hc.util.IBiz;
 import hc.util.MultiThreadDownloader;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
+import hc.util.SecurityDataProtector;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
@@ -161,6 +162,8 @@ public class JRubyInstaller {
 					L.V = L.O ? false : LogManager.log("successful installed JRuby.");
 					
 					RootServerConnector.notifyLineOffType("lof=jrubyOK");
+					
+					SecurityDataProtector.init();//Android环境下进行数据加密
 					
 					notifySuccessInstalled();
 					

@@ -111,20 +111,6 @@ public class HCURL {
 		return URL_DEFAULT_MLET_ALIAS;
 	}
 	
-	/**
-	 * 不用考虑Designer合并创建时的相同逻辑，因为Designer比较复杂且case化。
-	 * @param mletLocator
-	 * @param isHTMLMlet
-	 * @return
-	 */
-	public static final String buildLocatorURL(final String mletLocator, final boolean isHTMLMlet){
-		if(isHTMLMlet){
-			return buildStandardURL(FORM_PROTOCAL, mletLocator);
-		}else{
-			return buildStandardURL(SCREEN_PROTOCAL, mletLocator);
-		}
-	}
-
 	public static int getURLProtocalIdx(final String protocal){
 		for (int i = 0; i < URL_PROTOCAL.length; i++) {
 			if(URL_PROTOCAL[i].equals(protocal)){

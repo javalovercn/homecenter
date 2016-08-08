@@ -36,7 +36,7 @@ public class J2SEConstant extends IConstant {
 	@Override
 	public void setObject(final String key, final Object value) {
 		if(key.equals(IConstant.CertKey)){
-			PropertiesManager.setValue(PropertiesManager.p_CertKey, ByteUtil.encodeBase64((byte[])value));
+			PropertiesManager.updateCertKey((byte[])value);
 			PropertiesManager.saveFile();
 			return;
 		}

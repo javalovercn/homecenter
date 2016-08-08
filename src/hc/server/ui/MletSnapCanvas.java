@@ -8,7 +8,6 @@ import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
 import hc.server.ScreenServer;
 import hc.server.data.screen.PNGCapturer;
-import hc.server.util.HCJFrame;
 import hc.util.ResourceUtil;
 
 import java.awt.AWTEvent;
@@ -56,11 +55,11 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
     final Runnable scrollPrintRunnable, listPrintRunnable;
     final int[] imageData;
     int[] imageDataComboBox;
-    public final JFrame frame, frameCombobox;
+    public JFrame frame, frameCombobox;
+    JScrollPane scrollPane;
     public Mlet mlet;
 	final static boolean isAndroidServer = ResourceUtil.isAndroidServerPlatform();
 	final boolean isJ2SEPanelInset = ResourceUtil.isJ2SELimitFunction();
-    private JScrollPane scrolPanel;
 	public ProjectContext projectContext;
 	
 	public MletSnapCanvas(final int w, final int h) {
@@ -79,14 +78,10 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		}
 		graphcis = bufferedImage.getGraphics();
 		
-		frame = new HCJFrame();
-		frameCombobox = new HCJFrame();
-		frameCombobox.getContentPane().setLayout(new BorderLayout());
-		
 		scrollPrintRunnable = new Runnable() {
 			@Override
 			public void run(){
-				scrolPanel.print(graphcis);
+				mlet.print(graphcis);
 			}
 		};
 		listPrintRunnable = new Runnable() {
@@ -102,6 +97,16 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		this.mlet = mlet;
 		ServerUIAPIAgent.setProjectContext(mlet, projectCtx);
 		projectContext = projectCtx;
+		
+		projectContext.runAndWait(new Runnable() {
+			@Override
+			public void run() {
+				frame = new JFrame();
+				frameCombobox = new JFrame();
+				frameCombobox.getContentPane().setLayout(new BorderLayout());
+				scrollPane = new JScrollPane(mlet, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			}
+		});
 	}
 	
 	@Override
@@ -413,7 +418,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	final int[] location = new int[2];
 	
 	private void getMletLocation(Component parent, final int x, final int y, final int[] loc){
-		final Container contain = isAndroidServer?mlet:scrolPanel;
+		final Container contain = mlet;//isAndroidServer?mlet:scrolPanel;
 		int locX = 0, locY = 0;
 		while(parent != contain){
 			final Point p = parent.getLocation();
@@ -436,18 +441,14 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	
 	@Override
 	public void init(){//in user thread
-		scrolPanel = new JScrollPane(mlet, 
-				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-//		scrolPanel.setOpaque(true); //content panes must be opaque
-	    frame.setContentPane(scrolPanel);
+	    frame.setContentPane(scrollPane);
 	    
-	    if(isJ2SEPanelInset){
-	    	scrolPanel.setPreferredSize(new Dimension(width + J2SE_JPANEL_INSETS * 2, height + J2SE_JPANEL_INSETS * 2));
+	    if(isAndroidServer){
+	    	scrollPane.setPreferredSize(new Dimension(width, height));
 	    }else{
-	    	scrolPanel.setPreferredSize(new Dimension(width, height));
+	    	mlet.setPreferredSize(new Dimension(width, height));
 	    }
-	    
-	    frame.pack();
+		frame.pack();//可能重载某些方法
 	}
 
 	private void updateTraveKeys(final int traverKey, final int[] keys) {
@@ -660,7 +661,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	private Component getCtrlComponentAt(Component contain, final int x, final int y){
 //		System.out.println("getCtrlComponentAt contain class : " + contain.getClass().getName());
 		if(contain == null){
-			contain = isAndroidServer?mlet:scrolPanel;
+			contain = mlet;//isAndroidServer?mlet:scrolPanel;
 		}
 		
 		if(contain instanceof JTabbedPane){

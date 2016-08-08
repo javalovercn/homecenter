@@ -442,6 +442,10 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 				final int out = App.showConfirmDialog(KeyComperPanel.this, ResourceUtil.get(9167), "Test Key Input?", JOptionPane.OK_CANCEL_OPTION);
 				if(out == JOptionPane.OK_OPTION){
 					final String keyDesc = body[table.getSelectedRow()][1];
+					if(keyDesc == null){
+						App.showMessageDialog(KeyComperPanel.this, "It can't be null!", "Error", JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+						return;
+					}
 					KeyComper.actionKeys(keyDesc);
 				}
 			}

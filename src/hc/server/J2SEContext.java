@@ -508,7 +508,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						|| (System.currentTimeMillis() - lastCheckMS > 1000 * 60 * 3))){
     		final PWDDialog pd = new PWDDialog();
     		
-    		final String pwd = App.getFromBASE64(PropertiesManager.getValue(PropertiesManager.p_password));
+    		final String pwd = PropertiesManager.getPasswordAsInput();
     		if(pd.pwd == null){
     			//取消操作
     			return false;
@@ -859,7 +859,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 								
 								byte[] pwdBS;
 								try {
-									pwdBS = App.getFromBASE64(pwd).getBytes(IConstant.UTF_8);
+									pwdBS = ResourceUtil.getFromBASE64(pwd).getBytes(IConstant.UTF_8);
 									lv = viewLog(ImageSrc.HC_LOG, pwdBS, ca1, (String)ResourceUtil.get(9002));
 								} catch (final UnsupportedEncodingException e) {
 									ExceptionReporter.printStackTrace(e);
@@ -892,7 +892,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 									if(pwd != null){
 										byte[] pwdBS;
 										try {
-											pwdBS = App.getFromBASE64(pwd).getBytes(IConstant.UTF_8);
+											pwdBS = ResourceUtil.getFromBASE64(pwd).getBytes(IConstant.UTF_8);
 											lv = viewLog(ImageSrc.HC_LOG_BAK, pwdBS, ca2, (String)ResourceUtil.get(9003));
 										} catch (final UnsupportedEncodingException e) {
 											ExceptionReporter.printStackTrace(e);
@@ -2096,6 +2096,9 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 	final IHCURLAction urlAction = new J2SEServerURLAction();
 	
+	/**
+	 * 如果jruby.jar升级，由于Android环境下依赖此，重要测试
+	 */
 	public static final String jrubyjarname = ResourceUtil.getLibNameForAllPlatforms("jruby.jar");
 
 	@Override
@@ -2200,7 +2203,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	private void doAfterMobileReceivedCert() {
 		final JPanel nextpanel = new JPanel();
 		nextpanel.add(new JLabel((String) ResourceUtil.get(9032), new ImageIcon(ImageSrc.OK_ICON), SwingConstants.LEFT));
-		App.showCenterPanelOKDispose(nextpanel, 0, 0, (String) ResourceUtil.get(IContext.INFO), false, (JButton)null, (String)null, new HCActionListener(new Runnable() {
+		App.showCenterOKDisposeDelayMode(nextpanel, 0, 0, (String) ResourceUtil.get(IContext.INFO), false, (JButton)null, (String)null, new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 			}

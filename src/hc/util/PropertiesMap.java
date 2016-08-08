@@ -14,7 +14,7 @@ import java.util.Vector;
 public class PropertiesMap extends HashMap<String, String>{
 	private final String itemsPrefix;
 	
-	private final String SPLIT = HCConfig.CFG_SPLIT;
+	public static final String SPLIT = HCConfig.CFG_SPLIT;
 	public static final String EQUAL = "=";
 	
 	public PropertiesMap(final String itemType) {

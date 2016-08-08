@@ -15,6 +15,7 @@ import hc.core.util.StoreableHashMap;
 import hc.core.util.StringUtil;
 import hc.core.util.WiFiDeviceManager;
 import hc.server.DefaultManager;
+import hc.server.HCSecurityException;
 import hc.server.J2SEContext;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
@@ -22,6 +23,7 @@ import hc.server.StarterManager;
 import hc.server.data.KeyComperPanel;
 import hc.server.data.StoreDirManager;
 import hc.server.ui.ClientDesc;
+import hc.server.util.HCLimitSecurityManager;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -51,11 +53,15 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.security.MessageDigest;
 import java.sql.Timestamp;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Random;
+import java.util.UUID;
 import java.util.Vector;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -186,6 +192,8 @@ public class ResourceUtil {
 	public static boolean refreshHideCheckBox(final JCheckBox checkBox, final JMenuItem hideIDForErrCert){
 		final boolean isHide = DefaultManager.isHideIDForErrCert();
 		final String tip = "<html>" +
+				StringUtil.replace((String)ResourceUtil.get(9212), "{disable}", (String)ResourceUtil.get(1021)) +
+				"<BR><BR>" +
 				"<STRONG>" + getHideText() + "</STRONG>&nbsp;" + getHideTip() +
 				"<BR>" +
 				"<STRONG>" + getShowText() + "</STRONG>&nbsp;" + getShowTip() +
@@ -326,8 +334,9 @@ public class ResourceUtil {
 			final String message = "Error to get JRuby/3rdLibs ClassLoader!";
 			LogManager.errToLog(message);
 			final JPanel panel = App.buildMessagePanel(message, App.getSysIcon(App.SYS_ERROR_ICON));
-			App.showCenterPanel(panel, 0, 0, "Error", false, null, null, null, null, null, false, true, null, false, false);//JFrame
+			App.showCenterPanel(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, null, false, true, null, false, false);//JFrame
 		}else{
+			HCLimitSecurityManager.refreshJRubyClassLoader(rubyAnd3rdLibsClassLoaderCache);
 			L.V = L.O ? false : LogManager.log("Successful (re) create JRuby engine classLoader.");
 		}
 		return rubyAnd3rdLibsClassLoaderCache;
@@ -992,6 +1001,28 @@ public class ResourceUtil {
 		
 		return String.valueOf(out);
 	}
+	
+	public static byte[] getMD5Bytes(final String src){
+		MessageDigest digest = null;
+		try {
+			digest = MessageDigest.getInstance("MD5");
+			digest.update(ByteUtil.getBytes(src, IConstant.UTF_8));
+			return digest.digest();
+		}catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+		return new byte[0];
+	}
+	
+	public static String getMD5(final String src){
+		final byte[] bs = getMD5Bytes(src);
+		
+		if(bs.length == 0){
+			return "";
+		}else{
+			return convertMD5BytesToString(bs);
+		}
+	}
 
 	public static String getMD5(final File file) {
 		MessageDigest digest = null;
@@ -1004,17 +1035,7 @@ public class ResourceUtil {
 			while ((len = in.read(buffer, 0, 1024)) != -1) {
 				digest.update(buffer, 0, len);
 			}
-			final char hexDigits[]={'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
-			final byte[] result = digest.digest();
-            final int j = result.length;
-            final char str[] = new char[j * 2];
-            int k = 0;
-            for (int i = 0; i < j; i++) {
-                final byte byte0 = result[i];
-                str[k++] = hexDigits[byte0 >>> 4 & 0xf];
-                str[k++] = hexDigits[byte0 & 0xf];
-            }
-            return new String(str);
+			return convertMD5BytesToString(digest.digest());
 		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}finally{
@@ -1024,6 +1045,19 @@ public class ResourceUtil {
 			}
 		}
 		return "";
+	}
+	
+	private static String convertMD5BytesToString(final byte[] result){
+		final char hexDigits[]={'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+		final int j = result.length;
+		final char str[] = new char[j * 2];
+		int k = 0;
+		for (int i = 0; i < j; i++) {
+		    final byte byte0 = result[i];
+		    str[k++] = hexDigits[byte0 >>> 4 & 0xf];
+		    str[k++] = hexDigits[byte0 & 0xf];
+		}
+		return new String(str);
 	}
 
 	public static final String EXT_APK = ".apk";
@@ -1165,7 +1199,12 @@ public class ResourceUtil {
 		return baseDir;
 	}
 
-	// 将 s 进行 BASE64 编码
+	/**
+	 * 将 s 进行 BASE64 编码
+	 * @param s
+	 * @return
+	 * @see #getFromBASE64(String)
+	 */
 	public static String getBASE64(final String s) {
 		if (s == null)
 			return null;
@@ -1180,4 +1219,136 @@ public class ResourceUtil {
 	public static boolean isLoggerOn() {
 		return PropertiesManager.isTrue(PropertiesManager.p_IsLoggerOn, true);
 	}
+
+	public static String getWarnI18N() {
+		return (String) get(IContext.WARN);
+	}
+
+	public static String getErrorI18N() {
+		return (String) get(IContext.ERROR);
+	}
+
+	/**
+	 * 
+	 * @param className
+	 * @return true, className包含系统保留的包名
+	 */
+	public static boolean checkSysPackageName(final String className) {
+		return className.startsWith("hc.", 0) || className.startsWith("java.", 0) || className.startsWith("javax.", 0);
+	}
+
+	/**
+	 * 
+	 * @param file
+	 * @return true, className包含系统保留的包名
+	 */
+	public static boolean checkSysPackageNameInJar(final File file){
+		JarFile jarFile = null;
+		try {
+			jarFile = new JarFile(file);
+			final Enumeration<JarEntry> entrys = jarFile.entries();
+			while (entrys.hasMoreElements()) {
+				final JarEntry jarEntry = entrys.nextElement();
+				String entryName = jarEntry.getName();
+				if (entryName.endsWith(".class")) {
+					entryName = entryName.replace("/", ".");
+					if(checkSysPackageName(entryName)){
+						LogManager.errToLog("class [" + entryName + "] has reserved package name.");
+						return true;
+					}
+				}
+			}
+		} catch (final Throwable e) {
+		}finally{
+			try{
+				jarFile.close();
+			}catch (final Throwable e) {
+			}
+		}
+		return false;
+	}
+
+	public static final String RESERVED_PACKAGE_NAME_IS_IN_HAR = "reserved package name [hc/java/javax] is in HAR!";
+	public static final String HAR_PROJECT_FILE_IS_CORRUPTED = "HAR project file is corrupted or incomplete.";
+
+	public static void generateCertForNullOrError() {
+		CCoreUtil.checkAccess();
+		
+		App.generateCert();
+		PropertiesManager.setValue(PropertiesManager.p_EnableTransNewCertKeyNow, IConstant.TRUE);
+		
+		App.setNoTransCert();
+	}
+
+	/**
+	 * 检查stackTrace的类源都是系统包，且callerClass非null时，必须在stackTrace中。否则抛出异常。
+	 * @param callerClass
+	 * @param loader 使用指定的类加载器来检查类
+	 */
+	public static final void checkHCStackTraceInclude(final String callerClass, final ClassLoader loader) {
+		final StackTraceElement[] el = Thread.currentThread().getStackTrace();//index越小，距本方法越近
+		final ClassLoader checkLoader = (loader==null?ResourceUtil.class.getClassLoader():loader);
+		boolean isFromCallerClass = false;
+		
+		for (int i = el.length - 1; i >= 0; i--) {
+			final String className = el[i].getClassName();
+			if(className.equals("org.jruby.embed.internal.EmbedEvalUnitImpl")){//动态解释执行
+				if(PropertiesManager.isSimu()){
+					LogManager.errToLog("Illegal class [" + className + "] is NOT allowed in stack trace in ClassLoader[" + checkLoader.toString() + "].");
+				}
+				throw new HCSecurityException(PropertiesManager.ILLEGAL_CLASS);
+			}
+			try{
+				Class.forName(className, false, checkLoader);
+			}catch (final Exception e) {
+				if(PropertiesManager.isSimu()){
+					LogManager.errToLog("Illegal class [" + className + "] is NOT allowed in stack trace in ClassLoader[" + checkLoader.toString() + "].");
+				}
+//				panel
+//				App.showCenterPanel(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, null, false, true, null, false, true);
+				throw new HCSecurityException(PropertiesManager.ILLEGAL_CLASS);
+			}
+			if(callerClass != null && className.equals(callerClass)){
+				isFromCallerClass = true;
+			}
+//			if(checkSysPackageName(className)){
+//			}else{
+//				throw new HCSecurityException(PropertiesManager.ILLEGAL_CLASS);
+//			}
+		}
+		
+		if(callerClass != null && isFromCallerClass == false){
+			if(PropertiesManager.isSimu()){
+				LogManager.errToLog("Class [" + callerClass + "] should be in stack trace in ClassLoader[" + checkLoader.toString() + "], but NOT.");
+			}
+			throw new HCSecurityException(PropertiesManager.ILLEGAL_CLASS);
+		}
+	}
+
+	/**
+	 * 将 BASE64 编码的字符串 s 进行解码
+	 * @param s
+	 * @return
+	 * @see #getBASE64(String)
+	 */
+	public static String getFromBASE64(final String s) {
+		if (s == null)
+			return null;
+		try {
+			final byte[] b = ByteUtil.decodeBase64(s);
+			return new String(b, IConstant.UTF_8);
+		} catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
+			return null;
+		}
+	}
+
+	public static String getDefaultWordCompletionKeyChar() {
+		return isMacOSX()?"÷":"";
+	}
+
+	public static String buildUUID() {
+		return UUID.randomUUID().toString();
+	}
+	
 }

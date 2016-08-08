@@ -111,7 +111,7 @@ public class ThirdlibManager {
 			return targetFile;
 		}
 		
-		libsSet.appendItem(buildPath);
+		libsSet.appendItemIfNotContains(buildPath);
 		libsSet.save();
 
 		copy(sourceLib, targetFile);

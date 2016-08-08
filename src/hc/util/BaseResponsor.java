@@ -58,6 +58,12 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction{
 	
 	public abstract void enableLog(final boolean enable);
 	
+	/**
+	 * 
+	 * @param owner
+	 * @return 如果检测不过，返回null；否则返回自己
+	 * @throws Exception
+	 */
 	public abstract BaseResponsor checkAndReady(final Frame owner) throws Exception;
 	
 	/**

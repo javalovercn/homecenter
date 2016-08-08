@@ -207,9 +207,9 @@ public class DocHelper {
 //		System.out.println("-----processDocForOneLevel : " + claz.getName());
 
 		if(clasName.startsWith("java")){
-			read(clasName, "hc/server/docs/jdk_docs/api/" + clasName.replace('.', '/') + ".html");
+			read(clasName, "hc/res/docs/jdk_docs/api/" + clasName.replace('.', '/') + ".html");
 		}else if(clasName.startsWith("hc.")){
-			read(clasName, "hc/server/docs/" + clasName.replace('.', '/') + ".html");
+			read(clasName, "hc/res/docs/" + clasName.replace('.', '/') + ".html");
 		}
 	}
 

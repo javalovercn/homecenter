@@ -12,7 +12,7 @@ public class PlatformManager {
 				final Class c = Class.forName("hc.android.AndroidPlatformService");
 				return (PlatformService)c.newInstance();
 			}else{
-				final Class c = Class.forName("hc.server.j2se.J2SEPlatformService");
+				final Class c = Class.forName("hc.server.j2se.J2SEPlatformService");//该类名又被引用HCLimitSecurityManager checkPermission
 				return (PlatformService)c.newInstance();
 			}
 		}catch (final Throwable e) {

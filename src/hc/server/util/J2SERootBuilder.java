@@ -9,6 +9,7 @@ import hc.j2se.J2SEExceptionJSONBuilder;
 import hc.server.StarterManager;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
 
 public class J2SERootBuilder extends RootBuilder {
 	final ThreadGroup token;
@@ -63,6 +64,8 @@ public class J2SERootBuilder extends RootBuilder {
 			 return "/hc/res/ajax.der";
 		 }else if(rootBizNo == ROOT_BIZ_IS_SIMU){
 			 return PropertiesManager.isSimu();
+		 }else if(rootBizNo == ROOT_BIZ_CHECK_STACK_TRACE){
+			 ResourceUtil.checkHCStackTraceInclude(null, null);
 		 }
 		 
 		 return null;

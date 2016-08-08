@@ -75,7 +75,10 @@ public class ExitManager {
 					//无网络会出现本情形
 				}
 			}
-			
+			//EventBack=>ConditionWatch=>HCTimer，所以要提前关闭，否则部分对象为null，比如responsor
+			//所以提前到此
+			HCTimer.shutDown();
+
 			PlatformManager.getService().stopCapture();
 			
 			ScreenServer.emptyScreen();
@@ -92,7 +95,6 @@ public class ExitManager {
 			}catch (final Exception e) {
 				ExceptionReporter.printStackTrace(e);
 			}
-			HCTimer.shutDown();
 
 //			ContextManager.exit();
 			

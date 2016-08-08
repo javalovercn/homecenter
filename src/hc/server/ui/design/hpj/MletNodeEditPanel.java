@@ -3,8 +3,8 @@ package hc.server.ui.design.hpj;
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.server.ui.ClientDesc;
-import hc.server.ui.design.Designer;
 import hc.server.ui.design.code.CodeHelper;
+import hc.server.ui.design.code.TabHelper;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
@@ -142,6 +142,10 @@ public class MletNodeEditPanel extends DefaultMenuItemNodeEditPanel {
 			
 			@Override
 			public void keyTyped(final KeyEvent event) {
+				if(isEventConsumed){
+					return;
+				}
+				
 				final char inputChar = event.getKeyChar();
 				final int modifiers = event.getModifiers();
 
@@ -158,20 +162,15 @@ public class MletNodeEditPanel extends DefaultMenuItemNodeEditPanel {
 						}
 					}
 					ScriptEditPanel.consumeEvent(event);
-				}
-			}
-			
-			@Override
-			public void keyReleased(final KeyEvent e) {
-				if(Designer.isDirectKeycode(e.getKeyCode()) == false && Designer.isCopyKeyEvent(e, isJ2SEServer) == false){
-					MletNodeEditPanel.this.notifyModified();
+					return;
 				}
 				
-				final char keyChar = e.getKeyChar();
+				MletNodeEditPanel.this.notifyModified();
+				
 				boolean isRefreshChar = false;
 				final int size = refreshChar.length;
 				for (int i = 0; i < size; i++) {
-					if(refreshChar[i] == keyChar){
+					if(refreshChar[i] == inputChar){
 						isRefreshChar = true;
 						break;
 					}
@@ -182,12 +181,19 @@ public class MletNodeEditPanel extends DefaultMenuItemNodeEditPanel {
 			}
 			
 			@Override
+			public void keyReleased(final KeyEvent e) {
+			}
+			
+			boolean isEventConsumed;
+			
+			@Override
 			public void keyPressed(final KeyEvent event) {
 				final int keycode = event.getKeyCode();
 	            final int modifiers = event.getModifiers();
 	            final CodeHelper codeHelper = designer.codeHelper;
 				final int wordCompletionModifyMaskCode = codeHelper.wordCompletionModifyMaskCode;
 				//无输入字符时的触发提示代码
+				isEventConsumed = false;
 				if(keycode == codeHelper.wordCompletionCode && (modifiers & wordCompletionModifyMaskCode) == wordCompletionModifyMaskCode){
 					//注意：请同步从ScriptEditPanel
 					try {
@@ -198,6 +204,13 @@ public class MletNodeEditPanel extends DefaultMenuItemNodeEditPanel {
 						}
 					}
 					ScriptEditPanel.consumeEvent(event);
+					isEventConsumed = true;
+					return;
+				}
+				
+				if(keycode == KeyEvent.VK_ESCAPE){
+					TabHelper.pushEscKey();
+					isEventConsumed = true;
 				}
 			}
 		});

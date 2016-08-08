@@ -3,6 +3,7 @@ package hc.core;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.RootBuilder;
 
 import java.io.UnsupportedEncodingException;
 
@@ -21,8 +22,7 @@ public abstract class IConstant {
 	public static final int THREAD_WAIT_INNER_MS = 10;
 	
 	public static String propertiesFileName = "hc_config.properties";
-	public static boolean enableInitLock = true;
-	protected static String uuid, password;
+	static String uuid, password;
 	
 	public static final String getUUID(){
 		CCoreUtil.checkAccess();
@@ -43,6 +43,8 @@ public abstract class IConstant {
 	
 	public static final String getPassword(){
 		CCoreUtil.checkAccess();
+		
+		RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_CHECK_STACK_TRACE, null);
 		
 		return password;
 	}
@@ -126,10 +128,14 @@ public abstract class IConstant {
 	}
 
 	public static void setServerSide(final boolean s) {
+		CCoreUtil.checkAccess();
+		
 		serverSide = s;
 	}
 
 	public static void setUUID(final String uid){
+		CCoreUtil.checkAccess();
+		
 		uuid = uid;
 		
 		try {
@@ -141,6 +147,8 @@ public abstract class IConstant {
 	}
 
 	public static void setPassword(final String pwd){
+		CCoreUtil.checkAccess();
+		
 		password = pwd;
 		try {
 			passwordBS = password.getBytes(IConstant.UTF_8);

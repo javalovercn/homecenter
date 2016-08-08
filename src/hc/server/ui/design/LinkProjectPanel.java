@@ -352,12 +352,13 @@ public class LinkProjectPanel extends ProjectListPanel{
 					public final void doBiz() {
 						final AbstractDelayBiz selfBiz = this;
 						final Object[] rows = (Object[])getPara();
+						final LinkEditData led = (LinkEditData)rows[IDX_OBJ_STORE];
 						final JPanel askPanel = new JPanel();
-						askPanel.add(new JLabel((String)ResourceUtil.get(9144), App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEFT));
+						final String replaceID = StringUtil.replace((String)ResourceUtil.get(9144), "{id}", led.lps.getProjectID());
+						askPanel.add(new JLabel(replaceID, App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEFT));
 						App.showCenterPanel(askPanel, 0, 0, (String)ResourceUtil.get(9145), true, null, null, new HCActionListener(new Runnable() {
 							@Override
 							public void run() {
-								final LinkEditData led = (LinkEditData)rows[IDX_OBJ_STORE];
 								final LinkProjectStore lps = led.lps;
 								
 								if(lps.isRoot()){
@@ -844,8 +845,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 	}
 
 	public Window toShow(){
-		return App.showCenterPanelWindow(contentPane, 0, 0, true, exitBtn, saveAndApplyBtn, 
-				true, exitAction, saveAction, dialog, relativeTo, true, false);//isResizabel=false,会导致漂移
+		return App.showCenter(contentPane, 0, 0, true, exitBtn, saveAndApplyBtn, 
+				true, exitAction, saveAction, dialog, relativeTo, true);//isResizabel=false,会导致漂移
 	}
 
 	private void checkAndStoreData() {
@@ -910,31 +911,41 @@ public class LinkProjectPanel extends ProjectListPanel{
 	 */
 	private final void addProjFromLocal(final JFrame self, final AbstractDelayBiz selfBiz, final File file) {
 		if(file != null){
-			final Map<String, Object> map = AddHarHTMLMlet.getMap(file);
-			if(map.isEmpty()){
-				App.showMessageDialog(self, "HAR project file is corrupted or incomplete.", 
-						"fail to load HAR project", JOptionPane.ERROR_MESSAGE);
+			final String failTitle = "fail to load HAR project";
+			
+			if(ResourceUtil.checkSysPackageNameInJar(file)){
+				App.showMessageDialog(self, ResourceUtil.RESERVED_PACKAGE_NAME_IS_IN_HAR, 
+						failTitle, JOptionPane.ERROR_MESSAGE);
+				//不能return
 			}else{
-				final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
-				if(licenseURL.length() > 0){
-					ProcessingWindowManager.showCenterMessageOnTop(self, true, (String)ResourceUtil.get(9110), null);//processing...
-					final IBiz biz = new IBiz(){
-						@Override
-						public void setMap(final HashMap map) {
-						}
-
-						@Override
-						public void start() {
-							loadToTable(self, selfBiz, file, map);
-						}
-					};
-					App.showAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", false, licenseURL, biz, null, true);
+				final Map<String, Object> map = AddHarHTMLMlet.getMap(file);
+				if(map.isEmpty()){
+					App.showMessageDialog(self, ResourceUtil.HAR_PROJECT_FILE_IS_CORRUPTED, 
+							failTitle, JOptionPane.ERROR_MESSAGE);
+					//不能return
+				}else{
+					final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
+					if(licenseURL.length() > 0){
+						ProcessingWindowManager.showCenterMessageOnTop(self, true, (String)ResourceUtil.get(9110), null);//processing...
+						final IBiz biz = new IBiz(){
+							@Override
+							public void setMap(final HashMap map) {
+							}
+	
+							@Override
+							public void start() {
+								loadToTable(self, selfBiz, file, map);
+							}
+						};
+						App.showAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", false, licenseURL, biz, null, true);
+						return;
+					}
+					loadToTable(self, selfBiz, file, map);
 					return;
 				}
-				loadToTable(self, selfBiz, file, map);
-				return;
 			}
 		}
+		
 		selfBiz.setPara(Boolean.FALSE);
 	}
 

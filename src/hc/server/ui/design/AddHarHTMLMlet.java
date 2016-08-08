@@ -238,12 +238,15 @@ public class AddHarHTMLMlet extends HTMLMlet {
 					throw new Exception(httpErr);
 				}
 				
+				if(ResourceUtil.checkSysPackageNameInJar(fileHar)){
+					throw new Exception(ResourceUtil.RESERVED_PACKAGE_NAME_IS_IN_HAR);
+				}
+				
 		        if((hadmd5.length() > 0 && ResourceUtil.getMD5(fileHar).toLowerCase().equals(hadmd5.toLowerCase()))
 		        		|| hadmd5.length() == 0){
 		        	final Map<String, Object> map = getMap(fileHar);
 					if(map.isEmpty()){
-						final String errMsg = "HAR project file is corrupted or incomplete.";
-						throw new Exception(errMsg);
+						throw new Exception(ResourceUtil.HAR_PROJECT_FILE_IS_CORRUPTED);
 					}
 //					final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
 //					if(licenseURL.length() > 0){
@@ -363,7 +366,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		        }
 			}catch (final Throwable e) {
 				ExceptionReporter.printStackTrace(e);
-				appendMessage(App.getErrorI18N() + " : " + e.getMessage());
+				appendMessage(ResourceUtil.getErrorI18N() + " : " + e.getMessage());
 			}finally{
 				LinkProjectStatus.exitStatus();
 				exitButton.setEnabled(true);

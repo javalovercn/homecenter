@@ -10,6 +10,7 @@ import hc.server.HCActionListener;
 import hc.server.data.StoreDirManager;
 import hc.server.ui.HCByteArrayOutputStream;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.code.CodeHelper;
@@ -199,6 +200,9 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		
 		final ProjectContext context = ContextSecurityManager.getConfig(
 				(ThreadGroup)HCLimitSecurityManager.getTempLimitThreadPool().getThreadGroup()).getProjectContext();
+		if(isRun){
+			ServerUIAPIAgent.setTestSimuClientSession(context, designer.testSimuClientSession);
+		}
 		
 		final String script = jtaScript.getText();
 		ScriptException evalException = null;
@@ -448,6 +452,9 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			
 			@Override
 			public void keyTyped(final KeyEvent event) {
+				if(isEventConsumed){
+					return;
+				}
 				
 				final char inputChar = event.getKeyChar();
 				final int modifiers = event.getModifiers();
@@ -593,22 +600,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			
 			@Override
 			public void keyReleased(final KeyEvent e) {
-//				final int keycode = e.getKeyCode();
-//				switch (keycode) {
-//				case KeyEvent.VK_ALT:
-//				case KeyEvent.VK_SHIFT:
-//				case KeyEvent.VK_CAPS_LOCK:
-//				case KeyEvent.VK_CONTROL:
-//				case KeyEvent.VK_ESCAPE:
-//					return;
-//				}
-//				
-//				if(Designer.isDirectKeycode(keycode) == false && Designer.isCopyKeyEvent(e, isJ2SEServer) == false){
-//					App.invokeLaterUI(run);
-//				}
 			}
 			
 			final int fontHeight = jtaScript.getFontMetrics(jtaScript.getFont()).getHeight();
+			boolean isEventConsumed;
 			
 			@Override
 		    public void keyPressed(final KeyEvent event) {
@@ -625,6 +620,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	            final CodeHelper codeHelper = designer.codeHelper;
 				final int wordCompletionModifyMaskCode = codeHelper.wordCompletionModifyMaskCode;
 				//无输入字符时的触发提示代码
+				isEventConsumed = false;
 				if(keycode == codeHelper.wordCompletionCode && (modifiers & wordCompletionModifyMaskCode) == wordCompletionModifyMaskCode){
 					//注意：请同步到MletNodeEditPanel
 					try {
@@ -634,6 +630,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						ExceptionReporter.printStackTrace(e);
 					}
 					consumeEvent(event);
+					isEventConsumed = true;
 					return;
 				}
 	            
@@ -658,6 +655,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	            
 	            if(keycode == KeyEvent.VK_ESCAPE){
 					TabHelper.pushEscKey();
+					isEventConsumed = true;
 					return;
 				}
 	            

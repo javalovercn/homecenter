@@ -16,8 +16,8 @@ public class ImageSrc {
 	
 	public static final String HC_RES_PATH = "hc/res/";
 	public static final String HC_RES_PATH_FOR_WIN = "hc\\res\\";
-	public static final String HC_SERVER_UI_DESIGN_RES = "hc/server/ui/design/res/";
-	public static final String HC_SERVER_UI_DESIGN_RES_FOR_WIN = "hc\\server\\ui\\design\\res\\";
+	public static final String HC_SERVER_UI_DESIGN_RES = "hc/res/design/";
+	public static final String HC_SERVER_UI_DESIGN_RES_FOR_WIN = "hc\\res\\design\\";
 
 	public static final String HC_LOG = "hc.log";
 	

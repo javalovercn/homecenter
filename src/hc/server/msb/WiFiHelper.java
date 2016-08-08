@@ -317,8 +317,8 @@ public class WiFiHelper {
 		centerPanel.add(new JLabel("<html><STRONG>"+(String)ResourceUtil.get(9095)+"</STRONG><BR>" + withCancel + "</html>"), BorderLayout.SOUTH);
 		centerPanel.setBorder(new TitledBorder(""));
 		
-		App.showCenterPanelButtons(centerPanel, 0, 0, getInputWiFiAccountStr(), isRequired?false:true, jbOK, isRequired?null:App.buildDefaultCancelButton(),
-				jbOKAction, isRequired?null:cancelAction, null, false, false, null, false, false);
+		App.showCenter(centerPanel, 0, 0, getInputWiFiAccountStr(), isRequired?false:true, jbOK, isRequired?null:App.buildDefaultCancelButton(),
+				jbOKAction, isRequired?null:cancelAction, null, false, false, null, false);
 		jtfuuid.requestFocus();
 	}
 

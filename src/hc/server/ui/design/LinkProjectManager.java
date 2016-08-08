@@ -895,7 +895,7 @@ public class LinkProjectManager{
 			text = StringUtil.replace(text, "{proj1}", projID[0]);
 			text = StringUtil.replace(text, "{proj2}", projID[1]);
 			panel.add(new JLabel(text, App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
-			App.showCenterPanel(panel, 0, 0, App.getErrorI18N(), false, null, null, null, null, self, true, false, null, false, false);
+			App.showCenterPanel(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, self, true, false, null, false, false);
 			return false;
 		}
 		

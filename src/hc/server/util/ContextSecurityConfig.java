@@ -2,6 +2,7 @@ package hc.server.util;
 
 import hc.core.IConstant;
 import hc.core.util.CCoreUtil;
+import hc.core.util.LogManager;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.design.LinkProjectStore;
 import hc.server.ui.design.ProjResponser;
@@ -68,11 +69,16 @@ public class ContextSecurityConfig {
 					final SocketDesc desc = allowSockets.elementAt(i);
 					final String actionDesc = desc.getActionDesc();
 					final String hostIP = desc.getHostIPDesc();
-					final SocketPermission sockPerm = new SocketPermission(hostIP, actionDesc);
-					if(sockCollection == null){
-						sockCollection = sockPerm.newPermissionCollection();
+					try{
+						final SocketPermission sockPerm = new SocketPermission(hostIP, actionDesc);
+						if(sockCollection == null){
+							sockCollection = sockPerm.newPermissionCollection();
+						}
+						sockCollection.add(sockPerm);
+					}catch (final Exception e) {
+						LogManager.errToLog("Error SocketPermission, host : " + hostIP + ", action : " + actionDesc + " in project [" + projID + "].");
+						e.printStackTrace();
 					}
-					sockCollection.add(sockPerm);
 				}
 			}
 			sockCollection.setReadOnly();

@@ -8,7 +8,6 @@ import hc.core.util.CCoreUtil;
 import hc.server.AbstractDelayBiz;
 
 import java.io.UnsupportedEncodingException;
-import java.util.UUID;
 
 public class TokenManager {
 	//含Donate的Token
@@ -18,7 +17,7 @@ public class TokenManager {
 	static {
 		token = PropertiesManager.getValue(PropertiesManager.p_Token);
 		if(token == null || token.length() == 0){
-			token = buildToken();
+			token = ResourceUtil.buildUUID();
 			PropertiesManager.setValue(PropertiesManager.p_Token, token);
 			
 			PropertiesManager.saveFile();
@@ -26,7 +25,7 @@ public class TokenManager {
 		refreshTokenBS();
 		
 		if(relayToken == null || relayToken.length() == 0){
-			relayToken = buildToken();
+			relayToken = ResourceUtil.buildUUID();
 			PropertiesManager.setValue(PropertiesManager.p_TokenRelay, relayToken);
 			
 			PropertiesManager.saveFile();			
@@ -53,10 +52,6 @@ public class TokenManager {
 		refreshTokenBS();
 	}
 
-	public static String buildToken() {
-		return UUID.randomUUID().toString();
-	}
-	
 	public static String getToken(){
 		CCoreUtil.checkAccess();
 		
@@ -102,18 +97,27 @@ public class TokenManager {
 		ConnectionManager.addBeforeConnectionBiz(new AbstractDelayBiz(null){
 			@Override
 			public final void doBiz() {
-				PropertiesManager.setValue(PropertiesManager.p_uuid, id);
-				PropertiesManager.setValue(PropertiesManager.p_Token, token);
-				PropertiesManager.setValue(PropertiesManager.p_IsVerifiedEmail, IConstant.TRUE);
+				//由于loginID更改是低概率事件，为了简化JRuby开发，restart HAR。参见ProjectContext.getLoginID
+				final boolean isForceRestartHAR = (id.equals(IConstant.getUUID()) == false);
 				
-				PropertiesManager.saveFile();
+				//HAR stop前，不能更改uuid，所以要建Runnable
+				final Runnable runAfterStop = new Runnable() {
+					@Override
+					public void run() {
+						PropertiesManager.setValue(PropertiesManager.p_uuid, id);
+						PropertiesManager.setValue(PropertiesManager.p_Token, token);
+						PropertiesManager.setValue(PropertiesManager.p_IsVerifiedEmail, IConstant.TRUE);
+						
+						PropertiesManager.saveFile();
+			
+						IConstant.setUUID(id);
+						refreshToken(token);
+			
+						ResourceUtil.buildMenu();
+					}
+				};
 	
-				IConstant.setUUID(id);
-				refreshToken(token);
-	
-				ResourceUtil.buildMenu();
-	
-				App.reloadEncrypt();
+				App.reloadEncrypt(isForceRestartHAR, runAfterStop);
 			}
 		});
 		

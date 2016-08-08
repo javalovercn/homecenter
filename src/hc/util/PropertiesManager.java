@@ -3,10 +3,12 @@ package hc.util;
 import hc.App;
 import hc.core.IConstant;
 import hc.core.L;
+import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
+import hc.res.ImageSrc;
 import hc.server.PlatformManager;
 
 import java.awt.event.ActionEvent;
@@ -20,10 +22,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 public class PropertiesManager {
+	public static final String ILLEGAL_CLASS = "Illegal class attempts to access critical data or security codes.";
 	public static long PropertiesLockThreadID = 0;//置于最前
 	private static String fileName = IConstant.propertiesFileName;
 	private static File propFile;
-	private static boolean enableLock = IConstant.enableInitLock;
 	
 	public final static String getPropertiesFileName(){
 		return fileName;
@@ -37,6 +39,9 @@ public class PropertiesManager {
 	public static final String p_password = "password";
 	public static final String p_enableCache = "enableCache";
 	public static final String p_ServerSide = "serverSide";
+	/**
+	 * 开机检查是否需要输入密码之用，deprecated
+	 */
 	public static final String p_AutoStart = "AutoStart";
 	public static final String p_TCPPortFrom = "PortFrom";
 	public static final String p_NetworkInterfaces = "NetworkInterfaces";
@@ -111,7 +116,10 @@ public class PropertiesManager {
 	public static final String p_DesignerCtrlHOrV = "DesignerCtrlHOrV";
 
 	public static final String p_ReadedMsgID = "ReadedMsgID";
-	
+	public static final String p_ServerSecurityKeyMD5 = "ServerSecurityKeyMD5";
+
+	public static final String p_isLowMemWarnInDesigner = "isLowMemWarnInDesigner";
+
 	/**
 	 * 初次安装的版本号，与后续升级无关
 	 */
@@ -168,8 +176,10 @@ public class PropertiesManager {
 
 	public static final String S_THIRD_DIR = "3libs";
 	public static final String S_USER_LOOKANDFEEL = "lookfeel";
-	public static final String S_LINK_PROJECTS = "linkProjs";
+	public static final String S_LINK_PROJECTS = "linkProjs";//注意：不能有与它相同的前缀，比如linkProjsHeight的属性
 	public static final String S_LINK_PROJECTS_COLUMNS_WIDTH = "linkProjWidth";
+	public static final String S_SecurityProperties = "SecurityProperties";//记录加密的属性
+
 	public static final String p_LINK_CURR_EDIT_PROJ_ID = "currEditProjID";
 	public static final String p_LINK_CURR_EDIT_PROJ_VER = "currEditProjVer";
 	
@@ -257,15 +267,11 @@ public class PropertiesManager {
 		saveFile();
 	}
 	
-	//"DonateKey" 做特殊处理
-
 	static boolean statusChanged = false;
-	
 	private static Properties propertie;
-	static FileLocker locker;
-	private static final Object LOCK = new Object();
-	private static final Thread saveThread = buildAndStart();
-	
+	private static final Object writeNotify = new Object();
+	final static Object gLock = CCoreUtil.getGlobalLock();
+
 	private static boolean isShutdownHook = false;
 	
 	public static void notifyShutdownHook(){
@@ -273,22 +279,15 @@ public class PropertiesManager {
 		isShutdownHook = true;
 	}
 	
-	private static Thread buildAndStart(){
-		init();
-		
-		if(enableLock == false){
-			return null;
-		}
-		
+	private static void buildAndStart(){
 		final Thread t = new Thread(){
-			Object globalLock;
 			
 			@Override
 			public void run(){
 				while(true){
-					synchronized (LOCK) {
+					synchronized (writeNotify) {
 						try{
-							LOCK.wait();
+							writeNotify.wait();
 						}catch (final Exception e) {
 						}
 						
@@ -296,10 +295,7 @@ public class PropertiesManager {
 							continue;
 						}
 						
-						if(globalLock == null){
-							globalLock = CCoreUtil.getGlobalLock();
-						}
-						save(globalLock);
+						save();
 					}
 				}
 			}
@@ -310,30 +306,20 @@ public class PropertiesManager {
 		
 		PropertiesLockThreadID = t.getId();
 		
-		return t;
+		init();
 	}
 	
-	private static final void save(final Object globalLock){
+	private static final void save(){
 		if(propertie == null
 				|| (statusChanged == false)){
 			return;
 		}
         try{
-        	synchronized (LOCK) {
-        		if(enableLock && locker.lockFile.exists()){
-            		locker.release();
-        		}
-            	
-            	synchronized (globalLock) {
-                	final FileOutputStream outputFile = new FileOutputStream(propFile);
-                    propertie.store(outputFile, null);
-                    outputFile.close();
-				}
-                
-                if(enableLock){
-                	locker.lock();
-                }
+        	final FileOutputStream outputFile = new FileOutputStream(propFile);
+        	synchronized (gLock) {
+                propertie.store(outputFile, null);
 			}
+            outputFile.close();
         } catch (final Exception e) {
         	ExceptionReporter.printStackTrace(e);
         	App.showMessageDialog(null, "write data to properties file error!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -343,30 +329,49 @@ public class PropertiesManager {
 
 	public static final void saveFile(){
 //		CCoreUtil.checkAccess();此处不需限权，
-		if(enableLock){
-			synchronized (LOCK) {
-				LOCK.notify();
-			}
-		}else{
-			save(CCoreUtil.getGlobalLock());
+		synchronized (writeNotify) {
+			writeNotify.notify();
 		}
     }
 	
-	public static final void setValue(final String key, final String value){
+	private static boolean isSecurityProperties(final String key){
+		for (int i = 0; i < needSecurityProperties.length; i++) {
+			if(key.equals(needSecurityProperties[i])){
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static final void setValue(final String key, String value){
 		if(key.startsWith(PropertiesManager.p_PROJ_RECORD, 0)){
 			
 		}else{
 			CCoreUtil.checkAccess();
+
+			final boolean isSecurityData = isSecurityProperties(key);
+			
+			if(isSecurityData 
+					|| key.startsWith(S_LINK_PROJECTS, 0)//S_LINK_PROJECTS + "Lists"
+					|| key.startsWith(S_THIRD_DIR, 0)
+					|| key.startsWith(S_SecurityProperties, 0)
+					|| key.equals(p_NewCertIsNotTransed)){
+				ResourceUtil.checkHCStackTraceInclude(null, null);
+			}
+			
+			if(isSecurityData){
+				value = SecurityDataProtector.encode(value);
+			}
 		}
 		
-		synchronized (LOCK) {
-			final String oldValue = (String)propertie.get(key);
-			if(oldValue != null && value.equals(oldValue)){
-				
-			}else{
-				statusChanged = true;
-				propertie.setProperty(key, value);
-			}
+		String oldValue;
+		synchronized (gLock) {
+			oldValue = (String)propertie.setProperty(key, value);
+		}
+		
+		if(oldValue != null && value.equals(oldValue)){
+		}else{
+			statusChanged = true;
 		}
     }
 
@@ -384,20 +389,103 @@ public class PropertiesManager {
 	}
 	
 	/**
+	 * 注意：<BR>
+	 * 如果增加项，请考虑增加逻辑到notifyErrorOnSecurityProperties
+	 */
+	static final String[] needSecurityProperties = {p_CertKey, p_password, 	p_LogPassword1, p_LogPassword2};
+	
+	final static void notifyErrorOnSecurityProperties(){
+		final String[] securityProperties = PropertiesManager.needSecurityProperties;
+		for (int i = 0; i < securityProperties.length; i++) {
+			remove(securityProperties[i]);
+		}
+		
+		setPasswordAsInput(ResourceUtil.createRandomVariable(12, 0));//设置非null需要的初始密码
+		
+		{
+			final byte[] certKeys = new byte[CCoreUtil.CERT_KEY_LEN];
+			CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), certKeys, 0, CCoreUtil.CERT_KEY_LEN);
+			PropertiesManager.updateCertKey(certKeys);
+		}
+		
+		{
+			final File filebak = new File(ResourceUtil.getBaseDir(), ImageSrc.HC_LOG_BAK);
+			filebak.delete();
+		}
+		{
+			final File filebak = new File(ResourceUtil.getBaseDir(), ImageSrc.HC_LOG);
+			filebak.delete();
+		}
+	}
+
+	public static void setPasswordAsInput(final String pwdText) {
+		setValue(p_password, ResourceUtil.getBASE64(pwdText));
+	}
+	
+	public static String getPasswordAsInput() {
+		return ResourceUtil.getFromBASE64(PropertiesManager
+				.getValue(PropertiesManager.p_password));
+	}
+	
+	final static void encodeSecurityDataFromTextMode(){
+		final PropertiesSet securityPropertiesSet = new PropertiesSet(PropertiesManager.S_SecurityProperties);
+		boolean isChanged = false;
+		
+		for (int i = 0; i < needSecurityProperties.length; i++) {
+			final String p = needSecurityProperties[i];
+
+			if(securityPropertiesSet.contains(p) == false){
+				String sData = propertie.getProperty(p);
+
+				if(sData != null){
+					sData = SecurityDataProtector.encode(sData);
+					propertie.setProperty(p, sData);
+				}
+				
+				//注意：下行代码不能并入sData != null
+				securityPropertiesSet.appendItemIfNotContains(p);
+
+				isChanged = true;
+			}
+		}
+
+		if(isChanged){
+			statusChanged = true;
+			securityPropertiesSet.save();
+		}
+	}
+	
+	/**
 	 * 如果没有，则返回null
 	 * @param key
 	 * @return
 	 */
 	public static final String getValue(final String key){
+		boolean isSecurityData = false;
+		
 		if(key.startsWith(PropertiesManager.p_PROJ_RECORD, 0)){
 			
 		}else{
 			CCoreUtil.checkAccess();
+			
+			isSecurityData = isSecurityProperties(key);
+			
+			if(isSecurityData 
+					|| key.startsWith(S_LINK_PROJECTS, 0)){
+				ResourceUtil.checkHCStackTraceInclude(null, null);
+			}
 		}
 		
-    	return propertie.getProperty(key);//得到某一属
+		String storeData;
+		synchronized (gLock) {
+			storeData = propertie.getProperty(key);
+	    	if(isSecurityData && storeData != null){
+	    		storeData = SecurityDataProtector.decode(storeData);
+	    	}
+		}
+		return storeData;//得到某一属
     }
-	
+
 	public static final String getValue(final String key, final String defaultValue){
 		final String v = getValue(key);
 		if(v == null){
@@ -423,23 +511,16 @@ public class PropertiesManager {
     	}
 
     	try{
-    		if(ResourceUtil.isAndroidServerPlatform()){
-    			propFile = new File(ResourceUtil.getBaseDir(), fileName);
+    		if(ResourceUtil.isStandardJ2SEServer()){
+    			propFile = new File(fileName);//遗留系统，故如此
     		}else{
-    			propFile = new File(fileName);
+    			propFile = new File(ResourceUtil.getBaseDir(), fileName);
     		}
-    		locker = new FileLocker(propFile, FileLocker.READ_WRITE_MODE);
     		
     		if(propFile.exists()){
 	    		final FileInputStream inputFile = new FileInputStream(propFile);
 	            propertie.load(inputFile);
 	            inputFile.close();
-	    		
-	            if(enableLock){
-	            	while(locker.lock() == false){
-	            		Thread.sleep(100);
-	            	}
-	    		}
             }
         } catch (final Throwable ex){
         	ExceptionReporter.printStackTrace(ex);
@@ -461,5 +542,14 @@ public class PropertiesManager {
         	}
         }
  	}
+
+	public static void updateCertKey(final byte[] value) {
+		setValue(p_CertKey, ByteUtil.encodeBase64(value));
+	}
+
+	//注意：必须置于最后
+	static{
+		buildAndStart();
+	}
 
 }

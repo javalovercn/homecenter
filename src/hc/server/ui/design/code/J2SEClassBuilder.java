@@ -14,11 +14,15 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class J2SEClassBuilder {
+//	public static void main(final String[] args){
+//		execmain(args);
+//	}
+	
 	/**
 	 * 这个文件是用来生成J2SEClassList.java文件
 	 * @param args
 	 */
-	public static void main(final String[] args){
+	private static void execmain(final String[] args){
 		final java.util.List<String> list = getClassNameByJar("/Library/Java/JavaVirtualMachines/jdk1.7.0_51.jdk/Contents/Home/jre/lib/rt.jar");
 		
 		final String className = "J2SEClassList";
@@ -91,8 +95,9 @@ public class J2SEClassBuilder {
 	
 	private static java.util.List<String> getClassNameByJar(final String jarPath) {
 		final java.util.List<String> myClassName = new ArrayList<String>();
+		JarFile jarFile = null;
 		try {
-			final JarFile jarFile = new JarFile(jarPath);
+			jarFile = new JarFile(jarPath);
 			final Enumeration<JarEntry> entrys = jarFile.entries();
 			while (entrys.hasMoreElements()) {
 				final JarEntry jarEntry = entrys.nextElement();
@@ -126,6 +131,11 @@ public class J2SEClassBuilder {
 			}
 		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
+		}finally{
+			try{
+				jarFile.close();
+			}catch (final Throwable e) {
+			}
 		}
 
 		Collections.sort(myClassName);

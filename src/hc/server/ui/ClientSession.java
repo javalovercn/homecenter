@@ -12,7 +12,7 @@ import java.util.Iterator;
  * <BR><BR>
  * invoke {@link ProjectContext#getClientSession()} to get it.
  * <BR>
- * it is thread safe.
+ * <BR>{@link ClientSession} is thread safe.
  * @since 7.7
  */
 public class ClientSession {

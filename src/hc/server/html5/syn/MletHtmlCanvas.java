@@ -21,13 +21,14 @@ import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.code.StyleManager;
 import hc.server.ui.design.hpj.HCjar;
-import hc.server.util.HCJFrame;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -43,7 +44,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 import javax.swing.JViewport;
-import javax.swing.plaf.ScrollBarUI;
 import javax.swing.text.JTextComponent;
 
 public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
@@ -53,8 +53,9 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	
 	public HTMLMlet mlet;
 	public ProjectContext projectContext;
-	private JScrollPane scrolPanel;
-	public final JFrame frame;
+	final static boolean isAndroidServer = ResourceUtil.isAndroidServerPlatform();
+	public JFrame frame;
+	JScrollPane scrollPane;
 	private byte[] screenIDbs;
 	private String screenID, title;
 	private DifferTodo differTodo;
@@ -65,24 +66,22 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		
 		this.width = w;
 		this.height = h;
-		
-		frame = new HCJFrame();
 	}
 	
-//	private void printComp(Component comp, int deep){
-//		Rectangle rect = comp.getBounds();
-//		System.out.println(comp.getClass().getName() + deep + ", x : " + rect.x + ", y : " + rect.y + ", w : " + rect.width + ", h : " + rect.height);
-//		if(comp instanceof Container){
-//			final Container container = (Container)comp;
-//			int count = container.getComponentCount();
-//			for (int i = 0; i < count; i++) {
-//				printComp(container.getComponent(i), deep + 1);
-//			}
-//		}else if(comp instanceof JScrollPane){
-//			System.out.println("------This is JScrollPane-----");
-//			printComp(((JScrollPane)comp).getViewport().getView(), deep);
-//		}
-//	}
+	private final void printComp(final Component comp, final int deep){
+		final Rectangle rect = comp.getBounds();
+		System.out.println(comp.getClass().getName() + deep + ", x : " + rect.x + ", y : " + rect.y + ", w : " + rect.width + ", h : " + rect.height);
+		if(comp instanceof Container){
+			final Container container = (Container)comp;
+			final int count = container.getComponentCount();
+			for (int i = 0; i < count; i++) {
+				printComp(container.getComponent(i), deep + 1);
+			}
+		}else if(comp instanceof JScrollPane){
+			System.out.println("------This is JScrollPane-----");
+			printComp(((JScrollPane)comp).getViewport().getView(), deep);
+		}
+	}
 	
 	@Override
 	public final void onStart() {
@@ -153,6 +152,13 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		this.mlet = (HTMLMlet)mlet;
 		ServerUIAPIAgent.setProjectContext(mlet, projectCtx);
 		projectContext = projectCtx;
+		projectContext.runAndWait(new Runnable() {
+			@Override
+			public void run() {
+				frame = new JFrame();
+				scrollPane = new JScrollPane(mlet, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			}
+		});
 		differTodo = new DifferTodo(screenID, mlet);
 	}
 	
@@ -175,58 +181,20 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	}
 
 	@Override
-	public final void init() {
-		scrolPanel = new JScrollPane(mlet, 
-				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		scrolPanel.getVerticalScrollBar().setUI(new ScrollBarUI() {
-			final Dimension dimension = new Dimension(0, 0);
-			@Override
-			public Dimension getPreferredSize(final JComponent c) {
-				return dimension;
-			}
-			@Override
-			public Dimension getMinimumSize(final JComponent c) {
-				return dimension;
-			}
-			@Override
-			public Dimension getMaximumSize(final JComponent c) {
-				return dimension;
-			}
-		});
-		scrolPanel.getHorizontalScrollBar().setUI(new ScrollBarUI() {
-			final Dimension dimension = new Dimension(0, 0);
-			@Override
-			public Dimension getPreferredSize(final JComponent c) {
-				return dimension;
-			}
-			@Override
-			public Dimension getMinimumSize(final JComponent c) {
-				return dimension;
-			}
-			@Override
-			public Dimension getMaximumSize(final JComponent c) {
-				return dimension;
-			}
-		});
-		if(ResourceUtil.isJ2SELimitFunction()){
-//			因为如下会发生，所以加4
-//			javax.swing.JScrollPane0, x : 0, y : 0, w : 100, h : 100
-//			javax.swing.JViewport1, x : 2, y : 2, w : 96, h : 96
-			
-			final int pad_j2se_px = 4;
-			scrolPanel.setPreferredSize(new Dimension(width + pad_j2se_px, height + pad_j2se_px));
-		}else{
-			scrolPanel.setPreferredSize(new Dimension(width, height));
-		}
-//		scrolPanel.setOpaque(true); //content panes must be opaque
-	    frame.setContentPane(scrolPanel);
+	public final void init() {//in user thread
+//		注意：mlet外加JScrollPane时，在Window XP, JRE 7会出现height不能大于1024的情形，Mac无此问题，故关闭JScrollPane
+//		因为如下会发生，所以加4
+//		javax.swing.JScrollPane0, x : 0, y : 0, w : 100, h : 100
+//		javax.swing.JViewport1, x : 2, y : 2, w : 96, h : 96
+		
+	    frame.setContentPane(scrollPane);
 	    
-	    projectContext.runAndWait(new Runnable() {
-			@Override
-			public void run() {
-			    frame.pack();//可能重载某些方法
-			}
-		});
+	    if(isAndroidServer){
+	    	scrollPane.setPreferredSize(new Dimension(width, height));
+	    }else{
+	    	mlet.setPreferredSize(new Dimension(width, height));
+	    }
+	    frame.pack();//可能重载某些方法
 	}
 
 	@Override

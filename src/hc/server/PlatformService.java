@@ -27,6 +27,12 @@ public interface PlatformService {
 	public static final int LOG_LEVEL_WARN = 2;
 	public static final int LOG_LEVEL_ERROR = 3;
 	
+	/**
+	 * 
+	 * @return the free memory in M.
+	 */
+	public long getFreeMem();
+	
 	public Object doExtBiz(int bizID, Object para);
 	
 	public void setWindowOpaque(Window win, boolean bool);
@@ -45,6 +51,10 @@ public interface PlatformService {
 	
 	public WiFiDeviceManager getWiFiManager();
 	
+	/**
+	 * 
+	 * @return 剩余工作区可用磁盘字节数
+	 */
 	public long getAvailableSize();
 	
 	/**

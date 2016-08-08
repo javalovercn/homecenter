@@ -4,15 +4,9 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.IMsgNotifier;
 import hc.util.ClassUtil;
 
-//import hc.server.ui.video.CapControlFrame;
-//import hc.server.ui.video.CapManager;
-//import hc.server.ui.video.CapPreviewPane;
-//import hc.server.ui.video.CapStream;
-//import hc.server.ui.video.CaptureConfig;
-
 public class CapHelper {
-	public static final String CapManager_CLASS = "hc.server.ui.video.CapManager";
-	public static final String CapNotify_CLASS = "hc.server.ui.video.CapNotify";
+	public static final String CapManager_CLASS = "hc.video.CapManager";
+	public static final String CapNotify_CLASS = "hc.video.CapNotify";
 
 	public final static Object capNotify = buildCapNotifyInstance();
 	

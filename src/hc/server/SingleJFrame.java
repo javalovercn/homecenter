@@ -61,9 +61,8 @@ public class SingleJFrame extends HCJFrame {
 			} catch (final Exception e) {
 				ExceptionReporter.printStackTrace(e);
 			}
-		}else{
-			frame.toFront();
 		}
+		frame.toFront();
 		return frame;
 	}
 

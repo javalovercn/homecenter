@@ -96,6 +96,8 @@ public class CodeHelper {
 			return;
 		}
 		
+		final boolean isStaticInInstance = false;
+		
 		final Field[] allFields;
 		if(isForClass){
 			allFields = c.getFields();//public
@@ -130,6 +132,10 @@ public class CodeHelper {
 				if(Modifier.isStatic(modifiers) == false){
 					continue;
 				}
+			}else{
+				if(isStaticInInstance == false && Modifier.isStatic(modifiers)){//JRuby不支持通过实例访问静态属性
+					continue;
+				}
 			}
 			
 			final boolean isPublic = Modifier.isPublic(modifiers);
@@ -160,6 +166,10 @@ public class CodeHelper {
 			final int modifiers = method.getModifiers();
 			if(isForClass){
 				if(Modifier.isStatic(modifiers) == false){
+					continue;
+				}
+			}else{
+				if(isStaticInInstance == false && Modifier.isStatic(modifiers)){//JRuby不支持通过实例访问静态属性
 					continue;
 				}
 			}
@@ -2330,9 +2340,9 @@ public class CodeHelper {
 	}
 	
 	public static final String getWordCompletionKeyChar(){
-		return PropertiesManager.getValue(PropertiesManager.p_wordCompletionKeyChar, ResourceUtil.isMacOSX()?"÷":"");
+		return PropertiesManager.getValue(PropertiesManager.p_wordCompletionKeyChar, ResourceUtil.getDefaultWordCompletionKeyChar());
 	}
-	
+
 	public static final String getWordCompletionModifierText(){
 		return KeyComperPanel.getHCKeyText(getWordCompletionModifierCode());
 	}

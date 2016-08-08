@@ -120,9 +120,9 @@ public class HTMLMlet extends Mlet {
 	}
 	
 	/**
-	 * set <i>class</i> and <i>style</i> for <code>div</code> of {@link JComponent}.
+	 * set <i>class</i> and/or <i>style</i> for <code>div</code> of {@link JComponent}.
 	 * <BR><BR>
-	 * the <i>class</i> and <i>style</i> will be translated to mobile immediately.<BR>
+	 * the <i>class</i> and/or <i>style</i> will be translated to mobile immediately.<BR>
 	 * you can also use this method in constructor of {@link HTMLMlet}.
 	 * <BR><BR>
 	 * for more, see {@link #setCSS(JComponent, String, String)}.
@@ -347,9 +347,9 @@ public class HTMLMlet extends Mlet {
 	}
 	
 	/**
-	 * set <i>class</i> and <i>style</i> for the <STRONG>input</STRONG> tag of {@link JCheckBox} and {@link JRadioButton}.
+	 * set <i>class</i> and/or <i>style</i> for the <STRONG>input</STRONG> tag of {@link JCheckBox} and {@link JRadioButton}.
 	 * <BR><BR>
-	 * the <i>class</i> and <i>style</i> will be translated to mobile immediately.<BR>
+	 * the <i>class</i> and/or <i>style</i> will be translated to mobile immediately.<BR>
 	 * you can also use this method in constructor of {@link HTMLMlet}.
 	 * <BR><BR>
 	 * for more, see {@link #setCSS(JComponent, String, String)}.

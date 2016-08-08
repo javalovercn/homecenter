@@ -227,7 +227,7 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 	
 	/**
-	 * go and open a {@link Mlet} or {@link HTMLMlet} (which is created by {@link ProjectContext#eval(String)} or other).
+	 * go and open a {@link Mlet} or {@link HTMLMlet} (which is probably created by {@link ProjectContext#eval(String)}).
 	 * <BR><BR>
 	 * <STRONG>Important : </STRONG>
 	 * <BR>if the same <code>locator</code> or <code>form://locator</code> is opened, then it will be brought to font.
@@ -252,6 +252,12 @@ public class Mlet extends JPanel implements ICanvas {
 		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
 			public Object run() {
+				//优先检查bringMletToTop
+				final String mletURL = (mletLocator.indexOf(HCURL.HTTP_SPLITTER) > 0)?mletLocator:HCURL.buildStandardURL(HCURL.FORM_PROTOCAL, mletLocator);
+				if(ProjResponser.bringMletToTop(__context, mletURL)){
+					return null;
+				}
+				
 				final Mlet currMlet = ScreenServer.getCurrMlet();
 				if(currMlet != null){
 					__context.runAndWait(new Runnable() {
@@ -260,11 +266,6 @@ public class Mlet extends JPanel implements ICanvas {
 							currMlet.setAutoReleaseAfterGo(isAutoReleaseCurrentMlet);
 						}
 					});
-				}
-				
-				final String mletURL = (mletLocator.indexOf(HCURL.HTTP_SPLITTER) > 0)?mletLocator:HCURL.buildLocatorURL(mletLocator, mlet instanceof HTMLMlet);
-				if(ProjResponser.bringMletToTop(__context, mletURL)){
-					return null;
 				}
 				
 				ProjResponser.openMlet(mletLocator, "title-" + mletLocator, __context, mlet);

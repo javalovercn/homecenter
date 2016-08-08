@@ -2,13 +2,9 @@ package hc.server;
 
 import hc.App;
 import hc.core.ContextManager;
-import hc.core.RootServerConnector;
 import hc.core.util.ExceptionReporter;
 import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.design.Designer;
-
-import java.awt.Component;
-import java.lang.reflect.Method;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -31,15 +27,9 @@ public class LinkMenuManager {
 //		return false;
 	}
 
-	private static Class<?> getDesignerClass() throws ClassNotFoundException {
-		return Class.forName(RootServerConnector.unObfuscate("chs.reev.riud.segi.neDisngre"));
-	}
-	
 	public static void showLinkPanel(final JFrame frame){
 		try {
-			final Class c = getDesignerClass();
-			final Method m = c.getMethod("showLinkPanel", new Class[] {JFrame.class, boolean.class, Component.class});
-			m.invoke(c, new Object[] {frame, Boolean.TRUE, null});
+			Designer.showLinkPanel(frame, true, null);
 		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 			App.showConfirmDialog(null, "load link panel error : " + e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -48,9 +38,7 @@ public class LinkMenuManager {
 	
 	public static void closeLinkPanel(){
 		try {
-			final Class c = getDesignerClass();
-			final Method m = c.getMethod("closeLinkPanel", new Class[] {});
-			m.invoke(c, new Object[] {});
+			Designer.closeLinkPanel();
 		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 			App.showConfirmDialog(null, "load link panel error : " + e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -64,8 +52,7 @@ public class LinkMenuManager {
 	public static void startDesigner(final boolean loadInit){
 		if(LinkProjectStatus.tryEnterStatus(null, LinkProjectStatus.MANAGER_DESIGN)){
 			try{
-				final Class design = getDesignerClass();
-				SingleJFrame.showJFrame(design);
+				SingleJFrame.showJFrame(Designer.class);
 				Designer.getInstance().loadInitProject(loadInit);
 			}catch (final Exception e) {
 				ExceptionReporter.printStackTrace(e);
@@ -81,12 +68,8 @@ public class LinkMenuManager {
 	}
 
 	public static void startAutoUpgradeBiz(){
-		final Object[] paraNull = new Object[]{};
-		final Class[] paraClasNull = new Class[]{};
 		try {
-			final Class c = getDesignerClass();
-			final Method m = c.getMethod("startAutoUpgradeBiz", paraClasNull);
-			m.invoke(c, paraNull);
+			Designer.startAutoUpgradeBiz();
 		} catch (final Throwable e) {
 			App.showConfirmDialog(null, "startAutoUpgradeBiz error : " + e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
 		}

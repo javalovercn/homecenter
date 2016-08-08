@@ -447,14 +447,33 @@ public void run() {
 					@Override
 					public void applyBiz(final int option) {
 						final Designer designer = Designer.getInstance();
-						if(designer != null){
-							if(option == OPTION_CANCEL){
+						
+						if(option == OPTION_CANCEL){
+							if(designer != null){
 								designer.codeHelper.initShortCutKeys();
-							}else{
-								final char inputChar = keyCharListener[0];
-								PropertiesManager.setValue(PropertiesManager.p_wordCompletionKeyChar, String.valueOf(inputChar));
-								designer.codeHelper.refreshShortCutKeys(String.valueOf(inputChar), wordKey.getText(), getSelectedModify());
 							}
+						}if(option == OPTION_APPLY){
+							final char inputChar = keyCharListener[0];
+							final String keyValue = String.valueOf(inputChar);
+							applyKeyChar(designer, inputChar, keyValue, wordKey);
+						}else if(option == OPTION_OK){
+							final char inputChar = keyCharListener[0];
+							final String keyValue = String.valueOf(inputChar);
+							
+							if(inputChar != 0){//触发修改WordCompletionKeyChar
+								PropertiesManager.setValue(PropertiesManager.p_wordCompletionKeyChar, keyValue);
+							}
+							applyKeyChar(designer, inputChar, keyValue, wordKey);
+						}
+					}
+
+					private final void applyKeyChar(final Designer designer,
+							final char inputChar, String keyValue, final JTextField wordKey) {
+						if(inputChar==0){//没有触发修改WordCompletionKeyChar
+							keyValue = CodeHelper.getWordCompletionKeyChar();
+						}
+						if(designer != null){
+							designer.codeHelper.refreshShortCutKeys(keyValue, wordKey.getText(), getSelectedModify());
 						}
 					}
 
@@ -1061,7 +1080,7 @@ public void run() {
 								&& addLookFeel.contains(UIManager.getLookAndFeel().getClass().getName())){
 							final int size = addLookFeel.size();
 							for (int i = 0; i < size; i++) {
-								extLookFeel.appendItem(addLookFeel.elementAt(i));
+								extLookFeel.appendItemIfNotContains(addLookFeel.elementAt(i));
 							}
 							extLookFeel.save();
 						}

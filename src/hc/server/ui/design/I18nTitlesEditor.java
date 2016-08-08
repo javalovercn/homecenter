@@ -304,16 +304,4 @@ public class I18nTitlesEditor extends JPanel{
 		}, null, parent, true, false, relativeTo, true, false);
 	}
 	
-	public static void main(final String[] args){
-		final StoreableHashMapWithModifyFlag map = new StoreableHashMapWithModifyFlag();
-		map.put("en", "English");
-		map.put("zh-CN", "英语old");
-		map.put("zh-CN", "英语");
-		
-		showEditor(map, new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-			}
-		}, null, null);
-	}
 }

@@ -11,13 +11,13 @@ public class WrapperSecurityManager extends SecurityManager {
 	private final Class[] nullParaTypes = {};
 	private final Object[] nullParas = {};
 	
-	public WrapperSecurityManager(SecurityManager sm){
+	public WrapperSecurityManager(final SecurityManager sm){
 		old = sm;
 	}
 	
     private boolean hasAllPermission(){
     	if(old != null){
-    		Object out = ClassUtil.invoke(SecurityManager.class, old, "hasAllPermission", nullParaTypes, nullParas, true);
+    		final Object out = ClassUtil.invoke(SecurityManager.class, old, "hasAllPermission", nullParaTypes, nullParas, true);
             if(out != null && out instanceof Boolean){
             	return ((Boolean)out);
             }
@@ -26,7 +26,8 @@ public class WrapperSecurityManager extends SecurityManager {
         return true;
     }
 
-    public final boolean getInCheck() {
+    @Override
+	public final boolean getInCheck() {
     	if(old == null){
     		return false;
     	}
@@ -34,21 +35,24 @@ public class WrapperSecurityManager extends SecurityManager {
         return old.getInCheck();
     }
 
-    protected final Class[] getClassContext(){
-    	if(old != null){
-	    	Object out = ClassUtil.invoke(SecurityManager.class, old, "getClassContext", nullParaTypes, nullParas, true);
-	    	if(out != null && out instanceof Class[]){
-	    		return (Class[])out;
-	    	}
-    	}
-    	Class[] back = {};
-    	return back;
+    @Override
+	protected final Class[] getClassContext(){
+    	return super.getClassContext();
+//    	if(old != null){
+//	    	Object out = ClassUtil.invoke(SecurityManager.class, old, "getClassContext", nullParaTypes, nullParas, true);
+//	    	if(out != null && out instanceof Class[]){
+//	    		return (Class[])out;
+//	    	}
+//    	}
+//    	Class[] back = {};
+//    	return back;
     }
 
-    protected final ClassLoader currentClassLoader()
+    @Override
+	protected final ClassLoader currentClassLoader()
     {
     	if(old != null){
-	        Object out = ClassUtil.invoke(SecurityManager.class, old, "currentClassLoader", nullParaTypes, nullParas, true);
+	        final Object out = ClassUtil.invoke(SecurityManager.class, old, "currentClassLoader", nullParaTypes, nullParas, true);
 	        if(out != null && out instanceof ClassLoader){
 	        	return (ClassLoader)out;
 	        }
@@ -57,9 +61,10 @@ public class WrapperSecurityManager extends SecurityManager {
 		return null;
     }
 
-    protected final Class<?> currentLoadedClass() {
+    @Override
+	protected final Class<?> currentLoadedClass() {
     	if(old != null){
-	    	Object out = ClassUtil.invoke(SecurityManager.class, old, "currentLoadedClass", nullParaTypes, nullParas, true);
+	    	final Object out = ClassUtil.invoke(SecurityManager.class, old, "currentLoadedClass", nullParaTypes, nullParas, true);
 	        if(out != null && out instanceof Class<?>){
 	        	return (Class<?>)out;
 	        }
@@ -68,12 +73,13 @@ public class WrapperSecurityManager extends SecurityManager {
 		return null;
     }
 
-    protected final int classDepth(String name){
+    @Override
+	protected final int classDepth(final String name){
     	if(old != null){
-	    	Class[] paraTypes = {String.class};
-	    	Object[] para = {name};
+	    	final Class[] paraTypes = {String.class};
+	    	final Object[] para = {name};
 	    	
-	    	Object out = ClassUtil.invoke(SecurityManager.class, old, "classDepth", paraTypes, para, true);
+	    	final Object out = ClassUtil.invoke(SecurityManager.class, old, "classDepth", paraTypes, para, true);
 	        if(out != null && out instanceof Integer){
 	        	return (Integer)out;
 	        }
@@ -82,10 +88,11 @@ public class WrapperSecurityManager extends SecurityManager {
 		return 0;
     }
 
-    protected final int classLoaderDepth()
+    @Override
+	protected final int classLoaderDepth()
     {
     	if(old != null){
-	    	Object out = ClassUtil.invoke(SecurityManager.class, old, "classLoaderDepth", nullParaTypes, nullParas, true);
+	    	final Object out = ClassUtil.invoke(SecurityManager.class, old, "classLoaderDepth", nullParaTypes, nullParas, true);
 	        if(out != null && out instanceof Integer){
 	        	return (Integer)out;
 	        }
@@ -94,12 +101,13 @@ public class WrapperSecurityManager extends SecurityManager {
     	return 0;
     }
 
-    protected final boolean inClass(String name) {
+    @Override
+	protected final boolean inClass(final String name) {
     	if(old != null){
-	    	Class[] paraTypes = {String.class};
-	    	Object[] para = {name};
+	    	final Class[] paraTypes = {String.class};
+	    	final Object[] para = {name};
 	    	
-	    	Object out = ClassUtil.invoke(SecurityManager.class, old, "inClass", paraTypes, para, true);
+	    	final Object out = ClassUtil.invoke(SecurityManager.class, old, "inClass", paraTypes, para, true);
 	        if(out != null && out instanceof Boolean){
 	        	return (Boolean)out;
 	        }
@@ -108,9 +116,10 @@ public class WrapperSecurityManager extends SecurityManager {
     	return false;
     }
 
-    protected final boolean inClassLoader() {
+    @Override
+	protected final boolean inClassLoader() {
     	if(old != null){
-	    	Object out = ClassUtil.invoke(SecurityManager.class, old, "inClassLoader", nullParaTypes, nullParas, true);
+	    	final Object out = ClassUtil.invoke(SecurityManager.class, old, "inClassLoader", nullParaTypes, nullParas, true);
 	    	if(out != null && out instanceof Boolean){
 	        	return (Boolean)out;
 	        }
@@ -119,7 +128,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	return false;
     }
 
-    public final Object getSecurityContext() {
+    @Override
+	public final Object getSecurityContext() {
     	if(old != null){
     		final Object securityContext = old.getSecurityContext();
     		if(securityContext != null){
@@ -130,7 +140,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	return null;
     }
 
-    public void checkPermission(Permission perm) {
+    @Override
+	public void checkPermission(final Permission perm) {
     	if(old != null){
     		old.checkPermission(perm);
     	}
@@ -138,7 +149,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkPermission(perm);//否则导致异常
     }
 
-    public void checkPermission(Permission perm, Object context) {
+    @Override
+	public void checkPermission(final Permission perm, final Object context) {
     	if(old != null){
     		old.checkPermission(perm, context);
     	}
@@ -146,7 +158,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkPermission(perm, context);//否则导致异常
     }
 
-    public void checkCreateClassLoader() {
+    @Override
+	public void checkCreateClassLoader() {
     	if(old != null){
     		old.checkCreateClassLoader();
     	}
@@ -154,7 +167,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkCreateClassLoader();
     }
 
-    public void checkAccess(Thread t) {
+    @Override
+	public void checkAccess(final Thread t) {
     	if(old != null){
     		old.checkAccess(t);
     	}
@@ -162,7 +176,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkAccess(t);
     }
     
-    public void checkAccess(ThreadGroup g) {
+    @Override
+	public void checkAccess(final ThreadGroup g) {
     	if(old != null){
     		old.checkAccess(g);
     	}
@@ -170,7 +185,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkAccess(g);//否则导致异常
     }
 
-    public void checkExit(int status) {
+    @Override
+	public void checkExit(final int status) {
     	if(old != null){
     		old.checkExit(status);
     	}
@@ -178,7 +194,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkExit(status);
     }
 
-    public void checkExec(String cmd) {
+    @Override
+	public void checkExec(final String cmd) {
     	if(old != null){
     		old.checkExec(cmd);
     	}
@@ -186,7 +203,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkExec(cmd);
     }
 
-    public void checkLink(String lib) {
+    @Override
+	public void checkLink(final String lib) {
     	if(old != null){
     		old.checkLink(lib);
     	}
@@ -194,7 +212,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkLink(lib);
     }
 
-    public void checkRead(FileDescriptor fd) {
+    @Override
+	public void checkRead(final FileDescriptor fd) {
     	if(old != null){
     		old.checkRead(fd);
     	}
@@ -202,7 +221,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkRead(fd);
     }
 
-    public void checkRead(String file) {
+    @Override
+	public void checkRead(final String file) {
     	if(old != null){
     		old.checkRead(file);
     	}
@@ -210,7 +230,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkRead(file);
     }
 
-    public void checkRead(String file, Object context) {
+    @Override
+	public void checkRead(final String file, final Object context) {
     	if(old != null){
     		old.checkRead(file, context);
     	}
@@ -218,7 +239,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkRead(file, context);
     }
 
-    public void checkWrite(FileDescriptor fd) {
+    @Override
+	public void checkWrite(final FileDescriptor fd) {
     	if(old != null){
     		old.checkWrite(fd);
     	}
@@ -226,7 +248,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkWrite(fd);
     }
 
-    public void checkWrite(String file) {
+    @Override
+	public void checkWrite(final String file) {
     	if(old != null){
     		old.checkWrite(file);
     	}
@@ -234,7 +257,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkWrite(file);
     }
 
-    public void checkDelete(String file) {
+    @Override
+	public void checkDelete(final String file) {
     	if(old != null){
     		old.checkDelete(file);
     	}
@@ -242,7 +266,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkDelete(file);
     }
 
-    public void checkConnect(String host, int port) {
+    @Override
+	public void checkConnect(final String host, final int port) {
     	if(old != null){
     		old.checkConnect(host, port);
     	}
@@ -250,7 +275,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkConnect(host, port);
     }
 
-    public void checkConnect(String host, int port, Object context) {
+    @Override
+	public void checkConnect(final String host, final int port, final Object context) {
     	if(old != null){
     		old.checkConnect(host, port, context);
     	}
@@ -258,7 +284,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkConnect(host, port, context);
     }
 
-    public void checkListen(int port) {
+    @Override
+	public void checkListen(final int port) {
     	if(old != null){
     		old.checkListen(port);
     	}
@@ -266,7 +293,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkListen(port);
     }
 
-    public void checkAccept(String host, int port) {
+    @Override
+	public void checkAccept(final String host, final int port) {
     	if(old != null){
     		old.checkAccept(host, port);
     	}
@@ -274,7 +302,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkAccept(host, port);
     }
 
-    public void checkMulticast(InetAddress maddr) {
+    @Override
+	public void checkMulticast(final InetAddress maddr) {
     	if(old != null){
     		old.checkMulticast(maddr);
     	}
@@ -282,7 +311,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkMulticast(maddr);
     }
 
-    public void checkMulticast(InetAddress maddr, byte ttl) {
+    @Override
+	public void checkMulticast(final InetAddress maddr, final byte ttl) {
     	if(old != null){
     		old.checkMulticast(maddr, ttl);
     	}
@@ -290,7 +320,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkMulticast(maddr, ttl);
     }
 
-    public void checkPropertiesAccess() {
+    @Override
+	public void checkPropertiesAccess() {
     	if(old != null){
     		old.checkPropertiesAccess();
     	}
@@ -298,7 +329,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkPropertiesAccess();//否则导致异常
     }
 
-    public void checkPropertyAccess(String key) {
+    @Override
+	public void checkPropertyAccess(final String key) {
     	if(old != null){
     		old.checkPropertyAccess(key);
     	}
@@ -306,7 +338,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkPropertyAccess(key);
     }
 
-    public boolean checkTopLevelWindow(Object window) {
+    @Override
+	public boolean checkTopLevelWindow(final Object window) {
     	boolean out = false;
     	if(old != null){
     		out = old.checkTopLevelWindow(window);
@@ -314,7 +347,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	return out || super.checkTopLevelWindow(window);
     }
 
-    public void checkPrintJobAccess() {
+    @Override
+	public void checkPrintJobAccess() {
     	if(old != null){
     		old.checkPrintJobAccess();
     	}
@@ -322,7 +356,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkPrintJobAccess();
     }
 
-    public void checkSystemClipboardAccess() {
+    @Override
+	public void checkSystemClipboardAccess() {
     	if(old != null){
     		old.checkSystemClipboardAccess();
     	}
@@ -330,7 +365,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkSystemClipboardAccess();
     }
 
-    public void checkAwtEventQueueAccess() {
+    @Override
+	public void checkAwtEventQueueAccess() {
     	if(old != null){
     		old.checkAwtEventQueueAccess();
     	}
@@ -338,20 +374,21 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkAwtEventQueueAccess();
     }
 
-    private static String[] getPackages(String p) {
-    	Class[] paraTypes = {String.class};
-    	Object[] para = {p};
+    private static String[] getPackages(final String p) {
+    	final Class[] paraTypes = {String.class};
+    	final Object[] para = {p};
     	
-    	Object out = ClassUtil.invoke(SecurityManager.class, SecurityManager.class, "getPackages", paraTypes, para, true);//静态方法，不用old，而用SecurityManager.class
+    	final Object out = ClassUtil.invoke(SecurityManager.class, SecurityManager.class, "getPackages", paraTypes, para, true);//静态方法，不用old，而用SecurityManager.class
     	if(out != null && out instanceof String[]){
     		return (String[])out;
     	}
     	
-    	String[] back = {};
+    	final String[] back = {};
     	return back;
     }
 
-    public void checkPackageAccess(String pkg) {
+    @Override
+	public void checkPackageAccess(final String pkg) {
     	if(old != null){
     		old.checkPackageAccess(pkg);
     	}
@@ -359,7 +396,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkPackageAccess(pkg);
     }
 
-    public void checkPackageDefinition(String pkg) {
+    @Override
+	public void checkPackageDefinition(final String pkg) {
     	if(old != null){
     		old.checkPackageDefinition(pkg);
     	}
@@ -367,7 +405,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkPackageDefinition(pkg);
     }
 
-    public void checkSetFactory() {
+    @Override
+	public void checkSetFactory() {
     	if(old != null){
     		old.checkSetFactory();
     	}
@@ -375,7 +414,8 @@ public class WrapperSecurityManager extends SecurityManager {
     	super.checkSetFactory();
     }
 
-    public void checkMemberAccess(Class<?> clazz, int which) {
+    @Override
+	public void checkMemberAccess(final Class<?> clazz, final int which) {
     	if(old != null){
     		old.checkMemberAccess(clazz, which);
     	}
@@ -383,7 +423,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkMemberAccess(clazz, which);
     }
 
-    public void checkSecurityAccess(String target) {
+    @Override
+	public void checkSecurityAccess(final String target) {
     	if(old != null){
     		old.checkSecurityAccess(target);
     	}
@@ -391,7 +432,8 @@ public class WrapperSecurityManager extends SecurityManager {
 //    	super.checkSecurityAccess(target);
     }
 
-    public ThreadGroup getThreadGroup() {
+    @Override
+	public ThreadGroup getThreadGroup() {
     	if(old != null){
     		return old.getThreadGroup();
     	}

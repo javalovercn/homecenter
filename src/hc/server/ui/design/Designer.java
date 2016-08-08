@@ -21,11 +21,13 @@ import hc.server.HCButtonEnabledActionListener;
 import hc.server.HCWindowAdapter;
 import hc.server.J2SEContext;
 import hc.server.JRubyInstaller;
+import hc.server.PlatformManager;
 import hc.server.ProcessingWindowManager;
 import hc.server.SingleJFrame;
 import hc.server.StarterManager;
 import hc.server.ThirdlibManager;
 import hc.server.data.StoreDirManager;
+import hc.server.ui.ClientSession;
 import hc.server.ui.ClosableWindow;
 import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.LocationComponentListener;
@@ -62,7 +64,10 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -89,6 +94,7 @@ import javax.swing.ActionMap;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -104,6 +110,8 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -121,6 +129,72 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			tree.updateUI();
 		}
 	};
+	
+	public final ClientSession testSimuClientSession = new ClientSession();
+	
+	final Runnable buildMemWatcher(){
+		return new Runnable() {
+			Designer self = Designer.this;
+			boolean isShowLowMem = false;
+			final int lowMem60 = 60;
+			int meetCount = 0;
+			
+			@Override
+			public void run() {
+				try{
+					Thread.sleep(10 * 1000);//等待designer显示
+				}catch (final Exception e) {
+				}
+				
+				while(isShowLowMem == false){
+					if(self.isVisible() == false){
+						break;
+					}
+					
+					final long freeMem = PlatformManager.getService().getFreeMem();
+					if(freeMem < lowMem60){
+						meetCount++;
+						
+						if(meetCount == 2){
+							nm.clearCacheEditPanel();
+							
+							L.V = L.O ? false : LogManager.log("current free memory (M) : " + freeMem);
+							isShowLowMem = true;
+							final String lowMem = StringUtil.replace((String)ResourceUtil.get(9207), "{mem}", String.valueOf(lowMem60));
+							
+							final JPanel panel = new JPanel(new GridBagLayout());
+							final GridBagConstraints c = new GridBagConstraints();
+							c.anchor = GridBagConstraints.LINE_START;
+							panel.add(new JLabel(lowMem, App.getSysIcon(App.SYS_WARN_ICON), SwingConstants.LEADING), c);
+							final JCheckBox noDisplayAgain = new JCheckBox((String)ResourceUtil.get(9209));
+							noDisplayAgain.addChangeListener(new ChangeListener() {
+								@Override
+								public void stateChanged(final ChangeEvent e) {
+									final String isNoDisplay = noDisplayAgain.isSelected()?IConstant.FALSE:IConstant.TRUE;
+									PropertiesManager.setValue(PropertiesManager.p_isLowMemWarnInDesigner, isNoDisplay);
+									PropertiesManager.saveFile();
+								}
+							});
+							c.gridy = 1;
+							c.insets = new Insets(10, 0, 0, 0);
+							panel.add(noDisplayAgain, c);
+							
+							App.showCenterPanel(panel, 0, 0, ResourceUtil.getWarnI18N(), false, null, null, null, null, self, true, false, null, false, true);
+							
+							return;
+						}
+					}else{
+						meetCount = 0;
+					}
+					
+					try{
+						Thread.sleep(10 * 1000);
+					}catch (final Exception e) {
+					}
+				}// end while
+			}
+		};
+	}
 	
 	public static final String HAR_EXT = ".har";
 	public static final String HAD_EXT = ".had";
@@ -152,7 +226,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 
 	public static ImageIcon loadImg(final String path){
-//		return new ImageIcon("hc/server/ui/design/res/" + path);
 		return new ImageIcon(loadBufferedImage(path));
 	}
 
@@ -387,6 +460,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		setTitle((String)ResourceUtil.get(9034) + "[" + (String)ResourceUtil.get(9083) + "]");
 		
 		instance = this;
+		
+		if(PropertiesManager.isTrue(PropertiesManager.p_isLowMemWarnInDesigner, true)){
+			ContextManager.getThreadPool().run(buildMemWatcher());
+		}
 		
 		setIconImage(App.SYS_LOGO);
 		setName("Designer");
@@ -1288,6 +1365,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				@Override
 				public void run() {
 					setVisible(true);
+					toFront();
 				}
 			});
 		}else{
@@ -2280,15 +2358,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		PropertiesManager.saveFile();
 	}
 
-	public static void main(final String args[]) {
-		//keepMethodFromKillByProguard
-		if(args.length > 10000000){
-			//provent proguard del unused method.
-			Designer.startAutoUpgradeBiz();
-			Designer.closeLinkPanel();
-			Designer.notifyCloseDesigner();
-		}
-	}
 }
 
 class NodeTreeCellRenderer extends DefaultTreeCellRenderer {

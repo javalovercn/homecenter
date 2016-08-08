@@ -41,6 +41,7 @@ import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.PropertiesMap;
 import hc.util.ResourceUtil;
+import hc.util.TokenManager;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -57,10 +58,11 @@ import javax.swing.JOptionPane;
 
 /**
  * There is only a {@link ProjectContext} instance for each HAR Project at
- * runtime. <BR>
- * if server shutdown and restart HAR projects (NOT restart server), new
- * {@link ProjectContext} instance is created. <br>
- * <br>
+ * runtime. <BR><BR>
+ * <STRONG>Important : </STRONG>
+ * <BR>only when restart HAR projects (NOT restart server), new instance of 
+ * {@link ProjectContext} is created. 
+ * <BR><BR>
  * to get instance of ProjectContext : <br>
  * 1. invoke {@link ProjectContext#getProjectContext()} <br>
  * 2. invoke {@link Mlet#getProjectContext()} <br>
@@ -206,9 +208,10 @@ public class ProjectContext {
 	}
 
 	/**
-	 * log an error message to log system.
+	 * log an error message to log system or console.
 	 * 
 	 * @param logMessage
+	 * @see #err(String)
 	 * @since 7.0
 	 */
 	public final void error(final String logMessage) {
@@ -240,25 +243,20 @@ public class ProjectContext {
 	}
 	
 	private static final String appendProjectIDForTitle(final String title) {
-		final String partOne = " in Project [";
-		final String partTwo = "]";
-
+		String titleModel = (String)ResourceUtil.get(9211);
+		
+		//{proj}] {msg}
 		final String projID = getProjectContext().getProjectID();
-		final StringBuilder sb = new StringBuilder(title.length()
-				+ partOne.length() + projID.length() + partTwo.length());
+		titleModel = StringUtil.replace(titleModel, "{proj}", projID);
+		titleModel = StringUtil.replace(titleModel, "{title}", title);
 
-		sb.append(title);
-		sb.append(partOne);
-		sb.append(projID);
-		sb.append(partTwo);
-
-		return sb.toString();
+		return titleModel;
 	}
 
 	/**
 	 * pop up an information message dialog on this server. <br>
 	 * if the <code>message</code> is displayed and not closed, the same message
-	 * is call also, then it will NOT be showed. <br>
+	 * is showing, then it will NOT be showed again. <br>
 	 * <br>
 	 * <STRONG>Important : </STRONG>the current thread will NOT be blocked.
 	 * 
@@ -267,13 +265,13 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public static final void showMessageDialog(final String message) {
-		App.showHARMessageDialog(message);
+		showMessageDialog(message, (String)ResourceUtil.get(9210), JOptionPane.INFORMATION_MESSAGE, null);
 	}
 
 	/**
 	 * pop up a dialog to display a message on this server. <br>
 	 * if the <code>message</code> is displayed and not closed, the same message
-	 * is call also, then it will NOT be showed. <br>
+	 * is showing, then it will NOT be showed again. <br>
 	 * <br>
 	 * <STRONG>Important : </STRONG>the current thread will NOT be blocked.
 	 * 
@@ -292,14 +290,13 @@ public class ProjectContext {
 	 */
 	public static final void showMessageDialog(final String message,
 			final String title, final int messageType) {
-		App.showHARMessageDialog(message, appendProjectIDForTitle(title),
-				messageType);
+		showMessageDialog(message, title, messageType, null);
 	}
 
 	/**
 	 * pop up a dialog to display a message on this server. <br>
 	 * if the <code>message</code> is displayed and not closed, the same message
-	 * is call also, then it will NOT be showed. <br>
+	 * is showing, then it will NOT be showed again. <br>
 	 * <br>
 	 * <STRONG>Important : </STRONG>the current thread will NOT be blocked.
 	 * 
@@ -509,6 +506,7 @@ public class ProjectContext {
 	public final void sendQuestion(String caption, String text,
 			final BufferedImage image, final Runnable yesRunnable,
 			final Runnable noRunnable, final Runnable cancelRunnable) {
+		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
 		if (caption == null) {
 			caption = (String) ResourceUtil.get(IContext.INFO);
 		}
@@ -546,7 +544,7 @@ public class ProjectContext {
 				return null;
 			}
 		});
-
+		}
 	}
 
 	/**
@@ -559,11 +557,16 @@ public class ProjectContext {
 	}
 
 	/**
-	 * @return the width pixel of login mobile
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+	 * @return the width pixel of login mobile; 0 if mobile not login.
 	 * @since 7.0
 	 */
 	public final int getMobileWidth() {
+		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
 		return ClientDesc.getClientWidth();
+		}else{
+			return 0;
+		}
 	}
 
 	/**
@@ -681,7 +684,7 @@ public class ProjectContext {
 
 	/**
 	 * returns the attribute with the given name, or <code>defaultValue</code>
-	 * if there is no attribute by that name.
+	 * if there is no attribute for that name.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -700,22 +703,29 @@ public class ProjectContext {
 		}
 	}
 	
+	ClientSession testSimuClientSession;
+	
 	/**
-	 * return null before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}
-	 * @return
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}
+	 * @return null if mobile not login or logout.
+	 * @since 7.8
 	 */
 	public final ClientSession getClientSession(){
+//		if (ServerUIAPIAgent.isToMobileForProjectContext()) {//注意：注释此代码，以便Test Script可用，不出异常！！！
 		ClientSession out = null;
 		if(__projResponserMaybeNull != null){
 			out = __projResponserMaybeNull.getClientSession();
 		}
 		
-		if(out == null){
-			LogManager.warning("In designer panel, create simu " + ClientSession.class.getName() + ".");
-			return new ClientSession();
+		if(testSimuClientSession != null){
+			LogManager.warning("In designer panel, use simu " + ClientSession.class.getName() + ".");
+			return testSimuClientSession;
 		}
 		
 		return out;
+//		}else{
+//			return null;
+//		}
 	}
 
 	/**
@@ -757,21 +767,31 @@ public class ProjectContext {
 	}
 
 	/**
-	 * @return the height pixel of login mobile
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+	 * @return the height pixel of login mobile; 0 if mobile not login.
 	 * @since 7.0
 	 */
 	public final int getMobileHeight() {
+		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
 		return ClientDesc.getClientHeight();
+		}else{
+			return 0;
+		}
 	}
 
 	/**
 	 * in Android, it means densityDpi;
-	 * 
-	 * @return the DPI of login mobile, if 0 means unknown.
+	 * <BR><BR>
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+	 * @return the DPI of login mobile, if 0 means unknown; -1 if mobile not login.
 	 * @since 7.0
 	 */
 	public final int getMobileDPI() {
+		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
 		return ClientDesc.getDPI();
+		}else{
+			return -1;
+		}
 	}
 
 	/**
@@ -848,7 +868,7 @@ public class ProjectContext {
 	 * if there is an error in script and is caught by server, NOT by project, it will be reported project provider implicitly.</LI>
 	 * <LI>if field <STRONG>Report Exception URL</STRONG> of project is blank, then reporting is DISABLED and print stack trace only.</LI>
 	 * <LI>it is NOT required to apply for the permission of connection for current project.</LI>
-	 * <LI>it reports stack trace for project on server, NOT for mobile.</LI>
+	 * <LI>it reports stack trace of current project on server, NOT for mobile.</LI>
 	 * </UL>
 	 * <BR>sample code for PHP to receive exception:<BR>
 	 * <BR><code>if ('POST' == $_SERVER['REQUEST_METHOD']){//POST to server<BR>
@@ -876,6 +896,7 @@ public class ProjectContext {
 		if (prop_map == null) {
 			init();
 		}
+		
 		prop_map.put(key, value);
 	}
 
@@ -981,31 +1002,27 @@ public class ProjectContext {
 	}
 
 	/**
-	 * to read and write file to local disk, please use this method to get a
-	 * instance of {@link File}. <BR>
-	 * you can't use <code>new File("filename")</code> to creating local file
-	 * directly, and it may be forbidden in future.
-	 * 
-	 * <br>
+	 * for example :<BR>
+	 * 1. <code>getPrivateFile("testFile");</code><br>
+	 * 2. <code>getPrivateFile("mySubDir").mkdir();</code><br>
+	 * 3. <code>getPrivateFile("mySubDir2/subSubDir").mkdirs();//it works on Windows, Linux or Mac</code> <br>
+	 * 4. <code>getPrivateFile("mySubDir/testFile");</code><br>
+	 * 5. <code>getPrivateFile("mySubDir2/subSubDir/testFile");</code><br>
+	 * 6. <code>new File(getPrivateFile("mySubDir"), "testFile");</code><br>
+	 * 7. <code>new File(getPrivateFile("mySubDir2/subSubDir"), "testFile");</code><br>
 	 * <br>
 	 * 1. it is allow full access and NOT limited by HomeCenter security
 	 * manager, and it is also protected from being read or written by other HAR
 	 * projects. <br>
-	 * 2. the File <code>fileName</code> is read/written in directory
-	 * <i>{HC_Home}/user_data/{projectID}/{fileName}</i>. <br>
-	 * 3. to create private sub directory, just call
-	 * <code>getPrivateFile("mySubDir").mkdirs();</code> <br>
-	 * 4. to create private file <code>subFile</code> in directory
-	 * <code>mySubDir</code>, just call
-	 * <code>new File(getPrivateFile("mySubDir"), "subFile");</code> <br>
-	 * 5. if current project is deleted, all private files of current project
-	 * will be deleted. <BR>
-	 * <BR>
-	 * If you want to save small data, please see and use
-	 * {@link #saveProperties()}.
+	 * 2. the File <code>fileName</code> is read/written in directory <i>{HC_Home}/user_data/{projectID}/{fileName}</i>. <br>
+	 * 3. if current project is deleted, all private files of current project will be deleted. <BR><BR>
+	 * If you want to save small data, please see and use {@link #saveProperties()}.
 	 * 
+	 * <BR><BR>
+	 * <STRONG>Important :</STRONG>
+	 * <BR>if the data is important, please encrypt data or stored separately。
 	 * @param fileName
-	 * @return the private file instance.
+	 * @return the private File instance of <code>fileName</code>.
 	 * @see #saveProperties()
 	 * @since 7.0
 	 */
@@ -1075,66 +1092,79 @@ public class ProjectContext {
 	public static final String OS_J2ME = ConfigManager.OS_J2ME_DESC;
 
 	/**
-	 * @return the version of OS of mobile.
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+	 * @return the version of OS of mobile; "0.0.1" if mobile not login.
 	 * @see #getMobileOS()
 	 * @since 7.0
 	 */
 	public final String getMobileOSVer() {
-		if(mobileOSVer == null){
-			mobileOSVer = (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
-				@Override
-				public Object run() {
-					return ClientDesc.getAgent().getVer();
-				}
-			});
+		//注意：不能用field来cache，因为可能发生变更
+		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
+		return (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				return ClientDesc.getAgent().getVer();
+			}
+		});
+		}else{
+			return "0.0.1";
 		}
-		return mobileOSVer;
 	}
 	
-	String mobileOSVer;
-
 	/**
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
 	 * @return one of the following: <br>
-	 *         1. {@link #OS_ANDROID} <br>
-	 *         2. {@link #OS_IOS} <br>
-	 *         3. {@link #OS_J2ME} <br>
-	 *         4. and other in the future.
+	 *         1. empty string if mobile not login<br>
+	 *         2. {@link #OS_ANDROID} <br>
+	 *         3. {@link #OS_IOS} <br>
+	 *         4. {@link #OS_J2ME} <br>
+	 *         5. and other in the future.
 	 * @see #getMobileOSVer()
 	 * @since 7.0
 	 */
 	public final String getMobileOS() {
-		if(mobileOS == null){
-			mobileOS = (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
-				@Override
-				public Object run() {
-					final String oldOS = ClientDesc.getAgent().getOS();
-					for (int i = 0; i < allOS.length; i++) {
-						final String oneOS = allOS[i];
-						if(oneOS.equals(oldOS)){
-							return oneOS;
-						}
+		//注意：不能用field来cache，因为可能发生变更
+		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
+		return (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				final String oldOS = ClientDesc.getAgent().getOS();
+				for (int i = 0; i < allOS.length; i++) {
+					final String oneOS = allOS[i];
+					if(oneOS.equals(oldOS)){
+						return oneOS;
 					}
-					return oldOS;
 				}
-			});
+				return oldOS;
+			}
+		});
+		}else{
+			return "";
 		}
-		return mobileOS;
 	}
 	
-	String mobileOS;
-
 	private static final String[] allOS = {OS_ANDROID, OS_IOS, OS_J2ME};
 
 	/**
 	 * return three case legal values: <br>
 	 * 1. language ("en", "fr", "ro", "ru", etc.) <br>
 	 * 2. language-region ("en-GB", "en-CA", "en-IE", "en-US", etc.)
-	 * 
-	 * @return if unknown, return default 'en-US'.
+	 * <BR><BR>
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+	 * @return if unknown, return default 'en-US'; empty string if mobile not login;
 	 * @since 7.0
 	 */
 	public final String getMobileLocale() {
-		return ClientDesc.getClientLang();
+		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
+		return (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				return ClientDesc.getClientLang();
+			}
+		});
+		}else{
+			return "";
+		}
 	}
 
 	/**
@@ -1179,6 +1209,10 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final void actionKeys(final String keys) {
+		if(keys == null){
+			return;
+		}
+		
 		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
 			public Object run() {
@@ -1189,9 +1223,10 @@ public class ProjectContext {
 	}
 
 	/**
-	 * log error message to this server
+	 * log an error message to log system or console
 	 * 
 	 * @param msg
+	 * @see #error(String)
 	 * @since 7.0
 	 */
 	public final void err(final String msg) {
@@ -1219,7 +1254,7 @@ public class ProjectContext {
 
 	private final static void sendCmd(final String cmdType, final String para,
 			final String value) {
-		if (ServerUIAPIAgent.isToMobile()) {
+		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
 			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
 				public Object run() {
@@ -1230,9 +1265,9 @@ public class ProjectContext {
 		}
 	}
 
-	private final static void sendCmd(final String cmdType,
+	private final static void sendCmdInSysThread(final String cmdType,
 			final String[] para, final String[] value) {
-		if (ServerUIAPIAgent.isToMobile()) {
+		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
 			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
 				public Object run() {
@@ -1244,14 +1279,7 @@ public class ProjectContext {
 	}
 
 	private final static void sendClass(final String[] para) {
-		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
-			@Override
-			public Object run() {
-				ProjectContext.sendCmd(HCURL.DATA_CMD_SendPara,
-						ProjectContext.buildParaForClass(para.length - 1), para);
-				return null;
-			}
-		});
+		sendCmdInSysThread(HCURL.DATA_CMD_SendPara, buildParaForClass(para.length - 1), para);
 	}
 
 	/**
@@ -1271,7 +1299,7 @@ public class ProjectContext {
 			final int volume) {
 		final String[] v = { "hc.j2me.load.Tone", String.valueOf(note),
 				String.valueOf(duration), String.valueOf(volume) };
-		ProjectContext.sendClass(v);
+		sendClass(v);
 	}
 
 	/**
@@ -1292,7 +1320,7 @@ public class ProjectContext {
 			final int flags) {
 		final String[] v = { "hc.j2me.load.Notification", title, text,
 				String.valueOf(flags) };
-		ProjectContext.sendClass(v);
+		sendClass(v);
 	}
 
 	/**
@@ -1302,23 +1330,19 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final int getIntervalMSForRestart(){
-		if(msForRestart == 0){
-			msForRestart = (Integer)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
-				@Override
-				public Object run() {
-					return ResourceUtil.getIntervalSecondsForNextStartup() * 1000;
-				}
-			});
-		}
-		return msForRestart;
+		//注意：不能用field来cache，因为可能发生变更
+		return (Integer)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				return ResourceUtil.getIntervalSecondsForNextStartup() * 1000;
+			}
+		});
 	}
 	
-	int msForRestart;
-	
 	/**
-	 * check current HAR project is running on Android server or J2SE platform.
+	 * check current HAR project is running on Android server.
 	 * 
-	 * @return true : is run on Android server; false , run on J2SE or other
+	 * @return true : is run on Android server; false , run on Oracle JRE/JDK, OpenJDK JVM or other
 	 *         platform.
 	 * @see #isJ2SEPlatform()
 	 * @since 7.0
@@ -1338,7 +1362,7 @@ public class ProjectContext {
 	Boolean isAndroidPlatform;
 
 	/**
-	 * check current HAR project is running on J2SE platform.
+	 * check current HAR project is running on J2SE platform, such as Oracle JDK/JRE, OpenJDK JVM.
 	 * 
 	 * @return true : is run on J2SE; false, run on Android or other platform.
 	 * @see #isAndroidPlatform()
@@ -1368,7 +1392,7 @@ public class ProjectContext {
 	 */
 	public final void vibrate(final int duration) {
 		final String[] v = { "hc.j2me.load.Vibrate", String.valueOf(duration) };
-		ProjectContext.sendClass(v);
+		sendClass(v);
 	}
 
 	/**
@@ -1377,13 +1401,7 @@ public class ProjectContext {
 	 * @since 6.98
 	 */
 	public final void alertOff() {
-		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
-			@Override
-			public Object run() {
-				ProjectContext.sendCmd(HCURL.DATA_CMD_ALERT, "status", "off");
-				return null;
-			}
-		});
+		sendCmd(HCURL.DATA_CMD_ALERT, "status", "off");
 	}
 
 	/**
@@ -1392,13 +1410,7 @@ public class ProjectContext {
 	 * @since 6.98
 	 */
 	public final void alertOn() {
-		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
-			@Override
-			public Object run() {
-				ProjectContext.sendCmd(HCURL.DATA_CMD_ALERT, "status", "on");
-				return null;
-			}
-		});
+		sendCmd(HCURL.DATA_CMD_ALERT, "status", "on");
 	}
 
 	/**
@@ -1424,10 +1436,22 @@ public class ProjectContext {
 	}
 
 	/**
-	 * because this server is open source, login ID may be a fake, so
-	 * authentication is required for HAR project.
-	 * 
-	 * @return login ID on this server.
+	 * the login ID/Email may be NOT verified by HomeCenter.MOBI.
+	 * <BR><BR><STRONG>Important : </STRONG>
+	 * user maybe change ID according to their own wishes, project will restart and new instance of {@link ProjectContext} will be created if the login ID/Email is changed.
+	 * <BR><BR>do follow steps to check the login Email account is verified by HomeCenter.MOBI or not:
+	 * <BR>1. get login ID/Email by {@link #getLoginID()}
+	 * <BR>2. get token for check by {@link #getTokenForCheck()}
+	 * <BR>3. if user donate or buy some service, the token will be changed!
+	 * <BR>4. submit URL : "<STRONG>https</STRONG>://homecenter.mobi/ajax/call.php?f=checkEmail&email=%X%X&token=XX"
+	 * <BR>5. email should be encoded by <STRONG>java.net.URLEncoder.encode("email@company.com","UTF-8")</STRONG>
+	 * <BR>6. token is NOT required to encode.
+	 * <BR>7. if successful then return "verified"; if not , then return "failed".
+	 * <BR>8. there is not method of the above steps, because this is open source server.
+	 * <BR><BR><STRONG>Note : </STRONG>
+	 * <BR>1. if the verification is very important to your business, you should ensure the <STRONG>https</STRONG> is NOT under Man-in-the-middle attack.
+	 * <BR>2. user is NOT allowed to setup multiple servers with same login account, only one server is verified at same time.
+	 * @return login ID/Email on this server
 	 * @since 7.0
 	 */
 	public final String getLoginID() {
@@ -1445,26 +1469,62 @@ public class ProjectContext {
 	String loginID;
 	
 	/**
+	 * if user donate or buy some service, the token will be changed!
+	 * @return the token to check login Email is verified or not.
+	 * @see #getLoginID()
+	 * @since 7.14
+	 */
+	public final String getTokenForCheck(){
+		//注意：不能用field来cache，因为可能发生变更
+		return (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				final String token = TokenManager.getToken();
+				return ResourceUtil.getMD5(token);
+			}
+		});
+	}
+	
+//	/**
+//	 * the number of unallocated bytes on the partition.
+//	 * <BR><BR>
+//	 * <STRONG>Note :</STRONG><BR>
+//	 * for security, user has no right to call <code>file.getFreeSpace()</code>.
+//	 * @param file the partition of this file.
+//	 * @return
+//	 * @since 7.14
+//	 */
+//	public final static long getFreeSpace(final File file){
+//		return (Long)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+//			@Override
+//			public Object run() {
+//				return file.getFreeSpace();
+//			}
+//		});
+//	}
+	
+	/**
 	 * <code>SoftUID</code> is an identifier created when mobile application is installed on mobile.
 	 * if mobile application is removed and install again, the <code>SoftID</code> is changed.
 	 * <BR><BR>Important : it is NOT ID from hardware.
-	 * @return
+	 * <BR><BR>
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+	 * @return empty string if mobile not login.
 	 * @since 7.2
 	 */
 	public final String getMobileSoftUID(){
-		if(mobileSoftUID == null){
-			mobileSoftUID = (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
-				@Override
-				public Object run() {
-					return ServerUIAPIAgent.getMobileUID();
-				}
-			});
+		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
+		return (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				return ServerUIAPIAgent.getMobileUID();
+			}
+		});
+		}else{
+			return "";
 		}
-		return mobileSoftUID;
 	}
 	
-	String mobileSoftUID;
-
 	/**
 	 * return the projectContext instance of the current project even if there
 	 * are two or more active projects, no matter the caller is in new thread or
@@ -1560,7 +1620,7 @@ public class ProjectContext {
 	 *            {@link #MESSAGE_INFO}, {@link #MESSAGE_ALARM},
 	 *            {@link #MESSAGE_CONFIRMATION}.
 	 * @param image
-	 *            null if no image
+	 *            null if no image, it should be small image, please not big image.
 	 * @param timeOut
 	 *            0:forever;a positive time value in milliseconds
 	 * @since 6.98
@@ -1574,7 +1634,7 @@ public class ProjectContext {
 			text = "";
 		}
 
-		if (ServerUIAPIAgent.isToMobile()) {
+		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
 			String imageData = "";
 			if (image != null) {
 				final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -1615,6 +1675,7 @@ public class ProjectContext {
 	 */
 	@Deprecated
 	public final void sendAUSound(final byte[] bs) {
+		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
 		try {
 			final long length = bs.length;
 
@@ -1642,6 +1703,7 @@ public class ProjectContext {
 			});
 		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
+		}
 		}
 	}
 
@@ -1671,7 +1733,12 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final boolean isMobileConnecting() {
-		return ContextManager.isMobileLogin();
+		return (Boolean)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				return ContextManager.isMobileLogin();
+			}
+		});
 	}
 	
 	/**
@@ -1680,12 +1747,17 @@ public class ProjectContext {
 	 * @since 7.2
 	 */
 	public final boolean isMobileOnRelay(){
-		return SIPManager.isOnRelay();
+		return (Boolean)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				return SIPManager.isOnRelay();
+			}
+		});
 	}
 
 	/**
 	 * <STRONG>Important</STRONG> : Background mode may be NOT supported by mobile implementation. 
-	 * <BR>Application may be killed when turn to background.
+	 * <BR>Mobile application may be killed when turn to background.
 	 * @return true : mobile is log-in, keep connecting and run in background.
 	 * @see #isMobileConnecting()
 	 * @see #addSystemEventListener(SystemEventListener)
@@ -1714,7 +1786,7 @@ public class ProjectContext {
 	 * @since 6.98
 	 */
 	public final void sendMovingMsg(final String msg) {
-		if (ServerUIAPIAgent.isToMobile()) {
+		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
 			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
 				public Object run() {

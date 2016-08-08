@@ -26,7 +26,7 @@ public class PropertiesSet {
 		lists.removeAllElements();
 		
 		for (int i = 0; i < props.length; i++) {
-			appendItem(props[i].toString());
+			appendItemIfNotContains(props[i].toString());
 		}
 	}
 	
@@ -38,7 +38,7 @@ public class PropertiesSet {
 	 * 如果已存在，则返回，否则添加到最后。
 	 * @param itemName
 	 */
-	public final void appendItem(final String itemName){
+	public final void appendItemIfNotContains(final String itemName){
 		if(lists.contains(itemName)){
 			return;
 		}

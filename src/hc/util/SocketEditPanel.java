@@ -268,7 +268,12 @@ public abstract class SocketEditPanel extends JPanel{
 
 			private final boolean checkMinAction(final JCheckBox checkBox){
 				if(checkAccept.isSelected() == false && checkconnect.isSelected() == false && checklisten.isSelected() == false){
-					checkBox.setSelected(true);
+					ContextManager.getThreadPool().run(new Runnable() {
+						@Override
+						public void run() {
+							checkBox.setSelected(true);
+						}
+					}, threadPoolToken);
 					return true;
 				}
 				return false;

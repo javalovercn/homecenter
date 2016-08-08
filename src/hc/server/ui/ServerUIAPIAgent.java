@@ -33,6 +33,10 @@ public class ServerUIAPIAgent {
 	private final static HashMap<Integer, QuestionParameter> questionMap = new HashMap<Integer, QuestionParameter>();
 	private static int questionID = 1;
 	
+	public static void setTestSimuClientSession(final ProjectContext ctx, final ClientSession clientSession){
+		ctx.testSimuClientSession = clientSession;
+	}
+	
 	public static QuestionParameter buildQuestionID(final ProjectContext ctx, final Runnable yesRunnable, final Runnable noRunnable, final Runnable cancelRunnable){
 		final QuestionParameter qp = new QuestionParameter();
 		qp.ctx = ctx;
@@ -258,14 +262,15 @@ public class ServerUIAPIAgent {
 	 */
 	@Deprecated
 	public final static void __sendTextOfCtrlButton(final int keyValue, final String text){
-		if(ServerUIAPIAgent.isToMobile()){
+		if(ServerUIAPIAgent.isToMobileForProjectContext()){
 			final String[] keys = {"key", "text"};
 			final String[] values = {String.valueOf(keyValue), text};
 			HCURLUtil.sendCmd(HCURL.DATA_CMD_CTRL_BTN_TXT, keys, values);
 		}
 	}
 
-	final static boolean isToMobile() {
+	final static boolean isToMobileForProjectContext() {
+		//Dont add checkAccess()
 		return ContextManager.cmStatus == ContextManager.STATUS_SERVER_SELF;
 	}
 	

@@ -16,6 +16,13 @@ public class NodeEditPanelManager {
 		}
 	}
 	
+	/**
+	 * 清空可能因内存不足产生的问题EditPanel
+	 */
+	public final synchronized void clearCacheEditPanel(){
+		map.clear();
+	}
+	
 	public static boolean isMletNode(final HPNode node){
 		if(node != null && node instanceof HPMenuItem){
 			final HPMenuItem item = (HPMenuItem)node;

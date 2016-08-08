@@ -130,7 +130,9 @@ public class J2SEServerURLAction implements IHCURLAction {
 							url.getValueofPara(HCURL.DATA_PARA_PUBLISH_STATUS_VALUE));
 					if(publishID.equals(ConfigManager.UI_IS_BACKGROUND)){
 						final BaseResponsor responsor = ServerUIUtil.getResponsor();
-						responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
+						if(responsor != null){//exit时，会出现null
+							responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
+						}
 //								if(isIOSForBackgroundCond()){
 //									flipIOSBackground(ClientDesc.getAgent().isBackground());
 //								}
@@ -270,6 +272,8 @@ public class J2SEServerURLAction implements IHCURLAction {
 	 * @return object_0:HCJRubyEngine; object_1:ProjectContext
 	 */
 	public static final synchronized Object[] getProjectContextForSystemLevelNoTerminate(){
+		CCoreUtil.checkAccess();
+		
 		if(SYS_JRUBY_ENGINE[0] == null){
 			final HCJRubyEngine hcje = new HCJRubyEngine(null, ResourceUtil.getJRubyClassLoader(false), true);
 			final ProjectContext context = new ProjectContext("", "", ContextManager.getThreadPool(), null, null);
