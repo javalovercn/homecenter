@@ -137,7 +137,7 @@ public class HCEventQueue extends EventQueue {
 		});
 		if(failModiGroup[0]){
 				final JPanel panel = App.buildMessagePanel("Fail to modify Thread.group = null in " + eventQueueThreadArray[0].getName(), App.getSysIcon(App.SYS_ERROR_ICON));
-				App.showCenterPanel(panel, 0, 0, "JVM Error", false, null, null, null, null, null, false, true, null, false, false);
+				App.showCenterPanelMain(panel, 0, 0, "JVM Error", false, null, null, null, null, null, false, true, null, false, false);
 		}
 		final Thread thread = eventQueueThreadArray[0];
 		if(thread != null){

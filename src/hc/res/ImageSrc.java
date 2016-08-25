@@ -30,6 +30,11 @@ public class ImageSrc {
 	public static final String HC_RES_CANCEL_22_PNG_PATH = "hc/res/cancel_22.png";
 	public static final String HC_RES_OK_22_PNG_PATH = "hc/res/ok_22.png";
 
+	public static final String HC_CERT_22_PATH = "hc/res/cert_22.png";
+	public static final String HC_BACKUP_22_PATH = "hc/res/save_22.png";
+	public static final String HC_RESTORE_22_PATH = "hc/res/restore_22.png";
+	public static final String HC_IMPORT_22_PATH = "hc/res/import_22.png";
+
 	public static final BufferedImage SEARCH_ICON = loadImageFromPath("hc/res/search_22.png");
 	public static final BufferedImage UP_ICON = loadImageFromPath("hc/res/up_22.png");
 	public static final BufferedImage DOWN_ICON = loadImageFromPath("hc/res/down_22.png");

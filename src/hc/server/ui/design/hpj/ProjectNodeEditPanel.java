@@ -26,7 +26,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.net.URL;
 import java.util.Enumeration;
 import java.util.Properties;
 
@@ -332,13 +331,13 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 								
 								jpanel.add(new JLabel(sb.toString(), App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING), 
 										BorderLayout.CENTER);
-								App.showCenterPanel(jpanel, 0, 0, (String) ResourceUtil.get(IContext.INFO), 
+								App.showCenterPanelMain(jpanel, 0, 0, ResourceUtil.getInfoI18N(), 
 										false, null, null, null, null, designer, true, false, null, false, false);
 							}catch (final Exception ex) {
 								final JPanel jpanel = new JPanel(new BorderLayout());
 								jpanel.add(new JLabel("fail to connect server file.", App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), 
 										BorderLayout.CENTER);
-								App.showCenterPanel(jpanel, 0, 0, (String) ResourceUtil.get(IContext.ERROR), 
+								App.showCenterPanelMain(jpanel, 0, 0, (String) ResourceUtil.get(IContext.ERROR), 
 										false, null, null, null, null, designer, true, false, null, false, false);
 							}
 						}

@@ -97,7 +97,7 @@ public class J2SEClassBuilder {
 		final java.util.List<String> myClassName = new ArrayList<String>();
 		JarFile jarFile = null;
 		try {
-			jarFile = new JarFile(jarPath);
+			jarFile = new JarFile(jarPath, false);
 			final Enumeration<JarEntry> entrys = jarFile.entries();
 			while (entrys.hasMoreElements()) {
 				final JarEntry jarEntry = entrys.nextElement();
@@ -146,7 +146,7 @@ public class J2SEClassBuilder {
 	public static java.util.ArrayList<String> getClassAndResByJar(final File jarPath, final boolean needRes) {
 		final java.util.ArrayList<String> myClassAndRes = new ArrayList<String>();
 		try {
-			final JarFile jarFile = new JarFile(jarPath);
+			final JarFile jarFile = new JarFile(jarPath, false);
 			final Enumeration<JarEntry> entrys = jarFile.entries();
 			while (entrys.hasMoreElements()) {
 				final JarEntry jarEntry = entrys.nextElement();

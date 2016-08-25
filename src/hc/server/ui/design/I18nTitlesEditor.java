@@ -295,7 +295,7 @@ public class I18nTitlesEditor extends JPanel{
 
 	public final static void showEditor(final StoreableHashMapWithModifyFlag map, final ActionListener listener, final Component relativeTo, final JFrame parent){
 		final I18nTitlesEditor editor = new I18nTitlesEditor(map);
-		App.showCenterPanel(editor, 0, 0, "Editor for " + BaseMenuItemNodeEditPanel.I18N_BTN_TEXT, true, null, null, new ActionListener() {
+		App.showCenterPanelMain(editor, 0, 0, "Editor for " + BaseMenuItemNodeEditPanel.I18N_BTN_TEXT, true, null, null, new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				editor.updateMap();

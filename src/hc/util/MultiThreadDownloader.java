@@ -110,7 +110,7 @@ public class MultiThreadDownloader {
 				}
 			}, threadPoolToken);
 
-			frame = (JFrame)App.showCenterPanel(panel, 0, 0, "download...", false, 
+			frame = (JFrame)App.showCenterPanelMain(panel, 0, 0, "download...", false, 
         		new JButton((String)ResourceUtil.get(1018)), null, listener, listener, null, false, true, null, false, false);
 		}
         refreshProgress = new Thread(){

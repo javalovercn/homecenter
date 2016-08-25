@@ -285,7 +285,7 @@ public class ExceptionViewer {
 		
 		final ActionListener listener = null;
 		final JButton closeBtn = App.buildDefaultCloseButton();
-		dialog = (JFrame)App.showCenterPanel(total, 0, 0, "Exception List", false, closeBtn, null, 
+		dialog = (JFrame)App.showCenterPanelMain(total, 0, 0, "Exception List", false, closeBtn, null, 
 				listener, null, null, false, true, null, true, false);
 		App.setDisposeListener(dialog, new DisposeListener() {
 			@Override

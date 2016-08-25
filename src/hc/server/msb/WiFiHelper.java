@@ -129,7 +129,7 @@ public class WiFiHelper {
 					if(currMlet != null){
 						currMlet.waitForInputWiFiPassword(token);
 					}else{
-						projCtx.sendMessage((String)ResourceUtil.get(IContext.INFO), "unknow status of Mlet", ProjectContext.MESSAGE_INFO, null, 0);
+						projCtx.sendMessage(ResourceUtil.getInfoI18N(), "unknow status of Mlet", ProjectContext.MESSAGE_INFO, null, 0);
 					}
 				}else{
 					showInputWiFiPassword(true);

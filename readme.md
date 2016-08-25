@@ -8,9 +8,9 @@
 2. HomeCenter server runs not only on Oracle/OpenJDK JVM, but also Android, because there is a library ["J2SE for Android"](https://github.com/javalovercn/j2se_for_android).
 3. scan QRcode from mobile to download and setup HAR project on server, plug and play, not required to restart server.
 4. build-in SecurityManager, each HAR project runs in a optional, security, limited computing and networking environment.
-5. program on server for your mobile by J2SE, write once, run anywhere.
+5. write script once and run on server (Oracle/OpenJDK JVM, Android Dalvik) for your any mobile (Android, iPhone, J2ME) .
 6. HTMLMlet is implements with JComponent+Listener+Layout+CSS on server and it will be translated to HTML5+JavaScript+CSS for your mobile client.
-7. the designer on server is integrated with Java API Doc and is also an IDE for JRuby, code and resource file(in jar library) will be auto completion.
+7. the designer on server is integrated with Java API Doc and is also an IDE for JRuby, hint of code and resource file(in jar library) will be auto completion.
 8. stratify IoT, Robot+Converter+Device, provides powerful device adaptability and data format conversion.
 9. exception is automatically reported to Email or website of HAR project provider.
 10. each HAR project can be upgraded automatically if there is a newer HAR on web.

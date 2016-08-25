@@ -29,6 +29,22 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 public class SecurityDataProtector {
+	public static final String DEV_CERT_FILE_EXT = "pfx";
+	final static String fileDevCert = "dev_cert." + DEV_CERT_FILE_EXT;
+	final static String fileHcHardId = "hc_hard_id.txt";
+	
+	public static String getDevCertFileName(){
+		return fileDevCert;
+	}
+	
+	public static File getDevCertFile(){
+		return new File(ResourceUtil.getBaseDir(), SecurityDataProtector.getDevCertFileName());
+	}
+	
+	public static String getHcHardId(){
+		return fileHcHardId;
+	}
+	
 	private static boolean runOnce = false;
 	private static final boolean isHCServer = IConstant.isHCServer();
 	
@@ -40,10 +56,9 @@ public class SecurityDataProtector {
 		}
 	}
 	
-	public static void init(){
+	public static void init(final boolean isSimu){
 		final Object gLock = CCoreUtil.getGlobalLock();
 		
-		synchronized (gLock) {
 		if(isEnableSecurityData() == false){
 			return;
 		}
@@ -64,6 +79,7 @@ public class SecurityDataProtector {
 			initForAndroid();
 		}
 		
+		synchronized (gLock) {
 		final String serverKeyMD5 = getServerKeyMD5();
 		final String realMD5 = ResourceUtil.getMD5(new String(getServerKey()));
 		if(serverKeyMD5 == null){
@@ -103,7 +119,7 @@ public class SecurityDataProtector {
 							}
 						}, App.getThreadPoolToken());
 						
-						App.showCenterPanel(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, listener, listener, null, true, false, null, false, true);
+						App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, listener, listener, null, true, false, null, false, true);
 //						App.showConfirmDialog(null, 
 //								"<html>" + (String)ResourceUtil.get(9208) + "</html>", ResourceUtil.getErrorI18N(), JOptionPane.CLOSED_OPTION, 
 //								JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
@@ -113,7 +129,7 @@ public class SecurityDataProtector {
 				PropertiesManager.encodeSecurityDataFromTextMode();//可能后期扩展
 			}
 		}
-		}
+		}//end gLock
 	}
 	
 //	public static void main(final String[] args){
@@ -221,9 +237,8 @@ public class SecurityDataProtector {
 		if(hc_hard_id_bs == null){
 			long hc_hard_id_file_len = 0;
 			int readNum = 0;
-			final String hardIDFileName = "hc_hard_id.txt";//注意：此文件名HCLimitSecurityManager.checkReadImpl方法内csc == null时检查
 
-			final File hardIDFile = new File(ResourceUtil.getBaseDir(), hardIDFileName);
+			final File hardIDFile = new File(ResourceUtil.getBaseDir(), fileHcHardId);//注意：此文件名HCLimitSecurityManager.checkReadImpl方法内csc == null时检查
 			
 			if(hardIDFile.exists() == false){
 			}else{

@@ -656,7 +656,7 @@ public class HttpUtil {
 						doNotifyMobile();
 					}
 				}, App.getThreadPoolToken());
-				App.showCenterPanel(panel, 0, 0, "break off connection of mobile", false, null, null, listener, listener, parent, true, false, null, false, false);
+				App.showCenterPanelMain(panel, 0, 0, "break off connection of mobile", false, null, null, listener, listener, parent, true, false, null, false, false);
 			}else{
 				doNotifyMobile();
 			}

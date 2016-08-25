@@ -22,7 +22,6 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
 
-
 public class CtrlPanel extends JPanel {
 	public static final int BLOCK_WIDTH = 240;
 	public static final int HALF_BLOCK_WIDTH = BLOCK_WIDTH / 2;

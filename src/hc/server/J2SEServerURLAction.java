@@ -201,7 +201,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 											"" + StringUtil.replace((String)ResourceUtil.get(9062), "{forbid}", forbid_update_cert)+
 											"</body></html>",
 											App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEFT), BorderLayout.CENTER);
-									App.showCenterPanel(msgpanel, 0, 0, (String)ResourceUtil.get(IContext.TIP), false, null, null, al, al, null, false, true, null, false, true);
+									App.showCenterPanelMain(msgpanel, 0, 0, (String)ResourceUtil.get(IContext.TIP), false, null, null, al, al, null, false, true, null, false, true);
 //							}
 								}
 							}.start();
@@ -212,7 +212,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 				}
 			}
 		}else if(protocal == HCURL.CFG_PROTOCAL){
-			if(elementID.equals(HCURL.ADD_HAR_WIFI)){			
+			if(elementID.equals(HCURL.ADD_HAR_WIFI)){//注意：此处为WiFi添加模式
 				AddHarHTMLMlet.startAddHTMLHarUI(null);
 				ContextManager.getThreadPool().run(new Runnable() {
 					@Override

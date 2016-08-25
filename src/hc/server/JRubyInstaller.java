@@ -108,7 +108,7 @@ public class JRubyInstaller {
 				public boolean watch() {
 					if(System.currentTimeMillis() - ms > 5000 || ContextManager.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON){
 						ContextManager.getContextInstance().displayMessage(
-								(String) ResourceUtil.get(IContext.INFO), 
+								ResourceUtil.getInfoI18N(), 
 								(String)ResourceUtil.get(9066), 
 								IContext.INFO, null, 0);
 						return true;
@@ -163,7 +163,7 @@ public class JRubyInstaller {
 					
 					RootServerConnector.notifyLineOffType("lof=jrubyOK");
 					
-					SecurityDataProtector.init();//Android环境下进行数据加密
+					SecurityDataProtector.init(PropertiesManager.isSimu());//Android环境下进行数据加密
 					
 					notifySuccessInstalled();
 					
@@ -216,7 +216,7 @@ public class JRubyInstaller {
 	
 	private static void notifySuccessInstalled(){
 		ContextManager.getContextInstance().displayMessage(
-				(String) ResourceUtil.get(IContext.INFO),  (String)ResourceUtil.get(9108), 
+				ResourceUtil.getInfoI18N(),  (String)ResourceUtil.get(9108), 
 				IContext.INFO, null, 0);
 		
 		if(ResourceUtil.isEnableDesigner()){
@@ -235,7 +235,7 @@ public class JRubyInstaller {
 					panel.add(new JLabel("<html>" + firstHAR  + "<BR><BR>" + notRestart + "</html>", 
 								App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
 					
-					App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.INFO), true, null, null, new HCActionListener(new Runnable() {
+					App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), true, null, null, new HCActionListener(new Runnable() {
 						@Override
 						public void run() {
 							LinkMenuManager.startDesigner(true);
@@ -279,7 +279,7 @@ public class JRubyInstaller {
 					panel.add(finishPercent, BorderLayout.SOUTH);
 				}
 				
-				progressWindow = App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.INFO), 
+				progressWindow = App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), 
 						false, null, null, null, null, parent, true, true, null, false, false);
 			}else{
 				progressWindow.toFront();

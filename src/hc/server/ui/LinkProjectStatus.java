@@ -88,7 +88,7 @@ public class LinkProjectStatus {
 					final JPanel panel = new JPanel(new BorderLayout());
 					panel.add(label, BorderLayout.CENTER);
 					
-					App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(9086), true, null, null, new HCActionListener(new Runnable() {
+					App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(9086), true, null, null, new HCActionListener(new Runnable() {
 						@Override
 						public void run() {
 							LinkMenuManager.closeLinkPanel();
@@ -110,7 +110,7 @@ public class LinkProjectStatus {
 						final JPanel panel = new JPanel(new BorderLayout());
 						panel.add(label, BorderLayout.CENTER);
 						
-						App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(9086), true, null, null, new HCActionListener(new Runnable() {
+						App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(9086), true, null, null, new HCActionListener(new Runnable() {
 							@Override
 							public void run() {
 								if(LinkMenuManager.notifyCloseDesigner()){
@@ -165,7 +165,7 @@ public class LinkProjectStatus {
 		final JPanel panel = new JPanel(new BorderLayout());
 		panel.add(label, BorderLayout.CENTER);
 		
-		App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(type), 
+		App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(type), 
 				false, null, null, null, null, parent, true, true, null, false, false);
 	}
 

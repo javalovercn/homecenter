@@ -150,6 +150,9 @@ public class PropertiesManager {
 	public static final String p_selectedNetwork = "selectedNetwork";
 	public static final String p_selectedNetworkPort = "selectedNetworkPort";
 	
+	/**
+	 * for Android auto start or not
+	 */
 	public static final String p_autoStart = "autoStart";
 	
 	public static final String p_intervalSecondsNextStartup = "intervalSecondsNextStartup";
@@ -173,6 +176,8 @@ public class PropertiesManager {
 	public static final String p_clearRMSCacheVersion = "clearRMSCacheVersion";
 
 	public static final String p_IsVerifiedEmail = "isVerifiedEmail";
+	public static final String p_DevCertPassword = "DevCertPassword";
+	public static final String p_isRememberDevCertPassword = "isRememberDevCertPassword";
 
 	public static final String S_THIRD_DIR = "3libs";
 	public static final String S_USER_LOOKANDFEEL = "lookfeel";
@@ -277,6 +282,7 @@ public class PropertiesManager {
 	public static void notifyShutdownHook(){
 		CCoreUtil.checkAccess();
 		isShutdownHook = true;
+		saveFile();
 	}
 	
 	private static void buildAndStart(){
@@ -292,7 +298,7 @@ public class PropertiesManager {
 						}
 						
 						if(isShutdownHook){
-							continue;
+							break;
 						}
 						
 						save();
@@ -355,7 +361,10 @@ public class PropertiesManager {
 					|| key.startsWith(S_LINK_PROJECTS, 0)//S_LINK_PROJECTS + "Lists"
 					|| key.startsWith(S_THIRD_DIR, 0)
 					|| key.startsWith(S_SecurityProperties, 0)
-					|| key.equals(p_NewCertIsNotTransed)){
+					|| key.equals(p_NewCertIsNotTransed)
+					|| key.equals(p_EnableTransNewCertKeyNow)
+					|| key.equals(p_HideIDForErrCert)
+					|| key.equals(p_isRememberDevCertPassword)){
 				ResourceUtil.checkHCStackTraceInclude(null, null);
 			}
 			
@@ -392,13 +401,15 @@ public class PropertiesManager {
 	 * 注意：<BR>
 	 * 如果增加项，请考虑增加逻辑到notifyErrorOnSecurityProperties
 	 */
-	static final String[] needSecurityProperties = {p_CertKey, p_password, 	p_LogPassword1, p_LogPassword2};
+	static final String[] needSecurityProperties = {p_CertKey, p_password, 	p_LogPassword1, p_LogPassword2, p_DevCertPassword};
 	
 	final static void notifyErrorOnSecurityProperties(){
 		final String[] securityProperties = PropertiesManager.needSecurityProperties;
 		for (int i = 0; i < securityProperties.length; i++) {
 			remove(securityProperties[i]);
 		}
+		
+		resetDevCert();
 		
 		setPasswordAsInput(ResourceUtil.createRandomVariable(12, 0));//设置非null需要的初始密码
 		
@@ -416,6 +427,11 @@ public class PropertiesManager {
 			final File filebak = new File(ResourceUtil.getBaseDir(), ImageSrc.HC_LOG);
 			filebak.delete();
 		}
+	}
+
+	public static void resetDevCert() {
+		setValue(p_isRememberDevCertPassword, IConstant.FALSE);
+		remove(p_DevCertPassword);
 	}
 
 	public static void setPasswordAsInput(final String pwdText) {
@@ -499,6 +515,13 @@ public class PropertiesManager {
 		if(key.startsWith(PropertiesManager.p_PROJ_RECORD, 0)){
 		}else{
 			CCoreUtil.checkAccess();
+			
+			if(key.equals(p_NewCertIsNotTransed)
+				|| key.equals(p_EnableTransNewCertKeyNow)
+				|| key.equals(p_HideIDForErrCert)
+				|| key.equals(p_isRememberDevCertPassword)){
+				ResourceUtil.checkHCStackTraceInclude(null, null);
+			}
 		}
 		propertie.remove(key);
 	}
@@ -527,7 +550,7 @@ public class PropertiesManager {
         	
         	final JPanel panel = App.buildMessagePanel("<html>error on read data from properties file!" +
         			"<BR><BR>file may be using by application!</html>", App.getSysIcon(App.SYS_ERROR_ICON));
-        	App.showCenterPanel(panel, 0, 0, "Error", false, null, null, new ActionListener() {
+        	App.showCenterPanelMain(panel, 0, 0, "Error", false, null, null, new ActionListener() {
 				@Override
 				public void actionPerformed(final ActionEvent e) {
 					PlatformManager.getService().exitSystem();

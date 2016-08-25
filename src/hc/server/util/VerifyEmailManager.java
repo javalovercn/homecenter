@@ -402,7 +402,7 @@ public class VerifyEmailManager {
 						startVerifyProcess();
 					}
 				}, threadPoolToken);
-				App.showCenterPanel(panel, 0, 0, ResourceUtil.getErrorI18N(), true, jbVerifyEmail, null, verifyListener, null, (JFrame)null, false, true, null, false, true);
+				App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), true, jbVerifyEmail, null, verifyListener, null, (JFrame)null, false, true, null, false, true);
 			}
 		});
 	}
@@ -444,6 +444,6 @@ public class VerifyEmailManager {
 			}
 		}, App.getThreadPoolToken());
 		
-		App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.INFO), true, null, null, okListener, cancelListener, null, false, true, null, false, true);
+		App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), true, null, null, okListener, cancelListener, null, false, true, null, false, true);
 	}
 }

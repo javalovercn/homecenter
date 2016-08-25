@@ -285,6 +285,10 @@ public class ServerUIUtil {
 		return ContextManager.cmStatus == ContextManager.STATUS_SERVER_SELF;
 	}
 
+	public static boolean isReadyToLineOn() {
+		return ContextManager.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON;
+	}
+
 	public static void restartResponsorServerDelayMode(final Frame owner, final BaseResponsor mobiUIRep) {
 		CCoreUtil.checkAccess();
 		

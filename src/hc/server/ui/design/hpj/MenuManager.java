@@ -195,7 +195,7 @@ public class MenuManager {
 							} catch (final Throwable e) {
 								final JPanel ok = new JPanel();
 								ok.add(new JLabel("Error add native file, desc : " + e.toString(), new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
-								App.showCenterPanel(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null, false, false);
+								App.showCenterPanelMain(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null, false, false);
 								
 								ExceptionReporter.printStackTrace(e);
 							}
@@ -218,7 +218,7 @@ public class MenuManager {
 							if(ResourceUtil.checkSysPackageNameInJar(addJarFile)){
 								final JPanel ok = new JPanel();
 								ok.add(new JLabel(ResourceUtil.RESERVED_PACKAGE_NAME_IS_IN_HAR, new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
-								App.showCenterPanel(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null, false, false);
+								App.showCenterPanelMain(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null, false, false);
 								return;
 							}
 							
@@ -233,7 +233,7 @@ public class MenuManager {
 							} catch (final Throwable e) {
 								final JPanel ok = new JPanel();
 								ok.add(new JLabel("Error add jar file, desc : " + e.toString(), new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
-								App.showCenterPanel(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null, false, false);
+								App.showCenterPanelMain(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null, false, false);
 								
 								ExceptionReporter.printStackTrace(e);
 							}
@@ -320,7 +320,7 @@ public class MenuManager {
 			final JPanel panel = new JPanel();
 			panel.add(new JLabel("Curr menu item number > " + MenuListEditPanel.MAX_MENUITEM, 
 					App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
-			App.showCenterPanel(panel, 0, 0, "Too much items!", false, null, null, null, null, _designer, true, false, null, false, false);
+			App.showCenterPanelMain(panel, 0, 0, "Too much items!", false, null, null, null, null, _designer, true, false, null, false, false);
 			return;
 		}
 		

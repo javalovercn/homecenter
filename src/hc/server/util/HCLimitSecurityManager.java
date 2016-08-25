@@ -61,6 +61,9 @@ import java.util.logging.LoggingPermission;
 import javax.net.ssl.SSLPermission;
 
 public class HCLimitSecurityManager extends WrapperSecurityManager implements HarHelper{
+	private static final String devCertFileName = SecurityDataProtector.getDevCertFileName();
+	private static final String hcHardIdFileName = SecurityDataProtector.getHcHardId();
+
 	private final String OUTSIDE_HAR_WORKING_THREAD = " in EventQueue thread, try using ProjectContext.invokeLater and ProjectContext.getPrivateFile";
 	public static final String USER_DATA = "user_data";
 	public static final String PATH_USER_DATA_OF_OS = USER_DATA + File.separator;//前部不能用File.separator，因为是当前目录
@@ -252,7 +255,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 
 	    	{
 		    	final String[] writebats = {"HomeCenter.bat", "HomeCenter.sh", "HomeCenter.command",  
-		    			"splash.png", "starter.jar", "starter.properties", "jruby.jar", "hc.pem", "hc.jar", "hc_hard_id.txt"};
+		    			"splash.png", "starter.jar", "starter.properties", "jruby.jar", "hc.pem", "hc.jar", hcHardIdFileName, devCertFileName};
 		    	blockWriteFullPathLists = new String[writebats.length];
 		    	for (int i = 0; i < writebats.length; i++) {
 		    		final String file = writebats[i];
@@ -717,7 +720,8 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		if(csc == null){
 			//checkHCStackTraceInclude会导致运算加重
 			
-			if(fileCanonicalPath.endsWith("hc_hard_id.txt")){
+			if(fileCanonicalPath.endsWith(hcHardIdFileName)
+					|| fileCanonicalPath.endsWith(devCertFileName)){
 				ResourceUtil.checkHCStackTraceInclude(null, null);
 			}
 		}else{
@@ -905,8 +909,8 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			}else{
 				//工程开启了Execute权限
 				
-				if(cmd.indexOf("hc_hard_id.txt", 0) >= 0){
-					throw new HCSecurityException("block execute [" + cmd + "] in project [" + csc.projID + "] for security data [hc_hard_id.txt].");
+				if(cmd.indexOf(hcHardIdFileName, 0) >= 0){
+					throw new HCSecurityException("block execute [" + cmd + "] in project [" + csc.projID + "] for security data [" + hcHardIdFileName + "].");
 //				}else if(cmd.indexOf(PATH_USER_DATA_OF_OS, 0) >= 0){
 //					throw new HCSecurityException("block execute [" + cmd + "] in project [" + csc.projID + "] for security data [" + PATH_USER_DATA_OF_OS + "].");
 				}

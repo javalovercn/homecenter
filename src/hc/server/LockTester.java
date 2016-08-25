@@ -89,6 +89,6 @@ public class LockTester {
 //		}
 		
 		final JButton jbOK = new JButton(nextOrFinish);
-		App.showCenterPanel(panel, 0, 0, title, cancle==null?false:true, jbOK, null, listener, cancle, null, false, false, null, false, false);
+		App.showCenterPanelMain(panel, 0, 0, title, cancle==null?false:true, jbOK, null, listener, cancle, null, false, false, null, false, false);
 	}
 }

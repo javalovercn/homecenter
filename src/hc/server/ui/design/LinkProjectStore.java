@@ -1,6 +1,7 @@
 package hc.server.ui.design;
 
 import hc.core.IConstant;
+import hc.core.util.ByteUtil;
 import hc.core.util.StoreableHashMap;
 import hc.core.util.StringUtil;
 import hc.server.msb.ConverterInfo;
@@ -8,6 +9,12 @@ import hc.server.msb.RealDeviceInfo;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.ContextSecurityConfig;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.Vector;
 
@@ -39,6 +46,9 @@ public class LinkProjectStore extends StoreableHashMap{
 	private final String FIELD_PROJ_IS_ROOT = "isRoot";
 	private final String FIELD_MENU_NAME = "menuName";
 	private final String FIELD_DONE_BIND = "isDoneBind";
+	
+	private final String FIELD_CERT_NUM = "certNum";
+	private final String FIELD_CERT_AT_IDX = "certAtIdx";
 	
 	/**
 	 * 注意：如果增加相关bind数组结构，请同步更新到copyBindTo
@@ -93,6 +103,75 @@ public class LinkProjectStore extends StoreableHashMap{
 
 	public String getMenuName(){
 		return getValueDefault(FIELD_MENU_NAME, "Menu");
+	}
+	
+	private final int getCertificateNumber(){
+		return Integer.parseInt(getValueDefault(FIELD_CERT_NUM, "0"));
+	}
+	
+	private final void setCertificateNumber(final int num){
+		put(FIELD_CERT_NUM, String.valueOf(num));
+	}
+	
+	/**
+	 * 
+	 * @param idx the start idx is zero
+	 * @return
+	 */
+	private final X509Certificate getCertificateAtIdx(final int idx){
+		final String serial = (String)get(FIELD_CERT_AT_IDX + idx);
+		return deserialX509Certificate(serial);
+	}
+	
+	/**
+	 * 
+	 * @param idx the start idx is zero
+	 * @param cert
+	 */
+	private final void setCertificateAtIdx(final int idx, final X509Certificate cert){
+		final String serail = serialX509Certificate(cert);
+		put(FIELD_CERT_AT_IDX + idx, serail);
+	}
+	
+	/**
+	 * 如果没有，则返回null
+	 * @return
+	 */
+	public final X509Certificate[] getCertificates(){
+		final int num = getCertificateNumber();
+		if(num == 0){
+			return null;
+		}else{
+			final X509Certificate[] out = new X509Certificate[num];
+			for (int i = 0; i < num; i++) {
+				out[i] = getCertificateAtIdx(i);
+			}
+			return out;
+		}
+	}
+	
+	/**
+	 * 
+	 * @param certs 可以为null，0长度或其它
+	 */
+	public final void setCertificates(final X509Certificate[] certs){
+		//remove old data
+		{
+			final int num = getCertificateNumber();
+			for (int i = 0; i < num; i++) {
+				remove(FIELD_CERT_AT_IDX + i);
+			}
+		}
+		
+		if(certs == null){
+			setCertificateNumber(0);
+		}else{
+			final int num = certs.length;
+			setCertificateNumber(num);
+			for (int i = 0; i < num; i++) {
+				setCertificateAtIdx(i, certs[i]);
+			}
+		}
 	}
 	
 	/**
@@ -395,5 +474,41 @@ public class LinkProjectStore extends StoreableHashMap{
 		setMenuName(HCjar.getMenuName(map, 0));
 		
 		ContextSecurityConfig.copyMapsToLPS(this, ContextSecurityConfig.getPermissionFromHARMap(map), false);
+	}
+
+	public static X509Certificate deserialX509Certificate(final String src){
+		final byte[] bs = ByteUtil.decodeBase64(src);
+		final ByteArrayInputStream bis = new ByteArrayInputStream(bs);
+		try{
+			final ObjectInput in = new ObjectInputStream(bis);
+			final X509Certificate cert = (X509Certificate) in.readObject(); 
+	    	return cert;
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}finally{
+			try{
+	    		bis.close();
+			}catch (final Exception e) {
+			}
+		}
+		return null;
+	}
+
+	public static String serialX509Certificate(final X509Certificate cert){
+		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		try{
+			final ObjectOutputStream out = new ObjectOutputStream(bos);   
+			out.writeObject(cert);
+			final byte[] bs = bos.toByteArray();
+			return ByteUtil.encodeBase64(bs);
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}finally{
+			try{
+				bos.close();
+			}catch (final Exception e) {
+			}
+		}
+		return null;
 	}
 }

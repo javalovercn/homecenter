@@ -30,7 +30,7 @@ public class IDArrayGroup {
     		ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-		    		App.showCenterPanel(panel, 0, 0, title, false, null, null, null, null, null, true, true, null, false, false);//改为isNewFrame
+		    		App.showCenterPanelMain(panel, 0, 0, title, false, null, null, null, null, null, true, true, null, false, false);//改为isNewFrame
 				}
 			});
     	}

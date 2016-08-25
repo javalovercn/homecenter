@@ -50,6 +50,83 @@ public class ClassUtil {
 		}
 	}
 	
+	public static final Object NO_MATCH_FIELD = new Object();
+
+	/**
+	 * 
+	 * @param clazz
+	 * @param obj
+	 * @param matchClass
+	 * @param needModiAccessible
+	 * @param isReportException
+	 * @return if not matched, then return {@link ClassUtil#NO_MATCH_FIELD}
+	 */
+	public final static Object getFieldMatch(final Class clazz, final Object obj, final Class matchClass, final boolean needModiAccessible, final boolean isReportException) {
+		try{
+		    final Field[] fields = clazz.getDeclaredFields();
+		    
+		    Field field = null;
+		    for (int i = 0; i < fields.length; i++) {
+				final Field f = fields[i];
+				if(f.getType() == matchClass){
+					field = f;
+					break;
+				}
+			}
+		    
+		    if(field == null){
+		    	return NO_MATCH_FIELD;
+		    }
+		    
+		    if(needModiAccessible){
+		    	field.setAccessible(true);
+		    }
+		    final Object out = field.get(obj);
+		    if(needModiAccessible){
+		    	field.setAccessible(false);
+		    }
+		    return out;
+		}catch (final Exception e) {
+			if(isReportException){
+				ExceptionReporter.printStackTrace(e);
+			}
+		}
+		return null;
+	}
+	
+	public final static Object getFieldMatch(final Class clazz, final Object obj, final String hideClassName, final boolean needModiAccessible, final boolean isReportException) {
+		try{
+		    final Field[] fields = clazz.getDeclaredFields();
+		    
+		    Field field = null;
+		    for (int i = 0; i < fields.length; i++) {
+				final Field f = fields[i];
+				if(f.getType().getCanonicalName() == hideClassName){
+					field = f;
+					break;
+				}
+			}
+		    
+		    if(field == null){
+		    	return NO_MATCH_FIELD;
+		    }
+		    
+		    if(needModiAccessible){
+		    	field.setAccessible(true);
+		    }
+		    final Object out = field.get(obj);
+		    if(needModiAccessible){
+		    	field.setAccessible(false);
+		    }
+		    return out;
+		}catch (final Exception e) {
+			if(isReportException){
+				ExceptionReporter.printStackTrace(e);
+			}
+		}
+		return null;
+	}
+	
 	public final static Object getField(final Class clazz, final Object obj, final String name, final boolean needModiAccessible, final boolean isReportException) {
 		try{
 		    final Field field = clazz.getDeclaredField(name);

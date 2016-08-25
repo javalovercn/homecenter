@@ -21,7 +21,7 @@ public class ProjectListPanel {
 	final int IDX_OBJ_STORE = 1;
 	final LinkProjectStore oldRootlps;
 
-	final PropertiesSet projIDSet = AddHarHTMLMlet.getLinkProjSet();
+	final PropertiesSet projIDSet = AddHarHTMLMlet.newLinkProjSetInstance();
 	final PropertiesSet projWidthSet = new PropertiesSet(PropertiesManager.S_LINK_PROJECTS_COLUMNS_WIDTH);
 
 	final String upgradeURL = (String)ResourceUtil.get(8023);

@@ -74,7 +74,7 @@ public class SingleMessageNotify {
 			}
 		}, App.getThreadPoolToken());
 		final JButton okButton = new JButton((String) ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
-		final JDialog dialog = (JDialog)App.showCenterPanel(panel, 0, 0, title, false, okButton, null, quitAction, quitAction, null, false, false, null, false, false);
+		final JDialog dialog = (JDialog)App.showCenterPanelMain(panel, 0, 0, title, false, okButton, null, quitAction, quitAction, null, false, false, null, false, false);
 		typeDialogs.put(type, dialog);
 		
 		if(disposeMS > NEVER_AUTO_CLOSE){

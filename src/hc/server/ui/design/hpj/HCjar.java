@@ -191,9 +191,14 @@ public class HCjar {
 	private static void loadToMap(final JarEntry je, final InputStream is,
 			final Properties p, final HashMap<String, Object> mapString, final boolean loadFileByteArray) throws Throwable {
 		final String jarEnterName = je.getName();
-		if(jarEnterName.equals(JarConfigEntry)){
+		if(jarEnterName.startsWith("META-INF", 0)){
+			return;
+		}else if(jarEnterName.equals(JarConfigEntry)){
 			pushStringMap(p, mapString, is);
 		}else {
+			if(je.isDirectory()){
+				return;
+			}
 			//if(jarEnterName.endsWith(".jar"))
 			//如jar, png, au
 			if(loadFileByteArray){
@@ -272,7 +277,7 @@ public class HCjar {
 //				throw new Exception("File["+jarfile.getName()+"] not exists!");
 //			}
 			
-			jf = new JarFile(jarfile);
+			jf = new JarFile(jarfile, false);
 
 			for (final Enumeration<JarEntry> em1 = jf.entries(); em1.hasMoreElements();) {
 				final JarEntry je = em1.nextElement();
@@ -347,11 +352,9 @@ public class HCjar {
 		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}finally{
-			if(jaros != null){
-				try {
-					jaros.close();
-				} catch (final IOException e) {
-				}
+			try {
+				jaros.close();
+			} catch (final Throwable e) {
 			}
 		}
 		

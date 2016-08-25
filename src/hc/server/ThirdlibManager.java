@@ -9,8 +9,6 @@ import hc.util.PropertiesSet;
 import hc.util.ResourceUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -157,39 +155,7 @@ public class ThirdlibManager {
 	}
 
 	public static boolean copy(final File from, final File to) {
-		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("copy file : " + from.getAbsolutePath() + ", to : " + to.getAbsolutePath());
-		}
-		FileInputStream in = null;
-		FileOutputStream out = null;
-		try{
-			in = new FileInputStream(from);
-			out = new FileOutputStream(to);
-			final byte[] buffer = new byte[1024 * 5];
-			int ins = 0;
-			while ((ins = in.read(buffer)) != -1) {
-				out.write(buffer, 0, ins);
-			}
-			return true;
-		}catch (final Exception e) {
-			return false;
-		}finally{
-			try{
-				in.close();
-			}catch (final Exception e) {
-				
-			}
-			try{
-				out.flush();
-			}catch (final Exception e) {
-				
-			}
-			try{
-				out.close();
-			}catch (final Exception e) {
-				
-			}
-		}
+		return ResourceUtil.copy(from, to);
 	}
 
 	public static String createLibName(final JFrame self, final File file) {

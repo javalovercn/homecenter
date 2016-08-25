@@ -171,7 +171,7 @@ public class UPnPUtil {
 			if (null != hcgd) {
 				final String idg = "["+hcgd.getFriendlyName()+"("+hcgd.getModelNumber()+")]";
 				L.V = L.O ? false : LogManager.log("UPnP device found. " + idg);
-				ContextManager.getContextInstance().displayMessage((String)ResourceUtil.get(IContext.INFO), 
+				ContextManager.getContextInstance().displayMessage(ResourceUtil.getInfoI18N(), 
 						"UPnP : " + idg, IContext.INFO, null, 0);
 			}
 			

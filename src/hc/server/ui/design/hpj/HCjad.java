@@ -50,7 +50,6 @@ public class HCjad {
 			writeHadLine(out, HAD_HC_MIN_VERSION, map.get(HCjar.HOMECENTER_VER));
 			writeHadLine(out, HAD_HAR_MD5, harmd5);
 			
-			writeHadLine(out, "#" + HAD_HAR_SIZE, "0;mean current project will be auto removed!");
 			writeHadLine(out, HAD_HAR_SIZE, length);
 			
 			writeHadLine(out, "#" + HAD_HAR_URL, "keep # if in same directory");

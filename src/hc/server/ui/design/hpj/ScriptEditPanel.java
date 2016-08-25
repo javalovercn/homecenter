@@ -2,7 +2,6 @@ package hc.server.ui.design.hpj;
 
 import hc.App;
 import hc.core.ContextManager;
-import hc.core.IContext;
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
@@ -307,7 +306,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 //								}
 //							});
 							
-							IDArrayGroup.showMsg(IDArrayGroup.MSG_JRUBY_RUN_NO_COVER, App.SYS_WARN_ICON, (String)ResourceUtil.get(IContext.INFO), 
+							IDArrayGroup.showMsg(IDArrayGroup.MSG_JRUBY_RUN_NO_COVER, App.SYS_WARN_ICON, ResourceUtil.getInfoI18N(), 
 									"<html>" + runTip + "</html>");
 							
 							try{
@@ -453,6 +452,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			@Override
 			public void keyTyped(final KeyEvent event) {
 				if(isEventConsumed){
+					consumeEvent(event);//otherwise display shortcut key in JRE 6.
 					return;
 				}
 				

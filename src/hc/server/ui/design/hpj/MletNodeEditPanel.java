@@ -143,6 +143,7 @@ public class MletNodeEditPanel extends DefaultMenuItemNodeEditPanel {
 			@Override
 			public void keyTyped(final KeyEvent event) {
 				if(isEventConsumed){
+					ScriptEditPanel.consumeEvent(event);//otherwise display shortcut key.
 					return;
 				}
 				

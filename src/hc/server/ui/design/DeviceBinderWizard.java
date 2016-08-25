@@ -871,7 +871,7 @@ public class DeviceBinderWizard extends JPanel{
 		descPanel.add(new JScrollPane(desc), BorderLayout.CENTER);
 		panel.add(descPanel);
 		
-		App.showCenterPanel(panel, 300, 500, title, true, ok, null, listener, null, parent, true, false, relativeTo, true, false);
+		App.showCenterPanelMain(panel, 300, 500, title, true, ok, null, listener, null, parent, true, false, relativeTo, true, false);
 	}
 
 	public void selectTreeNodeAction(final JTree tree, final int leafNodeType,

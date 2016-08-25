@@ -33,6 +33,7 @@ import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.CacheComparator;
 import hc.server.util.HCLimitSecurityManager;
+import hc.server.util.SignHelper;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.PropertiesSet;
@@ -197,6 +198,10 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		appendMessage(StringUtil.replace(StringUtil.replace(isBroadcast, "{projID}", projID), "{devName}", device));
 	}
 	
+	/**
+	 * 注意：本方法内部能拦截异常，并显示到手机
+	 * @param url
+	 */
 	private final void startAddHar(final String url){
 		L.V = L.O ? false : LogManager.log("try ready to download HAR [" + url.toString() + "]...");
 		
@@ -254,6 +259,10 @@ public class AddHarHTMLMlet extends HTMLMlet {
 					
 					final String proj_id = (String)map.get(HCjar.PROJ_ID);
 
+					if(SignHelper.verifyJar(fileHar, LinkProjectManager.getCertificatesByID(proj_id)) == null){//完整性检查进行前置
+						throw new Exception(ResourceUtil.FILE_IS_MODIFIED_AFTER_SIGNED);
+					}
+					
 					final boolean isUpgrade = (LinkProjectManager.getProjByID(proj_id) != null);
 					final File oldBackEditFile = null;
 					if(isUpgrade){
@@ -374,6 +383,9 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		}
 	}
 	
+	/**
+	 * 本方法内异常会被拦截，并转显到手机
+	 */
 	private final void startAddAfterAgreeInQuestionThread(final File fileHar,
 			final Map<String, Object> map, final boolean isUpgrade,
 			final File oldBackEditFile) throws Exception {
@@ -383,6 +395,9 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		final MobiUIResponsor mobiResp = (MobiUIResponsor)ServerUIUtil.getResponsor();
 		
 		final ProjResponser[] appendRespNotAll = mobiResp.appendNewHarProject();//仅扩展新工程，不启动或不运行
+
+		showMsgForAddHar(IContext.INFO, (String)ResourceUtil.get(9092));
+		
 		BindRobotSource bindSource = mobiResp.bindRobotSource;
 		if(bindSource == null){
 			bindSource = new BindRobotSource(mobiResp);
@@ -433,7 +448,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 	 * @return
 	 */
 	static final ArrayList<LinkProjectStore> appendMapToSavedLPS(final File fileHar, final Map<String, Object> map, 
-			final boolean isRoot, final boolean isUpgrade, final File oldBackEditFile) {
+			final boolean isRoot, final boolean isUpgrade, final File oldBackEditFile) throws Exception{//本异常会被拦截，并转显到手机
 		final LinkEditData led = buildAddHarDesc(fileHar, map, "", "");
 		AddHarHTMLMlet.addHarToDeployArea(led, led.lps, isRoot, isUpgrade, oldBackEditFile);
 		
@@ -457,7 +472,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		
 		LinkProjectStore[] lpss = {};
 		lpss = lpsVector.toArray(lpss);
-		AddHarHTMLMlet.saveLinkStore(lpss, AddHarHTMLMlet.getLinkProjSet());//更新到LPS
+		AddHarHTMLMlet.saveLinkStore(lpss, AddHarHTMLMlet.newLinkProjSetInstance());//更新到LPS
 		return appendLPS;
 	}
 	
@@ -588,7 +603,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 	public static void startAddHTMLHarUI(final String urlStr) {
 		CCoreUtil.checkAccess();
 	
-		initToken();
+		initToken();//暂时申请特权
 		
 		try{
 			final MobiUIResponsor responsor = (MobiUIResponsor)ServerUIUtil.getResponsor();
@@ -724,6 +739,8 @@ public class AddHarHTMLMlet extends HTMLMlet {
 		led.op = (LinkProjectManager.STATUS_NEW);
 		led.status = (LinkProjectManager.STATUS_NEW);
 		
+//		lps.setCertificates(SignHelper.verifyJar(file, null));//注意：LinkProjectManager.importLinkProject会执行此动作
+		
 		lps.setActive(true);
 		lps.setLinkName(linkName);
 		lps.setProjectRemark(linkRemark);
@@ -762,7 +779,7 @@ public class AddHarHTMLMlet extends HTMLMlet {
 				msg, msgType, 0);
 	}
 
-	static PropertiesSet getLinkProjSet() {
+	static PropertiesSet newLinkProjSetInstance() {
 		return new PropertiesSet(PropertiesManager.S_LINK_PROJECTS);
 	}
 

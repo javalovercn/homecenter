@@ -34,7 +34,7 @@ public class HCVerify {
 	public static boolean verifyJar(final String filename, final X509Certificate trustedSigner) {
 		JarFile jf = null;
 		try{
-			jf = new JarFile(filename);
+			jf = new JarFile(filename, true);
 			final byte[] buf = new byte[4096];
 	
 			final Manifest manifest = jf.getManifest();

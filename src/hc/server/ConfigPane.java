@@ -234,7 +234,7 @@ public class ConfigPane extends SingleJFrame {
 									"Recommend to use build-in system skin." +
 									"<BR>" + dependMsg + "<BR>" +
 									"<BR>click OK to continue</HTML>", App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEFT));
-							App.showCenterPanel(wPanel, 0, 0, "Skin Warning", true, null, 
+							App.showCenterPanelMain(wPanel, 0, 0, "Skin Warning", true, null, 
 									null, new HCActionListener(new Runnable() {
 @Override
 public void run() {
@@ -246,7 +246,7 @@ public void run() {
 							Vector<String> list = null;
 							try {
 								PlatformManager.getService().addSystemLib(file, false);
-								list = getSubClasses(new JarFile(file), BasicLookAndFeel.class);
+								list = getSubClasses(new JarFile(file, false), BasicLookAndFeel.class);
 								
 								if(list.size() == 0){
 									App.showConfirmDialog(null, 
@@ -982,7 +982,7 @@ public void run() {
 							final Object[] rows = (Object[])getPara();
 							final JPanel askPanel = new JPanel();
 							askPanel.add(new JLabel("Are you sure to remove jar lib?", App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEFT));
-							App.showCenterPanel(askPanel, 0, 0, "Confirm Delete?", true, null, null, new HCActionListener(new Runnable() {
+							App.showCenterPanelMain(askPanel, 0, 0, "Confirm Delete?", true, null, null, new HCActionListener(new Runnable() {
 								@Override
 								public void run() {
 									deledLibs.add((ThirdLibValue)rows[0]);
@@ -1314,7 +1314,7 @@ public void run() {
 		panel.add(new JLabel("<html>setting is changed or canceled, need rebuild connection," +
 				"<BR><BR>click '" + (String) ResourceUtil.get(IContext.OK) + "' to rebuild now!</html>", 
 				App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING));
-		App.showCenterPanel(panel, 0, 0, "rebuild connection now?", true, null, null, new HCActionListener(new Runnable() {
+		App.showCenterPanelMain(panel, 0, 0, "rebuild connection now?", true, null, null, new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				HttpUtil.notifyStopServer(true, self);		

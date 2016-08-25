@@ -1288,10 +1288,10 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 //    							"<BR>It is more than access PC desktop screen." +
 //    							"<BR>On this platform, you can just click and move to build controller for IoT, import jar libraries, design powerful mobile UI to control and view these devices, load HAR project for smart devices." +
 //    							"<BR><BR>click '" + (String)ResourceUtil.get(IContext.OK) + "' to install JRuby engine online.</body></html>",
-//        	                			(String) ResourceUtil.get(IContext.INFO));
+//        	                			(String) ResourceUtil.getInfoI18N());
 //        	                	JPanel panel = new JPanel();
 //        	            		panel.add(new JLabel("<html>click '" + (String)ResourceUtil.get(IContext.OK) + "' to download JRuby online.</html>", App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.CENTER));
-//        	            		App.showCenterPanel(panel, 0, 0, (String) ResourceUtil.get(IContext.INFO), false, null, null, null, null, null, true, false);
+//        	            		App.showCenterPanel(panel, 0, 0, (String) ResourceUtil.getInfoI18N(), false, null, null, null, null, null, true, false);
 
 //									agreeBiz.start();
 //            					}//安装前提示
@@ -1345,7 +1345,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 							"3. unzip and override older HomeCenter App Server<BR>" +
 							"4. run HomeCenter App Server, this '<strong>"+downloadMe+"</strong>' menu will disappear.<BR>" +
 							"</body></html>"));
-					App.showCenterPanel(panel, 0, 0, "Fail on upgrade starter!", false, null, null, new HCActionListener(new Runnable() {
+					App.showCenterPanelMain(panel, 0, 0, "Fail on upgrade starter!", false, null, null, new HCActionListener(new Runnable() {
 						@Override
 						public void run() {
 							String os = "Win";
@@ -1493,13 +1493,13 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 							(String)ResourceUtil.get(9103) +
 							"<BR><BR>" + StringUtil.replace((String)ResourceUtil.get(9104), "{ok}", (String)ResourceUtil.get(IContext.OK)) +
 							"</body></html>"), BorderLayout.CENTER);
-					App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(9102), true, null, null, new HCActionListener(new Runnable() {
+					App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(9102), true, null, null, new HCActionListener(new Runnable() {
 						@Override
 						public void run() {
 							flipAutoUpgrade(upgradeItem, isAutoAfterClick);
 							final JPanel panel = new JPanel(new BorderLayout());
 							panel.add(new JLabel("<html>" + (String)ResourceUtil.get(9105) + "</html>", App.getSysIcon(App.SYS_INFO_ICON), JLabel.LEADING), BorderLayout.CENTER);
-							App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.INFO));
+							App.showCenterPanel(panel, 0, 0, ResourceUtil.getInfoI18N());
 						}
 					}, threadPoolToken), new HCActionListener(new Runnable() {
 						@Override
@@ -1550,7 +1550,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
         
         if(IConstant.serverSide){
         	final String msg = (String)ResourceUtil.get(9009);
-			displayMessage((String)ResourceUtil.get(IContext.INFO), msg, 
+			displayMessage(ResourceUtil.getInfoI18N(), msg, 
         			IContext.INFO, null, 0);
         	ti.setToolTip(msg);
         }
@@ -1763,7 +1763,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			
 			setTrayEnable(true);
 			final String msg = (String) ResourceUtil.get(9008);
-			ContextManager.displayMessage((String) ResourceUtil.get(IContext.INFO), 
+			ContextManager.displayMessage(ResourceUtil.getInfoI18N(), 
 				msg, IContext.INFO, 0);
 			
 			try{
@@ -2007,7 +2007,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 //			final TargetPeer target = KeepaliveManager.target;
 
 			final String msg = (String)ResourceUtil.get(9012);
-			displayMessage((String) ResourceUtil.get(IContext.INFO), msg, 
+			displayMessage(ResourceUtil.getInfoI18N(), msg, 
 					IContext.INFO, null, 0);
 			ti.setToolTip(msg);
 			ti.setImage(hc_mobi);
@@ -2160,7 +2160,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		}else{
 			if(ti != null){
 				if(ti.getImage() == hc_Enable){
-					displayMessage((String) ResourceUtil.get(IContext.INFO), 
+					displayMessage(ResourceUtil.getInfoI18N(), 
 							(String)ResourceUtil.get(9009), 
 							IContext.INFO, null, 0);
 				}
@@ -2196,14 +2196,14 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				"<BR>5. " + transmitCert + ":<STRONG>" + tipOff + "</STRONG>, " + transOffTip +
 				"</body></html>"), BorderLayout.CENTER);
 		
-		return App.showCenterPanel(panel, 0, 0, (String) ResourceUtil.get(IContext.INFO), 
+		return App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), 
 				false, null, null, null, null, null, false, false, null, false, false);
 	}
 
 	private void doAfterMobileReceivedCert() {
 		final JPanel nextpanel = new JPanel();
 		nextpanel.add(new JLabel((String) ResourceUtil.get(9032), new ImageIcon(ImageSrc.OK_ICON), SwingConstants.LEFT));
-		App.showCenterOKDisposeDelayMode(nextpanel, 0, 0, (String) ResourceUtil.get(IContext.INFO), false, (JButton)null, (String)null, new HCActionListener(new Runnable() {
+		App.showCenterOKDisposeDelayMode(nextpanel, 0, 0, ResourceUtil.getInfoI18N(), false, (JButton)null, (String)null, new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 			}
@@ -2257,7 +2257,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			final JPanel panel = new JPanel();
 			panel.add(new JLabel("<html><body style=\"width:500\">" + (String)ResourceUtil.get(9107) +
 					"</body></html>", new ImageIcon(ImageSrc.OK_ICON), SwingConstants.LEFT));
-			App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(9106), false, null, null, null, null, null, true, false, null, false, false);
+			App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(9106), false, null, null, null, null, null, true, false, null, false, false);
 		}
 	}
 
@@ -2276,7 +2276,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				@Override
 				public boolean watch() {
 					if(isTransedToMobileSize){
-						ServerUIAPIAgent.__sendStaticMessage((String) ResourceUtil.get(IContext.INFO), (String) ResourceUtil.get(9033), IContext.INFO, null, 0);
+						ServerUIAPIAgent.__sendStaticMessage(ResourceUtil.getInfoI18N(), (String) ResourceUtil.get(9033), IContext.INFO, null, 0);
 						return true;
 					}
 					if(System.currentTimeMillis() - curr > 3000){
@@ -2347,7 +2347,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		L.V = L.O ? false : LogManager.log("Client/Relay request lineoff!");
 
 		ContextManager.getContextInstance().displayMessage(
-				(String)ResourceUtil.get(IContext.INFO), 
+				ResourceUtil.getInfoI18N(), 
 				(String)ResourceUtil.get(9006), IContext.INFO, null, 0);
 
 		final String mobileUID = ServerUIAPIAgent.getMobileUID();//注意：需提前取得，否则可能关闭ClientSession，而得不到。
@@ -2437,7 +2437,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			tipPanle.add(msgPanel, BorderLayout.SOUTH);
 		}
 
-		App.showCenterPanel(tipPanle, 0, 0, (isEnable?(String)ResourceUtil.get(1020):(String)ResourceUtil.get(1021)), false, null, null, null, null, null, false, false, null, false, false);
+		App.showCenterPanelMain(tipPanle, 0, 0, (isEnable?(String)ResourceUtil.get(1020):(String)ResourceUtil.get(1021)), false, null, null, null, null, null, false, false, null, false, false);
 	}
 
 	private static void setHideForErrCert(final boolean newSelected,

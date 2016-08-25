@@ -4,7 +4,10 @@ public class L {
 	public static boolean O = false;
 	public static boolean V = false;
 	
-	//平台开发环境，而非应用工程开发环境
+	/**
+	 * 平台开发环境，而非应用工程开发环境<BR>
+	 * it is equal with isSimu
+	 */
 	public static boolean isInWorkshop = false;
 	
 	public static void enable(final boolean enable){

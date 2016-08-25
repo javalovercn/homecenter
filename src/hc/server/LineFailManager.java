@@ -23,7 +23,7 @@ public class LineFailManager {
 		CCoreUtil.checkAccess();
 		
 		final JPanel panel = App.buildMessagePanel(msg, App.getSysIcon(App.SYS_ERROR_ICON));
-		lineFailWindow = App.showCenterPanel(panel, 0, 0, (String) ResourceUtil	.get(IContext.ERROR), false, null, null, new ActionListener() {
+		lineFailWindow = App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil	.get(IContext.ERROR), false, null, null, new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				ContextManager.getContextInstance().notifyShutdown();

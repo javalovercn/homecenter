@@ -508,7 +508,7 @@ public class ProjectContext {
 			final Runnable noRunnable, final Runnable cancelRunnable) {
 		if (ServerUIAPIAgent.isToMobileForProjectContext()) {
 		if (caption == null) {
-			caption = (String) ResourceUtil.get(IContext.INFO);
+			caption = ResourceUtil.getInfoI18N();
 		}
 		if (text == null) {
 			text = "";
@@ -1718,7 +1718,7 @@ public class ProjectContext {
 		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
 			public Object run() {
-				ContextManager.displayMessage((String) ResourceUtil.get(IContext.INFO),
+				ContextManager.displayMessage(ResourceUtil.getInfoI18N(),
 						msg, IContext.INFO, 0);		
 				return null;
 			}

@@ -70,7 +70,7 @@ public class DirectServer extends Thread {
 					final JPanel panel = new JPanel(new BorderLayout());
 					final String msg = "[Direct Home Server] port:" + directServerPort + " is used, select port:" + server.getLocalPort();
 					panel.add(new JLabel(msg, App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
-					App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.ERROR), false, 
+					App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(IContext.ERROR), false, 
 							(JButton)null, (String)null, (ActionListener)null, (ActionListener)null, (JFrame)null, 
 							false, true, null, false, false);
 					LogManager.err(msg);

@@ -82,7 +82,7 @@ public class LogServerSide implements ILog {
 				ExceptionReporter.printStackTrace(e);
 				
 				final JPanel panel = App.buildMessagePanel(e.toString(), App.getSysIcon(App.SYS_ERROR_ICON));
-				App.showCenterPanel(panel, 0, 0, (String) ResourceUtil	.get(IContext.ERROR), false, null, null, new ActionListener() {
+				App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil	.get(IContext.ERROR), false, null, null, new ActionListener() {
 					@Override
 					public void actionPerformed(final ActionEvent e) {
 						CCoreUtil.globalExit();							

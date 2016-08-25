@@ -37,6 +37,7 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -95,8 +96,83 @@ public class ResourceUtil {
 		return null;
 	}
 	
+	/**
+	 * copy file only, not dir and recursive
+	 * @param from
+	 * @param to
+	 */
+	public static boolean copy(final File from, final File to) {
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("copy file : " + from.getAbsolutePath() + ", to : " + to.getAbsolutePath());
+		}
+		FileInputStream in = null;
+		FileOutputStream out = null;
+		try{
+			in = new FileInputStream(from);
+			out = new FileOutputStream(to);
+			final byte[] buffer = new byte[1024 * 5];
+			int ins = 0;
+			while ((ins = in.read(buffer)) != -1) {
+				out.write(buffer, 0, ins);
+			}
+			return true;
+		}catch (final Exception e) {
+			return false;
+		}finally{
+			try{
+				in.close();
+			}catch (final Exception e) {
+				
+			}
+			try{
+				out.flush();
+			}catch (final Exception e) {
+				
+			}
+			try{
+				out.close();
+			}catch (final Exception e) {
+				
+			}
+		}
+	}
+	
 	public static String getHideText(){
 		return (String)ResourceUtil.get(9179);
+	}
+	
+	/**
+	 * if fail return null.
+	 * @param file
+	 * @return
+	 */
+	public static byte[] getContent(final File file){
+		ByteArrayOutputStream ous = null;
+	    InputStream ios = null;
+	    try {
+	        final byte[] buffer = new byte[4096];
+	        ous = new ByteArrayOutputStream();
+	        ios = new FileInputStream(file);
+	        int read = 0;
+	        while ((read = ios.read(buffer)) != -1) {
+	            ous.write(buffer, 0, read);
+	        }
+	    }catch (final Throwable e) {
+	    	return null;
+	    }finally {
+	        try {
+	            if (ous != null)
+	                ous.close();
+	        } catch (final IOException e) {
+	        }
+
+	        try {
+	            if (ios != null)
+	                ios.close();
+	        } catch (final IOException e) {
+	        }
+	    }
+	    return ous.toByteArray();
 	}
 	
 	public static String getStringFromURL(final String urlPath, final boolean keepReturnChar) {
@@ -334,7 +410,7 @@ public class ResourceUtil {
 			final String message = "Error to get JRuby/3rdLibs ClassLoader!";
 			LogManager.errToLog(message);
 			final JPanel panel = App.buildMessagePanel(message, App.getSysIcon(App.SYS_ERROR_ICON));
-			App.showCenterPanel(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, null, false, true, null, false, false);//JFrame
+			App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, null, false, true, null, false, false);//JFrame
 		}else{
 			HCLimitSecurityManager.refreshJRubyClassLoader(rubyAnd3rdLibsClassLoaderCache);
 			L.V = L.O ? false : LogManager.log("Successful (re) create JRuby engine classLoader.");
@@ -1014,7 +1090,29 @@ public class ResourceUtil {
 		return new byte[0];
 	}
 	
+	public static byte[] getMD5Bytes(final byte[] src){
+		MessageDigest digest = null;
+		try {
+			digest = MessageDigest.getInstance("MD5");
+			digest.update(src);
+			return digest.digest();
+		}catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+		return new byte[0];
+	}
+
 	public static String getMD5(final String src){
+		final byte[] bs = getMD5Bytes(src);
+		
+		if(bs.length == 0){
+			return "";
+		}else{
+			return convertMD5BytesToString(bs);
+		}
+	}
+
+	public static String getMD5(final byte[] src){
 		final byte[] bs = getMD5Bytes(src);
 		
 		if(bs.length == 0){
@@ -1220,6 +1318,10 @@ public class ResourceUtil {
 		return PropertiesManager.isTrue(PropertiesManager.p_IsLoggerOn, true);
 	}
 
+	public static String getInfoI18N() {
+		return (String) get(IContext.INFO);
+	}
+
 	public static String getWarnI18N() {
 		return (String) get(IContext.WARN);
 	}
@@ -1245,7 +1347,7 @@ public class ResourceUtil {
 	public static boolean checkSysPackageNameInJar(final File file){
 		JarFile jarFile = null;
 		try {
-			jarFile = new JarFile(file);
+			jarFile = new JarFile(file, false);
 			final Enumeration<JarEntry> entrys = jarFile.entries();
 			while (entrys.hasMoreElements()) {
 				final JarEntry jarEntry = entrys.nextElement();
@@ -1268,6 +1370,7 @@ public class ResourceUtil {
 		return false;
 	}
 
+	public static final String FILE_IS_MODIFIED_AFTER_SIGNED = "file is incomplete or modified after signed";
 	public static final String RESERVED_PACKAGE_NAME_IS_IN_HAR = "reserved package name [hc/java/javax] is in HAR!";
 	public static final String HAR_PROJECT_FILE_IS_CORRUPTED = "HAR project file is corrupted or incomplete.";
 

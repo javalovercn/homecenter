@@ -27,6 +27,7 @@ import hc.server.SingleJFrame;
 import hc.server.StarterManager;
 import hc.server.ThirdlibManager;
 import hc.server.data.StoreDirManager;
+import hc.server.ui.ClientDesc;
 import hc.server.ui.ClientSession;
 import hc.server.ui.ClosableWindow;
 import hc.server.ui.LinkProjectStatus;
@@ -54,11 +55,13 @@ import hc.server.ui.design.hpj.ScriptEditPanel;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.IDArrayGroup;
 import hc.server.util.JavaLangSystemAgent;
+import hc.server.util.SignHelper;
 import hc.util.BaseResponsor;
 import hc.util.Constant;
 import hc.util.IBiz;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
+import hc.util.SecurityDataProtector;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -72,6 +75,8 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -101,6 +106,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
@@ -121,6 +127,13 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 public class Designer extends SingleJFrame implements IModifyStatus, BindButtonRefresher{
+	public static final String PASSWORD_OF_DEVELOPER_CERTIFICATE = "the password of developer certificate.<BR>it is NOT the password for mobile connection.";
+	public static final int COLUMNS_PWD_DEV_CERT = 15;
+
+	public static final String ACTIVE = "Activate";
+	public static final String DEACTIVE = "Deactivate";
+	private static final String SAVE_AS_TEXT = "Save as";
+	
 	private static final String HC_RES_MY_FIRST_HAR = "hc/res/MyFirst.har";
 
 	final Runnable updateTreeRunnable = new Runnable() {
@@ -179,7 +192,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 							c.insets = new Insets(10, 0, 0, 0);
 							panel.add(noDisplayAgain, c);
 							
-							App.showCenterPanel(panel, 0, 0, ResourceUtil.getWarnI18N(), false, null, null, null, null, self, true, false, null, false, true);
+							App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getWarnI18N(), false, null, null, null, null, self, true, false, null, false, true);
 							
 							return;
 						}
@@ -260,7 +273,13 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	public void dispose(){
 		LinkProjectStatus.exitStatus();
 		
+		if(certJFrame != null && certJFrame.isVisible()){
+			certJFrame.dispose();
+			certJFrame = null;
+		}
+		
 		instance = null;
+		
 		codeHelper.release();
 		super.dispose();
 		
@@ -358,9 +377,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		return loadImg("gift_24.png");
 	}
 	
-	public static final String ACTIVE = "Activate";
-	public static final String DEACTIVE = "Deactivate";
-	
 	private NodeEditPanel nodeEditPanel = emptyNodeEditPanel;
 	JButton sampleButton = new JButton(EXAMPLE, getSampleIcon());
 	JButton saveButton = new JButton("Save", loadImg("save_24.png"));
@@ -368,8 +384,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	JButton deactiveButton = new JButton(DEACTIVE, loadImg("undeploy_24.png"));
 	final JButton addItemButton = new JButton("Add Item", loadImg("controller_24.png"));
 	JButton newButton = new JButton("New Project", loadImg("new_24.png"));
-	JButton saveAsButton = new JButton("Save as", loadImg("shareout_24.png"));
+	JButton saveAsButton = new JButton(SAVE_AS_TEXT, loadImg("shareout_24.png"));
 	JButton loadButton = new JButton("Load", loadImg("sharein_24.png"));
+	JButton certButton = new JButton("Developer Certificates", loadImg("cert_24.png"));
 	JButton shiftProjButton = new JButton("Shift Project", new ImageIcon(ResourceUtil.loadImage("menu_24.png")));
 	JButton helpButton = new JButton("Help", loadImg("faq_24.png"));
 	JButton rebindButton = new JButton("Rebind", loadImg("device_24.png"));
@@ -685,7 +702,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 						final JPanel panel = new JPanel();
 						panel.add(new JLabel("<html>Sorry, fail to load example project." +
 								"<BR>please try after a minute</html>", App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
-						App.showCenterPanel(panel, 0, 0, "Network Error", false, null, null, null, null, self, true, false, null, false, false);
+						App.showCenterPanelMain(panel, 0, 0, "Network Error", false, null, null, null, null, self, true, false, null, false, false);
 						return;
 					}
 					final IBiz succLoadBiz = new IBiz() {
@@ -999,13 +1016,21 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				}else{
 					final JPanel panel = new JPanel(new BorderLayout());
 					panel.add(new JLabel("project [" + currProjID + "] is not active, you may have changed project ID!", App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
-					App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.ERROR), false, null, null, null, null, instance, true, false, null, false, false);
+					App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(IContext.ERROR), false, null, null, null, null, instance, true, false, null, false, false);
 					return;
 				}
 			}
 		}, threadPoolToken));
 		toolbar.add(deactiveButton);
-		saveAsButton.setToolTipText("<html>save current project to a har file on your disk, not all projects.</html>");
+		saveAsButton.setToolTipText("<html>" +
+				"save and sign current project to HAR/HAD file on your disk," +
+				"<BR><BR>" +
+				"<STRONG>Important :</STRONG>" +
+				"<BR>1. if developer certificate is created, HAR will be signed with it; otherwise save only," +
+				"<BR>2. unsigned HAR will be upgraded by signed HAR successfully," +
+				"<BR>3. signed HAR will NOT be upgraded by signed HAR, if developer certificate is NOT same," +
+//				"<BR>4. a signed HAR will update/upgrade a signed HAR, if at least one certificate is same." +
+				"</html>");
 		saveAsButton.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -1071,7 +1096,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 		}, threadPoolToken));
 		loadButton.setToolTipText("<html>load and edit a project from a har file." +
-				"<BR><BR>it will be setted as current project after click '" + saveButton.getText() + "'.</html>");
+				"<BR><BR>the loaded project will be the default project after click [<STRONG>" + saveButton.getText() + "</STRONG>] button.</html>");
 
 		toolbar.add(loadButton);
 		toolbar.add(saveAsButton);
@@ -1086,8 +1111,64 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		toolbar.addSeparator();
 
 		shiftProjButton.setToolTipText("<html>add and delete projects, or choose other project for editing.</html>");
-
 		toolbar.add(shiftProjButton);
+		
+		certButton.setToolTipText("<html>create, manage developer certificate, which is used to sign your HAR project." +
+				"<BR><BR>" +
+				"<STRONG>Important :</STRONG><BR>" +
+				"1. HAR will be signed when you click [<STRONG>" + SAVE_AS_TEXT + "</STRONG>] button if developer certificate is created.<BR>" +
+				"2. it is <STRONG>NOT</STRONG> certificate for mobile connection.<BR>" +
+				"3. it is recommended that sign HAR on development HomeCenter server, NOT on business HomeCenter server.</html>");
+		certButton.addActionListener(new HCActionListener(new Runnable() {
+			int errorPwd = 0;
+			
+			@Override
+			public void run() {
+				final File devCert = SecurityDataProtector.getDevCertFile();
+				if(devCert.exists()){
+					if(errorPwd >=3){
+						errorPwd = 0;
+						final int result = App.showConfirmDialog(certButton, "<html>are you going to reset developer certificates?" +
+								"<BR><BR>" +
+								"all developer certificates will be lost!!!</html>", "forget password?", JOptionPane.YES_NO_OPTION, App.WARNING_MESSAGE, App.getSysIcon(App.SYS_WARN_ICON));
+						if(result == JOptionPane.YES_OPTION){
+							PropertiesManager.resetDevCert();
+							PropertiesManager.saveFile();
+							devCert.delete();
+							LogManager.errToLog("user reset developer certificates!!!");
+							App.showMessageDialog(certButton, "Successful reset developer certificates!", ResourceUtil.getInfoI18N(), App.INFORMATION_MESSAGE, App.getSysIcon(App.SYS_INFO_ICON));
+						}
+						return;
+					}
+					
+					final JPasswordField field = new JPasswordField("", COLUMNS_PWD_DEV_CERT);
+
+					final JPanel totalPanel = buildInputCertPwdPanel(field, false);
+					
+					final ActionListener listener = new ActionListener() {
+						@Override
+						public void actionPerformed(final ActionEvent e) {
+							final String pwd = new String(field.getPassword());
+							try{
+								SignHelper.getContentformPfx(devCert, pwd);
+								showCertPanel(certButton, pwd);
+								errorPwd = 0;
+							}catch (final Throwable e1) {
+								errorPwd++;
+								LogManager.errToLog("input error password of developer certificates!!!");
+								App.showMessageDialog(instance, e1.getMessage(), ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+							}
+						}
+					};
+
+					App.showCenterPanelMain(totalPanel, 0, 0, (String)ResourceUtil.get(1007), false, null, null, listener, null, instance, true, false, certButton, false, false);
+				}else{
+					showCertPanel(certButton, null);
+				}
+			}
+
+		}, threadPoolToken));
+		toolbar.add(certButton);
 //		toolbar.addSeparator();//末尾，故注释
 		
 //		helpButton.addActionListener(new HCActionListener(new Runnable() {
@@ -1141,13 +1222,25 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 		}, threadPoolToken);
 		
-		IDArrayGroup.showMsg(IDArrayGroup.MSG_SYSTEM_CLASS_LIMITED, App.SYS_INFO_ICON, (String)ResourceUtil.get(IContext.INFO), 
+		IDArrayGroup.showMsg(IDArrayGroup.MSG_SYSTEM_CLASS_LIMITED, App.SYS_INFO_ICON, ResourceUtil.getInfoI18N(), 
 				"<html><font color=\"red\">Important</font> : " +
 				"<BR>" +
 				"<BR>the current HomeCenter provide build-in SecurityManager for HAR project." +
 				"<BR>each JRuby code is based on reflection, java.lang.System (private SecurityManager security) is limited for reflection, " +
 				"<BR><BR>please replace java.lang.System with " + JavaLangSystemAgent.class.getName() + " or upgrade JRE to 1.7" +
 				"<BR><BR>for more, please read Java Doc about " + JavaLangSystemAgent.class.getName() + "</html>");
+		
+	}
+
+	private static JFrame certJFrame;
+	
+	private static final void showCertPanel(final Component relativeTo, final String pwd) {
+		if(certJFrame != null && certJFrame.isVisible()){
+			certJFrame.toFront();
+		}else{
+			final CertPanel linkp = new CertPanel(relativeTo, pwd);
+			certJFrame = linkp.toShow();
+		}
 	}
 	
 	public static void buildRebindButton(final JButton rebindBut, final ThreadGroup tgt, final BindButtonRefresher refresher,
@@ -1605,11 +1698,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				
 				final JPanel ok = new JPanel();
 				ok.add(new JLabel("Successful save file!", new ImageIcon(ImageSrc.OK_ICON), SwingConstants.LEFT));
-				App.showCenterPanel(ok, 0, 0, "Save OK!", false, null, null, null, null, this, true, false, null, false, false);
+				App.showCenterPanelMain(ok, 0, 0, "Save OK!", false, null, null, null, null, this, true, false, null, false, false);
 			}catch (final Exception e) {
 				final JPanel ok = new JPanel();
 				ok.add(new JLabel("Error save file!", new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
-				App.showCenterPanel(ok, 0, 0, "Save Error!", false, null, null, null, null, this, true, false, null, false, false);
+				App.showCenterPanelMain(ok, 0, 0, "Save Error!", false, null, null, null, null, this, true, false, null, false, false);
 				ExceptionReporter.printStackTrace(e);
 			}finally{
 				try{
@@ -1749,7 +1842,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			final JComponent relativeTo){
 		final JPanel panel = new JPanel();
 		panel.add(new JLabel(message, new ImageIcon(ImageSrc.OK_ICON), SwingConstants.LEFT));
-		App.showCenterPanel(panel, 0, 0, title, false, null, null, null, null, frame, model, false, relativeTo, false, false);
+		App.showCenterPanelMain(panel, 0, 0, title, false, null, null, null, null, frame, model, false, relativeTo, false, false);
 	}
 	
 	/**
@@ -1895,7 +1988,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 //					(isSampleHigh[0]?("<BR>please 'enable auto upgrade' to upgrade HomeCenter Ver"):"") + 
 					"</body></html>", 
 					App.getSysIcon(App.SYS_WARN_ICON), SwingConstants.LEFT));
-			App.showCenterPanel(panel, 0, 0, "version warning", true, null, null, new HCActionListener(){
+			App.showCenterPanelMain(panel, 0, 0, "version warning", true, null, null, new HCActionListener(){
 				
 				@Override
 				public void actionPerformed(final ActionEvent e) {
@@ -1984,7 +2077,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 //				final String name1 = ((HPNode)node1.getUserObject()).name;
 				panel.add(new JLabel("<html><body>" + e.getDesc() + "</body></html>", 
 						App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
-				App.showCenterPanel(panel, 0, 0, "Error Node", false, null, null, null, null, instance, true, false, null, false, false);
+				App.showCenterPanelMain(panel, 0, 0, "Error Node", false, null, null, null, null, instance, true, false, null, false, false);
 			}
 		}, threadPoolToken);
 	}
@@ -2033,7 +2126,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				panel.setLayout(new BorderLayout());
 				panel.add(new JLabel("Override exit har file?", App.getSysIcon(App.SYS_QUES_ICON), 
 						SwingConstants.LEADING));
-				App.showCenterPanel(panel, 0, 0, "Override?", true, null, null, new HCActionListener(new Runnable() {
+				App.showCenterPanelMain(panel, 0, 0, "Override?", true, null, null, new HCActionListener(new Runnable() {
 					@Override
 					public void run() {
 						doExportBiz(map, fileExits, fileHadExits, self);
@@ -2045,6 +2138,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}
 	}
 
+	/**
+	 * 设计器中，即时发布工程到active状态。
+	 * @param map
+	 * @return
+	 */
 	private boolean deployProcess(final Map<String, Object> map) {
 		LinkProjectStore oldlps = LinkProjectManager.getProjByID(getCurrProjID());
 		if(oldlps != null){
@@ -2054,7 +2152,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				panel.add(new JLabel("<html>the actived version is " + oldlps.getVersion() + ", and current version is " + curVer 
 						+ "<br><br>system can't override the current version!</html>", 
 						App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
-				App.showCenterPanel(panel, 0, 0, "fail activate current project", false, null, null, null, null, instance, true, false, null, false, false);
+				App.showCenterPanelMain(panel, 0, 0, "fail activate current project", false, null, null, null, null, instance, true, false, null, false, false);
 				return false;
 			}
 		}
@@ -2105,9 +2203,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			PropertiesManager.saveFile();
 		}
 	}
-
+	
 	private void doExportBiz(final Map<String, Object> map, final File fileExits, final File fileHadExits, final Designer self) {
-		final JPanel panel = new JPanel(new GridLayout(3, 2));
+		final JPanel panel = new JPanel(new GridLayout(3, 2, ClientDesc.hgap, ClientDesc.vgap));
 		panel.add(new JLabel("JRE version : "));
 		
 		final JTextField jre_field = new JTextField();
@@ -2125,6 +2223,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		panel.add(jruby_field);
 		
 		final JPanel centerPanel = new JPanel(new BorderLayout());
+		centerPanel.setBorder(new TitledBorder(""));
 		centerPanel.add(panel, BorderLayout.CENTER);
 		{
 			final JPanel descPanel = new JPanel(new BorderLayout());
@@ -2145,15 +2244,110 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 //				System.out.println("JRUBY : " + map.get(HCjar.JRUBY_VER));
 				
 				HCjar.toHar(map, fileExits);
+				
+				final Boolean[] isSucc = new Boolean[1];
+				
+				//sign
+				final boolean isDone = sign(fileExits, isSucc, saveAsButton);
+				
+				if(isSucc[0] == false){
+					fileExits.delete();
+					return;
+				}
+				
 				if(fileHadExits != null){
 					HCjad.toHad(map, fileHadExits, ResourceUtil.getMD5(fileExits), (int)fileExits.length());
 				}
 				final String hadDesc = (fileHadExits != null)?(", " + fileHadExits.getName()):"";
-				showHCMessage("Successful save project to [" + fileExits.getName() + hadDesc + "]", 
+				final boolean isSigned = (isDone && isSucc[0]);
+				String op;
+				if(isSigned){
+					op = "<STRONG>save</STRONG>" + (isSigned?" and <STRONG>sign</STRONG>":"");
+				}else{
+					op = "save";
+				}
+				showHCMessage("<html>" + op + " project to [" + fileExits.getName() + hadDesc + "].</html>", 
 						"Success save as", self, true, saveAsButton);
 			}
+			
+			private final boolean sign(final File inJar, final Boolean[] isSucc, final Component relativeTo){
+				final File file = SecurityDataProtector.getDevCertFile();
+				if(file.exists()){
+					ContextManager.getThreadPool().run(new Runnable() {
+						@Override
+						public void run() {
+							final JPasswordField field;
+							field = new JPasswordField("", COLUMNS_PWD_DEV_CERT);
+
+							final JPanel totalPanel = buildInputCertPwdPanel(field, true);
+							
+							final ActionListener listener = new ActionListener() {
+								@Override
+								public void actionPerformed(final ActionEvent e) {
+									signHar(fileExits, new String(field.getPassword()), isSucc);
+								}
+							};
+							final ActionListener cancelListener = new ActionListener() {
+								@Override
+								public void actionPerformed(final ActionEvent e) {
+									isSucc[0] = Boolean.FALSE;
+									synchronized (isSucc) {
+										try{
+											isSucc.notify();
+										}catch (final Exception ex) {
+										}
+									}
+								}
+							};
+							
+							App.showCenterPanelMain(totalPanel, 0, 0, (String)ResourceUtil.get(1007), false, null, null, listener, cancelListener, instance, true, false, relativeTo, false, false);
+						}
+					}, threadPoolToken);
+					
+					synchronized (isSucc) {
+						try{
+							isSucc.wait();
+						}catch (final Exception e) {
+						}
+					}
+					return true;
+				}else{
+					//没有DevCert
+					isSucc[0] = true;
+					return false;
+				}
+			}
+
+			private final void signHar(final File fileExits, final String devPwd, final Boolean[] isSucc) {
+				final File signHar = ResourceUtil.getTempFileName(Designer.HAR_EXT);
+				try {
+					SignHelper.sign(SecurityDataProtector.getDevCertFile(), 
+							devPwd, fileExits, signHar);
+					
+					ResourceUtil.copy(signHar, fileExits);
+					
+					if(PropertiesManager.isTrue(PropertiesManager.p_isRememberDevCertPassword)
+							&& PropertiesManager.getValue(PropertiesManager.p_DevCertPassword) == null){
+						PropertiesManager.setValue(PropertiesManager.p_DevCertPassword, devPwd);
+						PropertiesManager.saveFile();
+					}
+					isSucc[0] = Boolean.TRUE;
+				} catch (final Exception e1) {
+					e1.printStackTrace();
+					App.showMessageDialog(instance, e1.getMessage(), ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+					isSucc[0] = Boolean.FALSE;
+				}finally{
+					signHar.delete();
+					synchronized (isSucc) {
+						try{
+							isSucc.notify();
+						}catch (final Exception e) {
+						}
+					}
+				}
+			}
 		};
-		App.showCenterPanel(centerPanel, 0, 0, "Confirm Versions?", false, null, null, listener, listener, self, true, false, saveAsButton, false, false);
+		App.showCenterPanelMain(centerPanel, 0, 0, "Confirm Versions?", false, null, null, listener, listener, self, true, false, saveAsButton, false, false);
 	}
 
 	private final Map<String, Object> buildMapFromTree() throws NodeInvalidException {
@@ -2187,7 +2381,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	/**
-	 * 注意：本方法被反射引用，并不要更名。
 	 * @param parent
 	 * @param newFrame
 	 * @param relativeTo
@@ -2311,7 +2504,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	//										showWizard();
 								}
 							}, threadPoolToken);
-							App.showCenterPanel(jpanel, 0, 0, (String)ResourceUtil.get(IContext.INFO), 
+							App.showCenterPanelMain(jpanel, 0, 0, ResourceUtil.getInfoI18N(), 
 									false, null, null, al, al, null, false, true, null, true, false);//jdk 8会出现漂移
 						}else{
 						}
@@ -2324,6 +2517,70 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}else{
 			setToolbarVisible(toolbar, true);
 		}
+	}
+
+	public static JPanel buildInputCertPwdPanel(final JPasswordField field, final boolean withRemember) {
+		final JPanel panel = new JPanel();
+
+		final JLabel jlPassword = new JLabel();
+		jlPassword.setIcon(new ImageIcon(ImageSrc.PASSWORD_ICON));
+		
+		field.setEchoChar('*');
+		field.enableInputMethods(true);
+		field.setHorizontalAlignment(SwingUtilities.RIGHT);
+		field.requestFocus();
+		
+		if(withRemember){
+			panel.setLayout(new GridBagLayout());
+			final Insets insets = new Insets(ClientDesc.hgap, ClientDesc.vgap, ClientDesc.hgap, ClientDesc.vgap);
+			
+			final GridBagConstraints c = new GridBagConstraints();
+			c.insets = insets;
+			c.anchor = GridBagConstraints.LINE_START;
+			panel.add(jlPassword, c);
+			c.gridx = 1;
+			c.weightx = 1.0F;
+			c.fill = GridBagConstraints.BOTH;
+			panel.add(field, c);
+			final JCheckBox remem = new JCheckBox((String)ResourceUtil.get(9219), PropertiesManager.isTrue(PropertiesManager.p_isRememberDevCertPassword));
+			remem.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(final ItemEvent e) {
+					final boolean isRem = remem.isSelected();
+					PropertiesManager.setValue(PropertiesManager.p_isRememberDevCertPassword, isRem?IConstant.TRUE:IConstant.FALSE);
+					if(isRem == false){
+						PropertiesManager.remove(PropertiesManager.p_DevCertPassword);
+					}
+					PropertiesManager.saveFile();
+				}
+			});
+			c.gridwidth = 2;
+			c.gridy = 1;
+			c.gridx = 0;
+			insets.bottom = 0;
+			c.fill = GridBagConstraints.NONE;
+			panel.add(remem, c);
+			
+			final String pwd = PropertiesManager.getValue(PropertiesManager.p_DevCertPassword);
+			if(pwd != null){
+				field.setText(pwd);
+			}
+		}else{
+			panel.setLayout(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
+			panel.add(jlPassword, BorderLayout.WEST);
+			panel.add(field, BorderLayout.CENTER);
+		}
+		
+		final JPanel descPanel = new JPanel(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
+		descPanel.setBorder(new TitledBorder((String)ResourceUtil.get(9095)));
+		descPanel.add(new JLabel("<html>" +
+				PASSWORD_OF_DEVELOPER_CERTIFICATE + "</html>"));
+		
+		final JPanel totalPanel = new JPanel(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
+		totalPanel.setBorder(new TitledBorder(""));
+		totalPanel.add(panel, BorderLayout.NORTH);
+		totalPanel.add(descPanel, BorderLayout.SOUTH);
+		return totalPanel;
 	}
 
 	public static void expandTree(final JTree tree) { 

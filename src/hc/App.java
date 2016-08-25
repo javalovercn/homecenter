@@ -312,7 +312,13 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		if(ResourceUtil.isLoggerOn() == false){
 			LogManager.INI_DEBUG_ON = true;
 		}
-		SecurityDataProtector.init();
+		if(isSimu){
+			LogManager.log("init SecurityDataProtector...");
+		}
+		SecurityDataProtector.init(isSimu);
+		if(isSimu){
+			LogManager.log("done SecurityDataProtector.");
+		}
 
 		if(isSimu){
 			//只做强制isSimu，不做isSimu为false的情形，因为原配置可能为true
@@ -741,7 +747,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 							IDArrayGroup.checkAndAdd(msgMinJre7);
 						}
 					};
-					showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(IContext.WARN), false, null, null, okListener, null, null, false, true, null, false, true);
+					showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(IContext.WARN), false, null, null, okListener, null, null, false, true, null, false, true);
 				}
 			}
 		} catch (final Throwable e) {
@@ -990,7 +996,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	 * @param isResizable
 	 * @param delay 延时显示，如果当前有正在显示的CenterPanel，则当前对话关闭后，才后加载显示
 	 */
-	public static Window showCenterPanel(final JPanel panel, final int width, final int height,
+	public static Window showCenterPanelMain(final JPanel panel, final int width, final int height,
 			final String title, final boolean isAddCancle, final JButton jbOK,
 			final String cancelButText, final ActionListener listener,
 			final ActionListener cancelListener, final JFrame frame, final boolean model, final boolean isNewJFrame, 
@@ -1467,7 +1473,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 
 	public static void showCenterPanel(final JPanel panel, final int width, final int height,
 			final String title) {
-		showCenterPanel(panel, width, height, title, false, null, null, null,
+		showCenterPanelMain(panel, width, height, title, false, null, null, null,
 				null, null, false, false, null, false, false);
 	}
 
@@ -1575,7 +1581,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 						}
 					}
 				};
-				App.showCenterPanel(panel, 0, 0, title, false, null, null, listener, null, null, true, false, null, false, false);
+				App.showCenterPanelMain(panel, 0, 0, title, false, null, null, listener, null, null, true, false, null, false, false);
 				return null;
 			}
 		}, threadPoolToken);
@@ -1803,7 +1809,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 					}
 				};
 				
-				App.showCenterPanel(panel, 0, 0, title, false, null, null, listener, listener, null, false, true, null, false, true);//isDelay
+				App.showCenterPanelMain(panel, 0, 0, title, false, null, null, listener, listener, null, false, true, null, false, true);//isDelay
 			}
 		}, threadPoolToken);
 		
@@ -1992,7 +1998,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 						}
 					} else {
 						App.showMessageDialog(window,
-								StringUtil.replace((String)ResourceUtil.get(9077), "{min}", "" + App.MIN_PWD_LEN),
+								StringUtil.replace((String)ResourceUtil.get(9077), "{min}", "" + App.MIN_PWD_LEN),//含密码不一致
 								(String)ResourceUtil.get(9076), JOptionPane.ERROR_MESSAGE);
 					}
 				} catch (final UnsupportedEncodingException e) {
@@ -2521,8 +2527,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		App.showCenterOKDisposeDelayMode(
 				lockPanel,
 				0, 0,
-				((String) ResourceUtil
-						.get(IContext.INFO)),
+				ResourceUtil.getInfoI18N(),
 				false,
 				null,
 				null, null, null, true, null,

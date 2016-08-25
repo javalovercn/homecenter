@@ -97,7 +97,7 @@ public class LogViewer extends HCJFrame {
         	descPanel.add(new JLabel("<html><STRONG>"+(String)ResourceUtil.get(9095)+"</STRONG><BR>if <STRONG>debugOn</STRONG> is added to program argument, " +
         			"the log file will NOT be created.</html>"), BorderLayout.CENTER);
         	panel.add(descPanel, BorderLayout.SOUTH);
-        	App.showCenterPanel(panel, 0, 0, (String) ResourceUtil.get(IContext.ERROR), false, null, null, new ActionListener() {
+        	App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(IContext.ERROR), false, null, null, new ActionListener() {
 				@Override
 				public void actionPerformed(final ActionEvent e) {
 				}
@@ -267,7 +267,7 @@ public class LogViewer extends HCJFrame {
 				panel.add(new JLabel(btnSearch.getIcon()));
 				field.requestFocus();
 				panel.add(field);
-				App.showCenterPanel(panel, 0, 0, "Find...", true, null, null, new ActionListener() {
+				App.showCenterPanelMain(panel, 0, 0, "Find...", true, null, null, new ActionListener() {
 					@Override
 					public void actionPerformed(final ActionEvent event) {
 						final String searchStr = field.getText();

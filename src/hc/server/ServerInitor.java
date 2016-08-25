@@ -166,7 +166,7 @@ public class ServerInitor {
 															str_prevent +
 															"</body></html>"), BorderLayout.SOUTH);
 								
-													App.showCenterPanel(panel, 0, 0, "HomeCenter", true, null, null, new HCActionListener(new Runnable() {
+													App.showCenterPanelMain(panel, 0, 0, "HomeCenter", true, null, null, new HCActionListener(new Runnable() {
 														@Override
 														public void run() {
 															SingleMessageNotify.setShowToType(SingleMessageNotify.TYPE_DIALOG_TRANS_OFF, false);
@@ -184,7 +184,7 @@ public class ServerInitor {
 											}.start();
 											}else{
 												ContextManager.getContextInstance().displayMessage(
-														(String) ResourceUtil.get(IContext.INFO), (String)ResourceUtil.get(9061), IContext.INFO, null, 0);
+														ResourceUtil.getInfoI18N(), (String)ResourceUtil.get(9061), IContext.INFO, null, 0);
 											}
 										}
 //									}

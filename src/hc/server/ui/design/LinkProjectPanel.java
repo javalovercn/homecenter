@@ -22,6 +22,7 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.ContextSecurityConfig;
+import hc.server.util.SignHelper;
 import hc.util.HttpUtil;
 import hc.util.IBiz;
 import hc.util.PropertiesManager;
@@ -356,7 +357,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 						final JPanel askPanel = new JPanel();
 						final String replaceID = StringUtil.replace((String)ResourceUtil.get(9144), "{id}", led.lps.getProjectID());
 						askPanel.add(new JLabel(replaceID, App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEFT));
-						App.showCenterPanel(askPanel, 0, 0, (String)ResourceUtil.get(9145), true, null, null, new HCActionListener(new Runnable() {
+						App.showCenterPanelMain(askPanel, 0, 0, (String)ResourceUtil.get(9145), true, null, null, new HCActionListener(new Runnable() {
 							@Override
 							public void run() {
 								final LinkProjectStore lps = led.lps;
@@ -422,6 +423,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 							void doAddOp() {
 								String url = null;
 								try{
+//									url = App.showInputDialog(self, ResourceUtil.get(9148), 
+//											"http://192.168.1.102:8080/download/test/sample_test_2_0_signed.har");
 									url = App.showInputDialog(self, ResourceUtil.get(9148), "");
 								}catch (final Exception ex) {
 								}finally{
@@ -884,7 +887,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 	protected LinkNamePanel showInputLinkName(final JFrame self, final String linkName, final String mem, 
 			final Component relativeTo, final LinkProjectStore lps) {
 		final LinkNamePanel panel = new LinkNamePanel(linkName, mem, ContextSecurityConfig.getContextSecurityConfig(lps), lps);
-		App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(9017), true, null, null,
+		App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(9017), true, null, null,
 			null, //cancel
 			new HCActionListener(new Runnable() {
 				@Override
@@ -924,24 +927,32 @@ public class LinkProjectPanel extends ProjectListPanel{
 							failTitle, JOptionPane.ERROR_MESSAGE);
 					//不能return
 				}else{
-					final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
-					if(licenseURL.length() > 0){
-						ProcessingWindowManager.showCenterMessageOnTop(self, true, (String)ResourceUtil.get(9110), null);//processing...
-						final IBiz biz = new IBiz(){
-							@Override
-							public void setMap(final HashMap map) {
-							}
-	
-							@Override
-							public void start() {
-								loadToTable(self, selfBiz, file, map);
-							}
-						};
-						App.showAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", false, licenseURL, biz, null, true);
+					final String proj_id = (String)map.get(HCjar.PROJ_ID);
+					
+					if(SignHelper.verifyJar(file, LinkProjectManager.getCertificatesByID(proj_id)) == null){//完整性检查进行前置
+						App.showMessageDialog(self, ResourceUtil.FILE_IS_MODIFIED_AFTER_SIGNED, 
+								failTitle, JOptionPane.ERROR_MESSAGE);
+						//不能return
+					}else{
+						final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
+						if(licenseURL.length() > 0){
+							ProcessingWindowManager.showCenterMessageOnTop(self, true, (String)ResourceUtil.get(9110), null);//processing...
+							final IBiz biz = new IBiz(){
+								@Override
+								public void setMap(final HashMap map) {
+								}
+		
+								@Override
+								public void start() {
+									loadToTable(self, selfBiz, file, map);
+								}
+							};
+							App.showAgreeLicense("License of [" + map.get(HCjar.PROJ_NAME) + "]", false, licenseURL, biz, null, true);
+							return;
+						}
+						loadToTable(self, selfBiz, file, map);
 						return;
 					}
-					loadToTable(self, selfBiz, file, map);
-					return;
 				}
 			}
 		}
