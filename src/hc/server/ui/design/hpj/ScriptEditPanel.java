@@ -93,9 +93,9 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	
 	private static final Pattern str_pattern = Pattern.compile("\".*?(?<!\\\\)\"");
 	private static final Pattern keywords_pattern = Pattern.compile("\\b(BEGIN|END|__ENCODING__|__END__|__FILE__|__LINE__|alias|" +
-			"and|begin|break|case|class|def|defined?|do|else|elsif|end|" +
+			"and|begin|break|case|class |def|defined?|do|else|elsif|end|" +
 			"ensure|extend|false|for|if|in|import|include|module|next|nil|not|or|raise|redo|require|rescue|retry|return|" +
-			"self|super|then|true|undef|unless|until|when|while|yield)\\b", Pattern.MULTILINE);
+			"self|super|then|true|undef|unless|until|when|while|yield)\\b", Pattern.MULTILINE);//class+space解决ctx.class.get()
 //	private static final String[] Indentation = {"begin", "case ", "class ", "def ", "else", 
 //		"elsif ", "for ", "if ", "module ", "when ", "while ", "rescue "};
 	private static final String[] WithEndIndentation = {"begin", "case ", "class ", "def ", "for ", "if ", "module ", "when "};//由于while[ ]后有do，所以在此移去

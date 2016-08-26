@@ -874,7 +874,7 @@ public class LinkProjectManager{
 		final X509Certificate[] certs = SignHelper.verifyJar(sourceNewVer, null);
 		if(certs != null){//PropertiesManager.isSimu()
 			for (int i = 0; i < certs.length; i++) {
-				L.V = L.O ? false : LogManager.log("certificate for [" + lps.getProjectID() + "] : " + certs[i]);
+				L.V = L.O ? false : LogManager.log("certificate (maybe self-signed) for [" + lps.getProjectID() + "] : " + certs[i]);
 			}
 		}
 		lps.setCertificates(certs);//填充文件的证书

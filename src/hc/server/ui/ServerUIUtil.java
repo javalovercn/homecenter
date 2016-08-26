@@ -12,6 +12,7 @@ import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
+import hc.core.util.ThreadPool;
 import hc.core.util.UIUtil;
 import hc.server.ProcessingWindowManager;
 import hc.server.ThirdlibManager;
@@ -46,6 +47,12 @@ public class ServerUIUtil {
 	
 	public static boolean isStarted(){
 		return isStared;
+	}
+	
+	public static ProjectContext buildProjectContext(final String id, final String ver,
+			final ThreadPool pool, final ProjResponser projResponser,
+			final ProjClassLoaderFinder finder) {
+		return new ProjectContext(id, ver, pool, projResponser, finder);
 	}
 	
 	public static BaseResponsor getResponsor(){

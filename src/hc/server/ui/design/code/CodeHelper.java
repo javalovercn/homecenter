@@ -5,6 +5,7 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.data.KeyComperPanel;
 import hc.server.data.StoreDirManager;
+import hc.server.ui.Mlet;
 import hc.server.ui.design.hpj.HPShareJar;
 import hc.server.ui.design.hpj.RubyExector;
 import hc.server.ui.design.hpj.ScriptEditPanel;
@@ -70,6 +71,7 @@ import org.jrubyparser.ast.VCallNode;
 import org.jrubyparser.parser.ParserConfiguration;
 
 public class CodeHelper {
+	private static final String CLASS_STATIC_PREFIX = "class.";//ctx.class.getProjectContext()
 	private static final String TO_UPPER_CASE = "upcase";
 	private static final String TO_DOWN_CASE = "downcase";
 	private static final String TO_S = "to_s";
@@ -95,8 +97,6 @@ public class CodeHelper {
 		if(c == null){
 			return;
 		}
-		
-		final boolean isStaticInInstance = false;
 		
 		final Field[] allFields;
 		if(isForClass){
@@ -128,33 +128,32 @@ public class CodeHelper {
 		for (int i = 0; i < fieldSize; i++) {
 			final Field field = allFields[i];
 			final int modifiers = field.getModifiers();
+			final boolean isStatic = Modifier.isStatic(modifiers);
+			
 			if(isForClass){
-				if(Modifier.isStatic(modifiers) == false){
-					continue;
-				}
-			}else{
-				if(isStaticInInstance == false && Modifier.isStatic(modifiers)){//JRuby不支持通过实例访问静态属性
+				if(isStatic == false){
 					continue;
 				}
 			}
 			
 			final boolean isPublic = Modifier.isPublic(modifiers);
 			if(isPublic || Modifier.isProtected(modifiers)){
-				final String fieldName = field.getName();
+				final String codeField = field.getName();
+				final String codeFieldForInput = (isForClass==false && isStatic)?(CLASS_STATIC_PREFIX + codeField):codeField;
 				
 				//属性相同名，只保留最外层
-				if(CodeItem.contains(list, fieldName)){
+				if(CodeItem.contains(list, codeFieldForInput)){
 					continue;
 				}
 				
 				final CodeItem item = CodeItem.getFree();
-				item.code = fieldName;
+				item.code = codeFieldForInput;
 				final Class<?> fieldClass = field.getDeclaringClass();
 				item.fmClass = fieldClass.getName();
-				item.codeDisplay = item.code + " : " + field.getType().getSimpleName() + " - " + fieldClass.getSimpleName();
-				item.codeLowMatch = item.code.toLowerCase();
+				item.codeDisplay = codeField + " : " + field.getType().getSimpleName() + " - " + fieldClass.getSimpleName();
+				item.codeLowMatch = codeField.toLowerCase();
 				item.isPublic = isPublic;
-				item.isForMaoHaoOnly = Modifier.isStatic(modifiers);
+				item.isForMaoHaoOnly = isStatic;
 				item.type = CodeItem.TYPE_FIELD;
 				
 				list.add(item);
@@ -164,12 +163,10 @@ public class CodeHelper {
 		for (int i = 0; i < methodSize; i++) {
 			final Method method = allMethods[i];
 			final int modifiers = method.getModifiers();
+			final boolean isStatic = Modifier.isStatic(modifiers);
+			
 			if(isForClass){
-				if(Modifier.isStatic(modifiers) == false){
-					continue;
-				}
-			}else{
-				if(isStaticInInstance == false && Modifier.isStatic(modifiers)){//JRuby不支持通过实例访问静态属性
+				if(isStatic == false){
 					continue;
 				}
 			}
@@ -185,19 +182,20 @@ public class CodeHelper {
 					paraStr += paras[j].getSimpleName();
 				}
 				
-				final String codeMethodStr = method.getName() + (paraStr.length()==0?"()":"(" + paraStr + ")");
+				final String codeMethod = method.getName() + (paraStr.length()==0?"()":"(" + paraStr + ")");
+				final String codeMethodForInput = (isForClass==false && isStatic)?(CLASS_STATIC_PREFIX + codeMethod):codeMethod;
 				
-				final boolean findSameName = CodeItem.contains(list, codeMethodStr);
+				final boolean findSameName = CodeItem.contains(list, codeMethodForInput);
 				if(findSameName){
 					continue;
 				}
 				
 				final CodeItem item = CodeItem.getFree();
-				item.code = codeMethodStr;
+				item.code = codeMethodForInput;//一般方法直接输出，静态方法加.class.转换
 				final Class<?> methodClass = method.getDeclaringClass();
 				item.fmClass = methodClass.getName();
-				item.codeDisplay = item.code + " : " + method.getReturnType().getSimpleName() + " - " + methodClass.getSimpleName();
-				item.codeLowMatch = item.code.toLowerCase();
+				item.codeDisplay = codeMethod + " : " + method.getReturnType().getSimpleName() + " - " + methodClass.getSimpleName();
+				item.codeLowMatch = codeMethod.toLowerCase();
 				
 				item.isPublic = isPublic;
 				item.isForMaoHaoOnly = false;//!Modifier.isStatic(modifiers);
@@ -216,6 +214,10 @@ public class CodeHelper {
 				buildMethodAndProp(interfaces[i], isForClass, list, false);
 			}
 		}else if(needNewMethod){
+			if(c == Mlet.class){//强制不出现Mlet的new方法
+				return;
+			}
+			
 			final Constructor[] cons = c.getDeclaredConstructors();
 			final int size = cons.length;
 			if(size == 0){
@@ -231,6 +233,11 @@ public class CodeHelper {
 			}else{
 				for (int i = 0; i < size; i++) {
 					final Constructor con = cons[i];
+					final int conModifier = con.getModifiers();
+					if(Modifier.isProtected(conModifier) || Modifier.isPublic(conModifier)){
+					}else{
+						continue;
+					}
 					
 					final Class[] paras = con.getParameterTypes();
 					String paraStr = "";
@@ -2306,8 +2313,19 @@ public class CodeHelper {
 			}else{
 				final int offset = i + 1;
 				final String v = String.valueOf(lineHeader, offset, columnIdx - offset);
-				final CodeContext context = new CodeContext(root, scriptIdx, rowIdxAtScript);
-				return findParaClass(context, v, CodeHelper.TYPE_VAR_LOCAL);
+				if("class".equals(v)){//ctx.class.get()调用静态方法
+					final JRubyClassDesc jcd = findPreCodeAfterVar(lineHeader, offset, scriptIdx, rowIdxAtScript);
+					jcd.isInstance = false;//供静态专用
+					
+					//重新计算preCode
+					final int preCodeIdx = columnIdx + 1;
+					preCode = String.valueOf(lineHeader, preCodeIdx, lineHeader.length - preCodeIdx);
+					preCodeSplitIsDot = true;
+					return jcd;
+				}else{
+					final CodeContext context = new CodeContext(root, scriptIdx, rowIdxAtScript);
+					return findParaClass(context, v, CodeHelper.TYPE_VAR_LOCAL);
+				}
 			}
 		}
 		final String v = String.valueOf(lineHeader, 0, columnIdx - 0);

@@ -7,6 +7,7 @@ import hc.server.StarterManager;
 import hc.server.ui.ProjClassLoaderFinder;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.LinkProjectStore;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
@@ -383,7 +384,7 @@ public class HCjar {
 			final String projID = (String)map.get(PROJ_ID);
 			final String projVer = (String)map.get(PROJ_VER);
 
-			final ProjectContext context = new ProjectContext(projID, projVer, HCLimitSecurityManager.getTempLimitThreadPool(), null, 
+			final ProjectContext context = ServerUIUtil.buildProjectContext(projID, projVer, HCLimitSecurityManager.getTempLimitThreadPool(), null, 
 					new ProjClassLoaderFinder() {
 						@Override
 						public ClassLoader findProjClassLoader() {

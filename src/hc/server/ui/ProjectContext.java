@@ -181,9 +181,9 @@ public class ProjectContext {
 	 * @deprecated
 	 */
 	@Deprecated
-	public ProjectContext(final String id, final String ver,
+	ProjectContext(final String id, final String ver,
 			final ThreadPool pool, final ProjResponser projResponser,
-			final ProjClassLoaderFinder finder) {
+			final ProjClassLoaderFinder finder) {//为了不在代码提示中出来，请使用ServerUIUtil.buildProjectContext
 		projectID = id;
 		projectVer = ver;
 		this.threadPool = pool;

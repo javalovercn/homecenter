@@ -298,7 +298,7 @@ public class ProjResponser {
 			};
 		}
 		threadPool.setName(projID + "-ThreadPool");
-		context = new ProjectContext(projID, (String)map.get(HCjar.PROJ_VER), threadPool, this, new ProjClassLoaderFinder() {
+		context = ServerUIUtil.buildProjectContext(projID, (String)map.get(HCjar.PROJ_VER), threadPool, this, new ProjClassLoaderFinder() {
 			@Override
 			public ClassLoader findProjClassLoader() {
 				return projClassLoader;

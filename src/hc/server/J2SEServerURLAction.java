@@ -276,7 +276,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 		
 		if(SYS_JRUBY_ENGINE[0] == null){
 			final HCJRubyEngine hcje = new HCJRubyEngine(null, ResourceUtil.getJRubyClassLoader(false), true);
-			final ProjectContext context = new ProjectContext("", "", ContextManager.getThreadPool(), null, null);
+			final ProjectContext context = ServerUIUtil.buildProjectContext("", "", ContextManager.getThreadPool(), null, null);
 			SYS_JRUBY_ENGINE[0] = hcje;
 			SYS_JRUBY_ENGINE[1] = context;
 		}

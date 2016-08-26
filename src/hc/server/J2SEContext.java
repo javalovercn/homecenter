@@ -506,30 +506,34 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
     			&&
     				(	(checkTime == false) 
 						|| (System.currentTimeMillis() - lastCheckMS > 1000 * 60 * 3))){
-    		final PWDDialog pd = new PWDDialog();
-    		
-    		final String pwd = PropertiesManager.getPasswordAsInput();
-    		if(pd.pwd == null){
-    			//取消操作
-    			return false;
-    		}
-    		
-    		if(pwd.equals(pd.pwd)){
-    			refreshActionMS(true);
-    			return true;
-    		}
-    		
-    		if(opName != null){
-    			L.V = L.O ? false : LogManager.log("Desktop Menu [" + opName + "] password error!");
-    		}
-    		final Object[] options={(String)ResourceUtil.get(1010)};
-    		App.showOptionDialog(null, ResourceUtil.get(1019), "HomeCenter", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);
-    		return false;
+    		return checkPasswordDirect(opName);
     	}else{
     		refreshActionMS(false);
     		return true;
     	}
     }
+
+	private static boolean checkPasswordDirect(final String opName) {
+		final PWDDialog pd = new PWDDialog();
+		
+		final String pwd = PropertiesManager.getPasswordAsInput();
+		if(pd.pwd == null){
+			//取消操作
+			return false;
+		}
+		
+		if(pwd.equals(pd.pwd)){
+			refreshActionMS(true);
+			return true;
+		}
+		
+		if(opName != null){
+			L.V = L.O ? false : LogManager.log("Desktop Menu [" + opName + "] password error!");
+		}
+		final Object[] options={(String)ResourceUtil.get(1010)};
+		App.showOptionDialog(null, ResourceUtil.get(1019), "HomeCenter", JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);
+		return false;
+	}
 
 	public static void refreshActionMS(final boolean isForce) {
 		if(isForce || (System.currentTimeMillis() - lastCheckMS < 1000 * 60 * 3)){
@@ -553,12 +557,16 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
         	String opName = buildNewCertKey.getText();
 			@Override
 			public void run() {
-				if(checkPassword(false, opName)){
-            		ConditionWatcher.addWatcher(new LineonAndServingExecWatcher(buildNewCertKey.getText()){
-						@Override
-						public final void doBiz() {
-							createNewCertification();
-						}});
+				refreshActionMS(false);
+				final int result = App.showConfirmDialog(null, "<html>" + (String)ResourceUtil.get(9227) + "</html>", (String)ResourceUtil.get(9001), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
+				if(result == JOptionPane.YES_OPTION){
+					if(checkPasswordDirect(opName)){//强制输入密码，以防止删除
+	            		ConditionWatcher.addWatcher(new LineonAndServingExecWatcher(buildNewCertKey.getText()){
+							@Override
+							public final void doBiz() {
+								createNewCertification();
+							}});
+					}
 				}
 			}
 		}, threadPoolToken));
@@ -2556,8 +2564,8 @@ class PWDDialog extends HCJDialog {
 				BorderLayout.CENTER);
 
 		btnPanel.setLayout(new GridLayout(1, 2, 5, 5));
-		btnPanel.add(jbOK);
 		btnPanel.add(jbExit);
+		btnPanel.add(jbOK);
 		root.add(
 				btnPanel,
 				BorderLayout.SOUTH);
