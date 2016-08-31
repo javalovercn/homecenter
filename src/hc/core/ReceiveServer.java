@@ -3,6 +3,7 @@ package hc.core;
 import hc.core.sip.SIPManager;
 import hc.core.util.ByteArrayCacher;
 import hc.core.util.ByteUtil;
+import hc.core.util.CUtil;
 import hc.core.util.EventBackCacher;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
@@ -72,12 +73,30 @@ public class ReceiveServer implements Runnable{
 	
 	public static boolean isInitialCloseReceive = false;
 	
+	private boolean isCheckOn;
+	private final short checkBitLen = MsgBuilder.CHECK_BIT_NUM;
+	private byte checkTotal;
+	private byte checkAND;
+	private byte checkMINUS;
+	
+	public final void setCheck(final boolean isCheckOn){
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("set ReceiveServer CheckDataIntegrity : " + isCheckOn);
+		}
+		this.isCheckOn = isCheckOn;
+		if(isCheckOn){
+			checkTotal = 0;
+			checkAND = 0;
+			checkMINUS = 0;
+		}
+	}
+	
 	public void run(){
 		final int initSize = 2048;
 		final int initMaxDataLen = initSize - MsgBuilder.MIN_LEN_MSG;
 		byte[] bs = null;
 		final EventBackCacher ebCacher = EventBackCacher.getInstance();
-		final Exception maxDataLenException = new Exception("Max DataLen, maybe clientReset Error");
+		final Exception overflowException = new Exception("Overflow or Error data, maybe clientReset Error");
 		long lastReconnAfterResetMS = System.currentTimeMillis();
 		final int WAIT_MODI_STATUS_MS = HCTimer.HC_INTERNAL_MS + 100;
 		final boolean isInWorkshop = L.isInWorkshop;
@@ -106,6 +125,8 @@ public class ReceiveServer implements Runnable{
 				final int temp1 = bs[MsgBuilder.INDEX_MSG_LEN_MID] & 0xFF;
 				final int temp2 = bs[MsgBuilder.INDEX_MSG_LEN_LOW] & 0xFF;
 				final int dataLen = ((temp0 << 16) + (temp1 << 8) + temp2);
+				final boolean isNeedCheck = dataLen > 0 && isCheckOn;
+				final int dataLenWithCheckLen = (isNeedCheck?(dataLen+checkBitLen):dataLen);
 
 				if(isInWorkshop){
 					L.V = L.O ? false : LogManager.log("[workshop] Receive One packet [" + ctrlTag + "][" + bs[MsgBuilder.INDEX_CTRL_SUB_TAG] + "], data len : " + dataLen);
@@ -113,11 +134,11 @@ public class ReceiveServer implements Runnable{
 				
 				//有可能因ClientReset而导致收到不完整包，产生虚假大数据
 				if(dataLen > MsgBuilder.MAX_LEN_TCP_PACKAGE_BLOCK_BUF){
-					throw maxDataLenException;
+					throw overflowException;
 				}
 				
-				if(initMaxDataLen < dataLen){
-					final byte[] temp = recBytesCacher.getFree(dataLen + MsgBuilder.MIN_LEN_MSG);
+				if(initMaxDataLen < dataLenWithCheckLen){
+					final byte[] temp = recBytesCacher.getFree(dataLenWithCheckLen + MsgBuilder.MIN_LEN_MSG);
 					for (int i = 0; i < MsgBuilder.MIN_LEN_MSG; i++) {
 						temp[i] = bs[i];
 					}
@@ -126,8 +147,58 @@ public class ReceiveServer implements Runnable{
 				}
 				
 				//以下段不用用 bs 变量，因为上行已发生变更可能。
-				if(dataLen > 0){
-					dataInputStream.readFully(bs, MsgBuilder.MIN_LEN_MSG, dataLen);
+				if(dataLenWithCheckLen > 0){
+					dataInputStream.readFully(bs, MsgBuilder.MIN_LEN_MSG, dataLenWithCheckLen);
+				}
+				
+				//先解密再进行check
+				if(ctrlTag == MsgBuilder.E_PACKAGE_SPLIT_TCP){
+					final int eachLen = dataLen - MsgBuilder.LEN_TCP_PACKAGE_SPLIT_DATA_BLOCK_LEN;
+					CUtil.superXor(bs, MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen, null, false, true);
+				}else{
+					if(dataLen == 0 || ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN){
+			    	}else{
+			    		//解密
+			    		CUtil.superXor(bs, MsgBuilder.INDEX_MSG_DATA, dataLen, null, false, true);
+			    	}
+				}
+				
+				//检查check
+				if(isNeedCheck){
+					byte realCheckTotal = checkTotal, realCheckAnd = checkAND, realCheckMinus = checkMINUS;
+					{
+						final byte oneByte = bs[0];
+						realCheckTotal += oneByte;
+						realCheckAnd ^= realCheckTotal;
+						realCheckAnd += oneByte;
+						realCheckMinus ^= realCheckTotal;
+						realCheckMinus -= oneByte;
+					}
+					
+					final int dataCheckLen = dataLen + MsgBuilder.MIN_LEN_MSG;
+//					L.V = L.O ? false : LogManager.log("dataLen : " + dataLen + ", data : " + ByteUtil.toHex(bs, 0, dataCheckLen + checkBitLen));
+					
+					for (int i = 2; i < dataCheckLen; i++) {
+						final byte oneByte = bs[i];
+						realCheckTotal += oneByte;
+						realCheckAnd ^= realCheckTotal;
+						realCheckAnd += oneByte;
+						realCheckMinus ^= realCheckTotal;
+						realCheckMinus -= oneByte;
+					}
+					
+					if(realCheckAnd == bs[dataCheckLen] && realCheckMinus == bs[dataCheckLen + 1]){
+//						L.V = L.O ? false : LogManager.log("pass check num!");
+						checkTotal = realCheckTotal;
+						checkAND = realCheckAnd;
+						checkMINUS = realCheckMinus;
+					}else{
+//						LogManager.errToLog("check idx : " + dataCheckLen + ", real : " + realCheckAnd + "" + realCheckMinus + ", expected : " + bs[dataCheckLen] + "" + bs[dataCheckLen + 1]);
+						//fail on check
+						LogManager.errToLog("fail on check integrity of package data, force close current connection!");
+						ContextManager.getContextInstance().doExtBiz(IContext.BIZ_DATA_CHECK_ERROR, null);
+						throw overflowException;
+					}
 				}
 
 //				if(ctrlTag == MsgBuilder.E_PACKAGE_SPLIT_TCP){
@@ -201,7 +272,7 @@ public class ReceiveServer implements Runnable{
             	}catch (final Exception ex) {
 				}
             	
-				if(maxDataLenException == e){
+				if(overflowException == e){
             		//请求关闭
             		L.V = L.O ? false : LogManager.log("Unvalid data len, stop application");
             		if(ContextManager.getContextInstance().isUsingUDPAtMobile() == false){

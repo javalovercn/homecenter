@@ -423,9 +423,12 @@ public class LinkProjectPanel extends ProjectListPanel{
 							void doAddOp() {
 								String url = null;
 								try{
-//									url = App.showInputDialog(self, ResourceUtil.get(9148), 
-//											"http://192.168.1.102:8080/download/test/sample_test_2_0_signed.har");
-									url = App.showInputDialog(self, ResourceUtil.get(9148), "");
+									if(PropertiesManager.isSimu() && ResourceUtil.isAndroidServerPlatform()){
+										url = App.showInputDialog(self, ResourceUtil.get(9148), 
+											"http://192.168.1.102:8080/download/test/sample_test_2_0_signed.har");
+									}else{
+										url = App.showInputDialog(self, ResourceUtil.get(9148), "");
+									}
 								}catch (final Exception ex) {
 								}finally{
 									if(url == null){

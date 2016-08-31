@@ -16,7 +16,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Properties;
 
-public class StarterManager {
+public class StarterManager {//注意：本类的getHCVersion被starter.jar反射调用
 	public static final String CLASSNAME_STARTER_STARTER = "starter.Starter";
 	public static final String METHOD_GETVER = "getVer";
 	public static final String _STARTER_PROP_FILE_NAME = "starter.properties";
@@ -122,7 +122,7 @@ public class StarterManager {
 		}
 	}
 	
-	public static String getHCVersion(){
+	public static String getHCVersion(){//注意：本方法被starter.jar反射调用
 		//从6.96(含)开始，源代码中内置版本信息，而无需从starter中获得
 		//注意：如果AgreeLicense发生变化，请同时更改App.getAgreeVersion()
 		
@@ -130,7 +130,7 @@ public class StarterManager {
 		
 		//客户端对服务器最低版本要求，在J2MEContext.miniHCServerVer
 		
-		return "7.16";//请同步修改go.php, android.php
+		return "7.17";//请同步修改go.php, android.php
 	}
 
 	private static String getHCVersionFromStarter() {

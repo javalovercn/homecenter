@@ -51,6 +51,10 @@ public class ServerInitor {
 		StreamBuilder.notifyExceptionForReleaseStreamResources(new IOException("System Line Off Exception"));
 		
 		ContextManager.setStatus(ContextManager.STATUS_NEED_NAT);
+		final IContext ci = ContextManager.getContextInstance();
+		if(ci != null){
+			ci.setCheck(false);
+		}
 		
 		//如果不调用此步,可能导致Root提供给手机客户端以错误的状态信息.
 		RootServerConnector.delLineInfo(TokenManager.getToken(), false);

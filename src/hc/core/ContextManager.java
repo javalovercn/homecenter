@@ -11,11 +11,13 @@ public class ContextManager {
 	public static short cmStatus;
 
 	public static IContext getContextInstance(){
+		CCoreUtil.checkAccess();
 		return ContextManager.instanceContext;
 	}
 
 	public static void exit(){
 		if(ContextManager.instanceContext != null){
+			CCoreUtil.checkAccess();
 			ContextManager.setStatus(ContextManager.STATUS_EXIT);
 		}
 	}
@@ -62,11 +64,14 @@ public class ContextManager {
 
 	public static void shutDown(){
 		if(ContextManager.instanceContext != null){
+			CCoreUtil.checkAccess();
 			ContextManager.instanceContext.shutDown();
 		}
 	}
 
 	public static ReceiveServer getReceiveServer() {
+		CCoreUtil.checkAccess();
+		
 		return ContextManager.instanceContext.getReceiveServer();
 	}
 

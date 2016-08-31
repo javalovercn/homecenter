@@ -11,8 +11,10 @@ import java.util.Iterator;
  * a {@link ProjectContext} instance will be created before {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}, and will be released after {@link ProjectContext#EVENT_SYS_PROJ_SHUTDOWN}.
  * <BR><BR>
  * invoke {@link ProjectContext#getClientSession()} to get it.
- * <BR>
- * <BR>{@link ClientSession} is thread safe.
+ * <BR><BR>
+ * <STRONG>Important :</STRONG><BR>
+ * in the future implementation, multiple users (same account) are online at same time, so please let <STRONG>project to project, user to user</STRONG>.
+ * <BR><BR>{@link ClientSession} is thread safe.
  * @since 7.7
  */
 public class ClientSession {

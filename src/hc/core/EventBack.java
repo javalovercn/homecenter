@@ -158,7 +158,6 @@ public class EventBack implements IWatcher{
 				}
 				
 				final int eachLen = dataLen - MsgBuilder.LEN_TCP_PACKAGE_SPLIT_DATA_BLOCK_LEN;
-				CUtil.superXor(bs, MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen, null, false, true);
 				System.arraycopy(bs, MsgBuilder.TCP_SPLIT_STORE_IDX, package_tcp_bs, package_tcp_last_store_idx, eachLen);
 				package_tcp_last_store_idx += eachLen;
 
@@ -175,11 +174,6 @@ public class EventBack implements IWatcher{
 				return true;
 			}else{//普通tcp包，非大消息块
 	//			L.V = L.O ? false : LogManager.log("Receive ctrlTag : " + ctrlTag);
-				if(dataLen == 0 || ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN){
-		    	}else{
-		    		//解密
-		    		CUtil.superXor(bs, MsgBuilder.INDEX_MSG_DATA, dataLen, null, false, true);
-		    	}
 			}
 		}
 		

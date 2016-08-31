@@ -204,7 +204,6 @@ public class ScriptModelManager {
 		final StringBuffer sb = new StringBuffer();
 		
 		sb.append("#encoding:utf-8\n\n");
-		sb.append("require 'java'\n\n");
 		
 		return sb.toString();
 	}
@@ -225,7 +224,6 @@ public class ScriptModelManager {
 		final StringBuffer sb = new StringBuffer();
 		sb.append("#encoding:utf-8\n\n");
 		sb.append("#more JRuby, http://github.com/jruby/jruby/wiki\n\n");
-		sb.append("require 'java'\n\n");
 		if(imports != null){
 			for (int i = 0; i < imports.length; i++) {
 				sb.append(imports[i]);

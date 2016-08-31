@@ -25,6 +25,8 @@ public abstract class IContext {
 	private final LinkedSet screenIDBuffer = new LinkedSet();
 	private byte[] toServerBS = new byte[1024];
 	
+	private final byte splitPackageSubTag = 0;
+	
 	public IContext(){
 		sendThread.start();
 	}
@@ -198,6 +200,7 @@ public abstract class IContext {
 	public static final short BIZ_START_WATCH_KEEPALIVE_FOR_RECALL_LINEOFF = 27;
 	public static final short BIZ_VIBRATE = 28;
 	public static final short BIZ_REPORT_EXCEPTION = 29;
+	public static final short BIZ_DATA_CHECK_ERROR = 30;
 	
 	public final ReceiveServer getReceiveServer() {
 		return rServer;
@@ -274,6 +277,29 @@ public abstract class IContext {
 			}
 		};
 	}
+	
+	private boolean isCheckOn;
+	private final short checkBitLen = MsgBuilder.CHECK_BIT_NUM;
+	private byte checkTotal;
+	private byte checkAND;
+	private byte checkMINUS;
+	
+	public final void setCheck(final boolean isCheckOn){
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("set CheckDataIntegrity : " + isCheckOn);
+		}
+		this.isCheckOn = isCheckOn;
+		if(isCheckOn){
+			checkTotal = 0;
+			checkAND = 0;
+			checkMINUS = 0;
+		}
+		
+		ReceiveServer rs = ContextManager.getReceiveServer();
+		if(rs != null){
+			rs.setCheck(isCheckOn);
+		}
+	}
 
 	private final void sendWrapAction(final byte ctrlTag, final byte[] jcip_bs, final int offset, final int len) {
 		if(isBuildedUPDChannel && isDoneUDPChannelCheck
@@ -287,13 +313,13 @@ public abstract class IContext {
 		if(minSize > MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT){//大消息块
 			synchronized (BIGLOCK) {
 				if(bigMsgBlobBS.length < MsgBuilder.MAX_LEN_TCP_PACKAGE_BLOCK_BUF){
-					bigMsgBlobBS = new byte[MsgBuilder.MAX_LEN_TCP_PACKAGE_BLOCK_BUF];
+					bigMsgBlobBS = new byte[MsgBuilder.MAX_LEN_TCP_PACKAGE_BLOCK_BUF];//分配更大处理内存，由于TCP_PACKAGE_SPLIT_EXT_BUF_SIZE，所以不checkBitLen
 				}
 				
 				final byte[] bs = bigMsgBlobBS;
 				
 				if(++tcp_package_split_next_id > MAX_ID_TCP_PACKAGE_SPLIT){
-					tcp_package_split_next_id = 1;
+					tcp_package_split_next_id = 1;//重置块号计数器
 				}
 				
 				try{
@@ -306,16 +332,12 @@ public abstract class IContext {
 					while(leftLen > 0) {
 						final int eachLen = leftLen>MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT?MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT:leftLen;
 						System.arraycopy(jcip_bs, splitIdx, bs, MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen);
-						HCMessage.setMsgTcpSplitCtrlData(bs, MsgBuilder.INDEX_MSG_DATA, ctrlTag, tcp_package_split_next_id, totalPackageNum);
+						HCMessage.setMsgTcpSplitCtrlData(bs, MsgBuilder.INDEX_MSG_DATA, ctrlTag, splitPackageSubTag, tcp_package_split_next_id, totalPackageNum);
 						final int splitPackageLen = eachLen + MsgBuilder.LEN_TCP_PACKAGE_SPLIT_DATA_BLOCK_LEN;
 						HCMessage.setMsgLen(bs, splitPackageLen);
 						bs[MsgBuilder.INDEX_CTRL_TAG] = MsgBuilder.E_PACKAGE_SPLIT_TCP;
 						bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = 0;//因为大消息（big msg）会占用此位，所以要重置。
 					
-			    		//加密
-			    		//			    L.V = L.O ? false : LogManager.log("Xor len:" + eachLen);
-		    			CUtil.superXor(bs, MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen, null, true, true);//考虑前段数据较长，不用加密更为安全，所以不从TCP_SPLIT_STORE_IDX开始加密
-	
 		    			//因为有可能大数据占用过多时间，导致keepalive不能发送数据，每次循环加锁
 						if(isInWorkshop){
 							if(outStream == null){
@@ -324,9 +346,39 @@ public abstract class IContext {
 						}
 						splitIdx += eachLen;
 						leftLen -= eachLen;
+						final int splitSendLen = MsgBuilder.TCP_SPLIT_STORE_IDX + eachLen;
+						int sendWithCheckLen = splitSendLen;
 						synchronized (outStream) {
-							//		    hc.core.L.V=hc.core.L.O?false:LogManager.log("Send [" + ctrlTag + "], len:" + eachLen);
-							outStream.write(bs, 0, MsgBuilder.TCP_SPLIT_STORE_IDX + eachLen);
+							if(isCheckOn){//不需要检查dataLen
+								sendWithCheckLen += checkBitLen;
+								{
+									final byte oneByte = bs[0];//INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
+									checkTotal += oneByte;
+									checkAND ^= checkTotal;
+									checkAND += oneByte;
+									checkMINUS ^= checkTotal;
+									checkMINUS -= oneByte;
+								}
+								for (int i = 2; i < splitSendLen; i++) {
+									final byte oneByte = bs[i];
+									checkTotal += oneByte;
+									checkAND ^= checkTotal;
+									checkAND += oneByte;
+									checkMINUS ^= checkTotal;
+									checkMINUS -= oneByte;
+								}
+								bs[splitSendLen] = checkAND;
+								bs[splitSendLen + 1] = checkMINUS;
+							}
+							
+//							L.V = L.O ? false : LogManager.log("dataLen : " + (splitSendLen - MsgBuilder.INDEX_MSG_DATA) + ", data : " + ByteUtil.toHex(bs, 0, sendWithCheckLen));
+							
+				    		//加密
+				    		//			    L.V = L.O ? false : LogManager.log("Xor len:" + eachLen);
+			    			CUtil.superXor(bs, MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen, null, true, true);//考虑前段数据较长，不用加密更为安全，所以不从TCP_SPLIT_STORE_IDX开始加密
+
+//    					    hc.core.L.V=hc.core.L.O?false:LogManager.log("Send BIGMSG split ID : " + tcp_package_split_next_id + "[" + ctrlTag + "], len:" + eachLen);
+							outStream.write(bs, 0, sendWithCheckLen);
 							if(leftLen <= 0){
 								outStream.flush();
 							}
@@ -340,9 +392,10 @@ public abstract class IContext {
 				}
 			}
 		}else{//普通大小消息块
+			final int minSizeAndCheckLen = minSize + checkBitLen;
 			synchronized (LOCK) {
-				if(blobBS.length < minSize){
-					blobBS = new byte[minSize];
+				if(blobBS.length < minSizeAndCheckLen){
+					blobBS = new byte[minSizeAndCheckLen];
 				}
 				
 				final byte[] bs = blobBS;
@@ -356,20 +409,46 @@ public abstract class IContext {
 						return;
 					}
 					
-					if(ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN || len == 0){
-			    	}else{
-			    		//加密
-			    		//			    L.V = L.O ? false : LogManager.log("Xor len:" + len);
-		    			CUtil.superXor(bs, MsgBuilder.INDEX_MSG_DATA, len, null, true, true);
-			    	}
-	
-					//		    hc.core.L.V=hc.core.L.O?false:LogManager.log("Send [" + ctrlTag + "], len:" + len);
+//				    hc.core.L.V=hc.core.L.O?false:LogManager.log("Send [" + ctrlTag + "], len:" + len + ", isCheckOn : " + isCheckOn);
+					int sendWithCheckLen = minSize;
 					synchronized (outStream) {
-						outStream.write(bs, 0, minSize);
+						if(isCheckOn && len > 0){
+							sendWithCheckLen += checkBitLen;
+
+							{
+								final byte oneByte = bs[0];//INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
+								checkTotal += oneByte;
+								checkAND ^= checkTotal;
+								checkAND += oneByte;
+								checkMINUS ^= checkTotal;
+								checkMINUS -= oneByte;
+							}
+							for (int i = 2; i < minSize; i++) {
+								final byte oneByte = bs[i];
+								checkTotal += oneByte;
+								checkAND ^= checkTotal;
+								checkAND += oneByte;
+								checkMINUS ^= checkTotal;
+								checkMINUS -= oneByte;
+							}
+							bs[minSize] = checkAND;
+							bs[minSize + 1] = checkMINUS;
+						}
+
+//						L.V = L.O ? false : LogManager.log("dataLen : " + len + ", data : " + ByteUtil.toHex(bs, 0, sendWithCheckLen));
+						
+						if(len == 0 || ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN){
+				    	}else{
+				    		//加密
+				    		//			    L.V = L.O ? false : LogManager.log("Xor len:" + len);
+			    			CUtil.superXor(bs, MsgBuilder.INDEX_MSG_DATA, len, null, true, true);
+				    	}
+
+						outStream.write(bs, 0, sendWithCheckLen);
 						outStream.flush();
 					}
 				}catch (final Throwable e) {
-					if(e.getMessage().equals(CUtil.SECURITY_CONN_NOT_ESTABLISHED)){
+					if(e.getMessage().equals(CUtil.ONE_TIME_CERT_KEY_IS_NULL)){
 					}else{
 						if(L.isInWorkshop){
 							LogManager.errToLog("[workshop] Error sendWrapAction");
@@ -404,7 +483,7 @@ public abstract class IContext {
 	 * @param bs
 	 * @param data_len
 	 */
-	public final void send(final byte ctrlTag, final byte[] bs, final int data_len) {
+	public final void send(final byte ctrlTag, byte[] bs, final int data_len) {
 			if(isBuildedUPDChannel && isDoneUDPChannelCheck
 					&& (ctrlTag != MsgBuilder.E_GOTO_URL && ctrlTag != MsgBuilder.E_INPUT_EVENT && ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN)){
 			udpSender.sendUDP(ctrlTag, bs[MsgBuilder.INDEX_CTRL_SUB_TAG], bs, MsgBuilder.INDEX_MSG_DATA, data_len, 0, false);
@@ -414,9 +493,47 @@ public abstract class IContext {
 		HCMessage.setMsgLen(bs, data_len);
 		
 		bs[MsgBuilder.INDEX_CTRL_TAG] = ctrlTag;
-
+		boolean isNeedRecyle = false;
+		
 		try{
+			final int sendLenWithoutCheck = data_len + MsgBuilder.INDEX_MSG_DATA;
+			int sendWithCheckLen = sendLenWithoutCheck;
+			final boolean isCheck = isCheckOn && data_len > 0;
+			if(isCheck){
+				sendWithCheckLen += checkBitLen;
+				
+				if(bs.length < sendWithCheckLen){
+					byte[] cycleBS = cache.getFree(sendWithCheckLen);
+					System.arraycopy(bs, 0, cycleBS, 0, sendLenWithoutCheck);
+					bs = cycleBS;
+					isNeedRecyle = true;
+				}
+			}
+			
 			synchronized (outStream) {
+				if(isCheck){
+					{
+						final byte oneByte = bs[0];//INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
+						checkTotal += oneByte;
+						checkAND ^= checkTotal;
+						checkAND += oneByte;
+						checkMINUS ^= checkTotal;
+						checkMINUS -= oneByte;
+					}
+					for (int i = 2; i < sendLenWithoutCheck; i++) {
+						final byte oneByte = bs[i];
+						checkTotal += oneByte;
+						checkAND ^= checkTotal;
+						checkAND += oneByte;
+						checkMINUS ^= checkTotal;
+						checkMINUS -= oneByte;
+					}
+					bs[sendLenWithoutCheck] = checkAND;
+					bs[sendLenWithoutCheck + 1] = checkMINUS;
+				}
+				
+//				L.V = L.O ? false : LogManager.log("dataLen : " + data_len + ", data : " + ByteUtil.toHex(bs, 0, sendWithCheckLen));
+				
 				if(ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN || data_len == 0){
 		    	}else{
 		    		//加密
@@ -425,8 +542,12 @@ public abstract class IContext {
 		    	}
 
 //				hc.core.L.V=hc.core.L.O?false:LogManager.log("Send [" + ctrlTag + "], len:" + data_len);
-				outStream.write(bs, 0, data_len + MsgBuilder.INDEX_MSG_DATA);
+				outStream.write(bs, 0, sendWithCheckLen);
 				outStream.flush();
+			}//end synchronized
+			
+			if(isNeedRecyle){
+				cache.cycle(bs);
 			}
 		} catch (final Exception e) {
 //			ExceptionReporter.printStackTrace(e);
@@ -469,30 +590,6 @@ public abstract class IContext {
 				L.V = L.O ? false : LogManager.log("Exception:" + e.getMessage() + ", Lose package");
 //				SIPManager.notifyRelineon(false);
 			}
-		}
-	}
-
-	public final void send(OutputStream os, final byte[] bs, final int idx, final int len){
-		final byte ctrlTag = bs[MsgBuilder.INDEX_CTRL_TAG];
-		if(isBuildedUPDChannel && isDoneUDPChannelCheck
-				&& (ctrlTag != MsgBuilder.E_GOTO_URL && ctrlTag != MsgBuilder.E_INPUT_EVENT && ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN)){
-			udpSender.sendUDP(ctrlTag, bs[MsgBuilder.INDEX_CTRL_SUB_TAG], bs, idx + MsgBuilder.INDEX_MSG_DATA, len, 0, false);
-			return;
-		}
-
-		if(os == null){
-			os = outStream;
-		}
-		try {
-//				hc.core.L.V=hc.core.L.O?false:LogManager.log("Send [" + ctrlTag + "], subTage:" + subTag);
-			synchronized (os) {
-				os.write(bs, idx, len + MsgBuilder.INDEX_MSG_DATA);
-				os.flush();
-			}
-		} catch (final IOException e) {
-//				ExceptionReporter.printStackTrace(e);
-			L.V = L.O ? false : LogManager.log("Exception:" + e.getMessage() + ", Lose package");
-//				SIPManager.notifyRelineon(false);
 		}
 	}
 

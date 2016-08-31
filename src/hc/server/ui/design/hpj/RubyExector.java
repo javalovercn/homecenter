@@ -198,7 +198,6 @@ public class RubyExector {
 
 	public static void initActive(final HCJRubyEngine hcje) {
 //		final String script = 
-//				"require 'java'\n" +
 //				"str_class = Java::java.lang.String\n" +
 //				"return str_class::valueOf(\"1\")\n";//初始引擎及调试之用
 //		final String scriptName = null;

@@ -33,14 +33,26 @@ public class CUtil {
 //		superXor(src, offset, len, keys, 0, keys.length, isEncode);
 //	}
 	
-	public static final String SECURITY_CONN_NOT_ESTABLISHED = "Security connection is NOT established.";
+	public static final String ONE_TIME_CERT_KEY_IS_NULL = "OneTimeCertKey is null";
 	
 	public static final void superXor(final byte[] src, final int offset, final int s_len, final byte[] someKeys, final boolean isEncode, final boolean isUseRandomKeys){
+		if(OneTimeCertKey == null && isUseRandomKeys){
+			//EventBack处理完后，送入OneTimeCertKey
+			int sleepTotal = 0;
+			while(OneTimeCertKey == null && sleepTotal < 600){
+				try{
+					sleepTotal += ThreadPriorityManager.UI_WAIT_OTHER_THREAD_EXEC_MS;
+					Thread.sleep(ThreadPriorityManager.UI_WAIT_OTHER_THREAD_EXEC_MS);
+				}catch (Exception e) {
+				}
+			}
+		}
+		
 		final byte[] keys = (isUseRandomKeys?OneTimeCertKey:someKeys);
 		
 		if(keys == null){
 			//比如连接未建立，但MIDletActivity.onResume通知background
-			throw new Error(SECURITY_CONN_NOT_ESTABLISHED);
+			throw new Error(ONE_TIME_CERT_KEY_IS_NULL);
 		}
 		
 		final int k_len = keys.length;

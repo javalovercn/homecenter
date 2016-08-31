@@ -2,7 +2,7 @@ package hc.core;
 
 public class MsgBuilder {
 	public static final int MAX_BYTE_ARRAY_LEN = 1024 * 1024 * 2;
-	
+	public static final short CHECK_BIT_NUM = 2;
 	
 	/**
 	 * 进行Internet编程时则不同,因为Internet上的路由器可能会将MTU设为不同的值.

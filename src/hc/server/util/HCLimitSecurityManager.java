@@ -630,7 +630,8 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			}else{
 				//Not in csc
 				if(clazz == SecurityManager.class || clazz == IConstant.class || clazz == CUtil.class
-						|| clazz == HCLimitSecurityManager.class || clazz == SecurityDataProtector.class){//禁止反射操作的类
+						|| clazz == HCLimitSecurityManager.class || clazz == SecurityDataProtector.class
+						|| clazz == URLClassLoader.class){//禁止反射操作的类
 					ResourceUtil.checkHCStackTraceInclude(null, null);
 				}
 				

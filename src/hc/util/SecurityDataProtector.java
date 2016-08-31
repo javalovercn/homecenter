@@ -411,7 +411,6 @@ public class SecurityDataProtector {
 		final HCJRubyEngine engine = new HCJRubyEngine(null, ResourceUtil.getJRubyClassLoader(false), true);
 		try{
 			final String script = "" +
-					"require 'java'\n" +
 					"import java.lang.Thread\n" +
 					"import java.lang.StackTraceElement\n" +
 					"import java.lang.Exception\n" +

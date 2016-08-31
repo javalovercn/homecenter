@@ -141,9 +141,9 @@ public class HCMessage {
 		System.arraycopy(src, offset, bs, storeIdx, len);
 	}
 	
-	public final static void setMsgTcpSplitCtrlData(final byte[] bs, short storeIdx, final byte ctrlTag, final int group_id, final int package_no){
+	public final static void setMsgTcpSplitCtrlData(final byte[] bs, short storeIdx, final byte ctrlTag, final byte subTag, final int group_id, final int package_no){
 		bs[storeIdx] = ctrlTag;
-//		bs[storeIdx++] = subTag;
+		bs[storeIdx + 1] = subTag;
 		
 		ByteUtil.integerToFourBytes(group_id, bs, storeIdx + 2);
 		ByteUtil.integerToFourBytes(package_no, bs, storeIdx + 6);

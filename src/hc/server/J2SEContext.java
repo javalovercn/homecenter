@@ -351,12 +351,14 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						final String pcReqMobiVer = (String)doExtBiz(BIZ_GET_REQ_MOBI_VER_FROM_PC, null);
 						if(StringUtil.higher(pcReqMobiVer, ClientDesc.getHCClientVer())){
 							send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS));
-							LogManager.err("Min required mobile version : [" + pcReqMobiVer + "], current mobile version : [" + ClientDesc.getHCClientVer() + "]");
+							LogManager.err("mobile min version : [" + pcReqMobiVer + "] is required, current mobile version : [" + ClientDesc.getHCClientVer() + "]");
 							L.V = L.O ? false : LogManager.log("Cancel mobile login process");
 							sleepAfterError();
 							SIPManager.notifyRelineon(false);
 							return true;
 						}
+						
+						ContextManager.getContextInstance().setCheck(true);
 						
 //						if(ClientDesc.getAgent().getRMSCacheServerUID().length() == 0){
 //							//有可能手机端删除了曾登录账号，又重新连接时，出现此情况。
@@ -1883,6 +1885,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				setTrayEnable(b);
 			}
 			return null;
+		}else if(bizNo == IContext.BIZ_DATA_CHECK_ERROR){
 		}
 		
 		if(IConstant.serverSide){
@@ -2221,7 +2224,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 	public static final String MAX_HC_VER = "9999999";//注意与Starter.NO_UPGRADE_VER保持同步
 	
-	private final String minMobiVerRequiredByServer = "7.5";//(含)，
+	private final String minMobiVerRequiredByServer = "7.7";//(含)，
 	//你可能 还 需要修改服务器版本，StarterManager HCVertion = "6.97";
 	
 	public static final String getSampleHarVersion(){

@@ -23,6 +23,8 @@ public class ThreadPriorityManager {
 	
 	public static final int UI_WAIT_MS = 100;
 	
+	public static final int UI_WAIT_OTHER_THREAD_EXEC_MS = 20;
+	
 	public static final int UI_CODE_HELPER_DELAY_MS = 2000;
 	
 	public static final int UI_DELAY_MOMENT = 500;

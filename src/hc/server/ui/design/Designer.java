@@ -1226,7 +1226,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				"<html><font color=\"red\">Important</font> : " +
 				"<BR>" +
 				"<BR>the current HomeCenter provide build-in SecurityManager for HAR project." +
-				"<BR>each JRuby code is based on reflection, java.lang.System (private SecurityManager security) is limited for reflection, " +
+				"<BR>JRuby script is based on reflection, java.lang.System (private SecurityManager security) is limited for reflection, " +
 				"<BR><BR>please replace java.lang.System with " + JavaLangSystemAgent.class.getName() + " or upgrade JRE to 1.7" +
 				"<BR><BR>for more, please read Java Doc about " + JavaLangSystemAgent.class.getName() + "</html>");
 		
