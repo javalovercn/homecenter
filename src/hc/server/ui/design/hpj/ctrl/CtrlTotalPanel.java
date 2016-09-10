@@ -208,7 +208,7 @@ public class CtrlTotalPanel extends JPanel{
 	private CtrlItem addToCanvas(final int keyValue, final int x, final int y){
 		listButtons[keyValue].setEnabled(false);
 		
-		baseMenuItemPanel.notifyModified();
+		baseMenuItemPanel.notifyModified(true);
 
 		return panel_canvas.addItemToCanvas(keyValue, x, y);
 	}
@@ -218,7 +218,7 @@ public class CtrlTotalPanel extends JPanel{
 		
 		panel_canvas.removeItemToCanvas(keyValue);
 		
-		baseMenuItemPanel.notifyModified();
+		baseMenuItemPanel.notifyModified(true);
 	}
 	
 	private void repainCanvas(){

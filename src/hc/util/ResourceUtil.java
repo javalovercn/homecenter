@@ -32,6 +32,10 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
@@ -1452,6 +1456,37 @@ public class ResourceUtil {
 
 	public static String buildUUID() {
 		return UUID.randomUUID().toString();
+	}
+
+	public static void sendToClipboard(final String text) {
+		final Clipboard clipbd = getClipboard();
+		final StringSelection clipString = new StringSelection(text);
+		clipbd.setContents(clipString, clipString);
+	}
+
+	public static Clipboard getClipboard() {
+		return Toolkit.getDefaultToolkit().getSystemClipboard();
+	}
+
+	public static String getTxtFromClipboard(){
+		final Clipboard clipbd = getClipboard();
+		final Transferable clipT = clipbd.getContents(null);
+		String d = null;
+		if (clipT != null) {
+			// 检查内容是否是文本类型
+			if (clipT.isDataFlavorSupported(DataFlavor.stringFlavor)){
+				try {
+					d = (String) clipT.getTransferData(DataFlavor.stringFlavor);
+				} catch (final Exception e) {
+					ExceptionReporter.printStackTrace(e);
+				}
+			}
+		}
+		if(d == null){
+			return "";
+		}else{
+			return d.trim();
+		}
 	}
 	
 }

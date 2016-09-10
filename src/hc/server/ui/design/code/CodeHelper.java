@@ -6,6 +6,8 @@ import hc.core.util.LogManager;
 import hc.server.data.KeyComperPanel;
 import hc.server.data.StoreDirManager;
 import hc.server.ui.Mlet;
+import hc.server.ui.design.engine.HCJRubyEngine;
+import hc.server.ui.design.hpj.HCTextPane;
 import hc.server.ui.design.hpj.HPShareJar;
 import hc.server.ui.design.hpj.RubyExector;
 import hc.server.ui.design.hpj.ScriptEditPanel;
@@ -32,7 +34,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.script.ScriptException;
-import javax.swing.JTextPane;
 import javax.swing.text.Document;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -156,7 +157,7 @@ public class CodeHelper {
 				item.codeDisplay = codeField + " : " + field.getType().getSimpleName() + " - " + fieldClass.getSimpleName();
 				item.codeLowMatch = codeField.toLowerCase();
 				item.isPublic = isPublic;
-				item.isForMaoHaoOnly = isStatic;
+				item.isForMaoHaoOnly = isStatic;//不能如方法改为false，因为import Java::HTMLMlet\n HTMLMlet.URL_EXIT会出错，这是由于JRuby语法所限，1.7.3如此
 				item.type = CodeItem.TYPE_FIELD;
 				
 				list.add(item);
@@ -283,42 +284,6 @@ public class CodeHelper {
 		
 		buildMethodAndProp(c, isForClass, list, true);
 		
-		//将定义体的类的常量和构造方法提取出来，装入代码提示表中
-		if(jcd.defNode != null){
-			
-			final ClassNode classNode = jcd.defNode;
-			final String className = getDefClassName(classNode);
-			final Node body = classNode.getBody();
-			final List<Node> listNodes = body.childNodes();
-			final int size = listNodes.size();
-			for (int i = 0; i < size; i++) {
-				Node sub = listNodes.get(i);
-				if(sub instanceof NewlineNode){
-					sub = ((NewlineNode)sub).getNextNode();
-				}
-				if(sub == null){
-					continue;
-				}
-				if(sub instanceof ConstDeclNode){
-					final ConstDeclNode constNode = (ConstDeclNode)sub;
-					
-					final CodeItem item = CodeItem.getFree();
-					item.code = constNode.getName();
-					item.fmClass = Object.class.getName();
-					item.codeDisplay = item.code + " : " + Object.class.getSimpleName() + " - " + className;
-					item.codeLowMatch = item.code.toLowerCase();
-					item.isPublic = true;
-					item.isForMaoHaoOnly = false;
-					item.type = CodeItem.TYPE_FIELD;
-					
-					list.add(item);
-				}else if(sub instanceof DefnNode){
-					final DefnNode defN = (DefnNode)sub;
-					appendMethod(isForClass, className, defN, list);
-				}
-			}
-		}
-		
 		final Object[] objs = list.toArray();
 		final CodeItem[] out = new CodeItem[objs.length];
 		System.arraycopy(objs, 0, out, 0, objs.length);
@@ -395,7 +360,7 @@ public class CodeHelper {
 	 */
 	public final ArrayList<CodeItem> getMethodAndFieldForInstance(final Class backgroundOrPreVar, final ClassNode defNode, 
 			final JRubyClassDesc jdc, final boolean needPublic, final ArrayList<CodeItem> out){
-		return getMethodAndField(backgroundOrPreVar, defNode, jdc, needPublic, out, classCacheMethodAndPropForInstance);
+		return getMethodAndField(backgroundOrPreVar, defNode, jdc, needPublic, out, classCacheMethodAndPropForInstance, false);
 	}
 	
 	/**
@@ -406,22 +371,28 @@ public class CodeHelper {
 	 * @return
 	 */
 	public final ArrayList<CodeItem> getMethodAndFieldForClass(final Class c, final ClassNode defNode, final ArrayList<CodeItem> out){
-		return getMethodAndField(c, defNode, null, true, out, classCacheMethodAndPropForClass);
+		return getMethodAndField(c, defNode, null, true, out, classCacheMethodAndPropForClass, true);
 	}
 	
 	private final ArrayList<CodeItem> getMethodAndField(final Class backgroundOrPreVar, final ClassNode defNode, 
 			final JRubyClassDesc jdc, final boolean needPublic, final ArrayList<CodeItem> out, 
-			final HashMap<String, CodeItem[]> set){
+			final HashMap<String, CodeItem[]> set, final boolean isForClass){
 		freeArray(out);
 		
 		if(jdc != null && jdc.defNode != null){
 			CodeItem[] methods = set.get(getDefClassName(jdc.defNode));
-			if(methods == null && jdc != null){
+			if(methods == null){
 				buildForClass(jdc);
 				methods = set.get(getDefClassName(jdc.defNode));
 			}
 			if(methods != null){
-				return appendToOut(methods, needPublic, out);
+				appendToOut(methods, needPublic, out);
+			}
+			if(jdc != null && jdc.defNode != null){
+				appendDef(jdc.defNode, isForClass, out);
+			}
+			if(out.size() > 0){
+				return out;
 			}
 		}
 		
@@ -429,11 +400,19 @@ public class CodeHelper {
 		if(defNode != null){
 			CodeItem[] methods = set.get(getDefClassName(defNode));
 			if(methods == null && jdc != null){
-				buildForClass(jdc);
-				methods = set.get(getDefClassName(defNode));
+				if(methods == null){
+					buildForClass(jdc);
+					methods = set.get(getDefClassName(defNode));
+				}
+				if(methods != null){
+					appendToOut(methods, needPublic, out);
+				}
+				if(jdc != null && jdc.defNode != null){
+					appendDef(jdc.defNode, isForClass, out);
+				}
 			}
-			if(methods != null){
-				return appendToOut(methods, needPublic, out);
+			if(out.size() > 0){
+				return out;
 			}
 		}
 		
@@ -446,7 +425,13 @@ public class CodeHelper {
 			DocHelper.processDoc(backgroundOrPreVar, true);
 		}
 		
-		return appendToOut(methods, needPublic, out);
+		appendToOut(methods, needPublic, out);
+		
+		if(defNode != null){
+			appendDef(defNode, isForClass, out);
+		}
+		
+		return out;
 	}
 
 	private ArrayList<CodeItem> appendToOut(final CodeItem[] methods,
@@ -484,6 +469,44 @@ public class CodeHelper {
 	private final void buildForClass(final JRubyClassDesc jcd) {
 		buildMethodAndField(jcd.baseClass, jcd, true, classCacheMethodAndPropForClass);
 		buildMethodAndField(jcd.baseClass, jcd, false, classCacheMethodAndPropForInstance);
+	}
+	
+	private final void appendDef(final ClassNode defNode, final boolean isForClass, final ArrayList<CodeItem> list) {
+		//将定义体的类的常量和构造方法提取出来，装入代码提示表中
+		if(defNode != null){
+			
+			final ClassNode classNode = defNode;
+			final String className = getDefClassName(classNode);
+			final Node body = classNode.getBody();
+			final List<Node> listNodes = body.childNodes();
+			final int size = listNodes.size();
+			for (int i = 0; i < size; i++) {
+				Node sub = listNodes.get(i);
+				if(sub instanceof NewlineNode){
+					sub = ((NewlineNode)sub).getNextNode();
+				}
+				if(sub == null){
+					continue;
+				}
+				if(sub instanceof ConstDeclNode){
+					final ConstDeclNode constNode = (ConstDeclNode)sub;
+					
+					final CodeItem item = CodeItem.getFree();
+					item.code = constNode.getName();
+					final Class classOfConst = getClassFromLiteral(constNode.getValue());
+					item.fmClass = classOfConst.getName();//Object.class.getName();
+					item.codeDisplay = item.code + " : " + classOfConst.getSimpleName() + " - " + className;
+					item.codeLowMatch = item.code.toLowerCase();
+					item.isPublic = true;
+					item.isForMaoHaoOnly = false;
+					item.type = CodeItem.TYPE_FIELD;
+					
+					list.add(item);
+				}else if(sub instanceof DefnNode){
+					appendMethod(isForClass, className, (DefnNode)sub, list);
+				}
+			}
+		}
 	}
 	
 	public static ArrayList<String> getRequireLibs(final Node node, final ArrayList<String> out){
@@ -648,6 +671,12 @@ public class CodeHelper {
 		refreshShortCutKeys(getWordCompletionKeyChar(), getWordCompletionKeyText(), getWordCompletionModifierCode());
 	}
 	
+	private final static void printNode(final Node node){
+		final StringBuilder sb = new StringBuilder(1024);
+		buildNodeString(node, 0, sb);
+		L.V = L.O ? false : LogManager.log(sb.toString());
+	}
+	
 	private final static void buildNodeString(final Node node, final int deep, final StringBuilder sb){
 		if(sb.length() > 0){
 			sb.append("\n");
@@ -735,8 +764,7 @@ public class CodeHelper {
 	}
 	
 	static final Parser rubyParser = new Parser();
-	static final CompatVersion version = CompatVersion.RUBY2_0;
-	static final ParserConfiguration config = new ParserConfiguration(0, version);
+	static final ParserConfiguration config = new ParserConfiguration(0, CompatVersion.getVersionFromString(HCJRubyEngine.JRUBY_VERSION));
 
     public static Node parseScripts(final String cmds) {
         final StringReader in = new StringReader(cmds);
@@ -802,8 +830,8 @@ public class CodeHelper {
     				final JRubyClassDesc classDesc = buildJRubyClassDesc(getDefSuperClass((ClassNode)varDefNode), false);
 					classDesc.isDefClass = true;
 					classDesc.defNode = (ClassNode)varDefNode;
-					
 					buildForClass(classDesc);//直接在MyDefClass::进行代码提示要求
+//					appendDefForClass(jcd, isForClass, list);
 					return classDesc;
     			}else if(varDefNode instanceof DefnNode){//方法体定义
     				if(defClassNode != null){
@@ -1672,8 +1700,10 @@ public class CodeHelper {
 		}
 		
 		try{
-			final Node temp = parseScripts(scripts);
-			root = temp;
+			root = parseScripts(scripts);
+			if(L.isInWorkshop){
+				printNode(root);
+			}
 			return true;
 		}catch (final Throwable e) {
 			if(L.isInWorkshop){
@@ -1741,7 +1771,7 @@ public class CodeHelper {
 	 * @param scriptIdx input focus index at total script
 	 * @return
 	 */
-	public final boolean input(final ScriptEditPanel sep, final JTextPane jtaScript, final Document doc, 
+	public final boolean input(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, 
 			final int fontHeight, final boolean isForcePopup, final Point caretPosition, final int scriptIdx) throws Exception{
 		//1：行首时，requ
 		//2：行首时，impo
@@ -1751,7 +1781,7 @@ public class CodeHelper {
 		//6：.后 JButton.new|ImageIO.read
 		//3：resource("时，lib资源
 		
-		final Point win_loc = jtaScript.getLocationOnScreen();
+		final Point win_loc = textPane.getLocationOnScreen();
 		
 		final int line = ScriptEditPanel.getLineOfOffset(doc, scriptIdx);
         final int editLineStartIdx = ScriptEditPanel.getLineStartOffset(doc, line);
@@ -1766,13 +1796,13 @@ public class CodeHelper {
 		
 		final int input_x = win_loc.x + ((caretPosition==null)?0:caretPosition.x);
 		final int input_y = win_loc.y + ((caretPosition==null)?0:caretPosition.y);
-		window.toFront(codeClass, sep, jtaScript, input_x, input_y, out, preCode.toLowerCase(), scriptIdx, fontHeight);
+		window.toFront(codeClass, sep, textPane, input_x, input_y, out, preCode.toLowerCase(), scriptIdx, fontHeight);
 		return true;
 	}
 	
-	public final void inputVariableForCSS(final JTextPane jtaScript, final Point caretPosition, final int fontHeight,
+	public final void inputVariableForCSS(final HCTextPane textPane, final Point caretPosition, final int fontHeight,
 			final int scriptIdx){
-		final Point win_loc = jtaScript.getLocationOnScreen();
+		final Point win_loc = textPane.getLocationOnScreen();
 		out.clear();
 		
 		final String[] variables = StyleManager.variables;
@@ -1789,7 +1819,7 @@ public class CodeHelper {
 		
 		final int input_x = win_loc.x + ((caretPosition==null)?0:caretPosition.x);
 		final int input_y = win_loc.y + ((caretPosition==null)?0:caretPosition.y);
-		window.toFront(Object.class, null, jtaScript, input_x, input_y, out, "", scriptIdx, fontHeight);
+		window.toFront(Object.class, null, textPane, input_x, input_y, out, "", scriptIdx, fontHeight);
 	}
 	
 //	/**

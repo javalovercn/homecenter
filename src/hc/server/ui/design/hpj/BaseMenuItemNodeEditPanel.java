@@ -110,7 +110,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 	//		}
 				App.invokeLaterUI(updateTreeRunnable);
 			}
-			notifyModified();
+			notifyModified(true);
 			return true;
 		}
 
@@ -221,7 +221,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 						return;
 					}
 					((HPMenuItem)currItem).imageData = strImageData;
-					notifyModified();
+					notifyModified(true);
 					
 					setItemIcon64(bi);
 				}
@@ -240,7 +240,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 						public void actionPerformed(final ActionEvent e) {
 							if (currItem.i18nMap.isModified()){
 								currItem.i18nMap.clearModifyTag();
-								notifyModified();
+								notifyModified(true);
 							}
 						}
 					}, i18nBtn, designer);
@@ -308,12 +308,12 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 				+ ((pv.length() > 0) ? ("?" + pv) : ""));
 		final String listener = ((HPMenuItem)currItem).listener;
 		
-		jtaScript.setText(listener == null ? "" : listener);
+		setInitText(listener == null ? "" : listener);
 		TabHelper.initScriptPanel(jtaScript, this);
 		
-		initColor(true, false);
+		initColor(true, false, 0);
 	}
-	
+
 	@Override
 	public void updateScript(final String script) {
 		((HPMenuItem)currItem).listener = script;

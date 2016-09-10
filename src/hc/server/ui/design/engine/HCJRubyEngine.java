@@ -2,6 +2,7 @@ package hc.server.ui.design.engine;
 
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LRUCache;
+import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
@@ -9,6 +10,7 @@ import hc.server.data.StoreDirManager;
 import hc.server.ui.design.hpj.HCScriptException;
 import hc.server.ui.design.hpj.RubyWriter;
 import hc.util.ClassUtil;
+import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.io.ByteArrayInputStream;
@@ -30,7 +32,8 @@ import javax.script.ScriptException;
 
 public class HCJRubyEngine {
 	private static final boolean isAndroidServerPlatform = ResourceUtil.isAndroidServerPlatform();
-	
+	public static final String JRUBY_VERSION = "RUBY1_8";//for container and parser
+
 	public boolean isError = false;
 	public final RubyWriter errorWriter = new RubyWriter();
 	public final HCScriptException sexception = new HCScriptException("");
@@ -173,7 +176,7 @@ public class HCJRubyEngine {
 //		        System.setProperty("jruby.thread.pooling", "true");
 //		        System.setProperty("jruby.native.enabled", "true");//不能开启，ruboto-core-1.0.5.apk，会出现jnr-ffi
 //		        System.setProperty("jruby.native.verbose", "true");
-//		         System.setProperty("jruby.compat.version", "RUBY1_8"); // RUBY1_9 is the default in JRuby 1.7
+//		         System.setProperty("jruby.compat.version", "RUBY1_8");
 //		        System.setProperty("jruby.ir.passes", "LocalOptimizationPass,DeadCodeElimination");
 //		        System.setProperty("jruby.backtrace.style", "normal"); // normal raw full mri
 
@@ -197,7 +200,7 @@ public class HCJRubyEngine {
 	            System.setProperty("jruby.backtrace.style", "normal"); // normal raw full mri
 	            System.setProperty("jruby.bytecode.version", "1.6");
 	            // BEGIN Ruboto RubyVersion
-	            // System.setProperty("jruby.compat.version", "RUBY2_0"); // RUBY1_9 is the default in JRuby 1.7
+	            // System.setProperty("jruby.compat.version", "RUBY2_0"); 
 	            // END Ruboto RubyVersion
 	            // System.setProperty("jruby.compile.backend", "DALVIK");
 	            System.setProperty("jruby.compile.mode", "OFF"); // OFF OFFIR JITIR? FORCE FORCEIR
@@ -284,12 +287,17 @@ public class HCJRubyEngine {
 //		}
 		
 //		container.setCompatVersion(org.jruby.CompatVersion.RUBY2_0);
-		if(isAndroidServerPlatform){
+//		if(isAndroidServerPlatform)
+		{
 			final Class compatVersionClass = projClassLoader.loadClass("org.jruby.CompatVersion");
-			final Object rubyVersion = ClassUtil.getField(compatVersionClass, compatVersionClass, "RUBY1_8", false, true);
+			final Object rubyVersion = ClassUtil.getField(compatVersionClass, compatVersionClass, JRUBY_VERSION, false, true);
 			final Class[] paraTypes = {compatVersionClass};
 			final Object[] para = {rubyVersion};
+			
 			ClassUtil.invoke(classScriptingContainer, container, "setCompatVersion", paraTypes, para, false);
+			if(ResourceUtil.isLoggerOn() == false){
+				LogManager.warning("org.jruby.CompatVersion : " + JRUBY_VERSION);
+			}
 		}
 
 //		container.setCompileMode(org.jruby.RubyInstanceConfig$CompileMode.FORCE);

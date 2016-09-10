@@ -5,6 +5,7 @@ import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
+import hc.core.util.ThreadPriorityManager;
 import hc.server.HCActionListener;
 import hc.server.data.StoreDirManager;
 import hc.server.ui.HCByteArrayOutputStream;
@@ -44,7 +45,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -53,8 +53,12 @@ import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AbstractDocument.DefaultDocumentEvent;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
+import javax.swing.text.Caret;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
@@ -66,6 +70,7 @@ import javax.swing.text.StyledDocument;
 import javax.swing.text.TabSet;
 import javax.swing.text.TabStop;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
@@ -86,23 +91,24 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	private static final SimpleAttributeSet STR_LIGHTER = build(Color.decode("#4EA539"), false);
 	public static final SimpleAttributeSet REM_LIGHTER = build(Color.decode("#3AC2EB"), false);
 	private static final SimpleAttributeSet MAP_LIGHTER = build(Color.BLACK, true);
-	private static final SimpleAttributeSet KEYWORDS_LIGHTER = build(Color.BLUE, true);
+	static final SimpleAttributeSet KEYWORDS_LIGHTER = build(Color.BLUE, true);
 	private static final SimpleAttributeSet NUM_LIGHTER = build(Color.RED, false);
-	private static final SimpleAttributeSet DEFAULT_LIGHTER = build(Color.BLACK, false);
+	static final SimpleAttributeSet DEFAULT_LIGHTER = build(Color.BLACK, false);
 	private static final SimpleAttributeSet VAR_LIGHTER = build(Color.decode("#f19e37"), false);
 	
 	private static final Pattern str_pattern = Pattern.compile("\".*?(?<!\\\\)\"");
-	private static final Pattern keywords_pattern = Pattern.compile("\\b(BEGIN|END|__ENCODING__|__END__|__FILE__|__LINE__|alias|" +
-			"and|begin|break|case|class |def|defined?|do|else|elsif|end|" +
-			"ensure|extend|false|for|if|in|import|include|module|next|nil|not|or|raise|redo|require|rescue|retry|return|" +
+	static final Pattern keywords_pattern = Pattern.compile("\\b(BEGIN|END|__ENCODING__|__END__|__FILE__|__LINE__|alias|" +
+			"and|attr_accessor|attr_reader|attr_writer|begin|break|case|class |def|defined?|do|else|elsif|end|" +
+			"ensure|extend|false|for|if|in|import|include|module|next|nil|not|or|private|protected|public|raise|redo|require|rescue|retry|return|" +
 			"self|super|then|true|undef|unless|until|when|while|yield)\\b", Pattern.MULTILINE);//class+space解决ctx.class.get()
 //	private static final String[] Indentation = {"begin", "case ", "class ", "def ", "else", 
 //		"elsif ", "for ", "if ", "module ", "when ", "while ", "rescue "};
-	private static final String[] WithEndIndentation = {"begin", "case ", "class ", "def ", "for ", "if ", "module ", "when "};//由于while[ ]后有do，所以在此移去
-	private static final String[] doIndentation = {" do", " do\n"};
+	private static final String[] WithEndIndentation = {"begin", "case ", "class ", "def ", "for ", "if ", "module ", "when ", "while ", "until ", "unless "};
+	private static final String DO_WORD = "do";
+	private static final String[] doIndentation = {" " + DO_WORD, " " + DO_WORD + "\n"};
 	
 	//addActionListener{|exception| or do |exception|。|exception|段可能有，可能没有。如果测试，参见TestEndIndentKuoHao
-	private static final Pattern WithEndIndentationKuoHao = Pattern.compile("(\\{|\\s+do)\\s*?(\\|\\s*?\\w+?\\s*?\\|)?\\s*?(?<!\\})\\s*?(#.*)?$");
+	private static final Pattern WithEndIndentationKuoHao = Pattern.compile("(\\{|\\s+" + DO_WORD + ")\\s*?(\\|\\s*?\\w+?\\s*?\\|)?\\s*?(?<!\\})\\s*?(#.*)?$");
 	
 	private static final char[] elsifChar = {'e', 'l', 's', 'i', 'f', ' '};
 	private static final char[] elseChar = {'e', 'l', 's', 'e'};
@@ -154,7 +160,6 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	private static final Pattern rem_pattern = Pattern.compile("#.*(?=\n)?");
 	private static final Pattern var_pattern = Pattern.compile("@\\w+");
 
-	HPNode currItem;
 	final JScrollPane scrollpane;
 	boolean isModifySourceForRebuildAST = false;
 	boolean isErrorOnBuildScript;
@@ -164,26 +169,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	final HCByteArrayOutputStream iconBsArrayos = ServerUIUtil.buildForMaxIcon();
 	final JTextField nameField = new JTextField();
 	final JRubyErrorHCTimer errorTimer = new JRubyErrorHCTimer("JRubyErrorHCTimer", 1000, false);
-	boolean isInited = false;
 	final boolean isJ2SEServer = ResourceUtil.isJ2SELimitFunction();
 
 	abstract Map<String, String> buildMapScriptParameter();
 	
-	final public void updateScriptInInitProcess() {
-		final boolean result = designer.codeHelper.updateScriptASTNode(this, jtaScript.getText(), true);
-//		if(result == false){
-//			SwingUtilities.invokeLater(new Runnable() {
-//				@Override
-//				public void run() {
-//					try{
-//						format(jtaScript.getDocument());//init中调用，导致系统变慢，并buildMap可能检查错误。
-//						
-//						doTest(false, true);
-//					}catch (final Throwable e) {
-//					}
-//				}
-//			});
-//		}
+	final public void rebuildASTNode() {
+		designer.codeHelper.updateScriptASTNode(this, jtaScript.getText(), true);
 	}
 	
 	final void doTest(final boolean isRun, final boolean isCompileOnly) {
@@ -283,7 +274,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			}
 		});
 	}
+	
 	public ScriptEditPanel() {
+		jtaDocment = (AbstractDocument)jtaScript.getDocument();
+		
 		errRunInfo.setForeground(Color.RED);
 		errRunInfo.setOpaque(true);
 
@@ -337,7 +331,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
-							format(jtaScript.getDocument());
+							format(jtaDocment);
 //							initColor(false);
 						}
 					});
@@ -351,7 +345,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 		testBtn.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + T)" +
 				"<BR>" +
-				"<BR>" + runTip +
+				"<BR>" + runTip + 
+				"<BR><BR>JRuby compat version : <STRONG>" + HCJRubyEngine.JRUBY_VERSION + "</STRONG>" +
 				"</html>");
 		testBtn.setIcon(Designer.loadImg("test_16.png"));
 		
@@ -376,11 +371,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		
 		jtaScript.addCaretListener(new CaretListener() {
 			int lastLineNo = 0;
-			final Document doc = jtaScript.getDocument();
 			@Override
 			public void caretUpdate(final CaretEvent e) {
 				try{
-					final int currLineNo = getLineOfOffset(doc, e.getDot());
+					final int currLineNo = getLineOfOffset(jtaDocment, e.getDot());
 					if(isModifySourceForRebuildAST){
 //						System.out.println("caret newLineNo : " + currLineNo + ", oldLineNo : " + lastLineNo + ", new Idx :  " + e.getDot());
 						if(currLineNo != lastLineNo){
@@ -406,7 +400,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			    	}else{
 			    		final int posi = jtaScript.getCaretPosition();
 			    		try {
-							jtaScript.getDocument().insertString(posi, "\t", null);
+							jtaDocment.insertString(posi, "\t", null);
 							jtaScript.setCaretPosition(posi + 1);
 						} catch (final BadLocationException e) {
 							ExceptionReporter.printStackTrace(e);
@@ -429,13 +423,15 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 		{
 			final AbstractAction enterAction = new AbstractAction() {
-				final Document doc = jtaScript.getDocument();
 				@Override
 				public void actionPerformed(final ActionEvent e) {
 					if(TabHelper.pushTabOrEnterKey()){
 					}else{
 						try{
-							actionOnEnterKey(doc);
+							isModifySourceForRebuildAST = false;//disable caretUpdate event
+							scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_ENTER);
+							
+							actionOnEnterKey(jtaDocment);
 						}catch (final Exception ex) {
 						}
 					}
@@ -446,7 +442,6 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 		
 		jtaScript.addKeyListener(new KeyListener() {
-			final Document doc = jtaScript.getDocument();
 			final boolean isMacOS = ResourceUtil.isMacOSX();
 			
 			@Override
@@ -458,8 +453,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				
 				final char inputChar = event.getKeyChar();
 				final int modifiers = event.getModifiers();
-				
-//				final int keycode = e.getKeyCode();
+//				final int keycode = event.getKeyCode();
 //				System.out.println("keyCode : " + keycode + ", inputChar : " + inputChar + ", modifyMask : " + modifiers);
 				final CodeHelper codeHelper = designer.codeHelper;
 //				System.out.println("codeHelp wordcode : " + codeHelper.wordCompletionCode + ", char : " + codeHelper.wordCompletionChar + 
@@ -470,8 +464,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						&& ((codeHelper.wordCompletionModifyCode == KeyEvent.VK_ALT && modifiers == 0) 
 									|| (codeHelper.wordCompletionModifyMaskCode == modifiers)))){//注意：请同步到MletNodeEditPanel
 					try {
-						codeHelper.input(ScriptEditPanel.this, jtaScript, doc, fontHeight, true, 
-								jtaScript.getCaret().getMagicCaretPosition(), jtaScript.getCaretPosition());
+						final int caretPosition = jtaScript.getCaretPosition();
+						final Rectangle caretRect=jtaScript.modelToView(caretPosition);
+						final Point caretPointer = new Point(caretRect.x, caretRect.y);
+						codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, 
+								caretPointer, caretPosition);
 					} catch (final Exception e) {
 //						if(L.isInWorkshop){
 							ExceptionReporter.printStackTrace(e);
@@ -487,95 +484,100 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					return;
 				}
 				
-				isModifySourceForRebuildAST = true;
-
+				if(inputChar == KeyEvent.VK_ENTER){
+					consumeEvent(event);
+					return;
+				}
+				
+				isModifySourceForRebuildAST = true;//enable key and caretUpdate newline
+				
+				if(inputChar == KeyEvent.VK_BACK_SPACE || inputChar == KeyEvent.VK_DELETE){
+					scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL);
+				}else{
+					scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_TYPE);
+				}
+				
 				try{
-			        position = jtaScript.getCaretPosition();
-					final int line = getLineOfOffset(doc, position);
-					if(inputChar == KeyEvent.VK_ENTER){
-						return;
-						//end if VK_ENTER
-					}else{
-//						final int keyCode = e.getKeyCode();
-						
-						refreshCurrLineAfterKey(line, doc, jtaScript, ScriptEditPanel.this);
-						
-						TabHelper.notifyInputKey(inputChar == KeyEvent.VK_BACK_SPACE, event, inputChar);
-						
-						final boolean isDot = inputChar == '.';
-						final boolean isPathSplit = inputChar == '/';
-						if(isDot || isPathSplit || inputChar == ':'){//自动弹出代码提示条件
-					        final int lineStartIdx = ScriptEditPanel.getLineStartOffset(doc, line);
-					        final int lineIdx = position - lineStartIdx;
-					        final char[] lineChars = doc.getText(lineStartIdx, lineIdx).toCharArray();
-					        final int lineCharsLen = lineChars.length;
-					        
-					        if(isHttpResource(lineChars, lineCharsLen - 1)){
-					        	return;//对于http型的资源，不弹出本地库资源代码提示
-					        }
-					        
-					        //处于""之中
-					        int countYinHao = 0;
-					        for (int i = 0; i < lineCharsLen; i++) {
-								if(lineChars[i] == '\"' && i > 0 && lineChars[i - 1] != '\\'){
-									countYinHao++;
-								}
+					final int position = jtaScript.getCaretPosition();
+					final int line = getLineOfOffset(jtaDocment, position);
+					
+					jtaScript.refreshCurrLineAfterKey(line);
+					
+					TabHelper.notifyInputKey(inputChar == KeyEvent.VK_BACK_SPACE, event, inputChar);
+					
+					final boolean isDot = inputChar == '.';
+					final boolean isPathSplit = inputChar == '/';
+					if(isDot || isPathSplit || inputChar == ':'){//自动弹出代码提示条件
+				        final int lineStartIdx = ScriptEditPanel.getLineStartOffset(jtaDocment, line);
+				        final int lineIdx = position - lineStartIdx;
+				        final char[] lineChars = jtaDocment.getText(lineStartIdx, lineIdx).toCharArray();
+				        final int lineCharsLen = lineChars.length;
+				        
+				        if(isHttpResource(lineChars, lineCharsLen - 1)){
+				        	return;//对于http型的资源，不弹出本地库资源代码提示
+				        }
+				        
+				        //处于""之中
+				        int countYinHao = 0;
+				        for (int i = 0; i < lineCharsLen; i++) {
+							if(lineChars[i] == '\"' && i > 0 && lineChars[i - 1] != '\\'){
+								countYinHao++;
 							}
-					        if(countYinHao % 2 == 1){//countYinHao > 0 && 
-					        	if(isPathSplit){
-					        		popUpAuto(codeHelper);
-					        		return;
-					        	}
-					        	
-					        	if(L.isInWorkshop){
-					        		L.V = L.O ? false : LogManager.log("input dot (.) is in yinhao, skip auto popup codetip.");
-					        	}
-					        	return;
-					        }
-					        
-					        if(isPathSplit){
-					        	return;
-					        }
-					        
-					        //处于#之后
-					        for (int i = 0; i < lineCharsLen; i++) {
-					        	if(lineChars[i] == '#'){
-					        		return;
-					        	}
-					        }
-
-					        if(isDot){
-						        //a = 100.2 + 10.情形
-						        boolean isVarOrMethodCase = false;
-						        for (int i = lineCharsLen - 1; i >= 0; i--) {
-						        	final char oneChar = lineChars[i];
-									if(oneChar >= '1' && oneChar <= '0'){
-										continue;
-									}else if((oneChar >= 'a' && oneChar <= 'z') || (oneChar >='A' && oneChar <= 'Z') || oneChar == '_' || oneChar == ')'){// )表示方法
-										isVarOrMethodCase = true;
-									}
-									break;
-								}
-						        
-						        if(isVarOrMethodCase){
-						        }else{
-						        	if(L.isInWorkshop){
-						        		L.V = L.O ? false : LogManager.log("input dot (.) is not for variable, skip auto popup codetip.");
-						        	}
-						        	return;
-						        }
-					        }
-					        
-					        if(inputChar == ':'){
-					        	//abc = Java::情形
-					        	if(lineCharsLen > 0 && lineChars[lineCharsLen - 1] == ':'){
-					        	}else{
-					        		return;
-					        	}
-					        }
-					        
-					        popUpAuto(codeHelper);
 						}
+				        if(countYinHao % 2 == 1){//countYinHao > 0 && 
+				        	if(isPathSplit){
+				        		popUpAuto(codeHelper);
+				        		return;
+				        	}
+				        	
+				        	if(L.isInWorkshop){
+				        		L.V = L.O ? false : LogManager.log("input dot (.) is in yinhao, skip auto popup codetip.");
+				        	}
+				        	return;
+				        }
+				        
+				        if(isPathSplit){
+				        	return;
+				        }
+				        
+				        //处于#之后
+				        for (int i = 0; i < lineCharsLen; i++) {
+				        	if(lineChars[i] == '#'){
+				        		return;
+				        	}
+				        }
+
+				        if(isDot){
+					        //a = 100.2 + 10.情形
+					        boolean isVarOrMethodCase = false;
+					        for (int i = lineCharsLen - 1; i >= 0; i--) {
+					        	final char oneChar = lineChars[i];
+								if(oneChar >= '1' && oneChar <= '0'){
+									continue;
+								}else if((oneChar >= 'a' && oneChar <= 'z') || (oneChar >='A' && oneChar <= 'Z') || oneChar == '_' || oneChar == ')'){// )表示方法
+									isVarOrMethodCase = true;
+								}
+								break;
+							}
+					        
+					        if(isVarOrMethodCase){
+					        }else{
+					        	if(L.isInWorkshop){
+					        		L.V = L.O ? false : LogManager.log("input dot (.) is not for variable, skip auto popup codetip.");
+					        	}
+					        	return;
+					        }
+				        }
+				        
+				        if(inputChar == ':'){
+				        	//abc = Java::情形
+				        	if(lineCharsLen > 0 && lineChars[lineCharsLen - 1] == ':'){
+				        	}else{
+				        		return;
+				        	}
+				        }
+				        
+				        popUpAuto(codeHelper);
 					}
 				}catch (final Exception e) {
 					ExceptionReporter.printStackTrace(e);
@@ -584,14 +586,15 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 			private void popUpAuto(final CodeHelper codeHelper) {
 				//自动弹出代码提示
-				final Point magicCaretPosition = jtaScript.getCaret().getMagicCaretPosition();
-				final int caretPosition = jtaScript.getCaretPosition() + 1;//+1是因为当前正在输入的需要计入
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
 						try{
-							codeHelper.input(ScriptEditPanel.this, jtaScript, doc, fontHeight, false, 
-									magicCaretPosition, caretPosition);
+							final int caretPosition = jtaScript.getCaretPosition();
+							final Rectangle caretRect=jtaScript.modelToView(caretPosition);
+							final Point caretPointer = new Point(caretRect.x, caretRect.y);
+							codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, false, 
+									caretPointer, caretPosition);
 						}catch (final Exception e) {
 						}
 					}
@@ -624,8 +627,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				if(keycode == codeHelper.wordCompletionCode && (modifiers & wordCompletionModifyMaskCode) == wordCompletionModifyMaskCode){
 					//注意：请同步到MletNodeEditPanel
 					try {
-						codeHelper.input(ScriptEditPanel.this, jtaScript, doc, fontHeight, true, 
-								jtaScript.getCaret().getMagicCaretPosition(), jtaScript.getCaretPosition());
+						final int caretPosition = jtaScript.getCaretPosition();
+						final Rectangle caretRect=jtaScript.modelToView(caretPosition);
+						final Point caretPointer = new Point(caretRect.x, caretRect.y);
+						codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, 
+								caretPointer, caretPosition);
 					} catch (final Throwable e) {
 						ExceptionReporter.printStackTrace(e);
 					}
@@ -659,6 +665,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					return;
 				}
 	            
+				if(keycode == KeyEvent.VK_BACK_SPACE || keycode == KeyEvent.VK_DELETE){
+					scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL);
+				}else{
+					scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_TYPE);
+				}
 		    }
 		});
 
@@ -671,7 +682,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			private void modify(){
 				currItem.name = nameField.getText();
 				App.invokeLaterUI(updateTreeRunnable);
-				notifyModified();
+				notifyModified(true);
 			}
 			@Override
 			public void removeUpdate(final DocumentEvent e) {
@@ -693,7 +704,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			public void run() {
 				currItem.name = nameField.getText();
 				App.invokeLaterUI(updateTreeRunnable);
-				notifyModified();
+				notifyModified(true);
 			}
 		}, threadPoolToken));
 
@@ -716,10 +727,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		
 	public abstract void updateScript(String script);
 	
-	public void notifyModified(){
-		if(isInited){
-			currItem.getContext().modified.setModified(true);
+	public static int getLineOfOffsetWithoutException(final Document doc, final int offset) {
+		try{
+			return getLineOfOffset(doc, offset);
+		}catch (final Exception e) {
 		}
+		return -1;
 	}
 	
 	public static int getLineOfOffset(final Document doc, final int offset) throws BadLocationException {
@@ -762,42 +775,96 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		
 		isInited = false;
 		
+		if(scriptUndoManager != null){
+			scriptUndoManager.discardAllEdits();
+			scriptUndoListener.isForbidRecordUndoEdit = true;
+		}else{
+			scriptUndoManager = new UndoManager();
+			scriptUndoManager.setLimit(100);
+			scriptUndoListener = new ScriptUndoableEditListener(this, scriptUndoManager);
+			
+			jtaDocment.addUndoableEditListener(scriptUndoListener);
+		}
+
 		jtaScript.setText("");
 		errRunInfo.setText("");
 
 		currItem = (HPNode)currNode.getUserObject();
 		nameField.setText(currItem.name);
 	}
-	boolean undoInProcess = false;
-	PositionUndoManager undoManager;
-	final JTextPane jtaScript = new JTextPane(){
-		final Document document = getDocument();
-		
+	private ScriptUndoableEditListener scriptUndoListener;
+	private UndoManager scriptUndoManager;
+	private final AbstractDocument jtaDocment;
+	final HCTextPane jtaScript = new HCTextPane(){
 		@Override
 		public void paste(){
 			try{
-				synchronized (modifyAndColorAll) {
-					undoManager.recordPosition(true);
-					super.paste();
+				isModifySourceForRebuildAST = false;
+				scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_PASTE);
+				final int oldLineNo = getLineOfOffsetWithoutException(jtaDocment, jtaScript.getCaretPosition());
+
+				super.paste();
+				
+				final int newLineNo = getLineOfOffset(jtaDocment, jtaScript.getCaretPosition());
+				
+				if(oldLineNo != newLineNo){
+					ContextManager.getThreadPool().run(new Runnable() {
+						@Override
+						public void run() {
+							rebuildASTNode();
+							format(jtaDocment);
+						}
+					}, threadPoolToken);
+					updateScript(jtaScript.getText());
+				}else{
+					refreshCurrLineAfterKey(newLineNo);
 				}
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						format(document);
-						App.invokeLaterUI(modifyAndColorAll);
-					}
-				});
 			}catch (final Throwable e) {
-				ExceptionReporter.printStackTrace(e);
+//				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		@Override
 		public void cut(){
-			synchronized (modifyAndColorAll) {
-				undoManager.recordPosition(true);
+//			synchronized (modifyAndColorAll) {
+				isModifySourceForRebuildAST = false;
+				scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_CUT);
+				final int oldLineNo = getLineOfOffsetWithoutException(jtaDocment, jtaScript.getCaretPosition());
+				
 				super.cut();
-				App.invokeLaterUI(modifyAndColorAll);
-			}
+				
+				try{
+					final int newLineNo = getLineOfOffset(jtaDocment, jtaScript.getCaretPosition());
+					if(oldLineNo != newLineNo){
+						ContextManager.getThreadPool().run(new Runnable() {
+							@Override
+							public void run() {
+								rebuildASTNode();
+							}
+						}, threadPoolToken);
+						updateScript(jtaScript.getText());
+					}else{
+						refreshCurrLineAfterKey(newLineNo);
+					}
+				}catch (final Exception e) {
+				}
+//			}
+		}
+		@Override
+		public void refreshCurrLineAfterKey(final int line) {
+			SwingUtilities.invokeLater(new Runnable(){
+				@Override
+				public void run() {
+					try{
+						final int lineStartIdx = getLineStartOffset(jtaDocment, line);
+						final int lineEndIdx = getLineEndOffset(jtaDocment, line);
+						final String text = jtaDocment.getText(lineStartIdx, lineEndIdx - lineStartIdx);
+						initBlock(text, lineStartIdx, false);
+						final String scripts = jtaScript.getText();
+						updateScript(scripts);//更新待保存内容
+					}catch (final Exception e) {
+					}
+				}
+			});
 		}
 	};
 	
@@ -807,7 +874,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	 * 格式化代码全文
 	 * @param document
 	 */
-	private final void format(final Document document){
+	final void format(final Document document){
 //		System.out.println("format content : \n" + jtaScript.getText());
 		int startLine = 0;
 		int lineWillDen = 0;
@@ -881,7 +948,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					}
 				}
 				
-				initBlock(strTrim, startPosition + lineWillDen);//粘贴多行后，需要进行format和color
+				initBlock(strTrim, startPosition + lineWillDen, false);//粘贴多行后，需要进行format和color
 				
 				{
 					//是否下行需要缩进, if , while 
@@ -931,324 +998,344 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 	}
 	
-	int position;
 	boolean newline = false;
-	final Runnable modifyAndColorAll = new Runnable() {
-		@Override
-		public void run() {
-			try{
-				synchronized (modifyAndColorAll) {
-					initColor(false, true);
-					notifyModified();
-					final String scripts = jtaScript.getText();
-					updateScript(scripts);		
-				}
-			}catch (final Throwable e) {
-				ExceptionReporter.printStackTrace(e);
-			}
-		}
-	};
+//	final Runnable colorAll = new Runnable() {
+//		int position = 0;
+//		@Override
+//		public void run() {
+//			try{
+//				initColor(false, true, position);
+//				position = jtaScript.getCaretPosition();
+//				final String scripts = jtaScript.getText();
+//				updateScript(scripts);
+//			}catch (final Throwable e) {
+//				ExceptionReporter.printStackTrace(e);
+//			}
+//		}
+//	};
 	
-	final void initColor(final boolean isLoadColor, final boolean useOldPosition){
+	final void initColor(final boolean isLoadColor, final boolean useOldPosition, final int position){
 		if(isLoadColor){//等待其它事件完成
 			try{
 				Thread.sleep(50);
 			}catch (final Exception e) {
 			}
 		}
-		undoInProcess = false;
-		final Document document = jtaScript.getDocument();
-		if(isLoadColor){
-			if(undoManager != null){
-				document.removeUndoableEditListener(undoManager);
-				undoManager.die();
-			}
-			undoManager = new PositionUndoManager(jtaScript){
-				@Override
-				public void undoableEditHappened(final UndoableEditEvent e) {
-					synchronized (modifyAndColorAll) {
-						if(undoInProcess){
-							this.addEdit(e.getEdit());
-						}				
-					}
-				}
-			};
-			undoManager.setLimit(20);
-			document.addUndoableEditListener(undoManager);
-		}
 		try{
 			int colorOffset = 0, colorLen = -1;
 			if(useOldPosition && position != 0){
-				final int lineNo = getLineOfOffset(document, position);
-				if(newline){
-					colorOffset = getLineStartOffset(document, lineNo - 1);
-				}else{
-					colorOffset = getLineStartOffset(document, lineNo);
-				}
-				colorLen = getLineEndOffset(document, lineNo) - colorOffset;
+				final int lineNo = getLineOfOffset(jtaDocment, position);
+//				if(newline){
+//					colorOffset = getLineStartOffset(jtaDocment, lineNo - 1);
+//				}else{
+					colorOffset = getLineStartOffset(jtaDocment, lineNo);
+//				}
+				colorLen = getLineEndOffset(jtaDocment, lineNo) - colorOffset;
 			}else{
 			}
-			position = 0;
 			newline = false;
-			
-			final String text = jtaScript.getText(colorOffset, (colorLen==-1)?jtaScript.getText().length():colorLen);
+			String text = null;
+			if(colorOffset == 0 && colorLen == -1){
+				text = jtaScript.getText();
+			}else{
+				try{
+					text = jtaScript.getText(colorOffset, (colorLen==-1)?jtaScript.getText().length():colorLen);
+				}catch (final Exception e) {
+					text = jtaScript.getText();
+					colorOffset = 0;
+				}
+			}
 //			System.out.println("change Line : " + text + "(endWithReturn : "+(text.charAt(text.length()-1)=='\n')+")");
 			if(colorLen==-1 && text.indexOf("\r") >= 0){
-				jtaScript.setText(text.replace("\r", ""));
-				colorLen = jtaScript.getText().length();
+				text = text.replace("\r", "");
+				jtaScript.setText(text);
 			}
 			
-			final int finalColorOffSet = colorOffset;
-			initBlock(text, finalColorOffSet);
+			initBlock(text, colorOffset, false);
 //			System.out.println("context : \n" + jtaScript.getText());
 		}catch (final Exception e) {
 			e.printStackTrace();//注意：不javax.swing.text.BadLocationException
 //			ExceptionReporter.printStackTrace(e);
 		}
-		undoInProcess = true;
 //		buildHighlight(jtaScript, first_rem_pattern, REM_LIGHTER);
 	}
 
-	public final void initBlock(final String text, final int offset) {
-		final StyledDocument document = (StyledDocument)jtaScript.getDocument();
-		document.setCharacterAttributes(offset, text.length(), DEFAULT_LIGHTER, true);
-		
-		buildHighlight(jtaScript, hc_map_pattern, MAP_LIGHTER, offset, text);
-		buildHighlight(jtaScript, num_pattern, NUM_LIGHTER, offset, text);//要置于字符串之前，因为字符串中可能含有数字
-		buildHighlight(jtaScript, keywords_pattern, KEYWORDS_LIGHTER, offset, text);
-		buildHighlight(jtaScript, var_pattern, VAR_LIGHTER, offset, text);
-		buildHighlight(jtaScript, str_pattern, STR_LIGHTER, offset, text);//?<!\\\"
-		buildHighlight(jtaScript, rem_pattern, REM_LIGHTER, offset, text);//字符串中含有#{}，所以要置于STR_LIGHTER之前
+	@Override
+	public void loadAfterShow(){
+		scriptUndoListener.isForbidRecordUndoEdit = false;
+		scriptUndoManager.discardAllEdits();
+		jtaScript.setCaretPosition(0);
 	}
 	
-	private final void buildHighlight(final JTextPane jta, final Pattern pattern, final SimpleAttributeSet attributes, final int offset, final String text) {
-		final StyledDocument document = (StyledDocument)jta.getDocument();
+	public final void initBlock(final String text, final int offset, final boolean isReplace) {
+		final StyledDocument document = (StyledDocument)jtaDocment;
+		document.setCharacterAttributes(offset, text.length(), DEFAULT_LIGHTER, true);
+		
+		buildHighlight(hc_map_pattern, MAP_LIGHTER, offset, text, isReplace);
+		buildHighlight(num_pattern, NUM_LIGHTER, offset, text, isReplace);//要置于字符串之前，因为字符串中可能含有数字
+		buildHighlight(keywords_pattern, KEYWORDS_LIGHTER, offset, text, isReplace);
+		buildHighlight(var_pattern, VAR_LIGHTER, offset, text, isReplace);
+		buildHighlight(str_pattern, STR_LIGHTER, offset, text, isReplace);//?<!\\\"
+		buildHighlight(rem_pattern, REM_LIGHTER, offset, text, isReplace);//字符串中含有#{}，所以要置于STR_LIGHTER之前
+	}
+	
+	private final void buildHighlight(final Pattern pattern, final SimpleAttributeSet attributes, final int offset, final String text, final boolean isReplace) {
+		final StyledDocument document = (StyledDocument)jtaDocment;
 		final Matcher matcher = pattern.matcher(text);
 		while (matcher.find()) {
 			final int start = matcher.start() + offset;
 			final int end = matcher.end() + offset;
-			document.setCharacterAttributes(start, end - start, attributes, false);
+			document.setCharacterAttributes(start, end - start, attributes, isReplace);
 		}
 	}
 
-	public void undo() {
-		synchronized (modifyAndColorAll) {
-			if (undoManager.canUndo()){
-				undoManager.undo();
-				undoInProcess = false;
-				jtaScript.setText(jtaScript.getText());
-				try{
-					jtaScript.setCaretPosition(undoManager.getPostion());
-				}catch (final Exception e) {
-					ExceptionReporter.printStackTrace(e);
-				}
-				App.invokeLaterUI(modifyAndColorAll);
-			}
+	public final void undo() {
+//		synchronized (modifyAndColorAll) {
+		if (scriptUndoManager.canUndo()){
+			isModifySourceForRebuildAST = false;
+			scriptUndoManager.undo();
+//			ContextManager.getThreadPool().run(new Runnable() {
+//				@Override
+//				public void run() {
+////					rebuildASTNode();
+//					App.invokeLaterUI(colorAll);
+//				}
+//			}, threadPoolToken);
 		}
+//		}
 	}
 
-	public void redo() {
-		synchronized (modifyAndColorAll) {
-			if (undoManager.canRedo()){
-				undoManager.redo();
-				undoInProcess = false;
-				jtaScript.setText(jtaScript.getText());
-				try{
-					jtaScript.setCaretPosition(undoManager.getPostion());
-				}catch (final Exception e) {
-				}
-				App.invokeLaterUI(modifyAndColorAll);
+	public final void redo() {
+//		synchronized (modifyAndColorAll) {
+			if (scriptUndoManager.canRedo()){
+				isModifySourceForRebuildAST = false;
+				scriptUndoManager.redo();
+//				ContextManager.getThreadPool().run(new Runnable() {
+//					@Override
+//					public void run() {
+//						rebuildASTNode();
+//						App.invokeLaterUI(colorAll);
+//					}
+//				}, threadPoolToken);
 			}
-		}
+//		}
+	}
+
+	protected final void setInitText(final String listener) {
+		setUndoText(listener, 0);
 	}
 
 	private final void actionOnEnterKey(final Document doc) throws Exception{
-		position = jtaScript.getCaretPosition();
-		int line = getLineOfOffset(doc, position);
-		doc.insertString(position++, "\n", null);
+		final StringBuilder sb = new StringBuilder(24);
+		boolean isDoneEnter = false;
+		boolean isMovSelfBack = false;
 		
-		synchronized (modifyAndColorAll) {
-			//复制上行的缩进到新行中
-			boolean inputSelfBackEnd = false;
-			newline = true;
-			try {
-				final int positionLine = line;
-				while(line > 0){
-					final int startIdx = getLineStartOffset(doc, line);
+		final int InsertPosition = jtaScript.getCaretPosition();
+		int line = getLineOfOffset(doc, InsertPosition);
+		sb.append("\n");
+		
+		//复制上行的缩进到新行中
+		boolean inputSelfBackEnd = false;
+		newline = true;
+		try {
+			final int positionLine = line;
+			while(line > 0){
+				final int startIdx = getLineStartOffset(doc, line);
 
-					//获得缩进串
-					final String lineStr = doc.getText(startIdx, position - startIdx - 1);//-1去掉\n
-					final char[] chars = lineStr.toCharArray();
-					
-					if(chars.length == 0){
-						line--;
-						continue;
+				//获得缩进串
+				final String lineStr = doc.getText(startIdx, InsertPosition - startIdx);//-1去掉\n
+				final char[] chars = lineStr.toCharArray();
+				
+				if(chars.length == 0){
+					line--;
+					continue;
+				}
+				int charIdxRemovedTab = 0;
+				for (; charIdxRemovedTab < chars.length; charIdxRemovedTab++) {
+					if(chars[charIdxRemovedTab] == ' ' || chars[charIdxRemovedTab] == '\t'){
+						
+					}else{
+						break;
 					}
-					int charIdxRemovedTab = 0;
-					for (; charIdxRemovedTab < chars.length; charIdxRemovedTab++) {
-						if(chars[charIdxRemovedTab] == ' ' || chars[charIdxRemovedTab] == '\t'){
-							
-						}else{
+				}
+				final String trim_str = new String(chars, charIdxRemovedTab, chars.length - charIdxRemovedTab);
+				if(trim_str.length() == 0 || trim_str.startsWith("#")){
+					//复制上行的缩进
+					sb.append(String.valueOf(chars, 0, charIdxRemovedTab));
+					final String txt = sb.toString();
+					final int newPos = InsertPosition + sb.length();
+					setUndoText(txt, newPos);
+					isDoneEnter = true;
+					return;
+				}
+				inputSelfBackEnd = false;
+				boolean nextRowIndent = false;
+				for (int j = 0; j < backIndent.length; j++) {
+					final char[] oneBackStr = backIndent[j];
+					int l = charIdxRemovedTab;
+					inputSelfBackEnd = true;
+					for (int k = 0; k < oneBackStr.length && l < chars.length; k++, l++) {
+						if(oneBackStr[k] != chars[l]){
+							inputSelfBackEnd = false;
 							break;
 						}
 					}
-					final String trim_str = new String(chars, charIdxRemovedTab, chars.length - charIdxRemovedTab);
-					if(trim_str.length() == 0 || trim_str.startsWith("#")){
-						//复制上行的缩进
-						doc.insertString(position, String.valueOf(chars, 0, charIdxRemovedTab), null);
-						jtaScript.setCaretPosition(position + charIdxRemovedTab);
-						return;
-					}
-					inputSelfBackEnd = false;
-					boolean nextRowIndent = false;
-					for (int j = 0; j < backIndent.length; j++) {
-						final char[] oneBackStr = backIndent[j];
-						int l = charIdxRemovedTab;
-						inputSelfBackEnd = true;
-						for (int k = 0; k < oneBackStr.length && l < chars.length; k++, l++) {
-							if(oneBackStr[k] != chars[l]){
-								inputSelfBackEnd = false;
-								break;
-							}
-						}
-						if(inputSelfBackEnd){
-							nextRowIndent = inputSelfBackEnd;
-							//检查上行是否当前行已缩进。即在已有代码elsif xxx后进行回车，当前是否需要缩进
-							final int startUpRowIdx = getLineStartOffset(doc, positionLine - 2);
-							try{
-								final String upRowStr = doc.getText(startUpRowIdx, startIdx - 1 - startUpRowIdx);
-								final char[] upRowChars = upRowStr.toCharArray();
-								int charIdxUpRowRemovedTab = 0;
-								for (; charIdxUpRowRemovedTab < upRowChars.length; charIdxUpRowRemovedTab++) {
-									if(upRowChars[charIdxUpRowRemovedTab] == ' ' || upRowChars[charIdxUpRowRemovedTab] == '\t'){
-										
-									}else{
-										break;
-									}
-								}
-								if(charIdxUpRowRemovedTab > charIdxRemovedTab){
-									inputSelfBackEnd = false;//取消自缩进
-								}else if(charIdxUpRowRemovedTab == charIdxRemovedTab){
-									if(isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab, elsifChar)){
-										inputSelfBackEnd = false;//取消自缩进
-									}
-								}
-							}catch (final Exception ex) {
-							}
-							break;
-						}
-					}
-					int charNewIdxRemovedTab = charIdxRemovedTab;
-					int withEndInd = 0;
-					{
-						final int size = WithEndIndentation.length;
-						for (int j = 0; j < size; j++) {
-							if(trim_str.startsWith(WithEndIndentation[j], 0)){
-								chars[charNewIdxRemovedTab++] = '\t';
-								withEndInd = 1;
-								break;
-							}
-						}
-					}
-					if(withEndInd == 0){
-						final int size = doIndentation.length;
-						for (int j = 0; j < size; j++) {
-							if(trim_str.endsWith(doIndentation[j])){
-								chars[charNewIdxRemovedTab++] = '\t';
-								withEndInd = 1;
-								break;
-							}
-						}
-					}
-					if(withEndInd == 0){
-						withEndInd = WithEndIndentationKuoHao.matcher(trim_str).find()?2:0;
-						if(withEndInd > 0){
-							chars[charNewIdxRemovedTab++] = '\t';
-						}
-					}
-					boolean isNextIndentAlready = false;
-					if(withEndInd > 0){
-						//检查下行是否已缩进，
+					if(inputSelfBackEnd){
+						nextRowIndent = inputSelfBackEnd;
+						//检查上行是否当前行已缩进。即在已有代码elsif xxx后进行回车，当前是否需要缩进
+						final int startUpRowIdx = getLineStartOffset(doc, positionLine - 2);
 						try{
-							final String nextLine = doc.getText(position + 1, getLineEndOffset(doc, positionLine + 2) - (position + 1));
-							
-							final char[] nextLineChars = nextLine.toCharArray();
-							
-							int charIdxNextRemovedTab = 0;
-							for (; charIdxNextRemovedTab < nextLineChars.length; charIdxNextRemovedTab++) {
-								if(nextLineChars[charIdxNextRemovedTab] == ' ' || nextLineChars[charIdxNextRemovedTab] == '\t'){
+							final String upRowStr = doc.getText(startUpRowIdx, startIdx - 1 - startUpRowIdx);
+							final char[] upRowChars = upRowStr.toCharArray();
+							int charIdxUpRowRemovedTab = 0;
+							for (; charIdxUpRowRemovedTab < upRowChars.length; charIdxUpRowRemovedTab++) {
+								if(upRowChars[charIdxUpRowRemovedTab] == ' ' || upRowChars[charIdxUpRowRemovedTab] == '\t'){
 									
 								}else{
 									break;
 								}
 							}
-							final boolean isElse = isELSIFIndentKeyWords(nextLineChars, charIdxNextRemovedTab, elsifChar)
-									|| isELSIFIndentKeyWords(nextLineChars, charIdxNextRemovedTab, elseChar);
-							if((charIdxNextRemovedTab + (isElse?1:0)) > charIdxRemovedTab){
-								isNextIndentAlready = true;
+							if(charIdxUpRowRemovedTab > charIdxRemovedTab){
+								inputSelfBackEnd = false;//取消自缩进
+							}else if(charIdxUpRowRemovedTab == charIdxRemovedTab){
+								if(isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab, elsifChar)){
+									inputSelfBackEnd = false;//取消自缩进
+								}
 							}
-						}catch (final Exception e) {
-							if(e instanceof BadLocationException){
-							}else{
-								ExceptionReporter.printStackTrace(e);
-							}
+						}catch (final Exception ex) {
+						}
+						break;
+					}
+				}
+				int charNewIdxRemovedTab = charIdxRemovedTab;
+				int withEndInd = 0;
+				{
+					final int size = WithEndIndentation.length;
+					for (int j = 0; j < size; j++) {
+						if(trim_str.startsWith(WithEndIndentation[j], 0)){
+							chars[charNewIdxRemovedTab++] = '\t';
+							withEndInd = END_TYPE1;
+							break;
 						}
 					}
-					
+				}
+				if(withEndInd == 0){
+					final int size = doIndentation.length;
+					for (int j = 0; j < size; j++) {
+						if(trim_str.endsWith(doIndentation[j])){
+							chars[charNewIdxRemovedTab++] = '\t';
+							withEndInd = END_TYPE1;
+							break;
+						}
+					}
+				}
+				if(withEndInd == 0){
+					final Matcher matcher = WithEndIndentationKuoHao.matcher(trim_str);
+					withEndInd = matcher.find()?(matcher.group(1).indexOf(DO_WORD)>=0?END_TYPE1:END_TYPE2):0;
+					if(withEndInd > 0){
+						chars[charNewIdxRemovedTab++] = '\t';
+					}
+				}
+				boolean isNextIndentAlready = false;
+				if(withEndInd > 0){
+					//检查下行是否已缩进，
 					try{
-					if(charNewIdxRemovedTab != 0 || withEndInd > 0){
-						int newPosition;
-						doc.insertString(position, String.valueOf(chars, 0, charNewIdxRemovedTab), null);
-						position += charNewIdxRemovedTab;
-						if(nextRowIndent && (inputSelfBackEnd == false)){
-							doc.insertString(position, "\t", null);
-							position++;
-						}
-						newPosition = position;
-						if(withEndInd > 0 && (isNextIndentAlready == false) && (nextRowIndent == false)){
-							doc.insertString(position++, "\n", null);
-							doc.insertString(position, String.valueOf(chars, 0, charNewIdxRemovedTab - 1), null);//下一行，减少一个缩位
-							position+= (charNewIdxRemovedTab - 1);
-							if(withEndInd == 1){
-								doc.insertString(position, "end", null);
-								initBlock("end", position);
+						final String nextLine = doc.getText(InsertPosition + 1, getLineEndOffset(doc, positionLine + 2) - (InsertPosition + 1));
+						
+						final char[] nextLineChars = nextLine.toCharArray();
+						
+						int charIdxNextRemovedTab = 0;
+						for (; charIdxNextRemovedTab < nextLineChars.length; charIdxNextRemovedTab++) {
+							if(nextLineChars[charIdxNextRemovedTab] == ' ' || nextLineChars[charIdxNextRemovedTab] == '\t'){
+								
 							}else{
-								doc.insertString(position, "}", null);
-								initBlock("}", position);
+								break;
 							}
 						}
-						jtaScript.setCaretPosition(newPosition);
-						break;
-					}else{
-						//取上一行
-//									line--;
-						break;
-					}
-					}catch (final Throwable e) {
-						ExceptionReporter.printStackTrace(e);
-					}finally{
-						if(inputSelfBackEnd && charNewIdxRemovedTab > 0){
-							doc.remove(startIdx, 1);//end之前的字符去掉一个缩位
+						final boolean isElse = isELSIFIndentKeyWords(nextLineChars, charIdxNextRemovedTab, elsifChar)
+								|| isELSIFIndentKeyWords(nextLineChars, charIdxNextRemovedTab, elseChar);
+						if((charIdxNextRemovedTab + (isElse?1:0)) > charIdxRemovedTab){
+							isNextIndentAlready = true;
+						}
+					}catch (final Exception e) {
+						if(e instanceof BadLocationException){
+						}else{
+							ExceptionReporter.printStackTrace(e);
 						}
 					}
 				}
-			} catch (final Throwable e) {
-				if(e instanceof BadLocationException){
-				}else{
-					ExceptionReporter.printStackTrace(e);
+				
+				try{
+				final int newPosition;
+				if(charNewIdxRemovedTab > 0){
+					sb.append(String.valueOf(chars, 0, charNewIdxRemovedTab));
 				}
+				if(nextRowIndent && (inputSelfBackEnd == false)){
+					sb.append("\t");
+				}
+				if(charNewIdxRemovedTab != 0 || withEndInd > 0){
+					newPosition = InsertPosition + sb.length();
+					if(withEndInd > 0 && (isNextIndentAlready == false) && (nextRowIndent == false)){
+						sb.append("\n");
+						sb.append(String.valueOf(chars, 0, charNewIdxRemovedTab - 1));//下一行，减少一个缩位
+						
+						final String strEnd = ((withEndInd == END_TYPE1)?"end":"}");
+						sb.append(strEnd);
+						final String txt = sb.toString();
+						setUndoText(txt, newPosition);
+						isDoneEnter = true;
+						initBlock(strEnd, InsertPosition + sb.length() - strEnd.length(), false);
+					}
+					break;
+				}else{
+					break;
+				}
+				}catch (final Throwable e) {
+					ExceptionReporter.printStackTrace(e);
+				}finally{
+					if(inputSelfBackEnd && charNewIdxRemovedTab > 0){
+						doc.remove(startIdx, 1);//end之前的字符去掉一个缩位
+						isMovSelfBack = true;
+					}
+				}
+			}
+			if(isDoneEnter == false){
+				final String txt = sb.toString();
+				final int newPos = InsertPosition + sb.length() + (isMovSelfBack?-1:0);
+				setUndoText(txt, newPos);
+			}
+		} catch (final Throwable e) {
+			if(e instanceof BadLocationException){
+			}else{
+				ExceptionReporter.printStackTrace(e);
 			}
 		}
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				modifyAndColorAll.run();
-				
-				designer.codeHelper.updateScriptASTNode(ScriptEditPanel.this, jtaScript.getText(), isModifySourceForRebuildAST);
-				isModifySourceForRebuildAST = false;
-			}
-		});
+		SwingUtilities.invokeLater(actionRunnable);
 	}
+
+	private final void setUndoText(final String txt, final int newPos) {
+		final int oldPos = jtaScript.getCaretPosition();
+		try {
+			jtaDocment.insertString(oldPos, txt, null);
+		} catch (final BadLocationException e) {
+		}
+//		ResourceUtil.sendToClipboard(txt);
+//		jtaScript.paste();
+		isModifySourceForRebuildAST = true;//enable fireCaretUpdate， if (){} or def abc {}
+		jtaScript.setCaretPosition(newPos);
+	}
+	
+	private final Runnable actionRunnable = new Runnable() {
+		@Override
+		public void run() {
+//			colorAll.run();
+			updateScript(jtaScript.getText());
+			rebuildASTNode();
+		}
+	};
+	
+	private static final int END_TYPE1 = 1;
+	private static final int END_TYPE2 = 2;
 
 	public static final void consumeEvent(final KeyEvent e) {
 		e.setKeyChar('\0');
@@ -1261,24 +1348,6 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			doTest(false, false);
 		}
 	};
-
-	public static void refreshCurrLineAfterKey(final int line, final Document doc, final JTextPane jtaScript, final ScriptEditPanel sep) {
-		SwingUtilities.invokeLater(new Runnable(){
-			@Override
-			public void run() {
-				try{
-				final int lineStartIdx = getLineStartOffset(doc, line);
-				final int lineEndIdx = getLineEndOffset(doc, line);
-				final String text = doc.getText(lineStartIdx, lineEndIdx - lineStartIdx);
-				sep.initBlock(text, lineStartIdx);
-				sep.notifyModified();
-				final String scripts = jtaScript.getText();
-				sep.updateScript(scripts);	
-				}catch (final Exception e) {
-				}
-			}
-		});
-	}
 
 	public static SimpleAttributeSet build(final Color c, final boolean bold){
 		 final SimpleAttributeSet attributes = new SimpleAttributeSet();
@@ -1382,63 +1451,237 @@ class LineNumber extends JComponent {
 	}
 }
 
-class PositionUndoManager extends UndoManager{
-	int[] post;
-	int currIdx;
-	JTextPane jtaScript;
+class ScriptUndoableEditListener implements UndoableEditListener{
+	static final int UNDO_MODEL_TYPE = 1;
+	static final int UNDO_MODEL_PASTE = 2;
+	static final int UNDO_MODEL_CUT = 3;
+	static final int UNDO_MODEL_ENTER = 4;
+	static final int UNDO_MODEL_BACK_OR_DEL = 5;
+
+	boolean isForbidRecordUndoEdit = true;
+	private int undoModel = UNDO_MODEL_BACK_OR_DEL;
+	final UndoManager manager;
+	final ScriptEditPanel panel;
 	
-	PositionUndoManager(final JTextPane jta){
-		super();
-		jtaScript = jta;
+	final void setUndoModel(final int model){
+		undoModel = model;
+	}
+	
+	ScriptUndoableEditListener(final ScriptEditPanel panel, final UndoManager manager){
+		this.manager = manager;
+		this.panel = panel;
 	}
 	
 	@Override
-	public synchronized void setLimit(final int l) {
-		post = new int[l];
-		super.setLimit(l);
-	}
-	
-	public int getPostion(){
-		return post[currIdx];
-	}
-	
-	@Override
-	public synchronized boolean addEdit(final UndoableEdit anEdit) {
-		if(skipNext == false){
-			recordPosition(false);
+	public void undoableEditHappened(final UndoableEditEvent e) {
+		if(isForbidRecordUndoEdit == false){
+			final UndoableEdit edit = e.getEdit();
+			if(edit instanceof AbstractDocument.DefaultDocumentEvent){
+				final AbstractDocument.DefaultDocumentEvent dde = (AbstractDocument.DefaultDocumentEvent)edit;
+				if(dde.getType() == DocumentEvent.EventType.CHANGE){
+					return;
+				}
+			}
+			manager.addEdit(new HCUndoableEdit(panel, edit, undoModel));
 		}
-		return super.addEdit(anEdit);
+	}
+}
+
+class HCUndoableEdit implements UndoableEdit{
+	final int beforeCaretPos;
+	int afterCaretPos;
+	final UndoableEdit base;
+	final HCTextPane jta;
+	final int undoModel;
+	final Caret caret;
+	int selectionLen;
+	final ScriptEditPanel panel;
+	final boolean isModi;
+	DocumentEvent.EventType type;
+	
+	HCUndoableEdit(final ScriptEditPanel panel, final UndoableEdit base, final int undoModel){
+		this.panel = panel;
+		
+		this.jta = panel.jtaScript;
+		this.caret = jta.getCaret();
+		beforeCaretPos = caret.getDot();
+		this.base = base;
+		this.undoModel = undoModel;
+		isModi = this.panel.isModified();
+		
+		if(isModi == false){
+			this.panel.notifyModified(true);//由于REMOVE和INSERT都是isModi==false,所以强制后续的INSERT为ture
+		}
+		
+		if(base instanceof DefaultDocumentEvent){
+			final DefaultDocumentEvent dde = (DefaultDocumentEvent)base;
+			type = dde.getType();
+			if(type == DocumentEvent.EventType.REMOVE){
+				if(undoModel == ScriptUndoableEditListener.UNDO_MODEL_TYPE
+						|| undoModel == ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL){
+					selectionLen = 1;
+				}else{
+					selectionLen = dde.getLength();
+				}
+			}else if(type == DocumentEvent.EventType.INSERT){
+				if(undoModel == ScriptUndoableEditListener.UNDO_MODEL_TYPE
+						|| undoModel == ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL){
+				}else{
+					selectionLen = dde.getLength();
+				}
+			}
+		}
+		
+		if(undoModel == ScriptUndoableEditListener.UNDO_MODEL_ENTER){
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					try{
+						Thread.sleep(ThreadPriorityManager.UI_WAIT_FOR_EVENTQUEUE);
+					}catch (final Exception e) {
+					}
+					afterCaretPos = caret.getDot();
+//					System.out.println("afterCaretPos : " + afterCaretPos);
+				}
+			});
+		}
+	}
+	
+	@Override
+	public void undo() throws CannotUndoException {
+		final Document document = jta.getDocument();
+
+		final int oldLineNo = ScriptEditPanel.getLineOfOffsetWithoutException(document, jta.getCaretPosition());
+		
+		base.undo();
+		
+		if(beforeCaretPos > 0){
+			if(undoModel == ScriptUndoableEditListener.UNDO_MODEL_PASTE){
+				if(type == DocumentEvent.EventType.INSERT){
+					caret.setDot(beforeCaretPos - selectionLen);
+				}else{
+					caret.setDot(beforeCaretPos);
+				}
+			}else if(undoModel == ScriptUndoableEditListener.UNDO_MODEL_ENTER){
+				caret.setDot(beforeCaretPos - selectionLen);
+			}
+		}
+		
+		try{
+			final int newLineNo = ScriptEditPanel.getLineOfOffset(document, jta.getCaretPosition());
+			if(oldLineNo != newLineNo){
+				if(undoModel == ScriptUndoableEditListener.UNDO_MODEL_ENTER){
+				}else{
+					panel.rebuildASTNode();
+					panel.format(document);
+				}
+				panel.updateScript(jta.getText());
+			}else{
+				jta.refreshCurrLineAfterKey(newLineNo);
+			}
+		}catch (final Exception e) {
+		}
+		
+		if(isModi == false){
+			panel.notifyModified(false);
+		}
+		
 	}
 
-	public void recordPosition(final boolean skipNext) {
-		try{
-			post[currIdx++] = jtaScript.getCaretPosition() + (skipNext?0:-1);
-			if(currIdx == post.length){
-				currIdx = 0;
+	@Override
+	public boolean canUndo() {
+		return base.canUndo();
+	}
+
+	@Override
+	public void redo() throws CannotRedoException {
+		final Document document = jta.getDocument();
+		
+		final int oldLineNo = ScriptEditPanel.getLineOfOffsetWithoutException(document, jta.getCaretPosition());
+		
+		base.redo();
+		
+		if(afterCaretPos > 0){
+			if(undoModel == ScriptUndoableEditListener.UNDO_MODEL_ENTER){
+				
+				final Document doc = jta.getDocument();
+				try{
+					final int lineNo = ScriptEditPanel.getLineOfOffset(doc, afterCaretPos + 1);
+					final int startOff = ScriptEditPanel.getLineStartOffset(doc, lineNo);
+					final int endOff = ScriptEditPanel.getLineEndOffset(doc, lineNo);
+					final String strEnd = doc.getText(startOff, endOff - startOff);//redo可能产生end
+					
+//					panel.initBlock(strEnd, startOff, true);
+					final Matcher matcher = ScriptEditPanel.keywords_pattern.matcher(strEnd);
+					if (matcher.find()) {
+						final int start = matcher.start() + startOff - 1;
+						final int end = matcher.end() + startOff;
+						((StyledDocument)jta.getDocument()).setCharacterAttributes(start, end - start, ScriptEditPanel.KEYWORDS_LIGHTER, true);
+					}else{
+						((StyledDocument)jta.getDocument()).setCharacterAttributes(startOff, endOff - startOff, ScriptEditPanel.DEFAULT_LIGHTER, true);
+					}
+				}catch (final Exception e) {
+				}
+				caret.setDot(afterCaretPos);
 			}
-			this.skipNext = skipNext;
+		}
+		
+		try{
+			final int newLineNo = ScriptEditPanel.getLineOfOffset(document, jta.getCaretPosition());
+			if(oldLineNo != newLineNo){
+				panel.rebuildASTNode();
+				panel.format(jta.getDocument());
+				panel.updateScript(jta.getText());
+			}else{
+				jta.refreshCurrLineAfterKey(newLineNo);
+			}
 		}catch (final Exception e) {
-			ExceptionReporter.printStackTrace(e);
 		}
+		
+		if(isModi == false){
+			panel.notifyModified(true);
+		}
+		
 	}
-	
-	boolean skipNext = false;
-	
+
 	@Override
-	public synchronized void undo() throws CannotUndoException {
-		currIdx--;
-		if(currIdx < 0){
-			currIdx = post.length - 1;
-		}
-		super.undo();
+	public boolean canRedo() {
+		return base.canRedo();
+	}
+
+	@Override
+	public void die() {
+		base.die();
+	}
+
+	@Override
+	public boolean addEdit(final UndoableEdit anEdit) {
+		return base.addEdit(anEdit);
+	}
+
+	@Override
+	public boolean replaceEdit(final UndoableEdit anEdit) {
+		return base.replaceEdit(anEdit);
+	}
+
+	@Override
+	public boolean isSignificant() {
+		return base.isSignificant();
+	}
+
+	@Override
+	public String getPresentationName() {
+		return base.getPresentationName();
+	}
+
+	@Override
+	public String getUndoPresentationName() {
+		return base.getUndoPresentationName();
+	}
+
+	@Override
+	public String getRedoPresentationName() {
+		return base.getRedoPresentationName();
 	}
 	
-	@Override
-	public synchronized void redo() throws CannotUndoException {
-		currIdx++;
-		if(currIdx == post.length){
-			currIdx = 0;
-		}
-		super.redo();
-	}
 }

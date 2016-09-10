@@ -78,7 +78,7 @@ public class MenuListEditPanel extends NodeEditPanel {
 				final int toIdx = selectedRow - 1;
 				swapRow(selectedRow, toIdx);
 				table.setRowSelectionInterval(toIdx, toIdx);
-				notifyModified();
+				notifyModified(true);
 			}
 		}, threadPoolToken));
 		downButton.addActionListener(new HCActionListener(new Runnable() {
@@ -89,7 +89,7 @@ public class MenuListEditPanel extends NodeEditPanel {
 				final int toIdx = selectedRow + 1;
 				swapRow(selectedRow, toIdx);
 				table.setRowSelectionInterval(toIdx, toIdx);
-				notifyModified();
+				notifyModified(true);
 			}
 		}, threadPoolToken));
 		
@@ -120,7 +120,7 @@ public class MenuListEditPanel extends NodeEditPanel {
 		nameFiled.getDocument().addDocumentListener(new DocumentListener() {
 			private void modify(){
 				currItem.name = nameFiled.getText();
-				notifyModified();
+				notifyModified(true);
 			}
 			@Override
 			public void removeUpdate(final DocumentEvent e) {
@@ -142,7 +142,7 @@ public class MenuListEditPanel extends NodeEditPanel {
 			public void run() {
 				currItem.name = nameFiled.getText();
 				App.invokeLaterUI(updateTreeRunnable);
-				notifyModified();
+				notifyModified(true);
 			}
 		}, threadPoolToken));
 		nameFiled.setColumns(10);
@@ -159,8 +159,8 @@ public class MenuListEditPanel extends NodeEditPanel {
 					return;
 				}
 				final String inputColNum = colNumFiled.getText();
-				currItem.colNum = Integer.parseInt(inputColNum);
-				notifyModified();
+				((HPMenu)currItem).colNum = Integer.parseInt(inputColNum);
+				notifyModified(true);
 			}
 			@Override
 			public void removeUpdate(final DocumentEvent e) {
@@ -180,9 +180,9 @@ public class MenuListEditPanel extends NodeEditPanel {
 		colNumFiled.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				currItem.colNum = Integer.parseInt(colNumFiled.getText());
+				((HPMenu)currItem).colNum = Integer.parseInt(colNumFiled.getText());
 				App.invokeLaterUI(updateTreeRunnable);
-				notifyModified();
+				notifyModified(true);
 			}
 		}, threadPoolToken));
 		colNumLabel.setToolTipText("<html>column number of each row, which display current menu in mobile." +
@@ -221,15 +221,6 @@ public class MenuListEditPanel extends NodeEditPanel {
 	
 //	TablePacker tp = new TablePacker(TablePacker.ALL_ROWS, true);
 	int size;
-	HPMenu currItem;
-	
-	private boolean isInited = false;
-	private void notifyModified(){
-		if(isInited){
-			currItem.getContext().modified.setModified(true);
-		}
-	}
-
 
 	private void swapRow(final int fromIdx, final int toIdx){
 		for (int i = 1; i < body[0].length; i++) {
@@ -257,9 +248,9 @@ public class MenuListEditPanel extends NodeEditPanel {
 		
 		isInited = false;
 		
-		currItem = (HPMenu)currNode.getUserObject();
+		currItem = (HPNode)currNode.getUserObject();
 		nameFiled.setText(currItem.name);
-		colNumFiled.setText(String.valueOf(currItem.colNum));
+		colNumFiled.setText(String.valueOf(((HPMenu)currItem).colNum));
 		
 		size = data.getChildCount() - HCjar.SKIP_SUB_MENU_ITEM_NUM;
 		

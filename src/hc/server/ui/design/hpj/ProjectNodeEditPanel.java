@@ -86,8 +86,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 					final String newInputURL = getExceptionURLFromEdit();
 					testExceptionBtn.setEnabled(newInputURL.length() > 0);
 					
-					((HPProject)item).exceptionURL = newInputURL;
-					notifyModified();
+					((HPProject)currItem).exceptionURL = newInputURL;
+					notifyModified(true);
 				}
 				@Override
 				public void removeUpdate(final DocumentEvent e) {
@@ -184,12 +184,12 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 			i18nBtn.addActionListener(new HCActionListener(new Runnable() {
 				@Override
 				public void run() {
-					I18nTitlesEditor.showEditor(item.i18nMap, new ActionListener() {
+					I18nTitlesEditor.showEditor(currItem.i18nMap, new ActionListener() {
 						@Override
 						public void actionPerformed(final ActionEvent e) {
-							if(item.i18nMap.isModified()){
-								notifyModified();
-								item.i18nMap.clearModifyTag();
+							if(currItem.i18nMap.isModified()){
+								notifyModified(true);
+								currItem.i18nMap.clearModifyTag();
 							}
 						}
 					}, i18nBtn, designer);
@@ -229,8 +229,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		});	
 		idField.getDocument().addDocumentListener(new DocumentListener() {
 			private void modify(){
-				((HPProject)item).id = getHarIDFromEdit();
-				notifyModified();
+				((HPProject)currItem).id = getHarIDFromEdit();
+				notifyModified(true);
 			}
 			@Override
 			public void removeUpdate(final DocumentEvent e) {
@@ -250,9 +250,9 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		idField.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPProject)item).id = idField.getText();
+				((HPProject)currItem).id = idField.getText();
 				App.invokeLaterUI(updateTreeRunnable);
-				item.getContext().modified.setModified(true);
+				notifyModified(true);
 			}
 		}, threadPoolToken));
 		idField.setColumns(20);
@@ -284,8 +284,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 						private void modify(){
 							final String newURL = urlField.getText().trim();
 							testHADBtn.setEnabled(newURL.length() > 0);
-							((HPProject)item).upgradeURL = newURL;
-							notifyModified();
+							((HPProject)currItem).upgradeURL = newURL;
+							notifyModified(true);
 						}
 						@Override
 						public void removeUpdate(final DocumentEvent e) {
@@ -364,8 +364,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				desc.getDocument().addDocumentListener(new ModifyDocumentListener() {
 					@Override
 					public void modify() {
-						((HPProject)item).desc = desc.getText();
-						notifyModified();
+						((HPProject)currItem).desc = desc.getText();
+						notifyModified(true);
 					}
 				});
 				composeAndVer.add(buildItemPanel(desc, "Description : ", 30), c);
@@ -373,8 +373,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				license.getDocument().addDocumentListener(new ModifyDocumentListener() {
 					@Override
 					public void modify() {
-						((HPProject)item).license = license.getText();
-						notifyModified();
+						((HPProject)currItem).license = license.getText();
+						notifyModified(true);
 					}
 				});
 				composeAndVer.add(buildItemPanel(license, "Text license URL for current project : ", 30), c);
@@ -383,8 +383,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				contact.getDocument().addDocumentListener(new ModifyDocumentListener() {
 					@Override
 					public void modify() {
-						((HPProject)item).contact = contact.getText();
-						notifyModified();
+						((HPProject)currItem).contact = contact.getText();
+						notifyModified(true);
 					}
 				});
 				composeAndVer.add(buildItemPanel(contact, "Contact : ", 30), c);
@@ -393,8 +393,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				copyright.getDocument().addDocumentListener(new ModifyDocumentListener() {
 					@Override
 					public void modify() {
-						((HPProject)item).copyright = copyright.getText();
-						notifyModified();
+						((HPProject)currItem).copyright = copyright.getText();
+						notifyModified(true);
 					}
 				});
 				composeAndVer.add(buildItemPanel(copyright, "Copyright : ", 30), c);
@@ -402,8 +402,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				final VerTextField verField = verPanel.verTextField;
 				verField.getDocument().addDocumentListener(new DocumentListener() {
 					private void modify(){
-						((HPProject)item).ver = getHarVersionFromEdit();
-						notifyModified();
+						((HPProject)currItem).ver = getHarVersionFromEdit();
+						notifyModified(true);
 					}
 					@Override
 					public void removeUpdate(final DocumentEvent e) {
@@ -423,9 +423,9 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				verField.addActionListener(new HCActionListener(new Runnable() {
 					@Override
 					public void run() {
-						((HPProject)item).ver = verField.getText();
+						((HPProject)currItem).ver = verField.getText();
 						App.invokeLaterUI(updateTreeRunnable);
-						item.getContext().modified.setModified(true);
+						notifyModified(true);
 					}
 				}, threadPoolToken));
 
@@ -474,116 +474,116 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		perm_sock_panel = new SocketEditPanel(){
 			@Override
 			public void notifyModify(){
-				notifyModified();
+				notifyModified(true);
 			}
 			
 			@Override
 			public void notifyLostEditPanelFocus(){
-				((HPProject)item).csc.saveToMap();
+				((HPProject)currItem).csc.saveToMap();
 			}
 			
 			@Override
 			public final ContextSecurityConfig getCSCSource(){
-				return ((HPProject)item).csc;
+				return ((HPProject)currItem).csc;
 			}
 		};
 		
 		checkReadProperty.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPProject)item).csc.setSysPropRead(checkReadProperty.isSelected());
-				notifyModified();	
+				((HPProject)currItem).csc.setSysPropRead(checkReadProperty.isSelected());
+				notifyModified(true);	
 			}
 		}, threadPoolToken));		
 		checkWriteProperty.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPProject)item).csc.setSysPropWrite(checkWriteProperty.isSelected());
-				notifyModified();	
+				((HPProject)currItem).csc.setSysPropWrite(checkWriteProperty.isSelected());
+				notifyModified(true);	
 			}
 		}, threadPoolToken));	
 		checkLoadLib.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPProject)item).csc.setLoadLib(checkLoadLib.isSelected());
-				notifyModified();	
+				((HPProject)currItem).csc.setLoadLib(checkLoadLib.isSelected());
+				notifyModified(true);	
 			}
 		}, threadPoolToken));	
 		checkRobot.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPProject)item).csc.setRobot(checkRobot.isSelected());
-				notifyModified();	
+				((HPProject)currItem).csc.setRobot(checkRobot.isSelected());
+				notifyModified(true);	
 			}
 		}, threadPoolToken));	
 //		checkListenAllAWTEvents.addItemListener(new HCActionListener(new Runnable() {
 //			@Override
 //			public void run() {
-//				((HPProject)item).csc.setListenAllAWTEvents(checkListenAllAWTEvents.isSelected());
-//				notifyModified();	
+//				((HPProject)currItem).csc.setListenAllAWTEvents(checkListenAllAWTEvents.isSelected());
+//				notifyModified(true);	
 //			}
 //		}, threadPoolToken));	
 //		checkAccessClipboard.addItemListener(new HCActionListener(new Runnable() {
 //			@Override
 //			public void run() {
-//				((HPProject)item).csc.setAccessClipboard(checkAccessClipboard.isSelected());
-//				notifyModified();	
+//				((HPProject)currItem).csc.setAccessClipboard(checkAccessClipboard.isSelected());
+//				notifyModified(true);	
 //			}
 //		}, threadPoolToken));	
 		checkShutdownHooks.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPProject)item).csc.setShutdownHooks(checkShutdownHooks.isSelected());
-				notifyModified();	
+				((HPProject)currItem).csc.setShutdownHooks(checkShutdownHooks.isSelected());
+				notifyModified(true);	
 			}
 		}, threadPoolToken));	
 		checkSetIO.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPProject)item).csc.setSetIO(checkSetIO.isSelected());
-				notifyModified();	
+				((HPProject)currItem).csc.setSetIO(checkSetIO.isSelected());
+				notifyModified(true);	
 			}
 		}, threadPoolToken));	
 		checkSetFactory.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPProject)item).csc.setSetFactory(checkSetFactory.isSelected());
-				notifyModified();	
+				((HPProject)currItem).csc.setSetFactory(checkSetFactory.isSelected());
+				notifyModified(true);	
 			}
 		}, threadPoolToken));	
 		perm_write.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPProject)item).csc.setWrite(perm_write.isSelected());
-				notifyModified();				
+				((HPProject)currItem).csc.setWrite(perm_write.isSelected());
+				notifyModified(true);				
 			}
 		}, threadPoolToken));	
 		perm_exec.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPProject)item).csc.setExecute(perm_exec.isSelected());
-				notifyModified();	
+				((HPProject)currItem).csc.setExecute(perm_exec.isSelected());
+				notifyModified(true);	
 			}
 		}, threadPoolToken));	
 		perm_del.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPProject)item).csc.setDelete(perm_del.isSelected());
-				notifyModified();	
+				((HPProject)currItem).csc.setDelete(perm_del.isSelected());
+				notifyModified(true);	
 			}
 		}, threadPoolToken));	
 		perm_exit.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPProject)item).csc.setExit(perm_exit.isSelected());
-				notifyModified();	
+				((HPProject)currItem).csc.setExit(perm_exit.isSelected());
+				notifyModified(true);	
 			}
 		}, threadPoolToken));	
 		perm_memAccessSystem.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPProject)item).csc.setMemberAccessSystem(perm_memAccessSystem.isSelected());
-				notifyModified();	
+				((HPProject)currItem).csc.setMemberAccessSystem(perm_memAccessSystem.isSelected());
+				notifyModified(true);	
 			}
 		}, threadPoolToken));	
 		final JPanel osPermPanel = new JPanel(new GridLayout(1, 4));
@@ -622,7 +622,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 
 	@Override
 	public void extendInit(){
-		final HPProject hpProject = (HPProject)item;
+		final HPProject hpProject = (HPProject)currItem;
 		
 		idField.setText(hpProject.id);
 		verPanel.verTextField.setText(hpProject.ver);

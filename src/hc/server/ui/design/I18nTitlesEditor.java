@@ -259,7 +259,7 @@ public class I18nTitlesEditor extends JPanel{
 				"2. <STRONG>en</STRONG> is for all english language country, if <STRONG>en"+ SPLIT_LANG_COUNTRY + "??</STRONG> is NOT found.<BR>" +
 				"3. <STRONG>language</STRONG> : ISO 639-1, two-letter codes,<BR>" +
 				"4. <STRONG>country / region</STRONG> : ISO 3166-1 alpha-2 two-letter codes, <BR>" +
-				"5. you can input codes in ComboBox directly if it is NOT listed in ComboBox." +
+				"5. input in ComboBox directly if it is NOT listed in ComboBox." +
 				"</html>"));
 
 		this.setLayout(new BorderLayout());

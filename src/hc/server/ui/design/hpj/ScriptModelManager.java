@@ -14,6 +14,8 @@ import java.lang.reflect.Field;
 import java.util.Vector;
 
 public class ScriptModelManager {
+	static final String SUPER = "super";
+
 	public static String buildDefaultScript(final int type, final HCURL url){
 		if(type == HPNode.TYPE_MENU_ITEM_CONTROLLER){
 			final String[] imports = {"import Java::hc.core.util.CtrlKey\n\n"};
@@ -25,7 +27,8 @@ public class ScriptModelManager {
 			codes[1] = buildInitText();
 			codes[2] = buildOnLoad();
 			final boolean[] isEmpty = {false, true, true, true};			
-			return buildScript(imports, instanceName, superClassName, null, isEmpty, methods, codes);
+			final String[] superCodes = {SUPER};
+			return buildScript(imports, instanceName, superClassName, superCodes, isEmpty, methods, codes);
 		}else if(type == HPNode.TYPE_MENU_ITEM_SCREEN || type == HPNode.TYPE_MENU_ITEM_FORM){
 			if(url.elementID.equals(HCURL.REMOTE_HOME_SCREEN)){
 			}else if(type == HPNode.TYPE_MENU_ITEM_FORM){
@@ -34,15 +37,15 @@ public class ScriptModelManager {
 					final String superClassName = HTMLMlet.class.getName();
 					final String[] methods = {"onStart", "onPause", "onResume", "onExit"};
 					final boolean[] isEmpty = {true, true, true, true};
-					final String superAndMem = "super";
-					return buildScript(null, instanceName, superClassName, superAndMem, isEmpty, methods, null);
+					final String[] superCodes = {SUPER};
+					return buildScript(null, instanceName, superClassName, superCodes, isEmpty, methods, null);
 				}else{
 					final String instanceName = "MyMlet";
 					final String superClassName = Mlet.class.getName();
 					final String[] methods = {"onStart", "onPause", "onResume", "onExit"};
 					final boolean[] isEmpty = {true, true, true, true};
-					final String superAndMem = "super";
-					return buildScript(null, instanceName, superClassName, superAndMem, isEmpty, methods, null);
+					final String[] superCodes = {SUPER};
+					return buildScript(null, instanceName, superClassName, superCodes, isEmpty, methods, null);
 				}
 			}
 		}else if(type == HPNode.TYPE_MENU_ITEM_CMD){
@@ -87,7 +90,8 @@ public class ScriptModelManager {
 					codes[5] = disConn;
 				}
 				final boolean[] isEmpty = {false, false, false, false, false, false};
-				return buildScript(imports, instanceName, superClassName, "@refDev = \"DemoRefDevID\"", isEmpty, methods, codes);
+				final String[] superCodes = {SUPER, "@refDev = \"DemoRefDevID\""};
+				return buildScript(imports, instanceName, superClassName, superCodes, isEmpty, methods, codes);
 			}else if(url.url.indexOf(HCURL.DATA_IOT_CONVERTER.toLowerCase()) >= 0){
 				final String[] imports = {
 //						"# for Converter API, http://homecenter.mobi/download/javadoc/hc/server/msb/Converter.html\n\n"
@@ -110,7 +114,8 @@ public class ScriptModelManager {
 					codes[3] = getDownDeviceCompatibleDesc;
 				}
 				final boolean[] isEmpty = {false, false, false, false};
-				return buildScript(imports, instanceName, superClassName, null, isEmpty, methods, codes);
+				final String[] superCodes = {SUPER};
+				return buildScript(imports, instanceName, superClassName, superCodes, isEmpty, methods, codes);
 			}else if(url.url.indexOf(HCURL.DATA_IOT_DEVICE.toLowerCase()) >= 0){
 				final String[] imports = {
 //						"# for Device API , http://homecenter.mobi/download/javadoc/hc/server/msb/Device.html\n\n"
@@ -176,7 +181,8 @@ public class ScriptModelManager {
 //					codes[4] = newWiFiAccount;
 				}
 				final boolean[] isEmptyMethod = {false, false, false, false};//true
-				return buildScript(imports, instanceName, superClassName, "@refDev = \"DemoDevID\"", isEmptyMethod, methods, codes);
+				final String[] superCodes = {SUPER, "@refDev = \"DemoDevID\""};
+				return buildScript(imports, instanceName, superClassName, superCodes, isEmptyMethod, methods, codes);
 			}
 		}
 		return "";
@@ -213,13 +219,13 @@ public class ScriptModelManager {
 	 * @param imports 
 	 * @param instanceName
 	 * @param superClassName
-	 * @param superMethod 如"super", "super('para1')"
+	 * @param superCodes 如"super", "super('para1')"
 	 * @param isEmptyOrAbstract
 	 * @param methods
 	 * @return
 	 */
 	private static String buildScript(final String[] imports,
-			final String instanceName, final String superClassName, final String superMethod, final boolean[] isEmptyOrAbstract,
+			final String instanceName, final String superClassName, final String[] superCodes, final boolean[] isEmptyOrAbstract,
 			final String[] methods, final Vector<String>[] codeExamples) {
 		final StringBuffer sb = new StringBuffer();
 		sb.append("#encoding:utf-8\n\n");
@@ -230,12 +236,19 @@ public class ScriptModelManager {
 			}
 		}
 		sb.append("class " + instanceName + " < Java::" + superClassName + "\n");
+		
 		sb.append("\tdef initialize\n");
-		sb.append("\t\t#init constructor code here\n");
-		if(superMethod != null && superMethod.length() > 0){
-			sb.append("\t\t" + superMethod + "\n");
+		if(superCodes != null && superCodes.length > 0){
+			for (int i = 0; i < superCodes.length; i++) {
+				final String superCode = superCodes[i];
+				if(superCode != null && superCode.length() > 0){
+					sb.append("\t\t" + superCode + "\n");
+				}
+			}
 		}
+		sb.append("\t\t#init constructor code here\n");
 		sb.append("\tend\n\n");
+		
 		for (int i = 0; i < methods.length; i++) {
 			sb.append("\t#override " + (isEmptyOrAbstract[i]?"empty":"abstract") + " method " + methods[i] + "\n");
 			sb.append("\tdef " + methods[i] + "\n");

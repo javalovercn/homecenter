@@ -10,8 +10,6 @@ import java.awt.BorderLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -24,50 +22,50 @@ public class NativeNodeEditPanel extends NameEditPanel {
 		final VerTextField verTextField = verPanel.verTextField;
 		verTextField.getDocument().addDocumentListener(new DocumentListener() {
 			private void modify() {
-				((HCShareFileResource) item).ver = verTextField.getText();
-				notifyModified();
+				((HCShareFileResource) currItem).ver = verTextField.getText();
+				notifyModified(true);
 			}
 
 			@Override
-			public void removeUpdate(DocumentEvent e) {
+			public void removeUpdate(final DocumentEvent e) {
 				modify();
 			}
 
 			@Override
-			public void insertUpdate(DocumentEvent e) {
+			public void insertUpdate(final DocumentEvent e) {
 				modify();
 			}
 
 			@Override
-			public void changedUpdate(DocumentEvent e) {
+			public void changedUpdate(final DocumentEvent e) {
 				modify();
 			}
 		});
 		verTextField.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HCShareFileResource) item).ver = verTextField.getText();
+				((HCShareFileResource) currItem).ver = verTextField.getText();
 				App.invokeLaterUI(updateTreeRunnable);
-				item.getContext().modified.setModified(true);
+				notifyModified(true);
 			}
 		}, threadPoolToken));
 
-		JPanel center = new JPanel();
+		final JPanel center = new JPanel();
 		center.setLayout(new BorderLayout());
 		center.add(verPanel, BorderLayout.NORTH);
 
-		JLabel noteLabel = new JLabel("<html><STRONG>Note :</STRONG>" +
+		final JLabel noteLabel = new JLabel("<html><STRONG>Note :</STRONG>" +
 				"<BR>1. the native lib will be automatically loaded (System.load) by server before event <STRONG>" + ProjectContext.EVENT_SYS_PROJ_STARTUP + "</STRONG>." +
 				"<BR>2. they are loaded in accordance with the sequence of the tree nodes." +
 				"<BR>3. if native lib is changed and upgraded, restarting server may be required after upgrading HAR package." +
 				"<BR>4. they will be loaded in all operation system (Windows, Mac, Linux...). If you want load they by yourself, please put them as resources in jar.</html>");
-		JComponent[] components = {center, //new JSeparator(SwingConstants.HORIZONTAL), 
+		final JComponent[] components = {center, //new JSeparator(SwingConstants.HORIZONTAL), 
 				noteLabel};		
 		add(ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER), BorderLayout.CENTER);
 	}
 
 	@Override
 	public void extendInit() {
-		verPanel.verTextField.setText(((HCShareFileResource) item).ver);
+		verPanel.verTextField.setText(((HCShareFileResource) currItem).ver);
 	}
 }

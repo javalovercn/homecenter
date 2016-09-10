@@ -371,9 +371,9 @@ public class ContextSecurityConfig {
 		return csc;
 	}
 
-	public static final void copyPermissionsFromConfig(final Map<String, Object> map, final ContextSecurityConfig csc){
-		csc.saveToMap();
-		map.putAll(csc.permissionMap);
+	public static final void copyPermissionsFromConfig(final Map<String, Object> map, final ContextSecurityConfig cscSrc){
+		cscSrc.saveToMap();
+		map.putAll(cscSrc.permissionMap);
 	}
 
 	public static boolean isSocketLimitOn(final ContextSecurityConfig contextSecurityConfig){

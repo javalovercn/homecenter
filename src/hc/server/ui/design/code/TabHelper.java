@@ -23,7 +23,7 @@ public class TabHelper {
 	static int currFocusHighlightStartIdx, currFocusHighlightEndIdx, inputShiftOffset;
 	
 	public static void initScriptPanel(final JTextPane sPanel, final ScriptEditPanel sep){
-		sep.updateScriptInInitProcess();
+		sep.rebuildASTNode();
 		
 		scriptPanel = sPanel;
 		scriptPanel.setCaretPosition(0);

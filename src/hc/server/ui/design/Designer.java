@@ -1108,10 +1108,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 		}, threadPoolToken, null));
 		
-		toolbar.addSeparator();
-
 		shiftProjButton.setToolTipText("<html>add and delete projects, or choose other project for editing.</html>");
-		toolbar.add(shiftProjButton);
 		
 		certButton.setToolTipText("<html>create, manage developer certificate, which is used to sign your HAR project." +
 				"<BR><BR>" +
@@ -1168,7 +1165,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 
 		}, threadPoolToken));
+		
+		toolbar.addSeparator();
 		toolbar.add(certButton);
+		toolbar.addSeparator();
+		toolbar.add(shiftProjButton);
 //		toolbar.addSeparator();//末尾，故注释
 		
 //		helpButton.addActionListener(new HCActionListener(new Runnable() {
@@ -1806,6 +1807,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				editPanel.validate();
 				editPanel.revalidate();
 				editPanel.repaint();
+				
+				nodeEditPanel.loadAfterShow();
 			}
 		});
 	}

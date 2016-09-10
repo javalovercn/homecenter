@@ -31,4 +31,5 @@ public class ThreadPriorityManager {
 	
 	public static final int UI_FLUSH_GRAPHICS = 10;
 	
+	public static final int UI_WAIT_FOR_EVENTQUEUE = 5;
 }

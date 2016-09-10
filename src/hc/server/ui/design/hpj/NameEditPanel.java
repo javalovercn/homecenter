@@ -22,8 +22,8 @@ public class NameEditPanel extends NodeEditPanel {
 		namePanel.add(new JLabel(nameLabel + " : "));
 		nameFiled.getDocument().addDocumentListener(new DocumentListener() {
 			private void modify(){
-				item.name = nameFiled.getText();
-				notifyModified();
+				currItem.name = nameFiled.getText();
+				notifyModified(true);
 			}
 			@Override
 			public void removeUpdate(final DocumentEvent e) {
@@ -43,9 +43,9 @@ public class NameEditPanel extends NodeEditPanel {
 		nameFiled.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				item.name = nameFiled.getText();
+				currItem.name = nameFiled.getText();
 				App.invokeLaterUI(updateTreeRunnable);
-				item.getContext().modified.setModified(true);
+				notifyModified(true);
 			}
 		}, threadPoolToken));
 		nameFiled.setColumns(20);
@@ -60,22 +60,13 @@ public class NameEditPanel extends NodeEditPanel {
 	protected final JPanel namePanel = new JPanel();
 	final JTextField nameFiled = new JTextField();
 	
-	HPNode item;
-	
-	private boolean isInited = false;
-	void notifyModified(){
-		if(isInited){
-			item.getContext().modified.setModified(true);
-		}
-	}
-
 	@Override
 	public void init(final MutableTreeNode data, final JTree tree){
 		isInited = false;
 		super.init(data, tree);
 		
-		item = (HPNode)currNode.getUserObject();
-		nameFiled.setText(item.name);
+		currItem = (HPNode)currNode.getUserObject();
+		nameFiled.setText(currItem.name);
 		
 		extendInit();
 		

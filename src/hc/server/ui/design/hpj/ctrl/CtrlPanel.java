@@ -359,7 +359,7 @@ public class CtrlPanel extends JPanel {
 					oriCenterY + (y - pressMouseY));
 			
 			repaint();//totalPanel.panel_canvas.
-			totalPanel.baseMenuItemPanel.notifyModified();
+			totalPanel.baseMenuItemPanel.notifyModified(true);
 			totalPanel.ctrlMap.updateButtonOnCanvas(currSelectKeyValue, ctrlItem.center_x, ctrlItem.center_y);
 			return true;
 		}

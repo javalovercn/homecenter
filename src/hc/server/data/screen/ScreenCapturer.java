@@ -25,10 +25,7 @@ import hc.util.ResourceUtil;
 
 import java.awt.Rectangle;
 import java.awt.Robot;
-import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -384,8 +381,25 @@ public class ScreenCapturer extends PNGCapturer{
 				final String s = event.getTextDataAsString();
 				if(inputKeyStr(s) == false){
 					L.V = L.O ? false : LogManager.log(OP_STR + "Client paste txt:[" + s + "]!");
-					sendToClipboard(s);
-					ctrlSomeKey(KeyEvent.VK_V);
+					final Clipboard clipboard = ResourceUtil.getClipboard();
+					synchronized (clipboard) {
+						Transferable oldTrans = null;
+						try{
+							oldTrans = clipboard.getContents(null);
+						}catch (final Throwable e) {
+						}
+						
+						ResourceUtil.sendToClipboard(s);
+						ctrlSomeKey(KeyEvent.VK_V);
+						
+						try{
+							Thread.sleep(ThreadPriorityManager.UI_WAIT_FOR_EVENTQUEUE);//Android maybe need sleep
+						}catch (final Exception e) {
+						}
+						if(oldTrans != null){
+							clipboard.setContents(oldTrans, null);
+						}
+					}
 				}else{
 					L.V = L.O ? false : LogManager.log(OP_STR + "Client input txt:[" + s + "]!");
 				}
@@ -576,60 +590,47 @@ public class ScreenCapturer extends PNGCapturer{
 		robot.keyRelease(abstractCtrlKeyCode);
 	}
 	
-	public static void sendToClipboard(final String to_url) {
-		final Clipboard clipbd = Toolkit.getDefaultToolkit().getSystemClipboard();
-		final StringSelection clipString = new StringSelection(to_url);
-		clipbd.setContents(clipString, clipString);
-	}
-	
-	public static String getTxtFromClipboard(){
-		final Clipboard clipbd = Toolkit.getDefaultToolkit().getSystemClipboard();
-		final Transferable clipT = clipbd.getContents(null);
-		String d = null;
-		if (clipT != null) {
-			// 检查内容是否是文本类型
-			if (clipT.isDataFlavorSupported(DataFlavor.stringFlavor)){
-				try {
-					d = (String) clipT.getTransferData(DataFlavor.stringFlavor);
-				} catch (final Exception e) {
-					ExceptionReporter.printStackTrace(e);
-				}
-			}
-		}
-		if(d == null){
-			return "";
-		}else{
-			return d.trim();
-		}
-	}
-	
 	public void backspace(){
 		robot.keyPress(KeyEvent.VK_BACK_SPACE);
 		robot.keyRelease(KeyEvent.VK_BACK_SPACE);
 	}
 	
 	public void copytxtToMobi(){
-		ctrlSomeKey(KeyEvent.VK_C);
-		
-		final String txt = getTxtFromClipboard();
-//		L.V = L.O ? false : LogManager.log("User ready copyTxtToMobi:" + txt);
-		if(txt.length() > 0){
-			try {
-	    		final DataInputEvent e = new DataInputEvent();
-	    		final byte[] txt_bs = txt.getBytes(IConstant.UTF_8);
-	    		
-	    		final byte[] txtToMobiBS = new byte[DataInputEvent.text_index + DataInputEvent.MAX_MOBI_UI_TXT_LEN];
-	    		e.setBytes(txtToMobiBS);
-	    		e.setType(DataInputEvent.TYPE_TRANS_TEXT);
+		final Clipboard clipboard = ResourceUtil.getClipboard();
+		synchronized (clipboard) {
+			Transferable oldTrans = null;
+			try{
+				oldTrans = clipboard.getContents(null);
+			}catch (final Throwable e) {
+			}
+			
+			ctrlSomeKey(KeyEvent.VK_C);
+			
+			final String txt = ResourceUtil.getTxtFromClipboard();
+	//		L.V = L.O ? false : LogManager.log("User ready copyTxtToMobi:" + txt);
+			if(txt.length() > 0){
+				try {
+		    		final DataInputEvent e = new DataInputEvent();
+		    		final byte[] txt_bs = txt.getBytes(IConstant.UTF_8);
+		    		
+		    		final byte[] txtToMobiBS = new byte[DataInputEvent.text_index + DataInputEvent.MAX_MOBI_UI_TXT_LEN];
+		    		e.setBytes(txtToMobiBS);
+		    		e.setType(DataInputEvent.TYPE_TRANS_TEXT);
+	
+		    		e.setTextData(txt_bs, 0, txt_bs.length);
+		    		ContextManager.getContextInstance().send(
+		    				MsgBuilder.E_INPUT_EVENT, txtToMobiBS, e.getLength());
+				} catch (final UnsupportedEncodingException e) {
+					ExceptionReporter.printStackTrace(e);
+				}
+			}
+			
+			L.V = L.O ? false : LogManager.log(OP_STR + "copyTxtToMobi:" + ((txt.length()==0)?"null":txt));
 
-	    		e.setTextData(txt_bs, 0, txt_bs.length);
-	    		ContextManager.getContextInstance().send(
-	    				MsgBuilder.E_INPUT_EVENT, txtToMobiBS, e.getLength());
-			} catch (final UnsupportedEncodingException e) {
-				ExceptionReporter.printStackTrace(e);
+			if(oldTrans != null){
+				clipboard.setContents(oldTrans, null);
 			}
 		}
-		L.V = L.O ? false : LogManager.log(OP_STR + "copyTxtToMobi:" + ((txt.length()==0)?"null":txt));
 	}
 	
 	public void dragAndDrop(final int startX, final int startY, final int endX, final int endY){

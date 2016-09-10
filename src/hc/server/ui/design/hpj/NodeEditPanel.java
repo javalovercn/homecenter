@@ -10,8 +10,25 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 
 public class NodeEditPanel extends JPanel{
+	HPNode currItem;
+	boolean isInited = false;
+
 	public JComponent getMainPanel(){
 		return this;
+	}
+	
+	public final void notifyModified(final boolean isModi){
+		if(isInited){
+			currItem.getContext().modified.setModified(isModi);
+		}
+	}
+	
+	public final boolean isModified(){
+		if(isInited){
+			return currItem.getContext().modified.isModified();
+		}else{
+			return false;
+		}
 	}
 	
 	final Runnable updateTreeRunnable = new Runnable() {
@@ -27,6 +44,9 @@ public class NodeEditPanel extends JPanel{
 	Designer designer;
 	public DefaultMutableTreeNode getCurrNode(){
 		return currNode;
+	}
+	
+	public void loadAfterShow(){
 	}
 	
 	public void init(final MutableTreeNode data, final JTree tree){

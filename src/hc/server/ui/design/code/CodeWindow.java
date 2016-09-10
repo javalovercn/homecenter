@@ -4,6 +4,7 @@ import hc.core.HCTimer;
 import hc.core.util.ExceptionReporter;
 import hc.server.DefaultManager;
 import hc.server.ui.design.Designer;
+import hc.server.ui.design.hpj.HCTextPane;
 import hc.server.ui.design.hpj.ScriptEditPanel;
 import hc.util.ClassUtil;
 
@@ -27,7 +28,6 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
@@ -149,8 +149,7 @@ public class CodeWindow {
 					try{
 						document.remove(--movingScriptIdx, 1);
 						textPane.updateUI();
-						ScriptEditPanel.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, movingScriptIdx),
-								document, textPane, sep);
+						textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, movingScriptIdx));
 						TabHelper.notifyInputKey(true, e, e.getKeyChar());
 					}catch (final Exception ex) {
 					}
@@ -169,8 +168,7 @@ public class CodeWindow {
 					document.insertString(movingScriptIdx++, String.valueOf(keyChar), null);
 					textPane.updateUI();
 					
-					ScriptEditPanel.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, movingScriptIdx),
-							document, textPane, sep);
+					textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, movingScriptIdx));
 					TabHelper.notifyInputKey(false, e, keyChar);
 				}catch (final Exception ex) {
 				}
@@ -345,7 +343,7 @@ public class CodeWindow {
 		}
 	}
 	
-	private JTextPane textPane;
+	private HCTextPane textPane;
 	Document document;
 	ScriptEditPanel sep;
 	private ArrayList<CodeItem> fullList;
@@ -391,7 +389,7 @@ public class CodeWindow {
 	
 	final Rectangle rect = new Rectangle(0, 0, 1, 1);
 	
-	public final void toFront(final Class codeClass, final ScriptEditPanel sep, final JTextPane eventFromComponent, final int x, final int y, final ArrayList<CodeItem> list, 
+	public final void toFront(final Class codeClass, final ScriptEditPanel sep, final HCTextPane eventFromComponent, final int x, final int y, final ArrayList<CodeItem> list, 
 			final String preCode, final int scriptIdx, final int fontHeight){
 		fullList = list;
 		this.codeBelongClass = codeClass;
@@ -472,8 +470,7 @@ public class CodeWindow {
 							document.insertString(oriScriptIdx, insertedCode, null);
 							final int position = oriScriptIdx + insertedCode.length();
 							
-							ScriptEditPanel.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, oriScriptIdx),
-									document, textPane, sep);
+							textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, oriScriptIdx));
 							TabHelper.notifyInputBlock(insertedCode.length() - preCodeCharsLen);
 							
 							final char[] insertedCodeChars = insertedCode.toCharArray();
