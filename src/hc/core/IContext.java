@@ -201,6 +201,7 @@ public abstract class IContext {
 	public static final short BIZ_VIBRATE = 28;
 	public static final short BIZ_REPORT_EXCEPTION = 29;
 	public static final short BIZ_DATA_CHECK_ERROR = 30;
+	public static final short BIZ_ASSISTANT = 31;
 	
 	public final ReceiveServer getReceiveServer() {
 		return rServer;

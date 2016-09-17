@@ -315,7 +315,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		if(isSimu){
 			LogManager.log("init SecurityDataProtector...");
 		}
-		SecurityDataProtector.init(isSimu);
+		SecurityDataProtector.init();
 		if(isSimu){
 			LogManager.log("done SecurityDataProtector.");
 		}
@@ -2623,7 +2623,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	}
 
 	static {
-		if(IConstant.isHCServer() == false){
+		if(IConstant.isHCServerAndNotRelayServer() == false){
 			throw new Error("Cant invoke App method in Relay/Monitor Server!");
 		}
 	}

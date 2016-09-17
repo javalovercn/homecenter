@@ -100,6 +100,10 @@ public class ResourceUtil {
 		return null;
 	}
 	
+	public static boolean isDemoServer(){
+		return PropertiesManager.isTrue(PropertiesManager.p_isDemoServer, false);
+	}
+	
 	/**
 	 * copy file only, not dir and recursive
 	 * @param from
@@ -318,7 +322,7 @@ public class ResourceUtil {
 
 		boolean hideIP = false;
 		
-		if(IConstant.isHCServer()){
+		if(IConstant.isHCServerAndNotRelayServer()){
 			final boolean isEnableTrans = DefaultManager.isEnableTransNewCertNow();
 			hideIP = isEnableTrans?false:DefaultManager.isHideIDForErrCert();
 		}
@@ -425,6 +429,10 @@ public class ResourceUtil {
 	public static int[] getSimuScreenSize(){
 //		int[] out = {220, 240};
 //		return out;
+		if(ResourceUtil.isDemoServer()){
+			final int[] out = {1024, 768};
+			return out;
+		}
 		
 		final Toolkit toolkit = Toolkit.getDefaultToolkit();
 		final Dimension screenSize = toolkit.getScreenSize();
@@ -899,8 +907,7 @@ public class ResourceUtil {
 
 	public static boolean isWindowsOS() {
 		final String os = System.getProperty("os.name");
-		final boolean isWindow = os.toLowerCase().indexOf("windows") >= 0;
-		return isWindow;
+		return os.toLowerCase().indexOf("windows") >= 0;
 	}
 	
 	public static boolean isLinuxRelease(final String issue){
@@ -924,8 +931,12 @@ public class ResourceUtil {
 	
 	public static boolean isLinux() {
 		final String os = System.getProperty("os.name");
-		final boolean isLinux = os.toLowerCase().indexOf("linux") >= 0;
-		return isLinux;
+		return os.toLowerCase().indexOf("linux") >= 0;
+	}
+	
+	public static boolean isOpenJDK() {
+		final String os = System.getProperty("java.vm.name");//OpenJDK Client VM or OpenJDK 64-Bit Server VM
+		return os != null && os.indexOf("OpenJDK") >= 0;
 	}
 	
 	public static boolean isWindowsXP(){
@@ -941,7 +952,7 @@ public class ResourceUtil {
 	
 	public static boolean isWindowsVista(){
 		final String os = System.getProperty("os.name");
-		return (os.toLowerCase().indexOf("Windows Vista") >= 0);
+		return (os.toLowerCase().indexOf("windows vista") >= 0);
 	}
 	
 	

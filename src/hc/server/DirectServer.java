@@ -11,6 +11,8 @@ import hc.core.data.DataReg;
 import hc.core.sip.SIPManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
+import hc.util.HttpUtil;
+import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
@@ -33,9 +35,26 @@ public class DirectServer extends Thread {
 	final InetAddress ia;
 	final String networkAddressName;
 	
+	private final InetAddress buildDemo(final String ip){
+		try{
+			return InetAddress.getByName(ip);
+		}catch (final Exception e) {
+		}
+		return HttpUtil.get0000();
+	}
+	
 	public DirectServer(final InetAddress ia, final String naName) {
 		super("DirectServer");
-		this.ia = ia;
+		if(ResourceUtil.isDemoServer()){
+			final String demoIP = PropertiesManager.getValue(PropertiesManager.p_DemoServerIP);
+			if(demoIP == null){
+				this.ia = HttpUtil.get0000();
+			}else{
+				this.ia = buildDemo(demoIP);
+			}
+		}else{
+			this.ia = ia;
+		}
 		this.networkAddressName = naName;
 	}
 	

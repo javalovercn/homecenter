@@ -125,7 +125,7 @@ public class SIPManager {
 			//优先检查服务器上线，Open Cone等模式，以获得高性能
 			final Object obj = RootServerConnector.getServerIPAndPort(RootServerConnector.getHideToken());
 			if((obj == null) || (obj instanceof Vector)){
-				LogManager.info("server : off");
+				LogManager.info("server : off/busy");
 				//	              LogManager.info("please check as follow:");
 				//	              LogManager.info("1. ID[" + IConstant.uuid + "] maybe wrong HomeCenter ID. It is free.");
 				//	              LogManager.info("2. PC server maybe NOT running.");

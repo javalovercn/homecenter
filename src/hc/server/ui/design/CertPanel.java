@@ -152,7 +152,11 @@ public class CertPanel extends CertListPanel{
 		contentPane.setLayout(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
 		
 		addBut = new JButton((String)ResourceUtil.get(9016), new ImageIcon(ImageSrc.ADD_SMALL_ICON));
-		addBut.setToolTipText("<html>create a pare of self-signed public key and private key to current store.</html>");
+		addBut.setToolTipText("<html>" +
+				"create a pare of self-signed public key and private key to current store.<BR><BR>" +
+				"if you publish an app and then lose the key with which you signed your app, " +
+				"<BR>you will not be able to publish any updates to your app." +
+				"</html>");
 		if(isLimitOneAlias){
 			if(items.size() > 0){
 				addBut.setEnabled(false);
@@ -644,7 +648,7 @@ public class CertPanel extends CertListPanel{
 		final JPanel descPanel = new JPanel(new BorderLayout());
 		descPanel.setBorder(new TitledBorder((String)ResourceUtil.get(9095)));
 		descPanel.add(new JLabel("<html>" +
-				Designer.PASSWORD_OF_DEVELOPER_CERTIFICATE + "</html>"));
+				Designer.DESC_PASSWORD_OF_DEVELOPER_CERTIFICATE + "</html>"));
 		
 		final JPanel totalPanel = new JPanel(new BorderLayout());
 		totalPanel.setBorder(new TitledBorder(title_pwd));

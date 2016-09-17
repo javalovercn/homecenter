@@ -484,7 +484,9 @@ public class ProjectContext {
 	 * the result of question to the caller. <BR>
 	 * <BR>
 	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
-	 * notification is also created for mobile.
+	 * notification is also created for mobile.<BR><BR>
+	 * if mobile option [Message, Notification to Speech also] is on, it may be spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
 	 * 
 	 * @param caption
 	 *            the caption of the question.
@@ -1146,9 +1148,9 @@ public class ProjectContext {
 	private static final String[] allOS = {OS_ANDROID, OS_IOS, OS_J2ME};
 
 	/**
-	 * return three case legal values: <br>
+	 * there are two case legal values: <br>
 	 * 1. language ("en", "fr", "ro", "ru", etc.) <br>
-	 * 2. language-region ("en-GB", "en-CA", "en-IE", "en-US", etc.)
+	 * 2. language-region ("en-US", "es-419", etc.)
 	 * <BR><BR>
 	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
 	 * @return if unknown, return default 'en-US'; empty string if mobile not login;
@@ -1304,7 +1306,9 @@ public class ProjectContext {
 
 	/**
 	 * display notification on android/IOS.
-	 * 
+	 * <BR><BR>
+	 * if mobile option [Message, Notification to Speech also] is on, it may be spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
 	 * @param title
 	 *            the title of notification.
 	 * @param text
@@ -1318,7 +1322,7 @@ public class ProjectContext {
 	 */
 	public final void sendNotification(final String title, final String text,
 			final int flags) {
-		final String[] v = { "hc.j2me.load.Notification", title, text,
+		final String[] v = { ConfigManager.HC_J2ME_LOAD_NOTIFICATION, title, text,
 				String.valueOf(flags) };
 		sendClass(v);
 	}
@@ -1414,7 +1418,11 @@ public class ProjectContext {
 	}
 
 	/**
-	 * send a alert dialog to mobile.
+	 * send a alert dialog to mobile.<BR><BR>
+	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
+	 * notification is also created for mobile.<BR><BR>
+	 * if mobile option [Message, Notification to Speech also] is on, it may be spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
 	 * @param caption
 	 *            the caption of message.
 	 * @param text
@@ -1609,7 +1617,9 @@ public class ProjectContext {
 	 * send a alert dialog to mobile, <BR>
 	 * <BR>
 	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
-	 * notification is also created for mobile.
+	 * notification is also created for mobile.<BR><BR>
+	 * if mobile option [Message, Notification to Speech also] is on, it may be spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
 	 * 
 	 * @param caption
 	 *            the caption of message.
@@ -1779,10 +1789,12 @@ public class ProjectContext {
 	 * display a message moving from right to left on mobile <BR>
 	 * <BR>
 	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
-	 * notification is also created for mobile.
+	 * notification is also created for mobile.<BR><BR>
+	 * if mobile option [Message, Notification to Speech also] is on, it may be spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
 	 * 
 	 * @param msg
-	 *            the body of moving message.
+	 *            the message to show.
 	 * @since 6.98
 	 */
 	public final void sendMovingMsg(final String msg) {

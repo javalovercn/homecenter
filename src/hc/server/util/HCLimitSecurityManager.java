@@ -493,7 +493,12 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 					}
 				}else if(permName.equals("showWindowWithoutWarningBanner")){//no config
 //					if (limitRootThreadGroup.parentOf(currentThreadGroup)){
-						throw new HCSecurityException("block showWindowWithoutWarningBanner");
+					final String blockDesc = "block showWindowWithoutWarningBanner";
+					if(ResourceUtil.isOpenJDK()){//因OpenJDK出异常，尽管被拦截，不影响用户使用，故注释掉。详见 java.awt.Window setWarningString 
+						throw new SecurityException(blockDesc);//不用HCSecurityExeption，是因为先输出异常到log
+					}else{
+						throw new HCSecurityException(blockDesc);
+					}
 //					}
 				}
 			}else if(perm instanceof RuntimePermission) {
@@ -631,7 +636,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				//Not in csc
 				if(clazz == SecurityManager.class || clazz == IConstant.class || clazz == CUtil.class
 						|| clazz == HCLimitSecurityManager.class || clazz == SecurityDataProtector.class
-						|| clazz == URLClassLoader.class){//禁止反射操作的类
+						|| clazz == URLClassLoader.class || clazz == BCProvider.class){//禁止反射操作的类
 					ResourceUtil.checkHCStackTraceInclude(null, null);
 				}
 				

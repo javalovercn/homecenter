@@ -130,4 +130,6 @@ public class ConfigManager {
 	}
 
 	public static final boolean isEnableExceptionReportForAndroid = true;
+
+	public static final String HC_J2ME_LOAD_NOTIFICATION = "hc.j2me.load.Notification";
 }

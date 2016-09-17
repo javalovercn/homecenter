@@ -127,7 +127,8 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 public class Designer extends SingleJFrame implements IModifyStatus, BindButtonRefresher{
-	public static final String PASSWORD_OF_DEVELOPER_CERTIFICATE = "the password of developer certificate.<BR>it is NOT the password for mobile connection.";
+	private static final String PWD_DEV_CERT = "password of developer certificates";
+	public static final String DESC_PASSWORD_OF_DEVELOPER_CERTIFICATE = "the " + PWD_DEV_CERT + ".<BR>it is NOT the password for mobile connection.";
 	public static final int COLUMNS_PWD_DEV_CERT = 15;
 
 	public static final String ACTIVE = "Activate";
@@ -1026,7 +1027,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				"save and sign current project to HAR/HAD file on your disk," +
 				"<BR><BR>" +
 				"<STRONG>Important :</STRONG>" +
-				"<BR>1. if developer certificate is created, HAR will be signed with it; otherwise save only," +
+				"<BR>1. if developer certificate is created, HAR will be signed with it also," +
 				"<BR>2. unsigned HAR will be upgraded by signed HAR successfully," +
 				"<BR>3. signed HAR will NOT be upgraded by signed HAR, if developer certificate is NOT same," +
 //				"<BR>4. a signed HAR will update/upgrade a signed HAR, if at least one certificate is same." +
@@ -2577,10 +2578,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final JPanel descPanel = new JPanel(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
 		descPanel.setBorder(new TitledBorder((String)ResourceUtil.get(9095)));
 		descPanel.add(new JLabel("<html>" +
-				PASSWORD_OF_DEVELOPER_CERTIFICATE + "</html>"));
+				DESC_PASSWORD_OF_DEVELOPER_CERTIFICATE + "</html>"));
 		
 		final JPanel totalPanel = new JPanel(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
-		totalPanel.setBorder(new TitledBorder(""));
+		totalPanel.setBorder(new TitledBorder(PWD_DEV_CERT));
 		totalPanel.add(panel, BorderLayout.NORTH);
 		totalPanel.add(descPanel, BorderLayout.SOUTH);
 		return totalPanel;

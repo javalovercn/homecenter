@@ -4,7 +4,6 @@ import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
-import hc.util.ResourceUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -17,7 +16,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.PrivateKey;
-import java.security.Provider;
 import java.security.PublicKey;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -34,7 +32,6 @@ import org.android.signapk.SignApk;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMDecryptorProvider;
 import org.bouncycastle.openssl.PEMEncryptedKeyPair;
 import org.bouncycastle.openssl.PEMKeyPair;
@@ -47,19 +44,17 @@ import org.bouncycastle.util.encoders.Base64;
 
 public class SignHelper {
 
-	private final static Provider bcProvider = new BouncyCastleProvider();
-
 //	static {
 //		Security.addProvider(SignHelper.bcProvider);
 //	}
-
+	
 	/**
 	 * 
 	 * @return [pubKey, privateKey]
 	 */
 	public static SignItem generateKeys(final String x500Name, final String alias, final Date notBefore, final Date notAfter) {
 		try {
-			final KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA", bcProvider);
+			final KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA", BCProvider.bcProvider);
 			gen.initialize(1024);
 			final KeyPair pair = gen.generateKeyPair();
 			
@@ -107,7 +102,7 @@ public class SignHelper {
 	        	final PEMParser pemParser = new PEMParser(new FileReader(file));
 	        	final Object object = pemParser.readObject();
 	        	final PEMDecryptorProvider decProv = new JcePEMDecryptorProviderBuilder().build("".toCharArray());//pass 3_homecenter.mobi.key PKCS#1
-	        	final JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(bcProvider);
+	        	final JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(BCProvider.bcProvider);
 	        	KeyPair kp;
 	        	if (object instanceof PEMEncryptedKeyPair) {
 	        		//Encrypted key - we will use provided password
@@ -256,11 +251,6 @@ public class SignHelper {
 						new ByteArrayInputStream(certBytes));
 
 		return certificate;
-	}
-
-	public final static Provider getBCProvider() {
-		ResourceUtil.checkHCStackTraceInclude(null, null);
-		return bcProvider;
 	}
 
 	// Date notBefore = new Date();

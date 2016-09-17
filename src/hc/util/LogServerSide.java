@@ -40,7 +40,7 @@ public class LogServerSide implements ILog {
 	}
 
 	public synchronized void buildOutStream() {
-		if(LogManager.INI_DEBUG_ON || (IConstant.isRegister() == false)){
+		if(LogManager.INI_DEBUG_ON  || ResourceUtil.isDemoServer() || (IConstant.isRegister() == false)){
 		}else{
 			if(osw != null){
 				return;

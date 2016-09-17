@@ -215,10 +215,13 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 			}
 			
 			{
-				final String shortMobileLocale = (mobileLocale.length() >= 2 ? mobileLocale.substring(0, 2) : "");
-				final String match = (String)storeMap.get(shortMobileLocale);//zh
-				if(match != null){
-					return match;
+				final int splitIdx = mobileLocale.lastIndexOf("-");//理论上可能有三段的zh-Hans-CN
+				if(splitIdx > 0){
+					final String shortMobileLocale = mobileLocale.substring(0, splitIdx);
+					final String match = (String)storeMap.get(shortMobileLocale);//zh
+					if(match != null){
+						return match;
+					}
 				}
 			}
 		}

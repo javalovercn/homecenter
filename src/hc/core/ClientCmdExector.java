@@ -22,10 +22,18 @@ public class ClientCmdExector {
 				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_NEW_NOTIFICATION, url.getValueofPara("status"));
 				return true;
 			}else if(elementID.equals(HCURL.DATA_CMD_MSG)){
-				L.V = L.O ? false : LogManager.log("Receive Cmd Msg");
+//				L.V = L.O ? false : LogManager.log("Receive Cmd Msg");
+
+				final String caption = url.getValueofPara("caption");
+				final String text = url.getValueofPara("text");
+				
+				//仅处理服务器端过来的，不能置于displayMessage之中，因为本地异常也可能displayMessage
+				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_ASSISTANT, caption);
+				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_ASSISTANT, text);
+				
 				ContextManager.getContextInstance().displayMessage(
-						url.getValueofPara("caption"), 
-						url.getValueofPara("text"), 
+						caption, 
+						text, 
 						Integer.parseInt(url.getValueofPara("type")), 
 						url.getValueofPara("image"), 
 						Integer.parseInt(url.getValueofPara("timeOut")));

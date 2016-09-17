@@ -163,7 +163,7 @@ public class JRubyInstaller {
 					
 					RootServerConnector.notifyLineOffType("lof=jrubyOK");
 					
-					SecurityDataProtector.init(PropertiesManager.isSimu());//Android环境下进行数据加密
+					SecurityDataProtector.init();//Android环境下进行数据加密
 					
 					notifySuccessInstalled();
 					

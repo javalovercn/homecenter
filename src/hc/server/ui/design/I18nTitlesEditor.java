@@ -138,21 +138,30 @@ public class I18nTitlesEditor extends JPanel{
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				final String lang = (String)jcbLanguage.getSelectedItem();
-				if(lang.length() < 2 || lang.length() > 2){
-					App.showMessageDialog(Designer.getInstance(), "language must be two letters!", "Error", App.ERROR_MESSAGE);
+				if(lang.length() < 2 || lang.length() > 3){
+					App.showMessageDialog(Designer.getInstance(), "language must be two or three letters!", "Error", App.ERROR_MESSAGE);
 					return;
 				}
 				
 				final String country = (String)jcbCountry.getSelectedItem();
 				final int country_len = country.length();
 				if((country_len != 0 && country_len < 2) || country_len > 2){
-					App.showMessageDialog(Designer.getInstance(), "country / region must be two letters!", "Error", App.ERROR_MESSAGE);
-					return;
+					boolean isNumeric = true;
+					try{
+						Integer.parseInt(country);
+					}catch (final Exception ex) {
+						isNumeric = false;
+					}
+					if(isNumeric && country.length() == 3){//a UN M.49 numeric-3 area code, es-419
+					}else{
+						App.showMessageDialog(Designer.getInstance(), "country / region must be two letters or UN M.49 numeric-3 area code!", "Error", App.ERROR_MESSAGE);
+						return;
+					}
 				}
 				
 				final String valueText = valueField.getText();
 				if(valueText.length() == 0){
-					App.showMessageDialog(Designer.getInstance(), "value can be empty!", "Error", App.ERROR_MESSAGE);
+					App.showMessageDialog(Designer.getInstance(), "value can NOT be empty!", "Error", App.ERROR_MESSAGE);
 					return;
 				}
 				
@@ -257,8 +266,8 @@ public class I18nTitlesEditor extends JPanel{
 		descPanel.add(new JLabel("<html>" +
 				"1. <STRONG>en" + SPLIT_LANG_COUNTRY + "US</STRONG> is for United States only.<BR>" +
 				"2. <STRONG>en</STRONG> is for all english language country, if <STRONG>en"+ SPLIT_LANG_COUNTRY + "??</STRONG> is NOT found.<BR>" +
-				"3. <STRONG>language</STRONG> : ISO 639-1, two-letter codes,<BR>" +
-				"4. <STRONG>country / region</STRONG> : ISO 3166-1 alpha-2 two-letter codes, <BR>" +
+				"3. <STRONG>language</STRONG> : ISO 639 alpha-2 or alpha-3 codes,<BR>" +
+				"4. <STRONG>country / region</STRONG> : ISO 3166 alpha-2 or a UN M.49 numeric-3 area code, <BR>" +
 				"5. input in ComboBox directly if it is NOT listed in ComboBox." +
 				"</html>"));
 

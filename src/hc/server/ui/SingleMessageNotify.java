@@ -5,9 +5,11 @@ import hc.core.IContext;
 import hc.res.ImageSrc;
 import hc.server.HCActionListener;
 import hc.util.ResourceUtil;
+
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
+
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -31,7 +33,7 @@ public class SingleMessageNotify {
 	private static HashMap<String, Boolean> typeMessageStatus = new HashMap<String, Boolean>();
 	private static HashMap<String, JDialog> typeDialogs = new HashMap<String, JDialog>();
 	
-	public static final void showOnce(final String type, String msg, String title, final int disposeMS, final Icon icon){
+	public static final void showOnce(final String type, final String msg, final String title, final int disposeMS, final Icon icon){
 		synchronized (SingleMessageNotify.class) {
 			if(SingleMessageNotify.isShowMessage(type) == false){
 				new SingleMessageNotify(type, msg, title, disposeMS, icon);
@@ -40,15 +42,15 @@ public class SingleMessageNotify {
 		}
 	}
 	
-	public static final boolean isShowMessage(String type){
-		Boolean isShow = typeMessageStatus.get(type);
+	public static final boolean isShowMessage(final String type){
+		final Boolean isShow = typeMessageStatus.get(type);
 		if(isShow == null){
 			return false;
 		}
 		return isShow.booleanValue();
 	}
 	
-	public static final void setShowToType(String type, boolean isShow){
+	public static final void setShowToType(final String type, final boolean isShow){
 		if(isShow){
 			typeMessageStatus.put(type, Boolean.TRUE);
 		}else{
@@ -64,8 +66,12 @@ public class SingleMessageNotify {
 	 * @param disposeMS 指定时间后自动关闭；如果为0，表示须手工关闭
 	 * @param icon
 	 */
-	public SingleMessageNotify(final String type, String msg, String title, final int disposeMS, final Icon icon){
-		JPanel panel = new JPanel(new BorderLayout());
+	public SingleMessageNotify(final String type, final String msg, final String title, final int disposeMS, final Icon icon){
+		if(ResourceUtil.isDemoServer()){//Demo时，不显示UI界面
+			return;
+		}
+		
+		final JPanel panel = new JPanel(new BorderLayout());
 		panel.add(new JLabel("<html><body>"+msg+"</body></html>", icon, SwingConstants.LEADING), BorderLayout.CENTER);
 		final ActionListener quitAction = new HCActionListener(new Runnable() {
 			@Override
@@ -80,14 +86,14 @@ public class SingleMessageNotify {
 		if(disposeMS > NEVER_AUTO_CLOSE){
 		//由原CondWatcher改来，采用线程
 			new Thread(){
-				private long startMS = System.currentTimeMillis();
+				private final long startMS = System.currentTimeMillis();
 				@Override
 				public void run() {
 					while(isShowMessage(type)){
 						try{
 							//必须置于前，因为有可能Message尚未显示。
 							Thread.sleep(1000);
-						}catch (Exception e) {
+						}catch (final Exception e) {
 						}
 						
 						final long diff = System.currentTimeMillis() - startMS;
@@ -104,7 +110,7 @@ public class SingleMessageNotify {
 
 	public static void closeDialog(final String type) {
 		synchronized (SingleMessageNotify.class) {
-			JDialog dialog = typeDialogs.get(type);
+			final JDialog dialog = typeDialogs.get(type);
 			
 			if(dialog != null){
 				setShowToType(type, false);

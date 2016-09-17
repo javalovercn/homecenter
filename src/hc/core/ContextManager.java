@@ -115,7 +115,7 @@ public class ContextManager {
 	public static final short STATUS_READY_EXIT = 7;
 	public static final short STATUS_EXIT = 8;
 	
-	public static IStatusListen statusListen;
+	private static IStatusListen statusListen;
 
 	public static final short MODE_CONNECTION_NONE = 0;
 	public static final short MODE_CONNECTION_HOME_WIRELESS = 1;
@@ -132,6 +132,11 @@ public class ContextManager {
 	public static short getConnectionModeStatus(){
 		return ContextManager.modeStatus;
 	}
+	
+	public static void setStatusListen(IStatusListen listener){
+		CCoreUtil.checkAccess();
+		statusListen = listener;
+	}
 
 	public static void setStatus(final short mode){
 		if((mode != ContextManager.STATUS_EXIT) && (ContextManager.cmStatus == ContextManager.STATUS_EXIT)){
@@ -140,8 +145,8 @@ public class ContextManager {
 		}
 
 		hc.core.L.V=hc.core.L.O?false:LogManager.log("Change Status, From [" + ContextManager.cmStatus + "] to [" + mode + "]");
-		if(ContextManager.statusListen != null){
-			ContextManager.statusListen.notify(ContextManager.cmStatus, mode);
+		if(statusListen != null){
+			statusListen.notify(ContextManager.cmStatus, mode);
 		}
 
 		if(mode == ContextManager.STATUS_LINEOFF){

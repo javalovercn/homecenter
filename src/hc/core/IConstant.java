@@ -34,7 +34,7 @@ public abstract class IConstant {
 	 * 
 	 * @return true:is HC Server. false : Relay Server or other
 	 */
-	public static boolean isHCServer(){
+	public static boolean isHCServerAndNotRelayServer(){
 		if(propertiesFileName == null){//TestCase时可能为null
 			return false;
 		}

@@ -258,7 +258,7 @@ public class HttpUtil {
 		try {
 			url = new URL(url_str);
 			final URLConnection conn = url.openConnection();
-			if(IConstant.isHCServer()){
+			if(IConstant.isHCServerAndNotRelayServer()){
 				conn.setConnectTimeout(HCURLUtil.HTTPS_CONN_TIMEOUT);
 				conn.setReadTimeout(HCURLUtil.HTTPS_READ_TIMEOUT);
 			}else{
@@ -275,6 +275,14 @@ public class HttpUtil {
 						//服务器无SSL私钥：java.security.cert.CertificateException: No subject alternative DNS name matching unioncard.mobi found.
 						//客户端无SSL公钥：sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
 						LogManager.errToLog("HTTPS error [" + e.getMessage() + "], maybe ajax.crt/ajax.key is missing or invalid! [" + url_str + "]");
+						if(ResourceUtil.isOpenJDK()){
+							final String msg = "OpenJDK is depends /usr/lib64/libssl3.so, " +
+									"\n\nto see where it is coming from, exec cmd \"yum provides /usr/lib64/libssl3.so\"," +
+									"\nif it is come from nss, exec cmd \"sudo yum upgrade nss\" to solve it.";
+							final String winMsg = "<html>" + StringUtil.replace(msg, "\n", "<BR>") + "</html>";
+							App.showHARMessageDialog(winMsg, e.getMessage(), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+							LogManager.errToLog(msg);
+						}
 					}
 					ExceptionReporter.printStackTrace(e);
 				}
@@ -364,6 +372,15 @@ public class HttpUtil {
 	        return inet.getHostAddress();
 		} catch (final UnknownHostException e) {
 			ExceptionReporter.printStackTrace(e);
+		}
+		return null;
+	}
+	
+	public static InetAddress get0000(){
+		try{
+			return InetAddress.getByName("0.0.0.0");
+		}catch (final Exception e) {
+			e.printStackTrace();
 		}
 		return null;
 	}

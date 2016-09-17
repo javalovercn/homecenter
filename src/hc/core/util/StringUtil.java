@@ -402,22 +402,47 @@ public class StringUtil {
 		return js.replace('"', '\'');
 	}
 
-	/**
-	 * 将三段的zh-Hans-CN转为两段zh-CN
-	 * @param userLang
-	 * @return
-	 */
-	public static String toStandardLocale(final String userLang){
-		final int firstIdx = userLang.indexOf('-');
-		if(firstIdx > 0){
-			final int secondIdx = userLang.indexOf('-', firstIdx + 1);
-			if(secondIdx > 0){
-				return userLang.substring(0, firstIdx) + userLang.substring(secondIdx, userLang.length());
+	public static String toStandardLocale(String locale) {
+		locale = StringUtil.replace(locale, "_", "-");
+		
+		{
+		    final String lowercase = locale.toLowerCase();
+			if (lowercase.startsWith("zh-hans")) {
+		    	locale = "zh-CN";
+		    }else if(lowercase.startsWith("zh-hant")){
+		    	locale = "zh-TW";
+		    }
+		}
+		
+		{
+			int firstSpliterIdx = locale.indexOf("-");
+			if(firstSpliterIdx > 0){
+				int secondSplitIdx = locale.indexOf("-", firstSpliterIdx + 1);
+				String lang = locale.substring(0, firstSpliterIdx);
+				if(secondSplitIdx > 0){
+					locale = lang + locale.substring(secondSplitIdx);//将三段的zh-Hans-CN转为两段zh-CN
+				}
+				if (lang.equals("he")) {
+					locale = "iw" + locale.substring(firstSpliterIdx);
+		        } else if (lang.equals("yi")) {
+		        	locale = "ji" + locale.substring(firstSpliterIdx);
+		        } else if (lang.equals("id")) {
+		        	locale = "in" + locale.substring(firstSpliterIdx);
+		        }
+			}else{
+				if (locale.equals("he")) {
+					locale = "iw";
+		        } else if (locale.equals("yi")) {
+		        	locale = "ji";
+		        } else if (locale.equals("id")) {
+		        	locale = "in";
+		        }
 			}
 		}
-		return userLang;
+		
+		return locale;
 	}
-
+	
 	/**
 	 * 注意：长度不固定
 	 * @return

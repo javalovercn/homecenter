@@ -116,10 +116,14 @@ public class PropertiesManager {
 	public static final String p_DesignerCtrlHOrV = "DesignerCtrlHOrV";
 
 	public static final String p_ReadedMsgID = "ReadedMsgID";
+
 	public static final String p_ServerSecurityKeyMD5 = "ServerSecurityKeyMD5";
+	public static final String p_isNeedResetPwd = "isNeedResetPwd";
+	public static final String p_SecurityCheckAES = "SecurityCheckAES";
+	public static final String S_SecurityProperties = "SecurityProperties";//记录加密的属性
 
 	public static final String p_isLowMemWarnInDesigner = "isLowMemWarnInDesigner";
-
+	
 	/**
 	 * 初次安装的版本号，与后续升级无关
 	 */
@@ -129,6 +133,9 @@ public class PropertiesManager {
 	public static final String p_WindowY = "_wy";
 	public static final String p_WindowWidth = "_ww";
 	public static final String p_WindowHeight = "_wh";
+	
+	public static final String p_isDemoServer = "isDemoServer";
+	public static final String p_DemoServerIP = "DemoServerIP";
 	
 	public static final String p_TrayX = "_Tray_x";
 	public static final String p_TrayY = "_Tray_y";
@@ -183,7 +190,6 @@ public class PropertiesManager {
 	public static final String S_USER_LOOKANDFEEL = "lookfeel";
 	public static final String S_LINK_PROJECTS = "linkProjs";//注意：不能有与它相同的前缀，比如linkProjsHeight的属性
 	public static final String S_LINK_PROJECTS_COLUMNS_WIDTH = "linkProjWidth";
-	public static final String S_SecurityProperties = "SecurityProperties";//记录加密的属性
 
 	public static final String p_LINK_CURR_EDIT_PROJ_ID = "currEditProjID";
 	public static final String p_LINK_CURR_EDIT_PROJ_VER = "currEditProjVer";
@@ -273,7 +279,7 @@ public class PropertiesManager {
 	}
 	
 	static boolean statusChanged = false;
-	private static Properties propertie;
+	static Properties propertie;
 	private static final Object writeNotify = new Object();
 	final static Object gLock = CCoreUtil.getGlobalLock();
 
@@ -346,9 +352,23 @@ public class PropertiesManager {
 				return true;
 			}
 		}
+		
+		if(p_SecurityCheckAES.equals(key)){
+			return true;
+		}
+		
 		return false;
 	}
 	
+	public static final void setValue(final String key, final boolean value){
+		setValue(key, value?IConstant.TRUE:IConstant.FALSE);
+	}
+	
+	/**
+	 * 
+	 * @param key
+	 * @param value if value == null, then remove it.
+	 */
 	public static final void setValue(final String key, String value){
 		if(key.startsWith(PropertiesManager.p_PROJ_RECORD, 0)){
 			
@@ -364,15 +384,20 @@ public class PropertiesManager {
 					|| key.equals(p_NewCertIsNotTransed)
 					|| key.equals(p_EnableTransNewCertKeyNow)
 					|| key.equals(p_HideIDForErrCert)
-					|| key.equals(p_isRememberDevCertPassword)){
+					|| key.equals(p_isRememberDevCertPassword)){//注意：如果增加逻辑，请同步到remove中
 				ResourceUtil.checkHCStackTraceInclude(null, null);
 			}
 			
-			if(isSecurityData){
+			if(isSecurityData && value != null){
 				value = SecurityDataProtector.encode(value);
 			}
 		}
 		
+		if(value == null){
+			remove(key);
+			return;
+		}
+
 		String oldValue;
 		synchronized (gLock) {
 			oldValue = (String)propertie.setProperty(key, value);
@@ -408,6 +433,7 @@ public class PropertiesManager {
 		for (int i = 0; i < securityProperties.length; i++) {
 			remove(securityProperties[i]);
 		}
+		remove(p_SecurityCheckAES);
 		
 		resetDevCert();
 		
@@ -451,11 +477,11 @@ public class PropertiesManager {
 			final String p = needSecurityProperties[i];
 
 			if(securityPropertiesSet.contains(p) == false){
-				String sData = propertie.getProperty(p);
+				String sData = propertie.getProperty(p);//将未加密状态取出
 
 				if(sData != null){
 					sData = SecurityDataProtector.encode(sData);
-					propertie.setProperty(p, sData);
+					propertie.setProperty(p, sData);//加密后，存入
 				}
 				
 				//注意：下行代码不能并入sData != null
@@ -464,13 +490,14 @@ public class PropertiesManager {
 				isChanged = true;
 			}
 		}
-
+		
 		if(isChanged){
 			statusChanged = true;
 			securityPropertiesSet.save();
 		}
+		
 	}
-	
+
 	/**
 	 * 如果没有，则返回null
 	 * @param key

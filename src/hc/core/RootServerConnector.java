@@ -1,5 +1,6 @@
 package hc.core;
 
+import hc.core.util.CCoreUtil;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
 import hc.core.util.RootBuilder;
@@ -22,7 +23,7 @@ public class RootServerConnector {
 //	"Unable Connect the server"
 	final static String UN_CONN = unObfuscate("nUbaelC noentct ehs reevr");
 	//http://homecenter.mobi/ajax/call.php?
-	private final static String CALL_STR = AJAX_HTTPS_44X_URL_PREFIX + "call.php?";
+	public final static String CALL_STR = AJAX_HTTPS_44X_URL_PREFIX + "call.php?";
 	//id=
 	private final static String ID_STR = unObfuscate("di=");
 	//"token="
@@ -600,6 +601,40 @@ public class RootServerConnector {
 		}
 		
 		return https_url;
+	}
+	
+	public static void reportLocalException(String locale, final boolean check) {
+		if(check == false){
+		}else{
+			locale = StringUtil.replace(locale, "_", "-");
+			if(locale.indexOf("-") > 0){
+				final String[] parts = StringUtil.splitToArray(locale, "-");
+				boolean pass = true;
+				for (int i = 0; i < parts.length; i++) {
+					if(parts[i].length() > 2){
+						pass = false;
+						break;
+					}
+				}
+				if(parts.length > 2){
+					pass = false;
+				}
+				if(pass){
+					return;
+				}
+			}
+		}
+
+		final String p = locale;
+		new Thread(){
+			public void run(){
+				try{
+					Thread.sleep(10 * 1000);//等待可能的初始完成
+					retry(CALL_STR +"localeException=" + p);
+				}catch (Throwable e) {
+				}
+			}
+		}.start();
 	}
 	
 }

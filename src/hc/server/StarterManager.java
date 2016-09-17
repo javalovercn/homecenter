@@ -10,11 +10,9 @@ import hc.util.HttpUtil;
 import hc.util.ResourceUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Properties;
 
 public class StarterManager {//注意：本类的getHCVersion被starter.jar反射调用
 	public static final String CLASSNAME_STARTER_STARTER = "starter.Starter";
@@ -130,25 +128,7 @@ public class StarterManager {//注意：本类的getHCVersion被starter.jar反�
 		
 		//客户端对服务器最低版本要求，在J2MEContext.miniHCServerVer
 		
-		return "7.18";//请同步修改go.php, android.php
-	}
-
-	private static String getHCVersionFromStarter() {
-		try{
-			final Properties start = new Properties();
-			start.load(new FileInputStream(_STARTER_PROP_FILE_NAME));
-			final String[][] jars = J2SEContext.splitFileAndVer(start.getProperty("JarFiles"), false);
-			for (int i = 0; i < jars.length; i++) {
-				final String[] tmp = jars[i];
-				if(tmp[0].equals("hc.jar")){
-					//增加版本信息
-					return tmp[1];
-				}
-			}
-		}catch (final Throwable ee) {
-			
-		}
-		return "0.1";
+		return "7.19";//请同步修改go.php, android.php
 	}
 
 }

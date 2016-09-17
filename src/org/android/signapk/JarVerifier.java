@@ -17,7 +17,7 @@
 package org.android.signapk;
 
 import hc.core.L;
-import hc.server.util.SignHelper;
+import hc.server.util.BCProvider;
 import hc.util.ResourceUtil;
 
 import java.io.ByteArrayInputStream;
@@ -246,7 +246,7 @@ public class JarVerifier {
             final byte[] hashBytes = hash.getBytes(Charset.forName("ISO-8859-1"));
 
             try {
-                return new VerifierEntry(name, MessageDigest.getInstance(algorithm, SignHelper.getBCProvider()), hashBytes,
+                return new VerifierEntry(name, MessageDigest.getInstance(algorithm, BCProvider.getBCProvider()), hashBytes,
                         certChainsArray, verifiedEntries);
             } catch (final NoSuchAlgorithmException ignored) {
             }
@@ -363,8 +363,8 @@ public class JarVerifier {
             final Collection certCollection = store.getMatches(signer.getSID()); 
             final Iterator certIt = certCollection.iterator();
             final X509CertificateHolder certHolder = (X509CertificateHolder) certIt.next();
-            final X509Certificate certFromSignedData = new JcaX509CertificateConverter().setProvider(SignHelper.getBCProvider()).getCertificate(certHolder);
-            if (signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider(SignHelper.getBCProvider()).build(certFromSignedData))) {
+            final X509Certificate certFromSignedData = new JcaX509CertificateConverter().setProvider(BCProvider.getBCProvider()).getCertificate(certHolder);
+            if (signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider(BCProvider.getBCProvider()).build(certFromSignedData))) {
 //                System.out.println("Signature verified");
             } else {
             	throw new SecurityException("fail to verify signatureBlock");
@@ -400,7 +400,7 @@ public class JarVerifier {
 		final String sigAlgName = x509Certificate.getSigAlgName();
 
 //		// Get Signature instance
-		final Signature sig = Signature.getInstance(sigAlgName, SignHelper.getBCProvider());
+		final Signature sig = Signature.getInstance(sigAlgName, BCProvider.getBCProvider());
 		
 		// We couldn't find a valid Signature type.
 		if (sig == null) {
@@ -429,7 +429,7 @@ public class JarVerifier {
 			final String daName = (withIdx>0?sigAlgName.substring(0, withIdx):sigAlgName);
 
 			if (md == null && daName != null) {
-				md = MessageDigest.getInstance(daName, SignHelper.getBCProvider());
+				md = MessageDigest.getInstance(daName, BCProvider.getBCProvider());
 			}
 			if (md == null) {
 				return null;
@@ -723,7 +723,7 @@ public class JarVerifier {
 
             MessageDigest md;
             try {
-                md = MessageDigest.getInstance(algorithm, SignHelper.getBCProvider());
+                md = MessageDigest.getInstance(algorithm, BCProvider.getBCProvider());
             } catch (final NoSuchAlgorithmException e) {
                 continue;
             }

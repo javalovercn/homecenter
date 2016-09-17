@@ -123,7 +123,7 @@ public class ClientDesc {
 			}
 		}
 		L.V = L.O ? false : LogManager.log(sb.toString());
-		L.V = L.O ? false : LogManager.log("Receive client desc, w:" + clientWidth + ", h:" + clientHeight 
+		L.V = L.O ? false : LogManager.log("Receive client desc, locale:" + clientLang + ",  w:" + clientWidth + ", h:" + clientHeight 
 				+ ", dpi:" + dpi + ((dpi==0)?"(unknow)":"") + ", hcClientVer:" + hcClientVer + ", xdpi:" + xdpi + ", ydpi:" + ydpi + ", density:" + density);
 		L.V = L.O ? false : LogManager.log("  Important : the w (h) maybe not equal to the real width (height) of mobile in pixels, UI may be scaled to the best size.");
 	}

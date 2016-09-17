@@ -3,6 +3,8 @@ package hc.j2se;
 import hc.core.RootServerConnector;
 import hc.core.util.LogManager;
 import hc.core.util.RootBuilder;
+import hc.server.util.SignHelper;
+import hc.util.ResourceUtil;
 
 import java.net.URL;
 import java.net.URLConnection;
@@ -25,6 +27,12 @@ import javax.net.ssl.X509TrustManager;
  *
  */
 public class HCAjaxX509TrustManager{
+//	static {
+//		if(ResourceUtil.isOpenJDK()){
+//			SignHelper.addBCProvider();
+//		}
+//	}
+
 	private static X509Certificate readPublicKeyForAjax() {
 		try{
 			final CertificateFactory factory = CertificateFactory.getInstance("X.509");
@@ -120,7 +128,7 @@ public class HCAjaxX509TrustManager{
 			}
 		});
 	}
-
+	
 	public static void setAjaxSSLSocketFactory(final URL url, final URLConnection conn) {
 		if(conn instanceof HttpsURLConnection){
 			if(url.getPort() == RootServerConnector.PORT_44X 

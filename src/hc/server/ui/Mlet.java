@@ -107,11 +107,16 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
+	 * exit current {@link Mlet} or {@link HTMLMlet} and return back.
 	 * @since 7.0
+	 * @see #go(String)
 	 */
 	public static final String URL_EXIT = HCURL.URL_CMD_EXIT;
+	
 	/**
+	 * enter the desktop of server.
 	 * @since 7.0
+	 * @see #go(String)
 	 */
 	public static final String URL_SCREEN = HCURL.URL_HOME_SCREEN;
 	

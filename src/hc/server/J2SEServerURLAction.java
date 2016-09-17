@@ -181,6 +181,9 @@ public class J2SEServerURLAction implements IHCURLAction {
 							new Thread(){
 								@Override
 								public void run(){
+									if(ResourceUtil.isDemoServer()){//为Demo时，不显示UI界面
+										return;
+									}
 									SingleMessageNotify.setShowToType(SingleMessageNotify.TYPE_DIALOG_CERT, true);
 									
 									//UDP可能导致数据后于disable对话框

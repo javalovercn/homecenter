@@ -101,16 +101,22 @@ public abstract class CtrlResponse {
 	}
 	
 	/**
-	 * show moving tip message on mobile.
-	 * @param msg
+	 * display a message moving from right to left on mobile <BR>
+	 * <BR>
+	 * Note : if mobile is in background ({@link ProjectContext#isMobileInBackground()}), a
+	 * notification is also created for mobile.<BR><BR>
+	 * if mobile option [Message, Notification to Speech also] is on, it may be spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
+	 * @param msg the message to show.
 	 * @since 6.98
+	 * @see {@link ProjectContext#sendMovingMsg(String)}
 	 */
 	public final void showTip(final String msg){
 		getProjectContext().sendMovingMsg(msg);
 	}
 	
 	/**
-	 *  send key-value status of controller on mobile
+	 *  send key-value status of controller to mobile
 	 * @param key
 	 * @param value
 	 * @since 6.98
@@ -120,7 +126,7 @@ public abstract class CtrlResponse {
 	}
 	
 	/**
-	 *  send key-value status of controller on mobile
+	 *  send key-value status of controller to mobile
 	 * @param key
 	 * @param value
 	 * @param isRTL true : is right to left

@@ -151,6 +151,8 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	public J2SEContext() {
 		super(false);
 		
+		ContextManager.setStatusListen(this);
+
 		ToolTipManager.sharedInstance().setDismissDelay(1000 * 20);
 
 		SIPManager.setSIPContext(new J2SESIPContext(){
@@ -409,7 +411,9 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 							final PendStore ps = vector.elementAt(index);
 							
 							if(currMS - ps.createMS > 20000){//删除超时的。
-								L.V = L.O ? false : LogManager.log("delete overtime pending cache store item.");
+								if(L.isInWorkshop){
+									L.V = L.O ? false : LogManager.log("delete overtime pending cache store item.");//不用提示给用户
+								}
 								vector.removeElementAt(index);
 								continue;
 							}
@@ -474,6 +478,11 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
     @Override
 	public void displayMessage(final String caption, final String text, final int type, final Object imageData, final int timeOut){
+    	if(ResourceUtil.isDemoServer()){
+    		L.V = L.O ? false : LogManager.log("this is demo server, skip displayMessage.");
+    		return;
+    	}
+    	
     	if(text.startsWith("<html>")){
     		LogManager.errToLog("HTML tag can NOT be in TrayIcon displayMessage method.");
     	}
@@ -760,7 +769,10 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	}
 	
 	public void buildMenu(final Locale locale){
-
+		if(ResourceUtil.isDemoServer()){
+			return;
+		}
+		
 		popupTi = new JPopupMenu();
     	
     	popupTi.applyComponentOrientation(ComponentOrientation.getOrientation(locale));
@@ -1400,7 +1412,6 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			ti.remove();
 		}
 		try {
-			ContextManager.statusListen = this;
 			ti = PlatformManager.getService().buildPlatformTrayIcon((ti != null ? ti.getImage() : hc_Disable),
 					(String) ResourceUtil.get(UILang.PRODUCT_NAME), popupTi);
 			if(oldTip != null){
@@ -1562,7 +1573,9 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
         	final String msg = (String)ResourceUtil.get(9009);
 			displayMessage(ResourceUtil.getInfoI18N(), msg, 
         			IContext.INFO, null, 0);
-        	ti.setToolTip(msg);
+			if(ti != null){//isDemoServer时，为null
+				ti.setToolTip(msg);
+			}
         }
 	}
 	
@@ -2020,9 +2033,11 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			final String msg = (String)ResourceUtil.get(9012);
 			displayMessage(ResourceUtil.getInfoI18N(), msg, 
 					IContext.INFO, null, 0);
-			ti.setToolTip(msg);
-			ti.setImage(hc_mobi);
-
+			if(ti != null){//isDemoServer时，为null
+				ti.setToolTip(msg);
+				ti.setImage(hc_mobi);
+			}
+			
 			//关闭以防被再次接入
 			RootServerConnector.delLineInfo(TokenManager.getToken(), true);
 		}else{
@@ -2351,7 +2366,9 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	}
 
 	public static void enableTransNewCertMenuItem() {
-		transNewCertKey.setEnabled(true);
+		if(transNewCertKey != null){//isDemoServer时，为null
+			transNewCertKey.setEnabled(true);
+		}
 	}
 
 	public static void notifyExitByMobi() {

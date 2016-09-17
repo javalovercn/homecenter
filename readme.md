@@ -25,25 +25,24 @@
 5. set [Compiler compliance level] of Eclipse to 1.7 or upper
 6. to print log to console, please keep [options/Developer/Logger] unchecked
 7. please keep the source code for the latest version, otherwise it may causes abnormal connections with mobile.
-8. these two files (starter.jar and hc.pem) in distributed zip file (NOT in source files), are used to check new version, download binary jar of these source files, verify and start up HomeCenter server.
-9. there is a sample HAR project (NOT "MyFirst" project) in designer on server, covers 80% of JRuby syntax and 90% of functions of HomeCenter server.
-10. for API, press alt+/ in designer or go https://homecenter.mobi/download/javadoc/index.html
-11. for usage, steps and guide, please go https://homecenter.mobi/en/pc/steps.htm
-12. any question, please open issues https://github.com/javalovercn/homecenter/issues or Email : help at homecenter.mobi
-13. for the latest version mobile App (client side), please download them from https://homecenter.mobi/en/pc/downloads.htm
-14. to get server for Android or others, please download it from https://homecenter.mobi/en/pc/downloads.htm
+8. there is a sample HAR project (NOT "MyFirst" project) in designer on server, covers 80% of JRuby syntax and 90% of functions of HomeCenter server.
+9. for API, press alt+/ in designer or go https://homecenter.mobi/download/javadoc/index.html
+10. any question, please open issues https://github.com/javalovercn/homecenter/issues or Email : help at homecenter.mobi
+11. for the latest version mobile App (client side), download from https://github.com/javalovercn/client
+12. for binary server of Android or other, download from https://homecenter.mobi/en/pc/downloads.htm
+13. these two files (starter.jar and hc.pem) in binary distributed zip file (NOT in source files), are used to check new version, download binary jar of these source files, verify and start up HomeCenter server.
 
 ***
 
-![splash](http://homecenter.mobi/images/splash_n_txt.png)
+![splash](https://homecenter.mobi/images/splash_n_txt.png)
 
 ***
 
-![screenshot](http://homecenter.mobi/images/sc6.png)
-![screenshot](http://homecenter.mobi/images/sc8.png)
-![screenshot](http://homecenter.mobi/images/sc7.png)
-![screenshot](http://homecenter.mobi/images/sc9.png)
+![screenshot](https://homecenter.mobi/images/sc6.png)
+![screenshot](https://homecenter.mobi/images/sc8.png)
+![screenshot](https://homecenter.mobi/images/sc7.png)
+![screenshot](https://homecenter.mobi/images/sc9.png)
 
 ***
 
-![designer](http://homecenter.mobi/images/usage/pc_designer.png)
+![designer](https://homecenter.mobi/images/usage/pc_designer.png)

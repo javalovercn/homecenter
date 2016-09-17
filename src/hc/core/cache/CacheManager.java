@@ -567,7 +567,7 @@ public class CacheManager {
 				CacheStoreManager.storeData(rmsNameForFileCode, vectorCoder);
 			}
 			
-			L.V = L.O ? false : LogManager.log("[cache] store cache item for [" + projID + "/" + uuid + "/" + urlID + "/" + (storeIdx<0?fileSize:storeIdx) + "]");
+			L.V = L.O ? false : LogManager.log("[cache] successful store cache item for [" + projID + "/" + uuid + "/" + urlID + "/" + (storeIdx<0?fileSize:storeIdx) + "]");
 		}
 	}
 

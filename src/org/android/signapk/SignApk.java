@@ -16,7 +16,7 @@
 package org.android.signapk;
 
 import hc.core.util.StringUtil;
-import hc.server.util.SignHelper;
+import hc.server.util.BCProvider;
 import hc.server.util.SignItem;
 
 import java.io.BufferedReader;
@@ -241,7 +241,7 @@ public class SignApk {
             main.putValue("Manifest-Version", "1.0");
             main.putValue("Created-By", "1.0 (Android SignApk for HomeCenter)");
 //        }
-          final Provider bcProvider = SignHelper.getBCProvider();
+          final Provider bcProvider = BCProvider.getBCProvider();
             
         final MessageDigest md_sha = getMessageDisgest(hashes, bcProvider);
 
@@ -322,7 +322,7 @@ public class SignApk {
                                    final Manifest manifest,
                                    final int hash)
         throws IOException, GeneralSecurityException {
-        final MessageDigest md = getMessageDisgest(hash, SignHelper.getBCProvider());
+        final MessageDigest md = getMessageDisgest(hash, BCProvider.getBCProvider());
 
         final JarEntry je = new JarEntry(OTACERT_NAME);
         je.setTime(timestamp);
@@ -380,7 +380,7 @@ public class SignApk {
         main.putValue("Signature-Version", "1.0");
         main.putValue("Created-By", "1.0 (Android SignApk)");
 
-        final MessageDigest md = getMessageDisgest(hash, SignHelper.getBCProvider());
+        final MessageDigest md = getMessageDisgest(hash, BCProvider.getBCProvider());
         final PrintStream print = new PrintStream(
             new DigestOutputStream(new ByteArrayOutputStream(), md),
             true, "UTF-8");
@@ -431,7 +431,7 @@ public class SignApk {
         certList.add(publicKey);
         final JcaCertStore certs = new JcaCertStore(certList);
 
-        final Provider bcProvider = SignHelper.getBCProvider();
+        final Provider bcProvider = BCProvider.getBCProvider();
         
         final CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
         final String digestHeader = getDigestHeader(getAlgorithm(publicKey));

@@ -220,7 +220,7 @@ public class ServerUIUtil {
 			try{
 				snap.stop();
 				if(snap instanceof MobiUIResponsor){
-					L.V = L.O ? false : LogManager.log("stop all projects.");
+					L.V = L.O ? false : LogManager.log("shutdown all projects.");
 				}
 			}catch (final Throwable e) {
 				ExceptionReporter.printStackTrace(e);

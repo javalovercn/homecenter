@@ -141,6 +141,9 @@ public class ServerInitor {
 											new Thread(){
 												@Override
 												public void run(){
+													if(ResourceUtil.isDemoServer()){//Demo时，不显示UI界面
+														return;
+													}
 													SingleMessageNotify.setShowToType(SingleMessageNotify.TYPE_DIALOG_TRANS_OFF, true);
 													final JPanel askPanle = new JPanel();
 													askPanle.setLayout(new BoxLayout(askPanle, BoxLayout.X_AXIS));

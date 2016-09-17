@@ -19,6 +19,9 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -32,7 +35,8 @@ public class SecurityDataProtector {
 	public static final String DEV_CERT_FILE_EXT = "pfx";
 	final static String fileDevCert = "dev_cert." + DEV_CERT_FILE_EXT;
 	final static String fileHcHardId = "hc_hard_id.txt";
-	
+	static final String testAESSrc = "hello, my server";
+
 	public static String getDevCertFileName(){
 		return fileDevCert;
 	}
@@ -46,7 +50,7 @@ public class SecurityDataProtector {
 	}
 	
 	private static boolean runOnce = false;
-	private static final boolean isHCServer = IConstant.isHCServer();
+	private static final boolean isHCServerAndNotRelayServer = IConstant.isHCServerAndNotRelayServer();
 	
 	public static boolean isEnableSecurityData(){
 		if(ResourceUtil.isAndroidServerPlatform()){
@@ -56,7 +60,77 @@ public class SecurityDataProtector {
 		}
 	}
 	
-	public static void init(final boolean isSimu){
+	private static void initAESChecker(){
+		if(PropertiesManager.propertie.getProperty(PropertiesManager.p_SecurityCheckAES) == null){//不用能getValue()
+			PropertiesManager.setValue(PropertiesManager.p_SecurityCheckAES, testAESSrc);
+		}
+	}
+
+	private static boolean checkAESChanged(){
+		final String checkResult = PropertiesManager.getValue(PropertiesManager.p_SecurityCheckAES);//将目录数据复制到其它应用环境时，可能由于算法实现差异，导致数据差错
+		
+		if(checkResult == null){
+		}else{
+			if(testAESSrc.equals(checkResult) == false){
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private static boolean checkNeedUpgrade(){
+		//缺省加密算法，在将工作目录复制到其它应用环境时，可能会产生错误，
+//		if(PropertiesManager.getValue(PropertiesManager.p_EPC_EncodeProvider) == null){
+//			return true;
+//		}
+		
+		return false;
+	}
+	
+	private static Map<String, String> getOldSecurityDataValues(){
+		final HashMap<String, String> map = new HashMap<String, String>(8);
+		
+		final PropertiesSet securityPropertiesSet = new PropertiesSet(PropertiesManager.S_SecurityProperties);
+		final int size = securityPropertiesSet.size();
+		for (int i = 0; i < size; i++) {
+			final String key = securityPropertiesSet.getItem(i);
+			final String value = PropertiesManager.getValue(key);
+			if(value != null){
+				map.put(key, value);
+			}
+		}
+		
+		return map;
+		
+	}
+	
+	/**
+	 * 注意：此方法新安装时，执行一次。<BR>
+	 * 此方法内不能 加密用户型(EU) 数据，只能含 加密参数配置型(EPC) 数据的增减。
+	 */
+	private static void doUpgrade(){
+	}
+	
+	private static void doUpgradeSaveBack(final Map<String, String> oldValues){
+		final Iterator<String> keys = oldValues.keySet().iterator();
+		while(keys.hasNext()){
+			final String key = keys.next();
+			PropertiesManager.setValue(key, oldValues.get(key));
+		}
+		
+		PropertiesManager.saveFile();
+	}
+	
+	private static void startUpgrade(){
+		if(checkNeedUpgrade()){
+			final Map<String, String> oldValues = getOldSecurityDataValues();
+			doUpgrade();
+			doUpgradeSaveBack(oldValues);
+		}
+	}
+	
+	public static void init(){
 		final Object gLock = CCoreUtil.getGlobalLock();
 		
 		if(isEnableSecurityData() == false){
@@ -69,7 +143,7 @@ public class SecurityDataProtector {
 			runOnce = true;
 		}
 		
-		if(isHCServer == false){
+		if(isHCServerAndNotRelayServer == false){
 			return;
 		}
 		
@@ -84,12 +158,20 @@ public class SecurityDataProtector {
 		final String realMD5 = ResourceUtil.getMD5(new String(getServerKey()));
 		if(serverKeyMD5 == null){
 			PropertiesManager.setValue(PropertiesManager.p_ServerSecurityKeyMD5, realMD5);
+			doUpgrade();
 			PropertiesManager.encodeSecurityDataFromTextMode();
+			initSecurityData();
 			L.V = L.O ? false : LogManager.log("encode security data from text mode!");
 		}else{
-			if(serverKeyMD5.equals(realMD5) == false){
+			if(PropertiesManager.isTrue(PropertiesManager.p_isNeedResetPwd, false)//上次故障后，没有修改密码。
+					|| serverKeyMD5.equals(realMD5) == false 
+					|| checkAESChanged()){//必须先检查md5，因为checkAESChanged依赖于前者
 				final String uuid = PropertiesManager.getValue(PropertiesManager.p_uuid);
+				PropertiesManager.setValue(PropertiesManager.p_isNeedResetPwd, true);
+				doUpgrade();
 				PropertiesManager.notifyErrorOnSecurityProperties();
+				initSecurityData();
+				PropertiesManager.saveFile();
 				
 				new Thread(){
 					@Override
@@ -100,8 +182,8 @@ public class SecurityDataProtector {
 						}
 
 						//服务器也变化，比如直接拷贝到其它机器上
-						LogManager.errToLog("Hardware information (network interface, disk...) is required by HomeCenter!" +
-								"\nIf they are changed, it will clause security data failure!");
+						LogManager.errToLog("environment (network interface, disk, software...) is based by HomeCenter!" +
+								"\nthey are changed, it will clause security data failure, you need reset password!");
 						
 						final JPanel panel = new JPanel(new BorderLayout());
 						panel.add(
@@ -116,6 +198,9 @@ public class SecurityDataProtector {
 								App.showInputPWDDialog(uuid, "", "", false);
 
 								SIPManager.startRelineonForce(false);
+								
+								PropertiesManager.remove(PropertiesManager.p_isNeedResetPwd);
+								PropertiesManager.saveFile();
 							}
 						}, App.getThreadPoolToken());
 						
@@ -126,7 +211,10 @@ public class SecurityDataProtector {
 					}
 				}.start();
 			}else{
+				//加密环境检查正常
+				startUpgrade();
 				PropertiesManager.encodeSecurityDataFromTextMode();//可能后期扩展
+				initSecurityData();
 			}
 		}
 		}//end gLock
@@ -138,7 +226,7 @@ public class SecurityDataProtector {
 //	}
 	
 	static String encode(final String value){
-		if(isHCServer == false){
+		if(isHCServerAndNotRelayServer == false){
 			return value;
 		}
 		
@@ -169,7 +257,7 @@ public class SecurityDataProtector {
 	}
 
 	static String decode(final String data){
-		if(isHCServer == false){
+		if(isHCServerAndNotRelayServer == false){//有可能中继服务器
 			return data;
 		}
 		
@@ -193,7 +281,7 @@ public class SecurityDataProtector {
 	          
 	        return new String(decryptBytes, IConstant.UTF_8);
 		}catch (final Throwable e) {
-			ExceptionReporter.printStackTrace(e);
+			e.printStackTrace();//可能环境变化，导致解密失败
 		}
 		
 		return data;
@@ -470,5 +558,9 @@ public class SecurityDataProtector {
 		final String hardID = androidHardwareObject.toString();
 //		System.out.println("=====> " + hardID);
 		return ByteUtil.getBytes(ResourceUtil.getMD5(hardID), IConstant.UTF_8);
+	}
+
+	private static void initSecurityData() {
+		initAESChecker();
 	}
 }
