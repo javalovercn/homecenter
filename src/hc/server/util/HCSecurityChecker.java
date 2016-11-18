@@ -8,8 +8,8 @@ import hc.server.HCSecurityException;
 import java.util.ArrayList;
 
 public class HCSecurityChecker implements SecurityChecker {
-	final Thread eventDispatchThread = HCLimitSecurityManager.getHCSecurityManager().getEventDispatchThread();
-	final HCEventQueue hcEventQueue = HCLimitSecurityManager.getHCSecurityManager().getHCEventQueue();
+	final Thread eventDispatchThread = HCLimitSecurityManager.getEventDispatchThread();
+	final HCEventQueue hcEventQueue = HCLimitSecurityManager.getHCEventQueue();
 	final ThreadGroup threadPoolToken = App.getRootThreadGroup();
 	final ArrayList<Thread> allowedThread = new ArrayList<Thread>(128);
 	

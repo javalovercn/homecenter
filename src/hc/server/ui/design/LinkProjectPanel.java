@@ -25,6 +25,7 @@ import hc.server.util.ContextSecurityConfig;
 import hc.server.util.SignHelper;
 import hc.util.HttpUtil;
 import hc.util.IBiz;
+import hc.util.LinkPropertiesOption;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
@@ -32,6 +33,8 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.Window;
@@ -81,23 +84,32 @@ public class LinkProjectPanel extends ProjectListPanel{
 	final Vector<LinkEditData> delList = new Vector<LinkEditData>(0);
 	boolean isChanged = false;
 	boolean isCancelOp = false;
-	public static final String OP_NEXT_START_UP = (String)ResourceUtil.get(9135);
-	public static final String OP_ASK = (String)ResourceUtil.get(9136);
-	public static final String OP_IMMEDIATE = (String)ResourceUtil.get(9137);
 	public static String ACTIVE = (String)ResourceUtil.get(8020);
 
-	final JRadioButton rb_startup = new JRadioButton(OP_NEXT_START_UP);
-	final JRadioButton rb_ask = new JRadioButton(OP_ASK);
-	final JRadioButton rb_imme = new JRadioButton(OP_IMMEDIATE);
+	final JRadioButton rb_startup = new JRadioButton(LinkPropertiesOption.getDispOpNextStartUp());
+	final JRadioButton rb_ask = new JRadioButton(LinkPropertiesOption.getDispOpAsk());
+	final JRadioButton rb_imme = new JRadioButton(LinkPropertiesOption.getDispOpImmediate());
+	final JRadioButton rb_perm_no = new JRadioButton(LinkPropertiesOption.getDispOpPermNoChange());
+	final JRadioButton rb_perm_acceptIfSigned = new JRadioButton(LinkPropertiesOption.getDispOpPermAcceptIfSigned());
+
 	final JCheckBox ch_autoUpgrade = new JCheckBox((String)ResourceUtil.get(9138));
 	ListSelectionListener listSelectListener;
 	
 	public static final String getNewLinkedInProjOp(){
-		final String op = PropertiesManager.getValue(PropertiesManager.p_OpNewLinkedInProjVer, OP_NEXT_START_UP);
-		if(op.equals(OP_NEXT_START_UP) || op.equals(OP_ASK) || op.equals(OP_IMMEDIATE)){
+		final String op = PropertiesManager.getValue(PropertiesManager.p_OpNewLinkedInProjVer, LinkPropertiesOption.OP_NEXT_START_UP);
+		if(op.equals(LinkPropertiesOption.OP_NEXT_START_UP) || op.equals(LinkPropertiesOption.OP_ASK) || op.equals(LinkPropertiesOption.OP_IMMEDIATE)){
 			return op;
 		}else{
-			return OP_NEXT_START_UP;
+			return LinkPropertiesOption.OP_NEXT_START_UP;
+		}
+	}
+	
+	public static final String getAcceptNewPermissionsOp(){
+		final String op = PropertiesManager.getValue(PropertiesManager.p_OpAcceptNewPermissions, LinkPropertiesOption.OP_PERM_NO_CHANGE);
+		if(op.equals(LinkPropertiesOption.OP_PERM_NO_CHANGE) || op.equals(LinkPropertiesOption.OP_PERM_ACCEPT_IF_SIGNED)){
+			return op;
+		}else{
+			return LinkPropertiesOption.OP_PERM_NO_CHANGE;
 		}
 	}
 	
@@ -139,6 +151,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 	final UIActionListener exitAction;
 	final Window dialog;
 	final Component relativeTo;
+	final JLabel compSelectMode, compPermssionsMode;
+	
 	public LinkProjectPanel(final JFrame owner, final boolean newFrame, final Component relativeTo) {
 		super();
 		final String title = (String)ResourceUtil.get(9059);
@@ -146,6 +160,10 @@ public class LinkProjectPanel extends ProjectListPanel{
 		final JFrame self = (owner==null && (dialog instanceof JFrame))?(JFrame)dialog:owner;
 		this.relativeTo = relativeTo;
 		
+		final String threeSpace = "   ";
+		compSelectMode = new JLabel((String)ResourceUtil.get(9149) + threeSpace);
+		compPermssionsMode = new JLabel((String)ResourceUtil.get(9232) + threeSpace);
+
 		contentPane = new JPanel();
 		
 		contentPane.setLayout(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
@@ -384,7 +402,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 								final boolean[] back = {false};
 								selfBiz.setPara(back);
 							}
-						}, self, true, false, removeBut, false, false);
+						}, self, true, false, null, false, false);//不relativeTo removeBut，提示会盖住OK按钮
 					}
 				}, 
 				//import
@@ -658,13 +676,15 @@ public class LinkProjectPanel extends ProjectListPanel{
 		contentPane.add(scrollpane, BorderLayout.CENTER);
 		contentPane.add(buttonsList, BorderLayout.NORTH);
 		{
-			final JLabel comp = new JLabel((String)ResourceUtil.get(9149));
 			final JPanel panel = new JPanel(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
-			final JPanel group = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+			final int hgap = 15;
+			final JPanel group = new JPanel(new FlowLayout(FlowLayout.CENTER, hgap, 0));
+			final JPanel groupPerm = new JPanel(new FlowLayout(FlowLayout.CENTER, hgap, 0));
 			{
 				final String op = getNewLinkedInProjOp();
+				final String opPerm = getAcceptNewPermissionsOp();
 				
-				final ButtonGroup bg = new ButtonGroup();
+				final ButtonGroup bgUpgradeMode = new ButtonGroup();
 				
 				final ItemListener itemListener = new ItemListener() {
 					@Override
@@ -673,30 +693,51 @@ public class LinkProjectPanel extends ProjectListPanel{
 					}
 				};
 				
-				rb_startup.setToolTipText("<html><STRONG>" + (String)ResourceUtil.get(9150) + "</STRONG></html>");
-				bg.add(rb_startup);
+				rb_startup.setToolTipText("<html>" + (String)ResourceUtil.get(9150) + "</html>");
+				bgUpgradeMode.add(rb_startup);
 				group.add(rb_startup);
-				if(op.equals(OP_NEXT_START_UP)){
+				if(op.equals(LinkPropertiesOption.OP_NEXT_START_UP)){
 					rb_startup.setSelected(true);
 				}
 				
 				rb_ask.setToolTipText((String)ResourceUtil.get(9151));
-				bg.add(rb_ask);
+				bgUpgradeMode.add(rb_ask);
 				group.add(rb_ask);
-				if(op.equals(OP_ASK)){
+				if(op.equals(LinkPropertiesOption.OP_ASK)){
 					rb_ask.setSelected(true);
 				}
 				
 				rb_imme.setToolTipText((String)ResourceUtil.get(9152));
-				bg.add(rb_imme);
+				bgUpgradeMode.add(rb_imme);
 				group.add(rb_imme);
-				if(op.equals(OP_IMMEDIATE)){
+				if(op.equals(LinkPropertiesOption.OP_IMMEDIATE)){
 					rb_imme.setSelected(true);
 				}
 				
 				rb_startup.addItemListener(itemListener);
 				rb_ask.addItemListener(itemListener);
 				rb_imme.addItemListener(itemListener);
+				
+				{
+					final ButtonGroup bgUpgradePermMode = new ButtonGroup();
+					
+					rb_perm_no.setToolTipText("<html>" + (String)ResourceUtil.get(9230) + "</html>");
+					bgUpgradePermMode.add(rb_perm_no);
+					groupPerm.add(rb_perm_no);
+					if(opPerm.equals(LinkPropertiesOption.OP_PERM_NO_CHANGE)){
+						rb_perm_no.setSelected(true);
+					}
+					
+					rb_perm_acceptIfSigned.setToolTipText("<html>" + (String)ResourceUtil.get(9231) + "</html>");
+					bgUpgradePermMode.add(rb_perm_acceptIfSigned);
+					groupPerm.add(rb_perm_acceptIfSigned);
+					if(opPerm.equals(LinkPropertiesOption.OP_PERM_ACCEPT_IF_SIGNED)){
+						rb_perm_acceptIfSigned.setSelected(true);
+					}
+					
+					rb_perm_no.addItemListener(itemListener);
+					rb_perm_acceptIfSigned.addItemListener(itemListener);
+				}
 
 				String autoUpgradeTip = StringUtil.replace((String)ResourceUtil.get(9153), "{upgradeurl}", upgradeURL);
 				autoUpgradeTip = StringUtil.replace(autoUpgradeTip, "{active}", ACTIVE);
@@ -714,9 +755,27 @@ public class LinkProjectPanel extends ProjectListPanel{
 					}
 				});
 			}
-			final JPanel titl_group = new JPanel(new FlowLayout(FlowLayout.LEADING, 0, 0));
-			titl_group.add(comp);
-			titl_group.add(group);
+			final JPanel titl_group = new JPanel(new GridBagLayout());
+			{
+				final GridBagConstraints c = new GridBagConstraints();
+				c.anchor = GridBagConstraints.LINE_START;
+
+				c.weightx = 0;
+				titl_group.add(compSelectMode, c);
+				
+				c.gridx = 1;
+				c.weightx = 1;
+				titl_group.add(group, c);
+				
+				c.gridy = 1;
+				c.gridx = 0;
+				c.weightx = 0;
+				titl_group.add(compPermssionsMode, c);
+				
+				c.gridx = 1;
+				c.weightx = 1;
+				titl_group.add(groupPerm, c);
+			}
 			
 			{
 				final JPanel checkPanel = new JPanel(new BorderLayout());
@@ -851,7 +910,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 	}
 
 	public Window toShow(){
-		return App.showCenter(contentPane, 0, 0, true, exitBtn, saveAndApplyBtn, 
+		return App.showCenterNoOwner(contentPane, 0, 0, true, exitBtn, saveAndApplyBtn, 
 				true, exitAction, saveAction, dialog, relativeTo, true);//isResizabel=false,会导致漂移
 	}
 
@@ -1124,13 +1183,19 @@ public class LinkProjectPanel extends ProjectListPanel{
 			}
 			
 			if(rb_startup.isSelected()){
-				PropertiesManager.setValue(PropertiesManager.p_OpNewLinkedInProjVer, OP_NEXT_START_UP);
+				PropertiesManager.setValue(PropertiesManager.p_OpNewLinkedInProjVer, LinkPropertiesOption.OP_NEXT_START_UP);
 			}else if(rb_ask.isSelected()){
-				PropertiesManager.setValue(PropertiesManager.p_OpNewLinkedInProjVer, OP_ASK);
+				PropertiesManager.setValue(PropertiesManager.p_OpNewLinkedInProjVer, LinkPropertiesOption.OP_ASK);
 			}else if(rb_imme.isSelected()){
-				PropertiesManager.setValue(PropertiesManager.p_OpNewLinkedInProjVer, OP_IMMEDIATE);
+				PropertiesManager.setValue(PropertiesManager.p_OpNewLinkedInProjVer, LinkPropertiesOption.OP_IMMEDIATE);
 			}
 
+			if(rb_perm_no.isSelected()){
+				PropertiesManager.setValue(PropertiesManager.p_OpAcceptNewPermissions, LinkPropertiesOption.OP_PERM_NO_CHANGE);
+			}else if(rb_perm_acceptIfSigned.isSelected()){
+				PropertiesManager.setValue(PropertiesManager.p_OpAcceptNewPermissions, LinkPropertiesOption.OP_PERM_ACCEPT_IF_SIGNED);
+			}
+			
 			PropertiesManager.setValue(PropertiesManager.p_EnableLinkedInProjUpgrade, ch_autoUpgrade.isSelected()?IConstant.TRUE:IConstant.FALSE);
 			
 			PropertiesManager.saveFile();
@@ -1172,10 +1237,16 @@ public class LinkProjectPanel extends ProjectListPanel{
 		}
 	}
 
-	private void enableUpgradeMode(final boolean selected) {
+	private final void enableUpgradeMode(final boolean selected) {
 		rb_startup.setEnabled(selected);
 		rb_ask.setEnabled(selected);
 		rb_imme.setEnabled(selected);
+		
+		rb_perm_no.setEnabled(selected);
+		rb_perm_acceptIfSigned.setEnabled(selected);
+		
+		compSelectMode.setEnabled(selected);
+		compPermssionsMode.setEnabled(selected);
 	}
 
 }

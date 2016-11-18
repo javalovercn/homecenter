@@ -1,11 +1,12 @@
 package hc.core;
 
-import hc.core.sip.SIPManager;
+import hc.core.sip.ISIPContext;
 import hc.core.util.ByteArrayCacher;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.IEncrypter;
 import hc.core.util.IHCURLAction;
 import hc.core.util.LinkedSet;
 import hc.core.util.LogManager;
@@ -18,6 +19,100 @@ import java.io.OutputStream;
 
 public abstract class IContext {
 	final boolean isServerSide = IConstant.serverSide;
+	public int workingFactor = CUtil.getInitFactor();
+	private IStatusListen statusListen;
+	private short modeStatus = ContextManager.MODE_CONNECTION_NONE;
+	public short cmStatus;
+	public IEncrypter userEncryptor = loadEncryptor();
+	protected final EventCenter eventCenter;
+	public boolean isSecondCertKeyError = false;
+	public byte[] SERVER_READY_TO_CHECK;
+	public final RootTagEventHCListener rootTagListener = new RootTagEventHCListener();
+
+	private boolean hasReceiveUncheckCert = false;
+
+	public final void receiveUncheckCert(){
+		hasReceiveUncheckCert = true;
+	}
+	
+	public final boolean hasReceiveUncheckCert(){
+		return hasReceiveUncheckCert;
+	}
+	
+	public final void resetReceiveUncheckCert(){
+		hasReceiveUncheckCert = false;
+	}
+
+	
+	public final void setConnectionModeStatus(final short modeStat){
+		modeStatus = modeStat;
+	}
+
+	public final short getConnectionModeStatus(){
+		return modeStatus;
+	}
+
+	public final void setStatusListen(IStatusListen listener){
+		statusListen = listener;
+	}
+	
+	public final synchronized void setStatus(final short newCmStatus){
+		if(newCmStatus == cmStatus){
+			return;
+		}
+		
+		final short oldCmStatus = cmStatus;
+		
+		cmStatus = newCmStatus;
+
+		if((newCmStatus != ContextManager.STATUS_EXIT) && (oldCmStatus == ContextManager.STATUS_EXIT)){
+			L.V = L.O ? false : LogManager.log("forbid change status from [" + oldCmStatus + "] to [" + newCmStatus + "]");
+			return;
+		}
+
+		hc.core.L.V=hc.core.L.O?false:LogManager.log("Change Status, From [" + oldCmStatus + "] to [" + newCmStatus + "]");
+		if(statusListen != null){
+			statusListen.notify(oldCmStatus, newCmStatus);
+		}
+
+		if(newCmStatus == ContextManager.STATUS_LINEOFF){
+			modeStatus = ContextManager.MODE_CONNECTION_NONE;
+		}
+
+		if(newCmStatus == ContextManager.STATUS_READY_MTU){
+			if(IConstant.serverSide){
+				try{
+					//服务器稍等，提供客户初始化时间
+					Thread.sleep(200);
+				}catch (final Exception e) {
+				}
+			}
+
+			//			hc.core.L.V=hc.core.L.O?false:LogManager.log("Do biz after Hole");
+
+			//激活KeepAlive hctimer
+			doExtBiz(IContext.BIZ_AFTER_HOLE, null);
+
+			//			if(IConstant.serverSide){
+			//			}else{
+			//			}
+		}
+
+		//		if(mode == ContextManager.STATUS_SERVER_SELF){
+		//			ContextManager.getContextInstance().doExtBiz(IContext.BIZ_IS_ON_SERVICE);
+		//		}
+
+		//		if(mode == ContextManager.STATUS_READY_TO_LINE_ON){
+		//			hc.core.L.V=hc.core.L.O?false:LogManager.log("NO biz for status READY_TO_LINE_ON");
+		//		}
+
+		//		if(ContextManager.isClientStatus()){
+		//		}
+
+		//		if(ContextManager.isClientStatus() && ContextManager.isNotWorkingStatus() == false){
+		//			ScreenClientManager.init();
+		//		}
+	}
 	
 	private final ByteArrayCacher cache = ByteUtil.byteArrayCacher;
 	private final LinkedSet sendBSBuffer = new LinkedSet();
@@ -26,8 +121,33 @@ public abstract class IContext {
 	private byte[] toServerBS = new byte[1024];
 	
 	private final byte splitPackageSubTag = 0;
+	public final CoreSession coreSS;
 	
-	public IContext(){
+	public IContext(final CoreSession coreSocketSession, final EventCenter eventCenter){
+		coreSocketSession.context = this;
+		this.coreSS = coreSocketSession;
+		this.eventCenter = eventCenter;
+		
+		//发送UDP_ADDRESS_REG包，进行转发器的地址注册，供正常数据转发时所需之地址
+		eventCenter.addListener(new IEventHCListener() {
+			public final byte getEventTag() {
+				return MsgBuilder.E_TAG_ROOT_UDP_ADDR_REG;
+			}
+			
+			public final boolean action(byte[] bs, final CoreSession coreSS) {
+				//有可能收到，有可能收不到。不作任何处理。仅供UDP中继之用
+//				L.V = L.O ? false : LogManager.log("Receive E_TAG_ROOT_UDP_ADDR_REG");
+				final boolean isRight = UDPPacketResender.checkUDPBlockData(bs, MsgBuilder.UDP_MTU_DATA_MIN_SIZE);
+				if(isRight && (coreSS.context.isDoneUDPChannelCheck == false)){
+					L.V = L.O ? false : LogManager.log("Done UDP Channel Check by E_TAG_ROOT_UDP_ADDR_REG");
+					
+					coreSS.context.isDoneUDPChannelCheck = true;
+				}
+				return true;
+			}
+		});
+		
+		HCMessage.setMsgLen(oneTagBS, 0);
 		sendThread.start();
 	}
 	
@@ -62,11 +182,6 @@ public abstract class IContext {
 			}
 		}
 	};
-	
-	public final void init(final ReceiveServer rs, final UDPReceiveServer udpRS){
-		rServer = rs;
-		udpReceivServer = udpRS;
-	}
 	
 	public final void sendMobileUIEventToBackServer(final byte[] cmdBS, final int offset, final int cmdLen,
 			final byte[] screenIDBS){
@@ -110,7 +225,7 @@ public abstract class IContext {
 	
 	private boolean isExit = false;
 
-	public final void shutDown(){
+	public final void shutDown(final CoreSession coreSS){
 		if(isExit){
 			return;
 		}
@@ -120,33 +235,34 @@ public abstract class IContext {
 			sendThread.notify();
 		}
 		
-		ContextManager.setStatus(ContextManager.STATUS_EXIT);
+		setStatus(ContextManager.STATUS_EXIT);
 		
-		if(CUtil.getUserEncryptor() != null){
+		if(userEncryptor != null){
 			try{
-				CUtil.getUserEncryptor().notifyExit(!IConstant.serverSide);
+				userEncryptor.notifyExit(!IConstant.serverSide);
 			}catch (final Throwable e) {
-				
+				e.printStackTrace();
 			}
 		}
 		
-		if(rServer != null){
-			rServer.shutDown();
+		if(coreSS.rServer != null){
+			coreSS.rServer.shutDown();
 		}
 		
-		if(udpReceivServer != null){
-			udpReceivServer.shutDown();
+		if(coreSS.udpReceivServer != null){
+			coreSS.udpReceivServer.shutDown();
 		}
 		
-		exit();				
-		
+		if(isServerSide == false){
+			exit();				
+		}
 	}
 
-	public final void startAllServers() {
+	public final void startAllServers(final CoreSession coreSS) {
 		//注意：SendServer应最先启动，ReceiverServer应最后启动，与流执行的次序相反。
-		rServer.start();
-		if(udpReceivServer.isAlive() == false){//手机端登录时，服务器正忙，导致重连
-			udpReceivServer.start();
+		coreSS.rServer.start();
+		if(coreSS.udpReceivServer.isAlive() == false){//手机端登录时，服务器正忙，导致重连
+			coreSS.udpReceivServer.start();
 		}
 	}
 
@@ -199,24 +315,15 @@ public abstract class IContext {
 	public static final short BIZ_GET_FORBID_UPDATE_CERT_I18N = 26;//服务器、客户端重复该配置值
 	public static final short BIZ_START_WATCH_KEEPALIVE_FOR_RECALL_LINEOFF = 27;
 	public static final short BIZ_VIBRATE = 28;
-	public static final short BIZ_REPORT_EXCEPTION = 29;
+//	public static final short BIZ_REPORT_EXCEPTION = 29;//已废弃
 	public static final short BIZ_DATA_CHECK_ERROR = 30;
-	public static final short BIZ_ASSISTANT = 31;
+	public static final short BIZ_ASSISTANT_SPEAK = 31;
+	public static final short BIZ_SERVER_BUSY = 32;//手机登录时，获得的状态为占线状态。占线状态不作未来考虑，故关闭。参见BIZ_SERVER_LINEOFF
+	public static final short BIZ_SERVER_ACCOUNT_BUSY = 33;
 	
-	public final ReceiveServer getReceiveServer() {
-		return rServer;
-	}
-	private ReceiveServer rServer;
-	private UDPReceiveServer udpReceivServer;
-
-	public final UDPReceiveServer getUDPReceiveServer() {
-		return udpReceivServer;
-	}
-
 	public abstract WiFiDeviceManager getWiFiDeviceManager();
 	public abstract void exit();
 	public abstract void notifyShutdown();
-	public abstract IHCURLAction getHCURLAction();
 	public abstract void run();
 	public abstract void displayMessage(String caption, String text, int type, Object imageData, int timeOut);
 
@@ -269,8 +376,6 @@ public abstract class IContext {
 	}
 	
 	public final FastSender getFastSender(){
-		CCoreUtil.checkAccess();
-		
 		final IContext ictx = this;
 		return new FastSender() {
 			public final void sendWrapAction(final byte ctrlTag, final byte[] jcip_bs, final int offset, final int len) {
@@ -296,7 +401,7 @@ public abstract class IContext {
 			checkMINUS = 0;
 		}
 		
-		ReceiveServer rs = ContextManager.getReceiveServer();
+		ReceiveServer rs = ContextManager.getReceiveServer(coreSS);
 		if(rs != null){
 			rs.setCheck(isCheckOn);
 		}
@@ -376,7 +481,7 @@ public abstract class IContext {
 							
 				    		//加密
 				    		//			    L.V = L.O ? false : LogManager.log("Xor len:" + eachLen);
-			    			CUtil.superXor(bs, MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen, null, true, true);//考虑前段数据较长，不用加密更为安全，所以不从TCP_SPLIT_STORE_IDX开始加密
+			    			CUtil.superXor(this, coreSS.OneTimeCertKey, bs, MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen, null, true, true);//考虑前段数据较长，不用加密更为安全，所以不从TCP_SPLIT_STORE_IDX开始加密
 
 //    					    hc.core.L.V=hc.core.L.O?false:LogManager.log("Send BIGMSG split ID : " + tcp_package_split_next_id + "[" + ctrlTag + "], len:" + eachLen);
 							outStream.write(bs, 0, sendWithCheckLen);
@@ -410,7 +515,10 @@ public abstract class IContext {
 						return;
 					}
 					
-//				    hc.core.L.V=hc.core.L.O?false:LogManager.log("Send [" + ctrlTag + "], len:" + len + ", isCheckOn : " + isCheckOn);
+					if(L.isInWorkshop){
+						hc.core.L.V=hc.core.L.O?false:LogManager.log("Send [" + ctrlTag + "], len:" + len + ", isCheckOn : " + isCheckOn);
+					}
+					
 					int sendWithCheckLen = minSize;
 					synchronized (outStream) {
 						if(isCheckOn && len > 0){
@@ -442,14 +550,14 @@ public abstract class IContext {
 				    	}else{
 				    		//加密
 				    		//			    L.V = L.O ? false : LogManager.log("Xor len:" + len);
-			    			CUtil.superXor(bs, MsgBuilder.INDEX_MSG_DATA, len, null, true, true);
+			    			CUtil.superXor(this, coreSS.OneTimeCertKey, bs, MsgBuilder.INDEX_MSG_DATA, len, null, true, true);
 				    	}
 
 						outStream.write(bs, 0, sendWithCheckLen);
 						outStream.flush();
 					}
 				}catch (final Throwable e) {
-					if(e.getMessage().equals(CUtil.ONE_TIME_CERT_KEY_IS_NULL)){
+					if(CUtil.ONE_TIME_CERT_KEY_IS_NULL.equals(e.getMessage())){//e.getMessage()有可能为null
 					}else{
 						if(L.isInWorkshop){
 							LogManager.errToLog("[workshop] Error sendWrapAction");
@@ -464,8 +572,8 @@ public abstract class IContext {
 		}
 	}
 	
-	public void reset(){
-		getUDPReceiveServer().setUdpServerSocket(null);
+	public void reset(final CoreSession coreSS){
+		coreSS.udpReceivServer.setUdpServerSocket(null);
 
 		isDoneUDPChannelCheck = false;
 		isBuildedUPDChannel = false;
@@ -473,10 +581,8 @@ public abstract class IContext {
 	
 	public boolean isDoneUDPChannelCheck = false;
 	public boolean isBuildedUPDChannel = false;
-	public boolean isReceivedOneTimeInSecuChannalFromMobile = false;
 	
 	public UDPPacketResender udpSender = null;
-	public static final byte[] udpHeader = new byte[MsgBuilder.LEN_UDP_HEADER];
 	
 	/**
 	 * 仅限发送控制短数据。
@@ -539,7 +645,7 @@ public abstract class IContext {
 		    	}else{
 		    		//加密
 //		    		L.V = L.O ? false : LogManager.log("Xor len:" + data_len);
-		    		CUtil.superXor(bs, MsgBuilder.INDEX_MSG_DATA, data_len, null, true, true);
+		    		CUtil.superXor(this, coreSS.OneTimeCertKey, bs, MsgBuilder.INDEX_MSG_DATA, data_len, null, true, true);
 		    	}
 
 //				hc.core.L.V=hc.core.L.O?false:LogManager.log("Send [" + ctrlTag + "], len:" + data_len);
@@ -558,17 +664,13 @@ public abstract class IContext {
 		}
 	}
 
-	static final byte[] oneTagBS = new byte[MsgBuilder.MIN_LEN_MSG];
-	static final byte[] zeroLenbs = new byte[MsgBuilder.MIN_LEN_MSG];
+	final byte[] oneTagBS = new byte[MsgBuilder.MIN_LEN_MSG];
+	final byte[] zeroLenbs = new byte[MsgBuilder.MIN_LEN_MSG];
 
-	static byte[] bigMsgBlobBS = new byte[0];
-	static byte[] blobBS = new byte[40 * 1024];
-	static int tcp_package_split_next_id = 1;
-	private final static int MAX_ID_TCP_PACKAGE_SPLIT = 1 << 23;
-	
-	static{
-		HCMessage.setMsgLen(oneTagBS, 0);
-	}
+	byte[] bigMsgBlobBS = new byte[0];
+	byte[] blobBS = new byte[40 * 1024];
+	int tcp_package_split_next_id = 1;
+	private final int MAX_ID_TCP_PACKAGE_SPLIT = 1 << 23;
 	
 	public final void send(final byte ctrlTag){
 		if(isBuildedUPDChannel && isDoneUDPChannelCheck
@@ -628,16 +730,59 @@ public abstract class IContext {
 		}
 	}
 
-	public final void setOutputStream(final Object tcpOrUDPSocket) throws Exception{
+	public final void setOutputStream(final ISIPContext sipCtx, final Object tcpOrUDPSocket) throws Exception{
 //		hc.core.L.V=hc.core.L.O?false:LogManager.log("Changed Send Socket");
-		this.outStream = (tcpOrUDPSocket==null)?null:SIPManager.getSIPContext().getOutputStream(tcpOrUDPSocket);
+		this.outStream = (tcpOrUDPSocket==null)?null:sipCtx.getOutputStream(tcpOrUDPSocket);
 	}
 
 	private DataOutputStream outStream;
-	
+
 	public final Object getOutputStreamLockObject() {
 		CCoreUtil.checkAccess();
 		
 		return outStream;
+	}
+
+	public final IEncrypter getUserEncryptor(){
+		return userEncryptor;
+	}
+
+	public final IEncrypter loadEncryptor(){
+		final String encryptClass = getEncryptorClass();
+		if(encryptClass != null){
+			try {
+				final Class c = Class.forName(encryptClass);
+				final IEncrypter en = (IEncrypter)c.newInstance();
+				en.setUUID(IConstant.getUUIDBS());
+				en.setPassword(IConstant.getPasswordBS());
+				en.initEncrypter(!IConstant.serverSide);
+				
+//				hc.core.L.V=hc.core.L.O?false:LogManager.log("Enable user Encryptor [" + encryptClass + "]");
+				
+				userEncryptor = en;
+				return en;
+			} catch (final Exception e) {
+				LogManager.err("Error Load Encryptor [" + encryptClass + "]");
+				ExceptionReporter.printStackTrace(e);
+				userEncryptor = null;
+			}
+		}else{
+//			hc.core.L.V=hc.core.L.O?false:LogManager.log("Disable user Encryptor");
+		}
+		return null;
+	}
+
+	public static String getEncryptorClass() {
+		CCoreUtil.checkAccess();
+		
+		return (String)IConstant.getInstance().getObject("encryptClass");
+	}
+
+	public final void resetCheck() {
+		resetReceiveUncheckCert();
+		if(SERVER_READY_TO_CHECK != null){
+			SERVER_READY_TO_CHECK = null;
+		}
+		isSecondCertKeyError = false;
 	}
 }

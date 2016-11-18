@@ -1,5 +1,6 @@
 package hc.server.nio;
 
+import hc.core.CoreSession;
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
@@ -13,14 +14,15 @@ public class NIOServer {
 	
 	/**
 	 * 注意：对于用户级中继器，没有实现udpSpeedPort的上传，而只实现了标准中继器的测速UDP端口。
+	 * @param coreSS
 	 * @param ip
 	 * @param localPort
 	 * @param udpSpeedPort
 	 * @param read
 	 */
-	public NIOServer(final String ip, final int localPort, final int udpSpeedPort, final ActionRead read) {
+	public NIOServer(final CoreSession coreSS, final String ip, final int localPort, final int udpSpeedPort, final ActionRead read) {
 		try{
-			at = new AcceptReadThread(ip, localPort, udpSpeedPort, read);
+			at = new AcceptReadThread(coreSS, ip, localPort, udpSpeedPort, read);
 		}catch (final Exception e) {
 			LogManager.err("Unable NIO Server, IP:" + ip + ", Port:" + localPort);
 			ExceptionReporter.printStackTrace(e);

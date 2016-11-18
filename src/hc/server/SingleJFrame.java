@@ -19,6 +19,14 @@ public class SingleJFrame extends HCJFrame {
 	protected final ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	private static HashMap<String, Window> frames = new HashMap<String, Window>();
 	
+	public SingleJFrame(){
+		super();
+	}
+	
+	public SingleJFrame(final String title, final boolean withoutHC){
+		super(title, withoutHC);
+	}
+	
 	public static void disposeAll(){
 		CCoreUtil.checkAccess();
 		

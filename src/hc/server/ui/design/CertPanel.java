@@ -14,6 +14,7 @@ import hc.server.util.SignItem;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 import hc.util.SecurityDataProtector;
+import hc.util.StringBuilderCacher;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -568,7 +569,7 @@ public class CertPanel extends CertListPanel{
 			@Override
 			public void run() {
 				final X509Certificate cert = items.get(tablePanel.table.getSelectedRow()).chain;
-				final StringBuilder sb = new StringBuilder(1024);
+				final StringBuilder sb = StringBuilderCacher.getFree();
 				
 //				append(sb, "Issuer", cert.getIssuerX500Principal().toString());
 				append(sb, "Subject", cert.getSubjectX500Principal().toString());
@@ -578,7 +579,10 @@ public class CertPanel extends CertListPanel{
 				
 				final JPanel panel = new JPanel(new BorderLayout());
 				panel.setBorder(new TitledBorder((String)ResourceUtil.get(9095)));
-				panel.add(new JLabel("<html>" + sb.toString() + "</html>"));
+				final String sbStr = sb.toString();
+				StringBuilderCacher.cycle(sb);
+				
+				panel.add(new JLabel("<html>" + sbStr + "</html>"));
 				final ActionListener listener = null;
 				App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(9095), false, null, null, listener, null, dialog, true, false, null, false, false);
 			}

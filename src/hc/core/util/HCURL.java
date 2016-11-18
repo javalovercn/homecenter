@@ -1,11 +1,13 @@
 package hc.core.util;
 
+import hc.core.CoreSession;
+
 
 public class HCURL {
 
 	public static final String HTTP_SPLITTER = "://";
 
-	public String toString(){
+	public final String toString(){
 		String ps = "";
 
 		if(paras != null){
@@ -20,6 +22,37 @@ public class HCURL {
 	public String protocal, host, context = "", elementID;
 	private Stack paras, values;
 	public String url;
+	private String urlLower;
+	private String mletAliasURL;
+	private String elementIDLower;
+	
+	public final String getElementIDLower(){
+		if(elementIDLower == null){
+			elementIDLower = elementID.toLowerCase();
+		}
+		return elementIDLower;
+	}
+	
+	public final String getMletAliasURL(){
+		if(mletAliasURL == null){
+			mletAliasURL = HCURL.buildMletAliasURL(getURLLower());
+		}
+		return mletAliasURL;
+	}
+	
+	public final String getURLLower(){
+		if(urlLower == null){
+			urlLower = url.toLowerCase();
+		}
+		return urlLower;
+	}
+	
+	public static final String CMD_PROTOCAL = "cmd";
+	public static final String SCREEN_PROTOCAL = "screen";
+	public static final String CONTROLLER_PROTOCAL = "controller";
+	public static final String FORM_PROTOCAL = "form";
+	public static final String CFG_PROTOCAL = "cfg";
+	public static final String MENU_PROTOCAL = "menu";
 	
 	public static final String ROOT_MENU = "root";
 	
@@ -29,14 +62,16 @@ public class HCURL {
 	
 	public static final String DATA_CMD_EXIT = "exit";
 	public static final String DATA_CMD_CONFIG = "config";
+	
+	
+	//注意：以_开始为特权cmd
+	public static final String CMD_FOR_SUPER_PRE = buildStandardURL(CMD_PROTOCAL, "_");
 	public static final String DATA_CMD_ALERT = "_alert";
 	public static final String DATA_CMD_MSG = "_msg";
 	public static final String DATA_CMD_MOVING_MSG = "_mv_msg";
 	public static final String DATA_CMD_CTRL_BTN_TXT = "_ctl_btn_txt";
-	
 	//关闭，并合并入DATA_CMD_EXIT
 //	public static final String DATA_CMD_BYE_SCREEN = "_byeScreen";
-	
 	public static final String DATA_CMD_SendPara = "_Send";
 	
 	public static final String DATA_PARA_INPUT = "Input";
@@ -59,6 +94,7 @@ public class HCURL {
 	public static final String DATA_PARA_SHIFT_SCREEN_TO_TOP_SIZE = "sftTopSize";
 	public static final String DATA_PARA_NOTIFY_PROJ_LIST = "notiCacheProjList";
 	public static final String DATA_PARA_QUESTION_ID = "ques_id";
+	public static final String DATA_PARA_ROLLBACK_QUESTION_ID = "rollback_ques_id";//撤消其它非应答
 	public static final String DATA_PARA_QUESTION_RESULT = "ques_result";
 	public static final String DATA_PARA_PROC_ADD_HAR_URL = "addHARUrl";
 	public static final String DATA_PARA_WIFI_MANAGER = "WiFiManager";
@@ -71,13 +107,6 @@ public class HCURL {
 	public static final String REMOTE_HOME_SCREEN = "home";
 	public static final String ADD_HAR_QR = "addHARByQR";
 	public static final String ADD_HAR_WIFI = "addHARByWiFi";
-	
-	public static final String CMD_PROTOCAL = "cmd";
-	public static final String SCREEN_PROTOCAL = "screen";
-	public static final String CONTROLLER_PROTOCAL = "controller";
-	public static final String FORM_PROTOCAL = "form";
-	public static final String CFG_PROTOCAL = "cfg";
-	public static final String MENU_PROTOCAL = "menu";
 	
 	public static final String URL_CMD_EXIT = buildStandardURL(HCURL.CMD_PROTOCAL, HCURL.DATA_CMD_EXIT);
 	public static final String URL_HOME_SCREEN = buildStandardURL(HCURL.SCREEN_PROTOCAL, HCURL.REMOTE_HOME_SCREEN);
@@ -97,7 +126,7 @@ public class HCURL {
 		return protocal + HTTP_SPLITTER + target;
 	}
 	
-	private static String FORM_MLET_PREFIX = buildStandardURL(FORM_PROTOCAL, "");
+	public final static String FORM_MLET_PREFIX = buildStandardURL(FORM_PROTOCAL, "");
 	
 	/**
 	 * 将新版的form://xx生成一个支持旧版的screen://xx。以兼容旧的。
@@ -120,14 +149,18 @@ public class HCURL {
 		return -1;
 	}
 	
-	public void removeAllParaValues(){
+	public final void reset(){
+		urlLower = null;
+		mletAliasURL = null;
+		elementIDLower = null;
+		
 		if(paras != null){
 			paras.removeAllElements();
 			values.removeAllElements();
 		}
 	}
 	
-	public int getParaSize(){
+	public final int getParaSize(){
 		if(paras == null){
 			paras = new Stack();
 			values = new Stack();
@@ -135,7 +168,7 @@ public class HCURL {
 		return paras.size();
 	}
 	
-	public String getParaAtIdx(final int idx){
+	public final String getParaAtIdx(final int idx){
 		if(paras == null){
 			paras = new Stack();
 			values = new Stack();
@@ -147,7 +180,7 @@ public class HCURL {
 		}
 	}
 	
-	public void addParaVales(final String p, final String v){
+	public final void addParaVales(final String p, final String v){
 		if(paras == null){
 			paras = new Stack();
 			values = new Stack();
@@ -161,7 +194,7 @@ public class HCURL {
 	 * @param p
 	 * @return
 	 */
-	public String getValueofPara(final String p){
+	public final String getValueofPara(final String p){
 		if(paras != null){
 			final int idx = paras.search(p);
 			if(idx >= 0){
@@ -171,19 +204,23 @@ public class HCURL {
 		return null;
 	}
 	
-	private static int paraIdx = 1;
-	private static HCURL contextHCURL;
-	public static void setToContext(final HCURL hcurl){
-		contextHCURL = hcurl;
-		paraIdx = 1;
+	public static void checkSuperCmd(final String url) {
+		if(url.startsWith(CMD_FOR_SUPER_PRE)){
+			throw new IllegalArgumentException("cmd can NOT start with '" + CMD_FOR_SUPER_PRE + "'");
+		}
+	}
+
+	public static void setToContext(final CoreSession coreSS, final HCURL hcurl){
+		coreSS.contextHCURL = hcurl;
+		coreSS.urlParaIdx = 1;
 	}
 	
-	public static String getNextParaValue(){
-		final String key = contextHCURL.getParaAtIdx(paraIdx++);
+	public static String getNextParaValue(final CoreSession coreSS){
+		final String key = coreSS.contextHCURL.getParaAtIdx(coreSS.urlParaIdx++);
 		if(key == null){
 			return null;
 		}else{
-			return contextHCURL.getValueofPara(key);
+			return coreSS.contextHCURL.getValueofPara(key);
 		}
 	}
 	

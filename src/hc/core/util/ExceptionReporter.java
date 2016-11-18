@@ -1,8 +1,6 @@
 package hc.core.util;
 
-import hc.core.ContextManager;
 import hc.core.IConstant;
-import hc.core.IContext;
 import hc.core.L;
 import hc.core.RootConfig;
 
@@ -14,14 +12,7 @@ public class ExceptionReporter {
 	
 	private static Thread backThread = new Thread(){
 		public void run(){
-			IContext contextInstance = null;
-			while(contextInstance == null && isShutDown == false){
-				try{
-					Thread.sleep(50);
-				}catch (Throwable e) {
-				}
-				contextInstance = ContextManager.getContextInstance();
-			}
+			final RootBuilder rootBuilder = RootBuilder.getInstance();
 
 			ExceptionJSON json = null;
 			
@@ -36,7 +27,7 @@ public class ExceptionReporter {
 						continue;
 					}
 				}
-				contextInstance.doExtBiz(IContext.BIZ_REPORT_EXCEPTION, json);
+				rootBuilder.reportException(json);
 			}
 		}
 	};

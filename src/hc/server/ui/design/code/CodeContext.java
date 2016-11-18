@@ -7,13 +7,16 @@ import org.jrubyparser.ast.DefnNode;
 import org.jrubyparser.ast.Node;
 
 public class CodeContext {
+	public final CodeHelper codeHelper;
+	
 	/**
 	 * 
 	 * @param contextNode
 	 * @param scriptIdx 光标所在index
 	 * @param rowIdxAtScript 光标所在行号
 	 */
-	public CodeContext(final Node contextNode, final int scriptIdx, final int rowIdxAtScript){
+	public CodeContext(final CodeHelper codeHelper, final Node contextNode, final int scriptIdx, final int rowIdxAtScript){
+		this.codeHelper = codeHelper;
 		this.contextNode = contextNode;
 		this.scriptIdx = scriptIdx;
 		this.rowIdxAtScript = rowIdxAtScript;

@@ -1,6 +1,6 @@
 package hc.core.util;
 
-import hc.core.ContextManager;
+import hc.core.CoreSession;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,11 +10,9 @@ public abstract class WiFiDeviceManager {
 	public static final String S_WiFiDeviceManager_createWiFiMulticastStream = "WiFiDeviceManager.createWiFiMulticastStream";
 	public static final String S_WiFiDeviceManager_listenFromWiFiMulticast = "WiFiDeviceManager.listenFromWiFiMulticast";
 	
-	public static final WiFiDeviceManager getInstance(){
-		CCoreUtil.checkAccess();
-		
+	public static final WiFiDeviceManager getInstance(final CoreSession coreSS){
 		//注意：由于服务器端可能手机连接或断开，所以WifiDeviceManager会变动，不能暂存
-		return ContextManager.getContextInstance().getWiFiDeviceManager();
+		return coreSS.context.getWiFiDeviceManager();
 	}
 
 	public static final String DATA_PARA_WIFI_P0 = "p0";

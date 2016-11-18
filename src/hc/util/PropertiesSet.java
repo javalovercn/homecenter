@@ -54,7 +54,7 @@ public class PropertiesSet {
 	}
 	
 	public final void save(){
-		final StringBuilder v = new StringBuilder();
+		final StringBuilder v = StringBuilderCacher.getFree();
 		boolean isAppended = false;
 		for (int i = 0; i < lists.size(); i++) {
 			if(isAppended){
@@ -66,6 +66,7 @@ public class PropertiesSet {
 		}
 		
 		PropertiesManager.setValue(itemsPrefix, v.toString());
+		StringBuilderCacher.cycle(v);
 		
 		PropertiesManager.saveFile();
 	}

@@ -1,8 +1,6 @@
 package hc.server.msb;
 
-import hc.core.L;
 import hc.core.util.ExceptionReporter;
-import hc.core.util.LogManager;
 
 import java.util.ArrayDeque;
 
@@ -27,15 +25,6 @@ class ProcessorRunnable extends StartableRunnable{
 	
 	@Override
 	public final void runAfterStart(){
-		try{//add har by qrcode会出现null情形
-			while(processor.workbench == null || processor.todo == null){
-				Thread.sleep(50);
-				if(L.isInWorkshop){
-					L.V = L.O ? false : LogManager.log("waiting for init workbench");
-				}
-			}
-		}catch (final Exception e) {
-		}
 		
 		final Workbench r_workbench = processor.workbench;
 		final ArrayDeque<Message> r_todo = processor.todo;

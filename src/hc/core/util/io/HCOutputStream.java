@@ -1,6 +1,7 @@
 package hc.core.util.io;
 
 import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.FastSender;
 import hc.core.L;
 import hc.core.MsgBuilder;
@@ -14,16 +15,19 @@ import java.io.OutputStream;
 public class HCOutputStream extends OutputStream implements IHCStream{
 	IOException exception;
 	final int streamID;
-	final FastSender fastSender = ContextManager.getContextInstance().getFastSender();
+	final FastSender fastSender;
 	final int MAX_BLOCK_LEN = MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT;
 	final static ByteArrayCacher cacher = ByteUtil.byteArrayCacher;
 	boolean isclosed;
-
-	public HCOutputStream(final int streamID) {
+	final StreamBuilder streamBuilder;
+	
+	public HCOutputStream(CoreSession coreSS, final int streamID) {
+		fastSender = coreSS.context.getFastSender();
 		this.streamID = streamID;
+		streamBuilder = coreSS.streamBuilder;
 		
-		synchronized (StreamBuilder.LOCK) {
-			StreamBuilder.outputStreamTable.put(new Integer(streamID), this);
+		synchronized (streamBuilder.LOCK) {
+			streamBuilder.outputStreamTable.put(new Integer(streamID), this);
 		}
 	}
 	
@@ -107,8 +111,8 @@ public class HCOutputStream extends OutputStream implements IHCStream{
 
 			isclosed = true;
 
-			StreamBuilder.closeStream(false, streamID);
-			StreamBuilder.notifyCloseRemoteStream(true, streamID);
+			streamBuilder.closeStream(false, streamID);
+			streamBuilder.notifyCloseRemoteStream(true, streamID);
 		}
 	}
 }

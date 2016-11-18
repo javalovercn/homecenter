@@ -12,6 +12,10 @@ import hc.server.ui.Mlet;
 
 import java.lang.reflect.Field;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.swing.text.Document;
 
 public class ScriptModelManager {
 	static final String SUPER = "super";
@@ -56,7 +60,7 @@ public class ScriptModelManager {
 				return buildMyCommand();
 			}
 		}else if(type == HPNode.TYPE_MENU_ITEM_IOT){
-			if(url.url.indexOf(HCURL.DATA_IOT_ROBOT.toLowerCase()) >= 0){
+			if(url.getURLLower().indexOf(HCURL.DATA_IOT_ROBOT.toLowerCase()) >= 0){
 				final String[] imports = {
 //						"# for Robot API, http://homecenter.mobi/download/javadoc/hc/server/msb/Robot.html\n\n"
 //						,"# for demo, http://homecenter.mobi/en/pc/steps_iot.htm\n\n"
@@ -92,7 +96,7 @@ public class ScriptModelManager {
 				final boolean[] isEmpty = {false, false, false, false, false, false};
 				final String[] superCodes = {SUPER, "@refDev = \"DemoRefDevID\""};
 				return buildScript(imports, instanceName, superClassName, superCodes, isEmpty, methods, codes);
-			}else if(url.url.indexOf(HCURL.DATA_IOT_CONVERTER.toLowerCase()) >= 0){
+			}else if(url.getURLLower().indexOf(HCURL.DATA_IOT_CONVERTER.toLowerCase()) >= 0){
 				final String[] imports = {
 //						"# for Converter API, http://homecenter.mobi/download/javadoc/hc/server/msb/Converter.html\n\n"
 //						,"# for demo, http://homecenter.mobi/en/pc/steps_iot.htm\n\n"
@@ -101,7 +105,8 @@ public class ScriptModelManager {
 				final String instanceName = "MyConverter";
 				final String superClassName = Converter.class.getName();
 				final String[] methods = {"upConvert(fromDevice, toRobot)", "downConvert(fromRobot, toDevice)", 
-						"getUpDeviceCompatibleDescription", "getDownDeviceCompatibleDescription"};
+						"getUpDeviceCompatibleDescription", "getDownDeviceCompatibleDescription",
+						"startup", "shutdown"};
 				final Vector<String>[] codes = new Vector[methods.length];
 				{
 					final Vector<String> getUpDeviceCompatibleDesc = new Vector<String>();
@@ -113,10 +118,10 @@ public class ScriptModelManager {
 					appendDeviceCompatibleDesc(getDownDeviceCompatibleDesc);
 					codes[3] = getDownDeviceCompatibleDesc;
 				}
-				final boolean[] isEmpty = {false, false, false, false};
+				final boolean[] isEmpty = {false, false, false, false, true, true};
 				final String[] superCodes = {SUPER};
 				return buildScript(imports, instanceName, superClassName, superCodes, isEmpty, methods, codes);
-			}else if(url.url.indexOf(HCURL.DATA_IOT_DEVICE.toLowerCase()) >= 0){
+			}else if(url.getURLLower().indexOf(HCURL.DATA_IOT_DEVICE.toLowerCase()) >= 0){
 				final String[] imports = {
 //						"# for Device API , http://homecenter.mobi/download/javadoc/hc/server/msb/Device.html\n\n"
 //						,"# for demo, http://homecenter.mobi/en/pc/steps_iot.htm\n\n"
@@ -213,6 +218,49 @@ public class ScriptModelManager {
 		
 		return sb.toString();
 	}
+	
+	/**
+	 * 如果不合规范，则返回null；成功后，返回新替换后的脚本
+	 * @param src
+	 * @param superClass
+	 * @param newClassName
+	 * @return
+	 */
+	public static boolean replaceClassNameForScripts(final Document doc, final String src, final String superClass, final String newClassName){
+		final Pattern pattern = Pattern.compile("\\bclass\\s+(\\w+)\\s+<\\s+Java::" + superClass.replace(".", "\\."));
+		
+		final Matcher matcher = pattern.matcher(src);
+		
+		String className;
+		if(matcher.find()){
+			final int groupIdx = 1;
+			className = matcher.group(groupIdx);
+			final int startIdx = matcher.start(groupIdx);
+			final int endIdx = matcher.end(groupIdx);
+			
+			final String returnStr = "return ";
+			final String returnPart = returnStr + className + ".new";
+			final int returnIdx = src.indexOf(returnPart);
+			if(returnIdx > 0){
+				try{
+					final int returnInsertIdx = returnIdx + returnStr.length();
+					doc.remove(returnInsertIdx, className.length());
+					doc.insertString(returnInsertIdx, newClassName, ScriptEditPanel.DEFAULT_LIGHTER);
+					
+					doc.remove(startIdx, endIdx - startIdx);
+					doc.insertString(startIdx, newClassName, ScriptEditPanel.DEFAULT_LIGHTER);
+					return true;
+				}catch (final Exception e) {
+				}
+			}
+		}
+		
+		if(HTMLMlet.class.getName().equals(superClass)){
+			return replaceClassNameForScripts(doc, src, Mlet.class.getName(), newClassName);
+		}
+		
+		return false;
+	}
 
 	/**
 	 * 
@@ -235,7 +283,7 @@ public class ScriptModelManager {
 				sb.append(imports[i]);
 			}
 		}
-		sb.append("class " + instanceName + " < Java::" + superClassName + "\n");
+		sb.append("class " + instanceName + " < Java::" + superClassName + "\n");//注意：请同步修改replaceClassNameForScripts
 		
 		sb.append("\tdef initialize\n");
 		if(superCodes != null && superCodes.length > 0){
@@ -264,7 +312,7 @@ public class ScriptModelManager {
 
 		sb.append("end\n\n");
 		
-		sb.append("return " + instanceName + ".new");
+		sb.append("return " + instanceName + ".new");//注意：请同步修改replaceClassNameForScripts
 		
 		return sb.toString();
 	}

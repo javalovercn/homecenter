@@ -7,6 +7,7 @@ import hc.server.ui.design.Designer;
 import hc.server.ui.design.hpj.HCTextPane;
 import hc.server.ui.design.hpj.ScriptEditPanel;
 import hc.util.ClassUtil;
+import hc.util.StringBuilderCacher;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -289,7 +290,7 @@ public class CodeWindow {
 							autoPopTip.docHelper = docHelper;
 							autoPopTip.classFrame = classFrame;
 							autoPopTip.fmClass = item.fmClass;
-							autoPopTip.fieldOrMethodName = item.code;
+							autoPopTip.fieldOrMethodName = item.code;//注意：构造方法已转为new(),而非simpleClassName()
 							autoPopTip.type = item.type;
 							autoPopTip.layoutLimit = layoutLimit;
 							autoPopTip.setEnable(true);
@@ -359,7 +360,7 @@ public class CodeWindow {
 		for (int i = 0; i < size; i++) {
 			final CodeItem codeItem = fullList.get(i);
 			if(preLen == 0 
-					|| (codeItem.type == CodeItem.TYPE_CLASS && codeItem.codeLowMatch.indexOf(preCode) >= 0)
+					|| (codeItem.isFullPackageAndClassName && codeItem.type == CodeItem.TYPE_CLASS && codeItem.codeLowMatch.indexOf(preCode) >= 0)
 					|| codeItem.codeLowMatch.startsWith(preCode) 
 					){
 				classData.add(codeItem);
@@ -464,6 +465,74 @@ public class CodeWindow {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
+						if(item.anonymousClass == null){
+							insertMethod(item);
+						}else{
+							insertAnonymouseClass(item);
+						}
+					}
+					
+					private final String removeParameters(final String insertedCode){
+						return insertedCode.substring(0, insertedCode.indexOf("("));
+					}
+					
+					private final char[] getShuJin(final Document doc, int line) throws BadLocationException {
+						//获得缩进串
+						String lineStr;
+						while(true){
+							lineStr = ScriptEditPanel.getLineText(doc, line);
+							if(lineStr.length() > 0){
+								break;
+							}
+							line--;
+						}
+						return lineStr.toCharArray();
+					}
+
+					public final void insertAnonymouseClass(final CodeItem item) {
+						try {
+							final int line = ScriptEditPanel.getLineOfOffset(document, oriScriptIdx);
+							final char[] shujin = getShuJin(document, line);
+							int charIdxRemovedTab = 0;
+							for (; charIdxRemovedTab < shujin.length; charIdxRemovedTab++) {
+								if(shujin[charIdxRemovedTab] == ' ' || shujin[charIdxRemovedTab] == '\t'){
+								}else{
+									break;
+								}
+							}
+							
+							document.remove(oriScriptIdx, preCodeCharsLen);
+							final String insertedCode = removeParameters(item.code);
+							
+							final StringBuilder sb = StringBuilderCacher.getFree();
+							sb.append(insertedCode);
+							if(item.anonymousClass == Runnable.class){
+								sb.append(" {");
+							}else{
+								sb.append(" {|e|");
+							}
+							sb.append('\n');
+							
+							sb.append(shujin, 0, charIdxRemovedTab);
+							sb.append('\t');
+							final int newLocIdx = sb.length();
+							sb.append('\n');
+							
+							sb.append(shujin, 0, charIdxRemovedTab);
+							sb.append('}');
+							
+							document.insertString(oriScriptIdx, sb.toString(), ScriptEditPanel.DEFAULT_LIGHTER);
+							StringBuilderCacher.cycle(sb);
+							
+//							textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, oriScriptIdx));
+							final int position = oriScriptIdx + newLocIdx;
+							textPane.setCaretPosition(position);
+						} catch (final BadLocationException e) {
+							ExceptionReporter.printStackTrace(e);
+						}
+					}
+					
+					public final void insertMethod(final CodeItem item) {
 						try {
 							document.remove(oriScriptIdx, preCodeCharsLen);
 							final String insertedCode = item.code;

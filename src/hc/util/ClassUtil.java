@@ -181,7 +181,7 @@ public class ClassUtil {
 	}
 	
 	public static void printCurrentThreadStack(final String lineInfo, final String delLine, final boolean isError){
-		final StringBuilder sb = new StringBuilder(1024 * 2);
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		sb.append(lineInfo);
 		sb.append("\n");
 		
@@ -207,6 +207,8 @@ public class ClassUtil {
 		}else{
 			L.V = L.O ? false : LogManager.log(sb.toString());
 		}
+		
+		StringBuilderCacher.cycle(sb);
 	}
 
 	public static void printCurrentThreadStack(final String lineInfo){
@@ -218,7 +220,7 @@ public class ClassUtil {
 	}
 
 	public static void printThreadStack(final String name) {
-		final StringBuilder sb = new StringBuilder(1024 * 8);
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		if(name != null){
 			sb.append("\n");
 		}else{
@@ -249,6 +251,7 @@ public class ClassUtil {
 		}
 		
 		L.V = L.O ? false : LogManager.log(sb.toString());
+		StringBuilderCacher.cycle(sb);
 	}
 
 }

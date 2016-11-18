@@ -1,7 +1,7 @@
 package hc.util.upnp;
 
 import hc.core.IConstant;
-import hc.server.KeepaliveManager;
+import hc.server.util.StarterParameter;
 import hc.util.PropertiesManager;
 
 import java.io.IOException;
@@ -171,7 +171,7 @@ public class UPnPDevice {
 	public static String getNewRomoteHost(){
 		String stun = PropertiesManager.getValue(PropertiesManager.p_UPnPUseSTUNIP);
 		if(stun == null || stun.equals(IConstant.TRUE)){
-			return KeepaliveManager.publicShowIP;
+			return StarterParameter.publicShowIP;
 		}else{
 			return "";
 		}

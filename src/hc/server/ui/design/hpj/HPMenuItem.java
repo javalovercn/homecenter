@@ -5,7 +5,7 @@ import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.StoreableHashMap;
 import hc.core.util.UIUtil;
-import hc.util.StoreableHashMapWithModifyFlag;
+import hc.util.I18NStoreableHashMapWithModifyFlag;
 
 public class HPMenuItem extends HPNode {
 	public static final String TARGET_LOCATOR = "target locator";
@@ -16,10 +16,10 @@ public class HPMenuItem extends HPNode {
 	public StoreableHashMap extendMap = new StoreableHashMap();
 	
 	public HPMenuItem(final int type, final String name){
-		this(type, name, new StoreableHashMapWithModifyFlag(), HCURL.URL_CMD_EXIT, UIUtil.SYS_DEFAULT_ICON);
+		this(type, name, new I18NStoreableHashMapWithModifyFlag(), HCURL.URL_CMD_EXIT, UIUtil.SYS_DEFAULT_ICON);
 	}
 	
-	public HPMenuItem(final int type, final String name, final StoreableHashMapWithModifyFlag i18nMap, final String url, final String imageData) {
+	public HPMenuItem(final int type, final String name, final I18NStoreableHashMapWithModifyFlag i18nMap, final String url, final String imageData) {
 		super(type, name);
 		this.i18nMap = i18nMap;
 		this.url = url;
@@ -37,7 +37,7 @@ public class HPMenuItem extends HPNode {
 			final HPMenuItem cp = (HPMenuItem)obj;
 			final HCURL hcurl1 = HCURLUtil.extract(url);
 			final HCURL hcurl2 = HCURLUtil.extract(cp.url);
-			if(name.equals(cp.name) || hcurl1.elementID.equals(hcurl2.elementID)){
+			if(name.toLowerCase().equals(cp.name.toLowerCase()) || hcurl1.elementID.toLowerCase().equals(hcurl2.elementID.toLowerCase())){
 				return true;
 			}
 		}

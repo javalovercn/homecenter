@@ -9,13 +9,13 @@ import hc.core.RootConfig;
 import hc.core.data.DataInputEvent;
 import hc.core.data.DataPNG;
 import hc.core.sip.SIPManager;
-import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
 import hc.core.util.MobileAgent;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPriorityManager;
 import hc.server.ui.HCByteArrayOutputStream;
 import hc.server.ui.ICanvas;
+import hc.server.ui.design.J2SESession;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -28,8 +28,10 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	int locX, locY;
 
 	protected byte[] pngCaptureID;
+	protected char[] pngCaptureIDChars;
 	protected String title;
-	
+	protected final J2SESession coreSS;
+
 	/**
 	 * 
 	 * @param captureID
@@ -38,6 +40,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	public void setCaptureID(final String captureID, final String title){
 		this.title = title;
 		pngCaptureID = StringUtil.getBytes(captureID);
+		pngCaptureIDChars = captureID.toCharArray();
 	}
 	
 	final Object LOCK = new Object();
@@ -67,15 +70,16 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	protected final HCByteArrayOutputStream byteArrayOutputStream = new HCByteArrayOutputStream();
 	protected final Object WAITING = new Object();
 	protected boolean isShutDown = false;
-	final IContext ic = ContextManager.getContextInstance();
+	final IContext ic;
 
-	protected static int refreshMillSecond = 3000;
 //	final int maxCapW, maxCapH;
 	final boolean isScreenCap;
 	final int fixColorMask;
 	
-	public PNGCapturer(final int w, final int h, final boolean isScreenCap, final int fixMask) {
+	public PNGCapturer(final J2SESession coreSS, final int w, final int h, final boolean isScreenCap, final int fixMask) {
 		super();
+		this.coreSS = coreSS;
+		this.ic = coreSS.context;
 		this.isScreenCap = isScreenCap;
 		this.fixColorMask = fixMask;//非电脑远屏，指定色彩级别
 		
@@ -112,8 +116,8 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	public abstract int grabImage(Rectangle bc, int[] rgb);
 	public abstract boolean actionInput(DataInputEvent e);
 	
-	public static int getUserMobileColorMask(){
-		return mask;
+	public static int getUserMobileColorMask(final J2SESession coreSS){
+		return coreSS.mask;
 	}
 
 	public static int getMaskFromBit(final int cBit) {
@@ -135,7 +139,6 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		return (mask_one << 16) | (mask_one << 8) | mask_one;
 	}
 	
-	static int mask;
 	protected boolean isStopCap = false;
 	
 	protected void enableStopCap(final boolean sc){
@@ -179,7 +182,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 //			L.V = L.O ? false : LogManager.log("Auto Refresh Rect Finish:" + System.currentTimeMillis());
 			
 			try{
-				Thread.sleep(refreshMillSecond);
+				Thread.sleep(coreSS.refreshMillSecond);
 			}catch (final Exception e) {
 				
 			}
@@ -190,7 +193,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	protected void sleepBeforeRun() {
 		try{
 			int delayMS = 1200;
-			if(SIPManager.isOnRelay()){
+			if(SIPManager.isOnRelay(coreSS)){
 				delayMS = 1000;
 			}
 			Thread.sleep(delayMS);
@@ -210,7 +213,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 //			}
 			
 		//非远屏传输画面时，采用全彩
-		final int currMask = isScreenCap?mask:fixColorMask;
+		final int currMask = isScreenCap?coreSS.mask:fixColorMask;
 
 			//			synchronized (LOCK) {
 				final int oriX = capRect.x;
@@ -370,20 +373,18 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		}
 	}
 
-	public static void updateRefreshMS(int millSecond) {
+	public static void updateRefreshMS(final J2SESession coreSS, int millSecond) {
 		if(millSecond == MobileAgent.INT_UN_KNOW){
 			return;
 		}
 		
-		CCoreUtil.checkAccess();
-		
 		final int msOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_MS_On_Relay));
-		if(SIPManager.isOnRelay()){
+		if(SIPManager.isOnRelay(coreSS)){
 			if(millSecond < msOnRelay){
 				millSecond = msOnRelay;
 			}
 		}else{
-			final short mode = ContextManager.getConnectionModeStatus();
+			final short mode = coreSS.context.getConnectionModeStatus();
 			if(mode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
 				millSecond = 100;
 			}else if(mode == ContextManager.MODE_CONNECTION_PUBLIC_UPNP_DIRECT){
@@ -394,23 +395,21 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		}
 		
 		L.V = L.O ? false : LogManager.log("Client change refresh MillSecond to:" + millSecond);
-		refreshMillSecond = millSecond;
+		coreSS.refreshMillSecond = millSecond;
 	}
 
-	public static void updateColorBit(int mode) {
+	public static void updateColorBit(final J2SESession coreSS, int mode) {
 		if(mode == MobileAgent.INT_UN_KNOW){
 			return;
 		}
 		
-		CCoreUtil.checkAccess();
-		
 		final int colorOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_Color_On_Relay));
-		if(SIPManager.isOnRelay()){
+		if(SIPManager.isOnRelay(coreSS)){
 			if((IConstant.COLOR_STAR_TOP - mode) > colorOnRelay){
 				mode = (IConstant.COLOR_STAR_TOP - colorOnRelay);
 			}
 		}else{
-			final short connMode = ContextManager.getConnectionModeStatus();
+			final short connMode = coreSS.context.getConnectionModeStatus();
 			if(connMode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
 				//取最大值
 				mode = IConstant.COLOR_64_BIT;
@@ -424,7 +423,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	
 		L.V = L.O ? false : LogManager.log("Client change colorMode to level : " + (IConstant.COLOR_STAR_TOP - mode) + " (after limited)");
 
-		mask = getMaskFromBit(mode);
+		coreSS.mask = getMaskFromBit(mode);
 	}
 
 }

@@ -1,6 +1,6 @@
 package hc.core.util.io;
 
-import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.IConstant;
 import hc.core.MsgBuilder;
 import hc.core.util.ByteUtil;
@@ -10,35 +10,43 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.NoSuchElementException;
 
 public class StreamBuilder {
-	public static final Object LOCK = new Object();
+	public final Object LOCK = new Object();
 	
-	private static int currentStreamID = 1;
+	private int currentStreamID = 1;
 	
-	final static Hashtable inputStreamTable = new Hashtable(10);
-	final static Hashtable outputStreamTable = new Hashtable(10);
+	public final Hashtable inputStreamTable = new Hashtable(10);
+	public final Hashtable outputStreamTable = new Hashtable(10);
+	public CoreSession coreSS;
 	
-	public static void notifyExceptionForReleaseStreamResources(final IOException exp){
+	public StreamBuilder(final CoreSession coreSS){
+		this.coreSS = coreSS;
+	}
+	
+	public final void notifyExceptionForReleaseStreamResources(final IOException exp){
 		startCycle(exp, inputStreamTable);
 		startCycle(exp, outputStreamTable);
 	}
 	
-	static void startCycle(final IOException exp, final Hashtable hashtable) {
+	final void startCycle(final IOException exp, final Hashtable hashtable) {
 		synchronized (hashtable) {
 			if(hashtable.size() > 0){
 				final Enumeration e = hashtable.keys();
-				while(e.hasMoreElements()){
-					final IHCStream stream = (IHCStream)hashtable.get(e.nextElement());
-					stream.notifyExceptionAndCycle(exp);
+				try{
+					while(e.hasMoreElements()){
+						final IHCStream stream = (IHCStream)hashtable.get(e.nextElement());
+						stream.notifyExceptionAndCycle(exp);
+					}
+				}catch (NoSuchElementException ex) {
 				}
-				
 				hashtable.clear();
 			}
 		}
 	}
 	
-	private final static int getStreamID(final Hashtable streamTable){
+	private final int getStreamID(final Hashtable streamTable){
 		int out = currentStreamID++;
 		if(currentStreamID == Integer.MAX_VALUE){
 			currentStreamID = 1;
@@ -52,14 +60,14 @@ public class StreamBuilder {
 		return out;
 	}
 	
-	public static InputStream buildInputStream(final String className, final byte[] parameter, final int offset, final int len, final boolean isInitial){
+	public final InputStream buildInputStream(final String className, final byte[] parameter, final int offset, final int len, final boolean isInitial){
 		final int streamID;
 		final InputStream is;
 		
 		final Hashtable streamTable = inputStreamTable;
 		synchronized(streamTable){
 			streamID = getStreamID(streamTable);
-			is = new HCInputStream(streamID);
+			is = new HCInputStream(coreSS, streamID);
 			streamTable.put(new Integer(streamID), is);
 		}
 		if(isInitial){
@@ -68,14 +76,14 @@ public class StreamBuilder {
 		return is;
 	}
 	
-	public static OutputStream buildOutputStream(final String className, final byte[] parameter, final int offset, final int len, final boolean isInitial){
+	public final OutputStream buildOutputStream(final String className, final byte[] parameter, final int offset, final int len, final boolean isInitial){
 		final int streamID;
 		final OutputStream is;
 		
 		final Hashtable streamTable = outputStreamTable;
 		synchronized(streamTable){
 			streamID = getStreamID(streamTable);
-			is = new HCOutputStream(streamID);
+			is = new HCOutputStream(coreSS, streamID);
 			streamTable.put(new Integer(streamID), is);
 		}
 		if(isInitial){
@@ -86,7 +94,7 @@ public class StreamBuilder {
 	
 	public static final byte[] EMPTY_BS = new byte[0];
 	
-	public static void manageRemoteStream(final boolean isInputStream, final int streamID, final String className, final byte[] parameter, final int offset, final int len){
+	public final void manageRemoteStream(final boolean isInputStream, final int streamID, final String className, final byte[] parameter, final int offset, final int len){
 		final byte[] classNameBS = ByteUtil.getBytes(className, IConstant.UTF_8);
 		final int classNameLen = classNameBS.length;
 		final int sendLen = 1 + STREAM_ID_LEN + 1 + classNameLen + 2 + len;
@@ -105,7 +113,7 @@ public class StreamBuilder {
 		offsetIdx += 2;
 		System.arraycopy(parameter, offset, sendBS, offsetIdx, len);
 		
-		ContextManager.getContextInstance().sendWrap(MsgBuilder.E_STREAM_MANAGE, sendBS, 0, sendLen);
+		coreSS.context.sendWrap(MsgBuilder.E_STREAM_MANAGE, sendBS, 0, sendLen);
 		ByteUtil.byteArrayCacher.cycle(sendBS);
 	}
 	
@@ -113,7 +121,7 @@ public class StreamBuilder {
 	
 	public static final int STREAM_ID_LEN = 4;
 
-	public static Object closeStream(final boolean isInputStream, final int streamid) {
+	public final Object closeStream(final boolean isInputStream, final int streamid) {
 		final Hashtable streamTable = isInputStream?inputStreamTable:outputStreamTable;
 		
 		synchronized (streamTable) {
@@ -121,7 +129,7 @@ public class StreamBuilder {
 		}
 	}
 
-	public static void notifyCloseRemoteStream(final boolean isInputStream, final int streamID) {
+	public final void notifyCloseRemoteStream(final boolean isInputStream, final int streamID) {
 		manageRemoteStream(isInputStream, streamID, TAG_CLOSE_STREAM, EMPTY_BS, 0, 0);
 	}
 	

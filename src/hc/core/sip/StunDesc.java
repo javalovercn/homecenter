@@ -1,6 +1,7 @@
 package hc.core.sip;
 
 import hc.core.EnumNAT;
+import hc.core.util.StringBufferCacher;
 
 public abstract class StunDesc {
 	protected int errorResponseCode = 0;
@@ -102,11 +103,14 @@ public abstract class StunDesc {
 	}
 	
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuffer sb = StringBufferCacher.getFree();
 		if (error) {
 			sb.append(errorReason + " - Responsecode: " + errorResponseCode);
-			return sb.toString();
+			final String out = sb.toString();
+			StringBufferCacher.cycle(sb);
+			return out;
 		}
+		
 		sb.append("Result: ");
 		if (natType == EnumNAT.OPEN_INTERNET) sb.append("Open access to the Internet.\n");
 		else if (natType == EnumNAT.UDP_BLOCKED) sb.append("Firewall blocks UDP.\n");
@@ -116,7 +120,10 @@ public abstract class StunDesc {
 		else if (natType == EnumNAT.SYMMETRICT_NAT) sb.append("Symmetric Cone NAT handles connections.\n");
 		else if (natType == EnumNAT.SYMMETRIC_FIREWALL) sb.append ("Symmetric UDP Firewall handles connections.\n");
 		else sb.append("unkown\n");
-		return sb.toString();
+		
+		final String out = sb.toString();
+		StringBufferCacher.cycle(sb);
+		return out;
 	}	
 
 

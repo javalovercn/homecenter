@@ -5,6 +5,7 @@ import org.jrubyparser.ast.ClassNode;
 public class JRubyClassDesc {
 	public Class baseClass;
 	public boolean isInstance;
+	public boolean isInExtend;
 	public boolean isDefClass;
 	public ClassNode defNode;
 }

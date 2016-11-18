@@ -2,6 +2,7 @@ package hc.server.html5.syn;
 
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
+import hc.server.ui.ServerUIAPIAgent;
 import hc.util.ClassUtil;
 
 import java.awt.Component;
@@ -70,7 +71,7 @@ public class JPanelDiff extends JComponentDiff{
 			public void componentAdded(final ContainerEvent e) {
 				final Component component = e.getChild();
 				
-				todo.mlet.getProjectContext().run(new Runnable() {
+				ServerUIAPIAgent.runInSessionThreadPool(todo.coreSS, todo.resp, new Runnable() {
 					@Override
 					public void run() {
 						component.validate();

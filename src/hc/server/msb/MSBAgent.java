@@ -1,11 +1,13 @@
 package hc.server.msb;
 
 import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.WiFiDeviceManager;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.design.AddHarHTMLMlet;
+import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 
 import java.io.InputStream;
@@ -48,6 +50,10 @@ public final class MSBAgent {
 		return robot.getName();
 	}
 	
+	public final static String getNameLower(final Robot robot){
+		return robot.getNameLower();
+	}
+	
 //	public final static void setName(final Converter converter, final String name){
 //		converter.setName(name);
 //	}
@@ -56,13 +62,13 @@ public final class MSBAgent {
 	private static Object sysThreadPoolToken = ContextManager.getThreadPoolToken();
 	
 	
-	public final static void clearWiFiAccountGroup(final Device device, final String cmdGroup){
+	public final static void clearWiFiAccountGroup(final CoreSession coreSS, final Device device, final String cmdGroup){
 		final boolean hasToken = hasToken(device);
 		if(hasToken){
 			ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
 				public Object run() {
-					WiFiDeviceManager.getInstance().clearWiFiAccountGroup(cmdGroup);		
+					WiFiDeviceManager.getInstance(coreSS).clearWiFiAccountGroup(cmdGroup);		
 					return null;
 				}
 			}, sysThreadPoolToken);
@@ -71,15 +77,15 @@ public final class MSBAgent {
 		}
 	}
 	
-	public final static void broadcastWiFiAccountAsSSID(final String projectID, final Device device, final String[] encryptedCommand, final String cmdGroup){
+	public final static void broadcastWiFiAccountAsSSID(final J2SESession coreSS, final String projectID, final Device device, final String[] encryptedCommand, final String cmdGroup){
 		final boolean hasToken = hasToken(device);
 		if(hasToken){
 			ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
 				public Object run() {
-					WiFiDeviceManager.getInstance().broadcastWiFiAccountAsSSID(encryptedCommand, cmdGroup);		
-					if(ContextManager.isMobileLogin()){
-						final AddHarHTMLMlet mlet = AddHarHTMLMlet.getCurrAddHarHTMLMlet();
+					WiFiDeviceManager.getInstance(coreSS).broadcastWiFiAccountAsSSID(encryptedCommand, cmdGroup);		
+					if(ContextManager.isMobileLogin(coreSS.context)){
+						final AddHarHTMLMlet mlet = AddHarHTMLMlet.getCurrAddHarHTMLMlet(coreSS);
 						if(mlet != null){
 							mlet.notifyBroadcastWifiAccout(projectID, device.getName());
 						}
@@ -92,13 +98,13 @@ public final class MSBAgent {
 		}
 	}
 	
-	public final static OutputStream createWiFiMulticastStream(final Device device, final String multicastIP, final int port){
+	public final static OutputStream createWiFiMulticastStream(final J2SESession coreSS, final Device device, final String multicastIP, final int port){
 		final boolean hasToken = hasToken(device);
 		if(hasToken){
 			return (OutputStream)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
 				public Object run() {
-					return WiFiDeviceManager.getInstance().createWiFiMulticastStream(multicastIP, port);
+					return WiFiDeviceManager.getInstance(coreSS).createWiFiMulticastStream(multicastIP, port);
 				}
 			}, sysThreadPoolToken);
 		}else{
@@ -110,9 +116,9 @@ public final class MSBAgent {
 //		device.__startup();
 //	}
 	
-	public final static String[] getRegisterDeviceID(final Device device){
+	public final static String[] getRegisterDeviceID(final Device device, final Workbench workbench){
 		if(device.isStarted == false){
-			device.init();
+			device.init(workbench);
 		}
 		return device.connectedDevices;
 	}
@@ -121,13 +127,13 @@ public final class MSBAgent {
 		return processor.isStarted && processor.isShutdown == false;
 	}
 	
-	public final static WiFiAccount getWiFiAccount(final Device device, final ProjectContext ctx){
+	public final static WiFiAccount getWiFiAccount(final J2SESession coreSS, final Device device, final ProjectContext ctx){
 		final boolean hasToken = hasToken(device);
 		if(hasToken){
 			return (WiFiAccount)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
 				public Object run() {
-					return WiFiHelper.getWiFiAccount(ctx, (ThreadGroup)sysThreadPoolToken);
+					return WiFiHelper.getWiFiAccount(coreSS, ctx, (ThreadGroup)sysThreadPoolToken);
 				}
 			}, sysThreadPoolToken);
 		}else{
@@ -135,13 +141,13 @@ public final class MSBAgent {
 		}
 	}
 	
-	public final static String[] getWiFiSSIDListOnAir(final Device device){
+	public final static String[] getWiFiSSIDListOnAir(final CoreSession coreSS, final Device device){
 		final boolean hasToken = hasToken(device);
 		if(hasToken){
 			final String[] out =  (String[])ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
 				public Object run() {
-					return WiFiDeviceManager.getInstance().getSSIDListOnAir();
+					return WiFiDeviceManager.getInstance(coreSS).getSSIDListOnAir();
 				}
 			}, sysThreadPoolToken);
 //			for (int i = 0; i < out.length; i++) {
@@ -153,13 +159,13 @@ public final class MSBAgent {
 		}
 	}
 	
-	public final static InputStream listenFromWiFiMulticast(final Device device, final String multicastIP, final int port){
+	public final static InputStream listenFromWiFiMulticast(final CoreSession coreSS, final Device device, final String multicastIP, final int port){
 		final boolean hasToken = hasToken(device);
 		if(hasToken){
 			return (InputStream)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
 				public Object run() {
-					return WiFiDeviceManager.getInstance().listenFromWiFiMulticast(multicastIP, port);
+					return WiFiDeviceManager.getInstance(coreSS).listenFromWiFiMulticast(multicastIP, port);
 				}
 			}, sysThreadPoolToken);
 		}else{

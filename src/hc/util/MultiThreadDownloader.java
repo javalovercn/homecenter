@@ -4,6 +4,7 @@ import hc.App;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.RootServerConnector;
+import hc.core.SessionManager;
 import hc.core.util.LogManager;
 import hc.server.HCActionListener;
 import hc.server.util.HCJFrame;
@@ -104,7 +105,7 @@ public class MultiThreadDownloader {
 						if(frame != null){
 							frame.dispose();
 						}
-						RootServerConnector.notifyLineOffType("lof=MTD_cancel");
+						RootServerConnector.notifyLineOffType(SessionManager.getPreparedSocketSession(), "lof=MTD_cancel");
 					}catch (final Exception ex) {
 					}
 				}
@@ -157,7 +158,7 @@ public class MultiThreadDownloader {
         			if(filemd5.toLowerCase().equals(md5.toLowerCase())){
         				biz.start();
         			}else{
-        				RootServerConnector.notifyLineOffType("lof=MTD_ERR_MD5");
+        				RootServerConnector.notifyLineOffType(SessionManager.getPreparedSocketSession(), "lof=MTD_ERR_MD5");
     					final String message = "File [" + fileName + "] MD5 error, please try download it later!";
     					L.V = L.O ? false : LogManager.log(message);
         				if(isVisiable){
@@ -337,7 +338,7 @@ class DownloadThread extends Thread {
         	System.err.println("Error multi-thread download source:" + url.toString());
         	isError = true;
         	main = null;
-        	RootServerConnector.notifyLineOffType("lof=MTD_" + url.toString());
+        	RootServerConnector.notifyLineOffType(SessionManager.getPreparedSocketSession(), "lof=MTD_" + url.toString());
         }  
         if(raf != null){
 	        try {

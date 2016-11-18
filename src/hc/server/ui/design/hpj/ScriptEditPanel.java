@@ -6,21 +6,29 @@ import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
+import hc.server.CallContext;
 import hc.server.HCActionListener;
-import hc.server.data.StoreDirManager;
+import hc.server.msb.Converter;
+import hc.server.msb.Device;
+import hc.server.msb.Robot;
+import hc.server.ui.CtrlResponse;
 import hc.server.ui.HCByteArrayOutputStream;
+import hc.server.ui.HTMLMlet;
 import hc.server.ui.ProjectContext;
-import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
+import hc.server.ui.SimuMobile;
 import hc.server.ui.design.Designer;
+import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.code.CodeHelper;
 import hc.server.ui.design.code.TabHelper;
 import hc.server.ui.design.engine.HCJRubyEngine;
+import hc.server.ui.design.engine.RubyExector;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.IDArrayGroup;
 import hc.util.ResourceUtil;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -30,6 +38,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -37,16 +46,17 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.script.ScriptException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
@@ -78,22 +88,12 @@ import javax.swing.undo.UndoableEdit;
 public abstract class ScriptEditPanel extends NodeEditPanel {
 	static Highlighter.HighlightPainter ERROR_CODE_LINE_LIGHTER = new DefaultHighlighter.
 			DefaultHighlightPainter(Color.RED);
-	//要置于createRunTestDir之后
-	public static HCJRubyEngine runTestEngine;
-	
-	public static synchronized final HCJRubyEngine getRunTestEngine(){
-		if(runTestEngine == null){
-			ScriptEditPanel.rebuildJRubyEngine();
-		}
-		return runTestEngine;
-	}
-	
 	private static final SimpleAttributeSet STR_LIGHTER = build(Color.decode("#4EA539"), false);
 	public static final SimpleAttributeSet REM_LIGHTER = build(Color.decode("#3AC2EB"), false);
 	private static final SimpleAttributeSet MAP_LIGHTER = build(Color.BLACK, true);
 	static final SimpleAttributeSet KEYWORDS_LIGHTER = build(Color.BLUE, true);
 	private static final SimpleAttributeSet NUM_LIGHTER = build(Color.RED, false);
-	static final SimpleAttributeSet DEFAULT_LIGHTER = build(Color.BLACK, false);
+	public static final SimpleAttributeSet DEFAULT_LIGHTER = build(Color.BLACK, false);
 	private static final SimpleAttributeSet VAR_LIGHTER = build(Color.decode("#f19e37"), false);
 	
 	private static final Pattern str_pattern = Pattern.compile("\".*?(?<!\\\\)\"");
@@ -154,8 +154,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		
 		return false;
 	}
-	
-	private static final Pattern num_pattern = Pattern.compile("\\b\\d+\\b", Pattern.MULTILINE);
+	//不考虑负数，因为a-12不好处理
+	private static final Pattern num_pattern = Pattern.compile("\\b(\\d+(\\.)?\\d*|\\d*(\\.)?\\d+)(([eE]([-+])?)?\\d+)?\\b", Pattern.MULTILINE);
 	private static final Pattern hc_map_pattern = Pattern.compile("\\$_hcmap\\b");
 	private static final Pattern rem_pattern = Pattern.compile("#.*(?=\n)?");
 	private static final Pattern var_pattern = Pattern.compile("@\\w+");
@@ -167,7 +167,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	final JButton testBtn = new JButton("Test Script");
 	final JButton formatBtn = new JButton("Format");
 	final HCByteArrayOutputStream iconBsArrayos = ServerUIUtil.buildForMaxIcon();
-	final JTextField nameField = new JTextField();
+	final JTextField nameField = new JTextField(){
+		@Override
+		public void paste(){
+			super.paste();
+			notifyModifyName();
+		}
+	};
 	final JRubyErrorHCTimer errorTimer = new JRubyErrorHCTimer("JRubyErrorHCTimer", 1000, false);
 	final boolean isJ2SEServer = ResourceUtil.isJ2SELimitFunction();
 
@@ -177,9 +183,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		designer.codeHelper.updateScriptASTNode(this, jtaScript.getText(), true);
 	}
 	
+	final CallContext callCtxNeverCycle = CallContext.getFree();
+	
 	final void doTest(final boolean isRun, final boolean isCompileOnly) {
 		final Map<String, String> map = buildMapScriptParameter();
-		if(runTestEngine != null && runTestEngine.getEvalException() != null){
+		final HCJRubyEngine runTestEngine = SimuMobile.getRunTestEngine();
+		if(runTestEngine != null && callCtxNeverCycle.isError){
 			//清空旧错误
 			jtaScript.getHighlighter().removeAllHighlights();
 		}
@@ -190,24 +199,34 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		
 		final ProjectContext context = ContextSecurityManager.getConfig(
 				(ThreadGroup)HCLimitSecurityManager.getTempLimitThreadPool().getThreadGroup()).getProjectContext();
-		if(isRun){
-			ServerUIAPIAgent.setTestSimuClientSession(context, designer.testSimuClientSession);
-		}
+//		if(isRun){
+//			ServerUIAPIAgent.setTestSimuClientSession(context, designer.testSimuClientSession);
+//		}
 		
 		final String script = jtaScript.getText();
-		ScriptException evalException = null;
+		final HPNode node = (HPNode)currNode.getUserObject();
+
+		final String targetURL;
+		if(node instanceof HPMenuItem){
+			targetURL = ((HPMenuItem)node).url;
+		}else{
+			targetURL = CallContext.UN_KNOWN_TARGET;
+		}
 		try{
-			RubyExector.parse(script, null, runTestEngine, false);
-			evalException = runTestEngine.getEvalException();
-			if(evalException == null && (isRun || isCompileOnly == false)){
-				RubyExector.run(script, null, map, runTestEngine, context);
+			{
+				callCtxNeverCycle.reset();
+				callCtxNeverCycle.targetURL = targetURL;
+				RubyExector.parse(callCtxNeverCycle, script, null, runTestEngine, false);
+			}
+			if(callCtxNeverCycle.isError == false && (isRun || isCompileOnly == false)){
+				callCtxNeverCycle.reset();
+				callCtxNeverCycle.targetURL = targetURL;
+				RubyExector.runAndWaitInProjectOrSessionPool(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtxNeverCycle, script, null, map, runTestEngine, context);
 				RubyExector.removeCache(script, runTestEngine);
-				evalException = runTestEngine.getEvalException();
 			}
 		}catch (final Throwable e) {
-			evalException = runTestEngine.getEvalException();
 		}
-		if(evalException != null){
+		if(callCtxNeverCycle.isError){
 //			final Object runnable = Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation");
 //			 if (runnable != null && runnable instanceof Runnable){
 //				 ((Runnable)runnable).run();
@@ -215,11 +234,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			 
 			Toolkit.getDefaultToolkit().beep();
 			
-			errRunInfo.setText(evalException.getMessage());
+			errRunInfo.setText(callCtxNeverCycle.getMessage());
 			errRunInfo.setBackground(testBtn.getBackground());
 			isErrorOnBuildScript = true;
 			
-			final int line = evalException.getLineNumber();
+			final int line = callCtxNeverCycle.getLineNumber();
 			final char[] chars = script.toCharArray();
 			
 			int currRow = 1;
@@ -270,7 +289,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					Thread.sleep(1000);
 				}catch (final Exception e) {
 				}
-				RubyExector.initActive(getRunTestEngine());//提前预热
+				RubyExector.initActive(SimuMobile.getRunTestEngine());//提前预热
 			}
 		});
 	}
@@ -680,7 +699,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 		nameField.getDocument().addDocumentListener(new DocumentListener() {
 			private void modify(){
-				currItem.name = nameField.getText();
+				final String newClassName = nameField.getText();
+				currItem.name = newClassName;
 				App.invokeLaterUI(updateTreeRunnable);
 				notifyModified(true);
 			}
@@ -699,15 +719,71 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				modify();
 			}
 		});
-		nameField.addActionListener(new HCActionListener(new Runnable() {
+		nameField.addKeyListener(new KeyListener() {
 			@Override
-			public void run() {
-				currItem.name = nameField.getText();
-				App.invokeLaterUI(updateTreeRunnable);
-				notifyModified(true);
+			public void keyTyped(final KeyEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {//输入字符在途
+					@Override
+					public void run() {
+						notifyModifyName();
+					}
+				});
 			}
-		}, threadPoolToken));
-
+			
+			@Override
+			public void keyReleased(final KeyEvent e) {
+			}
+			
+			@Override
+			public void keyPressed(final KeyEvent e) {
+			}
+		});
+	}
+	
+	protected final void replaceClassName(final String newClassName, final JTextField inputField){
+		final String currNodeSuperClassName = findCurrNodeSuperClassName();
+		if(currNodeSuperClassName != null && newClassName.length() > 0){
+			final char firstChar = newClassName.charAt(0);
+			if(firstChar >= 'A' && firstChar <= 'Z'){
+				final boolean isReplaced = ScriptModelManager.replaceClassNameForScripts(jtaDocment, jtaScript.getText(), currNodeSuperClassName, newClassName);
+				if(isReplaced){
+					SwingUtilities.invokeLater(submitModifyRunnable);
+				}
+			}else{
+				ContextManager.getThreadPool().run(new Runnable() {
+					@Override
+					public void run() {
+						final JPanel panel = new JPanel(new BorderLayout());
+						panel.add(new JLabel("it must begin with an uppercase letter.", App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
+						final ActionListener listener = new HCActionListener(new Runnable() {
+							@Override
+							public void run() {
+								inputField.requestFocus();
+							}
+						}, App.getThreadPoolToken());
+						App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, listener, null, designer, false, false, inputField, false, false);
+					}
+				});
+			}
+		}
+	}
+	
+	private final String findCurrNodeSuperClassName(){
+		final int type = currItem.type;
+		
+		if(type == HPNode.TYPE_MENU_ITEM_FORM || type == HPNode.TYPE_MENU_ITEM_SCREEN){
+			return HTMLMlet.class.getName();
+		}else if(type == HPNode.MASK_MSB_ROBOT){
+			return Robot.class.getName();
+		}else if(type == HPNode.MASK_MSB_CONVERTER){
+			return Converter.class.getName();
+		}else if(type == HPNode.MASK_MSB_DEVICE){
+			return Device.class.getName();
+		}else if(type == HPNode.TYPE_MENU_ITEM_CONTROLLER){
+			return CtrlResponse.class.getName();
+		}
+		
+		return null;
 	}
 	
 	private final boolean isELSIFIndentKeyWords(final char[] chars, final int startIdx, final char[] isIndentChar){
@@ -744,6 +820,27 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	        return doc.getDefaultRootElement().getElementIndex(offset);
 	    }
 	}
+	
+	/**
+	 * 获得指定行的文本
+	 * @param doc
+	 * @param line
+	 * @return
+	 * @throws BadLocationException
+	 */
+	public static final String getLineText(final Document doc, final int line) throws BadLocationException {
+		final Element map = doc.getDefaultRootElement();
+	    if (line < 0) {
+	        throw new BadLocationException("Negative line", -1);
+	    } else if (line >= map.getElementCount()) {
+	        throw new BadLocationException("No such line", doc.getLength() + 1);
+	    } else {
+	        final Element lineElem = map.getElement(line);
+	        final int lineStartOff = lineElem.getStartOffset();
+	        final int lineEndOff = lineElem.getEndOffset();
+	        return doc.getText(lineStartOff, lineEndOff - lineStartOff);
+	    }
+	}
 
 	public static int getLineStartOffset(final Document doc, final int line) throws BadLocationException {
 	    final Element map = doc.getDefaultRootElement();
@@ -757,7 +854,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	    }
 	}
 	
-	static int getLineEndOffset(final Document doc, final int line) throws BadLocationException {
+	public static int getLineEndOffset(final Document doc, final int line) throws BadLocationException {
 	    final Element map = doc.getDefaultRootElement();
 	    if (line < 0) {
 	        throw new BadLocationException("Negative line", -1);
@@ -794,8 +891,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	}
 	private ScriptUndoableEditListener scriptUndoListener;
 	private UndoManager scriptUndoManager;
-	private final AbstractDocument jtaDocment;
-	final HCTextPane jtaScript = new HCTextPane(){
+	public final AbstractDocument jtaDocment;
+	public final HCTextPane jtaScript = new HCTextPane(){
 		@Override
 		public void paste(){
 			try{
@@ -1310,7 +1407,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				ExceptionReporter.printStackTrace(e);
 			}
 		}
-		SwingUtilities.invokeLater(actionRunnable);
+		SwingUtilities.invokeLater(submitModifyRunnable);
 	}
 
 	private final void setUndoText(final String txt, final int newPos) {
@@ -1325,7 +1422,23 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		jtaScript.setCaretPosition(newPos);
 	}
 	
-	private final Runnable actionRunnable = new Runnable() {
+	protected final boolean isTypeFromTargetInput(final int type) {
+		return type == HPNode.TYPE_MENU_ITEM_SCREEN || //早期mlet型的screen
+				type == HPNode.TYPE_MENU_ITEM_FORM 
+				|| type == HPNode.TYPE_MENU_ITEM_CONTROLLER;
+	}
+
+	private final void notifyModifyName() {
+		final int type = currItem.type;
+		
+		if(isTypeFromTargetInput(type)){
+			return;//在target框上
+		}
+		
+		replaceClassName(nameField.getText(), nameField);
+	}
+
+	private final Runnable submitModifyRunnable = new Runnable() {
 		@Override
 		public void run() {
 //			colorAll.run();
@@ -1356,18 +1469,6 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 //		 StyleConstants.setFontSize(attributes, fontSize);
 //		 StyleConstants.setFontFamily(attrSet, "黑体");
 		 return attributes;
-	}
-
-	public static synchronized void rebuildJRubyEngine() {
-		terminateJRubyEngine();
-		runTestEngine = new HCJRubyEngine(StoreDirManager.RUN_TEST_DIR.getAbsolutePath(), ResourceUtil.buildProjClassLoader(StoreDirManager.RUN_TEST_DIR, "hc.testDir"), true);
-	}
-
-	public static synchronized void terminateJRubyEngine() {
-		if(runTestEngine != null){
-			runTestEngine.terminate();
-			runTestEngine = null;
-		}
 	}
 	
 

@@ -29,7 +29,7 @@ public class HCURLCacher {
 	}
 	
 	public final void cycle(HCURL dp){
-		dp.removeAllParaValues();
+		dp.reset();
 		synchronized (free) {
 			free.push(dp);
 			freeSize++;

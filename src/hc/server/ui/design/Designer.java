@@ -2,8 +2,8 @@ package hc.server.ui.design;
 
 import hc.App;
 import hc.UIActionListener;
-import hc.core.ConditionWatcher;
 import hc.core.ContextManager;
+import hc.core.GlobalConditionWatcher;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.IWatcher;
@@ -20,19 +20,20 @@ import hc.server.HCActionListener;
 import hc.server.HCButtonEnabledActionListener;
 import hc.server.HCWindowAdapter;
 import hc.server.J2SEContext;
-import hc.server.JRubyInstaller;
 import hc.server.PlatformManager;
 import hc.server.ProcessingWindowManager;
 import hc.server.SingleJFrame;
 import hc.server.StarterManager;
 import hc.server.ThirdlibManager;
+import hc.server.TrayMenuUtil;
 import hc.server.data.StoreDirManager;
 import hc.server.ui.ClientDesc;
-import hc.server.ui.ClientSession;
 import hc.server.ui.ClosableWindow;
+import hc.server.ui.ExceptionCatcherToWindow;
 import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.LocationComponentListener;
 import hc.server.ui.ServerUIUtil;
+import hc.server.ui.SimuMobile;
 import hc.server.ui.design.code.CodeHelper;
 import hc.server.ui.design.code.CodeStaticHelper;
 import hc.server.ui.design.hpj.HCShareFileResource;
@@ -51,7 +52,6 @@ import hc.server.ui.design.hpj.MenuManager;
 import hc.server.ui.design.hpj.NodeEditPanel;
 import hc.server.ui.design.hpj.NodeEditPanelManager;
 import hc.server.ui.design.hpj.NodeInvalidException;
-import hc.server.ui.design.hpj.ScriptEditPanel;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.IDArrayGroup;
 import hc.server.util.JavaLangSystemAgent;
@@ -66,7 +66,6 @@ import hc.util.SecurityDataProtector;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -90,6 +89,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -143,8 +143,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			tree.updateUI();
 		}
 	};
-	
-	public final ClientSession testSimuClientSession = new ClientSession();
 	
 	final Runnable buildMemWatcher(){
 		return new Runnable() {
@@ -227,18 +225,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		needRebuildTestJRuby = need;
 	}
 	
-	public static void startAutoUpgradeBiz() {
-		if(JRubyInstaller.checkInstalledJRuby() == false){
-			JRubyInstaller.startInstall();
-		}else{		
-			try{
-				LinkProjectManager.startLinkedInProjectUpgradeTimer();
-			}catch (final Throwable e) {
-				ExceptionReporter.printStackTrace(e);
-			}
-		}
-	}
-
 	public static ImageIcon loadImg(final String path){
 		return new ImageIcon(loadBufferedImage(path));
 	}
@@ -300,6 +286,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	private boolean isModified;
+	public boolean isModiPermissions;
 	final MenuManager mg = new MenuManager();
 
 	final JToolBar toolbar;
@@ -475,7 +462,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	public Designer() {
-		setTitle((String)ResourceUtil.get(9034) + "[" + (String)ResourceUtil.get(9083) + "]");
+		super((String)ResourceUtil.get(9034) + " - [" + (String)ResourceUtil.get(9083) + "]", true);
 		
 		instance = this;
 		
@@ -494,7 +481,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		shareFolders[IDX_SHARE_NATIVE_FOLDER] = createNativeLibFolder();
 		
 		
-		J2SEContext.appendTitleJRubyVer(this);
+		TrayMenuUtil.appendTitleJRubyVer(this);
 		
 		itemContext = new HPItemContext();
 		itemContext.modified = this;
@@ -539,7 +526,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			// 鼠标松开时获得需要拖到哪个父节点
 			@Override
 			public void mouseReleased(final MouseEvent e) {
-				ConditionWatcher.addWatcher(new IWatcher(){//确保正常次序处理完成
+				GlobalConditionWatcher.addWatcher(new IWatcher(){//确保正常次序处理完成
 					@Override
 					public boolean watch() {
 						if(isToolbarVisible() == false){
@@ -779,7 +766,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				final HashMap<String, Object> map = new HashMap<String, Object>();
 				HCjar.initMap(map);
 				map.put(HCjar.MENU_NUM, "1");
-				map.put(HCjar.MAIN_MENU_IDX, "0");
+				map.put(HCjar.MAIN_MENU_IDX_PRE, "0");
 				map.put(HCjar.replaceIdxPattern(HCjar.MENU_NAME, 0), "my menu");
 				map.put(HCjar.replaceIdxPattern(HCjar.MENU_COL_NUM, 0), "0");
 				map.put(HCjar.replaceIdxPattern(HCjar.MENU_ID, 0), HCURL.ROOT_MENU);				
@@ -880,14 +867,19 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 								}
 							}
 					
-							if(deployProcess(map)){
+							final ExceptionCatcherToWindow ec = new ExceptionCatcherToWindow(self, true);
+							
+							if(deployProcess(map, ec)){
 //								deactiveButton.setEnabled(true);
 
 //								App.invokeLater(new Runnable() {
 //									@Override
 //									public void run() {
+									if(ec.isNoError()){
 										showHCMessage("Successful activate project, " +
 												"mobile can access this resources now.", ACTIVE + " OK", self, true, null);
+										return;
+									}
 //									}
 //								});
 							}
@@ -1228,9 +1220,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				"<html><font color=\"red\">Important</font> : " +
 				"<BR>" +
 				"<BR>the current HomeCenter provide build-in SecurityManager for HAR project." +
-				"<BR>JRuby script is based on reflection, java.lang.System (private SecurityManager security) is limited for reflection, " +
-				"<BR><BR>please replace java.lang.System with " + JavaLangSystemAgent.class.getName() + " or upgrade JRE to 1.7" +
-				"<BR><BR>for more, please read Java Doc about " + JavaLangSystemAgent.class.getName() + "</html>");
+				"<BR>JRuby script is based on reflection, private field security of java.lang.System is limited for reflection if JRE < 1.7, " +
+				"<BR><BR>" + JavaLangSystemAgent.class.getName() + " is a substitute for java.lang.System in JRuby (NOT code in jar)" +
+				"<BR><BR>for more, please read API of " + JavaLangSystemAgent.class.getName() + "</html>");
 		
 	}
 
@@ -1246,7 +1238,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	public static void buildRebindButton(final JButton rebindBut, final ThreadGroup tgt, final BindButtonRefresher refresher,
-			final Frame frameOwner){
+			final JFrame frameOwner){
 		rebindBut.setToolTipText("<html>" +
 				"rebind (Not bind) reference device(s) of robot in active projects to real device(s)." +
 				"<BR>service will be stopped before rebinding, and restart after rebinding." +
@@ -1276,21 +1268,16 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				//由于改为JFrame型，不是JDialog，所以checkButtonsLaterUI置于action内
 			}
 
-			private void checkButtonsLaterUI() {
+			private final void refreshBindButtons() {
 				ProcessingWindowManager.disposeProcessingWindow();
 				
-				App.invokeLaterUI(new Runnable(){
-					@Override
-					public void run(){
-						refresher.checkHARButtonsEnable();
-					}
-				});
+				refresher.checkHARButtonsEnable();
 			}
 			
 			public void doRebind() {
 				ServerUIUtil.stop();
 				
-				final MobiUIResponsor respo = (MobiUIResponsor)ServerUIUtil.buildMobiUIResponsorInstance();
+				final MobiUIResponsor respo = (MobiUIResponsor)ServerUIUtil.buildMobiUIResponsorInstance(new ExceptionCatcherToWindow(instance, true));
 				final BindRobotSource bindSource = new BindRobotSource(respo);
 				
 				DeviceBinderWizard out = null;
@@ -1298,7 +1285,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 					out = DeviceBinderWizard.getInstance(bindSource, false, frameOwner, respo, tgt);
 				}catch (final Throwable e) {
 					L.V = L.O ? false : LogManager.log("user cancel connect device or JRuby code error!");
-					ServerUIUtil.restartResponsorServerDelayMode(frameOwner, respo);
+					ServerUIUtil.restartResponsorServer(frameOwner, respo);
+					
+					refreshBindButtons();
 					return;
 				}
 				
@@ -1306,20 +1295,30 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				final UIActionListener jbOKAction = new UIActionListener() {
 					@Override
 					public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
-						binder.save();
-						window.dispose();
-						ServerUIUtil.restartResponsorServerDelayMode(frameOwner, respo);
-						
-						checkButtonsLaterUI();
+						ContextManager.getThreadPool().run(new Runnable() {
+							@Override
+							public void run() {
+								binder.save();
+								window.dispose();
+								ServerUIUtil.restartResponsorServer(frameOwner, respo);
+								
+								refreshBindButtons();
+							}
+						});
 					}
 				};
 				final UIActionListener cancelAction = new UIActionListener() {
 					@Override
 					public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
-						window.dispose();
-						ServerUIUtil.restartResponsorServerDelayMode(frameOwner, respo);
-						
-						checkButtonsLaterUI();
+						ContextManager.getThreadPool().run(new Runnable() {
+							@Override
+							public void run() {
+								window.dispose();
+								ServerUIUtil.restartResponsorServer(frameOwner, respo);
+								
+								refreshBindButtons();
+							}
+						});
 					}
 				};
 				binder.setButtonAction(jbOKAction, cancelAction);
@@ -1566,6 +1565,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	private final void loadNodeFromMap(final Map<String, Object> map) {
+		isModiPermissions = false;
+		
 		{
 			L.V = L.O ? false : LogManager.log("Project [" + (String)map.get(HCjar.PROJ_ID) + "] " +
 				"JRE version : " + (String)map.get(HCjar.JRE_VER) + ", " +
@@ -1605,7 +1606,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		
 		final DefaultMutableTreeNode shareJarFolder = getShareJarFolder();
 		if(shareJarFolder.getChildCount() > 0){
-			ConditionWatcher.addWatcher(new IWatcher() {
+			GlobalConditionWatcher.addWatcher(new IWatcher() {
 				final long startMS = System.currentTimeMillis();
 				@Override
 				public boolean watch() {
@@ -1821,9 +1822,14 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 
 	@Override
 	public void setModified(final boolean modified) {
-		J2SEContext.refreshActionMS(false);
+		TrayMenuUtil.refreshActionMS(false);
 		this.isModified = modified;
 		saveButton.setEnabled(modified);
+		
+//		不能修改isModiPermissions，直到newProj或demo
+//		if(modified == false){
+//			isModiPermissions = false;
+//		}
 	}
 
 	/**
@@ -2045,7 +2051,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			LinkProjectStore oldlps = LinkProjectManager.getProjByID(getCurrProjID());
 			if(oldlps == null){
 				oldlps = LinkProjectManager.getProjLPSWithCreate(getCurrProjID());
-				LinkProjectManager.importLinkProject(oldlps, edit_har, false, null);
+				LinkProjectManager.importLinkProject(oldlps, edit_har, false, null, false);
 
 //				final boolean isRoot = LinkProjectManager.getProjectSize()<2?true:oldlps.isRoot();
 				//缺省创建时，root=false, active=false
@@ -2087,7 +2093,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 
 	public static void deployRunTest(Map<String, Object> deployMap) {
-		ScriptEditPanel.terminateJRubyEngine();
+		SimuMobile.terminateJRubyEngine();
 
 		//清空runtemp
 		final File[] subFiles = StoreDirManager.RUN_TEST_DIR.listFiles();
@@ -2106,9 +2112,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 
 		//因为升级到新版本时，可能恰好又是用户新装，所以需要检查文件是否存在
 		if(ProjResponser.deloyToWorkingDir(deployMap, StoreDirManager.RUN_TEST_DIR) 
-				|| forceBuild //注意：forceBuild必须放后面
-				|| (ScriptEditPanel.runTestEngine == null)){//极端情形，即初始加载时，该对象为null，必须进行build
-			ScriptEditPanel.rebuildJRubyEngine();
+				|| forceBuild ){//注意：forceBuild必须放后面
+			SimuMobile.rebuildJRubyEngine();
 		}
 	}
 
@@ -2147,7 +2152,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	 * @param map
 	 * @return
 	 */
-	private boolean deployProcess(final Map<String, Object> map) {
+	private boolean deployProcess(final Map<String, Object> map, final ExceptionCatcherToWindow ec) {
 		LinkProjectStore oldlps = LinkProjectManager.getProjByID(getCurrProjID());
 		if(oldlps != null){
 			final String curVer = (String)map.get(HCjar.PROJ_VER);
@@ -2174,7 +2179,17 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}else{
 				oldlps = LinkProjectManager.getProjLPSWithCreate(getCurrProjID());
 			}
-			LinkProjectManager.importLinkProject(oldlps, newVerHar, false, oldEditBackFile);
+			
+			boolean isForceUpdatePermissionInDesigner = false;
+			if(isModiPermissions){
+				final int result = App.showConfirmDialog(instance, "Permissions are changed, apply to run-time project now?", "", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
+				if(result == JOptionPane.YES_OPTION){
+					isForceUpdatePermissionInDesigner = true;
+				}
+			}
+			isModiPermissions = false;
+
+			LinkProjectManager.importLinkProject(oldlps, newVerHar, false, oldEditBackFile, isForceUpdatePermissionInDesigner);
 			
 			boolean changeToRoot = oldlps.isRoot();
 			
@@ -2188,7 +2203,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			
 			LinkProjectManager.saveProjConfig(oldlps, changeToRoot, true);
 		
-			final BaseResponsor br = ServerUIUtil.restartResponsorServer(instance, null);
+			final BaseResponsor resp = ServerUIUtil.buildMobiUIResponsorInstance(ec);
+			final BaseResponsor br = ServerUIUtil.restartResponsorServer(instance, resp);
 			
 			checkHARButtonsEnableInBackground();
 			
@@ -2601,11 +2617,14 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	private static void expand(final JTree tree, final TreePath parent) { 
 	        final TreeNode node = (TreeNode) parent.getLastPathComponent(); 
 	        if (node.getChildCount() >= 0) { 
-	            for (final Enumeration e = node.children(); e.hasMoreElements(); ) { 
-	                final TreeNode n = (TreeNode) e.nextElement(); 
-	                final TreePath path = parent.pathByAddingChild(n); 
-	                expand(tree, path); 
-	            } 
+	        	try{
+		            for (final Enumeration e = node.children(); e.hasMoreElements(); ) { 
+		                final TreeNode n = (TreeNode) e.nextElement(); 
+		                final TreePath path = parent.pathByAddingChild(n); 
+		                expand(tree, path); 
+		            }
+	        	}catch (final NoSuchElementException e) {
+				}
 	        } 
 	
 	        tree.expandPath(parent); 

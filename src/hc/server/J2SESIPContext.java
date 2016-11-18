@@ -1,7 +1,7 @@
 package hc.server;
 
 import hc.App;
-import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.HCMessage;
 import hc.core.IContext;
 import hc.core.L;
@@ -15,6 +15,7 @@ import hc.core.util.CUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.ui.SingleMessageNotify;
+import hc.server.ui.design.J2SESession;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
@@ -35,8 +36,8 @@ public class J2SESIPContext extends ISIPContext {
 	boolean isFailed = false;
 	private InetAddress outputInetAddress;
 	
-	public J2SESIPContext() {
-		resender = new UDPPacketResender(){
+	public J2SESIPContext(final J2SESession j2seCoreSS) {
+		resender = new UDPPacketResender(j2seCoreSS){
 			@Override
 			protected final void resend(final Object packet) {
 				try{
@@ -45,7 +46,7 @@ public class J2SESIPContext extends ISIPContext {
 					}
 				}catch (final Exception e) {
 //					ExceptionReporter.printStackTrace(e);//UDP断线时，会输出很多的异常信息，故关闭
-					SIPManager.notifyRelineon(false);
+					SIPManager.notifyLineOff(j2seCoreSS, false, false);
 				}
 			}
 			
@@ -89,7 +90,7 @@ public class J2SESIPContext extends ISIPContext {
 				do{
 					final int realLen = (len>len_msg_data)?len_msg_data:len;
 	
-					p = (DatagramPacket)cacher.getFree();
+					p = (DatagramPacket)cacher.getFree(J2SESIPContext.this);
 					
 					final byte[] bs = p.getData();
 					
@@ -120,7 +121,7 @@ public class J2SESIPContext extends ISIPContext {
 	        		if(realLen == 0 || ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN){
 	        			
 	        		}else{
-		        		CUtil.superXor(bs, MsgBuilder.INDEX_UDP_MSG_DATA, realLen, null, true, true);//不作在线更新RandomKey
+		        		CUtil.superXor(j2seCoreSS.context, j2seCoreSS.OneTimeCertKey, bs, MsgBuilder.INDEX_UDP_MSG_DATA, realLen, null, true, true);//不作在线更新RandomKey
 	        		}
 	        		if(ctrlTag != MsgBuilder.E_TAG_ACK){
 	        			resender.needAckAtSend(p, HCMessage.getAndSetAutoMsgID(bs));
@@ -143,6 +144,8 @@ public class J2SESIPContext extends ISIPContext {
 				}
 			}
 	    };
+	    
+	    j2seCoreSS.setSIPContextAndResender(this, resender);
 	}
 	
 	@Override
@@ -172,17 +175,17 @@ public class J2SESIPContext extends ISIPContext {
 	}
 	
 	@Override
-	public boolean tryRebuildUDPChannel(){
+	public boolean tryRebuildUDPChannel(final CoreSession coreSS){
 		L.V = L.O ? false : LogManager.log("Server Side UDP rebuild NOT implement!");
 		return false;
 	}
 	
 	@Override
-	public boolean buildUDPChannel() {
+	public boolean buildUDPChannel(final CoreSession coreSS) {
 		InetSocketAddress isocket;
-		final int targetPort = SIPManager.relayIpPort.udpPort;
+		final int targetPort = coreSS.relayIpPort.udpPort;
 		try {
-			final InetAddress inetAddr = InetAddress.getByName(SIPManager.relayIpPort.ip);
+			final InetAddress inetAddr = InetAddress.getByName(coreSS.relayIpPort.ip);
 			isocket = new InetSocketAddress(inetAddr, targetPort);
 			DatagramSocket udpSocket;
 			if(outputInetAddress != null){
@@ -197,7 +200,7 @@ public class J2SESIPContext extends ISIPContext {
 			resender.setUDPTargetAddress(inetAddr, targetPort);
 			resender.setUDPSocket(udpSocket);
 			
-			ContextManager.getContextInstance().getUDPReceiveServer().setUdpServerSocket(udpSocket);
+			coreSS.getUDPReceiveServer().setUdpServerSocket(udpSocket);
 			
 			return true;
 		} catch (final Exception e) {
@@ -219,7 +222,7 @@ public class J2SESIPContext extends ISIPContext {
 						(String)ResourceUtil.get(1000)
 						+ "<BR><BR>" + (new Date().toLocaleString())
 						+ "<BR>TCP IP : " + HttpUtil.replaceIPWithHC(targetServer) + ", port : " + targetPort
-						+ "<BR>Exception : " + e.getMessage()
+//						+ "<BR>Exception : " + e.getMessage()//出现null
 						+ "<BR><BR>Please contact administrator!", (String)ResourceUtil.get(IContext.ERROR),
 						60000 * 5, App.getSysIcon(App.SYS_ERROR_ICON));
 				
@@ -255,7 +258,7 @@ public class J2SESIPContext extends ISIPContext {
 				final Enumeration nis = NetworkInterface.getNetworkInterfaces();
 				while (nis.hasMoreElements()) {
 					final NetworkInterface ni = (NetworkInterface) nis.nextElement();
-					outputInetAddress = HttpUtil.filerInetAddress(ni);
+					outputInetAddress = HttpUtil.filerInetAddress(ni, false);
 					if(outputInetAddress != null){
 						s = newSocket(targetServer, targetPort, outputInetAddress, localPort);
 						if(s != null){
@@ -400,20 +403,6 @@ public class J2SESIPContext extends ISIPContext {
 //		return null;
 //	}
 
-//	public static void buildPacket(byte[] bs, DataNatReqConn nrn)
-//			throws UnknownHostException {
-//		
-//		bs[MsgBuilder.INDEX_CTRL_TAG] = MsgBuilder.E_TAG_ROOT;
-//		bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = MsgBuilder.DATA_ROOT_UPNP_TEST;
-//		
-//		bs[MsgBuilder.INDEX_PACKET_SPLIT] = MsgBuilder.DATA_PACKET_NOT_SPLIT;
-//		
-////		bs[MsgBuilder.INDEX_PROTOCAL_TAG] = IConstant.DATA_PROTOCAL_HEAD_H;
-////		bs[MsgBuilder.INDEX_PROTOCAL_TAG + 1] = IConstant.DATA_PROTOCAL_HEAD_C;
-//		
-////		Message.setSendUUID(bs, IConstant.uuidBS, IConstant.uuidBS.length);
-//		
-//	}
 
 //	private StunDesc buildDesc(byte[] bs) {
 //		DataNatReqConn drc = new DataNatReqConn();
@@ -466,28 +455,26 @@ public class J2SESIPContext extends ISIPContext {
 //	}
 
 	@Override
-	public void closeDeploySocket(){
+	public void closeDeploySocket(final CoreSession coreSS){
 		//必须要置前
-		KeepaliveManager.removeUPnPMapping();
+//		StarterParameter.removeUPnPMapping();
 		
 		//网络环境发生变化，所以要重新
-		KeepaliveManager.relayServerLocalPort = 0;
-		
-		KeepaliveManager.homeWirelessIpPort.reset();
-		KeepaliveManager.relayServerUPnPPort = 0;
-		SIPManager.relayIpPort.reset();
+//		StarterParameter.relayServerLocalPort = 0;
+//		StarterParameter.relayServerUPnPPort = 0;
+		coreSS.relayIpPort.reset();
 		
 		isClose = true;		
 		Socket snapSocket = socket;
 		
 		try{
-			deploySocket(null);
+			deploySocket(coreSS, null);
 		}catch (final Exception e) {
 		}
 		
-		if(KeepaliveManager.nioRelay != null){
-			KeepaliveManager.nioRelay.close();
-		}
+//		if(StarterParameter.nioRelay != null){
+//			StarterParameter.nioRelay.close();
+//		}
 		
 		try{
 			snapSocket.close();

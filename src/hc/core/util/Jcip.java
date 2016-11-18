@@ -1,17 +1,27 @@
 package hc.core.util;
 
+import hc.core.CoreSession;
 import hc.core.IConstant;
 
 import java.util.TimeZone;
 
 public class Jcip {
+	public static final String MENU = HCURL.MENU_PROTOCAL;
+	public static final String MENU_ITEM_MODIFY = "menu_item_modify";
+	public static final String MENU_ITEM_CHANGE_ICON = "menu_item_change_icon";
+	public static final String MENU_ITEM_ADD = "menu_item_add";
+	public static final String MENU_ITEM_REMOVE = "menu_item_remove";
+	public static final String NULL_URL = "null";
+	
 	protected char[] chars;
 	
 	protected int index, charArrLen;
 	protected char c;
-	
-	public Jcip(String xml) {
+	protected final CoreSession coreSS;
+
+	public Jcip(final CoreSession coreSS, String xml) {
 		ini(xml);
+		this.coreSS = coreSS;
 	}
 	
 	protected void ini(String xml) {

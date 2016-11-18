@@ -1,6 +1,6 @@
 package hc.core.cache;
 
-import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.MsgBuilder;
@@ -141,36 +141,36 @@ public class CacheManager {
 		CacheStoreManager.storeData(RS_PROJ_LIST, vector);
 	}
 	
-	static byte[] mobile_uidBS;
-	static final byte[] codeBSforMobileSave = new byte[CODE_LEN];
-	
-	public static synchronized void encodeStoreRespAtMobileSide(
-			final byte[] screenIDBS, final int screenIDIdx, final int screentIDLen,
-			final byte[] projIdBS, final int projIdIdx, final int projIdLen, 
-			final byte[] scriptBS, final int scriptIndex, final int scriptLen, 
-			final String projID,	final String urlID, final String uid) {
+	public static void encodeStoreRespAtMobileSide(
+			final CoreSession coreSS, final byte[] screenIDBS, final int screenIDIdx,
+			final int screentIDLen, final byte[] projIdBS, final int projIdIdx, 
+			final int projIdLen, final byte[] scriptBS, final int scriptIndex, 
+			final int scriptLen,	final String projID, final String urlID, final String uid) {
 		if(isMeetCacheLength(scriptLen) == false){
 			L.V = L.O ? false : LogManager.log("cancle cache for [" + projID + "/" + uid + "/" + urlID + "] for length lower than min length.");
 			return;
 		}
 		
-		if(mobile_uidBS == null){
-			mobile_uidBS = ByteUtil.getBytes(uid, IConstant.UTF_8);
+		final byte[] codeBSforMobileSave = coreSS.codeBSforMobileSave;
+		final int codeBSforMobileSaveLength = codeBSforMobileSave.length;
+		
+		if(coreSS.mobileUidBSForCache == null){
+			coreSS.mobileUidBSForCache = ByteUtil.getBytes(uid, IConstant.UTF_8);
 		}
 		
 		L.V = L.O ? false : LogManager.log("save a cache for [" + projID + "/" + uid + "/" + urlID + "]");
 		
-		ByteUtil.encodeFileXOR(scriptBS, scriptIndex, scriptLen, codeBSforMobileSave, 0, codeBSforMobileSave.length);
+		ByteUtil.encodeFileXOR(scriptBS, scriptIndex, scriptLen, codeBSforMobileSave, 0, codeBSforMobileSaveLength);
 
 		CacheManager.storeCache(projID, uid, urlID, 
 				projIdBS, projIdIdx, projIdLen, 
-				mobile_uidBS, 0, mobile_uidBS.length,
+				coreSS.mobileUidBSForCache, 0, coreSS.mobileUidBSForCache.length,
 				screenIDBS, screenIDIdx, screentIDLen, 
-				codeBSforMobileSave, 0, codeBSforMobileSave.length, 
+				codeBSforMobileSave, 0, codeBSforMobileSaveLength, 
 				scriptBS, scriptIndex, scriptLen, false);
 		
-		ContextManager.getContextInstance().sendWrap(MsgBuilder.E_RESP_CACHE_OK, codeBSforMobileSave, 0, codeBSforMobileSave.length);
-		L.V = L.O ? false : LogManager.log("send cache responce. [" + ByteUtil.toHex(codeBSforMobileSave) + "]");
+		coreSS.context.sendWrap(MsgBuilder.E_RESP_CACHE_OK, codeBSforMobileSave, 0, codeBSforMobileSaveLength);
+//		L.V = L.O ? false : LogManager.log("send cache responce. [" + ByteUtil.toHex(codeBSforMobileSave) + "]");
 	}
 	
 	/**
@@ -290,25 +290,25 @@ public class CacheManager {
 	}
 	
 	/**
-	 * 获得指定工程下uid的有效记录数。
+	 * 获得指定工程下softUID的有效记录数。
 	 * @param projID
-	 * @param uid
+	 * @param softUID
 	 * @return
 	 */
-	public synchronized static int getRecordNum(final String projID, final String uid){
-		final String rmsURLID = getRMSNameForURLID(projID, uid);
+	public synchronized static int getRecordNum(final String projID, final String softUID){
+		final String rmsURLID = getRMSNameForURLID(projID, softUID);
 		Vector urlIDs = getCacheVector(rmsURLID);
 		return urlIDs.size() - 1;
 	}
 	
 	/**
-	 * 删除uid在指定的projID下。
+	 * 删除softUID在指定的projID下。
 	 * @param projID
-	 * @param uid
+	 * @param softUID
 	 */
-	public synchronized static boolean removeUIDFrom(final String projID, final String uid){
-		String rmsUUID = getRMSNameForUUID(projID);
-		Vector uuid = getCacheVector(rmsUUID);
+	public synchronized static boolean removeUIDFrom(final String projID, final String softUID){
+		final String rmsUUID = getRMSNameForUUID(projID);
+		final Vector uuid = getCacheVector(rmsUUID);
 		final int sizeUUID = uuid.size();
 		for (int uuidIdx = 1; uuidIdx < sizeUUID; uuidIdx++) {
 			final CacheDataItem dataItem = (CacheDataItem)uuid.elementAt(uuidIdx);
@@ -317,7 +317,7 @@ public class CacheManager {
 			}
 			
 			String uuidStr = dataItem.toStringValue();
-			if(uid.equals(uuidStr)){
+			if(softUID.equals(uuidStr)){
 				final boolean isChanged = removeAllURL(projID, uuidStr);
 				
 				dataItem.setDel();
@@ -388,7 +388,7 @@ public class CacheManager {
 		delCacheVector(rmsName);
 	}
 	
-	public static Vector getCacheVector(String rmsName){
+	public synchronized static Vector getCacheVector(String rmsName){
 		Vector out = (Vector)cacheBuffer.get(rmsName);
 		if(out == null){
 			out = CacheStoreManager.getDataList(rmsName);
@@ -405,7 +405,7 @@ public class CacheManager {
 //		return getCacheVector(getRMSNameForFileCode(projID, uuid, urlID));
 //	}
 	
-	public static void setDelOnCacheCoderForStoreProblem(String projID, String uuid, Vector vectorCoder, String cacheXorCoder){
+	private static void setDelOnCacheCoderForStoreProblem(String projID, String uuid, Vector vectorCoder, String cacheXorCoder){
 		final int size = vectorCoder.size();
 		for (int i = size - 1; i >= 1; i--) {
 			final CacheDataItem item = (CacheDataItem)vectorCoder.elementAt(i);
@@ -423,19 +423,19 @@ public class CacheManager {
 	
 	/**
 	 * @param projID
-	 * @param uuid
+	 * @param softUID
 	 * @param urlID
 	 * @param codeBS
 	 * @param codeOffset
 	 * @param codeLen
 	 * @return
 	 */
-	public static CacheDataItem getCacheFileItem(final String projID, String uuid, String urlID, 
+	public synchronized static CacheDataItem getCacheFileItem(final String projID, String softUID, String urlID, 
 			final byte[] codeBS, final int codeOffset, final int codeLen){
-		final Vector vectorCode = getCacheVector(getRMSNameForFileCode(projID, uuid, urlID));
+		final Vector vectorCode = getCacheVector(getRMSNameForFileCode(projID, softUID, urlID));
 		final int matchCodeIdx = CacheDataItem.searchMatchVectorIdx(vectorCode, codeBS, codeOffset, codeLen);
 		if(matchCodeIdx > 0){
-			Vector vectorFile = getCacheVector(getRMSNameForFile(projID, uuid, urlID));
+			Vector vectorFile = getCacheVector(getRMSNameForFile(projID, softUID, urlID));
 			if(vectorFile.size() <= matchCodeIdx){
 				LogManager.errToLog("over size index[" + matchCodeIdx + "] for getCacheFileItem");
 				return null;
@@ -457,9 +457,9 @@ public class CacheManager {
 	 * 获得指定特征码的数位串
 	 * @return
 	 */
-	public static byte[] getCacheFileBS(final String projID, final String uuid, final String urlID, 
+	public static byte[] getCacheFileBS(final String projID, final String softUID, final String urlID, 
 			final byte[] codeBS, final int codeOffset, final int codeLen){
-		CacheDataItem item = getCacheFileItem(projID, uuid, urlID, 
+		CacheDataItem item = getCacheFileItem(projID, softUID, urlID, 
 				codeBS, codeOffset, codeLen);
 		if(item != null){
 			return item.bs;
@@ -471,9 +471,9 @@ public class CacheManager {
 	/**
 	 * 获得指定特征码的数据字符串。
 	 */
-	public static String getCacheFileString(final String projID, final String uuid, final String urlID, 
+	public static String getCacheFileString(final String projID, final String softUID, final String urlID, 
 			final byte[] codeBS, final int codeOffset, final int codeLen){
-		CacheDataItem item = getCacheFileItem(projID, uuid, urlID, codeBS, codeOffset, codeLen);
+		CacheDataItem item = getCacheFileItem(projID, softUID, urlID, codeBS, codeOffset, codeLen);
 		if(item != null){
 			return item.toStringValue();
 		}else{
@@ -484,9 +484,9 @@ public class CacheManager {
 	/**
 	 * 存储一条完整的记录cache中
 	 */
-	public static synchronized void storeCache(final String projID, final String uuid, final String urlID, 
+	public static synchronized void storeCache(final String projID, final String softUID, final String urlID, 
 			final byte[] projIDBS, final int projIdOffset, final int projLen, 
-			final byte[] uuidBS, final int uuidOffset, final int uuidLen, 
+			final byte[] softUidBS, final int softUidOffset, final int softUidLen, 
 			final byte[] urlIDBS, final int urlIDOffset, final int urlIDLen, 
 			final byte[] codeBS, final int codeOffset, final int codeLen, 
 			final byte[] valueBS, final int valueOffset, final int valuelen, boolean valueIsCopyed){
@@ -502,21 +502,21 @@ public class CacheManager {
 		{
 			final String rmsUUID = getRMSNameForUUID(projID);
 			Vector vectorUUID = getCacheVector(rmsUUID);
-			CacheDataItem.addRecrodIfNotExists(rmsUUID, vectorUUID, uuidBS, uuidOffset, uuidLen);
+			CacheDataItem.addRecrodIfNotExists(rmsUUID, vectorUUID, softUidBS, softUidOffset, softUidLen);
 		}
 
 		//检查urlID是否存在，
 		{
-			final String rmsNameForURLID = getRMSNameForURLID(projID, uuid);
+			final String rmsNameForURLID = getRMSNameForURLID(projID, softUID);
 			Vector vectorURLID = getCacheVector(rmsNameForURLID);
 			CacheDataItem.addRecrodIfNotExists(rmsNameForURLID, vectorURLID, urlIDBS, urlIDOffset, urlIDLen);
 		}
 
 		int storeIdx = 0;
-		final String rmsNameForFileCode = getRMSNameForFileCode(projID, uuid, urlID);
+		final String rmsNameForFileCode = getRMSNameForFileCode(projID, softUID, urlID);
 		Vector vectorCoder = getCacheVector(rmsNameForFileCode);
 
-		final String rmsNameForFile = getRMSNameForFile(projID, uuid, urlID);
+		final String rmsNameForFile = getRMSNameForFile(projID, softUID, urlID);
 		Vector vectorFile = getCacheVector(rmsNameForFile);
 
 		final int fileSize = vectorFile.size();
@@ -567,7 +567,7 @@ public class CacheManager {
 				CacheStoreManager.storeData(rmsNameForFileCode, vectorCoder);
 			}
 			
-			L.V = L.O ? false : LogManager.log("[cache] successful store cache item for [" + projID + "/" + uuid + "/" + urlID + "/" + (storeIdx<0?fileSize:storeIdx) + "]");
+			L.V = L.O ? false : LogManager.log("[cache] successful store cache item for [" + projID + "/" + softUID + "/" + urlID + "/" + (storeIdx<0?fileSize:storeIdx) + "]");
 		}
 	}
 
@@ -581,7 +581,7 @@ public class CacheManager {
 	 * @param matchUID
 	 * @return
 	 */
-	public static boolean isOverflowProjectTotalCacheNum(final String projID, final String matchUID){
+	private static boolean isOverflowProjectTotalCacheNum(final String projID, final String matchUID){
 		int total = 0;
 		
 		final String rmsUUID = getRMSNameForUUID(projID);

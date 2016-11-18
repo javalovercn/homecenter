@@ -1,7 +1,5 @@
 package hc.core;
 
-import hc.core.sip.ISIPContext;
-import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CUtil;
 import hc.core.util.EventBackCacher;
@@ -9,36 +7,27 @@ import hc.core.util.LogManager;
 
 public class EventBack implements IWatcher{
 	Object datagramPacket;
+	CoreSession coreSocketSession;
 	byte[] bs;
 	int dataLen;
 	HCUDPSubPacketEvent subPacket = null;
 	private final static EventBackCacher ebCacher = EventBackCacher.getInstance();
 	private static final DatagramPacketCacher packetCacher = DatagramPacketCacher.getInstance();
 	private static final HCUDPSubPacketCacher eventCacher = HCUDPSubPacketCacher.getInstance();
+	private final boolean isInWorkshop = L.isInWorkshop;
+	final int IDX_HEADER1 = MsgBuilder.INDEX_UDP_HEADER;
+	final int IDX_HEADER2 = MsgBuilder.INDEX_UDP_HEADER + 1;
 
-	final static UDPPacketResender resender = SIPManager.getSIPContext().resender;
-
-	final static ISIPContext isip = SIPManager.getSIPContext();
-	final static byte[] udpHeader = IContext.udpHeader;
-	final static int IDX_HEADER1 = MsgBuilder.INDEX_UDP_HEADER;
-	final static int IDX_HEADER2 = MsgBuilder.INDEX_UDP_HEADER + 1;
-
-	final static AckBatchHCTimer ackbatchTimer = new AckBatchHCTimer("", HCTimer.HC_INTERNAL_MS, false, resender);
-
-	private static byte[] package_tcp_bs;
-	private static int package_tcp_id;
-	private static int package_tcp_last_store_idx = MsgBuilder.INDEX_MSG_DATA;
-	private static int packaeg_tcp_num;
-	private static int packaeg_tcp_appended_num;
 	private final boolean serverSide = IConstant.serverSide;
 	
 	public boolean watch() {
 		final byte ctrlTag;
+		final EventCenter eventCenter = coreSocketSession.eventCenter;
 		if(datagramPacket != null){
 			//UDP数据包
-	        bs = isip.getDatagramBytes(datagramPacket);
+	        bs = coreSocketSession.sipContext.getDatagramBytes(datagramPacket);
 
-	        if(bs[IDX_HEADER1] == udpHeader[0] && bs[IDX_HEADER2] == udpHeader[1]){
+	        if(bs[IDX_HEADER1] == coreSocketSession.udpHeader[0] && bs[IDX_HEADER2] == coreSocketSession.udpHeader[1]){
             }else{
 				cancel();
 				return true;
@@ -46,12 +35,14 @@ public class EventBack implements IWatcher{
 
 			ctrlTag = bs[MsgBuilder.INDEX_CTRL_TAG];
 			
-//			L.V = L.O ? false : LogManager.log("EventBack Receive ctrlTag : " + ctrlTag);
+			if(isInWorkshop){
+				L.V = L.O ? false : LogManager.log("EventBack Receive ctrlTag : " + ctrlTag + " in session [" + coreSocketSession.hashCode() + "].");
+			}
 			
 			//内容服务Tag必须系统处于服务状态
 			//注意：与TCP段同步
 			if(serverSide && ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN){
-				if(ContextManager.cmStatus == ContextManager.STATUS_SERVER_SELF){
+				if(coreSocketSession.context.cmStatus == ContextManager.STATUS_SERVER_SELF){
 				}else{
 					L.V = L.O ? false : LogManager.log("Invalid statue tag received["+ctrlTag+"]");
 					cancel();
@@ -64,11 +55,11 @@ public class EventBack implements IWatcher{
 		    	final int len1 = bs[MsgBuilder.INDEX_MSG_LEN_MID] & 0xFF;
 		    	final int len2 = bs[MsgBuilder.INDEX_MSG_LEN_LOW] & 0xFF;
 
-				resender.ackAtSend(bs, MsgBuilder.INDEX_UDP_MSG_DATA, MsgBuilder.INDEX_UDP_MSG_DATA + ((len0 << 16) + (len1 << 8) + len2));
+		    	coreSocketSession.sipContext.resender.ackAtSend(bs, MsgBuilder.INDEX_UDP_MSG_DATA, MsgBuilder.INDEX_UDP_MSG_DATA + ((len0 << 16) + (len1 << 8) + len2));
 				cancel();
 				return true;
         	}else{
-        		ackbatchTimer.ack(bs, MsgBuilder.INDEX_MSG_ID_HIGH);
+        		coreSocketSession.ackbatchTimer.ack(bs, MsgBuilder.INDEX_MSG_ID_HIGH);
 
 				final int temp0 = bs[MsgBuilder.INDEX_MSG_ID_HIGH] & 0xFF;
 				final int temp1 = bs[MsgBuilder.INDEX_MSG_ID_MID] & 0xFF;
@@ -76,7 +67,7 @@ public class EventBack implements IWatcher{
 				final int msgID = ((temp0 << 16) + (temp1 << 8) + temp2);
 //				L.V = L.O ? false : LogManager.log("msgID(Send from other):" + msgID + " is Received.");
 				
-				if(resender.ackAtReceive(msgID) != 0){
+				if(coreSocketSession.sipContext.resender.ackAtReceive(msgID) != 0){
 					//第二次或多次到达，并在第一次已签收，
 					//回收，并不做后面逻辑
 //					L.V = L.O ? false : LogManager.log("ReAck msgID:" + msgID);
@@ -93,7 +84,7 @@ public class EventBack implements IWatcher{
 			if(dataLen == 0 || ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN){
 	    	}else{
 	    		//解密
-	    		CUtil.superXor(bs, MsgBuilder.INDEX_UDP_MSG_DATA, dataLen, null, false, true);
+	    		CUtil.superXor(coreSocketSession.context, coreSocketSession.OneTimeCertKey, bs, MsgBuilder.INDEX_UDP_MSG_DATA, dataLen, null, false, true);
 	    	}
 
 			if(bs[MsgBuilder.INDEX_PACKET_SPLIT] == MsgBuilder.DATA_PACKET_SPLIT){
@@ -121,10 +112,12 @@ public class EventBack implements IWatcher{
 			//TCP数据包
 			ctrlTag = bs[MsgBuilder.INDEX_CTRL_TAG];
 			
-//			L.V = L.O ? false : LogManager.log("EventBack Receive ctrlTag : " + ctrlTag);
-
+			if(isInWorkshop){
+				L.V = L.O ? false : LogManager.log("EventBack Receive ctrlTag : " + ctrlTag + " in session [" + coreSocketSession.hashCode() + "].");
+			}
+			
 			if(serverSide && ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN){
-				if(ContextManager.cmStatus == ContextManager.STATUS_SERVER_SELF){
+				if(coreSocketSession.context.cmStatus == ContextManager.STATUS_SERVER_SELF){
 				}else{
 					L.V = L.O ? false : LogManager.log("Invalid statue tag received["+ctrlTag+"]");
 					cancel();
@@ -135,39 +128,43 @@ public class EventBack implements IWatcher{
 			if(ctrlTag == MsgBuilder.E_PACKAGE_SPLIT_TCP){
 				//TCP合并包
 				final int newPackageID = (int)ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_TCP_SPLIT_SUB_GROUP_ID);
-				if(package_tcp_id != 0 && package_tcp_id != newPackageID){
-					LogManager.errToLog("invalid TCP sub package id : " + newPackageID + ", expected id : " + package_tcp_id);
+				if(coreSocketSession.package_tcp_id != 0 && coreSocketSession.package_tcp_id != newPackageID){
+					LogManager.errToLog("invalid TCP sub package id : " + newPackageID + ", expected id : " + coreSocketSession.package_tcp_id);
 					resetForNextBigData();
 //					cancel();
 					return true;
 				}
-				if(package_tcp_id == 0){
-					package_tcp_id = newPackageID;
-					packaeg_tcp_num = (int)ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_TCP_SPLIT_SUB_GROUP_NUM);
-//					System.out.println("----[Big Msg]-----package tcp id : " + newPackageID + ", num : " + packaeg_tcp_num);
-					package_tcp_bs = new byte[MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT * packaeg_tcp_num + MsgBuilder.TCP_PACKAGE_SPLIT_EXT_BUF_SIZE];
-					packaeg_tcp_appended_num = 0;
-					package_tcp_last_store_idx = MsgBuilder.INDEX_MSG_DATA;
+				if(coreSocketSession.package_tcp_id == 0){
+					coreSocketSession.package_tcp_id = newPackageID;
+					coreSocketSession.packaeg_tcp_num = (int)ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_TCP_SPLIT_SUB_GROUP_NUM);
+					if(isInWorkshop){
+						System.out.println("----[Big Msg]-----package tcp id : " + newPackageID + ", num : " + coreSocketSession.packaeg_tcp_num);
+					}
+					coreSocketSession.package_tcp_bs = new byte[MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT * coreSocketSession.packaeg_tcp_num + MsgBuilder.TCP_PACKAGE_SPLIT_EXT_BUF_SIZE];
+					coreSocketSession.packaeg_tcp_appended_num = 0;
+					coreSocketSession.package_tcp_last_store_idx = MsgBuilder.INDEX_MSG_DATA;
 					
 					for (int i = 0; i < MsgBuilder.INDEX_MSG_DATA; i++) {
-						package_tcp_bs[i] = bs[i];
+						coreSocketSession.package_tcp_bs[i] = bs[i];
 					}
 					
-					package_tcp_bs[MsgBuilder.INDEX_CTRL_TAG] = bs[MsgBuilder.INDEX_TCP_SPLIT_TAG];
-					package_tcp_bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = bs[MsgBuilder.INDEX_TCP_SPLIT_SUB_TAG];
+					coreSocketSession.package_tcp_bs[MsgBuilder.INDEX_CTRL_TAG] = bs[MsgBuilder.INDEX_TCP_SPLIT_TAG];
+					coreSocketSession.package_tcp_bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = bs[MsgBuilder.INDEX_TCP_SPLIT_SUB_TAG];
 				}
 				
 				final int eachLen = dataLen - MsgBuilder.LEN_TCP_PACKAGE_SPLIT_DATA_BLOCK_LEN;
-				System.arraycopy(bs, MsgBuilder.TCP_SPLIT_STORE_IDX, package_tcp_bs, package_tcp_last_store_idx, eachLen);
-				package_tcp_last_store_idx += eachLen;
+				System.arraycopy(bs, MsgBuilder.TCP_SPLIT_STORE_IDX, coreSocketSession.package_tcp_bs, coreSocketSession.package_tcp_last_store_idx, eachLen);
+				coreSocketSession.package_tcp_last_store_idx += eachLen;
 
-//				System.out.println("----[Big Msg]-----append data tcp id : " + newPackageID + ", num : " + (packaeg_tcp_appended_num + 1) + ", curr len : " + eachLen);
+				if(isInWorkshop){
+					System.out.println("----[Big Msg]-----append data tcp id : " + newPackageID + ", num : " + (coreSocketSession.packaeg_tcp_appended_num + 1) + ", curr len : " + eachLen);
+				}
 				
-				if(++packaeg_tcp_appended_num == packaeg_tcp_num){
-					HCMessage.setBigMsgLen(package_tcp_bs, package_tcp_last_store_idx - MsgBuilder.INDEX_MSG_DATA);//还原数据块总长度
-					final byte[] snap_bs = package_tcp_bs;
+				if(++coreSocketSession.packaeg_tcp_appended_num == coreSocketSession.packaeg_tcp_num){
+					HCMessage.setBigMsgLen(coreSocketSession.package_tcp_bs, coreSocketSession.package_tcp_last_store_idx - MsgBuilder.INDEX_MSG_DATA);//还原数据块总长度
+					final byte[] snap_bs = coreSocketSession.package_tcp_bs;
 					resetForNextBigData();//先执行，以下下块逻辑可能产生异常
-					EventCenter.action(snap_bs[MsgBuilder.INDEX_CTRL_TAG], snap_bs, EventCenter.nestAction);
+					eventCenter.action(snap_bs[MsgBuilder.INDEX_CTRL_TAG], snap_bs, eventCenter.nestAction);
 				}
 				
 //				cancel();//释放当前块
@@ -177,15 +174,15 @@ public class EventBack implements IWatcher{
 			}
 		}
 		
-		EventCenter.action(ctrlTag, bs, EventCenter.nestAction);
-		cancel();
+		eventCenter.action(ctrlTag, bs, eventCenter.nestAction);
+		cancel();//释放当前块
 		return true;
 	}
 
 	private final void resetForNextBigData() {
-		package_tcp_id = 0;
-		packaeg_tcp_appended_num = 0;
-		package_tcp_bs = null;//释放合并后的块
+		coreSocketSession.package_tcp_id = 0;
+		coreSocketSession.packaeg_tcp_appended_num = 0;
+		coreSocketSession.package_tcp_bs = null;//释放合并后的块
 	}
 	
 	/**
@@ -194,7 +191,8 @@ public class EventBack implements IWatcher{
 	 * @param b
 	 * @param len
 	 */
-	public void setBSAndDatalen(final Object dp, final byte[] b, final int len){
+	public void setBSAndDatalen(final CoreSession coreSocketSession, final Object dp, final byte[] b, final int len){
+		this.coreSocketSession = coreSocketSession;
 		this.datagramPacket = dp;
 		this.bs = b;
 		this.dataLen = len;

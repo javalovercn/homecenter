@@ -246,7 +246,7 @@ public class BindRobotSource extends IoTSource{
 							@Override
 							public Object run() {
 								L.V = L.O ? false : LogManager.log("try [connect] for real device IDs of Device ["+ dev_name + "] in project [" + projectID + "]...");
-								final String[] out = MSBAgent.getRegisterDeviceID(device);
+								final String[] out = MSBAgent.getRegisterDeviceID(device, respo.msbAgent.workbench);
 								L.V = L.O ? false : LogManager.log("successful [connect] for real device IDs of Device ["+ dev_name + "] in project [" + projectID + "].");
 								return out;
 							}

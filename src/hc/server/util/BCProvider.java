@@ -17,6 +17,9 @@ public class BCProvider {
 		return bcProvider;
 	}
 
+	/**
+	 * 注意：不推荐将bc加入到Security的provider中，建议直接将provider作为参数传入
+	 */
 	public static void addBCProvider(){
 		if(BCProvider.isAdded == false){
 			BCProvider.isAdded = true;

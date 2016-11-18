@@ -1,20 +1,22 @@
 package hc.server.data;
 
 import hc.App;
-import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.HCTimer;
-import hc.core.IConstant;
 import hc.core.MsgBuilder;
+import hc.core.SessionManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.res.ImageSrc;
 import hc.server.HCActionListener;
-import hc.server.ScreenServer;
 import hc.server.SingleJFrame;
 import hc.server.data.screen.KeyComper;
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.JcipManager;
+import hc.server.ui.design.J2SESession;
 import hc.util.ResourceUtil;
+import hc.util.StringBuilderCacher;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -749,9 +751,12 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		
 		kc.save();
 		
-		if(IConstant.serverSide 
-				&& ContextManager.cmStatus == ContextManager.STATUS_SERVER_SELF){
-			sendExtMouse();
+		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
+		for (int i = 0; i < coreSSS.length; i++) {
+			final J2SESession coreSS = (J2SESession)coreSSS[i];
+			if(UserThreadResourceUtil.isInServing(coreSS.context)){
+				sendExtMouse(coreSS);
+			}
 		}
 	}
 	
@@ -1049,17 +1054,17 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 		return null;
 	}
 
-	public static void sendExtMouse() {
+	public static void sendExtMouse(final J2SESession coreSS) {
 		//在Android环境下且内网下，需要进行延时操作
 		new HCTimer("", 2500, true) {
 			@Override
 			public final void doBiz() {
-				sendExtMouseBiz();
+				sendExtMouseBiz(coreSS);
 				remove(this);
 			}
 		};
 	}
-	private static void sendExtMouseBiz() {
+	private static void sendExtMouseBiz(final J2SESession coreSS) {
 			//以下是测试段，
 			//传送用户自定义扩展MouseIcon
 	//						String[] icons = {"iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sJFAwmIeDrjusAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAACXElEQVQ4y1WQTYhNYRjHf+9xGTVxZZSFz9E9jERZmGaioREy"+
@@ -1073,15 +1078,15 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 	//										"mKLISiKtI+0+e1ACrht8czDBjHpOsMyDHwCzpuKtVWv2xANGgAeEtqLmxINxQb9gOonTURtOcBhhkm5Vy8hOE5oR6oQLKrMSZU/wwmAc4PeGXQAUcvHefK6sQrbcx3+IdIPQRKTvRLqEtPuz3zIoOFBryWfLTYVcXCzkyoPVOgYizZCEdopQRiQxJXVfG5JgI0AhW15TyMUf89nyQK29kItJkXYQGaQ9WOBdJrSb4HqBrlJD"+
 	//										"w3aaO1u+XphYrPL0Uoc6Vh+dE+VzZRwOv2c2fwEzP0r3y/J05gAAAABJRU5ErkJggg=="};
 			String[] icons = null;
-			if(ScreenServer.cap == null){
+			if(coreSS.cap == null){
 				return;
 			}
-			KeyComper mis = ScreenServer.cap.mobiUserIcons;
+			KeyComper mis = coreSS.cap.mobiUserIcons;
 			
 			if(mis == null){
 				//设计器先于初始化出现。
-				DAOKeyComper.getInstance(ScreenServer.cap);
-				mis = ScreenServer.cap.mobiUserIcons;
+				DAOKeyComper.getInstance(coreSS.cap);
+				mis = coreSS.cap.mobiUserIcons;
 			}
 			if(mis != null){
 				final int size = mis.size();
@@ -1107,10 +1112,11 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 				icons = is;
 			}
 	
-			final StringBuilder sb = new StringBuilder();
+			final StringBuilder sb = StringBuilderCacher.getFree();
 			JcipManager.appendArray(sb, icons, false);
 			final String out = sb.toString();
-			ContextManager.getContextInstance().send(MsgBuilder.E_SCREEN_EXT_MOUSE_ICON, out);
+			StringBuilderCacher.cycle(sb);
+			coreSS.context.send(MsgBuilder.E_SCREEN_EXT_MOUSE_ICON, out);
 	//				L.V = L.O ? false : LogManager.log("Send out ExtMouseIco");
 		}
 

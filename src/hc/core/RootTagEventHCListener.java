@@ -21,29 +21,7 @@ public class RootTagEventHCListener extends IEventHCListener{
 		receiveMS = ms;
 	}
 
-	static{
-		//发送UDP_ADDRESS_REG包，进行转发器的地址注册，供正常数据转发时所需之地址
-		EventCenter.addListener(new IEventHCListener() {
-			public final byte getEventTag() {
-				return MsgBuilder.E_TAG_ROOT_UDP_ADDR_REG;
-			}
-			
-			public final boolean action(byte[] bs) {
-				//有可能收到，有可能收不到。不作任何处理。仅供UDP中继之用
-//				L.V = L.O ? false : LogManager.log("Receive E_TAG_ROOT_UDP_ADDR_REG");
-				final boolean isRight = UDPPacketResender.checkUDPBlockData(bs, MsgBuilder.UDP_MTU_DATA_MIN_SIZE);
-				if(isRight && (ContextManager.getContextInstance().isDoneUDPChannelCheck == false)){
-					L.V = L.O ? false : LogManager.log("Done UDP Channel Check by E_TAG_ROOT_UDP_ADDR_REG");
-					
-					ContextManager.getContextInstance().isDoneUDPChannelCheck = true;
-				}
-				return true;
-			}
-		});
-		
-	}
-	
-	public final boolean action(final byte[] bs) {
+	public final boolean action(final byte[] bs, final CoreSession coreSS) {
 		final byte subTag = bs[MsgBuilder.INDEX_CTRL_SUB_TAG];
 //		L.V = L.O ? false : LogManager.log("Root Event , sub tag:" + subTag);
 		if(subTag == MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_RELAY){
@@ -55,7 +33,7 @@ public class RootTagEventHCListener extends IEventHCListener{
 		}else if(subTag == MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_SERVERING){
 			if(IConstant.serverSide == false){
 				//如果是mobi环境
-				ContextManager.getContextInstance().send(MsgBuilder.E_TAG_ROOT, bs, 0);
+				coreSS.context.send(MsgBuilder.E_TAG_ROOT, bs, 0);
 //				L.V = L.O ? false : LogManager.log("Send back line watch at RootTagEventHCListener");
 			}else{
 				//服务器收到mobi回应
@@ -66,37 +44,37 @@ public class RootTagEventHCListener extends IEventHCListener{
 			return true;
 		}else if(subTag == MsgBuilder.DATA_ROOT_OS_IN_LOCK){
 			if(IConstant.serverSide == false){
-				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_NOTIFY_MOBI_IN_LOCK, null);
+				coreSS.context.doExtBiz(IContext.BIZ_NOTIFY_MOBI_IN_LOCK, null);
 			}
 			return true;
 		}else if(subTag == MsgBuilder.DATA_ROOT_SERVER_IN_DIRECT_MODE){
 			if(IConstant.serverSide == false){
-				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_NOTIFY_SERVER_IN_DIRECT_MODE, null);
+				coreSS.context.doExtBiz(IContext.BIZ_NOTIFY_SERVER_IN_DIRECT_MODE, null);
 			}
 			return true;
 		}else if(subTag == MsgBuilder.DATA_ROOT_SAME_ID_IS_USING){
 			String msg = "Same ID is using, try another ID please!";
 			LogManager.err(msg);
-			ContextManager.getContextInstance().displayMessage("Error", msg, 
+			coreSS.context.displayMessage("Error", msg, 
 					IContext.ERROR, null, 0);
 			return true;
 		}else if(subTag == MsgBuilder.DATA_ROOT_UDP_PORT_NOTIFY){
 			int port = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
-			SIPManager.setUDPChannelPort(port);
+			SIPManager.setUDPChannelPort(coreSS, port);
 			
 			//初始化UDP Header
-			IContext.udpHeader[0] = bs[MsgBuilder.INDEX_MSG_DATA + 2];
-			IContext.udpHeader[1] = bs[MsgBuilder.INDEX_MSG_DATA + 3];
+			coreSS.udpHeader[0] = bs[MsgBuilder.INDEX_MSG_DATA + 2];
+			coreSS.udpHeader[1] = bs[MsgBuilder.INDEX_MSG_DATA + 3];
 			
-			if(SIPManager.getSIPContext().buildUDPChannel()){	
+			if(coreSS.sipContext.buildUDPChannel(coreSS)){	
 				L.V = L.O ? false : LogManager.log("Build UDP Channel to remote port : " + port);
-				ContextManager.getContextInstance().udpSender = SIPManager.getSIPContext().resender;
-				ContextManager.getContextInstance().isDoneUDPChannelCheck = false;
-				ContextManager.getContextInstance().isBuildedUPDChannel = true;
+				coreSS.context.udpSender = coreSS.sipContext.resender;
+				coreSS.context.isDoneUDPChannelCheck = false;
+				coreSS.context.isBuildedUPDChannel = true;
 				
 				//供UDP中继器注册之用，由于UDP中继收到后，不签收，则E_TAG_ROOT_UDP_ADDR_REG会重发，
 				//从而间接实现延时和检测通达性，但是重发时间较长，导致接收后于检测到达时间，
-				UDPPacketResender.sendUDPREG();
+				UDPPacketResender.sendUDPREG(coreSS);
 				
 				try{
 					//以免某端完全先于对端发送完可通达性包，从而无法实现验证可通达性
@@ -104,10 +82,10 @@ public class RootTagEventHCListener extends IEventHCListener{
 				}catch (Exception e) {
 					
 				}
-				UDPPacketResender.sendUDPREG();
+				UDPPacketResender.sendUDPREG(coreSS);
 				
 				if(IConstant.serverSide){
-					UDPPacketResender.sendUDPBlockData(MsgBuilder.E_TAG_MTU_1472, MsgBuilder.UDP_MTU_DATA_MAX_SIZE);
+					UDPPacketResender.sendUDPBlockData(coreSS, MsgBuilder.E_TAG_MTU_1472, MsgBuilder.UDP_MTU_DATA_MAX_SIZE);
 					
 //					L.V = L.O ? false : LogManager.log("Send MTU 1472 Test");
 				}

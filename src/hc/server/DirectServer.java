@@ -7,18 +7,19 @@ import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
+import hc.core.SessionManager;
 import hc.core.data.DataReg;
 import hc.core.sip.SIPManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
-import hc.util.HttpUtil;
+import hc.server.ui.design.J2SESession;
+import hc.server.util.StarterParameter;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -32,7 +33,7 @@ import javax.swing.SwingConstants;
 
 public class DirectServer extends Thread {
 	ServerSocket server = null;
-	final InetAddress ia;
+	InetAddress ia;
 	final String networkAddressName;
 	
 	private final InetAddress buildDemo(final String ip){
@@ -40,21 +41,22 @@ public class DirectServer extends Thread {
 			return InetAddress.getByName(ip);
 		}catch (final Exception e) {
 		}
-		return HttpUtil.get0000();
+		return null;
 	}
 	
 	public DirectServer(final InetAddress ia, final String naName) {
 		super("DirectServer");
 		if(ResourceUtil.isDemoServer()){
-			final String demoIP = PropertiesManager.getValue(PropertiesManager.p_DemoServerIP);
-			if(demoIP == null){
-				this.ia = HttpUtil.get0000();
-			}else{
+			final String demoIP = PropertiesManager.getValue(PropertiesManager.p_DemoServerIP);//由于searchReachable，所以几乎不会使用p_DemoServerIP
+			if(demoIP != null){
 				this.ia = buildDemo(demoIP);
 			}
-		}else{
+		}
+		
+		if(this.ia == null){
 			this.ia = ia;
 		}
+		
 		this.networkAddressName = naName;
 	}
 	
@@ -71,23 +73,23 @@ public class DirectServer extends Thread {
 				try{
 					directServerPort = Integer.parseInt(defaultPort);
 				}catch (final Throwable e) {
-					LogManager.errToLog("invalid port for direct server, use zero as port.");
+					LogManager.errToLog("[direct server] invalid port for direct server, use zero as port.");
 				}
 				final int backlog = 2;
-				boolean isAutoSelect = false;
+				boolean isAutoSelectPort = false;
 				try{
 					server.bind(new InetSocketAddress(ia, directServerPort), backlog);
 				}catch (final Throwable e) {
-					isAutoSelect = true;
+					isAutoSelectPort = true;
 					server.bind(new InetSocketAddress(ia, 0), backlog);
 				}
 				//供家庭环境内无线网，快捷访问
-				KeepaliveManager.homeWirelessIpPort.ip = server.getInetAddress().getHostAddress();
-				KeepaliveManager.homeWirelessIpPort.port = server.getLocalPort();
+				StarterParameter.homeWirelessIpPort.ip = server.getInetAddress().getHostAddress();
+				StarterParameter.homeWirelessIpPort.port = server.getLocalPort();
 				
-				if(isAutoSelect){
+				if(isAutoSelectPort){
 					final JPanel panel = new JPanel(new BorderLayout());
-					final String msg = "[Direct Home Server] port:" + directServerPort + " is used, select port:" + server.getLocalPort();
+					final String msg = "[direct server] port:" + directServerPort + " is used, select port:" + server.getLocalPort();
 					panel.add(new JLabel(msg, App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
 					App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(IContext.ERROR), false, 
 							(JButton)null, (String)null, (ActionListener)null, (ActionListener)null, (JFrame)null, 
@@ -108,24 +110,14 @@ public class DirectServer extends Thread {
 	}
 
 	public void closeSessionNotServerSocket() {
-		if(socket != null){
-			final Socket snapSocket = socket;
-			socket = null;
-			try{
-				snapSocket.close();
-				L.V = L.O ? false : LogManager.log("Close client Session");
-			}catch (final Throwable e) {
-			}
-		}
-		
 		if(server != null){
 			final ServerSocket serverSnap = server;
 			server = null;
 			try{
 				serverSnap.close();
-				L.V = L.O ? false : LogManager.log("successful close old Home Wireless Server");
+				L.V = L.O ? false : LogManager.log("[direct server] successful close old Home Wireless Server");
 			}catch (final Throwable e) {
-				L.V = L.O ? false : LogManager.log("Error close home wireless server : " + e.toString());
+				L.V = L.O ? false : LogManager.log("[direct server] Error close home wireless server : " + e.toString());
 			}
 			
 			while(true){
@@ -134,15 +126,17 @@ public class DirectServer extends Thread {
 						break;
 					}
 					Thread.sleep(IConstant.THREAD_WAIT_INNER_MS);
+					if(L.isInWorkshop){
+						L.V = L.O ? false : LogManager.log("[direct server] waiting direct server close...");
+					}
 				}catch (final Throwable e) {
-					L.V = L.O ? false : LogManager.log("Error check isClosed : " + e.toString());
+					L.V = L.O ? false : LogManager.log("[direct server] Error check isClosed : " + e.toString());
 				}
 			}
 		}
 	}
 	
 	final private Object LOCK = new Object();
-	private Socket socket;
 	
 	@Override
 	public void run(){
@@ -159,103 +153,114 @@ public class DirectServer extends Thread {
 				}
 			}
 			
+			Socket socket = null;
 			try{
-				final Socket temp = server.accept();
-				if(socket != null){
-					L.V = L.O ? false : LogManager.log("Server is build conn for other, cancle the coming");
-					L.V = L.O ? false : LogManager.log("  Coming, " + temp.getInetAddress().getHostAddress() + 
-							":" + temp.getPort());
-					try{
-						temp.close();
-					}catch (final Exception e) {
-						
+				L.V = L.O ? false : LogManager.log("[direct server] ready for new client.");
+				socket = server.accept();
+				
+				final Socket para_socket = socket;
+				socket = null;
+				ContextManager.getThreadPool().run(new Runnable() {
+					@Override
+					public void run() {
+						processOneClient(para_socket);
 					}
-				}else{
-					socket = temp;
-					
-					L.V = L.O ? false : LogManager.log("client line on:[" + 
-							socket.getInetAddress().getHostAddress() + 
-							":" + socket.getPort() + "]");
-					
-					socket.setKeepAlive(true);
-					socket.setTcpNoDelay(true);
-					
-//					try{
-//						final int ServerSndBF = RootConfig.getInstance().getIntProperty(RootConfig.p_ClientServerSendBufferSize);
-//						socket.setSendBufferSize(ServerSndBF);
-//						
-//						socket.setReceiveBufferSize(1024 * 25);
-//					}catch (Exception e) {
-//						
-//					}
-					final HCTimer watcher = new HCTimer("", 3000, true) {
-						@Override
-						public final void doBiz() {
-							try {
-								temp.close();
-							} catch (final IOException e) {
-							}
-						}
-					};
-					//echo back reg tag
-					final int BYTE_LEN = DataReg.LEN_DATA_REG + MsgBuilder.MIN_LEN_MSG;
-
-					final byte[] bs = new byte[BYTE_LEN];//DatagramPacketCacher.getInstance().getFree();
-					new DataInputStream(socket.getInputStream()).readFully(bs, 0, BYTE_LEN);
-//					if(len != BYTE_LEN){
-//						L.V = L.O ? false : LogManager.log("Unknow Reg");
-//						throw new Exception();
-//					}
-					socket.getOutputStream().write(bs, 0, BYTE_LEN);
-					socket.getOutputStream().flush();
-//					DatagramPacketCacher.getInstance().cycle(bs);
-					
-					SIPManager.getSIPContext().deploySocket(socket);
-					
-					//家庭直联模式下，关闭KeepAlive
-					setServerConfigPara(true, false);
-					ContextManager.setConnectionModeStatus(ContextManager.MODE_CONNECTION_HOME_WIRELESS);
-					
-					ContextManager.setStatus(ContextManager.STATUS_READY_MTU);
-					
-					HCTimer.remove(watcher);
-//					LogManager.info("Succ connect target");
-				}
-			}catch (final Exception e) {
-				//L.V = L.O ? false : LogManager.log("DirectServer Exception : " + e.toString());
-//				ExceptionReporter.printStackTrace(e);
+				});
+			}catch (final Throwable e) {
+				L.V = L.O ? false : LogManager.log("[direct server] Exception : " + e.toString());
+//					ExceptionReporter.printStackTrace(e);
 
 				final Socket snapSocket = socket;
-				socket = null;
-				try{
-					snapSocket.close();
-				}catch (final Exception e1) {
-					
+				if(snapSocket != null){
+					try{
+						snapSocket.close();
+					}catch (final Exception e1) {
+					}
 				}
-				
 				//此处不做server的close逻辑
-//				if(SIPManager.getSIPContext().isNearDeployTime()){
-//					continue;
-//				}
-//				
-//				final ServerSocket snapServerSocket = server;
-//				server = null;
-//				try{
-//					snapServerSocket.close();
-//				}catch (Exception e1) {
+//					if(SIPManager.getSIPContext().isNearDeployTime()){
+//						continue;
+//					}
 //					
-//				}
+//					final ServerSocket snapServerSocket = server;
+//					server = null;
+//					try{
+//						snapServerSocket.close();
+//					}catch (Exception e1) {
+//						
+//					}
 			}
 		}//end while
-		L.V = L.O ? false : LogManager.log("shutdown old Home Wireless Server");		
+		L.V = L.O ? false : LogManager.log("[direct server] shutdown old Home Wireless Server");		
 	}
 
-	public static void setServerConfigPara(final boolean keepalive, final boolean isRelay) {
+	private final void processOneClient(final Socket socket) {
+		try{
+//					L.V = L.O ? false : LogManager.log("Server is build conn for other, cancle the coming");
+//					L.V = L.O ? false : LogManager.log("  Coming, " + socket.getInetAddress().getHostAddress() + 
+//							":" + socket.getPort());
+//					try{
+//						socket.close();
+//					}catch (final Exception e) {
+//					}
+			L.V = L.O ? false : LogManager.log("[direct server] client line on:[" + 
+					socket.getInetAddress().getHostAddress() + 
+					":" + socket.getPort() + "]");
+			
+			socket.setKeepAlive(true);
+			socket.setTcpNoDelay(true);
+				
+			final HCTimer watcher = new HCTimer("", 3000, true) {
+				@Override
+				public final void doBiz() {
+					synchronized (this) {
+						if(isEnable){
+							try {
+								socket.close();
+							} catch (final Throwable e) {
+							}
+						}
+					}
+				}
+			};
+				
+			try{
+				//echo back reg tag
+				final int BYTE_LEN = DataReg.LEN_DATA_REG + MsgBuilder.MIN_LEN_MSG;
+
+				final byte[] bs = new byte[BYTE_LEN];//DatagramPacketCacher.getInstance().getFree();
+				new DataInputStream(socket.getInputStream()).readFully(bs, 0, BYTE_LEN);
+				socket.getOutputStream().write(bs, 0, BYTE_LEN);
+				socket.getOutputStream().flush();
+				
+				final J2SESession coreSS = (J2SESession)SessionManager.getPreparedSocketSession();
+				coreSS.sipContext.deploySocket(coreSS, socket);
+				
+				//家庭直联模式下，关闭KeepAlive
+				setServerConfigPara(coreSS, true, false);
+				coreSS.context.setConnectionModeStatus(ContextManager.MODE_CONNECTION_HOME_WIRELESS);
+				
+				coreSS.context.setStatus(ContextManager.STATUS_READY_MTU);
+			}catch (final Throwable e) {
+				throw e;
+			}finally{
+				synchronized (watcher) {
+					watcher.setEnable(false);
+					HCTimer.remove(watcher);
+				}
+			}
+//				LogManager.info("Succ connect target");
+		}catch (final Throwable e) {
+			L.V = L.O ? false : LogManager.log("[direct server] Exception : " + e.toString());
+		}
+	}
+
+	public static void setServerConfigPara(final J2SESession coreSS, final boolean keepalive, final boolean isRelay) {
 		//家庭直联模式下，开启keepalive，不关闭KeepAlive
-		KeepaliveManager.keepalive.setEnable(keepalive);
-		KeepaliveManager.keepalive.resetTimerCount();
+		coreSS.keepaliveManager.keepalive.setEnable(keepalive);
+		coreSS.keepaliveManager.keepalive.resetTimerCount();
 		
-		SIPManager.setOnRelay(isRelay);
+		SIPManager.setOnRelay(coreSS, isRelay);
 	}
 	
 	private boolean isShutdown = false;
@@ -269,6 +274,6 @@ public class DirectServer extends Thread {
 			LOCK.notify();
 		}
 		
-		KeepaliveManager.dServer = null;
+		StarterParameter.dServer = null;
 	}
 }

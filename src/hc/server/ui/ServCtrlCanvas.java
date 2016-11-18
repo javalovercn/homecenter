@@ -1,14 +1,20 @@
 package hc.server.ui;
 
+import hc.server.MultiUsingManager;
+import hc.server.ui.design.J2SESession;
+
 public class ServCtrlCanvas implements ICanvas {
 	final CtrlResponse cr;
-	public ServCtrlCanvas(CtrlResponse cr) {
+	final J2SESession coreSS;
+	
+	public ServCtrlCanvas(final J2SESession coreSS, final CtrlResponse cr) {
+		this.coreSS = coreSS;
 		this.cr = cr;
 	}
 	
 	@Override
 	public void onStart() {
-		cr.getProjectContext().run(new Runnable() {
+		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(cr.getProjectContext()), new Runnable() {
 			@Override
 			public void run() {
 				cr.onLoad();
@@ -26,12 +32,13 @@ public class ServCtrlCanvas implements ICanvas {
 
 	@Override
 	public void onExit() {
-		cr.getProjectContext().run(new Runnable() {
+		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(cr.getProjectContext()), new Runnable() {
 			@Override
 			public void run() {
 				cr.onExit();
 			}
 		});
+		MultiUsingManager.exit(coreSS, cr.getProjectContext().getProjectID(), cr.target);
 	}
 
 }

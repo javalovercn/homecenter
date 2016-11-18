@@ -20,7 +20,7 @@ public class ThreadTimer extends Thread {
 	}
 	
 	public void run(){
-		final NestAction nestAction = EventCenter.nestAction;
+		final NestAction nestAction = (NestAction)ConfigManager.get(ConfigManager.BUILD_NESTACTION, null);
 		
 		while (!isShutDown) {
 			if(timer.isEnable){

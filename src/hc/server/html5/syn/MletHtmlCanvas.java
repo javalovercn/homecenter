@@ -9,7 +9,9 @@ import hc.core.util.JSCore;
 import hc.core.util.LangUtil;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
+import hc.server.MultiUsingManager;
 import hc.server.ScreenServer;
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.ICanvas;
 import hc.server.ui.IMletCanvas;
@@ -18,6 +20,7 @@ import hc.server.ui.MletSnapCanvas;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.AddHarHTMLMlet;
+import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.code.StyleManager;
 import hc.server.ui.design.hpj.HCjar;
@@ -56,21 +59,26 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	final static boolean isAndroidServer = ResourceUtil.isAndroidServerPlatform();
 	public JFrame frame;
 	JScrollPane scrollPane;
-	private byte[] screenIDbs;
-	private String screenID, title;
+	private byte[] elementIDbs;
+	private char[] elementIDChars;
+	private String elementID, title;
 	private DifferTodo differTodo;
 	private final boolean isSimu;
+	final J2SESession coreSS;
 	
-	public MletHtmlCanvas(final int w, final int h){
+	public MletHtmlCanvas(final J2SESession coreSS, final int w, final int h){
 		isSimu = PropertiesManager.isSimu();
 		
+		this.coreSS = coreSS;
 		this.width = w;
 		this.height = h;
 	}
 	
 	private final void printComp(final Component comp, final int deep){
 		final Rectangle rect = comp.getBounds();
-		System.out.println(comp.getClass().getName() + deep + ", x : " + rect.x + ", y : " + rect.y + ", w : " + rect.width + ", h : " + rect.height);
+		if(L.isInWorkshop){
+			System.out.println(comp.getClass().getName() + deep + ", x : " + rect.x + ", y : " + rect.y + ", w : " + rect.width + ", h : " + rect.height);
+		}
 		if(comp instanceof Container){
 			final Container container = (Container)comp;
 			final int count = container.getComponentCount();
@@ -78,7 +86,9 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				printComp(container.getComponent(i), deep + 1);
 			}
 		}else if(comp instanceof JScrollPane){
-			System.out.println("------This is JScrollPane-----");
+			if(L.isInWorkshop){
+				System.out.println("------This is JScrollPane-----");
+			}
 			printComp(((JScrollPane)comp).getViewport().getView(), deep);
 		}
 	}
@@ -90,18 +100,18 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 //		differTodo.loadJS("msg = \"hello'  abc   \\'world\";");
 
 		//必须置于上两段初始代码传送之后
-		final boolean rtl = LangUtil.isRTL(projectContext.getMobileLocale());
+		final boolean rtl = LangUtil.isRTL(UserThreadResourceUtil.getMobileLocaleFrom(coreSS));
 		if(rtl){
 			differTodo.setLTR( !rtl );
 		}
 		
-		final ProjResponser projResponser = ServerUIAPIAgent.get__projResponserMaybeNull(projectContext);
+		final ProjResponser projResponser = ServerUIAPIAgent.getProjResponserMaybeNull(projectContext);
 		if(projResponser != null){
 			//AddHar下可能为null
 			final String dftStyles = (String)projResponser.map.get(HCjar.PROJ_STYLES);
 			final String defaultStyles = (dftStyles==null?"":dftStyles.trim());//AddHAR可能出现null
 			if(defaultStyles.length() > 0){
-				final String replaceVariable = StyleManager.replaceVariable(defaultStyles, mlet, projectContext);
+				final String replaceVariable = StyleManager.replaceVariable(coreSS, defaultStyles, mlet, projectContext);
 //				L.V = L.O ? false : LogManager.log(replaceVariable);
 				differTodo.loadStyles(replaceVariable);
 			}
@@ -111,17 +121,17 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 //		printComp(scrolPanel, 0);
 		
 		//必须置于notifyInitDone之前，因为有可能增加Mlet级样式和用户setStylesJComponentXX
-		ScreenServer.onStartForMlet(projectContext, mlet);
+		ScreenServer.onStartForMlet(coreSS, projectContext, mlet);
 	}
 
 	@Override
 	public final void onPause() {
-		ScreenServer.onPauseForMlet(projectContext, mlet);
+		ScreenServer.onPauseForMlet(coreSS, projectContext, mlet);
 	}
 
 	@Override
 	public final void onResume() {
-		ScreenServer.onResumeForMlet(projectContext, mlet);
+		ScreenServer.onResumeForMlet(coreSS, projectContext, mlet);
 	}
 
 	@Override
@@ -131,35 +141,26 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	
 	@Override
 	public void onExit(final boolean isAutoReleaseAfterGo){
-		ScreenServer.onExitForMlet(projectContext, mlet, isAutoReleaseAfterGo);
-		
+		ScreenServer.onExitForMlet(coreSS, projectContext, mlet, isAutoReleaseAfterGo);
+		MultiUsingManager.exit(coreSS, projectContext.getProjectID(), mlet.getTarget());
 		frame.dispose();
 	}
 	
-	public static final boolean isAutoReleaseAfterGo(final ProjectContext pc, final Mlet mt){
-		final boolean[] out = new boolean[1];
-		pc.runAndWait(new Runnable() {
-			@Override
-			public void run() {
-				out[0] = mt.isAutoReleaseAfterGo();
-			}
-		});
-		return out[0];
-	}
-
 	@Override
-	public final void setMlet(final Mlet mlet, final ProjectContext projectCtx) {
+	public final void setMlet(final J2SESession coreSS, final Mlet mlet, final ProjectContext projectCtx) {
 		this.mlet = (HTMLMlet)mlet;
 		ServerUIAPIAgent.setProjectContext(mlet, projectCtx);
 		projectContext = projectCtx;
-		projectContext.runAndWait(new Runnable() {
+		
+		frame = new JFrame();//不能入Session会导致block showWindowWithoutWarningBanner
+		
+		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {
 			@Override
 			public void run() {
-				frame = new JFrame();
 				scrollPane = new JScrollPane(mlet, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 			}
 		});
-		differTodo = new DifferTodo(screenID, mlet);
+		differTodo = new DifferTodo(coreSS, elementID, mlet);
 	}
 	
 	/**
@@ -198,18 +199,19 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	}
 
 	@Override
-	public final void setScreenIDAndTitle(final String screenID, final String title){
-		this.screenID = screenID;
-		this.screenIDbs = ByteUtil.getBytes(screenID, IConstant.UTF_8);
+	public final void setScreenIDAndTitle(final String elementID, final String title){
+		this.elementID = elementID;
+		this.elementIDbs = ByteUtil.getBytes(elementID, IConstant.UTF_8);
+		this.elementIDChars = elementID.toCharArray();
 		this.title = title;
 	}
 
 	@Override
 	public boolean isSameScreenID(final byte[] bs, final int offset, final int len) {
 		boolean isSame = true;
-		if(len == screenIDbs.length){
-			for (int i = 0, j = offset; j < len; ) {
-				if(screenIDbs[i++] != bs[j++]){
+		if(len == elementIDbs.length){
+			for (int i = 0, j = offset; i < len; ) {
+				if(elementIDbs[i++] != bs[j++]){
 					isSame = false;
 					break;
 				}
@@ -218,6 +220,25 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 			isSame = false;
 		}
 		return isSame;
+	}
+	
+	@Override
+	public boolean isSameScreenIDIgnoreCase(final char[] chars, final int offset, final int len){
+		if(len == elementIDChars.length){
+			for (int i = 0, j = offset; i < len; ) {
+				final char c1 = elementIDChars[i++];
+				final char c2 = chars[j++];
+				if(c1 == c2
+						|| Character.toUpperCase(c1) == Character.toUpperCase(c2)
+						|| Character.toLowerCase(c1) == Character.toLowerCase(c2)){
+				}else{
+					return false;
+				}
+			}
+			return true;
+		}else{
+			return false;
+		}
 	}
 	
 	private final boolean matchCmd(final byte[] cmdbs, final byte[] bs, final int offset){
@@ -254,7 +275,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 
 	@Override
 	public final void actionJSInput(final byte[] bs, final int offset, final int len) {
-		projectContext.runAndWait(new Runnable() {//事件的先后性保证
+		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {//事件的先后性保证
 			@Override
 			public void run() {
 				actionJSInputInUser(bs, offset, len);
@@ -271,6 +292,10 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 			}
 		}
 		
+		//-------------------------------------------------------
+		//重要
+		//如果以下增加事件接收，请同步CodeItem.AnonymousClass
+		//-------------------------------------------------------
 		try{
 			if(matchCmd(JSCore.actionExt, bs, offset)){
 				final String cmd = getOneValue(JSCore.actionExt, bs, offset, len);
@@ -606,6 +631,15 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 //			MCanvas.doActon(combo);
 		}else{
 			LogManager.err(NO_COMPONENT_HCCODE + id);
+		}
+	}
+	
+	@Override
+	public final String toString(){
+		if(mlet != null){
+			return this.getClass().getSimpleName() + ":" + mlet.getTarget();
+		}else{
+			return super.toString();
 		}
 	}
 

@@ -4,8 +4,8 @@ import hc.App;
 import hc.res.ImageSrc;
 import hc.server.HCActionListener;
 import hc.server.ui.design.hpj.BaseMenuItemNodeEditPanel;
+import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
-import hc.util.StoreableHashMapWithModifyFlag;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -78,7 +78,7 @@ public class I18nTitlesEditor extends JPanel{
 		return v;
 	}
 	
-	private final StoreableHashMapWithModifyFlag map;
+	private final I18NStoreableHashMapWithModifyFlag map;
 	private final JComboBox jcbLanguage;//JRE 6 is NOT <STRING> allowed
 	private final JComboBox jcbCountry;
 	private final JButton addBtn, removeBtn;
@@ -95,7 +95,7 @@ public class I18nTitlesEditor extends JPanel{
 		}
 	}
 	
-	public I18nTitlesEditor(final StoreableHashMapWithModifyFlag map){
+	public I18nTitlesEditor(final I18NStoreableHashMapWithModifyFlag map){
 		keyVector = new Vector<String>();
 		valueVector = new Vector<String>();
 		
@@ -302,7 +302,7 @@ public class I18nTitlesEditor extends JPanel{
 		SwingUtilities.invokeLater(refreshTableRunnable);
 	}
 
-	public final static void showEditor(final StoreableHashMapWithModifyFlag map, final ActionListener listener, final Component relativeTo, final JFrame parent){
+	public final static void showEditor(final I18NStoreableHashMapWithModifyFlag map, final ActionListener listener, final Component relativeTo, final JFrame parent){
 		final I18nTitlesEditor editor = new I18nTitlesEditor(map);
 		App.showCenterPanelMain(editor, 0, 0, "Editor for " + BaseMenuItemNodeEditPanel.I18N_BTN_TEXT, true, null, null, new ActionListener() {
 			@Override

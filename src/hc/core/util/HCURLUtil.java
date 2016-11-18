@@ -1,6 +1,6 @@
 package hc.core.util;
 
-import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.IConstant;
 import hc.core.MsgBuilder;
 
@@ -120,13 +120,14 @@ public class HCURLUtil {
 	
 	/**
 	 * 发布状态从手机到服务器，或从服务器到手机
+	 * @param coreSS 
 	 * @param id
 	 * @param status
 	 */
-	public final static void publishStatus(final String id, final String status){
+	public final static void publishStatus(CoreSession coreSS, final String id, final String status){
 		final String[] paras = {HCURL.DATA_PARA_PUBLISH_STATUS_ID, HCURL.DATA_PARA_PUBLISH_STATUS_VALUE};
 		final String[] values = {id, status};
-		HCURLUtil.sendCmd(HCURL.DATA_CMD_SendPara, paras, values);
+		HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, paras, values);
 	}
 	
 	private static void pushParaValues(HCURL url, byte[] bs, int index, String p, boolean isDecodeValue){
@@ -251,11 +252,11 @@ public class HCURLUtil {
 		return (needToChange ? sb.toString() : s);
 	}
 	
-	public static boolean process(String url, IHCURLAction action){
+	public static boolean process(final CoreSession coreSS, String url, IHCURLAction action){
 		boolean isDone = false;
 		HCURL hu = HCURLUtil.extract(url);
 		try{
-			isDone = action.doBiz(hu);
+			isDone = action.doBiz(coreSS, hu);
 		}catch (Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}
@@ -277,12 +278,12 @@ public class HCURLUtil {
 		return ip;
 	}
 
-	public static void sendGoPara(String para, String value) {
-		sendCmd(HCURL.DATA_CMD_SendPara, para, value);
+	public static void sendGoPara(CoreSession coreSS, String para, String value) {
+		sendCmd(coreSS, HCURL.DATA_CMD_SendPara, para, value);
 	}
 	
-	public static void sendCmd(String cmdType, String para, String value){
-		pSendCmd(MsgBuilder.E_GOTO_URL, cmdType, encode(para), encode(value));
+	public static void sendCmd(CoreSession coreSS, String cmdType, String para, String value){
+		pSendCmd(coreSS, MsgBuilder.E_GOTO_URL, cmdType, encode(para), encode(value));
 	}
 
 	public static String encode(String value) {
@@ -298,27 +299,28 @@ public class HCURLUtil {
 		return value;
 	}
 
-	private static void pSendCmd(byte tag, String cmdType, String para, String value) {
-		ContextManager.getContextInstance().send(tag, HCURL.CMD_PROTOCAL + HCURL.HTTP_SPLITTER + cmdType + "?" + para + "=" + value);
+	private static void pSendCmd(CoreSession coreSS, byte tag, String cmdType, String para, String value) {
+		coreSS.context.send(tag, HCURL.CMD_PROTOCAL + HCURL.HTTP_SPLITTER + cmdType + "?" + para + "=" + value);
 	}
 
-	public static void sendCmdUnXOR(String cmdType, String para, String value){
-		pSendCmd(MsgBuilder.E_GOTO_URL_UN_XOR, cmdType, para, value);
+	public static void sendCmdUnXOR(CoreSession coreSS, String cmdType, String para, String value){
+		pSendCmd(coreSS, MsgBuilder.E_GOTO_URL_UN_XOR, cmdType, para, value);
 	}
 	
-	public static void sendEClass(final String className, final String classPara){
+	public static void sendEClass(CoreSession coreSS, final String className, final String classPara){
 		final byte[] bs = StringUtil.getBytes(classPara);
-		sendEClass(className, bs, 0, bs.length);
+		sendEClass(coreSS, className, bs, 0, bs.length);
 	}
 	
 	/**
 	 * 可以从服务器端调用，也可从手机端调用
+	 * @param coreSS 
 	 * @param className
 	 * @param bs
 	 * @param offset
 	 * @param len
 	 */
-	public static void sendEClass(final String className, final byte[] bs, final int offset, final int len){
+	public static void sendEClass(CoreSession coreSS, final String className, final byte[] bs, final int offset, final int len){
 		final byte[] classBS = ByteUtil.getBytes(className, IConstant.UTF_8);
 		
 		//classNameLen(4) + classBS + paraLen(4) + paraBS
@@ -336,7 +338,7 @@ public class HCURLUtil {
 		nextStoreIdx += 4;
 		System.arraycopy(bs, offset, out, nextStoreIdx, len);
 		
-		ContextManager.getContextInstance().sendWrap(MsgBuilder.E_CLASS, out, 0, newLen);
+		coreSS.context.sendWrap(MsgBuilder.E_CLASS, out, 0, newLen);
 		cache.cycle(out);
 	}
 	
@@ -350,9 +352,8 @@ public class HCURLUtil {
 	public static final int HTTPS_CONN_TIMEOUT = 10 * 1000;
 	public static final int HTTPS_READ_TIMEOUT = 10 * 1000;
 			
-	public static void sendCmd(String cmdType, String[] para, String[] value){
+	public static void sendCmd(CoreSession coreSS, String cmdType, String[] para, String[] value){
 //		sendWrap进行了拦截
-//		CCoreUtil.checkAccess();
 		
 		String pv = "";
 		for (int i = 0; i < para.length; i++) {
@@ -361,7 +362,7 @@ public class HCURLUtil {
 			}
 			pv += encode(para[i]) + "=" + encode(value[i]);
 		}
-		ContextManager.getContextInstance().send(MsgBuilder.E_GOTO_URL, 
+		coreSS.context.send(MsgBuilder.E_GOTO_URL, 
 				HCURL.CMD_PROTOCAL + HCURL.HTTP_SPLITTER + cmdType + "?" + pv);
 	}
 

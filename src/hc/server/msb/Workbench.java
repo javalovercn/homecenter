@@ -163,7 +163,7 @@ public class Workbench{
 	}
 	
 	final private void initAndStartProcessor(final Processor processor) {
-		processor.init();
+		processor.init(this);
 	}
 	
 	final private void finishStartProcessor(final Processor processor) {
@@ -180,8 +180,6 @@ public class Workbench{
 	}
 	
 	protected final void addProcessor(final Processor proc){
-		proc.workbench = this;
-		
 		final int type = proc.procType;
 		final String projID = proc.project_id;
 		HashMap<String, Processor> names_proc = null;
@@ -458,8 +456,8 @@ public class Workbench{
 		return messagePool.getFreeMessage();
 	}
 	
-	final Hashtable<Long, Message> lastUncycleMessage = new Hashtable(40);
-	final Hashtable<Integer, WaitingForMessage> waiting = new Hashtable(40);
+	final Hashtable<Long, Message> lastUncycleMessage = new Hashtable<Long, Message>(40);
+	final Hashtable<Integer, WaitingForMessage> waiting = new Hashtable<Integer, WaitingForMessage>(40);
 	private final int SYNC_INIT_ID = 1;
 	private int synch_no = SYNC_INIT_ID;
 	protected final int FORWARDED_SYNC_ID = Integer.MAX_VALUE;

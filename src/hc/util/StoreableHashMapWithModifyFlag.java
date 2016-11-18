@@ -24,7 +24,7 @@ public class StoreableHashMapWithModifyFlag extends StoreableHashMap {
 	}
 	
 	@Override
-	public final Object put(final Object key, final Object value){
+	public Object put(final Object key, final Object value){
 		final Object oldValue = super.put(key, value);
 		if(value != null){
 			isModify = isModify || (value.equals(oldValue));
@@ -45,18 +45,16 @@ public class StoreableHashMapWithModifyFlag extends StoreableHashMap {
 	}
 	
 	@Override
-	public final Object remove(final Object key) {
-		final boolean isExists = super.contains(key);
-		if(isExists){
+	public Object remove(final Object key) {
+		final Object result = super.remove(key);
+		if(result != null){
 			isModify = true;
-			return super.remove(key);
-		}else{
-			return null;
 		}
+		return result;
 	}
 	
 	@Override
-	public final void putAll(final Map t) {
+	public void putAll(final Map t) {
 		isModify = true;
 		super.putAll(t);
 	}

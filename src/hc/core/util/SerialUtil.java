@@ -11,14 +11,16 @@ public class SerialUtil {
 	 * @return
 	 */
 	public static String serial(final String[] strings){
-		final StringBuffer sb = new StringBuffer();
+		final StringBuffer sb = StringBufferCacher.getFree();
 		for (int i = 0; i < strings.length; i++) {
 			if(sb.length() > 0){
 				sb.append(STRING_ARRAY_SPLIT);
 			}
 			sb.append(ByteUtil.toHex(ByteUtil.getBytes(strings[i], IConstant.UTF_8)));
 		}
-		return sb.toString();
+		final String out = sb.toString();
+		StringBufferCacher.cycle(sb);
+		return out;
 	}
 	
 	/**

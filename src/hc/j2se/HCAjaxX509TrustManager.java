@@ -3,8 +3,6 @@ package hc.j2se;
 import hc.core.RootServerConnector;
 import hc.core.util.LogManager;
 import hc.core.util.RootBuilder;
-import hc.server.util.SignHelper;
-import hc.util.ResourceUtil;
 
 import java.net.URL;
 import java.net.URLConnection;
@@ -27,11 +25,6 @@ import javax.net.ssl.X509TrustManager;
  *
  */
 public class HCAjaxX509TrustManager{
-//	static {
-//		if(ResourceUtil.isOpenJDK()){
-//			SignHelper.addBCProvider();
-//		}
-//	}
 
 	private static X509Certificate readPublicKeyForAjax() {
 		try{

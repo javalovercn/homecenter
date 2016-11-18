@@ -197,11 +197,13 @@ public class ByteUtil {
 	 * @return
 	 */
 	public static String toHex(final byte[] bs, final int offset, final int len){
-		final StringBuffer sb = new StringBuffer();
+		final StringBuffer sb = StringBufferCacher.getFree();
 		for (int i = 0; i < len; i++) {
 			sb.append(toHexEnableZeroBegin(bs[i + offset]));
 		}
-		return sb.toString();
+		final String out = sb.toString();
+		StringBufferCacher.cycle(sb);
+		return out;
 	}
 	
 	/**
@@ -372,27 +374,30 @@ public class ByteUtil {
 	}
 
 	public static String encodeURI(final String str, final String charset) {
+		final StringBuffer sb = StringBufferCacher.getFree();
+		
 		try{
-		final String isoStr = new String(str.getBytes(charset), "ISO-8859-1");		
-		final char[] chars = isoStr.toCharArray();
-		final StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < chars.length; i++) {
-			final char c = chars[i];
-			if ((c <= 'z' && c >= 'a') || (c <= 'Z' && c >= 'A') || (c <= '9' && c >= '0') || c == '%' 
-					|| c == '-' || c == '/' || c == '.' || c == '&' || c == '#'
-					|| c == ':' || c == '_' || c == '?' || c == '=' || c == '!'
-					|| c == '~' || c == '*' || c == '\''
-					|| c == '(' || c == ')' || c == ';'
-					|| c == '@' || c == '+' || c == '$' || c == ',') {
-				sb.append(c);
-			} else {
-				sb.append('%');
-				sb.append(Integer.toHexString(c).toUpperCase());
+			final String isoStr = new String(str.getBytes(charset), "ISO-8859-1");		
+			final char[] chars = isoStr.toCharArray();
+			for (int i = 0; i < chars.length; i++) {
+				final char c = chars[i];
+				if ((c <= 'z' && c >= 'a') || (c <= 'Z' && c >= 'A') || (c <= '9' && c >= '0') || c == '%' 
+						|| c == '-' || c == '/' || c == '.' || c == '&' || c == '#'
+						|| c == ':' || c == '_' || c == '?' || c == '=' || c == '!'
+						|| c == '~' || c == '*' || c == '\''
+						|| c == '(' || c == ')' || c == ';'
+						|| c == '@' || c == '+' || c == '$' || c == ',') {
+					sb.append(c);
+				} else {
+					sb.append('%');
+					sb.append(Integer.toHexString(c).toUpperCase());
+				}
 			}
-		}
-		return sb.toString();
+			return sb.toString();
 		}catch (final Exception e) {
 			return null;
+		}finally{
+			StringBufferCacher.cycle(sb);
 		}
 	}
 

@@ -1,28 +1,34 @@
 package hc.util;
 
 import hc.App;
-import hc.core.ContextManager;
+import hc.core.CoreSession;
+import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
+import hc.core.RootConfig;
 import hc.core.RootServerConnector;
+import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.HCURL;
 import hc.core.util.LogManager;
-import hc.core.util.StoreableHashMap;
 import hc.core.util.StringUtil;
 import hc.core.util.WiFiDeviceManager;
+import hc.res.ImageSrc;
 import hc.server.DefaultManager;
 import hc.server.HCSecurityException;
 import hc.server.J2SEContext;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
 import hc.server.StarterManager;
+import hc.server.TrayMenuUtil;
 import hc.server.data.KeyComperPanel;
 import hc.server.data.StoreDirManager;
-import hc.server.ui.ClientDesc;
+import hc.server.msb.UserThreadResourceUtil;
+import hc.server.ui.design.J2SESession;
 import hc.server.util.HCLimitSecurityManager;
 
 import java.awt.Component;
@@ -53,6 +59,8 @@ import java.io.LineNumberReader;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -61,6 +69,7 @@ import java.sql.Timestamp;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.MissingFormatArgumentException;
 import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
@@ -74,21 +83,22 @@ import javax.imageio.ImageIO;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JCheckBox;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
+import javax.swing.text.DefaultEditorKit;
 
 public class ResourceUtil {
 	private static final String USER_PROJ = "user.proj.";
 	private final static Class starterClass = getStarterClass();
 	
 	public static void buildMenu(){
-		((J2SEContext) ContextManager
-				.getContextInstance())
-				.buildMenu(UILang
-						.getUsedLocale());
+		TrayMenuUtil.buildMenu(UILang.getUsedLocale());
 	}
 	
 	public static ImageIcon getHideIcon(){
@@ -98,6 +108,15 @@ public class ResourceUtil {
 			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
+	}
+	
+	public static String buildFirstUpcaseString(final String str){
+		if(str.length() == 0){
+			return str;
+		}
+		
+		final String up_str = str.toUpperCase();
+		return up_str.substring(0, 1) + str.substring(1);
 	}
 	
 	public static boolean isDemoServer(){
@@ -200,7 +219,7 @@ public class ResourceUtil {
 
 	public static String getStringFromInputStream(final InputStream is, final String charset, final boolean keepReturnChar, final boolean removeRem) {
 		BufferedReader br = null;
-		final StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = StringBuilderCacher.getFree();
 
 		String line;
 		try {
@@ -236,7 +255,10 @@ public class ResourceUtil {
 			}catch (final Throwable e) {
 			}
 		}
-		return sb.toString();
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		
+		return out;
 	}
 	
 	/**
@@ -276,11 +298,12 @@ public class ResourceUtil {
 	public static boolean refreshHideCheckBox(final JCheckBox checkBox, final JMenuItem hideIDForErrCert){
 		final boolean isHide = DefaultManager.isHideIDForErrCert();
 		final String tip = "<html>" +
-				StringUtil.replace((String)ResourceUtil.get(9212), "{disable}", (String)ResourceUtil.get(1021)) +
-				"<BR><BR>" +
+				(String)ResourceUtil.get(9236) + (isHide?getHideText():getShowText()) + "<BR><BR>" +
 				"<STRONG>" + getHideText() + "</STRONG>&nbsp;" + getHideTip() +
 				"<BR>" +
 				"<STRONG>" + getShowText() + "</STRONG>&nbsp;" + getShowTip() +
+				"<BR><BR>" +
+				StringUtil.replace((String)ResourceUtil.get(9212), "{disable}", (String)ResourceUtil.get(1021)) +
 				"</html>";
 		
 		final String hideCheckText;
@@ -328,6 +351,31 @@ public class ResourceUtil {
 		}
 		
 		return RootServerConnector.refreshRootAlive_impl(token, hideIP, hideToken);
+	}
+	
+	public static HCTimer buildAliveRefresher(final CoreSession coreSS, final boolean isRoot){
+		//每小时刷新alive变量到Root服务器
+		//采用58秒，能保障两小时内可刷新两次。
+		
+		final int refreshMS = isRoot?(1000 * 60 * 5):RootConfig.getInstance().getIntProperty(RootConfig.p_RootDelNotAlive);
+		return new HCTimer("AliveRefresher", refreshMS, true){
+			@Override
+			public final void doBiz() {
+				if(isRoot == false){
+					L.V = L.O ? false : LogManager.log("refresh server online info.");
+				}
+				final String back = ResourceUtil.refreshRootAlive();
+				if(back == null || (back.equals(RootServerConnector.ROOT_AJAX_OK) == false)){
+					if(isRoot){
+						//服务器出现错误，需要进行重启服务
+						LogManager.errToLog("fail notify Root Server Alive");
+						coreSS.context.notifyShutdown();
+					}else{
+						LogManager.errToLog("fail to refresh server online info, reconnect...");
+						SIPManager.notifyLineOff(coreSS, false, false);
+					}
+				}
+			}};		
 	}
 	
 	/**
@@ -650,20 +698,20 @@ public class ResourceUtil {
 		return null;
 	}
 	
-	private static final HashMap<Integer, StoreableHashMapWithModifyFlag> i18nMap = new HashMap<Integer, StoreableHashMapWithModifyFlag>(4);
+	private static final HashMap<Integer, I18NStoreableHashMapWithModifyFlag> i18nMap = new HashMap<Integer, I18NStoreableHashMapWithModifyFlag>(4);
 	
 	/**
 	 * 返回全部可用的指定id的uilang的全部map
 	 * @param id
 	 * @return 结果不为null。key = en-US(不是_), value = i18n(id)
 	 */
-	public static StoreableHashMapWithModifyFlag getI18NByResID(final int id){
-		StoreableHashMapWithModifyFlag out = i18nMap.get(id);
+	public static I18NStoreableHashMapWithModifyFlag getI18NByResID(final int id){
+		I18NStoreableHashMapWithModifyFlag out = i18nMap.get(id);
 		if(out != null){
 			return out;
 		}
 		
-		out = new StoreableHashMapWithModifyFlag(32);
+		out = new I18NStoreableHashMapWithModifyFlag(32);
 		try{
 			final Pattern pattern = Pattern.compile(UILang.UI_LANG_FILE_NAME + "(\\w+)\\.properties$");
 			final URL url = UILang.class.getResource(UILang.UI_LANG_FILE_NAME_PREFIX + "en_US.properties");
@@ -698,7 +746,7 @@ public class ResourceUtil {
 	    return out;
 	}
 
-	private static void addItem(final int id, final StoreableHashMap out,
+	private static void addItem(final int id, final I18NStoreableHashMapWithModifyFlag out,
 			final Pattern pattern, final String path) {
 		final Matcher matcher = pattern.matcher(path);
 		if(matcher.find()){
@@ -1257,8 +1305,8 @@ public class ResourceUtil {
 	 * 手机或服务器能否发布WiFi广播
 	 * @return
 	 */
-	public static final boolean canCtrlWiFi() {
-		return ClientDesc.getAgent().ctrlWiFi() || WiFiDeviceManager.getInstance().canCreateWiFiAccount();
+	public static final boolean canCtrlWiFi(final J2SESession coreSS) {
+		return UserThreadResourceUtil.getMobileAgent(coreSS).ctrlWiFi() || WiFiDeviceManager.getInstance(coreSS).canCreateWiFiAccount();
 	}
 
 	public static String getLibNameForAllPlatforms(final String libName) {
@@ -1404,6 +1452,16 @@ public class ResourceUtil {
 	 * @param loader 使用指定的类加载器来检查类
 	 */
 	public static final void checkHCStackTraceInclude(final String callerClass, final ClassLoader loader) {
+		checkHCStackTraceInclude(callerClass, loader, null);
+	}
+	
+	/**
+	 * 检查stackTrace的类源都是系统包，且callerClass非null时，必须在stackTrace中。否则抛出异常。
+	 * @param callerClass
+	 * @param loader 使用指定的类加载器来检查类
+	 * @param moreMsg
+	 */
+	public static final void checkHCStackTraceInclude(final String callerClass, final ClassLoader loader, final String moreMsg) {
 		final StackTraceElement[] el = Thread.currentThread().getStackTrace();//index越小，距本方法越近
 		final ClassLoader checkLoader = (loader==null?ResourceUtil.class.getClassLoader():loader);
 		boolean isFromCallerClass = false;
@@ -1413,6 +1471,9 @@ public class ResourceUtil {
 			if(className.equals("org.jruby.embed.internal.EmbedEvalUnitImpl")){//动态解释执行
 				if(PropertiesManager.isSimu()){
 					LogManager.errToLog("Illegal class [" + className + "] is NOT allowed in stack trace in ClassLoader[" + checkLoader.toString() + "].");
+				}
+				if(moreMsg != null){
+					LogManager.errToLog(moreMsg);
 				}
 				throw new HCSecurityException(PropertiesManager.ILLEGAL_CLASS);
 			}
@@ -1424,20 +1485,22 @@ public class ResourceUtil {
 				}
 //				panel
 //				App.showCenterPanel(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, null, false, true, null, false, true);
+				if(moreMsg != null){
+					LogManager.errToLog(moreMsg);
+				}
 				throw new HCSecurityException(PropertiesManager.ILLEGAL_CLASS);
 			}
 			if(callerClass != null && className.equals(callerClass)){
 				isFromCallerClass = true;
 			}
-//			if(checkSysPackageName(className)){
-//			}else{
-//				throw new HCSecurityException(PropertiesManager.ILLEGAL_CLASS);
-//			}
 		}
 		
 		if(callerClass != null && isFromCallerClass == false){
 			if(PropertiesManager.isSimu()){
 				LogManager.errToLog("Class [" + callerClass + "] should be in stack trace in ClassLoader[" + checkLoader.toString() + "], but NOT.");
+			}
+			if(moreMsg != null){
+				LogManager.errToLog(moreMsg);
 			}
 			throw new HCSecurityException(PropertiesManager.ILLEGAL_CLASS);
 		}
@@ -1499,5 +1562,113 @@ public class ResourceUtil {
 			return d.trim();
 		}
 	}
+
+	/**
+	 * 
+	 * @param host
+	 * @param timeout the time, in milliseconds, before the call aborts
+	 * @return
+	 */
+	public static NetworkInterface searchReachableNetworkInterface(final String host, final int timeout) {
+		try{
+	    	final InetAddress ia = InetAddress.getByName(host);
+	    	final Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
+	    	while(e.hasMoreElements()){
+	    		final NetworkInterface nextElement = e.nextElement();
+				if(ia.isReachable(nextElement, 100, timeout)){
+					return nextElement;
+				}
+	    	}
+		}catch (final Throwable e) {
+		}
+		return null;
+	}
+
+	public static boolean canCreateWiFiAccountOnPlatform(final WiFiDeviceManager platManager) {
+		return platManager != null && platManager.hasWiFiModule() && platManager.canCreateWiFiAccount();
+	}
+
+	/**
+	 * 没有找到返回null
+	 * @param domainOrIP
+	 * @return
+	 */
+	public static InetAddress searchReachableInetAddress(final String domainOrIP){
+		final int timeout = 2000;
+		NetworkInterface availableNI = searchReachableNetworkInterface(domainOrIP, timeout);
+		
+		int total = 0;
+		while(availableNI == null && total < 5000){
+			try{
+				total += 500;
+				Thread.sleep(500);
+			}catch (final Exception e) {
+			}
 	
+			availableNI = searchReachableNetworkInterface(domainOrIP, timeout);
+		}
+		
+		if(availableNI != null){
+			InetAddress out = HttpUtil.filerInetAddress(availableNI, false);
+			if(out == null){
+				out = HttpUtil.filerInetAddress(availableNI, true);
+			}
+			return out;
+		}else{
+			LogManager.errToLog("[" + domainOrIP + "] is unreachable via ICMP ECHO REQUEST!");
+		}
+		
+		return null;
+	}
+
+	public static String getProductName() {
+		return (String) get(UILang.PRODUCT_NAME);
+	}
+
+	public static void doCopyShortcutForMac() {
+		if(isMacOSX()){//JRE7缺省是正确的，但是不同Skin会导致被覆盖
+			final UIDefaults defaultsUI = UIManager.getDefaults();
+			for (final Enumeration keys = defaultsUI.keys(); keys
+					.hasMoreElements();) {
+				final Object key = keys.nextElement();
+				
+				if(key instanceof String){
+					final String keyStr = (String)key;
+					if(keyStr.endsWith(".focusInputMap")){
+						final InputMap im = (InputMap) defaultsUI.get(keyStr);//"TextField.focusInputMap"
+						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.META_DOWN_MASK), DefaultEditorKit.copyAction);
+						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.META_DOWN_MASK), DefaultEditorKit.pasteAction);
+						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.META_DOWN_MASK), DefaultEditorKit.cutAction);
+					}
+				}
+			}
+		}
+	}
+
+	public static BufferedImage standardMenuIconForAllPlatform(BufferedImage bi, final int toSize, final boolean roundWithSize) {
+		final int cornDegree = 30;
+	
+		if(bi.getWidth() != toSize || bi.getHeight() != toSize){
+			bi = resizeImage(bi, toSize, toSize);
+			if(roundWithSize){
+				bi = ImageSrc.makeRoundedCorner(bi, cornDegree);
+			}
+		}
+		if(roundWithSize == false){
+			bi = ImageSrc.makeRoundedCorner(bi, cornDegree);
+		}
+		return bi;
+	}
+
+	public static String getElementIDFromTarget(final String target) {
+		try{
+			return target.substring(target.indexOf(HCURL.HTTP_SPLITTER) + HCURL.HTTP_SPLITTER.length());
+		}catch (final Throwable e) {
+			throw new MissingFormatArgumentException("invalid target : " + target);
+		}
+	}
+
+	public static boolean isDisableUIForTest() {
+		return PropertiesManager.isSimu();
+	}
 }

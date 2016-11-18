@@ -1,6 +1,7 @@
 package hc.util;
 
 import hc.core.util.StringUtil;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -10,8 +11,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+
 import javax.swing.BorderFactory;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -28,19 +29,19 @@ public class IPv4Field extends JTextField{
 	private JTextField[] fields;
 	
 	@Override
-	public void addKeyListener(KeyListener listener){
+	public void addKeyListener(final KeyListener listener){
 		for (int i = 0; i < fields.length; i++) {
 			fields[i].addKeyListener(listener);
 		}
 	}
 
-	public IPv4Field(String ipv4Address) {
+	public IPv4Field(final String ipv4Address) {
 		init();
 		setAddress(ipv4Address);
 	}
 	
 	@Override
-	public void setText(String text){
+	public void setText(final String text){
 		setAddress(text);
 	}
 	
@@ -57,18 +58,19 @@ public class IPv4Field extends JTextField{
 		
 		this.fields = new JTextField[4];
 		this.dots = new JLabel[3];
-		JPanel[] fieldPanes = new JPanel[4];
+		final JPanel[] fieldPanes = new JPanel[4];
 		
 		final KeyAdapter keyListener = new KeyAdapter(){
-			public void keyTyped(KeyEvent e){
-				JTextComponent field = (JTextComponent) e.getComponent();
-				char keyChar = e.getKeyChar();
-				String text = field.getText();
-				String selText = field.getSelectedText();
+			@Override
+			public void keyTyped(final KeyEvent e){
+				final JTextComponent field = (JTextComponent) e.getComponent();
+				final char keyChar = e.getKeyChar();
+				final String text = field.getText();
+				final String selText = field.getSelectedText();
 				if (("0123456789".indexOf(keyChar) >= 0)) {
 					if (selText == null) {
 						final String afterInputStr = text + keyChar;
-						int ipInt = (text.length() == 0 ? 0 : Integer.parseInt(afterInputStr));
+						final int ipInt = (text.length() == 0 ? 0 : Integer.parseInt(afterInputStr));
 
 						if(ipInt > 255){
 							e.setKeyChar('\0');
@@ -86,14 +88,15 @@ public class IPv4Field extends JTextField{
 				}
 			}
 					
-			public void keyPressed(KeyEvent e) {
-				JTextComponent field = (JTextComponent) e.getComponent();
-				int keyCode = e.getKeyCode();
-				char keyChar = e.getKeyChar();
-				String text = field.getText();
-				boolean isNotSeleted = (field.getSelectedText() == null);
-				int caretPos = field.getCaretPosition();
-				int textLength = text.length();
+			@Override
+			public void keyPressed(final KeyEvent e) {
+				final JTextComponent field = (JTextComponent) e.getComponent();
+				final int keyCode = e.getKeyCode();
+				final char keyChar = e.getKeyChar();
+				final String text = field.getText();
+				final boolean isNotSeleted = (field.getSelectedText() == null);
+				final int caretPos = field.getCaretPosition();
+				final int textLength = text.length();
 				if(isNotSeleted && (keyCode == KeyEvent.VK_LEFT) && (caretPos == 0)) {
 					field.firePropertyChange(LEFT, 0, 1);
 				} else if (isNotSeleted && (keyCode == KeyEvent.VK_RIGHT) && (caretPos == textLength)) {
@@ -107,7 +110,7 @@ public class IPv4Field extends JTextField{
 				} else if (("0123456789".indexOf(keyChar) >= 0)) {
 					if (isNotSeleted) {
 						final String afterInputStr = text + keyChar;
-						int ipInt = (text.length() == 0 ? 0 : Integer.parseInt(afterInputStr));
+						final int ipInt = (text.length() == 0 ? 0 : Integer.parseInt(afterInputStr));
 
 						if (ipInt > 25 || afterInputStr.length() == 3) {
 							field.firePropertyChange(RIGHT, 0, 1);
@@ -118,7 +121,7 @@ public class IPv4Field extends JTextField{
 		};
 
 		for (int i = 0; i < fields.length; i++) {
-			JTextField field = new JTextField();
+			final JTextField field = new JTextField();
 			field.setHorizontalAlignment(JTextField.CENTER);
 			field.setBorder(BorderFactory.createEmptyBorder());
 			field.setMargin(new Insets(0, 0, 0, 0));
@@ -130,7 +133,7 @@ public class IPv4Field extends JTextField{
 			fieldPanes[i].setOpaque(false);
 			fieldPanes[i].setLayout(new BorderLayout());
 			if (i != dots.length) {
-				JLabel dot = new JLabel(".");
+				final JLabel dot = new JLabel(".");
 				dot.setOpaque(false);
 				dot.setBorder(BorderFactory.createEmptyBorder());
 				dot.setHorizontalAlignment(JLabel.CENTER);
@@ -155,7 +158,7 @@ public class IPv4Field extends JTextField{
 
 	private final void setPrefersize() {
 		final int fontSize = getFont().getSize();
-		Dimension size = new Dimension(fontSize * 12, (int)(fontSize * 1.5F));
+		final Dimension size = new Dimension(fontSize * 12, (int)(fontSize * 1.5F));
 		setPreferredSize(size);
 	}
 
@@ -165,20 +168,22 @@ public class IPv4Field extends JTextField{
 	}
 
 	public final String getAddress() {
-		StringBuilder ipText = new StringBuilder();
+		final StringBuilder ipText = StringBuilderCacher.getFree();
 		for (int i = 0; i < fields.length; i++) {
-			String str = fields[i].getText();
+			final String str = fields[i].getText();
 
 			if(i != 0){
 				ipText.append('.');
 			}
 			ipText.append(str);
 		}
-		return ipText.toString();
+		final String out = ipText.toString();
+		StringBuilderCacher.cycle(ipText);
+		return out;
 	}
 
 	@Override
-	public void setEnabled(boolean isEnable) {
+	public void setEnabled(final boolean isEnable) {
 		super.setEnabled(isEnable);
 
 		for (int i = 0; i < fields.length; i++) {
@@ -190,11 +195,11 @@ public class IPv4Field extends JTextField{
 		}
 	}
 
-	public final void setAddress(String ip) {
+	public final void setAddress(final String ip) {
 		int index;
 
 		if (ip != null && ip.length() > 0) {
-			String[] part = StringUtil.splitToArray(ip, ".");
+			final String[] part = StringUtil.splitToArray(ip, ".");
 			index = 0;
 			for (int i = 0; i < fields.length; i++) {
 				fields[i].setText(part[(index++)]);
@@ -213,16 +218,17 @@ public class IPv4Field extends JTextField{
 	}
 
 	private class JumpListener implements PropertyChangeListener {
-		private JTextField preField;
-		private JTextField nextField;
+		private final JTextField preField;
+		private final JTextField nextField;
 
-		public JumpListener(JTextField preField, JTextField nextField) {
+		public JumpListener(final JTextField preField, final JTextField nextField) {
 			this.preField = preField;
 			this.nextField = nextField;
 		}
 
-		public void propertyChange(PropertyChangeEvent e) {
-			String name = e.getPropertyName();
+		@Override
+		public void propertyChange(final PropertyChangeEvent e) {
+			final String name = e.getPropertyName();
 
 			if ((this.preField != null) && ((name == LEFT) || (name == BACK_SPACE))) {
 				this.preField.requestFocus();

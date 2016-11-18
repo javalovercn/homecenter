@@ -14,12 +14,14 @@ import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
 import hc.core.util.ThumbnailHelper;
 import hc.core.util.TimeWatcher;
+import hc.server.MultiUsingManager;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
 import hc.server.data.DAOKeyComper;
 import hc.server.data.KeyComperPanel;
-import hc.server.ui.ClientDesc;
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.SingleMessageNotify;
+import hc.server.ui.design.J2SESession;
 import hc.server.util.IDArrayGroup;
 import hc.util.ResourceUtil;
 
@@ -69,8 +71,8 @@ public class ScreenCapturer extends PNGCapturer{
 		DAOKeyComper.getInstance(this);
 	}
 
-	public ScreenCapturer(final int clientWidth, final int clientHeight, final int pcWidth, final int pcHeight) {
-		super(pcWidth, pcHeight, true, 0);//全屏式
+	public ScreenCapturer(final J2SESession coreSS, final int clientWidth, final int clientHeight, final int pcWidth, final int pcHeight) {
+		super(coreSS, pcWidth, pcHeight, true, 0);//全屏式
 	
 		timeWatcher = new TimeWatcher(60 * 1000) {//超过一分钟
 			@Override
@@ -117,7 +119,7 @@ public class ScreenCapturer extends PNGCapturer{
 						for (int idxRGB = 0; idxRGB < thumbnailSize; idxRGB++) {
 							final int c = screenRGBData[idxRGB];
 							if(c != 0xFF000000){//纯黑保持不变
-								screenRGBData[idxRGB] = c | mask;
+								screenRGBData[idxRGB] = c | coreSS.mask;
 							}
 						}
 						
@@ -155,7 +157,7 @@ public class ScreenCapturer extends PNGCapturer{
 		screenHeigh = pcHeight;
 		
 		{
-			KeyComperPanel.sendExtMouse();
+			KeyComperPanel.sendExtMouse(coreSS);
 		}
 
 		setCaptureID(HCURL.REMOTE_HOME_SCREEN, HCURL.REMOTE_HOME_SCREEN);
@@ -241,9 +243,9 @@ public class ScreenCapturer extends PNGCapturer{
 		cycleCapture();
 	}
 	
-	public static boolean isDirectServerMode(){
-		if(SIPManager.isOnRelay() == false){
-			final short connMode = ContextManager.getConnectionModeStatus();
+	private final boolean isDirectServerMode(){
+		if(SIPManager.isOnRelay(coreSS) == false){
+			final short connMode = coreSS.context.getConnectionModeStatus();
 			if(connMode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
 				return true;
 			}
@@ -256,7 +258,7 @@ public class ScreenCapturer extends PNGCapturer{
 			if(IDArrayGroup.checkAndAdd(IDArrayGroup.MSG_NOTIFIED_SERVER_DIRECT_MODE) == false){
 			}else{
 				L.V = L.O ? false : LogManager.log("Detect Server is in direct mode, notify mobile.");
-				ContextManager.getContextInstance().send(null, MsgBuilder.E_TAG_ROOT, 
+				coreSS.context.send(null, MsgBuilder.E_TAG_ROOT, 
 						MsgBuilder.DATA_ROOT_SERVER_IN_DIRECT_MODE);
 			}
 		}
@@ -291,8 +293,10 @@ public class ScreenCapturer extends PNGCapturer{
 		
 //		Point mousepoint = MouseInfo.getPointerInfo().getLocation();  
 //		robot.mouseMove(0, 0);//会导致弹出移动，最小化菜单，故关闭
-		robot.keyPress(KeyEvent.VK_CONTROL);
-		robot.keyRelease(KeyEvent.VK_CONTROL);
+		synchronized (robot) {
+			robot.keyPress(KeyEvent.VK_CONTROL);
+			robot.keyRelease(KeyEvent.VK_CONTROL);
+		}
 //		robot.mouseMove(mousepoint.x, mousepoint.y);
 		
 		ContextManager.getThreadPool().run(new Runnable() {
@@ -359,23 +363,28 @@ public class ScreenCapturer extends PNGCapturer{
 			L.V = L.O ? false : LogManager.log(OP_STR + "Mouse move to (" + pointX + ", " + pointY + ")");
 		}else if(type == DataInputEvent.TYPE_MOUSE_LEFT_CLICK){
 			L.V = L.O ? false : LogManager.log(OP_STR + "Mouse left click at (" + pointX + ", " + pointY + ")");
-			robot.mouseMove(pointX, pointY);
-			robot.mousePress(InputEvent.BUTTON1_MASK);
-			robot.mouseRelease(InputEvent.BUTTON1_MASK);
+			synchronized (robot) {
+				robot.mouseMove(pointX, pointY);
+				robot.mousePress(InputEvent.BUTTON1_MASK);
+				robot.mouseRelease(InputEvent.BUTTON1_MASK);
+			}
 		}else if(type == DataInputEvent.TYPE_MOUSE_RIGHT_CLICK){
 			L.V = L.O ? false : LogManager.log(OP_STR + "Mouse right click at (" + pointX + ", " + pointY + ")");
-			robot.mouseMove(pointX, pointY);
-			robot.mousePress(InputEvent.BUTTON3_MASK);
-			robot.mouseRelease(InputEvent.BUTTON3_MASK);			
+			synchronized (robot) {
+				robot.mouseMove(pointX, pointY);
+				robot.mousePress(InputEvent.BUTTON3_MASK);
+				robot.mouseRelease(InputEvent.BUTTON3_MASK);			
+			}
 		}else if(type == DataInputEvent.TYPE_MOUSE_DOUBLE_CLICK){
 			L.V = L.O ? false : LogManager.log(OP_STR + "Mouse double click at (" + pointX + ", " + pointY + ")");
-			
-			robot.mouseMove(pointX, pointY);
-			
-			robot.mousePress(InputEvent.BUTTON1_MASK);
-			robot.mouseRelease(InputEvent.BUTTON1_MASK);			
-			robot.mousePress(InputEvent.BUTTON1_MASK);
-			robot.mouseRelease(InputEvent.BUTTON1_MASK);			
+			synchronized (robot) {
+				robot.mouseMove(pointX, pointY);
+				
+				robot.mousePress(InputEvent.BUTTON1_MASK);
+				robot.mouseRelease(InputEvent.BUTTON1_MASK);			
+				robot.mousePress(InputEvent.BUTTON1_MASK);
+				robot.mouseRelease(InputEvent.BUTTON1_MASK);		
+			}
 		}else if(type == DataInputEvent.TYPE_TRANS_TEXT){
 			try {
 				final String s = event.getTextDataAsString();
@@ -424,7 +433,7 @@ public class ScreenCapturer extends PNGCapturer{
 				if(vInt == null){
 					L.V = L.O ? false : LogManager.log("Unknow ext icon idx:" + type);
 				}else{
-					KeyComper.keyAction(robot, vInt, keysDesc[0]);
+					KeyComper.keyAction(coreSS, robot, vInt, keysDesc[0]);
 				}
 			}
 		}
@@ -539,17 +548,21 @@ public class ScreenCapturer extends PNGCapturer{
     }
 	
 	private static void doType(final Robot r, final int keyCode) {
-        r.keyPress(keyCode);
-        r.keyRelease(keyCode);
+		synchronized (r) {
+	        r.keyPress(keyCode);
+	        r.keyRelease(keyCode);
+		}
     }
 	
 	private static void doType(final Robot r, final int keyCode1, final int keyCode2) {
-        r.keyPress(keyCode1);
-
-        r.keyPress(keyCode2);
-        r.keyRelease(keyCode2);
-
-        r.keyRelease(keyCode1);
+		synchronized (r) {
+	        r.keyPress(keyCode1);
+	
+	        r.keyPress(keyCode2);
+	        r.keyRelease(keyCode2);
+	
+	        r.keyRelease(keyCode1);
+		}
     }
 	
 	private boolean inputKeyStr(final String txt){
@@ -584,15 +597,19 @@ public class ScreenCapturer extends PNGCapturer{
 			}
 		}
 		final int abstractCtrlKeyCode = ResourceUtil.getAbstractCtrlKeyCode();
-		robot.keyPress(abstractCtrlKeyCode);
-		robot.keyPress(key);
-		robot.keyRelease(key);
-		robot.keyRelease(abstractCtrlKeyCode);
+		synchronized (robot) {
+			robot.keyPress(abstractCtrlKeyCode);
+			robot.keyPress(key);
+			robot.keyRelease(key);
+			robot.keyRelease(abstractCtrlKeyCode);
+		}
 	}
 	
 	public void backspace(){
-		robot.keyPress(KeyEvent.VK_BACK_SPACE);
-		robot.keyRelease(KeyEvent.VK_BACK_SPACE);
+		synchronized (robot) {
+			robot.keyPress(KeyEvent.VK_BACK_SPACE);
+			robot.keyRelease(KeyEvent.VK_BACK_SPACE);
+		}
 	}
 	
 	public void copytxtToMobi(){
@@ -618,7 +635,7 @@ public class ScreenCapturer extends PNGCapturer{
 		    		e.setType(DataInputEvent.TYPE_TRANS_TEXT);
 	
 		    		e.setTextData(txt_bs, 0, txt_bs.length);
-		    		ContextManager.getContextInstance().send(
+		    		coreSS.context.send(
 		    				MsgBuilder.E_INPUT_EVENT, txtToMobiBS, e.getLength());
 				} catch (final UnsupportedEncodingException e) {
 					ExceptionReporter.printStackTrace(e);
@@ -634,12 +651,13 @@ public class ScreenCapturer extends PNGCapturer{
 	}
 	
 	public void dragAndDrop(final int startX, final int startY, final int endX, final int endY){
-		robot.mouseMove(startX, startY);
-		robot.mousePress(InputEvent.BUTTON1_MASK);
-		
-		robot.mouseMove(endX, endY);
-		robot.mouseRelease(InputEvent.BUTTON1_MASK);
-		
+		synchronized (robot) {
+			robot.mouseMove(startX, startY);
+			robot.mousePress(InputEvent.BUTTON1_MASK);
+			
+			robot.mouseMove(endX, endY);
+			robot.mouseRelease(InputEvent.BUTTON1_MASK);
+		}
 //		ctrlSomeKey(KeyEvent.VK_C);
 		
 		L.V = L.O ? false : LogManager.log(OP_STR + "drag from ["+startX + ", " + startY+"] to [" + endX + ", " + endY + "]");
@@ -851,19 +869,22 @@ public class ScreenCapturer extends PNGCapturer{
 	 * @param y
 	 */
 	public void refreshRectange(final int x, final int y){	
+		final int mobileWidth = UserThreadResourceUtil.getMobileWidthFrom(coreSS);
+		final int mobileHeight = UserThreadResourceUtil.getMobileHeightFrom(coreSS);
+		
 		synchronized (LOCK) {
 //			locX = 0;
 //			locY = 0;
 			
 			final Rectangle firstRect = new Rectangle(x, y, 
-					Math.min(ClientDesc.getClientWidth(), screenWidth), Math.min(ClientDesc.getClientHeight(), screenHeigh));
+					Math.min(mobileWidth, screenWidth), Math.min(mobileHeight, screenHeigh));
 //			L.V = L.O ? false : LogManager.log("First Screen x : " + x + ", y : " + y + ", w : " + firstRect.width + ", h : " + firstRect.height);
 			sendPNG(firstRect, firstRect.width, false);
 		}
 		
 		final int[] screenSize = ResourceUtil.getSimuScreenSize();
 		
-		if(screenSize[0] > ClientDesc.getClientWidth() || screenSize[1] > ClientDesc.getClientHeight()){
+		if(screenSize[0] > mobileWidth || screenSize[1] > mobileHeight){
 			//发送全部
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
@@ -944,6 +965,7 @@ public class ScreenCapturer extends PNGCapturer{
 
 	@Override
 	public void onExit(){
+		MultiUsingManager.exit(coreSS, MultiUsingManager.NULL_PROJECT_ID, HCURL.URL_HOME_SCREEN);
 		super.onExit();
 	}
 
@@ -967,13 +989,13 @@ public class ScreenCapturer extends PNGCapturer{
 //					LogManager.errToLog("  screen is locked after pressed Win + L or screen save is triggered,");
 		LogManager.errToLog("  mobile displays black if server is in lock mode in some older OS");
 		LogManager.errToLog("  please disable screen lock or screen saver.");
-		ContextManager.getContextInstance().send(null, MsgBuilder.E_TAG_ROOT, 
+		coreSS.context.send(null, MsgBuilder.E_TAG_ROOT, 
 				MsgBuilder.DATA_ROOT_OS_IN_LOCK);
 				
 		SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_SCR_LOCKING, 
 				(String)ResourceUtil.get(9088), 
 				(String)ResourceUtil.get(9087), SingleMessageNotify.NEVER_AUTO_CLOSE, App.getSysIcon(App.SYS_ERROR_ICON));
 		
-		RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_LockScreen_STR);
+		RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_LockScreen_STR);
 	}
 }

@@ -6,8 +6,11 @@ import hc.core.data.DataInputEvent;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
+import hc.server.MultiUsingManager;
 import hc.server.ScreenServer;
 import hc.server.data.screen.PNGCapturer;
+import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.ProjResponser;
 import hc.util.ResourceUtil;
 
 import java.awt.AWTEvent;
@@ -46,6 +49,7 @@ import javax.swing.JToggleButton;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.text.JTextComponent;
+
 public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
     
     final int width, height;
@@ -61,9 +65,10 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	final static boolean isAndroidServer = ResourceUtil.isAndroidServerPlatform();
 	final boolean isJ2SEPanelInset = ResourceUtil.isJ2SELimitFunction();
 	public ProjectContext projectContext;
+	private ProjResponser projResp;
 	
-	public MletSnapCanvas(final int w, final int h) {
-		super(w, h, false, getMaskFromBit(IConstant.COLOR_64_BIT));
+	public MletSnapCanvas(final J2SESession coreSS, final int w, final int h) {
+		super(coreSS, w, h, false, getMaskFromBit(IConstant.COLOR_64_BIT));
 		
 		this.width = w;
 		this.height = h;
@@ -93,17 +98,19 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	}
 	
 	@Override
-	public void setMlet(final Mlet mlet, final ProjectContext projectCtx){
+	public void setMlet(final J2SESession coreSS, final Mlet mlet, final ProjectContext projectCtx){
 		this.mlet = mlet;
 		ServerUIAPIAgent.setProjectContext(mlet, projectCtx);
 		projectContext = projectCtx;
+		projResp = ServerUIAPIAgent.getProjResponserMaybeNull(projectContext);
 		
-		projectContext.runAndWait(new Runnable() {
+		frame = new JFrame();//不能入Session会导致block showWindowWithoutWarningBanner
+		frameCombobox = new JFrame();
+		frameCombobox.getContentPane().setLayout(new BorderLayout());
+		
+		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, new Runnable() {
 			@Override
 			public void run() {
-				frame = new JFrame();
-				frameCombobox = new JFrame();
-				frameCombobox.getContentPane().setLayout(new BorderLayout());
 				scrollPane = new JScrollPane(mlet, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 			}
 		});
@@ -285,7 +292,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	@Override
 	public int grabImage(final Rectangle bc, final int[] blockImageData) {
 		if(bc.x == 0 && bc.y == 0){
-			projectContext.runAndWait(scrollPrintRunnable);
+			ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, scrollPrintRunnable);
 			if(isJ2SEPanelInset){
 				bufferedImage.getRGB(J2SE_JPANEL_INSETS, J2SE_JPANEL_INSETS, width, height, imageData, 0, width);
 //				eraseMletEdge(imageData, width, height);
@@ -306,7 +313,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 						(bufferedImageCombo.getWidth() != listWidth || bufferedImageCombo.getHeight() != listHeight)){
 					bufferedImageCombo = new BufferedImage(listWidth, listHeight, BufferedImage.TYPE_INT_RGB);
 				}
-				projectContext.runAndWait(listPrintRunnable);
+				ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, listPrintRunnable);
 				
 				final int startX = locComboX, startY = locComboY;
 
@@ -353,7 +360,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	public final boolean actionInput(final DataInputEvent e) {
 		final boolean[] out = new boolean[1];
 		
-		projectContext.runAndWait(new Runnable() {
+		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, new Runnable() {
 			@Override
 			public void run() {
 				out[0] = actionInputInUserThread(e);
@@ -829,7 +836,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		if(currFocusObject == componentAt){
 			if(isEditableComponent(componentAt)){
 				//发送编辑文本指令到手机
-				HCURLUtil.sendGoPara(HCURL.DATA_PARA_INPUT, "all");//all表示支持全部类型
+				HCURLUtil.sendGoPara(coreSS, HCURL.DATA_PARA_INPUT, "all");//all表示支持全部类型
 			}
 		}else{
 			final FocusEvent fe = new FocusEvent(componentAt, FocusEvent.FOCUS_GAINED);
@@ -969,7 +976,9 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	
 	@Override
 	public void onExit(final boolean isAutoReleaseAfterGo){
-		ScreenServer.onExitForMlet(projectContext, mlet, isAutoReleaseAfterGo);
+		ScreenServer.onExitForMlet(coreSS, projectContext, mlet, isAutoReleaseAfterGo);
+		MultiUsingManager.exit(coreSS, projectContext.getProjectID(), mlet.getTarget());
+		
 		frame.dispose();
 		frameCombobox.dispose();
 		
@@ -980,19 +989,19 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	public void onStart() {
 		super.start();
 
-		ScreenServer.onStartForMlet(projectContext, mlet);
+		ScreenServer.onStartForMlet(coreSS, projectContext, mlet);
 	}
 
 	@Override
 	public void onPause() {
 		enableStopCap(true);
-		ScreenServer.onPauseForMlet(projectContext, mlet);
+		ScreenServer.onPauseForMlet(coreSS, projectContext, mlet);
 	}
 
 	@Override
 	public void onResume() {
 		enableStopCap(false);
-		ScreenServer.onResumeForMlet(projectContext, mlet);
+		ScreenServer.onResumeForMlet(coreSS, projectContext, mlet);
 	}
 
 	public static final int FIRE = 8;
@@ -1037,5 +1046,23 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		}
 		return false;
 	}
-
+	
+	@Override
+	public boolean isSameScreenIDIgnoreCase(final char[] chars, final int offset, final int len){
+		if(len == pngCaptureIDChars.length){
+			for (int i = 0; i < len; i++) {
+				final char c1 = pngCaptureIDChars[i];
+				final char c2 = chars[offset + i];
+				if(c1 == c2
+						|| Character.toUpperCase(c1) == Character.toUpperCase(c2)
+						|| Character.toLowerCase(c1) == Character.toLowerCase(c2)){
+				}else{
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+	
 }

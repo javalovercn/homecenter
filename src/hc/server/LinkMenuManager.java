@@ -67,12 +67,4 @@ public class LinkMenuManager {
 		}
 	}
 
-	public static void startAutoUpgradeBiz(){
-		try {
-			Designer.startAutoUpgradeBiz();
-		} catch (final Throwable e) {
-			App.showConfirmDialog(null, "startAutoUpgradeBiz error : " + e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
-		}
-	}
-	
 }

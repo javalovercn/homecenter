@@ -1,7 +1,6 @@
 package hc.server.util;
 
 import hc.App;
-import hc.core.ContextManager;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
@@ -27,15 +26,16 @@ import javax.crypto.spec.DESKeySpec;
 public class ServerCUtil {
 	/**
 	 * 
+	 * @param ctx 
 	 * @param data
 	 * @param offset
 	 * @param certKeyLen
 	 * @param storeVerifyIdx
 	 * @return
 	 */
-	public static short checkCertKeyAndPwd(final byte[] data, final int offset, final byte[] pwd, final byte[] certKey, final byte[] oldData){
+	public static short checkCertKeyAndPwd(final IContext ctx, final byte[] OneTimeCertKey, final byte[] data, final int offset, final byte[] pwd, final byte[] certKey, final byte[] oldData){
 //		LogManager.logInTest("before : \n" + CUtil.toHexString(oldData, CUtil.VERIFY_CERT_IDX + offset, CCoreUtil.CERT_KEY_LEN));
-		CUtil.buildCheckCertKeyAndPwd(oldData, offset, pwd, certKey, true);
+		CUtil.buildCheckCertKeyAndPwd(ctx, OneTimeCertKey, oldData, offset, pwd, certKey, true);
 //		LogManager.logInTest("after : \n" + CUtil.toHexString(oldData, CUtil.VERIFY_CERT_IDX + offset, CCoreUtil.CERT_KEY_LEN));
 //		LogManager.logInTest("receive ckp : \n" + CUtil.toHexString(data, CUtil.VERIFY_CERT_IDX + offset, CCoreUtil.CERT_KEY_LEN));
 		final int endIdx = CUtil.VERIFY_CERT_IDX + CCoreUtil.CERT_KEY_LEN;
@@ -79,30 +79,27 @@ public class ServerCUtil {
 		LogManager.errToLog(errPwd);
 	}
 
-	public static void transCertKey(final byte[] oneTimeCertKey, final byte msgTag, final boolean isOneTimeKeys) {
-		final IContext ic = ContextManager.getContextInstance();
+	public static void transCertKey(final IContext ic, final byte[] oneTimeCertKey, final byte msgTag, final boolean isOneTimeKeys) {
 		final byte[] transCKBS = new byte[MsgBuilder.UDP_BYTE_SIZE];
 		
-		CUtil.generateTransCertKey(ResourceUtil.getStartMS(), transCKBS, MsgBuilder.INDEX_MSG_DATA, oneTimeCertKey, IConstant.getPasswordBS(), isOneTimeKeys);
+		CUtil.generateTransCertKey(ic, ic.coreSS.OneTimeCertKey, ResourceUtil.getStartMS(), transCKBS, MsgBuilder.INDEX_MSG_DATA, oneTimeCertKey, IConstant.getPasswordBS(), isOneTimeKeys);
 		
 		ic.send(msgTag, transCKBS, CUtil.TRANS_CERT_KEY_LEN);
 	}
 
 
-	public static void transOneTimeCertKey() {
-		CCoreUtil.checkAccess();
-		
+	public static void transOneTimeCertKey(final IContext ctx) {
 		L.V = L.O ? false : LogManager.log("transport one time certification key to client");
 		
 		//传输OneTimeCertKey
-		byte[] oneTimeCertKey = CUtil.getOneTimeCertKey();
+		byte[] oneTimeCertKey = ctx.coreSS.OneTimeCertKey;
 		if(oneTimeCertKey == null){
 			oneTimeCertKey = new byte[CCoreUtil.CERT_KEY_LEN];
-			CUtil.setOneTimeCertKey(oneTimeCertKey);
+			ctx.coreSS.setOneTimeCertKey(oneTimeCertKey);
 		}
 		CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), oneTimeCertKey, 0, CCoreUtil.CERT_KEY_LEN);
 //		L.V = L.O ? false : LogManager.log("OneTime:" + CUtil.toHexString(CUtil.OneTimeCertKey));
-		transCertKey(oneTimeCertKey, MsgBuilder.E_TRANS_ONE_TIME_CERT_KEY, true);
+		transCertKey(ctx, oneTimeCertKey, MsgBuilder.E_TRANS_ONE_TIME_CERT_KEY, true);
 	}
 	
 	private final static String Algorithm = "DES"; // 定义 加密算法,可用DES,DESede,Blowfish

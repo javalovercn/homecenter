@@ -3,9 +3,9 @@ package hc.util;
 import hc.App;
 import hc.core.IConstant;
 import hc.core.RootServerConnector;
-import hc.core.sip.SIPManager;
 import hc.core.util.CCoreUtil;
 import hc.server.AbstractDelayBiz;
+import hc.server.ui.J2SESessionManager;
 
 import java.io.UnsupportedEncodingException;
 
@@ -122,6 +122,6 @@ public class TokenManager {
 		});
 		
 		//强制重连
-		SIPManager.startRelineonForce(false);
+		J2SESessionManager.stopAllSession(false, true, true);
 	}
 }

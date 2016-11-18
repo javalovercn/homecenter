@@ -25,8 +25,6 @@ public abstract class IConstant {
 	static String uuid, password;
 	
 	public static final String getUUID(){
-		CCoreUtil.checkAccess();
-		
 		return uuid;
 	}
 	
@@ -42,8 +40,6 @@ public abstract class IConstant {
 	}
 	
 	public static final String getPassword(){
-		CCoreUtil.checkAccess();
-		
 		RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_CHECK_STACK_TRACE, null);
 		
 		return password;
@@ -75,7 +71,7 @@ public abstract class IConstant {
 	}
 	
 	public static byte[] getPasswordBS(){
-		CCoreUtil.checkAccess();
+		RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_CHECK_STACK_TRACE, null);
 		return passwordBS;
 	}
 	
@@ -128,13 +124,13 @@ public abstract class IConstant {
 	}
 
 	public static void setServerSide(final boolean s) {
-		CCoreUtil.checkAccess();
+		RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_CHECK_STACK_TRACE, null);
 		
 		serverSide = s;
 	}
 
 	public static void setUUID(final String uid){
-		CCoreUtil.checkAccess();
+		RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_CHECK_STACK_TRACE, null);
 		
 		uuid = uid;
 		
@@ -147,7 +143,7 @@ public abstract class IConstant {
 	}
 
 	public static void setPassword(final String pwd){
-		CCoreUtil.checkAccess();
+		RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_CHECK_STACK_TRACE, null);
 		
 		password = pwd;
 		try {

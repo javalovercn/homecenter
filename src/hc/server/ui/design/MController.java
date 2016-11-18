@@ -3,6 +3,7 @@ package hc.server.ui.design;
 import hc.core.util.HCURL;
 import hc.core.util.StoreableHashMap;
 import hc.server.ui.MUIView;
+import hc.util.StringBuilderCacher;
 
 public class MController extends MUIView {
 	final StoreableHashMap map;
@@ -13,8 +14,8 @@ public class MController extends MUIView {
 	}
 
 	@Override
-	public String buildJcip() {
-		StringBuilder sb = new StringBuilder();
+	public String buildJcip(final J2SESession coreSS) {
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		
 		sb.append("{'" + HCURL.CONTROLLER_PROTOCAL + "' : ");
 		
@@ -37,7 +38,10 @@ public class MController extends MUIView {
 //			appendInt(sb, getSize(), false);
 			
 		sb.append("}}");
-		return sb.toString();
+		
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		return out;
 	}
 
 }

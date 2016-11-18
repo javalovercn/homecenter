@@ -74,6 +74,7 @@ public class TypeWizard {
 						|| text.equals(HCURL.DATA_CMD_CONFIG)
 						){
 				}else{
+					text = ResourceUtil.buildFirstUpcaseString(text);
 					text += MenuManager.getNextNodeIdx();
 				}
 				final String url = HCURL.buildStandardURL(BaseMenuItemNodeEditPanel.getProtocal(type), text);
@@ -310,11 +311,11 @@ public class TypeWizard {
 	private static HPNode buildItem(final int type, final HCURL hcurl){
 		if(type == HPNode.TYPE_MENU_ITEM_IOT){
 			int subType = 0;
-			if(hcurl.url.indexOf(HCURL.DATA_IOT_ROBOT.toLowerCase()) >= 0){
+			if(hcurl.getURLLower().indexOf(HCURL.DATA_IOT_ROBOT.toLowerCase()) >= 0){
 				subType = HPNode.MASK_MSB_ROBOT;
-			}else if(hcurl.url.indexOf(HCURL.DATA_IOT_CONVERTER.toLowerCase()) >= 0){
+			}else if(hcurl.getURLLower().indexOf(HCURL.DATA_IOT_CONVERTER.toLowerCase()) >= 0){
 				subType = HPNode.MASK_MSB_CONVERTER;
-			}else if(hcurl.url.indexOf(HCURL.DATA_IOT_DEVICE.toLowerCase()) >= 0){
+			}else if(hcurl.getURLLower().indexOf(HCURL.DATA_IOT_DEVICE.toLowerCase()) >= 0){
 				subType = HPNode.MASK_MSB_DEVICE;
 			}
 			final HPProcessor menuItem = new HPProcessor(subType,
@@ -433,7 +434,7 @@ public class TypeWizard {
 	
 	private static String buildDefaultTypeURL(final String protocal){
 		if(protocal.equals(HCURL.CONTROLLER_PROTOCAL)){
-			return HCURL.buildStandardURL(protocal, "myctrl");
+			return HCURL.buildStandardURL(protocal, "Myctrl");
 		}
 		return null;
 	}

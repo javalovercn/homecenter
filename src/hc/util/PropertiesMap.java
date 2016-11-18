@@ -38,7 +38,7 @@ public class PropertiesMap extends HashMap<String, String>{
 		if(size() == 0){
 			serialStr = "";
 		}else{
-			final StringBuilder v = new StringBuilder();
+			final StringBuilder v = StringBuilderCacher.getFree();
 			final Iterator<String> it = this.keySet().iterator();
 			boolean isFirst = true;
 			while(it.hasNext()){
@@ -52,6 +52,7 @@ public class PropertiesMap extends HashMap<String, String>{
 			}
 			
 			serialStr = v.toString();
+			StringBuilderCacher.cycle(v);
 		}
 		
 		PropertiesManager.setValue(itemsPrefix, serialStr);

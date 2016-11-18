@@ -81,7 +81,7 @@ public class SocketDesc {
 	}
 	
 	public static final String encode(final SocketDesc socket){
-		final StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		
 		final String[] items = {socket.host, socket.ip, socket.port, socket.portFrom, socket.portTo, String.valueOf(socket.action)};
 		for (int i = 0; i < items.length; i++) {
@@ -93,7 +93,10 @@ public class SocketDesc {
 			sb.append(items[i]);
 		}
 		
-		return sb.toString();
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		
+		return out;
 	}
 	
 	public SocketDesc(final String host, final String ip, final String port, final String portFrom, final String portTo, String action){
@@ -132,7 +135,7 @@ public class SocketDesc {
 	}
 	
 	public final String getHostIPDesc(){
-		final StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		
 		if(isIPMode() == false){
 			final String hostIP = getHost();
@@ -168,11 +171,14 @@ public class SocketDesc {
 			sb.append(getPort());
 		}
 		
-		return sb.toString();
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		
+		return out;
 	}
 	
 	public final String getActionDesc(){
-		final StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		
 		if(isAcceptAction()){
 			sb.append(STR_ACCEPT);
@@ -196,7 +202,10 @@ public class SocketDesc {
 			sb.append(STR_RESOLVE);
 		}
 		
-		return sb.toString();
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		
+		return out;
 	}
 	
 	public void setAction(final int action, final boolean checked){
@@ -294,5 +303,45 @@ public class SocketDesc {
 	
 	public void setPortTo(final String portTo) {
 		this.portTo = portTo;
+	}
+	
+	@Override
+	public String toString(){
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		if(host.length() > 0){
+			sb.append(host);
+		}else{
+			sb.append(ip);
+		}
+		
+		boolean hasPort = false;
+		if(port.length() > 0 || portFrom.length() > 0 || portTo.length() > 0){
+			sb.append(" : ");
+			hasPort = true;
+		}
+		if(hasPort){
+			if(port.length() > 0){
+				sb.append(port);
+			}else{
+				if(portFrom.length() > 0){
+					sb.append(portFrom);
+				}
+				sb.append("-");
+				if(portTo.length() > 0){
+					sb.append(portTo);
+				}
+			}
+		}
+		
+		sb.append(" ");
+		sb.append("(");
+		sb.append(getActionDesc());
+		sb.append(")");
+		
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		
+		return out;
 	}
 }

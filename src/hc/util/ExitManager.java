@@ -2,27 +2,35 @@ package hc.util;
 
 import hc.App;
 import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.RootServerConnector;
+import hc.core.SessionManager;
 import hc.core.sip.SIPManager;
-import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
-import hc.server.KeepaliveManager;
+import hc.core.util.ThreadPool;
+import hc.server.TrayMenuUtil;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
 import hc.server.ProcessingWindowManager;
 import hc.server.ScreenServer;
 import hc.server.SingleJFrame;
 import hc.server.rms.RMSLastAccessTimeManager;
+import hc.server.ui.J2SESessionManager;
+import hc.server.ui.ServerUIUtil;
+import hc.server.ui.design.J2SESession;
 import hc.server.util.HCLimitSecurityManager;
+import hc.server.util.StarterParameter;
 
 public class ExitManager {
 	public static void startExitSystem(){
-		CCoreUtil.checkAccess();
-
+		ResourceUtil.checkHCStackTraceInclude(null, null);
+		
+		J2SESessionManager.notifyReadyShutdown();
+		
 		//直接采用主线程，会导致退出提示信息会延时显示，效果较差
 		ProcessingWindowManager.showCenterMessage((String)ResourceUtil.get(9067));
 		
@@ -46,28 +54,31 @@ public class ExitManager {
 		RMSLastAccessTimeManager.checkIdleAndRemove();
 		RMSLastAccessTimeManager.save();
 
+    	TrayMenuUtil.removeTray(App.getThreadPoolToken());
+
 		HttpUtil.notifyStopServer(false, null);
 		//以上逻辑不能置于notifyShutdown中，因为这些方法有可能被其它外部事件，如手机下线，中继下线触发。
 		
-		try{
-			RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_ServerReq_STR);
-		}catch (final Exception e) {
-			//Anroid环境下，有可能不连接服务器时，产生异常。需catch。
-		}
+		J2SESessionManager.stopAllSession(true, false, false);//注意：是false
 		ExitManager.startForceExitThread();
-		ContextManager.notifyShutdown();		
+		SessionManager.notifyShutdown();		
+		
+    	exit();	
+    	
+		LogManager.exit();
+		ServerUIUtil.stop();
+
+		ThreadPool.shutdown();
+    	SessionManager.shutdown();
+
 	}
 	
-	public static void exit(){
-		CCoreUtil.checkAccess();
-		
-		startForceExitThread();
-		
+	private static void exit(){
 		try{
 			//清除等待客户上线的记录
 			if(IConstant.serverSide){
 				try{
-					final String out = RootServerConnector.delLineInfo(TokenManager.getToken(), false);
+					final String out = RootServerConnector.delLineInfo(TokenManager.getToken(), false);//只在此唯一使用delLineInfo，isMobileLineIn停用
 					if(out != null && out.length() == 0){
 						TokenManager.clearUPnPPort();
 					}
@@ -78,19 +89,24 @@ public class ExitManager {
 			//EventBack=>ConditionWatch=>HCTimer，所以要提前关闭，否则部分对象为null，比如responsor
 			//所以提前到此
 			HCTimer.shutDown();
-
-			PlatformManager.getService().stopCapture();
+			//不能立即ThreadPool.shutdown();
 			
-			ScreenServer.emptyScreen();
+			PlatformManager.getService().stopCaptureIfEnable();
 			
-			SIPManager.close();
+			final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
+			for (int i = 0; i < coreSSS.length; i++) {
+				final CoreSession coreSS = coreSSS[i];
+				
+				ScreenServer.emptyScreen((J2SESession)coreSS);
+				SIPManager.close(coreSS);
+			}
 			
 			try{
-				if(KeepaliveManager.getDirectServer() != null){
-					KeepaliveManager.getDirectServer().shutdown();
+				if(StarterParameter.getDirectServer() != null){
+					StarterParameter.getDirectServer().shutdown();
 				}
-				if(KeepaliveManager.getNIORelay() != null){
-					KeepaliveManager.getNIORelay().shutdown();
+				if(StarterParameter.getNIORelay() != null){
+					StarterParameter.getNIORelay().shutdown();
 				}
 			}catch (final Exception e) {
 				ExceptionReporter.printStackTrace(e);
@@ -101,18 +117,17 @@ public class ExitManager {
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}
-		LogManager.exit();
 		
 		ProcessingWindowManager.disposeProcessingWindow();
 		
-		HCLimitSecurityManager.getHCSecurityManager().getHCEventQueue().shutdown();
+		HCLimitSecurityManager.getHCEventQueue().shutdown();
 		//由于与starter包协同，所以不能执行该命令，因为starter可能正在下载中
 //		System.exit(0);
 	}
 
 	private static boolean isStartedForceExitThread = false;
 	
-	public static void startForceExitThread() {
+	private static void startForceExitThread() {
 		if(isStartedForceExitThread){
 			return;
 		}

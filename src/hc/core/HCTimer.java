@@ -65,6 +65,10 @@ public abstract class HCTimer {
 	private final void init() {
 		CCoreUtil.checkAccess();
 		
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("create HCTimer [" + name + "].");
+		}
+		
 		if(isNewThread == false){
 			notifyToGenerailManager(this);
 		}else{
@@ -72,7 +76,7 @@ public abstract class HCTimer {
 		}
 	}
 	
-	boolean isEnable = true;
+	protected boolean isEnable = true;
 	
 	public final boolean isEnable(){
 		return isEnable;
@@ -163,7 +167,7 @@ public abstract class HCTimer {
 	
 	//线程控制
 	private final static Thread shareThread = new Thread() {//"HCTimer Thread"
-		final NestAction nestAction = EventCenter.nestAction;
+		final NestAction nestAction = (NestAction)ConfigManager.get(ConfigManager.BUILD_NESTACTION, null);//EventCenter.nestAction;
 		
 		public void run() {
 			final long maxMS = TEMP_MAX;
@@ -257,16 +261,12 @@ public abstract class HCTimer {
 			LOCK.notify();
 		}
 		
-		try{
-			synchronized (newThreadTimer) {
-				final int size = newThreadTimer.size();
-				for (int i = 0; i < size; i++) {
-					final ThreadTimer tt = (ThreadTimer)newThreadTimer.elementAt(i);
-					tt.notifyShutdown();
-				}
+		synchronized (newThreadTimer) {
+			final int size = newThreadTimer.size();
+			for (int i = 0; i < size; i++) {
+				final ThreadTimer tt = (ThreadTimer)newThreadTimer.elementAt(i);
+				tt.notifyShutdown();
 			}
-		}finally{
-			ThreadPool.shutdown();
 		}
 	}
 
@@ -307,11 +307,18 @@ public abstract class HCTimer {
 				for (int i = 0; i < size; i++) {
 					final ThreadTimer threadTimer = (ThreadTimer)newThreadTimer.elementAt(i);
 					if(threadTimer.timer == t){
+						isFound = true;
 						threadTimer.notifyShutdown();
 						newThreadTimer.removeElementAt(i);
-						return;
+						break;
 					}
 				}
+			}
+		}
+		
+		if(isFound){
+			if(L.isInWorkshop){
+				L.V = L.O ? false : LogManager.log("remove HCTimer [" + t.name + "]");
 			}
 		}
 	}

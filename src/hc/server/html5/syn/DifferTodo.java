@@ -1,6 +1,5 @@
 package hc.server.html5.syn;
 
-import hc.core.ContextManager;
 import hc.core.FastSender;
 import hc.core.IConstant;
 import hc.core.L;
@@ -10,13 +9,17 @@ import hc.core.util.ByteUtil;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPriorityManager;
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.HCByteArrayOutputStream;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.ProjResponser;
 import hc.server.util.CacheComparator;
 import hc.util.JSUtil;
 import hc.util.PropertiesManager;
+import hc.util.StringBuilderCacher;
 
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -109,38 +112,45 @@ public class DifferTodo {
 	
 	private final FastSender fastSender;
 	
-	final private byte[] screenIDBS;
+	final private byte[] elementIDBS;
 	final int isGizIdx = 0;
 	final int isNeedCacheIdx = isGizIdx + 1;
-	final int screenIDLenIdx = isNeedCacheIdx + 1;
-	final int screenIDIdx = screenIDLenIdx + 2;
-	final int screenIDLen;
+	final int elementIDLenIdx = isNeedCacheIdx + 1;
+	final int elementIDIdx = elementIDLenIdx + 2;
+	final int elementIDLen;
 	final Mlet mlet;
 	private final int mobileWarningWidth, mobileWarningHeight;
 
 	byte[] todoBs;
 	final int scriptIndex;
 	
-	final String projID, urlID, uuid;
-	final byte[] projIDbs, uuidBS, urlIDbs;
+	final String projID, urlID, softUID;
+	final byte[] projIDbs, softUidBS, urlIDbs;
+	public final J2SESession coreSS;
+	public final ProjectContext projectContext;
+	public final ProjResponser resp;
 	
-	public DifferTodo(final String screenID, final Mlet mlet) {
+	public DifferTodo(final J2SESession coreSS, final String elementID, final Mlet mlet) {
+		this.coreSS = coreSS;
 		this.mlet = mlet;
-		final ProjectContext projectContext = mlet.getProjectContext();
+		projectContext = mlet.getProjectContext();
+		resp = ServerUIAPIAgent.getProjResponserMaybeNull(projectContext);
+		
+		this.elementIDBS = ByteUtil.getBytes(elementID, IConstant.UTF_8);
+		elementIDLen = this.elementIDBS.length;
 
-		this.mobileWarningWidth = projectContext.getMobileWidth() + 2;//标准J2SE会比实际宽度多一个像素。
-		this.mobileWarningHeight = projectContext.getMobileHeight() + 2;
+		this.mobileWarningWidth = UserThreadResourceUtil.getMobileWidthFrom(coreSS) + 2;//标准J2SE会比实际宽度多一个像素。
+		this.mobileWarningHeight = UserThreadResourceUtil.getMobileHeightFrom(coreSS) + 2;
 		
 		this.projID = projectContext.getProjectID();
 		this.projIDbs = ByteUtil.getBytes(projID, IConstant.UTF_8);
-		this.uuid = ServerUIAPIAgent.getMobileUID();
-		this.uuidBS = ByteUtil.getBytes(uuid, IConstant.UTF_8);
+		this.softUID = UserThreadResourceUtil.getMobileSoftUID(coreSS);
+		this.softUidBS = ByteUtil.getBytes(softUID, IConstant.UTF_8);
 		//AddHar可能为null
-		final String tmpURLID = ServerUIAPIAgent.__getTargetElementIDFromInnerMethod(projectContext);
-		this.urlID = tmpURLID==null?"":tmpURLID;
-		this.urlIDbs = ByteUtil.getBytes(urlID, IConstant.UTF_8);
+		this.urlID = elementID;
+		this.urlIDbs = elementIDBS;
 		
-		jsCacheComparer = new CacheComparator(projID, uuid, urlID, projIDbs, uuidBS, urlIDbs) {
+		jsCacheComparer = new CacheComparator(projID, softUID, urlID, projIDbs, softUidBS, urlIDbs) {
 			@Override
 			public void sendData(final Object[] paras) {
 				final byte[] scriptBS = (byte[])paras[0];
@@ -152,33 +162,35 @@ public class DifferTodo {
 		
 		map.put(HC_CODE_MLET, mlet);
 		
-		this.fastSender = ContextManager.getContextInstance().getFastSender();
+		this.fastSender = coreSS.context.getFastSender();
 		System.arraycopy(js_header1, 0, pngBS, 0, js_header1_len);
-		this.screenIDBS = ByteUtil.getBytes(screenID, IConstant.UTF_8);
-		screenIDLen = this.screenIDBS.length;
 
 		initTotoBS(CacheManager.getMinCacheSize() * 2);
-		scriptIndex = screenIDIdx + screenIDLen + 2 + projIDbs.length;//screenIDLen + screenID
+		scriptIndex = elementIDIdx + elementIDLen + 2 + projIDbs.length;//screenIDLen + screenID
 	}
 	
-	private final void sendJavaScript(final String script, final boolean needGzip, final boolean enableCache){
+	private final void sendStringJSOrCache(final String script, final boolean needGzip, final boolean enableCache){
 		if(isSimu){
 			if(script.length() < 1024){//不显示基础脚本
 				L.V = L.O ? false : LogManager.log(script);
 			}
 		}
 		
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("sendStringJSOrCache : " + script);
+		}
+		
 		final byte[] scriptBS = ByteUtil.getBytes(script, IConstant.UTF_8);
 		
-		sendJSOrCache(scriptBS, needGzip, enableCache);
+		sendBytesJSOrCache(scriptBS, needGzip, enableCache);
 	}
 
-	private final void sendJSOrCache(final byte[] scriptBS, final boolean needGzip, final boolean enableCache) {
+	private final void sendBytesJSOrCache(final byte[] scriptBS, final boolean needGzip, final boolean enableCache) {
 		final boolean isNeedCacheCheck = CacheManager.isMeetCacheLength(scriptBS.length);
 		
 		if(enableCache && isNeedCacheCheck){
 			final Object[] paras = {scriptBS, needGzip};
-			jsCacheComparer.encodeGetCompare(scriptBS, 0, scriptBS.length, paras);
+			jsCacheComparer.encodeGetCompare(coreSS, true, scriptBS, 0, scriptBS.length, paras);
 		}else{
 			sendJSBytes(scriptBS, 0, scriptBS.length, needGzip, false);//注意：不需要通知进行cache
 		}
@@ -216,7 +228,7 @@ public class DifferTodo {
 			return;
 		}
 		
-		final int maxLen = screenIDIdx + screenIDLen + 2 + projIDbs.length + len;
+		final int maxLen = elementIDIdx + elementIDLen + 2 + projIDbs.length + len;
 		if(todoBs.length < maxLen){
 			initTotoBS(maxLen);
 		}
@@ -234,9 +246,9 @@ public class DifferTodo {
 	
 	private void initTotoBS(final int maxLen) {
 		todoBs = new byte[maxLen];
-		ByteUtil.integerToTwoBytes(screenIDLen, todoBs, screenIDLenIdx);
-		System.arraycopy(screenIDBS, 0, todoBs, screenIDIdx, screenIDLen);
-		final int projLenIdx = screenIDLenIdx + 2 + screenIDLen;
+		ByteUtil.integerToTwoBytes(elementIDLen, todoBs, elementIDLenIdx);
+		System.arraycopy(elementIDBS, 0, todoBs, elementIDIdx, elementIDLen);
+		final int projLenIdx = elementIDLenIdx + 2 + elementIDLen;
 		ByteUtil.integerToTwoBytes(projIDbs.length, todoBs, projLenIdx);
 		System.arraycopy(projIDbs, 0, todoBs, projLenIdx + 2, projIDbs.length);
 	}
@@ -278,7 +290,7 @@ public class DifferTodo {
 		System.arraycopy(cssBS, 0, cycleBS, BS_LOAD_STYLE.length, cssBSLen);
 		System.arraycopy(BS_LOAD_STYLE_END, 0, cycleBS, BS_LOAD_STYLE.length + cssBSLen, BS_LOAD_STYLE_END.length);
 		
-		sendJSOrCache(cycleBS, needGzip, true);
+		sendBytesJSOrCache(cycleBS, needGzip, true);
 	}
 	
 	/**
@@ -301,7 +313,7 @@ public class DifferTodo {
 		System.arraycopy(jsBS, 0, cycleBS, BS_LOAD_JS.length, jsBS.length);
 		System.arraycopy(BS_LOAD_JS_END, 0, cycleBS, BS_LOAD_JS.length + jsBS.length, BS_LOAD_JS_END.length);
 		
-		sendJSOrCache(cycleBS, needGzip, true);
+		sendBytesJSOrCache(cycleBS, needGzip, true);
 	}
 
 	private static final int GZIP_MIN_SIZE = 1024 * 100;
@@ -313,25 +325,32 @@ public class DifferTodo {
 	 */
 	public final void executeJS(final String script){
 		final boolean needGzip = ((script.length()>GZIP_MIN_SIZE)?true:false);
-		sendJavaScript(script, needGzip, true);
+		sendStringJSOrCache(script, needGzip, true);
 	}
 	
 	public final void notifyInitDone(){
-		sendJSBytes(stopLoading, 0, stopLoading.length, false, false);
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("[HTMLMlet:" + mlet.getTarget() + "] notifyInitDone");
+		}
+		sendBytesJSOrCache(stopLoading, false, false);
 	}
 	
 	public final void notifyRemoveFromJPanel(final int hashID){
-		sendJavaScript("window.hcj2se.removeFromJPanel(" + hashID + ");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.removeFromJPanel(" ).append( hashID ).append( ");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	public final void notifyAddComboBox(final int containerHashID, final int index, final int hashID, final JComponent jcomp){
-		sendJavaScript("window.hcj2se.addComboBox(" + containerHashID + ", " + 
-				index + ", " + hashID + ", \"" + buildComboBoxSerial(jcomp) + "\");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addComboBox(" ).append( containerHashID ).append( ", " ).append( 
+				index ).append( ", " ).append( hashID ).append( ", \"" ).append( buildComboBoxSerial(jcomp) ).append( "\");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 
 	private final String buildComboBoxSerial(final JComponent jcomp) {
 		final JComboBox combo = (JComboBox)jcomp;
-		final StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		final int size = combo.getItemCount();
 
 		for (int i = 0; i < size; i++) {
@@ -341,43 +360,63 @@ public class DifferTodo {
 			sb.append(combo.getItemAt(i).toString());
 		}
 		
-		return sb.toString();
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		return out;
 	}
 
 	public final void notifyAddJButton(final int containerHashID, final int index, final int hashID){
-		sendJavaScript("window.hcj2se.addJButton(" + containerHashID + ", " + index + ", " + hashID + ");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJButton(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 
 	public final void notifyAddJCheckbox(final int containerHashID, final int index, final int hashID){
-		sendJavaScript("window.hcj2se.addJCheckbox(" + containerHashID + ", " + index + ", " + hashID + ");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJCheckbox(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 
 	public final void notifyAddJRadioButton(final int containerHashID, final int index, final int hashID, final int groupHashID){
-		sendJavaScript("window.hcj2se.addJRadioButton(" + containerHashID + ", " + index + ", " + hashID + ", " + groupHashID + ");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJRadioButton(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ", " ).append( groupHashID ).append( ");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 
 	public final void notifyAddJProgressBar(final int containerHashID, final int index, final int hashID, final int max, final int value){
-		sendJavaScript("window.hcj2se.addProgressBar(" + containerHashID + ", " + index + ", " + hashID + ", " + max + ", " + value + ");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addProgressBar(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ", " ).append( max ).append( ", " ).append( value ).append( ");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	public final void notifyAddSlider(final int containerHashID, final int index, final int hashID, final int min, final int max, final int value, final int step){
-		sendJavaScript("window.hcj2se.addSlider(" + containerHashID + ", " + index + ", " + hashID + ", " + min + ", " + max + ", " + value + ", " + step + ");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addSlider(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ", " ).append( min ).append( ", " ).append( max ).append( ", " ).append( value ).append( ", " ).append( step ).append( ");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	public final void notifyAddJLabel(final int containerHashID, final int index, final int hashID){
-		sendJavaScript("window.hcj2se.addJLabel(" + containerHashID + ", " + index + ", " + hashID + ");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJLabel(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 
 	public final void notifyAddJTextField(final int containerHashID, final int index, final int hashID, final int isPassword, final String tip){
-		sendJavaScript("window.hcj2se.addJTextField(" + containerHashID + ", " + index + ", " + hashID + ", " + isPassword + ", \"" + tip + "\");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJTextField(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ", " ).append( isPassword ).append( ", \"" ).append( tip ).append( "\");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 
 	public final void notifyAddJTextArea(final int containerHashID, final int index, final int hashID, final String tip){
-		sendJavaScript("window.hcj2se.addJTextArea(" + containerHashID + ", " + index + ", " + hashID + ", \"" + tip + "\");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJTextArea(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ", \"" ).append( tip ).append( "\");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 
 	public final void notifyAddJPanel(final int containerHashID, final int index, final int hashID){
-		sendJavaScript("window.hcj2se.addJPanel(" + containerHashID + ", " + index + ", " + hashID + ");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJPanel(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	/**
@@ -390,21 +429,27 @@ public class DifferTodo {
 		if(styles != null){
 			styles = StringUtil.formatJS(styles);
 		}
-		sendJavaScript("window.hcj2se.setDivStyle(" + hashID + ", \"" + className + "\", \"" + styles + "\");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setDivStyle(" ).append( hashID ).append( ", \"" ).append( className ).append( "\", \"" ).append( styles ).append( "\");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	public final void setStyleForJCheckBoxText(final int hashID, final String className, String styles){
 		if(styles != null){
 			styles = StringUtil.formatJS(styles);
 		}
-		sendJavaScript("window.hcj2se.setLabelStyle(" + hashID + ", \"" + className + "\", \"" + styles + "\");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setLabelStyle(" ).append( hashID ).append( ", \"" ).append( className ).append( "\", \"" ).append( styles ).append( "\");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	public final void setStyleForInputTag(final int eleID, final String className, String styles){
 		if(styles != null){
 			styles = StringUtil.formatJS(styles);
 		}
-		sendJavaScript("window.hcj2se.setElementStyle(" + eleID + ", \"" + className + "\", \"" + styles + "\");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setElementStyle(" ).append( eleID ).append( ", \"" ).append( className ).append( "\", \"" ).append( styles ).append( "\");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 
 	/**
@@ -417,13 +462,14 @@ public class DifferTodo {
 	public final void notifyModifyJComponentEnable(final int hashID, final boolean enable){
 		//document.getElementById(id).disabled = true; 
 //		document.getElementById(id).disabled = false;
-		String script = null;
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		if(enable){
-			script = "window.hcj2se.setComponentEnable(" + hashID + ",true);";
+			sb.append("window.hcj2se.setComponentEnable(" ).append( hashID ).append( ",true);");
 		}else{
-			script = "window.hcj2se.setComponentEnable(" + hashID + ",false);";
+			sb.append("window.hcj2se.setComponentEnable(" ).append( hashID ).append( ",false);");
 		}
-		sendJavaScript(script, false, false);
+		sendStringJSOrCache(sb.toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	public final void notifyModifyAbstractButtonText(final Object src){
@@ -441,7 +487,9 @@ public class DifferTodo {
 //		var text = document.getElementById(button_id).firstChild;
 //		text.data = text.data == "Lock" ? "Unlock" : "Lock";
 //		<button> www.w3school.com.cn/tags/tag_button.asp
-		sendJavaScript("window.hcj2se.setButtonText(" + hashID + ",\"" + text + "\");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setButtonText(" ).append( hashID ).append( ",\"" ).append( text ).append( "\");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	/**
@@ -450,43 +498,51 @@ public class DifferTodo {
 	 * @param text
 	 */
 	private final void notifyModifyCheckboxText(final int hashID, final String text){
-		sendJavaScript("window.hcj2se.setCheckboxText(" + hashID + ",\"" + text + "\");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setCheckboxText(" ).append( hashID ).append( ",\"" ).append( text ).append( "\");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	public final void notifyModifySliderValue(final int hashID, final JSlider slider){
 		final BoundedRangeModel brm = slider.getModel();
-		sendJavaScript("window.hcj2se.changeSliderValue(" + hashID + "," + brm.getMinimum() + "," + brm.getMaximum() + "," + brm.getValue() + ");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.changeSliderValue(" ).append( hashID ).append( "," ).append( brm.getMinimum() ).append( "," ).append( brm.getMaximum() ).append( "," ).append( brm.getValue() ).append( ");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
-	public final void notifyModifyProgressBarValue(final int hashID, final JProgressBar progressBar){
+	public final void notifyModifyProgressBarValue(final int hashID, final JProgressBar progressBar){//in user thread
 		final int value = progressBar.getValue() * 100 / progressBar.getMaximum();
-		mlet.getProjectContext().run(new Runnable() {
-			@Override
-			public void run() {
-				try{
-					Thread.sleep(ThreadPriorityManager.UI_WAIT_MS);//等待诸与JProgressBar.setString或其它逻辑被执行。它们的逻辑有可能在setValue之后。
-				}catch (final Exception e) {
-				}
-				final String text = progressBar.isStringPainted()?progressBar.getString():null;
-				final String script = "window.hcj2se.setProgressBarValue("+hashID+","+value+",\""+text+"\");";
-				sendJavaScript(script, false, false);				
-			}
-		});
+		try{
+			Thread.sleep(ThreadPriorityManager.UI_WAIT_MS);//等待诸与JProgressBar.setString或其它逻辑被执行。它们的逻辑有可能在setValue之后。
+		}catch (final Exception e) {
+		}
+		final String text = progressBar.isStringPainted()?progressBar.getString():null;
+
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		sb.append("window.hcj2se.setProgressBarValue(").append(hashID).append(",").append(value).append(",\"").append(text).append("\");");
+		sendStringJSOrCache(sb.toString(), false, false);		
+		StringBuilderCacher.cycle(sb);
 	}
 
 	public final void changeComboBoxValue(final int hashID, final JComponent jcomp){
-		final String script = "window.hcj2se.changeComboBoxValue("+hashID+",\""+buildComboBoxSerial(jcomp)+"\");";
-		sendJavaScript(script, false, false);
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		sb.append("window.hcj2se.changeComboBoxValue(").append(hashID).append(",\"").append(buildComboBoxSerial(jcomp)).append("\");");
+		sendStringJSOrCache(sb.toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	public final void changeComboBoxSelected(final int hashID, final int selected){
-		final String script = "window.hcj2se.changeComboBoxSelected("+hashID+","+selected+");";
-		sendJavaScript(script, false, false);
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		sb.append("window.hcj2se.changeComboBoxSelected(").append(hashID).append(",").append(selected).append(");");
+		sendStringJSOrCache(sb.toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	public final void notifyModifyLabelText(final int hashID, final String text){
-		final String script = "window.hcj2se.setLabelText("+hashID+",\""+text+"\");";
-		sendJavaScript(script, false, false);
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		sb.append("window.hcj2se.setLabelText(").append(hashID).append(",\"").append(text).append("\");");
+		sendStringJSOrCache(sb.toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	protected final HCByteArrayOutputStream byteArrayOutputStream = new HCByteArrayOutputStream();
@@ -583,19 +639,21 @@ public class DifferTodo {
 			LogManager.warning("size is more than width/height of client, setPreferredSize may be required for component [" + component.toString() + "].");
 		}
 		
-		final String script = "window.hcj2se.setLocation(" + buildHcCode(component) + "," + rect.x + "," + rect.y + "," + compWidth + "," + compHeight + ");";
-		
-		sendJavaScript(script, false, false);
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		sb.append("window.hcj2se.setLocation(" ).append( buildHcCode(component) ).append( "," ).append( rect.x ).append( "," ).append( rect.y ).append( "," ).append( compWidth ).append( "," ).append( compHeight ).append( ");");
+		sendStringJSOrCache(sb.toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	public final void notifyModifyJComponentVisible(final int hashID, final boolean visible){
-		String script = null;
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		if(visible){
-			script = "window.hcj2se.setJComponentVisible(" + hashID + ",true);";
+			sb.append("window.hcj2se.setJComponentVisible(" ).append( hashID ).append( ",true);");
 		}else{
-			script = "window.hcj2se.setJComponentVisible(" + hashID + ",false);";
+			sb.append("window.hcj2se.setJComponentVisible(" ).append( hashID ).append( ",false);");
 		}
-		sendJavaScript(script, false, false);
+		sendStringJSOrCache(sb.toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	/**
@@ -612,13 +670,14 @@ public class DifferTodo {
 	}
 	
 	public final void notifyModifyButtonSelected(final int hashID, final boolean selected){
-		String script = null;
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		if(selected){
-			script = "window.hcj2se.setButtonSelected(" + hashID + ",true);";
+			sb.append("window.hcj2se.setButtonSelected(" ).append( hashID ).append( ",true);");
 		}else{
-			script = "window.hcj2se.setButtonSelected(" + hashID + ",false);";
+			sb.append("window.hcj2se.setButtonSelected(" ).append( hashID ).append( ",false);");
 		}
-		sendJavaScript(script, false, false);
+		sendStringJSOrCache(sb.toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	/**
@@ -627,21 +686,26 @@ public class DifferTodo {
 	 * @param editable
 	 */
 	public final void notifyModifyTextComponentEditable(final int hashID, final boolean editable){
-		String script = null;
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		if(editable){
-			script = "window.hcj2se.setTextComponentEditable(" + hashID + ",true);";
+			sb.append("window.hcj2se.setTextComponentEditable(" ).append( hashID ).append( ",true);");
 		}else{
-			script = "window.hcj2se.setTextComponentEditable(" + hashID + ",false);";
+			sb.append("window.hcj2se.setTextComponentEditable(" ).append( hashID ).append( ",false);");
 		}
-		sendJavaScript(script, false, false);
+		sendStringJSOrCache(sb.toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	public final void notifyModifyTextComponentText(final int hashID, final String text){
-		sendJavaScript("window.hcj2se.setTextComponentText(" + hashID + ",\"" + text + "\");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setTextComponentText(" ).append( hashID ).append( ",\"" ).append( text ).append( "\");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	public final void notifyModifyTextAreaText(final int hashID, final String text){
-		sendJavaScript("window.hcj2se.setTextAreaText(" + hashID + ",\"" + text + "\");", false, false);
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setTextAreaText(" ).append( hashID ).append( ",\"" ).append( text ).append( "\");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	public final void addEventListener(final int index, final JComponent addedComponent){

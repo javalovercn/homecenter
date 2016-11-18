@@ -29,9 +29,11 @@ import hc.server.ui.ClientSession;
 import hc.server.ui.CtrlResponse;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.ICanvas;
+import hc.server.ui.MenuItem;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.design.AddHarHTMLMlet;
+import hc.server.ui.design.AddHarIsBusy;
 import hc.server.ui.design.LicenseHTMLMlet;
 import hc.server.ui.design.hpj.HCjar;
 import hc.util.ClassUtil;
@@ -61,6 +63,7 @@ import java.util.logging.LoggingPermission;
 import javax.net.ssl.SSLPermission;
 
 public class HCLimitSecurityManager extends WrapperSecurityManager implements HarHelper{
+	private final String USE_JAVA_NET_PROXY_CLASS = "please use java.net.Proxy class in HAR project.";
 	private static final String devCertFileName = SecurityDataProtector.getDevCertFileName();
 	private static final String hcHardIdFileName = SecurityDataProtector.getHcHardId();
 
@@ -181,16 +184,6 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		return user_data_dir + HttpUtil.encodeFileName(projID) + App.FILE_SEPARATOR;
 	}
 	
-	public static final ProjectContext getProjectContextFromDispatchThread(){
-		if (Thread.currentThread() == eventDispatchThread){
-			final ContextSecurityConfig csc = hcEventQueue.currentConfig;
-			if(csc != null){
-				return csc.getProjectContext();
-			}
-		}
-		return null;
-	}
-	
 	public static final void switchHCSecurityManager(final boolean on){
 		if(isSecurityManagerOn() == false){
 			L.V = L.O ? false : LogManager.log("stop SecurityManager in current server!");
@@ -207,11 +200,15 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		}
 	}
 	
-	public final Thread getEventDispatchThread(){
+	public final static Thread getEventDispatchThread(){
+		CCoreUtil.checkAccess();
+		
 		return eventDispatchThread;
 	}
 	
-	public final HCEventQueue getHCEventQueue(){
+	public final static HCEventQueue getHCEventQueue(){
+		CCoreUtil.checkAccess();
+		
 		return hcEventQueue;
 	}
 	
@@ -303,8 +300,8 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    	final Class[] arrClazz = {ProjectContext.class, Processor.class, 
 	    			Converter.class, Device.class, Message.class, Robot.class, RobotEvent.class, RobotListener.class,
 	    			DeviceCompatibleDescription.class,
-	    			AddHarHTMLMlet.class, LicenseHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
-	    			ClientSession.class, CtrlResponse.class, Mlet.class, HTMLMlet.class, ICanvas.class,
+	    			AddHarHTMLMlet.class, AddHarIsBusy.class, LicenseHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
+	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class,
 	    			WiFiAccount.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
 //	    	{
 //	    		Vector<Class> allowVect = new Vector<Class>();
@@ -388,12 +385,13 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 
 	@Override
 	public final void checkPermission(final Permission perm) {
+		final Class permClass = perm.getClass();
 		
 //		System.out.println("checkPermission : " + perm);
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
-			if(perm instanceof ReflectPermission){
+			if(permClass == ReflectPermission.class){
 				if(perm.getName().equals("suppressAccessChecks")){//JRuby使用反射
 //					if(csc != null && csc.isAccessPrivateField() == false){
 //						throw new HCSecurityException("block Field/Method/Constructor setAccessible in HAR Project  [" + csc.projID + "]."
@@ -402,7 +400,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				}else{
 					throw new HCSecurityException("block ReflectPermission : " + perm.toString() + " in HAR Project  [" + csc.projID + "].");
 				}
-			}else if(perm instanceof SocketPermission){
+			}else if(permClass == SocketPermission.class){
 				if(csc != null){
 					final PermissionCollection collection = csc.getSocketPermissionCollection();
 					if(collection != null){//enable socket limit
@@ -414,31 +412,53 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 //								C：192.168.0.0-192.168.255.255
 							final SocketPermission sp = (SocketPermission)perm;
 							final String ipAndPortAddress = sp.getName();
-							final String[] ipAndPort = StringUtil.splitToArray(ipAndPortAddress, ":");
-							final String ip = ipAndPort[0];
-							if(ip.equals(SocketDesc.LOCAL_HOST_FOR_SOCK_PERMISSION)){
-								passPrivateCheck = true;
-							}else if(ip.indexOf(".") > 0){
-								if(ip.startsWith("192.168.") || ip.startsWith("10.") || ip.startsWith("127.") 
-										|| ip.startsWith("172.16.") || ip.startsWith("172.31.") || ip.startsWith("169.254.")){
-									passPrivateCheck = true;//需要进行后续ipv4的检查
+							final boolean isIPv6 = ipAndPortAddress.startsWith("[");
+							if(isIPv6 == false){
+								//to get ip6
+								final String ip;
+								if(isIPv6){
+									//ipv6
+									ip = ipAndPortAddress.substring(0, ipAndPortAddress.lastIndexOf("]") + 1);
+								}else{
+									final int lastPortSplitIdx = ipAndPortAddress.lastIndexOf(":");
+									ip = (lastPortSplitIdx > 0)?ipAndPortAddress.substring(0, lastPortSplitIdx):ipAndPortAddress;
 								}
 								
-								if(passPrivateCheck){
-									final String[] ipv4 = StringUtil.splitToArray(ip, ".");
-									if(ipv4.length != 4){
-										passPrivateCheck = false;
+								int firstDotIdx;
+								if(ip.equals(SocketDesc.LOCAL_HOST_FOR_SOCK_PERMISSION)){
+									passPrivateCheck = true;
+								}else if((firstDotIdx = ip.indexOf(".")) > 0){
+									if(ip.startsWith("192.168.") || ip.startsWith("10.") || ip.startsWith("127.") 
+											|| ip.startsWith("172.16.") || ip.startsWith("172.31.") || ip.startsWith("169.254.")){
+										passPrivateCheck = true;//需要进行后续ipv4的检查
 									}else{
+										//224.0.0.0 - 239.255.255.255, isMulticastAddress
+										final String firstDotPart = ip.substring(0, firstDotIdx);
 										try{
-											for (int i = 0; i < ipv4.length; i++) {
-												Integer.parseInt(ipv4[i]);
+											final int intPart = Integer.parseInt(firstDotPart);
+											if(intPart >=  224 && intPart <= 239){
+												passPrivateCheck = true;
 											}
-										}catch (final NumberFormatException e) {
+										}catch (final Exception e) {
+										}
+									}
+									
+									if(passPrivateCheck){
+										final String[] ipv4 = StringUtil.splitToArray(ip, ".");
+										if(ipv4.length != 4){
 											passPrivateCheck = false;
+										}else{
+											try{
+												for (int i = 0; i < ipv4.length; i++) {
+													Integer.parseInt(ipv4[i]);
+												}
+											}catch (final NumberFormatException e) {
+												passPrivateCheck = false;
+											}
 										}
 									}
 								}
-							}
+							}//IPv4
 						}
 						if(passPrivateCheck == false){
 							if(collection.implies(perm) == false){
@@ -447,7 +467,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 						}
 					}
 				}
-			}else if(perm instanceof PropertyPermission){
+			}else if(permClass == PropertyPermission.class){
 				final String actions = perm.getActions();
 				if(csc != null){
 					if(csc.isSysPropRead() == false  && actions.indexOf("read") >= 0){
@@ -464,9 +484,25 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 					//阻止修改重要系统属性
 					if(p_key.equals("file.separator")){
 						throw new HCSecurityException("block modify important system property : " + perm.toString());
+					}else if(p_key.startsWith("http.")){
+						if(p_key.equals("http.proxyHost") || p_key.equals("http.proxyPort") || p_key.equals("http.nonProxyHosts")){
+							ResourceUtil.checkHCStackTraceInclude(null, null, USE_JAVA_NET_PROXY_CLASS);
+						}
+					}else if(p_key.startsWith("ftp.")){
+						if(p_key.equals("ftp.proxyHost") || p_key.equals("ftp.proxyPort") || p_key.equals("ftp.nonProxyHosts")){
+							ResourceUtil.checkHCStackTraceInclude(null, null, USE_JAVA_NET_PROXY_CLASS);
+						}
+					}else if(p_key.startsWith("https.")){
+						if(p_key.equals("https.proxyHost") || p_key.equals("https.proxyPort")){
+							ResourceUtil.checkHCStackTraceInclude(null, null);
+						}
+					}else if(p_key.startsWith("socksProxy")){
+						if(p_key.equals("socksProxyHost") || p_key.equals("socksProxyPort")){//there is no dot ('.') after the prefix this time
+							ResourceUtil.checkHCStackTraceInclude(null, null, USE_JAVA_NET_PROXY_CLASS);
+						}
 					}
 				}
-			}else if(perm instanceof AWTPermission){
+			}else if(permClass == AWTPermission.class){
 				final String permName = perm.getName();
 				if(permName.equals("createRobot")){
 					if(csc != null && csc.isRobot() == false){
@@ -493,15 +529,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 					}
 				}else if(permName.equals("showWindowWithoutWarningBanner")){//no config
 //					if (limitRootThreadGroup.parentOf(currentThreadGroup)){
-					final String blockDesc = "block showWindowWithoutWarningBanner";
-					if(ResourceUtil.isOpenJDK()){//因OpenJDK出异常，尽管被拦截，不影响用户使用，故注释掉。详见 java.awt.Window setWarningString 
-						throw new SecurityException(blockDesc);//不用HCSecurityExeption，是因为先输出异常到log
-					}else{
-						throw new HCSecurityException(blockDesc);
-					}
+					throw new HCSecurityException("block showWindowWithoutWarningBanner");
 //					}
 				}
-			}else if(perm instanceof RuntimePermission) {
+			}else if(permClass == RuntimePermission.class) {
 				final String permissionName = perm.getName();
 				if (permissionName.equals("setSecurityManager")){
 					throw new HCSecurityException("block setSecurityManager.");
@@ -529,7 +560,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 //						throw new HCSecurityException("block RuntimePermission [" + permissionName + "] in HAR Project  [" + csc.projID + "].");
 //					}
 				}
-			}else if(perm instanceof NetPermission){
+			}else if(permClass == NetPermission.class){
 //				System.out.println("NetPermission : " + perm.toString());
 				final String permissionName = perm.getName();
 				//new NetPermission("getNetworkInformation") to getMacAddress in getPrivateHardwareCode
@@ -540,13 +571,13 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 //					|| permissionName.equals("specifyStreamHandler")){
 //					throw new HCSecurityException("block " + perm.toString());
 //				}
-			}else if(perm instanceof LoggingPermission){
+			}else if(permClass == LoggingPermission.class){
 				final String permissionName = perm.getName();
 				if(permissionName.equals("control")){//JRuby正常反射需要
 				}else{
 //					throw new HCSecurityException("block LoggingPermission [" + permissionName + "] in HAR Project  [" + csc.projID + "].");
 				}
-			}else if(perm instanceof SSLPermission){
+			}else if(permClass == SSLPermission.class){
 				final String setHostVerifier = "setHostnameVerifier";
 				if(perm.getName().equals(setHostVerifier)){
 					//HttpsURLConnection.setDefaultHostnameVerifier new SSLPermission("setHostnameVerifier")
@@ -559,7 +590,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			}
 		}else{
 			//No in csc
-			if(perm instanceof NetPermission){
+			if(permClass == NetPermission.class){
 //				System.out.println("NetPermission : " + perm.toString());
 				final String permissionName = perm.getName();
 				//new NetPermission("getNetworkInformation") to getMacAddress in getPrivateHardwareCode
@@ -567,14 +598,14 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 					//有可能为J2SEPlatformService，hc.util.HttpUtil.getServerInetAddress
 					ResourceUtil.checkHCStackTraceInclude(null, null);//不能class.getName，因为Android环境没有
 				}
-			}else if(perm instanceof RuntimePermission) {
+			}else if(permClass == RuntimePermission.class) {
 				final String permissionName = perm.getName();
 				if (permissionName.equals("setSecurityManager")){
 					ResourceUtil.checkHCStackTraceInclude(HCLimitSecurityManager.class.getName(), null);
 //				}else if(permissionName.equals("getFileSystemAttributes")){//block getBaseDir().getTotalSpace() for getPrivateHardwareCode
 //					ResourceUtil.checkHCStackTraceInclude(null, null);
 				}
-			}else if(perm instanceof SocketPermission){
+			}else if(permClass == SocketPermission.class){
 				ResourceUtil.checkHCStackTraceInclude(null, null);
 			}
 		}

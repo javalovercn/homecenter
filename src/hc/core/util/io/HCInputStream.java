@@ -1,17 +1,13 @@
 package hc.core.util.io;
 
-import hc.core.EventCenter;
-import hc.core.HCMessage;
-import hc.core.IEventHCListener;
+import hc.core.CoreSession;
 import hc.core.L;
-import hc.core.MsgBuilder;
 import hc.core.util.ByteArrayCacher;
 import hc.core.util.ByteUtil;
 import hc.core.util.LogManager;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Hashtable;
 
 public class HCInputStream extends InputStream implements IHCStream{
 	IOException exception;
@@ -20,42 +16,17 @@ public class HCInputStream extends InputStream implements IHCStream{
 	long storeEndIdx;
 	int offreadidx;
 	boolean isEof;
+	final StreamBuilder streamBuilder;
 	
 	private final static ByteArrayCacher cacher = ByteUtil.byteArrayCacher;
 	
-	public HCInputStream(final int streamID) {
+	public HCInputStream(final CoreSession coreSS, final int streamID) {
 		this.streamID = streamID;
+		streamBuilder = coreSS.streamBuilder;
 		
-		synchronized (StreamBuilder.LOCK) {
-			StreamBuilder.inputStreamTable.put(new Integer(streamID), this);
+		synchronized (streamBuilder.LOCK) {
+			streamBuilder.inputStreamTable.put(new Integer(streamID), this);
 		}
-	}
-	
-	static{
-		EventCenter.addListener(new IEventHCListener() {
-			final Hashtable inputStreamTable = StreamBuilder.inputStreamTable;
-			
-			public final byte getEventTag() {
-				return MsgBuilder.E_STREAM_DATA;
-			}
-			
-			public final boolean action(final byte[] bs) {
-				final int len = HCMessage.getMsgLen(bs);
-				final int streamID = (int)ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_MSG_DATA);
-				Object is;
-				final int dataLen = len - StreamBuilder.STREAM_ID_LEN;
-				
-				synchronized (StreamBuilder.LOCK) {
-					is = inputStreamTable.get(new Integer(streamID));
-				}
-				if(is != null){
-					((HCInputStream)is).appendStream(bs, MsgBuilder.INDEX_MSG_DATA + StreamBuilder.STREAM_ID_LEN, dataLen);
-					return true;
-				}
-				
-				return true;
-			}
-		});
 	}
 	
 	public final void notifyClose(){
@@ -273,8 +244,8 @@ public class HCInputStream extends InputStream implements IHCStream{
 			
 			recycleInLock();
 			
-			StreamBuilder.closeStream(true, streamID);
-			StreamBuilder.notifyCloseRemoteStream(false, streamID);
+			streamBuilder.closeStream(true, streamID);
+			streamBuilder.notifyCloseRemoteStream(false, streamID);
 		}
 	}
 

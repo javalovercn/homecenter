@@ -1,9 +1,9 @@
 package hc.core.data;
 
+import hc.core.CoreSession;
 import hc.core.HCConfig;
 
 public class ServerConfig extends HCConfig{
-	private static ServerConfig config;
 	
 	//注意：以下每项依赖于HCConfig，不能删除或变动索引结构
 	public static final short p_HC_VERSION = 0;
@@ -12,12 +12,12 @@ public class ServerConfig extends HCConfig{
 	public static final short P_SERVER_WIDTH = 3;
 	public static final short P_SERVER_HEIGHT = 4;
 	
-	public static void setInstance(final ServerConfig sc){
-		config = sc;
+	public static void setInstance(final CoreSession coreSS, final ServerConfig sc){
+		coreSS.j2meServerConfig = sc;
 	}
 	
-	public static ServerConfig getInstance(){
-		return config;
+	public static ServerConfig getInstance(final CoreSession coreSS){
+		return coreSS.j2meServerConfig;
 	}
 	
 	public ServerConfig(final String str){

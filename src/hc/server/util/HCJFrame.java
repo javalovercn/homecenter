@@ -3,28 +3,37 @@ package hc.server.util;
 import hc.App;
 import hc.core.util.CCoreUtil;
 import hc.server.DisposeListener;
+import hc.util.ResourceUtil;
 
 import javax.swing.JFrame;
 
 public class HCJFrame extends JFrame {
 	private DisposeListener listener;
+	private final boolean withoutHC;
 	
 	public HCJFrame(){
-		this("");
+		this("", false);
 	}
 	
-	public HCJFrame(String title){
+	public HCJFrame(final String title, final boolean withoutHC){
 		super(title);
+		this.withoutHC = withoutHC;
 		
 		setTitle(title);
-		
 		CCoreUtil.checkAccess();
-		
 		setIconImage(App.SYS_LOGO);
 	}
 	
+	public HCJFrame(final String title){
+		this(title, false);
+	}
+	
+	@Override
 	public final void setTitle(String title) {
-		title = (title.indexOf("HomeCenter") >= 0)?title:title + " - HomeCenter";
+		if(withoutHC == false){
+			final String product = ResourceUtil.getProductName();
+			title = (title.indexOf(product) >= 0)?title:title + " - " + product;
+		}
 		super.setTitle(title);
 	}
 	
@@ -40,7 +49,7 @@ public class HCJFrame extends JFrame {
 		return listener;
 	}
 	
-	public final void setDisposeListener(DisposeListener dListener){
+	public final void setDisposeListener(final DisposeListener dListener){
 		listener = dListener;
 	}
 }

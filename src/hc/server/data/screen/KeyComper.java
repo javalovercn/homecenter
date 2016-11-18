@@ -6,6 +6,7 @@ import hc.core.util.LogManager;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
 import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.design.J2SESession;
 import hc.util.ResourceUtil;
 
 import java.awt.AWTException;
@@ -128,7 +129,7 @@ public class KeyComper {
 	 */
 	public static void actionKeys(final String keyDesc) {
 //		CCoreUtil.checkAccess();
-		keyAction(robot, convert(convertStr(keyDesc)), keyDesc);
+		keyAction(J2SESession.NULL_J2SESESSION_FOR_PROJECT, robot, convert(convertStr(keyDesc)), keyDesc);
 	}
 
 	/**
@@ -137,7 +138,7 @@ public class KeyComper {
 	 * @param vInt
 	 * @param keysDesc 描述如：Shift+A
 	 */
-	public static void keyAction(final Robot robot2, final Vector<Integer> vInt, final String keysDesc) {
+	public static void keyAction(final J2SESession coreSS, final Robot robot2, final Vector<Integer> vInt, final String keysDesc) {
 		synchronized (robot2) {
 			if(isAndroidServer){
 				PlatformManager.getService().doExtBiz(PlatformService.BIZ_BIND_FORCE_ANDROID_KEYCODE, Boolean.valueOf(isAndroidServer));
@@ -160,7 +161,10 @@ public class KeyComper {
 //		for (int i = 1; i < vInt.size(); i++) {
 //			desc += "+" + KeyComperPanel.getHCKeyText(vInt.elementAt(i));
 //		}
-		ServerUIAPIAgent.__sendStaticMovingMsg("keys : " + keysDesc);
+		if(coreSS != null){
+			final J2SESession[] coreSSS = {coreSS};
+			ServerUIAPIAgent.sendMovingMsg(coreSSS, "keys : " + keysDesc);
+		}
 		L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "action keys : " + keysDesc);
 	}
 

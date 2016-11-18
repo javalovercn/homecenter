@@ -87,6 +87,10 @@ public abstract class ThreadPool {
 		name = n;
 	}
 	
+	/**
+	 * 系统级、工程级、会话级ThreadPool都入list
+	 * @param threadGroup
+	 */
 	public ThreadPool(Object threadGroup){
 		this.threadGroup = threadGroup;
 		
@@ -194,6 +198,8 @@ public abstract class ThreadPool {
 	}
 	
 	public static void shutdown(){
+		CCoreUtil.checkAccess();
+		
 		synchronized (list) {
 			isShutDown = true;
 			final int size = list.size();

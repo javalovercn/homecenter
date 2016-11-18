@@ -4,17 +4,15 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
- * a {@link ClientSession} instance will be created before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}, and will be released after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
- * <BR>
+ * a {@link ClientSession} instance will be created before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}, and will be released by server after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+ * <BR><BR>
  * a {@link ProjectContext} instance will be created before {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}, and will be released after {@link ProjectContext#EVENT_SYS_PROJ_SHUTDOWN}.
  * <BR><BR>
- * invoke {@link ProjectContext#getClientSession()} to get it.
- * <BR><BR>
- * <STRONG>Important :</STRONG><BR>
- * in the future implementation, multiple users (same account) are online at same time, so please let <STRONG>project to project, user to user</STRONG>.
- * <BR><BR>{@link ClientSession} is thread safe.
+ * invoke {@link ProjectContext#getClientSession()} to get this instance for current session.
+ * <BR><BR>it is thread safe.
  * @since 7.7
  */
 public class ClientSession {
@@ -58,36 +56,39 @@ public class ClientSession {
 	}
 	
 	/**
-	 * set an object to a given attribute name. <BR>
-	 * 
+	 * set an object to a given attribute name. <BR><BR>it is thread safe.
+	 * <BR><BR>to set attribute for project (NOT for session), see {@link ProjectContext#setAttribute(String, Object)}.
 	 * @param name
 	 *            the name of attribute.
 	 * @param obj
 	 *            the value of the attribute.
+	 * @return the previous object of the specified name, or null if it did not have one
 	 * @since 7.7
 	 */
-	public final void setAttribute(final String name, final Object obj) {
-		attribute_map.put(name, obj);
+	public final Object setAttribute(final String name, final Object obj) {
+		return attribute_map.put(name, obj);
 	}
 	
 	/**
 	 * removes the attribute with the given name.
 	 * 
-	 * @param name
+	 * @param name the name that needs to be removed
+	 * @return the attribute to which the name had been mapped, or null if the name did not have a mapping
 	 * @since 7.7
 	 */
-	public final void removeAttribute(final String name) {
-		attribute_map.remove(name);
+	public final Object removeAttribute(final String name) {
+		return attribute_map.remove(name);
 	}
 	
 	/**
 	 * It is equals with {@link #removeAttribute(String)}
 	 * 
-	 * @param name
+	 * @param name the name that needs to be removed
+	 * @return the attribute to which the name had been mapped, or null if the name did not have a mapping
 	 * @since 7.7
 	 */
-	public final void clearAttribute(final String name) {
-		removeAttribute(name);
+	public final Object clearAttribute(final String name) {
+		return removeAttribute(name);
 	}
 	
 	/**
@@ -100,9 +101,12 @@ public class ClientSession {
 		final HashSet<String> set = new HashSet<String>();
 		synchronized (attribute_map) {
 			final Enumeration<String> en = attribute_map.keys();
-			while (en.hasMoreElements()) {
-				final String item = en.nextElement();
-				set.add(item);
+			try{
+				while (en.hasMoreElements()) {
+					final String item = en.nextElement();
+					set.add(item);
+				}
+			}catch (final NoSuchElementException e) {
 			}
 		}
 
@@ -130,7 +134,7 @@ public class ClientSession {
 	}
 	
 	/**
-     * check if the specified object is a attribute name in this session.
+     * tests if the specified name is a key in this session.
      * @param   name possible key
      * @return 
      * @throws  NullPointerException  if the name is null.
@@ -141,14 +145,14 @@ public class ClientSession {
     }
     
     /**
-     * returns true if this session maps one or more names to this value.
-     * @param obj
+     * returns true if one or more names maps to this object.
+     * @param object
      * @return 
      * @throws NullPointerException  if the value is null
      * @since 7.7
      */
-    public final boolean containsAttributeObject(final Object obj) {
-        return attribute_map.contains(obj);
+    public final boolean containsAttributeObject(final Object object) {
+        return attribute_map.contains(object);
     }
     
     /**

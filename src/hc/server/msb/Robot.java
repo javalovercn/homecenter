@@ -1,10 +1,18 @@
 package hc.server.msb;
 
+import hc.core.L;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
+import hc.core.util.MutableArray;
 import hc.server.ui.CtrlResponse;
 import hc.server.ui.HTMLMlet;
+import hc.server.ui.J2SESessionManager;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.SimuMobile;
+import hc.server.ui.design.ProjResponser;
+import hc.server.ui.design.SessionContext;
 
 import java.util.ArrayList;
 
@@ -30,19 +38,22 @@ import java.util.ArrayList;
 public abstract class Robot extends Processor{
 //	 * <BR>If a {@link Robot} is connecting to network via WiFi and manage no real {@link Device}, please create a {@link Device} for it, because <STRONG>No Device No WiFi-Connection</STRONG>.
 
+	final ProjResponser resp;
+	
 	/**
 	 * @deprecated
 	 */
 	@Deprecated
 	public Robot(){
 		super("", Workbench.TYPE_ROBOT_PROC);
+		resp = ServerUIAPIAgent.getProjResponserMaybeNull(getProjectContext());
 	}
 	
 	/**
-	 * get a free {@link Message} from recycling pool.
-	 * @param ref_dev_id the <i>Reference Device ID</i> that the message is dispatched <STRONG>to</STRONG>. 
-	 * <br>The message may be converted by {@link Converter} or not depends on binding (after active current project).
-	 * @return a free {@link Message}
+	 * get a {@link Message} from recycling pool.
+	 * <br><BR>The message may be converted by {@link Converter} or not depends on binding.
+	 * @param ref_dev_id the <i>Reference Device ID</i> which the message is dispatched to. 
+	 * @return 
 	 */
 	protected final Message getFreeMessage(final String ref_dev_id) {//不能去掉，因为生成API时，由于没有附加生成Processor
 		return super.getFreeMessageInProc(ref_dev_id);
@@ -60,20 +71,34 @@ public abstract class Robot extends Processor{
 		return name;
 	}
 	
+	String nameLower;
+	
+	final String getNameLower(){
+		if(nameLower == null){
+			nameLower = getName().toLowerCase();
+		}
+		return nameLower;
+	}
+	
 	/**
-	 * operate the {@link Robot} to do some business, for example, adjust the temperature to 28℃, then the <code>parameter</code> is integer object with value 28, and <code>functionID</code> may be customized to be 1.
-	 * <br><br>the method is the only way to operate {@link Robot} to drive {@link Device} for {@link CtrlResponse} and {@link Mlet}, to get {@link Robot} instance, call {@link ProjectContext#getRobot(String)}
-	 * <br>
+	 * operate the {@link Robot} to do some business from caller, 
+	 * <BR><BR>
+	 * for example, adjust the temperature to 28℃, then the <code>parameter</code> is integer object with value 28, and <code>functionID</code> may be 1.
+	 * <br><br>the method is the only way to operate {@link Robot} to drive {@link Device} for {@link CtrlResponse}, {@link HTMLMlet}/{@link Mlet}, 
+	 * <BR>to get {@link Robot} instance, call {@link ProjectContext#getRobot(String)}.
+	 * <br><br>
+	 * this method is executed in session level, because the caller is based on session.<BR>
 	 * @param functionID
-	 * @param parameter any object except {@link Message}. Because a instance of {@link Message} can't be outside of {@link Robot}, {@link Converter}, or {@link Device}.
-	 * @return any object except {@link Message}
+	 * @param parameter it can NOT be a {@link Message}.
+	 * @return object exclude {@link Message}
+	 * @see ProjectContext#isCurrentThreadInSessionLevel()
 	 * @since 7.0
 	 */
 	public abstract Object operate(final long functionID, final Object parameter);
 	
 	/**
 	 * get the {@link ProjectContext} instance of current project.
-	 * @return the {@link ProjectContext} instance of current project.
+	 * @return 
 	 * @since 7.0
 	 */
 	public final ProjectContext getProjectContext(){
@@ -82,9 +107,12 @@ public abstract class Robot extends Processor{
 	
 	/**
 	 * dispatch a {@link Message} to a device asynchronous.
-	 * <br><br><strong>the <code>msg</code> can't be dispatched more than one time.</strong>
+	 * <br><br>to get instance of the <code>msg</code>, invoke {@link #getFreeMessage(String)}
+	 * <BR><BR>Note : 
+	 * <BR>the <code>msg</code> can't be dispatched more than one time.
+	 * <BR>the <code>msg</code> will be recycled and clean after consumed, please do NOT keep any reference of it.
 	 * <br><br>to print log of creating/converting/transferring/recycling of message, please enable [Option/Developer/log MSB message].
-	 * @param msg the {@link Message} will be dispatched to device(s). To get instance of the <code>msg</code>, call {@link #getFreeMessage(String)}.
+	 * @param msg the {@link Message} will be dispatched to device(s).
 	 * @param isInitiative 
 	 * <br>false : answer passively, passive mode is invoked generally in method {@link Robot#response(Message)} after {@link Message} is received.
 	 * <br>true : dispatch initiative, initiative mode is invoked generally in method {@link #operate(long, Object)}.
@@ -108,11 +136,13 @@ public abstract class Robot extends Processor{
 	}
 	
 	/**
-	 * process a {@link Message} synchronous and waiting for response.
+	 * waiting for responding a {@link Message}.
+	 * <BR><BR>
+	 * it is synchronous.
 	 * <br><br>to print log of creating/converting/transferring/recycling of message, please enable [Option/Developer/log MSB message].
-	 * @param msg the object is got through {@link #getFreeMessage(String)}, and called by this method only one time, in other words, the instance of {@link Message} can't be as parameter more than one time.
+	 * @param msg the request Message.
 	 * @param timeout the maximum time to wait in milliseconds. Zero means never time out.
-	 * @return null if it is not processed or the time is out.
+	 * @return null if it is not processed or time is out.
 	 * @see #dispatch(Message, boolean)
 	 * @since 7.0
 	 */
@@ -123,7 +153,7 @@ public abstract class Robot extends Processor{
 	
 	/**
 	 * all the <i>Reference Device ID</i> names those are used in this robot, each one of them will correspond to a real device ID after binding.
-	 * <BR><BR><STRONG>Important</STRONG> : A {@link Robot} without <i>Reference Device ID</i> is allowed.
+	 * <BR><BR><STRONG>Note</STRONG> : it is allowed that a {@link Robot} without <i>Reference Device ID</i>.
 	 * @return all the <i>Reference Device ID</i> names those are used in this robot.
 	 * @see #getDeviceCompatibleDescription(String)
 	 * @since 7.0
@@ -132,16 +162,19 @@ public abstract class Robot extends Processor{
 	
 	/**
 	 * return an instance of {@link DeviceCompatibleDescription} about device compatible of <code>referenceDeviceID</code>.
-	 * <BR>these description is useful for binding to real devices.
+	 * <BR><BR>the description is used for auto-binding to real devices.
 	 * @param referenceDeviceID
-	 * @return an instance of {@link DeviceCompatibleDescription} about <code>referenceDeviceID</code>.
+	 * @return 
 	 * @see #declareReferenceDeviceID()
+	 * @see Converter#getUpDeviceCompatibleDescription()
+	 * @see Device#getDeviceCompatibleDescription()
 	 * @since 7.0
 	 */
 	public abstract DeviceCompatibleDescription getDeviceCompatibleDescription(final String referenceDeviceID);
 	
 	/**
-	 * @return the description of Robot.
+	 * return the description of Robot.
+	 * @return 
 	 * @since 7.3
 	 */
 	@Override
@@ -154,15 +187,19 @@ public abstract class Robot extends Processor{
 //		return this.getClass().getSimpleName() + super.getProcDesc();
 //	}
 	
-	ArrayList<RobotListener> robotListeners;
+	ArrayList<RobotListener> projectLevelRobotListeners;
 	
 	/**
-	 * add a listener to receive {@link RobotEvent} about status of {@link Robot}.
-	 * <BR>
+	 * add a listener to receive {@link RobotEvent}.
+	 * <BR><BR>
+	 * if a <code>RobotListener</code> is added in project level, it will be executed in project level.<BR>
+	 * if a <code>RobotListener</code> is added in session level, it will be executed in session level, and it will gone automatically after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+	 * <BR><BR>
 	 * it is thread safe.
 	 * @param listener
 	 * @see #removeRobotListener(RobotListener)
 	 * @see #dispatchRobotEvent(RobotEvent)
+	 * @see ProjectContext#isCurrentThreadInSessionLevel()
 	 * @since 7.0
 	 */
 	public final void addRobotListener(final RobotListener listener){
@@ -170,29 +207,76 @@ public abstract class Robot extends Processor{
 			return;
 		}
 		
-		synchronized (this) {
-			if(robotListeners == null){
-				robotListeners = new ArrayList<RobotListener>(4);
+		final ProjectContext projectContext = getProjectContext();
+		if(SimuMobile.checkSimuProjectContext(projectContext)){
+			return;
+		}
+		
+		final SessionContext sessionContext = resp.getSessionContextFromCurrThread();
+		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+			if(L.isInWorkshop){
+				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
-			robotListeners.add(listener);
+			if(isLoggerOn == false){
+				ServerUIAPIAgent.printInProjectLevelWarn("robot", "addRobotListener");
+			}
+			synchronized (this) {
+				if(projectLevelRobotListeners == null){
+					projectLevelRobotListeners = new ArrayList<RobotListener>(4);
+				}
+				projectLevelRobotListeners.add(listener);
+			}
+		}else{
+			sessionContext.j2seSocketSession.addRobotListener(this, listener);
 		}
 	}
 	
 	/**
 	 * remove a listener.
-	 * <BR>
+	 * <BR><BR>
 	 * it is thread safe.
+	 * <BR><BR>
+	 * if a <code>RobotListener</code> is added in project level, it can be removed in session level.<BR>
+	 * if a <code>RobotListener</code> is added in session level, it will gone automatically after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}, or it should be removed in session level.
 	 * @param listener
+	 * @return true means successful removed.
 	 * @see #addRobotListener(RobotListener)
 	 * @see #dispatchRobotEvent(RobotEvent)
+	 * @see ProjectContext#isCurrentThreadInSessionLevel()
 	 * @since 7.0
 	 */
-	public final void removeRobotListener(final RobotListener listener){
-		synchronized (this) {
-			if(robotListeners != null){
-				robotListeners.remove(listener);
+	public final boolean removeRobotListener(final RobotListener listener){
+		final ProjectContext projectContext = getProjectContext();
+		if(SimuMobile.checkSimuProjectContext(projectContext)){
+			return true;
+		}
+		
+		final SessionContext sessionContext = resp.getSessionContextFromCurrThread();
+		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+			if(L.isInWorkshop){
+				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
+			}
+			if(isLoggerOn == false){
+				ServerUIAPIAgent.printInProjectLevelWarn("robot", "removeRobotListener");
+			}
+			return removeProjectLevelRobotListener(listener);
+		}else{
+			final boolean isInSession = sessionContext.j2seSocketSession.removeRobotListener(this, listener);
+			if(isInSession){
+				return true;
+			}else{
+				return removeProjectLevelRobotListener(listener);
 			}
 		}
+	}
+
+	private final boolean removeProjectLevelRobotListener(final RobotListener listener) {
+		synchronized (this) {
+			if(projectLevelRobotListeners != null){
+				return projectLevelRobotListeners.remove(listener);
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -200,7 +284,7 @@ public abstract class Robot extends Processor{
 	 * @param propertyName the property name of event.
 	 * @param oldValue the old value of property of current event. Maybe null.
 	 * @param newValue the new value of property of current event. Maybe null.
-	 * @return a {@link RobotEvent} instance which {@link RobotEvent#getSource()} is self. If there are multiple {@link Robot}(s) in current project, {@link RobotEvent#getSource()} is used to distinguish between different sources.
+	 * @return 
 	 * @see #dispatchRobotEvent(RobotEvent)
 	 * @see #addRobotListener(RobotListener)
 	 * @see #removeRobotListener(RobotListener)
@@ -218,12 +302,14 @@ public abstract class Robot extends Processor{
 	}
 	
 	/**
-	 * dispatch a event to all {@link RobotListener}.
+	 * dispatch an event to all {@link RobotListener} no matter it is in session level or in project level.
+	 * <BR><BR>it is synchronized,
 	 * <BR><BR>
-	 * to get a instance of {@link RobotEvent}, please invoke {@link #buildRobotEvent(String, Object, Object)}.
+	 * to get new instance of {@link RobotEvent}, please invoke {@link #buildRobotEvent(String, Object, Object)}.
 	 * <BR><BR>
-	 * <STRONG>Important : </STRONG>the event will be recycled and clean after dispatched, and you can get it from {@link #buildRobotEvent(String, Object, Object)}.
-	 * <BR>please do NOT keep any reference of it.
+	 * <STRONG>Important : </STRONG><BR>the <code>event</code> will be recycled and clean after consumed, and you will get it again from {@link #buildRobotEvent(String, Object, Object)}.
+	 * please do NOT keep any reference of it.
+	 * <BR>
 	 * @param event 
 	 * @see #addRobotListener(RobotListener)
 	 * @see #removeRobotListener(RobotListener)
@@ -235,12 +321,12 @@ public abstract class Robot extends Processor{
 			return;
 		}
 		
-		if(robotListeners != null){
+		if(projectLevelRobotListeners != null){
 			try{
-				final int size = robotListeners.size();
+				final int size = projectLevelRobotListeners.size();
 				for (int i = 0; i < size; i++) {
-					final RobotListener robotListener = robotListeners.get(i);
-					robotListener.action(event);//无需强制使用用户线程组，因为由用户触发
+					final RobotListener robotListener = projectLevelRobotListeners.get(i);
+					robotListener.action(event);
 				}
 			}catch (final IndexOutOfBoundsException outOfBound) {
 				//越界或不存在或已删除
@@ -249,9 +335,13 @@ public abstract class Robot extends Processor{
 			}
 		}
 		
+		J2SESessionManager.dispatchRobotEventSynchronized(resp, this, event, sessionArrayForEventDispatch);
+		
 		RobotEventPool.instance.recycle(event);
 	}
 	
+	final MutableArray sessionArrayForEventDispatch = new MutableArray(0);
+
 	/**
 	 * @deprecated
 	 */

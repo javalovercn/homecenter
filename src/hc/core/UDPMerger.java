@@ -1,6 +1,4 @@
 package hc.core;
-import hc.core.sip.ISIPContext;
-import hc.core.sip.SIPManager;
 
 public class UDPMerger {
    private static int getReceiveSplitMaxSize(){
@@ -215,7 +213,6 @@ public class UDPMerger {
 
 	private static final HCUDPSubPacketCacher eventCacher = HCUDPSubPacketCacher.getInstance();
 	private static final DatagramPacketCacher packetCacher = DatagramPacketCacher.getInstance();
-	final ISIPContext isip = SIPManager.getSIPContext();
 
     public static HCTimer HTReleaseUnusedSplit = new HCTimer("ReleaseUnusedSplit", 1000, true){
 		public final void doBiz() {

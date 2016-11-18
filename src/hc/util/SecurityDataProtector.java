@@ -3,13 +3,15 @@ package hc.util;
 import hc.App;
 import hc.core.IConstant;
 import hc.core.L;
-import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
+import hc.server.CallContext;
 import hc.server.HCActionListener;
+import hc.server.ui.J2SESessionManager;
 import hc.server.ui.design.engine.HCJRubyEngine;
+import hc.server.ui.design.engine.RubyExector;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
@@ -197,7 +199,7 @@ public class SecurityDataProtector {
 								
 								App.showInputPWDDialog(uuid, "", "", false);
 
-								SIPManager.startRelineonForce(false);
+								J2SESessionManager.stopAllSession(false, true, false);
 								
 								PropertiesManager.remove(PropertiesManager.p_isNeedResetPwd);
 								PropertiesManager.saveFile();
@@ -414,7 +416,7 @@ public class SecurityDataProtector {
 	
 	private static void initForAndroid(){
 		
-		final StringBuilder values = new StringBuilder();
+		final StringBuilder values = StringBuilderCacher.getFree();
                                                                                                                            
 		final String HC = "HomeCenter";
 		try {
@@ -540,12 +542,19 @@ public class SecurityDataProtector {
 					"end\n" +
 					"\n" +
 					"return AndroidSecurityData.new\n";
-			androidHardwareObject = engine.runScriptlet(script, "AndroidSecurityData");
+			final CallContext callCtx = CallContext.getFree();
+			androidHardwareObject = RubyExector.runAndWaitOnEngine(callCtx, script, "AndroidSecurityData", null, engine);
+			if(callCtx.isError){
+				callCtx.rubyThrowable.printStackTrace();
+			}
+			CallContext.cycle(callCtx);
 			engine.terminate();
 			
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
+		
+		StringBuilderCacher.cycle(values);
 	}
 	
 	/**

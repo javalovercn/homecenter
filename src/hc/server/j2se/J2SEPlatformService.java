@@ -31,7 +31,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
-import java.net.NetworkInterface;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.Security;
@@ -114,7 +113,7 @@ public class J2SEPlatformService implements PlatformService {
 
 	@Override
 	public void addJCEProvider() {
-		Security.addProvider(new com.sun.crypto.provider.SunJCE()); 
+		Security.addProvider(new com.sun.crypto.provider.SunJCE());//in OpenJDK
 	}
 
 	private final Vector<File> added3rdLibs = new Vector<File>();
@@ -256,8 +255,8 @@ public class J2SEPlatformService implements PlatformService {
 	}
 
 	@Override
-	public PlatformTrayIcon buildPlatformTrayIcon(final Image image, final String title, final JPopupMenu menu){
-		return new JPTrayIcon(image, title, menu);
+	public PlatformTrayIcon buildPlatformTrayIcon(final Image image, final String productTip, final JPopupMenu menu){
+		return new JPTrayIcon(image, productTip, menu);
 	}
 	
 	@Override
@@ -297,7 +296,7 @@ public class J2SEPlatformService implements PlatformService {
 	}
 	
 	@Override
-	public void startCapture() {
+	public void startCaptureIfEnable() {
 //		CapManager.startCapture();
 		if(getCaptureDeviceManagerClass() != null){
 			final Class capManagerClass = CapHelper.getCapManagerClass();
@@ -308,7 +307,7 @@ public class J2SEPlatformService implements PlatformService {
 	}
 
 	@Override
-	public void stopCapture() {
+	public void stopCaptureIfEnable() {
 //		CapManager.stopCapture();
 		if(getCaptureDeviceManagerClass() != null){
 			final Class capManagerClass = CapHelper.getCapManagerClass();

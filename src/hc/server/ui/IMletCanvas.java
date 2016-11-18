@@ -1,7 +1,9 @@
 package hc.server.ui;
 
+import hc.server.ui.design.J2SESession;
+
 public interface IMletCanvas {
-	public void setMlet(Mlet mlet, final ProjectContext projectCtx);
+	public void setMlet(final J2SESession coreSS, Mlet mlet, final ProjectContext projectCtx);
 	
 	public Mlet getMlet();
 	
@@ -10,6 +12,8 @@ public interface IMletCanvas {
 	public void setScreenIDAndTitle(String screenID, String title);
 	
 	public boolean isSameScreenID(final byte[] bs, final int offset, final int len);
+	
+	public boolean isSameScreenIDIgnoreCase(final char[] chars, final int offset, final int len);
 	
 	/**
 	 * cmdBs

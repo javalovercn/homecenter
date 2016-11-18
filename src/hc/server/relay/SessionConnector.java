@@ -24,6 +24,7 @@ public class SessionConnector {
 	public long firstServerRegMS;
 	//手机端端接入Channel
 	public SocketChannel clientSide;
+	public boolean isDelTDN = false;
 	
 	public SelectionKey serverKey, clientKey;
 	public final LinkedSet writeToServerBackSet, writeToClientBackSet;
@@ -50,7 +51,12 @@ public class SessionConnector {
 	
 	public static boolean resetXXSideUDPAddressNull(final byte[] bs, final int offset, final int len, final boolean isServer,
 			final byte udpRandomHead0, final byte udpRandomHead1){
-		final SessionConnector sc = RelayManager.tdn[len].getNodeData(bs, offset, offset + len);
+		final SessionConnector sc;
+		
+		synchronized (RelayManager.tdn) {
+			sc = RelayManager.tdn[len].getNodeData(bs, offset, offset + len);
+		}
+		
 		if(sc != null){
 			if(sc.randomUDPHead[0] == udpRandomHead0 && sc.randomUDPHead[1] == udpRandomHead1){
 				L.V = L.O ? false : LogManager.log("SetUDPAddrNull match the randomUDPHeader");
@@ -268,6 +274,7 @@ public class SessionConnector {
 		serverKey = null;
 		uuidbs = null;
 		token = null;
+		isDelTDN = false;
 		
 		if(resetTimer != null){
 			resetTimer.resetTimerCount();

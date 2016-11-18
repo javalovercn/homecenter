@@ -1,7 +1,7 @@
 package hc.server.ui.design.hpj;
 
 import hc.core.util.CCoreUtil;
-import hc.util.StoreableHashMapWithModifyFlag;
+import hc.util.I18NStoreableHashMapWithModifyFlag;
 
 public class HPNode {
 	public static final int MASK_ROOT = 1 << 10;
@@ -67,7 +67,7 @@ public class HPNode {
 
 	public int type;
 	public String name;
-	public StoreableHashMapWithModifyFlag i18nMap = new StoreableHashMapWithModifyFlag();
+	public I18NStoreableHashMapWithModifyFlag i18nMap = new I18NStoreableHashMapWithModifyFlag();
 	private HPItemContext context;
 	
 	public HPItemContext getContext() {
@@ -94,7 +94,7 @@ public class HPNode {
 	
 	@Override
 	public boolean equals(final Object obj){
-		return toString().equals(obj.toString());
+		return toString().toLowerCase().equals(obj.toString().toLowerCase());
 	}
 	
 	public String validate(){

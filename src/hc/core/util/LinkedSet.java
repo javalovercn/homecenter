@@ -46,17 +46,20 @@ public class LinkedSet {
 	/**
 	 * 装入到最后端，即最后出
 	 * @param obj
+	 * @return true : is empty before addTail
 	 */
-	public final void addTail(final Object obj){
+	public final boolean addTail(final Object obj){
 		final LinkedNode addNode = cacher.getFree();
 		addNode.data = obj;
 		
-		if(top == null){
+		final boolean isEmpty = (top == null);
+		if(isEmpty){
 			top = addNode;
 		}else{
 			tail.next = addNode;
 		}
 		tail = addNode;
+		return isEmpty;
 	}
 	
 	/**

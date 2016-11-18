@@ -245,7 +245,7 @@ public class StringUtil {
 	 */
 	public static String load(final Reader stream) {
 		final char[] buf = new char[1024];
-		final StringBuffer sb = new StringBuffer();
+		final StringBuffer sb = StringBufferCacher.getFree();
 		
 		try{
 			int len;
@@ -261,7 +261,9 @@ public class StringUtil {
 			}
 		}
 		
-		return sb.toString();
+		final String out = sb.toString();
+		StringBufferCacher.cycle(sb);
+		return out;
 	}
 	
 	public static void load(final Reader stream, final Hashtable table) {
@@ -453,7 +455,7 @@ public class StringUtil {
 		
 		final Calendar c = Calendar.getInstance();
 		c.setTime(new Date());
-		StringBuffer sb = new StringBuffer();
+		StringBuffer sb = StringBufferCacher.getFree();
 		sb.append(c.get(Calendar.YEAR));
 		sb.append(c.get(Calendar.MONTH) + 1);
 		sb.append(c.get(Calendar.DAY_OF_MONTH));
@@ -464,6 +466,8 @@ public class StringUtil {
 		
 		sb.append(ByteUtil.encodeBase64(bs));
 		String out = replace(sb.toString(), "=", "");
+		StringBufferCacher.cycle(sb);
+		
 		out = replace(out, "+", "");
 		out = replace(out, "/", "");
 		return out;

@@ -10,8 +10,8 @@ public class MSBException extends Error {
 	Message msg;
 	Processor proc;
 	public static final int TOO_MUCH_FORWARD = 30;
-	private static final Thread eventDispatchThread = HCLimitSecurityManager.getHCSecurityManager().getEventDispatchThread();
-	private static final HCEventQueue hcEventQueue = HCLimitSecurityManager.getHCSecurityManager().getHCEventQueue();
+	private static final Thread eventDispatchThread = HCLimitSecurityManager.getEventDispatchThread();
+	private static final HCEventQueue hcEventQueue = HCLimitSecurityManager.getHCEventQueue();
 	
 	public static void init(){
 		//do nothing,because had init field.

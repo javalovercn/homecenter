@@ -14,19 +14,15 @@ public class DatagramPacketCacher {
 	final private Stack free = new Stack();
 	
 	private int freeSize = 0;
-	ISIPContext isip;
 	
 	public DatagramPacketCacher(){
 	}
 	
-	public final Object getFree(){
+	public final Object getFree(final ISIPContext sipContext){
 		synchronized (free) {
 			if(freeSize == 0){
-				if(isip == null){
-					isip = SIPManager.getSIPContext();
-				}
 //				hc.core.L.V=hc.core.L.O?false:LogManager.log("------MEM ALLOCATE [DatagramPacket]------");
-				return isip.getDatagramPacket(null);
+				return sipContext.getDatagramPacket(null);
 			}else{
 				freeSize--;
 				return free.pop();

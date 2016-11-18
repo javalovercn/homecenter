@@ -10,6 +10,7 @@ import hc.server.HCActionListener;
 import hc.server.SingleJFrame;
 import hc.server.ui.ClientDesc;
 import hc.util.ResourceUtil;
+import hc.util.StringBuilderCacher;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -324,7 +325,7 @@ public class ExceptionViewer {
 		}
 		
 		public void pushIn(final String paraMessage, final StackTraceElement[] ste) {
-			final StringBuilder sb = new StringBuilder(13);
+			final StringBuilder sb = StringBuilderCacher.getFree();
 			
 			calendar.setTimeInMillis(System.currentTimeMillis());
 			sb.append(calendar.get(Calendar.HOUR_OF_DAY));
@@ -336,7 +337,10 @@ public class ExceptionViewer {
 			sb.append(calendar.get(Calendar.MILLISECOND));
 			sb.append(" ");
 			
-			final String tmp = sb.toString() + paraMessage;
+			sb.append(paraMessage);
+			
+			final String tmp = sb.toString();
+			StringBuilderCacher.cycle(sb);
 			
 			synchronized (exception) {
 				exception.add(tmp);

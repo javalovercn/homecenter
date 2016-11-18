@@ -1,12 +1,12 @@
 package hc.server.ui;
 
 import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.MsgBuilder;
-import hc.core.RootServerConnector;
+import hc.core.SessionManager;
 import hc.core.cache.CacheManager;
-import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
@@ -17,6 +17,8 @@ import hc.core.util.UIUtil;
 import hc.server.ProcessingWindowManager;
 import hc.server.ThirdlibManager;
 import hc.server.msb.MSBAgent;
+import hc.server.msb.UserThreadResourceUtil;
+import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.ProjResponser;
 import hc.server.util.CacheComparator;
@@ -26,7 +28,6 @@ import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
-import java.awt.Frame;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -97,11 +98,11 @@ public class ServerUIUtil {
 	
 	private static boolean isStared = false;
 	
-	public static BaseResponsor buildMobiUIResponsorInstance(){
+	public static BaseResponsor buildMobiUIResponsorInstance(final ExceptionCatcherToWindow ec){
 		CCoreUtil.checkAccess();
 		
 		try {
-			return new MobiUIResponsor();
+			return new MobiUIResponsor(ec);
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 			return null;
@@ -126,7 +127,7 @@ public class ServerUIUtil {
 	 * @param mobiUIRep
 	 * @return
 	 */
-	public static BaseResponsor restartResponsorServer(final Frame owner, final BaseResponsor mobiUIRep){
+	public static BaseResponsor restartResponsorServer(final JFrame owner, final BaseResponsor mobiUIRep){
 		CCoreUtil.checkAccess();
 		
 		synchronized (LOCK) {
@@ -141,9 +142,15 @@ public class ServerUIUtil {
 				
 				BaseResponsor respo = null;
 				try{
-					respo = (mobiUIRep != null)?mobiUIRep:(BaseResponsor)buildMobiUIResponsorInstance();
+					respo = (mobiUIRep != null)?mobiUIRep:(BaseResponsor)buildMobiUIResponsorInstance(new ExceptionCatcherToWindow(owner));
 					responsor = respo.checkAndReady(owner);
 				}catch (final Throwable e) {
+					if(respo instanceof MobiUIResponsor){
+						final ExceptionCatcherToWindow ec = ((MobiUIResponsor)respo).ec;
+						if(ec != null){
+							ec.setThrowable(e);
+						}
+					}
 					//出现构建失败
 					ExceptionReporter.printStackTrace(e);
 				}
@@ -160,7 +167,6 @@ public class ServerUIUtil {
 			try{
 				CacheManager.clearBuffer();
 				MSBAgent.resetDeviceSet();
-				ServerUIAPIAgent.resetQuestion();
 				
 				responsor.start();
 				
@@ -240,29 +246,27 @@ public class ServerUIUtil {
 		}
 	}
 
-	public static void transMenuWithCache(final String menuData, final String projID) {
+	public static void transMenuWithCache(final J2SESession coreSS, final String menuData, final String projID) {
 		final byte[] data = StringUtil.getBytes(menuData);
 		
 		final byte[] projIDbs = ByteUtil.getBytes(projID, IConstant.UTF_8);
-		final String uuid = ServerUIAPIAgent.getMobileUID();
-		final byte[] uuidBS = ByteUtil.getBytes(uuid, IConstant.UTF_8);
+		final String softUID = UserThreadResourceUtil.getMobileSoftUID(coreSS);
+		final byte[] softUidBS = ByteUtil.getBytes(softUID, IConstant.UTF_8);
 		final String urlID = CacheManager.ELE_URL_ID_MENU;
 		final byte[] urlIDbs = CacheManager.ELE_URL_ID_MENU_BS;
 		
-		final CacheComparator menuCacheComparer = new CacheComparator(projID, uuid, urlID, projIDbs, uuidBS, urlIDbs) {
+		final CacheComparator menuCacheComparer = new CacheComparator(projID, softUID, urlID, projIDbs, softUidBS, urlIDbs) {
 			@Override
 			public void sendData(final Object[] paras) {
-				response(menuData);
+				response(coreSS, menuData);
 			}
 		};
 		
-		menuCacheComparer.encodeGetCompare(data, 0, data.length, null);
+		menuCacheComparer.encodeGetCompare(coreSS, true, data, 0, data.length, null);
 	}
 	
-	public static boolean response(final String out) {
-		CCoreUtil.checkAccess();
-		
-		ContextManager.getContextInstance().send(MsgBuilder.E_CANVAS_MAIN, out);
+	public static boolean response(final CoreSession coreSS, final String out) {
+		coreSS.context.send(MsgBuilder.E_CANVAS_MAIN, out);
 		return true;
 	}
 
@@ -279,8 +283,7 @@ public class ServerUIUtil {
 		if(isPrompt){
 			HttpUtil.notifyStopServer(isQuery, parent);
 			
-			RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_ServerReq_STR);
-			SIPManager.notifyRelineon(false);
+			J2SESessionManager.stopAllSession(true, true, false);
 		}
 
 		ServerUIUtil.stop();		
@@ -289,14 +292,10 @@ public class ServerUIUtil {
 	}
 
 	public static boolean isServing() {
-		return ContextManager.cmStatus == ContextManager.STATUS_SERVER_SELF;
+		return SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_SERVER_SELF);
 	}
 
-	public static boolean isReadyToLineOn() {
-		return ContextManager.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON;
-	}
-
-	public static void restartResponsorServerDelayMode(final Frame owner, final BaseResponsor mobiUIRep) {
+	public static void restartResponsorServerDelayMode(final JFrame owner, final BaseResponsor mobiUIRep) {
 		CCoreUtil.checkAccess();
 		
 		ContextManager.getThreadPool().run(new Runnable() {
@@ -305,17 +304,6 @@ public class ServerUIUtil {
 				restartResponsorServer(owner, mobiUIRep);
 			}
 		});
-	}
-
-	public static final ProjResponser getCurrentProjResponser(){
-		CCoreUtil.checkAccess();
-		
-		final BaseResponsor resp = getResponsor();
-		if(resp != null && resp instanceof MobiUIResponsor){
-			final MobiUIResponsor mobiResp = (MobiUIResponsor)resp;
-			return mobiResp.getCurrentProjResponser();
-		}
-		return null;
 	}
 
 	/**
@@ -345,13 +333,16 @@ public class ServerUIUtil {
 		byte[] iconBytes = iconByteArrayos.buf;//new byte[1024 * 20];
 		
 		if(iconBytes == null || iconBytes.length < doubleSize){
+			if(iconBytes != null){
+				ByteUtil.byteArrayCacher.cycle(iconBytes);
+			}
 			iconBytes = new byte[doubleSize];
 			iconByteArrayos.reset(iconBytes, 0);
 		}else{
 			iconByteArrayos.reset();
 		}
 		try {
-			ImageIO.write(bi, "png", iconByteArrayos);
+			ImageIO.write(bi, "png", iconByteArrayos);//Android环境下支持
 		} catch (final Exception e1) {
 			return null;
 		}

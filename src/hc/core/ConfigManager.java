@@ -46,6 +46,7 @@ public class ConfigManager {
 	public static final String UI_CLIPBOARD_GET = "hc.ui.clipboard.get";
 	public static final String UI_BUILD_JSVIEW = "hc.ui.buildJSView";
 	public static final String UI_SCREEN_ON = "hc.ui.setScreenOn";
+	public static final String UI_DISMISS_ALERT = "hc.ui.dismissAlert";
 	public static final String UI_IS_BACKGROUND = "hc.ui.isBackground";
 	public static final String UI_FORM_SIZE = "hc.ui.formSize";
 	public static final String UI_RELEASE_OBJECT = "hc.ui.releaseObject";

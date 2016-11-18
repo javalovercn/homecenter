@@ -1,7 +1,6 @@
 package hc.core;
 
 import hc.core.sip.ISIPContext;
-import hc.core.sip.SIPManager;
 import hc.core.util.EventBackCacher;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
@@ -9,7 +8,10 @@ import hc.core.util.ThreadPriorityManager;
 import java.io.IOException;
 
 public abstract class UDPReceiveServer extends Thread{
-	public UDPReceiveServer(){
+	final CoreSession coreSS;
+	
+	public UDPReceiveServer(final CoreSession coreSS){
+		this.coreSS = coreSS;
 		setPriority(ThreadPriorityManager.DATA_TRANS_PRIORITY);
         //J2ME不支持setName
 		//thread.setName("Receive Server");
@@ -22,7 +24,7 @@ public abstract class UDPReceiveServer extends Thread{
 	public void run(){
 		final DatagramPacketCacher cacher = DatagramPacketCacher.getInstance();  
 		final EventBackCacher ebCacher = EventBackCacher.getInstance();
-		final ISIPContext isip = SIPManager.getSIPContext();
+		final ISIPContext isip = coreSS.sipContext;
 		
     	while (!isShutdown) {
 			if(socket == null){
@@ -37,18 +39,18 @@ public abstract class UDPReceiveServer extends Thread{
 				}
 			}
 
-			final Object dp = cacher.getFree();
+			final Object dp = cacher.getFree(isip);
         	isip.setDatagramLength(dp, MsgBuilder.UDP_BYTE_SIZE);
             try {
             	receiveUDP(dp);
             	
 				final EventBack eb = ebCacher.getFreeEB();
-				eb.setBSAndDatalen(dp, null, 0);
-				ConditionWatcher.addWatcher(eb);
+				eb.setBSAndDatalen(coreSS, dp, null, 0);
+				coreSS.eventConditionWatcher.addWatcher(eb);
             }catch (Exception e) {
 				cacher.cycle(dp);
 
-				if(SIPManager.getSIPContext().isNearDeployTime()){
+				if(coreSS.sipContext.isNearDeployTime()){
 					L.V = L.O ? false : LogManager.log("UDPReceive Exception near deploy time, maybe closed the old socket.");
             		continue;
             	}
@@ -80,7 +82,7 @@ public abstract class UDPReceiveServer extends Thread{
 
 	public void setUdpServerSocket(Object udpServerSocket) {
 //		hc.core.L.V=hc.core.L.O?false:LogManager.log("Changed Receive Socket");
-		SIPManager.getSIPContext().enterDeployStatus();
+		coreSS.sipContext.enterDeployStatus();
 		
 		closeOldSocket();
 		socket = udpServerSocket;

@@ -3,6 +3,7 @@ package hc.server;
 import hc.App;
 import hc.core.ConfigManager;
 import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
@@ -15,21 +16,24 @@ import hc.core.util.HCURL;
 import hc.core.util.IHCURLAction;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
+import hc.core.util.ThreadPool;
 import hc.core.util.WiFiDeviceManager;
 import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.AirCmdsUtil;
-import hc.server.ui.ClientDesc;
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SingleMessageNotify;
 import hc.server.ui.design.AddHarHTMLMlet;
+import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
+import java.awt.Robot;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -42,15 +46,15 @@ import javax.swing.SwingConstants;
 public class J2SEServerURLAction implements IHCURLAction {
 	
 	@Override
-	public boolean doBiz(final HCURL url) {
+	public boolean doBiz(final CoreSession coreSS, final HCURL url) {
 		
 		final String protocal = url.protocal;
-		final String elementID = url.elementID;
 		
 //		L.V = L.O ? false : LogManager.log("goto " + url.url);
 		
+		final J2SESession j2seCoreSS = (J2SESession)coreSS;
 		if(protocal == HCURL.SCREEN_PROTOCAL){
-			if(elementID.equals(HCURL.REMOTE_HOME_SCREEN)){			
+			if(HCURL.REMOTE_HOME_SCREEN.equals(url.getElementIDLower())){
 				//主菜单模式下，再次进入时，如果不增加如下时间，会导致块上白
 //				try{
 //					Thread.sleep(2000);
@@ -69,23 +73,30 @@ public class J2SEServerURLAction implements IHCURLAction {
 					
 					ss.setWidth(screenWidth);
 					ss.setHeight(screenHeight);
-					ContextManager.getContextInstance().send(MsgBuilder.E_SCREEN_REMOTE_SIZE, homeBS, ss.getLength());
+					coreSS.context.send(MsgBuilder.E_SCREEN_REMOTE_SIZE, homeBS, ss.getLength());
 				}
 				
-				ScreenServer.cap = new ScreenCapturer(ClientDesc.getClientWidth(), ClientDesc.getClientHeight(),
-						screenWidth, screenHeight);
+				final int mobileWidth = UserThreadResourceUtil.getMobileWidthFrom(j2seCoreSS);
+				final int mobileHeight = UserThreadResourceUtil.getMobileHeightFrom(j2seCoreSS);
 				
-				ScreenServer.pushScreen(ScreenServer.cap);
-				final int offY = (screenHeight > ClientDesc.getClientHeight())?(screenHeight - ClientDesc.getClientHeight()):0;
-				ScreenServer.cap.refreshRectange(0, offY);//优先发送手机能显示内容
+				MultiUsingManager.enter(j2seCoreSS, MultiUsingManager.NULL_PROJECT_ID, HCURL.URL_HOME_SCREEN);
+				
+				j2seCoreSS.cap = new ScreenCapturer(j2seCoreSS, mobileWidth,
+						mobileHeight, screenWidth, screenHeight);
+				
+				ScreenServer.pushScreen(j2seCoreSS, j2seCoreSS.cap);
+				final int offY = (screenHeight > mobileHeight)?(screenHeight - mobileHeight):0;
+				j2seCoreSS.cap.refreshRectange(0, offY);//优先发送手机能显示内容
 				
 				return true;
 			}
 		}else if(protocal == HCURL.CMD_PROTOCAL){
-			if(elementID.equals(HCURL.DATA_CMD_EXIT)){
-				if(ScreenServer.popScreen() == false){
+			final String elementID = url.elementID;
+			
+			if(HCURL.DATA_CMD_EXIT.equals(url.getElementIDLower())){
+				if(ScreenServer.popScreen(j2seCoreSS) == false){
 //					System.out.println("Receiv Exit , and Notify exit by mobile");
-					J2SEContext.notifyExitByMobi();
+					J2SEContext.notifyExitByMobi(j2seCoreSS);
 				}
 				
 				return true;
@@ -114,27 +125,27 @@ public class J2SEServerURLAction implements IHCURLAction {
 					}
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_QUESTION_ID)){
 					ServerUIAPIAgent.execQuestionResult(
-							url.getValueofPara(HCURL.DATA_PARA_QUESTION_ID), 
-							url.getValueofPara(HCURL.DATA_PARA_QUESTION_RESULT));
+							j2seCoreSS, 
+							url.getValueofPara(HCURL.DATA_PARA_QUESTION_ID), url.getValueofPara(HCURL.DATA_PARA_QUESTION_RESULT));
 
 					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_CLASS)){
-					final String v = url.getValueofPara(HCURL.DATA_PARA_CLASS);
-					final String className = v;
-					HCURL.setToContext(url);
+//					final String v = url.getValueofPara(HCURL.DATA_PARA_CLASS);
+//					final String className = v;
+					HCURL.setToContext(coreSS, url);
 					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_PUBLISH_STATUS_ID)){
 					final String publishID = url.getValueofPara(HCURL.DATA_PARA_PUBLISH_STATUS_ID);
-					ClientDesc.getAgent().set(
+					UserThreadResourceUtil.getMobileAgent(j2seCoreSS).set(
 							publishID, 
 							url.getValueofPara(HCURL.DATA_PARA_PUBLISH_STATUS_VALUE));
 					if(publishID.equals(ConfigManager.UI_IS_BACKGROUND)){
 						final BaseResponsor responsor = ServerUIUtil.getResponsor();
 						if(responsor != null){//exit时，会出现null
-							responsor.onEvent(ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
+							responsor.onEvent(j2seCoreSS, ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
 						}
 //								if(isIOSForBackgroundCond()){
-//									flipIOSBackground(ClientDesc.getAgent().isBackground());
+//									flipIOSBackground(ServerUIAPIAgent.getMobileAgent(j2seCoreSS).isBackground());
 //								}
 					}
 					return true;
@@ -145,12 +156,12 @@ public class J2SEServerURLAction implements IHCURLAction {
 					final byte[] bs = ByteUtil.toBytesFromHexStr(urlHexStr);
 					final String urlStr = StringUtil.bytesToString(bs, 0, bs.length);
 					
-					AddHarHTMLMlet.startAddHTMLHarUI(urlStr);
+					AddHarHTMLMlet.startAddHTMLHarUI(j2seCoreSS, urlStr);
 					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_CERT_RECEIVED)){
 					final String value1 = url.getValueofPara(para1);
 					if(value1.equals(CCoreUtil.RECEIVE_CERT_OK)){
-						J2SEContext.isTransedToMobileSize = true;
+						j2seCoreSS.isTransedCertToMobile = true;
 					}
 
 					return true;
@@ -160,7 +171,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 					try {
 						final String jump_url = new String(bytes, IConstant.UTF_8);
 						L.V = L.O ? false : LogManager.log("receive mobile jump exception at url : [" + jump_url + "], maybe out of memory.");
-						ScreenServer.popScreen();
+						ScreenServer.popScreen(j2seCoreSS);
 //						if(ScreenServer.popScreen() == false){
 //							J2SEContext.notifyExitByMobi();
 //						}
@@ -169,7 +180,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 					}
 					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_RELOAD_THUMBNAIL)){
-					final ScreenCapturer sc = ScreenServer.cap;
+					final ScreenCapturer sc = j2seCoreSS.cap;
 					if(sc != null){
 						sc.clearCacheThumbnail();
 					}
@@ -180,8 +191,8 @@ public class J2SEServerURLAction implements IHCURLAction {
 						if(SingleMessageNotify.isShowMessage(SingleMessageNotify.TYPE_DIALOG_CERT) == false){
 							new Thread(){
 								@Override
-								public void run(){
-									if(ResourceUtil.isDemoServer()){//为Demo时，不显示UI界面
+								public void run(){//显示手机端开启阻击证书更新的通知
+									if(ResourceUtil.isDemoServer() || ResourceUtil.isDisableUIForTest()){//为Demo时，不显示UI界面
 										return;
 									}
 									SingleMessageNotify.setShowToType(SingleMessageNotify.TYPE_DIALOG_CERT, true);
@@ -199,7 +210,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 										}
 									}, App.getThreadPoolToken());
 									final JPanel msgpanel = new JPanel(new BorderLayout());
-									final String forbid_update_cert = "[" + (String)ContextManager.getContextInstance().doExtBiz(IContext.BIZ_GET_FORBID_UPDATE_CERT_I18N, null) + "]";
+									final String forbid_update_cert = "[" + (String)coreSS.context.doExtBiz(IContext.BIZ_GET_FORBID_UPDATE_CERT_I18N, null) + "]";
 									msgpanel.add(new JLabel("<html><body style=\"width:500\"><strong>" + (String)ResourceUtil.get(IContext.TIP) + "</strong>" +
 											"" + StringUtil.replace((String)ResourceUtil.get(9062), "{forbid}", forbid_update_cert)+
 											"</body></html>",
@@ -215,12 +226,14 @@ public class J2SEServerURLAction implements IHCURLAction {
 				}
 			}
 		}else if(protocal == HCURL.CFG_PROTOCAL){
+			final String elementID = url.elementID;
+			
 			if(elementID.equals(HCURL.ADD_HAR_WIFI)){//注意：此处为WiFi添加模式
-				AddHarHTMLMlet.startAddHTMLHarUI(null);
+				AddHarHTMLMlet.startAddHTMLHarUI(j2seCoreSS, null);
 				ContextManager.getThreadPool().run(new Runnable() {
 					@Override
 					public void run() {
-						final AddHarHTMLMlet mlet = AddHarHTMLMlet.getCurrAddHarHTMLMlet();
+						final AddHarHTMLMlet mlet = AddHarHTMLMlet.getCurrAddHarHTMLMlet(j2seCoreSS);
 						boolean isNotifyPressStart = false;
 						int totalSleep = 0;
 						final int sleepMS = 1000;
@@ -230,7 +243,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 //							final String[] commands = {"hello_1", "hello_world"};
 //							WiFiDeviceManager.getInstance().broadcastWiFiAccountAsSSID(commands, "group");
 //							WiFiDeviceManager.getInstance().clearWiFiAccountGroup("group");
-							url = AirCmdsUtil.getAirCmdsHarUrl(WiFiDeviceManager.getInstance().getSSIDListOnAir());
+							url = AirCmdsUtil.getAirCmdsHarUrl(WiFiDeviceManager.getInstance(coreSS).getSSIDListOnAir());
 							
 							if(url != null){
 								break;
@@ -253,19 +266,36 @@ public class J2SEServerURLAction implements IHCURLAction {
 							return;
 						}
 						final String downloadURL = url;
-						mlet.getProjectContext().sendQuestion((String)ResourceUtil.get(IContext.CONFIRMATION), downloadURL, null, new Runnable() {
-							@Override
-							public void run() {
-//								System.out.println("----------start download test : " + downloadURL);
-								mlet.startAddHarProcessInSysThread(downloadURL);								
-							}
-						}, null, null);
+						
+						{
+							final ThreadGroup token = App.getThreadPoolToken();
+							final ThreadPool pools = ContextManager.getThreadPool();
+							final Runnable yesRunnable = new Runnable() {
+								@Override
+								public void run() {
+	//								System.out.println("----------start download test : " + downloadURL);
+									pools.run(new Runnable() {//转系统级
+										@Override
+										public void run() {
+											mlet.startAddHarProcessInSysThread(j2seCoreSS, downloadURL);			
+										}
+									}, token);
+								}
+							};
+							final ProjectContext projectContext = mlet.getProjectContext();
+							ServerUIAPIAgent.runInSessionThreadPool(j2seCoreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {
+								@Override
+								public void run() {
+									projectContext.sendQuestion((String)ResourceUtil.get(IContext.CONFIRMATION), downloadURL, null, yesRunnable, null, null);
+								}
+							});
+						}
 					}
 				});
 				return true;
 			}
 		}
-		return ServerUIUtil.getResponsor().doBiz(url);
+		return ServerUIUtil.getResponsor().doBiz(coreSS, url);
 	}
 
 	final static Object[] SYS_JRUBY_ENGINE = new Object[2];
@@ -287,14 +317,17 @@ public class J2SEServerURLAction implements IHCURLAction {
 	}
 	
 	private void doClickAt(final HCURL url, final int mode, final int x, final int y) {
-		ScreenCapturer.robot.mouseMove(x, y);
-		
-		ScreenCapturer.robot.keyPress(mode);
-
-		ScreenCapturer.robot.mousePress(InputEvent.BUTTON1_MASK);
-		ScreenCapturer.robot.mouseRelease(InputEvent.BUTTON1_MASK);
-
-		ScreenCapturer.robot.keyRelease(mode);
+		final Robot robot = ScreenCapturer.robot;
+		synchronized (robot) {
+			robot.mouseMove(x, y);
+			
+			robot.keyPress(mode);
+	
+			robot.mousePress(InputEvent.BUTTON1_MASK);
+			robot.mouseRelease(InputEvent.BUTTON1_MASK);
+	
+			robot.keyRelease(mode);
+		}
 	}
 
 }

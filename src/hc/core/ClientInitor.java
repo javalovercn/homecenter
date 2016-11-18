@@ -1,5 +1,7 @@
 package hc.core;
 
+import java.util.Hashtable;
+
 import hc.core.data.DataNatReqConn;
 import hc.core.data.DataPNG;
 import hc.core.sip.IPAndPort;
@@ -8,15 +10,12 @@ import hc.core.util.ByteUtil;
 import hc.core.util.HCURLUtil;
 import hc.core.util.IHCURLAction;
 import hc.core.util.LogManager;
+import hc.core.util.io.HCInputStream;
 import hc.core.util.io.IHCStream;
 import hc.core.util.io.StreamBuilder;
 
 public class ClientInitor {
-	public static void doNothing(){
-		
-	}
-	public static final RootTagEventHCListener rootTagListener = new RootTagEventHCListener(); 
-	static{
+	public ClientInitor(final IContext ic, final EventCenter eventCenter){
 //		new HCTimer("", 1000 * 60, true) {
 //			public final void doBiz() {
 //				//无论客户端，服务器
@@ -25,15 +24,15 @@ public class ClientInitor {
 //		};
 		
 		//无论客户端，服务器都设置
-		EventCenter.addListener(rootTagListener);
+		eventCenter.addListener(ic.rootTagListener);
 		
-		EventCenter.addListener(new IEventHCListener() {
+		eventCenter.addListener(new IEventHCListener() {
 			
 			public final byte getEventTag() {
 				return MsgBuilder.E_STREAM_MANAGE;
 			}
 			
-			public final boolean action(final byte[] bs) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS) {
 //				final int sendLen = 1 + STREAM_ID_LEN + 1 + classNameLen + 2 + len;
 				int offsetidx = MsgBuilder.INDEX_MSG_DATA;
 				final boolean isInputStream = (bs[offsetidx]==1);
@@ -44,7 +43,7 @@ public class ClientInitor {
 				offsetidx += 1;
 				final String className = ByteUtil.buildString(bs, offsetidx, classNameLen, IConstant.UTF_8);
 				if(className.equals(StreamBuilder.TAG_CLOSE_STREAM)){
-					final Object stream = StreamBuilder.closeStream(isInputStream, streamID);
+					final Object stream = coreSS.streamBuilder.closeStream(isInputStream, streamID);
 					if(stream != null && stream instanceof IHCStream){
 						((IHCStream)stream).notifyClose();
 					}
@@ -57,20 +56,20 @@ public class ClientInitor {
 				final byte[] paraBS = ByteUtil.byteArrayCacher.getFree(paraBSLen);
 				System.arraycopy(bs, offsetidx, paraBS, 0, paraBSLen);
 				
-				ContextManager.getContextInstance().notifyStreamReceiverBuilder(isInputStream, className, streamID, paraBS, 0, paraBSLen);
+				coreSS.context.notifyStreamReceiverBuilder(isInputStream, className, streamID, paraBS, 0, paraBSLen);
 				ByteUtil.byteArrayCacher.cycle(paraBS);
 				return true;
 			}
 		});
 		
-		EventCenter.addListener(new IEventHCListener(){
+		eventCenter.addListener(new IEventHCListener(){
 //			long lastReceive = 0;
-			public final boolean action(final byte[] bs) {
-				SIPManager.notifyRelayChangeToLineOff();
+			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+				SIPManager.notifyRelayChangeToLineOff(coreSS);
 				
 				try{
 					//要先行关闭，因为有可能会导致新生成的连接被关闭(连接发出端或中继端)
-					SIPManager.getSIPContext().closeSocket(SIPManager.getSIPContext().getSocket());
+					coreSS.sipContext.closeSocket(coreSS.sipContext.getSocket());
 				}catch (final Exception e) {
 					
 				}
@@ -88,7 +87,7 @@ public class ClientInitor {
 				hc.core.L.V=hc.core.L.O?false:LogManager.log("Change relay to [" + remoteIP + ":" + remotePort + "]");
 				
 				//原为backPort
-				final Object send = SIPManager.sendRegister(new IPAndPort(remoteIP, remotePort), MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST, SIPManager.REG_WAITING_MS);
+				final Object send = SIPManager.sendRegister(coreSS, new IPAndPort(remoteIP, remotePort), MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST, SIPManager.REG_WAITING_MS);
 				if(send != null){
 					//稍等
 					final IWatcher watcher = new IWatcher() {
@@ -101,10 +100,10 @@ public class ClientInitor {
 							if((System.currentTimeMillis() - start) >= waitTime){
 //								//加时，以等待
 								try{
-									SIPManager.getSIPContext().deploySocket(para);
+									coreSS.sipContext.deploySocket(coreSS, para);
 								}catch (final Exception e) {
 									L.V = L.O ? false : LogManager.log("Fail relay to[watch]." + e.getMessage());
-									SIPManager.notifyRelineon(false);
+									SIPManager.notifyLineOff(coreSS, false, false);
 								}
 								return true;
 							}
@@ -123,12 +122,12 @@ public class ClientInitor {
 					};
 					
 					watcher.setPara(send);
-					ConditionWatcher.addWatcher(watcher);
+					coreSS.eventConditionWatcher.addWatcher(watcher);
 					
 					if(IConstant.serverSide){
 						//更新RelayIP
 						final String[] paras = {remoteIP, String.valueOf(remotePort)};
-						ContextManager.getContextInstance().doExtBiz(IContext.BIZ_CHANGE_RELAY, paras);
+						coreSS.context.doExtBiz(IContext.BIZ_CHANGE_RELAY, paras);
 					}
 				}
 				return true;
@@ -138,33 +137,31 @@ public class ClientInitor {
 				return MsgBuilder.E_TAG_MOVE_TO_NEW_RELAY;
 			}});
 		
-		EventCenter.addListener(new IEventHCListener() {
+		eventCenter.addListener(new IEventHCListener() {
 			public final byte getEventTag() {
 				return MsgBuilder.E_TAG_UN_FORWARD_DATA;
 			}
 			
-			public final boolean action(final byte[] bs) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS) {
 				L.V = L.O ? false : LogManager.log("Un forward data from relay");
 				if(IConstant.serverSide){
-					if(ContextManager.getContextInstance().isBuildedUPDChannel
-							&& ContextManager.getContextInstance().isDoneUDPChannelCheck){
+					if(coreSS.context.isBuildedUPDChannel
+							&& coreSS.context.isDoneUDPChannelCheck){
 						L.V = L.O ? false : LogManager.log("UDP mode, continue.");
 					}else{
-						SIPManager.notifyRelineon(false);
+						SIPManager.notifyLineOff(coreSS, false, false);
 					}
 				}
 				return true;
 			}
 		});
 		
-		EventCenter.addListener(new IEventHCListener() {
+		eventCenter.addListener(new IEventHCListener() {
 			public final byte getEventTag() {
 				return MsgBuilder.E_TAG_ONLY_SUB_TAG_MSG;
 			}
 			
-			HCTimer udpAliveMobiDetectTimer;
-			
-			public final boolean action(final byte[] bs) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS) {
 				final byte subTag = bs[MsgBuilder.INDEX_CTRL_SUB_TAG];
 //				L.V = L.O ? false : LogManager.log("Sub msg sub tag:" + subTag);
 				if(subTag == MsgBuilder.DATA_SUB_TAG_MSG_MTU_1472){
@@ -172,19 +169,19 @@ public class ClientInitor {
 //						"UDP 1472 Reached mobile, change mtu:" + ContextManager.getContextInstance().udpSender.real_len_upd_data 
 //						+ " to " + MsgBuilder.UDP_MTU_DATA_MAX_SIZE);
 					L.V = L.O ? false : LogManager.log("Find best MTU for UDP");
-					ContextManager.getContextInstance().udpSender.real_len_upd_data = MsgBuilder.UDP_MTU_DATA_MAX_SIZE;
+					coreSS.context.udpSender.real_len_upd_data = MsgBuilder.UDP_MTU_DATA_MAX_SIZE;
 					return true;
 				}else if(subTag == MsgBuilder.DATA_SUB_TAG_MSG_UDP_CHECK_ALIVE){
 					if(IConstant.serverSide == false){
-						if(udpAliveMobiDetectTimer == null){
-							udpAliveMobiDetectTimer = new HCTimer("", 20000, false) {
+						if(coreSS.udpAliveMobiDetectTimer == null){
+							coreSS.udpAliveMobiDetectTimer = new HCTimer("", 20000, false) {
 								public final void doBiz() {
-									if(ContextManager.cmStatus == ContextManager.STATUS_EXIT){
+									if(coreSS.context.cmStatus == ContextManager.STATUS_EXIT){
 										setEnable(false);
 									}else{
-										if(UDPController.tryRebuildUDPChannel() == false){
+										if(coreSS.getUDPController().tryRebuildUDPChannel(coreSS) == false){
 											L.V = L.O ? false : LogManager.log("Fail on UDP-check-alive, notify connect error!");
-											SIPManager.notifyRelineon(false);
+											SIPManager.notifyLineOff(coreSS, false, false);
 											setEnable(false);
 										}
 									}
@@ -193,16 +190,16 @@ public class ClientInitor {
 						}
 						
 						//如果是mobi环境
-						ContextManager.getContextInstance().udpSender.
+						coreSS.context.udpSender.
 						sendUDP(MsgBuilder.E_TAG_ONLY_SUB_TAG_MSG, MsgBuilder.DATA_SUB_TAG_MSG_UDP_CHECK_ALIVE,
 								bs, 0, 0, 0, false);
-						udpAliveMobiDetectTimer.setEnable(true);
-						udpAliveMobiDetectTimer.resetTimerCount();
+						coreSS.udpAliveMobiDetectTimer.setEnable(true);
+						coreSS.udpAliveMobiDetectTimer.resetTimerCount();
 						
 //						L.V = L.O ? false : LogManager.log("Send back udp line watch at RootTagEventHCListener");
 					}else{
 						//服务器收到mobi回应
-						rootTagListener.setServerReceiveMS(System.currentTimeMillis());
+						coreSS.context.rootTagListener.setServerReceiveMS(System.currentTimeMillis());
 //						L.V = L.O ? false : LogManager.log("Receive udp line watch at RootTagEventHCListener");
 					}
 					return true;
@@ -212,20 +209,39 @@ public class ClientInitor {
 			}
 		});
 
-
+		eventCenter.addListener(new IEventHCListener() {
+			public final byte getEventTag() {
+				return MsgBuilder.E_STREAM_DATA;
+			}
+			
+			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+				final Hashtable inputStreamTable = coreSS.streamBuilder.inputStreamTable;
+				
+				final int len = HCMessage.getMsgLen(bs);
+				final int streamID = (int)ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_MSG_DATA);
+				Object is;
+				final int dataLen = len - StreamBuilder.STREAM_ID_LEN;
+				
+				synchronized (coreSS.streamBuilder.LOCK) {
+					is = inputStreamTable.get(new Integer(streamID));
+				}
+				if(is != null){
+					((HCInputStream)is).appendStream(bs, MsgBuilder.INDEX_MSG_DATA + StreamBuilder.STREAM_ID_LEN, dataLen);
+					return true;
+				}
+				
+				return true;
+			}
+		});
 		
 		if(IConstant.serverSide == false){
 			//客户端
 			
-			EventCenter.addListener(new IEventHCListener(){
-				IHCURLAction urlAction;
-				public final boolean action(final byte[] bs) {
+			eventCenter.addListener(new IEventHCListener(){
+				public final boolean action(final byte[] bs, final CoreSession coreSS) {
 					final String cmd = HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA);
 //					L.V = L.O ? false : LogManager.log("Receive:" + cmd);
-					if(urlAction == null){
-						urlAction = ContextManager.getContextInstance().getHCURLAction();
-					}
-					HCURLUtil.process(cmd, urlAction);
+					HCURLUtil.process(coreSS, cmd, coreSS.urlAction);
 					return true;
 				}
 
@@ -233,13 +249,13 @@ public class ClientInitor {
 					return MsgBuilder.E_GOTO_URL;
 				}});
 			
-			EventCenter.addListener(new IEventHCListener() {
+			eventCenter.addListener(new IEventHCListener() {
 				public final byte getEventTag() {
 					return MsgBuilder.E_SOUND;
 				}
 				DataPNG blob = null;
 				byte[] soundBS;
-				public final boolean action(final byte[] bs) {
+				public final boolean action(final byte[] bs, final CoreSession coreSS) {
 					if(blob == null){
 						blob = new DataPNG();
 					}
@@ -253,21 +269,21 @@ public class ClientInitor {
 					
 					blob.copyPNGDataOut(pngDatalength, soundBS, 0);
 
-					ContextManager.getContextInstance().doExtBiz(IContext.BIZ_PLAYSOUND, soundBS);
+					coreSS.context.doExtBiz(IContext.BIZ_PLAYSOUND, soundBS);
 					return true;
 				}
 			});
 		
-			EventCenter.addListener(new IEventHCListener() {
+			eventCenter.addListener(new IEventHCListener() {
 				
 				public final byte getEventTag() {
 					return MsgBuilder.E_TAG_MTU_1472;
 				}
 				
-				public final boolean action(final byte[] bs) {
+				public final boolean action(final byte[] bs, final CoreSession coreSS) {
 					if(UDPPacketResender.checkUDPBlockData(bs, MsgBuilder.UDP_MTU_DATA_MAX_SIZE)){
 //						L.V = L.O ? false : LogManager.log("Receive Succ MTU 1472");
-						ContextManager.getContextInstance().send(
+						coreSS.context.send(
 							null, MsgBuilder.E_TAG_ONLY_SUB_TAG_MSG, MsgBuilder.DATA_SUB_TAG_MSG_MTU_1472);
 					}else{
 //						L.V = L.O ? false : LogManager.log("Receive Fail MTU 1472");
@@ -276,6 +292,6 @@ public class ClientInitor {
 				}
 			});
 
-		}
+		}//仅添加到客户端
 	}
 }

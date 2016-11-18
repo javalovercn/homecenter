@@ -317,8 +317,11 @@ public class BindManager {
 				//将旧的绑定保留
 				final Object[] oldDevBindMap = lps.getDevBindMap();
 				if(oldDevBindMap != null){
-					for (int i = 0; i < oldDevBindMap.length; i++) {
-						final String bind_id = (String)oldDevBindMap[0];
+					final String[] bind_id_array = (String[])oldDevBindMap[0];
+					final RealDeviceInfo[] rdi_array = (RealDeviceInfo[])oldDevBindMap[1];
+					
+					for (int i = 0; i < bind_id_array.length; i++) {
+						final String bind_id = bind_id_array[i];
 						
 						//Robot下的ref_id是否还存在使用
 						final RobotReferBindInfo rrbi = DeviceBindInfo.decodeReferIDFromBindID(bind_id);
@@ -327,7 +330,7 @@ public class BindManager {
 							continue;
 						}
 						
-						final RealDeviceInfo rdi = (RealDeviceInfo)oldDevBindMap[1];
+						final RealDeviceInfo rdi = rdi_array[i];
 						
 						//检查Device或real_device_id是否还存在
 						if(searchRealDeviceInfo(rdbi, rdi) == false){
@@ -342,9 +345,13 @@ public class BindManager {
 				}
 				final Object[] oldConvBindMap = lps.getConvBindMap();
 				if(oldConvBindMap != null){
-					for (int i = 0; i < oldConvBindMap.length; i++) {
-						final String bind_id = (String)oldConvBindMap[0];
-						final ConverterInfo cInfo = (ConverterInfo)oldConvBindMap[1];
+					final String[] bind_id_array = (String[])oldConvBindMap[0];
+					final ConverterInfo[] cInfo_array = (ConverterInfo[])oldConvBindMap[1];
+					
+					for (int i = 0; i < bind_id_array.length; i++) {
+						final String bind_id = bind_id_array[i];
+						final ConverterInfo cInfo = cInfo_array[i];
+						
 						final int idx = dev_id_vector.indexOf(bind_id);
 						
 						//有可能因驱动变动，而导致旧绑定失效，所以要先检查可用性

@@ -4,6 +4,7 @@ import hc.App;
 import hc.UIActionListener;
 import hc.core.ConfigManager;
 import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
@@ -15,8 +16,10 @@ import hc.core.util.StringUtil;
 import hc.core.util.WiFiDeviceManager;
 import hc.res.ImageSrc;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.AddHarHTMLMlet;
+import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.ProjResponser;
 import hc.util.BaseResponsor;
@@ -52,14 +55,10 @@ public class WiFiHelper {
 	public static final String WIFI_SSID = "SSID";
 	public static final String WIFI_SECURITY_OPTION = "Security Option";
 	public static final String SECURITY_WIFI_NONE = "NONE";
-	public final static WiFiDeviceManager remoteWrapper = new WiFiManagerRemoteWrapper();
-	
-	public static void startAPIfExists() {
-		CCoreUtil.checkAccess();
-		
+	public static void startAPIfExists(final CoreSession coreSS) {
 		final String isAutoCreated = PropertiesManager.getValue(PropertiesManager.p_WiFi_currIsAutoCreated);
 		if(isAutoCreated != null && isAutoCreated.equals(IConstant.TRUE)){//启动自带WiFi模块的AP，而非router
-			startAPOnServer();
+			startAPOnServer(coreSS);
 		}
 	}
 	
@@ -67,15 +66,15 @@ public class WiFiHelper {
 	 * 本方法是Device到J2SE和Android Server的中转方法
 	 * @return
 	 */
-	static WiFiAccount getWiFiAccount(final ProjectContext ctx, final ThreadGroup token){
+	static WiFiAccount getWiFiAccount(final J2SESession coreSS, final ProjectContext ctx, final ThreadGroup token){
 		synchronized(WiFiHelper.class){//有可能被多个Device同时调用，所以加锁
 			String currWiFiSSID = PropertiesManager.getValue(PropertiesManager.p_WiFi_currSSID);
 			if(currWiFiSSID == null){
-				final WiFiDeviceManager instance = WiFiDeviceManager.getInstance();
+				final WiFiDeviceManager instance = WiFiDeviceManager.getInstance(coreSS);
 				if((instance.hasWiFiModule() && instance.canCreateWiFiAccount())){
 //					|| 
 //				(ContextManager.isMobileLogin() && ClientDesc.agent.ctrlWiFi()
-					createAccountAuto(ctx, token);
+					createAccountAuto(coreSS, ctx, token);
 				}else{
 					return null;
 				}
@@ -91,8 +90,8 @@ public class WiFiHelper {
 		}
 	}
 
-	private static void createAccountAuto(final ProjectContext projCtx, final ThreadGroup token) {
-		final WiFiDeviceManager wifiDeviceManager = WiFiDeviceManager.getInstance();
+	private static void createAccountAuto(final J2SESession coreSS, final ProjectContext projCtx, final ThreadGroup token) {
+		final WiFiDeviceManager wifiDeviceManager = WiFiDeviceManager.getInstance(coreSS);
 		
 		final String hasWiFiModuleKey = PropertiesManager.getValue(PropertiesManager.p_WiFi_hasWiFiModule);
 		boolean hasWiFiModule;
@@ -121,15 +120,16 @@ public class WiFiHelper {
 			if(isAutoCreated == null){
 				createAPOnServer();
 			}
-			startAPOnServer();
+			startAPOnServer(coreSS);
 		}else{
 			if(isAutoCreated == null){
-				if(ContextManager.isMobileLogin()){
-					final AddHarHTMLMlet currMlet = AddHarHTMLMlet.getCurrAddHarHTMLMlet();
+				if(ContextManager.isMobileLogin(coreSS.context)){
+					final AddHarHTMLMlet currMlet = AddHarHTMLMlet.getCurrAddHarHTMLMlet(coreSS);
 					if(currMlet != null){
 						currMlet.waitForInputWiFiPassword(token);
 					}else{
-						projCtx.sendMessage(ResourceUtil.getInfoI18N(), "unknow status of Mlet", ProjectContext.MESSAGE_INFO, null, 0);
+						final J2SESession[] coreSSS = {coreSS};
+						ServerUIAPIAgent.sendMessageViaCoreSS(coreSSS, ResourceUtil.getInfoI18N(), "unknow status of Mlet", ProjectContext.MESSAGE_INFO, null, 0);
 					}
 				}else{
 					showInputWiFiPassword(true);
@@ -339,13 +339,13 @@ public class WiFiHelper {
 				.getResource("hc/res/wifi_22.png"));
 	}
 	
-	static final void startAPOnServer(){
+	static final void startAPOnServer(final CoreSession coreSS){
 		final String ssid = PropertiesManager.getValue(PropertiesManager.p_WiFi_currSSID);
 		final String pwd = PropertiesManager.getValue(PropertiesManager.p_WiFi_currPassword);
 		final String option = PropertiesManager.getValue(PropertiesManager.p_WiFi_currSecurityOption);
 		
 		try{
-			WiFiDeviceManager.getInstance().startWiFiAP(ssid, pwd, option);
+			WiFiDeviceManager.getInstance(coreSS).startWiFiAP(ssid, pwd, option);
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}

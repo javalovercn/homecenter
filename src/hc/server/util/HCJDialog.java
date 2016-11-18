@@ -1,11 +1,13 @@
 package hc.server.util;
 
-import java.awt.Dialog;
-import java.awt.Frame;
-import java.awt.Window;
 import hc.App;
 import hc.core.util.CCoreUtil;
 import hc.server.DisposeListener;
+import hc.util.ResourceUtil;
+
+import java.awt.Dialog;
+import java.awt.Frame;
+import java.awt.Window;
 
 import javax.swing.JDialog;
 
@@ -16,41 +18,43 @@ public class HCJDialog extends JDialog {
 		this((Frame)null, false);
 	}
 	
-	public HCJDialog(Frame owner) {
+	public HCJDialog(final Frame owner) {
         this(owner, false);
 	}
 	
-	public HCJDialog(Frame owner, boolean modal){
+	public HCJDialog(final Frame owner, final boolean modal){
 		this(owner, "", modal);
 	}
 	
-	public HCJDialog(Frame owner, String title) {
+	public HCJDialog(final Frame owner, final String title) {
         this(owner, title, false);
 	}
 	
-	public HCJDialog(Window owner, String title) {
+	public HCJDialog(final Window owner, final String title) {
         this(owner, title, Dialog.ModalityType.MODELESS);
 	}
 	
-	public HCJDialog(Window owner, String title, Dialog.ModalityType modalityType) {
+	public HCJDialog(final Window owner, final String title, final Dialog.ModalityType modalityType) {
 		super(owner, title, modalityType);
 		init(title);
 	}
 
-	public HCJDialog(Frame owner, String title, boolean modal) {
+	public HCJDialog(final Frame owner, final String title, final boolean modal) {
 		super(owner, title, modal);
 		init(title);
 	}
 	
-	private final void init(String title) {
+	private final void init(final String title) {
 		CCoreUtil.checkAccess();
 		
 		this.setTitle(title);
 		setIconImage(App.SYS_LOGO);
 	}
 	
+	@Override
 	public final void setTitle(String title) {
-		title = (title.indexOf("HomeCenter") >= 0)?title:title + " - HomeCenter";
+		final String product = ResourceUtil.getProductName();
+		title = (title.indexOf(product) >= 0)?title:title + " - " + product;
 		super.setTitle(title);
 	}
 	
@@ -66,7 +70,7 @@ public class HCJDialog extends JDialog {
 		return listener;
 	}
 	
-	public final void setDisposeListener(DisposeListener dListener){
+	public final void setDisposeListener(final DisposeListener dListener){
 		listener = dListener;
 	}
 }

@@ -88,7 +88,7 @@ public class CacheDataItem {
 //		}
 	}
 	
-	public static boolean isEmptyFirst = true;
+	public final static boolean isEmptyFirst = true;
 	
 	/**
 	 * 

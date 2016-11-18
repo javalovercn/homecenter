@@ -11,8 +11,8 @@ import java.util.Vector;
  * {@link Message} is medium between {@link Robot} and {@link Device}. 
  * <br><br>
  * {@link Message} is never used outside of {@link Robot}, {@link Converter} and {@link Device}. 
- * To drive {@link Device}, please via {@link Robot}. 
- * To get {@link Robot} instance and operate it in HAR project, please invoke {@link ProjectContext#getRobot(String)} and {@link Robot#operate(long, Object)}.
+ * <BR>To drive {@link Device}, please via {@link Robot}. 
+ * <BR>To get {@link Robot} instance and operate it, please invoke {@link ProjectContext#getRobot(String)} and {@link Robot#operate(long, Object)}.
  * <br><br>There are two parts of a {@link Message}, <i>header</i> is for control data and <i>body</i> is for business data.
  * <BR><BR>To get an instance of {@link Message}, invoke {@link Robot#getFreeMessage(String)} or {@link Device#getFreeMessage(String)}.
  * <br><br><STRONG>Important</STRONG> : <BR>Don't keep any reference of {@link Message} in any threads and instances, it will be auto recycled and cleaned after being consumed.
@@ -46,8 +46,10 @@ public final class Message {
 	String ctrl_dev_id;
 	
 	/**
-	 * 
-	 * @return In {@link Robot}, it means <i>Reference Device ID</i>; In {@link Device}, it means real device ID.
+	 * In {@link Robot}, it means <i>Reference Device ID</i>; 
+	 * <BR>
+	 * In {@link Device}, it means real device ID.
+	 * @return
 	 */
 	public final String getDevID(){
 		return ctrl_dev_id;
@@ -119,9 +121,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not Boolean object, then return false
 	 * @param name
-	 * @return if name is not exists or not Boolean object, then return false
+	 * @return 
 	 * @see #getBooleanHeader(String, boolean)
 	 * @see #getObjectHeader(String)
 	 */
@@ -134,9 +136,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not Boolean object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not Boolean object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of Header <code>name</code>
 	 * @see #getBooleanHeader(String)
 	 * @see #getObjectHeader(String)
@@ -153,9 +155,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return 0
 	 * @param name
-	 * @return if name is not exists or not convertible object, then return 0
+	 * @return 
 	 * @see #getByteHeader(String, byte)
 	 * @see #getObjectHeader(String)
 	 */
@@ -180,9 +182,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not convertible object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of Header <code>name</code>
 	 * @see #getByteHeader(String)
 	 * @see #getObjectHeader(String)
@@ -208,6 +210,11 @@ public final class Message {
 		return defaultValue;
 	}
 	
+	/**
+	 * if name is not exists or not byte[] object, then return null.
+	 * @param name
+	 * @return
+	 */
 	public final byte[] getByteArrayHeader(final String name){
 		final Object obj = header_table.get(name);
 		if(obj != null && obj instanceof byte[]){
@@ -217,6 +224,12 @@ public final class Message {
 		return null;
 	}
 	
+	/**
+	 * if name is not exists or not byte[] object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue
+	 * @return
+	 */
 	public final byte[] getByteArrayHeader(final String name, final byte[] defaultValue){
 		final Object obj = header_table.get(name);
 		if(obj != null && obj instanceof byte[]){
@@ -227,9 +240,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not Character object, then return 0
 	 * @param name
-	 * @return if name is not exists or not Character object, then return 0
+	 * @return 
 	 * @see #getCharHeader(String, char)
 	 * @see #getObjectHeader(String)
 	 */
@@ -244,9 +257,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not Character object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not Character object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of Header <code>name</code>
 	 * @see #getCharHeader(String)
 	 * @see #getObjectHeader(String)
@@ -263,9 +276,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return 0
 	 * @param name
-	 * @return if name is not exists or not convertible object, then return 0
+	 * @return 
 	 * @see #getShortHeader(String, short)
 	 * @see #getObjectHeader(String)
 	 */
@@ -290,9 +303,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not convertible object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of Header <code>name</code>
 	 * @see #getShortHeader(String)
 	 * @see #getObjectHeader(String)
@@ -319,9 +332,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return 0
 	 * @param name
-	 * @return if name is not exists or not convertible object, then return 0
+	 * @return 
 	 * @see #getIntHeader(String, int)
 	 * @see #getObjectHeader(String)
 	 */
@@ -346,9 +359,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not convertible object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of Header <code>name</code>
 	 * @see #getIntHeader(String)
 	 * @see #getObjectHeader(String)
@@ -375,9 +388,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return 0
 	 * @param name
-	 * @return if name is not exists or not convertible object, then return 0
+	 * @return 
 	 * @see #getLongHeader(String, long)
 	 * @see #getObjectHeader(String)
 	 */
@@ -402,9 +415,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not convertible object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of Header <code>name</code>
 	 * @see #getLongHeader(String)
 	 * @see #getObjectHeader(String)
@@ -431,9 +444,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return 0
 	 * @param name
-	 * @return if name is not exists or not convertible object, then return 0
+	 * @return 
 	 * @see #getFloatHeader(String, float)
 	 * @see #getObjectHeader(String)
 	 */
@@ -458,9 +471,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not convertible object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of Header <code>name</code>
 	 * @see #getFloatHeader(String)
 	 * @see #getObjectHeader(String)
@@ -487,9 +500,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return 0
 	 * @param name
-	 * @return if name is not exists or not convertible object, then return 0
+	 * @return 
 	 * @see #getDoubleHeader(String, double)
 	 * @see #getObjectHeader(String)
 	 */
@@ -514,9 +527,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not convertible object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of Header <code>name</code>
 	 * @see #getDoubleHeader(String)
 	 * @see #getObjectHeader(String)
@@ -542,9 +555,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists, return null; if the map of name is not String object, return obj.toString()
 	 * @param name
-	 * @return if name is not exists, return null; if name is not String object, return obj.toString()
+	 * @return 
 	 * @see #getStringHeader(String, String)
 	 * @see #getObjectHeader(String)
 	 */
@@ -561,9 +574,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists, then return defaultValue; if the map of name is not String object, return obj.toString()
 	 * @param name
-	 * @param defaultValue if name is not exists, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of Header <code>name</code>
 	 * @see #getStringHeader(String)
 	 * @see #getObjectHeader(String)
@@ -582,9 +595,9 @@ public final class Message {
 	}
 	
 	/**
-	 * get Header by name; check name is exists or not.
+	 * returns the value to which the specified name is mapped, or null if this map contains no mapping for the name.
 	 * @param name
-	 * @return if name is not exists, then return null
+	 * @return 
 	 * @see #getObjectHeader(String, Object)
 	 */
 	public final Object getObjectHeader(final String name){
@@ -592,9 +605,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of Header <code>name</code>
 	 * @see #getObjectHeader(String)
 	 */
@@ -608,19 +621,23 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * remove name header.
 	 * @param name
 	 */
 	public final void removeHeader(final String name){
 		header_table.remove(name);
 	}
 	
+	/**
+	 * return a set of all header names.
+	 * @return
+	 */
 	public final Set<String> getHeaderNames(){
 		return header_table.keySet();
 	}
 	
 	/**
-	 * 
+	 * set header name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -632,7 +649,7 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * set header name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -645,7 +662,7 @@ public final class Message {
 	
 	/**
 	 * set <code>value</code> for the <code>name</code> in header.<BR>
-	 * to copy byte array , please invoke {@link #setByteArrayHeader(String, byte[], int, int)}.
+	 * to copy to new byte array , please invoke {@link #setByteArrayHeader(String, byte[], int, int)}.
 	 * @param name
 	 * @param value is NOT copied.
 	 */
@@ -662,6 +679,7 @@ public final class Message {
 	 * @param bs is copied to new byte array.
 	 * @param offset
 	 * @param length
+	 * @see #setByteArrayHeader(String, byte[])
 	 */
 	public final void setByteArrayHeader(final String name, final byte[] bs, final int offset, final int length){
 		if(ctrl_isInWorkbench){
@@ -673,7 +691,7 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * set header name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -685,7 +703,7 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * set header name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -697,7 +715,7 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * set header name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -709,7 +727,7 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * set header name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -721,7 +739,7 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * set header name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -733,7 +751,7 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * set header name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -745,7 +763,7 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * set header name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -757,7 +775,7 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * set header name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -769,9 +787,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not Boolean object, then return false
 	 * @param name
-	 * @return if name is not exists or not Boolean object, then return false
+	 * @return 
 	 * @see #getBooleanBody(String, boolean)
 	 * @see #getObjectBody(String)
 	 */
@@ -784,9 +802,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists or not Boolean object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not Boolean object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of body <code>name</code>
 	 * @see #getBooleanBody(String)
 	 * @see #getObjectBody(String)
@@ -803,9 +821,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists or not Character object, then return 0
 	 * @param name
-	 * @return if name is not exists or not Character object, then return 0
+	 * @return 
 	 * @see #getCharBody(String, char)
 	 * @see #getObjectBody(String)
 	 */
@@ -818,9 +836,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not Character object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not Character object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of body <code>name</code>
 	 * @see #getCharBody(String)
 	 * @see #getObjectBody(String)
@@ -837,9 +855,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return 0
 	 * @param name
-	 * @return if name is not exists or not convertible object, then return 0
+	 * @return 
 	 * @see #getByteBody(String, byte)
 	 * @see #getObjectBody(String)
 	 */
@@ -864,9 +882,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not convertible object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of body <code>name</code>
 	 * @see #getByteBody(String)
 	 * @see #getObjectBody(String)
@@ -893,9 +911,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists or not byte array object, then return null
 	 * @param name
-	 * @return if name is not exists or not byte array object, then return null
+	 * @return 
 	 * @see #getByteArrayBody(String, byte[])
 	 * @see #getObjectBody(String)
 	 */
@@ -908,9 +926,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not byte array object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not byte array object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of body <code>name</code>
 	 * @see #getByteArrayBody(String)
 	 * @see #getObjectBody(String)
@@ -927,9 +945,9 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return 0
 	 * @param name
-	 * @return if name is not exists or not convertible object, then return 0
+	 * @return 
 	 * @see #getShortBody(String, short)
 	 * @see #getObjectBody(String)
 	 */
@@ -954,9 +972,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not convertible object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of body <code>name</code>
 	 * @see #getShortBody(String)
 	 * @see #getObjectBody(String)
@@ -983,9 +1001,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return 0
 	 * @param name
-	 * @return if name is not exists or not convertible object, then return 0
+	 * @return 
 	 * @see #getIntBody(String, int)
 	 * @see #getObjectBody(String)
 	 */
@@ -1010,9 +1028,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not convertible object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of body <code>name</code>
 	 * @see #getIntBody(String)
 	 * @see #getObjectBody(String)
@@ -1039,9 +1057,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return 0
 	 * @param name
-	 * @return if name is not exists or not convertible object, then return 0
+	 * @return 
 	 * @see #getLongBody(String, long)
 	 * @see #getObjectBody(String)
 	 */
@@ -1066,9 +1084,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not convertible object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of body <code>name</code>
 	 * @see #getLongBody(String)
 	 * @see #getObjectBody(String)
@@ -1095,9 +1113,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return 0
 	 * @param name
-	 * @return if name is not exists or not convertible object, then return 0
+	 * @return 
 	 * @see #getFloatBody(String, float)
 	 * @see #getObjectBody(String)
 	 */
@@ -1122,9 +1140,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not convertible object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of body <code>name</code>
 	 * @see #getFloatBody(String)
 	 * @see #getObjectBody(String)
@@ -1151,9 +1169,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return 0
 	 * @param name
-	 * @return if name is not exists or not convertible object, then return 0
+	 * @return 
 	 * @see #getDoubleBody(String, double)
 	 * @see #getObjectBody(String)
 	 */
@@ -1178,9 +1196,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists or not convertible object, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of body <code>name</code>
 	 * @see #getDoubleBody(String)
 	 * @see #getObjectBody(String)
@@ -1207,9 +1225,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists, return null; if the map of name is not String object, return obj.toString()
 	 * @param name
-	 * @return if name is not exists, return null; otherwise return obj.toString()
+	 * @return 
 	 * @see #getStringBody(String, String)
 	 * @see #getObjectBody(String)
 	 */
@@ -1226,9 +1244,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists, then return defaultValue; if the map of name is not String object, return obj.toString()
 	 * @param name
-	 * @param defaultValue if name is not exists, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of body <code>name</code>
 	 * @see #getStringBody(String)
 	 * @see #getObjectBody(String)
@@ -1247,9 +1265,9 @@ public final class Message {
 	}
 
 	/**
-	 * get body by name; check name is exists or not.
+	 * returns the value to which the specified name is mapped, or null if this map contains no mapping for the name.
 	 * @param name
-	 * @return if name is not exists, then return null
+	 * @return 
 	 * @see #getObjectBody(String, Object)
 	 */
 	public final Object getObjectBody(final String name){
@@ -1257,9 +1275,9 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * if name is not exists, then return defaultValue.
 	 * @param name
-	 * @param defaultValue if name is not exists, then return defaultValue.
+	 * @param defaultValue 
 	 * @return the value of body <code>name</code>
 	 * @see #getObjectBody(String)
 	 */
@@ -1273,19 +1291,23 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * remove name mapping from body 
 	 * @param name
 	 */
 	public final void removeBody(final String name){
 		body_table.remove(name);
 	}
 
+	/**
+	 * return a set of all body names.
+	 * @return
+	 */
 	public final Set<String> getBodyNames(){
 		return body_table.keySet();
 	}
 
 	/**
-	 * 
+	 * set body name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -1297,7 +1319,7 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * set body name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -1309,7 +1331,7 @@ public final class Message {
 	}
 	
 	/**
-	 * 
+	 * set body name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -1322,7 +1344,7 @@ public final class Message {
 
 	/**
 	 * set <code>value</code> for the <code>name</code> in body.<BR>
-	 * to copy byte array , please invoke {@link #setByteArrayBody(String, byte[], int, int)}.
+	 * to copy to new byte array , please invoke {@link #setByteArrayBody(String, byte[], int, int)}.
 	 * @param name
 	 * @param value is NOT copied.
 	 */
@@ -1339,6 +1361,7 @@ public final class Message {
 	 * @param bs is copied to new byte array.
 	 * @param offset
 	 * @param length
+	 * @see #setByteArrayBody(String, byte[])
 	 */
 	public final void setByteArrayBody(final String name, final byte[] bs, final int offset, final int length){
 		if(ctrl_isInWorkbench){
@@ -1350,7 +1373,7 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * set body name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -1362,7 +1385,7 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * set body name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -1374,7 +1397,7 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * set body name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -1386,7 +1409,7 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * set body name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -1398,7 +1421,7 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * set body name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -1410,7 +1433,7 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * set body name with value.
 	 * @param name
 	 * @param value
 	 */
@@ -1422,7 +1445,7 @@ public final class Message {
 	}
 
 	/**
-	 * 
+	 * set body name with value.
 	 * @param name
 	 * @param value
 	 */

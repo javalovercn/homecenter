@@ -1,7 +1,8 @@
 package hc;
 
-import hc.core.ConditionWatcher;
 import hc.core.ContextManager;
+import hc.core.CoreSession;
+import hc.core.GlobalConditionWatcher;
 import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.IContext;
@@ -9,6 +10,7 @@ import hc.core.IWatcher;
 import hc.core.L;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
+import hc.core.SessionManager;
 import hc.core.cache.CacheManager;
 import hc.core.cache.CacheStoreManager;
 import hc.core.util.CCoreUtil;
@@ -31,21 +33,23 @@ import hc.server.DebugThreadPool;
 import hc.server.DisposeListener;
 import hc.server.HCActionListener;
 import hc.server.J2SEConstant;
-import hc.server.J2SEContext;
+import hc.server.JRubyInstaller;
 import hc.server.PlatformManager;
 import hc.server.ProcessingWindowManager;
-import hc.server.ServerInitor;
 import hc.server.StarterManager;
 import hc.server.ThirdlibManager;
+import hc.server.TrayMenuUtil;
 import hc.server.data.StoreDirManager;
 import hc.server.msb.MSBException;
-import hc.server.msb.WiFiHelper;
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.rms.J2SERecordWriterBuilder;
 import hc.server.rms.RMSLastAccessTimeManager;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.ClosableWindow;
+import hc.server.ui.J2SESessionManager;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SingleMessageNotify;
+import hc.server.ui.design.LinkProjectManager;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.ExceptionViewer;
 import hc.server.util.HCInitor;
@@ -59,10 +63,12 @@ import hc.server.util.VerifyEmailManager;
 import hc.util.ClassUtil;
 import hc.util.HttpUtil;
 import hc.util.IBiz;
+import hc.util.LinkPropertiesOption;
 import hc.util.LogServerSide;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 import hc.util.SecurityDataProtector;
+import hc.util.StringBuilderCacher;
 import hc.util.TokenManager;
 import hc.util.UILang;
 
@@ -280,6 +286,9 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		} catch (final Exception e) {
 		}
 
+		threadPoolToken = getRootThreadGroup();
+		RootBuilder.setInstance(new J2SERootBuilder(threadPoolToken));
+
 		IConstant.setServerSide(true);//必须最先被执行
 
 		if (args != null) {
@@ -340,10 +349,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		final ThreadPool threadPool = DEBUG_THREAD_POOL_ON?new DebugThreadPool():new AppThreadPool();
 		threadPool.setName("mainThreadPool");
-		threadPoolToken = getRootThreadGroup();
 		ContextManager.setThreadPool(threadPool, threadPoolToken);
-
-		RootBuilder.setInstance(new J2SERootBuilder(threadPoolToken));
 		
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
@@ -425,6 +431,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		HCAjaxX509TrustManager.initSSLSocketFactory();
 		
+		UserThreadResourceUtil.doNothing();
+		
 		StarterManager.startUpgradeStarter();
 		{
 			final String initVersion = PropertiesManager.getValue(PropertiesManager.p_InitVersion);
@@ -433,14 +441,17 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			}
 		}
 		
+		PropertiesManager.initCSCCheck();
+		
 		ThirdlibManager.loadThirdLibs();
 
-		// 选择Skin
+//		// 选择Skin
 		final String selectedSkin = ConfigPane.getSystemSkin();
 
 		if(selectedSkin != null && selectedSkin.length() > 0){
 			applyLookFeel(selectedSkin, ConfigPane.getDefaultSkin());
 		}
+		ResourceUtil.doCopyShortcutForMac();//要在skin之后
 		
 		PropertiesManager.remove(PropertiesManager.p_IAgree);
 		final String agreeVersion = PropertiesManager.getValue(PropertiesManager.p_AgreeVersion, "1.0");
@@ -531,6 +542,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	}
 
 	public static void setNoTransCert() {
+		CCoreUtil.checkAccess();
+		
 		PropertiesManager.setValue(PropertiesManager.p_NewCertIsNotTransed, IConstant.TRUE);
 		PropertiesManager.saveFile();
 	}
@@ -587,8 +600,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			PropertiesManager.saveFile();
 		}
 		
-		ServerInitor.doNothing();
-
 		// JRE 6 install
 		// http://www.oracle.com/technetwork/java/javase/downloads/jre-6u27-download-440425.html
 
@@ -660,16 +671,12 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		// }
 		// });
 
-		// boolean succ = UDPChannel.buildChannel();
-		// if (succ == false) {
-		// App.showMessageDialog(null,
-		// (String) ResourceUtil.get(1000), (String) ResourceUtil
-		// .get(UILang.ERROR), JOptionPane.ERROR_MESSAGE);
-		// ExitManager.exit();
-		// }
 
 		boolean needNewApp = true;
+		
 		PropertiesManager.remove(PropertiesManager.p_AutoStart);//废弃本项
+		LinkPropertiesOption.fixDisplayToOpValue();
+		
 		final String password = PropertiesManager.getValue(PropertiesManager.p_password);
 		final String uuid = PropertiesManager.getValue(PropertiesManager.p_uuid);
 		if (password != null && uuid != null) {
@@ -727,11 +734,15 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		}
 
 		try {
-			new J2SEContext();
+			TrayMenuUtil.doBefore();
 			
-			WiFiHelper.startAPIfExists();//依赖context
-
-			ContextManager.start();
+			PlatformManager.getService().startCaptureIfEnable();//JMF is NOT installed for the newer version
+			if(JRubyInstaller.checkInstalledJRuby() == false){
+				JRubyInstaller.startInstall();
+			}
+			LinkProjectManager.startAutoUpgradeBiz();
+			
+			J2SESessionManager.startSession();
 			
 			if(ResourceUtil.isJ2SELimitFunction()){
 				//最低JRE要求7
@@ -832,7 +843,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				public void run() {
 					final String[] options = { "O K" };
 					App.showOptionDialog(null,
-							"Cant connect server, please try late!", "HomeCenter",
+							"Cant connect server, please try late!", ResourceUtil.getProductName(),
 							JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE,
 							null, options, options[0]);
 					dialog.dispose();
@@ -990,7 +1001,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	 * @param cancelButText
 	 * @param listener
 	 * @param cancelListener
-	 * @param frame
+	 * @param owner
 	 * @param model
 	 * @param relativeToComponent
 	 * @param isResizable
@@ -999,10 +1010,10 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	public static Window showCenterPanelMain(final JPanel panel, final int width, final int height,
 			final String title, final boolean isAddCancle, final JButton jbOK,
 			final String cancelButText, final ActionListener listener,
-			final ActionListener cancelListener, final JFrame frame, final boolean model, final boolean isNewJFrame, 
+			final ActionListener cancelListener, final JFrame owner, final boolean model, final boolean isNewJFrame, 
 			final Component relativeToComponent, final boolean isResizable, final boolean delay) {
 		return showCenterOKDisposeDelayMode(panel, width, height, title, isAddCancle, jbOK,
-				cancelButText, listener, cancelListener, true, frame, model, isNewJFrame, relativeToComponent, isResizable, delay);
+				cancelButText, listener, cancelListener, true, owner, model, isNewJFrame, relativeToComponent, isResizable, delay);
 	}
 	
 	/**
@@ -1018,7 +1029,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	 * @param listener
 	 * @param cancelListener
 	 * @param isOkDispose
-	 * @param parentframe
+	 * @param owner
 	 * @param model
 	 * @param isNewJFrame
 	 * @param relativeToObj
@@ -1029,7 +1040,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	public static Window showCenterOKDisposeDelayMode(final JPanel panel, final int width,
 			final int height, final String title, final boolean isAddCancle, JButton jbOK,
 			final String cancelButText, final ActionListener listener,
-			final ActionListener cancelListener, final boolean isOkDispose, final JFrame parentframe,
+			final ActionListener cancelListener, final boolean isOkDispose, final JFrame owner,
 			final boolean model, final boolean isNewJFrame, final Component relativeToObj, final boolean isResizable, final boolean isDelayMode) {
 		final JButton jbCancle = new JButton(((cancelButText == null)?(String) ResourceUtil.get(IContext.CANCEL):cancelButText),
 				new ImageIcon(ImageSrc.CANCEL_ICON));
@@ -1078,7 +1089,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		};
 
 		return showCenterDelayMode(panel, width, height, title, isAddCancle, jbOK,
-				jbCancle, jbOKAction, cancelAction, parentframe, model, isNewJFrame, relativeToObj, isResizable, isDelayMode);
+				jbCancle, jbOKAction, cancelAction, owner, model, isNewJFrame, relativeToObj, isResizable, isDelayMode);
 	}
 
 	/**
@@ -1202,7 +1213,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		return dialog;
 	}
 	
-	public static Window showCenter(final JPanel panel, final int width,
+	public static Window showCenterNoOwner(final JPanel panel, final int width,
 			final int height, final boolean isAddCancle, final JButton jbCancle, final JButton jbOK,
 			final boolean isSwapOKCancel, final UIActionListener cancelAction,
 			final UIActionListener jbOKAction, final Window dialog, final Component relativeTo, final boolean isResizable) {//不能带isRelayMode参数，因为按钮可能无关逻辑
@@ -1454,19 +1465,19 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	public static Window showCenter(final JPanel panel, final int width,
 			final int height, final String title, final boolean isAddCancle, final JButton jbOK,
 			final JButton jbCancle, final UIActionListener jbOKAction,
-			final UIActionListener cancelAction, final JFrame frame, final boolean model,
+			final UIActionListener cancelAction, final JFrame owner, final boolean model,
 			final boolean isNewJFrame, final Component relativeTo, final boolean isResizable) {
-		return showCenterDelayMode(panel, width, height, title, isAddCancle, jbOK, jbCancle, jbOKAction, cancelAction, frame, model, isNewJFrame, relativeTo, isResizable, false);
+		return showCenterDelayMode(panel, width, height, title, isAddCancle, jbOK, jbCancle, jbOKAction, cancelAction, owner, model, isNewJFrame, relativeTo, isResizable, false);
 	}
 	
 	private static Window showCenterDelayMode(final JPanel panel, final int width,
 			final int height, final String title, final boolean isAddCancle, final JButton jbOK,
 			final JButton jbCancle, final UIActionListener jbOKAction,
-			final UIActionListener cancelAction, final JFrame frame, final boolean model,
+			final UIActionListener cancelAction, final JFrame owner, final boolean model,
 			final boolean isNewJFrame, final Component relativeTo, final boolean isResizable, final boolean isDelayMode) {
 		final Window dialog;
 
-		dialog = App.buildCloseableWindow(isNewJFrame, frame, title, model);
+		dialog = App.buildCloseableWindow(isNewJFrame, owner, title, model);
 		return showCenterDelayMode(panel, width, height, isAddCancle, jbCancle, jbOK,
 				false, cancelAction, jbOKAction, dialog, relativeTo, isResizable, isDelayMode);
 	}
@@ -1545,7 +1556,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		final JPanel panel = new JPanel(new BorderLayout());
 		panel.add(tablePanel, BorderLayout.CENTER);
-		final StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		{
 			sb.append("<html>");
 			for (int i = 0; i < value.length; i++) {
@@ -1560,10 +1571,13 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			}
 			sb.append("</html>");
 		}
+		final String sbStr = sb.toString();
+		StringBuilderCacher.cycle(sb);
+
 		{
 			final JPanel descPanel = new JPanel(new BorderLayout());
 			descPanel.setBorder(new TitledBorder("Description :"));
-			descPanel.add(new JLabel(sb.toString()), BorderLayout.CENTER);
+			descPanel.add(new JLabel(sbStr), BorderLayout.CENTER);
 			
 			panel.add(descPanel, BorderLayout.SOUTH);
 		}
@@ -2085,13 +2099,22 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			}
 		}
 		
-		final IEncrypter en = CUtil.getUserEncryptor();
-		if(en != null){
-			L.V = L.O ? false : LogManager.log("ID or password is changed, call user encryptor.notifyExit methoad.");
-			en.notifyExit(IConstant.serverSide);
-			L.V = L.O ? false : LogManager.log("reload user encryptor.");
+		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
+		for (int i = 0; i < coreSSS.length; i++) {
+			final IContext ic = coreSSS[i].context;
+			final IEncrypter en = ic.getUserEncryptor();
+			if(en != null){
+				L.V = L.O ? false : LogManager.log("ID or password is changed, call user encryptor.notifyExit methoad.");
+				try{
+					en.notifyExit(IConstant.serverSide);
+				}catch (final Throwable e) {
+					e.printStackTrace();
+				}
+				L.V = L.O ? false : LogManager.log("reload user encryptor.");
+			}
+			ic.loadEncryptor();
 		}
-		CUtil.loadEncryptor();
+
 		if(isNeedRestart){
 			ServerUIUtil.restartResponsorServerDelayMode(null, null);
 		}
@@ -2348,24 +2371,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 //		String uuid = IConstant.getInstance().getAjaxForSimu(
 //				"http://homecenter.mobi/ajax/call.php?f=uuid", false);
 
-//		if (uuid == null) {
-//			App.showMessageDialog(null,
-//					(String) ResourceUtil.get(1000),
-//					(String) ResourceUtil.get(IContext.ERROR),
-//					JOptionPane.ERROR_MESSAGE);
-//			ExitManager.exit();
-//		} else {
-//			uuid = UUIDUtil.addCheckCode("0" + uuid);
-//
-//			// http://localhost:8080/images/qr.php?txt=helloWorld%E4%B8%AD%E5%9B%BD123456780
-//			// 返回一个PNG图片
-//			App.showImageURLWindow(uuid,
-//					"http://homecenter.mobi/images/qr.php?txt="
-//							+ uuid);
-//
-//			PropertiesManager.setValue(PropertiesManager.p_uuid,
-//					uuid);
-
 			final String pwd1 = "", pwd2 = "";
 
 			showInputPWDDialog("", pwd1, pwd2, true);
@@ -2379,10 +2384,11 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 
 			if (RootConfig.getInstance().isTrue(
 					RootConfig.p_First_Reg_Tuto)) {
-				ConditionWatcher.addWatcher(new IWatcher() {
+				GlobalConditionWatcher.addWatcher(new IWatcher() {
 					@Override
 					public boolean watch() {
-						if (ContextManager.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON) {
+						final CoreSession coreSS = SessionManager.getPreparedSocketSession();
+						if (coreSS.context.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON) {
 							// 服务器上线，启动引导运行手机端
 							final JPanel totuQuest = new JPanel();
 							totuQuest.add(new JLabel(
@@ -2434,10 +2440,11 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 					}
 				});
 			}else{
-				ConditionWatcher.addWatcher(new IWatcher() {
+				GlobalConditionWatcher.addWatcher(new IWatcher() {
 					@Override
 					public boolean watch() {
-						if (ContextManager.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON) {
+						final CoreSession coreSS = SessionManager.getPreparedSocketSession();
+						if (coreSS.context.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON) {
 							showLockWarning();
 							return true;
 						}else{

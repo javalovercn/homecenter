@@ -7,10 +7,8 @@ import hc.core.util.StringUtil;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
 import hc.server.data.StoreDirManager;
-import hc.server.ui.design.hpj.HCScriptException;
 import hc.server.ui.design.hpj.RubyWriter;
 import hc.util.ClassUtil;
-import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.io.ByteArrayInputStream;
@@ -20,8 +18,6 @@ import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.script.ScriptException;
 
 //import org.jruby.runtime.builtin.IRubyObject;
 //import org.jruby.embed.LocalContextScope;
@@ -36,11 +32,15 @@ public class HCJRubyEngine {
 
 	public boolean isError = false;
 	public final RubyWriter errorWriter = new RubyWriter();
-	public final HCScriptException sexception = new HCScriptException("");
 //	private final ScriptingContainer container;	
 	private Class classScriptingContainer;
 	private Object container;	
-	private final LRUCache lruCache = new LRUCache(64);
+	private final LRUCache lruCache = new LRUCache(128);
+	
+	public final void resetError(){
+		errorWriter.reset();
+		isError = false;
+	}
 	
 	static final Class[] putparaTypes = {String.class, Object.class};
 	static final Class[] parseParaTypes = {String.class, int[].class};
@@ -61,7 +61,7 @@ public class HCJRubyEngine {
 		}
 	}
 	
-	public final synchronized Object parse(final String script, final String scriptName) throws Exception{
+	final Object parse(final String script, final String scriptName) throws Exception{
 		Object unit;
 		unit = lruCache.get(script);
 		if(unit == null){
@@ -101,13 +101,9 @@ public class HCJRubyEngine {
 	Class classJavaEmbedUtils;
 	Class classIRubyObject;
 	Class[] rubyToJavaParaTypes;// = {classIRubyObject};
-	public final synchronized Object runScriptlet(final String script, final String scriptName) throws Throwable{
+	final Object runScriptlet(final String script, final String scriptName) throws Throwable{
 //        return JavaEmbedUtils.rubyToJava(evalUnitMap.get(script).run());
-		Object evalUnit;
-		evalUnit = lruCache.get(script);
-		if(evalUnit == null){
-			evalUnit = putCompileUnit(script, scriptName);
-		}
+		final Object evalUnit = parse(script, scriptName);
 		try{
 			final Object runOut = ClassUtil.invokeWithExceptionOut(classEvalUnit, evalUnit, "run", emptyParaTypes, emptyPara, false);
 			final Object[] para = {runOut};
@@ -118,14 +114,6 @@ public class HCJRubyEngine {
 		}
 	}
 
-	/**
-	 * 没有错误，返回null
-	 * @return
-	 */
-	public final ScriptException getEvalException(){
-		return isError?sexception:null;
-	}
-	
 	public final void terminate(){
 		ClassUtil.invoke(classScriptingContainer, container, "clear", emptyParaTypes, emptyPara, false);
 //		try{

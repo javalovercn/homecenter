@@ -1,6 +1,6 @@
 package hc;
 
-import hc.core.ConditionWatcher;
+import hc.core.GlobalConditionWatcher;
 import hc.core.IWatcher;
 
 import java.awt.image.BufferedImage;
@@ -21,7 +21,7 @@ public class HCNexter {
 		
 		imgs[0] = getImg(0);
 		
-		ConditionWatcher.addWatcher(new IWatcher() {
+		GlobalConditionWatcher.addWatcher(new IWatcher() {
 			
 			@Override
 			public boolean watch() {

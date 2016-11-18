@@ -1,11 +1,11 @@
 package hc.util;
 
-import hc.core.ContextManager;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
+import hc.server.TrayMenuUtil;
 import hc.util.upnp.UPnPDevice;
 import hc.util.upnp.UPnPMapping;
 
@@ -171,7 +171,7 @@ public class UPnPUtil {
 			if (null != hcgd) {
 				final String idg = "["+hcgd.getFriendlyName()+"("+hcgd.getModelNumber()+")]";
 				L.V = L.O ? false : LogManager.log("UPnP device found. " + idg);
-				ContextManager.getContextInstance().displayMessage(ResourceUtil.getInfoI18N(), 
+				TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), 
 						"UPnP : " + idg, IContext.INFO, null, 0);
 			}
 			

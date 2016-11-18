@@ -1,26 +1,27 @@
 package hc.server.relay;
 
-import hc.core.ConditionWatcher;
 import hc.core.ContextManager;
+import hc.core.CoreSession;
+import hc.core.GlobalConditionWatcher;
 import hc.core.HCMessage;
 import hc.core.IConstant;
+import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootServerConnector;
 import hc.core.data.DataNatReqConn;
 import hc.core.data.DataReg;
-import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
 import hc.core.util.Stack;
-import hc.server.KeepaliveManager;
 import hc.server.nio.AcceptReadThread;
 import hc.server.nio.ByteBufferCacher;
 import hc.server.nio.NIOServer;
 import hc.server.nio.UDPPair;
 import hc.server.util.ByteArr;
+import hc.server.util.StarterParameter;
 import hc.util.ByteArrCacher;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
@@ -108,9 +109,10 @@ public class RelayManager {
 	/**
 	 * 由于采用数据包直接提取地址法，该法有利于Relay迁移；
 	 * 而对于服务器初始上线注册，采用特别Tag
+	 * @param ctx 
 	 * @param obj
 	 */
-	public static void relay(final SelectionKey key){
+	public static void relay(final IContext ctx, final SelectionKey key){
 		final SessionConnector sc = (SessionConnector)key.attachment();
 		final SocketChannel sourceChannel = (SocketChannel)key.channel();
 //		L.V = L.O ? false : LogManager.log("SelectionKey hashCode:" + key.hashCode());
@@ -172,7 +174,7 @@ public class RelayManager {
 						}
 					}while(true);
 				}else{
-					pushMap(key);
+					pushMap(ctx, key);
 				}
 			}catch (final Exception e) {
 				bufferDirect.clear();
@@ -201,8 +203,9 @@ public class RelayManager {
 
 		}else{
 			try{
-				if(pushMap(key)){
+				if(pushMap(ctx, key)){
 					serverNum.value = (++size);
+					L.V = L.O ? false : LogManager.log("server num : " + serverNum.value);
 					ContextManager.getThreadPool().run(refreshServerNum);//不用threadPoolToken
 					
 					L.V = L.O ? false : LogManager.log("S/C line on");
@@ -260,13 +263,11 @@ public class RelayManager {
 	public static void closePare(final SessionConnector sc, final boolean notifyMinus) {
 		synchronized (sc) {
 			L.V = L.O ? false : LogManager.log("closing Pare...");
-			final String uuid = sc.getUUIDString();
-			final String token = sc.token;
-			
 			if(lineOffSessionConn(sc) && notifyMinus){//notifyMinus一定要置于，因为前者(lineOffSessionConn)一定要被执行
-				RootServerConnector.delLineInfo(uuid, token, false);				
+//				RootServerConnector.delLineInfo(uuid, token, false);//由于多路并发模式，关闭
 
 				serverNum.value = (--size);
+				L.V = L.O ? false : LogManager.log("server num : " + serverNum.value);
 				ContextManager.getThreadPool().run(refreshServerNum);//不用threadPoolToken
 			}
 		}
@@ -363,10 +364,20 @@ public class RelayManager {
 			//回收后sc.uuidbs置空，所以采用本条件来防止重复回收
 			L.V = L.O ? false : LogManager.log("close session pare : " + desc);
 			
-			tdn[sc.uuidbs.len].delNode(sc.uuidbs.bytes, 0, sc.uuidbs.len);
+			final int uuidlen = sc.uuidbs.len;
+			
+			synchronized (tdn) {
+				if(sc.isDelTDN == false){
+					L.V = L.O ? false : LogManager.log("remove tdn");
+					tdn[uuidlen].delNode(sc.uuidbs.bytes, 0, uuidlen);
+				}
+			}
+			
 			byteCache.cycle(sc.uuidbs);
 	
 			sc.reset();
+
+			L.V = L.O ? false : LogManager.log("recycle SessionConnector hashcode : " + sc.hashCode());
 			scCacher.push(sc);
 			
 			isCycle = true;
@@ -379,7 +390,7 @@ public class RelayManager {
 	public static final IOException IOE = new IOException();
 	private static long receiveMoveRelayStartTime;
 	
-	public static boolean pushMap(final SelectionKey key) throws Exception{
+	public static boolean pushMap(final IContext ctx, final SelectionKey key) throws Exception{
 		buffer.clear();
 		final byte[] bs = buffer.array();
 		buffer.limit(MsgBuilder.MIN_LEN_MSG);
@@ -421,8 +432,19 @@ public class RelayManager {
 			final boolean isServerOnRelay = 
 					(dr.getFromServer() == MsgBuilder.DATA_IS_SERVER_TO_RELAY);
 			final int len = dr.getUUIDLen();
-			SessionConnector sc = tdn[len].getNodeData(bs, DataReg.uuid_index, DataReg.uuid_index + len);
-
+			final int uuidIndex = DataReg.uuid_index;
+			final int endIdx = uuidIndex + len;
+			SessionConnector sc;
+			
+			synchronized (tdn) {
+				sc = tdn[len].getNodeData(bs, uuidIndex, endIdx);
+				if(sc != null){
+					L.V = L.O ? false : LogManager.log("remove tdn");
+					sc.isDelTDN = true;
+					tdn[len].delNode(bs, uuidIndex, endIdx);
+				}
+			}
+			
 			if(isServerOnRelay == false //Mobi客户端 
 					&& (sc == null) //服务器没上线
 						//因为下面检查并发回错误状态，所以此处注释|| (sc.fromClient != null))//原旧客户连接仍保持，则新占客户端非法
@@ -476,7 +498,7 @@ public class RelayManager {
 									"on same exists token session, force close! at channel : " 
 									+ channel.socket().getInetAddress().getHostAddress());
 							
-							ContextManager.getContextInstance().send(channel.socket().getOutputStream(), 
+							ctx.send(channel.socket().getOutputStream(), 
 									MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_SAME_ID_IS_USING);
 							
 							//干扰连接型，强制关闭
@@ -489,7 +511,7 @@ public class RelayManager {
 							L.V = L.O ? false : LogManager.log("try override exist client id[" + uuidString + "] at channel : " 
 									+ channel.socket().getInetAddress().getHostAddress() + ", close try connection");
 	
-							ContextManager.getContextInstance().send(channel.socket().getOutputStream(), 
+							ctx.send(channel.socket().getOutputStream(), 
 									MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_SAME_ID_IS_USING);
 							
 							throw BBIOException;
@@ -684,6 +706,8 @@ public class RelayManager {
 			sc = (SessionConnector)scCacher.pop();
 		}
 
+		L.V = L.O ? false : LogManager.log("sessionConnector hashCode : " + sc.hashCode());
+		
 		sc.firstServerRegMS = System.currentTimeMillis();
 		sc.isNewStatus = false;
 		
@@ -699,9 +723,9 @@ public class RelayManager {
 		return sc;
 	}
 
-	public static boolean startMoveNewRelay(final RelayShutdownWatch watch){
-		if(RelayManager.findNewRelayAndMoveTo() > 0){
-			ConditionWatcher.addWatcher(watch);
+	public static boolean startMoveNewRelay(final CoreSession coreSocketSession, final RelayShutdownWatch watch){
+		if(RelayManager.findNewRelayAndMoveTo(coreSocketSession) > 0){
+			GlobalConditionWatcher.addWatcher(watch);//由于供中继，所以使用Global
 			return true;
 		}else{
 			return false;
@@ -715,14 +739,14 @@ public class RelayManager {
 	 * 如果没有发现新的Relay，则通知自己下线
 	 * @return 返回大于0，表示需要后继进程等待本进程完全迁移完毕，并更新状态isMoveRelayClients
 	 */
-	private static int findNewRelayAndMoveTo(){
+	private static int findNewRelayAndMoveTo(final CoreSession coreSocketSession){
 		if(isShutdowning == true){
 			return 0;
 		}
 		
 		isShutdowning = true;
 		
-		RootServerConnector.delLineInfo(TokenManager.getToken(), false);
+//		RootServerConnector.delLineInfo(TokenManager.getToken(), false);//多路模式
 		
 		final long now = System.currentTimeMillis();
 		final long diff = now - receiveMoveRelayStartTime;
@@ -747,7 +771,7 @@ public class RelayManager {
 				L.V = L.O ? false : LogManager.log("No Relay server to move, notify shut down");
 				notifyClientsLineOff();
 			}else{
-				final String slocalIP = HCURLUtil.convertIPv46(KeepaliveManager.homeWirelessIpPort.ip);
+				final String slocalIP = HCURLUtil.convertIPv46(StarterParameter.homeWirelessIpPort.ip);
 
 				final int size = relays.size();
 
@@ -756,13 +780,13 @@ public class RelayManager {
 					final String ip = ipAndPorts[0];
 					final int port = Integer.parseInt(ipAndPorts[1]);
 					
-					if(KeepaliveManager.homeWirelessIpPort.port == port && slocalIP.equals(ip)){
+					if(StarterParameter.homeWirelessIpPort.port == port && slocalIP.equals(ip)){
 					}else{
 						Socket socket = null;
 						try {
 							//远程状态侦测，服务器进入待服状态，此状态不能关机。
 							
-							socket = (Socket)SIPManager.getSIPContext().buildSocket(0, ip, port); 
+							socket = (Socket)coreSocketSession.sipContext.buildSocket(0, ip, port); 
 							if(socket == null){
 								continue;
 							}
@@ -852,6 +876,7 @@ public class RelayManager {
 								sendMoveToNewRelay(server, nat, newRelayip, newRelayport);
 							}
 							
+							L.V = L.O ? false : LogManager.log("remove tdn");
 							tdn[i].delNode(c.uuidbs.bytes, 0, c.uuidbs.len);
 							moveCount++;
 						}catch (final Exception e) {

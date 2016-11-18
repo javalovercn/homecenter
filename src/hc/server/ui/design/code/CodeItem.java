@@ -2,7 +2,11 @@ package hc.server.ui.design.code;
 
 import hc.core.util.Stack;
 
+import java.awt.event.ActionListener;
+import java.awt.event.ItemListener;
 import java.util.ArrayList;
+
+import javax.swing.event.ChangeListener;
 
 public class CodeItem implements Comparable<CodeItem>{
 	private final static Stack free = new Stack(1024);
@@ -37,10 +41,13 @@ public class CodeItem implements Comparable<CodeItem>{
 		item.type = 0;
 		item.isPublic = false;
 		item.isForMaoHaoOnly = false;
+		item.isFullPackageAndClassName = false;
 		item.code = "";
 		item.fmClass = Object.class.getName();
 		item.codeDisplay = "";
 		item.codeLowMatch = "";
+		item.anonymousClass = null;
+		
 		free.push(item);
 	}
 	
@@ -52,13 +59,51 @@ public class CodeItem implements Comparable<CodeItem>{
 	public final static int TYPE_METHOD = 6;
 	public final static int TYPE_FIELD = 7;
 	
+	public final static Class[] AnonymousClass = {Runnable.class, ActionListener.class, 
+//		FocusListener.class, 
+//		MouseListener.class, //Release, mousePressed, mouseExited, mouseEntered, mouseClicked, mouseDragged
+//		KeyListener.class, 
+		ItemListener.class, //select JComboBox
+		ChangeListener.class, //JSlider setValue
+//		DocumentListener.class, //JTextField setText
+		//JRadioButton doClick()
+		};
+	public final static int AnonymousClassSize = AnonymousClass.length;
+	
+	public final void setAnonymouseClassType(final Class[] paras){
+		if(paras.length != 1){
+			return;
+		}
+		
+		final Class claz = paras[0];
+		
+		for (int i = 0; i < AnonymousClassSize; i++) {
+			if(claz == AnonymousClass[i]){
+				anonymousClass = claz;
+				return;
+			}
+		}
+	}
+	
+	public final void copyFrom(final CodeItem from){
+		type = from.type;
+		code = from.code;
+		fmClass = from.fmClass;
+		codeDisplay = from.codeDisplay;
+		codeLowMatch = from.codeLowMatch;
+		isPublic = from.isPublic;
+		anonymousClass = from.anonymousClass;
+	}
+	
 	public int type;
 	public boolean isPublic;
 	public boolean isForMaoHaoOnly;
+	public boolean isFullPackageAndClassName;
 	public String code;
 	public String fmClass;
 	public String codeDisplay;
 	public String codeLowMatch;
+	public Class anonymousClass;
 	
 	@Override
 	public final int compareTo(final CodeItem o) {

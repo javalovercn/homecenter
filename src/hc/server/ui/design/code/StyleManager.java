@@ -1,7 +1,11 @@
 package hc.server.ui.design.code;
 
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.design.J2SESession;
+import hc.util.StringBuilderCacher;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,11 +19,22 @@ public class StyleManager {
 	
 	private static final Pattern variableForPattern = Pattern.compile("\\$\\w+\\$");
 	
-	public static String replaceVariable(final String styles, final HTMLMlet htmlmlet, final ProjectContext ctx){
+	public static String replaceVariable(final J2SESession coreSS, final String styles, final HTMLMlet htmlmlet, final ProjectContext ctx){
 		if(styles.indexOf('$', 0) > 0){
-			final Object[] values = {htmlmlet.getFontSizeForSmall(), htmlmlet.getFontSizeForNormal(), htmlmlet.getFontSizeForLarge(),
-					htmlmlet.getFontSizeForButton(), htmlmlet.getButtonHeight(), ctx.getMobileWidth(), ctx.getMobileHeight(),
-					HTMLMlet.getColorForBodyByHexString(), HTMLMlet.getColorForFontByHexString()};
+			if(coreSS.mobileValuesForCSS == null){
+				final Object[] para = new Object[1];
+				ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new Runnable() {
+					@Override
+					public void run() {
+						final Object[] values = {htmlmlet.getFontSizeForSmall(), htmlmlet.getFontSizeForNormal(), htmlmlet.getFontSizeForLarge(),
+								htmlmlet.getFontSizeForButton(), htmlmlet.getButtonHeight(), UserThreadResourceUtil.getMobileWidthFrom(coreSS), UserThreadResourceUtil.getMobileHeightFrom(coreSS),
+								HTMLMlet.getColorForBodyByHexString(), HTMLMlet.getColorForFontByHexString()};
+						para[0] = values;
+					}
+				});
+				coreSS.mobileValuesForCSS = (Object[])para[0];
+			}
+			final Object[] mobileValuesForCSS = coreSS.mobileValuesForCSS;
 			
 			final Matcher matcher = variableForPattern.matcher(styles);
 			int appendIdx = 0;
@@ -29,7 +44,7 @@ public class StyleManager {
 				final int endIdx = matcher.end();
 				
 				if(sb == null){
-					sb = new StringBuilder(styles.length());
+					sb = StringBuilderCacher.getFree();
 				}
 				
 				sb.append(styles.substring(appendIdx, startIdx));
@@ -40,7 +55,7 @@ public class StyleManager {
 				boolean isReplaced = false;
 				for (int i = 0; i < size; i++) {
 					if(v.equals(variables[i])){
-						sb.append(values[i]);
+						sb.append(mobileValuesForCSS[i]);
 						isReplaced = true;
 						break;
 					}
@@ -59,7 +74,10 @@ public class StyleManager {
 			
 			sb.append(styles.substring(appendIdx));
 			
-			return sb.toString();
+			final String out = sb.toString();
+			StringBuilderCacher.cycle(sb);
+			
+			return out;
 		}else{
 			return styles;
 		}

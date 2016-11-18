@@ -1,10 +1,10 @@
 package hc.util;
 
-import hc.core.ContextManager;
 import hc.core.IContext;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
+import hc.server.TrayMenuUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -72,9 +72,7 @@ public class LogServerPlaint implements ILog {
 	@Override
 	public void errWithTip(final String msg) {
 		err(msg);
-		ContextManager.displayMessage(
-				(String) ResourceUtil.get(IContext.ERROR), msg, IContext.ERROR,
-				0);
+		TrayMenuUtil.displayMessage((String) ResourceUtil.get(IContext.ERROR), msg, IContext.ERROR, null,	0);
 	}
 
 

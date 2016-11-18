@@ -6,16 +6,16 @@ import hc.core.util.ExceptionReporter;
 import hc.server.StarterManager;
 import hc.server.ui.ProjClassLoaderFinder;
 import hc.server.ui.ProjectContext;
-import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
+import hc.server.ui.SimuMobile;
 import hc.server.ui.design.LinkProjectStore;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.HCLimitSecurityManager;
 import hc.util.BaseResponsor;
+import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
-import hc.util.StoreableHashMapWithModifyFlag;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -118,7 +118,7 @@ public class HCjar {
 	public static final String CONVERTER_NUM = "Converter.Num";
 	public static final String CONVERTER_ITEM_HEADER = "Converter.Item.";
 	
-	public static final String MAIN_MENU_IDX = "MainMenu.Idx";
+	public static final String MAIN_MENU_IDX_PRE = "MainMenu.Idx";
 	public static final String MENU_ID = "Menu." + IDX_PATTERN + ".Id";
 	public static final String MENU_NAME = "Menu." + IDX_PATTERN + ".Name";
 	public static final String MENU_COL_NUM = "Menu." + IDX_PATTERN + ".ColNum";
@@ -388,10 +388,9 @@ public class HCjar {
 					new ProjClassLoaderFinder() {
 						@Override
 						public ClassLoader findProjClassLoader() {
-							return ScriptEditPanel.runTestEngine.getProjClassLoader();
+							return SimuMobile.getRunTestEngine().getProjClassLoader();
 						}
 					});
-			ServerUIAPIAgent.setTMPTarget(context, "", "");
 			csc.setProjectContext(context);
 			
 			root.setUserObject(new HPProject(HPNode.MASK_ROOT, 
@@ -406,7 +405,7 @@ public class HCjar {
 			final Object object = map.get(MENU_NUM);
 			if(object != null){
 				final int menuNum = Integer.parseInt((String)object);
-				final int MainMenuIdx = Integer.parseInt((String)map.get(MAIN_MENU_IDX));
+				final int MainMenuIdx = Integer.parseInt((String)map.get(MAIN_MENU_IDX_PRE));
 	
 				for (int idx = 0; idx < menuNum; idx++) {
 					final String menuName = (String)map.get(replaceIdxPattern(MENU_NAME, idx));
@@ -615,7 +614,7 @@ public class HCjar {
 			
 			final HPMenu hpmenu = (HPMenu)item;
 			if(hpmenu.isMainMenu){
-				map.put(MAIN_MENU_IDX, String.valueOf(idx));
+				map.put(MAIN_MENU_IDX_PRE, String.valueOf(idx));
 			}
 			{
 				//四大事件：start_proj, mobile_login, mobile_logout, shutdown_proj...
@@ -748,8 +747,8 @@ public class HCjar {
 			for (int j = 0; j < i; j++) {
 				final HPNode j_node = (HPNode)((DefaultMutableTreeNode)parentNode.getChildAt(j)).getUserObject();
 				if(i_node.equals(j_node)){
-					final String desc = "<strong>[" + i_node.name +"]</strong> has same <strong>display name</strong>" +
-							"(or <strong>target locator</strong>) with node [<strong>" + j_node.name + "</strong>].";
+					final String desc = "there is same display name " +
+							"(or target locator) of <strong>[" + i_node.name +"]</strong> with other node [<strong>" + j_node.name + "</strong>].";
 					throw new NodeInvalidException(treeNode, desc);
 				}
 			}
@@ -835,11 +834,13 @@ public class HCjar {
 		return (String)map.get(HCjar.replaceIdxPattern(HCjar.MENU_NAME, menuIdx));
 	}
 
-	public static StoreableHashMapWithModifyFlag buildI18nMapFromSerial(final String serial) {
-		final StoreableHashMapWithModifyFlag storeMap = new StoreableHashMapWithModifyFlag();
+	public static I18NStoreableHashMapWithModifyFlag buildI18nMapFromSerial(final String serial) {
+		final I18NStoreableHashMapWithModifyFlag storeMap = new I18NStoreableHashMapWithModifyFlag();
 		storeMap.restore(serial);
 		return storeMap;
 	}
+
+	public static final int MAIN_MENU_IDX = 0;
 
 //	public static final boolean save(final String baseDir, final Map<String, String> mapAttributes, File harName) throws Exception{
 //		FileOutputStream stream = null;

@@ -80,9 +80,9 @@ public interface PlatformService {
 	
 	public void buildCaptureMenu(JPopupMenu popupTi, ThreadGroup threadPoolToken);
 	
-	public void startCapture();
+	public void startCaptureIfEnable();
 	
-	public void stopCapture();
+	public void stopCaptureIfEnable();
 	
 	public void printAndroidServerInfo();
 	

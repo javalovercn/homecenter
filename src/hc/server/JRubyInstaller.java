@@ -1,17 +1,20 @@
 package hc.server;
 
 import hc.App;
-import hc.core.ConditionWatcher;
 import hc.core.ContextManager;
+import hc.core.CoreSession;
+import hc.core.GlobalConditionWatcher;
 import hc.core.IContext;
 import hc.core.IWatcher;
 import hc.core.L;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
+import hc.core.SessionManager;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.design.Designer;
+import hc.server.ui.design.J2SESession;
 import hc.util.HttpUtil;
 import hc.util.IBiz;
 import hc.util.MultiThreadDownloader;
@@ -102,12 +105,13 @@ public class JRubyInstaller {
 		}
 
 		if(isRedownload == false){
-			ConditionWatcher.addWatcher(new IWatcher() {
+			GlobalConditionWatcher.addWatcher(new IWatcher() {
 				final long ms = System.currentTimeMillis();
 				@Override
 				public boolean watch() {
-					if(System.currentTimeMillis() - ms > 5000 || ContextManager.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON){
-						ContextManager.getContextInstance().displayMessage(
+					final CoreSession coreSS = SessionManager.getPreparedSocketSession();//注意：只需取一个即可，无需all
+					if(System.currentTimeMillis() - ms > 5000 || (coreSS != null && coreSS.context != null && coreSS.context.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON)){
+						TrayMenuUtil.displayMessage(
 								ResourceUtil.getInfoI18N(), 
 								(String)ResourceUtil.get(9066), 
 								IContext.INFO, null, 0);
@@ -161,7 +165,7 @@ public class JRubyInstaller {
 				try{
 					L.V = L.O ? false : LogManager.log("successful installed JRuby.");
 					
-					RootServerConnector.notifyLineOffType("lof=jrubyOK");
+					RootServerConnector.notifyLineOffType(J2SESession.NULL_J2SESESSION_FOR_PROJECT, "lof=jrubyOK");
 					
 					SecurityDataProtector.init();//Android环境下进行数据加密
 					
@@ -215,7 +219,7 @@ public class JRubyInstaller {
 	}
 	
 	private static void notifySuccessInstalled(){
-		ContextManager.getContextInstance().displayMessage(
+		TrayMenuUtil.displayMessage(
 				ResourceUtil.getInfoI18N(),  (String)ResourceUtil.get(9108), 
 				IContext.INFO, null, 0);
 		

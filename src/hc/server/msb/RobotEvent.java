@@ -7,32 +7,32 @@ public final class RobotEvent {
 	Object newValue;
 	
 	/**
-	 * If there are multiple {@link Robot}(s) in current project, it is used to distinguish between different sources.
-	 * @return the event source of {@link Robot}.
+	 * return the event source of {@link Robot}.
+	 * @return 
 	 */
 	public final Robot getSource(){
 		return source;
 	}
 	
 	/**
-	 * 
-	 * @return the property name of event.
+	 * return the property name of event.
+	 * @return 
 	 */
 	public final String getPropertyName(){
 		return propertyName;
 	}
 	
 	/**
-	 * 
-	 * @return the old value of property of current event. Maybe null.
+	 * return the old value of property. Maybe null.
+	 * @return 
 	 */
 	public final Object getOldValue(){
 		return oldValue;
 	}
 	
 	/**
-	 * 
-	 * @return the new value of property of current event.
+	 * return the new value of property.
+	 * @return 
 	 */
 	public final Object getNewValue(){
 		return newValue;

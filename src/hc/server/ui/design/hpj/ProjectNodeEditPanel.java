@@ -1,7 +1,6 @@
 package hc.server.ui.design.hpj;
 
 import hc.App;
-import hc.core.ContextManager;
 import hc.core.IContext;
 import hc.core.util.ExceptionChecker;
 import hc.core.util.ExceptionJSON;
@@ -13,6 +12,7 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.HCPermissionConstant;
 import hc.server.ui.design.I18nTitlesEditor;
 import hc.server.util.ContextSecurityConfig;
+import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 import hc.util.SocketEditPanel;
 
@@ -33,6 +33,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
@@ -138,6 +139,12 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				};
 				@Override
 				public void run() {
+					if(PropertiesManager.isSimu()){
+						App.showConfirmDialog(designer, "it can not work in simu mode!", 
+								ResourceUtil.getErrorI18N(), JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+						return;
+					}
+					
 					testExceptionBtn.setEnabled(false);
 					
 					Throwable t = null;
@@ -146,7 +153,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 					}catch (final Throwable e) {
 						t = e;
 					}
-					final ExceptionJSON json = RootBuilder.getInstance().getExceptionJSONBuilder().buildJSON(harhelper, checker, t, ExceptionJSON.HC_EXCEPTION_URL, "puts \"This is test script\\n\";\nputs \"this is second line.\"", "Hello, 你好, Bonjour");
+					final RootBuilder rootBuilder = RootBuilder.getInstance();
+					final ExceptionJSON json = rootBuilder.getExceptionJSONBuilder().buildJSON(harhelper, checker, t, ExceptionJSON.HC_EXCEPTION_URL, "puts \"This is test script\\n\";\nputs \"this is second line.\"", "Hello, 你好, Bonjour");
 					final String urlOrEmail = getExceptionURLFromEdit();
 					if(ResourceUtil.validEmail(urlOrEmail)){
 						json.setReceiveExceptionForHC(false);
@@ -156,7 +164,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 						json.setToURL(urlOrEmail);
 					}
 					json.isForTest = true;
-					ContextManager.getContextInstance().doExtBiz(IContext.BIZ_REPORT_EXCEPTION, json);
+					rootBuilder.reportException(json);
 					
 					testExceptionBtn.setEnabled(true);
 				}
@@ -437,16 +445,16 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		tabbedPane.addTab((String)ResourceUtil.get(9095), new JScrollPane(center));
 		{
 			final JLabel noteLabel = new JLabel("<html><BR><font color='red'>Note : </font><BR>" +
-					"1. these permissions are NOT for running-time, they are for designing-time.<BR>" +
-					"2. for running-time, please click /Shift Project/{project}/Modify|Permission.<BR>" +
-					"3. these permissions for running-time will hold its value even if the project is upgraded/re-activated/restarted.<BR>" +
+					"1. these permissions are NOT run-time, they are for design only.<BR>" +
+					"2. to set run-time permissions, click /Shift Project/{project}/Modify|Permission.<BR>" +
+					"3. run-time permissions will keep their values even if the project is upgraded/re-activated/restarted.<BR>" +
 //					"3. these permissions works on standard J2SE JVM, NOT for server on Android or other.<BR>" +
 					"&nbsp;</html>");
 //			noteLabel.setHorizontalAlignment(SwingConstants.CENTER);
 			//new JSeparator(SwingConstants.HORIZONTAL), 
-			final JComponent[] components = {noteLabel, new JScrollPane(buildPermissionPanel())};
+			final JComponent[] components = {noteLabel, buildPermissionPanel()};
 			final JPanel buildNorthPanel = ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER);
-			tabbedPane.addTab((String)ResourceUtil.get(9094), buildNorthPanel);
+			tabbedPane.addTab((String)ResourceUtil.get(9094), new JScrollPane(buildNorthPanel));
 		}
 		
 		add(tabbedPane, BorderLayout.CENTER);		
@@ -474,7 +482,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		perm_sock_panel = new SocketEditPanel(){
 			@Override
 			public void notifyModify(){
-				notifyModified(true);
+				notifyModiPermissions();
 			}
 			
 			@Override
@@ -492,98 +500,98 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 			@Override
 			public void run() {
 				((HPProject)currItem).csc.setSysPropRead(checkReadProperty.isSelected());
-				notifyModified(true);	
+				notifyModiPermissions();	
 			}
 		}, threadPoolToken));		
 		checkWriteProperty.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				((HPProject)currItem).csc.setSysPropWrite(checkWriteProperty.isSelected());
-				notifyModified(true);	
+				notifyModiPermissions();	
 			}
 		}, threadPoolToken));	
 		checkLoadLib.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				((HPProject)currItem).csc.setLoadLib(checkLoadLib.isSelected());
-				notifyModified(true);	
+				notifyModiPermissions();	
 			}
 		}, threadPoolToken));	
 		checkRobot.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				((HPProject)currItem).csc.setRobot(checkRobot.isSelected());
-				notifyModified(true);	
+				notifyModiPermissions();	
 			}
 		}, threadPoolToken));	
 //		checkListenAllAWTEvents.addItemListener(new HCActionListener(new Runnable() {
 //			@Override
 //			public void run() {
 //				((HPProject)currItem).csc.setListenAllAWTEvents(checkListenAllAWTEvents.isSelected());
-//				notifyModified(true);	
+//				notifyModiPermissions();	
 //			}
 //		}, threadPoolToken));	
 //		checkAccessClipboard.addItemListener(new HCActionListener(new Runnable() {
 //			@Override
 //			public void run() {
 //				((HPProject)currItem).csc.setAccessClipboard(checkAccessClipboard.isSelected());
-//				notifyModified(true);	
+//				notifyModiPermissions();	
 //			}
 //		}, threadPoolToken));	
 		checkShutdownHooks.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				((HPProject)currItem).csc.setShutdownHooks(checkShutdownHooks.isSelected());
-				notifyModified(true);	
+				notifyModiPermissions();	
 			}
 		}, threadPoolToken));	
 		checkSetIO.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				((HPProject)currItem).csc.setSetIO(checkSetIO.isSelected());
-				notifyModified(true);	
+				notifyModiPermissions();	
 			}
 		}, threadPoolToken));	
 		checkSetFactory.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				((HPProject)currItem).csc.setSetFactory(checkSetFactory.isSelected());
-				notifyModified(true);	
+				notifyModiPermissions();	
 			}
 		}, threadPoolToken));	
 		perm_write.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				((HPProject)currItem).csc.setWrite(perm_write.isSelected());
-				notifyModified(true);				
+				notifyModiPermissions();				
 			}
 		}, threadPoolToken));	
 		perm_exec.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				((HPProject)currItem).csc.setExecute(perm_exec.isSelected());
-				notifyModified(true);	
+				notifyModiPermissions();	
 			}
 		}, threadPoolToken));	
 		perm_del.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				((HPProject)currItem).csc.setDelete(perm_del.isSelected());
-				notifyModified(true);	
+				notifyModiPermissions();	
 			}
 		}, threadPoolToken));	
 		perm_exit.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				((HPProject)currItem).csc.setExit(perm_exit.isSelected());
-				notifyModified(true);	
+				notifyModiPermissions();	
 			}
 		}, threadPoolToken));	
 		perm_memAccessSystem.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				((HPProject)currItem).csc.setMemberAccessSystem(perm_memAccessSystem.isSelected());
-				notifyModified(true);	
+				notifyModiPermissions();	
 			}
 		}, threadPoolToken));	
 		final JPanel osPermPanel = new JPanel(new GridLayout(1, 4));
@@ -618,6 +626,14 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 	public void notifyLostEditPanelFocus(){
 		perm_sock_panel.notifyLostEditPanelFocus();
 		super.notifyLostEditPanelFocus();
+	}
+	
+	public final void notifyModiPermissions(){
+		if(isInited){
+//			System.out.println(System.currentTimeMillis() + "=======>notifyModiPermissions");
+			designer.isModiPermissions = true;
+		}
+		notifyModified(true);
 	}
 
 	@Override

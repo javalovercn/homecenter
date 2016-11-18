@@ -123,15 +123,15 @@ public class JPTrayIcon implements PlatformTrayIcon{
 		return new WindowTrayIcon();
 	}
 
-	public JPTrayIcon(final Image image, final String toolTip, final JPopupMenu menu) {
+	public JPTrayIcon(final Image image, final String productTip, final JPopupMenu menu) {
 		trayIcon = buildTrayIcon(image);
 		
 		//要置于setImage之前
 		trayIcon.setImageAutoSize(true);
 		
 		trayIcon.setImage(image);
-		this.toolTip = toolTip;
-		trayIcon.setToolTip(toolTip);
+		this.toolTip = productTip;
+		trayIcon.setToolTip(productTip);
 		frame.addWindowFocusListener(new WindowFocusListener() {
 			@Override
 			public void windowLostFocus(final WindowEvent e) {
@@ -147,7 +147,7 @@ public class JPTrayIcon implements PlatformTrayIcon{
 		mouseListener = new TrayMouseAdapter();
 		this.setJPopupMenu(menu);
 		
-		setToolTip("HomeCenter");
+		setToolTip(productTip);
 //		
 		trayIcon.showTray();
 //		Locale l = Locale.getDefault();

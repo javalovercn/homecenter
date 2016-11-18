@@ -3,54 +3,54 @@ package hc.server.ui.design;
 import hc.core.L;
 import hc.core.sip.SIPManager;
 import hc.core.util.ExceptionReporter;
-import hc.core.util.HCURL;
 import hc.core.util.LogManager;
-import hc.core.util.StoreableHashMap;
-import hc.core.util.UIUtil;
 import hc.server.data.screen.PNGCapturer;
 import hc.server.data.screen.ScreenCapturer;
-import hc.server.ui.ClientDesc;
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.HCByteArrayOutputStream;
 import hc.server.ui.ICanvas;
+import hc.server.ui.MenuItem;
+import hc.server.ui.MobiMenu;
+import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
+import hc.server.ui.SessionMobiMenu;
 import hc.server.ui.design.hpj.HCjar;
-import hc.util.BaseResponsor;
-import hc.util.ResourceUtil;
-import hc.util.StoreableHashMapWithModifyFlag;
+import hc.util.I18NStoreableHashMapWithModifyFlag;
 
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Vector;
 
+/**
+ * 注意：一个实例能同时服务多个Session
+ */
 public class JarMainMenu extends MCanvasMenu implements ICanvas {
-	private final HCByteArrayOutputStream baos = ServerUIUtil.buildForMaxIcon();
-	public String[][] items;
-	private StoreableHashMapWithModifyFlag[] i18nTitles;
-	private BufferedImage[] cacheOriImage;
-	public int[] itemTypes;
-	public String[] extendMap;
+	private final HCByteArrayOutputStream baos = ServerUIUtil.buildForMaxIcon();//buildJcip时synchronzied
 	public static final int itemDescNum = 3;
 	public final String menuId;
 	private final int menuColNum;
-	public String[] listener;
 	public final boolean isRoot;
-	
+	public final MobiMenu projectMenu;
 	public static final int ITEM_NAME_IDX = 0;
 	public static final int ITEM_IMG_IDX = 1;
 	public static final int ITEM_URL_IDX = 2;
-	private final BaseResponsor baseRe;
-	public final String linkName, linkOrProjectName, projectID;
+	private final MobiUIResponsor baseRe;
+	public final String linkName, linkOrProjectName;
 	private final int menuIdx;
-	boolean enableQR, enableWiFi;
-	final Map map;
-	final StoreableHashMapWithModifyFlag projNameI18nMap;
+	final Map<String, Object> map;
+	final I18NStoreableHashMapWithModifyFlag projNameI18nMap;
 	
-	public JarMainMenu(final int menuIdx, final Map map, final boolean isRoot, final BaseResponsor baseRep, final String linkMenuName) {
+	public JarMainMenu(final int menuIdx, final Map<String, Object> map, final boolean isRoot, final MobiUIResponsor baseRep, 
+			final String linkMenuName, final ProjResponser resp) {
+		super((String)map.get(HCjar.PROJ_ID), resp);
+		
+		projectMenu = new MobiMenu(projectID, resp);
 		this.isRoot = isRoot;
 		this.baseRe  = baseRep;
 		this.linkName = linkMenuName;
 		this.linkOrProjectName = (linkMenuName == null || linkMenuName.length() == 0)?(String)map.get(HCjar.PROJ_NAME):linkMenuName;
-		this.projectID = (String)map.get(HCjar.PROJ_ID);
 		
 		//menuName = linkMenuName;//HCjar.getMenuName(map, menuIdx);
 		projNameI18nMap = HCjar.buildI18nMapFromSerial((String)map.get(HCjar.PROJ_I18N_NAME));
@@ -60,152 +60,93 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 		this.menuIdx = menuIdx;
 		
 		this.map = map;
-	}
-
-	public final void rebuildMenuItemArray() {
-		cacheOriImage = null;
 		
-		int appendMenuItemNum = 0;//新增按钮及子工程的文件夹数量
-		int projFoldNum = 0;//优先显示的工程文件夹数量
+		synchronized (ServerUIUtil.LOCK) {
+			initMenuItemArray();
+		}
+		
+	}
+	
+	@Override
+	public final String toString(){
+		return this.getClass().getSimpleName() + ":" + ((linkName!=null&& linkName.length()>0)?linkName:linkOrProjectName);
+	}
+	
+	public static final int FOLD_TYPE = 0;
+
+	private final void initMenuItemArray() {
+		boolean hasMenuItemsAndActive = false;//新增按钮及子工程的文件夹数量
 		if(isRoot){
 			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(false);
 			while(it.hasNext()){
 				final LinkProjectStore lps = it.next();
-				if( isNeedAddFolder(lps)){
-					projFoldNum++;
+				if( hasMenuItemsAndActive(lps)){
+					hasMenuItemsAndActive = true;
+					break;
 				}
-			}
-			
-			appendMenuItemNum = projFoldNum;
-			
-			//手机须有相机和WiFi
-			if(enableQR){
-				appendMenuItemNum += 1;//增加两个添加设备
-			}
-			if(enableWiFi){
-				appendMenuItemNum += 1;
 			}
 		}
 		final Object menuItemObj = map.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, menuIdx));
+		
 		if(menuItemObj != null){
 			final int itemCount = Integer.parseInt((String)menuItemObj);
-			items = new String[itemCount + appendMenuItemNum][itemDescNum];
-			itemTypes = new int[itemCount + appendMenuItemNum];
-			listener = new String[itemCount + appendMenuItemNum];
-			extendMap = new String[itemCount + appendMenuItemNum];
 			
-			i18nTitles = new StoreableHashMapWithModifyFlag[itemCount + appendMenuItemNum];
-			
-			final int fold_type = 0;
-			
-			if(appendMenuItemNum > 0){
+			if(hasMenuItemsAndActive){
 				//添加LinkProject文件夹
 				final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(false);
-				int i = 0;
 				while(it.hasNext()) {
 					final LinkProjectStore lps = it.next();
-					if( isNeedAddFolder(lps)){
+					if(hasMenuItemsAndActive(lps)){
 					}else{
 						//如果工程内没有菜单项，则不显示。含事件或未来其它
 						continue;
 					}
-					final int itemIdx = (i++);
-					final Map subProjmap = ((MobiUIResponsor)baseRe).getProjResponser(lps.getProjectID()).map;
-					final String linkName = lps.getLinkName();
-					items[itemIdx][ITEM_NAME_IDX] = (linkName==null||linkName.length()==0)?(String)subProjmap.get(HCjar.PROJ_NAME):linkName;
-					itemTypes[itemIdx] = fold_type;
-					items[itemIdx][ITEM_IMG_IDX] = UIUtil.SYS_FOLDER_ICON;
-					items[itemIdx][ITEM_URL_IDX] = HCURL.buildStandardURL(HCURL.MENU_PROTOCAL, lps.getProjectID());
-					
-					{
-						i18nTitles[itemIdx] = HCjar.buildI18nMapFromSerial((String)subProjmap.get(HCjar.PROJ_I18N_NAME));
-					}
-					
-					listener[itemIdx] = ""; 
-					extendMap[itemIdx] = "";
+					final Map<String, Object> subProjmap = baseRe.getProjResponser(lps.getProjectID()).map;
+					projectMenu.addFolderItem(subProjmap, lps);
 				}
 			}
 
 			final String Iheader = HCjar.replaceIdxPattern(HCjar.MENU_ITEM_HEADER, menuIdx);
-			int storeIdx = 0;
 			for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
 				final String header = Iheader + itemIdx + ".";
 				
-				storeIdx = itemIdx + projFoldNum;
+				final String name = (String)map.get(header + HCjar.ITEM_NAME);
+				final int type = Integer.parseInt((String)map.get(header + HCjar.ITEM_TYPE));
+				final String image = (String)map.get(header + HCjar.ITEM_IMAGE);
+				final String url = (String)map.get(header + HCjar.ITEM_URL);
+				final I18NStoreableHashMapWithModifyFlag i18nName = HCjar.buildI18nMapFromSerial((String)map.get(header + HCjar.ITEM_I18N_NAME));
+				final String listen = (String)map.get(header + HCjar.ITEM_LISTENER);
+				final String extend_map = (String)map.get(header + HCjar.ITEM_EXTENDMAP); 
 				
-				items[storeIdx][ITEM_NAME_IDX] = (String)map.get(header + HCjar.ITEM_NAME);
-				itemTypes[storeIdx] = Integer.parseInt((String)map.get(header + HCjar.ITEM_TYPE));
-				items[storeIdx][ITEM_IMG_IDX] = (String)map.get(header + HCjar.ITEM_IMAGE);
-				items[storeIdx][ITEM_URL_IDX] = (String)map.get(header + HCjar.ITEM_URL);
-				
-				i18nTitles[storeIdx] = HCjar.buildI18nMapFromSerial((String)map.get(header + HCjar.ITEM_I18N_NAME));
-				
-				listener[storeIdx] = (String)map.get(header + HCjar.ITEM_LISTENER);
-				extendMap[storeIdx] = (String)map.get(header + HCjar.ITEM_EXTENDMAP); 
+				projectMenu.addModifiableItem(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen, extend_map));
+			}
+		}
+	}
+
+	public final boolean hasMenuItemsAndActive(final LinkProjectStore lps) {
+		return lps.isActive() && LinkProjectManager.hasMenuItemNumInProj(map);
+	}
+	
+	public final void appendProjToMenuItemArray(final Map<String, Object>[] maps, final int mapSize, final ArrayList<LinkProjectStore> appendLPS){
+		//将增量菜单更新到全部联机Session
+		for (int i = 0; i < appendLPS.size(); i++) {
+			final LinkProjectStore lps = appendLPS.get(i);
+			final String lps_projectID = lps.getProjectID();
+			
+			Map<String, Object> map = null;
+			for (int j = 0; j < mapSize; j++) {
+				final Map<String, Object> tmpMap = maps[j];
+				if(lps_projectID.equals(tmpMap.get(HCjar.PROJ_ID))){
+					map = tmpMap;
+					break;
+				}
 			}
 			
-			//添加"增加设备"按钮
-			final int res_add = 9016;
-			if(enableQR){
-				final int itemIdx = (++storeIdx);
-				items[itemIdx][ITEM_NAME_IDX] = (String)ResourceUtil.get(res_add);
-				itemTypes[itemIdx] = fold_type;
-				items[itemIdx][ITEM_IMG_IDX] = UIUtil.SYS_ADD_DEVICE_BY_QR_ICON;
-				items[itemIdx][ITEM_URL_IDX] = HCURL.URL_CFG_ADD_DEVICE_BY_QR;
-				
-				i18nTitles[itemIdx] = ResourceUtil.getI18NByResID(res_add);
-				
-				listener[itemIdx] = ""; 
-				extendMap[itemIdx] = "";
-			}
-			if(enableWiFi){
-				final int itemIdx = (++storeIdx);
-				items[itemIdx][ITEM_NAME_IDX] = (String)ResourceUtil.get(res_add);
-				itemTypes[itemIdx] = fold_type;
-				items[itemIdx][ITEM_IMG_IDX] = UIUtil.SYS_ADD_DEVICE_BY_WIFI_ICON;
-				items[itemIdx][ITEM_URL_IDX] = HCURL.URL_CFG_ADD_DEVICE_BY_WIFI;
-				
-				i18nTitles[itemIdx] = ResourceUtil.getI18NByResID(res_add);
-				
-				listener[itemIdx] = ""; 
-				extendMap[itemIdx] = "";
-			}
-
-		}else{
-			items = new String[0][itemDescNum];
-			i18nTitles = new StoreableHashMapWithModifyFlag[0];
-			itemTypes = new int[0];
-			listener = new String[0];
-			extendMap = new String[0];
+			projectMenu.addFolderItem(map, lps);
 		}
 	}
-
-	private boolean isNeedAddFolder(final LinkProjectStore lps) {
-		return lps.isActive() && findExistMenuItemNumInProj(lps.getProjectID());
-	}
 	
-	private boolean findExistMenuItemNumInProj(final String projID){
-		if(baseRe instanceof MobiUIResponsor){
-			try{
-				final MobiUIResponsor mr = (MobiUIResponsor)baseRe;
-				for (int i = 0; i < mr.responserSize; i++) {
-					if(mr.projIDs[i].equals(projID)){
-						final Map map = mr.maps[i];
-						final Object chileCount = map.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, 0));
-						if(chileCount != null){
-							if(Integer.parseInt((String)chileCount) > 0){
-								return true;
-							}
-						}
-					}
-				}
-			}catch (final Exception e) {
-			}
-		}
-		return false;
-	}
-	
-	private final String getMapLanguage(final StoreableHashMap storeMap, final String mobileLocale){
+	private final String getMapLanguage(final I18NStoreableHashMapWithModifyFlag storeMap, final String mobileLocale){
 		if(storeMap != null){
 			{
 				final String match = (String)storeMap.get(mobileLocale);//zh-CN
@@ -227,36 +168,40 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 		}
 		return null;
 	}
+	
+	@Override
+	public final String getIconLabel(final J2SESession coreSS, final MenuItem menuItem){
+		final String mobileLocale = UserThreadResourceUtil.getMobileLocaleFrom(coreSS);
+
+		final I18NStoreableHashMapWithModifyFlag storeMap = ServerUIAPIAgent.getMobiMenuItem_I18nName(menuItem);
+		if(storeMap != null){
+			try{
+				final String mapLang = getMapLanguage(storeMap, mobileLocale);
+				if(mapLang != null){
+					return mapLang;
+				}
+			}catch (final Throwable e) {
+				ExceptionReporter.printStackTrace(e);
+			}
+		}
+		return ServerUIAPIAgent.getMobiMenuItem_Name(menuItem);//items[i][ITEM_NAME_IDX];//缺省名字
+	}
 
 	@Override
-	public String[] getIconLabels() {
-		final String mobileLocale = ClientDesc.getClientLang();
+	public final String[] getIconLabels(final J2SESession coreSS, final Vector<MenuItem> menuItems) {
 		
-		final String[] out = new String[items.length];
+		final String[] out = new String[menuItems.size()];
 		for (int i = 0; i < out.length; i++) {
-			if(i18nTitles != null){
-				try{
-					final StoreableHashMap storeMap = i18nTitles[i];
-					final String mapLang = getMapLanguage(storeMap, mobileLocale);
-					if(mapLang != null){
-						out[i] = mapLang;
-						continue;
-					}
-				}catch (final Throwable e) {
-					ExceptionReporter.printStackTrace(e);
-				}
-			}
-			out[i] = items[i][ITEM_NAME_IDX];//缺省名字
+			final MenuItem menuItem = menuItems.elementAt(i);
+			out[i] = getIconLabel(coreSS, menuItem);
 		}
 		return out;
 	}
 	
-	private final static int[] base64PngData = new int[UIUtil.ICON_MAX * UIUtil.ICON_MAX];
-	
-	private final String getBitmapBase64ForMobile(final BufferedImage bi, final String unChangedBase64){
-		final boolean menuTrueColor = ClientDesc.getAgent().isMenuTrueColor();
+	public final String getBitmapBase64ForMobile(final J2SESession coreSS, final BufferedImage bi, final String unChangedBase64){
+		final boolean menuTrueColor = UserThreadResourceUtil.getMobileAgent(coreSS).isMenuTrueColor();
 		
-		if(unChangedBase64 != null && (menuTrueColor || SIPManager.isOnRelay() == false)){
+		if(unChangedBase64 != null && (menuTrueColor || SIPManager.isOnRelay(coreSS) == false)){
 			return unChangedBase64;
 		}
 		
@@ -264,13 +209,14 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 			return ServerUIUtil.imageToBase64(bi, baos);
 		}
 		
-		final int mobileMask = PNGCapturer.getUserMobileColorMask();
+		final int mobileMask = PNGCapturer.getUserMobileColorMask(coreSS);
 		final int height = bi.getHeight();
 		final int width = bi.getWidth();
 		final int pngSize = height * width;
 		final int pngDataLen = pngSize;
 		
 		final BufferedImage transImg;
+		final int[] base64PngData = coreSS.base64PngData;
 		synchronized (base64PngData) {
 			bi.getRGB(0, 0, width, height, base64PngData, 0, width);
 			
@@ -289,80 +235,47 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 	}
 
 	@Override
-	public String[] getIcons() {
-		final boolean oldEnableQR  = enableQR;
-		final boolean oldEnableWiFi  = enableWiFi;
-		if(isRoot){
-			//可能新用户重新登录，手机WiFi状态不一
-			enableQR = ClientDesc.getAgent().hasCamera();// || PropertiesManager.isSimu();
-			//关闭WiFi广播HAR
-			enableWiFi = HCURL.isUsingWiFiWPS && ResourceUtil.canCtrlWiFi();// || PropertiesManager.isSimu();
-		}
-		
-		if(items == null || oldEnableQR != enableQR || oldEnableWiFi != enableWiFi){
-			synchronized (ServerUIUtil.LOCK) {
-				rebuildMenuItemArray();
-			}
-		}
-		
-		final int targetMobileIconSize = UIUtil.calMenuIconSize(ClientDesc.getClientWidth(), ClientDesc.getClientHeight(), ClientDesc.getDPI());
-		final int size = items.length;
+	public final String[] getIcons(final J2SESession coreSS, final Vector<MenuItem> menuItems) {
+		final int size = menuItems.size();
 		final String[] out = new String[size];
 		for (int i = 0; i < size; i++) {
-			String imgData = items[i][ITEM_IMG_IDX];
-			if(imgData.startsWith(UIUtil.SYS_ICON_PREFIX)){
-				
-			}else{
-				//仅传送适合目标手机尺寸的图标
-				if(cacheOriImage == null){
-					cacheOriImage = new BufferedImage[size];
-				}
-				BufferedImage oriImage = cacheOriImage[i];
-				if(oriImage == null){
-					oriImage = ServerUIUtil.base64ToBufferedImage(imgData);
-					cacheOriImage[i] = oriImage;
-				}
-				if(oriImage != null){
-					if(UIUtil.isIntBeiShu(targetMobileIconSize, oriImage.getWidth())){
-						imgData = getBitmapBase64ForMobile(oriImage, imgData);
-					}else{
-						//服务器端进行图片缩放
-						final BufferedImage newImg = ResourceUtil.resizeImage(oriImage, targetMobileIconSize, targetMobileIconSize);
-						//使用适应尺寸的base64图标
-						imgData = getBitmapBase64ForMobile(newImg, null);
-					}
-				}else{
-					imgData = getBitmapBase64ForMobile(oriImage, imgData);
-				}
-			}
+			final MenuItem item = menuItems.elementAt(i);
+			final String imgData = getIcon(coreSS, item);
 			out[i] = imgData;
 		}
 		return out;
 	}
 
 	@Override
-	public int getNumCol() {
+	public final String getIcon(final J2SESession coreSS, final MenuItem item) {
+		final SessionMobiMenu sessionMobiMenu = coreSS.getMenu(projectID);
+		final String imgData = ServerUIAPIAgent.getMobiMenuItem_Image(this, coreSS, item, sessionMobiMenu.targetMobileIconSize);//items[i][ITEM_IMG_IDX];
+		return imgData;
+	}
+
+	@Override
+	public final int getNumCol() {
 		return menuColNum;
 	}
 
 	@Override
-	public int getNumRow() {
-		return (items.length/3 + 1);
+	public final int getNumRow(final J2SESession coreSS, final Vector<MenuItem> menuItems) {
+		return (menuItems.size()/3 + 1);
 	}
 
 	@Override
-	public int getSize() {
-		return items.length;
+	public final int getSize(final J2SESession coreSS, final Vector<MenuItem> menuItems) {
+		return menuItems.size();
 	}
-
+	
 	@Override
-	public String getTitle() {
+	public final String getTitle(final J2SESession coreSS) {
 		//优先返回linkName
 		if(linkName != null && linkName.length() > 0){
 			return linkName;
 		}
 		
-		final String mobileLocale = ClientDesc.getClientLang();
+		final String mobileLocale = UserThreadResourceUtil.getMobileLocaleFrom(coreSS);
 		final String mapLang = getMapLanguage(projNameI18nMap, mobileLocale);
 		if(mapLang != null){
 			return mapLang;
@@ -370,45 +283,49 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 			return linkOrProjectName;
 		}
 	}
+	
+	@Override
+	public final String getURL(final J2SESession coreSS, final MenuItem menuItem) {
+		return ServerUIAPIAgent.getMobiMenuItem_URL(menuItem);
+	}
 
 	@Override
-	public String[] getURLs() {
-		final String[] out = new String[items.length];
+	public final String[] getURLs(final J2SESession coreSS, final Vector<MenuItem> menuItems) {
+		final String[] out = new String[menuItems.size()];
 		for (int i = 0; i < out.length; i++) {
-			out[i] = items[i][ITEM_URL_IDX];
+			final MenuItem item = menuItems.elementAt(i);
+			out[i] = getURL(coreSS, item);//items[i][ITEM_URL_IDX];
 		}
 		return out;
 	}
 
 	@Override
-	public boolean isFullMode() {
+	public final boolean isFullMode() {
 		return false;
 	}
 
 	@Override
-	public void onStart() {
+	public final void onStart() {
 	}
 
 	@Override
-	public void onPause() {
+	public final void onPause() {
 	}
 
 	@Override
-	public void onResume() {
+	public final void onResume() {
 	}
 
 	@Override
-	public void onExit() {
+	public final void onExit() {
 		//返回root主菜单
 		if(isRoot){
 			//当前是root
 		}else{
 			L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "exit/back menu [" + linkOrProjectName + "]");
-			L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "exit/back project : [" + projectID + "]");
-			if(baseRe instanceof MobiUIResponsor){
-				final MobiUIResponsor mobiUIResponsor = (MobiUIResponsor)baseRe;
-				mobiUIResponsor.enterContext(mobiUIResponsor.findRootContextID());
-			}
+//			L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "exit/back project : [" + projectID + "]");//可能引起退出工程岐义
+			
+			baseRe.enterContext((J2SESession)SessionThread.getWithCheckSecurityX(), baseRe.findRootContextID());
 			//千万别执行如下，确保每次手机连接使用同一服务实例，从而共享数据状态
 //			backServer = null;
 		}

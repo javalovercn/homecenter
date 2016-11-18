@@ -5,13 +5,13 @@ import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.ThreadPriorityManager;
 import hc.core.util.UIUtil;
-import hc.res.ImageSrc;
 import hc.server.FileSelector;
 import hc.server.HCActionListener;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.I18nTitlesEditor;
 import hc.server.ui.design.code.TabHelper;
+import hc.server.ui.design.engine.RubyExector;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
@@ -22,6 +22,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +38,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
@@ -44,11 +47,16 @@ import javax.swing.tree.MutableTreeNode;
 
 public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 	public static final String I18N_BTN_TEXT = "Internationalize...";
-	final int cornDegree = 30;
 	final String displayName = "Display Name";
 	private final JPanel localnamePanel = new JPanel();
 	protected HCURL hcurl;
-	protected JFormattedTextField jtfMyCommand = new JFormattedTextField();
+	protected JFormattedTextField targetLocator = new JFormattedTextField(){
+		@Override
+		public void paste(){
+			super.paste();
+			notifyModifyTargetLocator();
+		}
+	};
 	protected JLabel errCommandTip = new JLabel();
 	private final JLabel iconLabel = new JLabel();
 	protected final JButton browIconBtn = new JButton("Change Icon [" + UIUtil.ICON_MAX + " X " + UIUtil.ICON_MAX + "]");
@@ -74,7 +82,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 	}
 	
 	public boolean verify(final boolean refresh) {
-			final String text = jtfMyCommand.getText();
+			final String text = targetLocator.getText();
 			if (text.length() < 1) {
 				errCommandTip.setVisible(true);
 				errCommandTip.setText("error empty");
@@ -129,9 +137,9 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 		errCommandTip.setVisible(false);
 		errCommandTip.setForeground(Color.RED);
 		
-		jtfMyCommand.setColumns(20);
-		jtfMyCommand.setFocusLostBehavior(JFormattedTextField.COMMIT);
-		jtfMyCommand.getDocument().addDocumentListener(new DocumentListener() {
+		targetLocator.setColumns(20);
+		targetLocator.setFocusLostBehavior(JFormattedTextField.COMMIT);
+		targetLocator.getDocument().addDocumentListener(new DocumentListener() {
 			private void modify(){
 				verify(true);
 			}
@@ -150,13 +158,26 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 				modify();
 			}
 		});
-		jtfMyCommand.addActionListener(new HCActionListener(new Runnable() {
+		targetLocator.addKeyListener(new KeyListener() {
 			@Override
-			public void run() {
-				verify(true);
+			public void keyTyped(final KeyEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {//输入字符在途
+					@Override
+					public void run() {
+						notifyModifyTargetLocator();
+					}
+				});
 			}
-		}, threadPoolToken));
-
+			
+			@Override
+			public void keyReleased(final KeyEvent e) {
+			}
+			
+			@Override
+			public void keyPressed(final KeyEvent e) {
+			}
+		});
+		
 		jtascriptPanel.setBorder(new TitledBorder(
 				"JRuby script :"));
 		jtascriptPanel.setLayout(new BorderLayout());
@@ -205,16 +226,8 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 					App.showMessageDialog(tree, e2.toString(), "Error select resource!", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
-				final BufferedImage oriImage = bi;
 				if(bi != null){
-					//32 X 32
-					if(bi.getWidth() != UIUtil.ICON_MAX || bi.getHeight() != UIUtil.ICON_MAX){
-						bi = ResourceUtil.resizeImage(bi, UIUtil.ICON_MAX, UIUtil.ICON_MAX);
-					}
-//					if(light == null){
-//						light = (BufferedImage)Designer.loadImg("lightfil_32.png").getImage();
-//					}
-					bi = ImageSrc.makeRoundedCorner(bi, cornDegree);//composeImage(bi, light)
+					bi = ResourceUtil.standardMenuIconForAllPlatform(bi, UIUtil.ICON_MAX, false);
 					
 					final String strImageData = ServerUIUtil.imageToBase64(bi, iconBsArrayos);
 					if(strImageData == null){
@@ -304,7 +317,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 			final String key = hcurl.getParaAtIdx(i);
 			pv += key + "=" + hcurl.getValueofPara(key);
 		}
-		jtfMyCommand.setText(hcurl.elementID
+		targetLocator.setText(hcurl.elementID
 				+ ((pv.length() > 0) ? ("?" + pv) : ""));
 		final String listener = ((HPMenuItem)currItem).listener;
 		
@@ -321,11 +334,19 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 
 	private final void setItemIcon64(BufferedImage oriImage) {
 		final int oriWidth = oriImage.getWidth();
-		if(oriWidth != UIUtil.ICON_DESIGN_SHOW_SIZE || oriImage.getHeight() != UIUtil.ICON_DESIGN_SHOW_SIZE){
-			oriImage = ResourceUtil.resizeImage(oriImage, UIUtil.ICON_DESIGN_SHOW_SIZE, UIUtil.ICON_DESIGN_SHOW_SIZE);
-			oriImage = ImageSrc.makeRoundedCorner(oriImage, cornDegree);
-		}
+		oriImage = ResourceUtil.standardMenuIconForAllPlatform(oriImage, UIUtil.ICON_DESIGN_SHOW_SIZE, true);
 		setItemIcon(new ImageIcon(oriImage), oriWidth);
+	}
+
+	private final void notifyModifyTargetLocator() {
+		verify(true);
+		
+		final int type = currItem.type;
+			
+		if(isTypeFromTargetInput(type)){
+			replaceClassName(targetLocator.getText(), targetLocator);
+			return;//在target框上
+		}
 	}
 
 }

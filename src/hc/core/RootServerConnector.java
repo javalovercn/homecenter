@@ -11,6 +11,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 public class RootServerConnector {
+	public static final String MULTI_CLIENT_BUSY = "busy";
 	public static final String PORT_8080_WITH_MAOHAO = ":8080";
 	public static final int PORT_44X = 444;
 	public static final String PORT_44X_WITH_MAOHAO = ":" + String.valueOf(PORT_44X);
@@ -61,6 +62,8 @@ public class RootServerConnector {
 	final static String chngrelay_STR = unObfuscate("=fhcgneral&y");
 //	"f=sip&"
 	final static String sip_STR = unObfuscate("=fis&p");
+//	"f=sipV2&"
+	final static String sipV2_STR = "f=sipV2&";
 //	"f=relay"
 	final static String relay_STR = unObfuscate("=feraly");
 //	"f=newrelay" 
@@ -200,9 +203,6 @@ public class RootServerConnector {
 		upnp_ip = HCURLUtil.convertIPv46(upnp_ip);
 		relayip = HCURLUtil.convertIPv46(relayip);
 		
-		//初始化本值
-		isDelLineInfo = false;
-		
 		return retry(CALL_STR +
 				lineon_STR +
 				ID_STR + encryptePara(uuid, token) + "&" +
@@ -300,9 +300,10 @@ public class RootServerConnector {
 	 * 客户机：如果没有服务器上线，则返回null
 	 * {IP, port, [1:http方式;2:代理上线（即取代1，则不是HomeCenter.mobi来实现双方IP交换）], upnpip, upnpport}
 	 * 其中upnp仅服务器有效
+	 * 注意：本方法已被getServerIPAndPortV2替代
 	 * @return
 	 */
-	public static Object getServerIPAndPort(String hideToken){
+	public static Object getServerIPAndPort(String hideToken){//早期版本，现停用，不能获得多Session模式下，客户并发上线的问题
 		String msg = retry(CALL_STR +
 				sip_STR +
 				ID_STR + encryptePara(IConstant.uuid, hideToken) + "&" +
@@ -312,6 +313,32 @@ public class RootServerConnector {
 		if(msg == null || msg.length() == 0){
 			return null;
 		}
+//		L.V = L.O ? false : LogManager.log("sip:" + msg);
+		return StringUtil.extractIPAndPort(msg);
+	}
+	
+	/**
+	 * 服务器：如果没有客户机上线，则返回可供使用的中继Vector[ip, port]；
+	 * 客户机：如果没有服务器上线，则返回null
+	 * {IP, port, [1:http方式;2:代理上线（即取代1，则不是HomeCenter.mobi来实现双方IP交换）], upnpip, upnpport}
+	 * 其中upnp仅服务器有效
+	 * @return
+	 */
+	public static Object getServerIPAndPortV2(String hideToken){//能获得多Session模式下，客户并发上线的问题
+		String msg = retry(CALL_STR +
+				sipV2_STR +
+				ID_STR + encryptePara(IConstant.uuid, hideToken) + "&" +
+				HIDE_TOKEN_STR + hideToken + "&" +
+				ENCRYPTER_STR + "true");
+		
+		if(msg == null || msg.length() == 0){
+			return null;
+		}
+		
+		if(msg.equals(MULTI_CLIENT_BUSY)){
+			return msg;
+		}
+		
 //		L.V = L.O ? false : LogManager.log("sip:" + msg);
 		return StringUtil.extractIPAndPort(msg);
 	}
@@ -491,18 +518,11 @@ public class RootServerConnector {
 				rootcfg_STR);
 	}
 
-	private static boolean isDelLineInfo = false;
 	/**
 	 * 下线或成功接入客户机时，调用此方法，以减少服务器的数据量
 	 * @param token
 	 */
 	public static String delLineInfo(String token, boolean isMobileLineIn) {
-		if(isDelLineInfo == false){
-			isDelLineInfo = true;
-		}else{
-			return "";
-		}
-		
 		if(IConstant.uuid == null){
 			return "";
 		}
@@ -510,7 +530,7 @@ public class RootServerConnector {
 		return delLineInfo(IConstant.uuid, token, isMobileLineIn);
 	}
 	
-	public static String delLineInfo(String uuid, String token, boolean isMobileLineIn) {
+	private static String delLineInfo(String uuid, String token, boolean isMobileLineIn) {
 		String lineOffStr = (isMobileLineIn?mobiLineIn_STR:lineoff_STR);
 		return retry(CALL_STR +
 				lineOffStr +
@@ -529,11 +549,16 @@ public class RootServerConnector {
 				ENCRYPTER_STR + "true");
 	}
 	
-	public static void notifyLineOffType(final String type) {
+	/**
+	 * 
+	 * @param coreSS 仅被用于提取版本号，可以为null
+	 * @param type
+	 */
+	public static void notifyLineOffType(final CoreSession coreSS, final String type) {
 //		L.V = L.O ? false : LogManager.log("Notify LineOffType : " + (CALL_STR + type));
-		final IContext ci = ContextManager.getContextInstance();
 		String ver = null;
-		if(ci != null){
+		if(coreSS != null && coreSS.context != null){
+			final IContext ci = coreSS.context;
 			ver = (String)ci.doExtBiz(IContext.BIZ_VERSION_MID_OR_PC, null);
 		}
 		retry(CALL_STR + type + (ver==null?"":ver));

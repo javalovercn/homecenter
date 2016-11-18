@@ -10,14 +10,19 @@ import hc.core.util.ThreadPriorityManager;
 import hc.server.DefaultManager;
 import hc.server.ui.LinkProjectStatus;
 import hc.util.ClassUtil;
+import hc.util.HttpUtil;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,6 +30,9 @@ import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.StyleSheet;
 
@@ -42,9 +50,9 @@ public class DocHelper {
 		}
 	};
 	
-	static final String bodyRule = "body { font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
+	static final String bodyRule = "body { font-family:Arial, Helvetica, sans-serif; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
 	static final String strongRule = "strong { font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
-	static final String aRule = "a { text-decoration:underline; color:blue; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
+	static final String aRule = "a { font-family:Arial, Helvetica, sans-serif; text-decoration:underline; color:blue; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
 	static final String codeRule = "code { font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
 
 	private JFrame codeFrame;
@@ -58,6 +66,112 @@ public class DocHelper {
 		
 		docPane.setContentType("text/html");
 	    final StyleSheet styleSheet = ((HTMLDocument)docPane.getDocument()).getStyleSheet();
+		docPane.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseReleased(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mousePressed(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mouseExited(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mouseEntered(final MouseEvent e) {
+			}
+			
+			final HTMLDocument hDoc = (HTMLDocument)docPane.getDocument();
+    		final String classStartType1 = "../";
+    		final String classStartType2 = "/api/";
+    		final char methodSpliter = '#';
+    		final int methodSpliterLength = 1;
+    		final char parameterSpliter = '-';
+    		final String strParameterSpliter = String.valueOf(parameterSpliter);
+    		final int parameterSpliterLength = 1;
+    		final Pattern removePackageName = Pattern.compile("\\b(\\w+\\.)");
+			final ClassLoader classLoader = DocHelper.class.getClassLoader();
+
+			/**
+			 * 从一个java doc页面跳到另一个java doc页面
+			 */
+			@Override
+			public void mouseClicked(final MouseEvent e) {
+				final int pos = docPane.viewToModel(e.getPoint());
+		        if (pos >= 0) {
+		            final javax.swing.text.Element element = hDoc.getCharacterElement(pos);
+		            final AttributeSet a = element.getAttributes();
+
+		            final SimpleAttributeSet value = (SimpleAttributeSet) a.getAttribute(HTML.Tag.A);
+		            if (value != null) {
+		                final String href = (String) value.getAttribute(HTML.Attribute.HREF);
+		                if (href != null) {
+		                	//../../javax/swing/JComponent.html#getAutoscrolls--
+		                	//click href : ../../../hc/server/ui/HTMLMlet.html
+		                	//click href : http://docs.oracle.com/javase/8/docs/api/javax/swing/JComponent.html?is-external=true
+//		                	click href : ../../../hc/server/ui/Mlet.html#resizeImage(java.awt.image.BufferedImage, int, int)
+//		                	click href : ../../../hc/server/ui/ProjectContext.html#getMobileOS()
+//		                	click href : ../../java/awt/Toolkit.html#createCustomCursor-java.awt.Image-java.awt.Point-java.lang.String-
+		                	
+		                	final int classEndIdx = href.lastIndexOf(".html");
+		                	if(classEndIdx >= 0){
+		                		int classStartIdx = href.lastIndexOf(classStartType1);
+		                		if(classStartIdx >= 0){
+		                			classStartIdx += classStartType1.length();
+		                		}else{
+		                			classStartIdx = href.lastIndexOf(classStartType2);
+		                			if(classStartIdx >= 0){
+		                				classStartIdx += classStartType2.length();
+		                			}
+		                		}
+		                		
+		                		final String fmClass = href.substring(classStartIdx, classEndIdx).replace('/', '.');
+		                		
+		                		String fieldOrMethodName = CLASS_DESC;
+		                		final int methodSplitIdx = href.indexOf(methodSpliter, classEndIdx);
+		                		if(methodSplitIdx >= 0){
+		                			final String methodPart = href.substring(methodSplitIdx + methodSpliterLength);
+		                			final int firstParameterSpliterIdx = methodPart.indexOf(parameterSpliter);
+		                			if(firstParameterSpliterIdx < 0){
+		                				fieldOrMethodName = removePackageName.matcher(methodPart).replaceAll("");
+		                			}else{
+		                				final String methodName = methodPart.substring(0, firstParameterSpliterIdx);
+		                				String parameter = methodPart.substring(firstParameterSpliterIdx + parameterSpliterLength, methodPart.length() - parameterSpliterLength);
+		                				parameter = parameter.replaceAll(strParameterSpliter, ", ");
+		                				parameter = removePackageName.matcher(parameter).replaceAll("");
+		                				fieldOrMethodName = methodName + "(" + parameter + ")";
+		                			}
+		                		}
+		                		
+								try {
+									processDoc(Class.forName(fmClass, false, classLoader), false);
+								} catch (final ClassNotFoundException e1) {
+								}
+								
+			            		final String doc = getDoc(fmClass, fieldOrMethodName);
+			            		if(doc != null && doc.length() > 0){
+			            			SwingUtilities.invokeLater(new Runnable() {
+										@Override
+										public void run() {
+					            			docPane.setText("<html><body style=\"background-color:#FAFBC5\">" + doc +"</body></html>");
+					            			docPane.setCaretPosition(0);
+										}
+									});
+			            		}else{
+			            			if(href.startsWith("http")){
+			            				HttpUtil.browse(href);
+			            			}
+			            		}
+		                	}
+//		                    L.V = L.O ? false : LogManager.log("click href : " + href);
+		                }
+		            }
+		        }
+			}
+		});
+		
 		styleSheet.addRule(bodyRule);
 		styleSheet.addRule(strongRule);
 		styleSheet.addRule(aRule);
@@ -75,7 +189,8 @@ public class DocHelper {
 	final Dimension docFrameSize = new Dimension();
 	final Dimension codeFrameSize = new Dimension();
 	final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-
+	boolean isWillShowDoc;//用于invokeLater与setInvisible进行同步通信
+	
 	private final Runnable repainRunnable = new Runnable() {
 		@Override
 		public void run() {
@@ -107,7 +222,11 @@ public class DocHelper {
 			}
 			
 			docFrame.setLocation(showX, showY);
-			docFrame.setVisible(true);
+			synchronized (docFrame) {
+				if(isWillShowDoc){
+					docFrame.setVisible(true);
+				}
+			}
 		}
 	};
 	
@@ -120,8 +239,11 @@ public class DocHelper {
 	}
 	
 	public final void setInvisible(){
-		if(docFrame.isVisible()){
-			docFrame.setVisible(false);
+		synchronized (docFrame) {
+			if(docFrame.isVisible()){
+				docFrame.setVisible(false);
+			}
+			isWillShowDoc = false;
 		}
 	}
 	
@@ -143,6 +265,7 @@ public class DocHelper {
 		final String doc = getDoc(fmClass, fieldOrMethodName);
 		if(doc != null && doc.length() > 0){
 			docPane.setText("<html><body style=\"background-color:#FAFBC5\">" + doc +"</body></html>");
+			isWillShowDoc = true;
 			SwingUtilities.invokeLater(repainRunnable);
 		}else{
 			if(L.isInWorkshop){
@@ -163,7 +286,10 @@ public class DocHelper {
 	 * @return
 	 */
 	public final String getDoc(final String claz, final String fieldOrMethod){
+//		L.V = L.O ? false : LogManager.log("class : " + claz + ", fieldOrMethod : " + fieldOrMethod);
+		
 		HashMap<String, String> map = cache.get(claz);
+		
 		if(map == null){
 			try{
 				Thread.sleep(ThreadPriorityManager.UI_WAIT_MS);//不能采用Notify技术，因为有可能不是目标claz装入
@@ -174,6 +300,15 @@ public class DocHelper {
 				return null;
 			}
 		}
+		
+		if(L.isInWorkshop){
+			final Set<String> set = map.keySet();
+			final Iterator<String> it = set.iterator();
+			while(it.hasNext()){
+				L.V = L.O ? false : LogManager.log("==>" + it.next());
+			}
+		}
+		
 		return map.get(fieldOrMethod);
 	}
 	
@@ -241,8 +376,11 @@ public class DocHelper {
 	
 
 	private static final int GROUP_IDX = 2;
-	private static final Pattern blockPattern = Pattern.compile("<ul class=\"(blockListLast|blockList)\">\n<li class=\"blockList\">\n(.*?)</dl>\n</li>\n</ul>\n", Pattern.DOTALL);
-	private static final Pattern blockPatternWithoutDL = Pattern.compile("<ul class=\"(blockListLast|blockList)\">\n<li class=\"blockList\">\n(.*?)</li>\n</ul>\n", Pattern.DOTALL);
+	private static final String blockListLast = "<ul class=\"blockListLast\">";
+	private static final Pattern jianKuoHao = Pattern.compile("\\<(.*?)\\>");
+	private static final Pattern generics_e_type = Pattern.compile("&lt;(.*?)&gt;");//不能(.*)
+	private static final Pattern generics_e_to_object_pattern = Pattern.compile("\\b([A-Z]{1})\\b");
+	private static final Pattern blockPattern = Pattern.compile("<ul class=\"(blockListLast|blockList)\">\n<li class=\"blockList\">\n(.*?)</li>\n</ul>\n", Pattern.DOTALL);
 	private static final Pattern fieldOrMethodNamePattern = Pattern.compile("<pre>(.*?)</pre>", Pattern.DOTALL);//javaDoc method throws Exception有换行现象
 	private static final Pattern classDescPattern = Pattern.compile(
 			"<div class=\"description\">\n<ul class=\"blockList\">\n<li class=\"blockList\">\n" +//<hr>\n<br>\n
@@ -251,7 +389,9 @@ public class DocHelper {
 	
 	public static final String CLASS_DESC = "CLASS_DESC";
 	
-	private static void processDoc(final HashMap<String, String> docMap, String docContent){
+	public static final String NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME = null;
+	
+	private static void processDoc(final HashMap<String, String> docMap, String docContent, final String simpleClassName){
 		{
 			final Matcher matcher = classDescPattern.matcher(docContent);
 			if (matcher.find()) {
@@ -265,56 +405,89 @@ public class DocHelper {
 			}
 		}
 		
-//		<ul class="blockList|Last">
-//		<li class="blockList">
-//		</li>
-//		</ul>
-		final int detailDocIdx = docContent.indexOf("<h3>Method Detail</h3>");
-		if(detailDocIdx < 0){
-			//没有方法和属性
-			return;
-		}
-		
-		docContent = docContent.substring(detailDocIdx);//否则会从Method Summary段开始，导致第一个不正确
 		{
-			final Matcher matcher = blockPattern.matcher(docContent);
-			while (matcher.find()) {
-				processItem(docMap, matcher.group(GROUP_IDX) + "</dl>");
+			final int constructorDocIdx = docContent.indexOf("<h3>Constructor Detail</h3>");
+			if(constructorDocIdx > 0){
+				docContent = docContent.substring(constructorDocIdx);
+				processListBlock(docContent, docMap, true, simpleClassName);
 			}
 		}
+		
 		{
-			final Matcher matcher = blockPatternWithoutDL.matcher(docContent);
-			while (matcher.find()) {
-				processItem(docMap, matcher.group(GROUP_IDX));
+			final int detailDocIdx = docContent.indexOf("<h3>Field Detail</h3>");
+			if(detailDocIdx > 0){
+				docContent = docContent.substring(detailDocIdx);
+				processListBlock(docContent, docMap, false, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
+			}
+		}
+		
+		{
+//			<ul class="blockList|Last">
+//			<li class="blockList">
+//			</li>
+//			</ul>
+			final int detailDocIdx = docContent.indexOf("<h3>Method Detail</h3>");
+			if(detailDocIdx > 0){
+				docContent = docContent.substring(detailDocIdx);//否则会从Method Summary段开始，导致第一个不正确
+				processListBlock(docContent, docMap, true, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
 			}
 		}
 	}
 
-	private static void processItem(final HashMap<String, String> docMap,
-			final String item) {
+	private static void processListBlock(final String docContent, final HashMap<String, String> docMap, final boolean isForMethod,
+			final String simpleClassName) {
+		{
+			final Matcher matcher = blockPattern.matcher(docContent);
+			while (matcher.find()) {
+				final String match = matcher.group(GROUP_IDX);
+				processItem(docMap, match, isForMethod, simpleClassName);
+				if(matcher.group().startsWith(blockListLast)){
+					return;
+				}
+			}
+		}
+	}
+
+	private static void processItem(final HashMap<String, String> docMap, final String item, final boolean isForMethod,
+			final String simpleClassName) {
 		final Matcher matchFieldOrMethodName = fieldOrMethodNamePattern.matcher(item);
 		if(matchFieldOrMethodName.find()){
 			String fieldOrMethodName = matchFieldOrMethodName.group(1);
-			fieldOrMethodName = fieldOrMethodName.replaceAll("\\<(.*?)\\>", "");
-			final int kuohaoRightIdx = fieldOrMethodName.indexOf(")");
-			if(kuohaoRightIdx != fieldOrMethodName.length() - 1){
-				//右括号之后是回车，及throws XXXException
-				fieldOrMethodName = fieldOrMethodName.substring(0, kuohaoRightIdx + 1);
+			fieldOrMethodName = jianKuoHao.matcher(fieldOrMethodName).replaceAll("");
+			fieldOrMethodName = generics_e_type.matcher(fieldOrMethodName).replaceAll("");
+			fieldOrMethodName = generics_e_to_object_pattern.matcher(fieldOrMethodName).replaceAll("Object");
+			
+			if(isForMethod){
+				final int kuohaoRightIdx = fieldOrMethodName.indexOf(")");
+				if(kuohaoRightIdx != fieldOrMethodName.length() - 1){
+					//右括号之后是回车，及throws XXXException
+					fieldOrMethodName = fieldOrMethodName.substring(0, kuohaoRightIdx + 1);
+				}
 			}
 			//将参数实名去掉
 			fieldOrMethodName = fieldOrMethodName.replace("&nbsp;", " ");
 			fieldOrMethodName = fieldOrMethodName.replace("\n", "");
-			final int kuohaoLeftIdx = fieldOrMethodName.indexOf("(");
-			String parameter = fieldOrMethodName.substring(kuohaoLeftIdx);
-			parameter = parameter.replaceAll(" \\w+,", ",");//method(int hello, boolean yes) => method(int, boolean yes)
-			parameter = parameter.replaceAll(" \\w+\\)", ")");//method(int, boolean yes) => method(int, boolean)//有可能boolean另起一行
-			parameter = parameter.replace(" ", "");
-			parameter = parameter.replace(",", ", ");
-			final String frontPartWithName = fieldOrMethodName.substring(0, kuohaoLeftIdx);
-			final int nameStartIdx = frontPartWithName.lastIndexOf(' ') + 1;
 			
-			fieldOrMethodName = frontPartWithName.substring(nameStartIdx) + parameter;
-		
+			if(isForMethod){
+				if(isForMethod && simpleClassName != NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME){
+					fieldOrMethodName = fieldOrMethodName.replace(simpleClassName, CodeHelper.JRUBY_NEW);//将构造方法转为new()方法
+				}
+				
+				final int kuohaoLeftIdx = fieldOrMethodName.indexOf("(");
+				String parameter = fieldOrMethodName.substring(kuohaoLeftIdx);
+				parameter = parameter.replaceAll(" \\w+,", ",");//method(int hello, boolean yes) => method(int, boolean yes)
+				parameter = parameter.replaceAll(" \\w+\\)", ")");//method(int, boolean yes) => method(int, boolean)//有可能boolean另起一行
+				parameter = parameter.replace(" ", "");
+				parameter = parameter.replace(",", ", ");
+				final String frontPartWithName = fieldOrMethodName.substring(0, kuohaoLeftIdx);
+				final int nameStartIdx = frontPartWithName.lastIndexOf(' ') + 1;
+				
+				fieldOrMethodName = frontPartWithName.substring(nameStartIdx) + parameter;
+			}else{
+				//去掉public final static...
+				fieldOrMethodName = fieldOrMethodName.substring(fieldOrMethodName.lastIndexOf(" ") + 1);
+			}
+			
 			if(docMap.containsKey(fieldOrMethodName) == false){
 				final int indexOfDoc = item.indexOf("<div class=\"block\">");
 				String apiDoc = "";
@@ -334,7 +507,12 @@ public class DocHelper {
 	private static void toCache(final String clasName, final String docContent) {
 		final HashMap<String, String> docMap = new HashMap<String, String>();
 		if(docContent != null){
-			processDoc(docMap, docContent);
+			final int classIdx = clasName.lastIndexOf(".");
+			if(classIdx > 0){
+				processDoc(docMap, docContent, clasName.substring(classIdx + 1));
+			}else{
+				processDoc(docMap, docContent, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
+			}
 		}
 		synchronized (cache) {
 			cache.put(clasName, docMap);

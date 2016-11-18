@@ -1,6 +1,6 @@
 package hc.core.sip;
 
-import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.ReceiveServer;
 import hc.core.UDPPacketResender;
 
@@ -10,13 +10,15 @@ import java.io.IOException;
 
 public abstract class ISIPContext {
 	public UDPPacketResender resender;
-	public abstract boolean buildUDPChannel();
+	public abstract boolean buildUDPChannel(final CoreSession coreSS);
 	public abstract Object getDatagramPacket(Object dp);
 	public abstract Object getDatagramPacketFromConnection(Object conn);
 	public abstract byte[] getDatagramBytes(Object dp);
 	public abstract void setDatagramLength(Object dp, int len);
-	public abstract boolean tryRebuildUDPChannel();
+	public abstract boolean tryRebuildUDPChannel(final CoreSession coreSS);
 	
+	public boolean isOnRelay = false;
+
 	/**
 	 * 获得上次成功Stun的服务器
 	 * @return
@@ -53,7 +55,7 @@ public abstract class ISIPContext {
 		return isClose;
 	}
 	
-	public abstract void closeDeploySocket();
+	public abstract void closeDeploySocket(final CoreSession coreSS);
 	
 //	public abstract Object getDeploySocket();
 	
@@ -61,12 +63,12 @@ public abstract class ISIPContext {
 	 * 是发布Socket的唯一入口
 	 * @param socket
 	 */
-	public void deploySocket(final Object socket) throws Exception{
+	public void deploySocket(final CoreSession coreSS, final Object socket) throws Exception{
 		enterDeployStatus();
 		
-		final ReceiveServer receiveServer = ContextManager.getReceiveServer();
+		final ReceiveServer receiveServer = coreSS.getReceiveServer();
 		receiveServer.setUdpServerSocket(socket);
-		ContextManager.getContextInstance().setOutputStream(socket);
+		coreSS.context.setOutputStream(this, socket);
 		setSocket(socket);
 	}
 	public void enterDeployStatus() {

@@ -7,7 +7,6 @@ import hc.server.AbstractDelayBiz;
 
 /**
  * 添加执行逻辑于重新连接之前
- * @author homecenter
  *
  */
 public class ConnectionManager {
@@ -16,9 +15,12 @@ public class ConnectionManager {
 	public static void addBeforeConnectionBiz(final AbstractDelayBiz biz){
 		CCoreUtil.checkAccess();
 		
-		if(delayBiz == null){
-			delayBiz = new Stack();
+		synchronized (ConnectionManager.class) {
+			if(delayBiz == null){
+				delayBiz = new Stack();
+			}
 		}
+		
 		delayBiz.push(biz);
 	}
 	

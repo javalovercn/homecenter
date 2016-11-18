@@ -2,12 +2,14 @@ package hc.util;
 
 import hc.App;
 import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
+import hc.core.SessionManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURLUtil;
@@ -16,6 +18,7 @@ import hc.core.util.StringUtil;
 import hc.core.util.URLEncoder;
 import hc.j2se.HCAjaxX509TrustManager;
 import hc.server.HCActionListener;
+import hc.server.ui.ServerUIUtil;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
@@ -415,7 +418,7 @@ public class HttpUtil {
 	public static final String AUTO_DETECT_NETWORK = "auto detect";
 	
 	public static InetAddress getInetAddressByDeviceName(final String name){
-		return filerInetAddress(getNetworkInterface(name));
+		return filerInetAddress(getNetworkInterface(name), false);
 	}
 	
 	private static NetworkInterface getNetworkInterface(final String name){
@@ -458,7 +461,7 @@ public class HttpUtil {
 				if(mustP2P && (ni.isPointToPoint() == false)){
 					continue;
 				}
-				final InetAddress ia = filerInetAddress(ni);
+				final InetAddress ia = filerInetAddress(ni, false);
 				if(ia != null){
 					return ia;
 				}
@@ -468,12 +471,12 @@ public class HttpUtil {
 		return null;
 	}
 
-	public static InetAddress filerInetAddress(final NetworkInterface ni) {
+	public static InetAddress filerInetAddress(final NetworkInterface ni, final boolean enableIPv6) {
 		try{
 			final Enumeration addresses = ni.getInetAddresses();
 			while (addresses.hasMoreElements()) {
 				final InetAddress address = (InetAddress) addresses.nextElement();
-				if (address.isLoopbackAddress() || address instanceof Inet6Address) {
+				if (address.isLoopbackAddress() || (enableIPv6 == false && address instanceof Inet6Address)) {
 					continue;
 				}
 				return (address);
@@ -539,18 +542,18 @@ public class HttpUtil {
 		return "https://homecenter.mobi/gotolang.php" + url;
 	}
 
-	public static boolean browse(final String donateURL) {
+	public static boolean browse(final String webURL) {
 		final java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
 		if( !desktop.isSupported( java.awt.Desktop.Action.BROWSE ) ) {
 		    App.showMessageDialog(null, 
 		    		"Desktop doesn't support the browse open action (fatal)\r\n" +
-		    		"Please browse URL:" + donateURL,
+		    		"Please browse URL:" + webURL,
 		    		"Unable Open URL", JOptionPane.ERROR_MESSAGE);
 		    return false;
 		}
 		
 		try{
-			desktop.browse(new java.net.URI(donateURL));
+			desktop.browse(new java.net.URI(webURL));
 		}catch(final Exception ex) {
 		    App.showMessageDialog(null, ex.getMessage(), 
 		    		(String)ResourceUtil.get(IContext.ERROR), JOptionPane.ERROR_MESSAGE);
@@ -659,7 +662,7 @@ public class HttpUtil {
 	 * @param parent
 	 */
 	public static void notifyStopServer(final boolean isQuery, final JFrame parent) {
-		if(ContextManager.cmStatus == ContextManager.STATUS_SERVER_SELF){
+		if(ServerUIUtil.isServing()){
 			if(isQuery){
 				final JPanel panel = new JPanel(new BorderLayout());
 				panel.add(new JLabel("<html>service/configuration is changed and mobile is connecting," +
@@ -670,18 +673,24 @@ public class HttpUtil {
 				final ActionListener listener = new HCActionListener(new Runnable() {
 					@Override
 					public void run() {
-						doNotifyMobile();
+						doNotifyToAllMobile();
 					}
 				}, App.getThreadPoolToken());
 				App.showCenterPanelMain(panel, 0, 0, "break off connection of mobile", false, null, null, listener, listener, parent, true, false, null, false, false);
 			}else{
-				doNotifyMobile();
+				doNotifyToAllMobile();
 			}
 		}
 	}
 
-	private static void doNotifyMobile() {
-		ContextManager.getContextInstance().send(MsgBuilder.E_TAG_SHUT_DOWN_BETWEEN_CS, RootServerConnector.getHideToken());
+	private static void doNotifyToAllMobile() {
+		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
+		for (int i = 0; i < coreSSS.length; i++) {
+			final IContext context = coreSSS[i].context;
+			if(ContextManager.isMobileLogin(context)){
+				context.send(MsgBuilder.E_TAG_SHUT_DOWN_BETWEEN_CS, RootServerConnector.getHideToken());
+			}
+		}
 		
 		//在模拟环境中，由于UDP的后滞性，E_TAG_SHUT_DOWN_BETWEEN_CS基本不被送出
 		
@@ -753,7 +762,7 @@ public class HttpUtil {
 	}
 
 	public static final String encodeHCHexString(final String src){
-		final StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		
 		byte[] bs;
 		try {
@@ -770,7 +779,10 @@ public class HttpUtil {
 			sb.append(hexString);
 		}
 		
-		return sb.toString();
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		
+		return out;
 	}
 
 	public static final String decodeHCHexString(final String hexString){

@@ -54,7 +54,7 @@ public class HPProject extends HPNode{
 	public boolean equals(final Object obj){
 		if(obj instanceof HPProject){
 			final HPProject cp = (HPProject)obj;
-			return cp.id.equals(id);
+			return cp.id.toLowerCase().equals(id.toLowerCase());
 		}
 		return false;
 	}

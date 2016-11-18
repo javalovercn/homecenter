@@ -10,6 +10,10 @@ import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.PlatformManager;
+import hc.server.util.ContextSecurityConfig;
+import hc.server.util.ContextSecurityManager;
+import hc.server.util.HCEventQueue;
+import hc.server.util.HCLimitSecurityManager;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -96,6 +100,7 @@ public class PropertiesManager {
 	public static final String p_DelDirPre = "DelDirPre.";
 	
 	public static final String p_OpNewLinkedInProjVer = "OpNewLinkedInProjVer";
+	public static final String p_OpAcceptNewPermissions = "OpAcceptNewPermissions";
 	public static final String p_EnableLinkedInProjUpgrade = "EnableLinkedInProjUpgrade";
 	/**
 	 * 旧系统支持单一工程发布时，记录资源拆分目录的存储位。新系统支持多工程发布，统一存储
@@ -134,7 +139,7 @@ public class PropertiesManager {
 	public static final String p_WindowWidth = "_ww";
 	public static final String p_WindowHeight = "_wh";
 	
-	public static final String p_isDemoServer = "isDemoServer";
+	public static final String p_isDemoServer = "isDemoServer";//for Non-UI demo server, for example No-X11 CentOS
 	public static final String p_DemoServerIP = "DemoServerIP";
 	
 	public static final String p_TrayX = "_Tray_x";
@@ -204,6 +209,8 @@ public class PropertiesManager {
 	public static final String p_PROJ_RECORD = PRE_USER_PROJ + "record_";
 	
 	public static final String p_PROJ_CACHE_LAST_ACCESS_TIME = "projCacheLastAccessTime";
+
+	public static final String CAP_PREFIX = "Cap_";
 
 	private static final int getDelDirNum(){
 		final String v = getValue(p_DelDirNum);
@@ -282,7 +289,8 @@ public class PropertiesManager {
 	static Properties propertie;
 	private static final Object writeNotify = new Object();
 	final static Object gLock = CCoreUtil.getGlobalLock();
-
+	private static Thread eventDispatchThread;
+	private static HCEventQueue hcEventQueue;
 	private static boolean isShutdownHook = false;
 	
 	public static void notifyShutdownHook(){
@@ -371,7 +379,7 @@ public class PropertiesManager {
 	 */
 	public static final void setValue(final String key, String value){
 		if(key.startsWith(PropertiesManager.p_PROJ_RECORD, 0)){
-			
+			checkValidProjectThreadPool(key);
 		}else{
 			CCoreUtil.checkAccess();
 
@@ -380,6 +388,7 @@ public class PropertiesManager {
 			if(isSecurityData 
 					|| key.startsWith(S_LINK_PROJECTS, 0)//S_LINK_PROJECTS + "Lists"
 					|| key.startsWith(S_THIRD_DIR, 0)
+					|| key.startsWith(CAP_PREFIX, 0)
 					|| key.startsWith(S_SecurityProperties, 0)
 					|| key.equals(p_NewCertIsNotTransed)
 					|| key.equals(p_EnableTransNewCertKeyNow)
@@ -507,7 +516,7 @@ public class PropertiesManager {
 		boolean isSecurityData = false;
 		
 		if(key.startsWith(PropertiesManager.p_PROJ_RECORD, 0)){
-			
+			checkValidProjectThreadPool(key);
 		}else{
 			CCoreUtil.checkAccess();
 			
@@ -529,6 +538,30 @@ public class PropertiesManager {
 		return storeData;//得到某一属
     }
 
+	/**
+	 * 有可能系统级进行本操作，比如删除工程时，要移去全部工程级
+	 * @param key
+	 */
+	private static void checkValidProjectThreadPool(final String key) {
+		final Thread currentThread = Thread.currentThread();
+		ContextSecurityConfig csc = null;
+		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
+			final String projID = csc.getProjectContext().getProjectID();
+			if(key.startsWith(PropertiesManager.p_PROJ_RECORD + projID, 0) == false){
+				throw new Error("invalid project id [" + projID + "] for key : " + key);
+			}
+		}else{
+			//比如删除工程时，要移去全部工程级
+		}
+	}
+
+	public static void initCSCCheck() {
+		if(eventDispatchThread == null){
+			eventDispatchThread = HCLimitSecurityManager.getEventDispatchThread();
+			hcEventQueue = HCLimitSecurityManager.getHCEventQueue();
+		}
+	}
+
 	public static final String getValue(final String key, final String defaultValue){
 		final String v = getValue(key);
 		if(v == null){
@@ -540,6 +573,7 @@ public class PropertiesManager {
 	
 	public static final void remove(final String key){
 		if(key.startsWith(PropertiesManager.p_PROJ_RECORD, 0)){
+			checkValidProjectThreadPool(key);
 		}else{
 			CCoreUtil.checkAccess();
 			

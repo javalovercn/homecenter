@@ -2,68 +2,66 @@ package hc.server;
 
 import hc.core.HCTimer;
 import hc.core.L;
-import hc.core.RootServerConnector;
-import hc.core.sip.SIPManager;
 import hc.core.util.LogManager;
-import hc.server.ui.ClientDesc;
+import hc.server.msb.UserThreadResourceUtil;
+import hc.server.ui.J2SESessionManager;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.design.J2SESession;
 
 public class IOSBackgroundManager {
-	private static HCTimer closeIOSLongConnection;
 	
-	private final static HCTimer buildCloseIOSLongConnection(){
-		final int iosMaxBGMinutes = ClientDesc.getAgent().getIOSMaxBGMinutes();
+	private final static HCTimer buildCloseIOSLongConnection(final J2SESession coreSS){
+		final int iosMaxBGMinutes = UserThreadResourceUtil.getMobileAgent(coreSS).getIOSMaxBGMinutes();
 		return new HCTimer("iOSLongConnection", 1000 * 60 * iosMaxBGMinutes, true) {
 			@Override
 			public void doBiz() {
 				L.V = L.O ? false : LogManager.log("force close connection when iOS keep in background for max minutes!");
-				RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_ServerReq_STR);
-				SIPManager.notifyRelineon(false);
+				J2SESessionManager.stopSession(coreSS, true, true, false);
 				setEnable(false);
 			}
 		};
 	}
 
-	private final static void clearIOSLongConnectionTimer() {
-		if(closeIOSLongConnection != null){
+	private final static void clearIOSLongConnectionTimer(final J2SESession coreSS) {
+		if(coreSS.closeIOSLongConnection != null){
 			L.V = L.O ? false : LogManager.log("remove iOS long connection watch timer.");
-			HCTimer.remove(closeIOSLongConnection);
+			HCTimer.remove(coreSS.closeIOSLongConnection);
 		}
 	}
 	
 	private static boolean isKeepaliveEnableOld;
 	
-	private static void flipIOSBackgroundXX(final boolean isBackground){
+	private static void flipIOSBackgroundXX(final J2SESession coreSS, final boolean isBackground){
 		L.V = L.O ? false : LogManager.log("client iOS background : [" + isBackground + "]");
 		
 		if(isBackground){
-			if(closeIOSLongConnection != null){
-				clearIOSLongConnectionTimer();
+			if(coreSS.closeIOSLongConnection != null){
+				clearIOSLongConnectionTimer(coreSS);
 			}
-			closeIOSLongConnection = buildCloseIOSLongConnection();
+			coreSS.closeIOSLongConnection = buildCloseIOSLongConnection(coreSS);
 		}else{
-			clearIOSLongConnectionTimer();
+			clearIOSLongConnectionTimer(coreSS);
 		}
 
 		if(isBackground){
 			LogManager.warning("iOS will do nothing when in background!!!");
 			
-			isKeepaliveEnableOld = KeepaliveManager.keepalive.isEnable();
+			isKeepaliveEnableOld = coreSS.keepaliveManager.keepalive.isEnable();
 			if(isKeepaliveEnableOld){
 				L.V = L.O ? false : LogManager.log("disable keepalive when iOS in background!");
-				KeepaliveManager.keepalive.setEnable(false);
+				coreSS.keepaliveManager.keepalive.setEnable(false);
 			}
 		}else{
 			if(isKeepaliveEnableOld){
 				L.V = L.O ? false : LogManager.log("enable keepalive when iOS resume from background!");
-				KeepaliveManager.resetSendData();
-				KeepaliveManager.keepalive.resetTimerCount();
-				KeepaliveManager.keepalive.setEnable(true);
+				coreSS.keepaliveManager.resetSendData();
+				coreSS.keepaliveManager.keepalive.resetTimerCount();
+				coreSS.keepaliveManager.keepalive.setEnable(true);
 			}
 		}
 	}
 	
-	public static boolean isIOSForBackgroundCond() {
-		return ClientDesc.getAgent().getOS().equals(ProjectContext.OS_IOS);
+	public static boolean isIOSForBackgroundCond(final J2SESession coreSS) {
+		return UserThreadResourceUtil.getMobileAgent(coreSS).getOS().equals(ProjectContext.OS_IOS);
 	}
 }

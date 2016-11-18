@@ -4,6 +4,7 @@ import hc.core.IConstant;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.NoSuchElementException;
 import java.util.Vector;
 
 public class StoreableHashMap extends Hashtable {
@@ -34,30 +35,38 @@ public class StoreableHashMap extends Hashtable {
 			return "";
 		}
 		
-		StringBuffer sb = new StringBuffer();
+		StringBuffer sb = StringBufferCacher.getFree();
 		Enumeration en = this.keys();
 		boolean isAppended = false;
-		while(en.hasMoreElements()){
-			if(isAppended){
-				sb.append(SPLIT);
-			}else{
-				isAppended = true;
+		try{
+			while(en.hasMoreElements()){
+				if(isAppended){
+					sb.append(SPLIT);
+				}else{
+					isAppended = true;
+				}
+				String key = (String)en.nextElement();
+				String v = (String)get(key);
+				sb.append(key);
+				sb.append(EQUAL);
+				final int splitIdx = v.indexOf(SPLIT_CHAR);
+				if(splitIdx >= 0){
+					v = replace(v, SPLIT_CHAR, FAN_SPLIT, 0);
+				}
+				sb.append(v);
 			}
-			String key = (String)en.nextElement();
-			String v = (String)get(key);
-			sb.append(key);
-			sb.append(EQUAL);
-			final int splitIdx = v.indexOf(SPLIT_CHAR);
-			if(splitIdx >= 0){
-				v = replace(v, SPLIT_CHAR, FAN_SPLIT, 0);
-			}
-			sb.append(v);
+		}catch (NoSuchElementException e) {
 		}
-		return sb.toString();
+		
+		final String out = sb.toString();
+		StringBufferCacher.cycle(sb);
+		
+		return out;
 	}
 	
 	private final String replace(final String src, final String replaceFrom, final String replaceWith, int startIdx){
-		final StringBuffer sb = new StringBuffer();
+		final StringBuffer sb = StringBufferCacher.getFree();
+		
 		int oldStartIdx = startIdx;
 		startIdx = src.indexOf(replaceFrom, oldStartIdx);
 		final int relaceLen = replaceFrom.length();
@@ -74,7 +83,10 @@ public class StoreableHashMap extends Hashtable {
 		if(oldStartIdx < src_length){
 			sb.append(src.substring(oldStartIdx, src_length));
 		}
-		return sb.toString();
+		
+		final String out = sb.toString();
+		StringBufferCacher.cycle(sb);
+		return out;
 	}
 
 	public final void restore(String serial) {

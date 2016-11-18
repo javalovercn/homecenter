@@ -13,6 +13,10 @@ public class UIUtil {
 	
 	public static final int ICON_128 = 128;
 	public static final int ICON_64 = 64;
+	
+	/**
+	 * 注意：如果变更此尺寸，请更新API相应Doc参数 {MenuItem.setIcon() 和 new MenuIcon(xx, xx, icon, ...)}
+	 */
 	public static final int ICON_MAX = ICON_128;
 	public static final int ICON_DESIGN_SHOW_SIZE = ICON_64;
 

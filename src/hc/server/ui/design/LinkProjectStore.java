@@ -468,12 +468,12 @@ public class LinkProjectStore extends StoreableHashMap{
 //		return link_Name;
 //	}
 
-	public void copyFrom(final Map<String, Object> map) {
+	public void copyFrom(final Map<String, Object> map, final boolean isForceUpdatePermission) {
 		setVersion((String)map.get(HCjar.PROJ_VER));
 		setProjectUpgradeURL((String)map.get(HCjar.PROJ_UPGRADE_URL));
 		setMenuName(HCjar.getMenuName(map, 0));
 		
-		ContextSecurityConfig.copyMapsToLPS(this, ContextSecurityConfig.getPermissionFromHARMap(map), false);
+		ContextSecurityConfig.copyMapsToLPS(this, ContextSecurityConfig.getPermissionFromHARMap(map), isForceUpdatePermission);
 	}
 
 	public static X509Certificate deserialX509Certificate(final String src){

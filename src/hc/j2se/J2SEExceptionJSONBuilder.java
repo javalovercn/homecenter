@@ -5,6 +5,7 @@ import hc.core.util.ExceptionJSON;
 import hc.core.util.ExceptionJSONBuilder;
 import hc.core.util.HarHelper;
 import hc.core.util.HarInfoForJSON;
+import hc.core.util.StringBufferCacher;
 import hc.core.util.StringUtil;
 
 import java.util.Enumeration;
@@ -17,7 +18,7 @@ public abstract class J2SEExceptionJSONBuilder extends ExceptionJSONBuilder {
 	private final String getSysProperties(){
 		final Properties p = System.getProperties();
 		final Enumeration en = p.propertyNames();
-		final StringBuilder sb = new StringBuilder(2048);
+		final StringBuffer sb = StringBufferCacher.getFree();
 		
 		while(en.hasMoreElements()){
 			if(sb.length() > 0){
@@ -31,7 +32,9 @@ public abstract class J2SEExceptionJSONBuilder extends ExceptionJSONBuilder {
 			sb.append(value);
 		}
 		
-		return sb.toString();
+		final String out = sb.toString();
+		StringBufferCacher.cycle(sb);
+		return out;
 	}
 
 	@Override

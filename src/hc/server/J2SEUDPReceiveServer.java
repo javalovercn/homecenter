@@ -1,15 +1,19 @@
 package hc.server;
 
 import hc.core.UDPReceiveServer;
+import hc.server.ui.design.J2SESession;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
 public class J2SEUDPReceiveServer extends UDPReceiveServer{
-
+	public J2SEUDPReceiveServer(final J2SESession socketSession){
+		super(socketSession);
+	}
+	
 	@Override
-	public void receiveUDP(Object dp) throws IOException{
+	public void receiveUDP(final Object dp) throws IOException{
         ((DatagramSocket)socket).receive((DatagramPacket)dp);  
 	}
 	
@@ -19,18 +23,18 @@ public class J2SEUDPReceiveServer extends UDPReceiveServer{
 		
     	try {
     		((DatagramSocket)socket).close();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 		}
 	}
 
 	@Override
 	public void closeOldSocket() {
-		DatagramSocket snapSocket = (DatagramSocket)socket;
+		final DatagramSocket snapSocket = (DatagramSocket)socket;
 		socket = null;
 		
 		try{
 			snapSocket.close();
-		}catch (Exception e) {
+		}catch (final Exception e) {
 		}
 	}
 

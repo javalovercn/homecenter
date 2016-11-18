@@ -4,13 +4,12 @@ import hc.App;
 import hc.core.ContextManager;
 import hc.core.IConstant;
 import hc.core.IContext;
-import hc.core.RootServerConnector;
-import hc.core.sip.SIPManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.data.KeyComperPanel;
 import hc.server.ui.ClientDesc;
+import hc.server.ui.J2SESessionManager;
 import hc.server.ui.NumberFormatTextField;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.Designer;
@@ -845,6 +844,7 @@ public void run() {
 						if(isCancel && realWorkingValue.equals(getOldValue())){
 						}else if((getNewValue().equals(newOldValue) == false)
 								||(getNewValue().equals(realWorkingValue) == false)){
+							J2SESessionManager.notifyRestartDirect();
 							isNeedShutdownAndRestart = true;
 						}
 					}
@@ -1319,9 +1319,7 @@ public void run() {
 			public void run() {
 				HttpUtil.notifyStopServer(true, self);		
 
-				RootServerConnector.notifyLineOffType(RootServerConnector.LOFF_ServerReq_STR);
-
-				SIPManager.notifyRelineon(false);
+				J2SESessionManager.stopAllSession(true, true, false);
 			}
 		}, App.getThreadPoolToken()), null, self, true, false, null, false, false);
 	}
@@ -1424,6 +1422,7 @@ public void run() {
 				if(isCancel && realWorkingValue.equals(getOldValue())){
 				}else if((getNewValue().equals(newOldValue) == false)
 						||(getNewValue().equals(realWorkingValue) == false)){
+					J2SESessionManager.notifyRestartDirect();
 					ConfigPane.this.isNeedShutdownAndRestart = true;
 					update();
 				}

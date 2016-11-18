@@ -12,14 +12,17 @@ import java.io.UnsupportedEncodingException;
 public class ClientCmdExector {
 	/**
 	 * 如果已响应处理，则返回true；否则返回false
+	 * @param coreSS
 	 * @param url
 	 * @return
 	 */
-	public static boolean process(HCURL url) {
+	public static boolean process(final CoreSession coreSS, HCURL url) {
+		IContext ctx = coreSS.context;
+		
 		if(url.protocal == HCURL.CMD_PROTOCAL){
 			final String elementID = url.elementID;
 			if(elementID.equals(HCURL.DATA_CMD_ALERT)){
-				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_NEW_NOTIFICATION, url.getValueofPara("status"));
+				ctx.doExtBiz(IContext.BIZ_NEW_NOTIFICATION, url.getValueofPara("status"));
 				return true;
 			}else if(elementID.equals(HCURL.DATA_CMD_MSG)){
 //				L.V = L.O ? false : LogManager.log("Receive Cmd Msg");
@@ -28,10 +31,10 @@ public class ClientCmdExector {
 				final String text = url.getValueofPara("text");
 				
 				//仅处理服务器端过来的，不能置于displayMessage之中，因为本地异常也可能displayMessage
-				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_ASSISTANT, caption);
-				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_ASSISTANT, text);
+				ctx.doExtBiz(IContext.BIZ_ASSISTANT_SPEAK, caption);
+				ctx.doExtBiz(IContext.BIZ_ASSISTANT_SPEAK, text);
 				
-				ContextManager.getContextInstance().displayMessage(
+				ctx.displayMessage(
 						caption, 
 						text, 
 						Integer.parseInt(url.getValueofPara("type")), 
@@ -40,10 +43,10 @@ public class ClientCmdExector {
 				
 				return true;
 			}else if(elementID.equals(HCURL.DATA_CMD_MOVING_MSG)){
-				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_MOVING_SCREEN_TIP, url.getValueofPara("value"));
+				ctx.doExtBiz(IContext.BIZ_MOVING_SCREEN_TIP, url.getValueofPara("value"));
 				return true;
 			}else if(elementID.equals(HCURL.DATA_CMD_CTRL_BTN_TXT)){
-				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_CTRL_BTN_TXT, url);
+				ctx.doExtBiz(IContext.BIZ_CTRL_BTN_TXT, url);
 				return true;
 			}
 		}else if(url.protocal == HCURL.FORM_PROTOCAL){

@@ -137,7 +137,8 @@ public abstract class SocketEditPanel extends JPanel{
 				"&nbsp;·&nbsp;127.*.*.*, localhost<BR>" +
 				"&nbsp;·&nbsp;169.254.*.*<BR>" +
 				"&nbsp;·&nbsp;172.16.*.*, 172.31.*.*<BR>" +
-				"&nbsp;·&nbsp;192.168.*.*" +
+				"&nbsp;·&nbsp;192.168.*.*<BR>" +
+				"&nbsp;·&nbsp;224.0.0.0 - 239.255.255.255" +
 				"</html>");
 		
 		accessPrivateAddress.addActionListener(new HCActionListener(new Runnable() {

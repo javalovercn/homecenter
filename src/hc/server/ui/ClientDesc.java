@@ -3,83 +3,80 @@ package hc.server.ui;
 import hc.core.HCConfig;
 import hc.core.IConstant;
 import hc.core.L;
-import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
 import hc.core.util.MobileAgent;
 import hc.core.util.StringUtil;
 import hc.server.data.screen.PNGCapturer;
+import hc.server.ui.design.J2SESession;
 import hc.util.PropertiesManager;
+import hc.util.StringBuilderCacher;
 
-import java.util.Hashtable;
 import java.util.Vector;
 
 public class ClientDesc {
-	//专为不能直接访问projectContext服务的
-	static final Hashtable<String, Object> sys_attribute = new Hashtable<String, Object>();
 
-	public static int getClientWidth(){
+	public final int getClientWidth(){
 		return clientWidth;
 	}
 	
-	public static String getClientScale(){
+	public final String getClientScale(){
 		return agent.getScale();
 	}
 	
-	public static int getClientHeight(){
+	public final int getClientHeight(){
 		return clientHeight;
 	}
 	
 	/*
 	 * 是否为竖屏
 	 */
-	public static boolean isClientPortrait(){
+	public final boolean isClientPortrait(){
 		return clientHeight > clientWidth;
 	}
 	
-	private static int clientWidth;
-	private static int clientHeight;
-	private static int dpi;
-	private static float xdpi, ydpi, density;
-	private static String clientLang;
-	private static String hcClientVer;//非操作系统的版本
-	private static MobileAgent agent = new MobileAgent();
+	private int clientWidth;
+	private int clientHeight;
+	private int dpi;
+	private float xdpi, ydpi, density;
+	private String clientLang;
+	private String hcClientVer;//非操作系统的版本
+	private MobileAgent agent = new MobileAgent();
 	
-	public static MobileAgent getAgent(){
-		CCoreUtil.checkAccess();
+	public final MobileAgent getAgent(){
 		return agent;
 	}
 	
-	public static int getDPI(){
+	public final int getDPI(){
 		return dpi;
 	}
 	
-	public static float getXDPI(){
+	public final float getXDPI(){
 		return xdpi;
 	}
 	
-	public static float getYDPI(){
+	public final float getYDPI(){
 		return ydpi;
 	}
 	
-	public static float getDensity(){
+	public final float getDensity(){
 		return density;
 	}
 	
-	public static String getClientLang(){
+	public final String getClientLang(){
 		return (clientLang == null) ? "en-US" : clientLang;
 	}
 	
-	public static String getHCClientVer(){
+	public final String getHCClientVer(){
 		return hcClientVer;
 	}
 	
-	public static void refreshClientInfo(final String serial){
-		sys_attribute.clear();
-		
+	public final void refreshClientInfo(final J2SESession coreSS, final String serial){
 		final Vector v = StringUtil.split(serial, HCConfig.CFG_SPLIT);
 		
 		clientWidth = HCConfig.getIntProperty(v, (short)0);
 		clientHeight = HCConfig.getIntProperty(v, (short)1);
+//		clientWidth = 320;
+//		clientHeight = 480;
 		dpi = HCConfig.getIntProperty(v, (short)2);
 		clientLang = HCConfig.getProperty(v, (short)3);
 		hcClientVer = HCConfig.getProperty(v, (short)4);
@@ -93,8 +90,8 @@ public class ClientDesc {
 			serialMobileAgent = HCConfig.getProperty(v, (short)8);
 			agent = MobileAgent.toObject(serialMobileAgent);
 			
-			PNGCapturer.updateColorBit(agent.getColorBit());
-			PNGCapturer.updateRefreshMS(agent.getRefreshMS());
+			PNGCapturer.updateColorBit(coreSS, agent.getColorBit());
+			PNGCapturer.updateRefreshMS(coreSS, agent.getRefreshMS());
 			
 			final String pWifiIsmobileviawifi = PropertiesManager.p_WiFi_isMobileViaWiFi;
 			if(PropertiesManager.getValue(pWifiIsmobileviawifi) == null || PropertiesManager.isTrue(pWifiIsmobileviawifi) != agent.ctrlWiFi()){
@@ -104,7 +101,7 @@ public class ClientDesc {
 		}catch (final Throwable e) {
 		}
 
-		final StringBuilder sb = new StringBuilder(1024);
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		{
 			sb.append("Receive client agent information : ");
 			final int size = agent.size();
@@ -122,11 +119,14 @@ public class ClientDesc {
 				sb.append("\n  [" + key + " = " + kv[1] + "]");
 			}
 		}
-		L.V = L.O ? false : LogManager.log(sb.toString());
+		final String sbStr = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		L.V = L.O ? false : LogManager.log(sbStr);
 		L.V = L.O ? false : LogManager.log("Receive client desc, locale:" + clientLang + ",  w:" + clientWidth + ", h:" + clientHeight 
 				+ ", dpi:" + dpi + ((dpi==0)?"(unknow)":"") + ", hcClientVer:" + hcClientVer + ", xdpi:" + xdpi + ", ydpi:" + ydpi + ", density:" + density);
 		L.V = L.O ? false : LogManager.log("  Important : the w (h) maybe not equal to the real width (height) of mobile in pixels, UI may be scaled to the best size.");
 	}
+	
 	public static final int vgap = 5;
 	public static final int hgap = 5;
 

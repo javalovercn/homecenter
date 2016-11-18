@@ -1,18 +1,17 @@
 package hc.util;
 
 import hc.App;
-import hc.core.ContextManager;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
-import hc.core.util.CUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.res.ImageSrc;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
+import hc.server.TrayMenuUtil;
 import hc.server.util.ServerCUtil;
 
 import java.awt.event.ActionEvent;
@@ -40,7 +39,7 @@ public class LogServerSide implements ILog {
 	}
 
 	public synchronized void buildOutStream() {
-		if(LogManager.INI_DEBUG_ON  || ResourceUtil.isDemoServer() || (IConstant.isRegister() == false)){
+		if(LogManager.INI_DEBUG_ON  || (IConstant.isRegister() == false)){
 		}else{
 			if(osw != null){
 				return;
@@ -105,13 +104,9 @@ public class LogServerSide implements ILog {
 			}
 			
 			//记录加密器信息到日志中
-			final String encryptClass = (String)IConstant.getInstance().getObject("encryptClass");
+			final String encryptClass = IContext.getEncryptorClass();
 			if(encryptClass != null){
-				if(CUtil.getUserEncryptor() != null){
-					L.V = L.O ? false : LogManager.log("Enable user Encryptor [" + encryptClass + "]");
-				}else{
-					LogManager.err("Error Load Encryptor [" + encryptClass + "]");
-				}
+				L.V = L.O ? false : LogManager.log("customized encryptor [" + encryptClass + "]");
 			}else{
 				L.V = L.O ? false : LogManager.log("use inner encryptor, no customized encryptor.");
 			}
@@ -148,7 +143,7 @@ public class LogServerSide implements ILog {
 	
 	@Override
 	public void log(final String msg){
-		final StringBuilder sb = new StringBuilder(25 + msg.length() + 1);
+		final StringBuilder sb = StringBuilderCacher.getFree();
 
 		calendar.setTimeInMillis(System.currentTimeMillis());
 		
@@ -171,6 +166,8 @@ public class LogServerSide implements ILog {
 		sb.append("\n");
 		
 		final String pMsg = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		
 		try {
 			if(osw != null){
 				if(isAndroidPlatform){
@@ -188,7 +185,7 @@ public class LogServerSide implements ILog {
 	@Override
 	public void errWithTip(final String msg){
 		err(msg);
-		ContextManager.displayMessage((String)ResourceUtil.get(IContext.ERROR), msg, IContext.ERROR, 0);
+		TrayMenuUtil.displayMessage((String)ResourceUtil.get(IContext.ERROR), msg, IContext.ERROR, null, 0);
 	}
 
 	@Override

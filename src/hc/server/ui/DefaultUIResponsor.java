@@ -1,7 +1,10 @@
 package hc.server.ui;
 
+import hc.core.CoreSession;
 import hc.core.IConstant;
+import hc.core.SessionManager;
 import hc.core.util.HCURL;
+import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.util.BaseResponsor;
 
@@ -11,10 +14,10 @@ import java.util.HashMap;
 public class DefaultUIResponsor extends BaseResponsor{
 
 	@Override
-	public boolean doBiz(final HCURL url) {
+	public boolean doBiz(final CoreSession coreSS, final HCURL url) {
 		if(url.protocal == HCURL.MENU_PROTOCAL){
 			if(url.elementID.equals(HCURL.ROOT_MENU)){
-				ServerUIUtil.response(IConstant.NO_CANVAS_MAIN);
+				ServerUIUtil.response(coreSS, IConstant.NO_CANVAS_MAIN);
 				return true;
 			}
 		}
@@ -40,30 +43,31 @@ public class DefaultUIResponsor extends BaseResponsor{
 	}
 
 	@Override
-	public void enterContext(final String contextName){
+	public void enterContext(final J2SESession socketSession, final String contextName){
 	}
 	
 	@Override
 	public void stop() {
-		notifyMobileLogout(true);//有可能直接stop，而跳过EVENT_SYS_MOBILE_LOGOUT
+		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
+		for (int i = 0; i < coreSSS.length; i++) {
+			final J2SESession coreSS = (J2SESession)coreSSS[i];
+			notifyMobileLogout(coreSS);//有可能直接stop，而跳过EVENT_SYS_MOBILE_LOGOUT
+		}
+		
 		super.stop();
 	}
 
 	@Override
-	public Object onEvent(final Object event) {
-		if(ProjResponser.isScriptEvent(event)){
+	public Object onEvent(final J2SESession coreSS, final String event) {
+		if(ProjResponser.isScriptEventToAllProjects(event)){
 			//处理可能没有mobile_login，而导致调用mobile_logout事件
 			if(event == ProjectContext.EVENT_SYS_MOBILE_LOGIN){
-				notifyMobileLogin();
+				notifyMobileLogin(coreSS);
 			}else if(event == ProjectContext.EVENT_SYS_MOBILE_LOGOUT){
-				notifyMobileLogout(false);
+				notifyMobileLogout(coreSS);
 			}
 		}
 		return null;
-	}
-
-	@Override
-	public void addProjectContext(final ProjectContext pc){
 	}
 
 	@Override
@@ -71,10 +75,10 @@ public class DefaultUIResponsor extends BaseResponsor{
 	}
 
 	@Override
-	public void createClientSession() {
+	public void createClientSession(final J2SESession ss) {
 	}
 
 	@Override
-	public void releaseClientSession() {
+	public void releaseClientSession(final J2SESession coreSS) {
 	}
 }

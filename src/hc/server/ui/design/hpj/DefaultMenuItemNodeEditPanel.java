@@ -76,7 +76,7 @@ public class DefaultMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 	public void addTargetURLPanel(){
 		cmd_url_panel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		cmd_url_panel.add(targetLoca);
-		cmd_url_panel.add(jtfMyCommand);
+		cmd_url_panel.add(targetLocator);
 		cmd_url_panel.add(testBtn);
 		cmd_url_panel.add(formatBtn);
 		cmd_url_panel.add(errCommandTip);

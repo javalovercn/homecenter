@@ -2,7 +2,6 @@ package hc.core.util;
 
 import hc.core.ConfigManager;
 import hc.core.IConstant;
-import hc.core.L;
 
 public class MobileAgent {
 	public static final String UN_KNOW = "-1";
@@ -57,7 +56,7 @@ public class MobileAgent {
 	}
 	
 	public final String toSerial(){
-		final StringBuffer sb = new StringBuffer();
+		final StringBuffer sb = StringBufferCacher.getFree();
 		final int size = vectorMap.size();
 		
 		for (int i = 0; i < size; i++) {
@@ -71,7 +70,9 @@ public class MobileAgent {
 			sb.append(keyValue.value);
 		}
 		
-		return sb.toString();
+		final String out = sb.toString();
+		StringBufferCacher.cycle(sb);
+		return out;
 	}
 	
 	public final String get(final String key, final String defaultValue){

@@ -1,17 +1,17 @@
 package hc.server.nio;
 
+import hc.core.CoreSession;
 import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootConfig;
-import hc.core.UDPController;
 import hc.core.util.ByteUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LinkedSet;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
-import hc.server.KeepaliveManager;
 import hc.server.relay.RelayManager;
 import hc.server.relay.SessionConnector;
+import hc.server.util.StarterParameter;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -51,7 +51,8 @@ public class AcceptReadThread extends Thread {
 	private final ActionRead read;
 	private final SelectionKey acceptKey;
 	private final SelectionKey udpSpeedKey;
-
+	private final CoreSession coreSS;
+	
 	private static Selector buildSelector(){
 		try {
 			return Selector.open();
@@ -60,8 +61,9 @@ public class AcceptReadThread extends Thread {
 		}
 	}
 	
-	public AcceptReadThread(final String ip, final int localPort, final int udpSpeedPort, final ActionRead ar) throws Exception {
+	public AcceptReadThread(final CoreSession coreSS, final String ip, final int localPort, final int udpSpeedPort, final ActionRead ar) throws Exception {
 		super("Acceptor");
+		this.coreSS = coreSS;
 		this.read = ar;
 
 		ssc = ServerSocketChannel.open();
@@ -72,7 +74,7 @@ public class AcceptReadThread extends Thread {
 		ssc.socket().setReuseAddress(true);
 		ssc.socket().bind(address);
 		if(localPort == 0){
-			KeepaliveManager.relayServerLocalPort = ssc.socket().getLocalPort();//Port();
+			StarterParameter.relayServerLocalPort = ssc.socket().getLocalPort();//Port();
 		}
 		L.V = L.O ? false : LogManager.log("Build Relay Server at localPort:" + localPort);
 
@@ -264,12 +266,12 @@ public class AcceptReadThread extends Thread {
 								udpSpeedChannel.send(udpCtrlBB, sa);
 							}else if(tag == MsgBuilder.E_UDP_CONTROLLER_SET_ADDR_NULL){
 								final int bufferDatalen = udpCtrlBB.remaining();
-								final int startIdxUUID = UDPController.UUID_STARD_IDX;
+								final int startIdxUUID = coreSS.getUDPController().UUID_STARD_IDX;
 								
 								final boolean isServer = (bs[MsgBuilder.LEN_UDP_CONTROLLER_HEAD] == 1);
 								final boolean result = SessionConnector.resetXXSideUDPAddressNull(bs, 
 										startIdxUUID, bufferDatalen - startIdxUUID, isServer,
-										bs[UDPController.UDP_RANDOM_HEADER_STARD_IDX], bs[UDPController.UDP_RANDOM_HEADER_STARD_IDX + 1]);
+										bs[coreSS.getUDPController().UDP_RANDOM_HEADER_STARD_IDX], bs[coreSS.getUDPController().UDP_RANDOM_HEADER_STARD_IDX + 1]);
 								
 								//回应成功setNullAddr
 								udpCtrlBB.limit(1);

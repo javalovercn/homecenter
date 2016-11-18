@@ -1,6 +1,7 @@
 package hc.core.util;
 
 import java.util.Enumeration;
+import java.util.NoSuchElementException;
 
 public class CtrlMap {
 	public final StoreableHashMap map;
@@ -36,11 +37,11 @@ public class CtrlMap {
 	}
 
 	public final void addButtonOnCanvas(final int keyValue, final int center_x, final int center_y){
-		map.put(HEAD_KEY + keyValue, "1");
-		map.put(HEAD_CENTER_X + keyValue, String.valueOf(center_x));
-		map.put(HEAD_CENTER_Y + keyValue, String.valueOf(center_y));
-		
 		synchronized (this) {
+			map.put(HEAD_KEY + keyValue, "1");
+			map.put(HEAD_CENTER_X + keyValue, String.valueOf(center_x));
+			map.put(HEAD_CENTER_Y + keyValue, String.valueOf(center_y));
+
 			map.put(HEAD_SIZE, String.valueOf((++size)));
 		}
 //		L.V = L.O ? false : LogManager.log("addButtonOnCanvas size : " + size + ", x : " + center_x + ", y : " + center_y);
@@ -54,29 +55,34 @@ public class CtrlMap {
 	}
 	
 	public final void removeButtonFromCanvas(final int keyValue){
-		map.remove(HEAD_KEY + keyValue);
-		
-		map.remove(HEAD_CENTER_X + keyValue);
-		map.remove(HEAD_CENTER_Y + keyValue);
-		map.remove(HEAD_KEY_TXT + keyValue);
-		
 		synchronized (this) {
+			map.remove(HEAD_KEY + keyValue);
+			
+			map.remove(HEAD_CENTER_X + keyValue);
+			map.remove(HEAD_CENTER_Y + keyValue);
+			map.remove(HEAD_KEY_TXT + keyValue);
+
 			map.put(HEAD_SIZE, String.valueOf((--size)));
 		}
 	}
 	
 	public final int[] getButtonsOnCanvas(){
-		int[] out = new int[size];
-		int out_idx = 0;
-		Enumeration it = map.keys();
-		while(it.hasMoreElements()){
-			final String key = (String)it.nextElement();
-			if(key.startsWith(HEAD_KEY)){
-				int keyValue = Integer.parseInt(key.substring(START_IDX_HEAD_KEY));
-				out[out_idx++] = keyValue;
+		synchronized (this) {
+			int[] out = new int[size];
+			int out_idx = 0;
+			Enumeration it = map.keys();
+			try{
+			while(it.hasMoreElements()){
+				final String key = (String)it.nextElement();
+				if(key.startsWith(HEAD_KEY)){
+					int keyValue = Integer.parseInt(key.substring(START_IDX_HEAD_KEY));
+					out[out_idx++] = keyValue;
+				}
 			}
+			}catch (NoSuchElementException e) {
+			}
+			return out;
 		}
-		return out;
 	}
 	
 	public final int getCenterXOfButton(final int keyValue){

@@ -4,7 +4,7 @@ import hc.core.util.ByteUtil;
 import hc.core.util.LogManager;
 
 public abstract class UDPPacketResender {
-	protected final byte[] UDP_HEADER = IContext.udpHeader;
+	protected final byte[] UDP_HEADER;
 	protected final int IDX_HEADER_1 = MsgBuilder.INDEX_UDP_HEADER;
 	protected final int IDX_HEADER_2 = MsgBuilder.INDEX_UDP_HEADER + 1;
 	
@@ -19,7 +19,8 @@ public abstract class UDPPacketResender {
 //		return false;
 //	}
 	
-	public UDPPacketResender() {
+	public UDPPacketResender(final CoreSession coreSocketSession) {
+		UDP_HEADER = coreSocketSession.udpHeader;
 //		hc.core.L.V=hc.core.L.O?false:LogManager.log("Packet Resender Started");
 		for (int i = 0; i < NEED_MAX_SIZE; i++) {
 			packetMsgID[i] = -1;
@@ -70,7 +71,7 @@ public abstract class UDPPacketResender {
 	
 	protected abstract void resend(Object packet);
 	
-	private final static int NEED_MAX_SIZE = buidlResendMaxSize();
+	private final int NEED_MAX_SIZE = buidlResendMaxSize();
 	
 	private static int buidlResendMaxSize(){
 		int size;
@@ -111,7 +112,7 @@ public abstract class UDPPacketResender {
 		
 		final long currentTimeMillis = System.currentTimeMillis();
 
-		resender.setEnable(true);
+		resenderTimer.setEnable(true);
 		
 		synchronized (needACK) {
 			if((++size) == NEED_MAX_SIZE){
@@ -308,8 +309,8 @@ public abstract class UDPPacketResender {
 		}
 	}
 	
-	public static void sendUDPREG() {
-		sendUDPBlockData(MsgBuilder.E_TAG_ROOT_UDP_ADDR_REG, MsgBuilder.UDP_MTU_DATA_MIN_SIZE);
+	public static void sendUDPREG(final CoreSession coreSS) {
+		sendUDPBlockData(coreSS, MsgBuilder.E_TAG_ROOT_UDP_ADDR_REG, MsgBuilder.UDP_MTU_DATA_MIN_SIZE);
 	}
 
 	public static boolean checkUDPBlockData(final byte[] bs, final int dataLen) {
@@ -325,13 +326,13 @@ public abstract class UDPPacketResender {
 		return true;
 	}
 
-	public static void sendUDPBlockData(final byte ctrlTag, final int dataLen) {
+	public static void sendUDPBlockData(final CoreSession coreSS, final byte ctrlTag, final int dataLen) {
 		final int mtuLen = dataLen + MsgBuilder.INDEX_UDP_MSG_DATA;
 		final byte[] byte1472 = ByteUtil.byteArrayCacher.getFree(mtuLen);
 		for (int i = 0, j = 0; i < dataLen; ) {
 			byte1472[i++] = (byte)(j++);
 		}
-		ContextManager.getContextInstance().udpSender.sendUDP(ctrlTag, MsgBuilder.NULL_CTRL_SUB_TAG, byte1472, 0, dataLen, dataLen, true);
+		coreSS.context.udpSender.sendUDP(ctrlTag, MsgBuilder.NULL_CTRL_SUB_TAG, byte1472, 0, dataLen, dataLen, true);
 		ByteUtil.byteArrayCacher.cycle(byte1472);
 	}
 
@@ -347,7 +348,7 @@ public abstract class UDPPacketResender {
 		return IConstant.serverSide?time:time/4;
 	}
 	
-	private HCTimer resender = new HCTimer("Resender", HCTimer.HC_INTERNAL_MS, false){
+	public final HCTimer resenderTimer = new HCTimer("Resender", HCTimer.HC_INTERNAL_MS, false){
 		final int packet_resend_expired_ms = Integer.parseInt(
 				RootConfig.getInstance().getProperty(RootConfig.p_Packet_Resend_Expired_MS));
 		

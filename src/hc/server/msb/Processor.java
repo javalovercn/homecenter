@@ -1,8 +1,8 @@
 package hc.server.msb;
 
 import hc.core.L;
-import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
+import hc.core.util.ReturnableRunnable;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 
@@ -21,20 +21,24 @@ public abstract class Processor{
 	boolean isStarted = false;
 	Workbench workbench;
 
-	final void init() {
+	final void init(final Workbench workbench) {
 		synchronized (this) {
 			if(isStarted){
 				return;
 			}
 			isStarted = true;	
 		}
-		__context.runAndWait(new Runnable() {
+		
+		this.workbench = workbench;
+		
+		ServerUIAPIAgent.runAndWaitInProjContext(__context, new ReturnableRunnable() {
 			@Override
-			public void run() {
+			public Object run() {
 				startableRunnable.start();
+				return null;
 			}
 		});
-		__context.run(startableRunnable);
+		ServerUIAPIAgent.runInProjContext(__context, startableRunnable);
 	}
 
 	final void __response(final Message msg, final boolean isDownward){
@@ -136,8 +140,11 @@ public abstract class Processor{
 		this(n, procType, ProjectContext.getProjectContext());
 	}
 	
+	final boolean isLoggerOn;
+	
 	public Processor(final String n, final int procType, final ProjectContext ctx) {
 		super();
+		isLoggerOn = UserThreadResourceUtil.isLoggerOn();
 		this.classSimpleName = this.getClass().getSimpleName();
 		__context = ctx;
 		if(__context != null){

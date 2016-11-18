@@ -1,26 +1,26 @@
 package hc.server.ui;
 
-import hc.core.HCTimer;
 import hc.core.L;
 import hc.core.util.Jcip;
 import hc.core.util.LogManager;
 import hc.server.ScreenServer;
 import hc.server.data.screen.ScreenCapturer;
+import hc.server.ui.design.J2SESession;
 
 public class JcipManager {
 	
-	public static void responseCtrlSubmit(String jcip_str){
+	public static void responseCtrlSubmit(final J2SESession coreSS, final String jcip_str){
 		L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "mobile request:" + jcip_str);
-		final Jcip jcip = new Jcip(jcip_str);
+		final Jcip jcip = new Jcip(coreSS, jcip_str);
 		final String displayID = jcip.getString();
 		
-		final ICanvas icanvas = ScreenServer.getCurrScreen();
+		final ICanvas icanvas = ScreenServer.getCurrScreen(coreSS);
 		
 		if(icanvas instanceof ServCtrlCanvas){
 			final CtrlResponse cr = ((ServCtrlCanvas)icanvas).cr;
-			if(displayID.equals(cr.__hide_currentCtrlID)){
+			if(displayID.equals(cr.target)){
 				final String keyValue = jcip.getString();
-				cr.getProjectContext().run(new Runnable() {
+				ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(cr.getProjectContext()), new Runnable() {
 					@Override
 					public void run() {
 						cr.click(Integer.parseInt(keyValue));
@@ -31,13 +31,13 @@ public class JcipManager {
 		}
 	}
 	
-	public static void appendArray(StringBuilder sb, String[] strs, boolean withDouhao) {
+	public static void appendArray(final StringBuilder sb, final String[] strs, final boolean withDouhao) {
 		sb.append('[');
 		for (int i = 0; i < strs.length; i++) {
 			if(i != 0){
 				sb.append(',');
 			}
-			String tmp = strs[i];
+			final String tmp = strs[i];
 			appendStringItem(sb, tmp);
 		}
 		sb.append(']');
@@ -47,7 +47,7 @@ public class JcipManager {
 		}
 	}
 
-	public static void appendStringItem(StringBuilder sb, String tmp) {
+	public static void appendStringItem(final StringBuilder sb, final String tmp) {
 		sb.append('\'');
 		if(tmp.indexOf('\'') >= 0){
 			sb.append(tmp.replace("'", "\\'"));

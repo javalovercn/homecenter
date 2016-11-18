@@ -47,7 +47,7 @@ public class UpgradeManager {
 	
 					//登记到新的存储数据结构上，关闭旧的数据结构
 					final LinkProjectStore lps = LinkProjectManager.getProjLPSWithCreate((String)map.get(HCjar.PROJ_ID));
-					LinkProjectManager.importLinkProject(lps, har, false, null);
+					LinkProjectManager.importLinkProject(lps, har, false, null, false);
 	
 					LinkProjectManager.saveProjConfig(lps, true, true);
 				}

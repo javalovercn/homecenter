@@ -5,11 +5,13 @@ import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
+import hc.core.SessionManager;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.server.HCActionListener;
+import hc.server.JRubyInstaller;
 import hc.server.StarterManager;
 import hc.server.ThirdlibManager;
 import hc.server.data.StoreDirManager;
@@ -21,9 +23,11 @@ import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.SignHelper;
+import hc.util.LinkPropertiesOption;
 import hc.util.PropertiesManager;
 import hc.util.PropertiesSet;
 import hc.util.ResourceUtil;
+import hc.util.StringBuilderCacher;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -92,7 +96,11 @@ public class LinkProjectManager{
 	}
 	
 	static boolean upgradeDownloading(){//单线程进行升级下载
-		if(ServerUIUtil.isReadyToLineOn() == false){
+		if(SessionManager.isReadyToLineOnAndOnlyOneSession() == false){//必须要有一个，不能没有coreSS
+			return false;
+		}
+		
+		if(JRubyInstaller.checkInstalledJRuby() == false){
 			return false;
 		}
 		
@@ -245,7 +253,7 @@ public class LinkProjectManager{
 			final JScrollPane sp = buildErroDownloadingPanel();
 			final String op = LinkProjectPanel.getNewLinkedInProjOp();
 			
-			if(op.equals(LinkProjectPanel.OP_ASK) && (hasSucc || sp != null)){
+			if(op.equals(LinkPropertiesOption.OP_ASK) && (hasSucc || sp != null)){
 				final JPanel jpanel = new JPanel(new GridBagLayout());
 				final GridBagConstraints c = new GridBagConstraints();
 				JLabel label = null;
@@ -302,9 +310,9 @@ public class LinkProjectManager{
 				
 				//exitDownloadUpgrade置于showCenterPanel之中
 				return true;
-			}else if(op.equals(LinkProjectPanel.OP_IMMEDIATE)){
+			}else if(op.equals(LinkPropertiesOption.OP_IMMEDIATE)){
 				appNewLinkedInProjNow(downloadingLPS, true, false);
-			}else if(op.equals(LinkProjectPanel.OP_NEXT_START_UP)){
+			}else if(op.equals(LinkPropertiesOption.OP_NEXT_START_UP)){
 				updateToLinkProject();//注意：要正确关闭exitDownloadUpgrade，所以不能异常抛出
 			}
 			
@@ -370,11 +378,19 @@ public class LinkProjectManager{
 		return null;
 	}
 	
+	private static boolean isStartLinkedInProjectUpgradeTimer = false;
+	
 	static void startLinkedInProjectUpgradeTimer(){
+		if(isStartLinkedInProjectUpgradeTimer == false){
+			isStartLinkedInProjectUpgradeTimer = true;
+		}else{
+			return;
+		}
+		
 		final HCTimer timer = new HCTimer("", HCTimer.ONE_DAY, true) {
 			@Override
 			public final void doBiz() {
-				CCoreUtil.getSecurityChecker().resetFastCheckThreads();
+				CCoreUtil.getSecurityChecker().resetFastCheckThreads();//清空快速线程权限检查缓存
 
 				final Thread t = new Thread(){
 					@Override
@@ -384,6 +400,7 @@ public class LinkProjectManager{
 								Thread.sleep((PropertiesManager.isSimu()?5:120) * 1000);//考虑到60较小，改为120
 							}catch (final Exception e) {
 							}
+							
 							if(PropertiesManager.getValue(PropertiesManager.p_EnableLinkedInProjUpgrade, IConstant.TRUE).equals(IConstant.TRUE)){
 								if(LinkProjectManager.upgradeDownloading()){
 									break;
@@ -481,7 +498,7 @@ public class LinkProjectManager{
 				
 				final File newVerHar = new File(LINK_UPGRADE_DIR, lps.getHarFile());
 
-				LinkProjectManager.importLinkProject(lps, newVerHar, true, oldEditBackFile);
+				LinkProjectManager.importLinkProject(lps, newVerHar, true, oldEditBackFile, false);
 				log("Successful upgrade project [" + lps.getProjectID() + "] from " + oldVersion + " to " + newVersion);
 
 				newVerHar.delete();
@@ -673,7 +690,7 @@ public class LinkProjectManager{
 	}
 	
 	static final String getProjPaths(){
-		final StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = StringBuilderCacher.getFree();
 		final Iterator<LinkProjectStore> it = lpsVector.iterator();
 		boolean isAdded = false;
 		while(it.hasNext()){
@@ -684,7 +701,9 @@ public class LinkProjectManager{
 			sb.append("." + File.separator + lps.getDeployTmpDir());
 			isAdded = true;
 		}
-		return sb.toString();
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		return out;
 	}
 
 	static final LinkProjectStore getProjByID(final String projID){
@@ -770,7 +789,7 @@ public class LinkProjectManager{
 		PropertiesManager.saveFile();
 
 	}
-
+	
 	static final void saveProjConfig(final LinkProjectStore lps, final boolean isRoot, final boolean toActive){
 		lps.setRoot(isRoot);
 		lps.setActive(toActive);
@@ -865,13 +884,15 @@ public class LinkProjectManager{
 	}
 	
 	static boolean importLinkProject(final LinkProjectStore lps, final File sourceNewVer, final boolean isUpgrade,
-			final File oldEditBackFile){
+			final File oldEditBackFile, final boolean isForceUpdatePermissionInDesigner){
 		final String fileName = ResourceUtil.createRandomFileNameWithExt(StoreDirManager.LINK_DIR, Designer.HAR_EXT);
 	
 		lps.setHarFile(fileName);
 		lps.setHarParentDir(StoreDirManager.LINK_DIR_NAME);
+
+		//注意：此处不作证书检查，因为该逻辑也前置，详见#getCertificatesByID
+		final X509Certificate[] certs = SignHelper.verifyJar(sourceNewVer, null);//注意：此处仅提取证书，而不验证
 		
-		final X509Certificate[] certs = SignHelper.verifyJar(sourceNewVer, null);
 		if(certs != null){//PropertiesManager.isSimu()
 			for (int i = 0; i < certs.length; i++) {
 				L.V = L.O ? false : LogManager.log("certificate (maybe self-signed) for [" + lps.getProjectID() + "] : " + certs[i]);
@@ -900,7 +921,7 @@ public class LinkProjectManager{
 		lps.setDeployTmpDir(randomShareFolder);
 		
 		final Map<String, Object> map = HCjar.loadHar(sourceNewVer, false);
-		lps.copyFrom(map);
+		lps.copyFrom(map, isForceUpdatePermissionInDesigner || (certs != null && certs.length > 0 && LinkProjectPanel.getAcceptNewPermissionsOp().equals(LinkPropertiesOption.OP_PERM_ACCEPT_IF_SIGNED)));
 		
 		lps.setDoneBind(false);//新添加或升级的工程DoneBind=false
 //		lps.clearBindMap();//注意：不能删除此行。旧的绑定关系仍将使用
@@ -987,6 +1008,25 @@ public class LinkProjectManager{
 		}
 		
 		return true;
+	}
+
+	public static void startAutoUpgradeBiz() {
+		CCoreUtil.checkAccess();
+		
+		startLinkedInProjectUpgradeTimer();
+	}
+
+	public static boolean hasMenuItemNumInProj(final Map<String, Object> map){
+		try{
+			final Object chileCount = map.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, HCjar.MAIN_MENU_IDX));
+			if(chileCount != null){
+				if(Integer.parseInt((String)chileCount) > 0){
+					return true;
+				}
+			}
+		}catch (final Exception e) {
+		}
+		return false;
 	}
 
 }

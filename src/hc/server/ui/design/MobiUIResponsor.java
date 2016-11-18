@@ -4,6 +4,7 @@ import hc.App;
 import hc.UIActionListener;
 import hc.core.ConfigManager;
 import hc.core.ContextManager;
+import hc.core.CoreSession;
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.cache.CacheManager;
@@ -16,14 +17,17 @@ import hc.server.ScreenServer;
 import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.Device;
 import hc.server.msb.MSBAgent;
-import hc.server.ui.ClientDesc;
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.ClientSession;
+import hc.server.ui.ExceptionCatcherToWindow;
+import hc.server.ui.J2SESessionManager;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
+import hc.server.ui.SessionMobiMenu;
 import hc.server.ui.design.engine.HCJRubyEngine;
+import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.hpj.HCjar;
-import hc.server.ui.design.hpj.RubyExector;
 import hc.server.util.SystemEventListener;
 import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
@@ -37,21 +41,22 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Vector;
 
 import javax.swing.JButton;
 
 public class MobiUIResponsor extends BaseResponsor {
+	public final ExceptionCatcherToWindow ec;
 	int totalRobotRefDevices;
 	String[] projIDs;
 	Map<String, Object>[] maps;
 	ProjResponser[] responsors;
 	int responserSize; 
-	MSBAgent msbAgent;
+	final MSBAgent msbAgent;
 	BindRobotSource bindRobotSource;
-	final Vector<ProjectContext> listsProjectContext = new Vector<ProjectContext>();
-	public ClientSession sessionForClient;
-
+	boolean isEventProjStartDone = false;
+	
 	@Override
 	public final void enableLog(final boolean enable){
 		msbAgent.enableDebugInfo(enable);
@@ -92,7 +97,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		}
 	}
 	
-	private final void notifyMobileCacheProjList(){
+	private final void notifyMobileCacheProjList(final J2SESession socketSession){
 		if(responserSize > 0){
 			final String[] projList = new String[responserSize];
 			for (int i = 0; i < responserSize; i++) {
@@ -100,7 +105,7 @@ public class MobiUIResponsor extends BaseResponsor {
 			}
 			
 			final String serialProjs = StringUtil.toSerialBySplit(projList);
-			HCURLUtil.sendCmd(HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_NOTIFY_PROJ_LIST, serialProjs);//将最新的工程名列表，通知到手机的cache
+			HCURLUtil.sendCmd(socketSession, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_NOTIFY_PROJ_LIST, serialProjs);//将最新的工程名列表，通知到手机的cache
 //			以下逻辑置于用户下线时操作，以节省用户时间。
 //			CacheManager.checkAndDelCacheOverflow(ServerUIAPIAgent.getMobileUID());//可能超载，只限于服务器端
 		}
@@ -168,6 +173,12 @@ public class MobiUIResponsor extends BaseResponsor {
 		
 		setRespSize(newRespSize);
 		
+		//注意：必须在setRespSize之后，因为initJarMainMenu依赖于前者
+		for (int i = 0; i < appendSize; i++) {
+			final int nextIdx = oldRespSize + i;
+			responsors[nextIdx].initJarMainMenu();
+		}
+		
 		return appResp;
 	}
 
@@ -175,10 +186,14 @@ public class MobiUIResponsor extends BaseResponsor {
 		responserSize = newRespSize;
 	}
 	
-	public MobiUIResponsor() {
+	public MobiUIResponsor(final ExceptionCatcherToWindow ec) {
+		this.ec = ec;
+		
 		//获得active数量
 		responserSize = LinkProjectManager.getActiveProjNum();
 		
+		msbAgent = new MSBAgent(MSBAgent.buildWorkbench(new IoTNameMapper()));
+
 		final LinkProjectStore[] lpss = new LinkProjectStore[responserSize];
 		
 		projIDs = new String[responserSize];
@@ -217,6 +232,10 @@ public class MobiUIResponsor extends BaseResponsor {
 				final String projID = (String)maps[i].get(HCjar.PROJ_ID);
 				buildProjResp(projID, lpss[i], i);
 			}
+		}
+		
+		for (int i = 0; i < responserSize; i++) {
+			responsors[i].initJarMainMenu();
 		}
 		
 		//由于JRuby引擎初始化时，不能受限，所以增加下行代码，以完成初始化
@@ -348,7 +367,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	}
 	
 	@Override
-	public void start(){
+	public synchronized void start(){
 		try{
 			startupIOT();
 		}catch (final Exception e) {
@@ -356,24 +375,22 @@ public class MobiUIResponsor extends BaseResponsor {
 			throw new Error(e.toString());
 		}
 		
-		onEvent(ProjectContext.EVENT_SYS_PROJ_STARTUP);
+		onEvent(J2SESession.NULL_J2SESESSION_FOR_PROJECT, ProjectContext.EVENT_SYS_PROJ_STARTUP);
 	}
 	
 	@Override
-	public void enterContext(final String contextName){
-		this.currContext = contextName;
-		changeProjectID(currContext);
+	public void enterContext(final J2SESession socketSession, final String projectID){
+		currContext.setCurrContext(socketSession, projectID);
 	}
 
-	private static void changeProjectID(final String projID) {
-		final int recordNum = CacheManager.getRecordNum(projID, ServerUIAPIAgent.getMobileUID());
+	private static void changeMobileProjectID(final J2SESession socketSession, final String projID) {
+		final int recordNum = CacheManager.getRecordNum(projID, UserThreadResourceUtil.getMobileSoftUID(socketSession));
 		final String splitter = projID + StringUtil.SPLIT_LEVEL_2_JING + recordNum;
 //		System.out.println("CLASS_CHANGE_PROJECT_ID : " + splitter);
-		HCURLUtil.sendEClass(HCURLUtil.CLASS_CHANGE_PROJECT_ID, splitter);
+		HCURLUtil.sendEClass(socketSession, HCURLUtil.CLASS_CHANGE_PROJECT_ID, splitter);
 	}
 	
 	private void startupIOT() throws Exception{
-		msbAgent = new MSBAgent(MSBAgent.buildWorkbench(new IoTNameMapper()));
 		if(PropertiesManager.isTrue(PropertiesManager.p_isEnableMSBLog)){
 			msbAgent.enableDebugInfo(true);
 		}
@@ -387,17 +404,17 @@ public class MobiUIResponsor extends BaseResponsor {
 		msbAgent.startAllProcessor();
 	}
 	
-	private void shutdownIOT(){
+	private final void shutdownIOT(){
 		if(msbAgent != null){//有可能未启动成功，而需要release
 			msbAgent.stopAllProcessor();
 		}
 	}
 	
 	@Override
-	public void stop(){
+	public synchronized void stop(){
 		super.stop();
 		
-		onEvent(ProjectContext.EVENT_SYS_PROJ_SHUTDOWN);
+		onEvent(J2SESession.NULL_J2SESESSION_FOR_PROJECT, ProjectContext.EVENT_SYS_PROJ_SHUTDOWN);
 		
 		release();
 	}
@@ -411,86 +428,97 @@ public class MobiUIResponsor extends BaseResponsor {
 			responsors[i].stop();
 		}
 		
-		listsProjectContext.clear();
 		bindRobotSource = null;
 		
-//		ContextSecurityManager.clear();
-//		HCLimitSecurityManager.switchHCSecurityManager(false);
 	}
 	
+	/**
+	 * @param j2seCoreSS 有可能为null
+	 */
 	@Override
-	public synchronized Object onEvent(final Object event) {
-		if(ProjResponser.isScriptEvent(event)){
+	public synchronized Object onEvent(final J2SESession j2seCoreSS, final String event) {
+		if(ProjResponser.isScriptEventToAllProjects(event)){//否则仅对session的事件
 			//logout或shutdown属于后入先出型，应最后执行ROOT
 			boolean isReturnBack = false;
 
 			//处理可能没有mobile_login，而导致调用mobile_logout事件
+			final String rootProjID = findRootContextID();
 			if(event == ProjectContext.EVENT_SYS_MOBILE_LOGIN){//注意：请与fireSystemEventListenerOnAppendProject保持同步
-				isMobileLogined = true;
+				j2seCoreSS.isEventMobileLoginDone = true;
 				
-				notifyMobileCacheProjList();
-				changeProjectID(CacheManager.ELE_PROJ_ID_HTML_PROJ);//必须先于enterContext(root)
-				enterContext(findRootContextID());
+				notifyMobileCacheProjList(j2seCoreSS);
 				
-				notifyMobileLogin();
+				//必须先于rootProjID，专用于HTMLMlet初始脚本cache，JSViewManager.setHTMLBody
+				changeMobileProjectID(j2seCoreSS, CacheManager.ELE_PROJ_ID_HTML_PROJ);
+
+				currContext.appendCurrContext(j2seCoreSS, rootProjID);
+				changeMobileProjectID(j2seCoreSS, rootProjID);
+				
+				notifyMobileLogin(j2seCoreSS);
 			}else if(event == ProjectContext.EVENT_SYS_MOBILE_LOGOUT){
-				notifyMobileLogout(false);
+				notifyMobileLogout(j2seCoreSS);
 				
 				isReturnBack = true;
 				
-				currContext = findRootContextID();
-				if(isMobileLogined == false){
+				currContext.setCurrContext(j2seCoreSS, rootProjID);
+//				currContext = findRootContextID();
+				if(j2seCoreSS.isEventMobileLoginDone == false){
 					return null;
 				}
-				isMobileLogined = false;
+				j2seCoreSS.isEventMobileLoginDone = false;
 			}else if(event == ProjectContext.EVENT_SYS_PROJ_STARTUP){//注意：请与fireSystemEventListenerOnAppendProject保持同步
-				isProjStarted = true;
+				isEventProjStartDone = true;
 				
-				currContext = findRootContextID();
 			}else if(event == ProjectContext.EVENT_SYS_PROJ_SHUTDOWN){
 				isReturnBack = true;
 				
-				if(isProjStarted == false){
+				if(isEventProjStartDone == false){
 					return null;
 				}
-				isProjStarted = false;
+				isEventProjStartDone = false;
 			}
 			
 			final boolean isReturnBackFinal = isReturnBack;
-			ContextManager.getThreadPool().run(new Runnable() {
+			final Runnable runBack = new Runnable() {
 				@Override
 				public void run() {
 					if(isReturnBackFinal == false){
 						//login或start时，先执行ROOT
-						responsors[rootIdx].onScriptEvent(event);
+						responsors[rootIdx].onScriptEvent(j2seCoreSS, event);
 					}
 					
 					//执行非ROOT
 					for (int i = 0; i < responserSize; i++) {
 						if(i != rootIdx){
-							responsors[i].onScriptEvent(event);//注意：请与fireSystemEventListenerOnAppendProject保持同步
+							responsors[i].onScriptEvent(j2seCoreSS, event);//注意：请与fireSystemEventListenerOnAppendProject保持同步
 						}
 					}
 
 					if(isReturnBackFinal){
 						//logout或shutdown时，最后执行ROOT
-						responsors[rootIdx].onScriptEvent(event);
+						responsors[rootIdx].onScriptEvent(j2seCoreSS, event);
 					}
 					
-					fireSystemEvent(event);
+					fireSystemEvent(j2seCoreSS, event);
 					
 					if(event == ProjectContext.EVENT_SYS_MOBILE_LOGIN){
-						ClientDesc.getAgent().set(ConfigManager.UI_IS_BACKGROUND, IConstant.FALSE);
-						fireSystemEvent(ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
+						UserThreadResourceUtil.getMobileAgent(j2seCoreSS).set(ConfigManager.UI_IS_BACKGROUND, IConstant.FALSE);
+						fireSystemEvent(j2seCoreSS, ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
 					}
 				}
-			});
+			};
+			
+			if(event == ProjectContext.EVENT_SYS_MOBILE_LOGOUT){
+				runBack.run();
+			}else{
+				ContextManager.getThreadPool().run(runBack);
+			}
 			//以上是触发脚本，而非SystemEventListener
 		}else{
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-					fireSystemEvent(event);
+					fireSystemEvent(j2seCoreSS, event);
 				}
 			});
 		}
@@ -499,11 +527,12 @@ public class MobiUIResponsor extends BaseResponsor {
 			ContextManager.getThreadPool().run(new Runnable() {//上面动作异步
 				@Override
 				public void run() {
+					final int sleepMS = ResourceUtil.getIntervalSecondsForNextStartup() * 1000 + 2000;
 					try{
-						Thread.sleep(3 * 1000);//时间不定，releaseClientSession所以为虚操作
+						Thread.sleep(sleepMS);//时间不定，releaseClientSession所以为虚操作
 					}catch (final Throwable e) {
 					}
-					releaseClientSession();//必须最后释放
+					releaseClientSession(j2seCoreSS);//必须最后释放
 				}
 			});
 		}
@@ -511,13 +540,17 @@ public class MobiUIResponsor extends BaseResponsor {
 		return null;
 	}
 
-	private void fireSystemEvent(final Object event) {
+	/**
+	 * 
+	 * @param coreSS 有些事件为null
+	 * @param event
+	 */
+	private void fireSystemEvent(final J2SESession coreSS, final String event) {
 		//以下是触发SystemEventListener。
-		final Enumeration<ProjectContext> enu = listsProjectContext.elements();
-		while(enu.hasMoreElements()){
-			final ProjectContext pc = enu.nextElement();
+		for (int i = 0; i < responserSize; i++) {
+			final ProjResponser projResponser = responsors[i];
 			//必须使用run。如果同步，可能导致异常程序占住服务器线程。参见SystemEventListener.onEvent
-			fireSystemEventListener(pc, event);//注意：请与fireSystemEventListenerOnAppendProject保持同步
+			fireSystemEventListener(coreSS, projResponser, projResponser.context, event);//注意：请与fireSystemEventListenerOnAppendProject保持同步
 		}
 	}
 	
@@ -542,21 +575,22 @@ public class MobiUIResponsor extends BaseResponsor {
 		
 		msbAgent.startAllProcessor();//每个Processor内部会检查是否已started，而相应忽略
 		
-		if(isProjStarted){
+		if(isEventProjStartDone){
 			final String event = ProjectContext.EVENT_SYS_PROJ_STARTUP;
 			for (int i = 0; i < size; i++) {
 				final ProjResponser projResponser = resp[i];
-				projResponser.onScriptEvent(event);
-				fireSystemEventListener(projResponser.context, event);
+				projResponser.onScriptEvent(J2SESession.NULL_J2SESESSION_FOR_PROJECT, event);//注意：必须为NULL_J2SESESSION_FOR_PROJECT
+				fireSystemEventListener(J2SESession.NULL_J2SESESSION_FOR_PROJECT, projResponser, projResponser.context, event);
 			}
 		}
 		
-		if(isMobileLogined){
-			final String event = ProjectContext.EVENT_SYS_MOBILE_LOGIN;
-			for (int i = 0; i < size; i++) {
-				final ProjResponser projResponser = resp[i];
-				projResponser.onScriptEvent(event);
-				fireSystemEventListener(projResponser.context, event);
+		//注意：因为MenuItem是Project级，对所有用户可见，所以需要
+		//注意：要将全部在线Session做一把
+		final J2SESession[] coreSSS = J2SESessionManager.getAllOnlineSocketSessions();
+		if(coreSSS != null){
+			for (int i = 0; i < coreSSS.length; i++) {
+				final J2SESession oneSS = coreSSS[i];
+				applyToSession(oneSS, resp, size);
 			}
 		}
 		
@@ -565,37 +599,74 @@ public class MobiUIResponsor extends BaseResponsor {
 		}
 	}
 
-	private final void fireSystemEventListener(final ProjectContext pc,
-			final Object event) {
-		pc.run(new Runnable() {
+	private final void applyToSession(final J2SESession coreSS, final ProjResponser[] resp, final int size) {
+		if(coreSS.isEventMobileLoginDone){
+			final String event = ProjectContext.EVENT_SYS_MOBILE_LOGIN;
+			
+			for (int i = 0; i < size; i++) {
+				final ProjResponser projResponser = resp[i];
+				
+				setClientSessionForProjResponser(coreSS, coreSS.clientSession, projResponser);
+				projResponser.onScriptEvent(coreSS, event);
+				fireSystemEventListener(coreSS, projResponser, projResponser.context, event);
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * @param coreSS 有些事件为null
+	 * @param ctx
+	 * @param event
+	 */
+	private final void fireSystemEventListener(final J2SESession coreSS, final ProjResponser resp, final ProjectContext ctx, final String event) {
+		final Runnable runnable = new Runnable() {
 			@Override
 			public void run() {
-				final Enumeration sels = ServerUIAPIAgent.getSystemEventListener(pc);
-				while(sels.hasMoreElements()){
-					final SystemEventListener sel = (SystemEventListener)sels.nextElement();
-					try{
-						sel.onEvent(event.toString());
-					}catch (final Throwable e) {
-						ExceptionReporter.printStackTrace(e);
+				final Enumeration<SystemEventListener> sels = ServerUIAPIAgent.getSystemEventListener(coreSS, ctx);
+				try{
+					while(sels.hasMoreElements()){
+						final SystemEventListener sel = sels.nextElement();
+						try{
+							sel.onEvent(event);
+						}catch (final Throwable e) {
+							ExceptionReporter.printStackTrace(e);
+						}
+					}
+				}catch (final NoSuchElementException e) {
+				}
+				
+				
+				if(ProjectContext.EVENT_SYS_PROJ_STARTUP == event){
+					resp.jarMainMenu.projectMenu.notifyIncrementMode();//完成初始状态，后续转为增量方式
+					if(L.isInWorkshop){
+						L.V = L.O ? false : LogManager.log("change project menu to increment mode.");
+					}
+				}else if(ProjectContext.EVENT_SYS_MOBILE_LOGIN == event){
+					coreSS.getMenu(resp.projectID).notifyIncrementMode();//完成初始状态，后续转为增量方式
+					if(L.isInWorkshop){
+						L.V = L.O ? false : LogManager.log("change session menu [" + resp.projectID + "] to increment mode.");
 					}
 				}
 			}
-		});
-	}
-
-	@Override
-	public void addProjectContext(final ProjectContext pc){
-		listsProjectContext.add(pc);
+		};
+		
+		//NOT block main thread
+		if(coreSS != null){
+			ServerUIAPIAgent.runInSessionThreadPool(coreSS, resp, runnable);
+		}else{
+			ServerUIAPIAgent.runInProjContext(ctx, runnable);
+		}
 	}
 	
-	private String currContext;
+	private final SessionCurrContext currContext = new SessionCurrContext();
+	
 	private int rootIdx;
-	public boolean isMobileLogined = false, isProjStarted = false;
 	
 	public final String findRootContextID(){
 		for (int i = 0; i < responserSize; i++) {
 			final ProjResponser projResponser = responsors[i];
-			if(projResponser.menu[projResponser.mainMenuIdx].isRoot){
+			if(projResponser.isRoot){
 				rootIdx = i;
 				return projIDs[i];
 			}
@@ -603,12 +674,8 @@ public class MobiUIResponsor extends BaseResponsor {
 		return null;
 	}
 	
-	public final String getCurrentContext(){
-		return currContext;
-	}
-	
-	public final ProjResponser getCurrentProjResponser(){
-		return findContext(getCurrentContext());
+	public final ProjResponser getCurrentProjResponser(final J2SESession session){
+		return findContext(currContext.getCurrContext(session));
 	}
 	
 	public final ProjResponser findContext(final String context){
@@ -621,22 +688,24 @@ public class MobiUIResponsor extends BaseResponsor {
 	}
 
 	@Override
-	public boolean doBiz(final HCURL url) {
-
+	public boolean doBiz(final CoreSession coreSS, final HCURL url) {
+		final J2SESession j2seCoreSS = (J2SESession)coreSS;
+		
 		//拦截Menu处理
 		if(url.protocal == HCURL.MENU_PROTOCAL){
 			final String newContext = url.elementID;
 			
 			if(newContext.equals(HCURL.ROOT_MENU) == false //保留支持旧的ROOT_ID
-					&& newContext.equals(currContext) == false){
-				enterContext(newContext);//内部含CLASS_CHANGE_PROJECT_ID
+					&& newContext.equals(currContext.getCurrContext(j2seCoreSS)) == false){
+				enterContext(j2seCoreSS, newContext);//内部含CLASS_CHANGE_PROJECT_ID
+				changeMobileProjectID(j2seCoreSS, newContext);
 				
 				final ProjResponser resp = findContext(newContext);
-				final JarMainMenu linkMenu = resp.menu[resp.mainMenuIdx];
+				final JarMainMenu linkMenu = resp.jarMainMenu;
 				
-				ServerUIUtil.transMenuWithCache(linkMenu.buildJcip(), resp.context.getProjectID());//newContext
+				ServerUIUtil.transMenuWithCache(j2seCoreSS, linkMenu.buildJcip(j2seCoreSS), resp.context.getProjectID());//newContext
 				
-				ScreenServer.pushScreen(linkMenu);
+				ScreenServer.pushScreen(j2seCoreSS, linkMenu);
 				
 				L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "enter project : [" + linkMenu.projectID + "]");
 				L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "open menu : [" + linkMenu.linkOrProjectName + "]");
@@ -644,20 +713,54 @@ public class MobiUIResponsor extends BaseResponsor {
 			}
 		}
 		
-		return findContext(currContext).doBiz(url);
+		return findContext(currContext.getCurrContext(j2seCoreSS)).doBiz(j2seCoreSS, url);
 	}
 
 	@Override
-	public void createClientSession() {
-		sessionForClient = new ClientSession();
-		if(PropertiesManager.isSimu()){
-			L.V = L.O ? false : LogManager.log("create clientSession for MobiUIResponsor.");
+	public void createClientSession(final J2SESession ss) {
+		if(ss != null){
+			final ClientSession cs = new ClientSession();
+			ss.clientSession = cs;
+			
+			for (int i = 0; i < responserSize; i++) {
+				final ProjResponser pr = responsors[i];
+				setClientSessionForProjResponser(ss, cs, pr);
+			}
+		}
+	}
+
+	final void setClientSessionForProjResponser(final J2SESession coreSS, final ClientSession cs, final ProjResponser pr) {
+		final SessionContext mc = pr.useFreeMobileContext(coreSS);
+		mc.setClientSession(coreSS, cs);
+		
+		final SessionMobiMenu menu = new SessionMobiMenu(coreSS, pr, pr.isRoot, pr.jarMainMenu.projectMenu);
+		coreSS.setSessionMenu(pr.projectID, menu);
+		
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("set clientSession for project [" + pr.context.getProjectID() + "].");
 		}
 	}
 
 	@Override
-	public void releaseClientSession() {
-//		sessionForClient = null;//虚操作
+	public void releaseClientSession(final J2SESession coreSS) {
+		if(coreSS != null){
+			currContext.removeSession(coreSS);
+			
+			for (int i = 0; i < responserSize; i++) {
+				final ProjResponser resp = responsors[i];
+				if(resp != null){
+					try{
+						final String projectID = resp.context.getProjectID();
+						resp.removeMobileContext(coreSS);
+						if(L.isInWorkshop){
+							L.V = L.O ? false : LogManager.log("release clientSession for project [" + projectID + "].");
+						}
+					}catch (final Throwable e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
 	}
 	
 }

@@ -2,7 +2,7 @@ package hc.core;
 
 
 public abstract class IEventHCListener {
-	public boolean enableSameEventTag = false;
+	public boolean enableSameEventTag = false;//false : 如果添加一个同名，则覆盖旧的。
 	
 	public final boolean isEnableSameEventTag(){
 		return enableSameEventTag;
@@ -23,9 +23,10 @@ public abstract class IEventHCListener {
 
 	/**
 	 * 返回true，表示停止后继其它的侦听的响应操作。
-	 * @param obj
+	 * @param bs
+	 * @param coreSS
 	 * @return
 	 */
-	public abstract boolean action(final byte[] bs);
+	public abstract boolean action(final byte[] bs, final CoreSession coreSS);
 
 }
