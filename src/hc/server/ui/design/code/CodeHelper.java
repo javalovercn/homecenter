@@ -1,5 +1,6 @@
 package hc.server.ui.design.code;
 
+import hc.core.HCTimer;
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
@@ -12,6 +13,7 @@ import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.hpj.HCTextPane;
 import hc.server.ui.design.hpj.HPShareJar;
+import hc.server.ui.design.hpj.MouseExitHideDocForMouseMovTimer;
 import hc.server.ui.design.hpj.ScriptEditPanel;
 import hc.util.ClassUtil;
 import hc.util.PropertiesManager;
@@ -20,6 +22,7 @@ import hc.util.StringBuilderCacher;
 
 import java.awt.Event;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.StringReader;
@@ -93,13 +96,72 @@ public class CodeHelper {
 	private final HashMap<String, CodeItem[]> classCacheMethodAndPropForClass = new HashMap<String, CodeItem[]>();
 	private final HashMap<String, CodeItem[]> classCacheMethodAndPropForInstance = new HashMap<String, CodeItem[]>();
 	
-	private final CodeWindow window = new CodeWindow();
+	private final CodeWindow window;
+	private final ArrayList<CodeItem> autoTipOut = new ArrayList<CodeItem>();
 	public final ArrayList<CodeItem> out = new ArrayList<CodeItem>();
 
 	public int wordCompletionModifyMaskCode;
 	public int wordCompletionModifyCode;
 	public int wordCompletionCode;
 	public char wordCompletionChar;
+	public final MouseExitHideDocForMouseMovTimer mouseExitHideDocForMouseMovTimer = new MouseExitHideDocForMouseMovTimer(
+			"MouseExitHideDocForMouseMovTimer", HCTimer.HC_INTERNAL_MS * 4, false) {
+		@Override
+		public void doBiz() {
+			hideByMouseEvent();
+			isTriggerOn = false;
+			isUsingByCode = false;
+			isUsingByDoc = false;
+			super.setEnable(false);
+		}
+		
+		@Override
+		public void setEnable(final boolean enable){
+			if(enable){
+				if(isUsingByCode == false && isUsingByDoc == false){
+					super.setEnable(true);
+				}else{
+					super.setEnable(false);
+				}
+			}else{
+				super.setEnable(false);
+			}
+		}
+	};
+	
+	/**
+	 * 鼠标使用DocWindown或CodeWindow
+	 */
+	public final void notifyUsingByDoc(final boolean isUsing){
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("AutoCodeTip notifyUsingByDoc : " + isUsing);
+		}
+		if(mouseExitHideDocForMouseMovTimer.isTriggerOn()){
+			mouseExitHideDocForMouseMovTimer.isUsingByDoc = isUsing;
+			mouseExitHideDocForMouseMovTimer.setEnable(!isUsing);
+		}
+	}
+	
+	public final void notifyUsingByCode(final boolean isUsing){
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("AutoCodeTip notifyUsingByCode : " + isUsing);
+		}
+		
+		if(mouseExitHideDocForMouseMovTimer.isTriggerOn()){
+			mouseExitHideDocForMouseMovTimer.isUsingByCode = isUsing;
+			mouseExitHideDocForMouseMovTimer.setEnable(!isUsing);
+		}
+	}
+	
+	public final void hideAfterMouse(final boolean isForceHideDoc){
+//		if(isForceHideDoc){
+//			hideByMouseEvent();
+//			return;
+//		}
+		if(mouseExitHideDocForMouseMovTimer.isTriggerOn()){
+			mouseExitHideDocForMouseMovTimer.setEnable(true);
+		}
+	}
 	
 	private final static void buildMethodAndProp(final Class c, final boolean isForClass, final ArrayList<CodeItem> list, final boolean needNewMethod){
 		if(c == null){
@@ -664,7 +726,7 @@ public class CodeHelper {
 	
 	public CodeHelper(){
 		initShortCutKeys();
-		
+		window = new CodeWindow(this);
 		buildForClass(this, buildJRubyClassDesc(int.class, false));
 		buildForClass(this, buildJRubyClassDesc(float.class, false));
 	}
@@ -763,6 +825,7 @@ public class CodeHelper {
 	
 	public final void release(){
 		window.release();
+		HCTimer.remove(mouseExitHideDocForMouseMovTimer);
 	}
 	
 	private final void initRequire(final DefaultMutableTreeNode jarFolder){
@@ -1849,7 +1912,7 @@ public class CodeHelper {
 	 * @param scriptIdx input focus index at total script
 	 * @return
 	 */
-	public final boolean input(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, 
+	public final synchronized boolean input(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, 
 			final int fontHeight, final boolean isForcePopup, final Point caretPosition, final int scriptIdx) throws Exception{
 		//1：行首时，requ
 		//2：行首时，impo
@@ -1875,6 +1938,56 @@ public class CodeHelper {
 		final int input_x = win_loc.x + ((caretPosition==null)?0:caretPosition.x);
 		final int input_y = win_loc.y + ((caretPosition==null)?0:caretPosition.y);
 		window.toFront(codeClass, sep, textPane, input_x, input_y, out, preCode.toLowerCase(), scriptIdx, fontHeight);
+		return true;
+	}
+	
+	public final synchronized boolean mouseMovOn(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, 
+			final int fontHeight, final boolean isForcePopup, final int scriptIdx) throws Exception{
+		final Point win_loc = textPane.getLocationOnScreen();
+		
+		final int line = ScriptEditPanel.getLineOfOffset(doc, scriptIdx);
+        final int editLineStartIdx = ScriptEditPanel.getLineStartOffset(doc, line);
+        final int lineIdx = scriptIdx - editLineStartIdx;
+        final char[] lineChars = doc.getText(editLineStartIdx, ScriptEditPanel.getLineEndOffset(doc, line) - editLineStartIdx).toCharArray();
+        
+		initPreCode(lineChars, lineIdx, scriptIdx, line);
+		if(isForcePopup == false && out.size() == 0){
+			return false;
+		}
+		final Class codeClass = (preClass==null?null:preClass.baseClass);
+		
+		final Rectangle caretRect = textPane.modelToView(scriptIdx - preCode.length());//与方法段齐
+		final int input_x = win_loc.x + caretRect.x;
+		final int input_y = win_loc.y + caretRect.y;
+		
+		int i = lineIdx;
+		for (; i < lineChars.length; i++) {//补全完整的方法名
+			final char nextChar = lineChars[i];
+			if(nextChar >= 'a' && nextChar <= 'z'
+					|| nextChar >= 'A' && nextChar <= 'Z'
+					|| nextChar == '_'){
+			}else{
+				break;
+			}
+		}
+		if(i > lineIdx){
+			final int startIdx = lineIdx - preCode.length();
+			preCode = new String(lineChars, startIdx, i - startIdx);
+		}
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("AutoCodeTip : " + preCode + ", codeItem : " + out.size());
+		}
+		if(preCode.length() == 0){
+			return false;
+		}
+		
+		preCode = preCode.toLowerCase();
+		CodeWindow.fillPreCode(out, autoTipOut, preCode);
+		if(autoTipOut.size() == 0){
+			return false;
+		}
+		
+		window.toFront(codeClass, sep, textPane, input_x, input_y, autoTipOut, preCode, scriptIdx, fontHeight);
 		return true;
 	}
 	
@@ -2673,6 +2786,10 @@ public class CodeHelper {
 		}else{
 			return null;
 		}
+	}
+
+	private final void hideByMouseEvent() {
+		window.hide(true);
 	}
 	
 }

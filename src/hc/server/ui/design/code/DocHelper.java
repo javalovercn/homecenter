@@ -60,8 +60,11 @@ public class DocHelper {
 	private final JEditorPane docPane = new JEditorPane();
 	private final JScrollPane scrollPanel = new JScrollPane(docPane);
 	private final JFrame docFrame = new JFrame("");
+	private final CodeHelper codeHelper;
 	
-	DocHelper(final CodeWindow codeWindow) {
+	DocHelper(final CodeHelper codeHelper, final CodeWindow codeWindow) {
+		this.codeHelper = codeHelper;
+		
 		docPane.addKeyListener(codeWindow.keyListener);
 		
 		docPane.setContentType("text/html");
@@ -77,10 +80,12 @@ public class DocHelper {
 			
 			@Override
 			public void mouseExited(final MouseEvent e) {
+				codeHelper.notifyUsingByDoc(false);
 			}
 			
 			@Override
 			public void mouseEntered(final MouseEvent e) {
+				codeHelper.notifyUsingByDoc(true);
 			}
 			
 			final HTMLDocument hDoc = (HTMLDocument)docPane.getDocument();
@@ -240,6 +245,7 @@ public class DocHelper {
 	
 	public final void setInvisible(){
 		synchronized (docFrame) {
+			
 			if(docFrame.isVisible()){
 				docFrame.setVisible(false);
 			}
@@ -391,7 +397,7 @@ public class DocHelper {
 	
 	public static final String NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME = null;
 	
-	private static void processDoc(final HashMap<String, String> docMap, String docContent, final String simpleClassName){
+	private static void processDoc(final HashMap<String, String> docMap, final String docContent, final String simpleClassName){
 		{
 			final Matcher matcher = classDescPattern.matcher(docContent);
 			if (matcher.find()) {
@@ -408,28 +414,21 @@ public class DocHelper {
 		{
 			final int constructorDocIdx = docContent.indexOf("<h3>Constructor Detail</h3>");
 			if(constructorDocIdx > 0){
-				docContent = docContent.substring(constructorDocIdx);
-				processListBlock(docContent, docMap, true, simpleClassName);
+				processListBlock(docContent.substring(constructorDocIdx), docMap, true, simpleClassName);
 			}
 		}
 		
 		{
 			final int detailDocIdx = docContent.indexOf("<h3>Field Detail</h3>");
 			if(detailDocIdx > 0){
-				docContent = docContent.substring(detailDocIdx);
-				processListBlock(docContent, docMap, false, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
+				processListBlock(docContent.substring(detailDocIdx), docMap, false, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
 			}
 		}
 		
 		{
-//			<ul class="blockList|Last">
-//			<li class="blockList">
-//			</li>
-//			</ul>
 			final int detailDocIdx = docContent.indexOf("<h3>Method Detail</h3>");
 			if(detailDocIdx > 0){
-				docContent = docContent.substring(detailDocIdx);//否则会从Method Summary段开始，导致第一个不正确
-				processListBlock(docContent, docMap, true, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
+				processListBlock(docContent.substring(detailDocIdx), docMap, true, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
 			}
 		}
 	}
@@ -495,7 +494,7 @@ public class DocHelper {
 					apiDoc = item.substring(indexOfDoc);
 				}
 //				if(L.isInWorkshop){
-//					System.out.println("method    :    " + fieldOrMethodName);
+//					System.out.println("item    :    " + fieldOrMethodName);
 //					System.out.println(apiDoc + "\n\n");
 //				}
 				//getFreeMessage(String)

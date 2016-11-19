@@ -1,7 +1,9 @@
 package hc.server.ui.design.code;
 
 import hc.core.HCTimer;
+import hc.core.L;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
 import hc.server.DefaultManager;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.hpj.HCTextPane;
@@ -67,6 +69,7 @@ public class CodeWindow {
 	private final JScrollPane classPanel = new JScrollPane(codeList);
 	private final DocTipTimer autoPopTip = new DocTipTimer("", 500, false);
 	private final DocHelper docHelper;
+	private final CodeHelper codeHelper;
 	
 	final Runnable refilterRunnable = new Runnable() {
 		@Override
@@ -177,8 +180,9 @@ public class CodeWindow {
 		}
 	};
 	
-	public CodeWindow(){
-		docHelper = new DocHelper(this);
+	public CodeWindow(final CodeHelper codeHelper){
+		this.codeHelper = codeHelper;
+		docHelper = new DocHelper(codeHelper, this);
 		
 		codeList.setCellRenderer(new ListCellRenderer() {//JRE 1.6 not gerneric
 			protected final DefaultListCellRenderer defaultRenderer = new DefaultListCellRenderer();
@@ -263,10 +267,12 @@ public class CodeWindow {
 			
 			@Override
 			public void mouseExited(final MouseEvent e) {
+				codeHelper.notifyUsingByCode(false);
 			}
 			
 			@Override
 			public void mouseEntered(final MouseEvent e) {
+				codeHelper.notifyUsingByCode(true);
 			}
 			
 			@Override
@@ -307,6 +313,7 @@ public class CodeWindow {
 	}
 	
 	public final void hide(final boolean lostFocus){
+		codeHelper.mouseExitHideDocForMouseMovTimer.setEnable(false);
 		synchronized (classFrame) {
 			if(classFrame.isVisible()){
 				synchronized (autoPopTip) {
@@ -354,18 +361,7 @@ public class CodeWindow {
 	private int movingScriptIdx, oriScriptIdx;
 	
 	private final void refilter(){
-		classData.clear();
-		final int size = fullList.size();
-		final int preLen = preCode.length();
-		for (int i = 0; i < size; i++) {
-			final CodeItem codeItem = fullList.get(i);
-			if(preLen == 0 
-					|| (codeItem.isFullPackageAndClassName && codeItem.type == CodeItem.TYPE_CLASS && codeItem.codeLowMatch.indexOf(preCode) >= 0)
-					|| codeItem.codeLowMatch.startsWith(preCode) 
-					){
-				classData.add(codeItem);
-			}
-		}
+		fillPreCode(fullList, classData, preCode);
 		
 		codeList.setModel(new AbstractListModel() {//JRE 1.6 not gerneric
             @Override
@@ -387,10 +383,26 @@ public class CodeWindow {
 		ClassUtil.revalidate(classFrame);
 		classFrame.pack();//有可能backspace，出现更长内容，而需要pack
 	}
+
+	public static void fillPreCode(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target, final String preCodeLower) {
+		target.clear();
+		final int size = src.size();
+		final int preLen = preCodeLower.length();
+		for (int i = 0; i < size; i++) {
+			final CodeItem codeItem = src.get(i);
+			if(preLen == 0 
+					|| (codeItem.isFullPackageAndClassName && codeItem.type == CodeItem.TYPE_CLASS && codeItem.codeLowMatch.indexOf(preCodeLower) >= 0)
+					|| codeItem.codeLowMatch.startsWith(preCodeLower) 
+					){
+				target.add(codeItem);
+			}
+		}
+	}
 	
 	final Rectangle rect = new Rectangle(0, 0, 1, 1);
 	
-	public final void toFront(final Class codeClass, final ScriptEditPanel sep, final HCTextPane eventFromComponent, final int x, final int y, final ArrayList<CodeItem> list, 
+	public final void toFront(final Class codeClass, final ScriptEditPanel sep, final HCTextPane eventFromComponent, 
+			final int x, final int y, final ArrayList<CodeItem> list, 
 			final String preCode, final int scriptIdx, final int fontHeight){
 		fullList = list;
 		this.codeBelongClass = codeClass;

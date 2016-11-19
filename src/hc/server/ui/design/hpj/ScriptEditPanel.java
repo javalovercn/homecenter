@@ -42,6 +42,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -387,6 +390,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		final StyleContext sc = StyleContext.getDefaultStyleContext();
 		final AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.TabSet, tabset);
 		jtaScript.setParagraphAttributes(aset, false);	
+		fontHeight = jtaScript.getFontMetrics(jtaScript.getFont()).getHeight();
 		
 		jtaScript.addCaretListener(new CaretListener() {
 			int lastLineNo = 0;
@@ -459,6 +463,46 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			final KeyStroke enterKey = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
 			jtaScript.getInputMap().put(enterKey, enterAction);
 		}
+		
+		final MouseMovingTipTimer autoCodeTip = new MouseMovingTipTimer(this, jtaScript, jtaDocment, fontHeight);
+		
+		jtaScript.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseReleased(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mousePressed(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mouseExited(final MouseEvent e) {
+				autoCodeTip.setEnable(false);
+				designer.codeHelper.hideAfterMouse(false);
+			}
+			
+			@Override
+			public void mouseEntered(final MouseEvent e) {
+				autoCodeTip.setEnable(true);
+			}
+			
+			@Override
+			public void mouseClicked(final MouseEvent e) {
+			}
+		});
+		
+		jtaScript.addMouseMotionListener(new MouseMotionListener() {
+			@Override
+			public void mouseMoved(final MouseEvent e) {
+				designer.codeHelper.hideAfterMouse(true);
+				autoCodeTip.setEnable(true);
+				autoCodeTip.setLocation(e.getX(), e.getY());
+			}
+			
+			@Override
+			public void mouseDragged(final MouseEvent e) {
+			}
+		});
 		
 		jtaScript.addKeyListener(new KeyListener() {
 			final boolean isMacOS = ResourceUtil.isMacOSX();
@@ -624,7 +668,6 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			public void keyReleased(final KeyEvent e) {
 			}
 			
-			final int fontHeight = jtaScript.getFontMetrics(jtaScript.getFont()).getHeight();
 			boolean isEventConsumed;
 			
 			@Override
@@ -892,6 +935,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	private ScriptUndoableEditListener scriptUndoListener;
 	private UndoManager scriptUndoManager;
 	public final AbstractDocument jtaDocment;
+	final int fontHeight;
 	public final HCTextPane jtaScript = new HCTextPane(){
 		@Override
 		public void paste(){
