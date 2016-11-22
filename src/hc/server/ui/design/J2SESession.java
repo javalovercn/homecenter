@@ -123,7 +123,7 @@ public class J2SESession extends CoreSession{
 		}
 		
 		final int p_size = size;
-		resp.getMobileSession(this).sessionPool.runAndWait(new ReturnableRunnable() {//因event回收，所以wait
+		resp.getMobileSession(this).recycleRes.threadPool.runAndWait(new ReturnableRunnable() {//因event回收，所以wait
 			@Override
 			public Object run() {
 				try{
@@ -210,10 +210,10 @@ public class J2SESession extends CoreSession{
 				final ICanvas screenCap = ((J2SESession)coreSS).currScreen;
 				if(screenCap == null || (screenCap instanceof PNGCapturer) == false){
 					LogManager.errToLog("Error object, skip event input.");
-					return true;
 				}else{
-					return ((PNGCapturer)screenCap).actionInput(e);
+					((PNGCapturer)screenCap).actionInput(e);
 				}
+				return true;
 			}
 	
 			@Override

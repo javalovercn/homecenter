@@ -6,11 +6,13 @@ import hc.core.data.DataInputEvent;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
+import hc.core.util.ReturnableRunnable;
 import hc.server.MultiUsingManager;
 import hc.server.ScreenServer;
 import hc.server.data.screen.PNGCapturer;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
+import hc.server.ui.design.engine.RubyExector;
 import hc.util.ResourceUtil;
 
 import java.awt.AWTEvent;
@@ -56,7 +58,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
     final BufferedImage bufferedImage;
     BufferedImage bufferedImageCombo;
     final Graphics graphcis;
-    final Runnable scrollPrintRunnable, listPrintRunnable;
+    final ReturnableRunnable scrollPrintRunnable, listPrintRunnable;
     final int[] imageData;
     int[] imageDataComboBox;
     public JFrame frame, frameCombobox;
@@ -83,16 +85,18 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		}
 		graphcis = bufferedImage.getGraphics();
 		
-		scrollPrintRunnable = new Runnable() {
+		scrollPrintRunnable = new ReturnableRunnable() {
 			@Override
-			public void run(){
+			public Object run(){
 				mlet.print(graphcis);
+				return null;
 			}
 		};
-		listPrintRunnable = new Runnable() {
+		listPrintRunnable = new ReturnableRunnable() {
 			@Override
-			public void run() {
+			public Object run() {
 				listForJComboBox.print(bufferedImageCombo.getGraphics());
+				return null;
 			}
 		};
 	}
@@ -108,10 +112,11 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		frameCombobox = new JFrame();
 		frameCombobox.getContentPane().setLayout(new BorderLayout());
 		
-		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, new Runnable() {
+		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, new ReturnableRunnable() {
 			@Override
-			public void run() {
+			public Object run() {
 				scrollPane = new JScrollPane(mlet, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+				return null;
 			}
 		});
 	}
@@ -357,17 +362,13 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	}
 	
 	@Override
-	public final boolean actionInput(final DataInputEvent e) {
-		final boolean[] out = new boolean[1];
-		
-		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, new Runnable() {
+	public final void actionInput(final DataInputEvent e) {
+		RubyExector.execInSequenceForSession(coreSS, projResp, new ReturnableRunnable() {
 			@Override
-			public void run() {
-				out[0] = actionInputInUserThread(e);
+			public Object run() {
+				return actionInputInUserThread(e);
 			}
 		});
-		
-		return out[0];
 	}
 	
 	/**

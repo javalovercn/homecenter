@@ -394,13 +394,18 @@ public class TrayMenuUtil {
 	 * @return false : 保留旧的高阶状态
 	 */
 	static boolean setTrayEnable(final boolean b){
-		L.V = L.O ? false : LogManager.log("TrayEnable:" + b);
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("TrayEnable:" + b);
+		}
+		
 		if(b){
 			if(ti != null){
 				final Image oldImg = ti.getImage();
 				
 				if(oldImg == hc_mobi){
-					L.V = L.O ? false : LogManager.log("old Image is hc_mobi.");
+					if(L.isInWorkshop){
+						L.V = L.O ? false : LogManager.log("old Image is hc_mobi.");
+					}
 					
 					//检查是否还有keepConnection
 					if(SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_SERVER_SELF)){

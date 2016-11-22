@@ -2,7 +2,7 @@ package hc.server.ui;
 
 import hc.core.util.HCURL;
 import hc.core.util.LogManager;
-import hc.core.util.ThreadPool;
+import hc.core.util.RecycleRes;
 import hc.core.util.UIUtil;
 import hc.server.data.StoreDirManager;
 import hc.server.msb.DeviceCompatibleDescription;
@@ -44,14 +44,14 @@ public class SimuMobile {
 	public static final boolean MOBILE_IN_BACKGROUND = false;
 	public static final boolean CURR_IN_SESSION = true;
 	
-	final static ThreadPool tempLimitThreadPool = HCLimitSecurityManager.getTempLimitThreadPool();
+	final static RecycleRes tempLimitRecycleRes = HCLimitSecurityManager.getTempLimitRecycleRes();
 	
 	public final static boolean checkSimuProjectContext(final ProjectContext ctx){
-		return ctx.projectPool == tempLimitThreadPool;
+		return ctx.recycleRes.threadPool == tempLimitRecycleRes.threadPool;
 	}
 	
 	final static ProjectContext simuContext = ServerUIUtil.buildProjectContext("SimuProjContext", "1.0", 
-			tempLimitThreadPool, null, (ProjClassLoaderFinder)null);
+			tempLimitRecycleRes, null, (ProjClassLoaderFinder)null);
 	
 	public static Robot buildSimuRobot() {
 		LogManager.err("In designer panel, create simu robot for testing script.");

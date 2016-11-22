@@ -354,7 +354,7 @@ public class ScreenCapturer extends PNGCapturer{
 	}
 
 	@Override
-	public boolean actionInput(final DataInputEvent event){
+	public void actionInput(final DataInputEvent event){
 		final int type = event.getType();
 		final int pointX = event.getX();
 		final int pointY = event.getY();
@@ -439,7 +439,6 @@ public class ScreenCapturer extends PNGCapturer{
 		}
 		
 //		mttRefreshAfterInput();
-		return true;
 	}
 
 	public static void type(final Robot r, final char character) {

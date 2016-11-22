@@ -11,6 +11,7 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.HarHelper;
 import hc.core.util.HarInfoForJSON;
 import hc.core.util.LogManager;
+import hc.core.util.RecycleRes;
 import hc.core.util.RecycleThread;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
@@ -76,7 +77,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	
 	private static final SecurityManager oriSecurityManager = System.getSecurityManager();
 	private static HCLimitSecurityManager hcSecurityManager;
-	private static ThreadPool tempLimitThreadPool;
+	private static RecycleRes tempLimitRecycleRes;
 	private static ThreadGroup tempLimitThreadgroup;
 	private static final Locale locale = Locale.getDefault();
 	private final float jreVersion = App.getJREVer();
@@ -212,13 +213,13 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		return hcEventQueue;
 	}
 	
-	public static synchronized final ThreadPool getTempLimitThreadPool(){
+	public static synchronized final RecycleRes getTempLimitRecycleRes(){
 		CCoreUtil.checkAccess();
 		
-		if(tempLimitThreadPool == null){
+		if(tempLimitRecycleRes == null){
 			tempLimitThreadgroup = new ThreadGroup("tempLimitThreadGroup");
 			ClassUtil.changeParentToNull(tempLimitThreadgroup);
-			tempLimitThreadPool = new ThreadPool(tempLimitThreadgroup){
+			final ThreadPool tempLimitThreadPool = new ThreadPool(tempLimitThreadgroup){
 				//每个工程实例下，用一个ThreadPool实例，以方便权限管理
 				
 				@Override
@@ -235,9 +236,11 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			csc.buildNewProjectPermissions();
 			
 			ContextSecurityManager.putContextSecurityConfig(tempLimitThreadgroup, csc);
+			
+			tempLimitRecycleRes = new RecycleRes("tempLimit", tempLimitThreadPool, RecycleRes.getSequenceTempWatcher());
 		}
 		
-		return tempLimitThreadPool;
+		return tempLimitRecycleRes;
 	}
 	
 	public static synchronized final HCLimitSecurityManager getHCSecurityManager(){

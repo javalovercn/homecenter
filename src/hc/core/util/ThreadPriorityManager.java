@@ -5,6 +5,8 @@ public class ThreadPriorityManager {
 	
 	public static final int FILE_SAVE_PRIORITY = Thread.MAX_PRIORITY;
 	
+	public static final int SEQUENCE_SCRIPT_PRIORITY = Thread.MAX_PRIORITY;
+	
 	public static final int DATA_TRANS_PRIORITY = Thread.MAX_PRIORITY - 1;
 	
 	public static final int HCTIMER_PRIORITY = DATA_TRANS_PRIORITY - 1;

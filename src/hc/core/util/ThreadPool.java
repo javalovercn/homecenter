@@ -23,7 +23,6 @@ public abstract class ThreadPool {
 	
 	/**
 	 * 
-	 * @param pool
 	 * @param run 如果产生异常，则返回null
 	 * @param threadToken
 	 * @return

@@ -20,6 +20,10 @@ public class CodeItem implements Comparable<CodeItem>{
 		}
 	}
 	
+	public CodeItem() {
+		reset(this);
+	}
+	
 	@Override
 	public final String toString(){
 		String typeStr = "";
@@ -38,6 +42,12 @@ public class CodeItem implements Comparable<CodeItem>{
 	}
 	
 	public final static void cycle(final CodeItem item){
+		reset(item);
+		
+		free.push(item);
+	}
+
+	private static void reset(final CodeItem item) {
 		item.type = 0;
 		item.isPublic = false;
 		item.isForMaoHaoOnly = false;
@@ -46,9 +56,8 @@ public class CodeItem implements Comparable<CodeItem>{
 		item.fmClass = Object.class.getName();
 		item.codeDisplay = "";
 		item.codeLowMatch = "";
+		item.fieldOrMethodOrClassName = "";
 		item.anonymousClass = null;
-		
-		free.push(item);
 	}
 	
 	public final static int TYPE_IMPORT = 1;
@@ -91,6 +100,7 @@ public class CodeItem implements Comparable<CodeItem>{
 		fmClass = from.fmClass;
 		codeDisplay = from.codeDisplay;
 		codeLowMatch = from.codeLowMatch;
+		fieldOrMethodOrClassName = from.fieldOrMethodOrClassName;
 		isPublic = from.isPublic;
 		anonymousClass = from.anonymousClass;
 	}
@@ -100,6 +110,7 @@ public class CodeItem implements Comparable<CodeItem>{
 	public boolean isForMaoHaoOnly;
 	public boolean isFullPackageAndClassName;
 	public String code;
+	public String fieldOrMethodOrClassName;
 	public String fmClass;
 	public String codeDisplay;
 	public String codeLowMatch;

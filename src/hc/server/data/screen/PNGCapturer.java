@@ -114,7 +114,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	}
 	
 	public abstract int grabImage(Rectangle bc, int[] rgb);
-	public abstract boolean actionInput(DataInputEvent e);
+	public abstract void actionInput(DataInputEvent e);
 	
 	public static int getUserMobileColorMask(final J2SESession coreSS){
 		return coreSS.mask;

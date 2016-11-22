@@ -61,6 +61,8 @@ public class DocHelper {
 	private final JScrollPane scrollPanel = new JScrollPane(docPane);
 	private final JFrame docFrame = new JFrame("");
 	private final CodeHelper codeHelper;
+	public boolean isForMouseOverTip;
+	public int mouseOverX, mouseOverY, mouseOverFontHeight;
 	
 	DocHelper(final CodeHelper codeHelper, final CodeWindow codeWindow) {
 		this.codeHelper = codeHelper;
@@ -148,6 +150,14 @@ public class DocHelper {
 		                				parameter = removePackageName.matcher(parameter).replaceAll("");
 		                				fieldOrMethodName = methodName + "(" + parameter + ")";
 		                			}
+		                			
+	                				final int classIdx = fmClass.lastIndexOf('.');
+	                				if(classIdx > 0){
+	                					final String className = fmClass.substring(classIdx + 1);
+	                					if(fieldOrMethodName.startsWith(className)){//将构造方法转为new()
+	                						fieldOrMethodName = CodeHelper.JRUBY_NEW + fieldOrMethodName.substring(className.length());
+	                					}
+	                				}
 		                		}
 		                		
 								try {
@@ -204,28 +214,38 @@ public class DocHelper {
 			docFrame.pack();
 
 			docFrame.getSize(docFrameSize);
-			codeFrame.getSize(codeFrameSize);
 			
-					
-			int showX = codeFrame.getX();
-			int showY = codeFrame.getY();
-			if(showX + codeFrameSize.width + docFrameSize.width > screenSize.width){
-				if(showX - docFrameSize.width < 0){
-					if (layoutLimit.isNotUpLayout == false 
-							&& (layoutLimit.isNotDownLayout 
-									|| showY + codeFrameSize.height + docFrameSize.height > screenSize.height)
-						){
-						showY -= docFrameSize.height;//上置
-					}else{
-						showY += codeFrameSize.height;//下置
-					}
-				}else{
-					showX -= docFrameSize.width;//左置
+			int showX, showY;
+			if(isForMouseOverTip){
+				showX = mouseOverX;
+				showY = mouseOverY + mouseOverFontHeight;
+				if(showY + docFrameSize.height > screenSize.height){
+					showY = mouseOverY - docFrameSize.height;
+				}
+				if(showX + docFrameSize.width > screenSize.width){
+					showX = mouseOverX - docFrameSize.width;
 				}
 			}else{
-				showX += codeFrameSize.width;//自然右置
+				codeFrame.getSize(codeFrameSize);
+				showX = codeFrame.getX();
+				showY = codeFrame.getY();
+				if(showX + codeFrameSize.width + docFrameSize.width > screenSize.width){
+					if(showX - docFrameSize.width < 0){
+						if (layoutLimit.isNotUpLayout == false 
+								&& (layoutLimit.isNotDownLayout 
+										|| showY + codeFrameSize.height + docFrameSize.height > screenSize.height)
+							){
+							showY -= docFrameSize.height;//上置
+						}else{
+							showY += codeFrameSize.height;//下置
+						}
+					}else{
+						showX -= docFrameSize.width;//左置
+					}
+				}else{
+					showX += codeFrameSize.width;//自然右置
+				}
 			}
-			
 			docFrame.setLocation(showX, showY);
 			synchronized (docFrame) {
 				if(isWillShowDoc){

@@ -8,6 +8,7 @@ import hc.core.util.HCJSInterface;
 import hc.core.util.JSCore;
 import hc.core.util.LangUtil;
 import hc.core.util.LogManager;
+import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
 import hc.server.MultiUsingManager;
 import hc.server.ScreenServer;
@@ -23,6 +24,7 @@ import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.code.StyleManager;
+import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.hpj.HCjar;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
@@ -154,10 +156,11 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		
 		frame = new JFrame();//不能入Session会导致block showWindowWithoutWarningBanner
 		
-		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {
+		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new ReturnableRunnable() {
 			@Override
-			public void run() {
+			public Object run() {
 				scrollPane = new JScrollPane(mlet, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+				return null;
 			}
 		});
 		differTodo = new DifferTodo(coreSS, elementID, mlet);
@@ -275,10 +278,11 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 
 	@Override
 	public final void actionJSInput(final byte[] bs, final int offset, final int len) {
-		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {//事件的先后性保证
+		RubyExector.execInSequenceForSession(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new ReturnableRunnable() {//事件的先后性保证
 			@Override
-			public void run() {
+			public Object run() {
 				actionJSInputInUser(bs, offset, len);
+				return null;
 			}
 		});
 	}

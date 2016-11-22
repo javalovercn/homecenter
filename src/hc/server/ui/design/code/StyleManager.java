@@ -1,5 +1,6 @@
 package hc.server.ui.design.code;
 
+import hc.core.util.ReturnableRunnable;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.ProjectContext;
@@ -22,17 +23,15 @@ public class StyleManager {
 	public static String replaceVariable(final J2SESession coreSS, final String styles, final HTMLMlet htmlmlet, final ProjectContext ctx){
 		if(styles.indexOf('$', 0) > 0){
 			if(coreSS.mobileValuesForCSS == null){
-				final Object[] para = new Object[1];
-				ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new Runnable() {
+				coreSS.mobileValuesForCSS = (Object[])ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
 					@Override
-					public void run() {
+					public Object run() {
 						final Object[] values = {htmlmlet.getFontSizeForSmall(), htmlmlet.getFontSizeForNormal(), htmlmlet.getFontSizeForLarge(),
 								htmlmlet.getFontSizeForButton(), htmlmlet.getButtonHeight(), UserThreadResourceUtil.getMobileWidthFrom(coreSS), UserThreadResourceUtil.getMobileHeightFrom(coreSS),
 								HTMLMlet.getColorForBodyByHexString(), HTMLMlet.getColorForFontByHexString()};
-						para[0] = values;
+						return values;
 					}
 				});
-				coreSS.mobileValuesForCSS = (Object[])para[0];
 			}
 			final Object[] mobileValuesForCSS = coreSS.mobileValuesForCSS;
 			

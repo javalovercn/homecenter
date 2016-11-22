@@ -15,6 +15,7 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.IHCURLAction;
 import hc.core.util.LogManager;
+import hc.core.util.RecycleRes;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
 import hc.core.util.WiFiDeviceManager;
@@ -309,7 +310,8 @@ public class J2SEServerURLAction implements IHCURLAction {
 		
 		if(SYS_JRUBY_ENGINE[0] == null){
 			final HCJRubyEngine hcje = new HCJRubyEngine(null, ResourceUtil.getJRubyClassLoader(false), true);
-			final ProjectContext context = ServerUIUtil.buildProjectContext("", "", ContextManager.getThreadPool(), null, null);
+			final RecycleRes recycleRes = new RecycleRes("JRubyEngine", ContextManager.getThreadPool(), RecycleRes.getSequenceTempWatcher());
+			final ProjectContext context = ServerUIUtil.buildProjectContext("", "", recycleRes, null, null);
 			SYS_JRUBY_ENGINE[0] = hcje;
 			SYS_JRUBY_ENGINE[1] = context;
 		}

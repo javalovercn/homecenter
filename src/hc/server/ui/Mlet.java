@@ -335,6 +335,7 @@ public class Mlet extends JPanel implements ICanvas {
 		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
 			public Object run() {
+				ServerUIAPIAgent.setMletTarget(toMlet, targetOfMlet);
 				ServerUIAPIAgent.openMlet(coreSS, __context, toMlet, targetOfMlet, isAutoReleaseCurrentMlet,
 						fromMlet);
 				return null;
@@ -453,9 +454,9 @@ public class Mlet extends JPanel implements ICanvas {
 					@Override
 					public Object run() {
 						final HCLimitSecurityManager manager = HCLimitSecurityManager.getHCSecurityManager();
-						ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new Runnable() {
+						ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
 							@Override
-							public void run() {
+							public Object run() {
 								try{
 									ThreadConfig.putValue(ThreadConfig.AUTO_PUSH_EXCEPTION, false);//关闭push exception
 									manager.checkPermission(perm);
@@ -464,6 +465,7 @@ public class Mlet extends JPanel implements ICanvas {
 								}finally{
 									ThreadConfig.putValue(ThreadConfig.AUTO_PUSH_EXCEPTION, true);
 								}
+								return null;
 							}
 						});
 						return null;

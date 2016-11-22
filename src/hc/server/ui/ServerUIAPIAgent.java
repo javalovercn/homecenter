@@ -1,6 +1,7 @@
 package hc.server.ui;
 
 import hc.App;
+import hc.core.BaseWatcher;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.IContext;
@@ -247,28 +248,26 @@ public class ServerUIAPIAgent {
 		mlet.__context = ctx;
 	}
 	
+	public static void addSequenceWatcherInProjContext(final ProjectContext ctx, final BaseWatcher watcher){
+		ctx.recycleRes.sequenceWatcher.addWatcher(watcher);
+	}
+	
 	public static void runInProjContext(final ProjectContext ctx, final Runnable run){
-		ctx.projectPool.run(run);
+		ctx.recycleRes.threadPool.run(run);
 	}
 	
 	public static Object runAndWaitInProjContext(final ProjectContext ctx, final ReturnableRunnable run){
-		return ctx.projectPool.runAndWait(run);
+		return ctx.recycleRes.threadPool.runAndWait(run);
 	}
 	
 	public static void runInSessionThreadPool(final J2SESession coreSS, final ProjResponser resp, final Runnable run){
-		resp.getMobileSession(coreSS).sessionPool.run(run);
+		resp.getMobileSession(coreSS).recycleRes.threadPool.run(run);
 	}
 	
-	public static void runAndWaitInSessionThreadPool(final J2SESession coreSS, final ProjResponser resp, final Runnable run){
-		resp.getMobileSession(coreSS).sessionPool.runAndWait(new ReturnableRunnable() {
-			@Override
-			public Object run() {
-				run.run();
-				return null;
-			}
-		});
+	public static Object runAndWaitInSessionThreadPool(final J2SESession coreSS, final ProjResponser resp, final ReturnableRunnable run){
+		return resp.getMobileSession(coreSS).recycleRes.threadPool.runAndWait(run);
 	}
-	
+
 	public static void printInProjectLevelWarn(final String instance, final String method){
 		LogManager.warning(instance + "." + method + "() runs in project level.");
 	}
@@ -622,6 +621,16 @@ public class ServerUIAPIAgent {
 			}
 		});
 	}
+	
+	public static void setMletTarget(final Mlet mlet, final String targetOfMlet){
+		mlet.__target = buildTargetForElement(targetOfMlet);//后置式，注意：不是新建时获得。
+	}
+	
+	private static String buildTargetForElement(final String targetOfMlet){
+		final int httpSplitterIdx = targetOfMlet.indexOf(HCURL.HTTP_SPLITTER);
+		final boolean isWithHttpSplitter = httpSplitterIdx > 0;
+		return isWithHttpSplitter?targetOfMlet:HCURL.buildStandardURL(HCURL.FORM_PROTOCAL, targetOfMlet);
+	}
 
 	public static void openMlet(final J2SESession coreSS, final ProjectContext context, final Mlet toMlet, final String targetOfMlet,
 				final boolean isAutoReleaseCurrentMlet, final Mlet fromMlet) {
@@ -635,15 +644,15 @@ public class ServerUIAPIAgent {
 			}
 			
 			if(fromMlet != null){//可能为null，比如从addHar
-				runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(context), new Runnable() {
+				runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(context), new ReturnableRunnable() {
 					@Override
-					public void run() {
+					public Object run() {
 						fromMlet.setAutoReleaseAfterGo(isAutoReleaseCurrentMlet);
+						return null;
 					}
 				});
 			}
 			
-			toMlet.__target = targetURL;//后置式，注意：不是新建时获得。
 			final String elementID = isWithHttpSplitter?targetOfMlet.substring(httpSplitterIdx + HCURL.HTTP_SPLITTER.length()):targetOfMlet;
 			openMlet(coreSS, elementID, "title-" + elementID, context, toMlet);
 			return;
@@ -660,7 +669,10 @@ public class ServerUIAPIAgent {
 		private static void openMlet(final J2SESession coreSS, final String elementID,
 				final String title, final ProjectContext context, final Mlet mlet) {
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("openMlet elementID : " + elementID);
+				if(mlet.getTarget() == null){
+					throw new Error("target of Mlet is null");
+				}
+				L.V = L.O ? false : LogManager.log("openMlet elementID : " + elementID + ", targetInMlet : " + mlet.getTarget());
 			}
 			
 			boolean isHTMLMlet = (mlet instanceof HTMLMlet);
@@ -686,10 +698,11 @@ public class ServerUIAPIAgent {
 	//		}
 	
 			mcanvas.setMlet(coreSS, mlet, context);
-			runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(context), new Runnable() {
+			runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(context), new ReturnableRunnable() {
 				@Override
-				public void run() {
+				public Object run() {
 					mcanvas.init();//in user thread
+					return null;
 				}
 			});
 			

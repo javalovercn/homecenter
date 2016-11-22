@@ -115,8 +115,17 @@ public class ClientDesc {
 					continue;
 				}
 
-				
-				sb.append("\n  [" + key + " = " + kv[1] + "]");
+				Object value = kv[1];
+				if("encryptionStrength".equals(key)){
+					if("0".equals(value)){
+						value = "low";
+					}else if("1".equals(value)){
+						value = "middle";
+					}else{
+						value = "high";
+					}
+				}
+				sb.append("\n  [" + key + " = " + value + "]");
 			}
 		}
 		final String sbStr = sb.toString();

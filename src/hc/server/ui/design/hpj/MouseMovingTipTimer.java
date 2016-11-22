@@ -30,7 +30,7 @@ public class MouseMovingTipTimer extends HCTimer {
 	}
 	
 	public MouseMovingTipTimer(final ScriptEditPanel scriptPanel, final HCTextPane jtaScript, final AbstractDocument jtaDocment, final int fontHeight) {
-		super("MouseMovingTipTimer", 1500, false);
+		super("MouseMovingTipTimer", 1000, false);
 		if(L.isInWorkshop){
 			L.V = L.O ? false : LogManager.log("create MouseMovingTipTimer");
 		}
@@ -50,7 +50,7 @@ public class MouseMovingTipTimer extends HCTimer {
 		synchronized (lock) {
 			setEnable(false);
 			
-			if(System.currentTimeMillis() - 1000 > setLocMS){//防止time已启动，但是事件又更新，导致eventPoint为脏数据
+			if(System.currentTimeMillis() - 500 > setLocMS){//防止time已启动，但是事件又更新，导致eventPoint为脏数据
 			}else{
 				return;
 			}

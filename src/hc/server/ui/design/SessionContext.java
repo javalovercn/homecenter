@@ -2,6 +2,7 @@ package hc.server.ui.design;
 
 import hc.core.L;
 import hc.core.util.LogManager;
+import hc.core.util.RecycleRes;
 import hc.core.util.RecycleThread;
 import hc.core.util.ThreadPool;
 import hc.server.ui.ClientSession;
@@ -12,13 +13,14 @@ import java.util.Stack;
 public class SessionContext {
 	final static HashMap<String, Stack<SessionContext>> map = new HashMap<String, Stack<SessionContext>>(12);
 	
-	public static synchronized SessionContext getFreeMobileContext(final String projID, final ThreadGroup projectGroup){
+	public static synchronized SessionContext getFreeMobileContext(final String projID, final ThreadGroup projectGroup,
+			final ProjResponser projResp){
 		final Stack<SessionContext> stack = map.get(projID);
 		if(stack == null || stack.size() == 0){
 			if(L.isInWorkshop){
 				LogManager.log("build new instance SessionContext for project [" + projID + "].");
 			}
-			return new SessionContext(projectGroup);
+			return new SessionContext(projectGroup, projResp);
 		}else{
 			if(L.isInWorkshop){
 				LogManager.log("re-use a SessionContext for project [" + projID + "].");
@@ -47,7 +49,7 @@ public class SessionContext {
 	static int groupIdx = 1;
 	
 	final ThreadGroup mtg;
-	public final ThreadPool sessionPool;
+	public final RecycleRes recycleRes;
 	private ClientSession clientSession;
 	public J2SESession j2seSocketSession;
 	
@@ -65,12 +67,12 @@ public class SessionContext {
 		return this.clientSession;
 	}
 	
-	public SessionContext(final ThreadGroup projectGroup){
+	public SessionContext(final ThreadGroup projectGroup, final ProjResponser proResp){
 		synchronized (SessionContext.class) {
 			mtg = new ThreadGroup(projectGroup, "SessionThreadPoolGroup" + (groupIdx++));
 		}
 		
-		sessionPool = new ThreadPool(mtg) {
+		final ThreadPool sessionPool = new ThreadPool(mtg) {
 			@Override
 			protected void checkAccessPool(final Object token) {
 			}
@@ -80,5 +82,7 @@ public class SessionContext {
 				return new Thread(mtg, rt);
 			}
 		};
+		
+		recycleRes = new RecycleRes("Session", sessionPool, proResp.recycleRes.sequenceWatcher);//注意：与project共享sequenceWatcher
 	}
 }

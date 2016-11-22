@@ -217,6 +217,7 @@ public class CodeHelper {
 				}
 				
 				final CodeItem item = CodeItem.getFree();
+				item.fieldOrMethodOrClassName = codeField;
 				item.code = codeFieldForInput;
 				final Class<?> fieldClass = field.getDeclaringClass();
 				item.fmClass = fieldClass.getName();
@@ -261,6 +262,7 @@ public class CodeHelper {
 				}
 				
 				final CodeItem item = CodeItem.getFree();
+				item.fieldOrMethodOrClassName = method.getName();
 				item.code = codeMethodForInput;//一般方法直接输出，静态方法加.class.转换
 				final Class<?> methodClass = method.getDeclaringClass();
 				item.fmClass = methodClass.getName();
@@ -294,6 +296,7 @@ public class CodeHelper {
 			final int size = cons.length;
 			if(size == 0){
 				final CodeItem item = CodeItem.getFree();
+				item.fieldOrMethodOrClassName = JRUBY_NEW;
 				item.code = JRUBY_NEW + "()";
 				item.codeDisplay = item.code + " - " + c.getSimpleName();
 				item.codeLowMatch = item.code.toLowerCase();
@@ -323,6 +326,7 @@ public class CodeHelper {
 					}
 					
 					final CodeItem item = CodeItem.getFree();
+					item.fieldOrMethodOrClassName = JRUBY_NEW;
 					item.code = JRUBY_NEW + (paraStr.length()==0?"()":"(" + paraStr + ")");
 					item.codeDisplay = item.code + " - " + c.getSimpleName();
 					item.codeLowMatch = item.code.toLowerCase();
@@ -340,6 +344,7 @@ public class CodeHelper {
 
 	private static void addToMethod(final ArrayList<CodeItem> list, final String methodName, final String resultType, final String baseClassName) {
 		final CodeItem item = CodeItem.getFree();
+		item.fieldOrMethodOrClassName = methodName;
 		item.code = methodName + "()";
 		item.fmClass = int.class.getName();
 		item.codeDisplay = item.code + " : " + resultType + " - " + baseClassName;
@@ -410,6 +415,7 @@ public class CodeHelper {
 		item.code = sb.toString();
 		StringBuilderCacher.cycle(sb);
 		
+		item.fieldOrMethodOrClassName = methodName;
 		item.codeDisplay = item.code + " - " + className;
 		item.codeLowMatch = item.code.toLowerCase();
 		
@@ -562,6 +568,7 @@ public class CodeHelper {
 					final ConstDeclNode constNode = (ConstDeclNode)sub;
 					
 					final CodeItem item = CodeItem.getFree();
+					item.fieldOrMethodOrClassName = constNode.getName();
 					item.code = constNode.getName();
 					final Class classOfConst = getClassFromLiteral(constNode.getValue());
 					item.fmClass = classOfConst.getName();//Object.class.getName();
@@ -684,6 +691,7 @@ public class CodeHelper {
 			}else if(isResourceOnly == false){
 				final CodeItem item = CodeItem.getFree();
 				item.type = CodeItem.TYPE_CLASS;
+				item.fieldOrMethodOrClassName = pkg;
 				item.code = pkg;
 				item.codeDisplay = pkg;
 				item.codeLowMatch = pkg.toLowerCase();
@@ -1180,6 +1188,7 @@ public class CodeHelper {
 				final CodeItem item = CodeItem.getFree();
 				
 				item.type = CodeItem.TYPE_FIELD;
+				item.fieldOrMethodOrClassName = searchParaName;
 				item.code = searchParaName;
 				item.codeDisplay = searchParaName;
 				item.codeLowMatch = searchParaName.toLowerCase();
@@ -1219,6 +1228,7 @@ public class CodeHelper {
 				final CodeItem item = CodeItem.getFree();
 				
 				item.type = CodeItem.TYPE_FIELD;
+				item.fieldOrMethodOrClassName = searchParaName;
 				item.code = searchParaName;
 				item.codeDisplay = searchParaName;
 				item.codeLowMatch = searchParaName.toLowerCase();
@@ -1948,8 +1958,30 @@ public class CodeHelper {
 		final int line = ScriptEditPanel.getLineOfOffset(doc, scriptIdx);
         final int editLineStartIdx = ScriptEditPanel.getLineStartOffset(doc, line);
         final int lineIdx = scriptIdx - editLineStartIdx;
-        final char[] lineChars = doc.getText(editLineStartIdx, ScriptEditPanel.getLineEndOffset(doc, line) - editLineStartIdx).toCharArray();
+        final int lineEndOffset = ScriptEditPanel.getLineEndOffset(doc, line);
+        if(scriptIdx == lineEndOffset || scriptIdx + 1 == lineEndOffset){//鼠标处于行尾时，不处理
+        	return false;
+        }
         
+		char[] lineChars = doc.getText(editLineStartIdx, lineEndOffset - editLineStartIdx).toCharArray();
+		{
+			int i = lineIdx;
+			for (; i < lineChars.length; i++) {//补全完整的方法名
+				final char nextChar = lineChars[i];
+				if(nextChar >= 'a' && nextChar <= 'z'
+						|| nextChar >= 'A' && nextChar <= 'Z'
+						|| nextChar == '_'){
+				}else{
+					break;
+				}
+			}
+			if(i > lineIdx){
+				final char[] newLineChars = new char[i];
+				System.arraycopy(lineChars, 0, newLineChars, 0, i);//去掉方法后段部分，仅保留此之前
+				lineChars = newLineChars;
+			}
+		}
+		
 		initPreCode(lineChars, lineIdx, scriptIdx, line);
 		if(isForcePopup == false && out.size() == 0){
 			return false;
@@ -1981,16 +2013,20 @@ public class CodeHelper {
 			return false;
 		}
 		
-		preCode = preCode.toLowerCase();
-		CodeWindow.fillPreCode(out, autoTipOut, preCode);
-		if(autoTipOut.size() == 0){
-			return false;
-		}
+		CodeWindow.fillForAutoTip(out, autoTipOut, preCode);
 		
-		window.toFront(codeClass, sep, textPane, input_x, input_y, autoTipOut, preCode, scriptIdx, fontHeight);
+		final int matchSize = autoTipOut.size();
+		if(matchSize == 0){
+			return false;
+		}else if(matchSize == 1){
+			window.setMouseOverAutoTipLoc(input_x, input_y, fontHeight);
+			window.startAutoPopTip(autoTipOut.get(0));
+		}else{
+			window.toFront(codeClass, sep, textPane, input_x, input_y, autoTipOut, preCode, scriptIdx, fontHeight);
+		}
 		return true;
 	}
-	
+
 	public final void inputVariableForCSS(final HCTextPane textPane, final Point caretPosition, final int fontHeight,
 			final int scriptIdx){
 		final Point win_loc = textPane.getLocationOnScreen();

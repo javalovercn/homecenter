@@ -15,9 +15,9 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
+import hc.core.util.RecycleRes;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
-import hc.core.util.ThreadPool;
 import hc.server.CallContext;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
@@ -81,7 +81,7 @@ public class ProjectContext {
 	private final String projectID;
 	private final boolean isLoggerOn;
 	private final String projectVer;
-	final ThreadPool projectPool;
+	final RecycleRes recycleRes;
 	final Vector<SystemEventListener> projectLevelEventListeners = new Vector<SystemEventListener>();
 
 	/**
@@ -173,12 +173,12 @@ public class ProjectContext {
 	 */
 	@Deprecated
 	ProjectContext(final String id, final String ver,
-			final ThreadPool pool, final ProjResponser projResponser,
+			final RecycleRes recycleRes, final ProjResponser projResponser,
 			final ProjClassLoaderFinder finder) {//为了不在代码提示中出来，请使用ServerUIUtil.buildProjectContext
 		projectID = id;
 		projectVer = ver;
 		isLoggerOn = ServerUIAPIAgent.isLoggerOn();
-		this.projectPool = pool;
+		this.recycleRes = recycleRes;
 		this.__projResponserMaybeNull = projResponser;// 由于应用复杂，可能为null
 		this.finder = finder;
 	}
@@ -233,6 +233,7 @@ public class ProjectContext {
 	}
 	
 	/**
+     * add a menu item for project or session at run-time.<BR><BR>
      * if in project level, add item to list of project level.<BR>
      * if in session level, add item to list of session level.
      * <BR><BR>
@@ -768,7 +769,7 @@ public class ProjectContext {
 	 * @since 7.20
 	 */
 	public final void runInProjectLevel(final Runnable runnable) {
-		projectPool.run(runnable);
+		recycleRes.threadPool.run(runnable);
 	}
 	
 	/**
@@ -791,7 +792,7 @@ public class ProjectContext {
 			}
 		};
 		
-		projectPool.runAndWait(run);
+		recycleRes.threadPool.runAndWait(run);
 	}
 
 	/**
@@ -824,9 +825,9 @@ public class ProjectContext {
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("run");
 			}
-			projectPool.run(runnable);
+			recycleRes.threadPool.run(runnable);
 		}else{
-			sessionContext.sessionPool.run(runnable);
+			sessionContext.recycleRes.threadPool.run(runnable);
 		}
 	}
 
@@ -868,9 +869,9 @@ public class ProjectContext {
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("runAndWait");
 			}
-			projectPool.runAndWait(run);
+			recycleRes.threadPool.runAndWait(run);
 		}else{
-			sessionContext.sessionPool.runAndWait(run);
+			sessionContext.recycleRes.threadPool.runAndWait(run);
 		}
 	}
 

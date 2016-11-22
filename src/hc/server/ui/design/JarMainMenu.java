@@ -98,6 +98,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 					final LinkProjectStore lps = it.next();
 					if(hasMenuItemsAndActive(lps)){
 					}else{
+						LogManager.warning("there is no menu item in [" + lps.getProjectID() + "], skip build folder for [" + lps.getProjectID() + "].");
 						//如果工程内没有菜单项，则不显示。含事件或未来其它
 						continue;
 					}

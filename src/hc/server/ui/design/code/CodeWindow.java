@@ -1,9 +1,7 @@
 package hc.server.ui.design.code;
 
 import hc.core.HCTimer;
-import hc.core.L;
 import hc.core.util.ExceptionReporter;
-import hc.core.util.LogManager;
 import hc.server.DefaultManager;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.hpj.HCTextPane;
@@ -48,6 +46,13 @@ public class CodeWindow {
 		}catch (final Throwable e) {
 			return w_h;
 		}
+	}
+	
+	public final void setMouseOverAutoTipLoc(final int x, final int y, final int fontHeight) {
+		docHelper.isForMouseOverTip = true;
+		docHelper.mouseOverX = x;
+		docHelper.mouseOverY = y;
+		docHelper.mouseOverFontHeight = fontHeight;
 	}
 	
 	private static final int limitThreeOf(final int width){
@@ -291,16 +296,7 @@ public class CodeWindow {
 				if(idx >= 0){
 					final CodeItem item = classData.get(idx);
 					if(docHelper.acceptType(item.type)){
-						synchronized (autoPopTip) {
-							autoPopTip.resetTimerCount();
-							autoPopTip.docHelper = docHelper;
-							autoPopTip.classFrame = classFrame;
-							autoPopTip.fmClass = item.fmClass;
-							autoPopTip.fieldOrMethodName = item.code;//注意：构造方法已转为new(),而非simpleClassName()
-							autoPopTip.type = item.type;
-							autoPopTip.layoutLimit = layoutLimit;
-							autoPopTip.setEnable(true);
-						}
+						startAutoPopTip(item);
 					}else{
 						docHelper.setInvisible();
 					}
@@ -315,7 +311,7 @@ public class CodeWindow {
 	public final void hide(final boolean lostFocus){
 		codeHelper.mouseExitHideDocForMouseMovTimer.setEnable(false);
 		synchronized (classFrame) {
-			if(classFrame.isVisible()){
+			if(classFrame.isVisible() || docHelper.isShowing()){
 				synchronized (autoPopTip) {
 					autoPopTip.setEnable(false);
 					docHelper.setInvisible();
@@ -384,7 +380,8 @@ public class CodeWindow {
 		classFrame.pack();//有可能backspace，出现更长内容，而需要pack
 	}
 
-	public static void fillPreCode(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target, final String preCodeLower) {
+	public static void fillPreCode(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target, 
+			final String preCodeLower) {
 		target.clear();
 		final int size = src.size();
 		final int preLen = preCodeLower.length();
@@ -399,11 +396,24 @@ public class CodeWindow {
 		}
 	}
 	
+	public static void fillForAutoTip(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target, final String fieldOrMethod) {
+		target.clear();
+		final int size = src.size();
+		for (int i = 0; i < size; i++) {
+			final CodeItem codeItem = src.get(i);
+			if(codeItem.fieldOrMethodOrClassName.equals(fieldOrMethod)){
+				target.add(codeItem);
+			}
+		}
+	}
+	
 	final Rectangle rect = new Rectangle(0, 0, 1, 1);
 	
 	public final void toFront(final Class codeClass, final ScriptEditPanel sep, final HCTextPane eventFromComponent, 
 			final int x, final int y, final ArrayList<CodeItem> list, 
 			final String preCode, final int scriptIdx, final int fontHeight){
+		docHelper.isForMouseOverTip = false;
+		
 		fullList = list;
 		this.codeBelongClass = codeClass;
 		classData.clear();
@@ -576,6 +586,19 @@ public class CodeWindow {
 		if(e.getSource() != codeList){
 			codeList.dispatchEvent(new KeyEvent(codeList, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, keyCode, e.getKeyChar()));
 //			codeList.dispatchEvent(new KeyEvent(codeList, KeyEvent.KEY_TYPED, System.currentTimeMillis(), 0, keyCode, e.getKeyChar()));
+		}
+	}
+
+	public final void startAutoPopTip(final CodeItem item) {
+		synchronized (autoPopTip) {
+			autoPopTip.resetTimerCount();
+			autoPopTip.docHelper = docHelper;
+			autoPopTip.classFrame = classFrame;
+			autoPopTip.fmClass = item.fmClass;
+			autoPopTip.fieldOrMethodName = item.code;//注意：构造方法已转为new(),而非simpleClassName()
+			autoPopTip.type = item.type;
+			autoPopTip.layoutLimit = layoutLimit;
+			autoPopTip.setEnable(true);
 		}
 	}
 }

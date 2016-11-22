@@ -1165,7 +1165,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		}
 		
 		ctx.coreSS.sipContext.resender.reset();
-		HCTimer.remove(coreSS.eventConditionWatcher.watcherTimer);
+//		HCTimer.remove(coreSS.eventConditionWatcher.watcherTimer);
 //		ConditionWatcher.cancelAllWatch();//释放在途EventBack事件，须在sleep之后
 		
 		SessionManager.release(coreSS);

@@ -1,39 +1,40 @@
 package hc.util;
 
 import hc.core.util.CCoreUtil;
-import hc.core.util.ThreadPool;
+import hc.core.util.RecycleRes;
+
 import java.util.HashMap;
 import java.util.Iterator;
 
 public class RecycleProjThreadPool {
-	private final static HashMap<String, ThreadPool> stack = new HashMap<String, ThreadPool>(16);
+	private final static HashMap<String, RecycleRes> stack = new HashMap<String, RecycleRes>(16);
 	
-	public final static void recycle(String projID, ThreadPool pool){
-		if(pool == null){
+	public final static void recycle(final String projID, final RecycleRes recycleRes){
+		if(recycleRes == null){
 			return;
 		}
 		
 		CCoreUtil.checkAccess();
 		
 		synchronized (stack) {
-			stack.put(projID, pool);
+			stack.put(projID, recycleRes);
 		}
 	}
 	
-	public final static boolean containsProjID(String projID){
+	public final static boolean containsProjID(final String projID){
 		return stack.containsKey(projID);
 	}
 	
-	public final static ThreadPool getFree(String projID){
+	public final static RecycleRes getFree(final String projID){
 		CCoreUtil.checkAccess();
 		
 		synchronized (stack) {
-			ThreadPool out = stack.remove(projID);
+			RecycleRes out = stack.remove(projID);
 			if(out == null){
 				if(stack.isEmpty()){
 					return null;
 				}
-				Iterator<String> it = stack.keySet().iterator();
+				final Iterator<String> it = stack.keySet().iterator();
 				it.hasNext();
 				out = stack.remove(it.next());
 			}

@@ -1,5 +1,6 @@
 package hc.server.ui.design;
 
+import hc.core.BaseWatcher;
 import hc.core.ConfigManager;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
@@ -14,6 +15,7 @@ import hc.core.util.HCURLCacher;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
 import hc.core.util.MobileAgent;
+import hc.core.util.RecycleRes;
 import hc.core.util.RecycleThread;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StoreableHashMap;
@@ -62,7 +64,7 @@ import java.util.Vector;
 
 public class ProjResponser {
 	public final Map<String, Object> map;
-	public final ThreadPool threadPool;
+	public final RecycleRes recycleRes;
 	public JarMainMenu jarMainMenu;//注意：menu不允许为null，主菜单可能出现空内容
 	public final HCJRubyEngine hcje;
 	final ThreadGroup threadGroup;
@@ -77,7 +79,7 @@ public class ProjResponser {
 	final SessionMobileContext mobileContexts = new SessionMobileContext();
 	
 	public final SessionContext useFreeMobileContext(final J2SESession coreSS){
-		final SessionContext mc = SessionContext.getFreeMobileContext(projectID, threadGroup);
+		final SessionContext mc = SessionContext.getFreeMobileContext(projectID, threadGroup, this);
 		mobileContexts.appendCurrContext(coreSS, mc);
 		return mc;
 	}
@@ -140,7 +142,7 @@ public class ProjResponser {
 			}
 		}
 		
-		RecycleProjThreadPool.recycle(projectID, threadPool);
+		RecycleProjThreadPool.recycle(projectID, recycleRes);
 		
 		mobileContexts.release(projectID);
 		
@@ -321,11 +323,11 @@ public class ProjResponser {
 		final String reportExceptionURL = (String)this.map.get(HCjar.PROJ_EXCEPTION_REPORT_URL);
 		this.hcje = new HCJRubyEngine(deployPath.getAbsolutePath(), projClassLoader, reportExceptionURL != null && reportExceptionURL.length() > 0);
 		
-		final ThreadPool tmpPool = RecycleProjThreadPool.getFree(projID);
+		final RecycleRes tmpRecycleRes = RecycleProjThreadPool.getFree(projID);
 		
-		if(tmpPool != null){
-			threadPool = tmpPool;
-			threadGroup = (ThreadGroup)threadPool.getThreadGroup();
+		if(tmpRecycleRes != null){
+			recycleRes = tmpRecycleRes;
+			threadGroup = (ThreadGroup)recycleRes.threadPool.getThreadGroup();
 //			System.out.println("recycle threadPool for ProjResponser");
 		}else{
 			threadGroup = new ThreadGroup("HarLimitThreadPoolGroup"){
@@ -336,7 +338,7 @@ public class ProjResponser {
 				}
 			};
 			ClassUtil.changeParentToNull(threadGroup);
-			threadPool =	new ThreadPool(threadGroup){
+			final ThreadPool threadPool =	new ThreadPool(threadGroup){
 				//每个工程实例下，用一个ThreadPool实例，以方便权限管理
 				@Override
 				public final Thread buildThread(final RecycleThread rt) {
@@ -355,9 +357,10 @@ public class ProjResponser {
 					ClassUtil.printCurrentThreadStack("--------------nest stack--------------");
 				}
 			};
+			recycleRes = new RecycleRes(projID + "-Project", threadPool);
 		}
-		threadPool.setName(projID + "-ThreadPool");
-		context = ServerUIUtil.buildProjectContext(projID, (String)map.get(HCjar.PROJ_VER), threadPool, this, new ProjClassLoaderFinder() {
+		recycleRes.threadPool.setName(projID + "-ThreadPool");
+		context = ServerUIUtil.buildProjectContext(projID, (String)map.get(HCjar.PROJ_VER), recycleRes, this, new ProjClassLoaderFinder() {
 			@Override
 			public ClassLoader findProjClassLoader() {
 				return projClassLoader;
@@ -507,46 +510,43 @@ public class ProjResponser {
 		return hasResource;
 	}
 	
-	public final Object onScriptEvent(final J2SESession coreSS, final Object event) {
+	public final Object onScriptEventInSequence(final J2SESession coreSS, final Object event) {
 		if(event == null){
 			return null;
 		}else if(isScriptEventToAllProjects(event)){
 			//优先执行主菜单的事件
 			final String script = (String)map.get(HCjar.buildEventMapKey(HCjar.MAIN_MENU_IDX, event.toString()));
 			if(script != null && script.trim().length() > 0){
-				final String scriptName = event.toString();
-				
-//				System.out.println("OnEvent : " + event + ", script : " + script + ", scriptcontain : " + hcje.container);
-				final CallContext callCtx = CallContext.getFree();
-				RubyExector.runAndWaitInProjectOrSessionPool(coreSS, callCtx, script, scriptName, null, hcje, context);//考虑到PROJ_SHUTDOWN，所以改为阻塞模式
-				if(callCtx.isError){
-					if(mobiResp.ec != null){
-						mobiResp.ec.setThrowable(new HCJRubyException(callCtx));
+				final ReturnableRunnable runnable = new ReturnableRunnable() {
+					@Override
+					public Object run() {
+						final String scriptName = event.toString();
+						
+//						System.out.println("OnEvent : " + event + ", script : " + script + ", scriptcontain : " + hcje.container);
+						final CallContext callCtx = CallContext.getFree();
+						RubyExector.runAndWaitInProjectOrSessionPool(coreSS, callCtx, script, scriptName, null, hcje, context);//考虑到PROJ_SHUTDOWN，所以改为阻塞模式
+						if(callCtx.isError){
+							if(mobiResp.ec != null){
+								mobiResp.ec.setThrowable(new HCJRubyException(callCtx));
+							}
+						}
+						CallContext.cycle(callCtx);
+						return null;
 					}
+				};
+				
+				if(coreSS != null){
+					RubyExector.execInSequenceForSession(coreSS, this, runnable);
+				}else{
+					ServerUIAPIAgent.addSequenceWatcherInProjContext(context, new BaseWatcher() {
+						@Override
+						public boolean watch() {
+							ServerUIAPIAgent.runAndWaitInProjContext(context, runnable);
+							return true;
+						}
+					});
 				}
-				CallContext.cycle(callCtx);
 			}
-
-//			//以下是为多菜单模式：其次执行非主菜单的事件脚本，依自然序列
-//			for (int i = 0; i < menu.length; i++) {
-//				if(i == mainMenuIdx){
-//					continue;
-//				}
-//				script = (String)map.get(HCjar.buildEventMapKey(i, event.toString()));
-//				if(script != null && script.trim().length() > 0){
-//					final String scriptName = event.toString();
-//					
-////					System.out.println("OnEvent : " + event + ", script : " + script + ", scriptcontain : " + hcje.container);
-//					final CallContext callCtx = CallContext.getFree();
-//					RubyExector.runAndWaitInProjectOrSessionPool(coreSS, callCtx, script, scriptName, null, hcje, context);//考虑到PROJ_SHUTDOWN，所以改为阻塞模式
-//					if(callCtx.isError){
-//						if(mobiResp.ec != null){
-//							mobiResp.ec.setThrowable(new HCJRubyException(callCtx));
-//						}
-//					}
-//					CallContext.cycle(callCtx);
-//				}
-//			}
 
 			return null;
 		}else{
@@ -677,7 +677,22 @@ public class ProjResponser {
 						final String scriptName = getItemProp(item, PROP_ITEM_NAME);
 								
 						//由于某些长任务，可能导致KeepAlive被长时间等待，而导致手机端侦测断线，所以本处采用后台模式
-						RubyExector.runLaterInSessionPool(coreSS, listener, scriptName, mapRuby, hcje, context);
+						final ReturnableRunnable run = new ReturnableRunnable() {
+							@Override
+							public Object run() {
+								final CallContext callCtx = CallContext.getFree();
+								RubyExector.parse(callCtx, listener, scriptName, hcje, true);
+								if(callCtx.isError){
+									CallContext.cycle(callCtx);
+									return null;
+								}else{
+									RubyExector.runAndWaitOnEngine(callCtx, listener, scriptName, mapRuby, hcje);
+									CallContext.cycle(callCtx);
+								}
+								return null;
+							}
+						};
+						RubyExector.execInSequenceForSession(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(context), run);//注意：长任务也要入sequence，用户在其内进行run()
 					}
 					return true;
 				}
@@ -780,15 +795,16 @@ public class ProjResponser {
 								final CtrlResponse responsor = (CtrlResponse)obj;
 								try{
 									final CtrlMap cmap = new CtrlMap(map);
-									ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(responsor.getProjectContext()), new Runnable() {
+									ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(responsor.getProjectContext()), new ReturnableRunnable() {
 										@Override
-										public void run() {
+										public Object run() {
 											//添加初始按钮名
 											final int[] keys = cmap.getButtonsOnCanvas();
 											for (int i = 0; i < keys.length; i++) {
 												final String txt = responsor.getButtonInitText(keys[i]);
 												cmap.setButtonTxt(keys[i], txt);
 											}
+											return null;
 										}
 									});
 									
@@ -947,7 +963,7 @@ public class ProjResponser {
 			}
 		};
 
-		return (Integer)ServerUIAPIAgent.getProjResponserMaybeNull(ctx).getMobileSession(coreSS).sessionPool.runAndWait(run);
+		return (Integer)ServerUIAPIAgent.getProjResponserMaybeNull(ctx).getMobileSession(coreSS).recycleRes.threadPool.runAndWait(run);
 	}
 
 	public static final Mlet startMlet(final J2SESession coreSS,

@@ -2,25 +2,31 @@ package hc.core;
 
 import hc.core.util.LinkedSet;
 import hc.core.util.LogManager;
+import hc.core.util.ThreadPriorityManager;
 
 public class HCConditionWatcher {
 	boolean isShutdown;
 	
 	public final void shutdown(){
 		isShutdown = true;
+		HCTimer.remove(watcherTimer);
 	}
 	
 	private final String timeName;
 	//注意:
 	//由于本对象属于HCTimer，所以AckBatchHCTimer去掉锁，未来变动时，请开启AckBatchHCTimer的锁机制。
-	public final HCTimer watcherTimer;
+	private final HCTimer watcherTimer;
 	private final boolean isInWorkshop;
 	
 	public HCConditionWatcher(final String timeName){
+		this(timeName, false, ThreadPriorityManager.LOWEST_PRIORITY);
+	}
+	
+	public HCConditionWatcher(final String timeName, final boolean isNewThread, final int newThreadPrority){
 		this.timeName = timeName;
 		isInWorkshop = L.isInWorkshop;
 		
-		watcherTimer = new HCTimer(timeName, HCTimer.HC_INTERNAL_MS, false){
+		watcherTimer = new HCTimer(timeName, HCTimer.HC_INTERNAL_MS, false, isNewThread, newThreadPrority){
 //			public final void setEnable(final boolean enable){
 //				if(isInWorkshop){
 //					L.V = L.O ? false : LogManager.log("[" + timeName + "] setEnable : " + enable);
@@ -62,11 +68,11 @@ public class HCConditionWatcher {
 					}
 				}while(true);
 				
-				if(isInWorkshop){
-					L.V = L.O ? false : LogManager.log("[" + timeName + "] processing unUsed watcher.");
-				}
-				
 				if(isAddUnUsed){
+					if(isInWorkshop){
+						L.V = L.O ? false : LogManager.log("[" + timeName + "] processing unUsed watcher.");
+					}
+					
 					synchronized (watchers) {
 						Object rewatcher;
 						while((rewatcher = usedRewatchers.getFirst()) != null){

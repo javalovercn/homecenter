@@ -233,10 +233,11 @@ public class HttpUtil {
 	public static String replaceSimuURL(String url, final boolean isSimu) {
 		if(isSimu){
 			final String hostString = RootServerConnector.IP_192_168_1_102 + ":80";//localhost:80
-			url = StringUtil.replace(url, RootServerConnector.HOST_HOMECENTER_MOBI, hostString);//192.168.1.101
-			url = StringUtil.replace(url, ":80", RootServerConnector.PORT_8080_WITH_MAOHAO);//192.168.1.101
-			url = StringUtil.replace(url, RootServerConnector.PORT_808044X, RootServerConnector.PORT_44X_WITH_MAOHAO);
-			url = StringUtil.replace(url, "call.php", "callsimu.php");//192.168.1.101
+			url = StringUtil.replaceFirst(url, RootServerConnector.IP_192_168_1_102, hostString);
+			url = StringUtil.replaceFirst(url, RootServerConnector.HOST_HOMECENTER_MOBI, hostString);//192.168.1.101
+			url = StringUtil.replaceFirst(url, ":80", RootServerConnector.PORT_8080_WITH_MAOHAO);//192.168.1.101
+			url = StringUtil.replaceFirst(url, RootServerConnector.PORT_808044X, RootServerConnector.PORT_44X_WITH_MAOHAO);
+			url = StringUtil.replaceFirst(url, "call.php", "callsimu.php");//192.168.1.101
 		}
 		
 		url = RootServerConnector.convertToHttpAjax(url);
@@ -272,7 +273,7 @@ public class HttpUtil {
 			
 			return getAjax(url, conn);
 		} catch (final Throwable e) {
-			if(url.getProtocol().equals("https")){
+			if(url != null && url.getProtocol().equals("https")){
 				if(url.getHost().equals(RootServerConnector.HOST_HOMECENTER_MOBI)){
 					if(e.getClass().getName().indexOf("SSL") >= 0){//SSLHandshakeException
 						//服务器无SSL私钥：java.security.cert.CertificateException: No subject alternative DNS name matching unioncard.mobi found.
@@ -289,8 +290,10 @@ public class HttpUtil {
 					}
 					ExceptionReporter.printStackTrace(e);
 				}
+			}else{
+				e.printStackTrace();
 			}
-			L.V = L.O ? false : LogManager.log("http execption : " + e.getMessage());
+			L.V = L.O ? false : LogManager.log("http execption : " + e.getMessage() + ", to url : " + url_str);
 		}
 		return null;
 	}

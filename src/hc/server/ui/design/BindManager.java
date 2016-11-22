@@ -225,7 +225,7 @@ public class BindManager {
 	 */
 	private static final ConverterInfo searchConverterForCompatibleToUserThread(final BindRobotSource source, final ProjResponser pr,
 			final DeviceCompatibleDescription compDesc, final ArrayList<ConverterInfo> cbi){
-		return (ConverterInfo)pr.threadPool.runAndWait(new ReturnableRunnable() {
+		return (ConverterInfo)pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() {
 				if(compDesc == null){
@@ -254,7 +254,7 @@ public class BindManager {
 	 */
 	private static final RealDeviceInfo searchDeviceForCompatibleToUserThread(final BindRobotSource source,  final ProjResponser pr,
 			final DeviceCompatibleDescription compDesc, final ArrayList<RealDeviceInfo> rdbi){
-		return (RealDeviceInfo)pr.threadPool.runAndWait(new ReturnableRunnable() {
+		return (RealDeviceInfo)pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() {
 				if(compDesc == null){

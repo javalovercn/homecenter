@@ -180,7 +180,7 @@ public class SIPManager {
 				LogManager.info("try relay connect...");
 				final IPAndPort ipport = new IPAndPort(out[idx_relayip], Integer.parseInt(out[idx_relayport]));
 				final IPAndPort l_relayIpPort = SIPManager.tryBuildConnOnDirect(coreSS, ipport,
-						"Relay Mode", EnumNAT.FULL_AGENT_BY_OTHER, SIPManager.REG_WAITING_MS);
+						"Relay Mode", EnumNAT.FULL_AGENT_BY_OTHER, SIPManager.REG_WAITING_MS + 1000);//Android机器出现relay fail情形，再试成功，故增加1秒
 				if(l_relayIpPort != null){
 					LogManager.info("relay mode : yes");
 

@@ -343,7 +343,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		PropertiesManager.emptyDelDir();
 		
 		//初始化
-		HCLimitSecurityManager.getTempLimitThreadPool();
+		HCLimitSecurityManager.getTempLimitRecycleRes();
 		
 		CCoreUtil.setSecurityChecker(new HCSecurityChecker());
 		
@@ -2368,9 +2368,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	}
 
 	private static void startRegDialog() {
-//		String uuid = IConstant.getInstance().getAjaxForSimu(
-//				"http://homecenter.mobi/ajax/call.php?f=uuid", false);
-
 			final String pwd1 = "", pwd2 = "";
 
 			showInputPWDDialog("", pwd1, pwd2, true);

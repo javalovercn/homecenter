@@ -1,10 +1,8 @@
 package hc.util;
 
-import hc.core.IContext;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
-import hc.server.TrayMenuUtil;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,10 +12,10 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class LogServerPlaint implements ILog {
+public class LogServerForRoot implements ILog {
 	private FileOutputStream outLogger = null;
 
-	public LogServerPlaint() {
+	public LogServerForRoot() {
 		if (LogManager.INI_DEBUG_ON) {
 		} else {
 			final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd_hhmmss");
@@ -72,7 +70,7 @@ public class LogServerPlaint implements ILog {
 	@Override
 	public void errWithTip(final String msg) {
 		err(msg);
-		TrayMenuUtil.displayMessage((String) ResourceUtil.get(IContext.ERROR), msg, IContext.ERROR, null,	0);
+//		TrayMenuUtil.displayMessage((String) ResourceUtil.get(IContext.ERROR), msg, IContext.ERROR, null,	0);//RootServer close tip
 	}
 
 

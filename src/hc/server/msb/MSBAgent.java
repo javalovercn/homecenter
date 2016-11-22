@@ -25,7 +25,7 @@ public final class MSBAgent {
 		if(isInUserThread){
 			return compDesc.getCompatibleItem();
 		}else{
-			return (String[])pr.threadPool.runAndWait(new ReturnableRunnable() {
+			return (String[])pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 				@Override
 				public Object run() {
 					return compDesc.getCompatibleItem();

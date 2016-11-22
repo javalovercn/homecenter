@@ -2,6 +2,7 @@ package hc.server.ui.design;
 
 import hc.App;
 import hc.UIActionListener;
+import hc.core.BaseWatcher;
 import hc.core.ConfigManager;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
@@ -12,6 +13,7 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
+import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
 import hc.server.ScreenServer;
 import hc.server.data.screen.ScreenCapturer;
@@ -479,48 +481,32 @@ public class MobiUIResponsor extends BaseResponsor {
 			}
 			
 			final boolean isReturnBackFinal = isReturnBack;
-			final Runnable runBack = new Runnable() {
-				@Override
-				public void run() {
-					if(isReturnBackFinal == false){
-						//login或start时，先执行ROOT
-						responsors[rootIdx].onScriptEvent(j2seCoreSS, event);
-					}
-					
-					//执行非ROOT
-					for (int i = 0; i < responserSize; i++) {
-						if(i != rootIdx){
-							responsors[i].onScriptEvent(j2seCoreSS, event);//注意：请与fireSystemEventListenerOnAppendProject保持同步
-						}
-					}
-
-					if(isReturnBackFinal){
-						//logout或shutdown时，最后执行ROOT
-						responsors[rootIdx].onScriptEvent(j2seCoreSS, event);
-					}
-					
-					fireSystemEvent(j2seCoreSS, event);
-					
-					if(event == ProjectContext.EVENT_SYS_MOBILE_LOGIN){
-						UserThreadResourceUtil.getMobileAgent(j2seCoreSS).set(ConfigManager.UI_IS_BACKGROUND, IConstant.FALSE);
-						fireSystemEvent(j2seCoreSS, ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
-					}
-				}
-			};
+			if(isReturnBackFinal == false){
+				//login或start时，先执行ROOT
+				responsors[rootIdx].onScriptEventInSequence(j2seCoreSS, event);
+			}
 			
-			if(event == ProjectContext.EVENT_SYS_MOBILE_LOGOUT){
-				runBack.run();
-			}else{
-				ContextManager.getThreadPool().run(runBack);
+			//执行非ROOT
+			for (int i = 0; i < responserSize; i++) {
+				if(i != rootIdx){
+					responsors[i].onScriptEventInSequence(j2seCoreSS, event);//注意：请与fireSystemEventListenerOnAppendProject保持同步
+				}
+			}
+
+			if(isReturnBackFinal){
+				//logout或shutdown时，最后执行ROOT
+				responsors[rootIdx].onScriptEventInSequence(j2seCoreSS, event);
+			}
+			
+			fireSystemEventInSequence(j2seCoreSS, event);
+			
+			if(event == ProjectContext.EVENT_SYS_MOBILE_LOGIN){
+				UserThreadResourceUtil.getMobileAgent(j2seCoreSS).set(ConfigManager.UI_IS_BACKGROUND, IConstant.FALSE);
+				fireSystemEventInSequence(j2seCoreSS, ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
 			}
 			//以上是触发脚本，而非SystemEventListener
 		}else{
-			ContextManager.getThreadPool().run(new Runnable() {
-				@Override
-				public void run() {
-					fireSystemEvent(j2seCoreSS, event);
-				}
-			});
+			fireSystemEventInSequence(j2seCoreSS, event);
 		}
 		
 		if(event == ProjectContext.EVENT_SYS_MOBILE_LOGOUT){
@@ -545,12 +531,12 @@ public class MobiUIResponsor extends BaseResponsor {
 	 * @param coreSS 有些事件为null
 	 * @param event
 	 */
-	private void fireSystemEvent(final J2SESession coreSS, final String event) {
+	private void fireSystemEventInSequence(final J2SESession coreSS, final String event) {
 		//以下是触发SystemEventListener。
 		for (int i = 0; i < responserSize; i++) {
 			final ProjResponser projResponser = responsors[i];
 			//必须使用run。如果同步，可能导致异常程序占住服务器线程。参见SystemEventListener.onEvent
-			fireSystemEventListener(coreSS, projResponser, projResponser.context, event);//注意：请与fireSystemEventListenerOnAppendProject保持同步
+			fireSystemEventListenerInSequence(coreSS, projResponser, projResponser.context, event);//注意：请与fireSystemEventListenerOnAppendProject保持同步
 		}
 	}
 	
@@ -579,8 +565,8 @@ public class MobiUIResponsor extends BaseResponsor {
 			final String event = ProjectContext.EVENT_SYS_PROJ_STARTUP;
 			for (int i = 0; i < size; i++) {
 				final ProjResponser projResponser = resp[i];
-				projResponser.onScriptEvent(J2SESession.NULL_J2SESESSION_FOR_PROJECT, event);//注意：必须为NULL_J2SESESSION_FOR_PROJECT
-				fireSystemEventListener(J2SESession.NULL_J2SESESSION_FOR_PROJECT, projResponser, projResponser.context, event);
+				projResponser.onScriptEventInSequence(J2SESession.NULL_J2SESESSION_FOR_PROJECT, event);//注意：必须为NULL_J2SESESSION_FOR_PROJECT
+				fireSystemEventListenerInSequence(J2SESession.NULL_J2SESESSION_FOR_PROJECT, projResponser, projResponser.context, event);
 			}
 		}
 		
@@ -607,8 +593,8 @@ public class MobiUIResponsor extends BaseResponsor {
 				final ProjResponser projResponser = resp[i];
 				
 				setClientSessionForProjResponser(coreSS, coreSS.clientSession, projResponser);
-				projResponser.onScriptEvent(coreSS, event);
-				fireSystemEventListener(coreSS, projResponser, projResponser.context, event);
+				projResponser.onScriptEventInSequence(coreSS, event);
+				fireSystemEventListenerInSequence(coreSS, projResponser, projResponser.context, event);
 			}
 		}
 	}
@@ -619,10 +605,10 @@ public class MobiUIResponsor extends BaseResponsor {
 	 * @param ctx
 	 * @param event
 	 */
-	private final void fireSystemEventListener(final J2SESession coreSS, final ProjResponser resp, final ProjectContext ctx, final String event) {
-		final Runnable runnable = new Runnable() {
+	private final void fireSystemEventListenerInSequence(final J2SESession coreSS, final ProjResponser resp, final ProjectContext ctx, final String event) {
+		final ReturnableRunnable runnable = new ReturnableRunnable() {
 			@Override
-			public void run() {
+			public Object run() {
 				final Enumeration<SystemEventListener> sels = ServerUIAPIAgent.getSystemEventListener(coreSS, ctx);
 				try{
 					while(sels.hasMoreElements()){
@@ -648,17 +634,25 @@ public class MobiUIResponsor extends BaseResponsor {
 						L.V = L.O ? false : LogManager.log("change session menu [" + resp.projectID + "] to increment mode.");
 					}
 				}
+				
+				return null;
 			}
 		};
 		
 		//NOT block main thread
 		if(coreSS != null){
-			ServerUIAPIAgent.runInSessionThreadPool(coreSS, resp, runnable);
+			RubyExector.execInSequenceForSession(coreSS, resp, runnable);
 		}else{
-			ServerUIAPIAgent.runInProjContext(ctx, runnable);
+			ServerUIAPIAgent.addSequenceWatcherInProjContext(ctx, new BaseWatcher() {
+				@Override
+				public boolean watch() {
+					ServerUIAPIAgent.runAndWaitInProjContext(ctx, runnable);
+					return true;
+				}
+			});
 		}
 	}
-	
+
 	private final SessionCurrContext currContext = new SessionCurrContext();
 	
 	private int rootIdx;

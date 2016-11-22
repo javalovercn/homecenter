@@ -31,6 +31,18 @@ public class StringUtil {
 		}
 		return out;
 	}
+	
+	public static String replaceFirst(String src, final String find, final String replaceTo){
+		int index = 0;
+		String out = src;
+		while(index >= 0){
+			index = src.indexOf(find, index);
+			if(index >= 0){
+				return src.substring(0, index) + replaceTo + src.substring(index + find.length());
+			}
+		}
+		return out;
+	}
 
 	public static String replaceStartStr(final String src, final String find, final String replaceTo) {
 		if(src.startsWith(find)){

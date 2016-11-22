@@ -130,7 +130,7 @@ public class RootServerConnector {
 		String msg = null;
 		int tryTims = 0;
 		while(true){
-			msg = RootBuilder.getInstance().getAjaxForSimu(url);
+			msg = RootBuilder.getInstance().getAjax(url);
 			if(msg == null && tryTims < 2){
 			}else{
 				break;

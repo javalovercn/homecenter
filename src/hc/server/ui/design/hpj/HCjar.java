@@ -379,12 +379,12 @@ public class HCjar {
 		{
 			final ContextSecurityConfig csc = ContextSecurityConfig.getPermissionFromHARMap(map);
 			ContextSecurityManager.putContextSecurityConfig(
-					(ThreadGroup)HCLimitSecurityManager.getTempLimitThreadPool().getThreadGroup(), csc);
+					(ThreadGroup)HCLimitSecurityManager.getTempLimitRecycleRes().threadPool.getThreadGroup(), csc);
 			
 			final String projID = (String)map.get(PROJ_ID);
 			final String projVer = (String)map.get(PROJ_VER);
 
-			final ProjectContext context = ServerUIUtil.buildProjectContext(projID, projVer, HCLimitSecurityManager.getTempLimitThreadPool(), null, 
+			final ProjectContext context = ServerUIUtil.buildProjectContext(projID, projVer, HCLimitSecurityManager.getTempLimitRecycleRes(), null, 
 					new ProjClassLoaderFinder() {
 						@Override
 						public ClassLoader findProjClassLoader() {

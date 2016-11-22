@@ -342,20 +342,16 @@ public class AddHarHTMLMlet extends HTMLMlet {
 							}
 						};
 
-						final LicenseHTMLMlet[] result = new LicenseHTMLMlet[1];
-						
-						ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new Runnable() {
+						final LicenseHTMLMlet licenseHtmlMlet = (LicenseHTMLMlet)ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
 							@Override
-							public void run() {
-								result[0] = new LicenseHTMLMlet(licenseText, acceptListener, cancelListener,
+							public Object run() {
+								return new LicenseHTMLMlet(licenseText, acceptListener, cancelListener,
 										okImage, cancelImage,
 										iagreeStr, acceptStr, cancelStr);
 							}
 						});
 						
-						final LicenseHTMLMlet licenseHtmlMlet = result[0];
-						
-						goMlet(licenseHtmlMlet, CCoreUtil.SYS_PREFIX + "licenseHTMLMlet", false);
+						goMlet(licenseHtmlMlet, CCoreUtil.SYS_PREFIX + LicenseHTMLMlet.class.getSimpleName(), false);
 					}else{
 						//没有license的情形
 						yesRunnable.run();
@@ -655,10 +651,10 @@ public class AddHarHTMLMlet extends HTMLMlet {
 			
 			final boolean isSynchronized = true;
 			final ProjectContext context = pr.context;
-			final String elementID = "SYS_AddHarMlet";
+			final String elementID = CCoreUtil.SYS_PREFIX + claz.getSimpleName();
 			final String targetURL = HCURL.buildStandardURL(HCURL.FORM_PROTOCAL, elementID);
 			final AddHarHTMLMlet addHar = (AddHarHTMLMlet)ProjResponser.startMlet(coreSS, scripts, null, targetURL, elementID, "add HAR", pr.hcje, context, isSynchronized);
-
+			
 			return addHar;
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);

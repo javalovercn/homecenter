@@ -41,4 +41,8 @@ public class ServCtrlCanvas implements ICanvas {
 		MultiUsingManager.exit(coreSS, cr.getProjectContext().getProjectID(), cr.target);
 	}
 
+	@Override
+	public final String toString(){
+		return cr.target;
+	}
 }

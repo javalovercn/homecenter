@@ -93,7 +93,7 @@ public class BindRobotSource extends IoTSource{
 			if(MSBAgent.getName(r).equals(robotName)){
 				
 				L.V = L.O ? false : LogManager.log("try [declareReferenceDeviceID] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
-				final String[] referID = (String[])pr.threadPool.runAndWait(new ReturnableRunnable() {
+				final String[] referID = (String[])pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 					@Override
 					public Object run() {
 						return r.declareReferenceDeviceID();
@@ -148,7 +148,7 @@ public class BindRobotSource extends IoTSource{
 
 	@Override
 	public final DeviceCompatibleDescription getDeviceCompatibleDescByRobotToUserThread(final ProjResponser pr, final Robot r, final String referenceDeviceID) {
-		return (DeviceCompatibleDescription)pr.threadPool.runAndWait(new ReturnableRunnable() {
+		return (DeviceCompatibleDescription)pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() {
 				return r.getDeviceCompatibleDescription(referenceDeviceID);
@@ -161,7 +161,7 @@ public class BindRobotSource extends IoTSource{
 		if(devCompDesc == null){
 			return new DataDeviceCapDesc("", "", "1.0");
 		}else{
-			return (DataDeviceCapDesc)pr.threadPool.runAndWait(new ReturnableRunnable() {
+			return (DataDeviceCapDesc)pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 				@Override
 				public Object run() {
 					return new DataDeviceCapDesc(devCompDesc.getDescription(), devCompDesc.getCompatibleStringList(), devCompDesc.getVersion());
@@ -176,7 +176,7 @@ public class BindRobotSource extends IoTSource{
 			return;
 		}
 		
-		pr.threadPool.runAndWait(new ReturnableRunnable() {
+		pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() {
 				deviceInfo.deviceCompatibleDescriptionCache = deviceInfo.device.getDeviceCompatibleDescription();
@@ -192,7 +192,7 @@ public class BindRobotSource extends IoTSource{
 			return;
 		}
 		
-		pr.threadPool.runAndWait(new ReturnableRunnable() {
+		pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() {
 				converterInfo.upDeviceCompatibleDescriptionCache = converterInfo.converter.getUpDeviceCompatibleDescription();
@@ -242,7 +242,7 @@ public class BindRobotSource extends IoTSource{
 						final Device device = devices[j];
 						final String dev_name = MSBAgent.getName(device);
 						
-						final String[] devRealIDS = (String[])pr.threadPool.runAndWait(new ReturnableRunnable() {
+						final String[] devRealIDS = (String[])pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 							@Override
 							public Object run() {
 								L.V = L.O ? false : LogManager.log("try [connect] for real device IDs of Device ["+ dev_name + "] in project [" + projectID + "]...");

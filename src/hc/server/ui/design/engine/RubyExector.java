@@ -1,5 +1,6 @@
 package hc.server.ui.design.engine;
 
+import hc.core.BaseWatcher;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
@@ -12,6 +13,7 @@ import hc.server.CallContext;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.ProjResponser;
 import hc.util.ResourceUtil;
 import hc.util.ThreadConfig;
 
@@ -22,23 +24,6 @@ import java.util.Map;
 public class RubyExector {
 	public static final void removeCache(final String script, final HCJRubyEngine hcje){
 		hcje.removeCache(script);
-	}
-	
-	public final static void runLaterInSessionPool(final J2SESession coreSS, final String script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context){
-		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(context), new Runnable() {
-			@Override
-			public void run() {
-				final CallContext callCtx = CallContext.getFree();
-				RubyExector.parse(callCtx, script, scriptName, hcje, true);
-				if(callCtx.isError){
-					CallContext.cycle(callCtx);
-					return;
-				}else{
-					RubyExector.runAndWaitOnEngine(callCtx, script, scriptName, map, hcje);
-					CallContext.cycle(callCtx);
-				}
-			}
-		});
 	}
 	
 	public static final Object runAndWaitInProjectOrSessionPoolWithRepErr(final J2SESession coreSS, final CallContext runCtx, final String script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context, final Class requireReturnClass) {
@@ -80,7 +65,7 @@ public class RubyExector {
 		};
 		
 		if(coreSS != null){
-			return ServerUIAPIAgent.getProjResponserMaybeNull(context).getMobileSession(coreSS).sessionPool.runAndWait(run);
+			return ServerUIAPIAgent.getProjResponserMaybeNull(context).getMobileSession(coreSS).recycleRes.threadPool.runAndWait(run);
 		}else{
 			if(L.isInWorkshop){
 				L.V = L.O ? false : LogManager.log("[workshop] this script runs in project level.");
@@ -204,6 +189,17 @@ public class RubyExector {
 		final J2SESession[] coreSSS = {coreSS};
 		ServerUIAPIAgent.sendMessageViaCoreSS(coreSSS, (String)ResourceUtil.get(IContext.ERROR), msg, ProjectContext.MESSAGE_ERROR, 
 				null, 0);
+	}
+
+	public static void execInSequenceForSession(final J2SESession coreSS,
+			final ProjResponser resp, final ReturnableRunnable runnable) {
+		resp.getMobileSession(coreSS).recycleRes.sequenceWatcher.addWatcher(new BaseWatcher() {
+			@Override
+			public boolean watch() {
+				ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, resp, runnable);
+				return true;
+			}
+		});
 	}
 	
 	

@@ -270,7 +270,7 @@ public class WiFiHelper {
 								final Device[] devs = projs.get(proj);
 								final int size = devs.length;
 								if(size > 0){
-									proj.threadPool.run(new Runnable() {
+									proj.recycleRes.threadPool.run(new Runnable() {
 										@Override
 										public void run() {
 											for (int i = 0; i < size; i++) {

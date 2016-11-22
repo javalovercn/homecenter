@@ -201,7 +201,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 		
 		final ProjectContext context = ContextSecurityManager.getConfig(
-				(ThreadGroup)HCLimitSecurityManager.getTempLimitThreadPool().getThreadGroup()).getProjectContext();
+				(ThreadGroup)HCLimitSecurityManager.getTempLimitRecycleRes().threadPool.getThreadGroup()).getProjectContext();
 //		if(isRun){
 //			ServerUIAPIAgent.setTestSimuClientSession(context, designer.testSimuClientSession);
 //		}

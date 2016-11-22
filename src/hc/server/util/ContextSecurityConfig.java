@@ -39,7 +39,7 @@ public class ContextSecurityConfig {
 		CCoreUtil.checkAccess();
 		
 		projResponser = resp;
-		threadGroup = (ThreadGroup)projResponser.threadPool.getThreadGroup();
+		threadGroup = (ThreadGroup)projResponser.recycleRes.threadPool.getThreadGroup();
 		this.ctx = projResponser.context;
 	}
 	

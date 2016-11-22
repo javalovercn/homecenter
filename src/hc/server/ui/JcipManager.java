@@ -3,9 +3,11 @@ package hc.server.ui;
 import hc.core.L;
 import hc.core.util.Jcip;
 import hc.core.util.LogManager;
+import hc.core.util.ReturnableRunnable;
 import hc.server.ScreenServer;
 import hc.server.data.screen.ScreenCapturer;
 import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.engine.RubyExector;
 
 public class JcipManager {
 	
@@ -20,10 +22,11 @@ public class JcipManager {
 			final CtrlResponse cr = ((ServCtrlCanvas)icanvas).cr;
 			if(displayID.equals(cr.target)){
 				final String keyValue = jcip.getString();
-				ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(cr.getProjectContext()), new Runnable() {
+				RubyExector.execInSequenceForSession(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(cr.getProjectContext()), new ReturnableRunnable() {
 					@Override
-					public void run() {
+					public Object run() {
 						cr.click(Integer.parseInt(keyValue));
+						return null;
 					}
 				});
 				return;

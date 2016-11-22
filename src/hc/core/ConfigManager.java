@@ -57,6 +57,8 @@ public class ConfigManager {
 	public static final String UI_JUMP_TO_HOME = "hc.ui.jumpHome";
 	public static final String UI_SCALE_OF_SCREEN = "hc.ui.scale";//iOS
 	
+	public static final String PRINT_ALL_THREAD = "hc.log.printAllThread";
+	
 	/**
 	 * 判断客户端是否是后台运行。
 	 * @return

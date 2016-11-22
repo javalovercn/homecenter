@@ -137,11 +137,6 @@ public class J2SERootBuilder extends RootBuilder {
 
 	@Override
 	public String getAjax(final String url) {
-		return HttpUtil.getAjax(url);
-	}
-
-	@Override
-	public String getAjaxForSimu(final String url) {
 		return HttpUtil.getAjaxForSimu(url);
 	}
 
