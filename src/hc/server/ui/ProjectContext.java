@@ -2442,8 +2442,8 @@ public class ProjectContext {
 	}
 	
 	/**
-	 * send a dialog to mobile if in session level, or send same dialog to all client sessions if in project level. <br>
-	 * in project level, if one session replies, then the same dialog in other sessions will be dismissed.
+	 * send a dialog to mobile if in session level, or send same dialog(s) to all client sessions if in project level. <br>
+	 * in project level, if one session replies, then the same dialog(s) in other sessions will be dismissed.
 	 * <br><br>
 	 * for example, <BR><BR>in <STRONG>JRuby</STRONG> :<BR>
 	 * <code>

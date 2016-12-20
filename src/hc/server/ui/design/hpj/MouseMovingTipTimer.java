@@ -16,17 +16,14 @@ public class MouseMovingTipTimer extends HCTimer {
 	final int fontHeight;
 	CodeHelper codeHelper;
 	final ScriptEditPanel scriptPanel;
-	final Object lock = new Object();
 	long setLocMS;
 	
 	public final void setLocation(final int x, final int y){
 		setLocMS = System.currentTimeMillis();
 		
-		synchronized (lock) {
-			this.x = x;
-			this.y = y;
-			resetTimerCount();
-		}
+		this.x = x;
+		this.y = y;
+		resetTimerCount();
 	}
 	
 	public MouseMovingTipTimer(final ScriptEditPanel scriptPanel, final HCTextPane jtaScript, final AbstractDocument jtaDocment, final int fontHeight) {
@@ -52,7 +49,7 @@ public class MouseMovingTipTimer extends HCTimer {
 	public void doBiz() {
 		getCodeHelper();
 		
-		synchronized (lock) {
+		synchronized (ScriptEditPanel.scriptEventLock) {
 			setEnable(false);
 			
 			if(System.currentTimeMillis() - 500 > setLocMS){//防止time已启动，但是事件又更新，导致eventPoint为脏数据
@@ -74,7 +71,8 @@ public class MouseMovingTipTimer extends HCTimer {
 					
 				}
 			}catch (final Exception ex) {
-				ex.printStackTrace();
+				//比如java.awt.IllegalComponentStateException: component must be showing on the screen to determine its location
+				//ex.printStackTrace();
 			}
 		}
 	}

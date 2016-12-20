@@ -98,7 +98,6 @@ public class CodeWindow {
 	};
 	
 	final KeyListener keyListener = new KeyListener() {
-
 		@Override
 		public void keyTyped(final KeyEvent e) {
 		}
@@ -111,6 +110,13 @@ public class CodeWindow {
 		public void keyPressed(final KeyEvent e) {
 			final int keyCode = e.getKeyCode();
 			
+			if(keyCode == KeyEvent.VK_ESCAPE){
+				hide(true);
+				return;
+			}
+			
+			synchronized (ScriptEditPanel.scriptEventLock) {
+			if(classFrame.isVisible()){
 			if(keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_DOWN 
 					|| keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_RIGHT){
 				if(keyCode == KeyEvent.VK_UP){
@@ -142,11 +148,6 @@ public class CodeWindow {
 				return;
 			}
 			
-			if(keyCode == KeyEvent.VK_ESCAPE){
-				hide(false);
-				return;
-			}
-			
 			if(keyCode == KeyEvent.VK_ENTER){
 				final int selectedIndex = codeList.getSelectedIndex();
 				actionOnItem(selectedIndex);
@@ -159,7 +160,7 @@ public class CodeWindow {
 					try{
 						document.remove(--movingScriptIdx, 1);
 						textPane.setCaretPosition(movingScriptIdx);
-						textPane.updateUI();
+//						textPane.updateUI();//会导致重新获得焦点时为posi:0
 						textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, movingScriptIdx));
 						TabHelper.notifyInputKey(true, e, e.getKeyChar());
 					}catch (final Exception ex) {
@@ -178,12 +179,14 @@ public class CodeWindow {
 				try{
 					document.insertString(movingScriptIdx++, String.valueOf(keyChar), null);
 					textPane.setCaretPosition(movingScriptIdx);
-					textPane.updateUI();
+//					textPane.updateUI();//会导致重新获得焦点时为posi:0
 					
 					textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, movingScriptIdx));
 					TabHelper.notifyInputKey(false, e, keyChar);
 				}catch (final Exception ex) {
 				}
+			}
+			}
 			}
 		}
 	};
@@ -329,11 +332,9 @@ public class CodeWindow {
 				if(L.isInWorkshop){
 					LogManager.log("[CodeTip] classFrame setVisible(false)");
 				}
-				if(lostFocus == false){
-//					Designer.getInstance().requestFocus();
-					textPane.requestFocusInWindow();
-//					textPane.setCaretPosition(textPane.getCaretPosition());
-				}
+//				if(lostFocus == false){
+//					textPane.requestFocusInWindow();
+//				}
 			}	
 		}
 	}

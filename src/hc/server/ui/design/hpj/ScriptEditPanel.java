@@ -103,6 +103,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	public static final SimpleAttributeSet DEFAULT_LIGHTER = build(Color.BLACK, false);
 	private static final SimpleAttributeSet VAR_LIGHTER = build(Color.decode("#f19e37"), false);
 	
+	public final static Object scriptEventLock = new Object();
 	
 	static final Pattern keywords_pattern = Pattern.compile("\\b(BEGIN|END|__ENCODING__|__END__|__FILE__|__LINE__|alias|" +
 			"and|attr_accessor|attr_reader|attr_writer|begin|break|case|class |def|defined?|do|else|elsif|end|" +
@@ -537,7 +538,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			@Override
 			public void mouseExited(final MouseEvent e) {
 				autoCodeTip.setEnable(false);
-				designer.codeHelper.hideAfterMouse(false);
+//				designer.codeHelper.hideAfterMouse(true);//手工输入代码提示时，会触发此事件
 			}
 			
 			@Override
@@ -554,9 +555,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		jtaScript.addMouseMotionListener(new MouseMotionListener() {
 			@Override
 			public void mouseMoved(final MouseEvent e) {
-				designer.codeHelper.hideAfterMouse(true);
-				autoCodeTip.setEnable(true);
-				autoCodeTip.setLocation(e.getX(), e.getY());
+				synchronized (ScriptEditPanel.scriptEventLock) {
+					designer.codeHelper.mouseExitHideDocForMouseMovTimer.setEnable(true);//有可能现tip时，移动
+//				designer.codeHelper.hideAfterMouse(true);//有可能移到DocTip内
+					autoCodeTip.setEnable(true);
+					autoCodeTip.setLocation(e.getX(), e.getY());
+				}
 			}
 			
 			@Override
@@ -574,7 +578,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					consumeEvent(event);//otherwise display shortcut key in JRE 6.
 					return;
 				}
-				
+				synchronized (scriptEventLock) {
 				final char inputChar = event.getKeyChar();
 				final int modifiers = event.getModifiers();
 //				final int keycode = event.getKeyCode();
@@ -706,6 +710,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				}catch (final Exception e) {
 					ExceptionReporter.printStackTrace(e);
 				}//end try
+				}
 			}
 
 			private void popUpAuto(final CodeHelper codeHelper) {
@@ -713,6 +718,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
+						synchronized (scriptEventLock) {
 						try{
 							final int caretPosition = jtaScript.getCaretPosition();
 							final Rectangle caretRect=jtaScript.modelToView(caretPosition);
@@ -720,6 +726,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, false, 
 									caretPointer, caretPosition);
 						}catch (final Exception e) {
+						}
 						}
 					}
 				});
@@ -736,6 +743,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				autoCodeTip.setEnable(false);
 				autoCodeTip.getCodeHelper().mouseExitHideDocForMouseMovTimer.reset();
 				
+				synchronized (scriptEventLock) {
 	            final int keycode = event.getKeyCode();
 //				switch (keycode) {
 //				case KeyEvent.VK_ALT:
@@ -797,6 +805,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_TYPE);
 				}
 		    }
+			}
 		});
 
 		final LineNumber lineNumber = new LineNumber(jtaScript);
@@ -1616,6 +1625,7 @@ class LineNumber extends JComponent {
 	private int lineHeight;
 	private int fontLineHeight;
 	private int currentRowWidth;
+	private int maxRow;
 	private FontMetrics fontMetrics;
 
 	/**
@@ -1631,10 +1641,14 @@ class LineNumber extends JComponent {
 	}
 
 	public void setPreferredSize(final int row) {
-		final int width = fontMetrics.stringWidth(String.valueOf(row));
-		if (currentRowWidth < width) {
-			currentRowWidth = width * 2;
-			setPreferredSize(new Dimension(currentRowWidth, HEIGHT));
+		if(row > maxRow){
+			maxRow = row;
+			final int width = fontMetrics.stringWidth(String.valueOf(row));
+			final int doubleWidth = width * 2;
+			if (currentRowWidth < doubleWidth) {
+				currentRowWidth = doubleWidth;
+				setPreferredSize(new Dimension(currentRowWidth, HEIGHT));
+			}
 		}
 	}
 

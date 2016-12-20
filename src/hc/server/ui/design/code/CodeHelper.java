@@ -110,8 +110,10 @@ public class CodeHelper {
 			"MouseExitHideDocForMouseMovTimer", HCTimer.HC_INTERNAL_MS * 4, false) {
 		@Override
 		public void doBiz() {
-			hideByMouseEvent();
-			reset();
+			synchronized (ScriptEditPanel.scriptEventLock) {
+				hideByMouseEvent();
+				reset();
+			}
 		}
 		
 		@Override
@@ -156,15 +158,15 @@ public class CodeHelper {
 		}
 	}
 	
-	public final void hideAfterMouse(final boolean isForceHideDoc){
+//	public final void hideAfterMouse(final boolean isForceHideDoc){
 //		if(isForceHideDoc){
 //			hideByMouseEvent();
 //			return;
 //		}
-		if(mouseExitHideDocForMouseMovTimer.isTriggerOn()){
-			mouseExitHideDocForMouseMovTimer.setEnable(true);
-		}
-	}
+////		if(mouseExitHideDocForMouseMovTimer.isTriggerOn()){
+////			mouseExitHideDocForMouseMovTimer.setEnable(true);
+////		}
+//	}
 	
 	private final static void buildMethodAndProp(final Class c, final boolean isForClass, final ArrayList<CodeItem> list, final boolean needNewMethod){
 		if(c == null){
@@ -1955,7 +1957,7 @@ public class CodeHelper {
 	 * @param scriptIdx input focus index at total script
 	 * @return
 	 */
-	public final synchronized boolean input(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, 
+	public final boolean input(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, 
 			final int fontHeight, final boolean isForcePopup, final Point caretPosition, final int scriptIdx) throws Exception{
 		//1：行首时，requ
 		//2：行首时，impo
@@ -1964,7 +1966,6 @@ public class CodeHelper {
 		//5：::后 Java::|Font::
 		//6：.后 JButton.new|ImageIO.read
 		//3：resource("时，lib资源
-		
 		final Point win_loc = textPane.getLocationOnScreen();
 		
 		final int line = ScriptEditPanel.getLineOfOffset(doc, scriptIdx);
@@ -1984,7 +1985,7 @@ public class CodeHelper {
 		return true;
 	}
 	
-	public final synchronized boolean mouseMovOn(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, 
+	public final boolean mouseMovOn(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, 
 			final int fontHeight, final boolean isForcePopup, final int scriptIdx) throws Exception{
 		if(L.isInWorkshop){
 			LogManager.log("[CodeTip] start mouseMovOn from HCTimer.");
