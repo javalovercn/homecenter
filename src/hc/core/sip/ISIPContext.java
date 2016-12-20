@@ -51,7 +51,7 @@ public abstract class ISIPContext {
 	
 	protected boolean isClose = true;
 	
-	public boolean isClose(){
+	public final boolean isClose(){
 		return isClose;
 	}
 	
@@ -71,7 +71,7 @@ public abstract class ISIPContext {
 		coreSS.context.setOutputStream(this, socket);
 		setSocket(socket);
 	}
-	public void enterDeployStatus() {
+	public final void enterDeployStatus() {
 		deploySocketMS = System.currentTimeMillis();
 	}
 	
@@ -79,7 +79,7 @@ public abstract class ISIPContext {
 	 * 由于发布后导致其它旧连接的异常被动触发，从而将新连接被认为正常断开，从而触发其后逻辑，通过此条件阻断之。
 	 * @return
 	 */
-	public boolean isNearDeployTime(){
+	public final boolean isNearDeployTime(){
 		if((System.currentTimeMillis() - deploySocketMS) < 1000){
 			return true;
 		}else{
@@ -87,7 +87,7 @@ public abstract class ISIPContext {
 		}
 	}
 	
-	public void resetNearDeployTime(){
+	public final void resetNearDeployTime(){
 		deploySocketMS = 0;
 	}
 	

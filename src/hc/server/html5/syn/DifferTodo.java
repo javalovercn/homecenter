@@ -6,6 +6,7 @@ import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.cache.CacheManager;
 import hc.core.util.ByteUtil;
+import hc.core.util.HCURL;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPriorityManager;
@@ -253,7 +254,7 @@ public class DifferTodo {
 		System.arraycopy(projIDbs, 0, todoBs, projLenIdx + 2, projIDbs.length);
 	}
 	
-	final static byte[] stopLoading = ByteUtil.getBytes("window.hcloader.stop();", IConstant.UTF_8);
+	final static byte[] stopLoading = ByteUtil.getBytes(HCURL.HTML_LOAD_DONE, IConstant.UTF_8);
 	
 	public final void setLTR(final boolean isLTR){
 		if(isLTR){

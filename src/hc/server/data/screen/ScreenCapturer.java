@@ -20,6 +20,7 @@ import hc.server.PlatformService;
 import hc.server.data.DAOKeyComper;
 import hc.server.data.KeyComperPanel;
 import hc.server.msb.UserThreadResourceUtil;
+import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.SingleMessageNotify;
 import hc.server.ui.design.J2SESession;
 import hc.server.util.IDArrayGroup;
@@ -102,9 +103,8 @@ public class ScreenCapturer extends PNGCapturer{
 				final int minModiNum = thumbnailSize / modiNum;
 				
 				try{
+					Thread.sleep(5000);
 					while(!isShutDown){
-						Thread.sleep(5000);
-						
 						BufferedImage screen;
 						
 						//加锁，以防并用对象robot
@@ -142,6 +142,7 @@ public class ScreenCapturer extends PNGCapturer{
 								}
 							}
 						}
+						Thread.sleep(5000);
 					}
 				}catch (final Exception e) {
 				}
@@ -612,16 +613,20 @@ public class ScreenCapturer extends PNGCapturer{
 	}
 	
 	public void copytxtToMobi(){
-		final Clipboard clipboard = ResourceUtil.getClipboard();
-		synchronized (clipboard) {
-			Transferable oldTrans = null;
-			try{
-				oldTrans = clipboard.getContents(null);
-			}catch (final Throwable e) {
-			}
+//		final Clipboard clipboard = ResourceUtil.getClipboard();
+//		synchronized (clipboard) {
+//			Transferable oldTrans = null;
+//			try{
+//				oldTrans = clipboard.getContents(null);
+//				Thread.sleep(1000);
+//			}catch (final Throwable e) {
+//			}
 			
 			ctrlSomeKey(KeyEvent.VK_C);
-			
+			try{
+				Thread.sleep(200);//实测不需要也行
+			}catch (final Exception e) {
+			}
 			final String txt = ResourceUtil.getTxtFromClipboard();
 	//		L.V = L.O ? false : LogManager.log("User ready copyTxtToMobi:" + txt);
 			if(txt.length() > 0){
@@ -629,8 +634,9 @@ public class ScreenCapturer extends PNGCapturer{
 		    		final DataInputEvent e = new DataInputEvent();
 		    		final byte[] txt_bs = txt.getBytes(IConstant.UTF_8);
 		    		
-		    		final byte[] txtToMobiBS = new byte[DataInputEvent.text_index + DataInputEvent.MAX_MOBI_UI_TXT_LEN];
+		    		final byte[] txtToMobiBS = new byte[MsgBuilder.UDP_BYTE_SIZE];
 		    		e.setBytes(txtToMobiBS);
+		    		e.setScreenID(screenIDForCapture, 0, screenIDForCapture.length);
 		    		e.setType(DataInputEvent.TYPE_TRANS_TEXT);
 	
 		    		e.setTextData(txt_bs, 0, txt_bs.length);
@@ -643,10 +649,10 @@ public class ScreenCapturer extends PNGCapturer{
 			
 			L.V = L.O ? false : LogManager.log(OP_STR + "copyTxtToMobi:" + ((txt.length()==0)?"null":txt));
 
-			if(oldTrans != null){
-				clipboard.setContents(oldTrans, null);
-			}
-		}
+//			if(oldTrans != null){
+//				clipboard.setContents(oldTrans, null);//只有第一次正确，故关闭
+//			}
+//		}
 	}
 	
 	public void dragAndDrop(final int startX, final int startY, final int endX, final int endY){
@@ -964,7 +970,8 @@ public class ScreenCapturer extends PNGCapturer{
 
 	@Override
 	public void onExit(){
-		MultiUsingManager.exit(coreSS, MultiUsingManager.NULL_PROJECT_ID, HCURL.URL_HOME_SCREEN);
+		final String screenID = ServerUIAPIAgent.buildScreenID(MultiUsingManager.NULL_PROJECT_ID, HCURL.URL_HOME_SCREEN);
+		MultiUsingManager.exit(coreSS, screenID);
 		super.onExit();
 	}
 

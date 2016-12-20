@@ -16,7 +16,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
-public class AddHarIsBusy extends HTMLMlet {
+public class AddHarIsBusy extends SystemHTMLMlet {
 	final JPanel addProcessingPanel = new JPanel(new BorderLayout());
 	final JTextArea msgArea = new JTextArea();
 	final String css = "errorStatus {color:red}";

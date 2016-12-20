@@ -52,9 +52,8 @@ import hc.server.ui.design.hpj.MenuManager;
 import hc.server.ui.design.hpj.NodeEditPanel;
 import hc.server.ui.design.hpj.NodeEditPanelManager;
 import hc.server.ui.design.hpj.NodeInvalidException;
+import hc.server.ui.design.hpj.ProjectIDDialog;
 import hc.server.util.ContextSecurityConfig;
-import hc.server.util.IDArrayGroup;
-import hc.server.util.JavaLangSystemAgent;
 import hc.server.util.SignHelper;
 import hc.util.BaseResponsor;
 import hc.util.Constant;
@@ -296,8 +295,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	DefaultMutableTreeNode mainMenuNode;
 	
 	// 定义几个初始节点
-	DefaultMutableTreeNode root = createNewRoot();
-	DefaultMutableTreeNode msbFolder = createMSBFoulder();
+	final DefaultMutableTreeNode root = createNewRoot();
+	final DefaultMutableTreeNode msbFolder = createMSBFoulder();
+	final DefaultMutableTreeNode cssNode = createCSSNode();
 	
 	public String getCurrProjID(){
 		return ((HPProject)root.getUserObject()).id;
@@ -317,22 +317,26 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	
 	public static final int ROOT_SUB_FOLDER = 3;
 	final DefaultMutableTreeNode[] shareFolders = new DefaultMutableTreeNode[ROOT_SUB_FOLDER];
+	
+	private final DefaultMutableTreeNode createCSSNode(){
+		return new DefaultMutableTreeNode(	new HPNode(HPNode.MASK_RESOURCE_CSS, "CSS Styles"));
+	}
 
 	private DefaultMutableTreeNode createShareJRubyFolder() {
 		final HPShareJRubyFolder sj = new HPShareJRubyFolder(HPNode.MASK_SHARE_RB_FOLDER, 
-				"share jruby files");
+				"Share JRuby Files");
 		return new DefaultMutableTreeNode(sj);
 	}
 	
 	private DefaultMutableTreeNode createShareJarFolder() {
 		final HPShareJarFolder sj = new HPShareJarFolder(HPNode.MASK_RESOURCE_FOLDER_JAR, 
-				"share jar files");
+				"Share Jar Files");
 		return new DefaultMutableTreeNode(sj);
 	}
 	
 	private DefaultMutableTreeNode createNativeLibFolder() {
 		final HPShareJarFolder sj = new HPShareJarFolder(HPNode.MASK_SHARE_NATIVE_FOLDER, 
-				"native lib files");
+				"Native Lib Files");
 		return new DefaultMutableTreeNode(sj);
 	}
 	
@@ -404,6 +408,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	public final static ImageIcon iconShareNative = loadImg("native.png");
 	
 	public final static ImageIcon iconJar = loadImg("jar.png");
+	public final static ImageIcon iconCSS = loadImg("css.png");
 	
 	public final static ImageIcon iconJarFolder = loadImg("jar_folder.png");
 		
@@ -786,6 +791,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 //				
 //				addItemButton.setEnabled(true);
 //				App.invokeLater(updateTreeRunnable);
+				
+				ProjectIDDialog.showInputProjectID(instance, root);
 			}
 		}, threadPoolToken));
 		newButton.setToolTipText("<html>create new HAR project.</html>");
@@ -1216,13 +1223,13 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 		}, threadPoolToken);
 		
-		IDArrayGroup.showMsg(IDArrayGroup.MSG_SYSTEM_CLASS_LIMITED, App.SYS_INFO_ICON, ResourceUtil.getInfoI18N(), 
-				"<html><font color=\"red\">Important</font> : " +
-				"<BR>" +
-				"<BR>the current HomeCenter provide build-in SecurityManager for HAR project." +
-				"<BR>JRuby script is based on reflection, private field security of java.lang.System is limited for reflection if JRE < 1.7, " +
-				"<BR><BR>" + JavaLangSystemAgent.class.getName() + " is a substitute for java.lang.System in JRuby (NOT code in jar)" +
-				"<BR><BR>for more, please read API of " + JavaLangSystemAgent.class.getName() + "</html>");
+//		IDArrayGroup.showMsg(IDArrayGroup.MSG_SYSTEM_CLASS_LIMITED, App.SYS_INFO_ICON, ResourceUtil.getInfoI18N(), 
+//				"<html><font color=\"red\">Important</font> : " +
+//				"<BR>" +
+//				"<BR>the current HomeCenter provide build-in SecurityManager for HAR project." +
+//				"<BR>JRuby script is based on reflection, private field security of java.lang.System is limited for reflection if JRE < 1.7, " +
+//				"<BR><BR>" + JavaLangSystemAgent.class.getName() + " is a substitute for java.lang.System in JRuby (NOT code in jar)" +
+//				"<BR><BR>for more, please read API of " + JavaLangSystemAgent.class.getName() + "</html>");
 		
 	}
 
@@ -1932,9 +1939,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	private void appendShareTop() {
 		//加载共享库结点，
 		//注意：如果ROOT下增加新结点，请更新参数SUB_NODES_OF_ROOT_IN_NEW_PROJ + 1
-		final HPShareRoot sr = new HPShareRoot(HPNode.MASK_SHARE_TOP, "resources");
+		final HPShareRoot sr = new HPShareRoot(HPNode.MASK_SHARE_TOP, "Resources");
 		
 		final DefaultMutableTreeNode shareRoot = new DefaultMutableTreeNode(sr);
+		shareRoot.add(cssNode);
+		
 		root.add(shareRoot);
 		
 		//加挂公用JRuby库
@@ -2680,6 +2689,8 @@ class NodeTreeCellRenderer extends DefaultTreeCellRenderer {
 				((JLabel)compo).setIcon(Designer.iconJarFolder);
 			} else if (country.type == HPNode.MASK_RESOURCE_JAR) {
 				((JLabel)compo).setIcon(Designer.iconJar);
+			} else if (country.type == HPNode.MASK_RESOURCE_CSS) {
+				((JLabel)compo).setIcon(Designer.iconCSS);
 			} else if (country.type == HPNode.MASK_EVENT_FOLDER) {
 				((JLabel)compo).setIcon(Designer.iconEventFolder);
 			} else if (country.type == HPNode.MASK_EVENT_ITEM) {

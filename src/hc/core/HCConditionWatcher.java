@@ -1,5 +1,6 @@
 package hc.core;
 
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LinkedSet;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
@@ -8,6 +9,9 @@ public class HCConditionWatcher {
 	boolean isShutdown;
 	
 	public final void shutdown(){
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("shutdown HCConditionWatcher [" + watcherTimer.getName() + "].");
+		}
 		isShutdown = true;
 		HCTimer.remove(watcherTimer);
 	}
@@ -56,11 +60,15 @@ public class HCConditionWatcher {
 					
 					//因为在执行本实例时，有可能遇到同时请求移出，所以加实例锁，并在内部加集合锁
 					synchronized (temp) {
-						if(temp.watch() == false){
-							synchronized (watchers) {
-								usedRewatchers.addTail(temp);
-								isAddUnUsed = true;
+						try{
+							if(temp.watch() == false){
+								synchronized (watchers) {
+									usedRewatchers.addTail(temp);
+									isAddUnUsed = true;
+								}
 							}
+						}catch (Throwable e) {//异常不会返回true，导致永久执行
+							ExceptionReporter.printStackTrace(e);
 						}
 					}
 					if(isInWorkshop){

@@ -24,10 +24,12 @@ public class ExceptionCatcherToWindow {
 	
 	private final JFrame owner;
 	private final boolean isNeedDetail;
+	private final ThreadGroup token;
 	
 	public ExceptionCatcherToWindow(final JFrame owner, final boolean isNeedDetail){
 		this.owner = owner;
 		this.isNeedDetail = isNeedDetail;
+		token = App.getThreadPoolToken();
 	}
 	
 	public ExceptionCatcherToWindow(final JFrame owner){
@@ -71,7 +73,12 @@ public class ExceptionCatcherToWindow {
 	 * no block current thread
 	 */
 	private final void showErrorWindow(){
-		App.showCenterPanelMain(buildPanel(), 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, null, false, true, null, true, true);
+		ContextManager.getThreadPool().run(new Runnable() {
+			@Override
+			public void run() {
+				App.showCenterPanelMain(buildPanel(), 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, null, false, true, null, true, true);
+			}
+		}, token);
 	}
 
 	private final JPanel buildPanel() {
@@ -94,7 +101,7 @@ public class ExceptionCatcherToWindow {
 			public void run() {
 				App.showCenterPanelMain(buildPanel(), 0, 0, ResourceUtil.getErrorI18N(), false, App.buildDefaultOKButton(), null, null, null, parent, true, false, null, true, false);
 			}
-		});
+		}, token);
 	}
 	
 	private final JPanel buildErrorMessagePanel(){

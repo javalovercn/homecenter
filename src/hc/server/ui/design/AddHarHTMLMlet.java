@@ -66,7 +66,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
-public class AddHarHTMLMlet extends HTMLMlet {
+public class AddHarHTMLMlet extends SystemHTMLMlet {
 	final JPanel addProcessingPanel = new JPanel(new BorderLayout());
 	final JTextArea msgArea = new JTextArea();
 	final String css = "errorStatus {color:red}";

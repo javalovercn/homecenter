@@ -77,6 +77,7 @@ public class CodeStaticHelper {
 			out.add("hc.server.msb.RobotListener");
             out.add("hc.server.ui.ClientSession");
 			out.add("hc.server.ui.CtrlResponse");
+			out.add("hc.server.ui.Dialog");
 			out.add("hc.server.ui.HTMLMlet");
 			out.add("hc.server.ui.MenuItem");
 			out.add("hc.server.ui.Mlet");

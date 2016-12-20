@@ -1,27 +1,18 @@
 package hc.server.ui;
 
 import hc.core.L;
-import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
-import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
-import hc.core.util.ReturnableRunnable;
-import hc.core.util.StringUtil;
 import hc.server.html5.syn.DiffManager;
 import hc.server.html5.syn.DifferTodo;
 import hc.server.html5.syn.JPanelDiff;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
-import hc.server.util.HCLimitSecurityManager;
 import hc.util.ResourceUtil;
 import hc.util.ThreadConfig;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.security.Permission;
 
 import javax.swing.JPanel;
 
@@ -37,6 +28,7 @@ import javax.swing.JPanel;
  */
 public class Mlet extends JPanel implements ICanvas {
 	private static final long serialVersionUID = 7;
+	final Object synLock = new Object();
 	
 	/**
 	 * construct this instance.
@@ -73,7 +65,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 */
 	@Deprecated
 	final void notifyStatusChanged(final int newStatus){//in user thread
-		synchronized (this) {//要置于外部
+		synchronized (synLock) {//要置于外部
 			if(L.isInWorkshop){
 				L.V = L.O ? false : LogManager.log("change Mlet/HTMLMlet [" + __target + "] from [" + status + "] to [" + newStatus + "].");
 			}
@@ -82,12 +74,12 @@ public class Mlet extends JPanel implements ICanvas {
 			
 			if(this instanceof HTMLMlet){
 				final HTMLMlet htmlMlet = (HTMLMlet)this;
-				final DifferTodo diffTodo = htmlMlet.diffTodo;
+				final DifferTodo diffTodo = htmlMlet.sizeHeightForXML.diffTodo;
 				if(newStatus == STATUS_RUNNING && diffTodo != null){
-					if(htmlMlet.isFlushCSS){
+					if(htmlMlet.sizeHeightForXML.isFlushCSS){
 						return;
 					}else{
-						htmlMlet.isFlushCSS = true;
+						htmlMlet.sizeHeightForXML.isFlushCSS = true;
 					}
 					
 					//有可能为MletSnapCanvas模式调用本方法
@@ -135,16 +127,16 @@ public class Mlet extends JPanel implements ICanvas {
 			if(resp != null && (sc = resp.getSessionContextFromCurrThread()) != null){
 				coreSS = sc.j2seSocketSession;
 			}else{
-				if(L.isInWorkshop){
-					LogManager.errToLog("[workshop] fail to get J2SESocketSession, use a instance in designer.");
-				}
+//				if((this instanceof SystemHTMLMlet) == false){
+					LogManager.errToLog("invalid invoke constructor Mlet in project level.");
+//				}
 				coreSS = SimuMobile.SIMU_NULL;
 			}
 		}
-		__target = (String)ThreadConfig.getValue(ThreadConfig.TARGET_URL);
+		__target = (String)ThreadConfig.getValue(ThreadConfig.TARGET_URL, true);//注意：sendDialogWhenInSession中的Dialog构造时，此返回null
 	}
 	
-	private boolean isAutoReleaseAfterGo = false;
+	boolean isAutoReleaseAfterGo = false;
 	
 	/**
 	 * when invoke {@link #go(String)}, this {@link Mlet} will be released by server or not.
@@ -229,14 +221,30 @@ public class Mlet extends JPanel implements ICanvas {
 	public final ProjectContext getProjectContext(){
 		return __context;
 	}
-	
+
 	private boolean isExited;
 	
 	/**
-	 * it is equals with {@link #go(String)}.
+	 * go/run target URL by <code>elementID</code>.
+	 * <BR><BR>
+	 * jump mobile to following targets:<BR>
+	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from mobile, <BR>
+	 * 2. <i>form://myMlet</i> : open and show a form, <BR>
+	 * 3. <i>controller://myctrl</i> : open and show a controller, <BR>
+	 * 4. <i>{@link #URL_EXIT}</i> : exit current Mlet,<BR>
+	 * 5. <i>cmd://myCmd</i> : run script commands only,
+	 * <BR><BR>
+	 * bring to top : <BR>
+	 * 1. jump to <i>form://B</i> from <i>form://A</i>, <BR>
+	 * 2. ready jump to <i>form://A</i> again from <i>form://B</i>.<BR>
+	 * 3. system will bring the target (form://A) to top if it is opened.
+	 * <BR><BR>
+	 * <STRONG>Note</STRONG> :<BR>
+	 * go to external URL (for example, http://homecenter.mobi), invoke {@link #goExternalURL(String)}.
 	 * @param scheme one of {@link MenuItem#CMD_SCHEME}, 
 	 * {@link MenuItem#CONTROLLER_SCHEME}, {@link MenuItem#FORM_SCHEME} or {@link MenuItem#SCREEN_SCHEME}.
 	 * @param elementID for example, run scripts of menu item "cmd://myCommand", the scheme is {@linkplain MenuItem#CMD_SCHEME}, and element ID is "myCommand",
+	 * @see #go(String)
 	 */
 	public final void go(final String scheme, final String elementID){
 		if(coreSS == SimuMobile.SIMU_NULL){
@@ -252,7 +260,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from mobile, <BR>
 	 * 2. <i>form://myMlet</i> : open and show a form, <BR>
 	 * 3. <i>controller://myctrl</i> : open and show a controller, <BR>
-	 * 4. <i>{@link #URL_EXIT}</i> : exit current Mlet,<BR>
+	 * 4. <i>{@link #URL_EXIT}</i> : exit current Mlet, it is recommended to use {@link #back()}, <BR>
 	 * 5. <i>cmd://myCmd</i> : run script commands only,
 	 * <BR><BR>
 	 * bring to top : <BR>
@@ -261,7 +269,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * 3. system will bring the target (form://A) to top if it is opened.
 	 * <BR><BR>
 	 * <STRONG>Note</STRONG> :<BR>
-	 * go to external URL (for example, http://homecenter.mobi), invoke {@link #goExternalURL(String, boolean)}.
+	 * go to external URL (for example, http://homecenter.mobi), invoke {@link #goExternalURL(String)}.
 	 * @param url
 	 * @see #go(String, String)
 	 * @see #goMlet(Mlet, String, boolean)
@@ -274,8 +282,8 @@ public class Mlet extends JPanel implements ICanvas {
 			return;
 		}
 		
-		if(url.equals(URL_EXIT)){
-			synchronized (this) {
+		if(URL_EXIT.equals(url)){
+			synchronized (synLock) {
 		    	if(isExited){//cant go exit and press back key.
 		    		return;
 		    	}
@@ -283,24 +291,15 @@ public class Mlet extends JPanel implements ICanvas {
 	    	}
 		}
 		
-		HCURL.checkSuperCmd(url);
-		
-		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("====>go : " + url);
-		}
-		try {
-//			不需要转码，可直接支持"screen://我的Mlet"
-//			final String encodeURL = URLEncoder.encode(url, IConstant.UTF_8);
-			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
-				@Override
-				public Object run() {
-					HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_TRANSURL, url);
-					return null;
-				}
-			});
-		} catch (final Exception e) {
-			ExceptionReporter.printStackTrace(e);
-		}
+		ServerUIAPIAgent.go(coreSS, url);
+	}
+	
+	/**
+	 * back and return.
+	 * @since 7.30
+	 */
+	public final void back(){
+		go(URL_EXIT);
 	}
 
 	/**
@@ -318,31 +317,13 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @since 7.7
 	 */
 	public final void goMlet(final Mlet toMlet, final String targetOfMlet, final boolean isAutoReleaseCurrentMlet){
-		if(toMlet == null){
-			throw new Error("Mlet is null when goMlet.");
-		}
-		
-		if(targetOfMlet == null){
-			throw new Error("target of Mlet is null when goMlet.");
-		}
-		
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return;
 		}
 		
-		final Mlet fromMlet = this;//不用ScreenServer.getCurrMlet(coreSS);
-		
-		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
-			@Override
-			public Object run() {
-				ServerUIAPIAgent.setMletTarget(toMlet, targetOfMlet);
-				ServerUIAPIAgent.openMlet(coreSS, __context, toMlet, targetOfMlet, isAutoReleaseCurrentMlet,
-						fromMlet);
-				return null;
-			}
-		});
+		ServerUIAPIAgent.goMlet(coreSS, __context, this, toMlet, targetOfMlet, isAutoReleaseCurrentMlet);
 	}
-	
+
 	/**
 	 * resize a BufferedImage to the target size.
 	 * @param src
@@ -405,16 +386,36 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * go to external URL (for example, http://homecenter.mobi).
+	 * go to external URL in client application.
 	 * <BR><BR>
 	 * <STRONG>Important : </STRONG>
 	 * <BR>socket/connect permissions is required even if the domain of external URL is the same with the domain of upgrade HAR project URL.
 	 * <BR><BR>
 	 * <STRONG>Warning : </STRONG>
-	 * <BR>the external URL may be sniffed when in moving (exclude HTTPS).
-	 * <BR>In iOS (not Android), when go external URL and leave application, the application will be released (in background). In future, it maybe keep alive in background.
+	 * <BR>1. the external URL may be sniffed when in moving (exclude HTTPS).
+	 * <BR>2. iOS 9 and above must use secure URLs.
+	 * @param url for example : https://homecenter.mobi
+	 * @see #goExternalURL(String, boolean)
+	 * @since 7.30
+	 */
+	public final void goExternalURL(final String url) {
+		goExternalURL(url, false);
+	}
+	
+	/**
+	 * <STRONG>deprecated</STRONG>, replaced by {@link #goExternalURL(String)}.
+	 * <BR><BR>
+	 * go to external URL in system web browser or client application.
+	 * <BR><BR>
+	 * <STRONG>Important : </STRONG>
+	 * <BR>socket/connect permissions is required even if the domain of external URL is the same with the domain of upgrade HAR project URL.
+	 * <BR><BR>
+	 * <STRONG>Warning : </STRONG>
+	 * <BR>1. the external URL may be sniffed when in moving (exclude HTTPS).
+	 * <BR>2. iOS 9 and above must use secure URLs.
+	 * <BR>3. In iOS (not Android), when go external URL and <code>isUseExtBrowser</code> is true, the application will be turn into background and released after seconds. In future, it maybe keep alive in background.
 	 * @param url
-	 * @param isUseExtBrowser true : use system web browser to open URL; false : the URL will be opened in client application.
+	 * @param isUseExtBrowser true : use system web browser to open URL; false : the URL will be opened in client application and still keep foreground.
 	 * @since 7.7
 	 */
 	public final void goExternalURL(final String url, final boolean isUseExtBrowser) {
@@ -422,79 +423,7 @@ public class Mlet extends JPanel implements ICanvas {
 			return;
 		}
 		
-		if(url.endsWith(StringUtil.JAD_EXT)){
-			throw new Error("external URL can NOT end with : " + StringUtil.JAD_EXT);
-		}
-		
-		if(url.startsWith(StringUtil.URL_EXTERNAL_PREFIX) == false){
-			throw new Error("external URL must start with : " + StringUtil.URL_EXTERNAL_PREFIX);
-		}
-		
-		//检查权限
-		if(HCLimitSecurityManager.isSecurityManagerOn()){
-			final Object[] exception = new Object[1];
-			try{
-				final HttpURLConnection urlConn = new HttpURLConnection(new URL(url)) {
-					@Override
-					public void connect() throws IOException {
-					}
-					
-					@Override
-					public boolean usingProxy() {
-						return false;
-					}
-					
-					@Override
-					public void disconnect() {
-					}
-				};
-				final Permission perm = urlConn.getPermission();
-				final ProjectContext ctx = getProjectContext();
-				ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
-					@Override
-					public Object run() {
-						final HCLimitSecurityManager manager = HCLimitSecurityManager.getHCSecurityManager();
-						ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
-							@Override
-							public Object run() {
-								try{
-									ThreadConfig.putValue(ThreadConfig.AUTO_PUSH_EXCEPTION, false);//关闭push exception
-									manager.checkPermission(perm);
-								}catch (final Throwable e) {
-									exception[0] = e;
-								}finally{
-									ThreadConfig.putValue(ThreadConfig.AUTO_PUSH_EXCEPTION, true);
-								}
-								return null;
-							}
-						});
-						return null;
-					}
-				});
-			}catch (final Throwable e) {
-				throw new Error("invalid external URL : " + url);
-			}
-			if(exception[0] != null){
-				throw new SecurityException(exception[0].toString());
-			}
-		}
-		
-		final boolean isForceExtBrowser = true;
-		
-		if(isForceExtBrowser && isUseExtBrowser == false){
-			LogManager.warning("function [goExternalURL] use inner browser is NOT implemented now, force use external web browser.");
-		}
-		
-		if(isForceExtBrowser || isUseExtBrowser || ProjResponser.isMletMobileEnv(coreSS)){
-			ServerUIAPIAgent.runInSysThread(new Runnable() {
-				@Override
-				public void run() {
-					HCURLUtil.sendEClass(coreSS, HCURLUtil.CLASS_GO_EXTERNAL_URL, url);
-				}
-			});
-		}else{
-			//TODO
-		}
+		ServerUIAPIAgent.goExternalURL(coreSS, __context, url, isUseExtBrowser);
 	}
 
 }

@@ -242,7 +242,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		
 		//由于JRuby引擎初始化时，不能受限，所以增加下行代码，以完成初始化
 		final HCJRubyEngine hcje = responsors[0].hcje;
-		RubyExector.initActive(hcje);
+//		RubyExector.initActive(hcje);
 	}
 
 	public void preLoadJRubyScripts(){

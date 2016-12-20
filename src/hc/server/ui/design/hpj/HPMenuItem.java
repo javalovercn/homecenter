@@ -8,7 +8,7 @@ import hc.core.util.UIUtil;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
 
 public class HPMenuItem extends HPNode {
-	public static final String TARGET_LOCATOR = "target locator";
+	public static final String TARGET_LOCATOR = "Target Locator";
 	
 	public String url = "";
 	public String imageData = UIUtil.SYS_DEFAULT_ICON;

@@ -17,7 +17,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 
-public class LicenseHTMLMlet extends HTMLMlet {
+public class LicenseHTMLMlet extends SystemHTMLMlet {
 	final ActionListener acceptListener, cancelListener;
 	final JTextArea area;
 	

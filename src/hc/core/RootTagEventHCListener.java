@@ -13,17 +13,19 @@ public class RootTagEventHCListener extends IEventHCListener{
 	//不能初始为0，极端初次条件下可能认为，长时无接收。
 	private long receiveMS = System.currentTimeMillis();
 	
-	public long getServerReceiveMS(){
+	public final long getServerReceiveMS(){
 		return receiveMS;
 	}
 	
-	public void setServerReceiveMS(long ms){
+	public final void setServerReceiveMS(long ms){
 		receiveMS = ms;
 	}
 
 	public final boolean action(final byte[] bs, final CoreSession coreSS) {
 		final byte subTag = bs[MsgBuilder.INDEX_CTRL_SUB_TAG];
-//		L.V = L.O ? false : LogManager.log("Root Event , sub tag:" + subTag);
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("Root Event , sub tag:" + subTag);
+		}
 		if(subTag == MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_RELAY){
 			//服务器收到RootRelay回应
 			receiveMS = System.currentTimeMillis();
@@ -38,7 +40,9 @@ public class RootTagEventHCListener extends IEventHCListener{
 			}else{
 				//服务器收到mobi回应
 				receiveMS = System.currentTimeMillis();
-//				L.V = L.O ? false : LogManager.log("Receive line watch at RootTagEventHCListener");
+				if(L.isInWorkshop){
+					L.V = L.O ? false : LogManager.log("Receive line watch at RootTagEventHCListener");
+				}
 			}
 			
 			return true;

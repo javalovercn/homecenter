@@ -300,7 +300,10 @@ public class HCURLUtil {
 	}
 
 	private static void pSendCmd(CoreSession coreSS, byte tag, String cmdType, String para, String value) {
-		coreSS.context.send(tag, HCURL.CMD_PROTOCAL + HCURL.HTTP_SPLITTER + cmdType + "?" + para + "=" + value);
+		final StringBuffer sb = StringBufferCacher.getFree();
+		sb.append(HCURL.CMD_PROTOCAL).append(HCURL.HTTP_SPLITTER).append(cmdType).append('?').append(para).append('=').append(value);
+		coreSS.context.send(tag, sb.toString());
+		StringBufferCacher.cycle(sb);
 	}
 
 	public static void sendCmdUnXOR(CoreSession coreSS, String cmdType, String para, String value){
@@ -348,22 +351,26 @@ public class HCURLUtil {
 	public static final String CLASS_ERR_ON_CACHE = "errOnCache";
 	public static final String CLASS_TRANS_SERVER_UID = "transServerUID";
 
+	public static final String INNER_MODE = "_inner:";
 	
 	public static final int HTTPS_CONN_TIMEOUT = 10 * 1000;
 	public static final int HTTPS_READ_TIMEOUT = 10 * 1000;
 			
 	public static void sendCmd(CoreSession coreSS, String cmdType, String[] para, String[] value){
 //		sendWrap进行了拦截
+		final StringBuffer sb = StringBufferCacher.getFree();
 		
-		String pv = "";
+		sb.append(HCURL.CMD_PROTOCAL).append(HCURL.HTTP_SPLITTER).append(cmdType).append('?'); 
+				
 		for (int i = 0; i < para.length; i++) {
-			if(pv.length() > 0){
-				pv += "&";
+			if(i > 0){
+				sb.append('&');
 			}
-			pv += encode(para[i]) + "=" + encode(value[i]);
+			sb.append(encode(para[i])).append('=').append(encode(value[i]));
 		}
-		coreSS.context.send(MsgBuilder.E_GOTO_URL, 
-				HCURL.CMD_PROTOCAL + HCURL.HTTP_SPLITTER + cmdType + "?" + pv);
+		coreSS.context.send(MsgBuilder.E_GOTO_URL, sb.toString());
+		
+		StringBufferCacher.cycle(sb);
 	}
 
 }

@@ -50,11 +50,11 @@ public class DocHelper {
 		}
 	};
 	
-	static final String bodyRule = "body { font-family:Arial, Helvetica, sans-serif; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
-	static final String strongRule = "strong { font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
-	static final String aRule = "a { font-family:Arial, Helvetica, sans-serif; text-decoration:underline; color:blue; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
+	static final String bodyRule = "body { font-family:Dialog, Arial, Helvetica, sans-serif; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
+	static final String strongRule = ".strong { font-weight:bold; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
+	static final String aRule = "a { font-family:Dialog, Arial, Helvetica, sans-serif; text-decoration:underline; color:blue; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
 	static final String codeRule = "code { font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
-
+	
 	private JFrame codeFrame;
 	private DocLayoutLimit layoutLimit;
 	private final JEditorPane docPane = new JEditorPane();
@@ -250,6 +250,13 @@ public class DocHelper {
 			synchronized (docFrame) {
 				if(isWillShowDoc){
 					docFrame.setVisible(true);
+					if(L.isInWorkshop){
+						LogManager.log("[CodeTip] docFrame.setVisible(true).");
+					}
+				}else{
+					if(L.isInWorkshop){
+						LogManager.log("[CodeTip] keep docFrame visible as old.");
+					}
 				}
 			}
 		}
@@ -265,9 +272,11 @@ public class DocHelper {
 	
 	public final void setInvisible(){
 		synchronized (docFrame) {
-			
 			if(docFrame.isVisible()){
 				docFrame.setVisible(false);
+				if(L.isInWorkshop){
+					ClassUtil.printCurrentThreadStack("[CodeTip] docFrame.setVisible(false)");
+				}
 			}
 			isWillShowDoc = false;
 		}
@@ -295,7 +304,7 @@ public class DocHelper {
 			SwingUtilities.invokeLater(repainRunnable);
 		}else{
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("fail to get doc about : " + fmClass + "/" + fieldOrMethodName);
+				L.V = L.O ? false : LogManager.log("[CodeTip] fail to get doc and setInvisible() about : " + fmClass + "/" + fieldOrMethodName);
 			}
 			setInvisible();
 		}

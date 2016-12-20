@@ -1,12 +1,5 @@
 package hc.server.ui;
 
-import hc.core.util.StringUtil;
-import hc.core.util.UIUtil;
-import hc.server.html5.syn.DifferTodo;
-import hc.server.msb.UserThreadResourceUtil;
-
-import java.util.Vector;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -38,39 +31,23 @@ import javax.swing.JToggleButton;
 @SuppressWarnings("deprecation")
 public class HTMLMlet extends Mlet {
 	private static final long serialVersionUID = 1234L;
-	/**
-	 * @deprecated
-	 */
-	@Deprecated
-	Vector<StyleItem> styleItemToDeliver;
-	/**
-	 * @deprecated
-	 */
-	@Deprecated
-	Vector<String> stylesToDeliver;
-	/**
-	 * @deprecated
-	 */
-	@Deprecated
-	Vector<String> jsToDeliver;
 	
-	/**
-	 * @deprecated
-	 */
-	@Deprecated
-	boolean isFlushCSS = false;
-	/**
-	 * @deprecated
-	 */
-	@Deprecated
-	DifferTodo diffTodo;
+	final SizeHeightForXML sizeHeightForXML;
 
+	/**
+	 * @deprecated
+	 */
+	@Deprecated
+	public HTMLMlet(){
+		sizeHeightForXML = new SizeHeightForXML(coreSS);
+	}
+	
 	/**
 	 * load special styles for current {@link HTMLMlet}, it must be invoked before {@link #setCSS(JComponent, String, String)} which refer to these styles.
 	 * <BR><BR>More about CSS styles : 
 	 * <BR>
-	 * 1. the <i>CSS Styles</i> tab in designer for {@link HTMLMlet} is shared to all {@link HTMLMlet}s in same project.
-	 * In other words, it will be loaded automatically by server for each HTMLMlet.
+	 * 1. the <i>CSS Styles</i> tree node in designer is shared to all {@link HTMLMlet}/{@link Dialog}s in same project.
+	 * In other words, it will be loaded automatically by server for each HTMLMlet/Dialog.
 	 * <BR>
 	 * 2. this method can be invoked as many times as you want.
 	 * <BR>
@@ -86,42 +63,7 @@ public class HTMLMlet extends Mlet {
 	 * @since 7.0
 	 */
 	public final void loadCSS(final String styles){
-		if(SimuMobile.checkSimuProjectContext(__context)){
-			return;
-		}
-		
-		synchronized(this){
-			if(status == STATUS_INIT){
-				if(stylesToDeliver == null){
-					stylesToDeliver = new Vector<String>();
-				}
-				stylesToDeliver.add(styles);
-				return;
-			}
-			if(diffTodo != null && status < STATUS_EXIT){//由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
-				diffTodo.loadStyles(styles);
-			}
-		}
-	}
-	
-	/**
-	 * 
-	 * @param js
-	 * @since 7.7
-	 */
-	final void loadJS(final String js){
-		synchronized(this){
-			if(status == STATUS_INIT){
-				if(jsToDeliver == null){
-					jsToDeliver = new Vector<String>();
-				}
-				jsToDeliver.add(js);
-				return;
-			}
-			if(diffTodo != null && status < STATUS_EXIT){//由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
-				diffTodo.loadJS(js);
-			}
-		}
+		sizeHeightForXML.loadCSSImpl(this, __context, styles);
 	}
 	
 	/**
@@ -135,32 +77,8 @@ public class HTMLMlet extends Mlet {
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.0
 	 */
-	public final void setCSSForDiv(final JComponent component, String className, final String styles){//in user thread
-		if(SimuMobile.checkSimuProjectContext(__context)){
-			return;
-		}
-		
-		if(diffTodo == null && status > STATUS_INIT){
-			//MletSnapCanvas模式
-			return;
-		}
-		
-		if(className != null && className.length() == 0){
-			className = null;
-		}
-		
-		synchronized(this){
-			if(status == STATUS_INIT){
-				if(styleItemToDeliver == null){
-					styleItemToDeliver = new Vector<StyleItem>();
-				}
-				styleItemToDeliver.add(new StyleItem(StyleItem.FOR_DIV, component, className, styles));
-				return;
-			}
-			if(diffTodo != null && status < STATUS_EXIT){//由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
-				diffTodo.setStyleForDiv(diffTodo.buildHcCode(component), className, styles);//in user thread
-			}
-		}
+	public final void setCSSForDiv(final JComponent component, final String className, final String styles){//in user thread
+		sizeHeightForXML.setCSSForDivImpl(this, __context, component, className, styles);
 	}
 	
 	/**
@@ -307,52 +225,8 @@ public class HTMLMlet extends Mlet {
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.0
 	 */
-	public final void setCSS(final JComponent component, String className, final String styles){//in user thread
-		if(SimuMobile.checkSimuProjectContext(__context)){
-			return;
-		}
-		
-		if(diffTodo == null && status > STATUS_INIT){
-			//MletSnapCanvas模式
-			return;
-		}
-		
-		if(className != null && className.length() == 0){
-			className = null;
-		}
-		
-		if(component instanceof JPanel){
-			setCSSForDiv(component, className, styles);//in user thread
-			return;
-		}else if(component instanceof JToggleButton){
-			doForLabelTag((JToggleButton)component, className, styles);//in user thread
-			return;
-		}
-		
-		doForInputTag(StyleItem.FOR_JCOMPONENT, component, className, styles);//in user thread
-	}
-
-	/**
-	 * @deprecated
-	 * @param component
-	 * @param className
-	 * @param styles
-	 */
-	@Deprecated
-	private final void doForInputTag(final int forType, final JComponent component, final String className,
-			final String styles) {//in user thread
-		synchronized(this){
-			if(status == STATUS_INIT){
-				if(styleItemToDeliver == null){
-					styleItemToDeliver = new Vector<StyleItem>();
-				}
-				styleItemToDeliver.add(new StyleItem(forType, component, className, styles));
-				return;
-			}
-			if(diffTodo != null && status < STATUS_EXIT){
-				diffTodo.setStyleForInputTag(diffTodo.buildHcCode(component), className, styles);//in user thread
-			}
-		}
+	public final void setCSS(final JComponent component, final String className, final String styles){//in user thread
+		sizeHeightForXML.setCSSImpl(this, __context, component, className, styles);
 	}
 	
 	/**
@@ -366,46 +240,12 @@ public class HTMLMlet extends Mlet {
 	 * @see #setCSS(JComponent, String, String)
 	 * @since 7.0
 	 */
-	public final void setCSSForToggle(final JToggleButton togButton, String className, final String styles){
-		if(SimuMobile.checkSimuProjectContext(__context)){
-			return;
-		}
-		
-		if(diffTodo == null && status > STATUS_INIT){
-			//MletSnapCanvas模式
-			return;
-		}
-		
-		if(className != null && className.length() == 0){
-			className = null;
-		}
-		
-		doForInputTag(StyleItem.FOR_JTOGGLEBUTTON, togButton, className, styles);//in user thread
+	public final void setCSSForToggle(final JToggleButton togButton, final String className, final String styles){
+		sizeHeightForXML.setCSSForToggleImpl(this, __context, togButton, className, styles);
 	}
 
 	/**
-	 * @deprecated
-	 */
-	@Deprecated
-	private final void doForLabelTag(final JToggleButton togButton, final String className, final String styles) {//in user thread
-		synchronized(this){
-			if(status == STATUS_INIT){
-				if(styleItemToDeliver == null){
-					styleItemToDeliver = new Vector<StyleItem>();
-				}
-				styleItemToDeliver.add(new StyleItem(StyleItem.FOR_JCOMPONENT, togButton, className, styles));
-				return;
-			}
-			if(diffTodo != null && status < STATUS_EXIT){
-				diffTodo.setStyleForJCheckBoxText(diffTodo.buildHcCode(togButton), className, styles);//in user thread
-			}
-		}
-	}
-	
-	int fontSizeForNormal, fontSizeForSmall, fontSizeForLarge, fontSizeForButton, buttonHeight;
-	
-	/**
-	 * get normal font size in pixels of current login mobile.<BR>
+	 * get normal font size in pixels of current session mobile.<BR>
 	 * user may change default font size in optional from mobile.
 	 * @return the recommended normal font size in pixels, it is normal used for CSS <code>font-size</code>.
 	 * @since 7.0
@@ -413,14 +253,11 @@ public class HTMLMlet extends Mlet {
 	 * @see #getFontSizeForLarge()
 	 */
 	public final int getFontSizeForNormal(){
-		if(fontSizeForNormal == 0){
-			initFontSize();
-		}
-		return fontSizeForNormal;
+		return sizeHeightForXML.getFontSizeForNormal();
 	}
 	
 	/**
-	 * get small font size in pixels of current login mobile.<BR>
+	 * get small font size in pixels of current session mobile.<BR>
 	 * user may change small font size in optional from mobile.
 	 * @return the recommended small font size in pixels, it is normal used for CSS <code>font-size</code>.
 	 * @since 7.0
@@ -428,14 +265,11 @@ public class HTMLMlet extends Mlet {
 	 * @see #getFontSizeForLarge()
 	 */
 	public final int getFontSizeForSmall(){
-		if(fontSizeForSmall == 0){
-			initFontSize();
-		}
-		return fontSizeForSmall;
+		return sizeHeightForXML.getFontSizeForSmall();
 	}
 	
 	/**
-	 * get large font size in pixels of current login mobile.<BR>
+	 * get large font size in pixels of current session mobile.<BR>
 	 * user may change large font size in optional from mobile.
 	 * @return the recommended large font size in pixels, it is normal used for CSS <code>font-size</code>.
 	 * @since 7.0
@@ -443,37 +277,28 @@ public class HTMLMlet extends Mlet {
 	 * @see #getFontSizeForNormal()
 	 */
 	public final int getFontSizeForLarge(){
-		if(fontSizeForLarge == 0){
-			initFontSize();
-		}
-		return fontSizeForLarge;
+		return sizeHeightForXML.getFontSizeForLarge();
 	}
 	
 	/**
-	 * get button font size in pixels of current login mobile.<BR>
+	 * get button font size in pixels of current session mobile.<BR>
 	 * user may change default font size in optional from mobile.
 	 * @return the recommended button font size in pixels, it is normal used for CSS <code>font-size</code>.
 	 * @since 7.0
 	 * @see #getButtonHeight()
 	 */
 	public final int getFontSizeForButton(){
-		if(fontSizeForButton == 0){
-			initFontSize();
-		}
-		return fontSizeForButton;
+		return sizeHeightForXML.getFontSizeForButton();
 	}
 	
 	/**
-	 * get button height in pixels of current login mobile.
+	 * get button height in pixels of current session mobile.
 	 * @return the recommended button height in pixels, it is normal used for the size of button area on bottom of mobile.
 	 * @since 7.0
 	 * @see #getFontSizeForButton()
 	 */
 	public final int getButtonHeight(){
-		if(buttonHeight == 0){
-			initFontSize();
-		}
-		return buttonHeight;
+		return sizeHeightForXML.getButtonHeight();
 	}
 	
 	/**
@@ -483,11 +308,7 @@ public class HTMLMlet extends Mlet {
 	 * @since 7.3
 	 */
 	public final int getMobileWidth(){
-		if(coreSS == SimuMobile.SIMU_NULL){
-			return SimuMobile.MOBILE_WIDTH;
-		}else{
-			return UserThreadResourceUtil.getMobileWidthFrom(coreSS);
-		}
+		return sizeHeightForXML.getMobileWidth(coreSS);
 	}
 	
 	/**
@@ -497,42 +318,8 @@ public class HTMLMlet extends Mlet {
 	 * @since 7.3
 	 */
 	public final int getMobileHeight(){
-		if(coreSS == SimuMobile.SIMU_NULL){
-			return SimuMobile.MOBILE_HEIGHT;
-		}else{
-			return UserThreadResourceUtil.getMobileHeightFrom(coreSS);
-		}
+		return sizeHeightForXML.getMobileHeight(coreSS);
 	}
-	
-	private final void initFontSize(){
-		final int width = getMobileWidth();
-		final int height = getMobileHeight();
-		
-		final int maxWH = Math.max(width, height);
-		
-		fontSizeForNormal = maxWH / 60;
-		if(fontSizeForNormal < 14){
-			fontSizeForNormal = 14;
-		}
-		
-		fontSizeForSmall = (int)Math.floor(fontSizeForNormal * 0.8);
-		if(fontSizeForSmall == fontSizeForNormal){
-			fontSizeForSmall = fontSizeForNormal - 1;
-		}
-		fontSizeForButton = (int)Math.ceil(fontSizeForNormal * 1.2);
-		if(fontSizeForButton == fontSizeForNormal){
-			fontSizeForButton = fontSizeForNormal + 1;
-		}
-		fontSizeForLarge = fontSizeForButton;
-		
-		buttonHeight = fontSizeForButton * 2;//原 * 3在800X600的机器上偏大
-	}
-
-	private static final int INT_COLOR_BODY = UIUtil.DEFAULT_COLOR_BACKGROUND;
-	private static final String COLOR_BODY = StringUtil.toARGB(INT_COLOR_BODY, false);
-	
-	private static final int INT_COLOR_FONT = UIUtil.TXT_FONT_COLOR_INT_FOR_ANDROID & 0x00FFFFFF;
-	private static final String COLOR_FONT = StringUtil.toARGB(INT_COLOR_FONT, false);
 	
 	/**
 	 * return integer value of color of font, for example : 0x00FF00.
@@ -544,7 +331,7 @@ public class HTMLMlet extends Mlet {
 	 * @since 7.9
 	 */
 	public static final int getColorForFontByIntValue(){
-		return INT_COLOR_FONT;
+		return SizeHeightForXML.getColorForFontByIntValue();
 	}
 
 	/**
@@ -557,7 +344,7 @@ public class HTMLMlet extends Mlet {
 	 * @since 7.9
 	 */
 	public static final String getColorForFontByHexString(){
-		return COLOR_FONT;
+		return SizeHeightForXML.getColorForFontByHexString();
 	}
 
 	/**
@@ -578,7 +365,7 @@ public class HTMLMlet extends Mlet {
 	 * @since 7.9
 	 */
 	public static final String toHexColor(final int color, final boolean useAlpha){
-		return StringUtil.toARGB(color, useAlpha);
+		return SizeHeightForXML.toHexColor(color, useAlpha);
 	}
 
 	/**
@@ -591,7 +378,7 @@ public class HTMLMlet extends Mlet {
 	 * @since 7.9
 	 */
 	public static final int getColorForBodyByIntValue(){
-		return INT_COLOR_BODY;
+		return SizeHeightForXML.getColorForBodyByIntValue();
 	}
 
 	/**
@@ -604,7 +391,7 @@ public class HTMLMlet extends Mlet {
 	 * @since 7.9
 	 */
 	public static final String getColorForBodyByHexString(){
-		return COLOR_BODY;
+		return SizeHeightForXML.getColorForBodyByHexString();
 	}
 
 }

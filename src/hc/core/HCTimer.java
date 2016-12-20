@@ -84,6 +84,9 @@ public abstract class HCTimer {
 
 	public void setEnable(final boolean enable){
 		if(this.isEnable != enable){
+			if(L.isInWorkshop){
+				L.V = L.O ? false : LogManager.log("HCTimer [" + name + "] setEnable : " + enable);
+			}
 			this.isEnable = enable;
 			if(enable){
 				final long nowMS = System.currentTimeMillis();

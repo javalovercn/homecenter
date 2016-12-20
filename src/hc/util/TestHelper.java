@@ -20,6 +20,22 @@ public class TestHelper {
 		RootBuilder.setInstance(new J2SERootBuilder(null));
 		IConstant.setInstance(new J2SEConstant());
 		ContextManager.setThreadPool(new DebugThreadPool(), App.getRootThreadGroup());
+		
+		final Thread t = new Thread(){
+			@Override
+			public void run(){
+				while(true){
+					try{
+						Thread.sleep(20000);
+					}catch (final Exception e) {
+					}
+					
+					ClassUtil.printThreadStack(null);
+				}
+			}
+		};
+		t.setDaemon(true);
+		t.start();
 	}
 
 }

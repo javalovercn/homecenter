@@ -59,6 +59,8 @@ public class NodeEditPanelManager {
 			nep = getInstance(JRubyNodeEditPanel.class);
 		}else if(nodeType == HPNode.MASK_RESOURCE_JAR){
 			nep = getInstance(JarNodeEditPanel.class);
+		}else if(nodeType == HPNode.MASK_RESOURCE_CSS){
+			nep = getInstance(CSSNodeEditPanel.class);
 		}else if(nodeType == HPNode.MASK_SHARE_NATIVE){
 			nep = getInstance(NativeNodeEditPanel.class);
 		}else if(nodeType == HPNode.MASK_EVENT_ITEM){

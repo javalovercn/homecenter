@@ -59,10 +59,7 @@ public class ServerUIUtil {
 	public static BaseResponsor getResponsor(){
 		CCoreUtil.checkAccess();
 		
-		//加锁，以确保获得必须在启动占锁之后
-		synchronized (LOCK) {
-			return responsor;
-		}
+		return responsor;//synchronized (LOCK) 会使SIPManager.startLineOffForce互锁
 	}
 	
 	/**

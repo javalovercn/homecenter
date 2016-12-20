@@ -1,12 +1,14 @@
 package hc.util;
 
 import hc.core.util.CCoreUtil;
+import hc.server.CallContext;
 
 import java.util.HashMap;
 
 public class ThreadConfig {
 	public static final Integer AUTO_PUSH_EXCEPTION = 1;
 	public static final Integer TARGET_URL = 2;
+	public static final Integer BUILD_DIALOG_INSTANCE = 3;
 	
 	private static final Integer SYS_CONFIG = 100000;//该值以下，不作系统级权限要求
 	
@@ -27,7 +29,7 @@ public class ThreadConfig {
 		table.put(tag, value);
 	}
 	
-	public static synchronized Object getValue(final Integer tag){
+	public static synchronized Object getValue(final Integer tag, final boolean isRemoveAfterGet){
 		if(tag >= SYS_CONFIG){
 			CCoreUtil.checkAccess();
 		}
@@ -38,8 +40,16 @@ public class ThreadConfig {
 		if(table == null){
 			return null;
 		}else{
-			return table.get(tag);
+			if(isRemoveAfterGet){
+				return table.remove(tag);
+			}else{
+				return table.get(tag);
+			}
 		}
+	}
+	
+	public static Object getValue(final Integer tag){
+		return getValue(tag, false);
 	}
 	
 	public static void putValue(final Integer tag, final boolean value){
@@ -57,5 +67,11 @@ public class ThreadConfig {
 		}
 		
 		return ((Boolean)obj);
+	}
+
+	public static void setThreadTargetURL(final CallContext callCtx) {
+		if(callCtx != null){
+			putValue(TARGET_URL, callCtx.targetURL);
+		}
 	}
 }

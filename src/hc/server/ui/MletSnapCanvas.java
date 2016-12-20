@@ -3,6 +3,7 @@ package hc.server.ui;
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.data.DataInputEvent;
+import hc.core.util.ByteUtil;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
@@ -69,6 +70,8 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	public ProjectContext projectContext;
 	private ProjResponser projResp;
 	
+	boolean isForDialog;
+	
 	public MletSnapCanvas(final J2SESession coreSS, final int w, final int h) {
 		super(coreSS, w, h, false, getMaskFromBit(IConstant.COLOR_64_BIT));
 		
@@ -103,6 +106,11 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	
 	@Override
 	public void setMlet(final J2SESession coreSS, final Mlet mlet, final ProjectContext projectCtx){
+		if(mlet instanceof DialogMlet){
+			isForDialog = true;
+			((DialogMlet)mlet).resLock.mletCanvas = this;
+		}
+		
 		this.mlet = mlet;
 		ServerUIAPIAgent.setProjectContext(mlet, projectCtx);
 		projectContext = projectCtx;
@@ -363,10 +371,27 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	
 	@Override
 	public final void actionInput(final DataInputEvent e) {
+		if(isForDialog){
+			final DialogMlet dialog = (DialogMlet)mlet;
+
+			if(dialog.isContinueProcess() == false){
+				return;
+			}
+		}
+		
+		final DataInputEvent copyE = new DataInputEvent();
+		final byte[] eData = e.bs;
+		final int length = eData.length;
+		final byte[] eCopyData = ByteUtil.byteArrayCacher.getFree(length);
+		System.arraycopy(eData, 0, eCopyData, 0, length);
+		copyE.setBytes(eCopyData);
+		
 		RubyExector.execInSequenceForSession(coreSS, projResp, new ReturnableRunnable() {
 			@Override
 			public Object run() {
-				return actionInputInUserThread(e);
+				final Object out = actionInputInUserThread(copyE);
+				ByteUtil.byteArrayCacher.cycle(eCopyData);
+				return out;
 			}
 		});
 	}
@@ -631,7 +656,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		} else if (gameAction == DOWN || keyStates == KEY_NUM8) {
 			focusNext(currFocusObject);//in user thread
 		} else if (gameAction == FIRE || keyStates == KEY_NUM5) {
-			if(doActon(currFocusObject) == false){
+			if(doActonForSingleClickMode(currFocusObject) == false){
 				dispatchEvent(currFocusObject, new java.awt.event.KeyEvent(currFocusObject, 
 					java.awt.event.KeyEvent.KEY_PRESSED, 
 					System.currentTimeMillis(), 0, java.awt.event.KeyEvent.VK_ENTER, 
@@ -803,21 +828,32 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 
 //		    L.V = L.O ? false : LogManager.log("Released on MCanvas at x:" + e.getX() + ", y:" + e.getY());
 
+		    final long enterMS = System.currentTimeMillis();
+		    if(enterMS - lastSingleClickMS < 1000){//防止连击
+		    	return;
+		    }
 		    
-		    processClickOnComponent(componentAt, e);
+		    final boolean isSingleClickComp = processClickOnComponent(componentAt, e);
+		    if(isSingleClickComp){
+		    	lastSingleClickMS = enterMS;
+		    }
 		}
 	}
 	
-	public static void processClickOnComponent(final Component comp, final AWTEvent e){
+	long lastSingleClickMS;
+	
+	public static boolean processClickOnComponent(final Component comp, final AWTEvent e){
 		//支持JList 
 		//先执行Actionlistener
-		doActon(comp);
+		final boolean isSingleClickComponent = doActonForSingleClickMode(comp);
 		
 	    if(dispatchEvent(comp, e) == false){
 //	    	以下代码会产生权限错误，暂停
 //	    	frame.getToolkit().getSystemEventQueue().postEvent(e);
 	    	comp.dispatchEvent(e);//可能不能执行如MouseEvent
 	    }
+	    
+	    return isSingleClickComponent;
 	}
 	
 	private Point getRelationLocation(final Component topCorn, final Component sub){
@@ -851,7 +887,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		componentAt.dispatchEvent(fe);
 	}
 
-	public static boolean doActon(final Component componentAt) {
+	public static boolean doActonForSingleClickMode(final Component componentAt) {
 		if (componentAt instanceof Button) {
 			final ActionEvent actionEvent = new ActionEvent( componentAt, ActionEvent.ACTION_PERFORMED, 
 					((Button)componentAt).getActionCommand() );
@@ -975,10 +1011,24 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		onExit(false);
 	}
 	
+	boolean isExitProcced;
+	
 	@Override
 	public void onExit(final boolean isAutoReleaseAfterGo){
+		synchronized (this) {
+			if(isExitProcced){
+				return;
+			}else{
+				isExitProcced = true;
+			}
+		}
+		
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("onExit MletSnapCanvas : " + mlet.getTarget());
+		}
+		
 		ScreenServer.onExitForMlet(coreSS, projectContext, mlet, isAutoReleaseAfterGo);
-		MultiUsingManager.exit(coreSS, projectContext.getProjectID(), mlet.getTarget());
+		MultiUsingManager.exit(coreSS, ServerUIAPIAgent.buildScreenID(projectContext.getProjectID(), mlet.getTarget()));
 		
 		frame.dispose();
 		frameCombobox.dispose();
@@ -1037,22 +1087,14 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 
 	@Override
 	public boolean isSameScreenID(final byte[] bs, final int offset, final int len) {
-		if(len == pngCaptureID.length){
-			for (int i = 0; i < pngCaptureID.length; i++) {
-				if(pngCaptureID[i] != bs[offset + i]){
-					return false;
-				}
-			}
-			return true;
-		}
-		return false;
+		return ByteUtil.isSame(screenIDForCapture, 0, screenIDForCapture.length, bs, offset, len);
 	}
 	
 	@Override
 	public boolean isSameScreenIDIgnoreCase(final char[] chars, final int offset, final int len){
-		if(len == pngCaptureIDChars.length){
+		if(len == screenIDforCaptureChars.length){
 			for (int i = 0; i < len; i++) {
-				final char c1 = pngCaptureIDChars[i];
+				final char c1 = screenIDforCaptureChars[i];
 				final char c2 = chars[offset + i];
 				if(c1 == c2
 						|| Character.toUpperCase(c1) == Character.toUpperCase(c2)

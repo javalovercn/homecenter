@@ -42,6 +42,7 @@ import hc.server.ui.ProjectContext;
 import hc.server.ui.ServCtrlCanvas;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
+import hc.server.ui.SizeHeightForXML;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.hpj.HCjar;
@@ -809,12 +810,13 @@ public class ProjResponser {
 									});
 									
 									cmap.setTitle(title);
-									cmap.setID(targetURL);
+									final String screenID = ServerUIAPIAgent.buildScreenID(projectID, targetURL);
+									cmap.setID(screenID);
 									ServerUIUtil.response(coreSS, new MController(map, cmap.map.toSerial()).buildJcip(coreSS));
 									
 									final ServCtrlCanvas ccanvas = new ServCtrlCanvas(coreSS, responsor);
 									ScreenServer.pushScreen(coreSS, ccanvas);
-									MultiUsingManager.enter(coreSS, projectID, targetURL);
+									MultiUsingManager.enter(coreSS, screenID, targetURL);
 									
 		//							L.V = L.O ? false : LogManager.log("onLoad controller : " + url.elementID);
 								}catch (final Exception e) {
@@ -840,9 +842,9 @@ public class ProjResponser {
 		}
 	}
 
-	public static final boolean bringMletToTop(final J2SESession coreSS, final ProjectContext ctx, final String mletURLLower) {
-		if(ServerUIAPIAgent.isOnTopHistory(coreSS, ctx, mletURLLower) 
-				|| ServerUIAPIAgent.pushMletURLToHistory(coreSS, ctx, mletURLLower) == false){//已经打开，进行置顶操作
+	public static final boolean bringMletToTop(final J2SESession coreSS, final ProjectContext ctx, final String screenIDLower, final String targetURLLower) {
+		if(ServerUIAPIAgent.isOnTopHistory(coreSS, ctx, screenIDLower, targetURLLower) 
+				|| ServerUIAPIAgent.pushMletURLToHistory(coreSS, ctx, screenIDLower, targetURLLower) == false){//已经打开，进行置顶操作
 			return true;
 		}
 		return false;
@@ -893,16 +895,24 @@ public class ProjResponser {
 		}
 		
 		final String colorForBodyByHexString = HTMLMlet.getColorForBodyByHexString();
+		final SizeHeightForXML sizeHeightForXML = new SizeHeightForXML(coreSS);
 		
 		final String startBody = 
 				"<html dir='ltr'>" +
 				"<head>" +
 				"<meta charset=\"utf-8\" />" +//注意：某些手机不支持width=device-width，必须width=600
 				"<meta name=\"viewport\" content=\"target-densitydpi=device-dpi, user-scalable=no, width=" + UserThreadResourceUtil.getMobileWidthFrom(coreSS) + ", initial-scale=" + scale + ", minimum-scale=" + scale + ", maximum-scale=" + scale + "\"/>" +
-				"<style>div > img {vertical-align:middle;}div > input {vertical-align:middle;}div > label{vertical-align:middle;}</style>" +
+				"<style type=\"text/css\">" +
+				"  div > img {vertical-align:middle;}div > input {vertical-align:middle;}div > label{vertical-align:middle;}\n" +
+				"  input, select, textarea, button{font-family:inherit;font-size:inherit;}\n" +
+				"  .sys_hc_div_0 {" +
+					"font-size:" + sizeHeightForXML.getFontSizeForNormal() + "px;" +
+					"background-color:#" + colorForBodyByHexString + ";" +
+					"}" +
+				"</style>" +
 				"</head>" +
-				"<body style=\"position:relative;margin:0px;background-color:#" + colorForBodyByHexString + ";color:#" + HTMLMlet.getColorForFontByHexString() + ";\">" +
-				"<div id=\"hc_div_0\"></div>" +
+				"<body style=\"position:relative;margin:0px;background-color:transparent;color:#" + HTMLMlet.getColorForFontByHexString() + ";\">" +
+				"<div id=\"hc_div_0\" class=\"sys_hc_div_0\"></div>" +
 				"<div id=\"hc_div_loading\" style=\"position:absolute;background-color:#" + colorForBodyByHexString + ";" +
 						"width:" + UserThreadResourceUtil.getMobileWidthFrom(coreSS) + "px;" +
 						"height:" + UserThreadResourceUtil.getMobileHeightFrom(coreSS) + "px;\"></div>" +

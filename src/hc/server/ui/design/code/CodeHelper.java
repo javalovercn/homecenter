@@ -71,6 +71,7 @@ import org.jrubyparser.ast.ListNode;
 import org.jrubyparser.ast.LocalAsgnNode;
 import org.jrubyparser.ast.LocalVarNode;
 import org.jrubyparser.ast.MethodDefNode;
+import org.jrubyparser.ast.MethodNameNode;
 import org.jrubyparser.ast.NewlineNode;
 import org.jrubyparser.ast.NilNode;
 import org.jrubyparser.ast.Node;
@@ -81,7 +82,8 @@ import org.jrubyparser.ast.VCallNode;
 import org.jrubyparser.parser.ParserConfiguration;
 
 public class CodeHelper {
-	private static final String CLASS_STATIC_PREFIX = "class.";//ctx.class.getProjectContext()
+	private static final String CLASS_STATIC = "class";//ctx.class.getProjectContext()
+	private static final String CLASS_STATIC_PREFIX = CLASS_STATIC + ".";//ctx.class.getProjectContext()
 	private static final String TO_UPPER_CASE = "upcase";
 	private static final String TO_DOWN_CASE = "downcase";
 	private static final String TO_S = "to_s";
@@ -96,7 +98,7 @@ public class CodeHelper {
 	private final HashMap<String, CodeItem[]> classCacheMethodAndPropForClass = new HashMap<String, CodeItem[]>();
 	private final HashMap<String, CodeItem[]> classCacheMethodAndPropForInstance = new HashMap<String, CodeItem[]>();
 	
-	private final CodeWindow window;
+	public final CodeWindow window;
 	private final ArrayList<CodeItem> autoTipOut = new ArrayList<CodeItem>();
 	public final ArrayList<CodeItem> out = new ArrayList<CodeItem>();
 
@@ -109,10 +111,7 @@ public class CodeHelper {
 		@Override
 		public void doBiz() {
 			hideByMouseEvent();
-			isTriggerOn = false;
-			isUsingByCode = false;
-			isUsingByDoc = false;
-			super.setEnable(false);
+			reset();
 		}
 		
 		@Override
@@ -144,12 +143,16 @@ public class CodeHelper {
 	
 	public final void notifyUsingByCode(final boolean isUsing){
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("AutoCodeTip notifyUsingByCode : " + isUsing);
+			L.V = L.O ? false : LogManager.log("[CodeTip] start notifyUsingByCode : " + isUsing);
 		}
 		
 		if(mouseExitHideDocForMouseMovTimer.isTriggerOn()){
 			mouseExitHideDocForMouseMovTimer.isUsingByCode = isUsing;
 			mouseExitHideDocForMouseMovTimer.setEnable(!isUsing);
+		}
+		
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("[CodeTip] done notifyUsingByCode : " + isUsing);
 		}
 	}
 	
@@ -423,6 +426,16 @@ public class CodeHelper {
 		item.isForMaoHaoOnly = false;//仅限new
 		item.type = CodeItem.TYPE_METHOD;
 		
+		final int size = list.size();
+		for (int i = 0; i < size; i++) {
+			if(list.get(i).codeDisplay.equals(item.codeDisplay)){
+				if(L.isInWorkshop){
+					LogManager.log("item.codeDisplay = " + item.codeDisplay + " is added in list, skip add.");
+				}
+				return;
+			}
+		}
+		
 		list.add(item);
 	}
 
@@ -466,7 +479,7 @@ public class CodeHelper {
 				methods = set.get(getDefClassName(jdc.defNode));
 			}
 			if(methods != null){
-				appendToOut(methods, needPublic, out);
+				appendToOut(methods, needPublic, out, true);
 			}
 			if(jdc != null && jdc.defNode != null){
 				appendDef(jdc.defNode, isForClass, out);
@@ -477,7 +490,8 @@ public class CodeHelper {
 		}
 		
 		//仅取定义体中的
-		if(defNode != null){
+		final boolean isDefNode = defNode != null;
+		if(isDefNode){
 			CodeItem[] methods = set.get(getDefClassName(defNode));
 			if(methods == null && jdc != null){
 				if(methods == null){
@@ -485,7 +499,7 @@ public class CodeHelper {
 					methods = set.get(getDefClassName(defNode));
 				}
 				if(methods != null){
-					appendToOut(methods, needPublic, out);
+					appendToOut(methods, needPublic, out, true);
 				}
 				if(jdc != null && jdc.defNode != null){
 					appendDef(jdc.defNode, isForClass, out);
@@ -505,9 +519,9 @@ public class CodeHelper {
 			DocHelper.processDoc(backgroundOrPreVar, true);
 		}
 		
-		appendToOut(methods, needPublic, out);
+		appendToOut(methods, needPublic, out, isDefNode?false:true);
 		
-		if(defNode != null){
+		if(isDefNode){
 			appendDef(defNode, isForClass, out);
 		}
 		
@@ -515,7 +529,7 @@ public class CodeHelper {
 	}
 
 	private ArrayList<CodeItem> appendToOut(final CodeItem[] methods,
-			final boolean needPublic, final ArrayList<CodeItem> out) {
+			final boolean needPublic, final ArrayList<CodeItem> out, final boolean needNewMethod) {
 		final int size = methods.length;
 		for (int i = 0; i < size; i++) {
 			final CodeItem tryMethod = methods[i];
@@ -525,6 +539,10 @@ public class CodeHelper {
 					continue;
 				}
 			}
+			if(needNewMethod == false && JRUBY_NEW == tryMethod.fieldOrMethodOrClassName){//defined JRuby class is NOT required super class new methods.
+				continue;
+			}
+			
 			if(preCodeSplitIsDot){
 				if(tryMethod.isForMaoHaoOnly){
 					continue;
@@ -553,7 +571,12 @@ public class CodeHelper {
 			
 			final ClassNode classNode = defNode;
 			final String className = getDefClassName(classNode);
-			final Node body = classNode.getBody();
+			final Node body = classNode.getBody();//注意：有可能只定义类，而没有定义体，导致body为null
+			if(body == null){
+				appendDefaultInitialize(isForClass, list, className);
+				return;
+			}
+			
 			final List<Node> listNodes = body.childNodes();
 			final int size = listNodes.size();
 			for (int i = 0; i < size; i++) {
@@ -583,7 +606,17 @@ public class CodeHelper {
 					appendMethod(isForClass, className, (DefnNode)sub, list);
 				}
 			}
+			
+			appendDefaultInitialize(isForClass, list, className);
 		}
+	}
+
+	public final void appendDefaultInitialize(final boolean isForClass,
+			final ArrayList<CodeItem> list, final String className) {
+		final ArgsNode args = new ArgsNode(null, null, null, null, null, null, null, null);
+		final MethodNameNode methodName = new MethodNameNode(null, JRUBY_CLASS_INITIALIZE_DEF);
+		final DefnNode defaultNew = new DefnNode(null, methodName, args, null, null);
+		appendMethod(isForClass, className, defaultNew, list);
 	}
 	
 	public static ArrayList<String> getRequireLibs(final Node node, final ArrayList<String> out){
@@ -1840,9 +1873,9 @@ public class CodeHelper {
 		try{
 			final Node oldRoot = root;
 			root = parseScripts(scripts);
-			if(L.isInWorkshop){
-				printNode(root);
-			}
+//			if(L.isInWorkshop){
+//				printNode(root);
+//			}
 			backRoot = oldRoot;
 			return true;
 		}catch (final Throwable e) {
@@ -1947,12 +1980,15 @@ public class CodeHelper {
 		
 		final int input_x = win_loc.x + ((caretPosition==null)?0:caretPosition.x);
 		final int input_y = win_loc.y + ((caretPosition==null)?0:caretPosition.y);
-		window.toFront(codeClass, sep, textPane, input_x, input_y, out, preCode.toLowerCase(), scriptIdx, fontHeight);
+		window.toFront(codeClass, sep, textPane, input_x, input_y, out, preCode, scriptIdx, fontHeight);
 		return true;
 	}
 	
 	public final synchronized boolean mouseMovOn(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, 
 			final int fontHeight, final boolean isForcePopup, final int scriptIdx) throws Exception{
+		if(L.isInWorkshop){
+			LogManager.log("[CodeTip] start mouseMovOn from HCTimer.");
+		}
 		final Point win_loc = textPane.getLocationOnScreen();
 		
 		final int line = ScriptEditPanel.getLineOfOffset(doc, scriptIdx);
@@ -1988,13 +2024,9 @@ public class CodeHelper {
 		}
 		final Class codeClass = (preClass==null?null:preClass.baseClass);
 		
-		final Rectangle caretRect = textPane.modelToView(scriptIdx - preCode.length());//与方法段齐
-		final int input_x = win_loc.x + caretRect.x;
-		final int input_y = win_loc.y + caretRect.y;
-		
-		int i = lineIdx;
-		for (; i < lineChars.length; i++) {//补全完整的方法名
-			final char nextChar = lineChars[i];
+		int endIdx = lineIdx;
+		for (; endIdx < lineChars.length; endIdx++) {//补全完整的方法名
+			final char nextChar = lineChars[endIdx];
 			if(nextChar >= 'a' && nextChar <= 'z'
 					|| nextChar >= 'A' && nextChar <= 'Z'
 					|| nextChar == '_'){
@@ -2002,12 +2034,26 @@ public class CodeHelper {
 				break;
 			}
 		}
-		if(i > lineIdx){
-			final int startIdx = lineIdx - preCode.length();
-			preCode = new String(lineChars, startIdx, i - startIdx);
+		int startIdx = lineIdx - 1;
+		for (; startIdx < lineChars.length; startIdx--) {//补全完整的方法名
+			final char nextChar = lineChars[startIdx];
+			if(nextChar >= 'a' && nextChar <= 'z'
+					|| nextChar >= 'A' && nextChar <= 'Z'
+					|| nextChar == '_'){
+			}else{
+				break;
+			}
 		}
+		startIdx++;
+		preCode = new String(lineChars, startIdx, endIdx - startIdx);
+		
+		final Rectangle caretRect = textPane.modelToView(scriptIdx - (lineIdx - startIdx));//与方法段齐
+		final int input_x = win_loc.x + caretRect.x;
+		final int input_y = win_loc.y + caretRect.y;
+		
+
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("AutoCodeTip : " + preCode + ", codeItem : " + out.size());
+			L.V = L.O ? false : LogManager.log("[CodeTip] AutoCodeTip : " + preCode + ", codeItem : " + out.size());
 		}
 		if(preCode.length() == 0){
 			return false;
@@ -2020,7 +2066,7 @@ public class CodeHelper {
 			return false;
 		}else if(matchSize == 1){
 			window.setMouseOverAutoTipLoc(input_x, input_y, fontHeight);
-			window.startAutoPopTip(autoTipOut.get(0));
+			window.startAutoPopTip(autoTipOut.get(0), textPane);
 		}else{
 			window.toFront(codeClass, sep, textPane, input_x, input_y, autoTipOut, preCode, scriptIdx, fontHeight);
 		}
@@ -2570,7 +2616,7 @@ public class CodeHelper {
 		
 		for (int i = columnIdx - 1; i >= partStartIdx; i--) {
 			final char c = lineHeader[i];
-			if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '1' && c <= '0') || c == '_'){
+			if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_'){
 				continue;
 			}else if(c == '.'){
 				final int offset = i + 1;
@@ -2619,7 +2665,7 @@ public class CodeHelper {
 		if(leftKuoIdx > partStartIdx){
 			for (; leftKuoIdx >= partStartIdx; leftKuoIdx--) {
 				final char c = lineHeader[leftKuoIdx];
-				if(c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '1' && c <= '0' || c == '_' || c == ':' || c == '$' || c == '@'){
+				if(c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '_' || c == ':' || c == '$' || c == '@'){
 					continue;
 				}else{
 					break;
@@ -2657,7 +2703,7 @@ public class CodeHelper {
 		//方法名段
 		for (; leftKuoIdx >= partStartIdx; leftKuoIdx--) {
 			final char c = lineHeader[leftKuoIdx];
-			if(c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '1' && c <= '0' || c == '_'){
+			if(c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '_'){
 				continue;
 			}
 			if(c == '.'){
@@ -2690,7 +2736,7 @@ public class CodeHelper {
 			final int rowIdxAtScript, final int partStartIdx){
 		for (int i = columnIdx - 1; i >= partStartIdx; i--) {
 			final char c = lineHeader[i];
-			if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '1' && c <= '0') || c == '_'){
+			if((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_'){
 				continue;
 			}else if(c == '@'){
 				final int offset = i + 1;
@@ -2713,7 +2759,7 @@ public class CodeHelper {
 			}else{
 				final int offset = i + 1;
 				final String v = String.valueOf(lineHeader, offset, columnIdx - offset);
-				if("class".equals(v) && i >= partStartIdx && lineHeader[i] == '.'){//ctx.class.get()调用静态方法
+				if(CLASS_STATIC.equals(v) && i >= partStartIdx && lineHeader[i] == '.'){//ctx.class.get()调用静态方法
 					final JRubyClassDesc jcd = findPreCodeAfterVar(lineHeader, offset, scriptIdx, rowIdxAtScript, partStartIdx);
 					jcd.isInstance = false;//供静态专用
 					
@@ -2825,7 +2871,13 @@ public class CodeHelper {
 	}
 
 	private final void hideByMouseEvent() {
+		if(L.isInWorkshop){
+			LogManager.log("[CodeTip] start hideByMouseEvent");
+		}
 		window.hide(true);
+		if(L.isInWorkshop){
+			LogManager.log("[CodeTip] done hideByMouseEvent");
+		}
 	}
 	
 }

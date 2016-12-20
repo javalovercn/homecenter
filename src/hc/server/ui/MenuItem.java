@@ -136,8 +136,8 @@ public class MenuItem {
 	
 	/**
 	 * if the MenuItem is set to disable, then the <code>icon</code> will be gray on mobile immediately.
-	 * <BR>
-	 * if the MenuItem is added to project level, then it will apply to all mobile clients, not only the session creates it.
+	 * <BR><BR>
+	 * if the MenuItem is added in project level, then the change will apply to all mobile clients.
 	 * <BR><BR>
 	 * actions on a disabled MenuItem will be invalid.
 	 * @param b
@@ -187,8 +187,9 @@ public class MenuItem {
 	
 	/**
 	 * 
-	 * if the MenuItem is displayed on mobile, then it will be refreshed.<BR>
-	 * if the MenuItem is added to project level, then it will apply to all mobile clients, not only the session creates it.
+	 * if the MenuItem is displayed on mobile, then it will be refreshed.
+	 * <BR><BR>
+	 * if the MenuItem is added in project level, then the change will apply to all mobile clients.
 	 * @param text
 	 * @see #setText(String[], String[])
 	 * @since 7.20
@@ -214,8 +215,9 @@ public class MenuItem {
 	}
 	
 	/**
-	 * if the MenuItem is displayed on mobile, then it will be refreshed.<BR>
-	 * if the MenuItem is added to project level, then it will apply to all mobile clients, not only the session creates it.
+	 * if the MenuItem is displayed on mobile, then it will be refreshed.
+	 * <BR><BR>
+	 * if the MenuItem is added in project level, then the change will apply to all mobile clients.
 	 * <BR><BR>
 	 * for example, <code>locales</code> is {"en-US", "fr-FR"}, <code>texts</code> is {"Hello", "Bonjour"}.
 	 * @param locales the array for locale
@@ -249,8 +251,9 @@ public class MenuItem {
 	
 	/**
 	 * set icon of MenuItem.<BR><BR>
-	 * if the MenuItem is displayed on mobile, then it will be refreshed immediately.<BR>
-	 * if the MenuItem is added to project level, then it will apply to all mobile clients, not only the session creates it.
+	 * if the MenuItem is displayed on mobile, then it will be refreshed immediately.
+	 * <BR><BR>
+	 * if the MenuItem is added in project level, then the change will apply to all mobile clients.
 	 * <BR><BR>
 	 * if the MenuItem is set to disable, then the <code>icon</code> will be gray on mobile immediately.
 	 * @param icon the best image size is 128 X 128 for current version.

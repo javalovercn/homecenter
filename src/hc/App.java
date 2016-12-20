@@ -241,7 +241,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			CCoreUtil.globalExit();
 		}
 		
-		boolean isSimu = false;
+		boolean isSimuFromArgs = false;
 
 		//forece init, because MouseEvent.static {NativeLibLoader.loadLibraries()};
 		try{
@@ -313,7 +313,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				}else if(arg.equals(TAG_INI_DEBUG_THREAD_POOL_ON)){
 					DEBUG_THREAD_POOL_ON = true;
 				}else if(arg.equals("isSimu")){
-					isSimu = true;
+					isSimuFromArgs = true;
 				}
 			}
 		}
@@ -321,15 +321,15 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		if(ResourceUtil.isLoggerOn() == false){
 			LogManager.INI_DEBUG_ON = true;
 		}
-		if(isSimu){
+		if(isSimuFromArgs){
 			LogManager.log("init SecurityDataProtector...");
 		}
 		SecurityDataProtector.init();
-		if(isSimu){
+		if(isSimuFromArgs){
 			LogManager.log("done SecurityDataProtector.");
 		}
 
-		if(isSimu){
+		if(isSimuFromArgs){
 			//只做强制isSimu，不做isSimu为false的情形，因为原配置可能为true
 			PropertiesManager.setValue(PropertiesManager.p_IsSimu, IConstant.TRUE);//注意：须在下行isSimu之前
 		}
@@ -337,6 +337,22 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		if (PropertiesManager.isSimu()) {//注意：须在上行setValue(PropertiesManager.p_IsSimu, IConstant.TRUE);之后
 			L.setInWorkshop(true);
 			L.V = L.O ? false : LogManager.log("isSimu : true");
+			
+			final Thread t = new Thread("printAllThreadStack"){
+				@Override
+				public void run(){
+					while(true){
+						try{
+							Thread.sleep(20 * 1000);
+						}catch (final Exception e) {
+						}
+						
+						ClassUtil.printThreadStack(null);
+					}
+				}
+			};
+			t.setDaemon(true);
+			t.start();
 		}
 		
 		//依赖isInWorkshop
@@ -864,8 +880,11 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		}, threadPoolToken);
 		dialog.addWindowListener(new WindowAdapter() {
 			@Override
-			public void windowClosing(final WindowEvent e) {
+			public void windowClosing(final WindowEvent e) {//仅指点X
 				dialog.dispose();
+				if(cancelBiz != null){
+					cancelBiz.start();
+				}
 			}
 		});
 		dialog.getRootPane().registerKeyboardAction(exitActionListener,

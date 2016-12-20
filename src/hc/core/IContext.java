@@ -43,8 +43,11 @@ public abstract class IContext {
 		hasReceiveUncheckCert = false;
 	}
 
-	
-	public final void setConnectionModeStatus(final short modeStat){
+	/**
+	 * 注意：本方法被override
+	 * @param modeStat
+	 */
+	public void setConnectionModeStatus(final short modeStat){
 		modeStatus = modeStat;
 	}
 
@@ -587,19 +590,19 @@ public abstract class IContext {
 	/**
 	 * 仅限发送控制短数据。
 	 * @param ctrlTag
-	 * @param bs
+	 * @param bsModi 数据会被加密进程混淆、修改
 	 * @param data_len
 	 */
-	public final void send(final byte ctrlTag, byte[] bs, final int data_len) {
+	public final void send(final byte ctrlTag, byte[] bsModi, final int data_len) {
 			if(isBuildedUPDChannel && isDoneUDPChannelCheck
 					&& (ctrlTag != MsgBuilder.E_GOTO_URL && ctrlTag != MsgBuilder.E_INPUT_EVENT && ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN)){
-			udpSender.sendUDP(ctrlTag, bs[MsgBuilder.INDEX_CTRL_SUB_TAG], bs, MsgBuilder.INDEX_MSG_DATA, data_len, 0, false);
+			udpSender.sendUDP(ctrlTag, bsModi[MsgBuilder.INDEX_CTRL_SUB_TAG], bsModi, MsgBuilder.INDEX_MSG_DATA, data_len, 0, false);
 			return;
 		}
 
-		HCMessage.setMsgLen(bs, data_len);
+		HCMessage.setMsgLen(bsModi, data_len);
 		
-		bs[MsgBuilder.INDEX_CTRL_TAG] = ctrlTag;
+		bsModi[MsgBuilder.INDEX_CTRL_TAG] = ctrlTag;
 		boolean isNeedRecyle = false;
 		
 		try{
@@ -609,10 +612,10 @@ public abstract class IContext {
 			if(isCheck){
 				sendWithCheckLen += checkBitLen;
 				
-				if(bs.length < sendWithCheckLen){
+				if(bsModi.length < sendWithCheckLen){
 					byte[] cycleBS = cache.getFree(sendWithCheckLen);
-					System.arraycopy(bs, 0, cycleBS, 0, sendLenWithoutCheck);
-					bs = cycleBS;
+					System.arraycopy(bsModi, 0, cycleBS, 0, sendLenWithoutCheck);
+					bsModi = cycleBS;
 					isNeedRecyle = true;
 				}
 			}
@@ -620,7 +623,7 @@ public abstract class IContext {
 			synchronized (outStream) {
 				if(isCheck){
 					{
-						final byte oneByte = bs[0];//INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
+						final byte oneByte = bsModi[0];//INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
 						checkTotal += oneByte;
 						checkAND ^= checkTotal;
 						checkAND += oneByte;
@@ -628,15 +631,15 @@ public abstract class IContext {
 						checkMINUS -= oneByte;
 					}
 					for (int i = 2; i < sendLenWithoutCheck; i++) {
-						final byte oneByte = bs[i];
+						final byte oneByte = bsModi[i];
 						checkTotal += oneByte;
 						checkAND ^= checkTotal;
 						checkAND += oneByte;
 						checkMINUS ^= checkTotal;
 						checkMINUS -= oneByte;
 					}
-					bs[sendLenWithoutCheck] = checkAND;
-					bs[sendLenWithoutCheck + 1] = checkMINUS;
+					bsModi[sendLenWithoutCheck] = checkAND;
+					bsModi[sendLenWithoutCheck + 1] = checkMINUS;
 				}
 				
 //				L.V = L.O ? false : LogManager.log("dataLen : " + data_len + ", data : " + ByteUtil.toHex(bs, 0, sendWithCheckLen));
@@ -645,16 +648,16 @@ public abstract class IContext {
 		    	}else{
 		    		//加密
 //		    		L.V = L.O ? false : LogManager.log("Xor len:" + data_len);
-		    		CUtil.superXor(this, coreSS.OneTimeCertKey, bs, MsgBuilder.INDEX_MSG_DATA, data_len, null, true, true);
+		    		CUtil.superXor(this, coreSS.OneTimeCertKey, bsModi, MsgBuilder.INDEX_MSG_DATA, data_len, null, true, true);
 		    	}
 
 //				hc.core.L.V=hc.core.L.O?false:LogManager.log("Send [" + ctrlTag + "], len:" + data_len);
-				outStream.write(bs, 0, sendWithCheckLen);
+				outStream.write(bsModi, 0, sendWithCheckLen);
 				outStream.flush();
 			}//end synchronized
 			
 			if(isNeedRecyle){
-				cache.cycle(bs);
+				cache.cycle(bsModi);
 			}
 		} catch (final Exception e) {
 //			ExceptionReporter.printStackTrace(e);

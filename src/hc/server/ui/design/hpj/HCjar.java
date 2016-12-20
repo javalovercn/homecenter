@@ -748,7 +748,7 @@ public class HCjar {
 				final HPNode j_node = (HPNode)((DefaultMutableTreeNode)parentNode.getChildAt(j)).getUserObject();
 				if(i_node.equals(j_node)){
 					final String desc = "there is same display name " +
-							"(or target locator) of <strong>[" + i_node.name +"]</strong> with other node [<strong>" + j_node.name + "</strong>].";
+							"(or Target Locator) of <strong>[" + i_node.name +"]</strong> with other node [<strong>" + j_node.name + "</strong>].";
 					throw new NodeInvalidException(treeNode, desc);
 				}
 			}

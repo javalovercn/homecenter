@@ -30,7 +30,6 @@ public class HCJRubyEngine {
 	private static final boolean isAndroidServerPlatform = ResourceUtil.isAndroidServerPlatform();
 	public static final String JRUBY_VERSION = "RUBY1_8";//for container and parser
 
-	public boolean isError = false;
 	public final RubyWriter errorWriter = new RubyWriter();
 //	private final ScriptingContainer container;	
 	private Class classScriptingContainer;
@@ -39,7 +38,6 @@ public class HCJRubyEngine {
 	
 	public final void resetError(){
 		errorWriter.reset();
-		isError = false;
 	}
 	
 	static final Class[] putparaTypes = {String.class, Object.class};
@@ -112,6 +110,11 @@ public class HCJRubyEngine {
 			lruCache.remove(script);//执行错误后，需重新编译
 			throw e;
 		}
+	}
+	
+	public final Object rubyToJava(final Object obj) throws Exception{
+		final Object[] para = {obj};
+		return ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils, classJavaEmbedUtils, "rubyToJava", rubyToJavaParaTypes, para, false);
 	}
 
 	public final void terminate(){

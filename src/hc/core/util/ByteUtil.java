@@ -18,6 +18,18 @@ public class ByteUtil {
 		}
 	}
 	
+	public static boolean isSame(final byte[] src1, final int offset1, final int len1, final byte[] src2, final int offset2, final int len2){
+		if(len2 == len1){
+			for (int i = offset1; i < len1; i++) {
+				if(src1[i] != src2[offset2 + i]){
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+	
 	public static final String buildString(final byte[] bs, final int offset, final int len, final String charset){
 		try{
 			return new String(bs, offset, len, charset);

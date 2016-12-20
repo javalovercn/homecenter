@@ -18,6 +18,7 @@ import hc.core.util.Stack;
 import hc.core.util.UIUtil;
 import hc.server.J2SEServerURLAction;
 import hc.server.KeepaliveManager;
+import hc.server.ScreenServer;
 import hc.server.data.screen.PNGCapturer;
 import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.Robot;
@@ -28,7 +29,8 @@ import hc.server.ui.ClientSession;
 import hc.server.ui.ICanvas;
 import hc.server.ui.IMletCanvas;
 import hc.server.ui.MenuItem;
-import hc.server.ui.QuestionParameter;
+import hc.server.ui.ResParameter;
+import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.SessionMobiMenu;
 import hc.server.util.SystemEventListener;
 import hc.util.UpdateOneTimeRunnable;
@@ -37,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.Vector;
 
 /**
@@ -65,8 +68,8 @@ public class J2SESession extends CoreSession{
 	public KeepaliveManager keepaliveManager;
 	public boolean isIdelSession = true;
 	public boolean isWillCheckServer;
-	public final HashMap<Integer, QuestionParameter> questionMap = new HashMap<Integer, QuestionParameter>();
-	public int questionID = 1;
+	public final HashMap<Integer, ResParameter> questionOrDialogMap = new HashMap<Integer, ResParameter>();
+	public int questionOrDialogID = 1;
 	public Stack mletHistoryUrl;
 	public boolean isEventMobileLoginDone = false;
 	public final Vector<SystemEventListener> sessionLevelEventListeners = new Vector<SystemEventListener>();
@@ -141,13 +144,37 @@ public class J2SESession extends CoreSession{
 		});
 	}
 	
+	private boolean isReleased;
+	
 	@Override
 	public void release(){
-		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("release J2SESocketSession.");
+		synchronized (this) {
+			if(isReleased){
+				return;
+			}else{
+				isReleased = true;
+			}
 		}
 		
 		super.release();
+		
+		Integer[] keys;
+		synchronized (questionOrDialogMap) {
+			final Set<Integer> set = questionOrDialogMap.keySet();
+			final int size = set.size();
+			keys = new Integer[size];
+			keys = set.toArray(keys);
+//			questionOrDialogMap.clear();
+		}
+		
+		for (int i = 0; i < keys.length; i++) {
+			final ResParameter resPara = questionOrDialogMap.get(keys[i]);
+			ServerUIAPIAgent.exitDialogMlet(resPara);
+		}
+		
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("release questionOrDialogMap.");
+		}
 		
 		keepaliveManager = null;
 	}
@@ -203,19 +230,31 @@ public class J2SESession extends CoreSession{
 		
 		//输入事件
 		eventCenter.addListener(new IEventHCListener(){
+			final int offset = DataInputEvent.screen_id_index;
 			final DataInputEvent e = new DataInputEvent();
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS) {
 				e.setBytes(bs);
-				final ICanvas screenCap = ((J2SESession)coreSS).currScreen;
-				if(screenCap == null || (screenCap instanceof PNGCapturer) == false){
-					LogManager.errToLog("Error object, skip event input.");
-				}else{
-					((PNGCapturer)screenCap).actionInput(e);
+				final int screenIDLen = e.getScreenIDLen();
+				final J2SESession j2seSession = (J2SESession)coreSS;
+				Object screenCap = j2seSession.currScreen;
+				if(ScreenServer.isMatchScreen(screenCap, bs, offset, screenIDLen) == false){
+					screenCap = ScreenServer.searchDialog(j2seSession, bs, offset, screenIDLen);
+					if(screenCap == null){
+						//从其它form中搜寻
+						screenCap = ScreenServer.searchScreen(j2seSession, bs, offset, screenIDLen);
+						if(screenCap == null){
+							LogManager.warning("target may be closed, skip event input.");
+							return true;
+						}
+					}
 				}
+				
+				((PNGCapturer)screenCap).actionInput(e);
+//				LogManager.errToLog("unable to action input for : " + screenCap.getClass().getName());
 				return true;
 			}
-	
+
 			@Override
 			public final byte getEventTag() {
 				return MsgBuilder.E_INPUT_EVENT;
@@ -236,32 +275,36 @@ public class J2SESession extends CoreSession{
 			
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+				final int screenIDlen = ByteUtil.oneByteToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
+
 				final J2SESession j2seCoreSS = (J2SESession)coreSS;
 				final ICanvas screenCap = j2seCoreSS.currScreen;
-				if(screenCap == null || (screenCap instanceof IMletCanvas) == false){
-					LogManager.errToLog("screen or form may be closed, skip javascript event input.");
+				
+				if(screenCap != null && (screenCap instanceof IMletCanvas) && actionJSInput(screenCap, bs, screenIDlen)){
 					return true;
 				}else{
-					final int screenIDlen = ByteUtil.oneByteToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
-					if(actionJSInput(screenCap, bs, screenIDlen)){
+					final IMletCanvas dialogCap = ScreenServer.searchDialog(j2seCoreSS, bs, screenIDIndex, screenIDlen);
+					if(dialogCap != null && actionJSInput(dialogCap, bs, screenIDlen)){
 						return true;
-					}else{
-						final Enumeration e = j2seCoreSS.mobiScreenMap.elements();
-						try{
-							while(e.hasMoreElements()){
-								final Object ele = e.nextElement();
-								if(ele instanceof IMletCanvas){
-									if(actionJSInput(ele, bs, screenIDlen)){
-										return true;
-									}								
-								}
-							}
-						}catch (final NoSuchElementException ex) {
-						}
 					}
 					
-					return true;
+					//其它form中搜寻
+					final Enumeration e = j2seCoreSS.mobiScreenMap.elements();
+					try{
+						while(e.hasMoreElements()){
+							final Object ele = e.nextElement();
+							if(ele instanceof IMletCanvas){
+								if(actionJSInput(ele, bs, screenIDlen)){
+									return true;
+								}								
+							}
+						}
+					}catch (final NoSuchElementException ex) {
+					}
 				}
+				
+				LogManager.warning("form/dialog/screen may be closed, skip javascript event input.");
+				return true;
 			}
 	
 			@Override

@@ -1,9 +1,10 @@
 package hc.server.ui.design.code;
 
 import hc.core.HCTimer;
+import hc.core.L;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
 import hc.server.DefaultManager;
-import hc.server.ui.design.Designer;
 import hc.server.ui.design.hpj.HCTextPane;
 import hc.server.ui.design.hpj.ScriptEditPanel;
 import hc.util.ClassUtil;
@@ -152,11 +153,12 @@ public class CodeWindow {
 			}else if(keyCode == KeyEvent.VK_BACK_SPACE){
 				if(preCodeCharsLen > 0){
 					preCodeCharsLen--;
-					preCode = String.valueOf(preCodeChars, 0, preCodeCharsLen);
+					preCodeLower = String.valueOf(preCodeChars, 0, preCodeCharsLen);
 					SwingUtilities.invokeLater(refilterRunnable);
 					
 					try{
 						document.remove(--movingScriptIdx, 1);
+						textPane.setCaretPosition(movingScriptIdx);
 						textPane.updateUI();
 						textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, movingScriptIdx));
 						TabHelper.notifyInputKey(true, e, e.getKeyChar());
@@ -169,12 +171,13 @@ public class CodeWindow {
 					return;
 				}
 				preCodeChars[preCodeCharsLen++] = keyChar;
-				preCode = String.valueOf(preCodeChars, 0, preCodeCharsLen);
+				preCodeLower = String.valueOf(preCodeChars, 0, preCodeCharsLen).toLowerCase();
 				
 				SwingUtilities.invokeLater(refilterRunnable);
 				
 				try{
 					document.insertString(movingScriptIdx++, String.valueOf(keyChar), null);
+					textPane.setCaretPosition(movingScriptIdx);
 					textPane.updateUI();
 					
 					textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, movingScriptIdx));
@@ -296,7 +299,7 @@ public class CodeWindow {
 				if(idx >= 0){
 					final CodeItem item = classData.get(idx);
 					if(docHelper.acceptType(item.type)){
-						startAutoPopTip(item);
+						startAutoPopTip(item, null);
 					}else{
 						docHelper.setInvisible();
 					}
@@ -309,6 +312,9 @@ public class CodeWindow {
 	}
 	
 	public final void hide(final boolean lostFocus){
+		if(L.isInWorkshop){
+			ClassUtil.printCurrentThreadStack("[CodeTip] CodeWindow.hide(" + lostFocus + ")");
+		}
 		codeHelper.mouseExitHideDocForMouseMovTimer.setEnable(false);
 		synchronized (classFrame) {
 			if(classFrame.isVisible() || docHelper.isShowing()){
@@ -316,11 +322,17 @@ public class CodeWindow {
 					autoPopTip.setEnable(false);
 					docHelper.setInvisible();
 				}
+				if(L.isInWorkshop){
+					LogManager.log("[CodeTip] docHelper setInvisible.");
+				}
 				classFrame.setVisible(false);
+				if(L.isInWorkshop){
+					LogManager.log("[CodeTip] classFrame setVisible(false)");
+				}
 				if(lostFocus == false){
-					Designer.getInstance().requestFocus();
+//					Designer.getInstance().requestFocus();
 					textPane.requestFocusInWindow();
-					textPane.setCaretPosition(movingScriptIdx);
+//					textPane.setCaretPosition(textPane.getCaretPosition());
 				}
 			}	
 		}
@@ -351,13 +363,13 @@ public class CodeWindow {
 	Document document;
 	ScriptEditPanel sep;
 	private ArrayList<CodeItem> fullList;
-	private String preCode;
+	private String preCodeLower;
 	private final char[] preCodeChars = new char[2048];
 	private int preCodeCharsLen;
 	private int movingScriptIdx, oriScriptIdx;
 	
 	private final void refilter(){
-		fillPreCode(fullList, classData, preCode);
+		fillPreCode(fullList, classData, preCodeLower);
 		
 		codeList.setModel(new AbstractListModel() {//JRE 1.6 not gerneric
             @Override
@@ -418,13 +430,13 @@ public class CodeWindow {
 		this.codeBelongClass = codeClass;
 		classData.clear();
 		
-		final char[] preChars = preCode.toCharArray();
-		this.preCode = preCode;
-		preCodeCharsLen = preChars.length;
+		this.preCodeLower = preCode.toLowerCase();
+		final char[] preCharsLower = this.preCodeLower.toCharArray();
+		preCodeCharsLen = preCharsLower.length;
 		this.movingScriptIdx = scriptIdx;
 		this.oriScriptIdx = scriptIdx - preCodeCharsLen;
 		
-		System.arraycopy(preChars, 0, preCodeChars, 0, preCodeCharsLen);
+		System.arraycopy(preCharsLower, 0, preCodeChars, 0, preCodeCharsLen);
 		
 		this.sep = sep;
 		textPane = eventFromComponent;
@@ -475,6 +487,10 @@ public class CodeWindow {
 			classFrame.setLocation(showX, showY);
 			classFrame.setVisible(true);
 			codeList.requestFocusInWindow();
+			
+			if(L.isInWorkshop){
+				LogManager.log("[CodeTip] codeList requestFocusInWindow.");
+			}
 		}
 	};
 
@@ -589,10 +605,13 @@ public class CodeWindow {
 		}
 	}
 
-	public final void startAutoPopTip(final CodeItem item) {
+	public final void startAutoPopTip(final CodeItem item, final HCTextPane jtaPaneMaybeNull) {
 		synchronized (autoPopTip) {
 			autoPopTip.resetTimerCount();
 			autoPopTip.docHelper = docHelper;
+			if(jtaPaneMaybeNull != null){
+				textPane = jtaPaneMaybeNull;
+			}
 			autoPopTip.classFrame = classFrame;
 			autoPopTip.fmClass = item.fmClass;
 			autoPopTip.fieldOrMethodName = item.code;//注意：构造方法已转为new(),而非simpleClassName()

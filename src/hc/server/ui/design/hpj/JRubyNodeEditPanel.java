@@ -14,6 +14,8 @@ import javax.swing.border.TitledBorder;
 import javax.swing.tree.MutableTreeNode;
 
 public class JRubyNodeEditPanel extends ScriptEditPanel {
+	public static final String JRUBY_SCRIPT = "JRuby Script";
+	public static final String JRUBY_SCRIPT_BORDER = JRUBY_SCRIPT + " :";
 	final JLabel nameLabel = new JLabel("Script File Name :");
 
 	public JRubyNodeEditPanel(){
@@ -27,9 +29,10 @@ public class JRubyNodeEditPanel extends ScriptEditPanel {
 		namePanel.add(nameField);
 		namePanel.add(testBtn);
 		namePanel.add(formatBtn);
+		namePanel.add(scriptBtn);
 		
 		final JPanel jtascriptPanel = new JPanel();
-		jtascriptPanel.setBorder(new TitledBorder("JRuby script :"));
+		jtascriptPanel.setBorder(new TitledBorder(JRUBY_SCRIPT_BORDER));
 		jtascriptPanel.setLayout(new BorderLayout());
 		
 		jtascriptPanel.add(scrollpane, BorderLayout.CENTER);

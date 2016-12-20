@@ -24,8 +24,6 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.Enumeration;
 import java.util.Properties;
 
@@ -209,32 +207,10 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		
 		idPanel.setLayout(new FlowLayout(FlowLayout.LEADING));
 		final JLabel idLabel = new JLabel("ID : ");
-		final JLabel tipLabel = new JLabel("<html>it is used to install and upgrade to identify this project to different from other." +
-				"<BR>'root' is system reserved ID." +
-				"<BR>valid char : 0-9, a-z, A-Z, _</html>");
+		final JLabel tipLabel = ProjectIDDialog.buildIDTipLabel();
 //		tipLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 		idPanel.add(idLabel);
-		idField.addKeyListener(new KeyListener() {
-			@Override
-			public void keyTyped(final KeyEvent e) {
-				final char keyCh = e.getKeyChar();
-		        if ((keyCh >= '0' && keyCh <= '9') 
-		        		|| (keyCh >= 'a' && keyCh <= 'z') 
-		        		|| (keyCh >= 'A' && keyCh <= 'Z') 
-		        		|| keyCh == '_'){
-		        }else{
-		        	e.setKeyChar('\0');
-		        }
-			}
-			
-			@Override
-			public void keyReleased(final KeyEvent e) {
-			}
-			
-			@Override
-			public void keyPressed(final KeyEvent e) {
-			}
-		});	
+		ProjectIDDialog.buildIDFieldKeyListener(idField);	
 		idField.getDocument().addDocumentListener(new DocumentListener() {
 			private void modify(){
 				((HPProject)currItem).id = getHarIDFromEdit();
@@ -459,7 +435,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		
 		add(tabbedPane, BorderLayout.CENTER);		
 	}
-	
+
 	private final JPanel buildPermissionPanel(){
 //		JPanel permissionPanel = new JPanel(new FlowLayout());
 		perm_write.setToolTipText(HCPermissionConstant.WRITE_TIP);

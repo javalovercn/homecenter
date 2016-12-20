@@ -22,7 +22,7 @@ public abstract class CtrlResponse {
 	public CtrlResponse(){
 		context = ProjectContext.getProjectContext();
 		coreSS = SimuMobile.checkSimuProjectContext(context)?SimuMobile.SIMU_NULL:(ServerUIAPIAgent.getProjResponserMaybeNull(context).getSessionContextFromCurrThread().j2seSocketSession);
-		target = (String)ThreadConfig.getValue(ThreadConfig.TARGET_URL);
+		target = (String)ThreadConfig.getValue(ThreadConfig.TARGET_URL, true);
 	}
 	
 	final String target;
@@ -132,10 +132,26 @@ public abstract class CtrlResponse {
 	 * <BR>
 	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
 	 * @param msg the message to show.
-	 * @since 6.98
 	 * @see ProjectContext#sendMovingMsg(String)
+	 * @since 6.98
 	 */
 	public final void showTip(final String msg){
+		sendMovingMsg(msg);
+	}
+	
+	/**
+	 * send a message moving from right to left.<BR>
+	 * <BR>
+	 * Note : if mobile is in background ({@link ProjectContext#isMobileInBackground()}), a
+	 * notification is also created for mobile.<BR><BR>
+	 * if mobile option [Message, Notification to Speech also] is on, it may be spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
+	 * 
+	 * @param msg the message to show.
+	 * @see ProjectContext#sendMovingMsg(String)
+	 * @since 7.30
+	 */
+	public final void sendMovingMsg(final String msg){
 		getProjectContext().sendMovingMsg(msg);
 	}
 	

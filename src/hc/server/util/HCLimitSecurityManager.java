@@ -28,6 +28,9 @@ import hc.server.msb.RobotListener;
 import hc.server.msb.WiFiAccount;
 import hc.server.ui.ClientSession;
 import hc.server.ui.CtrlResponse;
+import hc.server.ui.Dialog;
+import hc.server.ui.DialogHTMLMlet;
+import hc.server.ui.DialogMlet;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.ICanvas;
 import hc.server.ui.MenuItem;
@@ -36,6 +39,7 @@ import hc.server.ui.ProjectContext;
 import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.AddHarIsBusy;
 import hc.server.ui.design.LicenseHTMLMlet;
+import hc.server.ui.design.SystemHTMLMlet;
 import hc.server.ui.design.hpj.HCjar;
 import hc.util.ClassUtil;
 import hc.util.HttpUtil;
@@ -301,9 +305,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    	
 	    	//允许反射且不限的类
 	    	final Class[] arrClazz = {ProjectContext.class, Processor.class, 
-	    			Converter.class, Device.class, Message.class, Robot.class, RobotEvent.class, RobotListener.class,
+	    			Converter.class, DialogHTMLMlet.class, DialogMlet.class, Device.class, Message.class, 
+	    			Robot.class, RobotEvent.class, RobotListener.class,
 	    			DeviceCompatibleDescription.class,
-	    			AddHarHTMLMlet.class, AddHarIsBusy.class, LicenseHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
+	    			AddHarHTMLMlet.class, AddHarIsBusy.class, Dialog.class, LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
 	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class,
 	    			WiFiAccount.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
 //	    	{

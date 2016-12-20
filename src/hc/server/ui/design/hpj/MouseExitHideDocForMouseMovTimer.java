@@ -9,14 +9,31 @@ public class MouseExitHideDocForMouseMovTimer extends HCTimer {
 		super(name, ms, enable);
 	}
 
+	public final void reset() {
+		if(L.isInWorkshop){
+			LogManager.log("[CodeTip] reset MouseExitHideDocForMouseMovTimer");
+		}
+		super.setEnable(false);
+		isTriggerOn = false;
+		isUsingByCode = false;
+		isUsingByDoc = false;
+	}
+	
 	protected boolean isTriggerOn;
 	public boolean isUsingByDoc, isUsingByCode;
 	
 	public final boolean isTriggerOn(){
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("[CodeTip] isTriggerOn : " + isTriggerOn);
+		}
+		
 		return isTriggerOn;
 	}
 	
 	public final void triggerOn(){
+		if(L.isInWorkshop){
+			LogManager.log("[CodeTip] triggerON.");
+		}
 		isTriggerOn = true;
 	}
 	

@@ -360,11 +360,6 @@ public class ScriptModelManager {
 	private static void buildAllKeyCase(final Vector<String> codes) {
 		final CNCtrlKey ctrlKey = new CNCtrlKey();
 		final int[] keyValues = ctrlKey.getDispKeys();
-		final CtrlResponse instance = new CtrlResponse() {
-			@Override
-			public void click(final int keyValue) {
-			}
-		};
 			
 		final Field[] fs = CtrlKey.class.getDeclaredFields();
 		for (int j = 0; j < fs.length; j++) {
@@ -373,7 +368,7 @@ public class ScriptModelManager {
 				final String keyJavaStaticProp = f.getName();
 				if (keyJavaStaticProp.startsWith("KEY_", 0) 
 						&& java.lang.reflect.Modifier.isStatic(f.getModifiers())){
-					final int propStaticValue = f.getInt(instance);
+					final int propStaticValue = f.getInt(CtrlKey.class);
 					for (int i = 0; i < keyValues.length; i++) {
 						final int keyValue = keyValues[i];
 						if(propStaticValue == keyValue) {

@@ -13,6 +13,7 @@ import hc.core.util.StringUtil;
 import hc.server.MultiUsingManager;
 import hc.server.ScreenServer;
 import hc.server.msb.UserThreadResourceUtil;
+import hc.server.ui.DialogHTMLMlet;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.ICanvas;
 import hc.server.ui.IMletCanvas;
@@ -20,9 +21,9 @@ import hc.server.ui.Mlet;
 import hc.server.ui.MletSnapCanvas;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
-import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
+import hc.server.ui.design.SystemHTMLMlet;
 import hc.server.ui.design.code.StyleManager;
 import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.hpj.HCjar;
@@ -61,12 +62,14 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	final static boolean isAndroidServer = ResourceUtil.isAndroidServerPlatform();
 	public JFrame frame;
 	JScrollPane scrollPane;
-	private byte[] elementIDbs;
-	private char[] elementIDChars;
-	private String elementID, title;
+	private byte[] screenIDbs;
+	private char[] screenIDChars;
+	private String screenID, title;
 	private DifferTodo differTodo;
 	private final boolean isSimu;
 	final J2SESession coreSS;
+	
+	boolean isForDialog;
 	
 	public MletHtmlCanvas(final J2SESession coreSS, final int w, final int h){
 		isSimu = PropertiesManager.isSimu();
@@ -141,15 +144,34 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		onExit(false);
 	}
 	
+	boolean isExitProcced;
+	
 	@Override
 	public void onExit(final boolean isAutoReleaseAfterGo){
+		synchronized (this) {
+			if(isExitProcced){
+				return;
+			}else{
+				isExitProcced = true;
+			}
+		}
+		
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log("onExit MletHtmlCanvas : " + mlet.getTarget());
+		}
+		
 		ScreenServer.onExitForMlet(coreSS, projectContext, mlet, isAutoReleaseAfterGo);
-		MultiUsingManager.exit(coreSS, projectContext.getProjectID(), mlet.getTarget());
+		MultiUsingManager.exit(coreSS, ServerUIAPIAgent.buildScreenID(projectContext.getProjectID(), mlet.getTarget()));
 		frame.dispose();
 	}
 	
 	@Override
 	public final void setMlet(final J2SESession coreSS, final Mlet mlet, final ProjectContext projectCtx) {
+		if(mlet instanceof DialogHTMLMlet){
+			isForDialog = true;
+			((DialogHTMLMlet)mlet).resLock.mletCanvas = this;
+		}
+		
 		this.mlet = (HTMLMlet)mlet;
 		ServerUIAPIAgent.setProjectContext(mlet, projectCtx);
 		projectContext = projectCtx;
@@ -163,7 +185,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				return null;
 			}
 		});
-		differTodo = new DifferTodo(coreSS, elementID, mlet);
+		differTodo = new DifferTodo(coreSS, screenID, mlet);
 	}
 	
 	/**
@@ -176,7 +198,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 			final JViewport jviewport = scrollPane.getViewport();
 			if(jviewport != null){
 				final Component view = jviewport.getView();
-				if(view != null && view instanceof AddHarHTMLMlet){
+				if(view != null && view instanceof SystemHTMLMlet){
 					return true;
 				}
 			}
@@ -202,34 +224,23 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	}
 
 	@Override
-	public final void setScreenIDAndTitle(final String elementID, final String title){
-		this.elementID = elementID;
-		this.elementIDbs = ByteUtil.getBytes(elementID, IConstant.UTF_8);
-		this.elementIDChars = elementID.toCharArray();
+	public final void setScreenIDAndTitle(final String screenID, final String title){
+		this.screenID = screenID;
+		this.screenIDbs = ByteUtil.getBytes(screenID, IConstant.UTF_8);
+		this.screenIDChars = screenID.toCharArray();
 		this.title = title;
 	}
 
 	@Override
 	public boolean isSameScreenID(final byte[] bs, final int offset, final int len) {
-		boolean isSame = true;
-		if(len == elementIDbs.length){
-			for (int i = 0, j = offset; i < len; ) {
-				if(elementIDbs[i++] != bs[j++]){
-					isSame = false;
-					break;
-				}
-			}
-		}else{
-			isSame = false;
-		}
-		return isSame;
+		return ByteUtil.isSame(screenIDbs, 0, screenIDbs.length, bs, offset, len);
 	}
 	
 	@Override
 	public boolean isSameScreenIDIgnoreCase(final char[] chars, final int offset, final int len){
-		if(len == elementIDChars.length){
+		if(len == screenIDChars.length){
 			for (int i = 0, j = offset; i < len; ) {
-				final char c1 = elementIDChars[i++];
+				final char c1 = screenIDChars[i++];
 				final char c2 = chars[j++];
 				if(c1 == c2
 						|| Character.toUpperCase(c1) == Character.toUpperCase(c2)
@@ -278,10 +289,22 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 
 	@Override
 	public final void actionJSInput(final byte[] bs, final int offset, final int len) {
+		if(isForDialog){
+			final DialogHTMLMlet dialog = (DialogHTMLMlet)mlet;
+
+			if(dialog.isContinueProcess() == false){
+				return;
+			}
+		}
+		
+		final byte[] byteCopyBS = ByteUtil.byteArrayCacher.getFree(len);
+		System.arraycopy(bs, offset, byteCopyBS, 0, len);
+		
 		RubyExector.execInSequenceForSession(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new ReturnableRunnable() {//事件的先后性保证
 			@Override
 			public Object run() {
-				actionJSInputInUser(bs, offset, len);
+				actionJSInputInUser(byteCopyBS, 0, len);
+				ByteUtil.byteArrayCacher.cycle(byteCopyBS);
 				return null;
 			}
 		});
@@ -551,7 +574,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		final String id = new String(bs, firstValueIdx, len + offset - firstValueIdx);
 		return JSCore.decode(id);
 	}
-
+	
 	@Override
 	public final void actionExt(final String cmd) {
 		//TODO

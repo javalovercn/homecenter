@@ -25,6 +25,7 @@ public class HPNode {
 	public static final int MASK_RESOURCE_JAR = 1 | MASK_RESOURCE_ITEM;
 	public static final int MASK_RESOURCE_PNG = 2 | MASK_RESOURCE_ITEM;
 	public static final int MASK_RESOURCE_AU = 3 | MASK_RESOURCE_ITEM;
+	public static final int MASK_RESOURCE_CSS = 4 | MASK_RESOURCE_ITEM;
 	
 	public static final int MASK_EVENT_FOLDER = 3 << 8;
 	public static final int MASK_EVENT_ITEM = 3 << 7;

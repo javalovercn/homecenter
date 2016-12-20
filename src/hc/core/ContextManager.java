@@ -83,8 +83,7 @@ public class ContextManager {
 	}
 
 	public static boolean isClientStatus(final IContext ic){
-		final int mode = ic.cmStatus;
-		if(mode == ContextManager.STATUS_CLIENT_SELF){
+		if(ic != null && ic.cmStatus == ContextManager.STATUS_CLIENT_SELF){
 			return true;
 		}
 		return false;

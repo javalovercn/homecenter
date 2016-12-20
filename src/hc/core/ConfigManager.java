@@ -24,6 +24,8 @@ public class ConfigManager {
 		return (v == null?defalutValue:v);
 	}
 
+	public static final int DIALOG_ANIMAL_MS = 500;
+	
 	public static final String INIT_MOBILE_CLIENT = "hc.InitMobileClient";
 	public static final String ANTI_ALIAS = "hc.font.antiAlias";
 	public static final String UI_BUILDER = "hc.ui.builder";
@@ -47,6 +49,9 @@ public class ConfigManager {
 	public static final String UI_BUILD_JSVIEW = "hc.ui.buildJSView";
 	public static final String UI_SCREEN_ON = "hc.ui.setScreenOn";
 	public static final String UI_DISMISS_ALERT = "hc.ui.dismissAlert";
+	public static final String UI_DISMISS_DIALOG = "hc.ui.dismissDialog";
+	public static final String UI_PLUG_DIALOG = "hc.ui.plugDialog";
+	public static final String UI_SHOW_DIALOG = "hc.ui.showDialog";
 	public static final String UI_IS_BACKGROUND = "hc.ui.isBackground";
 	public static final String UI_FORM_SIZE = "hc.ui.formSize";
 	public static final String UI_RELEASE_OBJECT = "hc.ui.releaseObject";
@@ -58,6 +63,9 @@ public class ConfigManager {
 	public static final String UI_SCALE_OF_SCREEN = "hc.ui.scale";//iOS
 	
 	public static final String PRINT_ALL_THREAD = "hc.log.printAllThread";
+	
+	public static final String BROWSE_INNER = "hc.biz.browseInner";
+	public static final String MOV_MSG = "hc.biz.movMsg";
 	
 	/**
 	 * 判断客户端是否是后台运行。
@@ -135,4 +143,8 @@ public class ConfigManager {
 	public static final boolean isEnableExceptionReportForAndroid = true;
 
 	public static final String HC_J2ME_LOAD_NOTIFICATION = "hc.j2me.load.Notification";
+
+	public static boolean enableUDP() {
+		return isTCPOnly == false;
+	}
 }

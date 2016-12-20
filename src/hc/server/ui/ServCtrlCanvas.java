@@ -6,10 +6,18 @@ import hc.server.ui.design.J2SESession;
 public class ServCtrlCanvas implements ICanvas {
 	final CtrlResponse cr;
 	final J2SESession coreSS;
+	String screenID;
 	
 	public ServCtrlCanvas(final J2SESession coreSS, final CtrlResponse cr) {
 		this.coreSS = coreSS;
 		this.cr = cr;
+	}
+	
+	public final String getScreenID(){
+		if(screenID == null){
+			screenID = ServerUIAPIAgent.buildScreenID(cr.getProjectContext().getProjectID(), cr.target);
+		}
+		return screenID;
 	}
 	
 	@Override
@@ -38,7 +46,7 @@ public class ServCtrlCanvas implements ICanvas {
 				cr.onExit();
 			}
 		});
-		MultiUsingManager.exit(coreSS, cr.getProjectContext().getProjectID(), cr.target);
+		MultiUsingManager.exit(coreSS, ServerUIAPIAgent.buildScreenID(cr.getProjectContext().getProjectID(), cr.target));
 	}
 
 	@Override

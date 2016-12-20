@@ -40,12 +40,17 @@ public class MouseMovingTipTimer extends HCTimer {
 		this.fontHeight = fontHeight;
 		this.scriptPanel = scriptPanel;
 	}
-
-	@Override
-	public void doBiz() {
+	
+	public final CodeHelper getCodeHelper(){
 		if(codeHelper == null){
 			codeHelper = scriptPanel.designer.codeHelper;
 		}
+		return codeHelper;
+	}
+
+	@Override
+	public void doBiz() {
+		getCodeHelper();
 		
 		synchronized (lock) {
 			setEnable(false);

@@ -35,11 +35,13 @@ public class RubyExector {
 			//不return，因为需要后续报告错误。
 		}
 		if(out == null){
-			String message = "";
+			String message;
 			if(runCtx.isError){
 				message = runCtx.getMessage();
+			}else{
+				message = "expected return Class : " + requireReturnClass.getName() + ", but return null";
 			}
-			LogManager.errToLog("parse script error : " + message + ", for script : \n" + script);
+			LogManager.errToLog("parse script error : [" + message + "], for script : \n" + script);
 			LogManager.err("Error instance " + requireReturnClass.getSimpleName() + " in project [" + context.getProjectID() +"].");
 			//Fail to add HAR message
 			notifyMobileErrorScript(coreSS, context, scriptName);
@@ -57,9 +59,7 @@ public class RubyExector {
 		final ReturnableRunnable run = new ReturnableRunnable() {
 			@Override
 			public Object run() {
-				if(callCtx != null){
-					ThreadConfig.putValue(ThreadConfig.TARGET_URL, callCtx.targetURL);
-				}
+				ThreadConfig.setThreadTargetURL(callCtx);
 				return RubyExector.runAndWaitOnEngine(callCtx, script, scriptName, map, hcje);
 			}
 		};
@@ -76,10 +76,6 @@ public class RubyExector {
 
 	public static synchronized final void parse(final CallContext callCtx, final String script, final String scriptName, final HCJRubyEngine hcje, final boolean isReportException) {
 		try {
-			if(hcje.isError){
-				hcje.resetError();
-			}
-			
 			hcje.parse(script, scriptName);
 		} catch (final Throwable e) {
 			if(isReportException){
@@ -87,22 +83,27 @@ public class RubyExector {
 			}
 			
 			final String err = hcje.errorWriter.getMessage();
-			hcje.isError = true;
-			
-			callCtx.setError(err, script, e);
-			
+			if(callCtx != null){
+				callCtx.setError(err, script, e);
+			}
+			hcje.resetError();
 //			L.V = L.O ? false : LogManager.log("JRuby Script Error : " + err);
 		}finally{
 //			System.setProperty(USER_DIR_KEY, userDir);
 		}
 	}
 	
-	public static final synchronized Object runAndWaitOnEngine(final CallContext callCtx, final String script, final String scriptName, final Map map, final HCJRubyEngine hcje) {
+	/**
+	 * 注意：用户级runAndWait会导致死锁，故关闭synchronized
+	 * @param callCtx
+	 * @param script
+	 * @param scriptName
+	 * @param map
+	 * @param hcje
+	 * @return
+	 */
+	public static final Object runAndWaitOnEngine(final CallContext callCtx, final String script, final String scriptName, final Map map, final HCJRubyEngine hcje) {
 		try {
-			if(hcje.isError){
-				hcje.resetError();
-			}
-			
 //			System.out.println("set JRuby path : " + hcje.path);
 //			System.setProperty("org.jruby.embed.class.path", hcje.path);
 //			if(userDir == null){
@@ -114,6 +115,8 @@ public class RubyExector {
 			if(map == null){
 //				return hcje.engine.eval(script);
 			}else{
+				LogManager.errToLog("$_hcmap is deprecated, there are serious concurrent risks in it. " +
+						"\nplease remove all parameters in target URL, and set them to attributes of ProjectContext or ClientSession.");
 				hcje.put("$_hcmap", map);
 				
 //				container.put("message", "local variable");
@@ -125,7 +128,15 @@ public class RubyExector {
 //				bindings.put("_hcmap", map);
 //				return hcje.engine.eval(script, bindings);
 			}
-			return hcje.runScriptlet(script, scriptName);
+			
+//			if(L.isInWorkshop){
+//				L.V = L.O ? false : LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] before runScriptlet.");
+//			}
+			final Object out = hcje.runScriptlet(script, scriptName);
+//			if(L.isInWorkshop){
+//				L.V = L.O ? false : LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] after runScriptlet.");
+//			}
+			return out;
 			
 //			ScriptEngineManager manager = new ScriptEngineManager();  
 //			ScriptEngine engine = manager.getEngineByName("jruby");
@@ -142,9 +153,10 @@ public class RubyExector {
 			final String err = hcje.errorWriter.getMessage();
 			ExceptionReporter.printStackTraceFromHAR(e, script, err);
 			System.err.println("------------------error on JRuby script : " + err + "------------------\n" + script + "\n--------------------end error on script---------------------");
-			hcje.isError = true;
-			callCtx.setError(err, script, e);
-			
+			if(callCtx != null){
+				callCtx.setError(err, script, e);
+			}
+			hcje.resetError();
 //			L.V = L.O ? false : LogManager.log("JRuby Script Error : " + err);
 			return null;
 		}finally{
@@ -170,12 +182,12 @@ public class RubyExector {
 	}
 
 	public static void initActive(final HCJRubyEngine hcje) {
-//		final String script = 
-//				"str_class = Java::java.lang.String\n" +
-//				"return str_class::valueOf(\"1\")\n";//初始引擎及调试之用
-//		final String scriptName = null;
-//		parse(script, scriptName, hcje, false);
-//		runNoWait(script, scriptName, null, hcje);
+		final String script = 
+				"str_class = Java::java.lang.String\n" +
+				"return str_class::valueOf(\"1\")\n";//初始引擎及调试之用
+		final String scriptName = null;
+		parse(null, script, scriptName, hcje, false);
+		runAndWaitOnEngine(null, script, scriptName, null, hcje);
 	}
 
 	private static final void notifyMobileErrorScript(final J2SESession coreSS, final ProjectContext ctx, final String title){

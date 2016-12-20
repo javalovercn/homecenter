@@ -4,7 +4,7 @@ import hc.core.IConstant;
 import hc.util.PropertiesManager;
 
 public class DefaultManager {
-	public static final int DEFAULT_DOC_FONT_SIZE = 12;
+	public static final int DEFAULT_DOC_FONT_SIZE = 11;
 	public static final String DEFAULT_DOC_FONT_SIZE_INPUT = String.valueOf(DEFAULT_DOC_FONT_SIZE);
 	public static final int DEFAULT_DIRECT_SERVER_PORT = 0;
 	public static final String DEFAULT_DIRECT_SERVER_PORT_FOR_INPUT = String.valueOf(DEFAULT_DIRECT_SERVER_PORT);

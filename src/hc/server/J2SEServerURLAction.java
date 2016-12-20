@@ -23,6 +23,8 @@ import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.AirCmdsUtil;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.QuestionParameter;
+import hc.server.ui.ResParameter;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SingleMessageNotify;
@@ -80,7 +82,8 @@ public class J2SEServerURLAction implements IHCURLAction {
 				final int mobileWidth = UserThreadResourceUtil.getMobileWidthFrom(j2seCoreSS);
 				final int mobileHeight = UserThreadResourceUtil.getMobileHeightFrom(j2seCoreSS);
 				
-				MultiUsingManager.enter(j2seCoreSS, MultiUsingManager.NULL_PROJECT_ID, HCURL.URL_HOME_SCREEN);
+				final String screenID = ServerUIAPIAgent.buildScreenID(MultiUsingManager.NULL_PROJECT_ID, HCURL.URL_HOME_SCREEN);
+				MultiUsingManager.enter(j2seCoreSS, screenID, HCURL.URL_HOME_SCREEN);
 				
 				j2seCoreSS.cap = new ScreenCapturer(j2seCoreSS, mobileWidth,
 						mobileHeight, screenWidth, screenHeight);
@@ -129,6 +132,20 @@ public class J2SEServerURLAction implements IHCURLAction {
 							j2seCoreSS, 
 							url.getValueofPara(HCURL.DATA_PARA_QUESTION_ID), url.getValueofPara(HCURL.DATA_PARA_QUESTION_RESULT));
 
+					return true;
+				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_DISMISS_QUES_DIALOG_BY_BACK)){
+					final int questionID = Integer.parseInt(url.getValueofPara(HCURL.DATA_PARA_DISMISS_QUES_DIALOG_BY_BACK));
+					
+					final ResParameter parameter = ServerUIAPIAgent.removeQuestionDialogFromMap(j2seCoreSS, questionID, true);
+					if(parameter != null){
+						if(parameter instanceof QuestionParameter){
+							ServerUIAPIAgent.execQuestionResult(j2seCoreSS, (QuestionParameter)parameter, 
+									questionID, ServerUIAPIAgent.QUESTION_CANCEL);
+						}
+						if(L.isInWorkshop){
+							LogManager.log("cancel question/dialog [" + questionID + "] by back key.");
+						}
+					}
 					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_CLASS)){
 //					final String v = url.getValueofPara(HCURL.DATA_PARA_CLASS);

@@ -27,20 +27,34 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	final protected Rectangle capRect = new Rectangle();
 	int locX, locY;
 
-	protected byte[] pngCaptureID;
-	protected char[] pngCaptureIDChars;
+	protected byte[] screenIDForCapture;
+	protected char[] screenIDforCaptureChars;
 	protected String title;
 	protected final J2SESession coreSS;
 
 	/**
 	 * 
-	 * @param captureID
+	 * @param screenIDForCap
 	 * @param title 仅用于日志提示
 	 */
-	public void setCaptureID(final String captureID, final String title){
+	public void setCaptureID(final String screenIDForCap, final String title){
 		this.title = title;
-		pngCaptureID = StringUtil.getBytes(captureID);
-		pngCaptureIDChars = captureID.toCharArray();
+		screenIDForCapture = StringUtil.getBytes(screenIDForCap);
+		screenIDforCaptureChars = screenIDForCap.toCharArray();
+	}
+	
+	public final boolean isMatchScreenIDForCapture(final byte[] bs, final int offset, final int len){
+		if(screenIDForCapture.length == len){
+			for (int i = 0, j = offset; i < len; ) {
+				if(screenIDForCapture[i++] != bs[j++]){
+					return false;
+				}
+			}
+		}else{
+			return false;
+		}
+		
+		return true;
 	}
 	
 	final Object LOCK = new Object();
@@ -187,7 +201,9 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 				
 			}
 		}
-		L.V = L.O ? false : LogManager.log(" exit Screen [" + title +"]");
+		if(L.isInWorkshop){
+			L.V = L.O ? false : LogManager.log(" exit PNGCapture [" + title +"]");
+		}
 	}
 
 	protected void sleepBeforeRun() {
@@ -344,9 +360,9 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 			//			byte[] out = byteArrayOutputStream.toByteArray();
 						
 						final int pngDataLen = byteArrayOutputStream.size();
-						dataPNG.setTargetID(pngDataLen, pngCaptureID, 0, pngCaptureID.length);
+						dataPNG.setTargetID(pngDataLen, screenIDForCapture, 0, screenIDForCapture.length);
 						
-						final int dataTransLen = pngDataLen + DataPNG.HEAD_LENGTH + 1 + pngCaptureID.length;
+						final int dataTransLen = pngDataLen + DataPNG.HEAD_LENGTH + 1 + screenIDForCapture.length;
 //						L.V = L.O ? false : LogManager.log("Trans dataPNG size pngDataLen :" + pngDataLen);
 						dataPNG.setPNGDataLen(pngDataLen, clientX, clientY, width, height);
 						

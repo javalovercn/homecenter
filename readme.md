@@ -1,3 +1,135 @@
+### Sample
+![screenshot](https://homecenter.mobi/images/sc_mlet.png)
+to implement above UI functionality for Android, iPhone, and J2ME mobile,
+the full codes are following :
+```JRuby
+#encoding:utf-8
+
+require 'testlib.jar'
+
+import javax.swing.JButton
+import javax.swing.JTextArea
+import javax.swing.JPanel
+import java.awt.BorderLayout
+import java.awt.GridLayout
+import javax.swing.ImageIcon
+import java.net.URL
+import java.awt.Dimension
+import javax.imageio.ImageIO
+import javax.swing.SwingConstants
+import Java::hc.server.ui.ProjectContext
+
+class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
+	def initialize
+		super #invoke super construct method
+		
+		@area = JTextArea.new()
+		@btn_light = JButton.new()
+		@btn_switch = JButton.new()
+		@icon_press_on = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/press_on_64.png")))
+		@icon_press_off = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/press_off_64.png")))
+		
+		@context = getProjectContext()
+				
+		tClass = Java::test.TestClass#this class is in testlib.jar
+		@png_url = tClass.java_class.resource("/test/light_on_64.png")#the icon is in testlib.jar
+		@icon_light_on = ImageIcon.new(@png_url)#get image from testlib.jar
+		@png_url = tClass.java_class.resource("/test/light_off_64.png")
+		@icon_light_off = ImageIcon.new(@png_url)
+		
+		@isLightOn = false
+		@btn_switch.setIcon(@icon_press_off)
+		@btn_light.setIcon(@icon_light_off)
+		
+		setCSS(@btn_switch, "btnStyle", nil)#btnStyle is defined "CSS Styles" and is automatically loaded for all HTMLMlet in current project
+		setCSS(@btn_light, "btnStyle", nil)
+		
+		cssStyle = ".areaStyle{width:100%;height:100%;font-size:" + getFontSizeForNormal().to_s() + "px;color:green}"
+		loadCSS(cssStyle)
+		setCSS(@area, "areaStyle", nil)#areaStyel is defined cssStyle string.
+		#it equals with setCSS(@area, nil, "width:100%;height:100%;font-size:" + getFontSizeForNormal().to_s() + "px;color:green")
+		@area.setEditable(false)
+		
+		lightPanel = JPanel.new
+		lightPanel.setLayout(GridLayout.new(1, 2))
+		lightPanel.add(@btn_light)
+		lightPanel.add(@btn_switch)
+				
+		@btn_switch.addActionListener{|e|
+			@area.append("click switch\n")
+			@isLightOn = !@isLightOn
+			if @isLightOn
+				@context.sendMovingMsg("light on")
+				@btn_switch.setIcon(@icon_press_on)
+				@btn_light.setIcon(@icon_light_on)
+			else
+				@context.sendMovingMsg("light off")
+				@btn_switch.setIcon(@icon_press_off)
+				@btn_light.setIcon(@icon_light_off)
+			end
+		}
+			
+		buttonPanel = JPanel.new()
+		buttonPanel.setLayout(GridLayout.new(1, 2))
+		buttonPanel.setPreferredSize(Dimension.new(@context.getMobileWidth(), getButtonHeight()))
+
+		button = JButton.new("Screen")
+		setCSS(button, "btnStyle", nil)
+		button.addActionListener{|e|
+			go(Java::hc.server.ui.Mlet::URL_SCREEN)#open desktop and control remote screen.
+		}
+		buttonPanel.add(button)
+
+		button = JButton.new("Back")
+		setCSS(button, "btnStyle", nil)
+		button.addActionListener{|e|
+			go(Java::hc.server.ui.Mlet::URL_EXIT)#exit and return back
+		}
+		buttonPanel.add(button)
+
+		setLayout(BorderLayout.new())
+		add(lightPanel, BorderLayout::NORTH)
+		add(@area, BorderLayout::CENTER)
+		add(buttonPanel, BorderLayout::SOUTH)
+		
+		setCSS(self, nil, "background-color:white;")#override the default color styles.
+	end
+
+	#override empty method onStart
+	def onStart
+		@area.append("Sys call onStart\n")
+	end
+
+	#override empty method onPause
+	def onPause
+		@area.append("Sys call onPause\n")
+	end
+
+	#override empty method onResume
+	def onResume
+		@area.append("Sys call onResume\n")
+	end
+
+	#override empty method onExit
+	def onExit
+		@context.tipOnTray("[Mobile UI Designer] Sys call onExit on Screen-Mlet")
+	end
+end
+
+return MyHTMLMlet.new
+```
+and global CSS for current project :
+```css
+.btnStyle {
+	text-align:center;
+	vertical-align:middle;
+	width:100%;
+	height:100%;
+	font-size:$buttonFontSize$px;
+	color:blue;
+}
+```
+
 ### License
 1. please read and agree the license file "bcl.txt", "hc_license.txt" and "mpl_license.txt".
 
@@ -41,7 +173,6 @@
 ![screenshot](https://homecenter.mobi/images/sc6.png)
 ![screenshot](https://homecenter.mobi/images/sc8.png)
 ![screenshot](https://homecenter.mobi/images/sc7.png)
-![screenshot](https://homecenter.mobi/images/sc9.png)
 
 ***
 

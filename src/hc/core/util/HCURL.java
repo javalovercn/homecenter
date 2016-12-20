@@ -95,7 +95,9 @@ public class HCURL {
 	public static final String DATA_PARA_NOTIFY_PROJ_LIST = "notiCacheProjList";
 	public static final String DATA_PARA_QUESTION_ID = "ques_id";
 	public static final String DATA_PARA_ROLLBACK_QUESTION_ID = "rollback_ques_id";//撤消其它非应答
+	public static final String DATA_PARA_ROLLBACK_DIALOG_ID = "rollback_dialog_id";//撤消其它非应答
 	public static final String DATA_PARA_QUESTION_RESULT = "ques_result";
+	public static final String DATA_PARA_DISMISS_QUES_DIALOG_BY_BACK = "disQuesDiaBack";
 	public static final String DATA_PARA_PROC_ADD_HAR_URL = "addHARUrl";
 	public static final String DATA_PARA_WIFI_MANAGER = "WiFiManager";
 	public static final String DATA_PARA_PUBLISH_STATUS_ID = "publishStatusID";
@@ -115,6 +117,11 @@ public class HCURL {
 	
 	public static final String URL_DEFAULT_MLET_ALIAS = "";
 	
+	public static final String DIALOG_PRE = CCoreUtil.SYS_PREFIX + "DIALOG_";
+	public static final String URL_DIALOG_PRE = buildStandardURL(HCURL.FORM_PROTOCAL, DIALOG_PRE);
+	
+	public static final String HTML_LOAD_DONE = "window.hcloader.stop();";
+
 	public static final boolean isUsingWiFiWPS = false;
 	
 	public static final String[] URL_PROTOCAL = {CMD_PROTOCAL, SCREEN_PROTOCAL, CONTROLLER_PROTOCAL,

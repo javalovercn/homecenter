@@ -14,24 +14,37 @@ public class JcipManager {
 	public static void responseCtrlSubmit(final J2SESession coreSS, final String jcip_str){
 		L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "mobile request:" + jcip_str);
 		final Jcip jcip = new Jcip(coreSS, jcip_str);
-		final String displayID = jcip.getString();
+		final String screenID = jcip.getString();
 		
 		final ICanvas icanvas = ScreenServer.getCurrScreen(coreSS);
 		
 		if(icanvas instanceof ServCtrlCanvas){
-			final CtrlResponse cr = ((ServCtrlCanvas)icanvas).cr;
-			if(displayID.equals(cr.target)){
-				final String keyValue = jcip.getString();
-				RubyExector.execInSequenceForSession(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(cr.getProjectContext()), new ReturnableRunnable() {
-					@Override
-					public Object run() {
-						cr.click(Integer.parseInt(keyValue));
-						return null;
-					}
-				});
+			final ServCtrlCanvas ctrlCanvas = (ServCtrlCanvas)icanvas;
+			if(ctrlCanvas.getScreenID().equals(screenID)){
+				onClick(coreSS, jcip, ctrlCanvas);
 				return;
+			}else{
+				final ServCtrlCanvas searchCtrlCanvas = ScreenServer.searchCtrlCanvas(coreSS, screenID);
+				if(searchCtrlCanvas != null){
+					onClick(coreSS, jcip, searchCtrlCanvas);
+					return;
+				}
 			}
 		}
+		
+		LogManager.errToLog("fail to search CtrlResponse : " + screenID);
+	}
+
+	private static void onClick(final J2SESession coreSS, final Jcip jcip, final ServCtrlCanvas ctrlCanvas) {
+		final CtrlResponse cr = ctrlCanvas.cr;
+		final String keyValue = jcip.getString();
+		RubyExector.execInSequenceForSession(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(cr.getProjectContext()), new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				cr.click(Integer.parseInt(keyValue));
+				return null;
+			}
+		});
 	}
 	
 	public static void appendArray(final StringBuilder sb, final String[] strs, final boolean withDouhao) {

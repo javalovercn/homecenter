@@ -17,6 +17,7 @@ import hc.core.util.ReturnableRunnable;
 import hc.core.util.Stack;
 import hc.core.util.StringUtil;
 import hc.core.util.UIUtil;
+import hc.server.CallContext;
 import hc.server.MultiUsingManager;
 import hc.server.ScreenServer;
 import hc.server.TrayMenuUtil;
@@ -27,13 +28,19 @@ import hc.server.msb.Workbench;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.JarMainMenu;
 import hc.server.ui.design.ProjResponser;
+import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.SystemEventListener;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
+import hc.util.StringBuilderCacher;
+import hc.util.ThreadConfig;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.Permission;
 import java.util.Enumeration;
 import java.util.Vector;
 
@@ -41,6 +48,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JToggleButton;
 
 public class ServerUIAPIAgent {
+	public static final String QUESTION_CANCEL = "cancel";
 	public final static String CONVERT_NAME_PROP = Workbench.SYS_RESERVED_KEYS_START + "convert_name_prop";
 	public final static String DEVICE_NAME_PROP = Workbench.SYS_RESERVED_KEYS_START + "device_name_prop";
 	public final static String ROBOT_NAME_PROP = Workbench.SYS_RESERVED_KEYS_START + "robot_name_prop";
@@ -68,6 +76,62 @@ public class ServerUIAPIAgent {
 	public final static MenuItem buildMobiMenuItem(final String name, final int type, final String image, final String url, 
 			final I18NStoreableHashMapWithModifyFlag i18nName, final String listener, final String extendMap){
 		return new MenuItem(name, type, image, url, i18nName, listener, extendMap);
+	}
+	
+	public final static void sendDialog(final J2SESession coreSS, final Dialog dialog_p, final Runnable buildProc, final ProjectContext ctx, 
+			final DialogGlobalLock dialogLock){
+		final String elementID = HCURL.DIALOG_PRE + dialogLock.dialogID;
+
+		final CallContext runCtx = CallContext.getFree();
+		final String targetURL = HCURL.buildStandardURL(HCURL.FORM_PROTOCAL, elementID);
+		runCtx.targetURL = targetURL;
+		final Mlet dialogMlet = (Mlet)runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				try{
+					final Dialog dialog;
+					if(dialog_p != null){
+						dialog = dialog_p;
+						dialog.dialogCanvas.__target =	runCtx.targetURL;
+					}else{
+						ThreadConfig.setThreadTargetURL(runCtx);
+						buildProc.run();
+						dialog = (Dialog)ThreadConfig.getValue(ThreadConfig.BUILD_DIALOG_INSTANCE, true);
+//						LogManager.log("dialog sub component : " + dialog.getComponentCount());
+						if(dialog == null){
+							throw new IllegalArgumentException("fail to build Dialog instance from ProjectContext.sendDialogByBulding(Runnable)");
+						}
+					}
+//					if(dialog.getComponentCount() == 0){
+//						LogManager.warning("there is no components in Dialog, it seems that NOT invoke super in initialize method.");
+//					}
+	
+					if(dialog.dialogCanvas instanceof DialogHTMLMlet){
+						final DialogHTMLMlet dm = (DialogHTMLMlet)dialog.dialogCanvas;
+						dm.setDialogGlobalLock(dialogLock);
+						dm.addDialog(dialog);
+					}else{
+						final DialogMlet dm = (DialogMlet)dialog.dialogCanvas;//如果是j2ME，则返回DialogMlet
+						dm.setDialogGlobalLock(dialogLock);
+						dm.addDialog(dialog);
+					}
+	
+					dialog.resLock = dialogLock;
+					return dialog.dialogCanvas;
+				}catch (final Throwable e) {
+					ExceptionReporter.printStackTrace(e);
+				}
+				
+				return null;
+			}
+		});
+		CallContext.cycle(runCtx);
+		if(dialogMlet == null){
+			return;
+		}
+		
+		final String screenID = ServerUIAPIAgent.buildScreenID(ctx.getProjectID(), targetURL);
+		openMletImpl(coreSS, screenID, "title-" + screenID, ctx, dialogMlet);
 	}
 
 	public final static String getMobiMenuItem_Name(final MenuItem item){
@@ -204,30 +268,52 @@ public class ServerUIAPIAgent {
 	private static Object questionCreateLock = new Object();
 	
 	public static int buildQuestionID(){
+		return buildResID();
+	}
+	
+	public static int buildDialogID(){
+		return buildResID();
+	}
+	
+	private static int buildResID(){
 		synchronized (questionCreateLock) {
-			questionID++;
-			if(questionID == Integer.MAX_VALUE){
-				questionID = 1;
+			if(++questionID == Integer.MAX_VALUE){
+				questionID = 1;//手机端Alert的questionID==0
 			}
 			return questionID;
 		}
 	}
 	
-	public static QuestionParameter buildQuestionID(final J2SESession coreSS, 
-			final ProjectContext ctx, final QuestionGlobalLock quesLock, final int questionID, final String quesDesc,
+	public static DialogParameter buildDialogParameter(final J2SESession coreSS, 
+			final ProjectContext ctx, final DialogGlobalLock dialogLock, final int dialogID){
+		final DialogParameter dp = new DialogParameter(dialogLock);
+		
+		register(coreSS, ctx, dialogID, dp);
+		
+		return dp;
+	}
+	
+	public static QuestionParameter buildQuestionParameter(final J2SESession coreSS, 
+			final ProjectContext ctx, final QuestionGlobalLock quesLockMaybeNull, final int questionID, final String quesDesc,
 			final Runnable yesRunnable, final Runnable noRunnable, final Runnable cancelRunnable){
-		final QuestionParameter qp = new QuestionParameter(quesLock);
+		final QuestionParameter qp = new QuestionParameter(quesLockMaybeNull);
 		
 		qp.questionDesc = quesDesc;
 		
-		qp.ctx = ctx;
 		qp.yesRunnable = yesRunnable;
 		qp.noRunnable = noRunnable;
 		qp.cancelRunnable = cancelRunnable;
 		
-		coreSS.questionMap.put(questionID, qp);
+		register(coreSS, ctx, questionID, qp);
 		
 		return qp;
+	}
+
+	private static void register(final J2SESession coreSS, final ProjectContext ctx, final int resID, final ResParameter qp) {
+		qp.ctx = ctx;
+		synchronized (coreSS.questionOrDialogMap) {
+			coreSS.questionOrDialogMap.put(resID, qp);
+		}
 	}
 	
 	private static Boolean isLoggerOn;
@@ -279,49 +365,63 @@ public class ServerUIAPIAgent {
 	public static void execQuestionResult(final J2SESession coreSS, final String ques_id, final String result){
 		try{
 			final int int_id = Integer.parseInt(ques_id);
-			final QuestionParameter qp = removeQuestionFromMap(coreSS, int_id);
+			final QuestionParameter qp = (QuestionParameter)removeQuestionDialogFromMap(coreSS, int_id, false);
 			if(qp != null){//有可能被撤消
-				final QuestionGlobalLock quesLock = qp.quesLock;
-				if(quesLock != null){
-					synchronized (quesLock) {
-						if(quesLock.isProcessed){
-							final String invalid = (String)ResourceUtil.get(9237) + qp.questionDesc;
-							final J2SESession[] coreSSS = {coreSS};
-							ServerUIAPIAgent.sendMovingMsg(coreSSS, invalid);
-							
-							return;
-						}
-						quesLock.isProcessed = true;
-					}
-					
-					//撤消其它
-					quesLock.cancelOthers(int_id, coreSS);
-				}
-				
-				final ProjResponser resp = qp.ctx.__projResponserMaybeNull;
-				if("yes".equals(result)){
-					if(qp.yesRunnable != null){
-						ServerUIAPIAgent.runInSessionThreadPool(coreSS, resp, qp.yesRunnable);
-					}
-				}else if("no".equals(result)){
-					if(qp.noRunnable != null){
-						ServerUIAPIAgent.runInSessionThreadPool(coreSS, resp, qp.noRunnable);
-					}
-				}else if("cancel".equals(result)){
-					if(qp.cancelRunnable != null){
-						ServerUIAPIAgent.runInSessionThreadPool(coreSS, resp, qp.cancelRunnable);
-					}
-				}
+				execQuestionResult(coreSS, qp, int_id, result);
 			}
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
 	}
 
-	protected static QuestionParameter removeQuestionFromMap(final J2SESession coreSS,
-			final int int_id) {
-		synchronized (coreSS.questionMap) {
-			return coreSS.questionMap.remove(int_id);
+	public static boolean execQuestionResult(final J2SESession coreSS,
+			final QuestionParameter qp, final int int_id, final String result) {
+		final QuestionGlobalLock quesLock = qp.getGlobalLockMaybeNull();
+		if(quesLock != null){
+			if(quesLock.isProcessed(coreSS, int_id, (String)ResourceUtil.get(9237) + qp.questionDesc)){
+				return false;
+			}
+		}
+		
+		final ProjResponser resp = qp.ctx.__projResponserMaybeNull;
+		if("yes".equals(result)){
+			if(qp.yesRunnable != null){
+				ServerUIAPIAgent.runInSessionThreadPool(coreSS, resp, qp.yesRunnable);
+				return true;
+			}
+		}else if("no".equals(result)){
+			if(qp.noRunnable != null){
+				ServerUIAPIAgent.runInSessionThreadPool(coreSS, resp, qp.noRunnable);
+				return true;
+			}
+		}else if(QUESTION_CANCEL.equals(result)){
+			if(qp.cancelRunnable != null){
+				ServerUIAPIAgent.runInSessionThreadPool(coreSS, resp, qp.cancelRunnable);
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	public static ResParameter removeQuestionDialogFromMap(final J2SESession coreSS,
+			final int int_id, final boolean isFromCancel) {
+		final ResParameter out;
+		
+		synchronized (coreSS.questionOrDialogMap) {
+			out = coreSS.questionOrDialogMap.remove(int_id);
+		}
+		
+		if(isFromCancel){
+			exitDialogMlet(out);
+		}
+		return out;
+	}
+
+	public static void exitDialogMlet(final ResParameter out) {
+		if(out != null && out instanceof DialogParameter){
+			final DialogParameter para = (DialogParameter)out;
+			para.getGlobalLock().mletCanvas.onExit(false);
 		}
 	}
 	
@@ -334,7 +434,7 @@ public class ServerUIAPIAgent {
 	}
 	
 	public final static void loadStyles(final HTMLMlet mlet) {
-		final Vector<String> stylesToDeliver = mlet.stylesToDeliver;
+		final Vector<String> stylesToDeliver = mlet.sizeHeightForXML.stylesToDeliver;
 		
 		if(stylesToDeliver != null){
 			final int count = stylesToDeliver.size();
@@ -347,23 +447,23 @@ public class ServerUIAPIAgent {
 	}
 	
 	public final static void loadJS(final HTMLMlet mlet) {
-		final Vector<String> jsToDeliver = mlet.jsToDeliver;
+		final Vector<String> jsToDeliver = mlet.sizeHeightForXML.jsToDeliver;
 		
 		if(jsToDeliver != null){
 			final int count = jsToDeliver.size();
 			for (int i = 0; i < count; i++) {
 				final String JS = jsToDeliver.elementAt(i);
-				mlet.loadJS(JS);
+				mlet.sizeHeightForXML.loadJS(mlet, JS);
 			}
 			jsToDeliver.clear();
 		}
 	}
 	
 	public final static void flushCSS(final HTMLMlet mlet, final DifferTodo diffTodo) {//in user thread
-		if(mlet.styleItemToDeliver != null){
-			final int count = mlet.styleItemToDeliver.size();
+		if(mlet.sizeHeightForXML.styleItemToDeliver != null){
+			final int count = mlet.sizeHeightForXML.styleItemToDeliver.size();
 			for (int i = 0; i < count; i++) {
-				final StyleItem item = mlet.styleItemToDeliver.elementAt(i);
+				final StyleItem item = mlet.sizeHeightForXML.styleItemToDeliver.elementAt(i);
 				if(item.forType == StyleItem.FOR_DIV){
 					mlet.setCSSForDiv(item.component, item.className, item.styles);//in user thread
 				}else if(item.forType == StyleItem.FOR_JCOMPONENT){
@@ -372,7 +472,7 @@ public class ServerUIAPIAgent {
 					mlet.setCSSForToggle((JToggleButton)item.component, item.className, item.styles);//in user thread
 				}
 			}
-			mlet.styleItemToDeliver.clear();
+			mlet.sizeHeightForXML.styleItemToDeliver.clear();
 		}
 		
 		//由于与MletSnapCanvas共用，所以增加null检查
@@ -381,15 +481,17 @@ public class ServerUIAPIAgent {
 		}
 	}
 	
-	public final static boolean isOnTopHistory(final J2SESession coreSS, final ProjectContext ctx, final String urlLower){
+	public final static boolean isOnTopHistory(final J2SESession coreSS, final ProjectContext ctx, final String screenIDLower, 
+			final String targetURLLower){
 		synchronized(coreSS){
 			if(coreSS.mletHistoryUrl != null){
 				final int size = coreSS.mletHistoryUrl.size();
 				if(size > 0){
 					final Object targetURL = coreSS.mletHistoryUrl.elementAt(size - 1);
-					final boolean isTop = targetURL.equals(urlLower) || targetURL.equals(HCURL.buildMletAliasURL(urlLower));
+					final boolean isTop = targetURL.equals(screenIDLower) 
+							|| targetURL.equals(ServerUIAPIAgent.buildScreenID(ctx.getProjectID(), HCURL.buildMletAliasURL(targetURLLower)));
 					if(L.isInWorkshop){
-						L.V = L.O ? false : LogManager.log("===>" + urlLower + " is on top : " + isTop);
+						L.V = L.O ? false : LogManager.log("===>" + screenIDLower + " is on top : " + isTop);
 					}
 					return isTop;
 				}
@@ -398,7 +500,8 @@ public class ServerUIAPIAgent {
 		}
 	}
 	
-	public final static boolean pushMletURLToHistory(final J2SESession coreSS, final ProjectContext ctx, final String urlLower) {
+	public final static boolean pushMletURLToHistory(final J2SESession coreSS, final ProjectContext ctx, final String screenIDLower,
+			final String targetURLLower) {
 		synchronized(coreSS){
 			if(coreSS.mletHistoryUrl == null){
 				coreSS.mletHistoryUrl = new Stack();
@@ -408,42 +511,45 @@ public class ServerUIAPIAgent {
 			
 			final int size = mletHistoryUrl.size();
 			if(size > 0){
-				final String mletAliasURL = HCURL.buildMletAliasURL(urlLower);
+				final String mletAliasURL = ServerUIAPIAgent.buildScreenID(ctx.getProjectID(), HCURL.buildMletAliasURL(targetURLLower)).toLowerCase();
 				
-				int idx = mletHistoryUrl.search(urlLower);
+				int idx = mletHistoryUrl.search(screenIDLower);
 				if(idx >= 0 || ((idx = mletHistoryUrl.search(mletAliasURL)) >= 0)){
 					mletHistoryUrl.removeAt(idx);//从队列中删除
-					mletHistoryUrl.push(urlLower);//置于顶
+					mletHistoryUrl.push(screenIDLower);//置于顶
 					
-					ScreenServer.pushToTopForMlet(coreSS, urlLower);
+					ScreenServer.pushToTopForMlet(coreSS, screenIDLower);
 					if(L.isInWorkshop){
-						L.V = L.O ? false : LogManager.log("===>sucessful bring to Top : " + urlLower);
+						L.V = L.O ? false : LogManager.log("===>sucessful bring to Top : " + screenIDLower);
 					}
 					return false;
 				}
 			}
 	
 	//		System.out.println("----------pushMletURLToHistory : " + url);
-			mletHistoryUrl.push(urlLower);//注意：有可能对HTMLMlet的form://xx，但实际手机效果为Mlet。
+			mletHistoryUrl.push(screenIDLower);//注意：有可能对HTMLMlet的form://xx，但实际手机效果为Mlet。
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("===>push into history url : " + urlLower);
+				L.V = L.O ? false : LogManager.log("===>push into history url : " + screenIDLower);
 			}
 			return true;
 		}
 	}
 	
-	public final static void removeMletURLHistory(final J2SESession coreSS, final String targetURL){
+	public final static void removeMletURLHistory(final J2SESession coreSS, final String projectID, final String targetURL){
 		final int removeIdx;
 		final Stack history = coreSS.mletHistoryUrl;
-		synchronized(coreSS){
-			removeIdx = history.search(targetURL.toLowerCase());
-			if(removeIdx >= 0){
-				history.removeAt(removeIdx);
+		if(history != null){
+			final String screenIDLower = buildScreenID(projectID, targetURL).toLowerCase();
+			synchronized(coreSS){
+				removeIdx = history.search(screenIDLower);
+				if(removeIdx >= 0){
+					history.removeAt(removeIdx);
+				}
 			}
-		}
-		if(L.isInWorkshop){
-			if(removeIdx >= 0){
-				L.V = L.O ? false : LogManager.log("===>pop out from history url : " + targetURL);
+			if(L.isInWorkshop){
+				if(removeIdx >= 0){
+					L.V = L.O ? false : LogManager.log("===>pop out from history url : " + targetURL);
+				}
 			}
 		}
 	}
@@ -457,7 +563,7 @@ public class ServerUIAPIAgent {
 	}
 	
 	public static final void setDiffTodo(final HTMLMlet mlet, final DifferTodo diff){
-		mlet.diffTodo = diff;
+		mlet.sizeHeightForXML.diffTodo = diff;
 	}
 	
 	/**
@@ -633,87 +739,217 @@ public class ServerUIAPIAgent {
 	}
 
 	public static void openMlet(final J2SESession coreSS, final ProjectContext context, final Mlet toMlet, final String targetOfMlet,
-				final boolean isAutoReleaseCurrentMlet, final Mlet fromMlet) {
+				final boolean isAutoReleaseCurrentMlet, final Mlet fromMletMaybeNull) {
 			final int httpSplitterIdx = targetOfMlet.indexOf(HCURL.HTTP_SPLITTER);
 			final boolean isWithHttpSplitter = httpSplitterIdx > 0;
 			final String targetURL = isWithHttpSplitter?targetOfMlet:HCURL.buildStandardURL(HCURL.FORM_PROTOCAL, targetOfMlet);
+			final String screenID = ServerUIAPIAgent.buildScreenID(context.getProjectID(), targetURL);
 			
 			//优先检查bringMletToTop
-			if(ProjResponser.bringMletToTop(coreSS, context, targetURL.toLowerCase())){
+			if(ProjResponser.bringMletToTop(coreSS, context, screenID.toLowerCase(), targetURL.toLowerCase())){
 				return;
 			}
 			
-			if(fromMlet != null){//可能为null，比如从addHar
+			if(fromMletMaybeNull != null && fromMletMaybeNull.isAutoReleaseAfterGo != isAutoReleaseCurrentMlet){//可能为null，比如从addHar
 				runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(context), new ReturnableRunnable() {
 					@Override
 					public Object run() {
-						fromMlet.setAutoReleaseAfterGo(isAutoReleaseCurrentMlet);
+						fromMletMaybeNull.setAutoReleaseAfterGo(isAutoReleaseCurrentMlet);
 						return null;
 					}
 				});
 			}
 			
-			final String elementID = isWithHttpSplitter?targetOfMlet.substring(httpSplitterIdx + HCURL.HTTP_SPLITTER.length()):targetOfMlet;
-			openMlet(coreSS, elementID, "title-" + elementID, context, toMlet);
+//			final String elementID = isWithHttpSplitter?targetOfMlet.substring(httpSplitterIdx + HCURL.HTTP_SPLITTER.length()):targetOfMlet;
+			openMletImpl(coreSS, screenID, "title-" + screenID, context, toMlet);
 			return;
 		}
+	
+	public static String buildScreenID(final String projectID, final String targetURL){
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		sb.append('@');
+		sb.append(projectID);
+		sb.append('@');
+		sb.append(targetURL);
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		return out;
+	}
 
 	/**
-		 * 
-		 * @param coreSS 
-		 * @param elementID 标识当前对象的唯一串，长度不限。同时被应用于缓存。注：是设计器中url.elementID段
-		 * @param title
-		 * @param context
-		 * @param mlet
-		 */
-		private static void openMlet(final J2SESession coreSS, final String elementID,
-				final String title, final ProjectContext context, final Mlet mlet) {
-			if(L.isInWorkshop){
-				if(mlet.getTarget() == null){
-					throw new Error("target of Mlet is null");
-				}
-				L.V = L.O ? false : LogManager.log("openMlet elementID : " + elementID + ", targetInMlet : " + mlet.getTarget());
+	 * 
+	 * @param coreSS 
+	 * @param screenID 
+	 * @param title
+	 * @param context
+	 * @param mlet
+	 */
+	public static void openMletImpl(final J2SESession coreSS, final String screenID,
+			final String title, final ProjectContext context, final Mlet mlet) {
+		if(L.isInWorkshop){
+			if(mlet.getTarget() == null){
+				throw new Error("target of Mlet is null");
 			}
-			
-			boolean isHTMLMlet = (mlet instanceof HTMLMlet);
-			final IMletCanvas mcanvas;
-			if(isHTMLMlet == false || ProjResponser.isMletMobileEnv(coreSS) || ProjResponser.getMletComponentCount(coreSS, context, mlet) == 0){
-				if(isHTMLMlet){
-					L.V = L.O ? false : LogManager.log("force HTMLMlet to Mlet, because there is no component in it or for J2ME mobile.");
-					isHTMLMlet = false;
-				}
-				ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_MLET, elementID);
-				mcanvas = new MletSnapCanvas(coreSS, UserThreadResourceUtil.getMobileWidthFrom(coreSS), UserThreadResourceUtil.getMobileHeightFrom(coreSS));
-			}else{
-				ProjResponser.sendMletBodyOnlyOneTime(coreSS, context);
-				ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_HTMLMLET, elementID);
-				mcanvas = new MletHtmlCanvas(coreSS, UserThreadResourceUtil.getMobileWidthFrom(coreSS), UserThreadResourceUtil.getMobileHeightFrom(coreSS));
+			L.V = L.O ? false : LogManager.log("openMlet elementID : " + screenID + ", targetInMlet : " + mlet.getTarget());
+		}
+		
+		boolean isHTMLMlet = (mlet instanceof HTMLMlet);
+		final IMletCanvas mcanvas;
+		if(isHTMLMlet == false || ProjResponser.isMletMobileEnv(coreSS) || ProjResponser.getMletComponentCount(coreSS, context, mlet) == 0){
+			if(isHTMLMlet){
+				L.V = L.O ? false : LogManager.log("force HTMLMlet to Mlet, because there is no component in it or for J2ME mobile.");
+				isHTMLMlet = false;
 			}
-			
-			mcanvas.setScreenIDAndTitle(elementID, title);//注意：要在setMlet之前，因为后者可能用到本参数
-			
-	//		try{
-	//			Thread.sleep(ThreadPriorityManager.UI_WAIT_MS * 3);//如果手机性能较差，可能会导致手机端对象正在初始中，而后续数据已送达。
-	//		}catch (final Throwable e) {
-	//		}
-	
-			mcanvas.setMlet(coreSS, mlet, context);
-			runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(context), new ReturnableRunnable() {
-				@Override
-				public Object run() {
-					mcanvas.init();//in user thread
-					return null;
-				}
-			});
-			
-			ScreenServer.pushScreen(coreSS, (ICanvas)mcanvas);
-			MultiUsingManager.enter(coreSS, context.getProjectID(), mlet.__target);
-			
+			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_MLET, screenID);
+			mcanvas = new MletSnapCanvas(coreSS, UserThreadResourceUtil.getMobileWidthFrom(coreSS), UserThreadResourceUtil.getMobileHeightFrom(coreSS));
+		}else{
+			ProjResponser.sendMletBodyOnlyOneTime(coreSS, context);
+			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_HTMLMLET, screenID);
+			mcanvas = new MletHtmlCanvas(coreSS, UserThreadResourceUtil.getMobileWidthFrom(coreSS), UserThreadResourceUtil.getMobileHeightFrom(coreSS));
+		}
+		
+		mcanvas.setScreenIDAndTitle(screenID, title);//注意：要在setMlet之前，因为后者可能用到本参数
+		
+//		try{
+//			Thread.sleep(ThreadPriorityManager.UI_WAIT_MS * 3);//如果手机性能较差，可能会导致手机端对象正在初始中，而后续数据已送达。
+//		}catch (final Throwable e) {
+//		}
+
+		mcanvas.setMlet(coreSS, mlet, context);
+		runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(context), new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				mcanvas.init();//in user thread
+				return null;
+			}
+		});
+		
+		ScreenServer.pushScreen(coreSS, (ICanvas)mcanvas);
+		final boolean isForm = MultiUsingManager.enter(coreSS, screenID, mlet.getTarget());
+		
+		if(isForm){
 			if(isHTMLMlet){
 				L.V = L.O ? false : LogManager.log(" onStart HTMLMlet form : [" + title + "]");
 			}else{
 				L.V = L.O ? false : LogManager.log(" onStart Mlet form : [" + title + "]");
 			}
 		}
+	}
+
+	public static void go(final J2SESession coreSS, final String url) {
+			HCURL.checkSuperCmd(url);
+			
+			if(L.isInWorkshop){
+				L.V = L.O ? false : LogManager.log("====>go : " + url);
+			}
+			try {
+	//			不需要转码，可直接支持"screen://我的Mlet"
+	//			final String encodeURL = URLEncoder.encode(url, IConstant.UTF_8);
+				runAndWaitInSysThread(new ReturnableRunnable() {
+					@Override
+					public Object run() {
+						HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_TRANSURL, url);
+						return null;
+					}
+				});
+			} catch (final Exception e) {
+				ExceptionReporter.printStackTrace(e);
+			}
+		}
+
+	public static void goExternalURL(final J2SESession coreSS, final ProjectContext ctx, final String url, final boolean isUseExtBrowser){
+		if(url.endsWith(StringUtil.JAD_EXT)){
+			throw new Error("external URL can NOT end with : " + StringUtil.JAD_EXT);
+		}
+		
+		if(url.startsWith(StringUtil.URL_EXTERNAL_PREFIX) == false){
+			throw new Error("external URL must start with : " + StringUtil.URL_EXTERNAL_PREFIX);
+		}
+		
+		//检查权限
+		if(HCLimitSecurityManager.isSecurityManagerOn()){
+			final Object[] exception = new Object[1];
+			try{
+				final HttpURLConnection urlConn = new HttpURLConnection(new URL(url)) {
+					@Override
+					public void connect() throws IOException {
+					}
+					
+					@Override
+					public boolean usingProxy() {
+						return false;
+					}
+					
+					@Override
+					public void disconnect() {
+					}
+				};
+				final Permission perm = urlConn.getPermission();
+				runAndWaitInSysThread(new ReturnableRunnable() {
+					@Override
+					public Object run() {
+						final HCLimitSecurityManager manager = HCLimitSecurityManager.getHCSecurityManager();
+						runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
+							@Override
+							public Object run() {
+								try{
+									ThreadConfig.putValue(ThreadConfig.AUTO_PUSH_EXCEPTION, false);//关闭push exception
+									manager.checkPermission(perm);
+								}catch (final Throwable e) {
+									exception[0] = e;
+								}finally{
+									ThreadConfig.putValue(ThreadConfig.AUTO_PUSH_EXCEPTION, true);
+								}
+								return null;
+							}
+						});
+						return null;
+					}
+				});
+			}catch (final Throwable e) {
+				throw new Error("invalid external URL : " + url);
+			}
+			if(exception[0] != null){
+				throw new SecurityException(exception[0].toString());
+			}
+		}
+		
+		if(isUseExtBrowser || ProjResponser.isMletMobileEnv(coreSS)){
+			runInSysThread(new Runnable() {
+				@Override
+				public void run() {
+					HCURLUtil.sendEClass(coreSS, HCURLUtil.CLASS_GO_EXTERNAL_URL, url);
+				}
+			});
+		}else{
+			runInSysThread(new Runnable() {
+				@Override
+				public void run() {
+					HCURLUtil.sendEClass(coreSS, HCURLUtil.CLASS_GO_EXTERNAL_URL, HCURLUtil.INNER_MODE + url);
+				}
+			});
+		}
+	}
+
+	public static void goMlet(final J2SESession coreSS, final ProjectContext ctx, final Mlet fromMletMaybeNull, final Mlet toMlet, final String targetOfMlet,
+			final boolean isAutoReleaseCurrentMlet) throws Error {
+		if(toMlet == null){
+			throw new Error("Mlet is null when goMlet.");
+		}
+		
+		if(targetOfMlet == null){
+			throw new Error("target of Mlet is null when goMlet.");
+		}
+		
+		runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				setMletTarget(toMlet, targetOfMlet);
+				openMlet(coreSS, ctx, toMlet, targetOfMlet, isAutoReleaseCurrentMlet,
+						fromMletMaybeNull);
+				return null;
+			}
+		});
+	}
 
 }

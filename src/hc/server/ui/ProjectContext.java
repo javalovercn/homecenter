@@ -233,6 +233,167 @@ public class ProjectContext {
 	}
 	
 	/**
+	 * <STRONG>Warning</STRONG> : when in project level it will do nothing.
+	 * <BR><BR>
+	 * go/run target URL by <code>elementID</code>.
+	 * @param scheme one of {@link MenuItem#CMD_SCHEME}, 
+	 * {@link MenuItem#CONTROLLER_SCHEME}, {@link MenuItem#FORM_SCHEME} or {@link MenuItem#SCREEN_SCHEME}.
+	 * @param elementID for example, run scripts of menu item "cmd://myCommand", the scheme is {@linkplain MenuItem#CMD_SCHEME}, and element ID is "myCommand",
+	 * @see #goWhenInSession(String)
+	 * @see #isCurrentThreadInSessionLevel()
+	 * @since 7.30
+	 */
+	public final void goWhenInSession(final String scheme, final String elementID){		
+		final String target = HCURL.buildStandardURL(scheme, elementID);
+		goWhenInSession(target);
+	}
+	
+	/**
+	 * <STRONG>Warning</STRONG> : when in project level it will do nothing.
+	 * <BR><BR>
+	 * jump mobile to following targets:<BR>
+	 * 1. <i>{@link Mlet#URL_SCREEN}</i> : enter the desktop screen of server from mobile, <BR>
+	 * 2. <i>form://myMlet</i> : open and show a form, <BR>
+	 * 3. <i>controller://myctrl</i> : open and show a controller, <BR>
+	 * 4. <i>cmd://myCmd</i> : run script commands only,
+	 * <BR><BR>
+	 * bring to top : <BR>
+	 * 1. jump to <i>form://B</i> from <i>form://A</i>, <BR>
+	 * 2. ready jump to <i>form://A</i> again from <i>form://B</i>.<BR>
+	 * 3. system will bring the target (form://A) to top if it is opened.
+	 * <BR><BR>
+	 * <STRONG>Note</STRONG> :<BR>
+	 * go to external URL (for example, http://homecenter.mobi), invoke {@link #goExternalURLWhenInSession(String)}.
+	 * @param url
+	 * @see #isCurrentThreadInSessionLevel()
+	 * @see #goWhenInSession(String, String)
+	 * @see #goMletWhenInSession(Mlet, String)
+	 * @see #goExternalURLWhenInSession(String, boolean)
+	 * @since 7.30
+	 */
+	public final void goWhenInSession(final String url){
+		if(Mlet.URL_EXIT.equals(url)){
+			LogManager.log("do nothing for \"" + Mlet.URL_EXIT + "\" in goWhenInSession.");
+//			return false;
+			return;
+		}
+		
+		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
+//			return false;
+			return;
+		}
+		
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
+		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+			errWhenInSession("goWhenInSession");
+//			return false;
+			return;
+		}else{
+			ServerUIAPIAgent.go(sessionContext.j2seSocketSession, url);
+//			return true;
+			return;
+		}
+	}
+
+	/**
+	 * <STRONG>Warning</STRONG> : when in project level it will do nothing.
+	 * <BR><BR>
+	 * go to external URL in client application.
+	 * <BR>
+	 * it is equals with <code>goExternalURLWhenInSession(url, false)</code>.
+	 * <BR><BR>
+	 * <STRONG>Important : </STRONG>
+	 * <BR>socket/connect permissions is required even if the domain of external URL is the same with the domain of upgrade HAR project URL.
+	 * <BR><BR>
+	 * <STRONG>Warning : </STRONG>
+	 * <BR>1. the external URL may be sniffed when in moving (exclude HTTPS).
+	 * <BR>2. iOS 9 and above must use secure URLs.
+	 * @param url for example : https://homecenter.mobi
+	 * @see #isCurrentThreadInSessionLevel()
+	 * @see #goExternalURLWhenInSession(String, boolean)
+	 * @since 7.30
+	 */
+	public final void goExternalURLWhenInSession(final String url) {
+		goExternalURLWhenInSession(url, false);
+	}
+	
+	/**
+	 * <STRONG>Warning</STRONG> : when in project level it will do nothing.
+	 * <BR><BR>
+	 * <STRONG>deprecated</STRONG>, replaced by {@link #goExternalURLWhenInSession(String)}.
+	 * <BR><BR>
+	 * go to external URL in system web browser or client application.
+	 * <BR><BR>
+	 * <STRONG>Important : </STRONG>
+	 * <BR>socket/connect permissions is required even if the domain of external URL is the same with the domain of upgrade HAR project URL.
+	 * <BR><BR>
+	 * <STRONG>Warning : </STRONG>
+	 * <BR>1. the external URL may be sniffed when in moving (exclude HTTPS).
+	 * <BR>2. iOS 9 and above must use secure URLs.
+	 * <BR>3. In iOS (not Android), when go external URL and <code>isUseExtBrowser</code> is true, the application will be turn into background and released after seconds. In future, it maybe keep alive in background.
+	 * @param url
+	 * @param isUseExtBrowser true : use system web browser to open URL; false : the URL will be opened in client application and still keep foreground.
+	 * @see #isCurrentThreadInSessionLevel()
+	 * @since 7.30
+	 */
+	public final void goExternalURLWhenInSession(final String url, final boolean isUseExtBrowser) {
+		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
+//			return false;
+			return;
+		}
+		
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
+		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+			errWhenInSession("goExternalURLWhenInSession");
+//			return false;
+			return;
+		}else{
+			ServerUIAPIAgent.goExternalURL(sessionContext.j2seSocketSession, this, url, isUseExtBrowser);
+//			return true;
+			return;
+		}
+	}
+	
+	/**
+	 * <STRONG>Warning</STRONG> : when in project level it will do nothing.
+	 * <BR><BR>
+	 * go and open a {@link Mlet} or {@link HTMLMlet} (which is probably created by {@link ProjectContext#eval(String)}).
+	 * <BR><BR>
+	 * the target of <i>toMlet</i> will be set as <i>targetOfMlet</i>.<BR><BR>
+	 * <STRONG>Important : </STRONG>
+	 * <BR>if the same name <i>target</i> or <i>form://target</i> is opened, then it will be brought to top.
+	 * <BR>for more, see {@link #goWhenInSession(String, String)}.
+	 * @param toMlet
+	 * @param targetOfMlet target of {@link Mlet}. The prefix <i>form://</i> is <STRONG>NOT</STRONG> required.
+	 * @see ProjectContext#eval(String)
+	 * @see #isCurrentThreadInSessionLevel()
+	 * @see #goWhenInSession(String, String)
+	 * @since 7.30
+	 */
+	public final void goMletWhenInSession(final Mlet toMlet, final String targetOfMlet){
+		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
+//			return false;
+			return;
+		}
+		
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
+		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+			errWhenInSession("goMletWhenInSession");
+//			return false;
+			return;
+		}else{
+			final Mlet fromMlet = null;
+			ServerUIAPIAgent.goMlet(sessionContext.j2seSocketSession, this, fromMlet, toMlet, targetOfMlet, false);
+//			return true;
+			return;
+		}
+	}
+	
+	private final void errWhenInSession(final String method) {
+		LogManager.errToLog("[" + method + "] in project [" + projectID + "] must be invoked in session level.");
+	}
+	
+	/**
      * add a menu item for project or session at run-time.<BR><BR>
      * if in project level, add item to list of project level.<BR>
      * if in session level, add item to list of session level.
@@ -904,11 +1065,15 @@ public class ProjectContext {
 
 	/**
 	 * send a question to mobile if in session level, or send same question to all client sessions if in project level. <br>
-	 * in project level, if one session replies, then the same question in other sessions become invalid.
+	 * in project level, if one session replies, then the same question in other sessions will be dismissed.
+	 * <br><br>
+	 * if there is an alert message, other question or a {@link Dialog} is presented on client and NOT be closed, the question will be delayed.
 	 * <br><br>
 	 * this method is <STRONG>asynchronous</STRONG>. system will NOT wait for
 	 * the result of question to the caller. <BR>
 	 * <BR>
+	 * <STRONG>Important</STRONG> : the <code>yesRunnable</code>, <code>noRunnable</code>, <code>cancelRunnable</code> will be executed in session level, no matter current thread is project or session level.
+	 * <BR><BR>
 	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
 	 * notification is also created for mobile.<BR><BR>
 	 * if mobile option [Message, Notification to Speech also] is on, it may be spoken.<BR>
@@ -950,6 +1115,9 @@ public class ProjectContext {
 			}
 			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
 		}else{
+			if(UserThreadResourceUtil.isInServing(sessionContext.j2seSocketSession.context) == false){
+				return;
+			}
 			coreSS = toArray(sessionContext.j2seSocketSession);
 		}
 		
@@ -990,7 +1158,7 @@ public class ProjectContext {
 				final int questionID = ServerUIAPIAgent.buildQuestionID();//便于撤消
 				
 				for (int i = 0; i < coreSS.length; i++) {
-					ServerUIAPIAgent.buildQuestionID(
+					ServerUIAPIAgent.buildQuestionParameter(
 							coreSS[i], p_ctx, quesLock, questionID, p_text, yesRunnable, noRunnable, cancelRunnable);
 					
 					final String[] values = { String.valueOf(questionID), p_caption,
@@ -2057,7 +2225,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * in session level, send a alert dialog to mobile.<BR>
+	 * it is equals with <code>sendMessage(caption, text, type, null, 0)</code>.<BR><BR>
+	 * in session level, send a alert message to mobile.<BR>
 	 * in project level, send the same alert to all client sessions.<BR><BR>
 	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
 	 * notification is also created for mobile.<BR><BR>
@@ -2230,6 +2399,133 @@ public class ProjectContext {
 		StringBuilderCacher.cycle(sb);
 		return SimuMobile.simuContext;
 	}
+	
+	/**
+	 * <STRONG>Warning</STRONG> : when in project level it will do nothing.
+	 * <BR><BR>
+	 * send a {@link Dialog} to client.
+	 * <br><br>
+	 * if there is a alert message, question or other dialog is presented on client and NOT be closed, the dialog will be delayed.
+	 * <br><br>
+	 * this method is <STRONG>asynchronous</STRONG>. system will NOT wait for
+	 * the result of dialog to the caller. <BR>
+	 * <BR>
+	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
+	 * notification is also created for mobile.<BR><BR>
+	 * @param dialog
+	 * @see #sendDialogByBuilding(Runnable)
+	 * @see #isCurrentThreadInSessionLevel()
+	 * @since 7.30
+	 */
+	public final void sendDialogWhenInSession(final Dialog dialog){
+		if(dialog == null){
+			return;
+		}
+		
+		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
+//			return false;
+			return;
+		}
+		
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
+		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+			errWhenInSession("sendDialogWhenInSession");
+//			return false;
+			return;
+		}else{
+			final J2SESession[] coreSSS = {sessionContext.j2seSocketSession};
+
+			publishDialog(coreSSS, dialog, null);
+//			return true;
+			return;
+		}
+	}
+	
+	/**
+	 * send a dialog to mobile if in session level, or send same dialog to all client sessions if in project level. <br>
+	 * in project level, if one session replies, then the same dialog in other sessions will be dismissed.
+	 * <br><br>
+	 * for example, <BR><BR>in <STRONG>JRuby</STRONG> :<BR>
+	 * <code>
+	 * ctx.sendDialogByBuilding {
+	 * <BR>
+	 * &nbsp;&nbsp;MyDefDialog.new()&nbsp;&nbsp;#important : return is NOT allowed.<BR>
+	 * }<BR>
+	 * </code>
+	 * <BR>
+	 * in <STRONG>Java</STRONG> :<BR>
+	 * <code>
+	 * ctx.sendDialogByBuilding(new Runnable() {
+	 * <BR>
+	 * &nbsp;&nbsp;public void run() {<BR>
+	 * &nbsp;&nbsp;&nbsp;&nbsp;new MyDefDialog();<BR>
+	 * &nbsp;&nbsp;}<BR>
+	 * });<BR>
+	 * </code>
+	 * <BR>
+	 * <STRONG>Why</STRONG> the parameter is Runnable to build instance from defined JRuby class or a Java class?
+	 * <BR>
+	 * because the layout of dialog is depends on the client screen size of that session.<BR>
+	 * for example, there are three sessions in project level, the <code>runnable</code> will be executed three times, <BR>
+	 * and three instances of {@link Dialog} are builded.
+	 * <br><br>
+	 * if there is a alert message, question or other dialog is presented on client and NOT be closed, the dialog will be delayed.
+	 * <br><br>
+	 * this method is <STRONG>asynchronous</STRONG>. system will NOT wait for
+	 * the result of dialog to the caller. <BR>
+	 * <BR>
+	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
+	 * notification is also created for mobile.
+	 * @param runnable the <code>Runnable</code> to build instance from a defined JRuby class or a Java class.
+	 * @see #sendDialogWhenInSession(Dialog)
+	 * @since 7.30
+	 */
+	public final void sendDialogByBuilding(final Runnable runnable){
+		if(runnable == null){
+			return;
+		}
+		
+		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
+			return;
+		}
+		
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
+		final J2SESession[] coreSS;
+		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+			if(L.isInWorkshop){
+				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
+			}
+			if(isLoggerOn == false){
+				ServerUIAPIAgent.printInProjectLevelWarn("sendDialogByBulding");
+			}
+			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+		}else{
+			coreSS = toArray(sessionContext.j2seSocketSession);
+		}
+		
+		if (coreSS != null && coreSS.length > 0) {
+			publishDialog(coreSS, null, runnable);
+		}
+	}
+
+	private final void publishDialog(final J2SESession[] coreSS, final Dialog dialog, final Runnable dialogBuildProc) {
+		final ProjectContext p_ctx = this;
+		//如果同时发出两个Dialog，则可能不同步，所以以下要wait
+		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				final int dialogID = ServerUIAPIAgent.buildDialogID();
+				
+				for (int i = 0; i < coreSS.length; i++) {
+					final J2SESession session = coreSS[i];
+					final DialogGlobalLock dialogLock = new DialogGlobalLock(coreSS, dialogID);//每个会话一个
+					ServerUIAPIAgent.buildDialogParameter(session, p_ctx, dialogLock, dialogID);
+					ServerUIAPIAgent.sendDialog(session, dialog, dialogBuildProc, p_ctx, dialogLock);
+				}
+				return null;
+			}
+		});
+	}
 
 	/**
 	 * an error message.
@@ -2287,8 +2583,10 @@ public class ProjectContext {
 	public static final int MESSAGE_CONFIRMATION = 5;
 
 	/**
-	 * send an alert dialog to current mobile if in session level, or send the same alert to all client sessions if in project level.<BR>
-	 * <BR>
+	 * send an alert message to current mobile if in session level, or send the same alert to all client sessions if in project level.
+	 * <br><br>
+	 * if there is an other alert message, question or a {@link Dialog} is presented on client and NOT be closed, the alert message will be delayed.
+	 * <BR><BR>
 	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
 	 * notification is also created for mobile.<BR><BR>
 	 * if mobile option [Message, Notification to Speech also] is on, it may be spoken.<BR>
