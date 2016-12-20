@@ -1,6 +1,8 @@
 ### Sample
 ![screenshot](https://homecenter.mobi/images/sc_mlet.png)
+
 to implement above UI functionality for Android, iPhone, and J2ME mobile,
+
 the full codes are following :
 ```JRuby
 #encoding:utf-8
@@ -118,7 +120,7 @@ end
 
 return MyHTMLMlet.new
 ```
-and global CSS for current project :
+global CSS for current project :
 ```css
 .btnStyle {
 	text-align:center;
@@ -129,7 +131,7 @@ and global CSS for current project :
 	color:blue;
 }
 ```
-
+***
 ### License
 1. please read and agree the license file "bcl.txt", "hc_license.txt" and "mpl_license.txt".
 
