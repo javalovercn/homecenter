@@ -119,17 +119,13 @@ public class TrayMenuUtil {
 		}
 	}
 	
-	private static void doAfterCertIsNotTransed(final boolean isShowing) {
+	private static void doAfterCertIsNotTransed() {
 		App.setNoTransCert();
 		
 		if(!DefaultManager.isEnableTransNewCertNow()){
 			TrayMenuUtil.flipTransable(!DefaultManager.isEnableTransNewCertNow(), false);
 		}
 		transNewCertKey.setEnabled(false);
-		
-		if(isShowing == false){
-			TrayMenuUtil.showSuccCreateNewCertDialog();
-		}
 	}
 
     /**
@@ -260,7 +256,7 @@ public class TrayMenuUtil {
 						if(coreSS.isTransedCertToMobile){
 							doAfterMobileReceivedCert();
 						}else{
-							doAfterCertIsNotTransed(true);
+							doAfterCertIsNotTransed();
 						}
 						return true;
 					}else{
@@ -283,7 +279,7 @@ public class TrayMenuUtil {
 			return ;
 			//END 在线传送证书
 		}else{
-			doAfterCertIsNotTransed(true);
+			doAfterCertIsNotTransed();
 		}
 	}
 
@@ -501,7 +497,7 @@ public class TrayMenuUtil {
 									}});
 							}
 						}else{
-							doAfterCertIsNotTransed(false);//一般此逻辑不会执行，仅维持理论上的完整性
+							doAfterCertIsNotTransed();//一般此逻辑不会执行，仅维持理论上的完整性
 						}
 					}
 				}

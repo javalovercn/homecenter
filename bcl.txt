@@ -68,6 +68,14 @@ DEALINGS IN THE SOFTWARE.
 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+CSS SPEC­I­FI­CA­TIONS
+
+https://www.w3.org/Style/CSS/members
+
+This software contains a list of all completed specifications and drafts by the CSS WG (formerly “CSS & FP WG”).
+<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 Copyright (C) 2008 The Android Open Source Project
 
 Licensed under the Apache License, Version 2.0 (the "License");

@@ -21,6 +21,7 @@ public class IDArrayGroup {
 	public static final String MSG_JRUBY_RUN_NO_COVER = "S4";
 	public static final String MSG_SYSTEM_CLASS_LIMITED = "S5";
 	public static final String MSG_MIN_JRE_7 = "S6";
+	public static final String MSG_CSS_NOTE = "S7";
 	
 	public static final void showMsg(final String msgId, final String sys_icon_str, final String title, final String message){
 		if(checkAndAdd(msgId)){
@@ -95,7 +96,7 @@ public class IDArrayGroup {
 	}
 
 	/**
-	 * 如果不存在，并添加，返回true。否则返回false
+	 * 如果不存在，并添加保存，返回true。否则返回false
 	 * @param msgID
 	 * @return
 	 */

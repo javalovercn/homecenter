@@ -578,7 +578,15 @@ public class ResourceUtil {
 		return timestampBuf.toString();
 	}
 	
-	public static int getAbstractCtrlKeyCode(){
+	public static int getAbstractCtrlKeyMask(){
+		if(isMacOSX()){
+			return KeyEvent.META_MASK;
+		}else{
+			return KeyEvent.CTRL_MASK;
+		}
+	}
+	
+	public static int getAbstractCtrlKeyCode(){//注意：请与上段的Mask保持同步
 		if(isMacOSX()){
 			return KeyEvent.VK_META;
 		}else{
@@ -653,7 +661,7 @@ public class ResourceUtil {
 	}
 	
 	public static String getMacOSCommandKeyText(){
-		return String.valueOf((char)Integer.parseInt("8984"));
+		return String.valueOf((char)Integer.parseInt("8984"));//⌘
 	}
 	
 	public static String getMacOSOptionKeyText(){

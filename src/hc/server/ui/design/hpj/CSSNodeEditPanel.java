@@ -1,16 +1,23 @@
 package hc.server.ui.design.hpj;
 
+import hc.App;
 import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.ThreadPriorityManager;
+import hc.res.ImageSrc;
 import hc.server.ui.ClientDesc;
+import hc.server.ui.ServerUIUtil;
+import hc.server.ui.design.Designer;
 import hc.server.ui.design.code.CodeHelper;
 import hc.server.ui.design.code.TabHelper;
+import hc.server.util.CSSUtil;
+import hc.server.util.IDArrayGroup;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -23,8 +30,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
@@ -54,11 +64,15 @@ import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 
 public class CSSNodeEditPanel extends NameEditPanel {
+	public final CSSJumpRunnable jumpRunnable;
+	
 	private static final SimpleAttributeSet CLASS_LIGHTER = ScriptEditPanel.build(Color.decode("#088A29"), false);//dark green
 	private static final SimpleAttributeSet ITEM_LIGHTER = ScriptEditPanel.build(Color.decode("#0431B4"), false);
 	private static final SimpleAttributeSet SPLITTER_LIGHTER = ScriptEditPanel.build(Color.BLACK, false);
 	private static final SimpleAttributeSet VALUE_LIGHTER = ScriptEditPanel.build(Color.decode("#B18904"), false);
 	private static final SimpleAttributeSet VARIABLE_LIGHTER = ScriptEditPanel.build(Color.decode("#DF0101"), false);
+	
+	private static final SimpleAttributeSet JUMP_CLASS_DEF_LIGHTER = ScriptEditPanel.buildBackground(new Color(165, 199, 234));
 	
 	private static final Pattern class_pattern = Pattern.compile("(\\s*?(.*?)\\s*?)\\{");
 	private static final Pattern item_pattern = Pattern.compile("(\\b*?([a-zA-Z_0-9-]+)\\b*?\\s*?):");
@@ -107,9 +121,9 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			"<BR><BR>" +
 			"if you need special styles for a HTMLMlet/Dialog, invoke <STRONG>loadCSS</STRONG>." +
 			"<BR>to set styles for a JComponent, please invoke <STRONG>setCSS</STRONG>." +
-			"<BR><BR>for variables, input shortcut keys for word completion." +
+			"<BR><BR>for CSS (2.2) properties or variables, input shortcut keys for word completion." +
 			"</html>");
-
+	
 	CSSUndoableEditListener cssUndoListener;
 	UndoManager cssUndoManager;
 	final HCTextPane cssEditPane = new HCTextPane(){
@@ -149,7 +163,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			});
 		}
 	};
-	private final JScrollPane cssScrollPane = new JScrollPane(cssEditPane);
+	private final JScrollPane cssScrollPane;
 	private final Document cssDocument;
 	
 	private final void appendEnterText(final String txt, final int newPos) {
@@ -334,19 +348,142 @@ public class CSSNodeEditPanel extends NameEditPanel {
 		}
 	}
 	
+	final JButton formatBtn = new JButton(ScriptEditPanel.FORMAT_BUTTON_TEXT);
+	final JButton commentBtn = new JButton("Comment/Uncomment");
+	
 	public CSSNodeEditPanel(){
 		super();
+	
+//		Disable Word wrap in JTextPane		
+		final JPanel NoWrapPanel = new JPanel(new BorderLayout());
+		NoWrapPanel.add(cssEditPane, BorderLayout.CENTER);
+		cssScrollPane = new JScrollPane(NoWrapPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		final LineNumber lineNumber = new LineNumber(cssEditPane);
+		cssScrollPane.setRowHeaderView(lineNumber);
+		cssScrollPane.getVerticalScrollBar().setUnitIncrement(ServerUIUtil.SCROLLPANE_VERTICAL_UNIT_PIXEL);
+		
+		jumpRunnable = new CSSJumpRunnable() {
+			final SimpleAttributeSet defaultBackground = ScriptEditPanel.buildBackground(cssEditPane.getBackground());
+			final Runnable jumpLoc = new Runnable() {
+				@Override
+				public void run() {
+					cssEditPane.setCaretPosition(getOffSet());
+					try {
+						final Rectangle modelToView = cssEditPane.modelToView(getOffSet());
+						modelToView.y += cssScrollPane.getHeight();
+						cssEditPane.scrollRectToVisible(modelToView);
+					} catch (final Throwable e) {
+						e.printStackTrace();
+					}
+				}
+			};
+			
+			final Runnable lightRun = new Runnable() {
+				@Override
+				public void run() {
+					try {
+						SwingUtilities.invokeAndWait(jumpLoc);
+					} catch (final Throwable e) {
+						e.printStackTrace();
+					}
+					
+					try{
+						for (int i = 0; i < 5; i++) {
+							cssEditPane.getStyledDocument().setCharacterAttributes(getOffSet(), getLen(), JUMP_CLASS_DEF_LIGHTER, false);
+							Thread.sleep(500);
+							cssEditPane.getStyledDocument().setCharacterAttributes(getOffSet(), getLen(), defaultBackground, false);
+							Thread.sleep(500);
+						}
+					}catch (final Exception e) {
+					}
+				}
+			};
+			
+			@Override
+			public void run() {
+				ContextManager.getThreadPool().run(lightRun);
+			}
+			
+			private final int getOffSet(){
+				return offset;
+			}
+			
+			private final int getLen(){
+				return len;
+			}
+		};
+	
+		commentBtn.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + /)<BR><BR>comment/uncomment the selected rows.</html>");
+		commentBtn.setIcon(Designer.loadImg("comment_16.png"));
+		final Action commentAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						if(CSSUtil.comment(cssEditPane)){
+							colorRunnable.run();
+							cssEditPane.requestFocus();
+						}
+					}
+				});
+			}
+		};
+		ResourceUtil.buildAcceleratorKeyOnAction(commentAction, KeyEvent.VK_SLASH);
+		commentBtn.addActionListener(commentAction);
+		commentBtn.getActionMap().put("commentCSSAction", commentAction);
+		commentBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+		        (KeyStroke) commentAction.getValue(Action.ACCELERATOR_KEY), "commentCSSAction");
+		
+		formatBtn.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + F)<BR><BR>format the CSS.</html>");
+		formatBtn.setIcon(Designer.loadImg(ImageSrc.FORMAT_16_PNG));
+		
+		final Action formatAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						cssEditPane.setText(CSSUtil.format(cssEditPane.getText()));
+						colorRunnable.run();
+						cssEditPane.requestFocus();
+					}
+				});
+			}
+		};
+		
+		ResourceUtil.buildAcceleratorKeyOnAction(formatAction, KeyEvent.VK_F);
+		formatBtn.addActionListener(formatAction);
+		formatBtn.getActionMap().put("formatCSSAction", formatAction);
+		formatBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+		        (KeyStroke) formatAction.getValue(Action.ACCELERATOR_KEY), "formatCSSAction");
 		
 		cssDocument = cssEditPane.getDocument();
 		
 		tipCssLabel.setBorder(new TitledBorder("Note :"));
 		cssPanel.setLayout(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
-		cssPanel.add(tipCssLabel, BorderLayout.NORTH);
+		
+		if(IDArrayGroup.checkAndAdd(IDArrayGroup.MSG_CSS_NOTE)){
+			cssPanel.add(tipCssLabel, BorderLayout.NORTH);
+		}else{
+			cssPanel.add(tipCssLabel, BorderLayout.SOUTH);
+		}
+		
 		{
+			final JPanel editToolPane = new JPanel(new BorderLayout());
+			
 			final JPanel tmpPanel = new JPanel(new BorderLayout());
 			tmpPanel.setBorder(new TitledBorder("Styles Edit Area :"));
 			tmpPanel.add(cssScrollPane, BorderLayout.CENTER);
-			cssPanel.add(tmpPanel, BorderLayout.CENTER);
+			
+			final JPanel toolPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+			toolPanel.setBorder(new TitledBorder(""));
+			toolPanel.add(formatBtn);
+			toolPanel.add(commentBtn);
+			editToolPane.add(toolPanel, BorderLayout.NORTH);
+			editToolPane.add(tmpPanel, BorderLayout.CENTER);
+			
+			cssPanel.add(editToolPane, BorderLayout.CENTER);
 		}
 		
 		{
@@ -403,7 +540,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 						final int caretPosition = cssEditPane.getCaretPosition();
 						final Rectangle caretRect=cssEditPane.modelToView(caretPosition);
 						final Point caretPointer = new Point(caretRect.x, caretRect.y);
-						codeHelper.inputVariableForCSS(cssEditPane, caretPointer, fontHeight, caretPosition);
+						codeHelper.inputForCSSInCSSEditor(cssEditPane, cssDocument, caretPointer, fontHeight, caretPosition);
 					} catch (final Exception e) {
 						if(L.isInWorkshop){
 							ExceptionReporter.printStackTrace(e);
@@ -437,7 +574,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 						final int caretPosition = cssEditPane.getCaretPosition();
 						final Rectangle caretRect=cssEditPane.modelToView(caretPosition);
 						final Point caretPointer = new Point(caretRect.x, caretRect.y);
-						codeHelper.inputVariableForCSS(cssEditPane, caretPointer, fontHeight, caretPosition);
+						codeHelper.inputForCSSInCSSEditor(cssEditPane, cssDocument, caretPointer, fontHeight, caretPosition);
 					} catch (final Exception e) {
 						if(L.isInWorkshop){
 							ExceptionReporter.printStackTrace(e);
@@ -514,18 +651,33 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			cssEditPane.getDocument().addUndoableEditListener(cssUndoListener);
 		}
 		
-    	cssEditPane.setText(designer.getProjCSS());
+    	String text = designer.getProjCSS();
+		if(text.indexOf('\r') >= 0){
+			text = text.replace("\r", "");
+		}
+		cssEditPane.setText(text);
     	colorStyle();
     	
 		cssUndoListener.isForbidRecordUndoEdit = false;
 		cssUndoManager.discardAllEdits();
 		cssEditPane.setCaretPosition(0);
+		
 	}
 	
 	@Override
 	public void notifyLostEditPanelFocus(){
 		cssUndoListener.isForbidRecordUndoEdit = true;
 		super.notifyLostEditPanelFocus();
+		
+		final String sameFullName = designer.updateCssClassOfProjectLevel(cssDocument);
+		if(sameFullName != null){
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					App.showMessageDialog(designer, sameFullName, ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+				}
+			});
+		}
 	}
 	
 	@Override
@@ -580,6 +732,7 @@ class CSSUndoableEdit implements UndoableEdit{
 	int selectionLen;
 	final CSSNodeEditPanel panel;
 	final boolean isModi;
+	final long saveToken;
 	DocumentEvent.EventType type;
 	
 	CSSUndoableEdit(final CSSNodeEditPanel panel, final UndoableEdit base, final int undoModel){
@@ -591,6 +744,7 @@ class CSSUndoableEdit implements UndoableEdit{
 		this.base = base;
 		this.undoModel = undoModel;
 		isModi = this.panel.isModified();
+		saveToken = this.panel.getSaveToken();
 		
 		if(isModi == false){
 			this.panel.notifyModified(true);//由于REMOVE和INSERT都是isModi==false,所以强制后续的INSERT为ture
@@ -640,8 +794,14 @@ class CSSUndoableEdit implements UndoableEdit{
 				}
 			}
 		}
-		if(isModi == false){
-			panel.notifyModified(false);
+		if(saveToken == panel.getSaveToken()){
+			if(isModi == false){
+				panel.notifyModified(false);
+			}
+		}else{
+			if(panel.isModified() == false){
+				panel.notifyModified(true);
+			}
 		}
 	}
 
@@ -653,8 +813,10 @@ class CSSUndoableEdit implements UndoableEdit{
 	@Override
 	public void redo() throws CannotRedoException {
 		base.redo();
-		if(isModi == false){
-			panel.notifyModified(true);
+		if(saveToken == panel.getSaveToken()){
+			if(isModi == false){
+				panel.notifyModified(true);
+			}
 		}
 		
 		if(afterCaretPos > 0){

@@ -32,6 +32,25 @@ public class StringUtil {
 		return out;
 	}
 	
+	/**
+	 * 
+	 * @param src
+	 * @param knownIdx
+	 * @param knownIdxAtLineNo
+	 * @param targetIdx
+	 * @return 起始行号为0
+	 */
+	public static int getLineNo(final String src, int knownIdx, int knownIdxAtLineNo, final int targetIdx){
+		while(true){
+			knownIdx = src.indexOf('\n', knownIdx);
+			if(knownIdx == -1 || knownIdx >= targetIdx){
+				return knownIdxAtLineNo;
+			}
+			knownIdxAtLineNo++;
+			knownIdx++;
+		}
+	}
+	
 	public static String replaceFirst(String src, final String find, final String replaceTo){
 		int index = 0;
 		String out = src;

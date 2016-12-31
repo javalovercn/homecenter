@@ -40,7 +40,10 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.text.AbstractDocument;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+import javax.swing.text.Highlighter;
+import javax.swing.text.StyledDocument;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.jrubyparser.CompatVersion;
@@ -79,6 +82,7 @@ import org.jrubyparser.ast.SelfNode;
 import org.jrubyparser.ast.StrNode;
 import org.jrubyparser.ast.SymbolNode;
 import org.jrubyparser.ast.VCallNode;
+import org.jrubyparser.lexer.SyntaxException;
 import org.jrubyparser.parser.ParserConfiguration;
 
 public class CodeHelper {
@@ -100,7 +104,7 @@ public class CodeHelper {
 	
 	public final CodeWindow window;
 	private final ArrayList<CodeItem> autoTipOut = new ArrayList<CodeItem>();
-	public final ArrayList<CodeItem> out = new ArrayList<CodeItem>();
+	public final ArrayList<CodeItem> outAndCycle = new ArrayList<CodeItem>();
 
 	public int wordCompletionModifyMaskCode;
 	public int wordCompletionModifyCode;
@@ -1867,6 +1871,12 @@ public class CodeHelper {
 		}
 	}
 	
+	public final void resetSyntaxError(){
+		errorHighlighter = null;
+	}
+	
+	private Object errorHighlighter;
+	
 	public final boolean updateScriptASTNode(final ScriptEditPanel sep, final String scripts, final boolean isModifySource){
 		if(isModifySource == false){
 			return true;
@@ -1875,12 +1885,45 @@ public class CodeHelper {
 		try{
 			final Node oldRoot = root;
 			root = parseScripts(scripts);
+			if(errorHighlighter != null){
+				final Highlighter highlighter = sep.jtaScript.getHighlighter();
+				highlighter.removeHighlight(errorHighlighter);
+			}
 //			if(L.isInWorkshop){
 //				printNode(root);
 //			}
 			backRoot = oldRoot;
 			return true;
 		}catch (final Throwable e) {
+			if(e instanceof SyntaxException){
+				final StyledDocument document = (StyledDocument)sep.jtaDocment;
+				
+				if(errorHighlighter != null){
+					final Highlighter highlighter = sep.jtaScript.getHighlighter();
+					highlighter.removeHighlight(errorHighlighter);
+				}
+				
+				final SyntaxException se = (SyntaxException)e;
+				final SourcePosition sp = se.getPosition();
+				try{
+					int errStartOff = sp.getStartOffset();
+					int errEndOff = sp.getEndOffset();
+					
+					if(errStartOff == errEndOff){
+						final int lineNo = sp.getStartLine();
+						errStartOff = ScriptEditPanel.getLineStartOffset(document, lineNo);
+						errEndOff = ScriptEditPanel.getLineEndOffset(document, lineNo);
+					}
+					
+					final Highlighter highlighter = sep.jtaScript.getHighlighter();
+					try {
+						errorHighlighter = highlighter.addHighlight(errStartOff, errEndOff, ScriptEditPanel.SYNTAX_ERROR_PAINTER);
+					} catch (final BadLocationException ex) {
+					}
+				}catch (final Throwable ex) {
+				}
+			}
+			
 			final Node node = buildNodeRemoveCurrEditErrLine(scripts, sep);
 			if(node != null){
 				backRoot = root;
@@ -1966,23 +2009,250 @@ public class CodeHelper {
 		//5：::后 Java::|Font::
 		//6：.后 JButton.new|ImageIO.read
 		//3：resource("时，lib资源
-		final Point win_loc = textPane.getLocationOnScreen();
 		
 		final int line = ScriptEditPanel.getLineOfOffset(doc, scriptIdx);
         final int editLineStartIdx = ScriptEditPanel.getLineStartOffset(doc, line);
         final int lineIdx = scriptIdx - editLineStartIdx;
         final char[] lineChars = doc.getText(editLineStartIdx, lineIdx).toCharArray();
         
+        if(inputCSSClassOrPropInDesigner(lineChars, lineIdx, scriptIdx, sep, textPane, doc, fontHeight)){
+        	return true;
+        }
+        
 		initPreCode(lineChars, lineIdx, scriptIdx, line);
-		if(isForcePopup == false && out.size() == 0){
+		if(isForcePopup == false && outAndCycle.size() == 0){
 			return false;
 		}
 		final Class codeClass = (preClass==null?null:preClass.baseClass);
 		
+		final Point win_loc = textPane.getLocationOnScreen();
 		final int input_x = win_loc.x + ((caretPosition==null)?0:caretPosition.x);
 		final int input_y = win_loc.y + ((caretPosition==null)?0:caretPosition.y);
-		window.toFront(codeClass, sep, textPane, input_x, input_y, out, preCode, scriptIdx, fontHeight);
+		window.toFront(codeClass, sep, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);//JRuby代码
 		return true;
+	}
+	
+	private final static int checkInSetCSSStylePropParameter(final char[] lineChars, final int methodIdx, final int endIdx){
+		int i = methodIdx;
+		boolean isFind = false;
+		int isInKuoHao = 0;
+		for (; i < lineChars.length && i < endIdx; i++) {
+			final char c = lineChars[i];
+			if(isInKuoHao > 0){
+				if(c == ')'){
+					isInKuoHao--;
+				}else if(c == '('){
+					isInKuoHao++;
+				}
+				continue;
+			}
+			
+			if(c == ','){
+				isFind = true;
+				break;
+			}else if(c == '('){
+				isInKuoHao++;
+			}
+		}
+		
+		if(isFind == false){
+			return -1;
+		}
+
+		//----------------------以上完成第一个参数段
+		
+		i++;
+		isFind = false;
+		isInKuoHao = 0;
+		for (; i < lineChars.length && i < endIdx; i++) {
+			final char c = lineChars[i];
+			if(isInKuoHao > 0){
+				if(c == ')'){
+					isInKuoHao--;
+				}else if(c == '('){
+					isInKuoHao++;
+				}
+				continue;
+			}
+			
+			if(c == ','){
+				isFind = true;
+				break;
+			}else if(c == '('){
+				isInKuoHao++;
+			}
+		}
+		
+		if(isFind == false){
+			return -1;
+		}
+		
+		//----------------------以上完成第二个参数段
+		
+		int yinHaoBeforeIdx = -1, propFenHaoNextIdx = -1;
+		i++;
+		
+		for (; i < lineChars.length && i < endIdx; i++) {
+			final char c = lineChars[i];
+			if(c == ','){
+				return -1;
+			}else if(c == ';'){
+				if(yinHaoBeforeIdx >= 0){
+					propFenHaoNextIdx = i;
+				}
+			}else if(c == '\"'){
+				if(yinHaoBeforeIdx == -1){
+					yinHaoBeforeIdx = i;
+				}else{//"abc:efg;" + "hij:kmn;"
+					yinHaoBeforeIdx = -1;
+					propFenHaoNextIdx = -1;
+				}
+			}
+		}
+		
+		if(yinHaoBeforeIdx != -1){
+			if(propFenHaoNextIdx == -1){
+				return yinHaoBeforeIdx + 1;
+			}else{
+				return propFenHaoNextIdx + 1;
+			}
+		}
+		return -1;
+	}
+	
+	/**
+	 * 
+	 * @param lineChars
+	 * @param methodIdx 即(所在index
+	 * @return >0 表示处于classParameter段
+	 */
+	private final static int checkInSetCSSClassParameter(final char[] lineChars, final int methodIdx, final int endIdx){
+		int i = methodIdx;
+		boolean isFind = false;
+		int isInKuoHao = 0;
+		for (; i < lineChars.length && i < endIdx; i++) {
+			final char c = lineChars[i];
+			if(isInKuoHao > 0){
+				if(c == ')'){
+					isInKuoHao--;
+				}else if(c == '('){
+					isInKuoHao++;
+				}
+				continue;
+			}
+			
+			if(c == ','){
+				isFind = true;
+				break;
+			}else if(c == '\"'){
+				return -1;
+			}else if(c == '('){
+				isInKuoHao++;
+			}
+		}
+		
+		if(isFind == false){
+			return -1;
+		}
+		
+		int yinHaoBeforeIdx = -1, classSpaceNextIdx = -1;
+		i++;
+		
+		for (; i < lineChars.length && i < endIdx; i++) {
+			final char c = lineChars[i];
+			if(c == ','){
+				return -1;
+			}else if(c == ' '){
+				if(yinHaoBeforeIdx >= 0){
+					classSpaceNextIdx = i;
+				}
+			}else if(c == '\"'){
+				if(yinHaoBeforeIdx == -1){
+					yinHaoBeforeIdx = i;
+				}else{
+					yinHaoBeforeIdx = -1;
+					classSpaceNextIdx = -1;
+				}
+			}
+		}
+		
+		if(yinHaoBeforeIdx != -1){
+			if(classSpaceNextIdx == -1){
+				return yinHaoBeforeIdx + 1;
+			}else{
+				return classSpaceNextIdx + 1;
+			}
+		}
+		return -1;
+	}
+	
+	public static final CSSIdx getCSSIdx(final char[] lineChars, final int lineIdx, final int endIdx){
+		int cssMethodIdx;
+		int cssPropIdx = -1;
+		int classIdx = -1;
+		if((cssMethodIdx = searchSubChars(lineChars, SET_CSS_FOR_TOGGLE, 0)) >= 0 && cssMethodIdx < lineIdx){
+			final int startIdx = cssMethodIdx + SET_CSS_FOR_TOGGLE.length + 1;
+			cssPropIdx = checkInSetCSSStylePropParameter(lineChars, startIdx, endIdx);
+			if(cssPropIdx == -1){
+				classIdx = checkInSetCSSClassParameter(lineChars, startIdx, endIdx);
+			}
+		}else if((cssMethodIdx = searchSubChars(lineChars, SET_CSS_FOR_DIV, 0)) >= 0 && cssMethodIdx < lineIdx){
+			final int startIdx = cssMethodIdx + SET_CSS_FOR_DIV.length + 1;
+			cssPropIdx = checkInSetCSSStylePropParameter(lineChars, startIdx, endIdx);
+			if(cssPropIdx == -1){
+				classIdx = checkInSetCSSClassParameter(lineChars, startIdx, endIdx);
+			}
+		}else if((cssMethodIdx = searchSubChars(lineChars, SET_CSS_BY_CLASS, 0)) >= 0 && cssMethodIdx < lineIdx){
+			final int startIdx = cssMethodIdx + SET_CSS_BY_CLASS.length + 1;
+			classIdx = checkInSetCSSClassParameter(lineChars, startIdx, endIdx);
+		}else if((cssMethodIdx = searchSubChars(lineChars, SET_CSS, 0)) >= 0 && cssMethodIdx < lineIdx){
+			final int startIdx = cssMethodIdx + SET_CSS.length + 1;
+			cssPropIdx = checkInSetCSSStylePropParameter(lineChars, startIdx, endIdx);
+			if(cssPropIdx == -1){
+				classIdx = checkInSetCSSClassParameter(lineChars, startIdx, endIdx);
+			}
+		}else{
+			return null;
+		}
+		
+		if(cssPropIdx == -1 && classIdx == -1){
+			return null;
+		}
+		
+		return new CSSIdx(cssPropIdx, classIdx);
+	}
+	
+	private final boolean inputCSSClassOrPropInDesigner(final char[] lineChars, final int lineIdx, final int scriptIdx, final ScriptEditPanel sep, 
+			final HCTextPane textPane, final Document doc, final int fontHeight){
+		final CSSIdx cssIdx = getCSSIdx(lineChars, lineIdx, lineChars.length);
+		
+		if(cssIdx == null){
+			return false;
+		}
+		
+		if(cssIdx.cssPropIdx != -1){
+			preCode = String.valueOf(lineChars, cssIdx.cssPropIdx, lineIdx - cssIdx.cssPropIdx).trim();//因为;号可能有空格，所以要trim
+			inputPropertyForCSSInCSSEditor(preCode, textPane, fontHeight, scriptIdx);
+			return true;
+		}
+		
+		try{
+			final Rectangle caretRect = sep.jtaScript.modelToView(scriptIdx - lineIdx + cssIdx.classIdx);
+			final Point caretPointer = new Point(caretRect.x, caretRect.y);
+			preCode = String.valueOf(lineChars, cssIdx.classIdx, lineIdx - cssIdx.classIdx);
+			freeArray(outAndCycle);
+			
+			CodeItem.copy(sep.designer.cssClassesOfProjectLevel, outAndCycle);
+			
+			final Point win_loc = textPane.getLocationOnScreen();
+			final int input_x = win_loc.x + caretPointer.x;
+			final int input_y = win_loc.y + caretPointer.y;
+			window.toFront(null, sep, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);//CSS class
+			return true;
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 	
 	public final boolean mouseMovOn(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, 
@@ -1990,7 +2260,6 @@ public class CodeHelper {
 		if(L.isInWorkshop){
 			LogManager.log("[CodeTip] start mouseMovOn from HCTimer.");
 		}
-		final Point win_loc = textPane.getLocationOnScreen();
 		
 		final int line = ScriptEditPanel.getLineOfOffset(doc, scriptIdx);
         final int editLineStartIdx = ScriptEditPanel.getLineStartOffset(doc, line);
@@ -2007,6 +2276,7 @@ public class CodeHelper {
 				final char nextChar = lineChars[i];
 				if(nextChar >= 'a' && nextChar <= 'z'
 						|| nextChar >= 'A' && nextChar <= 'Z'
+						|| nextChar >= '0' && nextChar <= '9'
 						|| nextChar == '_'){
 				}else{
 					break;
@@ -2020,7 +2290,7 @@ public class CodeHelper {
 		}
 		
 		initPreCode(lineChars, lineIdx, scriptIdx, line);
-		if(isForcePopup == false && out.size() == 0){
+		if(isForcePopup == false && outAndCycle.size() == 0){
 			return false;
 		}
 		final Class codeClass = (preClass==null?null:preClass.baseClass);
@@ -2030,6 +2300,7 @@ public class CodeHelper {
 			final char nextChar = lineChars[endIdx];
 			if(nextChar >= 'a' && nextChar <= 'z'
 					|| nextChar >= 'A' && nextChar <= 'Z'
+					|| nextChar >= '0' && nextChar <= '9'
 					|| nextChar == '_'){
 			}else{
 				break;
@@ -2040,6 +2311,7 @@ public class CodeHelper {
 			final char nextChar = lineChars[startIdx];
 			if(nextChar >= 'a' && nextChar <= 'z'
 					|| nextChar >= 'A' && nextChar <= 'Z'
+					|| nextChar >= '0' && nextChar <= '9'
 					|| nextChar == '_'){
 			}else{
 				break;
@@ -2048,19 +2320,20 @@ public class CodeHelper {
 		startIdx++;
 		preCode = new String(lineChars, startIdx, endIdx - startIdx);
 		
+		final Point win_loc = textPane.getLocationOnScreen();
 		final Rectangle caretRect = textPane.modelToView(scriptIdx - (lineIdx - startIdx));//与方法段齐
 		final int input_x = win_loc.x + caretRect.x;
 		final int input_y = win_loc.y + caretRect.y;
 		
 
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("[CodeTip] AutoCodeTip : " + preCode + ", codeItem : " + out.size());
+			L.V = L.O ? false : LogManager.log("[CodeTip] AutoCodeTip : " + preCode + ", codeItem : " + outAndCycle.size());
 		}
 		if(preCode.length() == 0){
 			return false;
 		}
 		
-		CodeWindow.fillForAutoTip(out, autoTipOut, preCode);
+		CodeWindow.fillForAutoTip(outAndCycle, autoTipOut, preCode);
 		
 		final int matchSize = autoTipOut.size();
 		if(matchSize == 0){
@@ -2074,26 +2347,89 @@ public class CodeHelper {
 		return true;
 	}
 
-	public final void inputVariableForCSS(final HCTextPane textPane, final Point caretPosition, final int fontHeight,
+	public final void inputForCSSInCSSEditor(final HCTextPane textPane, final Document cssDocument, final Point caretPosition, 
+			final int fontHeight, final int scriptIdx){
+		String preCode = null;
+		
+		try{
+			final int line = ScriptEditPanel.getLineOfOffset(cssDocument, scriptIdx);
+	        final int editLineStartIdx = ScriptEditPanel.getLineStartOffset(cssDocument, line);
+	        final int lineIdx = scriptIdx - editLineStartIdx;
+	        final int lineEndOffset = ScriptEditPanel.getLineEndOffset(cssDocument, line);
+	        
+			final char[] lineChars = cssDocument.getText(editLineStartIdx, lineEndOffset - editLineStartIdx).toCharArray();
+			
+			for (int i = lineIdx; i >= 0; i--) {
+				final char oneChar = lineChars[i];
+				if(oneChar == ';' || oneChar == '{'){
+					preCode = String.valueOf(lineChars, i, lineIdx);
+					break;
+				}
+				if(oneChar == ':'){
+					break;
+				}
+			}
+			
+			if(preCode == null){
+				if(lineChars[0] == ' ' || lineChars[0] == '\t'){
+					preCode = String.valueOf(lineChars, 0, lineIdx);
+				}
+			}
+		}catch (final Throwable e) {
+			e.printStackTrace();
+			return;
+		}
+
+		if(preCode != null){
+			inputPropertyForCSSInCSSEditor(preCode.trim(), textPane, fontHeight, scriptIdx);
+		}else{
+			inputVariableForCSSInCSSEditor(textPane, caretPosition, fontHeight, scriptIdx);
+		}
+	}
+	
+	private final void inputPropertyForCSSInCSSEditor(final String preCode, final HCTextPane textPane, final int fontHeight,
 			final int scriptIdx){
+		try{
+			final Point win_loc = textPane.getLocationOnScreen();
+			final Rectangle caretRect = textPane.modelToView(scriptIdx - preCode.length());//与方法段齐
+			final int input_x = win_loc.x + caretRect.x;
+			final int input_y = win_loc.y + caretRect.y;
+			
+			CSSHelper.getProperties();
+			
+			freeArray(outAndCycle);
+			CodeItem.copy(DocHelper.cssCodeItems, outAndCycle);
+			
+	//		final int input_x = win_loc.x + ((caretPosition==null)?0:caretPosition.x);
+	//		final int input_y = win_loc.y + ((caretPosition==null)?0:caretPosition.y);
+			window.toFront(Object.class, null, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private final void inputVariableForCSSInCSSEditor(final HCTextPane textPane, final Point caretPosition, 
+			final int fontHeight, final int scriptIdx){
 		final Point win_loc = textPane.getLocationOnScreen();
-		out.clear();
+		freeArray(outAndCycle);
 		
 		final String[] variables = StyleManager.variables;
 		
 		for (int i = 0; i < variables.length; i++) {
 			final CodeItem item = CodeItem.getFree();
-			item.type = CodeItem.TYPE_RESOURCES;
-			item.code = variables[i];
-			item.codeDisplay = variables[i];
-			item.codeLowMatch = variables[i];
+			final String var = variables[i];
 			
-			out.add(item);
+			item.type = CodeItem.TYPE_RESOURCES;
+			item.code = var;
+			item.codeDisplay = var;
+			item.codeLowMatch = var.toLowerCase();
+			
+			outAndCycle.add(item);
 		}
 		
 		final int input_x = win_loc.x + ((caretPosition==null)?0:caretPosition.x);
 		final int input_y = win_loc.y + ((caretPosition==null)?0:caretPosition.y);
-		window.toFront(Object.class, null, textPane, input_x, input_y, out, "", scriptIdx, fontHeight);
+		window.toFront(Object.class, null, textPane, input_x, input_y, outAndCycle, "", scriptIdx, fontHeight);
 	}
 	
 //	/**
@@ -2135,37 +2471,37 @@ public class CodeHelper {
 	}
 	
 	public void initPreCode(final char[] lineHeader, final int offLineIdx, final int scriptIdx, final int lineIdxAtScript) {
-		freeArray(out);
+		freeArray(outAndCycle);
 		preCodeSplitIsDot = false;
 		
 		final int preCodeType = getPreCodeType(lineHeader, offLineIdx, scriptIdx, lineIdxAtScript);
 		if(preCodeType == PRE_TYPE_NEWLINE){
-			getVariables(root, true, "", out, scriptIdx, TYPE_VAR_LOCAL | TYPE_VAR_INSTANCE | TYPE_VAR_GLOBAL);
+			getVariables(root, true, "", outAndCycle, scriptIdx, TYPE_VAR_LOCAL | TYPE_VAR_INSTANCE | TYPE_VAR_GLOBAL);
 		}else if(preCodeType == PRE_TYPE_RESOURCES){
-			getResources(out, getRequireLibs(root, outRequireLibs), true);
+			getResources(outAndCycle, getRequireLibs(root, outRequireLibs), true);
 		}else if(preCodeType == PRE_TYPE_AFTER_IMPORT_ONLY){
-			getSubPackageAndClasses(out, getRequireLibs(root, outRequireLibs), true, true);
+			getSubPackageAndClasses(outAndCycle, getRequireLibs(root, outRequireLibs), true, true);
 		}else if(preCodeType == PRE_TYPE_AFTER_IMPORTJAVA){
-			getSubPackageAndClasses(out, getRequireLibs(root, outRequireLibs), false, true);
+			getSubPackageAndClasses(outAndCycle, getRequireLibs(root, outRequireLibs), false, true);
 		}else if(preCodeType == PRE_TYPE_IN_DEF_CLASS_FOR_METHOD_FIELD_ONLY){
-			getMethodAndFieldForInstance(getDefSuperClass(backgroundDefClassNode), backgroundDefClassNode, null, false, out);
+			getMethodAndFieldForInstance(getDefSuperClass(backgroundDefClassNode), backgroundDefClassNode, null, false, outAndCycle);
 		}else if(preCodeType == PRE_TYPE_BEFORE_INSTANCE){
-			getVariables(root, true, "", out, scriptIdx, pre_var_tag_ins_or_global);//情形：在行首输入im，可能后续为import或ImageIO
+			getVariables(root, true, "", outAndCycle, scriptIdx, pre_var_tag_ins_or_global);//情形：在行首输入im，可能后续为import或ImageIO
 		}else if(preCodeType == PRE_TYPE_AFTER_INSTANCE_OR_CLASS){
 			if(preClass != null){
 				if(preClass.isInstance){
-					getMethodAndFieldForInstance(preClass.baseClass, preClass.defNode, preClass, preClass.isInExtend?false:true, out);
+					getMethodAndFieldForInstance(preClass.baseClass, preClass.defNode, preClass, preClass.isInExtend?false:true, outAndCycle);
 				}else{
-					getMethodAndFieldForClass(preClass.baseClass, preClass.defNode, out);
+					getMethodAndFieldForClass(preClass.baseClass, preClass.defNode, outAndCycle);
 				}
 			}else{//直接从背景中取类，会出现preClass==null
 				if(pre_var_tag_ins_or_global == TYPE_VAR_INSTANCE || pre_var_tag_ins_or_global == TYPE_VAR_GLOBAL){
-					getInsOrGloablVar(backgroundDefClassNode, out);
+					getInsOrGloablVar(backgroundDefClassNode, outAndCycle);
 				}else{
 					if(preCodeSplitIsDot == false){
-						getMethodAndFieldForInstance(getDefSuperClass(backgroundDefClassNode), backgroundDefClassNode, null, false, out);
+						getMethodAndFieldForInstance(getDefSuperClass(backgroundDefClassNode), backgroundDefClassNode, null, false, outAndCycle);
 //						getVariables(root, true, "", out, scriptIdx, pre_var_tag_ins_or_global);//改为，增加preCode过滤
-						getVariables(root, true, preCode, out, scriptIdx, pre_var_tag_ins_or_global);
+						getVariables(root, true, preCode, outAndCycle, scriptIdx, pre_var_tag_ins_or_global);
 					}
 				}
 			}
@@ -2203,7 +2539,7 @@ public class CodeHelper {
 	private final char[] import_java_chars = PRE_IMPORT_JAVA.toCharArray();
 	private final int import_java_chars_len = import_java_chars.length;
 	
-	private final boolean matchChars(final char[] search, final char[] chars, final int offset){
+	private final static boolean matchChars(final char[] search, final char[] chars, final int offset){
 		if(search.length < (chars.length - offset)){
 			return false;
 		}
@@ -2416,7 +2752,7 @@ public class CodeHelper {
 		return;
 	}
 	
-	private final int searchJavaMaoHao(final char[] lines, final char[] searchChars, final int fromIdx){
+	private static final int searchSubChars(final char[] lines, final char[] searchChars, final int fromIdx){
 		final int size = lines.length;
 		final char firstChar = searchChars[0];
 		final int javaMHlength = searchChars.length;
@@ -2436,7 +2772,7 @@ public class CodeHelper {
 		final int lineLen = lineHeader.length;
 		if(lineLen == 0){
 			preCode = "";
-			getReqAndImp(out);
+			getReqAndImp(outAndCycle);
 			return PRE_TYPE_NEWLINE;
 		}
 		
@@ -2505,7 +2841,7 @@ public class CodeHelper {
 				}
 				return PRE_TYPE_AFTER_IMPORT_ONLY;
 			}else{
-				getReqAndImp(out);
+				getReqAndImp(outAndCycle);
 			}
 		}
 		
@@ -2529,11 +2865,11 @@ public class CodeHelper {
 	private final int searchCodePart(final char[] lineHeader, final int columnIdx,
 			final int scriptIdx, final int rowIdxAtScript, final int partStartIdx) {
 		//因为此情形可也可能出现在首字母非空格非tab的情形，所以要提前
-		final int idxJavaMaoHao = searchJavaMaoHao(lineHeader, JAVA_MAO_MAO, partStartIdx);
+		final int idxJavaMaoHao = searchSubChars(lineHeader, JAVA_MAO_MAO, partStartIdx);
 		if(idxJavaMaoHao>=partStartIdx){
 			//int i = 100 + Java::mypackage.sub::
 			final int cutClassIdx = idxJavaMaoHao + JAVA_MAO_MAO.length;
-			final int idxMaoHaoAgainForField = searchJavaMaoHao(lineHeader, MAO_HAO_ONLY, cutClassIdx);
+			final int idxMaoHaoAgainForField = searchSubChars(lineHeader, MAO_HAO_ONLY, cutClassIdx);
 			if(idxMaoHaoAgainForField < 0){
 				//int i = 100 + Java::mypackage.su
 				preCode = String.valueOf(lineHeader, cutClassIdx, columnIdx - cutClassIdx);
@@ -2559,7 +2895,7 @@ public class CodeHelper {
 		
 		//java.lang.Strin or 1 + java.lang.Integer::v
 		if(matchChars(lineHeader, java_dot_chars, partStartIdx) || matchChars(lineHeader, javax_dot_chars, partStartIdx)){
-			final int maohaoIdx = searchJavaMaoHao(lineHeader, MAO_HAO_ONLY, partStartIdx);
+			final int maohaoIdx = searchSubChars(lineHeader, MAO_HAO_ONLY, partStartIdx);
 			if(maohaoIdx < 0){
 				preCode = String.valueOf(lineHeader, partStartIdx, columnIdx - partStartIdx);
 				return PRE_TYPE_AFTER_IMPORT_ONLY;
@@ -2602,6 +2938,10 @@ public class CodeHelper {
 	
 	static final char[] JAVA_MAO_MAO = "Java::".toCharArray();
 	static final char[] MAO_HAO_ONLY = "::".toCharArray();
+	static final char[] SET_CSS = "setCSS".toCharArray();
+	static final char[] SET_CSS_BY_CLASS = "setCSSByClass".toCharArray();
+	static final char[] SET_CSS_FOR_DIV = "setCSSForDiv".toCharArray();
+	static final char[] SET_CSS_FOR_TOGGLE = "setCSSForToggle".toCharArray();
 	
 	/**
 	 * 寻找abc.metho中的abc(return)和metho(preCode)。
@@ -2791,14 +3131,14 @@ public class CodeHelper {
 		return getMatch(preClass, CodeStaticHelper.J2SE_CLASS_SET, CodeStaticHelper.J2SE_CLASS_SET_SIZE);
 	}
 	
-	/**
-	 * 没有，则返回null
-	 * @param preClass
-	 * @return
-	 */
-	public final List<String> getMatchPkg(final String preClass){
-		return getMatch(preClass, CodeStaticHelper.J2SE_PACKAGE_SET, CodeStaticHelper.J2SE_PACKAGE_SET_SIZE);
-	}
+//	/**
+//	 * 没有，则返回null
+//	 * @param preClass
+//	 * @return
+//	 */
+//	public final List<String> getMatchPkg(final String preClass){
+//		return getMatch(preClass, CodeStaticHelper.J2SE_PACKAGE_SET, CodeStaticHelper.J2SE_PACKAGE_SET_SIZE);
+//	}
 	
 	public static final String getWordCompletionKeyText(){
 		return PropertiesManager.getValue(PropertiesManager.p_wordCompletionKeyCode, "/");

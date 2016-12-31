@@ -28,6 +28,7 @@ import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -41,7 +42,10 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 
 public class ServerUIUtil {
+	public static final Color LIGHT_BLUE_BG = new Color(245, 250, 254);
+	
 	public static final Object LOCK = new Object();
+	public static final int SCROLLPANE_VERTICAL_UNIT_PIXEL = 8;//缺省为1
 	
 	public static boolean useHARProject = PropertiesManager.isTrue(PropertiesManager.p_IsMobiMenu);
 	private static BaseResponsor responsor;

@@ -23,6 +23,14 @@ public class NodeEditPanel extends JPanel{
 		}
 	}
 	
+	public final long getSaveToken(){
+		if(isInited){
+			return currItem.getContext().modified.getSaveToken();
+		}else{
+			return 0;
+		}
+	}
+	
 	public final boolean isModified(){
 		if(isInited){
 			return currItem.getContext().modified.isModified();
@@ -41,12 +49,15 @@ public class NodeEditPanel extends JPanel{
 	final ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	DefaultMutableTreeNode currNode;
 	JTree tree;
-	Designer designer;
+	public Designer designer;
 	public DefaultMutableTreeNode getCurrNode(){
 		return currNode;
 	}
 	
-	public void loadAfterShow(){
+	public void loadAfterShow(final Runnable run){
+		if(run != null){
+			run.run();
+		}
 	}
 	
 	public void init(final MutableTreeNode data, final JTree tree){

@@ -6,6 +6,7 @@ import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
+import hc.res.ImageSrc;
 import hc.server.CallContext;
 import hc.server.HCActionListener;
 import hc.server.msb.Converter;
@@ -19,7 +20,9 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SimuMobile;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.code.CSSIdx;
 import hc.server.ui.design.code.CodeHelper;
+import hc.server.ui.design.code.CodeItem;
 import hc.server.ui.design.code.TabHelper;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
@@ -31,12 +34,13 @@ import hc.util.StringBuilderCacher;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -49,6 +53,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.Map;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,12 +62,15 @@ import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
@@ -80,12 +88,16 @@ import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Document;
 import javax.swing.text.Element;
 import javax.swing.text.Highlighter;
+import javax.swing.text.JTextComponent;
+import javax.swing.text.LayeredHighlighter;
+import javax.swing.text.Position;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import javax.swing.text.TabSet;
 import javax.swing.text.TabStop;
+import javax.swing.text.View;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
@@ -93,15 +105,22 @@ import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 
 public abstract class ScriptEditPanel extends NodeEditPanel {
+	public static final String FORMAT_BUTTON_TEXT = "Format";
+
 	static Highlighter.HighlightPainter ERROR_CODE_LINE_LIGHTER = new DefaultHighlighter.
 			DefaultHighlightPainter(Color.RED);
-	private static final SimpleAttributeSet STR_LIGHTER = build(Color.decode("#4EA539"), false);
+	public static final SimpleAttributeSet STR_LIGHTER = build(Color.decode("#4EA539"), false);
 	public static final SimpleAttributeSet REM_LIGHTER = build(Color.decode("#3AC2EB"), false);
 	private static final SimpleAttributeSet MAP_LIGHTER = build(Color.BLACK, true);
 	static final SimpleAttributeSet KEYWORDS_LIGHTER = build(Color.BLUE, true);
-	private static final SimpleAttributeSet NUM_LIGHTER = build(Color.RED, false);
+	private static final SimpleAttributeSet NUM_LIGHTER = build(Color.decode("#887BE0"), true);
 	public static final SimpleAttributeSet DEFAULT_LIGHTER = build(Color.BLACK, false);
 	private static final SimpleAttributeSet VAR_LIGHTER = build(Color.decode("#f19e37"), false);
+	
+	private static final SimpleAttributeSet UNDERLINE_LIGHTER = buildUnderline(true);
+	private static final SimpleAttributeSet UNDERLINE_REMOVE_LIGHTER = buildUnderline(false);
+	
+	public static final UnderlineHighlightPainter SYNTAX_ERROR_PAINTER = new UnderlineHighlightPainter(Color.red);
 	
 	public final static Object scriptEventLock = new Object();
 	
@@ -173,8 +192,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	boolean isErrorOnBuildScript;
 	final JLabel errRunInfo = new JLabel("");
 	final JButton testBtn = new JButton("Test Script");
-	final JButton formatBtn = new JButton("Format");
+	final JButton formatBtn = new JButton(FORMAT_BUTTON_TEXT);
 	final JButton scriptBtn = new JButton("To String");
+	int modifierKeysPressed = 0;
+	final int abstractCtrlKeyMash = ResourceUtil.getAbstractCtrlKeyMask();
 	
 	final HCByteArrayOutputStream iconBsArrayos = ServerUIUtil.buildForMaxIcon();
 	final JTextField nameField = new JTextField(){
@@ -190,6 +211,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	abstract Map<String, String> buildMapScriptParameter();
 	
 	final public void rebuildASTNode() {
+		designer.codeHelper.resetSyntaxError();
 		designer.codeHelper.updateScriptASTNode(this, jtaScript.getText(), true);
 	}
 	
@@ -304,6 +326,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		});
 	}
 	
+	private final void setEditorDefaultCurosr() {
+		if(isHandCursor){
+			isHandCursor = false;
+			jtaScript.setCursor(defaultCursor);
+		}
+	}
+	
 	public ScriptEditPanel() {
 		jtaDocment = (AbstractDocument)jtaScript.getDocument();
 		
@@ -380,7 +409,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		testBtn.setIcon(Designer.loadImg("test_16.png"));
 		
 		formatBtn.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + F) <BR><BR>format the JRuby script.</html>");
-		formatBtn.setIcon(Designer.loadImg("format_16.png"));
+		formatBtn.setIcon(Designer.loadImg(ImageSrc.FORMAT_16_PNG));
 		
 		scriptBtn.addActionListener(new ActionListener() {
 			@Override
@@ -546,20 +575,141 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				autoCodeTip.setEnable(true);
 			}
 			
+			final CSSFocusAction action = new CSSFocusAction() {
+				@Override
+				public void action(final int startIdx, final int len) {
+					CSSClassIndex firstMatcher = null;
+					Vector<CSSClassIndex> vector = null;
+					
+					try {
+						final String className = jtaDocment.getText(startIdx, len);
+						final Vector<CodeItem> cssClassesOfProjectLevel = designer.cssClassesOfProjectLevel;
+						final int size = cssClassesOfProjectLevel.size();
+						for (int i = 0; i < size; i++) {
+							final CodeItem item = cssClassesOfProjectLevel.elementAt(i);
+							final Object element = item.userObject;
+							final CSSClassIndex cssIdx;
+							boolean isVector = false;
+							if(element instanceof CSSClassIndex){
+								cssIdx = (CSSClassIndex)element;
+							}else{
+								isVector = true;
+								cssIdx = ((Vector<CSSClassIndex>)element).elementAt(0);
+							}
+							if(cssIdx.className.equals(className)){
+								if(isVector){
+									vector = ((Vector<CSSClassIndex>)element);
+								}else{
+									firstMatcher = cssIdx;
+								}
+								break;
+							}
+						}
+						
+						if(vector == null){
+							if(firstMatcher == null){
+								App.showMessageDialog(designer, "<html>Not found defined CSS : <strong>" + className + "</strong></html>", 
+										ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+								return;
+							}else{
+								jumpCSSDefine(firstMatcher);
+							}
+						}else{
+							//选择一个进行jump
+							final int listSize = vector.size();
+							final String[] listDesc = new String[listSize];
+							for (int i = 0; i < listSize; i++) {
+								listDesc[i] = vector.elementAt(i).fullName;
+							}
+							final JLabel lable = new JLabel("choose one CSS to open :");
+							final JList<String> list = new JList<String>(listDesc);
+							list.setSelectedIndex(0);
+							list.setCellRenderer(new CSSListCellRenderer());
+							list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+							final JScrollPane listScrollPane = new JScrollPane(list);
+							final JPanel panel = new JPanel(new BorderLayout());
+							panel.add(lable, BorderLayout.NORTH);
+							panel.add(listScrollPane, BorderLayout.CENTER);
+							
+							final Vector<CSSClassIndex> vectorPara = vector;
+							final ActionListener listener = new ActionListener() {
+								@Override
+								public void actionPerformed(final ActionEvent e) {
+									final int selected = list.getSelectedIndex();
+									if(selected >= 0){
+										jumpCSSDefine(vectorPara.elementAt(selected));
+									}
+								}
+							};
+							ContextManager.getThreadPool().run(new Runnable() {
+								@Override
+								public void run() {
+									App.showCenterPanelMain(panel, 300, 210, ResourceUtil.getInfoI18N(), true, null, null, listener, null, designer, true, false, null, false, false);
+								}
+							});
+						}
+					} catch (final Throwable e) {
+						e.printStackTrace();
+					}
+				}
+			};
+			
 			@Override
 			public void mouseClicked(final MouseEvent e) {
 				autoCodeTip.setEnable(false);
+				if(focusCSSClass(e, action) != -1){
+					clearCSSClassFocus();
+					return;
+				}
+			}
+
+			private final void jumpCSSDefine(final CSSClassIndex firstMatcherPara) {
+				ContextManager.getThreadPool().run(new Runnable() {
+					@Override
+					public void run() {
+						designer.jumpCSSDefine(firstMatcherPara.startIdx, firstMatcherPara.fullName.length());
+					}
+				});
 			}
 		});
 		
 		jtaScript.addMouseMotionListener(new MouseMotionListener() {
+			final Cursor handCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+			
+			final CSSFocusAction action = new CSSFocusAction() {
+				@Override
+				public void action(final int startIdx, final int len) {
+					lastFocusUnderlineCSSStartIdx = startIdx;
+					lastFocusUnderlineCSSLen = len;
+					jtaStyledDoc.setCharacterAttributes(lastFocusUnderlineCSSStartIdx, lastFocusUnderlineCSSLen, UNDERLINE_LIGHTER, false);
+					jtaScript.setCursor(handCursor);
+					isHandCursor = true;
+				}
+			};
+			
+			final StyledDocument jtaStyledDoc = jtaScript.getStyledDocument();
+			
 			@Override
 			public void mouseMoved(final MouseEvent e) {
-				synchronized (ScriptEditPanel.scriptEventLock) {
-					designer.codeHelper.mouseExitHideDocForMouseMovTimer.setEnable(true);//有可能现tip时，移动
-//				designer.codeHelper.hideAfterMouse(true);//有可能移到DocTip内
-					autoCodeTip.setEnable(true);
-					autoCodeTip.setLocation(e.getX(), e.getY());
+				if(modifierKeysPressed == 0){
+					setEditorDefaultCurosr();
+					synchronized (ScriptEditPanel.scriptEventLock) {
+						designer.codeHelper.mouseExitHideDocForMouseMovTimer.setEnable(true);//有可能现tip时，移动
+//					designer.codeHelper.hideAfterMouse(true);//有可能移到DocTip内
+						autoCodeTip.setEnable(true);
+						autoCodeTip.setLocation(e.getX(), e.getY());
+					}
+				}else{
+					final int lastFocusCSSStartIdxBack = lastFocusUnderlineCSSStartIdx;
+					final int lastFocusCSSLenBak = lastFocusUnderlineCSSLen;
+					
+					final int startIdx = focusCSSClass(e, action);
+					if(startIdx == -1){
+						setEditorDefaultCurosr();
+					}
+					if(lastFocusCSSStartIdxBack != startIdx && lastFocusCSSStartIdxBack != -1){
+						jtaStyledDoc.setCharacterAttributes(lastFocusCSSStartIdxBack, lastFocusCSSLenBak, UNDERLINE_REMOVE_LIGHTER, false);
+					}
 				}
 			}
 			
@@ -734,12 +884,16 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			
 			@Override
 			public void keyReleased(final KeyEvent e) {
+				modifierKeysPressed = 0;
+				clearCSSClassFocus();
 			}
 			
 			boolean isEventConsumed;
 			
 			@Override
 		    public void keyPressed(final KeyEvent event) {
+				modifierKeysPressed = event.getModifiers();
+				
 				autoCodeTip.setEnable(false);
 				autoCodeTip.getCodeHelper().mouseExitHideDocForMouseMovTimer.reset();
 				
@@ -809,10 +963,14 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		});
 
 		final LineNumber lineNumber = new LineNumber(jtaScript);
-		scrollpane = new JScrollPane(jtaScript, 
+//		Disable Word wrap in JTextPane		
+		final JPanel NoWrapPanel = new JPanel(new BorderLayout());
+		NoWrapPanel.add(jtaScript, BorderLayout.CENTER);
+		scrollpane = new JScrollPane(NoWrapPanel, 
 				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollpane.setRowHeaderView(lineNumber);
-
+		scrollpane.getVerticalScrollBar().setUnitIncrement(ServerUIUtil.SCROLLPANE_VERTICAL_UNIT_PIXEL);
+		
 		scrollpane.addMouseWheelListener(new MouseWheelListener() {
 			@Override
 			public void mouseWheelMoved(final MouseWheelEvent e) {
@@ -1011,11 +1169,18 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 		currItem = (HPNode)currNode.getUserObject();
 		nameField.setText(currItem.name);
+		
 	}
+	
 	private ScriptUndoableEditListener scriptUndoListener;
 	private UndoManager scriptUndoManager;
 	public final AbstractDocument jtaDocment;
 	final int fontHeight;
+	int lastFocusUnderlineCSSStartIdx = -1;
+	int lastFocusUnderlineCSSLen = 0;
+	final Cursor defaultCursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
+	boolean isHandCursor;
+
 	public final HCTextPane jtaScript = new HCTextPane(){
 		@Override
 		public void paste(){
@@ -1267,7 +1432,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				}
 			}
 //			System.out.println("change Line : " + text + "(endWithReturn : "+(text.charAt(text.length()-1)=='\n')+")");
-			if(colorLen==-1 && text.indexOf("\r") >= 0){
+			if(colorLen==-1 && text.indexOf('\r') >= 0){
 				text = text.replace("\r", "");
 				jtaScript.setText(text);
 			}
@@ -1282,11 +1447,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	}
 
 	@Override
-	public void loadAfterShow(){
+	public void loadAfterShow(final Runnable run){
 		scriptUndoListener.isForbidRecordUndoEdit = false;
 		scriptUndoManager.discardAllEdits();
 		
 		ContextManager.getThreadPool().run(focusJtaScript);
+		
+		super.loadAfterShow(run);
 	}
 	
 	final Runnable focusJtaScript = new Runnable() {
@@ -1582,6 +1749,52 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		replaceClassName(nameField.getText(), nameField);
 	}
 
+	private final int focusCSSClass(final MouseEvent e, final CSSFocusAction action) {
+		if(modifierKeysPressed == abstractCtrlKeyMash){//进入css class def
+			final Point eventPoint = new Point(e.getX(), e.getY());
+			final int scriptIdx = jtaScript.viewToModel(eventPoint);
+			if(scriptIdx < 0){
+				return -1;
+			}	
+
+			try{
+				final int line = ScriptEditPanel.getLineOfOffset(jtaDocment, scriptIdx);
+		        final int editLineStartIdx = ScriptEditPanel.getLineStartOffset(jtaDocment, line);
+		        final int lineIdx = scriptIdx - editLineStartIdx;
+		        final char[] lineChars = jtaDocment.getText(editLineStartIdx, ScriptEditPanel.getLineEndOffset(jtaDocment, line) - editLineStartIdx).toCharArray();
+		        final CSSIdx cssIdx = CodeHelper.getCSSIdx(lineChars, lineIdx, lineIdx);
+		        if(cssIdx != null && cssIdx.classIdx != -1){
+		        	int i = cssIdx.classIdx;
+		        	for (; i < lineChars.length; i++) {
+						final char nextChar = lineChars[i];
+						if(nextChar >= 'a' && nextChar <= 'z'
+								|| nextChar >= 'A' && nextChar <= 'Z'
+								|| nextChar >= '0' && nextChar <= '9'
+								|| nextChar == '_'){
+						}else{
+							break;
+						}
+					}
+		        	final String className = String.valueOf(lineChars, cssIdx.classIdx, i - cssIdx.classIdx);
+		        	final int startIdx = editLineStartIdx + cssIdx.classIdx;
+					action.action(startIdx, i - cssIdx.classIdx);
+		        	return startIdx;
+		        }
+			}catch (final Throwable ex) {
+				ex.printStackTrace();
+			}
+		}
+		return -1;
+	}
+	
+	private final void clearCSSClassFocus() {
+		if(lastFocusUnderlineCSSStartIdx != -1){
+			jtaScript.getStyledDocument().setCharacterAttributes(lastFocusUnderlineCSSStartIdx, lastFocusUnderlineCSSLen, UNDERLINE_REMOVE_LIGHTER, false);
+			lastFocusUnderlineCSSStartIdx = -1;
+			setEditorDefaultCurosr();
+		}
+	}
+	
 	private final Runnable submitModifyRunnable = new Runnable() {
 		@Override
 		public void run() {
@@ -1615,96 +1828,69 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		 return attributes;
 	}
 	
-
+	private static SimpleAttributeSet buildUnderline(final boolean isUnderLine){
+		 final SimpleAttributeSet attributes = new SimpleAttributeSet();
+		 StyleConstants.setUnderline(attributes, isUnderLine);
+		 return attributes;
+	}
+	
+	public static SimpleAttributeSet buildBackground(final Color color){
+		 final SimpleAttributeSet attributes = new SimpleAttributeSet();
+		 StyleConstants.setBackground(attributes, color);
+		 return attributes;
+	}
+	
 }
-class LineNumber extends JComponent {
-	private final static Font DEFAULT_FONT = new Font("monospaced", Font.PLAIN,
-			12);
-	private final static int HEIGHT = Integer.MAX_VALUE - 1000000;
-	// Set right/left margin
-	private int lineHeight;
-	private int fontLineHeight;
-	private int currentRowWidth;
-	private int maxRow;
-	private FontMetrics fontMetrics;
 
-	/**
-	 * Convenience constructor for Text Components
-	 */
-	public LineNumber(final JComponent component) {
-		if (component == null) {
-			setFont(DEFAULT_FONT);
-		} else {
-			setFont(component.getFont());
-		}
-		setPreferredSize(99);
+class UnderlineHighlightPainter extends LayeredHighlighter.LayerPainter {
+	public UnderlineHighlightPainter(final Color c) {
+		color = c;
 	}
 
-	public void setPreferredSize(final int row) {
-		if(row > maxRow){
-			maxRow = row;
-			final int width = fontMetrics.stringWidth(String.valueOf(row));
-			final int doubleWidth = width * 2;
-			if (currentRowWidth < doubleWidth) {
-				currentRowWidth = doubleWidth;
-				setPreferredSize(new Dimension(currentRowWidth, HEIGHT));
+	@Override
+	public void paint(final Graphics g, final int offs0, final int offs1, final Shape bounds, final JTextComponent c) {
+	}
+
+	@Override
+	public Shape paintLayer(final Graphics g, final int offs0, final int offs1,
+			final Shape bounds, final JTextComponent c, final View view) {
+		g.setColor(color == null ? c.getSelectionColor() : color);
+
+		Rectangle alloc = null;
+		if (offs0 == view.getStartOffset() && offs1 == view.getEndOffset()) {
+			if (bounds instanceof Rectangle) {
+				alloc = (Rectangle) bounds;
+			} else {
+				alloc = bounds.getBounds();
+			}
+		} else {
+			try {
+				final Shape shape = view.modelToView(offs0,
+						Position.Bias.Forward, offs1, Position.Bias.Backward,
+						bounds);
+				alloc = (shape instanceof Rectangle) ? (Rectangle) shape
+						: shape.getBounds();
+			} catch (final BadLocationException e) {
+				return null;
 			}
 		}
-	}
 
-	@Override
-	public void setFont(final Font font) {
-		super.setFont(font);
-		fontMetrics = getFontMetrics(getFont());
-		fontLineHeight = fontMetrics.getHeight();
-	}
-
-	public int getLineHeight() {
-		if (lineHeight == 0)
-			return fontLineHeight;
-		else
-			return lineHeight;
-	}
-
-	public void setLineHeight(final int lineHeight) {
-		if (lineHeight > 0)
-			this.lineHeight = lineHeight;
-	}
-
-	public int getStartOffset() {
-		return 2;
-	}
-
-	@Override
-	public void paintComponent(final Graphics g) {
-		final int lineHeight = getLineHeight();
-		final int startOffset = getStartOffset();
-		final Rectangle drawHere = g.getClipBounds();
-		g.setColor(getBackground());//使用缺省背景色getBackground()
-//		g.setColor(Color.YELLOW);
-		g.fillRect(drawHere.x, drawHere.y, drawHere.width, drawHere.height);
-		g.setColor(Color.LIGHT_GRAY);
-		final int x1 = drawHere.width - 5;
-		g.drawLine(x1, drawHere.y, x1, drawHere.y + drawHere.height);
-		g.setColor(new Color(165, 199, 234));//使用缺省背景色getBackground()
-//		g.setColor(Color.YELLOW);
-		g.fillRect(drawHere.x, drawHere.y, drawHere.width/2, drawHere.height);
-		// Determine the number of lines to draw in the foreground.
-		g.setColor(getForeground());
-		final int startLineNumber = (drawHere.y / lineHeight) + 1;
-		final int endLineNumber = startLineNumber + (drawHere.height / lineHeight);
-		int start = (drawHere.y / lineHeight) * lineHeight + lineHeight
-				- startOffset;
-		// System.out.println( startLineNumber + " : " + endLineNumber + " : " +
-		// start );
-		for (int i = startLineNumber; i <= endLineNumber; i++) {
-			final String lineNumber = String.valueOf(i);
-			final int width = fontMetrics.stringWidth(lineNumber);
-			g.drawString(lineNumber, currentRowWidth - width - currentRowWidth/2, start);
-			start += lineHeight;
+		final FontMetrics fm = c.getFontMetrics(c.getFont());
+		final int baseline = alloc.y + alloc.height - fm.getDescent() + 1;
+		
+		final int endX = alloc.x + alloc.width;
+		for (int i = alloc.x; i + 2 < endX; ) {
+			final int x2 = i + 2;
+			g.drawLine(i, baseline, x2, baseline);
+			final int y1 = baseline + 1;
+			g.drawLine(i, y1, x2, y1);
+			i += 4;
 		}
-		setPreferredSize(endLineNumber);
+
+		return alloc;
 	}
+
+	protected Color color;
 }
 
 class ScriptUndoableEditListener implements UndoableEditListener{
@@ -1753,6 +1939,7 @@ class HCUndoableEdit implements UndoableEdit{
 	int selectionLen;
 	final ScriptEditPanel panel;
 	final boolean isModi;
+	final long saveToken;
 	DocumentEvent.EventType type;
 	
 	HCUndoableEdit(final ScriptEditPanel panel, final UndoableEdit base, final int undoModel){
@@ -1764,6 +1951,7 @@ class HCUndoableEdit implements UndoableEdit{
 		this.base = base;
 		this.undoModel = undoModel;
 		isModi = this.panel.isModified();
+		saveToken = this.panel.getSaveToken();
 		
 		if(isModi == false){
 			this.panel.notifyModified(true);//由于REMOVE和INSERT都是isModi==false,所以强制后续的INSERT为ture
@@ -1838,10 +2026,15 @@ class HCUndoableEdit implements UndoableEdit{
 		}catch (final Exception e) {
 		}
 		
-		if(isModi == false){
-			panel.notifyModified(false);
+		if(saveToken == panel.getSaveToken()){
+			if(isModi == false){
+				panel.notifyModified(false);
+			}
+		}else{
+			if(panel.isModified() == false){
+				panel.notifyModified(true);
+			}
 		}
-		
 	}
 
 	@Override
@@ -1894,10 +2087,11 @@ class HCUndoableEdit implements UndoableEdit{
 		}catch (final Exception e) {
 		}
 		
-		if(isModi == false){
-			panel.notifyModified(true);
+		if(saveToken == panel.getSaveToken()){
+			if(isModi == false){
+				panel.notifyModified(true);
+			}
 		}
-		
 	}
 
 	@Override
@@ -1940,4 +2134,28 @@ class HCUndoableEdit implements UndoableEdit{
 		return base.getRedoPresentationName();
 	}
 	
+}
+
+class CSSListCellRenderer extends JLabel implements ListCellRenderer {
+	final Color listBackColor = ServerUIUtil.LIGHT_BLUE_BG;
+	
+    @Override
+    public Component getListCellRendererComponent(final JList list, final Object value,
+            final int index, final boolean isSelected, final boolean cellHasFocus) {
+    	setText(value.toString());
+    	
+    	if (isSelected) {
+    	    setForeground(list.getSelectionForeground());
+    	    setBackground(list.getSelectionBackground());
+    	}else{
+	    	if(index % 2 == 1){
+	    		setBackground(listBackColor);
+	    	}else{
+	    		setBackground(list.getBackground());
+	    	}
+	    	setForeground(list.getForeground());
+    	}
+    	setOpaque(true);
+        return this;
+    }
 }

@@ -4,4 +4,6 @@ public interface IModifyStatus {
 	public boolean isModified();
 	
 	public void setModified(boolean modified);
+	
+	public long getSaveToken();
 }

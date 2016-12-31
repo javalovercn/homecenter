@@ -61,7 +61,7 @@ public class SizeHeightForXML {
 	}
 	
 	public final void setCSSImpl(final Mlet mlet, final ProjectContext ctx, final JComponent component, final String className, final String styles){//in user thread
-		if(SimuMobile.checkSimuProjectContext(ctx)){
+		if(SimuMobile.checkSimuProjectContext(ctx) || component == null){
 			return;
 		}
 		
@@ -88,7 +88,7 @@ public class SizeHeightForXML {
 	}
 	
 	public final void setCSSForDivImpl(final Mlet mlet, final ProjectContext ctx, final JComponent component, final String className, final String styles){//in user thread
-		if(SimuMobile.checkSimuProjectContext(ctx)){
+		if(SimuMobile.checkSimuProjectContext(ctx) || component == null){
 			return;
 		}
 		
@@ -116,7 +116,7 @@ public class SizeHeightForXML {
 	}
 	
 	public final void setCSSForToggleImpl(final Mlet mlet, final ProjectContext ctx, final JToggleButton togButton, final String className, final String styles) {
-		if(SimuMobile.checkSimuProjectContext(ctx)){
+		if(SimuMobile.checkSimuProjectContext(ctx) || togButton == null){
 			return;
 		}
 		

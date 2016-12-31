@@ -114,4 +114,6 @@ public class ImageSrc {
 	    return PlatformManager.getService().getImageShape(img);
 	}
 
+	public static final String FORMAT_16_PNG = "format_16.png";
+
 }

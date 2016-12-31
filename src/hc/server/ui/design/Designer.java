@@ -35,7 +35,11 @@ import hc.server.ui.LocationComponentListener;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SimuMobile;
 import hc.server.ui.design.code.CodeHelper;
+import hc.server.ui.design.code.CodeItem;
 import hc.server.ui.design.code.CodeStaticHelper;
+import hc.server.ui.design.hpj.CSSClassIndex;
+import hc.server.ui.design.hpj.CSSJumpRunnable;
+import hc.server.ui.design.hpj.CSSNodeEditPanel;
 import hc.server.ui.design.hpj.HCShareFileResource;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
@@ -53,6 +57,7 @@ import hc.server.ui.design.hpj.NodeEditPanel;
 import hc.server.ui.design.hpj.NodeEditPanelManager;
 import hc.server.ui.design.hpj.NodeInvalidException;
 import hc.server.ui.design.hpj.ProjectIDDialog;
+import hc.server.util.CSSUtil;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.SignHelper;
 import hc.util.BaseResponsor;
@@ -84,6 +89,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -117,6 +123,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.text.Document;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
@@ -285,6 +292,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	private boolean isModified;
+	private long saveToken = System.currentTimeMillis();
 	public boolean isModiPermissions;
 	final MenuManager mg = new MenuManager();
 
@@ -306,6 +314,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	public String getCurrProjVer(){
 		return ((HPProject)root.getUserObject()).ver;
 	}
+	
+	public final Vector<CodeItem> cssClassesOfProjectLevel = new Vector<CodeItem>(50);
 	
 	public String getProjCSS(){
 		return ((HPProject)root.getUserObject()).styles;
@@ -569,7 +579,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 									final Object o = selectedNode.getUserObject();
 									if (o instanceof HPNode) {
 										final HPNode nodeData = (HPNode) o;
-										notifySelectNode(selectedNode, nodeData);
+										notifySelectNode(selectedNode, nodeData, null);
 									}
 								}
 							}
@@ -1443,6 +1453,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				recordEditProjInfo(map);
 			}
 		}catch (final Throwable e) {
+			ThirdlibManager.copy(edit_har, new File(ResourceUtil.getBaseDir(), LinkProjectManager.EDIT_BAK_HAR));
 			ExceptionReporter.printStackTrace(e);
 			App.showMessageDialog(null, "<html>default har project is error, which is copied to <strong>" + LinkProjectManager.EDIT_BAK_HAR + "</strong>!" +
 					"<BR>system will create default project.</html>", 
@@ -1599,7 +1610,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				childNode = (DefaultMutableTreeNode)mainMenuNode.getChildAt(0);
 			}
 			jumpToNode(childNode, model, tree);
-			notifySelectNode(childNode, (HPNode)childNode.getUserObject());
+			notifySelectNode(childNode, (HPNode)childNode.getUserObject(), null);
 		}else{
 			//没有菜单的空工程情形
 		}
@@ -1609,6 +1620,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		refresh();
 		
 		needRebuildTestJRuby = true;
+		updateCssClassOfProjectLevel(null);
 		Designer.expandTree(tree);
 		
 		final DefaultMutableTreeNode shareJarFolder = getShareJarFolder();
@@ -1639,6 +1651,42 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			});
 		}
 	}
+
+	public final String updateCssClassOfProjectLevel(final Document docMaybeNull) {
+		final Vector<Object> cssClassStr = new Vector<Object>(50);
+		final String sameFullNameMsg = CSSUtil.updateCSSClass(getProjCSS(), cssClassStr, docMaybeNull);
+		
+		final int size = cssClassStr.size();
+		final CodeItem[] beforeSort = new CodeItem[size];
+		for (int i = 0; i < size; i++) {
+			final Object element = cssClassStr.elementAt(i);
+			final CSSClassIndex c;
+			if(element instanceof Vector){
+				c = ((Vector<CSSClassIndex>)element).elementAt(0);
+			}else{
+				c = (CSSClassIndex)element;
+			}
+			final CodeItem item = CodeItem.getFree();
+			final String className = c.className;
+			
+			item.type = CodeItem.TYPE_FIELD;
+			item.code = className;
+			item.codeDisplay = className;
+			item.codeLowMatch = className.toLowerCase();
+			item.isCSSClass = true;
+			item.userObject = element;
+			
+			beforeSort[i] = item;
+		}
+
+		Arrays.sort(beforeSort);
+		CodeItem.cycle(cssClassesOfProjectLevel);
+		for (int i = 0; i < size; i++) {
+			cssClassesOfProjectLevel.add(beforeSort[i]);
+		}
+		
+		return sameFullNameMsg;
+	}
 	
 	/**
 	 * 重新加载lps
@@ -1667,7 +1715,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		App.invokeLaterUI(updateTreeRunnable);
 		setModified(true);
 		
-		notifySelectNode(newNode, (HPNode)newNode.getUserObject());
+		notifySelectNode(newNode, (HPNode)newNode.getUserObject(), null);
 		
 		//检查是否是jar
 		{
@@ -1770,7 +1818,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		selectedNode = null;
 
 		jumpToNode(parent, model, tree);
-		notifySelectNode(parent, (HPNode)parent.getUserObject());
+		notifySelectNode(parent, (HPNode)parent.getUserObject(), null);
 	}
 	
 	public TreeNode getCurrSelectedNode(){
@@ -1790,8 +1838,16 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		
 		return msbFolder;
 	}
+	
+	public final void jumpCSSDefine(final int startIdx, final int len){
+		final HPNode hpNode = (HPNode)cssNode.getUserObject();
+		final CSSJumpRunnable run = ((CSSNodeEditPanel)nm.switchNodeEditPanel(hpNode.type, hpNode, this)).jumpRunnable;
+		run.setLocation(startIdx, len);
+		jumpToNode(cssNode, model, tree);
+		notifySelectNode(cssNode, hpNode, run);
+	}
 
-	public void notifySelectNode(final DefaultMutableTreeNode sNode, final HPNode nodeData) {
+	public void notifySelectNode(final DefaultMutableTreeNode sNode, final HPNode nodeData, final Runnable run) {
 		selectedNode = sNode;
 		
 		final NodeEditPanel nep = nm.switchNodeEditPanel(nodeData.type, nodeData, this);
@@ -1817,9 +1873,14 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				editPanel.revalidate();
 				editPanel.repaint();
 				
-				nodeEditPanel.loadAfterShow();
+				nodeEditPanel.loadAfterShow(run);
 			}
 		});
+	}
+	
+	@Override
+	public long getSaveToken(){
+		return saveToken;
 	}
 
 	@Override
@@ -2054,6 +2115,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			App.invokeLaterUI(updateTreeRunnable);
 			
 			setModified(false);
+			saveToken = System.currentTimeMillis();
 			
 			saveAsButton.setEnabled(true);
 			
@@ -2090,7 +2152,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			public void run() {
 				final DefaultMutableTreeNode node1 = e.node;
 				jumpToNode(node1, model, tree);
-				notifySelectNode(node1, (HPNode)node1.getUserObject());
+				notifySelectNode(node1, (HPNode)node1.getUserObject(), null);
 				
 				final JPanel panel = new JPanel();
 //				final String name1 = ((HPNode)node1.getUserObject()).name;

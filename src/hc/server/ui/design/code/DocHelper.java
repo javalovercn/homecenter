@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,7 +38,13 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.StyleSheet;
 
 public class DocHelper {
+	
+	private static final int cssSize = 120;
 	private static final HashMap<String, HashMap<String, String>> cache = new HashMap<String, HashMap<String,String>>();
+	static final Vector<CodeItem> cssCodeItems = new Vector<CodeItem>(cssSize);
+	static final HashMap<String, String> cssDocs = new HashMap<String,String>(cssSize);
+	static final HashMap<String, String> cssProperties = new HashMap<String,String>(cssSize);
+	
 	private static final HCTimer resetTimer = new HCTimer("", 1000 * 60 * 30, false) {
 		@Override
 		public final void doBiz() {
@@ -45,6 +52,9 @@ public class DocHelper {
 				resetTimerCount();
 			}else{
 				cache.clear();
+				CodeItem.cycle(cssCodeItems);
+				cssDocs.clear();
+				cssProperties.clear();
 				setEnable(false);
 			}
 		}
@@ -63,6 +73,7 @@ public class DocHelper {
 	private final CodeHelper codeHelper;
 	public boolean isForMouseOverTip;
 	public int mouseOverX, mouseOverY, mouseOverFontHeight;
+	private CodeItem currItem;
 	
 	DocHelper(final CodeHelper codeHelper, final CodeWindow codeWindow) {
 		this.codeHelper = codeHelper;
@@ -100,7 +111,40 @@ public class DocHelper {
     		final int parameterSpliterLength = 1;
     		final Pattern removePackageName = Pattern.compile("\\b(\\w+\\.)");
 			final ClassLoader classLoader = DocHelper.class.getClassLoader();
+			
+			private static final String PROPDEF = "propdef-";
 
+			private final void processCssDoc(final SimpleAttributeSet value){
+				 final String href = (String) value.getAttribute(HTML.Attribute.HREF);
+	                if (href != null) {//media.html#visual-media-group 或 colors.html#propdef-background-color
+	                	try {
+	                		final int sectIdx = href.indexOf('#');
+	                		final boolean hasSect = sectIdx >= 0;
+//	                		final String fileName = hasSect?href.substring(0, sectIdx):href;
+							if(hasSect){
+								final String fragment = href.substring(sectIdx + 1);
+								if(fragment.startsWith(PROPDEF)){
+									final String propName = fragment.substring(PROPDEF.length());
+									final String doc = CSSHelper.getDocs(propName);
+									if(doc != null){
+										SwingUtilities.invokeLater(new Runnable() {
+											@Override
+											public void run() {
+							        			loadDoc(doc);
+							        			docPane.setCaretPosition(0);
+											}
+										});
+										return;
+									}
+								}
+							}
+         				HttpUtil.browse(CSSHelper.getCSSDocWebURL(href));
+						} catch (final Exception e1) {
+							e1.printStackTrace();
+						}
+//	                    L.V = L.O ? false : LogManager.log("click href : " + href);
+	                }
+			}
 			/**
 			 * 从一个java doc页面跳到另一个java doc页面
 			 */
@@ -113,77 +157,85 @@ public class DocHelper {
 
 		            final SimpleAttributeSet value = (SimpleAttributeSet) a.getAttribute(HTML.Tag.A);
 		            if (value != null) {
-		                final String href = (String) value.getAttribute(HTML.Attribute.HREF);
-		                if (href != null) {
-		                	//../../javax/swing/JComponent.html#getAutoscrolls--
-		                	//click href : ../../../hc/server/ui/HTMLMlet.html
-		                	//click href : http://docs.oracle.com/javase/8/docs/api/javax/swing/JComponent.html?is-external=true
+		            	if(currItem.isCSSProperty){
+		            		processCssDoc(value);
+		            	}else{
+		            		processJavaDoc(value);
+		            	}
+		            }
+		        }
+			}
+
+			final void processJavaDoc(final SimpleAttributeSet value) {
+				final String href = (String) value.getAttribute(HTML.Attribute.HREF);
+				if (href != null) {
+					//../../javax/swing/JComponent.html#getAutoscrolls--
+					//click href : ../../../hc/server/ui/HTMLMlet.html
+					//click href : http://docs.oracle.com/javase/8/docs/api/javax/swing/JComponent.html?is-external=true
 //		                	click href : ../../../hc/server/ui/Mlet.html#resizeImage(java.awt.image.BufferedImage, int, int)
 //		                	click href : ../../../hc/server/ui/ProjectContext.html#getMobileOS()
 //		                	click href : ../../java/awt/Toolkit.html#createCustomCursor-java.awt.Image-java.awt.Point-java.lang.String-
-		                	
-		                	final int classEndIdx = href.lastIndexOf(".html");
-		                	if(classEndIdx >= 0){
-		                		int classStartIdx = href.lastIndexOf(classStartType1);
-		                		if(classStartIdx >= 0){
-		                			classStartIdx += classStartType1.length();
-		                		}else{
-		                			classStartIdx = href.lastIndexOf(classStartType2);
-		                			if(classStartIdx >= 0){
-		                				classStartIdx += classStartType2.length();
-		                			}
-		                		}
-		                		
-		                		final String fmClass = href.substring(classStartIdx, classEndIdx).replace('/', '.');
-		                		
-		                		String fieldOrMethodName = CLASS_DESC;
-		                		final int methodSplitIdx = href.indexOf(methodSpliter, classEndIdx);
-		                		if(methodSplitIdx >= 0){
-		                			final String methodPart = href.substring(methodSplitIdx + methodSpliterLength);
-		                			final int firstParameterSpliterIdx = methodPart.indexOf(parameterSpliter);
-		                			if(firstParameterSpliterIdx < 0){
-		                				fieldOrMethodName = removePackageName.matcher(methodPart).replaceAll("");
-		                			}else{
-		                				final String methodName = methodPart.substring(0, firstParameterSpliterIdx);
-		                				String parameter = methodPart.substring(firstParameterSpliterIdx + parameterSpliterLength, methodPart.length() - parameterSpliterLength);
-		                				parameter = parameter.replaceAll(strParameterSpliter, ", ");
-		                				parameter = removePackageName.matcher(parameter).replaceAll("");
-		                				fieldOrMethodName = methodName + "(" + parameter + ")";
-		                			}
-		                			
-	                				final int classIdx = fmClass.lastIndexOf('.');
-	                				if(classIdx > 0){
-	                					final String className = fmClass.substring(classIdx + 1);
-	                					if(fieldOrMethodName.startsWith(className)){//将构造方法转为new()
-	                						fieldOrMethodName = CodeHelper.JRUBY_NEW + fieldOrMethodName.substring(className.length());
-	                					}
-	                				}
-		                		}
-		                		
-								try {
-									processDoc(Class.forName(fmClass, false, classLoader), false);
-								} catch (final ClassNotFoundException e1) {
+					
+					final int classEndIdx = href.lastIndexOf(".html");
+					if(classEndIdx >= 0){
+						int classStartIdx = href.lastIndexOf(classStartType1);
+						if(classStartIdx >= 0){
+							classStartIdx += classStartType1.length();
+						}else{
+							classStartIdx = href.lastIndexOf(classStartType2);
+							if(classStartIdx >= 0){
+								classStartIdx += classStartType2.length();
+							}
+						}
+						
+						final String fmClass = href.substring(classStartIdx, classEndIdx).replace('/', '.');
+						
+						String fieldOrMethodName = CLASS_DESC;
+						final int methodSplitIdx = href.indexOf(methodSpliter, classEndIdx);
+						if(methodSplitIdx >= 0){
+							final String methodPart = href.substring(methodSplitIdx + methodSpliterLength);
+							final int firstParameterSpliterIdx = methodPart.indexOf(parameterSpliter);
+							if(firstParameterSpliterIdx < 0){
+								fieldOrMethodName = removePackageName.matcher(methodPart).replaceAll("");
+							}else{
+								final String methodName = methodPart.substring(0, firstParameterSpliterIdx);
+								String parameter = methodPart.substring(firstParameterSpliterIdx + parameterSpliterLength, methodPart.length() - parameterSpliterLength);
+								parameter = parameter.replaceAll(strParameterSpliter, ", ");
+								parameter = removePackageName.matcher(parameter).replaceAll("");
+								fieldOrMethodName = methodName + "(" + parameter + ")";
+							}
+							
+							final int classIdx = fmClass.lastIndexOf('.');
+							if(classIdx > 0){
+								final String className = fmClass.substring(classIdx + 1);
+								if(fieldOrMethodName.startsWith(className)){//将构造方法转为new()
+									fieldOrMethodName = CodeHelper.JRUBY_NEW + fieldOrMethodName.substring(className.length());
 								}
-								
-			            		final String doc = getDoc(fmClass, fieldOrMethodName);
-			            		if(doc != null && doc.length() > 0){
-			            			SwingUtilities.invokeLater(new Runnable() {
-										@Override
-										public void run() {
-					            			docPane.setText("<html><body style=\"background-color:#FAFBC5\">" + doc +"</body></html>");
-					            			docPane.setCaretPosition(0);
-										}
-									});
-			            		}else{
-			            			if(href.startsWith("http")){
-			            				HttpUtil.browse(href);
-			            			}
-			            		}
-		                	}
+							}
+						}
+						
+						try {
+							processDoc(Class.forName(fmClass, false, classLoader), false);
+						} catch (final ClassNotFoundException e1) {
+						}
+						
+						final String doc = getDoc(fmClass, fieldOrMethodName);
+						if(doc != null && doc.length() > 0){
+							SwingUtilities.invokeLater(new Runnable() {
+								@Override
+								public void run() {
+				        			loadDoc(doc);
+				        			docPane.setCaretPosition(0);
+								}
+							});
+						}else{
+							if(href.startsWith("http")){
+								HttpUtil.browse(href);
+							}
+						}
+					}
 //		                    L.V = L.O ? false : LogManager.log("click href : " + href);
-		                }
-		            }
-		        }
+				}
 			}
 		});
 		
@@ -282,7 +334,7 @@ public class DocHelper {
 		}
 	}
 	
-	public final void popDocTipWindow(final JFrame codeWindow, String fmClass, String fieldOrMethodName, final int type,
+	public final void popDocTipWindow(final CodeItem item, final JFrame codeWindow, String fmClass, String fieldOrMethodName, final int type,
 			final DocLayoutLimit layoutLimit){
 		final boolean isForClassDoc = (type==CodeItem.TYPE_CLASS);
 		
@@ -296,10 +348,11 @@ public class DocHelper {
 		
 		this.codeFrame = codeWindow;
 		this.layoutLimit = layoutLimit;
+		this.currItem = item;
 		
 		final String doc = getDoc(fmClass, fieldOrMethodName);
 		if(doc != null && doc.length() > 0){
-			docPane.setText("<html><body style=\"background-color:#FAFBC5\">" + doc +"</body></html>");
+			loadDoc(doc);
 			isWillShowDoc = true;
 			SwingUtilities.invokeLater(repainRunnable);
 		}else{
@@ -322,6 +375,9 @@ public class DocHelper {
 	 */
 	public final String getDoc(final String claz, final String fieldOrMethod){
 //		L.V = L.O ? false : LogManager.log("class : " + claz + ", fieldOrMethod : " + fieldOrMethod);
+		if(currItem.isCSSProperty){
+			return CSSHelper.getDocs(fieldOrMethod);
+		}
 		
 		HashMap<String, String> map = cache.get(claz);
 		
@@ -347,12 +403,12 @@ public class DocHelper {
 		return map.get(fieldOrMethod);
 	}
 	
+	private final void loadDoc(final String doc) {
+		docPane.setText("<html><body style=\"background-color:#FAFBC5\">" + doc +"</body></html>");
+	}
+
 	public static void processDoc(final Class c, final boolean processInDelay){
-		if(resetTimer.isEnable()){
-		}else{
-			resetTimer.setEnable(true);
-		}
-		resetTimer.resetTimerCount();
+		resetClear();
 		
 		final String clasName = c.getName();
 		if(clasName.indexOf('$') > 0){
@@ -371,6 +427,14 @@ public class DocHelper {
 		}else{
 			processDoc(c, clasName, true);
 		}
+	}
+
+	static void resetClear() {
+		if(resetTimer.isEnable()){
+		}else{
+			resetTimer.setEnable(true);
+		}
+		resetTimer.resetTimerCount();
 	}
 	
 	private static void processDocForOneLevel(final String clasName){

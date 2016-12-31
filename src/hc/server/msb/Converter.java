@@ -4,13 +4,14 @@ import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 
 /**
- * {@link Converter} is useful to convert data format between {@link Robot} and {@link Device}, if data format exchanged between them is inconsistent.
+ * {@link Converter} is useful to convert data format between {@link Robot} and {@link Device} (maybe data source for cloud), if data format exchanged between them is inconsistent.
  * <BR><BR>
- * For example, {@link Robot} <i>R</i> (in HAR project <i>proj_r</i>) drive {@link Device} <i>A</i> (in HAR project <i>proj_dev_a</i>). If {@link Device} <i>A</i> is substituted by {@link Device} <i>B</i>, 
+ * if {@link Device} or data source is changed, you may still keep {@link Robot} intact, <BR><BR>
+ * for example, {@link Robot} <i>R</i> (in HAR project <i>proj_r</i>) drive {@link Device} <i>A</i> (in HAR project <i>proj_dev_a</i>). If {@link Device} <i>A</i> is substituted by {@link Device} <i>B</i>, 
  * then do as following:<BR>
  * 1. remove HAR project <i>proj_dev_a</i> from server,<BR>
  * 2. add HAR project <i>proj_dev_b</i>,<BR>
- * 3. add HAR project <i>proj_cvt_c</i>, which {@link Converter} <i>A_to_B</i> is included in it.<BR>
+ * 3. add HAR project <i>proj_cvt_c</i>, which {@link Converter} <i>A_to_B</i> is included in, <BR>
  * 4. bind <i>Reference Device ID</i> (in {@link Robot} <i>R</i>) to real device ID (in {@link Device} <i>B</i>) and set {@link Converter} <i>A_to_B</i> between them.<BR>
  */
 public abstract class Converter {

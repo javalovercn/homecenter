@@ -43,8 +43,8 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 		@btn_switch.setIcon(@icon_press_off)
 		@btn_light.setIcon(@icon_light_off)
 		
-		setCSS(@btn_switch, "btnStyle", nil)#btnStyle is defined "CSS Styles" and is automatically loaded for all HTMLMlet in current project
-		setCSS(@btn_light, "btnStyle", nil)
+		setCSS(@btn_switch, "iconStyle", nil)#iconStyle is defined "CSS Styles" and is automatically loaded for all HTMLMlet in current project
+		setCSS(@btn_light, "iconStyle", nil)
 		
 		cssStyle = ".areaStyle{width:100%;height:100%;font-size:" + getFontSizeForNormal().to_s() + "px;color:green}"
 		loadCSS(cssStyle)
@@ -85,7 +85,7 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 		button = JButton.new("Back")
 		setCSS(button, "btnStyle", nil)
 		button.addActionListener{|e|
-			go(Java::hc.server.ui.Mlet::URL_EXIT)#exit and return back
+			back()#exit and return back
 		}
 		buttonPanel.add(button)
 
@@ -122,13 +122,23 @@ return MyHTMLMlet.new
 ```
 global CSS for current project :
 ```css
-.btnStyle {
+.iconStyle {
 	text-align:center;
 	vertical-align:middle;
 	width:100%;
 	height:100%;
+}
+
+.btnStyle {
+	width:100%;
+	height:100%;
+	color:#fff;
 	font-size:$buttonFontSize$px;
-	color:blue;
+	background-color:#54a1d9;
+	background-image:-webkit-gradient(linear, 0 0, 0 100%, color-stop(0, #8fc2e8), color-stop(0.5, #54a1d9), color-stop(0.5, #126aa9), color-stop(1, #2ddef2));
+	-webkit-border-radius:9px;
+	border:1px solid #377daf;
+	-webkit-box-shadow:0 2px 4px rgba(46,185,230,0.7);
 }
 ```
 ***

@@ -67,18 +67,56 @@ public class HTMLMlet extends Mlet {
 	}
 	
 	/**
-	 * set CSS <i>class</i> and/or CSS <i>style</i> for <code>div</code> of {@link JComponent}.
+	 * set CSS <i>class</i> and/or CSS <i>style</i> for HTML div tag of {@link JComponent}.
 	 * <BR><BR>
 	 * for more, see {@link #setCSS(JComponent, String, String)}.
 	 * @param component the JComponent to set style.
-	 * @param className the class name of styles defined <i>CSS Styles</i> tab in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
-	 * @param styles the styles defined <i>CSS Styles</i> tab in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
+	 * @param className the class name of styles defined <i>Resources/CSS Styles</i> in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
+	 * @param styles the styles defined <i>Resources/CSS Styles</i> in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
 	 * @see #setCSS(JComponent, String, String)
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.0
 	 */
 	public final void setCSSForDiv(final JComponent component, final String className, final String styles){//in user thread
 		sizeHeightForXML.setCSSForDivImpl(this, __context, component, className, styles);
+	}
+	
+	/**
+	 * set CSS <i>class</i> for {@link JComponent}, it's <code>div</code> and it's <code>toggle</code> (if exists) with one step.
+	 * <BR><BR>
+	 * for example, defines CSS for JButton as following :<BR><BR>
+	 * <code>div.<STRONG>btnStyle</STRONG> {<BR>
+	 * &nbsp;&nbsp;padding:3px;<BR>
+	 * }<BR>
+	 * <BR>
+	 * button.<STRONG>btnStyle</STRONG> {<BR>
+	 * &nbsp;&nbsp;color:blue;<BR>
+	 * }</code>
+	 * <BR><BR>
+	 * invoking <code>setCSSByClass(btn, "<STRONG>btnStyle</STRONG>")</code> is same with invoking <code>setCSSForDiv(btn, "<STRONG>btnStyle</STRONG>", null)</code> and <code>setCSS(btn, "<STRONG>btnStyle</STRONG>", null)</code>.
+	 * @param component the JComponent to set CSS class.
+	 * @param className the class name of styles defined <i>Resources/CSS Styles</i> in designer or {@link #loadCSS(String)}. Do nothing if Null. Empty string for clear.
+	 * @see #setCSSForDiv(JComponent, String, String)
+	 * @see #setCSS(JComponent, String, String)
+	 * @see #setCSSForToggle(JToggleButton, String, String)
+	 * @since 7.32
+	 */
+	public final void setCSSByClass(final JComponent component, final String className){
+		if(className == null || component == null){
+			return;
+		}
+		
+		if(component instanceof JPanel){
+			setCSSForDiv(component, className, null);
+			return;
+		}
+		
+		setCSSForDiv(component, className, null);
+		setCSS(component, className, null);
+		
+		if(component instanceof JToggleButton){
+			setCSSForToggle((JToggleButton)component, className, null);
+		}
 	}
 	
 	/**
@@ -219,8 +257,8 @@ public class HTMLMlet extends Mlet {
 	 * 10. editable : <i>getElementById({input|label|selection|progress}).removeAttribute('readonly')</i>;<BR>
 	 * 11. NOT all JComponents are supported.
 	 * @param component the JComponent to set style.
-	 * @param className the class name of styles defined <i>CSS Styles</i> tab in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
-	 * @param styles the styles defined <i>CSS Styles</i> tab in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
+	 * @param className the class name of styles defined <i>Resources/CSS Styles</i> in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
+	 * @param styles the styles defined <i>Resources/CSS Styles</i> in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
 	 * @see #setCSSForDiv(JComponent, String, String)
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.0
@@ -230,12 +268,12 @@ public class HTMLMlet extends Mlet {
 	}
 	
 	/**
-	 * set CSS <i>class</i> and/or CSS <i>style</i> for the <STRONG>input</STRONG> tag of {@link JCheckBox} and {@link JRadioButton}.
+	 * set CSS <i>class</i> and/or CSS <i>style</i> for the HTML input tag of {@link JCheckBox} and {@link JRadioButton}.
 	 * <BR><BR>
 	 * for more, see {@link #setCSS(JComponent, String, String)}.
 	 * @param togButton the JComponent (JCheckBox or JRadioButton) to set style.
-	 * @param className the class name of styles defined <i>CSS Styles</i> tab in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
-	 * @param styles the styles defined <i>CSS Styles</i> tab in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
+	 * @param className the class name of styles defined <i>Resources/CSS Styles</i> in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
+	 * @param styles the styles defined <i>Resources/CSS Styles</i> in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
 	 * @see #setCSSForDiv(JComponent, String, String)
 	 * @see #setCSS(JComponent, String, String)
 	 * @since 7.0

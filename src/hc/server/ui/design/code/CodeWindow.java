@@ -34,6 +34,7 @@ import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
@@ -74,7 +75,7 @@ public class CodeWindow {
 	private final DocLayoutLimit layoutLimit = new DocLayoutLimit();
 	private final JScrollPane classPanel = new JScrollPane(codeList);
 	private final DocTipTimer autoPopTip = new DocTipTimer("", 500, false);
-	private final DocHelper docHelper;
+	public final DocHelper docHelper;
 	private final CodeHelper codeHelper;
 	
 	final Runnable refilterRunnable = new Runnable() {
@@ -575,7 +576,11 @@ public class CodeWindow {
 						try {
 							document.remove(oriScriptIdx, preCodeCharsLen);
 							final String insertedCode = item.code;
-							document.insertString(oriScriptIdx, insertedCode, null);
+							AttributeSet attSet = null;
+							if(item.isCSSProperty || item.isCSSClass){
+								attSet = ScriptEditPanel.STR_LIGHTER;
+							}
+							document.insertString(oriScriptIdx, insertedCode, attSet);//注：attSet不为null可减少闪烁，即使后有refreshCurrLineAfterKey
 							final int position = oriScriptIdx + insertedCode.length();
 							
 							textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, oriScriptIdx));
@@ -614,6 +619,7 @@ public class CodeWindow {
 				textPane = jtaPaneMaybeNull;
 			}
 			autoPopTip.classFrame = classFrame;
+			autoPopTip.item = item;
 			autoPopTip.fmClass = item.fmClass;
 			autoPopTip.fieldOrMethodName = item.code;//注意：构造方法已转为new(),而非simpleClassName()
 			autoPopTip.type = item.type;
@@ -626,6 +632,7 @@ public class CodeWindow {
 class DocTipTimer extends HCTimer{
 	DocHelper docHelper;
 	JFrame classFrame;
+	CodeItem item;
 	String fieldOrMethodName;
 	String fmClass;
 	int type;
@@ -646,7 +653,7 @@ class DocTipTimer extends HCTimer{
 					} catch (final ClassNotFoundException e) {
 					}
 				}
-				docHelper.popDocTipWindow(classFrame, fmClass, fieldOrMethodName, type, layoutLimit);
+				docHelper.popDocTipWindow(item, classFrame, fmClass, fieldOrMethodName, type, layoutLimit);
 				setEnable(false);
 			}
 		}
