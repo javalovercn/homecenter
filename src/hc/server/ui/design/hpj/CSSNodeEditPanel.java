@@ -658,10 +658,16 @@ public class CSSNodeEditPanel extends NameEditPanel {
 		cssEditPane.setText(text);
     	colorStyle();
     	
+	}
+	
+	@Override
+	public void loadAfterShow(final Runnable run){
 		cssUndoListener.isForbidRecordUndoEdit = false;
 		cssUndoManager.discardAllEdits();
 		cssEditPane.setCaretPosition(0);
+		cssEditPane.requestFocus();
 		
+		super.loadAfterShow(run);
 	}
 	
 	@Override

@@ -64,6 +64,8 @@ public interface PlatformService {
 	 */
 	public ClassLoader get3rdClassLoader(File[] files);
 	
+	public void closeLoader(ClassLoader loader);
+	
 	public ClassLoader loadClasses(File[] filePaths, ClassLoader parent, boolean isDex, String loadOpID);
 	
 	public BufferedImage makeRoundedCorner(BufferedImage image, int cornerRadius);

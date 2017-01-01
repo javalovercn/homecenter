@@ -125,6 +125,8 @@ public class HCJRubyEngine {
 //		}
 
 		ClassUtil.invoke(classScriptingContainer, container, "terminate", emptyParaTypes, emptyPara, false);
+		
+		PlatformManager.getService().closeLoader(projClassLoader);
 //		try{
 //			container.terminate();
 //		}catch (Throwable e) {

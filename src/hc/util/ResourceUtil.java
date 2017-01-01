@@ -95,7 +95,21 @@ import javax.swing.text.DefaultEditorKit;
 
 public class ResourceUtil {
 	private static final String USER_PROJ = "user.proj.";
-	private final static Class starterClass = getStarterClass();
+	private static boolean isCheckStarter;
+	private static Class starterClass;
+	
+	private static Class getStarterClass(){
+		if(isCheckStarter == false){
+			isCheckStarter = true;
+			try {
+				starterClass = Class.forName(StarterManager.CLASSNAME_STARTER_STARTER);
+			} catch (final ClassNotFoundException e) {
+	//			LogManager.err("Cant find Class : " + starterClass);
+	//			ExceptionReporter.printStackTrace(e);
+			}
+		}
+		return starterClass;
+	}
 	
 	public static void buildMenu(){
 		TrayMenuUtil.buildMenu(UILang.getUsedLocale());
@@ -456,6 +470,8 @@ public class ResourceUtil {
 			return rubyAnd3rdLibsClassLoaderCache;
 		}
 		
+		PlatformManager.getService().closeLoader(rubyAnd3rdLibsClassLoaderCache);
+				
 		final File jruby = new File(ResourceUtil.getBaseDir(), J2SEContext.jrubyjarname);
 		
 		PlatformManager.getService().setJRubyHome(PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer), jruby.getAbsolutePath());
@@ -673,16 +689,6 @@ public class ResourceUtil {
 				Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 	}
 	
-	private static Class getStarterClass(){
-		try {
-			return Class.forName(StarterManager.CLASSNAME_STARTER_STARTER);
-		} catch (final ClassNotFoundException e) {
-//			LogManager.err("Cant find Class : " + starterClass);
-//			ExceptionReporter.printStackTrace(e);
-		}
-		return null;
-	}
-	
 	public static String toMD5(final byte tmp[]){
 		final char hexDigits[] = {       // 用来将字节转换成 16 进制表示的字符
 			     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',  'e', 'f'};
@@ -794,8 +800,9 @@ public class ResourceUtil {
 	public static DataInputStream getAbsPathInputStream(final String path) throws Exception{
 		URL uri = null;
 		try{
-			if(starterClass != null){
-				uri = starterClass.getResource(path);
+			final Class startC = getStarterClass();
+			if(startC != null){
+				uri = startC.getResource(path);
 				return getInputStream(uri);
 			}
 		}catch (final Throwable e) {

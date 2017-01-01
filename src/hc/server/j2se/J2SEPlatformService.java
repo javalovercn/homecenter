@@ -457,4 +457,17 @@ public class J2SEPlatformService implements PlatformService {
 		return Runtime.getRuntime().freeMemory() >> 20;
 	}
 
+	@Override
+	public void closeLoader(final ClassLoader loader) {
+		if(loader != null && loader instanceof URLClassLoader){
+			try{
+				final Method close = loader.getClass().getMethod("close");//1.7才有 
+				if(close != null){
+					close.invoke(loader);
+				}
+			}catch (final Throwable e) {
+			}
+		}
+	}
+
 }

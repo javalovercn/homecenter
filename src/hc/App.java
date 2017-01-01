@@ -52,7 +52,6 @@ import hc.server.ui.SingleMessageNotify;
 import hc.server.ui.design.LinkProjectManager;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.ExceptionViewer;
-import hc.server.util.HCInitor;
 import hc.server.util.HCJDialog;
 import hc.server.util.HCJFrame;
 import hc.server.util.HCLimitSecurityManager;
@@ -339,11 +338,13 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			L.V = L.O ? false : LogManager.log("isSimu : true");
 			
 			final Thread t = new Thread("printAllThreadStack"){
+				final long sleepMS = Long.valueOf(PropertiesManager.getValue(PropertiesManager.p_DebugStackMS, "20000"));
+				
 				@Override
 				public void run(){
 					while(true){
 						try{
-							Thread.sleep(20 * 1000);
+							Thread.sleep(sleepMS);
 						}catch (final Exception e) {
 						}
 						
@@ -352,6 +353,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				}
 			};
 			t.setDaemon(true);
+			t.setPriority(Thread.MAX_PRIORITY);
 			t.start();
 		}
 		
@@ -399,6 +401,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		//依赖RootConfig，故置于上行之后
 		ExceptionReporter.setHarHelper(HCLimitSecurityManager.getHCSecurityManager());//系统线程进行初始化，防止用户线程来初始化
+		HCLimitSecurityManager.getHCSecurityManager().getHarInfoForJSON();//java.lang.ClassCircularityError: hc/core/util/HarInfoForJSON
+		
 		if(PropertiesManager.isTrue(PropertiesManager.p_isReportException)){
 			ExceptionReporter.start(false);//false:由于log系统尚未完成初始化
 		}
@@ -585,7 +589,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	private static void initServer() {
 		HCLimitSecurityManager.switchHCSecurityManager(true);
 		
-		HCInitor.init();
+		ResourceUtil.notifyCancel();//初始时，要删除上次可能因停电产生的需要待删除的资源。
 
 		if(IConstant.isRegister()){
 			setServerLog();
@@ -2404,7 +2408,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 					@Override
 					public boolean watch() {
 						final CoreSession coreSS = SessionManager.getPreparedSocketSession();
-						if (coreSS.context.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON) {
+						if (coreSS != null && coreSS.context != null && coreSS.context.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON) {
 							// 服务器上线，启动引导运行手机端
 							final JPanel totuQuest = new JPanel();
 							totuQuest.add(new JLabel(
@@ -2460,7 +2464,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 					@Override
 					public boolean watch() {
 						final CoreSession coreSS = SessionManager.getPreparedSocketSession();
-						if (coreSS.context.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON) {
+						if (coreSS != null && coreSS.context != null && coreSS.context.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON) {
 							showLockWarning();
 							return true;
 						}else{

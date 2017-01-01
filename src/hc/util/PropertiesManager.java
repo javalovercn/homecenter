@@ -176,6 +176,8 @@ public class PropertiesManager {
 	public static final String p_WiFi_currIsAutoCreated = "wifi_currIsAutoCreated";
 	public static final String p_WiFi_hasWiFiModule = "wifi_hasModu";
 	public static final String p_WiFi_canCreateAP = "wifi_canCreateAP";
+	
+	public static final String p_DebugStackMS = "debugStackMS";
 
 	//用于设置WiFi密码，表示曾经走WiFi的手机连接过
 	public static final String p_WiFi_isMobileViaWiFi = "wifi_isMobiViaWiFi";
