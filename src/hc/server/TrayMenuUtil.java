@@ -1184,11 +1184,7 @@ public class TrayMenuUtil {
         }
                 
         if(ResourceUtil.isJ2SELimitFunction()) {
-        	Class checkJMFClass = null;
-    		try{
-    			checkJMFClass = Class.forName("javax.media.CaptureDeviceManager");
-    		}catch (final Throwable e) {
-    		}
+        	final Class checkJMFClass = ResourceUtil.loadClass("javax.media.CaptureDeviceManager", false);//注：关闭printNotFound
     		//由于安装配置较为繁琐，故暂关闭Capture
     		if(checkJMFClass != null){
 	        	if((ResourceUtil.isWindowsOS() == false)

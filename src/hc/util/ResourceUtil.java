@@ -101,12 +101,7 @@ public class ResourceUtil {
 	private static Class getStarterClass(){
 		if(isCheckStarter == false){
 			isCheckStarter = true;
-			try {
-				starterClass = Class.forName(StarterManager.CLASSNAME_STARTER_STARTER);
-			} catch (final ClassNotFoundException e) {
-	//			LogManager.err("Cant find Class : " + starterClass);
-	//			ExceptionReporter.printStackTrace(e);
-			}
+			starterClass = loadClass(StarterManager.CLASSNAME_STARTER_STARTER, false);
 		}
 		return starterClass;
 	}
@@ -1034,7 +1029,9 @@ public class ResourceUtil {
 	public static Properties loadThirdLibs() {
 		final Properties thirdlibs = new Properties();
 		final String url = RootServerConnector.AJAX_HTTPS_44X_URL_PREFIX + "thirdlib.php";
-		L.V = L.O ? false : LogManager.log("try get download online lib information from : " + url);
+		if(L.isInWorkshop){
+			LogManager.log("try get download online lib information from : " + url);
+		}
 		try{
 			loadFromURL(thirdlibs, url);
 		}catch (final Exception e) {
@@ -1685,5 +1682,24 @@ public class ResourceUtil {
 
 	public static boolean isDisableUIForTest() {
 		return PropertiesManager.isSimu();
+	}
+
+	public static Class loadClass(final String className, final boolean printWhenNoFound) {
+		try{
+			return Class.forName(className);
+		}catch (final Throwable e) {
+			try{
+				return ClassLoader.getSystemClassLoader().loadClass(className);
+			}catch (final Throwable ex) {
+				try {
+					return ResourceUtil.class.getClassLoader().loadClass(className);
+				} catch (final Throwable e1) {
+					if(printWhenNoFound){
+						e1.printStackTrace();//不建议用ExceptionReporter
+					}
+				}
+			}
+		}
+		return null;
 	}
 }

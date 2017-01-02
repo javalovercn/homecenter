@@ -80,6 +80,7 @@ public class PropertiesManager {
 	@Deprecated
 	public static final String p_ServerLocalIP = "ServerLocalIP";
 	
+	public static final String p_SetupVersion = "SetupVersion";
 	public static final String p_ResourceID = "ResourceID";
 	public static final String p_ResourcesMaybeUnusedNew = "ResourceMaybeUnusedNew";
 	public static final String p_ResourcesMaybeUnusedOld = "ResourceMaybeUnusedOld";
@@ -124,6 +125,7 @@ public class PropertiesManager {
 
 	public static final String p_ServerSecurityKeyMD5 = "ServerSecurityKeyMD5";
 	public static final String p_isNeedResetPwd = "isNeedResetPwd";
+	public static final String p_SecurityCipher = "SecurityCipher";
 	public static final String p_SecurityCheckAES = "SecurityCheckAES";
 	public static final String S_SecurityProperties = "SecurityProperties";//记录加密的属性
 
@@ -395,11 +397,15 @@ public class PropertiesManager {
 					|| key.equals(p_NewCertIsNotTransed)
 					|| key.equals(p_EnableTransNewCertKeyNow)
 					|| key.equals(p_HideIDForErrCert)
+					|| key.equals(p_SecurityCipher)
 					|| key.equals(p_isRememberDevCertPassword)){//注意：如果增加逻辑，请同步到remove中
 				ResourceUtil.checkHCStackTraceInclude(null, null);
 			}
 			
 			if(isSecurityData && value != null){
+				if(L.isInWorkshop){
+					LogManager.log("[SecurityDataProtector] try encode property : " + key);
+				}
 				value = SecurityDataProtector.encode(value);
 			}
 		}
@@ -491,6 +497,9 @@ public class PropertiesManager {
 				String sData = propertie.getProperty(p);//将未加密状态取出
 
 				if(sData != null){
+					if(L.isInWorkshop){
+						LogManager.log("[SecurityDataProtector] change property to encoded : " + p);
+					}
 					sData = SecurityDataProtector.encode(sData);
 					propertie.setProperty(p, sData);//加密后，存入
 				}
@@ -525,7 +534,8 @@ public class PropertiesManager {
 			isSecurityData = isSecurityProperties(key);
 			
 			if(isSecurityData 
-					|| key.startsWith(S_LINK_PROJECTS, 0)){
+					|| key.startsWith(S_LINK_PROJECTS, 0)
+					|| key.equals(p_SecurityCipher)){
 				ResourceUtil.checkHCStackTraceInclude(null, null);
 			}
 		}
@@ -534,6 +544,9 @@ public class PropertiesManager {
 		synchronized (gLock) {
 			storeData = propertie.getProperty(key);
 	    	if(isSecurityData && storeData != null){
+	    		if(L.isInWorkshop){
+	    			LogManager.log("[SecurityDataProtector] try decode property : " + key);
+	    		}
 	    		storeData = SecurityDataProtector.decode(storeData);
 	    	}
 		}

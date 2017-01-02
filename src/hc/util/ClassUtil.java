@@ -147,7 +147,7 @@ public class ClassUtil {
 	}
 
 	public static final Object construct(final String clazName, final Class[] paraTypes, final Object[] para, final boolean needModiAccessible) throws Exception{
-		final Class clas = Class.forName(clazName);
+		final Class clas = ResourceUtil.loadClass(clazName, true);
 		final Constructor c = clas.getDeclaredConstructor(paraTypes);
 		return c.newInstance(para);
 	}

@@ -54,7 +54,7 @@ public class SignHelper {
 	 */
 	public static SignItem generateKeys(final String x500Name, final String alias, final Date notBefore, final Date notAfter) {
 		try {
-			final KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA", BCProvider.bcProvider);
+			final KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA", BCProvider.getBCProvider());
 			gen.initialize(1024);
 			final KeyPair pair = gen.generateKeyPair();
 			
@@ -102,7 +102,7 @@ public class SignHelper {
 	        	final PEMParser pemParser = new PEMParser(new FileReader(file));
 	        	final Object object = pemParser.readObject();
 	        	final PEMDecryptorProvider decProv = new JcePEMDecryptorProviderBuilder().build("".toCharArray());//pass 3_homecenter.mobi.key PKCS#1
-	        	final JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(BCProvider.bcProvider);
+	        	final JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(BCProvider.getBCProvider());
 	        	KeyPair kp;
 	        	if (object instanceof PEMEncryptedKeyPair) {
 	        		//Encrypted key - we will use provided password

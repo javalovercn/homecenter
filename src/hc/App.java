@@ -320,6 +320,10 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		if(ResourceUtil.isLoggerOn() == false){
 			LogManager.INI_DEBUG_ON = true;
 		}
+		if(PropertiesManager.getValue(PropertiesManager.p_SetupVersion) == null){
+			PropertiesManager.setValue(PropertiesManager.p_SetupVersion, StarterManager.getHCVersion());
+		}
+		
 		if(isSimuFromArgs){
 			LogManager.log("init SecurityDataProtector...");
 		}

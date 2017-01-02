@@ -23,9 +23,10 @@ public abstract class CtrlResponse {
 		context = ProjectContext.getProjectContext();
 		coreSS = SimuMobile.checkSimuProjectContext(context)?SimuMobile.SIMU_NULL:(ServerUIAPIAgent.getProjResponserMaybeNull(context).getSessionContextFromCurrThread().j2seSocketSession);
 		target = (String)ThreadConfig.getValue(ThreadConfig.TARGET_URL, true);
+		screenID = ServerUIAPIAgent.buildScreenID(context.getProjectID(), target);
 	}
 	
-	final String target;
+	final String target, screenID;
 	private final ProjectContext context;
 	private final J2SESession coreSS;
 	
@@ -201,7 +202,7 @@ public abstract class CtrlResponse {
 		}
 		
 		final OutPortTranser opt = new OutPortTranser();
-		opt.out(target);
+		opt.out(screenID);
 		opt.out(CtrlKeySet.SEND_STATUS);
 		opt.out(attributes);
 		opt.out(status);

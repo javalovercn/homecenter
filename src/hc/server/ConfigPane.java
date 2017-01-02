@@ -1257,14 +1257,14 @@ public void run() {
 		boolean isModi = false;
 		for (int i = size - 1; i >= 0; i--) {
 			final String item = extLookFeel.getItem(i);
-			try{
-				final Class c = Class.forName(item);
+			final Class c = ResourceUtil.loadClass(item, true);
+			if(c != null){
 				if(list.contains(item)){
 					isModi = true;
 					continue;
 				}
 				list.add(item);
-			}catch (final Exception e) {
+			}else{
 				extLookFeel.delItem(item);
 				isModi = true;
 			}
@@ -1335,18 +1335,14 @@ public void run() {
 	        final String entryName = jarEntry.getName();
 			if(entryName.endsWith(classPre)){
 	        	final String className = entryName.substring(0, entryName.length() - cutLen).replace('/', '.');
-	        	try {
-					final Class testClass = Class.forName(className);
-					if(testClass.asSubclass(parentClass) != null){
-						if(testClass.isInterface() || testClass.isLocalClass() || testClass.isMemberClass()){
-							
-						}else{
-							list.add(className);
-						}
+				final Class testClass = ResourceUtil.loadClass(className, true);
+				if(testClass != null && testClass.asSubclass(parentClass) != null){
+					if(testClass.isInterface() || testClass.isLocalClass() || testClass.isMemberClass()){
+						
+					}else{
+						list.add(className);
 					}
-				} catch (final Throwable e) {
 				}
-	        	
 	        }
 	    }
 	    

@@ -9,11 +9,18 @@ import java.security.Security;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class BCProvider {
-	final static Provider bcProvider = new BouncyCastleProvider();
+	private static Provider bcProvider;
 	static boolean isAdded = false;
 
+	public static final String BC_PROVIDER = "BC";
+	
 	public final static Provider getBCProvider() {
 		ResourceUtil.checkHCStackTraceInclude(null, null);
+		synchronized (BCProvider.class) {
+			if(bcProvider == null){
+				bcProvider = new BouncyCastleProvider();
+			}
+		}
 		return bcProvider;
 	}
 
@@ -24,7 +31,7 @@ public class BCProvider {
 		if(BCProvider.isAdded == false){
 			BCProvider.isAdded = true;
 			CCoreUtil.checkAccess();
-			Security.addProvider(bcProvider);
+			Security.addProvider(getBCProvider());
 		}
 	}
 

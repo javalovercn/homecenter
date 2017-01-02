@@ -277,11 +277,7 @@ public class J2SEPlatformService implements PlatformService {
 	}
 	
 	public static Class getCaptureDeviceManagerClass() {
-		try{
-			return Class.forName("javax.media.CaptureDeviceManager");
-		}catch (final Throwable e) {
-		}
-		return null;
+		return ResourceUtil.loadClass("javax.media.CaptureDeviceManager", false);//注：关闭printNotFound
 	}
 
 	@Override

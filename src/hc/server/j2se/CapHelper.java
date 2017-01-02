@@ -3,6 +3,7 @@ package hc.server.j2se;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.IMsgNotifier;
 import hc.util.ClassUtil;
+import hc.util.ResourceUtil;
 
 public class CapHelper {
 	public static final String CapManager_CLASS = "hc.video.CapManager";
@@ -30,21 +31,18 @@ public class CapHelper {
 	}
 	
 	public static final Object buildCapNotifyInstance(){
-		try{
-			final Class c = Class.forName(CapNotify_CLASS);
-			return c.newInstance();
-		}catch (final Throwable e) {
-			ExceptionReporter.printStackTrace(e);
+		final Class c = ResourceUtil.loadClass(CapNotify_CLASS, true);//Class.forName
+		if(c != null){
+			try {
+				return c.newInstance();
+			} catch (final Throwable e) {
+				e.printStackTrace();
+			}
 		}
 		return null;
 	}
 	
 	public static final Class getCapManagerClass(){
-		try {
-			return Class.forName(CapManager_CLASS);
-		} catch (final ClassNotFoundException e) {
-			ExceptionReporter.printStackTrace(e);
-		}
-		return null;
+		return ResourceUtil.loadClass(CapManager_CLASS, true);//Class.forName
 	}
 }

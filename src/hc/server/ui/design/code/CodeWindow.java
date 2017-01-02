@@ -8,6 +8,7 @@ import hc.server.DefaultManager;
 import hc.server.ui.design.hpj.HCTextPane;
 import hc.server.ui.design.hpj.ScriptEditPanel;
 import hc.util.ClassUtil;
+import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 
 import java.awt.Color;
@@ -647,10 +648,9 @@ class DocTipTimer extends HCTimer{
 		synchronized (this) {//与hide互斥
 			if(isEnable()){//重新检查条件，必须的
 				if(type == CodeItem.TYPE_CLASS){
-					try {
-						final Class c = Class.forName(fieldOrMethodName);
+					final Class c = ResourceUtil.loadClass(fieldOrMethodName, true);
+					if(c != null){
 						DocHelper.processDoc(c, false);
-					} catch (final ClassNotFoundException e) {
 					}
 				}
 				docHelper.popDocTipWindow(item, classFrame, fmClass, fieldOrMethodName, type, layoutLimit);

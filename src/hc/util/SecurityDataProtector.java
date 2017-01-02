@@ -34,6 +34,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 public class SecurityDataProtector {
+	private static final String AES_CBC_ISO10126_PADDING = "AES/CBC/ISO10126Padding";
 	public static final String DEV_CERT_FILE_EXT = "pfx";
 	final static String fileDevCert = "dev_cert." + DEV_CERT_FILE_EXT;
 	final static String fileHcHardId = "hc_hard_id.txt";
@@ -62,18 +63,14 @@ public class SecurityDataProtector {
 		}
 	}
 	
-	private static void initAESChecker(){
-		if(PropertiesManager.propertie.getProperty(PropertiesManager.p_SecurityCheckAES) == null){//不用能getValue()
-			PropertiesManager.setValue(PropertiesManager.p_SecurityCheckAES, testAESSrc);
-		}
-	}
-
 	private static boolean checkAESChanged(){
 		final String checkResult = PropertiesManager.getValue(PropertiesManager.p_SecurityCheckAES);//将目录数据复制到其它应用环境时，可能由于算法实现差异，导致数据差错
 		
 		if(checkResult == null){
+			L.V = L.O ? false : LogManager.log("[SecurityDataProtector] SecurityCheckAES : null");
 		}else{
 			if(testAESSrc.equals(checkResult) == false){
+				L.V = L.O ? false : LogManager.log("[SecurityDataProtector] fail SecurityCheckAES : ***, expected : " + testAESSrc);
 				return true;
 			}
 		}
@@ -119,6 +116,7 @@ public class SecurityDataProtector {
 		while(keys.hasNext()){
 			final String key = keys.next();
 			PropertiesManager.setValue(key, oldValues.get(key));
+			L.V = L.O ? false : LogManager.log("[SecurityDataProtector] upgrading property : " + key);
 		}
 		
 		PropertiesManager.saveFile();
@@ -126,6 +124,7 @@ public class SecurityDataProtector {
 	
 	private static void startUpgrade(){
 		if(checkNeedUpgrade()){
+			L.V = L.O ? false : LogManager.log("[SecurityDataProtector] need upgrade.");
 			final Map<String, String> oldValues = getOldSecurityDataValues();
 			doUpgrade();
 			doUpgradeSaveBack(oldValues);
@@ -159,10 +158,9 @@ public class SecurityDataProtector {
 		final String serverKeyMD5 = getServerKeyMD5();
 		final String realMD5 = ResourceUtil.getMD5(new String(getServerKey()));
 		if(serverKeyMD5 == null){
-			PropertiesManager.setValue(PropertiesManager.p_ServerSecurityKeyMD5, realMD5);
+			initSecurityData(realMD5);
 			doUpgrade();
 			PropertiesManager.encodeSecurityDataFromTextMode();
-			initSecurityData();
 			L.V = L.O ? false : LogManager.log("encode security data from text mode!");
 		}else{
 			if(PropertiesManager.isTrue(PropertiesManager.p_isNeedResetPwd, false)//上次故障后，没有修改密码。
@@ -172,7 +170,6 @@ public class SecurityDataProtector {
 				PropertiesManager.setValue(PropertiesManager.p_isNeedResetPwd, true);
 				doUpgrade();
 				PropertiesManager.notifyErrorOnSecurityProperties();
-				initSecurityData();
 				PropertiesManager.saveFile();
 				
 				new Thread(){
@@ -194,7 +191,7 @@ public class SecurityDataProtector {
 						final ActionListener listener = new HCActionListener(new Runnable() {
 							@Override
 							public void run() {
-								PropertiesManager.setValue(PropertiesManager.p_ServerSecurityKeyMD5, realMD5);
+								initSecurityData(realMD5);
 								ResourceUtil.generateCertForNullOrError();//需要系统初始化完成，所以不能置入notifyErrorOnSecurityProperties
 								
 								App.showInputPWDDialog(uuid, "", "", false);
@@ -213,10 +210,10 @@ public class SecurityDataProtector {
 					}
 				}.start();
 			}else{
+				L.V = L.O ? false : LogManager.log("[SecurityDataProtector] pass check!");
 				//加密环境检查正常
 				startUpgrade();
 				PropertiesManager.encodeSecurityDataFromTextMode();//可能后期扩展
-				initSecurityData();
 			}
 		}
 		}//end gLock
@@ -226,6 +223,10 @@ public class SecurityDataProtector {
 //		final String source = "Hello World!";
 //		System.out.println(decode(encode(source)));
 //	}
+	
+	private static String getCipherName(){
+		return PropertiesManager.getValue(PropertiesManager.p_SecurityCipher, AES_CBC_ISO10126_PADDING);
+	}
 	
 	static String encode(final String value){
 		if(isHCServerAndNotRelayServer == false){
@@ -237,25 +238,30 @@ public class SecurityDataProtector {
 			return value;
 		}
 		
-		final byte[] privateBS = getServerKey();
-		
 		try{
-			final KeyGenerator kgen = KeyGenerator.getInstance("AES");  
-			final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG" );  
-	        secureRandom.setSeed(privateBS);
-	        kgen.init(128, secureRandom);  
-	  
-	        final Cipher cipher = Cipher.getInstance("AES/CBC/ISO10126Padding");  
-	        cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(kgen.generateKey().getEncoded(), "AES"), buildIV(privateBS));  
-	          
-	        final byte[] doFinal = cipher.doFinal(ByteUtil.getBytes(value, IConstant.UTF_8));
-			final String out = ByteUtil.toHex(doFinal);
-			return out;
+			return encodeByCipher(value, getCipherName());
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
 		
 		return value;
+	}
+
+	private static String encodeByCipher(final String value, final String cipherName) throws Throwable {
+		final byte[] privateBS = getServerKey();
+		
+		final KeyGenerator kgen = KeyGenerator.getInstance("AES");  
+		final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG" );  
+        secureRandom.setSeed(privateBS);
+        kgen.init(128, secureRandom);  
+  
+        final Cipher cipher = Cipher.getInstance(cipherName);  
+        final SecretKeySpec secretKeySpec = new SecretKeySpec(kgen.generateKey().getEncoded(), "AES");
+		cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, buildIV(privateBS), secureRandom);  
+          
+        final byte[] doFinal = cipher.doFinal(ByteUtil.getBytes(value, IConstant.UTF_8));
+		final String out = ByteUtil.toHex(doFinal);
+		return out;
 	}
 
 	static String decode(final String data){
@@ -268,25 +274,31 @@ public class SecurityDataProtector {
 			return data;
 		}
 		
-		final byte[] privateBS = getServerKey();
-		final byte[] src = ByteUtil.toBytesFromHexStr(data);
-		
+		L.V = L.O ? false : LogManager.log("[SecurityDataProtector] decodeing...");
 		try{
-			final KeyGenerator kgen = KeyGenerator.getInstance("AES");  
-			final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG" );  
-	        secureRandom.setSeed(privateBS);
-	        kgen.init(128, secureRandom);  
-	          
-	        final Cipher cipher = Cipher.getInstance("AES/CBC/ISO10126Padding");  
-	        cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(kgen.generateKey().getEncoded(), "AES"), buildIV(privateBS));  
-	        final byte[] decryptBytes = cipher.doFinal(src);  
-	          
-	        return new String(decryptBytes, IConstant.UTF_8);
+			return decodeByCipher(data, getCipherName());
 		}catch (final Throwable e) {
 			e.printStackTrace();//可能环境变化，导致解密失败
 		}
 		
 		return data;
+	}
+
+	private static String decodeByCipher(final String data, final String cipherName) throws Throwable {
+		final byte[] privateBS = getServerKey();
+		final byte[] src = ByteUtil.toBytesFromHexStr(data);
+		
+		final KeyGenerator kgen = KeyGenerator.getInstance("AES");  
+		final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG" );  
+        secureRandom.setSeed(privateBS);
+        kgen.init(128, secureRandom);  
+          
+        final Cipher cipher = Cipher.getInstance(cipherName);
+        final SecretKeySpec secretKeySpec = new SecretKeySpec(kgen.generateKey().getEncoded(), "AES");
+		cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, buildIV(privateBS), secureRandom);  
+        final byte[] decryptBytes = cipher.doFinal(src);  
+          
+        return new String(decryptBytes, IConstant.UTF_8);
 	}
 
 	private static IvParameterSpec buildIV(final byte[] privateBS) {
@@ -569,7 +581,33 @@ public class SecurityDataProtector {
 		return ByteUtil.getBytes(ResourceUtil.getMD5(hardID), IConstant.UTF_8);
 	}
 
-	private static void initSecurityData() {
-		initAESChecker();
+	private static void initSecurityData(final String realMD5) {
+		PropertiesManager.setValue(PropertiesManager.p_ServerSecurityKeyMD5, realMD5);
+		
+		PropertiesManager.remove(PropertiesManager.p_SecurityCipher);
+
+		final String[] ciphers = {AES_CBC_ISO10126_PADDING, "AES/CBC/PKCS7Padding", "AES/CBC/PKCS5Padding", 
+				"AES/CFB/NoPadding", "AES"};
+		final String testSrc = "Hello,My Server";//15字符，不应为16
+		
+		for (int i = 0; i < ciphers.length; i++) {
+			final String cipherName = ciphers[i];
+			try{
+				L.V = L.O ? false : LogManager.log("[SecurityDataProtector] try cipher : " + cipherName);
+				final String out = decodeByCipher(encodeByCipher(testSrc, cipherName), cipherName);
+				if(out.equals(testSrc)){
+					PropertiesManager.setValue(PropertiesManager.p_SecurityCipher, cipherName);
+					L.V = L.O ? false : LogManager.log("[SecurityDataProtector] cipher : " + cipherName + " OK!");
+					break;
+				}
+			}catch (final Throwable e) {
+				e.printStackTrace();
+			}
+		}
+		
+		if(PropertiesManager.propertie.getProperty(PropertiesManager.p_SecurityCheckAES) == null){//不用能getValue()
+			PropertiesManager.setValue(PropertiesManager.p_SecurityCheckAES, testAESSrc);
+		}
 	}
+
 }
