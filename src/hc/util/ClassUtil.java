@@ -232,9 +232,9 @@ public class ClassUtil {
 			final Thread t = it.next();
 			final String threadName = t.getName();
 			final boolean isDaemon = t.isDaemon();
-			if((name == null || name.equals(threadName)) && isDaemon == false){
+			if(t != null && (name == null || name.equals(threadName)) && isDaemon == false){
 				sb.append("--------------- Thread Name : ");
-				sb.append(t.toString());
+				sb.append(t.getName());
 //				sb.append("@:");
 //				sb.append(Integer.toHexString(t.hashCode()));//非final，
 				sb.append(", isDaemon : ");

@@ -639,7 +639,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				if(L.isInWorkshop){
 					L.V = L.O ? false : LogManager.log("BIZ_START_WATCH_KEEPALIVE keepalive : false");
 				}
-				coreSS.eventConditionWatcher.addWatcher(new IWatcher() {
+				coreSS.eventCenterDriver.addWatcher(new IWatcher() {
 					final long startMS = System.currentTimeMillis();
 					@Override
 					public boolean watch() {
@@ -1134,7 +1134,7 @@ public class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	}
 
 	static void doLineOffProcess(final J2SESession coreSS, final boolean isClientReq) {
-		coreSS.eventConditionWatcher.shutdown();
+		coreSS.eventCenterDriver.notifyShutdown();//考虑到用户应用的复杂度，不回收
 		
 		coreSS.streamBuilder.notifyExceptionForReleaseStreamResources(new IOException("System Line Off Exception"));
 		

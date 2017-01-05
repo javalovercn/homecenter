@@ -284,10 +284,10 @@ public class ServerUIUtil {
 		if(isPrompt){
 			HttpUtil.notifyStopServer(isQuery, parent);
 			
-			J2SESessionManager.stopAllSession(true, true, false);
+			J2SESessionManager.stopAllSession(true, true, false);//触发EVENT_SYS_MOBILE_LOGOUT，确保在Event shutdown之前
 		}
 
-		ServerUIUtil.stop();		
+		ServerUIUtil.stop();//event shutdown 需要被确保执行，所以提前
 		
 		return isPrompt;
 	}

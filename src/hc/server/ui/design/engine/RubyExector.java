@@ -1,6 +1,5 @@
 package hc.server.ui.design.engine;
 
-import hc.core.BaseWatcher;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
@@ -13,7 +12,6 @@ import hc.server.CallContext;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.J2SESession;
-import hc.server.ui.design.ProjResponser;
 import hc.util.ResourceUtil;
 import hc.util.ThreadConfig;
 
@@ -202,17 +200,5 @@ public class RubyExector {
 		ServerUIAPIAgent.sendMessageViaCoreSS(coreSSS, (String)ResourceUtil.get(IContext.ERROR), msg, ProjectContext.MESSAGE_ERROR, 
 				null, 0);
 	}
-
-	public static void execInSequenceForSession(final J2SESession coreSS,
-			final ProjResponser resp, final ReturnableRunnable runnable) {
-		resp.getMobileSession(coreSS).recycleRes.sequenceWatcher.addWatcher(new BaseWatcher() {
-			@Override
-			public boolean watch() {
-				ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, resp, runnable);
-				return true;
-			}
-		});
-	}
-	
 	
 }

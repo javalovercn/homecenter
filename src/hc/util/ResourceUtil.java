@@ -106,6 +106,23 @@ public class ResourceUtil {
 		return starterClass;
 	}
 	
+	public static byte[] buildFixLenBS(final byte[] srcBS, final int ivLen) {
+		if(srcBS.length >= ivLen){
+			final byte[] newIV = new byte[ivLen];
+			System.arraycopy(srcBS, 0, newIV, 0, ivLen);
+			return newIV;
+		}else{
+			final byte[] newIV = new byte[ivLen];
+			int startIdx = 0;
+			while(startIdx < ivLen){
+				final int leftMax = ivLen - startIdx;
+				System.arraycopy(srcBS, 0, newIV, startIdx, leftMax<srcBS.length?leftMax:srcBS.length);
+				startIdx += srcBS.length;
+			}
+			return newIV;
+		}
+	}
+	
 	public static void buildMenu(){
 		TrayMenuUtil.buildMenu(UILang.getUsedLocale());
 	}

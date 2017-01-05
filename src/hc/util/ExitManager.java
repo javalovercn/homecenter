@@ -12,12 +12,12 @@ import hc.core.sip.SIPManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPool;
-import hc.server.TrayMenuUtil;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
 import hc.server.ProcessingWindowManager;
 import hc.server.ScreenServer;
 import hc.server.SingleJFrame;
+import hc.server.TrayMenuUtil;
 import hc.server.rms.RMSLastAccessTimeManager;
 import hc.server.ui.J2SESessionManager;
 import hc.server.ui.ServerUIUtil;
@@ -28,7 +28,7 @@ import hc.server.util.StarterParameter;
 public class ExitManager {
 	public static void startExitSystem(){
 		ResourceUtil.checkHCStackTraceInclude(null, null);
-		
+
 		J2SESessionManager.notifyReadyShutdown();
 		
 		//直接采用主线程，会导致退出提示信息会延时显示，效果较差
@@ -50,6 +50,9 @@ public class ExitManager {
 		SingleJFrame.disposeAll();
 
 		L.V = L.O ? false : LogManager.log("Start ExitManager");
+//		SessionManager.notifyShutdown();
+//		ServerUIUtil.stop();
+		ServerUIUtil.promptAndStop(false, null);
 		
 		RMSLastAccessTimeManager.checkIdleAndRemove();
 		RMSLastAccessTimeManager.save();
@@ -61,12 +64,9 @@ public class ExitManager {
 		
 		J2SESessionManager.stopAllSession(true, false, false);//注意：是false
 		ExitManager.startForceExitThread();
-		SessionManager.notifyShutdown();		
 		
-    	exit();	
-    	
+		exit();	
 		LogManager.exit();
-		ServerUIUtil.stop();
 
 		ThreadPool.shutdown();
     	SessionManager.shutdown();

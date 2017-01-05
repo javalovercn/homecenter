@@ -174,7 +174,7 @@ public abstract class MCanvasMenu extends MUIView {
 				ServerUIAPIAgent.runInSessionThreadPool(coreSS, resp, new Runnable() {
 					@Override
 					public void run() {
-						final LongTimeSystemEventListenerException exception = new LongTimeSystemEventListenerException();
+						final LongTimeSystemEventListenerException exception = new LongTimeSystemEventListenerException("long time task in SystemEventListener, maybe you need ProjectContext.run().");
 						ExceptionReporter.printStackTrace(exception, "", LongTimeSystemEventListenerException.class.getName(), ExceptionReporter.INVOKE_NORMAL);
 					}
 				});

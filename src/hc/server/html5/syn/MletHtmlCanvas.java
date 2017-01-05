@@ -25,7 +25,6 @@ import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SystemHTMLMlet;
 import hc.server.ui.design.code.StyleManager;
-import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.hpj.HCjar;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
@@ -297,14 +296,10 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 			}
 		}
 		
-		final byte[] byteCopyBS = ByteUtil.byteArrayCacher.getFree(len);
-		System.arraycopy(bs, offset, byteCopyBS, 0, len);
-		
-		RubyExector.execInSequenceForSession(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new ReturnableRunnable() {//事件的先后性保证
+		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new ReturnableRunnable() {//事件的先后性保证
 			@Override
 			public Object run() {
-				actionJSInputInUser(byteCopyBS, 0, len);
-				ByteUtil.byteArrayCacher.cycle(byteCopyBS);
+				actionJSInputInUser(bs, offset, len);
 				return null;
 			}
 		});

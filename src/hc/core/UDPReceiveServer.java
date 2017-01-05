@@ -46,7 +46,7 @@ public abstract class UDPReceiveServer extends Thread{
             	
 				final EventBack eb = ebCacher.getFreeEB();
 				eb.setBSAndDatalen(coreSS, dp, null, 0);
-				coreSS.eventConditionWatcher.addWatcher(eb);
+				coreSS.eventCenterDriver.addWatcher(eb);
             }catch (Exception e) {
 				cacher.cycle(dp);
 

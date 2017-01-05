@@ -279,7 +279,7 @@ public class MobiMenu {
 				}
 			});
 		}else{
-			coreSS.eventConditionWatcher.addWatcher(watcher);
+			coreSS.eventCenterDriver.addWatcher(watcher);
 		}
 	}
 	

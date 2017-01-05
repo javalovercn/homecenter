@@ -699,7 +699,7 @@ public class HttpUtil {
 		
 		//等待数据包完全发送出去
 		try{
-			Thread.sleep(1000);
+			Thread.sleep(500);
 		}catch (final Exception e) {
 		}
 	}

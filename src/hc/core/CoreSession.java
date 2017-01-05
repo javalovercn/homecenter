@@ -7,6 +7,7 @@ import hc.core.sip.ISIPContext;
 import hc.core.util.CCoreUtil;
 import hc.core.util.HCURL;
 import hc.core.util.IHCURLAction;
+import hc.core.util.ThreadPriorityManager;
 import hc.core.util.io.StreamBuilder;
 
 public class CoreSession {
@@ -39,7 +40,7 @@ public class CoreSession {
 	public IPAndPort relayIpPort = new IPAndPort();
 	public long lastLineOff = 0;
 	public boolean isStartLineOffProcess;
-	public final HCConditionWatcher eventConditionWatcher = new HCConditionWatcher("EventBackTimer");
+	public final HCConditionWatcher eventCenterDriver = new HCConditionWatcher("EventCenterDriver", ThreadPriorityManager.LOWEST_PRIORITY);
 	public boolean isInitialCloseReceiveForJ2ME = false;
 	public byte[] mobileUidBSForCache;
 	public final byte[] codeBSforMobileSave = new byte[CacheManager.CODE_LEN];

@@ -4,6 +4,8 @@ public class JSCore {
 
 	public static final byte[] actionExt = "actionExt".getBytes();
 
+	public static final byte[] back = "back".getBytes();
+	
 	public static final byte[] clickJButton = "clickJButton".getBytes();
 	public static final byte[] selectSlider = "selectSlider".getBytes();
 	public static final byte[] selectComboBox = "selectComboBox".getBytes();

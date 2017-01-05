@@ -227,7 +227,7 @@ public class ReceiveServer implements Runnable{
 				}else{
 					final EventBack eb = ebCacher.getFreeEB();
 					eb.setBSAndDatalen(coreSocketSession, null, bs, dataLen);
-					coreSocketSession.eventConditionWatcher.addWatcher(eb);
+					coreSocketSession.eventCenterDriver.addWatcher(eb);
 				}
 //				L.V = L.O ? false : LogManager.log("Finished Receive Biz Action");
             }catch (final Exception e) {

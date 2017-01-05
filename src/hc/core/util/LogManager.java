@@ -63,6 +63,15 @@ public class LogManager {
 		}
 	}
 	
+	public static boolean errForShop(String msg){
+		if(log != null){
+			log.err(msg);
+		}else{
+			System.err.println(msg);
+		}
+		return false;
+	}
+	
 	public static void errToLog(String msg){
 		if(log != null){
 			log.err(msg);

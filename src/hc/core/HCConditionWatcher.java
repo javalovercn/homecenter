@@ -6,14 +6,10 @@ import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
 
 public class HCConditionWatcher {
-	boolean isShutdown;
+	private boolean isNotifyShutdown;
 	
-	public final void shutdown(){
-		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("shutdown HCConditionWatcher [" + watcherTimer.getName() + "].");
-		}
-		isShutdown = true;
-		HCTimer.remove(watcherTimer);
+	public final void notifyShutdown(){
+		isNotifyShutdown = true;
 	}
 	
 	private final String timeName;
@@ -23,10 +19,14 @@ public class HCConditionWatcher {
 	private final boolean isInWorkshop;
 	
 	public HCConditionWatcher(final String timeName){
-		this(timeName, false, ThreadPriorityManager.LOWEST_PRIORITY);
+		this(timeName, ThreadPriorityManager.LOWEST_PRIORITY);
 	}
 	
-	public HCConditionWatcher(final String timeName, final boolean isNewThread, final int newThreadPrority){
+	public HCConditionWatcher(final String timeName, final int newThreadPrority){
+		this(timeName, true, newThreadPrority);
+	}
+	
+	private HCConditionWatcher(final String timeName, final boolean isNewThread, final int newThreadPrority){
 		this.timeName = timeName;
 		isInWorkshop = L.isInWorkshop;
 		
@@ -39,10 +39,6 @@ public class HCConditionWatcher {
 //			}
 			
 			public final void doBiz() {
-				if(isShutdown){
-					return;
-				}
-				
 				IWatcher temp;
 				boolean isAddUnUsed = false;
 				do{
@@ -50,7 +46,13 @@ public class HCConditionWatcher {
 						temp = (IWatcher)watchers.getFirst();//注意：必须先入先处理
 					}
 					
-					if(temp == null || isShutdown){
+					if(temp == null){
+						if(isNotifyShutdown){//直到所有任务完成后，移除自己
+							if(L.isInWorkshop){
+								L.V = L.O ? false : LogManager.log("shutdown HCConditionWatcher [" + watcherTimer.getName() + "].");
+							}
+							HCTimer.remove(watcherTimer);
+						}
 						break;
 					}
 					
@@ -158,9 +160,9 @@ public class HCConditionWatcher {
 	 * @param watcher
 	 */
 	public final void addWatcher(final IWatcher watcher){
-		if(isShutdown){
-			return;
-		}
+//		if(isNotifyShutdown){//允许继续添加
+//			return;
+//		}
 		
 		if(isInWorkshop){
 			L.V = L.O ? false : LogManager.log("[" + timeName + "] add watcher : " + watcher.hashCode());

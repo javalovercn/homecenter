@@ -126,6 +126,8 @@ public class PropertiesManager {
 	public static final String p_ServerSecurityKeyMD5 = "ServerSecurityKeyMD5";
 	public static final String p_isNeedResetPwd = "isNeedResetPwd";
 	public static final String p_SecurityCipher = "SecurityCipher";
+	public static final String p_SecuritySDPVersion = "SecuritySDPVersion";
+	public static final String p_SecuritySecretKeySize = "SecuritySecretKeySize";
 	public static final String p_SecurityCheckAES = "SecurityCheckAES";
 	public static final String S_SecurityProperties = "SecurityProperties";//记录加密的属性
 
@@ -398,6 +400,8 @@ public class PropertiesManager {
 					|| key.equals(p_EnableTransNewCertKeyNow)
 					|| key.equals(p_HideIDForErrCert)
 					|| key.equals(p_SecurityCipher)
+					|| key.equals(p_SecuritySDPVersion)
+					|| key.equals(p_SecuritySecretKeySize)
 					|| key.equals(p_isRememberDevCertPassword)){//注意：如果增加逻辑，请同步到remove中
 				ResourceUtil.checkHCStackTraceInclude(null, null);
 			}
@@ -535,7 +539,8 @@ public class PropertiesManager {
 			
 			if(isSecurityData 
 					|| key.startsWith(S_LINK_PROJECTS, 0)
-					|| key.equals(p_SecurityCipher)){
+					|| key.equals(p_SecurityCipher)
+					|| key.equals(p_SecuritySDPVersion)){
 				ResourceUtil.checkHCStackTraceInclude(null, null);
 			}
 		}

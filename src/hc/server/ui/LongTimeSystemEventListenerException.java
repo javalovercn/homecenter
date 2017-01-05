@@ -7,5 +7,7 @@ package hc.server.ui;
  *
  */
 public class LongTimeSystemEventListenerException extends Exception {
-
+	public LongTimeSystemEventListenerException(final String desc){
+		super(desc);
+	}
 }

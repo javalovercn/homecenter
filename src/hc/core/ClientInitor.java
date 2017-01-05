@@ -122,7 +122,7 @@ public class ClientInitor {
 					};
 					
 					watcher.setPara(send);
-					coreSS.eventConditionWatcher.addWatcher(watcher);
+					coreSS.eventCenterDriver.addWatcher(watcher);
 					
 					if(IConstant.serverSide){
 						//更新RelayIP

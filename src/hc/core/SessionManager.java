@@ -82,18 +82,6 @@ public abstract class SessionManager {
 		}
 	}
 	
-	public final static void notifyShutdown(){
-		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
-		for (int i = 0; i < coreSSS.length; i++) {
-			final CoreSession coreSS = coreSSS[i];
-			try{
-				ContextManager.notifyShutdown(coreSS.context);
-			}catch (Throwable e) {
-				e.printStackTrace();
-			}
-		}
-	}
-	
 	public final static void shutdown(){
 		if(sessionListThreadSafe.size() == 1){
 			if(L.isInWorkshop){

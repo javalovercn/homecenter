@@ -305,6 +305,11 @@ public class ProjectContext {
 	 * <STRONG>Important : </STRONG>
 	 * <BR>socket/connect permissions is required even if the domain of external URL is the same with the domain of upgrade HAR project URL.
 	 * <BR><BR>
+	 * More about back :<BR>
+	 * 1. <code>onclick='javascript:window.hcserver.back();'</code><BR>
+	 * 2. <code>history.back = function(){window.hcserver.back();};</code><BR>
+	 * 3. there is always a float button on browser for user back.
+	 * <BR><BR>
 	 * <STRONG>Warning : </STRONG>
 	 * <BR>1. the external URL may be sniffed when in moving (exclude HTTPS).
 	 * <BR>2. iOS 9 and above must use secure URLs.
@@ -314,6 +319,7 @@ public class ProjectContext {
 	 * @since 7.30
 	 */
 	public final void goExternalURLWhenInSession(final String url) {
+		//注意:ios的实现，请同步webView evaluateJavaScript back
 		goExternalURLWhenInSession(url, false);
 	}
 	
@@ -921,9 +927,11 @@ public class ProjectContext {
 	/**
 	 * this method is invoked when current thread is in session level, 
 	 * <BR>
-	 * but the <code>runnable</code> should be executed in project level.
+	 * and the <code>runnable</code> should be executed in project level.
 	 * <BR><BR>
-	 * there is NOT API for task to be executed in session level when in project level.
+	 * Note : <BR>
+	 * 1. please put long time task and network operation in here,<BR>
+	 * 2. there is NOT API for task to be executed in session level when in project level.
 	 * @param runnable
 	 * @see #run(Runnable)
 	 * @see #isCurrentThreadInSessionLevel()
@@ -965,7 +973,8 @@ public class ProjectContext {
 	 * <BR>
 	 * in project level, the runnable task should be finished after
 	 * {@link #EVENT_SYS_PROJ_SHUTDOWN}.
-	 * 
+	 * <BR><BR>
+	 * Note : please put long time task and network operation in here.<BR>
 	 * @param runnable
 	 * @see #runAndWait(Runnable)
 	 * @see #runInProjectLevel(Runnable)

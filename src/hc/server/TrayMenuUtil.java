@@ -215,7 +215,7 @@ public class TrayMenuUtil {
 			
 			transNewCertKey(j2seContext);
 			
-			coreSS.eventConditionWatcher.addWatcher(new IWatcher() {
+			coreSS.eventCenterDriver.addWatcher(new IWatcher() {
 				long curr = System.currentTimeMillis();
 				@Override
 				public boolean watch() {
@@ -243,7 +243,7 @@ public class TrayMenuUtil {
 				public void cancel() {
 				}
 			});
-			coreSS.eventConditionWatcher.addWatcher(new IWatcher(){
+			coreSS.eventCenterDriver.addWatcher(new IWatcher(){
 				long curr = System.currentTimeMillis();
 				
 				@Override
@@ -490,7 +490,7 @@ public class TrayMenuUtil {
 						if(coreSSS != null && coreSSS.length > 0){
 							for (int i = 0; i < coreSSS.length; i++) {
 								final J2SESession j2seCoreSS = coreSSS[i];
-								j2seCoreSS.eventConditionWatcher.addWatcher(new LineonAndServingExecWatcher(j2seCoreSS, buildNewCertKey.getText()){
+								j2seCoreSS.eventCenterDriver.addWatcher(new LineonAndServingExecWatcher(j2seCoreSS, buildNewCertKey.getText()){
 									@Override
 									public final void doBiz() {
 										transNewCertification(j2seCoreSS, window);

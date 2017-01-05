@@ -334,8 +334,39 @@ public class ServerUIAPIAgent {
 		mlet.__context = ctx;
 	}
 	
+	/**
+	 * 需要占用project优先位，但是专为Session任务，确保Session任务完成，才能进行相关后续project任务。
+	 * @param coreSS
+	 * @param resp
+	 * @param runnable
+	 */
+	public static void addSequenceWatcherInProjContextForSessionFirst(final J2SESession coreSS,
+			final ProjResponser resp, final ReturnableRunnable runnable) {
+		addSequenceWatcherInProjContext(resp.context, new BaseWatcher() {
+			@Override
+			public boolean watch() {
+				ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, resp, runnable);
+				return true;
+			}
+		});
+	}
+	
 	public static void addSequenceWatcherInProjContext(final ProjectContext ctx, final BaseWatcher watcher){
 		ctx.recycleRes.sequenceWatcher.addWatcher(watcher);
+	}
+	
+	/**
+	 * 停用，被addSequenceWatcherInProjContextForSessionFirst代替
+	 */
+	public static void execInSequenceForSession(final J2SESession coreSS,
+			final ProjResponser resp, final ReturnableRunnable runnable) {
+		resp.getMobileSession(coreSS).recycleRes.sequenceWatcher.addWatcher(new BaseWatcher() {
+			@Override
+			public boolean watch() {
+				ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, resp, runnable);
+				return true;
+			}
+		});
 	}
 	
 	public static void runInProjContext(final ProjectContext ctx, final Runnable run){

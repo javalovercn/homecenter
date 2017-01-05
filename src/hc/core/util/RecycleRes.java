@@ -1,29 +1,29 @@
 package hc.core.util;
 
-import hc.core.SequenceConditionWatcher;
+import hc.core.HCConditionWatcher;
 
 public class RecycleRes {
 	public final ThreadPool threadPool;
-	public final SequenceConditionWatcher sequenceWatcher;
+	public final HCConditionWatcher sequenceWatcher;
 	
 	public RecycleRes(final String name, final ThreadPool pool) {
 		this(name, pool, null);
 	}
 	
-	public RecycleRes(final String name, final ThreadPool pool, final SequenceConditionWatcher sequenceWatcher) {
+	public RecycleRes(final String name, final ThreadPool pool, final HCConditionWatcher sequenceWatcher) {
 		this.threadPool = pool;
 		if(sequenceWatcher == null){
-			this.sequenceWatcher = new SequenceConditionWatcher(name + "SequenceConditionWatcher", ThreadPriorityManager.SEQUENCE_SCRIPT_PRIORITY);
+			this.sequenceWatcher = new HCConditionWatcher(name + "SequenceConditionWatcher", ThreadPriorityManager.SEQUENCE_SCRIPT_PRIORITY);
 		}else{
 			this.sequenceWatcher = sequenceWatcher;
 		}
 	}
 
-	private static SequenceConditionWatcher sequenceTempWatcher;
+	private static HCConditionWatcher sequenceTempWatcher;
 	
-	public static SequenceConditionWatcher getSequenceTempWatcher(){
+	public static HCConditionWatcher getSequenceTempWatcher(){
 		if(sequenceTempWatcher == null){
-			sequenceTempWatcher = new SequenceConditionWatcher("temp" + "SequenceConditionWatcher", ThreadPriorityManager.SEQUENCE_SCRIPT_PRIORITY);
+			sequenceTempWatcher = new HCConditionWatcher("Temp" + "SequenceConditionWatcher", ThreadPriorityManager.SEQUENCE_SCRIPT_PRIORITY);
 		}
 		return sequenceTempWatcher;
 	}

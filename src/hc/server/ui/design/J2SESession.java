@@ -244,6 +244,7 @@ public class J2SESession extends CoreSession{
 						//从其它form中搜寻
 						screenCap = ScreenServer.searchScreen(j2seSession, bs, offset, screenIDLen);
 						if(screenCap == null){
+							L.V = L.WShop ? false : LogManager.errForShop("Not found screen ID : " + new String(bs, offset, screenIDLen));
 							LogManager.warning("target may be closed, skip event input.");
 							return true;
 						}
@@ -302,7 +303,7 @@ public class J2SESession extends CoreSession{
 					}catch (final NoSuchElementException ex) {
 					}
 				}
-				
+				L.V = L.WShop ? false : LogManager.errForShop("Not found screen ID : " + new String(bs, screenIDIndex, screenIDlen));
 				LogManager.warning("form/dialog/screen may be closed, skip javascript event input.");
 				return true;
 			}

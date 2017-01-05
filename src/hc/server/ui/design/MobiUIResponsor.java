@@ -6,7 +6,9 @@ import hc.core.BaseWatcher;
 import hc.core.ConfigManager;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
+import hc.core.GlobalConditionWatcher;
 import hc.core.IConstant;
+import hc.core.IWatcher;
 import hc.core.L;
 import hc.core.cache.CacheManager;
 import hc.core.util.ExceptionReporter;
@@ -28,7 +30,6 @@ import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SessionMobiMenu;
 import hc.server.ui.design.engine.HCJRubyEngine;
-import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.SystemEventListener;
 import hc.util.BaseResponsor;
@@ -251,19 +252,36 @@ public class MobiUIResponsor extends BaseResponsor {
 			return;
 		}
 
-		ContextManager.getThreadPool().run(new Runnable() {
+		GlobalConditionWatcher.addWatcher(new IWatcher() {
+			final long startMS = System.currentTimeMillis();
+			
 			@Override
-			public void run() {
-				try{
-					Thread.sleep(seconds * 1000);//可能用户需要执行高优先级任务
-				}catch (final Exception e) {
+			public boolean watch() {
+				if(System.currentTimeMillis() - startMS > seconds * 1000){
+					L.V = L.O ? false : LogManager.log("pre load and compile JRuby scripts to improve performance.");
+					L.V = L.O ? false : LogManager.log("it maybe occupy some memory and CPU resources to pre-load.");
+					try{
+						for (int i = 0; i < responserSize; i++) {
+							responsors[i].preLoadJRubyScripts();
+						}
+					}catch (final Throwable e) {
+					}
+					return true;
 				}
-				
-				L.V = L.O ? false : LogManager.log("pre load and compile JRuby scripts to improve performance.");
-				L.V = L.O ? false : LogManager.log("it maybe occupy some memory and CPU resources to pre-load.");
-				for (int i = 0; i < responserSize; i++) {
-					responsors[i].preLoadJRubyScripts();
-				}
+				return false;
+			}
+			
+			@Override
+			public void setPara(final Object p) {
+			}
+			
+			@Override
+			public boolean isCancelable() {
+				return false;
+			}
+			
+			@Override
+			public void cancel() {
 			}
 		});
 	}
@@ -641,7 +659,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		
 		//NOT block main thread
 		if(coreSS != null){
-			RubyExector.execInSequenceForSession(coreSS, resp, runnable);
+			ServerUIAPIAgent.addSequenceWatcherInProjContextForSessionFirst(coreSS, resp, runnable);
 		}else{
 			ServerUIAPIAgent.addSequenceWatcherInProjContext(ctx, new BaseWatcher() {
 				@Override

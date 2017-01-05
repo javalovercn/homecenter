@@ -521,23 +521,24 @@ public class ProjResponser {
 				final ReturnableRunnable runnable = new ReturnableRunnable() {
 					@Override
 					public Object run() {
-						final String scriptName = event.toString();
+						final String eventName = event.toString();
 						
-//						System.out.println("OnEvent : " + event + ", script : " + script + ", scriptcontain : " + hcje.container);
+						L.V = L.WShop ? false : LogManager.log("start OnEvent : " + event + " for project : " + context.getProjectID());
 						final CallContext callCtx = CallContext.getFree();
-						RubyExector.runAndWaitInProjectOrSessionPool(coreSS, callCtx, script, scriptName, null, hcje, context);//考虑到PROJ_SHUTDOWN，所以改为阻塞模式
+						RubyExector.runAndWaitInProjectOrSessionPool(coreSS, callCtx, script, eventName, null, hcje, context);//考虑到PROJ_SHUTDOWN，所以改为阻塞模式
 						if(callCtx.isError){
 							if(mobiResp.ec != null){
 								mobiResp.ec.setThrowable(new HCJRubyException(callCtx));
 							}
 						}
 						CallContext.cycle(callCtx);
+						L.V = L.WShop ? false : LogManager.log("done OnEvent : " + event + " for project : " + context.getProjectID());
 						return null;
 					}
 				};
 				
 				if(coreSS != null){
-					RubyExector.execInSequenceForSession(coreSS, this, runnable);
+					ServerUIAPIAgent.addSequenceWatcherInProjContextForSessionFirst(coreSS, this, runnable);
 				}else{
 					ServerUIAPIAgent.addSequenceWatcherInProjContext(context, new BaseWatcher() {
 						@Override
@@ -677,23 +678,10 @@ public class ProjResponser {
 						final Map<String, String> mapRuby = RubyExector.toMap(url);
 						final String scriptName = getItemProp(item, PROP_ITEM_NAME);
 								
-						//由于某些长任务，可能导致KeepAlive被长时间等待，而导致手机端侦测断线，所以本处采用后台模式
-						final ReturnableRunnable run = new ReturnableRunnable() {
-							@Override
-							public Object run() {
-								final CallContext callCtx = CallContext.getFree();
-								RubyExector.parse(callCtx, listener, scriptName, hcje, true);
-								if(callCtx.isError){
-									CallContext.cycle(callCtx);
-									return null;
-								}else{
-									RubyExector.runAndWaitOnEngine(callCtx, listener, scriptName, mapRuby, hcje);
-									CallContext.cycle(callCtx);
-								}
-								return null;
-							}
-						};
-						RubyExector.execInSequenceForSession(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(context), run);//注意：长任务也要入sequence，用户在其内进行run()
+						//由于不占用KeepAlive，不采用后台模式
+						final CallContext callCtx = CallContext.getFree();
+						RubyExector.runAndWaitInProjectOrSessionPool(coreSS, callCtx, listener, scriptName, mapRuby, hcje, context);
+						CallContext.cycle(callCtx);
 					}
 					return true;
 				}

@@ -7,7 +7,6 @@ import hc.core.util.ReturnableRunnable;
 import hc.server.ScreenServer;
 import hc.server.data.screen.ScreenCapturer;
 import hc.server.ui.design.J2SESession;
-import hc.server.ui.design.engine.RubyExector;
 
 public class JcipManager {
 	
@@ -38,7 +37,8 @@ public class JcipManager {
 	private static void onClick(final J2SESession coreSS, final Jcip jcip, final ServCtrlCanvas ctrlCanvas) {
 		final CtrlResponse cr = ctrlCanvas.cr;
 		final String keyValue = jcip.getString();
-		RubyExector.execInSequenceForSession(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(cr.getProjectContext()), new ReturnableRunnable() {
+		
+		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(cr.getProjectContext()), new ReturnableRunnable() {
 			@Override
 			public Object run() {
 				cr.click(Integer.parseInt(keyValue));

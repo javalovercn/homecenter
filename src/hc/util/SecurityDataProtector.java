@@ -228,6 +228,36 @@ public class SecurityDataProtector {
 		return PropertiesManager.getValue(PropertiesManager.p_SecurityCipher, AES_CBC_ISO10126_PADDING);
 	}
 	
+	private static int sdpVersion = -1;
+	
+	private static int getSDPVersion(){
+		if(sdpVersion == -1){
+			try{
+				sdpVersion = Integer.valueOf(PropertiesManager.getValue(PropertiesManager.p_SecuritySDPVersion, "1"));
+			}catch (final Throwable e) {
+				e.printStackTrace();
+				sdpVersion = 1;
+			}
+		}
+		return sdpVersion;
+	}
+	
+	private static int securityKeySize = -1;
+
+	private static int getSecretKeySize(){
+		if(securityKeySize == -1){
+			try{
+				securityKeySize = Integer.valueOf(PropertiesManager.getValue(PropertiesManager.p_SecuritySecretKeySize, "0"));
+			}catch (final Throwable e) {
+				e.printStackTrace();
+				securityKeySize = 0;
+			}
+		}
+		return securityKeySize;
+	}
+	
+	private static final int defaultSDPVersion = 2;
+	
 	static String encode(final String value){
 		if(isHCServerAndNotRelayServer == false){
 			return value;
@@ -239,7 +269,15 @@ public class SecurityDataProtector {
 		}
 		
 		try{
-			return encodeByCipher(value, getCipherName());
+			final int ver = getSDPVersion();
+			
+			if(ver == defaultSDPVersion){
+				return encodeByCipher(value, getCipherName());
+			}else if(ver == 1){
+				return encodeByCipherV1(value, getCipherName());
+			}else{
+				LogManager.errToLog("unknow SDPVersion : " + ver);
+			}
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
@@ -250,6 +288,21 @@ public class SecurityDataProtector {
 	private static String encodeByCipher(final String value, final String cipherName) throws Throwable {
 		final byte[] privateBS = getServerKey();
 		
+		final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG" );  
+        secureRandom.setSeed(privateBS);
+  
+        final Cipher cipher = Cipher.getInstance(cipherName);  
+        final SecretKeySpec secretKeySpec = new SecretKeySpec(ResourceUtil.buildFixLenBS(privateBS, getSecretKeySize()), "AES");
+		cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom); 
+		
+        final byte[] doFinal = cipher.doFinal(ByteUtil.getBytes(value, IConstant.UTF_8));
+		final String out = ByteUtil.toHex(doFinal);
+		return out;
+	}
+
+	private static String encodeByCipherV1(final String value, final String cipherName) throws Throwable {
+		final byte[] privateBS = getServerKey();
+		
 		final KeyGenerator kgen = KeyGenerator.getInstance("AES");  
 		final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG" );  
         secureRandom.setSeed(privateBS);
@@ -257,13 +310,13 @@ public class SecurityDataProtector {
   
         final Cipher cipher = Cipher.getInstance(cipherName);  
         final SecretKeySpec secretKeySpec = new SecretKeySpec(kgen.generateKey().getEncoded(), "AES");
-		cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, buildIV(privateBS), secureRandom);  
+		cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom);  
           
         final byte[] doFinal = cipher.doFinal(ByteUtil.getBytes(value, IConstant.UTF_8));
 		final String out = ByteUtil.toHex(doFinal);
 		return out;
 	}
-
+	
 	static String decode(final String data){
 		if(isHCServerAndNotRelayServer == false){//有可能中继服务器
 			return data;
@@ -274,17 +327,39 @@ public class SecurityDataProtector {
 			return data;
 		}
 		
-		L.V = L.O ? false : LogManager.log("[SecurityDataProtector] decodeing...");
 		try{
-			return decodeByCipher(data, getCipherName());
+			final int ver = getSDPVersion();
+			
+			if(ver == defaultSDPVersion){
+				return decodeByCipher(data, getCipherName());
+			}else if(ver == 1){
+				return decodeByCipherV1(data, getCipherName());
+			}else{
+				LogManager.errToLog("unknow SDPVersion : " + ver);
+			}
 		}catch (final Throwable e) {
 			e.printStackTrace();//可能环境变化，导致解密失败
 		}
 		
-		return data;
+		return "";//不能返回data，会导致解密成功
 	}
 
 	private static String decodeByCipher(final String data, final String cipherName) throws Throwable {
+		final byte[] privateBS = getServerKey();
+		final byte[] src = ByteUtil.toBytesFromHexStr(data);
+		
+		final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG" );  
+        secureRandom.setSeed(privateBS);
+          
+        final Cipher cipher = Cipher.getInstance(cipherName);
+        final SecretKeySpec secretKeySpec = new SecretKeySpec(ResourceUtil.buildFixLenBS(privateBS, getSecretKeySize()), "AES");
+		cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom);  
+        final byte[] decryptBytes = cipher.doFinal(src);  
+          
+        return new String(decryptBytes, IConstant.UTF_8);
+	}
+
+	private static String decodeByCipherV1(final String data, final String cipherName) throws Throwable {
 		final byte[] privateBS = getServerKey();
 		final byte[] src = ByteUtil.toBytesFromHexStr(data);
 		
@@ -295,27 +370,14 @@ public class SecurityDataProtector {
           
         final Cipher cipher = Cipher.getInstance(cipherName);
         final SecretKeySpec secretKeySpec = new SecretKeySpec(kgen.generateKey().getEncoded(), "AES");
-		cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, buildIV(privateBS), secureRandom);  
+		cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom);  
         final byte[] decryptBytes = cipher.doFinal(src);  
           
         return new String(decryptBytes, IConstant.UTF_8);
 	}
-
-	private static IvParameterSpec buildIV(final byte[] privateBS) {
-		final int ivLen = 16;
-		
-		if(privateBS.length >= ivLen){
-			return new IvParameterSpec(privateBS, 0, ivLen);
-		}else{
-			final byte[] newIV = new byte[ivLen];
-			int startIdx = 0;
-			while(startIdx < ivLen){
-				final int leftMax = ivLen - startIdx;
-				System.arraycopy(privateBS, 0, newIV, startIdx, leftMax<privateBS.length?leftMax:privateBS.length);
-				startIdx += privateBS.length;
-			}
-			return new IvParameterSpec(newIV);
-		}
+	
+	private static IvParameterSpec buildIV(final byte[] privateBS, final int ivLen) {
+		return new IvParameterSpec(ResourceUtil.buildFixLenBS(privateBS, ivLen));
 	}
 
 	private static String getServerKeyMD5() {
@@ -585,19 +647,31 @@ public class SecurityDataProtector {
 		PropertiesManager.setValue(PropertiesManager.p_ServerSecurityKeyMD5, realMD5);
 		
 		PropertiesManager.remove(PropertiesManager.p_SecurityCipher);
-
+		PropertiesManager.remove(PropertiesManager.p_SecuritySDPVersion);
+		
 		final String[] ciphers = {AES_CBC_ISO10126_PADDING, "AES/CBC/PKCS7Padding", "AES/CBC/PKCS5Padding", 
 				"AES/CFB/NoPadding", "AES"};
 		final String testSrc = "Hello,My Server";//15字符，不应为16
+		sdpVersion = defaultSDPVersion;
 		
 		for (int i = 0; i < ciphers.length; i++) {
 			final String cipherName = ciphers[i];
 			try{
+				if(securityKeySize == -1){
+					final KeyGenerator kgen = KeyGenerator.getInstance("AES");  
+					final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG" );  
+			        secureRandom.setSeed(getServerKey());
+			        kgen.init(128, secureRandom);  
+					securityKeySize = kgen.generateKey().getEncoded().length;
+				}
+				
 				L.V = L.O ? false : LogManager.log("[SecurityDataProtector] try cipher : " + cipherName);
 				final String out = decodeByCipher(encodeByCipher(testSrc, cipherName), cipherName);
 				if(out.equals(testSrc)){
 					PropertiesManager.setValue(PropertiesManager.p_SecurityCipher, cipherName);
-					L.V = L.O ? false : LogManager.log("[SecurityDataProtector] cipher : " + cipherName + " OK!");
+					PropertiesManager.setValue(PropertiesManager.p_SecuritySDPVersion, Integer.toString(sdpVersion));
+					PropertiesManager.setValue(PropertiesManager.p_SecuritySecretKeySize, Integer.toString(securityKeySize));
+					L.V = L.O ? false : LogManager.log("[SecurityDataProtector] cipher : " + cipherName + ", SDPVersion : " + sdpVersion + "OK!");
 					break;
 				}
 			}catch (final Throwable e) {

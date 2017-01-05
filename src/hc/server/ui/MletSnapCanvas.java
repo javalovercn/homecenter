@@ -13,7 +13,6 @@ import hc.server.ScreenServer;
 import hc.server.data.screen.PNGCapturer;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
-import hc.server.ui.design.engine.RubyExector;
 import hc.util.ResourceUtil;
 
 import java.awt.AWTEvent;
@@ -379,19 +378,11 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 			}
 		}
 		
-		final DataInputEvent copyE = new DataInputEvent();
-		final byte[] eData = e.bs;
-		final int length = eData.length;
-		final byte[] eCopyData = ByteUtil.byteArrayCacher.getFree(length);
-		System.arraycopy(eData, 0, eCopyData, 0, length);
-		copyE.setBytes(eCopyData);
-		
-		RubyExector.execInSequenceForSession(coreSS, projResp, new ReturnableRunnable() {
+		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, new ReturnableRunnable() {
 			@Override
 			public Object run() {
-				final Object out = actionInputInUserThread(copyE);
-				ByteUtil.byteArrayCacher.cycle(eCopyData);
-				return out;
+				actionInputInUserThread(e);
+				return null;
 			}
 		});
 	}
