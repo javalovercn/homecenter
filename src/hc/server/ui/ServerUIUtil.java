@@ -50,6 +50,14 @@ public class ServerUIUtil {
 	public static boolean useHARProject = PropertiesManager.isTrue(PropertiesManager.p_IsMobiMenu);
 	private static BaseResponsor responsor;
 	
+	public static void setMlet(final ScriptPanel panel, final Mlet mlet, final SizeHeightForXML size){
+		panel.setSizeHeightForXML(mlet, size);
+	}
+	
+	public static SizeHeightForXML getSizeHeightForXML(final HTMLMlet mlet){
+		return mlet.sizeHeightForXML;
+	}
+	
 	public static boolean isStarted(){
 		return isStared;
 	}
@@ -130,6 +138,7 @@ public class ServerUIUtil {
 	 */
 	public static BaseResponsor restartResponsorServer(final JFrame owner, final BaseResponsor mobiUIRep){
 		CCoreUtil.checkAccess();
+		SimuMobile.init();
 		
 		synchronized (LOCK) {
 			stop();

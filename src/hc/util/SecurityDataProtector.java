@@ -272,7 +272,7 @@ public class SecurityDataProtector {
 			final int ver = getSDPVersion();
 			
 			if(ver == defaultSDPVersion){
-				return encodeByCipher(value, getCipherName());
+				return encodeByCipher(value, getCipherName(), getSecretKeySize());
 			}else if(ver == 1){
 				return encodeByCipherV1(value, getCipherName());
 			}else{
@@ -285,14 +285,14 @@ public class SecurityDataProtector {
 		return value;
 	}
 
-	private static String encodeByCipher(final String value, final String cipherName) throws Throwable {
+	private static String encodeByCipher(final String value, final String cipherName, final int keySize) throws Throwable {
 		final byte[] privateBS = getServerKey();
 		
 		final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG" );  
         secureRandom.setSeed(privateBS);
   
         final Cipher cipher = Cipher.getInstance(cipherName);  
-        final SecretKeySpec secretKeySpec = new SecretKeySpec(ResourceUtil.buildFixLenBS(privateBS, getSecretKeySize()), "AES");
+        final SecretKeySpec secretKeySpec = new SecretKeySpec(ResourceUtil.buildFixLenBS(privateBS, keySize), "AES");
 		cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom); 
 		
         final byte[] doFinal = cipher.doFinal(ByteUtil.getBytes(value, IConstant.UTF_8));
@@ -331,7 +331,7 @@ public class SecurityDataProtector {
 			final int ver = getSDPVersion();
 			
 			if(ver == defaultSDPVersion){
-				return decodeByCipher(data, getCipherName());
+				return decodeByCipher(data, getCipherName(), getSecretKeySize());
 			}else if(ver == 1){
 				return decodeByCipherV1(data, getCipherName());
 			}else{
@@ -344,7 +344,7 @@ public class SecurityDataProtector {
 		return "";//不能返回data，会导致解密成功
 	}
 
-	private static String decodeByCipher(final String data, final String cipherName) throws Throwable {
+	private static String decodeByCipher(final String data, final String cipherName, final int keySize) throws Throwable {
 		final byte[] privateBS = getServerKey();
 		final byte[] src = ByteUtil.toBytesFromHexStr(data);
 		
@@ -352,7 +352,7 @@ public class SecurityDataProtector {
         secureRandom.setSeed(privateBS);
           
         final Cipher cipher = Cipher.getInstance(cipherName);
-        final SecretKeySpec secretKeySpec = new SecretKeySpec(ResourceUtil.buildFixLenBS(privateBS, getSecretKeySize()), "AES");
+        final SecretKeySpec secretKeySpec = new SecretKeySpec(ResourceUtil.buildFixLenBS(privateBS, keySize), "AES");
 		cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom);  
         final byte[] decryptBytes = cipher.doFinal(src);  
           
@@ -656,21 +656,35 @@ public class SecurityDataProtector {
 		
 		for (int i = 0; i < ciphers.length; i++) {
 			final String cipherName = ciphers[i];
+			int searchKeySize = -1;
 			try{
-				if(securityKeySize == -1){
-					final KeyGenerator kgen = KeyGenerator.getInstance("AES");  
-					final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG" );  
-			        secureRandom.setSeed(getServerKey());
-			        kgen.init(128, secureRandom);  
-					securityKeySize = kgen.generateKey().getEncoded().length;
-				}
+				final KeyGenerator kgen = KeyGenerator.getInstance("AES");  
+				final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG" );  
+		        secureRandom.setSeed(getServerKey());
+		        kgen.init(128, secureRandom);  
+		        searchKeySize = kgen.generateKey().getEncoded().length;
 				
 				L.V = L.O ? false : LogManager.log("[SecurityDataProtector] try cipher : " + cipherName);
-				final String out = decodeByCipher(encodeByCipher(testSrc, cipherName), cipherName);
-				if(out.equals(testSrc)){
+				String out = null;
+				
+				while(true){
+					try{
+						out = decodeByCipher(encodeByCipher(testSrc, cipherName, searchKeySize), cipherName, searchKeySize);
+						break;
+					}catch (final Throwable e) {
+						if(e instanceof java.security.InvalidKeyException){
+							searchKeySize *= 2;
+							continue;
+						}else{
+							throw e;
+						}
+					}
+				}
+				
+				if(testSrc.equals(out)){
 					PropertiesManager.setValue(PropertiesManager.p_SecurityCipher, cipherName);
 					PropertiesManager.setValue(PropertiesManager.p_SecuritySDPVersion, Integer.toString(sdpVersion));
-					PropertiesManager.setValue(PropertiesManager.p_SecuritySecretKeySize, Integer.toString(securityKeySize));
+					PropertiesManager.setValue(PropertiesManager.p_SecuritySecretKeySize, Integer.toString(searchKeySize));
 					L.V = L.O ? false : LogManager.log("[SecurityDataProtector] cipher : " + cipherName + ", SDPVersion : " + sdpVersion + "OK!");
 					break;
 				}

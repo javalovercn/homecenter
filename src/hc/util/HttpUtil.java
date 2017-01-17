@@ -233,7 +233,7 @@ public class HttpUtil {
 	public static String replaceSimuURL(String url, final boolean isSimu) {
 		if(isSimu){
 			final String hostString = RootServerConnector.IP_192_168_1_102 + ":80";//localhost:80
-			url = StringUtil.replaceFirst(url, RootServerConnector.IP_192_168_1_102, hostString);
+//			url = StringUtil.replaceFirst(url, RootServerConnector.IP_192_168_1_102, hostString);//会导致relayIP被替换
 			url = StringUtil.replaceFirst(url, RootServerConnector.HOST_HOMECENTER_MOBI, hostString);//192.168.1.101
 			url = StringUtil.replaceFirst(url, ":80", RootServerConnector.PORT_8080_WITH_MAOHAO);//192.168.1.101
 			url = StringUtil.replaceFirst(url, RootServerConnector.PORT_808044X, RootServerConnector.PORT_44X_WITH_MAOHAO);
@@ -287,8 +287,8 @@ public class HttpUtil {
 							App.showHARMessageDialog(winMsg, e.getMessage(), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 							LogManager.errToLog(msg);
 						}
+						ExceptionReporter.printStackTrace(e);//仅对SSL
 					}
-					ExceptionReporter.printStackTrace(e);
 				}
 			}else{
 				e.printStackTrace();
@@ -704,7 +704,7 @@ public class HttpUtil {
 		}
 	}
 	
-	public static boolean download(final File file, final URL url){
+	public static boolean download(final File file, final URL url, final int maxTryNum){
 		file.delete();
 		
 		RandomAccessFile raf = null;
@@ -713,13 +713,14 @@ public class HttpUtil {
 		
 			final int start = 0;
 	        int tryNum = 0;
-			final int maxTryNum = 3;
-			int downloadBS = 0;
+			long downloadBS = 0;
+            final int timeout = 1000 * 5;
 			while(tryNum < maxTryNum){
 	            try{
 		        	final HttpURLConnection conn = (HttpURLConnection) url.openConnection();  
 		            conn.setRequestMethod("GET");  
-//		            conn.setReadTimeout(0);//无穷  
+		            conn.setConnectTimeout(timeout);//addHar需要超时
+					conn.setReadTimeout(timeout);  
 					conn.setRequestProperty("Range", "bytes=" + start + "-");  
 		            if (conn.getResponseCode() == 206) {  
 		                raf.seek(start + downloadBS);  
@@ -731,14 +732,14 @@ public class HttpUtil {
 		                    downloadBS += len;
 		                }  
 		            }else{
-		            	L.V = L.O ? false : LogManager.log("http/206 not support download file.");
+		            	LogManager.errToLog("http/206 not support download file : " + url);
 		            	break;
 		            }
 		            conn.disconnect();
 		            return true;
 	            }catch (final Exception e) {
-	            	ExceptionReporter.printStackTrace(e);
-	            	L.V = L.O ? false : LogManager.log("try more time to download.");
+	            	e.printStackTrace();
+	            	L.V = L.O ? false : LogManager.log("try more time to download : " + url);
 	            	tryNum++;
 	            	try{
 	            		Thread.sleep(1000);

@@ -46,6 +46,12 @@ public class SimuMobile {
 	
 	final static RecycleRes tempLimitRecycleRes = HCLimitSecurityManager.getTempLimitRecycleRes();
 	
+	/**
+	 * 先于用户线程初始化，因为Mlet构造内，依赖于相关检查
+	 */
+	public final static void init(){
+	}
+	
 	public final static boolean checkSimuProjectContext(final ProjectContext ctx){
 		return ctx.recycleRes.threadPool == tempLimitRecycleRes.threadPool;
 	}

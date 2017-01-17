@@ -75,6 +75,7 @@ public class CodeStaticHelper {
 			out.add("hc.server.ui.MenuItem");
 			out.add("hc.server.ui.Mlet");
 			out.add("hc.server.ui.ProjectContext");
+			out.add("hc.server.ui.ScriptPanel");
 			out.add("hc.server.util.SystemEventListener");
 			out.add("hc.server.util.JavaLangSystemAgent");
 			

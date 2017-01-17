@@ -476,7 +476,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 									
 									final String hadmd5 = had.getProperty(HCjad.HAD_HAR_MD5, "");
 									ProcessingWindowManager.showCenterMessage("downloading...");
-									final boolean succ = HttpUtil.download(fileHar, new URL(strharurl));
+									final boolean succ = HttpUtil.download(fileHar, new URL(strharurl), 3);
 									if(succ == false){
 										ProcessingWindowManager.disposeProcessingWindow();
 										throw new Exception("http connection error");

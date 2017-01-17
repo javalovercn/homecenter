@@ -12,8 +12,10 @@ import hc.core.util.StringUtil;
 import hc.core.util.ThreadPriorityManager;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.HCByteArrayOutputStream;
+import hc.server.ui.HTMLMlet;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.ScriptPanel;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
@@ -35,6 +37,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractButton;
@@ -62,6 +65,8 @@ public class DifferTodo {
 	private final HashMap<Integer, Object> map = new HashMap<Integer, Object>(48);
 	private HcCodeMap hcCode;
 	public static final int HC_CODE_MLET = 0;
+	
+	public Vector<ScriptPanel> scriptPanels;
 	
 	public final boolean searchHcCode(final Object obj){
 		final int obj_hashcode = (obj == mlet)?HC_CODE_MLET:obj.hashCode();
@@ -119,7 +124,7 @@ public class DifferTodo {
 	final int elementIDLenIdx = isNeedCacheIdx + 1;
 	final int elementIDIdx = elementIDLenIdx + 2;
 	final int elementIDLen;
-	final Mlet mlet;
+	final HTMLMlet mlet;
 	private final int mobileWarningWidth, mobileWarningHeight;
 
 	byte[] todoBs;
@@ -131,7 +136,7 @@ public class DifferTodo {
 	public final ProjectContext projectContext;
 	public final ProjResponser resp;
 	
-	public DifferTodo(final J2SESession coreSS, final String elementID, final Mlet mlet) {
+	public DifferTodo(final J2SESession coreSS, final String elementID, final HTMLMlet mlet) {
 		this.coreSS = coreSS;
 		this.mlet = mlet;
 		projectContext = mlet.getProjectContext();
@@ -187,9 +192,7 @@ public class DifferTodo {
 	}
 
 	private final void sendBytesJSOrCache(final byte[] scriptBS, final boolean needGzip, final boolean enableCache) {
-		final boolean isNeedCacheCheck = CacheManager.isMeetCacheLength(scriptBS.length);
-		
-		if(enableCache && isNeedCacheCheck){
+		if(enableCache && CacheManager.isMeetCacheLength(scriptBS.length)){
 			final Object[] paras = {scriptBS, needGzip};
 			jsCacheComparer.encodeGetCompare(coreSS, true, scriptBS, 0, scriptBS.length, paras);
 		}else{
@@ -300,7 +303,7 @@ public class DifferTodo {
 	 * for example : body{background-color:#f00;}
 	 * @param js
 	 */
-	public final void loadJS(String js){
+	public final void loadScript(String js){
 		js = js.replace("\"", "\\\"");//改"为\"
 		js = JSUtil.replaceNewLine(JSUtil.replaceReturnWithEmtpySpace(js));//修复换行不能执行的问题
 		final boolean needGzip = ((js.length()>GZIP_MIN_SIZE)?true:false);
@@ -321,7 +324,7 @@ public class DifferTodo {
 	
 	/**
 	 * 立即执行script。
-	 * 它不同于{@link #loadJS(String)}
+	 * 它不同于{@link #loadScript(String)}
 	 * @param script
 	 */
 	public final void executeJS(final String script){
@@ -336,9 +339,9 @@ public class DifferTodo {
 		sendBytesJSOrCache(stopLoading, false, false);
 	}
 	
-	public final void notifyRemoveFromJPanel(final int hashID){
+	public final void notifyRemoveFromPanel(final int hashID){
 		final StringBuilder sb;
-		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.removeFromJPanel(" ).append( hashID ).append( ");").toString(), false, false);
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.removeFromPanel(" ).append( hashID ).append( ");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
 	}
 	
@@ -366,21 +369,27 @@ public class DifferTodo {
 		return out;
 	}
 
-	public final void notifyAddJButton(final int containerHashID, final int index, final int hashID){
+	public final void notifyAddButton(final int containerHashID, final int index, final int hashID){
 		final StringBuilder sb;
-		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJButton(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addButton(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
 	}
 
-	public final void notifyAddJCheckbox(final int containerHashID, final int index, final int hashID){
+	public final void notifyAddCheckbox(final int containerHashID, final int index, final int hashID){
 		final StringBuilder sb;
-		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJCheckbox(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addCheckbox(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
 	}
 
-	public final void notifyAddJRadioButton(final int containerHashID, final int index, final int hashID, final int groupHashID){
+	public final void notifyChangeRadioButtonGroup(final int hashID, final int groupHashID){
 		final StringBuilder sb;
-		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJRadioButton(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ", " ).append( groupHashID ).append( ");").toString(), false, false);
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.changeRadioButtonGroup(" ).append( hashID ).append( ", " ).append( groupHashID ).append( ");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
+	}
+
+	public final void notifyAddRadioButton(final int containerHashID, final int index, final int hashID, final int groupHashID){
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addRadioButton(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ", " ).append( groupHashID ).append( ");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
 	}
 
@@ -396,27 +405,37 @@ public class DifferTodo {
 		StringBuilderCacher.cycle(sb);
 	}
 	
-	public final void notifyAddJLabel(final int containerHashID, final int index, final int hashID){
+	public final void notifyAddLabel(final int containerHashID, final int index, final int hashID){
 		final StringBuilder sb;
-		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJLabel(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addLabel(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
 	}
 
-	public final void notifyAddJTextField(final int containerHashID, final int index, final int hashID, final int isPassword, final String tip){
+	public final void notifyAddTextField(final int containerHashID, final int index, final int hashID, final int isPassword, final String tip){
 		final StringBuilder sb;
-		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJTextField(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ", " ).append( isPassword ).append( ", \"" ).append( tip ).append( "\");").toString(), false, false);
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addTextField(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ", " ).append( isPassword ).append( ", \"" ).append( tip ).append( "\");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
 	}
 
-	public final void notifyAddJTextArea(final int containerHashID, final int index, final int hashID, final String tip){
+	public final void setDivInnerHTML(final int hashID, String innerHTML){
+		innerHTML = innerHTML.replace("\"", "&quot;");
+		
+		final boolean needGzip = ((innerHTML.length()>GZIP_MIN_SIZE)?true:false);
+		
 		final StringBuilder sb;
-		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJTextArea(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ", \"" ).append( tip ).append( "\");").toString(), false, false);
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setDivInnerHTML(" ).append( hashID ).append( ", \"" ).append( innerHTML ).append( "\");").toString(), needGzip, true);
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	public final void notifyAddTextArea(final int containerHashID, final int index, final int hashID, final String tip){
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addTextArea(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ", \"" ).append( tip ).append( "\");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
 	}
 
-	public final void notifyAddJPanel(final int containerHashID, final int index, final int hashID){
+	public final void notifyAddPanel(final int containerHashID, final int index, final int hashID){
 		final StringBuilder sb;
-		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addJPanel(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addPanel(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
 	}
 	

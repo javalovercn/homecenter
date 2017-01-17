@@ -168,7 +168,7 @@ public class DirectServer extends Thread {
 				});
 			}catch (final Throwable e) {
 				L.V = L.O ? false : LogManager.log("[direct server] Exception : " + e.toString());
-//					ExceptionReporter.printStackTrace(e);
+				ExceptionReporter.printStackTrace(e);//必须，在OpenJDK DemoServer
 
 				final Socket snapSocket = socket;
 				if(snapSocket != null){
@@ -252,6 +252,7 @@ public class DirectServer extends Thread {
 //				LogManager.info("Succ connect target");
 		}catch (final Throwable e) {
 			L.V = L.O ? false : LogManager.log("[direct server] Exception : " + e.toString());
+			ExceptionReporter.printStackTrace(e);//必须 在OpenJDK DemoServer
 		}
 	}
 

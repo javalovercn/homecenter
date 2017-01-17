@@ -244,9 +244,9 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 				PropertiesManager.addDelFile(fileHar);
 				
 				final String hadmd5 = had.getProperty(HCjad.HAD_HAR_MD5, "");
-				final boolean succ = HttpUtil.download(fileHar, new URL(strharurl));
+				final boolean succ = HttpUtil.download(fileHar, new URL(strharurl), 1);
 				if(succ == false){
-					final String httpErr = "http connection error";
+					final String httpErr = "http download error";
 					throw new Exception(httpErr);
 				}
 				

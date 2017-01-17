@@ -36,6 +36,7 @@ import hc.server.ui.ICanvas;
 import hc.server.ui.MenuItem;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.ScriptPanel;
 import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.AddHarIsBusy;
 import hc.server.ui.design.LicenseHTMLMlet;
@@ -310,7 +311,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    			DeviceCompatibleDescription.class,
 	    			AddHarHTMLMlet.class, AddHarIsBusy.class, Dialog.class, LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
 	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class,
-	    			WiFiAccount.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
+	    			WiFiAccount.class, ScriptPanel.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
 //	    	{
 //	    		Vector<Class> allowVect = new Vector<Class>();
 //				

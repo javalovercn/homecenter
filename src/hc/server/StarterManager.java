@@ -63,7 +63,7 @@ public class StarterManager {//注意：本类的getHCVersion被starter.jar反�
 						
 						final File starterTmp = new File(ResourceUtil.getBaseDir(), STR_STARTER_TMP_UP);
 						
-						if(HttpUtil.download(starterTmp, new URL("http://homecenter.mobi/download/starter.jar"))){
+						if(HttpUtil.download(starterTmp, new URL("http://homecenter.mobi/download/starter.jar"), 3)){
 							//检查签名
 							if(HCVerify.verifyJar(STR_STARTER_TMP_UP, HCVerify.getCert()) == false){
 								throw new Exception("fail verify new version starter.jar, maybe there is problem on net.");
@@ -128,7 +128,7 @@ public class StarterManager {//注意：本类的getHCVersion被starter.jar反�
 		
 		//客户端对服务器最低版本要求，在J2MEContext.miniHCServerVer
 		
-		return "7.35";//请同步修改go.php, android.php
+		return "7.36";//请同步修改go.php, android.php
 	}
 
 }

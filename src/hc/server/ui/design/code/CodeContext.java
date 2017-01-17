@@ -30,7 +30,8 @@ public class CodeContext {
 	 */
 	public final ClassNode getDefClassNode(){
 		if(isSearchedDefClass == false){
-			defClassNode = CodeHelper.isInDefClass(contextNode, rowIdxAtScript);
+			final JRubyClassDesc desc = CodeHelper.isInDefClass(contextNode, this, scriptIdx, rowIdxAtScript);
+			defClassNode = (desc==null)?null:desc.defNode;
 			isSearchedDefClass = true;
 		}
 		return defClassNode;

@@ -23,8 +23,12 @@
 			this.sendCmdOnePara('actionExt', cmd);
 		},
 
-		clickJButton: function(hashID){
-			this.sendCmdOnePara('clickJButton', '' + hashID);
+		clickButton: function(hashID){
+			this.sendCmdOnePara('clickButton', '' + hashID);
+		},
+		
+		click: function(hashID){
+			this.sendCmdOnePara('click', '' + hashID);
 		},
 		
 		notifyLastGone: function(){
@@ -36,12 +40,20 @@
 			/*this.sendCmdOnePara('finishOnLoad', '');*/
 		},
 
+		change: function(hashID, selectedIndex){
+			this.sendCmdTwoPara('change', '' + hashID, '' + selectedIndex);
+		},
+
 		selectComboBox: function(hashID, selectedIndex){
 			this.sendCmdTwoPara('selectComboBox', '' + hashID, '' + selectedIndex);
 		},
 
 		selectSlider: function(hashID, value){
 			this.sendCmdTwoPara('selectSlider', '' + hashID, '' + value);
+		},
+
+		notify: function(hashID, value){
+			this.sendCmdTwoPara('notify', '' + hashID, '' + value);
 		},
 
 		notifyTextFieldValue: function(hashID, value){
@@ -52,12 +64,12 @@
 			this.sendCmdTwoPara('notifyTextAreaValue', '' + hashID, '' + value);
 		},
 
-		clickJRadioButton: function(hashID){
-			this.sendCmdOnePara('clickJRadioButton', '' + hashID);
+		clickRadioButton: function(hashID){
+			this.sendCmdOnePara('clickRadioButton', '' + hashID);
 		},
 
-		clickJCheckbox: function(hashID){
-			this.sendCmdOnePara('clickJCheckbox', '' + hashID);
+		clickCheckbox: function(hashID){
+			this.sendCmdOnePara('clickCheckbox', '' + hashID);
 		},
 
 		mouseReleased: function(hashID, x, y){

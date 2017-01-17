@@ -10,6 +10,7 @@ import hc.server.ui.ClientDesc;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.code.CodeHelper;
+import hc.server.ui.design.code.CodeWindow;
 import hc.server.ui.design.code.TabHelper;
 import hc.server.util.CSSUtil;
 import hc.server.util.IDArrayGroup;
@@ -621,6 +622,10 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			}
 			@Override
 			public void focusGained(final FocusEvent e) {
+				final CodeWindow window = designer.codeHelper.window;
+				if(window.isWillOrAlreadyToFront){
+					window.hide(true);
+				}
 			}
 		});
 	}

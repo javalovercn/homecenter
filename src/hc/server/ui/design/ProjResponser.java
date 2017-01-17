@@ -893,18 +893,18 @@ public class ProjResponser {
 				"<style type=\"text/css\">" +
 				"  div > img {vertical-align:middle;}div > input {vertical-align:middle;}div > label{vertical-align:middle;}\n" +
 				"  input, select, textarea, button{font-family:inherit;font-size:inherit;}\n" +
-				"  .sys_hc_div_0 {" +
+				"  .HC_DIV_SYS_0 {" +
 					"font-size:" + sizeHeightForXML.getFontSizeForNormal() + "px;" +
 					"background-color:#" + colorForBodyByHexString + ";" +
 					"}" +
 				"</style>" +
 				"</head>" +
 				"<body style=\"position:relative;margin:0px;background-color:transparent;color:#" + HTMLMlet.getColorForFontByHexString() + ";\">" +
-				"<div id=\"hc_div_0\" class=\"sys_hc_div_0\"></div>" +
-				"<div id=\"hc_div_loading\" style=\"position:absolute;background-color:#" + colorForBodyByHexString + ";" +
+				"<div id=\"HC_DIV_0\" class=\"HC_DIV_SYS_0\"></div>" +
+				"<div id=\"HC_DIV_loading\" style=\"position:absolute;background-color:#" + colorForBodyByHexString + ";" +
 						"width:" + UserThreadResourceUtil.getMobileWidthFrom(coreSS) + "px;" +
 						"height:" + UserThreadResourceUtil.getMobileHeightFrom(coreSS) + "px;\"></div>" +
-				"<div id=\"hc_div_tip\" style=\"pointer-events:none;font-size:" + (int)(UserThreadResourceUtil.getMobileDPIFrom(coreSS) * 1.4 /10) + "px;position:absolute;visibility:hidden;height:auto;top:30px;\">" +
+				"<div id=\"HC_DIV_tip\" style=\"pointer-events:none;font-size:" + (int)(UserThreadResourceUtil.getMobileDPIFrom(coreSS) * 1.4 /10) + "px;position:absolute;visibility:hidden;height:auto;top:30px;\">" +
 				"</div>";
 		final String endBody = 
 				"</body>" +

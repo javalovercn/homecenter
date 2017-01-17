@@ -4,11 +4,11 @@
 		this.isStopLoading = false;
 		this.internalMS = 200;
 		this.loadingTag = 'loading';
-		this.loadRootDiv = 'hc_div_' + this.loadingTag;
-		this.centerDiv = 'hc_div_loading_center';
-		this.leftMovDiv = 'hc_div_loading_m_left';
-		this.rightMovDiv = 'hc_div_loading_m_right';
-		this.centerMovDiv = 'hc_div_loading_m_center';
+		this.loadRootDiv = 'HC_DIV_' + this.loadingTag;
+		this.centerDiv = 'HC_DIV_loading_center';
+		this.leftMovDiv = 'HC_DIV_loading_m_left';
+		this.rightMovDiv = 'HC_DIV_loading_m_right';
+		this.centerMovDiv = 'HC_DIV_loading_m_center';
 	}
 
 	Loader.prototype = {

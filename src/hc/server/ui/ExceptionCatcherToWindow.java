@@ -3,6 +3,7 @@ package hc.server.ui;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.L;
+import hc.core.util.LogManager;
 import hc.server.HCJRubyException;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
@@ -49,6 +50,7 @@ public class ExceptionCatcherToWindow {
 		
 		synchronized (this) {
 			if(isShowing){
+				L.V = L.WShop ? false : LogManager.log("isShowing Error/Stack now, skip next Throwable.");
 				return;
 			}else{
 				isShowing = true;

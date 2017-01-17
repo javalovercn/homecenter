@@ -23,6 +23,7 @@ import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.code.CSSIdx;
 import hc.server.ui.design.code.CodeHelper;
 import hc.server.ui.design.code.CodeItem;
+import hc.server.ui.design.code.CodeWindow;
 import hc.server.ui.design.code.TabHelper;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
@@ -44,6 +45,8 @@ import java.awt.Shape;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -211,7 +214,6 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	abstract Map<String, String> buildMapScriptParameter();
 	
 	final public void rebuildASTNode() {
-		designer.codeHelper.resetSyntaxError();
 		designer.codeHelper.updateScriptASTNode(this, jtaScript.getText(), true);
 	}
 	
@@ -553,6 +555,20 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		
 		final MouseMovingTipTimer autoCodeTip = new MouseMovingTipTimer(this, jtaScript, jtaDocment, fontHeight);
 		
+		jtaScript.addFocusListener(new FocusListener() {
+			@Override
+			public void focusLost(final FocusEvent e) {
+			}
+			
+			@Override
+			public void focusGained(final FocusEvent e) {
+				final CodeWindow window = designer.codeHelper.window;
+				if(window.isWillOrAlreadyToFront){
+					window.hide(true);
+				}
+			}
+		});
+		
 		jtaScript.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseReleased(final MouseEvent e) {
@@ -693,6 +709,9 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			public void mouseMoved(final MouseEvent e) {
 				if(modifierKeysPressed == 0){
 					setEditorDefaultCurosr();
+					if(designer.codeHelper.window.isWillOrAlreadyToFront){
+						return;
+					}
 					synchronized (ScriptEditPanel.scriptEventLock) {
 						designer.codeHelper.mouseExitHideDocForMouseMovTimer.setEnable(true);//有可能现tip时，移动
 //					designer.codeHelper.hideAfterMouse(true);//有可能移到DocTip内
@@ -725,15 +744,20 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			@Override
 			public void keyTyped(final KeyEvent event) {
 				if(isEventConsumed){
-					consumeEvent(event);//otherwise display shortcut key in JRE 6.
+					consumeEventLocal(event);//otherwise display shortcut key in JRE 6.
 					return;
 				}
 				synchronized (scriptEventLock) {
+				final CodeHelper codeHelper = designer.codeHelper;
+				if(codeHelper.window.isWillOrAlreadyToFront){
+					codeHelper.window.keyPressedAfterDot(event);
+					consumeEventLocal(event);
+					return;
+				}
 				final char inputChar = event.getKeyChar();
 				final int modifiers = event.getModifiers();
 //				final int keycode = event.getKeyCode();
 //				System.out.println("keyCode : " + keycode + ", inputChar : " + inputChar + ", modifyMask : " + modifiers);
-				final CodeHelper codeHelper = designer.codeHelper;
 //				System.out.println("codeHelp wordcode : " + codeHelper.wordCompletionCode + ", char : " + codeHelper.wordCompletionChar + 
 //						", modify : " + codeHelper.wordCompletionModifyCode + ", modifyMask : " + codeHelper.wordCompletionModifyMaskCode);
 				
@@ -743,10 +767,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 									|| (codeHelper.wordCompletionModifyMaskCode == modifiers)))){//注意：请同步到MletNodeEditPanel
 					try {
 						final int caretPosition = jtaScript.getCaretPosition();
-						final Rectangle caretRect=jtaScript.modelToView(caretPosition);
-						final Point caretPointer = new Point(caretRect.x, caretRect.y);
-						codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, 
-								caretPointer, caretPosition);
+						codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, caretPosition);
 					} catch (final Exception e) {
 //						if(L.isInWorkshop){
 							ExceptionReporter.printStackTrace(e);
@@ -758,12 +779,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							}
 						});
 					}
-					consumeEvent(event);
+					consumeEventLocal(event);
 					return;
 				}
 				
 				if(inputChar == KeyEvent.VK_ENTER){
-					consumeEvent(event);
+					consumeEventLocal(event);
 					return;
 				}
 				
@@ -781,7 +802,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					
 					jtaScript.refreshCurrLineAfterKey(line);
 					
-					TabHelper.notifyInputKey(inputChar == KeyEvent.VK_BACK_SPACE, event, inputChar);
+					TabHelper.notifyInputKey(inputChar == KeyEvent.VK_BACK_SPACE, event, inputChar, selectionLen);
 					
 					final boolean isDot = inputChar == '.';
 					final boolean isPathSplit = inputChar == '/';
@@ -871,10 +892,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						synchronized (scriptEventLock) {
 						try{
 							final int caretPosition = jtaScript.getCaretPosition();
-							final Rectangle caretRect=jtaScript.modelToView(caretPosition);
-							final Point caretPointer = new Point(caretRect.x, caretRect.y);
-							codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, false, 
-									caretPointer, caretPosition);
+							codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, false, caretPosition);
 						}catch (final Exception e) {
 						}
 						}
@@ -889,6 +907,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			}
 			
 			boolean isEventConsumed;
+			int selectionLen;
 			
 			@Override
 		    public void keyPressed(final KeyEvent event) {
@@ -896,6 +915,14 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				
 				autoCodeTip.setEnable(false);
 				autoCodeTip.getCodeHelper().mouseExitHideDocForMouseMovTimer.reset();
+				
+				final int selectionStart = jtaScript.getSelectionStart();
+				final int selectionEnd = jtaScript.getSelectionEnd();
+				if(selectionEnd > selectionStart){
+					selectionLen = selectionEnd - selectionStart;
+				}else{
+					selectionLen = 0;
+				}
 				
 				synchronized (scriptEventLock) {
 	            final int keycode = event.getKeyCode();
@@ -907,28 +934,24 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 //				case KeyEvent.VK_ESCAPE:
 //					return;
 //				}
-	            final int modifiers = event.getModifiers();
 	            final CodeHelper codeHelper = designer.codeHelper;
 				final int wordCompletionModifyMaskCode = codeHelper.wordCompletionModifyMaskCode;
 				//无输入字符时的触发提示代码
 				isEventConsumed = false;
-				if(keycode == codeHelper.wordCompletionCode && (modifiers & wordCompletionModifyMaskCode) == wordCompletionModifyMaskCode){
+				if(keycode == codeHelper.wordCompletionCode && (modifierKeysPressed & wordCompletionModifyMaskCode) == wordCompletionModifyMaskCode){
 					//注意：请同步到MletNodeEditPanel
 					try {
 						final int caretPosition = jtaScript.getCaretPosition();
-						final Rectangle caretRect=jtaScript.modelToView(caretPosition);
-						final Point caretPointer = new Point(caretRect.x, caretRect.y);
-						codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, 
-								caretPointer, caretPosition);
+						codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, caretPosition);
 					} catch (final Throwable e) {
 						ExceptionReporter.printStackTrace(e);
 					}
-					consumeEvent(event);
+					consumeEventLocal(event);
 					isEventConsumed = true;
 					return;
 				}
 	            
-	            if (modifiers == KeyEvent.CTRL_MASK) {
+	            if (modifierKeysPressed == KeyEvent.CTRL_MASK) {
 	                if (keycode == KeyEvent.VK_Z) {
 	                	//ctrl + z
 	                    undo();
@@ -938,10 +961,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	                }
 	            }else if(keycode == KeyEvent.VK_Z){
 					if(isMacOS){
-		                if (modifiers == KeyEvent.META_MASK) {
+		                if (modifierKeysPressed == KeyEvent.META_MASK) {
 		                	//cmd+z
 		                    undo();
-		                }else if(modifiers == (KeyEvent.META_MASK | KeyEvent.SHIFT_MASK)) {
+		                }else if(modifierKeysPressed == (KeyEvent.META_MASK | KeyEvent.SHIFT_MASK)) {
 		                	redo();
 		                }
 	            	}
@@ -949,6 +972,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	            
 	            if(keycode == KeyEvent.VK_ESCAPE){
 					TabHelper.pushEscKey();
+					consumeEventLocal(event);//清空可能占用的modifierKeysPressed
 					isEventConsumed = true;
 					return;
 				}
@@ -1187,11 +1211,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			try{
 				isModifySourceForRebuildAST = false;
 				scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_PASTE);
-				final int oldLineNo = getLineOfOffsetWithoutException(jtaDocment, jtaScript.getCaretPosition());
+				final int oldCaretPos = jtaScript.getCaretPosition();
+				final int oldLineNo = getLineOfOffsetWithoutException(jtaDocment, oldCaretPos);
 
 				super.paste();
 				
-				final int newLineNo = getLineOfOffset(jtaDocment, jtaScript.getCaretPosition());
+				final int newCaretPos = jtaScript.getCaretPosition();
+				final int newLineNo = getLineOfOffset(jtaDocment, newCaretPos);
 				
 				if(oldLineNo != newLineNo){
 					ContextManager.getThreadPool().run(new Runnable() {
@@ -1205,9 +1231,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				}else{
 					refreshCurrLineAfterKey(newLineNo);
 				}
+				
+				final int shiftPos = newCaretPos - oldCaretPos;
+				TabHelper.notifyInputKey(false, null, (char)0, - shiftPos + 1);
 			}catch (final Throwable e) {
 //				ExceptionReporter.printStackTrace(e);
 			}
+			
 		}
 		@Override
 		public void cut(){
@@ -1795,6 +1825,16 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 	}
 	
+	private final int getSelectionLen() {
+		final int selectStartIdx = jtaScript.getSelectionStart();
+		final int selectEndIdx = jtaScript.getSelectionEnd();
+		if(selectEndIdx > selectStartIdx){
+			return selectEndIdx - selectStartIdx;
+		}else{
+			return 0;
+		}
+	}
+	
 	private final Runnable submitModifyRunnable = new Runnable() {
 		@Override
 		public void run() {
@@ -1810,6 +1850,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	public static final void consumeEvent(final KeyEvent e) {
 		e.setKeyChar('\0');
 		e.consume();
+	}
+	
+	private final void consumeEventLocal(final KeyEvent e) {
+		consumeEvent(e);
+		modifierKeysPressed = 0;
 	}
 
 	private final Runnable doTestRunnable =  new Runnable(){

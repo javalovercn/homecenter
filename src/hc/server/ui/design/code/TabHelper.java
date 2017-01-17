@@ -1,6 +1,7 @@
 package hc.server.ui.design.code;
 
 import hc.core.L;
+import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.Stack;
 import hc.server.ui.design.hpj.ScriptEditPanel;
@@ -12,6 +13,7 @@ import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Document;
 import javax.swing.text.Highlighter;
 
 public class TabHelper {
@@ -19,7 +21,6 @@ public class TabHelper {
 	public static Object currFocusHighlight;
 	static int parameterIdx;
 	static JTextPane scriptPanel;
-	static boolean isFocusFullParameter;
 	static int currFocusHighlightStartIdx, currFocusHighlightEndIdx, inputShiftOffset;
 	
 	public static void initScriptPanel(final JTextPane sPanel, final ScriptEditPanel sep){
@@ -31,6 +32,13 @@ public class TabHelper {
 	
 	public final static Stack tabBlockStack = new Stack(2);
 	public static TabBlock currentTabBlock;
+	
+	private final static TabBlock innerClassTabBlock = new TabBlock(0, null, 0);
+	
+	public static void setInnerClassTabBlock(){
+		CCoreUtil.checkAccess();
+		currentTabBlock = innerClassTabBlock;
+	}
 	
 	public static void setCurrentTabBlock(final int startIdx, final char[] methods, final int parameterNum){
 		final TabBlock newBlock = new TabBlock(startIdx, methods, parameterNum);
@@ -54,13 +62,13 @@ public class TabHelper {
 		try {
 			currFocusHighlight = scriptPanel.getHighlighter().addHighlight(currFocusHighlightStartIdx, currFocusHighlightEndIdx, CODE_LIGHTER);
 		} catch (final BadLocationException e) {
-			ExceptionReporter.printStackTrace(e);
+//			ExceptionReporter.printStackTrace(e);
 		}
 		
 		scriptPanel.setSelectionStart(currFocusHighlightStartIdx);
 		scriptPanel.setSelectionEnd(currFocusHighlightEndIdx);
-		scriptPanel.setCaretPosition(currFocusHighlightEndIdx);
-		isFocusFullParameter = true;
+//		scriptPanel.setSelectionEnd(currFocusHighlightEndIdx);
+//		scriptPanel.setCaretPosition(currFocusHighlightEndIdx);
 	}
 
 	private static void calculateIdx() {
@@ -101,6 +109,24 @@ public class TabHelper {
 	
 	public static boolean pushTabOrEnterKey(){
 		if(currentTabBlock != null){
+			if(currentTabBlock == innerClassTabBlock){
+				try{
+					final int post = scriptPanel.getCaretPosition();
+					final Document doc = scriptPanel.getDocument();
+					final int lineNO = ScriptEditPanel.getLineOfOffset(doc, post) + 1;
+					final char[] lineChar = ScriptEditPanel.getLineText(doc, lineNO).toCharArray();
+					for (int i = 0; i < lineChar.length; i++) {
+						if(lineChar[i] == '\n'){
+							scriptPanel.setCaretPosition(ScriptEditPanel.getLineStartOffset(doc, lineNO) + i);
+						}
+					}
+				}catch (final Throwable e) {
+					e.printStackTrace();
+				}
+				clearAll();
+				return true;
+			}
+			
 			if(parameterIdx == currentTabBlock.parameterBeginOffsetIdx.length - 1){
 				//最后一个参数
 				final TabBlock popBlock = (TabBlock)tabBlockStack.pop();
@@ -143,38 +169,33 @@ public class TabHelper {
 		}
 	}
 	
-	public static void notifyInputKey(final boolean isBackspace, final KeyEvent event, final char inputChar){
+	public static void notifyInputKey(final boolean isBackspace, final KeyEvent event, final char inputChar, final int selectionOrPasteLen){
 		if(currentTabBlock != null){
 			if(L.isInWorkshop){
 				System.out.println("---------notifyInputKey char : " + inputChar);
 			}
 			if(isBackspace){
-			}else if(inputChar == '\t' || event.isActionKey()){
+			}else if(event != null && (inputChar == '\t' || event.isActionKey())){
 				if(L.isInWorkshop){
 					System.out.println("-----isActionKey : " + event.isActionKey() + ", isTab : " + (inputChar == '\t'));
 				}
 				return;
 			}
-			final int keyCode = event.getKeyCode();
-			if(keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_RIGHT){
-				return;
-			}
-		
-			final boolean snapIsFocusFull = isFocusFullParameter;
-			if(snapIsFocusFull){
-				isFocusFullParameter = false;
-				try {
-					final int removeLen = currFocusHighlightEndIdx - currFocusHighlightStartIdx;
-					scriptPanel.getDocument().remove(currFocusHighlightStartIdx, removeLen - (isBackspace?1:0));
-					inputShiftOffset -= removeLen;
-					currFocusHighlightEndIdx = currFocusHighlightStartIdx;
-					currentTabBlock.parameterEndOffsetIdx[parameterIdx] = 0;
-				} catch (final BadLocationException e) {
-					ExceptionReporter.printStackTrace(e);
+			if(event != null){
+				final int keyCode = event.getKeyCode();
+				if(keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_RIGHT){
+					return;
 				}
 			}
+			
+			if(selectionOrPasteLen != 0){
+//					scriptPanel.getDocument().remove(scriptPanel.getSelectionStart(), selectionLen - (isBackspace?1:0));//已完成，无需再执行
+				inputShiftOffset -= selectionOrPasteLen;
+				currFocusHighlightEndIdx -= selectionOrPasteLen;
+				currentTabBlock.parameterEndOffsetIdx[parameterIdx] -= selectionOrPasteLen;
+			}
 			if(isBackspace){
-				if(snapIsFocusFull == false){
+				if(selectionOrPasteLen == 0){
 					currentTabBlock.parameterEndOffsetIdx[parameterIdx]--;
 					currFocusHighlightEndIdx--;
 					inputShiftOffset--;
@@ -193,9 +214,9 @@ public class TabHelper {
 		public void run() {
 			clearHighlight();
 			try {
-//				if(L.isInWorkshop){
-//					System.out.println("lighter startIdx : " + currFocusHighlightStartIdx + ", endIdx : " + currFocusHighlightEndIdx);
-//				}
+				if(L.isInWorkshop){
+					System.out.println("lighter startIdx : " + currFocusHighlightStartIdx + ", endIdx : " + currFocusHighlightEndIdx);
+				}
 				if(currFocusHighlightEndIdx > currFocusHighlightStartIdx){
 					currFocusHighlight = scriptPanel.getHighlighter().addHighlight(currFocusHighlightStartIdx, currFocusHighlightEndIdx, CODE_LIGHTER);
 				}

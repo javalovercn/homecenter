@@ -25,6 +25,8 @@ import hc.util.SecurityDataProtector;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Properties;
@@ -283,8 +285,15 @@ public class JRubyInstaller {
 					panel.add(finishPercent, BorderLayout.SOUTH);
 				}
 				
+				final ActionListener listener = new ActionListener() {
+					@Override
+					public void actionPerformed(final ActionEvent e) {
+						closeProgressWindow();
+					}
+				};
+				
 				progressWindow = App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), 
-						false, null, null, null, null, parent, true, true, null, false, false);
+						false, null, null, listener, listener, parent, true, true, null, false, false);
 			}else{
 				progressWindow.toFront();
 			}

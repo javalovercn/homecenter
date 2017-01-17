@@ -7,9 +7,11 @@ import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
+import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.PlatformManager;
 import hc.server.ui.SingleMessageNotify;
+import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.io.InputStream;
@@ -112,8 +114,56 @@ public class ServerCUtil {
 		}catch (final Throwable e) {
 		}
 	}
+	
+	private static final int defaultSecurityLogVersion = 2;
+	
+	public static int getSecurityLogVersion(){
+		try{
+			return Integer.parseInt(PropertiesManager.getValue(PropertiesManager.p_SecurityLogVersion, "1"));
+		}catch (final Exception e) {
+			e.printStackTrace();
+		}
+		return defaultSecurityLogVersion;
+	}
 
-	public static InputStream decodeStream(final InputStream in, byte[] key, final String cipherAlgorithm)
+	public static InputStream decodeStream(final InputStream in, final byte[] key, final String cipherAlgorithm)
+			throws Exception {
+		final int logVersion = getSecurityLogVersion();
+		if(logVersion == defaultSecurityLogVersion){
+			return decodeStreamV2(in, key, cipherAlgorithm);
+		}else if(logVersion == 1){
+			return decodeStreamV1(in, key, cipherAlgorithm);
+		}else{
+			LogManager.errToLog("");
+		}
+		return null;
+	}
+	
+	public static InputStream decodeStreamV2(final InputStream in, byte[] key, final String cipherAlgorithm)
+			throws Exception {
+		key = ResourceUtil.buildFixLenBS(key, getDESSecretKeySize());
+		
+		// DES算法要求有一个可信任的随机数源
+		final SecureRandom sr = new SecureRandom();
+		// 创建一个 DESKeySpec 对象,指定一个 DES 密钥
+		final DESKeySpec ks = new DESKeySpec(key);
+		// 生成指定秘密密钥算法的 SecretKeyFactory 对象。
+		final SecretKeyFactory factroy = SecretKeyFactory.getInstance(Algorithm);
+		// 根据提供的密钥规范（密钥材料）生成 SecretKey 对象,利用密钥工厂把DESKeySpec转换成一个SecretKey对象
+		final SecretKey sk = factroy.generateSecret(ks);
+		// 生成一个实现指定转换的 Cipher 对象。Cipher对象实际完成加解密操作
+		final Cipher c = Cipher.getInstance(cipherAlgorithm);
+		// 用密钥和随机源初始化此 cipher
+		c.init(Cipher.DECRYPT_MODE, sk, sr);
+
+		// 从 InputStream 和 Cipher 构造 CipherInputStream。
+		// read() 方法在从基础 InputStream 读入已经由 Cipher 另外处理(加密或解密)
+		final CipherInputStream cin = new CipherInputStream(in, c);
+
+		return cin;
+	}
+	
+	public static InputStream decodeStreamV1(final InputStream in, byte[] key, final String cipherAlgorithm)
 			throws Exception {
 		key = doubePWD(key);
 		
@@ -137,7 +187,72 @@ public class ServerCUtil {
 		return cin;
 	}
 
-	public static OutputStream encodeStream(final OutputStream out, byte[] key)
+	public static OutputStream encodeStream(final OutputStream out, final byte[] key)	throws Exception {
+		final int logVersion = getSecurityLogVersion();
+		try{
+			if(logVersion == defaultSecurityLogVersion){
+				return encodeStreamV2(out, key);
+			}else if(logVersion == 1){
+				return encodeStreamV1(out, key);
+			}else{
+				LogManager.errToLog("");
+			}
+		}catch (final Throwable e) {
+			if(logVersion > 1 && e instanceof java.security.InvalidKeyException){
+				PropertiesManager.setValue(PropertiesManager.p_SecurityLogVersion, Integer.toString(defaultSecurityLogVersion));
+				PropertiesManager.setValue(PropertiesManager.p_SecurityLogDESSecretKeySize, Integer.toString(getDESSecretKeySize() * 2));
+				PropertiesManager.saveFile();
+				return encodeStream(out, key); 
+			}
+			ExceptionReporter.printStackTrace(e);
+			LogManager.errToLog("try use the newer security log version : " + defaultSecurityLogVersion);
+			if(logVersion != defaultSecurityLogVersion){
+				PropertiesManager.setValue(PropertiesManager.p_SecurityLogVersion, Integer.toString(defaultSecurityLogVersion));
+				PropertiesManager.saveFile();
+				return encodeStream(out, key);
+			}
+		}
+		return null;
+	}
+	
+	public static OutputStream encodeStreamV2(final OutputStream out, byte[] key)
+			throws Exception {
+		PropertiesManager.setValue(PropertiesManager.p_SecurityLogVersion, "2");
+		
+		key = ResourceUtil.buildFixLenBS(key, getDESSecretKeySize());
+		
+		// 创建一个 DESKeySpec 对象,指定一个 DES 密钥
+		final DESKeySpec ks = new DESKeySpec(key);
+		// 生成指定秘密密钥算法的 SecretKeyFactory 对象。
+		final SecretKeyFactory factroy = SecretKeyFactory.getInstance(Algorithm);
+		// 根据提供的密钥规范（密钥材料）生成 SecretKey 对象,利用密钥工厂把DESKeySpec转换成一个SecretKey对象
+		final SecretKey sk = factroy.generateSecret(ks);
+		
+		
+//		// 秘密（对称）密钥(SecretKey继承(key))
+//		// 根据给定的字节数组构造一个密钥。
+//		SecretKey deskey = new SecretKeySpec(key, Algorithm);
+		// 生成一个实现指定转换的 Cipher 对象。Cipher对象实际完成加解密操作
+		final Cipher c = Cipher.getInstance(CipherAlgorithm);
+		// 用密钥初始化此 cipher
+		c.init(Cipher.ENCRYPT_MODE, sk);
+
+		// CipherOutputStream 由一个 OutputStream 和一个 Cipher 组成
+		// write() 方法在将数据写出到基础 OutputStream 之前先对该数据进行处理(加密或解密)
+		final CipherOutputStream cout = new CipherOutputStream(out, c);
+		return cout;
+	}
+
+	private static int getDESSecretKeySize() {
+		final String defaultValue = "16";
+		try{
+			return Integer.parseInt(PropertiesManager.getValue(PropertiesManager.p_SecurityLogDESSecretKeySize, defaultValue));
+		}catch (final Throwable e) {
+		}
+		return Integer.parseInt(defaultValue);
+	}
+	
+	public static OutputStream encodeStreamV1(final OutputStream out, byte[] key)
 			throws Exception {
 		key = doubePWD(key);
 		

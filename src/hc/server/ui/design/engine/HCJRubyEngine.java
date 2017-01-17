@@ -1,5 +1,8 @@
 package hc.server.ui.design.engine;
 
+import hc.core.DelayWatcher;
+import hc.core.GlobalConditionWatcher;
+import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LRUCache;
 import hc.core.util.LogManager;
@@ -31,6 +34,7 @@ public class HCJRubyEngine {
 	public static final String JRUBY_VERSION = "RUBY1_8";//for container and parser
 
 	public final RubyWriter errorWriter = new RubyWriter();
+	private final HCJRubyEngine engineLock;
 //	private final ScriptingContainer container;	
 	private Class classScriptingContainer;
 	private Object container;	
@@ -48,20 +52,22 @@ public class HCJRubyEngine {
 	public final void put(final String key, final Object value){
 //		container.put(key, value);
 		final Object[] paras = {key, value};
-		synchronized (this) {
+		synchronized (engineLock) {
 			ClassUtil.invoke(classScriptingContainer, container, "put", putparaTypes, paras, false);
 		}
 	}
 	
 	public final void removeCache(final String script){
-		synchronized (this) {
+		synchronized (engineLock) {
 			lruCache.remove(script);
 		}
 	}
 	
 	final Object parse(final String script, final String scriptName) throws Exception{
 		Object unit;
-		unit = lruCache.get(script);
+		synchronized (engineLock) {
+			unit = lruCache.get(script);
+		}
 		if(unit == null){
 //			EvalUnit unit = container.parse(script);//后面的int是可选参数
 			unit = putCompileUnit(script, scriptName);
@@ -70,6 +76,10 @@ public class HCJRubyEngine {
 	}
 
 	private final Object putCompileUnit(final String script, String scriptName) throws Exception {
+		if(isShutdown){
+			return null;
+		}
+		
 		final Object unit;
 //		final Object currentDirectory = getCurrentDirectory();
 //		L.V = L.O ? false : LogManager.log("JRubyEngine getCurrentDirectory : " + currentDirectory);
@@ -89,7 +99,9 @@ public class HCJRubyEngine {
 			final Object[] para = {script, zero};
 			unit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse", parseParaTypes, para, false);
 		}
-		lruCache.put(script, unit);
+		synchronized (engineLock) {
+			lruCache.put(script, unit);
+		}
 		return unit;
 	}
 	
@@ -102,13 +114,22 @@ public class HCJRubyEngine {
 	final Object runScriptlet(final String script, final String scriptName) throws Throwable{
 //        return JavaEmbedUtils.rubyToJava(evalUnitMap.get(script).run());
 		final Object evalUnit = parse(script, scriptName);
+		if(isShutdown){
+			L.V = L.O ? false : LogManager.log("JRuby Engine is shutdown, skip runing scripts : \n" + script);
+			return null;
+		}
+		L.V = L.WShop ? false : LogManager.log("run in [" + Thread.currentThread().getName() + "], scripts : \n" + script);
 		try{
 			final Object runOut = ClassUtil.invokeWithExceptionOut(classEvalUnit, evalUnit, "run", emptyParaTypes, emptyPara, false);
 			final Object[] para = {runOut};
 			return ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils, classJavaEmbedUtils, "rubyToJava", rubyToJavaParaTypes, para, false);
 		}catch (final Throwable e) {
-			lruCache.remove(script);//执行错误后，需重新编译
+			synchronized (engineLock) {
+				lruCache.remove(script);//执行错误后，需重新编译
+			}
 			throw e;
+		}finally{
+			L.V = L.WShop ? false : LogManager.log("finish run in [" + Thread.currentThread().getName() + "]!");
 		}
 	}
 	
@@ -116,27 +137,31 @@ public class HCJRubyEngine {
 		final Object[] para = {obj};
 		return ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils, classJavaEmbedUtils, "rubyToJava", rubyToJavaParaTypes, para, false);
 	}
+	
+	boolean isShutdown;
 
 	public final void terminate(){
-		ClassUtil.invoke(classScriptingContainer, container, "clear", emptyParaTypes, emptyPara, false);
-//		try{
-//			container.clear();
-//		}catch (Throwable e) {
-//		}
+		isShutdown = true;
+		
+		GlobalConditionWatcher.addWatcher(new DelayWatcher(1000) {//延时，不影响当前可能正在的任务
+			@Override
+			public void doBiz() {
+				ClassUtil.invoke(classScriptingContainer, container, "clear", emptyParaTypes, emptyPara, false);
+//				try{
+//					container.clear();
+//				}catch (Throwable e) {
+//				}
 
-		ClassUtil.invoke(classScriptingContainer, container, "terminate", emptyParaTypes, emptyPara, false);
-		
-		PlatformManager.getService().closeLoader(projClassLoader);
-//		try{
-//			container.terminate();
-//		}catch (Throwable e) {
-//		}
-		
-//		try{
-//			container.getVarMap().clear();
-//		}catch (Throwable e) {
-//		}
-		
+				ClassUtil.invoke(classScriptingContainer, container, "terminate", emptyParaTypes, emptyPara, false);
+//				try{
+//					container.terminate();
+//				}catch (Throwable e) {
+//				}
+				
+				PlatformManager.getService().closeLoader(projClassLoader);
+			}
+		});
+
 	}
 	
 	private final ClassLoader projClassLoader;
@@ -154,6 +179,8 @@ public class HCJRubyEngine {
 	 * @param projClassLoader
 	 */
 	public HCJRubyEngine(final String absPath, final ClassLoader projClassLoader, final boolean isReportException){
+		engineLock = this;
+		
 		if(isInit == false){
 			isInit = true;
 			

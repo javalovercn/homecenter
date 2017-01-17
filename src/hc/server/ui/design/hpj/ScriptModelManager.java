@@ -36,7 +36,7 @@ public class ScriptModelManager {
 		}else if(type == HPNode.TYPE_MENU_ITEM_SCREEN || type == HPNode.TYPE_MENU_ITEM_FORM){
 			if(url.elementID.equals(HCURL.REMOTE_HOME_SCREEN)){
 			}else if(type == HPNode.TYPE_MENU_ITEM_FORM){
-				if(url.elementID.indexOf(TypeWizard.htmlmlet) >= 0){
+				if(url.elementID.toLowerCase().indexOf(TypeWizard.htmlmlet) >= 0){
 					final String instanceName = "MyHTMLMlet";
 					final String superClassName = HTMLMlet.class.getName();
 					final String[] methods = {"onStart", "onPause", "onResume", "onExit"};

@@ -20,6 +20,7 @@ import hc.server.ui.IMletCanvas;
 import hc.server.ui.Mlet;
 import hc.server.ui.MletSnapCanvas;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.ScriptPanel;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
@@ -37,6 +38,7 @@ import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.Vector;
 
 import javax.swing.AbstractButton;
 import javax.swing.JCheckBox;
@@ -52,6 +54,9 @@ import javax.swing.JViewport;
 import javax.swing.text.JTextComponent;
 
 public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
+	private static final String HC_PRE = "HC_";
+	private static final int HC_PRE_LEN = HC_PRE.length();
+	
 	private static final String NO_COMPONENT_HCCODE = "no component hccode : ";
 
 	final int width, height;
@@ -184,7 +189,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				return null;
 			}
 		});
-		differTodo = new DifferTodo(coreSS, screenID, mlet);
+		differTodo = new DifferTodo(coreSS, screenID, this.mlet);
 	}
 	
 	/**
@@ -305,6 +310,20 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		});
 	}
 	
+	private final void dispatchEventToScriptPanel(final String id, final String action, final String[] args){
+		final Vector<ScriptPanel> scriptPanels = differTodo.scriptPanels;
+		if(scriptPanels != null){
+			final int size = scriptPanels.size();
+			for (int i = 0; i < size; i++) {
+				if(scriptPanels.get(i).onEvent(id, action, args)){
+					return;
+				}
+			}
+		}
+	}
+	
+	private static final String[] zeroStringArray = {};
+	
 	private final void actionJSInputInUser(final byte[] bs, final int offset, final int len) {
 		if(isSimu){
 			try {
@@ -323,57 +342,157 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				final String cmd = getOneValue(JSCore.actionExt, bs, offset, len);
 				actionExt(cmd);
 				return;
-			}else if(matchCmd(JSCore.clickJButton, bs, offset)){
-				final String id = getOneValue(JSCore.clickJButton, bs, offset, len);
-				clickJButton(Integer.parseInt(id));
+			}else if(matchCmd(JSCore.clickButton, bs, offset)){
+				final String id = getOneValue(JSCore.clickButton, bs, offset, len);
+				clickButton(id);
+//				if(id.startsWith(HC_PRE, 0) && clickButton(id)){
+//				}else{
+//					dispatchEventToScriptPanel(id, JSCore.CLICK_BUTTON, zeroStringArray);
+//				}
+				return;
+			}else if(matchCmd(JSCore.clickRadioButton, bs, offset)){
+				final String id = getOneValue(JSCore.clickRadioButton, bs, offset, len);
+				clickRadioButton(id);
+//				if(id.startsWith(HC_PRE, 0) && clickRadioButton(id)){
+//				}else{
+//					dispatchEventToScriptPanel(id, JSCore.CLICK_RADIO_BUTTON, zeroStringArray);
+//				}
+				return;
+			}else if(matchCmd(JSCore.clickCheckbox, bs, offset)){
+				final String id = getOneValue(JSCore.clickCheckbox, bs, offset, len);
+				clickCheckbox(id);
+//				if(id.startsWith(HC_PRE, 0) && clickCheckbox(id)){
+//				}else{
+//					dispatchEventToScriptPanel(id, JSCore.CLICK_CHECKBOX, zeroStringArray);
+//				}
+				return;
+			}else if(matchCmd(JSCore.click, bs, offset)){//要置于click*之后
+				final String id = getOneValue(JSCore.click, bs, offset, len);
+				dispatchEventToScriptPanel(id, JSCore.CLICK, zeroStringArray);
 				return;
 			}else if(matchCmd(JSCore.selectComboBox, bs, offset)){
 				final String[] values = getTwoValue(JSCore.selectComboBox, bs, offset, len);
-				selectComboBox(Integer.parseInt(values[0]), Integer.parseInt(values[1]));
+				final String id = values[0];
+				final String arg0 = values[1];
+				selectComboBox(id, arg0);
+//				if(id.startsWith(HC_PRE, 0) && selectComboBox(id, arg0)){
+//				}else{
+//					final String[] args = {arg0};
+//					dispatchEventToScriptPanel(id, JSCore.SELECT_COMBO_BOX, args);
+//				}
 				return;
 			}else if(matchCmd(JSCore.selectSlider, bs, offset)){
 				final String[] values = getTwoValue(JSCore.selectSlider, bs, offset, len);
-				selectSlider(Integer.parseInt(values[0]), Integer.parseInt(values[1]));
+				final String id = values[0];
+				final String arg0 = values[1];
+				selectSlider(id, arg0);
+//				if(id.startsWith(HC_PRE, 0) && selectSlider(id, arg0)){
+//				}else{
+//					final String[] args = {arg0};
+//					dispatchEventToScriptPanel(id, JSCore.SELECT_SLIDER, args);
+//				}
+				return;
+			}else if(matchCmd(JSCore.change, bs, offset)){
+				final String[] values = getTwoValue(JSCore.change, bs, offset, len);
+				final String id = values[0];
+				final String arg0 = values[1];
+				final String[] args = {arg0};
+				dispatchEventToScriptPanel(id, JSCore.CHANGE, args);
 				return;
 			}else if(matchCmd(JSCore.notifyTextFieldValue, bs, offset)){
 				final String[] values = getTwoValue(JSCore.notifyTextFieldValue, bs, offset, len);
-				notifyTextFieldValue(Integer.parseInt(values[0]), values[1]);
+				final String id = values[0];
+				final String arg0 = values[1];
+				notifyTextFieldValue(id, arg0);
+//				if(id.startsWith(HC_PRE, 0) && notifyTextFieldValue(id, arg0)){
+//				}else{
+//					final String[] args = {arg0};
+//					dispatchEventToScriptPanel(id, JSCore.NOTIFY_TEXT_FIELD_VALUE, args);
+//				}
 				return;
 			}else if(matchCmd(JSCore.notifyTextAreaValue, bs, offset)){
 				final String[] values = getTwoValue(JSCore.notifyTextAreaValue, bs, offset, len);
-				notifyTextAreaValue(Integer.parseInt(values[0]), values[1]);
+				final String id = values[0];
+				final String arg0 = values[1];
+				notifyTextAreaValue(id, arg0);
+//				if(id.startsWith(HC_PRE, 0) && notifyTextAreaValue(id, arg0)){
+//				}else{
+//					final String[] args = {arg0};
+//					dispatchEventToScriptPanel(id, JSCore.NOTIFY_TEXT_AREA_VALUE, args);
+//				}
 				return;
-			}else if(matchCmd(JSCore.clickJRadioButton, bs, offset)){
-				final String id = getOneValue(JSCore.clickJRadioButton, bs, offset, len);
-				clickJRadioButton(Integer.parseInt(id));
-				return;
-			}else if(matchCmd(JSCore.clickJCheckbox, bs, offset)){
-				final String id = getOneValue(JSCore.clickJCheckbox, bs, offset, len);
-				clickJCheckbox(Integer.parseInt(id));
+			}else if(matchCmd(JSCore.notify, bs, offset)){//要置于notify*之后
+				final String[] values = getTwoValue(JSCore.notify, bs, offset, len);
+				final String id = values[0];
+				final String arg0 = values[1];
+				final String[] args = {arg0};
+				dispatchEventToScriptPanel(id, JSCore.NOTIFY, args);
 				return;
 			}else if(matchCmd(JSCore.mouseReleased, bs, offset)){
 				final String[] values = getThreeValue(JSCore.mouseReleased, bs, offset, len);
-				notifyMouseReleased(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]));
+				final String id = values[0];
+				final String arg0 = values[1];
+				final String arg1 = values[2];
+				if(id.startsWith(HC_PRE, 0) && notifyMouseReleased(id, arg0, arg1)){
+				}else{
+					final String[] args = {arg0, arg1};
+					dispatchEventToScriptPanel(id, JSCore.MOUSE_RELEASED, args);
+				}
 				return;
 			}else if(matchCmd(JSCore.mousePressed, bs, offset)){
 				final String[] values = getThreeValue(JSCore.mousePressed, bs, offset, len);
-				notifyMousePressed(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]));
+				final String id = values[0];
+				final String arg0 = values[1];
+				final String arg1 = values[2];
+				if(id.startsWith(HC_PRE, 0) && notifyMousePressed(id, arg0, arg1)){
+				}else{
+					final String[] args = {arg0, arg1};
+					dispatchEventToScriptPanel(id, JSCore.MOUSE_PRESSED, args);
+				}
 				return;
 			}else if(matchCmd(JSCore.mouseExited, bs, offset)){
 				final String[] values = getThreeValue(JSCore.mouseExited, bs, offset, len);
-				notifyMouseExited(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]));
+				final String id = values[0];
+				final String arg0 = values[1];
+				final String arg1 = values[2];
+				if(id.startsWith(HC_PRE, 0) && notifyMouseExited(id, arg0, arg1)){
+				}else{
+					final String[] args = {arg0, arg1};
+					dispatchEventToScriptPanel(id, JSCore.MOUSE_EXITED, args);
+				}
 				return;
 			}else if(matchCmd(JSCore.mouseEntered, bs, offset)){
 				final String[] values = getThreeValue(JSCore.mouseEntered, bs, offset, len);
-				notifyMouseEntered(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]));
+				final String id = values[0];
+				final String arg0 = values[1];
+				final String arg1 = values[2];
+				if(id.startsWith(HC_PRE, 0) && notifyMouseEntered(id, arg0, arg1)){
+				}else{
+					final String[] args = {arg0, arg1};
+					dispatchEventToScriptPanel(id, JSCore.MOUSE_ENTERED, args);
+				}
 				return;
 			}else if(matchCmd(JSCore.mouseClicked, bs, offset)){
 				final String[] values = getThreeValue(JSCore.mouseClicked, bs, offset, len);
-				notifyMouseClicked(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]));
+				final String id = values[0];
+				final String arg0 = values[1];
+				final String arg1 = values[2];
+				if(id.startsWith(HC_PRE, 0) && notifyMouseClicked(id, arg0, arg1)){
+				}else{
+					final String[] args = {arg0, arg1};
+					dispatchEventToScriptPanel(id, JSCore.MOUSE_CLICKED, args);
+				}
 				return;
 			}else if(matchCmd(JSCore.mouseDragged, bs, offset)){
 				final String[] values = getThreeValue(JSCore.mouseDragged, bs, offset, len);
-				notifyMouseDragged(Integer.parseInt(values[0]), Integer.parseInt(values[1]), Integer.parseInt(values[2]));
+				final String id = values[0];
+				final String arg0 = values[1];
+				final String arg1 = values[2];
+				if(id.startsWith(HC_PRE, 0) && notifyMouseDragged(id, arg0, arg1)){
+				}else{
+					final String[] args = {arg0, arg1};
+					dispatchEventToScriptPanel(id, JSCore.MOUSE_DRAGGED, args);
+				}
 				return;
 			}
 		}catch (final Exception e) {
@@ -383,26 +502,37 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		try{
 			final String cmds = new String(bs, offset, len, IConstant.UTF_8);
 			final String[] splits = StringUtil.splitToArray(cmds, StringUtil.SPLIT_LEVEL_2_JING);
-			LogManager.err("unknow JS input event : " + splits[0] + ", cmd : " + cmds);
+			projectContext.error("unknow JS input event : " + splits[0] + ", cmd : " + cmds);
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	
-	private final void notifyMouseReleased(final int id, final int x, final int y){
-		final Component comp = searchComponentByHcCode(mlet, id);
-		if(comp != null){
-			final MouseListener[] mlistener = comp.getMouseListeners();
-			MouseEvent event = null;
-			for (int i = 0; i < mlistener.length; i++) {
-				if(event == null){
-					event = buildMouseEvent(comp, MouseEvent.MOUSE_RELEASED, x, y);
+	private final boolean notifyMouseReleased(final String id, final String x, final String y){
+		try{
+			final Component comp = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			if(comp != null){
+				try{
+					final int intX = Integer.parseInt(x);
+					final int intY = Integer.parseInt(y);
+					final MouseListener[] mlistener = comp.getMouseListeners();
+					MouseEvent event = null;
+					for (int i = 0; i < mlistener.length; i++) {
+						if(event == null){
+							event = buildMouseEvent(comp, MouseEvent.MOUSE_RELEASED, intX, intY);
+						}
+						mlistener[i].mouseReleased(event);
+					}
+				}catch (final Throwable e) {
+					ExceptionReporter.printStackTrace(e);
 				}
-				mlistener[i].mouseReleased(event);
+				return true;
+			}else{
+				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
-		}else{
-			LogManager.err(NO_COMPONENT_HCCODE + id);
+		}catch (final Throwable e) {
 		}
+		return false;
 	}
 
 	private final MouseEvent buildMouseEvent(final Component comp, final int eventID, final int x,
@@ -426,84 +556,139 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		};
 	}
 	
-	private final void notifyMousePressed(final int id, final int x, final int y){
-		final Component comp = searchComponentByHcCode(mlet, id);
-		if(comp != null){
-			final MouseListener[] mlistener = comp.getMouseListeners();
-			MouseEvent event = null;
-			for (int i = 0; i < mlistener.length; i++) {
-				if(event == null){
-					event = buildMouseEvent(comp, MouseEvent.MOUSE_PRESSED, x, y);
+	private final boolean notifyMousePressed(final String id, final String x, final String y){
+		try{
+			final Component comp = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			if(comp != null){
+				try{
+					final int intX = Integer.parseInt(x);
+					final int intY = Integer.parseInt(y);
+					final MouseListener[] mlistener = comp.getMouseListeners();
+					MouseEvent event = null;
+					for (int i = 0; i < mlistener.length; i++) {
+						if(event == null){
+							event = buildMouseEvent(comp, MouseEvent.MOUSE_PRESSED, intX, intY);
+						}
+						mlistener[i].mousePressed(event);
+					}
+				}catch (final Throwable e) {
+					ExceptionReporter.printStackTrace(e);
 				}
-				mlistener[i].mousePressed(event);
+				return true;
+			}else{
+				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
-		}else{
-			LogManager.err(NO_COMPONENT_HCCODE + id);
+		}catch (final Throwable e) {
 		}
+		return false;
 	}
 	
-	private final void notifyMouseExited(final int id, final int x, final int y){
-		final Component comp = searchComponentByHcCode(mlet, id);
-		if(comp != null){
-			final MouseListener[] mlistener = comp.getMouseListeners();
-			MouseEvent event = null;
-			for (int i = 0; i < mlistener.length; i++) {
-				if(event == null){
-					event = buildMouseEvent(comp, MouseEvent.MOUSE_EXITED, x, y);
+	private final boolean notifyMouseExited(final String id, final String x, final String y){
+		try{
+			final Component comp = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			if(comp != null){
+				try{
+					final int intX = Integer.parseInt(x);
+					final int intY = Integer.parseInt(y);
+					final MouseListener[] mlistener = comp.getMouseListeners();
+					MouseEvent event = null;
+					for (int i = 0; i < mlistener.length; i++) {
+						if(event == null){
+							event = buildMouseEvent(comp, MouseEvent.MOUSE_EXITED, intX, intY);
+						}
+						mlistener[i].mouseExited(event);
+					}
+				}catch (final Throwable e) {
+					ExceptionReporter.printStackTrace(e);
 				}
-				mlistener[i].mouseExited(event);
+				return true;
+			}else{
+				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
-		}else{
-			LogManager.err(NO_COMPONENT_HCCODE + id);
+		}catch (final Throwable e) {
 		}
+		return false;
 	}
 	
-	private final void notifyMouseEntered(final int id, final int x, final int y){
-		final Component comp = searchComponentByHcCode(mlet, id);
-		if(comp != null){
-			final MouseListener[] mlistener = comp.getMouseListeners();
-			MouseEvent event = null;
-			for (int i = 0; i < mlistener.length; i++) {
-				if(event == null){
-					event = buildMouseEvent(comp, MouseEvent.MOUSE_ENTERED, x, y);
+	private final boolean notifyMouseEntered(final String id, final String x, final String y){
+		try{
+			final Component comp = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			if(comp != null){
+				try{
+					final int intX = Integer.parseInt(x);
+					final int intY = Integer.parseInt(y);
+					final MouseListener[] mlistener = comp.getMouseListeners();
+					MouseEvent event = null;
+					for (int i = 0; i < mlistener.length; i++) {
+						if(event == null){
+							event = buildMouseEvent(comp, MouseEvent.MOUSE_ENTERED, intX, intY);
+						}
+						mlistener[i].mouseEntered(event);
+					}
+				}catch (final Throwable e) {
+					ExceptionReporter.printStackTrace(e);
 				}
-				mlistener[i].mouseEntered(event);
+				return true;
+			}else{
+				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
-		}else{
-			LogManager.err(NO_COMPONENT_HCCODE + id);
+		}catch (final Throwable e) {
 		}
+		return false;
 	}
 	
-	private final void notifyMouseClicked(final int id, final int x, final int y){
-		final Component comp = searchComponentByHcCode(mlet, id);
-		if(comp != null){
-			final MouseListener[] mlistener = comp.getMouseListeners();
-			MouseEvent event = null;
-			for (int i = 0; i < mlistener.length; i++) {
-				if(event == null){
-					event = buildMouseEvent(comp, MouseEvent.MOUSE_CLICKED, x, y);
+	private final boolean notifyMouseClicked(final String id, final String x, final String y){
+		try{
+			final Component comp = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			if(comp != null){
+				try{
+					final int intX = Integer.parseInt(x);
+					final int intY = Integer.parseInt(y);
+					final MouseListener[] mlistener = comp.getMouseListeners();
+					MouseEvent event = null;
+					for (int i = 0; i < mlistener.length; i++) {
+						if(event == null){
+							event = buildMouseEvent(comp, MouseEvent.MOUSE_CLICKED, intX, intY);
+						}
+						mlistener[i].mouseClicked(event);
+					}
+				}catch (final Throwable e) {
+					ExceptionReporter.printStackTrace(e);
 				}
-				mlistener[i].mouseClicked(event);
+				return true;
+			}else{
+				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
-		}else{
-			LogManager.err(NO_COMPONENT_HCCODE + id);
+		}catch (final Throwable e) {
 		}
+		return false;
 	}
 	
-	private final void notifyMouseDragged(final int id, final int x, final int y){
-		final Component comp = searchComponentByHcCode(mlet, id);
-		if(comp != null){
-			final MouseMotionListener[] mlistener = comp.getMouseMotionListeners();
-			MouseEvent event = null;
-			for (int i = 0; i < mlistener.length; i++) {
-				if(event == null){
-					event = buildMouseEvent(comp, MouseEvent.MOUSE_DRAGGED, x, y);
+	private final boolean notifyMouseDragged(final String id, final String x, final String y){
+		try{
+			final Component comp = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			if(comp != null){
+				try{
+					final int intX = Integer.parseInt(x);
+					final int intY = Integer.parseInt(y);
+					final MouseMotionListener[] mlistener = comp.getMouseMotionListeners();
+					MouseEvent event = null;
+					for (int i = 0; i < mlistener.length; i++) {
+						if(event == null){
+							event = buildMouseEvent(comp, MouseEvent.MOUSE_DRAGGED, intX, intY);
+						}
+						mlistener[i].mouseDragged(event);
+					}
+				}catch (final Throwable e) {
+					ExceptionReporter.printStackTrace(e);
 				}
-				mlistener[i].mouseDragged(event);
+				return true;
+			}else{
+				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
-		}else{
-			LogManager.err(NO_COMPONENT_HCCODE + id);
+		}catch (final Throwable e) {
 		}
+		return false;
 	}
 	
 	private final Component searchComponentByHcCode(final JPanel jpanel, final int hcCode){//in user thread
@@ -577,83 +762,105 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	}
 	
 	@Override
-	public final void clickJButton(final int id) {
-		final Component btn = searchComponentByHcCode(mlet, id);//in user thread
-		if(btn != null && btn instanceof AbstractButton){
-			final MouseEvent e = new MouseEvent(btn, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(),
-		    		MouseEvent.BUTTON1_MASK, 0, 0, 1, false);
-			MletSnapCanvas.processClickOnComponent(btn, e);
-		}else{
-			LogManager.err(NO_COMPONENT_HCCODE + id);
+	public final boolean clickButton(final String id) {
+		try{
+			final Component btn = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));//in user thread
+			if(btn != null && btn instanceof AbstractButton){
+				final MouseEvent e = new MouseEvent(btn, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(),
+			    		MouseEvent.BUTTON1_MASK, 0, 0, 1, false);
+				MletSnapCanvas.processClickOnComponent(btn, e);
+				return true;
+			}else{
+				projectContext.error(NO_COMPONENT_HCCODE + id);
+			}
+		}catch (final Throwable e) {
 		}
+		return false;
 	}
 
 	@Override
-	public final void selectSlider(final int id, final int value) {
-		final Component slider = searchComponentByHcCode(mlet, id);
-		if(slider != null && slider instanceof JSlider){
-			final JSlider sliderBar = (JSlider)slider;
-			
-			if(sliderBar.getValue() == value){
-				return;
+	public final boolean selectSlider(final String id, final String value) {
+		try{
+			final Component slider = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			if(slider != null && slider instanceof JSlider){
+				final JSlider sliderBar = (JSlider)slider;
+				
+				final int intValue = Integer.parseInt(value);
+				if(sliderBar.getValue() == intValue){
+					return true;
+				}
+				
+				sliderBar.setValue(intValue);
+				return true;
+			}else{
+				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
-			
-			sliderBar.setValue(value);
-		}else{
-			LogManager.err(NO_COMPONENT_HCCODE + id);
+		}catch (final Throwable e) {
 		}
+		return false;
 	}
 	
 	@Override
-	public final void selectComboBox(final int id, final int selectedIndex) {
-		final Component combo = searchComponentByHcCode(mlet, id);
-		if(combo != null && combo instanceof JComboBox){
-			final JComboBox combo2 = (JComboBox)combo;
-			
-			if(combo2.getSelectedIndex() == selectedIndex){
-				return;
+	public final boolean selectComboBox(final String id, final String selectedIndex) {
+		try{
+			final Component combo = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			if(combo != null && combo instanceof JComboBox){
+				final JComboBox combo2 = (JComboBox)combo;
+				
+				final int intSelectedIndex = Integer.parseInt(selectedIndex);
+				if(combo2.getSelectedIndex() == intSelectedIndex){
+					return true;
+				}
+				
+	//			final Object oldSelected = combo2.getSelectedItem();
+	//			
+	//			//触发ItemEvent[DESELECTED]
+	//			if(oldSelected != null){
+	//				final ItemEvent e = new ItemEvent(combo2, ItemEvent.ITEM_STATE_CHANGED, oldSelected, ItemEvent.DESELECTED);
+	//				MCanvas.dispatchEvent(combo, e);
+	//			}
+				combo2.setSelectedIndex(intSelectedIndex);
+	//			注意：执行上步时，会在J2SE环境下自动触发下面两事件和上一行事件。
+	//			java.awt.event.ItemEvent[ITEM_STATE_CHANGED,item=three,stateChange=SELECTED]
+	//			java.awt.event.ActionEvent[ACTION_PERFORMED,cmd=comboBoxChanged,
+				
+	//			//触发ItemEvent[SELECTED]
+	//			{
+	//				final Object newSelected = combo2.getItemAt(selectedIndex);
+	//				final ItemEvent e = new ItemEvent(combo2, ItemEvent.ITEM_STATE_CHANGED, newSelected, ItemEvent.SELECTED);
+	//				MCanvas.dispatchEvent(combo, e);
+	//			}
+	//			
+	//			//触发ActionEvent
+	//			MCanvas.doActon(combo);
+				
+	//			java.awt.event.ItemEvent[ITEM_STATE_CHANGED,item=one,stateChange=DESELECTED] 
+	//			java.awt.event.ItemEvent[ITEM_STATE_CHANGED,item=three,stateChange=SELECTED]
+	//			java.awt.event.ActionEvent[ACTION_PERFORMED,cmd=comboBoxChanged,
+				return true;
+			}else{
+				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
-			
-//			final Object oldSelected = combo2.getSelectedItem();
-//			
-//			//触发ItemEvent[DESELECTED]
-//			if(oldSelected != null){
-//				final ItemEvent e = new ItemEvent(combo2, ItemEvent.ITEM_STATE_CHANGED, oldSelected, ItemEvent.DESELECTED);
-//				MCanvas.dispatchEvent(combo, e);
-//			}
-			combo2.setSelectedIndex(selectedIndex);
-//			注意：执行上步时，会在J2SE环境下自动触发下面两事件和上一行事件。
-//			java.awt.event.ItemEvent[ITEM_STATE_CHANGED,item=three,stateChange=SELECTED]
-//			java.awt.event.ActionEvent[ACTION_PERFORMED,cmd=comboBoxChanged,
-			
-//			//触发ItemEvent[SELECTED]
-//			{
-//				final Object newSelected = combo2.getItemAt(selectedIndex);
-//				final ItemEvent e = new ItemEvent(combo2, ItemEvent.ITEM_STATE_CHANGED, newSelected, ItemEvent.SELECTED);
-//				MCanvas.dispatchEvent(combo, e);
-//			}
-//			
-//			//触发ActionEvent
-//			MCanvas.doActon(combo);
-			
-//			java.awt.event.ItemEvent[ITEM_STATE_CHANGED,item=one,stateChange=DESELECTED] 
-//			java.awt.event.ItemEvent[ITEM_STATE_CHANGED,item=three,stateChange=SELECTED]
-//			java.awt.event.ActionEvent[ACTION_PERFORMED,cmd=comboBoxChanged,
-		}else{
-			LogManager.err(NO_COMPONENT_HCCODE + id);
+		}catch (final Throwable e) {
 		}
+		return false;
 	}
 
 	@Override
-	public final void notifyTextFieldValue(final int id, final String value) {
-		final Component combo = searchComponentByHcCode(mlet, id);
-		if(combo != null && combo instanceof JTextField){
-			final JTextField textField = (JTextField)combo;
-			textField.setText(value);
-//			MCanvas.doActon(combo);
-		}else{
-			LogManager.err(NO_COMPONENT_HCCODE + id);
+	public final boolean notifyTextFieldValue(final String id, final String value) {
+		try{
+			final Component combo = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			if(combo != null && combo instanceof JTextField){
+				final JTextField textField = (JTextField)combo;
+				textField.setText(value);
+	//			MCanvas.doActon(combo);
+				return true;
+			}else{
+				projectContext.error(NO_COMPONENT_HCCODE + id);
+			}
+		}catch (final Throwable e) {
 		}
+		return false;
 	}
 	
 	@Override
@@ -666,39 +873,54 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	}
 
 	@Override
-	public final void notifyTextAreaValue(final int id, final String value) {
-		final Component combo = searchComponentByHcCode(mlet, id);
-		if(combo != null && combo instanceof JComponent && JPanelDiff.isTextMultLinesEditor((JComponent)combo)){
-			final JTextComponent textArea = (JTextComponent)combo;
-			textArea.setText(value);
-//			MCanvas.doActon(combo);
-		}else{
-			LogManager.err(NO_COMPONENT_HCCODE + id);
+	public final boolean notifyTextAreaValue(final String id, final String value) {
+		try{
+			final Component combo = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			if(combo != null && combo instanceof JComponent && JPanelDiff.isTextMultLinesEditor((JComponent)combo)){
+				final JTextComponent textArea = (JTextComponent)combo;
+				textArea.setText(value);
+	//			MCanvas.doActon(combo);
+				return true;
+			}else{
+				projectContext.error(NO_COMPONENT_HCCODE + id);
+			}
+		}catch (final Throwable e) {
 		}
+		return false;
 	}
 
 	@Override
-	public final void clickJRadioButton(final int id) {
-		final Component combo = searchComponentByHcCode(mlet, id);
-		if(combo != null && combo instanceof JRadioButton){
-			final JRadioButton radioButton = (JRadioButton)combo;
-			radioButton.doClick();
-//			MCanvas.doActon(combo);
-		}else{
-			LogManager.err(NO_COMPONENT_HCCODE + id);
+	public final boolean clickRadioButton(final String id) {
+		try{
+			final Component combo = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			if(combo != null && combo instanceof JRadioButton){
+				final JRadioButton radioButton = (JRadioButton)combo;
+				radioButton.doClick();
+	//			MCanvas.doActon(combo);
+				return true;
+			}else{
+				projectContext.error(NO_COMPONENT_HCCODE + id);
+			}
+		}catch (final Throwable e) {
 		}
+		return false;
 	}
 
 	@Override
-	public final void clickJCheckbox(final int id) {
-		final Component combo = searchComponentByHcCode(mlet, id);
-		if(combo != null && combo instanceof JCheckBox){
-			final JCheckBox checkBox = (JCheckBox)combo;
-			checkBox.doClick();
-//			MCanvas.doActon(combo);
-		}else{
-			LogManager.err(NO_COMPONENT_HCCODE + id);
+	public final boolean clickCheckbox(final String id) {
+		try{
+			final Component combo = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			if(combo != null && combo instanceof JCheckBox){
+				final JCheckBox checkBox = (JCheckBox)combo;
+				checkBox.doClick();
+	//			MCanvas.doActon(combo);
+				return true;
+			}else{
+				projectContext.error(NO_COMPONENT_HCCODE + id);
+			}
+		}catch (final Throwable e) {
 		}
+		return false;
 	}
 
 	@Override

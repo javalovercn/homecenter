@@ -127,6 +127,8 @@ public class PropertiesManager {
 	public static final String p_isNeedResetPwd = "isNeedResetPwd";
 	public static final String p_SecurityCipher = "SecurityCipher";
 	public static final String p_SecuritySDPVersion = "SecuritySDPVersion";
+	public static final String p_SecurityLogVersion = "SecurityLogVersion";
+	public static final String p_SecurityLogDESSecretKeySize = "SecurityLogDESSecretKeySize";
 	public static final String p_SecuritySecretKeySize = "SecuritySecretKeySize";
 	public static final String p_SecurityCheckAES = "SecurityCheckAES";
 	public static final String S_SecurityProperties = "SecurityProperties";//记录加密的属性

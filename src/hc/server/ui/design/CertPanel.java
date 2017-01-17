@@ -205,45 +205,53 @@ public class CertPanel extends CertListPanel{
 		restoreBut.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				final int result = App.showConfirmDialog(dialog, "<html>current certificates will be overried!<BR>" +
-						"Are sure to restore?</html>", "continue restore?", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
-				if(result == JOptionPane.YES_OPTION){
-					final File restoreFile = chooseFile(true);
-					if(restoreFile != null){
-						final JPasswordField field = new JPasswordField("", Designer.COLUMNS_PWD_DEV_CERT);
-
-						final JPanel totalPanel = Designer.buildInputCertPwdPanel(field, false);
-						
-						final ActionListener listener = new ActionListener() {
-							@Override
-							public void actionPerformed(final ActionEvent e) {
-								final String pwd = new String(field.getPassword());
-								try{
-									final SignItem[] r = SignHelper.getContentformPfx(restoreFile, pwd);
-									
-									//restore
-									ResourceUtil.copy(restoreFile, SecurityDataProtector.getDevCertFile());
-									
-									if(PropertiesManager.getValue(PropertiesManager.p_DevCertPassword) != null){
-										PropertiesManager.setValue(PropertiesManager.p_DevCertPassword, pwd);
-									}
-									PropertiesManager.saveFile();
-									
-									CertPanel.this.items.clear();
-									for(int i = 0; i<r.length; i++){
-										CertPanel.this.items.add(r[i]);
-									}
-									
-									refreshTable();
-									saveBut.setEnabled(false);
-								}catch (final Throwable e1) {
-									App.showMessageDialog(dialog, e1.getMessage(), ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
-								}
-							}
-						};
-
-						App.showCenterPanelMain(totalPanel, 0, 0, (String)ResourceUtil.get(1007), false, null, null, listener, null, dialog, true, false, null, false, false);
+				if(CertPanel.this.hasItem()){
+					final int result = App.showConfirmDialog(dialog, "<html>current certificates will be overried!<BR>" +
+							"Are sure to restore?</html>", "continue restore?", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
+					if(result == JOptionPane.YES_OPTION){
+						restoreCert();
 					}
+				}else{
+					restoreCert();
+				}
+			}
+
+			private final void restoreCert() {
+				final File restoreFile = chooseFile(true);
+				if(restoreFile != null){
+					final JPasswordField field = new JPasswordField("", Designer.COLUMNS_PWD_DEV_CERT);
+
+					final JPanel totalPanel = Designer.buildInputCertPwdPanel(field, false);
+					
+					final ActionListener listener = new ActionListener() {
+						@Override
+						public void actionPerformed(final ActionEvent e) {
+							final String pwd = new String(field.getPassword());
+							try{
+								final SignItem[] r = SignHelper.getContentformPfx(restoreFile, pwd);
+								
+								//restore
+								ResourceUtil.copy(restoreFile, SecurityDataProtector.getDevCertFile());
+								
+								if(PropertiesManager.getValue(PropertiesManager.p_DevCertPassword) != null){
+									PropertiesManager.setValue(PropertiesManager.p_DevCertPassword, pwd);
+								}
+								PropertiesManager.saveFile();
+								
+								CertPanel.this.items.clear();
+								for(int i = 0; i<r.length; i++){
+									CertPanel.this.items.add(r[i]);
+								}
+								
+								refreshTable();
+								saveBut.setEnabled(false);
+							}catch (final Throwable e1) {
+								App.showMessageDialog(dialog, e1.getMessage(), ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+							}
+						}
+					};
+
+					App.showCenterPanelMain(totalPanel, 0, 0, (String)ResourceUtil.get(1007), false, null, null, listener, null, dialog, true, false, null, false, false);
 				}
 			}
 		}, threadPoolToken));

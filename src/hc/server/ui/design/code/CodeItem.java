@@ -80,6 +80,7 @@ public class CodeItem implements Comparable<CodeItem>{
 		item.isCSSProperty = false;
 		item.isCSSClass = false;
 		item.userObject = null;
+		item.isInnerClass = false;
 	}
 	
 	public final static int TYPE_IMPORT = 1;
@@ -128,6 +129,7 @@ public class CodeItem implements Comparable<CodeItem>{
 		isCSSProperty = from.isCSSProperty;
 		isCSSClass = from.isCSSClass;
 		userObject = from.userObject;
+		isInnerClass = from.isInnerClass;
 	}
 	
 	public int type;
@@ -142,6 +144,7 @@ public class CodeItem implements Comparable<CodeItem>{
 	public Class anonymousClass;
 	public boolean isCSSProperty;
 	public boolean isCSSClass;
+	public boolean isInnerClass;
 	public Object userObject;
 	
 	@Override

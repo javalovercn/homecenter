@@ -1,5 +1,6 @@
 package hc.server.ui;
 
+import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.core.util.UIUtil;
 import hc.server.html5.syn.DifferTodo;
@@ -18,6 +19,7 @@ public class SizeHeightForXML {
 	public DifferTodo diffTodo;
 	Vector<StyleItem> styleItemToDeliver;
 	Vector<String> stylesToDeliver;
+	Vector<String> scriptToDeliver;
 	Vector<String> jsToDeliver;
 	boolean isFlushCSS = false;
 	
@@ -40,12 +42,20 @@ public class SizeHeightForXML {
 		}
 	}
 	
-	/**
-	 * 
-	 * @param js
-	 * @since 7.7
-	 */
-	final void loadJS(final Mlet mlet, final String js){
+	final void setInnerHTML(final Mlet mlet, final ScriptPanel scriptPanel, final String innerHTML){
+		synchronized(mlet.synLock){
+			if(mlet.status == Mlet.STATUS_INIT){
+				LogManager.errToLog("invalid status to setInnerHTML : \n" + innerHTML);
+				return;
+			}
+			if(diffTodo != null && mlet.status < Mlet.STATUS_EXIT){//由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
+				final int hashID = diffTodo.buildHcCode(scriptPanel);
+				diffTodo.setDivInnerHTML(hashID, innerHTML);
+			}
+		}
+	}
+	
+	final void executeScript(final Mlet mlet, final String js){
 		synchronized(mlet.synLock){
 			if(mlet.status == Mlet.STATUS_INIT){
 				if(jsToDeliver == null){
@@ -55,7 +65,27 @@ public class SizeHeightForXML {
 				return;
 			}
 			if(diffTodo != null && mlet.status < Mlet.STATUS_EXIT){//由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
-				diffTodo.loadJS(js);
+				diffTodo.executeJS(js);
+			}
+		}
+	}
+	
+	/**
+	 * 
+	 * @param js
+	 * @since 7.7
+	 */
+	final void loadScript(final Mlet mlet, final String js){
+		synchronized(mlet.synLock){
+			if(mlet.status == Mlet.STATUS_INIT){
+				if(scriptToDeliver == null){
+					scriptToDeliver = new Vector<String>();
+				}
+				scriptToDeliver.add(js);
+				return;
+			}
+			if(diffTodo != null && mlet.status < Mlet.STATUS_EXIT){//由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
+				diffTodo.loadScript(js);
 			}
 		}
 	}

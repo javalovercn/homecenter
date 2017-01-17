@@ -12,6 +12,10 @@ public class TabBlock {
 		parameterBeginOffsetIdx = new int[countParameterNum];
 		parameterEndOffsetIdx = new int[countParameterNum];
 		
+		if(countParameterNum == 0){//for InnerClassDef
+			return;
+		}
+		
 		final int size = methodAndParameter.length;
 		
 		int i = 0;

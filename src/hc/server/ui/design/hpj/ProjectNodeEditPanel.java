@@ -333,7 +333,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 							"<br><br>for example, <strong>http://example.com/dir_or_virtual/tv.had</strong> , <strong>NOTE:</strong> it is <strong>had</strong> file, not <strong>har</strong> file." +
 							"<br>please put both <strong>tv.har</strong>, <strong>tv.had</strong> in directory <strong>dir_or_virtual</strong> for download." +
 							"<br><br><strong>had</strong> file provides version information which is used to determine upgrade or not." +
-							"<br>click <strong>Save as</strong> button, <strong>had</strong> file is automatically created with <strong>har</strong> file if url is not blank.</html>"),
+							"<br>click <strong>Save as</strong> button, <strong>had</strong> file is automatically created with <strong>har</strong> file if URL is not blank.</html>"),
 							BorderLayout.CENTER);
 					upgradePanel.setBorder(new TitledBorder("Upgrade URL"));
 				}

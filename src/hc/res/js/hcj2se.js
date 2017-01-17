@@ -14,24 +14,25 @@
 	}
 
 	var CONS = hcj2se.CONS = {
-		HC_DIV: 'hc_div_',
-		HC_IMG: 'hc_img_',
-		HC_CMP: 'hc_cmp_',
+		HC_PRE: 'HC_',
+		HC_DIV: 'HC_DIV_',
+		HC_IMG: 'HC_IMG_',
+		HC_CMP: 'HC_CMP_',
 		HC_FOR: 'id',
 		HC_TIP_DIV: 'tip'
 	};
 
 	hcj2se.prototype = {
-		removeFromJPanel: function(hashID){
+		removeFromPanel: function(hashID){
 			var delID = CONS.HC_DIV + hashID;
 			var delDiv = document.getElementById(delID);
 			delDiv.parentNode.removeChild(delDiv);
 		},
 		
-		addJButton: function(containerHashID, index, hashID){
+		addButton: function(containerHashID, index, hashID){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 
-			var jsOnClick = 'javascript:window.hcj2se.clickJButton(' + hashID + ');';/*注意：是window.hcj2se，不是window.hcserver*/
+			var jsOnClick = 'javascript:window.hcj2se.clickButton(\'' + hashID + '\');';/*注意：是window.hcj2se，不是window.hcserver*/
 			newdiv.setAttribute('onclick', jsOnClick);
 
 			var newButton = document.createElement('button');
@@ -42,7 +43,7 @@
 			newdiv.appendChild(newButton);
 		},
 
-		clickJButton: function(hashID){
+		clickButton: function(hashID){
 			var btnID = CONS.HC_CMP + hashID;
 			var btn = document.getElementById(btnID);
 			if(btn){
@@ -52,15 +53,15 @@
 				if(btn.clickMS + minInternalMS < curr_msec){
 					/*console.log('btn last clickMS : ' + btn.clickMS);*/
 					btn.clickMS = curr_msec;
-					window.hcserver.clickJButton(hashID);
+					window.hcserver.clickButton(CONS.HC_PRE + hashID);
 				}
 			}
 		},
 
-		addJCheckbox: function(containerHashID, index, hashID){
+		addCheckbox: function(containerHashID, index, hashID){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 
-			var jsOnClick = 'javascript:window.hcserver.clickJCheckbox(' + hashID + ');';
+			var jsOnClick = 'javascript:window.hcserver.clickCheckbox(\'' + CONS.HC_PRE + hashID + '\');';
 			newdiv.setAttribute('onclick', jsOnClick);
 
 			/*newdiv.setAttribute('class','JCheckbox');*/
@@ -78,10 +79,15 @@
 			newdiv.appendChild(label);
 		},
 
-		addJRadioButton: function(containerHashID, index, hashID, groupHashID){
+		changeRadioButtonGroup: function(hashID, groupHashID){
+			var newRadioButton = document.getElementById(CONS.HC_CMP + hashID);
+			newRadioButton.setAttribute('name',CONS.HC_CMP + groupHashID);/*name='radiobutton'则为一组，以实现单选*/
+		},
+		
+		addRadioButton: function(containerHashID, index, hashID, groupHashID){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 
-			var jsOnClick = 'javascript:window.hcserver.clickJRadioButton(' + hashID + ');';
+			var jsOnClick = 'javascript:window.hcserver.clickRadioButton(\'' + CONS.HC_PRE + hashID + '\');';
 			newdiv.setAttribute('onclick', jsOnClick);
 			
 			/*newdiv.setAttribute('class','JRadioButton');*/
@@ -130,7 +136,7 @@
 			}
 		},
 
-		addJLabel: function(containerHashID, index, hashID){
+		addLabel: function(containerHashID, index, hashID){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 
 			var label = document.createElement('label');
@@ -138,9 +144,9 @@
 			newdiv.appendChild(label);
 		},
 
-		lostFocusFromJTextField: function(hashID){
+		lostFocusFromTextField: function(hashID){
 			var value = document.getElementById(CONS.HC_CMP + hashID).value;
-			window.hcserver.notifyTextFieldValue(hashID, value);
+			window.hcserver.notifyTextFieldValue(CONS.HC_PRE + hashID, value);
 		},
 
 		addSlider: function(containerHashID, index, hashID, min, max, value, step){
@@ -156,12 +162,12 @@
 			}else{
 				newSlider.step = step;
 			}
-			newSlider.setAttribute('onchange','javascript:window.hcj2se.selectSlider(' + hashID + ');');
+			newSlider.setAttribute('onchange','javascript:window.hcj2se.selectSlider(\'' + hashID + '\');');
 
 			newdiv.appendChild(newSlider);
 		},
 
-		addJTextField: function(containerHashID, index, hashID, isPassword, tip){
+		addTextField: function(containerHashID, index, hashID, isPassword, tip){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 
 			/*newdiv.setAttribute('class','JTextField');*/
@@ -177,17 +183,17 @@
 			}else{
 				newTextField.setAttribute('placeholder', tip);/*input tip*/
 			}
-			newTextField.setAttribute('onblur', 'javascript:window.hcj2se.lostFocusFromJTextField(' + hashID + ');');
+			newTextField.setAttribute('onblur', 'javascript:window.hcj2se.lostFocusFromTextField(' + hashID + ');');
 			
 			newdiv.appendChild(newTextField);
 		},
 
-		lostFocusFromJTextArea: function(hashID){
+		lostFocusFromTextArea: function(hashID){
 			var value = document.getElementById(CONS.HC_CMP + hashID).value;
-			window.hcserver.notifyTextAreaValue(hashID, value);
+			window.hcserver.notifyTextAreaValue(CONS.HC_PRE + hashID, value);
 		},
 
-		addJTextArea: function(containerHashID, index, hashID, tip){
+		addTextArea: function(containerHashID, index, hashID, tip){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 
 			/*newdiv.setAttribute('class','JTextField');*/
@@ -199,7 +205,7 @@
 			}else{
 				newTextField.setAttribute('placeholder', tip);/*input tip*/
 			}
-			newTextArea.setAttribute('onblur', 'javascript:window.hcj2se.lostFocusFromJTextArea(' + hashID + ');');
+			newTextArea.setAttribute('onblur', 'javascript:window.hcj2se.lostFocusFromTextArea(' + hashID + ');');
 			
 			newdiv.appendChild(newTextArea);
 		},
@@ -235,12 +241,12 @@
 		},
 
 		selectCombo: function(hashID){
-			window.hcserver.selectComboBox(hashID, document.getElementById(CONS.HC_CMP + hashID).selectedIndex);
+			window.hcserver.selectComboBox(CONS.HC_PRE + hashID, document.getElementById(CONS.HC_CMP + hashID).selectedIndex);
 		},
 
 		selectSlider: function(hashID){
 			var value = parseInt(document.getElementById(CONS.HC_CMP + hashID).value);
-			window.hcserver.selectSlider(hashID, value);
+			window.hcserver.selectSlider(CONS.HC_PRE + hashID, value);
 		},
 
 		changeComboBoxSelected: function(hashID, selectedIndex){
@@ -253,6 +259,12 @@
 			newSlider.min = min;
 			newSlider.max = max;
 			newSlider.value = value;
+		},
+		
+		setDivInnerHTML: function(hashID, innerHTML){
+			var div = document.getElementById(CONS.HC_DIV + hashID);
+
+			div.innerHTML = innerHTML;
 		},
 
 		changeComboBoxValue: function(hashID, selectionValues){
@@ -291,7 +303,7 @@
 			newdiv.appendChild(newSelect);
 		},
 
-		addJPanel: function(containerHashID, index, hashID){
+		addPanel: function(containerHashID, index, hashID){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
 			var j2se = this;
 
@@ -305,28 +317,28 @@
 				/* elementToDrag.style.left=(e.offsetX+scroll.x-deltaX)+'px';*/
 				/* elementToDrag.style.top=(e.offsetY+scroll.y-deltaY)+'px';*/
 				/* e.stopPropagation();*/
-				window.hcserver.mouseReleased(hashID, e.offsetX, e.offsetY);
+				window.hcserver.mouseReleased(CONS.HC_PRE + hashID, e.offsetX, e.offsetY);
 				}, false);
 			newdiv.addEventListener('mousedown', function(e){
 					if(!e) e=window.event;
 					if(e.target != newdiv){
 						return;
 					}
-					window.hcserver.mousePressed(hashID, e.offsetX, e.offsetY);
+					window.hcserver.mousePressed(CONS.HC_PRE + hashID, e.offsetX, e.offsetY);
 				}, false);
 			newdiv.addEventListener('mouseleave', function(e){
 					if(!e) e=window.event;
 					if(e.target != newdiv){
 						return;
 					}
-					window.hcserver.mouseExited(hashID, e.offsetX, e.offsetY);
+					window.hcserver.mouseExited(CONS.HC_PRE + hashID, e.offsetX, e.offsetY);
 				}, false);
 			newdiv.addEventListener('mouseenter', function(e){
 					if(!e) e=window.event;
 					if(e.target != newdiv){
 						return;
 					}
-					window.hcserver.mouseEntered(hashID, e.offsetX, e.offsetY);
+					window.hcserver.mouseEntered(CONS.HC_PRE + hashID, e.offsetX, e.offsetY);
 				}, false);
 			newdiv.addEventListener('click', function(e){
 					if(!e) e=window.event;
@@ -334,7 +346,7 @@
 						return;
 					}
 					/* console.log('mouseClick id : ' + hashID + ', x : ' + e.offsetX + ', y : ' + e.offsetY);*/
-					window.hcserver.mouseClicked(hashID, e.offsetX, e.offsetY);
+					window.hcserver.mouseClicked(CONS.HC_PRE + hashID, e.offsetX, e.offsetY);
 				}, false);
 			newdiv.addEventListener('touchmove', function(e){
 					if(!e) e=window.event;
@@ -344,7 +356,7 @@
 					/* e.preventDefault();*/
 					/* console.log('touchmove id : ' + hashID + ', getDivTop : ' + j2se.getDivTop(newdiv) + ', y : ' + e.touches[0].clientX);*/
 					/* console.log('touchmove id : ' + hashID + ', x : ' + (e.touches[0].clientX - j2se.getDivLeft(newdiv)) + ', y : ' + e.touches[0].clientX);*/
-					window.hcserver.mouseDragged(hashID, 
+					window.hcserver.mouseDragged(CONS.HC_PRE + hashID, 
 						e.touches[0].clientX - j2se.getDivLeft(newdiv), 
 						e.touches[0].clientY - j2se.getDivTop(newdiv));/*注意：offsetX是undefined*/
 				}, false);

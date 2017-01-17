@@ -16,7 +16,9 @@ import javax.swing.JToggleButton;
 
 /**
  * {@link HTMLMlet} is a JPanel, which contains JComponents and present them as HTML on mobile (not snapshot), you can set CSS for these JComponents.<BR>
- * <BR>Not all HTML tag are supported by mobile runtime environment.
+ * <BR>Tip : if you need load and execute javascript, please use {@link ScriptPanel}.
+ * <BR><BR>
+ * Not all HTML tag are supported by mobile runtime environment.
  * <BR>To support HTML5, Android 4.4 (or above) / iPhone 4s (or above) is required.
  * <BR>
  * To synchronize status with mobile, AWT/Swing listeners are added to these JComponents, please don't remove them.
@@ -55,7 +57,7 @@ public class HTMLMlet extends Mlet {
 	 * <BR><BR>About cache :<BR>
 	 * don't worry about styles too large for re-translating to mobile, <BR>
 	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether transmission or loading cache from mobile (if styles is too small, it will not be cached).
-	 * What you should do is put more data into one style file, because if there is too much pieces of cache in a project, the system will automatically clear the cache and restart caching.
+	 * What you should do is put more data into one style file, because if there is too much pieces of cache in a project, system will automatically clear the cache and restart caching.
 	 * @param styles for example, "<i>h1 {color:red} p {color:blue}</i>".
 	 * @see #setCSS(JComponent, String, String)
 	 * @see #setCSSForToggle(JToggleButton, String, String)

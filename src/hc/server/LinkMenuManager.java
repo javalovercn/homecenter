@@ -4,6 +4,7 @@ import hc.App;
 import hc.core.ContextManager;
 import hc.core.util.ExceptionReporter;
 import hc.server.ui.LinkProjectStatus;
+import hc.server.ui.SimuMobile;
 import hc.server.ui.design.Designer;
 
 import javax.swing.JFrame;
@@ -50,6 +51,8 @@ public class LinkMenuManager {
 	 * @param loadInit
 	 */
 	public static void startDesigner(final boolean loadInit){
+		SimuMobile.init();
+		
 		if(LinkProjectStatus.tryEnterStatus(null, LinkProjectStatus.MANAGER_DESIGN)){
 			try{
 				SingleJFrame.showJFrame(Designer.class);

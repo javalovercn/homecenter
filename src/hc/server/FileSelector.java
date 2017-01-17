@@ -1,9 +1,10 @@
 package hc.server;
 
-import hc.App;
 import hc.util.PropertiesManager;
+
 import java.awt.Component;
 import java.io.File;
+
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
@@ -13,9 +14,9 @@ public class FileSelector {
 
 	private final static JFileChooser chooser = new JFileChooser((File)null);
 	static {
-		String path = PropertiesManager.getValue(PropertiesManager.p_FileChooserDir);
+		final String path = PropertiesManager.getValue(PropertiesManager.p_FileChooserDir);
 		if(path != null){
-			File pathFile = new File(path);
+			final File pathFile = new File(path);
 			if(pathFile.exists()){
 				chooser.setCurrentDirectory(pathFile);
 			}
@@ -27,6 +28,7 @@ public class FileSelector {
 	public static final int HAR_FILTER = 4;
 	public static final int FOLDER_FILTER = 5;
 	public static final int NATIVE_FILTER = 6;
+	public static final int PNG_FILTER = 7;
 	
 	private static FileNameExtensionFilter imageFilter = new FileNameExtensionFilter(
 			"image file",
@@ -40,13 +42,15 @@ public class FileSelector {
 			"jar file", jarFile
 			);
 	private static FileFilter nativeFilter = new FileFilter(){
-		public boolean accept(File f) {
+		@Override
+		public boolean accept(final File f) {
 			if (f.isDirectory()) {
                 return false;
             }
 			return true;
 		}
 		
+		@Override
 		public String getDescription() {
 			return "native file";
 		}
@@ -55,12 +59,16 @@ public class FileSelector {
 	private static FileNameExtensionFilter harFilter = new FileNameExtensionFilter(
 			"har (HomeCenter archive) file", harFile
 			);
+	private static String[] pngFile = {"png"};
+	private static FileNameExtensionFilter pngFilter = new FileNameExtensionFilter(
+			"PNG file", pngFile
+			);
 	private static String[] dirFile = {"directory"};
 	private static FileNameExtensionFilter dirFilter = new FileNameExtensionFilter(
 			"directory", dirFile
 			);
 	
-	public static File selectImageFile(final Component parent, int type, final boolean isOpen) {
+	public static File selectImageFile(final Component parent, final int type, final boolean isOpen) {
 		FileFilter fnef = null;
 
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -73,6 +81,8 @@ public class FileSelector {
 			fnef = nativeFilter;
 		}else if(type == HAR_FILTER){
 			fnef = harFilter;
+		}else if(type == PNG_FILTER){
+			fnef = pngFilter;
 		}else if(type == FOLDER_FILTER){
 			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 			fnef = dirFilter;
@@ -90,9 +100,9 @@ public class FileSelector {
 		
 		try{
 			Thread.sleep(100);//增加延时，否则debug时，不出FileDialog
-		}catch (Exception e) {
+		}catch (final Exception e) {
 		}
-		int ans = (isOpen?chooser.showOpenDialog(parent):chooser.showSaveDialog(parent));
+		final int ans = (isOpen?chooser.showOpenDialog(parent):chooser.showSaveDialog(parent));
 		if (ans == JFileChooser.APPROVE_OPTION) {
 			PropertiesManager.setValue(PropertiesManager.p_FileChooserDir, 
 					chooser.getCurrentDirectory().getAbsolutePath());

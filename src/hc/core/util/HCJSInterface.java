@@ -3,17 +3,17 @@ package hc.core.util;
 public interface HCJSInterface {
 	public void actionExt(String cmd);
 	
-	public void clickJButton(int id);
+	public boolean clickButton(String id);
 
-	public void selectSlider(int id, int value);
+	public boolean selectSlider(String id, String value);
 
-	public void selectComboBox(int id, int selectedIndex);
+	public boolean selectComboBox(String id, String selectedIndex);
 
-	public void notifyTextFieldValue(int id, String value);
+	public boolean notifyTextFieldValue(String id, String value);
 	
-	public void notifyTextAreaValue(int id, String value);
+	public boolean notifyTextAreaValue(String id, String value);
 	
-	public void clickJRadioButton(int id);
+	public boolean clickRadioButton(String id);
 	
-	public void clickJCheckbox(int id);
+	public boolean clickCheckbox(String id);
 }

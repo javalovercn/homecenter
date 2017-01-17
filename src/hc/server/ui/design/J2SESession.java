@@ -1,6 +1,8 @@
 package hc.server.ui.design;
 
 import hc.core.CoreSession;
+import hc.core.DelayWatcher;
+import hc.core.GlobalConditionWatcher;
 import hc.core.HCMessage;
 import hc.core.HCTimer;
 import hc.core.IEventHCListener;
@@ -33,6 +35,7 @@ import hc.server.ui.ResParameter;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.SessionMobiMenu;
 import hc.server.util.SystemEventListener;
+import hc.util.ResourceUtil;
 import hc.util.UpdateOneTimeRunnable;
 
 import java.util.ArrayList;
@@ -388,5 +391,15 @@ public class J2SESession extends CoreSession{
 			}});
 		
 		
+	}
+
+	@Override
+	protected void delayToSetNull() {
+		GlobalConditionWatcher.addWatcher(new DelayWatcher(1000 * ResourceUtil.getIntervalSecondsForNextStartup()) {
+			@Override
+			public void doBiz() {
+				setNull();
+			}
+		});
 	}
 }

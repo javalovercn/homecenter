@@ -369,12 +369,11 @@ public abstract class IContext {
 	 * @param len
 	 */
 	public final void sendWrap(final byte ctrlTag, final byte[] jcip_bs, final int offset, final int len) {
-		if(isServerSide){
+//		if(isServerSide){//注：关闭checkAccess
 //			if(ctrlTag == MsgBuilder.E_TRANS_NEW_CERT_KEY 
 //					|| ctrlTag == MsgBuilder.E_TRANS_NEW_CERT_KEY_IN_SECU_CHANNEL){
-				CCoreUtil.checkAccess();
 //			}
-		}
+//		}
 		sendWrapAction(ctrlTag, jcip_bs, offset, len);
 	}
 	

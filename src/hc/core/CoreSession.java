@@ -10,7 +10,7 @@ import hc.core.util.IHCURLAction;
 import hc.core.util.ThreadPriorityManager;
 import hc.core.util.io.StreamBuilder;
 
-public class CoreSession {
+public abstract class CoreSession {
 	private static boolean isNotifyShutdown = false;
 	
 	public static boolean isNotifyShutdown(){
@@ -89,17 +89,21 @@ public class CoreSession {
 		}
 	}
 	
+	protected abstract void delayToSetNull();
+	
 	public void release(){
-		eventCenter = null;
-		context = null;
+		delayToSetNull();
 		
 		HCTimer.remove(sipContext.resender.resenderTimer);
-		sipContext = null;
-		
-		streamBuilder.coreSS = null;//streamBuilder构造时，生成，所以不为null
-		
 		HCTimer.remove(ackbatchTimer);
 		HCTimer.remove(udpAliveMobiDetectTimer);
+	}
+
+	protected final void setNull() {
+		eventCenter = null;
+		context = null;
+		sipContext = null;
+		streamBuilder.coreSS = null;//streamBuilder构造时，生成，所以不为null
 	}
 	
 	public void setOneTimeCertKey(final byte[] bs){

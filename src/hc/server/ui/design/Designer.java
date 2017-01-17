@@ -1123,7 +1123,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		certButton.setToolTipText("<html>create, manage developer certificate, which is used to sign your HAR project." +
 				"<BR><BR>" +
 				"<STRONG>Important :</STRONG><BR>" +
-				"1. HAR will be signed when you click [<STRONG>" + SAVE_AS_TEXT + "</STRONG>] button if developer certificate is created.<BR>" +
+				"1. HAR will be signed when you click [<STRONG>" + SAVE_AS_TEXT + "</STRONG>] button if developer certificate is created/restored.<BR>" +
 				"2. it is <STRONG>NOT</STRONG> certificate for mobile connection.<BR>" +
 				"3. it is recommended that sign HAR on development HomeCenter server, NOT on business HomeCenter server.</html>");
 		certButton.addActionListener(new HCActionListener(new Runnable() {

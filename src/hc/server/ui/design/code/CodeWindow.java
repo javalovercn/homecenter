@@ -164,29 +164,12 @@ public class CodeWindow {
 						textPane.setCaretPosition(movingScriptIdx);
 //						textPane.updateUI();//会导致重新获得焦点时为posi:0
 						textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, movingScriptIdx));
-						TabHelper.notifyInputKey(true, e, e.getKeyChar());
+						TabHelper.notifyInputKey(true, e, e.getKeyChar(), 0);
 					}catch (final Exception ex) {
 					}
 				}
 			}else{
-				final char keyChar = e.getKeyChar();
-				if(keyChar == '￿'){//Shift in Mac
-					return;
-				}
-				preCodeChars[preCodeCharsLen++] = keyChar;
-				preCodeLower = String.valueOf(preCodeChars, 0, preCodeCharsLen).toLowerCase();
-				
-				SwingUtilities.invokeLater(refilterRunnable);
-				
-				try{
-					document.insertString(movingScriptIdx++, String.valueOf(keyChar), null);
-					textPane.setCaretPosition(movingScriptIdx);
-//					textPane.updateUI();//会导致重新获得焦点时为posi:0
-					
-					textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, movingScriptIdx));
-					TabHelper.notifyInputKey(false, e, keyChar);
-				}catch (final Exception ex) {
-				}
+				keyPressedAfterDot(e);
 			}
 			}
 			}
@@ -323,6 +306,7 @@ public class CodeWindow {
 		codeHelper.mouseExitHideDocForMouseMovTimer.setEnable(false);
 		synchronized (classFrame) {
 			if(classFrame.isVisible() || docHelper.isShowing()){
+				isWillOrAlreadyToFront = false;
 				synchronized (autoPopTip) {
 					autoPopTip.setEnable(false);
 					docHelper.setInvisible();
@@ -383,6 +367,7 @@ public class CodeWindow {
 		
 		if(classData.size() == 0){
 			codeList.clearSelection();
+			docHelper.setInvisible();
 		}else{
 			codeList.setSelectedIndex(0);
 		}
@@ -424,9 +409,12 @@ public class CodeWindow {
 	
 	final Rectangle rect = new Rectangle(0, 0, 1, 1);
 	
+	public boolean isWillOrAlreadyToFront;
+	
 	public final void toFront(final Class codeClass, final ScriptEditPanel sep, final HCTextPane eventFromComponent, 
 			final int x, final int y, final ArrayList<CodeItem> list, 
 			final String preCode, final int scriptIdx, final int fontHeight){
+		isWillOrAlreadyToFront = true;
 		docHelper.isForMouseOverTip = false;
 		
 		fullList = list;
@@ -454,9 +442,10 @@ public class CodeWindow {
 		SwingUtilities.invokeLater(toVisibleRunnable);
 	}
 
+	final Dimension frameSize = new Dimension();
+	final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
 	final Runnable toVisibleRunnable = new Runnable() {
-		final Dimension frameSize = new Dimension();
-		final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		
 		@Override
 		public void run() {
@@ -506,10 +495,12 @@ public class CodeWindow {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						if(item.anonymousClass == null){
-							insertMethod(item);
-						}else{
+						if(item.anonymousClass != null){
 							insertAnonymouseClass(item);
+						}else if(item.isInnerClass){
+							insertInnerClass();
+						}else{
+							insertMethod(item);
 						}
 					}
 					
@@ -530,17 +521,43 @@ public class CodeWindow {
 						return lineStr.toCharArray();
 					}
 
+					public final void insertInnerClass() {
+						try {
+							final int charIdxRemovedTab = getShujinTabIdx();
+							
+							document.remove(oriScriptIdx, preCodeCharsLen);
+							
+							final StringBuilder sb = StringBuilderCacher.getFree();
+							sb.append(CodeHelper.JRUBY_NEW);
+							sb.append("(BaseClass) {");
+							sb.append('\n');
+							
+							sb.append(shujin, 0, charIdxRemovedTab);
+							sb.append('\t');
+//							final int newLocIdx = sb.length();
+							sb.append('\n');
+							
+							sb.append(shujin, 0, charIdxRemovedTab);
+							sb.append("}.new");
+							
+							document.insertString(oriScriptIdx, sb.toString(), ScriptEditPanel.DEFAULT_LIGHTER);
+							StringBuilderCacher.cycle(sb);
+							
+							final int position = oriScriptIdx + CodeHelper.JRUBY_NEW.length() + 1;
+							textPane.setSelectionStart(position);
+							textPane.setSelectionEnd(position + 9);//BaseClass.length == 9
+							
+							TabHelper.setInnerClassTabBlock();
+						} catch (final BadLocationException e) {
+							ExceptionReporter.printStackTrace(e);
+						}
+					}
+					
+					char[] shujin;
+					
 					public final void insertAnonymouseClass(final CodeItem item) {
 						try {
-							final int line = ScriptEditPanel.getLineOfOffset(document, oriScriptIdx);
-							final char[] shujin = getShuJin(document, line);
-							int charIdxRemovedTab = 0;
-							for (; charIdxRemovedTab < shujin.length; charIdxRemovedTab++) {
-								if(shujin[charIdxRemovedTab] == ' ' || shujin[charIdxRemovedTab] == '\t'){
-								}else{
-									break;
-								}
-							}
+							final int charIdxRemovedTab = getShujinTabIdx();
 							
 							document.remove(oriScriptIdx, preCodeCharsLen);
 							final String insertedCode = removeParameters(item.code);
@@ -572,6 +589,19 @@ public class CodeWindow {
 							ExceptionReporter.printStackTrace(e);
 						}
 					}
+
+					private final int getShujinTabIdx() throws BadLocationException {
+						final int line = ScriptEditPanel.getLineOfOffset(document, oriScriptIdx);
+						shujin = getShuJin(document, line);
+						int charIdxRemovedTab = 0;
+						for (; charIdxRemovedTab < shujin.length; charIdxRemovedTab++) {
+							if(shujin[charIdxRemovedTab] == ' ' || shujin[charIdxRemovedTab] == '\t'){
+							}else{
+								break;
+							}
+						}
+						return charIdxRemovedTab;
+					}
 					
 					public final void insertMethod(final CodeItem item) {
 						try {
@@ -597,7 +627,7 @@ public class CodeWindow {
 								textPane.setCaretPosition(position);
 							}
 						} catch (final BadLocationException e) {
-							ExceptionReporter.printStackTrace(e);
+//							ExceptionReporter.printStackTrace(e);
 						}
 					}
 				});
@@ -626,6 +656,27 @@ public class CodeWindow {
 			autoPopTip.type = item.type;
 			autoPopTip.layoutLimit = layoutLimit;
 			autoPopTip.setEnable(true);
+		}
+	}
+
+	public final void keyPressedAfterDot(final KeyEvent e) {
+		final char keyChar = e.getKeyChar();
+		if(keyChar == '￿'){//Shift in Mac
+			return;
+		}
+		preCodeChars[preCodeCharsLen++] = keyChar;
+		preCodeLower = String.valueOf(preCodeChars, 0, preCodeCharsLen).toLowerCase();
+		
+		SwingUtilities.invokeLater(refilterRunnable);
+		
+		try{
+			document.insertString(movingScriptIdx++, String.valueOf(keyChar), null);
+			textPane.setCaretPosition(movingScriptIdx);
+//					textPane.updateUI();//会导致重新获得焦点时为posi:0
+			
+			textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, movingScriptIdx));
+			TabHelper.notifyInputKey(false, e, keyChar, 0);
+		}catch (final Exception ex) {
 		}
 	}
 }

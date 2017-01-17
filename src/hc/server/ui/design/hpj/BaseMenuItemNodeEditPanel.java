@@ -24,6 +24,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -202,6 +204,53 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 			setItemIcon(sys_icon, 0);
 			iPanel.add(iconLabel);
 			iconLabel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
+			
+			iconLabel.addMouseListener(new MouseListener() {
+				
+				@Override
+				public void mouseReleased(final MouseEvent e) {
+				}
+				
+				@Override
+				public void mousePressed(final MouseEvent e) {
+				}
+				
+				@Override
+				public void mouseExited(final MouseEvent e) {
+				}
+				
+				@Override
+				public void mouseEntered(final MouseEvent e) {
+				}
+				
+				@Override
+				public void mouseClicked(final MouseEvent e) {
+					if(sys_icon != iconLabel.getIcon() && e.getClickCount() == 2){
+						final String base64 = ((HPMenuItem)currItem).imageData;
+						if(UIUtil.SYS_DEFAULT_ICON.equals(base64)){
+							return;
+						}
+						File file = FileSelector.selectImageFile(iconLabel, FileSelector.PNG_FILTER, false);
+						if(file == null){
+							return;
+						}
+						final String extPNG = ".png";
+						if(file.toString().endsWith(extPNG)){
+						}else{
+							file = new File(file.getPath() + extPNG);
+						}
+						
+						try {
+							if(ImageIO.write(ServerUIUtil.base64ToBufferedImage(base64), "png", file)){
+								App.showMessageDialog(designer, "Successful save icon to file!", ResourceUtil.getInfoI18N(), JOptionPane.INFORMATION_MESSAGE, App.getSysIcon(App.SYS_INFO_ICON));
+								return;
+							}
+						}catch (final Throwable ex) {
+						}
+						App.showMessageDialog(designer, "fail to write image file!", ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+					}
+				}
+			});
 			
 			iconPanel.add(iPanel, BorderLayout.WEST);
 		}

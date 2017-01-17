@@ -1,16 +1,23 @@
 package hc.server.html5.syn;
 
+import hc.core.ExpiredRunnable;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
+import hc.server.ui.HTMLMlet;
+import hc.server.ui.ProjectContext;
+import hc.server.ui.ScriptPanel;
 import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.ServerUIUtil;
 import hc.util.ClassUtil;
 
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
+import java.util.Vector;
 
 import javax.swing.BoundedRangeModel;
+import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 import javax.swing.DefaultButtonModel;
 import javax.swing.JButton;
@@ -61,7 +68,7 @@ public class JPanelDiff extends JComponentDiff{
 					//注意：切勿从todo.hcCode中删除JComponent，它是标识已为其生成事件的记录。否则当该对象被重新入JPanel时，会重新添加事件。
 					//支持带子组件的JPanel删除和再加入
 					if(hcCodeID != 0){
-						todo.notifyRemoveFromJPanel(hcCodeID);
+						todo.notifyRemoveFromPanel(hcCodeID);
 					}
 					return;
 				}
@@ -122,20 +129,46 @@ public class JPanelDiff extends JComponentDiff{
 		final int compHcCode = todo.buildHcCode(jcomp);
 		Class diffClass = null;
 		if(jcomp instanceof JButton){
-			todo.notifyAddJButton(containHashID, index, compHcCode);
+			todo.notifyAddButton(containHashID, index, compHcCode);
 			diffClass = JButtonDiff.class;
 		}else if(jcomp instanceof JCheckBox){
-			todo.notifyAddJCheckbox(containHashID, index, compHcCode);
+			todo.notifyAddCheckbox(containHashID, index, compHcCode);
 			diffClass = JCheckBoxDiff.class;
 		}else if(jcomp instanceof JRadioButton){
 			final ButtonModel model = ((JRadioButton)jcomp).getModel();
 			if((model instanceof DefaultButtonModel) ==  false){
-				final String error = "the ButtonModel of JRadionButton must based on DefaultButtonModel in Mlet.";
-				LogManager.err(error);
-				return;
+				final String error = "the ButtonModel of JRadionButton must based on DefaultButtonModel.";
+				ProjectContext.getProjectContext().error(error);
+				throw new IllegalAccessError(error);
 			}
-			final int groupHcCode = todo.buildHcCode(((DefaultButtonModel)model).getGroup());
-			todo.notifyAddJRadioButton(containHashID, index, compHcCode, groupHcCode);
+			final DefaultButtonModel buttonModel = (DefaultButtonModel)model;
+			final ButtonGroup group = buttonModel.getGroup();
+			final int groupHcCode;
+			if(group == null){
+				groupHcCode = 0;
+				final ProjectContext projectContext = ProjectContext.getProjectContext();
+				projectContext.run(new ExpiredRunnable(10 * 1000) {
+					@Override
+					public void notifyExpired() {
+						final String msg = "JRadioButton must be added to a ButtonGroup.";
+						projectContext.error(msg);
+					}
+					
+					@Override
+					public boolean doBiz() {
+						final ButtonGroup group = buttonModel.getGroup();
+						if(group != null){
+							todo.notifyChangeRadioButtonGroup(compHcCode, todo.buildHcCode(group));
+							return true;
+						}
+						
+						return false;
+					}
+				});
+			}else{
+				groupHcCode = todo.buildHcCode(group);
+			}
+			todo.notifyAddRadioButton(containHashID, index, compHcCode, groupHcCode);
 			diffClass = JRadioButtonDiff.class;
 //			}else if(jcomp instanceof AbstractButton){
 //			todo.notifyAddJButton(containHashID, index, compHashCode);
@@ -145,22 +178,31 @@ public class JPanelDiff extends JComponentDiff{
 			todo.notifyAddJProgressBar(containHashID, index, compHcCode, progressBar.getMaximum(), progressBar.getValue());
 			diffClass = JProgressBarDiff.class;
 		}else if(jcomp instanceof JLabel){
-			todo.notifyAddJLabel(containHashID, index, compHcCode);
+			todo.notifyAddLabel(containHashID, index, compHcCode);
 			diffClass = JLabelDiff.class;
 		}else if(jcomp instanceof JPanel){
-			todo.notifyAddJPanel(containHashID, index, compHcCode);
+			todo.notifyAddPanel(containHashID, index, compHcCode);
 			if(isAddedEvent == false){
 				JPanelDiff.addContainerEvent((JPanel)jcomp, todo);
 			}
 			diffClass = JPanelDiff.class;
+			if(jcomp instanceof ScriptPanel){
+				final ScriptPanel scriptPanel = (ScriptPanel)jcomp;
+				final HTMLMlet mlet = todo.mlet;
+				ServerUIUtil.setMlet(scriptPanel, mlet, ServerUIUtil.getSizeHeightForXML(mlet));
+				if(todo.scriptPanels == null){
+					todo.scriptPanels = new Vector<ScriptPanel>(2);
+				}
+				todo.scriptPanels.add(scriptPanel);
+			}
 		}else if(isTextMultLinesEditor(jcomp)){
-			todo.notifyAddJTextArea(containHashID, index, compHcCode, jcomp.getToolTipText());
+			todo.notifyAddTextArea(containHashID, index, compHcCode, jcomp.getToolTipText());
 			diffClass = JTextAreaDiff.class;
 		}else if(jcomp instanceof JTextField){
-			todo.notifyAddJTextField(containHashID, index, compHcCode, (jcomp instanceof JPasswordField)?1:0, jcomp.getToolTipText());
+			todo.notifyAddTextField(containHashID, index, compHcCode, (jcomp instanceof JPasswordField)?1:0, jcomp.getToolTipText());
 			diffClass = JTextFieldDiff.class;
 		}else if(jcomp instanceof JTextComponent){
-			todo.notifyAddJTextField(containHashID, index, compHcCode, 0, jcomp.getToolTipText());
+			todo.notifyAddTextField(containHashID, index, compHcCode, 0, jcomp.getToolTipText());
 			diffClass = JTextComponentDiff.class;
 		}else if(jcomp instanceof JComboBox){
 			todo.notifyAddComboBox(containHashID, index, compHcCode, jcomp);
@@ -176,7 +218,7 @@ public class JPanelDiff extends JComponentDiff{
 			diffClass = JSliderDiff.class;
 		}else if(jcomp instanceof JComponent){//必须置于最后
 			final String error = "[" + jcomp.getClass().getName() + "] is NOT supported now, please use other JComponent or invoke setPreferredSize to adjust size in Mlet.";
-			LogManager.err(error);
+			ProjectContext.getProjectContext().error(error);
 			return;
 //			throw new Error(error);不能停止，仅忽略
 		}

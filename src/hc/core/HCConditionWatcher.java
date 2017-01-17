@@ -56,9 +56,9 @@ public class HCConditionWatcher {
 						break;
 					}
 					
-					if(isInWorkshop){
-						L.V = L.O ? false : LogManager.log("[" + timeName + "] processing a watcher : " + temp.hashCode());
-					}
+//					if(isInWorkshop){
+//						L.V = L.O ? false : LogManager.log("[" + timeName + "] processing a watcher : " + temp.hashCode());
+//					}
 					
 					//因为在执行本实例时，有可能遇到同时请求移出，所以加实例锁，并在内部加集合锁
 					synchronized (temp) {
@@ -73,9 +73,9 @@ public class HCConditionWatcher {
 							ExceptionReporter.printStackTrace(e);
 						}
 					}
-					if(isInWorkshop){
-						L.V = L.O ? false : LogManager.log("[" + timeName + "] processed a watcher : " + temp.hashCode());
-					}
+//					if(isInWorkshop){
+//						L.V = L.O ? false : LogManager.log("[" + timeName + "] processed a watcher : " + temp.hashCode());
+//					}
 				}while(true);
 				
 				if(isAddUnUsed){

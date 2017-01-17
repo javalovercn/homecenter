@@ -61,6 +61,7 @@ public class ConfigManager {
 	public static final String UI_ENABLE_SCREEN_ADAPTER = "hc.ui.screenAdapter";
 	public static final String UI_JUMP_TO_HOME = "hc.ui.jumpHome";
 	public static final String UI_SCALE_OF_SCREEN = "hc.ui.scale";//iOS
+	public static final String UI_HIDE_INPUT_PANEL = "hc.ui.hideInputPanel";//iOS不需实现
 	
 	public static final String PRINT_ALL_THREAD = "hc.log.printAllThread";
 	

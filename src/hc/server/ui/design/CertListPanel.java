@@ -24,6 +24,10 @@ public class CertListPanel {
 	public static final String COL_NAME_EXPIRES = (String)ResourceUtil.get(9225);
 
 	final Object[] colNames = {COL_NAME_ALIAS, COL_NAME_EXPIRES};
+	
+	public final boolean hasItem(){
+		return items.size() > 0;
+	}
 
 	String password;
 	public CertListPanel(final String pwd){

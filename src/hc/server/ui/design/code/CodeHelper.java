@@ -70,6 +70,7 @@ import org.jrubyparser.ast.ILiteralNode;
 import org.jrubyparser.ast.INameNode;
 import org.jrubyparser.ast.InstAsgnNode;
 import org.jrubyparser.ast.InstVarNode;
+import org.jrubyparser.ast.IterNode;
 import org.jrubyparser.ast.ListNode;
 import org.jrubyparser.ast.LocalAsgnNode;
 import org.jrubyparser.ast.LocalVarNode;
@@ -78,6 +79,7 @@ import org.jrubyparser.ast.MethodNameNode;
 import org.jrubyparser.ast.NewlineNode;
 import org.jrubyparser.ast.NilNode;
 import org.jrubyparser.ast.Node;
+import org.jrubyparser.ast.NodeType;
 import org.jrubyparser.ast.SelfNode;
 import org.jrubyparser.ast.StrNode;
 import org.jrubyparser.ast.SymbolNode;
@@ -93,11 +95,17 @@ public class CodeHelper {
 	private static final String TO_S = "to_s";
 	private static final String TO_F = "to_f";
 	private static final String TO_I = "to_i";
+	private static final String NIL = "nil";
 	private static final String JRUBY_CLASS_INITIALIZE_DEF = "initialize";
 	public static final String JRUBY_NEW = "new";
 	public static final String JRUBY_NEW_METHOD = JRUBY_NEW + "(";
 	private static final String JRUBY_CLASS_FOR_NEW = "Class";
-
+	public static final String JRUBY_JAVA_CLASS = "java_class";
+	private static final Class JRUBY_JAVA_CLASS_AGENT = JavaClass.class;
+	
+	private static final Class JRUBY_CLASS_FOR_BULDER = ClassBulder.class;
+	public static final String DEF_MEMBER = "def";
+	
 	private final HashMap<String, String[]> addedLibClassesAndRes = new HashMap<String, String[]>();
 	private final HashMap<String, CodeItem[]> classCacheMethodAndPropForClass = new HashMap<String, CodeItem[]>();
 	private final HashMap<String, CodeItem[]> classCacheMethodAndPropForInstance = new HashMap<String, CodeItem[]>();
@@ -194,14 +202,21 @@ public class CodeHelper {
 		final int methodSize = allMethods.length;
 
 		if(c == String.class){
-			addToMethod(list, TO_DOWN_CASE, "String", String.class.getSimpleName());
-			addToMethod(list, TO_UPPER_CASE, "String", String.class.getSimpleName());
-			addToMethod(list, TO_I, "int", String.class.getSimpleName());
-			addToMethod(list, TO_F, "float", String.class.getSimpleName());
+			addToMethod(c, list, TO_DOWN_CASE, "String", String.class.getSimpleName());
+			addToMethod(c, list, TO_UPPER_CASE, "String", String.class.getSimpleName());
+			addToMethod(c, list, TO_I, "int", String.class.getSimpleName());
+			addToMethod(c, list, TO_F, "float", String.class.getSimpleName());
 		}else if(c == int.class){
-			addToMethod(list, TO_S, "String", "int");
+			addToMethod(c, list, TO_S, "String", "int");
 		}else if(c == float.class){
-			addToMethod(list, TO_S, "String", "float");
+			addToMethod(c, list, TO_S, "String", "float");
+		}else if(c == Object.class){
+			addToField(c, list, NIL, "Object", "Object");//is Nil
+		}else if(isForClass){//一般用于用户Jar库的类
+			if(c != JRUBY_JAVA_CLASS_AGENT){
+				addToField(c, list, JRUBY_JAVA_CLASS, "Class", "JRubyClass");//后两参数仅表示，没有实际相关
+			}
+//			item.isForMaoHaoOnly = true;
 		}
 		
 		for (int i = 0; i < fieldSize; i++) {
@@ -351,21 +366,35 @@ public class CodeHelper {
 		}
 	}
 
-	private static void addToMethod(final ArrayList<CodeItem> list, final String methodName, final String resultType, final String baseClassName) {
+	private static CodeItem addToField(final Class claz, final ArrayList<CodeItem> list, final String methodName, final String resultType, final String baseClassName) {
+		return addToMethodOrField(claz, CodeItem.TYPE_FIELD, list, methodName, resultType, baseClassName);
+	}
+	
+	private static CodeItem addToMethod(final Class claz, final ArrayList<CodeItem> list, final String methodName, final String resultType, final String baseClassName) {
+		return addToMethodOrField(claz, CodeItem.TYPE_METHOD, list, methodName, resultType, baseClassName);
+	}
+	
+	private static CodeItem addToMethodOrField(final Class claz, final int type, final ArrayList<CodeItem> list, final String methodName, final String resultType, final String baseClassName) {
 		final CodeItem item = CodeItem.getFree();
 		item.fieldOrMethodOrClassName = methodName;
-		item.code = methodName + "()";
-		item.fmClass = int.class.getName();
+		if(type == CodeItem.TYPE_METHOD){
+			item.code = methodName + "()";
+		}else{
+			item.code = methodName;
+		}
+		item.fmClass = claz.getName();
 		item.codeDisplay = item.code + " : " + resultType + " - " + baseClassName;
 		item.codeLowMatch = item.code.toLowerCase();
 		item.isPublic = true;
 		item.isForMaoHaoOnly = false;
-		item.type = CodeItem.TYPE_METHOD;
+		item.type = type;
 		
 		list.add(item);
+		
+		return item;
 	}
 
-	private final static void buildMethodAndField(final Class c, final JRubyClassDesc jcd, final boolean isForClass, final HashMap<String, CodeItem[]> set){
+	private final static CodeItem[] buildMethodAndField(final Class c, final JRubyClassDesc jcd, final boolean isForClass, final HashMap<String, CodeItem[]> set){
 		final ArrayList<CodeItem> list = new ArrayList<CodeItem>();
 		
 		buildMethodAndProp(c, isForClass, list, true);
@@ -381,6 +410,8 @@ public class CodeHelper {
 		}else{
 			set.put(getDefClassName(jcd.defNode), out);
 		}
+		
+		return out;
 	}
 
 	private final void appendMethod(final boolean isForClass, final String className, final DefnNode defN, final ArrayList<CodeItem> list) {
@@ -451,15 +482,10 @@ public class CodeHelper {
 	
 	/**
 	 * 为实例查找可用的方法和属性
-	 * @param backgroundOrPreVar
-	 * @param preName
-	 * @param needPublic
-	 * @param out
-	 * @return
 	 */
-	public final ArrayList<CodeItem> getMethodAndFieldForInstance(final Class backgroundOrPreVar, final ClassNode defNode, 
-			final JRubyClassDesc jdc, final boolean needPublic, final ArrayList<CodeItem> out){
-		return getMethodAndField(backgroundOrPreVar, defNode, jdc, needPublic, out, classCacheMethodAndPropForInstance, false);
+	public final ArrayList<CodeItem> getMethodAndFieldForInstance(final JRubyClassDesc jdc, final boolean needPublic, 
+			final ArrayList<CodeItem> out){
+		return getMethodAndField(jdc, needPublic, out, classCacheMethodAndPropForInstance, false);
 	}
 	
 	/**
@@ -469,13 +495,12 @@ public class CodeHelper {
 	 * @param out
 	 * @return
 	 */
-	public final ArrayList<CodeItem> getMethodAndFieldForClass(final Class c, final ClassNode defNode, final ArrayList<CodeItem> out){
-		return getMethodAndField(c, defNode, null, true, out, classCacheMethodAndPropForClass, true);
+	public final ArrayList<CodeItem> getMethodAndFieldForClass(final JRubyClassDesc jcd, final ArrayList<CodeItem> out){
+		return getMethodAndField(jcd, true, out, classCacheMethodAndPropForClass, true);
 	}
 	
-	private final ArrayList<CodeItem> getMethodAndField(final Class backgroundOrPreVar, final ClassNode defNode, 
-			final JRubyClassDesc jdc, final boolean needPublic, final ArrayList<CodeItem> out, 
-			final HashMap<String, CodeItem[]> set, final boolean isForClass){
+	private final ArrayList<CodeItem> getMethodAndField(final JRubyClassDesc jdc, final boolean needPublic, 
+			final ArrayList<CodeItem> out, final HashMap<String, CodeItem[]> set, final boolean isForClass){
 		freeArray(out);
 		
 		if(jdc != null && jdc.defNode != null){
@@ -494,6 +519,8 @@ public class CodeHelper {
 				return out;
 			}
 		}
+		
+		final ClassNode defNode = jdc.defNode;
 		
 		//仅取定义体中的
 		final boolean isDefNode = defNode != null;
@@ -516,6 +543,7 @@ public class CodeHelper {
 			}
 		}
 		
+		final Class backgroundOrPreVar = jdc.baseClass;
 		final String className = backgroundOrPreVar.getName();
 		
 		CodeItem[] methods = set.get(className);
@@ -529,8 +557,9 @@ public class CodeHelper {
 		
 		if(isDefNode){
 			appendDef(defNode, isForClass, out);
+		}else if(jdc != null && jdc.innerDefNode != null){
+			appendDef(jdc.innerDefNode, false, out);
 		}
-		
 		return out;
 	}
 
@@ -571,6 +600,11 @@ public class CodeHelper {
 		buildMethodAndField(jcd.baseClass, jcd, false, codeHelper.classCacheMethodAndPropForInstance);
 	}
 	
+	private final void appendDef(final CallNode innerNode, final boolean isForClass, final ArrayList<CodeItem> list) {
+		final Node body = ((IterNode)innerNode.getIter()).getBody();
+		appendFromDefBody(body, DEF_MEMBER, isForClass, list, false);
+	}
+	
 	private final void appendDef(final ClassNode defNode, final boolean isForClass, final ArrayList<CodeItem> list) {
 		//将定义体的类的常量和构造方法提取出来，装入代码提示表中
 		if(defNode != null){
@@ -578,41 +612,50 @@ public class CodeHelper {
 			final ClassNode classNode = defNode;
 			final String className = getDefClassName(classNode);
 			final Node body = classNode.getBody();//注意：有可能只定义类，而没有定义体，导致body为null
-			if(body == null){
+			appendFromDefBody(body, className, isForClass, list, true);
+		}
+	}
+
+	private final void appendFromDefBody(final Node body, final String className,
+			final boolean isForClass, final ArrayList<CodeItem> list, final boolean isNeedAppendInit) {
+		if(body == null){
+			if(isNeedAppendInit){
 				appendDefaultInitialize(isForClass, list, className);
-				return;
 			}
-			
-			final List<Node> listNodes = body.childNodes();
-			final int size = listNodes.size();
-			for (int i = 0; i < size; i++) {
-				Node sub = listNodes.get(i);
-				if(sub instanceof NewlineNode){
-					sub = ((NewlineNode)sub).getNextNode();
-				}
-				if(sub == null){
-					continue;
-				}
-				if(sub instanceof ConstDeclNode){
-					final ConstDeclNode constNode = (ConstDeclNode)sub;
-					
-					final CodeItem item = CodeItem.getFree();
-					item.fieldOrMethodOrClassName = constNode.getName();
-					item.code = constNode.getName();
-					final Class classOfConst = getClassFromLiteral(constNode.getValue());
-					item.fmClass = classOfConst.getName();//Object.class.getName();
-					item.codeDisplay = item.code + " : " + classOfConst.getSimpleName() + " - " + className;
-					item.codeLowMatch = item.code.toLowerCase();
-					item.isPublic = true;
-					item.isForMaoHaoOnly = false;
-					item.type = CodeItem.TYPE_FIELD;
-					
-					list.add(item);
-				}else if(sub instanceof DefnNode){
-					appendMethod(isForClass, className, (DefnNode)sub, list);
-				}
+			return;
+		}
+		
+		final List<Node> listNodes = body.childNodes();
+		final int size = listNodes.size();
+		for (int i = 0; i < size; i++) {
+			Node sub = listNodes.get(i);
+			if(sub instanceof NewlineNode){
+				sub = ((NewlineNode)sub).getNextNode();
 			}
-			
+			if(sub == null){
+				continue;
+			}
+			if(sub instanceof ConstDeclNode){
+				final ConstDeclNode constNode = (ConstDeclNode)sub;
+				
+				final CodeItem item = CodeItem.getFree();
+				item.fieldOrMethodOrClassName = constNode.getName();
+				item.code = constNode.getName();
+				final Class classOfConst = getClassFromLiteral(constNode.getValue());
+				item.fmClass = classOfConst.getName();//Object.class.getName();
+				item.codeDisplay = item.code + " : " + classOfConst.getSimpleName() + " - " + className;
+				item.codeLowMatch = item.code.toLowerCase();
+				item.isPublic = true;
+				item.isForMaoHaoOnly = false;
+				item.type = CodeItem.TYPE_FIELD;
+				
+				list.add(item);
+			}else if(sub instanceof DefnNode){
+				appendMethod(isForClass, className, (DefnNode)sub, list);
+			}
+		}
+		
+		if(isNeedAppendInit){
 			appendDefaultInitialize(isForClass, list, className);
 		}
 	}
@@ -776,6 +819,14 @@ public class CodeHelper {
 		window = new CodeWindow(this);
 		buildForClass(this, buildJRubyClassDesc(int.class, false));
 		buildForClass(this, buildJRubyClassDesc(float.class, false));
+		
+		final JRubyClassDesc jcd = buildJRubyClassDesc(JRUBY_CLASS_FOR_BULDER, false);
+		final CodeItem[] out = buildMethodAndField(JRUBY_CLASS_FOR_BULDER, jcd, true, classCacheMethodAndPropForClass);
+		for (int i = 0; i < out.length; i++) {
+			out[i].isInnerClass = true;
+		}
+		
+		buildJRubyClassDesc(JRUBY_JAVA_CLASS_AGENT, false);
 	}
 
 	/**
@@ -819,7 +870,7 @@ public class CodeHelper {
         sb.append(")");
 	}
 	
-	public final static ClassNode isInDefClass(final Node node, final int lineIdxAtScript){
+	public final static JRubyClassDesc isInDefClass(final Node node, final CodeContext codeContext, final int scriptIdx, final int lineIdxAtScript){
 //		if(L.isInWorkshop){
 //			final StringBuilder sb = new StringBuilder(1024 * 10);
 //			buildNodeString(node, 0, sb);
@@ -840,7 +891,13 @@ public class CodeHelper {
 					final int startLine = position.getStartLine();
 					final int endLine = position.getEndLine();
 					if(startLine < lineIdxAtScript && lineIdxAtScript < endLine){
-						return (ClassNode)classNode;
+						return buildJRubyClassDescForDef(codeContext, (ClassNode)classNode);
+//						return (ClassNode)classNode;
+					}
+				}else{
+					final Node idxNode = searchNodeAtScriptIdx(classNode, scriptIdx);
+					if(idxNode != null){//不一定是 DefnNode
+						return searchIterNode(idxNode, codeContext);
 					}
 				}
 			}
@@ -848,10 +905,86 @@ public class CodeHelper {
 		return null;
 	}
 	
-	public final static Class getDefSuperClass(final Node node, final int lineIdxAtScript){
-		final ClassNode classNode = isInDefClass(node, lineIdxAtScript);
+	public final static Node searchNodeAtScriptIdx(final Node contain, final int scriptIdx){
+		if(isAtScriptIdx(contain, scriptIdx) == false){
+			return null;
+		}
+		
+		final List<Node> list = contain.childNodes();
+		final int size = list.size();
+		
+		for (int i = size - 1; i >= 0; i--) {
+			final Node subNode = list.get(i);
+			if(isAtScriptIdx(subNode, scriptIdx)){
+				return searchNodeAtScriptIdx(subNode, scriptIdx);
+			}
+		}
+		
+		return contain;
+	}
+	
+	private static boolean isAtScriptIdx(final Node contain, final int scriptIdx){
+		final SourcePosition position = contain.getPosition();//注意：回车归属于下行，位于行尾的光标与回车getStartOffset相等
+		final int endOffset = position.getEndOffset();
+		if(position.getStartOffset() < scriptIdx && scriptIdx <= endOffset){//endOffset < scriptIdx ||  所以，此处position.getStartOffset() < inputIdx，不能用<=
+			return true;
+		}
+		return false;
+	}
+	
+	private final static JRubyClassDesc searchIterNode(Node node, final CodeContext codeContext){
+		while(true){
+			if(node instanceof IterNode){
+				break;
+			}
+			
+			node = node.getParent();
+			if(node == null){
+				return null;
+			}
+		}
+		
+		final Node parentNode = node.getParent();
+		
+		if((parentNode instanceof CallNode) == false){
+			return null;
+		}
+		
+		final CallNode innerClass = (CallNode)parentNode;
+		if(JRUBY_NEW.equals(innerClass.getName()) == false){
+			return null; 
+		}
+		
+		final Node receive = innerClass.getReceiver();
+		if(receive instanceof ConstNode){
+			final ConstNode cNode = (ConstNode)receive;
+			if(JRUBY_CLASS_FOR_NEW.equals(cNode.getName())){
+				final Node aNode = innerClass.getArgs();
+				final Node constNode = aNode.childNodes().get(0);
+				final Class claz = getClassByNode(constNode, codeContext);
+				final JRubyClassDesc desc = buildJRubyClassDesc(claz, true);
+				desc.innerDefNode = innerClass;
+				return desc;
+			}
+		}
+		return null;
+//		CallNode:new, (ConstNode:Class), 
+//		(ArrayNode, 
+//				(*)
+//		), 
+//		(IterNode, 
+//				(NewlineNode, 
+//						(DefnNode:onEvent
+//						)
+//				)
+//		)
+		
+	}
+	
+	public final static Class getDefSuperClass(final Node node, final int scriptIdx, final int lineIdxAtScript, final CodeContext codeContext){
+		final JRubyClassDesc classNode = isInDefClass(node, codeContext, scriptIdx, lineIdxAtScript);
 		if(classNode != null){
-			return getDefSuperClass(classNode);
+			return classNode.baseClass;
 		}
 		return null;
 	}
@@ -939,28 +1072,31 @@ public class CodeHelper {
     		final ClassNode defClassNode = contextNode.getDefClassNode();
 			final Node varDefNode = findVarDefNode(subNode, parameter, typeParameter, null, false, defClassNode != null, contextNode);
     		if(varDefNode != null){
+    			final NodeType nodeType = varDefNode.getNodeType();
     			if(varDefNode instanceof AssignableNode){
     				return findClassFromRightAssign(((AssignableNode)varDefNode).getValue(), contextNode);
-    			}else if(varDefNode instanceof FCallNode){
+    			}else if(nodeType == NodeType.FCALLNODE){
     				final ListNode importArgs = (ListNode)((FCallNode)varDefNode).getArgs();//注意：org.jrubyparser.ast.ArrayNode extends org.jrubyparser.ast.ListNode
 					final CallNode firstPackageNode = (CallNode)importArgs.childNodes().get(0);
 					final String className = buildFullClassNameFromReceiverNode(firstPackageNode);
 					return buildJRubyClassDesc(findClassByName(className, true), false);
-    			}else if(varDefNode instanceof ClassNode){
-    				final JRubyClassDesc classDesc = buildJRubyClassDesc(getDefSuperClass((ClassNode)varDefNode), false);
+    			}else if(nodeType == NodeType.CLASSNODE){
+    				final JRubyClassDesc classDesc = buildJRubyClassDesc(getDefSuperClass((ClassNode)varDefNode, contextNode), false);
 					classDesc.isDefClass = true;
 					classDesc.defNode = (ClassNode)varDefNode;
 					buildForClass(contextNode.codeHelper, classDesc);//直接在MyDefClass::进行代码提示要求
 //					appendDefForClass(jcd, isForClass, list);
 					return classDesc;
-    			}else if(varDefNode instanceof DefnNode){//方法体定义
+    			}else if(nodeType == NodeType.DEFNNODE){//方法体定义
     				if(defClassNode != null){
-        				final JRubyClassDesc cd = findParaClassFromArgu(varDefNode, defClassNode, parameter);
+        				final JRubyClassDesc cd = findParaClassFromArgu(varDefNode, defClassNode, parameter, contextNode);
         				if(cd != null){
         					return cd;
         				}
     				}
     				return buildJRubyClassDesc(Object.class, true);
+    			}else if(nodeType == NodeType.CALLNODE && JRUBY_NEW.equals(((CallNode)varDefNode).getName())){
+    				return buildDescFromCallNodeNew((CallNode)((CallNode)varDefNode).getReceiver(), contextNode);
     			}
     		}
     	}
@@ -969,7 +1105,7 @@ public class CodeHelper {
     }
 
 	private final static JRubyClassDesc findParaClassFromArgu(final Node varDefNode,
-			final ClassNode defClassNode, final String parameter) {
+			final ClassNode defClassNode, final String parameter, final CodeContext codeContext) {
 		final DefnNode defNode = (DefnNode)varDefNode;
 		final String methodName = defNode.getName();
 		final ArgsNode argsNode = defNode.getArgs();
@@ -987,7 +1123,7 @@ public class CodeHelper {
 		}
 		
 		if(parameterIdx >= 0){
-			final Class superClass = getDefSuperClass(defClassNode);
+			final Class superClass = getDefSuperClass(defClassNode, codeContext);
 			final Class methodParaType = searchOverrideMethodParameterType(superClass, methodName, parameterIdx);
 			if(methodParaType != null){
 				return buildJRubyClassDesc(methodParaType, true);
@@ -1038,14 +1174,35 @@ public class CodeHelper {
     public final static int TYPE_VAR_GLOBAL = 1 << 2;
     public final static int TYPE_VAR_INSTANCE = 1 << 3;
     
+    private static boolean isInnerClassDefForNew(final Node node){
+    	return node.getNodeType() == NodeType.CALLNODE && JRUBY_NEW.equals(((CallNode)node).getName()) &&  isInnerClassDef(((CallNode)node).getReceiver());
+    }
+    
+    private static boolean isInnerClassDef(final Node node){
+    	if(node == null || node.getNodeType() != NodeType.CALLNODE){
+    		return false;
+    	}
+    	
+    	final CallNode callNode = (CallNode)node;
+    	
+		if(callNode.getName().equals(JRUBY_NEW)){
+			final Node receiver = callNode.getReceiver();
+			if(receiver != null && receiver instanceof ConstNode && ((ConstNode)receiver).getName().equals(JRUBY_CLASS_FOR_NEW)){
+				return true;
+			}
+		}
+		
+    	return false;
+    }
+    
     private static Node findVarDefNode(final Node bottomNode, final String parameter, final int typeParameter, 
     		final Node fromNode, final boolean downForward, final boolean isInDefClass, final CodeContext codeContext){
     	final Node parent = bottomNode.getParent();
     	if(parent == null){
     		return null;
     	}
-    	
-    	if(typeParameter == TYPE_VAR_LOCAL && parent instanceof DefnNode){//方法定义体
+    	final NodeType nodeType = parent.getNodeType();
+    	if(typeParameter == TYPE_VAR_LOCAL && nodeType == NodeType.DEFNNODE){//方法定义体
     		final DefnNode defNode = (DefnNode)parent;
 			final ArgsNode argsNode = defNode.getArgs();
 			final List<Node> list = argsNode.childNodes();
@@ -1061,6 +1218,9 @@ public class CodeHelper {
 					}
 				}
 			}
+    	}else if(nodeType == NodeType.CALLNODE && JRUBY_NEW.equals(((CallNode)parent).getName()) && isInnerClassDefForNew(parent)){
+    		//(CallNode:new, (CallNode:new, (ConstNode:Class), (ArrayNode, (ConstNode:Object)), (IterNode, 
+    		return parent;
     	}
     	
     	final List<Node> list = parent.childNodes();
@@ -1429,6 +1589,10 @@ public class CodeHelper {
 
 	private static JRubyClassDesc findMatchMehtodForReturn(final Method[] methods,
 			final String methodName, final Class[] paraClass) {
+		if(JRUBY_JAVA_CLASS.equals(methodName)){
+			return buildJRubyClassDesc(JRUBY_JAVA_CLASS_AGENT, false);
+		}
+		
 		final int methodSize = methods.length;
 		int matchCount = 0;
 		Method firstMatch = null;
@@ -1483,7 +1647,7 @@ public class CodeHelper {
 				return findClassFromReceiverNode(node.childNodes().get(0), false, codeContext);
 			}else if(node instanceof DefnNode){
 				final ClassNode cNode = codeContext.getDefClassNode();
-				final JRubyClassDesc cd = findParaClassFromArgu(node, cNode, paraName);
+				final JRubyClassDesc cd = findParaClassFromArgu(node, cNode, paraName, codeContext);
 				if(cd != null){
 					return cd;
 				}
@@ -1499,10 +1663,7 @@ public class CodeHelper {
     			final Node receiver = callNode.getReceiver();
     			if(receiver != null && receiver instanceof ConstNode && ((ConstNode)receiver).getName().equals(JRUBY_CLASS_FOR_NEW)){
     				//Class.new(Java::hc.a.b){}.new
-    				final Node args = callNode.getArgs();//(CallNode:new, (ConstNode:Class), (ArrayNode, (CallNode:DeviceCompatibleDescription, (CallNode:msb, (CallNode:server, (CallNode:hc, (ConstNode:Java), (ListNode)), (ListNode))
-					final CallNode firstPackageNode = (CallNode)args.childNodes().get(0);
-					final String className = buildFullClassNameFromReceiverNode(firstPackageNode);
-					return buildJRubyClassDesc(findClassByName(className, true), true);
+    				return buildDescFromCallNodeNew(callNode, codeContext);
     			}else{
     				return findClassFromReceiverNode(receiver, false, codeContext);//直接new
     			}
@@ -1526,14 +1687,14 @@ public class CodeHelper {
 	//    				return findClassFromRightAssign(call.getReceiver(), codeContext);
 	//    			}
 	    			final Class[] paraClass = findClasssFromArgs((ListNode)parametersNode, codeContext);//注意：org.jrubyparser.ast.ArrayNode extends org.jrubyparser.ast.ListNode
-    				return findMethodReturn(getDefSuperClass(defClassNode), fcallNode.getName(), paraClass);
+    				return findMethodReturn(getDefSuperClass(defClassNode, codeContext), fcallNode.getName(), paraClass);
 	    		}
     		}
     		return null;
     	}else if(receiverNode instanceof SelfNode){
     		final ClassNode defNode = codeContext.getDefClassNode();
     		if(defNode != null){
-    			final JRubyClassDesc cd = buildJRubyClassDesc(getDefSuperClass(defNode), true);
+    			final JRubyClassDesc cd = buildJRubyClassDesc(getDefSuperClass(defNode, codeContext), true);
     			cd.isInExtend = IS_EXTEND;//for example, extend device, assign self to instance field A, access field A then need protected method in code show.
     			return cd;
     		}
@@ -1579,6 +1740,15 @@ public class CodeHelper {
     	}
     	return null;
     }
+
+	private static JRubyClassDesc buildDescFromCallNodeNew(final CallNode callNode,
+			final CodeContext codeContext) {
+		final Node args = callNode.getArgs();//(CallNode:new, (ConstNode:Class), (ArrayNode, (CallNode:DeviceCompatibleDescription, (CallNode:msb, (CallNode:server, (CallNode:hc, (ConstNode:Java), (ListNode)), (ListNode))
+		final Node node = args.childNodes().get(0);
+		final JRubyClassDesc desc = buildJRubyClassDesc(getClassByNode(node, codeContext), true);
+		desc.innerDefNode = callNode;
+		return desc;
+	}
     
     private static final JRubyClassDesc NIL_CLASS_DESC = buildJRubyClassDesc(Object.class, true);
 
@@ -1622,9 +1792,7 @@ public class CodeHelper {
 						//(ClassNode, (Colon2ImplicitNode:MyMlet), (CallNode:Mlet, (CallNode:ui, (CallNode:server, (CallNode:hc, (ConstNode:Java), 
 						final ClassNode cNode = (ClassNode)fcallNode;
 						if(getDefClassName(cNode).equals(varName)){
-							final JRubyClassDesc classDesc = buildJRubyClassDesc(getDefSuperClass(cNode), false);
-							classDesc.isDefClass = true;
-							classDesc.defNode = cNode;
+							final JRubyClassDesc classDesc = buildJRubyClassDescForDef(codeContext, cNode);
 							
 							return classDesc;
 						}
@@ -1677,8 +1845,36 @@ public class CodeHelper {
 		return null;
     }
 
-	private static Class getDefSuperClass(final ClassNode cNode) {
-		final CallNode superClass = (CallNode)cNode.getSuper();
+	private static JRubyClassDesc buildJRubyClassDescForDef(final CodeContext codeContext, final ClassNode cNode) {
+		final JRubyClassDesc classDesc = buildJRubyClassDesc(getDefSuperClass(cNode, codeContext), false);
+		classDesc.isDefClass = true;
+		classDesc.defNode = cNode;
+		return classDesc;
+	}
+	
+	private static Class getClassByNode(final Node node, final CodeContext codeContext){
+		if(node == null){
+			return null;
+		}
+		
+		final NodeType nodeType = node.getNodeType();
+		if(nodeType == NodeType.CONSTNODE){
+			return findClassFromConstByImportOrDefClass(((ConstNode)node).getName(), codeContext).baseClass;
+		}else if(nodeType == NodeType.CALLNODE){
+			final String className = buildFullClassNameFromReceiverNode((CallNode)node);
+			return findClassByName(className, true);
+		}
+		
+		return null;
+	}
+
+	private static Class getDefSuperClass(final ClassNode cNode, final CodeContext codeContext) {
+		final Node superNode = cNode.getSuper();
+		if(superNode != null && superNode instanceof ConstNode){
+			return findClassFromConstByImportOrDefClass(((ConstNode)superNode).getName(), codeContext).baseClass;
+		}
+		
+		final CallNode superClass = (CallNode)superNode;
 		
 		Class baseClass;
 		if(superClass == null){//没有继承
@@ -1871,10 +2067,6 @@ public class CodeHelper {
 		}
 	}
 	
-	public final void resetSyntaxError(){
-		errorHighlighter = null;
-	}
-	
 	private Object errorHighlighter;
 	
 	public final boolean updateScriptASTNode(final ScriptEditPanel sep, final String scripts, final boolean isModifySource){
@@ -1888,6 +2080,7 @@ public class CodeHelper {
 			if(errorHighlighter != null){
 				final Highlighter highlighter = sep.jtaScript.getHighlighter();
 				highlighter.removeHighlight(errorHighlighter);
+				errorHighlighter = null;
 			}
 //			if(L.isInWorkshop){
 //				printNode(root);
@@ -1901,6 +2094,7 @@ public class CodeHelper {
 				if(errorHighlighter != null){
 					final Highlighter highlighter = sep.jtaScript.getHighlighter();
 					highlighter.removeHighlight(errorHighlighter);
+					errorHighlighter = null;
 				}
 				
 				final SyntaxException se = (SyntaxException)e;
@@ -2001,7 +2195,7 @@ public class CodeHelper {
 	 * @return
 	 */
 	public final boolean input(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, 
-			final int fontHeight, final boolean isForcePopup, final Point caretPosition, final int scriptIdx) throws Exception{
+			final int fontHeight, final boolean isForcePopup, final int scriptIdx) throws Exception{
 		//1：行首时，requ
 		//2：行首时，impo
 		//3：def initialize|可重载的方法
@@ -2026,8 +2220,10 @@ public class CodeHelper {
 		final Class codeClass = (preClass==null?null:preClass.baseClass);
 		
 		final Point win_loc = textPane.getLocationOnScreen();
-		final int input_x = win_loc.x + ((caretPosition==null)?0:caretPosition.x);
-		final int input_y = win_loc.y + ((caretPosition==null)?0:caretPosition.y);
+		final Rectangle caretRect=textPane.modelToView(scriptIdx - preCode.length());
+		final Point caretPointer = new Point(caretRect.x, caretRect.y);
+		final int input_x = win_loc.x + ((caretPointer==null)?0:caretPointer.x);
+		final int input_y = win_loc.y + ((caretPointer==null)?0:caretPointer.y);
 		window.toFront(codeClass, sep, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);//JRuby代码
 		return true;
 	}
@@ -2474,6 +2670,8 @@ public class CodeHelper {
 		freeArray(outAndCycle);
 		preCodeSplitIsDot = false;
 		
+		codeContext = new CodeContext(this, root, scriptIdx, lineIdxAtScript);
+
 		final int preCodeType = getPreCodeType(lineHeader, offLineIdx, scriptIdx, lineIdxAtScript);
 		if(preCodeType == PRE_TYPE_NEWLINE){
 			getVariables(root, true, "", outAndCycle, scriptIdx, TYPE_VAR_LOCAL | TYPE_VAR_INSTANCE | TYPE_VAR_GLOBAL);
@@ -2484,22 +2682,22 @@ public class CodeHelper {
 		}else if(preCodeType == PRE_TYPE_AFTER_IMPORTJAVA){
 			getSubPackageAndClasses(outAndCycle, getRequireLibs(root, outRequireLibs), false, true);
 		}else if(preCodeType == PRE_TYPE_IN_DEF_CLASS_FOR_METHOD_FIELD_ONLY){
-			getMethodAndFieldForInstance(getDefSuperClass(backgroundDefClassNode), backgroundDefClassNode, null, false, outAndCycle);
+			getMethodAndFieldForInstance(backgroundDefClassNode, false, outAndCycle);
 		}else if(preCodeType == PRE_TYPE_BEFORE_INSTANCE){
 			getVariables(root, true, "", outAndCycle, scriptIdx, pre_var_tag_ins_or_global);//情形：在行首输入im，可能后续为import或ImageIO
 		}else if(preCodeType == PRE_TYPE_AFTER_INSTANCE_OR_CLASS){
 			if(preClass != null){
 				if(preClass.isInstance){
-					getMethodAndFieldForInstance(preClass.baseClass, preClass.defNode, preClass, preClass.isInExtend?false:true, outAndCycle);
+					getMethodAndFieldForInstance(preClass, preClass.isInExtend?false:true, outAndCycle);
 				}else{
-					getMethodAndFieldForClass(preClass.baseClass, preClass.defNode, outAndCycle);
+					getMethodAndFieldForClass(preClass, outAndCycle);
 				}
 			}else{//直接从背景中取类，会出现preClass==null
 				if(pre_var_tag_ins_or_global == TYPE_VAR_INSTANCE || pre_var_tag_ins_or_global == TYPE_VAR_GLOBAL){
-					getInsOrGloablVar(backgroundDefClassNode, outAndCycle);
+					getInsOrGloablVar(backgroundDefClassNode.defNode, outAndCycle);
 				}else{
 					if(preCodeSplitIsDot == false){
-						getMethodAndFieldForInstance(getDefSuperClass(backgroundDefClassNode), backgroundDefClassNode, null, false, outAndCycle);
+						getMethodAndFieldForInstance(backgroundDefClassNode, false, outAndCycle);
 //						getVariables(root, true, "", out, scriptIdx, pre_var_tag_ins_or_global);//改为，增加preCode过滤
 						getVariables(root, true, preCode, outAndCycle, scriptIdx, pre_var_tag_ins_or_global);
 					}
@@ -2526,7 +2724,7 @@ public class CodeHelper {
 	private int pre_var_tag_ins_or_global;
 	public boolean preCodeSplitIsDot;
 	private JRubyClassDesc preClass;
-	private ClassNode backgroundDefClassNode;
+	private JRubyClassDesc backgroundDefClassNode;
 	
 	private final ArrayList<String> outRequireLibs = new ArrayList<String>();
 	
@@ -2590,24 +2788,14 @@ public class CodeHelper {
 					final ArgumentNode parameterNode = (ArgumentNode)parametersNode.get(i);
 					final String name = parameterNode.getName();
 					
-					final CodeItem item = CodeItem.getFree();
-					item.code = name;
-					item.codeDisplay = name;
-					item.codeLowMatch = name.toLowerCase();
-					item.type = CodeItem.TYPE_VARIABLE;
-					out.add(item);
+					buildVarItem(out, name);
 				}
 			}
 		}else if(node instanceof ConstDeclNode){
 			final ConstDeclNode constDecl = (ConstDeclNode)node;
 			final String name = constDecl.getName();
 			
-			final CodeItem item = CodeItem.getFree();
-			item.code = name;
-			item.codeDisplay = name;
-			item.codeLowMatch = name.toLowerCase();
-			item.type = CodeItem.TYPE_VARIABLE;
-			out.add(item);
+			buildVarItem(out, name);
 		}
 		
 		final int size = childNodes.size();
@@ -2629,12 +2817,7 @@ public class CodeHelper {
 						final String name = firstPackageNode.getName();
 						final String nameLower = name.toLowerCase();
 						if(nameLower.startsWith(lowerPreCode) && (CodeItem.contains(out, name) == false)){//由于是从下向上，可能被添加了一次
-							final CodeItem item = CodeItem.getFree();
-							item.code = name;
-							item.codeDisplay = name;
-							item.codeLowMatch = nameLower;
-							item.type = CodeItem.TYPE_CLASS;
-							out.add(item);
+							buildClassItem(out, name, nameLower);
 							continue;
 						}
 					}
@@ -2711,12 +2894,7 @@ public class CodeHelper {
 					final String name = getDefClassName(cNode);
 					final String nameLower = name.toLowerCase();
 					if(nameLower.startsWith(lowerPreCode) && (CodeItem.contains(out, name) == false)){
-						final CodeItem item = CodeItem.getFree();
-						item.code = name;
-						item.codeDisplay = name;
-						item.codeLowMatch = nameLower;
-						item.type = CodeItem.TYPE_CLASS;
-						out.add(item);
+						buildClassItem(out, name, nameLower);
 						continue;
 					}
 				}
@@ -2729,6 +2907,25 @@ public class CodeHelper {
 			getVariablesUpperForward(parentNode, preCode, out, scriptIdx, type_var);
 		}
 	}
+
+	private final void buildClassItem(final ArrayList<CodeItem> out, final String name, final String nameLower) {
+		final CodeItem item = CodeItem.getFree();
+		item.code = name;
+		item.codeDisplay = name;
+		item.codeLowMatch = nameLower;
+		item.type = CodeItem.TYPE_CLASS;
+		out.add(item);
+	}
+
+	private final void buildVarItem(final ArrayList<CodeItem> out, final String name) {
+		final CodeItem item = CodeItem.getFree();
+		item.code = name;
+		item.codeDisplay = name;
+		item.codeLowMatch = name.toLowerCase();
+		item.type = CodeItem.TYPE_VARIABLE;
+		out.add(item);
+	}
+	
 	/**
 	 * 从脚本中提取import 的classes，因为它们如变量般访问或new实例。
 	 * 如果代码行前有def class，则可能新定义的类也会添加到结果集
@@ -2747,6 +2944,8 @@ public class CodeHelper {
 		final Node paraNode = searchParaCallingNodeByIdx(node, scriptIdx);
 		
 		getVariablesUpperForward(paraNode.getParent(), preCode, out, scriptIdx, type_var);
+		
+		buildClassItem(out, JRUBY_CLASS_FOR_NEW, JRUBY_CLASS_FOR_NEW.toLowerCase());
 		
 		Collections.sort(out);
 		return;
@@ -2864,6 +3063,15 @@ public class CodeHelper {
 
 	private final int searchCodePart(final char[] lineHeader, final int columnIdx,
 			final int scriptIdx, final int rowIdxAtScript, final int partStartIdx) {
+		final int idxJavaClass = searchSubChars(lineHeader, JRUBY_JAVA_CLASS_CHARS, partStartIdx);
+		if(idxJavaClass >= partStartIdx && idxJavaClass + JRUBY_JAVA_CLASS_CHARS.length + 1 <= columnIdx){
+			final JRubyClassDesc jcd = buildJRubyClassDesc(JRUBY_JAVA_CLASS_AGENT, false);
+			preClass = jcd;
+			
+			final int cutPreIdx = idxJavaClass + JRUBY_JAVA_CLASS_CHARS.length + 1;
+			preCode = String.valueOf(lineHeader, cutPreIdx, columnIdx - cutPreIdx);
+			return PRE_TYPE_AFTER_INSTANCE_OR_CLASS;
+		}
 		//因为此情形可也可能出现在首字母非空格非tab的情形，所以要提前
 		final int idxJavaMaoHao = searchSubChars(lineHeader, JAVA_MAO_MAO, partStartIdx);
 		if(idxJavaMaoHao>=partStartIdx){
@@ -2902,10 +3110,13 @@ public class CodeHelper {
 			}else{
 				//::段后的处理
 				Class tryClass;
+				final String className = String.valueOf(lineHeader, partStartIdx, maohaoIdx - partStartIdx);
 				try{
-					final String className = String.valueOf(lineHeader, partStartIdx, maohaoIdx - partStartIdx);
 					tryClass = getClassLoader().loadClass(className);
 				}catch (final Exception e) {
+					if(L.isInWorkshop){
+						LogManager.errToLog("fail to find or initialize class : " + className);
+					}
 					tryClass = Object.class;
 				}
 				final JRubyClassDesc jcd = buildJRubyClassDesc(tryClass, false);
@@ -2918,10 +3129,10 @@ public class CodeHelper {
 			}
 		}
 
-		final ClassNode classNode = isInDefClass(root, rowIdxAtScript);
+		final JRubyClassDesc desc = isInDefClass(root, codeContext, scriptIdx, rowIdxAtScript);
 		preClass = findPreCodeAfterVar(lineHeader, columnIdx, scriptIdx, rowIdxAtScript, partStartIdx);
-		if(classNode != null && preClass == null){
-			backgroundDefClassNode = classNode;
+		if(desc != null && preClass == null){
+			backgroundDefClassNode = desc;
 			return PRE_TYPE_AFTER_INSTANCE_OR_CLASS;
 		}else{
 			if(preClass == null){
@@ -2936,6 +3147,7 @@ public class CodeHelper {
 		return SimuMobile.getRunTestEngine().getProjClassLoader();
 	}
 	
+	static final char[] JRUBY_JAVA_CLASS_CHARS = JRUBY_JAVA_CLASS.toCharArray();
 	static final char[] JAVA_MAO_MAO = "Java::".toCharArray();
 	static final char[] MAO_HAO_ONLY = "::".toCharArray();
 	static final char[] SET_CSS = "setCSS".toCharArray();
@@ -3082,13 +3294,11 @@ public class CodeHelper {
 			}else if(c == '@'){
 				final int offset = i + 1;
 				final String v = String.valueOf(lineHeader, offset, columnIdx - offset);
-				final CodeContext context = new CodeContext(this, root, scriptIdx, rowIdxAtScript);
-				return findParaClass(context, v, CodeHelper.TYPE_VAR_INSTANCE);
+				return findParaClass(codeContext, v, CodeHelper.TYPE_VAR_INSTANCE);
 			}else if(c == '$'){
 				final int offset = i + 1;
 				final String v = String.valueOf(lineHeader, offset, columnIdx - offset);
-				final CodeContext context = new CodeContext(this, root, scriptIdx, rowIdxAtScript);
-				return findParaClass(context, v, CodeHelper.TYPE_VAR_GLOBAL);
+				return findParaClass(codeContext, v, CodeHelper.TYPE_VAR_GLOBAL);
 			}else if(c == ')'){
 				final String assignStr = searchLeftAssign(lineHeader, i, 0);//从左向提取类，注意：不能用partStartIdx
 				final List<Node> childNodes = parseScripts(assignStr).childNodes();
@@ -3109,16 +3319,24 @@ public class CodeHelper {
 					preCode = String.valueOf(lineHeader, preCodeIdx, lineHeader.length - preCodeIdx);
 					preCodeSplitIsDot = true;
 					return jcd;
+				}else if(JRUBY_JAVA_CLASS.equals(v) && i >= partStartIdx && lineHeader[i] == '.'){//clazInJar.java_class.resource()
+					final JRubyClassDesc jcd = buildJRubyClassDesc(JRUBY_JAVA_CLASS_AGENT, false);
+					return jcd;
 				}else{
-					final CodeContext context = new CodeContext(this, root, scriptIdx, rowIdxAtScript);
-					return findParaClass(context, v, CodeHelper.TYPE_VAR_LOCAL);
+					return findParaClass(codeContext, v, CodeHelper.TYPE_VAR_LOCAL);
 				}
 			}
 		}
 		final String v = String.valueOf(lineHeader, partStartIdx, columnIdx - partStartIdx);
-		final CodeContext context = new CodeContext(this, root, scriptIdx, rowIdxAtScript);
-		return findParaClass(context, v, CodeHelper.TYPE_VAR_LOCAL);
+		if(JRUBY_CLASS_FOR_NEW.equals(v)){
+			final JRubyClassDesc desc = buildJRubyClassDesc(JRUBY_CLASS_FOR_BULDER, false);
+			return desc;
+		}else{
+			return findParaClass(codeContext, v, CodeHelper.TYPE_VAR_LOCAL);
+		}
 	}
+	
+	private CodeContext codeContext;
 	
 	/**
 	 * 没有，则返回null

@@ -41,6 +41,7 @@ import javax.swing.JToggleButton;
  * if JComponent of one session inputs, then the same dialog in other sessions will be dismissed. 
  * <BR><BR>
  * setting CSS for JComponents in dialog is as same as {@link HTMLMlet}.
+ * <BR><BR>Tip : if you need load and execute javascript, please use {@link ScriptPanel}.
  */
 public class Dialog extends JPanel {
 	private static final long serialVersionUID = 5869314873711129148L;
@@ -248,7 +249,7 @@ public class Dialog extends JPanel {
 	 * <BR><BR>About cache :<BR>
 	 * don't worry about styles too large for re-translating to mobile, <BR>
 	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether transmission or loading cache from mobile (if styles is too small, it will not be cached).
-	 * What you should do is put more data into one style file, because if there is too much pieces of cache in a project, the system will automatically clear the cache and restart caching.
+	 * What you should do is put more data into one style file, because if there is too much pieces of cache in a project, system will automatically clear the cache and restart caching.
 	 * @param styles for example, "<i>h1 {color:red} p {color:blue}</i>".
 	 * @see #setCSS(JComponent, String, String)
 	 * @see #setCSSForToggle(JToggleButton, String, String)

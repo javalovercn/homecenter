@@ -478,15 +478,15 @@ public class ServerUIAPIAgent {
 	}
 	
 	public final static void loadJS(final HTMLMlet mlet) {
-		final Vector<String> jsToDeliver = mlet.sizeHeightForXML.jsToDeliver;
+		final Vector<String> scriptToDeliver = mlet.sizeHeightForXML.scriptToDeliver;
 		
-		if(jsToDeliver != null){
-			final int count = jsToDeliver.size();
+		if(scriptToDeliver != null){
+			final int count = scriptToDeliver.size();
 			for (int i = 0; i < count; i++) {
-				final String JS = jsToDeliver.elementAt(i);
-				mlet.sizeHeightForXML.loadJS(mlet, JS);
+				final String JS = scriptToDeliver.elementAt(i);
+				mlet.sizeHeightForXML.loadScript(mlet, JS);
 			}
-			jsToDeliver.clear();
+			scriptToDeliver.clear();
 		}
 	}
 	
