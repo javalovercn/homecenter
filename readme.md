@@ -1,11 +1,9 @@
 ### Sample
 ![screenshot](https://homecenter.mobi/images/sc_mlet.png)
 
-like JavaScript? [ScriptPanel](http://homecenter.mobi/download/javadoc/hc/server/ui/ScriptPanel.html) is ready for you.
-
 to implement above UI functionality for Android, iPhone, and J2ME mobile,
 
-the full codes are following :
+the full codes are following : (like JavaScript? [ScriptPanel](http://homecenter.mobi/download/javadoc/hc/server/ui/ScriptPanel.html) is ready for you)
 ```JRuby
 #encoding:utf-8
 

@@ -2251,14 +2251,14 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				oldlps = LinkProjectManager.getProjLPSWithCreate(getCurrProjID());
 			}
 			
-			boolean isForceUpdatePermissionInDesigner = false;
-			if(isModiPermissions){
-				final int result = App.showConfirmDialog(instance, "Permissions are changed, apply to run-time project now?", "", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
-				if(result == JOptionPane.YES_OPTION){
-					isForceUpdatePermissionInDesigner = true;
-				}
-			}
-			isModiPermissions = false;
+			final boolean isForceUpdatePermissionInDesigner = true;
+//			if(isModiPermissions){
+//				final int result = App.showConfirmDialog(instance, "Permissions are changed, apply to run-time project now?", "", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
+//				if(result == JOptionPane.YES_OPTION){
+//					isForceUpdatePermissionInDesigner = true;
+//				}
+//			}
+//			isModiPermissions = false;
 
 			LinkProjectManager.importLinkProject(oldlps, newVerHar, false, oldEditBackFile, isForceUpdatePermissionInDesigner);
 			

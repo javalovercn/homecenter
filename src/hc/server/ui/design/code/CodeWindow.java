@@ -380,13 +380,20 @@ public class CodeWindow {
 		classFrame.pack();//有可能backspace，出现更长内容，而需要pack
 	}
 
-	public static void fillPreCode(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target, 
+	public final void fillPreCode(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target, 
 			final String preCodeLower) {
 		target.clear();
 		final int size = src.size();
 		final int preLen = preCodeLower.length();
 		for (int i = 0; i < size; i++) {
 			final CodeItem codeItem = src.get(i);
+			
+			if(preCodeType == CodeHelper.PRE_TYPE_OVERRIDE_METHOD){
+				if(codeItem.isOerrideable() == false){
+					continue;
+				}
+			}
+			
 			if(preLen == 0 
 					|| (codeItem.isFullPackageAndClassName && codeItem.type == CodeItem.TYPE_CLASS && codeItem.codeLowMatch.indexOf(preCodeLower) >= 0)
 					|| codeItem.codeLowMatch.startsWith(preCodeLower) 
@@ -401,6 +408,9 @@ public class CodeWindow {
 		final int size = src.size();
 		for (int i = 0; i < size; i++) {
 			final CodeItem codeItem = src.get(i);
+			if(codeItem.isDefed){
+				continue;
+			}
 			if(codeItem.fieldOrMethodOrClassName.equals(fieldOrMethod)){
 				target.add(codeItem);
 			}
@@ -410,10 +420,13 @@ public class CodeWindow {
 	final Rectangle rect = new Rectangle(0, 0, 1, 1);
 	
 	public boolean isWillOrAlreadyToFront;
+	public int preCodeType;
 	
-	public final void toFront(final Class codeClass, final ScriptEditPanel sep, final HCTextPane eventFromComponent, 
+	public final void toFront(final int preCodeType, final Class codeClass, final ScriptEditPanel sep, final HCTextPane eventFromComponent, 
 			final int x, final int y, final ArrayList<CodeItem> list, 
 			final String preCode, final int scriptIdx, final int fontHeight){
+		this.preCodeType = preCodeType;
+		
 		isWillOrAlreadyToFront = true;
 		docHelper.isForMouseOverTip = false;
 		

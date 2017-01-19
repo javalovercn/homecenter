@@ -38,6 +38,8 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractButton;
@@ -279,7 +281,8 @@ public class DifferTodo {
 	 * @param css
 	 */
 	public final void loadStyles(String css){
-		css = css.replace("\"", "\\\"");//改"为\"
+		css = yinHaoPattern.matcher(css).replaceAll(yinHaoEncode);
+//		css = css.replace("\"", "\\\"");//改"为\"
 		css = JSUtil.replaceNewLine(JSUtil.replaceReturnWithEmtpySpace(css));//修复换行不能执行的问题
 		final boolean needGzip = ((css.length()>GZIP_MIN_SIZE)?true:false);
 		final byte[] cssBS = ByteUtil.getBytes(css, IConstant.UTF_8);
@@ -297,6 +300,9 @@ public class DifferTodo {
 		sendBytesJSOrCache(cycleBS, needGzip, true);
 	}
 	
+	static final Pattern yinHaoPattern = Pattern.compile("\"", Pattern.LITERAL);
+	static final String yinHaoEncode = Matcher.quoteReplacement("\\\"");
+	
 	/**
 	 * 加载JS到html->header->script段。
 	 * 注意：它不同于{@link #executeJS(String)}
@@ -304,7 +310,8 @@ public class DifferTodo {
 	 * @param js
 	 */
 	public final void loadScript(String js){
-		js = js.replace("\"", "\\\"");//改"为\"
+		js = yinHaoPattern.matcher(js).replaceAll(yinHaoEncode);
+//		js = js.replace("\"", "\\\"");//改"为\"
 		js = JSUtil.replaceNewLine(JSUtil.replaceReturnWithEmtpySpace(js));//修复换行不能执行的问题
 		final boolean needGzip = ((js.length()>GZIP_MIN_SIZE)?true:false);
 		final byte[] jsBS = ByteUtil.getBytes(js, IConstant.UTF_8);
@@ -418,7 +425,8 @@ public class DifferTodo {
 	}
 
 	public final void setDivInnerHTML(final int hashID, String innerHTML){
-		innerHTML = innerHTML.replace("\"", "&quot;");
+		innerHTML = yinHaoPattern.matcher(innerHTML).replaceAll(yinHaoEncode);
+		innerHTML = JSUtil.replaceNewLine(JSUtil.replaceReturnWithEmtpySpace(innerHTML));//低版本android环境下必须
 		
 		final boolean needGzip = ((innerHTML.length()>GZIP_MIN_SIZE)?true:false);
 		

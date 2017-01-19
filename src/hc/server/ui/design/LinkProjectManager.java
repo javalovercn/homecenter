@@ -921,7 +921,8 @@ public class LinkProjectManager{
 		lps.setDeployTmpDir(randomShareFolder);
 		
 		final Map<String, Object> map = HCjar.loadHar(sourceNewVer, false);
-		lps.copyFrom(map, isForceUpdatePermissionInDesigner || (certs != null && certs.length > 0 && LinkProjectPanel.getAcceptNewPermissionsOp().equals(LinkPropertiesOption.OP_PERM_ACCEPT_IF_SIGNED)));
+		final boolean acceptPermIfSigned = LinkProjectPanel.getAcceptNewPermissionsOp().equals(LinkPropertiesOption.OP_PERM_ACCEPT_IF_SIGNED);
+		lps.copyFrom(map, isForceUpdatePermissionInDesigner || (certs != null && certs.length > 0 && acceptPermIfSigned));
 		
 		lps.setDoneBind(false);//新添加或升级的工程DoneBind=false
 //		lps.clearBindMap();//注意：不能删除此行。旧的绑定关系仍将使用

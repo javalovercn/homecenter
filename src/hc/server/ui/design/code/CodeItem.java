@@ -4,6 +4,7 @@ import hc.core.util.Stack;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
+import java.lang.reflect.Modifier;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Vector;
@@ -69,6 +70,7 @@ public class CodeItem implements Comparable<CodeItem>{
 	private static void reset(final CodeItem item) {
 		item.type = 0;
 		item.isPublic = false;
+		item.modifiers = 0;
 		item.isForMaoHaoOnly = false;
 		item.isFullPackageAndClassName = false;
 		item.code = "";
@@ -81,6 +83,11 @@ public class CodeItem implements Comparable<CodeItem>{
 		item.isCSSClass = false;
 		item.userObject = null;
 		item.isInnerClass = false;
+		item.isDefed = false;
+	}
+	
+	public final boolean isOerrideable(){
+		return type == TYPE_METHOD && Modifier.isFinal(modifiers) == false && Modifier.isStatic(modifiers) == false && Modifier.isPrivate(modifiers) == false;
 	}
 	
 	public final static int TYPE_IMPORT = 1;
@@ -125,15 +132,18 @@ public class CodeItem implements Comparable<CodeItem>{
 		codeLowMatch = from.codeLowMatch;
 		fieldOrMethodOrClassName = from.fieldOrMethodOrClassName;
 		isPublic = from.isPublic;
+		modifiers = from.modifiers;
 		anonymousClass = from.anonymousClass;
 		isCSSProperty = from.isCSSProperty;
 		isCSSClass = from.isCSSClass;
 		userObject = from.userObject;
 		isInnerClass = from.isInnerClass;
+		isDefed = from.isDefed;
 	}
 	
 	public int type;
 	public boolean isPublic;
+	public int modifiers;
 	public boolean isForMaoHaoOnly;
 	public boolean isFullPackageAndClassName;
 	public String code;
@@ -146,6 +156,7 @@ public class CodeItem implements Comparable<CodeItem>{
 	public boolean isCSSClass;
 	public boolean isInnerClass;
 	public Object userObject;
+	public boolean isDefed;
 	
 	@Override
 	public final int compareTo(final CodeItem o) {

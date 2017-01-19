@@ -242,8 +242,9 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		boolean isSimuFromArgs = false;
 
-		//forece init, because MouseEvent.static {NativeLibLoader.loadLibraries()};
+		//forece init, because {NativeLibLoader.loadLibraries()};
 		try{
+			new JTextArea("").append("");
 			new MouseEvent(new JLabel(""), 0, 0, 0, 0, 0, 0, false, 0);
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
@@ -735,7 +736,13 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 
 	private static void setServerLog() {
 		LogManager.setLog(new LogServerSide());
-		L.enable(true);
+		
+		final String log = PropertiesManager.getValue(PropertiesManager.p_Log);
+		if(log == null || log.equals(IConstant.TRUE)){
+			L.enable(true);
+		}else{
+			L.enable(false);
+		}
 	}
 
 	public static void startAfterInfo() {

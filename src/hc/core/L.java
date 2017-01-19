@@ -1,5 +1,7 @@
 package hc.core;
 
+import hc.core.util.LogManager;
+
 public class L {
 	public static boolean O = false;
 	public static boolean V = false;
@@ -13,6 +15,7 @@ public class L {
 	
 	public static void enable(final boolean enable){
 		O = !enable;
+		LogManager.setEnable(enable);
 	}
 	
 	public static void setInWorkshop(final boolean isWorkshop){

@@ -541,7 +541,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 						final int caretPosition = cssEditPane.getCaretPosition();
 						final Rectangle caretRect=cssEditPane.modelToView(caretPosition);
 						final Point caretPointer = new Point(caretRect.x, caretRect.y);
-						codeHelper.inputForCSSInCSSEditor(cssEditPane, cssDocument, caretPointer, fontHeight, caretPosition);
+						codeHelper.inputForCSSInCSSEditor(0, cssEditPane, cssDocument, caretPointer, fontHeight, caretPosition);
 					} catch (final Exception e) {
 						if(L.isInWorkshop){
 							ExceptionReporter.printStackTrace(e);
@@ -575,7 +575,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 						final int caretPosition = cssEditPane.getCaretPosition();
 						final Rectangle caretRect=cssEditPane.modelToView(caretPosition);
 						final Point caretPointer = new Point(caretRect.x, caretRect.y);
-						codeHelper.inputForCSSInCSSEditor(cssEditPane, cssDocument, caretPointer, fontHeight, caretPosition);
+						codeHelper.inputForCSSInCSSEditor(0, cssEditPane, cssDocument, caretPointer, fontHeight, caretPosition);
 					} catch (final Exception e) {
 						if(L.isInWorkshop){
 							ExceptionReporter.printStackTrace(e);
