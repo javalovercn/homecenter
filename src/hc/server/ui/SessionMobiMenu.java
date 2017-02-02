@@ -27,9 +27,9 @@ public class SessionMobiMenu extends MobiMenu{
 
 		if(isRoot){
 			//可能新用户重新登录，手机WiFi状态不一
-			enableQRInMobiMenu = UserThreadResourceUtil.getMobileAgent(coreSS).hasCamera();// || PropertiesManager.isSimu();
+			enableQRInMobiMenu = ResourceUtil.isDemoServer() == false && UserThreadResourceUtil.getMobileAgent(coreSS).hasCamera();// || PropertiesManager.isSimu();
 			//关闭WiFi广播HAR
-			enableWiFiInMobiMenu = HCURL.isUsingWiFiWPS && ResourceUtil.canCtrlWiFi(coreSS);// || PropertiesManager.isSimu();
+			enableWiFiInMobiMenu = ResourceUtil.isDemoServer() == false && HCURL.isUsingWiFiWPS && ResourceUtil.canCtrlWiFi(coreSS);// || PropertiesManager.isSimu();
 		}
 		
 		initMenuItemArray();

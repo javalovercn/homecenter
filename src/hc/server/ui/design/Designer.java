@@ -37,6 +37,7 @@ import hc.server.ui.SimuMobile;
 import hc.server.ui.design.code.CodeHelper;
 import hc.server.ui.design.code.CodeItem;
 import hc.server.ui.design.code.CodeStaticHelper;
+import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.hpj.CSSClassIndex;
 import hc.server.ui.design.hpj.CSSJumpRunnable;
 import hc.server.ui.design.hpj.CSSNodeEditPanel;
@@ -729,7 +730,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 					};
 					
 					final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
-					if(licenseURL.length() > 0){
+					
+					if(ResourceUtil.needAccepLicense(licenseURL)){
 						final IBiz biz = new IBiz(){
 							@Override
 							public void setMap(final HashMap map) {
@@ -1079,7 +1081,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 							public void setMap(final HashMap map) {
 							}
 						};
-						if(licenseURL.length() > 0){
+						if(ResourceUtil.needAccepLicense(licenseURL)){
 							final IBiz biz = new IBiz(){
 								@Override
 								public void setMap(final HashMap map) {
@@ -1230,6 +1232,18 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			@Override
 			public void run() {
 				CodeStaticHelper.doNothing();
+				
+				try{
+					Thread.sleep(500);
+				}catch (final Exception e) {
+				}
+				
+				final boolean needRebuildTestJRubySnap = needRebuildTestJRuby;
+				tryBuildTestJRuby();
+				
+				if(needRebuildTestJRubySnap){
+					RubyExector.initActive(SimuMobile.getRunTestEngine());//提前预热
+				}
 			}
 		}, threadPoolToken);
 		
@@ -2091,7 +2105,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	 * 如果出错，则返回false，以便中止运行脚本。
 	 * @return
 	 */
-	public boolean tryBuildTestJRuby(){
+	public synchronized boolean tryBuildTestJRuby(){//用户点击或系统初始并发，所以加同步
 		if(needRebuildTestJRuby){
 			try{
 				final Map<String, Object> map = buildMapFromTree();

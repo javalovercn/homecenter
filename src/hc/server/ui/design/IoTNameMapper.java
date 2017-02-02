@@ -2,6 +2,7 @@ package hc.server.ui.design;
 
 import hc.server.msb.ConverterInfo;
 import hc.server.msb.DeviceBindInfo;
+import hc.server.msb.WorkingDeviceList;
 import hc.server.msb.NameMapper;
 import hc.server.msb.RealDeviceInfo;
 
@@ -72,6 +73,19 @@ public class IoTNameMapper extends NameMapper{
 				bind2ConverterBindInfo.put(binds[j], convs[j]);
 			}
 		}
+	}
+	
+//	final HashMap<String, DeviceList> workingDeviceList = new HashMap<String, DeviceList>(4);
+
+	@Override
+	public WorkingDeviceList getWorkingDeviceList(final String projectID) {
+		final HashMap<String, HashMap<String, Vector<String>>> devProjID = searchBindIDFromDevice.get(projectID);
+		if(devProjID == null){
+			return new WorkingDeviceList();
+		}
+		
+		final Vector<String> list = new Vector<String>(devProjID.keySet());
+		return new WorkingDeviceList(list);
 	}
 	
 //	public String searchBindIDFromDevice(final String proj_id, final String devName, final String devID){

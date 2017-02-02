@@ -158,7 +158,7 @@ public class HCJRubyEngine {
 //				}catch (Throwable e) {
 //				}
 				
-				PlatformManager.getService().closeLoader(projClassLoader);
+//				PlatformManager.getService().closeLoader(projClassLoader);
 			}
 		});
 

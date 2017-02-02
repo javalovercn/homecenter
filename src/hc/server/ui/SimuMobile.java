@@ -103,9 +103,10 @@ public class SimuMobile {
 		return runTestEngine;
 	}
 
-	public static synchronized void rebuildJRubyEngine() {
+	public static synchronized HCJRubyEngine rebuildJRubyEngine() {
 		terminateJRubyEngine();
 		runTestEngine = new HCJRubyEngine(StoreDirManager.RUN_TEST_DIR.getAbsolutePath(), ResourceUtil.buildProjClassLoader(StoreDirManager.RUN_TEST_DIR, "hc.testDir"), true);
+		return runTestEngine;
 	}
 
 	public static synchronized void terminateJRubyEngine() {

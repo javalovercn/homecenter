@@ -9,6 +9,7 @@ import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.SessionContext;
 
+import java.util.HashMap;
 import java.util.Random;
 import java.util.Vector;
 
@@ -144,10 +145,16 @@ public abstract class Device extends Processor{
 		msg.ctrl_isInitiative = isInitiative;
 		
 		if(isInitiative){
-			msg.ctrl_bind_ids = workbench//for debug
+			final HashMap<String, HashMap<String, Vector<String>>> hashMap = workbench//for debug
 					.nameMapper
 					.searchBindIDFromDevice
-					.get(project_id)
+					.get(project_id);
+			if(hashMap == null){
+				//注意：以下不能用workbench.log
+				L.V = L.O ? false : LogManager.warning("{" + project_id + "/" + name + "} is never used, skip dispatch initiative message.");
+				return;
+			}
+			msg.ctrl_bind_ids = hashMap
 					.get(name)
 					.get(msg.ctrl_dev_id);
 			//注意：要置于dispatch之前

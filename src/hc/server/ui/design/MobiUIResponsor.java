@@ -22,6 +22,7 @@ import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.Device;
 import hc.server.msb.MSBAgent;
 import hc.server.msb.UserThreadResourceUtil;
+import hc.server.msb.WorkingDeviceList;
 import hc.server.ui.ClientSession;
 import hc.server.ui.ExceptionCatcherToWindow;
 import hc.server.ui.J2SESessionManager;
@@ -29,7 +30,6 @@ import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SessionMobiMenu;
-import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.SystemEventListener;
 import hc.util.BaseResponsor;
@@ -37,7 +37,6 @@ import hc.util.PropertiesManager;
 import hc.util.RecycleProjThreadPool;
 import hc.util.ResourceUtil;
 
-import java.awt.Frame;
 import java.awt.Window;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -48,6 +47,7 @@ import java.util.NoSuchElementException;
 import java.util.Vector;
 
 import javax.swing.JButton;
+import javax.swing.JFrame;
 
 public class MobiUIResponsor extends BaseResponsor {
 	public final ExceptionCatcherToWindow ec;
@@ -57,7 +57,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	ProjResponser[] responsors;
 	int responserSize; 
 	final MSBAgent msbAgent;
-	BindRobotSource bindRobotSource;
+	public BindRobotSource bindRobotSource;
 	boolean isEventProjStartDone = false;
 	
 	@Override
@@ -79,7 +79,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		for (int i = 0; i < responserSize; i++) {
 			final ProjResponser projResp = responsors[i];
 			try{
-				out.put(projResp, projResp.getDevices());
+				out.put(projResp, projResp.getDevices(WorkingDeviceList.ALL_DEVICES));
 			}catch (final Exception e) {
 			}
 		}
@@ -242,7 +242,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		}
 		
 		//由于JRuby引擎初始化时，不能受限，所以增加下行代码，以完成初始化
-		final HCJRubyEngine hcje = responsors[0].hcje;
+//		final HCJRubyEngine hcje = responsors[0].hcje;
 //		RubyExector.initActive(hcje);
 	}
 
@@ -294,7 +294,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	 * 如果放弃绑定，则返回null；成功则返回实例。
 	 */
 	@Override
-	public BaseResponsor checkAndReady(final Frame owner) throws Exception{
+	public BaseResponsor checkAndReady(final JFrame owner) throws Exception{
 		final BindRobotSource bindSource = new BindRobotSource(this);
 		if(BindManager.hasProjNotBinded()){
 			if(BindManager.findNewUnbind(bindSource) == false){

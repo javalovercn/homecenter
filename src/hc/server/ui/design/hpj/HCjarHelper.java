@@ -1,6 +1,8 @@
 package hc.server.ui.design.hpj;
 
 import hc.core.IConstant;
+import hc.server.msb.WorkingDeviceList;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Vector;
@@ -11,11 +13,11 @@ public class HCjarHelper {
 	}
 	
 	public static final boolean isTrue(final Map map, final String key, final boolean defaultValue){
-		String value = (String)map.get(key);
+		final String value = (String)map.get(key);
 		return (value==null)?defaultValue:(value.equals(IConstant.TRUE));
 	}
 	
-	public static final void setBoolean(final Map map, final String key, boolean value){
+	public static final void setBoolean(final Map map, final String key, final boolean value){
 		map.put(key, value?IConstant.TRUE:IConstant.FALSE);
 	}
 	
@@ -27,7 +29,7 @@ public class HCjarHelper {
 	public static final void removeHeaderStartWith(final Map<String, Object> map, final String header){
 		final Iterator<Map.Entry<String, Object>> keys = map.entrySet().iterator();
 		while(keys.hasNext()){
-			Map.Entry<String, Object> entry = keys.next();
+			final Map.Entry<String, Object> entry = keys.next();
 			if(entry.getKey().startsWith(header, 0)){
 				keys.remove();
 			}
@@ -69,18 +71,18 @@ public class HCjarHelper {
 	 * @param projID
 	 * @return
 	 */
-	public static Vector<String>[] getRobotsSrc(Map<String, Object> map){
-		Vector<String> names = new Vector<String>();
-		Vector<String> src = new Vector<String>();
+	public static Vector<String>[] getRobotsSrc(final Map<String, Object> map){
+		final Vector<String> names = new Vector<String>();
+		final Vector<String> src = new Vector<String>();
 		
-		int itemCount = getRobotNum(map);
+		final int itemCount = getRobotNum(map);
 		
 		for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
 			names.add(getRobotNameAtIdx(map, itemIdx));
 			src.add(getRobotListenerAtIdx(map, itemIdx));
 		}
 		
-		Vector<String>[] out = new Vector[2];
+		final Vector<String>[] out = new Vector[2];
 		out[0] = names;
 		out[1] = src;
 		return out;
@@ -89,20 +91,24 @@ public class HCjarHelper {
 	/**
 	 * return {Vector names, Vector source}
 	 * @param map
+	 * @param list 仅加载绑定的，或全部
 	 * @return
 	 */
-	public static Vector<String>[] getDevicesSrc(final Map<String, Object> map){
-		Vector<String> names = new Vector<String>();
-		Vector<String> src = new Vector<String>();
+	public static Vector<String>[] getDevicesSrc(final Map<String, Object> map, final WorkingDeviceList list){
+		final Vector<String> names = new Vector<String>();
+		final Vector<String> src = new Vector<String>();
 		
-		int itemCount = getDeviceNum(map);
+		final int itemCount = getDeviceNum(map);
 		
 		for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
-			names.add(getDeviceNameAtIdx(map, itemIdx));
-			src.add(getDeviceListenerAtIdx(map, itemIdx));
+			final String deviceName = getDeviceNameAtIdx(map, itemIdx);
+			if(list == WorkingDeviceList.ALL_DEVICES || list.contain(deviceName)){
+				names.add(deviceName);
+				src.add(getDeviceListenerAtIdx(map, itemIdx));
+			}
 		}
 		
-		Vector<String>[] out = new Vector[2];
+		final Vector<String>[] out = new Vector[2];
 		out[0] = names;
 		out[1] = src;
 		return out;
@@ -114,17 +120,17 @@ public class HCjarHelper {
 	 * @return
 	 */
 	public static Vector<String>[] getConvertersSrc(final Map<String, Object> map){
-		Vector<String> names = new Vector<String>();
-		Vector<String> src = new Vector<String>();
+		final Vector<String> names = new Vector<String>();
+		final Vector<String> src = new Vector<String>();
 		
-		int itemCount = getConverterNum(map);
+		final int itemCount = getConverterNum(map);
 		
 		for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
 			names.add(getConverterNameAtIdx(map, itemIdx));
 			src.add(getConverterListenerAtIdx(map, itemIdx));
 		}
 		
-		Vector<String>[] out = new Vector[2];
+		final Vector<String>[] out = new Vector[2];
 		out[0] = names;
 		out[1] = src;
 		return out;
@@ -143,7 +149,7 @@ public class HCjarHelper {
 	}
 
 	private static int getMSBXXXNum(final Map<String, Object> map, final String keyName) {
-		Object num = map.get(keyName);
+		final Object num = map.get(keyName);
 		int itemCount = 0;
 		if(num != null){
 			itemCount = Integer.parseInt((String)num);

@@ -371,7 +371,7 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * the server will invoke this method when exit this {@link Mlet}.
+	 * the server will invoke this method when exit this {@link Mlet} or line off.
 	 * <BR><BR>
 	 * invoke {@link #getStatus()} in this method will returns {@link #STATUS_EXIT}.
 	 * <BR><BR>

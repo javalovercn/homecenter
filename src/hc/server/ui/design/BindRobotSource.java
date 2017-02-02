@@ -16,6 +16,7 @@ import hc.server.msb.IoTSource;
 import hc.server.msb.MSBAgent;
 import hc.server.msb.RealDeviceInfo;
 import hc.server.msb.Robot;
+import hc.server.msb.WorkingDeviceList;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.design.hpj.HCjarHelper;
 
@@ -103,7 +104,7 @@ public class BindRobotSource extends IoTSource{
 				if(referID != null){
 					L.V = L.O ? false : LogManager.log("successful [declareReferenceDeviceID] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
 					for (int j = 0; j < referID.length; j++) {
-						final DeviceBindInfo dbi = new DeviceBindInfo();
+						final DeviceBindInfo dbi = new DeviceBindInfo(projID, robotName);
 						dbi.ref_dev_id = referID[j];
 						dbi.bind_id = DeviceBindInfo.buildStandardBindID(projID, robotName, dbi.ref_dev_id);
 						
@@ -235,7 +236,7 @@ public class BindRobotSource extends IoTSource{
 		for (int i = 0; i < respo.responserSize; i++) {
 			final ProjResponser pr = respo.responsors[i];
 			if(pr != null){
-				final Device[] devices = pr.getDevices();
+				final Device[] devices = pr.getDevices(WorkingDeviceList.ALL_DEVICES);
 				final String projectID = pr.context.getProjectID();
 				if(devices != null){
 					for (int j = 0; j < devices.length; j++) {

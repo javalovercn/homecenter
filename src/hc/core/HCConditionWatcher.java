@@ -48,9 +48,9 @@ public class HCConditionWatcher {
 					
 					if(temp == null){
 						if(isNotifyShutdown){//直到所有任务完成后，移除自己
-							if(L.isInWorkshop){
-								L.V = L.O ? false : LogManager.log("shutdown HCConditionWatcher [" + watcherTimer.getName() + "].");
-							}
+//							if(L.isInWorkshop){
+//								L.V = L.O ? false : LogManager.log("shutdown HCConditionWatcher [" + watcherTimer.getName() + "].");
+//							}
 							HCTimer.remove(watcherTimer);
 						}
 						break;
@@ -79,9 +79,9 @@ public class HCConditionWatcher {
 				}while(true);
 				
 				if(isAddUnUsed){
-					if(isInWorkshop){
-						L.V = L.O ? false : LogManager.log("[" + timeName + "] processing unUsed watcher.");
-					}
+//					if(isInWorkshop){
+//						L.V = L.O ? false : LogManager.log("[" + timeName + "] processing unUsed watcher.");
+//					}
 					
 					synchronized (watchers) {
 						Object rewatcher;
@@ -164,9 +164,9 @@ public class HCConditionWatcher {
 //			return;
 //		}
 		
-		if(isInWorkshop){
-			L.V = L.O ? false : LogManager.log("[" + timeName + "] add watcher : " + watcher.hashCode());
-		}
+//		if(isInWorkshop){
+//			L.V = L.O ? false : LogManager.log("[" + timeName + "] add watcher : " + watcher.hashCode());
+//		}
 		
 		synchronized (watchers) {
 			if(watchers.addTail(watcher)){

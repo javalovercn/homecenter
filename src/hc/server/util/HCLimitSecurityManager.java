@@ -37,8 +37,10 @@ import hc.server.ui.MenuItem;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ScriptPanel;
+import hc.server.ui.ScriptTester;
 import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.AddHarIsBusy;
+import hc.server.ui.design.BindHTMLMlet;
 import hc.server.ui.design.LicenseHTMLMlet;
 import hc.server.ui.design.SystemHTMLMlet;
 import hc.server.ui.design.hpj.HCjar;
@@ -191,6 +193,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	}
 	
 	public static final void switchHCSecurityManager(final boolean on){
+		if(ResourceUtil.isDemoServer()){
+			return;
+		}
+		
 		if(isSecurityManagerOn() == false){
 			L.V = L.O ? false : LogManager.log("stop SecurityManager in current server!");
 			return;
@@ -309,9 +315,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    			Converter.class, DialogHTMLMlet.class, DialogMlet.class, Device.class, Message.class, 
 	    			Robot.class, RobotEvent.class, RobotListener.class,
 	    			DeviceCompatibleDescription.class,
-	    			AddHarHTMLMlet.class, AddHarIsBusy.class, Dialog.class, LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
+	    			AddHarHTMLMlet.class, AddHarIsBusy.class, BindHTMLMlet.class, Dialog.class, 
+	    			LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
 	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class,
-	    			WiFiAccount.class, ScriptPanel.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
+	    			WiFiAccount.class, ScriptPanel.class, ScriptTester.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
 //	    	{
 //	    		Vector<Class> allowVect = new Vector<Class>();
 //				
@@ -698,16 +705,6 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 //		}
 //		System.out.println("checkMemberAccess : " + clazz.getName() + ", which :" + which);
 		super.checkMemberAccess(clazz, which);
-	}
-	
-	private static ClassLoader jrubyClassLoad;
-	
-	public static final void refreshJRubyClassLoader(final ClassLoader loader){
-		CCoreUtil.checkAccess();
-		
-		ResourceUtil.checkHCStackTraceInclude(null, null);
-		
-		jrubyClassLoad = loader;
 	}
 	
 	@Override

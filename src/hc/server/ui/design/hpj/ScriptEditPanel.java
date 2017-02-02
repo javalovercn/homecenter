@@ -218,10 +218,17 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	}
 	
 	final CallContext callCtxNeverCycle = CallContext.getFree();
+	final Runnable rebuildTestEngineRunnable = new Runnable() {
+		@Override
+		public void run() {
+			final HCJRubyEngine hcje = SimuMobile.rebuildJRubyEngine();//import逻辑已加载，必须重建实例
+			RubyExector.initActive(hcje);
+		}
+	};
 	
 	final void doTest(final boolean isRun, final boolean isCompileOnly) {
 		final Map<String, String> map = buildMapScriptParameter();
-		final HCJRubyEngine runTestEngine = SimuMobile.getRunTestEngine();
+		HCJRubyEngine runTestEngine = SimuMobile.getRunTestEngine();
 		if(runTestEngine != null && callCtxNeverCycle.isError){
 			//清空旧错误
 			jtaScript.getHighlighter().removeAllHighlights();
@@ -230,6 +237,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		if(designer.tryBuildTestJRuby() == false){
 			return;
 		}
+		runTestEngine = SimuMobile.getRunTestEngine();//有可能上行重建
 		
 		final ProjectContext context = ContextSecurityManager.getConfig(
 				(ThreadGroup)HCLimitSecurityManager.getTempLimitRecycleRes().threadPool.getThreadGroup()).getProjectContext();
@@ -256,9 +264,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				callCtxNeverCycle.reset();
 				callCtxNeverCycle.targetURL = targetURL;
 				RubyExector.runAndWaitInProjectOrSessionPool(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtxNeverCycle, script, null, map, runTestEngine, context);
-				RubyExector.removeCache(script, runTestEngine);
 			}
 		}catch (final Throwable e) {
+		}finally{
+			ContextManager.getThreadPool().run(rebuildTestEngineRunnable);
 		}
 		if(callCtxNeverCycle.isError){
 //			final Object runnable = Toolkit.getDefaultToolkit().getDesktopProperty("win.sound.exclamation");
@@ -315,19 +324,6 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 	}
 
-	static {
-		ContextManager.getThreadPool().run(new Runnable() {
-			@Override
-			public void run() {
-				try{
-					Thread.sleep(6000);
-				}catch (final Exception e) {
-				}
-				RubyExector.initActive(SimuMobile.getRunTestEngine());//提前预热
-			}
-		});
-	}
-	
 	private final void setEditorDefaultCurosr() {
 		if(isHandCursor){
 			isHandCursor = false;
@@ -343,8 +339,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 		errorTimer.setErrorLable(errRunInfo, testBtn);
 		
-		final String runTip = "<STRONG>Note : </STRONG> even if a green bar is displayed in bottom, <BR>" +
-				"defects may be in the scripts that are not covered.";
+		final String runTip = "this button is used to check the executable of scripts." +
+				"<BR><BR>" +
+				"<STRONG>Note : </STRONG><BR>" +
+				"1. even if a green bar is displayed in bottom, defects may be in the scripts that are not covered,<BR>" +
+				"2. although script runs in simulator, but it is a real run.";
 		{
 			final Action testAction = new AbstractAction() {
 				@Override

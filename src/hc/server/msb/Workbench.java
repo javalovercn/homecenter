@@ -34,6 +34,10 @@ public class Workbench{
 		nameMapper.appendBindToNameSet(lps);
 	}
 	
+	public final WorkingDeviceList getWorkingDeviceList(final String projectID){
+		return nameMapper.getWorkingDeviceList(projectID);
+	}
+	
 	public boolean O = true;
 	public boolean V = false;
 	

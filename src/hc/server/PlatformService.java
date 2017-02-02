@@ -64,7 +64,7 @@ public interface PlatformService {
 	 */
 	public ClassLoader get3rdClassLoader(File[] files);
 	
-	public void closeLoader(ClassLoader loader);
+	public void closeLoader(ClassLoader loader);//由于JRubyLoader多工程共用，不宜关闭
 	
 	public ClassLoader loadClasses(File[] filePaths, ClassLoader parent, boolean isDex, String loadOpID);
 	

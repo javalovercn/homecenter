@@ -1,6 +1,7 @@
 package hc.util;
 
 import hc.App;
+import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.HCTimer;
 import hc.core.IConstant;
@@ -15,6 +16,7 @@ import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.LogManager;
+import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
 import hc.core.util.WiFiDeviceManager;
 import hc.res.ImageSrc;
@@ -29,7 +31,6 @@ import hc.server.data.KeyComperPanel;
 import hc.server.data.StoreDirManager;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.design.J2SESession;
-import hc.server.util.HCLimitSecurityManager;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -481,9 +482,8 @@ public class ResourceUtil {
 		}else{
 			return rubyAnd3rdLibsClassLoaderCache;
 		}
-		
-		PlatformManager.getService().closeLoader(rubyAnd3rdLibsClassLoaderCache);
-				
+//		PlatformManager.getService().closeLoader(rubyAnd3rdLibsClassLoaderCache);
+
 		final File jruby = new File(ResourceUtil.getBaseDir(), J2SEContext.jrubyjarname);
 		
 		PlatformManager.getService().setJRubyHome(PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer), jruby.getAbsolutePath());
@@ -496,7 +496,6 @@ public class ResourceUtil {
 			final JPanel panel = App.buildMessagePanel(message, App.getSysIcon(App.SYS_ERROR_ICON));
 			App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, null, false, true, null, false, false);//JFrame
 		}else{
-			HCLimitSecurityManager.refreshJRubyClassLoader(rubyAnd3rdLibsClassLoaderCache);
 			L.V = L.O ? false : LogManager.log("Successful (re) create JRuby engine classLoader.");
 		}
 		return rubyAnd3rdLibsClassLoaderCache;
@@ -716,6 +715,14 @@ public class ResourceUtil {
 		return new String(str);                     
 	}
 
+	public static Object getResInUT(final int id, final Object threadToken){
+		return ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				return get(id);
+			}
+		}, threadToken);
+	}
 	
 	public static Object get(final int id){
 		if(id < 10000){
@@ -1718,5 +1725,10 @@ public class ResourceUtil {
 			}
 		}
 		return null;
+	}
+
+	public static boolean needAccepLicense(final String licenseURL) {
+		return PropertiesManager.isTrue(PropertiesManager.p_isAcceptAllHARLicenses, false) == false 
+				&& licenseURL != null && licenseURL.length() > 0;
 	}
 }

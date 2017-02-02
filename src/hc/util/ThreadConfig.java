@@ -56,8 +56,8 @@ public class ThreadConfig {
 		putValue(tag, value?Boolean.TRUE:Boolean.FALSE);
 	}
 	
-	public static boolean isTrue(final Integer tag, final boolean valueWhenNull){
-		final Object obj = getValue(tag);
+	public static boolean isTrue(final Integer tag, final boolean valueWhenNull, final boolean isRemoveAfterGet){
+		final Object obj = getValue(tag, isRemoveAfterGet);
 		if(obj == null){
 			return valueWhenNull;
 		}
@@ -67,6 +67,10 @@ public class ThreadConfig {
 		}
 		
 		return ((Boolean)obj);
+	}
+	
+	public static boolean isTrue(final Integer tag, final boolean valueWhenNull){
+		return isTrue(tag, valueWhenNull, true);
 	}
 
 	public static void setThreadTargetURL(final CallContext callCtx) {

@@ -13,9 +13,12 @@ import hc.server.msb.IoTSource;
 import hc.server.msb.MSBAgent;
 import hc.server.msb.RealDeviceInfo;
 import hc.server.msb.RobotReferBindInfo;
+import hc.server.msb.WorkingDeviceList;
 import hc.server.ui.design.hpj.HCjarHelper;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -53,7 +56,7 @@ public class BindManager {
 			return false;
 		}
 		
-		final Vector<String>[] vectors = HCjarHelper.getDevicesSrc(pr.map);
+		final Vector<String>[] vectors = HCjarHelper.getDevicesSrc(pr.map, WorkingDeviceList.ALL_DEVICES);
 		final Vector<String> names = vectors[0];
 		
 		return names.contains(rdbi.dev_name);
@@ -234,6 +237,32 @@ public class BindManager {
 				
 				final String[] source_compatibleItem = MSBAgent.getCompatibleItemToUserThread(pr, true, compDesc);
 			
+				final Comparator<ConverterInfo> comparator = new Comparator<ConverterInfo>(){
+					final String projectID = pr.projectID;
+
+					@Override
+					public int compare(final ConverterInfo s1, final ConverterInfo s2) {
+						final boolean v1 = s1.proj_id.equals(projectID);
+						final boolean v2 = s2.proj_id.equals(projectID);
+
+						if (v1) {
+							if (v2) {
+								return 0;
+							} else {
+								return -1;
+							}
+						} else {
+							if (v2) {
+								return 1;
+							} else {
+								return 0;
+							}
+						}
+					}
+				};
+				
+				Collections.sort(cbi,comparator);//同一工程优先
+				
 				final int size = cbi.size();
 				for (int i = 0; i < size; i++) {
 					final ConverterInfo cInfo = cbi.get(i);
@@ -263,6 +292,32 @@ public class BindManager {
 				
 				final String[] source_compatibleItem = MSBAgent.getCompatibleItemToUserThread(pr, true, compDesc);
 			
+				final Comparator<RealDeviceInfo> comparator = new Comparator<RealDeviceInfo>(){
+					final String projectID = pr.projectID;
+
+					@Override
+					public int compare(final RealDeviceInfo s1, final RealDeviceInfo s2) {
+						final boolean v1 = s1.proj_id.equals(projectID);
+						final boolean v2 = s2.proj_id.equals(projectID);
+
+						if (v1) {
+							if (v2) {
+								return 0;
+							} else {
+								return -1;
+							}
+						} else {
+							if (v2) {
+								return 1;
+							} else {
+								return 0;
+							}
+						}
+					}
+				};
+				
+				Collections.sort(rdbi,comparator);//同一工程优先
+				
 				final int size = rdbi.size();
 				for (int i = 0; i < size; i++) {
 					final RealDeviceInfo rdi = rdbi.get(i);
@@ -525,6 +580,26 @@ public class BindManager {
 	public static BindDeviceNode buildDataNodeForRefDevInRobot(final MobiUIResponsor resp, final String projID,
 			final String robotID, final DeviceBindInfo di, final IoTSource iotSource) {
 		return new BindDeviceNode(resp, BindDeviceNode.REAL_DEV_ID_NODE, projID, robotID, di, iotSource);
+	}
+
+	public final static boolean disableNoBindedProj(){
+		CCoreUtil.checkAccess();
+		
+		boolean hasUnbinded = false;
+		
+		final Iterator<LinkProjectStore> it = getNoBindedProjSet().iterator();//因为 新添加或升级的工程DoneBind=false
+		while(it.hasNext()){
+			final LinkProjectStore check_lps = it.next();
+			LogManager.errToLog("not binded, disabel project [" + check_lps.getProjectID() + "].");
+			check_lps.setActive(false);
+			
+			hasUnbinded = true;
+		}
+		
+		if(hasUnbinded){
+			LinkProjectManager.updateToLinkProject();
+		}
+		return hasUnbinded;
 	}
 
 }

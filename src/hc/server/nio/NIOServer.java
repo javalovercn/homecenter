@@ -22,6 +22,7 @@ public class NIOServer {
 	 */
 	public NIOServer(final CoreSession coreSS, final String ip, final int localPort, final int udpSpeedPort, final ActionRead read) {
 		try{
+			LogManager.log("try build relay server on IP : " + ip + ", port : " + localPort);
 			at = new AcceptReadThread(coreSS, ip, localPort, udpSpeedPort, read);
 		}catch (final Exception e) {
 			LogManager.err("Unable NIO Server, IP:" + ip + ", Port:" + localPort);

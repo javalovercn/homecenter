@@ -186,6 +186,7 @@ public class RubyExector {
 		final String scriptName = null;
 		parse(null, script, scriptName, hcje, false);
 		runAndWaitOnEngine(null, script, scriptName, null, hcje);
+		removeCache(script, hcje);
 	}
 
 	private static final void notifyMobileErrorScript(final J2SESession coreSS, final ProjectContext ctx, final String title){

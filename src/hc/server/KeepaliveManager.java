@@ -19,10 +19,13 @@ import hc.util.HttpUtil;
 import hc.util.ResourceUtil;
 import hc.util.TokenManager;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.Vector;
 
 
@@ -97,7 +100,7 @@ public class KeepaliveManager {
 				return false;
 			}
 			
-			int size = relays.size();
+			final int size = relays.size();
 			
 			//循环替补端口
 	//		int backPort = (Integer)ContextManager.getContextInstance().doExtBiz(
@@ -105,43 +108,39 @@ public class KeepaliveManager {
 	
 			//测速，仅出现多个中继服务器时
 			if(size > 1){
-				final UDPTestThread[] tts = new UDPTestThread[size];
+				final int timeOut = 5000;
+
+				final TCPTestThread[] tts = new TCPTestThread[size];
 				final Vector speedSortedRelays = new Vector();
 				for (int i = 0; i < size; i++) {
 					final String[] ipAndPorts = (String[])relays.elementAt(i);
 					
-					final UDPTestThread tt = new UDPTestThread(speedSortedRelays, ipAndPorts);
+					final TCPTestThread tt = new TCPTestThread(speedSortedRelays, ipAndPorts, timeOut);
 					tt.start();
 					tts[i] = tt;
 				}
 				long now = System.currentTimeMillis();
-				final long afterSleep = now + 2000;
+				final long afterSleep = now + timeOut;
 				try{
 					while(afterSleep > now){
 						Thread.sleep(30);
 						now += 30;
 						
-						if(speedSortedRelays.size() == size){
+						final int echoSize = speedSortedRelays.size();
+						if(echoSize == size || echoSize >= 2){
 							break;
 						}
 					}
 				}catch (final Exception e) {
 				}
-				for (int i = 0; i < tts.length; i++) {
-					try{
-						tts[i].interrupt();
-					}catch (final Throwable e) {
-					}
-				}
 				
 				if(speedSortedRelays.size() != 0){
 	//				L.V = L.O ? false : LogManager.log("use hige speed for connection!");
 					relays = speedSortedRelays;
-					size = relays.size();
 				}
 			}
 			
-			for (int i = 0; i < size; i++) {
+			for (int i = 0; i < relays.size(); i++) {//size()有可能正在增加中
 				SIPManager.setOnRelay(coreSS, true);
 	
 				final String[] ipAndPorts = (String[])relays.elementAt(i);
@@ -262,6 +261,56 @@ public class KeepaliveManager {
 			super.setEnable(enable);
 		}
 	};
+}
+
+class TCPTestThread extends Thread{
+	Vector sorted;
+	String[] tcpInfo;
+	final int timeOut;
+	
+	public TCPTestThread(final Vector sorted, final String[] tcpInfo, final int timeOut) {
+		this.sorted = sorted;
+		this.tcpInfo = tcpInfo;
+		this.timeOut = timeOut;
+	}
+	
+	@Override
+	public void run(){
+		final String tcpTestIP = tcpInfo[0];
+		final String tcpTestPort = tcpInfo[1];
+		
+		Socket socket = null;
+		try{
+			final InetAddress inetAddr = InetAddress.getByName(tcpTestIP);
+			
+			socket = new Socket();//inetAddr, Integer.parseInt(tcpTestPort)
+			socket.connect(new InetSocketAddress(inetAddr, Integer.parseInt(tcpTestPort)), timeOut); 
+	        final OutputStream out=socket.getOutputStream(); 
+	        
+			final byte[] zeroLenbs = new byte[MsgBuilder.MIN_LEN_MSG];
+			
+			zeroLenbs[MsgBuilder.INDEX_CTRL_TAG] = MsgBuilder.E_TAG_ROOT;
+			zeroLenbs[MsgBuilder.INDEX_CTRL_SUB_TAG] = MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_RELAY;
+		    
+			out.write(zeroLenbs, 0, MsgBuilder.MIN_LEN_MSG);
+			out.flush();
+			
+			final InputStream in = socket.getInputStream();  
+			final int bytesRcvd=in.read(zeroLenbs, 0, zeroLenbs.length);
+			if(bytesRcvd == zeroLenbs.length){
+				synchronized (sorted) {
+					L.V = L.O ? false : LogManager.log("success receive TCP test speed echo from IP : " + tcpTestIP + ", port : " + tcpTestPort);
+					sorted.add(tcpInfo);
+				}
+			}
+		}catch (final Throwable e) {
+		}finally{
+			try{
+				socket.close();
+			}catch (final Throwable e) {
+			}
+		}
+	}
 }
 
 class UDPTestThread extends Thread{

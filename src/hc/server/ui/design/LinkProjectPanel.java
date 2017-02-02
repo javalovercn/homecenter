@@ -636,7 +636,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 		}
 		
 		//由于设计器可堆栈出本界面，而本界面又可堆栈出Bind窗口，在此情形下，会导致画面难以管理，故仅限Android
-		if(ResourceUtil.isAndroidServerPlatform()){
+		if(false && ResourceUtil.isAndroidServerPlatform()){//关闭Android服务器的rebind，改为手机方式
 			rebindBut.setEnabled(false);
 			buttonsList.add(rebindBut);//仅限android
 			ContextManager.getThreadPool().run(new Runnable() {
@@ -997,7 +997,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 						//不能return
 					}else{
 						final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
-						if(licenseURL.length() > 0){
+						if(ResourceUtil.needAccepLicense(licenseURL)){
 							ProcessingWindowManager.showCenterMessageOnTop(self, true, (String)ResourceUtil.get(9110), null);//processing...
 							final IBiz biz = new IBiz(){
 								@Override

@@ -14,6 +14,7 @@ import hc.core.data.DataReg;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.RootBuilder;
+import hc.core.util.StringUtil;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -155,9 +156,17 @@ public class SIPManager {
 				LogManager.info("try direct connect...");
 				IPAndPort l_directIpPort = null;
 				try{
-					final IPAndPort ipport = new IPAndPort(out[idx_localip], Integer.parseInt(out[idx_localport]));
+					int timeOut = 5000;
+					final String ip = out[idx_localip];
+					if(ip.startsWith("192.168.")){
+						final String[] ipv4 = StringUtil.splitToArray(ip, ".");
+						if(ipv4 != null && ipv4.length == 4){
+							timeOut -= 2000;//内网，减两秒
+						}
+					}
+					final IPAndPort ipport = new IPAndPort(ip, Integer.parseInt(out[idx_localport]));
 					l_directIpPort = SIPManager.tryBuildConnOnDirect(coreSS, ipport, "Direct Mode",
-						Integer.parseInt(out[idx_nattype]), 3000);//内网直联最长时间改为一秒
+						Integer.parseInt(out[idx_nattype]), timeOut);//内网直联最长时间改为一秒
 				}catch (Throwable e) {
 				}
 				if(l_directIpPort != null){

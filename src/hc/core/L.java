@@ -3,9 +3,9 @@ package hc.core;
 import hc.core.util.LogManager;
 
 public class L {
-	public static boolean O = false;
 	public static boolean V = false;
-	public static boolean WShop = false;
+	public static boolean O = false;//缺省是开启
+	public static boolean WShop = true;//缺省是关闭
 	
 	/**
 	 * 平台开发环境，而非应用工程开发环境<BR>

@@ -9,7 +9,7 @@ import hc.core.util.LogManager;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.design.J2SESession;
 
-import java.awt.Frame;
+import javax.swing.JFrame;
 
 public abstract class BaseResponsor implements IBiz, IHCURLAction{
 	public static final String[] SCRIPT_EVENT_LIST = {
@@ -88,7 +88,7 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction{
 	 * @return 如果检测不过，返回null；否则返回自己
 	 * @throws Exception
 	 */
-	public abstract BaseResponsor checkAndReady(final Frame owner) throws Exception;
+	public abstract BaseResponsor checkAndReady(final JFrame owner) throws Exception;
 	
 	/**
 	 * @param socketSession

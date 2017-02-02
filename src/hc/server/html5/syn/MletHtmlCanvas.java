@@ -531,6 +531,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
 		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -579,6 +580,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
 		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -606,6 +608,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
 		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -633,6 +636,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
 		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -660,6 +664,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
 		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -687,6 +692,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
 		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -774,6 +780,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
 		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -796,6 +803,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
 		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -842,6 +850,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
 		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -859,6 +868,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
 		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -885,6 +895,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
 		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -902,6 +913,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
 		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		return false;
 	}
@@ -919,6 +931,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				projectContext.error(NO_COMPONENT_HCCODE + id);
 			}
 		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		return false;
 	}

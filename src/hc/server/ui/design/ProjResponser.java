@@ -29,6 +29,7 @@ import hc.server.ScreenServer;
 import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.Converter;
 import hc.server.msb.Device;
+import hc.server.msb.WorkingDeviceList;
 import hc.server.msb.MSBAgent;
 import hc.server.msb.Robot;
 import hc.server.msb.UserThreadResourceUtil;
@@ -204,7 +205,7 @@ public class ProjResponser {
 			}
 		}
 		
-		final Device[] devices = getDevices();
+		final Device[] devices = getDevices(agent.workbench.getWorkingDeviceList(projectID));
 		if(devices != null){
 			for (int j = 0; j < devices.length; j++) {
 				agent.addDevice(devices[j]);
@@ -219,23 +220,26 @@ public class ProjResponser {
 		}
 	}
 	
-	public final Device[] getDevices() throws Exception {
+	public final Device[] getDevices(final WorkingDeviceList list) throws Exception {
 		if(devices != null){
 			return devices;
 		}
 		
-		final int itemCount = HCjarHelper.getDeviceNum(map);
-		
-		if(itemCount <=0) {
-			final Device[] out = {};
-			devices = out;
-			return devices;
+		{
+			final int itemCount = HCjarHelper.getDeviceNum(map);
+			
+			if(itemCount <=0) {
+				final Device[] out = {};
+				devices = out;
+				return devices;
+			}
 		}
 		
-		final Vector<String>[] vectors = HCjarHelper.getDevicesSrc(map);
+		final Vector<String>[] vectors = HCjarHelper.getDevicesSrc(map, list);
 		final Vector<String> names = vectors[0];
 		final Vector<String> src = vectors[1];
 		
+		final int itemCount = names.size();
 		devices = new Device[itemCount];
 		
 		for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {

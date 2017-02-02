@@ -28,6 +28,7 @@ import hc.server.msb.Workbench;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.JarMainMenu;
 import hc.server.ui.design.ProjResponser;
+import hc.server.ui.design.SessionContext;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.SystemEventListener;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
@@ -382,7 +383,13 @@ public class ServerUIAPIAgent {
 	}
 	
 	public static Object runAndWaitInSessionThreadPool(final J2SESession coreSS, final ProjResponser resp, final ReturnableRunnable run){
-		return resp.getMobileSession(coreSS).recycleRes.threadPool.runAndWait(run);
+		final SessionContext mobileSession = resp.getMobileSession(coreSS);
+		if(mobileSession != null){
+			return mobileSession.recycleRes.threadPool.runAndWait(run);
+		}else{
+			L.V = L.WShop ? false : LogManager.log("mobileSession is null!");
+			return null;
+		}
 	}
 
 	public static void printInProjectLevelWarn(final String instance, final String method){

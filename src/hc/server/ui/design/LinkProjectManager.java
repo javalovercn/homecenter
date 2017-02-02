@@ -387,28 +387,42 @@ public class LinkProjectManager{
 			return;
 		}
 		
-		final HCTimer timer = new HCTimer("", HCTimer.ONE_DAY, true) {
+		final HCTimer timer = new HCTimer("HarUpgrading", HCTimer.ONE_DAY, true) {
+			boolean isRunning;
+			
 			@Override
 			public final void doBiz() {
 				CCoreUtil.getSecurityChecker().resetFastCheckThreads();//清空快速线程权限检查缓存
 
+				if(isRunning){
+					return;
+				}
+				
+				isRunning = true;
+				
 				final Thread t = new Thread(){
 					@Override
 					public void run(){
-						while(true){
-							try{
-								Thread.sleep((PropertiesManager.isSimu()?5:120) * 1000);//考虑到60较小，改为120
-							}catch (final Exception e) {
-							}
-							
-							if(PropertiesManager.getValue(PropertiesManager.p_EnableLinkedInProjUpgrade, IConstant.TRUE).equals(IConstant.TRUE)){
-								if(LinkProjectManager.upgradeDownloading()){
+						try{
+							while(true){
+								try{
+									Thread.sleep((PropertiesManager.isSimu()?5:120) * 1000);//考虑到60较小，改为120
+								}catch (final Exception e) {
+								}
+								
+								if(PropertiesManager.getValue(PropertiesManager.p_EnableLinkedInProjUpgrade, IConstant.TRUE).equals(IConstant.TRUE)){
+									if(LinkProjectManager.upgradeDownloading()){
+										break;
+									}
+								}else{
 									break;
 								}
-							}else{
-								break;
 							}
+						}catch (final Throwable e) {
+							ExceptionReporter.printStackTrace(e);
 						}
+						
+						isRunning = false;
 					}
 				};
 				t.setDaemon(true);

@@ -464,7 +464,7 @@ public class Dialog extends JPanel {
 	
 	DialogGlobalLock resLock;
 	
-	private final SizeHeightForXML sizeHeightForXML;
+	private final SizeHeightForXML sizeHeightForXML;//注意：不能为null，即使在SIMU下
 	final Mlet dialogCanvas;
 	
 	/**
@@ -501,7 +501,7 @@ public class Dialog extends JPanel {
 			}
 		}
 		
-		if(ProjResponser.isMletMobileEnv(coreSS)){
+		if(coreSS != SimuMobile.SIMU_NULL && ProjResponser.isMletMobileEnv(coreSS)){
 			dialogCanvas = new DialogMlet();
 			sizeHeightForXML = new SizeHeightForXML(coreSS);
 		}else{

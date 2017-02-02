@@ -5,6 +5,19 @@ import hc.core.util.StringUtil;
 public class DeviceBindInfo {
 	private static final String SPLIT = "/";
 	
+	public final String projID;
+	public final String robotName;
+	
+	/**
+	 * 注意：被Robot和deviceTree两类共用
+	 * @param projID
+	 * @param robotName
+	 */
+	public DeviceBindInfo(final String projID, final String robotName){
+		this.projID = projID;
+		this.robotName = robotName;
+	}
+	
 	public String ref_dev_id = "";
 	public String bind_id = "";
 	
@@ -13,8 +26,8 @@ public class DeviceBindInfo {
 	}
 	
 	public static RobotReferBindInfo decodeReferIDFromBindID(final String bind_id){
-		RobotReferBindInfo rrbi = new RobotReferBindInfo();
-		String[] out = StringUtil.splitToArray(bind_id, SPLIT);
+		final RobotReferBindInfo rrbi = new RobotReferBindInfo();
+		final String[] out = StringUtil.splitToArray(bind_id, SPLIT);
 		rrbi.proj_id = out[0];
 		rrbi.robot_name = out[1];
 		rrbi.refer_id = out[2];

@@ -697,7 +697,7 @@ public class DeviceBinderWizard extends JPanel{
 			}
 			
 			final DefaultMutableTreeNode realDevIDNode = new DefaultMutableTreeNode();
-			final DeviceBindInfo devBindInfo = new DeviceBindInfo();
+			final DeviceBindInfo devBindInfo = new DeviceBindInfo(cbi.proj_id, cbi.dev_name);
 			devBindInfo.ref_dev_id = cbi.dev_id;
 			final BindDeviceNode userObject = new BindDeviceNode(mobiResp, BindDeviceNode.REAL_DEV_ID_NODE, cbi.proj_id, cbi.dev_name, devBindInfo, null);
 			userObject.realDevBind = cbi;
@@ -871,7 +871,7 @@ public class DeviceBinderWizard extends JPanel{
 		descPanel.add(new JScrollPane(desc), BorderLayout.CENTER);
 		panel.add(descPanel);
 		
-		App.showCenterPanelMain(panel, 300, 500, title, true, ok, null, listener, null, parent, true, false, relativeTo, true, false);
+		App.showCenterPanelMain(panel, 300, 500, title, true, ok, null, listener, null, parent, true, false, null, true, false);//relativeTo会导致dev偏移到左边，故关闭为居中
 	}
 
 	public void selectTreeNodeAction(final JTree tree, final int leafNodeType,

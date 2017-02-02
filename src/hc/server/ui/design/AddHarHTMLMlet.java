@@ -3,6 +3,7 @@ package hc.server.ui.design;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.IContext;
+import hc.core.IWatcher;
 import hc.core.L;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
@@ -76,7 +77,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	final J2SESession coreSS;
 	
 	final BufferedImage okImage, cancelImage;//该值同时被LicenseHTMLMlet引用
-	String iagreeStr, acceptStr, cancelStr;//该值被LicenseHTMLMlet引用
+	String iagreeStr, acceptStr, cancelStr, acceptAllAndNeverDisplay;//该值被LicenseHTMLMlet引用
 	String licenseText;
 	
 	//need system level resource.
@@ -110,6 +111,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 				
 				iagreeStr = (String)ResourceUtil.get(9115);
 				acceptStr = (String)ResourceUtil.get(9114);
+				acceptAllAndNeverDisplay = (String)ResourceUtil.get(9241);
 				acceptStr = StringUtil.replace(acceptStr, "{iagree}", iagreeStr);
 				cancelStr = (String) ResourceUtil.get(IContext.CANCEL);
 				
@@ -204,6 +206,16 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		appendMessage(StringUtil.replace(StringUtil.replace(isBroadcast, "{projID}", projID), "{devName}", device));
 	}
 	
+	static void acceptAllHARLicenseInUT(final boolean isAccept){
+		ContextManager.getThreadPool().run(new Runnable() {
+			@Override
+			public void run() {
+				PropertiesManager.setValue(PropertiesManager.p_isAcceptAllHARLicenses, isAccept);
+				PropertiesManager.saveFile();
+			}
+		}, token);
+	}
+	
 	/**
 	 * 注意：本方法内部能拦截异常，并显示到手机
 	 * @param coreSS
@@ -286,9 +298,11 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 					final Exception[] runException = new Exception[1];
 
 					final ThreadGroup token = App.getThreadPoolToken();
-					final Runnable yesRunnable = new Runnable() {
+					final IWatcher yesInUserThread = new IWatcher() {
+						HTMLMlet mlet;//可能为licenseHTMMlet或addHar
+						
 						@Override
-						public void run() {
+						public boolean watch() {
 							ContextManager.getThreadPool().run(new Runnable() {
 								@Override
 								public void run() {
@@ -297,24 +311,60 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 											return;
 										}
 										try{
-											startAddAfterAgreeInQuestionThread(coreSS, fileHar, map, isUpgrade, oldBackEditFile);
+											startAddAfterAgreeInQuestionThread(mlet, coreSS, fileHar, map, isUpgrade, oldBackEditFile);
 										}catch (final Exception e) {
 											runException[0] = e;
 										}
 										isDone[0] = true;
 									}
+									return;
 								}
 							}, token);//转主线程
+							
+							return true;
+						}
+
+						@Override
+						public void setPara(final Object p) {
+							mlet = (HTMLMlet)p;
+						}
+
+						@Override
+						public void cancel() {
+						}
+
+						@Override
+						public boolean isCancelable() {
+							return false;
 						}
 					};
-
-					if(licenseURL.length() > 0){
+					yesInUserThread.setPara(this);
+					
+					if(ResourceUtil.needAccepLicense(licenseURL)){
 						final String opIsCanceled = (String)ResourceUtil.get(9193);//需要系统特权。不能入Runnable
-						final Runnable noRunnable = new Runnable() {
+						final IWatcher noInUserThread = new IWatcher() {
+							LicenseHTMLMlet mlet;
 							@Override
-							public void run() {
+							public boolean watch() {
+								mlet.back();
+								
 								appendMessage(opIsCanceled);
 								isDone[0] = true;
+								return true;
+							}
+
+							@Override
+							public void setPara(final Object p) {
+								mlet = (LicenseHTMLMlet)p;
+							}
+
+							@Override
+							public void cancel() {
+							}
+
+							@Override
+							public boolean isCancelable() {
+								return false;
 							}
 						};
 						
@@ -328,24 +378,10 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 							licenseText = licenseURL;
 						}
 						
-						final ActionListener acceptListener = new ActionListener() {
-							@Override
-							public void actionPerformed(final ActionEvent e) {
-								yesRunnable.run();
-							}
-						};
-						
-						final ActionListener cancelListener = new ActionListener() {
-							@Override
-							public void actionPerformed(final ActionEvent e) {
-								noRunnable.run();
-							}
-						};
-
 						final LicenseHTMLMlet licenseHtmlMlet = (LicenseHTMLMlet)ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
 							@Override
 							public Object run() {
-								return new LicenseHTMLMlet(licenseText, acceptListener, cancelListener,
+								return new LicenseHTMLMlet(licenseText, acceptAllAndNeverDisplay, yesInUserThread, noInUserThread,
 										okImage, cancelImage,
 										iagreeStr, acceptStr, cancelStr);
 							}
@@ -354,7 +390,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 						goMlet(licenseHtmlMlet, CCoreUtil.SYS_PREFIX + LicenseHTMLMlet.class.getSimpleName(), false);
 					}else{
 						//没有license的情形
-						yesRunnable.run();
+						yesInUserThread.watch();
 					}
 					
 //					final String strLicense = (String)ResourceUtil.get(9194);//License
@@ -391,12 +427,56 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 			}
 		}
 	}
+
+	private final boolean enterMobileBindInSysThread(final BindRobotSource source, final J2SESession coreSS, 
+			final HTMLMlet mletFrom){
+		final Boolean[] waitLock = {false};
+		
+		enterBindInSysThread(waitLock, mletFrom, source, coreSS);
+		
+		synchronized (waitLock) {
+			L.V = L.WShop ? false : LogManager.log("wait user bind in mobile...");
+			try {
+				waitLock.wait();
+			} catch (final InterruptedException e) {
+			}
+			L.V = L.WShop ? false : LogManager.log("done user bind in mobile!");
+		}
+		
+		return waitLock[0];
+	}
+
+	public final void enterBindInSysThread(final Boolean[] waitLock, final HTMLMlet mletFrom,
+			final BindRobotSource source, final J2SESession coreSS){
+		final String robotsDesc = (String)ResourceUtil.get(8024);
+		final String convDesc = (String)ResourceUtil.get(8004);
+		final String devDesc = (String)ResourceUtil.get(8007);
+		
+		final String cancelDesc = (String)ResourceUtil.get(1018);
+		final String okDesc = (String)ResourceUtil.get(1010);
+		final String emptyDesc = (String)ResourceUtil.get(9242);
+		
+		final String nextOne = (String)ResourceUtil.get(8025);
+		
+		final boolean isReleaseCurr = mletFrom instanceof LicenseHTMLMlet;
+
+		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				final BindHTMLMlet bindMlet = new BindHTMLMlet(source, token, nextOne, okImage, cancelImage,
+						okDesc, cancelDesc, true,
+						robotsDesc, convDesc, devDesc, waitLock, emptyDesc);
+				mletFrom.goMlet(bindMlet, CCoreUtil.SYS_PREFIX + BindHTMLMlet.class.getSimpleName(), isReleaseCurr);
+				return bindMlet;
+			}
+		});
+	}
 	
 	/**
 	 * 本方法内异常会被拦截，并转显到手机
 	 * @param coreSS 
 	 */
-	private final void startAddAfterAgreeInQuestionThread(final J2SESession coreSS,
+	private final void startAddAfterAgreeInQuestionThread(final HTMLMlet mlet, final J2SESession coreSS,
 			final File fileHar, final Map<String, Object> map,
 			final boolean isUpgrade, final File oldBackEditFile) throws Exception {
 		final ArrayList<LinkProjectStore> appendLPS = appendMapToSavedLPS(fileHar, map, false, isUpgrade, oldBackEditFile);
@@ -414,9 +494,14 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		}
 		
 		if(BindManager.findNewUnbind(bindSource)){//进行自动绑定
-			//TODO mobile bind 
-			final String errMsg = "please bind on Server";
-			throw new Exception(errMsg);
+			//提前释放可能的异常
+			bindSource.getRealDeviceInAllProject();
+			bindSource.getConverterInAllProject();
+			
+			if(enterMobileBindInSysThread(bindSource, coreSS, mlet) == false){
+				final String errMsg = "NOT binded for robots for project [" + (String)map.get(HCjar.PROJ_ID) + "].";
+				throw new Exception(errMsg);
+			}
 		}
 		
 		mobiResp.fireSystemEventListenerOnAppendProject(appendRespNotAll, appendLPS);//进入运行状态

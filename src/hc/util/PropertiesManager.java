@@ -89,6 +89,8 @@ public class PropertiesManager {
 	public static final String p_isMultiUserMode = "MultiUserMode";
 	public static final String p_LasterAutoUpgradeVer = "LasterUpgradeVer";
 	
+	public static final String p_isAcceptAllHARLicenses = "isAcceptAllHARLicenses";
+	
 	public static final String p_CertKey = "CertKey";
 	public static final String p_EnableTransNewCertKeyNow = "TransCertKey";
 	public static final String p_NewCertIsNotTransed = "NewCertIsNotTransed";

@@ -14,4 +14,6 @@ public abstract class NameMapper {
 	public final ConcurrentHashMap<String, RobotReferBindInfo> bind2ReferID = new ConcurrentHashMap<String, RobotReferBindInfo>();
 	
 	public abstract void appendBindToNameSet(final LinkProjectStore lps);
+	
+	public abstract WorkingDeviceList getWorkingDeviceList(final String projectID);
 }

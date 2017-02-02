@@ -8,8 +8,9 @@ import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.util.BaseResponsor;
 
-import java.awt.Frame;
 import java.util.HashMap;
+
+import javax.swing.JFrame;
 
 public class DefaultUIResponsor extends BaseResponsor{
 
@@ -30,7 +31,7 @@ public class DefaultUIResponsor extends BaseResponsor{
 	}
 	
 	@Override
-	public BaseResponsor checkAndReady(final Frame owner) throws Exception{
+	public BaseResponsor checkAndReady(final JFrame owner) throws Exception{
 		return this;
 	}
 	

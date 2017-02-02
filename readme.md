@@ -114,7 +114,7 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 
 	#override empty method onExit
 	def onExit
-		@context.tipOnTray("[Mobile UI Designer] Sys call onExit on Screen-Mlet")
+		@context.tipOnTray("Sys call onExit")
 	end
 end
 
@@ -148,12 +148,12 @@ global CSS for current project :
 ***
 ### Main Features
 
-1. just double-click to run, no configuration.
-2. HomeCenter server runs not only on Oracle/OpenJDK JVM, but also Android, because there is a library ["J2SE for Android"](https://github.com/javalovercn/j2se_for_android).
+1. HomeCenter server runs not only on Oracle/OpenJDK JVM, but also Android, because there is a library ["J2SE for Android"](https://github.com/javalovercn/j2se_for_android).
+2. just double-click to run, no configuration.
 3. scan QRcode from mobile to download and load HAR (home archive) project on server, plug and play, not required to restart server.
 4. focus your business and UI with Java J2SE technology, the rest of work are ours.
-5. the component HTMLMlet is implements with JComponent+Listener+Layout+CSS on server and it will be translated to HTML5+JavaScript+CSS for Android/iPhone mobile client on air.
-6. the designer on server is integrated with Java API Doc and is also an IDE for JRuby, hint of code and resource file(in jar library) will be auto completion.
+5. the component HTMLMlet (the sample above) will be translated to HTML5+JavaScript+CSS for Android/iPhone mobile client on air.
+6. the designer on server is integrated with Java API Doc and is also an IDE for JRuby, hint of code and resource file(in user jar) will be auto completion.
 7. stratify IoT, Robot+Converter+Device, provides powerful device adaptability and data format conversion.
 8. HAR project is self-signed and be upgraded automatically if the newer on web.
 9. exception is automatically reported to your Email or website if end user enable reports exception.
@@ -167,7 +167,7 @@ global CSS for current project :
 3. main class : hc.App
 4. VM arguments for main class : -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
 5. set [Compiler compliance level] of Eclipse to 1.7 or upper
-6. to print server log to console, please keep [options/Developer/Logger] unchecked
+6. to print server log to console, please keep [options/Developer/Logger] unchecked in options of server
 7. please keep the source code for the latest version, otherwise it may causes abnormal connections with mobile.
 8. there is a sample HAR project (NOT "MyFirst" project) in designer on server, covers 80% of JRuby syntax and 90% of functions of HomeCenter server.
 9. for API, press alt+/ in designer or go https://homecenter.mobi/download/javadoc/index.html

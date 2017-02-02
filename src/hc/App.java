@@ -47,6 +47,7 @@ import hc.server.rms.RMSLastAccessTimeManager;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.ClosableWindow;
 import hc.server.ui.J2SESessionManager;
+import hc.server.ui.ScriptTester;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SingleMessageNotify;
 import hc.server.ui.design.LinkProjectManager;
@@ -390,6 +391,10 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		{
 			HCTimer.doNothing();//trig init process
+		}
+		
+		if(PropertiesManager.isSimu()){
+			ScriptTester.doNothing();
 		}
 		
 		if(RootConfig.getInstance() == null){
