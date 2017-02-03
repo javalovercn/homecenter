@@ -180,7 +180,9 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		ServerUIAPIAgent.setProjectContext(mlet, projectCtx);
 		projectContext = projectCtx;
 		
-		frame = new JFrame();//不能入Session会导致block showWindowWithoutWarningBanner
+		if(isAndroidServer == false){
+			frame = new JFrame();//不能入Session会导致block showWindowWithoutWarningBanner，但是Android环境下必须，否则尺寸自适应
+		}
 		
 		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new ReturnableRunnable() {
 			@Override
@@ -217,7 +219,13 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 //		javax.swing.JScrollPane0, x : 0, y : 0, w : 100, h : 100
 //		javax.swing.JViewport1, x : 2, y : 2, w : 96, h : 96
 		
+		if(isAndroidServer){
+			frame = new JFrame();//不能入Session会导致block showWindowWithoutWarningBanner，但是Android环境下必须，否则尺寸自适应
+		}
+		
 	    frame.setContentPane(scrollPane);
+	    
+	    L.V = L.WShop ? false : LogManager.log("HTMLMlet setPreferredSize(" + width + ", " + height + ").");
 	    
 	    if(isAndroidServer){
 	    	scrollPane.setPreferredSize(new Dimension(width, height));

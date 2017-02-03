@@ -115,9 +115,9 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		projectContext = projectCtx;
 		projResp = ServerUIAPIAgent.getProjResponserMaybeNull(projectContext);
 		
-		frame = new JFrame();//不能入Session会导致block showWindowWithoutWarningBanner
-		frameCombobox = new JFrame();
-		frameCombobox.getContentPane().setLayout(new BorderLayout());
+		if(isAndroidServer == false){
+			buildJFrame();//不能入Session会导致block showWindowWithoutWarningBanner，但是Android环境下必须，否则尺寸自适应
+		}
 		
 		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, new ReturnableRunnable() {
 			@Override
@@ -126,6 +126,12 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 				return null;
 			}
 		});
+	}
+
+	private final void buildJFrame() {
+		frame = new JFrame();
+		frameCombobox = new JFrame();
+		frameCombobox.getContentPane().setLayout(new BorderLayout());
 	}
 	
 	@Override
@@ -465,6 +471,10 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	
 	@Override
 	public void init(){//in user thread
+		if(isAndroidServer){
+			buildJFrame();//不能入Session会导致block showWindowWithoutWarningBanner，但是Android环境下必须，否则尺寸自适应
+		}
+		
 	    frame.setContentPane(scrollPane);
 	    
 	    if(isAndroidServer){

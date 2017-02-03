@@ -405,14 +405,20 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 	}
 
 	final void submitBind(){
-		final Iterator<String> proj = robotsOfProj.keySet().iterator();
-		while(proj.hasNext()){
-			final String projID = proj.next();
-			AddHarHTMLMlet.updateProjectBindsToLPS(projID, robotsOfProj.get(projID));
-		}
-		
-		LinkProjectManager.updateToLinkProject();
-		waitLock[0] = true;
+		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				final Iterator<String> proj = robotsOfProj.keySet().iterator();
+				while(proj.hasNext()){
+					final String projID = proj.next();
+					AddHarHTMLMlet.updateProjectBindsToLPS(projID, robotsOfProj.get(projID));
+				}
+				
+				LinkProjectManager.updateToLinkProject();
+				waitLock[0] = true;
+				return null;
+			}
+		}, threadToken);
 	}
 
 	final String selectRobotInUT(){
