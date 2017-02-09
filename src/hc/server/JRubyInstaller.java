@@ -198,7 +198,7 @@ public class JRubyInstaller {
 
 		refreshProgressWindow();
 
-		mtd.download(StringUtil.split(fromURL, RootConfig.CFG_SPLIT), rubyjar, md5, biz, failBiz, false);
+		mtd.download(StringUtil.split(fromURL, RootConfig.CFG_SPLIT), rubyjar, md5, biz, failBiz, false, true);
 	}
 
 	private static void redownload() {

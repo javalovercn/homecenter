@@ -57,7 +57,7 @@ public class SingleJFrame extends HCJFrame {
 		}
 	}
 	
-	public static Window showJFrame(final Class frameClass){
+	public static synchronized Window showJFrame(final Class frameClass){
 		CCoreUtil.checkAccess();
 		
 		final String className = frameClass.getName();

@@ -48,7 +48,7 @@ public class MultiThreadDownloader {
 	}
 	
 	public void download(final Vector url_download, final File file, final String md5,
-			final IBiz biz, final IBiz failBiz, final boolean isVisiable) {
+			final IBiz biz, final IBiz failBiz, final boolean isVisiable, final boolean isCancelableByUser) {
 		this.fileName = file.getName();
 		final int threadNum = url_download.size();
 		dts = new DownloadThread[threadNum];
@@ -111,8 +111,12 @@ public class MultiThreadDownloader {
 				}
 			}, threadPoolToken);
 
+			final JButton button = new JButton((String)ResourceUtil.get(1018));
+			if(isCancelableByUser == false){
+				button.setEnabled(false);
+			}
 			frame = (JFrame)App.showCenterPanelMain(panel, 0, 0, "download...", false, 
-        		new JButton((String)ResourceUtil.get(1018)), null, listener, listener, null, false, true, null, false, false);
+        		button, null, listener, listener, null, false, true, null, false, false);
 		}
         refreshProgress = new Thread(){
         	int ms = 0;

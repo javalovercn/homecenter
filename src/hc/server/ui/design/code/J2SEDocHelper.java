@@ -32,7 +32,7 @@ public class J2SEDocHelper {
 		return isBuildIn;
 	}
 	
-	public static synchronized void downloadJ2SEDoc(){
+	public static void downloadJ2SEDoc(){
 		if(j2seDocLoader != null){
 			return;
 		}
@@ -76,7 +76,7 @@ public class J2SEDocHelper {
 				public void setMap(final HashMap map) {
 				}
 			};
-			mtd.download(urls, docFile, j2seDocMD5, succBiz, failBiz, true);
+			mtd.download(urls, docFile, j2seDocMD5, succBiz, failBiz, true, false);
 			
 			synchronized (isDone) {
 				try {

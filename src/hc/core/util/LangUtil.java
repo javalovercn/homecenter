@@ -28,17 +28,17 @@ public class LangUtil {
 		"iw",
 		"ks",//Kashmiri
 		"kas",//Kashmiri
-		"kk",//Kazakh
-		"kaz",//Kazakh
+//		"kk",//Kazakh
+//		"kaz",//Kazakh
 		"ku",//Kurdish
 		"kur",//Kurdish
 		"khw",
-		"ps",//Pushto
-		"pus",//Pushto
-		"ur",//乌尔都
-		"urd",//乌尔都
-		"ug",//维吾尔
-		"uig",//维吾尔
+		"ps",//Pashto
+		"pus",//Pashto
+		"ur",//乌尔都Urdu
+		"urd",//乌尔都Urdu
+//		"ug",//维吾尔Uighur; Uyghur	
+//		"uig",//维吾尔Uighur; Uyghur	
 		"yi",
 		"yid",
 		};
