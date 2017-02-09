@@ -14,6 +14,7 @@ import hc.core.util.ByteUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
+import hc.core.util.LangUtil;
 import hc.core.util.LogManager;
 import hc.core.util.RecycleRes;
 import hc.core.util.ReturnableRunnable;
@@ -55,6 +56,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Vector;
 
@@ -1852,11 +1854,60 @@ public class ProjectContext {
 		//注意：不能用field来cache，因为可能发生变更
 		return UserThreadResourceUtil.getMobileOSFrom(coreSS);
 	}
+	
+	/**
+	 * find the best match locale from a map.<BR><BR>
+	 * 	the followings languages are treated as equivalents. (see Java Doc <a href="https://docs.oracle.com/javase/7/docs/api/java/util/Locale.html">Locale</a>)<BR>
+	 * 1. <code>he</code> and <code>iw</code><BR>
+	 * 2. <code>yi</code> and <code>ji</code><BR>
+	 * 3. <code>id</code> and <code>in</code><BR><BR>
+	 * for example, locale is "zh-Hans-CN", the match process is following :<BR>
+	 * 1. if match "zh-Hans-CN", then ok,<BR>
+	 * 2. if fail, try match "zh-CN",<BR>
+	 * 3. if fail, try match "zh",<BR>
+	 * 4. if fail, try match "en-US",<BR>
+	 * 5. if fail, try match "en",<BR>
+	 * 6. if fail, return null;<BR><BR>
+	 * if locale is "he-IL", the match process is following :<BR>
+	 * 1. if match "he-IL", then ok,<BR>
+	 * 2. if fail, try match "iw-IL",<BR>
+	 * 3. if fail, try match "he",<BR>
+	 * 4. if fail, try match "iw",<BR>
+	 * 5. if fail, try match "en-US",<BR>
+	 * 6. if fail, try match "en",<BR>
+	 * 7. if fail, return null;
+	 * @param locale case sensitive
+	 * @param map
+	 * @return null if fail to match.
+	 * @see #getMobileLocale()
+	 * @since 7.40
+	 */
+	public static String matchLocale(final String locale, final Map map){
+		return ResourceUtil.matchLocale(locale, map, true);
+	}
+	
+	/**
+	 * check a locale is RTL (Right to Left) or not.
+	 * @param locale
+	 * @return true means RTL.
+	 * @see #getMobileLocale()
+	 * @since 7.40
+	 */
+	public static boolean isRTL(final String locale){
+		return LangUtil.isRTL(locale);
+	}
 
 	/**
-	 * two format locales : <br>
+	 * three format locales : <br>
 	 * 1. language ("en", "fr", "ro", "ru", etc.) <br>
-	 * 2. language-region ("en-US", "es-419", etc.)
+	 * 2. language-region ("en-US", "es-419", etc.)<br>
+	 * 3. language-region ("zh-Hans-CN", "zh-Hant-CN", etc.)<br><br>
+	 * Know more :<BR>
+	 * 1. to find the best match from an I18N map, see {@link #matchLocale(String, Map)}.<BR>
+	 * 2. user maybe change client language and location.<BR>
+	 * 3. to check a locale is RTL (Right To Left) or not, see {@link #isRTL(String)}.<BR>
+	 * 4. for RTL layout, see {@link Mlet#enableApplyOrientationWhenRTL(boolean)}.<BR>
+	 * 5. to set RTL or not for HTML DIV and its sub elements, see {@link HTMLMlet#setRTL(javax.swing.JComponent, boolean)}
 	 * @return in session level, return mobile locale; 
 	 * <BR>in project level, returns the locale for all sessions or 'en-US'.
 	 * @see #isCurrentThreadInSessionLevel()

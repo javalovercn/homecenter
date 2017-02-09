@@ -17,7 +17,7 @@ public class SizeHeightForXML {
 	int fontSizeForNormal, fontSizeForSmall, fontSizeForLarge, fontSizeForButton, buttonHeight;
 	final J2SESession coreSS;
 	public DifferTodo diffTodo;
-	Vector<StyleItem> styleItemToDeliver;
+	Vector<TodoItem> styleItemToDeliver;
 	Vector<String> stylesToDeliver;
 	Vector<String> scriptToDeliver;
 	Vector<String> jsToDeliver;
@@ -114,7 +114,7 @@ public class SizeHeightForXML {
 			return;
 		}
 		
-		doForInputTag(mlet, StyleItem.FOR_JCOMPONENT, component, className, styles);//in user thread
+		doForInputTag(mlet, TodoItem.FOR_JCOMPONENT, component, className, styles);//in user thread
 	}
 	
 	public final void setCSSForDivImpl(final Mlet mlet, final ProjectContext ctx, final JComponent component, final String className, final String styles){//in user thread
@@ -134,13 +134,37 @@ public class SizeHeightForXML {
 		synchronized(mlet.synLock){
 			if(mlet.status == Mlet.STATUS_INIT){
 				if(styleItemToDeliver == null){
-					styleItemToDeliver = new Vector<StyleItem>();
+					styleItemToDeliver = new Vector<TodoItem>();
 				}
-				styleItemToDeliver.add(new StyleItem(StyleItem.FOR_DIV, component, className, styles));
+				styleItemToDeliver.add(new StyleItem(TodoItem.FOR_DIV, component, className, styles));
 				return;
 			}
 			if(diffTodo != null && mlet.status < Mlet.STATUS_EXIT){//由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
 				diffTodo.setStyleForDiv(diffTodo.buildHcCode(component), className, styles);//in user thread
+			}
+		}
+	}
+	
+	public final void setRTLForDivImpl(final Mlet mlet, final ProjectContext ctx, final JComponent component, final boolean isRTL){//in user thread
+		if(SimuMobile.checkSimuProjectContext(ctx) || component == null){
+			return;
+		}
+		
+		if(diffTodo == null && mlet.status > Mlet.STATUS_INIT){
+			//MletSnapCanvas模式
+			return;
+		}
+		
+		synchronized(mlet.synLock){
+			if(mlet.status == Mlet.STATUS_INIT){
+				if(styleItemToDeliver == null){
+					styleItemToDeliver = new Vector<TodoItem>();
+				}
+				styleItemToDeliver.add(new RTLItem(TodoItem.FOR_RTL, component, isRTL));
+				return;
+			}
+			if(diffTodo != null && mlet.status < Mlet.STATUS_EXIT){//由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
+				diffTodo.setRTLForDiv(diffTodo.buildHcCode(component), isRTL);//in user thread
 			}
 		}
 	}
@@ -159,16 +183,16 @@ public class SizeHeightForXML {
 			return;
 		}
 		
-		doForInputTag(mlet, StyleItem.FOR_JTOGGLEBUTTON, togButton, className, styles);//in user thread
+		doForInputTag(mlet, TodoItem.FOR_JTOGGLEBUTTON, togButton, className, styles);//in user thread
 	}
 	
 	private final void doForLabelTag(final Mlet mlet, final JToggleButton togButton, final String className, final String styles) {//in user thread
 		synchronized(mlet.synLock){
 			if(mlet.status == Mlet.STATUS_INIT){
 				if(styleItemToDeliver == null){
-					styleItemToDeliver = new Vector<StyleItem>();
+					styleItemToDeliver = new Vector<TodoItem>();
 				}
-				styleItemToDeliver.add(new StyleItem(StyleItem.FOR_JCOMPONENT, togButton, className, styles));
+				styleItemToDeliver.add(new StyleItem(TodoItem.FOR_JCOMPONENT, togButton, className, styles));
 				return;
 			}
 			if(diffTodo != null && mlet.status < Mlet.STATUS_EXIT){
@@ -182,7 +206,7 @@ public class SizeHeightForXML {
 		synchronized(mlet.synLock){
 			if(mlet.status == Mlet.STATUS_INIT){
 				if(styleItemToDeliver == null){
-					styleItemToDeliver = new Vector<StyleItem>();
+					styleItemToDeliver = new Vector<TodoItem>();
 				}
 				styleItemToDeliver.add(new StyleItem(forType, component, className, styles));
 				return;

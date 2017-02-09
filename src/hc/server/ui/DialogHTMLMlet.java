@@ -34,6 +34,8 @@ public class DialogHTMLMlet extends HTMLMlet {
 			c.anchor = GridBagConstraints.CENTER;
 			c.fill =  GridBagConstraints.NONE;
 			
+			enableApplyOrientationWhenRTL(dialog.enableApplyOrientationWhenRTL);
+			
 			add(dialog, c);
 		}
 //		dialog.setVisible(false);

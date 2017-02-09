@@ -9,6 +9,7 @@ import hc.server.ui.design.SessionContext;
 import hc.util.ResourceUtil;
 import hc.util.ThreadConfig;
 
+import java.awt.Container;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JButton;
@@ -47,6 +48,7 @@ public class Dialog extends JPanel {
 	private static final long serialVersionUID = 5869314873711129148L;
 
 	private final Object synLock = new Object();
+	boolean enableApplyOrientationWhenRTL = true;
 	
 	/**
 	 * dismiss current dialog, and go/run target URL by <code>elementID</code>.
@@ -78,6 +80,17 @@ public class Dialog extends JPanel {
 		
 		final String target = HCURL.buildStandardURL(scheme, elementID);
 		go(target);
+	}
+	
+	/**
+	 * execute or not {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)} if client locale is RTL (Right to Left).<BR><BR>
+	 * <STRONG>Note</STRONG> :<BR>
+	 * this method must be invoked in constructor (initialize in JRuby).
+	 * @param enable default is enable.
+	 * @since 7.40
+	 */
+	public void enableApplyOrientationWhenRTL(final boolean enable){//注意：请勿final
+		enableApplyOrientationWhenRTL = enable;
 	}
 	
 	/**
@@ -436,6 +449,19 @@ public class Dialog extends JPanel {
 	 */
 	public final void setCSS(final JComponent component, final String className, final String styles){//in user thread
 		sizeHeightForXML.setCSSImpl(dialogCanvas, __context, component, className, styles);
+	}
+	
+	/**
+	 * set attribute 'dir' for a div of JComponent.<BR><BR>
+	 * Know more :<BR>
+	 * 1. a {@link Dialog} will be set RTL by server for the entire page if language of mobile is RTL.<BR>
+	 * 2. in some case, a JComponent may be set RTL/LTR different from the entire page.
+	 * @param component
+	 * @param isRTL true means right to left, false means left to right.
+	 * @since 7.40
+	 */
+	public final void setRTL(final JComponent component, final boolean isRTL){//in user thread
+		sizeHeightForXML.setRTLForDivImpl(dialogCanvas, __context, component, isRTL);
 	}
 	
 	/**

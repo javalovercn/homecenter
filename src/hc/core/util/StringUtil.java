@@ -168,7 +168,13 @@ public class StringUtil {
 	    return out;
 	}
 
-	private static int splitCount(final String src, final String split){
+	/**
+	 * 
+	 * @param src
+	 * @param split
+	 * @return 如果没有split，最小返回1，
+	 */
+	public static int splitCount(final String src, final String split){
 		final int split_length = split.length();
 	    int c = 0;
 	    int idx = 0;
@@ -434,44 +440,41 @@ public class StringUtil {
 	public static final String formatJS(final String js){
 		return js.replace('"', '\'');
 	}
-
+	
 	public static String toStandardLocale(String locale) {
-		locale = StringUtil.replace(locale, "_", "-");
+		locale = StringUtil.replace(locale, "_", LangUtil.LOCALE_SPLIT);
 		
-		{
-		    final String lowercase = locale.toLowerCase();
-			if (lowercase.startsWith("zh-hans")) {
-		    	locale = "zh-CN";
-		    }else if(lowercase.startsWith("zh-hant")){
-		    	locale = "zh-TW";
-		    }
-		}
+//		{
+//		    final String lowercase = locale.toLowerCase();
+//			if (lowercase.startsWith("zh-hans")) {
+//		    	locale = "zh-CN";
+//		    }else if(lowercase.startsWith("zh-hant")){
+//		    	locale = "zh-TW";
+//		    }
+//		}
 		
-		{
-			int firstSpliterIdx = locale.indexOf("-");
-			if(firstSpliterIdx > 0){
-				int secondSplitIdx = locale.indexOf("-", firstSpliterIdx + 1);
-				String lang = locale.substring(0, firstSpliterIdx);
-				if(secondSplitIdx > 0){
-					locale = lang + locale.substring(secondSplitIdx);//将三段的zh-Hans-CN转为两段zh-CN
-				}
-				if (lang.equals("he")) {
-					locale = "iw" + locale.substring(firstSpliterIdx);
-		        } else if (lang.equals("yi")) {
-		        	locale = "ji" + locale.substring(firstSpliterIdx);
-		        } else if (lang.equals("id")) {
-		        	locale = "in" + locale.substring(firstSpliterIdx);
-		        }
-			}else{
-				if (locale.equals("he")) {
-					locale = "iw";
-		        } else if (locale.equals("yi")) {
-		        	locale = "ji";
-		        } else if (locale.equals("id")) {
-		        	locale = "in";
-		        }
-			}
-		}
+//		{
+//			int firstSpliterIdx = locale.indexOf("-");
+//			if(firstSpliterIdx > 0){
+//				String lang = locale.substring(0, firstSpliterIdx);
+////				locale = lang + locale.substring(locale.lastIndexOf('-'));//将三段的zh-Hans-CN转为两段zh-CN
+//				if (lang.equals("he")) {
+//					locale = "iw" + locale.substring(firstSpliterIdx);
+//		        } else if (lang.equals("yi")) {
+//		        	locale = "ji" + locale.substring(firstSpliterIdx);
+//		        } else if (lang.equals("id")) {
+//		        	locale = "in" + locale.substring(firstSpliterIdx);
+//		        }
+//			}else{
+//				if (locale.equals("he")) {
+//					locale = "iw";
+//		        } else if (locale.equals("yi")) {
+//		        	locale = "ji";
+//		        } else if (locale.equals("id")) {
+//		        	locale = "in";
+//		        }
+//			}
+//		}
 		
 		return locale;
 	}

@@ -3,6 +3,7 @@ package hc.server.msb;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.IContext;
+import hc.core.util.LangUtil;
 import hc.core.util.MobileAgent;
 import hc.core.util.ReturnableRunnable;
 import hc.server.ui.ProjectContext;
@@ -100,6 +101,10 @@ public class UserThreadResourceUtil {
 	}
 
 	public static String getMobileLocaleFrom(final J2SESession coreSS) {
+		if(coreSS == null){
+			return LangUtil.EN_US;
+		}
+		
 		if (isInServing(coreSS.context)) {
 			return coreSS.clientDesc.getClientLang();
 		}else{

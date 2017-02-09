@@ -46,8 +46,8 @@ public class DirectServer extends Thread {
 	
 	public DirectServer(final InetAddress ia, final String naName) {
 		super("DirectServer");
-		if(ResourceUtil.isDemoServer()){
-			final String demoIP = PropertiesManager.getValue(PropertiesManager.p_DemoServerIP);//由于searchReachable，所以几乎不会使用p_DemoServerIP
+		if(ResourceUtil.isNonUIServer()){
+			final String demoIP = PropertiesManager.getValue(PropertiesManager.p_NonUIServerIP);//由于searchReachable，所以几乎不会使用p_DemoServerIP
 			if(demoIP != null){
 				this.ia = buildDemo(demoIP);
 			}

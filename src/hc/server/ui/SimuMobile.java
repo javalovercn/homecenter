@@ -1,6 +1,7 @@
 package hc.server.ui;
 
 import hc.core.util.HCURL;
+import hc.core.util.LangUtil;
 import hc.core.util.LogManager;
 import hc.core.util.RecycleRes;
 import hc.core.util.UIUtil;
@@ -36,7 +37,7 @@ public class SimuMobile {
 			HCURL.URL_CMD_EXIT, new I18NStoreableHashMapWithModifyFlag(), "", "");
 	public static final String MOBILE_OS_VER = "2.0";
 	public static final String MOBILE_OS = ProjectContext.OS_ANDROID;
-	public static final String MOBILE_DEFAULT_LOCALE = "en-US";
+	public static final String MOBILE_DEFAULT_LOCALE = LangUtil.EN_US;
 	public static final String MOBILE_LOCALE = MOBILE_DEFAULT_LOCALE;
 	public static final String MOBILE_SOFT_UID = "UID_1234567890";
 	public static final boolean MOBILE_CONNECTING = true;

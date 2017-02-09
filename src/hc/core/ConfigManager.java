@@ -41,6 +41,7 @@ public class ConfigManager {
 	public static final String STATUS_MOBI_OS = "hc.status.mobi.os";
 	public static final String STATUS_MOBI_OS_VER = "hc.status.mobi.os.ver";
 	public static final String SET_MOBI_OS_TAG = "hc.set.mobi.os";
+	public static final String IS_RTL_TEST = "isRTLTest";
 	public static final String AUTO_LOGIN_ID = "autoLoginID";
 	public static final String AUTO_LOGIN_PWD = "autoLoginPWD";
 	public static final String IS_DONE_AUTO_LOGIN = "isDoneAutoLogin";
@@ -60,6 +61,8 @@ public class ConfigManager {
 	public static final String UI_SET_EXCEPTION_HANDLER_FOR_THREAD = "hc.ui.setExceptionHandler";
 	public static final String UI_ENABLE_SCREEN_ADAPTER = "hc.ui.screenAdapter";
 	public static final String UI_JUMP_TO_HOME = "hc.ui.jumpHome";
+	public static final String UI_ENABLE_RTL = "hc.ui.enableRTL";
+	public static final String UI_ENABLE_LTR = "hc.ui.enableLTR";
 	public static final String UI_SCALE_OF_SCREEN = "hc.ui.scale";//iOS
 	public static final String UI_HIDE_INPUT_PANEL = "hc.ui.hideInputPanel";//iOS不需实现
 	
@@ -90,6 +93,19 @@ public class ConfigManager {
 			return OS_J2ME;
 		}
 		return ((Integer)v).intValue();
+	}
+	
+	public static String getOSDesc(){
+		final int osType = ConfigManager.getOSType();
+		String os = null;
+		if(osType == ConfigManager.OS_ANDROID){
+			os = ConfigManager.OS_ANDROID_DESC;
+		}else if(osType == ConfigManager.OS_IPHONE){
+			os = ConfigManager.OS_IOS_DESC;
+		}else{
+			os = ConfigManager.OS_J2ME_DESC;
+		}
+		return os;
 	}
 	
 	public static String getOSVer(){

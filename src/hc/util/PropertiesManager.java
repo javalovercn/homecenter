@@ -147,8 +147,9 @@ public class PropertiesManager {
 	public static final String p_WindowWidth = "_ww";
 	public static final String p_WindowHeight = "_wh";
 	
-	public static final String p_isDemoServer = "isDemoServer";//for Non-UI demo server, for example No-X11 CentOS
-	public static final String p_DemoServerIP = "DemoServerIP";
+	public static final String p_isNonUIServer = "isNonUIServer";//for Non-UI demo server, for example No-X11 CentOS
+	public static final String p_NonUIServerIP = "NonUIServerIP";
+	public static final String p_isDemoServer = "isDemoServer";
 	
 	public static final String p_TrayX = "_Tray_x";
 	public static final String p_TrayY = "_Tray_y";
@@ -174,6 +175,8 @@ public class PropertiesManager {
 	 * for Android auto start or not
 	 */
 	public static final String p_autoStart = "autoStart";
+	
+	public static final String p_J2SEDocVersion = "J2SEDocVersion";
 	
 	public static final String p_intervalSecondsNextStartup = "intervalSecondsNextStartup";
 	public static final String p_preloadAfterStartup = "preloadAfterStartup";

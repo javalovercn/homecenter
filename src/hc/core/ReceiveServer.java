@@ -162,7 +162,7 @@ public class ReceiveServer implements Runnable{
 			    	}else{
 			    		if(coreSocketSession.OneTimeCertKey == null){
 			    			int sleepTotal = 0;
-			    			while(coreSocketSession.OneTimeCertKey == null && sleepTotal < 600){
+			    			while(coreSocketSession.OneTimeCertKey == null && sleepTotal < 3000){//Android模拟环境下600偏小
 			    				try{
 			    					sleepTotal += ThreadPriorityManager.UI_WAIT_OTHER_THREAD_EXEC_MS;
 			    					Thread.sleep(ThreadPriorityManager.UI_WAIT_OTHER_THREAD_EXEC_MS);

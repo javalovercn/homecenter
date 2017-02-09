@@ -440,15 +440,20 @@ public class DocHelper {
 	private static void processDocForOneLevel(final String clasName){
 //		System.out.println("-----processDocForOneLevel : " + claz.getName());
 
+		final String className = clasName.replace('.', '/');
+		
 		if(clasName.startsWith("java")){
-			read(clasName, "hc/res/docs/jdk_docs/api/" + clasName.replace('.', '/') + ".html");
+			read(clasName, J2SEDocHelper.getDocStream(buildClassDocPath(className)));
 		}else if(clasName.startsWith("hc.")){
-			read(clasName, "hc/res/docs/" + clasName.replace('.', '/') + ".html");
+			read(clasName, ResourceUtil.getResourceAsStream("hc/res/docs/" + className + ".html"));
 		}
 	}
 
-	private static void read(final String clasName, final String docPath) {
-		final InputStream in = ResourceUtil.getResourceAsStream(docPath);
+	public static String buildClassDocPath(final String clasName) {
+		return "hc/res/docs/jdk_docs/api/" + clasName + ".html";
+	}
+
+	private static void read(final String clasName, final InputStream in) {
 		if(in == null){
 			synchronized (cache) {
 				cache.put(clasName, new HashMap<String, String>());

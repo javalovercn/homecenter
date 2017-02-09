@@ -94,7 +94,7 @@ public class UIUtil {
 	public static final String SYS_ADD_DEVICE_BY_WIFI_ICON = SYS_ICON_PREFIX + "AddDeviceWiFi";
 	public static final String SYS_DEFAULT_ICON = SYS_ICON_PREFIX + "Img";
 	
-	public static final int COLOR_TRANS_LAY = 0xcc847139;
+	public static final int COLOR_TRANS_LAY = 0xcc847139;//请同步更改Android/colors.xml/ui_background
 	public static final int DEFAULT_COLOR_BACKGROUND = COLOR_TRANS_LAY & 0x00FFFFFF;
 
 	/**

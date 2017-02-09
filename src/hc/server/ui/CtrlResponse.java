@@ -3,7 +3,9 @@ package hc.server.ui;
 import hc.core.MsgBuilder;
 import hc.core.util.CtrlKey;
 import hc.core.util.CtrlKeySet;
+import hc.core.util.LangUtil;
 import hc.core.util.OutPortTranser;
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.design.J2SESession;
 import hc.util.ResourceUtil;
 import hc.util.ThreadConfig;
@@ -24,12 +26,13 @@ public abstract class CtrlResponse {
 		coreSS = SimuMobile.checkSimuProjectContext(context)?SimuMobile.SIMU_NULL:(ServerUIAPIAgent.getProjResponserMaybeNull(context).getSessionContextFromCurrThread().j2seSocketSession);
 		target = (String)ThreadConfig.getValue(ThreadConfig.TARGET_URL, true);
 		screenID = ServerUIAPIAgent.buildScreenID(context.getProjectID(), target);
+		isRTL = LangUtil.isRTL(UserThreadResourceUtil.getMobileLocaleFrom(coreSS));
 	}
 	
 	final String target, screenID;
 	private final ProjectContext context;
 	private final J2SESession coreSS;
-	
+	private final boolean isRTL;
 	/**
 	 * for example, return <code>controller://myctrl</code>
 	 * @return
@@ -163,7 +166,7 @@ public abstract class CtrlResponse {
 	 * @since 6.98
 	 */
 	public final void sendStatus(final String attribute, final String status){
-		sendStatus(attribute, status, false);
+		sendStatus(attribute, status, isRTL);
 	}
 	
 	/**
@@ -186,7 +189,7 @@ public abstract class CtrlResponse {
 	 * @since 6.98
 	 */
 	public final void sendStatus(final String[] attributes, final String[] status){
-		sendStatus(attributes, status, false);
+		sendStatus(attributes, status, isRTL);
 	}
 	
 	/**

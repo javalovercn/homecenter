@@ -2,8 +2,10 @@ package hc.core;
 
 import hc.core.util.CCoreUtil;
 import hc.core.util.HCURLUtil;
+import hc.core.util.LangUtil;
 import hc.core.util.LogManager;
 import hc.core.util.RootBuilder;
+import hc.core.util.StringBufferCacher;
 import hc.core.util.StringUtil;
 import hc.core.util.URLEncoder;
 
@@ -98,6 +100,8 @@ public class RootServerConnector {
 	
 	public final static String LOFF_ServerReq_STR = "lof=ServerReq";
 	
+	public final static String REP_Locale_STR = "rep_loc=";
+
 	private static void init(){
 		boolean isInit = false;
 		if(isInit == false){
@@ -564,6 +568,31 @@ public class RootServerConnector {
 		retry(CALL_STR + type + (ver==null?"":ver));
 	}
 	
+	public static void repLocale(final String locale){
+		if(LangUtil.isTourPartOrMore(locale)){
+			ContextManager.getThreadPool().run(new Runnable() {
+				public void run() {
+					final String os = ConfigManager.getOSDesc();
+					String version = ConfigManager.getOSVer();
+			    	
+					if(version != null){
+						version = StringUtil.replace(version, ".", "_");
+					}
+					StringBuffer sb = StringBufferCacher.getFree();
+					sb.append(CALL_STR).append(REP_Locale_STR).append(locale).append("_").append(os).append("_");
+					if(version != null){
+						sb.append(version);
+					}
+					final String url = sb.toString();
+					StringBufferCacher.cycle(sb);
+					
+					retry(url);
+					retry(url);//两次以醒目
+				}
+			});
+		}
+	}
+	
 	public static final String SIMU_LOCALHOST = "localhost";//"192.168.1.101";
 	public static final int SIMU_PORT = 33333;
 	public final static String IP_192_168_1_102 = "192.168.1.102";
@@ -626,40 +655,6 @@ public class RootServerConnector {
 		}
 		
 		return https_url;
-	}
-	
-	public static void reportLocalException(String locale, final boolean check) {
-		if(check == false){
-		}else{
-			locale = StringUtil.replace(locale, "_", "-");
-			if(locale.indexOf("-") > 0){
-				final String[] parts = StringUtil.splitToArray(locale, "-");
-				boolean pass = true;
-				for (int i = 0; i < parts.length; i++) {
-					if(parts[i].length() > 2){
-						pass = false;
-						break;
-					}
-				}
-				if(parts.length > 2){
-					pass = false;
-				}
-				if(pass){
-					return;
-				}
-			}
-		}
-
-		final String p = locale;
-		new Thread(){
-			public void run(){
-				try{
-					Thread.sleep(10 * 1000);//等待可能的初始完成
-					retry(CALL_STR +"localeException=" + p);
-				}catch (Throwable e) {
-				}
-			}
-		}.start();
 	}
 	
 }

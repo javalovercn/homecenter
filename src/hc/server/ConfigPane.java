@@ -669,6 +669,30 @@ public void run() {
 				}
 				
 				{
+					final JCheckBox cbAcceptAllHARLicense = new JCheckBox((String)ResourceUtil.get(9241));
+//					cbAcceptAllHARLicense.setToolTipText("<html>" + (String)ResourceUtil.get(0) + "</html>");
+					final String isAcceptHARLicense = PropertiesManager.getValue(PropertiesManager.p_isAcceptAllHARLicenses, IConstant.FALSE);
+					cbAcceptAllHARLicense.setSelected(IConstant.TRUE.equals(isAcceptHARLicense));
+					new ConfigValue(PropertiesManager.p_isAcceptAllHARLicenses, isAcceptHARLicense, group) {
+						@Override
+						public void applyBiz(final int option) {
+						}
+						
+						@Override
+						public String getNewValue() {
+							return cbAcceptAllHARLicense.isSelected()?IConstant.TRUE:IConstant.FALSE;
+						}
+					};
+					final JPanel line = new JPanel();
+					line.setLayout(new FlowLayout(FlowLayout.LEADING, ClientDesc.hgap, ClientDesc.vgap));
+					line.add(cbAcceptAllHARLicense);
+					panel.add(line);
+					
+					final JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+					panel.add(separator);
+				}
+				
+				{
 					final JLabel intervalSecondsNextStartLabel = new JLabel((String)ResourceUtil.get(9175) + " : ");
 					final NumberFormatTextField intervalSecondsNextStartField = new NumberFormatTextField(DefaultManager.INTERVAL_SECONDS_FOR_NEXT_STARTUP);
 					intervalSecondsNextStartField.setColumns(5);

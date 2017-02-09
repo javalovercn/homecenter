@@ -3,6 +3,7 @@ package hc.server.ui;
 import hc.core.HCConfig;
 import hc.core.IConstant;
 import hc.core.L;
+import hc.core.util.LangUtil;
 import hc.core.util.LogManager;
 import hc.core.util.MobileAgent;
 import hc.core.util.StringUtil;
@@ -63,7 +64,7 @@ public class ClientDesc {
 	}
 	
 	public final String getClientLang(){
-		return (clientLang == null) ? "en-US" : clientLang;
+		return (clientLang == null) ? LangUtil.EN_US : clientLang;
 	}
 	
 	public final String getHCClientVer(){

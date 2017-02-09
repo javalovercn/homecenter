@@ -15,6 +15,7 @@ import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
+import hc.core.util.LangUtil;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
@@ -70,6 +71,7 @@ import java.sql.Timestamp;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 import java.util.MissingFormatArgumentException;
 import java.util.Properties;
 import java.util.Random;
@@ -105,6 +107,100 @@ public class ResourceUtil {
 			starterClass = loadClass(StarterManager.CLASSNAME_STARTER_STARTER, false);
 		}
 		return starterClass;
+	}
+	
+	private static String buildEqualLocale(final String[] oldParts, final String equalLang){
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		for (int i = 0; i < oldParts.length; i++) {
+			if(i == 0){
+				sb.append(equalLang);
+			}else{
+				sb.append(LangUtil.LOCALE_SPLIT);
+				sb.append(oldParts[i]);
+			}
+		}
+		
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		return out;
+	}
+	
+	/**
+	 * 
+	 * @param locale
+	 * @param map
+	 * @param isMaybeEqualLang true : 可能存在相等的lang，比如he=iw
+	 * @return
+	 */
+	public static String matchLocale(final String locale, final Map map, final boolean isMaybeEqualLang){
+		String out = (String)map.get(locale);
+		if(out != null){
+			return out;
+		}
+		
+		final int lastSplitIdx = locale.lastIndexOf(LangUtil.LOCALE_SPLIT);
+		if(lastSplitIdx >= 0){
+			final String[] parts = StringUtil.splitToArray(locale, LangUtil.LOCALE_SPLIT);
+			boolean isEqualLang = false;
+			if(isMaybeEqualLang){
+				final String part0 = parts[0];
+				for (int i = 0; i < LangUtil.equalLocale.length; i++) {
+					if(part0.equals(LangUtil.equalLocale[i])){
+						isEqualLang = true;
+						
+						out = (String)map.get(buildEqualLocale(parts, LangUtil.equalLocaleTo[i]));
+						if(out != null){
+							return out;
+						}
+						
+						break;
+					}
+				}
+				for (int i = 0; i < LangUtil.equalLocaleTo.length; i++) {
+					if(part0.equals(LangUtil.equalLocaleTo[i])){
+						isEqualLang = true;
+
+						out = (String)map.get(buildEqualLocale(parts, LangUtil.equalLocale[i]));
+						if(out != null){
+							return out;
+						}
+						
+						break;
+					}
+				}
+			}
+			
+			if(parts.length == 3){//zh-Hans-CN => zh-CN
+				return matchLocale(parts[0] + LangUtil.LOCALE_SPLIT + parts[2], map, isEqualLang);
+			}else if(parts.length == 2){//zh-CN => zh
+				return matchLocale(parts[0], map, isEqualLang);
+			}
+		}else if(isMaybeEqualLang){
+			for (int i = 0; i < LangUtil.equalLocale.length; i++) {
+				if(locale.equals(LangUtil.equalLocale[i])){
+					out = (String)map.get(LangUtil.equalLocaleTo[i]);
+					if(out != null){
+						return out;
+					}
+				}
+			}
+			
+			for (int i = 0; i < LangUtil.equalLocaleTo.length; i++) {
+				if(locale.equals(LangUtil.equalLocaleTo[i])){
+					out = (String)map.get(LangUtil.equalLocale[i]);
+					if(out != null){
+						return out;
+					}
+				}
+			}
+		}
+		
+		if(locale.equals(LangUtil.EN) || locale.equals(LangUtil.EN_US)){
+			return null;
+		}else{
+			return matchLocale(LangUtil.EN_US, map, false);
+		}
 	}
 	
 	public static byte[] buildFixLenBS(final byte[] srcBS, final int ivLen) {
@@ -144,6 +240,10 @@ public class ResourceUtil {
 		
 		final String up_str = str.toUpperCase();
 		return up_str.substring(0, 1) + str.substring(1);
+	}
+	
+	public static boolean isNonUIServer(){
+		return PropertiesManager.isTrue(PropertiesManager.p_isNonUIServer, false);
 	}
 	
 	public static boolean isDemoServer(){
@@ -504,7 +604,7 @@ public class ResourceUtil {
 	public static int[] getSimuScreenSize(){
 //		int[] out = {220, 240};
 //		return out;
-		if(ResourceUtil.isDemoServer()){
+		if(ResourceUtil.isNonUIServer()){
 			final int[] out = {1024, 768};
 			return out;
 		}

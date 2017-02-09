@@ -60,6 +60,10 @@ public class ServerUIAPIAgent {
 	
 	private final static Vector sessionListSnapThreadSafe = J2SESessionManager.getSessionList();
 	
+	public static boolean isEnableApplyOrientationWhenRTL(final Mlet mlet){
+		return mlet.enableApplyOrientationWhenRTL;
+	}
+	
 	static final CoreSession[] getAllSocketSessionsNoCheck(){
 		synchronized (sessionListSnapThreadSafe) {
 			final int size = sessionListSnapThreadSafe.size();
@@ -501,13 +505,18 @@ public class ServerUIAPIAgent {
 		if(mlet.sizeHeightForXML.styleItemToDeliver != null){
 			final int count = mlet.sizeHeightForXML.styleItemToDeliver.size();
 			for (int i = 0; i < count; i++) {
-				final StyleItem item = mlet.sizeHeightForXML.styleItemToDeliver.elementAt(i);
-				if(item.forType == StyleItem.FOR_DIV){
-					mlet.setCSSForDiv(item.component, item.className, item.styles);//in user thread
-				}else if(item.forType == StyleItem.FOR_JCOMPONENT){
-					mlet.setCSS(item.component, item.className, item.styles);//in user thread
-				}else if(item.forType == StyleItem.FOR_JTOGGLEBUTTON){
-					mlet.setCSSForToggle((JToggleButton)item.component, item.className, item.styles);//in user thread
+				final TodoItem item = mlet.sizeHeightForXML.styleItemToDeliver.elementAt(i);
+				if(item.forType == TodoItem.FOR_DIV){
+					final StyleItem styleItem = (StyleItem)item;
+					mlet.setCSSForDiv(item.component, styleItem.className, styleItem.styles);//in user thread
+				}else if(item.forType == TodoItem.FOR_JCOMPONENT){
+					final StyleItem styleItem = (StyleItem)item;
+					mlet.setCSS(item.component, styleItem.className, styleItem.styles);//in user thread
+				}else if(item.forType == TodoItem.FOR_JTOGGLEBUTTON){
+					final StyleItem styleItem = (StyleItem)item;
+					mlet.setCSSForToggle((JToggleButton)item.component, styleItem.className, styleItem.styles);//in user thread
+				}else if(item.forType == TodoItem.FOR_RTL){
+					mlet.setRTL(item.component, ((RTLItem)item).isRTL);
 				}
 			}
 			mlet.sizeHeightForXML.styleItemToDeliver.clear();

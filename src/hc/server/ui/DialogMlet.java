@@ -21,6 +21,8 @@ public class DialogMlet extends Mlet {
 		c.anchor = GridBagConstraints.CENTER;
 		c.fill =  GridBagConstraints.NONE;
 		
+		enableApplyOrientationWhenRTL(dialog.enableApplyOrientationWhenRTL);
+		
 		add(dialog, c);
 	}
 	

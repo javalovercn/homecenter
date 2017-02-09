@@ -31,6 +31,7 @@ import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.awt.Component;
+import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -111,6 +112,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		//必须置于上两段初始代码传送之后
 		final boolean rtl = LangUtil.isRTL(UserThreadResourceUtil.getMobileLocaleFrom(coreSS));
 		if(rtl){
+			L.V = L.WShop ? false : LogManager.log("setRTL : true");
 			differTodo.setLTR( !rtl );
 		}
 		
@@ -231,6 +233,12 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	    	scrollPane.setPreferredSize(new Dimension(width, height));
 	    }else{
 	    	mlet.setPreferredSize(new Dimension(width, height));
+	    }
+	    
+	    if(ServerUIAPIAgent.isEnableApplyOrientationWhenRTL(mlet) 
+	    		&& ProjectContext.isRTL(UserThreadResourceUtil.getMobileLocaleFrom(coreSS))){
+	    	frame.applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+	    	L.V = L.WShop ? false : LogManager.log("applyComponentOrientation(RIGHT_TO_LEFT) for " + mlet.getTarget());
 	    }
 	    frame.pack();//可能重载某些方法
 	}

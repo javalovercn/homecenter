@@ -18,6 +18,23 @@ public class ByteUtil {
 		}
 	}
 	
+	/**
+	 * 将数组进行反转
+	 * @param arr
+	 * @param size
+	 */
+	public static void reverseArray(final Object[] arr, final int size) {
+		for(int start=0,end=size-1; start<end; start++,end--){
+			swap(arr, start, end);
+		}
+	}
+	
+	private static void swap(final Object[] arr, final int a, final int b) {
+		Object temp = arr[a];
+		arr[a] = arr[b];
+		arr[b] = temp;
+	}
+	
 	public static boolean isSame(final byte[] src1, final int offset1, final int len1, final byte[] src2, final int offset2, final int len2){
 		if(len2 == len1){
 			for (int i = offset1; i < len1; i++) {

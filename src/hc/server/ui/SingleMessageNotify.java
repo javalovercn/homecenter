@@ -67,7 +67,7 @@ public class SingleMessageNotify {
 	 * @param icon
 	 */
 	public SingleMessageNotify(final String type, final String msg, final String title, final int disposeMS, final Icon icon){
-		if(ResourceUtil.isDemoServer()){//Demo时，不显示UI界面
+		if(ResourceUtil.isNonUIServer()){//Demo时，不显示UI界面
 			return;
 		}
 		

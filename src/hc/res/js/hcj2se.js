@@ -166,6 +166,18 @@
 
 			newdiv.appendChild(newSlider);
 		},
+		
+		modifySliderModel: function(hashID, min, max, value, step){
+			var oldSlider = document.getElementById(CONS.HC_CMP + hashID);
+			
+			oldSlider.min = min;
+			oldSlider.max = max;
+			oldSlider.value = value;
+			if(step == 0){
+			}else{
+				oldSlider.step = step;
+			}
+		},
 
 		addTextField: function(containerHashID, index, hashID, isPassword, tip){
 			var newdiv = this.insertDiv(containerHashID, index, hashID);
@@ -267,16 +279,14 @@
 			div.innerHTML = innerHTML;
 		},
 
-		changeComboBoxValue: function(hashID, selectionValues){
+		changeComboBoxModel: function(hashID, selectionValues, selectedIdx){
 			var oldSelect = document.getElementById(CONS.HC_CMP + hashID);
-
-			var oldSelected = oldSelect.selectedIndex;
 
 			oldSelect.options.length=0;/*删除全部旧的*/
 
 			this.appendComboBoxOption(oldSelect, selectionValues);
 
-			oldSelect.selectedIndex = oldSelected;
+			oldSelect.selectedIndex = selectedIdx;
 		},
 
 		appendComboBoxOption: function(select, selectionValues){
@@ -483,6 +493,13 @@
 				}else{
 					tag_html[0].setAttribute('dir', 'rtl');
 				}
+			}
+		},
+		
+		setLTRForDiv: function(hashID, ltr){
+			var loc_div = this.getDiv(hashID);
+			if(loc_div){
+				loc_div.setAttribute('dir', ltr);
 			}
 		},
 

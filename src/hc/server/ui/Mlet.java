@@ -12,6 +12,7 @@ import hc.server.ui.design.SessionContext;
 import hc.util.ResourceUtil;
 import hc.util.ThreadConfig;
 
+import java.awt.Container;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
@@ -29,6 +30,7 @@ import javax.swing.JPanel;
 public class Mlet extends JPanel implements ICanvas {
 	private static final long serialVersionUID = 7;
 	final Object synLock = new Object();
+	boolean enableApplyOrientationWhenRTL = true;
 	
 	/**
 	 * construct this instance.
@@ -134,6 +136,17 @@ public class Mlet extends JPanel implements ICanvas {
 			}
 		}
 		__target = (String)ThreadConfig.getValue(ThreadConfig.TARGET_URL, true);//注意：sendDialogWhenInSession中的Dialog构造时，此返回null
+	}
+	
+	/**
+	 * execute or not {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)} if client locale is RTL (Right to Left).<BR><BR>
+	 * <STRONG>Note</STRONG> :<BR>
+	 * this method must be invoked in constructor (initialize in JRuby).
+	 * @param enable default is enable.
+	 * @since 7.40
+	 */
+	public void enableApplyOrientationWhenRTL(final boolean enable){//注意：请勿final
+		enableApplyOrientationWhenRTL = enable;
 	}
 	
 	boolean isAutoReleaseAfterGo = false;

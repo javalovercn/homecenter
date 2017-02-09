@@ -210,7 +210,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 							new Thread(){
 								@Override
 								public void run(){//显示手机端开启阻击证书更新的通知
-									if(ResourceUtil.isDemoServer() || ResourceUtil.isDisableUIForTest()){//为Demo时，不显示UI界面
+									if(ResourceUtil.isNonUIServer() || ResourceUtil.isDisableUIForTest()){//为Demo时，不显示UI界面
 										return;
 									}
 									SingleMessageNotify.setShowToType(SingleMessageNotify.TYPE_DIALOG_CERT, true);

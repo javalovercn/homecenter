@@ -718,7 +718,7 @@ public class TrayMenuUtil {
 	}
     
 	public static void buildMenu(final Locale locale){
-		if(ResourceUtil.isDemoServer()){
+		if(ResourceUtil.isNonUIServer()){
 			return;
 		}
 		
@@ -1626,7 +1626,7 @@ public class TrayMenuUtil {
 	}
 	
 	public static void displayMessage(final String caption, final String text, final int type, final Object imageData, final int timeOut){
-	  	if(ResourceUtil.isDemoServer()){
+	  	if(ResourceUtil.isNonUIServer()){
     		L.V = L.O ? false : LogManager.log("this is demo server, skip displayMessage.");
     		return;
     	}
@@ -1664,7 +1664,7 @@ public class TrayMenuUtil {
 			new Thread(){
 				@Override
 				public void run(){//显示是否关闭trans证书的对话框
-					if(ResourceUtil.isDemoServer() || ResourceUtil.isDisableUIForTest()){//Demo时，不显示UI界面
+					if(ResourceUtil.isNonUIServer() || ResourceUtil.isDisableUIForTest()){//Demo时，不显示UI界面
 						return;
 					}
 					SingleMessageNotify.setShowToType(SingleMessageNotify.TYPE_DIALOG_TRANS_OFF, true);

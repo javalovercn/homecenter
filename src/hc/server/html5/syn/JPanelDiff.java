@@ -210,10 +210,8 @@ public class JPanelDiff extends JComponentDiff{
 		}else if(jcomp instanceof JSlider){
 			final JSlider slider = (JSlider)jcomp;
 			final BoundedRangeModel brm = slider.getModel();
-			int step = 0;//0表示使用缺省step，不设置
-			if(slider.getSnapToTicks() && slider.getMinorTickSpacing() > 0) {
-				step = slider.getMinorTickSpacing();
-			}
+			final int step = DifferTodo.getSliderStep(slider);
+			
 			todo.notifyAddSlider(containHashID, index, compHcCode, brm.getMinimum(), brm.getMaximum(), brm.getValue(), step);
 			diffClass = JSliderDiff.class;
 		}else if(jcomp instanceof JComponent){//必须置于最后

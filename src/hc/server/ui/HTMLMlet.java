@@ -283,6 +283,19 @@ public class HTMLMlet extends Mlet {
 	public final void setCSSForToggle(final JToggleButton togButton, final String className, final String styles){
 		sizeHeightForXML.setCSSForToggleImpl(this, __context, togButton, className, styles);
 	}
+	
+	/**
+	 * set attribute 'dir' for a div of JComponent.<BR><BR>
+	 * Know more :<BR>
+	 * 1. a {@link HTMLMlet} will be set RTL by server for the entire page if language of mobile is RTL.<BR>
+	 * 2. in some case, a JComponent may be set RTL/LTR different from the entire page.
+	 * @param component
+	 * @param isRTL true means right to left, false means left to right.
+	 * @since 7.40
+	 */
+	public final void setRTL(final JComponent component, final boolean isRTL){
+		sizeHeightForXML.setRTLForDivImpl(this, __context, component, isRTL);
+	}
 
 	/**
 	 * get normal font size in pixels of current session mobile.<BR>

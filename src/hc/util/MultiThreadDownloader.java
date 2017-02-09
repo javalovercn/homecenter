@@ -127,7 +127,7 @@ public class MultiThreadDownloader {
 					}
         			final String desc_str = buildDownloadMsg(dnFileName, fileName, md5, downloadByte, totalByted, startMS);
         			desc.setText(desc_str);
-        			final int percent = downloadByte * 100 / totalByted;
+        			final int percent = (int)process;
 					progress.setValue(percent);
 					progress.setString("" + percent + "%");//need by JRubyInstaller
 					progress.repaint();
@@ -179,6 +179,8 @@ public class MultiThreadDownloader {
 	final int avgSecond = 5;
 	int[] lastDispReadedArr = new int[avgSecond];
 	int storeLastIdx = 0;
+	float process;
+	
 	private String buildDownloadMsg(final String fromURL, final String storeFile, final String md5, 
 			final int readed, final int total, final long startMS){
 		final int readedSec = readed - lastDispReaded;
@@ -193,12 +195,12 @@ public class MultiThreadDownloader {
 		int avg = (storeLastIdx<=avgSecond)?(lastFiveTotal/storeLastIdx):(lastFiveTotal/avgSecond);
 		avg = avg/1024;
 		String out = "<html><BR>";
-		final float process = (float) readed / total * 100;// 算出百分比
+		process = (float) readed / total * 100;// 算出百分比
 		final long costMS = System.currentTimeMillis() - startMS;
 		final long leftSeconds = ((readed==0)?3600:((costMS * total / readed - costMS) / 1000));
 		final float totalM = (total * 1.0F) / 1024.0F / 1024.0F;
 		final float readedM = (readed * 1.0F) / 1024.0F / 1024.0F;
-		out += "<STRONG>Downloaded :    " + String.format("%.2f", readedM) + "M from " + String.format("%.2f", totalM) + "M, " + ((int)process) + "%</STRONG><BR><BR>";
+		out += "<STRONG>Downloaded :    " + String.format("%.2f", readedM) + "M / " + String.format("%.2f", totalM) + "M, </STRONG><BR><BR>";
 		out += "Source :      " + fromURL + "<BR>";
 		//out += "Download to :   " + storeFile + "<BR>";
 		out += "MD5 :           " + md5 + "<BR>";

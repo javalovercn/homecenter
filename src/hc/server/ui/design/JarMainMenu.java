@@ -11,6 +11,7 @@ import hc.server.ui.HCByteArrayOutputStream;
 import hc.server.ui.ICanvas;
 import hc.server.ui.MenuItem;
 import hc.server.ui.MobiMenu;
+import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SessionMobiMenu;
@@ -147,29 +148,6 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 		}
 	}
 	
-	private final String getMapLanguage(final I18NStoreableHashMapWithModifyFlag storeMap, final String mobileLocale){
-		if(storeMap != null){
-			{
-				final String match = (String)storeMap.get(mobileLocale);//zh-CN
-				if(match != null){
-					return match;
-				}
-			}
-			
-			{
-				final int splitIdx = mobileLocale.lastIndexOf("-");//理论上可能有三段的zh-Hans-CN
-				if(splitIdx > 0){
-					final String shortMobileLocale = mobileLocale.substring(0, splitIdx);
-					final String match = (String)storeMap.get(shortMobileLocale);//zh
-					if(match != null){
-						return match;
-					}
-				}
-			}
-		}
-		return null;
-	}
-	
 	@Override
 	public final String getIconLabel(final J2SESession coreSS, final MenuItem menuItem){
 		final String mobileLocale = UserThreadResourceUtil.getMobileLocaleFrom(coreSS);
@@ -177,7 +155,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 		final I18NStoreableHashMapWithModifyFlag storeMap = ServerUIAPIAgent.getMobiMenuItem_I18nName(menuItem);
 		if(storeMap != null){
 			try{
-				final String mapLang = getMapLanguage(storeMap, mobileLocale);
+				final String mapLang = ProjectContext.matchLocale(mobileLocale, storeMap);
 				if(mapLang != null){
 					return mapLang;
 				}
@@ -277,7 +255,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 		}
 		
 		final String mobileLocale = UserThreadResourceUtil.getMobileLocaleFrom(coreSS);
-		final String mapLang = getMapLanguage(projNameI18nMap, mobileLocale);
+		final String mapLang = ProjectContext.matchLocale(mobileLocale, projNameI18nMap);
 		if(mapLang != null){
 			return mapLang;
 		}else{

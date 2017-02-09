@@ -412,6 +412,28 @@ public class DifferTodo {
 		StringBuilderCacher.cycle(sb);
 	}
 	
+	public final void changeSliderModel(final int hashID, final JSlider slider){
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		final BoundedRangeModel model = slider.getModel();
+		final int min = model.getMinimum();
+		final int max = model.getMaximum();
+		final int value = model.getValue();
+		final int step = getSliderStep(slider);
+		
+		sb.append("window.hcj2se.modifySliderModel(").append( hashID ).append( ", " ).append( min ).append( ", " ).append( max ).append( ", " ).append( value ).append( ", " ).append( step ).append( ");");
+		sendStringJSOrCache(sb.toString(), false, false);
+		StringBuilderCacher.cycle(sb);
+	}
+
+	public static int getSliderStep(final JSlider slider) {
+		int step = 0;//0表示使用缺省step，不设置
+		if(slider.getSnapToTicks() && slider.getMinorTickSpacing() > 0) {
+			step = slider.getMinorTickSpacing();
+		}
+		return step;
+	}
+	
 	public final void notifyAddLabel(final int containerHashID, final int index, final int hashID){
 		final StringBuilder sb;
 		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addLabel(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
@@ -444,6 +466,12 @@ public class DifferTodo {
 	public final void notifyAddPanel(final int containerHashID, final int index, final int hashID){
 		final StringBuilder sb;
 		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.addPanel(" ).append( containerHashID ).append( ", " ).append( index ).append( ", " ).append( hashID ).append( ");").toString(), false, false);
+		StringBuilderCacher.cycle(sb);
+	}
+	
+	public final void setRTLForDiv(final int hashID, final boolean isRTL){
+		final StringBuilder sb;
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setLTRForDiv(" ).append( hashID ).append( ", \"" ).append( isRTL?"rtl":"ltr" ).append( "\");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
 	}
 	
@@ -552,9 +580,10 @@ public class DifferTodo {
 		StringBuilderCacher.cycle(sb);
 	}
 
-	public final void changeComboBoxValue(final int hashID, final JComponent jcomp){
+	public final void changeComboBoxModel(final int hashID, final JComboBox jcomp){
 		final StringBuilder sb = StringBuilderCacher.getFree();
-		sb.append("window.hcj2se.changeComboBoxValue(").append(hashID).append(",\"").append(buildComboBoxSerial(jcomp)).append("\");");
+		final int selected = jcomp.getSelectedIndex();
+		sb.append("window.hcj2se.changeComboBoxModel(").append(hashID).append(",\"").append(buildComboBoxSerial(jcomp)).append("\",").append(selected).append(");");
 		sendStringJSOrCache(sb.toString(), false, false);
 		StringBuilderCacher.cycle(sb);
 	}
@@ -763,7 +792,10 @@ public class DifferTodo {
 					return;
 				}else if(propertyName.equals("model")){//适合JComboBox
 					if(addedComponent instanceof JComboBox){
-						changeComboBoxValue(phcCode, addedComponent);
+						changeComboBoxModel(phcCode, (JComboBox)addedComponent);
+						return;
+					}else if(addedComponent instanceof JSlider){
+						changeSliderModel(phcCode, (JSlider)addedComponent);
 						return;
 					}
 				}else if(propertyName.equals("maximum") || propertyName.equals("minimum")){

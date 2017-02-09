@@ -11,6 +11,7 @@ import hc.core.util.ReturnableRunnable;
 import hc.server.MultiUsingManager;
 import hc.server.ScreenServer;
 import hc.server.data.screen.PNGCapturer;
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.util.ResourceUtil;
@@ -19,6 +20,7 @@ import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Component;
+import java.awt.ComponentOrientation;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -482,6 +484,13 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	    }else{
 	    	mlet.setPreferredSize(new Dimension(width, height));
 	    }
+	    
+	    if(ServerUIAPIAgent.isEnableApplyOrientationWhenRTL(mlet) 
+	    		&& ProjectContext.isRTL(UserThreadResourceUtil.getMobileLocaleFrom(coreSS))){
+	    	frame.applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+	    	L.V = L.WShop ? false : LogManager.log("applyComponentOrientation(RIGHT_TO_LEFT) for " + mlet.getTarget());
+	    }
+	    
 		frame.pack();//可能重载某些方法
 	}
 

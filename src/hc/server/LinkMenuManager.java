@@ -6,6 +6,7 @@ import hc.core.util.ExceptionReporter;
 import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.SimuMobile;
 import hc.server.ui.design.Designer;
+import hc.server.ui.design.code.J2SEDocHelper;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -52,6 +53,10 @@ public class LinkMenuManager {
 	 */
 	public static void startDesigner(final boolean loadInit){
 		SimuMobile.init();
+		
+		if(J2SEDocHelper.isBuildIn() == false){
+			J2SEDocHelper.downloadJ2SEDoc();
+		}
 		
 		if(LinkProjectStatus.tryEnterStatus(null, LinkProjectStatus.MANAGER_DESIGN)){
 			try{
