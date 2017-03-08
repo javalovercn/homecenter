@@ -154,8 +154,8 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	private final void eraseMletEdge(final int[] data, final int w, final int h){
 		if(isPrintLog == false){
 			isPrintLog = true;
-			L.V = L.O ? false : LogManager.log("tip : in Mlet, there are insets(2, 2, 2, 2) between components and Mlet(JPanel) in edge, Mlet will dark pixels to the edge.");
-			L.V = L.O ? false : LogManager.log("important : the insets(2, 2, 2, 2) is ONLY in J2SE server, not in Android server.");
+			LogManager.log("tip : in Mlet, there are insets(2, 2, 2, 2) between components and Mlet(JPanel) in edge, Mlet will dark pixels to the edge.");
+			LogManager.log("important : the insets(2, 2, 2, 2) is ONLY in J2SE server, not in Android server.");
 		}
 		
 		innerColor1 = 0;
@@ -343,7 +343,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 					final int maxLineDataLen = Math.min(listWidth, width - startX);
 					final int endPos = listSize - listWidth;
 					for (int destPos = startY*width + startX, srcPos = 0; srcPos < endPos; ) {
-//						L.V = L.O ? false : LogManager.log("destPos : " + destPos + ", srcPos : " + srcPos + ", max target : " + imageDataComboBox.length);
+//						LogManager.log("destPos : " + destPos + ", srcPos : " + srcPos + ", max target : " + imageDataComboBox.length);
 						if(destPos >= 0){
 							System.arraycopy(imageDataComboBox, srcPos, imageData, destPos, maxLineDataLen);
 						}
@@ -386,11 +386,20 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 			}
 		}
 		
-		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, new ReturnableRunnable() {
+		final byte[] eBS = e.bs;
+		final int length = eBS.length;
+		final byte[] cloneBS = ByteUtil.byteArrayCacher.getFree(length);
+		System.arraycopy(eBS, 0, cloneBS, 0, length);
+
+		final DataInputEvent cloneE = new DataInputEvent();
+		cloneE.setBytes(cloneBS);
+		
+		//注意：考虑可能有长时间事件处理，此处不wait
+		ServerUIAPIAgent.runInSessionThreadPool(coreSS, projResp, new Runnable() {
 			@Override
-			public Object run() {
-				actionInputInUserThread(e);
-				return null;
+			public void run() {
+				actionInputInUserThread(cloneE);
+				ByteUtil.byteArrayCacher.cycle(cloneE.bs);
 			}
 		});
 	}
@@ -405,7 +414,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		final int x = e.getX();
 		final int y = e.getY();
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("[workbench] inputEvent at x : " + x + ", y : " + y + ", type : " + eventType);
+			LogManager.log("[workbench] inputEvent at x : " + x + ", y : " + y + ", type : " + eventType);
 		}
 		if(eventType == DataInputEvent.TYPE_TAG_KEY_PRESS_V_SCREEN){
 			keyPressed(x, y);//in user thread
@@ -488,7 +497,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	    if(ServerUIAPIAgent.isEnableApplyOrientationWhenRTL(mlet) 
 	    		&& ProjectContext.isRTL(UserThreadResourceUtil.getMobileLocaleFrom(coreSS))){
 	    	frame.applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-	    	L.V = L.WShop ? false : LogManager.log("applyComponentOrientation(RIGHT_TO_LEFT) for " + mlet.getTarget());
+	    	LogManager.log("applyComponentOrientation(RIGHT_TO_LEFT) for " + mlet.getTarget());
 	    }
 	    
 		frame.pack();//可能重载某些方法
@@ -678,7 +687,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	}
 	
 	public final void pointerPressed(final int x, final int y, final Component componentAt){
-//		L.V = L.O ? false : LogManager.log("Pressed on MCanvas at x:" + x + ", y:" + y);
+//		LogManager.log("Pressed on MCanvas at x:" + x + ", y:" + y);
 	    //先执行focusLost
 	    if(currFocusObject != null && currFocusObject != componentAt){
 	    	loseFocus(currFocusObject);
@@ -775,7 +784,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 					&& (comboY < size.height && comboY >= 0)){
 				final MouseEvent me = new MouseEvent(listForJComboBox, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(),
 			    		MouseEvent.BUTTON1_MASK, comboX, comboY, 1, false);
-//				L.V = L.O ? false : LogManager.log("JList x : " + comboX + ", y : " + comboY);
+//				LogManager.log("JList x : " + comboX + ", y : " + comboY);
 				dispatchEvent(listForJComboBox, me);
 				
 				//会自动触发ItemListener和ActionListener
@@ -793,7 +802,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 			}
 		}
 		
-//		L.V = L.O ? false : LogManager.log("Released on MCanvas at x:" + x + ", y:" + y);
+//		LogManager.log("Released on MCanvas at x:" + x + ", y:" + y);
 	    final Component componentAt = getCtrlComponentAt(null, x, y);//注意：不能是mlet，因为有可能出现Scroll情形
 	    if(componentAt == null){
 	    	return;
@@ -824,7 +833,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 			}else{
 				locComboY = l.y + componentAt.getHeight();
 			}
-//				L.V = L.O ? false : LogManager.log("shade JComboBox height : " + list.getSize().height);
+//				LogManager.log("shade JComboBox height : " + list.getSize().height);
 			listForJComboBox = list;
 
 			isSelectedJComboBox = true;
@@ -836,7 +845,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		    final MouseEvent e = new MouseEvent(componentAt, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(),
 		    		MouseEvent.BUTTON1_MASK, x - locs[0], y - locs[1], 1, false);
 
-//		    L.V = L.O ? false : LogManager.log("Released on MCanvas at x:" + e.getX() + ", y:" + e.getY());
+//		    LogManager.log("Released on MCanvas at x:" + e.getX() + ", y:" + e.getY());
 
 		    final long enterMS = System.currentTimeMillis();
 		    if(enterMS - lastSingleClickMS < 1000){//防止连击
@@ -999,7 +1008,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	}
 	
 	public final void pointerDragged(final int x, final int y, final Component componentAt){
-		L.V = L.O ? false : LogManager.log("Dragged on MCanvas at x:" + x + ", y:" + y);
+		LogManager.log("Dragged on MCanvas at x:" + x + ", y:" + y);
 		
 		final MouseMotionListener[] ml = componentAt.getListeners(MouseMotionListener.class);
 		if(ml.length == 0){
@@ -1034,7 +1043,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		}
 		
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("onExit MletSnapCanvas : " + mlet.getTarget());
+			LogManager.log("onExit MletSnapCanvas : " + mlet.getTarget());
 		}
 		
 		ScreenServer.onExitForMlet(coreSS, projectContext, mlet, isAutoReleaseAfterGo);

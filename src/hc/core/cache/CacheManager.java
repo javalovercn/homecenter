@@ -85,7 +85,7 @@ public class CacheManager {
 		final int oldSize = cacheBuffer.size();
 		cacheBuffer.clear();
 		if(oldSize > 0){
-			L.V = L.O ? false : LogManager.log("[cache] clear cache buffer (not cache data) .");
+			LogManager.log("[cache] clear cache buffer (not cache data) .");
 		}
 	}
 	
@@ -111,7 +111,7 @@ public class CacheManager {
 		
 		clearBuffer();
 		
-		L.V = L.O ? false : LogManager.log("[cache] clear all cache data and buffer.");
+		LogManager.log("[cache] clear all cache data and buffer.");
 	}
 	
 	/**
@@ -147,7 +147,7 @@ public class CacheManager {
 			final int projIdLen, final byte[] scriptBS, final int scriptIndex, 
 			final int scriptLen,	final String projID, final String urlID, final String uid) {
 		if(isMeetCacheLength(scriptLen) == false){
-			L.V = L.O ? false : LogManager.log("cancle cache for [" + projID + "/" + uid + "/" + urlID + "] for length lower than min length.");
+			LogManager.log("cancle cache for [" + projID + "/" + uid + "/" + urlID + "] for length lower than min length.");
 			return;
 		}
 		
@@ -158,7 +158,7 @@ public class CacheManager {
 			coreSS.mobileUidBSForCache = ByteUtil.getBytes(uid, IConstant.UTF_8);
 		}
 		
-		L.V = L.O ? false : LogManager.log("save a cache for [" + projID + "/" + uid + "/" + urlID + "]");
+		LogManager.log("save a cache for [" + projID + "/" + uid + "/" + urlID + "]");
 		
 		ByteUtil.encodeFileXOR(scriptBS, scriptIndex, scriptLen, codeBSforMobileSave, 0, codeBSforMobileSaveLength);
 
@@ -170,7 +170,7 @@ public class CacheManager {
 				scriptBS, scriptIndex, scriptLen, false);
 		
 		coreSS.context.sendWrap(MsgBuilder.E_RESP_CACHE_OK, codeBSforMobileSave, 0, codeBSforMobileSaveLength);
-//		L.V = L.O ? false : LogManager.log("send cache responce. [" + ByteUtil.toHex(codeBSforMobileSave) + "]");
+//		LogManager.log("send cache responce. [" + ByteUtil.toHex(codeBSforMobileSave) + "]");
 	}
 	
 	/**
@@ -243,7 +243,7 @@ public class CacheManager {
 	 * @param projID
 	 */
 	public static synchronized void removeProjCacheAndRMS(String projID){
-		L.V = L.O ? false : LogManager.log("[cache] delete all cache data of project [" + projID + "].");
+		LogManager.log("[cache] delete all cache data of project [" + projID + "].");
 		removeAllUUIDFrom(projID);
 		
 		//注意：不能先删除，因为有可能存储故障，而导致问题，可以下次再次进行删除
@@ -266,7 +266,7 @@ public class CacheManager {
 			}
 		}
 		
-		L.V = L.O ? false : LogManager.log("[cache] remove all cache for project : [" + projID + "].");
+		LogManager.log("[cache] remove all cache for project : [" + projID + "].");
 	}
 
 	/**
@@ -449,7 +449,7 @@ public class CacheManager {
 			}
 		}
 		
-//		L.V = L.O ? false : LogManager.log("[cache] no file cache for [" + projID + "/" + uuid + "/" + urlID + "]");
+//		LogManager.log("[cache] no file cache for [" + projID + "/" + uuid + "/" + urlID + "]");
 		return null;
 	}
 	
@@ -491,7 +491,7 @@ public class CacheManager {
 			final byte[] codeBS, final int codeOffset, final int codeLen, 
 			final byte[] valueBS, final int valueOffset, final int valuelen, boolean valueIsCopyed){
 		
-//		L.V = L.O ? false : LogManager.log("projID : " + projID + ", uuid : " + uuid + ", urlID : " + urlID);
+//		LogManager.log("projID : " + projID + ", uuid : " + uuid + ", urlID : " + urlID);
 		
 		//检查是否存在projID，如果没有，则更新到库中
 		{
@@ -567,7 +567,7 @@ public class CacheManager {
 				CacheStoreManager.storeData(rmsNameForFileCode, vectorCoder);
 			}
 			
-			L.V = L.O ? false : LogManager.log("[cache] successful store cache item for [" + projID + "/" + softUID + "/" + urlID + "/" + (storeIdx<0?fileSize:storeIdx) + "]");
+			LogManager.log("[cache] successful store cache item for [" + projID + "/" + softUID + "/" + urlID + "/" + (storeIdx<0?fileSize:storeIdx) + "]");
 		}
 	}
 
@@ -663,12 +663,12 @@ public class CacheManager {
 			
 			final String itemProjID = item.toStringValue();
 			if(isOverflowProjectTotalCacheNum(itemProjID, matchUID)){//检查存储记录数是否过载
-				L.V = L.O ? false : LogManager.log("cache [" + itemProjID + "/" + matchUID + "] is overflow (up threshold), clear it.");
+				LogManager.log("cache [" + itemProjID + "/" + matchUID + "] is overflow (up threshold), clear it.");
 				removeUIDFrom(itemProjID, matchUID);//仅删除关联，不能全删工程
 				
 				delProjVector.addElement(itemProjID);
 			}else{
-//				L.V = L.O ? false : LogManager.log("cache [" + itemProjID + "/" + matchUID + "] is not overflow (up threshold).");
+//				LogManager.log("cache [" + itemProjID + "/" + matchUID + "] is not overflow (up threshold).");
 			}
 		}
 		

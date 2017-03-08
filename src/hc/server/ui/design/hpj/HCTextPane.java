@@ -4,6 +4,9 @@ import javax.swing.Action;
 import javax.swing.JTextPane;
 
 public abstract class HCTextPane extends JTextPane {
+	public long selectedWordsMS;
+	public boolean hasSelectedWords;
+	
 	public HCTextPane(){
 		super();
 		

@@ -67,10 +67,6 @@ public class ContextManager {
 		}
 	}
 
-	public static ReceiveServer getReceiveServer(final CoreSession coreSS) {
-		return coreSS.rServer;
-	}
-
 	public static boolean isServerStatus(final IContext ic){
 		final int[] servermode = {ContextManager.STATUS_SERVER_SELF};
 		final int m = ic.cmStatus;
@@ -134,17 +130,17 @@ public class ContextManager {
 	public static final void setThreadPool(final ThreadPool tp, final Object t){
 		CCoreUtil.checkAccess();
 		
-		ContextManager.threadPool = tp;
-		ContextManager.securityToken = t;
+		threadPool = tp;
+		securityToken = t;
 	}
 
 	public static final Object getThreadPoolToken(){
 		CCoreUtil.checkAccess();
 
-		if(ContextManager.securityToken == null){
+		if(securityToken == null){
 			throw new Error("Fail on initial ContextManager threadPoolToken.");
 		}
-		return ContextManager.securityToken;
+		return securityToken;
 	}
 
 	public static final ThreadPool getThreadPool(){

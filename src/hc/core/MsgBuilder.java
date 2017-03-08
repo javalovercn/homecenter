@@ -1,8 +1,11 @@
 package hc.core;
 
+import hc.core.util.RootBuilder;
+
 public class MsgBuilder {
 	public static final int MAX_BYTE_ARRAY_LEN = 1024 * 1024 * 2;
-	public static final short CHECK_BIT_NUM = 2;
+	public static final short XOR_PACKAGE_ID_LEN = 8;
+	public static final short EXT_BYTE_NUM = 2 + XOR_PACKAGE_ID_LEN;//2位校验，8位包号
 	
 	/**
 	 * 进行Internet编程时则不同,因为Internet上的路由器可能会将MTU设为不同的值.
@@ -59,6 +62,8 @@ public class MsgBuilder {
 	public static final byte E_CLIENT_INFO = 25;
 	public static final byte E_GOTO_URL_UN_XOR = 26;
 	public static final byte E_RANDOM_FOR_CHECK_SERVER = 27;
+	public static final byte E_ACK_XOR_PACKAGE_ID = 28;
+	public static final byte E_SYN_XOR_PACKAGE_ID = 29;
 	//UN_XOR_MSG_TAG_MIN以上(含)，低于(含)此值，强制使用TCP
 	public static final byte UN_XOR_MSG_TAG_MIN = 39;
 	
@@ -141,6 +146,7 @@ public class MsgBuilder {
 	
 	public static final byte DATA_E_TAG_RELAY_REG_SUB_FIRST = 0;
 	public static final byte DATA_E_TAG_RELAY_REG_SUB_RESET = 1;
+	public static final byte DATA_E_TAG_RELAY_REG_SUB_BUILD_NEW_CONN = 2;
 	
 	public static final byte DATA_SUB_TAG_MSG_MTU_1472 = 1;
 	public static final byte DATA_SUB_TAG_MSG_UDP_CHECK_ALIVE = 2;
@@ -158,7 +164,7 @@ public class MsgBuilder {
 	public static final short LEN_MAX_UUID_UDP_VALUE = 0;//注意同步DataNatReqConn内的UUID 39
 	
 	public static final int TCP_PACKAGE_SPLIT_EXT_BUF_SIZE = 1024;
-	public static final int MAX_LEN_TCP_PACKAGE_BLOCK_BUF = 1 << 17;//128K
+	public static final int MAX_LEN_TCP_PACKAGE_BLOCK_BUF = getMaxLenTCP();
 	public static final int MAX_LEN_TCP_PACKAGE_SPLIT = MAX_LEN_TCP_PACKAGE_BLOCK_BUF - TCP_PACKAGE_SPLIT_EXT_BUF_SIZE;
 	public static final short LEN_TCP_PACKAGE_SPLIT_TAG = 1;
 	public static final short LEN_TCP_PACKAGE_SPLIT_SUB_TAG = 1;
@@ -209,6 +215,16 @@ public class MsgBuilder {
 	public static final int INDEX_TCP_SPLIT_SUB_TAG = INDEX_TCP_SPLIT_TAG + LEN_TCP_PACKAGE_SPLIT_TAG;
 	public static final int INDEX_TCP_SPLIT_SUB_GROUP_ID = INDEX_TCP_SPLIT_SUB_TAG + LEN_TCP_PACKAGE_SPLIT_SUB_TAG;
 	public static final int INDEX_TCP_SPLIT_SUB_GROUP_NUM = INDEX_TCP_SPLIT_SUB_GROUP_ID + 4;//分组内的总块数
+	
+	private static final int getMaxLenTCP(){
+		if(RootBuilder.isSimu()){
+//			System.out.println("getMaxLenTCP : 1 << 12");
+			return 1 << 12;
+		}else{
+//			System.out.println("getMaxLenTCP : 1 << 17");
+			return 1 << 17;//128K
+		}
+	}
 	
 	/**
 	 * UDP数组结构区

@@ -2,6 +2,7 @@ package hc.server.ui.design;
 
 import hc.core.ContextManager;
 import hc.core.util.ReturnableRunnable;
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.HTMLMlet;
 import hc.server.util.HCLimitSecurityManager;
 import hc.util.ResourceUtil;
@@ -31,12 +32,14 @@ public class AddHarIsBusy extends SystemHTMLMlet {
 	}
 	
 	public AddHarIsBusy(){
+		final J2SESession localCoreSS = UserThreadResourceUtil.getCoreSSFromCtx(getProjectContext());
+
 		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() {
-				exitButtonStr = (String)ResourceUtil.get(9131);
-				busyMsg = (String)ResourceUtil.get(9233);
-				waitAndTry = (String)ResourceUtil.get(9234);
+				exitButtonStr = (String)ResourceUtil.get(localCoreSS, 9131);
+				busyMsg = (String)ResourceUtil.get(localCoreSS, 9233);
+				waitAndTry = (String)ResourceUtil.get(localCoreSS, 9234);
 				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(true);
 				return null;
 			}

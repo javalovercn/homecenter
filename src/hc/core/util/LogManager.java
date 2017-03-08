@@ -6,17 +6,10 @@ public class LogManager {
 //	}
 	
 	private static ILog log = null;
-	private static boolean isEnable;
 	
 	public static void setLog(ILog ilog){
 		CCoreUtil.checkAccess();
 		log = ilog;
-	}
-	
-	public static void setEnable(boolean enable){
-		CCoreUtil.checkAccess();
-		
-		isEnable = enable;
 	}
 	
 	public static ILog getLogger(){
@@ -37,10 +30,6 @@ public class LogManager {
 	}
 	
 	public static boolean log(String msg){
-		if(isEnable == false){
-			return false;
-		}
-		
 		if(log != null){
 			log.log(msg);
 		}else{
@@ -55,10 +44,6 @@ public class LogManager {
 	 * @return
 	 */
 	public static boolean warning(String msg){
-		if(isEnable == false){
-			return false;
-		}
-		
 		if(log != null){
 			log.warning(msg);
 		}else{
@@ -97,10 +82,6 @@ public class LogManager {
 	}
 	
 	public static void info(String msg){
-		if(isEnable == false){
-			return;
-		}
-		
 		if(log != null){
 			log.info(msg);
 			log.log(msg);

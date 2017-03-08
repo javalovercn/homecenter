@@ -97,6 +97,7 @@ import javax.swing.UIManager;
 import javax.swing.text.DefaultEditorKit;
 
 public class ResourceUtil {
+	private static final int MAX_RES_ID = 10000;
 	private static final String USER_PROJ = "user.proj.";
 	private static boolean isCheckStarter;
 	private static Class starterClass;
@@ -107,23 +108,6 @@ public class ResourceUtil {
 			starterClass = loadClass(StarterManager.CLASSNAME_STARTER_STARTER, false);
 		}
 		return starterClass;
-	}
-	
-	private static String buildEqualLocale(final String[] oldParts, final String equalLang){
-		final StringBuilder sb = StringBuilderCacher.getFree();
-		
-		for (int i = 0; i < oldParts.length; i++) {
-			if(i == 0){
-				sb.append(equalLang);
-			}else{
-				sb.append(LangUtil.LOCALE_SPLIT);
-				sb.append(oldParts[i]);
-			}
-		}
-		
-		final String out = sb.toString();
-		StringBuilderCacher.cycle(sb);
-		return out;
 	}
 	
 	/**
@@ -149,7 +133,7 @@ public class ResourceUtil {
 					if(part0.equals(LangUtil.equalLocale[i])){
 						isEqualLang = true;
 						
-						out = (String)map.get(buildEqualLocale(parts, LangUtil.equalLocaleTo[i]));
+						out = (String)map.get(LangUtil.buildEqualLocale(parts, LangUtil.equalLocaleTo[i]));
 						if(out != null){
 							return out;
 						}
@@ -161,7 +145,7 @@ public class ResourceUtil {
 					if(part0.equals(LangUtil.equalLocaleTo[i])){
 						isEqualLang = true;
 
-						out = (String)map.get(buildEqualLocale(parts, LangUtil.equalLocale[i]));
+						out = (String)map.get(LangUtil.buildEqualLocale(parts, LangUtil.equalLocale[i]));
 						if(out != null){
 							return out;
 						}
@@ -196,10 +180,18 @@ public class ResourceUtil {
 			}
 		}
 		
-		if(locale.equals(LangUtil.EN) || locale.equals(LangUtil.EN_US)){
+		if(locale.equals(LangUtil.EN_US)){
 			return null;
 		}else{
-			return matchLocale(LangUtil.EN_US, map, false);
+			if(locale.equals("en")){
+				out = (String)map.get(LangUtil.EN_US);
+				if(out != null){
+					return out;
+				}
+				return null;
+			}else{
+				return matchLocale(LangUtil.EN_US, map, false);
+			}
 		}
 	}
 	
@@ -246,8 +238,16 @@ public class ResourceUtil {
 		return PropertiesManager.isTrue(PropertiesManager.p_isNonUIServer, false);
 	}
 	
+	public static boolean isEnableClientAddHAR(){
+		return PropertiesManager.isTrue(PropertiesManager.p_isEnableClientAddHAR, true);
+	}
+	
 	public static boolean isDemoServer(){
 		return PropertiesManager.isTrue(PropertiesManager.p_isDemoServer, false);
+	}
+	
+	public static boolean isDemoMaintenance(){
+		return isDemoServer() && PropertiesManager.isTrue(PropertiesManager.p_isDemoMaintenance, false);
 	}
 	
 	/**
@@ -257,7 +257,7 @@ public class ResourceUtil {
 	 */
 	public static boolean copy(final File from, final File to) {
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("copy file : " + from.getAbsolutePath() + ", to : " + to.getAbsolutePath());
+			LogManager.log("copy file : " + from.getAbsolutePath() + ", to : " + to.getAbsolutePath());
 		}
 		FileInputStream in = null;
 		FileOutputStream out = null;
@@ -489,7 +489,7 @@ public class ResourceUtil {
 			@Override
 			public final void doBiz() {
 				if(isRoot == false){
-					L.V = L.O ? false : LogManager.log("refresh server online info.");
+					LogManager.log("refresh server online info.");
 				}
 				final String back = ResourceUtil.refreshRootAlive();
 				if(back == null || (back.equals(RootServerConnector.ROOT_AJAX_OK) == false)){
@@ -589,14 +589,14 @@ public class ResourceUtil {
 		PlatformManager.getService().setJRubyHome(PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer), jruby.getAbsolutePath());
 		
 		final File[] files = {jruby};
-		rubyAnd3rdLibsClassLoaderCache = PlatformManager.getService().loadClasses(files, PlatformManager.getService().get3rdClassLoader(null), true, "hc.jruby");
+		rubyAnd3rdLibsClassLoaderCache = PlatformManager.getService().loadClasses(files, PlatformManager.getService().get3rdAndServClassLoader(null), true, "hc.jruby");
 		if(rubyAnd3rdLibsClassLoaderCache == null){
 			final String message = "Error to get JRuby/3rdLibs ClassLoader!";
 			LogManager.errToLog(message);
 			final JPanel panel = App.buildMessagePanel(message, App.getSysIcon(App.SYS_ERROR_ICON));
 			App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, null, false, true, null, false, false);//JFrame
 		}else{
-			L.V = L.O ? false : LogManager.log("Successful (re) create JRuby engine classLoader.");
+			LogManager.log("Successful (re) create JRuby engine classLoader.");
 		}
 		return rubyAnd3rdLibsClassLoaderCache;
 	}
@@ -825,8 +825,18 @@ public class ResourceUtil {
 	}
 	
 	public static Object get(final int id){
-		if(id < 10000){
+		if(id < MAX_RES_ID){
 			return UILang.getUILang(id);
+		}
+		return null;
+	}
+	
+	public static Object get(final CoreSession coreSS, final int id){
+		if(id < MAX_RES_ID){
+			if(coreSS == null){
+				return get(id);
+			}
+			return UILang.getUILang(UserThreadResourceUtil.getMobileLocaleFrom((J2SESession)coreSS), id);
 		}
 		return null;
 	}
@@ -862,7 +872,7 @@ public class ResourceUtil {
 		        	addItem(id, out, pattern, enterNames[i]);
 				}
 		    } else {
-		    	final File file_base = new File(ResourceUtil.getBaseDir(), ".");
+		    	final File file_base = new File(uri).getParentFile();
 		    	final File[] files = file_base.listFiles();
 		    	for (int i = 0; i < files.length; i++) {
 		    		final File file_temp = files[i];
@@ -888,7 +898,7 @@ public class ResourceUtil {
 			final Object value = table.get(String.valueOf(id));
 			if(value != null){
 				out.put(local_.replace('_', '-'), value);
-//				L.V = L.O ? false : LogManager.log(local_ + " : " + value);
+//				LogManager.log(local_ + " : " + value);
 			}
 		}
 	}
@@ -1086,6 +1096,13 @@ public class ResourceUtil {
 		}
 		return false;
 	}
+	
+	public static String getUserAgentForHAD(){
+		return System.getProperty("os.name") + "/" + System.getProperty("os.version") +
+					" J2SE/" + App.getJREVer() +
+					" HomeCenter/" + StarterManager.getHCVersion() + 
+					" JRuby/" + getJRubyVersion();//如果没安装，则返回null；可能联机升级，所以不cache
+	}
 
 	public static boolean isWindowsOS() {
 		final String os = System.getProperty("os.name");
@@ -1157,7 +1174,7 @@ public class ResourceUtil {
 			LogManager.log("try get download online lib information from : " + url);
 		}
 		try{
-			loadFromURL(thirdlibs, url);
+			loadFromURL(thirdlibs, url, null);
 		}catch (final Exception e) {
 		}
 		if(thirdlibs.isEmpty()){
@@ -1166,9 +1183,9 @@ public class ResourceUtil {
 		return thirdlibs;
 	}
 
-	public static void loadFromURL(final Properties thirdlibs, String url) throws Exception {
+	public static void loadFromURL(final Properties thirdlibs, String url, final String userAgent) throws Exception {
 		url = HttpUtil.replaceSimuURL(url, PropertiesManager.isSimu());
-		final String libs = HttpUtil.getAjax(url);
+		final String libs = HttpUtil.getAjax(url, userAgent);
 		if(libs == null){
 			return;
 		}
@@ -1373,7 +1390,7 @@ public class ResourceUtil {
 	                }
 	                else {
 	                    if(files[i].delete() == false){
-	                    	L.V = L.O ? false : LogManager.log("fail del file : " + files[i].getAbsolutePath());
+	                    	LogManager.log("fail del file : " + files[i].getAbsolutePath());
 	                    }
 	                }
 	            }
@@ -1381,7 +1398,7 @@ public class ResourceUtil {
 	        
 		    final boolean isDel = directory.delete();
 		    if(isDel == false){
-		    	L.V = L.O ? false : LogManager.log("fail del dir/file : " + directory.getAbsolutePath());
+		    	LogManager.log("fail del dir/file : " + directory.getAbsolutePath());
 		    }
 		    return isDel;
 	    }
@@ -1527,6 +1544,18 @@ public class ResourceUtil {
 
 	public static String getErrorI18N() {
 		return (String) get(IContext.ERROR);
+	}
+	
+	public static String getInfoI18N(final J2SESession coreSS) {
+		return (String) get(coreSS, IContext.INFO);
+	}
+
+	public static String getWarnI18N(final J2SESession coreSS) {
+		return (String) get(coreSS, IContext.WARN);
+	}
+
+	public static String getErrorI18N(final J2SESession coreSS) {
+		return (String) get(coreSS, IContext.ERROR);
 	}
 
 	/**
@@ -1830,5 +1859,9 @@ public class ResourceUtil {
 	public static boolean needAccepLicense(final String licenseURL) {
 		return PropertiesManager.isTrue(PropertiesManager.p_isAcceptAllHARLicenses, false) == false 
 				&& licenseURL != null && licenseURL.length() > 0;
+	}
+
+	public static String getJRubyVersion() {
+		return PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer);
 	}
 }

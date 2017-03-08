@@ -92,7 +92,7 @@ public class ThumbnailHelper {
 		if(pcMaxRightX < 0){
 			pcMaxRightX = 0;
 		}
-//		L.V = L.O ? false : LogManager.log("oldZoomMulti : " + oldZoomMultiple + "currentZoomMulti : " + zoomMultiples + ", oldLocX : " + oldLocX + ", oldLocY : " + oldLocY 
+//		LogManager.log("oldZoomMulti : " + oldZoomMultiple + "currentZoomMulti : " + zoomMultiples + ", oldLocX : " + oldLocX + ", oldLocY : " + oldLocY 
 //		+ ", locX : " + locX + ", locY : " + locY + ", mobileW : " + mobileW + ", mobileH : " + mobileH + ", zoomW : " + zoomWidth + ", zoomH : " + zoomHeight + 
 //		"maxRightX : " + pcMaxRightX + ", bottomY : " + pcBottomY);
 

@@ -3,7 +3,7 @@
 
 to implement above UI functionality for Android, iPhone, and J2ME mobile,
 
-the full codes are following : (like JavaScript? [ScriptPanel](http://homecenter.mobi/download/javadoc/hc/server/ui/ScriptPanel.html) is ready for you)
+the full codes are following : (Do you like JavaScript? [ScriptPanel](http://homecenter.mobi/download/javadoc/hc/server/ui/ScriptPanel.html) is ready for you)
 ```JRuby
 #encoding:utf-8
 
@@ -43,7 +43,7 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 		@btn_switch.setIcon(@icon_press_off)
 		@btn_light.setIcon(@icon_light_off)
 		
-		setCSS(@btn_switch, "iconStyle", nil)#iconStyle is defined "CSS Styles" and is automatically loaded for all HTMLMlet in current project
+		setCSS(@btn_switch, "iconStyle", nil)#iconStyle is defined global (as following) and is automatically loaded for all HTMLMlet in current project
 		setCSS(@btn_light, "iconStyle", nil)
 		
 		cssStyle = ".areaStyle{width:100%;height:100%;font-size:" + getFontSizeForNormal().to_s() + "px;color:green}"
@@ -73,7 +73,7 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 			
 		buttonPanel = JPanel.new()
 		buttonPanel.setLayout(GridLayout.new(1, 2))
-		buttonPanel.setPreferredSize(Dimension.new(@context.getMobileWidth(), getButtonHeight()))
+		buttonPanel.setPreferredSize(Dimension.new(getMobileWidth(), getButtonHeight()))
 
 		button = JButton.new("Screen")
 		setCSS(button, "btnStyle", nil)
@@ -146,9 +146,15 @@ global CSS for current project :
 1. please read and agree the license file "bcl.txt", "hc_license.txt" and "mpl_license.txt".
 
 ***
+### Demo Account
+1. download mobile App from https://github.com/javalovercn/client
+2. account : 012345
+3. password : 012345
+
+***
 ### Main Features
 
-1. HomeCenter server runs not only on Oracle/OpenJDK JVM, but also Android, because there is a library ["J2SE for Android"](https://github.com/javalovercn/j2se_for_android).
+1. HomeCenter server runs not only on Oracle/OpenJDK JDK/JRE, but also Android, because there is a library ["J2SE for Android"](https://github.com/javalovercn/j2se_for_android).
 2. just double-click to run, no configuration.
 3. scan QRcode from mobile to download and load HAR (home archive) project on server, plug and play, not required to restart server.
 4. focus your business and UI with Java J2SE technology, the rest of work are ours.
@@ -170,11 +176,10 @@ global CSS for current project :
 6. to print server log to console, please keep [options/Developer/Logger] unchecked in options of server
 7. please keep the source code for the latest version, otherwise it may causes abnormal connections with mobile.
 8. there is a sample HAR project (NOT "MyFirst" project) in designer on server, covers 80% of JRuby syntax and 90% of functions of HomeCenter server.
-9. for API, press alt+/ in designer or go https://homecenter.mobi/download/javadoc/index.html
+9. for API, please press alt+/ in designer or go https://homecenter.mobi/download/javadoc/index.html
 10. any question, please open issues https://github.com/javalovercn/homecenter/issues or Email : help at homecenter.mobi
-11. for the latest version mobile App (client side), download from https://github.com/javalovercn/client
-12. for binary server of Android or other, download from https://homecenter.mobi/en/pc/downloads.htm
-13. these two files (starter.jar and hc.pem) in binary distributed zip file (NOT in source files), are used to check new version, download binary jar of these source files, verify and start up HomeCenter server.
+11. for binary server of Android or other, download from https://homecenter.mobi/en/pc/downloads.htm
+12. these two files (starter.jar and hc.pem) in binary distributed zip file (NOT in source files), are used to check new version, download binary jar of these source files, verify and start up HomeCenter server.
 
 ***
 

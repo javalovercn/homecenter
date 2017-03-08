@@ -11,7 +11,7 @@ import hc.server.ui.design.J2SESession;
 public class JcipManager {
 	
 	public static void responseCtrlSubmit(final J2SESession coreSS, final String jcip_str){
-		L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "mobile request:" + jcip_str);
+		LogManager.log(ScreenCapturer.OP_STR + "mobile request:" + jcip_str);
 		final Jcip jcip = new Jcip(coreSS, jcip_str);
 		final String screenID = jcip.getString();
 		

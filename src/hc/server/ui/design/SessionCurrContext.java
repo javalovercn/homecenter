@@ -74,7 +74,7 @@ public class SessionCurrContext {
 				if(sessions[i] == session){
 					currContext[i] = cc;
 					if(L.isInWorkshop){
-						L.V = L.O ? false : LogManager.log("successful set current projectID in MobiUIResponsor.");
+						LogManager.log("successful set current projectID in MobiUIResponsor.");
 					}
 					return;
 				}

@@ -24,7 +24,7 @@ public class MouseExitHideDocForMouseMovTimer extends HCTimer {
 	
 	public final boolean isTriggerOn(){
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("[CodeTip] isTriggerOn : " + isTriggerOn);
+			LogManager.log("[CodeTip] isTriggerOn : " + isTriggerOn);
 		}
 		
 		return isTriggerOn;
@@ -44,7 +44,7 @@ public class MouseExitHideDocForMouseMovTimer extends HCTimer {
 	@Override
 	public void setEnable(final boolean enable){
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log(getName() + " setEnable : " + enable);
+			LogManager.log(getName() + " setEnable : " + enable);
 		}
 		super.setEnable(enable);
 	}

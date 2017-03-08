@@ -28,7 +28,7 @@ public class ThirdlibManager {
 //			try {
 //				loadedClassPath.add(lib);
 //				ResourceUtil.loadJar(new File(App.getBaseDir(), lib));
-////				L.V = L.O ? false : LogManager.log("load classpath : " + lib);
+////				LogManager.log("load classpath : " + lib);
 //			} catch (Exception e) {
 //				ExceptionReporter.printStackTrace(e);
 //			}
@@ -59,7 +59,7 @@ public class ThirdlibManager {
 			final String item = libsSet.getItem(i);
 			libFiles[i] = new File(ResourceUtil.getBaseDir(), item);
 		}
-		PlatformManager.getService().get3rdClassLoader(libFiles);
+		PlatformManager.getService().get3rdAndServClassLoader(libFiles);//加参数，表示重建实例
 	}
 	
 	public static File buildTarget(final String libNameWithoutJarExt){
@@ -141,7 +141,7 @@ public class ThirdlibManager {
 		final String path = buildPath(libName);
 
 		if(remove.exists()){
-			L.V = L.O ? false : LogManager.log("jar lib [" + libName + "] may be in using. Operation of delete will be done at next startup!");
+			LogManager.log("jar lib [" + libName + "] may be in using. Operation of delete will be done at next startup!");
 			PropertiesManager.addDelDir(path);
 		}
 		if(ResourceUtil.isAndroidServerPlatform()){

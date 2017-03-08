@@ -29,13 +29,12 @@ import hc.server.ScreenServer;
 import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.Converter;
 import hc.server.msb.Device;
-import hc.server.msb.WorkingDeviceList;
 import hc.server.msb.MSBAgent;
 import hc.server.msb.Robot;
 import hc.server.msb.UserThreadResourceUtil;
+import hc.server.msb.WorkingDeviceList;
 import hc.server.ui.CtrlResponse;
 import hc.server.ui.HTMLMlet;
-import hc.server.ui.MUIView;
 import hc.server.ui.MenuItem;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjClassLoaderFinder;
@@ -174,7 +173,7 @@ public class ProjResponser {
 			final String converterName = names.elementAt(itemIdx);
 			final String scriptName = converterName;
 			
-			L.V = L.O ? false : LogManager.log("try build instance for Converter [" + converterName + "] in project [" + projectID + "]...");
+			LogManager.log("try build instance for Converter [" + converterName + "] in project [" + projectID + "]...");
 			
 			//将转换器名称装入properties
 			ServerUIAPIAgent.setSuperProp(context, ServerUIAPIAgent.CONVERT_NAME_PROP, converterName);
@@ -182,7 +181,7 @@ public class ProjResponser {
 			final Object converter = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtx, 
 					src.elementAt(itemIdx), scriptName, null, hcje, context, Converter.class);
 			if(converter != null){
-				L.V = L.O ? false : LogManager.log("succesful build instance for Converter [" + converterName + "] in project [" + projectID + "].");
+				LogManager.log("succesful build instance for Converter [" + converterName + "] in project [" + projectID + "].");
 			}else{
 				final String msg = "Fail instance Converter [" + converterName + "] in project [" + projectID + "].";
 				LogManager.err(msg);
@@ -248,7 +247,7 @@ public class ProjResponser {
 			final String devListener = src.elementAt(itemIdx);
 			final String scriptName = devName;
 			
-			L.V = L.O ? false : LogManager.log("try build instance for Device [" + devName + "] in project [" + projectID + "]...");
+			LogManager.log("try build instance for Device [" + devName + "] in project [" + projectID + "]...");
 			
 			//将设备名称装入properties
 			ServerUIAPIAgent.setSuperProp(context, ServerUIAPIAgent.DEVICE_NAME_PROP, devName);
@@ -256,7 +255,7 @@ public class ProjResponser {
 			final Object device = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtx,
 					devListener, scriptName, null, hcje, context, Device.class);
 			if(device != null){
-				L.V = L.O ? false : LogManager.log("successful build instance for Device [" + devName + "] in project [" + projectID + "].");
+				LogManager.log("successful build instance for Device [" + devName + "] in project [" + projectID + "].");
 			}else{
 				final String msg = "Fail instance Device [" + devName + "] in project [" + projectID + "].";
 				LogManager.err(msg);
@@ -295,7 +294,7 @@ public class ProjResponser {
 			final String robotListener = src.elementAt(itemIdx);
 			final String scriptName = robotName;
 			
-			L.V = L.O ? false : LogManager.log("try build intance for Robot [" + robotName + "] in project [" + projectID + "]...");
+			LogManager.log("try build intance for Robot [" + robotName + "] in project [" + projectID + "]...");
 			
 			//将设备名称装入properties
 			ServerUIAPIAgent.setSuperProp(context, ServerUIAPIAgent.ROBOT_NAME_PROP, robotName);
@@ -303,7 +302,7 @@ public class ProjResponser {
 			final Object robot = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtx,
 					robotListener, scriptName, null, hcje, context, Robot.class);
 			if(robot != null){
-				L.V = L.O ? false : LogManager.log("successful build intance for Robot [" + robotName + "] in project [" + projectID + "].");
+				LogManager.log("successful build intance for Robot [" + robotName + "] in project [" + projectID + "].");
 			}else{
 				final String msg = "Fail instance Robot [" + robotName + "] in project [" + projectID + "].";
 				LogManager.err(msg);
@@ -338,7 +337,7 @@ public class ProjResponser {
 			threadGroup = new ThreadGroup("HarLimitThreadPoolGroup"){
 				@Override
 				public final void uncaughtException(final Thread t, final Throwable e) {
-//					L.V = L.O ? false : LogManager.log("******************uncaughtException*****************=>" + e.getMessage());
+//					LogManager.log("******************uncaughtException*****************=>" + e.getMessage());
 					ExceptionReporter.printStackTraceFromHAR(e, null, null);
 				}
 			};
@@ -390,7 +389,7 @@ public class ProjResponser {
 						final String absolutePath = nativeFile.getAbsolutePath();
 						try{
 							System.load(absolutePath);
-							L.V = L.O ? false : LogManager.log("successful load native lib [" + nativeLibName + "] in project [" + projID + "].");
+							LogManager.log("successful load native lib [" + nativeLibName + "] in project [" + projID + "].");
 						}catch (final Throwable e) {
 							LogManager.err("Fail to load native lib [" + nativeLibName + "] in project [" + projID + "]");
 							ExceptionReporter.printStackTrace(e);
@@ -589,7 +588,7 @@ public class ProjResponser {
 		final MenuItem item = coreSS.searchMenuItem(projectID, oriURLLower, aliasLowerURL);
 		if(item != null){
 			if(log){
-				L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "click/go item : [" + ServerUIAPIAgent.getMobiMenuItem_Name(item) + "]");
+				LogManager.log(ScreenCapturer.OP_STR + "click/go item : [" + ServerUIAPIAgent.getMobiMenuItem_Name(item) + "]");
 			}
 		}
 		return item;
@@ -645,8 +644,7 @@ public class ProjResponser {
 //		return false;
 //	}
 
-	public final boolean doBiz(final J2SESession coreSS, final HCURL url) {//因为HCURL要回收，所以不能final
-		final MUIView e = null;
+	public final boolean doBiz(final J2SESession coreSS, final HCURL url, final boolean sendMsgIfFail) {//因为HCURL要回收，所以不能final
 		if(url.protocal == HCURL.MENU_PROTOCAL){
 			final String elementID = url.elementID;
 //			if(isMainElementID(elementID)){
@@ -662,7 +660,7 @@ public class ProjResponser {
 //			}
 			if(jarMainMenu != null && elementID.equals(jarMainMenu.menuId)){
 				final JarMainMenu currMainMenu = jarMainMenu;
-				L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "open menu : [" + currMainMenu.getTitle(coreSS) + "]");
+				LogManager.log(ScreenCapturer.OP_STR + "open menu : [" + currMainMenu.getTitle(coreSS) + "]");
 				
 				ServerUIUtil.transMenuWithCache(coreSS, currMainMenu.buildJcip(coreSS), projectID);//elementID
 				
@@ -690,48 +688,8 @@ public class ProjResponser {
 					return true;
 				}
 			}
-//		}else if(url.protocal == HCURL.FORM_PROTOCAL){//与下段进行合并
-//			if(url.elementID.equals("form1")){
-//				e = new TestMForm();
-//				JcipManager.addFormTimer("form1", new IFormTimer(){
-//					int count = 1;
-//					boolean isSend = false;
-//					public String doAutoResponse() {
-//						if(isSend == false){
-//							isSend = true;
-//							try {
-//								ServerUIUtil.sendMessage("Cap", "Hello,Message", IContext.ERROR, ImageIO.read(ResourceUtil.getResource("hc/res/hc_48.jpg")), 0);
-//								
-//								ServerUIUtil.sendMessage("Cap2", "Hello,Message2", IContext.ERROR, null, 0);
-//								
-//								try {
-//									ServerUIUtil.sendAUSound(ResourceUtil.getAbsPathContent("/hc/server/ui/ship.au"));
-//								} catch (Exception e) {
-//									ExceptionReporter.printStackTrace(e);
-//								}
-//							} catch (IOException e1) {
-//								e1ExceptionReporter.printStackTrace(e);
-//							}
-//						}
-//						if(1+5 < 2){
-//							L.V = L.O ? false : LogManager.log("Send out Alert");
-//							if(count < 100){
-//								ServerUIUtil.alertOn();
-//							}else{
-//								ServerUIUtil.alertOff();	
-//							}
-//						}
-//						return "{<'/form1'>,<['false','true'],'1'>,<'"+System.currentTimeMillis()+"'>,<'','Sys_Img','1'>,<{'0', '1','16'},'" + (count++) + "'><'0','UCB_BASIC_LATIN','" + (count++) + "'>,<'50','50','50'>}";
-//					}
-//
-//					public int getSecondMS() {
-//						return 1000;
-//					}});
-//				TODO onPause, onResume
-//				ScreenServer.pushScreen(e);
-//				L.V = L.O ? false : LogManager.log("onStart Form : " + url.elementID);
-//			}
-		}else if(url.protocal == HCURL.SCREEN_PROTOCAL || url.protocal == HCURL.FORM_PROTOCAL){
+		}else if(((url.protocal == HCURL.SCREEN_PROTOCAL) && (HCURL.REMOTE_HOME_SCREEN.equals(url.getElementIDLower()) == false))//注意：screen://home必须手机先行调用
+				|| url.protocal == HCURL.FORM_PROTOCAL){
 			//由于可能不同context，所以要进行全遍历，而非假定在前一当前打开的基础上。
 			final MenuItem item = getItem(coreSS, url, true);
 			if(item != null){
@@ -810,7 +768,7 @@ public class ProjResponser {
 									ScreenServer.pushScreen(coreSS, ccanvas);
 									MultiUsingManager.enter(coreSS, screenID, targetURL);
 									
-		//							L.V = L.O ? false : LogManager.log("onLoad controller : " + url.elementID);
+		//							LogManager.log("onLoad controller : " + url.elementID);
 								}catch (final Exception e) {
 									ExceptionReporter.printStackTrace(e);
 								}
@@ -821,17 +779,16 @@ public class ProjResponser {
 				}
 			}
 		}
-		if(e != null){
-			ServerUIUtil.response(coreSS, e.buildJcip(coreSS));
-			return true;
-		}else{
+		
+		if(sendMsgIfFail){
 			//没有找到相应的资源实现，比如:cmd://myCmd, screen://myScreen
-			final String resource = StringUtil.replace((String)ResourceUtil.get(9122), "{resource}", url.url);
+			final String resource = StringUtil.replace((String)ResourceUtil.get(coreSS, 9122), "{resource}", url.url);
 			final J2SESession[] coreSSS = {coreSS};
 			ServerUIAPIAgent.sendMovingMsg(coreSSS, resource);
 			LogManager.err(resource);
-			return false;
 		}
+		
+		return false;
 	}
 
 	public static final boolean bringMletToTop(final J2SESession coreSS, final ProjectContext ctx, final String screenIDLower, final String targetURLLower) {
@@ -883,7 +840,7 @@ public class ProjResponser {
 		}
 		
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("HTMLMlet scale : " + scale);
+			LogManager.log("HTMLMlet scale : " + scale);
 		}
 		
 		final String colorForBodyByHexString = HTMLMlet.getColorForBodyByHexString();

@@ -13,7 +13,7 @@ public class Ack {
 		Ack packate = null;
 		synchronized (freeStack) {
 			if(stackSize == 0){
-//				hc.core.L.V=hc.core.L.O?false:LogManager.log("------MEM ALLOCATE [Message]------");
+//				LogManager.log("------MEM ALLOCATE [Message]------");
 				packate = new Ack();
 			}else{
 				packate = (Ack)freeStack.pop();

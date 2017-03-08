@@ -170,7 +170,7 @@ public class DAOKeyComper implements IDao{
 						}
 					}
 					if(isUsing == false){
-						L.V = L.O ? false : LogManager.log("delete unused keymap icon : " + icons[i].getAbsolutePath());
+						LogManager.log("delete unused keymap icon : " + icons[i].getAbsolutePath());
 						icons[i].delete();
 					}
 				}

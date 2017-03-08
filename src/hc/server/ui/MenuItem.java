@@ -40,7 +40,7 @@ public class MenuItem {
 	BufferedImage cacheOriImage;
 	private BufferedImage settedImg;
 
-	MobiMenu belongToMenu;
+	public MobiMenu belongToMenu;
 	boolean isNeedRefresh;
 	boolean isEnable = true;
 	

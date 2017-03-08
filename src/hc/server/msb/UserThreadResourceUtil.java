@@ -7,6 +7,7 @@ import hc.core.util.LangUtil;
 import hc.core.util.MobileAgent;
 import hc.core.util.ReturnableRunnable;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.SimuMobile;
 import hc.server.ui.design.J2SESession;
 import hc.util.ResourceUtil;
@@ -110,5 +111,9 @@ public class UserThreadResourceUtil {
 		}else{
 			return SimuMobile.PROJ_LEVEL_MOBILE_LOCALE;
 		}
+	}
+
+	public static J2SESession getCoreSSFromCtx(final ProjectContext ctx) {
+		return ServerUIAPIAgent.getProjResponserMaybeNull(ctx).getSessionContextFromCurrThread().j2seSocketSession;
 	}
 }

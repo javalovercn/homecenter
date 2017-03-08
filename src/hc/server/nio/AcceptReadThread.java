@@ -76,7 +76,7 @@ public class AcceptReadThread extends Thread {
 		if(localPort == 0){
 			StarterParameter.relayServerLocalPort = ssc.socket().getLocalPort();//Port();
 		}
-		L.V = L.O ? false : LogManager.log("Build Relay Server at localPort:" + localPort);
+		LogManager.log("Build Relay Server at localPort:" + localPort);
 
 		acceptKey = ssc.register(connectSelector, SelectionKey.OP_ACCEPT);
 		
@@ -158,7 +158,7 @@ public class AcceptReadThread extends Thread {
 					return;
 				}
 				
-				L.V = L.O ? false : LogManager.log("UDP handleWrite");
+				LogManager.log("UDP handleWrite");
 				channel.send(byteBuf, writeAddr);
 				
 				if(byteBuf.hasRemaining()){
@@ -189,7 +189,7 @@ public class AcceptReadThread extends Thread {
 			ssc.close();
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
-			L.V = L.O ? false : LogManager.log("close:" + e.getMessage());
+			LogManager.log("close:" + e.getMessage());
 		}
 	}
 
@@ -225,7 +225,7 @@ public class AcceptReadThread extends Thread {
 								}
 								if(up.addr == null){
 									//收到第一个包，表明通道建立。以标识或检查非法数据包
-									L.V = L.O ? false : LogManager.log("UDP incoming / rebuild at port : " + ((DatagramChannel)key.channel()).socket().getLocalPort());
+									LogManager.log("UDP incoming / rebuild at port : " + ((DatagramChannel)key.channel()).socket().getLocalPort());
 									up.addr = sa;
 //								}else if(writeToAddr == null){
 //									//接收方无的情形，或者接收方没建立通道，不能进行下一下的数据包转发，
@@ -266,12 +266,12 @@ public class AcceptReadThread extends Thread {
 								udpSpeedChannel.send(udpCtrlBB, sa);
 							}else if(tag == MsgBuilder.E_UDP_CONTROLLER_SET_ADDR_NULL){
 								final int bufferDatalen = udpCtrlBB.remaining();
-								final int startIdxUUID = coreSS.getUDPController().UUID_STARD_IDX;
+								final int startIdxUUID = coreSS.hcConnection.getUDPController().UUID_STARD_IDX;
 								
 								final boolean isServer = (bs[MsgBuilder.LEN_UDP_CONTROLLER_HEAD] == 1);
 								final boolean result = SessionConnector.resetXXSideUDPAddressNull(bs, 
 										startIdxUUID, bufferDatalen - startIdxUUID, isServer,
-										bs[coreSS.getUDPController().UDP_RANDOM_HEADER_STARD_IDX], bs[coreSS.getUDPController().UDP_RANDOM_HEADER_STARD_IDX + 1]);
+										bs[coreSS.hcConnection.getUDPController().UDP_RANDOM_HEADER_STARD_IDX], bs[coreSS.hcConnection.getUDPController().UDP_RANDOM_HEADER_STARD_IDX + 1]);
 								
 								//回应成功setNullAddr
 								udpCtrlBB.limit(1);
@@ -280,7 +280,7 @@ public class AcceptReadThread extends Thread {
 											:MsgBuilder.DATA_UDP_CONTROLLER_SET_ADDR_NULL_NOT_FOUND);
 								udpSpeedChannel.send(udpCtrlBB, sa);
 								
-								L.V = L.O ? false : LogManager.log("UDP setAddrNull for uuid[" + new String(bs, startIdxUUID, bufferDatalen - startIdxUUID) + "], from " + sa.toString());
+								LogManager.log("UDP setAddrNull for uuid[" + new String(bs, startIdxUUID, bufferDatalen - startIdxUUID) + "], from " + sa.toString());
 							}
 						}catch (final Throwable e) {
 							ExceptionReporter.printStackTrace(e);
@@ -290,7 +290,7 @@ public class AcceptReadThread extends Thread {
 					}
 					
 					if(key.isValid() == false){
-//						L.V = L.O ? false : LogManager.log("Invalid SelectionKey, skip and continue.");
+//						LogManager.log("Invalid SelectionKey, skip and continue.");
 						continue;
 					}
 					
@@ -304,7 +304,7 @@ public class AcceptReadThread extends Thread {
 						while(true){
 							final ByteBuffer writeBB = sc.getWriteSet(currChannel);
 							if(writeBB == null){
-//								L.V = L.O ? false : LogManager.log("[RelayCache] Close OP_WRITE");
+//								LogManager.log("[RelayCache] Close OP_WRITE");
 								
 								//关闭OP_WRITE
 								final SelectionKey currChannelkey = currChannel.keyFor(connectSelector);
@@ -314,10 +314,10 @@ public class AcceptReadThread extends Thread {
 								try{
 									currChannel.write(writeBB);
 									if(writeBB.hasRemaining()){
-//										L.V = L.O ? false : LogManager.log("[RelayCache] Write , but has remaining");
+//										LogManager.log("[RelayCache] Write , but has remaining");
 										sc.setRewriteSet(currChannel, writeBB);
 									}else{
-//										L.V = L.O ? false : LogManager.log("[RelayCache] Write , clear , try next write");
+//										LogManager.log("[RelayCache] Write , clear , try next write");
 										writeBB.clear();
 										bufferDirectCacher.cycle(writeBB);
 										
@@ -351,7 +351,7 @@ public class AcceptReadThread extends Thread {
 				}
 			}
 		}catch (final Exception e) {
-			L.V = L.O ? false : LogManager.log("Exception : connectSelector.select()");
+			LogManager.log("Exception : connectSelector.select()");
 //			ExceptionReporter.printStackTrace(e);
 		}
 	}
@@ -372,7 +372,7 @@ public class AcceptReadThread extends Thread {
 				}catch (final Exception e) {
 					
 				}
-				L.V = L.O ? false : LogManager.log("Max channel , close connection!");
+				LogManager.log("Max channel , close connection!");
 			}else{
 	//			incomingChannel.socket().setSoTimeout(0);
 	
@@ -404,7 +404,7 @@ public class AcceptReadThread extends Thread {
 				
 				incomingChannel.socket().setSoLinger(true, 3);
 				
-				L.V = L.O ? false : LogManager.log("Accept new SocketChannel socket:" + incomingChannel.socket().hashCode() + ", remotePort:" + incomingChannel.socket().getPort());
+				LogManager.log("Accept new SocketChannel socket:" + incomingChannel.socket().hashCode() + ", remotePort:" + incomingChannel.socket().getPort());
 				
 				//KeepAlive_Tag
 				incomingChannel.socket().setKeepAlive(true);

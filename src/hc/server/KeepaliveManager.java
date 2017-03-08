@@ -1,6 +1,7 @@
 package hc.server;
 
 import hc.core.ContextManager;
+import hc.core.HCConnection;
 import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.IContext;
@@ -32,7 +33,7 @@ import java.util.Vector;
 public class KeepaliveManager {
 	public final int KEEPALIVE_MS = Integer.parseInt(RootConfig.getInstance().
 			getProperty(RootConfig.p_KeepAliveMS));
-
+	
 	public final HCTimer connBuilderWatcher = buildKeepAliveWatcher();
 	
 	/**
@@ -47,32 +48,29 @@ public class KeepaliveManager {
 			public void doBiz(){
 				if(UserThreadResourceUtil.isInServing(coreSS.context)){
 					setEnable(false);
-				}else if((System.currentTimeMillis() - startTime) > doubleKeepTime){
+				}else if((System.currentTimeMillis() - coreSS.hcConnection.startTime) > doubleKeepTime){
 					LogManager.err("Time over for building connection");
 					RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_OverTimeConn_STR);
 					SIPManager.notifyLineOff(coreSS, true, false);
 					setEnable(false);
 				}
 			}
-			long startTime ;
 			@Override
 			public void setEnable(final boolean enable){
-				startTime = System.currentTimeMillis();
+				coreSS.hcConnection.startTime = System.currentTimeMillis();
 				
 //					if(enable == false){
-//						L.V = L.O ? false : LogManager.log("-----------ConnBuilderWatcher DIS able----------");
+//						LogManager.log("-----------ConnBuilderWatcher DIS able----------");
 //					}else{
-//						L.V = L.O ? false : LogManager.log("-----------ConnBuilderWatcher EN able----------");
+//						LogManager.log("-----------ConnBuilderWatcher EN able----------");
 //					}
 				super.setEnable(enable);
 			}
 		};
 	}
 	
-	private boolean isSendLive = false;
-	
 	public final void resetSendData(){
-		isSendLive = false;
+		coreSS.hcConnection.isSendLive = false;
 	}
 	
 	public final J2SESession coreSS;
@@ -84,7 +82,7 @@ public class KeepaliveManager {
 	
 	public final void release(){
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("remove all KepaliveManager HCTimer.");
+			LogManager.log("remove all KepaliveManager HCTimer.");
 		}
 		
 		HCTimer.remove(connBuilderWatcher);
@@ -135,43 +133,70 @@ public class KeepaliveManager {
 				}
 				
 				if(speedSortedRelays.size() != 0){
-	//				L.V = L.O ? false : LogManager.log("use hige speed for connection!");
+	//				LogManager.log("use hige speed for connection!");
 					relays = speedSortedRelays;
 				}
 			}
 			
 			for (int i = 0; i < relays.size(); i++) {//size()有可能正在增加中
-				SIPManager.setOnRelay(coreSS, true);
+				SIPManager.setOnRelay(coreSS.hcConnection, true);
 	
 				final String[] ipAndPorts = (String[])relays.elementAt(i);
 				final String ip = ipAndPorts[0];
 				final String port = ipAndPorts[1];
 	
 				//原为backPort
-				L.V = L.O ? false : LogManager.log("try connect relay server " 
+				LogManager.log("try connect relay server " 
 						+ HttpUtil.replaceIPWithHC(ip) + ", port:" + port);
 				
 				IPAndPort ipport = new IPAndPort(ip, Integer.parseInt(port));
 				
-				ipport = SIPManager.proccReg(coreSS, ipport, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST, SIPManager.REG_WAITING_MS);
+				ipport = SIPManager.proccReg(coreSS.hcConnection, ipport, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST,
+						SIPManager.REG_WAITING_MS, (byte[])coreSS.context.doExtBiz(IContext.BIZ_GET_TOKEN, null));
 				if(ipport != null){
-					coreSS.relayIpPort = ipport;
+					coreSS.hcConnection.relayIpPort = ipport;
 					return true;
 				}
 			}
-			SIPManager.setOnRelay(coreSS, false);
+			SIPManager.setOnRelay(coreSS.hcConnection, false);
 			return false;
 		}
+
+	public final void sendAlive(final int mode) {
+		try{
+//			LogManager.log("Send line watcher package");
+			final HCConnection hcConnection = coreSS.hcConnection;
+			if(mode == ContextManager.STATUS_SERVER_SELF){
+				//保持UDP不断，不需要回应的，由于内网连接时，本逻辑是disable状态。
+				if(hcConnection.isBuildedUPDChannel && hcConnection.isDoneUDPChannelCheck){
+//								if(isSendUDPCheckAlive == false){//本行代码，仅供模拟手机端UDP断线效果
+					hcConnection.udpSender.
+						sendUDP(MsgBuilder.E_TAG_ONLY_SUB_TAG_MSG, MsgBuilder.DATA_SUB_TAG_MSG_UDP_CHECK_ALIVE,
+								zeroUDPBS, 0, 0, 0, false);
+//								isSendUDPCheckAlive = true;
+//							}
+				}
+				//保持TCP不断，同时需要回应，并检测联线状态
+				coreSS.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_SERVERING);
+			}else{
+				coreSS.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_RELAY);
+			}
+		}catch (final Exception e) {
+			SIPManager.notifyLineOff(coreSS, false, false);
+		}
+		coreSS.hcConnection.sendLineMS = System.currentTimeMillis();
+		coreSS.hcConnection.isSendLive = true;
+	}
+
+	private final byte[] zeroUDPBS = new byte[0];
 
 	public final HCTimer keepalive = new HCTimer("KeepAlive", KEEPALIVE_MS, false, true, ThreadPriorityManager.KEEP_ALIVE_PRIORITY){
     	private final int ErrorNeedNatDelay = 30 * 1000;//比如连接Socket出错，而非Http。两分钟
     	private final int lineWatcherMS = RootConfig.getInstance().getIntProperty(RootConfig.p_enableLineWatcher);//60 * 1000 * 5;
-    	private long sendLineMS;
-    	private final byte[] zeroUDPBS = new byte[0];
     	
     	private final boolean reconnect(){
-			if(SIPManager.isOnRelay(coreSS) && coreSS.sipContext.isClose() == false){
-				L.V = L.O ? false : LogManager.log("Use exist socket");
+			if(SIPManager.isOnRelay(coreSS.hcConnection) && coreSS.hcConnection.sipContext.isClose() == false){
+				LogManager.log("Use exist socket");
 				return true;
 			}
 			
@@ -184,7 +209,7 @@ public class KeepaliveManager {
 	    	if(mode == ContextManager.STATUS_EXIT){
 	    		return;
 	    	}else if(mode == ContextManager.STATUS_NEED_NAT){
-	    		isSendLive = false;
+	    		coreSS.hcConnection.isSendLive = false;
 	    		
 				final boolean isConn = reconnect();
 				if(isConn == false){
@@ -205,48 +230,26 @@ public class KeepaliveManager {
 					SIPManager.startConnectionInit(coreSS);
 				}
 			}else if(mode == ContextManager.STATUS_LINEOFF){
-				L.V = L.O ? false : LogManager.log("Line Off Status");
-				isSendLive = false;
+				LogManager.log("Line Off Status");
+				coreSS.hcConnection.isSendLive = false;
 				coreSS.context.setStatus(ContextManager.STATUS_NEED_NAT);
 			}else{
 				//lineWatcherMS == 0表示关闭
 				if(lineWatcherMS > 0){
 					//setIntervalMS(lineWatcherMS);
-					if(isSendLive){
+					if(coreSS.hcConnection.isSendLive){
 						//检查上次发送包是否正常收到，必须要加=，不能仅>，因为在单机极速环境下，出现相同情形
-						if(Math.abs(coreSS.context.rootTagListener.getServerReceiveMS() - sendLineMS) < lineWatcherMS){
+						if(Math.abs(coreSS.context.rootTagListener.getServerReceiveMS() - coreSS.hcConnection.sendLineMS) < lineWatcherMS){
 							//通
-//							L.V = L.O ? false : LogManager.log("Received last line watcher package");
+//							LogManager.log("Received last line watcher package");
 						}else{
 							//不通
-							L.V = L.O ? false : LogManager.log("remote lineoff detected by keepalive");
+							LogManager.log("remote lineoff detected by keepalive");
 							SIPManager.notifyLineOff(coreSS, false, false);
 							return;
 						}
 					}
-					try{
-//						L.V = L.O ? false : LogManager.log("Send line watcher package");
-						final IContext contextInstance = coreSS.context;
-						if(mode == ContextManager.STATUS_SERVER_SELF){
-							//保持UDP不断，不需要回应的，由于内网连接时，本逻辑是disable状态。
-							if(contextInstance.isBuildedUPDChannel && contextInstance.isDoneUDPChannelCheck){
-//								if(isSendUDPCheckAlive == false){//本行代码，仅供模拟手机端UDP断线效果
-								contextInstance.udpSender.
-									sendUDP(MsgBuilder.E_TAG_ONLY_SUB_TAG_MSG, MsgBuilder.DATA_SUB_TAG_MSG_UDP_CHECK_ALIVE,
-											zeroUDPBS, 0, 0, 0, false);
-	//								isSendUDPCheckAlive = true;
-	//							}
-							}
-							//保持TCP不断，同时需要回应，并检测联线状态
-							contextInstance.send(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_SERVERING);
-						}else{
-							contextInstance.send(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_RELAY);
-						}
-					}catch (final Exception e) {
-						SIPManager.notifyLineOff(coreSS, false, false);
-					}
-					sendLineMS = System.currentTimeMillis();
-					isSendLive = true;
+					sendAlive(mode);
 				}
 			}
 	    	
@@ -254,9 +257,9 @@ public class KeepaliveManager {
 		@Override
 		public void setEnable(final boolean enable){
 			if(enable == false){
-				L.V = L.O ? false : LogManager.log("Disable keepalive");
+				L.V = L.WShop ? false : LogManager.log("Disable keepalive");
 			}else{
-				L.V = L.O ? false : LogManager.log("Enable keepalive");
+				L.V = L.WShop ? false : LogManager.log("Enable keepalive");
 			}
 			super.setEnable(enable);
 		}
@@ -299,7 +302,7 @@ class TCPTestThread extends Thread{
 			final int bytesRcvd=in.read(zeroLenbs, 0, zeroLenbs.length);
 			if(bytesRcvd == zeroLenbs.length){
 				synchronized (sorted) {
-					L.V = L.O ? false : LogManager.log("success receive TCP test speed echo from IP : " + tcpTestIP + ", port : " + tcpTestPort);
+					LogManager.log("success receive TCP test speed echo from IP : " + tcpTestIP + ", port : " + tcpTestPort);
 					sorted.add(tcpInfo);
 				}
 			}
@@ -357,7 +360,7 @@ class UDPTestThread extends Thread{
 				}
 				if(isRight){
 					synchronized (sorted) {
-						L.V = L.O ? false : LogManager.log("Success test udp speed");
+						LogManager.log("Success test udp speed");
 						sorted.add(updInfo);
 					}
 					udpSocket.close();

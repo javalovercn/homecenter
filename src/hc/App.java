@@ -3,6 +3,7 @@ package hc;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.GlobalConditionWatcher;
+import hc.core.HCConnection;
 import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.IContext;
@@ -65,6 +66,7 @@ import hc.util.HttpUtil;
 import hc.util.IBiz;
 import hc.util.LinkPropertiesOption;
 import hc.util.LogServerSide;
+import hc.util.NoLogForRoot;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 import hc.util.SecurityDataProtector;
@@ -341,7 +343,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		if (PropertiesManager.isSimu()) {//注意：须在上行setValue(PropertiesManager.p_IsSimu, IConstant.TRUE);之后
 			L.setInWorkshop(true);
-			L.V = L.O ? false : LogManager.log("isSimu : true");
+			LogManager.log("isSimu : true");
 			
 			final Thread t = new Thread("printAllThreadStack"){
 				final long sleepMS = Long.valueOf(PropertiesManager.getValue(PropertiesManager.p_DebugStackMS, "20000"));
@@ -422,7 +424,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			final UncaughtExceptionHandler handler = new UncaughtExceptionHandler() {
 				@Override
 				public final void uncaughtException(final Thread t, final Throwable e) {
-	//					L.V = L.O ? false : LogManager.log("******************uncaughtException*****************=>" + e.getMessage());
+	//					LogManager.log("******************uncaughtException*****************=>" + e.getMessage());
 						ExceptionReporter.printStackTraceFromThreadPool(e);
 //						if(oldhandler != null){//for Android存在重复printStackTrace
 //							oldhandler.uncaughtException(t, e);//for Android异常退出
@@ -621,7 +623,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		IConstant.setInstance(new J2SEConstant());
 		
 		if(PropertiesManager.getValue(PropertiesManager.p_CertKey) == null){
-			L.V = L.O ? false : LogManager.log("create new certification for new install.");
+			LogManager.log("create new certification for new install.");
 			ResourceUtil.generateCertForNullOrError();
 		}
 
@@ -666,7 +668,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 						LogManager.err("initGlobalFontSetting error : " + e.toString());
 						ExceptionReporter.printStackTrace(e);
 						
-						L.V = L.O ? false : LogManager.log("(set default font and LookAndFeel)");
+						LogManager.log("(set default font and LookAndFeel)");
 						applyLookFeel(ConfigPane.getDefaultSkin(), "");
 					}
 					break;
@@ -740,13 +742,11 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	}
 
 	private static void setServerLog() {
-		LogManager.setLog(new LogServerSide());
-		
 		final String log = PropertiesManager.getValue(PropertiesManager.p_Log);
 		if(log == null || log.equals(IConstant.TRUE)){
-			L.enable(true);
+			LogManager.setLog(new LogServerSide());
 		}else{
-			L.enable(false);
+			LogManager.setLog(new NoLogForRoot());
 		}
 	}
 
@@ -1214,7 +1214,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 					final Dimension dimesion = dialog.getSize();
 					if(dimesion.width < 300){//设置最小宽度，因为可能太小，标题不好看
 						if(L.isInWorkshop){
-							L.V = L.O ? false : LogManager.log("set mininum dialog width to 300.");
+							LogManager.log("set mininum dialog width to 300.");
 						}
 						dialog.setSize(300, dimesion.height);
 					}
@@ -1395,7 +1395,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 					final Dimension dimesion = dialog.getSize();
 					if(dimesion.width < 300){//设置最小宽度，因为可能太小，标题不好看
 						if(L.isInWorkshop){
-							L.V = L.O ? false : LogManager.log("set mininum dialog width to 300.");
+							LogManager.log("set mininum dialog width to 300.");
 						}
 						dialog.setSize(300, dimesion.height);
 					}
@@ -1441,7 +1441,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			if(currCenterWindow != null && isDelayMode){
 				delayCenterWindow.push(dialog);
 				if(PropertiesManager.isSimu()){
-					L.V = L.O ? false : LogManager.log("push window to delay stack!!!");
+					LogManager.log("push window to delay stack!!!");
 				}
 				return;
 			}else{
@@ -2114,7 +2114,26 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		IConstant.setPassword(pwd);
 		
-		reloadEncrypt(false, null);
+//		reloadEncrypt(false, null);
+		//正在会话的，无需进行重新初始化
+		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
+		for (int i = 0; i < coreSSS.length; i++) {
+			final CoreSession coreSession = coreSSS[i];
+			if(coreSession.context.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON){
+				final HCConnection hcConnection = coreSession.hcConnection;
+				final IEncrypter en = hcConnection.getUserEncryptor();
+				if(en != null){
+					LogManager.log("password is changed, call user encryptor.notifyExit methoad for status [" + ContextManager.STATUS_READY_TO_LINE_ON + "].");
+					try{
+						en.notifyExit(IConstant.serverSide);
+					}catch (final Throwable e) {
+						e.printStackTrace();
+					}
+				}
+				LogManager.log("reload user encryptor for status [" + ContextManager.STATUS_READY_TO_LINE_ON + "].");
+				hcConnection.loadEncryptor();
+			}
+		}
 		
 //		if (IConstant.serverSide) {
 //			final String checkAutoStart = IConstant.TRUE;
@@ -2138,21 +2157,21 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			}
 		}
 		
-		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
-		for (int i = 0; i < coreSSS.length; i++) {
-			final IContext ic = coreSSS[i].context;
-			final IEncrypter en = ic.getUserEncryptor();
-			if(en != null){
-				L.V = L.O ? false : LogManager.log("ID or password is changed, call user encryptor.notifyExit methoad.");
-				try{
-					en.notifyExit(IConstant.serverSide);
-				}catch (final Throwable e) {
-					e.printStackTrace();
-				}
-				L.V = L.O ? false : LogManager.log("reload user encryptor.");
-			}
-			ic.loadEncryptor();
-		}
+//		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
+//		for (int i = 0; i < coreSSS.length; i++) {
+//			final HCConnection hcConnection = coreSSS[i].hcConnection;
+//			final IEncrypter en = hcConnection.getUserEncryptor();
+//			if(en != null){
+//				LogManager.log("ID or password is changed, call user encryptor.notifyExit methoad.");
+//				try{
+//					en.notifyExit(IConstant.serverSide);
+//				}catch (final Throwable e) {
+//					e.printStackTrace();
+//				}
+//			}
+//			LogManager.log("reload user encryptor.");
+//			hcConnection.loadEncryptor();
+//		}
 
 		if(isNeedRestart){
 			ServerUIUtil.restartResponsorServerDelayMode(null, null);
@@ -2534,7 +2553,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			congPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 		}
 		
-		//L.V = L.O ? false : LogManager.log("os.version : " + System.getProperty("os.name"));
+		//LogManager.log("os.version : " + System.getProperty("os.name"));
 		if(isLockWarn && 
 				(ResourceUtil.isWindowsXP() || ResourceUtil.isWindows2003()
 				|| ResourceUtil.isWindows2008() || ResourceUtil.isWindowsVista())){

@@ -55,7 +55,7 @@ public class UDPPair {
 			try{
 				channel.disconnect();
 			}catch (final Exception e) {
-				L.V = L.O ? false : LogManager.log("Fail disconnect udp channel");
+				LogManager.log("Fail disconnect udp channel");
 				ExceptionReporter.printStackTrace(e);
 			}
 			try{

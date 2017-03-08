@@ -86,7 +86,7 @@ public class ScreenServer {
 						coreSS.currScreen = (ICanvas)mhtml;
 						
 						resumeCurrent(coreSS);
-	//					L.V = L.O ? false : LogManager.log("shift screen [" + url + "] to top. index : " + i + ", size : " + size);
+	//					LogManager.log("shift screen [" + url + "] to top. index : " + i + ", size : " + size);
 						return;
 					}
 				}
@@ -130,7 +130,7 @@ public class ScreenServer {
 			
 			coreSS.currScreen = screen;
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("pushScreen current [" + screen + "]");
+				LogManager.log("pushScreen current [" + screen + "]");
 			}
 			try{
 				screen.onStart();
@@ -161,7 +161,7 @@ public class ScreenServer {
 						removeRemoteDispalyByIdx(coreSS);
 						mletHtmlCanvas.onExit(true);
 						if(L.isInWorkshop){
-							L.V = L.O ? false : LogManager.log("===>successful auto release after go : " + mletHtmlCanvas.mlet.getTarget());
+							LogManager.log("===>successful auto release after go : " + mletHtmlCanvas.mlet.getTarget());
 						}
 						return;
 					}
@@ -171,7 +171,7 @@ public class ScreenServer {
 						removeRemoteDispalyByIdx(coreSS);
 						mletSnapCanvas.onExit(true);
 						if(L.isInWorkshop){
-							L.V = L.O ? false : LogManager.log("===>successful auto release after go : " + mletSnapCanvas.mlet.getTarget());
+							LogManager.log("===>successful auto release after go : " + mletSnapCanvas.mlet.getTarget());
 						}
 						return;
 					}
@@ -239,9 +239,9 @@ public class ScreenServer {
 		synchronized (coreSS) {
 			if(coreSS.currScreen != null){
 				try{
-					L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "back / exit");
+					LogManager.log(ScreenCapturer.OP_STR + "back / exit");
 					if(L.isInWorkshop){
-						L.V = L.O ? false : LogManager.log("back / exit [" + coreSS.currScreen + "]");
+						LogManager.log("back / exit [" + coreSS.currScreen + "]");
 					}
 					SessionThread.setWithCheckSecurityX(coreSS);
 					coreSS.currScreen.onExit();//注意：不会直接调用Mlet或子类
@@ -257,7 +257,7 @@ public class ScreenServer {
 			}else{
 				coreSS.currScreen = (ICanvas)coreSS.mobiScreenMap.pop();
 				if(L.isInWorkshop){
-					L.V = L.O ? false : LogManager.log("resumeScreen [" + coreSS.currScreen + "]");
+					LogManager.log("resumeScreen [" + coreSS.currScreen + "]");
 				}
 				resumeCurrent(coreSS);
 				return true;
@@ -323,7 +323,7 @@ public class ScreenServer {
 		ServerUIAPIAgent.removeMletURLHistory(coreSS, projectContext.getProjectID(), mlet.getTarget());//可能自然pop，也可能autoRelease
 		
 		if(isAutoReleaseAfterGo){
-			L.V = L.O ? false : LogManager.log("Mlet/HTMLMlet [" + mlet.getTarget() + "] is auto released after go to other Mlet/HTMLMlet.");
+			LogManager.log("Mlet/HTMLMlet [" + mlet.getTarget() + "] is auto released after go to other Mlet/HTMLMlet.");
 		}
 		
 		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {

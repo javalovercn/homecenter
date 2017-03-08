@@ -24,7 +24,6 @@ public abstract class UDPReceiveServer extends Thread{
 	public void run(){
 		final DatagramPacketCacher cacher = DatagramPacketCacher.getInstance();  
 		final EventBackCacher ebCacher = EventBackCacher.getInstance();
-		final ISIPContext isip = coreSS.sipContext;
 		
     	while (!isShutdown) {
 			if(socket == null){
@@ -39,6 +38,7 @@ public abstract class UDPReceiveServer extends Thread{
 				}
 			}
 
+			final ISIPContext isip = coreSS.hcConnection.sipContext;
 			final Object dp = cacher.getFree(isip);
         	isip.setDatagramLength(dp, MsgBuilder.UDP_BYTE_SIZE);
             try {
@@ -50,8 +50,8 @@ public abstract class UDPReceiveServer extends Thread{
             }catch (Exception e) {
 				cacher.cycle(dp);
 
-				if(coreSS.sipContext.isNearDeployTime()){
-					L.V = L.O ? false : LogManager.log("UDPReceive Exception near deploy time, maybe closed the old socket.");
+				if(coreSS.hcConnection.sipContext.isNearDeployTime()){
+					LogManager.log("UDPReceive Exception near deploy time, maybe closed the old socket.");
             		continue;
             	}
 
@@ -81,8 +81,8 @@ public abstract class UDPReceiveServer extends Thread{
 	public abstract void closeOldSocket();
 
 	public void setUdpServerSocket(Object udpServerSocket) {
-//		hc.core.L.V=hc.core.L.O?false:LogManager.log("Changed Receive Socket");
-		coreSS.sipContext.enterDeployStatus();
+//		LogManager.log("Changed Receive Socket");
+		coreSS.hcConnection.sipContext.enterDeployStatus();
 		
 		closeOldSocket();
 		socket = udpServerSocket;

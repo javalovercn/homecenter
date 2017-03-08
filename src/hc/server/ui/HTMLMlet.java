@@ -64,7 +64,7 @@ public class HTMLMlet extends Mlet {
 	 * @see #setCSSForDiv(JComponent, String, String)
 	 * @since 7.0
 	 */
-	public final void loadCSS(final String styles){
+	public void loadCSS(final String styles){
 		sizeHeightForXML.loadCSSImpl(this, __context, styles);
 	}
 	
@@ -79,7 +79,7 @@ public class HTMLMlet extends Mlet {
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.0
 	 */
-	public final void setCSSForDiv(final JComponent component, final String className, final String styles){//in user thread
+	public void setCSSForDiv(final JComponent component, final String className, final String styles){//in user thread
 		sizeHeightForXML.setCSSForDivImpl(this, __context, component, className, styles);
 	}
 	
@@ -103,7 +103,7 @@ public class HTMLMlet extends Mlet {
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.32
 	 */
-	public final void setCSSByClass(final JComponent component, final String className){
+	public void setCSSByClass(final JComponent component, final String className){
 		if(className == null || component == null){
 			return;
 		}
@@ -265,7 +265,7 @@ public class HTMLMlet extends Mlet {
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.0
 	 */
-	public final void setCSS(final JComponent component, final String className, final String styles){//in user thread
+	public void setCSS(final JComponent component, final String className, final String styles){//in user thread
 		sizeHeightForXML.setCSSImpl(this, __context, component, className, styles);
 	}
 	
@@ -280,12 +280,12 @@ public class HTMLMlet extends Mlet {
 	 * @see #setCSS(JComponent, String, String)
 	 * @since 7.0
 	 */
-	public final void setCSSForToggle(final JToggleButton togButton, final String className, final String styles){
+	public void setCSSForToggle(final JToggleButton togButton, final String className, final String styles){
 		sizeHeightForXML.setCSSForToggleImpl(this, __context, togButton, className, styles);
 	}
 	
 	/**
-	 * set attribute 'dir' for a div of JComponent.<BR><BR>
+	 * set attribute 'dir' for a DIV of JComponent.<BR><BR>
 	 * Know more :<BR>
 	 * 1. a {@link HTMLMlet} will be set RTL by server for the entire page if language of mobile is RTL.<BR>
 	 * 2. in some case, a JComponent may be set RTL/LTR different from the entire page.
@@ -293,7 +293,7 @@ public class HTMLMlet extends Mlet {
 	 * @param isRTL true means right to left, false means left to right.
 	 * @since 7.40
 	 */
-	public final void setRTL(final JComponent component, final boolean isRTL){
+	public void setRTL(final JComponent component, final boolean isRTL){
 		sizeHeightForXML.setRTLForDivImpl(this, __context, component, isRTL);
 	}
 
@@ -305,7 +305,7 @@ public class HTMLMlet extends Mlet {
 	 * @see #getFontSizeForSmall()
 	 * @see #getFontSizeForLarge()
 	 */
-	public final int getFontSizeForNormal(){
+	public int getFontSizeForNormal(){
 		return sizeHeightForXML.getFontSizeForNormal();
 	}
 	
@@ -317,7 +317,7 @@ public class HTMLMlet extends Mlet {
 	 * @see #getFontSizeForNormal()
 	 * @see #getFontSizeForLarge()
 	 */
-	public final int getFontSizeForSmall(){
+	public int getFontSizeForSmall(){
 		return sizeHeightForXML.getFontSizeForSmall();
 	}
 	
@@ -329,7 +329,7 @@ public class HTMLMlet extends Mlet {
 	 * @see #getFontSizeForSmall()
 	 * @see #getFontSizeForNormal()
 	 */
-	public final int getFontSizeForLarge(){
+	public int getFontSizeForLarge(){
 		return sizeHeightForXML.getFontSizeForLarge();
 	}
 	
@@ -340,7 +340,7 @@ public class HTMLMlet extends Mlet {
 	 * @since 7.0
 	 * @see #getButtonHeight()
 	 */
-	public final int getFontSizeForButton(){
+	public int getFontSizeForButton(){
 		return sizeHeightForXML.getFontSizeForButton();
 	}
 	
@@ -350,7 +350,7 @@ public class HTMLMlet extends Mlet {
 	 * @since 7.0
 	 * @see #getFontSizeForButton()
 	 */
-	public final int getButtonHeight(){
+	public int getButtonHeight(){
 		return sizeHeightForXML.getButtonHeight();
 	}
 	
@@ -360,7 +360,7 @@ public class HTMLMlet extends Mlet {
 	 * @return
 	 * @since 7.3
 	 */
-	public final int getMobileWidth(){
+	public int getMobileWidth(){
 		return sizeHeightForXML.getMobileWidth(coreSS);
 	}
 	
@@ -370,7 +370,7 @@ public class HTMLMlet extends Mlet {
 	 * @return
 	 * @since 7.3
 	 */
-	public final int getMobileHeight(){
+	public int getMobileHeight(){
 		return sizeHeightForXML.getMobileHeight(coreSS);
 	}
 	

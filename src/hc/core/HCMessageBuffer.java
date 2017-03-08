@@ -19,7 +19,7 @@ public class HCMessageBuffer {
 	public final HCMessage getFree(){
 		synchronized (free) {
 			if(stackSize == 0){
-//				hc.core.L.V=hc.core.L.O?false:LogManager.log("------MEM ALLOCATE [Message]------");
+//				LogManager.log("------MEM ALLOCATE [Message]------");
 				return new HCMessage();
 			}else{
 				stackSize--;

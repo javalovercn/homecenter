@@ -93,7 +93,7 @@ public class LineOnManager {
 		}
 		//return obs.toString();
 		String out = obs.toString();
-//		L.V = L.O ? false : LogManager.log(" LineOnManager printNewRelayServers : " + out);
+//		LogManager.log(" LineOnManager printNewRelayServers : " + out);
 		return out;
 	}
 
@@ -110,7 +110,7 @@ public class LineOnManager {
 				final DataLineOn dlo = vector.elementAt(i);
 				if(dlo.alive < borderMS){
 					vector.remove(i);
-					L.V = L.O ? false : LogManager.log(" LineOnManager REMOVE UNALIVE : " + dlo.id);
+					LogManager.log(" LineOnManager REMOVE UNALIVE : " + dlo.id);
 				}
 			}
 		}
@@ -157,10 +157,10 @@ public class LineOnManager {
 			
 			if(sameIdObjIdx == -1){
 				vector.add(lo);
-				L.V = L.O ? false : LogManager.log(" LineOnManager ADD lineOn for UUID : " + para_ID);
+				LogManager.log(" LineOnManager ADD lineOn for UUID : " + para_ID);
 			}else{
 				vector.set(sameIdObjIdx, lo);
-				L.V = L.O ? false : LogManager.log(" LineOnManager UPDATE lineOn for UUID : " + para_ID);
+				LogManager.log(" LineOnManager UPDATE lineOn for UUID : " + para_ID);
 			}
 
 			removeUnalive(para_ID);
@@ -189,7 +189,7 @@ public class LineOnManager {
 				DataLineOn dlo = vector.elementAt(i);
 				//DELETE FROM `lineon` WHERE id = "' . $id . '" AND token = "'.$_GET['token'].'";');
 				if(dlo.id.equals(para_ID) && dlo.token.equals(para_TOKEN)){
-					L.V = L.O ? false : LogManager.log(" LineOnManager REMOVE lineOff | mobiLineIn for UUID : " + para_ID);
+					LogManager.log(" LineOnManager REMOVE lineOff | mobiLineIn for UUID : " + para_ID);
 					vector.remove(i);
 					break;
 				}
@@ -207,7 +207,7 @@ public class LineOnManager {
 					dlo.hideToken = hcurl.getValueofPara("hideToken");
 					dlo.alive = System.currentTimeMillis();
 					
-					L.V = L.O ? false : LogManager.log(" LineOnManager UPDATE ID=" + para_ID + " WITH alive");
+					LogManager.log(" LineOnManager UPDATE ID=" + para_ID + " WITH alive");
 					break;
 				}
 			}			
@@ -223,7 +223,7 @@ public class LineOnManager {
 				//serverNum = ('.$_GET['serverNum'].') WHERE id = "'.$_GET['id'].'" AND token = "'.$_GET['token'].'";');
 				if(dlo.id.equals(para_ID) && dlo.token.equals(para_TOKEN)){
 					dlo.serverNum = Integer.parseInt(hcurl.getValueofPara("serverNum"));
-					L.V = L.O ? false : LogManager.log(" LineOnManager UPDATE ID=" + para_ID + " WITH serverNum = " + dlo.serverNum);
+					LogManager.log(" LineOnManager UPDATE ID=" + para_ID + " WITH serverNum = " + dlo.serverNum);
 					break;
 				}
 			}

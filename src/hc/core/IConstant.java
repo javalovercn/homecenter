@@ -152,7 +152,7 @@ public abstract class IConstant {
 			ExceptionReporter.printStackTrace(e);
 			passwordBS = password.getBytes();
 		}
-//		hc.core.L.V=hc.core.L.O?false:LogManager.log("PWD byte len:" + passwordBS.length + ", " + password);
+//		LogManager.log("PWD byte len:" + passwordBS.length + ", " + password);
 		CUtil.setCertKey((byte[])IConstant.getInstance().getObject(IConstant.CertKey));
 	}
 

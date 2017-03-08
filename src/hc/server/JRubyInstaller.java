@@ -92,9 +92,9 @@ public class JRubyInstaller {
 	
 	public static void callDownload(final boolean isRedownload){
 		if(isRedownload){
-			L.V = L.O ? false : LogManager.log("fail on download and retry download JRuby engine...");
+			LogManager.log("fail on download and retry download JRuby engine...");
 		}else{
-			L.V = L.O ? false : LogManager.log("download JRuby engine...");
+			LogManager.log("download JRuby engine...");
 		}
 		String jruby_ver = "jruby.ver";
 		String jruby_md5 = "jruby.md5";
@@ -139,7 +139,7 @@ public class JRubyInstaller {
 			redownload();
 			return;
 		}else{
-			L.V = L.O ? false : LogManager.log("success get download online lib information.");
+			LogManager.log("success get download online lib information.");
 		}
 
 		final String _lastJrubyVer = thirdlibs.getProperty(jruby_ver);
@@ -153,7 +153,7 @@ public class JRubyInstaller {
 		final String storeFile = J2SEContext.jrubyjarname;
 		final File rubyjar = new File(ResourceUtil.getBaseDir(), storeFile);
 		if(rubyjar.exists()){
-			L.V = L.O ? false : LogManager.log("remove fail download or old version file [" + storeFile + "].");
+			LogManager.log("remove fail download or old version file [" + storeFile + "].");
 			rubyjar.delete();
 		}
 		
@@ -165,7 +165,7 @@ public class JRubyInstaller {
 				PropertiesManager.saveFile();
 				
 				try{
-					L.V = L.O ? false : LogManager.log("successful installed JRuby.");
+					LogManager.log("successful installed JRuby.");
 					
 					RootServerConnector.notifyLineOffType(J2SESession.NULL_J2SESESSION_FOR_PROJECT, "lof=jrubyOK");
 					
@@ -203,7 +203,7 @@ public class JRubyInstaller {
 
 	private static void redownload() {
 		try{
-			L.V = L.O ? false : LogManager.log("fail to get download online lib information, wait for a moment...");
+			LogManager.log("fail to get download online lib information, wait for a moment...");
 			Thread.sleep(5000);
 			callDownload(true);
 		}catch (final Exception e) {

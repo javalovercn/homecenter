@@ -75,7 +75,7 @@ public class LinuxTrayIcon extends TransparentFrame implements ITrayIcon {
 					saveLocation();
 				}
 				isDraged = false;
-//				L.V = L.O ? false : LogManager.log("mouseReleased , x : " + e.getXOnScreen() + ", y : " + e.getYOnScreen());
+//				LogManager.log("mouseReleased , x : " + e.getXOnScreen() + ", y : " + e.getYOnScreen());
 				if(iconMouseListener != null){
 					iconMouseListener.mouseReleased(e);
 				}

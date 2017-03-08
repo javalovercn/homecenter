@@ -76,7 +76,7 @@ public class Jcip {
 		}else{
 			temp = String.valueOf(chars, start, end - start);
 		}
-		//hc.core.L.V=hc.core.L.O?false:LogManager.log("Jcip String item:" + temp);
+		//LogManager.log("Jcip String item:" + temp);
 		return temp;
 	}
 
@@ -107,7 +107,7 @@ public class Jcip {
 	}
 
 	public String[] getArrString(){
-		//hc.core.L.V=hc.core.L.O?false:LogManager.log("Enter ArrString");
+		//LogManager.log("Enter ArrString");
 		final Stack v = new Stack(4);
 		while(c != ']'){
 			while(c != '\'' && c != ']'){
@@ -119,7 +119,7 @@ public class Jcip {
 				break;
 			}
 			
-			//hc.core.L.V=hc.core.L.O?false:LogManager.log("StringArr : new String");
+			//LogManager.log("StringArr : new String");
 			Object obj = getString();
 			v.push(obj);
 			
@@ -128,7 +128,7 @@ public class Jcip {
 				c = chars[index++];
 			}
 		}
-		//hc.core.L.V=hc.core.L.O?false:LogManager.log("Exit ArrString");
+		//LogManager.log("Exit ArrString");
 		if(index == charArrLen){
 			
 		}else{

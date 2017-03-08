@@ -13,7 +13,7 @@ public class DataMTUTest extends HCData {
 	}
 
 	public void setDataLen(int dataLen){
-		hc.core.L.V=hc.core.L.O?false:LogManager.log("try MTU : " + dataLen);
+		LogManager.log("try MTU : " + dataLen);
 		int realLen = dataLen - 2 - MsgBuilder.INDEX_MSG_DATA;
 		ByteUtil.integerToTwoBytes(realLen, bs, LEN_INDEX);
 		for (int i = 0; i < realLen; i++) {

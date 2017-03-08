@@ -294,7 +294,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 							final Properties had = new Properties();
 							try{
 								final String url = urlField.getText();
-								ResourceUtil.loadFromURL(had, url);
+								ResourceUtil.loadFromURL(had, url, ResourceUtil.getUserAgentForHAD());
 								
 								final JPanel jpanel = new JPanel(new BorderLayout());
 								final StringBuffer sb = new StringBuffer();
@@ -333,7 +333,9 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 							"<br><br>for example, <strong>http://example.com/dir_or_virtual/tv.had</strong> , <strong>NOTE:</strong> it is <strong>had</strong> file, not <strong>har</strong> file." +
 							"<br>please put both <strong>tv.har</strong>, <strong>tv.had</strong> in directory <strong>dir_or_virtual</strong> for download." +
 							"<br><br><strong>had</strong> file provides version information which is used to determine upgrade or not." +
-							"<br>click <strong>Save as</strong> button, <strong>had</strong> file is automatically created with <strong>har</strong> file if URL is not blank.</html>"),
+							"<br>click <strong>Save as</strong> button, <strong>had</strong> file is automatically created with <strong>har</strong> file if URL is not blank." +
+							"<br><br>for more about server, see user-agent of HTTP/HTTPS request log." +
+							"</html>"),
 							BorderLayout.CENTER);
 					upgradePanel.setBorder(new TitledBorder("Upgrade URL"));
 				}

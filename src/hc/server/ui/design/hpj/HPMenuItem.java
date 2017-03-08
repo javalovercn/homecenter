@@ -50,6 +50,8 @@ public class HPMenuItem extends HPNode {
 		final String elementID = hcurl1.elementID;
 		if(elementID.startsWith(CCoreUtil.SYS_PREFIX)){
 			return "Error " + TARGET_LOCATOR + " [" + elementID + "] : <strong>" + CCoreUtil.SYS_PREFIX + "</strong> is system reserved prefix.";
+		}else if(elementID.indexOf(" ") >= 0){
+			return "Error " + TARGET_LOCATOR + " [" + elementID + "] : contains illegal character ' '";
 		}
 		
 		return super.validate();

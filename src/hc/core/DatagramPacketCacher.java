@@ -21,7 +21,7 @@ public class DatagramPacketCacher {
 	public final Object getFree(final ISIPContext sipContext){
 		synchronized (free) {
 			if(freeSize == 0){
-//				hc.core.L.V=hc.core.L.O?false:LogManager.log("------MEM ALLOCATE [DatagramPacket]------");
+//				LogManager.log("------MEM ALLOCATE [DatagramPacket]------");
 				return sipContext.getDatagramPacket(null);
 			}else{
 				freeSize--;

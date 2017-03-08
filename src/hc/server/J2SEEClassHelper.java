@@ -20,9 +20,9 @@ public class J2SEEClassHelper {
 
 			//通知客户端可以删除cache，客户端不能自行删除。
 			final String softUID = UserThreadResourceUtil.getMobileSoftUID(coreSS);
-			L.V = L.O ? false : LogManager.log("receive ERR_ON_CACHE on project [" + classPara + "].");
+			LogManager.log("receive ERR_ON_CACHE on project [" + classPara + "].");
 			if(CacheManager.removeUIDFrom(classPara, softUID)){
-				L.V = L.O ? false : LogManager.log("remove cache data for [" + classPara + "/" + softUID + "].");
+				LogManager.log("remove cache data for [" + classPara + "/" + softUID + "].");
 			}
 		}
 //		if(className.equals("testClass")){

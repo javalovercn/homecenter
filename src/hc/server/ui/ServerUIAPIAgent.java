@@ -27,6 +27,7 @@ import hc.server.msb.UserThreadResourceUtil;
 import hc.server.msb.Workbench;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.JarMainMenu;
+import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
 import hc.server.util.HCLimitSecurityManager;
@@ -420,7 +421,7 @@ public class ServerUIAPIAgent {
 			final QuestionParameter qp, final int int_id, final String result) {
 		final QuestionGlobalLock quesLock = qp.getGlobalLockMaybeNull();
 		if(quesLock != null){
-			if(quesLock.isProcessed(coreSS, int_id, (String)ResourceUtil.get(9237) + qp.questionDesc)){
+			if(quesLock.isProcessed(coreSS, int_id, (String)ResourceUtil.get(coreSS, 9237) + qp.questionDesc)){
 				return false;
 			}
 		}
@@ -538,7 +539,7 @@ public class ServerUIAPIAgent {
 					final boolean isTop = targetURL.equals(screenIDLower) 
 							|| targetURL.equals(ServerUIAPIAgent.buildScreenID(ctx.getProjectID(), HCURL.buildMletAliasURL(targetURLLower)));
 					if(L.isInWorkshop){
-						L.V = L.O ? false : LogManager.log("===>" + screenIDLower + " is on top : " + isTop);
+						LogManager.log("===>" + screenIDLower + " is on top : " + isTop);
 					}
 					return isTop;
 				}
@@ -567,7 +568,7 @@ public class ServerUIAPIAgent {
 					
 					ScreenServer.pushToTopForMlet(coreSS, screenIDLower);
 					if(L.isInWorkshop){
-						L.V = L.O ? false : LogManager.log("===>sucessful bring to Top : " + screenIDLower);
+						LogManager.log("===>sucessful bring to Top : " + screenIDLower);
 					}
 					return false;
 				}
@@ -576,7 +577,7 @@ public class ServerUIAPIAgent {
 	//		System.out.println("----------pushMletURLToHistory : " + url);
 			mletHistoryUrl.push(screenIDLower);//注意：有可能对HTMLMlet的form://xx，但实际手机效果为Mlet。
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("===>push into history url : " + screenIDLower);
+				LogManager.log("===>push into history url : " + screenIDLower);
 			}
 			return true;
 		}
@@ -595,7 +596,7 @@ public class ServerUIAPIAgent {
 			}
 			if(L.isInWorkshop){
 				if(removeIdx >= 0){
-					L.V = L.O ? false : LogManager.log("===>pop out from history url : " + targetURL);
+					LogManager.log("===>pop out from history url : " + targetURL);
 				}
 			}
 		}
@@ -768,7 +769,8 @@ public class ServerUIAPIAgent {
 			@Override
 			public Object run() {
 				for (int i = 0; i < coreSS.length; i++) {
-					HCURLUtil.sendCmd(coreSS[i], HCURL.DATA_CMD_MOVING_MSG, "value", msg);
+					final J2SESession oneCoreSS = coreSS[i];
+					sendOneMovingMsg(oneCoreSS, msg);
 				}
 				return null;
 			}
@@ -837,14 +839,14 @@ public class ServerUIAPIAgent {
 			if(mlet.getTarget() == null){
 				throw new Error("target of Mlet is null");
 			}
-			L.V = L.O ? false : LogManager.log("openMlet elementID : " + screenID + ", targetInMlet : " + mlet.getTarget());
+			LogManager.log("openMlet elementID : " + screenID + ", targetInMlet : " + mlet.getTarget());
 		}
 		
 		boolean isHTMLMlet = (mlet instanceof HTMLMlet);
 		final IMletCanvas mcanvas;
 		if(isHTMLMlet == false || ProjResponser.isMletMobileEnv(coreSS) || ProjResponser.getMletComponentCount(coreSS, context, mlet) == 0){
 			if(isHTMLMlet){
-				L.V = L.O ? false : LogManager.log("force HTMLMlet to Mlet, because there is no component in it or for J2ME mobile.");
+				LogManager.log("force HTMLMlet to Mlet, because there is no component in it or for J2ME mobile.");
 				isHTMLMlet = false;
 			}
 			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_MLET, screenID);
@@ -876,18 +878,28 @@ public class ServerUIAPIAgent {
 		
 		if(isForm){
 			if(isHTMLMlet){
-				L.V = L.O ? false : LogManager.log(" onStart HTMLMlet form : [" + title + "]");
+				LogManager.log(" onStart HTMLMlet form : [" + title + "]");
 			}else{
-				L.V = L.O ? false : LogManager.log(" onStart Mlet form : [" + title + "]");
+				LogManager.log(" onStart Mlet form : [" + title + "]");
 			}
 		}
 	}
+	
+	private static boolean isCmdExitOrConfig(final String lowcase){
+		for (int i = 0; i < HCURL.FAST_NOT_RESP_URL.length; i++) {
+			if(HCURL.FAST_NOT_RESP_URL[i].equals(lowcase)){
+				return true;
+			}
+		}
+		
+		return false;
+	}
 
-	public static void go(final J2SESession coreSS, final String url) {
+	public static void goInServer(final J2SESession coreSS, final ProjectContext ctx, final String url) {
 			HCURL.checkSuperCmd(url);
 			
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("====>go : " + url);
+				LogManager.log("====>go : " + url);
 			}
 			try {
 	//			不需要转码，可直接支持"screen://我的Mlet"
@@ -895,7 +907,7 @@ public class ServerUIAPIAgent {
 				runAndWaitInSysThread(new ReturnableRunnable() {
 					@Override
 					public Object run() {
-						HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_TRANSURL, url);
+						goInSysThread(coreSS, ctx, url);
 						return null;
 					}
 				});
@@ -997,6 +1009,39 @@ public class ServerUIAPIAgent {
 				return null;
 			}
 		});
+	}
+
+	public static void sendOneMovingMsg(final CoreSession oneCoreSS, final String msg) {
+		HCURLUtil.sendCmd(oneCoreSS, HCURL.DATA_CMD_MOVING_MSG, "value", msg);
+	}
+
+	public static void goInSysThread(final J2SESession coreSS, final ProjectContext ctx,
+			final String url) {
+		final HCURL hu = HCURLUtil.extract(url);
+		
+		final String protocal = hu.protocal;
+		boolean isFastRespProtocal = false;
+		for (int i = 0; i < HCURL.FAST_RESP_PROTOCAL.length; i++) {
+			if(protocal == HCURL.FAST_RESP_PROTOCAL[i]){
+				isFastRespProtocal = true;
+				break;
+			}
+		}
+		if(isFastRespProtocal && ((protocal == HCURL.CMD_PROTOCAL && isCmdExitOrConfig(url.toLowerCase())) == false)){
+			final MobiUIResponsor mobiResp = (MobiUIResponsor)ServerUIUtil.getResponsor();
+			if(mobiResp != null){
+				final boolean done = mobiResp.findContext(ctx.getProjectID()).doBiz(coreSS, hu, false);//直接处理，无需手机端转一圈
+				L.V = L.WShop ? false : LogManager.log("exec url : " + url + ", result : " + done);
+				if(done){
+					HCURLUtil.hcurlCacher.cycle(hu);
+					return;
+				}
+			}
+		}
+		
+		HCURLUtil.hcurlCacher.cycle(hu);
+		
+		HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_TRANSURL, url);
 	}
 
 }

@@ -2,7 +2,6 @@ package hc.server.util;
 
 import hc.App;
 import hc.core.ContextManager;
-import hc.core.L;
 import hc.core.util.ExceptionJSON;
 import hc.core.util.ExceptionJSONBuilder;
 import hc.core.util.LogManager;
@@ -11,6 +10,7 @@ import hc.core.util.RootBuilder;
 import hc.j2se.HCAjaxX509TrustManager;
 import hc.j2se.J2SEExceptionJSONBuilder;
 import hc.server.MultiUsingManager;
+import hc.server.PlatformManager;
 import hc.server.StarterManager;
 import hc.server.rms.RMSLastAccessTimeManager;
 import hc.server.ui.design.J2SESession;
@@ -85,7 +85,7 @@ public class J2SERootBuilder extends RootBuilder {
 			reader.close();//必须接收，否则发送不成功!
 			
 			if (forTest && email == null) {
-				L.V = L.O ? false : LogManager.log(sb.toString());
+				LogManager.log(sb.toString());
 			}
 		} catch (final Throwable e) {
 			// 不处理异常
@@ -126,7 +126,7 @@ public class J2SERootBuilder extends RootBuilder {
 					jrubyVersion = (String)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 						@Override
 						public Object run() {
-							return PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer);//有可能为null
+							return ResourceUtil.getJRubyVersion();//有可能为null
 						}
 					}, token);
 				}
@@ -159,6 +159,13 @@ public class J2SERootBuilder extends RootBuilder {
 					 MultiUsingManager.release((J2SESession)para);//需要延后，因为等待先调用MultiUsingWarning.exit()
 				}
 			});
+		 }else if(rootBizNo == ROOT_GET_CLASS_FROM_3RD_AND_SERV_LIBS){
+			 final ClassLoader loader = PlatformManager.getService().get3rdAndServClassLoader(null);
+			 try{
+				 return loader.loadClass((String)para);
+			 }catch (final Throwable e) {
+				 e.printStackTrace();
+			 }
 		 }
 		 
 		 return null;

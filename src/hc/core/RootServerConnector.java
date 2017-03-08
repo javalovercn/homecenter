@@ -1,6 +1,5 @@
 package hc.core;
 
-import hc.core.util.CCoreUtil;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LangUtil;
 import hc.core.util.LogManager;
@@ -102,6 +101,15 @@ public class RootServerConnector {
 	
 	public final static String REP_Locale_STR = "rep_loc=";
 
+	private static boolean isLastUnConnServer = false; 
+	public static final String SIMU_LOCALHOST = "localhost";//"192.168.1.101";
+	public static final int SIMU_PORT = 33333;
+	public final static String IP_192_168_1_102 = "192.168.1.102";
+
+	public static final String ROOT_AJAX_OK = "ok";
+	private static final String HTTPS = "https";
+	private static final String HTTP = "http";
+	
 	private static void init(){
 		boolean isInit = false;
 		if(isInit == false){
@@ -166,8 +174,6 @@ public class RootServerConnector {
 				ENCRYPTER_STR + "true";
 	}
 	
-	private static boolean isLastUnConnServer = false; 
-
 	/**
 	 * IPV6
 	 * 最长IPv6形式  X:X:X:X:X:X:d.d.d.d
@@ -239,7 +245,7 @@ public class RootServerConnector {
 	 * @param token 
 	 */
 	public static void serverNum(int serverNum, String token) {
-//		hc.core.L.V=hc.core.L.O?false:LogManager.log("change serverNum : " + serverNum + ", id=" + IConstant.uuid );
+//		LogManager.log("change serverNum : " + serverNum + ", id=" + IConstant.uuid );
 		retry(CALL_STR +
 			f_serverNum_STR +
 			ID_STR + encryptePara(IConstant.uuid, token) + "&" +
@@ -317,7 +323,7 @@ public class RootServerConnector {
 		if(msg == null || msg.length() == 0){
 			return null;
 		}
-//		L.V = L.O ? false : LogManager.log("sip:" + msg);
+//		LogManager.log("sip:" + msg);
 		return StringUtil.extractIPAndPort(msg);
 	}
 	
@@ -343,7 +349,7 @@ public class RootServerConnector {
 			return msg;
 		}
 		
-//		L.V = L.O ? false : LogManager.log("sip:" + msg);
+//		LogManager.log("sip:" + msg);
 		return StringUtil.extractIPAndPort(msg);
 	}
 	
@@ -357,7 +363,7 @@ public class RootServerConnector {
 		if(msg == null || msg.length() == 0){
 			return null;
 		}
-//		L.V = L.O ? false : LogManager.log("RelayServers:" + msg);
+//		LogManager.log("RelayServers:" + msg);
 		//去掉加密混淆
 		return extractNewRealyIPAndPort(msg);
 	}
@@ -559,7 +565,7 @@ public class RootServerConnector {
 	 * @param type
 	 */
 	public static void notifyLineOffType(final CoreSession coreSS, final String type) {
-//		L.V = L.O ? false : LogManager.log("Notify LineOffType : " + (CALL_STR + type));
+//		LogManager.log("Notify LineOffType : " + (CALL_STR + type));
 		String ver = null;
 		if(coreSS != null && coreSS.context != null){
 			final IContext ci = coreSS.context;
@@ -592,10 +598,6 @@ public class RootServerConnector {
 			});
 		}
 	}
-	
-	public static final String SIMU_LOCALHOST = "localhost";//"192.168.1.101";
-	public static final int SIMU_PORT = 33333;
-	public final static String IP_192_168_1_102 = "192.168.1.102";
 	
 	public static final boolean checkAjaxSSLDomain(final String host){
 		return (host.equals(RootServerConnector.HOST_HOMECENTER_MOBI)
@@ -633,10 +635,6 @@ public class RootServerConnector {
 			return "";
 		}
 	}
-
-	public static final String ROOT_AJAX_OK = "ok";
-	private static final String HTTPS = "https";
-	private static final String HTTP = "http";
 
 	public static final String convertToHttpAjax(String https_url){
 		if(IConstant.serverSide == false 

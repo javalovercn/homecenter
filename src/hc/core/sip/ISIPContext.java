@@ -1,7 +1,7 @@
 package hc.core.sip;
 
-import hc.core.CoreSession;
-import hc.core.ReceiveServer;
+import hc.core.AckBatchHCTimer;
+import hc.core.HCConnection;
 import hc.core.UDPPacketResender;
 
 import java.io.DataInputStream;
@@ -9,13 +9,14 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 public abstract class ISIPContext {
+	public AckBatchHCTimer ackbatchTimer;
 	public UDPPacketResender resender;
-	public abstract boolean buildUDPChannel(final CoreSession coreSS);
+	public abstract boolean buildUDPChannel(final HCConnection hcConnection);
 	public abstract Object getDatagramPacket(Object dp);
 	public abstract Object getDatagramPacketFromConnection(Object conn);
 	public abstract byte[] getDatagramBytes(Object dp);
 	public abstract void setDatagramLength(Object dp, int len);
-	public abstract boolean tryRebuildUDPChannel(final CoreSession coreSS);
+	public abstract boolean tryRebuildUDPChannel(final HCConnection hcConnection);
 	
 	public boolean isOnRelay = false;
 
@@ -39,7 +40,7 @@ public abstract class ISIPContext {
 	 * 如果被覆盖的旧Socket存在，请close旧连接
 	 * @param connector
 	 */
-	public abstract void setSocket(Object connector);
+	public abstract void setSocket(Object connector, boolean isForSwap);
 	
 	public abstract Object getSocket();
 	
@@ -49,13 +50,15 @@ public abstract class ISIPContext {
 	
 	public abstract DataOutputStream getOutputStream(Object socket) throws IOException;
 	
+	public abstract void setInputOutputStream(final DataInputStream dis, final DataOutputStream dos);
+	
 	protected boolean isClose = true;
 	
 	public final boolean isClose(){
 		return isClose;
 	}
 	
-	public abstract void closeDeploySocket(final CoreSession coreSS);
+	public abstract void closeDeploySocket(final HCConnection hcConnection);
 	
 //	public abstract Object getDeploySocket();
 	
@@ -63,14 +66,18 @@ public abstract class ISIPContext {
 	 * 是发布Socket的唯一入口
 	 * @param socket
 	 */
-	public void deploySocket(final CoreSession coreSS, final Object socket) throws Exception{
+	public void deploySocket(final HCConnection hcConnection, final Object socket) throws Exception{
 		enterDeployStatus();
 		
-		final ReceiveServer receiveServer = coreSS.getReceiveServer();
-		receiveServer.setUdpServerSocket(socket);
-		coreSS.context.setOutputStream(this, socket);
-		setSocket(socket);
+		final Object inputStream = (socket==null)?null:getInputStream(socket);
+		hcConnection.setReceiveServerInputStream(inputStream, false, false);
+		
+		final Object outputStream = (socket==null)?null:getOutputStream(socket);
+		hcConnection.setOutputStream(outputStream);
+		
+		setSocket(socket, false);
 	}
+	
 	public final void enterDeployStatus() {
 		deploySocketMS = System.currentTimeMillis();
 	}

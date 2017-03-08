@@ -70,8 +70,8 @@ public abstract class Processor{
 			}
 			synchronized (this) {
 				if(isFinishStarted == false){
-					L.V = L.O ? false : LogManager.warning("waiting for project [" + project_id +"] to ACTIVE in Device/Robot [" + name + "]...");
-					L.V = L.O ? false : LogManager.warning("if your programe is blocked, please invoke getFreeMessage in ProjectContext.run().");
+					LogManager.warning("waiting for project [" + project_id +"] to ACTIVE in Device/Robot [" + name + "]...");
+					LogManager.warning("if your programe is blocked, please invoke getFreeMessage in ProjectContext.run().");
 
 					try{
 						this.wait();

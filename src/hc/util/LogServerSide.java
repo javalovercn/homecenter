@@ -1,6 +1,7 @@
 package hc.util;
 
 import hc.App;
+import hc.core.HCConnection;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
@@ -104,11 +105,11 @@ public class LogServerSide implements ILog {
 			}
 			
 			//记录加密器信息到日志中
-			final String encryptClass = IContext.getEncryptorClass();
+			final String encryptClass = HCConnection.getEncryptorClass();
 			if(encryptClass != null){
-				L.V = L.O ? false : LogManager.log("customized encryptor [" + encryptClass + "]");
+				LogManager.log("customized encryptor [" + encryptClass + "]");
 			}else{
-				L.V = L.O ? false : LogManager.log("use inner encryptor, no customized encryptor.");
+				LogManager.log("use inner encryptor, no customized encryptor.");
 			}
 			
 			if(PropertiesManager.isTrue(PropertiesManager.p_isReportException)){

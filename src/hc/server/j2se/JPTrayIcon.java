@@ -135,7 +135,7 @@ public class JPTrayIcon implements PlatformTrayIcon{
 		frame.addWindowFocusListener(new WindowFocusListener() {
 			@Override
 			public void windowLostFocus(final WindowEvent e) {
-//				L.V = L.O ? false : LogManager.log("Dialog Lose Focus");
+//				LogManager.log("Dialog Lose Focus");
 				App.invokeLaterUI(toDisvisibleRun);
 			}
 			
@@ -274,14 +274,14 @@ public class JPTrayIcon implements PlatformTrayIcon{
 
 		@Override
 		public void popupMenuWillBecomeInvisible(final PopupMenuEvent evt) {
-//			L.V = L.O ? false : LogManager.log("popupMenuWillBecomeInvisible");
+//			LogManager.log("popupMenuWillBecomeInvisible");
 			//必须的，该逻辑是有用的。
 			dialog.setVisible(false);
 		}
 
 		@Override
 		public void popupMenuCanceled(final PopupMenuEvent evt) {
-//			L.V = L.O ? false : LogManager.log("popupMenuCanceled");
+//			LogManager.log("popupMenuCanceled");
 			//必须的，该逻辑是有用的。
 			dialog.setVisible(false);
 		}

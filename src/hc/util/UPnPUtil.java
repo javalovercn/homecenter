@@ -58,7 +58,7 @@ public class UPnPUtil {
 	 */
 	public static boolean removeUPnPMapping(final int port){
 		if(removeUPnPMapping(port, localAds)){
-			L.V = L.O ? false : LogManager.log("Remove UPnP Mapping at extPort:" + port);
+			LogManager.log("Remove UPnP Mapping at extPort:" + port);
 			return true;
 		}else{
 			return false;
@@ -164,13 +164,13 @@ public class UPnPUtil {
     private static boolean isCheckedUPnP = false;
     public static boolean isSupportUPnP(final InetAddress ia){
     	if(isCheckedUPnP == false){
-//			L.V = L.O ? false : LogManager.log("Starting UPnP Discovery Service");
-			L.V = L.O ? false : LogManager.log("Looking for UPnP devices from [" + ia.toString() + "]");
+//			LogManager.log("Starting UPnP Discovery Service");
+			LogManager.log("Looking for UPnP devices from [" + ia.toString() + "]");
 			hcgd = discover(ia);
 			
 			if (null != hcgd) {
 				final String idg = "["+hcgd.getFriendlyName()+"("+hcgd.getModelNumber()+")]";
-				L.V = L.O ? false : LogManager.log("UPnP device found. " + idg);
+				LogManager.log("UPnP device found. " + idg);
 				TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), 
 						"UPnP : " + idg, IContext.INFO, null, 0);
 			}
@@ -178,7 +178,7 @@ public class UPnPUtil {
 			isCheckedUPnP = true;
 			
 			if(hcgd == null){
-			    L.V = L.O ? false : LogManager.log("No UPnP device.");
+			    LogManager.log("No UPnP device.");
 			}
     	}
     	return (hcgd != null);
@@ -203,18 +203,18 @@ public class UPnPUtil {
 //			hcgd = new HCGateDevice(d);
 			
 	//		InetAddress localAddress = d.getLocalAddress();
-	//		L.V = L.O ? false : LogManager.log("Using local address: "+localAddress );
+	//		LogManager.log("Using local address: "+localAddress );
 			final String externalIPAddress = hcgd.getOutterIP();
-//			L.V = L.O ? false : LogManager.log("External address: "+ externalIPAddress);
+//			LogManager.log("External address: "+ externalIPAddress);
 			UPnPMapping portMapping = new UPnPMapping();
 	
-//			L.V = L.O ? false : LogManager.log("Attempting to map port "+localPort );
-//			L.V = L.O ? false : LogManager.log("Querying device to see if mapping for port "+localPort+" already exists");
+//			LogManager.log("Attempting to map port "+localPort );
+//			LogManager.log("Querying device to see if mapping for port "+localPort+" already exists");
 	
 			if(oldUPnPPort != 0){
 				if(hcgd.getUPnPMapping(TCP,oldUPnPPort,portMapping)){
 					if(isSelfMapDesc(portMapping.getPortMappingDescription(), upnpToken)){
-						L.V = L.O ? false : LogManager.log("Delete UPnP old map at Ext Port:" + oldUPnPPort);
+						LogManager.log("Delete UPnP old map at Ext Port:" + oldUPnPPort);
 						hcgd.deleteUPnPMapping(oldUPnPPort, TCP);
 					}
 				}
@@ -225,7 +225,7 @@ public class UPnPUtil {
 					if(!hcgd.getUPnPMapping(TCP,beginExteralPort,portMapping)){
 					}else{
 						if(isSelfMapDesc(portMapping.getPortMappingDescription(), upnpToken)){
-							L.V = L.O ? false : LogManager.log("Delete UPnP old map at Ext Port:" + beginExteralPort);
+							LogManager.log("Delete UPnP old map at Ext Port:" + beginExteralPort);
 							hcgd.deleteUPnPMapping(beginExteralPort, TCP);
 						}else{
 							beginExteralPort++;
@@ -238,10 +238,10 @@ public class UPnPUtil {
 					beginExteralPort++;
 					continue;
 				}
-//			    L.V = L.O ? false : LogManager.log("Sending port mapping request");
+//			    LogManager.log("Sending port mapping request");
 	
 			    if (hcgd.addUPnPMapping(beginExteralPort, localPort, localAddress.getHostAddress(), TCP, upnpToken)) {
-			    	L.V = L.O ? false : LogManager.log("Success add UPnP exteral PortMap [" + externalIPAddress + ":" + beginExteralPort + "]");
+			    	LogManager.log("Success add UPnP exteral PortMap [" + externalIPAddress + ":" + beginExteralPort + "]");
 			    	final String[] out = {HCURLUtil.convertIPv46(externalIPAddress),String.valueOf(beginExteralPort)};
 			        return out;
 			    } else {
@@ -251,7 +251,7 @@ public class UPnPUtil {
 			}
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
-			L.V = L.O ? false : LogManager.log(e.toString());
+			LogManager.log(e.toString());
 		}
 		return null;		
 	}
@@ -271,8 +271,8 @@ public class UPnPUtil {
 				return hcgd.deleteUPnPMapping(externalPort,TCP);
 			}
 		}catch (final Exception e) {
-	        L.V = L.O ? false : LogManager.log("Failed at remove UPnP Port");
-			L.V = L.O ? false : LogManager.log(e.toString());
+	        LogManager.log("Failed at remove UPnP Port");
+			LogManager.log(e.toString());
 			return false;
 		}
 	}

@@ -22,6 +22,7 @@ import hc.core.util.WiFiDeviceManager;
 import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.AirCmdsUtil;
 import hc.server.msb.UserThreadResourceUtil;
+import hc.server.ui.MenuItem;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.QuestionParameter;
 import hc.server.ui.ResParameter;
@@ -31,6 +32,7 @@ import hc.server.ui.SingleMessageNotify;
 import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.engine.HCJRubyEngine;
+import hc.server.util.VoiceCommand;
 import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
@@ -53,7 +55,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 		
 		final String protocal = url.protocal;
 		
-//		L.V = L.O ? false : LogManager.log("goto " + url.url);
+//		LogManager.log("goto " + url.url);
 		
 		final J2SESession j2seCoreSS = (J2SESession)coreSS;
 		if(protocal == HCURL.SCREEN_PROTOCAL){
@@ -113,7 +115,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 							final int x = Integer.parseInt(url.getValueofPara("x"));
 							final int y = Integer.parseInt(url.getValueofPara("y"));
 
-							L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "Ctrl + mouse left click at (" + x + ", " + y + ")");
+							LogManager.log(ScreenCapturer.OP_STR + "Ctrl + mouse left click at (" + x + ", " + y + ")");
 							
 							doClickAt(url, ResourceUtil.getAbstractCtrlKeyCode(), x, y);
 							return true;
@@ -121,7 +123,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 							final int x = Integer.parseInt(url.getValueofPara("x"));
 							final int y = Integer.parseInt(url.getValueofPara("y"));
 
-							L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "Shift + mouse left click at (" + x + ", " + y + ")");
+							LogManager.log(ScreenCapturer.OP_STR + "Shift + mouse left click at (" + x + ", " + y + ")");
 							
 							doClickAt(url, KeyEvent.VK_SHIFT, x, y);
 							return true;
@@ -176,6 +178,18 @@ public class J2SEServerURLAction implements IHCURLAction {
 					
 					AddHarHTMLMlet.startAddHTMLHarUI(j2seCoreSS, urlStr);
 					return true;
+				}else if(HCURL.DATA_PARA_VOICE_COMMANDS.equals(para1)){
+					final String voiceCommands = VoiceCommand.format(url.getValueofPara(HCURL.DATA_PARA_VOICE_COMMANDS));
+					final VoiceCommand vc = new VoiceCommand(voiceCommands);
+					final MenuItem out = j2seCoreSS.searchMenuItemByVoiceCommand(vc);
+					if(out != null){
+						final String itemURL = ServerUIAPIAgent.getMobiMenuItem_URL(out);
+						LogManager.log("execute [" + itemURL + "] by voice command [" + voiceCommands + "].");
+						ServerUIAPIAgent.goInSysThread(j2seCoreSS, out.belongToMenu.resp.context, itemURL);
+					}else{
+						ServerUIAPIAgent.sendOneMovingMsg(coreSS, StringUtil.replace((String)ResourceUtil.get(coreSS, 9245), "{voice}", voiceCommands));
+					}
+					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_CERT_RECEIVED)){
 					final String value1 = url.getValueofPara(para1);
 					if(value1.equals(CCoreUtil.RECEIVE_CERT_OK)){
@@ -188,7 +202,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 					final byte[] bytes = ByteUtil.toBytesFromHexStr(value1);
 					try {
 						final String jump_url = new String(bytes, IConstant.UTF_8);
-						L.V = L.O ? false : LogManager.log("receive mobile jump exception at url : [" + jump_url + "], maybe out of memory.");
+						LogManager.log("receive mobile jump exception at url : [" + jump_url + "], maybe out of memory.");
 						ScreenServer.popScreen(j2seCoreSS);
 //						if(ScreenServer.popScreen() == false){
 //							J2SEContext.notifyExitByMobi();
@@ -268,7 +282,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 							}
 							
 							if(isNotifyPressStart == false){
-								mlet.appendMessage((String)ResourceUtil.get(9134));
+								mlet.appendMessage((String)ResourceUtil.get(j2seCoreSS, 9134));
 								isNotifyPressStart = true;
 							}
 							try{
@@ -279,7 +293,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 						}while(url == null && totalSleep < maxSleepMS);
 						
 						if(url == null && totalSleep >= maxSleepMS){
-							mlet.appendMessage((String)ResourceUtil.get(9133));
+							mlet.appendMessage((String)ResourceUtil.get(j2seCoreSS, 9133));
 							mlet.exitButton.setEnabled(true);
 							return;
 						}
@@ -304,7 +318,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 							ServerUIAPIAgent.runInSessionThreadPool(j2seCoreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {
 								@Override
 								public void run() {
-									projectContext.sendQuestion((String)ResourceUtil.get(IContext.CONFIRMATION), downloadURL, null, yesRunnable, null, null);
+									projectContext.sendQuestion((String)ResourceUtil.get(j2seCoreSS, IContext.CONFIRMATION), downloadURL, null, yesRunnable, null, null);
 								}
 							});
 						}

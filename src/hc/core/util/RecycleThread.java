@@ -49,7 +49,7 @@ public class RecycleThread implements Runnable{
 				}
 			}
 		}
-//		L.V = L.O ? false : LogManager.log("Recycle Thread finished!");
+//		LogManager.log("Recycle Thread finished!");
 	}
 	
 	public void notifyBack(){

@@ -161,7 +161,7 @@ public class TrayMenuUtil {
 		}
 		
 		if(opName != null){
-			L.V = L.O ? false : LogManager.log("Desktop Menu [" + opName + "] password error!");
+			LogManager.log("Desktop Menu [" + opName + "] password error!");
 		}
 		final Object[] options={(String)ResourceUtil.get(1010)};
 		App.showOptionDialog(null, ResourceUtil.get(1019), ResourceUtil.getProductName(), JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);
@@ -213,7 +213,7 @@ public class TrayMenuUtil {
 			
 			coreSS.isTransedCertToMobile = false;
 			
-			transNewCertKey(j2seContext);
+			transNewCertKey(coreSS);
 			
 			coreSS.eventCenterDriver.addWatcher(new IWatcher() {
 				long curr = System.currentTimeMillis();
@@ -221,7 +221,7 @@ public class TrayMenuUtil {
 				public boolean watch() {
 					if(coreSS.isTransedCertToMobile){
 						final J2SESession[] coreSSS = {coreSS};
-						ServerUIAPIAgent.sendMessageViaCoreSS(coreSSS, ResourceUtil.getInfoI18N(), (String) ResourceUtil.get(9033), IContext.INFO, null, 0);
+						ServerUIAPIAgent.sendMessageViaCoreSS(coreSSS, ResourceUtil.getInfoI18N(coreSS), (String) ResourceUtil.get(coreSS, 9033), IContext.INFO, null, 0);
 						return true;
 					}
 					if(System.currentTimeMillis() - curr > 3000){
@@ -391,7 +391,7 @@ public class TrayMenuUtil {
 	 */
 	static boolean setTrayEnable(final boolean b){
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("TrayEnable:" + b);
+			LogManager.log("TrayEnable:" + b);
 		}
 		
 		if(b){
@@ -400,7 +400,7 @@ public class TrayMenuUtil {
 				
 				if(oldImg == hc_mobi){
 					if(L.isInWorkshop){
-						L.V = L.O ? false : LogManager.log("old Image is hc_mobi.");
+						LogManager.log("old Image is hc_mobi.");
 					}
 					
 					//检查是否还有keepConnection
@@ -419,7 +419,7 @@ public class TrayMenuUtil {
 				final Image oldImg = ti.getImage();
 				
 				if(oldImg == hc_mobi){
-					L.V = L.O ? false : LogManager.log("old Image is hc_mobi.");
+					L.V = L.WShop ? false : LogManager.log("old Image is hc_mobi.");
 					
 					//检查是否还有keepConnection
 					if(SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_SERVER_SELF)){
@@ -435,7 +435,7 @@ public class TrayMenuUtil {
 				}
 				
 				if(oldImg == hc_Enable){
-					L.V = L.O ? false : LogManager.log("old Image is hc_enable.");
+					L.V = L.WShop ? false : LogManager.log("old Image is hc_enable.");
 					
 					//检查是否有联root
 					if(SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_READY_TO_LINE_ON)
@@ -1555,12 +1555,12 @@ public class TrayMenuUtil {
 	    return null;
 	}
 
-	static void transNewCertKey(final IContext ic) {
+	static void transNewCertKey(final CoreSession coreSS) {
 	//		LogManager.log("send Cert : " + CUtil.toHexString(CUtil.getCertKey()));
-		if(ic.cmStatus != ContextManager.STATUS_SERVER_SELF){
-			ServerCUtil.transCertKey(ic, CUtil.getCertKey(), MsgBuilder.E_TRANS_NEW_CERT_KEY, false);
+		if(coreSS.context.cmStatus != ContextManager.STATUS_SERVER_SELF){
+			ServerCUtil.transCertKey(coreSS, CUtil.getCertKey(), MsgBuilder.E_TRANS_NEW_CERT_KEY, false);
 		}else{
-			ServerCUtil.transCertKey(ic, CUtil.getCertKey(), MsgBuilder.E_TRANS_NEW_CERT_KEY_IN_SECU_CHANNEL, false);
+			ServerCUtil.transCertKey(coreSS, CUtil.getCertKey(), MsgBuilder.E_TRANS_NEW_CERT_KEY_IN_SECU_CHANNEL, false);
 		}
 	}
 
@@ -1610,7 +1610,7 @@ public class TrayMenuUtil {
         		PropertiesManager.notifyShutdownHook();
         		//因为系统调用System.exit时，会激活此处。
         		if(SessionManager.checkAtLeastOneNotMeet(ContextManager.STATUS_EXIT)){
-	        		L.V = L.O ? false : LogManager.log("User Power Off");
+	        		LogManager.log("User Power Off");
 //	        		SessionManager.notifyShutdown();
 	        		
         		}
@@ -1627,7 +1627,7 @@ public class TrayMenuUtil {
 	
 	public static void displayMessage(final String caption, final String text, final int type, final Object imageData, final int timeOut){
 	  	if(ResourceUtil.isNonUIServer()){
-    		L.V = L.O ? false : LogManager.log("this is demo server, skip displayMessage.");
+    		LogManager.log("this is demo server, skip displayMessage.");
     		return;
     	}
     	

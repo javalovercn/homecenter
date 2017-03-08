@@ -138,7 +138,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 		final int labelHeight = (int)(fontSizePX * 1.4);
 
 		{
-			final int checkBoxHeight = labelHeight - 4;
+			final int checkBoxHeight = (int)(labelHeight * 0.95);
 			final String checkStyle = "vertical-align:middle;font-weight:bold;font-size:" + fontSizePX + "px;";
 			
 			setCSS(listNotBindBtn, null, checkStyle);
@@ -206,6 +206,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 			setCSS(robotArea, null, areaStyle);
 			
 			final JPanel areaPanel = new JPanel(new BorderLayout());
+			robotBox.setPreferredSize(new Dimension(getMobileWidth(), labelHeight));
 			areaPanel.add(robotBox, BorderLayout.NORTH);
 			areaPanel.add(robotArea, BorderLayout.CENTER);
 			
@@ -229,6 +230,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 			setCSS(converterArea, null, areaStyle);
 			
 			final JPanel areaPanel = new JPanel(new BorderLayout());
+			converterBox.setPreferredSize(new Dimension(getMobileWidth(), labelHeight));
 			areaPanel.add(converterBox, BorderLayout.NORTH);
 			areaPanel.add(converterArea, BorderLayout.CENTER);
 			
@@ -256,6 +258,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 			setCSS(deviceArea, null, areaStyle);
 			
 			final JPanel areaPanel = new JPanel(new BorderLayout());
+			deviceBox.setPreferredSize(new Dimension(getMobileWidth(), labelHeight));
 			areaPanel.add(deviceBox, BorderLayout.NORTH);
 			areaPanel.add(deviceArea, BorderLayout.CENTER);
 			

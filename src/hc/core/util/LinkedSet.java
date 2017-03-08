@@ -20,8 +20,8 @@ public class LinkedSet {
 		return tail == null;
 	}
 	
-	public final Enumeration elements(){
-		final Vector v = new Vector();
+	public final Vector toVector(){
+		final Vector v = new Vector(10);
 		
 		if(top == null){
 		}else{
@@ -32,7 +32,7 @@ public class LinkedSet {
 			}while(temp != null);
 		}
 		
-		return v.elements();
+		return v;
 	}
 	
 	public final void addToFirst(final Object obj){
@@ -163,7 +163,7 @@ class LinkedNodeCacher {
 	public final LinkedNode getFree(){
 		synchronized (free) {
 			if(freeSize == 0){
-//				hc.core.L.V=hc.core.L.O?false:LogManager.log("------MEM ALLOCATE [EventBack]------");
+//				LogManager.log("------MEM ALLOCATE [EventBack]------");
 				return new LinkedNode();
 			}else{
 				freeSize--;

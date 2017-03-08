@@ -105,7 +105,7 @@ public class J2SESessionManager extends SessionManager {
 				final J2SESession coreSS = (J2SESession)sessionListThreadSafe.elementAt(i);
 				if(coreSS.isIdelSession){
 					if(L.isInWorkshop){
-						L.V = L.O ? false : LogManager.log("there is an idle session on server, skip start new idle.");
+						LogManager.log("there is an idle session on server, skip start new idle.");
 					}
 					return;
 				}
@@ -113,7 +113,7 @@ public class J2SESessionManager extends SessionManager {
 		}catch (final ArrayIndexOutOfBoundsException e) {
 		}
 		
-		L.V = L.O ? false : LogManager.log("creating idle session for client login.");
+		LogManager.log("creating idle session for client login.");
 		
 		startJ2SESession();
 	}

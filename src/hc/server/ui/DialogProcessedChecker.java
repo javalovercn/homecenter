@@ -20,7 +20,7 @@ public class DialogProcessedChecker {
 			isForDialogAndNoCheck = false;
 			
 			final int dialogID = resLock.dialogID;
-			if(resLock.isProcessed(coreSS, dialogID, (String)ResourceUtil.get(9240))){//Dialog is processed by other!
+			if(resLock.isProcessed(coreSS, dialogID, (String)ResourceUtil.get(coreSS, 9240))){//Dialog is processed by other!
 				isForDialogAndResponseContinue = false;//其它session已获得处理权
 			}else{
 				isForDialogAndResponseContinue = true;

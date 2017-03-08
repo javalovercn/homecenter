@@ -82,17 +82,17 @@ public class HCJRubyEngine {
 		
 		final Object unit;
 //		final Object currentDirectory = getCurrentDirectory();
-//		L.V = L.O ? false : LogManager.log("JRubyEngine getCurrentDirectory : " + currentDirectory);
+//		LogManager.log("JRubyEngine getCurrentDirectory : " + currentDirectory);
 //		if(currentDirectory == null){
 //			setCurrentDirectory();
-//			L.V = L.O ? false : LogManager.log("JRubyEngine getCurrentDirectory : " + currentDirectory);
+//			LogManager.log("JRubyEngine getCurrentDirectory : " + currentDirectory);
 //		}
-//		L.V = L.O ? false : LogManager.log("JRubyEngine getHomeDirectory : " + getHomeDirectory());
+//		LogManager.log("JRubyEngine getHomeDirectory : " + getHomeDirectory());
 		if(isReportException){
 //			InputStream istream, String filename, int... lines
 			final InputStream in = new ByteArrayInputStream(StringUtil.getBytes(script));//支持中文
 			scriptName = (scriptName==null||scriptName.length()==0)?"<script>":("<" + scriptName + ">");
-//			L.V = L.O ? false : LogManager.log("compile name : " + scriptName + " for src : " + script);
+//			LogManager.log("compile name : " + scriptName + " for src : " + script);
 			final Object[] para = {in, scriptName, zero};
 			unit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse", parseStreamParaTypes, para, false);
 		}else{
@@ -115,7 +115,7 @@ public class HCJRubyEngine {
 //        return JavaEmbedUtils.rubyToJava(evalUnitMap.get(script).run());
 		final Object evalUnit = parse(script, scriptName);
 		if(isShutdown){
-			L.V = L.O ? false : LogManager.log("JRuby Engine is shutdown, skip runing scripts : \n" + script);
+			LogManager.log("JRuby Engine is shutdown, skip runing scripts : \n" + script);
 			return null;
 		}
 		L.V = L.WShop ? false : LogManager.log("run in [" + Thread.currentThread().getName() + "], scripts : \n" + script);
@@ -327,14 +327,14 @@ public class HCJRubyEngine {
 ////			TRUFFLE
 //			compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "TRUFFLE", false, false);
 //			if(compileMode != null){
-//				L.V = L.O ? false : LogManager.log("JRubyEngine compileMode : TRUFFLE");
+//				LogManager.log("JRubyEngine compileMode : TRUFFLE");
 //			}else{
 				if(isAndroidServerPlatform){
 					compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "JIT", false, true);
-//					L.V = L.O ? false : LogManager.log("JRubyEngine compileMode : JIT");//多实例，无意义
+//					LogManager.log("JRubyEngine compileMode : JIT");//多实例，无意义
 				}else{
 					compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "FORCE", false, true);//in Android, 1.8，2.0均不能parse(AddHAR)
-//					L.V = L.O ? false : LogManager.log("JRubyEngine compileMode : FORCE");//多实例，无意义
+//					LogManager.log("JRubyEngine compileMode : FORCE");//多实例，无意义
 				}
 //			}
 			final Class[] paraTypes = {compileModeClass};

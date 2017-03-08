@@ -1,6 +1,5 @@
 package hc.server.ui;
 
-import hc.core.L;
 import hc.core.util.HCURL;
 import hc.core.util.LogManager;
 import hc.server.ui.design.J2SESession;
@@ -73,7 +72,7 @@ public class Dialog extends JPanel {
 	 * @see #go(String)
 	 * @since 7.30
 	 */
-	public final void go(final String scheme, final String elementID){
+	public void go(final String scheme, final String elementID){
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return;
 		}
@@ -130,7 +129,7 @@ public class Dialog extends JPanel {
 	 * @see #goExternalURL(String, boolean)
 	 * @since 7.30
 	 */
-	public final void go(final String url){
+	public void go(final String url){
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return;
 		}
@@ -141,7 +140,7 @@ public class Dialog extends JPanel {
 	    	return;
 		}
 		
-		ServerUIAPIAgent.go(coreSS, url);
+		ServerUIAPIAgent.goInServer(coreSS, __context, url);
 	}
 	
 	/**
@@ -157,7 +156,7 @@ public class Dialog extends JPanel {
 	 * @see #goExternalURL(String, boolean)
 	 * @since 7.30
 	 */
-	public final void goExternalURL(final String url) {
+	public void goExternalURL(final String url) {
 		goExternalURL(url, false);
 	}
 
@@ -177,7 +176,7 @@ public class Dialog extends JPanel {
 	 * @param isUseExtBrowser true : use system web browser to open URL; false : the URL will be opened in client application and still keep foreground.
 	 * @since 7.7
 	 */
-	public final void goExternalURL(final String url, final boolean isUseExtBrowser) {
+	public void goExternalURL(final String url, final boolean isUseExtBrowser) {
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return;
 		}
@@ -200,7 +199,7 @@ public class Dialog extends JPanel {
 	 * @see #go(String)
 	 * @since 7.30
 	 */
-	public final void goMlet(final Mlet toMlet, final String targetOfMlet){
+	public void goMlet(final Mlet toMlet, final String targetOfMlet){
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return;
 		}
@@ -231,7 +230,7 @@ public class Dialog extends JPanel {
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.32
 	 */
-	public final void setCSSByClass(final JComponent component, final String className){
+	public void setCSSByClass(final JComponent component, final String className){
 		if(className == null || component == null){
 			return;
 		}
@@ -269,7 +268,7 @@ public class Dialog extends JPanel {
 	 * @see #setCSSForDiv(JComponent, String, String)
 	 * @since 7.30
 	 */
-	public final void loadCSS(final String styles){
+	public void loadCSS(final String styles){
 		sizeHeightForXML.loadCSSImpl(dialogCanvas, __context, styles);
 	}
 	
@@ -284,7 +283,7 @@ public class Dialog extends JPanel {
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.30
 	 */
-	public final void setCSSForDiv(final JComponent component, final String className, final String styles){//in user thread
+	public void setCSSForDiv(final JComponent component, final String className, final String styles){//in user thread
 		sizeHeightForXML.setCSSForDivImpl(dialogCanvas, __context, component, className, styles);
 	}
 	
@@ -299,7 +298,7 @@ public class Dialog extends JPanel {
 	 * @see #setCSS(JComponent, String, String)
 	 * @since 7.30
 	 */
-	public final void setCSSForToggle(final JToggleButton togButton, final String className, final String styles){
+	public void setCSSForToggle(final JToggleButton togButton, final String className, final String styles){
 		sizeHeightForXML.setCSSForToggleImpl(dialogCanvas, __context, togButton, className, styles);
 	}
 	
@@ -447,7 +446,7 @@ public class Dialog extends JPanel {
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.30
 	 */
-	public final void setCSS(final JComponent component, final String className, final String styles){//in user thread
+	public void setCSS(final JComponent component, final String className, final String styles){//in user thread
 		sizeHeightForXML.setCSSImpl(dialogCanvas, __context, component, className, styles);
 	}
 	
@@ -460,7 +459,7 @@ public class Dialog extends JPanel {
 	 * @param isRTL true means right to left, false means left to right.
 	 * @since 7.40
 	 */
-	public final void setRTL(final JComponent component, final boolean isRTL){//in user thread
+	public void setRTL(final JComponent component, final boolean isRTL){//in user thread
 		sizeHeightForXML.setRTLForDivImpl(dialogCanvas, __context, component, isRTL);
 	}
 	
@@ -469,7 +468,7 @@ public class Dialog extends JPanel {
      * <code>Dialog</code>, and they will be marked as undisplayable.
      * @since 7.30
    	 */
-	public final void dismiss(){
+	public void dismiss(){
 		synchronized (synLock) {
 			if(resLock != null){
 				final DialogGlobalLock dialogLock = resLock;
@@ -483,7 +482,7 @@ public class Dialog extends JPanel {
 				});
 				resLock = null;
 			}else{
-				L.V = L.O ? false : LogManager.log("dismiss() is invoked twice or more, maybe it is dismissed by go()/goExternalURL()/goMlet().");
+				LogManager.log("dismiss() is invoked twice or more, maybe it is dismissed by go()/goExternalURL()/goMlet().");
 			}
 		}
 	}
@@ -543,7 +542,7 @@ public class Dialog extends JPanel {
 	 * @return 
 	 * @since 7.30
 	 */
-	public final ProjectContext getProjectContext(){
+	public ProjectContext getProjectContext(){
 		return __context;
 	}
 	
@@ -567,7 +566,7 @@ public class Dialog extends JPanel {
 	 * @see #getFontSizeForSmall()
 	 * @see #getFontSizeForLarge()
 	 */
-	public final int getFontSizeForNormal(){
+	public int getFontSizeForNormal(){
 		return sizeHeightForXML.getFontSizeForNormal();
 	}
 	
@@ -579,7 +578,7 @@ public class Dialog extends JPanel {
 	 * @see #getFontSizeForNormal()
 	 * @see #getFontSizeForLarge()
 	 */
-	public final int getFontSizeForSmall(){
+	public int getFontSizeForSmall(){
 		return sizeHeightForXML.getFontSizeForSmall();
 	}
 	
@@ -591,7 +590,7 @@ public class Dialog extends JPanel {
 	 * @see #getFontSizeForSmall()
 	 * @see #getFontSizeForNormal()
 	 */
-	public final int getFontSizeForLarge(){
+	public int getFontSizeForLarge(){
 		return sizeHeightForXML.getFontSizeForLarge();
 	}
 	
@@ -602,7 +601,7 @@ public class Dialog extends JPanel {
 	 * @since 7.30
 	 * @see #getButtonHeight()
 	 */
-	public final int getFontSizeForButton(){
+	public int getFontSizeForButton(){
 		return sizeHeightForXML.getFontSizeForButton();
 	}
 	
@@ -612,7 +611,7 @@ public class Dialog extends JPanel {
 	 * @since 7.30
 	 * @see #getFontSizeForButton()
 	 */
-	public final int getButtonHeight(){
+	public int getButtonHeight(){
 		return sizeHeightForXML.getButtonHeight();
 	}
 	
@@ -622,7 +621,7 @@ public class Dialog extends JPanel {
 	 * @return
 	 * @since 7.30
 	 */
-	public final int getMobileWidth(){
+	public int getMobileWidth(){
 		return sizeHeightForXML.getMobileWidth(coreSS);
 	}
 	
@@ -632,7 +631,7 @@ public class Dialog extends JPanel {
 	 * @return
 	 * @since 7.30
 	 */
-	public final int getMobileHeight(){
+	public int getMobileHeight(){
 		return sizeHeightForXML.getMobileHeight(coreSS);
 	}
 	

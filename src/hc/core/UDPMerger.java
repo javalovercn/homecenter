@@ -200,7 +200,7 @@ public class UDPMerger {
 						eventCacher.cycle(event);
 						msgCacher.cycle(SPLIT_MSG[i]);
 						
-//							L.V = L.O ? false : LogManager.log("Unused Split");
+//							LogManager.log("Unused Split");
 						
 			    		SPLIT_HCEVENT[i] = null;
 			    		SPLIT_MSG[i] = null;

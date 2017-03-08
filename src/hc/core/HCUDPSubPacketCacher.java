@@ -18,7 +18,7 @@ public class HCUDPSubPacketCacher {
 	public final HCUDPSubPacketEvent getFree(){
 		synchronized (free) {
 			if(stackSize == 0){
-//				hc.core.L.V=hc.core.L.O?false:LogManager.log("------MEM ALLOCATE [HCEvent]------");
+//				LogManager.log("------MEM ALLOCATE [HCEvent]------");
 				return new HCUDPSubPacketEvent();
 			}else{
 				stackSize--;

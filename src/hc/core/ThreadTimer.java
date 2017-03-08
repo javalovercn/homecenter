@@ -49,7 +49,7 @@ public class ThreadTimer extends Thread {
 				if(timer.isEnable){
 					timer.nextExecMS += timer.interval;		
 						
-//					L.V = L.O ? false : LogManager.log("ThreadTimer do Biz...");
+//					LogManager.log("ThreadTimer do Biz...");
 					if(nestAction == null){
 						timer.doBiz();
 					}else{
@@ -60,6 +60,6 @@ public class ThreadTimer extends Thread {
             	ExceptionReporter.printStackTrace(e);
 			}
 		}
-//		hc.core.L.V=hc.core.L.O?false:LogManager.log("shutdown ThreadTimer:" + timer.name);
+//		LogManager.log("shutdown ThreadTimer:" + timer.name);
 	}
 }

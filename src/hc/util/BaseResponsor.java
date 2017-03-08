@@ -1,7 +1,6 @@
 package hc.util;
 
 import hc.core.ContextManager;
-import hc.core.IContext;
 import hc.core.L;
 import hc.core.sip.SIPManager;
 import hc.core.util.IHCURLAction;
@@ -19,14 +18,13 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction{
 		ProjectContext.EVENT_SYS_PROJ_SHUTDOWN};
 
 	private final void startUpdateOneTimeKeysProcess(final J2SESession coreSS){
-		final IContext ctx = coreSS.context;
-		if(ctx.isBuildedUPDChannel && ctx.isDoneUDPChannelCheck){
-//			L.V = L.O ? false : LogManager.log("is using UDP, skip startUpdateOneTimeKeysProcess");
-		}else if(SIPManager.isOnRelay(coreSS)){
+		if(coreSS.hcConnection.isBuildedUPDChannel && coreSS.hcConnection.isDoneUDPChannelCheck){
+//			LogManager.log("is using UDP, skip startUpdateOneTimeKeysProcess");
+		}else if(SIPManager.isOnRelay(coreSS.hcConnection)){
 			final UpdateOneTimeRunnable updateOneTimeKeysRunnable = new UpdateOneTimeRunnable(coreSS);
 			ContextManager.getThreadPool().run(updateOneTimeKeysRunnable);
 			if(coreSS != null){
-				coreSS.updateOneTimeKeysRunnable = updateOneTimeKeysRunnable;
+				coreSS.hcConnection.updateOneTimeKeysRunnable = updateOneTimeKeysRunnable;
 				if(L.isInWorkshop){
 					LogManager.log("success startUpdateOneTimeKeysProcess!");
 				}
@@ -38,22 +36,6 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction{
 		}
 	}
 	
-	public final void activeNewOneTimeKeys(final J2SESession coreSS){
-		if(coreSS != null){
-			coreSS.isReceivedOneTimeInSecuChannalFromMobile = true;
-			if(coreSS.updateOneTimeKeysRunnable != null){
-				coreSS.setOneTimeCertKey(coreSS.updateOneTimeKeysRunnable.oneTime);
-			}
-			if(L.isInWorkshop){
-				LogManager.log("success activeNewOneTimeKeys");
-			}
-		}else{
-			if(L.isInWorkshop){
-				LogManager.errToLog("fail to activeNewOneTimeKeys");
-			}
-		}
-	}
-	
 	protected final void notifyMobileLogin(final J2SESession coreSS){
 		createClientSession(coreSS);
 		startUpdateOneTimeKeysProcess(coreSS);
@@ -61,10 +43,10 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction{
 
 	protected final void notifyMobileLogout(final J2SESession coreSS){
 		if(coreSS != null){
-			final UpdateOneTimeRunnable updateOneTimeKeysRunnable = coreSS.updateOneTimeKeysRunnable;
+			final UpdateOneTimeRunnable updateOneTimeKeysRunnable = (UpdateOneTimeRunnable)coreSS.hcConnection.updateOneTimeKeysRunnable;
 			
 			if(updateOneTimeKeysRunnable != null){
-				updateOneTimeKeysRunnable.isStopRunning = true;
+				coreSS.hcConnection.isStopRunning = true;
 			}
 			
 			if(L.isInWorkshop){

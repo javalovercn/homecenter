@@ -25,21 +25,15 @@ public class ClientCmdExector {
 				ctx.doExtBiz(IContext.BIZ_NEW_NOTIFICATION, url.getValueofPara("status"));
 				return true;
 			}else if(elementID.equals(HCURL.DATA_CMD_MSG)){
-//				L.V = L.O ? false : LogManager.log("Receive Cmd Msg");
+//				LogManager.log("Receive Cmd Msg");
 
 				final String caption = url.getValueofPara("caption");
 				final String text = url.getValueofPara("text");
+				final int type = Integer.parseInt(url.getValueofPara("type"));
+				final String image = url.getValueofPara("image");
+				final int timeout = Integer.parseInt(url.getValueofPara("timeOut"));
 				
-				//仅处理服务器端过来的，不能置于displayMessage之中，因为本地异常也可能displayMessage
-				ctx.doExtBiz(IContext.BIZ_ASSISTANT_SPEAK, caption);
-				ctx.doExtBiz(IContext.BIZ_ASSISTANT_SPEAK, text);
-				
-				ctx.displayMessage(
-						caption, 
-						text, 
-						Integer.parseInt(url.getValueofPara("type")), 
-						url.getValueofPara("image"), 
-						Integer.parseInt(url.getValueofPara("timeOut")));
+				receiveAlert(ctx, caption, text, type, image, timeout);
 				
 				return true;
 			}else if(elementID.equals(HCURL.DATA_CMD_MOVING_MSG)){
@@ -57,6 +51,16 @@ public class ClientCmdExector {
 //			if(url.elementID.equals("/root")){}
 		}
 		return false;
+	}
+
+	public static void receiveAlert(IContext ctx, final String caption,
+			final String text, final int type, final String image,
+			final int timeout) {
+		//仅处理服务器端过来的，不能置于displayMessage之中，因为本地异常也可能displayMessage
+		ctx.doExtBiz(IContext.BIZ_ASSISTANT_SPEAK, caption);
+		ctx.doExtBiz(IContext.BIZ_ASSISTANT_SPEAK, text);
+		
+		ctx.displayMessage(caption, text, type, image, timeout);
 	}
 
 	public static String decodeURL(String s, String enc)

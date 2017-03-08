@@ -38,7 +38,7 @@ public abstract class CtrlResponse {
 	 * @return
 	 * @since 6.98
 	 */
-	public final String getTarget(){
+	public String getTarget(){
 		return target;//支持Test Scripts
 	}
 	
@@ -52,7 +52,7 @@ public abstract class CtrlResponse {
 	 * @see ProjectContext#getMenuItemBy(String, String)
 	 * @since 7.20
 	 */
-	public final String getElementID(){
+	public String getElementID(){
 		if(elementID == null){
 			elementID = ResourceUtil.getElementIDFromTarget(target);//支持Test Scripts
 		}
@@ -66,7 +66,7 @@ public abstract class CtrlResponse {
 	 * @return
 	 * @since 6.98
 	 */
-	public final ProjectContext getProjectContext(){
+	public ProjectContext getProjectContext(){
 		return context;
 	}
 	
@@ -111,7 +111,7 @@ public abstract class CtrlResponse {
 	 * @param text
 	 * @since 6.98
 	 */
-	public final void setButtonText(final int key, final String text){
+	public void setButtonText(final int key, final String text){
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return;
 		}
@@ -139,7 +139,7 @@ public abstract class CtrlResponse {
 	 * @see ProjectContext#sendMovingMsg(String)
 	 * @since 6.98
 	 */
-	public final void showTip(final String msg){
+	public void showTip(final String msg){
 		sendMovingMsg(msg);
 	}
 	
@@ -155,7 +155,7 @@ public abstract class CtrlResponse {
 	 * @see ProjectContext#sendMovingMsg(String)
 	 * @since 7.30
 	 */
-	public final void sendMovingMsg(final String msg){
+	public void sendMovingMsg(final String msg){
 		getProjectContext().sendMovingMsg(msg);
 	}
 	
@@ -165,7 +165,7 @@ public abstract class CtrlResponse {
 	 * @param status
 	 * @since 6.98
 	 */
-	public final void sendStatus(final String attribute, final String status){
+	public void sendStatus(final String attribute, final String status){
 		sendStatus(attribute, status, isRTL);
 	}
 	
@@ -176,7 +176,7 @@ public abstract class CtrlResponse {
 	 * @param isRTL true if is right to left
 	 * @since 6.98
 	 */
-	public final void sendStatus(final String attribute, final String status, final boolean isRTL){
+	public void sendStatus(final String attribute, final String status, final boolean isRTL){
 		final String[] keyArr = {attribute};
 		final String[] vArr = {status};
 		sendStatus(keyArr, vArr, isRTL);
@@ -188,7 +188,7 @@ public abstract class CtrlResponse {
 	 * @param status
 	 * @since 6.98
 	 */
-	public final void sendStatus(final String[] attributes, final String[] status){
+	public void sendStatus(final String[] attributes, final String[] status){
 		sendStatus(attributes, status, isRTL);
 	}
 	
@@ -199,7 +199,7 @@ public abstract class CtrlResponse {
 	 * @param isRTL true if is right to left
 	 * @since 6.98
 	 */
-	public final void sendStatus(final String[] attributes, final String[] status, final boolean isRTL){
+	public void sendStatus(final String[] attributes, final String[] status, final boolean isRTL){
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return;
 		}

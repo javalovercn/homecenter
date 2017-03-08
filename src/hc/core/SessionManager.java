@@ -64,6 +64,23 @@ public abstract class SessionManager {
 			return out;
 		}
 	}
+	
+	public static final CoreSession getCoreSessionByConnectionID(final long hcConnectionID){
+		CCoreUtil.checkAccess();
+		
+		synchronized (sessionListThreadSafe) {
+			final int size = sessionListThreadSafe.size();
+			
+			for (int copyIdx = 0; copyIdx < size; copyIdx++) {
+				CoreSession coreSS = (CoreSession)sessionListThreadSafe.elementAt(copyIdx);
+				if(coreSS.hcConnection.connectionID == hcConnectionID){
+					return coreSS;
+				}
+			}
+		}
+		
+		return null;
+	}
 
 	public static CoreSession getPreparedSocketSession(){
 		CCoreUtil.checkAccess();

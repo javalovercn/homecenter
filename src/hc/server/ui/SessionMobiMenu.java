@@ -6,14 +6,17 @@ import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.JarMainMenu;
 import hc.server.ui.design.ProjResponser;
+import hc.server.util.VoiceCommand;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
 
+import java.util.Enumeration;
+import java.util.NoSuchElementException;
 import java.util.Vector;
 
 public class SessionMobiMenu extends MobiMenu{
 	final MobiMenu projectMenu;
-	boolean enableQRInMobiMenu, enableWiFiInMobiMenu;
+	boolean enableQRInMobiMenu, enableWiFiInMobiMenu, enableVoiceCommand;
 	final J2SESession coreSS;
 	public final int targetMobileIconSize;
 	
@@ -27,9 +30,11 @@ public class SessionMobiMenu extends MobiMenu{
 
 		if(isRoot){
 			//可能新用户重新登录，手机WiFi状态不一
-			enableQRInMobiMenu = ResourceUtil.isDemoServer() == false && UserThreadResourceUtil.getMobileAgent(coreSS).hasCamera();// || PropertiesManager.isSimu();
+			enableQRInMobiMenu = ResourceUtil.isEnableClientAddHAR() && UserThreadResourceUtil.getMobileAgent(coreSS).hasCamera();// || PropertiesManager.isSimu();
 			//关闭WiFi广播HAR
 			enableWiFiInMobiMenu = ResourceUtil.isDemoServer() == false && HCURL.isUsingWiFiWPS && ResourceUtil.canCtrlWiFi(coreSS);// || PropertiesManager.isSimu();
+		
+			enableVoiceCommand = UserThreadResourceUtil.getMobileAgent(coreSS).isEnableVoiceCommand();
 		}
 		
 		initMenuItemArray();
@@ -207,7 +212,51 @@ public class SessionMobiMenu extends MobiMenu{
 			}
 		}
 	}
+	
+	public final MenuItem searchMenuItemByVoiceCommand(final VoiceCommand voiceCommand){
+		synchronized(projectMenu.menuLock){
+			synchronized (menuLock) {
+				final MenuItem out = searchMenuItemByVoiceCommand(projectMenu.menuItems, voiceCommand);
+				if(out != null){
+					return out;
+				}
+				
+				return searchMenuItemByVoiceCommand(menuItems, voiceCommand);
+			}
+		}
+	}
 			
+	private final MenuItem searchMenuItemByVoiceCommand(final Vector<MenuItem> from, final VoiceCommand voiceCommand){
+		final int size = from.size();
+		for (int j = 0; j < size; j++) {
+			final MenuItem item = from.elementAt(j);
+			
+			if(item.itemURL == HCURL.URL_CMD_VOICE_COMMAND){//不能找自己
+				continue;
+			}
+			
+			if(voiceCommand.equalsIgnoreCase(item.itemName)){
+				return item;
+			}
+			
+			final I18NStoreableHashMapWithModifyFlag i18n = item.i18nName;
+			try{
+				final Enumeration e = i18n.keys();
+				while(e.hasMoreElements()){
+					final String oneKey = (String)e.nextElement();
+					if(voiceCommand.equalsIgnoreCase((String)i18n.get(oneKey))){
+						return item;
+					}
+				}
+			}catch (final NoSuchElementException e) {
+			}catch (final Throwable e) {
+				e.printStackTrace();
+			}
+			
+		}
+		return null;
+	}
+	
 	private final MenuItem searchMenuItem(final Vector<MenuItem> from, final String urlLower, final String aliasUrlLower){
 		final int size = from.size();
 		for (int j = 0; j < size; j++) {
@@ -251,6 +300,19 @@ public class SessionMobiMenu extends MobiMenu{
 			final String image = UIUtil.SYS_ADD_DEVICE_BY_WIFI_ICON;
 			final String url = HCURL.URL_CFG_ADD_DEVICE_BY_WIFI;
 			final I18NStoreableHashMapWithModifyFlag i18nName = ResourceUtil.getI18NByResID(res_add);
+			final String listen = ""; 
+			final String extend_map = "";
+			
+			addTail(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen, extend_map));
+		}
+		
+		if(enableVoiceCommand){
+			final int res_voice = 9244;
+			final String name = (String)ResourceUtil.get(res_voice);
+			final int type = fold_type;
+			final String image = UIUtil.SYS_VOICE_COMMAND;
+			final String url = HCURL.URL_CMD_VOICE_COMMAND;
+			final I18NStoreableHashMapWithModifyFlag i18nName = ResourceUtil.getI18NByResID(res_voice);
 			final String listen = ""; 
 			final String extend_map = "";
 			

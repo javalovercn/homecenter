@@ -331,6 +331,20 @@ public class ByteUtil {
 		return result;
 	}
 
+	public static void longToEightBytes(final long value, final byte[] bs, int store_index) {
+		if (value < 0) {
+			return ;
+		}
+		bs[store_index++] = (byte) ((value >>> 56) & 0xFF);
+		bs[store_index++] = (byte) ((value >>> 48) & 0xFF);
+		bs[store_index++] = (byte) ((value >>> 40) & 0xFF);
+		bs[store_index++] = (byte) ((value >>> 32) & 0xFF);
+		bs[store_index++] = (byte) ((value >>> 24) & 0xFF);
+		bs[store_index++] = (byte) ((value >>> 16) & 0xFF);
+		bs[store_index++] = (byte) ((value >>> 8) & 0xFF);
+		bs[store_index] = (byte) (value & 0xFF);
+	}
+	
 	public static void integerToFourBytes(final int value, final byte[] bs, int store_index) {
 		if (value < 0) {
 			return ;
@@ -391,6 +405,19 @@ public class ByteUtil {
 		return ((temp0 << 8) + temp1);
 	}
 
+	public static long eightBytesToLong(final byte[] value) {
+		return eightBytesToLong(value, 0);
+	}
+	
+	public static long eightBytesToLong(final byte[] value, int index) {
+		if (value.length < 8) {
+			return 0;
+		}
+		return ((long) (value[index++] & 0xFF) << 56) + ((long) (value[index++] & 0xFF) << 48) + ((long) (value[index++] & 0xFF) << 40) + 
+				((long) (value[index++] & 0xFF) << 32) + ((long) (value[index++] & 0xFF) << 24) + ((value[index++] & 0xFF) << 16) + 
+				((value[index++] & 0xFF) << 8) + (value[index++] & 0xFF);
+	}
+	
 	public static long fourBytesToLong(final byte[] value, int index) {
 		if (value.length < 4) {
 			return 0;

@@ -1,8 +1,10 @@
 package hc.server;
 
 import hc.App;
-import hc.core.CoreSession;
+import hc.core.AckBatchHCTimer;
+import hc.core.HCConnection;
 import hc.core.HCMessage;
+import hc.core.HCTimer;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
@@ -37,7 +39,9 @@ public class J2SESIPContext extends ISIPContext {
 	private InetAddress outputInetAddress;
 	
 	public J2SESIPContext(final J2SESession j2seCoreSS) {
-		resender = new UDPPacketResender(j2seCoreSS){
+		final HCConnection hcConnection = j2seCoreSS.hcConnection;
+		
+		resender = new UDPPacketResender(){
 			@Override
 			protected final void resend(final Object packet) {
 				try{
@@ -94,8 +98,8 @@ public class J2SESIPContext extends ISIPContext {
 					
 					final byte[] bs = p.getData();
 					
-					bs[IDX_HEADER_1] = UDP_HEADER[0];
-					bs[IDX_HEADER_2] = UDP_HEADER[1];
+					bs[IDX_HEADER_1] = hcConnection.udpHeader[0];
+					bs[IDX_HEADER_2] = hcConnection.udpHeader[1];
 					
 					//以下逻辑要与J2MEContext同步
 	//				Message.setSendUUID(bs, selfUUID, selfUUID.length);
@@ -121,7 +125,7 @@ public class J2SESIPContext extends ISIPContext {
 	        		if(realLen == 0 || ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN){
 	        			
 	        		}else{
-		        		CUtil.superXor(j2seCoreSS.context, j2seCoreSS.OneTimeCertKey, bs, MsgBuilder.INDEX_UDP_MSG_DATA, realLen, null, true, true);//不作在线更新RandomKey
+		        		CUtil.superXor(hcConnection, hcConnection.OneTimeCertKey, bs, MsgBuilder.INDEX_UDP_MSG_DATA, realLen, null, true, true);//不作在线更新RandomKey
 	        		}
 	        		if(ctrlTag != MsgBuilder.E_TAG_ACK){
 	        			resender.needAckAtSend(p, HCMessage.getAndSetAutoMsgID(bs));
@@ -140,12 +144,13 @@ public class J2SESIPContext extends ISIPContext {
 					cacher.cycle(p);
 				}
 				if(split_num > 50){
-//					L.V = L.O ? false : LogManager.log("Send out blob UDP data. num:" + split_num);
+//					LogManager.log("Send out blob UDP data. num:" + split_num);
 				}
 			}
 	    };
 	    
-	    j2seCoreSS.setSIPContextAndResender(this, resender);
+	    j2seCoreSS.hcConnection.sipContext = this;
+		ackbatchTimer = new AckBatchHCTimer("AckBatch", HCTimer.HC_INTERNAL_MS, false, resender);
 	}
 	
 	@Override
@@ -175,17 +180,23 @@ public class J2SESIPContext extends ISIPContext {
 	}
 	
 	@Override
-	public boolean tryRebuildUDPChannel(final CoreSession coreSS){
-		L.V = L.O ? false : LogManager.log("Server Side UDP rebuild NOT implement!");
+	public boolean tryRebuildUDPChannel(final HCConnection hcConnection){
+		LogManager.log("Server Side UDP rebuild NOT implement!");
 		return false;
 	}
 	
+	private final boolean isDisableUDP = true;
+	
 	@Override
-	public boolean buildUDPChannel(final CoreSession coreSS) {
+	public boolean buildUDPChannel(final HCConnection hcConnection) {
+		if(isDisableUDP){
+			return false;
+		}
+		
 		InetSocketAddress isocket;
-		final int targetPort = coreSS.relayIpPort.udpPort;
+		final int targetPort = hcConnection.relayIpPort.udpPort;
 		try {
-			final InetAddress inetAddr = InetAddress.getByName(coreSS.relayIpPort.ip);
+			final InetAddress inetAddr = InetAddress.getByName(hcConnection.relayIpPort.ip);
 			isocket = new InetSocketAddress(inetAddr, targetPort);
 			DatagramSocket udpSocket;
 			if(outputInetAddress != null){
@@ -195,12 +206,12 @@ public class J2SESIPContext extends ISIPContext {
 			}
 			udpSocket.connect(isocket);
 			
-//			L.V = L.O ? false : LogManager.log("buildUDPChannel : " + udpSocket.getLocalSocketAddress());
+//			LogManager.log("buildUDPChannel : " + udpSocket.getLocalSocketAddress());
 			
 			resender.setUDPTargetAddress(inetAddr, targetPort);
 			resender.setUDPSocket(udpSocket);
 			
-			coreSS.getUDPReceiveServer().setUdpServerSocket(udpSocket);
+			hcConnection.getUDPReceiveServer().setUdpServerSocket(udpSocket);
 			
 			return true;
 		} catch (final Exception e) {
@@ -292,10 +303,10 @@ public class J2SESIPContext extends ISIPContext {
 			s.setReceiveBufferSize(1024 * 250);
 		}
 		
-//			L.V = L.O ? false : LogManager.log("SndBuf:" + s.getSendBufferSize());
-//			L.V = L.O ? false : LogManager.log("RcvBuf:" + s.getReceiveBufferSize());
+//			LogManager.log("SndBuf:" + s.getSendBufferSize());
+//			LogManager.log("RcvBuf:" + s.getReceiveBufferSize());
 
-		L.V = L.O ? false : LogManager.log("Succ build socket to " + HttpUtil.replaceIPWithHC(targetServer) +", port:" 
+		LogManager.log("Succ build socket to " + HttpUtil.replaceIPWithHC(targetServer) +", port:" 
 				+ targetPort + " from local" + s.getLocalAddress() + ":" + s.getLocalPort());
 
 		isFailed = false;
@@ -324,7 +335,12 @@ public class J2SESIPContext extends ISIPContext {
 	@Override
 	public DataOutputStream getOutputStream(final Object socket) throws IOException{
 		return new DataOutputStream(((Socket)socket).getOutputStream());
-	}		
+	}
+	
+	@Override
+	public final void setInputOutputStream(final DataInputStream dis, final DataOutputStream dos){
+		L.V = L.WShop ? false : LogManager.log("[Change] SIPContext setInputOutputStream");
+	}
 	
 	@Override
 	public void closeSocket(final Object socket) throws IOException{
@@ -381,7 +397,7 @@ public class J2SESIPContext extends ISIPContext {
 //			buildPacket(bs, nrn);
 //			
 //			upnplisten.getosend(dp);
-//			L.V = L.O ? false : LogManager.log("Finding public ip/port");
+//			LogManager.log("Finding public ip/port");
 //		
 //			upnplisten.receive(dp);
 //			StunDesc sd = buildDesc(bs);
@@ -455,20 +471,20 @@ public class J2SESIPContext extends ISIPContext {
 //	}
 
 	@Override
-	public void closeDeploySocket(final CoreSession coreSS){
+	public void closeDeploySocket(final HCConnection hcConnection){
 		//必须要置前
 //		StarterParameter.removeUPnPMapping();
 		
 		//网络环境发生变化，所以要重新
 //		StarterParameter.relayServerLocalPort = 0;
 //		StarterParameter.relayServerUPnPPort = 0;
-		coreSS.relayIpPort.reset();
+		hcConnection.relayIpPort.reset();
 		
 		isClose = true;		
 		Socket snapSocket = socket;
 		
 		try{
-			deploySocket(coreSS, null);
+			deploySocket(hcConnection, null);
 		}catch (final Exception e) {
 		}
 		
@@ -485,18 +501,21 @@ public class J2SESIPContext extends ISIPContext {
 	}
 
 	@Override
-	public void setSocket(final Object connector) {
+	public void setSocket(final Object connector, final boolean isForSwap) {
 		final Socket snapSocket = socket;
+		L.V = L.WShop ? false : LogManager.log("[Change] SIPContext Socket");
 		if(connector != null){
 			isClose = false;
 		}
 		this.socket = (Socket)(connector);
-		try{
-			if(snapSocket != null){
-				snapSocket.close();
+		if(isForSwap == false){
+			try{
+				if(snapSocket != null){
+					snapSocket.close();
+				}
+			}catch (final Exception e) {
+				
 			}
-		}catch (final Exception e) {
-			
 		}
 	}
 

@@ -132,7 +132,7 @@ public class ScriptPanel extends JPanel {
 				final int count = jsToDeliver.size();
 				for (int i = 0; i < count; i++) {
 					final String JS = jsToDeliver.elementAt(i);
-					sizeHeightForXML.executeScript(mlet, JS);
+					sizeHeightForXML.executeScriptWithoutCache(mlet, JS);
 				}
 				jsToDeliver.clear();
 				jsToDeliver = null;
@@ -221,7 +221,7 @@ public class ScriptPanel extends JPanel {
 		
 		synchronized (lock) {
 			if(sizeHeightForXML != null){
-				sizeHeightForXML.executeScript(mlet, script);
+				sizeHeightForXML.executeScriptWithoutCache(mlet, script);
 			}else{
 				if(jsToDeliver == null){
 					jsToDeliver = new Vector<String>();

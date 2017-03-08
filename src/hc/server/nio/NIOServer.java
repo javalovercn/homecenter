@@ -39,7 +39,7 @@ public class NIOServer {
 //			at.rebuildServerChannel(ip);
 //		} catch (Exception e) {
 //			ExceptionReporter.printStackTrace(e);
-//			L.V = L.O ? false : LogManager.log("rebuildServerChannel:" + e.getMessage());
+//			LogManager.log("rebuildServerChannel:" + e.getMessage());
 //		}
 //	}
 	
@@ -48,7 +48,7 @@ public class NIOServer {
 			at.close();
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
-			L.V = L.O ? false : LogManager.log("buildServerChannel:" + e.getMessage());
+			LogManager.log("buildServerChannel:" + e.getMessage());
 		}
 
 	}

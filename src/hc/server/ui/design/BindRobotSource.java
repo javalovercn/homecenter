@@ -93,7 +93,7 @@ public class BindRobotSource extends IoTSource{
 			final Robot r = robots[i];
 			if(MSBAgent.getName(r).equals(robotName)){
 				
-				L.V = L.O ? false : LogManager.log("try [declareReferenceDeviceID] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
+				LogManager.log("try [declareReferenceDeviceID] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
 				final String[] referID = (String[])pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 					@Override
 					public Object run() {
@@ -102,7 +102,7 @@ public class BindRobotSource extends IoTSource{
 				});
 				
 				if(referID != null){
-					L.V = L.O ? false : LogManager.log("successful [declareReferenceDeviceID] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
+					LogManager.log("successful [declareReferenceDeviceID] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
 					for (int j = 0; j < referID.length; j++) {
 						final DeviceBindInfo dbi = new DeviceBindInfo(projID, robotName);
 						dbi.ref_dev_id = referID[j];
@@ -111,7 +111,7 @@ public class BindRobotSource extends IoTSource{
 						list.add(dbi);
 					}
 				}else{
-					L.V = L.O ? false : LogManager.log("NO [declareReferenceDeviceID] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
+					LogManager.log("NO [declareReferenceDeviceID] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
 				}
 				return list;
 			}
@@ -136,10 +136,10 @@ public class BindRobotSource extends IoTSource{
 		for (int i = 0; i < robots.length; i++) {
 			final Robot r = robots[i];
 			if(MSBAgent.getName(r).equals(robotName)){
-				L.V = L.O ? false : LogManager.log("try [getDeviceCompatibleDescription] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
+				LogManager.log("try [getDeviceCompatibleDescription] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
 				final DeviceCompatibleDescription out = getDeviceCompatibleDescByRobotToUserThread(pr, r, referenceDeviceID);
 				if(out != null){
-					L.V = L.O ? false : LogManager.log("successful [getDeviceCompatibleDescription] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
+					LogManager.log("successful [getDeviceCompatibleDescription] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
 				}
 				return out;
 			}
@@ -246,9 +246,9 @@ public class BindRobotSource extends IoTSource{
 						final String[] devRealIDS = (String[])pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 							@Override
 							public Object run() {
-								L.V = L.O ? false : LogManager.log("try [connect] for real device IDs of Device ["+ dev_name + "] in project [" + projectID + "]...");
+								LogManager.log("try [connect] for real device IDs of Device ["+ dev_name + "] in project [" + projectID + "]...");
 								final String[] out = MSBAgent.getRegisterDeviceID(device, respo.msbAgent.workbench);
-								L.V = L.O ? false : LogManager.log("successful [connect] for real device IDs of Device ["+ dev_name + "] in project [" + projectID + "].");
+								LogManager.log("successful [connect] for real device IDs of Device ["+ dev_name + "] in project [" + projectID + "].");
 								return out;
 							}
 						});

@@ -237,7 +237,7 @@ public class UPnPDevice {
     }
 
     public void setServiceType(String serviceType) {
-//    	L.V = L.O ? false : LogManager.log("set serverType:" + serviceType);
+//    	LogManager.log("set serverType:" + serviceType);
         this.SERVICETYPE = serviceType;
     }
 
@@ -246,7 +246,7 @@ public class UPnPDevice {
     }
 
     public void setControlURL(String controlURL) {
-//    	L.V = L.O ? false : LogManager.log("set controlURL:" + controlURL);
+//    	LogManager.log("set controlURL:" + controlURL);
         this.CONTROLURL = controlURL;
     }
 
@@ -255,7 +255,7 @@ public class UPnPDevice {
     }
 
     public void setSCPDURL(String sCPDURL) {
-//    	L.V = L.O ? false : LogManager.log("set SCPDURL:" + sCPDURL);
+//    	LogManager.log("set SCPDURL:" + sCPDURL);
         this.SCPDURL = sCPDURL;
     }
 

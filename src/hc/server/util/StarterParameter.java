@@ -89,7 +89,7 @@ public class StarterParameter {
 			final int rootPort = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServerPort));
 	
 	//		暂停stun IP
-	//		L.V = L.O ? false : LogManager.log("try connect homecenter.mobi [" + rootIP + ":" + rootPort + "] for stun IP");
+	//		LogManager.log("try connect homecenter.mobi [" + rootIP + ":" + rootPort + "] for stun IP");
 	//		publicShowIP = getStunIP(rootIP, rootPort);
 			
 	    	//    	SIPManager.resetAllConnection();
@@ -101,8 +101,8 @@ public class StarterParameter {
 			}else{
 				ia = HttpUtil.getInetAddressByDeviceName(networkInterfacename);
 				if(ia == null){
-					L.V = L.O ? false : LogManager.log("fail build direct server");
-					L.V = L.O ? false : LogManager.log("  on network interface [" + networkInterfacename + "]");
+					LogManager.log("fail build direct server");
+					LogManager.log("  on network interface [" + networkInterfacename + "]");
 					networkInterfacename = HttpUtil.AUTO_DETECT_NETWORK;
 				}
 			}
@@ -114,7 +114,7 @@ public class StarterParameter {
 	    		if( ! PropertiesManager.isTrue(PropertiesManager.p_DisableHomeWireless)){
 	    			buildNIOs(ia, networkInterfacename, false);
 	    		}else{
-	    			L.V = L.O ? false : LogManager.log("Disable home direct server.");
+	    			LogManager.log("Disable home direct server.");
 	    		}
 	    	}else{
 		    	if(( ! PropertiesManager.isTrue(PropertiesManager.p_DisableDirect)) 
@@ -201,7 +201,7 @@ public class StarterParameter {
 			}
 	
 			final Socket publicIn = upnplisten.accept();
-			L.V = L.O ? false : LogManager.log("Finding public (UPnP) ip/port");
+			LogManager.log("Finding public (UPnP) ip/port");
 			
 			publicIn.close();
 			

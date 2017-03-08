@@ -21,7 +21,7 @@ public class AckBatchHCTimer extends HCTimer {
 //		synchronized (ackIDS) {
 			while(storeIdx > batchByteLen){
 				storeIdx -= batchByteLen;
-//				L.V = L.O ? false : LogManager.log("Send bat len : " + batchByteLen);
+//				LogManager.log("Send bat len : " + batchByteLen);
 				resender.sendUDP(MsgBuilder.E_TAG_ACK, MsgBuilder.NULL_CTRL_SUB_TAG, ackIDS, 
 						storeIdx, batchByteLen, 0, true);
 			}
@@ -37,7 +37,7 @@ public class AckBatchHCTimer extends HCTimer {
 	public void ack(final byte[] bs, int startIdx){
 //		synchronized(ackIDS){
 			if(storeIdx == MAX_STORE_IDX){
-				L.V = L.O ? false : LogManager.log("Warning AckBatchHCTimer oversize!");
+				LogManager.log("Warning AckBatchHCTimer oversize!");
 				return;
 			}
 			

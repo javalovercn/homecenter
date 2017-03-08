@@ -1,11 +1,13 @@
 package hc.core;
 
+import hc.core.sip.ISIPContext;
 import hc.core.sip.SIPManager;
 import hc.core.util.ByteArrayCacher;
 import hc.core.util.ByteUtil;
 import hc.core.util.CUtil;
 import hc.core.util.EventBackCacher;
 import hc.core.util.LogManager;
+import hc.core.util.RootBuilder;
 import hc.core.util.ThreadPriorityManager;
 
 import java.io.DataInputStream;
@@ -14,7 +16,10 @@ public class ReceiveServer implements Runnable{
 	DataInputStream dataInputStream;
 	public static final ByteArrayCacher recBytesCacher = ByteUtil.byteArrayCacher;
     public Thread thread;
-    final CoreSession coreSocketSession;
+    CoreSession coreSocketSession;
+    final boolean isEnableTestRebuildConn = IConstant.serverSide == false 
+    		&& ((Boolean)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_IS_SIMU, null)).booleanValue();//限客户端
+    long lastBuildConnMS = System.currentTimeMillis();
     
 	public ReceiveServer(final CoreSession coreSocketSession){
 		thread = new Thread(this);//"Receive Server"
@@ -42,7 +47,7 @@ public class ReceiveServer implements Runnable{
 //		return len;
 //	}
 //	private void readFully(final DataInputStream in, final byte b[], final int off, final int len) throws Exception {
-//		L.V = L.O ? false : LogManager.log("try new read " + len + "...");
+//		LogManager.log("try new read " + len + "...");
 //		if(IConstant.serverSide == false){
 //		if(len > 1447){
 //			int n = 0;
@@ -53,17 +58,17 @@ public class ReceiveServer implements Runnable{
 //			    }
 //			    
 //	//		    if(readOnceCount < 0){
-//	//		    	L.V = L.O ? false : LogManager.log("ReadBuff available:" + readOnceCount);
+//	//		    	LogManager.log("ReadBuff available:" + readOnceCount);
 //	//		    	throw new Exception();
 //	//		    }
 //			    
 //	    		final int bestReadNum = len - n;
 ////	    		final int realReadedNum = in.read(b, off + n, bestReadNum>readOnceCount?readOnceCount:bestReadNum);
-//	    		L.V = L.O ? false : LogManager.log("readOnceCount : " + readOnceCount);
+//	    		LogManager.log("readOnceCount : " + readOnceCount);
 //	    		final int realReadedNum = readFullyShort(in, b, off + n, bestReadNum>readOnceCount?readOnceCount:bestReadNum);
 //				n += realReadedNum;
 //			    
-//	//			L.V = L.O ? false : LogManager.log("receiveFull readOnce:" + realReadedNum + ", readed:" + n + ", targetNum:" + len);
+//	//			LogManager.log("receiveFull readOnce:" + realReadedNum + ", readed:" + n + ", targetNum:" + len);
 //			}
 //		}else{
 ////			readFullyShort(in, b, off, len);
@@ -75,14 +80,16 @@ public class ReceiveServer implements Runnable{
 //	}
 	
 	private boolean isCheckOn;
-	private final short checkBitLen = MsgBuilder.CHECK_BIT_NUM;
-	private byte checkTotal;
-	private byte checkAND;
-	private byte checkMINUS;
+	private final short checkBitLen = MsgBuilder.EXT_BYTE_NUM;
+	public byte checkTotal;
+	public byte checkAND;
+	public byte checkMINUS;
+	public final byte[] ackXorPackageID = new byte[MsgBuilder.XOR_PACKAGE_ID_LEN];
+	private long readyReceiveXorPackageID = 1;
 	
 	public final void setCheck(final boolean isCheckOn){
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("set ReceiveServer CheckDataIntegrity : " + isCheckOn);
+			LogManager.log("set ReceiveServer CheckDataIntegrity : " + isCheckOn);
 		}
 		this.isCheckOn = isCheckOn;
 		if(isCheckOn){
@@ -92,16 +99,25 @@ public class ReceiveServer implements Runnable{
 		}
 	}
 	
+	static final Exception overflowException = new Exception("Overflow or Error data, maybe clientReset Error");
+	static final Exception checkException = new Exception("fail on check integrity of package data");
+	String threadID;
+	
 	public void run(){
+		threadID = Thread.currentThread().toString();
+		
 		final int initSize = 2048;
 		final int initMaxDataLen = initSize - MsgBuilder.MIN_LEN_MSG;
 		byte[] bs = null;
 		final EventBackCacher ebCacher = EventBackCacher.getInstance();
-		final Exception overflowException = new Exception("Overflow or Error data, maybe clientReset Error");
-		long lastReconnAfterResetMS = System.currentTimeMillis();
 		final int WAIT_MODI_STATUS_MS = HCTimer.HC_INTERNAL_MS + 100;
 		final boolean isInWorkshop = L.isInWorkshop;
-		final IContext ctx = coreSocketSession.context;
+		final HCConnection hcConnection = coreSocketSession.hcConnection;
+		
+		final byte ackCmStatus = ContextManager.STATUS_CLIENT_SELF;
+		
+		byte ctrlTag = 0;
+		boolean isXor = false;
 		
     	while (!isShutdown) {
 			if(dataInputStream == null){
@@ -117,11 +133,30 @@ public class ReceiveServer implements Runnable{
 				}
 			}
             try {
+            	isXor = false;
             	bs = recBytesCacher.getFree(initSize);
-            	dataInputStream.readFully(bs, 0, MsgBuilder.MIN_LEN_MSG);
-//				L.V = L.O ? false : LogManager.log("Receive head len:" + len);
+            	
+            	if(isEnableTestRebuildConn){
+            		if(coreSocketSession.context.cmStatus == ContextManager.STATUS_CLIENT_SELF){
+	            		final long currMS = System.currentTimeMillis();
+	            		if(currMS - lastBuildConnMS > 1000 * 30){
+	            			lastBuildConnMS = currMS;
+	            			L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] start test close connection and rebuild/renewal.");
+	            			final ISIPContext sipContext = hcConnection.sipContext;
+	            			sipContext.closeSocket(sipContext.getSocket());
+	            			throw overflowException;//模拟断线
+	            		}
+	            	}
+            	}
+            	
+				if(isInWorkshop){
+					LogManager.log("[workshop] inputStream : [" + dataInputStream.hashCode() + "] ready receive in ReceiveServer : " + threadID);
+				}
 				
-				final byte ctrlTag = bs[MsgBuilder.INDEX_CTRL_TAG];
+            	dataInputStream.readFully(bs, 0, MsgBuilder.MIN_LEN_MSG);
+//				LogManager.log("Receive head len:" + len);
+				
+				ctrlTag = bs[MsgBuilder.INDEX_CTRL_TAG];
 				
 				final int temp0 = bs[MsgBuilder.INDEX_MSG_LEN_HIGH] & 0xFF;
 				final int temp1 = bs[MsgBuilder.INDEX_MSG_LEN_MID] & 0xFF;
@@ -131,7 +166,7 @@ public class ReceiveServer implements Runnable{
 				final int dataLenWithCheckLen = (isNeedCheck?(dataLen+checkBitLen):dataLen);
 
 				if(isInWorkshop){
-					L.V = L.O ? false : LogManager.log("[workshop] session [" + coreSocketSession.hashCode() + "] Receive One packet [" + ctrlTag + "][" + bs[MsgBuilder.INDEX_CTRL_SUB_TAG] + "], data len : " + dataLen);
+					LogManager.log("[workshop] [" + dataInputStream.hashCode() + "]:" + threadID + " Receive One packet [" + ctrlTag + "][" + bs[MsgBuilder.INDEX_CTRL_SUB_TAG] + "], data len : " + dataLen);
 				}
 				
 				//有可能因ClientReset而导致收到不完整包，产生虚假大数据
@@ -156,13 +191,14 @@ public class ReceiveServer implements Runnable{
 				//先解密再进行check
 				if(ctrlTag == MsgBuilder.E_PACKAGE_SPLIT_TCP){
 					final int eachLen = dataLen - MsgBuilder.LEN_TCP_PACKAGE_SPLIT_DATA_BLOCK_LEN;
-					CUtil.superXor(ctx, coreSocketSession.OneTimeCertKey, bs, MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen, null, false, true);
+					CUtil.superXor(hcConnection, hcConnection.OneTimeCertKey, bs, MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen, null, false, true);
+					isXor = true;
 				}else{
 					if(dataLen == 0 || ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN){
 			    	}else{
-			    		if(coreSocketSession.OneTimeCertKey == null){
+			    		if(hcConnection.OneTimeCertKey == null){
 			    			int sleepTotal = 0;
-			    			while(coreSocketSession.OneTimeCertKey == null && sleepTotal < 3000){//Android模拟环境下600偏小
+			    			while(hcConnection.OneTimeCertKey == null && sleepTotal < 3000){//Android模拟环境下600偏小
 			    				try{
 			    					sleepTotal += ThreadPriorityManager.UI_WAIT_OTHER_THREAD_EXEC_MS;
 			    					Thread.sleep(ThreadPriorityManager.UI_WAIT_OTHER_THREAD_EXEC_MS);
@@ -171,12 +207,34 @@ public class ReceiveServer implements Runnable{
 			    			}
 			    		}
 			    		//解密
-			    		CUtil.superXor(ctx, coreSocketSession.OneTimeCertKey, bs, MsgBuilder.INDEX_MSG_DATA, dataLen, null, false, true);
+			    		CUtil.superXor(hcConnection, hcConnection.OneTimeCertKey, bs, MsgBuilder.INDEX_MSG_DATA, dataLen, null, false, true);
+			    		isXor = true;
 			    	}
 				}
 				
 				//检查check
 				if(isNeedCheck){
+					final int dataCheckLen = dataLen + MsgBuilder.MIN_LEN_MSG;
+					final int xorPackgeIdxOff = dataCheckLen + 2;
+
+					if(isXor){
+						//检查是否为重发包
+						final long realXorPackageID = ByteUtil.eightBytesToLong(bs, xorPackgeIdxOff);
+						if(realXorPackageID < readyReceiveXorPackageID){
+							//为重发包
+							recBytesCacher.cycle(bs);
+							if(isInWorkshop){
+								LogManager.log("skip received XorPackageID : " + realXorPackageID + ", expected XorPackageID : " + readyReceiveXorPackageID);
+							}
+							continue;
+						}else if(readyReceiveXorPackageID == realXorPackageID){
+							if(isInWorkshop){
+								LogManager.log("received XorPackageID : " + realXorPackageID + ", ready to check...");
+							}
+							readyReceiveXorPackageID++;
+						}
+					}
+					
 					byte realCheckTotal = checkTotal, realCheckAnd = checkAND, realCheckMinus = checkMINUS;
 					{
 						final byte oneByte = bs[0];
@@ -187,8 +245,7 @@ public class ReceiveServer implements Runnable{
 						realCheckMinus -= oneByte;
 					}
 					
-					final int dataCheckLen = dataLen + MsgBuilder.MIN_LEN_MSG;
-//					L.V = L.O ? false : LogManager.log("dataLen : " + dataLen + ", data : " + ByteUtil.toHex(bs, 0, dataCheckLen + checkBitLen));
+//					LogManager.log("dataLen : " + dataLen + ", data : " + ByteUtil.toHex(bs, 0, dataCheckLen + checkBitLen));
 					
 					for (int i = 2; i < dataCheckLen; i++) {
 						final byte oneByte = bs[i];
@@ -200,49 +257,88 @@ public class ReceiveServer implements Runnable{
 					}
 					
 					if(realCheckAnd == bs[dataCheckLen] && realCheckMinus == bs[dataCheckLen + 1]){
-//						L.V = L.O ? false : LogManager.log("pass check num!");
+//						LogManager.log("pass check num!");
 						checkTotal = realCheckTotal;
 						checkAND = realCheckAnd;
 						checkMINUS = realCheckMinus;
+						
+						if(isXor){
+							System.arraycopy(bs, xorPackgeIdxOff, ackXorPackageID, 0, MsgBuilder.XOR_PACKAGE_ID_LEN);
+							coreSocketSession.hcConnection.sendWrapActionImpl(MsgBuilder.E_ACK_XOR_PACKAGE_ID, 
+								ackXorPackageID, 0, MsgBuilder.XOR_PACKAGE_ID_LEN, ackCmStatus);//注意：必须走明文且impl层
+						}
 					}else{
 //						LogManager.errToLog("check idx : " + dataCheckLen + ", real : " + realCheckAnd + "" + realCheckMinus + ", expected : " + bs[dataCheckLen] + "" + bs[dataCheckLen + 1]);
 						//fail on check
 						LogManager.errToLog("fail on check integrity of package data, force close current connection!");
-						ctx.doExtBiz(IContext.BIZ_DATA_CHECK_ERROR, null);
-						throw overflowException;
+						coreSocketSession.context.doExtBiz(IContext.BIZ_DATA_CHECK_ERROR, null);
+						throw checkException;
 					}
 				}
 
 //				if(ctrlTag == MsgBuilder.E_PACKAGE_SPLIT_TCP){
-//					L.V = L.O ? false : LogManager.log("[workshop] skip E_PACKAGE_SPLIT_TCP");
+//					LogManager.log("[workshop] skip E_PACKAGE_SPLIT_TCP");
 //					recBytesCacher.cycle(bs);
 //					continue;
 //				}
 				
-//				L.V = L.O ? false : LogManager.log("Receive data len:" + dataLen);
-				if(ctrlTag == MsgBuilder.E_TAG_ROOT){//服务器客户端都走E_TAG_ROOT捷径 isClient && 
+				if(isNeverReceivedAfterNewConn){
+					isNeverReceivedAfterNewConn = false;
+				}
+				
+//				LogManager.log("Receive data len:" + dataLen);
+				if(ctrlTag == MsgBuilder.E_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL){
+					coreSocketSession.context.doExtBiz(IContext.BIZ_UPDATE_ONE_TIME_KEYS_IN_CHANNEL, bs);
+					recBytesCacher.cycle(bs);
+					continue;
+				}else if(ctrlTag == MsgBuilder.E_REPLY_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL){
+					coreSocketSession.context.doExtBiz(IContext.BIZ_REPLY_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL, bs);
+					recBytesCacher.cycle(bs);
+					continue;
+				}else if(ctrlTag == MsgBuilder.E_TAG_ROOT){//服务器客户端都走E_TAG_ROOT捷径 isClient && 
 					//由于大数据可能导致过载，所以此处直接处理。
 					coreSocketSession.context.rootTagListener.action(bs, coreSocketSession);
 					recBytesCacher.cycle(bs);
+					continue;
 				}else{
 					final EventBack eb = ebCacher.getFreeEB();
 					eb.setBSAndDatalen(coreSocketSession, null, bs, dataLen);
 					coreSocketSession.eventCenterDriver.addWatcher(eb);
+					
+		            if(ctrlTag == MsgBuilder.E_SYN_XOR_PACKAGE_ID){//注意：暂停以供更新的HCConnection先行得到receive，并等待本HCConnection完全进入关闭状态
+		            	synchronized (LOCK) {
+		            		try {
+		            			L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] wait 3000 E_SYN_XOR_PACKAGE_ID in ReceiveServer : " + threadID);
+								LOCK.wait(ThreadPriorityManager.NET_MAX_RENEWAL_CONN_MS);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+		        			L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] resume from wait 3000 E_SYN_XOR_PACKAGE_ID in ReceiveServer : " + threadID);
+		            	}
+		            }
 				}
-//				L.V = L.O ? false : LogManager.log("Finished Receive Biz Action");
+//				LogManager.log("Finished Receive Biz Action");
             }catch (final Exception e) {
+            	if(isInWorkshop){
+            		LogManager.errToLog("Receive Server [" + dataInputStream.hashCode() + "]:" + threadID + " exception : " + e.toString());
+            	}
+            	
 				//因为重连手机端,可能导致bs重分配，而导致错误
             	recBytesCacher.cycle(bs);
 
-            	if(coreSocketSession.isInitialCloseReceiveForJ2ME){
+            	if(isShutdown){
+            		continue;
+            	}
+            	
+            	if(hcConnection.isInitialCloseReceiveForJ2ME){
             		//比如：需要返回重新登录
-            		L.V = L.O ? false : LogManager.log("close is initial closed, ready to connection.");
+            		LogManager.log("close is initial closed, ready to connection.");
             		continue;
             	}
             	
             	if(System.currentTimeMillis() - receiveUpdateMS < 100){
 //            		if(L.isInWorkshop){
-//            			L.V = L.O ? false : LogManager.log("[workshop] receive is changing new socket. continue");
+//            			LogManager.log("[workshop] receive is changing new socket. continue");
 //            		}
 //            		try{
 //            			Thread.sleep(100);
@@ -251,7 +347,8 @@ public class ReceiveServer implements Runnable{
             		continue;
             	}
             	
-            	final int cmStatus = ctx.cmStatus;
+            	final IContext ctx = coreSocketSession.context;
+            	final short cmStatus = ctx.cmStatus;
             	if(cmStatus == ContextManager.STATUS_EXIT || cmStatus == ContextManager.STATUS_READY_EXIT){
             		try{
             			Thread.sleep(100);
@@ -260,15 +357,15 @@ public class ReceiveServer implements Runnable{
 					}
             		continue;
             	}
-            	if(coreSocketSession.sipContext.isNearDeployTime()){
-            		L.V = L.O ? false : LogManager.log("ReceiveServer Exception near deploy time");
+            	if(hcConnection.sipContext.isNearDeployTime()){
+            		LogManager.log("ReceiveServer Exception near deploy time");
             		
             		
 //            		if(IConstant.serverSide 
 //            				&& (ContextManager.cmStatus == ContextManager.STATUS_NEED_NAT) 
 //            				&& (ContextManager.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON)){
 //            		}else{
-////            			L.V = L.O ? false : LogManager.log("UDP mode , relineon");
+////            			LogManager.log("UDP mode , relineon");
 //            			SIPManager.notifyRelineon(true);
 //            		}
             		
@@ -281,17 +378,32 @@ public class ReceiveServer implements Runnable{
             		continue;
             	}
             	
+            	if(e != checkException){
+            		if(isNeverReceivedAfterNewConn){
+            			isNeverReceivedAfterNewConn = false;
+            			continue;
+            		}
+            		
+            		L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] exception on receiver : " + threadID + ", inputStream : " + dataInputStream.hashCode());
+            		final boolean out = hcConnection.connectionRebuilder.notifyBuildNewConnection(false, cmStatus);//注意：成功后，本receive将复用
+            		if(out){
+            			L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] successful build new connection in ReceiveServer : " + threadID);
+            			continue;
+            		}
+            		L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] fail to build new connection in ReceiveServer : " + threadID);
+            	}
+            	
             	LogManager.errToLog("Receive Exception:[" + e.getMessage() + "], maybe skip receive.");
             	
             	try{
-            		coreSocketSession.sipContext.deploySocket(coreSocketSession, null);
+            		hcConnection.sipContext.deploySocket(coreSocketSession.hcConnection, null);
             	}catch (final Exception ex) {
 				}
             	
 				if(overflowException == e){
             		//请求关闭
-            		L.V = L.O ? false : LogManager.log("Unvalid data len, stop application");
-            		if(ctx.isUsingUDPAtMobile() == false){
+            		LogManager.log("Unvalid data len, stop application");
+            		if(hcConnection.isUsingUDPAtMobile() == false){
             			SIPManager.notifyLineOff(coreSocketSession, true, false);
             		}
             	}else{
@@ -301,80 +413,27 @@ public class ReceiveServer implements Runnable{
 						Thread.sleep(WAIT_MODI_STATUS_MS);
     					//***等待相应线程(如用户主动退出，或切换Relay)会更新状态后，不需要进行reConnectAfterResetExcep***
     				}catch (final Exception ee) {
-    					
     				}
     				
-    				final boolean enableReconnection = false;//关闭tcp断线后重联
-            		if(enableReconnection && isShutdown == false && (System.currentTimeMillis() - lastReconnAfterResetMS > 2000)//1000稍小，改为2000   
-            				&& SIPManager.isOnRelay(coreSocketSession) && 
-            				(    (ctx.cmStatus == ContextManager.STATUS_CLIENT_SELF) 
-            					||  (ctx.cmStatus == ContextManager.STATUS_SERVER_SELF))){
-						
-						//手机端，因网络不稳定导致意外reset，进入重连模式
-            			L.V = L.O ? false : LogManager.log("Network reset error, reconnect...");
-            			
-            			if(IConstant.serverSide == false){
-//            				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_MOVING_SCREEN_TIP, 
-//            				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_I18N_KEY, "m21"));
-            				ctx.displayMessage(
-	        						(String)ctx.doExtBiz(IContext.BIZ_I18N_KEY, String.valueOf(IContext.INFO)), 
-	        						(String)ctx.doExtBiz(IContext.BIZ_I18N_KEY, "m21"), 
-	        						IContext.INFO, null, 0);
-	            			if(ConfigManager.isBackground()){
-	            				ctx.doExtBiz(IContext.BIZ_VIBRATE, new Integer(100));
-	            			}
-            			}
-            			
-            			boolean succRecon = false;
-            			int maxTry = 0;
-        				final int sleep_internal_ms = (ctx.isUsingUDPAtMobile())?1000:500;//如果是手机端，则采用较长的间隔时间
-        				final int try_num = (ctx.isUsingUDPAtMobile()?99999999:2);//如果是手机端，则进行无限尝试
-            			while((isShutdown == false) && 
-            					(    (ctx.cmStatus == ContextManager.STATUS_CLIENT_SELF) 
-            					||  (ctx.cmStatus == ContextManager.STATUS_SERVER_SELF))
-            					 	&& (succRecon = (SIPManager.reConnectAfterResetExcep(coreSocketSession) != null)) == false){
-            				//仅重建TCP，不建UDP
-							try{
-            					Thread.sleep(sleep_internal_ms);
-            				}catch (final Exception eee) {
-								
-							}
-            				if((++maxTry > try_num) || isShutdown){
-            					break;
-            				}
-            			}
-
-            			if(succRecon){
-            				lastReconnAfterResetMS = System.currentTimeMillis();
-            				L.V = L.O ? false : LogManager.log("Success reconnect after reset error");
-            			}else{
-            				if(ctx.isUsingUDPAtMobile() == false){
-            					SIPManager.notifyLineOff(coreSocketSession, false, false);
-            				}
-            			}
-
-            		}else{   
-            			try{
-            				dataInputStream.close();
-            			}catch (final Throwable ex) {
-						}
-						dataInputStream = null;
-//						if(!isShutdown){
-							if(ctx.isUsingUDPAtMobile() == false){
-								SIPManager.notifyLineOff(coreSocketSession, false, false);
-							}
-//						}
-            		}
+        			try{
+        				dataInputStream.close();
+        			}catch (final Throwable ex) {
+					}
+        			dataInputStream = null;
+					if(hcConnection.isUsingUDPAtMobile() == false){
+						SIPManager.notifyLineOff(coreSocketSession, false, false);
+					}
             	}
 			}
         }//while
     	
-    	hc.core.L.V=hc.core.L.O?false:LogManager.log("Receiver shutdown");
+    	L.V = L.WShop ? false : LogManager.log("Receiver shutdown " + threadID);
 	}
 	
 	private boolean isShutdown = false;
 	
 	public void shutDown() {
+		L.V = L.WShop ? false : LogManager.log("notify shutdown ReceiveServer.");
     	isShutdown = true;
     	synchronized (LOCK) {
 			LOCK.notify();
@@ -382,14 +441,23 @@ public class ReceiveServer implements Runnable{
 	}
 
 	long receiveUpdateMS;
+	boolean isNeverReceivedAfterNewConn;
 	
-	public void setUdpServerSocket(final Object tcpOrUDPsocket) throws Exception{
-		this.dataInputStream = (tcpOrUDPsocket==null)?null:coreSocketSession.sipContext.getInputStream(tcpOrUDPsocket);
+	void setUdpServerSocket(final Object tcpOrUDPsocket, final boolean isCloseOld) {
+		DataInputStream oldIS = this.dataInputStream;
+		L.V = L.WShop ? false : LogManager.log("ReceiveServer threadName : " + threadID + " setDataInputStream : " + tcpOrUDPsocket.hashCode());
+		this.dataInputStream = (DataInputStream)tcpOrUDPsocket;
 		if(dataInputStream != null){
 			receiveUpdateMS = System.currentTimeMillis();
-//			hc.core.L.V=hc.core.L.O?false:LogManager.log("Changed Receive Socket:" + dataInputStream.hashCode());
+			isNeverReceivedAfterNewConn = true;
 			synchronized (LOCK) {
 				LOCK.notify();
+			}
+		}
+		if(isCloseOld && oldIS != null){
+			try{
+				oldIS.close();
+			}catch (Exception e) {
 			}
 		}
 	}

@@ -52,7 +52,7 @@ public abstract class J2SEExceptionJSONBuilder extends ExceptionJSONBuilder {
 
 		final StringBuilder sb = printStackTraceToStringBuilder(projectID, checker, throwable, null, "");
 		if(sb == null){
-//			L.V = L.O ? false : LogManager.log("Exception is posted!");
+//			LogManager.log("Exception is posted!");
 			//isPosted
 			return null;
 		}

@@ -55,7 +55,7 @@ public class SizeHeightForXML {
 		}
 	}
 	
-	final void executeScript(final Mlet mlet, final String js){
+	final void executeScriptWithoutCache(final Mlet mlet, final String js){
 		synchronized(mlet.synLock){
 			if(mlet.status == Mlet.STATUS_INIT){
 				if(jsToDeliver == null){
@@ -65,7 +65,7 @@ public class SizeHeightForXML {
 				return;
 			}
 			if(diffTodo != null && mlet.status < Mlet.STATUS_EXIT){//由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
-				diffTodo.executeJS(js);
+				diffTodo.executeJSWithoutCache(js);
 			}
 		}
 	}

@@ -205,7 +205,7 @@ public class ClassUtil {
 		if(isError){
 			LogManager.errToLog(sb.toString());
 		}else{
-			L.V = L.O ? false : LogManager.log(sb.toString());
+			LogManager.log(sb.toString());
 		}
 		
 		StringBuilderCacher.cycle(sb);
@@ -250,7 +250,7 @@ public class ClassUtil {
 			}
 		}
 		
-		L.V = L.O ? false : LogManager.log(sb.toString());
+		LogManager.log(sb.toString());
 		StringBuilderCacher.cycle(sb);
 	}
 

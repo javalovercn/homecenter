@@ -32,6 +32,14 @@ public class HCConfig {
 	public final int getIntProperty(final short propertyID) {
 		return getIntProperty(v, propertyID);
 	}
+	
+	public final long getLongProperty(final short propertyID) {
+		return getLongProperty(v, propertyID);
+	}
+	
+	public final void setLongProperty(final short propertyID, final long longValue) {
+		setProperty(propertyID, String.valueOf(longValue));
+	}
 
 	public static int getIntProperty(final Vector vector, final short propertyID) {
 		if(vector == null){
@@ -42,6 +50,17 @@ public class HCConfig {
 			return 0;
 		}
 		return Integer.parseInt(obj);
+	}
+	
+	public static long getLongProperty(final Vector vector, final short propertyID) {
+		if(vector == null){
+			return 0;
+		}
+		final String obj = getProperty(vector, propertyID);
+		if(obj == null){
+			return 0;
+		}
+		return Long.parseLong(obj);
 	}
 	
 	public final boolean isTrue(final short propertyID) {

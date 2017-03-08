@@ -4,7 +4,6 @@ import hc.core.util.ByteUtil;
 import hc.core.util.LogManager;
 
 public abstract class UDPPacketResender {
-	protected final byte[] UDP_HEADER;
 	protected final int IDX_HEADER_1 = MsgBuilder.INDEX_UDP_HEADER;
 	protected final int IDX_HEADER_2 = MsgBuilder.INDEX_UDP_HEADER + 1;
 	
@@ -19,9 +18,8 @@ public abstract class UDPPacketResender {
 //		return false;
 //	}
 	
-	public UDPPacketResender(final CoreSession coreSocketSession) {
-		UDP_HEADER = coreSocketSession.udpHeader;
-//		hc.core.L.V=hc.core.L.O?false:LogManager.log("Packet Resender Started");
+	public UDPPacketResender() {
+//		LogManager.log("Packet Resender Started");
 		for (int i = 0; i < NEED_MAX_SIZE; i++) {
 			packetMsgID[i] = -1;
 		}
@@ -108,7 +106,7 @@ public abstract class UDPPacketResender {
 	short storeIdx = 0;
 	
 	public final void needAckAtSend(final Object packet, final int msgID){
-//		hc.core.L.V=hc.core.L.O?false:LogManager.log("--- Need Ack : " + msgID);
+//		LogManager.log("--- Need Ack : " + msgID);
 		
 		final long currentTimeMillis = System.currentTimeMillis();
 
@@ -153,7 +151,7 @@ public abstract class UDPPacketResender {
 	
 	
 	public final void ackAtSend(final byte[] bs, short startIdx, final int endIdx){
-//		L.V = L.O ? false : LogManager.log("receiv batch ack byte len : " + (endIdx - startIdx));
+//		LogManager.log("receiv batch ack byte len : " + (endIdx - startIdx));
 		while(startIdx < endIdx){
 			final int temp0 = bs[startIdx++] & 0xFF;
 			final int temp1 = bs[startIdx++] & 0xFF;
@@ -174,7 +172,7 @@ public abstract class UDPPacketResender {
 							//清空以备充入时检查空位之用
 							needACK[i] = null;
 							size--;
-//							hc.core.L.V=hc.core.L.O?false:LogManager.log("ack " + msgid);
+//							LogManager.log("ack " + msgid);
 							break;
 						}
 						tryCount--;
@@ -309,8 +307,8 @@ public abstract class UDPPacketResender {
 		}
 	}
 	
-	public static void sendUDPREG(final CoreSession coreSS) {
-		sendUDPBlockData(coreSS, MsgBuilder.E_TAG_ROOT_UDP_ADDR_REG, MsgBuilder.UDP_MTU_DATA_MIN_SIZE);
+	public static void sendUDPREG(final HCConnection hcConnection) {
+		sendUDPBlockData(hcConnection, MsgBuilder.E_TAG_ROOT_UDP_ADDR_REG, MsgBuilder.UDP_MTU_DATA_MIN_SIZE);
 	}
 
 	public static boolean checkUDPBlockData(final byte[] bs, final int dataLen) {
@@ -319,20 +317,20 @@ public abstract class UDPPacketResender {
 			if(bs[i] == ((byte)(j++))){
 				
 			}else{
-//				L.V = L.O ? false : LogManager.log("Fail index : " + i);
+//				LogManager.log("Fail index : " + i);
 				return false;
 			}
 		}
 		return true;
 	}
 
-	public static void sendUDPBlockData(final CoreSession coreSS, final byte ctrlTag, final int dataLen) {
+	public static void sendUDPBlockData(final HCConnection hcConnection, final byte ctrlTag, final int dataLen) {
 		final int mtuLen = dataLen + MsgBuilder.INDEX_UDP_MSG_DATA;
 		final byte[] byte1472 = ByteUtil.byteArrayCacher.getFree(mtuLen);
 		for (int i = 0, j = 0; i < dataLen; ) {
 			byte1472[i++] = (byte)(j++);
 		}
-		coreSS.context.udpSender.sendUDP(ctrlTag, MsgBuilder.NULL_CTRL_SUB_TAG, byte1472, 0, dataLen, dataLen, true);
+		hcConnection.udpSender.sendUDP(ctrlTag, MsgBuilder.NULL_CTRL_SUB_TAG, byte1472, 0, dataLen, dataLen, true);
 		ByteUtil.byteArrayCacher.cycle(byte1472);
 	}
 
@@ -359,7 +357,7 @@ public abstract class UDPPacketResender {
 		public void doBiz(){
 			
 			final long currentTimeMillis = System.currentTimeMillis();
-//			hc.core.L.V=hc.core.L.O?false:LogManager.log("Unack size:" + size);
+//			LogManager.log("Unack size:" + size);
 			final long expMS = currentTimeMillis - packet_resend_expired_ms;
 			final long lastMS = currentTimeMillis - resend_ms;
 			int thisStartIdx = lastStartIdx;
@@ -372,13 +370,13 @@ public abstract class UDPPacketResender {
 							if(expMS < storeMS[thisStartIdx]){
 								count++;
 								if((resendMSArr[thisStartIdx]) <= lastMS){
-//									L.V = L.O ? false : LogManager.log("Resend msgid:" + packetMsgID[thisStartIdx] + ", idx:" + thisStartIdx);
+//									LogManager.log("Resend msgid:" + packetMsgID[thisStartIdx] + ", idx:" + thisStartIdx);
 									resend(needACK[thisStartIdx]);
 									resendMSArr[thisStartIdx] = currentTimeMillis;
 									sendCount++;
 								}
 							}else{
-//								L.V = L.O ? false : LogManager.log("throw overtime msgid:" + packetMsgID[thisStartIdx]);
+//								LogManager.log("throw overtime msgid:" + packetMsgID[thisStartIdx]);
 								packetMsgID[thisStartIdx] = -1;
 
 								cacher.cycle(needACK[thisStartIdx]);
@@ -393,11 +391,11 @@ public abstract class UDPPacketResender {
 						lastStartIdx = thisStartIdx;
 					}else{
 						lastStartIdx = 0;
-//						L.V = L.O ? false : LogManager.log("=======================To Zero UDP Send. size:" + size);
+//						LogManager.log("=======================To Zero UDP Send. size:" + size);
 					}
 				}else{
 					setEnable(false);
-//					L.V = L.O ? false : LogManager.log("===========No data, Disable UDPResender.");
+//					LogManager.log("===========No data, Disable UDPResender.");
 				}
 			}
 		}

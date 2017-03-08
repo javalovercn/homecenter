@@ -3,6 +3,7 @@ package hc.core.sip;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.EnumNAT;
+import hc.core.HCConnection;
 import hc.core.HCMessage;
 import hc.core.HCTimer;
 import hc.core.IConstant;
@@ -23,9 +24,9 @@ import java.util.Vector;
 
 public class SIPManager {
 
-	public static void resetAllConnection(final CoreSession coreSS){
-		final ISIPContext sipCtx = coreSS.sipContext;
-		sipCtx.closeDeploySocket(coreSS);
+	public static void resetAllConnection(final HCConnection hcConnection){
+		final ISIPContext sipCtx = hcConnection.sipContext;
+		sipCtx.closeDeploySocket(hcConnection);
 		sipCtx.isOnRelay = false;
 	}
 
@@ -33,15 +34,14 @@ public class SIPManager {
 	 * 被ProjectContext访问，请勿checkAccess
 	 * @return
 	 */
-	public static boolean isOnRelay(final CoreSession coreSS){
-		return coreSS
-				.sipContext
+	public static boolean isOnRelay(final HCConnection hcConnection){
+		return hcConnection.sipContext
 				.isOnRelay;
 	}
 
-	public static void setOnRelay(final CoreSession coreSS, final boolean onRelay){
-		//		L.V = L.O ? false : LogManager.log("On Relay : " + onRelay);
-		coreSS.sipContext.isOnRelay = onRelay;
+	public static void setOnRelay(final HCConnection hcConnection, final boolean onRelay){
+		//		LogManager.log("On Relay : " + onRelay);
+		hcConnection.sipContext.isOnRelay = onRelay;
 		//		ContextManager.getSendServer().notifyIsRelay(isOnRelay);
 	}
 
@@ -64,7 +64,7 @@ public class SIPManager {
 	//			sipContext.deploySocket(socket, getSIPContext().getInputStream(socket),
 	//					getSIPContext().getOutputStream(socket));
 	//		}catch (Exception e) {
-	//			L.V = L.O ? false : LogManager.log("setOnStun Exception:" + e.getMessage());
+	//			LogManager.log("setOnStun Exception:" + e.getMessage());
 	//			ExceptionReporter.printStackTrace(e);
 	//		}
 	//	}
@@ -93,128 +93,42 @@ public class SIPManager {
 	//		}
 	//		return desc;
 	//	}
-
+	
+	private static final int CONN_OK_MODE_CONNECTION_RELAY = 2;
+	private static final int CONN_OK_MODE_CONNECTION_HOME_WIRELESS = 1;
+	private static final int CONN_ERR_BIZ_SERVER_LINEOFF = -1;
+	private static final int CONN_ERR_BIZ_SERVER_ACCOUNT_BUSY = -2;
+	private static final int CONN_ERR_MOBI_FAIL_CONN = -3;
+	
 	public static boolean startConnectionInit(final CoreSession coreSS) {
 		coreSS.context.setStatus(ContextManager.STATUS_READY_TO_LINE_ON);
-
+		
 		if(IConstant.serverSide == false){
-			final int idx_localip = 0, idx_localport = 1, idx_nattype = 2, idx_relayip = 5, idx_relayport = 6;
-
-			//优先检查服务器上线，Open Cone等模式，以获得高性能
-			Object obj;
-			int count = 0;
+			final byte[] tokenBS = (byte[])coreSS.context.doExtBiz(IContext.BIZ_GET_TOKEN, null);
+			final int out = startConnectionInitForClient(coreSS.hcConnection, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST, tokenBS);
 			
-			do{
-				obj = RootServerConnector.getServerIPAndPortV2(RootServerConnector.getHideToken());
-				
-				if((obj == null) || (obj instanceof Vector)){
-					//	              LogManager.info("please check as follow:");
-					//	              LogManager.info("1. ID[" + IConstant.uuid + "] maybe wrong HomeCenter ID. It is free.");
-					//	              LogManager.info("2. PC server maybe NOT running.");
-					//	              LogManager.info("3. try 'Enable Transmit Certification' for server.");
-					//	              LogManager.info("4. HomeCenter server maybe reconnecting, try later.");
-					LogManager.info("server : off/hide");
+			if(out < 0){
+				if(out == CONN_ERR_BIZ_SERVER_LINEOFF){
 					coreSS.context.doExtBiz(IContext.BIZ_SERVER_LINEOFF, null);
-					return false;
+				}else if(out == CONN_ERR_BIZ_SERVER_ACCOUNT_BUSY){
+					coreSS.context.doExtBiz(IContext.BIZ_SERVER_ACCOUNT_BUSY, null);
+				}else if(out == CONN_ERR_MOBI_FAIL_CONN){
+					coreSS.context.doExtBiz(IContext.BIZ_MOBI_FAIL_CONN, null);
 				}
-
-				if(obj instanceof String && RootServerConnector.MULTI_CLIENT_BUSY.equals(obj)){
-					if(count == 0){
-						LogManager.info("server : busy");
-						LogManager.info("do our best to connect...");
-					}
-					
-					try{
-						Thread.sleep(1000);
-					}catch (Exception e) {
-					}
-					
-					count++;
-				}else{
-					break;
-				}
-			}while(count < 30);
-			
-			if(obj instanceof String && RootServerConnector.MULTI_CLIENT_BUSY.equals(obj)){
-				coreSS.context.doExtBiz(IContext.BIZ_SERVER_ACCOUNT_BUSY, null);
 				return false;
-			}
-			
-//			try{
-//				LogManager.info("server : busy");
-//				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_SERVER_BUSY, null);
-//				return false;
-//			}catch (Throwable e) {
-//			}
-			
-			LogManager.info("server : online");
-			final String[] out = (String[])obj;
-
-			//优先尝试直接连接
-			if(out[idx_localport].equals("0") == false){
-				//家庭内网直联
-				LogManager.info("try direct connect...");
-				IPAndPort l_directIpPort = null;
-				try{
-					int timeOut = 5000;
-					final String ip = out[idx_localip];
-					if(ip.startsWith("192.168.")){
-						final String[] ipv4 = StringUtil.splitToArray(ip, ".");
-						if(ipv4 != null && ipv4.length == 4){
-							timeOut -= 2000;//内网，减两秒
-						}
-					}
-					final IPAndPort ipport = new IPAndPort(ip, Integer.parseInt(out[idx_localport]));
-					l_directIpPort = SIPManager.tryBuildConnOnDirect(coreSS, ipport, "Direct Mode",
-						Integer.parseInt(out[idx_nattype]), timeOut);//内网直联最长时间改为一秒
-				}catch (Throwable e) {
-				}
-				if(l_directIpPort != null){
-					//EnumNAT.OPEN_INTERNET or Symmetric
-					LogManager.info("direct mode : yes");
-
+			}else{
+				//注意：如果以下增加逻辑，请同步J2MERootBuilder.ROOT_BUILD_NEW_CONNECTION
+				if(out == CONN_OK_MODE_CONNECTION_HOME_WIRELESS){
 					coreSS.context.setConnectionModeStatus(ContextManager.MODE_CONNECTION_HOME_WIRELESS);
-
-					//家庭内网不需要调用本步
-					//发送REG到服务器,触发服务器初始化进程
-					//					ContextManager.getContextInstance().send(MsgBuilder.E_TAG_SERVER_RELAY_START);
-
-					return true;
-				}else{
-					LogManager.info("direct mode : fail");
-				}
-			}
-
-			if(out[idx_relayport].equals("0") == false){
-				LogManager.info("try relay connect...");
-				final IPAndPort ipport = new IPAndPort(out[idx_relayip], Integer.parseInt(out[idx_relayport]));
-				final IPAndPort l_relayIpPort = SIPManager.tryBuildConnOnDirect(coreSS, ipport,
-						"Relay Mode", EnumNAT.FULL_AGENT_BY_OTHER, SIPManager.REG_WAITING_MS + 1000);//Android机器出现relay fail情形，再试成功，故增加1秒
-				if(l_relayIpPort != null){
-					LogManager.info("relay mode : yes");
-
-					//中继时，可能并非3G/4G，也许是WiFi，3G/4G由其它逻辑提示
-					//					LogManager.info("3G/4G/...");//more time and unreliable
-					//					LogManager.info("Busy network and congestion may cause error");
-
+				}else if(out == CONN_OK_MODE_CONNECTION_RELAY){
 					coreSS.context.setConnectionModeStatus(ContextManager.MODE_CONNECTION_RELAY);
-					coreSS.relayIpPort = l_relayIpPort;
-
 					//发送REG到服务器,触发服务器初始化进程
 					coreSS.context.send(MsgBuilder.E_TAG_SERVER_RELAY_START);
-
-					return true;
-				}else{
-					LogManager.info("relay mode : fail");
 				}
+				return true;
 			}
-
-			coreSS.context.doExtBiz(IContext.BIZ_MOBI_FAIL_CONN, null);
-
-			//尝试无法连接
-			return false;
 		}
-
+		
 		final String[] out = (String[])coreSS.context.doExtBiz(IContext.BIZ_UPLOAD_LINE_ON, null);
 
 		if(IConstant.serverSide && (out != null)){
@@ -231,20 +145,119 @@ public class SIPManager {
 		return true;
 	}
 
-	//获得远程中继的UDP控制器端口
-	public static int getUDPControllerPort(final CoreSession coreSS){
-		//注意与NIOServer生成时，保持一致
-		return coreSS.relayIpPort.port - 1;
+	public static int startConnectionInitForClient(
+			final HCConnection hcConnection, final byte subTag, final byte[] tokenBS) {
+		final int idx_localip = 0, idx_localport = 1, idx_nattype = 2, idx_relayip = 5, idx_relayport = 6;
+
+		//优先检查服务器上线，Open Cone等模式，以获得高性能
+		Object obj;
+		int count = 0;
+		
+		do{
+			obj = RootServerConnector.getServerIPAndPortV2(RootServerConnector.getHideToken());
+			
+			if((obj == null) || (obj instanceof Vector)){
+				//	              LogManager.info("please check as follow:");
+				//	              LogManager.info("1. ID[" + IConstant.uuid + "] maybe wrong HomeCenter ID. It is free.");
+				//	              LogManager.info("2. PC server maybe NOT running.");
+				//	              LogManager.info("3. try 'Enable Transmit Certification' for server.");
+				//	              LogManager.info("4. HomeCenter server maybe reconnecting, try later.");
+				LogManager.info("server : off/hide");
+				return CONN_ERR_BIZ_SERVER_LINEOFF;
+			}
+
+			if(obj instanceof String && RootServerConnector.MULTI_CLIENT_BUSY.equals(obj)){
+				if(count == 0){
+					LogManager.info("server : busy");
+					LogManager.info("do our best to connect...");
+				}
+				
+				try{
+					Thread.sleep(1000);
+				}catch (Exception e) {
+				}
+				
+				count++;
+			}else{
+				break;
+			}
+		}while(count < 30);
+		
+		if(obj instanceof String && RootServerConnector.MULTI_CLIENT_BUSY.equals(obj)){
+			return CONN_ERR_BIZ_SERVER_ACCOUNT_BUSY;
+		}
+		
+//			try{
+//				LogManager.info("server : busy");
+//				ContextManager.getContextInstance().doExtBiz(IContext.BIZ_SERVER_BUSY, null);
+//				return false;
+//			}catch (Throwable e) {
+//			}
+		
+		LogManager.info("server : online");
+		final String[] out = (String[])obj;
+
+		//优先尝试直接连接
+		if(out[idx_localport].equals("0") == false){
+			//家庭内网直联
+			LogManager.info("try direct connect...");
+			IPAndPort l_directIpPort = null;
+			try{
+				int timeOut = 5000;
+				final String ip = out[idx_localip];
+				if(ip.startsWith("192.168.")){
+					final String[] ipv4 = StringUtil.splitToArray(ip, ".");
+					if(ipv4 != null && ipv4.length == 4){
+						timeOut -= 2000;//内网，减两秒
+					}
+				}
+				final IPAndPort ipport = new IPAndPort(ip, Integer.parseInt(out[idx_localport]));
+				l_directIpPort = SIPManager.tryBuildConnOnDirect(hcConnection, subTag, ipport, "Direct Mode",
+					Integer.parseInt(out[idx_nattype]), timeOut, tokenBS);//内网直联最长时间改为一秒
+			}catch (Throwable e) {
+			}
+			if(l_directIpPort != null){
+				//EnumNAT.OPEN_INTERNET or Symmetric
+				LogManager.info("direct mode : yes");
+
+				//家庭内网不需要调用本步
+				//发送REG到服务器,触发服务器初始化进程
+				//					ContextManager.getContextInstance().send(MsgBuilder.E_TAG_SERVER_RELAY_START);
+
+				return CONN_OK_MODE_CONNECTION_HOME_WIRELESS;
+			}else{
+				LogManager.info("direct mode : fail");
+			}
+		}
+
+		if(out[idx_relayport].equals("0") == false){
+			LogManager.info("try relay connect...");
+			final IPAndPort ipport = new IPAndPort(out[idx_relayip], Integer.parseInt(out[idx_relayport]));
+			final IPAndPort l_relayIpPort = SIPManager.tryBuildConnOnDirect(hcConnection, subTag, ipport,
+					"Relay Mode", EnumNAT.FULL_AGENT_BY_OTHER, SIPManager.REG_WAITING_MS + 1000,
+					tokenBS);//Android机器出现relay fail情形，再试成功，故增加1秒
+			if(l_relayIpPort != null){
+				LogManager.info("relay mode : yes");
+
+				//中继时，可能并非3G/4G，也许是WiFi，3G/4G由其它逻辑提示
+				//					LogManager.info("3G/4G/...");//more time and unreliable
+				//					LogManager.info("Busy network and congestion may cause error");
+				hcConnection.relayIpPort = l_relayIpPort;
+				return CONN_OK_MODE_CONNECTION_RELAY;
+			}else{
+				LogManager.info("relay mode : fail");
+			}
+		}
+
+		//尝试无法连接
+		return CONN_ERR_MOBI_FAIL_CONN;
 	}
 
-	public static void setUDPChannelPort(final CoreSession coreSS, final int udpPort){
-		coreSS.relayIpPort.udpPort = udpPort;
-	}
-
-	public static IPAndPort reConnectAfterResetExcep(final CoreSession coreSS){
-		L.V = L.O ? false : LogManager.log("reConnectAfterExcepReset to " + coreSS.relayIpPort.ip + ":" + coreSS.relayIpPort.port);
+	public static IPAndPort reConnectAfterResetExcep(final CoreSession coreSS, final byte[] tokenBS){
+		LogManager.log("reConnectAfterExcepReset to " + coreSS.hcConnection.relayIpPort.ip + ":" + coreSS.hcConnection.relayIpPort.port);
 		try{
-			return SIPManager.proccReg(coreSS, coreSS.relayIpPort, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_RESET, SIPManager.REG_WAITING_MS);
+			return SIPManager.proccReg(coreSS.hcConnection, coreSS.hcConnection.relayIpPort, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_RESET,
+					SIPManager.REG_WAITING_MS, tokenBS);
 		}catch (Throwable e) {
 			//主要拦截hc.core.sip.SIPManager.send，java.net.SocketException
 			e.printStackTrace();//不作ExceptionReport处理。因为较为频繁。
@@ -258,31 +271,32 @@ public class SIPManager {
 	 * @param remoteNattype
 	 * @return
 	 */
-	private static IPAndPort tryBuildConnOnDirect(final CoreSession coreSS, final IPAndPort ipport,
-			final String memo, final int nattype, final int waitMS) {
+	private static IPAndPort tryBuildConnOnDirect(final HCConnection hcConnection, final byte subTag, final IPAndPort ipport,
+			final String memo, final int nattype, final int waitMS, final byte[] tokenBS) {
 		//LogManager.info("connect " + memo + " Server");
 
 		if(nattype == EnumNAT.FULL_AGENT_BY_OTHER){
-			SIPManager.setOnRelay(coreSS, true);
+			SIPManager.setOnRelay(hcConnection, true);
 		}
 
 		//客户端连接，使用随机端口
-		return SIPManager.proccReg(coreSS, ipport, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST, waitMS);
+		return SIPManager.proccReg(hcConnection, ipport, subTag, waitMS, tokenBS);
 	}
 
 	public static final int REG_WAITING_MS = 7000;
 
-	public static IPAndPort proccReg(final CoreSession coreSS, final IPAndPort ipport, final byte firstOrReset, final int waitingMS) {
-		final Object socket = SIPManager.sendRegister(coreSS, ipport, firstOrReset, waitingMS);
+	public static IPAndPort proccReg(final HCConnection hcConnection, final IPAndPort ipport, final byte firstOrReset, final int waitingMS,
+			final byte[] tokenBS) {
+		final Object socket = SIPManager.sendRegister(hcConnection, ipport, firstOrReset, waitingMS, tokenBS);
 		if(socket != null){
 			try{
-				coreSS.sipContext.deploySocket(coreSS, socket);
+				hcConnection.sipContext.deploySocket(hcConnection, socket);
 
 				return ipport;
 			}catch (final Exception e) {
 				ExceptionReporter.printStackTrace(e);
 				try {
-					coreSS.sipContext.closeSocket(socket);
+					hcConnection.sipContext.closeSocket(socket);
 				} catch (final Exception e1) {
 					e1.printStackTrace();
 				}
@@ -294,18 +308,13 @@ public class SIPManager {
 		}
 	}
 
-	public static void close(final CoreSession coreSS){
+	public static void close(final HCConnection hcConnection){
 		try{
-			coreSS.sipContext.closeDeploySocket(coreSS);
+			hcConnection.sipContext.closeDeploySocket(hcConnection);
 		}catch (final Exception e) {
 			//可能出现nullPointerException
 		}
-		SIPManager.setOnRelay(coreSS, false);
-	}
-
-	public static void notifyRelayChangeToLineOff(final CoreSession coreSS){
-		//因为在切换的同时，可以会产生断线事件
-		coreSS.lastLineOff = System.currentTimeMillis();
+		SIPManager.setOnRelay(hcConnection, false);
 	}
 
 	public static void notifyLineOff(final CoreSession coreSS, final boolean isClientRequest, final boolean isForce) {
@@ -315,7 +324,7 @@ public class SIPManager {
 //				//如果是有效连接，被客户端主动请求，且时间间隔极短，有可能产生本错误，而不去重新连接
 //				if((now - coreSS.lastLineOff) > 5000){//10有可能较长，改小5000
 //				}else{
-//					L.V = L.O ? false : LogManager.log("skip recall lineoff autolineoff");
+//					LogManager.log("skip recall lineoff autolineoff");
 //					if(IConstant.serverSide){
 //						coreSS.context.doExtBiz(IContext.BIZ_START_WATCH_KEEPALIVE_FOR_RECALL_LINEOFF, null);
 //					}
@@ -324,7 +333,7 @@ public class SIPManager {
 //			}else{
 //				if((now - coreSS.lastLineOff) > CCoreUtil.WAIT_MS_FOR_NEW_CONN){
 //				}else{
-//					L.V = L.O ? false : LogManager.log("skip recall lineoff clientReq");
+//					LogManager.log("skip recall lineoff clientReq");
 //					if(IConstant.serverSide){
 //						coreSS.context.doExtBiz(IContext.BIZ_START_WATCH_KEEPALIVE_FOR_RECALL_LINEOFF, null);
 //					}
@@ -341,14 +350,15 @@ public class SIPManager {
 //		}//end isForce
 		
 		synchronized (coreSS) {
-			if(coreSS.isStartLineOffProcess){
+			if(coreSS.hcConnection.isStartLineOffProcess){
 				return;
 			}
-			coreSS.isStartLineOffProcess = true;
+			coreSS.hcConnection.isStartLineOffProcess = true;
 		}
 		if(L.isInWorkshop){
 			new Exception("[workshop] printStack").printStackTrace();
 		}
+		coreSS.hcConnection.rServer.shutDown();
 		RootBuilder.getInstance().doBiz(RootBuilder.ROOT_RELEASE_EXT_J2SE, coreSS);
 		startLineOffForce(coreSS, isClientRequest);
 	}
@@ -360,19 +370,17 @@ public class SIPManager {
 	}
 	
 	private static synchronized void startLineOffForce(final CoreSession coreSS, final boolean isClientRequest) {
-		coreSS.lastLineOff = System.currentTimeMillis();
-
 		RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_LineEx_STR);
 
 		coreSS.context.setStatus(ContextManager.STATUS_LINEOFF);
-		coreSS.context.resetCheck();
+		coreSS.hcConnection.resetCheck();
 		final String cr = String.valueOf(isClientRequest);
 		
 		final byte[] line_off_bs = buildLineOff();
 		
 		HCMessage.setMsgBody(line_off_bs, cr);
 
-		coreSS.context.reset(coreSS);
+		coreSS.hcConnection.reset();
 
 		coreSS.eventCenter.notifyLineOff(line_off_bs);
 	}
@@ -382,12 +390,13 @@ public class SIPManager {
 
 		//仅在手机端执行
 		coreSS.context.doExtBiz(IContext.BIZ_SERVER_AFTER_CERTKEY_AND_PWD_PASS, null);
-		//		L.V = L.O ? false : LogManager.log("Send menu:///root");
+		//		LogManager.log("Send menu:///root");
 		//		ContextManager.getContextInstance().send(MsgBuilder.E_CANVAS_MAIN, "menu:///root");
 	}
 
-	public static Object sendRegister(final CoreSession coreSS, final IPAndPort ipport, final byte firstOrReset, final int waiteMS){
-		final Object send = coreSS.sipContext.buildSocket(
+	public static Object sendRegister(final HCConnection hcConnection, final IPAndPort ipport, final byte firstOrReset, final int waiteMS,
+			final byte[] tokenBS){
+		final Object send = hcConnection.sipContext.buildSocket(
 				0, ipport.ip, ipport.port);
 		if(send == null){
 			return null;
@@ -398,10 +407,9 @@ public class SIPManager {
 
 		reg.setBytes(bs);
 
-		if(SIPManager.isOnRelay(coreSS)){
+		if(SIPManager.isOnRelay(hcConnection)){
 			if(IConstant.serverSide){
 				reg.setFromServer(MsgBuilder.DATA_IS_SERVER_TO_RELAY);
-				final byte[] tokenBS = (byte[])coreSS.context.doExtBiz(IContext.BIZ_GET_TOKEN, null);
 				reg.setTokenDataIn(tokenBS, 0, tokenBS.length);
 			}else{
 				reg.setFromServer(MsgBuilder.DATA_IS_CLIENT_TO_RELAY);
@@ -417,12 +425,12 @@ public class SIPManager {
 		System.arraycopy(bs, 0, bsClone, 0, bsClone.length);
 
 		try{
-			SIPManager.send(coreSS.sipContext.getOutputStream(send),
+			SIPManager.send(hcConnection.sipContext.getOutputStream(send),
 					bs, 0, regLen);
 		}catch (final Throwable e) {
 //			ExceptionReporter.printStackTrace(e);
 			try {
-				coreSS.sipContext.closeSocket(send);
+				hcConnection.sipContext.closeSocket(send);
 			} catch (final Exception e1) {
 			}
 			return null;
@@ -432,8 +440,8 @@ public class SIPManager {
 				synchronized (this) {
 					if(isEnable){
 						try {
-							L.V = L.O ? false : LogManager.log("CloseTimer close Reg Socket");
-							coreSS.sipContext.closeSocket(send);
+							LogManager.log("CloseTimer close Reg Socket");
+							hcConnection.sipContext.closeSocket(send);
 						} catch (final Exception e) {
 							ExceptionReporter.printStackTrace(e);
 						}
@@ -443,22 +451,22 @@ public class SIPManager {
 			}
 		};
 		try{
-			final DataInputStream is = coreSS.sipContext.getInputStream(send);
+			final DataInputStream is = hcConnection.sipContext.getInputStream(send);
 			is.readFully(bs, 0, regLen);
 			//验证是正确的回应，以免连接到已存在在，但是偶巧的端口上
 			for (int i = MsgBuilder.INDEX_MSG_DATA, endIdx = regLen; i < endIdx; i++) {
 				if(bs[i] != bsClone[i]){
-					L.V = L.O ? false : LogManager.log("Error back echo data");
+					LogManager.log("Error back echo data");
 					throw new Exception();
 				}
 			}
-			L.V = L.O ? false : LogManager.log("Receive Echo");
+			LogManager.log("Receive Echo");
 			return send;
 		}catch (final Throwable e) {
 //			e.printStackTrace();//注意：在服务器的keepalive中，下线时，有可能关闭时，输出此异常，故关闭。不能进行ExceptionReporter
 //			ExceptionReporter.printStackTrace(e);
 			try {
-				coreSS.sipContext.closeSocket(send);
+				hcConnection.sipContext.closeSocket(send);
 			} catch (final Throwable e1) {
 			}
 		}finally{

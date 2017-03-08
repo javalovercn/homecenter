@@ -165,7 +165,7 @@ public class ServerUIUtil {
 					ExceptionReporter.printStackTrace(e);
 				}
 				if(responsor == null){
-					L.V = L.O ? false : LogManager.log("cancel all HAR projects.");
+					LogManager.log("cancel all HAR projects.");
 					cancelHAR(respo);
 				}
 				if(responsor == null){
@@ -181,7 +181,7 @@ public class ServerUIUtil {
 				responsor.start();
 				
 				if(responsor instanceof MobiUIResponsor){
-					L.V = L.O ? false : LogManager.log("successful start all HAR projects");
+					LogManager.log("successful start all HAR projects");
 					((MobiUIResponsor)responsor).preLoadJRubyScripts();
 				}
 			}catch (final Throwable e) {
@@ -236,7 +236,7 @@ public class ServerUIUtil {
 			try{
 				snap.stop();
 				if(snap instanceof MobiUIResponsor){
-					L.V = L.O ? false : LogManager.log("shutdown all projects.");
+					LogManager.log("shutdown all projects.");
 				}
 			}catch (final Throwable e) {
 				ExceptionReporter.printStackTrace(e);

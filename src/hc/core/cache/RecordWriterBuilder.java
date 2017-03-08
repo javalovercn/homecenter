@@ -33,9 +33,9 @@ public abstract class RecordWriterBuilder {
 //		for (int i = 1; i < size; i++) {
 //			DataItem di = (DataItem)mapSnap.elementAt(i);
 //			if(di.isEmpty){
-//				L.V = L.O ? false : LogManager.log("record number : " + i + " is empty.");
+//				LogManager.log("record number : " + i + " is empty.");
 //			}else{
-//				L.V = L.O ? false : LogManager.log("record number : " + i + " map [" + di.toStringValue() + "]");
+//				LogManager.log("record number : " + i + " map [" + di.toStringValue() + "]");
 //			}
 //		}
 	}
@@ -67,7 +67,7 @@ public abstract class RecordWriterBuilder {
 				CacheDataItem di = (CacheDataItem)mapSnap.elementAt(i);
 				if(di.isEmpty == false && di.toStringValue().equals(rmsName)){
 					tableIdx = i;
-//					L.V = L.O ? false : LogManager.log("successful find MapTableName for : " + rmsName + "[" + (TABLE_PREFIX + tableIdx) + "], on record  number : " + tableIdx);
+//					LogManager.log("successful find MapTableName for : " + rmsName + "[" + (TABLE_PREFIX + tableIdx) + "], on record  number : " + tableIdx);
 					return TABLE_PREFIX + tableIdx;
 				}
 			}
@@ -80,7 +80,7 @@ public abstract class RecordWriterBuilder {
 					CacheStoreManager.storeData(tableNameForMapper, mapSnap);
 					
 					tableIdx = i;
-//					L.V = L.O ? false : LogManager.log("successful reuse MapTableName for : " + rmsName + "[" + (TABLE_PREFIX + tableIdx) + "], on record  number : " + tableIdx);
+//					LogManager.log("successful reuse MapTableName for : " + rmsName + "[" + (TABLE_PREFIX + tableIdx) + "], on record  number : " + tableIdx);
 
 					break;
 				}
@@ -93,7 +93,7 @@ public abstract class RecordWriterBuilder {
 				
 				tableIdx = size;
 
-//				L.V = L.O ? false : LogManager.log("successful add MapTableName for : " + rmsName + "[" + (TABLE_PREFIX + tableIdx) + "], left record  number : " + tableIdx);
+//				LogManager.log("successful add MapTableName for : " + rmsName + "[" + (TABLE_PREFIX + tableIdx) + "], left record  number : " + tableIdx);
 			}
 		}
 		
@@ -120,7 +120,7 @@ public abstract class RecordWriterBuilder {
 		}
 		
 		try{
-//			L.V = L.O ? false : LogManager.log("try delete MapTableName in deleteRecordStore for : [" + rmsName + "]");
+//			LogManager.log("try delete MapTableName in deleteRecordStore for : [" + rmsName + "]");
 			final String idx = rmsName.substring(TABLE_PREFIX.length());
 			final int int_idx = Integer.parseInt(idx);
 			synchronized(mapSnap){
@@ -130,7 +130,7 @@ public abstract class RecordWriterBuilder {
 					di.setDel();
 					CacheStoreManager.storeData(tableNameForMapper, mapSnap);
 					
-//					L.V = L.O ? false : LogManager.log("successful delete MapTableName for : " + rmsName + ", left record  number : " + (size - 1));
+//					LogManager.log("successful delete MapTableName for : " + rmsName + ", left record  number : " + (size - 1));
 					return;
 				}
 			}

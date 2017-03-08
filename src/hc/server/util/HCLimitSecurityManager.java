@@ -198,7 +198,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		}
 		
 		if(isSecurityManagerOn() == false){
-			L.V = L.O ? false : LogManager.log("stop SecurityManager in current server!");
+			LogManager.log("stop SecurityManager in current server!");
 			return;
 		}
 		
@@ -965,7 +965,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 //    				throw new HCSecurityException("block exec on file :" + blockFile);
 //    			}
 //    		}
-			L.V = L.O ? false : LogManager.log("execute OS cmd : [" + cmd + "] in project [" + csc.projID + "].");
+			LogManager.log("execute OS cmd : [" + cmd + "] in project [" + csc.projID + "].");
     	}else{
     		//Not in csc
     		ResourceUtil.checkHCStackTraceInclude(null, null);

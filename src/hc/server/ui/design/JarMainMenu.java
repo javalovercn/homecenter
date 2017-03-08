@@ -180,7 +180,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 	public final String getBitmapBase64ForMobile(final J2SESession coreSS, final BufferedImage bi, final String unChangedBase64){
 		final boolean menuTrueColor = UserThreadResourceUtil.getMobileAgent(coreSS).isMenuTrueColor();
 		
-		if(unChangedBase64 != null && (menuTrueColor || SIPManager.isOnRelay(coreSS) == false)){
+		if(unChangedBase64 != null && (menuTrueColor || SIPManager.isOnRelay(coreSS.hcConnection) == false)){
 			return unChangedBase64;
 		}
 		
@@ -301,8 +301,8 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 		if(isRoot){
 			//当前是root
 		}else{
-			L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "exit/back menu [" + linkOrProjectName + "]");
-//			L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "exit/back project : [" + projectID + "]");//可能引起退出工程岐义
+			LogManager.log(ScreenCapturer.OP_STR + "exit/back menu [" + linkOrProjectName + "]");
+//			LogManager.log(ScreenCapturer.OP_STR + "exit/back project : [" + projectID + "]");//可能引起退出工程岐义
 			
 			baseRe.enterContext((J2SESession)SessionThread.getWithCheckSecurityX(), baseRe.findRootContextID());
 			//千万别执行如下，确保每次手机连接使用同一服务实例，从而共享数据状态

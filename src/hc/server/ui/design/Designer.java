@@ -177,7 +177,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 						if(meetCount == 2){
 							nm.clearCacheEditPanel();
 							
-							L.V = L.O ? false : LogManager.log("current free memory (M) : " + freeMem);
+							LogManager.log("current free memory (M) : " + freeMem);
 							isShowLowMem = true;
 							final String lowMem = StringUtil.replace((String)ResourceUtil.get(9207), "{mem}", String.valueOf(lowMem60));
 							
@@ -1315,7 +1315,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				try{
 					out = DeviceBinderWizard.getInstance(bindSource, false, frameOwner, respo, tgt);
 				}catch (final Throwable e) {
-					L.V = L.O ? false : LogManager.log("user cancel connect device or JRuby code error!");
+					LogManager.log("user cancel connect device or JRuby code error!");
 					ServerUIUtil.restartResponsorServer(frameOwner, respo);
 					
 					refreshBindButtons();
@@ -1421,7 +1421,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	private File loadDefaultEdit() {
 		File edit_har = getDefaultEditFile();
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("try load default HAR : " + edit_har.getAbsolutePath());
+			LogManager.log("try load default HAR : " + edit_har.getAbsolutePath());
 		}
 		if(edit_har.exists() == false){
 			return null;
@@ -1559,11 +1559,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			if(fileHar.exists() == false){
 				//复制/hc/res/MyFirst.har到myedit.har
 				copyHarFromPath(ResourceUtil.getResource(HC_RES_MY_FIRST_HAR), fileHar);
-				L.V = L.O ? false : LogManager.log("successful create default edit har project.");
+				LogManager.log("successful create default edit har project.");
 				
 				//发布缺省工程
 				final Map<String, Object> map = AddHarHTMLMlet.getMap(fileHar);
-				AddHarHTMLMlet.appendMapToSavedLPS(fileHar, map, true, true, null);
+				AddHarHTMLMlet.appendMapToSavedLPS(J2SESession.NULL_J2SESESSION_FOR_PROJECT, fileHar, map, true, true, null);
 				LinkProjectManager.reloadLinkProjects();//不可少
 				
 				//active
@@ -1600,7 +1600,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		isModiPermissions = false;
 		
 		{
-			L.V = L.O ? false : LogManager.log("Project [" + (String)map.get(HCjar.PROJ_ID) + "] " +
+			LogManager.log("Project [" + (String)map.get(HCjar.PROJ_ID) + "] " +
 				"JRE version : " + (String)map.get(HCjar.JRE_VER) + ", " +
 				"HomeCenter version : " + (String)map.get(HCjar.HOMECENTER_VER) + ", " +
 				"JRuby version : " + (String)map.get(HCjar.JRUBY_VER) + "");

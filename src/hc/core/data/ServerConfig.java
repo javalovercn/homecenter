@@ -11,6 +11,8 @@ public class ServerConfig extends HCConfig{
 	public static final short P_SERVER_COLOR_ON_RELAY = 2;
 	public static final short P_SERVER_WIDTH = 3;
 	public static final short P_SERVER_HEIGHT = 4;
+	public static final short P_SERVER_CONN_ID = 5;
+	public static final short P_IS_DEMO_MAINTENANCE = 6;
 	
 	public static void setInstance(final CoreSession coreSS, final ServerConfig sc){
 		coreSS.j2meServerConfig = sc;

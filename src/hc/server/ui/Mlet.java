@@ -12,9 +12,14 @@ import hc.server.ui.design.SessionContext;
 import hc.util.ResourceUtil;
 import hc.util.ThreadConfig;
 
+import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.FlowLayout;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 
+import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 /**
@@ -58,7 +63,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * return {@link #STATUS_INIT}, {@link #STATUS_RUNNING}, {@link #STATUS_PAUSE}, {@link #STATUS_EXIT} or other.
 	 * @return 
 	 */
-	public final int getStatus(){
+	public int getStatus(){
 		return status;
 	}
 
@@ -69,7 +74,7 @@ public class Mlet extends JPanel implements ICanvas {
 	final void notifyStatusChanged(final int newStatus){//in user thread
 		synchronized (synLock) {//要置于外部
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("change Mlet/HTMLMlet [" + __target + "] from [" + status + "] to [" + newStatus + "].");
+				LogManager.log("change Mlet/HTMLMlet [" + __target + "] from [" + status + "] to [" + newStatus + "].");
 			}
 			
 			status = newStatus;
@@ -140,13 +145,21 @@ public class Mlet extends JPanel implements ICanvas {
 	
 	/**
 	 * execute or not {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)} if client locale is RTL (Right to Left).<BR><BR>
+	 * <code>applyComponentOrientation</code> affect the following layout managers :<BR>
+	 * 1. {@link FlowLayout}<BR>
+	 * 2. {@link BorderLayout}<BR>
+	 * 3. {@link BoxLayout}<BR>
+	 * 4. {@link GridBagLayout}<BR>
+	 * 5. {@link GridLayout}<BR>
+	 * for more : <a href="https://docs.oracle.com/javase/tutorial/uiswing/layout/using.html">https://docs.oracle.com/javase/tutorial/uiswing/layout/using.html</a>
+	 * <BR><BR>
 	 * <STRONG>Note</STRONG> :<BR>
 	 * this method must be invoked in constructor (initialize in JRuby).
-	 * @param enable default is enable.
+	 * @param isEnable default is enable, means server will execute if client locale {@link ProjectContext#isRTL(String)}.
 	 * @since 7.40
 	 */
-	public void enableApplyOrientationWhenRTL(final boolean enable){//注意：请勿final
-		enableApplyOrientationWhenRTL = enable;
+	public void enableApplyOrientationWhenRTL(final boolean isEnable){//注意：请勿final
+		enableApplyOrientationWhenRTL = isEnable;
 	}
 	
 	boolean isAutoReleaseAfterGo = false;
@@ -159,7 +172,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @see #setAutoReleaseAfterGo(boolean)
 	 * @since 7.7
 	 */
-	public final boolean isAutoReleaseAfterGo(){
+	public boolean isAutoReleaseAfterGo(){
 		return isAutoReleaseAfterGo;
 	}
 	
@@ -175,7 +188,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @see #goMlet(Mlet, String, boolean)
 	 * @since 7.7
 	 */
-	public final void setAutoReleaseAfterGo(final boolean isAutoRelease){
+	public void setAutoReleaseAfterGo(final boolean isAutoRelease){
 		isAutoReleaseAfterGo = isAutoRelease;
 	}
 	
@@ -203,7 +216,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @return 
 	 * @since 7.0
 	 */
-	public final String getTarget(){
+	public String getTarget(){
 		return __target;//支持Test Scripts
 	}
 	
@@ -217,7 +230,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @see ProjectContext#getMenuItemBy(String, String)
 	 * @since 7.20
 	 */
-	public final String getElementID(){
+	public String getElementID(){
 		if(elementID == null){
 			elementID = ResourceUtil.getElementIDFromTarget(__target);//支持Test Scripts
 		}
@@ -231,7 +244,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @return 
 	 * @since 7.0
 	 */
-	public final ProjectContext getProjectContext(){
+	public ProjectContext getProjectContext(){
 		return __context;
 	}
 
@@ -259,7 +272,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @param elementID for example, run scripts of menu item "cmd://myCommand", the scheme is {@linkplain MenuItem#CMD_SCHEME}, and element ID is "myCommand",
 	 * @see #go(String)
 	 */
-	public final void go(final String scheme, final String elementID){
+	public void go(final String scheme, final String elementID){
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return;
 		}
@@ -290,7 +303,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @see #goExternalURL(String, boolean)
 	 * @since 7.0
 	 */
-	public final void go(final String url){
+	public void go(final String url){
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return;
 		}
@@ -304,14 +317,14 @@ public class Mlet extends JPanel implements ICanvas {
 	    	}
 		}
 		
-		ServerUIAPIAgent.go(coreSS, url);
+		ServerUIAPIAgent.goInServer(coreSS, __context, url);
 	}
 	
 	/**
 	 * back and return.
 	 * @since 7.30
 	 */
-	public final void back(){
+	public void back(){
 		go(URL_EXIT);
 	}
 
@@ -329,7 +342,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @see #go(String)
 	 * @since 7.7
 	 */
-	public final void goMlet(final Mlet toMlet, final String targetOfMlet, final boolean isAutoReleaseCurrentMlet){
+	public void goMlet(final Mlet toMlet, final String targetOfMlet, final boolean isAutoReleaseCurrentMlet){
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return;
 		}
@@ -411,7 +424,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @see #goExternalURL(String, boolean)
 	 * @since 7.30
 	 */
-	public final void goExternalURL(final String url) {
+	public void goExternalURL(final String url) {
 		goExternalURL(url, false);
 	}
 	
@@ -431,7 +444,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @param isUseExtBrowser true : use system web browser to open URL; false : the URL will be opened in client application and still keep foreground.
 	 * @since 7.7
 	 */
-	public final void goExternalURL(final String url, final boolean isUseExtBrowser) {
+	public void goExternalURL(final String url, final boolean isUseExtBrowser) {
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return;
 		}

@@ -333,6 +333,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	
 	public ScriptEditPanel() {
 		jtaDocment = (AbstractDocument)jtaScript.getDocument();
+		normalBackground = buildBackground(jtaScript.getBackground());
 		
 		errRunInfo.setForeground(Color.RED);
 		errRunInfo.setOpaque(true);
@@ -484,6 +485,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			int lastLineNo = 0;
 			@Override
 			public void caretUpdate(final CaretEvent e) {
+				clearSelectionBG();
 				try{
 					final int currLineNo = getLineOfOffset(jtaDocment, e.getDot());
 					if(isModifySourceForRebuildAST){
@@ -829,7 +831,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				        	}
 				        	
 				        	if(L.isInWorkshop){
-				        		L.V = L.O ? false : LogManager.log("input dot (.) is in yinhao, skip auto popup codetip.");
+				        		LogManager.log("input dot (.) is in yinhao, skip auto popup codetip.");
 				        	}
 				        	return;
 				        }
@@ -861,7 +863,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					        if(isVarOrMethodCase){
 					        }else{
 					        	if(L.isInWorkshop){
-					        		L.V = L.O ? false : LogManager.log("input dot (.) is not for variable, skip auto popup codetip.");
+					        		LogManager.log("input dot (.) is not for variable, skip auto popup codetip.");
 					        	}
 					        	return;
 					        }
@@ -997,6 +999,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		scrollpane.addMouseWheelListener(new MouseWheelListener() {
 			@Override
 			public void mouseWheelMoved(final MouseWheelEvent e) {
+				designer.codeHelper.mouseExitHideDocForMouseMovTimer.setEnable(true);//关闭正在显示的Doc Tip
 				autoCodeTip.setEnable(false);				
 			}
 		});
@@ -1203,7 +1206,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	int lastFocusUnderlineCSSLen = 0;
 	final Cursor defaultCursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);
 	boolean isHandCursor;
-
+	final SimpleAttributeSet normalBackground;
+	
 	public final HCTextPane jtaScript = new HCTextPane(){
 		@Override
 		public void paste(){
@@ -1856,6 +1860,14 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		modifierKeysPressed = 0;
 	}
 
+	private final void clearSelectionBG() {
+		if(jtaScript.hasSelectedWords && (System.currentTimeMillis() - jtaScript.selectedWordsMS) > 500){
+			final StyledDocument styledDocument = jtaScript.getStyledDocument();
+			styledDocument.setCharacterAttributes(0, styledDocument.getLength(), normalBackground, false);
+			jtaScript.selectedWordsMS = System.currentTimeMillis();
+			jtaScript.hasSelectedWords = false;
+		}
+	}
 	private final Runnable doTestRunnable =  new Runnable(){
 		@Override
 		public void run(){

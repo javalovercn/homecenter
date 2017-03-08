@@ -180,12 +180,12 @@ public class DifferTodo {
 	private final void sendStringJSOrCache(final String script, final boolean needGzip, final boolean enableCache){
 		if(isSimu){
 			if(script.length() < 1024){//不显示基础脚本
-				L.V = L.O ? false : LogManager.log(script);
+				LogManager.log(script);
 			}
 		}
 		
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("sendStringJSOrCache : " + script);
+			LogManager.log("sendStringJSOrCache : " + script);
 		}
 		
 		final byte[] scriptBS = ByteUtil.getBytes(script, IConstant.UTF_8);
@@ -305,7 +305,7 @@ public class DifferTodo {
 	
 	/**
 	 * 加载JS到html->header->script段。
-	 * 注意：它不同于{@link #executeJS(String)}
+	 * 注意：它不同于{@link #executeJSWithoutCache(String)}
 	 * for example : body{background-color:#f00;}
 	 * @param js
 	 */
@@ -334,14 +334,14 @@ public class DifferTodo {
 	 * 它不同于{@link #loadScript(String)}
 	 * @param script
 	 */
-	public final void executeJS(final String script){
+	public final void executeJSWithoutCache(final String script){
 		final boolean needGzip = ((script.length()>GZIP_MIN_SIZE)?true:false);
-		sendStringJSOrCache(script, needGzip, true);
+		sendStringJSOrCache(script, needGzip, false);
 	}
 	
 	public final void notifyInitDone(){
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("[HTMLMlet:" + mlet.getTarget() + "] notifyInitDone");
+			LogManager.log("[HTMLMlet:" + mlet.getTarget() + "] notifyInitDone");
 		}
 		sendBytesJSOrCache(stopLoading, false, false);
 	}
@@ -689,7 +689,7 @@ public class DifferTodo {
 		final int compHeight = rect.height;
 		
 		if(isSimu){
-			L.V = L.O ? false : LogManager.log("send Component Location, " + component.toString() + " [x : " + rect.x + ", y : " + rect.y + ", w : " + compWidth + ", h : " + compHeight + "]");
+			LogManager.log("send Component Location, " + component.toString() + " [x : " + rect.x + ", y : " + rect.y + ", w : " + compWidth + ", h : " + compHeight + "]");
 		}
 		
 		if(compWidth > mobileWarningWidth || compHeight > mobileWarningHeight){

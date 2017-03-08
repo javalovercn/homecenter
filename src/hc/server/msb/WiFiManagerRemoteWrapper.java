@@ -95,7 +95,7 @@ public class WiFiManagerRemoteWrapper extends WiFiDeviceManager{
 		}
 		if(storeIdx == 0){
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("None getSSIDListOnAir");
+				LogManager.log("None getSSIDListOnAir");
 			}
 			ByteUtil.byteArrayCacher.cycle(parameter);
 			return new String[0];

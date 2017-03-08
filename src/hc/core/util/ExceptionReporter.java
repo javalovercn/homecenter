@@ -79,9 +79,9 @@ public class ExceptionReporter {
 		CCoreUtil.checkAccess();
 		
 		if(status){
-			L.V = L.O ? false : LogManager.log("started ExceptionReporter.");
+			LogManager.log("started ExceptionReporter.");
 		}else{
-			L.V = L.O ? false : LogManager.log("stopped ExceptionReporter.");
+			LogManager.log("stopped ExceptionReporter.");
 		}
 	}
 	

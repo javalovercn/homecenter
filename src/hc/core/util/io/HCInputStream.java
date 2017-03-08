@@ -229,7 +229,7 @@ public class HCInputStream extends InputStream implements IHCStream{
 	
 	public final void close() throws IOException {
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("close HCInputStream : " + streamID);
+			LogManager.log("close HCInputStream : " + streamID);
 		}
 		synchronized (this) {
 			if(exception != null){

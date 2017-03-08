@@ -33,7 +33,7 @@ public class CtrlMap {
 	public void updateButtonOnCanvas(final int keyValue, final int center_x, final int center_y){
 		map.put(HEAD_CENTER_X + keyValue, String.valueOf(center_x));
 		map.put(HEAD_CENTER_Y + keyValue, String.valueOf(center_y));
-//		L.V = L.O ? false : LogManager.log("updateButtonOnCanvas x : " + center_x + ", y : " + center_y);
+//		LogManager.log("updateButtonOnCanvas x : " + center_x + ", y : " + center_y);
 	}
 
 	public final void addButtonOnCanvas(final int keyValue, final int center_x, final int center_y){
@@ -44,7 +44,7 @@ public class CtrlMap {
 
 			map.put(HEAD_SIZE, String.valueOf((++size)));
 		}
-//		L.V = L.O ? false : LogManager.log("addButtonOnCanvas size : " + size + ", x : " + center_x + ", y : " + center_y);
+//		LogManager.log("addButtonOnCanvas size : " + size + ", x : " + center_x + ", y : " + center_y);
 	}
 	
 	public final void setButtonTxt(final int keyValue, final String txt){

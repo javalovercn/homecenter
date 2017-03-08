@@ -159,7 +159,7 @@ public abstract class MCanvasMenu extends MUIView {
 		int countPrint = 0;
 		while(menu.isIncrementMode() == false){
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("waiting session menu to increment mode...");
+				LogManager.log("waiting session menu to increment mode...");
 			}
 			
 			final int moment = ThreadPriorityManager.UI_WAIT_OTHER_THREAD_EXEC_MS;

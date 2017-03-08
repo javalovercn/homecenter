@@ -36,6 +36,7 @@ import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
 import hc.util.RecycleProjThreadPool;
 import hc.util.ResourceUtil;
+import hc.util.UILang;
 
 import java.awt.Window;
 import java.util.ArrayList;
@@ -190,6 +191,8 @@ public class MobiUIResponsor extends BaseResponsor {
 	}
 	
 	public MobiUIResponsor(final ExceptionCatcherToWindow ec) {
+		UILang.initToken(App.getThreadPoolToken());
+		
 		this.ec = ec;
 		
 		//获得active数量
@@ -258,8 +261,8 @@ public class MobiUIResponsor extends BaseResponsor {
 			@Override
 			public boolean watch() {
 				if(System.currentTimeMillis() - startMS > seconds * 1000){
-					L.V = L.O ? false : LogManager.log("pre load and compile JRuby scripts to improve performance.");
-					L.V = L.O ? false : LogManager.log("it maybe occupy some memory and CPU resources to pre-load.");
+					LogManager.log("pre load and compile JRuby scripts to improve performance.");
+					LogManager.log("it maybe occupy some memory and CPU resources to pre-load.");
 					try{
 						for (int i = 0; i < responserSize; i++) {
 							responsors[i].preLoadJRubyScripts();
@@ -644,12 +647,12 @@ public class MobiUIResponsor extends BaseResponsor {
 				if(ProjectContext.EVENT_SYS_PROJ_STARTUP == event){
 					resp.jarMainMenu.projectMenu.notifyIncrementMode();//完成初始状态，后续转为增量方式
 					if(L.isInWorkshop){
-						L.V = L.O ? false : LogManager.log("change project menu to increment mode.");
+						LogManager.log("change project menu to increment mode.");
 					}
 				}else if(ProjectContext.EVENT_SYS_MOBILE_LOGIN == event){
 					coreSS.getMenu(resp.projectID).notifyIncrementMode();//完成初始状态，后续转为增量方式
 					if(L.isInWorkshop){
-						L.V = L.O ? false : LogManager.log("change session menu [" + resp.projectID + "] to increment mode.");
+						LogManager.log("change session menu [" + resp.projectID + "] to increment mode.");
 					}
 				}
 				
@@ -687,7 +690,11 @@ public class MobiUIResponsor extends BaseResponsor {
 	}
 	
 	public final ProjResponser getCurrentProjResponser(final J2SESession session){
-		return findContext(currContext.getCurrContext(session));
+		return findContext(getCurrProjectID(session));
+	}
+
+	public final String getCurrProjectID(final J2SESession session) {
+		return currContext.getCurrContext(session);
 	}
 	
 	public final ProjResponser findContext(final String context){
@@ -708,7 +715,7 @@ public class MobiUIResponsor extends BaseResponsor {
 			final String newContext = url.elementID;
 			
 			if(newContext.equals(HCURL.ROOT_MENU) == false //保留支持旧的ROOT_ID
-					&& newContext.equals(currContext.getCurrContext(j2seCoreSS)) == false){
+					&& newContext.equals(getCurrProjectID(j2seCoreSS)) == false){
 				enterContext(j2seCoreSS, newContext);//内部含CLASS_CHANGE_PROJECT_ID
 				changeMobileProjectID(j2seCoreSS, newContext);
 				
@@ -719,13 +726,13 @@ public class MobiUIResponsor extends BaseResponsor {
 				
 				ScreenServer.pushScreen(j2seCoreSS, linkMenu);
 				
-				L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "enter project : [" + linkMenu.projectID + "]");
-				L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "open menu : [" + linkMenu.linkOrProjectName + "]");
+				LogManager.log(ScreenCapturer.OP_STR + "enter project : [" + linkMenu.projectID + "]");
+				LogManager.log(ScreenCapturer.OP_STR + "open menu : [" + linkMenu.linkOrProjectName + "]");
 				return true;
 			}
 		}
 		
-		return findContext(currContext.getCurrContext(j2seCoreSS)).doBiz(j2seCoreSS, url);
+		return findContext(getCurrProjectID(j2seCoreSS)).doBiz(j2seCoreSS, url, true);
 	}
 
 	@Override
@@ -749,7 +756,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		coreSS.setSessionMenu(pr.projectID, menu);
 		
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("set clientSession for project [" + pr.context.getProjectID() + "].");
+			LogManager.log("set clientSession for project [" + pr.context.getProjectID() + "].");
 		}
 	}
 
@@ -765,7 +772,7 @@ public class MobiUIResponsor extends BaseResponsor {
 						final String projectID = resp.context.getProjectID();
 						resp.removeMobileContext(coreSS);
 						if(L.isInWorkshop){
-							L.V = L.O ? false : LogManager.log("release clientSession for project [" + projectID + "].");
+							LogManager.log("release clientSession for project [" + projectID + "].");
 						}
 					}catch (final Throwable e) {
 						e.printStackTrace();

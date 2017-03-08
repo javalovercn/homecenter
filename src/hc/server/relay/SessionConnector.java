@@ -59,7 +59,7 @@ public class SessionConnector {
 		
 		if(sc != null){
 			if(sc.randomUDPHead[0] == udpRandomHead0 && sc.randomUDPHead[1] == udpRandomHead1){
-				L.V = L.O ? false : LogManager.log("SetUDPAddrNull match the randomUDPHeader");
+				LogManager.log("SetUDPAddrNull match the randomUDPHeader");
 				final UDPPair udpPair = sc.udpPair;
 				if(udpPair == null){
 					return false;
@@ -92,7 +92,7 @@ public class SessionConnector {
 //		if((serverOrClient == false)//手机端 
 //				&& isLineOff){//产生断线事件
 //			//手机端不能启动重置连接逻辑，因为手机端的环境复杂性，将保持手机端支持无TCP下，仅UDP的工作状态。
-//			L.V = L.O ? false : LogManager.log("mobile offline, skip resetTimer");
+//			LogManager.log("mobile offline, skip resetTimer");
 //			return;
 //		}
 		
@@ -102,15 +102,15 @@ public class SessionConnector {
 				resetTimer = new RemoveableHCTimer("ResetTimer", CCoreUtil.WAIT_MS_FOR_NEW_CONN - 1000, true) {//20秒改为3秒
 					@Override
 					public final void doBiz() {
-						L.V = L.O ? false : LogManager.log("ResetTimer : Server/Client not reconnect, so close session pair.");
+						LogManager.log("ResetTimer : Server/Client not reconnect, so close session pair.");
 						RelayManager.closePare(self, true);
 						setEnable(false);
-						L.V = L.O ? false : LogManager.log("ResetTimer : Close Pare");
+						LogManager.log("ResetTimer : Close Pare");
 					}
 					
 					@Override
 					public void setEnable(final boolean enable){
-						L.V = L.O ? false : LogManager.log("ResetTimer : " + enable);
+						LogManager.log("ResetTimer : " + enable);
 						super.setEnable(enable);
 					}
 				};
@@ -120,10 +120,10 @@ public class SessionConnector {
 			resetTimer.resetTimerCount();
 			synchronized (this) {
 				if(isNewStatus == false){
-//					L.V = L.O ? false : LogManager.log("Enable ResetTimer");
+//					LogManager.log("Enable ResetTimer");
 					resetTimer.setEnable(true);
 				}else{
-//					L.V = L.O ? false : LogManager.log("Try Enable ResetTimer, but isNewStatus, Skip Enable.");
+//					LogManager.log("Try Enable ResetTimer, but isNewStatus, Skip Enable.");
 				}
 			}
 		}
@@ -254,13 +254,13 @@ public class SessionConnector {
 	public void setKey(final SocketChannel channel, final SelectionKey sk, final boolean isFromServer){
 		if(isFromServer){
 			if(serverSide != null){
-				L.V = L.O ? false : LogManager.log("override old Server channel:" + serverSide.hashCode());
+				LogManager.log("override old Server channel:" + serverSide.hashCode());
 			}
 			serverSide = channel;
 			serverKey = sk;
 		}else{
 			if(clientSide != null){
-				L.V = L.O ? false : LogManager.log("override old Client channel:" + clientSide.hashCode());
+				LogManager.log("override old Client channel:" + clientSide.hashCode());
 			}
 			clientSide = channel;
 			clientKey = sk;

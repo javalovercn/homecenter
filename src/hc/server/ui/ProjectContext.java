@@ -148,7 +148,7 @@ public class ProjectContext {
 		if (level == CLASSLOADER_SERVER_LEVEL) {
 			return PlatformService.SYSTEM_CLASS_LOADER;
 		} else if (level == CLASSLOADER_THIRD_LIBS_LEVEL) {
-			return PlatformManager.getService().get3rdClassLoader(null);
+			return PlatformManager.getService().get3rdAndServClassLoader(null);
 		} else if (level == CLASSLOADER_PROJECT_LEVEL) {
 			return finder.findProjClassLoader();
 		} else {
@@ -291,7 +291,7 @@ public class ProjectContext {
 //			return false;
 			return;
 		}else{
-			ServerUIAPIAgent.go(sessionContext.j2seSocketSession, url);
+			ServerUIAPIAgent.goInServer(sessionContext.j2seSocketSession, this, url);
 //			return true;
 			return;
 		}
@@ -1904,7 +1904,7 @@ public class ProjectContext {
 	 * 3. language-region ("zh-Hans-CN", "zh-Hant-CN", etc.)<br><br>
 	 * Know more :<BR>
 	 * 1. to find the best match from an I18N map, see {@link #matchLocale(String, Map)}.<BR>
-	 * 2. user maybe change client language and location.<BR>
+	 * 2. user maybe change client language and country/region.<BR>
 	 * 3. to check a locale is RTL (Right To Left) or not, see {@link #isRTL(String)}.<BR>
 	 * 4. for RTL layout, see {@link Mlet#enableApplyOrientationWhenRTL(boolean)}.<BR>
 	 * 5. to set RTL or not for HTML DIV and its sub elements, see {@link HTMLMlet#setRTL(javax.swing.JComponent, boolean)}
@@ -2455,7 +2455,7 @@ public class ProjectContext {
 		sb.append("In designer, ProjectContext.getProjectContext will return a context just for test run!!!");
 		sb.append("\n");
 		sb.append("------------------------------------------------------------------------");
-		L.V = L.O ? false : LogManager.log(sb.toString());
+		LogManager.log(sb.toString());
 		StringBuilderCacher.cycle(sb);
 		return SimuMobile.simuContext;
 	}
@@ -2822,14 +2822,14 @@ public class ProjectContext {
 			}
 			final CoreSession[] coreSS = ServerUIAPIAgent.getAllSocketSessionsNoCheck();
 			for (int i = 0; i < coreSS.length; i++) {
-				if(SIPManager.isOnRelay(coreSS[i])){
+				if(SIPManager.isOnRelay(coreSS[i].hcConnection)){
 					return true;
 				}
 			}
 			return false;
 		}else{
 			final J2SESession coreSS = sessionContext.j2seSocketSession;
-			return SIPManager.isOnRelay(coreSS);
+			return SIPManager.isOnRelay(coreSS.hcConnection);
 		}
 	}
 
@@ -3060,7 +3060,7 @@ public class ProjectContext {
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		if(sessionContext == null || sessionContext.j2seSocketSession == null){
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("[workshop] remove ProjectLevel SystemEventListener.");
+				LogManager.log("[workshop] remove ProjectLevel SystemEventListener.");
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("removeSystemEventListener");
@@ -3068,7 +3068,7 @@ public class ProjectContext {
 			return projectLevelEventListeners.remove(listener);
 		}else{
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("[workshop] remove ProjectLevel SystemEventListener.");
+				LogManager.log("[workshop] remove ProjectLevel SystemEventListener.");
 			}
 			final J2SESession coreSS = sessionContext.j2seSocketSession;
 			return coreSS.sessionLevelEventListeners.remove(listener);
@@ -3111,7 +3111,7 @@ public class ProjectContext {
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		if(sessionContext == null || sessionContext.j2seSocketSession == null){
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("[workshop] add ProjectLevel SystemEventListener.");
+				LogManager.log("[workshop] add ProjectLevel SystemEventListener.");
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("addSystemEventListener");
@@ -3119,7 +3119,7 @@ public class ProjectContext {
 			projectLevelEventListeners.add(listener);
 		}else{
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("[workshop] add SessionLevel SystemEventListener.");
+				LogManager.log("[workshop] add SessionLevel SystemEventListener.");
 			}
 			final J2SESession coreSS = sessionContext.j2seSocketSession;
 			coreSS.sessionLevelEventListeners.add(listener);

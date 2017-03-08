@@ -87,7 +87,7 @@ public final class MSBAgent {
 					if(ContextManager.isMobileLogin(coreSS.context)){
 						final AddHarHTMLMlet mlet = AddHarHTMLMlet.getCurrAddHarHTMLMlet(coreSS);
 						if(mlet != null){
-							mlet.notifyBroadcastWifiAccout(projectID, device.getName());
+							mlet.notifyBroadcastWifiAccout(coreSS, projectID, device.getName());
 						}
 					}
 					return null;

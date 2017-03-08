@@ -26,7 +26,7 @@ public class MobiMenu {
 	public int tailCount = 0;//扩展QR_ADD按钮的数量
 	protected final Object menuLock;
 	final String projectID;
-	final ProjResponser resp;
+	public final ProjResponser resp;
 	
 	public final int getSessionItemsCount(){
 		synchronized(menuLock){
@@ -267,7 +267,7 @@ public class MobiMenu {
 	
 	protected final void publishToMobiToWatcher(final J2SESession coreSS, final String op, final MenuItem item, final MenuItem itemBefore){
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("[publishMenuToMobi] for " + op);
+			LogManager.log("[publishMenuToMobi] for " + op);
 		}
 		
 		final IWatcher watcher = buildRefreshWatcher(item, itemBefore, coreSS, op);
@@ -287,7 +287,7 @@ public class MobiMenu {
 	
 	protected final void sendRefreshMenuData(final J2SESession coreSS, final MenuItem item, final MenuItem itemBefore, final String op){
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("sendRefreshMenuData.");
+			LogManager.log("sendRefreshMenuData.");
 		}
 		
 		if(MODIFY_ITEM.equals(op)){

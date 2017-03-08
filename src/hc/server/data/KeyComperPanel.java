@@ -1117,7 +1117,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener{
 			final String out = sb.toString();
 			StringBuilderCacher.cycle(sb);
 			coreSS.context.send(MsgBuilder.E_SCREEN_EXT_MOUSE_ICON, out);
-	//				L.V = L.O ? false : LogManager.log("Send out ExtMouseIco");
+	//				LogManager.log("Send out ExtMouseIco");
 		}
 
 }

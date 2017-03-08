@@ -151,7 +151,7 @@ public class CodeHelper {
 	 */
 	public final void notifyUsingByDoc(final boolean isUsing){
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("AutoCodeTip notifyUsingByDoc : " + isUsing);
+			LogManager.log("AutoCodeTip notifyUsingByDoc : " + isUsing);
 		}
 		if(mouseExitHideDocForMouseMovTimer.isTriggerOn()){
 			mouseExitHideDocForMouseMovTimer.isUsingByDoc = isUsing;
@@ -161,7 +161,7 @@ public class CodeHelper {
 	
 	public final void notifyUsingByCode(final boolean isUsing){
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("[CodeTip] start notifyUsingByCode : " + isUsing);
+			LogManager.log("[CodeTip] start notifyUsingByCode : " + isUsing);
 		}
 		
 		if(mouseExitHideDocForMouseMovTimer.isTriggerOn()){
@@ -170,7 +170,7 @@ public class CodeHelper {
 		}
 		
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("[CodeTip] done notifyUsingByCode : " + isUsing);
+			LogManager.log("[CodeTip] done notifyUsingByCode : " + isUsing);
 		}
 	}
 	
@@ -553,6 +553,10 @@ public class CodeHelper {
 			CodeItem[] methods = set.get(getDefClassName(jdc.defNode));
 			if(methods == null){
 				buildForClass(this, jdc);
+				final Class baseClass = jdc.baseClass;
+				if(baseClass != null){
+					DocHelper.processDoc(baseClass, true);
+				}
 				methods = set.get(getDefClassName(jdc.defNode));
 			}
 			if(methods != null){
@@ -895,7 +899,7 @@ public class CodeHelper {
 	private final static void printNode(final Node node){
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		buildNodeString(node, 0, sb);
-		L.V = L.O ? false : LogManager.log(sb.toString());
+		LogManager.log(sb.toString());
 		StringBuilderCacher.cycle(sb);
 	}
 	
@@ -926,7 +930,7 @@ public class CodeHelper {
 //		if(L.isInWorkshop){
 //			final StringBuilder sb = new StringBuilder(1024 * 10);
 //			buildNodeString(node, 0, sb);
-//			L.V = L.O ? false : LogManager.log(sb.toString());
+//			LogManager.log(sb.toString());
 //		}
 		final List<Node> childNodes = node.childNodes();
 		if(childNodes.size() > 0){
@@ -1010,11 +1014,16 @@ public class CodeHelper {
 		
 		final Node parentNode = node.getParent();
 		
-		if((parentNode instanceof CallNode) == false){
+		return buildDescFromClassNewCallNode(parentNode, codeContext);
+	}
+
+	private static JRubyClassDesc buildDescFromClassNewCallNode(final Node callNode,
+			final CodeContext codeContext) {
+		if((callNode instanceof CallNode) == false){
 			return null;
 		}
 		
-		final CallNode innerClass = (CallNode)parentNode;
+		final CallNode innerClass = (CallNode)callNode;
 		if(JRUBY_NEW.equals(innerClass.getName()) == false){
 			return null; 
 		}
@@ -1042,7 +1051,6 @@ public class CodeHelper {
 //						)
 //				)
 //		)
-		
 	}
 	
 	public final static Class getDefSuperClass(final Node node, final int scriptIdx, final int lineIdxAtScript, final CodeContext codeContext){
@@ -1719,6 +1727,32 @@ public class CodeHelper {
 		}
 		return null;
 	}
+	
+	private final static Class searchSelfParentDefNode(final Node node, final CodeContext codeContext){
+		try{
+			//class abc < exttend {
+			//  def initialize
+			//     myA = self
+			//  end
+			//}
+			final Node defNode = node.getParent().getParent().getParent().getParent().getParent().getParent();//只能结构尝试
+			if(defNode instanceof ClassNode){
+				return getDefSuperClass((ClassNode)defNode, codeContext);
+			}
+			
+			//Class.new(){
+			//}
+			final Node callNode = defNode.getParent();//.getParent();
+			if(callNode instanceof CallNode){
+				final JRubyClassDesc desc = buildDescFromClassNewCallNode(callNode, null);
+				if(desc != null){
+					return desc.baseClass;
+				}
+			}
+		}catch (final Throwable e) {
+		}
+		return null;
+	}
     
     private final static JRubyClassDesc findClassFromReceiverNode(final Node receiverNode, final boolean isTry, final CodeContext codeContext){
     	if(receiverNode instanceof CallNode){
@@ -1757,8 +1791,14 @@ public class CodeHelper {
     		return null;
     	}else if(receiverNode instanceof SelfNode){
     		final ClassNode defNode = codeContext.getDefClassNode();
-    		if(defNode != null){
-    			final JRubyClassDesc cd = buildJRubyClassDesc(getDefSuperClass(defNode, codeContext), true);
+    		Class baseClass = null;
+    		if(defNode == null){
+    			baseClass = searchSelfParentDefNode(receiverNode, codeContext);
+    		}else{
+    			baseClass = getDefSuperClass(defNode, codeContext);
+    		}
+    		if(baseClass != null){
+    			final JRubyClassDesc cd = buildJRubyClassDesc(baseClass, true);
     			cd.isInExtend = IS_EXTEND;//for example, extend device, assign self to instance field A, access field A then need protected method in code show.
     			return cd;
     		}
@@ -2227,7 +2267,7 @@ public class CodeHelper {
 			}
 			
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("[============>workbench]:");
+				LogManager.log("[============>workbench]:");
 				ExceptionReporter.printStackTrace(e);
 			}
 			if(backRoot == null){
@@ -2624,7 +2664,7 @@ public class CodeHelper {
 		
 
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("[CodeTip] AutoCodeTip : " + preCode + ", codeItem : " + outAndCycle.size());
+			LogManager.log("[CodeTip] AutoCodeTip : " + preCode + ", codeItem : " + outAndCycle.size());
 		}
 		if(preCode.length() == 0){
 			return false;

@@ -23,6 +23,7 @@ import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.SignHelper;
+import hc.util.HttpUtil;
 import hc.util.LinkPropertiesOption;
 import hc.util.PropertiesManager;
 import hc.util.PropertiesSet;
@@ -341,7 +342,7 @@ public class LinkProjectManager{
 	}
 
 	public static void loadHAD(final String upgradeurl, final Properties p_had) throws Exception {
-		ResourceUtil.loadFromURL(p_had, upgradeurl);
+		ResourceUtil.loadFromURL(p_had, upgradeurl, ResourceUtil.getUserAgentForHAD());
 	}
 	
 	private static JScrollPane buildErroDownloadingPanel(){
@@ -517,7 +518,7 @@ public class LinkProjectManager{
 
 				newVerHar.delete();
 				if(L.isInWorkshop){
-					L.V = L.O ? false : LogManager.log("del new upgraded file : " + newVerHar.getAbsolutePath());
+					LogManager.log("del new upgraded file : " + newVerHar.getAbsolutePath());
 				}
 				if(newVerHar.exists()){
 					PropertiesManager.addDelFile(newVerHar);
@@ -549,13 +550,15 @@ public class LinkProjectManager{
         
         final String had_url = p_had.getProperty(HCjad.HAD_HAR_URL);
 		final String url_har = (had_url!=null)?had_url:HCjad.convertToExtHar(lps.getProjectUpgradeURL());
+		final String userAgent = ResourceUtil.getUserAgentForHAD();
+		
 		try {  
 			final URL url = new URL(url_har);  
-			L.V = L.O ? false : LogManager.log("download new version HAR [" + lps.getProjectID() + "] from : " + url_har);
+			LogManager.log("download new version HAR [" + lps.getProjectID() + "] from : " + url_har);
 			final String newVersion = p_had.getProperty(HCjad.HAD_VERSION);
 			if(newVersion.equals(lps.getDownloadingVer())){
 				//继续下载
-				downloadContinue(lps, p_had, file, url, file.length());
+				downloadContinue(lps, p_had, file, url, file.length(), userAgent);
 			}else{
 	            final long totalByted = Long.parseLong(p_had.getProperty(HCjad.HAD_HAR_SIZE));
                 if(file.exists()){
@@ -566,7 +569,7 @@ public class LinkProjectManager{
                 raf.close();  
 
                 lps.setDownloadingVersion(newVersion);
-	            downloadContinue(lps, p_had, file, url, totalByted);
+	            downloadContinue(lps, p_had, file, url, totalByted, userAgent);
 	            
 	            //检查版本是否一致
 	            final Map<String, Object> map = HCjar.loadHar(file, false);
@@ -598,7 +601,7 @@ public class LinkProjectManager{
 	 * @param end
 	 */
 	private static void downloadContinue(final LinkProjectStore lps, final Properties p_had, 
-			final File file, final URL url, final long end){
+			final File file, final URL url, final long end, final String userAgent){
 		RandomAccessFile raf = null;
 		try {  
 			raf = new RandomAccessFile(file, "rw");  
@@ -611,7 +614,10 @@ public class LinkProjectManager{
             final int maxTryNum = 3;
 			while(tryNum < maxTryNum){
 	            try{
-		        	final HttpURLConnection conn = (HttpURLConnection) url.openConnection();  
+		        	final HttpURLConnection conn = (HttpURLConnection) url.openConnection(); 
+		        	if(userAgent != null){
+		        		conn.setRequestProperty(HttpUtil.USER_AGENT, userAgent);
+		        	}
 		            conn.setRequestMethod("GET");  
 //		            conn.setReadTimeout(0); 
 					conn.setRequestProperty("Range", "bytes=" + start + "-" + end);  
@@ -675,7 +681,7 @@ public class LinkProjectManager{
 	}
 	
 	private static void log(final String msg){
-		L.V = L.O ? false : LogManager.log(PROJECT_MANAGER + msg);
+		LogManager.log(PROJECT_MANAGER + msg);
 	}
 	
 	private static void err(final String msg){
@@ -909,7 +915,7 @@ public class LinkProjectManager{
 		
 		if(certs != null){//PropertiesManager.isSimu()
 			for (int i = 0; i < certs.length; i++) {
-				L.V = L.O ? false : LogManager.log("certificate (maybe self-signed) for [" + lps.getProjectID() + "] : " + certs[i]);
+				LogManager.log("certificate (maybe self-signed) for [" + lps.getProjectID() + "] : " + certs[i]);
 			}
 		}
 		lps.setCertificates(certs);//填充文件的证书

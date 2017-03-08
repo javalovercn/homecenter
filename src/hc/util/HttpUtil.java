@@ -5,7 +5,6 @@ import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.IConstant;
 import hc.core.IContext;
-import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
@@ -48,6 +47,8 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 public class HttpUtil {
+	public static final String USER_AGENT = "User-Agent";
+
 	static {
 		//注意：不适用于Android服务器
 		System.setProperty("sun.net.client.defaultConnectTimeout", "8000");//原值为5000，考虑SSL增至8000
@@ -227,7 +228,7 @@ public class HttpUtil {
 		final boolean isSimu = PropertiesManager.isSimu();
 		url = replaceSimuURL(url, isSimu);
 		//---------reuseThisCode
-		return getAjax(url);
+		return getAjax(url, null);
 	}
 	
 	public static String replaceSimuURL(String url, final boolean isSimu) {
@@ -253,15 +254,20 @@ public class HttpUtil {
 	 * @param url_str 支持HomeCenter内部ajax转换和外部https两种url
 	 * @return
 	 */
-	public static String getAjax(final String url_str) {
+	public static String getAjax(final String url_str, final String userAgent) {
 //		if(PropertiesManager.isSimu()){//由于RootRelayReceiveServer，所以不能使用App.isSimu
-//			L.V = L.O ? false : LogManager.log("getAjax : " + url_str);
+//			LogManager.log("getAjax : " + url_str);
 //		}
 		
 		URL url = null;
 		try {
 			url = new URL(url_str);
 			final URLConnection conn = url.openConnection();
+			
+			if(userAgent != null){
+				conn.setRequestProperty(USER_AGENT, userAgent);
+			}
+			
 			if(IConstant.isHCServerAndNotRelayServer()){
 				conn.setConnectTimeout(HCURLUtil.HTTPS_CONN_TIMEOUT);
 				conn.setReadTimeout(HCURLUtil.HTTPS_READ_TIMEOUT);
@@ -293,7 +299,7 @@ public class HttpUtil {
 			}else{
 				e.printStackTrace();
 			}
-			L.V = L.O ? false : LogManager.log("http execption : " + e.getMessage() + ", to url : " + url_str);
+			LogManager.log("http execption : " + e.getMessage() + ", to url : " + url_str);
 		}
 		return null;
 	}
@@ -704,7 +710,7 @@ public class HttpUtil {
 		}
 	}
 	
-	public static boolean download(final File file, final URL url, final int maxTryNum){
+	public static boolean download(final File file, final URL url, final int maxTryNum, final String userAgent){
 		file.delete();
 		
 		RandomAccessFile raf = null;
@@ -717,7 +723,10 @@ public class HttpUtil {
             final int timeout = 1000 * 5;
 			while(tryNum < maxTryNum){
 	            try{
-		        	final HttpURLConnection conn = (HttpURLConnection) url.openConnection();  
+		        	final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		        	if(userAgent != null){
+		        		conn.setRequestProperty(USER_AGENT, userAgent);
+		        	}
 		            conn.setRequestMethod("GET");  
 		            conn.setConnectTimeout(timeout);//addHar需要超时
 					conn.setReadTimeout(timeout);  
@@ -739,7 +748,7 @@ public class HttpUtil {
 		            return true;
 	            }catch (final Exception e) {
 	            	e.printStackTrace();
-	            	L.V = L.O ? false : LogManager.log("try more time to download : " + url);
+	            	LogManager.log("try more time to download : " + url);
 	            	tryNum++;
 	            	try{
 	            		Thread.sleep(1000);

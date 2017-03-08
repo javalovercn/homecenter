@@ -3,6 +3,7 @@ package hc.core.util;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.EventCenter;
+import hc.core.HCConnection;
 import hc.core.HCMessage;
 import hc.core.IConstant;
 import hc.core.IContext;
@@ -17,8 +18,8 @@ public class CUtil {
 		return initFactor;
 	}
 	
-	public static final void setUserExtFactor(final IContext ctx, final int extEncryptionStrength){
-		ctx.workingFactor = initFactor + extEncryptionStrength * 2;
+	public static final void setUserExtFactor(final HCConnection hcConnection, final int extEncryptionStrength){
+		hcConnection.workingFactor = initFactor + extEncryptionStrength * 2;
 	}
 	
 //	public static void superXor(final byte[] src, final int offset, final int len, final byte[] keys, final boolean isEncode){
@@ -27,7 +28,7 @@ public class CUtil {
 	
 	public static final String ONE_TIME_CERT_KEY_IS_NULL = "OneTimeCertKey is null";
 	
-	public static final void superXor(final IContext ctx, final byte[] OneTimeCertKey, final byte[] src, final int offset, final int s_len, final byte[] someKeys, final boolean isEncode, final boolean isUseRandomKeys){
+	public static final void superXor(final HCConnection hcConnection, final byte[] OneTimeCertKey, final byte[] src, final int offset, final int s_len, final byte[] someKeys, final boolean isEncode, final boolean isUseRandomKeys){
 		final byte[] keys = (isUseRandomKeys?OneTimeCertKey:someKeys);
 		
 		if(keys == null){
@@ -43,8 +44,8 @@ public class CUtil {
 		final int endIdx = offset + s_len;
 
 		if(isEncode){
-    		if(ctx.userEncryptor != null){
-    			ctx.userEncryptor.encryptData(src, offset, s_len);
+    		if(hcConnection.userEncryptor != null){
+    			hcConnection.userEncryptor.encryptData(src, offset, s_len);
     		}
     		int modeKIdx = 0;
     		for (int i = offset; i < endIdx; i++) {
@@ -59,7 +60,7 @@ public class CUtil {
 //    			System.out.println("modeKIdx : " + modeKIdx);
     		}
 		}
-		final int factorBigOne = (ctx.workingFactor < 2)?2:ctx.workingFactor;
+		final int factorBigOne = (hcConnection.workingFactor < 2)?2:hcConnection.workingFactor;
 		final int factor_temp = (s_len <= 10)?factorBigOne*4:((s_len <= 20)?factorBigOne*2:factorBigOne);
 		int modeK = isEncode?0:((factor_temp*s_len-1) % k_len);
 		int t = isEncode?0:(factor_temp-1);
@@ -125,8 +126,8 @@ public class CUtil {
     				modeKIdx = k_len - 1;
     			}
     		}
-    		if(ctx.userEncryptor != null){
-    			ctx.userEncryptor.decryptData(src, offset, s_len);
+    		if(hcConnection.userEncryptor != null){
+    			hcConnection.userEncryptor.decryptData(src, offset, s_len);
     		}
 		}
 	}
@@ -149,7 +150,7 @@ public class CUtil {
 	 * @param certKey
 	 * @return
 	 */
-	public static final void generateTransCertKey(final IContext ctx, final byte[] OneTimeCertKey, final long random, final byte[] data, final int offset, final byte[] certKey, final byte[] password, final boolean isOneTimeKey){
+	public static final void generateTransCertKey(final HCConnection hcConnection, final byte[] OneTimeCertKey, final long random, final byte[] data, final int offset, final byte[] certKey, final byte[] password, final boolean isOneTimeKey){
 		final int index = TRANS_CERT_KEY_START_IDX + offset;
 		CCoreUtil.generateRandomKey(random, data, index, TRANS_CERT_KEY_LEN);
 		
@@ -157,14 +158,14 @@ public class CUtil {
 			data[j] = certKey[i];
 		}
 		if(isOneTimeKey){
-			superXor(ctx, OneTimeCertKey, data, index, TRANS_CERT_KEY_LEN, CertKey, true, false);
-			superXor(ctx, OneTimeCertKey, data, index, TRANS_CERT_KEY_LEN, password, true, false);
+			superXor(hcConnection, OneTimeCertKey, data, index, TRANS_CERT_KEY_LEN, CertKey, true, false);
+			superXor(hcConnection, OneTimeCertKey, data, index, TRANS_CERT_KEY_LEN, password, true, false);
 		}else{
-			superXor(ctx, OneTimeCertKey, data, index, TRANS_CERT_KEY_LEN, password, true, false);
+			superXor(hcConnection, OneTimeCertKey, data, index, TRANS_CERT_KEY_LEN, password, true, false);
 			
 			//注意与普通数据加解密的次序相反
-			if(ctx.userEncryptor != null){
-				ctx.userEncryptor.encryptCertKey(data, index, TRANS_CERT_KEY_LEN);
+			if(hcConnection.userEncryptor != null){
+				hcConnection.userEncryptor.encryptCertKey(data, index, TRANS_CERT_KEY_LEN);
 			}
 		}
 	}
@@ -177,18 +178,18 @@ public class CUtil {
 	 * @param length
 	 * @return
 	 */
-	public static final void decodeFromTransCertKey(final IContext ctx, final byte[] OneTimeCertKey, final byte[] ts, final int offset, final byte[] password, final byte[] storebs, final boolean isOneTimeKey){
+	public static final void decodeFromTransCertKey(final HCConnection hcConnection, final byte[] OneTimeCertKey, final byte[] ts, final int offset, final byte[] password, final byte[] storebs, final boolean isOneTimeKey){
 		final int index = TRANS_CERT_KEY_START_IDX + offset;
 		
 		if(isOneTimeKey){
-			superXor(ctx, OneTimeCertKey, ts, index, TRANS_CERT_KEY_LEN, password, false, false);
-			superXor(ctx, OneTimeCertKey, ts, index, TRANS_CERT_KEY_LEN, CertKey, false, false);
+			superXor(hcConnection, OneTimeCertKey, ts, index, TRANS_CERT_KEY_LEN, password, false, false);
+			superXor(hcConnection, OneTimeCertKey, ts, index, TRANS_CERT_KEY_LEN, CertKey, false, false);
 		}else{
 			//注意与普通数据加解密的次序相反
-			if(ctx.userEncryptor != null){
-				ctx.userEncryptor.decryptCertKey(ts, index, TRANS_CERT_KEY_LEN);
+			if(hcConnection.userEncryptor != null){
+				hcConnection.userEncryptor.decryptCertKey(ts, index, TRANS_CERT_KEY_LEN);
 			}
-			superXor(ctx, OneTimeCertKey, ts, index, TRANS_CERT_KEY_LEN, password, false, false);
+			superXor(hcConnection, OneTimeCertKey, ts, index, TRANS_CERT_KEY_LEN, password, false, false);
 		}
 		for (int i = 0, j = index; i < storebs.length; i++, j++) {
 			storebs[i] = ts[j];
@@ -217,7 +218,7 @@ public class CUtil {
 		return CertKey;
 	}
 	
-	public static final void buildCheckCertKeyAndPwd(final IContext ctx, final byte[] OneTimeCertKey, final byte[] data, final int offset, final byte[] pwd, final byte[] certKey, final boolean isEncode){
+	public static final void buildCheckCertKeyAndPwd(final HCConnection hcConnection, final byte[] OneTimeCertKey, final byte[] data, final int offset, final byte[] pwd, final byte[] certKey, final boolean isEncode){
 //		LogManager.logInTest("password : " + CUtil.toHexString(pwd));
 //		LogManager.logInTest("certkeys : " + CUtil.toHexString(certKey));
 //		final Random r = new Random(System.currentTimeMillis());
@@ -232,20 +233,20 @@ public class CUtil {
 			for (int i = 0; i < onlyHalfCert.length; i++) {
 				onlyHalfCert[i] = certKey[i];
 			}
-			superXor(ctx, OneTimeCertKey, data, offset + CUtil.VERIFY_CERT_IDX, halfCertKeyLen, onlyHalfCert, isEncode, false);
-			superXor(ctx, OneTimeCertKey, data, offset + CUtil.VERIFY_CERT_IDX, halfCertKeyLen, pwd, isEncode, false);
+			superXor(hcConnection, OneTimeCertKey, data, offset + CUtil.VERIFY_CERT_IDX, halfCertKeyLen, onlyHalfCert, isEncode, false);
+			superXor(hcConnection, OneTimeCertKey, data, offset + CUtil.VERIFY_CERT_IDX, halfCertKeyLen, pwd, isEncode, false);
 		}else{
-			superXor(ctx, OneTimeCertKey, data, offset + CUtil.VERIFY_CERT_IDX, halfCertKeyLen, pwd, isEncode, false);
+			superXor(hcConnection, OneTimeCertKey, data, offset + CUtil.VERIFY_CERT_IDX, halfCertKeyLen, pwd, isEncode, false);
 			for (int i = 0; i < onlyHalfCert.length; i++) {
 				onlyHalfCert[i] = certKey[i];
 			}
-			superXor(ctx, OneTimeCertKey, data, offset + CUtil.VERIFY_CERT_IDX, halfCertKeyLen, onlyHalfCert, isEncode, false);
+			superXor(hcConnection, OneTimeCertKey, data, offset + CUtil.VERIFY_CERT_IDX, halfCertKeyLen, onlyHalfCert, isEncode, false);
 		}
 		
 		for (int i = 0; i < onlyHalfCert.length; i++) {
 			onlyHalfCert[i] = certKey[i + halfCertKeyLen];
 		}
-		superXor(ctx, OneTimeCertKey, data, offset + firstHalfEndIdx, halfCertKeyLen, onlyHalfCert, isEncode, false);
+		superXor(hcConnection, OneTimeCertKey, data, offset + firstHalfEndIdx, halfCertKeyLen, onlyHalfCert, isEncode, false);
 		
 		
 //		final int randEndIdx = offset + endIdx;
@@ -265,8 +266,8 @@ public class CUtil {
 //				data[dataIdx] = (byte) (g & 0xFF);
 //			}
 //		}
-//		L.V = L.O ? false : LogManager.log("Str1 : " + str1);
-//		L.V = L.O ? false : LogManager.log("Str2 : " + str2);
+//		LogManager.log("Str1 : " + str1);
+//		LogManager.log("Str2 : " + str2);
 	}
 
 
@@ -283,7 +284,7 @@ public class CUtil {
 				}else if(status.equals(String.valueOf(IContext.BIZ_SERVER_AFTER_CERTKEY_AND_PWD_PASS))){
 					LogManager.info("CertKey PWD are passed");
 					ctx.doExtBiz(IContext.BIZ_SERVER_AFTER_CERTKEY_AND_PWD_PASS, null);
-					ctx.resetCheck();
+					coreSS.hcConnection.resetCheck();
 				}else if(status.equals(String.valueOf(IContext.BIZ_SERVER_AFTER_SERVICE_IS_FULL))){
 					LogManager.info("service is full");
 					ctx.doExtBiz(IContext.BIZ_SERVER_AFTER_SERVICE_IS_FULL, null);
@@ -302,12 +303,12 @@ public class CUtil {
 
 		eventCenter.addListener(new IEventHCListener(){
 			public final boolean action(final byte[] bs, final CoreSession coreSS) {
-//					L.V = L.O ? false : LogManager.log("Receive Cert in Security Channel.");
+//					LogManager.log("Receive Cert in Security Channel.");
 				if(ctx.cmStatus != ContextManager.STATUS_CLIENT_SELF){
-					L.V = L.O ? false : LogManager.log("Trans Cert in Security channel should in status:" + ContextManager.STATUS_CLIENT_SELF);
+					LogManager.log("Trans Cert in Security channel should in status:" + ContextManager.STATUS_CLIENT_SELF);
 					return true;
 				}
-				CUtil.decodeFromTransCertKey(ctx, ctx.coreSS.OneTimeCertKey, bs, 
+				CUtil.decodeFromTransCertKey(coreSS.hcConnection, coreSS.hcConnection.OneTimeCertKey, bs, 
 						MsgBuilder.INDEX_MSG_DATA, IConstant.getPasswordBS(), CUtil.CertKey, false);
 //					LogManager.logInTest("receive cert : " + CUtil.toHexString(CUtil.CertKey));
 				IConstant.getInstance().setObject(IConstant.CertKey, CertKey);
@@ -321,7 +322,7 @@ public class CUtil {
 					return true;
 //					}
 				
-//					hc.core.L.V=hc.core.L.O?false:LogManager.log("check certification key and password back to server AFTER New Cert Key");
+//					LogManager.log("check certification key and password back to server AFTER New Cert Key");
 			}
 
 			public final byte getEventTag() {

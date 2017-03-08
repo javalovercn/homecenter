@@ -112,7 +112,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		//必须置于上两段初始代码传送之后
 		final boolean rtl = LangUtil.isRTL(UserThreadResourceUtil.getMobileLocaleFrom(coreSS));
 		if(rtl){
-			L.V = L.WShop ? false : LogManager.log("setRTL : true");
+			LogManager.log("setRTL(true) for " + mlet.getTarget());
 			differTodo.setLTR( !rtl );
 		}
 		
@@ -123,7 +123,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 			final String defaultStyles = (dftStyles==null?"":dftStyles.trim());//AddHAR可能出现null
 			if(defaultStyles.length() > 0){
 				final String replaceVariable = StyleManager.replaceVariable(coreSS, defaultStyles, mlet, projectContext);
-//				L.V = L.O ? false : LogManager.log(replaceVariable);
+//				LogManager.log(replaceVariable);
 				differTodo.loadStyles(replaceVariable);
 			}
 		}
@@ -163,7 +163,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		}
 		
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("onExit MletHtmlCanvas : " + mlet.getTarget());
+			LogManager.log("onExit MletHtmlCanvas : " + mlet.getTarget());
 		}
 		
 		ScreenServer.onExitForMlet(coreSS, projectContext, mlet, isAutoReleaseAfterGo);
@@ -238,7 +238,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	    if(ServerUIAPIAgent.isEnableApplyOrientationWhenRTL(mlet) 
 	    		&& ProjectContext.isRTL(UserThreadResourceUtil.getMobileLocaleFrom(coreSS))){
 	    	frame.applyComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-	    	L.V = L.WShop ? false : LogManager.log("applyComponentOrientation(RIGHT_TO_LEFT) for " + mlet.getTarget());
+	    	LogManager.log("applyComponentOrientation(RIGHT_TO_LEFT) for " + mlet.getTarget());
 	    }
 	    frame.pack();//可能重载某些方法
 	}
@@ -317,11 +317,16 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 			}
 		}
 		
-		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new ReturnableRunnable() {//事件的先后性保证
+		final int length = bs.length;
+		final byte[] cloneBS = ByteUtil.byteArrayCacher.getFree(length);
+		System.arraycopy(bs, 0, cloneBS, 0, length);
+
+		//注意：考虑可能有长时间事件处理，此处不wait
+		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {//事件的先后性保证
 			@Override
-			public Object run() {
-				actionJSInputInUser(bs, offset, len);
-				return null;
+			public void run() {
+				actionJSInputInUser(cloneBS, offset, len);
+				ByteUtil.byteArrayCacher.cycle(cloneBS);
 			}
 		});
 	}
@@ -343,7 +348,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	private final void actionJSInputInUser(final byte[] bs, final int offset, final int len) {
 		if(isSimu){
 			try {
-				L.V = L.O ? false : LogManager.log("action JS input : " + new String(bs, offset, len, IConstant.UTF_8));
+				LogManager.log("action JS input : " + new String(bs, offset, len, IConstant.UTF_8));
 			} catch (final Throwable e1) {
 				e1.printStackTrace();
 			}

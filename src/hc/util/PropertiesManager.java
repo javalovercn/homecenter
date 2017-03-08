@@ -149,7 +149,9 @@ public class PropertiesManager {
 	
 	public static final String p_isNonUIServer = "isNonUIServer";//for Non-UI demo server, for example No-X11 CentOS
 	public static final String p_NonUIServerIP = "NonUIServerIP";
+	
 	public static final String p_isDemoServer = "isDemoServer";
+	public static final String p_isDemoMaintenance = "isDemoMaintenance";//演示不能同时供iPhone上架和普通演示
 	
 	public static final String p_TrayX = "_Tray_x";
 	public static final String p_TrayY = "_Tray_y";
@@ -203,6 +205,10 @@ public class PropertiesManager {
 	public static final String p_IsVerifiedEmail = "isVerifiedEmail";
 	public static final String p_DevCertPassword = "DevCertPassword";
 	public static final String p_isRememberDevCertPassword = "isRememberDevCertPassword";
+	
+	public static final String p_isEnableClientAddHAR = "isEnableClientAddHAR";
+
+	public static final String t_testClientLocale = "testClientLocale";
 
 	public static final String S_THIRD_DIR = "3libs";
 	public static final String S_USER_LOOKANDFEEL = "lookfeel";
@@ -275,7 +281,7 @@ public class PropertiesManager {
 				{
 					final File delFile = new File(ResourceUtil.getBaseDir(), delFileName);
 					if(L.isInWorkshop){
-						L.V = L.O ? false : LogManager.log("delete file/dir : " + delFile.getAbsolutePath());
+						LogManager.log("delete file/dir : " + delFile.getAbsolutePath());
 					}
 					ResourceUtil.deleteDirectoryNowAndExit(delFile);
 				}
@@ -284,7 +290,7 @@ public class PropertiesManager {
 				{
 					final File delFile = new File(delFileName);
 					if(L.isInWorkshop){
-						L.V = L.O ? false : LogManager.log("delete file/dir : " + delFile.getAbsolutePath());
+						LogManager.log("delete file/dir : " + delFile.getAbsolutePath());
 					}
 					ResourceUtil.deleteDirectoryNowAndExit(delFile);
 				}
@@ -406,6 +412,7 @@ public class PropertiesManager {
 					|| key.equals(p_NewCertIsNotTransed)
 					|| key.equals(p_EnableTransNewCertKeyNow)
 					|| key.equals(p_HideIDForErrCert)
+					|| key.equals(p_Log)
 					|| key.equals(p_SecurityCipher)
 					|| key.equals(p_SecuritySDPVersion)
 					|| key.equals(p_SecuritySecretKeySize)

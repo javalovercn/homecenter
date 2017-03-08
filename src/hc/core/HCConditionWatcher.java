@@ -33,7 +33,7 @@ public class HCConditionWatcher {
 		watcherTimer = new HCTimer(timeName, HCTimer.HC_INTERNAL_MS, false, isNewThread, newThreadPrority){
 //			public final void setEnable(final boolean enable){
 //				if(isInWorkshop){
-//					L.V = L.O ? false : LogManager.log("[" + timeName + "] setEnable : " + enable);
+//					LogManager.log("[" + timeName + "] setEnable : " + enable);
 //				}
 //				super.setEnable(enable);
 //			}
@@ -49,7 +49,7 @@ public class HCConditionWatcher {
 					if(temp == null){
 						if(isNotifyShutdown){//直到所有任务完成后，移除自己
 //							if(L.isInWorkshop){
-//								L.V = L.O ? false : LogManager.log("shutdown HCConditionWatcher [" + watcherTimer.getName() + "].");
+//								LogManager.log("shutdown HCConditionWatcher [" + watcherTimer.getName() + "].");
 //							}
 							HCTimer.remove(watcherTimer);
 						}
@@ -57,7 +57,7 @@ public class HCConditionWatcher {
 					}
 					
 //					if(isInWorkshop){
-//						L.V = L.O ? false : LogManager.log("[" + timeName + "] processing a watcher : " + temp.hashCode());
+//						LogManager.log("[" + timeName + "] processing a watcher : " + temp.hashCode());
 //					}
 					
 					//因为在执行本实例时，有可能遇到同时请求移出，所以加实例锁，并在内部加集合锁
@@ -74,13 +74,13 @@ public class HCConditionWatcher {
 						}
 					}
 //					if(isInWorkshop){
-//						L.V = L.O ? false : LogManager.log("[" + timeName + "] processed a watcher : " + temp.hashCode());
+//						LogManager.log("[" + timeName + "] processed a watcher : " + temp.hashCode());
 //					}
 				}while(true);
 				
 				if(isAddUnUsed){
 //					if(isInWorkshop){
-//						L.V = L.O ? false : LogManager.log("[" + timeName + "] processing unUsed watcher.");
+//						LogManager.log("[" + timeName + "] processing unUsed watcher.");
 //					}
 					
 					synchronized (watchers) {
@@ -165,7 +165,7 @@ public class HCConditionWatcher {
 //		}
 		
 //		if(isInWorkshop){
-//			L.V = L.O ? false : LogManager.log("[" + timeName + "] add watcher : " + watcher.hashCode());
+//			LogManager.log("[" + timeName + "] add watcher : " + watcher.hashCode());
 //		}
 		
 		synchronized (watchers) {

@@ -637,7 +637,7 @@ public void run() {
 				panel.setLayout(boxLayout);
 				
 				{
-					if(ResourceUtil.isAndroidServerPlatform()){
+					if(ResourceUtil.isAndroidServerPlatform()){//Android环境下，开机启动
 						final JCheckBox cbAutoStart = new JCheckBox((String)ResourceUtil.get(6001));
 						cbAutoStart.setToolTipText("<html>" + (String)ResourceUtil.get(9195) + "</html>");
 						final String isAutoStart = PropertiesManager.getValue(PropertiesManager.p_autoStart, IConstant.FALSE);
@@ -666,6 +666,31 @@ public void run() {
 						final JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
 						panel.add(separator);
 					}
+				}
+				
+				{
+					final JCheckBox cbEnableClientAddHAR = new JCheckBox((String)ResourceUtil.get(9243));
+					cbEnableClientAddHAR.setToolTipText("<html>" + (String)ResourceUtil.get(9156) + "</html>");
+					final String isAcceptHARLicense = PropertiesManager.getValue(PropertiesManager.p_isEnableClientAddHAR, IConstant.TRUE);
+					cbEnableClientAddHAR.setSelected(ResourceUtil.isEnableClientAddHAR());
+					new ConfigValue(PropertiesManager.p_isEnableClientAddHAR, isAcceptHARLicense, group) {
+						@Override
+						public void applyBiz(final int option) {
+							//由于menu是依赖于手机参数，所以不需要考虑重启或getPreparedSocketSession
+						}
+						
+						@Override
+						public String getNewValue() {
+							return cbEnableClientAddHAR.isSelected()?IConstant.TRUE:IConstant.FALSE;
+						}
+					};
+					final JPanel line = new JPanel();
+					line.setLayout(new FlowLayout(FlowLayout.LEADING, ClientDesc.hgap, ClientDesc.vgap));
+					line.add(cbEnableClientAddHAR);
+					panel.add(line);
+					
+					final JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+					panel.add(separator);
 				}
 				
 				{

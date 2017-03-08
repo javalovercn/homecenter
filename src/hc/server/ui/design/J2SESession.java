@@ -33,14 +33,17 @@ import hc.server.ui.IMletCanvas;
 import hc.server.ui.MenuItem;
 import hc.server.ui.ResParameter;
 import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SessionMobiMenu;
 import hc.server.util.SystemEventListener;
+import hc.server.util.VoiceCommand;
+import hc.util.BaseResponsor;
 import hc.util.ResourceUtil;
-import hc.util.UpdateOneTimeRunnable;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Vector;
@@ -56,8 +59,6 @@ public class J2SESession extends CoreSession{
 	}
 	
 	public ClientSession clientSession;
-	public UpdateOneTimeRunnable updateOneTimeKeysRunnable;
-	public boolean isReceivedOneTimeInSecuChannalFromMobile = false;
 	public final int[] base64PngData = new int[UIUtil.ICON_MAX * UIUtil.ICON_MAX];
 	public int refreshMillSecond = 3000;
 	public int mask;
@@ -97,6 +98,45 @@ public class J2SESession extends CoreSession{
 	
 	public final void setSessionMenu(final String projectID, final SessionMobiMenu menu){
 		menuItemsMap.put(projectID, menu);
+	}
+	
+	/**
+	 * 没有返回null
+	 * @param cmd
+	 * @return
+	 */
+	public final MenuItem searchMenuItemByVoiceCommand(final VoiceCommand cmd){
+		final BaseResponsor resp = ServerUIUtil.getResponsor();
+		String currProjID = null;
+		if(resp != null){
+			currProjID = ((MobiUIResponsor)resp).getCurrProjectID(this);
+		}
+		if(currProjID != null){//当前工程优先
+			final SessionMobiMenu menu = menuItemsMap.get(currProjID);
+			final MenuItem item = menu.searchMenuItemByVoiceCommand(cmd);
+			if(item != null){
+				return item;
+			}
+		}
+		
+		final Iterator<String> projs = menuItemsMap.keySet().iterator();
+		try{
+			while(projs.hasNext()){
+				final String projID = projs.next();
+				if(projID.equals(currProjID)){
+					continue;
+				}
+				final SessionMobiMenu menu = menuItemsMap.get(projID);
+				final MenuItem item = menu.searchMenuItemByVoiceCommand(cmd);
+				if(item != null){
+					return item;
+				}
+			}
+		}catch (final NoSuchElementException e) {
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	public final void addRobotListener(final Robot robot, final RobotListener listener){
@@ -176,7 +216,7 @@ public class J2SESession extends CoreSession{
 		}
 		
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("release questionOrDialogMap.");
+			LogManager.log("release questionOrDialogMap.");
 		}
 		
 		keepaliveManager = null;

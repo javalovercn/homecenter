@@ -157,7 +157,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	
 	protected void enableStopCap(final boolean sc){
 		//多次调用，也只出现一次
-		L.V = L.O ? false : LogManager.log(OP_STR + ((!isStopCap && sc)?"pause":"resume") + " Screen [" + title + "]");
+		LogManager.log(OP_STR + ((!isStopCap && sc)?"pause":"resume") + " Screen [" + title + "]");
 		
 		synchronized (WAITING) {
 			this.isStopCap = sc;
@@ -184,7 +184,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 				continue;
 			}
 			
-//			L.V = L.O ? false : LogManager.log("Auto Refresh Rect:" + System.currentTimeMillis());
+//			LogManager.log("Auto Refresh Rect:" + System.currentTimeMillis());
 			try{
 				synchronized (LOCK) {
 					sendPNG(capRect, capRect.width, true);
@@ -193,7 +193,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 				//考虑数据溢出，故忽略
 			}
 			
-//			L.V = L.O ? false : LogManager.log("Auto Refresh Rect Finish:" + System.currentTimeMillis());
+//			LogManager.log("Auto Refresh Rect Finish:" + System.currentTimeMillis());
 			
 			try{
 				Thread.sleep(coreSS.refreshMillSecond);
@@ -202,14 +202,14 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 			}
 		}
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log(" exit PNGCapture [" + title +"]");
+			LogManager.log(" exit PNGCapture [" + title +"]");
 		}
 	}
 
 	protected void sleepBeforeRun() {
 		try{
 			int delayMS = 1200;
-			if(SIPManager.isOnRelay(coreSS)){
+			if(SIPManager.isOnRelay(coreSS.hcConnection)){
 				delayMS = 1000;
 			}
 			Thread.sleep(delayMS);
@@ -225,7 +225,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	 */
 	protected void sendPNG(final Rectangle capRect, final int maxCapWidth, final boolean isAutoRefresh) {
 //			if(isAutoRefresh == false){
-//				L.V = L.O ? false : LogManager.log("Cap x : " + capRect.x + ", y : " + capRect.y + ", w : " + capRect.width + ", h : " + capRect.height);
+//				LogManager.log("Cap x : " + capRect.x + ", y : " + capRect.y + ", w : " + capRect.width + ", h : " + capRect.height);
 //			}
 			
 		//非远屏传输画面时，采用全彩
@@ -271,7 +271,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 							for (int n = 0; n < tailHeight; n++) {
 								int clientSnapIdx = (j + n) * maxCapWidth + (i);
 								int idxPixel = n * tailWidth;
-//								L.V = L.O ? false : LogManager.log("snap idx:" + clientSnapIdx + ", rgb idx:" + idxPixel + ", locY:" + locY + ", oriY:" + oriY);
+//								LogManager.log("snap idx:" + clientSnapIdx + ", rgb idx:" + idxPixel + ", locY:" + locY + ", oriY:" + oriY);
 								for (int m = 0; m < tailWidth; m++) {
 									final int rgb_v = rgb[idxPixel];
 									if(rgb_v != clientSnap[clientSnapIdx]){
@@ -280,7 +280,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 											diffTopLeftY = n;
 											diffDownRightX = m;
 											diffDownRightY = n;
-//											L.V = L.O ? false : LogManager.log("first Diff x : " + m + ", y : " + n +", snap idx:" + clientSnapIdx + ", rgb idx:" + idxPixel + ", locY:" + locY + ", oriY:" + oriY);
+//											LogManager.log("first Diff x : " + m + ", y : " + n +", snap idx:" + clientSnapIdx + ", rgb idx:" + idxPixel + ", locY:" + locY + ", oriY:" + oriY);
 										}else{
 											if(m >= diffTopLeftX){
 												if(m > diffDownRightX){
@@ -311,7 +311,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 									//全差，不用制作小块，全传送
 								}else{
 									//重新编制块信息数据到rgb变量中
-//	//								L.V = L.O ? false : LogManager.log("Send Block, width:" + copyWidth + ", height:" + copyHeight);
+//	//								LogManager.log("Send Block, width:" + copyWidth + ", height:" + copyHeight);
 									int idxCopy = 0;
 									for (int kY = 0; kY < copyHeight; kY++) {
 										int clientSnapIdx = (j + diffTopLeftY + kY) * maxCapWidth + (i + diffTopLeftX);
@@ -332,19 +332,19 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	
 	void sendBlock(final int clientX, final int clientY, final int[] rgb,
 			final int rgb_length, final int width, final int height, final boolean isAutoRefresh, final byte tag) {
-//					L.V = L.O ? false : LogManager.log("Send Block: clientX:" + clientX + ", clientY:" 
+//					LogManager.log("Send Block: clientX:" + clientX + ", clientY:" 
 //						+ clientY + ", width:" + width + ", height:" + height);
 					final BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 					bi.setRGB(0, 0, width, height, rgb, 0, width);
 					
 					final int maxLen = rgb_length + PNG_STORE_BS_START_IDX;
-//					L.V = L.O ? false : LogManager.log("PNG max:" + maxLen);
+//					LogManager.log("PNG max:" + maxLen);
 					
 					//ScreenCapturersk可能同时传送远屏和远屏缩略图，所以加并发锁
 					synchronized (LOCK) {
 						final int doubleSize = maxLen<<1;
 						if(dataPNG.bs.length < doubleSize){
-//							L.V = L.O ? false : LogManager.log("dataPNG set to max:" + doubleSize);
+//							LogManager.log("dataPNG set to max:" + doubleSize);
 							dataPNG.setBytes(new byte[doubleSize]);
 							byteArrayOutputStream.reset(dataPNG.bs, PNG_STORE_BS_START_IDX);
 						}else{
@@ -353,7 +353,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 						try {
 							ImageIO.write(bi, "png", byteArrayOutputStream);
 						} catch (final IOException e) {
-							L.V = L.O ? false : LogManager.log("Trans Screen Exception:" + e.toString());
+							LogManager.log("Trans Screen Exception:" + e.toString());
 							e.printStackTrace();
 							return;
 						}
@@ -363,7 +363,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 						dataPNG.setTargetID(pngDataLen, screenIDForCapture, 0, screenIDForCapture.length);
 						
 						final int dataTransLen = pngDataLen + DataPNG.HEAD_LENGTH + 1 + screenIDForCapture.length;
-//						L.V = L.O ? false : LogManager.log("Trans dataPNG size pngDataLen :" + pngDataLen);
+//						LogManager.log("Trans dataPNG size pngDataLen :" + pngDataLen);
 						dataPNG.setPNGDataLen(pngDataLen, clientX, clientY, width, height);
 						
 			//			if(isAutoRefresh){
@@ -372,11 +372,11 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 			//				dataPNG.setIsRefresh(false);
 			//			}
 						
-			//			L.V = L.O ? false : LogManager.log("Send out Screen, Refresh mode:" + isRefresh);
-			//			L.V = L.O ? false : LogManager.log("Img old:" + rgb.length + ", deflate:" + deflateLen + ", byteLen:" + byteLen);
+			//			LogManager.log("Send out Screen, Refresh mode:" + isRefresh);
+			//			LogManager.log("Img old:" + rgb.length + ", deflate:" + deflateLen + ", byteLen:" + byteLen);
 			//			totalPNG += pngDataLen;
-			//			L.V = L.O ? false : LogManager.log("Total PNG:" + totalPNG);
-						ic.sendWrap(tag, dataPNG.bs, MsgBuilder.INDEX_MSG_DATA, dataTransLen);			
+			//			LogManager.log("Total PNG:" + totalPNG);
+						coreSS.context.sendWrap(tag, dataPNG.bs, MsgBuilder.INDEX_MSG_DATA, dataTransLen);			
 					}
 				}
 
@@ -395,7 +395,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		}
 		
 		final int msOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_MS_On_Relay));
-		if(SIPManager.isOnRelay(coreSS)){
+		if(SIPManager.isOnRelay(coreSS.hcConnection)){
 			if(millSecond < msOnRelay){
 				millSecond = msOnRelay;
 			}
@@ -410,7 +410,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 			}
 		}
 		
-		L.V = L.O ? false : LogManager.log("Client change refresh MillSecond to:" + millSecond);
+		LogManager.log("Client change refresh MillSecond to:" + millSecond);
 		coreSS.refreshMillSecond = millSecond;
 	}
 
@@ -420,7 +420,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		}
 		
 		final int colorOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_Color_On_Relay));
-		if(SIPManager.isOnRelay(coreSS)){
+		if(SIPManager.isOnRelay(coreSS.hcConnection)){
 			if((IConstant.COLOR_STAR_TOP - mode) > colorOnRelay){
 				mode = (IConstant.COLOR_STAR_TOP - colorOnRelay);
 			}
@@ -437,7 +437,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 			
 		}
 	
-		L.V = L.O ? false : LogManager.log("Client change colorMode to level : " + (IConstant.COLOR_STAR_TOP - mode) + " (after limited)");
+		LogManager.log("Client change colorMode to level : " + (IConstant.COLOR_STAR_TOP - mode) + " (after limited)");
 
 		coreSS.mask = getMaskFromBit(mode);
 	}

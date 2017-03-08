@@ -2,7 +2,6 @@ package hc.util;
 
 import hc.App;
 import hc.core.IConstant;
-import hc.core.L;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
@@ -67,10 +66,10 @@ public class SecurityDataProtector {
 		final String checkResult = PropertiesManager.getValue(PropertiesManager.p_SecurityCheckAES);//将目录数据复制到其它应用环境时，可能由于算法实现差异，导致数据差错
 		
 		if(checkResult == null){
-			L.V = L.O ? false : LogManager.log("[SecurityDataProtector] SecurityCheckAES : null");
+			LogManager.log("[SecurityDataProtector] SecurityCheckAES : null");
 		}else{
 			if(testAESSrc.equals(checkResult) == false){
-				L.V = L.O ? false : LogManager.log("[SecurityDataProtector] fail SecurityCheckAES : ***, expected : " + testAESSrc);
+				LogManager.log("[SecurityDataProtector] fail SecurityCheckAES : ***, expected : " + testAESSrc);
 				return true;
 			}
 		}
@@ -116,7 +115,7 @@ public class SecurityDataProtector {
 		while(keys.hasNext()){
 			final String key = keys.next();
 			PropertiesManager.setValue(key, oldValues.get(key));
-			L.V = L.O ? false : LogManager.log("[SecurityDataProtector] upgrading property : " + key);
+			LogManager.log("[SecurityDataProtector] upgrading property : " + key);
 		}
 		
 		PropertiesManager.saveFile();
@@ -124,7 +123,7 @@ public class SecurityDataProtector {
 	
 	private static void startUpgrade(){
 		if(checkNeedUpgrade()){
-			L.V = L.O ? false : LogManager.log("[SecurityDataProtector] need upgrade.");
+			LogManager.log("[SecurityDataProtector] need upgrade.");
 			final Map<String, String> oldValues = getOldSecurityDataValues();
 			doUpgrade();
 			doUpgradeSaveBack(oldValues);
@@ -161,7 +160,7 @@ public class SecurityDataProtector {
 			initSecurityData(realMD5);
 			doUpgrade();
 			PropertiesManager.encodeSecurityDataFromTextMode();
-			L.V = L.O ? false : LogManager.log("encode security data from text mode!");
+			LogManager.log("encode security data from text mode!");
 		}else{
 			if(PropertiesManager.isTrue(PropertiesManager.p_isNeedResetPwd, false)//上次故障后，没有修改密码。
 					|| serverKeyMD5.equals(realMD5) == false 
@@ -210,7 +209,7 @@ public class SecurityDataProtector {
 					}
 				}.start();
 			}else{
-				L.V = L.O ? false : LogManager.log("[SecurityDataProtector] pass check!");
+				LogManager.log("[SecurityDataProtector] pass check!");
 				//加密环境检查正常
 				startUpgrade();
 				PropertiesManager.encodeSecurityDataFromTextMode();//可能后期扩展
@@ -512,6 +511,8 @@ public class SecurityDataProtector {
 //		08-02 16:44:17.542: I/System.out(20270): http.agent====>Dalvik/X.X.X (Linux; U; Android X.X; M-XXX Build/XX)
 
 		final String httpAgent = "http.agent";
+		
+		//注意：os.name被getUserAgentForHAR使用
 		final String[] keys = {"os.version", httpAgent, "android.zlib.version", 
 				"android.openssl.version", "android.icu.library.version", "android.icu.unicode.version"};
 		
@@ -664,7 +665,7 @@ public class SecurityDataProtector {
 		        kgen.init(128, secureRandom);  
 		        searchKeySize = kgen.generateKey().getEncoded().length;
 				
-				L.V = L.O ? false : LogManager.log("[SecurityDataProtector] try cipher : " + cipherName);
+				LogManager.log("[SecurityDataProtector] try cipher : " + cipherName);
 				String out = null;
 				
 				while(true){
@@ -685,7 +686,7 @@ public class SecurityDataProtector {
 					PropertiesManager.setValue(PropertiesManager.p_SecurityCipher, cipherName);
 					PropertiesManager.setValue(PropertiesManager.p_SecuritySDPVersion, Integer.toString(sdpVersion));
 					PropertiesManager.setValue(PropertiesManager.p_SecuritySecretKeySize, Integer.toString(searchKeySize));
-					L.V = L.O ? false : LogManager.log("[SecurityDataProtector] cipher : " + cipherName + ", SDPVersion : " + sdpVersion + "OK!");
+					LogManager.log("[SecurityDataProtector] cipher : " + cipherName + ", SDPVersion : " + sdpVersion + "OK!");
 					break;
 				}
 			}catch (final Throwable e) {

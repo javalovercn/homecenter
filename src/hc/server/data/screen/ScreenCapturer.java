@@ -130,7 +130,7 @@ public class ScreenCapturer extends PNGCapturer{
 							clearCacheThumbnail = false;
 						}
 						
-//						L.V = L.O ? false : LogManager.log("send thumbnail.");
+//						LogManager.log("send thumbnail.");
 						int modiCount = 0;
 						for (int idxRGB = 0; idxRGB < thumbnailSize; idxRGB++) {
 							if(screenRGBData[idxRGB] != thumbnailRGBData[idxRGB]){
@@ -163,7 +163,7 @@ public class ScreenCapturer extends PNGCapturer{
 
 		setCaptureID(HCURL.REMOTE_HOME_SCREEN, HCURL.REMOTE_HOME_SCREEN);
 		
-		L.V = L.O ? false : LogManager.log(OP_STR + "Screen [" + HCURL.REMOTE_HOME_SCREEN + "] start");
+		LogManager.log(OP_STR + "Screen [" + HCURL.REMOTE_HOME_SCREEN + "] start");
 	
 		{
 			client_width_zoomornot = clientWidth;
@@ -215,7 +215,7 @@ public class ScreenCapturer extends PNGCapturer{
 	private int zoomOldMultiples = 1;
 	
 //	private void initMobileArea() {
-////		L.V = L.O ? false : LogManager.log("is ZoomIn : " + isZoomIn);
+////		LogManager.log("is ZoomIn : " + isZoomIn);
 //		
 //		client_width_zoomornot = convertZoomUnzoomXY(final_mobi_width);xx
 //		client_height_zoomornot = convertZoomUnzoomXY(final_mobi_height);
@@ -232,7 +232,7 @@ public class ScreenCapturer extends PNGCapturer{
 //		}else{
 //			MAX_RIGHT_X = rx;
 //		}
-//		L.V = L.O ? false : LogManager.log("BOTTOM_Y : " + BOTTOM_Y + ", MAX_RIGHT_X : " + MAX_RIGHT_X);
+//		LogManager.log("BOTTOM_Y : " + BOTTOM_Y + ", MAX_RIGHT_X : " + MAX_RIGHT_X);
 //	}
 	
 	@Override
@@ -245,7 +245,7 @@ public class ScreenCapturer extends PNGCapturer{
 	}
 	
 	private final boolean isDirectServerMode(){
-		if(SIPManager.isOnRelay(coreSS) == false){
+		if(SIPManager.isOnRelay(coreSS.hcConnection) == false){
 			final short connMode = coreSS.context.getConnectionModeStatus();
 			if(connMode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
 				return true;
@@ -258,7 +258,7 @@ public class ScreenCapturer extends PNGCapturer{
 		if(isDirectServerMode()){
 			if(IDArrayGroup.checkAndAdd(IDArrayGroup.MSG_NOTIFIED_SERVER_DIRECT_MODE) == false){
 			}else{
-				L.V = L.O ? false : LogManager.log("Detect Server is in direct mode, notify mobile.");
+				LogManager.log("Detect Server is in direct mode, notify mobile.");
 				coreSS.context.send(null, MsgBuilder.E_TAG_ROOT, 
 						MsgBuilder.DATA_ROOT_SERVER_IN_DIRECT_MODE);
 			}
@@ -290,7 +290,7 @@ public class ScreenCapturer extends PNGCapturer{
 
 	private void isSameFullScreen() {
 		//产生一个模拟事件，以解除如屏保而导致的可自解锁型
-		L.V = L.O ? false : LogManager.log("Screen maybe in lock or screensave, create ctrl-key push event to active screen.");
+		LogManager.log("Screen maybe in lock or screensave, create ctrl-key push event to active screen.");
 		
 //		Point mousepoint = MouseInfo.getPointerInfo().getLocation();  
 //		robot.mouseMove(0, 0);//会导致弹出移动，最小化菜单，故关闭
@@ -361,23 +361,23 @@ public class ScreenCapturer extends PNGCapturer{
 		final int pointY = event.getY();
 		if(type == DataInputEvent.TYPE_MOUSE_MOVE){
 			robot.mouseMove(pointX, pointY);
-			L.V = L.O ? false : LogManager.log(OP_STR + "Mouse move to (" + pointX + ", " + pointY + ")");
+			LogManager.log(OP_STR + "Mouse move to (" + pointX + ", " + pointY + ")");
 		}else if(type == DataInputEvent.TYPE_MOUSE_LEFT_CLICK){
-			L.V = L.O ? false : LogManager.log(OP_STR + "Mouse left click at (" + pointX + ", " + pointY + ")");
+			LogManager.log(OP_STR + "Mouse left click at (" + pointX + ", " + pointY + ")");
 			synchronized (robot) {
 				robot.mouseMove(pointX, pointY);
 				robot.mousePress(InputEvent.BUTTON1_MASK);
 				robot.mouseRelease(InputEvent.BUTTON1_MASK);
 			}
 		}else if(type == DataInputEvent.TYPE_MOUSE_RIGHT_CLICK){
-			L.V = L.O ? false : LogManager.log(OP_STR + "Mouse right click at (" + pointX + ", " + pointY + ")");
+			LogManager.log(OP_STR + "Mouse right click at (" + pointX + ", " + pointY + ")");
 			synchronized (robot) {
 				robot.mouseMove(pointX, pointY);
 				robot.mousePress(InputEvent.BUTTON3_MASK);
 				robot.mouseRelease(InputEvent.BUTTON3_MASK);			
 			}
 		}else if(type == DataInputEvent.TYPE_MOUSE_DOUBLE_CLICK){
-			L.V = L.O ? false : LogManager.log(OP_STR + "Mouse double click at (" + pointX + ", " + pointY + ")");
+			LogManager.log(OP_STR + "Mouse double click at (" + pointX + ", " + pointY + ")");
 			synchronized (robot) {
 				robot.mouseMove(pointX, pointY);
 				
@@ -390,7 +390,7 @@ public class ScreenCapturer extends PNGCapturer{
 			try {
 				final String s = event.getTextDataAsString();
 				if(inputKeyStr(s) == false){
-					L.V = L.O ? false : LogManager.log(OP_STR + "Client paste txt:[" + s + "]!");
+					LogManager.log(OP_STR + "Client paste txt:[" + s + "]!");
 					final Clipboard clipboard = ResourceUtil.getClipboard();
 					synchronized (clipboard) {
 						Transferable oldTrans = null;
@@ -411,18 +411,18 @@ public class ScreenCapturer extends PNGCapturer{
 						}
 					}
 				}else{
-					L.V = L.O ? false : LogManager.log(OP_STR + "Client input txt:[" + s + "]!");
+					LogManager.log(OP_STR + "Client input txt:[" + s + "]!");
 				}
 			} catch (final Exception e) {
 				ExceptionReporter.printStackTrace(e);
 			}
 		}else if(type == DataInputEvent.TYPE_BACKSPACE){
 			backspace();
-			L.V = L.O ? false : LogManager.log(OP_STR + "Press BACKSPACE");
+			LogManager.log(OP_STR + "Press BACKSPACE");
 		}else if(type == DataInputEvent.TYPE_TAG_TRANS_TEXT_2_MOBI){
 			copytxtToMobi();
 		}else if(type == DataInputEvent.TYPE_TAG_INPUT_KEYBOARD_FROM_MOBI){
-			L.V = L.O ? false : LogManager.log(OP_STR + "Press a mobile keyboard char");
+			LogManager.log(OP_STR + "Press a mobile keyboard char");
 			type(robot, (char)pointX);
 		}else{
 			//自定义扩展MouseIcon
@@ -432,7 +432,7 @@ public class ScreenCapturer extends PNGCapturer{
 				final String[] keysDesc = new String[1];
 				final Vector<Integer> vInt = mobiUserIcons.getKeys(idx, keysDesc);
 				if(vInt == null){
-					L.V = L.O ? false : LogManager.log("Unknow ext icon idx:" + type);
+					LogManager.log("Unknow ext icon idx:" + type);
 				}else{
 					KeyComper.keyAction(coreSS, robot, vInt, keysDesc[0]);
 				}
@@ -628,7 +628,7 @@ public class ScreenCapturer extends PNGCapturer{
 			}catch (final Exception e) {
 			}
 			final String txt = ResourceUtil.getTxtFromClipboard();
-	//		L.V = L.O ? false : LogManager.log("User ready copyTxtToMobi:" + txt);
+	//		LogManager.log("User ready copyTxtToMobi:" + txt);
 			if(txt.length() > 0){
 				try {
 		    		final DataInputEvent e = new DataInputEvent();
@@ -647,7 +647,7 @@ public class ScreenCapturer extends PNGCapturer{
 				}
 			}
 			
-			L.V = L.O ? false : LogManager.log(OP_STR + "copyTxtToMobi:" + ((txt.length()==0)?"null":txt));
+			LogManager.log(OP_STR + "copyTxtToMobi:" + ((txt.length()==0)?"null":txt));
 
 //			if(oldTrans != null){
 //				clipboard.setContents(oldTrans, null);//只有第一次正确，故关闭
@@ -665,7 +665,7 @@ public class ScreenCapturer extends PNGCapturer{
 		}
 //		ctrlSomeKey(KeyEvent.VK_C);
 		
-		L.V = L.O ? false : LogManager.log(OP_STR + "drag from ["+startX + ", " + startY+"] to [" + endX + ", " + endY + "]");
+		LogManager.log(OP_STR + "drag from ["+startX + ", " + startY+"] to [" + endX + ", " + endY + "]");
 	}
 	
 	/**
@@ -675,7 +675,7 @@ public class ScreenCapturer extends PNGCapturer{
 	@Deprecated
 	public void zoom(final int zoomMultiPara){
 		synchronized (LOCK) {
-//			L.V = L.O ? false : LogManager.log("receive zoom cmd : " + zoomMultiPara + ", oldZoomMulti : " + zoomOldMultiples);
+//			LogManager.log("receive zoom cmd : " + zoomMultiPara + ", oldZoomMulti : " + zoomOldMultiples);
 			int[] outInts = null;;
 			if(zoomOldMultiples != 1){
 				outInts = zoomUnzoom(zoomOldMultiples, 1);
@@ -685,7 +685,7 @@ public class ScreenCapturer extends PNGCapturer{
 			}
 			zoomOldMultiples = zoomMultiPara;
 			
-//			L.V = L.O ? false : LogManager.log("oldLocX : " + oldLocX + ", oldLocY : " + oldLocY + ", locX : " + locX + ", locY : " + locY);
+//			LogManager.log("oldLocX : " + oldLocX + ", oldLocY : " + oldLocY + ", locX : " + locX + ", locY : " + locY);
 			
 			if(outInts != null){
 				rematchRect(outInts[6], outInts[7]);
@@ -733,9 +733,9 @@ public class ScreenCapturer extends PNGCapturer{
 
 	public void moveUp(final int pixle){
 		if(pixle > 0){
-			L.V = L.O ? false : LogManager.log(OP_STR + "moveUp : " + pixle);
+			LogManager.log(OP_STR + "moveUp : " + pixle);
 		}else{
-			L.V = L.O ? false : LogManager.log(OP_STR + "moveDown : " + (-pixle));
+			LogManager.log(OP_STR + "moveDown : " + (-pixle));
 		}
 		
 		moveNewRect.x = capRect.x;
@@ -799,9 +799,9 @@ public class ScreenCapturer extends PNGCapturer{
 	
 	public void moveRight(final int pixle){		
 		if(pixle > 0){
-			L.V = L.O ? false : LogManager.log(OP_STR + "moveRight : " + pixle);
+			LogManager.log(OP_STR + "moveRight : " + pixle);
 		}else{
-			L.V = L.O ? false : LogManager.log(OP_STR + "moveLeft : " + (-pixle));
+			LogManager.log(OP_STR + "moveLeft : " + (-pixle));
 		}
 		
 		moveNewRect.x = capRect.x;
@@ -827,13 +827,13 @@ public class ScreenCapturer extends PNGCapturer{
 					//--********************
 					for (int x = idxR, end = idxR + client_width_zoomornot - pixle; x >= 0 && x < end;) {
 //						if(row == 0){
-//							L.V = L.O ? false : LogManager.log("mov " + idxM + " to " + x);
+//							LogManager.log("mov " + idxM + " to " + x);
 //						}
 						clientSnap[x++] = clientSnap[idxM++];
 					}
 					for (int end = idxR + client_width_zoomornot, i = end - pixle; i >= 0 && i < end; i++) {
 //						if(row == 0){
-//							L.V = L.O ? false : LogManager.log("reset color idx " + i);
+//							LogManager.log("reset color idx " + i);
 //						}
 						clientSnap[i] = DEFAULT_BACK_COLOR;
 					}
@@ -883,7 +883,7 @@ public class ScreenCapturer extends PNGCapturer{
 			
 			final Rectangle firstRect = new Rectangle(x, y, 
 					Math.min(mobileWidth, screenWidth), Math.min(mobileHeight, screenHeigh));
-//			L.V = L.O ? false : LogManager.log("First Screen x : " + x + ", y : " + y + ", w : " + firstRect.width + ", h : " + firstRect.height);
+//			LogManager.log("First Screen x : " + x + ", y : " + y + ", w : " + firstRect.width + ", h : " + firstRect.height);
 			sendPNG(firstRect, firstRect.width, false);
 		}
 		

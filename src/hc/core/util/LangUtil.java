@@ -99,4 +99,89 @@ public class LangUtil {
 		}
 		return count >= 3;
 	}
+
+	/**
+	 * return true, if meet :<BR>
+	 * 1. en ~ en-US<BR>
+	 * 2. zh-CN ~ zh-Hans-CN<BR>
+	 * @param locale
+	 * @param compareLocale
+	 * @return
+	 */
+	public static boolean isSameLocale(final String locale, final String compareLocale, final boolean isMaybeEqualLang){
+		if(locale.equals(compareLocale)){
+			return true;
+		}
+		
+		final int lastSplitIdx = locale.lastIndexOf(LOCALE_SPLIT_CHAR);
+		if(lastSplitIdx >= 0){
+			final String[] cmpParts = StringUtil.splitToArray(compareLocale, LOCALE_SPLIT);
+			
+			if(isMaybeEqualLang){
+				final String[] parts = StringUtil.splitToArray(locale, LOCALE_SPLIT);
+				final String part0 = parts[0];
+				
+				for (int i = 0; i < equalLocale.length; i++) {
+					if(part0.equals(equalLocale[i])){
+						return isSameLocale(buildEqualLocale(parts, equalLocaleTo[i]), compareLocale, false);
+					}
+				}
+				for (int i = 0; i < equalLocaleTo.length; i++) {
+					if(part0.equals(equalLocaleTo[i])){
+						return isSameLocale(buildEqualLocale(parts, equalLocale[i]), compareLocale, false);
+					}
+				}
+			}
+			
+			if(cmpParts.length == 3){//zh-Hans-CN => zh-CN
+				return isSameLocale(locale, cmpParts[0] + LOCALE_SPLIT + cmpParts[2], false);
+			}
+			
+			//不需两段转一段，因locale是两段
+		}else{
+			if(isMaybeEqualLang){
+				for (int i = 0; i < equalLocale.length; i++) {
+					if(locale.equals(equalLocale[i])){
+						return isSameLocale(equalLocaleTo[i], compareLocale, false);
+					}
+				}
+				
+				for (int i = 0; i < equalLocaleTo.length; i++) {
+					if(locale.equals(equalLocaleTo[i])){
+						return isSameLocale(equalLocale[i], compareLocale, false);
+					}
+				}
+			}
+			
+			//en ~ en-US
+			final int lastCompareSplitIdx = compareLocale.lastIndexOf(LOCALE_SPLIT_CHAR);
+			if(lastCompareSplitIdx >= 0){
+				final String[] cmpParts = StringUtil.splitToArray(compareLocale, LOCALE_SPLIT);
+				if(cmpParts.length == 3){//zh-Hans-CN => zh-CN
+					return isSameLocale(locale, cmpParts[0] + LOCALE_SPLIT + cmpParts[2], false);
+				}else if(cmpParts.length == 2){//zh-CN => zh
+					return isSameLocale(locale, cmpParts[0], false);
+				}
+			}
+		}
+	
+		return false;
+	}
+
+	public static String buildEqualLocale(final String[] oldParts, final String equalLang){
+		final StringBuffer sb = StringBufferCacher.getFree();
+		
+		for (int i = 0; i < oldParts.length; i++) {
+			if(i == 0){
+				sb.append(equalLang);
+			}else{
+				sb.append(LOCALE_SPLIT);
+				sb.append(oldParts[i]);
+			}
+		}
+		
+		final String out = sb.toString();
+		StringBufferCacher.cycle(sb);
+		return out;
+	}
 }

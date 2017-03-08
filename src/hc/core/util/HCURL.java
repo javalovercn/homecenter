@@ -50,7 +50,8 @@ public class HCURL {
 	public static final String CMD_PROTOCAL = "cmd";
 	public static final String SCREEN_PROTOCAL = "screen";
 	public static final String CONTROLLER_PROTOCAL = "controller";
-	public static final String FORM_PROTOCAL = "form";
+	public static final String FORM_PROTOCAL = "form";//注意：如果增加新项，请同步增加到FAST_RESP_PROTOCAL
+	public static final String[] FAST_RESP_PROTOCAL = {CMD_PROTOCAL, FORM_PROTOCAL, CONTROLLER_PROTOCAL, SCREEN_PROTOCAL};
 	public static final String CFG_PROTOCAL = "cfg";
 	public static final String MENU_PROTOCAL = "menu";
 	
@@ -102,6 +103,7 @@ public class HCURL {
 	public static final String DATA_PARA_WIFI_MANAGER = "WiFiManager";
 	public static final String DATA_PARA_PUBLISH_STATUS_ID = "publishStatusID";
 	public static final String DATA_PARA_PUBLISH_STATUS_VALUE = "publishStatusValue";
+	public static final String DATA_PARA_VOICE_COMMANDS = CCoreUtil.SYS_PREFIX + "voiceCommand";
 	
 	public static final String DATA_RECEIVER_MLET = "rev_mlet";
 	public static final String DATA_RECEIVER_HTMLMLET = "rev_htmlmlet";
@@ -109,11 +111,17 @@ public class HCURL {
 	public static final String REMOTE_HOME_SCREEN = "home";
 	public static final String ADD_HAR_QR = "addHARByQR";
 	public static final String ADD_HAR_WIFI = "addHARByWiFi";
+	public static final String VOICE_COMMAND = DATA_PARA_VOICE_COMMANDS;
 	
 	public static final String URL_CMD_EXIT = buildStandardURL(HCURL.CMD_PROTOCAL, HCURL.DATA_CMD_EXIT);
+	public static final String URL_CMD_CONFIG = buildStandardURL(HCURL.CMD_PROTOCAL, HCURL.DATA_CMD_CONFIG);
+	//注意：如果增加新项，请同步增加到FAST_NOT_RESP_URL
+	public static final String[] FAST_NOT_RESP_URL = {URL_CMD_EXIT, URL_CMD_CONFIG};
+	
 	public static final String URL_HOME_SCREEN = buildStandardURL(HCURL.SCREEN_PROTOCAL, HCURL.REMOTE_HOME_SCREEN);
 	public static final String URL_CFG_ADD_DEVICE_BY_QR = buildStandardURL(HCURL.CFG_PROTOCAL, ADD_HAR_QR);
 	public static final String URL_CFG_ADD_DEVICE_BY_WIFI = buildStandardURL(HCURL.CFG_PROTOCAL, ADD_HAR_WIFI);
+	public static final String URL_CMD_VOICE_COMMAND = buildStandardURL(HCURL.CMD_PROTOCAL, VOICE_COMMAND);
 	
 	public static final String URL_DEFAULT_MLET_ALIAS = "";
 	

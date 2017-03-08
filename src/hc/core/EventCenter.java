@@ -31,11 +31,11 @@ public class EventCenter {
 			for (int i = 0; i < size; i++) {
 				if(listen_types[i] == eventTag){
 					if(enableSameEventTag){
-						hc.core.L.V=hc.core.L.O?false:LogManager.log("EventTag:" + eventTag + ", register twice or more!");
+						LogManager.log("EventTag:" + eventTag + ", register twice or more!");
 					}else{
 						//因为旧的可能含有不正确的数据，所以要以新的覆盖旧的。
 						listens[i] = listener;
-						hc.core.L.V=hc.core.L.O?false:LogManager.log("Rewrite EventTag:" + eventTag + " EventHCListener!");
+						LogManager.log("Rewrite EventTag:" + eventTag + " EventHCListener!");
 						return;
 					}
 				}
@@ -92,7 +92,7 @@ public class EventCenter {
 				}
 			}
 		}
-		L.V = L.O ? false : LogManager.log("Unused HCEvent, [BizType:" + ctrlTag + "]");
+		LogManager.log("Unused HCEvent, [BizType:" + ctrlTag + "]");
 		
 //		if(event.isUseNormalBS == false){
 //			event.releaseUseBlobBs();

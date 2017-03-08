@@ -1,12 +1,15 @@
 package hc.core;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+
 import hc.core.cache.CacheManager;
 import hc.core.data.ServerConfig;
-import hc.core.sip.IPAndPort;
 import hc.core.sip.ISIPContext;
 import hc.core.util.CCoreUtil;
 import hc.core.util.HCURL;
 import hc.core.util.IHCURLAction;
+import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
 import hc.core.util.io.StreamBuilder;
 
@@ -23,25 +26,73 @@ public abstract class CoreSession {
 		isNotifyShutdown = true;
 	}
 	
-	public byte[] OneTimeCertKey;
-	public final byte[] udpHeader = new byte[MsgBuilder.LEN_UDP_HEADER];
+	public final DataInputStream swapSocket(final HCConnection keepConn1, final HCConnection dropConn2, final boolean isShutdownReceive){
+		ISIPContext sip1 = keepConn1.sipContext;
+		ISIPContext sip2 = dropConn2.sipContext;
+		
+		{
+			final Object sock1 = sip1.getSocket();
+			final Object sock2 = sip2.getSocket();
+			
+			final boolean isSwap = true;
+			sip1.setSocket(sock2, isSwap);
+			sip2.setSocket(sock1, isSwap);
+			
+			DataInputStream is1 = null;
+			try{
+				is1 = sip1.getInputStream(sock1);//有可能已关闭
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+			DataInputStream is2 = null;
+			try{
+				is2 = sip2.getInputStream(sock2);//有可能已关闭
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			DataOutputStream os1 = null;
+			try{
+				os1 = sip1.getOutputStream(sock1);//有可能已关闭
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+			DataOutputStream os2 = null;
+			try{
+				os2 = sip2.getOutputStream(sock2);//有可能已关闭
+			}catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			sip1.setInputOutputStream(is2, os2);
+			sip2.setInputOutputStream(is1, os1);
+		}
+		
+		final Object is1 = keepConn1.getReceiveServerInputStream();
+		final Object is2 = dropConn2.getReceiveServerInputStream();
+		keepConn1.setReceiveServerInputStream(is2, false, true);
+		dropConn2.setReceiveServerInputStream(is1, true, false);
+			
+		{
+			final Object os1 = keepConn1.getOutputStream();
+			final Object os2 = dropConn2.getOutputStream();
+			keepConn1.setOutputStream(os2);
+			dropConn2.setOutputStream(os1);
+		}
+		
+		L.V = L.WShop ? false : LogManager.log("[Change] done swap socket.");
+		
+		return (DataInputStream)is1;
+	}
+	
 	public final StreamBuilder streamBuilder;
-	public byte[] package_tcp_bs;
-	public int package_tcp_id;
-	public int package_tcp_last_store_idx = MsgBuilder.INDEX_MSG_DATA;
-	public int packaeg_tcp_num;
-	public int packaeg_tcp_appended_num;
 	
 	public EventCenter eventCenter;
-	public ISIPContext sipContext;
 	public IContext context;
 	public HCTimer udpAliveMobiDetectTimer;
+	public HCConnection hcConnection = new HCConnection();
 
-	public IPAndPort relayIpPort = new IPAndPort();
-	public long lastLineOff = 0;
-	public boolean isStartLineOffProcess;
 	public final HCConditionWatcher eventCenterDriver = new HCConditionWatcher("EventCenterDriver", ThreadPriorityManager.LOWEST_PRIORITY);
-	public boolean isInitialCloseReceiveForJ2ME = false;
 	public byte[] mobileUidBSForCache;
 	public final byte[] codeBSforMobileSave = new byte[CacheManager.CODE_LEN];
 	public IHCURLAction urlAction;
@@ -53,67 +104,36 @@ public abstract class CoreSession {
 		streamBuilder = new StreamBuilder(this);
 	}
 	
-	public AckBatchHCTimer ackbatchTimer;
-	
-	public final void setSIPContextAndResender(ISIPContext sipCtx, final UDPPacketResender resender){
-		sipContext = sipCtx;
-		ackbatchTimer = new AckBatchHCTimer("AckBatch", HCTimer.HC_INTERNAL_MS, false, resender);
-	}
-	
 //	public final int DISCOVER_TIME_OUT_MS = Integer.parseInt(
 //			RootConfig.getInstance().getProperty(
 //					RootConfig.p_Discover_Stun_Server_Time_Out_MS));
 	
-	public final ReceiveServer getReceiveServer() {
-		return rServer;
-	}
-	public ReceiveServer rServer;
-	public UDPReceiveServer udpReceivServer;
-
-	public final UDPReceiveServer getUDPReceiveServer() {
-		return udpReceivServer;
-	}
-
-	public final void setReceiver(final ReceiveServer rs, final UDPReceiveServer udpRS){
-		rServer = rs;
-		udpReceivServer = udpRS;
-	}
-	private UDPController udpController;
-	
-	public final UDPController getUDPController(){
-		synchronized (this) {
-			if(udpController == null){
-				udpController = new UDPController();
-			}
-			return udpController;
-		}
-	}
-	
 	protected abstract void delayToSetNull();
 	
 	public void release(){
+		hcConnection.release();
 		delayToSetNull();
 		
-		HCTimer.remove(sipContext.resender.resenderTimer);
-		HCTimer.remove(ackbatchTimer);
 		HCTimer.remove(udpAliveMobiDetectTimer);
 	}
 
 	protected final void setNull() {
 		eventCenter = null;
 		context = null;
-		sipContext = null;
+		hcConnection.sipContext = null;
 		streamBuilder.coreSS = null;//streamBuilder构造时，生成，所以不为null
 	}
 	
 	public void setOneTimeCertKey(final byte[] bs){
-//		L.V = L.O ? false : LogManager.log("successful set OneTimeCertKey : " + ByteUtil.toHex(bs));
+//		LogManager.log("successful set OneTimeCertKey : " + ByteUtil.toHex(bs));
 		
-		if(OneTimeCertKey == null){
-			OneTimeCertKey = bs;
+		if(hcConnection.OneTimeCertKey == null){
+			hcConnection.OneTimeCertKey = bs;
 		}else{
-			for (int i = 0; i < bs.length; i++) {
-				OneTimeCertKey[i] = bs[i];
+			final int len = bs.length;
+			final byte[] oneTimeBS = hcConnection.OneTimeCertKey;
+			for (int i = 0; i < len; i++) {
+				oneTimeBS[i] = bs[i];
 			}
 		}
 	}

@@ -62,7 +62,7 @@ public interface PlatformService {
 	 * @param files null for last 3rdClassLoader; if not null, create new instance for 3rd class loader.
 	 * @return
 	 */
-	public ClassLoader get3rdClassLoader(File[] files);
+	public ClassLoader get3rdAndServClassLoader(File[] files);
 	
 	public void closeLoader(ClassLoader loader);//由于JRubyLoader多工程共用，不宜关闭
 	

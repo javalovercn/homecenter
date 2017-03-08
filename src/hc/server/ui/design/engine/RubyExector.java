@@ -66,7 +66,7 @@ public class RubyExector {
 			return ServerUIAPIAgent.getProjResponserMaybeNull(context).getMobileSession(coreSS).recycleRes.threadPool.runAndWait(run);
 		}else{
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("[workshop] this script runs in project level.");
+				LogManager.log("[workshop] this script runs in project level.");
 			}
 			return ServerUIAPIAgent.runAndWaitInProjContext(context, run);
 		}
@@ -85,7 +85,7 @@ public class RubyExector {
 				callCtx.setError(err, script, e);
 			}
 			hcje.resetError();
-//			L.V = L.O ? false : LogManager.log("JRuby Script Error : " + err);
+//			LogManager.log("JRuby Script Error : " + err);
 		}finally{
 //			System.setProperty(USER_DIR_KEY, userDir);
 		}
@@ -128,11 +128,11 @@ public class RubyExector {
 			}
 			
 //			if(L.isInWorkshop){
-//				L.V = L.O ? false : LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] before runScriptlet.");
+//				LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] before runScriptlet.");
 //			}
 			final Object out = hcje.runScriptlet(script, scriptName);
 //			if(L.isInWorkshop){
-//				L.V = L.O ? false : LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] after runScriptlet.");
+//				LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] after runScriptlet.");
 //			}
 			return out;
 			
@@ -155,7 +155,7 @@ public class RubyExector {
 				callCtx.setError(err, script, e);
 			}
 			hcje.resetError();
-//			L.V = L.O ? false : LogManager.log("JRuby Script Error : " + err);
+//			LogManager.log("JRuby Script Error : " + err);
 			return null;
 		}finally{
 //			System.setProperty(USER_DIR_KEY, userDir);
@@ -194,11 +194,11 @@ public class RubyExector {
 			return;
 		}
 		
-		String msg = (String)ResourceUtil.get(9163);
+		String msg = (String)ResourceUtil.get(coreSS, 9163);
 		msg = StringUtil.replace(msg, "{title}", title);
 		
 		final J2SESession[] coreSSS = {coreSS};
-		ServerUIAPIAgent.sendMessageViaCoreSS(coreSSS, (String)ResourceUtil.get(IContext.ERROR), msg, ProjectContext.MESSAGE_ERROR, 
+		ServerUIAPIAgent.sendMessageViaCoreSS(coreSSS, (String)ResourceUtil.get(coreSS, IContext.ERROR), msg, ProjectContext.MESSAGE_ERROR, 
 				null, 0);
 	}
 	

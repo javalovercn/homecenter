@@ -95,7 +95,7 @@ public class HCOutputStream extends OutputStream implements IHCStream{
 	
 	public final void close() throws IOException{
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("close HCOutputStream : " + streamID);
+			LogManager.log("close HCOutputStream : " + streamID);
 		}
 		
 		synchronized (this) {

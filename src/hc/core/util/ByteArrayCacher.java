@@ -50,7 +50,7 @@ public class ByteArrayCacher {
 			if(out != null){
 				return out;
 			}else{
-//				hc.core.L.V=hc.core.L.O?false:LogManager.log("------MEM ALLOCATE [ByteArrayCacher]------");
+//				LogManager.log("------MEM ALLOCATE [ByteArrayCacher]------");
 				return new byte[bytes_size[i]];
 			}
 		}		

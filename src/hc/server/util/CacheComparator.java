@@ -59,9 +59,9 @@ public abstract class CacheComparator {
 	 * @param paras
 	 */
 	public final synchronized void encodeGetCompare(final J2SESession coreSS, final boolean enableCacheForProc, final byte[] data, final int data_idx, final int data_len, final Object[] paras) {
-//		L.V = L.O ? false : LogManager.log("encodeGetCompare project ID : " + projID);
-//		L.V = L.O ? false : LogManager.log("encodeGetCompare mobile UID : " + uuid);
-//		L.V = L.O ? false : LogManager.log("encodeGetCompare url ID : " + urlID);
+//		LogManager.log("encodeGetCompare project ID : " + projID);
+//		LogManager.log("encodeGetCompare mobile UID : " + uuid);
+//		LogManager.log("encodeGetCompare url ID : " + urlID);
 		
 //		boolean isJ2ME = false;
 		if(CacheManager.isMeetCacheLength(data_len) == false 
@@ -83,7 +83,7 @@ public abstract class CacheComparator {
 		boolean isNeedCache = false;
 		
 		ByteUtil.encodeFileXOR(data, data_idx, data_len, code, 0, codeLen);
-//		L.V = L.O ? false : LogManager.log("encodeGetCompare cache code : " + ByteUtil.encodeBase64(code));
+//		LogManager.log("encodeGetCompare cache code : " + ByteUtil.encodeBase64(code));
 		
 		RMSLastAccessTimeManager.notifyAccess(projID, softUID);
 		
@@ -119,7 +119,7 @@ public abstract class CacheComparator {
 			//服务端发送
 			coreSS.context.sendWrap(MsgBuilder.E_LOAD_CACHE, dataCache.bs, MsgBuilder.INDEX_MSG_DATA, dataLen);		
 			if(isSimu){
-				L.V = L.O ? false : LogManager.log("[cache] find match cache item for [" + projID + "/" + softUID + "/" + urlID + "]");
+				LogManager.log("[cache] find match cache item for [" + projID + "/" + softUID + "/" + urlID + "]");
 			}
 		}
 	}

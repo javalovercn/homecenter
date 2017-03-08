@@ -153,14 +153,14 @@ public class BindManager {
 								final LinkProjectStore dev_lps = LinkProjectManager.getProjByID(rd_proj_id);
 								if(dev_lps == null || dev_lps.isActive() == false){
 									//依赖的Dev工程不存在或不是Active
-									L.V = L.O ? false : LogManager.log("Project [" + rd_proj_id + "] is not exists or not active, which is relied by Project[" + projID + "].");
+									LogManager.log("Project [" + rd_proj_id + "] is not exists or not active, which is relied by Project[" + projID + "].");
 									isDiff = true;
 									break;
 								}
 								
 								//检查Dev是否存在
 								if(checkSrcOnRealDeviceBindInfo(respo, rdbi) == false){
-									L.V = L.O ? false : LogManager.log("Device[" + rdbi.dev_name + "] in Project [" + rd_proj_id + "] is not exists , which is relied by Project[" + projID + "].");
+									LogManager.log("Device[" + rdbi.dev_name + "] in Project [" + rd_proj_id + "] is not exists , which is relied by Project[" + projID + "].");
 									isDiff = true;
 									break;
 								}
@@ -180,14 +180,14 @@ public class BindManager {
 								final LinkProjectStore dev_lps = LinkProjectManager.getProjByID(cb_proj_id);
 								if(dev_lps == null || dev_lps.isActive() == false){
 									//依赖Conv所在的工程不存在或不是Active
-									L.V = L.O ? false : LogManager.log("Project [" + cb_proj_id + "] is not exists or not active, which is relied by Project[" + projID + "].");
+									LogManager.log("Project [" + cb_proj_id + "] is not exists or not active, which is relied by Project[" + projID + "].");
 									isDiff = true;
 									break;
 								}
 								
 								//检查Conv是否存在
 								if(checkSrcOnConverterBindInfo(respo, cbi) == false){
-									L.V = L.O ? false : LogManager.log("Converter[" + cbi.name + "] in Project [" + cb_proj_id + "] is not exists , which is relied by Project[" + projID + "].");
+									LogManager.log("Converter[" + cbi.name + "] in Project [" + cb_proj_id + "] is not exists , which is relied by Project[" + projID + "].");
 									isDiff = true;
 									break;
 								}
@@ -381,7 +381,7 @@ public class BindManager {
 						//Robot下的ref_id是否还存在使用
 						final RobotReferBindInfo rrbi = DeviceBindInfo.decodeReferIDFromBindID(bind_id);
 						if(searchReferenceIDOfRobot(bindSource, projectID, rrbi, bind_id) == false){
-							L.V = L.O ? false : LogManager.log("remove old bind [" + bind_id + "], because Robot [" + rrbi.robot_name + "] in project [" + projectID + "] or ref ID [" + rrbi.refer_id + "] is not exists.");
+							LogManager.log("remove old bind [" + bind_id + "], because Robot [" + rrbi.robot_name + "] in project [" + projectID + "] or ref ID [" + rrbi.refer_id + "] is not exists.");
 							continue;
 						}
 						
@@ -389,7 +389,7 @@ public class BindManager {
 						
 						//检查Device或real_device_id是否还存在
 						if(searchRealDeviceInfo(rdbi, rdi) == false){
-							L.V = L.O ? false : LogManager.log("remove old bind [" + bind_id + "], because Device [" + rdi.dev_name + "] or real device ID [" + rdi.dev_id + "] is not exists.");
+							LogManager.log("remove old bind [" + bind_id + "], because Device [" + rdi.dev_name + "] or real device ID [" + rdi.dev_id + "] is not exists.");
 							continue;
 						}
 						
@@ -415,7 +415,7 @@ public class BindManager {
 								dev_id_vector.remove(idx);
 								bind_vector.remove(idx);
 								
-								L.V = L.O ? false : LogManager.log("remove old bind [" + bind_id + "], because Converter is not exists.");
+								LogManager.log("remove old bind [" + bind_id + "], because Converter is not exists.");
 								continue;
 							}
 							
@@ -436,12 +436,12 @@ public class BindManager {
 							final DeviceBindInfo robot_dbinfo = robot_dbi_set.get(j);
 							if(hasDeviceReference == false){
 								hasDeviceReference = true;
-								L.V = L.O ? false : LogManager.log("try auto-match for project [" + projectID + "]...");
+								LogManager.log("try auto-match for project [" + projectID + "]...");
 							}
 							
 							final String bind_id = robot_dbinfo.bind_id;
 							if(dev_id_vector.indexOf(bind_id) >= 0){
-								L.V = L.O ? false : LogManager.log("find exists binds [" + bind_id + "] in project [" + projectID + "], reuse old bind.");
+								LogManager.log("find exists binds [" + bind_id + "] in project [" + projectID + "], reuse old bind.");
 								continue;
 							}
 							
@@ -456,7 +456,7 @@ public class BindManager {
 								//成功找到匹配设备
 								dev_id_vector.add(bind_id);
 								bind_vector.add(new BindDeviceNode(rdi, null));
-								L.V = L.O ? false : LogManager.log("success auto-match Robot<->Device as [" + ref_dev_id + "]<->[" + rdi.toString() + "]");
+								LogManager.log("success auto-match Robot<->Device as [" + ref_dev_id + "]<->[" + rdi.toString() + "]");
 								continue;
 							}else{
 								//从转换器中upCap的转换器
@@ -472,7 +472,7 @@ public class BindManager {
 										dev_id_vector.add(bind_id);
 										conv_id_vector.add(bind_id);
 										bind_vector.add(new BindDeviceNode(realDevBind, cInfo));
-										L.V = L.O ? false : LogManager.log("success auto-match {Robot~Converter~Device} => { [" + ref_dev_id + "] ~ [" + cInfo.toString() + "] ~ [" + realDevBind.toString() + "] }");
+										LogManager.log("success auto-match {Robot~Converter~Device} => { [" + ref_dev_id + "] ~ [" + cInfo.toString() + "] ~ [" + realDevBind.toString() + "] }");
 										continue;
 									}else{
 										isRobotNotBind = true;
@@ -492,12 +492,12 @@ public class BindManager {
 					if(isRobotNotBind == false){
 						AddHarHTMLMlet.updateOneProjBindToLPS(projectID, dev_id_vector, conv_id_vector, bind_vector);
 						lps.setDoneBind(true);
-						L.V = L.O ? false : LogManager.log("success finish auto-bind for project [" + projectID + "]");
+						LogManager.log("success finish auto-bind for project [" + projectID + "]");
 					}else{
 						isNotFullBinded = true;
 					}
 				}else{
-					L.V = L.O ? false : LogManager.log("set done-bind for NO-ROBOT project [" + projectID + "]");
+					LogManager.log("set done-bind for NO-ROBOT project [" + projectID + "]");
 					lps.setDoneBind(true);
 				}
 			}

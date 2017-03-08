@@ -49,7 +49,7 @@ public class ExitManager {
 		
 		SingleJFrame.disposeAll();
 
-		L.V = L.O ? false : LogManager.log("Start ExitManager");
+		LogManager.log("Start ExitManager");
 //		SessionManager.notifyShutdown();
 //		ServerUIUtil.stop();
 		ServerUIUtil.promptAndStop(false, null);
@@ -98,7 +98,7 @@ public class ExitManager {
 				final CoreSession coreSS = coreSSS[i];
 				
 				ScreenServer.emptyScreen((J2SESession)coreSS);
-				SIPManager.close(coreSS);
+				SIPManager.close(coreSS.hcConnection);
 			}
 			
 			try{
@@ -139,10 +139,10 @@ public class ExitManager {
 			
 			@Override
 			public void run(){
-				L.V = L.O ? false : LogManager.log("ready " + (App.EXIT_MAX_DELAY_MS/1000) + "-seconds to force exit...");
+				LogManager.log("ready " + (App.EXIT_MAX_DELAY_MS/1000) + "-seconds to force exit...");
 				while(true){
 					if(System.currentTimeMillis() - curr > App.EXIT_MAX_DELAY_MS){
-						L.V = L.O ? false : LogManager.log("force to exit.");
+						LogManager.log("force to exit.");
 						LogManager.exit();
 						
 						if(LogManager.INI_DEBUG_ON){

@@ -25,6 +25,8 @@ public class MobileAgent {
 	private final static String TAG_IOS_MAX_BG_MINUTES = "iOSBGMinute";
 	private final static String TAG_MENU_TRUE_COLOR = "MenuTrueColor";
 	private final static String TAG_SCALE = TAG_HIDE_PREFIX + "Scale";//iOS screen scale
+	private final static String TAG_VOICE_COMMAND = "voiceCommand";
+	
 	
 	private final static String SPLIT = ";";
 	private final static String EQUAL = "=";
@@ -80,12 +82,17 @@ public class MobileAgent {
 	}
 	
 	public final void set(final String key, final String value){
-//		L.V = L.O ? false : LogManager.log("client mobile [" + key + ":" + value + "]");
+//		LogManager.log("client mobile [" + key + ":" + value + "]");
 		vectorMap.set(key, value);
 	}
 	
 	public final boolean isBackground(){
 		String out = get(TAG_IS_BACKGROUND, IConstant.FALSE);
+		return out.equals(IConstant.TRUE);
+	}
+	
+	public final boolean isEnableVoiceCommand(){
+		String out = get(TAG_VOICE_COMMAND, IConstant.FALSE);
 		return out.equals(IConstant.TRUE);
 	}
 	
@@ -136,6 +143,10 @@ public class MobileAgent {
 	
 	public final void setMenuTrueColor(final boolean trueColor){
 		set(TAG_MENU_TRUE_COLOR, trueColor?IConstant.TRUE:IConstant.FALSE);
+	}
+	
+	public final void setVoiceCommand(final boolean enable){
+		set(TAG_VOICE_COMMAND, enable?IConstant.TRUE:IConstant.FALSE);
 	}
 	
 	public final int getEncryptionStrength(){

@@ -82,7 +82,7 @@ public class RMSLastAccessTimeManager {
 					final String uuid = projIDUUID[1];
 					
 //					System.out.println("[" + projectID + "/" + uuid + "] last access : " + new Date(lastAccessMS).toLocaleString());
-					L.V = L.O ? false : LogManager.log("clear cache [" + projectID + "/" + uuid + "] for long idle.");
+					LogManager.log("clear cache [" + projectID + "/" + uuid + "] for long idle.");
 					
 					removedKeys.add(buildKey);
 					CacheManager.removeUIDFrom(projectID, uuid);

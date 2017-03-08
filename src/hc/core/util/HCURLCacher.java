@@ -18,7 +18,7 @@ public class HCURLCacher {
 	public final HCURL getFree(){
 		synchronized (free) {
 			if(freeSize == 0){
-//				hc.core.L.V=hc.core.L.O?false:LogManager.log("------MEM ALLOCATE [HCURL]------");
+//				LogManager.log("------MEM ALLOCATE [HCURL]------");
 				return new HCURL();
 			}else{
 				freeSize--;

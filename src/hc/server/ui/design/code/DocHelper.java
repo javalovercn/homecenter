@@ -142,7 +142,7 @@ public class DocHelper {
 						} catch (final Exception e1) {
 							e1.printStackTrace();
 						}
-//	                    L.V = L.O ? false : LogManager.log("click href : " + href);
+//	                    LogManager.log("click href : " + href);
 	                }
 			}
 			/**
@@ -234,7 +234,7 @@ public class DocHelper {
 							}
 						}
 					}
-//		                    L.V = L.O ? false : LogManager.log("click href : " + href);
+//		                    LogManager.log("click href : " + href);
 				}
 			}
 		});
@@ -357,7 +357,7 @@ public class DocHelper {
 			SwingUtilities.invokeLater(repainRunnable);
 		}else{
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("[CodeTip] fail to get doc and setInvisible() about : " + fmClass + "/" + fieldOrMethodName);
+				LogManager.log("[CodeTip] fail to get doc and setInvisible() about : " + fmClass + "/" + fieldOrMethodName);
 			}
 			setInvisible();
 		}
@@ -374,7 +374,7 @@ public class DocHelper {
 	 * @return
 	 */
 	public final String getDoc(final String claz, final String fieldOrMethod){
-//		L.V = L.O ? false : LogManager.log("class : " + claz + ", fieldOrMethod : " + fieldOrMethod);
+//		LogManager.log("class : " + claz + ", fieldOrMethod : " + fieldOrMethod);
 		if(currItem.isCSSProperty){
 			return CSSHelper.getDocs(fieldOrMethod);
 		}
@@ -396,7 +396,7 @@ public class DocHelper {
 			final Set<String> set = map.keySet();
 			final Iterator<String> it = set.iterator();
 			while(it.hasNext()){
-				L.V = L.O ? false : LogManager.log("==>" + it.next());
+				LogManager.log("==>" + it.next());
 			}
 		}
 		

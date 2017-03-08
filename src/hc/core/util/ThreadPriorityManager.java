@@ -29,6 +29,8 @@ public class ThreadPriorityManager {
 	
 	public static final int UI_CODE_HELPER_DELAY_MS = 2000;
 	
+	public static final int NET_MAX_RENEWAL_CONN_MS = 3000;
+	
 	public static final int UI_DELAY_MOMENT = 500;
 	
 	public static final int UI_FLUSH_GRAPHICS = 10;

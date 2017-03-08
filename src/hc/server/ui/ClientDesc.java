@@ -80,6 +80,12 @@ public class ClientDesc {
 //		clientHeight = 480;
 		dpi = HCConfig.getIntProperty(v, (short)2);
 		clientLang = HCConfig.getProperty(v, (short)3);
+		final String testClientLocale = PropertiesManager.getValue(PropertiesManager.t_testClientLocale);
+		if(testClientLocale != null && testClientLocale.length() > 0){
+			LogManager.log("use testClientLocale : " + testClientLocale);
+			clientLang = testClientLocale;
+		}
+		//clientLang = "ar";
 		hcClientVer = HCConfig.getProperty(v, (short)4);
 	
 		String serialMobileAgent = "";
@@ -131,10 +137,10 @@ public class ClientDesc {
 		}
 		final String sbStr = sb.toString();
 		StringBuilderCacher.cycle(sb);
-		L.V = L.O ? false : LogManager.log(sbStr);
-		L.V = L.O ? false : LogManager.log("Receive client desc, locale:" + clientLang + ",  w:" + clientWidth + ", h:" + clientHeight 
+		LogManager.log(sbStr);
+		LogManager.log("Receive client desc, locale:" + clientLang + ",  w:" + clientWidth + ", h:" + clientHeight 
 				+ ", dpi:" + dpi + ((dpi==0)?"(unknow)":"") + ", hcClientVer:" + hcClientVer + ", xdpi:" + xdpi + ", ydpi:" + ydpi + ", density:" + density);
-		L.V = L.O ? false : LogManager.log("  Important : the w (h) maybe not equal to the real width (height) of mobile in pixels, UI may be scaled to the best size.");
+		LogManager.log("  Important : the w (h) maybe not equal to the real width (height) of mobile in pixels, UI may be scaled to the best size.");
 	}
 	
 	public static final int vgap = 5;

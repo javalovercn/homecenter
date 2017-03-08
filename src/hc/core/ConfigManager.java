@@ -1,5 +1,7 @@
 package hc.core;
 
+import hc.core.util.RootBuilder;
+
 import java.util.Hashtable;
 
 /**
@@ -63,8 +65,14 @@ public class ConfigManager {
 	public static final String UI_JUMP_TO_HOME = "hc.ui.jumpHome";
 	public static final String UI_ENABLE_RTL = "hc.ui.enableRTL";
 	public static final String UI_ENABLE_LTR = "hc.ui.enableLTR";
+	public static final String UI_DISABLE_ROTATE = "hc.ui.disableRotate";
+
 	public static final String UI_SCALE_OF_SCREEN = "hc.ui.scale";//iOS
 	public static final String UI_HIDE_INPUT_PANEL = "hc.ui.hideInputPanel";//iOS不需实现
+	
+	//-----------------------------注意-----------------------------
+	//      如果增加扩展，推荐使用ClientExtManager
+	//---------------------------------------------------------------
 	
 	public static final String PRINT_ALL_THREAD = "hc.log.printAllThread";
 	
@@ -163,5 +171,21 @@ public class ConfigManager {
 
 	public static boolean enableUDP() {
 		return isTCPOnly == false;
+	}
+
+	private static final Object lock = new Object();
+	
+	public static Object buildObject(final String buildTag, final String className) {
+		synchronized (lock) {
+			try{
+				put(buildTag, className);
+				RootBuilder.getInstance().doBiz(RootBuilder.ROOT_CHECK_CHECKPERMISSION, buildTag);
+			}catch (final Throwable e) {
+				if(e instanceof ParaException){
+					return ((ParaException)e).buildObject;
+				}
+			}
+			return null;
+		}
 	}
 }

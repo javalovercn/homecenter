@@ -5,11 +5,13 @@ import hc.core.L;
 import hc.core.util.LogManager;
 
 public abstract class RelayShutdownWatch implements IWatcher {
-	public void setPara(Object p) {
+	@Override
+	public void setPara(final Object p) {
 	}
 	
 	long start = 0;
 	
+	@Override
 	public boolean watch() {
 		if(start == 0){
 			start = System.currentTimeMillis();
@@ -19,14 +21,14 @@ public abstract class RelayShutdownWatch implements IWatcher {
 			//发现可替Relay，但是没有回应
 			RelayManager.notifyClientsLineOff();
 
-			L.V = L.O ? false : LogManager.log("Stop relay task");
+			LogManager.log("Stop relay task");
 			extShutdown();
 			return true;
 		}else{
 			//等待在途包全部转完，含重发
 			try{
 				Thread.sleep(200);
-			}catch (Exception e) {
+			}catch (final Exception e) {
 				
 			}
 			return false;

@@ -12,7 +12,7 @@ public class UDPController {
 			final long now = System.currentTimeMillis();
 			if(tryBuildUDPtimers == 0){
 				if(now - lastCallMS < 10000){
-					L.V = L.O ? false : LogManager.log("It seem error cycle build UDP , skip build process.");
+					LogManager.log("It seem error cycle build UDP , skip build process.");
 					return false;
 				}
 			}else{
@@ -28,9 +28,9 @@ public class UDPController {
 			
 			lastCallMS = now;
 			tryBuildUDPtimers++;
-			L.V = L.O ? false : LogManager.log("Fail on UDP-check-alive, rebuild UDP connection. try " + tryBuildUDPtimers + " times.");
+			LogManager.log("Fail on UDP-check-alive, rebuild UDP connection. try " + tryBuildUDPtimers + " times.");
 
-			coreSS.sipContext.tryRebuildUDPChannel(coreSS);
+			coreSS.hcConnection.sipContext.tryRebuildUDPChannel(coreSS.hcConnection);
 			return true;
 		}
 		tryBuildUDPtimers = 0;
@@ -44,7 +44,7 @@ public class UDPController {
 		return UUID_STARD_IDX + IConstant.uuidBS.length;
 	}
 	
-	public void fillSetNullAddrCmdData(final CoreSession coreSS, final byte[] bs){
+	public void fillSetNullAddrCmdData(final HCConnection hcConnection, final byte[] bs){
 
 		//填充UDP_TAG
 		ByteUtil.integerToTwoBytes(MsgBuilder.E_UDP_CONTROLLER_SET_ADDR_NULL, bs, 0);
@@ -53,8 +53,8 @@ public class UDPController {
 		bs[MsgBuilder.LEN_UDP_CONTROLLER_HEAD] = (byte)(IConstant.serverSide?1:0);
 		
 		//填充随机凭证号
-		bs[UDP_RANDOM_HEADER_STARD_IDX] = coreSS.udpHeader[0];
-		bs[UDP_RANDOM_HEADER_STARD_IDX + 1] = coreSS.udpHeader[1];
+		bs[UDP_RANDOM_HEADER_STARD_IDX] = hcConnection.udpHeader[0];
+		bs[UDP_RANDOM_HEADER_STARD_IDX + 1] = hcConnection.udpHeader[1];
 		
 		//填充UUID数据
 		for (int i = 0; i < IConstant.uuidBS.length; i++) {

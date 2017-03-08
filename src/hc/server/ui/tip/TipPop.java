@@ -59,7 +59,7 @@ public class TipPop {
 		}else{
 			instanceMessageFrame.close();
 		}
-//		L.V = L.O ? false : LogManager.log("displayMessage " + System.currentTimeMillis());
+//		LogManager.log("displayMessage " + System.currentTimeMillis());
 		instanceMessageFrame.showMessage(caption, msg, messageType);
 	}
 		

@@ -167,14 +167,14 @@ public class SignHelper {
 		certs = new HCJarVerifier().verifyJar(jarFile, trustedSigner);
 		if(certs != null){
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("pass verify signature : " + jarFile.getAbsolutePath() + " by " + HCJarVerifier.class.getSimpleName());
+				LogManager.log("pass verify signature : " + jarFile.getAbsolutePath() + " by " + HCJarVerifier.class.getSimpleName());
 			}
 			return certs;
 		}
 		
 		certs = new InnerJarVerifier().verifyJar(jarFile, trustedSigner);
 		if(certs != null){
-			L.V = L.O ? false : LogManager.log("pass verify signature : " + jarFile.getAbsolutePath() + " by " + InnerJarVerifier.class.getSimpleName());
+			LogManager.log("pass verify signature : " + jarFile.getAbsolutePath() + " by " + InnerJarVerifier.class.getSimpleName());
 		}
 		
 		return certs;

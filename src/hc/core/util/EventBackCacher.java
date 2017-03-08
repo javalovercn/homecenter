@@ -20,7 +20,7 @@ public class EventBackCacher {
 	public final EventBack getFreeEB(){//iOS环境下会与出现JavaUtilArrayList getFree
 		synchronized (free) {
 			if(freeSize == 0){
-//				hc.core.L.V=hc.core.L.O?false:LogManager.log("------MEM ALLOCATE [EventBack]------");
+//				LogManager.log("------MEM ALLOCATE [EventBack]------");
 				return new EventBack();
 			}else{
 				freeSize--;

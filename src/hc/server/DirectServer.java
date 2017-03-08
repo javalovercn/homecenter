@@ -97,9 +97,9 @@ public class DirectServer extends Thread {
 					LogManager.err(msg);
 				}
 				
-				L.V = L.O ? false : LogManager.log("Build direct server at " + server.getLocalSocketAddress().toString()); 
-				L.V = L.O ? false : LogManager.log("  on network interface [" + networkAddressName + "]");
-				L.V = L.O ? false : LogManager.log("  for home wirless network");
+				LogManager.log("Build direct server at " + server.getLocalSocketAddress().toString()); 
+				LogManager.log("  on network interface [" + networkAddressName + "]");
+				LogManager.log("  for home wirless network");
 
 				LOCK.notify();
 			}
@@ -115,9 +115,9 @@ public class DirectServer extends Thread {
 			server = null;
 			try{
 				serverSnap.close();
-				L.V = L.O ? false : LogManager.log("[direct server] successful close old Home Wireless Server");
+				LogManager.log("[direct server] successful close old Home Wireless Server");
 			}catch (final Throwable e) {
-				L.V = L.O ? false : LogManager.log("[direct server] Error close home wireless server : " + e.toString());
+				LogManager.log("[direct server] Error close home wireless server : " + e.toString());
 			}
 			
 			while(true){
@@ -127,16 +127,17 @@ public class DirectServer extends Thread {
 					}
 					Thread.sleep(IConstant.THREAD_WAIT_INNER_MS);
 					if(L.isInWorkshop){
-						L.V = L.O ? false : LogManager.log("[direct server] waiting direct server close...");
+						LogManager.log("[direct server] waiting direct server close...");
 					}
 				}catch (final Throwable e) {
-					L.V = L.O ? false : LogManager.log("[direct server] Error check isClosed : " + e.toString());
+					LogManager.log("[direct server] Error check isClosed : " + e.toString());
 				}
 			}
 		}
 	}
 	
 	final private Object LOCK = new Object();
+	final boolean isDemoServer = ResourceUtil.isDemoServer();
 	
 	@Override
 	public void run(){
@@ -155,7 +156,7 @@ public class DirectServer extends Thread {
 			
 			Socket socket = null;
 			try{
-				L.V = L.O ? false : LogManager.log("[direct server] ready for new client.");
+				LogManager.log("[direct server] ready for new client.");
 				socket = server.accept();
 				
 				final Socket para_socket = socket;
@@ -167,9 +168,11 @@ public class DirectServer extends Thread {
 					}
 				});
 			}catch (final Throwable e) {
-				L.V = L.O ? false : LogManager.log("[direct server] Exception : " + e.toString());
-				ExceptionReporter.printStackTrace(e);//必须，在OpenJDK DemoServer
-
+				LogManager.log("[direct server] Exception : " + e.toString());
+				if(isDemoServer){
+					ExceptionReporter.printStackTrace(e);//必须，在OpenJDK DemoServer
+				}
+				
 				final Socket snapSocket = socket;
 				if(snapSocket != null){
 					try{
@@ -191,19 +194,19 @@ public class DirectServer extends Thread {
 //					}
 			}
 		}//end while
-		L.V = L.O ? false : LogManager.log("[direct server] shutdown old Home Wireless Server");		
+		LogManager.log("[direct server] shutdown old Home Wireless Server");		
 	}
 
 	private final void processOneClient(final Socket socket) {
 		try{
-//					L.V = L.O ? false : LogManager.log("Server is build conn for other, cancle the coming");
-//					L.V = L.O ? false : LogManager.log("  Coming, " + socket.getInetAddress().getHostAddress() + 
+//					LogManager.log("Server is build conn for other, cancle the coming");
+//					LogManager.log("  Coming, " + socket.getInetAddress().getHostAddress() + 
 //							":" + socket.getPort());
 //					try{
 //						socket.close();
 //					}catch (final Exception e) {
 //					}
-			L.V = L.O ? false : LogManager.log("[direct server] client line on:[" + 
+			LogManager.log("[direct server] client line on:[" + 
 					socket.getInetAddress().getHostAddress() + 
 					":" + socket.getPort() + "]");
 			
@@ -234,13 +237,21 @@ public class DirectServer extends Thread {
 				socket.getOutputStream().flush();
 				
 				final J2SESession coreSS = (J2SESession)SessionManager.getPreparedSocketSession();
-				coreSS.sipContext.deploySocket(coreSS, socket);
+				coreSS.hcConnection.sipContext.deploySocket(coreSS.hcConnection, socket);
 				
 				//家庭直联模式下，关闭KeepAlive
 				setServerConfigPara(coreSS, true, false);
 				coreSS.context.setConnectionModeStatus(ContextManager.MODE_CONNECTION_HOME_WIRELESS);
 				
-				coreSS.context.setStatus(ContextManager.STATUS_READY_MTU);
+				final byte subTag = bs[MsgBuilder.INDEX_CTRL_SUB_TAG];
+				if(subTag == MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST){
+					coreSS.context.setStatus(ContextManager.STATUS_READY_MTU);
+				}else if(subTag == MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_BUILD_NEW_CONN){
+					//注意：这是DATA_E_TAG_RELAY_REG_SUB_BUILD_NEW_CONN与DATA_E_TAG_RELAY_REG_SUB_FIRST的唯一区别
+					return;
+				}
+				
+				//以下不应有代码
 			}catch (final Throwable e) {
 				throw e;
 			}finally{
@@ -251,7 +262,7 @@ public class DirectServer extends Thread {
 			}
 //				LogManager.info("Succ connect target");
 		}catch (final Throwable e) {
-			L.V = L.O ? false : LogManager.log("[direct server] Exception : " + e.toString());
+			LogManager.log("[direct server] Exception : " + e.toString());
 			ExceptionReporter.printStackTrace(e);//必须 在OpenJDK DemoServer
 		}
 	}
@@ -261,7 +272,7 @@ public class DirectServer extends Thread {
 		coreSS.keepaliveManager.keepalive.setEnable(keepalive);
 		coreSS.keepaliveManager.keepalive.resetTimerCount();
 		
-		SIPManager.setOnRelay(coreSS, isRelay);
+		SIPManager.setOnRelay(coreSS.hcConnection, isRelay);
 	}
 	
 	private boolean isShutdown = false;

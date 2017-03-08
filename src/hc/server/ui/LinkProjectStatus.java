@@ -38,7 +38,7 @@ public class LinkProjectStatus {
 	private static void setStatus(final int status){
 		stack.push(new Integer(manager_status));
 		manager_status = status;
-		L.V = L.O ? false : LogManager.log("set project lock status : " + manager_status);
+		LogManager.log("set project lock status : " + manager_status);
 	}
 	
 	public static synchronized void exitStatus(){
@@ -46,7 +46,7 @@ public class LinkProjectStatus {
 		final Object pop = stack.pop();
 		if(pop != null){
 			manager_status = (Integer)pop;
-			L.V = L.O ? false : LogManager.log("return project lock status : " + manager_status + ", from : " + oldStatus);
+			LogManager.log("return project lock status : " + manager_status + ", from : " + oldStatus);
 		}
 	}
 	

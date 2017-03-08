@@ -142,18 +142,18 @@ class TrustAllManager implements TrustManager, X509TrustManager{
 	@Override
 	public void checkClientTrusted(final X509Certificate[] arg0, final String arg1)
 			throws CertificateException {
-//		L.V = L.O ? false : LogManager.log("TrustAllManager checkClientTrusted");
+//		LogManager.log("TrustAllManager checkClientTrusted");
 	}
 
 	@Override
 	public void checkServerTrusted(final X509Certificate[] chain, final String authType)
 			throws CertificateException {
-//		L.V = L.O ? false : LogManager.log("TrustAllManager checkServerTrusted");
+//		LogManager.log("TrustAllManager checkServerTrusted");
 	}
 
 	@Override
 	public X509Certificate[] getAcceptedIssuers() {
-//		L.V = L.O ? false : LogManager.log("TrustAllManager getAcceptedIssuers");
+//		LogManager.log("TrustAllManager getAcceptedIssuers");
 		return null;
 	}
 	

@@ -185,14 +185,14 @@ public class CacheStoreManager {
 				bs = rs.getRecord(idx + 1);
 				CacheDataItem item = new CacheDataItem(bs, CacheDataItem.STATUS_EXISTS);
 //				if(item.isEmpty){
-//					L.V = L.O ? false : LogManager.log(logicTableName + " recordID [" + idx + "] is empty!");
+//					LogManager.log(logicTableName + " recordID [" + idx + "] is empty!");
 //				}else{
-//					L.V = L.O ? false : LogManager.log(logicTableName + " recordID [" + idx + "] len : " + item.bs.length);
+//					LogManager.log(logicTableName + " recordID [" + idx + "] len : " + item.bs.length);
 //				}
 				v.addElement(item);
 			}
 			
-//			L.V = L.O ? false : LogManager.log(logicTableName + " total record num : " + totalProjNum);
+//			LogManager.log(logicTableName + " total record num : " + totalProjNum);
 		} catch (Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		} finally {

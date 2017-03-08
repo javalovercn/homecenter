@@ -275,7 +275,7 @@ public class WiFiHelper {
 										public void run() {
 											for (int i = 0; i < size; i++) {
 												final Device device = devs[i];
-												L.V = L.O ? false : LogManager.log("notifyNewWiFiAccount to [" + device.project_id + "/" + device.getName() + "].");
+												LogManager.log("notifyNewWiFiAccount to [" + device.project_id + "/" + device.getName() + "].");
 												if(HCURL.isUsingWiFiWPS){
 //													device.notifyNewWiFiAccount(wifiAccount);
 												}

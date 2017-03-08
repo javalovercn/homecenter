@@ -119,7 +119,7 @@ public class J2SEPlatformService implements PlatformService {
 	private final Vector<File> added3rdLibs = new Vector<File>();
 	
 	@Override
-	public synchronized ClassLoader get3rdClassLoader(final File[] files) {
+	public synchronized ClassLoader get3rdAndServClassLoader(final File[] files) {
 		if(files == null){
 		}else{
 			CCoreUtil.checkAccess();
@@ -339,12 +339,12 @@ public class J2SEPlatformService implements PlatformService {
 	public void addSystemLib(final File jardexFile, final boolean isReload){
 		if(added3rdLibs.contains(jardexFile)){
 			if(isReload == false){
-				L.V = L.O ? false : LogManager.log("jar lib is added to ClassLoader, skip loading. [" + jardexFile.getAbsolutePath() + "]");
+				LogManager.log("jar lib is added to ClassLoader, skip loading. [" + jardexFile.getAbsolutePath() + "]");
 			}
 			return;
 		}
 		
-		L.V = L.O ? false : LogManager.log("load jar lib : [" + jardexFile.getAbsolutePath() + "]");
+		LogManager.log("load jar lib : [" + jardexFile.getAbsolutePath() + "]");
 		
 		CCoreUtil.checkAccess();
 		

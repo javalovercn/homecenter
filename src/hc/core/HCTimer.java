@@ -66,7 +66,7 @@ public abstract class HCTimer {
 		CCoreUtil.checkAccess();
 		
 		if(L.isInWorkshop){
-			L.V = L.O ? false : LogManager.log("create HCTimer [" + name + "].");
+			LogManager.log("create HCTimer [" + name + "].");
 		}
 		
 		if(isNewThread == false){
@@ -85,7 +85,7 @@ public abstract class HCTimer {
 	public void setEnable(final boolean enable){
 		if(this.isEnable != enable){
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("HCTimer [" + name + "] setEnable : " + enable);
+				LogManager.log("HCTimer [" + name + "] setEnable : " + enable);
 			}
 			this.isEnable = enable;
 			if(enable){
@@ -105,7 +105,7 @@ public abstract class HCTimer {
 			}
 		}else{
 			if(isMinInternalWait){
-//				L.V = L.O ? false : LogManager.log("skip notify for min internal ms wait");
+//				LogManager.log("skip notify for min internal ms wait");
 				return;
 			}
 			synchronized (LOCK) {
@@ -178,7 +178,7 @@ public abstract class HCTimer {
 			while ((!isShutDown)) {
 				min_next_exec_mill_second = maxMS;
 				
-//				L.V = L.O ? false : LogManager.log("HCTimer Main sleep:" + min_wait_mill_second);
+//				LogManager.log("HCTimer Main sleep:" + min_wait_mill_second);
 				final long nowMS = System.currentTimeMillis();
 
 				synchronized(LOCK){
@@ -198,9 +198,9 @@ public abstract class HCTimer {
 							isMinInternalWait = true;
 						}
 						try {
-//							L.V = L.O ? false : LogManager.log("HCTimer wait ms : " + sleepMS);
+//							LogManager.log("HCTimer wait ms : " + sleepMS);
 							LOCK.wait(sleepMS);
-//							L.V = L.O ? false : LogManager.log("HCTimer break wait.");
+//							LogManager.log("HCTimer break wait.");
 						} catch (InterruptedException e) {
 						}
 						if(isMinMS){
@@ -245,7 +245,7 @@ public abstract class HCTimer {
 							}else{
 								nestAction.action(NestAction.HCTIMER, timer);
 							}
-//							hc.core.L.V=hc.core.L.O?false:LogManager.log("HCTimer[" + timer.name + "] exe cost: " + (System.currentTimeMillis() - curr));
+//							LogManager.log("HCTimer[" + timer.name + "] exe cost: " + (System.currentTimeMillis() - curr));
 		                }catch (final Throwable e) {
 		                	ExceptionReporter.printStackTrace(e);
 						}
@@ -254,7 +254,7 @@ public abstract class HCTimer {
 					}
             	}//while find executable timer
 			}//while isShutDown
-			hc.core.L.V=hc.core.L.O?false:LogManager.log("HCTimer shutdown");
+			LogManager.log("HCTimer shutdown");
 		}
 	};
 
@@ -321,7 +321,7 @@ public abstract class HCTimer {
 		
 		if(isFound){
 			if(L.isInWorkshop){
-				L.V = L.O ? false : LogManager.log("remove HCTimer [" + t.name + "]");
+				LogManager.log("remove HCTimer [" + t.name + "]");
 			}
 		}
 	}

@@ -3,6 +3,8 @@ package hc.server.ui.design;
 import hc.core.IWatcher;
 import hc.core.util.StringUtil;
 import hc.server.ui.HTMLMlet;
+import hc.server.ui.Mlet;
+import hc.server.ui.ProjectContext;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -33,13 +35,14 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		
 		setLayout(new BorderLayout(gapPixel, gapPixel));
 		
-		final int fontSizePX = okImage.getHeight();
+		final int fontSizePX = okImage.getHeight();//不能采用此作为check字号，iPhone下过大
+		final int areaFontSize = (int)(fontSizePX * 0.7);
 
 		final String accept = StringUtil.replace(acceptStr, "{iagree}", iagreeStr);
 		final JLabel label = new JLabel(accept);
 		final String labelDivStyle = "overflow:hidden;";
 		setCSSForDiv(label, null, labelDivStyle);
-		final String labelStyle = "display:block;vertical-align:middle;font-weight:bold;font-size:" + fontSizePX + "px;";
+		final String labelStyle = "display:block;vertical-align:middle;font-weight:bold;font-size:" + areaFontSize + "px;";
 		setCSS(label, null, labelStyle);
 		
 		final int labelHeight = (int)(fontSizePX * 1.4);
@@ -52,10 +55,10 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		
 		final JCheckBox acceptAllCheck = new JCheckBox(acceptAll);
 		setCSSForDiv(acceptAllCheck, null, labelDivStyle);
-		final String checkStyle = "vertical-align:middle;font-weight:bold;font-size:" + fontSizePX + "px;";
+		final String checkStyle = "vertical-align:middle;font-weight:bold;font-size:" + areaFontSize + "px;";
 		setCSS(acceptAllCheck, null, checkStyle);
-		final int checkBoxHeight = labelHeight - 4;
-		setCSSForToggle(acceptAllCheck, null, "width: " + checkBoxHeight + "px; height: " + checkBoxHeight + "px;");
+		final int checkBoxHeight = (int)(labelHeight * 0.8);
+		setCSSForToggle(acceptAllCheck, null, "vertical-align:middle;width: " + checkBoxHeight + "px; height: " + checkBoxHeight + "px;");
 		acceptAllCheck.setPreferredSize(new Dimension(mobileWidth, labelHeight));
 		acceptAllCheck.addActionListener(new ActionListener() {
 			@Override
@@ -82,19 +85,25 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
 		final int areaFontColor = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker().getRGB();
 		setCSS(area, null, "width:" + mobileWidth+ "px;height:" + areaHeight + "px;" +
-				"overflow-y:auto;font-size:" + (int)(fontSizePX * 0.7) + "px;" +
+				"overflow-y:auto;font-size:" + areaFontSize + "px;" +
 				"background-color:#" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.toHexColor(areaFontColor, false) + ";");
 		
 		final String buttonStyle = "text-align:center;vertical-align:middle;width:100%;height:100%;font-size:" + fontSizePX + "px;";
 		final JButton ok = new JButton(iagreeStr, new ImageIcon(okImage));
 		final JButton cancel = new JButton(cancelStr, new ImageIcon(cancelImage));
 
+		final ProjectContext ctx = getProjectContext();
 		ok.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				ok.setEnabled(false);
 				cancel.setEnabled(false);
-				acceptListener.watch();//由是否需要绑定，来决定back/goMlet
+				ctx.run(new Runnable() {
+					@Override
+					public void run() {
+						acceptListener.watch();//由是否需要绑定，来决定back/goMlet
+					}
+				});
 			}
 		});
 		setCSS(ok, null, buttonStyle);
@@ -114,5 +123,18 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		btnPanel.setPreferredSize(new Dimension(mobileWidth, buttonPanelHeight));
 		
 		add(btnPanel, BorderLayout.SOUTH);
+	}
+	
+	@Override
+	public void goMlet(final Mlet toMlet, final String targetOfMlet, final boolean isAutoReleaseCurrentMlet){
+		setAutoReleaseAfterGo(isAutoReleaseCurrentMlet);
+		super.goMlet(toMlet, targetOfMlet, isAutoReleaseCurrentMlet);
+	}
+	
+	@Override
+	public void back(){
+		if(isAutoReleaseAfterGo() == false){
+			super.back();
+		}
 	}
 }

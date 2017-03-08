@@ -31,7 +31,7 @@ public class MenuManager {
 	private static int newNodeIdx = 1;
 	
 	public static void setNextNodeIdx(final int idx){
-//		L.V = L.O ? false : LogManager.log("set Next Node Idx:" + idx);
+//		LogManager.log("set Next Node Idx:" + idx);
 		newNodeIdx = idx;
 	}
 	

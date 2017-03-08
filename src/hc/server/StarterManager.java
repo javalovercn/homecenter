@@ -1,6 +1,5 @@
 package hc.server;
 
-import hc.core.L;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
@@ -57,30 +56,30 @@ public class StarterManager {//注意：本类的getHCVersion被starter.jar反�
 						}
 						Thread.sleep(20 * 1000);
 						
-//						L.V = L.O ? false : LogManager.log("try set write permission to file " + STR_STARTER);
+//						LogManager.log("try set write permission to file " + STR_STARTER);
 
-						L.V = L.O ? false : LogManager.log("find new ver starter, try downloading...");
+						LogManager.log("find new ver starter, try downloading...");
 						
 						final File starterTmp = new File(ResourceUtil.getBaseDir(), STR_STARTER_TMP_UP);
 						
-						if(HttpUtil.download(starterTmp, new URL("http://homecenter.mobi/download/starter.jar"), 3)){
+						if(HttpUtil.download(starterTmp, new URL("http://homecenter.mobi/download/starter.jar"), 3, null)){
 							//检查签名
 							if(HCVerify.verifyJar(STR_STARTER_TMP_UP, HCVerify.getCert()) == false){
 								throw new Exception("fail verify new version starter.jar, maybe there is problem on net.");
 							}
 							
-							L.V = L.O ? false : LogManager.log("pass verify file " + STR_STARTER);
+							LogManager.log("pass verify file " + STR_STARTER);
 							//检查新版本
 							{
 								final URL url = starterTmp.toURI().toURL();  
-								L.V = L.O ? false : LogManager.log("new starter url:" + url.toString());
+								LogManager.log("new starter url:" + url.toString());
 								final URL[] urls = {url};  
 								final ClassLoader loader = new URLClassLoader(urls, null); //parent必须为null，否则会加载旧文件 
 								final Class myClass = loader.loadClass(CLASSNAME_STARTER_STARTER);  
 								final Method m = myClass.getDeclaredMethod(METHOD_GETVER, new Class[] { });
 								final String testVer = (String)m.invoke(null, new Object[]{});
 								if(testVer.equals(getNewStarterVersion())){
-									L.V = L.O ? false : LogManager.log("pass the right new version:" + getNewStarterVersion());
+									LogManager.log("pass the right new version:" + getNewStarterVersion());
 									
 									//考虑多用户使用及升级情形，所以允许全部writable
 									starterTmp.setWritable(true, false);	
@@ -90,7 +89,7 @@ public class StarterManager {//注意：本类的getHCVersion被starter.jar反�
 										starterFile.delete();
 										if(starterFile.exists()){
 											if(starterTmp.renameTo(starterFile)){
-												L.V = L.O ? false : LogManager.log("successful finish download and upgrade file " + STR_STARTER);
+												LogManager.log("successful finish download and upgrade file " + STR_STARTER);
 												return;
 											}
 											throw new Exception("fail to del old version " + STR_STARTER);
@@ -100,7 +99,7 @@ public class StarterManager {//注意：本类的getHCVersion被starter.jar反�
 											throw new Exception("fail to mv " + STR_STARTER_TMP_UP + " to " + STR_STARTER);
 										}
 										
-										L.V = L.O ? false : LogManager.log("successful finish download and upgrade file " + STR_STARTER);
+										LogManager.log("successful finish download and upgrade file " + STR_STARTER);
 										return ;	
 									}
 								}else{
@@ -128,7 +127,7 @@ public class StarterManager {//注意：本类的getHCVersion被starter.jar反�
 		
 		//客户端对服务器最低版本要求，在J2MEContext.miniHCServerVer
 		
-		return "7.41";//请同步修改go.php, android.php
+		return "7.42";//请同步修改go.php, android.php
 	}
 
 }

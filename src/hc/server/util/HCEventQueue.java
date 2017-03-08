@@ -144,7 +144,7 @@ public class HCEventQueue extends EventQueue {
 			thread.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 				@Override
 				public void uncaughtException(final Thread t, final Throwable e) {
-					L.V = L.O ? false : LogManager.log("This is UncaughtExceptionHandler for thread : " + t.getName() + ", Message : " + e.getMessage());
+					LogManager.log("This is UncaughtExceptionHandler for thread : " + t.getName() + ", Message : " + e.getMessage());
 				    ExceptionReporter.printStackTrace(e);
 				}
 			});

@@ -476,7 +476,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 									
 									final String hadmd5 = had.getProperty(HCjad.HAD_HAR_MD5, "");
 									ProcessingWindowManager.showCenterMessage("downloading...");
-									final boolean succ = HttpUtil.download(fileHar, new URL(strharurl), 3);
+									final boolean succ = HttpUtil.download(fileHar, new URL(strharurl), 3, ResourceUtil.getUserAgentForHAD());
 									if(succ == false){
 										ProcessingWindowManager.disposeProcessingWindow();
 										throw new Exception("http connection error");
@@ -892,7 +892,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 				final LinkProjectStore lps = LinkProjectManager.getProjByID(de_led.lps.getProjectID());
 				final File defaultFile = new File(ResourceUtil.getBaseDir(), LinkProjectManager.EDIT_HAR);
 				if(L.isInWorkshop){
-					L.V = L.O ? false : LogManager.log("shift project check default HAR : " + defaultFile.getAbsolutePath() + " exists : " + defaultFile.exists());
+					LogManager.log("shift project check default HAR : " + defaultFile.getAbsolutePath() + " exists : " + defaultFile.exists());
 				}
 				if(defaultFile.exists() == false){
 					//如果第一次是从ProjManager进入到设计器，防止初始加载缺省工程，所以要进行复制
@@ -1163,7 +1163,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 				final LinkProjectStore lps = led.lps;
 				if(led.status == LinkProjectManager.STATUS_NEW){
 					final File oldBackEditFile = delBackFileMap.get(lps.getProjectID());
-					final boolean result = AddHarHTMLMlet.addHarToDeployArea(led, lps, false, true, oldBackEditFile);
+					final boolean result = AddHarHTMLMlet.addHarToDeployArea(J2SESession.NULL_J2SESESSION_FOR_PROJECT, 
+							led, lps, false, true, oldBackEditFile);
 					isChanged = isChanged?true:result;
 				}else if(led.op == LinkProjectManager.STATUS_MODIFIED){
 					if(lps.isActive() == false){
@@ -1200,7 +1201,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 			
 			PropertiesManager.saveFile();
 			if(isChanged){
-//								L.V = L.O ? false : LogManager.log("restarting service...");
+//								LogManager.log("restarting service...");
 				//启动时，需要较长时间初始化，有可能用户快速打开并更新保存，所以加锁。
 				synchronized (ServerUIUtil.LOCK) {
 					if(ServerUIUtil.promptAndStop(true, self) == false){

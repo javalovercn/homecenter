@@ -165,7 +165,7 @@ public class KeyComper {
 			final J2SESession[] coreSSS = {coreSS};
 			ServerUIAPIAgent.sendMovingMsg(coreSSS, "keys : " + keysDesc);
 		}
-		L.V = L.O ? false : LogManager.log(ScreenCapturer.OP_STR + "action keys : " + keysDesc);
+		LogManager.log(ScreenCapturer.OP_STR + "action keys : " + keysDesc);
 	}
 
 	/**

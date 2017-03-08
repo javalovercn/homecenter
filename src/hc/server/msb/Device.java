@@ -151,7 +151,7 @@ public abstract class Device extends Processor{
 					.get(project_id);
 			if(hashMap == null){
 				//注意：以下不能用workbench.log
-				L.V = L.O ? false : LogManager.warning("{" + project_id + "/" + name + "} is never used, skip dispatch initiative message.");
+				LogManager.warning("{" + project_id + "/" + name + "} is never used, skip dispatch initiative message.");
 				return;
 			}
 			msg.ctrl_bind_ids = hashMap

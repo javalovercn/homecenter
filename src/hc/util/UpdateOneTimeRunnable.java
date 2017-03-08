@@ -1,17 +1,12 @@
 package hc.util;
 
-import hc.core.IContext;
 import hc.core.MsgBuilder;
-import hc.core.RootConfig;
 import hc.core.util.CCoreUtil;
 import hc.server.ui.J2SESessionManager;
 import hc.server.ui.design.J2SESession;
 import hc.server.util.ServerCUtil;
 
 public class UpdateOneTimeRunnable implements Runnable{
-	private static final int SLEEP_INTERNAL_MS = 50;
-	public boolean isStopRunning = false;
-	byte[] oneTime = new byte[CCoreUtil.CERT_KEY_LEN];
 	final J2SESession j2seCoreSS;
 	
 	public UpdateOneTimeRunnable(final J2SESession ss){
@@ -20,76 +15,63 @@ public class UpdateOneTimeRunnable implements Runnable{
 	
 	@Override
 	public void run() {
-		long waitMSTotal;
 		final int isLineOff = 1000 * 4;
-		final IContext contextInstance = j2seCoreSS.context;
-		int updateMinMinutes = RootConfig.getInstance().getIntProperty(RootConfig.p_UpdateOneTimeMinMinutes);
 		
-		if(updateMinMinutes <= 0 || updateMinMinutes > 20){
-			updateMinMinutes = 20;
+		if(j2seCoreSS.hcConnection.updateMinMinutes <= 0 || j2seCoreSS.hcConnection.updateMinMinutes > 20){
+			j2seCoreSS.hcConnection.updateMinMinutes = 20;
 		}
 		
 		while(true){
-			//等待收到应答
-			waitMSTotal = 0;
-
 			try{
-				Thread.sleep(1000 * 60 * updateMinMinutes);
+				Thread.sleep(1000 * 60 * j2seCoreSS.hcConnection.updateMinMinutes);
 			}catch (final Exception e) {
 			}
-			if(isStopRunning){
+			if(j2seCoreSS.hcConnection.isStopRunning){
 				break;
 			}
 			
 //			if(IOSBackgroundManager.isIOSForBackgroundCond()){
 //				if(.ServerUIAPIAgent.getMobileAgent(.isBackground()){
-//					L.V = L.O ? false : LogManager.log("skip trans one time for iOS in background mode.");
+//					LogManager.log("skip trans one time for iOS in background mode.");
 //					continue;
 //				}
 //			}
 
-			final Object outStreamLock = contextInstance.getOutputStreamLockObject();
+			final Object outStreamLock = j2seCoreSS.hcConnection.getOutputStream();
 			if(outStreamLock == null){
 				continue;
 			}
 			
+			CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), j2seCoreSS.hcConnection.oneTime, 0, CCoreUtil.CERT_KEY_LEN);
+//			LogManager.log("OneTime:" + CUtil.toHexString(CUtil.OneTimeCertKey));
 			
-			j2seCoreSS.isReceivedOneTimeInSecuChannalFromMobile = false;
-			
-			CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), oneTime, 0, CCoreUtil.CERT_KEY_LEN);
-//			L.V = L.O ? false : LogManager.log("OneTime:" + CUtil.toHexString(CUtil.OneTimeCertKey));
-			
-//			L.V = L.O ? false : LogManager.log("transport new one time certification key to client");
-			synchronized (outStreamLock) {
-				ServerCUtil.transCertKey(j2seCoreSS.context, oneTime, MsgBuilder.E_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL, true);
+//			LogManager.log("transport new one time certification key to client");
+			synchronized (j2seCoreSS.context.sendLock) {
+				j2seCoreSS.hcConnection.isReceivedOneTimeInSecuChannalFromMobile = false;
+
+				ServerCUtil.transCertKey(j2seCoreSS, j2seCoreSS.hcConnection.oneTime, MsgBuilder.E_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL, true);
 				
-				//waitMSTotal清零在while
-				while(j2seCoreSS.isReceivedOneTimeInSecuChannalFromMobile == false){
-					try{
-						Thread.sleep(SLEEP_INTERNAL_MS);
-						waitMSTotal += SLEEP_INTERNAL_MS;
-					}catch (final Exception e) {
+				synchronized (j2seCoreSS.hcConnection.oneTimeReceiveNotifyLock) {
+					try {
+						j2seCoreSS.hcConnection.oneTimeReceiveNotifyLock.wait(isLineOff);
+					} catch (final InterruptedException e) {
+						e.printStackTrace();
 					}
-					
-					if(waitMSTotal > isLineOff){
-						//进行断线处理
-						isStopRunning = true;
-					}
-					
-					if(isStopRunning){
-						break;
-					}
+				}
+				
+				if(j2seCoreSS.hcConnection.isReceivedOneTimeInSecuChannalFromMobile == false){
+					j2seCoreSS.hcConnection.isStopRunning = true;
 				}
 				
 			}//end synchronized
 			
-			if(isStopRunning){
+			if(j2seCoreSS.hcConnection.isStopRunning){
 				break;
 			}
 		}//end while(true)
 			
-		if(waitMSTotal > isLineOff){
-//			L.V = L.O ? false : LogManager.log("timeout for ReceivedOneTimeInSecuChannalFromMobile");
+		if(j2seCoreSS.hcConnection.isReceivedOneTimeInSecuChannalFromMobile == false){
+//			LogManager.log("timeout for ReceivedOneTimeInSecuChannalFromMobile");
 			J2SESessionManager.stopSession(j2seCoreSS, true, true, false);
 		}
 		
