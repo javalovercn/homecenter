@@ -11,7 +11,6 @@ import hc.res.ImageSrc;
 import hc.server.DisposeListener;
 import hc.server.HCActionListener;
 import hc.server.SingleJFrame;
-import hc.server.data.screen.ScreenCapturer;
 import hc.server.util.HCJFrame;
 import hc.server.util.ServerCUtil;
 import hc.util.ResourceUtil;
@@ -67,7 +66,7 @@ public class LogViewer extends HCJFrame {
 
 	private void highlightErrAndOpration(final JTextArea jta){
 		buildHighlight(jta, ILog.ERR, ERROR_LIGHTER);
-		buildHighlight(jta, ScreenCapturer.OP_STR, OP_LIGHTER);
+		buildHighlight(jta, ILog.OP_STR, OP_LIGHTER);
 	}
 	private void buildHighlight(final JTextArea jta, final String patternStr, final HighlightPainter lighter) {
 		final Pattern pattern = Pattern.compile(patternStr);

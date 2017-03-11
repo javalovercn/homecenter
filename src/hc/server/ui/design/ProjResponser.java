@@ -13,6 +13,7 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLCacher;
 import hc.core.util.HCURLUtil;
+import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.core.util.MobileAgent;
 import hc.core.util.RecycleRes;
@@ -26,11 +27,11 @@ import hc.server.CallContext;
 import hc.server.HCJRubyException;
 import hc.server.MultiUsingManager;
 import hc.server.ScreenServer;
-import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.Converter;
 import hc.server.msb.Device;
 import hc.server.msb.MSBAgent;
 import hc.server.msb.Robot;
+import hc.server.msb.RobotWrapper;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.msb.WorkingDeviceList;
 import hc.server.ui.CtrlResponse;
@@ -72,6 +73,7 @@ public class ProjResponser {
 	final String lpsLinkName;
 	public final ProjectContext context;
 	Robot[] robots;
+	RobotWrapper[] robotWrappers;
 	Device[] devices;
 	Converter[] converters;
 	final MobiUIResponsor mobiResp;
@@ -267,6 +269,46 @@ public class ProjResponser {
 			devices[itemIdx] = (Device)device;
 		}
 		return devices;
+	}
+	
+	public final Robot getRobotWrapper(final String name) {
+		Object robotWraps = null;
+		try{
+			robotWraps = getRobotWrappers();
+		}catch (final Throwable e) {
+		}
+		
+		if (robotWraps != null) {
+			final String nameLower = name.toLowerCase();
+			final int len = robots.length;
+			for (int j = 0; j < len; j++) {
+				final Robot robot = robots[j];
+				if (nameLower.equals(MSBAgent.getNameLower(robot))) {
+					return robotWrappers[j];
+				}
+			}
+		}
+		
+		LogManager.errToLog("no Robot [" + name + "] in project [" + projectID + "].");
+		return null;
+	}
+	
+	public final Robot[] getRobotWrappers() throws Exception{
+		if(robotWrappers != null){
+			return robotWrappers;
+		}
+		
+		final Robot[] rs = getRobots();
+		if(rs != null){
+			final int size = rs.length;
+			
+			robotWrappers = new RobotWrapper[size];
+			for (int i = 0; i < size; i++) {
+				robotWrappers[i] = new RobotWrapper(rs[i]);
+			}
+		}
+		
+		return robotWrappers;
 	}
 	
 	public final Robot[] getRobots() throws Exception{
@@ -588,7 +630,7 @@ public class ProjResponser {
 		final MenuItem item = coreSS.searchMenuItem(projectID, oriURLLower, aliasLowerURL);
 		if(item != null){
 			if(log){
-				LogManager.log(ScreenCapturer.OP_STR + "click/go item : [" + ServerUIAPIAgent.getMobiMenuItem_Name(item) + "]");
+				LogManager.log(ILog.OP_STR + "click/go item : [" + ServerUIAPIAgent.getMobiMenuItem_Name(item) + "]");
 			}
 		}
 		return item;
@@ -660,7 +702,7 @@ public class ProjResponser {
 //			}
 			if(jarMainMenu != null && elementID.equals(jarMainMenu.menuId)){
 				final JarMainMenu currMainMenu = jarMainMenu;
-				LogManager.log(ScreenCapturer.OP_STR + "open menu : [" + currMainMenu.getTitle(coreSS) + "]");
+				LogManager.log(ILog.OP_STR + "open menu : [" + currMainMenu.getTitle(coreSS) + "]");
 				
 				ServerUIUtil.transMenuWithCache(coreSS, currMainMenu.buildJcip(coreSS), projectID);//elementID
 				

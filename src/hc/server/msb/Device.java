@@ -70,7 +70,7 @@ public abstract class Device extends Processor{
 	 * @return
 	 * @since 7.0
 	 */
-	public final ProjectContext getProjectContext(){
+	public ProjectContext getProjectContext(){
 		return __context;
 	}
 	
@@ -93,7 +93,7 @@ public abstract class Device extends Processor{
 			connectedDevices = connect();//in user thread group
 		}finally{
 			if(isUseCmdGroup){
-				final SessionContext sessionContext = ServerUIAPIAgent.getProjResponserMaybeNull(getProjectContext()).getSessionContextFromCurrThread();
+				final SessionContext sessionContext = ServerUIAPIAgent.getProjResponserMaybeNull(__context).getSessionContextFromCurrThread();
 				if(sessionContext == null || sessionContext.j2seSocketSession == null){
 					if(L.isInWorkshop){
 						LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
@@ -126,7 +126,7 @@ public abstract class Device extends Processor{
 	 * <br>The message may be converted by {@link Converter} or not depends on binding (after active current project).
 	 * @return a free {@link Message}
 	 */
-	protected final Message getFreeMessage(final String from_dev_id) {//不能去掉，因为生成API时，由于没有附加生成Processor
+	protected Message getFreeMessage(final String from_dev_id) {//不能去掉，因为生成API时，由于没有附加生成Processor
 		return super.getFreeMessageInProc(from_dev_id);
 	}
 
@@ -141,7 +141,7 @@ public abstract class Device extends Processor{
 	 * @see Robot#dispatch(Message, boolean)
 	 * @since 7.0
 	 */
-	protected final void dispatch(final Message msg, final boolean isInitiative){
+	protected void dispatch(final Message msg, final boolean isInitiative){
 		msg.ctrl_isInitiative = isInitiative;
 		
 		if(isInitiative){
@@ -368,7 +368,7 @@ public abstract class Device extends Processor{
 	 * @see #reportStatus(boolean, int, String)
 	 * @since 7.0
 	 */
-	public final void error(final String logMessage){
+	public void error(final String logMessage){
 		__context.error(logMessage);
 	}
 	
@@ -379,7 +379,7 @@ public abstract class Device extends Processor{
 	 * @see #reportStatus(boolean, int, String)
 	 * @since 7.0
 	 */
-	public final void log(final String msg){
+	public void log(final String msg){
 		__context.log(msg);
 	}
 	
@@ -410,7 +410,7 @@ public abstract class Device extends Processor{
 	 * @param message the description of status message, the project name and device name is not required.
 	 * @since 7.0
 	 */
-	public final void reportStatus(final boolean isOK, final int statusCode, final String message){
+	public void reportStatus(final boolean isOK, final int statusCode, final String message){
 		if(isOK){
 			if(message == null || message.length() == 0){
 				final String okmessage = "device [" + project_id + "/" + name + "] is OK";
@@ -470,7 +470,7 @@ public abstract class Device extends Processor{
 	 * @since 7.3
 	 */
 	@Override
-	public final String getIoTDesc(){
+	public String getIoTDesc(){
 		return this.classSimpleName + super.getIoTDesc();
 	}
 	

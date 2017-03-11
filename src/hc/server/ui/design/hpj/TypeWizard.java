@@ -112,10 +112,10 @@ public class TypeWizard {
 				HPNode.TYPE_MENU_ITEM_IOT};
 		final String[] icons = {"form_22.png", "controller_22.png", "cmd_22.png", "screen_22.png", "iot_22.png"};
 		final String desc = "<html>" +
-				"<STRONG>FORM</STRONG> : Mlet/HTMLMlet contains J2SE Swing JComponents.<BR><BR>" +
-				"<STRONG>CONTROLLER</STRONG> : simulate a controller of smart device on mobile.<BR><BR>" +
-				"<STRONG>CMD</STRONG> : run JRuby script or executable command on server; or enter configration form of mobile; or exit/back current project.<BR><BR>" +
-				"<STRONG>SCREEN</STRONG> : display desktop of current server on mobile.<BR><BR>" +
+				"<STRONG>form</STRONG> : Mlet/HTMLMlet contains J2SE Swing JComponents.<BR><BR>" +
+				"<STRONG>controller</STRONG> : a controller of smart device on mobile.<BR><BR>" +
+				"<STRONG>cmd</STRONG> : run JRuby script or executable command on server; or enter configration form of mobile; or exit/back menu item.<BR><BR>" +
+				"<STRONG>screen</STRONG> : display desktop of current server on mobile.<BR><BR>" +
 				"<STRONG>IoT</STRONG> : device, converter, or robot (coordinate zero or multiple devices) for IoT." +
 				"</html>";
 		

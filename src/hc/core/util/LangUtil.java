@@ -108,12 +108,18 @@ public class LangUtil {
 	 * @param compareLocale
 	 * @return
 	 */
-	public static boolean isSameLocale(final String locale, final String compareLocale, final boolean isMaybeEqualLang){
+	public static boolean isSameLang(final String locale, final String compareLocale, final boolean isMaybeEqualLang){
 		if(locale.equals(compareLocale)){
 			return true;
 		}
 		
 		final int lastSplitIdx = locale.lastIndexOf(LOCALE_SPLIT_CHAR);
+		final int lastCompareSplitIdx = compareLocale.lastIndexOf(LOCALE_SPLIT_CHAR);
+
+		if(lastSplitIdx > lastCompareSplitIdx){
+			return isSameLang(compareLocale, locale, isMaybeEqualLang);
+		}
+		
 		if(lastSplitIdx >= 0){
 			final String[] cmpParts = StringUtil.splitToArray(compareLocale, LOCALE_SPLIT);
 			
@@ -123,18 +129,78 @@ public class LangUtil {
 				
 				for (int i = 0; i < equalLocale.length; i++) {
 					if(part0.equals(equalLocale[i])){
-						return isSameLocale(buildEqualLocale(parts, equalLocaleTo[i]), compareLocale, false);
+						return isSameLang(buildEqualLocale(parts, equalLocaleTo[i]), compareLocale, false);
 					}
 				}
 				for (int i = 0; i < equalLocaleTo.length; i++) {
 					if(part0.equals(equalLocaleTo[i])){
-						return isSameLocale(buildEqualLocale(parts, equalLocale[i]), compareLocale, false);
+						return isSameLang(buildEqualLocale(parts, equalLocale[i]), compareLocale, false);
 					}
 				}
 			}
 			
 			if(cmpParts.length == 3){//zh-Hans-CN => zh-CN
-				return isSameLocale(locale, cmpParts[0] + LOCALE_SPLIT + cmpParts[2], false);
+				final String oneTwo = cmpParts[0] + LangUtil.LOCALE_SPLIT + cmpParts[1];
+				if(locale.equals(oneTwo)){
+					return true;
+				}
+				
+				for (int i = 0; i < oneTwoEquals.length; i++) {
+					if(oneTwo.equals(oneTwoEquals[i])){
+						if(locale.equals(oneThreeEquals[i])){
+							return true;
+						}
+					}
+				}
+				
+				for (int i = 0; i < oneTwoEquals.length; i++) {
+					if(locale.equals(oneTwoEquals[i])){
+						if(oneTwo.equals(oneThreeEquals[i])){
+							return true;
+						}
+					}
+				}
+				
+				final String oneThree = cmpParts[0] + LangUtil.LOCALE_SPLIT + cmpParts[2];
+				if(locale.equals(oneThree)){
+					return true;
+				}
+				
+				for (int i = 0; i < oneThreeEquals.length; i++) {
+					if(oneThree.equals(oneThreeEquals[i])){
+						if(locale.equals(oneTwoEquals[i])){
+							return true;
+						}
+					}
+				}
+				
+				for (int i = 0; i < oneThreeEquals.length; i++) {
+					if(locale.equals(oneThreeEquals[i])){
+						if(oneThree.equals(oneTwoEquals[i])){
+							return true;
+						}
+					}
+				}
+				
+				if (isSameLang(oneTwo, compareLocale, false) == false){
+					return isSameLang(oneThree, compareLocale, false);
+				}
+			}else if(cmpParts.length == 2){//zh-CN => zh
+				for (int i = 0; i < oneTwoEquals.length; i++) {
+					if(locale.equals(oneTwoEquals[i])){
+						if(compareLocale.equals(oneThreeEquals[i])){
+							return true;
+						}
+					}
+				}
+				
+				for (int i = 0; i < oneThreeEquals.length; i++) {
+					if(locale.equals(oneThreeEquals[i])){
+						if(compareLocale.equals(oneTwoEquals[i])){
+							return true;
+						}
+					}
+				}
 			}
 			
 			//不需两段转一段，因locale是两段
@@ -142,25 +208,24 @@ public class LangUtil {
 			if(isMaybeEqualLang){
 				for (int i = 0; i < equalLocale.length; i++) {
 					if(locale.equals(equalLocale[i])){
-						return isSameLocale(equalLocaleTo[i], compareLocale, false);
+						return isSameLang(equalLocaleTo[i], compareLocale, false);
 					}
 				}
 				
 				for (int i = 0; i < equalLocaleTo.length; i++) {
 					if(locale.equals(equalLocaleTo[i])){
-						return isSameLocale(equalLocale[i], compareLocale, false);
+						return isSameLang(equalLocale[i], compareLocale, false);
 					}
 				}
 			}
 			
 			//en ~ en-US
-			final int lastCompareSplitIdx = compareLocale.lastIndexOf(LOCALE_SPLIT_CHAR);
 			if(lastCompareSplitIdx >= 0){
 				final String[] cmpParts = StringUtil.splitToArray(compareLocale, LOCALE_SPLIT);
 				if(cmpParts.length == 3){//zh-Hans-CN => zh-CN
-					return isSameLocale(locale, cmpParts[0] + LOCALE_SPLIT + cmpParts[2], false);
+					return isSameLang(locale, cmpParts[0] + LOCALE_SPLIT + cmpParts[2], false);
 				}else if(cmpParts.length == 2){//zh-CN => zh
-					return isSameLocale(locale, cmpParts[0], false);
+					return isSameLang(locale, cmpParts[0], false);
 				}
 			}
 		}
@@ -184,4 +249,18 @@ public class LangUtil {
 		StringBufferCacher.cycle(sb);
 		return out;
 	}
+
+	public static String toShortZh(String userLang) {
+	    final String lowercase = userLang.toLowerCase();
+		if (lowercase.startsWith("zh-hans")) {
+			userLang = "zh-CN";
+	    }else if(lowercase.startsWith("zh-hant")){
+	    	userLang = "zh-TW";
+	    }
+	
+		return userLang;
+	}
+
+	public final static String[] oneThreeEquals = {"zh-CN", "zh-TW"};
+	public final static String[] oneTwoEquals = {"zh-Hans", "zh-Hant"};
 }

@@ -231,6 +231,10 @@ public class SessionMobiMenu extends MobiMenu{
 		for (int j = 0; j < size; j++) {
 			final MenuItem item = from.elementAt(j);
 			
+			if(item.itemType == JarMainMenu.FOLD_TYPE){//不能找folder
+				continue;
+			}
+			
 			if(item.itemURL == HCURL.URL_CMD_VOICE_COMMAND){//不能找自己
 				continue;
 			}

@@ -4,9 +4,9 @@ import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
+import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.server.data.screen.PNGCapturer;
-import hc.server.data.screen.ScreenCapturer;
 import hc.server.html5.syn.MletHtmlCanvas;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.DialogHTMLMlet;
@@ -239,7 +239,7 @@ public class ScreenServer {
 		synchronized (coreSS) {
 			if(coreSS.currScreen != null){
 				try{
-					LogManager.log(ScreenCapturer.OP_STR + "back / exit");
+					LogManager.log(ILog.OP_STR + "back / exit");
 					if(L.isInWorkshop){
 						LogManager.log("back / exit [" + coreSS.currScreen + "]");
 					}

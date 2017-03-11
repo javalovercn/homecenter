@@ -46,19 +46,24 @@ public class HPNode {
 	public static final int TYPE_MENU_ITEM_CFG = 7 | MASK_MENU_ITEM;
 	public static final int WIZARD_SELECTABLE_MENU_ITEM_SIZE = 5;
 
+	/**
+	 * 用作展示，所以小写
+	 * @param type
+	 * @return
+	 */
 	public static String getTypeDesc(final int type) {
 		if(type == TYPE_MENU_ITEM_CMD){
-			return "CMD";
+			return "cmd";
 		}else if(type == TYPE_MENU_ITEM_SCREEN){
-			return "SCREEN";
+			return "screen";
 		}else if(type == TYPE_MENU_ITEM_CONTROLLER){
-			return "CONTROLLER";
+			return "controller";
 		}else if(type == TYPE_MENU_ITEM_FORM){
-			return "FORM";
+			return "form";
 		}else if(type == TYPE_MENU_ITEM_SUB_MENU){
-			return "MENU";
+			return "menu";
 		}else if(type == TYPE_MENU_ITEM_CFG){
-			return "CFG";
+			return "cfg";
 		}else if(type == TYPE_MENU_ITEM_IOT){
 			return "IoT";
 		}else{

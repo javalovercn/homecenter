@@ -14,6 +14,7 @@ import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.IHCURLAction;
+import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.core.util.RecycleRes;
 import hc.core.util.StringUtil;
@@ -115,7 +116,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 							final int x = Integer.parseInt(url.getValueofPara("x"));
 							final int y = Integer.parseInt(url.getValueofPara("y"));
 
-							LogManager.log(ScreenCapturer.OP_STR + "Ctrl + mouse left click at (" + x + ", " + y + ")");
+							LogManager.log(ILog.OP_STR + "Ctrl + mouse left click at (" + x + ", " + y + ")");
 							
 							doClickAt(url, ResourceUtil.getAbstractCtrlKeyCode(), x, y);
 							return true;
@@ -123,7 +124,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 							final int x = Integer.parseInt(url.getValueofPara("x"));
 							final int y = Integer.parseInt(url.getValueofPara("y"));
 
-							LogManager.log(ScreenCapturer.OP_STR + "Shift + mouse left click at (" + x + ", " + y + ")");
+							LogManager.log(ILog.OP_STR + "Shift + mouse left click at (" + x + ", " + y + ")");
 							
 							doClickAt(url, KeyEvent.VK_SHIFT, x, y);
 							return true;
@@ -183,9 +184,15 @@ public class J2SEServerURLAction implements IHCURLAction {
 					final VoiceCommand vc = new VoiceCommand(voiceCommands);
 					final MenuItem out = j2seCoreSS.searchMenuItemByVoiceCommand(vc);
 					if(out != null){
-						final String itemURL = ServerUIAPIAgent.getMobiMenuItem_URL(out);
-						LogManager.log("execute [" + itemURL + "] by voice command [" + voiceCommands + "].");
-						ServerUIAPIAgent.goInSysThread(j2seCoreSS, out.belongToMenu.resp.context, itemURL);
+						if(out.isEnabled()){
+							final String itemURL = ServerUIAPIAgent.getMobiMenuItem_URL(out);
+							LogManager.log(ILog.OP_STR + "execute [" + itemURL + "] by voice command [" + voiceCommands + "].");
+							ServerUIAPIAgent.goInSysThread(j2seCoreSS, out.belongToMenu.resp.context, itemURL);
+						}else{
+							final String msg = "[" + voiceCommands + "] : " + ((String)ResourceUtil.get(9247));
+							ServerUIAPIAgent.sendOneMovingMsg(j2seCoreSS, msg);
+							LogManager.log(ILog.OP_STR + "voice command " + msg);
+						}
 					}else{
 						ServerUIAPIAgent.sendOneMovingMsg(coreSS, StringUtil.replace((String)ResourceUtil.get(coreSS, 9245), "{voice}", voiceCommands));
 					}

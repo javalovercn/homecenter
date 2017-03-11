@@ -9,6 +9,7 @@ import hc.core.RootConfig;
 import hc.core.data.DataInputEvent;
 import hc.core.data.DataPNG;
 import hc.core.sip.SIPManager;
+import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.core.util.MobileAgent;
 import hc.core.util.StringUtil;
@@ -74,8 +75,6 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	
 	final Rectangle blockCapRect = new Rectangle();
 
-	public static String OP_STR = " OP ";
-	
 	final int[] clientSnap;
 //	final boolean isScreenCap;
 	final int PNG_STORE_BS_START_IDX = MsgBuilder.INDEX_MSG_DATA + DataPNG.HEAD_LENGTH;
@@ -157,7 +156,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	
 	protected void enableStopCap(final boolean sc){
 		//多次调用，也只出现一次
-		LogManager.log(OP_STR + ((!isStopCap && sc)?"pause":"resume") + " Screen [" + title + "]");
+		LogManager.log(ILog.OP_STR + ((!isStopCap && sc)?"pause":"resume") + " Screen [" + title + "]");
 		
 		synchronized (WAITING) {
 			this.isStopCap = sc;

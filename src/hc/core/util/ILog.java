@@ -4,6 +4,7 @@ package hc.core.util;
 public interface ILog {
 	public static final String ERR = " ERR : ";
 	public static final String WARNING = " Warning : ";
+	public static final String OP_STR = " OP ";
 	
 	public void log(String msg);
 	

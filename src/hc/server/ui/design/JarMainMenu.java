@@ -3,9 +3,9 @@ package hc.server.ui.design;
 import hc.core.L;
 import hc.core.sip.SIPManager;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.server.data.screen.PNGCapturer;
-import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.HCByteArrayOutputStream;
 import hc.server.ui.ICanvas;
@@ -301,7 +301,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 		if(isRoot){
 			//当前是root
 		}else{
-			LogManager.log(ScreenCapturer.OP_STR + "exit/back menu [" + linkOrProjectName + "]");
+			LogManager.log(ILog.OP_STR + "exit/back menu [" + linkOrProjectName + "]");
 //			LogManager.log(ScreenCapturer.OP_STR + "exit/back project : [" + projectID + "]");//可能引起退出工程岐义
 			
 			baseRe.enterContext((J2SESession)SessionThread.getWithCheckSecurityX(), baseRe.findRootContextID());

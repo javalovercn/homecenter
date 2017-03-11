@@ -2,6 +2,7 @@ package hc.server.data.screen;
 
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
@@ -165,7 +166,7 @@ public class KeyComper {
 			final J2SESession[] coreSSS = {coreSS};
 			ServerUIAPIAgent.sendMovingMsg(coreSSS, "keys : " + keysDesc);
 		}
-		LogManager.log(ScreenCapturer.OP_STR + "action keys : " + keysDesc);
+		LogManager.log(ILog.OP_STR + "action keys : " + keysDesc);
 	}
 
 	/**

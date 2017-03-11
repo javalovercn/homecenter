@@ -46,16 +46,16 @@ public abstract class Robot extends Processor{
 	@Deprecated
 	public Robot(){
 		super("", Workbench.TYPE_ROBOT_PROC);
-		resp = ServerUIAPIAgent.getProjResponserMaybeNull(getProjectContext());
+		resp = ServerUIAPIAgent.getProjResponserMaybeNull(__context);//getProjectContext()
 	}
 	
 	/**
 	 * get a {@link Message} from recycling pool.
-	 * <br><BR>The message may be converted by {@link Converter} or not depends on binding.
+	 * <br><BR>The message will be converted by {@link Converter} or not depends on binding.
 	 * @param ref_dev_id the <i>Reference Device ID</i> which the message is dispatched to. 
 	 * @return 
 	 */
-	protected final Message getFreeMessage(final String ref_dev_id) {//不能去掉，因为生成API时，由于没有附加生成Processor
+	protected Message getFreeMessage(final String ref_dev_id) {//不能去掉，因为生成API时，由于没有附加生成Processor
 		return super.getFreeMessageInProc(ref_dev_id);
 	}
 	
@@ -101,7 +101,7 @@ public abstract class Robot extends Processor{
 	 * @return 
 	 * @since 7.0
 	 */
-	public final ProjectContext getProjectContext(){
+	public ProjectContext getProjectContext(){
 		return __context;
 	}
 	
@@ -120,7 +120,7 @@ public abstract class Robot extends Processor{
 	 * @see Device#dispatch(Message, boolean)
 	 * @since 7.0
 	 */
-	protected final void dispatch(final Message msg, final boolean isInitiative){
+	protected void dispatch(final Message msg, final boolean isInitiative){
 		msg.ctrl_bind_id = DeviceBindInfo.buildStandardBindID(project_id, name, msg.ctrl_dev_id);
 		msg.ctrl_isInitiative = isInitiative;
 		
@@ -146,7 +146,7 @@ public abstract class Robot extends Processor{
 	 * @see #dispatch(Message, boolean)
 	 * @since 7.0
 	 */
-	protected final Message waitFor(final Message msg, final long timeout){
+	protected Message waitFor(final Message msg, final long timeout){
 		msg.ctrl_bind_id = DeviceBindInfo.buildStandardBindID(project_id, name, msg.ctrl_dev_id);
 		return workbench.waitFor(msg, timeout, true, procType, this);
 	}
@@ -178,7 +178,7 @@ public abstract class Robot extends Processor{
 	 * @since 7.3
 	 */
 	@Override
-	public final String getIoTDesc(){
+	public String getIoTDesc(){
 		return this.classSimpleName + super.getIoTDesc();
 	}
 	
@@ -202,7 +202,7 @@ public abstract class Robot extends Processor{
 	 * @see ProjectContext#isCurrentThreadInSessionLevel()
 	 * @since 7.0
 	 */
-	public final void addRobotListener(final RobotListener listener){
+	public void addRobotListener(final RobotListener listener){
 		if(listener == null){
 			return;
 		}
@@ -245,7 +245,7 @@ public abstract class Robot extends Processor{
 	 * @see ProjectContext#isCurrentThreadInSessionLevel()
 	 * @since 7.0
 	 */
-	public final boolean removeRobotListener(final RobotListener listener){
+	public boolean removeRobotListener(final RobotListener listener){
 		final ProjectContext projectContext = getProjectContext();
 		if(SimuMobile.checkSimuProjectContext(projectContext)){
 			return true;
@@ -290,7 +290,7 @@ public abstract class Robot extends Processor{
 	 * @see #removeRobotListener(RobotListener)
 	 * @since 7.0
 	 */
-	protected final RobotEvent buildRobotEvent(final String propertyName, final Object oldValue, final Object newValue){
+	protected RobotEvent buildRobotEvent(final String propertyName, final Object oldValue, final Object newValue){
 		final RobotEvent re = RobotEventPool.instance.getFreeRobotEvent();
 		re.source = this;
 		
@@ -316,7 +316,7 @@ public abstract class Robot extends Processor{
 	 * @see #buildRobotEvent(String, Object, Object)
 	 * @since 7.0
 	 */
-	protected final void dispatchRobotEvent(final RobotEvent event) {
+	protected void dispatchRobotEvent(final RobotEvent event) {
 		if(event == null){
 			return;
 		}

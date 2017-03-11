@@ -1,6 +1,5 @@
 package hc.server.msb;
 
-import hc.core.L;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.server.ui.ProjectContext;

@@ -50,7 +50,7 @@ public abstract class Converter {
 	 * @return
 	 * @since 7.0
 	 */
-	public final ProjectContext getProjectContext(){
+	public ProjectContext getProjectContext(){
 		return __context;
 	}
 	
@@ -138,7 +138,7 @@ public abstract class Converter {
 	 * @return
 	 * @since 7.3
 	 */
-	public final String getIoTDesc(){
+	public String getIoTDesc(){
 		return this.classSimpleName + Processor.buildDesc(__name, __context);
 	}
 }

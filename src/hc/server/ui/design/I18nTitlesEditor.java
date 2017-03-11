@@ -129,7 +129,7 @@ public class I18nTitlesEditor extends JPanel{
 		editPanel.add(new JLabel(COUNTRY + " :"));
 		editPanel.add(jcbCountry);
 		editPanel.add(new JLabel(VALUE + " :"));
-		valueField = new JTextField("", 10);
+		valueField = new JTextField("", 6);
 		editPanel.add(valueField);
 		addBtn = new JButton((String)ResourceUtil.get(9016) + "/" + (String)ResourceUtil.get(9017), new ImageIcon(ImageSrc.ADD_SMALL_ICON));
 		editPanel.add(addBtn);
@@ -138,8 +138,8 @@ public class I18nTitlesEditor extends JPanel{
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				final String lang = (String)jcbLanguage.getSelectedItem();
-				if(lang.length() < 2 || lang.length() > 3){
-					App.showMessageDialog(Designer.getInstance(), "language must be two or three letters!", "Error", App.ERROR_MESSAGE);
+				if(lang.length() < 2){
+					App.showMessageDialog(Designer.getInstance(), "language must be two or more letters!", "Error", App.ERROR_MESSAGE);
 					return;
 				}
 				
@@ -165,7 +165,7 @@ public class I18nTitlesEditor extends JPanel{
 					return;
 				}
 				
-				final String key = lang.toLowerCase() + ((country.length() == 0)?"":(SPLIT_LANG_COUNTRY + country.toUpperCase()));
+				final String key = lang + ((country.length() == 0)?"":(SPLIT_LANG_COUNTRY + country.toUpperCase()));
 				addKeyValuePare(key, valueText);
 				refreshTableUI();
 			}

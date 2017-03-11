@@ -111,7 +111,7 @@ public class ResourceUtil {
 	}
 	
 	/**
-	 * 
+	 * https://zh.wikipedia.org/wiki/Template:ISO_639_name
 	 * @param locale
 	 * @param map
 	 * @param isMaybeEqualLang true : 可能存在相等的lang，比如he=iw
@@ -156,8 +156,61 @@ public class ResourceUtil {
 			}
 			
 			if(parts.length == 3){//zh-Hans-CN => zh-CN
-				return matchLocale(parts[0] + LangUtil.LOCALE_SPLIT + parts[2], map, isEqualLang);
+				final String oneTwo = parts[0] + LangUtil.LOCALE_SPLIT + parts[1];
+				out = (String)map.get(oneTwo);
+				if(out != null){
+					return out;
+				}
+				
+				for (int i = 0; i < LangUtil.oneTwoEquals.length; i++) {
+					if(oneTwo.equals(LangUtil.oneTwoEquals[i])){
+						out = (String)map.get(LangUtil.oneThreeEquals[i]);
+						if(out != null){
+							return out;
+						}
+					}
+				}
+				
+				final String oneThree = parts[0] + LangUtil.LOCALE_SPLIT + parts[2];
+				out = (String)map.get(oneThree);
+				if(out != null){
+					return out;
+				}
+				
+				for (int i = 0; i < LangUtil.oneThreeEquals.length; i++) {
+					if(oneThree.equals(LangUtil.oneThreeEquals[i])){
+						out = (String)map.get(LangUtil.oneTwoEquals[i]);
+						if(out != null){
+							return out;
+						}
+					}
+				}
+				
+				final String ml = matchLocale(oneTwo, map, isEqualLang);
+				if(ml == null){
+					return matchLocale(oneThree, map, isEqualLang);
+				}else{
+					return ml;
+				}
 			}else if(parts.length == 2){//zh-CN => zh
+				for (int i = 0; i < LangUtil.oneTwoEquals.length; i++) {
+					if(locale.equals(LangUtil.oneTwoEquals[i])){
+						out = (String)map.get(LangUtil.oneThreeEquals[i]);
+						if(out != null){
+							return out;
+						}
+					}
+				}
+				
+				for (int i = 0; i < LangUtil.oneThreeEquals.length; i++) {
+					if(locale.equals(LangUtil.oneThreeEquals[i])){
+						out = (String)map.get(LangUtil.oneTwoEquals[i]);
+						if(out != null){
+							return out;
+						}
+					}
+				}
+				
 				return matchLocale(parts[0], map, isEqualLang);
 			}
 		}else if(isMaybeEqualLang){

@@ -14,11 +14,11 @@ import hc.core.cache.CacheManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
+import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
 import hc.server.ScreenServer;
-import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.Device;
 import hc.server.msb.MSBAgent;
 import hc.server.msb.UserThreadResourceUtil;
@@ -726,8 +726,8 @@ public class MobiUIResponsor extends BaseResponsor {
 				
 				ScreenServer.pushScreen(j2seCoreSS, linkMenu);
 				
-				LogManager.log(ScreenCapturer.OP_STR + "enter project : [" + linkMenu.projectID + "]");
-				LogManager.log(ScreenCapturer.OP_STR + "open menu : [" + linkMenu.linkOrProjectName + "]");
+				LogManager.log(ILog.OP_STR + "enter project : [" + linkMenu.projectID + "]");
+				LogManager.log(ILog.OP_STR + "open menu : [" + linkMenu.linkOrProjectName + "]");
 				return true;
 			}
 		}

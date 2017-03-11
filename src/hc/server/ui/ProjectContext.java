@@ -26,7 +26,6 @@ import hc.server.StarterManager;
 import hc.server.data.screen.KeyComper;
 import hc.server.msb.Converter;
 import hc.server.msb.Device;
-import hc.server.msb.MSBAgent;
 import hc.server.msb.Robot;
 import hc.server.msb.RobotListener;
 import hc.server.msb.UserThreadResourceUtil;
@@ -863,8 +862,11 @@ public class ProjectContext {
 	}
 
 	/**
-	 * get the {@link Robot} by name.
-	 * 
+	 * get the wrapper of robot by name.<BR><BR>
+	 * <STRONG>Important</STRONG> : <BR>
+	 * it is a wrapper of robot, not the instance created by your scripts.<BR>
+	 * it means that your methods not extend from Robot will NOT be accessed from here.<BR>
+	 * because robot may be driven by intelligent assistant, for example voice command.
 	 * @param name
 	 *            the name of robot.
 	 * @return null means the robot is not found.
@@ -875,23 +877,7 @@ public class ProjectContext {
 			return SimuMobile.buildSimuRobot();
 		}
 
-		Robot[] robots = null;
-		try {
-			robots = __projResponserMaybeNull.getRobots();
-		} catch (final Exception e) {
-		}
-
-		if (robots != null) {
-			final String nameLower = name.toLowerCase();
-			for (int j = 0; j < robots.length; j++) {
-				final Robot robot = robots[j];
-				if (nameLower.equals(MSBAgent.getNameLower(robot))) {
-					return robot;
-				}
-			}
-		}
-		LogManager.errToLog("no Robot [" + name + "] in project [" + projectID + "].");
-		return null;
+		return __projResponserMaybeNull.getRobotWrapper(name);
 	}
 
 	/**
@@ -1863,11 +1849,12 @@ public class ProjectContext {
 	 * 3. <code>id</code> and <code>in</code><BR><BR>
 	 * for example, locale is "zh-Hans-CN", the match process is following :<BR>
 	 * 1. if match "zh-Hans-CN", then ok,<BR>
-	 * 2. if fail, try match "zh-CN",<BR>
-	 * 3. if fail, try match "zh",<BR>
-	 * 4. if fail, try match "en-US",<BR>
-	 * 5. if fail, try match "en",<BR>
-	 * 6. if fail, return null;<BR><BR>
+	 * 2. if fail, try match "zh-Hans",<BR>
+	 * 3. if fail, try match "zh-CN",<BR>
+	 * 4. if fail, try match "zh",<BR>
+	 * 5. if fail, try match "en-US",<BR>
+	 * 6. if fail, try match "en",<BR>
+	 * 7. if fail, return null;<BR><BR>
 	 * if locale is "he-IL", the match process is following :<BR>
 	 * 1. if match "he-IL", then ok,<BR>
 	 * 2. if fail, try match "iw-IL",<BR>

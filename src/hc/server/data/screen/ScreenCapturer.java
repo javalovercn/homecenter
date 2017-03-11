@@ -10,6 +10,7 @@ import hc.core.data.DataInputEvent;
 import hc.core.sip.SIPManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
+import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
 import hc.core.util.ThumbnailHelper;
@@ -163,7 +164,7 @@ public class ScreenCapturer extends PNGCapturer{
 
 		setCaptureID(HCURL.REMOTE_HOME_SCREEN, HCURL.REMOTE_HOME_SCREEN);
 		
-		LogManager.log(OP_STR + "Screen [" + HCURL.REMOTE_HOME_SCREEN + "] start");
+		LogManager.log(ILog.OP_STR + "Screen [" + HCURL.REMOTE_HOME_SCREEN + "] start");
 	
 		{
 			client_width_zoomornot = clientWidth;
@@ -361,23 +362,23 @@ public class ScreenCapturer extends PNGCapturer{
 		final int pointY = event.getY();
 		if(type == DataInputEvent.TYPE_MOUSE_MOVE){
 			robot.mouseMove(pointX, pointY);
-			LogManager.log(OP_STR + "Mouse move to (" + pointX + ", " + pointY + ")");
+			LogManager.log(ILog.OP_STR + "Mouse move to (" + pointX + ", " + pointY + ")");
 		}else if(type == DataInputEvent.TYPE_MOUSE_LEFT_CLICK){
-			LogManager.log(OP_STR + "Mouse left click at (" + pointX + ", " + pointY + ")");
+			LogManager.log(ILog.OP_STR + "Mouse left click at (" + pointX + ", " + pointY + ")");
 			synchronized (robot) {
 				robot.mouseMove(pointX, pointY);
 				robot.mousePress(InputEvent.BUTTON1_MASK);
 				robot.mouseRelease(InputEvent.BUTTON1_MASK);
 			}
 		}else if(type == DataInputEvent.TYPE_MOUSE_RIGHT_CLICK){
-			LogManager.log(OP_STR + "Mouse right click at (" + pointX + ", " + pointY + ")");
+			LogManager.log(ILog.OP_STR + "Mouse right click at (" + pointX + ", " + pointY + ")");
 			synchronized (robot) {
 				robot.mouseMove(pointX, pointY);
 				robot.mousePress(InputEvent.BUTTON3_MASK);
 				robot.mouseRelease(InputEvent.BUTTON3_MASK);			
 			}
 		}else if(type == DataInputEvent.TYPE_MOUSE_DOUBLE_CLICK){
-			LogManager.log(OP_STR + "Mouse double click at (" + pointX + ", " + pointY + ")");
+			LogManager.log(ILog.OP_STR + "Mouse double click at (" + pointX + ", " + pointY + ")");
 			synchronized (robot) {
 				robot.mouseMove(pointX, pointY);
 				
@@ -390,7 +391,7 @@ public class ScreenCapturer extends PNGCapturer{
 			try {
 				final String s = event.getTextDataAsString();
 				if(inputKeyStr(s) == false){
-					LogManager.log(OP_STR + "Client paste txt:[" + s + "]!");
+					LogManager.log(ILog.OP_STR + "Client paste txt:[" + s + "]!");
 					final Clipboard clipboard = ResourceUtil.getClipboard();
 					synchronized (clipboard) {
 						Transferable oldTrans = null;
@@ -411,18 +412,18 @@ public class ScreenCapturer extends PNGCapturer{
 						}
 					}
 				}else{
-					LogManager.log(OP_STR + "Client input txt:[" + s + "]!");
+					LogManager.log(ILog.OP_STR + "Client input txt:[" + s + "]!");
 				}
 			} catch (final Exception e) {
 				ExceptionReporter.printStackTrace(e);
 			}
 		}else if(type == DataInputEvent.TYPE_BACKSPACE){
 			backspace();
-			LogManager.log(OP_STR + "Press BACKSPACE");
+			LogManager.log(ILog.OP_STR + "Press BACKSPACE");
 		}else if(type == DataInputEvent.TYPE_TAG_TRANS_TEXT_2_MOBI){
 			copytxtToMobi();
 		}else if(type == DataInputEvent.TYPE_TAG_INPUT_KEYBOARD_FROM_MOBI){
-			LogManager.log(OP_STR + "Press a mobile keyboard char");
+			LogManager.log(ILog.OP_STR + "Press a mobile keyboard char");
 			type(robot, (char)pointX);
 		}else{
 			//自定义扩展MouseIcon
@@ -647,7 +648,7 @@ public class ScreenCapturer extends PNGCapturer{
 				}
 			}
 			
-			LogManager.log(OP_STR + "copyTxtToMobi:" + ((txt.length()==0)?"null":txt));
+			LogManager.log(ILog.OP_STR + "copyTxtToMobi:" + ((txt.length()==0)?"null":txt));
 
 //			if(oldTrans != null){
 //				clipboard.setContents(oldTrans, null);//只有第一次正确，故关闭
@@ -665,7 +666,7 @@ public class ScreenCapturer extends PNGCapturer{
 		}
 //		ctrlSomeKey(KeyEvent.VK_C);
 		
-		LogManager.log(OP_STR + "drag from ["+startX + ", " + startY+"] to [" + endX + ", " + endY + "]");
+		LogManager.log(ILog.OP_STR + "drag from ["+startX + ", " + startY+"] to [" + endX + ", " + endY + "]");
 	}
 	
 	/**
@@ -733,9 +734,9 @@ public class ScreenCapturer extends PNGCapturer{
 
 	public void moveUp(final int pixle){
 		if(pixle > 0){
-			LogManager.log(OP_STR + "moveUp : " + pixle);
+			LogManager.log(ILog.OP_STR + "moveUp : " + pixle);
 		}else{
-			LogManager.log(OP_STR + "moveDown : " + (-pixle));
+			LogManager.log(ILog.OP_STR + "moveDown : " + (-pixle));
 		}
 		
 		moveNewRect.x = capRect.x;
@@ -799,9 +800,9 @@ public class ScreenCapturer extends PNGCapturer{
 	
 	public void moveRight(final int pixle){		
 		if(pixle > 0){
-			LogManager.log(OP_STR + "moveRight : " + pixle);
+			LogManager.log(ILog.OP_STR + "moveRight : " + pixle);
 		}else{
-			LogManager.log(OP_STR + "moveLeft : " + (-pixle));
+			LogManager.log(ILog.OP_STR + "moveLeft : " + (-pixle));
 		}
 		
 		moveNewRect.x = capRect.x;
