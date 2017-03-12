@@ -73,7 +73,6 @@ public class ProjResponser {
 	final String lpsLinkName;
 	public final ProjectContext context;
 	Robot[] robots;
-	RobotWrapper[] robotWrappers;
 	Device[] devices;
 	Converter[] converters;
 	final MobiUIResponsor mobiResp;
@@ -135,21 +134,29 @@ public class ProjResponser {
 	boolean isStoped = false;
 	
 	public final void stop(){
-		synchronized (this) {
-			isStoped = true;
-			try{
-				hcje.terminate();
-			}catch (final Throwable e) {
-				LogManager.errToLog("fail terminate JRuby engine : " + e.toString());
-				ExceptionReporter.printStackTrace(e);
+		try{
+			synchronized (this) {
+				isStoped = true;
+				try{
+					hcje.terminate();
+				}catch (final Throwable e) {
+					LogManager.errToLog("fail terminate JRuby engine : " + e.toString());
+					ExceptionReporter.printStackTrace(e);
+				}
 			}
+			
+			RecycleProjThreadPool.recycle(projectID, recycleRes);
+			
+			mobileContexts.release(projectID);
+			
+			ServerUIAPIAgent.set__projResponserMaybeNull(context, null);
+			
+			final int size = robots.length;
+			for (int i = 0; i < size; i++) {
+				MSBAgent.setRobotWrapperNull(robots[i]);
+			}
+		}catch (Throwable e) {
 		}
-		
-		RecycleProjThreadPool.recycle(projectID, recycleRes);
-		
-		mobileContexts.release(projectID);
-		
-		ServerUIAPIAgent.set__projResponserMaybeNull(context, null);
 	}
 	
 	public final Converter[] getConverters() throws Exception{
@@ -271,10 +278,10 @@ public class ProjResponser {
 		return devices;
 	}
 	
-	public final Robot getRobotWrapper(final String name) {
+	public final RobotWrapper getRobotWrapper(final String name) {
 		Object robotWraps = null;
 		try{
-			robotWraps = getRobotWrappers();
+			robotWraps = getRobots();
 		}catch (final Throwable e) {
 		}
 		
@@ -284,31 +291,13 @@ public class ProjResponser {
 			for (int j = 0; j < len; j++) {
 				final Robot robot = robots[j];
 				if (nameLower.equals(MSBAgent.getNameLower(robot))) {
-					return robotWrappers[j];
+					return MSBAgent.getRobotWrapper(robot);
 				}
 			}
 		}
 		
 		LogManager.errToLog("no Robot [" + name + "] in project [" + projectID + "].");
 		return null;
-	}
-	
-	public final Robot[] getRobotWrappers() throws Exception{
-		if(robotWrappers != null){
-			return robotWrappers;
-		}
-		
-		final Robot[] rs = getRobots();
-		if(rs != null){
-			final int size = rs.length;
-			
-			robotWrappers = new RobotWrapper[size];
-			for (int i = 0; i < size; i++) {
-				robotWrappers[i] = new RobotWrapper(rs[i]);
-			}
-		}
-		
-		return robotWrappers;
 	}
 	
 	public final Robot[] getRobots() throws Exception{

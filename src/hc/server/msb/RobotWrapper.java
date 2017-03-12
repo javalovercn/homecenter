@@ -41,7 +41,7 @@ public class RobotWrapper extends Robot {
 
 	@Override
 	final protected Message getFreeMessage(final String ref_dev_id) {
-		return super.getFreeMessageInProc(ref_dev_id);
+		return robot.getFreeMessage(ref_dev_id);
 	}
 	
 	@Override

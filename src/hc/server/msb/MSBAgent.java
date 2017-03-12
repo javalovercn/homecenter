@@ -34,6 +34,14 @@ public final class MSBAgent {
 		}
 	}
 	
+	public final static RobotWrapper getRobotWrapper(final Robot robot){
+		return robot.robotWrapper;
+	}
+	
+	public final static void setRobotWrapperNull(final Robot robot){
+		robot.robotWrapper = null;
+	}
+	
 	public final static Workbench buildWorkbench(final NameMapper mapper){
 		return new Workbench(mapper);
 	}

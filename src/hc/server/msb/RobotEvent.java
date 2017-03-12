@@ -1,7 +1,7 @@
 package hc.server.msb;
 
 public final class RobotEvent {
-	Robot source;
+	RobotWrapper source;
 	String propertyName;
 	Object oldValue;
 	Object newValue;

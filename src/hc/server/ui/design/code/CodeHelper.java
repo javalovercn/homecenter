@@ -1161,10 +1161,19 @@ public class CodeHelper {
 					return classDesc;
     			}else if(nodeType == NodeType.DEFNNODE){//方法体定义
     				if(defClassNode != null){
-        				final JRubyClassDesc cd = findParaClassFromArgu(varDefNode, defClassNode, parameter, contextNode);
+        				final JRubyClassDesc cd = findParaClassFromArgu(varDefNode, null, defClassNode, parameter, contextNode);
         				if(cd != null){
         					return cd;
         				}
+    				}else{
+    					//Class.new
+    					final Class superClass = searchInnerParentClassFromDef(varDefNode, contextNode);
+    					if(superClass != null){
+	    					final JRubyClassDesc cd = findParaClassFromArgu(varDefNode, superClass, defClassNode, parameter, contextNode);
+	        				if(cd != null){
+	        					return cd;
+	        				}
+    					}
     				}
     				return buildJRubyClassDesc(Object.class, true);
     			}else if(nodeType == NodeType.CALLNODE && JRUBY_NEW.equals(((CallNode)varDefNode).getName())){
@@ -1175,9 +1184,25 @@ public class CodeHelper {
     	
     	return null;
     }
+    
+    private static Class searchInnerParentClassFromDef(final Node def, final CodeContext contextNode){
+    	try{
+	    	final Node callNode = def.getParent().getParent().getParent();
+	    	
+	    	if(callNode instanceof CallNode){
+	    		final JRubyClassDesc desc = buildDescFromClassNewCallNode(callNode, contextNode);
+				if(desc != null){
+					return desc.baseClass;
+				}
+	    	}
+    	}catch (final Throwable e) {
+		}
+    	
+    	return null;
+    }
 
 	private final static JRubyClassDesc findParaClassFromArgu(final Node varDefNode,
-			final ClassNode defClassNode, final String parameter, final CodeContext codeContext) {
+			Class superClass, final ClassNode defClassNode, final String parameter, final CodeContext codeContext) {
 		final DefnNode defNode = (DefnNode)varDefNode;
 		final String methodName = defNode.getName();
 		final ArgsNode argsNode = defNode.getArgs();
@@ -1195,7 +1220,9 @@ public class CodeHelper {
 		}
 		
 		if(parameterIdx >= 0){
-			final Class superClass = getDefSuperClass(defClassNode, codeContext);
+			if(superClass == null){
+				superClass = getDefSuperClass(defClassNode, codeContext);
+			}
 			final Class methodParaType = searchOverrideMethodParameterType(superClass, methodName, parameterIdx);
 			if(methodParaType != null){
 				return buildJRubyClassDesc(methodParaType, true);
@@ -1719,7 +1746,7 @@ public class CodeHelper {
 				return findClassFromReceiverNode(node.childNodes().get(0), false, codeContext);
 			}else if(node instanceof DefnNode){
 				final ClassNode cNode = codeContext.getDefClassNode();
-				final JRubyClassDesc cd = findParaClassFromArgu(node, cNode, paraName, codeContext);
+				final JRubyClassDesc cd = findParaClassFromArgu(node, null, cNode, paraName, codeContext);
 				if(cd != null){
 					return cd;
 				}
@@ -2825,7 +2852,8 @@ public class CodeHelper {
 		}else if(preCodeType == PRE_TYPE_IN_DEF_CLASS_FOR_METHOD_FIELD_ONLY){
 			getMethodAndFieldForInstance(backgroundDefClassNode, false, outAndCycle, false, true);
 		}else if(preCodeType == PRE_TYPE_OVERRIDE_METHOD){
-			final JRubyClassDesc desc = isInDefClass(root, codeContext, scriptIdx, lineIdxAtScript);
+			final int shiftBackLen = DEF_MEMBER.length() + 1 + preCode.length();
+			final JRubyClassDesc desc = isInDefClass(root, codeContext, scriptIdx - shiftBackLen, lineIdxAtScript - shiftBackLen);
 			if(desc != null){
 				buildItem(outAndCycle, JRUBY_CLASS_INITIALIZE_DEF, CodeItem.TYPE_METHOD);
 				appendInterfaces(desc.include, outAndCycle);//要先执行，这样def因相同不会再次添加

@@ -25,6 +25,7 @@ import hc.server.msb.Robot;
 import hc.server.msb.RobotEvent;
 import hc.server.msb.RobotListener;
 import hc.server.msb.RobotWrapper;
+import hc.server.msb.SimuRobot;
 import hc.server.msb.WiFiAccount;
 import hc.server.ui.ClientSession;
 import hc.server.ui.CtrlResponse;
@@ -313,7 +314,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    	//允许反射且不限的类
 	    	final Class[] arrClazz = {ProjectContext.class, Processor.class, 
 	    			Converter.class, DialogHTMLMlet.class, DialogMlet.class, Device.class, Message.class, 
-	    			Robot.class, RobotWrapper.class, RobotEvent.class, RobotListener.class,
+	    			Robot.class, RobotWrapper.class, RobotEvent.class, RobotListener.class, SimuRobot.class,
 	    			DeviceCompatibleDescription.class,
 	    			AddHarHTMLMlet.class, AddHarIsBusy.class, BindHTMLMlet.class, Dialog.class, 
 	    			LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。

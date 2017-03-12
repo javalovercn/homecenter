@@ -287,8 +287,13 @@ public class ResourceUtil {
 		return up_str.substring(0, 1) + str.substring(1);
 	}
 	
+	private static Boolean isNonUIServer;//有些线程没有权限
+	
 	public static boolean isNonUIServer(){
-		return PropertiesManager.isTrue(PropertiesManager.p_isNonUIServer, false);
+		if(isNonUIServer == null){
+			isNonUIServer = PropertiesManager.isTrue(PropertiesManager.p_isNonUIServer, false);
+		}
+		return isNonUIServer;
 	}
 	
 	public static boolean isEnableClientAddHAR(){

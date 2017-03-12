@@ -39,6 +39,7 @@ public abstract class Robot extends Processor{
 //	 * <BR>If a {@link Robot} is connecting to network via WiFi and manage no real {@link Device}, please create a {@link Device} for it, because <STRONG>No Device No WiFi-Connection</STRONG>.
 
 	final ProjResponser resp;
+	RobotWrapper robotWrapper;
 	
 	/**
 	 * @deprecated
@@ -46,6 +47,10 @@ public abstract class Robot extends Processor{
 	@Deprecated
 	public Robot(){
 		super("", Workbench.TYPE_ROBOT_PROC);
+		if(this instanceof RobotWrapper){
+		}else{
+			robotWrapper = new RobotWrapper(this);
+		}
 		resp = ServerUIAPIAgent.getProjResponserMaybeNull(__context);//getProjectContext()
 	}
 	
@@ -87,7 +92,8 @@ public abstract class Robot extends Processor{
 	 * <br><br>the method is the only way to operate {@link Robot} to drive {@link Device} for {@link CtrlResponse}, {@link HTMLMlet}/{@link Mlet}, 
 	 * <BR>to get {@link Robot} instance, call {@link ProjectContext#getRobot(String)}.
 	 * <br><br>
-	 * this method is executed in session level, because the caller is based on session.<BR>
+	 * <STRONG>Important</STRONG> : <BR>
+	 * this method must be able to be executed in session level and project level.<BR>
 	 * @param functionID
 	 * @param parameter it can NOT be a {@link Message}.
 	 * @return object exclude {@link Message}
@@ -292,7 +298,7 @@ public abstract class Robot extends Processor{
 	 */
 	protected RobotEvent buildRobotEvent(final String propertyName, final Object oldValue, final Object newValue){
 		final RobotEvent re = RobotEventPool.instance.getFreeRobotEvent();
-		re.source = this;
+		re.source = robotWrapper;
 		
 		re.propertyName = propertyName;
 		re.oldValue = oldValue;
@@ -326,7 +332,7 @@ public abstract class Robot extends Processor{
 				final int size = projectLevelRobotListeners.size();
 				for (int i = 0; i < size; i++) {
 					final RobotListener robotListener = projectLevelRobotListeners.get(i);
-					robotListener.action(event);
+					robotListener.action(event);//处于project level
 				}
 			}catch (final IndexOutOfBoundsException outOfBound) {
 				//越界或不存在或已删除

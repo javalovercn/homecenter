@@ -2,13 +2,11 @@ package hc.server.ui;
 
 import hc.core.util.HCURL;
 import hc.core.util.LangUtil;
-import hc.core.util.LogManager;
 import hc.core.util.RecycleRes;
 import hc.core.util.UIUtil;
 import hc.server.data.StoreDirManager;
-import hc.server.msb.DeviceCompatibleDescription;
-import hc.server.msb.Message;
 import hc.server.msb.Robot;
+import hc.server.msb.SimuRobot;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.JarMainMenu;
 import hc.server.ui.design.engine.HCJRubyEngine;
@@ -61,37 +59,8 @@ public class SimuMobile {
 			tempLimitRecycleRes, null, (ProjClassLoaderFinder)null);
 	
 	public static Robot buildSimuRobot() {
-		LogManager.err("In designer panel, create simu robot for testing script.");
-		return new Robot() {
-			@Override
-			public void startup() {
-			}
-			
-			@Override
-			public void shutdown() {
-			}
-			
-			@Override
-			public void response(final Message msg) {
-			}
-			
-			@Override
-			public Object operate(final long functionID, final Object parameter) {
-				LogManager.err("In designer panel, create simu result object (empty string) for method [operate] of simu Robot.");
-				return "";
-			}
-			
-			@Override
-			public DeviceCompatibleDescription getDeviceCompatibleDescription(
-					final String referenceDeviceID) {
-				return null;
-			}
-			
-			@Override
-			public String[] declareReferenceDeviceID() {
-				return null;
-			}
-		};
+//		LogManager.err("In designer panel, create simu robot for testing script.");//会导致block access Homecenter Non-public api
+		return new SimuRobot();
 	}
 
 	//要置于createRunTestDir之后
