@@ -1156,7 +1156,7 @@ public class ResourceUtil {
 	}
 	
 	public static String getUserAgentForHAD(){
-		return System.getProperty("os.name") + "/" + System.getProperty("os.version") +
+		return PlatformManager.getService().getOsNameAndVersion() +
 					" J2SE/" + App.getJREVer() +
 					" HomeCenter/" + StarterManager.getHCVersion() + 
 					" JRuby/" + getJRubyVersion();//如果没安装，则返回null；可能联机升级，所以不cache
@@ -1728,7 +1728,7 @@ public class ResourceUtil {
 			throw new HCSecurityException(PropertiesManager.ILLEGAL_CLASS);
 		}
 	}
-
+	
 	/**
 	 * 将 BASE64 编码的字符串 s 进行解码
 	 * @param s

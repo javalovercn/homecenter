@@ -2363,7 +2363,7 @@ public class CodeHelper {
 	 * @return
 	 */
 	public final boolean input(final ScriptEditPanel sep, final HCTextPane textPane, final Document doc, 
-			final int fontHeight, final boolean isForcePopup, final int scriptIdx) throws Exception{
+			final int fontHeight, final boolean isForcePopup, final int scriptIdx, final boolean isForceResTip) throws Exception{
 		//1：行首时，requ
 		//2：行首时，impo
 		//3：def initialize|可重载的方法
@@ -2371,6 +2371,7 @@ public class CodeHelper {
 		//5：::后 Java::|Font::
 		//6：.后 JButton.new|ImageIO.read
 		//3：resource("时，lib资源
+		this.isForceResTip = isForceResTip;
 		
 		final int line = ScriptEditPanel.getLineOfOffset(doc, scriptIdx);
         final int editLineStartIdx = ScriptEditPanel.getLineStartOffset(doc, line);
@@ -2385,6 +2386,12 @@ public class CodeHelper {
 		if(isForcePopup == false && outAndCycle.size() == 0){
 			return false;
 		}
+		if(isForceResTip == false && preCodeType == PRE_TYPE_RESOURCES){
+			if(matchRes(outAndCycle, preCode) == false){
+				return false;
+			}
+		}
+		
 		final Class codeClass = (preClass==null?null:preClass.baseClass);
 		
 		final Point win_loc = textPane.getLocationOnScreen();
@@ -2394,6 +2401,21 @@ public class CodeHelper {
 		final int input_y = win_loc.y + ((caretPointer==null)?0:caretPointer.y);
 		window.toFront(preCodeType, codeClass, sep, textPane, input_x, input_y, outAndCycle, preCode, scriptIdx, fontHeight);//JRuby代码
 		return true;
+	}
+
+	private static boolean matchRes(final ArrayList<CodeItem> out, final String pre) {
+		if(out.size() == 0 || pre.length() == 0){
+			return false;
+		}
+		
+		final int size = out.size();
+		for (int i = 0; i < size; i++) {
+			if(out.get(i).code.startsWith(pre)){
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	private final static int checkInSetCSSStylePropParameter(final char[] lineChars, final int methodIdx, final int endIdx){
@@ -2586,6 +2608,16 @@ public class CodeHelper {
 		return new CSSIdx(cssPropIdx, classIdx);
 	}
 	
+	public static final boolean searchGoGoExternalURL(final char[] lineChars){
+		if(searchSubChars(lineChars, MLET_DIALOG_GOEXTERNALURL, 0) >= 0){
+			return true;
+		}else if(searchSubChars(lineChars, MLET_DIALOG_GO, 0) >= 0){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
 	private final boolean inputCSSClassOrPropInDesigner(final int preCodeType, final char[] lineChars, final int lineIdx, final int scriptIdx, final ScriptEditPanel sep, 
 			final HCTextPane textPane, final Document doc, final int fontHeight){
 		final CSSIdx cssIdx = getCSSIdx(lineChars, lineIdx, lineChars.length);
@@ -2901,6 +2933,7 @@ public class CodeHelper {
 	public final static int PRE_TYPE_OVERRIDE_METHOD = 8;
 	
 	public String preCode;
+	public boolean isForceResTip = false;
 	private int pre_var_tag_ins_or_global;
 	public boolean preCodeSplitIsDot;
 	public int preCodeType;
@@ -3380,6 +3413,9 @@ public class CodeHelper {
 	static final char[] SET_CSS_BY_CLASS = "setCSSByClass".toCharArray();
 	static final char[] SET_CSS_FOR_DIV = "setCSSForDiv".toCharArray();
 	static final char[] SET_CSS_FOR_TOGGLE = "setCSSForToggle".toCharArray();
+	
+	static final char[] MLET_DIALOG_GO = "go(\"".toCharArray();
+	static final char[] MLET_DIALOG_GOEXTERNALURL = "goExternalURL(\"".toCharArray();
 	
 	/**
 	 * 寻找abc.metho中的abc(return)和metho(preCode)。

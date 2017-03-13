@@ -3,7 +3,6 @@ package hc.server.j2se;
 import hc.App;
 import hc.PlatformTrayIcon;
 import hc.core.ContextManager;
-import hc.core.L;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
@@ -464,6 +463,11 @@ public class J2SEPlatformService implements PlatformService {
 			}catch (final Throwable e) {
 			}
 		}
+	}
+
+	@Override
+	public String getOsNameAndVersion() {
+		return System.getProperty("os.name") + "/" + System.getProperty("os.version");
 	}
 
 }

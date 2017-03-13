@@ -487,9 +487,30 @@ public class SecurityDataProtector {
 	
 	private static Object androidHardwareObject;
 	
+	public static final void checkHCStackTraceForSDP(final StackTraceElement[] el) throws Exception {//注意：请勿改方法
+		final String dynClassName = "org.jruby.proxy.java.lang.Object$Proxy0";
+		final String toStrMethodName = "toString";
+		
+		final ClassLoader checkLoader = SecurityDataProtector.class.getClassLoader();
+		
+		for (int i = el.length - 1; i >= 0; i--) {
+			final StackTraceElement ste = el[i];
+			final String className = ste.getClassName();
+			if(className.equals(dynClassName) && ste.getMethodName().equals(toStrMethodName)){
+				return;//pass
+			}
+			
+			try{
+				Class.forName(className, false, checkLoader);
+			}catch (final Exception e) {
+				throw new Exception(PropertiesManager.ILLEGAL_CLASS);
+			}
+		}
+	}
+	
 	private static void initForAndroid(){
 		
-		final StringBuilder values = StringBuilderCacher.getFree();
+		final StringBuilder values = new StringBuilder();
                                                                                                                            
 		final String HC = "HomeCenter";
 		try {
@@ -523,10 +544,14 @@ public class SecurityDataProtector {
 				k1 = "0.0.1-hc";
 			}
 			values.append(k1);
-			if(key.equals(httpAgent)){
-				System.setProperty(key, "Dalvik(HomeCenter)");
-			}else{
-				System.setProperty(key, HC);
+			try{
+				if(key.equals(httpAgent)){
+					System.setProperty(key, "Dalvik(HomeCenter)");
+				}else{
+					System.setProperty(key, HC);
+				}
+			}catch (final Throwable e) {
+				e.printStackTrace();
 			}
 		}
 		
@@ -580,36 +605,21 @@ public class SecurityDataProtector {
 					"import java.lang.StackTraceElement\n" +
 					"import java.lang.Exception\n" +
 					"import java.lang.Object\n" +
+					"import java.lang.System\n" +
+					"import Java::hc.util.SecurityDataProtector\n" +
 					"\n" +
 					"class AndroidSecurityData < Object\n" +
 					"	def toString\n" +
 					"		#check traceStack\n" +
-					"		checkClassName = \"" + SecurityDataProtector.class.getName() + "\"#forName()\n" +
-					"		checkMethodName = \"getPrivateHardwareCodeForAndroid\"\n" +
 					"		java_array = Thread::currentThread().getStackTrace()\n" +
 //					"		ruby_array = java_array.to_a\n" +
 //					"		step = 0\n" +
 //					"		while step < ruby_array.size do\n" +
-//					"			puts ruby_array[step]\n" +
+//					"			System::err.println(ruby_array[step])\n" +
 //					"			step = step + 1\n" +
 //					"		end\n" +
-					"		ste = java_array[18]\n" +
-//					"		puts ste.getClassName()\n" +
-//					"		puts ste.getMethodName()\n" +
-//					"		puts checkClassName\n" +
-//					"		puts checkMethodName\n" +
-					"		if checkClassName == ste.getClassName() && checkMethodName == ste.getMethodName()\n" +
-					"		else\n" +
-					"			if \"org.jruby.proxy.java.lang.Object$Proxy0\" == ste.getClassName() && \"toString\" == ste.getMethodName()\n" +
-					"				ste = java_array[19]\n" +
-					"				if checkClassName == ste.getClassName() && checkMethodName == ste.getMethodName()\n" +
-					"				else\n" +
-					"					raise Exception.new(\"Illegal class attempts to access critical data or security codes.\")\n" +
-					"				end\n" +
-					"			else\n" +
-					"				raise Exception.new(\"Illegal class attempts to access critical data or security codes.\")\n" +
-					"			end\n" +
-					"		end\n" +
+					"		\n" +
+					"		SecurityDataProtector::checkHCStackTraceForSDP(java_array)\n" +
 					"		\n" +
 					"		k1 = \"" + values.toString() + "\"\n" +
 					"		return k1\n" +
@@ -617,19 +627,17 @@ public class SecurityDataProtector {
 					"end\n" +
 					"\n" +
 					"return AndroidSecurityData.new\n";
-			final CallContext callCtx = CallContext.getFree();
+			final CallContext callCtx = new CallContext();
 			androidHardwareObject = RubyExector.runAndWaitOnEngine(callCtx, script, "AndroidSecurityData", null, engine);
 			if(callCtx.isError){
 				callCtx.rubyThrowable.printStackTrace();
 			}
-			CallContext.cycle(callCtx);
 			engine.terminate();
 			
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
 		
-		StringBuilderCacher.cycle(values);
 	}
 	
 	/**
@@ -637,8 +645,6 @@ public class SecurityDataProtector {
 	 * @return
 	 */
 	private static byte[] getPrivateHardwareCodeForAndroid() {
-		ResourceUtil.checkHCStackTraceInclude(null, null);
-		
 		final String hardID = androidHardwareObject.toString();
 //		System.out.println("=====> " + hardID);
 		return ByteUtil.getBytes(ResourceUtil.getMD5(hardID), IConstant.UTF_8);

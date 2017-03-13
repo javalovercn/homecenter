@@ -51,6 +51,8 @@ public interface PlatformService {
 	
 	public WiFiDeviceManager getWiFiManager();
 	
+	public String getOsNameAndVersion();
+	
 	/**
 	 * 
 	 * @return 剩余工作区可用磁盘字节数

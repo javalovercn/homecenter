@@ -768,7 +768,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 									|| (codeHelper.wordCompletionModifyMaskCode == modifiers)))){//注意：请同步到MletNodeEditPanel
 					try {
 						final int caretPosition = jtaScript.getCaretPosition();
-						codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, caretPosition);
+						codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, caretPosition, true);
 					} catch (final Exception e) {
 //						if(L.isInWorkshop){
 							ExceptionReporter.printStackTrace(e);
@@ -813,7 +813,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				        final char[] lineChars = jtaDocment.getText(lineStartIdx, lineIdx).toCharArray();
 				        final int lineCharsLen = lineChars.length;
 				        
-				        if(isHttpResource(lineChars, lineCharsLen - 1)){
+				        if(isHttpResource(lineChars, lineCharsLen - 1) || CodeHelper.searchGoGoExternalURL(lineChars)){
 				        	return;//对于http型的资源，不弹出本地库资源代码提示
 				        }
 				        
@@ -893,7 +893,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						synchronized (scriptEventLock) {
 						try{
 							final int caretPosition = jtaScript.getCaretPosition();
-							codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, false, caretPosition);
+							codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, false, caretPosition, false);
 						}catch (final Exception e) {
 						}
 						}
@@ -943,7 +943,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					//注意：请同步到MletNodeEditPanel
 					try {
 						final int caretPosition = jtaScript.getCaretPosition();
-						codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, caretPosition);
+						codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, caretPosition, true);
 					} catch (final Throwable e) {
 						ExceptionReporter.printStackTrace(e);
 					}
