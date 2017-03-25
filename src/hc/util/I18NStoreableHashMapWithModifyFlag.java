@@ -3,7 +3,7 @@ package hc.util;
 import java.util.Map;
 
 /**
- * case insensitive
+ * NOTE : case insensitive
  */
 public class I18NStoreableHashMapWithModifyFlag extends StoreableHashMapWithModifyFlag {
 	public I18NStoreableHashMapWithModifyFlag(){
@@ -27,7 +27,8 @@ public class I18NStoreableHashMapWithModifyFlag extends StoreableHashMapWithModi
 	@Override
 	public final void putAll(final Map map) {
 		for(final Object key : map.keySet())   {
-			put(((String)key).toLowerCase(), map.get(key));
+			final String value = map.get(key).toString();//注意：限制MenuItem.setText(map)为String
+			put(((String)key).toLowerCase(), value);
 		}
     }
 	

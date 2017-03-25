@@ -1,5 +1,6 @@
 package hc.server.ui.design;
 
+import hc.App;
 import hc.core.BaseWatcher;
 import hc.core.ConfigManager;
 import hc.core.ContextManager;
@@ -34,6 +35,8 @@ import hc.server.msb.Robot;
 import hc.server.msb.RobotWrapper;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.msb.WorkingDeviceList;
+import hc.server.ui.ClientSession;
+import hc.server.ui.ClientSessionForSys;
 import hc.server.ui.CtrlResponse;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.MenuItem;
@@ -61,6 +64,7 @@ import hc.util.StringBuilderCacher;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.charset.Charset;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.Vector;
 
@@ -72,6 +76,7 @@ public class ProjResponser {
 	final ThreadGroup threadGroup;
 	final String lpsLinkName;
 	public final ProjectContext context;
+	private final Hashtable<String, Object> sys_att_map_sys = new Hashtable<String, Object>();
 	Robot[] robots;
 	Device[] devices;
 	Converter[] converters;
@@ -79,6 +84,14 @@ public class ProjResponser {
 	public final String projectID;
 	final boolean isRoot;
 	final SessionMobileContext mobileContexts = new SessionMobileContext();
+	private final ThreadGroup token = App.getThreadPoolToken();
+	
+	public final void initSessionContext(final J2SESession coreSS){
+		if(getMobileSession(coreSS) == null){//有可能安装HAR时，因为showInputDialog，已设置完成
+			final SessionContext mc = useFreeMobileContext(coreSS);
+			mc.setClientSession(coreSS, new ClientSession(), new ClientSessionForSys(coreSS, token));
+		}
+	}
 	
 	public final SessionContext useFreeMobileContext(final J2SESession coreSS){
 		final SessionContext mc = SessionContext.getFreeMobileContext(projectID, threadGroup, this);
@@ -92,6 +105,18 @@ public class ProjResponser {
 	
 	public final void removeMobileContext(final J2SESession socket){
 		mobileContexts.removeSession(projectID, socket);
+	}
+	
+	public final Object __setSysAtt(final String name, final Object obj) {
+		return sys_att_map_sys.put(name, obj);
+	}
+	
+	public final Object __removeSysAtt(final String name) {
+		return sys_att_map_sys.remove(name);
+	}
+	
+	public final Object __getSysAtt(final String name) {
+		return sys_att_map_sys.get(name);
 	}
 	
 	/**
@@ -155,7 +180,7 @@ public class ProjResponser {
 			for (int i = 0; i < size; i++) {
 				MSBAgent.setRobotWrapperNull(robots[i]);
 			}
-		}catch (Throwable e) {
+		}catch (final Throwable e) {
 		}
 	}
 	
@@ -846,12 +871,12 @@ public class ProjResponser {
 	private static final String iOS2serverScript = loadLocalJS("ios2server.js");
 	
 	public static final void sendMletBodyOnlyOneTime(final J2SESession coreSS, final ProjectContext ctx){
-		final String attBody = ServerUIAPIAgent.CLIENT_SESSION_ATTRIBUTE_IS_TRANSED_MLET_BODY;
+		final String attBody = ClientSessionForSys.CLIENT_SESSION_ATTRIBUTE_IS_TRANSED_MLET_BODY;
 		final ProjResponser pr = ServerUIAPIAgent.getProjResponserMaybeNull(ctx);
 		
-		final Object result = ServerUIAPIAgent.getClientSessionAttribute(coreSS, pr, attBody);
+		final Object result = ServerUIAPIAgent.getClientSessionAttributeForSys(coreSS, pr, attBody);
 		if(result == null){
-			ServerUIAPIAgent.setClientSessionAttribute(coreSS, pr, attBody, Boolean.TRUE);
+			ServerUIAPIAgent.setClientSessionAttributeForSys(coreSS, pr, attBody, Boolean.TRUE);
 		}else{
 			return;//已发送，无需再发送。
 		}

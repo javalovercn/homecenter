@@ -213,20 +213,21 @@ public class SessionMobiMenu extends MobiMenu{
 		}
 	}
 	
-	public final MenuItem searchMenuItemByVoiceCommand(final VoiceCommand voiceCommand){
+	public final MenuItem searchMenuItemByVoiceCommand(final VoiceCommand voiceCommand, final boolean isCurrProj){
 		synchronized(projectMenu.menuLock){
 			synchronized (menuLock) {
-				final MenuItem out = searchMenuItemByVoiceCommand(projectMenu.menuItems, voiceCommand);
+				final MenuItem out = searchMenuItemByVoiceCommand(projectMenu.menuItems, voiceCommand, isCurrProj);
 				if(out != null){
 					return out;
 				}
 				
-				return searchMenuItemByVoiceCommand(menuItems, voiceCommand);
+				return searchMenuItemByVoiceCommand(menuItems, voiceCommand, isCurrProj);
 			}
 		}
 	}
 			
-	private final MenuItem searchMenuItemByVoiceCommand(final Vector<MenuItem> from, final VoiceCommand voiceCommand){
+	private final MenuItem searchMenuItemByVoiceCommand(final Vector<MenuItem> from, 
+			final VoiceCommand voiceCommand, final boolean isCurrProj){
 		final int size = from.size();
 		for (int j = 0; j < size; j++) {
 			final MenuItem item = from.elementAt(j);
@@ -236,6 +237,11 @@ public class SessionMobiMenu extends MobiMenu{
 			}
 			
 			if(item.itemURL == HCURL.URL_CMD_VOICE_COMMAND){//不能找自己
+				continue;
+			}
+			
+			if(isCurrProj == false && 
+					(item.itemURL.equals(HCURL.URL_CMD_EXIT) || item.itemURL.equals(HCURL.URL_CMD_CONFIG))){
 				continue;
 			}
 			

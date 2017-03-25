@@ -23,7 +23,6 @@ import hc.server.msb.Device;
 import hc.server.msb.MSBAgent;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.msb.WorkingDeviceList;
-import hc.server.ui.ClientSession;
 import hc.server.ui.ExceptionCatcherToWindow;
 import hc.server.ui.J2SESessionManager;
 import hc.server.ui.ProjectContext;
@@ -118,7 +117,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	/**
 	 * 重新从lps仓库中寻找未添加的工程，不启动，不运行
 	 */
-	public final synchronized ProjResponser[] appendNewHarProject(){
+	public final synchronized ProjResponser[] appendNewHarProject(final boolean isInstallFromClient){
 		final Vector<LinkProjectStore> appendLPS = new Vector<LinkProjectStore>();
 
 		final int oldRespSize = responserSize;
@@ -170,7 +169,7 @@ public class MobiUIResponsor extends BaseResponsor {
 			maps[nextIdx] = HCjar.loadHarFromLPS(lps);
 			final String projectID = lps.getProjectID();
 			projIDs[nextIdx] = projectID;
-			buildProjResp(projectID, lps, nextIdx);
+			buildProjResp(projectID, lps, nextIdx, isInstallFromClient);
 			
 			appResp[i] = responsors[nextIdx];
 		}
@@ -223,6 +222,8 @@ public class MobiUIResponsor extends BaseResponsor {
 			count++;
 		}
 		
+		final boolean isInstallFromClient = false;
+		
 		//先暂存Map，后实例化ProjResponser，以供检查子工程的菜单结点为0时，不显示Folder
 		final boolean[] findExitsCache = new boolean[responserSize];
 		for (int i = 0; i < responserSize; i++) {
@@ -230,13 +231,13 @@ public class MobiUIResponsor extends BaseResponsor {
 			final boolean isInCache = RecycleProjThreadPool.containsProjID(projID);//重用缓存中的对象
 			findExitsCache[i] = isInCache;
 			if(isInCache){
-				buildProjResp(projID, lpss[i], i);
+				buildProjResp(projID, lpss[i], i, isInstallFromClient);
 			}
 		}
 		for (int i = 0; i < responserSize; i++) {
 			if(findExitsCache[i] == false){
 				final String projID = (String)maps[i].get(HCjar.PROJ_ID);
-				buildProjResp(projID, lpss[i], i);
+				buildProjResp(projID, lpss[i], i, isInstallFromClient);
 			}
 		}
 		
@@ -289,8 +290,12 @@ public class MobiUIResponsor extends BaseResponsor {
 		});
 	}
 	
-	private final void buildProjResp(final String projID, final LinkProjectStore lps, final int i) {
-		responsors[i] = new ProjResponser(projID, maps[i], this, lps);
+	private final void buildProjResp(final String projID, final LinkProjectStore lps, final int i, final boolean isInstallFromClient) {
+		final ProjResponser pr = new ProjResponser(projID, maps[i], this, lps);
+		responsors[i] = pr;
+		if(isInstallFromClient){
+			ServerUIAPIAgent.setSysAttribute(pr, ServerUIAPIAgent.KEY_IS_INSTALL_FROM_CLIENT, Boolean.TRUE);
+		}
 	}
 	
 	/**
@@ -479,7 +484,9 @@ public class MobiUIResponsor extends BaseResponsor {
 				
 				notifyMobileLogin(j2seCoreSS);
 			}else if(event == ProjectContext.EVENT_SYS_MOBILE_LOGOUT){
-				notifyMobileLogout(j2seCoreSS);
+				if(j2seCoreSS != null){
+					j2seCoreSS.notifyMobileLogout();
+				}
 				
 				isReturnBack = true;
 				
@@ -613,7 +620,7 @@ public class MobiUIResponsor extends BaseResponsor {
 			for (int i = 0; i < size; i++) {
 				final ProjResponser projResponser = resp[i];
 				
-				setClientSessionForProjResponser(coreSS, coreSS.clientSession, projResponser);
+				setClientSessionForProjResponser(coreSS, projResponser);
 				projResponser.onScriptEventInSequence(coreSS, event);
 				fireSystemEventListenerInSequence(coreSS, projResponser, projResponser.context, event);
 			}
@@ -738,19 +745,15 @@ public class MobiUIResponsor extends BaseResponsor {
 	@Override
 	public void createClientSession(final J2SESession ss) {
 		if(ss != null){
-			final ClientSession cs = new ClientSession();
-			ss.clientSession = cs;
-			
 			for (int i = 0; i < responserSize; i++) {
 				final ProjResponser pr = responsors[i];
-				setClientSessionForProjResponser(ss, cs, pr);
+				setClientSessionForProjResponser(ss, pr);
 			}
 		}
 	}
 
-	final void setClientSessionForProjResponser(final J2SESession coreSS, final ClientSession cs, final ProjResponser pr) {
-		final SessionContext mc = pr.useFreeMobileContext(coreSS);
-		mc.setClientSession(coreSS, cs);
+	final void setClientSessionForProjResponser(final J2SESession coreSS, final ProjResponser pr) {
+		pr.initSessionContext(coreSS);
 		
 		final SessionMobiMenu menu = new SessionMobiMenu(coreSS, pr, pr.isRoot, pr.jarMainMenu.projectMenu);
 		coreSS.setSessionMenu(pr.projectID, menu);

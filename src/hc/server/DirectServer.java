@@ -9,7 +9,6 @@ import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.SessionManager;
 import hc.core.data.DataReg;
-import hc.core.sip.SIPManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.ui.design.J2SESession;
@@ -237,7 +236,7 @@ public class DirectServer extends Thread {
 				socket.getOutputStream().flush();
 				
 				final J2SESession coreSS = (J2SESession)SessionManager.getPreparedSocketSession();
-				coreSS.hcConnection.sipContext.deploySocket(coreSS.hcConnection, socket);
+				coreSS.deploySocket(socket);
 				
 				//家庭直联模式下，关闭KeepAlive
 				setServerConfigPara(coreSS, true, false);
@@ -272,7 +271,7 @@ public class DirectServer extends Thread {
 		coreSS.keepaliveManager.keepalive.setEnable(keepalive);
 		coreSS.keepaliveManager.keepalive.resetTimerCount();
 		
-		SIPManager.setOnRelay(coreSS.hcConnection, isRelay);
+		coreSS.setOnRelay(isRelay);
 	}
 	
 	private boolean isShutdown = false;

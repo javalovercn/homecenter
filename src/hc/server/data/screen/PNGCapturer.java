@@ -8,7 +8,6 @@ import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.data.DataInputEvent;
 import hc.core.data.DataPNG;
-import hc.core.sip.SIPManager;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.core.util.MobileAgent;
@@ -208,7 +207,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	protected void sleepBeforeRun() {
 		try{
 			int delayMS = 1200;
-			if(SIPManager.isOnRelay(coreSS.hcConnection)){
+			if(coreSS.isOnRelay()){
 				delayMS = 1000;
 			}
 			Thread.sleep(delayMS);
@@ -394,7 +393,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		}
 		
 		final int msOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_MS_On_Relay));
-		if(SIPManager.isOnRelay(coreSS.hcConnection)){
+		if(coreSS.isOnRelay()){
 			if(millSecond < msOnRelay){
 				millSecond = msOnRelay;
 			}
@@ -419,7 +418,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		}
 		
 		final int colorOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_Color_On_Relay));
-		if(SIPManager.isOnRelay(coreSS.hcConnection)){
+		if(coreSS.isOnRelay()){
 			if((IConstant.COLOR_STAR_TOP - mode) > colorOnRelay){
 				mode = (IConstant.COLOR_STAR_TOP - colorOnRelay);
 			}

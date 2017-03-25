@@ -12,7 +12,6 @@ import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPriorityManager;
-import hc.res.ImageSrc;
 import hc.server.HCActionListener;
 import hc.server.PlatformManager;
 import hc.server.ScreenServer;
@@ -23,6 +22,7 @@ import hc.server.msb.RealDeviceInfo;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.msb.WiFiAccount;
 import hc.server.msb.WiFiHelper;
+import hc.server.ui.ClientSessionForSys;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.J2SESessionManager;
 import hc.server.ui.LinkProjectStatus;
@@ -32,7 +32,6 @@ import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
-import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.SignHelper;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
@@ -118,28 +117,34 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 				acceptStr = StringUtil.replace(acceptStr, "{iagree}", iagreeStr);
 				cancelStr = (String) ResourceUtil.get(localCoreSS, IContext.CANCEL);
 				
-				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(true);
+//				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(true);
 				return null;
 			}
 		}, token);
 		
-		final int dpi = UserThreadResourceUtil.getMobileDPIFrom(localCoreSS);
-		if(dpi < 300){
-			//因为Android服务器会对自动缩放图片（ImageSrc.OK_ICON），所以必须重新提取。
-			//并如上，调用setAllowAccessSystemResource，及如下关闭allow
-			okImage = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_OK_22_PNG_PATH);
-			cancelImage = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_CANCEL_22_PNG_PATH);
-		}else{
-			okImage = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_OK_44_PNG_PATH);
-			cancelImage = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_CANCEL_44_PNG_PATH);
-		}
+//		final int dpi = UserThreadResourceUtil.getMobileDPIFrom(localCoreSS);
+//		if(dpi < 300){
+//			//因为Android服务器会对自动缩放图片（ImageSrc.OK_ICON），所以必须重新提取。
+//			//并如上，调用setAllowAccessSystemResource，及如下关闭allow
+//			okImage = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_OK_22_PNG_PATH);
+//			cancelImage = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_CANCEL_22_PNG_PATH);
+//		}else{
+//			okImage = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_OK_44_PNG_PATH);
+//			cancelImage = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_CANCEL_44_PNG_PATH);
+//		}
 
-		ContextManager.getThreadPool().run(new Runnable() {
-			@Override
-			public void run() {
-				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(false);
-			}
-		}, token);
+//		ContextManager.getThreadPool().run(new Runnable() {
+//			@Override
+//			public void run() {
+//				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(false);
+//			}
+//		}, token);
+		
+		{
+			final ProjResponser pr = ServerUIAPIAgent.getProjResponserMaybeNull(ctx);
+			okImage = (BufferedImage)ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr, ClientSessionForSys.CLIENT_SESSION_ATTRIBUTE_OK_ICON);
+			cancelImage = (BufferedImage)ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr, ClientSessionForSys.CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON);
+		}
 		
 		exitButton = new JButton(exitButtonStr);
 		loadCSS(css);
@@ -192,11 +197,11 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		return null;
 	}
 
-	public final void startAddHarProcessInSysThread(final J2SESession coreSS, final String url) {
+	public final void startAddHarProcessInSysThread(final J2SESession coreSS, final String url, final boolean isInstallFromClient) {
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
-				startAddHar(coreSS, url);
+				startAddHar(coreSS, url, isInstallFromClient);
 			}
 		});
 	}
@@ -221,7 +226,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	 * @param coreSS
 	 * @param url
 	 */
-	private final void startAddHar(final J2SESession coreSS, final String url){
+	private final void startAddHar(final J2SESession coreSS, final String url, final boolean isInstallFromClient){
 		LogManager.log("try ready to download HAR [" + url.toString() + "]...");
 		
 		//关闭可能资源锁窗口，比如Designer或LinkProjectPanel
@@ -311,7 +316,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 											return null;
 										}
 										try{
-											startAddAfterAgreeInQuestionThread(mlet, coreSS, fileHar, map, isUpgrade, oldBackEditFile);
+											startAddAfterAgreeInQuestionThread(mlet, coreSS, fileHar, map, isUpgrade, oldBackEditFile, isInstallFromClient);
 										}catch (final Exception e) {
 											runException[0] = e;
 										}
@@ -458,7 +463,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		final String devDesc = (String)ResourceUtil.get(coreSS, 8007);
 		
 		final String cancelDesc = (String)ResourceUtil.get(coreSS, 1018);
-		final String okDesc = (String)ResourceUtil.get(coreSS, 1010);
+		final String okDesc = ResourceUtil.getOKI18N(coreSS);
 		final String emptyDesc = (String)ResourceUtil.get(coreSS, 9242);
 		
 		final String nextOne = (String)ResourceUtil.get(coreSS, 8025);
@@ -476,7 +481,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 			}
 		});
 	}
-	
+
 	/**
 	 * 本方法内异常会被拦截，并转显到手机
 	 * @param coreSS 
@@ -484,13 +489,21 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	 */
 	private final void startAddAfterAgreeInQuestionThread(final HTMLMlet mlet, final J2SESession coreSS,
 			final File fileHar, final Map<String, Object> map,
-			final boolean isUpgrade, final File oldBackEditFile) throws Exception {
+			final boolean isUpgrade, final File oldBackEditFile, final boolean isInstallFromClient) throws Exception {
 		final ArrayList<LinkProjectStore> appendLPS = appendMapToSavedLPS(coreSS, fileHar, map, false, isUpgrade, oldBackEditFile);
 		LinkProjectManager.reloadLinkProjects();//十分重要
 		
 		final MobiUIResponsor mobiResp = (MobiUIResponsor)ServerUIUtil.getResponsor();
 		
-		final ProjResponser[] appendRespNotAll = mobiResp.appendNewHarProject();//仅扩展新工程，不启动或不运行
+		final ProjResponser[] appendRespNotAll = mobiResp.appendNewHarProject(isInstallFromClient);//仅扩展新工程，不启动或不运行
+		
+		{
+			for (int i = 0; i < appendRespNotAll.length; i++) {
+				final ProjResponser pr = appendRespNotAll[i];
+				
+				pr.initSessionContext(coreSS);//供device input token
+			}
+		}
 		
 		showMsgForAddHar(IContext.INFO, (String)ResourceUtil.get(coreSS, 9092));
 		
@@ -705,14 +718,14 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	final static Object startAddHarLock = new Object();
 	static AddHarHTMLMlet runingAddHar;
 
-	public static void startAddHTMLHarUI(final J2SESession coreSS, final String urlStr) {
+	public static void startAddHTMLHarUI(final J2SESession coreSS, final String urlStr, final boolean isInstallFromClient) {
 		initToken();//暂时申请特权
 		
 		synchronized (startAddHarLock) {
 			if(runingAddHar == null){
 				runingAddHar = buildAndDispMlet(coreSS, AddHarHTMLMlet.class);
 				if(runingAddHar != null){
-					runingAddHar.startAddHarProcessInSysThread(coreSS, urlStr);
+					runingAddHar.startAddHarProcessInSysThread(coreSS, urlStr, isInstallFromClient);
 				}
 			}else{
 				buildAndDispMlet(coreSS, AddHarIsBusy.class);

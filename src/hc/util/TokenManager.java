@@ -93,7 +93,7 @@ public class TokenManager {
 		PropertiesManager.saveFile();
 	}
 
-	public static void changeTokenFromUI(final String id, final String token) {
+	public static void changeTokenFromUI(final String id, final String token, final boolean isVerified) {
 		ConnectionManager.addBeforeConnectionBiz(new AbstractDelayBiz(null){
 			@Override
 			public final void doBiz() {
@@ -106,7 +106,9 @@ public class TokenManager {
 					public void run() {
 						PropertiesManager.setValue(PropertiesManager.p_uuid, id);
 						PropertiesManager.setValue(PropertiesManager.p_Token, token);
-						PropertiesManager.setValue(PropertiesManager.p_IsVerifiedEmail, IConstant.TRUE);
+						if(isVerified){
+							PropertiesManager.setValue(PropertiesManager.p_IsVerifiedEmail, IConstant.TRUE);
+						}
 						
 						PropertiesManager.saveFile();
 			

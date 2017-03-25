@@ -5,6 +5,7 @@ import hc.core.ContextManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
+import hc.server.ActionListenerRun;
 import hc.server.HCActionListener;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.HCEnableHeaderRenderer;
@@ -14,7 +15,6 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -255,10 +255,10 @@ public abstract class SocketEditPanel extends JPanel{
 			}
 		};
 		
-		final ActionListener actionActionListener = new ActionListener() {
+		final ActionListener actionActionListener = new HCActionListener(new ActionListenerRun() {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
-				if(checkMinAction((JCheckBox)e.getSource())){
+			public void run() {
+				if(checkMinAction((JCheckBox)getActionEvent().getSource())){
 					return;
 				}
 				
@@ -266,7 +266,7 @@ public abstract class SocketEditPanel extends JPanel{
 				updateCheckToDataBlock(socket);
 				notifyModify();
 			}
-
+			
 			private final boolean checkMinAction(final JCheckBox checkBox){
 				if(checkAccept.isSelected() == false && checkconnect.isSelected() == false && checklisten.isSelected() == false){
 					ContextManager.getThreadPool().run(new Runnable() {
@@ -279,7 +279,7 @@ public abstract class SocketEditPanel extends JPanel{
 				}
 				return false;
 			}
-		};
+		}, threadPoolToken);
 		
 		checkAccept.addActionListener(actionActionListener);
 		checkconnect.addActionListener(actionActionListener);
@@ -310,38 +310,38 @@ public abstract class SocketEditPanel extends JPanel{
 				"<br>ipv6 : <STRONG>[</STRONG>::ffff:8.8.8.8<STRONG>]</STRONG>, <STRONG>[]</STRONG> is required.</html>");
 		
 		hostAndIPGroup.add(hostRadioBtn);
-		hostRadioBtn.addActionListener(new ActionListener() {
+		hostRadioBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
+			public void run() {
 				final boolean isHost = hostRadioBtn.isSelected();
 				switchToHost(isHost);
 			}
-		});
+		}, threadPoolToken));
 		hostAndIPGroup.add(ipRadioBtn);
-		ipRadioBtn.addActionListener(new ActionListener() {
+		ipRadioBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
+			public void run() {
 				final boolean isIP = ipRadioBtn.isSelected();
 				switchToHost(!isIP);
 			}
-		});
+		}, threadPoolToken));
 		
 		portAndRangeGroup.add(portRadioBtn);
-		portRadioBtn.addActionListener(new ActionListener() {
+		portRadioBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
+			public void run() {
 				final boolean isPort = portRadioBtn.isSelected();
 				switchToPort(isPort);
 			}
-		});
+		}, threadPoolToken));
 		portAndRangeGroup.add(rangeRadioBtn);
-		rangeRadioBtn.addActionListener(new ActionListener() {
+		rangeRadioBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
+			public void run() {
 				final boolean isRange = rangeRadioBtn.isSelected();
 				switchToPort(!isRange);
 			}
-		});
+		}, threadPoolToken));
 		
 		final JPanel editPanel = new JPanel(new GridBagLayout());
 		final GridBagConstraints editgc = new GridBagConstraints();
@@ -695,9 +695,9 @@ public abstract class SocketEditPanel extends JPanel{
 			}
 		}, threadPoolToken));
 		
-		deleteBtn.addActionListener(new HCActionListener(){
+		deleteBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(final ActionEvent event) {
+			public void run() {
 				notifyModify();
 				
 				final int currRow = tableList.getSelectedRow();
@@ -729,7 +729,7 @@ public abstract class SocketEditPanel extends JPanel{
 				}
 				tableList.updateUI();
 			}
-		});
+		}));
 	}
 	
 	private final void switchToHost(final boolean isHost) {

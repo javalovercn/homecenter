@@ -2,8 +2,10 @@ package hc.server.ui;
 
 import hc.core.CoreSession;
 import hc.core.IConstant;
+import hc.core.L;
 import hc.core.SessionManager;
 import hc.core.util.HCURL;
+import hc.core.util.LogManager;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.util.BaseResponsor;
@@ -52,7 +54,7 @@ public class DefaultUIResponsor extends BaseResponsor{
 		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
 		for (int i = 0; i < coreSSS.length; i++) {
 			final J2SESession coreSS = (J2SESession)coreSSS[i];
-			notifyMobileLogout(coreSS);//有可能直接stop，而跳过EVENT_SYS_MOBILE_LOGOUT
+			coreSS.notifyMobileLogout();//有可能直接stop，而跳过EVENT_SYS_MOBILE_LOGOUT
 		}
 		
 		super.stop();
@@ -60,12 +62,19 @@ public class DefaultUIResponsor extends BaseResponsor{
 
 	@Override
 	public Object onEvent(final J2SESession coreSS, final String event) {
+		if(coreSS == null){
+			if(L.isInWorkshop){
+				LogManager.errToLog("fail to stop UpdateOneTimeRunnable!");
+			}
+			return null;
+		}
+		
 		if(ProjResponser.isScriptEventToAllProjects(event)){
 			//处理可能没有mobile_login，而导致调用mobile_logout事件
 			if(event == ProjectContext.EVENT_SYS_MOBILE_LOGIN){
 				notifyMobileLogin(coreSS);
 			}else if(event == ProjectContext.EVENT_SYS_MOBILE_LOGOUT){
-				notifyMobileLogout(coreSS);
+				coreSS.notifyMobileLogout();
 			}
 		}
 		return null;

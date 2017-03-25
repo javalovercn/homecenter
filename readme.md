@@ -71,6 +71,7 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 		buttonPanel.setPreferredSize(Dimension.new(getMobileWidth(), getButtonHeight()))
 
 		button = JButton.new("Screen")
+		setCSSForDiv(button, "btnForDiv", nil)
 		setCSS(button, "btnStyle", nil)
 		button.addActionListener{|e|
 			go(Java::hc.server.ui.Mlet::URL_SCREEN)#open desktop and control remote screen.
@@ -78,6 +79,7 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 		buttonPanel.add(button)
 
 		button = JButton.new("Back")
+		setCSSForDiv(button, "btnForDiv", nil)
 		setCSS(button, "btnStyle", nil)
 		button.addActionListener{|e|
 			back()#exit and return back
@@ -124,9 +126,28 @@ global CSS for current project :
 	height:100%;
 }
 
+.btnForDiv {
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-align: center;
+	-moz-box-align: center;
+	-ms-flex-align: center;
+	-webkit-align-items: center;
+	align-items: center;
+	justify-content: center;
+	-webkit-justify-content: center;
+	-webkit-box-pack: center;
+	-moz-box-pack: center;
+	-ms-flex-pack: center;
+}
+
 .btnStyle {
-	width:100%;
-	height:100%;
+	display: block;
+	width:90%;
+	height:90%;
 	color:#fff;
 	font-size:$buttonFontSize$px;
 	background-color:#54a1d9;

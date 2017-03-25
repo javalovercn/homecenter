@@ -9,8 +9,8 @@ import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.SessionManager;
 import hc.core.data.DataPNG;
-import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
+import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
@@ -29,7 +29,6 @@ import hc.server.msb.Device;
 import hc.server.msb.Robot;
 import hc.server.msb.RobotListener;
 import hc.server.msb.UserThreadResourceUtil;
-import hc.server.msb.Workbench;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
@@ -56,7 +55,6 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
@@ -84,6 +82,24 @@ public class ProjectContext {
 	private final String projectVer;
 	final RecycleRes recycleRes;
 	final Vector<SystemEventListener> projectLevelEventListeners = new Vector<SystemEventListener>();
+
+	/**
+	 * for example HAR is installing from client, and it is required to input token for device connection, 
+	 * you can use {@link Dialog} for custom input, otherwise if installing is from PC desktop, 
+	 * you must use {@link #showInputDialog(String, String[], String[])}.
+	 * <BR><BR>
+	 * it returns false when project normal start up even if it was installed from client.
+	 * @return true means current project is installing from client.
+	 * @since 7.46
+	 */
+	public final boolean isInstallingFromClient(){
+		final Object out = ServerUIAPIAgent.getSysAttrInUserThread(ServerUIAPIAgent.KEY_IS_INSTALL_FROM_CLIENT);
+		if(out != null && out instanceof Boolean){
+			return ((Boolean)out).booleanValue();
+		}
+		
+		return false;
+	}
 
 	/**
 	 * the level for server class loader.
@@ -163,7 +179,7 @@ public class ProjectContext {
 	@Deprecated
 	ProjResponser __projResponserMaybeNull;
 
-	private final Hashtable<String, Object> attribute_map = new Hashtable<String, Object>();
+	private final Hashtable<String, Object> att_map = new Hashtable<String, Object>();
 	private final ProjClassLoaderFinder finder;
 	
 	private static final Thread eventDispatchThread = HCLimitSecurityManager.getEventDispatchThread();
@@ -541,7 +557,7 @@ public class ProjectContext {
 	}
 	
 	/**
-     * return <code>position</code> item from list of session level.
+     * return <code>position</code> item from list of project level.
      * <BR><BR>
      * it is thread safe.
      * <BR><BR>
@@ -766,6 +782,8 @@ public class ProjectContext {
 	 * for example, in order to connect device, user may be required to input
 	 * token of devices. 
 	 * <br><br>
+	 * you can also custom {@link Dialog} when is installing HAR from client, see {@link #isInstallingFromClient()}.
+	 * <BR><BR>
 	 * to save token, see {@link #setProperty(String, String)} and
 	 * {@link #saveProperties()}
 	 * 
@@ -781,8 +799,53 @@ public class ProjectContext {
 	 */
 	public static final String[] showInputDialog(final String title,
 			final String[] fieldNames, final String[] fieldDescs) {
-		return App.showHARInputDialog(appendProjectIDForTitle(title),
+		checkHARInput(fieldNames, fieldDescs);
+
+		final ProjectContext ctx = ProjectContext.getProjectContext();
+		if(ctx != null && ctx.isInstallingFromClient()){//switch input from client , not from PC desktop
+			final String[] waitLock = new String[fieldNames.length];
+			
+			ctx.sendDialogByBuilding(new Runnable() {
+				@Override
+				public void run() {
+					new ProjectInputDialog(title, fieldNames, fieldDescs, waitLock);
+				}
+			});
+			
+			synchronized (waitLock) {
+				try {
+					waitLock.wait(1000 * 60 * 30);//半小时
+				} catch (final InterruptedException e) {
+				}
+			}
+			
+			return waitLock;
+		}else{
+			return App.showHARInputDialog(appendProjectIDForTitle(title),
 				fieldNames, fieldDescs);
+		}
+	}
+	
+	private static void checkHARInput(final String[] fieldName, final String[] fieldDesc)
+			throws Error {
+		if(fieldName == null || searchNull(fieldName)){
+			throw new Error("fieldName is null or null member");
+		}
+		if(fieldDesc == null || searchNull(fieldDesc)){
+			throw new Error("fieldDesc is null or null member");
+		}
+		if(fieldDesc.length != fieldDesc.length){
+			throw new Error("the length of fieldName must equals to the length of fieldDesc");
+		}
+	}
+	
+	private static final boolean searchNull(final String[] array){
+		for (int i = 0; i < array.length; i++) {
+			if(array[i] == null){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	private static final String appendProjectIDForTitle(final String title) {
@@ -1224,36 +1287,7 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final Object setAttribute(final String name, final Object obj) {
-		if (name.startsWith(Workbench.SYS_RESERVED_KEYS_START, 0)) {
-			throw new Error("the name of attribute can't start with '"
-					+ Workbench.SYS_RESERVED_KEYS_START
-					+ "', it is reserved by system.");
-		}
-		
-		return __setAttributeSuper(name, obj);
-	}
-	
-	/**
-	 * @deprecated
-	 * @param key
-	 * @return the attribute of name.
-	 */
-	@Deprecated
-	final Object __setAttributeSuper(final String name, final Object obj) {
-//		synchronized (attribute_map) {
-			return attribute_map.put(name, obj);
-//		}
-	}
-	
-	/**
-	 * @deprecated
-	 * @param name
-	 */
-	@Deprecated
-	final Object __removeAttributeSuper(final String name) {
-//		synchronized (attribute_map) {
-			return attribute_map.remove(name);
-//		}
+		return att_map.put(name, obj);
 	}
 
 	/**
@@ -1269,12 +1303,7 @@ public class ProjectContext {
 	 * @return the attribute to which the name had been mapped, or null if the name did not have a mapping
 	 */
 	public final Object removeAttribute(final String name) {
-		if (name.startsWith(Workbench.SYS_RESERVED_KEYS_START, 0)) {
-			throw new Error("the name of attribute can't start with '"
-					+ Workbench.SYS_RESERVED_KEYS_START + "'");
-		}
-		
-		return __removeAttributeSuper(name);
+		return att_map.remove(name);
 	}
 
 	/**
@@ -1302,26 +1331,9 @@ public class ProjectContext {
 	 * @since 6.98
 	 */
 	public final Object getAttribute(final String name) {
-		if (name.startsWith(Workbench.SYS_RESERVED_KEYS_START, 0)) {
-			throw new Error("the name of attribute can't start with '"
-					+ Workbench.SYS_RESERVED_KEYS_START + "'");
-		}
-		
-		return __getAttributeSuper(name);
+		return att_map.get(name);
 	}
 	
-	/**
-	 * @deprecated
-	 * @param key
-	 * @return the attribute of name.
-	 */
-	@Deprecated
-	final Object __getAttributeSuper(final String name) {
-//		synchronized (attribute_map) {
-			return attribute_map.get(name);
-//		}
-	}
-
 	/**
 	 * returns the attribute with the given name, or <code>defaultValue</code>
 	 * if there is no attribute for that name.
@@ -1380,34 +1392,7 @@ public class ProjectContext {
 	 * @since 6.98
 	 */
 	public final Enumeration getAttributeNames() {
-		final HashSet<String> set = new HashSet<String>();
-		synchronized (attribute_map) {
-			final Enumeration<String> en = attribute_map.keys();
-			try{
-				while (en.hasMoreElements()) {
-					final String item = en.nextElement();
-					if (item.startsWith(Workbench.SYS_RESERVED_KEYS_START, 0)) {
-						continue;
-					} else {
-						set.add(item);
-					}
-				}
-			}catch (final NoSuchElementException e) {
-			}
-		}
-
-		final Iterator<String> setit = set.iterator();
-		return new Enumeration() {
-			@Override
-			public boolean hasMoreElements() {
-				return setit.hasNext();
-			}
-
-			@Override
-			public Object nextElement() {
-				return setit.next();
-			}
-		};
+		return att_map.keys();
 	}
 
 	/**
@@ -1485,9 +1470,9 @@ public class ProjectContext {
 	 * @see #saveProperties()
 	 */
 	public final String setProperty(final String key, final String value) {
-		if (key.startsWith(Workbench.SYS_RESERVED_KEYS_START, 0)) {
+		if (key.startsWith(CCoreUtil.SYS_RESERVED_KEYS_START, 0)) {
 			throw new Error("the key of property can't start with '"
-					+ Workbench.SYS_RESERVED_KEYS_START
+					+ CCoreUtil.SYS_RESERVED_KEYS_START
 					+ "', it is reserved by system.");
 		}
 
@@ -1510,7 +1495,7 @@ public class ProjectContext {
 		final HashSet<String> set = new HashSet<String>();
 		while (it.hasNext()) {
 			final String item = it.next();
-			if (item.startsWith(Workbench.SYS_RESERVED_KEYS_START, 0)) {
+			if (item.startsWith(CCoreUtil.SYS_RESERVED_KEYS_START, 0)) {
 				continue;
 			} else {
 				set.add(item);
@@ -1605,9 +1590,9 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final String getProperty(final String key) {
-		if (key.startsWith(Workbench.SYS_RESERVED_KEYS_START, 0)) {
+		if (key.startsWith(CCoreUtil.SYS_RESERVED_KEYS_START, 0)) {
 			throw new Error("the key of property can't start with '"
-					+ Workbench.SYS_RESERVED_KEYS_START + "'");
+					+ CCoreUtil.SYS_RESERVED_KEYS_START + "'");
 		}
 
 		return __getPropertySuper(key);
@@ -1657,9 +1642,9 @@ public class ProjectContext {
 	 * @return the property to which the key had been mapped, or null if the key did not have a property
 	 */
 	public final String removeProperty(final String key) {
-		if (key.startsWith(Workbench.SYS_RESERVED_KEYS_START, 0)) {
+		if (key.startsWith(CCoreUtil.SYS_RESERVED_KEYS_START, 0)) {
 			throw new Error("the key of property can't start with '"
-					+ Workbench.SYS_RESERVED_KEYS_START + "'");
+					+ CCoreUtil.SYS_RESERVED_KEYS_START + "'");
 		}
 
 		return __removePropertySuper(key);
@@ -2489,10 +2474,11 @@ public class ProjectContext {
 	}
 	
 	/**
-	 * send a dialog to mobile if in session level, or send same dialog(s) to all client sessions if in project level. <br>
+	 * send a dialog to mobile if in session level, or send same dialog(s) to all client sessions if in project level. 
+	 * <br><br>
 	 * in project level, if one session replies, then the same dialog(s) in other sessions will be dismissed.
 	 * <br><br>
-	 * for example, <BR><BR>in <STRONG>JRuby</STRONG> :<BR>
+	 * code sample, <BR><BR>in <STRONG>JRuby</STRONG> :<BR>
 	 * <code>
 	 * ctx.sendDialogByBuilding {
 	 * <BR>
@@ -2809,14 +2795,14 @@ public class ProjectContext {
 			}
 			final CoreSession[] coreSS = ServerUIAPIAgent.getAllSocketSessionsNoCheck();
 			for (int i = 0; i < coreSS.length; i++) {
-				if(SIPManager.isOnRelay(coreSS[i].hcConnection)){
+				if(coreSS[i].isOnRelay()){
 					return true;
 				}
 			}
 			return false;
 		}else{
 			final J2SESession coreSS = sessionContext.j2seSocketSession;
-			return SIPManager.isOnRelay(coreSS.hcConnection);
+			return coreSS.isOnRelay();
 		}
 	}
 

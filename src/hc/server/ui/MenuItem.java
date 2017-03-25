@@ -8,6 +8,7 @@ import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
 
 import java.awt.image.BufferedImage;
+import java.util.Map;
 
 /**
  * An implementation of an item in a menu. A menu item is essentially a button sitting in a list.
@@ -40,7 +41,7 @@ public class MenuItem {
 	BufferedImage cacheOriImage;
 	private BufferedImage settedImg;
 
-	public MobiMenu belongToMenu;
+	MobiMenu belongToMenu;
 	boolean isNeedRefresh;
 	boolean isEnable = true;
 	
@@ -190,6 +191,10 @@ public class MenuItem {
 	 * if the MenuItem is displayed on mobile, then it will be refreshed.
 	 * <BR><BR>
 	 * if the MenuItem is added in project level, then the change will apply to all mobile clients.
+	 * <BR><BR>
+	 * <STRONG>Important</STRONG> : <BR>
+	 * if there is no match in map, which is put by {@link #setText(String[], String[])}, {@link #setText(Map)} or designer, 
+	 * then the <code>text</code> is used for menu item.
 	 * @param text
 	 * @see #setText(String[], String[])
 	 * @since 7.20
@@ -209,6 +214,7 @@ public class MenuItem {
 	/**
 	 * return the text which is set.
 	 * @return
+	 * @see #setText(String)
 	 */
 	public String getText(){
 		return itemName;
@@ -223,6 +229,7 @@ public class MenuItem {
 	 * @param locales the array for locale
 	 * @param texts the array for text
 	 * @return false means <code>locales</code> is null, <code>texts</code> is null or array lengths are not equal.
+	 * @see #setText(Map)
 	 * @see #setText(String)
 	 * @since 7.20
 	 */
@@ -241,6 +248,31 @@ public class MenuItem {
 		for (int i = 0; i < locSize; i++) {
 			i18nName.put(locales[i], texts[i]);
 		}
+		
+		if(belongToMenu != null){
+			belongToMenu.notifyModify(this);
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * if the MenuItem is displayed on mobile, then it will be refreshed.
+	 * <BR><BR>
+	 * if the MenuItem is added in project level, then the change will apply to all mobile clients.
+	 * <BR><BR>
+	 * for example, <code>map</code> is {"en-US" -> "Hello", "fr-FR" -> "Bonjour"}.
+	 * @param map the map text for key locales.
+	 * @return false means <code>map</code> is null
+	 * @see #setText(String[], String[])
+	 * @since 7.46
+	 */
+	public boolean setText(final Map map){
+		if(map == null){
+			return false;
+		}
+		
+		i18nName.putAll(map);
 		
 		if(belongToMenu != null){
 			belongToMenu.notifyModify(this);

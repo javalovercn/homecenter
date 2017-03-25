@@ -13,9 +13,9 @@ import javax.swing.SwingConstants;
 public class LockTester {
 	private final static int step0Cancle = 0, step1Query = 1, step2Login = 2, step3LockScreen = 3, step5Finish = 5;
 	
-	private final static ActionListener cancleListener = new HCActionListener() {
+	private final static ActionListener cancleListener = new ActionListener() {
 		@Override
-		public void actionPerformed(ActionEvent e) {
+		public void actionPerformed(final ActionEvent e) {
 			stepNow = step0Cancle;
 		}
 	};
@@ -79,7 +79,7 @@ public class LockTester {
 	}
 	
 	private static void showStepDialog(final String title, final String text, final String nextOrFinish, final ActionListener listener, final ActionListener cancle){
-		JPanel panel = new JPanel(new BorderLayout());
+		final JPanel panel = new JPanel(new BorderLayout());
 //		try {
 			panel.add(new JLabel("<html><body style=\"width:600\">" + text + "</body></html>", 
 					null, SwingConstants.LEADING), BorderLayout.CENTER);//new ImageIcon(ImageIO.read(ImageSrc.OK_ICON))

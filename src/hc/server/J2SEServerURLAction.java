@@ -177,7 +177,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 					final byte[] bs = ByteUtil.toBytesFromHexStr(urlHexStr);
 					final String urlStr = StringUtil.bytesToString(bs, 0, bs.length);
 					
-					AddHarHTMLMlet.startAddHTMLHarUI(j2seCoreSS, urlStr);
+					AddHarHTMLMlet.startAddHTMLHarUI(j2seCoreSS, urlStr, true);
 					return true;
 				}else if(HCURL.DATA_PARA_VOICE_COMMANDS.equals(para1)){
 					final String voiceCommands = VoiceCommand.format(url.getValueofPara(HCURL.DATA_PARA_VOICE_COMMANDS));
@@ -187,7 +187,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 						if(out.isEnabled()){
 							final String itemURL = ServerUIAPIAgent.getMobiMenuItem_URL(out);
 							LogManager.log(ILog.OP_STR + "execute [" + itemURL + "] by voice command [" + voiceCommands + "].");
-							ServerUIAPIAgent.goInSysThread(j2seCoreSS, out.belongToMenu.resp.context, itemURL);
+							ServerUIAPIAgent.goInSysThread(j2seCoreSS, ServerUIAPIAgent.getBelongMobiMenu(out).resp.context, itemURL);
 						}else{
 							final String msg = "[" + voiceCommands + "] : " + ((String)ResourceUtil.get(9247));
 							ServerUIAPIAgent.sendOneMovingMsg(j2seCoreSS, msg);
@@ -268,7 +268,8 @@ public class J2SEServerURLAction implements IHCURLAction {
 			final String elementID = url.elementID;
 			
 			if(elementID.equals(HCURL.ADD_HAR_WIFI)){//注意：此处为WiFi添加模式
-				AddHarHTMLMlet.startAddHTMLHarUI(j2seCoreSS, null);
+				final boolean isInstallFromClient = true;
+				AddHarHTMLMlet.startAddHTMLHarUI(j2seCoreSS, null, isInstallFromClient);
 				ContextManager.getThreadPool().run(new Runnable() {
 					@Override
 					public void run() {
@@ -316,7 +317,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 									pools.run(new Runnable() {//转系统级
 										@Override
 										public void run() {
-											mlet.startAddHarProcessInSysThread(j2seCoreSS, downloadURL);			
+											mlet.startAddHarProcessInSysThread(j2seCoreSS, downloadURL, isInstallFromClient);			
 										}
 									}, token);
 								}

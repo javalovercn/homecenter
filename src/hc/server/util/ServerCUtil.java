@@ -3,9 +3,7 @@ package hc.server.util;
 import hc.App;
 import hc.core.CoreSession;
 import hc.core.HCConnection;
-import hc.core.IConstant;
 import hc.core.IContext;
-import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
@@ -83,27 +81,29 @@ public class ServerCUtil {
 		LogManager.errToLog(errPwd);
 	}
 
-	public static void transCertKey(final CoreSession coreSS, final byte[] oneTimeCertKey, final byte msgTag, final boolean isOneTimeKeys) {
+	public static void transCertKey(final CoreSession coreSS, final HCConnection hcConnection, final byte[] oneTimeCertKey, final byte msgTag, final boolean isOneTimeKeys) {
 		final byte[] transCKBS = new byte[MsgBuilder.UDP_BYTE_SIZE];
 		
-		CUtil.generateTransCertKey(coreSS.hcConnection, coreSS.hcConnection.OneTimeCertKey, ResourceUtil.getStartMS(), transCKBS, MsgBuilder.INDEX_MSG_DATA, oneTimeCertKey, IConstant.getPasswordBS(), isOneTimeKeys);
+		CUtil.generateTransCertKey(hcConnection, hcConnection.OneTimeCertKey, 
+				ResourceUtil.getStartMS(), transCKBS, MsgBuilder.INDEX_MSG_DATA, oneTimeCertKey, 
+				hcConnection.userPassword, isOneTimeKeys);
 		
 		coreSS.context.send(msgTag, transCKBS, CUtil.TRANS_CERT_KEY_LEN);
 	}
 
 
-	public static void transOneTimeCertKey(final IContext ctx) {
+	public static void transOneTimeCertKey(final IContext ctx, final HCConnection hcConnection) {
 		LogManager.log("transport one time certification key to client");
 		
 		//传输OneTimeCertKey
-		byte[] oneTimeCertKey = ctx.coreSS.hcConnection.OneTimeCertKey;
+		byte[] oneTimeCertKey = hcConnection.OneTimeCertKey;
 		if(oneTimeCertKey == null){
 			oneTimeCertKey = new byte[CCoreUtil.CERT_KEY_LEN];
 			ctx.coreSS.setOneTimeCertKey(oneTimeCertKey);
 		}
 		CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), oneTimeCertKey, 0, CCoreUtil.CERT_KEY_LEN);
 //		LogManager.log("OneTime:" + CUtil.toHexString(CUtil.OneTimeCertKey));
-		transCertKey(ctx.coreSS, oneTimeCertKey, MsgBuilder.E_TRANS_ONE_TIME_CERT_KEY, true);
+		transCertKey(ctx.coreSS, hcConnection, oneTimeCertKey, MsgBuilder.E_TRANS_ONE_TIME_CERT_KEY, true);
 	}
 	
 	private final static String Algorithm = "DES"; // 定义 加密算法,可用DES,DESede,Blowfish

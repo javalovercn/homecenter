@@ -5,7 +5,6 @@ import hc.core.CoreSession;
 import hc.core.L;
 import hc.core.RootServerConnector;
 import hc.core.SessionManager;
-import hc.core.sip.SIPManager;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
@@ -145,7 +144,7 @@ public class J2SESessionManager extends SessionManager {
 			}
 		}
 		if(notifyRelineon){
-			SIPManager.notifyLineOff(coreSS, false, isForce);
+			coreSS.notifyLineOff(false, isForce);
 		}
 	}
 

@@ -6,6 +6,7 @@ import hc.core.util.RecycleRes;
 import hc.core.util.RecycleThread;
 import hc.core.util.ThreadPool;
 import hc.server.ui.ClientSession;
+import hc.server.ui.ClientSessionForSys;
 
 import java.util.HashMap;
 import java.util.Stack;
@@ -38,9 +39,6 @@ public class SessionContext {
 		if(stack == null){
 			stack = new Stack<SessionContext>();
 			map.put(projID, stack);
-			if(L.isInWorkshop){
-				LogManager.log("successful cycle SessionContext for project [" + projID + "]!");
-			}
 		}
 		
 		stack.push(mc);
@@ -51,6 +49,7 @@ public class SessionContext {
 	final ThreadGroup mtg;
 	public final RecycleRes recycleRes;
 	private ClientSession clientSession;
+	private ClientSessionForSys clientSessionForSys;
 	public J2SESession j2seSocketSession;
 	
 	/**
@@ -58,13 +57,18 @@ public class SessionContext {
 	 * @param ss
 	 * @param cs
 	 */
-	public final void setClientSession(final J2SESession ss, final ClientSession cs){
+	public final void setClientSession(final J2SESession ss, final ClientSession cs, final ClientSessionForSys csForSys){
 		this.j2seSocketSession = ss;
 		this.clientSession = cs;
+		this.clientSessionForSys = csForSys;
 	}
 	
 	public final ClientSession getClientSession(){
 		return this.clientSession;
+	}
+	
+	public final ClientSessionForSys getClientSessionForSys(){
+		return this.clientSessionForSys;
 	}
 	
 	public SessionContext(final ThreadGroup projectGroup, final ProjResponser proResp){

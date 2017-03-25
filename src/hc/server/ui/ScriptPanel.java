@@ -10,7 +10,7 @@ import javax.swing.JPanel;
 /**
  * {@link ScriptPanel} is used to load JavaScript and execute JavaScript.
  * <BR><BR>
- * a {@link ScriptPanel} can be used in {@link HTMLMlet} and {@link Dialog} just like JPanel.
+ * a {@link ScriptPanel} can be used in {@link HTMLMlet} and {@link Dialog} like JPanel.
  * @since 7.36
  */
 public class ScriptPanel extends JPanel {

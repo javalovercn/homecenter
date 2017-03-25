@@ -1519,15 +1519,20 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	}
 
 	private final void buildHighlightForStringAndRem(final int offset, final String text, final boolean isReplace) {
-		final StyledDocument document = (StyledDocument)jtaDocment;
-		final Matcher matcher = rem_and_str_pattern.matcher(text);
-		while (matcher.find()) {
-			final int start = matcher.start() + offset;
-			final int end = matcher.end() + offset;
-			final String matcherStr = matcher.group();
-			final boolean isRem = (matcherStr.charAt(0) == '#');
-			document.setCharacterAttributes(start, end - start, isRem?REM_LIGHTER:STR_LIGHTER, isReplace);
-		}
+		SwingUtilities.invokeLater(new Runnable() {//由于多语言绘制耗时，所以delay
+			@Override
+			public void run() {
+				final StyledDocument document = (StyledDocument)jtaDocment;
+				final Matcher matcher = rem_and_str_pattern.matcher(text);
+				while (matcher.find()) {
+					final int start = matcher.start() + offset;
+					final int end = matcher.end() + offset;
+					final String matcherStr = matcher.group();
+					final boolean isRem = (matcherStr.charAt(0) == '#');
+					document.setCharacterAttributes(start, end - start, isRem?REM_LIGHTER:STR_LIGHTER, isReplace);
+				}
+			}
+		});
 	}
 
 	public final void undo() {

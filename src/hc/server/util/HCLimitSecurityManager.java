@@ -37,6 +37,7 @@ import hc.server.ui.ICanvas;
 import hc.server.ui.MenuItem;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.ProjectInputDialog;
 import hc.server.ui.ScriptPanel;
 import hc.server.ui.ScriptTester;
 import hc.server.ui.design.AddHarHTMLMlet;
@@ -318,7 +319,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    			DeviceCompatibleDescription.class,
 	    			AddHarHTMLMlet.class, AddHarIsBusy.class, BindHTMLMlet.class, Dialog.class, 
 	    			LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
-	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class,
+	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class, ProjectInputDialog.class,
 	    			WiFiAccount.class, ScriptPanel.class, ScriptTester.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
 //	    	{
 //	    		Vector<Class> allowVect = new Vector<Class>();
@@ -445,8 +446,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 								if(ip.equals(SocketDesc.LOCAL_HOST_FOR_SOCK_PERMISSION)){
 									passPrivateCheck = true;
 								}else if((firstDotIdx = ip.indexOf(".")) > 0){
-									if(ip.startsWith("192.168.") || ip.startsWith("10.") || ip.startsWith("127.") 
-											|| ip.startsWith("172.16.") || ip.startsWith("172.31.") || ip.startsWith("169.254.")){
+									if(HttpUtil.isLocalNetworkIP(ip)){
 										passPrivateCheck = true;//需要进行后续ipv4的检查
 									}else{
 										//224.0.0.0 - 239.255.255.255, isMulticastAddress
@@ -629,7 +629,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		
 		super.checkPermission(perm);
 	}
-	
+
 	@Override
 	public final void checkMemberAccess(final Class<?> clazz, final int which){
 		if(which == Method.DECLARED){

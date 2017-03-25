@@ -3,11 +3,9 @@ package hc.server.data.screen;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.IConstant;
-import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootServerConnector;
 import hc.core.data.DataInputEvent;
-import hc.core.sip.SIPManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.ILog;
@@ -246,7 +244,7 @@ public class ScreenCapturer extends PNGCapturer{
 	}
 	
 	private final boolean isDirectServerMode(){
-		if(SIPManager.isOnRelay(coreSS.hcConnection) == false){
+		if(coreSS.isOnRelay() == false){
 			final short connMode = coreSS.context.getConnectionModeStatus();
 			if(connMode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
 				return true;

@@ -27,7 +27,7 @@ import javax.swing.JToggleButton;
 
 /**
  * Dialog is a top-level JPanel, locate at center of mobile client.<BR>
- * and it is typically used to take some form of input from the user.
+ * and it is typically used for inputs from user.
  * <BR><BR>
  * if there is a alert message, question or other dialog is showing and not closed, 
  * <BR>
@@ -38,10 +38,10 @@ import javax.swing.JToggleButton;
  * <BR>
  * 2. to send a user defined dialog (NOT instance) to all session for project level,<BR>
  * please invoke {@link ProjectContext#sendDialogByBuilding(Runnable)}.<BR>
- * if JComponent of one session inputs, then the same dialog in other sessions will be dismissed. 
+ * if a JComponent of one session replies, then the same dialog(s) in other sessions will be dismissed. 
  * <BR><BR>
  * setting CSS for JComponents in dialog is as same as {@link HTMLMlet}.
- * <BR><BR>Tip : if you need load and execute javascript, please use {@link ScriptPanel}.
+ * <BR><BR>Tip : to load and execute JavaScript, please use {@link ScriptPanel}.
  */
 public class Dialog extends JPanel {
 	private static final long serialVersionUID = 5869314873711129148L;
@@ -607,7 +607,7 @@ public class Dialog extends JPanel {
 	
 	/**
 	 * get button height in pixels of current session mobile.
-	 * @return the recommended button height in pixels, it is normal used for the size of button area on bottom of mobile.
+	 * @return the recommended button height in pixels.
 	 * @since 7.30
 	 * @see #getFontSizeForButton()
 	 */

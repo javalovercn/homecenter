@@ -467,12 +467,6 @@ public class Workbench{
 	protected final int FORWARDED_SYNC_ID = Integer.MAX_VALUE;
 	private final int MAX_SYNC_ID = Integer.MAX_VALUE - 1;
 	/**
-	 * @deprecated
-	 */
-	@Deprecated
-	public static final String SYS_RESERVED_KEYS_START = "_HC_SYS";
-	
-	/**
 	 * process a {@link Message} synchronous and waiting for response.
 	 * @param msg the object must be got from {@link #getFreeMessage()}, and processed by this method only one time. the object will be auto recycled by server.
 	 * @param isDownward <br>true : from smart module to device, or <b>control flow</b> to device.<br>false (Upward) : from device to smart module, or <b>status flow</b> from device.

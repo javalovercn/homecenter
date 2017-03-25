@@ -1,10 +1,10 @@
 package hc.server.ui.design;
 
 import hc.App;
-import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
+import hc.server.HCActionListener;
 import hc.server.ProcessingWindowManager;
 import hc.server.msb.Converter;
 import hc.server.msb.ConverterInfo;
@@ -26,8 +26,6 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Vector;
@@ -363,13 +361,13 @@ public class BindRobotSource extends IoTSource{
 				btnPanel.add(btn, c);
 				panel.add(btnPanel);
 			}
-			btn.addActionListener(new ActionListener(){
+			btn.addActionListener(new HCActionListener(new Runnable() {
 				@Override
-				public void actionPerformed(final ActionEvent e) {
+				public void run() {
 					back[0].dispose();
 					isCancel[0] = true;
 				}
-			});
+			}));
 			
 			final JPanel gapPanel = new JPanel(new GridBagLayout());
 			final GridBagConstraints c = new GridBagConstraints();

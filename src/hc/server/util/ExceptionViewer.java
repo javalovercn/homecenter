@@ -17,7 +17,6 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayDeque;
 import java.util.Calendar;
@@ -78,12 +77,12 @@ public class ExceptionViewer {
 
 	public ExceptionViewer(){
 		
-		clearBtn.addActionListener(new HCActionListener(){
+		clearBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
+			public void run() {
 				reset();
 			}
-		});
+		}));
 		
 		modelException = new AbstractTableModel() {
 			@Override

@@ -1,7 +1,5 @@
 package hc.server.ui.design;
 
-import hc.core.L;
-import hc.core.sip.SIPManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
@@ -180,7 +178,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 	public final String getBitmapBase64ForMobile(final J2SESession coreSS, final BufferedImage bi, final String unChangedBase64){
 		final boolean menuTrueColor = UserThreadResourceUtil.getMobileAgent(coreSS).isMenuTrueColor();
 		
-		if(unChangedBase64 != null && (menuTrueColor || SIPManager.isOnRelay(coreSS.hcConnection) == false)){
+		if(unChangedBase64 != null && (menuTrueColor || coreSS.isOnRelay() == false)){
 			return unChangedBase64;
 		}
 		

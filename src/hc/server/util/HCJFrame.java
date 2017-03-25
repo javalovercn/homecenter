@@ -45,11 +45,18 @@ public class HCJFrame extends JFrame {
 		}
 	}
 	
-	public final DisposeListener getDisposeListener(){
-		return listener;
-	}
-	
 	public final void setDisposeListener(final DisposeListener dListener){
-		listener = dListener;
+		if(listener != null){
+			final DisposeListener oldListener = listener;
+			listener = new DisposeListener() {
+				@Override
+				public void dispose() {
+					oldListener.dispose();
+					dListener.dispose();
+				}
+			};
+		}else{
+			listener = dListener;
+		}
 	}
 }

@@ -274,7 +274,7 @@ public class CUtil {
 	public static final void addListenerForClient(final EventCenter eventCenter, final IContext ctx){
 		//客户端环境
 		eventCenter.addListener(new IEventHCListener(){
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final String status = HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA);
 //					System.out.println("Status:" + status);
 				if(status.equals(String.valueOf(IContext.BIZ_SERVER_AFTER_PWD_ERROR))){
@@ -284,7 +284,7 @@ public class CUtil {
 				}else if(status.equals(String.valueOf(IContext.BIZ_SERVER_AFTER_CERTKEY_AND_PWD_PASS))){
 					LogManager.info("CertKey PWD are passed");
 					ctx.doExtBiz(IContext.BIZ_SERVER_AFTER_CERTKEY_AND_PWD_PASS, null);
-					coreSS.hcConnection.resetCheck();
+					hcConnection.resetCheck();
 				}else if(status.equals(String.valueOf(IContext.BIZ_SERVER_AFTER_SERVICE_IS_FULL))){
 					LogManager.info("service is full");
 					ctx.doExtBiz(IContext.BIZ_SERVER_AFTER_SERVICE_IS_FULL, null);
@@ -302,14 +302,14 @@ public class CUtil {
 			}});
 
 		eventCenter.addListener(new IEventHCListener(){
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 //					LogManager.log("Receive Cert in Security Channel.");
 				if(ctx.cmStatus != ContextManager.STATUS_CLIENT_SELF){
 					LogManager.log("Trans Cert in Security channel should in status:" + ContextManager.STATUS_CLIENT_SELF);
 					return true;
 				}
-				CUtil.decodeFromTransCertKey(coreSS.hcConnection, coreSS.hcConnection.OneTimeCertKey, bs, 
-						MsgBuilder.INDEX_MSG_DATA, IConstant.getPasswordBS(), CUtil.CertKey, false);
+				CUtil.decodeFromTransCertKey(hcConnection, hcConnection.OneTimeCertKey, bs, 
+						MsgBuilder.INDEX_MSG_DATA, hcConnection.userPassword, CUtil.CertKey, false);
 //					LogManager.logInTest("receive cert : " + CUtil.toHexString(CUtil.CertKey));
 				IConstant.getInstance().setObject(IConstant.CertKey, CertKey);
 				

@@ -5,6 +5,7 @@ import hc.PlatformTrayIcon;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.GlobalConditionWatcher;
+import hc.core.HCConnection;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.IWatcher;
@@ -50,7 +51,6 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.TrayIcon.MessageType;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -118,7 +118,7 @@ public class TrayMenuUtil {
 			lastCheckMS = System.currentTimeMillis();
 		}
 	}
-	
+    
 	private static void doAfterCertIsNotTransed() {
 		App.setNoTransCert();
 		
@@ -205,7 +205,7 @@ public class TrayMenuUtil {
 				false, null, null, listener, null, null, false, false, null, false, false);
 	}
 
-	private static void transNewCertification(final J2SESession coreSS, final Window window) {
+	private static void transNewCertification(final J2SESession coreSS, final HCConnection hcConnection, final Window window) {
 		final J2SEContext j2seContext = (J2SEContext)coreSS.context;
 		
 		if(UserThreadResourceUtil.isInServing(j2seContext)){
@@ -213,7 +213,7 @@ public class TrayMenuUtil {
 			
 			coreSS.isTransedCertToMobile = false;
 			
-			transNewCertKey(coreSS);
+			transNewCertKey(coreSS, hcConnection);
 			
 			coreSS.eventCenterDriver.addWatcher(new IWatcher() {
 				long curr = System.currentTimeMillis();
@@ -493,7 +493,7 @@ public class TrayMenuUtil {
 								j2seCoreSS.eventCenterDriver.addWatcher(new LineonAndServingExecWatcher(j2seCoreSS, buildNewCertKey.getText()){
 									@Override
 									public final void doBiz() {
-										transNewCertification(j2seCoreSS, window);
+										transNewCertification(j2seCoreSS, j2seCoreSS.getHCConnection(), window);
 									}});
 							}
 						}else{
@@ -610,21 +610,21 @@ public class TrayMenuUtil {
 	
 	private final static void addSysPwdMenuItem(final JMenu subMenu) {
 		{
-			final JMenuItem verifyItem = new JMenuItem(VerifyEmailManager.getVerifyEmailButtonText());
+			final JMenuItem verifyEmailItem = new JMenuItem(VerifyEmailManager.getVerifyEmailButtonText());
 			final ImageIcon verifyIcon = new ImageIcon(ImageSrc.ACCOUNT_LOCK_ICON);
-			verifyItem.setIcon(verifyIcon);
+			verifyEmailItem.setIcon(verifyIcon);
 //			verifyItem.setToolTipText("verify email");
-			verifyItem.addActionListener(new HCActionListener(new Runnable() {
+			verifyEmailItem.addActionListener(new HCActionListener(new Runnable() {
 				@Override
 				public void run() {
 					VerifyEmailManager.startVerifyProcess();
 				}
 			}, threadPoolToken));
-			subMenu.add(verifyItem);
+			subMenu.add(verifyEmailItem);
 			
-			if(VerifyEmailManager.isVerifiedEmail()){
-				verifyItem.setEnabled(false);
-			}
+//			if(VerifyEmailManager.isVerifiedEmail()){//有可能更换邮箱
+//				verifyEmailItem.setEnabled(false);
+//			}
 		}
 		
 		//登录改为密码
@@ -1490,12 +1490,12 @@ public class TrayMenuUtil {
 				dialog.dispose();
 			}
 		});
-		dialog.getRootPane().registerKeyboardAction(new ActionListener() {
+		dialog.getRootPane().registerKeyboardAction(new HCActionListener(new Runnable() {
 				@Override
-				public void actionPerformed(final ActionEvent e) {
+				public void run() {
 					dialog.dispose();
 				}
-			},
+			}, threadPoolToken),
 			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 			JComponent.WHEN_IN_FOCUSED_WINDOW);
 	
@@ -1555,12 +1555,12 @@ public class TrayMenuUtil {
 	    return null;
 	}
 
-	static void transNewCertKey(final CoreSession coreSS) {
+	static void transNewCertKey(final CoreSession coreSS, final HCConnection hcConnection) {
 	//		LogManager.log("send Cert : " + CUtil.toHexString(CUtil.getCertKey()));
 		if(coreSS.context.cmStatus != ContextManager.STATUS_SERVER_SELF){
-			ServerCUtil.transCertKey(coreSS, CUtil.getCertKey(), MsgBuilder.E_TRANS_NEW_CERT_KEY, false);
+			ServerCUtil.transCertKey(coreSS, hcConnection, CUtil.getCertKey(), MsgBuilder.E_TRANS_NEW_CERT_KEY, false);
 		}else{
-			ServerCUtil.transCertKey(coreSS, CUtil.getCertKey(), MsgBuilder.E_TRANS_NEW_CERT_KEY_IN_SECU_CHANNEL, false);
+			ServerCUtil.transCertKey(coreSS, hcConnection, CUtil.getCertKey(), MsgBuilder.E_TRANS_NEW_CERT_KEY_IN_SECU_CHANNEL, false);
 		}
 	}
 

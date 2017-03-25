@@ -1,8 +1,10 @@
 package hc.server.ui.design;
 
+import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.DelayWatcher;
 import hc.core.GlobalConditionWatcher;
+import hc.core.HCConnection;
 import hc.core.HCMessage;
 import hc.core.HCTimer;
 import hc.core.IEventHCListener;
@@ -27,7 +29,6 @@ import hc.server.msb.Robot;
 import hc.server.msb.RobotEvent;
 import hc.server.msb.RobotListener;
 import hc.server.ui.ClientDesc;
-import hc.server.ui.ClientSession;
 import hc.server.ui.ICanvas;
 import hc.server.ui.IMletCanvas;
 import hc.server.ui.MenuItem;
@@ -39,6 +40,7 @@ import hc.server.util.SystemEventListener;
 import hc.server.util.VoiceCommand;
 import hc.util.BaseResponsor;
 import hc.util.ResourceUtil;
+import hc.util.UpdateOneTimeRunnable;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -52,13 +54,12 @@ import java.util.Vector;
  * 该实例在ScreenServer中，被用于对象锁。
  *
  */
-public class J2SESession extends CoreSession{
+public final class J2SESession extends CoreSession{
 	public J2SESession(){
 		keepaliveManager = new KeepaliveManager(this);
 		urlAction = new J2SEServerURLAction();
 	}
 	
-	public ClientSession clientSession;
 	public final int[] base64PngData = new int[UIUtil.ICON_MAX * UIUtil.ICON_MAX];
 	public int refreshMillSecond = 3000;
 	public int mask;
@@ -100,6 +101,31 @@ public class J2SESession extends CoreSession{
 		menuItemsMap.put(projectID, menu);
 	}
 	
+	public final void startUpdateOneTimeKeysProcess(){
+		if(hcConnection.isBuildedUPDChannel && hcConnection.isDoneUDPChannelCheck){
+//			LogManager.log("is using UDP, skip startUpdateOneTimeKeysProcess");
+		}else if(isOnRelay()){
+			final UpdateOneTimeRunnable updateOneTimeKeysRunnable = new UpdateOneTimeRunnable(this, hcConnection);
+			ContextManager.getThreadPool().run(updateOneTimeKeysRunnable);
+			hcConnection.updateOneTimeKeysRunnable = updateOneTimeKeysRunnable;
+			if(L.isInWorkshop){
+				LogManager.log("success startUpdateOneTimeKeysProcess!");
+			}
+		}
+	}
+	
+	public final void notifyMobileLogout(){
+		final UpdateOneTimeRunnable updateOneTimeKeysRunnable = (UpdateOneTimeRunnable)hcConnection.updateOneTimeKeysRunnable;
+		
+		if(updateOneTimeKeysRunnable != null){
+			hcConnection.isStopRunning = true;
+		}
+		
+		if(L.isInWorkshop){
+			LogManager.log("successful stop UpdateOneTimeRunnable!");
+		}
+	}
+	
 	/**
 	 * 没有返回null
 	 * @param cmd
@@ -113,7 +139,7 @@ public class J2SESession extends CoreSession{
 		}
 		if(currProjID != null){//当前工程优先
 			final SessionMobiMenu menu = menuItemsMap.get(currProjID);
-			final MenuItem item = menu.searchMenuItemByVoiceCommand(cmd);
+			final MenuItem item = menu.searchMenuItemByVoiceCommand(cmd, true);
 			if(item != null){
 				return item;
 			}
@@ -127,7 +153,7 @@ public class J2SESession extends CoreSession{
 					continue;
 				}
 				final SessionMobiMenu menu = menuItemsMap.get(projID);
-				final MenuItem item = menu.searchMenuItemByVoiceCommand(cmd);
+				final MenuItem item = menu.searchMenuItemByVoiceCommand(cmd, false);
 				if(item != null){
 					return item;
 				}
@@ -229,7 +255,7 @@ public class J2SESession extends CoreSession{
 				return MsgBuilder.E_SCREEN_MOVE_UP;
 			}
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final int pixle = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				((J2SESession)coreSS).cap.moveUp(pixle);
 				return true;
@@ -241,7 +267,7 @@ public class J2SESession extends CoreSession{
 				return MsgBuilder.E_SCREEN_MOVE_LEFT;
 			}
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final int pixle = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				((J2SESession)coreSS).cap.moveRight((-1)*pixle);
 				return true;
@@ -253,7 +279,7 @@ public class J2SESession extends CoreSession{
 				return MsgBuilder.E_SCREEN_MOVE_DOWN;
 			}
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final int pixle = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				((J2SESession)coreSS).cap.moveUp((-1) * pixle);
 				return true;
@@ -265,7 +291,7 @@ public class J2SESession extends CoreSession{
 				return MsgBuilder.E_SCREEN_MOVE_RIGHT;
 			}
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final int pixle = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				((J2SESession)coreSS).cap.moveRight(pixle);
 				return true;
@@ -276,7 +302,7 @@ public class J2SESession extends CoreSession{
 			final int offset = DataInputEvent.screen_id_index;
 			final DataInputEvent e = new DataInputEvent();
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				e.setBytes(bs);
 				final int screenIDLen = e.getScreenIDLen();
 				final J2SESession j2seSession = (J2SESession)coreSS;
@@ -318,7 +344,7 @@ public class J2SESession extends CoreSession{
 			}
 			
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final int screenIDlen = ByteUtil.oneByteToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 
 				final J2SESession j2seCoreSS = (J2SESession)coreSS;
@@ -347,7 +373,7 @@ public class J2SESession extends CoreSession{
 					}
 				}
 				L.V = L.WShop ? false : LogManager.errForShop("Not found screen ID : " + new String(bs, screenIDIndex, screenIDlen));
-				LogManager.warning("form/dialog/screen may be closed, skip javascript event input.");
+				LogManager.warning("form/dialog/screen may be closed, skip JavaScript event input.");
 				return true;
 			}
 	
@@ -359,7 +385,7 @@ public class J2SESession extends CoreSession{
 		eventCenter.addListener(new IEventHCListener(){
 	
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final DataClientAgent rect = new DataClientAgent();
 				rect.setBytes(bs);
 				
@@ -375,7 +401,7 @@ public class J2SESession extends CoreSession{
 		eventCenter.addListener(new IEventHCListener(){
 			final DataSelectTxt txt = new DataSelectTxt();
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				txt.setBytes(bs);
 				
 				((J2SESession)coreSS).cap.dragAndDrop(txt.getStartX(), txt.getStartY(), txt.getEndX(), txt.getEndY());
@@ -394,7 +420,7 @@ public class J2SESession extends CoreSession{
 				return MsgBuilder.E_SCREEN_COLOR_MODE;
 			}
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				//Donate会变量此值，所以不宜做属性。
 				final int mode = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				
@@ -409,7 +435,7 @@ public class J2SESession extends CoreSession{
 				return MsgBuilder.E_SCREEN_REFRESH_MILLSECOND;
 			}
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				//Donate会变量此值，所以不宜做属性。
 				
 				final int millSecond = (int)ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_MSG_DATA);
@@ -424,7 +450,7 @@ public class J2SESession extends CoreSession{
 				return MsgBuilder.E_SCREEN_ZOOM;
 			}
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final int zoomMulti = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				((J2SESession)coreSS).cap.zoom(zoomMulti);
 				return true;

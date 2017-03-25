@@ -1,5 +1,10 @@
 package hc.server.ui.design.hpj;
 
+import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
+
+import java.awt.Color;
+
 import javax.swing.Action;
 import javax.swing.JTextPane;
 
@@ -12,6 +17,25 @@ public abstract class HCTextPane extends JTextPane {
 		
 		final Action action = new SelectWordAction();
         getActionMap().put("select-word", action);
+	}
+	
+	@Override
+	public final Color getBackground(){
+		if(settedBG != null){
+			return settedBG;
+		}else if(PropertiesManager.getValue(PropertiesManager.C_SKIN, "").equals(ResourceUtil.LF_NIMBUS)){
+        	return Color.WHITE;//to fix : getBackground() == Color.GRAY
+		}else{
+			return super.getBackground();
+		}
+	}
+	
+	private Color settedBG;
+	
+	@Override
+	public final void setBackground(final Color c){
+		settedBG = c;
+		super.setBackground(c);
 	}
 	
 	public abstract void refreshCurrLineAfterKey(final int line);

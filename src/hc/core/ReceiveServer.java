@@ -16,7 +16,7 @@ public class ReceiveServer implements Runnable{
 	DataInputStream dataInputStream;
 	public static final ByteArrayCacher recBytesCacher = ByteUtil.byteArrayCacher;
     public Thread thread;
-    CoreSession coreSocketSession;
+    final CoreSession coreSocketSession;
     final boolean isEnableTestRebuildConn = IConstant.serverSide == false 
     		&& ((Boolean)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_IS_SIMU, null)).booleanValue();//限客户端
     long lastBuildConnMS = System.currentTimeMillis();
@@ -142,8 +142,7 @@ public class ReceiveServer implements Runnable{
 	            		if(currMS - lastBuildConnMS > 1000 * 30){
 	            			lastBuildConnMS = currMS;
 	            			L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] start test close connection and rebuild/renewal.");
-	            			final ISIPContext sipContext = hcConnection.sipContext;
-	            			sipContext.closeSocket(sipContext.getSocket());
+	            			coreSocketSession.closeSocket(coreSocketSession.getSocket());
 	            			throw overflowException;//模拟断线
 	            		}
 	            	}
@@ -263,9 +262,17 @@ public class ReceiveServer implements Runnable{
 						checkMINUS = realCheckMinus;
 						
 						if(isXor){
+							if(isInWorkshop){
+								LogManager.log("success check integrity xor : " + (readyReceiveXorPackageID - 1));
+							}
+							
 							System.arraycopy(bs, xorPackgeIdxOff, ackXorPackageID, 0, MsgBuilder.XOR_PACKAGE_ID_LEN);
 							coreSocketSession.hcConnection.sendWrapActionImpl(MsgBuilder.E_ACK_XOR_PACKAGE_ID, 
 								ackXorPackageID, 0, MsgBuilder.XOR_PACKAGE_ID_LEN, ackCmStatus);//注意：必须走明文且impl层
+						}else{
+							if(isInWorkshop){
+								LogManager.log("success check integrity!");
+							}
 						}
 					}else{
 //						LogManager.errToLog("check idx : " + dataCheckLen + ", real : " + realCheckAnd + "" + realCheckMinus + ", expected : " + bs[dataCheckLen] + "" + bs[dataCheckLen + 1]);
@@ -297,7 +304,7 @@ public class ReceiveServer implements Runnable{
 					continue;
 				}else if(ctrlTag == MsgBuilder.E_TAG_ROOT){//服务器客户端都走E_TAG_ROOT捷径 isClient && 
 					//由于大数据可能导致过载，所以此处直接处理。
-					coreSocketSession.context.rootTagListener.action(bs, coreSocketSession);
+					coreSocketSession.context.rootTagListener.action(bs, coreSocketSession, hcConnection);
 					recBytesCacher.cycle(bs);
 					continue;
 				}else{
@@ -404,7 +411,7 @@ public class ReceiveServer implements Runnable{
             		//请求关闭
             		LogManager.log("Unvalid data len, stop application");
             		if(hcConnection.isUsingUDPAtMobile() == false){
-            			SIPManager.notifyLineOff(coreSocketSession, true, false);
+            			coreSocketSession.notifyLineOff(true, false);
             		}
             	}else{
         			//关闭和sleep要提前到此，因为reset后重连依赖于ContextManager.getStatus，
@@ -421,7 +428,7 @@ public class ReceiveServer implements Runnable{
 					}
         			dataInputStream = null;
 					if(hcConnection.isUsingUDPAtMobile() == false){
-						SIPManager.notifyLineOff(coreSocketSession, false, false);
+						coreSocketSession.notifyLineOff(false, false);
 					}
             	}
 			}

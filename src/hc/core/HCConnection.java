@@ -18,7 +18,7 @@ import hc.core.util.LogManager;
 import hc.core.util.RootBuilder;
 import hc.core.util.XorPackage;
 
-public class HCConnection {
+public final class HCConnection {
 	private static long globalConnectID = 1;
 	private static final Object hcConnectionClassLock = new Object();
 	
@@ -30,6 +30,10 @@ public class HCConnection {
 		}
 	}
 	
+	public final void setOnRelay(final boolean isRelay){
+		sipContext.isOnRelay = isRelay;
+	}
+	
 	public final long connectionID = getConnectionID();
 	private final ByteArrayCacher cache = ByteUtil.byteArrayCacher;
 	public int workingFactor = CUtil.getInitFactor();
@@ -37,7 +41,16 @@ public class HCConnection {
 	public ISIPContext sipContext;
 	public ReceiveServer rServer;
 	public UDPReceiveServer udpReceivServer;
-	public IEncrypter userEncryptor = loadEncryptor();
+	public byte[] userPassword = clonePwd();
+
+	public final byte[] clonePwd() {
+		final byte[] passwordBS = IConstant.getPasswordBS();
+		if(passwordBS == null){
+			return null;
+		}
+		return ByteUtil.cloneBS(passwordBS);
+	}
+	public IEncrypter userEncryptor = loadEncryptor(userPassword);
 	public byte[] OneTimeCertKey;
 	public boolean isInitialCloseReceiveForJ2ME = false;
 	public IPAndPort relayIpPort = new IPAndPort();
@@ -647,14 +660,14 @@ public class HCConnection {
 		}
 	}
 
-	public final IEncrypter loadEncryptor(){
+	public final IEncrypter loadEncryptor(final byte[] pwdBS){
 		final String encryptClass = getEncryptorClass();
 		if(encryptClass != null){
 			try {
 				final Class c = IConstant.serverSide?(Class)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_CLASS_FROM_3RD_AND_SERV_LIBS, encryptClass):Class.forName(encryptClass);
 				final IEncrypter en = (IEncrypter)c.newInstance();
 				en.setUUID(IConstant.getUUIDBS());
-				en.setPassword(IConstant.getPasswordBS());
+				en.setPassword(pwdBS);
 				en.initEncrypter(!IConstant.serverSide);
 				
 //				LogManager.log("Enable user Encryptor [" + encryptClass + "]");

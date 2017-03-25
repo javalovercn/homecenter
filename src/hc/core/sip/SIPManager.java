@@ -39,12 +39,6 @@ public class SIPManager {
 				.isOnRelay;
 	}
 
-	public static void setOnRelay(final HCConnection hcConnection, final boolean onRelay){
-		//		LogManager.log("On Relay : " + onRelay);
-		hcConnection.sipContext.isOnRelay = onRelay;
-		//		ContextManager.getSendServer().notifyIsRelay(isOnRelay);
-	}
-
 	public static void send(final OutputStream os, final byte[] bs, final int off, final int len) throws IOException{
 		HCMessage.setMsgLen(bs, len - MsgBuilder.MIN_LEN_MSG);
 
@@ -100,12 +94,12 @@ public class SIPManager {
 	private static final int CONN_ERR_BIZ_SERVER_ACCOUNT_BUSY = -2;
 	private static final int CONN_ERR_MOBI_FAIL_CONN = -3;
 	
-	public static boolean startConnectionInit(final CoreSession coreSS) {
+	public static boolean startConnectionInit(final CoreSession coreSS, final HCConnection hcConnection) {
 		coreSS.context.setStatus(ContextManager.STATUS_READY_TO_LINE_ON);
 		
 		if(IConstant.serverSide == false){
 			final byte[] tokenBS = (byte[])coreSS.context.doExtBiz(IContext.BIZ_GET_TOKEN, null);
-			final int out = startConnectionInitForClient(coreSS.hcConnection, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST, tokenBS);
+			final int out = startConnectionInitForClient(hcConnection, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST, tokenBS);
 			
 			if(out < 0){
 				if(out == CONN_ERR_BIZ_SERVER_LINEOFF){
@@ -153,6 +147,8 @@ public class SIPManager {
 		Object obj;
 		int count = 0;
 		
+		LogManager.info("try connect : [" + IConstant.getUUID() + "]");
+
 		do{
 			obj = RootServerConnector.getServerIPAndPortV2(RootServerConnector.getHideToken());
 			
@@ -253,10 +249,10 @@ public class SIPManager {
 		return CONN_ERR_MOBI_FAIL_CONN;
 	}
 
-	public static IPAndPort reConnectAfterResetExcep(final CoreSession coreSS, final byte[] tokenBS){
-		LogManager.log("reConnectAfterExcepReset to " + coreSS.hcConnection.relayIpPort.ip + ":" + coreSS.hcConnection.relayIpPort.port);
+	public static IPAndPort reConnectAfterResetExcep(final HCConnection hcConnection, final byte[] tokenBS){
+		LogManager.log("reConnectAfterExcepReset to " + hcConnection.relayIpPort.ip + ":" + hcConnection.relayIpPort.port);
 		try{
-			return SIPManager.proccReg(coreSS.hcConnection, coreSS.hcConnection.relayIpPort, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_RESET,
+			return SIPManager.proccReg(hcConnection, hcConnection.relayIpPort, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_RESET,
 					SIPManager.REG_WAITING_MS, tokenBS);
 		}catch (Throwable e) {
 			//主要拦截hc.core.sip.SIPManager.send，java.net.SocketException
@@ -276,7 +272,7 @@ public class SIPManager {
 		//LogManager.info("connect " + memo + " Server");
 
 		if(nattype == EnumNAT.FULL_AGENT_BY_OTHER){
-			SIPManager.setOnRelay(hcConnection, true);
+			hcConnection.setOnRelay(true);
 		}
 
 		//客户端连接，使用随机端口
@@ -306,83 +302,6 @@ public class SIPManager {
 			//	        LogManager.info("Fail connect " + ipport.ip + ":" + ipport.port);
 			return null;
 		}
-	}
-
-	public static void close(final HCConnection hcConnection){
-		try{
-			hcConnection.sipContext.closeDeploySocket(hcConnection);
-		}catch (final Exception e) {
-			//可能出现nullPointerException
-		}
-		SIPManager.setOnRelay(hcConnection, false);
-	}
-
-	public static void notifyLineOff(final CoreSession coreSS, final boolean isClientRequest, final boolean isForce) {
-//		if(isForce == false){
-//			final long now = System.currentTimeMillis();
-//			if(isClientRequest == false){
-//				//如果是有效连接，被客户端主动请求，且时间间隔极短，有可能产生本错误，而不去重新连接
-//				if((now - coreSS.lastLineOff) > 5000){//10有可能较长，改小5000
-//				}else{
-//					LogManager.log("skip recall lineoff autolineoff");
-//					if(IConstant.serverSide){
-//						coreSS.context.doExtBiz(IContext.BIZ_START_WATCH_KEEPALIVE_FOR_RECALL_LINEOFF, null);
-//					}
-//					return;
-//				}
-//			}else{
-//				if((now - coreSS.lastLineOff) > CCoreUtil.WAIT_MS_FOR_NEW_CONN){
-//				}else{
-//					LogManager.log("skip recall lineoff clientReq");
-//					if(IConstant.serverSide){
-//						coreSS.context.doExtBiz(IContext.BIZ_START_WATCH_KEEPALIVE_FOR_RECALL_LINEOFF, null);
-//					}
-//					return;
-//				}
-//			}
-//			if(isClientRequest && IConstant.serverSide){
-//				try{
-//					//服务器端要先等待用户断线，以免有客户端产生断线消息
-//					Thread.sleep(ThreadPriorityManager.UI_DELAY_MOMENT);
-//				}catch (final Exception e) {
-//				}
-//			}
-//		}//end isForce
-		
-		synchronized (coreSS) {
-			if(coreSS.hcConnection.isStartLineOffProcess){
-				return;
-			}
-			coreSS.hcConnection.isStartLineOffProcess = true;
-		}
-		if(L.isInWorkshop){
-			new Exception("[workshop] printStack").printStackTrace();
-		}
-		coreSS.hcConnection.rServer.shutDown();
-		RootBuilder.getInstance().doBiz(RootBuilder.ROOT_RELEASE_EXT_J2SE, coreSS);
-		startLineOffForce(coreSS, isClientRequest);
-	}
-
-	private static final byte[] buildLineOff(){
-		final byte[] e = new byte[MsgBuilder.UDP_BYTE_SIZE];
-		e[MsgBuilder.INDEX_CTRL_TAG] = MsgBuilder.E_LINE_OFF_EXCEPTION;
-		return e;
-	}
-	
-	private static synchronized void startLineOffForce(final CoreSession coreSS, final boolean isClientRequest) {
-		RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_LineEx_STR);
-
-		coreSS.context.setStatus(ContextManager.STATUS_LINEOFF);
-		coreSS.hcConnection.resetCheck();
-		final String cr = String.valueOf(isClientRequest);
-		
-		final byte[] line_off_bs = buildLineOff();
-		
-		HCMessage.setMsgBody(line_off_bs, cr);
-
-		coreSS.hcConnection.reset();
-
-		coreSS.eventCenter.notifyLineOff(line_off_bs);
 	}
 
 	public static void notifyCertPwdPassAtClient(final CoreSession coreSS) {
@@ -440,7 +359,7 @@ public class SIPManager {
 				synchronized (this) {
 					if(isEnable){
 						try {
-							LogManager.log("CloseTimer close Reg Socket");
+							LogManager.log("timeout on SIP start connect!");
 							hcConnection.sipContext.closeSocket(send);
 						} catch (final Exception e) {
 							ExceptionReporter.printStackTrace(e);
@@ -463,6 +382,7 @@ public class SIPManager {
 			LogManager.log("Receive Echo");
 			return send;
 		}catch (final Throwable e) {
+			L.V = L.WShop ? false : LogManager.log("fail to receive echo!");
 //			e.printStackTrace();//注意：在服务器的keepalive中，下线时，有可能关闭时，输出此异常，故关闭。不能进行ExceptionReporter
 //			ExceptionReporter.printStackTrace(e);
 			try {

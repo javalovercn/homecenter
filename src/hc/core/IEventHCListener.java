@@ -25,8 +25,9 @@ public abstract class IEventHCListener {
 	 * 返回true，表示停止后继其它的侦听的响应操作。
 	 * @param bs
 	 * @param coreSS
+	 * @param hcConnection
 	 * @return
 	 */
-	public abstract boolean action(final byte[] bs, final CoreSession coreSS);
+	public abstract boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection);
 
 }

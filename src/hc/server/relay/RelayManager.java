@@ -784,7 +784,7 @@ public class RelayManager {
 						try {
 							//远程状态侦测，服务器进入待服状态，此状态不能关机。
 							
-							socket = (Socket)coreSocketSession.hcConnection.sipContext.buildSocket(0, ip, port); 
+							socket = (Socket)coreSocketSession.buildSocket(0, ip, port); 
 							if(socket == null){
 								continue;
 							}

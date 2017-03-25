@@ -9,14 +9,13 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
+import hc.server.HCActionListener;
 import hc.server.PlatformManager;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.HCEventQueue;
 import hc.server.util.HCLimitSecurityManager;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -94,6 +93,10 @@ public class PropertiesManager {
 	public static final String p_CertKey = "CertKey";
 	public static final String p_EnableTransNewCertKeyNow = "TransCertKey";
 	public static final String p_NewCertIsNotTransed = "NewCertIsNotTransed";
+	
+	public static final String p_Deploy_RecentPassword = "DeployRecentPassword";
+	public static final String p_Deploy_EnableReceive = "DeployEnableReceive";
+	public static final String p_Deploy_RecentIP = "DeployRecentIP";
 	
 	public static final String p_jrubyJarFile = "JRubyJarFile";
 	public static final String p_jrubyJarVer = "JRubyJarVer";
@@ -461,7 +464,8 @@ public class PropertiesManager {
 	 * 注意：<BR>
 	 * 如果增加项，请考虑增加逻辑到notifyErrorOnSecurityProperties
 	 */
-	static final String[] needSecurityProperties = {p_CertKey, p_password, 	p_LogPassword1, p_LogPassword2, p_DevCertPassword};
+	static final String[] needSecurityProperties = {p_CertKey, p_password, 	p_LogPassword1, p_LogPassword2, 
+		p_DevCertPassword, p_Deploy_RecentPassword};
 	
 	final static void notifyErrorOnSecurityProperties(){
 		final String[] securityProperties = PropertiesManager.needSecurityProperties;
@@ -645,12 +649,12 @@ public class PropertiesManager {
         	
         	final JPanel panel = App.buildMessagePanel("<html>error on read data from properties file!" +
         			"<BR><BR>file may be using by application!</html>", App.getSysIcon(App.SYS_ERROR_ICON));
-        	App.showCenterPanelMain(panel, 0, 0, "Error", false, null, null, new ActionListener() {
+        	App.showCenterPanelMain(panel, 0, 0, "Error", false, null, null, new HCActionListener(new Runnable() {
 				@Override
-				public void actionPerformed(final ActionEvent e) {
+				public void run() {
 					PlatformManager.getService().exitSystem();
 				}
-			}, null, null, false, true, null, false, false);
+			}), null, null, false, true, null, false, false);
         	
         	while(true){
         		try {

@@ -4,10 +4,12 @@ import hc.App;
 import hc.UIActionListener;
 import hc.core.ContextManager;
 import hc.core.GlobalConditionWatcher;
+import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.IWatcher;
 import hc.core.L;
+import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
@@ -27,6 +29,9 @@ import hc.server.StarterManager;
 import hc.server.ThirdlibManager;
 import hc.server.TrayMenuUtil;
 import hc.server.data.StoreDirManager;
+import hc.server.localnet.DeployError;
+import hc.server.localnet.DeploySender;
+import hc.server.localnet.LocalDeployManager;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.ClosableWindow;
 import hc.server.ui.ExceptionCatcherToWindow;
@@ -60,6 +65,7 @@ import hc.server.ui.design.hpj.NodeInvalidException;
 import hc.server.ui.design.hpj.ProjectIDDialog;
 import hc.server.util.CSSUtil;
 import hc.server.util.ContextSecurityConfig;
+import hc.server.util.DownlistButton;
 import hc.server.util.SignHelper;
 import hc.util.BaseResponsor;
 import hc.util.Constant;
@@ -75,6 +81,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -110,9 +117,11 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
@@ -227,6 +236,19 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	public static final int SUB_NODES_OF_ROOT_IN_NEW_PROJ = 1;
 	
 	private boolean needRebuildTestJRuby = true;
+	private final HCTimer refreshAliveServerInLocalNetwork = new HCTimer("", 60 * 1000, false) {
+		final Runnable run = new Runnable() {
+			@Override
+			public void run() {
+				LocalDeployManager.refreshAliveServerFromLocalNetwork(activeButton, getCurrProjID());
+			}
+		};
+		
+		@Override
+		public void doBiz() {
+			ContextManager.getThreadPool().run(run);
+		}
+	};
 	
 	public void setNeedRebuildTestJRuby(final boolean need){
 		needRebuildTestJRuby = need;
@@ -265,6 +287,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	
 	@Override
 	public void dispose(){
+		HCTimer.remove(refreshAliveServerInLocalNetwork);
+		
 		LinkProjectStatus.exitStatus();
 		
 		if(certJFrame != null && certJFrame.isVisible()){
@@ -383,7 +407,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	private NodeEditPanel nodeEditPanel = emptyNodeEditPanel;
 	JButton sampleButton = new JButton(EXAMPLE, getSampleIcon());
 	JButton saveButton = new JButton("Save", loadImg("save_24.png"));
-	JButton activeButton = new JButton(ACTIVE, loadImg("deploy_24.png"));
+	DownlistButton activeButton = new DownlistButton(ACTIVE, loadImg("deploy_24.png"));
 	JButton deactiveButton = new JButton(DEACTIVE, loadImg("undeploy_24.png"));
 	final JButton addItemButton = new JButton("Add Item", loadImg("controller_24.png"));
 	JButton newButton = new JButton("New Project", loadImg("new_24.png"));
@@ -470,6 +494,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	private final void setToolbarVisible(final JToolBar toolbar, final boolean isVisible){
+		if(isVisible){
+			refreshAliveServerInLocalNetwork.doNowAsynchronous();
+		}
 		toolbar.setVisible(isVisible);
 	}
 	
@@ -478,7 +505,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	public Designer() {
-		super((String)ResourceUtil.get(9034) + " - [" + (String)ResourceUtil.get(9083) + "]", true);
+		//+ " - [" + (String)ResourceUtil.get(9083) + "]"
+		super((String)ResourceUtil.get(9034), true);//9083 the rest is up to you
 		
 		instance = this;
 		
@@ -832,7 +860,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		{
 			final Action deployAction = new AbstractAction() {
 				@Override
-				public void actionPerformed(final ActionEvent e) {
+				public void actionPerformed(final ActionEvent e) {//注意：e是不被使用，参见activeButton.getList();
 					ContextManager.getThreadPool().run(new Runnable() {
 						@Override
 						public void run(){
@@ -907,7 +935,153 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				}
 			};
 			ResourceUtil.buildAcceleratorKeyOnAction(deployAction, KeyEvent.VK_D);
-			activeButton.addActionListener(deployAction);
+//			activeButton.addActionListener(deployAction);
+			activeButton.addMouseListener(new MouseListener() {
+				@Override
+				public void mouseReleased(final MouseEvent e) {
+				}
+				
+				@Override
+				public void mousePressed(final MouseEvent e) {
+				}
+				
+				@Override
+				public void mouseExited(final MouseEvent e) {
+				}
+				
+				@Override
+				public void mouseEntered(final MouseEvent e) {
+				}
+				
+				@Override
+				public void mouseClicked(final MouseEvent e) {
+					ContextManager.getThreadPool().run(new Runnable() {
+						@Override
+						public void run() {
+							processClick(e);
+						}
+					});
+				}
+				
+				final void processClick(final MouseEvent e) {
+					if(activeButton.isEnabled()){
+						final int actionButtonWidth = activeButton.getWidth();
+						
+						final Point p = e.getPoint();
+						Vector<String> ipList = null;
+						if(p.x > (actionButtonWidth - actionButtonWidth / 5) && (ipList = activeButton.getList()).size() > 0){
+							final JPopupMenu popMenu = new JPopupMenu();
+							for (int i = 0; i < ipList.size(); i++) {
+								final String ip = ipList.get(i);
+								final JMenuItem item = new JMenuItem(ip);
+								item.addActionListener(new ActionListener() {
+									@Override
+									public void actionPerformed(final ActionEvent e) {
+										ContextManager.getThreadPool().run(new Runnable() {
+											@Override
+											public void run() {
+												final int out = App.showConfirmDialog(self, "are you sure to deploy to [" + ip + "]", ResourceUtil.getInfoI18N(), 
+														JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
+												if(out == JOptionPane.YES_OPTION){
+													deployTo(ip);
+												}
+											}
+										});
+									}
+								});
+								popMenu.add(item);
+							}
+							popMenu.show(activeButton, 0, activeButton.getHeight());
+						}else{
+							deployAction.actionPerformed(null);
+						}
+					}
+				}
+				
+				private final void deployTo(final String ip){
+					try{
+						final String oldRecentIP = PropertiesManager.getValue(PropertiesManager.p_Deploy_RecentIP);
+						
+						PropertiesManager.setValue(PropertiesManager.p_Deploy_RecentIP, ip);
+						PropertiesManager.saveFile();
+						
+						final byte[] passBS;
+						String recentPassword;
+						if(ip.equals(oldRecentIP) && (recentPassword = LocalDeployManager.getRecentPasswordForIP()) != null){
+							passBS = ByteUtil.getBytes(recentPassword, IConstant.UTF_8);
+						}else{
+							passBS = ByteUtil.cloneBS(IConstant.getPasswordBS());
+						}
+						final DeploySender sender = new DeploySender(ip, passBS);
+						try{
+							boolean isPassPassword = sender.auth();
+							if(isPassPassword == false){
+								final JLabel jPassword = new JLabel("please input password of " + ip);
+								final JPasswordField password = new JPasswordField();
+						        final JPanel panel = new JPanel(new GridLayout(2, 1));
+						        panel.add(jPassword);
+						        panel.add(password);
+						        final int result = App.showConfirmDialog(self, panel, ResourceUtil.getInfoI18N(), JOptionPane.OK_CANCEL_OPTION, 
+						        		JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
+						        if (result != JOptionPane.OK_OPTION) {
+						        	return;
+						        }
+								
+						        final String pwd = String.valueOf(password.getPassword());
+						        LocalDeployManager.saveRecentPasswordForIP(pwd);
+								sender.changePassword(ByteUtil.getBytes(pwd, IConstant.UTF_8));
+								isPassPassword = sender.auth();
+								if(isPassPassword == false){
+									showError("the password is error");
+									return;
+								}
+							}
+							
+							deploy(sender);
+						}catch (final Exception e) {
+							showError("unknown error!");
+						}finally{
+							sender.close();
+						}
+					}catch (final Throwable e) {
+						showError("fail to connect " + ip);
+					}
+				}
+				
+				private final void deploy(final DeploySender sender){
+					Map<String, Object> map = null;
+					if(isModified){
+						final int out = modifyNotify();
+						if(out == JOptionPane.YES_OPTION){
+							map = save();
+							if(map == null){
+								return;
+							}
+						}else{
+							return;
+						}
+					}
+					
+					final File deployFile = getDefaultEditFile();
+					final byte[] fileBS = ResourceUtil.getContent(deployFile);
+					try{
+						sender.sendData(fileBS, 0, fileBS.length);
+						showHCMessage("Successful activate project, " +
+								"mobile can access this resources now.", ACTIVE + " OK", self, true, null);
+					}catch (final Exception e) {
+						if(e instanceof DeployError){
+							final byte[] eBS = ((DeployError)e).errorBS;
+							final String desc = ByteUtil.buildString(eBS, 0, eBS.length, IConstant.UTF_8);
+							showError(desc);
+						}
+					}
+					return;
+				}
+				
+				private final void showError(final String error){
+					App.showMessageDialog(self, error, ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+				}
+			});
 			activeButton.getActionMap().put("myDeloyAction", deployAction);
 			activeButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
 			        (KeyStroke) deployAction.getValue(Action.ACCELERATOR_KEY), "myDeloyAction");
@@ -1154,9 +1328,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 
 					final JPanel totalPanel = buildInputCertPwdPanel(field, false);
 					
-					final ActionListener listener = new ActionListener() {
+					final ActionListener listener = new HCActionListener(new Runnable() {
 						@Override
-						public void actionPerformed(final ActionEvent e) {
+						public void run() {
 							final String pwd = new String(field.getPassword());
 							try{
 								SignHelper.getContentformPfx(devCert, pwd);
@@ -1168,7 +1342,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 								App.showMessageDialog(instance, e1.getMessage(), ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 							}
 						}
-					};
+					});
 
 					App.showCenterPanelMain(totalPanel, 0, 0, (String)ResourceUtil.get(1007), false, null, null, listener, null, instance, true, false, certButton, false, false);
 				}else{
@@ -1221,6 +1395,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				notifyCloseWindow();				
 			}
 		}, threadPoolToken));
+		
+		refreshAliveServerInLocalNetwork.setEnable(true);
 
 		//该行命令不能置于loadMainProject之后，因为导致resize事件不正确
 		toVisiableAndLocation(panelSubMRInfo);
@@ -1597,14 +1773,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	private final void loadNodeFromMap(final Map<String, Object> map) {
-		isModiPermissions = false;
+		durateMap(map, durationMap);
 		
-		{
-			LogManager.log("Project [" + (String)map.get(HCjar.PROJ_ID) + "] " +
-				"JRE version : " + (String)map.get(HCjar.JRE_VER) + ", " +
-				"HomeCenter version : " + (String)map.get(HCjar.HOMECENTER_VER) + ", " +
-				"JRuby version : " + (String)map.get(HCjar.JRUBY_VER) + "");
-		}
+		isModiPermissions = false;
 		
 		delAllChildren();
 		
@@ -2082,12 +2253,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 //					(isSampleHigh[0]?("<BR>please 'enable auto upgrade' to upgrade HomeCenter Ver"):"") + 
 					"</body></html>", 
 					App.getSysIcon(App.SYS_WARN_ICON), SwingConstants.LEFT));
-			App.showCenterPanelMain(panel, 0, 0, "version warning", true, null, null, new HCActionListener(){
-				
+			App.showCenterPanelMain(panel, 0, 0, "version warning", true, null, null, new ActionListener(){
 				@Override
 				public void actionPerformed(final ActionEvent e) {
 				}
-			}, new HCActionListener(){
+			}, new ActionListener(){
 				@Override
 				public void actionPerformed(final ActionEvent e) {
 					isContinue[0] = false;
@@ -2310,22 +2480,78 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	private void doExportBiz(final Map<String, Object> map, final File fileExits, final File fileHadExits, final Designer self) {
-		final JPanel panel = new JPanel(new GridLayout(3, 2, ClientDesc.hgap, ClientDesc.vgap));
+		final String recommendLastTip  = (String)ResourceUtil.get(9252);
+		
+		final String[] last3Ver = HCjar.splitLast3Ver(map);
+		final boolean isLast3VerNull = last3Ver==null;
+		
+		final int columnNum = isLast3VerNull?2:3;
+		final JPanel panel = new JPanel(new GridLayout(3, columnNum, ClientDesc.hgap, ClientDesc.vgap));
 		panel.add(new JLabel("JRE version : "));
-		
 		final JTextField jre_field = new JTextField();
-		jre_field.setText((String)map.get(HCjar.JRE_VER));
+		final String newJREVer = (String)map.get(HCjar.JRE_VER);
+		jre_field.setText(newJREVer);
 		panel.add(jre_field);
+		if(isLast3VerNull == false){
+			final String lastJREVer = last3Ver[0];
+			final JButton btn = new JButton("keep [" + lastJREVer + "]");
+			btn.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(final ActionEvent e) {
+					jre_field.setText(lastJREVer);
+				}
+			});
+			if(newJREVer.equals(lastJREVer)){
+				btn.setEnabled(false);
+			}else{
+				btn.setToolTipText(recommendLastTip);
+			}
+			panel.add(btn);
+		}
+		
 		panel.add(new JLabel("HomeCenter version : "));
-		
 		final JTextField hc_field = new JTextField();
-		hc_field.setText((String)map.get(HCjar.HOMECENTER_VER));
+		final String newHCVer = (String)map.get(HCjar.HOMECENTER_VER);
+		hc_field.setText(newHCVer);
 		panel.add(hc_field);
-		panel.add(new JLabel("JRuby version : "));
+		if(isLast3VerNull == false){
+			final String lastHCVer = last3Ver[1];
+			final JButton btn = new JButton("keep [" + lastHCVer + "]");
+			btn.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(final ActionEvent e) {
+					hc_field.setText(lastHCVer);
+				}
+			});
+			if(newHCVer.equals(lastHCVer)){
+				btn.setEnabled(false);
+			}else{
+				btn.setToolTipText(recommendLastTip);
+			}
+			panel.add(btn);
+		}
 		
+		panel.add(new JLabel("JRuby version : "));
 		final JTextField jruby_field = new JTextField();
-		jruby_field.setText((String)map.get(HCjar.JRUBY_VER));
+		final String newRubyVer = (String)map.get(HCjar.JRUBY_VER);
+		jruby_field.setText(newRubyVer);
 		panel.add(jruby_field);
+		if(isLast3VerNull == false){
+			final String lastJRubyVer = last3Ver[2];
+			final JButton btn = new JButton("keep [" + lastJRubyVer + "]");
+			btn.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(final ActionEvent e) {
+					jruby_field.setText(lastJRubyVer);
+				}
+			});
+			if(newRubyVer.equals(lastJRubyVer)){
+				btn.setEnabled(false);
+			}else{
+				btn.setToolTipText(recommendLastTip);
+			}
+			panel.add(btn);
+		}
 		
 		final JPanel centerPanel = new JPanel(new BorderLayout());
 		centerPanel.setBorder(new TitledBorder(""));
@@ -2337,12 +2563,14 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			centerPanel.add(descPanel, BorderLayout.SOUTH);
 		}
 		
-		final ActionListener listener = new ActionListener() {
+		final ActionListener listener = new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
+			public void run() {
 				map.put(HCjar.JRE_VER, jre_field.getText());
 				map.put(HCjar.HOMECENTER_VER, hc_field.getText());
 				map.put(HCjar.JRUBY_VER, jruby_field.getText());
+				
+				HCjar.buildLast3Ver(map);
 				
 //				System.out.println("JRE : " + map.get(HCjar.JRE_VER));
 //				System.out.println("HC : " + map.get(HCjar.HOMECENTER_VER));
@@ -2356,7 +2584,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				final boolean isDone = sign(fileExits, isSucc, saveAsButton);
 				
 				if(isSucc[0] == false){
-					fileExits.delete();
+					fileExits.delete();//因为已经toHar，但签名不成功
 					return;
 				}
 				
@@ -2451,12 +2679,30 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 					}
 				}
 			}
+		});
+		final ActionListener cancelListener = new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+			}
 		};
-		App.showCenterPanelMain(centerPanel, 0, 0, "Confirm Versions?", false, null, null, listener, listener, self, true, false, saveAsButton, false, false);
+		App.showCenterPanelMain(centerPanel, 0, 0, "Confirm Versions?", true, null, null, listener, cancelListener, self, true, false, saveAsButton, false, false);
 	}
 
 	private final Map<String, Object> buildMapFromTree() throws NodeInvalidException {
-		return HCjar.toMap(root, shareFolders);
+		final HashMap<String, Object> map = new HashMap<String, Object>();
+		durateMap(durationMap, map);
+		return HCjar.toMap(root, shareFolders, map);
+	}
+	
+	private final Map<String, Object> durationMap = new HashMap<String, Object>();
+	
+	private final void durateMap(final Map<String, Object> from , final Map<String, Object> to){
+		to.clear();
+		
+		final Object value = from.get(HCjar.LAST_3_VER);
+		if(value != null){
+			to.put(HCjar.LAST_3_VER, value);
+		}
 	}
 	
 	public static Window currLink;
@@ -2511,7 +2757,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	public final void shiftProject(final LinkProjectStore lps){
 		if(discardModiWhenShift(instance)){
 			final String newProjID = lps.getProjectID();
-			if(getCurrProjID().equals(newProjID)){
+			final boolean isSameProj = getCurrProjID().equals(newProjID);
+			if(isSameProj){
 //				final String md5Editing = ResourceUtil.getMD5(getDefaultEditFile());
 //				final String md5back = ResourceUtil.getMD5(LinkProjectManager.buildBackEditFile(lps));
 //				md5Editing.equals(md5back) == false
@@ -2524,6 +2771,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 
 			loadDefaultEdit();
+			if(isSameProj == false){
+				activeButton.reset();
+				refreshAliveServerInLocalNetwork.doNowAsynchronous();
+			}
 		}
 	}
 

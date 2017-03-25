@@ -10,6 +10,10 @@ import hc.server.ui.design.J2SESession;
 import hc.util.ResourceUtil;
 import hc.util.ThreadConfig;
 
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
 /**
  * {@link CtrlResponse} is used to design a remote controller.
  * <BR><BR>if you want design a powerful controller with complex UI, see {@link HTMLMlet} or {@link Mlet}
@@ -184,8 +188,46 @@ public abstract class CtrlResponse {
 	
 	/**
 	 * send a group status of controller to mobile.
+	 * @param map
+	 * @see #sendStatus(String[], String[])
+	 * @since 7.46
+	 */
+	public void sendStatus(final Map map){
+		sendStatus(map, isRTL);
+	}
+	
+	/**
+	 * send a group status of controller to mobile.
+	 * @param map
+	 * @param isRTL
+	 * @see #sendStatus(String[], String[], boolean)
+	 * @since 7.46
+	 */
+	public void sendStatus(Map map, final boolean isRTL){
+		if(map instanceof SortedMap){
+		}else{
+			map = new TreeMap(map);
+		}
+		
+		final int size = map.size();
+		final String[] keys = new String[size];
+		final String[] values = new String[size];
+		
+		int i = 0;
+		for (final Object key : map.keySet()) {
+			keys[i] = key.toString();
+			values[i] = map.get(key).toString();
+			i++;
+		}
+		
+		sendStatus(keys, values, isRTL);
+	}
+	
+	/**
+	 * send a group status of controller to mobile.
 	 * @param attributes
 	 * @param status
+	 * @see #sendStatus(Map)
 	 * @since 6.98
 	 */
 	public void sendStatus(final String[] attributes, final String[] status){
@@ -197,6 +239,7 @@ public abstract class CtrlResponse {
 	 * @param attributes
 	 * @param status
 	 * @param isRTL true if is right to left
+	 * @see #sendStatus(Map, boolean)
 	 * @since 6.98
 	 */
 	public void sendStatus(final String[] attributes, final String[] status, final boolean isRTL){

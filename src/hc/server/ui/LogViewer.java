@@ -266,9 +266,9 @@ public class LogViewer extends HCJFrame {
 				panel.add(new JLabel(btnSearch.getIcon()));
 				field.requestFocus();
 				panel.add(field);
-				App.showCenterPanelMain(panel, 0, 0, "Find...", true, null, null, new ActionListener() {
+				App.showCenterPanelMain(panel, 0, 0, "Find...", true, null, null, new HCActionListener(new Runnable() {
 					@Override
-					public void actionPerformed(final ActionEvent event) {
+					public void run() {
 						final String searchStr = field.getText();
 						searchLen = searchStr.length();
 						
@@ -320,9 +320,9 @@ public class LogViewer extends HCJFrame {
 							}
 //						}else {
 //							App.showMessageDialog(null, "No Match Found");
-						}						
+						}		
 					}
-				}, null, LogViewer.this, true, false, btnSearch, false, false);
+				}, null), null, LogViewer.this, true, false, btnSearch, false, false);
 			}
 		};
 		{

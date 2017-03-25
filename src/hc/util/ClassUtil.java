@@ -2,7 +2,6 @@ package hc.util;
 
 import hc.App;
 import hc.core.ContextManager;
-import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.HCException;
@@ -220,6 +219,14 @@ public class ClassUtil {
 	}
 
 	public static void printThreadStack(final String name) {
+		if(ResourceUtil.isAndroidServerPlatform()){
+			printForAndroid(name);
+		}else{
+			printForJ2SE(name);
+		}
+	}
+
+	private static void printForJ2SE(final String name) {
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		if(name != null){
 			sb.append("\n");
@@ -252,6 +259,42 @@ public class ClassUtil {
 		
 		LogManager.log(sb.toString());
 		StringBuilderCacher.cycle(sb);
+	}
+	
+	private static void printForAndroid(final String name) {
+		if(name != null){
+			LogManager.log("\n");
+		}else{
+			LogManager.log("\n------------------------------------All Non-Daemon StackTraces---------------------------------\n");
+		}
+		final Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
+		final Iterator<Thread> it = map.keySet().iterator();
+		while(it.hasNext()){
+			final Thread t = it.next();
+			final String threadName = t.getName();
+			final boolean isDaemon = t.isDaemon();
+			if(t != null && (name == null || name.equals(threadName)) && isDaemon == false){
+				final StringBuilder sb = StringBuilderCacher.getFree();
+				
+				sb.append("--------------- Thread Name : ");
+				sb.append(t.getName());
+//				sb.append("@:");
+//				sb.append(Integer.toHexString(t.hashCode()));//非final，
+				sb.append(", isDaemon : ");
+				sb.append(isDaemon);
+				sb.append("--------------------\n");
+				final StackTraceElement[] ste = map.get(t);
+				final int size = ste.length;
+				for (int i = 0; i < size; i++) {
+					sb.append("\tat : ");
+					sb.append(ste[i]);
+					sb.append("\n");
+				}
+				
+				LogManager.log(sb.toString());
+				StringBuilderCacher.cycle(sb);
+			}
+		}
 	}
 
 }

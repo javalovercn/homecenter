@@ -18,6 +18,13 @@ public class ByteUtil {
 		}
 	}
 	
+	public static final byte[] cloneBS(final byte[] bs){
+		final int len = bs.length;
+		final byte[] out = new byte[len];
+		System.arraycopy(bs, 0, out, 0, len);
+		return out;
+	}
+	
 	/**
 	 * 将数组进行反转
 	 * @param arr

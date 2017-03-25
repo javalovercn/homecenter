@@ -436,7 +436,7 @@ public abstract class Device extends Processor{
 	 * About binding
 	 * <BR>1. before binding, please turn on this/these same model real devices first.
 	 * <BR>2. this method is invoked by server before binding, and it returns an array of IDs of real devices of this same model.
-	 * <BR>3. user may be required to input token of device, see {@link ProjectContext#showInputDialog(String, String[], String[])},
+	 * <BR>3. user may be required to input token of device, see {@link ProjectContext#isInstallingFromClient()},
 	 * <BR>4. to save the token of device, see {@link ProjectContext#saveProperties()}.
 	 * @return the string array of real devices ID of the same model of device.
 	 * @see #disconnect()

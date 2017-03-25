@@ -21,7 +21,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
@@ -223,9 +222,9 @@ public class CertPanel extends CertListPanel{
 
 					final JPanel totalPanel = Designer.buildInputCertPwdPanel(field, false);
 					
-					final ActionListener listener = new ActionListener() {
+					final ActionListener listener = new HCActionListener(new Runnable() {
 						@Override
-						public void actionPerformed(final ActionEvent e) {
+						public void run() {
 							final String pwd = new String(field.getPassword());
 							try{
 								final SignItem[] r = SignHelper.getContentformPfx(restoreFile, pwd);
@@ -249,7 +248,7 @@ public class CertPanel extends CertListPanel{
 								App.showMessageDialog(dialog, e1.getMessage(), ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 							}
 						}
-					};
+					});
 
 					App.showCenterPanelMain(totalPanel, 0, 0, (String)ResourceUtil.get(1007), false, null, null, listener, null, dialog, true, false, null, false, false);
 				}
@@ -301,12 +300,12 @@ public class CertPanel extends CertListPanel{
 					final int result = App.showConfirmDialog(dialog, "certificate has been modified, save changes?", "save changes?", 
 							JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
 					if(result == JOptionPane.YES_OPTION){
-						final ActionListener disposeAction = new ActionListener() {
+						final ActionListener disposeAction = new HCActionListener(new Runnable() {
 							@Override
-							public void actionPerformed(final ActionEvent e) {
+							public void run() {
 								dialog.dispose();
 							}
-						};
+						});
 						saveBeforeCheckPwd(disposeAction);
 					}else if(result == JOptionPane.NO_OPTION){
 						dialog.dispose();
@@ -422,9 +421,9 @@ public class CertPanel extends CertListPanel{
 					}, threadPoolToken));
 				}
 				
-				final ActionListener listener = new ActionListener() {
+				final ActionListener listener = new HCActionListener(new Runnable() {
 					@Override
-					public void actionPerformed(final ActionEvent e) {
+					public void run() {
 						try{
 							items.add(signItem);
 							if(items.size() == 1){
@@ -437,7 +436,7 @@ public class CertPanel extends CertListPanel{
 							showException(e1);
 						}
 					}
-				};
+				});
 				
 				App.showCenterPanelMain(listPane, 0, 0, "import private key and chain from CA", true, null, null, listener, null, dialog, true, false, null, false, false);
 			}
@@ -672,9 +671,9 @@ public class CertPanel extends CertListPanel{
 		totalPanel.add(pwdPanel, BorderLayout.NORTH);
 		totalPanel.add(descPanel, BorderLayout.SOUTH);
 		
-		final ActionListener listener = new ActionListener() {
+		final ActionListener listener = new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
+			public void run() {
 				if ((StringUtil.getBytes(field1.getText()).length >= App.MIN_PWD_LEN)
 						&& field2.getText().equals(field1.getText())) {
 					password = new String(field1.getPassword());
@@ -689,7 +688,7 @@ public class CertPanel extends CertListPanel{
 					showInputCertPwd(extAction);
 				}
 			}
-		};
+		});
 		
 		App.showCenterPanelMain(totalPanel, 0, 0, title_pwd, false, null, null, listener, null, dialog, true, false, null, false, false);
 	}
@@ -795,9 +794,9 @@ public class CertPanel extends CertListPanel{
 		f_C = new JTextField("", columns);
 		panel.add(f_C);
 		
-		final ActionListener listener = new ActionListener() {
+		final ActionListener listener = new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
+			public void run() {
 				final int year = Integer.parseInt(yearSpinner.getValue().toString());
 				if(year < 20){
 					final int result = App.showConfirmDialog(dialog, "the year of expires is too small, are you continue?", "continue?", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, App.getSysIcon(App.SYS_WARN_ICON));
@@ -843,7 +842,7 @@ public class CertPanel extends CertListPanel{
 			private String format(final String src){
 				return StringUtil.replace(src, ",", "\\,");
 			}
-		};
+		});
 		
 		App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(9220), true, null, null, listener, null, dialog, true, false, null, false, false);
 	}

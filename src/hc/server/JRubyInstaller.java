@@ -6,7 +6,6 @@ import hc.core.CoreSession;
 import hc.core.GlobalConditionWatcher;
 import hc.core.IContext;
 import hc.core.IWatcher;
-import hc.core.L;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
 import hc.core.SessionManager;
@@ -25,7 +24,6 @@ import hc.util.SecurityDataProtector;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Window;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.HashMap;
@@ -285,12 +283,12 @@ public class JRubyInstaller {
 					panel.add(finishPercent, BorderLayout.SOUTH);
 				}
 				
-				final ActionListener listener = new ActionListener() {
+				final ActionListener listener = new HCActionListener(new Runnable() {
 					@Override
-					public void actionPerformed(final ActionEvent e) {
+					public void run() {
 						closeProgressWindow();
 					}
-				};
+				});
 				
 				progressWindow = App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), 
 						false, null, null, listener, listener, parent, true, true, null, false, false);

@@ -10,7 +10,6 @@ import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
-import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
@@ -101,7 +100,9 @@ public class ResourceUtil {
 	private static final String USER_PROJ = "user.proj.";
 	private static boolean isCheckStarter;
 	private static Class starterClass;
-	
+	public static final String SYS_LOOKFEEL = "System - ";
+	public static final String LF_NIMBUS = SYS_LOOKFEEL + "Nimbus";
+
 	private static Class getStarterClass(){
 		if(isCheckStarter == false){
 			isCheckStarter = true;
@@ -361,9 +362,9 @@ public class ResourceUtil {
 	public static byte[] getContent(final File file){
 		ByteArrayOutputStream ous = null;
 	    InputStream ios = null;
+        final byte[] buffer = ByteUtil.byteArrayCacher.getFree(4096);
 	    try {
-	        final byte[] buffer = new byte[4096];
-	        ous = new ByteArrayOutputStream();
+	        ous = new ByteArrayOutputStream((int)file.length());
 	        ios = new FileInputStream(file);
 	        int read = 0;
 	        while ((read = ios.read(buffer)) != -1) {
@@ -372,6 +373,7 @@ public class ResourceUtil {
 	    }catch (final Throwable e) {
 	    	return null;
 	    }finally {
+	    	ByteUtil.byteArrayCacher.cycle(buffer);
 	        try {
 	            if (ous != null)
 	                ous.close();
@@ -557,7 +559,7 @@ public class ResourceUtil {
 						coreSS.context.notifyShutdown();
 					}else{
 						LogManager.errToLog("fail to refresh server online info, reconnect...");
-						SIPManager.notifyLineOff(coreSS, false, false);
+						coreSS.notifyLineOff(false, false);
 					}
 				}
 			}};		
@@ -1364,11 +1366,11 @@ public class ResourceUtil {
 		return new byte[0];
 	}
 	
-	public static byte[] getMD5Bytes(final byte[] src){
+	public static byte[] getMD5Bytes(final byte[] src, final int off, final int len){
 		MessageDigest digest = null;
 		try {
 			digest = MessageDigest.getInstance("MD5");
-			digest.update(src);
+			digest.update(src, off, len);
 			return digest.digest();
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
@@ -1387,7 +1389,11 @@ public class ResourceUtil {
 	}
 
 	public static String getMD5(final byte[] src){
-		final byte[] bs = getMD5Bytes(src);
+		return getMD5(src, 0, src.length);
+	}
+	
+	public static String getMD5(final byte[] src, final int off, final int len){
+		final byte[] bs = getMD5Bytes(src, off, len);
 		
 		if(bs.length == 0){
 			return "";
@@ -1486,12 +1492,16 @@ public class ResourceUtil {
 	}
 
 	public static boolean writeToFile(final byte[] bfile, final File fileName) {  
+		return writeToFile(bfile, 0, bfile.length, fileName);
+	}
+	
+	public static boolean writeToFile(final byte[] bfile, final int off, final int len, final File fileName) {  
 	    BufferedOutputStream bos = null;  
 	    FileOutputStream fos = null;  
 	    try {  
 	        fos = new FileOutputStream(fileName);  
 	        bos = new BufferedOutputStream(fos);  
-	        bos.write(bfile);
+	        bos.write(bfile, off, len);
 	        return true;
 	    } catch (final Exception e) {  
 	        ExceptionReporter.printStackTrace(e);  
@@ -1754,6 +1764,14 @@ public class ResourceUtil {
 	public static String buildUUID() {
 		return UUID.randomUUID().toString();
 	}
+	
+	public static void buildRandom(final byte[] bs){
+		final Random r = new Random(System.currentTimeMillis());
+
+		for (int i = 0; i < bs.length; i++) {
+			bs[i] = (byte) (r.nextInt() & 0xFF);
+		}
+	}
 
 	public static void sendToClipboard(final String text) {
 		final Clipboard clipbd = getClipboard();
@@ -1862,6 +1880,7 @@ public class ResourceUtil {
 						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.META_DOWN_MASK), DefaultEditorKit.copyAction);
 						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.META_DOWN_MASK), DefaultEditorKit.pasteAction);
 						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.META_DOWN_MASK), DefaultEditorKit.cutAction);
+						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.META_DOWN_MASK), DefaultEditorKit.selectAllAction);
 					}
 				}
 			}
@@ -1922,4 +1941,24 @@ public class ResourceUtil {
 	public static String getJRubyVersion() {
 		return PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer);
 	}
+
+	public static String getOKI18N(final J2SESession coreSS) {
+		return (String)get(coreSS, 1010);
+	}
+
+	public static String getOKI18N() {
+		return (String) get(1010);
+	}
+
+	public static boolean isReceiveDeployFromLocalNetwork() {
+		return PropertiesManager.isTrue(PropertiesManager.p_Deploy_EnableReceive, true);
+	}
+
+	public static String getDefaultSkin() {
+		if(isWindowsOS()){
+			return LF_NIMBUS;//"Windows Classic";
+		}
+		return "";
+	}
+
 }

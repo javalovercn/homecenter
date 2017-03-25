@@ -6,12 +6,14 @@ import hc.core.util.LogManager;
 public class EventCenter {
 	private final int event_listener_max_size = (IConstant.serverSide?1000:200);
 	private final CoreSession coreSS;
+	private final HCConnection hcConnection;
 	final private IEventHCListener[] listens = new IEventHCListener[event_listener_max_size];
 	final private byte[] listen_types = new byte[event_listener_max_size];
 	private int size = 0;
 	
 	public EventCenter(final CoreSession coreSS){
 		this.coreSS = coreSS;
+		this.hcConnection = coreSS.hcConnection;
 		coreSS.eventCenter = this;
 	}
 	
@@ -84,7 +86,7 @@ public class EventCenter {
 			}
 			if(listener != null){
 				try{
-					if(listener.action(event, coreSS)){
+					if(listener.action(event, coreSS, hcConnection)){
 						return;
 					}
 				}catch (Throwable e) {

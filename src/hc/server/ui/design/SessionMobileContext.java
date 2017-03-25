@@ -45,7 +45,10 @@ public class SessionMobileContext {
 			if(matchIdx >= 0){
 				final SessionContext cycleMC = mobileContexts[matchIdx];
 				SessionContext.cycle(projectID, cycleMC);
-				
+				if(L.isInWorkshop){
+					LogManager.log("successful cycle SessionContext for project [" + projectID + "]!");
+				}
+
 				int i = matchIdx + 1;
 				for (; i < size; i++) {
 					final int preStepIdx = i - 1;
@@ -69,6 +72,10 @@ public class SessionMobileContext {
 			}
 //			size = 0;//考虑到可能还有未完线程，不为set to 0
 		}
+		if(L.isInWorkshop){
+			LogManager.log("successful cycle SessionContext for project [" + projID + "]!");
+		}
+
 	}
 	
 	public final SessionContext getMobileContext(final J2SESession socket){

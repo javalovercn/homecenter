@@ -25,6 +25,11 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 	final IWatcher acceptListener, cancelListener;
 	final JTextArea area;
 	
+	public static final String BUTTON_FOR_DIV = "display: -webkit-box; display: -moz-box; display: -ms-flexbox; display: -webkit-flex;" +
+			"display: flex; -webkit-box-align: center; -moz-box-align: center; -ms-flex-align: center;" +
+			"-webkit-align-items: center; align-items: center; justify-content: center; -webkit-justify-content: center;" +
+			"-webkit-box-pack: center; -moz-box-pack: center; -ms-flex-pack: center;";
+	
 	public LicenseHTMLMlet(final String license, final String acceptAll, final IWatcher acceptListener, final IWatcher cancelListener,
 			final BufferedImage okImage, final BufferedImage cancelImage,
 			final String iagreeStr, final String acceptStr, final String cancelStr){
@@ -106,6 +111,7 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 				});
 			}
 		});
+//		setCSSForDiv(ok, null, BUTTON_FOR_DIV);
 		setCSS(ok, null, buttonStyle);
 		
 		cancel.addActionListener(new ActionListener() {
@@ -114,6 +120,7 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 				cancelListener.watch();//由是否需要绑定，来决定back/goMlet
 			}
 		});
+//		setCSSForDiv(cancel, null, BUTTON_FOR_DIV);
 		setCSS(cancel, null, buttonStyle);
 		
 		final JPanel btnPanel = new JPanel();

@@ -31,13 +31,13 @@ public class ClientInitor {
 				return MsgBuilder.E_ACK_XOR_PACKAGE_ID;
 			}
 			
-			public boolean action(byte[] bs, CoreSession coreSS) {
+			public boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final long ackPakcageID = ByteUtil.eightBytesToLong(bs, MsgBuilder.INDEX_MSG_DATA);
-				if(coreSS.hcConnection.ackXorPackage(ackPakcageID)){
+				if(hcConnection.ackXorPackage(ackPakcageID)){
 					L.V = L.WShop ? false : LogManager.log("successful ack XorPackageID : " + ackPakcageID);
 				}else{
 					LogManager.errToLog("error ack package!");
-					SIPManager.notifyLineOff(coreSS, false, false);
+					coreSS.notifyLineOff(false, false);
 				}
 				return true;
 			}
@@ -49,7 +49,7 @@ public class ClientInitor {
 				return MsgBuilder.E_STREAM_MANAGE;
 			}
 			
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 //				final int sendLen = 1 + STREAM_ID_LEN + 1 + classNameLen + 2 + len;
 				int offsetidx = MsgBuilder.INDEX_MSG_DATA;
 				final boolean isInputStream = (bs[offsetidx]==1);
@@ -81,10 +81,10 @@ public class ClientInitor {
 		
 		eventCenter.addListener(new IEventHCListener(){
 //			long lastReceive = 0;
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				try{
 					//要先行关闭，因为有可能会导致新生成的连接被关闭(连接发出端或中继端)
-					coreSS.hcConnection.sipContext.closeSocket(coreSS.hcConnection.sipContext.getSocket());
+					coreSS.closeSocket(coreSS.getSocket());
 				}catch (final Exception e) {
 					
 				}
@@ -120,7 +120,7 @@ public class ClientInitor {
 									coreSS.hcConnection.sipContext.deploySocket(coreSS.hcConnection, para);
 								}catch (final Exception e) {
 									LogManager.log("Fail relay to[watch]." + e.getMessage());
-									SIPManager.notifyLineOff(coreSS, false, false);
+									coreSS.notifyLineOff(false, false);
 								}
 								return true;
 							}
@@ -159,14 +159,14 @@ public class ClientInitor {
 				return MsgBuilder.E_TAG_UN_FORWARD_DATA;
 			}
 			
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				LogManager.log("Un forward data from relay");
 				if(IConstant.serverSide){
 					if(coreSS.hcConnection.isBuildedUPDChannel
 							&& coreSS.hcConnection.isDoneUDPChannelCheck){
 						LogManager.log("UDP mode, continue.");
 					}else{
-						SIPManager.notifyLineOff(coreSS, false, false);
+						coreSS.notifyLineOff(false, false);
 					}
 				}
 				return true;
@@ -178,7 +178,7 @@ public class ClientInitor {
 				return MsgBuilder.E_TAG_ONLY_SUB_TAG_MSG;
 			}
 			
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final byte subTag = bs[MsgBuilder.INDEX_CTRL_SUB_TAG];
 //				LogManager.log("Sub msg sub tag:" + subTag);
 				if(subTag == MsgBuilder.DATA_SUB_TAG_MSG_MTU_1472){
@@ -198,7 +198,7 @@ public class ClientInitor {
 									}else{
 										if(coreSS.hcConnection.getUDPController().tryRebuildUDPChannel(coreSS) == false){
 											LogManager.log("Fail on UDP-check-alive, notify connect error!");
-											SIPManager.notifyLineOff(coreSS, false, false);
+											coreSS.notifyLineOff(false, false);
 											setEnable(false);
 										}
 									}
@@ -231,7 +231,7 @@ public class ClientInitor {
 				return MsgBuilder.E_STREAM_DATA;
 			}
 			
-			public final boolean action(final byte[] bs, final CoreSession coreSS) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final Hashtable inputStreamTable = coreSS.streamBuilder.inputStreamTable;
 				
 				final int len = HCMessage.getMsgLen(bs);
@@ -255,7 +255,7 @@ public class ClientInitor {
 			//客户端
 			
 			eventCenter.addListener(new IEventHCListener(){
-				public final boolean action(final byte[] bs, final CoreSession coreSS) {
+				public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 					final String cmd = HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA);
 //					LogManager.log("======>Receive:" + cmd);
 					HCURLUtil.process(coreSS, cmd, coreSS.urlAction);
@@ -272,7 +272,7 @@ public class ClientInitor {
 				}
 				DataPNG blob = null;
 				byte[] soundBS;
-				public final boolean action(final byte[] bs, final CoreSession coreSS) {
+				public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 					if(blob == null){
 						blob = new DataPNG();
 					}
@@ -297,7 +297,7 @@ public class ClientInitor {
 					return MsgBuilder.E_TAG_MTU_1472;
 				}
 				
-				public final boolean action(final byte[] bs, final CoreSession coreSS) {
+				public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 					if(UDPPacketResender.checkUDPBlockData(bs, MsgBuilder.UDP_MTU_DATA_MAX_SIZE)){
 //						LogManager.log("Receive Succ MTU 1472");
 						coreSS.context.send(

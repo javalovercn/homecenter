@@ -3,6 +3,7 @@ package hc.server.ui.design.hpj;
 import hc.App;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.StringUtil;
 import hc.server.StarterManager;
 import hc.server.ui.ProjClassLoaderFinder;
 import hc.server.ui.ProjectContext;
@@ -57,6 +58,7 @@ public class HCjar {
 	public static final String HOMECENTER_VER = "HomeCenter.Ver";
 	public static final String JRUBY_VER = "JRuby.Ver";
 	public static final String JRE_VER = "JRE.Ver";
+	public static final String LAST_3_VER = "Last3.Ver";
 	public static final String PROJ_NAME = "Project.Name";
 	public static final String PROJ_I18N_NAME = "Project.I18NName";
 	public static final String PROJ_ID = "Project.ID";
@@ -570,10 +572,30 @@ public class HCjar {
 		}
 	}
 	
-	public static final Map<String, Object> toMap(final DefaultMutableTreeNode root, 
-			final DefaultMutableTreeNode[] folders) throws NodeInvalidException{
-		final HashMap<String, Object> map = new HashMap<String, Object>();
+	public static final void buildLast3Ver(final Map<String, Object> map){
+		final String last3Split = StringUtil.SPLIT_LEVEL_2_JING;
 		
+		final String last3 = map.get(HCjar.JRE_VER) + last3Split + map.get(HCjar.HOMECENTER_VER) + last3Split + map.get(HCjar.JRUBY_VER);
+		
+		map.put(LAST_3_VER, last3);
+	}
+	
+	/**
+	 * [JRE_VER] + [HOMECENTER_VER] + [JRUBY_VER]
+	 * @param map
+	 * @return if null returns null
+	 */
+	public static final String[] splitLast3Ver(final Map<String, Object> map){
+		final String last3 = (String)map.get(LAST_3_VER);
+		if(last3 == null){
+			return null;
+		}else{
+			return StringUtil.splitToArray(last3, StringUtil.SPLIT_LEVEL_2_JING);
+		}
+	}
+	
+	public static final Map<String, Object> toMap(final DefaultMutableTreeNode root, 
+			final DefaultMutableTreeNode[] folders, final HashMap<String, Object> map) throws NodeInvalidException{
 		map.put(HOMECENTER_VER, StarterManager.getHCVersion());
 		map.put(JRE_VER, String.valueOf(App.getJREVer()));
 		final String jruby_ver = PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer);

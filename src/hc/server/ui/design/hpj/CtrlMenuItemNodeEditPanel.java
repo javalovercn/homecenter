@@ -10,6 +10,7 @@ import hc.util.PropertiesManager;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
@@ -54,7 +55,7 @@ public class CtrlMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 			search.setToolTipText("<html>search responsor class(es) in current project jar files, " +
 					"<BR>responsor is a class to do response biz at server side when some key is pressed. " +					
 					"<BR>which is a sub class of '"+CtrlResponse.class.getName()+"'</html>");
-			search.addActionListener(new HCActionListener() {
+			search.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(final ActionEvent e) {
 					System.out.println("do search...");

@@ -8,6 +8,7 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.data.KeyComperPanel;
+import hc.server.localnet.ReceiveDeployServer;
 import hc.server.ui.ClientDesc;
 import hc.server.ui.J2SESessionManager;
 import hc.server.ui.NumberFormatTextField;
@@ -396,6 +397,7 @@ public void run() {
 			
 			final JCheckBox enableLoggerOn = new JCheckBox((String)ResourceUtil.get(9206));
 			final JCheckBox enableMSBLog = new JCheckBox((String)ResourceUtil.get(8014));
+			final JCheckBox enableReceiveDeployFromLocal = new JCheckBox((String)ResourceUtil.get(9249));
 			final JCheckBox enableMSBDialog = new JCheckBox((String)ResourceUtil.get(8015));
 			final JCheckBox enableReportException = App.buildReportExceptionCheckBox(false);
 
@@ -498,6 +500,7 @@ public void run() {
 				};
 			}//end word key
 			
+			enableReceiveDeployFromLocal.setToolTipText("<html>" + (String)ResourceUtil.get(9251) + "</html>");
 			enableLoggerOn.setToolTipText("<html>log all information, event, and exception. If unselected, print to console for debug." +
 					"<BR>it will take effect after restart this server.</html>");
 			enableMSBLog.setToolTipText("<html>log MSB messages between Robot, Converter and Device." +
@@ -507,10 +510,12 @@ public void run() {
 			
 			final String isOldLogger = PropertiesManager.getValue(PropertiesManager.p_IsLoggerOn, IConstant.TRUE);
 			final String isOldMSBLog = PropertiesManager.getValue(PropertiesManager.p_isEnableMSBLog, IConstant.FALSE);
+			final String isOldReceiveDeployFromLocal = PropertiesManager.getValue(PropertiesManager.p_Deploy_EnableReceive, IConstant.TRUE);
 			final String isOldMSBDialog = PropertiesManager.getValue(PropertiesManager.p_isEnableMSBExceptionDialog, IConstant.FALSE);
 			final String isOldReportException = PropertiesManager.getValue(PropertiesManager.p_isReportException, IConstant.FALSE);
 			
 			enableLoggerOn.setSelected(ResourceUtil.isLoggerOn());
+			enableReceiveDeployFromLocal.setSelected(ResourceUtil.isReceiveDeployFromLocalNetwork());
 			enableMSBLog.setSelected(isOldMSBLog.equals(IConstant.TRUE));
 			enableMSBDialog.setSelected(isOldMSBDialog.equals(IConstant.TRUE));
 			
@@ -527,6 +532,27 @@ public void run() {
 						ExceptionReporter.start();
 					}else{
 						ExceptionReporter.stop();
+					}
+				}
+			};
+			
+			new ConfigValue(PropertiesManager.p_Deploy_EnableReceive, isOldReceiveDeployFromLocal, group) {
+				
+				@Override
+				public String getNewValue() {
+					return enableReceiveDeployFromLocal.isSelected()?IConstant.TRUE:IConstant.FALSE;
+				}
+				
+				@Override
+				public void applyBiz(final int option) {
+					if(option == OPTION_OK){
+						if(isOldReceiveDeployFromLocal.equals(getNewValue()) == false){
+							if(enableReceiveDeployFromLocal.isSelected()){
+								ReceiveDeployServer.startServer();
+							}else{
+								ReceiveDeployServer.stopServer();
+							}
+						}
 					}
 				}
 			};
@@ -577,6 +603,7 @@ public void run() {
 				
 				panel.add(enableReportException);
 				panel.add(enableLoggerOn);
+				panel.add(enableReceiveDeployFromLocal);
 				panel.add(enableMSBLog);
 				panel.add(enableMSBDialog);
 				if(ResourceUtil.isEnableDesigner()){
@@ -1292,14 +1319,12 @@ public void run() {
 		//restart server
 	}
 
-	public static final String SYS_LOOKFEEL = "System - ";
-
 	private Object[] getInstalledLookAndFeelNames(final Vector<String> tryList) {
 		final Vector<String> list = new Vector<String>();
 		
 		final LookAndFeelInfo[] looks = UIManager.getInstalledLookAndFeels();
 		for (int i = 0; i < looks.length; i++) {
-			list.add(SYS_LOOKFEEL + looks[i].getName());
+			list.add(ResourceUtil.SYS_LOOKFEEL + looks[i].getName());
 		}
 		
 		final int size = extLookFeel.size();
@@ -1423,19 +1448,12 @@ public void run() {
 	public static String getSystemSkin() {
 		String configSkin = PropertiesManager.getValue(PropertiesManager.C_SKIN);
 		if(configSkin == null){
-			configSkin = getDefaultSkin();
+			configSkin = ResourceUtil.getDefaultSkin();
 			if(configSkin != null){
 				PropertiesManager.setValue(PropertiesManager.C_SKIN, configSkin);
 			}
 		}
 		return configSkin;
-	}
-
-	public static String getDefaultSkin() {
-		if(ResourceUtil.isWindowsOS()){
-			return SYS_LOOKFEEL + "Nimbus";//"Windows Classic";
-		}
-		return "";
 	}
 
 	class ConfigValueNetwork extends ConfigValue {

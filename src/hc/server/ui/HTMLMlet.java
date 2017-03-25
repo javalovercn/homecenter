@@ -16,7 +16,7 @@ import javax.swing.JToggleButton;
 
 /**
  * {@link HTMLMlet} is a JPanel, which contains JComponents and present them as HTML on mobile (not snapshot), you can set CSS for these JComponents.<BR>
- * <BR>Tip : if you need load and execute javascript, please use {@link ScriptPanel}.
+ * <BR>Tip : to load and execute JavaScript, please use {@link ScriptPanel}.
  * <BR><BR>
  * Not all HTML tag are supported by mobile runtime environment.
  * <BR>To support HTML5, Android 4.4 (or above) / iPhone 4s (or above) is required.

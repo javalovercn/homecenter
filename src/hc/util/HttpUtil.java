@@ -107,6 +107,23 @@ public class HttpUtil {
 		}
 		return null;
 	}
+	
+	private static Pattern brTag;
+	private static Pattern htmlTag;
+	
+	public static final String removeHtmlTag(String src, final boolean isReplaceBrWithNewLine){
+		if(isReplaceBrWithNewLine){
+			if(brTag == null){
+				brTag = Pattern.compile("\\<br[/]?\\>", Pattern.CASE_INSENSITIVE);
+			}
+			src = brTag.matcher(src).replaceAll("\n");
+		}
+		
+		if(htmlTag == null){
+			htmlTag = Pattern.compile("\\<[a-zA-Z/]+\\>");
+		}
+		return htmlTag.matcher(src).replaceAll("");
+	}
 
 	public static String[] getNetworkInterface() {
 		int count = 0;
@@ -377,6 +394,10 @@ public class HttpUtil {
 		return null;
 	}
 
+	/**
+	 * 
+	 * @return 返回如127.0.0.1
+	 */
 	public static String getLocalIP(){
 		InetAddress inet;
 		try {
@@ -397,6 +418,10 @@ public class HttpUtil {
 		return null;
 	}
 
+	/**
+	 * 
+	 * @return 返回如/192.168.1.102
+	 */
 	public static InetAddress getLocal(){
 //		try {
 //			因为有可能返回loop型，所以关闭本操作
@@ -823,5 +848,10 @@ public class HttpUtil {
 			}
 		}
 	    return (byte)0;   
+	}
+
+	public static boolean isLocalNetworkIP(final String ip) {
+		return ip.startsWith("192.168.") || ip.startsWith("10.") || ip.startsWith("127.") 
+				|| ip.startsWith("172.16.") || ip.startsWith("172.31.") || ip.startsWith("169.254.");
 	} 
 }

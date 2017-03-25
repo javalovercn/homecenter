@@ -5,6 +5,8 @@ import hc.core.RootConfig;
 
 public class CCoreUtil {
 	public static final String SYS_PREFIX = "SYS_";
+	public static final String SYS_RESERVED_KEYS_START = "_HC_SYS";
+
 	public static final String[] ENCRYPTION_STRENGTH_MOBI_UI = {"▲", "▲▲", "▲▲▲"};//注意：请保持与下行同步更改
 	public static final String[] ENCRYPTION_STRENGTH_DESC = {"normal", "middle", "high"};//注意：请保持与上行同步更改
 

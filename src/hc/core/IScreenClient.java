@@ -36,5 +36,4 @@ public interface IScreenClient extends IPNGScreen {
 	 */
 	public void noMoveWarn();
 
-	public void refreshScreen(final int x, final int y, final int w, final int h);
 }

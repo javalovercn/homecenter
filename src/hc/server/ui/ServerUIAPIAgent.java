@@ -24,7 +24,6 @@ import hc.server.TrayMenuUtil;
 import hc.server.html5.syn.DifferTodo;
 import hc.server.html5.syn.MletHtmlCanvas;
 import hc.server.msb.UserThreadResourceUtil;
-import hc.server.msb.Workbench;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.JarMainMenu;
 import hc.server.ui.design.MobiUIResponsor;
@@ -51,13 +50,19 @@ import javax.swing.JToggleButton;
 
 public class ServerUIAPIAgent {
 	public static final String QUESTION_CANCEL = "cancel";
-	public final static String CONVERT_NAME_PROP = Workbench.SYS_RESERVED_KEYS_START + "convert_name_prop";
-	public final static String DEVICE_NAME_PROP = Workbench.SYS_RESERVED_KEYS_START + "device_name_prop";
-	public final static String ROBOT_NAME_PROP = Workbench.SYS_RESERVED_KEYS_START + "robot_name_prop";
+
+	public final static String KEY_IS_INSTALL_FROM_CLIENT = CCoreUtil.SYS_RESERVED_KEYS_START + "_isInstallFromClient";
 	
-	public final static String CLIENT_SESSION_ATTRIBUTE_IS_TRANSED_MLET_BODY = Workbench.SYS_RESERVED_KEYS_START + "mlet_html_body";
+
+	public final static String CONVERT_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START + "convert_name_prop";
+	public final static String DEVICE_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START + "device_name_prop";
+	public final static String ROBOT_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START + "robot_name_prop";
 	
 	final static Object threadToken = App.getThreadPoolToken();
+	
+	public final static MobiMenu getBelongMobiMenu(final MenuItem item){
+		return item.belongToMenu;
+	}
 	
 	private final static Vector sessionListSnapThreadSafe = J2SESessionManager.getSessionList();
 	
@@ -659,28 +664,28 @@ public class ServerUIAPIAgent {
 		return ctx.__getPropertySuper(propName);
 	}
 
-	public final static void setSuperAttribute(final ProjectContext ctx, final String attributeName, final Object value){
-		ctx.__setAttributeSuper(attributeName, value);
+	public final static void setSysAttribute(final ProjResponser pr, final String attributeName, final Object value){
+		pr.__setSysAtt(attributeName, value);
 	}
 
-	public final static void removeSuperAttribute(final ProjectContext ctx, final String attributeName){
-		ctx.__removeAttributeSuper(attributeName);
+	public final static void removeSysAttribute(final ProjResponser pr, final String attributeName){
+		pr.__removeSysAtt(attributeName);
 	}
 
-	public final static Object getSuperAttribute(final ProjectContext ctx, final String attributeName){
-		return ctx.__getAttributeSuper(attributeName);
+	public final static Object getSysAttribute(final ProjResponser pr, final String attributeName){
+		return pr.__getSysAtt(attributeName);
 	}
 
-	public final static void removeSuperClientSessionAttribute(final J2SESession coreSS, final ProjResponser pr, final String attributeName){
-		pr.getMobileSession(coreSS).getClientSession().removeAttribute(attributeName);
+	public final static void removeClientSessionAttributeForSys(final J2SESession coreSS, final ProjResponser pr, final String attributeName){
+		pr.getMobileSession(coreSS).getClientSessionForSys().removeAttribute(attributeName);
 	}
 
-	public final static Object getClientSessionAttribute(final J2SESession coreSS, final ProjResponser pr, final String attributeName){
-		return pr.getMobileSession(coreSS).getClientSession().getAttribute(attributeName);
+	public final static Object getClientSessionAttributeForSys(final J2SESession coreSS, final ProjResponser pr, final String attributeName){
+		return pr.getMobileSession(coreSS).getClientSessionForSys().getAttribute(attributeName);
 	}
 
-	public final static void setClientSessionAttribute(final J2SESession coreSS, final ProjResponser pr, final String attributeName, final Object value){
-		pr.getMobileSession(coreSS).getClientSession().setAttribute(attributeName, value);
+	public final static void setClientSessionAttributeForSys(final J2SESession coreSS, final ProjResponser pr, final String attributeName, final Object value){
+		pr.getMobileSession(coreSS).getClientSessionForSys().setAttribute(attributeName, value);
 	}
 	
 	public static String getProcessorNameFromCtx(final ProjectContext ctx, String name, final String prop) {
@@ -1042,6 +1047,20 @@ public class ServerUIAPIAgent {
 		HCURLUtil.hcurlCacher.cycle(hu);
 		
 		HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_TRANSURL, url);
+	}
+
+	public static Object getSysAttrInUserThread(final String key) {
+		return ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				final ProjResponser pr = getProjResponserMaybeNull(ProjectContext.getProjectContext());
+				if(pr == null){
+					return null;
+				}
+				final Object out = getSysAttribute(pr, key);
+				return out;
+			}
+		}, threadToken);
 	}
 
 }

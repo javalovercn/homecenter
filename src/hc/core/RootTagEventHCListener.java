@@ -24,17 +24,15 @@ public class RootTagEventHCListener extends IEventHCListener{
 		hcConnection.receiveMS = ms;
 	}
 
-	public final boolean action(final byte[] bs, final CoreSession coreSS) {
+	public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 		final byte subTag = bs[MsgBuilder.INDEX_CTRL_SUB_TAG];
 		if(L.isInWorkshop){
 			LogManager.log("Root Event , sub tag:" + subTag);
 		}
 		
-		final HCConnection hcConnection1 = coreSS.hcConnection;
-		
 		if(subTag == MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_RELAY){
 			//服务器收到RootRelay回应
-			hcConnection1.receiveMS = System.currentTimeMillis();
+			hcConnection.receiveMS = System.currentTimeMillis();
 //			LogManager.log("Receive line watch at RootTagEventHCListener");
 			
 			return true;
@@ -45,7 +43,7 @@ public class RootTagEventHCListener extends IEventHCListener{
 //				LogManager.log("Send back line watch at RootTagEventHCListener");
 			}else{
 				//服务器收到mobi回应
-				hcConnection1.receiveMS = System.currentTimeMillis();
+				hcConnection.receiveMS = System.currentTimeMillis();
 				if(L.isInWorkshop){
 					LogManager.log("Receive line watch at RootTagEventHCListener");
 				}
@@ -70,21 +68,21 @@ public class RootTagEventHCListener extends IEventHCListener{
 			return true;
 		}else if(subTag == MsgBuilder.DATA_ROOT_UDP_PORT_NOTIFY){
 			int port = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
-			hcConnection1.setUDPChannelPort(port);
+			hcConnection.setUDPChannelPort(port);
 			
 			//初始化UDP Header
-			hcConnection1.udpHeader[0] = bs[MsgBuilder.INDEX_MSG_DATA + 2];
-			hcConnection1.udpHeader[1] = bs[MsgBuilder.INDEX_MSG_DATA + 3];
+			hcConnection.udpHeader[0] = bs[MsgBuilder.INDEX_MSG_DATA + 2];
+			hcConnection.udpHeader[1] = bs[MsgBuilder.INDEX_MSG_DATA + 3];
 			
-			if(hcConnection1.sipContext.buildUDPChannel(hcConnection1)){	
+			if(hcConnection.sipContext.buildUDPChannel(hcConnection)){	
 				LogManager.log("Build UDP Channel to remote port : " + port);
-				hcConnection1.udpSender = hcConnection1.sipContext.resender;
-				hcConnection1.isDoneUDPChannelCheck = false;
-				hcConnection1.isBuildedUPDChannel = true;
+				hcConnection.udpSender = hcConnection.sipContext.resender;
+				hcConnection.isDoneUDPChannelCheck = false;
+				hcConnection.isBuildedUPDChannel = true;
 				
 				//供UDP中继器注册之用，由于UDP中继收到后，不签收，则E_TAG_ROOT_UDP_ADDR_REG会重发，
 				//从而间接实现延时和检测通达性，但是重发时间较长，导致接收后于检测到达时间，
-				UDPPacketResender.sendUDPREG(hcConnection1);
+				UDPPacketResender.sendUDPREG(hcConnection);
 				
 				try{
 					//以免某端完全先于对端发送完可通达性包，从而无法实现验证可通达性
@@ -92,10 +90,10 @@ public class RootTagEventHCListener extends IEventHCListener{
 				}catch (Exception e) {
 					
 				}
-				UDPPacketResender.sendUDPREG(hcConnection1);
+				UDPPacketResender.sendUDPREG(hcConnection);
 				
 				if(IConstant.serverSide){
-					UDPPacketResender.sendUDPBlockData(hcConnection1, MsgBuilder.E_TAG_MTU_1472, MsgBuilder.UDP_MTU_DATA_MAX_SIZE);
+					UDPPacketResender.sendUDPBlockData(hcConnection, MsgBuilder.E_TAG_MTU_1472, MsgBuilder.UDP_MTU_DATA_MAX_SIZE);
 					
 //					LogManager.log("Send MTU 1472 Test");
 				}

@@ -5,10 +5,8 @@ import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.HCTimer;
 import hc.core.IConstant;
-import hc.core.L;
 import hc.core.RootServerConnector;
 import hc.core.SessionManager;
-import hc.core.sip.SIPManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPool;
@@ -98,7 +96,7 @@ public class ExitManager {
 				final CoreSession coreSS = coreSSS[i];
 				
 				ScreenServer.emptyScreen((J2SESession)coreSS);
-				SIPManager.close(coreSS.hcConnection);
+				coreSS.closeHC();
 			}
 			
 			try{

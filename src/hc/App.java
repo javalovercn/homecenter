@@ -14,9 +14,12 @@ import hc.core.RootServerConnector;
 import hc.core.SessionManager;
 import hc.core.cache.CacheManager;
 import hc.core.cache.CacheStoreManager;
+import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.HCURL;
+import hc.core.util.HCURLUtil;
 import hc.core.util.IEncrypter;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
@@ -41,6 +44,7 @@ import hc.server.StarterManager;
 import hc.server.ThirdlibManager;
 import hc.server.TrayMenuUtil;
 import hc.server.data.StoreDirManager;
+import hc.server.localnet.ReceiveDeployServer;
 import hc.server.msb.MSBException;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.rms.J2SERecordWriterBuilder;
@@ -481,7 +485,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		final String selectedSkin = ConfigPane.getSystemSkin();
 
 		if(selectedSkin != null && selectedSkin.length() > 0){
-			applyLookFeel(selectedSkin, ConfigPane.getDefaultSkin());
+			applyLookFeel(selectedSkin, ResourceUtil.getDefaultSkin());
 		}
 		ResourceUtil.doCopyShortcutForMac();//要在skin之后
 		
@@ -544,32 +548,10 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	public static void setDisposeListener(final Window window, final DisposeListener listener){
 		if(window instanceof HCJFrame){
 			final HCJFrame hcjFrame = (HCJFrame)window;
-			final DisposeListener oldListener = hcjFrame.getDisposeListener();
-			if(oldListener != null){
-				hcjFrame.setDisposeListener(new DisposeListener() {
-					@Override
-					public void dispose() {
-						oldListener.dispose();
-						listener.dispose();
-					}
-				});
-			}else{
-				hcjFrame.setDisposeListener(listener);
-			}
+			hcjFrame.setDisposeListener(listener);
 		}else if(window instanceof HCJDialog){
 			final HCJDialog hcjdialog = (HCJDialog)window;
-			final DisposeListener oldListener = hcjdialog.getDisposeListener();
-			if(oldListener != null){
-				hcjdialog.setDisposeListener(new DisposeListener() {
-					@Override
-					public void dispose() {
-						oldListener.dispose();
-						listener.dispose();
-					}
-				});
-			}else{
-				hcjdialog.setDisposeListener(listener);
-			}
+			hcjdialog.setDisposeListener(listener);
 		}
 	}
 
@@ -669,7 +651,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 						ExceptionReporter.printStackTrace(e);
 						
 						LogManager.log("(set default font and LookAndFeel)");
-						applyLookFeel(ConfigPane.getDefaultSkin(), "");
+						applyLookFeel(ResourceUtil.getDefaultSkin(), "");
 					}
 					break;
 				}
@@ -769,6 +751,10 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			((LogServerSide) ilog).buildOutStream();
 		}
 
+		if(ResourceUtil.isReceiveDeployFromLocalNetwork()){
+			ReceiveDeployServer.startServer();
+		}
+		
 		try {
 			TrayMenuUtil.doBefore();
 			
@@ -915,12 +901,12 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		check.requestFocusInWindow();
 		final JButton ok = buildDefaultOKButton();
 
-		check.addActionListener(new HCActionListener() {
+		check.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
+			public void run() {
 				ok.setEnabled(check.isSelected());
 			}
-		});
+		}));
 
 		ok.setEnabled(false);
 		ok.addActionListener(new HCActionListener(new Runnable() {
@@ -1530,6 +1516,10 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	
 	/**
 	 * 重要，请勿在Event线程中调用，
+	 * @param parentComponent
+	 * @param message
+	 * @param initialSelectionValue
+	 * @return null meaning the user canceled the input
 	 */
 	public static String showInputDialog(final Component parentComponent, final Object message, final Object initialSelectionValue) {
 		return (String)showInputDialog(parentComponent, message,
@@ -1539,6 +1529,11 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	
 	/**
 	 * 重要，请勿在Event线程中调用，
+	 * @param parentComponent
+	 * @param message
+	 * @param title
+	 * @param messageType
+	 * @return null meaning the user canceled the input
 	 */
 	public static String showInputDialog(final Component parentComponent,
 	        final Object message, final String title, final int messageType) {
@@ -1548,6 +1543,14 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	
 	/**
 	 * 重要，请勿在Event线程中调用，
+	 * @param parentComponent
+	 * @param message
+	 * @param title
+	 * @param messageType
+	 * @param icon
+	 * @param selectionValues
+	 * @param initialSelectionValue
+	 * @return null meaning the user canceled the input
 	 */
     public static Object showInputDialog(final Component parentComponent,
             final Object message, final String title, final int messageType, final Icon icon,
@@ -1565,15 +1568,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
     }
 
     public static final String[] showHARInputDialog(final String title, final String[] fieldName, final String[] fieldDesc){
-		if(fieldName == null || searchNull(fieldName)){
-			throw new Error("fieldName is null or null member");
-		}
-		if(fieldDesc == null || searchNull(fieldDesc)){
-			throw new Error("fieldDesc is null or null member");
-		}
-		if(fieldDesc.length != fieldDesc.length){
-			throw new Error("the length of fieldName must equals to the length of fieldDesc");
-		}
 		final String[] value = new String[fieldName.length];
 		for (int i = 0; i < value.length; i++) {
 			value[i] = "";
@@ -1621,25 +1615,26 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			panel.add(descPanel, BorderLayout.SOUTH);
 		}
 		
-		ProcessingWindowManager.pause();
-		
 		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() {
-				final ActionListener listener = new ActionListener() {
+				ProcessingWindowManager.pause();
+
+				final ActionListener listener = new HCActionListener(new Runnable() {
 					@Override
-					public void actionPerformed(final ActionEvent e) {
+					public void run() {
 						for (int i = 0; i < value.length; i++) {
 							value[i] = fields[i].getText();
 						}
 					}
-				};
+				});
 				App.showCenterPanelMain(panel, 0, 0, title, false, null, null, listener, null, null, true, false, null, false, false);
+
+				ProcessingWindowManager.resume();
+
 				return null;
 			}
 		}, threadPoolToken);
-		
-		ProcessingWindowManager.resume();
 		
 		return value;
 	}
@@ -1649,15 +1644,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		panel.add(new JLabel(message, icon, SwingConstants.LEADING), BorderLayout.CENTER);
 		return panel;
     }
-    
-	private static final boolean searchNull(final String[] array){
-		for (int i = 0; i < array.length; i++) {
-			if(array[i] == null){
-				return true;
-			}
-		}
-		return false;
-	}
 	
 	/**
 	 * 重要，请勿在Event线程中调用，
@@ -1879,7 +1865,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	}
 	
 	public static void showInputPWDDialog(final String uuid, final String pwd1,
-			final String pwd2, final boolean isToLogin) {
+			final String pwd2, final boolean isRegister) {
 		final String passwdStr = (String) ResourceUtil.get(9030);
 
 		final JPanel panel = new JPanel();
@@ -1901,7 +1887,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 
 		final int columns = 20;
 		final JTextField jtfuuid = new JTextField(uuid, columns);
-		jtfuuid.setEditable(isToLogin);
+		jtfuuid.setEditable(isRegister);
 		jtfuuid.setForeground(Color.BLUE);
 		jtfuuid.setHorizontalAlignment(SwingConstants.RIGHT);
 //		JPanel uuidPanel = new JPanel();
@@ -1926,7 +1912,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		final JLabel jlPassword = new JLabel(passwdStr);
 		jlPassword.setIcon(new ImageIcon(ImageSrc.PASSWORD_ICON));
 		final String inputPwdTip = "<html>input new password for new account.<BR>" + getPasswordLocalStoreTip() + "</html>";
-		if(isToLogin){
+		if(isRegister){
 			jlPassword.setToolTipText(inputPwdTip);
 		}
 		
@@ -1956,7 +1942,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		doublepw.setLayout(new FlowLayout());
 		final JLabel jlPassword2 = new JLabel(passwdStr);
 		jlPassword2.setIcon(new ImageIcon(ImageSrc.PASSWORD_ICON));
-		if(isToLogin){
+		if(isRegister){
 			jlPassword2.setToolTipText(inputPwdTip);
 		}
 		doublepw.add(jlPassword2);
@@ -2000,13 +1986,15 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		// GridBagConstraints.CENTER, GridBagConstraints.BOTH,
 		// new Insets(10, 10, 10, 10), 0, 0));
 		//
-		if(isToLogin == false){
+		if(isRegister == false){
 			BufferedImage img = null;
 			try{
 				img = ImageIO.read(ResourceUtil.getResource("hc/res/tip_16.png"));
 			}catch (final Exception e) {
 			}
-			final JLabel passwordTip = new JLabel(getPasswordLocalStoreTip(), 
+			
+			final String desc = "<html>" + getPasswordLocalStoreTip() + "<BR><BR>" + ResourceUtil.get(9248) + "</html>";//9248 : new password to client
+			final JLabel passwordTip = new JLabel(desc, 
 					new ImageIcon(img), SwingConstants.LEADING);
 
 //			JPanel subPanel = new JPanel(new BorderLayout());
@@ -2023,7 +2011,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			public void actionPerformed(final Window window, final JButton ok,
 					final JButton cancel) {
 				window.dispose();
-				if (isToLogin) {
+				if (isRegister) {
 					PlatformManager.getService().exitSystem();
 				}
 			}
@@ -2046,7 +2034,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 						PropertiesManager.setValue(PropertiesManager.p_uuid, email);//注意：强制更新，因为密码丢失时，需要调用此逻辑重写
 						IConstant.setUUID(email);
 						App.storePWD(passwd2.getText());
-						if (isToLogin) {
+						if (isRegister) {
 							startAfterInfo();
 						}
 					} else {
@@ -2062,7 +2050,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 
 		showCenter(panel, 0, 0, passwdStr, true, jbOK, jbCancle,
 				jbOKAction, cancelAction, null, false, false, null, false);
-		if(isToLogin){
+		if(isRegister){
 			jtfuuid.requestFocus();
 		}else{
 			passwd1.requestFocus();
@@ -2088,13 +2076,13 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			frame.setIconImage(SYS_LOGO);
 			frame.getContentPane().setLayout(new BorderLayout());
 			frame.getContentPane().add(jp, BorderLayout.CENTER);
-			final JButton close = new JButton((String) ResourceUtil.get(1010));
-			close.addActionListener(new HCActionListener() {
+			final JButton close = new JButton(ResourceUtil.getOKI18N());
+			close.addActionListener(new HCActionListener(new Runnable() {
 				@Override
-				public void actionPerformed(final ActionEvent e) {
+				public void run() {
 					frame.dispose();
 				}
-			});
+			}));
 			frame.getContentPane().add(close, BorderLayout.SOUTH);
 			frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 			frame.setResizable(false);
@@ -2119,9 +2107,10 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
 		for (int i = 0; i < coreSSS.length; i++) {
 			final CoreSession coreSession = coreSSS[i];
-			if(coreSession.context.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON){
-				final HCConnection hcConnection = coreSession.hcConnection;
+			if(coreSession.context.cmStatus <= ContextManager.STATUS_READY_TO_LINE_ON){
+				final HCConnection hcConnection = coreSession.getHCConnection();
 				final IEncrypter en = hcConnection.getUserEncryptor();
+				hcConnection.userPassword = ByteUtil.cloneBS(IConstant.getPasswordBS());
 				if(en != null){
 					LogManager.log("password is changed, call user encryptor.notifyExit methoad for status [" + ContextManager.STATUS_READY_TO_LINE_ON + "].");
 					try{
@@ -2131,7 +2120,10 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 					}
 				}
 				LogManager.log("reload user encryptor for status [" + ContextManager.STATUS_READY_TO_LINE_ON + "].");
-				hcConnection.loadEncryptor();
+				hcConnection.loadEncryptor(hcConnection.userPassword);
+			}else if(coreSession.context.cmStatus == ContextManager.STATUS_SERVER_SELF){
+				L.V = L.WShop ? false : LogManager.log("trans new password to client!");
+				HCURLUtil.sendCmd(coreSession, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_CHANGE_PASSWORD, pwd);
 			}
 		}
 		
@@ -2183,8 +2175,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			return;
 		}
 		try {
-			if (newSkin.startsWith(ConfigPane.SYS_LOOKFEEL)) {
-				newSkin = newSkin.substring(ConfigPane.SYS_LOOKFEEL.length());
+			if (newSkin.startsWith(ResourceUtil.SYS_LOOKFEEL)) {
+				newSkin = newSkin.substring(ResourceUtil.SYS_LOOKFEEL.length());
 				for (final LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 					if (newSkin.equals(info.getName())) {
 						UIManager.setLookAndFeel(info.getClassName());
@@ -2369,7 +2361,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				} else if (result.equals(RootServerConnector.ROOT_AJAX_OK)) {
 					showDonate.dispose();
 
-					TokenManager.changeTokenFromUI(emailID, donateToken);
+					TokenManager.changeTokenFromUI(emailID, donateToken, true);
 					
 					final JPanel jpanel = new JPanel();
 					jpanel.add(new JLabel(
@@ -2541,7 +2533,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		final JPanel congPanel = new JPanel(new BorderLayout());
 		final JLabel congLabel = new JLabel
 				("<html><body style=\"width:" + (panelWidth - cong_icon.getIconWidth()) + "\">"
-						+ StringUtil.replace((String)ResourceUtil.get(9065), "{uuid}", IConstant.getUUID()) + "<BR>" +
+						+ StringUtil.replace((String)ResourceUtil.get(9065), "{uuid}", IConstant.getUUID()) + "<BR><BR>" +
 						(String)ResourceUtil.get(9089) +
 						"</body></html>");
 		congPanel.add(congLabel, BorderLayout.CENTER);

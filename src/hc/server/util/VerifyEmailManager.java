@@ -9,6 +9,7 @@ import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.res.ImageSrc;
+import hc.server.DisposeListener;
 import hc.server.HCActionListener;
 import hc.server.ui.ClientDesc;
 import hc.util.HttpUtil;
@@ -117,7 +118,8 @@ public class VerifyEmailManager {
 		final String send = (String)ResourceUtil.get(9199);//send
 		
 		final JPanel panel = new JPanel(new BorderLayout());
-		panel.setBorder(new TitledBorder(title));
+		final String vEmailAddress = title + " : " + emailID;
+		panel.setBorder(new TitledBorder(vEmailAddress));
 		final JButton sendBtn = new JButton(send);
 		final JPanel sendPanel = new JPanel(new GridLayout(1, 2));
 		sendPanel.add(sendBtn);
@@ -144,6 +146,13 @@ public class VerifyEmailManager {
 //		sendEmailFrame.getRootPane().setDefaultButton(sendBtn);
 
 		final int[] verifiedStatus = new int[1];//0 : 未send, 1 : send one/two/..., 2 : 通过
+		
+		sendEmailFrame.setDisposeListener(new DisposeListener() {
+			@Override
+			public void dispose() {
+				verifiedStatus[0] = 0;
+			}
+		});
 		
 		sendBtn.addActionListener(new HCActionListener(new Runnable() {
 			final String tokenForVerifyEmailHideRealToken = ResourceUtil.buildUUID();
@@ -214,14 +223,11 @@ public class VerifyEmailManager {
 									SwingUtilities.invokeLater(new Runnable() {
 										@Override
 										public void run() {
-											sendBtn.setEnabled(false);
-											final ImageIcon icon = new ImageIcon(ImageSrc.loadImageFromPath("hc/res/lock_ok_16.png"));
-											verifyStatus.setIcon(icon);
-											verifyStatus.setText("");
+											setVerifyOKStatus(sendBtn, verifyStatus);
 										}
 									});
 
-									TokenManager.changeTokenFromUI(emailID, token);
+									TokenManager.changeTokenFromUI(emailID, token, true);
 									
 									break;
 								}
@@ -232,11 +238,33 @@ public class VerifyEmailManager {
 			}
 		}, App.getThreadPoolToken()));
 		
+		if(isVerifiedEmail()){
+			setVerifyOKStatus(sendBtn, verifyStatus);
+		}
+		
 		jbClose.addActionListener(exitActionListener);
 		
-		final JPanel allPanel = new JPanel();
-		allPanel.setLayout(new BorderLayout());
-		allPanel.add(panel, BorderLayout.CENTER);
+		final JPanel mainPanel = new JPanel();
+		mainPanel.setLayout(new BorderLayout());
+		mainPanel.add(panel, BorderLayout.CENTER);
+		
+		final JPanel changeEmailPanel = new JPanel(new BorderLayout());
+		final String chEmail = (String)ResourceUtil.get(9250);
+		final JButton changeEmailBtn = new JButton(chEmail);//"change Email"
+		changeEmailBtn.addActionListener(new HCActionListener(new Runnable() {
+			@Override
+			public void run() {
+				sendEmailFrame.dispose();
+				sendEmailFrame = null;
+				VerifyEmailManager.showInputEmail("");
+			}
+		}));
+		changeEmailPanel.add(changeEmailBtn, BorderLayout.CENTER);
+		changeEmailPanel.setBorder(new TitledBorder(chEmail));
+		mainPanel.add(changeEmailPanel, BorderLayout.SOUTH);
+		
+		final JPanel allPanel = new JPanel(new BorderLayout());
+		allPanel.add(mainPanel, BorderLayout.CENTER);
 		
 		final JPanel bottomPanel = new JPanel(new GridBagLayout());
 		bottomPanel.add(jbClose, new GridBagConstraints(0, 0, 1, 1, 1.0,
@@ -434,7 +462,9 @@ public class VerifyEmailManager {
 		final ActionListener okListener = new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				VerifyEmailManager.startVerifyMailSendProcess(emailID);
+				final String token = PropertiesManager.getValue(PropertiesManager.p_Token);
+				TokenManager.changeTokenFromUI(emailID, token, false);
+				VerifyEmailManager.startVerifyMailSendProcess(emailID);//重启服务时，会检查并通知重新验证
 			}
 		}, App.getThreadPoolToken());
 		final ActionListener cancelListener = new HCActionListener(new Runnable() {
@@ -445,5 +475,12 @@ public class VerifyEmailManager {
 		}, App.getThreadPoolToken());
 		
 		App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), true, null, null, okListener, cancelListener, null, false, true, null, false, true);
+	}
+
+	private static void setVerifyOKStatus(final JButton sendBtn, final JLabel verifyStatus) {
+		sendBtn.setEnabled(false);
+		final ImageIcon icon = new ImageIcon(ImageSrc.loadImageFromPath("hc/res/lock_ok_16.png"));
+		verifyStatus.setIcon(icon);
+		verifyStatus.setText("");
 	}
 }

@@ -188,12 +188,12 @@ public class DeviceBinderWizard extends JPanel{
 		
 		{
 			final JRootPane rootPane = selfFrame.getRootPane();
-			final ActionListener anAction = new ActionListener() {
+			final ActionListener anAction = new HCActionListener(new Runnable() {
 				@Override
-				public void actionPerformed(final ActionEvent e) {
+				public void run() {
 					cancelAction.actionPerformed(selfFrame, okButton, cancelButton);
 				}
-			};
+			});
 			rootPane.registerKeyboardAction(anAction,
 					KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 					JComponent.WHEN_IN_FOCUSED_WINDOW);

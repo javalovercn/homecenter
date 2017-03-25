@@ -205,6 +205,13 @@ public class LangUtil {
 			
 			//不需两段转一段，因locale是两段
 		}else{
+			if(lastCompareSplitIdx > 0){//he ~ he-FF
+				final String[] cmpParts = StringUtil.splitToArray(compareLocale, LOCALE_SPLIT);
+				if(locale.equals(cmpParts[0])){
+					return true;
+				}
+			}
+			
 			if(isMaybeEqualLang){
 				for (int i = 0; i < equalLocale.length; i++) {
 					if(locale.equals(equalLocale[i])){

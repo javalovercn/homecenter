@@ -104,7 +104,8 @@ public class HCURL {
 	public static final String DATA_PARA_PUBLISH_STATUS_ID = "publishStatusID";
 	public static final String DATA_PARA_PUBLISH_STATUS_VALUE = "publishStatusValue";
 	public static final String DATA_PARA_VOICE_COMMANDS = CCoreUtil.SYS_PREFIX + "voiceCommand";
-	
+	public static final String DATA_PARA_CHANGE_PASSWORD = "changePassword";
+
 	public static final String DATA_RECEIVER_MLET = "rev_mlet";
 	public static final String DATA_RECEIVER_HTMLMLET = "rev_htmlmlet";
 	

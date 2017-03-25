@@ -115,10 +115,6 @@ public class LinkProjectManager{
 		try{
 			log("starting download and upgrading project(s) service...");
 			
-			if(LinkProjectManager.LINK_UPGRADE_DIR.exists() == false){
-				LinkProjectManager.LINK_UPGRADE_DIR.mkdirs();
-			}
-			
 			final String curr_jvm_ver = String.valueOf(App.getJREVer());
 			final String curr_hc_ver = StarterManager.getHCVersion();
 			final String curr_jruby_ver = PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer, "1.0");
@@ -299,7 +295,7 @@ public class LinkProjectManager{
 				App.showCenterPanelMain(jpanel, 0, 0, title, hasSucc, null, null, new HCActionListener(new Runnable() {
 					@Override
 					public void run() {
-						appNewLinkedInProjNow(downloadingLPS, true, true);
+						appNewLinkedInProjNow(downloadingLPS, true, true, false);
 						exitDownloadUpgrade();
 					}
 				}, App.getThreadPoolToken()), new HCActionListener(new Runnable() {
@@ -312,7 +308,7 @@ public class LinkProjectManager{
 				//exitDownloadUpgrade置于showCenterPanel之中
 				return true;
 			}else if(op.equals(LinkPropertiesOption.OP_IMMEDIATE)){
-				appNewLinkedInProjNow(downloadingLPS, true, false);
+				appNewLinkedInProjNow(downloadingLPS, true, false, false);
 			}else if(op.equals(LinkPropertiesOption.OP_NEXT_START_UP)){
 				updateToLinkProject();//注意：要正确关闭exitDownloadUpgrade，所以不能异常抛出
 			}
@@ -468,7 +464,10 @@ public class LinkProjectManager{
 		return null;
 	}
 	
-	static void appNewLinkedInProjNow(final Vector<LinkProjectStore> v, final boolean isServing, final boolean isForceApplyWhenUserIsConnecting){//注意：不能将异常抛出
+	public static void appNewLinkedInProjNow(final Vector<LinkProjectStore> v, final boolean isServing, 
+			final boolean isForceApplyWhenUserIsConnecting, final boolean isForceUpgradeInLocalNetwork){//注意：不能将异常抛出
+		ResourceUtil.checkHCStackTraceInclude(null, null);
+		
 		try{
 		while(ServerUIUtil.isServing()){
 			if(isForceApplyWhenUserIsConnecting){
@@ -488,7 +487,7 @@ public class LinkProjectManager{
 			final String newVersion = lps.getDownloadingVer();
 			final boolean isDelProj = newVersion.equals(LinkProjectStore.DEL_VERSION);
 			
-			if(isDelProj
+			if(isDelProj || isForceUpgradeInLocalNetwork 
 					|| 
 				(!newVersion.equals(LinkProjectStore.DEFAULT_UNKOWN_VER) 
 					&& StringUtil.higher(newVersion, oldVersion)
@@ -701,6 +700,33 @@ public class LinkProjectManager{
 		return count;
 	}
 	
+	/**
+	 * 
+	 * @param fileHar
+	 * @return 0 : OK; -1 : error
+	 */
+	public static int deployInLocalNetwork(final byte[] bs, final int len, final String projectID){
+		CCoreUtil.checkAccess();
+		
+		if(enterDownloadStatus() == false){
+			return -1;
+		}
+		
+		LogManager.log("[Deploy] start deploy project in receive-deploy service...");
+		
+		final Vector<LinkProjectStore> upgradeLPS = new Vector<LinkProjectStore>(1);
+		
+		final LinkProjectStore lps = getProjByID(projectID);
+		final File fileHar = new File(LINK_UPGRADE_DIR, lps.getHarFile());
+		ResourceUtil.writeToFile(bs, 0, len, fileHar);
+		upgradeLPS.add(lps);
+		LinkProjectManager.appNewLinkedInProjNow(upgradeLPS, true, true, true);
+		
+		exitDownloadUpgrade();
+		
+		return 0;
+	}
+	
 	static Iterator<LinkProjectStore> getLinkProjsIterator(final boolean includeRoot){
 		if(includeRoot){
 			return lpsVector.iterator();
@@ -847,6 +873,10 @@ public class LinkProjectManager{
 	}
 
 	static{
+		if(LINK_UPGRADE_DIR.exists() == false){
+			LINK_UPGRADE_DIR.mkdirs();
+		}
+		
 		reloadLinkProjects();
 		
 		try{
@@ -856,7 +886,7 @@ public class LinkProjectManager{
 		}
 		
 		//仅在启动时，更新上次下载的升级包
-		appNewLinkedInProjNow(lpsVector, false, true);
+		appNewLinkedInProjNow(lpsVector, false, true, false);
 	}
 
 	static File removeLinkProjectPhic(LinkProjectStore lps, final boolean delPersistent){

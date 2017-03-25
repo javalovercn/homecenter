@@ -97,7 +97,7 @@ public abstract class IContext {
 	private byte[] toServerBS = new byte[1024];
 	
 	public final CoreSession coreSS;
-	private final HCConnection hcConnection;
+	protected final HCConnection hcConnection;
 	private final ConnectionRebuilder connectionRebuilder;
 	public final Object sendLock = new Object();
 	
@@ -105,7 +105,7 @@ public abstract class IContext {
 		rootTagListener = new RootTagEventHCListener(coreSocketSession.hcConnection);
 		coreSocketSession.context = this;
 		this.coreSS = coreSocketSession;
-		this.hcConnection = this.coreSS.hcConnection;
+		this.hcConnection = this.coreSS.getHCConnection();//阻止继承获得
 		this.connectionRebuilder = hcConnection.connectionRebuilder;
 		this.eventCenter = eventCenter;
 		
@@ -115,14 +115,14 @@ public abstract class IContext {
 				return MsgBuilder.E_TAG_ROOT_UDP_ADDR_REG;
 			}
 			
-			public final boolean action(byte[] bs, final CoreSession coreSS) {
+			public final boolean action(byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				//有可能收到，有可能收不到。不作任何处理。仅供UDP中继之用
 //				LogManager.log("Receive E_TAG_ROOT_UDP_ADDR_REG");
 				final boolean isRight = UDPPacketResender.checkUDPBlockData(bs, MsgBuilder.UDP_MTU_DATA_MIN_SIZE);
-				if(isRight && (coreSS.hcConnection.isDoneUDPChannelCheck == false)){
+				if(isRight && (hcConnection.isDoneUDPChannelCheck == false)){
 					LogManager.log("Done UDP Channel Check by E_TAG_ROOT_UDP_ADDR_REG");
 					
-					coreSS.hcConnection.isDoneUDPChannelCheck = true;
+					hcConnection.isDoneUDPChannelCheck = true;
 				}
 				return true;
 			}

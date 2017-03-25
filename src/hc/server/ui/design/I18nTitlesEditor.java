@@ -134,9 +134,9 @@ public class I18nTitlesEditor extends JPanel{
 		addBtn = new JButton((String)ResourceUtil.get(9016) + "/" + (String)ResourceUtil.get(9017), new ImageIcon(ImageSrc.ADD_SMALL_ICON));
 		editPanel.add(addBtn);
 		
-		addBtn.addActionListener(new HCActionListener() {
+		addBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
+			public void run() {
 				final String lang = (String)jcbLanguage.getSelectedItem();
 				if(lang.length() < 2){
 					App.showMessageDialog(Designer.getInstance(), "language must be two or more letters!", "Error", App.ERROR_MESSAGE);
@@ -169,13 +169,13 @@ public class I18nTitlesEditor extends JPanel{
 				addKeyValuePare(key, valueText);
 				refreshTableUI();
 			}
-		});
+		}));
 		
 		removeBtn = new JButton((String)ResourceUtil.get(9018), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
 		removeBtn.setEnabled(false);
-		removeBtn.addActionListener(new ActionListener() {
+		removeBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
-			public void actionPerformed(final ActionEvent e) {
+			public void run() {
 				final int selectedIdx = table.getSelectedRow();
 				if(selectedIdx >= 0 && selectedIdx < keyVector.size()){
 					keyVector.remove(selectedIdx);
@@ -184,7 +184,7 @@ public class I18nTitlesEditor extends JPanel{
 					refreshTableUI();
 				}
 			}
-		});
+		}));
 		editPanel.setBorder(new TitledBorder("Edit :"));
 		
 		final JPanel listPanel = new JPanel(new BorderLayout());
@@ -264,11 +264,12 @@ public class I18nTitlesEditor extends JPanel{
 		final JPanel descPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		descPanel.setBorder(new TitledBorder("Description :"));
 		descPanel.add(new JLabel("<html>" +
-				"1. <STRONG>en" + SPLIT_LANG_COUNTRY + "US</STRONG> is for United States only.<BR>" +
-				"2. <STRONG>en</STRONG> is for all english language country, if <STRONG>en"+ SPLIT_LANG_COUNTRY + "??</STRONG> is NOT found.<BR>" +
-				"3. <STRONG>language</STRONG> : ISO 639 alpha-2 or alpha-3 codes,<BR>" +
-				"4. <STRONG>country / region</STRONG> : ISO 3166 alpha-2 or a UN M.49 numeric-3 area code, <BR>" +
-				"5. input in ComboBox directly if it is NOT listed in ComboBox." +
+				"1. the aboves are equivalent with MenuItem.<STRONG>setText(Map)</STRONG>.<BR>" +
+				"2. <STRONG>en" + SPLIT_LANG_COUNTRY + "US</STRONG> is for United States only.<BR>" +
+				"3. <STRONG>en</STRONG> is for all english language country, if <STRONG>en"+ SPLIT_LANG_COUNTRY + "??</STRONG> is NOT found.<BR>" +
+				"4. <STRONG>language</STRONG> : ISO 639 alpha-2 or alpha-3 codes,<BR>" +
+				"5. <STRONG>country / region</STRONG> : ISO 3166 alpha-2 or a UN M.49 numeric-3 area code, <BR>" +
+				"6. input in ComboBox directly if it is NOT listed in ComboBox." +
 				"</html>"));
 
 		this.setLayout(new BorderLayout());

@@ -11,7 +11,6 @@ import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.UDPPacketResender;
 import hc.core.sip.ISIPContext;
-import hc.core.sip.SIPManager;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
 import hc.core.util.ExceptionReporter;
@@ -39,7 +38,7 @@ public class J2SESIPContext extends ISIPContext {
 	private InetAddress outputInetAddress;
 	
 	public J2SESIPContext(final J2SESession j2seCoreSS) {
-		final HCConnection hcConnection = j2seCoreSS.hcConnection;
+		final HCConnection hcConnection = j2seCoreSS.getHCConnection();
 		
 		resender = new UDPPacketResender(){
 			@Override
@@ -50,7 +49,7 @@ public class J2SESIPContext extends ISIPContext {
 					}
 				}catch (final Exception e) {
 //					ExceptionReporter.printStackTrace(e);//UDP断线时，会输出很多的异常信息，故关闭
-					SIPManager.notifyLineOff(j2seCoreSS, false, false);
+					j2seCoreSS.notifyLineOff(false, false);
 				}
 			}
 			
@@ -149,7 +148,7 @@ public class J2SESIPContext extends ISIPContext {
 			}
 	    };
 	    
-	    j2seCoreSS.hcConnection.sipContext = this;
+	    hcConnection.sipContext = this;
 		ackbatchTimer = new AckBatchHCTimer("AckBatch", HCTimer.HC_INTERNAL_MS, false, resender);
 	}
 	
