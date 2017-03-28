@@ -6,7 +6,7 @@ import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.JarMainMenu;
 import hc.server.ui.design.ProjResponser;
-import hc.server.util.VoiceCommand;
+import hc.server.util.VoiceParameter;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
 
@@ -213,7 +213,7 @@ public class SessionMobiMenu extends MobiMenu{
 		}
 	}
 	
-	public final MenuItem searchMenuItemByVoiceCommand(final VoiceCommand voiceCommand, final boolean isCurrProj){
+	public final MenuItem searchMenuItemByVoiceCommand(final VoiceParameter voiceCommand, final boolean isCurrProj){
 		synchronized(projectMenu.menuLock){
 			synchronized (menuLock) {
 				final MenuItem out = searchMenuItemByVoiceCommand(projectMenu.menuItems, voiceCommand, isCurrProj);
@@ -227,7 +227,7 @@ public class SessionMobiMenu extends MobiMenu{
 	}
 			
 	private final MenuItem searchMenuItemByVoiceCommand(final Vector<MenuItem> from, 
-			final VoiceCommand voiceCommand, final boolean isCurrProj){
+			final VoiceParameter voiceCommand, final boolean isCurrProj){
 		final int size = from.size();
 		for (int j = 0; j < size; j++) {
 			final MenuItem item = from.elementAt(j);

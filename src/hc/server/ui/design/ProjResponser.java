@@ -52,9 +52,11 @@ import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.ui.design.hpj.HCjarHelper;
 import hc.server.ui.design.hpj.HPNode;
+import hc.server.util.Assistant;
 import hc.server.util.CacheComparator;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
+import hc.server.util.VoiceCommand;
 import hc.util.BaseResponsor;
 import hc.util.ClassUtil;
 import hc.util.RecycleProjThreadPool;
@@ -97,6 +99,24 @@ public class ProjResponser {
 		final SessionContext mc = SessionContext.getFreeMobileContext(projectID, threadGroup, this);
 		mobileContexts.appendCurrContext(coreSS, mc);
 		return mc;
+	}
+	
+	public final boolean dispatchVoiceCommandAndWait(final J2SESession coreSS, final VoiceCommand vc){
+		final Assistant assistant = ServerUIAPIAgent.getVoiceAssistant(context);
+		if(assistant != null){
+			try{
+				return (Boolean)ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, this, new ReturnableRunnable() {
+					@Override
+					public Object run() {
+						return assistant.onVoice(vc);
+					}
+				});
+			}catch (final Throwable e) {//拦截未正常返回的异常
+				e.printStackTrace();
+			}
+		}
+		
+		return false;
 	}
 	
 	public final SessionContext getMobileSession(final J2SESession socket){

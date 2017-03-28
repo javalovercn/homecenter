@@ -800,7 +800,111 @@ public final class Message {
 		}
 		return false;
 	}
+	
+	/**
+	 * returns a boolean array by name.
+	 * @param name
+	 * @return 
+	 */
+	public final boolean[] getBooleanArrayBody(final String name){
+		final Object obj = body_table.get(name);
+		if(obj != null && obj instanceof boolean[]){
+			return (boolean[])obj;
+		}
+		return null;
+	}
 
+	/**
+	 * if name is not exists or not char array object, then return null
+	 * @param name
+	 * @return 
+	 */
+	public final char[] getCharArrayBody(final String name){
+		final Object obj = body_table.get(name);
+		if(obj != null && obj instanceof char[]){
+			return (char[])obj;
+		}
+		return null;
+	}
+	
+	/**
+	 * if name is not exists or not short array object, then return null
+	 * @param name
+	 * @return 
+	 */
+	public final short[] getShortArrayBody(final String name){
+		final Object obj = body_table.get(name);
+		if(obj != null && obj instanceof short[]){
+			return (short[])obj;
+		}
+		return null;
+	}
+	
+	/**
+	 * if name is not exists or not int array object, then return null
+	 * @param name
+	 * @return 
+	 */
+	public final int[] getIntArrayBody(final String name){
+		final Object obj = body_table.get(name);
+		if(obj != null && obj instanceof int[]){
+			return (int[])obj;
+		}
+		return null;
+	}
+	
+	/**
+	 * if name is not exists or not float array object, then return null
+	 * @param name
+	 * @return 
+	 */
+	public final float[] getFloatArrayBody(final String name){
+		final Object obj = body_table.get(name);
+		if(obj != null && obj instanceof float[]){
+			return (float[])obj;
+		}
+		return null;
+	}
+	
+	/**
+	 * if name is not exists or not long array object, then return null
+	 * @param name
+	 * @return 
+	 */
+	public final long[] getLongArrayBody(final String name){
+		final Object obj = body_table.get(name);
+		if(obj != null && obj instanceof long[]){
+			return (long[])obj;
+		}
+		return null;
+	}
+	
+	/**
+	 * if name is not exists or not double array object, then return null
+	 * @param name
+	 * @return 
+	 */
+	public final double[] getDoubleArrayBody(final String name){
+		final Object obj = body_table.get(name);
+		if(obj != null && obj instanceof double[]){
+			return (double[])obj;
+		}
+		return null;
+	}
+	
+	/**
+	 * if name is not exists or not String array object, then return null
+	 * @param name
+	 * @return 
+	 */
+	public final String[] getStringArrayBody(final String name){
+		final Object obj = body_table.get(name);
+		if(obj != null && obj instanceof String[]){
+			return (String[])obj;
+		}
+		return null;
+	}
+	
 	/**
 	 * if name is not exists or not Boolean object, then return defaultValue.
 	 * @param name
@@ -923,6 +1027,158 @@ public final class Message {
 			return (byte[])obj;
 		}
 		return null;
+	}
+	
+	/**
+	 * if name is not exists or not char array object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of body <code>name</code>
+	 * @see #getCharArrayBody(String)
+	 * @see #getObjectBody(String)
+	 */
+	public final char[] getCharArrayBody(final String name, final char[] defaultValue){
+		final Object obj = body_table.get(name);
+		if(obj != null){
+			if(obj instanceof char[]){
+				return (char[])obj;
+			}
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not short array object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of body <code>name</code>
+	 * @see #getShortArrayBody(String)
+	 * @see #getObjectBody(String)
+	 */
+	public final short[] getShortArrayBody(final String name, final short[] defaultValue){
+		final Object obj = body_table.get(name);
+		if(obj != null){
+			if(obj instanceof short[]){
+				return (short[])obj;
+			}
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not int array object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of body <code>name</code>
+	 * @see #getIntArrayBody(String)
+	 * @see #getObjectBody(String)
+	 */
+	public final int[] getIntArrayBody(final String name, final int[] defaultValue){
+		final Object obj = body_table.get(name);
+		if(obj != null){
+			if(obj instanceof int[]){
+				return (int[])obj;
+			}
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not float array object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of body <code>name</code>
+	 * @see #getFloatArrayBody(String)
+	 * @see #getObjectBody(String)
+	 */
+	public final float[] getFloatArrayBody(final String name, final float[] defaultValue){
+		final Object obj = body_table.get(name);
+		if(obj != null){
+			if(obj instanceof float[]){
+				return (float[])obj;
+			}
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not long array object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of body <code>name</code>
+	 * @see #getLongArrayBody(String)
+	 * @see #getObjectBody(String)
+	 */
+	public final long[] getLongArrayBody(final String name, final long[] defaultValue){
+		final Object obj = body_table.get(name);
+		if(obj != null){
+			if(obj instanceof long[]){
+				return (long[])obj;
+			}
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not double array object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of body <code>name</code>
+	 * @see #getDoubleArrayBody(String)
+	 * @see #getObjectBody(String)
+	 */
+	public final double[] getDoubleArrayBody(final String name, final double[] defaultValue){
+		final Object obj = body_table.get(name);
+		if(obj != null){
+			if(obj instanceof double[]){
+				return (double[])obj;
+			}
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not boolean array object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of body <code>name</code>
+	 * @see #getBooleanArrayBody(String)
+	 * @see #getObjectBody(String)
+	 */
+	public final boolean[] getBooleanArrayBody(final String name, final boolean[] defaultValue){
+		final Object obj = body_table.get(name);
+		if(obj != null){
+			if(obj instanceof boolean[]){
+				return (boolean[])obj;
+			}
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not String array object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of body <code>name</code>
+	 * @see #getStringArrayBody(String)
+	 * @see #getObjectBody(String)
+	 */
+	public final String[] getStringArrayBody(final String name, final String[] defaultValue){
+		final Object obj = body_table.get(name);
+		if(obj != null){
+			if(obj instanceof String[]){
+				return (String[])obj;
+			}
+		}
+			
+		return defaultValue;
 	}
 	
 	/**
@@ -1371,7 +1627,247 @@ public final class Message {
 		System.arraycopy(bs, offset, outbs, 0, length);
 		body_table.put(name, outbs);
 	}
+	
+	/**
+	 * set <code>value</code> for the <code>name</code> in body.<BR>
+	 * to copy to new short array , please invoke {@link #setShortArrayBody(String, short[], int, int)}.
+	 * @param name
+	 * @param value is NOT copied.
+	 */
+	public final void setShortArrayBody(final String name, final short[] value){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		body_table.put(name, value);
+	}
 
+	/**
+	 * set name with new short array, which copy values from bs.
+	 * @param name
+	 * @param bs is copied to new short array.
+	 * @param offset
+	 * @param length
+	 * @see #setShortArrayBody(String, short[])
+	 */
+	public final void setShortArrayBody(final String name, final short[] bs, final int offset, final int length){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		final short[] outbs = new short[length];
+		System.arraycopy(bs, offset, outbs, 0, length);
+		body_table.put(name, outbs);
+	}
+	
+	/**
+	 * set <code>value</code> for the <code>name</code> in body.<BR>
+	 * to copy to new int array , please invoke {@link #setIntArrayBody(String, int[], int, int)}.
+	 * @param name
+	 * @param value is NOT copied.
+	 */
+	public final void setIntArrayBody(final String name, final int[] value){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		body_table.put(name, value);
+	}
+
+	/**
+	 * set name with new int array, which copy values from bs.
+	 * @param name
+	 * @param bs is copied to new int array.
+	 * @param offset
+	 * @param length
+	 * @see #setIntArrayBody(String, int[])
+	 */
+	public final void setIntArrayBody(final String name, final int[] bs, final int offset, final int length){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		final int[] outbs = new int[length];
+		System.arraycopy(bs, offset, outbs, 0, length);
+		body_table.put(name, outbs);
+	}
+	
+	/**
+	 * set <code>value</code> for the <code>name</code> in body.<BR>
+	 * to copy to new float array , please invoke {@link #setFloatArrayBody(String, float[], int, int)}.
+	 * @param name
+	 * @param value is NOT copied.
+	 */
+	public final void setFloatArrayBody(final String name, final float[] value){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		body_table.put(name, value);
+	}
+
+	/**
+	 * set name with new float array, which copy values from bs.
+	 * @param name
+	 * @param bs is copied to new float array.
+	 * @param offset
+	 * @param length
+	 * @see #setFloatArrayBody(String, float[])
+	 */
+	public final void setFloatArrayBody(final String name, final float[] bs, final int offset, final int length){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		final float[] outbs = new float[length];
+		System.arraycopy(bs, offset, outbs, 0, length);
+		body_table.put(name, outbs);
+	}
+	
+	/**
+	 * set <code>value</code> for the <code>name</code> in body.<BR>
+	 * to copy to new char array , please invoke {@link #setCharArrayBody(String, char[], int, int)}.
+	 * @param name
+	 * @param value is NOT copied.
+	 */
+	public final void setCharArrayBody(final String name, final char[] value){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		body_table.put(name, value);
+	}
+
+	/**
+	 * set name with new char array, which copy values from bs.
+	 * @param name
+	 * @param bs is copied to new char array.
+	 * @param offset
+	 * @param length
+	 * @see #setCharArrayBody(String, char[])
+	 */
+	public final void setCharArrayBody(final String name, final char[] bs, final int offset, final int length){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		final char[] outbs = new char[length];
+		System.arraycopy(bs, offset, outbs, 0, length);
+		body_table.put(name, outbs);
+	}
+	
+	/**
+	 * set <code>value</code> for the <code>name</code> in body.<BR>
+	 * to copy to new long array , please invoke {@link #setLongArrayBody(String, long[], int, int)}.
+	 * @param name
+	 * @param value is NOT copied.
+	 */
+	public final void setLongArrayBody(final String name, final long[] value){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		body_table.put(name, value);
+	}
+
+	/**
+	 * set name with new long array, which copy values from bs.
+	 * @param name
+	 * @param bs is copied to new long array.
+	 * @param offset
+	 * @param length
+	 * @see #setLongArrayBody(String, long[])
+	 */
+	public final void setLongArrayBody(final String name, final long[] bs, final int offset, final int length){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		final long[] outbs = new long[length];
+		System.arraycopy(bs, offset, outbs, 0, length);
+		body_table.put(name, outbs);
+	}
+	
+	/**
+	 * set <code>value</code> for the <code>name</code> in body.<BR>
+	 * to copy to new double array , please invoke {@link #setDoubleArrayBody(String, double[], int, int)}.
+	 * @param name
+	 * @param value is NOT copied.
+	 */
+	public final void setDoubleArrayBody(final String name, final double[] value){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		body_table.put(name, value);
+	}
+
+	/**
+	 * set name with new double array, which copy values from bs.
+	 * @param name
+	 * @param bs is copied to new double array.
+	 * @param offset
+	 * @param length
+	 * @see #setDoubleArrayBody(String, double[])
+	 */
+	public final void setDoubleArrayBody(final String name, final double[] bs, final int offset, final int length){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		final double[] outbs = new double[length];
+		System.arraycopy(bs, offset, outbs, 0, length);
+		body_table.put(name, outbs);
+	}
+	
+	/**
+	 * set <code>value</code> for the <code>name</code> in body.<BR>
+	 * to copy to new boolean array , please invoke {@link #setBooleanArrayBody(String, boolean[], int, int)}.
+	 * @param name
+	 * @param value is NOT copied.
+	 */
+	public final void setBooleanArrayBody(final String name, final boolean[] value){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		body_table.put(name, value);
+	}
+
+	/**
+	 * set name with new boolean array, which copy values from bs.
+	 * @param name
+	 * @param bs is copied to new boolean array.
+	 * @param offset
+	 * @param length
+	 * @see #setBooleanArrayBody(String, boolean[])
+	 */
+	public final void setBooleanArrayBody(final String name, final boolean[] bs, final int offset, final int length){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		final boolean[] outbs = new boolean[length];
+		System.arraycopy(bs, offset, outbs, 0, length);
+		body_table.put(name, outbs);
+	}
+	
+	/**
+	 * set <code>value</code> for the <code>name</code> in body.<BR>
+	 * to copy to new String array , please invoke {@link #setStringArrayBody(String, String[], int, int)}.
+	 * @param name
+	 * @param value is NOT copied.
+	 */
+	public final void setStringArrayBody(final String name, final String[] value){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		body_table.put(name, value);
+	}
+
+	/**
+	 * set name with new String array, which copy values from bs.
+	 * @param name
+	 * @param bs is copied to new String array.
+	 * @param offset
+	 * @param length
+	 * @see #setStringArrayBody(String, String[])
+	 */
+	public final void setStringArrayBody(final String name, final String[] bs, final int offset, final int length){
+		if(ctrl_isInWorkbench){
+			throw new MSBException(MSBException.UN_MODIFIED, this, null);
+		}
+		final String[] outbs = new String[length];
+		System.arraycopy(bs, offset, outbs, 0, length);
+		body_table.put(name, outbs);
+	}
+			
 	/**
 	 * set body name with value.
 	 * @param name

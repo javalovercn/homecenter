@@ -34,11 +34,13 @@ import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
+import hc.server.util.Assistant;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.HCEventQueue;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.SystemEventListener;
+import hc.server.util.VoiceCommand;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.PropertiesMap;
@@ -80,6 +82,7 @@ public class ProjectContext {
 	private final String projectID;
 	private final boolean isLoggerOn;
 	private final String projectVer;
+	Assistant assistant;
 	final RecycleRes recycleRes;
 	final Vector<SystemEventListener> projectLevelEventListeners = new Vector<SystemEventListener>();
 
@@ -198,6 +201,20 @@ public class ProjectContext {
 		this.recycleRes = recycleRes;
 		this.__projResponserMaybeNull = projResponser;// 由于应用复杂，可能为null
 		this.finder = finder;
+	}
+	
+	/**
+	 * register/substitute a assistant, when a {@link VoiceCommand} is coming, it will be dispatched to {@link Assistant#onVoice(VoiceCommand)}.
+	 * <BR><BR>
+	 * it is not required to register assistant for project, if a voice command is too complex to process, maybe server will do it for you, but it will take a long time for the machine to learn.
+	 * @param assistant null means deregister a assistant.
+	 * @since 7.47
+	 */
+	public final void registerAssistant(final Assistant assistant){
+		if(assistant == null && this.assistant != null){
+			LogManager.warning("deregister assistant in project [" + projectID + "].");
+		}
+		this.assistant = assistant;
 	}
 
 	/**

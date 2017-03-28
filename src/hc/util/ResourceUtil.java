@@ -249,6 +249,18 @@ public class ResourceUtil {
 		}
 	}
 	
+	public static String toLowerCaseFirstChar(final String s){
+        if(Character.isLowerCase(s.charAt(0)))
+            return s;
+        else{
+        	final StringBuilder sb = StringBuilderCacher.getFree();
+        	sb.append(Character.toLowerCase(s.charAt(0))).append(s.substring(1));
+        	final String out = sb.toString();
+        	StringBuilderCacher.cycle(sb);
+            return out;
+        }
+    }
+	
 	public static byte[] buildFixLenBS(final byte[] srcBS, final int ivLen) {
 		if(srcBS.length >= ivLen){
 			final byte[] newIV = new byte[ivLen];

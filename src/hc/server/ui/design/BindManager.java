@@ -1,6 +1,5 @@
 package hc.server.ui.design;
 
-import hc.core.L;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
@@ -218,6 +217,12 @@ public class BindManager {
 		if(isNewUnbind == false && isModiLPS){
 			//工程修改，但未增加新的BindID
 			LinkProjectManager.updateToLinkProject();
+		}
+		
+		
+		if(isNewUnbind == false){
+			//全部绑定成功，重新加载
+			bindSource.respo.msbAgent.workbench.reloadMap();
 		}
 		
 		return isNewUnbind;

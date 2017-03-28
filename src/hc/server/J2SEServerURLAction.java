@@ -32,8 +32,10 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SingleMessageNotify;
 import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.util.VoiceCommand;
+import hc.server.util.VoiceParameter;
 import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
@@ -180,21 +182,25 @@ public class J2SEServerURLAction implements IHCURLAction {
 					AddHarHTMLMlet.startAddHTMLHarUI(j2seCoreSS, urlStr, true);
 					return true;
 				}else if(HCURL.DATA_PARA_VOICE_COMMANDS.equals(para1)){
-					final String voiceCommands = VoiceCommand.format(url.getValueofPara(HCURL.DATA_PARA_VOICE_COMMANDS));
-					final VoiceCommand vc = new VoiceCommand(voiceCommands);
-					final MenuItem out = j2seCoreSS.searchMenuItemByVoiceCommand(vc);
+					final String voiceText = VoiceParameter.format(url.getValueofPara(HCURL.DATA_PARA_VOICE_COMMANDS));
+					final VoiceParameter vp = new VoiceParameter(voiceText);
+					final MenuItem out = j2seCoreSS.searchMenuItemByVoiceCommand(vp);
 					if(out != null){
 						if(out.isEnabled()){
 							final String itemURL = ServerUIAPIAgent.getMobiMenuItem_URL(out);
-							LogManager.log(ILog.OP_STR + "execute [" + itemURL + "] by voice command [" + voiceCommands + "].");
+							LogManager.log(ILog.OP_STR + "execute [" + itemURL + "] by voice command [" + voiceText + "].");
 							ServerUIAPIAgent.goInSysThread(j2seCoreSS, ServerUIAPIAgent.getBelongMobiMenu(out).resp.context, itemURL);
 						}else{
-							final String msg = "[" + voiceCommands + "] : " + ((String)ResourceUtil.get(9247));
+							final String msg = "[" + voiceText + "] : " + ((String)ResourceUtil.get(9247));
 							ServerUIAPIAgent.sendOneMovingMsg(j2seCoreSS, msg);
 							LogManager.log(ILog.OP_STR + "voice command " + msg);
 						}
 					}else{
-						ServerUIAPIAgent.sendOneMovingMsg(coreSS, StringUtil.replace((String)ResourceUtil.get(coreSS, 9245), "{voice}", voiceCommands));
+						final VoiceCommand vc = new VoiceCommand(voiceText);
+						final MobiUIResponsor resp = (MobiUIResponsor)ServerUIUtil.getResponsor();
+						if(resp.dispatchVoiceCommand(j2seCoreSS, vc) == false){
+							ServerUIAPIAgent.sendOneMovingMsg(coreSS, StringUtil.replace((String)ResourceUtil.get(coreSS, 9245), "{voice}", voiceText));
+						}
 					}
 					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_CERT_RECEIVED)){

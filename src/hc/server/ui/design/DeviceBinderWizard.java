@@ -104,6 +104,12 @@ public class DeviceBinderWizard extends JPanel{
 		return bdn;
 	}
 	
+	private final void enableSelectDevCon(final boolean enable){
+		chooseConverterButton.setEnabled(enable && converterTree != null);
+		clearConverterButton.setEnabled(enable && converterTree != null);
+		chooseRealDevButton.setEnabled(enable && devTree != null);
+	}
+	
 	private Vector<BindDeviceNode[]> getBindDeviceNodesofProject(final DefaultMutableTreeNode projNode){
 		final Vector<BindDeviceNode[]> bdns = new Vector<BindDeviceNode[]>();
 		
@@ -156,6 +162,8 @@ public class DeviceBinderWizard extends JPanel{
 	}
 
 	private void refreshPanel(final BindDeviceNode bindNode) {
+		enableSelectDevCon(true);
+		
 		final ProjResponser projResponser = mobiResp.getProjResponser(bindNode.projID);
 		
 		final String buildConverterFieldString = buildConverterFieldString(bindNode.convBind);
@@ -321,7 +329,6 @@ public class DeviceBinderWizard extends JPanel{
 		final String funcName = (String)ResourceUtil.get(8004);
 		chooseConverterButton = new JButton(funcName);
 		clearConverterButton = new JButton((String)ResourceUtil.get(8005));
-		chooseConverterButton.setEnabled(converterTree != null);
 		{
 			final JPanel subPanel = new JPanel();
 			subPanel.setLayout(new BorderLayout());
@@ -388,7 +395,6 @@ public class DeviceBinderWizard extends JPanel{
 		realDevLabel.setColumns(columns);
 		final String realDevFuncName = (String)ResourceUtil.get(8007);
 		chooseRealDevButton = new JButton(realDevFuncName);
-		chooseRealDevButton.setEnabled(devTree != null);
 		{
 			final JPanel subPanel = new JPanel();
 			subPanel.setLayout(new BorderLayout());
@@ -624,6 +630,9 @@ public class DeviceBinderWizard extends JPanel{
 			selectedNode = unbindNode;
 			switchPanel((BindDeviceNode)selectedNode.getUserObject(), false);
 			Designer.jumpToNode(selectedNode, (DefaultTreeModel)tree.getModel(), tree);
+			enableSelectDevCon(true);
+		}else{
+			enableSelectDevCon(false);
 		}
 	}
 	

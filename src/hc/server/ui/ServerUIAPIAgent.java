@@ -31,6 +31,7 @@ import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.SystemEventListener;
+import hc.server.util.Assistant;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
@@ -390,6 +391,10 @@ public class ServerUIAPIAgent {
 	
 	public static void runInSessionThreadPool(final J2SESession coreSS, final ProjResponser resp, final Runnable run){
 		resp.getMobileSession(coreSS).recycleRes.threadPool.run(run);
+	}
+	
+	public static Assistant getVoiceAssistant(final ProjectContext ctx){
+		return ctx.assistant;
 	}
 	
 	public static Object runAndWaitInSessionThreadPool(final J2SESession coreSS, final ProjResponser resp, final ReturnableRunnable run){

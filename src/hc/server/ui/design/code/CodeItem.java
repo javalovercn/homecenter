@@ -74,6 +74,7 @@ public class CodeItem implements Comparable<CodeItem>{
 		item.isForMaoHaoOnly = false;
 		item.isFullPackageAndClassName = false;
 		item.code = "";
+		item.codeForDoc = "";
 		item.fmClass = Object.class.getName();
 		item.codeDisplay = "";
 		item.codeLowMatch = "";
@@ -127,6 +128,7 @@ public class CodeItem implements Comparable<CodeItem>{
 	public final void copyFrom(final CodeItem from){
 		type = from.type;
 		code = from.code;
+		codeForDoc = from.codeForDoc;
 		fmClass = from.fmClass;
 		codeDisplay = from.codeDisplay;
 		codeLowMatch = from.codeLowMatch;
@@ -147,6 +149,7 @@ public class CodeItem implements Comparable<CodeItem>{
 	public boolean isForMaoHaoOnly;
 	public boolean isFullPackageAndClassName;
 	public String code;
+	public String codeForDoc;
 	public String fieldOrMethodOrClassName;
 	public String fmClass;
 	public String codeDisplay;

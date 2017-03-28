@@ -2,9 +2,9 @@ package hc.server.ui.design;
 
 import hc.server.msb.ConverterInfo;
 import hc.server.msb.DeviceBindInfo;
-import hc.server.msb.WorkingDeviceList;
 import hc.server.msb.NameMapper;
 import hc.server.msb.RealDeviceInfo;
+import hc.server.msb.WorkingDeviceList;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -12,6 +12,16 @@ import java.util.Vector;
 
 public class IoTNameMapper extends NameMapper{
 	public IoTNameMapper(){
+		reloadMap();
+	}
+
+	@Override
+	public final void reloadMap() {
+		searchBindIDFromDevice.clear();
+		bind2RealDeviceBindInfo.clear();
+		bind2ConverterBindInfo.clear();
+		bind2ReferID.clear();
+
 		final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(true);
 		while(it.hasNext()){
 			final LinkProjectStore lps = it.next();

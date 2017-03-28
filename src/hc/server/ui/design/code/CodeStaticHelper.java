@@ -68,6 +68,7 @@ public class CodeStaticHelper {
 			out.add("hc.server.msb.Robot");
 			out.add("hc.server.msb.RobotEvent");
 			out.add("hc.server.msb.RobotListener");
+			out.add("hc.server.msb.AnalysableRobotParameter");
             out.add("hc.server.ui.ClientSession");
 			out.add("hc.server.ui.CtrlResponse");
 			out.add("hc.server.ui.Dialog");
@@ -78,6 +79,8 @@ public class CodeStaticHelper {
 			out.add("hc.server.ui.ScriptPanel");
 			out.add("hc.server.util.SystemEventListener");
 			out.add("hc.server.util.JavaLangSystemAgent");
+			out.add("hc.server.util.Assistant");
+			out.add("hc.server.util.VoiceCommand");
 			
 			Collections.sort(out);
 		}

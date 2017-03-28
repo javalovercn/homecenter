@@ -31,6 +31,7 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SessionMobiMenu;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.SystemEventListener;
+import hc.server.util.VoiceCommand;
 import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
 import hc.util.RecycleProjThreadPool;
@@ -68,6 +69,21 @@ public class MobiUIResponsor extends BaseResponsor {
 	@Override
 	public Object getObject(final int funcID, final Object para){
 		return null;
+	}
+	
+	//stop synchronized
+	public final boolean dispatchVoiceCommand(final J2SESession coreSS, final VoiceCommand vc){
+		for (int i = 0; i < responserSize; i++) {
+			final ProjResponser projResp = responsors[i];
+			
+			final boolean isConsumed = projResp.dispatchVoiceCommandAndWait(coreSS, vc);
+			if(isConsumed){
+				LogManager.log(ILog.OP_STR + "successful process voice command [" + vc.getText() + "] in project [" + projResp.projectID + "].");
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -331,6 +347,7 @@ public class MobiUIResponsor extends BaseResponsor {
 
 								isDoneBind[0] = true;
 								binder.save();
+								bindSource.respo.msbAgent.workbench.reloadMap();
 							}
 						};
 						final UIActionListener cancelAction = new UIActionListener() {

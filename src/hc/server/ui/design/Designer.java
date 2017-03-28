@@ -330,6 +330,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	// 定义几个初始节点
 	final DefaultMutableTreeNode root = createNewRoot();
 	final DefaultMutableTreeNode msbFolder = createMSBFoulder();
+	final DefaultMutableTreeNode eventFolder = createEventFolder();
 	final DefaultMutableTreeNode cssNode = createCSSNode();
 	
 	public String getCurrProjID(){
@@ -373,6 +374,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final HPShareJarFolder sj = new HPShareJarFolder(HPNode.MASK_SHARE_NATIVE_FOLDER, 
 				"Native Lib Files");
 		return new DefaultMutableTreeNode(sj);
+	}
+	
+	private final DefaultMutableTreeNode createEventFolder(){
+		final HPMenuEvent folder = new HPMenuEvent(HPNode.MASK_EVENT_FOLDER, "Events");
+		return new DefaultMutableTreeNode(folder);
 	}
 	
 	private DefaultMutableTreeNode createMSBFoulder(){
@@ -1507,6 +1513,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 							public void run() {
 								binder.save();
 								window.dispose();
+								respo.msbAgent.workbench.reloadMap();
 								ServerUIUtil.restartResponsorServer(frameOwner, respo);
 								
 								refreshBindButtons();
@@ -1781,7 +1788,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		
 		msbFolder.removeFromParent();
 		msbFolder.removeAllChildren();
-		mainMenuNode = HCjar.toNode(map, root, msbFolder, shareFolders);
+		mainMenuNode = HCjar.toNode(map, root, msbFolder, eventFolder, shareFolders);
 		appendShareTop();
 		
 		changeTreeNodeContext(root, itemContext);
@@ -1789,10 +1796,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final boolean hasMainMenu = (mainMenuNode != null);
 		if(hasMainMenu){
 			DefaultMutableTreeNode childNode;
-			if(mainMenuNode.getChildCount() > HCjar.SKIP_SUB_MENU_ITEM_NUM){
-				childNode = (DefaultMutableTreeNode)mainMenuNode.getChildAt(HCjar.SKIP_SUB_MENU_ITEM_NUM);
-			}else{
+			if(mainMenuNode.getChildCount() > 0){
 				childNode = (DefaultMutableTreeNode)mainMenuNode.getChildAt(0);
+			}else{
+				childNode = mainMenuNode;
 			}
 			jumpToNode(childNode, model, tree);
 			notifySelectNode(childNode, (HPNode)childNode.getUserObject(), null);
@@ -1856,6 +1863,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			
 			item.type = CodeItem.TYPE_FIELD;
 			item.code = className;
+			item.codeForDoc = item.code;
 			item.codeDisplay = className;
 			item.codeLowMatch = className.toLowerCase();
 			item.isCSSClass = true;
@@ -2691,7 +2699,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	private final Map<String, Object> buildMapFromTree() throws NodeInvalidException {
 		final HashMap<String, Object> map = new HashMap<String, Object>();
 		durateMap(durationMap, map);
-		return HCjar.toMap(root, shareFolders, map);
+		return HCjar.toMap(root, msbFolder, eventFolder, shareFolders, map);
 	}
 	
 	private final Map<String, Object> durationMap = new HashMap<String, Object>();

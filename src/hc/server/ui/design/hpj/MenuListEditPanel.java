@@ -229,9 +229,9 @@ public class MenuListEditPanel extends NodeEditPanel {
 			body[fromIdx][i] = v1;
 		}
 		
-		final TreeNode fromNode = currNode.getChildAt(fromIdx + HCjar.SKIP_SUB_MENU_ITEM_NUM);
-		currNode.remove(fromIdx + HCjar.SKIP_SUB_MENU_ITEM_NUM);
-		currNode.insert((MutableTreeNode)fromNode, toIdx + HCjar.SKIP_SUB_MENU_ITEM_NUM);
+		final TreeNode fromNode = currNode.getChildAt(fromIdx);
+		currNode.remove(fromIdx);
+		currNode.insert((MutableTreeNode)fromNode, toIdx);
 		
 		App.invokeLaterUI(updateTreeRunnable);
 	}
@@ -252,10 +252,10 @@ public class MenuListEditPanel extends NodeEditPanel {
 		nameFiled.setText(currItem.name);
 		colNumFiled.setText(String.valueOf(((HPMenu)currItem).colNum));
 		
-		size = data.getChildCount() - HCjar.SKIP_SUB_MENU_ITEM_NUM;
+		size = data.getChildCount();
 		
 		for (int i = 0; i < size; i++) {
-			final TreeNode tn = data.getChildAt(i + HCjar.SKIP_SUB_MENU_ITEM_NUM);
+			final TreeNode tn = data.getChildAt(i);
 			final HPMenuItem mi = (HPMenuItem)((DefaultMutableTreeNode)tn).getUserObject();
 			body[i][0] = String.valueOf(i + 1);
 			body[i][1] = mi.name;

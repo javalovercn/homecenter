@@ -157,6 +157,7 @@ public class CSSHelper {
 			
 			final String prop = (String)keys[j];
 			item.code = prop;
+			item.codeForDoc = item.code;
 			item.codeDisplay = prop;
 			item.codeLowMatch = prop.toLowerCase();
 			item.isCSSProperty = true;

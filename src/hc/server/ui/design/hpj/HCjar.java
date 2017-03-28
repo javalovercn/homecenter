@@ -364,18 +364,14 @@ public class HCjar {
 	}
 
 	/**
-	 * 需要忽略的结点，如事件结点夹和MSB结点夹
-	 */
-	public static final int SKIP_SUB_MENU_ITEM_NUM = 2;
-
-	/**
 	 * 返回主菜单的Menu结点，如果是新建，则可能返回null
 	 * @param map
 	 * @param root
 	 * @return
 	 */
 	public static final DefaultMutableTreeNode toNode(final Map<String, Object> map, final DefaultMutableTreeNode root, 
-			final DefaultMutableTreeNode msbFolder, final DefaultMutableTreeNode[] scriptFolder){
+			final DefaultMutableTreeNode msbFolder, final DefaultMutableTreeNode eventFolder, 
+			final DefaultMutableTreeNode[] scriptFolder){
 		DefaultMutableTreeNode out_mainMenuNode = null;
 		//装填ROOT
 		{
@@ -418,11 +414,7 @@ public class HCjar {
 					final DefaultMutableTreeNode menuNode = new DefaultMutableTreeNode(menu);
 
 					//四大事件
-					buildMenuEventNodes(map, menuNode, idx);
-					
-					//MSB_FOLDER
-					menuNode.add(msbFolder);
-					buildMSBNodes(map, msbFolder);
+					buildMenuEventNodes(map, idx, root, eventFolder);
 					
 					root.add(menuNode);
 					
@@ -452,7 +444,11 @@ public class HCjar {
 								menuNode.add(itemNode);
 							}
 						}
-					}
+					}//end 装填MenuItem
+					
+					//MSB_FOLDER
+					root.add(msbFolder);
+					buildMSBNodes(map, msbFolder);
 				}
 			}
 			
@@ -555,15 +551,16 @@ public class HCjar {
 	}
 	
 	public static void buildMenuEventNodes(final Map<String, Object> map,
-			final DefaultMutableTreeNode menuNode, final int menuIdx) {
-		final HPMenuEvent folder = new HPMenuEvent(HPNode.MASK_EVENT_FOLDER, "Events");
-		final DefaultMutableTreeNode eventFold = new DefaultMutableTreeNode(folder);
-		menuNode.add(eventFold);
+			final int menuIdx, final DefaultMutableTreeNode rootNode, final DefaultMutableTreeNode eventFolder) {
+		eventFolder.removeAllChildren();
+		eventFolder.removeFromParent();
+		
+		rootNode.add(eventFolder);
 		
 		for (int i = 0; i < BaseResponsor.SCRIPT_EVENT_LIST.length; i++) {
 			final HPMenuEventItem eventItem = new HPMenuEventItem(HPNode.MASK_EVENT_ITEM, BaseResponsor.SCRIPT_EVENT_LIST[i]);
 			final DefaultMutableTreeNode eventItemNode = new DefaultMutableTreeNode(eventItem);
-			eventFold.add(eventItemNode);
+			eventFolder.add(eventItemNode);
 			
 			eventItem.content = (String)map.get(buildEventMapKey(menuIdx, eventItem.name));
 			if(eventItem.content == null){
@@ -594,7 +591,8 @@ public class HCjar {
 		}
 	}
 	
-	public static final Map<String, Object> toMap(final DefaultMutableTreeNode root, 
+	public static final Map<String, Object> toMap(final DefaultMutableTreeNode root, final DefaultMutableTreeNode msbFold,
+			final DefaultMutableTreeNode eventFold,
 			final DefaultMutableTreeNode[] folders, final HashMap<String, Object> map) throws NodeInvalidException{
 		map.put(HOMECENTER_VER, StarterManager.getHCVersion());
 		map.put(JRE_VER, String.valueOf(App.getJREVer()));
@@ -603,11 +601,12 @@ public class HCjar {
 			map.put(JRUBY_VER, jruby_ver);
 		}
 		
-		return toMap(map, root, folders);
+		return toMap(map, root, msbFold, eventFold, folders);
 	}
 	
 	private static final Map<String, Object> toMap(final HashMap<String, Object> map, 
-			final DefaultMutableTreeNode root, final DefaultMutableTreeNode[] folders) throws NodeInvalidException{
+			final DefaultMutableTreeNode root, final DefaultMutableTreeNode msbFold, final DefaultMutableTreeNode eventFolder, 
+			final DefaultMutableTreeNode[] folders) throws NodeInvalidException{
 		final int childCount = root.getChildCount();
 		checkSameNameNode(root, childCount);
 
@@ -640,21 +639,19 @@ public class HCjar {
 			}
 			{
 				//四大事件：start_proj, mobile_login, mobile_logout, shutdown_proj...
-				final DefaultMutableTreeNode eventFold = (DefaultMutableTreeNode)root.getChildAt(0);
-				final int size = eventFold.getChildCount();
+				final int size = eventFolder.getChildCount();
 				for (int i = 0; i < size; i++) {
-					final HPMenuEventItem eventItem = (HPMenuEventItem)((DefaultMutableTreeNode)eventFold.getChildAt(i)).getUserObject();
+					final HPMenuEventItem eventItem = (HPMenuEventItem)((DefaultMutableTreeNode)eventFolder.getChildAt(i)).getUserObject();
 					
 					map.put(buildEventMapKey(idx, eventItem.name), eventItem.content);
 				}
 			}
 			{
-				final DefaultMutableTreeNode eventFold = (DefaultMutableTreeNode)root.getChildAt(1);
-				final int size = eventFold.getChildCount();
-				checkSameNameNode(eventFold, size);
+				final int size = msbFold.getChildCount();
+				checkSameNameNode(msbFold, size);
 				//Iot
 				for (int i = 0; i < size; i++) {
-					final DefaultMutableTreeNode childAt = (DefaultMutableTreeNode)eventFold.getChildAt(i);
+					final DefaultMutableTreeNode childAt = (DefaultMutableTreeNode)msbFold.getChildAt(i);
 					final HPProcessor menuItem = (HPProcessor)childAt.getUserObject();
 					String header = "";
 					int ito_idx = -1;
@@ -674,14 +671,14 @@ public class HCjar {
 				}	
 			}
 			map.put(replaceIdxPattern(MENU_ID, idx), hpmenu.menuID);
-			final int size = childCount - SKIP_SUB_MENU_ITEM_NUM;//忽略事件结点
+			final int size = childCount;
 			map.put(replaceIdxPattern(MENU_CHILD_COUNT, idx), String.valueOf(size));
 			final String Iheader = replaceIdxPattern(MENU_ITEM_HEADER, idx);
 			
 			for (int i = 0; i < size; i++) {
 				final String header = Iheader + i + "."; 
 				
-				final HPMenuItem menuItem = (HPMenuItem)((DefaultMutableTreeNode)root.getChildAt(i + SKIP_SUB_MENU_ITEM_NUM)).getUserObject();
+				final HPMenuItem menuItem = (HPMenuItem)((DefaultMutableTreeNode)root.getChildAt(i)).getUserObject();
 				
 				map.put(header + ITEM_NAME, menuItem.name);
 				map.put(header + ITEM_I18N_NAME, menuItem.i18nMap.toSerial());
@@ -731,7 +728,11 @@ public class HCjar {
 		
 		final int size = childCount;
 		for (int i = 0; i < size; i++) {
-			toMap(map, (DefaultMutableTreeNode)root.getChildAt(i), folders);
+			final DefaultMutableTreeNode subNode = (DefaultMutableTreeNode)root.getChildAt(i);
+			if(subNode == msbFold || subNode == eventFolder){
+				continue;
+			}
+			toMap(map, subNode, msbFold, eventFolder, folders);
 		}
 		
 		return map;

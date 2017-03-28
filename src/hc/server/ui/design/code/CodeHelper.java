@@ -247,6 +247,7 @@ public class CodeHelper {
 				final CodeItem item = CodeItem.getFree();
 				item.fieldOrMethodOrClassName = codeField;
 				item.code = codeFieldForInput;
+				item.codeForDoc = item.code;
 				final Class<?> fieldClass = field.getDeclaringClass();
 				item.fmClass = fieldClass.getName();
 				item.codeDisplay = codeField + " : " + field.getType().getSimpleName() + " - " + fieldClass.getSimpleName();
@@ -275,15 +276,21 @@ public class CodeHelper {
 			if(isPublic || Modifier.isProtected(modifiers)){
 				final Class[] paras = method.getParameterTypes();
 				String paraStr = "";
+				String paraStrForDisplay = "";
 				for (int j = 0; j < paras.length; j++) {
 					if(paraStr.length() > 0){
 						paraStr += ", ";
+						paraStrForDisplay += ", ";
 					}
-					paraStr += paras[j].getSimpleName();
+					final String simpleName = paras[j].getSimpleName();
+					paraStr += ResourceUtil.toLowerCaseFirstChar(simpleName);
+					paraStrForDisplay += simpleName;
 				}
 				
 				final String codeMethod = method.getName() + (paraStr.length()==0?"()":"(" + paraStr + ")");
+				final String codeMethodForDisplay = method.getName() + (paraStrForDisplay.length()==0?"()":"(" + paraStrForDisplay + ")");
 				final String codeMethodForInput = (isForClass==false && isStatic)?(CLASS_STATIC_PREFIX + codeMethod):codeMethod;
+				final String codeMethodForDoc = (isForClass==false && isStatic)?(CLASS_STATIC_PREFIX + codeMethodForDisplay):codeMethodForDisplay;
 				
 				final boolean findSameName = CodeItem.contains(list, codeMethodForInput);
 				if(findSameName){
@@ -293,9 +300,10 @@ public class CodeHelper {
 				final CodeItem item = CodeItem.getFree();
 				item.fieldOrMethodOrClassName = method.getName();
 				item.code = codeMethodForInput;//一般方法直接输出，静态方法加.class.转换
+				item.codeForDoc = codeMethodForDoc;
 				final Class<?> methodClass = method.getDeclaringClass();
 				item.fmClass = methodClass.getName();
-				item.codeDisplay = codeMethod + " : " + method.getReturnType().getSimpleName() + " - " + methodClass.getSimpleName();
+				item.codeDisplay = codeMethodForDisplay + " : " + method.getReturnType().getSimpleName() + " - " + methodClass.getSimpleName();
 				item.codeLowMatch = codeMethod.toLowerCase();
 				
 				item.isPublic = isPublic;
@@ -328,6 +336,7 @@ public class CodeHelper {
 				final CodeItem item = CodeItem.getFree();
 				item.fieldOrMethodOrClassName = JRUBY_NEW;
 				item.code = JRUBY_NEW + "()";
+				item.codeForDoc = item.code;
 				item.codeDisplay = item.code + " - " + c.getSimpleName();
 				item.codeLowMatch = item.code.toLowerCase();
 				
@@ -358,6 +367,7 @@ public class CodeHelper {
 					final CodeItem item = CodeItem.getFree();
 					item.fieldOrMethodOrClassName = JRUBY_NEW;
 					item.code = JRUBY_NEW + (paraStr.length()==0?"()":"(" + paraStr + ")");
+					item.codeForDoc = item.code;
 					item.codeDisplay = item.code + " - " + c.getSimpleName();
 					item.codeLowMatch = item.code.toLowerCase();
 					
@@ -388,6 +398,7 @@ public class CodeHelper {
 		}else{
 			item.code = methodName;
 		}
+		item.codeForDoc = item.code;
 		item.fmClass = claz.getName();
 		item.codeDisplay = item.code + " : " + resultType + " - " + baseClassName;
 		item.codeLowMatch = item.code.toLowerCase();
@@ -437,8 +448,7 @@ public class CodeHelper {
 		final CodeItem item = CodeItem.getFree();
 		
 		final ArgsNode argsNode = defN.getArgs();
-		final List<Node> paraList = argsNode.childNodes();
-		final int parameterNum = paraList.size();
+		final int parameterNum = argsNode.getMaxArgumentsCount();//获得参数个数
 		
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		if(parameterNum == 0){
@@ -449,22 +459,27 @@ public class CodeHelper {
 
 			final int parameterStartIdx = sb.length();
 
+			final List<Node> paraList = argsNode.childNodes();
 			final ListNode parametersNode = (ListNode)paraList.get(0);//注意：org.jrubyparser.ast.ArrayNode extends org.jrubyparser.ast.ListNode
 
 			for (int j = 0; j < parameterNum; j++) {
-				final ArgumentNode parameterNode = (ArgumentNode)parametersNode.get(j);
-				final String name = parameterNode.getName();
-				if(sb.length() > parameterStartIdx){
-					sb.append(", ");
+				try{
+					final ArgumentNode parameterNode = (ArgumentNode)parametersNode.get(j);
+					final String name = parameterNode.getName();
+					if(sb.length() > parameterStartIdx){
+						sb.append(", ");
+					}
+					sb.append(name);
+				}catch (final Throwable e) {
+					e.printStackTrace();
 				}
-				sb.append(name);
 			}
 			sb.append(")");
 		}
 		
 		item.code = sb.toString();
 		StringBuilderCacher.cycle(sb);
-		
+		item.codeForDoc = item.code;
 		item.fieldOrMethodOrClassName = methodName;
 		item.codeDisplay = item.code + " - " + className;
 		item.codeLowMatch = item.code.toLowerCase();
@@ -696,6 +711,7 @@ public class CodeHelper {
 				final CodeItem item = CodeItem.getFree();
 				item.fieldOrMethodOrClassName = constNode.getName();
 				item.code = constNode.getName();
+				item.codeForDoc = item.code;
 				final Class classOfConst = getClassFromLiteral(constNode.getValue());
 				item.fmClass = classOfConst.getName();//Object.class.getName();
 				item.codeDisplay = item.code + " : " + classOfConst.getSimpleName() + " - " + className;
@@ -822,6 +838,7 @@ public class CodeHelper {
 					final CodeItem item = CodeItem.getFree();
 					item.type = CodeItem.TYPE_RESOURCES;
 					item.code = pkg;
+					item.codeForDoc = item.code;
 					item.codeDisplay = pkg;
 					item.codeLowMatch = pkg.toLowerCase();
 					out.add(item);
@@ -831,6 +848,7 @@ public class CodeHelper {
 				item.type = CodeItem.TYPE_CLASS;
 				item.fieldOrMethodOrClassName = pkg;
 				item.code = pkg;
+				item.codeForDoc = item.code;
 				item.codeDisplay = pkg;
 				item.codeLowMatch = pkg.toLowerCase();
 				item.isFullPackageAndClassName = true;
@@ -926,7 +944,7 @@ public class CodeHelper {
         sb.append(")");
 	}
 	
-	public final static JRubyClassDesc isInDefClass(final Node node, final CodeContext codeContext, final int scriptIdx, final int lineIdxAtScript){
+	public final static JRubyClassDesc isInDefClass(final Node node, final CodeContext codeContext, final int scriptIdx, final int lineNoAtScript){
 //		if(L.isInWorkshop){
 //			final StringBuilder sb = new StringBuilder(1024 * 10);
 //			buildNodeString(node, 0, sb);
@@ -946,7 +964,7 @@ public class CodeHelper {
 					final SourcePosition position = classNode.getPosition();
 					final int startLine = position.getStartLine();
 					final int endLine = position.getEndLine();
-					if(startLine < lineIdxAtScript && lineIdxAtScript < endLine){
+					if(startLine < lineNoAtScript && lineNoAtScript < endLine){
 						return buildJRubyClassDescForDef(codeContext, (ClassNode)classNode);
 //						return (ClassNode)classNode;
 					}
@@ -955,7 +973,7 @@ public class CodeHelper {
 					final SourcePosition position = classNode.getPosition();
 					final int startLine = position.getStartLine();
 					final int endLine = position.getEndLine();
-					if(startLine < lineIdxAtScript && lineIdxAtScript < endLine){
+					if(startLine < lineNoAtScript && lineNoAtScript < endLine){
 						final SClassNode sClassNode = (SClassNode)classNode;
 						final JRubyClassDesc base = findClassFromRightAssign(sClassNode.getReceiver(), codeContext);//LocalVarNode:noRun
 						final JRubyClassDesc classDesc = buildJRubyClassDesc(base.baseClass, true);
@@ -1206,16 +1224,23 @@ public class CodeHelper {
 		final DefnNode defNode = (DefnNode)varDefNode;
 		final String methodName = defNode.getName();
 		final ArgsNode argsNode = defNode.getArgs();
-		final List<Node> list = argsNode.childNodes();
-		final ListNode parametersNode = (ListNode)list.get(0);//注意：org.jrubyparser.ast.ArrayNode extends org.jrubyparser.ast.ListNode
-		final int parameterNum = parametersNode.size();
+		final int parameterNum = argsNode.getMaxArgumentsCount();//获得参数个数
 		int parameterIdx = -1;
-		for(int i = 0; i<parameterNum; i++){
-			final ArgumentNode parameterNode = (ArgumentNode)parametersNode.get(i);
-			final String name = parameterNode.getName();
-			if(name.equals(parameter)){
-				parameterIdx = i;
-				break;
+		if(parameterNum > 0){
+			final List<Node> list = argsNode.childNodes();
+			final ListNode parametersNode = (ListNode)list.get(0);//注意：org.jrubyparser.ast.ArrayNode extends org.jrubyparser.ast.ListNode
+
+			for(int i = 0; i<parameterNum; i++){
+					try{
+					final ArgumentNode parameterNode = (ArgumentNode)parametersNode.get(i);
+					final String name = parameterNode.getName();
+					if(name.equals(parameter)){
+						parameterIdx = i;
+						break;
+					}
+				}catch (final Throwable e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		
@@ -1304,29 +1329,30 @@ public class CodeHelper {
     	if(typeParameter == TYPE_VAR_LOCAL && nodeType == NodeType.DEFNNODE){//方法定义体
     		final DefnNode defNode = (DefnNode)parent;
 			final ArgsNode argsNode = defNode.getArgs();
-			final List<Node> list = argsNode.childNodes();
-			if(list.size() > 0){
+			final int parameterNum = argsNode.getMaxArgumentsCount();//获得参数个数
+			if(parameterNum > 0){
+				final List<Node> list = argsNode.childNodes();
 				final ListNode parametersNode = (ListNode)list.get(0);//注意：org.jrubyparser.ast.ArrayNode extends org.jrubyparser.ast.ListNode
-				final int size = parametersNode.size();
-				for(int i = 0; i<size; i++){
-					final ArgumentNode parameterNode = (ArgumentNode)parametersNode.get(i);
-					final String name = parameterNode.getName();
-					
-					if(name.equals(parameter)){
-						return defNode;
+				for(int i = 0; i<parameterNum; i++){
+					try{
+						final ArgumentNode parameterNode = (ArgumentNode)parametersNode.get(i);
+						final String name = parameterNode.getName();
+						
+						if(name.equals(parameter)){
+							return defNode;
+						}
+					}catch (final Throwable e) {
+						e.printStackTrace();
 					}
 				}
 			}
-    	}else if(nodeType == NodeType.CALLNODE && JRUBY_NEW.equals(((CallNode)parent).getName()) && isInnerClassDefForNew(parent)){
-    		//(CallNode:new, (CallNode:new, (ConstNode:Class), (ArrayNode, (ConstNode:Object)), (IterNode, 
-    		return parent;
     	}
     	
     	final List<Node> list = parent.childNodes();
     	final int size = list.size();
     	int bottomIdx = size - 1;
     	for (int i = bottomIdx; i >= 0; i--) {
-			if(list.get(i) == fromNode){
+			if(fromNode != null && list.get(i).comparePositionWith(fromNode) >= 0){
 				bottomIdx = i;
 				break;
 			}
@@ -1375,6 +1401,12 @@ public class CodeHelper {
 			}else if(varDefNode instanceof NewlineNode){
 				final Node node = varDefNode.childNodes().get(0);
 				if(node != fromNode){
+					if(node instanceof DefnNode){
+						final Node out = searchVarDefInUserDefMethod((DefnNode)node, parameter);
+						if(out != null){
+							return out;
+						}
+					}
 					final Node aNode = findVarDefNode(node, parameter, typeParameter, null, true, isInDefClass, codeContext);
 					if(aNode != null){
 						return aNode;
@@ -1420,8 +1452,44 @@ public class CodeHelper {
     	if(downForward){
     		return null;
     	}else{
-    		return findVarDefNode(parent, parameter, typeParameter, bottomNode, downForward, isInDefClass, codeContext);
+    		final Node out = findVarDefNode(parent, parameter, typeParameter, bottomNode, downForward, isInDefClass, codeContext);
+    		if(out != null){
+    			return out;
+    		}
     	}
+    	
+    	if(nodeType == NodeType.CALLNODE && JRUBY_NEW.equals(((CallNode)parent).getName()) && isInnerClassDefForNew(parent)){
+     		//(CallNode:new, (CallNode:new, (ConstNode:Class), (ArrayNode, (ConstNode:Object)), (IterNode, 
+     		return parent;
+     	}
+    	
+    	return null;
+    }
+    
+    private static Node searchVarDefInUserDefMethod(final DefnNode defNode, final String parameter){
+    	try{
+			final ArgsNode argsNode = defNode.getArgs();
+			final int parameterNum = argsNode.getMaxArgumentsCount();//获得参数个数
+			if(parameterNum > 0){
+				final List<Node> list = argsNode.childNodes();
+				final ListNode parametersNode = (ListNode)list.get(0);//注意：org.jrubyparser.ast.ArrayNode extends org.jrubyparser.ast.ListNode
+
+				for(int i = 0; i<parameterNum; i++){
+					try{
+						final ArgumentNode parameterNode = (ArgumentNode)parametersNode.get(i);
+						final String name = parameterNode.getName();
+						if(name.equals(parameter)){
+							return defNode;
+						}
+					}catch (final Throwable e) {
+						e.printStackTrace();
+					}
+				}
+			}
+    	}catch (final Throwable e) {
+    		e.printStackTrace();
+    	}
+    	return null;
     }
     
     private static final Node searchVarDefInInitializeMethod(final Node methodBody, final String parameter, 
@@ -1488,6 +1556,7 @@ public class CodeHelper {
 				item.type = CodeItem.TYPE_FIELD;
 				item.fieldOrMethodOrClassName = searchParaName;
 				item.code = searchParaName;
+				item.codeForDoc = item.code;
 				item.codeDisplay = searchParaName;
 				item.codeLowMatch = searchParaName.toLowerCase();
 				item.isPublic = false;
@@ -1528,6 +1597,7 @@ public class CodeHelper {
 				item.type = CodeItem.TYPE_FIELD;
 				item.fieldOrMethodOrClassName = searchParaName;
 				item.code = searchParaName;
+				item.codeForDoc = item.code;
 				item.codeDisplay = searchParaName;
 				item.codeLowMatch = searchParaName.toLowerCase();
 				item.isPublic = false;
@@ -1745,6 +1815,14 @@ public class CodeHelper {
 			if(node instanceof AssignableNode){
 				return findClassFromReceiverNode(node.childNodes().get(0), false, codeContext);
 			}else if(node instanceof DefnNode){
+				final Class superClass = searchInnerParentClassFromDef(node, codeContext);
+				if(superClass != null){
+					final JRubyClassDesc cd = findParaClassFromArgu(node, superClass, null, paraName, codeContext);
+					if(cd != null){
+						return cd;
+					}
+				}
+				
 				final ClassNode cNode = codeContext.getDefClassNode();
 				final JRubyClassDesc cd = findParaClassFromArgu(node, null, cNode, paraName, codeContext);
 				if(cd != null){
@@ -2313,6 +2391,7 @@ public class CodeHelper {
 		{
 			CodeItem item = CodeItem.getFree();
 			item.code = PRE_IMPORT;
+			item.codeForDoc = item.code;
 			item.codeDisplay = PRE_IMPORT;
 			item.codeLowMatch = PRE_IMPORT.toLowerCase();
 			item.type = CodeItem.TYPE_IMPORT;
@@ -2321,6 +2400,7 @@ public class CodeHelper {
 			
 			item = CodeItem.getFree();
 			item.code = PRE_IMPORT_JAVA;
+			item.codeForDoc = item.code;
 			item.codeDisplay = PRE_IMPORT_JAVA;
 			item.codeLowMatch = PRE_IMPORT_JAVA.toLowerCase();
 			item.type = CodeItem.TYPE_IMPORT;
@@ -2343,6 +2423,7 @@ public class CodeHelper {
 				
 				final CodeItem item = CodeItem.getFree();
 				item.code = PRE_REQUIRE + " '" + libName + "'";
+				item.codeForDoc = item.code;
 				item.codeDisplay = item.code;
 				item.codeLowMatch = item.codeDisplay.toLowerCase();
 				item.type = CodeItem.TYPE_IMPORT;
@@ -2817,6 +2898,7 @@ public class CodeHelper {
 			
 			item.type = CodeItem.TYPE_RESOURCES;
 			item.code = var;
+			item.codeForDoc = item.code;
 			item.codeDisplay = var;
 			item.codeLowMatch = var.toLowerCase();
 			
@@ -2866,13 +2948,13 @@ public class CodeHelper {
 		Collections.sort(out);
 	}
 	
-	public void initPreCode(final char[] lineHeader, final int offLineIdx, final int scriptIdx, final int lineIdxAtScript) {
+	public void initPreCode(final char[] lineHeader, final int offLineIdx, final int scriptIdx, final int lineNoAtScript) {
 		freeArray(outAndCycle);
 		preCodeSplitIsDot = false;
 		
-		codeContext = new CodeContext(this, root, scriptIdx, lineIdxAtScript);
+		codeContext = new CodeContext(this, root, scriptIdx, lineNoAtScript);
 
-		preCodeType = getPreCodeType(lineHeader, offLineIdx, scriptIdx, lineIdxAtScript);
+		preCodeType = getPreCodeType(lineHeader, offLineIdx, scriptIdx, lineNoAtScript);
 		if(preCodeType == PRE_TYPE_NEWLINE){
 			getVariables(root, true, "", outAndCycle, scriptIdx, TYPE_VAR_LOCAL | TYPE_VAR_INSTANCE | TYPE_VAR_GLOBAL);
 		}else if(preCodeType == PRE_TYPE_RESOURCES){
@@ -2885,7 +2967,7 @@ public class CodeHelper {
 			getMethodAndFieldForInstance(backgroundDefClassNode, false, outAndCycle, false, true);
 		}else if(preCodeType == PRE_TYPE_OVERRIDE_METHOD){
 			final int shiftBackLen = DEF_MEMBER.length() + 1 + preCode.length();
-			final JRubyClassDesc desc = isInDefClass(root, codeContext, scriptIdx - shiftBackLen, lineIdxAtScript - shiftBackLen);
+			final JRubyClassDesc desc = isInDefClass(root, codeContext, scriptIdx - shiftBackLen, lineNoAtScript);
 			if(desc != null){
 				buildItem(outAndCycle, JRUBY_CLASS_INITIALIZE_DEF, CodeItem.TYPE_METHOD);
 				appendInterfaces(desc.include, outAndCycle);//要先执行，这样def因相同不会再次添加
@@ -2910,7 +2992,8 @@ public class CodeHelper {
 					if(preCodeSplitIsDot == false){
 						getMethodAndFieldForInstance(backgroundDefClassNode, false, outAndCycle, false, true);
 //						getVariables(root, true, "", out, scriptIdx, pre_var_tag_ins_or_global);//改为，增加preCode过滤
-						getVariables(root, true, preCode, outAndCycle, scriptIdx, pre_var_tag_ins_or_global);
+//						final int startTipIdx = scriptIdx - preCode.length();
+						getVariables(root, true, preCode, outAndCycle, scriptIdx - lineHeader.length, pre_var_tag_ins_or_global);
 					}
 				}
 			}
@@ -2983,26 +3066,34 @@ public class CodeHelper {
 		}
 	}
 	
-	private final void getVariablesUpperForward(final Node node, final String preCode, final ArrayList<CodeItem> out, final int scriptIdx, 
+	private final void getVariablesUpperForward(final Node node, final String preCode, final ArrayList<CodeItem> out, final int lineStartIdx, 
 			final int type_var){
 		if(node == null){
 			return;
 		}
 		final String lowerPreCode = preCode.toLowerCase();
-		final List<Node> childNodes = node.childNodes();
 		
-		if(node instanceof DefnNode){//将方法定义的参数取出来。如：opeator(id, para)，则增加id, para
+		if(node instanceof DefnNode){// || isDefNodeUnderNewlineNode(node)){//将方法定义的参数取出来。如：opeator(id, para)，则增加id, para
 			final DefnNode defNode = (DefnNode)node;
+//			if(isDefNode){
+//				defNode = (DefnNode)node;
+//			}else{
+//				defNode = (DefnNode)((NewlineNode)node).childNodes().get(0);//会导致被添加两次，所以调用处，不从parent开始
+//			}
 			final ArgsNode argsNode = defNode.getArgs();
-			final List<Node> list = argsNode.childNodes();
-			if (list.size() > 0){//除无参数，如opera()的情形
+			final int parameterNum = argsNode.getMaxArgumentsCount();//获得参数个数
+			if (parameterNum > 0){//除无参数，如opera()的情形
+				final List<Node> list = argsNode.childNodes();
 				final ListNode parametersNode = (ListNode)list.get(0);//注意：org.jrubyparser.ast.ArrayNode extends org.jrubyparser.ast.ListNode
-				final int size = parametersNode.size();
-				for(int i = 0; i<size; i++){
-					final ArgumentNode parameterNode = (ArgumentNode)parametersNode.get(i);
-					final String name = parameterNode.getName();
-					
-					buildVarItem(out, name);
+				for(int i = 0; i<parameterNum; i++){
+					try{
+						final ArgumentNode parameterNode = (ArgumentNode)parametersNode.get(i);
+						final String name = parameterNode.getName();
+						
+						buildVarItem(out, name);
+					}catch (final Throwable e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}else if(node instanceof ConstDeclNode){
@@ -3012,13 +3103,14 @@ public class CodeHelper {
 			buildVarItem(out, name);
 		}
 		
+		final List<Node> childNodes = node.childNodes();
 		final int size = childNodes.size();
 		for (int i = 0; i < size; i++) {
 			Node one = childNodes.get(i);
 			final SourcePosition position = one.getPosition();
-			if(position.getStartOffset() > scriptIdx){
+			if(position.getStartOffset() > lineStartIdx){
 				break;
-			}else if(position.getEndOffset() < scriptIdx){
+			}else if(position.getEndOffset() < lineStartIdx){
 				if(one instanceof NewlineNode){
 					one = ((NewlineNode)one).childNodes().get(0);
 				}
@@ -3045,6 +3137,7 @@ public class CodeHelper {
 					if(nameLower.startsWith(lowerPreCode) && (CodeItem.contains(out, name) == false)){//由于是从下向上，可能被添加了一次
 						final CodeItem item = CodeItem.getFree();
 						item.code = name;
+						item.codeForDoc = item.code;
 						item.codeDisplay = name;
 						item.codeLowMatch = nameLower;
 						item.type = CodeItem.TYPE_VARIABLE;
@@ -3060,6 +3153,7 @@ public class CodeHelper {
 					if(nameLower.startsWith(lowerPreCode) && (CodeItem.contains(out, name) == false)){
 						final CodeItem item = CodeItem.getFree();
 						item.code = name;
+						item.codeForDoc = item.code;
 						item.codeDisplay = name;
 						item.codeLowMatch = nameLower;
 						item.type = CodeItem.TYPE_VARIABLE;
@@ -3075,6 +3169,7 @@ public class CodeHelper {
 					if(nameLower.startsWith(lowerPreCode) && (CodeItem.contains(out, name) == false)){
 						final CodeItem item = CodeItem.getFree();
 						item.code = name;
+						item.codeForDoc = item.code;
 						item.codeDisplay = name;
 						item.codeLowMatch = nameLower;
 						if(isInDefnNode(one)){//方法定义内
@@ -3094,6 +3189,7 @@ public class CodeHelper {
 					if(nameLower.startsWith(lowerPreCode) && (CodeItem.contains(out, name) == false)){
 						final CodeItem item = CodeItem.getFree();
 						item.code = name;
+						item.codeForDoc = item.code;
 						item.codeDisplay = name;
 						item.codeLowMatch = nameLower;
 						item.type = CodeItem.TYPE_VARIABLE;
@@ -3118,13 +3214,14 @@ public class CodeHelper {
 		
 		final Node parentNode = node.getParent();
 		if(parentNode != null){
-			getVariablesUpperForward(parentNode, preCode, out, scriptIdx, type_var);
+			getVariablesUpperForward(parentNode, preCode, out, lineStartIdx, type_var);
 		}
 	}
 
 	private final void buildClassItem(final ArrayList<CodeItem> out, final String name, final String nameLower) {
 		final CodeItem item = CodeItem.getFree();
 		item.code = name;
+		item.codeForDoc = item.code;
 		item.codeDisplay = name;
 		item.codeLowMatch = nameLower;
 		item.type = CodeItem.TYPE_CLASS;
@@ -3134,6 +3231,7 @@ public class CodeHelper {
 	private final void buildVarItem(final ArrayList<CodeItem> out, final String name) {
 		final CodeItem item = CodeItem.getFree();
 		item.code = name;
+		item.codeForDoc = item.code;
 		item.codeDisplay = name;
 		item.codeLowMatch = name.toLowerCase();
 		item.type = CodeItem.TYPE_VARIABLE;
@@ -3147,6 +3245,7 @@ public class CodeHelper {
 		}else{
 			item.code = name;
 		}
+		item.codeForDoc = item.code;
 		item.codeDisplay = name;
 		item.codeLowMatch = name.toLowerCase();
 		item.type = type;
@@ -3163,14 +3262,14 @@ public class CodeHelper {
 	 * @param isAppend 是否添加到结果集尾部。false:先清空旧内容
 	 * @param type_var 寻找指定类型变量，CodeHelper.TYPE_LOCAL_VAR,...
 	 */
-	public final void getVariables(final Node node, final boolean isAppend, final String preCode, final ArrayList<CodeItem> out, final int scriptIdx, final int type_var){
+	public final void getVariables(final Node node, final boolean isAppend, final String preCode, final ArrayList<CodeItem> out, final int lineStartIdx, final int type_var){
 		if(isAppend == false){
 			freeArray(out);
 		}
 		
-		final Node paraNode = searchParaCallingNodeByIdx(node, scriptIdx);
+		final Node paraNode = searchParaCallingNodeByIdx(node, lineStartIdx);
 		
-		getVariablesUpperForward(paraNode.getParent(), preCode, out, scriptIdx, type_var);
+		getVariablesUpperForward(paraNode, preCode, out, lineStartIdx, type_var);
 		
 		buildClassItem(out, JRUBY_CLASS_FOR_NEW, JRUBY_CLASS_FOR_NEW.toLowerCase());
 		

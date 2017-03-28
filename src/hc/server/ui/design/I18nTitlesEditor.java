@@ -18,7 +18,6 @@ import java.util.Vector;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -38,49 +37,8 @@ public class I18nTitlesEditor extends JPanel{
 	private final String VALUE = "value";
 	private final String SPLIT_LANG_COUNTRY = "-";
 
-	private static final Vector<String> defaultLang = buildLangVector();
-	private static Vector<String> buildLangVector(){
-		final Vector<String> v = new Vector<String>(5);
-		v.add("ar");
-		v.add("da");
-		v.add("de");
-		v.add("en");
-		v.add("es");
-		v.add("fr");
-		v.add("hi");
-		v.add("it");
-		v.add("ja");
-		v.add("ko");
-		v.add("pt");
-		v.add("ru");
-		v.add("th");
-		v.add("zh");
-		return v;
-	}
-	private static final Vector<String> defaultCountry = buildCountryVector();
-	private static Vector<String> buildCountryVector(){
-		final Vector<String> v = new Vector<String>(5);
-		v.add("");
-		v.add("AE");
-		v.add("CA");
-		v.add("CN");
-		v.add("DE");
-		v.add("ES");
-		v.add("EU");
-		v.add("FR");
-		v.add("GB");
-		v.add("IN");
-		v.add("IT");
-		v.add("JP");
-		v.add("KR");
-		v.add("RU");
-		v.add("US");
-		return v;
-	}
-	
 	private final I18NStoreableHashMapWithModifyFlag map;
-	private final JComboBox jcbLanguage;//JRE 6 is NOT <STRING> allowed
-	private final JComboBox jcbCountry;
+	private final JTextField langRegion;
 	private final JButton addBtn, removeBtn;
 	final JTable table;
 	final Vector<String> keyVector, valueVector;
@@ -113,23 +71,14 @@ public class I18nTitlesEditor extends JPanel{
 		this.map = map;
 		//Language : ISO 639-1
 		//Country (region) : ISO 3166-1 alpha-2 codes country code, The country (region) field is case insensitive, but Locale always canonicalizes to upper case.
-		
-		jcbLanguage = new JComboBox(defaultLang);
-		jcbCountry = new JComboBox(defaultCountry);
-		
-		jcbLanguage.setMaximumRowCount(10);
-		jcbCountry.setMaximumRowCount(10);
-		
-		jcbLanguage.setEditable(true);
-		jcbCountry.setEditable(true);
+		final int textFieldColumnNum = 10;
+		langRegion = new JTextField(textFieldColumnNum);
 		
 		final JPanel editPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-		editPanel.add(new JLabel(LANG + " :"));
-		editPanel.add(jcbLanguage);
-		editPanel.add(new JLabel(COUNTRY + " :"));
-		editPanel.add(jcbCountry);
+		editPanel.add(new JLabel(LANG + " " + SPLIT_LANG_COUNTRY + " " + COUNTRY));
+		editPanel.add(langRegion);
 		editPanel.add(new JLabel(VALUE + " :"));
-		valueField = new JTextField("", 6);
+		valueField = new JTextField("", textFieldColumnNum);
 		editPanel.add(valueField);
 		addBtn = new JButton((String)ResourceUtil.get(9016) + "/" + (String)ResourceUtil.get(9017), new ImageIcon(ImageSrc.ADD_SMALL_ICON));
 		editPanel.add(addBtn);
@@ -137,26 +86,10 @@ public class I18nTitlesEditor extends JPanel{
 		addBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				final String lang = (String)jcbLanguage.getSelectedItem();
+				final String lang = langRegion.getText();
 				if(lang.length() < 2){
 					App.showMessageDialog(Designer.getInstance(), "language must be two or more letters!", "Error", App.ERROR_MESSAGE);
 					return;
-				}
-				
-				final String country = (String)jcbCountry.getSelectedItem();
-				final int country_len = country.length();
-				if((country_len != 0 && country_len < 2) || country_len > 2){
-					boolean isNumeric = true;
-					try{
-						Integer.parseInt(country);
-					}catch (final Exception ex) {
-						isNumeric = false;
-					}
-					if(isNumeric && country.length() == 3){//a UN M.49 numeric-3 area code, es-419
-					}else{
-						App.showMessageDialog(Designer.getInstance(), "country / region must be two letters or UN M.49 numeric-3 area code!", "Error", App.ERROR_MESSAGE);
-						return;
-					}
 				}
 				
 				final String valueText = valueField.getText();
@@ -165,8 +98,7 @@ public class I18nTitlesEditor extends JPanel{
 					return;
 				}
 				
-				final String key = lang + ((country.length() == 0)?"":(SPLIT_LANG_COUNTRY + country.toUpperCase()));
-				addKeyValuePare(key, valueText);
+				addKeyValuePare(lang, valueText);
 				refreshTableUI();
 			}
 		}));
@@ -241,15 +173,8 @@ public class I18nTitlesEditor extends JPanel{
 					removeBtn.setEnabled(true);
 					final String key = keyVector.elementAt(selectedIdx);
 					final String value = valueVector.elementAt(selectedIdx);
-					final int splitIdx = key.indexOf(SPLIT_LANG_COUNTRY);
-					if(splitIdx > 0){
-						jcbLanguage.setSelectedItem(key.substring(0, splitIdx));
-						jcbCountry.setSelectedItem(key.substring(splitIdx + 1));
-					}else{
-						jcbLanguage.setSelectedItem(key);
-						jcbCountry.setSelectedItem("");
-					}
-					
+				
+					langRegion.setText(key);
 					valueField.setText(value);
 				}else{
 					removeBtn.setEnabled(false);
@@ -264,7 +189,7 @@ public class I18nTitlesEditor extends JPanel{
 		final JPanel descPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		descPanel.setBorder(new TitledBorder("Description :"));
 		descPanel.add(new JLabel("<html>" +
-				"1. the aboves are equivalent with MenuItem.<STRONG>setText(Map)</STRONG>.<BR>" +
+				"1. the aboves are equivalent with MenuItem.<STRONG>setText(Map)</STRONG> programmatically.<BR>" +
 				"2. <STRONG>en" + SPLIT_LANG_COUNTRY + "US</STRONG> is for United States only.<BR>" +
 				"3. <STRONG>en</STRONG> is for all english language country, if <STRONG>en"+ SPLIT_LANG_COUNTRY + "??</STRONG> is NOT found.<BR>" +
 				"4. <STRONG>language</STRONG> : ISO 639 alpha-2 or alpha-3 codes,<BR>" +
@@ -282,10 +207,11 @@ public class I18nTitlesEditor extends JPanel{
 
 	private final void addKeyValuePare(final String key, final String value) {
 		final int size = keyVector.size();
+		final String lowerCaseKey = key.toLowerCase();
 		int i = 0;
 		for (; i < size; i++) {
 			final String k1 = keyVector.get(i);
-			final int result = k1.compareTo(key);
+			final int result = k1.toLowerCase().compareTo(lowerCaseKey);
 			if(result == 0){
 				keyVector.remove(i);
 				valueVector.remove(i);

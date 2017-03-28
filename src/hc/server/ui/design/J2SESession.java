@@ -38,6 +38,7 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SessionMobiMenu;
 import hc.server.util.SystemEventListener;
 import hc.server.util.VoiceCommand;
+import hc.server.util.VoiceParameter;
 import hc.util.BaseResponsor;
 import hc.util.ResourceUtil;
 import hc.util.UpdateOneTimeRunnable;
@@ -131,7 +132,7 @@ public final class J2SESession extends CoreSession{
 	 * @param cmd
 	 * @return
 	 */
-	public final MenuItem searchMenuItemByVoiceCommand(final VoiceCommand cmd){
+	public final MenuItem searchMenuItemByVoiceCommand(final VoiceParameter cmd){
 		final BaseResponsor resp = ServerUIUtil.getResponsor();
 		String currProjID = null;
 		if(resp != null){

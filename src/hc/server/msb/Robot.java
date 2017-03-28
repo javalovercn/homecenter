@@ -5,6 +5,7 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.MutableArray;
 import hc.server.ui.CtrlResponse;
+import hc.server.ui.Dialog;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.J2SESessionManager;
 import hc.server.ui.Mlet;
@@ -13,6 +14,7 @@ import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.SimuMobile;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
+import hc.server.util.Assistant;
 
 import java.util.ArrayList;
 
@@ -89,14 +91,15 @@ public abstract class Robot extends Processor{
 	 * operate the {@link Robot} to do some business from caller, 
 	 * <BR><BR>
 	 * for example, adjust the temperature to 28℃, then the <code>parameter</code> is integer object with value 28, and <code>functionID</code> may be 1.
-	 * <br><br>the method is the only way to operate {@link Robot} to drive {@link Device} for {@link CtrlResponse}, {@link HTMLMlet}/{@link Mlet}, 
+	 * <br><br>the method is the only way to operate {@link Robot} to drive {@link Device} for {@link CtrlResponse}, {@link HTMLMlet}/{@link Mlet}, {@link Dialog}, 
 	 * <BR>to get {@link Robot} instance, call {@link ProjectContext#getRobot(String)}.
 	 * <br><br>
 	 * <STRONG>Important</STRONG> : <BR>
 	 * this method must be able to be executed in session level and project level.<BR>
 	 * @param functionID
-	 * @param parameter it can NOT be a {@link Message}.
-	 * @return object exclude {@link Message}
+	 * @param parameter it can NOT be a {@link Message}. 
+	 * <BR>it is recommended to use the primitive types and their corresponding object wrapper classes and {@link AnalysableRobotParameter} to help server for {@link Assistant}.
+	 * @return object exclude {@link Message}. <BR>it is recommended to use the primitive types and their corresponding object wrapper classes and {@link AnalysableRobotParameter}.
 	 * @see ProjectContext#isCurrentThreadInSessionLevel()
 	 * @since 7.0
 	 */

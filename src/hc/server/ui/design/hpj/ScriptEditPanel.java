@@ -895,6 +895,9 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							final int caretPosition = jtaScript.getCaretPosition();
 							codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, false, caretPosition, false);
 						}catch (final Exception e) {
+							if(L.isInWorkshop){
+								e.printStackTrace();
+							}
 						}
 						}
 					}
@@ -1277,7 +1280,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						final int lineStartIdx = getLineStartOffset(jtaDocment, line);
 						final int lineEndIdx = getLineEndOffset(jtaDocment, line);
 						final String text = jtaDocment.getText(lineStartIdx, lineEndIdx - lineStartIdx);
-						initBlock(text, lineStartIdx, false);
+						initBlock(text, lineStartIdx, false, false);
 						final String scripts = jtaScript.getText();
 						updateScript(scripts);//更新待保存内容
 					}catch (final Exception e) {
@@ -1367,7 +1370,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					}
 				}
 				
-				initBlock(strTrim, startPosition + lineWillDen, false);//粘贴多行后，需要进行format和color
+				initBlock(strTrim, startPosition + lineWillDen, false, false);//粘贴多行后，需要进行format和color
 				
 				{
 					//是否下行需要缩进, if , while 
@@ -1470,7 +1473,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				jtaScript.setText(text);
 			}
 			
-			initBlock(text, colorOffset, false);
+			initBlock(text, colorOffset, false, true);
 //			System.out.println("context : \n" + jtaScript.getText());
 		}catch (final Exception e) {
 			e.printStackTrace();//注意：不javax.swing.text.BadLocationException
@@ -1497,7 +1500,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 	};
 	
-	public final void initBlock(final String text, final int offset, final boolean isReplace) {
+	public final void initBlock(final String text, final int offset, final boolean isReplace, final boolean isDelayStringRem) {
 		final StyledDocument document = (StyledDocument)jtaDocment;
 		document.setCharacterAttributes(offset, text.length(), DEFAULT_LIGHTER, true);
 		
@@ -1505,7 +1508,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		buildHighlight(num_pattern, NUM_LIGHTER, offset, text, isReplace);//要置于字符串之前，因为字符串中可能含有数字
 		buildHighlight(keywords_pattern, KEYWORDS_LIGHTER, offset, text, isReplace);
 		buildHighlight(var_pattern, VAR_LIGHTER, offset, text, isReplace);
-		buildHighlightForStringAndRem(offset, text, isReplace);
+		buildHighlightForStringAndRem(offset, text, isReplace, isDelayStringRem);
 	}
 	
 	private final void buildHighlight(final Pattern pattern, final SimpleAttributeSet attributes, final int offset, final String text, final boolean isReplace) {
@@ -1518,21 +1521,17 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 	}
 
-	private final void buildHighlightForStringAndRem(final int offset, final String text, final boolean isReplace) {
-		SwingUtilities.invokeLater(new Runnable() {//由于多语言绘制耗时，所以delay
-			@Override
-			public void run() {
-				final StyledDocument document = (StyledDocument)jtaDocment;
-				final Matcher matcher = rem_and_str_pattern.matcher(text);
-				while (matcher.find()) {
-					final int start = matcher.start() + offset;
-					final int end = matcher.end() + offset;
-					final String matcherStr = matcher.group();
-					final boolean isRem = (matcherStr.charAt(0) == '#');
-					document.setCharacterAttributes(start, end - start, isRem?REM_LIGHTER:STR_LIGHTER, isReplace);
+	private final void buildHighlightForStringAndRem(final int offset, final String text, final boolean isReplace, final boolean isDelayStringRem) {
+		if(isDelayStringRem){
+			SwingUtilities.invokeLater(new Runnable() {//由于多语言绘制耗时，所以delay
+				@Override
+				public void run() {
+					colorRemAndStr(offset, text, isReplace);
 				}
-			}
-		});
+			});
+		}else{
+			colorRemAndStr(offset, text, isReplace);
+		}
 	}
 
 	public final void undo() {
@@ -1730,7 +1729,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						final String txt = sb.toString();
 						setUndoText(txt, newPosition);
 						isDoneEnter = true;
-						initBlock(strEnd, InsertPosition + sb.length() - strEnd.length(), false);
+						initBlock(strEnd, InsertPosition + sb.length() - strEnd.length(), false, false);
 					}
 					break;
 				}else{
@@ -1871,6 +1870,18 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			styledDocument.setCharacterAttributes(0, styledDocument.getLength(), normalBackground, false);
 			jtaScript.selectedWordsMS = System.currentTimeMillis();
 			jtaScript.hasSelectedWords = false;
+		}
+	}
+	
+	private final void colorRemAndStr(final int offset, final String text, final boolean isReplace) {
+		final StyledDocument document = (StyledDocument)jtaDocment;
+		final Matcher matcher = rem_and_str_pattern.matcher(text);
+		while (matcher.find()) {
+			final int start = matcher.start() + offset;
+			final int end = matcher.end() + offset;
+			final String matcherStr = matcher.group();
+			final boolean isRem = (matcherStr.charAt(0) == '#');
+			document.setCharacterAttributes(start, end - start, isRem?REM_LIGHTER:STR_LIGHTER, isReplace);
 		}
 	}
 	private final Runnable doTestRunnable =  new Runnable(){

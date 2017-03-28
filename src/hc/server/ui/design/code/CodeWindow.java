@@ -408,9 +408,9 @@ public class CodeWindow {
 		final int size = src.size();
 		for (int i = 0; i < size; i++) {
 			final CodeItem codeItem = src.get(i);
-			if(codeItem.isDefed){
-				continue;
-			}
+//			if(codeItem.isDefed){//不过滤，比如operate(p1, p2)
+//				continue;
+//			}
 			if(codeItem.fieldOrMethodOrClassName.equals(fieldOrMethod)){
 				target.add(codeItem);
 			}
@@ -665,7 +665,7 @@ public class CodeWindow {
 			autoPopTip.classFrame = classFrame;
 			autoPopTip.item = item;
 			autoPopTip.fmClass = item.fmClass;
-			autoPopTip.fieldOrMethodName = item.code;//注意：构造方法已转为new(),而非simpleClassName()
+			autoPopTip.fieldOrMethodName = item.codeForDoc;//注意：构造方法已转为new(),而非simpleClassName()
 			autoPopTip.type = item.type;
 			autoPopTip.layoutLimit = layoutLimit;
 			autoPopTip.setEnable(true);

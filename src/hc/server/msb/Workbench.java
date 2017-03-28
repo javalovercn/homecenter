@@ -30,6 +30,10 @@ public class Workbench{
 		nameMapper = mapper;
 	}
 	
+	public final void reloadMap(){
+		nameMapper.reloadMap();
+	}
+	
 	public final void appendProjectToBindSet(final LinkProjectStore lps){
 		nameMapper.appendBindToNameSet(lps);
 	}

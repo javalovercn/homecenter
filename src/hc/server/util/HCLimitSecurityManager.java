@@ -16,6 +16,7 @@ import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
 import hc.res.ImageSrc;
 import hc.server.HCSecurityException;
+import hc.server.msb.AnalysableRobotParameter;
 import hc.server.msb.Converter;
 import hc.server.msb.Device;
 import hc.server.msb.DeviceCompatibleDescription;
@@ -320,6 +321,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    			AddHarHTMLMlet.class, AddHarIsBusy.class, BindHTMLMlet.class, Dialog.class, 
 	    			LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
 	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class, ProjectInputDialog.class,
+	    			Assistant.class, VoiceCommand.class, AnalysableRobotParameter.class,
 	    			WiFiAccount.class, ScriptPanel.class, ScriptTester.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
 //	    	{
 //	    		Vector<Class> allowVect = new Vector<Class>();
