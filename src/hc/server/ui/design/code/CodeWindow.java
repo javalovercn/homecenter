@@ -110,6 +110,11 @@ public class CodeWindow {
 		
 		@Override
 		public void keyPressed(final KeyEvent e) {
+			if(classFrame.isVisible() == false){//仅doc时，不显示codeList
+				hide(true);
+				return;
+			}
+			
 			final int keyCode = e.getKeyCode();
 			
 			if(keyCode == KeyEvent.VK_ESCAPE){
@@ -394,11 +399,17 @@ public class CodeWindow {
 				}
 			}
 			
+//			if(CodeHelper.isDisplayOverrideMethodAndDoc == false){
+//				if(codeItem.overrideMethodLevel < 0){//过滤子类的同名方法
+//					continue;
+//				}
+//			}
+			
 			if(preLen == 0 
 					|| (codeItem.isFullPackageAndClassName && codeItem.type == CodeItem.TYPE_CLASS && codeItem.codeLowMatch.indexOf(preCodeLower) >= 0)
 					|| codeItem.codeLowMatch.startsWith(preCodeLower) 
 					){
-				target.add(codeItem);
+				addItemExcludeOverride(codeItem, target);
 			}
 		}
 	}
@@ -411,10 +422,38 @@ public class CodeWindow {
 //			if(codeItem.isDefed){//不过滤，比如operate(p1, p2)
 //				continue;
 //			}
+			if(codeItem.fmClass == CodeHelper.IterNodeClass){//定义方法不作doc
+				continue;
+			}
+//			if(CodeHelper.isDisplayOverrideMethodAndDoc == false){
+//				if(codeItem.overrideMethodLevel < 0){//过滤子类的同名方法
+//					continue;
+//				}
+//			}
 			if(codeItem.fieldOrMethodOrClassName.equals(fieldOrMethod)){
-				target.add(codeItem);
+				addItemExcludeOverride(codeItem, target);
 			}
 		}
+	}
+	
+	private static void addItemExcludeOverride(final CodeItem codeitem, final ArrayList<CodeItem> target){
+		if(codeitem.type == CodeItem.TYPE_METHOD){
+			final int size = target.size();
+			for (int i = 0; i < size; i++) {
+				final CodeItem item = target.get(i);
+				if(item.isOverrideItem(codeitem)){
+					if(item.overrideMethodLevel > codeitem.overrideMethodLevel){
+						return;
+					}else{
+						target.remove(i);
+						target.add(codeitem);
+						return;
+					}
+				}
+			}
+		}
+		
+		target.add(codeitem);
 	}
 	
 	final Rectangle rect = new Rectangle(0, 0, 1, 1);
@@ -656,6 +695,9 @@ public class CodeWindow {
 	}
 
 	public final void startAutoPopTip(final CodeItem item, final HCTextPane jtaPaneMaybeNull) {
+		if(L.isInWorkshop){
+			ClassUtil.printCurrentThreadStack("---------------------------------startAutoPopTip---------------------------------");
+		}
 		synchronized (autoPopTip) {
 			autoPopTip.resetTimerCount();
 			autoPopTip.docHelper = docHelper;
@@ -714,7 +756,7 @@ class DocTipTimer extends HCTimer{
 				if(type == CodeItem.TYPE_CLASS){
 					final Class c = ResourceUtil.loadClass(fieldOrMethodName, true);
 					if(c != null){
-						DocHelper.processDoc(c, false);
+						CodeHelper.buildForClass(docHelper.codeHelper, null, c);
 					}
 				}
 				docHelper.popDocTipWindow(item, classFrame, fmClass, fieldOrMethodName, type, layoutLimit);

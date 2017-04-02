@@ -1,5 +1,8 @@
 package hc.server.msb;
 
+/**
+ * A semantic event which indicates that a Robot-defined event occurred.
+ */
 public final class RobotEvent {
 	RobotWrapper source;
 	String propertyName;

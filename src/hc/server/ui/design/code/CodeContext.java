@@ -12,16 +12,14 @@ public class CodeContext {
 	/**
 	 * 
 	 * @param contextNode
-	 * @param scriptIdx 光标所在index
-	 * @param rowIdxAtScript 光标所在行号
+	 * @param rowIdx 光标所在行号
 	 */
-	public CodeContext(final CodeHelper codeHelper, final Node contextNode, final int scriptIdx, final int rowIdxAtScript){
+	public CodeContext(final CodeHelper codeHelper, final Node contextNode, final int rowIdx){
 		this.codeHelper = codeHelper;
 		this.contextNode = contextNode;
-		this.scriptIdx = scriptIdx;
-		this.rowIdxAtScript = rowIdxAtScript;
+		this.rowIdx = rowIdx;
 		
-		this.bottomNode = searchBottomNode(contextNode, rowIdxAtScript);
+		this.bottomNode = searchBottomNode(contextNode, rowIdx);
 	}
 	
 	/**
@@ -29,12 +27,16 @@ public class CodeContext {
 	 * @return
 	 */
 	public final ClassNode getDefClassNode(){
+		final JRubyClassDesc desc = getDefJRubyClassDesc();
+		return (desc==null)?null:desc.defNode;
+	}
+	
+	public final JRubyClassDesc getDefJRubyClassDesc(){
 		if(isSearchedDefClass == false){
-			final JRubyClassDesc desc = CodeHelper.isInDefClass(contextNode, this, scriptIdx, rowIdxAtScript);
-			defClassNode = (desc==null)?null:desc.defNode;
+			jrubyClassDesc = CodeHelper.isInDefClass(contextNode, this, rowIdx);
 			isSearchedDefClass = true;
 		}
-		return defClassNode;
+		return jrubyClassDesc;
 	}
 	
 	private final Node searchBottomNode(final Node startNode, final int rowIdxAtScript){
@@ -51,10 +53,20 @@ public class CodeContext {
 			final Node sub = list.get(i);
 			if(sub instanceof ClassNode){
 				final ClassNode classNode = (ClassNode)sub;
-				return searchBottomNode(classNode.getBody(), rowIdxAtScript);
+				final Node body = classNode.getBody();
+				if(body == null){
+					return classNode;
+				}else{
+					return searchBottomNode(body, rowIdxAtScript);
+				}
 			}else if(sub instanceof DefnNode){
 				final DefnNode defNode = (DefnNode)sub;
-				return searchBottomNode(defNode.getBody(), rowIdxAtScript);
+				final Node body = defNode.getBody();
+				if(body == null){
+					return defNode;
+				}else{
+					return searchBottomNode(body, rowIdxAtScript);
+				}
 			}
 			if(i > 0 && sub.getPosition().getStartLine() >= rowIdxAtScript){//必须>=，否则当前编辑行会置于bottom，可能导致循环。比如i=100\ni=100+i<edit>
 				continue;
@@ -71,8 +83,7 @@ public class CodeContext {
 	}
 	public Node contextNode;
 	private boolean isSearchedDefClass = false;
-	private ClassNode defClassNode;
+	private JRubyClassDesc jrubyClassDesc;
 	public Node bottomNode;
-	public int scriptIdx;
-	public int rowIdxAtScript;
+	public int rowIdx;
 }

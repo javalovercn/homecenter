@@ -1780,6 +1780,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	private final void loadNodeFromMap(final Map<String, Object> map) {
+		codeHelper.reset();
+		
 		durateMap(map, durationMap);
 		
 		isModiPermissions = false;

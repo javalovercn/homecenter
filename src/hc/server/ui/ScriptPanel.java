@@ -326,7 +326,7 @@ public class ScriptPanel extends JPanel {
 	 * 
 	 * </table>
 	 * @param id
-	 * @param action one of following (but not all) : <BR>
+	 * @param action one of following (not all) : <BR>
 	 * {@link #CLICK}, {@link #CHANGE}, {@link #NOTIFY}, 
 	 * {@link #MOUSE_CLICKED}, {@link #MOUSE_DRAGGED}, {@link #MOUSE_ENTERED}, 
 	 * {@link #MOUSE_EXITED}, {@link #MOUSE_PRESSED}, {@link #MOUSE_RELEASED}.

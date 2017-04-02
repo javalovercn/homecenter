@@ -9,6 +9,7 @@ import java.awt.Shape;
 import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.lang.reflect.Method;
 
 import javax.swing.JPopupMenu;
 
@@ -32,6 +33,10 @@ public interface PlatformService {
 	 * @return the free memory in M.
 	 */
 	public long getFreeMem();
+	
+	public String[] getMethodCodeParameter(final Method method);
+	
+	public void resetClassPool();
 	
 	public Object doExtBiz(int bizID, Object para);
 	

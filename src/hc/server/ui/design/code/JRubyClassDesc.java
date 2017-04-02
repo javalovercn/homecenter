@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import org.jrubyparser.ast.CallNode;
 import org.jrubyparser.ast.ClassNode;
+import org.jrubyparser.ast.IterNode;
 import org.jrubyparser.ast.SClassNode;
 
 public class JRubyClassDesc {
@@ -15,6 +16,7 @@ public class JRubyClassDesc {
 	public boolean isInExtend;
 	public boolean isDefClass;
 	public ClassNode defNode;
+	public IterNode defIterNode;
 	public Vector<Class> include;//implements;
 	
 	public final void appendInterface(final Class claz){

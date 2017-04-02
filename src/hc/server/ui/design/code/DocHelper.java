@@ -20,6 +20,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -38,13 +39,12 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.StyleSheet;
 
 public class DocHelper {
-	
 	private static final int cssSize = 120;
 	private static final HashMap<String, HashMap<String, String>> cache = new HashMap<String, HashMap<String,String>>();
 	static final Vector<CodeItem> cssCodeItems = new Vector<CodeItem>(cssSize);
 	static final HashMap<String, String> cssDocs = new HashMap<String,String>(cssSize);
 	static final HashMap<String, String> cssProperties = new HashMap<String,String>(cssSize);
-	
+	static final Pattern douhaoSpaces = Pattern.compile(", {2,}");
 	private static final HCTimer resetTimer = new HCTimer("", 1000 * 60 * 30, false) {
 		@Override
 		public final void doBiz() {
@@ -70,7 +70,7 @@ public class DocHelper {
 	private final JEditorPane docPane = new JEditorPane();
 	private final JScrollPane scrollPanel = new JScrollPane(docPane);
 	private final JFrame docFrame = new JFrame("");
-	private final CodeHelper codeHelper;
+	public final CodeHelper codeHelper;
 	public boolean isForMouseOverTip;
 	public int mouseOverX, mouseOverY, mouseOverFontHeight;
 	private CodeItem currItem;
@@ -215,7 +215,7 @@ public class DocHelper {
 						}
 						
 						try {
-							processDoc(Class.forName(fmClass, false, classLoader), false);
+							CodeHelper.buildForClass(codeHelper, null, Class.forName(fmClass, false, classLoader));
 						} catch (final ClassNotFoundException e1) {
 						}
 						
@@ -407,7 +407,7 @@ public class DocHelper {
 		docPane.setText("<html><body style=\"background-color:#FAFBC5\">" + doc +"</body></html>");
 	}
 
-	public static void processDoc(final Class c, final boolean processInDelay){
+	public static void processDoc(final CodeHelper codeHelper, final Class c, final boolean processInDelay){
 		resetClear();
 		
 		final String clasName = c.getName();
@@ -417,16 +417,16 @@ public class DocHelper {
 		if(cache.containsKey(clasName)){
 			return;
 		}
-		if(processInDelay){
-			ContextManager.getThreadPool().run(new Runnable() {
-				@Override
-				public void run() {
-					processDoc(c, clasName, false);
-				}
-			});
-		}else{
-			processDoc(c, clasName, true);
-		}
+//		if(processInDelay){
+//			ContextManager.getThreadPool().run(new Runnable() {
+//				@Override
+//				public void run() {
+//					processDoc(codeHelper, c, clasName, false);
+//				}
+//			});
+//		}else{
+			processDoc(codeHelper, c, clasName, false);
+//		}
 	}
 
 	static void resetClear() {
@@ -437,23 +437,30 @@ public class DocHelper {
 		resetTimer.resetTimerCount();
 	}
 	
-	private static void processDocForOneLevel(final String clasName){
+	private static void processDocForOneLevel(final CodeHelper codeHelper, final Class c, final String clasName){
 //		System.out.println("-----processDocForOneLevel : " + claz.getName());
 
+		if(CodeHelper.isRubyClass(c)){
+			if(clasName.equals(String.class.getName())){
+				read(codeHelper, true, clasName, ResourceUtil.getResourceAsStream("hc/res/docs/ruby/RubyString2_2_0.htm"));
+			}
+			return;
+		}
+		
 		final String className = clasName.replace('.', '/');
 		
-		if(clasName.startsWith("java")){
-			read(clasName, J2SEDocHelper.getDocStream(buildClassDocPath(className)));
-		}else if(clasName.startsWith("hc.")){
-			read(clasName, ResourceUtil.getResourceAsStream("hc/res/docs/" + className + ".html"));
+		if(clasName.startsWith(CodeHelper.JAVA_PACKAGE_CLASS_PREFIX)){
+			read(codeHelper, false, clasName, J2SEDocHelper.getDocStream(buildClassDocPath(className)));
+		}else if(clasName.startsWith(CodeHelper.HC_PACKAGE_CLASS_PREFIX)){
+			read(codeHelper, false, clasName, ResourceUtil.getResourceAsStream("hc/res/docs/" + className + ".html"));
 		}
 	}
-
+	
 	public static String buildClassDocPath(final String clasName) {
 		return "hc/res/docs/jdk_docs/api/" + clasName + ".html";
 	}
 
-	private static void read(final String clasName, final InputStream in) {
+	private static void read(final CodeHelper codeHelper, final boolean isRubyClass, final String clasName, final InputStream in) {
 		if(in == null){
 			synchronized (cache) {
 				cache.put(clasName, new HashMap<String, String>());
@@ -468,7 +475,7 @@ public class DocHelper {
 		    while((count = in.read(data,0,BUFFER_SIZE)) != -1)  
 		        outStream.write(data, 0, count);  
 		    final String docContent = new String(outStream.toByteArray(), IConstant.UTF_8);
-		    toCache(clasName, docContent);
+		    toCache(codeHelper, isRubyClass, clasName, docContent);
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 			synchronized (cache) {
@@ -490,12 +497,43 @@ public class DocHelper {
 			"<div class=\"description\">\n<ul class=\"blockList\">\n<li class=\"blockList\">\n" +//<hr>\n<br>\n
 			"(.*?)" +
 			"\n</li>\n</ul>\n</div>\n", Pattern.DOTALL);
+	private static final Pattern rubyStringMethodsList = Pattern.compile("<div id=\"method-list-section\" class=\"section\">" +
+			"(.*?)" +
+			"</div>", Pattern.DOTALL);
+	private static final Pattern rubyStringMethodItem = Pattern.compile("<li><a href=\"#(.*?)\">#(.*?)</a></li>");
 	
 	public static final String CLASS_DESC = "CLASS_DESC";
 	
 	public static final String NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME = null;
 	
-	private static void processDoc(final HashMap<String, String> docMap, final String docContent, final String simpleClassName){
+	private static void processRubyDoc(final HashMap<String, String> docMap, final String docContent, final String simpleClassName){
+		final Matcher matcher = rubyStringMethodsList.matcher(docContent);
+		if (matcher.find()) {
+			final String method_i = "method-i-";
+			final String removeTail = "<div class=\"method-source-code\"";
+
+			final String match = matcher.group();
+			final Matcher itemMatcher = rubyStringMethodItem.matcher(match);
+			while(itemMatcher.find()){
+				final String locateID = itemMatcher.group(1);
+				final String fieldOrMethodName = itemMatcher.group(2);
+				
+				final String startStr = "<a name=\"" + locateID + "\"></a>";
+				final String endStr = "</div><!-- " + locateID.substring(method_i.length()) + "-method -->";
+				
+				final int cutStartIdx = docContent.indexOf(startStr) + startStr.length();
+				final int cutEndIdx = docContent.indexOf(removeTail, cutStartIdx);
+				final int cutMaxEndIdx = docContent.indexOf(endStr, cutStartIdx);
+				
+				final String doc = docContent.substring(cutStartIdx, cutMaxEndIdx<cutEndIdx?cutMaxEndIdx:cutEndIdx);
+//				System.out.println("\n\nruby method : " + fieldOrMethodName + "\n" + doc);
+				docMap.put(fieldOrMethodName, doc);
+			}
+		}
+	}
+	
+	private static void processDoc(final CodeHelper codeHelper, final String clasName, final HashMap<String, String> docMap, 
+			final String docContent, final String simpleClassName){
 		{
 			final Matcher matcher = classDescPattern.matcher(docContent);
 			if (matcher.find()) {
@@ -512,41 +550,79 @@ public class DocHelper {
 		{
 			final int constructorDocIdx = docContent.indexOf("<h3>Constructor Detail</h3>");
 			if(constructorDocIdx > 0){
-				processListBlock(docContent.substring(constructorDocIdx), docMap, true, simpleClassName);
+				processListBlock(codeHelper, clasName, docContent.substring(constructorDocIdx), docMap, true, simpleClassName);
 			}
 		}
 		
 		{
 			final int detailDocIdx = docContent.indexOf("<h3>Field Detail</h3>");
 			if(detailDocIdx > 0){
-				processListBlock(docContent.substring(detailDocIdx), docMap, false, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
+				processListBlock(codeHelper, clasName, docContent.substring(detailDocIdx), docMap, false, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
 			}
 		}
 		
 		{
 			final int detailDocIdx = docContent.indexOf("<h3>Method Detail</h3>");
 			if(detailDocIdx > 0){
-				processListBlock(docContent.substring(detailDocIdx), docMap, true, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
+				processListBlock(codeHelper, clasName, docContent.substring(detailDocIdx), docMap, true, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
 			}
 		}
 	}
 
-	private static void processListBlock(final String docContent, final HashMap<String, String> docMap, final boolean isForMethod,
-			final String simpleClassName) {
+	private static void processListBlock(final CodeHelper codeHelper, final String clasName, final String docContent, 
+			final HashMap<String, String> docMap, final boolean isForMethod, final String simpleClassName) {
 		{
 			final Matcher matcher = blockPattern.matcher(docContent);
 			while (matcher.find()) {
 				final String match = matcher.group(GROUP_IDX);
-				processItem(docMap, match, isForMethod, simpleClassName);
+				processItem(codeHelper, clasName, docMap, match, isForMethod, simpleClassName);
 				if(matcher.group().startsWith(blockListLast)){
 					return;
 				}
 			}
 		}
 	}
+	
+	/**
+	 * (int hello, boolean[] yes) => (hello, yes)
+	 * () => ()
+	 * @param method
+	 * @return
+	 */
+	private static String buildCodeParameterList(String parameter){
+		parameter = parameter.replaceAll(", [\\w\\[\\]]+ ", ", ");//method(int hello, boolean[] yes) => method(int, boolean yes)
+		parameter = parameter.replaceAll("\\([\\w\\[\\]]+ ", "(");//method(int, boolean yes) => method(int, boolean)//有可能boolean另起一行
+		parameter = parameter.replace(" ", "");//去掉多余空格
+		return parameter.replace(",", ", ");
+	}
+	
+	private static void replaceCodeParameter(final CodeHelper codeHelper, final String clasName, final String methodForDoc, 
+			final String codeParameterList){
+		ArrayList<CodeItem> list = codeHelper.classCacheMethodAndPropForClass.get(clasName);
+		 if(list != null && replaceCode(methodForDoc, codeParameterList, list)){
+			 return;
+		 }
+		 
+		 list = codeHelper.classCacheMethodAndPropForInstance.get(clasName);
+		 if(list != null){
+			 replaceCode(methodForDoc, codeParameterList, list);
+		 }
+	}
 
-	private static void processItem(final HashMap<String, String> docMap, final String item, final boolean isForMethod,
-			final String simpleClassName) {
+	private static boolean replaceCode(final String methodForDoc, final String codeParameterList, final ArrayList<CodeItem> list) {
+		final int size = list.size();
+		for (int i = 0; i < size; i++) {
+			final CodeItem item = list.get(i);
+			if(methodForDoc.equals(item.codeForDoc)){
+				item.code = item.fieldOrMethodOrClassName + codeParameterList;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static void processItem(final CodeHelper codeHelper, final String clasName, final HashMap<String, String> docMap, 
+			final String item, final boolean isForMethod, final String simpleClassName) {
 		final Matcher matchFieldOrMethodName = fieldOrMethodNamePattern.matcher(item);
 		if(matchFieldOrMethodName.find()){
 			String fieldOrMethodName = matchFieldOrMethodName.group(1);
@@ -564,6 +640,7 @@ public class DocHelper {
 			//将参数实名去掉
 			fieldOrMethodName = fieldOrMethodName.replace("&nbsp;", " ");
 			fieldOrMethodName = fieldOrMethodName.replace("\n", "");
+			fieldOrMethodName = douhaoSpaces.matcher(fieldOrMethodName).replaceAll(", ");//wait(int a,                long ms) => wait(int a, long ms)
 			
 			if(isForMethod){
 				if(isForMethod && simpleClassName != NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME){
@@ -572,6 +649,7 @@ public class DocHelper {
 				
 				final int kuohaoLeftIdx = fieldOrMethodName.indexOf("(");
 				String parameter = fieldOrMethodName.substring(kuohaoLeftIdx);
+				final String codeParameterList = buildCodeParameterList(parameter);
 				parameter = parameter.replaceAll(" \\w+,", ",");//method(int hello, boolean yes) => method(int, boolean yes)
 				parameter = parameter.replaceAll(" \\w+\\)", ")");//method(int, boolean yes) => method(int, boolean)//有可能boolean另起一行
 				parameter = parameter.replace(" ", "");
@@ -580,6 +658,8 @@ public class DocHelper {
 				final int nameStartIdx = frontPartWithName.lastIndexOf(' ') + 1;
 				
 				fieldOrMethodName = frontPartWithName.substring(nameStartIdx) + parameter;
+				
+				replaceCodeParameter(codeHelper, clasName, fieldOrMethodName, codeParameterList);
 			}else{
 				//去掉public final static...
 				fieldOrMethodName = fieldOrMethodName.substring(fieldOrMethodName.lastIndexOf(" ") + 1);
@@ -601,14 +681,18 @@ public class DocHelper {
 		}
 	}
 
-	private static void toCache(final String clasName, final String docContent) {
+	private static void toCache(final CodeHelper codeHelper, final boolean isRubyClass, final String clasName, final String docContent) {
 		final HashMap<String, String> docMap = new HashMap<String, String>();
 		if(docContent != null){
 			final int classIdx = clasName.lastIndexOf(".");
-			if(classIdx > 0){
-				processDoc(docMap, docContent, clasName.substring(classIdx + 1));
+			if(isRubyClass){
+				processRubyDoc(docMap, docContent, clasName.substring(classIdx + 1));
 			}else{
-				processDoc(docMap, docContent, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
+				if(classIdx > 0){
+					processDoc(codeHelper, clasName, docMap, docContent, clasName.substring(classIdx + 1));
+				}else{
+					processDoc(codeHelper, clasName, docMap, docContent, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
+				}
 			}
 		}
 		synchronized (cache) {
@@ -622,34 +706,39 @@ public class DocHelper {
 	 * @param clasName
 	 * @param isNeedShiftToBackground true:superAndInterface must process in background; false: current thread
 	 */
-	private static void processDoc(final Class c, final String clasName, final boolean isNeedShiftToBackground) {
+	private static void processDoc(final CodeHelper codeHelper, final Class c, final String clasName, 
+			final boolean isNeedShiftToBackground) {
 		if(cache.containsKey(clasName)){
 			return;
 		}
 		
-		processDocForOneLevel(clasName);
+		processDocForOneLevel(codeHelper, c, clasName);
+		
+		if(CodeHelper.isRubyClass(c)){
+			return;
+		}
 
 		if(isNeedShiftToBackground){
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-					processSuperAndInterfaces(c);
+					processSuperAndInterfaces(codeHelper, c);
 				}
 			});
 		}else{
-			processSuperAndInterfaces(c);
+			processSuperAndInterfaces(codeHelper, c);
 		}
 	}
 
-	private static void processSuperAndInterfaces(final Class c) {
+	private static void processSuperAndInterfaces(final CodeHelper codeHelper, final Class c) {
 		final Class superclass = c.getSuperclass();
 		if(superclass != null){
-			processDoc(superclass, superclass.getName(), false);
+			processDoc(codeHelper, superclass, superclass.getName(), false);
 		}
 		final Class[] interfaces = c.getInterfaces();
 		for (int i = 0; i < interfaces.length; i++) {
 			final Class claz = interfaces[i];
-			processDoc(claz, claz.getName(), false);
+			processDoc(codeHelper, claz, claz.getName(), false);
 		}
 	}
 

@@ -210,6 +210,10 @@ public class ClassUtil {
 		StringBuilderCacher.cycle(sb);
 	}
 
+	/**
+	 * 
+	 * @param lineInfo 行提示信息，不为null
+	 */
 	public static void printCurrentThreadStack(final String lineInfo){
 		printCurrentThreadStack(lineInfo, false);
 	}

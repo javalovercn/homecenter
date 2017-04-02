@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.Security;
@@ -42,6 +43,14 @@ import java.util.zip.ZipFile;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 
+import org.javassist.ClassClassPath;
+import org.javassist.ClassPool;
+import org.javassist.CtClass;
+import org.javassist.CtMethod;
+import org.javassist.bytecode.CodeAttribute;
+import org.javassist.bytecode.LocalVariableAttribute;
+import org.javassist.bytecode.MethodInfo;
+
 public class J2SEPlatformService implements PlatformService {
 	final File baseDir = new File(".");
 	
@@ -50,6 +59,60 @@ public class J2SEPlatformService implements PlatformService {
 		if(bizID == BIZ_BCL){
 			return "bcl.txt";
 		}
+		return null;
+	}
+	
+	ClassPool pool = new ClassPool();
+	
+	@Override
+	public void resetClassPool(){
+		pool = new ClassPool();
+	}
+	
+	/**
+	 * 返回一个方法参数的形参
+	 * @param method
+	 * @return
+	 */
+	@Override
+	public String[] getMethodCodeParameter(final Method method) {
+		try{
+			final Class clazz = method.getDeclaringClass();
+			final String methodName = method.getName();
+			final Class[] paraClasss = method.getParameterTypes();
+			
+			final String className = clazz.getName();
+			CtClass cc;
+			try{
+				cc = pool.get(className);
+			}catch (final Throwable e) {
+				pool.insertClassPath(new ClassClassPath(clazz));
+				cc = pool.get(className);
+			}
+
+			final CtClass[] paraCtClasss = new CtClass[paraClasss.length];
+			for (int i = 0; i < paraCtClasss.length; i++) {
+				paraCtClasss[i] = pool.get(paraClasss[i].getName());
+			}
+			final CtMethod cm = cc.getDeclaredMethod(methodName, paraCtClasss);
+			final MethodInfo methodInfo = cm.getMethodInfo();
+			final CodeAttribute codeAttribute = methodInfo.getCodeAttribute();
+			if(codeAttribute == null){
+				return null;
+			}
+			final LocalVariableAttribute attr = (LocalVariableAttribute) codeAttribute.getAttribute(LocalVariableAttribute.tag);
+	        if (attr == null) {
+	            return null;
+	        }
+	        final String[] paramNames = new String[cm.getParameterTypes().length];
+	        final int pos = Modifier.isStatic(cm.getModifiers()) ? 0 : 1;
+	        for (int i = 0; i < paramNames.length; i++)
+	        	paramNames[i] = attr.variableName(i + pos);
+	        return paramNames;
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}
+		
 		return null;
 	}
 	

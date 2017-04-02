@@ -3,7 +3,7 @@ package hc.server.util;
 import hc.server.ui.ProjectContext;
 
 /**
- * 
+ * The listener for receiving project or session events.
  * @see ProjectContext#addSystemEventListener(SystemEventListener)
  */
 public abstract class SystemEventListener {

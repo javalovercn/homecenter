@@ -92,20 +92,20 @@ public abstract class CtrlResponse {
 
 	/**
 	 * it is invoked when user click some key of remote controller.
-	 * @param key see {@link CtrlKey}
+	 * @param keyValue see {@link CtrlKey}
 	 * @since 6.98
 	 */
-	public abstract void click(int key);
+	public abstract void click(int keyValue);
 	
 	/**
 	 * set initial text for some key.<BR><BR>
 	 * this method is invoked by HomeCenter server to initialize the button text of controller.
 	 * <BR>If you don't want to set button text, please don't override this method or return null(or empty string) for <code>keyValue</code> in the implementation.
-	 * @param key see {@link CtrlKey}
+	 * @param keyValue see {@link CtrlKey}
 	 * @return the initial button text of key
 	 * @since 6.98
 	 */
-	public String getButtonInitText(final int key){
+	public String getButtonInitText(final int keyValue){
 		return null;
 	}
 	

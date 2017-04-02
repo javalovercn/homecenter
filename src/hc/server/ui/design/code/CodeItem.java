@@ -1,7 +1,5 @@
 package hc.server.ui.design.code;
 
-import hc.core.util.Stack;
-
 import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
 import java.lang.reflect.Modifier;
@@ -12,25 +10,32 @@ import java.util.Vector;
 import javax.swing.event.ChangeListener;
 
 public class CodeItem implements Comparable<CodeItem>{
-	private final static Stack free = new Stack(1024);
+//	private final static Stack free = new Stack(1024);
 	
 	public final static CodeItem getFree(){
-		final CodeItem out = (CodeItem)free.pop();
-		if(out != null){
-			return out;
-		}else{
-			return new CodeItem();
-		}
+		return new CodeItem();
+	}
+//	public final static CodeItem getFree(){
+//		final CodeItem out = (CodeItem)free.pop();
+//		if(out != null){
+//			return out;
+//		}else{
+//			return new CodeItem();
+//		}
+//	}
+	
+	public static void append(final ArrayList<CodeItem> target, final AbstractList<CodeItem> set){
+		target.addAll(set);
 	}
 	
-	public static void copy(final AbstractList<CodeItem> src, final ArrayList<CodeItem> target){
-		final int size = src.size();
-		for (int i = 0; i < size; i++) {
-			final CodeItem item = CodeItem.getFree();
-			item.copyFrom(src.get(i));
-			target.add(item);
-		}
-	}
+//	public static void copy(final AbstractList<CodeItem> src, final ArrayList<CodeItem> target){
+//		final int size = src.size();
+//		for (int i = 0; i < size; i++) {
+//			final CodeItem item = CodeItem.getFree();
+//			item.copyFrom(src.get(i));
+//			target.add(item);
+//		}
+//	}
 	
 	public CodeItem() {
 		reset(this);
@@ -54,18 +59,21 @@ public class CodeItem implements Comparable<CodeItem>{
 	}
 	
 	public final static void cycle(final Vector<CodeItem> vector){
-		final int size = vector.size();
-		for (int i = 0; i < size; i++) {
-			cycle(vector.elementAt(i));
-		}
 		vector.clear();
 	}
+//	public final static void cycle(final Vector<CodeItem> vector){
+//		final int size = vector.size();
+//		for (int i = 0; i < size; i++) {
+//			cycle(vector.elementAt(i));
+//		}
+//		vector.clear();
+//	}
 	
-	public final static void cycle(final CodeItem item){
-		reset(item);
-		
-		free.push(item);
-	}
+//	public final static void cycle(final CodeItem item){
+//		reset(item);
+//		
+//		free.push(item);
+//	}
 
 	private static void reset(final CodeItem item) {
 		item.type = 0;
@@ -85,6 +93,7 @@ public class CodeItem implements Comparable<CodeItem>{
 		item.userObject = null;
 		item.isInnerClass = false;
 		item.isDefed = false;
+		item.overrideMethodLevel = 0;
 	}
 	
 	public final boolean isOerrideable(){
@@ -111,6 +120,10 @@ public class CodeItem implements Comparable<CodeItem>{
 	public final static int AnonymousClassSize = AnonymousClass.length;
 	
 	public final void setAnonymouseClassType(final Class[] paras){
+		if(paras == null){
+			return;
+		}
+		
 		if(paras.length != 1){
 			return;
 		}
@@ -125,23 +138,24 @@ public class CodeItem implements Comparable<CodeItem>{
 		}
 	}
 	
-	public final void copyFrom(final CodeItem from){
-		type = from.type;
-		code = from.code;
-		codeForDoc = from.codeForDoc;
-		fmClass = from.fmClass;
-		codeDisplay = from.codeDisplay;
-		codeLowMatch = from.codeLowMatch;
-		fieldOrMethodOrClassName = from.fieldOrMethodOrClassName;
-		isPublic = from.isPublic;
-		modifiers = from.modifiers;
-		anonymousClass = from.anonymousClass;
-		isCSSProperty = from.isCSSProperty;
-		isCSSClass = from.isCSSClass;
-		userObject = from.userObject;
-		isInnerClass = from.isInnerClass;
-		isDefed = from.isDefed;
-	}
+//	public final void copyFrom(final CodeItem from){
+//		type = from.type;
+//		code = from.code;
+//		codeForDoc = from.codeForDoc;
+//		fmClass = from.fmClass;
+//		codeDisplay = from.codeDisplay;
+//		codeLowMatch = from.codeLowMatch;
+//		fieldOrMethodOrClassName = from.fieldOrMethodOrClassName;
+//		isPublic = from.isPublic;
+//		modifiers = from.modifiers;
+//		anonymousClass = from.anonymousClass;
+//		isCSSProperty = from.isCSSProperty;
+//		isCSSClass = from.isCSSClass;
+//		userObject = from.userObject;
+//		isInnerClass = from.isInnerClass;
+//		isDefed = from.isDefed;
+//		overrideMethodLevel = from.overrideLevel;
+//	}
 	
 	public int type;
 	public boolean isPublic;
@@ -160,12 +174,19 @@ public class CodeItem implements Comparable<CodeItem>{
 	public boolean isInnerClass;
 	public Object userObject;
 	public boolean isDefed;
+	public int overrideMethodLevel;//数字越大，居上(子类)
+	public CodeItem overrideMethodItem;
 	
 	@Override
 	public final int compareTo(final CodeItem o) {
-		final int result = this.type - o.type;
+		int result = this.type - o.type;
 		if(result == 0){
-			return this.codeLowMatch.compareTo(o.codeLowMatch);//可将bor/Border规在一块
+			result = codeLowMatch.compareTo(o.codeLowMatch);//可将bor/Border规在一块
+			if(result == 0){
+				return o.overrideMethodLevel - overrideMethodLevel;//子类居上
+			}else{
+				return result;
+			}
 		}else{
 			return result;
 		}
@@ -181,5 +202,32 @@ public class CodeItem implements Comparable<CodeItem>{
 			}
 		}
 		return findSameName;
+	}
+	
+	public final static boolean overrideMethod(final CodeItem item, final ArrayList<CodeItem> list) {
+		final int sizeList = list.size();
+		boolean findSameName = false;
+		for (int j = sizeList - 1; j >= 0; j--) {
+			final CodeItem codeItem = list.get(j);
+			if(item.isOverrideItem(codeItem)){
+//				item.overrideMethodLevel += (codeItem.overrideMethodLevel + 1);
+				item.overrideMethodItem = codeItem;
+				codeItem.pushDownOverrideMethod();
+				findSameName = true;
+				break;
+			}
+		}
+		return findSameName;
+	}
+
+	final boolean isOverrideItem(final CodeItem codeItem) {
+		return type == TYPE_METHOD && codeItem.type == TYPE_METHOD && codeItem.codeForDoc.equals(codeForDoc);
+	}
+	
+	public final void pushDownOverrideMethod(){
+		overrideMethodLevel--;
+		if(overrideMethodItem != null){
+			overrideMethodItem.pushDownOverrideMethod();
+		}
 	}
 }

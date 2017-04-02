@@ -11,23 +11,29 @@ import java.util.Iterator;
 import java.util.Vector;
 
 public class IoTNameMapper extends NameMapper{
+	boolean isFirstLoad = true;
+	
 	public IoTNameMapper(){
 		reloadMap();
 	}
 
 	@Override
 	public final void reloadMap() {
-		searchBindIDFromDevice.clear();
-		bind2RealDeviceBindInfo.clear();
-		bind2ConverterBindInfo.clear();
-		bind2ReferID.clear();
-
-		final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(true);
-		while(it.hasNext()){
-			final LinkProjectStore lps = it.next();
-			if(lps.isActive()){
-				appendBindToNameSet(lps);
+		if(isFirstLoad){
+			isFirstLoad = false;
+			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(true);
+			while(it.hasNext()){
+				final LinkProjectStore lps = it.next();
+				if(lps.isActive()){
+					appendBindToNameSet(lps);
+				}
 			}
+		}else{
+			final IoTNameMapper newMap = new IoTNameMapper();
+			searchBindIDFromDevice = newMap.searchBindIDFromDevice;
+			bind2RealDeviceBindInfo = newMap.bind2RealDeviceBindInfo;
+			bind2ConverterBindInfo = newMap.bind2ConverterBindInfo;
+			bind2ReferID = newMap.bind2ReferID;
 		}
 	}
 
