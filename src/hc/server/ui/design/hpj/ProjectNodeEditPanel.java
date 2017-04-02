@@ -9,6 +9,7 @@ import hc.core.util.HarInfoForJSON;
 import hc.core.util.RootBuilder;
 import hc.server.HCActionListener;
 import hc.server.ui.ServerUIUtil;
+import hc.server.ui.design.Designer;
 import hc.server.ui.design.HCPermissionConstant;
 import hc.server.ui.design.I18nTitlesEditor;
 import hc.server.util.ContextSecurityConfig;
@@ -329,15 +330,16 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 					urlPanel.add(testHADBtn);
 					
 					upgradePanel.add(urlPanel, BorderLayout.NORTH);
+					final String upgradeURL = "Upgrade URL";
 					upgradePanel.add(new JLabel("<html>the auto upgrade URL of new version of current project. if no upgrade, please keep blank." +
 							"<br><br>for example, <strong>http://example.com/dir_or_virtual/tv.had</strong> , <strong>NOTE:</strong> it is <strong>had</strong> file, not <strong>har</strong> file." +
 							"<br>please put both <strong>tv.har</strong>, <strong>tv.had</strong> in directory <strong>dir_or_virtual</strong> for download." +
 							"<br><br><strong>had</strong> file provides version information which is used to determine upgrade or not." +
-							"<br>click <strong>Save as</strong> button, <strong>had</strong> file is automatically created with <strong>har</strong> file if URL is not blank." +
+							"<br>click <strong>" + Designer.SAVE_AS_TEXT + "</strong> button, <strong>had</strong> file is automatically created with <strong>har</strong> if <strong>" + upgradeURL + "</strong> is not blank." +
 							"<br><br>for more about server, see user-agent of HTTP/HTTPS request log." +
 							"</html>"),
 							BorderLayout.CENTER);
-					upgradePanel.setBorder(new TitledBorder("Upgrade URL"));
+					upgradePanel.setBorder(new TitledBorder(upgradeURL));
 				}
 				c.gridy = idxGridY++;
 				composeAndVer.add(upgradePanel, c);

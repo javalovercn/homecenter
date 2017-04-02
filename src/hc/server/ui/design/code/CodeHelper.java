@@ -3051,36 +3051,39 @@ public class CodeHelper {
 		try{
 			final int line = ScriptEditPanel.getLineOfOffset(cssDocument, scriptIdx);
 	        final int editLineStartIdx = ScriptEditPanel.getLineStartOffset(cssDocument, line);
-	        final int lineIdx = scriptIdx - editLineStartIdx;
-	        final int lineEndOffset = ScriptEditPanel.getLineEndOffset(cssDocument, line);
+	        final int codeLen = scriptIdx - editLineStartIdx;
 	        
-			final char[] lineChars = cssDocument.getText(editLineStartIdx, lineEndOffset - editLineStartIdx).toCharArray();
+			final char[] lineChars = cssDocument.getText(editLineStartIdx, codeLen).toCharArray();
 			
-			for (int i = lineIdx; i >= 0; i--) {
+			for (int i = codeLen - 1; i >= 0; i--) {
 				final char oneChar = lineChars[i];
-				if(oneChar == ';' || oneChar == '{'){
-					preCode = String.valueOf(lineChars, i, lineIdx);
-					break;
+				if(oneChar == ';' || oneChar == '{' || oneChar == ' ' || oneChar == '\t'){
+					if(preCode == null){
+						final int off = i + 1;
+						preCode = String.valueOf(lineChars, off, codeLen - off);
+					}
+					if(oneChar == ';' || oneChar == '{'){
+						break;
+					}
 				}
-				if(oneChar == ':'){
+				if(oneChar == ':'){//值区，只能输入变量
+					preCode = null;//无效
 					break;
 				}
 			}
 			
-			if(preCode == null){
-				if(lineChars[0] == ' ' || lineChars[0] == '\t'){
-					preCode = String.valueOf(lineChars, 0, lineIdx);
-				}
+			if(lineChars.length == 0){//行首时
+				preCode = "";
+			}
+			
+			if(preCode != null){
+				inputPropertyForCSSInCSSEditor(preCodeType, preCode.trim(), textPane, fontHeight, scriptIdx);
+			}else{
+				inputVariableForCSSInCSSEditor(preCodeType, textPane, caretPosition, fontHeight, scriptIdx);
 			}
 		}catch (final Throwable e) {
 			e.printStackTrace();
 			return;
-		}
-
-		if(preCode != null){
-			inputPropertyForCSSInCSSEditor(preCodeType, preCode.trim(), textPane, fontHeight, scriptIdx);
-		}else{
-			inputVariableForCSSInCSSEditor(preCodeType, textPane, caretPosition, fontHeight, scriptIdx);
 		}
 	}
 	

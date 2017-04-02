@@ -270,8 +270,8 @@ public class TypeWizard {
 		{
 			final JPanel subPanel = new JPanel();
 			subPanel.setLayout(new GridLayout(1, 2, 5, 5));
-			subPanel.add(ok);
 			subPanel.add(cancel);
+			subPanel.add(ok);
 			container.add(subPanel, new GridBagConstraints(0, 2, 1, 1, 0.0,
 					0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
 					insets, 0, 0));			
@@ -402,8 +402,8 @@ public class TypeWizard {
 		{
 			final JPanel subPanel = new JPanel();
 			subPanel.setLayout(new GridLayout(1, 2, 5, 5));
-			subPanel.add(ok);
 			subPanel.add(cancel);
+			subPanel.add(ok);
 			container.add(subPanel, new GridBagConstraints(0, 2, 1, 1, 0.0,
 					0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
 					insets, 0, 0));			

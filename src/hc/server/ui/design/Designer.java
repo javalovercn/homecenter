@@ -149,7 +149,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 
 	public static final String ACTIVE = "Activate";
 	public static final String DEACTIVE = "Deactivate";
-	private static final String SAVE_AS_TEXT = "Save as";
+	public static final String SAVE_AS_TEXT = "Save As";
 	
 	private static final String HC_RES_MY_FIRST_HAR = "hc/res/MyFirst.har";
 
