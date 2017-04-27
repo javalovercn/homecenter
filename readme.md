@@ -1,5 +1,5 @@
 ### Sample
-![screenshot](https://homecenter.mobi/images/sc_mlet.png)
+![screenshot](http://homecenter.mobi/images/sc_mlet.png)
 
 to implement above UI functionality for Android, iPhone, and J2ME mobile,
 
@@ -192,21 +192,21 @@ global CSS for current project :
 6. to print server log to console, please keep [options/Developer/Logger] unchecked in options of server
 7. please keep the source code for the latest version, otherwise it may causes abnormal connections with mobile.
 8. there is a demo HAR project (NOT "MyFirst" project) in designer on server, covers 80% of JRuby syntax and 90% of functions of HomeCenter server.
-9. for API, please press alt+/ in designer or go https://homecenter.mobi/download/javadoc/index.html
+9. for API, please press alt+/ in designer or go http://homecenter.mobi/download/javadoc/index.html
 10. any question, please open issues https://github.com/javalovercn/homecenter/issues or Email : help at homecenter.mobi
-11. for binary server of Android or other, download from https://homecenter.mobi/en/pc/downloads.htm
+11. for binary server of Android or other, download from http://homecenter.mobi/en/pc/downloads.htm
 12. these two files (starter.jar and hc.pem) in binary distributed zip file (NOT in source files), are used to check new version, download binary jar of these source files, verify and start up HomeCenter server.
 
 ***
 
-![splash](https://homecenter.mobi/images/splash_n_txt.png)
+![splash](http://homecenter.mobi/images/splash_n_txt.png)
 
 ***
 
-![screenshot](https://homecenter.mobi/images/sc6.png)
-![screenshot](https://homecenter.mobi/images/sc8.png)
-![screenshot](https://homecenter.mobi/images/sc7.png)
+![screenshot](http://homecenter.mobi/images/sc6.png)
+![screenshot](http://homecenter.mobi/images/sc8.png)
+![screenshot](http://homecenter.mobi/images/sc7.png)
 
 ***
 
-![designer](https://homecenter.mobi/images/usage/pc_designer.png)
+![designer](http://homecenter.mobi/images/usage/pc_designer.png)
