@@ -758,7 +758,7 @@ class DocTipTimer extends HCTimer{
 		synchronized (this) {//与hide互斥
 			if(isEnable()){//重新检查条件，必须的
 				if(type == CodeItem.TYPE_CLASS){
-					final Class c = ResourceUtil.loadClass(fieldOrMethodName, true);
+					final Class c = ResourceUtil.loadClass(fieldOrMethodName, L.isInWorkshop);
 					if(c != null){
 						CodeHelper.buildForClass(docHelper.codeHelper, null, c);
 					}
