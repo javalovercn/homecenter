@@ -4,10 +4,10 @@ import javax.swing.JProgressBar;
 
 public class JProgressBarDiff extends JComponentDiff{
 	@Override
-	public void diff(final int hcCode, Object src, DifferTodo todo) {
+	public void diff(final int hcCode, final Object src, final DifferTodo todo) {
 		super.diff(hcCode, src, todo);
 		
-		JProgressBar progressBar = (JProgressBar)src;
+		final JProgressBar progressBar = (JProgressBar)src;
 		
 		{
 			todo.notifyModifyProgressBarValue(hcCode, progressBar);

@@ -163,7 +163,7 @@ global CSS for current project :
 
 ***
 ### Demo Account
-1. download mobile App from https://github.com/javalovercn/client
+1. download client mobile App from https://github.com/javalovercn/client
 2. account : 012345
 3. password : 012345
 
@@ -171,24 +171,26 @@ global CSS for current project :
 ### Main Features of server
 
 1. HomeCenter server runs not only on Oracle/OpenJDK JDK/JRE, but also Android, because there is a library ["J2SE for Android"](https://github.com/javalovercn/j2se_for_android).
-2. just double-click to run, no configuration.
-3. scan QRcode from mobile to download and load HAR (home archive) project on server, plug and play, not required to restart server.
+2. double click to run, no configuration.
+3. scan QRcode from mobile to download and load HAR (home archive) project on server, plug and play, it is not required to restart server.
 4. focus your business and UI with Java J2SE technology, the rest of work are ours.
 5. the component HTMLMlet (the sample above) will be translated to HTML5+JavaScript+CSS for Android/iPhone mobile client on air.
-6. the designer on server is integrated with Java API Doc and is also an IDE for JRuby, hint of code and resource file(in user jar) will be auto completion.
-7. stratify IoT, Robot+Converter+Device, provides powerful device adaptability and data format conversion.
-8. HAR project is self-signed and be upgraded automatically if the newer on web.
-9. exception is automatically reported to your Email or website if end user enable reports exception.
-10. build-in SecurityManager lets project runs in a optional, security, limited computing and networking environment.
+6. build-in HSQLDB database.
+7. voice command API to drive IoT.
+8. the designer on server is integrated with Java API Doc and is also an IDE for JRuby, hint of code and resource file(in user jar) will be auto completion.
+9. stratify IoT, Robot+Converter+Device, provides powerful device adaptability and data format conversion.
+10. HAR project is self-signed and be upgraded automatically if the newer on web.
+11. exception is automatically reported to your Email or website if end user enable reports exception.
+12. build-in SecurityManager lets project runs in a optional, security, limited computing and networking environment.
 
 ***
 ### How to use source
 
 1. these source files are HomeCenter Application Server, which is on server side, NOT client for mobile.
-2. JRE/JDK 7 or above is required.
+2. JRE/JDK 7 is required, NOT Java 8 or above.
 3. main class : hc.App
 4. VM arguments for main class : -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
-5. set [Compiler compliance level] of Eclipse to 1.7 or upper
+5. set [Compiler compliance level] of Eclipse to 1.7
 6. to print server log to console, please keep [options/Developer/Logger] unchecked in options of server
 7. please keep the source code for the latest version, otherwise it may causes abnormal connections with mobile.
 8. there is a demo HAR project (NOT "MyFirst" project) in designer on server, covers 80% of JRuby syntax and 90% of functions of HomeCenter server.

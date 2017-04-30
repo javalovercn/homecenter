@@ -15,6 +15,10 @@ import hc.server.ui.SimuMobile;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
 import hc.server.util.Assistant;
+import hc.server.util.ai.AIObjectCache;
+import hc.server.util.ai.AIPersistentManager;
+import hc.server.util.ai.RobotEventData;
+import hc.util.ResourceUtil;
 
 import java.util.ArrayList;
 
@@ -91,15 +95,16 @@ public abstract class Robot extends Processor{
 	 * operate the {@link Robot} to do some business from caller, 
 	 * <BR><BR>
 	 * for example, adjust the temperature to 28℃, then the <code>parameter</code> is integer object with value 28, and <code>functionID</code> may be 1.
-	 * <br><br>the method is the only way to operate {@link Robot} to drive {@link Device} for {@link CtrlResponse}, {@link HTMLMlet}/{@link Mlet}, {@link Dialog}, 
-	 * <BR>to get {@link Robot} instance, call {@link ProjectContext#getRobot(String)}.
+	 * <br><br>the method is the only way to operate {@link Robot} to drive {@link Device} from UI, such as {@link CtrlResponse}, {@link HTMLMlet}/{@link Mlet}, {@link Dialog}, {@link Assistant}.
+	 * <BR><BR>to get {@link Robot} instance, invoke {@link ProjectContext#getRobot(String)}.
 	 * <br><br>
 	 * <STRONG>Important</STRONG> : <BR>
 	 * this method must be able to be executed in session level and project level.<BR>
 	 * @param functionID
-	 * @param parameter it can NOT be a {@link Message}. 
-	 * <BR>it is recommended to use the primitive types and their corresponding object wrapper classes and {@link AnalysableRobotParameter} to help server for {@link Assistant}.
-	 * @return object exclude {@link Message}. <BR>it is recommended to use the primitive types and their corresponding object wrapper classes and {@link AnalysableRobotParameter}.
+	 * @param parameter it can NOT be a {@link Message}. it is recommended to use the primitive types and their corresponding object wrapper classes and {@link AnalysableRobotParameter} to help server for {@link Assistant}.<BR>
+	 * <BR>NOTE : <BR>
+	 * the instance of {@link AnalysableRobotParameter} is <STRONG>NOT</STRONG> recyclable, because server will analyst it background.
+	 * @return it can NOT be a {@link Message}. <BR>it is recommended to use the primitive types and their corresponding object wrapper classes and {@link AnalysableRobotParameter}.
 	 * @see ProjectContext#isCurrentThreadInSessionLevel()
 	 * @since 7.0
 	 */
@@ -290,6 +295,9 @@ public abstract class Robot extends Processor{
 	
 	/**
 	 * build a {@link RobotEvent} instance.
+	 * <BR><BR>
+	 * <STRONG>Note :</STRONG><BR>
+	 * it is recyclable, please don't keep any reference of it in {@link Robot} or {@link RobotListener}.
 	 * @param propertyName the property name of event.
 	 * @param oldValue the old value of property of current event. Maybe null.
 	 * @param newValue the new value of property of current event. Maybe null.
@@ -301,7 +309,7 @@ public abstract class Robot extends Processor{
 	 */
 	protected RobotEvent buildRobotEvent(final String propertyName, final Object oldValue, final Object newValue){
 		final RobotEvent re = RobotEventPool.instance.getFreeRobotEvent();
-		re.source = robotWrapper;
+		re.sourceWrapper = robotWrapper;
 		
 		re.propertyName = propertyName;
 		re.oldValue = oldValue;
@@ -346,7 +354,17 @@ public abstract class Robot extends Processor{
 		
 		J2SESessionManager.dispatchRobotEventSynchronized(resp, this, event, sessionArrayForEventDispatch);
 		
-		RobotEventPool.instance.recycle(event);
+		if(AIPersistentManager.isEnableAnalyseFlow && AIPersistentManager.isEnableHCAI()
+				&& ResourceUtil.isAnalysableParameter(event.newValue)
+				&& ResourceUtil.isAnalysableParameter(event.oldValue)){
+			final RobotEventData eventData = AIObjectCache.getRobotEventData();
+			eventData.newValue = event.newValue;
+			eventData.oldValue = event.oldValue;
+			eventData.robotWrapper = event.sourceWrapper;
+			AIPersistentManager.processRobotEventAndRecycle(eventData);
+		}
+
+		MSBAgent.recycle(event);
 	}
 	
 	final MutableArray sessionArrayForEventDispatch = new MutableArray(0);

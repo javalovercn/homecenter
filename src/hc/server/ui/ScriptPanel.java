@@ -2,6 +2,7 @@ package hc.server.ui;
 
 import hc.core.util.JSCore;
 import hc.core.util.LogManager;
+import hc.server.util.ai.AIPersistentManager;
 
 import java.util.Vector;
 
@@ -95,6 +96,7 @@ public class ScriptPanel extends JPanel {
 	SizeHeightForXML sizeHeightForXML;
 	Mlet mlet;
 	Vector<String> scriptToDeliver;
+	ProjectContext context;
 	Vector<String> jsToDeliver;
 	String innerHTMLToDeliver;
 	final Object lock;
@@ -228,6 +230,14 @@ public class ScriptPanel extends JPanel {
 				}
 				jsToDeliver.add(script);
 			}
+		}
+		
+		if(AIPersistentManager.isEnableForSomeComponent && AIPersistentManager.isEnableHCAI()){
+			if(context == null){
+				context = ProjectContext.getProjectContext();
+			}
+			
+			AIPersistentManager.processDiffNotify(false, null, this, context, AIPersistentManager.EXEC_SCRIPT, AIPersistentManager.EMPTY_DIFF_TEXT);
 		}
 	}
 	

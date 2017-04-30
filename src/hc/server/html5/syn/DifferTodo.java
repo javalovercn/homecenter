@@ -20,10 +20,12 @@ import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.server.util.CacheComparator;
+import hc.server.util.ai.AIPersistentManager;
 import hc.util.JSUtil;
 import hc.util.PropertiesManager;
 import hc.util.StringBuilderCacher;
 
+import java.awt.Component;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
@@ -49,6 +51,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JSlider;
 import javax.swing.JToggleButton;
@@ -141,7 +144,7 @@ public class DifferTodo {
 	public DifferTodo(final J2SESession coreSS, final String elementID, final HTMLMlet mlet) {
 		this.coreSS = coreSS;
 		this.mlet = mlet;
-		projectContext = mlet.getProjectContext();
+		projectContext = ServerUIAPIAgent.getProjectContextFromMlet(mlet);
 		resp = ServerUIAPIAgent.getProjResponserMaybeNull(projectContext);
 		
 		this.elementIDBS = ByteUtil.getBytes(elementID, IConstant.UTF_8);
@@ -188,17 +191,17 @@ public class DifferTodo {
 			LogManager.log("sendStringJSOrCache : " + script);
 		}
 		
-		final byte[] scriptBS = ByteUtil.getBytes(script, IConstant.UTF_8);
+		final byte[] noCycleBS = ByteUtil.getBytes(script, IConstant.UTF_8);
 		
-		sendBytesJSOrCache(scriptBS, needGzip, enableCache);
+		sendBytesJSOrCache(noCycleBS, needGzip, enableCache);
 	}
 
-	private final void sendBytesJSOrCache(final byte[] scriptBS, final boolean needGzip, final boolean enableCache) {
-		if(enableCache && CacheManager.isMeetCacheLength(scriptBS.length)){
-			final Object[] paras = {scriptBS, needGzip};
-			jsCacheComparer.encodeGetCompare(coreSS, true, scriptBS, 0, scriptBS.length, paras);
+	private final void sendBytesJSOrCache(final byte[] noCycleBS, final boolean needGzip, final boolean enableCache) {
+		if(enableCache && CacheManager.isMeetCacheLength(noCycleBS.length)){
+			final Object[] paras = {noCycleBS, needGzip};
+			jsCacheComparer.encodeGetCompare(coreSS, true, noCycleBS, 0, noCycleBS.length, paras);
 		}else{
-			sendJSBytes(scriptBS, 0, scriptBS.length, needGzip, false);//注意：不需要通知进行cache
+			sendJSBytes(noCycleBS, 0, noCycleBS.length, needGzip, false);//注意：不需要通知进行cache
 		}
 	}
 
@@ -212,13 +215,13 @@ public class DifferTodo {
 	/**
 	 * 使用数据缓存进行数据传输前处理。
 	 * 注意：由于本方法被多处引用，所以加锁
-	 * @param bs
+	 * @param noCycleBS
 	 * @param index
 	 * @param len
 	 * @param needGzip
 	 * @param needCache
 	 */
-	private synchronized final void sendJSBytes(final byte[] bs, final int index, final int len, final boolean needGzip, final boolean needCache){
+	private synchronized final void sendJSBytes(final byte[] noCycleBS, final int index, final int len, final boolean needGzip, final boolean needCache){
 //		if(needGzip){
 //			try{
 //				bs = GzipUtil.compress(bs, index, len);
@@ -242,7 +245,7 @@ public class DifferTodo {
 		todoBs[isGizIdx] = (needGzip?isNeedGzip:isNotNeedGzip);
 		todoBs[isNeedCacheIdx] = (needCache?isNeedCache:isNotNeedCache);
 		
-		System.arraycopy(bs, index, todoBs, scriptIndex, len);
+		System.arraycopy(noCycleBS, index, todoBs, scriptIndex, len);
 		
 		fastSender.sendWrapAction(MsgBuilder.E_BIG_MSG_JS_TO_MOBILE, todoBs, 0, len + scriptIndex);
 		
@@ -290,14 +293,14 @@ public class DifferTodo {
 		final int cssBSLen = cssBS.length;
 		
 		final int maxLen = BS_LOAD_STYLE.length + cssBSLen + BS_LOAD_STYLE_END.length;
-		final byte[] cycleBS = new byte[maxLen];
+		final byte[] noCycleBS = new byte[maxLen];
 		
 		//转调为window.hcj2se.loadStyles
-		System.arraycopy(BS_LOAD_STYLE, 0, cycleBS, 0, BS_LOAD_STYLE.length);
-		System.arraycopy(cssBS, 0, cycleBS, BS_LOAD_STYLE.length, cssBSLen);
-		System.arraycopy(BS_LOAD_STYLE_END, 0, cycleBS, BS_LOAD_STYLE.length + cssBSLen, BS_LOAD_STYLE_END.length);
+		System.arraycopy(BS_LOAD_STYLE, 0, noCycleBS, 0, BS_LOAD_STYLE.length);
+		System.arraycopy(cssBS, 0, noCycleBS, BS_LOAD_STYLE.length, cssBSLen);
+		System.arraycopy(BS_LOAD_STYLE_END, 0, noCycleBS, BS_LOAD_STYLE.length + cssBSLen, BS_LOAD_STYLE_END.length);
 		
-		sendBytesJSOrCache(cycleBS, needGzip, true);
+		sendBytesJSOrCache(noCycleBS, needGzip, true);
 	}
 	
 	static final Pattern yinHaoPattern = Pattern.compile("\"", Pattern.LITERAL);
@@ -317,14 +320,14 @@ public class DifferTodo {
 		final byte[] jsBS = ByteUtil.getBytes(js, IConstant.UTF_8);
 		
 		final int maxLen = BS_LOAD_JS.length + jsBS.length + BS_LOAD_JS_END.length;
-		final byte[] cycleBS = new byte[maxLen];
+		final byte[] noCycleBS = new byte[maxLen];
 		
 		//转调为window.hcj2se.loadJS
-		System.arraycopy(BS_LOAD_JS, 0, cycleBS, 0, BS_LOAD_JS.length);
-		System.arraycopy(jsBS, 0, cycleBS, BS_LOAD_JS.length, jsBS.length);
-		System.arraycopy(BS_LOAD_JS_END, 0, cycleBS, BS_LOAD_JS.length + jsBS.length, BS_LOAD_JS_END.length);
+		System.arraycopy(BS_LOAD_JS, 0, noCycleBS, 0, BS_LOAD_JS.length);
+		System.arraycopy(jsBS, 0, noCycleBS, BS_LOAD_JS.length, jsBS.length);
+		System.arraycopy(BS_LOAD_JS_END, 0, noCycleBS, BS_LOAD_JS.length + jsBS.length, BS_LOAD_JS_END.length);
 		
-		sendBytesJSOrCache(cycleBS, needGzip, true);
+		sendBytesJSOrCache(noCycleBS, needGzip, true);
 	}
 
 	private static final int GZIP_MIN_SIZE = 1024 * 100;
@@ -337,6 +340,32 @@ public class DifferTodo {
 	public final void executeJSWithoutCache(final String script){
 		final boolean needGzip = ((script.length()>GZIP_MIN_SIZE)?true:false);
 		sendStringJSOrCache(script, needGzip, false);
+	}
+	
+	public final Component searchComponentByHcCode(final int hcCode){//in user thread
+		return searchComponentByHcCode(mlet, hcCode);
+	}
+	
+	public final Component searchComponentByHcCode(final JPanel panel, final int hcCode){//in user thread
+		if(buildHcCode(panel) == hcCode){
+			return panel;
+		}
+		
+		final int compCount = panel.getComponentCount();
+		for (int i = 0; i < compCount; i++) {
+			final Component comp = panel.getComponent(i);
+			if(comp instanceof JPanel){
+				final Component result = searchComponentByHcCode((JPanel)comp, hcCode);
+				if(result != null){
+					return result;
+				}
+			}else{
+				if(buildHcCode(comp) == hcCode){
+					return comp;
+				}
+			}
+		}
+		return null;
 	}
 	
 	public final void notifyInitDone(){
@@ -529,23 +558,28 @@ public class DifferTodo {
 	}
 	
 	public final void notifyModifyAbstractButtonText(final Object src){
-		final String value = ((AbstractButton)src).getText();
+		final AbstractButton absButton = (AbstractButton)src;
+		final String value = absButton.getText();
 		final int hcCode = buildHcCode(src);
 		
 		if(src instanceof JToggleButton){//jcheckbox, jradiobutton
-			notifyModifyCheckboxText(hcCode, value);
+			notifyModifyCheckboxText(absButton, hcCode, value);
 		}else{
-			notifyModifyButtonText(hcCode, value);
+			notifyModifyButtonText(absButton, hcCode, value);
 		}
 	}
 	
-	private final void notifyModifyButtonText(final int hashID, final String text){
+	private final void notifyModifyButtonText(final AbstractButton absButton, final int hashID, final String text){
 //		var text = document.getElementById(button_id).firstChild;
 //		text.data = text.data == "Lock" ? "Unlock" : "Lock";
 //		<button> www.w3school.com.cn/tags/tag_button.asp
 		final StringBuilder sb;
 		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setButtonText(" ).append( hashID ).append( ",\"" ).append( text ).append( "\");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
+		
+		if(AIPersistentManager.isEnableForSomeComponent && AIPersistentManager.isEnableHCAI()){
+			AIPersistentManager.processDiffNotify(false, coreSS, absButton, this.projectContext, AIPersistentManager.setButtonText, text);
+		}
 	}
 	
 	/**
@@ -553,10 +587,14 @@ public class DifferTodo {
 	 * @param hashID
 	 * @param text
 	 */
-	private final void notifyModifyCheckboxText(final int hashID, final String text){
+	private final void notifyModifyCheckboxText(final AbstractButton absButton, final int hashID, final String text){
 		final StringBuilder sb;
 		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setCheckboxText(" ).append( hashID ).append( ",\"" ).append( text ).append( "\");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
+		
+		if(AIPersistentManager.isEnableForSomeComponent && AIPersistentManager.isEnableHCAI()){
+			AIPersistentManager.processDiffNotify(false, coreSS, absButton, this.projectContext, AIPersistentManager.setCheckboxText, text);
+		}
 	}
 	
 	public final void notifyModifySliderValue(final int hashID, final JSlider slider){
@@ -564,6 +602,10 @@ public class DifferTodo {
 		final StringBuilder sb;
 		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.changeSliderValue(" ).append( hashID ).append( "," ).append( brm.getMinimum() ).append( "," ).append( brm.getMaximum() ).append( "," ).append( brm.getValue() ).append( ");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
+		
+		if(AIPersistentManager.isEnableForSomeComponent && AIPersistentManager.isEnableHCAI()){
+			AIPersistentManager.processDiffNotify(false, coreSS, slider, this.projectContext, AIPersistentManager.changeSliderValue, String.valueOf(brm.getValue()));
+		}
 	}
 	
 	public final void notifyModifyProgressBarValue(final int hashID, final JProgressBar progressBar){//in user thread
@@ -578,6 +620,10 @@ public class DifferTodo {
 		sb.append("window.hcj2se.setProgressBarValue(").append(hashID).append(",").append(value).append(",\"").append(text).append("\");");
 		sendStringJSOrCache(sb.toString(), false, false);		
 		StringBuilderCacher.cycle(sb);
+		
+		if(AIPersistentManager.isEnableForSomeComponent && AIPersistentManager.isEnableHCAI()){
+			AIPersistentManager.processDiffNotify(false, coreSS, progressBar, this.projectContext, AIPersistentManager.setProgressBarValue, text + "/" + String.valueOf(value));
+		}
 	}
 
 	public final void changeComboBoxModel(final int hashID, final JComboBox jcomp){
@@ -588,18 +634,26 @@ public class DifferTodo {
 		StringBuilderCacher.cycle(sb);
 	}
 	
-	public final void changeComboBoxSelected(final int hashID, final int selected){
+	public final void changeComboBoxSelected(final JComboBox jcombobox, final int hashID, final int selected){
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		sb.append("window.hcj2se.changeComboBoxSelected(").append(hashID).append(",").append(selected).append(");");
 		sendStringJSOrCache(sb.toString(), false, false);
 		StringBuilderCacher.cycle(sb);
+		
+		if(AIPersistentManager.isEnableForSomeComponent && AIPersistentManager.isEnableHCAI()){
+			AIPersistentManager.processDiffNotify(false, coreSS, jcombobox, this.projectContext, AIPersistentManager.changeComboBoxSelected, String.valueOf(selected));
+		}
 	}
 	
-	public final void notifyModifyLabelText(final int hashID, final String text){
+	public final void notifyModifyLabelText(final JLabel label, final int hashID, final String text){
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		sb.append("window.hcj2se.setLabelText(").append(hashID).append(",\"").append(text).append("\");");
 		sendStringJSOrCache(sb.toString(), false, false);
 		StringBuilderCacher.cycle(sb);
+		
+		if(AIPersistentManager.isEnableHCAI()){
+			AIPersistentManager.processDiffNotify(true, coreSS, label, this.projectContext, AIPersistentManager.setLabelText, text);
+		}
 	}
 	
 	protected final HCByteArrayOutputStream byteArrayOutputStream = new HCByteArrayOutputStream();
@@ -753,16 +807,24 @@ public class DifferTodo {
 		StringBuilderCacher.cycle(sb);
 	}
 	
-	public final void notifyModifyTextComponentText(final int hashID, final String text){
+	public final void notifyModifyTextComponentText(final JTextComponent textComp, final int hashID, final String text){
 		final StringBuilder sb;
 		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setTextComponentText(" ).append( hashID ).append( ",\"" ).append( text ).append( "\");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
+		
+		if(AIPersistentManager.isEnableForSomeComponent && AIPersistentManager.isEnableHCAI()){
+			AIPersistentManager.processDiffNotify(false, coreSS, textComp, this.projectContext, AIPersistentManager.setTextComponentText, text);
+		}
 	}
 	
-	public final void notifyModifyTextAreaText(final int hashID, final String text){
+	public final void notifyModifyTextAreaText(final JTextComponent textComp, final int hashID, final String text){
 		final StringBuilder sb;
 		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setTextAreaText(" ).append( hashID ).append( ",\"" ).append( text ).append( "\");").toString(), false, false);
 		StringBuilderCacher.cycle(sb);
+		
+		if(AIPersistentManager.isEnableForSomeComponent && AIPersistentManager.isEnableHCAI()){
+			AIPersistentManager.processDiffNotify(false, coreSS, textComp, this.projectContext, AIPersistentManager.setTextAreaText, text);
+		}
 	}
 	
 	public final void addEventListener(final int index, final JComponent addedComponent){
@@ -813,7 +875,8 @@ public class DifferTodo {
 						if(addedComponent instanceof AbstractButton){
 							notifyModifyAbstractButtonText(addedComponent);
 						}else if(addedComponent instanceof JLabel){
-							notifyModifyLabelText(phcCode, ((JLabel)addedComponent).getText());
+							final JLabel label = (JLabel)addedComponent;
+							notifyModifyLabelText(label, phcCode, label.getText());
 						}
 					}else if(propertyName.equals(AbstractButton.ICON_CHANGED_PROPERTY)){
 						notifyModifyIcon(hashCode, (Icon)newValue);
@@ -870,7 +933,7 @@ public class DifferTodo {
 				public void itemStateChanged(final ItemEvent e) {
 					if (e.getStateChange() == ItemEvent.SELECTED) {
 						final int hashID = DifferTodo.this.buildHcCode(addedComponent);
-						changeComboBoxSelected(hashID, jcombobox.getSelectedIndex());
+						changeComboBoxSelected(jcombobox, hashID, jcombobox.getSelectedIndex());
 					}
 				}
 			});

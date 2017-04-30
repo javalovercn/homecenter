@@ -1,12 +1,15 @@
 package hc.server.ui;
 
-import hc.core.L;
 import hc.core.util.ILog;
 import hc.core.util.Jcip;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.server.ScreenServer;
 import hc.server.ui.design.J2SESession;
+import hc.server.util.ai.AIObjectCache;
+import hc.server.util.ai.AIPersistentManager;
+import hc.server.util.ai.AnalysableData;
+import hc.server.util.ai.FormData;
 
 public class JcipManager {
 	
@@ -38,10 +41,21 @@ public class JcipManager {
 		final CtrlResponse cr = ctrlCanvas.cr;
 		final String keyValue = jcip.getString();
 		
-		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(cr.getProjectContext()), new ReturnableRunnable() {
+		final ProjectContext context = ServerUIAPIAgent.getProjectContextFromCtrl(cr);
+		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(context), new ReturnableRunnable() {
 			@Override
 			public Object run() {
-				cr.click(Integer.parseInt(keyValue));
+				final int key = Integer.parseInt(keyValue);
+				cr.click(key);
+				
+				if(AIPersistentManager.isEnableAnalyseFlow && AIPersistentManager.isEnableHCAI()){
+					final FormData data = AIObjectCache.getFormData();
+					data.uiType = FormData.UI_TYPE_CTRLRESP;
+					data.uiObject = cr;
+					data.ctrlClickKey = key;
+					data.snap(context.getProjectID(), context.getClientLocale(), AnalysableData.DIRECT_IN);
+					AIPersistentManager.processFormData(data);
+				}
 				return null;
 			}
 		});

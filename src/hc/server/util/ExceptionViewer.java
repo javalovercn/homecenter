@@ -27,9 +27,9 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelListener;
@@ -51,9 +51,10 @@ public class ExceptionViewer {
 	private static ExceptionViewer msbViewer;
 	
 	private JFrame dialog;
-	private final JButton clearBtn = new JButton((String)ResourceUtil.get(8005), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
+	private final JButton clearBtn = new JButton((String)ResourceUtil.get(8026), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
 	private int currRow;
-	private final JTable tableException, tableStacks;
+	private final ScrollTable tableException, tableStacks;
+	private JScrollPane scrollPaneException, scrollPaneStacks;
 	private final AbstractTableModel modelException, modelStacks;
 	
 	final Runnable refreshTable = new Runnable() {
@@ -63,16 +64,32 @@ public class ExceptionViewer {
 		}
 	};
 	
+	public static void main(final String[] args){
+		ExceptionViewer.notifyPopup(true);
+		ExceptionViewer.init();
+		new Thread(){
+			@Override
+			public void run(){
+				for (int i = 0; i < 5; i++) {
+					ExceptionViewer.pushIn("Hello");
+					try{
+						Thread.sleep(5000);
+					}catch (final Exception e) {
+					}
+				}
+			}
+		}.start();
+	}
 	
 	private final void reset(){
 		synchronized (exception) {
 			exception.clear();
 			stacks.clear();
 			currRow = 0;
-			
-			tableException.updateUI();
-			tableStacks.updateUI();
 		}
+		
+		tableException.updateUI();
+		tableStacks.updateUI();
 	}
 
 	public ExceptionViewer(){
@@ -191,17 +208,8 @@ public class ExceptionViewer {
 		};
 		
 		
-		tableException = new JTable(modelException);
-		tableStacks = new JTable(modelStacks);
-		
-//		{
-//			HCHeaderRenderer rend = new HCHeaderRenderer(tableException.getTableHeader().getDefaultRenderer());
-//			tableException.getTableHeader().setDefaultRenderer(rend);
-//		}
-//		{
-//			HCHeaderRenderer rend = new HCHeaderRenderer(tableStacks.getTableHeader().getDefaultRenderer());
-//			tableStacks.getTableHeader().setDefaultRenderer(rend);
-//		}
+		tableException = new ScrollTable(modelException);
+		tableStacks = new ScrollTable(modelStacks);
 		
 		tableException.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			@Override
@@ -250,9 +258,11 @@ public class ExceptionViewer {
 			
 			tableException.setRowSelectionAllowed(true);
 //			panel.add(tableException, c);
-			final JScrollPane scrollPane = new JScrollPane(tableException);
-			scrollPane.setPreferredSize(new Dimension(500, 200));
-			panel.add(scrollPane, c);
+			scrollPaneException = new JScrollPane(tableException, 
+					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, 
+					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			scrollPaneException.setPreferredSize(new Dimension(600, 200));
+			panel.add(scrollPaneException, c);
 		}
 		
 		{
@@ -265,9 +275,11 @@ public class ExceptionViewer {
 			c.weightx = 1.0;
 			
 			tableStacks.setRowSelectionAllowed(true);
-			final JScrollPane scrollPane = new JScrollPane(tableStacks);
-			scrollPane.setPreferredSize(new Dimension(500, 150));
-			panel.add(scrollPane, c);
+			scrollPaneStacks = new JScrollPane(tableStacks, 
+					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, 
+					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			scrollPaneStacks.setPreferredSize(new Dimension(600, 300));
+			panel.add(scrollPaneStacks, c);
 		}
 		
 		tableException.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);

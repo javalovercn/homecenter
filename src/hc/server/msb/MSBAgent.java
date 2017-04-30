@@ -20,6 +20,9 @@ import java.util.HashSet;
  * please don't use any class and method outside API doc files.
  */
 public final class MSBAgent {
+	public static void recycle(final RobotEvent event){
+		RobotEventPool.instance.recycle(event);
+	}
 	
 	public final static String[] getCompatibleItemToUserThread(final ProjResponser pr, final boolean isInUserThread, final DeviceCompatibleDescription compDesc){
 		if(isInUserThread){

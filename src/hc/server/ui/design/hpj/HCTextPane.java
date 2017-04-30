@@ -13,9 +13,12 @@ public abstract class HCTextPane extends JTextPane {
 	public boolean hasSelectedWords;
 	
 	public HCTextPane(){
+		this(new SelectWordAction());
+	}
+	
+	public HCTextPane(final Action action){
 		super();
 		
-		final Action action = new SelectWordAction();
         getActionMap().put("select-word", action);
 	}
 	

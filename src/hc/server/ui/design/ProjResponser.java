@@ -57,6 +57,7 @@ import hc.server.util.CacheComparator;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.VoiceCommand;
+import hc.server.util.ai.AIPersistentManager;
 import hc.util.BaseResponsor;
 import hc.util.ClassUtil;
 import hc.util.RecycleProjThreadPool;
@@ -822,14 +823,22 @@ public class ProjResponser {
 								final CtrlResponse responsor = (CtrlResponse)obj;
 								try{
 									final CtrlMap cmap = new CtrlMap(map);
-									ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(responsor.getProjectContext()), new ReturnableRunnable() {
+									final ProjectContext ctx = ServerUIAPIAgent.getProjectContextFromCtrl(responsor);
+									ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
 										@Override
 										public Object run() {
 											//添加初始按钮名
 											final int[] keys = cmap.getButtonsOnCanvas();
 											for (int i = 0; i < keys.length; i++) {
-												final String txt = responsor.getButtonInitText(keys[i]);
-												cmap.setButtonTxt(keys[i], txt);
+												final int key = keys[i];
+												final String txt = responsor.getButtonInitText(key);
+												if(txt != null && txt.length() > 0){
+													if(AIPersistentManager.isEnableHCAI()){
+														final String locale = UserThreadResourceUtil.getMobileLocaleFrom(coreSS);
+														AIPersistentManager.processCtrl(locale, responsor.getTarget(), txt, ctx);
+													}
+												}
+												cmap.setButtonTxt(key, txt);
 											}
 											return null;
 										}

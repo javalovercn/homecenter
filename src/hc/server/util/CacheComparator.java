@@ -53,12 +53,12 @@ public abstract class CacheComparator {
 	 * 
 	 * @param coreSS
 	 * @param enableCacheForProc 此次调用是否使用cache，一般是true；AddHAR时menu为false
-	 * @param data
+	 * @param noCycleBS
 	 * @param data_idx
 	 * @param data_len
 	 * @param paras
 	 */
-	public final synchronized void encodeGetCompare(final J2SESession coreSS, final boolean enableCacheForProc, final byte[] data, final int data_idx, final int data_len, final Object[] paras) {
+	public final synchronized void encodeGetCompare(final J2SESession coreSS, final boolean enableCacheForProc, final byte[] noCycleBS, final int data_idx, final int data_len, final Object[] paras) {
 //		LogManager.log("encodeGetCompare project ID : " + projID);
 //		LogManager.log("encodeGetCompare mobile UID : " + uuid);
 //		LogManager.log("encodeGetCompare url ID : " + urlID);
@@ -82,7 +82,7 @@ public abstract class CacheComparator {
 		
 		boolean isNeedCache = false;
 		
-		ByteUtil.encodeFileXOR(data, data_idx, data_len, code, 0, codeLen);
+		ByteUtil.encodeFileXOR(noCycleBS, data_idx, data_len, code, 0, codeLen);
 //		LogManager.log("encodeGetCompare cache code : " + ByteUtil.encodeBase64(code));
 		
 		RMSLastAccessTimeManager.notifyAccess(projID, softUID);
@@ -96,7 +96,7 @@ public abstract class CacheComparator {
 				isNeedCache = true;
 			}else{
 				for (int i = 0; i < cacheBSLen; i++) {
-					if(data[data_idx + i] != cacheScriptBS[i]){
+					if(noCycleBS[data_idx + i] != cacheScriptBS[i]){
 						isNeedCache = true;
 						break;
 					}
@@ -112,7 +112,7 @@ public abstract class CacheComparator {
 			
 			pendStore(coreSS, new PendStore(projID, softUID, urlID, 
 					projIDbs, softUidBS, urlIDbs, 
-					code, data));
+					code, noCycleBS));
 		}else{
 			final int dataLen = dataCache.setCacheInfo(projIDbs, 0, projIDbs.length, urlIDbs, 0, urlIDbs.length, code, 0, codeLen);
 			

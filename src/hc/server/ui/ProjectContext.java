@@ -41,6 +41,10 @@ import hc.server.util.HCEventQueue;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.SystemEventListener;
 import hc.server.util.VoiceCommand;
+import hc.server.util.ai.AIObjectCache;
+import hc.server.util.ai.AIPersistentManager;
+import hc.server.util.ai.AnalysableData;
+import hc.server.util.ai.FormData;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.PropertiesMap;
@@ -52,16 +56,21 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.JOptionPane;
+
+import third.hsqldb.jdbc.JDBCDriver;
 
 /**
  * There is one {@link ProjectContext} instance for each HAR Project at runtime. <BR><BR>
@@ -88,7 +97,7 @@ public class ProjectContext {
 
 	/**
 	 * for example HAR is installing from client, and it is required to input token for device connection, 
-	 * you can use {@link Dialog} for custom input, otherwise if installing is from PC desktop, 
+	 * you can use {@link Dialog} for custom input, otherwise if is installing from PC desktop, 
 	 * you must use {@link #showInputDialog(String, String[], String[])}.
 	 * <BR><BR>
 	 * it returns false when project normal start up even if it was installed from client.
@@ -174,6 +183,143 @@ public class ProjectContext {
 					"unknow classloader level. it shoud be one of "
 							+ "CLASSLOADER_SYSTEM_LEVEL, CLASSLOADER_SERVER_LEVEL, CLASSLOADER_PROJECT_LEVEL");
 		}
+	}
+	
+	private final static String HC_SYS_FOR_USER_PRIVATE_DIR = "_HC/";//getPrivateFile("mySubDir2/subSubDir").mkdirs();
+	private final static String DB_SUB_DIR_FOR_USER_PRIVATE_DIR = "DB/";
+	
+	/**
+	 * to create or open exists database.<BR><BR>
+	 * the database is stored in directory <i>{HC_Home}/user_data/{projectID}/_HC/DB/{dbName}</i>, for more see {@link #getPrivateFile(String)}
+	 * <BR><BR>
+	 * <STRONG>Note :</STRONG><BR>
+	 * 1. {@link java.sql.SQLXML} is NOT supported.<BR>
+	 * 2. the default WRITE DELAY property of database is <code>true</code>, which is 500 milliseconds. see <code>SET FILES WRITE DELAY</code> for more.<BR>
+	 * 3. be careful the exception of deadlock when in multiple threads.
+	 * <BR><BR>
+	 * the latest build-in database server is HSQLDB 2.3.4, user guide is <a href="http://hsqldb.org/doc/2.0/guide/index.html">here</a>.
+	 * @param dbName
+	 * @param username
+	 * @param password 
+	 * @return null means a database access error occurs.
+	 * @see #removeDB(String)
+	 * @since 7.50
+	 */
+	public final Connection getDBConnection(final String dbName, final String username, final String password){
+		return getDBConnection(dbName, username, password, false);
+	}
+	
+	/**
+	 * create or open exists database, which stored in files or all-in-memory.<BR><BR>
+	 * for more, see {@link #getDBConnection(String, String, String)}.
+	 * @param dbName
+	 * @param username
+	 * @param password
+	 * @param isAllInMem true means stored entirely in RAM, without any persistence beyond the JVM process's life
+	 * @return
+	 * @see #getDBConnection(String, String, String)
+	 * @see #getDBConnection(String, String, String, boolean, Properties)
+	 * @see #removeDB(String)
+	 * @since 7.50
+	 */
+	public final Connection getDBConnection(final String dbName, final String username, final String password,
+			final boolean isAllInMem){
+		final Properties props = new Properties();
+        props.setProperty("loginTimeout", Integer.toString(0));
+        
+        return getDBConnection(dbName, username, password, isAllInMem, props);
+	}
+	
+	/**
+	 * create or open exists database, which stored in files or all-in-memory.<BR><BR>
+	 * for more, see {@link #getDBConnection(String, String, String)}.
+	 * @param dbName
+	 * @param username
+	 * @param password
+	 * @param isAllInMem
+	 * @param props  list of arbitrary string tag/value pairs as connection arguments
+	 * @return null means a database access error occurs.
+	 * @see #getDBConnection(String, String, String)
+	 * @see #getDBConnection(String, String, String, boolean)
+	 * @see #removeDB(String)
+	 * @since 7.50
+	 */
+	public final Connection getDBConnection(final String dbName, final String username, final String password,
+			final boolean isAllInMem, final Properties props){
+		try{
+			synchronized (this) {
+				final String url;
+				if(isAllInMem){
+					final String hexProjID = ByteUtil.toHex(StringUtil.getBytes(projectID));
+					url = "jdbc:hsqldb:mem:" + hexProjID + dbName;
+				}else{
+					final File hcSysDir = buildDBBaseDir(dbName);
+					final File defaultFile = new File(hcSysDir, dbName);
+					if(defaultFile.exists() == false){
+						defaultFile.mkdirs();
+					}
+					url = "jdbc:hsqldb:file:" + defaultFile.getAbsolutePath();
+				}
+				
+				props.setProperty("user", username);
+		        props.setProperty("password", password);
+		        
+				return JDBCDriver.getConnection(url, props);
+			}
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+
+	private final File buildDBBaseDir(final String dbName) {
+		return getPrivateFile(HC_SYS_FOR_USER_PRIVATE_DIR + DB_SUB_DIR_FOR_USER_PRIVATE_DIR + dbName + "/");
+	}
+	
+	/**
+	 * close a working database.<BR><BR>
+	 * <STRONG>Note</STRONG> :<BR>
+	 * 1. be careful that the user turn off the power when closing database with compact mode.<BR>
+	 * 2. it is required before {@link #removeDB(String)}.<BR>
+	 * @param connection
+	 * @param isCompactAlso true means close database with compact mode.
+	 * @since 7.50
+	 * @see #removeDB(String)
+	 */
+	public final void closeDB(final Connection connection, final boolean isCompactAlso){
+		if(connection == null){
+			return;
+		}
+		
+		try{
+			final Statement state = connection.createStatement();
+			if(isCompactAlso){
+				state.execute(AIPersistentManager.SHUTDOWN_COMPACT);
+			}else{
+				state.execute("SHUTDOWN");
+			}
+			state.close();
+		}catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+	}
+	
+	/**
+	 * remove all files of database named <code>dbName</code>.
+	 * <BR><BR>
+	 * <STRONG>Note</STRONG> :<BR>
+	 * before remove database, please ensure that the database is closed.<BR>
+	 * to close a working database, invoke {@link #closeDB(Connection, boolean)}.
+	 * @param dbName
+	 * @return true means all sub directories and files are deleted, false means some file may be using and not removed.
+	 * @see #getDBConnection(String, String, String)
+	 * @since 7.50
+	 */
+	public final boolean removeDB(final String dbName){
+		log("remove user database : " + dbName);
+		final File baseDir = buildDBBaseDir(dbName);
+		return ResourceUtil.deleteDirectoryNowAndExit(baseDir);
 	}
 
 	/**
@@ -1256,6 +1402,15 @@ public class ProjectContext {
 	public final String getProjectID() {
 		return projectID;
 	}
+	
+	/**
+	 * it is equals with {@link #getMobileWidth()}.
+	 * @return
+	 * @since 7.50
+	 */
+	public final int getClientWidth() {
+		return getMobileWidth();
+	}
 
 	/**
 	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
@@ -1373,10 +1528,19 @@ public class ProjectContext {
 	}
 	
 	/**
+	 * it is equals with {@link #getClientSession()}.
+	 * @return null if mobile not login, logout or in project level.
+	 * @since 7.50
+	 */
+	public final ClientSession getMobileSession(){
+		return getClientSession();
+	}
+	
+	/**
 	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}
 	 * @return null if mobile not login, logout or in project level.
-	 * @since 7.8
 	 * @see #isCurrentThreadInSessionLevel()
+	 * @since 7.8
 	 */
 	public final ClientSession getClientSession(){
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
@@ -1411,6 +1575,15 @@ public class ProjectContext {
 	public final Enumeration getAttributeNames() {
 		return att_map.keys();
 	}
+	
+	/**
+	 * it is equals with {@link #getMobileHeight()}.
+	 * @return
+	 * @since 7.50
+	 */
+	public final int getClientHeight() {
+		return getMobileHeight();
+	}
 
 	/**
 	 * return the height pixel of login mobile; <BR><BR>
@@ -1437,6 +1610,15 @@ public class ProjectContext {
 		}
 		
 		return UserThreadResourceUtil.getMobileHeightFrom(sessionContext.j2seSocketSession);
+	}
+	
+	/**
+	 * it is equals with {@link #getMobileDPI()}.
+	 * @return
+	 * @since 7.50
+	 */
+	public final int getClientDPI() {
+		return getMobileDPI();
 	}
 
 	/**
@@ -1704,13 +1886,15 @@ public class ProjectContext {
 	 * manager, and it is also protected from being read or written by other HAR
 	 * projects. <br>
 	 * 2. the File <code>fileName</code> is read/written in directory <i>{HC_Home}/user_data/{projectID}/{fileName}</i>. <br>
-	 * 3. if current project is deleted, all private files of current project will be deleted. <BR>
-	 * 4. to save small data, you may need {@link #saveProperties()}.<BR>
-	 * 5. if the data is important, please encrypt data or stored separately.<BR>
-	 * 6. if this server runs on Android Marshmallow or later, Android will 'Auto Backup for Apps'.
-	 * @param fileName
+	 * 3. sub directory <code>"{projectID}/_HC/"</code> is reservered by server, see {@link #getDBConnection(String, String, String)},<br>
+	 * 4. if current project is deleted, all private files of current project will be deleted. <BR>
+	 * 5. to save small data, you may need {@link #saveProperties()}.<BR>
+	 * 6. if the data is important, please encrypt data or stored separately.<BR>
+	 * 7. if this server runs on Android Marshmallow or later, Android will 'Auto Backup for Apps'.
+	 * @param fileName 
 	 * @return the private file <code>fileName</code>.
 	 * @see #saveProperties()
+	 * @see #getDBConnection(String, String, String)
 	 * @since 7.0
 	 */
 	public final File getPrivateFile(final String fileName) {
@@ -1740,7 +1924,8 @@ public class ProjectContext {
 	 * big data in local disk / cloud system. <br>
 	 * 3. if you want to create file on local disk, please use
 	 * {@link #getPrivateFile(String)} to get instance of File.<br>
-	 * 4. if this server runs on Android Marshmallow or later, Android will 'Auto Backup for Apps'.
+	 * 4. to create and open database, please invoke {@link #getDBConnection(String, String, String)}.<br>
+	 * 5. if this server runs on Android Marshmallow or later, Android will 'Auto Backup for Apps'.
 	 * 
 	 * @see #setProperty(String, String)
 	 * @see #getProperty(String)
@@ -1779,6 +1964,15 @@ public class ProjectContext {
 	public static final String OS_J2ME = ConfigManager.OS_J2ME_DESC;
 
 	/**
+	 * it is equals with {@link #getMobileOSVer()}.
+	 * @return
+	 * @since 7.50
+	 */
+	public final String getClientOSVer() {
+		return getMobileOSVer();
+	}
+	
+	/**
 	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
 	 * @return the version of OS of mobile; <BR>"0.0.1" means mobile not login or not in session level.
 	 * @see #getMobileOS()
@@ -1805,6 +1999,15 @@ public class ProjectContext {
 		final J2SESession coreSS = sessionContext.j2seSocketSession;
 		
 		return UserThreadResourceUtil.getMobileOSVerFrom(coreSS);
+	}
+	
+	/**
+	 * it is equals with {@link #getMobileOS()}.
+	 * @return
+	 * @since 7.50
+	 */
+	public final String getClientOS() {
+		return getMobileOS();
 	}
 
 	/**
@@ -1884,6 +2087,15 @@ public class ProjectContext {
 	 */
 	public static boolean isRTL(final String locale){
 		return LangUtil.isRTL(locale);
+	}
+	
+	/**
+	 * it is equals with {@link #getMobileLocale()}.
+	 * @return
+	 * @since 7.50
+	 */
+	public final String getClientLocale() {
+		return getMobileLocale();
 	}
 
 	/**
@@ -2112,6 +2324,8 @@ public class ProjectContext {
 			for (int i = 0; i < coreSS.length; i++) {
 				sendClass(coreSS[i], v);				
 			}
+			
+			processFormData(text);
 		}
 	}
 
@@ -2370,6 +2584,15 @@ public class ProjectContext {
 //			}
 //		});
 //	}
+	
+	/**
+	 * it is equals with {@link #getMobileSoftUID()}.
+	 * @return
+	 * @since 7.50
+	 */
+	public final String getClientSoftUID(){
+		return getMobileSoftUID();
+	}
 	
 	/**
 	 * <code>SoftUID</code> is an identifier created when mobile application is installed on mobile.
@@ -2679,6 +2902,8 @@ public class ProjectContext {
 		
 		if (coreSS != null && coreSS.length > 0) {
 			ServerUIAPIAgent.sendMessageViaCoreSS(coreSS, caption, text, type, image, timeOut);
+			
+			processFormData(text);
 		}
 	}
 
@@ -3023,6 +3248,19 @@ public class ProjectContext {
 		
 		if (coreSS != null && coreSS.length > 0) {
 			ServerUIAPIAgent.sendMovingMsg(coreSS, msg);
+			
+			processFormData(msg);
+		}
+	}
+
+	private final void processFormData(final String msg) {
+		if(AIPersistentManager.isEnableAnalyseFlow && AIPersistentManager.isEnableHCAI()){
+			final FormData data = AIObjectCache.getFormData();
+			data.uiType = FormData.UI_TYPE_PROJECT;
+			data.uiObject = AnalysableData.NON_UI_FOR_PROJECT_ONLY;
+			data.movingMsg = msg;
+			data.snap(projectID, getClientLocale(), AnalysableData.DIRECT_OUT);
+			AIPersistentManager.processFormData(data);
 		}
 	}
 

@@ -144,7 +144,7 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 	
 	/**
-	 * execute or not {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)} if client locale is RTL (Right to Left).<BR><BR>
+	 * {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)} or not if client locale is RTL (Right to Left).<BR><BR>
 	 * <code>applyComponentOrientation</code> affect the following layout managers :<BR>
 	 * 1. {@link FlowLayout}<BR>
 	 * 2. {@link BorderLayout}<BR>
@@ -155,7 +155,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * <BR><BR>
 	 * <STRONG>Note</STRONG> :<BR>
 	 * this method must be invoked in constructor (initialize in JRuby).
-	 * @param isEnable default is enable, means server will execute if client locale {@link ProjectContext#isRTL(String)}.
+	 * @param isEnable default is enable, means server will {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)} when client locale {@link ProjectContext#isRTL(String)}.
 	 * @since 7.40
 	 */
 	public void enableApplyOrientationWhenRTL(final boolean isEnable){//注意：请勿final

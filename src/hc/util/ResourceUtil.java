@@ -29,6 +29,7 @@ import hc.server.StarterManager;
 import hc.server.TrayMenuUtil;
 import hc.server.data.KeyComperPanel;
 import hc.server.data.StoreDirManager;
+import hc.server.msb.AnalysableRobotParameter;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.design.J2SESession;
 
@@ -109,6 +110,28 @@ public class ResourceUtil {
 			starterClass = loadClass(StarterManager.CLASSNAME_STARTER_STARTER, false);
 		}
 		return starterClass;
+	}
+	
+	public static void printStackTrace(final Throwable t){
+		final StackTraceElement[] trace = t.getStackTrace();
+		final StringBuilder sb = StringBuilderCacher.getFree();
+        for (final StackTraceElement traceElement : trace){
+            sb.append("\tat ");
+            sb.append(traceElement);
+            sb.append('\n');
+        }
+        LogManager.errToLog(sb.toString());
+        StringBuilderCacher.cycle(sb);
+        
+        // Print suppressed exceptions, if any
+        for (final Throwable se : t.getSuppressed())
+        	printStackTrace(se);
+
+        // Print cause, if any
+        final Throwable ourCause = t.getCause();
+        if (ourCause != null){
+        	printStackTrace(ourCause);
+        }
 	}
 	
 	/**
@@ -247,6 +270,42 @@ public class ResourceUtil {
 				return matchLocale(LangUtil.EN_US, map, false);
 			}
 		}
+	}
+	
+	public static boolean isAnalysableParameter(final Object obj){
+		if(obj == null){
+			return true;
+		}
+		
+		if(obj instanceof String
+				|| obj instanceof Boolean
+				|| obj instanceof Long
+				|| obj instanceof Byte
+				|| obj instanceof Short
+				|| obj instanceof Integer
+				|| obj instanceof Float
+				|| obj instanceof Double
+				|| obj instanceof Character){
+			return true;
+		}
+		
+		if(obj instanceof String[]
+				|| obj instanceof Boolean[]
+				|| obj instanceof Long[]
+				|| obj instanceof Byte[]
+				|| obj instanceof Short[]
+				|| obj instanceof Integer[]
+				|| obj instanceof Float[]
+				|| obj instanceof Double[]
+				|| obj instanceof Character[]){
+			return true;
+		}
+		
+		if(obj instanceof AnalysableRobotParameter){
+			return true;
+		}
+		
+		return false;
 	}
 	
 	public static String toLowerCaseFirstChar(final String s){
@@ -1455,7 +1514,7 @@ public class ResourceUtil {
 	public static final String EXT_JAR = ".jar";
 	
 	public static final boolean deleteDirectoryNowAndExit(final File directory) {
-		//CCoreUtil.checkAccess();
+		//CCoreUtil.checkAccess();//projectCtx.removeDB is using
 	
 	    if(directory.exists()){
 	        final File[] files = directory.listFiles();
@@ -1463,10 +1522,9 @@ public class ResourceUtil {
 	            for(int i=0; i<files.length; i++) {
 	                if(files[i].isDirectory()) {
 	                    deleteDirectoryNowAndExit(files[i]);
-	                }
-	                else {
+	                } else {
 	                    if(files[i].delete() == false){
-	                    	LogManager.log("fail del file : " + files[i].getAbsolutePath());
+	                    	LogManager.errToLog("fail del file : " + files[i].getAbsolutePath());
 	                    }
 	                }
 	            }
@@ -1474,7 +1532,7 @@ public class ResourceUtil {
 	        
 		    final boolean isDel = directory.delete();
 		    if(isDel == false){
-		    	LogManager.log("fail del dir/file : " + directory.getAbsolutePath());
+		    	LogManager.errToLog("fail del dir/file : " + directory.getAbsolutePath());
 		    }
 		    return isDel;
 	    }
@@ -1678,6 +1736,7 @@ public class ResourceUtil {
 		return false;
 	}
 
+	public static final String PROJ_IS_DELED_NEED_RESTART = "the same project is removed, restart me and install project again!";
 	public static final String FILE_IS_MODIFIED_AFTER_SIGNED = "file is incomplete or modified after signed";
 	public static final String RESERVED_PACKAGE_NAME_IS_IN_HAR = "reserved package name [hc/java/javax] is in HAR!";
 	public static final String HAR_PROJECT_FILE_IS_CORRUPTED = "HAR project file is corrupted or incomplete.";

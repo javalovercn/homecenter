@@ -894,9 +894,10 @@ public class LinkProjectManager{
 			lps = getProjByID(null);			
 		}
 		
+		final String projectID = lps.getProjectID();
 		if(delPersistent){
-			PropertiesManager.remove(PropertiesManager.p_PROJ_RECORD + lps.getProjectID());
-			final String userProjIDPath = HCLimitSecurityManager.getUserDataBaseDir(lps.getProjectID());
+			PropertiesManager.remove(PropertiesManager.p_PROJ_RECORD + projectID);
+			final String userProjIDPath = HCLimitSecurityManager.getUserDataBaseDir(projectID);
 			final String delPath = userProjIDPath.substring(0, userProjIDPath.length() - 1);//去掉最后一个/
 			PropertiesManager.addDelDir(delPath);
 		}
@@ -927,7 +928,7 @@ public class LinkProjectManager{
 			PropertiesManager.addDelDir(deployTmpDir);	
 		}
 		
-		ResourceUtil.delProjOptimizeDir(lps.getProjectID());
+		ResourceUtil.delProjOptimizeDir(projectID);
 		
 		PropertiesManager.saveFile();
 		return isChanged?oldBackEditFile:null;

@@ -67,6 +67,7 @@ import org.jrubyparser.ast.ConstNode;
 import org.jrubyparser.ast.DAsgnNode;
 import org.jrubyparser.ast.DefnNode;
 import org.jrubyparser.ast.FCallNode;
+import org.jrubyparser.ast.FalseNode;
 import org.jrubyparser.ast.FixnumNode;
 import org.jrubyparser.ast.FloatNode;
 import org.jrubyparser.ast.GlobalAsgnNode;
@@ -89,6 +90,7 @@ import org.jrubyparser.ast.SClassNode;
 import org.jrubyparser.ast.SelfNode;
 import org.jrubyparser.ast.StrNode;
 import org.jrubyparser.ast.SymbolNode;
+import org.jrubyparser.ast.TrueNode;
 import org.jrubyparser.ast.VCallNode;
 import org.jrubyparser.lexer.SyntaxException;
 import org.jrubyparser.parser.ParserConfiguration;
@@ -390,7 +392,8 @@ public class CodeHelper {
 					}
 					String paraStr = "";
 					String paraStrForDisplay = "";
-					for (int j = 0; j < paras.length; j++) {
+					final int paraNum = paras.length;
+					for (int j = 0; j < paraNum; j++) {
 						if(paraStr.length() > 0){
 							paraStr += ", ";
 							paraStrForDisplay += ", ";
@@ -2158,6 +2161,8 @@ public class CodeHelper {
     		return buildJRubyClassDesc(getClassFromLiteral(receiverNode), true);
     	}else if(receiverNode instanceof NilNode){
     		return NIL_CLASS_DESC;
+    	}else if(receiverNode instanceof TrueNode || receiverNode instanceof FalseNode){
+    		return BOOLEAN_CLASS_DESC;
     	}
     	return null;
     }
@@ -2172,6 +2177,7 @@ public class CodeHelper {
 	}
     
     private static final JRubyClassDesc NIL_CLASS_DESC = buildJRubyClassDesc(Object.class, true);
+    private static final JRubyClassDesc BOOLEAN_CLASS_DESC = buildJRubyClassDesc(Boolean.class, true);
 
 	private static Class findClassByName(final String className, final boolean printError) {
 		try {
@@ -2385,7 +2391,8 @@ public class CodeHelper {
 //				}else{
 //					c = getClassFromLiteral(node);
 //				}
-				out[i] = findClassFromReceiverNode(node, false, context).baseClass;
+				final JRubyClassDesc findClassFromReceiverNode = findClassFromReceiverNode(node, false, context);
+				out[i] = findClassFromReceiverNode.baseClass;
 			}
     		return out;
     	}

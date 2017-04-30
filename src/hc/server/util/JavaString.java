@@ -32,7 +32,7 @@ import java.util.Locale;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * this class is used to provide java String methods in JRuby.<BR>
+ * this class is used to provide java String functions in JRuby.<BR>
  * for more, see {@link String}.
  * @author  Lee Boynton
  * @author  Arthur van Hoff
@@ -1357,7 +1357,6 @@ public final class JavaString {
      *          or if <tt>beginIndex</tt> is greater than <tt>startIndex</tt>
      *
      * @since 1.4
-     * @spec JSR-51
      */
     public CharSequence subSequence(final int beginIndex, final int endIndex) {
         return str.subSequence(beginIndex, endIndex);
@@ -1444,7 +1443,6 @@ public final class JavaString {
      * @see java.util.regex.Pattern
      *
      * @since 1.4
-     * @spec JSR-51
      */
     public boolean matches(final String regex) {
         return str.matches(regex);
@@ -1500,7 +1498,6 @@ public final class JavaString {
      * @see java.util.regex.Pattern
      *
      * @since 1.4
-     * @spec JSR-51
      */
     public String replaceFirst(final String regex, final String replacement) {
         return str.replaceFirst(regex, replacement);
@@ -1543,7 +1540,6 @@ public final class JavaString {
      * @see java.util.regex.Pattern
      *
      * @since 1.4
-     * @spec JSR-51
      */
     public String replaceAll(final String regex, final String replacement) {
         return str.replaceAll(regex, replacement);
@@ -1645,7 +1641,6 @@ public final class JavaString {
      * @see java.util.regex.Pattern
      *
      * @since 1.4
-     * @spec JSR-51
      */
     public String[] split(final String regex, final int limit) {
         return str.split(regex, limit);
@@ -1687,7 +1682,6 @@ public final class JavaString {
      * @see java.util.regex.Pattern
      *
      * @since 1.4
-     * @spec JSR-51
      */
     public String[] split(final String regex) {
         return split(regex, 0);

@@ -6,15 +6,15 @@ import javax.swing.JLabel;
 public class JLabelDiff extends JComponentDiff{
 	
 	@Override
-	public void diff(final int hcCode, Object src, DifferTodo todo) {
+	public void diff(final int hcCode, final Object src, final DifferTodo todo) {
 		super.diff(hcCode, src, todo);
 		
-		JLabel labelSrc = (JLabel)src;
+		final JLabel labelSrc = (JLabel)src;
 		
 		{
 			final String value = labelSrc.getText();
 			if(value != null && value.length() > 0){
-				todo.notifyModifyLabelText(hcCode, value);
+				todo.notifyModifyLabelText(labelSrc, hcCode, value);
 			}
 		}
 		

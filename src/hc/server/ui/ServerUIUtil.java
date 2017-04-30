@@ -3,7 +3,6 @@ package hc.server.ui;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.IConstant;
-import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.SessionManager;
 import hc.core.cache.CacheManager;
@@ -22,6 +21,7 @@ import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.ProjResponser;
 import hc.server.util.CacheComparator;
+import hc.server.util.ai.AIPersistentManager;
 import hc.util.BaseResponsor;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
@@ -40,6 +40,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
+
+import third.hsqldb.Database;
+import third.hsqldb.DatabaseManager;
 
 public class ServerUIUtil {
 	public static final Color LIGHT_BLUE_BG = new Color(245, 250, 254);
@@ -109,6 +112,8 @@ public class ServerUIUtil {
 	
 	public static BaseResponsor buildMobiUIResponsorInstance(final ExceptionCatcherToWindow ec){
 		CCoreUtil.checkAccess();
+		
+		AIPersistentManager.checkCompact();
 		
 		try {
 			return new MobiUIResponsor(ec);
@@ -250,8 +255,13 @@ public class ServerUIUtil {
 					System.gc();
 					Thread.sleep(halfSleep);
 					System.gc();
+					
+					Thread.sleep(1000);//延长一秒，以等待其它基于getIntervalSecondsForNextStartup的任务也完成
 				}catch (final Exception e) {
 				}
+				
+				DatabaseManager.closeDatabases(Database.CLOSEMODE_NORMAL);
+				LogManager.log("closed all HSQLDB databases.");
 			}
 		}
 	}

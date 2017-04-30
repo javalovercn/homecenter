@@ -100,6 +100,7 @@ public class RootServerConnector {
 	public final static String LOFF_ServerReq_STR = "lof=ServerReq";
 	
 	public final static String REP_Locale_STR = "rep_loc=";
+	public final static String REP_Server_Num_Under_0 = "lof=Server_Num_Under_0";
 
 	private static boolean isLastUnConnServer = false; 
 	public static final String SIMU_LOCALHOST = "localhost";//"192.168.1.101";
@@ -557,6 +558,10 @@ public class RootServerConnector {
 				HIDE_IP_STR + hideIP + "&" +
 				HIDE_TOKEN_STR + hideToken + "&" +
 				ENCRYPTER_STR + "true");
+	}
+	
+	public static void sendHttpMsg(final String type){
+		retry(CALL_STR + type);
 	}
 	
 	/**

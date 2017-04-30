@@ -5,8 +5,11 @@ public class LangUtil {
 	public static final String LOCALE_SPLIT = String.valueOf((char)LOCALE_SPLIT_CHAR);
 
 	//注意：如果增加，请同步更改API ProjectContext.matchLocale
-	public final static String[] equalLocale = {"he", "yi", "id"};
-	public final static String[] equalLocaleTo = {"iw", "ji", "in"};
+	public final static String[] equalLocale = {"he", "yi", "id", "cb"};
+	public final static String[] equalLocaleTo = {"iw", "ji", "in", "ckb"};
+
+	public final static String[] oneThreeEquals = {"zh-CN", "zh-CN", "zh-SG", "zh-TW"};
+	public final static String[] oneTwoEquals = {"zh-SG", "zh-Hans", "zh-Hans", "zh-Hant"};
 
 	public static final String EN_US = "en-US";
 	public static final String EN = "en";
@@ -106,6 +109,7 @@ public class LangUtil {
 	 * 2. zh-CN ~ zh-Hans-CN<BR>
 	 * @param locale
 	 * @param compareLocale
+	 * @param isMaybeEqualLang true表示使用可替换lang，比如旧遗留和二码和三码相等
 	 * @return
 	 */
 	public static boolean isSameLang(final String locale, final String compareLocale, final boolean isMaybeEqualLang){
@@ -268,6 +272,4 @@ public class LangUtil {
 		return userLang;
 	}
 
-	public final static String[] oneThreeEquals = {"zh-CN", "zh-TW"};
-	public final static String[] oneTwoEquals = {"zh-Hans", "zh-Hant"};
 }

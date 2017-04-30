@@ -98,6 +98,8 @@ public class PropertiesManager {
 	public static final String p_Deploy_EnableReceive = "DeployEnableReceive";
 	public static final String p_Deploy_RecentIP = "DeployRecentIP";
 	
+	public static final String p_isEnableHCAI = "isEnableHCAI";
+
 	public static final String p_jrubyJarFile = "JRubyJarFile";
 	public static final String p_jrubyJarVer = "JRubyJarVer";
 	@Deprecated
@@ -201,6 +203,9 @@ public class PropertiesManager {
 	public static final String p_DesignerDocFontSize = "DesignerDocFontSize";
 	
 	public static final String p_isReportException = "isReportException";
+	
+	public static final String p_compackingAIDB= "compackingAIDB";
+	public static final String p_compackAIDBLastMS= "compackAIDBLastMS";
 
 	public static final String p_RMSServerUID = "RMSServerUID";
 	public static final String p_clearRMSCacheVersion = "clearRMSCacheVersion";
@@ -213,6 +218,7 @@ public class PropertiesManager {
 
 	public static final String t_testClientLocale = "testClientLocale";
 
+	public static final String S_DELED_DEPLOYED_PROJS = "deledDeployedProjs";//for remove only, not for delete and upgrade 
 	public static final String S_THIRD_DIR = "3libs";
 	public static final String S_USER_LOOKANDFEEL = "lookfeel";
 	public static final String S_LINK_PROJECTS = "linkProjs";//注意：不能有与它相同的前缀，比如linkProjsHeight的属性
@@ -609,6 +615,10 @@ public class PropertiesManager {
 		}
 	}
 	
+	public static final void removeSet(final String key){
+		remove(PropertiesSet.buildSetKey(key));
+	}
+	
 	public static final void remove(final String key){
 		if(key.startsWith(PropertiesManager.p_PROJ_RECORD, 0)){
 			checkValidProjectThreadPool(key);
@@ -622,6 +632,7 @@ public class PropertiesManager {
 				ResourceUtil.checkHCStackTraceInclude(null, null);
 			}
 		}
+		statusChanged = true;
 		propertie.remove(key);
 	}
 	

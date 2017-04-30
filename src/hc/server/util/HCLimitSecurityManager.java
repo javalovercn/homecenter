@@ -317,7 +317,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    	final Class[] arrClazz = {ProjectContext.class, Processor.class, 
 	    			Converter.class, DialogHTMLMlet.class, DialogMlet.class, Device.class, Message.class, 
 	    			Robot.class, RobotWrapper.class, RobotEvent.class, RobotListener.class, SimuRobot.class,
-	    			DeviceCompatibleDescription.class,
+	    			DeviceCompatibleDescription.class, 
 	    			AddHarHTMLMlet.class, AddHarIsBusy.class, BindHTMLMlet.class, Dialog.class, 
 	    			LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
 	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class, ProjectInputDialog.class,
@@ -664,7 +664,9 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 						}
 					}
 					boolean startWithHC = false;
-					if(containblockMemberAccessLists || (startWithHC = name.startsWith("hc.", 0))){//|| name.startsWith("sun.", 0)
+					if(containblockMemberAccessLists 
+							|| (startWithHC = name.startsWith("hc.", 0))){
+//									&& ( ! (name.startsWith("hc.hsqldb.", 0))))){
 						if(containblockMemberAccessLists){
 							if(clazz == System.class){
 								if(jreVersion < 1.7 && csc.isMemberAccessSystem() == false){

@@ -25,6 +25,7 @@ import hc.server.msb.UserThreadResourceUtil;
 import hc.server.msb.WorkingDeviceList;
 import hc.server.ui.ExceptionCatcherToWindow;
 import hc.server.ui.J2SESessionManager;
+import hc.server.ui.MenuItem;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
@@ -32,6 +33,10 @@ import hc.server.ui.SessionMobiMenu;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.SystemEventListener;
 import hc.server.util.VoiceCommand;
+import hc.server.util.ai.AIPersistentManager;
+import hc.server.util.ai.LabelManager;
+import hc.server.util.ai.LuceneManager;
+import hc.server.util.ai.ProjectTargetForAI;
 import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
 import hc.util.RecycleProjThreadPool;
@@ -39,10 +44,12 @@ import hc.util.ResourceUtil;
 import hc.util.UILang;
 
 import java.awt.Window;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Vector;
@@ -69,6 +76,14 @@ public class MobiUIResponsor extends BaseResponsor {
 	@Override
 	public Object getObject(final int funcID, final Object para){
 		return null;
+	}
+	
+	public final synchronized ProjectTargetForAI query(final J2SESession coreSS, final String locale, final String voice){
+		if(AIPersistentManager.isEnableHCAI()){
+			return AIPersistentManager.query(coreSS, locale, voice, projIDs, responserSize);
+		}else{
+			return null;
+		}
 	}
 	
 	//stop synchronized
@@ -477,6 +492,37 @@ public class MobiUIResponsor extends BaseResponsor {
 		
 	}
 	
+	public final synchronized void processProjectNameAndItemNameImpl(final J2SESession coreSS) throws SQLException {
+		final String locale = UserThreadResourceUtil.getMobileLocaleFrom(coreSS);
+		
+		for (int i = 0; i < responserSize; i++) {
+			final ProjResponser resp = responsors[i];
+			final String projectID = resp.projectID;
+			final AIPersistentManager aimgr = AIPersistentManager.getManagerByProjectIDInDelayFromResp(projectID);
+			final String title = resp.jarMainMenu.getTitle(coreSS);
+			if(aimgr.projTitleSM.hasTitle(locale, title) == false){
+				final List<String> keys = LuceneManager.tokenizeString(locale, title);
+				final int labelID = aimgr.labelSM.appendData(LabelManager.LABEL_SRC_PROJ, locale, title, keys);
+				aimgr.projTitleSM.appendTitleData(labelID, locale, title);
+			}
+			
+			final Vector<MenuItem> menuItems = coreSS.getDisplayMenuItems(projectID);
+			final String[] urls = resp.jarMainMenu.getURLs(coreSS, menuItems);
+			final String[] itemLabels = resp.jarMainMenu.getIconLabels(coreSS, menuItems);
+			
+			final int itemSize = urls.length;
+			for (int j = 0; j < itemSize; j++) {
+				final String itemLabel = itemLabels[j];
+				final String itemURL = urls[j];
+				if(aimgr.itemTitleSM.hasTitle(itemURL, locale, itemLabel) == false){
+					final List<String> keys = LuceneManager.tokenizeString(locale, itemLabel);
+					final int labelID = aimgr.labelSM.appendData(LabelManager.LABEL_SRC_ITEM, locale, itemLabel, keys);
+					aimgr.itemTitleSM.appendTitleData(labelID, locale, itemLabel, itemURL);
+				}
+			}
+		}
+	}
+	
 	/**
 	 * @param j2seCoreSS 有可能为null
 	 */
@@ -548,6 +594,10 @@ public class MobiUIResponsor extends BaseResponsor {
 			if(event == ProjectContext.EVENT_SYS_MOBILE_LOGIN){
 				UserThreadResourceUtil.getMobileAgent(j2seCoreSS).set(ConfigManager.UI_IS_BACKGROUND, IConstant.FALSE);
 				fireSystemEventInSequence(j2seCoreSS, ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
+				
+				if(AIPersistentManager.isEnableHCAI()){
+					AIPersistentManager.processProjectNameAndItemName(j2seCoreSS, this);
+				}
 			}
 			//以上是触发脚本，而非SystemEventListener
 		}else{

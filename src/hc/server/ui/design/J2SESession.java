@@ -37,7 +37,6 @@ import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SessionMobiMenu;
 import hc.server.util.SystemEventListener;
-import hc.server.util.VoiceCommand;
 import hc.server.util.VoiceParameter;
 import hc.util.BaseResponsor;
 import hc.util.ResourceUtil;
@@ -139,10 +138,12 @@ public final class J2SESession extends CoreSession{
 			currProjID = ((MobiUIResponsor)resp).getCurrProjectID(this);
 		}
 		if(currProjID != null){//当前工程优先
-			final SessionMobiMenu menu = menuItemsMap.get(currProjID);
-			final MenuItem item = menu.searchMenuItemByVoiceCommand(cmd, true);
-			if(item != null){
-				return item;
+			final SessionMobiMenu menu = getMenu(currProjID);
+			if(menu != null){
+				final MenuItem item = menu.searchMenuItemByVoiceCommand(cmd, true);
+				if(item != null){
+					return item;
+				}
 			}
 		}
 		
@@ -153,7 +154,7 @@ public final class J2SESession extends CoreSession{
 				if(projID.equals(currProjID)){
 					continue;
 				}
-				final SessionMobiMenu menu = menuItemsMap.get(projID);
+				final SessionMobiMenu menu = getMenu(projID);
 				final MenuItem item = menu.searchMenuItemByVoiceCommand(cmd, false);
 				if(item != null){
 					return item;

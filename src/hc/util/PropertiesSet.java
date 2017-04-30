@@ -10,18 +10,22 @@ import java.util.Vector;
  *
  */
 public class PropertiesSet {
+	public static String buildSetKey(final String key) {
+		return key + "Lists";
+	}
+	
 	private final String itemsPrefix;
 	private final Vector<String> lists;
 	
 	private final String SPLIT = HCConfig.CFG_SPLIT;
 	
 	public PropertiesSet(final String itemPrefix) {
-		this.itemsPrefix = itemPrefix + "Lists";
+		this.itemsPrefix = buildSetKey(itemPrefix);
 		
 		final String v = PropertiesManager.getValue(itemsPrefix, "");
 		lists = StringUtil.split(v, SPLIT);
 	}
-	
+
 	public final void refill(final Object[] props){
 		lists.removeAllElements();
 		

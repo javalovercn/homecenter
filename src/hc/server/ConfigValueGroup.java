@@ -31,13 +31,13 @@ public class ConfigValueGroup {
 	
 	public final void doSaveUI(){
 		try{
-			applyAll(ConfigPane.OPTION_OK);
+			applyAll(ConfigPane.OPTION_OK_BEFORE_SAVE);
 		}catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}
 		
 		if(configPane.isNeedShutdownAndRestart){
-			ConfigPane.rebuildConnection(configPane);
+			ConfigPane.rebuildConnection(null);//configPane
 		}
 		
 		final int size = values.size();
@@ -50,6 +50,12 @@ public class ConfigValueGroup {
 			}
 		}
 		PropertiesManager.saveFile();//注意：本逻辑要置于applyAll之后，因为applyAll有可以修改其它配置项
+		
+		try{
+			applyAll(ConfigPane.OPTION_OK_SAVE_DONE);
+		}catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
+		}
 		
 		dispose();
 	}

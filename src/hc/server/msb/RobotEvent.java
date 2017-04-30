@@ -4,17 +4,17 @@ package hc.server.msb;
  * A semantic event which indicates that a Robot-defined event occurred.
  */
 public final class RobotEvent {
-	RobotWrapper source;
+	RobotWrapper sourceWrapper;
 	String propertyName;
 	Object oldValue;
 	Object newValue;
 	
 	/**
-	 * return the event source of {@link Robot}.
+	 * return the event source wrapper of {@link Robot}.
 	 * @return 
 	 */
 	public final Robot getSource(){
-		return source;
+		return sourceWrapper;
 	}
 	
 	/**
@@ -42,7 +42,7 @@ public final class RobotEvent {
 	}
 	
 	final void clear(){
-		source = null;
+		sourceWrapper = null;
 		propertyName = null;
 		oldValue = null;
 		newValue = null;

@@ -13,9 +13,11 @@ public class ThreadPriorityManager {
 
 	public static final int SERVER_THREADPOOL_PRIORITY = Thread.NORM_PRIORITY;
 	
-	public static final int HC_LIMIT_THREADGROUP_PRIORITY = 2;
+	public static final int HC_LIMIT_THREADGROUP_PRIORITY = 3;
 	
-	public static final int PROJ_CONTEXT_THREADPOOL_PRIORITY = Thread.MIN_PRIORITY;
+	public static final int PROJ_CONTEXT_THREADPOOL_PRIORITY = 2;//应高于AI_BACK
+	
+	public static final int AI_BACKGROUND = Thread.MIN_PRIORITY;//应低于PROJ_CONTEXT_THREADPOOL_PRIORITY
 	
 	public static final int CAPTURER_PRIORITY = Thread.MIN_PRIORITY;
 	

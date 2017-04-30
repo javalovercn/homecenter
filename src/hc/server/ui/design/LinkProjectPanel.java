@@ -22,7 +22,9 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.ContextSecurityConfig;
+import hc.server.util.DelDeployedProjManager;
 import hc.server.util.SignHelper;
+import hc.server.util.ai.AIPersistentManager;
 import hc.util.HttpUtil;
 import hc.util.IBiz;
 import hc.util.LinkPropertiesOption;
@@ -469,6 +471,10 @@ public class LinkProjectPanel extends ProjectListPanel{
 									}else if(lowerCaseURL.endsWith(Designer.HAD_EXT)){
 										LinkProjectManager.loadHAD(url, had);
 										strharurl = had.getProperty(HCjad.HAD_HAR_URL, HCjad.convertToExtHar(url));
+										final String projID = had.getProperty(HCjad.HAD_ID, "");
+										if(DelDeployedProjManager.isDeledDeployed(projID)){
+											throw new Exception(ResourceUtil.PROJ_IS_DELED_NEED_RESTART);
+										}
 									}else{
 										throw new Exception("invaild url, it must be har or had file.");
 									}
@@ -991,7 +997,10 @@ public class LinkProjectPanel extends ProjectListPanel{
 				}else{
 					final String proj_id = (String)map.get(HCjar.PROJ_ID);
 					
-					if(SignHelper.verifyJar(file, LinkProjectManager.getCertificatesByID(proj_id)) == null){//完整性检查进行前置
+					if(DelDeployedProjManager.isDeledDeployed(proj_id)){
+						App.showMessageDialog(self, ResourceUtil.PROJ_IS_DELED_NEED_RESTART, 
+								failTitle, JOptionPane.ERROR_MESSAGE);
+					}else if(SignHelper.verifyJar(file, LinkProjectManager.getCertificatesByID(proj_id)) == null){//完整性检查进行前置
 						App.showMessageDialog(self, ResourceUtil.FILE_IS_MODIFIED_AFTER_SIGNED, 
 								failTitle, JOptionPane.ERROR_MESSAGE);
 						//不能return
@@ -1129,16 +1138,22 @@ public class LinkProjectPanel extends ProjectListPanel{
 		
 		final HashMap<String, File> delBackFileMap = new HashMap<String, File>();
 		
+		final String[] delCacheProjIDS;
+		final String[] removedAndNotUpgrade;
 		synchronized (ServerUIUtil.LOCK) {
 			//将已发布，且准备进行删除的进行删除操作
 			{
 				final int size = delList.size();
-				final String[] delCacheProjIDS = new String[size];
+				delCacheProjIDS = new String[size];
+				removedAndNotUpgrade = new String[size];
+				
 				for (int i = 0; i < size; i++) {
 					final LinkEditData led = delList.elementAt(i);
 					final LinkProjectStore lps = led.lps;
+					boolean isRemoved = false;
 					if(led.status == LinkProjectManager.STATUS_DEPLOYED){
 						final File oldBackEditFile = LinkProjectManager.removeLinkProjectPhic(lps, true);
+						isRemoved = true;
 						if(oldBackEditFile != null){
 							delBackFileMap.put(lps.getProjectID(), oldBackEditFile);
 						}
@@ -1148,12 +1163,13 @@ public class LinkProjectPanel extends ProjectListPanel{
 					if(led.isUpgrade == false){
 //						LinkProjectManager.removeOnlyLPS(lps);
 						delCacheProjIDS[i] = lps.getProjectID();
+						if(isRemoved){
+							DelDeployedProjManager.addDeledDeployed(lps.getProjectID());
+							removedAndNotUpgrade[i] = lps.getProjectID();
+						}
 					}
 				}
 				delList.removeAllElements();
-				
-				//如果是升级型，则可能出现null
-				CacheManager.delProjects(delCacheProjIDS);
 			}
 			
 			final Vector<String> noActiveProjs = new Vector<String>();
@@ -1233,6 +1249,12 @@ public class LinkProjectPanel extends ProjectListPanel{
 
 				listSelectListener.valueChanged(null);//强制刷新当前行
 				tablePanel.table.repaint();//检查完善Root,Active，故刷新
+				
+				//如果是升级型，则可能出现null
+				CacheManager.delProjects(delCacheProjIDS);
+				AIPersistentManager.removeAndNotUpgrade(removedAndNotUpgrade);
+				PropertiesManager.saveFile();
+				
 				isChanged = false;
 			}
 		}

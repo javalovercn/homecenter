@@ -32,6 +32,7 @@ import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
+import hc.server.util.DelDeployedProjManager;
 import hc.server.util.SignHelper;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
@@ -254,6 +255,10 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 					strharurl = url;
 				}else if(lowerCaseURL.endsWith(Designer.HAD_EXT)){
 					LinkProjectManager.loadHAD(url, had);
+					final String projID = had.getProperty(HCjad.HAD_ID, "");
+					if(DelDeployedProjManager.isDeledDeployed(projID)){
+						throw new Exception(ResourceUtil.PROJ_IS_DELED_NEED_RESTART);
+					}
 					strharurl = had.getProperty(HCjad.HAD_HAR_URL, HCjad.convertToExtHar(url));
 				}else{
 					throw new Exception("it must be har or had file.");
@@ -282,7 +287,10 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 //					}
 					
 					final String proj_id = (String)map.get(HCjar.PROJ_ID);
-
+					if(DelDeployedProjManager.isDeledDeployed(proj_id)){
+						throw new Exception(ResourceUtil.PROJ_IS_DELED_NEED_RESTART);
+					}
+					
 					if(SignHelper.verifyJar(fileHar, LinkProjectManager.getCertificatesByID(proj_id)) == null){//完整性检查进行前置
 						throw new Exception(ResourceUtil.FILE_IS_MODIFIED_AFTER_SIGNED);
 					}

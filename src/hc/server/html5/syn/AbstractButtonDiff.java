@@ -2,15 +2,14 @@ package hc.server.html5.syn;
 
 import javax.swing.AbstractButton;
 import javax.swing.Icon;
-import javax.swing.JToggleButton;
 
 public class AbstractButtonDiff extends JComponentDiff{
 	
 	@Override
-	public void diff(final int hcCode, Object src, DifferTodo todo) {
+	public void diff(final int hcCode, final Object src, final DifferTodo todo) {
 		super.diff(hcCode, src, todo);
 		
-		AbstractButton btnSrc = (AbstractButton)src;
+		final AbstractButton btnSrc = (AbstractButton)src;
 		
 		todo.notifyModifyAbstractButtonText(src);
 		

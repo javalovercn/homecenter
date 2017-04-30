@@ -126,7 +126,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 	
 	CSSUndoableEditListener cssUndoListener;
 	UndoManager cssUndoManager;
-	final HCTextPane cssEditPane = new HCTextPane(){
+	final HCTextPane cssEditPane = new HCTextPane(new CSSSelectWordAction()){
 		@Override
 		public void paste(){
 			try{

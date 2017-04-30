@@ -1223,7 +1223,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_PASTE);
 				final int oldCaretPos = jtaScript.getCaretPosition();
 				final int oldLineNo = getLineOfOffsetWithoutException(jtaDocment, oldCaretPos);
-
+				final int totalLen = getDocument().getLength();
+				
 				super.paste();
 				
 				final int newCaretPos = jtaScript.getCaretPosition();
@@ -1233,17 +1234,22 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					ContextManager.getThreadPool().run(new Runnable() {
 						@Override
 						public void run() {
+							format(jtaDocment);//可能插入新缩进
 							rebuildASTNode();
-							format(jtaDocment);
+							updateScript(jtaScript.getText());
+							final int newTotalLen = getDocument().getLength();
+							final int newNewLinePos = oldCaretPos  + (newTotalLen - totalLen);//重新计算新loc
+							setCaretPosition(newNewLinePos);
+							final int shiftPos = newNewLinePos - oldCaretPos;
+							TabHelper.notifyInputKey(false, null, (char)0, - shiftPos + 1);
 						}
 					}, threadPoolToken);
-					updateScript(jtaScript.getText());
 				}else{
 					refreshCurrLineAfterKey(newLineNo);
+					final int shiftPos = newCaretPos - oldCaretPos;
+					TabHelper.notifyInputKey(false, null, (char)0, - shiftPos + 1);
 				}
 				
-				final int shiftPos = newCaretPos - oldCaretPos;
-				TabHelper.notifyInputKey(false, null, (char)0, - shiftPos + 1);
 			}catch (final Throwable e) {
 //				ExceptionReporter.printStackTrace(e);
 			}
@@ -1868,12 +1874,19 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		modifierKeysPressed = 0;
 	}
 
-	private final void clearSelectionBG() {
-		if(jtaScript.hasSelectedWords && (System.currentTimeMillis() - jtaScript.selectedWordsMS) > 500){
+	final Runnable clearSelectionBGDelay = new Runnable() {//否则导致paste，只清除selection，而没insert新内容
+		@Override
+		public void run() {
 			final StyledDocument styledDocument = jtaScript.getStyledDocument();
 			styledDocument.setCharacterAttributes(0, styledDocument.getLength(), normalBackground, false);
 			jtaScript.selectedWordsMS = System.currentTimeMillis();
 			jtaScript.hasSelectedWords = false;
+		}
+	};
+
+	private final void clearSelectionBG() {
+		if(jtaScript.hasSelectedWords && (System.currentTimeMillis() - jtaScript.selectedWordsMS) > 500){
+			SwingUtilities.invokeLater(clearSelectionBGDelay);
 		}
 	}
 	

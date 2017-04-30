@@ -126,6 +126,9 @@ public class CallContext {
 			t = ((InvocationTargetException)t).getTargetException();
 		}
 		if(isInvocationException){
+//			if(L.isInWorkshop){
+//				ResourceUtil.printStackTrace(t);
+//			}
 			final StringBuilder sb = StringBuilderCacher.getFree();
 			sb.append(t.getMessage());
 			sb.append("\n");

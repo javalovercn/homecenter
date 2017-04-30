@@ -181,7 +181,7 @@ public class CodeItem implements Comparable<CodeItem>{
 	public final int compareTo(final CodeItem o) {
 		int result = this.type - o.type;
 		if(result == 0){
-			result = codeLowMatch.compareTo(o.codeLowMatch);//可将bor/Border规在一块
+			result = codeDisplay.compareToIgnoreCase(o.codeDisplay);//可将bor/Border规在一块
 			if(result == 0){
 				return o.overrideMethodLevel - overrideMethodLevel;//子类居上
 			}else{

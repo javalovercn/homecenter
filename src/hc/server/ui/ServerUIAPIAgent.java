@@ -29,9 +29,9 @@ import hc.server.ui.design.JarMainMenu;
 import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
+import hc.server.util.Assistant;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.SystemEventListener;
-import hc.server.util.Assistant;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
@@ -65,10 +65,18 @@ public class ServerUIAPIAgent {
 		return item.belongToMenu;
 	}
 	
+	public static ProjectContext getProjectContextFromMlet(final Mlet mlet){
+		return mlet.__context;
+	}
+	
 	private final static Vector sessionListSnapThreadSafe = J2SESessionManager.getSessionList();
 	
 	public static boolean isEnableApplyOrientationWhenRTL(final Mlet mlet){
 		return mlet.enableApplyOrientationWhenRTL;
+	}
+	
+	public static ProjectContext getProjectContextFromCtrl(final CtrlResponse ctrl){
+		return ctrl.context;
 	}
 	
 	static final CoreSession[] getAllSocketSessionsNoCheck(){

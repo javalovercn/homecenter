@@ -27,6 +27,7 @@ import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SystemHTMLMlet;
 import hc.server.ui.design.code.StyleManager;
 import hc.server.ui.design.hpj.HCjar;
+import hc.server.util.ai.AIPersistentManager;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
@@ -46,7 +47,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
@@ -169,6 +169,10 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		ScreenServer.onExitForMlet(coreSS, projectContext, mlet, isAutoReleaseAfterGo);
 		MultiUsingManager.exit(coreSS, ServerUIAPIAgent.buildScreenID(projectContext.getProjectID(), mlet.getTarget()));
 		frame.dispose();
+		
+		if(AIPersistentManager.isEnableHCAI()){
+			AIPersistentManager.processJComponentToolTip(coreSS, projectContext, mlet);
+		}
 	}
 	
 	@Override
@@ -531,7 +535,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	
 	private final boolean notifyMouseReleased(final String id, final String x, final String y){
 		try{
-			final Component comp = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			final Component comp = differTodo.searchComponentByHcCode(Integer.parseInt(id.substring(HC_PRE_LEN)));
 			if(comp != null){
 				try{
 					final int intX = Integer.parseInt(x);
@@ -580,7 +584,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	
 	private final boolean notifyMousePressed(final String id, final String x, final String y){
 		try{
-			final Component comp = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			final Component comp = differTodo.searchComponentByHcCode(Integer.parseInt(id.substring(HC_PRE_LEN)));
 			if(comp != null){
 				try{
 					final int intX = Integer.parseInt(x);
@@ -608,7 +612,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	
 	private final boolean notifyMouseExited(final String id, final String x, final String y){
 		try{
-			final Component comp = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			final Component comp = differTodo.searchComponentByHcCode(Integer.parseInt(id.substring(HC_PRE_LEN)));
 			if(comp != null){
 				try{
 					final int intX = Integer.parseInt(x);
@@ -636,7 +640,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	
 	private final boolean notifyMouseEntered(final String id, final String x, final String y){
 		try{
-			final Component comp = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			final Component comp = differTodo.searchComponentByHcCode(Integer.parseInt(id.substring(HC_PRE_LEN)));
 			if(comp != null){
 				try{
 					final int intX = Integer.parseInt(x);
@@ -664,7 +668,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	
 	private final boolean notifyMouseClicked(final String id, final String x, final String y){
 		try{
-			final Component comp = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			final Component comp = differTodo.searchComponentByHcCode(Integer.parseInt(id.substring(HC_PRE_LEN)));
 			if(comp != null){
 				try{
 					final int intX = Integer.parseInt(x);
@@ -692,7 +696,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	
 	private final boolean notifyMouseDragged(final String id, final String x, final String y){
 		try{
-			final Component comp = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			final Component comp = differTodo.searchComponentByHcCode(Integer.parseInt(id.substring(HC_PRE_LEN)));
 			if(comp != null){
 				try{
 					final int intX = Integer.parseInt(x);
@@ -716,28 +720,6 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 			e.printStackTrace();
 		}
 		return false;
-	}
-	
-	private final Component searchComponentByHcCode(final JPanel jpanel, final int hcCode){//in user thread
-		if(differTodo.buildHcCode(jpanel) == hcCode){
-			return jpanel;
-		}
-		
-		final int compCount = jpanel.getComponentCount();
-		for (int i = 0; i < compCount; i++) {
-			final Component comp = jpanel.getComponent(i);
-			if(comp instanceof JPanel){
-				final Component result = searchComponentByHcCode((JPanel)comp, hcCode);
-				if(result != null){
-					return result;
-				}
-			}else{
-				if(differTodo.buildHcCode(comp) == hcCode){
-					return comp;
-				}
-			}
-		}
-		return null;
 	}
 	
 	private final String[] getThreeValue(final byte[] actionBS, final byte[] bs, final int offset, final int len){
@@ -791,7 +773,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	@Override
 	public final boolean clickButton(final String id) {
 		try{
-			final Component btn = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));//in user thread
+			final Component btn = differTodo.searchComponentByHcCode(Integer.parseInt(id.substring(HC_PRE_LEN)));//in user thread
 			if(btn != null && btn instanceof AbstractButton){
 				final MouseEvent e = new MouseEvent(btn, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(),
 			    		MouseEvent.BUTTON1_MASK, 0, 0, 1, false);
@@ -809,7 +791,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	@Override
 	public final boolean selectSlider(final String id, final String value) {
 		try{
-			final Component slider = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			final Component slider = differTodo.searchComponentByHcCode(Integer.parseInt(id.substring(HC_PRE_LEN)));
 			if(slider != null && slider instanceof JSlider){
 				final JSlider sliderBar = (JSlider)slider;
 				
@@ -832,7 +814,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	@Override
 	public final boolean selectComboBox(final String id, final String selectedIndex) {
 		try{
-			final Component combo = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			final Component combo = differTodo.searchComponentByHcCode(Integer.parseInt(id.substring(HC_PRE_LEN)));
 			if(combo != null && combo instanceof JComboBox){
 				final JComboBox combo2 = (JComboBox)combo;
 				
@@ -879,7 +861,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	@Override
 	public final boolean notifyTextFieldValue(final String id, final String value) {
 		try{
-			final Component combo = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			final Component combo = differTodo.searchComponentByHcCode(Integer.parseInt(id.substring(HC_PRE_LEN)));
 			if(combo != null && combo instanceof JTextField){
 				final JTextField textField = (JTextField)combo;
 				textField.setText(value);
@@ -906,7 +888,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	@Override
 	public final boolean notifyTextAreaValue(final String id, final String value) {
 		try{
-			final Component combo = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			final Component combo = differTodo.searchComponentByHcCode(Integer.parseInt(id.substring(HC_PRE_LEN)));
 			if(combo != null && combo instanceof JComponent && JPanelDiff.isTextMultLinesEditor((JComponent)combo)){
 				final JTextComponent textArea = (JTextComponent)combo;
 				textArea.setText(value);
@@ -924,7 +906,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	@Override
 	public final boolean clickRadioButton(final String id) {
 		try{
-			final Component combo = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			final Component combo = differTodo.searchComponentByHcCode(Integer.parseInt(id.substring(HC_PRE_LEN)));
 			if(combo != null && combo instanceof JRadioButton){
 				final JRadioButton radioButton = (JRadioButton)combo;
 				radioButton.doClick();
@@ -942,7 +924,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 	@Override
 	public final boolean clickCheckbox(final String id) {
 		try{
-			final Component combo = searchComponentByHcCode(mlet, Integer.parseInt(id.substring(HC_PRE_LEN)));
+			final Component combo = differTodo.searchComponentByHcCode(Integer.parseInt(id.substring(HC_PRE_LEN)));
 			if(combo != null && combo instanceof JCheckBox){
 				final JCheckBox checkBox = (JCheckBox)combo;
 				checkBox.doClick();

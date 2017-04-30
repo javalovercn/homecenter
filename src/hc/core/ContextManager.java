@@ -37,13 +37,17 @@ public class ContextManager {
 		//用户请求关闭时，可能存在其它消息任务。消息任务须优先被执行。故增加缺省线程优先级来处理关闭逻辑
 		ContextManager.getThreadPool().run(new Runnable() {
 			public void run(){
-				if(ic != null){
-					ic.notifyShutdown();
-				}else{
-					if(L.isInWorkshop){
-						LogManager.errToLog("notifyShutdown IContext is null");
+				try{
+					if(ic != null){
+						ic.notifyShutdown();
+					}else{
+						if(L.isInWorkshop){
+							LogManager.errToLog("notifyShutdown IContext is null");
+						}
+						CoreSession.setNotifyShutdown();
 					}
-					CoreSession.setNotifyShutdown();
+				}catch (Exception e) {
+					e.printStackTrace();//不产生通知到服务器上
 				}
 			}
 		});

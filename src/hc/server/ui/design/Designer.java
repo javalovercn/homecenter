@@ -65,6 +65,7 @@ import hc.server.ui.design.hpj.NodeInvalidException;
 import hc.server.ui.design.hpj.ProjectIDDialog;
 import hc.server.util.CSSUtil;
 import hc.server.util.ContextSecurityConfig;
+import hc.server.util.DelDeployedProjManager;
 import hc.server.util.DownlistButton;
 import hc.server.util.SignHelper;
 import hc.util.BaseResponsor;
@@ -333,7 +334,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	final DefaultMutableTreeNode eventFolder = createEventFolder();
 	final DefaultMutableTreeNode cssNode = createCSSNode();
 	
-	public String getCurrProjID(){
+	public final String getCurrProjID(){
 		return ((HPProject)root.getUserObject()).id;
 	}
 	
@@ -870,6 +871,12 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 					ContextManager.getThreadPool().run(new Runnable() {
 						@Override
 						public void run(){
+							if(DelDeployedProjManager.isDeledDeployed(getCurrProjID())){
+								App.showMessageDialog(self, ResourceUtil.PROJ_IS_DELED_NEED_RESTART, 
+										ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE);
+								return;
+							}
+							
 							App.invokeAndWaitUI(new Runnable(){
 								@Override
 								public void run(){

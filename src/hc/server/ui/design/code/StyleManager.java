@@ -14,6 +14,8 @@ import java.util.regex.Pattern;
 public class StyleManager {
 	
 	//注意：如果增加，请同步更改replaceVariable
+	public static final char PARAMETER_BORDER_CHAR = '$';
+	
 	public static final String[] variables = {"$smallFontSize$", "$normalFontSize$", "$largeFontSize$", "$buttonFontSize$", 
 			"$buttonHeight$", "$mobileWidth$", "$mobileHeight$", 
 			"$colorForBodyByHexString$", "$colorForFontByHexString$"};
@@ -21,7 +23,7 @@ public class StyleManager {
 	private static final Pattern variableForPattern = Pattern.compile("\\$\\w+\\$");
 	
 	public static String replaceVariable(final J2SESession coreSS, final String styles, final HTMLMlet htmlmlet, final ProjectContext ctx){
-		if(styles.indexOf('$', 0) > 0){
+		if(styles.indexOf(PARAMETER_BORDER_CHAR, 0) > 0){
 			if(coreSS.mobileValuesForCSS == null){
 				coreSS.mobileValuesForCSS = (Object[])ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
 					@Override

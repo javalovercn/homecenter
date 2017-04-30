@@ -8,6 +8,7 @@ import hc.server.ui.ProjectContext;
 import hc.server.ui.ScriptPanel;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
+import hc.server.util.ai.AIPersistentManager;
 import hc.util.ClassUtil;
 
 import java.awt.Component;
@@ -127,6 +128,11 @@ public class JPanelDiff extends JComponentDiff{
 	//in user thread
 	private final static void addComponent(final int containHashID, final JComponent jcomp, final int index, final DifferTodo todo, final boolean isAddedEvent){
 		final int compHcCode = todo.buildHcCode(jcomp);
+		
+		if(AIPersistentManager.isEnableForSomeComponent && AIPersistentManager.isEnableHCAI()){
+			AIPersistentManager.processAddComponent(jcomp, todo);
+		}
+		
 		Class diffClass = null;
 		if(jcomp instanceof JButton){
 			todo.notifyAddButton(containHashID, index, compHcCode);

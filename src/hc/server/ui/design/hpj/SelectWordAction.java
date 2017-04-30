@@ -48,8 +48,8 @@ public class SelectWordAction extends TextAction {
 				final int startIdx = clickStartIdx + 1;
 				final String selectedText = String.valueOf(lineChar, startIdx, clickEndIdx - startIdx);
 				
-				target.setCaretPosition(lineStartIdx + startIdx);
-				target.moveCaretPosition(lineStartIdx + clickEndIdx);
+				target.setSelectionStart(lineStartIdx + startIdx);
+				target.setSelectionEnd(lineStartIdx + clickEndIdx);
 				
 				final Object eventSrc = e.getSource();
 				if(selectedText.length() > 0 && eventSrc instanceof HCTextPane){

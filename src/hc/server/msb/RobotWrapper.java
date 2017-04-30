@@ -1,6 +1,11 @@
 package hc.server.msb;
 
 import hc.server.ui.ProjectContext;
+import hc.server.util.ai.AIObjectCache;
+import hc.server.util.ai.AIPersistentManager;
+import hc.server.util.ai.AnalysableData;
+import hc.server.util.ai.RobotData;
+import hc.util.ResourceUtil;
 
 public class RobotWrapper extends Robot {
 	final Robot robot;
@@ -11,7 +16,21 @@ public class RobotWrapper extends Robot {
 
 	@Override
 	public final Object operate(final long functionID, final Object parameter) {
-		return robot.operate(functionID, parameter);
+		final Object out = robot.operate(functionID, parameter);
+
+		if(AIPersistentManager.isEnableAnalyseFlow && AIPersistentManager.isEnableHCAI() 
+				&& ResourceUtil.isAnalysableParameter(parameter)
+				&& ResourceUtil.isAnalysableParameter(out)){
+			final RobotData anaData = AIObjectCache.getRobotData();
+			anaData.functionID = functionID;
+			anaData.parameter = parameter;
+			anaData.out = out;
+			
+			anaData.snap(robot.project_id, robot.getProjectContext().getClientLocale(), AnalysableData.DIRECT_IN);
+			AIPersistentManager.processRobotData(anaData);
+		}
+		
+		return out;
 	}
 
 	@Override

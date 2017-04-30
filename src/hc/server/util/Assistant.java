@@ -1,6 +1,8 @@
 package hc.server.util;
 
+import hc.server.msb.AnalysableRobotParameter;
 import hc.server.msb.Robot;
+import hc.server.ui.CtrlResponse;
 import hc.server.ui.Dialog;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.ProjectContext;
@@ -9,22 +11,27 @@ import hc.server.ui.ScriptPanel;
 import javax.swing.JComponent;
 
 /**
- * the assistant of current project, which process voice command.<BR>
+ * the assistant of current project is implemented by project provider, which process voice command.<BR><BR>
+ * if you don't want to implement a assistant, and hope HCAI (HomeCenter AI) to do same work for you, please see detail on {@link #onVoice(VoiceCommand)}.
  * @see ProjectContext#registerAssistant(Assistant)
  * @since 7.47
  */
 public class Assistant {
 	
 	/**
-	 * receive a voice command, and process it.
+	 * process a voice command.
+	 * <BR><BR>
+	 * please don't implement voice command for following cases, server will do it for you :<BR>
+	 * 1. the voice is for open/execute menu items.<BR>
+	 * 2. the voice is to open {@link CtrlResponse}, and the key words of status of {@link CtrlResponse} are included in voice. (open once is required)<BR>
+	 * 3. the voice is to open {@link HTMLMlet}, and the key words of JLable(s) or tool tip text are included in voice. (open once is required)
 	 * <BR><BR>
 	 * <STRONG>Important :</STRONG><BR>
-	 * 1. menu items is preferentially matched by server, if fail then dispatched to this method.<BR>
-	 * 2. current assistant instance perhaps serve multiple sessions at same time.<BR>
-	 * 3. no all clients support all languages voice command.<BR>
-	 * 4. it is not easy to process voice commands, server will do our best to process voice for you if voice is complex, but it will take a long time to learn.
+	 * 1. assistant instance perhaps serve multiple sessions at same time.<BR>
+	 * 2. no all clients support all languages voice command.<BR>
+	 * 3. server will try to process voice for you instead of writing codes here, which is based on analysing the {@link AnalysableRobotParameter} between Robot and UI, so it is NOT recommended to use complex object defined by yourself in {@link Robot#operate(long, Object)}.
 	 * <BR><BR>
-	 * know more<BR>
+	 * How to more effectively help the server understand the relationship between UI and Robot, to enhance the automatic processing of voice instruction accuracy?<BR>
 	 * 1. set keywords by {@link JComponent#setToolTipText(String)}<BR>
 	 * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for example, there are two project on server, one for ice box, and other for air conditioner. 
 	 * when people speaks "what is the temperature of ice box?", of cause the voice command should NOT be dispatched to air conditioner,
@@ -32,7 +39,8 @@ public class Assistant {
 	 * server can be sure it does right, but if there is no keywords in form, but icons or {@link ScriptPanel} in form, you should set keywords by {@link JComponent#setToolTipText(String)}.
 	 * <BR>
 	 * 2. implements business in {@link Robot#operate(long, Object)}<BR>
-	 * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;business may be driven from UI (voice assistant, {@link HTMLMlet} and {@link Dialog}), so it is good practice to implement business in {@link Robot#operate(long, Object)}.
+	 * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;business may be driven from UI (voice assistant, {@link HTMLMlet} and {@link Dialog}), so it is good practice to implement business in {@link Robot#operate(long, Object)}.<BR>
+	 * 3. use the {@link AnalysableRobotParameter} instead of complex object defined by yourself.
 	 * @param cmd
 	 * @return true means the voice command is consumed and never be dispatched to other projects.
 	 */

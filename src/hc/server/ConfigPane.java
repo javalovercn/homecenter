@@ -5,6 +5,7 @@ import hc.core.ContextManager;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.StringUtil;
 import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.data.KeyComperPanel;
@@ -17,6 +18,7 @@ import hc.server.ui.design.Designer;
 import hc.server.ui.design.code.CodeHelper;
 import hc.server.ui.design.hpj.ScriptEditPanel;
 import hc.server.util.ExceptionViewer;
+import hc.server.util.ai.AIPersistentManager;
 import hc.util.BaseResponsor;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
@@ -73,9 +75,10 @@ import javax.swing.plaf.basic.BasicLookAndFeel;
 import javax.swing.table.AbstractTableModel;
 
 public class ConfigPane extends SingleJFrame {
-	public static final int OPTION_APPLY = 1;
-	public static final int OPTION_OK = 2;
+	public static final int OPTION_APPLY_BEFORE_SAVE = 1;
+	public static final int OPTION_OK_BEFORE_SAVE = 2;
 	public static final int OPTION_CANCEL = 3;
+	public static final int OPTION_OK_SAVE_DONE = 4;
 	
 	final String third_lib_title = (String)ResourceUtil.get(9046);
 	Vector<ThirdLibValue> deledLibs = new Vector<ThirdLibValue>();
@@ -453,11 +456,11 @@ public void run() {
 							if(designer != null){
 								designer.codeHelper.initShortCutKeys();
 							}
-						}if(option == OPTION_APPLY){
+						}if(option == OPTION_APPLY_BEFORE_SAVE){
 							final char inputChar = keyCharListener[0];
 							final String keyValue = String.valueOf(inputChar);
 							applyKeyChar(designer, inputChar, keyValue, wordKey);
-						}else if(option == OPTION_OK){
+						}else if(option == OPTION_OK_BEFORE_SAVE){
 							final char inputChar = keyCharListener[0];
 							final String keyValue = String.valueOf(inputChar);
 							
@@ -545,7 +548,7 @@ public void run() {
 				
 				@Override
 				public void applyBiz(final int option) {
-					if(option == OPTION_OK){
+					if(option == OPTION_OK_BEFORE_SAVE){
 						if(isOldReceiveDeployFromLocal.equals(getNewValue()) == false){
 							if(enableReceiveDeployFromLocal.isSelected()){
 								ReceiveDeployServer.startServer();
@@ -672,7 +675,7 @@ public void run() {
 						new ConfigValue(PropertiesManager.p_autoStart, isAutoStart, group) {
 							@Override
 							public void applyBiz(final int option) {
-								if(option == OPTION_OK){
+								if(option == OPTION_OK_BEFORE_SAVE){
 									final String newAutoStart = getNewValue();
 									if(isAutoStart.equals(newAutoStart) == false){
 										PlatformManager.getService().setAutoStart(cbAutoStart.isSelected());
@@ -714,6 +717,33 @@ public void run() {
 					final JPanel line = new JPanel();
 					line.setLayout(new FlowLayout(FlowLayout.LEADING, ClientDesc.hgap, ClientDesc.vgap));
 					line.add(cbEnableClientAddHAR);
+					panel.add(line);
+					
+					final JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
+					panel.add(separator);
+				}
+				
+				{
+					final JCheckBox cbEnableHCAI = new JCheckBox((String)ResourceUtil.get(9253));//enable HCAI (HomeCenter AI) to learn voice command and automation.
+					cbEnableHCAI.setToolTipText((String)ResourceUtil.get(9254));//it is different from the custom assistant of project
+					final String isEnableHCAI = PropertiesManager.getValue(PropertiesManager.p_isEnableHCAI, IConstant.TRUE);
+					cbEnableHCAI.setSelected(AIPersistentManager.isEnableHCAI());
+					new ConfigValue(PropertiesManager.p_isEnableHCAI, isEnableHCAI, group) {
+						@Override
+						public void applyBiz(final int option) {
+							if(option == OPTION_OK_SAVE_DONE && getNewValue().equals(isEnableHCAI) == false){
+								AIPersistentManager.refreshEnableHCAI();
+							}
+						}
+						
+						@Override
+						public String getNewValue() {
+							return cbEnableHCAI.isSelected()?IConstant.TRUE:IConstant.FALSE;
+						}
+					};
+					final JPanel line = new JPanel();
+					line.setLayout(new FlowLayout(FlowLayout.LEADING, ClientDesc.hgap, ClientDesc.vgap));
+					line.add(cbEnableHCAI);
 					panel.add(line);
 					
 					final JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
@@ -914,7 +944,7 @@ public void run() {
 					if(isCancel){
 						newOldValue = getOldValue();
 					}
-					if(option == OPTION_OK){
+					if(option == OPTION_OK_BEFORE_SAVE){
 						PropertiesManager.setValue(PropertiesManager.p_selectedNetworkPort, 
 								group.getValueForApply(PropertiesManager.p_selectedNetworkPort));
 						if(isCancel && realWorkingValue.equals(getOldValue())){
@@ -1023,7 +1053,7 @@ public void run() {
 				}
 				@Override
 				public void applyBiz(final int option) {
-					if(option == OPTION_OK){
+					if(option == OPTION_OK_BEFORE_SAVE){
 						if(deledLibs.size() > 0 || addLib || isMovedLibIdx){
 							afterModi3rdLib();
 						}
@@ -1141,12 +1171,16 @@ public void run() {
 		cancel.addActionListener(new HCButtonEnabledActionListener(cancel, new Runnable() {
 			@Override
 			public void run() {
+				exit();//改最后为最前，以提高用户响应感
+
 				cancelConfig();
 			}
 		}, threadPoolToken));
 		ok.addActionListener(new HCButtonEnabledActionListener(ok, new Runnable() {
 			@Override
 			public void run() {
+				exit();//改最后为最前，以提高用户响应感
+
 				group.doSaveUI();//可能弹出对话框，所以不能置于SwingUtilities
 
 				SwingUtilities.invokeLater(new Runnable() {
@@ -1167,7 +1201,6 @@ public void run() {
 						}catch (final Throwable e) {
 							ExceptionReporter.printStackTrace(e);
 						}
-						exit();
 					}
 				});
 			}
@@ -1179,7 +1212,7 @@ public void run() {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						group.applyAll(OPTION_APPLY);
+						group.applyAll(OPTION_APPLY_BEFORE_SAVE);
 						updateFrameUI();
 					}
 				});
@@ -1378,17 +1411,15 @@ public void run() {
 			public void run() {
 				group.doCancel();
 				SingleJFrame.updateAllJFrame();
-				exit();
 			}
 		});
 	}
 
 	public static void rebuildConnection(final JFrame self) {
 		final JPanel panel = new JPanel(new BorderLayout());
-		panel.add(new JLabel("<html>setting is changed or canceled, need rebuild connection," +
-				"<BR><BR>click '" + (String) ResourceUtil.get(IContext.OK) + "' to rebuild now!</html>", 
-				App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING));
-		App.showCenterPanelMain(panel, 0, 0, "rebuild connection now?", true, null, null, new HCActionListener(new Runnable() {
+		final String msg = StringUtil.replace((String)ResourceUtil.get(9256), "{ok}", (String) ResourceUtil.get(IContext.OK));//setting is changed or canceled, need rebuild connection
+		panel.add(new JLabel(msg, App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING));
+		App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(9255), true, null, null, new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				HttpUtil.notifyStopServer(true, self);		
@@ -1479,7 +1510,7 @@ public void run() {
 			if(isCancel){
 				newOldValue = getOldValue();
 			}
-			if(option == ConfigPane.OPTION_OK){
+			if(option == ConfigPane.OPTION_OK_BEFORE_SAVE){
 				PropertiesManager.setValue(PropertiesManager.p_selectedNetwork, 
 						group.getValueForApply(PropertiesManager.p_selectedNetwork));
 				if(isCancel && realWorkingValue.equals(getOldValue())){

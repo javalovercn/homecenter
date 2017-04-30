@@ -7,6 +7,10 @@ import hc.core.util.LangUtil;
 import hc.core.util.OutPortTranser;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.design.J2SESession;
+import hc.server.util.ai.AIObjectCache;
+import hc.server.util.ai.AIPersistentManager;
+import hc.server.util.ai.AnalysableData;
+import hc.server.util.ai.FormData;
 import hc.util.ResourceUtil;
 import hc.util.ThreadConfig;
 
@@ -34,7 +38,7 @@ public abstract class CtrlResponse {
 	}
 	
 	final String target, screenID;
-	private final ProjectContext context;
+	final ProjectContext context;
 	private final J2SESession coreSS;
 	private final boolean isRTL;
 	/**
@@ -127,6 +131,11 @@ public abstract class CtrlResponse {
 					ServerUIAPIAgent.__sendTextOfCtrlButton(coreSS, key, text);
 				}
 			});
+			
+			if(AIPersistentManager.isEnableHCAI()){
+				final String locale = UserThreadResourceUtil.getMobileLocaleFrom(coreSS);
+				AIPersistentManager.processCtrl(locale, target, text, context);
+			}
 		}
 	}
 	
@@ -160,7 +169,15 @@ public abstract class CtrlResponse {
 	 * @since 7.30
 	 */
 	public void sendMovingMsg(final String msg){
-		getProjectContext().sendMovingMsg(msg);
+		if(AIPersistentManager.isEnableAnalyseFlow && AIPersistentManager.isEnableHCAI()){
+			final FormData data = AIObjectCache.getFormData();
+			data.uiType = FormData.UI_TYPE_CTRLRESP;
+			data.uiObject = this;
+			data.movingMsg = msg;
+			data.snap(context.getProjectID(), context.getClientLocale(), AnalysableData.DIRECT_OUT);
+			AIPersistentManager.processFormData(data);
+		}
+		context.sendMovingMsg(msg);
 	}
 	
 	/**
@@ -261,5 +278,9 @@ public abstract class CtrlResponse {
 			}
 		});
 		
+		if(AIPersistentManager.isEnableHCAI()){
+			final String locale = UserThreadResourceUtil.getMobileLocaleFrom(coreSS);
+			AIPersistentManager.processCtrl(locale, target, attributes, context);
+		}
 	}
 }

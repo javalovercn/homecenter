@@ -34,9 +34,9 @@ public class JTextComponentDiff extends JComponentDiff{
 		
 		if(JPanelDiff.isTextMultLinesEditor(textCompSrc)){
 			value = JSUtil.replaceNewLine(value);
-			todo.notifyModifyTextAreaText(hcCode, value);
+			todo.notifyModifyTextAreaText(textCompSrc, hcCode, value);
 		}else{
-			todo.notifyModifyTextComponentText(hcCode, value);
+			todo.notifyModifyTextComponentText(textCompSrc, hcCode, value);
 		}
 	}
 	

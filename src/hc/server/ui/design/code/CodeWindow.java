@@ -23,6 +23,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import javax.swing.AbstractListModel;
 import javax.swing.DefaultListCellRenderer;
@@ -412,6 +413,8 @@ public class CodeWindow {
 				addItemExcludeOverride(codeItem, target);
 			}
 		}
+		
+		Collections.sort(target);
 	}
 	
 	public static void fillForAutoTip(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target, final String fieldOrMethod) {
@@ -434,6 +437,7 @@ public class CodeWindow {
 				addItemExcludeOverride(codeItem, target);
 			}
 		}
+		Collections.sort(target);
 	}
 	
 	private static void addItemExcludeOverride(final CodeItem codeitem, final ArrayList<CodeItem> target){

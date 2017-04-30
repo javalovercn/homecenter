@@ -15,14 +15,16 @@ public class ServCtrlCanvas implements ICanvas {
 	
 	public final String getScreenID(){
 		if(screenID == null){
-			screenID = ServerUIAPIAgent.buildScreenID(cr.getProjectContext().getProjectID(), cr.target);
+			final ProjectContext ctx = ServerUIAPIAgent.getProjectContextFromCtrl(cr);
+			screenID = ServerUIAPIAgent.buildScreenID(ctx.getProjectID(), cr.target);
 		}
 		return screenID;
 	}
 	
 	@Override
 	public void onStart() {
-		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(cr.getProjectContext()), new Runnable() {
+		final ProjectContext ctx = ServerUIAPIAgent.getProjectContextFromCtrl(cr);
+		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new Runnable() {
 			@Override
 			public void run() {
 				cr.onLoad();
@@ -40,13 +42,14 @@ public class ServCtrlCanvas implements ICanvas {
 
 	@Override
 	public void onExit() {
-		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(cr.getProjectContext()), new Runnable() {
+		final ProjectContext ctx = ServerUIAPIAgent.getProjectContextFromCtrl(cr);
+		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new Runnable() {
 			@Override
 			public void run() {
 				cr.onExit();
 			}
 		});
-		MultiUsingManager.exit(coreSS, ServerUIAPIAgent.buildScreenID(cr.getProjectContext().getProjectID(), cr.target));
+		MultiUsingManager.exit(coreSS, ServerUIAPIAgent.buildScreenID(ctx.getProjectID(), cr.target));
 	}
 
 	@Override

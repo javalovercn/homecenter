@@ -63,6 +63,10 @@ public class J2SESessionManager extends SessionManager {
 		isShutdown = true;
 	}
 	
+	public static boolean isShutdown(){
+		return isShutdown;
+	}
+	
 	public static final void notifyRestartDirect(){
 		CCoreUtil.checkAccess();
 		

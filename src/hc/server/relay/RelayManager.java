@@ -201,13 +201,15 @@ public class RelayManager {
 		}else{
 			try{
 				if(pushMap(ctx, key)){
-					serverNum.value = (++size);
-					LogManager.log("server num : " + serverNum.value);
-					ContextManager.getThreadPool().run(refreshServerNum);//不用threadPoolToken
-					
-					LogManager.log("S/C line on");
-					
-					LogManager.flush();
+					synchronized (serverNumRefreshLock) {
+						serverNum.value = (++size);
+						LogManager.log("server num : " + serverNum.value);
+						ContextManager.getThreadPool().run(refreshServerNum);//不用threadPoolToken
+						
+						LogManager.log("S/C line on");
+						
+						LogManager.flush();
+					}
 				}
 			}catch (final Exception e) {
 //				ExceptionReporter.printStackTrace(e);
@@ -252,6 +254,8 @@ public class RelayManager {
 		}
 	}
 
+	final static Object serverNumRefreshLock = new Object();
+	
 	/**
 	 * 因为clientResetTimer和服务器发生断线同时发生，导致对象回收异常，故加锁
 	 * @param sc
@@ -262,10 +266,21 @@ public class RelayManager {
 			LogManager.log("closing Pare...");
 			if(lineOffSessionConn(sc) && notifyMinus){//notifyMinus一定要置于，因为前者(lineOffSessionConn)一定要被执行
 //				RootServerConnector.delLineInfo(uuid, token, false);//由于多路并发模式，关闭
-
-				serverNum.value = (--size);
-				LogManager.log("server num : " + serverNum.value);
-				ContextManager.getThreadPool().run(refreshServerNum);//不用threadPoolToken
+				synchronized (serverNumRefreshLock) {
+					if(size == 0){
+						LogManager.errToLog("server num : 0");
+						ContextManager.getThreadPool().run(new Runnable() {
+							@Override
+							public void run() {
+								RootServerConnector.sendHttpMsg(RootServerConnector.REP_Server_Num_Under_0);
+							}
+						});
+						return;
+					}
+					serverNum.value = (--size);
+					LogManager.log("server num : " + serverNum.value);
+					ContextManager.getThreadPool().run(refreshServerNum);//不用threadPoolToken
+				}
 			}
 		}
 	}

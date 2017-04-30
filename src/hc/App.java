@@ -370,6 +370,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		}
 		
 		//依赖isInWorkshop
+		PropertiesManager.removeSet(PropertiesManager.S_DELED_DEPLOYED_PROJS);
 		PropertiesManager.emptyDelDir();
 		
 		//初始化

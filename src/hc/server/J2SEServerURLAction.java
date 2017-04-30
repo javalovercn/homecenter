@@ -36,6 +36,7 @@ import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.util.VoiceCommand;
 import hc.server.util.VoiceParameter;
+import hc.server.util.ai.ProjectTargetForAI;
 import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
@@ -199,7 +200,21 @@ public class J2SEServerURLAction implements IHCURLAction {
 						final VoiceCommand vc = new VoiceCommand(voiceText);
 						final MobiUIResponsor resp = (MobiUIResponsor)ServerUIUtil.getResponsor();
 						if(resp.dispatchVoiceCommand(j2seCoreSS, vc) == false){
-							ServerUIAPIAgent.sendOneMovingMsg(coreSS, StringUtil.replace((String)ResourceUtil.get(coreSS, 9245), "{voice}", voiceText));
+							//没有工程级assistant响应，则HCAI进行处理
+							final String locale = UserThreadResourceUtil.getMobileLocaleFrom(j2seCoreSS);
+							
+							final ProjectTargetForAI target = resp.query(j2seCoreSS, locale, voiceText);
+							
+							if(target == null){
+								ServerUIAPIAgent.sendOneMovingMsg(coreSS, StringUtil.replace((String)ResourceUtil.get(coreSS, 9245), "{voice}", voiceText));
+							}else{
+								LogManager.log(ILog.OP_STR + "find target [" + target + "] for voice [" + voiceText + "].");
+								final ProjectContext ctx = resp.getProjResponser(target.projectID).context;
+								ServerUIAPIAgent.goInSysThread(j2seCoreSS, ctx, target.target);
+								
+								final String vcTip = StringUtil.replace((String)ResourceUtil.get(9257), "{cmd}", voiceText);
+								ServerUIAPIAgent.sendOneMovingMsg(j2seCoreSS, vcTip);
+							}
 						}
 					}
 					return true;
