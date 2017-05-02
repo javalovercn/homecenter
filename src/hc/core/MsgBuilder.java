@@ -143,6 +143,7 @@ public class MsgBuilder {
 	public static final byte DATA_ROOT_ONLINE_DB_EXEC = 7;
 	public static final byte DATA_ROOT_OS_IN_LOCK = 8;
 	public static final byte DATA_ROOT_SERVER_IN_DIRECT_MODE = 9;
+	public static final byte DATA_ROOT_DIRECT_CONN_OK = 10;
 	
 	public static final byte DATA_E_TAG_RELAY_REG_SUB_FIRST = 0;
 	public static final byte DATA_E_TAG_RELAY_REG_SUB_RESET = 1;

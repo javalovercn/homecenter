@@ -1,6 +1,7 @@
 package hc.server.relay;
 
 import java.nio.ByteBuffer;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
 public interface ExtReplayBiz {
@@ -10,5 +11,5 @@ public interface ExtReplayBiz {
 	 * @param bs
 	 * @throws Exception
 	 */
-	public boolean doExt(SocketChannel socket, ByteBuffer buffer) throws Exception;
+	public boolean doExt(final SelectionKey key, SocketChannel socket, ByteBuffer buffer) throws Exception;
 }

@@ -52,8 +52,13 @@ import third.apache.lucene.analysis.sv.SwedishAnalyzer;
 import third.apache.lucene.analysis.th.ThaiAnalyzer;
 import third.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import third.apache.lucene.analysis.tr.TurkishAnalyzer;
+import third.apache.lucene.util.RamUsageEstimator;
 
 public class LuceneManager {
+	static {
+		final int i = RamUsageEstimator.NUM_BYTES_INT;//init static
+	}
+	
 	private final static HashMap<String, Analyzer> localeAnalyzer = new HashMap<String, Analyzer>(50);
 	
 	/**

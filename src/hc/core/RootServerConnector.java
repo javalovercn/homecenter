@@ -541,7 +541,7 @@ public class RootServerConnector {
 		return delLineInfo(IConstant.uuid, token, isMobileLineIn);
 	}
 	
-	private static String delLineInfo(String uuid, String token, boolean isMobileLineIn) {
+	public static String delLineInfo(String uuid, String token, boolean isMobileLineIn) {
 		String lineOffStr = (isMobileLineIn?mobiLineIn_STR:lineoff_STR);
 		return retry(CALL_STR +
 				lineOffStr +

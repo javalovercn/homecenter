@@ -38,6 +38,7 @@ import hc.core.util.IHCURLAction;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
+import hc.core.util.ThreadPriorityManager;
 import hc.core.util.WiFiDeviceManager;
 import hc.res.ImageSrc;
 import hc.server.msb.UserThreadResourceUtil;
@@ -539,6 +540,12 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			if(L.isInWorkshop){
 				LogManager.log("upload direct server : " + StarterParameter.homeWirelessIpPort.ip + ", port : " + StarterParameter.homeWirelessIpPort.port);
 			}
+			
+			try{
+				Thread.sleep(ThreadPriorityManager.RELAY_FIRST_MS);
+			}catch (final Exception e) {
+			}
+
 			final String out = RootServerConnector.lineOn(
 					IConstant.getUUID(), StarterParameter.homeWirelessIpPort.ip, 
 					StarterParameter.homeWirelessIpPort.port, 0, 1, 

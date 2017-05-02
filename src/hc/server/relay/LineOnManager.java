@@ -14,7 +14,7 @@ public class LineOnManager {
 	static final Vector<DataLineOn> vector = new Vector<DataLineOn>();
 	public static final Comparator<DataLineOn> comparator = new Comparator<DataLineOn>() {
 		@Override
-		public int compare(DataLineOn o1, DataLineOn o2) {
+		public int compare(final DataLineOn o1, final DataLineOn o2) {
 			final int eqServerNum = o1.serverNum - o2.serverNum;
 			if(eqServerNum == 0){
 				return o1.getLenid() - o2.getLenid();
@@ -24,12 +24,12 @@ public class LineOnManager {
 		}
 	};
 
-	private static String printServerInfo(String currID, String hideToken){
+	private static String printServerInfo(final String currID, final String hideToken){
 		//WHERE id = "' . $_GET['id'] . '";');
 
 		final int size = vector.size();
 		for (int i = 0; i < size; i++) {
-			DataLineOn dlo = vector.elementAt(i);
+			final DataLineOn dlo = vector.elementAt(i);
 			//$ht['ip'] , ';' , $ht['port'] , ';' , $ht['nattype'] , ';' , $ht['upnpip'] , ';' , 
 			//$ht['upnpport'] , ';' , $ht['relayip'] , ';' , $ht['relayport'];
 			if(dlo.id.equals(currID)){
@@ -62,13 +62,13 @@ public class LineOnManager {
 
 	private static String printNewRelayServers(){
 		//查询可供使用的中继
-		StringBuffer obs = new StringBuffer("");
+		final StringBuffer obs = new StringBuffer("");
 		
 		//SELECT upnpip,upnpport,relayip,relayport 
 		//FROM `lineon` WHERE nattype = 100 ORDER BY serverNum ASC, lenid DESC LIMIT 20;');
 		Collections.sort(vector, comparator);
 		
-		Iterator<DataLineOn> it = vector.iterator();
+		final Iterator<DataLineOn> it = vector.iterator();
 		int recordLimit = 0;
 		while(it.hasNext()){
 			final DataLineOn dlo = it.next();
@@ -92,12 +92,14 @@ public class LineOnManager {
 			}
 		}
 		//return obs.toString();
-		String out = obs.toString();
-//		LogManager.log(" LineOnManager printNewRelayServers : " + out);
+		final String out = obs.toString();
+//		if(L.isLogInRelay) {
+//			LogManager.log(" LineOnManager printNewRelayServers : " + out);
+//		}
 		return out;
 	}
 
-	private static void removeUnalive(String currID){
+	private static void removeUnalive(final String currID){
 //		if($_GET['id'] == 'root'){
 //			mysql_query('DELETE FROM `lineon` WHERE alive < date_sub(now(), INTERVAL 26 hour);');//两小时未刷新
 //		}
@@ -110,13 +112,15 @@ public class LineOnManager {
 				final DataLineOn dlo = vector.elementAt(i);
 				if(dlo.alive < borderMS){
 					vector.remove(i);
-					LogManager.log(" LineOnManager REMOVE UNALIVE : " + dlo.id);
+					if(L.isLogInRelay) {
+						LogManager.log(" LineOnManager REMOVE UNALIVE : " + dlo.id);
+					}
 				}
 			}
 		}
 	}
 	
-	public static String process(HCURL hcurl){
+	public static String process(final HCURL hcurl){
 		final String f = hcurl.getValueofPara("f");
 		if(f.equals("lineon")){
 			final String para_ID = hcurl.getValueofPara("id");
@@ -126,7 +130,7 @@ public class LineOnManager {
 			int sameIdObjIdx = -1;
 			final int size = vector.size();
 			for (int i = 0; i < size; i++) {
-				DataLineOn dlo = vector.elementAt(i);
+				final DataLineOn dlo = vector.elementAt(i);
 				if(dlo.id.equals(para_ID)){
 					sameIdObjIdx = i;
 					if(dlo.token.equals(para_TOKEN) == false){
@@ -141,7 +145,7 @@ public class LineOnManager {
 			//'.$port.','.$nattype.','.$agent.',"' . $upnpip . '", '.$upnpport.',
 			//now(),"'.$token.'",0,"'.$_GET['relayip'].'",'.$_GET['relayport'].
 			//',length("'.$id.'")) ON DUPLICATE KEY UPDATE ip = "'.$ip.'", port='. $port . ', nattype='.$nattype.', agent = '.$agent.', upnpip = "'.$upnpip.'", upnpport = '.$upnpport.', token="'.$token.'", serverNum=0, relayip="'.$_GET['relayip'].'",relayport='.$_GET['relayport'].', alive=now(), lenid=length("'.$id.'");');
-			DataLineOn lo = new DataLineOn();
+			final DataLineOn lo = new DataLineOn();
 			lo.id = para_ID;
 			lo.ip = hcurl.getValueofPara("ip");
 			lo.port = hcurl.getValueofPara("port");
@@ -157,10 +161,14 @@ public class LineOnManager {
 			
 			if(sameIdObjIdx == -1){
 				vector.add(lo);
-				LogManager.log(" LineOnManager ADD lineOn for UUID : " + para_ID);
+				if(L.isLogInRelay) {
+					LogManager.log(" LineOnManager ADD lineOn for UUID : " + para_ID);
+				}
 			}else{
 				vector.set(sameIdObjIdx, lo);
-				LogManager.log(" LineOnManager UPDATE lineOn for UUID : " + para_ID);
+				if(L.isLogInRelay) {
+					LogManager.log(" LineOnManager UPDATE lineOn for UUID : " + para_ID);
+				}
 			}
 
 			removeUnalive(para_ID);
@@ -172,7 +180,7 @@ public class LineOnManager {
 
 			final int size = vector.size();
 			for (int i = 0; i < size; i++) {
-				DataLineOn dlo = vector.elementAt(i);
+				final DataLineOn dlo = vector.elementAt(i);
 				if(dlo.id.equals(para_ID) && dlo.token.equals(para_TOKEN)){
 					dlo.relayip = hcurl.getValueofPara("ip");
 					dlo.relayport = hcurl.getValueofPara("port");
@@ -186,10 +194,12 @@ public class LineOnManager {
 			
 			final int size = vector.size();
 			for (int i = 0; i < size; i++) {
-				DataLineOn dlo = vector.elementAt(i);
+				final DataLineOn dlo = vector.elementAt(i);
 				//DELETE FROM `lineon` WHERE id = "' . $id . '" AND token = "'.$_GET['token'].'";');
 				if(dlo.id.equals(para_ID) && dlo.token.equals(para_TOKEN)){
-					LogManager.log(" LineOnManager REMOVE lineOff | mobiLineIn for UUID : " + para_ID);
+					if(L.isLogInRelay) {
+						LogManager.log(" LineOnManager REMOVE lineOff | mobiLineIn for UUID : " + para_ID);
+					}
 					vector.remove(i);
 					break;
 				}
@@ -200,14 +210,16 @@ public class LineOnManager {
 			
 			final int size = vector.size();
 			for (int i = 0; i < size; i++) {
-				DataLineOn dlo = vector.elementAt(i);
+				final DataLineOn dlo = vector.elementAt(i);
 				//alive = now() WHERE id = "'.$_GET['id'].'" AND token = "'.$_GET['token'].'";');
 				if(dlo.id.equals(para_ID) && dlo.token.equals(para_TOKEN)){
 					dlo.hideIP = hcurl.getValueofPara("hideIP");
 					dlo.hideToken = hcurl.getValueofPara("hideToken");
 					dlo.alive = System.currentTimeMillis();
 					
-					LogManager.log(" LineOnManager UPDATE ID=" + para_ID + " WITH alive");
+					if(L.isLogInRelay) {
+						LogManager.log(" LineOnManager UPDATE ID=" + para_ID + " WITH alive");
+					}
 					break;
 				}
 			}			
@@ -219,11 +231,13 @@ public class LineOnManager {
 			
 			final int size = vector.size();
 			for (int i = 0; i < size; i++) {
-				DataLineOn dlo = vector.elementAt(i);
+				final DataLineOn dlo = vector.elementAt(i);
 				//serverNum = ('.$_GET['serverNum'].') WHERE id = "'.$_GET['id'].'" AND token = "'.$_GET['token'].'";');
 				if(dlo.id.equals(para_ID) && dlo.token.equals(para_TOKEN)){
 					dlo.serverNum = Integer.parseInt(hcurl.getValueofPara("serverNum"));
-					LogManager.log(" LineOnManager UPDATE ID=" + para_ID + " WITH serverNum = " + dlo.serverNum);
+					if(L.isLogInRelay) {
+						LogManager.log(" LineOnManager UPDATE ID=" + para_ID + " WITH serverNum = " + dlo.serverNum);
+					}
 					break;
 				}
 			}

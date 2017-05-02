@@ -21,7 +21,9 @@ public abstract class RelayShutdownWatch implements IWatcher {
 			//发现可替Relay，但是没有回应
 			RelayManager.notifyClientsLineOff();
 
-			LogManager.log("Stop relay task");
+			if(L.isLogInRelay) {
+				LogManager.log("Stop relay task");
+			}
 			extShutdown();
 			return true;
 		}else{

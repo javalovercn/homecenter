@@ -112,44 +112,61 @@ public class RelayManager {
 	public static void relay(final IContext ctx, final SelectionKey key){
 		final SessionConnector sc = (SessionConnector)key.attachment();
 		final SocketChannel sourceChannel = (SocketChannel)key.channel();
-//		LogManager.log("SelectionKey hashCode:" + key.hashCode());
+//		if(L.isLogInRelay) {
+//			LogManager.log("SelectionKey hashCode:" + key.hashCode());
+//		}
 		if(sc != null){
-//			LogManager.log("SessionConnector hashCode:" + sc.hashCode());
+//			if(L.isLogInRelay) {
+//				LogManager.log("SessionConnector hashCode:" + sc.hashCode());
+//			}
 			final SocketChannel targetChannel = sc.getTarget(sourceChannel);
 			final boolean targetServerOrClient = !sc.isServerChannel(sourceChannel);
 			try{
 				final boolean isTargetReset = sc.isReset(targetServerOrClient);
-//				LogManager.log("Data In, Check target Channel Server/Client["+targetServerOrClient+"] is reset["+isTargetReset+"]");
+//				if(L.isLogInRelay) {
+//					LogManager.log("Data In, Check target Channel Server/Client["+targetServerOrClient+"] is reset["+isTargetReset+"]");
+//				}
 				if((targetChannel != null) || isTargetReset){
 					int oldwriteSetSize = sc.getWriteSetSize(targetChannel, targetServerOrClient);
 					do{
-//						LogManager.log("try read to DirectBuffer");
+//						if(L.isLogInRelay) {
+//							LogManager.log("try read to DirectBuffer");
+//						}
 						final int readLen = sourceChannel.read(bufferDirect);
-//						LogManager.log("DirectBuffer readed " + readLen + " bytes.");
+//						if(L.isLogInRelay) {
+//							LogManager.log("DirectBuffer readed " + readLen + " bytes.");
+//						}
 						if(readLen > 0){
 							//转发
 							bufferDirect.flip();
 							
 							if((isTargetReset == false) && (oldwriteSetSize == 0)){
-//								LogManager.log("targetChannel is WriteSet Empty, write to target");
+//								if(L.isLogInRelay) {
+//									LogManager.log("targetChannel is WriteSet Empty, write to target");
+//								}
 								//直接转发，增加性能
 								targetChannel.write(bufferDirect);
 								if(bufferDirect.hasRemaining()){
-//									LogManager.log("[RelayCache] write to target direct, but has remain, toWriteBackend");
-									
+//									if(L.isLogInRelay) {
+//										LogManager.log("[RelayCache] write to target direct, but has remain, toWriteBackend");
+//									}
 									final ByteBuffer copyBB = bufferDirectCacher.getFree();
 									copyBB.put(bufferDirect);
 									copyBB.flip();
 									toWriteBackend(sc, targetChannel, copyBB, targetServerOrClient);
 								}else{
-//									LogManager.log("write to target direct, clear");
+//									if(L.isLogInRelay) {
+//										LogManager.log("write to target direct, clear");
+//									}
 								}
 							}else{
 								if(oldwriteSetSize < RelayBlockNum){
 									oldwriteSetSize++;
 									
-//									LogManager.log("[RelayCache] targetChannel has WriteSet, toWriteBackend");
-	
+//									if(L.isLogInRelay) {
+//										LogManager.log("[RelayCache] targetChannel has WriteSet, toWriteBackend");
+//									}
+								
 									final ByteBuffer copyBB = bufferDirectCacher.getFree();
 									copyBB.put(bufferDirect);
 									copyBB.flip();
@@ -165,7 +182,9 @@ public class RelayManager {
 							//可怜的网络性能
 							throw BBIOException;
 						}else{
-//							LogManager.log("No data read, return");
+//							if(L.isLogInRelay) {
+//								LogManager.log("No data read, return");
+//							}
 							//readLen == 0, 无数据
 							return;
 						}
@@ -175,21 +194,27 @@ public class RelayManager {
 				}
 			}catch (final Exception e) {
 				bufferDirect.clear();
-				LogManager.log("Relay Exception : [" + e.getMessage() + "]");
+				if(L.isLogInRelay) {
+					LogManager.log("Relay Exception : [" + e.getMessage() + "]");
+				}
 				//设置当前Channle,转为Reset状态
 				//客户端因网络不稳定，导致断线，进入重连模式
-				LogManager.log("ServerOrClient["+(!targetServerOrClient)+", remotePort:" + sourceChannel.socket().getPort() + "] reset, close old, try waiting new reconnect");
-				sc.setReset(!targetServerOrClient, true);
+				if(L.isLogInRelay) {
+					LogManager.log("ServerOrClient["+(!targetServerOrClient)+", remotePort:" + sourceChannel.socket().getPort() + "] reset, close old, try waiting new reconnect");
+				}
 				if(targetServerOrClient){
 					closeClient(sc);	
 				}else{
 					closeServer(sc);
 				}
+				sc.setReset(!targetServerOrClient, true);
 				
 	//				ExceptionReporter.printStackTrace(e);
 //					//断线
-//					LogManager.log("close channel or pair at channel : " 
+//					if(L.isLogInRelay) {
+//						LogManager.log("close channel or pair at channel : " 
 //						+ sourceChannel.socket().getInetAddress().getHostAddress());
+//					}
 //					closePare(sc);
 				try{
 					//特殊情形下，调用本行是有益的。
@@ -203,10 +228,14 @@ public class RelayManager {
 				if(pushMap(ctx, key)){
 					synchronized (serverNumRefreshLock) {
 						serverNum.value = (++size);
-						LogManager.log("server num : " + serverNum.value);
+						if(L.isLogInRelay) {
+							LogManager.log("server num : " + serverNum.value);
+						}
 						ContextManager.getThreadPool().run(refreshServerNum);//不用threadPoolToken
 						
-						LogManager.log("S/C line on");
+						if(L.isLogInRelay) {
+							LogManager.log("S/C line on");
+						}
 						
 						LogManager.flush();
 					}
@@ -214,7 +243,9 @@ public class RelayManager {
 			}catch (final Exception e) {
 //				ExceptionReporter.printStackTrace(e);
 				//断线
-				LogManager.log("lineOff or Exception [" + e.getMessage() + "] [hashCode: " + sourceChannel.socket().hashCode() + ", remotePort:" + sourceChannel.socket().getPort() + "] at channel!");
+				if(L.isLogInRelay) {
+					LogManager.log("lineOff or Exception [" + e.getMessage() + "] [hashCode: " + sourceChannel.socket().hashCode() + ", remotePort:" + sourceChannel.socket().getPort() + "] at channel!");
+				}
 				try{
 					sourceChannel.socket().close();
 				}catch (final Throwable e1) {
@@ -263,25 +294,45 @@ public class RelayManager {
 	 */
 	public static void closePare(final SessionConnector sc, final boolean notifyMinus) {
 		synchronized (sc) {
-			LogManager.log("closing Pare...");
-			if(lineOffSessionConn(sc) && notifyMinus){//notifyMinus一定要置于，因为前者(lineOffSessionConn)一定要被执行
-//				RootServerConnector.delLineInfo(uuid, token, false);//由于多路并发模式，关闭
-				synchronized (serverNumRefreshLock) {
-					if(size == 0){
-						LogManager.errToLog("server num : 0");
-						ContextManager.getThreadPool().run(new Runnable() {
-							@Override
-							public void run() {
-								RootServerConnector.sendHttpMsg(RootServerConnector.REP_Server_Num_Under_0);
-							}
-						});
-						return;
-					}
-					serverNum.value = (--size);
-					LogManager.log("server num : " + serverNum.value);
-					ContextManager.getThreadPool().run(refreshServerNum);//不用threadPoolToken
-				}
+			if(L.isLogInRelay) {
+				LogManager.log("closing Pare...");
 			}
+			final boolean isDelTDN = sc.isDelTDN;
+			final boolean isDirectOK = sc.isDirectOK;
+			final String id = sc.getUUIDString();
+			final String token = sc.token;
+			if(lineOffSessionConn(sc) && notifyMinus){//notifyMinus一定要置于，因为前者(lineOffSessionConn)一定要被执行
+				if(isDirectOK && L.isLogInRelay){
+					LogManager.log("skip line off to database, because direct OK.");
+				}
+				if(isDirectOK == false && isDelTDN == false && id != null && token != null){
+					if(L.isLogInRelay) {
+						LogManager.log("line off to database : " + id);
+					}
+					RootServerConnector.delLineInfo(id, token, false);
+				}
+				minusServNum();
+			}
+		}
+	}
+
+	private static void minusServNum() {
+		synchronized (serverNumRefreshLock) {
+			if(size == 0){
+//				LogManager.errToLog("server num : 0");
+//				ContextManager.getThreadPool().run(new Runnable() {
+//					@Override
+//					public void run() {
+//						RootServerConnector.sendHttpMsg(RootServerConnector.REP_Server_Num_Under_0);
+//					}
+//				});
+				return;
+			}
+			serverNum.value = (--size);
+			if(L.isLogInRelay) {
+				LogManager.log("server num : " + serverNum.value);
+			}
+			ContextManager.getThreadPool().run(refreshServerNum);//不用threadPoolToken
 		}
 	}
 
@@ -298,7 +349,9 @@ public class RelayManager {
 		final SocketChannel c = sc.clientSide;
 		if(c != null){
 			try{
-//				LogManager.log("close client channel : " + c.socket().getInetAddress().getHostAddress() + ":" + c.socket().getPort());
+//				if(L.isLogInRelay) {
+//					LogManager.log("close client channel : " + c.socket().getInetAddress().getHostAddress() + ":" + c.socket().getPort());
+//				}
 				c.socket().close();
 			}catch (final Exception e) {
 				
@@ -324,7 +377,9 @@ public class RelayManager {
 		final SocketChannel c = sc.serverSide;
 		if(c != null){
 			try{
-//				LogManager.log("close server channel : " + c.socket().getInetAddress().getHostAddress() + ":" + c.socket().getPort());
+//				if(L.isLogInRelay) {
+//					LogManager.log("close server channel : " + c.socket().getInetAddress().getHostAddress() + ":" + c.socket().getPort());
+//				}
 				c.socket().close();
 			}catch (final Exception e) {
 				
@@ -349,7 +404,7 @@ public class RelayManager {
 			return false;
 		}
 		
-		sc.isNewStatus = true;
+		sc.isFreeStatus = true;
 		
 		String desc = "server,";
 		
@@ -374,13 +429,17 @@ public class RelayManager {
 			//因为有可能前置逻辑已关闭ServerOrClient，所以此处去掉条件isClose
 			
 			//回收后sc.uuidbs置空，所以采用本条件来防止重复回收
-			LogManager.log("close session pare : " + desc);
+			if(L.isLogInRelay) {
+				LogManager.log("close session pare : " + desc);
+			}
 			
 			final int uuidlen = sc.uuidbs.len;
 			
 			synchronized (tdn) {
 				if(sc.isDelTDN == false){
-					LogManager.log("remove tdn");
+					if(L.isLogInRelay) {
+						LogManager.log("remove tdn");
+					}
 					tdn[uuidlen].delNode(sc.uuidbs.bytes, 0, uuidlen);
 				}
 			}
@@ -389,7 +448,9 @@ public class RelayManager {
 	
 			sc.reset();
 
-			LogManager.log("recycle SessionConnector hashcode : " + sc.hashCode());
+			if(L.isLogInRelay) {
+				LogManager.log("recycle SessionConnector hashcode : " + sc.hashCode());
+			}
 			scCacher.push(sc);
 			
 			isCycle = true;
@@ -410,9 +471,11 @@ public class RelayManager {
 		final int headReadLen = channel.read(buffer);
 		if(headReadLen != MsgBuilder.MIN_LEN_MSG){
 			if(headReadLen == -1){// || headReadLen == 0
-				LogManager.log("Unknow head data reg. readed:" + headReadLen + 
+				if(L.isLogInRelay) {
+					LogManager.log("Unknow head data reg. readed:" + headReadLen + 
 						", expect:" + MsgBuilder.MIN_LEN_MSG + ", at channel : " 
 						+ channel.socket().getInetAddress().getHostAddress());
+				}
 				throw IOE;
 			}else{
 				continueRead(buffer, channel, headReadLen, MsgBuilder.MIN_LEN_MSG);
@@ -431,9 +494,11 @@ public class RelayManager {
 			final int bodyReadLen = channel.read(buffer);
 			if(bodyReadLen != dataLen){
 				if(bodyReadLen == -1){
-					LogManager.log("Unknow data reg, readed:" + bodyReadLen + 
+					if(L.isLogInRelay) {
+						LogManager.log("Unknow data reg, readed:" + bodyReadLen + 
 							", expect:" + dataLen + ", at channel : " 
 							+ channel.socket().getInetAddress().getHostAddress() + ":" + channel.socket().getPort());
+					}
 					throw IOE;
 				}else{
 					continueRead(buffer, channel, bodyReadLen, dataLen);
@@ -451,9 +516,12 @@ public class RelayManager {
 			synchronized (tdn) {
 				sc = tdn[len].getNodeData(bs, uuidIndex, endIdx);
 				if(sc != null){
-					LogManager.log("remove tdn");
+					if(L.isLogInRelay) {
+						LogManager.log("remove tdn");
+					}
 					sc.isDelTDN = true;
 					tdn[len].delNode(bs, uuidIndex, endIdx);
+					minusServNum();
 				}
 			}
 			
@@ -462,7 +530,9 @@ public class RelayManager {
 						//因为下面检查并发回错误状态，所以此处注释|| (sc.fromClient != null))//原旧客户连接仍保持，则新占客户端非法
 					){
 				//不回应，以表明此连接为非法。
-				LogManager.log("Error client reg status(No server nor exist old client), NO write echo back to cancel this channel.");
+				if(L.isLogInRelay) {
+					LogManager.log("Error client reg status(No server nor exist old client), NO write echo back to cancel this channel.");
+				}
 				throw BBIOException;
 			}else{
 				//回应发送端，触发发送端收到此消息。
@@ -470,25 +540,35 @@ public class RelayManager {
 				buffer.flip();
 				if(channel.write(buffer) != (MsgBuilder.MIN_LEN_MSG + dataLen)){
 					//不能使用headReadLen,bodyReadLen,因为极端网络情形下，
-					LogManager.log("Reg Error, Read More, Write back less at channel : " 
-					+ channel.socket().getInetAddress().getHostAddress());
+					if(L.isLogInRelay) {
+						LogManager.log("Reg Error, Read More, Write back less at channel : " 
+								+ channel.socket().getInetAddress().getHostAddress());
+					}
 					throw BBIOException;
 				}
 			}
 			
 			if(sc == null){
 				if(firstOrReset == MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_RESET){
-					LogManager.log("SC == null, Stop Reset Reconnect");
+					if(L.isLogInRelay) {
+						LogManager.log("SC == null, Stop Reset Reconnect");
+					}
 					throw BBIOException;
 				}
-				LogManager.log("create new SessionConn");
+				if(L.isLogInRelay) {
+					LogManager.log("create new SessionConn");
+				}
 				isNewSession = true;
 				sc = buildSessionConn(bs, len);
 			}else{
-				LogManager.log("found exit SessionConn");
+				if(L.isLogInRelay) {
+					LogManager.log("found exit SessionConn");
+				}
 				if(firstOrReset == MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST
 						|| firstOrReset == MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_BUILD_NEW_CONN){
-					LogManager.log("First Reg / build new conn...");
+					if(L.isLogInRelay) {
+						LogManager.log("First Reg / build new conn...");
+					}
 					//首次注册，而非Reset后重连
 					final String uuidString = sc.getUUIDString();
 					if(isServerOnRelay){
@@ -497,19 +577,25 @@ public class RelayManager {
 						if(isRegedToken || sc.token.equals(newToken)){
 							if(isRegedToken){
 								//注册级认证Token，强制关闭旧的。
-								LogManager.log("Override token id[" + uuidString + "] for " 
+								if(L.isLogInRelay) {
+									LogManager.log("Override token id[" + uuidString + "] for " 
 									+ newToken + ", at channel : " 
 									+ channel.socket().getInetAddress().getHostAddress());
+								}
 							}else{
-								LogManager.log("Override old exit session(maybe exception left)");
+								if(L.isLogInRelay) {
+									LogManager.log("Override old exit session(maybe exception left)");
+								}
 							}
 							closePare(sc, false);
 							
 							sc = buildSessionConn(bs, len);
 						}else{
-							LogManager.log("dirty new connection (token:"+newToken+") " +
+							if(L.isLogInRelay) {
+								LogManager.log("dirty new connection (token:"+newToken+") " +
 									"on same exists token session, force close! at channel : " 
 									+ channel.socket().getInetAddress().getHostAddress());
+							}
 							
 							ctx.send(channel.socket().getOutputStream(), 
 									MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_SAME_ID_IS_USING);
@@ -521,9 +607,11 @@ public class RelayManager {
 						//是客户端接入
 						if(sc.clientSide != null){
 							//不能关闭旧的，因为本次不能证明是合法的。所以抛出异常，等待为null出现，再进入验证等
-							LogManager.log("try override exist client id[" + uuidString + "] at channel : " 
+							if(L.isLogInRelay) {
+								LogManager.log("try override exist client id[" + uuidString + "] at channel : " 
 									+ channel.socket().getInetAddress().getHostAddress() + ", close try connection");
-	
+							}
+							
 							ctx.send(channel.socket().getOutputStream(), 
 									MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_SAME_ID_IS_USING);
 							
@@ -563,7 +651,9 @@ public class RelayManager {
 //							buffer.limit(MsgBuilder.INDEX_MSG_DATA + NOTIFY_UDP_DATA_LEN);
 //							channel.write(buffer);
 ////							ContextManager.getContextInstance().send(channel.socket().getOutputStream(), notifyBS, 0, NOTIFY_UDP_DATA_LEN);
-//							LogManager.log("UDP port : " + clientPort + " for client");
+//							if(L.isLogInRelay) {
+//								LogManager.log("UDP port : " + clientPort + " for client");
+//							}
 //							
 //							//通知Server UDP Port
 //							buffer.clear();
@@ -571,27 +661,37 @@ public class RelayManager {
 //							buffer.limit(MsgBuilder.INDEX_MSG_DATA + NOTIFY_UDP_DATA_LEN);
 //							sc.serverSide.write(buffer);
 ////							ContextManager.getContextInstance().send(sc.serverSide.socket().getOutputStream(), notifyBS, 0, NOTIFY_UDP_DATA_LEN);
-//							LogManager.log("UDP port : " + serverPort + " for Server");
+//							if(L.isLogInRelay) {
+//								LogManager.log("UDP port : " + serverPort + " for Server");
+//							}
 //						}
 					}
 				}else if(firstOrReset == MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_RESET){
-					LogManager.log("try server/client["+isServerOnRelay+"] reg after reset");
+					if(L.isLogInRelay) {
+						LogManager.log("try server/client["+isServerOnRelay+"] reg after reset");
+					}
 					if(isServerOnRelay == false){
 						if(System.currentTimeMillis() - sc.firstServerRegMS < 10000){
 							//服务器端已重新建连接，关闭手机端重建连接
-							LogManager.log("server restart, skip mobile reset-connect in 10 seconds");
+							if(L.isLogInRelay) {
+								LogManager.log("server restart, skip mobile reset-connect in 10 seconds");
+							}
 							throw BBIOException;
 						}
 					}
 					if(sc.isReset(isServerOnRelay) == false){
-						LogManager.log("Receiv Reg after reset, but curr is NOT reset, force close old");
+						if(L.isLogInRelay) {
+							LogManager.log("Receiv Reg after reset, but curr is NOT reset, force close old");
+						}
 						if(isServerOnRelay){
 							closeServer(sc);
 						}else{
 							closeClient(sc);
 						}
 					}
-						LogManager.log("server/client["+isServerOnRelay+"] reconnect success");
+						if(L.isLogInRelay) {
+							LogManager.log("server/client["+isServerOnRelay+"] reconnect success");
+						}
 						sc.setReset(isServerOnRelay, false);
 						
 						//检查是否都转为reset为false，因为有可能存在两端都被reset
@@ -607,7 +707,9 @@ public class RelayManager {
 								}else{
 									sc.clientKey.interestOps(sc.clientKey.interestOps() | SelectionKey.OP_WRITE);
 								}
-								LogManager.log("client reconnect channel set OP_WRITE, to re-trans buffer");
+								if(L.isLogInRelay) {
+									LogManager.log("client reconnect channel set OP_WRITE, to re-trans buffer");
+								}
 							}
 							if(sc.getWriteSetSize(null, true) == 0){
 								//服务器端有缓存数据
@@ -619,43 +721,61 @@ public class RelayManager {
 								}else{
 									sc.serverKey.interestOps(sc.serverKey.interestOps() | SelectionKey.OP_WRITE);
 								}
-								LogManager.log("server reconnect channel set OP_WRITE, to re-trans buffer");
+								if(L.isLogInRelay) {
+									LogManager.log("server reconnect channel set OP_WRITE, to re-trans buffer");
+								}
 							}
 						}else{
-							LogManager.log("No OP_WRITE to active in this side reset reg");
+							if(L.isLogInRelay) {
+								LogManager.log("No OP_WRITE to active in this side reset reg");
+							}
 						}
 //					}else{
-//						LogManager.log("Receiv Reg after reset, but curr is NOT reset, throw Exception");
+//						if(L.isLogInRelay) {
+//							LogManager.log("Receiv Reg after reset, but curr is NOT reset, throw Exception");
+//						}
 //						throw BBIOException;
 //					}
 				}
+			}
+			if(L.isLogInRelay) {
+				LogManager.log("open Pare " + sc.hashCode());
 			}
 			sc.setKey(channel, key, isServerOnRelay);
 			key.attach(sc);
 			
 			if(isNewSession){
-				LogManager.log("New Reg");
+				if(L.isLogInRelay) {
+					LogManager.log("New Reg");
+				}
 			}else{
-				LogManager.log("Find Reg Pair");
+				if(L.isLogInRelay) {
+					LogManager.log("Find Reg Pair");
+				}
 			}
-			LogManager.log("Reg " + (isServerOnRelay?"S":"C") + " on channel :[" + 
+			if(L.isLogInRelay) {
+				LogManager.log("Reg " + (isServerOnRelay?"S":"C") + " on channel :[" + 
 					channel.socket().getInetAddress().getHostAddress() + 
 					":" + channel.socket().getPort() + "]");
-
+			}
 			return isNewSession;
 		}else if(ctrlTag == MsgBuilder.E_TAG_NOTIFY_TO_NEW_RELAY){
 			//回应以表明在线
 			receiveMoveRelayStartTime = System.currentTimeMillis();
 			buffer.flip();
 			if(channel.write(buffer) != MsgBuilder.MIN_LEN_MSG){//不能使用headReadLen,因为极端网络情形下，
-				LogManager.log("E_TAG_NOTIFY_TO_NEW_RELAY write less at channel : " 
-					+ channel.socket().getInetAddress().getHostAddress());
+				if(L.isLogInRelay) {
+					LogManager.log("E_TAG_NOTIFY_TO_NEW_RELAY write less at channel : " 
+							+ channel.socket().getInetAddress().getHostAddress());
+				}
 				throw BBIOException;
 			}
 		}else{
 			if(erb != null){
-				if(erb.doExt(channel, buffer) == false){
-					LogManager.log("skip unforward packet.");// force Exception and close channel.
+				if(erb.doExt(key, channel, buffer) == false){
+					if(L.isLogInRelay) {
+						LogManager.log("skip unforward packet.");// force Exception and close channel.
+					}
 //					由于可能服务器重新连接Root后，其它线程仍有可能发送旧数据，可能会产生此异常。比如sendThundmail
 //					故注释下行代码ß
 //					throw BBIOException;
@@ -673,14 +793,18 @@ public class RelayManager {
 	 */
 	private static void unforward(final SocketChannel channel)
 			throws IOException {
-		LogManager.log("unForward package reback to channel[" + channel.hashCode() + "].");
+		if(L.isLogInRelay) {
+			LogManager.log("unForward package reback to channel[" + channel.hashCode() + "].");
+		}
 		
 		//未被转发，交由服务器或客户端进行自行判断，或断线重连
 		unForwarBuffer.clear();
 		unForwarBuffer.limit(MsgBuilder.MIN_LEN_MSG);
 		if(channel.write(unForwarBuffer) != MsgBuilder.MIN_LEN_MSG){
-			LogManager.log("unForward write less at channel : " 
-				+ channel.socket().getInetAddress().getHostAddress());
+			if(L.isLogInRelay) {
+				LogManager.log("unForward write less at channel : " 
+						+ channel.socket().getInetAddress().getHostAddress());
+			}
 			throw BBIOException;
 		}
 	}
@@ -694,7 +818,9 @@ public class RelayManager {
 			try{
 				Thread.sleep(100);
 				if((sleepCount++) > 20){
-//					LogManager.log("continueRead more sleepCount Exception");
+//					if(L.isLogInRelay) {
+//						LogManager.log("continueRead more sleepCount Exception");
+//					}
 					throw IOE;
 				}
 			}catch (final Exception e) {
@@ -702,11 +828,15 @@ public class RelayManager {
 			}
 			newRead = channel.read(buffer);
 			if(newRead == -1){
-//				LogManager.log("continueRead read -1 Exception");
+//				if(L.isLogInRelay) {
+//					LogManager.log("continueRead read -1 Exception");
+//				}
 				throw IOE;
 			}
 			readedLen += newRead;
-//			LogManager.log("continueRead newRead:" + newRead + ", readedLen:" + readedLen + ", TotalTryReadLen:" + totalReadLen);
+//			if(L.isLogInRelay) {
+//				LogManager.log("continueRead newRead:" + newRead + ", readedLen:" + readedLen + ", TotalTryReadLen:" + totalReadLen);
+//			}
 		}while(readedLen != totalReadLen);
 	}
 
@@ -719,10 +849,12 @@ public class RelayManager {
 			sc = (SessionConnector)scCacher.pop();
 		}
 
-		LogManager.log("sessionConnector hashCode : " + sc.hashCode());
+		if(L.isLogInRelay) {
+			LogManager.log("sessionConnector hashCode : " + sc.hashCode());
+		}
 		
 		sc.firstServerRegMS = System.currentTimeMillis();
-		sc.isNewStatus = false;
+		sc.isFreeStatus = false;
 		
 		final ByteArr ba = byteCache.getFree();
 		ba.len = len;
@@ -777,11 +909,15 @@ public class RelayManager {
 				return 0;
 			}
 		
-			LogManager.log("Move to new relay servers");
+			if(L.isLogInRelay) {
+				LogManager.log("Move to new relay servers");
+			}
 			
 			final Vector relays = (Vector)RootServerConnector.getNewRelayServers(IConstant.getUUID(), TokenManager.getToken());
 			if(relays == null){
-				LogManager.log("No Relay server to move, notify shut down");
+				if(L.isLogInRelay) {
+					LogManager.log("No Relay server to move, notify shut down");
+				}
 				notifyClientsLineOff();
 			}else{
 				final String slocalIP = HCURLUtil.convertIPv46(StarterParameter.homeWirelessIpPort.ip);
@@ -826,9 +962,11 @@ public class RelayManager {
 							}
 							
 							//开始输送
-							LogManager.log("Move relay clients to new relay server, " + 
+							if(L.isLogInRelay) {
+								LogManager.log("Move relay clients to new relay server, " + 
 									ip + ":" + port);
-
+							}
+							
 							moveToNewRelay(ip, port);
 							
 							socket.close();
@@ -889,7 +1027,9 @@ public class RelayManager {
 								sendMoveToNewRelay(server, nat, newRelayip, newRelayport);
 							}
 							
-							LogManager.log("remove tdn");
+							if(L.isLogInRelay) {
+								LogManager.log("remove tdn");
+							}
 							tdn[i].delNode(c.uuidbs.bytes, 0, c.uuidbs.len);
 							moveCount++;
 						}catch (final Exception e) {
@@ -897,7 +1037,9 @@ public class RelayManager {
 							
 							return moveCount;
 						}
-						LogManager.log("Notify Server to relay");
+						if(L.isLogInRelay) {
+							LogManager.log("Notify Server to relay");
+						}
 					}
 					
 //					lineOffSessionConn(c);
@@ -957,18 +1099,24 @@ public class RelayManager {
 		bs[MsgBuilder.INDEX_CTRL_TAG] = MsgBuilder.E_TAG_MOVE_TO_NEW_RELAY;
 		HCMessage.setMsgLen(bs, nat.getLength());
 		
-//		LogManager.log("Move to Relay, IP:" + newRelayServerIP + ":" + newRelayPort);
+//		if(L.isLogInRelay) {
+//			LogManager.log("Move to Relay, IP:" + newRelayServerIP + ":" + newRelayPort);
+//		}
 		try{
 			bb.clear();
 			bb.limit(len);
 			final int wLen = server.write(bb);
-			LogManager.log("write out len:" + wLen);
+			if(L.isLogInRelay) {
+				LogManager.log("write out len:" + wLen);
+			}
 			//不能采用Block模式代码，会产生java.nio.channels.IllegalBlockingModeException
 //			OutputStream outputStream = server.socket().getOutputStream();
 //			outputStream.write(bs, 0, len);//write(mbb);
 //			outputStream.flush();
 		}catch (final Exception e) {
-			LogManager.log(e.getMessage());
+			if(L.isLogInRelay) {
+				LogManager.log(e.getMessage());
+			}
 			ExceptionReporter.printStackTrace(e);
 		}
 	}

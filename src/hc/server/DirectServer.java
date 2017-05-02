@@ -236,6 +236,12 @@ public class DirectServer extends Thread {
 				socket.getOutputStream().flush();
 				
 				final J2SESession coreSS = (J2SESession)SessionManager.getPreparedSocketSession();
+				
+				try{
+					coreSS.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_DIRECT_CONN_OK);
+				}catch (final Throwable e) {
+				}
+				
 				coreSS.deploySocket(socket);
 				
 				//家庭直联模式下，关闭KeepAlive

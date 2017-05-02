@@ -26,6 +26,8 @@ public class ThreadPriorityManager {
 	public static final int LOWEST_PRIORITY = Thread.MIN_PRIORITY;
 	
 	public static final int UI_WAIT_MS = 100;
+
+	public static final int RELAY_FIRST_MS = 100;
 	
 	public static final int UI_WAIT_OTHER_THREAD_EXEC_MS = 20;
 	

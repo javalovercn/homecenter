@@ -179,8 +179,10 @@ public class KeepaliveManager {
 				}
 				//保持TCP不断，同时需要回应，并检测联线状态
 				coreSS.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_SERVERING);
+//				L.V = L.WShop ? false : LogManager.log("[keepalive] try DATA_ROOT_LINE_WATCHER_ON_SERVERING");
 			}else{
 				coreSS.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_RELAY);
+//				L.V = L.WShop ? false : LogManager.log("[keepalive] try DATA_ROOT_LINE_WATCHER_ON_RELAY");
 			}
 		}catch (final Exception e) {
 			coreSS.notifyLineOff(false, false);

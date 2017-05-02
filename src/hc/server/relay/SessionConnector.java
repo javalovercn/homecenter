@@ -1,11 +1,8 @@
 package hc.server.relay;
 
-import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.MsgBuilder;
-import hc.core.RemoveableHCTimer;
-import hc.core.util.CCoreUtil;
 import hc.core.util.LinkedSet;
 import hc.core.util.LogManager;
 import hc.server.nio.ByteBufferCacher;
@@ -25,6 +22,7 @@ public class SessionConnector {
 	//手机端端接入Channel
 	public SocketChannel clientSide;
 	public boolean isDelTDN = false;
+	public boolean isDirectOK = false;
 	
 	public SelectionKey serverKey, clientKey;
 	public final LinkedSet writeToServerBackSet, writeToClientBackSet;
@@ -34,7 +32,6 @@ public class SessionConnector {
 	public String token;
 	private boolean isClientReset = false, isServerReset = false;
 	public UDPPair udpPair;
-	private HCTimer resetTimer = null;
 	public final byte[] randomUDPHead = new byte[MsgBuilder.LEN_UDP_HEADER];
 	
 	public void buildRandomUDPHeader(final byte[] bs, final int fillStartIdx){
@@ -47,7 +44,7 @@ public class SessionConnector {
 	}
 	
 	//投入使用，则状态为false；回收后，则状态为true
-	public boolean isNewStatus = true;
+	public boolean isFreeStatus = true;
 	
 	public static boolean resetXXSideUDPAddressNull(final byte[] bs, final int offset, final int len, final boolean isServer,
 			final byte udpRandomHead0, final byte udpRandomHead1){
@@ -59,7 +56,9 @@ public class SessionConnector {
 		
 		if(sc != null){
 			if(sc.randomUDPHead[0] == udpRandomHead0 && sc.randomUDPHead[1] == udpRandomHead1){
-				LogManager.log("SetUDPAddrNull match the randomUDPHeader");
+				if(L.isLogInRelay) {
+					LogManager.log("SetUDPAddrNull match the randomUDPHeader");
+				}
 				final UDPPair udpPair = sc.udpPair;
 				if(udpPair == null){
 					return false;
@@ -92,41 +91,11 @@ public class SessionConnector {
 //		if((serverOrClient == false)//手机端 
 //				&& isLineOff){//产生断线事件
 //			//手机端不能启动重置连接逻辑，因为手机端的环境复杂性，将保持手机端支持无TCP下，仅UDP的工作状态。
-//			LogManager.log("mobile offline, skip resetTimer");
+//			if(L.isLogInRelay) {
+//				LogManager.log("mobile offline, skip resetTimer");
+//			}
 //			return;
 //		}
-		
-		if(isLineOff){
-			if(resetTimer == null){
-				final SessionConnector self = this;
-				resetTimer = new RemoveableHCTimer("ResetTimer", CCoreUtil.WAIT_MS_FOR_NEW_CONN - 1000, true) {//20秒改为3秒
-					@Override
-					public final void doBiz() {
-						LogManager.log("ResetTimer : Server/Client not reconnect, so close session pair.");
-						RelayManager.closePare(self, true);
-						setEnable(false);
-						LogManager.log("ResetTimer : Close Pare");
-					}
-					
-					@Override
-					public void setEnable(final boolean enable){
-						LogManager.log("ResetTimer : " + enable);
-						super.setEnable(enable);
-					}
-				};
-			}
-			
-			//开启,有可能是重用，故调用一次setEnable
-			resetTimer.resetTimerCount();
-			synchronized (this) {
-				if(isNewStatus == false){
-//					LogManager.log("Enable ResetTimer");
-					resetTimer.setEnable(true);
-				}else{
-//					LogManager.log("Try Enable ResetTimer, but isNewStatus, Skip Enable.");
-				}
-			}
-		}
 		
 		if(serverOrClient){
 			isServerReset = isLineOff;	
@@ -134,8 +103,10 @@ public class SessionConnector {
 			isClientReset = isLineOff;
 		}
 		
-		if(isClientReset == false && isServerReset == false){
-			resetTimer.setEnable(false);
+		if(isLineOff){
+			if(serverKey == null && clientKey == null){
+				RelayManager.closePare(this, true);
+			}
 		}
 	}
 	
@@ -254,13 +225,17 @@ public class SessionConnector {
 	public void setKey(final SocketChannel channel, final SelectionKey sk, final boolean isFromServer){
 		if(isFromServer){
 			if(serverSide != null){
-				LogManager.log("override old Server channel:" + serverSide.hashCode());
+				if(L.isLogInRelay) {
+					LogManager.log("override old Server channel:" + serverSide.hashCode());
+				}
 			}
 			serverSide = channel;
 			serverKey = sk;
 		}else{
 			if(clientSide != null){
-				LogManager.log("override old Client channel:" + clientSide.hashCode());
+				if(L.isLogInRelay) {
+					LogManager.log("override old Client channel:" + clientSide.hashCode());
+				}
 			}
 			clientSide = channel;
 			clientKey = sk;
@@ -275,12 +250,8 @@ public class SessionConnector {
 		uuidbs = null;
 		token = null;
 		isDelTDN = false;
+		isDirectOK = false;
 		
-		if(resetTimer != null){
-			resetTimer.resetTimerCount();
-			resetTimer.setEnable(false);
-		}
-
 		isServerReset = false;
 		isClientReset = false;
 		

@@ -10,6 +10,8 @@ public class L {
 	 */
 	public static boolean isInWorkshop = false;
 	
+	public static boolean isLogInRelay = false;
+	
 	public static void setInWorkshop(final boolean isWorkshop){
 		isInWorkshop = isWorkshop;
 		WShop = !isWorkshop;
