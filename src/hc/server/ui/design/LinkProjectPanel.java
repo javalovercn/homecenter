@@ -29,6 +29,7 @@ import hc.util.HttpUtil;
 import hc.util.IBiz;
 import hc.util.LinkPropertiesOption;
 import hc.util.PropertiesManager;
+import hc.util.PropertiesSet;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
@@ -68,9 +69,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.event.TableModelListener;
@@ -95,7 +95,6 @@ public class LinkProjectPanel extends ProjectListPanel{
 	final JRadioButton rb_perm_acceptIfSigned = new JRadioButton(LinkPropertiesOption.getDispOpPermAcceptIfSigned());
 
 	final JCheckBox ch_autoUpgrade = new JCheckBox((String)ResourceUtil.get(9138));
-	ListSelectionListener listSelectListener;
 	
 	public static final String getNewLinkedInProjOp(){
 		final String op = PropertiesManager.getValue(PropertiesManager.p_OpNewLinkedInProjVer, LinkPropertiesOption.OP_NEXT_START_UP);
@@ -356,7 +355,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 			}
 		};
 		
-		dataRowNum = lpsVector.size();
+		dataRowNum = data.size();
 		
 		tablePanel = new HCTablePanel(tableModel, data, colNames, dataRowNum, 
 				upBut, downBut, removeBut, importBut, editBut,
@@ -371,6 +370,29 @@ public class LinkProjectPanel extends ProjectListPanel{
 				new AbstractDelayBiz(null) {
 					@Override
 					public final void doBiz() {
+						if (ResourceUtil.isAndroidServerPlatform() && data.size() == 1 && isDeployed(0)){
+							final JPanel askPanel = new JPanel();
+							final String keepOne = (String)ResourceUtil.get(9258);
+							askPanel.add(new JLabel(keepOne, App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
+							
+							final AbstractDelayBiz selfBiz = this;
+							final HCActionListener listener = new HCActionListener(new Runnable() {
+								@Override
+								public void run() {
+									final boolean[] back = {false};
+									selfBiz.setPara(back);
+								}
+							}, threadPoolToken);
+							App.showCenterPanelMain(askPanel, 0, 0, (String)ResourceUtil.get(9193), false, null, null, 
+									listener, listener, self, true, false, null, false, false);
+
+							return;
+						}
+						
+						removeBiz();
+					}
+					
+					final void removeBiz() {
 						final AbstractDelayBiz selfBiz = this;
 						final Object[] rows = (Object[])getPara();
 						final LinkEditData led = (LinkEditData)rows[IDX_OBJ_STORE];
@@ -537,7 +559,24 @@ public class LinkProjectPanel extends ProjectListPanel{
 							}
 						}
 					}
-				}, true, COL_NUM);
+				}, true, COL_NUM){//HCTabelPanel
+			@Override
+			protected void refreshButton() {
+				super.refreshButton();
+				
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						final int selectedRow = tablePanel.table.getSelectedRow();
+						if(selectedRow >= 0){
+							designBut.setEnabled(isDeployed(selectedRow));
+						}else{
+							designBut.setEnabled(false);
+						}
+					}
+				});
+			}
+		};
 		final DefaultTableCellRenderer centerCellRender = new DefaultTableCellRenderer(){
 	        @Override
 			public Component getTableCellRendererComponent(
@@ -551,19 +590,6 @@ public class LinkProjectPanel extends ProjectListPanel{
         
         final ListSelectionModel selectModel = tablePanel.table.getSelectionModel();
         selectModel.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        listSelectListener = new ListSelectionListener() {
-			@Override
-			public void valueChanged(final ListSelectionEvent e) {
-				final int selectedRow = tablePanel.table.getSelectedRow();
-				if(selectedRow >= 0){
-					final LinkEditData led = (LinkEditData)data.elementAt(selectedRow)[IDX_OBJ_STORE];
-					designBut.setEnabled(led != null && led.status == LinkProjectManager.STATUS_DEPLOYED);
-				}else{
-					designBut.setEnabled(false);
-				}
-			}
-		};
-		selectModel.addListSelectionListener(listSelectListener);
     	
         designBut.setEnabled(dataRowNum > 0);
 
@@ -914,6 +940,16 @@ public class LinkProjectPanel extends ProjectListPanel{
 		}, threadPoolToken));
 
 	}
+	
+	private final boolean isDeployed(final int selectedRow){
+		final Object[] elementAt = data.elementAt(selectedRow);
+		if(elementAt == null){
+			return false;
+		}
+		
+		final LinkEditData led = (LinkEditData)elementAt[IDX_OBJ_STORE];
+		return led != null && led.status == LinkProjectManager.STATUS_DEPLOYED;
+	}
 
 	public Window toShow(){
 		return App.showCenterNoOwner(contentPane, 0, 0, true, exitBtn, saveAndApplyBtn, 
@@ -949,6 +985,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 		for (int i = 0; i < size; i++) {
 			lpss[i] = ((LinkEditData)data.elementAt(i)[IDX_OBJ_STORE]).lps;
 		}
+		
+		final PropertiesSet projIDSet = AddHarHTMLMlet.newLinkProjSetInstance();
 		AddHarHTMLMlet.saveLinkStore(lpss, projIDSet);
 	}
 
@@ -1247,7 +1285,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 					}
 				}
 
-				listSelectListener.valueChanged(null);//强制刷新当前行
+				loadData();
 				tablePanel.table.repaint();//检查完善Root,Active，故刷新
 				
 				//如果是升级型，则可能出现null

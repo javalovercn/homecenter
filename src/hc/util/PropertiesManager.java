@@ -426,7 +426,7 @@ public class PropertiesManager {
 					|| key.equals(p_SecuritySDPVersion)
 					|| key.equals(p_SecuritySecretKeySize)
 					|| key.equals(p_isRememberDevCertPassword)){//注意：如果增加逻辑，请同步到remove中
-				ResourceUtil.checkHCStackTraceInclude(null, null);
+				ResourceUtil.checkHCStackTrace();
 			}
 			
 			if(isSecurityData && value != null){
@@ -565,7 +565,7 @@ public class PropertiesManager {
 					|| key.startsWith(S_LINK_PROJECTS, 0)
 					|| key.equals(p_SecurityCipher)
 					|| key.equals(p_SecuritySDPVersion)){
-				ResourceUtil.checkHCStackTraceInclude(null, null);
+				ResourceUtil.checkHCStackTrace();
 			}
 		}
 		
@@ -629,7 +629,7 @@ public class PropertiesManager {
 				|| key.equals(p_EnableTransNewCertKeyNow)
 				|| key.equals(p_HideIDForErrCert)
 				|| key.equals(p_isRememberDevCertPassword)){
-				ResourceUtil.checkHCStackTraceInclude(null, null);
+				ResourceUtil.checkHCStackTrace();
 			}
 		}
 		statusChanged = true;

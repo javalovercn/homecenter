@@ -452,7 +452,9 @@ public class ReceiveServer implements Runnable{
 	
 	void setUdpServerSocket(final Object tcpOrUDPsocket, final boolean isCloseOld) {
 		DataInputStream oldIS = this.dataInputStream;
-		L.V = L.WShop ? false : LogManager.log("ReceiveServer threadName : " + threadID + " setDataInputStream : " + tcpOrUDPsocket.hashCode());
+		if(tcpOrUDPsocket != null){
+			L.V = L.WShop ? false : LogManager.log("ReceiveServer threadName : " + threadID + " setDataInputStream : " + tcpOrUDPsocket.hashCode());
+		}
 		this.dataInputStream = (DataInputStream)tcpOrUDPsocket;
 		if(dataInputStream != null){
 			receiveUpdateMS = System.currentTimeMillis();

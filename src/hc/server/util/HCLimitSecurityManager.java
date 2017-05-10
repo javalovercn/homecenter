@@ -321,7 +321,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    			AddHarHTMLMlet.class, AddHarIsBusy.class, BindHTMLMlet.class, Dialog.class, 
 	    			LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
 	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class, ProjectInputDialog.class,
-	    			Assistant.class, VoiceCommand.class, AnalysableRobotParameter.class, JavaString.class,
+	    			Assistant.class, VoiceCommand.class, AnalysableRobotParameter.class, JavaString.class, IDEUtil.class,
 	    			WiFiAccount.class, ScriptPanel.class, ScriptTester.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
 //	    	{
 //	    		Vector<Class> allowVect = new Vector<Class>();
@@ -513,7 +513,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 						}
 					}else if(p_key.startsWith("https.")){
 						if(p_key.equals("https.proxyHost") || p_key.equals("https.proxyPort")){
-							ResourceUtil.checkHCStackTraceInclude(null, null);
+							ResourceUtil.checkHCStackTrace();
 						}
 					}else if(p_key.startsWith("socksProxy")){
 						if(p_key.equals("socksProxyHost") || p_key.equals("socksProxyPort")){//there is no dot ('.') after the prefix this time
@@ -615,17 +615,17 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				//new NetPermission("getNetworkInformation") to getMacAddress in getPrivateHardwareCode
 				if(permissionName.equals("getNetworkInformation")){//禁止非法类访问getMacAddress
 					//有可能为J2SEPlatformService，hc.util.HttpUtil.getServerInetAddress
-					ResourceUtil.checkHCStackTraceInclude(null, null);//不能class.getName，因为Android环境没有
+					ResourceUtil.checkHCStackTrace();//不能class.getName，因为Android环境没有
 				}
 			}else if(permClass == RuntimePermission.class) {
 				final String permissionName = perm.getName();
 				if (permissionName.equals("setSecurityManager")){
 					ResourceUtil.checkHCStackTraceInclude(HCLimitSecurityManager.class.getName(), null);
 //				}else if(permissionName.equals("getFileSystemAttributes")){//block getBaseDir().getTotalSpace() for getPrivateHardwareCode
-//					ResourceUtil.checkHCStackTraceInclude(null, null);
+//					ResourceUtil.checkHCStackTrace();
 				}
 			}else if(permClass == SocketPermission.class){
-				ResourceUtil.checkHCStackTraceInclude(null, null);
+				ResourceUtil.checkHCStackTrace();
 			}
 		}
 		
@@ -689,7 +689,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				if(clazz == SecurityManager.class || clazz == IConstant.class || clazz == CUtil.class
 						|| clazz == HCLimitSecurityManager.class || clazz == SecurityDataProtector.class
 						|| clazz == URLClassLoader.class || clazz == BCProvider.class){//禁止反射操作的类
-					ResourceUtil.checkHCStackTraceInclude(null, null);
+					ResourceUtil.checkHCStackTrace();
 				}
 				
 				//HCJRubyEngine.parse时，会出现如下：
@@ -770,7 +770,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			
 			if(fileCanonicalPath.endsWith(hcHardIdFileName)
 					|| fileCanonicalPath.endsWith(devCertFileName)){
-				ResourceUtil.checkHCStackTraceInclude(null, null);
+				ResourceUtil.checkHCStackTrace();
 			}
 		}else{
 			if(csc != null 
@@ -803,7 +803,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		String harDir;
 		if(csc == null){
 //			System.out.println("==> check write : " + file.toString());
-			ResourceUtil.checkHCStackTraceInclude(null, null);
+			ResourceUtil.checkHCStackTrace();
 		}else{
 			if(csc != null 
 					&& (fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
@@ -884,7 +884,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			}
     	}else{
     		//Not in csc
-    		ResourceUtil.checkHCStackTraceInclude(null, null);
+    		ResourceUtil.checkHCStackTrace();
     	}
 		
     	super.checkExit(status);
@@ -973,7 +973,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			LogManager.log("execute OS cmd : [" + cmd + "] in project [" + csc.projID + "].");
     	}else{
     		//Not in csc
-    		ResourceUtil.checkHCStackTraceInclude(null, null);
+    		ResourceUtil.checkHCStackTrace();
     	}
     	
     	super.checkExec(cmd);

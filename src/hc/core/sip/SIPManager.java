@@ -148,36 +148,48 @@ public class SIPManager {
 		int count = 0;
 		
 		LogManager.info("try connect : [" + IConstant.getUUID() + "]");
-
+		
+		boolean isShowServerBusy = false;
+		
+		final int maxTryCount = 14;//14/2=7, 7 > call.php/TIME_TO_SEC/3 * 2
 		do{
 			obj = RootServerConnector.getServerIPAndPortV2(RootServerConnector.getHideToken());
 			
-			if((obj == null) || (obj instanceof Vector)){
+			if(obj == null){
 				//	              LogManager.info("please check as follow:");
 				//	              LogManager.info("1. ID[" + IConstant.uuid + "] maybe wrong HomeCenter ID. It is free.");
 				//	              LogManager.info("2. PC server maybe NOT running.");
 				//	              LogManager.info("3. try 'Enable Transmit Certification' for server.");
 				//	              LogManager.info("4. HomeCenter server maybe reconnecting, try later.");
-				LogManager.info("server : off/hide");
-				return CONN_ERR_BIZ_SERVER_LINEOFF;
-			}
-
-			if(obj instanceof String && RootServerConnector.MULTI_CLIENT_BUSY.equals(obj)){
-				if(count == 0){
-					LogManager.info("server : busy");
-					LogManager.info("do our best to connect...");
+				
+				if(isShowServerBusy == false && count < maxTryCount / 2){
+				}else if(isShowServerBusy){
+				}else{
+					LogManager.info("server : off/hide");
+					return CONN_ERR_BIZ_SERVER_LINEOFF;
 				}
 				
 				try{
 					Thread.sleep(1000);
 				}catch (Exception e) {
 				}
+			}else if(isShowServerBusy || obj instanceof String && RootServerConnector.MULTI_CLIENT_BUSY.equals(obj)){
+				if(isShowServerBusy == false){
+					isShowServerBusy = true;
+					LogManager.info("server : busy");
+					LogManager.info("do our best to connect...");
+				}
 				
-				count++;
+				try{
+					Thread.sleep(3000);//与call.php/busy/3 seconds
+				}catch (Exception e) {
+				}
 			}else{
 				break;
 			}
-		}while(count < 30);
+
+			count++;
+		}while(count < maxTryCount);
 		
 		if(obj instanceof String && RootServerConnector.MULTI_CLIENT_BUSY.equals(obj)){
 			return CONN_ERR_BIZ_SERVER_ACCOUNT_BUSY;
@@ -228,21 +240,26 @@ public class SIPManager {
 
 		if(out[idx_relayport].equals("0") == false){
 			LogManager.info("try relay connect...");
-			final IPAndPort ipport = new IPAndPort(out[idx_relayip], Integer.parseInt(out[idx_relayport]));
-			final IPAndPort l_relayIpPort = SIPManager.tryBuildConnOnDirect(hcConnection, subTag, ipport,
-					"Relay Mode", EnumNAT.FULL_AGENT_BY_OTHER, SIPManager.REG_WAITING_MS + 1000,
-					tokenBS);//Android机器出现relay fail情形，再试成功，故增加1秒
-			if(l_relayIpPort != null){
-				LogManager.info("relay mode : yes");
-
-				//中继时，可能并非3G/4G，也许是WiFi，3G/4G由其它逻辑提示
-				//					LogManager.info("3G/4G/...");//more time and unreliable
-				//					LogManager.info("Busy network and congestion may cause error");
-				hcConnection.relayIpPort = l_relayIpPort;
-				return CONN_OK_MODE_CONNECTION_RELAY;
-			}else{
-				LogManager.info("relay mode : fail");
+			final int maxConnTryCount = 3;
+			int tryCount = 0;
+			while(tryCount < maxConnTryCount){
+				final IPAndPort ipport = new IPAndPort(out[idx_relayip], Integer.parseInt(out[idx_relayport]));
+				final IPAndPort l_relayIpPort = SIPManager.tryBuildConnOnDirect(hcConnection, subTag, ipport,
+						"Relay Mode", EnumNAT.FULL_AGENT_BY_OTHER, SIPManager.REG_WAITING_MS + 1000,
+						tokenBS);//Android机器出现relay fail情形，再试成功，故增加1秒
+				if(l_relayIpPort != null){
+					LogManager.info("relay mode : yes");
+	
+					//中继时，可能并非3G/4G，也许是WiFi，3G/4G由其它逻辑提示
+					//					LogManager.info("3G/4G/...");//more time and unreliable
+					//					LogManager.info("Busy network and congestion may cause error");
+					hcConnection.relayIpPort = l_relayIpPort;
+					return CONN_OK_MODE_CONNECTION_RELAY;
+				}else{
+					tryCount++;
+				}
 			}
+			LogManager.info("relay mode : fail");
 		}
 
 		//尝试无法连接

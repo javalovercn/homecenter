@@ -197,7 +197,7 @@ public class KeepaliveManager {
     	private final int ErrorNeedNatDelay = 30 * 1000;//比如连接Socket出错，而非Http。两分钟
     	private final int lineWatcherMS = RootConfig.getInstance().getIntProperty(RootConfig.p_enableLineWatcher);//60 * 1000 * 5;
     	
-    	private final boolean reconnect(){
+    	private final boolean isOnRelay(){
 			if(SIPManager.isOnRelay(hcConnection) && hcConnection.sipContext.isClose() == false){
 				LogManager.log("Use exist socket");
 				return true;
@@ -214,7 +214,9 @@ public class KeepaliveManager {
 	    	}else if(mode == ContextManager.STATUS_NEED_NAT){
 	    		hcConnection.isSendLive = false;
 	    		
-				final boolean isConn = reconnect();
+				final boolean isConn = isOnRelay();
+				L.V = L.WShop ? false : LogManager.log("keepalive onRelay : " + isConn + ", at coreSS : " + coreSS.hashCode());
+				
 				if(isConn == false){
 //					if(getIntervalMS() == KEEPALIVE_MS){
 						//改为长时间，扫描网络状态
@@ -228,14 +230,13 @@ public class KeepaliveManager {
 				}
 //				setEnable(!isConn);
 				if(isConn){
-					
 					//上传联络信息
 					SIPManager.startConnectionInit(coreSS, hcConnection);
 				}
 			}else if(mode == ContextManager.STATUS_LINEOFF){
-				LogManager.log("Line Off Status");
-				hcConnection.isSendLive = false;
-				coreSS.context.setStatus(ContextManager.STATUS_NEED_NAT);
+//				LogManager.log("Line Off Status");
+//				hcConnection.isSendLive = false;
+//				coreSS.context.setStatus(ContextManager.STATUS_NEED_NAT);
 			}else{
 				//lineWatcherMS == 0表示关闭
 				if(lineWatcherMS > 0){

@@ -186,11 +186,11 @@ global CSS for current project :
 ***
 ### How to use source
 
-1. these source files are HomeCenter Application Server, which is on server side, NOT client for mobile.
-2. JRE/JDK 7 is required, NOT Java 8 or above.
+1. these source files are HomeCenter Application Server, which is NOT client for mobile.
+2. JRE/JDK 7 or above is required.
 3. main class : hc.App
 4. VM arguments for main class : -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
-5. set [Compiler compliance level] of Eclipse to 1.7
+5. set [Compiler compliance level] of Eclipse to 1.7, NOT 1.8 or above.
 6. to print server log to console, please keep [options/Developer/Logger] unchecked in options of server
 7. please keep the source code for the latest version, otherwise it may causes abnormal connections with mobile.
 8. there is a demo HAR project (NOT "MyFirst" project) in designer on server, covers 80% of JRuby syntax and 90% of functions of HomeCenter server.

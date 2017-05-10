@@ -102,8 +102,12 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		return false;
     }
     
+    final J2SESession j2seCoreSS;
+    
 	public J2SEContext(final J2SESession j2seSocketSession) {
 		super(false, j2seSocketSession, new EventCenter(j2seSocketSession));
+		this.j2seCoreSS = j2seSocketSession;
+		
 		addListenerForServer();
 		j2seSocketSession.initScreenEvent();
 		setStatusListen(this);
@@ -767,7 +771,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	
 	public static void sleepAfterError(){
 		try{
-			Thread.sleep(1000);
+			Thread.sleep(ThreadPriorityManager.NET_FLUSH_DELAY);
 		}catch (final Exception e) {
 		}
 	}
@@ -836,9 +840,12 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				LogManager.log("remove HCTimer [aliveRefresher].");
 			}
 			HCTimer.remove(j2seCoreSS.keepaliveManager.aliveToRootRefresher);
-			j2seCoreSS.isIdelSession = false;
 			
-			J2SESessionManager.startSession();
+			if(L.isInWorkshop){
+				if(j2seCoreSS.isIdelSession){
+					LogManager.errToLog("Session [" + j2seCoreSS.hashCode() + "] should be NOT idle.");
+				}
+			}
 		}
 		
 		if(statusTo == ContextManager.STATUS_READY_TO_LINE_ON){
@@ -1005,7 +1012,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 				doLineOffProcess((J2SESession)coreSS, isClientReq);
 				
-				J2SESessionManager.startSession();
+				J2SESessionManager.startNewIdleSession();
 				return true;
 			}});
 		
@@ -1049,17 +1056,15 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		});
 		
 		eventCenter.addListener(new IEventHCListener(){
-			short pwdErrTry;
-			long lastErrMS;
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				LogManager.log("Receive the back data which to check CK and password");
 				
 //					System.out.println("pwdErrTry : " + pwdErrTry + ",  MAXTimers : " + LockManager.MAXTIMES);
 				
-				if(pwdErrTry < SystemLockManager.MAXTIMES){
+				if(SystemLockManager.getPwdErrTry() < SystemLockManager.MAXTIMES){
 				}else{
-					if(System.currentTimeMillis() - lastErrMS < SystemLockManager.LOCK_MS){
+					if(System.currentTimeMillis() - SystemLockManager.getLastErrMS() < SystemLockManager.LOCK_MS){
 						SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_LOCK_CERT, 
 								"System is locking now!!!<BR><BR>Err Password or certification more than "+SystemLockManager.MAXTIMES+" times.", 
 								"Lock System now!!", 1000 * 60 * 1, App.getSysIcon(App.SYS_WARN_ICON));
@@ -1070,7 +1075,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						
 						return true;
 					}else{
-						resetErrInfo();
+						SystemLockManager.resetErrInfo();
 					}
 				}
 
@@ -1092,43 +1097,40 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						MsgBuilder.INDEX_MSG_DATA, hcConnection.userPassword, CUtil.getCertKey(), oldbs);
 				if(b == IContext.BIZ_SERVER_AFTER_PWD_ERROR){
 					doExtBiz(b, null);
-					lastErrMS = System.currentTimeMillis();
-					LogManager.log("Error Pwd OR Certifcation try "+ (++pwdErrTry) +" time(s)");
+					SystemLockManager.setLastErrMS();
+					LogManager.log("Error Pwd OR Certifcation try "+ SystemLockManager.addOnePwdErrTry() +" time(s)");
 				}else if(b == IContext.BIZ_SERVER_AFTER_CERTKEY_ERROR && hcConnection.isSecondCertKeyError == true){
-					lastErrMS = System.currentTimeMillis();
+					SystemLockManager.setLastErrMS();
 					
-					LogManager.log("Error Pwd OR Certifcation try "+ (++pwdErrTry) +" time(s)");
+					LogManager.log("Error Pwd OR Certifcation try "+ SystemLockManager.addOnePwdErrTry() +" time(s)");
 
 					coreSS.context.send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_PWD_ERROR));
 					LogManager.log("Second Cert Key Error, send Err Password status");		
 					
 					ServerCUtil.notifyErrPWDDialog();
 					
+					sleepAfterError();
 					coreSS.notifyLineOff(true, false);
 				}else{
 					doExtBiz(b, null);
 					
 					if(b == IContext.BIZ_SERVER_AFTER_CERTKEY_ERROR && hcConnection.isSecondCertKeyError == false){
-						LogManager.log("Error Pwd OR Certifcation try "+ (++pwdErrTry) +" time(s)");
+						LogManager.log("Error Pwd OR Certifcation try "+ SystemLockManager.addOnePwdErrTry() +" time(s)");
 						hcConnection.isSecondCertKeyError = true;
 					}else{
 						hcConnection.resetCheck();
-						resetErrInfo();
+						SystemLockManager.resetErrInfo();
 						((J2SESession)coreSS).isWillCheckServer = true;//开启只接收一次的状态，接收后置false，以防止被滥用。
 					}
 				}
 				return true;
 			}
 
-			private void resetErrInfo() {
-				pwdErrTry = 0;
-				lastErrMS = 0;
-			}
-
 			@Override
 			public final byte getEventTag() {
 				return MsgBuilder.E_RANDOM_FOR_CHECK_CK_PWD;
-			}});
+			}
+		});
 		
 		eventCenter.addListener(new IEventHCListener() {
 			
@@ -1142,7 +1144,12 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				setConnectionModeStatus(ContextManager.MODE_CONNECTION_RELAY);
 				
 				if(SIPManager.isOnRelay(hcConnection)){
-					setStatus(ContextManager.STATUS_READY_MTU);
+					if(j2seCoreSS.lockIdelSession()){
+						J2SESessionManager.startNewIdleSession();
+						setStatus(ContextManager.STATUS_READY_MTU);
+					}else{
+						LogManager.errToLog("Session [" + j2seCoreSS.hashCode() + "] is locked by other client!!!");
+					}
 				}
 				return true;
 			}

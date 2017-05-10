@@ -1749,7 +1749,14 @@ public class ResourceUtil {
 		
 		App.setNoTransCert();
 	}
-
+	
+	/**
+	 * 检查stackTrace的类源都是系统包
+	 */
+	public static final void checkHCStackTrace() {
+		ResourceUtil.checkHCStackTraceInclude(null, null);
+	}
+	
 	/**
 	 * 检查stackTrace的类源都是系统包，且callerClass非null时，必须在stackTrace中。否则抛出异常。
 	 * @param callerClass

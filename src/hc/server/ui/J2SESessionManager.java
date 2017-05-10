@@ -21,10 +21,6 @@ import hc.server.util.StarterParameter;
 import java.util.Vector;
 
 public class J2SESessionManager extends SessionManager {
-	public final static void appendToSessionPool(final J2SESession coreSS){
-		CCoreUtil.checkAccess();
-		addToList(coreSS);
-	}
 	
 	private static boolean isRestartDirecet = true;
 	private static boolean isShutdown = false;
@@ -79,7 +75,7 @@ public class J2SESessionManager extends SessionManager {
 		return sessionListThreadSafe;
 	}
 	
-	public final static void startSession(){
+	public final static void startNewIdleSession(){
 		CCoreUtil.checkAccess();
 		
 		ContextManager.getThreadPool().run(new Runnable() {
@@ -87,47 +83,54 @@ public class J2SESessionManager extends SessionManager {
 			public void run() {
 				StarterParameter.startBeforeSession();
 				
-				if(isRestartDirecet){
-					StarterParameter.reconnect();
-					isRestartDirecet = false;
-				}
-				
-				startNewIdleSession();
+				startNewIdleSessionImpl();
 			}
 		});
 	}
 	
-	private final synchronized static void startNewIdleSession(){
+	private final synchronized static void startNewIdleSessionImpl(){
+		if(isRestartDirecet){
+			StarterParameter.reconnect();
+			isRestartDirecet = false;
+		}
+		
 		if(isShutdown){
 			return;
 		}
 		
-		final int size = sessionListThreadSafe.size();
-		try{
+		synchronized (sessionListThreadSafe) {
+			final int size = sessionListThreadSafe.size();
 			for (int i = 0; i < size; i++) {
 				final J2SESession coreSS = (J2SESession)sessionListThreadSafe.elementAt(i);
 				if(coreSS.isIdelSession){
 					if(L.isInWorkshop){
-						LogManager.log("there is an idle session on server, skip start new idle.");
+						LogManager.log("there is an idle session [" + coreSS.hashCode() + "] on server, skip start new idle.");
 					}
 					return;
 				}
 			}
-		}catch (final ArrayIndexOutOfBoundsException e) {
 		}
-		
-		LogManager.log("creating idle session for client login.");
 		
 		startJ2SESession();
 	}
 	
 	private final static void startJ2SESession(){
 		final J2SESession socketSession = new J2SESession();
+		if(L.isInWorkshop){
+			LogManager.log("creating idle session for client login : " + socketSession.hashCode());
+		}else{
+			LogManager.log("creating idle session for client login.");
+		}
+		
 		final J2SEContext j2seContext = new J2SEContext(socketSession);
-		J2SESessionManager.appendToSessionPool(socketSession);
+		SessionManager.appendToSessionPool(socketSession);
 		
 		WiFiHelper.startAPIfExists(j2seContext.coreSS);//依赖context
 		j2seContext.run();
+		
+		socketSession.context.setStatus(ContextManager.STATUS_NEED_NAT);
+		socketSession.keepaliveManager.keepalive.setEnable(true);
+		socketSession.keepaliveManager.keepalive.doNowAsynchronous();
 	}
 	
 	public final static void stopAllSession(final boolean notifyLineOff, final boolean notifyRelineon, final boolean isForce){
@@ -149,6 +152,17 @@ public class J2SESessionManager extends SessionManager {
 		}
 		if(notifyRelineon){
 			coreSS.notifyLineOff(false, isForce);
+		}
+	}
+	
+	public static J2SESession lockIdelSession(){
+		CCoreUtil.checkAccess();
+		
+		final J2SESession coreSS = (J2SESession)SessionManager.getPreparedSocketSession();
+		if(coreSS == null || coreSS.lockIdelSession() == false){
+			return null;
+		}else{
+			return coreSS;
 		}
 	}
 

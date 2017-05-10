@@ -147,7 +147,9 @@ public class J2SERootBuilder extends RootBuilder {
 		 }else if(rootBizNo == ROOT_BIZ_IS_SIMU){
 			 return PropertiesManager.isSimu();
 		 }else if(rootBizNo == ROOT_BIZ_CHECK_STACK_TRACE){
-			 ResourceUtil.checkHCStackTraceInclude(null, null);
+			 ResourceUtil.checkHCStackTrace();
+		 }else if(rootBizNo == ROOT_GET_RESOURCE){
+			 return ResourceUtil.get((Integer)para);
 		 }else if(rootBizNo == ROOT_RELEASE_EXT_J2SE){
 			 ContextManager.getThreadPool().run(new Runnable() {
 				@Override

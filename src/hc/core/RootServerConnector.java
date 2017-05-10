@@ -22,8 +22,6 @@ public class RootServerConnector {
 	private static final String AJAX_HTTP_URL_PREFIX = "http://" + HOST_HOMECENTER_MOBI + "/ajax/";
 	public static final String AJAX_HTTPS_44X_URL_PREFIX = "https://" + HOST_HOMECENTER_MOBI + PORT_44X_WITH_MAOHAO + "/ajax/";
 	
-//	"Unable Connect the server"
-	final static String UN_CONN = unObfuscate("nUbaelC noentct ehs reevr");
 	//http://homecenter.mobi/ajax/call.php?
 	public final static String CALL_STR = AJAX_HTTPS_44X_URL_PREFIX + "call.php?";
 	//id=
@@ -157,7 +155,9 @@ public class RootServerConnector {
 		}
 		if(msg == null){
 			if(isLastUnConnServer == false){
-				LogManager.err(UN_CONN);
+				//repairing network
+				final Object repare_net = RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_RESOURCE, new Integer(100));
+				LogManager.err(repare_net.toString());
 				isLastUnConnServer = true;
 			}
 		}else{

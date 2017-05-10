@@ -193,6 +193,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	final JScrollPane scrollpane;
 	boolean isModifySourceForRebuildAST = false;
 	boolean isErrorOnBuildScript;
+	String currentEditVar;
+	boolean isKeyTypedForChangeVar;
 	final JLabel errRunInfo = new JLabel("");
 	final JButton testBtn = new JButton("Test Script");
 	final JButton formatBtn = new JButton(FORMAT_BUTTON_TEXT);
@@ -214,6 +216,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	abstract Map<String, String> buildMapScriptParameter();
 	
 	final public void rebuildASTNode() {
+		isKeyTypedForChangeVar = false;
 		designer.codeHelper.updateScriptASTNode(this, jtaScript.getText(), true);
 	}
 	
@@ -487,7 +490,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			public void caretUpdate(final CaretEvent e) {
 				clearSelectionBG();
 				try{
-					final int currLineNo = getLineOfOffset(jtaDocment, e.getDot());
+					final int scriptIdx = e.getDot();
+					final int currLineNo = getLineOfOffset(jtaDocment, scriptIdx);
 					if(isModifySourceForRebuildAST){
 //						System.out.println("caret newLineNo : " + currLineNo + ", oldLineNo : " + lastLineNo + ", new Idx :  " + e.getDot());
 						if(currLineNo != lastLineNo){
@@ -500,6 +504,24 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						}
 					}
 					lastLineNo = currLineNo;
+
+//			        final int editLineStartIdx = getLineStartOffset(jtaDocment, currLineNo);
+//			        final int lineIdx = scriptIdx - editLineStartIdx;
+//			        final int editLineEndIdx = getLineEndOffset(jtaDocment, currLineNo);
+//			        final char[] lineChars = jtaDocment.getText(editLineStartIdx, editLineEndIdx - editLineStartIdx).toCharArray();
+//			        
+//			        final String oldCurrentEditVar = currentEditVar;
+//					//当前编辑的@变量
+//			        currentEditVar = InstanceVariableManager.getCurrentEditingVar(lineChars, lineIdx);
+//			        
+//			        if(isKeyTypedForChangeVar 
+//			        		&& oldCurrentEditVar != null && currentEditVar != null 
+//			        		&& oldCurrentEditVar.equals(currentEditVar) == false){
+//			        	isKeyTypedForChangeVar = false;//reset
+//			        	
+//			        	InstanceVariableManager.replaceVariable(oldCurrentEditVar, currentEditVar, jtaDocment, 
+//			        			designer.codeHelper.root, scriptIdx);
+//			        }
 				}catch (final Exception ex) {
 				}
 			}
@@ -809,9 +831,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					
 					final boolean isDot = inputChar == '.';
 					final boolean isPathSplit = inputChar == '/';
-					if(isDot || isPathSplit || inputChar == ':'){//自动弹出代码提示条件
-				        final int lineStartIdx = ScriptEditPanel.getLineStartOffset(jtaDocment, line);
-				        final int lineIdx = position - lineStartIdx;
+			        
+					final int lineStartIdx = ScriptEditPanel.getLineStartOffset(jtaDocment, line);
+			        final int lineIdx = position - lineStartIdx;
+
+			        if(isDot || isPathSplit || inputChar == ':'){//自动弹出代码提示条件
 				        final char[] lineChars = jtaDocment.getText(lineStartIdx, lineIdx).toCharArray();
 				        final int lineCharsLen = lineChars.length;
 				        
@@ -880,14 +904,17 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				        }
 				        
 				        popUpAuto(codeHelper);
-					}
+				        return;
+					}//end 自动弹出代码提示条件
+			        
+			        isKeyTypedForChangeVar = true;
 				}catch (final Exception e) {
 					ExceptionReporter.printStackTrace(e);
 				}//end try
 				}
 			}
 
-			private void popUpAuto(final CodeHelper codeHelper) {
+			private final void popUpAuto(final CodeHelper codeHelper) {
 				//自动弹出代码提示
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
@@ -1245,6 +1272,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						}
 					}, threadPoolToken);
 				}else{
+					ContextManager.getThreadPool().run(new Runnable() {//有可能发生在同一行
+						@Override
+						public void run() {
+							rebuildASTNode();
+						}
+					}, threadPoolToken);
+					updateScript(jtaScript.getText());
 					refreshCurrLineAfterKey(newLineNo);
 					final int shiftPos = newCaretPos - oldCaretPos;
 					TabHelper.notifyInputKey(false, null, (char)0, - shiftPos + 1);
@@ -1260,24 +1294,20 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 //			synchronized (modifyAndColorAll) {
 				isModifySourceForRebuildAST = false;
 				scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_CUT);
-				final int oldLineNo = getLineOfOffsetWithoutException(jtaDocment, jtaScript.getCaretPosition());
 				
 				super.cut();
 				
 				try{
 					final int newLineNo = getLineOfOffset(jtaDocment, jtaScript.getCaretPosition());
-					if(oldLineNo != newLineNo){
-						ContextManager.getThreadPool().run(new Runnable() {
-							@Override
-							public void run() {
-								rebuildASTNode();
-							}
-						}, threadPoolToken);
-						updateScript(jtaScript.getText());
-					}else{
-						refreshCurrLineAfterKey(newLineNo);
-					}
-				}catch (final Exception e) {
+					ContextManager.getThreadPool().run(new Runnable() {//有可能发生在同一行
+						@Override
+						public void run() {
+							rebuildASTNode();
+						}
+					}, threadPoolToken);
+					updateScript(jtaScript.getText());
+					refreshCurrLineAfterKey(newLineNo);
+				}catch (final Throwable e) {
 				}
 //			}
 		}

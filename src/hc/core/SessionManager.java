@@ -6,15 +6,17 @@ import hc.core.util.LogManager;
 
 import java.util.Vector;
 
-public abstract class SessionManager {
+public class SessionManager {
 	private static CoreSession preparedSocketSession;
-	protected final static Vector sessionListThreadSafe = new Vector(2);
+	protected final static Vector sessionListThreadSafe = new Vector(4);
 	
-	public static final void addToList(final CoreSession coreSS){
+	public static final void appendToSessionPool(final CoreSession coreSS){
 		CCoreUtil.checkAccess();
 		
 		preparedSocketSession = coreSS;
-		sessionListThreadSafe.addElement(coreSS);
+		synchronized (sessionListThreadSafe) {
+			sessionListThreadSafe.addElement(coreSS);
+		}
 	}
 	
 	public static boolean checkAtLeastOneMeet(final int status){
@@ -93,7 +95,13 @@ public abstract class SessionManager {
 	 */
 	public final static void release(final CoreSession coreSocketSession){
 		if(coreSocketSession != null){
-			if(sessionListThreadSafe.removeElement(coreSocketSession)){
+			final boolean isRemoved;
+			
+			synchronized (sessionListThreadSafe) {
+				isRemoved = sessionListThreadSafe.removeElement(coreSocketSession);
+			}
+			
+			if(isRemoved){
 				coreSocketSession.release();
 			}
 		}

@@ -765,7 +765,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			}
 			LinkProjectManager.startAutoUpgradeBiz();
 			
-			J2SESessionManager.startSession();
+			J2SESessionManager.startNewIdleSession();
 			
 			if(ResourceUtil.isJ2SELimitFunction()){
 				//最低JRE要求7

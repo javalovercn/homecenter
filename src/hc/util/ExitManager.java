@@ -25,7 +25,7 @@ import hc.server.util.StarterParameter;
 
 public class ExitManager {
 	public static void startExitSystem(){
-		ResourceUtil.checkHCStackTraceInclude(null, null);
+		ResourceUtil.checkHCStackTrace();
 
 		J2SESessionManager.notifyReadyShutdown();
 		

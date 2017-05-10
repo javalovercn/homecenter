@@ -17,6 +17,7 @@ import hc.server.ui.design.hpj.HCTextPane;
 import hc.server.ui.design.hpj.HPShareJar;
 import hc.server.ui.design.hpj.MouseExitHideDocForMouseMovTimer;
 import hc.server.ui.design.hpj.ScriptEditPanel;
+import hc.server.util.IDEUtil;
 import hc.util.ClassUtil;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
@@ -1857,6 +1858,15 @@ public class CodeHelper {
     	
     	return false;
     }
+    
+    private final static boolean isIDEUtilReceive(final Node node, final CodeContext codeContext){
+		final JRubyClassDesc classdesc = findClassFromReceiverNode(node, false, codeContext);
+		if(classdesc != null && classdesc.baseClass == IDEUtil.class){
+			return true;
+		}
+    	
+    	return false;
+    }
 
 	private final static JRubyClassDesc findClassFromCallNode(final CallNode call, final CodeContext codeContext) {
 		final String methodName = call.getName();
@@ -1871,12 +1881,28 @@ public class CodeHelper {
 				classDesc.isInstance = true;
 			}
 			return classDesc;
+		}else if(methodName.equals("asClass") && isIDEUtilReceive(call.getReceiver(), codeContext)){
+			//(CallNode:asClass, (ConstNode:IDEUtil), (ArrayNode, (LocalVarNode:ctrler), (ConstNode:CtrlResponse)))
+			//(CallNode:asClass, (CallNode:IDEUtil, (CallNode:util, (CallNode:server, (CallNode:hc, (ConstNode:Java), (ListNode)), (ListNode)), (ListNode)), (ListNode)), (ArrayNode, (LocalVarNode:ctrler), (CallNode:CtrlResponse, (CallNode:ui, (CallNode:server, (CallNode:hc, (ConstNode:Java), (ListNode)), (ListNode)), (ListNode)), (ListNode))))
+			final Node parametersNode = call.getArgs();
+			if(parametersNode instanceof ArrayNode){
+				final Node classNode = ((ArrayNode)parametersNode).get(1);
+				final JRubyClassDesc classDesc = findClassFromReceiverNode(classNode, false, codeContext);
+				if(classDesc != null){
+					classDesc.isInstance = true;
+					return classDesc;
+				}
+			}
+			return null;
 		}else if(methodName.equals(TO_S)){
 			return buildJRubyClassDesc(String.class, true);
 		}else if(methodName.equals(TO_I)){
 			return buildJRubyClassDesc(int.class, true);
 		}else if(methodName.equals(TO_F)){
 			return buildJRubyClassDesc(float.class, true);
+		}else if(methodName.equals(CLASS_STATIC)){//(CallNode:class, (LocalVarNode:ctrl), (ListNode))
+			final JRubyClassDesc classDesc = findClassFromRightAssign(call.getReceiver(), codeContext);
+			return classDesc;
 		}
 		
 		final Node parametersNode = call.getArgs();
@@ -2414,7 +2440,7 @@ public class CodeHelper {
 	}
 	
 	private Node backRoot;
-	private Node root = emptyStringNode;
+	public Node root = emptyStringNode;
 	
 	public final void resetASTRoot(){
 		backRoot = null;

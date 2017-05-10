@@ -8,6 +8,7 @@ public abstract class RootBuilder {
 	public static final short ROOT_GET_CLASS_FROM_3RD_AND_SERV_LIBS = 5;
 	public static final short ROOT_BUILD_NEW_CONNECTION = 6;
 	public static final short ROOT_CHECK_CHECKPERMISSION = 7;
+	public static final short ROOT_GET_RESOURCE = 8;
 	
 	private static RootBuilder instance;
 	

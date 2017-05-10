@@ -3,18 +3,17 @@ package hc.core;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
-import hc.core.util.ThreadPool;
 import hc.core.util.ThreadPriorityManager;
 
 import java.util.Vector;
 
 public abstract class HCTimer {
 	//默认为１０分
-	int interval;
+	long interval;
 	private Object bizObj;
 	final String name;
-	public static final int ONE_HOUR = 1000 * 60 * 60;
-	public static final int ONE_DAY = 86400000;
+	public static final long ONE_HOUR = 1000 * 60 * 60;
+	public static final long ONE_DAY = 86400000;
 	long nextExecMS;
 	final boolean isNewThread;
 	final int newThreadPrority;
@@ -33,7 +32,7 @@ public abstract class HCTimer {
 		return this.name;
 	}
 
-	public HCTimer(final String name, final int ms, final boolean enable) {
+	public HCTimer(final String name, final long ms, final boolean enable) {
 		this(name, ms, enable, false, ThreadPriorityManager.LOWEST_PRIORITY);
 	}
 	
@@ -45,7 +44,7 @@ public abstract class HCTimer {
 	 * @param isNewThread true:表示另起独立线程来驱动本逻辑；false:共享线程来驱动本逻辑
 	 * @param newThreadPrority
 	 */
-	public HCTimer(final String name, final int ms, final boolean enable, final boolean isNewThread, final int newThreadPrority) {
+	public HCTimer(final String name, final long ms, final boolean enable, final boolean isNewThread, final int newThreadPrority) {
 		interval = ms;
 		isEnable = enable;
 		this.name = name;
@@ -121,7 +120,7 @@ public abstract class HCTimer {
 		resetToMS(interval);
 	}
 
-	private final void resetToMS(final int ms) {
+	private final void resetToMS(final long ms) {
 		nextExecMS = getNextMS(0, ms);
 	}
 
@@ -147,7 +146,7 @@ public abstract class HCTimer {
 		}
 	}
 
-	public final int getIntervalMS() {
+	public final long getIntervalMS() {
 		return interval;
 	}
 
@@ -347,7 +346,7 @@ public abstract class HCTimer {
 		}
 	}
 
-	public static long getNextMS(final long nowMS, final int interv) {
+	public static long getNextMS(final long nowMS, final long interv) {
 		final long currentTimeMillis = (nowMS==0?System.currentTimeMillis():nowMS);
 		return currentTimeMillis - (currentTimeMillis % HC_INTERNAL_MS) + interv;
 	}

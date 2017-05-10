@@ -37,6 +37,8 @@ public class ThreadPriorityManager {
 	
 	public static final int UI_DELAY_MOMENT = 500;
 	
+	public static final int NET_FLUSH_DELAY = 500;
+	
 	public static final int UI_FLUSH_GRAPHICS = 10;
 	
 	public static final int UI_WAIT_FOR_EVENTQUEUE = 5;

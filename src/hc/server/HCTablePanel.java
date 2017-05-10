@@ -314,7 +314,7 @@ public class HCTablePanel {
 		refreshButton();
 	}
 	
-	private void refreshButton() {
+	protected void refreshButton() {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {

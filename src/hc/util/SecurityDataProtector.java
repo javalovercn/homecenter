@@ -394,7 +394,7 @@ public class SecurityDataProtector {
 	static byte[] hc_hard_id_bs;
 	
 	private static byte[] getPrivateHardwareCodeForJ2SE() {
-		ResourceUtil.checkHCStackTraceInclude(null, null);//由于缓存于field中，所以加此
+		ResourceUtil.checkHCStackTrace();//由于缓存于field中，所以加此
 		
 		//注意：由于本类入HCLimitSecurityManager.checkMemberAccess，所以保护属性即可
 		if(hc_hard_id_bs == null){

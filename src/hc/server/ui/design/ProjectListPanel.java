@@ -19,9 +19,7 @@ public class ProjectListPanel {
 			COL_PROJ_LINK_NAME = 5, COL_PROJ_DESC = 6, COL_UPGRADE_URL = 7;
 	final int COL_NUM = 2;
 	final int IDX_OBJ_STORE = 1;
-	final LinkProjectStore oldRootlps;
 
-	final PropertiesSet projIDSet = AddHarHTMLMlet.newLinkProjSetInstance();
 	final PropertiesSet projWidthSet = new PropertiesSet(PropertiesManager.S_LINK_PROJECTS_COLUMNS_WIDTH);
 
 	final String upgradeURL = (String)ResourceUtil.get(8023);
@@ -37,22 +35,7 @@ public class ProjectListPanel {
 
 	final Vector<Object[]> data = new Vector<Object[]>();//[COL_NUM];
 	int dataRowNum = 0;
-	final Vector<LinkProjectStore> lpsVector;
 	public ProjectListPanel(){
-		final int size = projIDSet.size();
-		lpsVector = new Vector<LinkProjectStore>(size);
-		LinkProjectStore tmp_lps = null;
-		for (int i = 0; i < size; i++) {
-			final String item = projIDSet.getItem(i);
-			final LinkProjectStore lp = new LinkProjectStore();
-			lp.restore(item);
-			if(lp.isRoot()){
-				tmp_lps = lp;
-			}
-			lpsVector.add(lp);
-		}
-		oldRootlps = tmp_lps;
-		
 //		for (int i = 0; i < LinkProjectManager.MAX_LINK_PROJ_NUM; i++) {
 //			data.add(new Object[COL_NUM]);
 //			for (int j = 0; j < COL_NUM; j++) {
@@ -64,19 +47,23 @@ public class ProjectListPanel {
 //			}
 //		}
 		
-		{
-			int i = 0;
-			final Iterator<LinkProjectStore> itx = LinkProjectManager.getLinkProjsIterator(true);
-			while(itx.hasNext()){
-				final LinkEditData led = new LinkEditData();
-				led.lps = itx.next();
-				led.op = (LinkProjectManager.STATUS_NEW);
-				led.status = (LinkProjectManager.STATUS_DEPLOYED);
+		loadData();
+	}
 
-				data.add(new Object[COL_NUM]);
-				data.elementAt(i)[0] = String.valueOf(i+1);
-				data.elementAt(i++)[IDX_OBJ_STORE] = led;
-			}
+	protected final void loadData() {
+		data.clear();
+		
+		int i = 0;
+		final Iterator<LinkProjectStore> itx = LinkProjectManager.getLinkProjsIterator(true);
+		while(itx.hasNext()){
+			final LinkEditData led = new LinkEditData();
+			led.lps = itx.next();
+			led.op = (LinkProjectManager.STATUS_NEW);
+			led.status = (LinkProjectManager.STATUS_DEPLOYED);
+
+			data.add(new Object[COL_NUM]);
+			data.elementAt(i)[0] = String.valueOf(i+1);
+			data.elementAt(i++)[IDX_OBJ_STORE] = led;
 		}
 	}
 	

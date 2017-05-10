@@ -15,7 +15,7 @@ public class BCProvider {
 	public static final String BC_PROVIDER = "BC";
 	
 	public final static Provider getBCProvider() {
-		ResourceUtil.checkHCStackTraceInclude(null, null);
+		ResourceUtil.checkHCStackTrace();
 		synchronized (BCProvider.class) {
 			if(bcProvider == null){
 				bcProvider = new BouncyCastleProvider();

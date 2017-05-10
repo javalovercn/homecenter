@@ -80,6 +80,7 @@ public class CodeStaticHelper {
 			out.add("hc.server.util.SystemEventListener");
 			out.add("hc.server.util.JavaLangSystemAgent");
 			out.add("hc.server.util.Assistant");
+			out.add("hc.server.util.IDEUtil");
 			out.add("hc.server.util.JavaString");
 			out.add("hc.server.util.VoiceCommand");
 			

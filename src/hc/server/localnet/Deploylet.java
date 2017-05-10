@@ -36,7 +36,9 @@ public class Deploylet {
 			processLoop();
 		}catch (final Throwable e) {
 		}finally{
-			L.V = L.WShop ? false : LogManager.log("[Deploy] close a deploy session at " + socket.socket.hashCode());
+			if(socket != null && socket.socket != null){
+				L.V = L.WShop ? false : LogManager.log("[Deploy] close a deploy session at " + socket.socket.hashCode());
+			}
 			try{
 				socket.close();
 			}catch (final Throwable e) {
@@ -49,12 +51,16 @@ public class Deploylet {
 	
 	private final void processLoop() throws IOException {
 		while(true){
-			L.V = L.WShop ? false : LogManager.log("[Deploy] ready to receive at " + socket.socket.hashCode());
+			if(socket != null && socket.socket != null){
+				L.V = L.WShop ? false : LogManager.log("[Deploy] ready to receive at " + socket.socket.hashCode());
+			}
 			final byte header = socket.receive();
 			final int headerLen = socket.receiveDataLen();
 			
 			if(header == DeploySocket.H_BYE){
-				L.V = L.WShop ? false : LogManager.log("[Deploy] receive bye at " + socket.socket.hashCode());
+				if(socket != null && socket.socket != null){
+					L.V = L.WShop ? false : LogManager.log("[Deploy] receive bye at " + socket.socket.hashCode());
+				}
 				break;
 			}else if(header == DeploySocket.H_HELLO){
 				final byte[] projIDbs = socket.receiveData(headerLen, null);

@@ -12,6 +12,8 @@ public class CCoreUtil {
 
 	private static SecurityChecker checker;
 	
+	public static final int MAX_CHECK_COUNT = 1;
+	
 	public static final void setSecurityChecker(final SecurityChecker c){
 		checkAccess();
 		checker = c;

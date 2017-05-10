@@ -466,7 +466,7 @@ public class LinkProjectManager{
 	
 	public static void appNewLinkedInProjNow(final Vector<LinkProjectStore> v, final boolean isServing, 
 			final boolean isForceApplyWhenUserIsConnecting, final boolean isForceUpgradeInLocalNetwork){//注意：不能将异常抛出
-		ResourceUtil.checkHCStackTraceInclude(null, null);
+		ResourceUtil.checkHCStackTrace();
 		
 		try{
 		while(ServerUIUtil.isServing()){

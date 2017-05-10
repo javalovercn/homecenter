@@ -173,8 +173,10 @@ public final class HCConnection {
 	}
 	
 	public final void setOutputStream(final Object tcpOrUDPSocket) {
-		L.V = L.WShop ? false : LogManager.log("[Chang] HCConnection Send outputStream : " + tcpOrUDPSocket.hashCode());
-		 
+		if(tcpOrUDPSocket != null){
+			L.V = L.WShop ? false : LogManager.log("[Chang] HCConnection Send outputStream : " + tcpOrUDPSocket.hashCode());
+		}
+		
 		this.outStream = (DataOutputStream)tcpOrUDPSocket;
 	}
 
@@ -469,7 +471,10 @@ public final class HCConnection {
 	private Object inputStreamForNullRServer;
 	
 	public final void setReceiveServerInputStream(final Object inputStream, final boolean isShutDown, final boolean isCloseOld){
-		L.V = L.WShop ? false : LogManager.log("[Chang] Receive inputStream :" + inputStream.hashCode());
+		if(inputStream != null){
+			L.V = L.WShop ? false : LogManager.log("[Chang] Receive inputStream :" + inputStream.hashCode());
+		}
+		
 		if(rServer != null){
 			if(isShutDown){
 				rServer.shutDown();

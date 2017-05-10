@@ -85,6 +85,16 @@ public final class J2SESession extends CoreSession{
 	public Object[] mobileValuesForCSS = null;
 	private final HashMap<String, SessionMobiMenu> menuItemsMap = new HashMap<String, SessionMobiMenu>(8);
 	
+	public final synchronized boolean lockIdelSession(){
+		if(isIdelSession == false){
+			return false;
+		}else{
+			isIdelSession = false;
+			L.V = L.WShop ? false : LogManager.log("a session is leave idel : " + hashCode());
+			return true;
+		}
+	}
+	
 	public final SessionMobiMenu getMenu(final String projectID){
 		return menuItemsMap.get(projectID);
 	}

@@ -7,10 +7,11 @@ import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
-import hc.core.SessionManager;
 import hc.core.data.DataReg;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
+import hc.core.util.ThreadPriorityManager;
+import hc.server.ui.J2SESessionManager;
 import hc.server.ui.design.J2SESession;
 import hc.server.util.StarterParameter;
 import hc.util.PropertiesManager;
@@ -159,11 +160,12 @@ public class DirectServer extends Thread {
 				socket = server.accept();
 				
 				final Socket para_socket = socket;
+				final J2SESession coreSSMaybeNull = J2SESessionManager.lockIdelSession();
 				socket = null;
 				ContextManager.getThreadPool().run(new Runnable() {
 					@Override
 					public void run() {
-						processOneClient(para_socket);
+						processOneClient(para_socket, coreSSMaybeNull);
 					}
 				});
 			}catch (final Throwable e) {
@@ -196,7 +198,7 @@ public class DirectServer extends Thread {
 		LogManager.log("[direct server] shutdown old Home Wireless Server");		
 	}
 
-	private final void processOneClient(final Socket socket) {
+	private final void processOneClient(final Socket socket, J2SESession coreSSMaybeNull) {
 		try{
 //					LogManager.log("Server is build conn for other, cancle the coming");
 //					LogManager.log("  Coming, " + socket.getInetAddress().getHostAddress() + 
@@ -211,12 +213,13 @@ public class DirectServer extends Thread {
 			
 			socket.setKeepAlive(true);
 			socket.setTcpNoDelay(true);
-				
-			final HCTimer watcher = new HCTimer("", 3000, true) {
+			
+			final int maxTryCount = 5;
+			final HCTimer watcher = new HCTimer("", maxTryCount * 1000, true) {
 				@Override
 				public final void doBiz() {
 					synchronized (this) {
-						if(isEnable){
+						if(isEnable()){
 							try {
 								socket.close();
 							} catch (final Throwable e) {
@@ -235,22 +238,41 @@ public class DirectServer extends Thread {
 				socket.getOutputStream().write(bs, 0, BYTE_LEN);
 				socket.getOutputStream().flush();
 				
-				final J2SESession coreSS = (J2SESession)SessionManager.getPreparedSocketSession();
+				int tryCount = 0;
+				while(coreSSMaybeNull == null && tryCount < 40){
+					coreSSMaybeNull = J2SESessionManager.lockIdelSession();
+					if(coreSSMaybeNull == null){
+						tryCount++;
+						try{
+							Thread.sleep(100);//有可能多个同时访问directServer
+						}catch (final Exception e) {
+						}
+					}
+				}
+				if(coreSSMaybeNull == null){
+					LogManager.errToLog("no idle session for new client.");
+					return;
+				}
 				
 				try{
-					coreSS.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_DIRECT_CONN_OK);
+					coreSSMaybeNull.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_DIRECT_CONN_OK);
 				}catch (final Throwable e) {
 				}
 				
-				coreSS.deploySocket(socket);
+				coreSSMaybeNull.deploySocket(socket);
+				try{
+					Thread.sleep(ThreadPriorityManager.NET_FLUSH_DELAY);
+				}catch (final Exception e) {
+				}
+				J2SESessionManager.startNewIdleSession();
 				
 				//家庭直联模式下，关闭KeepAlive
-				setServerConfigPara(coreSS, true, false);
-				coreSS.context.setConnectionModeStatus(ContextManager.MODE_CONNECTION_HOME_WIRELESS);
+				setServerConfigPara(coreSSMaybeNull, true, false);
+				coreSSMaybeNull.context.setConnectionModeStatus(ContextManager.MODE_CONNECTION_HOME_WIRELESS);
 				
 				final byte subTag = bs[MsgBuilder.INDEX_CTRL_SUB_TAG];
 				if(subTag == MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST){
-					coreSS.context.setStatus(ContextManager.STATUS_READY_MTU);
+					coreSSMaybeNull.context.setStatus(ContextManager.STATUS_READY_MTU);
 				}else if(subTag == MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_BUILD_NEW_CONN){
 					//注意：这是DATA_E_TAG_RELAY_REG_SUB_BUILD_NEW_CONN与DATA_E_TAG_RELAY_REG_SUB_FIRST的唯一区别
 					return;

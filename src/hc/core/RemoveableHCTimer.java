@@ -8,7 +8,7 @@ public abstract class RemoveableHCTimer extends HCTimer {
 		super(name, enable);
 	}
 	
-	public RemoveableHCTimer(String name, int ms, boolean enable) {
+	public RemoveableHCTimer(String name, long ms, boolean enable) {
 		super(name, ms, enable);
 	}
 
