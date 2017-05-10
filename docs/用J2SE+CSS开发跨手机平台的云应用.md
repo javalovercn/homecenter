@@ -143,7 +143,7 @@ return MyHTMLMlet.new
 ### 2. 设置全局CSS
 
 点击左侧树的Resources/CSS Styles，将下面CSS粘贴到&quot;Styles Edit Area&quot;。
-```
+```CSS
 .iconStyle {
     text-align:center;
     vertical-align:middle;
