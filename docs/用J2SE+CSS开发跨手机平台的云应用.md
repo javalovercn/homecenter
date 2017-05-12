@@ -187,22 +187,23 @@ return MyHTMLMlet.new
 
 ## 附录-安装开发环境
 1. 确保已安装Java运行环境(Java Runtime Environment)或Java开发环境(Java SE Development Kit)，没安装，从[https://www.java.com/](https://www.java.com/)下载安装。
-2. 安装HomeCenter启动器，打开[https://github.com/javalovercn/hc_server_dist](https://github.com/javalovercn/hc_server_dist)（手机端也在此下载），下载相应操作系统压缩包，比如Windows系统，则是&quot;HC\_Server\_For\_Win.zip&quot;。
-3. 解压包，双击可执行脚本。例如：Windows系统是&quot;HomeCenter.bat&quot;；Mac系统则是&quot;HomeCenter.command&quot;。
-4. 启动器在运行时，会检查、下载最新的服务器内核。
-5. 下载成功后，系统显示软件使用许可协议对话框，点选&quot;我同意&quot;项，点击&quot;同意&quot;继续。
-6. 输入电子邮箱作为帐号。注：账号创建完后，并不能表明你是该邮箱的拥有者，稍后可进行邮箱验证。
-7. 服务器上线成功后，弹出如下信息：
+2. 安装HomeCenter启动器，打开[https://github.com/javalovercn/hc_server_dist](https://github.com/javalovercn/hc_server_dist)，下载相应操作系统压缩包，比如Windows系统，则是&quot;HC\_Server\_For\_Win.zip&quot;。
+3. 手机端下载，请打开https://github.com/javalovercn/client
+4. 解压包，双击可执行脚本。例如：Windows系统是&quot;HomeCenter.bat&quot;；Mac系统则是&quot;HomeCenter.command&quot;。
+5. 启动器在运行时，会检查、下载最新的服务器内核。
+6. 下载成功后，系统显示软件使用许可协议对话框，点选&quot;我同意&quot;项，点击&quot;同意&quot;继续。
+7. 输入电子邮箱作为帐号。注：账号创建完后，并不能表明你是该邮箱的拥有者，稍后可进行邮箱验证。
+8. 服务器上线成功后，弹出如下信息：
 
 ![](http://homecenter.mobi/images/usage/j2se_css_img6.png)
 
-8. 初次安装，服务器会在后台下载JRuby引擎。JRuby引擎是一个jar包，约20M，下载校验后，系统提示如下：
+9. 初次安装，服务器会在后台下载JRuby引擎。JRuby引擎是一个jar包，约20M，下载校验后，系统提示如下：
 
 ![](http://homecenter.mobi/images/usage/j2se_css_img7.png)
 
-9. 祝贺您，现在可以开始编写第一个HAR工程了！（如果您是最终用户，且不需开发HAR，手机登录后，扫描好友或供应商的二维码以安装HAR工程包，即加即用。）
-10. 点击&quot;确认&quot;，进入设计器，界面如下：
+10. 祝贺您，现在可以开始编写第一个HAR工程了！（如果您是最终用户，且不需开发HAR，手机登录后，扫描好友或供应商的二维码以安装HAR工程包，即加即用。）
+11. 点击&quot;确认&quot;，进入设计器，界面如下：
 
 ![](http://homecenter.mobi/images/usage/j2se_css_img8.png)
 
-11. 服务器的基本机理：服务器加载单元是HAR（Home Archive）工程包，采用jar格式封装应用的脚本、图标或所依赖的可执行jar。无需担忧如何发布工程包，点击&quot;Save As&quot;按钮即可完成HAR包的导出和签名。服务器既是运行容器，也是设计器，即HAR的开发环境（注：Android版的服务器除外，这是因为Android并不适合脚本编写，所以Android版仅供运行，而非开发。特别说明：此处的Android版为服务器端，而非手机端的Android版本）。HAR工程运行在JRuby解释器上。JRuby是采用纯Java实现的Ruby解释器，它结合了Ruby语言的简易性和功能强大的JVM的执行机制，包括与Java库全面集成。
+12. 服务器的基本机理：服务器加载单元是HAR（Home Archive）工程包，采用jar格式封装应用的脚本、图标或所依赖的可执行jar。无需担忧如何发布工程包，点击&quot;Save As&quot;按钮即可完成HAR包的导出和签名。服务器既是运行容器，也是设计器，即HAR的开发环境（注：Android版的服务器除外，这是因为Android并不适合脚本编写，所以Android版仅供运行，而非开发。特别说明：此处的Android版为服务器端，而非手机端的Android版本）。HAR工程运行在JRuby解释器上。JRuby是采用纯Java实现的Ruby解释器，它结合了Ruby语言的简易性和功能强大的JVM的执行机制，包括与Java库全面集成。
