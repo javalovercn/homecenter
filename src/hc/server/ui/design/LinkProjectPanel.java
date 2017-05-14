@@ -567,11 +567,13 @@ public class LinkProjectPanel extends ProjectListPanel{
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
-						final int selectedRow = tablePanel.table.getSelectedRow();
-						if(selectedRow >= 0){
-							designBut.setEnabled(isDeployed(selectedRow));
-						}else{
-							designBut.setEnabled(false);
+						if(tablePanel != null && tablePanel.table != null){//Android会出现null
+							final int selectedRow = tablePanel.table.getSelectedRow();
+							if(selectedRow >= 0){
+								designBut.setEnabled(isDeployed(selectedRow));
+							}else{
+								designBut.setEnabled(false);
+							}
 						}
 					}
 				});

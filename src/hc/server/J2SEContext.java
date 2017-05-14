@@ -1021,14 +1021,13 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			public final byte getEventTag() {
 				return MsgBuilder.E_RANDOM_FOR_CHECK_SERVER;
 			}
-			int count = 0;
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final J2SESession j2seCoreSS = (J2SESession)coreSS;
 				
 				if(j2seCoreSS.isWillCheckServer){
+					eventCenter.removeListener(this);
 					j2seCoreSS.isWillCheckServer = false;
-					count = 0;
 					final int len = HCMessage.getBigMsgLen(bs);
 					//收到客户端发来的随机信息，验证后，发回客户端
 					final byte[] certKey = CUtil.getCertKey();
@@ -1046,18 +1045,19 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 							startTransMobileContent();
 						}
 					});
-				}else{
-					if(count++ > 0){//忽略第一次
-						LogManager.errToLog("ignore random data for identify server.");
-					}
 				}
 				return true;
 			}
 		});
 		
 		eventCenter.addListener(new IEventHCListener(){
+			int tryCount = 0;
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
+				if(tryCount++ > 1){
+					eventCenter.removeListener(this);
+				}
+				
 				LogManager.log("Receive the back data which to check CK and password");
 				
 //					System.out.println("pwdErrTry : " + pwdErrTry + ",  MAXTimers : " + LockManager.MAXTIMES);

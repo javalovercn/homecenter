@@ -120,7 +120,6 @@ public class LinkProjectManager{
 			final String curr_jruby_ver = PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer, "1.0");
 			
 			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(true);
-			final StringBuilder sb = new StringBuilder();
 			while(it.hasNext()){
 				final LinkProjectStore lp = it.next();
 				if(lp.isActive() == false){
@@ -139,7 +138,7 @@ public class LinkProjectManager{
 					//自动请求删除
 					if(lp.getProjectID().equals(p_had.getProperty(HCjad.HAD_ID))){
 						if(p_had.getProperty(HCjad.HAD_HAR_SIZE).equals("0")){
-							LogManager.errToLog("project will not be deprecated if [" + HCjad.HAD_HAR_SIZE + "] is zero.");
+							LogManager.errToLog("project will not be removed if [" + HCjad.HAD_HAR_SIZE + "] is zero.");
 //							log("remove deprecated project [" + lp.getProjectID() + "] by HAD size:0");
 //							lp.setVersion(LinkProjectStore.DEL_VERSION);
 //							lp.setDownloadingErr("deprecated project, remove it.");
@@ -151,13 +150,9 @@ public class LinkProjectManager{
 					final String p_jvm_ver = p_had.getProperty(HCjad.HAD_JRE_MIN_VERSION);
 					if(p_jvm_ver != null){
 						if(StringUtil.higher(p_jvm_ver, curr_jvm_ver)){
-							if(sb.length() > 0){
-								sb.append("<br>");
-							}
 							final String errDesc = "HAR Project ["+ lp.getProjectID() + ", " + lp.getProjectRemark() + "] require JRE Version (" + p_jvm_ver + "), but current JRE Version:" + curr_jvm_ver;
-							sb.append(errDesc);
-							LogManager.warning(errDesc);
-//							continue;
+							LogManager.errToLog(errDesc);
+							continue;
 						}
 					}
 					}
@@ -165,11 +160,7 @@ public class LinkProjectManager{
 					final String p_hc_ver = p_had.getProperty(HCjad.HAD_HC_MIN_VERSION);
 					if(p_hc_ver != null){
 						if(StringUtil.higher(p_hc_ver, curr_hc_ver)){
-							if(sb.length() > 0){
-								sb.append("<br>");
-							}
 							final String errDesc = "HAR Project ["+ lp.getProjectID() + ", " + lp.getProjectRemark() + "] require HomeCenter Server Version (" + p_hc_ver + "), but current HomeCenter Server Version:" + curr_hc_ver;
-							sb.append(errDesc);
 							LogManager.errToLog(errDesc);
 							continue;
 						}	
@@ -179,13 +170,9 @@ public class LinkProjectManager{
 						final String p_jruby_ver = p_had.getProperty(HCjad.HAD_JRUBY_MIN_VERSION);
 						if(p_jruby_ver != null){
 							if(StringUtil.higher(p_jruby_ver, curr_jruby_ver)){
-								if(sb.length() > 0){
-									sb.append("<br>");
-								}
 								final String errDesc = "HAR Project ["+ lp.getProjectID() + ", " + lp.getProjectRemark() + "] require JRuby Version (" + p_jruby_ver + "), but current JRuby Version:" + curr_jruby_ver;
-								sb.append(errDesc);
 								LogManager.warning(errDesc);
-//								continue;
+								continue;
 							}	
 						}
 					}
@@ -209,22 +196,14 @@ public class LinkProjectManager{
 									downloadingLPS.add(lp);										
 								}else{
 									//比如checkSign错误
-									if(sb.length() > 0){
-										sb.append("<br>");
-									}
 									final String errDesc = "HAR Project ["+ lp.getProjectID() + ", " + lp.getProjectRemark() + "] " + lp.getDownloadingErr();
-									sb.append(errDesc);
 									LogManager.errToLog(errDesc);
 								}
 							}else{
 								continue;
 							}
 						}else{
-							if(sb.length() > 0){
-								sb.append("<br>");
-							}
 							final String errDesc = "HAR Project ["+ lp.getProjectID() + ", " + lp.getProjectRemark() + "] unknow remote version";
-							sb.append(errDesc);
 							LogManager.errToLog(errDesc);
 						}
 					}

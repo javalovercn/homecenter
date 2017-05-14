@@ -2584,7 +2584,7 @@ public class CodeHelper {
 			return true;
 		}catch (final Throwable e) {
 			if(e instanceof SyntaxException){
-				final StyledDocument document = (StyledDocument)sep.jtaDocment;
+				final StyledDocument document = sep.jtaStyledDocment;
 				
 				if(errorHighlighter != null){
 					final Highlighter highlighter = sep.jtaScript.getHighlighter();

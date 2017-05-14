@@ -1,6 +1,5 @@
 package hc.server.ui.design.hpj;
 
-import hc.core.util.ThreadPriorityManager;
 import hc.server.ui.design.code.TabHelper;
 
 import java.awt.BorderLayout;
@@ -54,14 +53,9 @@ public class JRubyNodeEditPanel extends ScriptEditPanel {
 		setInitText(scripts);
 		TabHelper.initScriptPanel(jtaScript, this);
 		
-		initColor(true, false, 0);
+		initColor(false, 0);
 		
 		extInit();
-		
-		try{
-			Thread.sleep(ThreadPriorityManager.UI_WAIT_MS);
-		}catch (final Exception e) {
-		}
 		
 		super.isInited = true;
 	}

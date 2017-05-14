@@ -137,7 +137,7 @@ public abstract class HCTimer {
 	 * 设定替换旧成员的时间间隔，单位：MS
 	 * @param secondMS
 	 */
-	public final void setIntervalMS(final int secondMS) {
+	public final void setIntervalMS(final long secondMS) {
 		interval = secondMS;
 		nextExecMS = getNextMS(0, interval);
 		

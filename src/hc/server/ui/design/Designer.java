@@ -2576,7 +2576,15 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		{
 			final JPanel descPanel = new JPanel(new BorderLayout());
 			descPanel.setBorder(new TitledBorder("Description :"));
-			descPanel.add(new JLabel("<html>these versions are design enviroment,<BR>you can change them for runtime enviroment.</html>"), BorderLayout.CENTER);
+			descPanel.add(new JLabel("<html>" +
+					"1. these versions are design enviroment, change them for runtime enviroment." +
+					"<BR>" +
+					"2. when HAR running on Android 7.0 Nougat (API 24) or above is treated as Java 8." +
+					"<BR>" +
+					"3. when HAR running on Android 4.4 KitKat (API 19) or above is treated as Java 7." +
+					"<BR>" +
+					"4. when HAR running on Android others version is treated as Java 6." +
+					"</html>"), BorderLayout.CENTER);
 			centerPanel.add(descPanel, BorderLayout.SOUTH);
 		}
 		

@@ -372,7 +372,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 		setInitText(listener == null ? "" : listener);
 		TabHelper.initScriptPanel(jtaScript, this);
 		
-		initColor(true, false, 0);
+		initColor(false, 0);
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package hc.core;
 
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
+import hc.core.util.RootBuilder;
 
 public class EventCenter {
 	private final int event_listener_max_size = (IConstant.serverSide?1000:200);
@@ -18,11 +19,36 @@ public class EventCenter {
 	}
 	
 	public final void removeListener(IEventHCListener listener){
-		throw new Error("remove Listener is disable, to simple the arch of event center.");
+		RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_CHECK_STACK_TRACE, null);
+		
+		boolean isRemoved = false;
+		
+		synchronized (listens) {
+			for (int i = 0; i < size; i++) {
+				if(isRemoved == false && listens[i] == listener){
+					L.V = L.WShop ? false : LogManager.log("sucessful remove EventHCListener [" + listener.getEventTag() + "].");
+					isRemoved = true;
+				}else if(isRemoved){
+					final int backStep = i - 1;
+					
+					listens[backStep] = listens[i];
+					listen_types[backStep] = listen_types[i];
+				}
+			}
+			if(isRemoved){
+				size--;
+			}
+		}
+		
+		if(isRemoved == false){
+			L.V = L.WShop ? false : LogManager.log("fail to remove EventHCListener [" + listener.getEventTag() + "], NOT found.");
+		}
 	}
 	
 	public final void addListener(IEventHCListener listener){
 		boolean enableSameEventTag = listener.enableSameEventTag;
+		
+		RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_CHECK_STACK_TRACE, null);
 		
 		synchronized (listens) {
 			if(size == event_listener_max_size){
@@ -75,10 +101,9 @@ public class EventCenter {
 		}
 		
 		int i = 0;
-		final int searchSize = size;//注意：没有remove(listener)
-		while(i < searchSize){
+		while(i < size){
 			IEventHCListener listener = null;
-			for (; i < searchSize; i++) {
+			for (; i < size; i++) {
 				if(listen_types[i] == ctrlTag){
 					listener = listens[i];
 					break;

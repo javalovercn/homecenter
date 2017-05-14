@@ -31,7 +31,7 @@ import java.util.Vector;
 
 
 public class KeepaliveManager {
-	public final int KEEPALIVE_MS = Integer.parseInt(RootConfig.getInstance().
+	public final long KEEPALIVE_MS = Long.parseLong(RootConfig.getInstance().
 			getProperty(RootConfig.p_KeepAliveMS));
 	
 	public final HCTimer connBuilderWatcher = buildKeepAliveWatcher();
@@ -43,7 +43,7 @@ public class KeepaliveManager {
 	
 	private final HCTimer buildKeepAliveWatcher(){
 		return new HCTimer("ConnBuilderWatcher", 15000, false){
-			final int doubleKeepTime = KEEPALIVE_MS + 5000;
+			final long doubleKeepTime = KEEPALIVE_MS + 5000;
 			@Override
 			public void doBiz(){
 				if(UserThreadResourceUtil.isInServing(coreSS.context)){

@@ -84,7 +84,6 @@ import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AbstractDocument.DefaultDocumentEvent;
-import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.DefaultHighlighter;
@@ -96,7 +95,6 @@ import javax.swing.text.LayeredHighlighter;
 import javax.swing.text.Position;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
 import javax.swing.text.TabSet;
 import javax.swing.text.TabStop;
@@ -149,7 +147,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		{'e', 'n', 's', 'u', 'r', 'e'}
 	};
 	private static final String[] backIndentStr = {"end", "else", "elsif ", "rescue", "ensure", "}"};//带end，是供全局format之用
-	private static final String[] nextIndentStr = {"else", "elsif ", "rescue", "ensure"};//带end，是供全局format之用
+	private static final String[] nextIndentStr = {"else", "elsif ", "rescue", "ensure", "{"};//带end，是供全局format之用
 	
 	private static final char STRING_PRE_CHAR = '"';
 	
@@ -336,6 +334,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	
 	public ScriptEditPanel() {
 		jtaDocment = (AbstractDocument)jtaScript.getDocument();
+		jtaStyledDocment = (StyledDocument)jtaDocment;
+		
+//		jtaDocment.putProperty(TextAttribute.RUN_DIRECTION,TextAttribute.RUN_DIRECTION_LTR);
+		
 		normalBackground = buildBackground(jtaScript.getBackground());
 		
 		errRunInfo.setForeground(Color.RED);
@@ -474,14 +476,17 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		jtaScript.setForeground(jtaScript.getBackground());
 		final int cw = fm.stringWidth("    ");
 		final float f = cw;
-		final TabStop[] tabs = new TabStop[10]; // this sucks
+		final TabStop[] tabs = new TabStop[10];
 		for(int i = 0; i < tabs.length; i++){
-			tabs[i] = new TabStop(f * (i + 1), TabStop.ALIGN_LEFT, TabStop.LEAD_NONE);
+			tabs[i] = new TabStop(f * (i + 1), TabStop.ALIGN_LEFT, TabStop.LEAD_UNDERLINE);
 		}
 		final TabSet tabset = new TabSet(tabs);
-		final StyleContext sc = StyleContext.getDefaultStyleContext();
-		final AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.TabSet, tabset);
-		jtaScript.setParagraphAttributes(aset, false);	
+		final SimpleAttributeSet attributes = new SimpleAttributeSet();
+		StyleConstants.setTabSet(attributes, tabset);
+//		final StyleContext sc = StyleContext.getDefaultStyleContext();
+//		final AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.TabSet, tabset);
+//		jtaScript.setParagraphAttributes(aset, false);	
+		jtaStyledDocment.setParagraphAttributes(0, 0, attributes, false);
 		fontHeight = jtaScript.getFontMetrics(jtaScript.getFont()).getHeight();
 		
 		jtaScript.addCaretListener(new CaretListener() {
@@ -1235,6 +1240,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	private ScriptUndoableEditListener scriptUndoListener;
 	private UndoManager scriptUndoManager;
 	public final AbstractDocument jtaDocment;
+	public final StyledDocument jtaStyledDocment;
 	final int fontHeight;
 	int lastFocusUnderlineCSSStartIdx = -1;
 	int lastFocusUnderlineCSSLen = 0;
@@ -1250,7 +1256,6 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_PASTE);
 				final int oldCaretPos = jtaScript.getCaretPosition();
 				final int oldLineNo = getLineOfOffsetWithoutException(jtaDocment, oldCaretPos);
-				final int totalLen = getDocument().getLength();
 				
 				super.paste();
 				
@@ -1261,13 +1266,14 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					ContextManager.getThreadPool().run(new Runnable() {
 						@Override
 						public void run() {
-							format(jtaDocment);//可能插入新缩进
+							format(jtaDocment, oldLineNo==0?0:(oldLineNo - 1), newLineNo);//可能插入新缩进
 							rebuildASTNode();
 							updateScript(jtaScript.getText());
-							final int newTotalLen = getDocument().getLength();
-							final int newNewLinePos = oldCaretPos  + (newTotalLen - totalLen);//重新计算新loc
-							setCaretPosition(newNewLinePos);
-							final int shiftPos = newNewLinePos - oldCaretPos;
+//							final int newTotalLen = getDocument().getLength();
+//							final int newNewLinePos = oldCaretPos  + (newTotalLen - totalLen);//重新计算新loc
+//							setCaretPosition(newNewLinePos);
+//							final int shiftPos = newNewLinePos - oldCaretPos;
+							final int shiftPos = jtaScript.getCaretPosition() - oldCaretPos;
 							TabHelper.notifyInputKey(false, null, (char)0, - shiftPos + 1);
 						}
 					}, threadPoolToken);
@@ -1320,7 +1326,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						final int lineStartIdx = getLineStartOffset(jtaDocment, line);
 						final int lineEndIdx = getLineEndOffset(jtaDocment, line);
 						final String text = jtaDocment.getText(lineStartIdx, lineEndIdx - lineStartIdx);
+//						closeDocumentListener();
 						initBlock(text, lineStartIdx, false, false);
+//						openDocumentListener();
+//						final int caretPos = jtaScript.getCaretPosition();
+//						jtaScript.updateUI();
+//						jtaScript.setCaretPosition(caretPos);
 						final String scripts = jtaScript.getText();
 						updateScript(scripts);//更新待保存内容
 					}catch (final Exception e) {
@@ -1332,81 +1343,99 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	
 	private static final String ONE_TAB_STR = String.valueOf('\t');
 	
+	final void format(final Document document){
+		format(jtaDocment, 0, Integer.MAX_VALUE);
+	}
+	
 	/**
 	 * 格式化代码全文
 	 * @param document
 	 */
-	final void format(final Document document){
+	final void format(final Document document, final int startLineIdx, final int endLineIdx){
 //		System.out.println("format content : \n" + jtaScript.getText());
 		int startLine = 0;
 		int lineWillDen = 0;
 		try{
-			for( ; true ; startLine++){
+			for( ; startLine <= endLineIdx ; startLine++){
 				final int startPosition = getLineStartOffset(document, startLine);
 				final int endPosition = getLineEndOffset(document, startLine);
 				final String line = document.getText(startPosition, endPosition - startPosition);
 //				System.out.println("" + startLine + ". " + line);
 				final char[] lineChars = line.toCharArray();
 				int currOldIndent = 0;
-				for (int i = 0; i < lineChars.length; i++) {
-					final boolean isSpace = (lineChars[i] == ' ');
-					if(isSpace || lineChars[i] == '\t'){
+				boolean isInStr = false;
+				boolean isSpaceBegin = true;
+				char lastChar = 0;
+				int strTrimIdx = 0;
+				final int lineCharsLen = lineChars.length;
+				for (; strTrimIdx < lineCharsLen; strTrimIdx++) {
+					final char c = lineChars[strTrimIdx];
+					final boolean isSpace = (c == ' ');
+					if(isSpaceBegin && (isSpace || c == '\t')){
 						if(isSpace){
 							//删除空格，改为Tab
-							final int charIdx = startPosition + i;
+							final int charIdx = startPosition + strTrimIdx;
 							document.remove(charIdx, 1);
 							document.insertString(charIdx, ONE_TAB_STR, null);
 						}
 						currOldIndent++;
 					}else{
-						break;
+						isSpaceBegin = false;
+						if(isInStr == false && c == '#'){
+							break;
+						}else if(c == '\"' && lastChar != '\\'){
+							isInStr = !isInStr;
+						}
 					}
+					lastChar = c;
 				}
 				
-				final String strTrim = ((currOldIndent==0)?line:new String(lineChars, currOldIndent, lineChars.length - currOldIndent));
-				if(strTrim.length() == 0 || (strTrim.length() == 1 && strTrim.charAt(0) == '\n')){//#开始的，也可能需要缩进
+				final int strLen = strTrimIdx - currOldIndent;
+				if(strLen == 0){//#开始的，也可能需要缩进
 					continue;
-//					System.out.println("empty line at line : " + startLine);
-				}else{
-					{
-						//是否反向缩进,else, elsif...
-						boolean isDone = false;
-						for (int i = 0; i < backIndentStr.length; i++) {
-							if(strTrim.startsWith(backIndentStr[i], 0)){
+				}
+				
+				final String strTrim = ((currOldIndent==0&&strTrimIdx==lineCharsLen)?line:new String(lineChars, currOldIndent, strLen));
+				{
+					//是否反向缩进,else, elsif...
+					boolean isDone = false;
+					for (int i = 0; i < backIndentStr.length; i++) {
+						if(strTrim.startsWith(backIndentStr[i], 0)){
+							lineWillDen--;
+							isDone = true;
+							break;
+						}
+					}
+					if(isDone == false){
+						for (int i = 0; i < nextIndentStr.length; i++) {
+							if(strTrim.startsWith(nextIndentStr[i], 0)){
 								lineWillDen--;
 								isDone = true;
 								break;
 							}
 						}
-						if(isDone == false){
-							for (int i = 0; i < nextIndentStr.length; i++) {
-								if(strTrim.startsWith(nextIndentStr[i], 0)){
-									lineWillDen--;
-									isDone = true;
-									break;
-								}
-							}
-						}
 					}
-					
-					if(lineWillDen != currOldIndent){
-						final int operateOffLine = startPosition + currOldIndent;
-//						System.out.println("lineWillDen : " + lineWillDen + ", currOldIndent : " + currOldIndent);
-						if(lineWillDen > currOldIndent){
-							final int step = lineWillDen - currOldIndent;
-							String tab = "";
-							for (int i = 0; i < step; i++) {
-								tab += "\t";
-							}
-							document.insertString(operateOffLine, tab, null);
-//							System.out.println("insert from " + operateOffLine + tab + "(tab:"+tab.length()+"), strTrim:" + strTrim);
-//							System.out.println("after insert : " + document.getText(operateOffLine, 20));
-						}else{
-							final int step = currOldIndent - lineWillDen;
-							document.remove(operateOffLine - step, step);
-//							System.out.println("remove from " + (operateOffLine - step) + "(step:"+step+")");
-//							System.out.println("after remove : " + document.getText((operateOffLine - step), 20));
+				}
+				
+				if(lineWillDen != currOldIndent){
+					final int operateOffLine = startPosition + currOldIndent;
+//					System.out.println("lineWillDen : " + lineWillDen + ", currOldIndent : " + currOldIndent);
+					if(lineWillDen > currOldIndent){
+						final int step = lineWillDen - currOldIndent;
+						final StringBuilder sb = StringBuilderCacher.getFree();
+						for (int i = 0; i < step; i++) {
+							sb.append('\t');
 						}
+						final String tab = sb.toString();
+						StringBuilderCacher.cycle(sb);
+						document.insertString(operateOffLine, tab, null);
+//						System.out.println("insert from " + operateOffLine + tab + "(tab:"+tab.length()+"), strTrim:" + strTrim);
+//						System.out.println("after insert : " + document.getText(operateOffLine, 20));
+					}else{
+						final int step = currOldIndent - lineWillDen;
+						document.remove(operateOffLine - step, step);
+//						System.out.println("remove from " + (operateOffLine - step) + "(step:"+step+")");
+//						System.out.println("after remove : " + document.getText((operateOffLine - step), 20));
 					}
 				}
 				
@@ -1476,13 +1505,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 //		}
 //	};
 	
-	final void initColor(final boolean isLoadColor, final boolean useOldPosition, final int position){
-		if(isLoadColor){//等待其它事件完成
-			try{
-				Thread.sleep(50);
-			}catch (final Exception e) {
-			}
-		}
+	final void initColor(final boolean useOldPosition, final int position){
 		try{
 			int colorOffset = 0, colorLen = -1;
 			if(useOldPosition && position != 0){
@@ -1513,7 +1536,15 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				jtaScript.setText(text);
 			}
 			
-			initBlock(text, colorOffset, false, true);
+			final String p_str = text;
+			final int p_idx = colorOffset;
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					initBlock(p_str, p_idx, false, true);
+				}
+			});
+			
 //			System.out.println("context : \n" + jtaScript.getText());
 		}catch (final Exception e) {
 			e.printStackTrace();//注意：不javax.swing.text.BadLocationException
@@ -1521,7 +1552,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 //		buildHighlight(jtaScript, first_rem_pattern, REM_LIGHTER);
 	}
-
+	
 	@Override
 	public void loadAfterShow(final Runnable run){
 		scriptUndoListener.isForbidRecordUndoEdit = false;
@@ -1541,8 +1572,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	};
 	
 	public final void initBlock(final String text, final int offset, final boolean isReplace, final boolean isDelayStringRem) {
-		final StyledDocument document = (StyledDocument)jtaDocment;
-		document.setCharacterAttributes(offset, text.length(), DEFAULT_LIGHTER, true);
+		jtaStyledDocment.setCharacterAttributes(offset, text.length(), DEFAULT_LIGHTER, true);
 		
 		buildHighlight(hc_map_pattern, MAP_LIGHTER, offset, text, isReplace);
 		buildHighlight(num_pattern, NUM_LIGHTER, offset, text, isReplace);//要置于字符串之前，因为字符串中可能含有数字
@@ -1552,12 +1582,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	}
 	
 	private final void buildHighlight(final Pattern pattern, final SimpleAttributeSet attributes, final int offset, final String text, final boolean isReplace) {
-		final StyledDocument document = (StyledDocument)jtaDocment;
 		final Matcher matcher = pattern.matcher(text);
 		while (matcher.find()) {
 			final int start = matcher.start() + offset;
 			final int end = matcher.end() + offset;
-			document.setCharacterAttributes(start, end - start, attributes, isReplace);
+			jtaStyledDocment.setCharacterAttributes(start, end - start, attributes, isReplace);
 		}
 	}
 
@@ -1624,7 +1653,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		newline = true;
 		try {
 			final int positionLine = line;
-			while(line > 0){
+			while(line >= 0){
 				final int startIdx = getLineStartOffset(doc, line);
 
 				//获得缩进串
@@ -1635,6 +1664,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					line--;
 					continue;
 				}
+				
 				int charIdxRemovedTab = 0;
 				for (; charIdxRemovedTab < chars.length; charIdxRemovedTab++) {
 					if(chars[charIdxRemovedTab] == ' ' || chars[charIdxRemovedTab] == '\t'){
@@ -1643,7 +1673,28 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						break;
 					}
 				}
-				final String trim_str = new String(chars, charIdxRemovedTab, chars.length - charIdxRemovedTab);
+				
+				int strTrimIdx = 0;
+				{//将#后，置为space
+					boolean isInStr = false;
+					char lastChar = 0;
+					final int lineCharsLen = chars.length;
+					for (; strTrimIdx < lineCharsLen; strTrimIdx++) {
+						final char c = chars[strTrimIdx];
+						if(isInStr == false && c == '#'){
+							break;
+						}else if(c == '\"' && lastChar != '\\'){
+							isInStr = !isInStr;
+						}
+						lastChar = c;
+					}
+					
+//					for (; strTrimIdx < lineCharsLen; strTrimIdx++) {//将#后，置为space
+//						chars[strTrimIdx] = ' ';
+//					}
+				}
+				
+				final String trim_str = new String(chars, charIdxRemovedTab, strTrimIdx - charIdxRemovedTab);
 				if(trim_str.length() == 0 || trim_str.startsWith("#")){
 					//复制上行的缩进
 					sb.append(String.valueOf(chars, 0, charIdxRemovedTab));
@@ -1921,14 +1972,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	}
 	
 	private final void colorRemAndStr(final int offset, final String text, final boolean isReplace) {
-		final StyledDocument document = (StyledDocument)jtaDocment;
 		final Matcher matcher = rem_and_str_pattern.matcher(text);
 		while (matcher.find()) {
 			final int start = matcher.start() + offset;
 			final int end = matcher.end() + offset;
 			final String matcherStr = matcher.group();
 			final boolean isRem = (matcherStr.charAt(0) == '#');
-			document.setCharacterAttributes(start, end - start, isRem?REM_LIGHTER:STR_LIGHTER, isReplace);
+			jtaStyledDocment.setCharacterAttributes(start, end - start, isRem?REM_LIGHTER:STR_LIGHTER, isReplace);
 		}
 	}
 	private final Runnable doTestRunnable =  new Runnable(){
@@ -2184,9 +2234,9 @@ class HCUndoableEdit implements UndoableEdit{
 					if (matcher.find()) {
 						final int start = matcher.start() + startOff - 1;
 						final int end = matcher.end() + startOff;
-						((StyledDocument)jta.getDocument()).setCharacterAttributes(start, end - start, ScriptEditPanel.KEYWORDS_LIGHTER, true);
+						panel.jtaStyledDocment.setCharacterAttributes(start, end - start, ScriptEditPanel.KEYWORDS_LIGHTER, true);
 					}else{
-						((StyledDocument)jta.getDocument()).setCharacterAttributes(startOff, endOff - startOff, ScriptEditPanel.DEFAULT_LIGHTER, true);
+						panel.jtaStyledDocment.setCharacterAttributes(startOff, endOff - startOff, ScriptEditPanel.DEFAULT_LIGHTER, true);
 					}
 				}catch (final Exception e) {
 				}
