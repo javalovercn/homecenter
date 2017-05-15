@@ -42,18 +42,16 @@ public class KeepaliveManager {
 	public final HCTimer aliveToRootRefresher;
 	
 	private final HCTimer buildKeepAliveWatcher(){
-		return new HCTimer("ConnBuilderWatcher", 15000, false){
-			final long doubleKeepTime = KEEPALIVE_MS + 5000;
+		return new HCTimer("ConnBuilderWatcher", 12 * HCTimer.ONE_SECOND, false){
 			@Override
 			public void doBiz(){
 				if(UserThreadResourceUtil.isInServing(coreSS.context)){
-					setEnable(false);
-				}else if((System.currentTimeMillis() - hcConnection.startTime) > doubleKeepTime){
-					LogManager.err("Time over for building connection");
+				}else{
+					LogManager.err("timeover for building connection for client.");
 					RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_OverTimeConn_STR);
 					coreSS.notifyLineOff(true, false);
-					setEnable(false);
 				}
+				HCTimer.remove(this);
 			}
 			@Override
 			public void setEnable(final boolean enable){

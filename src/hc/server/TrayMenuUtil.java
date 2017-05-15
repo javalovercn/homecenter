@@ -1559,6 +1559,8 @@ public class TrayMenuUtil {
 	//		LogManager.log("send Cert : " + CUtil.toHexString(CUtil.getCertKey()));
 		if(coreSS.context.cmStatus != ContextManager.STATUS_SERVER_SELF){
 			ServerCUtil.transCertKey(coreSS, hcConnection, CUtil.getCertKey(), MsgBuilder.E_TRANS_NEW_CERT_KEY, false);
+			final J2SEContext context = (J2SEContext)coreSS.context;
+			context.isTransNewCert = true;
 		}else{
 			ServerCUtil.transCertKey(coreSS, hcConnection, CUtil.getCertKey(), MsgBuilder.E_TRANS_NEW_CERT_KEY_IN_SECU_CHANNEL, false);
 		}

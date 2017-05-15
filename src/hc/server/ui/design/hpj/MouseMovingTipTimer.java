@@ -58,12 +58,12 @@ public class MouseMovingTipTimer extends HCTimer {
 			}
 			
 			final Point eventPoint = new Point(x, y);
-			final int caretPosition = jtaScript.viewToModel(eventPoint);
-			if(caretPosition < 0){
-				return;
-			}
-		
 			try{
+				final int caretPosition = jtaScript.viewToModel(eventPoint);//脚本正在绘制时
+				if(caretPosition < 0){
+					return;
+				}
+			
 				codeHelper.mouseExitHideDocForMouseMovTimer.triggerOn();
 				final boolean isOn = codeHelper.mouseMovOn(scriptPanel, jtaScript, jtaDocment, fontHeight, true, 
 						caretPosition);

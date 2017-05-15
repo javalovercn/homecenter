@@ -101,21 +101,23 @@ public class EventCenter {
 		}
 		
 		int i = 0;
-		while(i < size){
-			IEventHCListener listener = null;
-			for (; i < size; i++) {
-				if(listen_types[i] == ctrlTag){
-					listener = listens[i];
-					break;
-				}
-			}
-			if(listener != null){
-				try{
-					if(listener.action(event, coreSS, hcConnection)){
-						return;
+		synchronized (listens) {
+			while(i < size){
+				IEventHCListener listener = null;
+				for (; i < size; i++) {
+					if(listen_types[i] == ctrlTag){
+						listener = listens[i];
+						break;
 					}
-				}catch (Throwable e) {
-					ExceptionReporter.printStackTrace(e);
+				}
+				if(listener != null){
+					try{
+						if(listener.action(event, coreSS, hcConnection)){
+							return;
+						}
+					}catch (Throwable e) {
+						ExceptionReporter.printStackTrace(e);
+					}
 				}
 			}
 		}

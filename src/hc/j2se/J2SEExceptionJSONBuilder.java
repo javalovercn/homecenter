@@ -92,7 +92,7 @@ public abstract class J2SEExceptionJSONBuilder extends ExceptionJSONBuilder {
 //		sb.append("ThreadName : " + throwable.get)
 		final StackTraceElement[] ste = throwable.getStackTrace();
 		
-		if(checker != null){
+		if(checker != null && ste.length > 0){
 			if(checker.isPosted(harID, ste[0].toString())){
 				return null;
 			}

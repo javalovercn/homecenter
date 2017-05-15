@@ -12,7 +12,8 @@ public abstract class HCTimer {
 	long interval;
 	private Object bizObj;
 	final String name;
-	public static final long ONE_HOUR = 1000 * 60 * 60;
+	public static final long ONE_SECOND = 1000;
+	public static final long ONE_HOUR = ONE_SECOND * 60 * 60;
 	public static final long ONE_DAY = 86400000;
 	long nextExecMS;
 	final boolean isNewThread;

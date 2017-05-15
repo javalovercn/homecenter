@@ -86,9 +86,9 @@ public class ImageSrc {
 		return PlatformManager.getService().makeRoundedCorner(image, cornerRadius);
 	}
 
-	public static BufferedImage composeImage(final BufferedImage base, final BufferedImage cover){
-		return PlatformManager.getService().composeImage(base, cover);
-	}
+//	public static BufferedImage composeImage(final BufferedImage base, final BufferedImage cover){
+//		return PlatformManager.getService().composeImage(base, cover);//注意android未实现
+//	}
 
 	public static BufferedImage iconToImage(final Icon icon){
 	    final BufferedImage image = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);

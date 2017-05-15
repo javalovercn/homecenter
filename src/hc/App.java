@@ -404,6 +404,9 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			ScriptTester.doNothing();
 		}
 		
+		//init for load lib
+		ImageSrc.makeRoundedCorner(ImageSrc.ACCOUNT_ICON, 16);
+		
 		if(RootConfig.getInstance() == null){
 			SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_ERROR_CONNECTION, 
 					(String)ResourceUtil.get(1000)

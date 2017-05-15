@@ -1263,7 +1263,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				final int newLineNo = getLineOfOffset(jtaDocment, newCaretPos);
 				
 				if(oldLineNo != newLineNo){
-					ContextManager.getThreadPool().run(new Runnable() {
+					SwingUtilities.invokeLater(new Runnable() {
 						@Override
 						public void run() {
 							format(jtaDocment, oldLineNo==0?0:(oldLineNo - 1), newLineNo);//可能插入新缩进
@@ -1273,10 +1273,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 //							final int newNewLinePos = oldCaretPos  + (newTotalLen - totalLen);//重新计算新loc
 //							setCaretPosition(newNewLinePos);
 //							final int shiftPos = newNewLinePos - oldCaretPos;
+//							if(adjustNum != 0){
+//								jtaScript.setCaretPosition(jtaScript.getCaretPosition() + adjustNum);
+//							}
 							final int shiftPos = jtaScript.getCaretPosition() - oldCaretPos;
 							TabHelper.notifyInputKey(false, null, (char)0, - shiftPos + 1);
 						}
-					}, threadPoolToken);
+					});
 				}else{
 					ContextManager.getThreadPool().run(new Runnable() {//有可能发生在同一行
 						@Override
@@ -1391,9 +1394,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				}
 				
 				final int strLen = strTrimIdx - currOldIndent;
-				if(strLen == 0){//#开始的，也可能需要缩进
-					continue;
-				}
+				
+				//#开始的，也可能需要缩进
+//				if(strLen == 0){
+//					continue;
+//				}
 				
 				final String strTrim = ((currOldIndent==0&&strTrimIdx==lineCharsLen)?line:new String(lineChars, currOldIndent, strLen));
 				{
@@ -1439,7 +1444,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					}
 				}
 				
-				initBlock(strTrim, startPosition + lineWillDen, false, false);//粘贴多行后，需要进行format和color
+				initBlock(new String(lineChars, currOldIndent, lineChars.length - currOldIndent), startPosition + lineWillDen, false, false);//粘贴多行后，需要进行format和color
 				
 				{
 					//是否下行需要缩进, if , while 

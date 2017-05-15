@@ -91,8 +91,11 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	private final HCEventQueue hcEventQueue = HCLimitSecurityManager.getHCEventQueue();
 	private final Thread eventDispatchThread = HCLimitSecurityManager.getEventDispatchThread();
 	protected final ThreadGroup threadPoolToken = App.getThreadPoolToken();
+	boolean isSendServerConfig = false;
+	boolean isReceiveClientInfo = false;
+	public boolean isTransNewCert = false;
 	
-    @Override
+	@Override
     public final boolean isInLimitThread(){
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
@@ -279,6 +282,14 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			eventCenter.addListener(new IEventHCListener(){
 				@Override
 				public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
+					if(isSendServerConfig == false){
+						SystemLockManager.addOneConnBuildTry(coreSS);
+						return true;
+					}
+					
+					eventCenter.removeListener(this);
+					isReceiveClientInfo = true;
+					
 					final J2SESession j2seCoreSS = (J2SESession)coreSS;
 					final ClientDesc clientDesc = j2seCoreSS.clientDesc;
 					
@@ -618,6 +629,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				final String sc = (String)doExtBiz(IContext.BIZ_LOAD_SERVER_CONFIG, null);
 				coreSS.context.send(
 						MsgBuilder.E_TRANS_SERVER_CONFIG, sc != null?sc:"");//必须发送，因为手机端会返回
+				isSendServerConfig = true;
 				LogManager.log("Transed Server Config");
 				
 
@@ -948,6 +960,13 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		eventCenter.addListener(new IEventHCListener(){
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
+				if(isTransNewCert == false){
+					SystemLockManager.addOneConnBuildTry(coreSS);
+					return true;
+				}
+				
+				eventCenter.removeListener(this);
+				
 				final String url = HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA);
 				
 				final HCURL hu = HCURLUtil.extract(url);
@@ -1023,6 +1042,11 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			}
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
+				if(isTransNewCert == false){
+					SystemLockManager.addOneConnBuildTry(coreSS);
+					return true;
+				}
+				
 				final J2SESession j2seCoreSS = (J2SESession)coreSS;
 				
 				if(j2seCoreSS.isWillCheckServer){
@@ -1054,6 +1078,11 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			int tryCount = 0;
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
+				if(isReceiveClientInfo == false){
+					SystemLockManager.addOneConnBuildTry(coreSS);
+					return true;
+				}
+				
 				if(tryCount++ > 1){
 					eventCenter.removeListener(this);
 				}
@@ -1062,21 +1091,8 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				
 //					System.out.println("pwdErrTry : " + pwdErrTry + ",  MAXTimers : " + LockManager.MAXTIMES);
 				
-				if(SystemLockManager.getPwdErrTry() < SystemLockManager.MAXTIMES){
-				}else{
-					if(System.currentTimeMillis() - SystemLockManager.getLastErrMS() < SystemLockManager.LOCK_MS){
-						SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_LOCK_CERT, 
-								"System is locking now!!!<BR><BR>Err Password or certification more than "+SystemLockManager.MAXTIMES+" times.", 
-								"Lock System now!!", 1000 * 60 * 1, App.getSysIcon(App.SYS_WARN_ICON));
-						LogManager.errToLog("Err Password or certification more than "+SystemLockManager.MAXTIMES+" times.");
-						coreSS.context.send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_UNKNOW_STATUS));
-						sleepAfterError();
-						coreSS.notifyLineOff(true, false);
-						
-						return true;
-					}else{
-						SystemLockManager.resetErrInfo();
-					}
+				if(SystemLockManager.checkErrorCount(coreSS)){
+					return true;
 				}
 
 				//并将该随机数发送给客户机，客户机用同法处理后回转给服务器
@@ -1097,12 +1113,9 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						MsgBuilder.INDEX_MSG_DATA, hcConnection.userPassword, CUtil.getCertKey(), oldbs);
 				if(b == IContext.BIZ_SERVER_AFTER_PWD_ERROR){
 					doExtBiz(b, null);
-					SystemLockManager.setLastErrMS();
-					LogManager.log("Error Pwd OR Certifcation try "+ SystemLockManager.addOnePwdErrTry() +" time(s)");
+					SystemLockManager.addOnePwdErrTry();
 				}else if(b == IContext.BIZ_SERVER_AFTER_CERTKEY_ERROR && hcConnection.isSecondCertKeyError == true){
-					SystemLockManager.setLastErrMS();
-					
-					LogManager.log("Error Pwd OR Certifcation try "+ SystemLockManager.addOnePwdErrTry() +" time(s)");
+					SystemLockManager.addOnePwdErrTry();
 
 					coreSS.context.send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_PWD_ERROR));
 					LogManager.log("Second Cert Key Error, send Err Password status");		
@@ -1115,7 +1128,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					doExtBiz(b, null);
 					
 					if(b == IContext.BIZ_SERVER_AFTER_CERTKEY_ERROR && hcConnection.isSecondCertKeyError == false){
-						LogManager.log("Error Pwd OR Certifcation try "+ SystemLockManager.addOnePwdErrTry() +" time(s)");
+						SystemLockManager.addOnePwdErrTry();
 						hcConnection.isSecondCertKeyError = true;
 					}else{
 						hcConnection.resetCheck();
