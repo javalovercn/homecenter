@@ -266,17 +266,17 @@ public class SIPManager {
 		return CONN_ERR_MOBI_FAIL_CONN;
 	}
 
-	public static IPAndPort reConnectAfterResetExcep(final HCConnection hcConnection, final byte[] tokenBS){
-		LogManager.log("reConnectAfterExcepReset to " + hcConnection.relayIpPort.ip + ":" + hcConnection.relayIpPort.port);
-		try{
-			return SIPManager.proccReg(hcConnection, hcConnection.relayIpPort, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_RESET,
-					SIPManager.REG_WAITING_MS, tokenBS);
-		}catch (Throwable e) {
-			//主要拦截hc.core.sip.SIPManager.send，java.net.SocketException
-			e.printStackTrace();//不作ExceptionReport处理。因为较为频繁。
-		}
-		return null;
-	}
+//	public static IPAndPort reConnectAfterResetExcep(final HCConnection hcConnection, final byte[] tokenBS){
+//		LogManager.log("reConnectAfterExcepReset to " + hcConnection.relayIpPort.ip + ":" + hcConnection.relayIpPort.port);
+//		try{
+//			return SIPManager.proccReg(hcConnection, hcConnection.relayIpPort, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_RESET,
+//					SIPManager.REG_WAITING_MS, tokenBS);
+//		}catch (Throwable e) {
+//			//主要拦截hc.core.sip.SIPManager.send，java.net.SocketException
+//			e.printStackTrace();//不作ExceptionReport处理。因为较为频繁。
+//		}
+//		return null;
+//	}
 
 	/**
 	 * 如果创建成功，则返回true
@@ -399,7 +399,7 @@ public class SIPManager {
 			LogManager.log("Receive Echo");
 			return send;
 		}catch (final Throwable e) {
-			L.V = L.WShop ? false : LogManager.log("fail to receive echo!");
+			LogManager.errToLog("fail to receive echo!");
 //			e.printStackTrace();//注意：在服务器的keepalive中，下线时，有可能关闭时，输出此异常，故关闭。不能进行ExceptionReporter
 //			ExceptionReporter.printStackTrace(e);
 			try {

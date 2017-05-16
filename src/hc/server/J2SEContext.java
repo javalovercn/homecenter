@@ -521,6 +521,9 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 //			if(IConstant.serverSide){
 //				KeepaliveManager.keepalive.setEnable(true);
 //			}
+		}else if(bizNo == BIZ_MATCHED_FOR_CLIENT_ON_RELAY){
+			j2seCoreSS.keepaliveManager.startConnBuilderWatcherIfNotStart();
+			return null;
 		}else if(bizNo == BIZ_REPLY_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL){
 //			LogManager.info("successful E_REPLY_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL");
 			hcConnection.isReceivedOneTimeInSecuChannalFromMobile = true;
@@ -865,8 +868,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 		if(statusTo == ContextManager.STATUS_READY_MTU){
 			//直联或中继初始接入，但未进入验证参数传送
-			j2seCoreSS.keepaliveManager.connBuilderWatcher.resetTimerCount();
-			j2seCoreSS.keepaliveManager.connBuilderWatcher.setEnable(true);				
+			j2seCoreSS.keepaliveManager.startConnBuilderWatcherIfNotStart();
 		}
 		
 		if(statusTo == ContextManager.STATUS_SERVER_SELF){
@@ -1244,7 +1246,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		
 		coreSS.keepaliveManager.keepalive.setEnable(false);
 		coreSS.keepaliveManager.keepalive.setIntervalMS(coreSS.keepaliveManager.KEEPALIVE_MS);
-		coreSS.keepaliveManager.connBuilderWatcher.setEnable(false);
+		coreSS.keepaliveManager.removeConnBuilderWatcher();
 		
 		ctx.coreSS.resetNearDeployTime();
 		

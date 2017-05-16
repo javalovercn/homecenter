@@ -34,7 +34,20 @@ public class KeepaliveManager {
 	public final long KEEPALIVE_MS = Long.parseLong(RootConfig.getInstance().
 			getProperty(RootConfig.p_KeepAliveMS));
 	
-	public final HCTimer connBuilderWatcher = buildKeepAliveWatcher();
+	private HCTimer connBuilderWatcher = buildKeepAliveWatcher();
+	
+	public final void startConnBuilderWatcherIfNotStart(){
+		final HCTimer connBuilderWatcherSnap = connBuilderWatcher;
+		if(connBuilderWatcherSnap != null && connBuilderWatcherSnap.isEnable() == false){
+			connBuilderWatcherSnap.resetTimerCount();
+			connBuilderWatcherSnap.setEnable(true);
+		}
+	}
+	
+	public final void removeConnBuilderWatcher(){
+		HCTimer.remove(connBuilderWatcher);
+		connBuilderWatcher = null;
+	}
 	
 	/**
 	 * 每小时刷新alive变量到Root服务器
@@ -51,7 +64,8 @@ public class KeepaliveManager {
 					RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_OverTimeConn_STR);
 					coreSS.notifyLineOff(true, false);
 				}
-				HCTimer.remove(this);
+				
+				coreSS.keepaliveManager.removeConnBuilderWatcher();
 			}
 			@Override
 			public void setEnable(final boolean enable){

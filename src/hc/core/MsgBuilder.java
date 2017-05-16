@@ -144,9 +144,10 @@ public class MsgBuilder {
 	public static final byte DATA_ROOT_OS_IN_LOCK = 8;
 	public static final byte DATA_ROOT_SERVER_IN_DIRECT_MODE = 9;
 	public static final byte DATA_ROOT_DIRECT_CONN_OK = 10;
+	public static final byte DATA_ROOT_MATCHED_FOR_CLIENT_ON_RELAY = 11;
 	
 	public static final byte DATA_E_TAG_RELAY_REG_SUB_FIRST = 0;
-	public static final byte DATA_E_TAG_RELAY_REG_SUB_RESET = 1;
+//	public static final byte DATA_E_TAG_RELAY_REG_SUB_RESET = 1;
 	public static final byte DATA_E_TAG_RELAY_REG_SUB_BUILD_NEW_CONN = 2;
 	
 	public static final byte DATA_SUB_TAG_MSG_MTU_1472 = 1;

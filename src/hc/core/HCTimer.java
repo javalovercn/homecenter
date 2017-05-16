@@ -13,7 +13,8 @@ public abstract class HCTimer {
 	private Object bizObj;
 	final String name;
 	public static final long ONE_SECOND = 1000;
-	public static final long ONE_HOUR = ONE_SECOND * 60 * 60;
+	public static final long ONE_MINUTE = ONE_SECOND * 60;
+	public static final long ONE_HOUR = ONE_MINUTE * 60;
 	public static final long ONE_DAY = 86400000;
 	long nextExecMS;
 	final boolean isNewThread;
@@ -235,7 +236,7 @@ public abstract class HCTimer {
 						timer.nextExecMS += timer.interval;		
 						
 						//严重滞时的情形，补正为下一段正确时间
-						if(timer.nextExecMS < nowMS){
+						if(timer.nextExecMS < nowMS){//支持电脑休眠后继续
 							timer.nextExecMS = getNextMS(nowMS, timer.interval);
 						}
 //							long curr = System.currentTimeMillis();

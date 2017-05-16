@@ -36,6 +36,10 @@ public class RootTagEventHCListener extends IEventHCListener{
 //			LogManager.log("Receive line watch at RootTagEventHCListener");
 			
 			return true;
+		}else if(subTag == MsgBuilder.DATA_ROOT_MATCHED_FOR_CLIENT_ON_RELAY){
+			LogManager.log("session is matched for client on relay.");
+			coreSS.context.doExtBiz(IContext.BIZ_MATCHED_FOR_CLIENT_ON_RELAY, null);
+			return true;
 		}else if(subTag == MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_SERVERING){
 			if(IConstant.serverSide == false){
 				//如果是mobi环境

@@ -1399,7 +1399,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 //				if(strLen == 0){
 //					continue;
 //				}
-				
+				final String lineColorText = new String(lineChars, currOldIndent, lineChars.length - currOldIndent);
 				final String strTrim = ((currOldIndent==0&&strTrimIdx==lineCharsLen)?line:new String(lineChars, currOldIndent, strLen));
 				{
 					//是否反向缩进,else, elsif...
@@ -1444,7 +1444,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					}
 				}
 				
-				initBlock(new String(lineChars, currOldIndent, lineChars.length - currOldIndent), startPosition + lineWillDen, false, false);//粘贴多行后，需要进行format和color
+				initBlock(lineColorText, startPosition + lineWillDen, false, false);//粘贴多行后，需要进行format和color
 				
 				{
 					//是否下行需要缩进, if , while 

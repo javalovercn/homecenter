@@ -615,7 +615,10 @@ public class ResourceUtil {
 		//每小时刷新alive变量到Root服务器
 		//采用58秒，能保障两小时内可刷新两次。
 		
-		final int refreshMS = isRoot?(1000 * 60 * 5):RootConfig.getInstance().getIntProperty(RootConfig.p_RootDelNotAlive);
+		long refreshMS = isRoot?(1000 * 60 * 5):RootConfig.getInstance().getLongProperty(RootConfig.p_RootDelNotAlive);
+		if(refreshMS > HCTimer.ONE_DAY || refreshMS < HCTimer.ONE_MINUTE){
+			refreshMS = HCTimer.ONE_DAY;
+		}
 		return new HCTimer("AliveRefresher", refreshMS, true){
 			@Override
 			public final void doBiz() {

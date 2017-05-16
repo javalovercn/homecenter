@@ -21,6 +21,7 @@ public class SessionConnector {
 	public long firstServerRegMS;
 	//手机端端接入Channel
 	public SocketChannel clientSide;
+	public boolean isMatched = false;
 	public boolean isDelTDN = false;
 	public boolean isDirectOK = false;
 	
@@ -30,11 +31,10 @@ public class SessionConnector {
 	public final ByteBufferCacher bbCache;
 	public ByteArr uuidbs;
 	public String token;
-	private boolean isClientReset = false, isServerReset = false;
 	public UDPPair udpPair;
 	public final byte[] randomUDPHead = new byte[MsgBuilder.LEN_UDP_HEADER];
 	
-	public void buildRandomUDPHeader(final byte[] bs, final int fillStartIdx){
+	public final void buildRandomUDPHeader(final byte[] bs, final int fillStartIdx){
 		final Random r = new Random(System.currentTimeMillis());
 
 		for (int i = 0; i < randomUDPHead.length; i++) {
@@ -82,41 +82,13 @@ public class SessionConnector {
 		this.bbCache = bbCache;
 	}
 	
-	public boolean isReset(final boolean serverOrClient){
-		return serverOrClient?isServerReset:isClientReset;
-	}
-	
-	public final void setReset(final boolean serverOrClient, final boolean isLineOff){
-//		改为仅TCP模式
-//		if((serverOrClient == false)//手机端 
-//				&& isLineOff){//产生断线事件
-//			//手机端不能启动重置连接逻辑，因为手机端的环境复杂性，将保持手机端支持无TCP下，仅UDP的工作状态。
-//			if(L.isLogInRelay) {
-//				LogManager.log("mobile offline, skip resetTimer");
-//			}
-//			return;
-//		}
-		
-		if(serverOrClient){
-			isServerReset = isLineOff;	
-		}else{
-			isClientReset = isLineOff;
-		}
-		
-		if(isLineOff){
-			if(serverKey == null && clientKey == null){
-				RelayManager.closePare(this, true);
-			}
-		}
-	}
-	
 	/**
 	 * 将一个数据体加挂到输出Channel的后备队列
 	 * @param writetarget
 	 * @param bb
 	 * @param serverOrClientReset 如果writetarget为空，则通过本参数来指明为输出到服务端或客户端
 	 */
-	public void appendWriteSet(final SocketChannel writetarget, final ByteBuffer bb, final boolean serverOrClientReset){
+	public final void appendWriteSet(final SocketChannel writetarget, final ByteBuffer bb, final boolean serverOrClientReset){
 		if(serverSide == writetarget){
 			sizeWriteToServerBackSet++;
 			writeToServerBackSet.addTail(bb);
@@ -135,7 +107,7 @@ public class SessionConnector {
 		}
 	}
 	
-	public void setRewriteSet(final SocketChannel writetarget, final ByteBuffer bb){
+	public final void setRewriteSet(final SocketChannel writetarget, final ByteBuffer bb){
 		if(serverSide == writetarget){
 			sizeWriteToServerBackSet++;
 			writeToServerBackSet.addToFirst(bb);
@@ -151,7 +123,7 @@ public class SessionConnector {
 	 * @param serverOrClientReset
 	 * @return 返回999999999，表示错误
 	 */
-	public int getWriteSetSize(final SocketChannel writetarget, final boolean serverOrClientReset){
+	public final int getWriteSetSize(final SocketChannel writetarget, final boolean serverOrClientReset){
 		if(serverSide == writetarget){
 			return sizeWriteToServerBackSet;
 		}else if(clientSide == writetarget){
@@ -172,7 +144,7 @@ public class SessionConnector {
 	 * @param writetarget
 	 * @return
 	 */
-	public ByteBuffer getWriteSet(final SocketChannel writetarget){
+	public final ByteBuffer getWriteSet(final SocketChannel writetarget){
 		if(serverSide == writetarget){
 			if(sizeWriteToServerBackSet > 0){
 				sizeWriteToServerBackSet--;
@@ -188,7 +160,7 @@ public class SessionConnector {
 		return null;
 	}
 	
-	public String getUUIDString(){
+	public final String getUUIDString(){
 		try {
 			return new String(uuidbs.bytes, 0, uuidbs.len, IConstant.UTF_8);
 		} catch (final UnsupportedEncodingException e) {
@@ -202,7 +174,7 @@ public class SessionConnector {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean isServerChannel(final SocketChannel channel) {
+	public final boolean isServerChannel(final SocketChannel channel) {
 		if(serverSide == channel){
 			return true;
 		}else {//if(fromClient == channel){
@@ -212,7 +184,7 @@ public class SessionConnector {
 		}
 	}
 	
-	public SocketChannel getTarget(final SocketChannel channel){
+	public final SocketChannel getTarget(final SocketChannel channel){
 		if(serverSide == channel){
 			return clientSide;
 		}else if(clientSide == channel){
@@ -222,7 +194,7 @@ public class SessionConnector {
 		}
 	}
 	
-	public void setKey(final SocketChannel channel, final SelectionKey sk, final boolean isFromServer){
+	public final void setKey(final SocketChannel channel, final SelectionKey sk, final boolean isFromServer){
 		if(isFromServer){
 			if(serverSide != null){
 				if(L.isLogInRelay) {
@@ -242,18 +214,17 @@ public class SessionConnector {
 		}
 	}
 	
-	public void reset(){
+	public final void reset(){
 		clientSide = null;
 		serverSide = null;
 		clientKey = null;
 		serverKey = null;
 		uuidbs = null;
 		token = null;
+		
 		isDelTDN = false;
 		isDirectOK = false;
-		
-		isServerReset = false;
-		isClientReset = false;
+		isMatched = false;
 		
 		if(udpPair != null){
 			udpPair.reset();
@@ -267,21 +238,8 @@ public class SessionConnector {
 		sizeWriteToClientBackSet = 0;
 	}
 
-	private void cyc(final LinkedSet linkedSet) {
+	private final void cyc(final LinkedSet linkedSet) {
 		bbCache.cycleSet(linkedSet);
-	}
-	
-	/**
-	 * 如果另块也为空，则返回true
-	 * @param channel
-	 * @return
-	 */
-	public void setNullKey(final SocketChannel channel){
-		if(channel == serverSide){
-			serverSide = null;
-		}else if(channel == clientSide){
-			clientSide = null;
-		}
 	}
 	
 }
