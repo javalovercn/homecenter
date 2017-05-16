@@ -93,7 +93,6 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	protected final ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	boolean isSendServerConfig = false;
 	boolean isReceiveClientInfo = false;
-	public boolean isTransNewCert = false;
 	
 	@Override
     public final boolean isInLimitThread(){
@@ -962,11 +961,6 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		eventCenter.addListener(new IEventHCListener(){
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
-				if(isTransNewCert == false){
-					SystemLockManager.addOneConnBuildTry(coreSS);
-					return true;
-				}
-				
 				eventCenter.removeListener(this);
 				
 				final String url = HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA);
@@ -1044,11 +1038,6 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			}
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
-				if(isTransNewCert == false){
-					SystemLockManager.addOneConnBuildTry(coreSS);
-					return true;
-				}
-				
 				final J2SESession j2seCoreSS = (J2SESession)coreSS;
 				
 				if(j2seCoreSS.isWillCheckServer){
