@@ -6,7 +6,7 @@
 
 因此，仅需关注业务界面构造和事件响应，其它则全部交与容器。
 
-以下我们通过三步，用J2SE+CSS来实现如下图所示的跨手机平台应用。
+以下我们通过三步，用J2SE+CSS来实现如下图所示的可运行于iPhone和Android的云应用。
 
 ![](http://homecenter.mobi/images/usage/j2se_css_img1.png)
 
@@ -182,7 +182,7 @@ return MyHTMLMlet.new
   3. 内置HSQLDB小型数据库。
   4. 通过工具条上的&quot;Demo&quot;按钮，加载演示工程，它涵盖了80%以上的JRuby语法和90%以上的常用功能。
   5. 服务器内置Java 8 API文档和CSS 2.2文档，自动代码提示和API显示。
-  6. HAR无需任何修改，便能运行于Android平台上，因为安卓版使用了&quot;J2SE for Android&quot;开源包（如含有标准的jar库，会在安装时，转码成dex）。
+  6. HAR无需任何修改，便能运行于安卓平台上，因为安卓版使用了&quot;J2SE for Android&quot;开源包（如含有标准的jar库，会在安装时，转码成dex）。
   7. 关注、下载最新服务器源代码，请转至[https://github.com/javalovercn/homecenter](https://github.com/javalovercn/homecenter)
 
 ## 附录-安装开发环境
