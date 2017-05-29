@@ -56,6 +56,7 @@ import hc.server.util.Assistant;
 import hc.server.util.CacheComparator;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
+import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.VoiceCommand;
 import hc.server.util.ai.AIPersistentManager;
 import hc.util.BaseResponsor;
@@ -88,6 +89,30 @@ public class ProjResponser {
 	final boolean isRoot;
 	final SessionMobileContext mobileContexts = new SessionMobileContext();
 	private final ThreadGroup token = App.getThreadPoolToken();
+	
+	private boolean isFinishAllSequ = false;
+	
+	final void notifyFinishAllSequTask(){
+		synchronized (this) {
+			isFinishAllSequ = true;
+			this.notify();
+		}
+		L.V = L.WShop ? false : LogManager.log("notify all sequence task is done [" + projectID + "].");
+	}
+	
+	final void waitForFinishAllSequTask(){
+		synchronized (this) {
+			if(isFinishAllSequ == false){
+				L.V = L.WShop ? false : LogManager.log("wait for all sequence task done when shutdown project [" + projectID + "].");
+				try {
+					this.wait();
+				} catch (final InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		L.V = L.WShop ? false : LogManager.log("all sequence task is done [" + projectID + "].");
+	}
 	
 	public final void initSessionContext(final J2SESession coreSS){
 		if(getMobileSession(coreSS) == null){//有可能安装HAR时，因为showInputDialog，已设置完成
@@ -180,6 +205,10 @@ public class ProjResponser {
 	boolean isStoped = false;
 	
 	public final void stop(){
+		L.V = L.WShop ? false : LogManager.log("stop ProjResponser [" + projectID + "]");
+
+		ServerUIAPIAgent.shutdownSchedulers(context);//置于hcje.terminate之前
+
 		try{
 			synchronized (this) {
 				isStoped = true;
@@ -197,11 +226,16 @@ public class ProjResponser {
 			
 			ServerUIAPIAgent.set__projResponserMaybeNull(context, null);
 			
-			final int size = robots.length;
-			for (int i = 0; i < size; i++) {
-				MSBAgent.setRobotWrapperNull(robots[i]);
+			if(robots != null){
+				final int size = robots.length;
+				for (int i = 0; i < size; i++) {
+					MSBAgent.setRobotWrapperNull(robots[i]);
+				}
 			}
 		}catch (final Throwable e) {
+			if(L.isInWorkshop){
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -395,6 +429,14 @@ public class ProjResponser {
 	public ProjResponser(final String projID, final Map<String, Object> p_map, final MobiUIResponsor baseRep,
 			final LinkProjectStore lps) {
 		this.projectID = projID;
+		{
+			final String absProjBasePath = HCLimitSecurityManager.getUserDataBaseDir(projectID);
+			final File userDir = new File(absProjBasePath);//不能使用App.getBaseDir
+
+			if (userDir.exists() == false) {
+				userDir.mkdirs();
+			}
+		}
 		isRoot = lps.isRoot();
 		this.mobiResp = baseRep;
 		this.map = p_map;
@@ -446,7 +488,7 @@ public class ProjResponser {
 			public ClassLoader findProjClassLoader() {
 				return projClassLoader;
 			}
-		});
+		}, ServerUIAPIAgent.CRATE_DB_PASSWORD);
 		
 		final ContextSecurityConfig csc = ContextSecurityConfig.getContextSecurityConfig(lps);
 		csc.setProjResponser(this);
@@ -457,28 +499,39 @@ public class ProjResponser {
 			//加载全部native lib
 			final String str_NativeNum = (String)p_map.get(HCjar.SHARE_NATIVE_FILES_NUM);
 			if(str_NativeNum != null){
-				final int shareRubyNum = Integer.parseInt(str_NativeNum);
+				final int nativeNum = Integer.parseInt(str_NativeNum);
 				final boolean hasLoadNativeLibPermission = csc.isLoadLib();
-				for (int idx = 0; idx < shareRubyNum; idx++) {
-					final String nativeLibName = (String)p_map.get(HCjar.replaceIdxPattern(HCjar.SHARE_NATIVE_FILE_NAME, idx));
-					if(hasLoadNativeLibPermission){
+				
+				if(nativeNum > 0 && hasLoadNativeLibPermission == false){
+					LogManager.err("please make sure enable permission in [Project Manager/project id/modify | permission/permission/load native lib]");
+					LogManager.errToLog("the permissions in [root node/permission/load native lib] are for designing, Not for running.");
+				}else{
+					final int currOS = NativeOSManager.getOS();
+					for (int idx = 0; idx < nativeNum; idx++) {
+						final int osMask = NativeOSManager.getOSMaskFromMap(p_map, idx);
+						if(NativeOSManager.isMatchOS(currOS, osMask) == false){
+							continue;
+						}
+						
+						final String nativeLibName = (String)p_map.get(HCjar.replaceIdxPattern(HCjar.SHARE_NATIVE_FILE_NAME, idx));
 						final File nativeFile = new File(deployPath, nativeLibName);
 						final String absolutePath = nativeFile.getAbsolutePath();
+						
 						try{
-							System.load(absolutePath);
+							final String scripts = "import Java::hc.server.util.JavaLangSystemAgent\n" +
+									"path = \"" + absolutePath + "\"\n" +
+									"JavaLangSystemAgent.load(path)\n";
+							
+							//注意：
+							//1. 不能在工程级线程中执行，因为目录无权限
+							//2. 必须要用hcje的classloader来加载
+							RubyExector.runAndWaitOnEngine(scripts, "loadNativeLib", null, hcje);
 							LogManager.log("successful load native lib [" + nativeLibName + "] in project [" + projID + "].");
 						}catch (final Throwable e) {
 							LogManager.err("Fail to load native lib [" + nativeLibName + "] in project [" + projID + "]");
-							ExceptionReporter.printStackTrace(e);
+//							ExceptionReporter.printStackTrace(e);
 						}
-					}else{
-						LogManager.err("No permission to load native lib [" + nativeLibName + "] in project [" + projID + "]");
 					}
-				}
-				
-				if(shareRubyNum > 0 && hasLoadNativeLibPermission == false){
-					LogManager.err("please make sure enable permission in [Project Manager/project id/modify | permission/permission/load native lib]");
-					LogManager.errToLog("the permissions in [root node/permission/load native lib] are for designing, Not for running.");
 				}
 			}
 		}
@@ -541,19 +594,30 @@ public class ProjResponser {
 			{
 				final String str_NativeNum = (String)deployMap.get(HCjar.SHARE_NATIVE_FILES_NUM);
 				if(str_NativeNum != null){
-					
-					final int shareRubyNum = Integer.parseInt(str_NativeNum);
-					for (int idx = 0; idx < shareRubyNum; idx++) {
-						final String fileName = (String)deployMap.get(HCjar.replaceIdxPattern(HCjar.SHARE_NATIVE_FILE_NAME, idx));
-						final byte[] fileContent = (byte[])deployMap.get(HCjar.MAP_FILE_PRE + fileName);
-						
-						final File file = new File(shareResourceTopDir, fileName);
-						
-						final FileOutputStream fos = new FileOutputStream(file);
-						fos.write(fileContent);
-						fos.flush();
-						fos.close();
-						
+					final int currOS = NativeOSManager.getOS();
+					final int nativeNum = Integer.parseInt(str_NativeNum);
+					for (int idx = 0; idx < nativeNum; idx++) {
+						try{
+							final int osMask = NativeOSManager.getOSMaskFromMap(deployMap, idx);
+							if(NativeOSManager.isMatchOS(currOS, osMask) == false){
+								continue;
+							}
+							
+							final String fileName = (String)deployMap.get(HCjar.replaceIdxPattern(HCjar.SHARE_NATIVE_FILE_NAME, idx));
+							final byte[] fileContent = (byte[])deployMap.get(HCjar.MAP_FILE_PRE + fileName);
+							
+							final File file = new File(shareResourceTopDir, fileName);
+							
+							final FileOutputStream fos = new FileOutputStream(file);
+							fos.write(fileContent);
+							fos.flush();
+							fos.close();
+							
+							LogManager.log("successful save native lib idx : " + idx);
+						}catch (final Throwable e) {
+							LogManager.errToLog("fail to save native lib idx : " + idx);
+							ExceptionReporter.printStackTrace(e);
+						}
 						hasResource = true;
 					}
 				}

@@ -75,7 +75,7 @@ public class I18nTitlesEditor extends JPanel{
 		langRegion = new JTextField(textFieldColumnNum);
 		
 		final JPanel editPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-		editPanel.add(new JLabel(LANG + " " + SPLIT_LANG_COUNTRY + " " + COUNTRY));
+		editPanel.add(new JLabel(LANG + " (" + SPLIT_LANG_COUNTRY + " " + COUNTRY + ")"));
 		editPanel.add(langRegion);
 		editPanel.add(new JLabel(VALUE + " :"));
 		valueField = new JTextField("", textFieldColumnNum);
@@ -194,7 +194,6 @@ public class I18nTitlesEditor extends JPanel{
 				"3. <STRONG>en</STRONG> is for all english language country, if <STRONG>en"+ SPLIT_LANG_COUNTRY + "??</STRONG> is NOT found.<BR>" +
 				"4. <STRONG>language</STRONG> : ISO 639 alpha-2 or alpha-3 codes,<BR>" +
 				"5. <STRONG>country / region</STRONG> : ISO 3166 alpha-2 or a UN M.49 numeric-3 area code, <BR>" +
-				"6. input in ComboBox directly if it is NOT listed in ComboBox." +
 				"</html>"));
 
 		this.setLayout(new BorderLayout());

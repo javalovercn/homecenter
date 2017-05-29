@@ -38,6 +38,34 @@ public class LogManager {
 		return false;
 	}
 	
+	public static void debug(String msg){
+		log(msg);
+	}
+	
+	public static void debug(String msg, final Throwable e){
+		log(msg);
+	}
+	
+	public static void debug(String msg, final String str1, final String str2){
+		log(msg);
+	}
+	
+	public static void info(String msg, Throwable exception){
+		log(msg);
+	}
+	
+	public static void info(String msg, String str1){
+		log(msg);
+	}
+	
+	public static void warn(String msg, Throwable exception){
+		warning(msg);
+	}
+	
+	public static void warn(String msg){
+		warning(msg);
+	}
+	
 	/**
 	 * warning to log only.
 	 * @param msg
@@ -62,6 +90,14 @@ public class LogManager {
 		}else{
 			System.err.println(msg);
 		}
+	}
+	
+	public static void error(String msg, final Throwable e){
+		err(msg);
+	}
+	
+	public static void error(String msg){
+		err(msg);
 	}
 	
 	public static boolean errForShop(String msg){

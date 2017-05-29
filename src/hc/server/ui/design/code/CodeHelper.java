@@ -986,17 +986,25 @@ public class CodeHelper {
 					out.add(item);
 				}
 			}else if(isResourceOnly == false){
-				final CodeItem item = CodeItem.getFree();
-				item.type = CodeItem.TYPE_CLASS;
-				item.fieldOrMethodOrClassName = pkg;
-				item.code = pkg;
-				item.codeForDoc = item.code;
-				item.codeDisplay = pkg;
-				item.codeLowMatch = pkg.toLowerCase();
-				item.isFullPackageAndClassName = true;
+				final CodeItem item = buildClassItemForDocClass(pkg);
 				out.add(item);
 			}
 		}
+	}
+
+	/**
+	 * 该item应用于显示类的java doc。
+	 */
+	private static CodeItem buildClassItemForDocClass(final String pkg) {
+		final CodeItem item = CodeItem.getFree();
+		item.type = CodeItem.TYPE_CLASS;
+		item.fieldOrMethodOrClassName = pkg;
+		item.code = pkg;
+		item.codeForDoc = item.code;
+		item.codeDisplay = pkg;
+		item.codeLowMatch = pkg.toLowerCase();
+		item.isFullPackageAndClassName = true;
+		return item;
 	}
 	
 	public final void loadLibToCodeHelper(final DefaultMutableTreeNode node){
@@ -3048,7 +3056,34 @@ public class CodeHelper {
 			}
 		}
 		startIdx++;
-		preCode = new String(lineChars, startIdx, endIdx - startIdx);
+		
+		L.V = L.WShop ? false : LogManager.log("codeClass : " + codeClass + ", preCode : " + preCode);
+		
+		if(codeClass == null && 
+				(preCodeType == PRE_TYPE_AFTER_IMPORT_ONLY
+				|| preCodeType == PRE_TYPE_AFTER_IMPORTJAVA
+				|| preCodeType == PRE_TYPE_BEFORE_INSTANCE) && 
+				preCode != null && preCode.length() > 0){
+			//focus for class define，如落焦在java.lang.Thread或Thread
+			final String className = preCode;
+			preCode = new String(lineChars, startIdx, endIdx - startIdx);
+			if(preCode != null && preCode.length() > 0){
+				final int lastDotIdx = className.lastIndexOf('.');
+				if(lastDotIdx > 0){
+					preCode = className.substring(0, lastDotIdx + 1) + preCode;
+				}else{
+					//比如Thread，需转为java.lang.Thread
+		    		final CodeContext newCodeCtx = new CodeContext(codeContext.codeHelper, codeContext.contextNode, rowIdx);
+		    		final JRubyClassDesc jcd =  findParaClass(newCodeCtx, preCode, CodeHelper.TYPE_VAR_LOCAL);
+		    		if(jcd != null && jcd.baseClass != null){
+		    			preCode = jcd.baseClass.getName();
+		    			outAndCycle.add(buildClassItemForDocClass(preCode));
+		    		}
+				}
+			}
+		}else{
+			preCode = new String(lineChars, startIdx, endIdx - startIdx);
+		}
 		
 		final Point win_loc = textPane.getLocationOnScreen();
 		final Rectangle caretRect = textPane.modelToView(scriptIdx - (lineIdx - startIdx));//与方法段齐
@@ -3217,7 +3252,8 @@ public class CodeHelper {
 	public void initPreCode(final char[] lineHeader, final int offLineIdx, final int rowIdx) {
 		clearArray(outAndCycle);
 		preCodeSplitIsDot = false;
-		
+		preClass = null;
+		backgroundDefClassNode = null;
 		codeContext = new CodeContext(this, root, rowIdx);
 
 		preCodeType = getPreCodeType(lineHeader, offLineIdx, rowIdx);
@@ -3309,6 +3345,10 @@ public class CodeHelper {
 	private final int import_java_chars_len = import_java_chars.length;
 	
 	private final static boolean matchChars(final char[] search, final char[] chars, final int offset){
+		if(offset < 0){
+			return false;
+		}
+		
 		if(search.length < (chars.length - offset)){
 			return false;
 		}
@@ -3590,7 +3630,7 @@ public class CodeHelper {
 				}
 			}
 			
-			if(i > 0 && lineHeader[i] == ' ' && matchChars(lineHeader, DEF_MEMBER_BS, i - DEF_MEMBER_BS.length)){
+			if(i >= DEF_MEMBER_BS.length && lineHeader[i] == ' ' && matchChars(lineHeader, DEF_MEMBER_BS, i - DEF_MEMBER_BS.length)){
 				final int preIdx = i + 1;
 				i -= (DEF_MEMBER_BS.length + 1);
 				for (; i >= 0; i--) {

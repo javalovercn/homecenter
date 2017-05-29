@@ -437,7 +437,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 					throw new Exception(errMsg);
 		        }
 			}catch (final Throwable e) {
-				ExceptionReporter.printStackTrace(e);
+//				ExceptionReporter.printStackTrace(e);可能网络不正常，所以无需
 				appendMessage(ResourceUtil.getErrorI18N(coreSS) + " : " + e.getMessage());
 			}finally{
 				LinkProjectStatus.exitStatus();

@@ -102,39 +102,7 @@ public class RubyExector {
 	 */
 	public static final Object runAndWaitOnEngine(final CallContext callCtx, final String script, final String scriptName, final Map map, final HCJRubyEngine hcje) {
 		try {
-//			System.out.println("set JRuby path : " + hcje.path);
-//			System.setProperty("org.jruby.embed.class.path", hcje.path);
-//			if(userDir == null){
-//				userDir = System.getProperty(USER_DIR_KEY);
-//			}
-//			System.setProperty(USER_DIR_KEY, hcje.path);
-			
-//			System.out.println("Exec Script load path : " + hcje.container.getLoadPaths());
-			if(map == null){
-//				return hcje.engine.eval(script);
-			}else{
-				LogManager.errToLog("$_hcmap is deprecated, there are serious concurrent risks in it. " +
-						"\nplease remove all parameters in target URL, and set them to attributes of ProjectContext or ClientSession.");
-				hcje.put("$_hcmap", map);
-				
-//				container.put("message", "local variable");
-//				container.put("@message", "instance variable");
-//				container.put("$message", "global variable");
-//				container.put("MESSAGE", "constant");
-				
-//				Bindings bindings = new SimpleBindings();
-//				bindings.put("_hcmap", map);
-//				return hcje.engine.eval(script, bindings);
-			}
-			
-//			if(L.isInWorkshop){
-//				LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] before runScriptlet.");
-//			}
-			final Object out = hcje.runScriptlet(script, scriptName);
-//			if(L.isInWorkshop){
-//				LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] after runScriptlet.");
-//			}
-			return out;
+			return runAndWaitOnEngine(script, scriptName, map, hcje);
 			
 //			ScriptEngineManager manager = new ScriptEngineManager();  
 //			ScriptEngine engine = manager.getEngineByName("jruby");
@@ -160,6 +128,43 @@ public class RubyExector {
 		}finally{
 //			System.setProperty(USER_DIR_KEY, userDir);
 		}
+	}
+
+	public static Object runAndWaitOnEngine(final String script, final String scriptName,
+			final Map map, final HCJRubyEngine hcje) throws Throwable {
+		//			System.out.println("set JRuby path : " + hcje.path);
+		//			System.setProperty("org.jruby.embed.class.path", hcje.path);
+		//			if(userDir == null){
+		//				userDir = System.getProperty(USER_DIR_KEY);
+		//			}
+		//			System.setProperty(USER_DIR_KEY, hcje.path);
+					
+		//			System.out.println("Exec Script load path : " + hcje.container.getLoadPaths());
+					if(map == null){
+		//				return hcje.engine.eval(script);
+					}else{
+						LogManager.errToLog("$_hcmap is deprecated, there are serious concurrent risks in it. " +
+								"\nplease remove all parameters in target URL, and set them to attributes of ProjectContext or ClientSession.");
+						hcje.put("$_hcmap", map);
+						
+		//				container.put("message", "local variable");
+		//				container.put("@message", "instance variable");
+		//				container.put("$message", "global variable");
+		//				container.put("MESSAGE", "constant");
+						
+		//				Bindings bindings = new SimpleBindings();
+		//				bindings.put("_hcmap", map);
+		//				return hcje.engine.eval(script, bindings);
+					}
+					
+		//			if(L.isInWorkshop){
+		//				LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] before runScriptlet.");
+		//			}
+					final Object out = hcje.runScriptlet(script, scriptName);
+		//			if(L.isInWorkshop){
+		//				LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] after runScriptlet.");
+		//			}
+					return out;
 	}
 
 	public final static Map<String, String> toMap(final HCURL _hcurl) {

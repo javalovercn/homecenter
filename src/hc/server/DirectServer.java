@@ -10,7 +10,6 @@ import hc.core.MsgBuilder;
 import hc.core.data.DataReg;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
-import hc.core.util.ThreadPriorityManager;
 import hc.server.ui.J2SESessionManager;
 import hc.server.ui.design.J2SESession;
 import hc.server.util.StarterParameter;
@@ -260,13 +259,12 @@ public class DirectServer extends Thread {
 				}
 				
 				coreSSMaybeNull.deploySocket(socket);
-				try{
-					Thread.sleep(ThreadPriorityManager.NET_FLUSH_DELAY);
-				}catch (final Exception e) {
-				}
+//				try{
+//					Thread.sleep(ThreadPriorityManager.NET_FLUSH_DELAY);//override same token，所以关闭
+//				}catch (final Exception e) {
+//				}
 				J2SESessionManager.startNewIdleSession();
 				
-				//家庭直联模式下，关闭KeepAlive
 				setServerConfigPara(coreSSMaybeNull, true, false);
 				coreSSMaybeNull.context.setConnectionModeStatus(ContextManager.MODE_CONNECTION_HOME_WIRELESS);
 				

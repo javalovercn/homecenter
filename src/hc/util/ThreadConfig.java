@@ -9,6 +9,7 @@ public class ThreadConfig {
 	public static final Integer AUTO_PUSH_EXCEPTION = 1;
 	public static final Integer TARGET_URL = 2;
 	public static final Integer BUILD_DIALOG_INSTANCE = 3;
+	public static final Integer SCHEDULER_THROWN_EXCEPTION = 4;
 	
 	private static final Integer SYS_CONFIG = 100000;//该值以下，不作系统级权限要求
 	

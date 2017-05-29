@@ -66,7 +66,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 	private final JCheckBox checkWriteProperty = new JCheckBox(HCPermissionConstant.WRITE_SYSTEM_PROPERTIES);
 	final JCheckBox perm_memAccessSystem = new JCheckBox(HCPermissionConstant.MEMBER_ACCESS_SYSTEM);
 	
-	private final JCheckBox checkLoadLib = new JCheckBox("load native lib");
+	private final JCheckBox checkLoadLib = new JCheckBox(ResourceUtil.LOAD_NATIVE_LIB);
 	private final JCheckBox checkRobot = new JCheckBox("create java.awt.Robot");
 //	private final JCheckBox checkListenAllAWTEvents = new JCheckBox("listen all AWT events");
 //	private final JCheckBox checkAccessClipboard = new JCheckBox("access clipboard");

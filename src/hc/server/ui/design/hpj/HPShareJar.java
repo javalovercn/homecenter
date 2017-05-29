@@ -13,6 +13,11 @@ public class HPShareJar extends HCShareFileResource{
 
 	@Override
 	public String toString(){
+		return name;
+	}
+	
+	@Override
+	public String getNodeDisplayString(){
 		return name + ", version:" + ver;
 	}
 

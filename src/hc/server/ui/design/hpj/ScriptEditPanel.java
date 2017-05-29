@@ -431,7 +431,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				
 				final char[] selectedChars = selectedText.toCharArray();
 //				sb.append("#encoding:utf-8\n");
-				sb.append("sb = java.lang.StringBuilder.new(" + (selectedChars.length * 2) + ")\n");
+				sb.append("sb = java.lang.StringBuilder::new(" + (selectedChars.length * 2) + ")\n");
 				int startIdx = 0;
 				for (int i = 0; i < selectedChars.length; i++) {
 					final char nextChar = selectedChars[i];
@@ -666,7 +666,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 								listDesc[i] = vector.elementAt(i).fullName;
 							}
 							final JLabel lable = new JLabel("choose one CSS to open :");
-							final JList<String> list = new JList<String>(listDesc);
+							final JList list = new JList(listDesc);//java 6不支持<String>
 							list.setSelectedIndex(0);
 							list.setCellRenderer(new CSSListCellRenderer());
 							list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -802,12 +802,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 //						if(L.isInWorkshop){
 							ExceptionReporter.printStackTrace(e);
 //						}
-						SwingUtilities.invokeLater(new Runnable() {
-							@Override
-							public void run() {
-								doTest(false, false);
-							}
-						});
+//						SwingUtilities.invokeLater(new Runnable() {//不能执行，因为编辑器可能存在bug，会导致触发
+//							@Override
+//							public void run() {
+//								doTest(false, false);
+//							}
+//						});
 					}
 					consumeEventLocal(event);
 					return;
@@ -1986,12 +1986,6 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			jtaStyledDocment.setCharacterAttributes(start, end - start, isRem?REM_LIGHTER:STR_LIGHTER, isReplace);
 		}
 	}
-	private final Runnable doTestRunnable =  new Runnable(){
-		@Override
-		public void run(){
-			doTest(false, false);
-		}
-	};
 
 	public static SimpleAttributeSet build(final Color c, final boolean bold){
 		 final SimpleAttributeSet attributes = new SimpleAttributeSet();

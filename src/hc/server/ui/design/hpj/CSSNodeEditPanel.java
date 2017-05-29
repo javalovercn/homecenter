@@ -118,10 +118,11 @@ public class CSSNodeEditPanel extends NameEditPanel {
 	
 	private final JPanel cssPanel = new JPanel();
 	private final JLabel tipCssLabel = new JLabel("<html>" +
-			"the above styles will be shared to all HTMLMlet/Dialog(s) in current project." +
-			"<BR><BR>" +
-			"if you want special styles for a HTMLMlet/Dialog, please invoke <STRONG>loadCSS</STRONG>." +
-			"<BR><BR>to get CSS (2.2) properties or variables, please press shortcut keys for word completion." +
+			"1. the above styles will be shared to all HTMLMlet/Dialog(s) in current project." +
+			"<BR>" +
+			"2. if you want special styles for a HTMLMlet/Dialog, please invoke <STRONG>loadCSS</STRONG>." +
+			"<BR>" +
+			"3. to get CSS (2.2) properties or variables, please press shortcut keys for word completion." +
 			"</html>");
 	
 	CSSUndoableEditListener cssUndoListener;

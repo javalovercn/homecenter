@@ -499,7 +499,7 @@ public class LinkProjectManager{
 					LogManager.log("del new upgraded file : " + newVerHar.getAbsolutePath());
 				}
 				if(newVerHar.exists()){
-					PropertiesManager.addDelFile(newVerHar);
+					PropertiesManager.addDelFile(newVerHar);//不前置添加，因为resetDownloading仍需store
 				}
 				lps.resetDownloading();
 			}

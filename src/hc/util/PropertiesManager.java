@@ -261,8 +261,6 @@ public class PropertiesManager {
 	private static int delDirNum = 0;
 	
 	public static final void addDelFile(final File file){
-		CCoreUtil.checkAccess();
-		
 		addDelDir(file.getPath());
 	}
 	
@@ -276,6 +274,8 @@ public class PropertiesManager {
 		setValue(p_DelDirPre + delDirNum, dirName);
 		++delDirNum;
 		setValue(p_DelDirNum, String.valueOf(delDirNum));
+		
+		saveFile();
 	}
 	
 	public static final void emptyDelDir(){

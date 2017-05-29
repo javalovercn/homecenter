@@ -345,6 +345,7 @@ public abstract class IContext {
 	public static final short BIZ_UPDATE_ONE_TIME_KEYS_IN_CHANNEL = 34;
 	public static final short BIZ_REPLY_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL = 35;
 	public static final short BIZ_MATCHED_FOR_CLIENT_ON_RELAY = 36;
+	public static final short BIZ_SHOW_ONCE_SAME_ID = 37;
 	
 	public abstract WiFiDeviceManager getWiFiDeviceManager();
 	public abstract void exit();

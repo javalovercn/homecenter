@@ -94,8 +94,16 @@ public class HPNode {
 	}
 	
 	@Override
-	public String toString(){
+	public String toString(){//用于同名检查
 		return name;
+	}
+	
+	/**
+	 * 每个节点的显示名称
+	 * @return
+	 */
+	public String getNodeDisplayString(){
+		return toString();
 	}
 	
 	@Override

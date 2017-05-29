@@ -54,8 +54,10 @@ public class KeepaliveManager {
 	 */
 	public final HCTimer aliveToRootRefresher;
 	
+	public static final long MAX_CONN_BUILDER_WATCHER_MS = 12 * HCTimer.ONE_SECOND;
+	
 	private final HCTimer buildKeepAliveWatcher(){
-		return new HCTimer("ConnBuilderWatcher", 12 * HCTimer.ONE_SECOND, false){
+		return new HCTimer("ConnBuilderWatcher", MAX_CONN_BUILDER_WATCHER_MS, false){
 			@Override
 			public void doBiz(){
 				if(UserThreadResourceUtil.isInServing(coreSS.context)){

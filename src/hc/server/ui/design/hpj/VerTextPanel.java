@@ -14,10 +14,11 @@ public class VerTextPanel extends JPanel{
 	public VerTextPanel(final String nodeDesc) {
 		this.nodeDesc = nodeDesc;
 		
-		JPanel idPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+		final JPanel idPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		final JLabel verLabel = new JLabel("ver : ");
-		final JLabel tipLabel = new JLabel("<html>input version of the current " + nodeDesc + "." +
-				"<BR>valid char : 0-9, .</html>");
+		final JLabel tipLabel = new JLabel("<html>" +
+				"1. input version of the current " + nodeDesc + ".<BR>" +
+				"2. valid char are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 and dot.</html>");
 //		tipLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 		idPanel.add(verLabel);
 		verTextField.setColumns(20);

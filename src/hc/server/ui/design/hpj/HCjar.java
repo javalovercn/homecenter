@@ -10,6 +10,7 @@ import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SimuMobile;
 import hc.server.ui.design.LinkProjectStore;
+import hc.server.ui.design.NativeOSManager;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.HCLimitSecurityManager;
@@ -81,6 +82,7 @@ public class HCjar {
 	public static final String SHARE_JRUBY_FILE_CONTENT = "ShareJRuby." + IDX_PATTERN + ".Content";
 	public static final String SHARE_NATIVE_FILES_NUM = "Native.Num";
 	public static final String SHARE_NATIVE_FILE_NAME = "Native." + IDX_PATTERN + ".File";
+	public static final String SHARE_NATIVE_FILE_OS_MASK = "Native.OS." + IDX_PATTERN + ".Mask";
 	
 //	public static final String SHARE_JAR_FILES_NUM = "ShareJar.Num";
 //	public static final String SHARE_JAR_FILE_NAME = "ShareJar." + IDX_PATTERN + ".File";
@@ -477,9 +479,9 @@ public class HCjar {
 		
 					for (int idx = 0; idx < shareNum; idx++) {
 						final String fileName = (String)map.get(replaceIdxPattern(SHARE_NATIVE_FILE_NAME, idx));
+						final int osMask = NativeOSManager.getOSMaskFromMap(map, idx);
 						final byte[] fileContent = (byte[])map.get(MAP_FILE_PRE + fileName);
-						final HPShareNative userObject = new HPShareNative(
-								HPNode.MASK_SHARE_NATIVE, fileName);
+						final HPShareNative userObject = new HPShareNative(	HPNode.MASK_SHARE_NATIVE, fileName, osMask);
 						userObject.content = fileContent;
 						userObject.ver = (String)map.get(VERSION_FILE_PRE + fileName);
 						final DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(userObject);
@@ -707,6 +709,7 @@ public class HCjar {
 					final HPShareNative childItem = (HPShareNative)((DefaultMutableTreeNode)root.getChildAt(i)).getUserObject();
 					
 					map.put(replaceIdxPattern(SHARE_NATIVE_FILE_NAME, i), childItem.name);
+					map.put(replaceIdxPattern(SHARE_NATIVE_FILE_OS_MASK, i), String.valueOf(childItem.osMask));
 					map.put(MAP_FILE_PRE + childItem.name, childItem.content);
 					map.put(MAP_FILE_TYPE_PRE + childItem.name, String.valueOf(childItem.type));
 					map.put(VERSION_FILE_PRE + childItem.name, childItem.ver);
@@ -763,14 +766,14 @@ public class HCjar {
 		final HPNode proj = (HPNode)parentNode.getUserObject();
 		validate(parentNode, proj);
 			
-		for (int i = 1; i < childNum; i++) {
+		for (int i = 0; i < childNum; i++) {
 			final DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)parentNode.getChildAt(i);
 			final HPNode i_node = (HPNode)treeNode.getUserObject();
 			validate(treeNode, i_node);
-			for (int j = 0; j < i; j++) {
+			for (int j = i + 1; j < childNum; j++) {
 				final HPNode j_node = (HPNode)((DefaultMutableTreeNode)parentNode.getChildAt(j)).getUserObject();
 				if(i_node.equals(j_node)){
-					final String desc = "there is same display name " +
+					final String desc = "there is same name " +
 							"(or Target Locator) of <strong>[" + i_node.name +"]</strong> with other node [<strong>" + j_node.name + "</strong>].";
 					throw new NodeInvalidException(treeNode, desc);
 				}

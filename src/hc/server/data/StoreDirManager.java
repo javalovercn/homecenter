@@ -13,6 +13,10 @@ public class StoreDirManager {
 	private static final String TEMP_DIR_NAME = "temp";
 	public static final String LINK_DIR_NAME = "link";
 	
+	public final static String HC_SYS_FOR_USER_PRIVATE_DIR = "_HC/";//getPrivateFile("mySubDir2/subSubDir").mkdirs();
+	public final static String DB_SUB_DIR_FOR_USER_PRIVATE_DIR = "DB/";
+	public final static String CRON_SUB_DIR_FOR_USER_PRIVATE_DIR = "CRON/";
+	
 	public static void createDirIfNeccesary(final String dir){
 		final File file = new File(ResourceUtil.getBaseDir(), "." + dir);
 		if(file.isDirectory()){

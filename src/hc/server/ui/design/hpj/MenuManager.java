@@ -1,6 +1,7 @@
 package hc.server.ui.design.hpj;
 
 import hc.App;
+import hc.UIActionListener;
 import hc.core.util.ExceptionReporter;
 import hc.res.ImageSrc;
 import hc.server.ConfigPane;
@@ -9,7 +10,9 @@ import hc.server.HCActionListener;
 import hc.server.ui.design.Designer;
 import hc.util.ResourceUtil;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Window;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.HashMap;
@@ -17,6 +20,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -191,7 +195,31 @@ public class MenuManager {
 										HPNode.MASK_SHARE_NATIVE,
 										addNativeFile.getName(), addNativeFile));
 								designer.addNode(null, newNode);
-								designer.setNeedRebuildTestJRuby(true);
+//								designer.setNeedRebuildTestJRuby(true);
+								
+								if(designer.getRootUserObject().csc.isLoadLib() == false){
+									final JButton ok = App.buildDefaultOKButton();
+									final JButton no = App.buildDefaultCloseButton();
+									final String addPerm = "click [" + ok.getText() + "] to add [" + ResourceUtil.LOAD_NATIVE_LIB + "] permission to project!";
+									final JPanel panel = new JPanel(new BorderLayout());
+									final JLabel msg = new JLabel(addPerm, App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
+									panel.add(msg, BorderLayout.CENTER);
+									final UIActionListener jbOKAction = new UIActionListener() {
+										@Override
+										public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
+											window.dispose();
+											designer.getRootUserObject().csc.setLoadLib(true);
+										}
+									};
+									final UIActionListener cancelAction = new UIActionListener() {
+										@Override
+										public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
+											window.dispose();
+										}
+									};
+									App.showCenter(panel, 0, 0, "add permission?", true, ok, no, jbOKAction, cancelAction, designer, true, false, null, false);
+								}
+								
 							} catch (final Throwable e) {
 								final JPanel ok = new JPanel();
 								ok.add(new JLabel("Error add native file, desc : " + e.toString(), new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
@@ -290,8 +318,34 @@ public class MenuManager {
 					delItem.addActionListener(new HCActionListener(new Runnable() {
 						@Override
 						public void run() {
+							final DefaultMutableTreeNode parent = (DefaultMutableTreeNode)designer.getCurrSelectedNode().getParent();
+							final boolean oneChildSize = parent.getChildCount() == 1;
 							designer.delNode();
-							designer.setNeedRebuildTestJRuby(true);
+//							designer.setNeedRebuildTestJRuby(true);
+							if(oneChildSize){
+								if(designer.getRootUserObject().csc.isLoadLib()){
+									final JButton ok = App.buildDefaultOKButton();
+									final JButton close = App.buildDefaultCloseButton();
+									final String msg = "click [" + ok.getText() + "] to disable [<strong>" + ResourceUtil.LOAD_NATIVE_LIB + "</strong>] permission!";
+									final UIActionListener okAction = new UIActionListener() {
+										@Override
+										public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
+											window.dispose();
+											designer.getRootUserObject().csc.setLoadLib(false);
+										}
+									};
+									final UIActionListener closeAction = new UIActionListener() {
+										@Override
+										public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
+											window.dispose();
+										}
+									};
+									final JPanel panel = new JPanel(new BorderLayout());
+									final JLabel label = new JLabel(msg, App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
+									panel.add(label, BorderLayout.CENTER);
+									App.showCenter(panel, 0, 0, "disable permission?", true, ok, close, okAction, closeAction, designer, true, false, null, false);
+								}
+							}
 						}
 					}, threadPoolToken));
 					pMenu.add(delItem);

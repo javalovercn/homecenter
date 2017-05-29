@@ -93,6 +93,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	protected final ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	boolean isSendServerConfig = false;
 	boolean isReceiveClientInfo = false;
+	long sendServerConfigMS;
 	
 	@Override
     public final boolean isInLimitThread(){
@@ -130,6 +131,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		ContextManager.setContextInstance(this);
 
 		hcConnection.setReceiver(new ReceiveServer(coreSS), new J2SEUDPReceiveServer((J2SESession)coreSS));
+		hcConnection.setIContext(this);
 
 //		ServerUIUtil.restartResponsorServer(null, null);
 		
@@ -520,6 +522,12 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 //			if(IConstant.serverSide){
 //				KeepaliveManager.keepalive.setEnable(true);
 //			}
+		}else if(bizNo == BIZ_SHOW_ONCE_SAME_ID){
+			SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_SAME_ID, 
+					(String)ResourceUtil.get(9259), 
+					(String)ResourceUtil.get(IContext.ERROR),
+					SingleMessageNotify.NEVER_AUTO_CLOSE, App.getSysIcon(App.SYS_ERROR_ICON));
+			return null;
 		}else if(bizNo == BIZ_MATCHED_FOR_CLIENT_ON_RELAY){
 			j2seCoreSS.keepaliveManager.startConnBuilderWatcherIfNotStart();
 			return null;
@@ -632,6 +640,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				coreSS.context.send(
 						MsgBuilder.E_TRANS_SERVER_CONFIG, sc != null?sc:"");//必须发送，因为手机端会返回
 				isSendServerConfig = true;
+				sendServerConfigMS = System.currentTimeMillis();
 				LogManager.log("Transed Server Config");
 				
 
@@ -961,6 +970,12 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		eventCenter.addListener(new IEventHCListener(){
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
+				if(isReceiveClientInfo == false 
+						|| System.currentTimeMillis() - sendServerConfigMS > KeepaliveManager.MAX_CONN_BUILDER_WATCHER_MS){
+					SystemLockManager.addOneConnBuildTry(coreSS);
+					return true;
+				}
+				
 				eventCenter.removeListener(this);
 				
 				final String url = HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA);
@@ -1038,6 +1053,12 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			}
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
+				if(isReceiveClientInfo == false
+						|| System.currentTimeMillis() - sendServerConfigMS > KeepaliveManager.MAX_CONN_BUILDER_WATCHER_MS){
+					SystemLockManager.addOneConnBuildTry(coreSS);
+					return true;
+				}
+				
 				final J2SESession j2seCoreSS = (J2SESession)coreSS;
 				
 				if(j2seCoreSS.isWillCheckServer){

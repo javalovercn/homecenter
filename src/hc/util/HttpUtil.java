@@ -791,7 +791,7 @@ public class HttpUtil {
 		return false;
 	}
 	
-	public static final String encodeFileName(final String fileName){
+	public static final String encodeFileName(final String fileName){//注意：本方法被getPrivateFile引用，请勿改动
 		return fileName;
 	}
 	

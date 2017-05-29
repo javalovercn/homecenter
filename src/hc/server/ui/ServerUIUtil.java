@@ -68,13 +68,31 @@ public class ServerUIUtil {
 	public static ProjectContext buildProjectContext(final String id, final String ver,
 			final RecycleRes recycleRes, final ProjResponser projResponser,
 			final ProjClassLoaderFinder finder) {
-		return new ProjectContext(id, ver, recycleRes, projResponser, finder);
+		return buildProjectContext(id, ver, recycleRes, projResponser, finder, "123456");
+	}
+	
+	public static ProjectContext buildProjectContext(final String id, final String ver,
+			final RecycleRes recycleRes, final ProjResponser projResponser,
+			final ProjClassLoaderFinder finder, final String dbPassword) {
+		return new ProjectContext(id, ver, recycleRes, projResponser, finder, dbPassword);
 	}
 	
 	public static BaseResponsor getResponsor(){
 		CCoreUtil.checkAccess();
 		
 		return responsor;//synchronized (LOCK) 会使SIPManager.startLineOffForce互锁
+	}
+	
+	/**
+	 * 如果当前不是MobiUIResponsor，则返回null
+	 * @return
+	 */
+	public static MobiUIResponsor getMobiResponsor(){
+		final BaseResponsor responsorSnap = getResponsor();
+		if(responsorSnap != null && responsorSnap instanceof MobiUIResponsor){
+			return (MobiUIResponsor)responsorSnap;
+		}
+		return null;
 	}
 	
 	/**

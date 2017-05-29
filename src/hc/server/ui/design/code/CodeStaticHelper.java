@@ -79,6 +79,13 @@ public class CodeStaticHelper {
 			out.add("hc.server.ui.ScriptPanel");
 			out.add("hc.server.util.SystemEventListener");
 			out.add("hc.server.util.JavaLangSystemAgent");
+			out.add("hc.server.util.Scheduler");
+			out.add("hc.server.util.scheduler.AnnualJobCalendar");
+			out.add("hc.server.util.scheduler.CronExcludeJobCalendar");
+			out.add("hc.server.util.scheduler.DailyJobCalendar");
+			out.add("hc.server.util.scheduler.HolidayJobCalendar");
+			out.add("hc.server.util.scheduler.MonthlyJobCalendar");
+			out.add("hc.server.util.scheduler.WeeklyJobCalendar");
 			out.add("hc.server.util.Assistant");
 			out.add("hc.server.util.IDEUtil");
 			out.add("hc.server.util.JavaString");

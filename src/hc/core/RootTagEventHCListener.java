@@ -3,6 +3,7 @@ package hc.core;
 import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.LogManager;
+import hc.core.util.RootBuilder;
 import hc.core.util.ThreadPriorityManager;
 
 public class RootTagEventHCListener extends IEventHCListener{
@@ -65,9 +66,12 @@ public class RootTagEventHCListener extends IEventHCListener{
 			}
 			return true;
 		}else if(subTag == MsgBuilder.DATA_ROOT_SAME_ID_IS_USING){
-			String msg = "Same ID is using, try another ID please!";
-			LogManager.err(msg);
-			coreSS.context.displayMessage("Error", msg, 
+			String sameIDMsg = (String)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_RESOURCE, new Integer(9259));
+			if(sameIDMsg == null){
+				sameIDMsg = "same ID is using, try another ID please!";
+			}
+			LogManager.err(sameIDMsg);
+			coreSS.context.displayMessage("Error", sameIDMsg, 
 					IContext.ERROR, null, 0);
 			return true;
 		}else if(subTag == MsgBuilder.DATA_ROOT_UDP_PORT_NOTIFY){

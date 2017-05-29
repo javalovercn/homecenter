@@ -306,12 +306,16 @@ public class AIPersistentManager {
 		if(defaultFile.exists() == false){
 			defaultFile.mkdirs();
 		}
-		final String url = "jdbc:hsqldb:file:" + defaultFile.getAbsolutePath();
+		return getConnection(defaultFile.getAbsolutePath(), "root", "123456");
+	}
+
+	public static Connection getConnection(final String absolutePath, final String user, final String password) throws SQLException {
+		final String url = "jdbc:hsqldb:file:" + absolutePath;
 		
 		final Properties props = new Properties();
         props.setProperty("loginTimeout", Integer.toString(0));
-		props.setProperty("user", "root");
-        props.setProperty("password", "123456");
+		props.setProperty("user", user);
+        props.setProperty("password", password);
 		return JDBCDriver.getConnection(url, props);
 	}
 	
@@ -328,9 +332,9 @@ public class AIPersistentManager {
 				for (int i = 0; i < projID.length; i++) {
 					final String projectID = projID[i];
 					if(projectID != null){//可能为null
+						PropertiesManager.addDelFile(AIPersistentManager.buildAIDirForProj(projectID));				
 						removeManagerByProjectID(projectID);
 //						AIPersistentManager.removeAndCloseDB(projectID);//有可能用户不重启
-						PropertiesManager.addDelFile(AIPersistentManager.buildAIDirForProj(projectID));				
 					}
 				}
 			}

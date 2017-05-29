@@ -47,6 +47,14 @@ import hc.server.ui.design.BindHTMLMlet;
 import hc.server.ui.design.LicenseHTMLMlet;
 import hc.server.ui.design.SystemHTMLMlet;
 import hc.server.ui.design.hpj.HCjar;
+import hc.server.util.scheduler.AnnualJobCalendar;
+import hc.server.util.scheduler.BaseJobCalendar;
+import hc.server.util.scheduler.CronExcludeJobCalendar;
+import hc.server.util.scheduler.DailyJobCalendar;
+import hc.server.util.scheduler.HolidayJobCalendar;
+import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.scheduler.MonthlyJobCalendar;
+import hc.server.util.scheduler.WeeklyJobCalendar;
 import hc.util.ClassUtil;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
@@ -321,7 +329,9 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    			AddHarHTMLMlet.class, AddHarIsBusy.class, BindHTMLMlet.class, Dialog.class, 
 	    			LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
 	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class, ProjectInputDialog.class,
-	    			Assistant.class, VoiceCommand.class, AnalysableRobotParameter.class, JavaString.class, IDEUtil.class,
+	    			Assistant.class, VoiceCommand.class, AnalysableRobotParameter.class, JavaString.class, IDEUtil.class, Scheduler.class, 
+	    			JobCalendar.class, BaseJobCalendar.class, AnnualJobCalendar.class, CronExcludeJobCalendar.class, DailyJobCalendar.class, 
+	    			HolidayJobCalendar.class, MonthlyJobCalendar.class, WeeklyJobCalendar.class, 
 	    			WiFiAccount.class, ScriptPanel.class, ScriptTester.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
 //	    	{
 //	    		Vector<Class> allowVect = new Vector<Class>();

@@ -388,7 +388,21 @@ public class SIPManager {
 		};
 		try{
 			final DataInputStream is = hcConnection.sipContext.getInputStream(send);
-			is.readFully(bs, 0, regLen);
+			final int headLen = MsgBuilder.INDEX_MSG_DATA;
+			is.readFully(bs, 0, headLen);
+			
+			if(bs[MsgBuilder.INDEX_CTRL_SUB_TAG] == MsgBuilder.DATA_ROOT_SAME_ID_IS_USING 
+					&& bs[MsgBuilder.INDEX_CTRL_TAG] == MsgBuilder.E_TAG_ROOT){
+				if(IConstant.serverSide){
+					hcConnection.iContext.doExtBiz(IContext.BIZ_SHOW_ONCE_SAME_ID, null);
+				}
+				throw new Exception();
+			}
+			
+			if(regLen > headLen){
+				is.readFully(bs, headLen, regLen - headLen);
+			}
+			
 			//验证是正确的回应，以免连接到已存在在，但是偶巧的端口上
 			for (int i = MsgBuilder.INDEX_MSG_DATA, endIdx = regLen; i < endIdx; i++) {
 				if(bs[i] != bsClone[i]){

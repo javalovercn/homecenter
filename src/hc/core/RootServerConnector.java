@@ -83,6 +83,8 @@ public class RootServerConnector {
 	
 	public final static String LOFF_CertErr_STR = "lof=CertErr";
 	
+	public final static String LOFF_OverrideSameToken = "lof=OverrideSameToken";
+
 	public final static String LOFF_MobReqExitToPC_STR = "lof=MobReqExitToPC";
 	
 	public final static String LOFF_MobReqExit_STR = "lof=MobReqExit";
@@ -577,6 +579,10 @@ public class RootServerConnector {
 			ver = (String)ci.doExtBiz(IContext.BIZ_VERSION_MID_OR_PC, null);
 		}
 		retry(CALL_STR + type + (ver==null?"":ver));
+	}
+	
+	public static void notifyHttpError(final String type){
+		retry(CALL_STR + type);
 	}
 	
 	public static void repLocale(final String locale){

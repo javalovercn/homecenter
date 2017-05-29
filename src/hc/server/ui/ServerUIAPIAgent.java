@@ -31,6 +31,7 @@ import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
 import hc.server.util.Assistant;
 import hc.server.util.HCLimitSecurityManager;
+import hc.server.util.ServerAPIAgent;
 import hc.server.util.SystemEventListener;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
@@ -58,8 +59,22 @@ public class ServerUIAPIAgent {
 	public final static String CONVERT_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START + "convert_name_prop";
 	public final static String DEVICE_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START + "device_name_prop";
 	public final static String ROBOT_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START + "robot_name_prop";
+	public final static String PROJ_DB_PASSWORD = CCoreUtil.SYS_RESERVED_KEYS_START + "db_pwd";
+	public final static String PROJ_CRON_DB_COMPACT_MS = CCoreUtil.SYS_RESERVED_KEYS_START + "cron_db_compact_ms_";
 	
 	final static Object threadToken = App.getThreadPoolToken();
+	
+	static {
+		ServerAPIAgent.init();
+	}
+	
+	public static void removeScheduler(final ProjectContext ctx, final String domain){
+		ctx.removeScheduler(domain);
+	}
+	
+	public static void shutdownSchedulers(final ProjectContext ctx){
+		ctx.shutdownSchedulers();
+	}
 	
 	public final static MobiMenu getBelongMobiMenu(final MenuItem item){
 		return item.belongToMenu;
@@ -671,6 +686,12 @@ public class ServerUIAPIAgent {
 
 	public final static void removeSuperProp(final ProjectContext ctx, final String propName){
 		ctx.__removePropertySuper(propName);
+	}
+	
+	public static final String CRATE_DB_PASSWORD = null;
+	
+	public final static String getDBPassword(final ProjectContext ctx){
+		return ctx.dbPassword;
 	}
 
 	public final static String getSuperProp(final ProjectContext ctx, final String propName){

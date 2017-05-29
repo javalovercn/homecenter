@@ -39,9 +39,14 @@ public final class HCConnection {
 	public int workingFactor = CUtil.getInitFactor();
 	public final byte[] udpHeader = new byte[MsgBuilder.LEN_UDP_HEADER];
 	public ISIPContext sipContext;
+	public IContext iContext;
 	public ReceiveServer rServer;
 	public UDPReceiveServer udpReceivServer;
 	public byte[] userPassword = clonePwd();
+	
+	public final void setIContext(IContext ctx){
+		this.iContext = ctx;
+	}
 
 	public final byte[] clonePwd() {
 		final byte[] passwordBS = IConstant.getPasswordBS();
@@ -452,6 +457,7 @@ public final class HCConnection {
 	}
 	
 	public final void release(){
+		iContext = null;
 		connectionRebuilder.isReleased = true;
 		
 		synchronized (xorPackageSet) {

@@ -23,6 +23,7 @@ import hc.server.CallContext;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
 import hc.server.StarterManager;
+import hc.server.data.StoreDirManager;
 import hc.server.data.screen.KeyComper;
 import hc.server.msb.Converter;
 import hc.server.msb.Device;
@@ -39,6 +40,7 @@ import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.HCEventQueue;
 import hc.server.util.HCLimitSecurityManager;
+import hc.server.util.Scheduler;
 import hc.server.util.SystemEventListener;
 import hc.server.util.VoiceCommand;
 import hc.server.util.ai.AIObjectCache;
@@ -59,6 +61,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -94,7 +97,9 @@ public class ProjectContext {
 	Assistant assistant;
 	final RecycleRes recycleRes;
 	final Vector<SystemEventListener> projectLevelEventListeners = new Vector<SystemEventListener>();
-
+	Map<String, Scheduler> schedulerMap;
+	final String dbPassword;
+	
 	/**
 	 * for example HAR is installing from client, and it is required to input token for device connection, 
 	 * you can use {@link Dialog} for custom input, otherwise if is installing from PC desktop, 
@@ -185,9 +190,6 @@ public class ProjectContext {
 		}
 	}
 	
-	private final static String HC_SYS_FOR_USER_PRIVATE_DIR = "_HC/";//getPrivateFile("mySubDir2/subSubDir").mkdirs();
-	private final static String DB_SUB_DIR_FOR_USER_PRIVATE_DIR = "DB/";
-	
 	/**
 	 * to create or open exists database.<BR><BR>
 	 * the database is stored in directory <i>{HC_Home}/user_data/{projectID}/_HC/DB/{dbName}</i>, for more see {@link #getPrivateFile(String)}
@@ -230,6 +232,8 @@ public class ProjectContext {
         return getDBConnection(dbName, username, password, isAllInMem, props);
 	}
 	
+	private final Object lockForGetDBConn = new Object();
+	
 	/**
 	 * create or open exists database, which stored in files or all-in-memory.<BR><BR>
 	 * for more, see {@link #getDBConnection(String, String, String)}.
@@ -247,7 +251,7 @@ public class ProjectContext {
 	public final Connection getDBConnection(final String dbName, final String username, final String password,
 			final boolean isAllInMem, final Properties props){
 		try{
-			synchronized (this) {
+			synchronized (lockForGetDBConn) {
 				final String url;
 				if(isAllInMem){
 					final String hexProjID = ByteUtil.toHex(StringUtil.getBytes(projectID));
@@ -255,9 +259,6 @@ public class ProjectContext {
 				}else{
 					final File hcSysDir = buildDBBaseDir(dbName);
 					final File defaultFile = new File(hcSysDir, dbName);
-					if(defaultFile.exists() == false){
-						defaultFile.mkdirs();
-					}
 					url = "jdbc:hsqldb:file:" + defaultFile.getAbsolutePath();
 				}
 				
@@ -274,7 +275,8 @@ public class ProjectContext {
 	}
 
 	private final File buildDBBaseDir(final String dbName) {
-		return getPrivateFile(HC_SYS_FOR_USER_PRIVATE_DIR + DB_SUB_DIR_FOR_USER_PRIVATE_DIR + dbName + "/");
+		return getPrivateFile(
+				StoreDirManager.HC_SYS_FOR_USER_PRIVATE_DIR + StoreDirManager.DB_SUB_DIR_FOR_USER_PRIVATE_DIR + dbName + "/");
 	}
 	
 	/**
@@ -321,7 +323,103 @@ public class ProjectContext {
 		final File baseDir = buildDBBaseDir(dbName);
 		return ResourceUtil.deleteDirectoryNowAndExit(baseDir);
 	}
-
+	
+	private final Object lockForScheduler = new Object();
+	
+	/**
+	 * create or open exists job scheduler.
+	 * <BR><BR>
+	 * usage of schedule (JRuby) :
+	 * <pre>
+	 * import Java::hc.server.util.scheduler.WeeklyJobCalendar
+	 * import java.lang.StringBuilder
+	 * 
+	 * ctx = Java::hc.server.ui.ProjectContext::getProjectContext()
+	 * scheduler = ctx.getScheduler("MyScheduler1")
+	 * scheduler.start()
+	 * if scheduler.isExistsTrigger("Trigger1") == false
+	 * &nbsp;&nbsp;builder = StringBuilder.new(100)
+	 * &nbsp;&nbsp;builder.append("ctx = Java::hc.server.ui.ProjectContext::getProjectContext()\n")
+	 * &nbsp;&nbsp;builder.append("ctx.showTipOnTray(\"executing job1\")\n")
+	 * &nbsp;&nbsp;scheduler.addJob("Job1", builder.toString())
+	 * 
+	 * &nbsp;&nbsp;weeklyCalendar = WeeklyJobCalendar.new()
+	 * &nbsp;&nbsp;weeklyCalendar.setDayExcluded(java.util.Calendar::SUNDAY, true)#exclude sunday
+	 * &nbsp;&nbsp;weeklyCalendar.setDayExcluded(java.util.Calendar::SATURDAY, false)
+	 * &nbsp;&nbsp;scheduler.addCalendar("Calendar1", weeklyCalendar)
+	 * 
+	 * &nbsp;&nbsp;scheduler.addCronTrigger("Trigger1", "0/30 * * * * ?", "Calendar1", "Job1")#trigger "Job1" when "Calendar1" every 30 seconds and exclude sunday
+	 * &nbsp;&nbsp;puts "Trigger1 next fire time : " + scheduler.getTriggerNextFireTime("Trigger1").toString()
+	 * end
+	 * </pre>
+	 * <STRONG>Tip :</STRONG><BR>
+	 * all started schedulers will be shutdown by server when shutdown project.
+	 * <BR><BR>
+	 * <STRONG>one scheduler or multiple?</STRONG><BR>
+	 * 	1. please add multiple jobs, calendars and triggers in one scheduler, <BR>
+	 * 2. start, standby, clear, and shutdown a scheduler, <BR>
+	 * 3. to stop/clear some triggers, but don't want to stop others, then you should create multiple schedulers.<BR>
+	 * <BR>
+	 * current job scheduler is based on Quartz 2.2.3<BR>
+	 * @param domain each domain is stored in different database.
+	 * @return if a scheduler is shutdown and invoke this method with the same <code>domain</code>, then a new instance scheduler will be created.
+	 * @since 7.57
+	 */
+	public final Scheduler getScheduler(final String domain){
+		return getScheduler(domain, false);
+	}
+	
+	final void shutdownSchedulers(){
+		synchronized (lockForScheduler) {
+			if(schedulerMap != null){
+				final Vector<String> list = new Vector<String>();
+				list.addAll(schedulerMap.keySet());
+				
+				final int size = list.size();
+				for (int i = 0; i < size; i++) {
+					final String domain = list.elementAt(i);
+					try{
+						LogManager.log("shutdown Scheduler [" + domain + "] in project [" + projectID + "].");
+						final Scheduler scheduler = schedulerMap.get(domain);
+						scheduler.shutdown(true);
+					}catch (final Throwable e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+	
+	final void removeScheduler(final String domain){
+		synchronized (lockForScheduler) {
+			if(schedulerMap != null){
+				schedulerMap.remove(domain);
+			}
+		}
+	}
+	
+	/**
+	 * create or open exists job scheduler.
+	 * @param domain
+	 * @param isAllInRAM true means all in RAM, false means stored in database.
+	 * @return
+	 * @since 7.57
+	 * @see #getScheduler(String)
+	 */
+	public final Scheduler getScheduler(final String domain, final boolean isAllInRAM){
+		synchronized (lockForScheduler) {
+			if(schedulerMap == null){
+				schedulerMap = new HashMap<String, Scheduler>(2);
+			}
+			Scheduler cronManager = schedulerMap.get(domain);
+			if(cronManager == null){
+				cronManager = new Scheduler(this, domain, isAllInRAM);
+				schedulerMap.put(domain, cronManager);
+			}
+			return cronManager;
+		}
+	}
+	
 	/**
 	 * @deprecated
 	 */
@@ -340,13 +438,24 @@ public class ProjectContext {
 	@Deprecated
 	ProjectContext(final String id, final String ver,
 			final RecycleRes recycleRes, final ProjResponser projResponser,
-			final ProjClassLoaderFinder finder) {//为了不在代码提示中出来，请使用ServerUIUtil.buildProjectContext
+			final ProjClassLoaderFinder finder, final String dbPassword) {//为了不在代码提示中出来，请使用ServerUIUtil.buildProjectContext
 		projectID = id;
 		projectVer = ver;
 		isLoggerOn = ServerUIAPIAgent.isLoggerOn();
 		this.recycleRes = recycleRes;
 		this.__projResponserMaybeNull = projResponser;// 由于应用复杂，可能为null
 		this.finder = finder;
+		if(dbPassword == ServerUIAPIAgent.CRATE_DB_PASSWORD){
+			String dbPwd = ServerUIAPIAgent.getSuperProp(this, ServerUIAPIAgent.PROJ_DB_PASSWORD);
+			if(dbPwd == null){
+				dbPwd = ResourceUtil.buildUUID();
+				ServerUIAPIAgent.setSuperProp(this, ServerUIAPIAgent.PROJ_DB_PASSWORD, dbPwd);
+				saveProperties();//注意，一定要用这个，不能用PropertiesManager.save
+			}
+			this.dbPassword = dbPwd;
+		}else{
+			this.dbPassword = dbPassword;
+		}
 	}
 	
 	/**
@@ -1129,6 +1238,10 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final Object eval(final String shell) {
+		if(shell == null){
+			return null;
+		}
+		
 		final HCJRubyEngine engine = ((__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)) ? SimuMobile.getRunTestEngine()
 				: __projResponserMaybeNull.hcje);
 		
@@ -1899,18 +2012,6 @@ public class ProjectContext {
 	 */
 	public final File getPrivateFile(final String fileName) {
 		final String absProjBasePath = HCLimitSecurityManager.getUserDataBaseDir(projectID);
-		final File userDir = new File(absProjBasePath);//不能使用App.getBaseDir
-
-		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
-			@Override
-			public Object run() {
-				if (userDir.exists() == false) {
-					userDir.mkdirs();
-				}
-				return null;
-			}
-		});
-
 		final String absPathname = absProjBasePath + HttpUtil.encodeFileName(fileName);
 		return new File(absPathname);//App.getBaseDir
 	}
@@ -2974,11 +3075,25 @@ public class ProjectContext {
 	 * display a tip message on tray of this server.
 	 * <BR><BR>
 	 * if current server is Android then show a toast.
+	 * <BR><BR>
+	 * it is equals with {@link #showTipOnTray(String)}.
 	 * @param msg
 	 *            a tip message on tray.
 	 * @since 6.98
 	 */
 	public final void tipOnTray(final String msg) {
+		showTipOnTray(msg);
+	}
+	
+	/**
+	 * display a tip message on tray of this server.
+	 * <BR><BR>
+	 * if current server is Android then show a toast.
+	 * @param msg
+	 *            a tip message on tray.
+	 * @since 7.57
+	 */
+	public final void showTipOnTray(final String msg) {
 		ServerUIAPIAgent.tipOnTray(msg);
 	}
 

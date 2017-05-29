@@ -16,6 +16,7 @@ public abstract class HCTimer {
 	public static final long ONE_MINUTE = ONE_SECOND * 60;
 	public static final long ONE_HOUR = ONE_MINUTE * 60;
 	public static final long ONE_DAY = 86400000;
+	public static final long ONE_YEAR = ONE_DAY * 365;
 	long nextExecMS;
 	final boolean isNewThread;
 	final int newThreadPrority;

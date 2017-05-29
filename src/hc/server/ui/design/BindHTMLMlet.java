@@ -38,7 +38,7 @@ import javax.swing.event.ListDataListener;
 
 public class BindHTMLMlet extends SystemHTMLMlet {
 	final JRadioButton listNotBindBtn, listAllBtn;
-	final JComboBox<String> robotBox, converterBox, deviceBox;
+	final JComboBox robotBox, converterBox, deviceBox;//java 6不支持<String>
 //	final JButton doneBut, cancelBtn;
 //	final JTextArea descRobot, descConv, descDev;
 	final Boolean[] waitLock;
@@ -125,9 +125,9 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 		this.allConverters = allConverters;
 		
 		final Vector<String> robotsList = isUnbindDefault?getRobotsInUT(false):getAllRobotsInUT();
-		robotBox = new JComboBox<String>(robotsList);
-		converterBox = new JComboBox<String>(getAllConverterInUT());
-		deviceBox = new JComboBox<String>(getAllDeviceInUT());
+		robotBox = new JComboBox(robotsList);//java 6不支持<String>
+		converterBox = new JComboBox(getAllConverterInUT());
+		deviceBox = new JComboBox(getAllDeviceInUT());
 		
 		final int gapPixel = 0;
 		
@@ -609,7 +609,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 	}
 }
 
-class BindComboBoxModel implements ComboBoxModel<String> {
+class BindComboBoxModel implements ComboBoxModel {//java 6不支持ComboBoxModel<String>
 	public static final int TYPE_ROBOT = 1;
 	public static final int TYPE_CONV = 2;
 	public static final int TYPE_DEV = 3;

@@ -6,6 +6,7 @@ import hc.core.GlobalConditionWatcher;
 import hc.core.HCMessage;
 import hc.core.IConstant;
 import hc.core.IContext;
+import hc.core.IWatcher;
 import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootServerConnector;
@@ -453,7 +454,26 @@ public class RelayManager {
 	private static final DataReg dr = new DataReg();
 	public static final IOException IOE = new IOException();
 	private static long receiveMoveRelayStartTime;
-	
+	private static final IWatcher overrideSameTokenWatcher = new IWatcher() {
+		@Override
+		public boolean watch() {
+			RootServerConnector.notifyHttpError(RootServerConnector.LOFF_OverrideSameToken);
+			return true;
+		}
+		
+		@Override
+		public void setPara(final Object p) {
+		}
+		
+		@Override
+		public boolean isCancelable() {
+			return false;
+		}
+		
+		@Override
+		public void cancel() {
+		}
+	};
 	public static boolean pushMap(final IContext ctx, final SelectionKey key) throws Exception{
 		buffer.clear();
 		final byte[] bs = buffer.array();
@@ -516,13 +536,12 @@ public class RelayManager {
 						final String newToken = dr.getTokenDataOut();
 						if(newToken.equals(sc.token)){//上次的连接仍alive，待接入者进行等待
 							if(L.isLogInRelay){
-								LogManager.errToLog("the same account is alive, token [" + newToken + "].");
+								LogManager.errToLog("the same token account seem alive, override, token [" + newToken + "].");
 							}
 							
-//							ctx.send(channel.socket().getOutputStream(), 
-//									MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_SAME_ID_IS_USING);
+							sc = overrideSameToken(sc, bs, len);
 							
-							throw BBIOException;
+							GlobalConditionWatcher.addWatcher(overrideSameTokenWatcher);
 						}else if(firstOrReset == MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST
 								|| firstOrReset == MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_BUILD_NEW_CONN){
 							final String uuidString = sc.getUUIDString();
@@ -534,9 +553,7 @@ public class RelayManager {
 									+ newToken + ", at channel : " 
 									+ channel.socket().getInetAddress().getHostAddress());
 								}
-								closePare(sc, true);
-								
-								sc = buildSessionConn(bs, len);
+								sc = overrideSameToken(sc, bs, len);
 							}else{
 								if(L.isLogInRelay) {
 									LogManager.log("dirty new connection (token:"+newToken+") " +
@@ -662,6 +679,13 @@ public class RelayManager {
 			}
 		}
 		return false;
+	}
+
+	private static SessionConnector overrideSameToken(SessionConnector sc, final byte[] bs,
+			final int len) {
+		closePare(sc, true);
+		sc = buildSessionConn(bs, len);
+		return sc;
 	}
 	
 	private final static void processUDP(){

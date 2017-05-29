@@ -118,7 +118,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		return out;
 	}
 	
-	public boolean hasRobotReferenceDevice(){
+	public final boolean hasRobotReferenceDevice(){
 		try{
 			//每次重算，因为可能追加了工程
 			totalRobotRefDevices = 0;
@@ -281,7 +281,7 @@ public class MobiUIResponsor extends BaseResponsor {
 //		RubyExector.initActive(hcje);
 	}
 
-	public void preLoadJRubyScripts(){
+	public final void preLoadJRubyScripts(){
 		final int seconds = ResourceUtil.getSecondsForPreloadJRuby();
 		if(seconds < 0){
 			return;
@@ -333,7 +333,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	 * 如果放弃绑定，则返回null；成功则返回实例。
 	 */
 	@Override
-	public BaseResponsor checkAndReady(final JFrame owner) throws Exception{
+	public final BaseResponsor checkAndReady(final JFrame owner) throws Exception{
 		final BindRobotSource bindSource = new BindRobotSource(this);
 		if(BindManager.hasProjNotBinded()){
 			if(BindManager.findNewUnbind(bindSource) == false){
@@ -398,7 +398,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		return null;
 	}
 	
-	public ProjResponser getProjResponser(final String projID){
+	public final ProjResponser getProjResponser(final String projID){
 		for (int i = 0; i < responserSize; i++) {
 			if(projIDs[i].equals(projID)){
 				return responsors[i];
@@ -412,7 +412,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	 * @param projID
 	 * @return
 	 */
-	public Map<String, Object> getHarMap(final String projID){
+	public final Map<String, Object> getHarMap(final String projID){
 		for (int i = 0; i < responserSize; i++) {
 			if(projIDs[i].equals(projID)){
 				return maps[i];
@@ -480,6 +480,10 @@ public class MobiUIResponsor extends BaseResponsor {
 	}
 
 	public final void release() {
+		for (int i = 0; i < responserSize; i++) {
+			responsors[i].waitForFinishAllSequTask();
+		}
+		
 		//由于重启时，需要先关闭旧连接，才建立新连接，所以此处不加线程（异步）
 		shutdownIOT();
 
@@ -616,6 +620,8 @@ public class MobiUIResponsor extends BaseResponsor {
 					releaseClientSession(j2seCoreSS);//必须最后释放
 				}
 			});
+		}else if(event == ProjectContext.EVENT_SYS_PROJ_SHUTDOWN){
+			sendFinishAllNotify();
 		}
 		
 		return null;
@@ -632,6 +638,26 @@ public class MobiUIResponsor extends BaseResponsor {
 			final ProjResponser projResponser = responsors[i];
 			//必须使用run。如果同步，可能导致异常程序占住服务器线程。参见SystemEventListener.onEvent
 			fireSystemEventListenerInSequence(coreSS, projResponser, projResponser.context, event);//注意：请与fireSystemEventListenerOnAppendProject保持同步
+		}
+	}
+	
+	private final void sendFinishAllNotify(){
+		for (int i = 0; i < responserSize; i++) {
+			final ProjResponser projResponser = responsors[i];
+			final ProjectContext context = projResponser.context;
+			ServerUIAPIAgent.addSequenceWatcherInProjContext(context, new BaseWatcher() {
+				@Override
+				public boolean watch() {
+					ServerUIAPIAgent.runAndWaitInProjContext(context, new ReturnableRunnable() {
+						@Override
+						public Object run() {
+							projResponser.notifyFinishAllSequTask();
+							return null;
+						}
+					});
+					return true;
+				}
+			});
 		}
 	}
 	

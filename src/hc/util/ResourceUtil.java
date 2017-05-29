@@ -124,9 +124,17 @@ public class ResourceUtil {
         StringBuilderCacher.cycle(sb);
         
         // Print suppressed exceptions, if any
-        for (final Throwable se : t.getSuppressed())
-        	printStackTrace(se);
-
+//        Throwable[] se = t.getSuppressed();
+        try{
+	        final Throwable[] se = (Throwable[])ClassUtil.invokeWithExceptionOut(Throwable.class, t, "getSuppressed", ClassUtil.nullParaTypes, ClassUtil.nullParas, false);
+	        if(se != null){
+	        	for (int i = 0; i < se.length; i++) {
+	        		printStackTrace(se[i]);
+				}
+	        }
+        }catch (final Throwable e) {
+		}
+        
         // Print cause, if any
         final Throwable ourCause = t.getCause();
         if (ourCause != null){
@@ -2041,5 +2049,7 @@ public class ResourceUtil {
 		}
 		return "";
 	}
+
+	public static final String LOAD_NATIVE_LIB = "load native lib";
 
 }

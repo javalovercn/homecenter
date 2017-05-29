@@ -27,12 +27,21 @@ public class SingleMessageNotify {
 	public static final String TYPE_DIALOG_CERT = "DIA_Cert";
 	public static final String TYPE_DIALOG_TRANS_OFF = "DIA_TRS_Off";
 	public static final String TYPE_SCR_LOCKING = "SCR_LOCKING";
+	public static final String TYPE_SAME_ID = "SAME_ID";
 	
 	public static final int NEVER_AUTO_CLOSE = 0;
 	
 	private static HashMap<String, Boolean> typeMessageStatus = new HashMap<String, Boolean>();
 	private static HashMap<String, JDialog> typeDialogs = new HashMap<String, JDialog>();
 	
+	/**
+	 * 
+	 * @param type
+	 * @param msg
+	 * @param title
+	 * @param disposeMS 指定时间后自动关闭；如果为{@link SingleMessageNotify#NEVER_AUTO_CLOSE}，表示须手工关闭
+	 * @param icon
+	 */
 	public static final void showOnce(final String type, final String msg, final String title, final int disposeMS, final Icon icon){
 		synchronized (SingleMessageNotify.class) {
 			if(SingleMessageNotify.isShowMessage(type) == false){

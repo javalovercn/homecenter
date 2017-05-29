@@ -335,21 +335,25 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	final DefaultMutableTreeNode cssNode = createCSSNode();
 	
 	public final String getCurrProjID(){
-		return ((HPProject)root.getUserObject()).id;
+		return getRootUserObject().id;
+	}
+
+	public final HPProject getRootUserObject() {
+		return (HPProject)root.getUserObject();
 	}
 	
 	public String getCurrProjVer(){
-		return ((HPProject)root.getUserObject()).ver;
+		return getRootUserObject().ver;
 	}
 	
 	public final Vector<CodeItem> cssClassesOfProjectLevel = new Vector<CodeItem>(50);
 	
 	public String getProjCSS(){
-		return ((HPProject)root.getUserObject()).styles;
+		return getRootUserObject().styles;
 	}
 	
 	public void setProjCSS(final String css){
-		((HPProject)root.getUserObject()).styles = css;
+		getRootUserObject().styles = css;
 	}
 	
 	public static final int ROOT_SUB_FOLDER = 3;
@@ -412,20 +416,20 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	private NodeEditPanel nodeEditPanel = emptyNodeEditPanel;
-	JButton sampleButton = new JButton(EXAMPLE, getSampleIcon());
-	JButton saveButton = new JButton("Save", loadImg("save_24.png"));
-	DownlistButton activeButton = new DownlistButton(ACTIVE, loadImg("deploy_24.png"));
-	JButton deactiveButton = new JButton(DEACTIVE, loadImg("undeploy_24.png"));
+	final JButton sampleButton = new JButton(EXAMPLE, getSampleIcon());
+	final JButton saveButton = new JButton("Save", loadImg("save_24.png"));
+	final DownlistButton activeButton = new DownlistButton(ACTIVE, loadImg("deploy_24.png"));
+	final JButton deactiveButton = new JButton(DEACTIVE, loadImg("undeploy_24.png"));
 	final JButton addItemButton = new JButton("Add Item", loadImg("controller_24.png"));
-	JButton newButton = new JButton("New Project", loadImg("new_24.png"));
-	JButton saveAsButton = new JButton(SAVE_AS_TEXT, loadImg("shareout_24.png"));
-	JButton loadButton = new JButton("Load", loadImg("sharein_24.png"));
-	JButton certButton = new JButton("Developer Certificates", loadImg("cert_24.png"));
-	JButton shiftProjButton = new JButton("Shift Project", new ImageIcon(ResourceUtil.loadImage("menu_24.png")));
-	JButton helpButton = new JButton("Help", loadImg("faq_24.png"));
-	JButton rebindButton = new JButton("Rebind", loadImg("device_24.png"));
+	final JButton newButton = new JButton("New Project", loadImg("new_24.png"));
+	final JButton saveAsButton = new JButton(SAVE_AS_TEXT, loadImg("shareout_24.png"));
+	final JButton loadButton = new JButton("Load", loadImg("sharein_24.png"));
+	final JButton certButton = new JButton("Developer Certificates", loadImg("cert_24.png"));
+	final JButton shiftProjButton = new JButton("Shift Project", new ImageIcon(ResourceUtil.loadImage("menu_24.png")));
+	final JButton helpButton = new JButton("Help", loadImg("faq_24.png"));
+	final JButton rebindButton = new JButton("Rebind", loadImg("device_24.png"));
 	DefaultMutableTreeNode selectedNode;
-	JPanel editPanel = new JPanel();
+	final JPanel editPanel = new JPanel();
 
 	private final NodeEditPanelManager nm = new NodeEditPanelManager();
 	
@@ -606,7 +610,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 									final Object o = selectedNode.getUserObject();
 									if (o instanceof HPNode) {
 										jumpToNode(selectedNode, model, tree);
-
+										//right click on tree
 										mg.popUpMenu(((HPNode) o).type, selectedNode, tree, e, self);
 									}
 								}
@@ -733,9 +737,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				
 				try {
 					final File tmpFileHar = ResourceUtil.getTempFileName(HAR_EXT);
-					copyHarFromPath(ResourceUtil.getResource("hc/res/sample.har"), tmpFileHar);
 					PropertiesManager.addDelFile(tmpFileHar);
-					PropertiesManager.saveFile();
+					copyHarFromPath(ResourceUtil.getResource("hc/res/sample.har"), tmpFileHar);
 					final Map<String, Object> map = HCjar.loadHar(tmpFileHar, true);
 					if(map.isEmpty()){
 						final JPanel panel = new JPanel();
@@ -2579,11 +2582,13 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			descPanel.add(new JLabel("<html>" +
 					"1. these versions are design enviroment, change them for runtime enviroment." +
 					"<BR>" +
-					"2. when HAR running on Android 7.0 Nougat (API 24) or above is treated as Java 8." +
+					"2. these packages are not in Android : java.beans.*, java.rmi.*" +
 					"<BR>" +
-					"3. when HAR running on Android 4.4 KitKat (API 19) or above is treated as Java 7." +
+					"3. when HAR running on Android 7.0 Nougat (API 24) or above is treated as Java 8." +
 					"<BR>" +
-					"4. when HAR running on Android others version is treated as Java 6." +
+					"4. when HAR running on Android 4.4 KitKat (API 19) or above is treated as Java 7." +
+					"<BR>" +
+					"5. when HAR running on Android others version is treated as Java 6." +
 					"</html>"), BorderLayout.CENTER);
 			centerPanel.add(descPanel, BorderLayout.SOUTH);
 		}
@@ -3012,43 +3017,43 @@ class NodeTreeCellRenderer extends DefaultTreeCellRenderer {
 		final Component compo = super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 		final Object o = ((DefaultMutableTreeNode) value).getUserObject();
 		if (o instanceof HPNode) {
-			final HPNode country = (HPNode) o;
-			if (HPNode.isNodeType(country.type, HPNode.MASK_ROOT)) {
+			final HPNode node = (HPNode) o;
+			if (HPNode.isNodeType(node.type, HPNode.MASK_ROOT)) {
 				((JLabel)compo).setIcon(Designer.iconRoot);
-			} else if (HPNode.isNodeType(country.type, HPNode.MASK_MENU_ITEM)) {
+			} else if (HPNode.isNodeType(node.type, HPNode.MASK_MENU_ITEM)) {
 				((JLabel)compo).setIcon(Designer.iconMenuItem);
-			} else if (HPNode.isNodeType(country.type, HPNode.MASK_MENU)) {
+			} else if (HPNode.isNodeType(node.type, HPNode.MASK_MENU)) {
 				((JLabel)compo).setIcon(Designer.iconMenu);
-			} else if (HPNode.isNodeType(country.type, HPNode.MASK_SHARE_TOP)) {
+			} else if (HPNode.isNodeType(node.type, HPNode.MASK_SHARE_TOP)) {
 				((JLabel)compo).setIcon(Designer.iconShareRoot);
-			} else if (HPNode.isNodeType(country.type, HPNode.MASK_SHARE_RB_FOLDER)) {
+			} else if (HPNode.isNodeType(node.type, HPNode.MASK_SHARE_RB_FOLDER)) {
 				((JLabel)compo).setIcon(Designer.iconShareRBFolder);
-			} else if (HPNode.isNodeType(country.type, HPNode.MASK_SHARE_RB)) {
+			} else if (HPNode.isNodeType(node.type, HPNode.MASK_SHARE_RB)) {
 				((JLabel)compo).setIcon(Designer.iconShareRB);
-			} else if (country.type == HPNode.MASK_SHARE_NATIVE_FOLDER) {
+			} else if (node.type == HPNode.MASK_SHARE_NATIVE_FOLDER) {
 				((JLabel)compo).setIcon(Designer.iconShareNativeFolder);
-			} else if (country.type == HPNode.MASK_SHARE_NATIVE) {
+			} else if (node.type == HPNode.MASK_SHARE_NATIVE) {
 				((JLabel)compo).setIcon(Designer.iconShareNative);
-			} else if (country.type == HPNode.MASK_MSB_FOLDER) {
+			} else if (node.type == HPNode.MASK_MSB_FOLDER) {
 				((JLabel)compo).setIcon(Designer.iconMSBFolder);
-			} else if (country.type == HPNode.MASK_MSB_ROBOT) {
+			} else if (node.type == HPNode.MASK_MSB_ROBOT) {
 				((JLabel)compo).setIcon(Designer.iconRobot);
-			} else if (country.type == HPNode.MASK_MSB_DEVICE) {
+			} else if (node.type == HPNode.MASK_MSB_DEVICE) {
 				((JLabel)compo).setIcon(Designer.iconDevice);
-			} else if (country.type == HPNode.MASK_MSB_CONVERTER) {
+			} else if (node.type == HPNode.MASK_MSB_CONVERTER) {
 				((JLabel)compo).setIcon(Designer.iconConverter);
-			} else if (country.type == HPNode.MASK_RESOURCE_FOLDER_JAR) {
+			} else if (node.type == HPNode.MASK_RESOURCE_FOLDER_JAR) {
 				((JLabel)compo).setIcon(Designer.iconJarFolder);
-			} else if (country.type == HPNode.MASK_RESOURCE_JAR) {
+			} else if (node.type == HPNode.MASK_RESOURCE_JAR) {
 				((JLabel)compo).setIcon(Designer.iconJar);
-			} else if (country.type == HPNode.MASK_RESOURCE_CSS) {
+			} else if (node.type == HPNode.MASK_RESOURCE_CSS) {
 				((JLabel)compo).setIcon(Designer.iconCSS);
-			} else if (country.type == HPNode.MASK_EVENT_FOLDER) {
+			} else if (node.type == HPNode.MASK_EVENT_FOLDER) {
 				((JLabel)compo).setIcon(Designer.iconEventFolder);
-			} else if (country.type == HPNode.MASK_EVENT_ITEM) {
+			} else if (node.type == HPNode.MASK_EVENT_ITEM) {
 				((JLabel)compo).setIcon(Designer.iconEventItem);
 			}
-			((JLabel)compo).setText(country.toString());
+			((JLabel)compo).setText(node.getNodeDisplayString());
 		} else {
 			((JLabel)compo).setIcon(null);
 			((JLabel)compo).setText("" + value);
