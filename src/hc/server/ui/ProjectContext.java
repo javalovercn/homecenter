@@ -61,7 +61,6 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -97,7 +96,7 @@ public class ProjectContext {
 	Assistant assistant;
 	final RecycleRes recycleRes;
 	final Vector<SystemEventListener> projectLevelEventListeners = new Vector<SystemEventListener>();
-	Map<String, Scheduler> schedulerMap;
+	Hashtable<String, Scheduler> schedulerMapForProjAndSess;//线程安全必需
 	final String dbPassword;
 	
 	/**
@@ -327,7 +326,11 @@ public class ProjectContext {
 	private final Object lockForScheduler = new Object();
 	
 	/**
-	 * create or open exists job scheduler.
+	 * create or open exists project/session level job scheduler.
+	 * <BR><BR>
+	 * if current thread is session level, then return a session level scheduler.<BR>
+	 * if current thread is project level, then return a project level scheduler.<BR>
+	 * for session level scheduler, same <code>domain</code> in difference session means difference scheduler.
 	 * <BR><BR>
 	 * usage of schedule (JRuby) :
 	 * <pre>
@@ -353,7 +356,9 @@ public class ProjectContext {
 	 * end
 	 * </pre>
 	 * <STRONG>Tip :</STRONG><BR>
-	 * all started schedulers will be shutdown by server when shutdown project.
+	 * project level scheduler will be shutdown by server after shutdown project.<BR>
+	 * session level scheduler will be shutdown by server after session is logout/lineoff.<BR>
+	 * session level scheduler is all in RAM, even though set <code>isAllInRAM</code> to false.
 	 * <BR><BR>
 	 * <STRONG>one scheduler or multiple?</STRONG><BR>
 	 * 	1. please add multiple jobs, calendars and triggers in one scheduler, <BR>
@@ -362,44 +367,62 @@ public class ProjectContext {
 	 * <BR>
 	 * current job scheduler is based on Quartz 2.2.3<BR>
 	 * @param domain each domain is stored in different database.
-	 * @return if a scheduler is shutdown and invoke this method with the same <code>domain</code>, then a new instance scheduler will be created.
+	 * @return if a scheduler is shutdown and invoke this method with the same <code>domain</code>, then a new instance scheduler will be created, otherwise the same instance returned.
 	 * @since 7.57
 	 */
 	public final Scheduler getScheduler(final String domain){
 		return getScheduler(domain, false);
 	}
 	
-	final void shutdownSchedulers(){
+	/**
+	 * null means shutdown all.
+	 * @param list
+	 */
+	final void shutdownSchedulers(Vector<String> list){
 		synchronized (lockForScheduler) {
-			if(schedulerMap != null){
-				final Vector<String> list = new Vector<String>();
-				list.addAll(schedulerMap.keySet());
-				
-				final int size = list.size();
-				for (int i = 0; i < size; i++) {
-					final String domain = list.elementAt(i);
-					try{
-						LogManager.log("shutdown Scheduler [" + domain + "] in project [" + projectID + "].");
-						final Scheduler scheduler = schedulerMap.get(domain);
-						scheduler.shutdown(true);
-					}catch (final Throwable e) {
-						e.printStackTrace();
-					}
+			if(schedulerMapForProjAndSess != null){
+				if(list == null){
+					list = new Vector<String>();
+					list.addAll(schedulerMapForProjAndSess.keySet());
 				}
 			}
 		}
-	}
-	
-	final void removeScheduler(final String domain){
-		synchronized (lockForScheduler) {
-			if(schedulerMap != null){
-				schedulerMap.remove(domain);
+		
+		if(list == null){
+			return;
+		}
+
+		final int size = list.size();
+		for (int i = 0; i < size; i++) {
+			final String domain = list.elementAt(i);
+			try{
+				final Scheduler scheduler = schedulerMapForProjAndSess.remove(domain);
+				if(scheduler != null){//session级已shutdown，但仍在J2SESession中保留domain
+					LogManager.log("shutdown scheduler [" + domain + "] (session level is [sessionID_domain]) in project [" + projectID + "].");
+					scheduler.shutdown(true);
+				}
+			}catch (final Throwable e) {
+				e.printStackTrace();
 			}
 		}
 	}
 	
 	/**
-	 * create or open exists job scheduler.
+	 * 必须的，因为用户级调用shutdown，导致被动移除。
+	 * @param domain
+	 */
+	final void removeScheduler(final String domain){
+		if(schedulerMapForProjAndSess != null){//不能加锁，因为Job内可能调用此逻辑
+			schedulerMapForProjAndSess.remove(domain);
+		}
+	}
+	
+	/**
+	 * create or open exists project/session level job scheduler.
+	 * <BR><BR>
+	 * if current thread is session level, then return a session level scheduler.<BR>
+	 * if current thread is project level, then return a project level scheduler.<BR>
+	 * session level scheduler is all in RAM, even though pass <code>isAllInRAM</code> with false.
 	 * @param domain
 	 * @param isAllInRAM true means all in RAM, false means stored in database.
 	 * @return
@@ -407,14 +430,80 @@ public class ProjectContext {
 	 * @see #getScheduler(String)
 	 */
 	public final Scheduler getScheduler(final String domain, final boolean isAllInRAM){
-		synchronized (lockForScheduler) {
-			if(schedulerMap == null){
-				schedulerMap = new HashMap<String, Scheduler>(2);
+		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
+			return getScheduler(domain, isAllInRAM, null);
+		}
+		
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
+		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+			return getScheduler(domain, isAllInRAM, null);
+		}else{
+			return getScheduler(domain, isAllInRAM, sessionContext.j2seSocketSession);
+		}
+	}
+	
+	/**
+	 * create or open exists project/session level job scheduler.
+	 * <BR><BR>
+	 * <STRONG>Tip :</STRONG><BR>
+	 * project level scheduler will be shutdown by server after shutdown project.<BR>
+	 * session level scheduler will be shutdown by server after session is logout/lineoff.<BR>
+	 * for session level scheduler, same <code>domain</code> in difference session means difference scheduler.<BR>
+	 * session level scheduler is all in RAM, even though set <code>isAllInRAM</code> to false.
+	 * @param domain
+	 * @param isAllInRAM true means all in RAM, false means stored in database.
+	 * @param isSessionScheduler true means create or get a session level scheduler.
+	 * <BR>if current thread is project level, and <code>isSessionScheduler</code> is true, then return null.
+	 * <BR>if current thread is session level, and <code>isSessionScheduler</code> is false, then return a project level.
+	 * @return null means current thread is project level, but <code>isSessionScheduler</code> is true.
+	 * @see #getScheduler(String)
+	 */
+	public final Scheduler getScheduler(final String domain, final boolean isAllInRAM, final boolean isSessionScheduler){
+		if(isSessionScheduler){
+			if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
+				return null;
 			}
-			Scheduler cronManager = schedulerMap.get(domain);
+			
+			final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
+			if(sessionContext == null || sessionContext.j2seSocketSession == null){
+				return null;
+			}else{
+				return getScheduler(domain, isAllInRAM, sessionContext.j2seSocketSession);
+			}
+		}else{
+			return getScheduler(domain, isAllInRAM, null);
+		}
+	}
+	
+	/**
+	 * 
+	 * @param domain
+	 * @param isAllInRAM
+	 * @param j2seSession null means for project level
+	 * @return
+	 */
+	private final Scheduler getScheduler(String domain, boolean isAllInRAM, final J2SESession j2seSession){
+		synchronized (lockForScheduler) {
+			if(schedulerMapForProjAndSess == null){
+				schedulerMapForProjAndSess = new Hashtable<String, Scheduler>(4);
+			}
+			if(j2seSession != null){
+				if(isAllInRAM == false){
+					isAllInRAM = true;
+					LogManager.warn("all in RAM is required for session level scheduler [" + domain + "], force set isAllInRAM to TRUE.");
+				}
+
+				domain = j2seSession.getSessionID() + "_" + domain;
+			}
+			Scheduler cronManager = schedulerMapForProjAndSess.get(domain);
 			if(cronManager == null){
-				cronManager = new Scheduler(this, domain, isAllInRAM);
-				schedulerMap.put(domain, cronManager);
+				cronManager = new Scheduler(this, domain, isAllInRAM, j2seSession);
+				schedulerMapForProjAndSess.put(domain, cronManager);
+				if(j2seSession == null){
+					LogManager.log("create/open scheduler [" + domain + "] (project level).");
+				}else{
+					LogManager.log("create/open scheduler [" + domain + "] (session level).");
+				}
 			}
 			return cronManager;
 		}
@@ -1252,13 +1341,14 @@ public class ProjectContext {
 	}
 	
 	/**
-	 * this method is invoked when current thread is in session level, 
+	 * this method is useful when current thread is in session level, 
 	 * <BR>
 	 * and the <code>runnable</code> should be executed in project level.
 	 * <BR><BR>
 	 * Note : <BR>
 	 * 1. please put long time task and network operation in here,<BR>
-	 * 2. there is NOT API for task to be executed in session level when in project level.
+	 * 2. it is a good choice to put task in {@link #getScheduler(String)}, because it will be shutdown by server and release all resources.<BR>
+	 * 3. there is NOT API for task to be executed in session level when in project level thread. Maybe you need {@link #sendDialogByBuilding(Runnable)}.
 	 * @param runnable
 	 * @see #run(Runnable)
 	 * @see #isCurrentThreadInSessionLevel()
@@ -1301,7 +1391,9 @@ public class ProjectContext {
 	 * in project level, the runnable task should be finished after
 	 * {@link #EVENT_SYS_PROJ_SHUTDOWN}.
 	 * <BR><BR>
-	 * Note : please put long time task and network operation in here.<BR>
+	 * Note : <BR>
+	 * 1. please put long time task and network operation in here.<BR>
+	 * 2. it is a good choice to put task in {@link #getScheduler(String)}, because it will be shutdown by server and release all resources.
 	 * @param runnable
 	 * @see #runAndWait(Runnable)
 	 * @see #runInProjectLevel(Runnable)
@@ -2840,12 +2932,12 @@ public class ProjectContext {
 	 * <STRONG>Why</STRONG> the parameter is Runnable to build instance from defined JRuby class or a Java class?
 	 * <BR>
 	 * because the layout of dialog is depends on the client screen size of that session.<BR>
-	 * for example, there are three sessions in project level, the <code>runnable</code> will be executed three times, <BR>
-	 * and three instances of {@link Dialog} are builded.
+	 * for example, there are three sessions, the <code>runnable</code> will be executed three times, <BR>
+	 * and three instances of {@link Dialog} are builded for each session.
 	 * <br><br>
 	 * if there is a alert message, question or other dialog is presented on client and NOT be closed, the dialog will be delayed.
 	 * <br><br>
-	 * this method is <STRONG>asynchronous</STRONG>. system will NOT wait for
+	 * this method is <STRONG>asynchronous</STRONG>, server will NOT wait for
 	 * the result of dialog to the caller. <BR>
 	 * <BR>
 	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a

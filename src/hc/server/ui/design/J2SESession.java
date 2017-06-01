@@ -32,6 +32,7 @@ import hc.server.ui.ClientDesc;
 import hc.server.ui.ICanvas;
 import hc.server.ui.IMletCanvas;
 import hc.server.ui.MenuItem;
+import hc.server.ui.ProjectContext;
 import hc.server.ui.ResParameter;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
@@ -46,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Vector;
@@ -55,14 +57,55 @@ import java.util.Vector;
  *
  */
 public final class J2SESession extends CoreSession{
+	private static long sessionIDCounter = 1;
+	
 	public J2SESession(){
+		synchronized (J2SESession.class) {
+			sessionID = sessionIDCounter++;
+		}
+		
 		keepaliveManager = new KeepaliveManager(this);
 		urlAction = new J2SEServerURLAction();
+	}
+	
+	Map<String, Vector<String>> sessionScheduler;
+	
+	public final void addScheduler(final String projectID, final String domain){
+		synchronized (J2SESession.class) {
+			if(sessionScheduler == null){
+				sessionScheduler = new HashMap<String, Vector<String>>(2);
+			}
+			Vector<String> vector = sessionScheduler.get(projectID);
+			if(vector == null){
+				vector = new Vector<String>(2);
+				sessionScheduler.put(projectID, vector);
+			}
+			vector.add(domain);
+		}
+	}
+	
+	final void shutdowScheduler(final ProjectContext ctx){
+		if(sessionScheduler != null){
+			final Vector<String> vector;
+			synchronized (J2SESession.class) {
+				vector = sessionScheduler.remove(ctx.getProjectID());
+			}
+			if(vector == null){
+				return;
+			}else{
+				ServerUIAPIAgent.shutdownSchedulers(ctx, vector);
+			}
+		}
+	}
+	
+	public final long getSessionID(){
+		return sessionID;
 	}
 	
 	public final int[] base64PngData = new int[UIUtil.ICON_MAX * UIUtil.ICON_MAX];
 	public int refreshMillSecond = 3000;
 	public int mask;
+	private long sessionID;
 	public ScreenCapturer cap;
 	public ICanvas currScreen;
 	public HCTimer closeIOSLongConnection;

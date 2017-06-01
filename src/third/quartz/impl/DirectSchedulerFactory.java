@@ -63,7 +63,7 @@ import hc.core.util.ThirdLogManager;
  * </p>
  *
  * <pre>
- *  public void createScheduler(String schedulerName, String schedulerInstanceId, ThreadPool threadPool, JobStore jobStore, String rmiRegistryHost, int rmiRegistryPort)
+ *  public Scheduler createScheduler(String schedulerName, String schedulerInstanceId, ThreadPool threadPool, JobStore jobStore, String rmiRegistryHost, int rmiRegistryPort)
  * </pre>
  *
  *
@@ -244,10 +244,12 @@ public class DirectSchedulerFactory implements SchedulerFactory {
             QuartzSchedulerResources.getUniqueIdentifier(
                 schedulerName, schedulerInstanceId);
 
-        RemoteScheduler remoteScheduler = new RemoteScheduler(uid, rmiHost, rmiPort);
+//        yyh
+//        RemoteScheduler remoteScheduler = new RemoteScheduler(uid, rmiHost, rmiPort);
 
-        SchedulerRepository schedRep = SchedulerRepository.getInstance();
-        schedRep.bind(remoteScheduler);
+//        yyh
+//        SchedulerRepository schedRep = SchedulerRepository.getInstance();
+//        schedRep.bind(remoteScheduler);
         initialized = true;
     }
 
@@ -263,9 +265,9 @@ public class DirectSchedulerFactory implements SchedulerFactory {
      * @throws SchedulerException
      *           if initialization failed
      */
-    public void createScheduler(ThreadPool threadPool, JobStore jobStore)
+    public Scheduler createScheduler(ThreadPool threadPool, JobStore jobStore)
         throws SchedulerException {
-        createScheduler(DEFAULT_SCHEDULER_NAME, DEFAULT_INSTANCE_ID,
+    	return createScheduler(DEFAULT_SCHEDULER_NAME, DEFAULT_INSTANCE_ID,
                 threadPool, jobStore);
     }
 
@@ -287,10 +289,10 @@ public class DirectSchedulerFactory implements SchedulerFactory {
      * @throws SchedulerException
      *           if initialization failed
      */
-    public void createScheduler(String schedulerName,
+    public Scheduler createScheduler(String schedulerName,
             String schedulerInstanceId, ThreadPool threadPool, JobStore jobStore)
         throws SchedulerException {
-        createScheduler(schedulerName, schedulerInstanceId, threadPool,
+    	return createScheduler(schedulerName, schedulerInstanceId, threadPool,
                 jobStore, null, 0, -1, -1);
     }
 
@@ -317,12 +319,12 @@ public class DirectSchedulerFactory implements SchedulerFactory {
      * @throws SchedulerException
      *           if initialization failed
      */
-    public void createScheduler(String schedulerName,
+    public Scheduler createScheduler(String schedulerName,
             String schedulerInstanceId, ThreadPool threadPool,
             JobStore jobStore, String rmiRegistryHost, int rmiRegistryPort,
             long idleWaitTime, long dbFailureRetryInterval)
         throws SchedulerException {
-        createScheduler(schedulerName,
+    	return createScheduler(schedulerName,
                 schedulerInstanceId, threadPool,
                 jobStore, null, // plugins
                 rmiRegistryHost, rmiRegistryPort,
@@ -357,14 +359,14 @@ public class DirectSchedulerFactory implements SchedulerFactory {
      * @throws SchedulerException
      *           if initialization failed
      */
-    public void createScheduler(String schedulerName,
+    public Scheduler createScheduler(String schedulerName,
             String schedulerInstanceId, ThreadPool threadPool,
             JobStore jobStore, Map<String, SchedulerPlugin> schedulerPluginMap,
             String rmiRegistryHost, int rmiRegistryPort,
             long idleWaitTime, long dbFailureRetryInterval,
             boolean jmxExport, String jmxObjectName)
         throws SchedulerException {
-        createScheduler(schedulerName, schedulerInstanceId, threadPool,
+    	return createScheduler(schedulerName, schedulerInstanceId, threadPool,
                 DEFAULT_THREAD_EXECUTOR, jobStore, schedulerPluginMap,
                 rmiRegistryHost, rmiRegistryPort, idleWaitTime,
                 dbFailureRetryInterval, jmxExport, jmxObjectName);
@@ -399,7 +401,7 @@ public class DirectSchedulerFactory implements SchedulerFactory {
      * @throws SchedulerException
      *           if initialization failed
      */
-    public void createScheduler(String schedulerName,
+    public Scheduler createScheduler(String schedulerName,
             String schedulerInstanceId, ThreadPool threadPool,
             ThreadExecutor threadExecutor,
             JobStore jobStore, Map<String, SchedulerPlugin> schedulerPluginMap,
@@ -407,7 +409,7 @@ public class DirectSchedulerFactory implements SchedulerFactory {
             long idleWaitTime, long dbFailureRetryInterval,
             boolean jmxExport, String jmxObjectName)
         throws SchedulerException {
-        createScheduler(schedulerName, schedulerInstanceId, threadPool,
+        return createScheduler(schedulerName, schedulerInstanceId, threadPool,
                 DEFAULT_THREAD_EXECUTOR, jobStore, schedulerPluginMap,
                 rmiRegistryHost, rmiRegistryPort, idleWaitTime,
                 dbFailureRetryInterval, jmxExport, jmxObjectName, DEFAULT_BATCH_MAX_SIZE, DEFAULT_BATCH_TIME_WINDOW);
@@ -446,7 +448,7 @@ public class DirectSchedulerFactory implements SchedulerFactory {
      * @throws SchedulerException
      *           if initialization failed
      */
-    public void createScheduler(String schedulerName,
+    public Scheduler createScheduler(String schedulerName,
             String schedulerInstanceId, ThreadPool threadPool,
             ThreadExecutor threadExecutor,
             JobStore jobStore, Map<String, SchedulerPlugin> schedulerPluginMap,
@@ -516,14 +518,18 @@ public class DirectSchedulerFactory implements SchedulerFactory {
 
         L.V = L.WShop ? false : ThirdLogManager.info("Quartz scheduler version: " + qs.getVersion());
 
-        SchedulerRepository schedRep = SchedulerRepository.getInstance();
+//        yyh
+//        SchedulerRepository schedRep = SchedulerRepository.getInstance();
 
-        qs.addNoGCObject(schedRep); // prevents the repository from being
+//        yyh
+//        qs.addNoGCObject(schedRep); // prevents the repository from being
         // garbage collected
 
-        schedRep.bind(scheduler);
+//        yyh
+//        schedRep.bind(scheduler);
         
         initialized = true;
+        return scheduler;
     }
 
     /*
@@ -534,44 +540,44 @@ public class DirectSchedulerFactory implements SchedulerFactory {
      * registryPort); }
      */
 
-    /**
-     * <p>
-     * Returns a handle to the Scheduler produced by this factory.
-     * </p>
-     *
-     * <p>
-     * you must call createRemoteScheduler or createScheduler methods before
-     * calling getScheduler()
-     * </p>
-     */
-    public Scheduler getScheduler() throws SchedulerException {
-        if (!initialized) {
-            throw new SchedulerException(
-                "you must call createRemoteScheduler or createScheduler methods before calling getScheduler()");
-        }
+//    /**
+//     * <p>
+//     * Returns a handle to the Scheduler produced by this factory.
+//     * </p>
+//     *
+//     * <p>
+//     * you must call createRemoteScheduler or createScheduler methods before
+//     * calling getScheduler()
+//     * </p>
+//     */
+//    public Scheduler getScheduler() throws SchedulerException {
+//        if (!initialized) {
+//            throw new SchedulerException(
+//                "you must call createRemoteScheduler or createScheduler methods before calling getScheduler()");
+//        }
+//
+//        return getScheduler(DEFAULT_SCHEDULER_NAME);
+//    }
 
-        return getScheduler(DEFAULT_SCHEDULER_NAME);
-    }
+//    /**
+//     * <p>
+//     * Returns a handle to the Scheduler with the given name, if it exists.
+//     * </p>
+//     */
+//    public Scheduler getScheduler(String schedName) throws SchedulerException {
+//        SchedulerRepository schedRep = SchedulerRepository.getInstance();
+//
+//        return schedRep.lookup(schedName);
+//    }
 
-    /**
-     * <p>
-     * Returns a handle to the Scheduler with the given name, if it exists.
-     * </p>
-     */
-    public Scheduler getScheduler(String schedName) throws SchedulerException {
-        SchedulerRepository schedRep = SchedulerRepository.getInstance();
-
-        return schedRep.lookup(schedName);
-    }
-
-    /**
-     * <p>
-     * Returns a handle to all known Schedulers (made by any
-     * StdSchedulerFactory instance.).
-     * </p>
-     */
-    public Collection<Scheduler> getAllSchedulers() throws SchedulerException {
-        return SchedulerRepository.getInstance().lookupAll();
-    }
+//    /**
+//     * <p>
+//     * Returns a handle to all known Schedulers (made by any
+//     * StdSchedulerFactory instance.).
+//     * </p>
+//     */
+//    public Collection<Scheduler> getAllSchedulers() throws SchedulerException {
+//        return SchedulerRepository.getInstance().lookupAll();
+//    }
 
 }

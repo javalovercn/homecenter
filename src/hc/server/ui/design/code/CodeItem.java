@@ -178,7 +178,7 @@ public class CodeItem implements Comparable<CodeItem>{
 	public CodeItem overrideMethodItem;
 	
 	@Override
-	public final int compareTo(final CodeItem o) {
+	public final int compareTo(final CodeItem o) {//注意：如果增加field，请同步到equals()
 		int result = this.type - o.type;
 		if(result == 0){
 			result = codeDisplay.compareToIgnoreCase(o.codeDisplay);//可将bor/Border规在一块
@@ -189,6 +189,30 @@ public class CodeItem implements Comparable<CodeItem>{
 			}
 		}else{
 			return result;
+		}
+	}
+	
+	@Override
+	public final boolean equals(final Object o){//不重复添加
+		if(o == null){
+			return false;
+		}
+		
+		if(this == o){
+			return true;
+		}
+		
+		if(o instanceof CodeItem){
+			final CodeItem ci = (CodeItem)o;
+			if(this.type == ci.type 
+					&& this.codeDisplay.equals(ci.codeDisplay) 
+					&& this.overrideMethodLevel == ci.overrideMethodLevel
+					){
+				return true;
+			}
+			return false;
+		}else{
+			return false;
 		}
 	}
 

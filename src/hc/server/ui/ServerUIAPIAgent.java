@@ -72,8 +72,8 @@ public class ServerUIAPIAgent {
 		ctx.removeScheduler(domain);
 	}
 	
-	public static void shutdownSchedulers(final ProjectContext ctx){
-		ctx.shutdownSchedulers();
+	public static void shutdownSchedulers(final ProjectContext ctx, final Vector<String> list){
+		ctx.shutdownSchedulers(list);
 	}
 	
 	public final static MobiMenu getBelongMobiMenu(final MenuItem item){

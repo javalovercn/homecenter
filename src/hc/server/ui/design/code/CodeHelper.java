@@ -913,19 +913,20 @@ public class CodeHelper {
 		return out;
 	}
 	
-	public ArrayList<CodeItem> getSubPackageAndClasses(final ArrayList<CodeItem> out, final ArrayList<String> requireLibs, final boolean isJavaLimited, final boolean isAppend){
+	public ArrayList<CodeItem> getSubPackageAndClasses(final ArrayList<CodeItem> out, 
+			final ArrayList<String> requireLibs, final boolean isJavaClassSetNotHcClass, final boolean isAppend){
 		if(isAppend == false){
 			clearArray(out);
 		}
 		
-		if(isJavaLimited){
+		if(isJavaClassSetNotHcClass){
 			appendPackageAndClass(out, CodeStaticHelper.J2SE_CLASS_SET, CodeStaticHelper.J2SE_CLASS_SET_SIZE, false);
 		}
-		if(isJavaLimited == false){
+		if(isJavaClassSetNotHcClass == false){
 			appendPackageAndClass(out, CodeStaticHelper.HC_CLASS_SET, CodeStaticHelper.HC_CLASS_SET_SIZE, false);
 		}
 		
-		if(isJavaLimited == false && requireLibs != null){
+		if(isJavaClassSetNotHcClass == false && requireLibs != null){
 			final int size = requireLibs.size();
 			for (int i = 0; i < size; i++) {
 				final String libName = requireLibs.get(i);
@@ -1498,6 +1499,7 @@ public class CodeHelper {
     public final static int TYPE_VAR_LOCAL = 1 << 1;
     public final static int TYPE_VAR_GLOBAL = 1 << 2;
     public final static int TYPE_VAR_INSTANCE = 1 << 3;
+    public final static int TYPE_CLASS = 1 << 4;
     
     private static boolean isInnerClassDefForNew(final Node node){
     	return node.getNodeType() == NodeType.CALLNODE && JRUBY_NEW.equals(((CallNode)node).getName()) &&  isInnerClassDef(((CallNode)node).getReceiver());
@@ -3062,7 +3064,9 @@ public class CodeHelper {
 		if(codeClass == null && 
 				(preCodeType == PRE_TYPE_AFTER_IMPORT_ONLY
 				|| preCodeType == PRE_TYPE_AFTER_IMPORTJAVA
-				|| preCodeType == PRE_TYPE_BEFORE_INSTANCE) && 
+				|| preCodeType == PRE_TYPE_BEFORE_INSTANCE
+				|| preCodeType == PRE_TYPE_AFTER_INCLUDE
+				) && 
 				preCode != null && preCode.length() > 0){
 			//focus for class define，如落焦在java.lang.Thread或Thread
 			final String className = preCode;
@@ -3077,7 +3081,10 @@ public class CodeHelper {
 		    		final JRubyClassDesc jcd =  findParaClass(newCodeCtx, preCode, CodeHelper.TYPE_VAR_LOCAL);
 		    		if(jcd != null && jcd.baseClass != null){
 		    			preCode = jcd.baseClass.getName();
-		    			outAndCycle.add(buildClassItemForDocClass(preCode));
+						final CodeItem item = buildClassItemForDocClass(preCode);
+		    			if(outAndCycle.contains(item) == false) {
+							outAndCycle.add(item);
+						}
 		    		}
 				}
 			}
@@ -3085,12 +3092,6 @@ public class CodeHelper {
 			preCode = new String(lineChars, startIdx, endIdx - startIdx);
 		}
 		
-		final Point win_loc = textPane.getLocationOnScreen();
-		final Rectangle caretRect = textPane.modelToView(scriptIdx - (lineIdx - startIdx));//与方法段齐
-		final int input_x = win_loc.x + caretRect.x;
-		final int input_y = win_loc.y + caretRect.y;
-		
-
 		if(L.isInWorkshop){
 			LogManager.log("[CodeTip] AutoCodeTip : " + preCode + ", codeItem : " + outAndCycle.size());
 		}
@@ -3103,7 +3104,14 @@ public class CodeHelper {
 		final int matchSize = autoTipOut.size();
 		if(matchSize == 0){
 			return false;
-		}else if(matchSize == 1){
+		}
+	
+		final Point win_loc = textPane.getLocationOnScreen();
+		final Rectangle caretRect = textPane.modelToView(scriptIdx - (lineIdx - startIdx));//与方法段齐
+		final int input_x = win_loc.x + caretRect.x;
+		final int input_y = win_loc.y + caretRect.y;
+
+		if(matchSize == 1){
 			window.setMouseOverAutoTipLoc(input_x, input_y, fontHeight);
 			window.startAutoPopTip(autoTipOut.get(0), textPane);
 		}else{
@@ -3265,6 +3273,9 @@ public class CodeHelper {
 			getSubPackageAndClasses(outAndCycle, getRequireLibs(root, outRequireLibs), true, true);
 		}else if(preCodeType == PRE_TYPE_AFTER_IMPORTJAVA){
 			getSubPackageAndClasses(outAndCycle, getRequireLibs(root, outRequireLibs), false, true);
+		}else if(preCodeType == PRE_TYPE_AFTER_INCLUDE){
+			getVariables(rowIdx, root, false, preCode, outAndCycle, TYPE_CLASS);
+			getSubPackageAndClasses(outAndCycle, getRequireLibs(root, outRequireLibs), true, true);
 		}else if(preCodeType == PRE_TYPE_IN_DEF_CLASS_FOR_METHOD_FIELD_ONLY){
 			getMethodAndFieldForInstance(backgroundDefClassNode, false, outAndCycle, false, true);
 		}else if(preCodeType == PRE_TYPE_OVERRIDE_METHOD){
@@ -3324,6 +3335,7 @@ public class CodeHelper {
 	private final static int PRE_TYPE_AFTER_INSTANCE_OR_CLASS = 6;//JLable. myLabel. $myLabel. @my.
 	private final static int PRE_TYPE_RESOURCES = 7;//"/test/res/hc_16.png"
 	public final static int PRE_TYPE_OVERRIDE_METHOD = 8;
+	private final static int PRE_TYPE_AFTER_INCLUDE = 9;
 	
 	public String preCode;
 	public boolean isForceResTip = false;
@@ -3335,14 +3347,16 @@ public class CodeHelper {
 	
 	private final ArrayList<String> outRequireLibs = new ArrayList<String>();
 	
-	private final String PRE_IMPORT = "import ";
-	private final String PRE_IMPORT_JAVA = "import Java::";
-	private final char[] java_dot_chars = "java.".toCharArray();
-	private final char[] javax_dot_chars = "javax.".toCharArray();
-	private final char[] import_chars = PRE_IMPORT.toCharArray();
-	private final int import_chars_len = import_chars.length;
-	private final char[] import_java_chars = PRE_IMPORT_JAVA.toCharArray();
-	private final int import_java_chars_len = import_java_chars.length;
+	private final static String PRE_IMPORT = "import ";
+	private final static String PRE_IMPORT_JAVA = "import Java::";
+	private final static char[] java_dot_chars = "java.".toCharArray();
+	private final static char[] javax_dot_chars = "javax.".toCharArray();
+	private final static char[] import_chars = PRE_IMPORT.toCharArray();
+	private final static char[] include_chars = (JRUBY_INCLUDE + " ").toCharArray();
+	private final static int include_chars_len = include_chars.length;
+	private final static int import_chars_len = import_chars.length;
+	private final static char[] import_java_chars = PRE_IMPORT_JAVA.toCharArray();
+	private final static int import_java_chars_len = import_java_chars.length;
 	
 	private final static boolean matchChars(final char[] search, final char[] chars, final int offset){
 		if(offset < 0){
@@ -3428,7 +3442,10 @@ public class CodeHelper {
 				if(one instanceof NewlineNode){
 					one = ((NewlineNode)one).childNodes().get(0);
 				}
-				if(((type_var & CodeHelper.TYPE_VAR_UNKNOW) != 0 || (type_var & CodeHelper.TYPE_VAR_LOCAL) != 0) 
+				if(((type_var & CodeHelper.TYPE_VAR_UNKNOW) != 0 
+						|| (type_var & CodeHelper.TYPE_VAR_LOCAL) != 0
+						|| (type_var & CodeHelper.TYPE_CLASS) != 0
+						) 
 						&& one instanceof FCallNode){//(FCallNode:import, (ArrayNode, (CallNode:JLabel, (CallNode:swing,
 					final FCallNode callNode = (FCallNode)one;
 					if(callNode.getName().equals("import")){
@@ -3800,6 +3817,19 @@ public class CodeHelper {
 			}
 		}
 
+		{//注意：要置于Java::之后。语法class ABC \ninclude java.lang.Runnable
+			for (int i = 0; i < lineHeader.length; i++) {
+				final char c = lineHeader[i];
+				if(c != '\t' && c != ' '){
+					if(matchChars(lineHeader, include_chars, i)){
+						final int cutIdx = i + include_chars_len;
+						preCode = String.valueOf(lineHeader, cutIdx, columnIdx - cutIdx);
+						return PRE_TYPE_AFTER_INCLUDE;
+					}
+				}
+			}
+		}
+		
 		final JRubyClassDesc desc = codeContext.getDefJRubyClassDesc();//isInDefClass(root, codeContext, rowIdx);
 		preClass = findPreCodeAfterVar(lineHeader, columnIdx, rowIdx, partStartIdx);
 		if(desc != null && preClass == null){

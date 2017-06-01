@@ -19,10 +19,14 @@ package hc.server.util;
 
 import hc.core.HCTimer;
 import hc.core.IConstant;
+import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
+import hc.core.util.ReturnableRunnable;
 import hc.server.data.StoreDirManager;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.design.J2SESession;
 import hc.server.util.ai.AIPersistentManager;
 import hc.server.util.scheduler.AnnualJobCalendar;
 import hc.server.util.scheduler.CronExcludeJobCalendar;
@@ -53,6 +57,7 @@ import third.quartz.JobBuilder;
 import third.quartz.JobDataMap;
 import third.quartz.JobDetail;
 import third.quartz.JobKey;
+import third.quartz.SchedulerException;
 import third.quartz.Trigger;
 import third.quartz.TriggerBuilder;
 import third.quartz.TriggerKey;
@@ -96,24 +101,44 @@ import third.quartz.utils.DBConnectionManager;
 public final class Scheduler {
 	private final ProjectContext projectContext;
 	private final third.quartz.Scheduler sched;
+	final boolean isAllInRAM;
 	private static final String defaultJobGroup = null;
 	private final String domainName;
+	final J2SESession j2seSession;
+	final boolean isSessionLevel;
 	
 	/**
 	 * DONT invoke this method to get an instance, please use {@link ProjectContext#getScheduler(String)}.
 	 * @param projectContext
 	 * @param domainName
 	 * @param isAllInRAM
+	 * @param sessionID
 	 */
 	@Deprecated
-	public Scheduler(final ProjectContext projectContext, final String domainName, final boolean isAllInRAM){
+	public Scheduler(final ProjectContext projectContext, final String domainName, final boolean isAllInRAM,
+			final J2SESession j2seSession){
 		this.domainName = domainName;
 		this.projectContext = projectContext;
+		this.j2seSession = j2seSession;
+		this.isAllInRAM = isAllInRAM;
+		isSessionLevel = j2seSession != null;
+		
 		final String projectID = projectContext.getProjectID();
 		
 		final String key = projectID + "_" + domainName;
 		
-		sched = getScheduler(key, domainName, isAllInRAM);
+		if(isSessionLevel){
+			sched = getScheduler(key, domainName, isAllInRAM, j2seSession);
+			j2seSession.addScheduler(projectID, domainName);
+		}else{
+			//有可能当前是session，所以需runAndWaitInProjContext
+			sched = (third.quartz.Scheduler)ServerUIAPIAgent.runAndWaitInProjContext(projectContext, new ReturnableRunnable() {
+				@Override
+				public Object run() {
+					return getScheduler(key, domainName, isAllInRAM, j2seSession);
+				}
+			});
+		}
 	}
 
 	private final void buildProvider(final String key, final ProjectContext projectContext,
@@ -228,34 +253,29 @@ public final class Scheduler {
 				StoreDirManager.HC_SYS_FOR_USER_PRIVATE_DIR + StoreDirManager.CRON_SUB_DIR_FOR_USER_PRIVATE_DIR);
 	}
 	
-	private final third.quartz.Scheduler getScheduler(final String key, final String domainName, final boolean isRam){
+	private final third.quartz.Scheduler getScheduler(final String key, final String domainName, final boolean isRam,
+			final J2SESession j2seSession){
 		try{
 			final DirectSchedulerFactory factory = DirectSchedulerFactory.getInstance();
-			third.quartz.Scheduler scheduler;
-			scheduler = factory.getScheduler(key);
-			if(scheduler == null){
-		        JobStore store;
-		        
-		        if(isRam){
-		        	store = new RAMJobStore();
-		        }else{
-		    		buildProvider(key, projectContext, domainName);
+	        JobStore store;
+	        
+	        if(isRam){
+	        	store = new RAMJobStore();
+	        }else{
+	    		buildProvider(key, projectContext, domainName);
 
-		        	final JobStoreTX storeTx = new JobStoreTX();
-		        	storeTx.setDriverDelegateClass(HSQLDBDelegate.class.getName());
-		        	storeTx.setDataSource(key);
-		        	storeTx.setTablePrefix("QRTZ_");
-		        	storeTx.setInstanceId(key);
-		        	
-		        	store = storeTx;
-		        }
-		        
-				final QuartzThreadPool threadPool = new QuartzThreadPool(projectContext);
-		        threadPool.initialize();
-		        factory.createScheduler(key, key, threadPool, store);
-		        scheduler = factory.getScheduler(key);
-			}
-	        return scheduler;
+	        	final JobStoreTX storeTx = new JobStoreTX();
+	        	storeTx.setDriverDelegateClass(HSQLDBDelegate.class.getName());
+	        	storeTx.setDataSource(key);
+	        	storeTx.setTablePrefix("QRTZ_");
+	        	storeTx.setInstanceId(key);
+	        	
+	        	store = storeTx;
+	        }
+	        
+			final QuartzThreadPool threadPool = new QuartzThreadPool(projectContext, j2seSession, domainName);
+	        threadPool.initialize();
+	        return factory.createScheduler(key, key, threadPool, store);
 //        	this.scheduler.getListenerManager().addTriggerListener(new TriggerListener());
 //       	this.scheduler.start();
 		}catch (final Throwable e) {
@@ -396,23 +416,17 @@ public final class Scheduler {
      * @see #shutdown(boolean)
      */
     public final void shutdown() {
-    	try{
-    		ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, null);
-	        sched.shutdown();
-	        ServerUIAPIAgent.removeScheduler(projectContext, domainName);
-	    }catch (final Throwable e) {
-			ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, e);
-			ExceptionReporter.printStackTrace(e);
-		}
+        shutdown(false);
     }
 
     /**
      * Halts the <code>Scheduler</code>'s firing of <code>Triggers</code>,
-     * and cleans up all resources associated with the Scheduler.
-     * 
+     * and releases all resources associated with the scheduler.
      * <p>
      * The scheduler cannot be re-started.
      * </p>
+     * Invoking this method with <code>true</code> is allowed in job, scheduler will check stack of current thread and minus self from running jobs.
+     * <BR><BR>
      * if fail to shutdown, invoke {@link #getThrownException()} to get thrown exception.
      * @param waitForJobsToComplete
      *          if <code>true</code> the scheduler will not allow this method
@@ -422,8 +436,8 @@ public final class Scheduler {
     public final void shutdown(final boolean waitForJobsToComplete) {
     	try{
     		ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, null);
+	        ServerUIAPIAgent.removeScheduler(projectContext, domainName);//优先，防止被其它线程再次执行
 	        sched.shutdown(waitForJobsToComplete);
-	        ServerUIAPIAgent.removeScheduler(projectContext, domainName);
 	    }catch (final Throwable e) {
 			ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, e);
 			ExceptionReporter.printStackTrace(e);
@@ -459,6 +473,7 @@ public final class Scheduler {
     public final void clear() {
     	try{
     		ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, null);
+    		LogManager.log("scheduler [" + domainName + "] clear all job, calendar and trigger.");
     		sched.clear();
     	}catch (final Throwable e) {
     		ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, e);
@@ -469,14 +484,16 @@ public final class Scheduler {
     /**
      * Add (if exists then replace) the given <code>Job</code> to the scheduler. The <code>Job</code> will be silent until
      * it is scheduled with a <code>Trigger</code> or <code>Scheduler.triggerJob()</code>
-     * is called for it.
+     * is called.
+     * <BR><BR>
+     * a job can be scheduled by multiple triggers.
      * <BR><BR>
      * the added job is durable, see {@link #deleteTrigger(String)} for more.
      * <BR><BR>
      * if fail to add job, invoke {@link #getThrownException()} to get thrown exception.
      * @see #addJob(String, String, boolean, boolean, boolean)
      * @param jobKey
-     * @param jrubyScripts
+     * @param jrubyScripts the max length is 1GB.
      */
     public final void addJob(final String jobKey, final String jrubyScripts) {
     	try{
@@ -487,7 +504,36 @@ public final class Scheduler {
     		ExceptionReporter.printStackTrace(e);
     	}
     }
-    
+
+    /**
+     * add a <code>Runnable</code> instance as a job.
+     * <BR><BR>
+     * <STRONG>Note :</STRONG><BR>
+     * 1. this method is valid only in AllInRAM scheduler, because the instance will be lost after shutdown project.
+     * <BR><BR>
+     * if fail to add job, invoke {@link #getThrownException()} to get thrown exception.
+     * @param jobKey
+     * @param runnable
+     */
+    public final void addJob(final String jobKey, final Runnable runnable) {
+    	try{
+    		ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, null);
+    		if(isAllInRAM == false){
+    			throw new SchedulerException("addJob(String jobKey, Runnable runnable) must be invoked in AllInRAM scheduler.");
+    		}
+//    		if(isSessionLevel == false){
+//    			//if current scheduler is project level, but runs in session level thread, then fail.
+//    			if(ProjectContext.isCurrentThreadInSessionLevel()){
+//    				throw new SchedulerException("addJob(String jobKey, Runnable runnable) can't run in session level thread when it is project level scheduler.");
+//    			}
+//    		}
+    		sched.addJob(buildJobDetail(jobKey, runnable, isDurable, jobShouldRecover), true);
+    	}catch (final Throwable e) {
+    		ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, e);
+    		ExceptionReporter.printStackTrace(e);
+    	}
+    }
+
     /**
      * get the names of all registered jobs.
      * @return null means exception thrown,<BR>if no job returns a list with zero size.<BR>
@@ -546,6 +592,9 @@ public final class Scheduler {
      * once there are no remaining associated triggers).
      * </p>
      * if fail to add job, invoke {@link #getThrownException()} to get thrown exception.
+     * @param jobKey
+     * @param jrubyScripts the max length is 1GB.
+     * @param storeNonDurableWhileAwaitingScheduling
      */
     public final void addJob(final String jobKey, final String jrubyScripts, final boolean storeNonDurableWhileAwaitingScheduling) {
     	try{
@@ -562,7 +611,7 @@ public final class Scheduler {
      * <BR><BR>
      * if fail to add job, invoke {@link #getThrownException()} to get thrown exception.
      * @param jobKey
-     * @param jrubyScripts
+     * @param jrubyScripts the max length is 1GB.
      * @param isDurable false means the job will also be deleted if there is no other trigger refers to it.<BR>see {@link #deleteTrigger(String)}.
      * @param jobShouldRecover Instructs the Scheduler whether or not the Job should be re-executed if a 'recovery' or 'fail-over' situation is encountered. If not explicitly set, the default value is false.
      * @param storeNonDurableWhileAwaitingScheduling
@@ -579,8 +628,11 @@ public final class Scheduler {
     	}
     }
     
+    private static final boolean isDurable = true;
+    private static final boolean jobShouldRecover = false;
+    
     private final JobDetail buildJobDetail(final String jobKey, final String jobScripts){
-    	return buildJobDetail(jobKey, jobScripts, true, false);
+    	return buildJobDetail(jobKey, jobScripts, isDurable, jobShouldRecover);
     }
     
     private final JobDetail buildJobDetail(final String jobKey, final String jobScripts, final boolean isDurable, final boolean jobShouldRecover){
@@ -588,6 +640,19 @@ public final class Scheduler {
     	QuartzJRubyJob.setJobScripts(map, jobScripts);
     	
     	final JobBuilder builder = JobBuilder.newJob(QuartzJRubyJob.class);
+    	builder.withIdentity(jobKey, defaultJobGroup);
+    	builder.setJobData(map);
+    	builder.storeDurably(isDurable);
+    	builder.requestRecovery(jobShouldRecover);
+    	
+    	return builder.build();
+    }
+    
+    private final JobDetail buildJobDetail(final String jobKey, final Runnable run, final boolean isDurable, final boolean jobShouldRecover){
+    	final JobDataMap map = new JobDataMap();
+    	QuartzRunnableJob.setRunnable(map, run);
+    	
+    	final JobBuilder builder = JobBuilder.newJob(QuartzRunnableJob.class);
     	builder.withIdentity(jobKey, defaultJobGroup);
     	builder.setJobData(map);
     	builder.storeDurably(isDurable);
@@ -1246,10 +1311,258 @@ public final class Scheduler {
 //    }
     
     /**
-     * Indicates whether the specified cron expression can be parsed into a 
-     * valid cron expression.
-     * <BR><BR>
-     * for more about Cron Expression, please click <a href="http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html">http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html</a>
+     * <h2 id="format">Format</h2>
+     * <p>A cron expression is a string comprised of 6 or 7 fields separated by white space. Fields can contain any of the
+     * allowed values, along with various combinations of the allowed special characters for that field. The fields are as
+     * follows:</p>
+     * <table cellpadding="3" cellspacing="1" border='1'>
+     *     <tbody>
+     *         <tr>
+     *             <th>Field Name</th>
+     *             <th>Mandatory</th>
+     *             <th>Allowed Values</th>
+     *             <th>Allowed Special Characters</th>
+     *         </tr>
+     *         <tr>
+     *             <td>Seconds</td>
+     *             <td>YES</td>
+     * 
+     *             <td>0-59</td>
+     *             <td>, - * /</td>
+     *         </tr>
+     *         <tr>
+     *             <td>Minutes</td>
+     *             <td>YES</td>
+     *             <td>0-59</td>
+     * 
+     *             <td>, - * /</td>
+     *         </tr>
+     *         <tr>
+     *             <td>Hours</td>
+     *             <td>YES</td>
+     *             <td>0-23</td>
+     *             <td>, - * /</td>
+     * 
+     *         </tr>
+     *         <tr>
+     *             <td>Day of month</td>
+     *             <td>YES</td>
+     *             <td>1-31</td>
+     *             <td>, - * ? / L W<br clear="all" />
+     *             </td>
+     *         </tr>
+     *         <tr>
+     * 
+     *             <td>Month</td>
+     *             <td>YES</td>
+     *             <td>1-12 or JAN-DEC</td>
+     *             <td>, - * /</td>
+     *         </tr>
+     *         <tr>
+     *             <td>Day of week</td>
+     * 
+     *             <td>YES</td>
+     *             <td>1-7 or SUN-SAT</td>
+     *             <td>, - * ? / L #</td>
+     *         </tr>
+     *         <tr>
+     *             <td>Year</td>
+     *             <td>NO</td>
+     * 
+     *             <td>empty, 1970-2099</td>
+     *             <td>, - * /</td>
+     *         </tr>
+     *     </tbody>
+     * </table>
+     * <p>So cron expressions can be as simple as this: <tt>* * * * ? *</tt></p>
+     * 
+     * <p>or more complex, like this: <tt>0/5 14,18,3-39,52 * ? JAN,MAR,SEP MON-FRI 2002-2010</tt></p>
+     * 
+     * <h2 id="special-characters">Special characters</h2>
+     * 
+     * <ul>
+     *   <li>
+     *     <p><tt><strong>*</strong></tt> (<em>“all values”</em>) - used to select all values within a field. For example, <em>“*”</em>
+     *   in the minute field means </em>“every minute”</em>.</p>
+     *   </li>
+     *   <li>
+     *     <p><tt><strong>?</strong></tt> (<em>“no specific value”</em>) - useful when you need to specify something in one of the
+     *   two fields in which the character is allowed, but not the other. For example, if I want my trigger to fire on a
+     *   particular day of the month (say, the 10th), but don’t care what day of the week that happens to be, I would put
+     *   “10” in the day-of-month field, and “?” in the day-of-week field. See the examples below for clarification.</p>
+     *   </li>
+     *   <li>
+     *     <p><tt><strong>-</strong></tt> - used to specify ranges. For example, “10-12” in the hour field means <em>“the
+     *   hours 10, 11 and 12”</em>.</p>
+     *   </li>
+     *   <li>
+     *     <p><tt><strong>,</strong></tt> - used to specify additional values. For example, “MON,WED,FRI” in the day-of-week
+     *   field means <em>“the days Monday, Wednesday, and Friday”</em>.</p>
+     *   </li>
+     *   <li>
+     *     <p><tt><strong>/</strong></tt> - used to specify increments. For example, “0/15” in the seconds field means <em>“the
+     *   seconds 0, 15, 30, and 45”</em>. And “5/15” in the seconds field means <em>“the seconds 5, 20, 35, and 50”</em>. You can
+     *   also specify ‘/’ after the ‘<strong>’ character - in this case ‘</strong>’ is equivalent to having ‘0’ before the ‘/’. ‘1/3’
+     *   in the day-of-month field means <em>“fire every 3 days starting on the first day of the month”</em>.</p>
+     *   </li>
+     *   <li>
+     *     <p><tt><strong>L</strong></tt> (<em>“last”</em>) - has different meaning in each of the two fields in which it is
+     *   allowed. For example, the value “L” in the day-of-month field means <em>“the last day of the month”</em> - day
+     *   31 for January, day 28 for February on non-leap years. If used in the day-of-week field by itself, it simply means
+     *   “7” or “SAT”. But if used in the day-of-week field after another value, it means <em>“the last xxx day of the
+     *   month”</em> - for example “6L” means <em>“the last friday of the month”</em>. You can also specify an offset
+     *   from the last day of the month, such as “L-3” which would mean the third-to-last day of the calendar month.
+     *   <em>When using the ‘L’ option, it is important not to specify lists, or ranges of values, as you’ll get
+     *   confusing/unexpected results.</em></p>
+     *   </li>
+     *   <li>
+     *     <p><tt><strong>W</strong></tt> (<em>“weekday”</em>) - used to specify the weekday (Monday-Friday) nearest the given day.
+     *   As an example, if you were to specify “15W” as the value for the day-of-month field, the meaning is: <em>“the
+     *   nearest weekday to the 15th of the month”</em>. So if the 15th is a Saturday, the trigger will fire on Friday the 14th.
+     *   If the 15th is a Sunday, the trigger will fire on Monday the 16th. If the 15th is a Tuesday, then it will fire on
+     *   Tuesday the 15th. However if you specify “1W” as the value for day-of-month, and the 1st is a Saturday, the trigger
+     *   will fire on Monday the 3rd, as it will not ‘jump’ over the boundary of a month’s days. The ‘W’ character can only
+     *   be specified when the day-of-month is a single day, not a range or list of days.</p>
+     *   </li>
+     * </ul>
+     * <blockquote>
+     *             The 'L' and 'W' characters can also be combined in the day-of-month field to yield 'LW', which
+     *             translates to *"last weekday of the month"*.
+     * </blockquote>
+     * 
+     * <ul>
+     *   <li><tt><strong>#</strong></tt> - used to specify “the nth” XXX day of the month. For example, the value of “6#3”
+     *   in the day-of-week field means <em>“the third Friday of the month”</em> (day 6 = Friday and “#3” = the 3rd one in
+     *   the month). Other examples: “2#1” = the first Monday of the month and “4#5” = the fifth Wednesday of the month. Note
+     *   that if you specify “#5” and there is not 5 of the given day-of-week in the month, then no firing will occur that
+     *   month.</li>
+     * </ul>
+     * <blockquote>
+     *             The legal characters and the names of months and days of the week are not case sensitive. <tt>MON</tt>
+     *             is the same as <tt>mon</tt>.
+     * </blockquote>
+     * 
+     * <h2 id="examples">Examples</h2>
+     * 
+     * <p>Here are some full examples:</p>
+     * <table cellpadding="3" cellspacing="1" border='1'>
+     *     <tbody>
+     *         <tr>
+     *             <td width="200">**Expression**</td>
+     *             <td>**Meaning**</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 0 12 * * ?</tt></td>
+     * 
+     *             <td>Fire at 12pm (noon) every day</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 15 10 ? * *</tt></td>
+     *             <td>Fire at 10:15am every day</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 15 10 * * ?</tt></td>
+     * 
+     *             <td>Fire at 10:15am every day</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 15 10 * * ? *</tt></td>
+     *             <td>Fire at 10:15am every day</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 15 10 * * ? 2005</tt></td>
+     * 
+     *             <td>Fire at 10:15am every day during the year 2005</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 * 14 * * ?</tt></td>
+     *             <td>Fire every minute starting at 2pm and ending at 2:59pm, every day</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 0/5 14 * * ?</tt></td>
+     * 
+     *             <td>Fire every 5 minutes starting at 2pm and ending at 2:55pm, every day</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 0/5 14,18 * * ?</tt></td>
+     *             <td>Fire every 5 minutes starting at 2pm and ending at 2:55pm, AND fire every 5
+     *             minutes starting at 6pm and ending at 6:55pm, every day</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 0-5 14 * * ?</tt></td>
+     * 
+     *             <td>Fire every minute starting at 2pm and ending at 2:05pm, every day</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 10,44 14 ? 3 WED</tt></td>
+     *             <td>Fire at 2:10pm and at 2:44pm every Wednesday in the month of March.</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 15 10 ? * MON-FRI</tt></td>
+     * 
+     *             <td>Fire at 10:15am every Monday, Tuesday, Wednesday, Thursday and Friday</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 15 10 15 * ?</tt></td>
+     *             <td>Fire at 10:15am on the 15th day of every month</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 15 10 L * ?</tt></td>
+     * 
+     *             <td>Fire at 10:15am on the last day of every month</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 15 10 L-2 * ?</tt></td>
+     * 
+     *             <td>Fire at 10:15am on the 2nd-to-last last day of every month</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 15 10 ? * 6L</tt></td>
+     *             <td>Fire at 10:15am on the last Friday of every month</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 15 10 ? * 6L</tt></td>
+     * 
+     *             <td>Fire at 10:15am on the last Friday of every month</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 15 10 ? * 6L 2002-2005</tt></td>
+     *             <td>Fire at 10:15am on every last friday of every month during the years 2002,
+     *             2003, 2004 and 2005</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 15 10 ? * 6#3</tt></td>
+     * 
+     *             <td>Fire at 10:15am on the third Friday of every month</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 0 12 1/5 * ?</tt></td>
+     *             <td>Fire at 12pm (noon) every 5 days every month, starting on the first day of the
+     *             month.</td>
+     *         </tr>
+     *         <tr>
+     *             <td><tt>0 11 11 11 11 ?</tt></td>
+     * 
+     *             <td>Fire every November 11th at 11:11am.</td>
+     *         </tr>
+     *     </tbody>
+     * </table>
+     * <BR>
+     * Pay attention to the effects of '?' and '*' in the day-of-week and day-of-month fields!
+     * <BR>
+     * 
+     * <h2 id="notes">Notes</h2>
+     * 
+     * <ul>
+     *   <li>Support for specifying both a day-of-week and a day-of-month value is not complete (you must currently use
+     *   the ‘?’ character in one of these fields).</li>
+     *   <li>Be careful when setting fire times between the hours of the morning when “daylight savings” changes occur
+     *   in your locale (for US locales, this would typically be the hour before and after 2:00 AM - because the time
+     *   shift can cause a skip or a repeat depending on whether the time moves back or jumps forward.  You may find
+     *   this wikipedia entry helpful in determining the specifics to your locale:<br />
+     *   <a href="https://secure.wikimedia.org/wikipedia/en/wiki/Daylight_saving_time_around_the_world">https://secure.wikimedia.org/wikipedia/en/wiki/Daylight_saving_time_around_the_world</a></li>
+     * </ul>
+     * the above is copy from http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html
      * @param cronExpression the cron expression
      * @return a boolean indicating whether the given expression is a valid cron
      *         expression
@@ -1259,14 +1572,15 @@ public final class Scheduler {
     }
     
     /**
-     * add and schedule a cron trigger.<BR><BR>
+     * add (if exists then replace) and schedule a cron trigger.<BR>
      * if fail to add cron trigger, invoke {@link #getThrownException()} to get thrown exception.<BR><BR>
-     * <STRONG>Note :</STRONG><BR>
      * if trigger is upon a mis-fire situation, then be fired once now.
+     * <BR><BR>
+     * to execute job now, see {@link #triggerJob(String)}.
      * @param triggerKey
-     * @param cronExpression for more about Cron Expression, please click <a href="http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html">http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html</a>
-     * @param calendarName
-     * @param jobKey
+     * @param cronExpression for more about Cron Expression, click {@link #isValidCronExpression(String)}.
+     * @param calendarName the name of the Calendar that should be applied to this trigger. null means no days in calendar is excludes.
+     * @param jobKey if null then do nothing.
      * @see #addCronTrigger(String, String, TimeZone, String, Date, Date, int, String, String)
      */
     public final void addCronTrigger(final String triggerKey, final String cronExpression, final String calendarName, final String jobKey) {
@@ -1295,13 +1609,19 @@ public final class Scheduler {
      */
     public static final int MISFIRE_INSTRUCTION_FIRE_ONCE_NOW = CronTrigger.MISFIRE_INSTRUCTION_FIRE_ONCE_NOW;
     
+    private static final String ALL_DAYS_CALENDAR = CCoreUtil.SYS_RESERVED_KEYS_START + "AllDays";
+    
+    private static final MonthlyJobCalendar allDays = new MonthlyJobCalendar();
+    
     /**
-     * add and schedule a cron trigger.<BR><BR>
+     * add (if exists then replace) and schedule a cron trigger.<BR>
      * if fail to add and schedule cron trigger, invoke {@link #getThrownException()} to get thrown exception.
+     * <BR><BR>
+     * to execute job now, see {@link #triggerJob(String)}.
      * @param triggerKey
-     * @param cronExpression for more about Cron Expression, please click <a href="http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html">http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html</a>
+     * @param cronExpression for more about Cron Expression, click {@link #isValidCronExpression(String)}.
      * @param cronTimeZone null means default.
-     * @param calendarName the name of the Calendar that should be applied to this trigger.
+     * @param calendarName the name of the Calendar that should be applied to this trigger. null means no days in calendar is excludes.
      * @param startTime null means start now.
      * @param endTime null means never end.
      * @param misfireOption one of {@link #MISFIRE_INSTRUCTION_DO_NOTHING}, {@link #MISFIRE_INSTRUCTION_FIRE_ONCE_NOW} or others in future.
@@ -1309,11 +1629,18 @@ public final class Scheduler {
      * @param description
      */
     public final void addCronTrigger(final String triggerKey, 
-    		final String cronExpression, final TimeZone cronTimeZone, final String calendarName, 
+    		final String cronExpression, final TimeZone cronTimeZone, String calendarName, 
     		final Date startTime, final Date endTime, final int misfireOption, 
     		final String jobKey, final String description) {
     	if(jobKey == null){
     		return;
+    	}
+    	
+    	if(calendarName == null){
+    		calendarName = ALL_DAYS_CALENDAR;
+    		addCalendar(calendarName, allDays);
+//    		calendarName = ALL_DAYS_CALENDAR + ResourceUtil.buildUUID();
+//    		addCalendar(calendarName, new MonthlyJobCalendar());
     	}
     	
     	final CronScheduleBuilder cronScheBuilder = CronScheduleBuilder.cronSchedule(cronExpression);

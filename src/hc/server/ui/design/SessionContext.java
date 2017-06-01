@@ -77,13 +77,21 @@ public class SessionContext {
 		}
 		
 		final ThreadPool sessionPool = new ThreadPool(mtg) {
+			int threadID = 1;
+			
 			@Override
 			protected void checkAccessPool(final Object token) {
 			}
 			
+			private final String getNextThreadID(){
+				synchronized (this) {
+					return mtg.getName() + "_" + (threadID++);
+				}
+			}
+			
 			@Override
 			protected Thread buildThread(final RecycleThread rt) {
-				return new Thread(mtg, rt);
+				return new Thread(mtg, rt, getNextThreadID());
 			}
 		};
 		

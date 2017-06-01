@@ -60,7 +60,6 @@ import third.quartz.UnableToInterruptJobException;
 import third.quartz.Trigger.CompletedExecutionInstruction;
 import third.quartz.Trigger.TriggerState;
 import third.quartz.core.jmx.QuartzSchedulerMBean;
-import third.quartz.impl.SchedulerRepository;
 import third.quartz.impl.matchers.GroupMatcher;
 import third.quartz.listeners.SchedulerListenerSupport;
 import third.quartz.simpl.PropertySettingJobFactory;
@@ -168,7 +167,7 @@ public class QuartzScheduler implements RemotableQuartzScheduler {
 
     private Random random = new Random();
 
-    private ArrayList<Object> holdToPreventGC = new ArrayList<Object>(5);
+//    private ArrayList<Object> holdToPreventGC = new ArrayList<Object>(5);//yyh
 
     private boolean signalOnSchedulingChange = true;
 
@@ -473,13 +472,15 @@ public class QuartzScheduler implements RemotableQuartzScheduler {
         return threadGroup;
     }
 
-    public void addNoGCObject(Object obj) {
-        holdToPreventGC.add(obj);
-    }
+//    yyh
+//    public void addNoGCObject(Object obj) {
+//        holdToPreventGC.add(obj);
+//    }
 
-    public boolean removeNoGCObject(Object obj) {
-        return holdToPreventGC.remove(obj);
-    }
+//    yyh
+//    public boolean removeNoGCObject(Object obj) {
+//        return holdToPreventGC.remove(obj);
+//    }
 
     /**
      * <p>
@@ -724,9 +725,11 @@ public class QuartzScheduler implements RemotableQuartzScheduler {
 
         notifySchedulerListenersShutdown();
 
-        SchedulerRepository.getInstance().remove(resources.getName());
+//        yyh
+//        SchedulerRepository.getInstance().remove(resources.getName());
 
-        holdToPreventGC.clear();
+//        yyh
+//        holdToPreventGC.clear();
         
         L.V = L.WShop ? false : ThirdLogManager.info(
                 "Scheduler " + resources.getUniqueIdentifier()
@@ -889,7 +892,7 @@ public class QuartzScheduler implements RemotableQuartzScheduler {
                     "Based on configured schedule, the given trigger '" + trigger.getKey() + "' will never fire.");
         }
 
-        resources.getJobStore().storeTrigger(trig, false);
+        resources.getJobStore().storeTrigger(trig, true);//yyh 准许rewrite
         notifySchedulerThread(trigger.getNextFireTime().getTime());
         notifySchedulerListenersSchduled(trigger);
 

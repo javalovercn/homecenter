@@ -286,7 +286,8 @@ public class RemoteScheduler implements Scheduler {
             
             getRemoteScheduler().shutdown();
             
-            SchedulerRepository.getInstance().remove(schedulerName);
+//            yyh
+//            SchedulerRepository.getInstance().remove(schedulerName);
         } catch (Exception re) {
             throw invalidateHandleCreateException(
                     "Error communicating with remote scheduler.", re);
@@ -305,7 +306,8 @@ public class RemoteScheduler implements Scheduler {
             
             getRemoteScheduler().shutdown(waitForJobsToComplete);
 
-            SchedulerRepository.getInstance().remove(schedulerName);
+//            yyh
+//            SchedulerRepository.getInstance().remove(schedulerName);
         } catch (Exception re) {
             throw invalidateHandleCreateException(
                     "Error communicating with remote scheduler.", re);

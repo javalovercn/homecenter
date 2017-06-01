@@ -304,7 +304,8 @@ public abstract class RemoteMBeanScheduler implements Scheduler {
         String schedulerName = getSchedulerName();
         
         invoke("shutdown", new Object[] {}, new String[] {});
-        SchedulerRepository.getInstance().remove(schedulerName);
+//        yyh
+//        SchedulerRepository.getInstance().remove(schedulerName);
     }
 
     /**

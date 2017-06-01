@@ -127,7 +127,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	
 	static final Pattern keywords_pattern = Pattern.compile("\\b(BEGIN|END|__ENCODING__|__END__|__FILE__|__LINE__|alias|" +
 			"and|attr_accessor|attr_reader|attr_writer|begin|break|case|class |def|defined?|do|else|elsif|end|" +
-			"ensure|extend|false|for|if|in|import|include |module|next|nil|not|or|private|protected|public|raise|redo|require|rescue|retry|return|" +
+			"ensure|extend|false|for|if|in|import|include|module|next|nil|not|or|private|protected|public|raise|redo|require|rescue|retry|return|" +
 			"self|super|then|true|undef|unless|until|when|while|yield)\\b", Pattern.MULTILINE);//class+space解决ctx.class.get()
 //	private static final String[] Indentation = {"begin", "case ", "class ", "def ", "else", 
 //		"elsif ", "for ", "if ", "module ", "when ", "while ", "rescue "};

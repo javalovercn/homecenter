@@ -32,6 +32,7 @@ import third.quartz.spi.OperableTrigger;
 import third.quartz.spi.TriggerFiredBundle;
 import third.quartz.spi.TriggerFiredResult;
 import hc.core.L;
+import hc.core.util.LogManager;
 import hc.core.util.ThirdLogManager;
 
 
@@ -323,8 +324,10 @@ public class QuartzSchedulerThread extends Thread {
                                         // on 'synchronize', so we must recompute
                                         now = System.currentTimeMillis();
                                         timeUntilTrigger = triggerTime - now;
-                                        if(timeUntilTrigger >= 1)
+                                        if(timeUntilTrigger >= 1){
+                                        	L.V = L.WShop ? false : LogManager.log("Quartz scheduler thread wait : " + timeUntilTrigger + ", current thread : " + Thread.currentThread().getName());
                                             sigLock.wait(timeUntilTrigger);
+                                        }
                                     } catch (InterruptedException ignore) {
                                     }
                                 }

@@ -327,7 +327,9 @@ public class ReceiveServer implements Runnable{
 //				LogManager.log("Finished Receive Biz Action");
             }catch (final Exception e) {
             	if(isInWorkshop){
-            		LogManager.errToLog("Receive Server [" + dataInputStream.hashCode() + "]:" + threadID + " exception : " + e.toString());
+            		if(dataInputStream != null){
+            			LogManager.errToLog("Receive Server [" + dataInputStream.hashCode() + "]:" + threadID + " exception : " + e.toString());
+            		}
             	}
             	
 				//因为重连手机端,可能导致bs重分配，而导致错误

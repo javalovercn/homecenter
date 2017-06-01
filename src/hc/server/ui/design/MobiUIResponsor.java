@@ -620,6 +620,16 @@ public class MobiUIResponsor extends BaseResponsor {
 					releaseClientSession(j2seCoreSS);//必须最后释放
 				}
 			});
+			for (int i = 0; i < responserSize; i++) {
+				final ProjResponser projResponser = responsors[i];
+				ServerUIAPIAgent.addSequenceWatcherInProjContextForSessionFirst(j2seCoreSS, projResponser, new ReturnableRunnable() {
+					@Override
+					public Object run() {
+						j2seCoreSS.shutdowScheduler(projResponser.context);
+						return null;
+					}
+				});
+			}
 		}else if(event == ProjectContext.EVENT_SYS_PROJ_SHUTDOWN){
 			sendFinishAllNotify();
 		}

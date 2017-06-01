@@ -345,9 +345,14 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			PropertiesManager.setValue(PropertiesManager.p_IsSimu, IConstant.TRUE);//注意：须在下行isSimu之前
 		}
 		
-		if (PropertiesManager.isSimu()) {//注意：须在上行setValue(PropertiesManager.p_IsSimu, IConstant.TRUE);之后
+		final boolean isSimu = PropertiesManager.isSimu();
+		if (isSimu 
+				|| PropertiesManager.isTrue(PropertiesManager.p_IsDevLogOn, false)) {//注意：须在上行setValue(PropertiesManager.p_IsSimu, IConstant.TRUE);之后
 			L.setInWorkshop(true);
-			LogManager.log("isSimu : true");
+			
+			if(isSimu){
+				LogManager.log("isSimu : true");
+			}
 			
 			final Thread t = new Thread("printAllThreadStack"){
 				final long sleepMS = Long.valueOf(PropertiesManager.getValue(PropertiesManager.p_DebugStackMS, "20000"));
@@ -400,7 +405,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			HCTimer.doNothing();//trig init process
 		}
 		
-		if(PropertiesManager.isSimu()){
+		if(isSimu){
 			ScriptTester.doNothing();
 		}
 		

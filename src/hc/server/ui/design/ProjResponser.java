@@ -207,7 +207,7 @@ public class ProjResponser {
 	public final void stop(){
 		L.V = L.WShop ? false : LogManager.log("stop ProjResponser [" + projectID + "]");
 
-		ServerUIAPIAgent.shutdownSchedulers(context);//置于hcje.terminate之前
+		ServerUIAPIAgent.shutdownSchedulers(context, null);//置于hcje.terminate之前
 
 		try{
 			synchronized (this) {

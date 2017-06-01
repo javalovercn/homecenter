@@ -5,16 +5,25 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.ProjResponser;
 import third.quartz.SchedulerConfigException;
 import third.quartz.spi.ThreadPool;
 
 public class QuartzThreadPool implements ThreadPool{
 	final ProjectContext ctx;
+	final J2SESession j2seSession;
+	final String domain;
 	int counter;
+	int shutingDownJob;
 	final Object lock;
+	final ProjResponser resp;
 	
-	public QuartzThreadPool(final ProjectContext ctx){
+	public QuartzThreadPool(final ProjectContext ctx, final J2SESession j2seSession, final String domain){
 		this.ctx = ctx;
+		this.j2seSession = j2seSession;
+		this.domain = domain;
+		this.resp = ServerUIAPIAgent.getProjResponserMaybeNull(ctx);
 		lock = this;
 	}
 	
@@ -24,7 +33,7 @@ public class QuartzThreadPool implements ThreadPool{
 			counter++;
 		}
 		if(L.isInWorkshop){
-			LogManager.log("Quartz in [" + ctx.getProjectID() + "] is consuming thread, total : " + counter);
+			LogManager.log("scheduler [" + domain + "] is consuming thread for job, total : " + counter);
 		}
 		
 		final Runnable printCounterRunnable = new Runnable() {
@@ -36,17 +45,21 @@ public class QuartzThreadPool implements ThreadPool{
 					ExceptionReporter.printStackTrace(e);
 				}finally{
 					synchronized (lock) {
-						if(--counter == 0){
-							lock.notify();
+						if(--counter == shutingDownJob){
+							lock.notifyAll();
 						}
 					}
 					if(L.isInWorkshop){
-						LogManager.log("Quartz in [" + ctx.getProjectID() + "] is consuming thread, total : " + counter);
+						LogManager.log("scheduler [" + domain + "] revert job thread, consuming total : " + counter);
 					}
 				}
 			}
 		};
-		ServerUIAPIAgent.runInProjContext(ctx, printCounterRunnable);
+		if(j2seSession == null){
+			ServerUIAPIAgent.runInProjContext(ctx, printCounterRunnable);
+		}else{
+			ServerUIAPIAgent.runInSessionThreadPool(j2seSession, resp, printCounterRunnable);
+		}
 		return true;
 	}
 
@@ -62,12 +75,36 @@ public class QuartzThreadPool implements ThreadPool{
 	@Override
 	public void shutdown(final boolean waitForJobsToComplete) {
 		if(waitForJobsToComplete){
-			synchronized (lock) {
-				if(counter > 0){
-					try {
-						lock.wait();
-					} catch (final InterruptedException e) {
-						e.printStackTrace();
+			boolean isStackUseOneThread = false;
+
+			//检查stack上，是否占用一个
+			final StackTraceElement[] ste = Thread.currentThread().getStackTrace();
+			for (int i = 0; i < ste.length; i++) {
+				final StackTraceElement ele = ste[i];
+				final String stackClassName = ele.getClassName();
+				if(QuartzRunnableJob.class.getName().equals(stackClassName)
+						|| QuartzJRubyJob.class.getName().equals(stackClassName)){
+					isStackUseOneThread = true;
+					break;
+				}
+			}
+			
+			if(isStackUseOneThread){
+				synchronized (lock) {
+					shutingDownJob++;
+				}
+			}
+			
+			while(true){
+				synchronized (lock) {
+					if(counter > shutingDownJob){
+						try {
+							lock.wait();
+						} catch (final InterruptedException e) {
+							e.printStackTrace();
+						}
+					}else{
+						break;
 					}
 				}
 			}

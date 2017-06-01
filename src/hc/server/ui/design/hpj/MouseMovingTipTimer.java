@@ -27,7 +27,7 @@ public class MouseMovingTipTimer extends HCTimer {
 	}
 	
 	public MouseMovingTipTimer(final ScriptEditPanel scriptPanel, final HCTextPane jtaScript, final AbstractDocument jtaDocment, final int fontHeight) {
-		super("MouseMovingTipTimer", 1000, false);
+		super("MouseMovingTipTimer", 600, false);//由原来的1000=>600
 		if(L.isInWorkshop){
 			LogManager.log("create MouseMovingTipTimer");
 		}
