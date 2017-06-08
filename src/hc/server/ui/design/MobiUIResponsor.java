@@ -31,6 +31,7 @@ import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SessionMobiMenu;
 import hc.server.ui.design.hpj.HCjar;
+import hc.server.util.ServerAPIAgent;
 import hc.server.util.SystemEventListener;
 import hc.server.util.VoiceCommand;
 import hc.server.util.ai.AIPersistentManager;
@@ -86,11 +87,12 @@ public class MobiUIResponsor extends BaseResponsor {
 		}
 	}
 	
-	//stop synchronized
-	public final boolean dispatchVoiceCommand(final J2SESession coreSS, final VoiceCommand vc){
+	//stop synchronized:不占用其它锁
+	public final boolean dispatchVoiceCommand(final J2SESession coreSS, final String voiceText){
 		for (int i = 0; i < responserSize; i++) {
 			final ProjResponser projResp = responsors[i];
 			
+			final VoiceCommand vc = ServerAPIAgent.buildVoiceCommand(voiceText, coreSS, projResp);
 			final boolean isConsumed = projResp.dispatchVoiceCommandAndWait(coreSS, vc);
 			if(isConsumed){
 				LogManager.log(ILog.OP_STR + "successful process voice command [" + vc.getText() + "] in project [" + projResp.projectID + "].");

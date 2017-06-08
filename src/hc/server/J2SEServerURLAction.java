@@ -34,7 +34,6 @@ import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.engine.HCJRubyEngine;
-import hc.server.util.VoiceCommand;
 import hc.server.util.VoiceParameter;
 import hc.server.util.ai.ProjectTargetForAI;
 import hc.util.BaseResponsor;
@@ -197,9 +196,9 @@ public class J2SEServerURLAction implements IHCURLAction {
 							LogManager.log(ILog.OP_STR + "voice command " + msg);
 						}
 					}else{
-						final VoiceCommand vc = new VoiceCommand(voiceText);
+						
 						final MobiUIResponsor resp = (MobiUIResponsor)ServerUIUtil.getResponsor();
-						if(resp.dispatchVoiceCommand(j2seCoreSS, vc) == false){
+						if(resp.dispatchVoiceCommand(j2seCoreSS, voiceText) == false){
 							//没有工程级assistant响应，则HCAI进行处理
 							final String locale = UserThreadResourceUtil.getMobileLocaleFrom(j2seCoreSS);
 							

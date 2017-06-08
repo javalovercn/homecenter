@@ -340,6 +340,7 @@ public class ProjectContext {
 	 * ctx = Java::hc.server.ui.ProjectContext::getProjectContext()
 	 * scheduler = ctx.getScheduler("MyScheduler1")
 	 * scheduler.start()
+	 * 
 	 * if scheduler.isExistsTrigger("Trigger1") == false
 	 * &nbsp;&nbsp;builder = StringBuilder.new(100)
 	 * &nbsp;&nbsp;builder.append("ctx = Java::hc.server.ui.ProjectContext::getProjectContext()\n")
@@ -347,18 +348,17 @@ public class ProjectContext {
 	 * &nbsp;&nbsp;scheduler.addJob("Job1", builder.toString())
 	 * 
 	 * &nbsp;&nbsp;weeklyCalendar = WeeklyJobCalendar.new()
-	 * &nbsp;&nbsp;weeklyCalendar.setDayExcluded(java.util.Calendar::SUNDAY, true)#exclude sunday
-	 * &nbsp;&nbsp;weeklyCalendar.setDayExcluded(java.util.Calendar::SATURDAY, false)
+	 * &nbsp;&nbsp;weeklyCalendar.setDayExcluded(java.util.Calendar::SUNDAY, true)
+	 * &nbsp;&nbsp;weeklyCalendar.setDayExcluded(java.util.Calendar::SATURDAY, true)
 	 * &nbsp;&nbsp;scheduler.addCalendar("Calendar1", weeklyCalendar)
 	 * 
-	 * &nbsp;&nbsp;scheduler.addCronTrigger("Trigger1", "0/30 * * * * ?", "Calendar1", "Job1")#trigger "Job1" when "Calendar1" every 30 seconds and exclude sunday
+	 * &nbsp;&nbsp;scheduler.addCronTrigger("Trigger1", "0/30 * * * * ?", "Calendar1", "Job1")#trigger "Job1" when "Calendar1" every 30 seconds
 	 * &nbsp;&nbsp;puts "Trigger1 next fire time : " + scheduler.getTriggerNextFireTime("Trigger1").toString()
 	 * end
 	 * </pre>
 	 * <STRONG>Tip :</STRONG><BR>
 	 * project level scheduler will be shutdown by server after shutdown project.<BR>
-	 * session level scheduler will be shutdown by server after session is logout/lineoff.<BR>
-	 * session level scheduler is all in RAM, even though set <code>isAllInRAM</code> to false.
+	 * session level scheduler will be shutdown by server after session is logout/lineoff.
 	 * <BR><BR>
 	 * <STRONG>one scheduler or multiple?</STRONG><BR>
 	 * 	1. please add multiple jobs, calendars and triggers in one scheduler, <BR>
@@ -422,6 +422,7 @@ public class ProjectContext {
 	 * <BR><BR>
 	 * if current thread is session level, then return a session level scheduler.<BR>
 	 * if current thread is project level, then return a project level scheduler.<BR>
+	 * for session level scheduler, same <code>domain</code> in difference session means difference scheduler.<BR>
 	 * session level scheduler is all in RAM, even though pass <code>isAllInRAM</code> with false.
 	 * @param domain
 	 * @param isAllInRAM true means all in RAM, false means stored in database.
@@ -445,11 +446,12 @@ public class ProjectContext {
 	/**
 	 * create or open exists project/session level job scheduler.
 	 * <BR><BR>
+	 * for session level scheduler, same <code>domain</code> in difference session means difference scheduler.<BR>
+	 * session level scheduler is all in RAM, even though pass <code>isAllInRAM</code> with false.
+	 * <BR><BR>
 	 * <STRONG>Tip :</STRONG><BR>
 	 * project level scheduler will be shutdown by server after shutdown project.<BR>
 	 * session level scheduler will be shutdown by server after session is logout/lineoff.<BR>
-	 * for session level scheduler, same <code>domain</code> in difference session means difference scheduler.<BR>
-	 * session level scheduler is all in RAM, even though set <code>isAllInRAM</code> to false.
 	 * @param domain
 	 * @param isAllInRAM true means all in RAM, false means stored in database.
 	 * @param isSessionScheduler true means create or get a session level scheduler.
@@ -556,7 +558,7 @@ public class ProjectContext {
 	 */
 	public final void registerAssistant(final Assistant assistant){
 		if(assistant == null && this.assistant != null){
-			LogManager.warning("deregister assistant in project [" + projectID + "].");
+			LogManager.warning("override assistant in project [" + projectID + "].");
 		}
 		this.assistant = assistant;
 	}
@@ -2086,7 +2088,13 @@ public class ProjectContext {
 	 * 5. <code>getPrivateFile("mySubDir2/subSubDir/testFile");</code><br>
 	 * 6. <code>new File(getPrivateFile("mySubDir"), "testFile");</code><br>
 	 * 7. <code>new File(getPrivateFile("mySubDir2/subSubDir"), "testFile");</code><br>
-	 * <br>More about private file :<BR>
+	 * <BR><STRONG>private file VS DB connection :</STRONG><BR>
+	 * When project runs in Home environment, please pay more attention about power off, 
+	 * it may be caused by children, no wait to shutdown. 
+	 * If private file is frequently written, using DB connection is a better choice, 
+	 * because it appends data to log at the tail of file and DB manager will fix error that abnormal shutdown. 
+	 * All-In-RAM DB never write file to disk.<BR>
+	 * <br><STRONG>More about private file :</STRONG><BR>
 	 * 1. the file is allowed full access and NOT limited by HomeCenter security
 	 * manager, and it is also protected from being read or written by other HAR
 	 * projects. <br>
@@ -2643,7 +2651,7 @@ public class ProjectContext {
 		
 		if(coreSS != null && coreSS.length > 0){
 			for (int i = 0; i < coreSS.length; i++) {
-				sendCmd(coreSS[i], HCURL.DATA_CMD_ALERT, "status", "off");				
+				sendCmd(coreSS[i], HCURL.DATA_CMD_ALERT, "status", IConstant.OFF);				
 			}
 		}
 	}
@@ -2675,7 +2683,7 @@ public class ProjectContext {
 		
 		if(coreSS != null && coreSS.length > 0){
 			for (int i = 0; i < coreSS.length; i++) {
-				sendCmd(coreSS[i], HCURL.DATA_CMD_ALERT, "status", "on");
+				sendCmd(coreSS[i], HCURL.DATA_CMD_ALERT, "status", IConstant.ON);
 			}
 		}
 	}

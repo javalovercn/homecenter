@@ -71,8 +71,6 @@ import third.quartz.utils.ConnectionProvider;
 import third.quartz.utils.DBConnectionManager;
 
 /**
- * this class is a wrapper to Quartz Scheduler, the follow document is copied/modified from Scheduler.
- * 
  * <p>
  * A <code>Scheduler</code> maintains a registry of <code>Job</code>s
  * and <code>Trigger</code>s. Once registered, the <code>Scheduler</code>
@@ -506,7 +504,7 @@ public final class Scheduler {
     }
 
     /**
-     * add a <code>Runnable</code> instance as a job.
+     * add (if exists then replace) a <code>Runnable</code> instance as a job.
      * <BR><BR>
      * <STRONG>Note :</STRONG><BR>
      * 1. this method is valid only in AllInRAM scheduler, because the instance will be lost after shutdown project.
@@ -1285,13 +1283,27 @@ public final class Scheduler {
      * @param calendar instance of {@link JobCalendar}, for example {@link AnnualJobCalendar}, {@link CronExcludeJobCalendar}, {@link DailyJobCalendar}, {@link HolidayJobCalendar}, {@link MonthlyJobCalendar} and {@link WeeklyJobCalendar}.
      */
     public final void addCalendar(final String calName, final JobCalendar calendar) {
+    	addCalendarImpl(calName, calendar, true);
+    }
+    
+    private final boolean addCalendarImpl(final String calName, final JobCalendar calendar, final boolean isCheckCalHC) {
     	try{
     		ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, null);
+    		if(calName == null){
+    			throw new IllegalAccessException("Calendar name is null");
+    		}
+    		if(isCheckCalHC){
+    			if(calName.startsWith(SYS_RESERVED)){
+    				throw new IllegalArgumentException("Calendar name can't be begin with '" + SYS_RESERVED + "'.");
+    			}
+    		}
     		sched.addCalendar(calName, calendar, true, true);
+    		return true;
     	}catch (final Throwable e) {
     		ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, e);
     		ExceptionReporter.printStackTrace(e);
     	}
+    	return false;
     }
     
 //    /**
@@ -1311,138 +1323,149 @@ public final class Scheduler {
 //    }
     
     /**
-     * <h2 id="format">Format</h2>
-     * <p>A cron expression is a string comprised of 6 or 7 fields separated by white space. Fields can contain any of the
-     * allowed values, along with various combinations of the allowed special characters for that field. The fields are as
-     * follows:</p>
+     * <P>
+     * Cron expressions are comprised of 6 required fields and one optional field
+     * separated by white space. The fields respectively are described as follows:
+     * 
      * <table cellpadding="3" cellspacing="1" border='1'>
-     *     <tbody>
-     *         <tr>
-     *             <th>Field Name</th>
-     *             <th>Mandatory</th>
-     *             <th>Allowed Values</th>
-     *             <th>Allowed Special Characters</th>
-     *         </tr>
-     *         <tr>
-     *             <td>Seconds</td>
-     *             <td>YES</td>
-     * 
-     *             <td>0-59</td>
-     *             <td>, - * /</td>
-     *         </tr>
-     *         <tr>
-     *             <td>Minutes</td>
-     *             <td>YES</td>
-     *             <td>0-59</td>
-     * 
-     *             <td>, - * /</td>
-     *         </tr>
-     *         <tr>
-     *             <td>Hours</td>
-     *             <td>YES</td>
-     *             <td>0-23</td>
-     *             <td>, - * /</td>
-     * 
-     *         </tr>
-     *         <tr>
-     *             <td>Day of month</td>
-     *             <td>YES</td>
-     *             <td>1-31</td>
-     *             <td>, - * ? / L W<br clear="all" />
-     *             </td>
-     *         </tr>
-     *         <tr>
-     * 
-     *             <td>Month</td>
-     *             <td>YES</td>
-     *             <td>1-12 or JAN-DEC</td>
-     *             <td>, - * /</td>
-     *         </tr>
-     *         <tr>
-     *             <td>Day of week</td>
-     * 
-     *             <td>YES</td>
-     *             <td>1-7 or SUN-SAT</td>
-     *             <td>, - * ? / L #</td>
-     *         </tr>
-     *         <tr>
-     *             <td>Year</td>
-     *             <td>NO</td>
-     * 
-     *             <td>empty, 1970-2099</td>
-     *             <td>, - * /</td>
-     *         </tr>
-     *     </tbody>
+     * <tr>
+     * <th align="left">Field Name</th>
+     * <th align="left">Allowed Values</th>
+     * <th align="left">Allowed Special Characters</th>
+     * </tr>
+     * <tr>
+     * <td align="left"><code>Seconds</code></td>
+     * <td align="left"><code>0-59</code></td>
+     * <td align="left"><code>, - * /</code></td>
+     * </tr>
+     * <tr>
+     * <td align="left"><code>Minutes</code></td>
+     * <td align="left"><code>0-59</code></td>
+     * <td align="left"><code>, - * /</code></td>
+     * </tr>
+     * <tr>
+     * <td align="left"><code>Hours</code></td>
+     * <td align="left"><code>0-23</code></td>
+     * <td align="left"><code>, - * /</code></td>
+     * </tr>
+     * <tr>
+     * <td align="left"><code>Day-of-month</code></td>
+     * <td align="left"><code>1-31</code></td>
+     * <td align="left"><code>, - * ? / L W</code></td>
+     * </tr>
+     * <tr>
+     * <td align="left"><code>Month</code></td>
+     * <td align="left"><code>0-11 or JAN-DEC</code></td>
+     * <td align="left"><code>, - * /</code></td>
+     * </tr>
+     * <tr>
+     * <td align="left"><code>Day-of-Week</code></td>
+     * <td align="left"><code>1-7 or SUN-SAT</code></td>
+     * <td align="left"><code>, - * ? / L #</code></td>
+     * </tr>
+     * <tr>
+     * <td align="left"><code>Year (Optional)</code></td>
+     * <td align="left"><code>empty, 1970-2199</code></td>
+     * <td align="left"><code>, - * /</code></td>
+     * </tr>
      * </table>
-     * <p>So cron expressions can be as simple as this: <tt>* * * * ? *</tt></p>
+     * <P>
+     * The '*' character is used to specify all values. For example, &quot;*&quot; 
+     * in the minute field means &quot;every minute&quot;.
+     * <P>
+     * The '?' character is allowed for the day-of-month and day-of-week fields. It
+     * is used to specify 'no specific value'. This is useful when you need to
+     * specify something in one of the two fields, but not the other.
+     * <P>
+     * The '-' character is used to specify ranges For example &quot;10-12&quot; in
+     * the hour field means &quot;the hours 10, 11 and 12&quot;.
+     * <P>
+     * The ',' character is used to specify additional values. For example
+     * &quot;MON,WED,FRI&quot; in the day-of-week field means &quot;the days Monday,
+     * Wednesday, and Friday&quot;.
+     * <P>
+     * The '/' character is used to specify increments. For example &quot;0/15&quot;
+     * in the seconds field means &quot;the seconds 0, 15, 30, and 45&quot;. And 
+     * &quot;5/15&quot; in the seconds field means &quot;the seconds 5, 20, 35, and
+     * 50&quot;.  Specifying '*' before the  '/' is equivalent to specifying 0 is
+     * the value to start with. Essentially, for each field in the expression, there
+     * is a set of numbers that can be turned on or off. For seconds and minutes, 
+     * the numbers range from 0 to 59. For hours 0 to 23, for days of the month 0 to
+     * 31, and for months 0 to 11 (JAN to DEC). The &quot;/&quot; character simply helps you turn
+     * on every &quot;nth&quot; value in the given set. Thus &quot;7/6&quot; in the
+     * month field only turns on month &quot;7&quot;, it does NOT mean every 6th 
+     * month, please note that subtlety.  
+     * <P>
+     * The 'L' character is allowed for the day-of-month and day-of-week fields.
+     * This character is short-hand for &quot;last&quot;, but it has different 
+     * meaning in each of the two fields. For example, the value &quot;L&quot; in 
+     * the day-of-month field means &quot;the last day of the month&quot; - day 31 
+     * for January, day 28 for February on non-leap years. If used in the 
+     * day-of-week field by itself, it simply means &quot;7&quot; or 
+     * &quot;SAT&quot;. But if used in the day-of-week field after another value, it
+     * means &quot;the last xxx day of the month&quot; - for example &quot;6L&quot;
+     * means &quot;the last friday of the month&quot;. You can also specify an offset 
+     * from the last day of the month, such as "L-3" which would mean the third-to-last 
+     * day of the calendar month. <i>When using the 'L' option, it is important not to 
+     * specify lists, or ranges of values, as you'll get confusing/unexpected results.</i>
+     * <P>
+     * The 'W' character is allowed for the day-of-month field.  This character 
+     * is used to specify the weekday (Monday-Friday) nearest the given day.  As an 
+     * example, if you were to specify &quot;15W&quot; as the value for the 
+     * day-of-month field, the meaning is: &quot;the nearest weekday to the 15th of
+     * the month&quot;. So if the 15th is a Saturday, the trigger will fire on 
+     * Friday the 14th. If the 15th is a Sunday, the trigger will fire on Monday the
+     * 16th. If the 15th is a Tuesday, then it will fire on Tuesday the 15th. 
+     * However if you specify &quot;1W&quot; as the value for day-of-month, and the
+     * 1st is a Saturday, the trigger will fire on Monday the 3rd, as it will not 
+     * 'jump' over the boundary of a month's days.  The 'W' character can only be 
+     * specified when the day-of-month is a single day, not a range or list of days.
+     * <P>
+     * The 'L' and 'W' characters can also be combined for the day-of-month 
+     * expression to yield 'LW', which translates to &quot;last weekday of the 
+     * month&quot;.
+     * <P>
+     * The '#' character is allowed for the day-of-week field. This character is
+     * used to specify &quot;the nth&quot; XXX day of the month. For example, the 
+     * value of &quot;6#3&quot; in the day-of-week field means the third Friday of 
+     * the month (day 6 = Friday and &quot;#3&quot; = the 3rd one in the month). 
+     * Other examples: &quot;2#1&quot; = the first Monday of the month and 
+     * &quot;4#5&quot; = the fifth Wednesday of the month. Note that if you specify
+     * &quot;#5&quot; and there is not 5 of the given day-of-week in the month, then
+     * no firing will occur that month.  If the '#' character is used, there can
+     * only be one expression in the day-of-week field (&quot;3#1,6#3&quot; is 
+     * not valid, since there are two expressions).
+     * <P>
+     * <!--The 'C' character is allowed for the day-of-month and day-of-week fields.
+     * This character is short-hand for "calendar". This means values are
+     * calculated against the associated calendar, if any. If no calendar is
+     * associated, then it is equivalent to having an all-inclusive calendar. A
+     * value of "5C" in the day-of-month field means "the first day included by the
+     * calendar on or after the 5th". A value of "1C" in the day-of-week field
+     * means "the first day included by the calendar on or after Sunday".-->
+     * <P>
+     * The legal characters and the names of months and days of the week are not
+     * case sensitive.
      * 
-     * <p>or more complex, like this: <tt>0/5 14,18,3-39,52 * ? JAN,MAR,SEP MON-FRI 2002-2010</tt></p>
-     * 
-     * <h2 id="special-characters">Special characters</h2>
-     * 
+     * <p>
+     * <b>NOTES:</b>
      * <ul>
-     *   <li>
-     *     <p><tt><strong>*</strong></tt> (<em>“all values”</em>) - used to select all values within a field. For example, <em>“*”</em>
-     *   in the minute field means </em>“every minute”</em>.</p>
-     *   </li>
-     *   <li>
-     *     <p><tt><strong>?</strong></tt> (<em>“no specific value”</em>) - useful when you need to specify something in one of the
-     *   two fields in which the character is allowed, but not the other. For example, if I want my trigger to fire on a
-     *   particular day of the month (say, the 10th), but don’t care what day of the week that happens to be, I would put
-     *   “10” in the day-of-month field, and “?” in the day-of-week field. See the examples below for clarification.</p>
-     *   </li>
-     *   <li>
-     *     <p><tt><strong>-</strong></tt> - used to specify ranges. For example, “10-12” in the hour field means <em>“the
-     *   hours 10, 11 and 12”</em>.</p>
-     *   </li>
-     *   <li>
-     *     <p><tt><strong>,</strong></tt> - used to specify additional values. For example, “MON,WED,FRI” in the day-of-week
-     *   field means <em>“the days Monday, Wednesday, and Friday”</em>.</p>
-     *   </li>
-     *   <li>
-     *     <p><tt><strong>/</strong></tt> - used to specify increments. For example, “0/15” in the seconds field means <em>“the
-     *   seconds 0, 15, 30, and 45”</em>. And “5/15” in the seconds field means <em>“the seconds 5, 20, 35, and 50”</em>. You can
-     *   also specify ‘/’ after the ‘<strong>’ character - in this case ‘</strong>’ is equivalent to having ‘0’ before the ‘/’. ‘1/3’
-     *   in the day-of-month field means <em>“fire every 3 days starting on the first day of the month”</em>.</p>
-     *   </li>
-     *   <li>
-     *     <p><tt><strong>L</strong></tt> (<em>“last”</em>) - has different meaning in each of the two fields in which it is
-     *   allowed. For example, the value “L” in the day-of-month field means <em>“the last day of the month”</em> - day
-     *   31 for January, day 28 for February on non-leap years. If used in the day-of-week field by itself, it simply means
-     *   “7” or “SAT”. But if used in the day-of-week field after another value, it means <em>“the last xxx day of the
-     *   month”</em> - for example “6L” means <em>“the last friday of the month”</em>. You can also specify an offset
-     *   from the last day of the month, such as “L-3” which would mean the third-to-last day of the calendar month.
-     *   <em>When using the ‘L’ option, it is important not to specify lists, or ranges of values, as you’ll get
-     *   confusing/unexpected results.</em></p>
-     *   </li>
-     *   <li>
-     *     <p><tt><strong>W</strong></tt> (<em>“weekday”</em>) - used to specify the weekday (Monday-Friday) nearest the given day.
-     *   As an example, if you were to specify “15W” as the value for the day-of-month field, the meaning is: <em>“the
-     *   nearest weekday to the 15th of the month”</em>. So if the 15th is a Saturday, the trigger will fire on Friday the 14th.
-     *   If the 15th is a Sunday, the trigger will fire on Monday the 16th. If the 15th is a Tuesday, then it will fire on
-     *   Tuesday the 15th. However if you specify “1W” as the value for day-of-month, and the 1st is a Saturday, the trigger
-     *   will fire on Monday the 3rd, as it will not ‘jump’ over the boundary of a month’s days. The ‘W’ character can only
-     *   be specified when the day-of-month is a single day, not a range or list of days.</p>
-     *   </li>
+     * <li>Support for specifying both a day-of-week and a day-of-month value is
+     * not complete (you'll need to use the '?' character in one of these fields).
+     * </li>
+     * <li>Overflowing ranges is supported - that is, having a larger number on 
+     * the left hand side than the right. You might do 22-2 to catch 10 o'clock 
+     * at night until 2 o'clock in the morning, or you might have NOV-FEB. It is 
+     * very important to note that overuse of overflowing ranges creates ranges 
+     * that don't make sense and no effort has been made to determine which 
+     * interpretation CronExpression chooses. An example would be 
+     * "0 0 14-6 ? * FRI-MON". </li>
+     * <li>The legal characters and the names of months and days of the week are not case sensitive. <tt>MON</tt> is the same as <tt>mon</tt>.
+     * </li>
      * </ul>
-     * <blockquote>
-     *             The 'L' and 'W' characters can also be combined in the day-of-month field to yield 'LW', which
-     *             translates to *"last weekday of the month"*.
-     * </blockquote>
+     * </p>
      * 
-     * <ul>
-     *   <li><tt><strong>#</strong></tt> - used to specify “the nth” XXX day of the month. For example, the value of “6#3”
-     *   in the day-of-week field means <em>“the third Friday of the month”</em> (day 6 = Friday and “#3” = the 3rd one in
-     *   the month). Other examples: “2#1” = the first Monday of the month and “4#5” = the fifth Wednesday of the month. Note
-     *   that if you specify “#5” and there is not 5 of the given day-of-week in the month, then no firing will occur that
-     *   month.</li>
-     * </ul>
-     * <blockquote>
-     *             The legal characters and the names of months and days of the week are not case sensitive. <tt>MON</tt>
-     *             is the same as <tt>mon</tt>.
-     * </blockquote>
-     * 
-     * <h2 id="examples">Examples</h2>
+     * <STRONG>Examples</STRONG>
      * 
      * <p>Here are some full examples:</p>
      * <table cellpadding="3" cellspacing="1" border='1'>
@@ -1550,24 +1573,15 @@ public final class Scheduler {
      * <BR>
      * Pay attention to the effects of '?' and '*' in the day-of-week and day-of-month fields!
      * <BR>
-     * 
-     * <h2 id="notes">Notes</h2>
-     * 
-     * <ul>
-     *   <li>Support for specifying both a day-of-week and a day-of-month value is not complete (you must currently use
-     *   the ‘?’ character in one of these fields).</li>
-     *   <li>Be careful when setting fire times between the hours of the morning when “daylight savings” changes occur
-     *   in your locale (for US locales, this would typically be the hour before and after 2:00 AM - because the time
-     *   shift can cause a skip or a repeat depending on whether the time moves back or jumps forward.  You may find
-     *   this wikipedia entry helpful in determining the specifics to your locale:<br />
-     *   <a href="https://secure.wikimedia.org/wikipedia/en/wiki/Daylight_saving_time_around_the_world">https://secure.wikimedia.org/wikipedia/en/wiki/Daylight_saving_time_around_the_world</a></li>
-     * </ul>
-     * the above is copy from http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html
+     * <BR>
      * @param cronExpression the cron expression
      * @return a boolean indicating whether the given expression is a valid cron
      *         expression
+     * @author Sharada Jambula, James House
+     * @author Contributions from Mads Henderson
+     * @author Refactoring from CronTrigger to CronExpression by Aaron Craven
      */
-    public final boolean isValidCronExpression(final String cronExpression) {
+    public final boolean isValidCronExpression(final String cronExpression) {//***注意***：如果CronExpression升级，请同步更新Doc
         return CronExpression.isValidExpression(cronExpression);
     }
     
@@ -1579,7 +1593,8 @@ public final class Scheduler {
      * to execute job now, see {@link #triggerJob(String)}.
      * @param triggerKey
      * @param cronExpression for more about Cron Expression, click {@link #isValidCronExpression(String)}.
-     * @param calendarName the name of the Calendar that should be applied to this trigger. null means no days in calendar is excludes.
+     * @param calendarName the name of the calendar that should be applied to this trigger, null means no day in calendar is excluded, 
+     * <BR>The next trigger day must be met <code>cronExpression</code> and <code>calendarName</code>.
      * @param jobKey if null then do nothing.
      * @see #addCronTrigger(String, String, TimeZone, String, Date, Date, int, String, String)
      */
@@ -1609,7 +1624,8 @@ public final class Scheduler {
      */
     public static final int MISFIRE_INSTRUCTION_FIRE_ONCE_NOW = CronTrigger.MISFIRE_INSTRUCTION_FIRE_ONCE_NOW;
     
-    private static final String ALL_DAYS_CALENDAR = CCoreUtil.SYS_RESERVED_KEYS_START + "AllDays";
+    private static final String SYS_RESERVED = CCoreUtil.SYS_RESERVED_KEYS_START;
+    private static final String ALL_DAYS_CALENDAR = SYS_RESERVED + "AllDays";
     
     private static final MonthlyJobCalendar allDays = new MonthlyJobCalendar();
     
@@ -1621,7 +1637,8 @@ public final class Scheduler {
      * @param triggerKey
      * @param cronExpression for more about Cron Expression, click {@link #isValidCronExpression(String)}.
      * @param cronTimeZone null means default.
-     * @param calendarName the name of the Calendar that should be applied to this trigger. null means no days in calendar is excludes.
+     * @param calendarName the name of the calendar that should be applied to this trigger, null means no day in calendar is excluded, 
+     * <BR>The next trigger day must be met <code>cronExpression</code> and <code>calendarName</code>.
      * @param startTime null means start now.
      * @param endTime null means never end.
      * @param misfireOption one of {@link #MISFIRE_INSTRUCTION_DO_NOTHING}, {@link #MISFIRE_INSTRUCTION_FIRE_ONCE_NOW} or others in future.
@@ -1638,7 +1655,9 @@ public final class Scheduler {
     	
     	if(calendarName == null){
     		calendarName = ALL_DAYS_CALENDAR;
-    		addCalendar(calendarName, allDays);
+    		if(addCalendarImpl(calendarName, allDays, false) == false){
+    			return;
+    		}
 //    		calendarName = ALL_DAYS_CALENDAR + ResourceUtil.buildUUID();
 //    		addCalendar(calendarName, new MonthlyJobCalendar());
     	}
@@ -1682,6 +1701,11 @@ public final class Scheduler {
     public final boolean deleteCalendar(final String calName) {
     	try{
     		ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, null);
+    		if(calName == null){
+    			throw new IllegalAccessException("Calendar name is null");
+    		}else if(calName.startsWith(SYS_RESERVED)){
+				throw new IllegalArgumentException("Calendar name can't be begin with '" + SYS_RESERVED + "'.");
+			}
     		return sched.deleteCalendar(calName);
     	}catch (final Throwable e) {
     		ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, e);

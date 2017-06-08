@@ -24,10 +24,10 @@ public class Assistant {
 	 * please don't implement voice command for following cases, server will do it for you :<BR>
 	 * 1. the voice is for open/execute menu items.<BR>
 	 * 2. the voice is to open {@link CtrlResponse}, and the key words of status of {@link CtrlResponse} are included in voice. (open once is required)<BR>
-	 * 3. the voice is to open {@link HTMLMlet}, and the key words of JLable(s) or tool tip text are included in voice. (open once is required)
+	 * 3. the voice is to open {@link HTMLMlet}, and the key words of JLable(s) or tool tip text of JComponent are included in voice. (open once is required)
 	 * <BR><BR>
 	 * <STRONG>Important :</STRONG><BR>
-	 * 1. assistant instance perhaps serve multiple sessions at same time.<BR>
+	 * 1. assistant instance serve only one session at same time (synchronism).<BR>
 	 * 2. no all clients support all languages voice command.<BR>
 	 * 3. server will try to process voice for you instead of writing codes here, which is based on analysing the {@link AnalysableRobotParameter} between Robot and UI, so it is NOT recommended to use complex object defined by yourself in {@link Robot#operate(long, Object)}.
 	 * <BR><BR>

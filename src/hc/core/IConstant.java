@@ -102,6 +102,10 @@ public abstract class IConstant {
 	
 	public static final String TRUE = "true";
 	public static final String FALSE = "false";
+	
+	public static final String ON = "on";
+	public static final String OFF = "off";
+	
 	public abstract int getInt(String p);
 	
 	public abstract Object getObject(String p);

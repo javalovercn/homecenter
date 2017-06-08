@@ -80,6 +80,7 @@ public class ProjResponser {
 	final ThreadGroup threadGroup;
 	final String lpsLinkName;
 	public final ProjectContext context;
+	private final Object assistantLock = new Object();
 	private final Hashtable<String, Object> sys_att_map_sys = new Hashtable<String, Object>();
 	Robot[] robots;
 	Device[] devices;
@@ -95,7 +96,7 @@ public class ProjResponser {
 	final void notifyFinishAllSequTask(){
 		synchronized (this) {
 			isFinishAllSequ = true;
-			this.notify();
+			this.notifyAll();
 		}
 		L.V = L.WShop ? false : LogManager.log("notify all sequence task is done [" + projectID + "].");
 	}
@@ -134,7 +135,9 @@ public class ProjResponser {
 				return (Boolean)ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, this, new ReturnableRunnable() {
 					@Override
 					public Object run() {
-						return assistant.onVoice(vc);
+						synchronized (assistantLock) {
+							return assistant.onVoice(vc);
+						}
 					}
 				});
 			}catch (final Throwable e) {//拦截未正常返回的异常

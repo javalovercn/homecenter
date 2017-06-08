@@ -1,5 +1,9 @@
 package hc.server.util;
 
+import hc.server.ui.ClientSession;
+import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.ProjResponser;
+
 import java.util.Locale;
 
 /**
@@ -7,9 +11,13 @@ import java.util.Locale;
  */
 public class VoiceCommand {
 	final String text;
+	final J2SESession j2seCoreSS;
+	final ProjResponser pr;
 	
-	public VoiceCommand(final String text){
+	VoiceCommand(final String text, final J2SESession j2seCoreSS, final ProjResponser pr){
 		this.text = text;
+		this.j2seCoreSS = j2seCoreSS;
+		this.pr = pr;
 	}
 	
 	/**
@@ -18,9 +26,18 @@ public class VoiceCommand {
 	 * in JRuby, the object String will be converted to JRuby string, if you are familiar with Java String, please use methods in this class, for example {@link #indexOfText(String)}.
 	 * @return
 	 * @since 7.47
+	 * @see #getClientSession()
 	 */
 	public final String getText(){
 		return this.text;
+	}
+	
+	/**
+	 * return the {@link ClientSession} of current session.
+	 * @return
+	 */
+	public final ClientSession getClientSession(){
+		return pr.getMobileSession(j2seCoreSS).getClientSession();
 	}
 	
 	/**

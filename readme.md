@@ -178,7 +178,7 @@ global CSS for current project :
 6. build-in HSQLDB database.
 7. voice command API to drive IoT.
 8. the designer on server is integrated with Java API Doc and is also an IDE for JRuby, hint of code and resource file(in user jar) will be auto completion.
-9. stratify IoT, Robot+Converter+Device, provides powerful device adaptability and data format conversion.
+9. stratify IoT, Robot+Converter+Device(it is required to open source or provide API), provides powerful device adaptability and data format conversion.
 10. HAR project is self-signed and be upgraded automatically if the newer on web.
 11. exception is automatically reported to your Email or website if end user enable reports exception.
 12. build-in SecurityManager lets project runs in a optional, security, limited computing and networking environment.
@@ -198,7 +198,7 @@ global CSS for current project :
 10. any question, please open issues https://github.com/javalovercn/homecenter/issues or Email : help at homecenter.mobi
 11. for binary server of Android or other, download from https://github.com/javalovercn/hc_server_dist
 12. these two files (starter.jar and hc.pem) in binary distributed zip file (NOT in source files), are used to check new version, download binary jar of these source files, verify and start up HomeCenter server.
-
+13. these source files are synchronized to [git.oschina.net](https://git.oschina.net/javalovercn/homecenter).
 ***
 
 ![splash](http://homecenter.mobi/images/splash_n_txt.png)

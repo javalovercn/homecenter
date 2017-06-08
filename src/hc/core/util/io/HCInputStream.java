@@ -249,17 +249,15 @@ public class HCInputStream extends InputStream implements IHCStream{
 		}
 	}
 
-	public final void mark(final int readlimit) {
+	public synchronized final void mark(final int readlimit) {
 	}
 
-	public final void reset() throws IOException {
-		synchronized (this) {
-			if(isclosed){
-				throw new IOException("IO is closed");
-			}
-			if(exception != null){
-				throw exception;
-			}
+	public synchronized final void reset() throws IOException {
+		if(isclosed){
+			throw new IOException("IO is closed");
+		}
+		if(exception != null){
+			throw exception;
 		}
 	}
 
