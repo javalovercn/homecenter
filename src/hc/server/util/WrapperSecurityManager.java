@@ -39,7 +39,7 @@ public class WrapperSecurityManager extends SecurityManager {
 	protected final Class[] getClassContext(){
     	return super.getClassContext();
 //    	if(old != null){
-//	    	Object out = ClassUtil.invoke(SecurityManager.class, old, "getClassContext", nullParaTypes, nullParas, true);
+//	    	Object out = ClassUtil.invoke(SecurityManager.class, old, "getClassContext", NULL_PARA_TYPES, NULL_PARAS, true);
 //	    	if(out != null && out instanceof Class[]){
 //	    		return (Class[])out;
 //	    	}

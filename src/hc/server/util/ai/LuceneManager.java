@@ -55,8 +55,12 @@ import third.apache.lucene.analysis.tr.TurkishAnalyzer;
 import third.apache.lucene.util.RamUsageEstimator;
 
 public class LuceneManager {
-	static {
-		final int i = RamUsageEstimator.NUM_BYTES_INT;//init static
+	public static void init(){
+		try{
+			final int i = RamUsageEstimator.NUM_BYTES_INT;//init static
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private final static HashMap<String, Analyzer> localeAnalyzer = new HashMap<String, Analyzer>(50);

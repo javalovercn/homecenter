@@ -19,6 +19,7 @@ import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ProjectInputDialog;
 import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.SessionMobiMenu;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.SystemHTMLMlet;
@@ -267,7 +268,14 @@ public class AIPersistentManager {
 	}
 
 	private static final boolean searchURL(final J2SESession coreSS, final ScreenScore screenScore, final String url) {
-		final Vector<MenuItem> menuItems = coreSS.getDisplayMenuItems(screenScore.projectID);
+		final String sessionProjID = screenScore.projectID;
+		final SessionMobiMenu sessionMobiMenu = coreSS.getMenu(sessionProjID);
+		if(sessionMobiMenu == null){
+			L.V = L.WShop ? false : LogManager.log("project [" + sessionProjID + "] is disabled!");
+			return false;
+		}
+		
+		final Vector<MenuItem> menuItems = sessionMobiMenu.getFlushMenuItems();//coreSS.getDisplayMenuItems();
 		final int size = menuItems.size();
 		for (int j = 0; j < size; j++) {
 			final MenuItem item = menuItems.elementAt(j);

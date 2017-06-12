@@ -35,6 +35,20 @@ public class LinkedSet {
 		return v;
 	}
 	
+	public final int size(){
+		if(top == null){
+			return 0;
+		}else{
+			int count = 0;
+			LinkedNode temp = top;
+			do{
+				count++;
+				temp = temp.next;
+			}while(temp != null);
+			return count;
+		}
+	}
+	
 	public final void addToFirst(final Object obj){
 		final LinkedNode addNode = cacher.getFree();
 		addNode.data = obj;

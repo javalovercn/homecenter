@@ -1079,7 +1079,7 @@ public class CodeHelper {
 		for (int i = 0; i < deep; i++) {
 			sb.append(" ");
 		}
-		sb.append(ClassUtil.invoke(Node.class, node, "getNodeName", ClassUtil.nullParaTypes, ClassUtil.nullParas, true));
+		sb.append(ClassUtil.invoke(Node.class, node, "getNodeName", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, true));
 
         if (node instanceof INameNode) {
             sb.append(":").append(((INameNode)node).getName());

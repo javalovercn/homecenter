@@ -203,6 +203,7 @@ public class ProjectContext {
 	 * @param username
 	 * @param password 
 	 * @return null means a database access error occurs.
+	 * @see #closeDB(Connection, boolean)
 	 * @see #removeDB(String)
 	 * @since 7.50
 	 */
@@ -220,6 +221,7 @@ public class ProjectContext {
 	 * @return
 	 * @see #getDBConnection(String, String, String)
 	 * @see #getDBConnection(String, String, String, boolean, Properties)
+	 * @see #closeDB(Connection, boolean)
 	 * @see #removeDB(String)
 	 * @since 7.50
 	 */
@@ -244,6 +246,7 @@ public class ProjectContext {
 	 * @return null means a database access error occurs.
 	 * @see #getDBConnection(String, String, String)
 	 * @see #getDBConnection(String, String, String, boolean)
+	 * @see #closeDB(Connection, boolean)
 	 * @see #removeDB(String)
 	 * @since 7.50
 	 */

@@ -14,13 +14,13 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class ClassUtil {
-	public static final Class[] nullParaTypes = {};
-	public static final Object[] nullParas = {};
+	public static final Class[] NULL_PARA_TYPES = {};
+	public static final Object[] NULL_PARAS = {};
 	final static float jreVersion = App.getJREVer();
 	
 	public final static void revalidate(final Component comp){
 		if(jreVersion >= 1.7){
-			invoke(Component.class, comp, "revalidate", nullParaTypes, nullParas, true);
+			invoke(Component.class, comp, "revalidate", NULL_PARA_TYPES, NULL_PARAS, true);
 		}
 	}
 	

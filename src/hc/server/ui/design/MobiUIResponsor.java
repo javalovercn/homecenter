@@ -224,6 +224,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	
 	public MobiUIResponsor(final ExceptionCatcherToWindow ec) {
 		UILang.initToken(App.getThreadPoolToken());
+		LuceneManager.init();
 		
 		this.ec = ec;
 		

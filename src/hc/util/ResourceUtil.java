@@ -126,7 +126,7 @@ public class ResourceUtil {
         // Print suppressed exceptions, if any
 //        Throwable[] se = t.getSuppressed();
         try{
-	        final Throwable[] se = (Throwable[])ClassUtil.invokeWithExceptionOut(Throwable.class, t, "getSuppressed", ClassUtil.nullParaTypes, ClassUtil.nullParas, false);
+	        final Throwable[] se = (Throwable[])ClassUtil.invokeWithExceptionOut(Throwable.class, t, "getSuppressed", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
 	        if(se != null){
 	        	for (int i = 0; i < se.length; i++) {
 	        		printStackTrace(se[i]);
@@ -692,7 +692,9 @@ public class ResourceUtil {
 		return path.replace(App.WINDOW_PATH_SEPARATOR, '/');
 	}
 
-	private static ClassLoader buildProjClassPath(final File deployPath, final ClassLoader jrubyClassLoader, final String projID){
+	public static ClassLoader buildProjClassPath(final File deployPath, final ClassLoader jrubyClassLoader, final String projID){
+		CCoreUtil.checkAccess();
+
 		final Vector<File> jars = new Vector<File>();
 		final String[] subFileNames = deployPath.list();
 		for (int i = 0; subFileNames != null && i < subFileNames.length; i++) {
@@ -710,8 +712,6 @@ public class ResourceUtil {
 	}
 	
 	public static ClassLoader buildProjClassLoader(final File libAbsPath, final String projID){
-		CCoreUtil.checkAccess();
-
 		return buildProjClassPath(libAbsPath, ResourceUtil.getJRubyClassLoader(false), projID);
 	}
 	
@@ -726,12 +726,7 @@ public class ResourceUtil {
 		}
 //		PlatformManager.getService().closeLoader(rubyAnd3rdLibsClassLoaderCache);
 
-		final File jruby = new File(ResourceUtil.getBaseDir(), J2SEContext.jrubyjarname);
-		
-		PlatformManager.getService().setJRubyHome(PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer), jruby.getAbsolutePath());
-		
-		final File[] files = {jruby};
-		rubyAnd3rdLibsClassLoaderCache = PlatformManager.getService().loadClasses(files, PlatformManager.getService().get3rdAndServClassLoader(null), true, "hc.jruby");
+		rubyAnd3rdLibsClassLoaderCache = buildJRubyClassLoader();
 		if(rubyAnd3rdLibsClassLoaderCache == null){
 			final String message = "Error to get JRuby/3rdLibs ClassLoader!";
 			LogManager.errToLog(message);
@@ -741,6 +736,17 @@ public class ResourceUtil {
 			LogManager.log("Successful (re) create JRuby engine classLoader.");
 		}
 		return rubyAnd3rdLibsClassLoaderCache;
+	}
+
+	public static ClassLoader buildJRubyClassLoader() {
+		CCoreUtil.checkAccess();
+		
+		final File jruby = new File(ResourceUtil.getBaseDir(), J2SEContext.jrubyjarname);
+		
+		PlatformManager.getService().setJRubyHome(PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer), jruby.getAbsolutePath());
+		
+		final File[] files = {jruby};
+		return PlatformManager.getService().loadClasses(files, PlatformManager.getService().get3rdAndServClassLoader(null), true, "hc.jruby");
 	}
 	
 	public static int[] getSimuScreenSize(){

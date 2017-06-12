@@ -9,7 +9,6 @@ import java.util.Vector;
 
 public abstract class RecordWriterBuilder {
 	private static final String TABLE_PREFIX = "table" + CacheManager.TABLE_NAME_SPLITTER;
-	final RecordWriter tableMapperWritter;
 	protected final String tableNameForMapper = "SYS_TableMapper";
 	protected final String end_tableNameForMapper = CacheManager.TABLE_NAME_SPLITTER + tableNameForMapper;
 	private final String rsPrefixForMobile;
@@ -25,8 +24,7 @@ public abstract class RecordWriterBuilder {
 	public RecordWriterBuilder(final String rsPrefixForMobile){
 		this.rsPrefixForMobile = rsPrefixForMobile;
 		
-		tableMapperWritter = buildMapStore();
-		mapSnap = CacheStoreManager.getDataList(tableMapperWritter, tableNameForMapper);
+		mapSnap = CacheStoreManager.getDataList(buildMapStore(), tableNameForMapper);
 		
 //		//列印map信息
 //		final int size = mapSnap.size();
@@ -110,6 +108,8 @@ public abstract class RecordWriterBuilder {
 	}
 	
 	public abstract RecordWriter openRecordStore(String rmsName, boolean createIfNecessary) throws Exception;
+	
+	public abstract void deleterCacheDir();
 	
 	public void deleteRecordStore(final String rmsName) throws Exception{
 		boolean isEndTableNameMapper = false;

@@ -88,6 +88,8 @@ public class ProjResponser {
 	final MobiUIResponsor mobiResp;
 	public final String projectID;
 	final boolean isRoot;
+	final ClassLoader jrubyClassLoader;
+	final boolean hasNative;
 	final SessionMobileContext mobileContexts = new SessionMobileContext();
 	private final ThreadGroup token = App.getThreadPoolToken();
 	
@@ -238,6 +240,13 @@ public class ProjResponser {
 		}catch (final Throwable e) {
 			if(L.isInWorkshop){
 				e.printStackTrace();
+			}
+		}
+		
+		if(hasNative){
+			try{
+				ClassUtil.invokeWithExceptionOut(Object.class, jrubyClassLoader, "finalize", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, true);
+			}catch (final Throwable e) {
 			}
 		}
 	}
@@ -445,7 +454,13 @@ public class ProjResponser {
 		this.map = p_map;
 		this.lpsLinkName = lps.getLinkName();
 		final File deployPath = new File(ResourceUtil.getBaseDir(), lps.getDeployTmpDir());
-		final ClassLoader projClassLoader = ResourceUtil.buildProjClassLoader(deployPath, projID);
+		final String str_NativeNum = (String)p_map.get(HCjar.SHARE_NATIVE_FILES_NUM);
+		hasNative = str_NativeNum != null;
+
+//		final ClassLoader projClassLoader = ResourceUtil.buildProjClassLoader(deployPath, projID);
+//		**注意**：理论上native lib应加载到userLib，而不是JRubyClassLoader。但是无法获得用户类作为参数，所以简化之
+		jrubyClassLoader = hasNative?ResourceUtil.buildJRubyClassLoader():ResourceUtil.getJRubyClassLoader(false);
+		final ClassLoader projClassLoader = ResourceUtil.buildProjClassPath(deployPath, jrubyClassLoader, projID);
 		final String reportExceptionURL = (String)this.map.get(HCjar.PROJ_EXCEPTION_REPORT_URL);
 		this.hcje = new HCJRubyEngine(deployPath.getAbsolutePath(), projClassLoader, reportExceptionURL != null && reportExceptionURL.length() > 0);
 		
@@ -500,8 +515,7 @@ public class ProjResponser {
 		
 		{
 			//加载全部native lib
-			final String str_NativeNum = (String)p_map.get(HCjar.SHARE_NATIVE_FILES_NUM);
-			if(str_NativeNum != null){
+			if(hasNative){
 				final int nativeNum = Integer.parseInt(str_NativeNum);
 				final boolean hasLoadNativeLibPermission = csc.isLoadLib();
 				
@@ -520,19 +534,24 @@ public class ProjResponser {
 						final File nativeFile = new File(deployPath, nativeLibName);
 						final String absolutePath = nativeFile.getAbsolutePath();
 						
+						boolean isLoadOK = false;
 						try{
-							final String scripts = "import Java::hc.server.util.JavaLangSystemAgent\n" +
-									"path = \"" + absolutePath + "\"\n" +
-									"JavaLangSystemAgent.load(path)\n";
-							
-							//注意：
-							//1. 不能在工程级线程中执行，因为目录无权限
-							//2. 必须要用hcje的classloader来加载
-							RubyExector.runAndWaitOnEngine(scripts, "loadNativeLib", null, hcje);
-							LogManager.log("successful load native lib [" + nativeLibName + "] in project [" + projID + "].");
+							loadLibByClassLoad(projClassLoader, absolutePath);
+							isLoadOK = true;
 						}catch (final Throwable e) {
+						}
+						if(isLoadOK == false){
+							try{
+								loadLibByScript(hcje, absolutePath);
+								isLoadOK = true;
+							}catch (final Throwable e) {
+							}
+						}
+						
+						if(isLoadOK){
+							LogManager.log("successful load native lib [" + nativeLibName + "] in project [" + projID + "].");
+						}else{
 							LogManager.err("Fail to load native lib [" + nativeLibName + "] in project [" + projID + "]");
-//							ExceptionReporter.printStackTrace(e);
 						}
 					}
 				}
@@ -556,6 +575,27 @@ public class ProjResponser {
 		}else{
 //			menu = null;
 		}
+	}
+
+	private final void loadLibByClassLoad(final ClassLoader loader, final String absolutePath) throws Throwable {
+		final Class jrubyClass = Class.forName(HCJRubyEngine.ORG_JRUBY_EMBED_SCRIPTING_CONTAINER, false, loader);
+		final Class classLoader = ClassLoader.class;
+		
+//		static void loadLibrary(Class fromClass, String name, boolean isAbsolute)
+		final Class[] paraTypes = {Class.class, String.class, boolean.class};
+		final Object[] para = {jrubyClass, absolutePath, Boolean.TRUE};
+		ClassUtil.invokeWithExceptionOut(classLoader, classLoader, "loadLibrary", paraTypes, para, true);
+	}
+	
+	private final void loadLibByScript(final HCJRubyEngine hcje, final String absolutePath) throws Throwable {
+		final String scripts = "import Java::hc.server.util.JavaLangSystemAgent\n" +
+				"path = \"" + absolutePath + "\"\n" +
+				"JavaLangSystemAgent.load(path)\n";
+		
+		//注意：
+		//1. 不能在工程级线程中执行，因为目录无权限
+		//2. 必须要用hcje的classloader来加载
+		RubyExector.runAndWaitOnEngine(scripts, "loadNativeLib", null, hcje);
 	}
 	
 	public final void initJarMainMenu(){

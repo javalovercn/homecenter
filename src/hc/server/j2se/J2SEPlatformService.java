@@ -358,8 +358,8 @@ public class J2SEPlatformService implements PlatformService {
 //		CapManager.startCapture();
 		if(getCaptureDeviceManagerClass() != null){
 			final Class capManagerClass = CapHelper.getCapManagerClass();
-			final Class[] paraTypes = ClassUtil.nullParaTypes;
-			final Object[] para = ClassUtil.nullParas;
+			final Class[] paraTypes = ClassUtil.NULL_PARA_TYPES;
+			final Object[] para = ClassUtil.NULL_PARAS;
 			ClassUtil.invoke(capManagerClass, capManagerClass, "startCapture", paraTypes, para, true);
 		}
 	}
@@ -369,8 +369,8 @@ public class J2SEPlatformService implements PlatformService {
 //		CapManager.stopCapture();
 		if(getCaptureDeviceManagerClass() != null){
 			final Class capManagerClass = CapHelper.getCapManagerClass();
-			final Class[] paraTypes = ClassUtil.nullParaTypes;
-			final Object[] para = ClassUtil.nullParas;
+			final Class[] paraTypes = ClassUtil.NULL_PARA_TYPES;
+			final Object[] para = ClassUtil.NULL_PARAS;
 			ClassUtil.invoke(capManagerClass, capManagerClass, "stopCapture", paraTypes, para, true);
 		}
 	}

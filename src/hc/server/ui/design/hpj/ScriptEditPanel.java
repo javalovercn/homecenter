@@ -131,18 +131,22 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			"self|super|then|true|undef|unless|until|when|while|yield)\\b", Pattern.MULTILINE);//class+space解决ctx.class.get()
 //	private static final String[] Indentation = {"begin", "case ", "class ", "def ", "else", 
 //		"elsif ", "for ", "if ", "module ", "when ", "while ", "rescue "};
-	private static final String[] WithEndIndentation = {"begin", "case ", "class ", "def ", "for ", "if ", "module ", "when ", "while ", "until ", "unless "};
+	private static final String[] WithEndIndentation = {"begin", "case ", "class ", "def ", "for ", "if ", "module ", "while ", "until ", "unless "};//将when移出
 	private static final String DO_WORD = "do";
 	private static final String[] doIndentation = {" " + DO_WORD, " " + DO_WORD + "\n"};
 	
 	//addActionListener{|exception| or do |exception|。|exception|段可能有，可能没有。如果测试，参见TestEndIndentKuoHao
 	private static final Pattern WithEndIndentationKuoHao = Pattern.compile("(\\{|\\s+" + DO_WORD + ")\\s*?(\\|\\s*?\\w+?\\s*?\\|)?\\s*?(?<!\\})\\s*?(#.*)?$");
 	
+	private static final char[] caseChar = {'c', 'a', 's', 'e', ' '};
+	private static final char[] whenChar = {'w', 'h', 'e', 'n', ' '};
+	private static final char[] ifChar = {'i', 'f', ' '};
 	private static final char[] elsifChar = {'e', 'l', 's', 'i', 'f', ' '};
 	private static final char[] elseChar = {'e', 'l', 's', 'e'};
 	private static final char[][] backIndent = {
 		elseChar,
 		elsifChar,
+		whenChar,
 		{'r', 'e', 's', 'c', 'u', 'e'},//可以没有异常类型段，所以去掉空格
 		{'e', 'n', 's', 'u', 'r', 'e'}
 	};
@@ -1724,7 +1728,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					if(inputSelfBackEnd){
 						nextRowIndent = inputSelfBackEnd;
 						//检查上行是否当前行已缩进。即在已有代码elsif xxx后进行回车，当前是否需要缩进
-						final int startUpRowIdx = getLineStartOffset(doc, positionLine - 2);
+						final int startUpRowIdx = getLineStartOffset(doc, positionLine - 1);
 						try{
 							final String upRowStr = doc.getText(startUpRowIdx, startIdx - 1 - startUpRowIdx);
 							final char[] upRowChars = upRowStr.toCharArray();
@@ -1739,7 +1743,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							if(charIdxUpRowRemovedTab > charIdxRemovedTab){
 								inputSelfBackEnd = false;//取消自缩进
 							}else if(charIdxUpRowRemovedTab == charIdxRemovedTab){
-								if(isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab, elsifChar)){
+								if(isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab, elsifChar)
+										|| isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab, ifChar)
+										|| isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab, caseChar)//when上行为case
+										|| isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab, whenChar)//else上行为when
+									){
 									inputSelfBackEnd = false;//取消自缩进
 								}
 							}
@@ -1794,7 +1802,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							}
 						}
 						final boolean isElse = isELSIFIndentKeyWords(nextLineChars, charIdxNextRemovedTab, elsifChar)
-								|| isELSIFIndentKeyWords(nextLineChars, charIdxNextRemovedTab, elseChar);
+								|| isELSIFIndentKeyWords(nextLineChars, charIdxNextRemovedTab, elseChar)
+								|| isELSIFIndentKeyWords(nextLineChars, charIdxNextRemovedTab, whenChar);//case下行为when
 						if((charIdxNextRemovedTab + (isElse?1:0)) > charIdxRemovedTab){
 							isNextIndentAlready = true;
 						}

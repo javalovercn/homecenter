@@ -37,6 +37,8 @@ public class Assistant {
 	 * when people speaks "what is the temperature of ice box?", of cause the voice command should NOT be dispatched to air conditioner,
 	 * server need more information about project for ice box, if there is a keywords "ice box" in menu, text field/label of form, 
 	 * server can be sure it does right, but if there is no keywords in form, but icons or {@link ScriptPanel} in form, you should set keywords by {@link JComponent#setToolTipText(String)}.
+	 * <BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<STRONG>Important : </STRONG><BR>
+	 * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;set tool tip text for locale of current session, NOT for all locales, because different locale means different lucene analyzer.
 	 * <BR>
 	 * 2. implements business in {@link Robot#operate(long, Object)}<BR>
 	 * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;business may be driven from UI (voice assistant, {@link HTMLMlet} and {@link Dialog}), so it is good practice to implement business in {@link Robot#operate(long, Object)}.<BR>

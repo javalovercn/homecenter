@@ -89,6 +89,12 @@ public class CacheManager {
 		}
 	}
 	
+	public static final synchronized void deleteCacheWhenError(){
+		LogManager.errToLog("[cache] delete cache directory when error!");
+		clearBuffer();
+		CacheStoreManager.deleteCacheDir();
+	}
+	
 	/**
 	 * 删除全部的cache数据。
 	 */

@@ -71,6 +71,8 @@ public class ConfigManager {
 	public static final String UI_SCALE_OF_SCREEN = "hc.ui.scale";//iOS
 	public static final String UI_HIDE_INPUT_PANEL = "hc.ui.hideInputPanel";//iOS不需实现
 	
+	public static final String IOS_MOV_TO_SQLITE3 = "hc.movToSqlite3";
+	
 	//-----------------------------注意-----------------------------
 	//      如果增加扩展，推荐使用ClientExtManager
 	//---------------------------------------------------------------
@@ -79,6 +81,8 @@ public class ConfigManager {
 	
 	public static final String BROWSE_INNER = "hc.biz.browseInner";
 	public static final String MOV_MSG = "hc.biz.movMsg";
+	public static final String MOV_MSG_FAST = "hc.biz.movMsgFast";
+	public static final String MOV_MSG_NORM = "hc.biz.movMsgNorm";
 	
 	/**
 	 * 判断客户端是否是后台运行。

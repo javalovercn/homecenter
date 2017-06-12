@@ -10,7 +10,6 @@ import java.awt.Window;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.lang.reflect.Method;
-import java.util.List;
 
 import javax.swing.JPopupMenu;
 
@@ -74,6 +73,14 @@ public interface PlatformService {
 	
 	public void closeLoader(ClassLoader loader);//由于JRubyLoader多工程共用，不宜关闭
 	
+	/**
+	 * 
+	 * @param filePaths
+	 * @param parent
+	 * @param isDex true means is dexed
+	 * @param loadOpID
+	 * @return
+	 */
 	public ClassLoader loadClasses(File[] filePaths, ClassLoader parent, boolean isDex, String loadOpID);
 	
 	public BufferedImage makeRoundedCorner(BufferedImage image, int cornerRadius);

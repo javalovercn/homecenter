@@ -464,11 +464,11 @@ public class SecurityDataProtector {
 //			final Class fileStoreClass = Class.forName("java.nio.file.FileStore");
 //			final Class fileSystemsClass = Class.forName("java.nio.file.FileSystems");
 //			final Class fileSystemClass = Class.forName("java.nio.file.FileSystem");
-//			final Object defaultFileSystem = ClassUtil.invokeWithExceptionOut(fileSystemsClass, fileSystemsClass, "getDefault", ClassUtil.nullParaTypes, ClassUtil.nullParas, false);
-//			final Iterable it = (Iterable)ClassUtil.invokeWithExceptionOut(fileSystemClass, defaultFileSystem, "getFileStores", ClassUtil.nullParaTypes, ClassUtil.nullParas, false);
+//			final Object defaultFileSystem = ClassUtil.invokeWithExceptionOut(fileSystemsClass, fileSystemsClass, "getDefault", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
+//			final Iterable it = (Iterable)ClassUtil.invokeWithExceptionOut(fileSystemClass, defaultFileSystem, "getFileStores", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
 //			
 //			for (final Object store: it) {
-//				final long total = (Long)ClassUtil.invokeWithExceptionOut(fileStoreClass, store, "getTotalSpace", ClassUtil.nullParaTypes, ClassUtil.nullParas, false);
+//				final long total = (Long)ClassUtil.invokeWithExceptionOut(fileStoreClass, store, "getTotalSpace", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
 //		        if(total == baseDirTotalSpace){
 //		        	sb.append(store.toString());
 //		        	sb.append(total);

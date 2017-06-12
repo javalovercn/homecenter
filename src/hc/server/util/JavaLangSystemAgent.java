@@ -165,7 +165,7 @@ public class JavaLangSystemAgent {
      * @since 7.1
      */
     public final static String lineSeparator() {
-    	return (String)ClassUtil.invoke(System.class, System.class, "lineSeparator", ClassUtil.nullParaTypes, ClassUtil.nullParas, false);
+    	return (String)ClassUtil.invoke(System.class, System.class, "lineSeparator", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
 //        return System.lineSeparator();//不是java 1.6的API
     }
 

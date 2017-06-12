@@ -1011,6 +1011,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 						}else{
 							deployAction.actionPerformed(null);
 						}
+					}else{
+						L.V = L.WShop ? false : LogManager.log("activate button is disable");
 					}
 				}
 				

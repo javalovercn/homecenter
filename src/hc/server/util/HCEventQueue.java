@@ -157,7 +157,7 @@ public class HCEventQueue extends EventQueue {
 //		if(oldEQ != null){
 //			Object oldEDT = ClassUtil.getField(EventQueue.class, oldEQ, "dispatchThread");
 //			if(oldEDT != null){
-//				ClassUtil.invoke(eventDispThread, oldEDT, "stopDispatching", ClassUtil.nullParaTypes, ClassUtil.nullParas);
+//				ClassUtil.invoke(eventDispThread, oldEDT, "stopDispatching", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS);
 //			}
 //			stopPreviousDispatch(oldEQ, eventDispThread);
 //		}

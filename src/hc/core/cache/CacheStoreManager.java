@@ -17,6 +17,11 @@ public class CacheStoreManager {
 		rwBuilder = rwb;
 	}
 	
+	
+	final static void deleteCacheDir(){
+		rwBuilder.deleterCacheDir();
+	}
+	
 	public static RecordWriter openRecordStore(final String dbname, final boolean createIfNecessary) throws Exception{
 		return rwBuilder.openRecordStore(dbname, createIfNecessary);
 	}
@@ -123,8 +128,9 @@ public class CacheStoreManager {
 	}
 	
 	public static int getRecordNumByStoreName(final String rsName){
+		RecordWriter rs = null;
 		try {
-			RecordWriter rs = openRecordStore(rsName, true);
+			rs = openRecordStore(rsName, true);
 			byte[] bs = null;
 			try{
 				bs = rs.getRecord(1);
@@ -135,6 +141,13 @@ public class CacheStoreManager {
 			}
 		} catch (Exception e) {
 			ExceptionReporter.printStackTrace(e);
+		} finally{
+			if(rs != null){
+				try{
+					rs.closeRecordStore();
+				}catch (Throwable e) {
+				}
+			}
 		}
 		return 0;
 	}
@@ -161,6 +174,8 @@ public class CacheStoreManager {
 	 */
 	public static Vector getDataList(final RecordWriter rs, final String logicTableName){
 		Vector v = new Vector();
+		boolean isException = false;
+		
 		try {
 			int totalProjNum = 0;
 			byte[] bs = null;
@@ -194,12 +209,21 @@ public class CacheStoreManager {
 			
 //			LogManager.log(logicTableName + " total record num : " + totalProjNum);
 		} catch (Exception e) {
+			isException = true;
 			ExceptionReporter.printStackTrace(e);
 		} finally {
 			if(rs != null){
 				try{
 					rs.closeRecordStore();
 				}catch (Throwable e) {
+				}
+			}
+			if(isException){
+				deleteCacheDir();
+				
+				final int size = v.size();
+				for (int i = size - 1; i > 0; i--) {
+					v.removeElementAt(i);
 				}
 			}
 		}

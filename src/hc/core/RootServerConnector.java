@@ -98,6 +98,8 @@ public class RootServerConnector {
 	public final static String LOFF_Mobi_Proc_Cancel_STR = "lof=MobProCancel";
 	
 	public final static String LOFF_ServerReq_STR = "lof=ServerReq";
+
+	public final static String LOFF_ERR_EMPTY_CACHE = "lof=ErrEmptyCache";
 	
 	public final static String REP_Locale_STR = "rep_loc=";
 	public final static String REP_Server_Num_Under_0 = "lof=Server_Num_Under_0";

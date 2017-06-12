@@ -29,6 +29,7 @@ public class PropertiesManager {
 	public static long PropertiesLockThreadID = 0;//置于最前
 	private static String fileName = IConstant.propertiesFileName;
 	private static File propFile;
+	private static File propFileWriting;
 	
 	public final static String getPropertiesFileName(){
 		return fileName;
@@ -364,11 +365,14 @@ public class PropertiesManager {
 			return;
 		}
         try{
-        	final FileOutputStream outputFile = new FileOutputStream(propFile);
+        	final FileOutputStream outputFile = new FileOutputStream(propFileWriting);
         	synchronized (gLock) {
                 propertie.store(outputFile, null);
 			}
             outputFile.close();
+            
+            propFile.delete();
+            propFileWriting.renameTo(propFile);
         } catch (final Exception e) {
         	ExceptionReporter.printStackTrace(e);
         	App.showMessageDialog(null, "write data to properties file error!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -643,19 +647,30 @@ public class PropertiesManager {
     	if(fileName == null){
     		fileName = "hc_config.properties";
     	}
+    	
+    	final String fileNameWriting = fileName + "Writing";
 
     	try{
     		if(ResourceUtil.isStandardJ2SEServer()){
     			propFile = new File(fileName);//遗留系统，故如此
+    			propFileWriting = new File(fileNameWriting);
     		}else{
     			propFile = new File(ResourceUtil.getBaseDir(), fileName);
+    			propFileWriting = new File(ResourceUtil.getBaseDir(), fileNameWriting);
     		}
     		
+    		File loadFile = null;
     		if(propFile.exists()){
-	    		final FileInputStream inputFile = new FileInputStream(propFile);
+    			loadFile = propFile;
+            }else if(propFileWriting.exists()){
+            	loadFile = propFileWriting;
+            }
+    		
+    		if(loadFile != null){
+	    		final FileInputStream inputFile = new FileInputStream(loadFile);
 	            propertie.load(inputFile);
 	            inputFile.close();
-            }
+    		}
         } catch (final Throwable ex){
         	ExceptionReporter.printStackTrace(ex);
         	

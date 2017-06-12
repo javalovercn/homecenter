@@ -30,6 +30,7 @@ import java.util.List;
 //import org.jruby.javasupport.JavaEmbedUtils.EvalUnit;
 
 public class HCJRubyEngine {
+	public static final String ORG_JRUBY_EMBED_SCRIPTING_CONTAINER = "org.jruby.embed.ScriptingContainer";
 	private static final boolean isAndroidServerPlatform = ResourceUtil.isAndroidServerPlatform();
 	public static final String JRUBY_VERSION = "RUBY1_8";//for container and parser
 
@@ -238,7 +239,7 @@ public class HCJRubyEngine {
 	            // System.setProperty("jruby.debug.loadService.timing", "true");
 
 		        try{
-			        final Class scriptingContainerClass = Class.forName("org.jruby.embed.ScriptingContainer", true, projClassLoader);
+			        final Class scriptingContainerClass = Class.forName(ORG_JRUBY_EMBED_SCRIPTING_CONTAINER, true, projClassLoader);
 			        
 		            final Class rubyClass = Class.forName("org.jruby.Ruby", true, scriptingContainerClass.getClassLoader());
 		            final Class rubyInstanceConfigClass = Class.forName("org.jruby.RubyInstanceConfig", true, scriptingContainerClass.getClassLoader());
@@ -285,7 +286,7 @@ public class HCJRubyEngine {
 		final Class classLocalContextScope = projClassLoader.loadClass("org.jruby.embed.LocalContextScope");
 		final Class classLocalVariableBehavior = projClassLoader.loadClass("org.jruby.embed.LocalVariableBehavior");
 		
-		classScriptingContainer = projClassLoader.loadClass("org.jruby.embed.ScriptingContainer");
+		classScriptingContainer = projClassLoader.loadClass(ORG_JRUBY_EMBED_SCRIPTING_CONTAINER);
 		final Class[] construParaTypes = {classLocalContextScope, classLocalVariableBehavior, boolean.class};
 		final Constructor constr = classScriptingContainer.getConstructor(construParaTypes);
 		final Object[] constrPara = {
@@ -379,7 +380,7 @@ public class HCJRubyEngine {
 	}
 
 	private Object getCurrentDirectory() {
-		return ClassUtil.invoke(classScriptingContainer, container, "getCurrentDirectory", ClassUtil.nullParaTypes, ClassUtil.nullParas, false);
+		return ClassUtil.invoke(classScriptingContainer, container, "getCurrentDirectory", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
 	}
 
 	private Object setCurrentDirectory() {
@@ -390,6 +391,6 @@ public class HCJRubyEngine {
 	}
 	
 	private Object getHomeDirectory() {
-		return ClassUtil.invoke(classScriptingContainer, container, "getHomeDirectory", ClassUtil.nullParaTypes, ClassUtil.nullParas, false);
+		return ClassUtil.invoke(classScriptingContainer, container, "getHomeDirectory", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
 	}
 }

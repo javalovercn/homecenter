@@ -37,6 +37,7 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 		@isLightOn = false
 		@btn_switch.setIcon(@icon_press_off)
 		@btn_light.setIcon(@icon_light_off)
+		@btn_switch.setToolTipText("light,lumière,Licht,빛,свет,灯")#for voice to open this form, open once is required.
 		
 		setCSS(@btn_switch, "iconStyle", nil)#iconStyle is defined global (as following) and is automatically loaded for all HTMLMlet in current project
 		setCSS(@btn_light, "iconStyle", nil)
@@ -51,7 +52,7 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 		lightPanel.setLayout(GridLayout.new(1, 2))
 		lightPanel.add(@btn_light)
 		lightPanel.add(@btn_switch)
-				
+		
 		@btn_switch.addActionListener{|e|
 			@area.append("click switch\n")
 			@isLightOn = !@isLightOn
@@ -65,11 +66,11 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 				@btn_light.setIcon(@icon_light_off)
 			end
 		}
-			
+		
 		buttonPanel = JPanel.new()
 		buttonPanel.setLayout(GridLayout.new(1, 2))
 		buttonPanel.setPreferredSize(Dimension.new(getMobileWidth(), getButtonHeight()))
-
+		
 		button = JButton.new("Screen")
 		setCSSForDiv(button, "btnForDiv", nil)
 		setCSS(button, "btnStyle", nil)
@@ -77,7 +78,7 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 			go(Java::hc.server.ui.Mlet::URL_SCREEN)#open desktop and control remote screen.
 		}
 		buttonPanel.add(button)
-
+		
 		button = JButton.new("Back")
 		setCSSForDiv(button, "btnForDiv", nil)
 		setCSS(button, "btnStyle", nil)
@@ -85,7 +86,7 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 			back()#exit and return back
 		}
 		buttonPanel.add(button)
-
+		
 		setLayout(BorderLayout.new())
 		add(lightPanel, BorderLayout::NORTH)
 		add(@area, BorderLayout::CENTER)
@@ -93,22 +94,22 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 		
 		setCSS(self, nil, "background-color:white;")#override the default color styles.
 	end
-
+	
 	#override empty method onStart
 	def onStart
 		@area.append("Sys call onStart\n")
 	end
-
+	
 	#override empty method onPause
 	def onPause
 		@area.append("Sys call onPause\n")
 	end
-
+	
 	#override empty method onResume
 	def onResume
 		@area.append("Sys call onResume\n")
 	end
-
+	
 	#override empty method onExit
 	def onExit
 		@context.tipOnTray("Sys call onExit")
@@ -175,13 +176,15 @@ global CSS for current project :
 3. scan QRcode from mobile to download and load HAR (home archive) project on server, plug and play, it is not required to restart server.
 4. focus your business and UI with Java J2SE technology, the rest of work are ours.
 5. the component HTMLMlet (the sample above) will be translated to HTML5+JavaScript+CSS for Android/iPhone mobile client on air.
-6. build-in HSQLDB database.
-7. voice command API to drive IoT.
-8. the designer on server is integrated with Java API Doc and is also an IDE for JRuby, hint of code and resource file(in user jar) will be auto completion.
-9. stratify IoT, Robot+Converter+Device(it is required to open source or provide API), provides powerful device adaptability and data format conversion.
-10. HAR project is self-signed and be upgraded automatically if the newer on web.
-11. exception is automatically reported to your Email or website if end user enable reports exception.
-12. build-in SecurityManager lets project runs in a optional, security, limited computing and networking environment.
+6. built-in lucene analysis HTMLMlet background, according to the most suitable form for voice.
+7. built-in Quartz job scheduler.
+8. build-in HSQLDB database.
+9. voice command API to drive IoT.
+10. the designer on server is integrated with Java API Doc and is also an IDE for JRuby, hint of code and resource file(in user jar) will be auto completion.
+11. stratify IoT, Robot+Converter+Device(device is required to open source or provide API), provides powerful device adaptability and data format conversion.
+12. HAR project is self-signed and be upgraded automatically if the newer on web.
+13. exception is automatically reported to your Email or website if end user enable reports exception.
+14. build-in SecurityManager lets project runs in a optional, security, limited computing and networking environment.
 
 ***
 ### How to use source
@@ -207,7 +210,7 @@ global CSS for current project :
 
 ![screenshot](http://homecenter.mobi/images/sc6.png)
 ![screenshot](http://homecenter.mobi/images/sc8.png)
-![screenshot](http://homecenter.mobi/images/sc7.png)
+![screenshot](http://homecenter.mobi/images/sc_mlet.png)
 
 ***
 
