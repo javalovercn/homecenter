@@ -144,6 +144,11 @@ end
 
 return MyHTMLMlet.new
 ```
+
+**注意：**
+
+由于本示例使用了联网，请点击左侧“My Project”节点，点击“Permission”分页，取消“limit socket/connect”勾选。
+
 ### 2. 设置全局CSS
 
 点击左侧树的Resources/CSS Styles，将下面CSS粘贴到&quot;Styles Edit Area&quot;。
@@ -177,9 +182,6 @@ return MyHTMLMlet.new
 	-ms-flex-pack: center;
 }
 ```
-
-**注意：**
-由于本示例使用了联网，请点击左侧“My Project”节点，点击“Permission”分页，取消“limit socket/connect”勾选。
 
 ### 3. 发布应用
 
