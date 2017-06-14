@@ -576,9 +576,9 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		AddHarHTMLMlet.addHarToDeployArea(coreSS, led, led.lps, isRoot, isUpgrade, oldBackEditFile);
 		
 		final Iterator<LinkProjectStore> lpsIT = LinkProjectManager.getLinkProjsIterator(true);
-		final Vector<LinkProjectStore> lpsVector = new Vector<LinkProjectStore>();
+		final Vector<LinkProjectStore> lpsVectorNewStore = new Vector<LinkProjectStore>();
 		while(lpsIT.hasNext()){
-			lpsVector.add(lpsIT.next());
+			lpsVectorNewStore.add(lpsIT.next());
 		}
 
 		//添加新工程到存储集中
@@ -589,12 +589,12 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		{
 			final int size = appendLPS.size();
 			for (int i = 0; i < size; i++) {
-				lpsVector.add(appendLPS.get(i));
+				lpsVectorNewStore.add(appendLPS.get(i));
 			}
 		}
 		
 		LinkProjectStore[] lpss = {};
-		lpss = lpsVector.toArray(lpss);
+		lpss = lpsVectorNewStore.toArray(lpss);
 		AddHarHTMLMlet.saveLinkStore(lpss, AddHarHTMLMlet.newLinkProjSetInstance());//更新到LPS
 		return appendLPS;
 	}

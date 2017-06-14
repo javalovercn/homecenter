@@ -42,8 +42,9 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 		setCSS(@btn_switch, "iconStyle", nil)#iconStyle is defined global (as following) and is automatically loaded for all HTMLMlet in current project
 		setCSS(@btn_light, "iconStyle", nil)
 		
-		cssStyle = ".areaStyle{width:100%;height:100%;font-size:" + getFontSizeForNormal().to_s() + "px;color:green}"
-		loadCSS(cssStyle)
+		buttonStyle = ".btnStyle{padding: 0.75em " + getButtonHeight().to_s() + "px;border-radius: " + getButtonHeight().to_s() + "px;display: inline-block;transition: all 0.15s ease;box-sizing: border-box;border: 1px solid #4fc08d;background-color: #fff;color: #42b983;}"
+		areaStyle = ".areaStyle{width:100%;height:100%;border: 1px solid #fff;font-size:" + getFontSizeForNormal().to_s() + "px;background-color:#fff;color:#42b983}"
+		loadCSS(buttonStyle + areaStyle)
 		setCSS(@area, "areaStyle", nil)#areaStyel is defined cssStyle string.
 		#it equals with setCSS(@area, nil, "width:100%;height:100%;font-size:" + getFontSizeForNormal().to_s() + "px;color:green")
 		@area.setEditable(false)
@@ -70,6 +71,7 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 		buttonPanel = JPanel.new()
 		buttonPanel.setLayout(GridLayout.new(1, 2))
 		buttonPanel.setPreferredSize(Dimension.new(getMobileWidth(), getButtonHeight()))
+		setCSS(buttonPanel, nil, "background-color:white;")
 		
 		button = JButton.new("Screen")
 		setCSSForDiv(button, "btnForDiv", nil)
@@ -92,7 +94,6 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 		add(@area, BorderLayout::CENTER)
 		add(buttonPanel, BorderLayout::SOUTH)
 		
-		setCSS(self, nil, "background-color:white;")#override the default color styles.
 	end
 	
 	#override empty method onStart
@@ -118,15 +119,24 @@ end
 
 return MyHTMLMlet.new
 ```
+
+**Note : **
+
+to enable net connection permission, select node "My Project", click tab "Permission", un-check "limit socket/connect".
+
 global CSS for current project :
 ```css
 .iconStyle {
 	text-align:center;
-	vertical-align:middle;
-	width:100%;
-	height:100%;
+    vertical-align:middle;
+    width:100%;
+    height:100%;
+	transition: all 0.15s ease;
+	border: 1px solid #fff;
+	background-color: #fff;
+	display: inline-block;
+	box-sizing: border-box;
 }
-
 .btnForDiv {
 	display: -webkit-box;
 	display: -moz-box;
@@ -144,19 +154,6 @@ global CSS for current project :
 	-moz-box-pack: center;
 	-ms-flex-pack: center;
 }
-
-.btnStyle {
-	display: block;
-	width:90%;
-	height:90%;
-	color:#fff;
-	font-size:$buttonFontSize$px;
-	background-color:#54a1d9;
-	background-image:-webkit-gradient(linear, 0 0, 0 100%, color-stop(0, #8fc2e8), color-stop(0.5, #54a1d9), color-stop(0.5, #126aa9), color-stop(1, #2ddef2));
-	-webkit-border-radius:9px;
-	border:1px solid #377daf;
-	-webkit-box-shadow:0 2px 4px rgba(46,185,230,0.7);
-}
 ```
 ***
 ### License
@@ -165,8 +162,8 @@ global CSS for current project :
 ***
 ### Demo Account
 1. download client mobile App from https://github.com/javalovercn/client
-2. account : 012345
-3. password : 012345
+2. when first open mobile app, click "Demo ID" in login form, or input account : 012345，password : 012345
+3. to run server with your account, please run this source codes or [binary distribution](https://github.com/javalovercn/hc_server_dist)
 
 ***
 ### Main Features of server
@@ -199,9 +196,7 @@ global CSS for current project :
 8. there is a demo HAR project (NOT "MyFirst" project) in designer on server, covers 80% of JRuby syntax and 90% of functions of HomeCenter server.
 9. for API, please press alt+/ in designer or go http://homecenter.mobi/download/javadoc/index.html
 10. any question, please open issues https://github.com/javalovercn/homecenter/issues or Email : help at homecenter.mobi
-11. for binary server of Android or other, download from https://github.com/javalovercn/hc_server_dist
-12. these two files (starter.jar and hc.pem) in binary distributed zip file (NOT in source files), are used to check new version, download binary jar of these source files, verify and start up HomeCenter server.
-13. these source files are synchronized to [git.oschina.net](https://git.oschina.net/javalovercn/homecenter).
+11. these source files are synchronized to [git.oschina.net](https://git.oschina.net/javalovercn/homecenter).
 ***
 
 ![splash](http://homecenter.mobi/images/splash_n_txt.png)

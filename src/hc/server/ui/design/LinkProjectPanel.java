@@ -891,6 +891,15 @@ public class LinkProjectPanel extends ProjectListPanel{
 		final ActionListener listener = new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
+				final LinkProjectStore rootLPS = searchRoot();
+				if(rootLPS != null){
+					final Map<String, Object> rootMap = HCjar.loadHarFromLPS(rootLPS);
+					if(LinkProjectManager.hasMenuItemNumInProj(rootMap) == false){
+						LinkProjectManager.showNoMenuInRootError(self);
+						return;
+					}
+				}
+				
 				saveAndApplyBtn.setEnabled(false);
 				
 				final Window[] back = new Window[1];
@@ -958,30 +967,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 				true, exitAction, saveAction, dialog, relativeTo, true);//isResizabel=false,会导致漂移
 	}
 
-	private void checkAndStoreData() {
+	private final void storeData() {
 		final int size = dataRowNum;
-		
-		//检查Root和Active条件相关约束
-		boolean hasRoot = false;
-		boolean hasActive = false;
-		LinkProjectStore firstActive = null;
-		for (int i = 0; i < size; i++) {
-			final LinkProjectStore lps = ((LinkEditData)data.elementAt(i)[IDX_OBJ_STORE]).lps;
-			if(lps.isRoot()){
-				lps.setActive(true);
-				hasRoot = true;
-				break;
-			}
-			if(lps.isActive()){
-				if(firstActive == null){
-					firstActive = lps;
-				}
-				hasActive = true;
-			}
-		}
-		if(hasActive && hasRoot == false){
-			firstActive.setRoot(true);
-		}
 		
 		final LinkProjectStore[] lpss = new LinkProjectStore[size];
 		for (int i = 0; i < size; i++) {
@@ -1256,6 +1243,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 			PropertiesManager.setValue(PropertiesManager.p_EnableLinkedInProjUpgrade, ch_autoUpgrade.isSelected()?IConstant.TRUE:IConstant.FALSE);
 			
 			PropertiesManager.saveFile();
+			
 			if(isChanged){
 //								LogManager.log("restarting service...");
 				//启动时，需要较长时间初始化，有可能用户快速打开并更新保存，所以加锁。
@@ -1263,7 +1251,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 					if(ServerUIUtil.promptAndStop(true, self) == false){
 					}
 					
-					checkAndStoreData();
+					storeData();
 					
 					//更新后必须reload
 					LinkProjectManager.reloadLinkProjects();

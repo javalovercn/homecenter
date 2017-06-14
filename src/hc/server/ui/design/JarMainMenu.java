@@ -74,36 +74,27 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 	public static final int FOLD_TYPE = 0;
 
 	private final void initMenuItemArray() {
-		boolean hasMenuItemsAndActive = false;//新增按钮及子工程的文件夹数量
-		if(isRoot){
-			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(false);
-			while(it.hasNext()){
-				final LinkProjectStore lps = it.next();
-				if( hasMenuItemsAndActive(lps)){
-					hasMenuItemsAndActive = true;
-					break;
-				}
-			}
-		}
 		final Object menuItemObj = map.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, menuIdx));
 		
 		if(menuItemObj != null){
 			final int itemCount = Integer.parseInt((String)menuItemObj);
 			
-			if(hasMenuItemsAndActive){
-				//添加LinkProject文件夹
-				final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(false);
-				while(it.hasNext()) {
-					final LinkProjectStore lps = it.next();
-					if(hasMenuItemsAndActive(lps)){
-					}else{
-						LogManager.warning("there is no menu item in [" + lps.getProjectID() + "], skip build folder for [" + lps.getProjectID() + "].");
-						//如果工程内没有菜单项，则不显示。含事件或未来其它
-						continue;
-					}
-					final Map<String, Object> subProjmap = baseRe.getProjResponser(lps.getProjectID()).map;
-					projectMenu.addFolderItem(subProjmap, lps);
+			//添加LinkProject文件夹
+			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(false);
+			while(it.hasNext()) {
+				final LinkProjectStore lps = it.next();
+				if(lps.isActive() == false){
+					continue;
 				}
+				
+				final Map<String, Object> subProjmap = getProjectMap(lps);
+				if(LinkProjectManager.hasMenuItemNumInProj(subProjmap)){
+				}else{
+					LogManager.warning("there is no menu item in [" + lps.getProjectID() + "], skip build folder for [" + lps.getProjectID() + "].");
+					//如果工程内没有菜单项，则不显示。含事件或未来其它
+					continue;
+				}
+				projectMenu.addFolderItem(subProjmap, lps);
 			}
 
 			final String Iheader = HCjar.replaceIdxPattern(HCjar.MENU_ITEM_HEADER, menuIdx);
@@ -123,26 +114,41 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 		}
 	}
 
-	public final boolean hasMenuItemsAndActive(final LinkProjectStore lps) {
-		return lps.isActive() && LinkProjectManager.hasMenuItemNumInProj(map);
+	private final Map<String, Object> getProjectMap(final LinkProjectStore lps) {
+		return baseRe.getProjResponser(lps.getProjectID()).map;
 	}
-	
+
 	public final void appendProjToMenuItemArray(final Map<String, Object>[] maps, final int mapSize, final ArrayList<LinkProjectStore> appendLPS){
 		//将增量菜单更新到全部联机Session
 		for (int i = 0; i < appendLPS.size(); i++) {
 			final LinkProjectStore lps = appendLPS.get(i);
+			if(lps.isActive() == false){
+				continue;
+			}
+			
 			final String lps_projectID = lps.getProjectID();
 			
-			Map<String, Object> map = null;
+			Map<String, Object> l_map = null;
 			for (int j = 0; j < mapSize; j++) {
 				final Map<String, Object> tmpMap = maps[j];
 				if(lps_projectID.equals(tmpMap.get(HCjar.PROJ_ID))){
-					map = tmpMap;
+					l_map = tmpMap;
 					break;
 				}
 			}
 			
-			projectMenu.addFolderItem(map, lps);
+			if(l_map == null){
+				continue;
+			}
+			
+			if(LinkProjectManager.hasMenuItemNumInProj(l_map)){
+			}else{
+				LogManager.warning("there is no menu item in [" + lps.getProjectID() + "], skip build folder for [" + lps.getProjectID() + "].");
+				//如果工程内没有菜单项，则不显示。含事件或未来其它
+				continue;
+			}
+			
+			projectMenu.addFolderItem(l_map, lps);
 		}
 	}
 	

@@ -483,13 +483,17 @@ public class MobiUIResponsor extends BaseResponsor {
 	}
 
 	public final void release() {
+		//由于重启时，需要先关闭旧连接，才建立新连接，所以此处不加线程（异步）
+		shutdownIOT();//要置于ProjResponser.stop之前，因为可能使用Scheduler
+
 		for (int i = 0; i < responserSize; i++) {
-			responsors[i].waitForFinishAllSequTask();
+			responsors[i].waitForFinishAllSequTask();//不能与下段合并
 		}
 		
-		//由于重启时，需要先关闭旧连接，才建立新连接，所以此处不加线程（异步）
-		shutdownIOT();
-
+		L.V = L.WShop ? false : LogManager.log("waiting for all task done in AI...");
+		AIPersistentManager.waitForAllDone();
+		L.V = L.WShop ? false : LogManager.log("all task done in AI.");
+		
 		//terminate
 		for (int i = 0; i < responserSize; i++) {
 			responsors[i].stop();

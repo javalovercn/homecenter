@@ -41,9 +41,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 
-import third.hsqldb.Database;
-import third.hsqldb.DatabaseManager;
-
 public class ServerUIUtil {
 	public static final Color LIGHT_BLUE_BG = new Color(245, 250, 254);
 	
@@ -278,8 +275,7 @@ public class ServerUIUtil {
 				}catch (final Exception e) {
 				}
 				
-				DatabaseManager.closeDatabases(Database.CLOSEMODE_NORMAL);
-				LogManager.log("closed all HSQLDB databases.");
+				//注意：此处不能关闭hsqldb，因为ai manager永久使用
 			}
 		}
 	}

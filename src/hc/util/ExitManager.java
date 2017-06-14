@@ -22,6 +22,8 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.J2SESession;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.StarterParameter;
+import third.hsqldb.Database;
+import third.hsqldb.DatabaseManager;
 
 public class ExitManager {
 	public static void startExitSystem(){
@@ -52,6 +54,10 @@ public class ExitManager {
 //		ServerUIUtil.stop();
 		ServerUIUtil.promptAndStop(false, null);
 		
+		//注意：AI manager永久使用连接，所以只能此处进行关闭
+		DatabaseManager.closeDatabases(Database.CLOSEMODE_NORMAL);
+		LogManager.log("closed all HSQLDB databases.");
+
 		RMSLastAccessTimeManager.checkIdleAndRemove();
 		RMSLastAccessTimeManager.save();
 

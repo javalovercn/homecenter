@@ -11,6 +11,7 @@ public class EventCenter {
 	final private IEventHCListener[] listens = new IEventHCListener[event_listener_max_size];
 	final private byte[] listen_types = new byte[event_listener_max_size];
 	private int size = 0;
+	private boolean isStop;
 	
 	public EventCenter(final CoreSession coreSS){
 		this.coreSS = coreSS;
@@ -73,6 +74,10 @@ public class EventCenter {
 		}
 	}
 	
+	public final void stop(){
+		isStop = true;
+	}
+	
 //	由于remove导致不可预知的问题，比如在action返回false时，导致消息被重复执行。所以关闭
 //	public void remove(IEventHCListener listener){
 //		if(listener == null){
@@ -95,6 +100,10 @@ public class EventCenter {
 	
 	//不回收
 	final void action(final byte ctrlTag, final byte[] event, final NestAction nestAction){
+		if(isStop && ctrlTag != MsgBuilder.E_LINE_OFF_EXCEPTION){
+			return;
+		}
+		
 		if (nestAction != null){
 			nestAction.action(ctrlTag, event);
 			return;

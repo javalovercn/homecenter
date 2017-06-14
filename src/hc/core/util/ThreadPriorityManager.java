@@ -42,4 +42,6 @@ public class ThreadPriorityManager {
 	public static final int UI_FLUSH_GRAPHICS = 10;
 	
 	public static final int UI_WAIT_FOR_EVENTQUEUE = 5;
+	
+	public static final int SEQUENCE_TASK_MAX_WAIT_MS = 1000 * 15;
 }

@@ -52,6 +52,9 @@ public class HCConditionWatcher {
 //								LogManager.log("shutdown HCConditionWatcher [" + watcherTimer.getName() + "].");
 //							}
 							HCTimer.remove(watcherTimer);
+							synchronized (watchers) {
+								watchers.notifyAll();
+							}
 						}
 						break;
 					}
@@ -93,6 +96,7 @@ public class HCConditionWatcher {
 					synchronized (watchers) {
 						if(watchers.isEmpty()){
 							setEnable(false);
+							watchers.notifyAll();
 							return;
 						}
 					}
@@ -139,8 +143,9 @@ public class HCConditionWatcher {
 				watchers.removeData(watcher);
 				usedRewatchers.removeData(watcher);
 				
-				if(watchers.isEmpty() && usedRewatchers.isEmpty()){
+				if(isEmptyImpl()){
 					watcherTimer.setEnable(false);
+					watchers.notifyAll();
 				}
 			}		
 		}
@@ -148,7 +153,22 @@ public class HCConditionWatcher {
 	
 	public final boolean isEmpty(){
 		synchronized (watchers) {
-			return watchers.isEmpty() && usedRewatchers.isEmpty();
+			return isEmptyImpl();
+		}
+	}
+
+	private final boolean isEmptyImpl() {
+		return watchers.isEmpty() && usedRewatchers.isEmpty();
+	}
+	
+	public final void waitForAllDone(){
+		synchronized (watchers) {
+			if(isEmptyImpl() == false){
+				try {
+					watchers.wait(ThreadPriorityManager.SEQUENCE_TASK_MAX_WAIT_MS);
+				} catch (InterruptedException e) {
+				}
+			}
 		}
 	}
 	

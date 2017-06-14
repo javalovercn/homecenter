@@ -372,7 +372,12 @@ public class AIPersistentManager {
     final static HashMap<String, AIPersistentManager> projectMap = new HashMap<String, AIPersistentManager>(6);
     
     //注意：在工程关闭前退出。参见ExitManager.exit/HCTimer.shutDown
+    //请不要将实现移到各工程的sequenceExecutor，因为需要Query及共用数据库
     final static HCConditionWatcher delayExecutor = new HCConditionWatcher("AIPersistent", ThreadPriorityManager.AI_BACKGROUND);
+    
+    public static void waitForAllDone(){
+    	delayExecutor.waitForAllDone();
+    }
     
     public static void processFormData(final FormData data){
     	delayExecutor.addWatcher(new AIExecBiz() {

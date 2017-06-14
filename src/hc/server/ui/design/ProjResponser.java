@@ -87,6 +87,7 @@ public class ProjResponser {
 	Converter[] converters;
 	final MobiUIResponsor mobiResp;
 	public final String projectID;
+	private final Object lockSequTask = new Object();
 	final boolean isRoot;
 	final ClassLoader jrubyClassLoader;
 	final boolean hasNative;
@@ -96,21 +97,20 @@ public class ProjResponser {
 	private boolean isFinishAllSequ = false;
 	
 	final void notifyFinishAllSequTask(){
-		synchronized (this) {
+		synchronized (lockSequTask) {
 			isFinishAllSequ = true;
-			this.notifyAll();
+			lockSequTask.notifyAll();
 		}
 		L.V = L.WShop ? false : LogManager.log("notify all sequence task is done [" + projectID + "].");
 	}
 	
 	final void waitForFinishAllSequTask(){
-		synchronized (this) {
+		synchronized (lockSequTask) {
 			if(isFinishAllSequ == false){
 				L.V = L.WShop ? false : LogManager.log("wait for all sequence task done when shutdown project [" + projectID + "].");
 				try {
-					this.wait();
+					lockSequTask.wait(ThreadPriorityManager.SEQUENCE_TASK_MAX_WAIT_MS);
 				} catch (final InterruptedException e) {
-					e.printStackTrace();
 				}
 			}
 		}

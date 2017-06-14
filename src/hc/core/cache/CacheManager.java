@@ -281,6 +281,8 @@ public class CacheManager {
 	 * @param uid
 	 */
 	public static synchronized void removeUIDFrom(final String uid) {
+		LogManager.log("[cache] empty all caches for softUID : " + uid);
+
 		Vector projs = getCacheVector(RS_PROJ_LIST);
 		final int sizeProj = projs.size();
 		for (int i = 1; i < sizeProj; i++) {//遍历全部project

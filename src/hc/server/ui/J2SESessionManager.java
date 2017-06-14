@@ -153,6 +153,7 @@ public class J2SESessionManager extends SessionManager {
 		if(notifyRelineon){
 			coreSS.notifyLineOff(false, isForce);
 		}
+		coreSS.eventCenter.stop();//停止产生可能新的sequence任务
 	}
 	
 	public static J2SESession lockIdelSession(){

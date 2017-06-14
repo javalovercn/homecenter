@@ -207,7 +207,7 @@ public abstract class CoreSession {
 	
 	public final StreamBuilder streamBuilder;
 	
-	public EventCenter eventCenter;
+	public EventCenter eventCenter;//构造EventCenter时，反向更新到此
 	public IContext context;
 	public HCTimer udpAliveMobiDetectTimer;
 	protected final HCConnection hcConnection = new HCConnection();

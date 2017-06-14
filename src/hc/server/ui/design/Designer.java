@@ -932,20 +932,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 					
 							final ExceptionCatcherToWindow ec = new ExceptionCatcherToWindow(self, true);
 							
-							if(deployProcess(map, ec)){
-//								deactiveButton.setEnabled(true);
-
-//								App.invokeLater(new Runnable() {
-//									@Override
-//									public void run() {
-									if(ec.isNoError()){
-										showHCMessage("Successful activate project, " +
-												"mobile can access this resources now.", ACTIVE + " OK", self, true, null);
-										return;
-									}
-//									}
-//								});
-							}
+							deployProcess(map, ec);
 						}
 					}, threadPoolToken);
 				}
@@ -971,12 +958,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				
 				@Override
 				public void mouseClicked(final MouseEvent e) {
-					ContextManager.getThreadPool().run(new Runnable() {
-						@Override
-						public void run() {
-							processClick(e);
-						}
-					});
+					processClick(e);
 				}
 				
 				final void processClick(final MouseEvent e) {
@@ -2478,6 +2460,12 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				}
 			}
 			
+			boolean isRootNotMenu = false;
+			
+			if(changeToRoot && LinkProjectManager.hasMenuItemNumInProj(map) == false){
+				isRootNotMenu = true;
+			}
+			
 			LinkProjectManager.saveProjConfig(oldlps, changeToRoot, true);
 		
 			final BaseResponsor resp = ServerUIUtil.buildMobiUIResponsorInstance(ec);
@@ -2485,7 +2473,15 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			
 			checkHARButtonsEnableInBackground();
 			
+			if(isRootNotMenu){
+				LinkProjectManager.showNoMenuInRootError(this);
+				return false;
+			}
 			if(br instanceof MobiUIResponsor){
+				if(ec.isNoError()){
+					showHCMessage("Successful activate project, " +
+							"mobile can access this resources now.", ACTIVE + " OK", this, true, null);
+				}
 				return true;
 			}
 		}
