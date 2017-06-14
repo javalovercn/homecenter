@@ -8,7 +8,7 @@
 
 以下我们通过三步，用J2SE+CSS来实现如下图所示的可运行于iPhone和Android的云应用。
 
-![](http://homecenter.mobi/images/usage/j2se_css_img1.png)
+![](http://homecenter.mobi/images/sc_mlet.png)
 
 打开服务器端的&quot;设计器&quot;，如果没有安装，请参阅&quot;**附录-安装开发环境**&quot;。
 
@@ -45,97 +45,101 @@ import javax.swing.SwingConstants
 import Java::hc.server.ui.ProjectContext
 
 class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
-    def initialize
-        super #invoke super construct method
-
-        @area = JTextArea.new()
-        @btn_light = JButton.new()
-        @btn_switch = JButton.new()
-        @icon_press_on = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/press_on_64.png")))#Note : you should store png in a jar
-        @icon_press_off = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/press_off_64.png")))
-
-        @context = getProjectContext()
-
-        @icon_light_on = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/light_on_64.png")))
-        @icon_light_off = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/light_off_64.png")))
-
-        @isLightOn = false
-        @btn_switch.setIcon(@icon_press_off)
-        @btn_light.setIcon(@icon_light_off)
-
-        setCSS(@btn_switch, "iconStyle", nil)#iconStyle is defined "CSS Styles" and is automatically loaded for all HTMLMlet in current project
-        setCSS(@btn_light, "iconStyle", nil)
-
-        cssStyle = ".areaStyle{width:100%;height:100%;font-size:" + getFontSizeForNormal().to_s() + "px;color:green}"
-        loadCSS(cssStyle)
-        setCSS(@area, "areaStyle", nil)#areaStyel is defined cssStyle string.
-        #it equals with setCSS(@area, nil, "width:100%;height:100%;font-size:" + getFontSizeForNormal().to_s() + "px;color:green")
-        @area.setEditable(false)
-
-        lightPanel = JPanel.new
-        lightPanel.setLayout(GridLayout.new(1, 2))
-        lightPanel.add(@btn_light)
-        lightPanel.add(@btn_switch)
-
-        @btn_switch.addActionListener{|e|
-            @area.append("click switch\n")
-            @isLightOn = !@isLightOn
-            if @isLightOn
-                @context.sendMovingMsg("light on")
-                @btn_switch.setIcon(@icon_press_on)
-                @btn_light.setIcon(@icon_light_on)
-            else
-                @context.sendMovingMsg("light off")
-                @btn_switch.setIcon(@icon_press_off)
-                @btn_light.setIcon(@icon_light_off)
-            end
-        }
-
-        buttonPanel = JPanel.new()
-        buttonPanel.setLayout(GridLayout.new(1, 2))
-        buttonPanel.setPreferredSize(Dimension.new(@context.getMobileWidth(), getButtonHeight()))
-
-        button = JButton.new("Screen")
-        setCSS(button, "btnStyle", nil)
-        button.addActionListener{|e|
-            go(Java::hc.server.ui.Mlet::URL_SCREEN)#open desktop and control remote screen.
-        }
-        buttonPanel.add(button)
-
-        button = JButton.new("Back")
-        setCSS(button, "btnStyle", nil)
-        button.addActionListener{|e|
-            back()#exit and return back
-        }
-        buttonPanel.add(button)
-
-        setLayout(BorderLayout.new())
-        add(lightPanel, BorderLayout::NORTH)
-        add(@area, BorderLayout::CENTER)
-        add(buttonPanel, BorderLayout::SOUTH)
-
-        setCSS(self, nil, "background-color:white;")#override the default color styles.
-    end
-
-    #override empty method onStart
-    def onStart
-        @area.append("Sys call onStart\n")
-    end
-
-    #override empty method onPause
-    def onPause
-        @area.append("Sys call onPause\n")
-    end
-
-    #override empty method onResume
-    def onResume
-        @area.append("Sys call onResume\n")
-    end
-
-    #override empty method onExit
-    def onExit
-        @context.tipOnTray("Sys call onExit")
-    end
+	def initialize
+		super #invoke super construct method
+		
+		@area = JTextArea.new()
+		@btn_light = JButton.new()
+		@btn_switch = JButton.new()
+		@icon_press_on = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/press_on_64.png")))
+		@icon_press_off = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/press_off_64.png")))
+		
+		@context = getProjectContext()
+		
+		@icon_light_on = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/light_on_64.png")))
+		@icon_light_off = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/light_off_64.png")))
+		
+		@isLightOn = false
+		@btn_switch.setIcon(@icon_press_off)
+		@btn_light.setIcon(@icon_light_off)
+		@btn_switch.setToolTipText("light,lumière,Licht,빛,свет,灯")#说“灯”便可打开这个界面。（至少打开一次，内置lucene便会记录，供语音命令之用）
+		
+		setCSS(@btn_switch, "iconStyle", nil)#iconStyle is defined global (as following) and is automatically loaded for all HTMLMlet in current project
+		setCSS(@btn_light, "iconStyle", nil)
+		
+		buttonStyle = ".btnStyle{padding: 0.75em " + getButtonHeight().to_s() + "px;border-radius: " + getButtonHeight().to_s() + "px;display: inline-block;transition: all 0.15s ease;box-sizing: border-box;border: 1px solid #4fc08d;background-color: #fff;color: #42b983;}"
+		areaStyle = ".areaStyle{width:100%;height:100%;border: 1px solid #fff;font-size:" + getFontSizeForNormal().to_s() + "px;background-color:#fff;color:#42b983}"
+		loadCSS(buttonStyle + areaStyle)
+		setCSS(@area, "areaStyle", nil)#areaStyel is defined cssStyle string.
+		#it equals with setCSS(@area, nil, "width:100%;height:100%;font-size:" + getFontSizeForNormal().to_s() + "px;color:green")
+		@area.setEditable(false)
+		
+		lightPanel = JPanel.new
+		lightPanel.setLayout(GridLayout.new(1, 2))
+		lightPanel.add(@btn_light)
+		lightPanel.add(@btn_switch)
+		
+		@btn_switch.addActionListener{|e|
+			@area.append("click switch\n")
+			@isLightOn = !@isLightOn
+			if @isLightOn
+				@context.sendMovingMsg("light on")
+				@btn_switch.setIcon(@icon_press_on)
+				@btn_light.setIcon(@icon_light_on)
+			else
+				@context.sendMovingMsg("light off")
+				@btn_switch.setIcon(@icon_press_off)
+				@btn_light.setIcon(@icon_light_off)
+			end
+		}
+		
+		buttonPanel = JPanel.new()
+		buttonPanel.setLayout(GridLayout.new(1, 2))
+		buttonPanel.setPreferredSize(Dimension.new(getMobileWidth(), getButtonHeight()))
+		setCSS(buttonPanel, nil, "background-color:white;")
+		
+		button = JButton.new("Screen")
+		setCSSForDiv(button, "btnForDiv", nil)
+		setCSS(button, "btnStyle", nil)
+		button.addActionListener{|e|
+			go(Java::hc.server.ui.Mlet::URL_SCREEN)#打开电脑桌面，远程访问屏幕
+		}
+		buttonPanel.add(button)
+		
+		button = JButton.new("Back")
+		setCSSForDiv(button, "btnForDiv", nil)
+		setCSS(button, "btnStyle", nil)
+		button.addActionListener{|e|
+			back()#exit and return back
+		}
+		buttonPanel.add(button)
+		
+		setLayout(BorderLayout.new())
+		add(lightPanel, BorderLayout::NORTH)
+		add(@area, BorderLayout::CENTER)
+		add(buttonPanel, BorderLayout::SOUTH)
+		
+	end
+	
+	#override empty method onStart
+	def onStart
+		@area.append("Sys call onStart\n")
+	end
+	
+	#override empty method onPause
+	def onPause
+		@area.append("Sys call onPause\n")
+	end
+	
+	#override empty method onResume
+	def onResume
+		@area.append("Sys call onResume\n")
+	end
+	
+	#override empty method onExit
+	def onExit
+		@context.tipOnTray("Sys call onExit")
+	end
 end
 
 return MyHTMLMlet.new
@@ -145,24 +149,37 @@ return MyHTMLMlet.new
 点击左侧树的Resources/CSS Styles，将下面CSS粘贴到&quot;Styles Edit Area&quot;。
 ```CSS
 .iconStyle {
-    text-align:center;
+	text-align:center;
     vertical-align:middle;
     width:100%;
     height:100%;
+	transition: all 0.15s ease;
+	border: 1px solid #fff;
+	background-color: #fff;
+	display: inline-block;
+	box-sizing: border-box;
 }
-
-.btnStyle {
-    width:100%;
-    height:100%;
-    color:#fff;
-    font-size:$buttonFontSize$px;
-    background-color:#54a1d9;
-    background-image:-webkit-gradient(linear, 0 0, 0 100%, color-stop(0, #8fc2e8), color-stop(0.5, #54a1d9), color-stop(0.5, #126aa9), color-stop(1, #2ddef2));
-    -webkit-border-radius:9px;
-    border:1px solid #377daf;
-    -webkit-box-shadow:0 2px 4px rgba(46,185,230,0.7);
+.btnForDiv {
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-box-align: center;
+	-moz-box-align: center;
+	-ms-flex-align: center;
+	-webkit-align-items: center;
+	align-items: center;
+	justify-content: center;
+	-webkit-justify-content: center;
+	-webkit-box-pack: center;
+	-moz-box-pack: center;
+	-ms-flex-pack: center;
 }
 ```
+
+**注意：**
+由于本示例使用了联网，请点击左侧“My Project”节点，点击“Permission”分页，取消“limit socket/connect”勾选。
 
 ### 3. 发布应用
 
