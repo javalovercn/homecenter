@@ -11,6 +11,7 @@ import hc.core.IContext;
 import hc.core.IWatcher;
 import hc.core.L;
 import hc.core.MsgBuilder;
+import hc.core.RootConfig;
 import hc.core.SessionManager;
 import hc.core.util.CCoreUtil;
 import hc.core.util.CUtil;
@@ -945,7 +946,10 @@ public class TrayMenuUtil {
 //	        hcMenu.addSeparator();
 	        
 	        //由于续费，所以关闭isDonateToken条件
-			if(ResourceUtil.isJ2SELimitFunction()){//TokenManager.isDonateToken() == false
+			if(ResourceUtil.isJ2SELimitFunction()
+					&& (PropertiesManager.isTrue(PropertiesManager.p_isDonateOrVIPNowOrEver, false)
+							||
+							RootConfig.getInstance().isTrue(RootConfig.p_isDisplayVIPMenu))){//TokenManager.isDonateToken() == false
 	        	final JMenuItem vip = new JMenuItem("VIP Register");
 	        	try {
 					vip.setIcon(new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/vip_22.png"))));

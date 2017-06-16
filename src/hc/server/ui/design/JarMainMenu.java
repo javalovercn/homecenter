@@ -74,11 +74,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 	public static final int FOLD_TYPE = 0;
 
 	private final void initMenuItemArray() {
-		final Object menuItemObj = map.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, menuIdx));
-		
-		if(menuItemObj != null){
-			final int itemCount = Integer.parseInt((String)menuItemObj);
-			
+		if(isRoot){
 			//添加LinkProject文件夹
 			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(false);
 			while(it.hasNext()) {
@@ -96,7 +92,13 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 				}
 				projectMenu.addFolderItem(subProjmap, lps);
 			}
-
+		}
+		
+		final Object menuItemObj = map.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, menuIdx));
+		
+		if(menuItemObj != null){
+			final int itemCount = Integer.parseInt((String)menuItemObj);
+			
 			final String Iheader = HCjar.replaceIdxPattern(HCjar.MENU_ITEM_HEADER, menuIdx);
 			for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
 				final String header = Iheader + itemIdx + ".";

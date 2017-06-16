@@ -2474,7 +2474,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			checkHARButtonsEnableInBackground();
 			
 			if(isRootNotMenu){
-				LinkProjectManager.showNoMenuInRootError(this);
+				LinkProjectManager.showNoMenuInRootWarn(this);
 				return false;
 			}
 			if(br instanceof MobiUIResponsor){

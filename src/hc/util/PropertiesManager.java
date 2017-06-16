@@ -52,6 +52,7 @@ public class PropertiesManager {
 	public static final String p_NetworkInterfaces = "NetworkInterfaces";
 	public static final String p_UsingNetworkInterfaces = "UsingNetworkInterfaces";
 	public static final String p_Token = "Token";
+	public static final String p_isDonateOrVIPNowOrEver = "isDonateOrVIPNowOrEver";//现在或曾经是。查看实时状态：TokenManager.isDonateToken()
 	public static final String p_TokenRelay = "TokenRelay";
 	public static final String p_TokenBack = "TokenBack";
 	//外网直联检测及开通

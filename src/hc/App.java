@@ -2370,7 +2370,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				} else if (result.equals(RootServerConnector.ROOT_AJAX_OK)) {
 					showDonate.dispose();
 
-					TokenManager.changeTokenFromUI(emailID, donateToken, true);
+					TokenManager.changeTokenFromUI(true, emailID, donateToken, true);
 					
 					final JPanel jpanel = new JPanel();
 					jpanel.add(new JLabel(

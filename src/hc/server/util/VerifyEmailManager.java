@@ -227,7 +227,8 @@ public class VerifyEmailManager {
 										}
 									});
 
-									TokenManager.changeTokenFromUI(emailID, token, true);
+									TokenManager.changeTokenFromUI(PropertiesManager.isTrue(PropertiesManager.p_isDonateOrVIPNowOrEver), 
+											emailID, token, true);
 									
 									break;
 								}
@@ -463,7 +464,7 @@ public class VerifyEmailManager {
 			@Override
 			public void run() {
 				final String token = PropertiesManager.getValue(PropertiesManager.p_Token);
-				TokenManager.changeTokenFromUI(emailID, token, false);
+				TokenManager.changeTokenFromUI(PropertiesManager.isTrue(PropertiesManager.p_isDonateOrVIPNowOrEver), emailID, token, false);
 				VerifyEmailManager.startVerifyMailSendProcess(emailID);//重启服务时，会检查并通知重新验证
 			}
 		}, App.getThreadPoolToken());

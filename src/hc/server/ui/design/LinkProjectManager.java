@@ -1061,10 +1061,18 @@ public class LinkProjectManager{
 		return false;
 	}
 
-	public static void showNoMenuInRootError(final Frame frame) {
-		App.showMessageDialog(frame, "There is NO menu item in root active project!", ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+	public static void showNoMenuInRootWarn(final Frame frame) {
+		App.showMessageDialog(frame, getNoMenuItemInRoot(), ResourceUtil.getWarnI18N(), App.WARNING_MESSAGE, App.getSysIcon(App.SYS_WARN_ICON));
 	}
 
+	public static void showNoMenuInRootError(final Frame frame) {
+		App.showMessageDialog(frame, getNoMenuItemInRoot(), ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+	}
+
+	private static String getNoMenuItemInRoot() {
+		return "There is NO menu item in root active project!";
+	}
+	
 }
 
 class IteratorWithoutRoot implements Iterator<LinkProjectStore> {

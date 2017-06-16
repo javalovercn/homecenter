@@ -4,7 +4,6 @@ import hc.core.util.CCoreUtil;
 import hc.core.util.RecycleRes;
 
 import java.util.HashMap;
-import java.util.Iterator;
 
 public class RecycleProjThreadPool {
 	private final static HashMap<String, RecycleRes> stack = new HashMap<String, RecycleRes>(16);
@@ -29,16 +28,17 @@ public class RecycleProjThreadPool {
 		CCoreUtil.checkAccess();
 		
 		synchronized (stack) {
-			RecycleRes out = stack.remove(projID);
-			if(out == null){
-				if(stack.isEmpty()){
-					return null;
-				}
-				final Iterator<String> it = stack.keySet().iterator();
-				it.hasNext();
-				out = stack.remove(it.next());
-			}
-			return out;
+			return stack.remove(projID);//注意：不能在不同工程中共享
+//			RecycleRes out = stack.remove(projID);
+//			if(out == null){
+//				if(stack.isEmpty()){
+//					return null;
+//				}
+//				final Iterator<String> it = stack.keySet().iterator();
+//				it.hasNext();
+//				out = stack.remove(it.next());
+//			}
+//			return out;
 		}
 	}
 	

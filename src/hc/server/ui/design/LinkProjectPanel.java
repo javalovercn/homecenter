@@ -801,14 +801,16 @@ public class LinkProjectPanel extends ProjectListPanel{
 				c.weightx = 1;
 				titl_group.add(group, c);
 				
-				c.gridy = 1;
-				c.gridx = 0;
-				c.weightx = 0;
-				titl_group.add(compPermssionsMode, c);
+				if(ResourceUtil.isAndroidServerPlatform() == false){
+					c.gridy = 1;
+					c.gridx = 0;
+					c.weightx = 0;
+					titl_group.add(compPermssionsMode, c);
 				
-				c.gridx = 1;
-				c.weightx = 1;
-				titl_group.add(groupPerm, c);
+					c.gridx = 1;
+					c.weightx = 1;
+					titl_group.add(groupPerm, c);//签名权限更改
+				}
 			}
 			
 			{
