@@ -67,7 +67,7 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 		setCSS(@btn_switch, "iconStyle", nil)#iconStyle is defined global (as following) and is automatically loaded for all HTMLMlet in current project
 		setCSS(@btn_light, "iconStyle", nil)
 		
-		buttonStyle = ".btnStyle{padding: 0.75em " + getButtonHeight().to_s() + "px;border-radius: " + getButtonHeight().to_s() + "px;display: inline-block;transition: all 0.15s ease;box-sizing: border-box;border: 1px solid #4fc08d;background-color: #fff;color: #42b983;}"
+		buttonStyle = ".btnStyle{width:100%;height:100%;border-radius: " + getButtonHeight().to_s() + "px;display: inline-block;transition: all 0.15s ease;border: 1px solid #4fc08d;background-color: #fff;color: #42b983;}"
 		areaStyle = ".areaStyle{width:100%;height:100%;border: 1px solid #fff;font-size:" + getFontSizeForNormal().to_s() + "px;background-color:#fff;color:#42b983}"
 		loadCSS(buttonStyle + areaStyle)
 		setCSS(@area, "areaStyle", nil)#areaStyel is defined cssStyle string.
@@ -155,9 +155,9 @@ return MyHTMLMlet.new
 ```CSS
 .iconStyle {
 	text-align:center;
-    vertical-align:middle;
-    width:100%;
-    height:100%;
+	vertical-align:middle;
+	width:100%;
+	height:100%;
 	transition: all 0.15s ease;
 	border: 1px solid #fff;
 	background-color: #fff;
@@ -165,6 +165,10 @@ return MyHTMLMlet.new
 	box-sizing: border-box;
 }
 .btnForDiv {
+	padding:0.2em;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
 	display: -webkit-box;
 	display: -moz-box;
 	display: -ms-flexbox;
