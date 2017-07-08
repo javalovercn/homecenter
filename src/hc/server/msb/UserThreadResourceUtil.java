@@ -44,7 +44,7 @@ public class UserThreadResourceUtil {
 		return ic != null && ic.cmStatus == ContextManager.STATUS_SERVER_SELF;
 	}
 
-	public static int getMobileHeightFrom(final J2SESession coreSS) {
+	public static int getDeviceHeightFrom(final J2SESession coreSS) {
 		if (isInServing(coreSS.context)) {
 		return coreSS.clientDesc.getClientHeight();
 		}else{
@@ -52,12 +52,16 @@ public class UserThreadResourceUtil {
 		}
 	}
 
-	public static int getMobileDPIFrom(final J2SESession coreSS) {
+	public static int getDeviceDPIFrom(final J2SESession coreSS) {
 		if (isInServing(coreSS.context)) {
 			return coreSS.clientDesc.getDPI();
 		}else{
 			return SimuMobile.PROJ_LEVEL_MOBILE_DPI;
 		}
+	}
+	
+	private final static boolean isIOS(final J2SESession coreSS){
+		return coreSS.clientDesc.isIOS();
 	}
 
 	public final static MobileAgent getMobileAgent(final J2SESession coreSS){
@@ -68,9 +72,45 @@ public class UserThreadResourceUtil {
 		return getMobileAgent(coreSS).getUID();
 	}
 
-	public static int getMobileWidthFrom(final J2SESession coreSS) {
+	public static int getDeviceWidthFrom(final J2SESession coreSS) {
 		if (isInServing(coreSS.context)) {
 			return coreSS.clientDesc.getClientWidth();
+		}else{
+			return 0;
+		}
+	}
+
+	public static int getMletDPIFrom(final J2SESession coreSS) {
+		if (isInServing(coreSS.context)) {
+			if(isIOS(coreSS)){
+				return (int)(coreSS.clientDesc.getDPI() / Float.parseFloat(coreSS.clientDesc.getClientScale()));
+			}else{
+				return coreSS.clientDesc.getDPI();
+			}
+		}else{
+			return SimuMobile.PROJ_LEVEL_MOBILE_DPI;
+		}
+	}
+	
+	public static int getMletWidthFrom(final J2SESession coreSS) {
+		if (isInServing(coreSS.context)) {
+			if(isIOS(coreSS)){
+				return coreSS.clientDesc.getIOSDrawWidth();
+			}else{
+				return coreSS.clientDesc.getClientWidth();
+			}
+		}else{
+			return 0;
+		}
+	}
+
+	public static int getMletHeightFrom(final J2SESession coreSS) {
+		if (isInServing(coreSS.context)) {
+			if(isIOS(coreSS)){
+				return coreSS.clientDesc.getIOSDrawHeight();
+			}else{
+				return coreSS.clientDesc.getClientHeight();
+			}
 		}else{
 			return 0;
 		}

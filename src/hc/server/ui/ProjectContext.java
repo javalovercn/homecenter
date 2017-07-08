@@ -116,6 +116,19 @@ public class ProjectContext {
 		
 		return false;
 	}
+	
+	/**
+	 * set GPS/WiFi location update interval time.<BR>
+	 * it is a suggested value.<BR><BR>
+	 * if <code>minTimes</code> is upper than the default, then do nothing.<BR>
+	 * if <code>minTimes</code> is lower than other project, then new <code>minTimes</code> applies to all projects.
+	 * @param milliseconds minimum time interval between location updates, in milliseconds
+	 * @see #EVENT_SYS_MOBILE_LOCATION
+	 * @see ClientSession#getLocationLongitude()
+	 */
+	public final void setLocationUpdates(final long milliseconds){
+		ServerUIAPIAgent.getProjResponserMaybeNull(this).setLocationUpdates(milliseconds);
+	}
 
 	/**
 	 * the level for server class loader.
@@ -360,8 +373,8 @@ public class ProjectContext {
 	 * end
 	 * </pre>
 	 * <STRONG>Tip :</STRONG><BR>
-	 * project level scheduler will be shutdown by server after shutdown project.<BR>
-	 * session level scheduler will be shutdown by server after session is logout/lineoff.
+	 * session level scheduler will be shutdown by server after session is logout/lineoff.<BR>
+	 * project level scheduler will be shutdown by server after shutdown project.
 	 * <BR><BR>
 	 * <STRONG>one scheduler or multiple?</STRONG><BR>
 	 * 	1. please add multiple jobs, calendars and triggers in one scheduler, <BR>
@@ -371,6 +384,8 @@ public class ProjectContext {
 	 * current job scheduler is based on Quartz 2.2.3<BR>
 	 * @param domain each domain is stored in different database.
 	 * @return if a scheduler is shutdown and invoke this method with the same <code>domain</code>, then a new instance scheduler will be created, otherwise the same instance returned.
+	 * @see #getScheduler(String, boolean)
+	 * @see #getScheduler(String, boolean, boolean)
 	 * @since 7.57
 	 */
 	public final Scheduler getScheduler(final String domain){
@@ -427,11 +442,16 @@ public class ProjectContext {
 	 * if current thread is project level, then return a project level scheduler.<BR>
 	 * for session level scheduler, same <code>domain</code> in difference session means difference scheduler.<BR>
 	 * session level scheduler is all in RAM, even though pass <code>isAllInRAM</code> with false.
+	 * <BR><BR>
+	 * <STRONG>Tip :</STRONG><BR>
+	 * session level scheduler will be shutdown by server after session is logout/lineoff.<BR>
+	 * project level scheduler will be shutdown by server after shutdown project.<BR>
 	 * @param domain
 	 * @param isAllInRAM true means all in RAM, false means stored in database.
 	 * @return
 	 * @since 7.57
 	 * @see #getScheduler(String)
+	 * @see #getScheduler(String, boolean, boolean)
 	 */
 	public final Scheduler getScheduler(final String domain, final boolean isAllInRAM){
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
@@ -453,8 +473,8 @@ public class ProjectContext {
 	 * session level scheduler is all in RAM, even though pass <code>isAllInRAM</code> with false.
 	 * <BR><BR>
 	 * <STRONG>Tip :</STRONG><BR>
-	 * project level scheduler will be shutdown by server after shutdown project.<BR>
 	 * session level scheduler will be shutdown by server after session is logout/lineoff.<BR>
+	 * project level scheduler will be shutdown by server after shutdown project.<BR>
 	 * @param domain
 	 * @param isAllInRAM true means all in RAM, false means stored in database.
 	 * @param isSessionScheduler true means create or get a session level scheduler.
@@ -651,7 +671,6 @@ public class ProjectContext {
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @see #goWhenInSession(String, String)
 	 * @see #goMletWhenInSession(Mlet, String)
-	 * @see #goExternalURLWhenInSession(String, boolean)
 	 * @since 7.30
 	 */
 	public final void goWhenInSession(final String url){
@@ -698,7 +717,6 @@ public class ProjectContext {
 	 * <BR>2. iOS 9 and above must use secure URLs.
 	 * @param url for example : https://homecenter.mobi
 	 * @see #isCurrentThreadInSessionLevel()
-	 * @see #goExternalURLWhenInSession(String, boolean)
 	 * @since 7.30
 	 */
 	public final void goExternalURLWhenInSession(final String url) {
@@ -1645,7 +1663,7 @@ public class ProjectContext {
 			return SimuMobile.PROJ_LEVEL_MOBILE_WIDTH;
 		}
 		
-		return UserThreadResourceUtil.getMobileWidthFrom(sessionContext.j2seSocketSession);
+		return UserThreadResourceUtil.getMletWidthFrom(sessionContext.j2seSocketSession);
 	}
 
 	/**
@@ -1819,7 +1837,7 @@ public class ProjectContext {
 			return SimuMobile.PROJ_LEVEL_MOBILE_HEIGHT;
 		}
 		
-		return UserThreadResourceUtil.getMobileHeightFrom(sessionContext.j2seSocketSession);
+		return UserThreadResourceUtil.getMletHeightFrom(sessionContext.j2seSocketSession);
 	}
 	
 	/**
@@ -1857,7 +1875,7 @@ public class ProjectContext {
 		}
 		final J2SESession coreSS = sessionContext.j2seSocketSession;
 		
-		return UserThreadResourceUtil.getMobileDPIFrom(coreSS);
+		return UserThreadResourceUtil.getMletDPIFrom(coreSS);
 	}
 
 	/**
@@ -2536,6 +2554,9 @@ public class ProjectContext {
 	/**
 	 * it is useful for thread of user to stop task and release resource when stop project.<BR>
 	 * you can set new value in [option/other/interval seconds between stop and restart HAR project].
+	 * <BR><BR>
+	 * <STRONG>deprecated</STRONG><BR>
+	 * please use {@link #getScheduler(String, boolean)} for time scheduler.
 	 * @return the milliseconds between stop and restart HAR project(s).
 	 * @since 7.0
 	 */
@@ -3434,13 +3455,48 @@ public class ProjectContext {
 	}
 	
 	/**
+	 * send a voice to client/mobile.<BR><BR>
+	 * if you want show this voice as a moving message and speech again, please use {@link #sendMovingMsg(String)}.
+	 * <BR><BR>
+	 * @param voice
+	 * @see #isCurrentThreadInSessionLevel()
+	 * @since 7.63
+	 */
+	public final void sendVoice(final String voice){
+		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
+			return;
+		}
+		
+		final J2SESession[] coreSS;
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
+		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+			if(L.isInWorkshop){
+				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
+			}
+			if(isLoggerOn == false){
+				ServerUIAPIAgent.printInProjectLevelWarn("sendVoice");
+			}
+			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+		}else{
+			coreSS = toArray(sessionContext.j2seSocketSession);
+		}
+		
+		if (coreSS != null && coreSS.length > 0) {
+			ServerUIAPIAgent.sendVoice(coreSS, voice);
+			
+			processFormData(voice);
+		}
+	}
+	
+	/**
 	 * send a message moving from right to left for current mobile if in session level, or send same message to all client sessions if in project level.<BR>
 	 * <BR>
 	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
 	 * notification is also created for mobile.<BR><BR>
 	 * if mobile option [Message, Notification to Speech also] is on, it may be spoken.<BR>
 	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
-	 * 
+	 * <BR><BR>
+	 * if the message is too long, {@link #sendVoice(String)} is a good choice.
 	 * @param msg the message to show.
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 6.98
@@ -3601,6 +3657,14 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public static final String EVENT_SYS_MOBILE_LOGIN = "SYS_MOBILE_LOGIN";
+	
+	/**
+	 * when mobile location is changed or initialized.
+	 * @see ClientSession#getLocationLatitude()
+	 * @see ClientSession#getLocationLongitude()
+	 * @since 7.63
+	 */
+	public static final String EVENT_SYS_MOBILE_LOCATION = "SYS_MOBILE_LOCATION";
 	
 	/**
 	 * when mobile client is logout or line off

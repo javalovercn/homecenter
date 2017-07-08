@@ -38,6 +38,8 @@ public class LinkNamePanel  extends JPanel {
 	private final JCheckBox checkWriteProperty = new JCheckBox(HCPermissionConstant.WRITE_SYSTEM_PROPERTIES);
 	final JCheckBox perm_memAccessSystem = new JCheckBox(HCPermissionConstant.MEMBER_ACCESS_SYSTEM);
 	
+	private final JCheckBox checkLocation = new JCheckBox(ResourceUtil.LOCATION_OF_MOBILE);
+	private final JCheckBox checkScriptPanel = new JCheckBox(ResourceUtil.SCRIPT_PANEL);
 	private final JCheckBox checkLoadLib = new JCheckBox(ResourceUtil.LOAD_NATIVE_LIB);
 	private final JCheckBox checkRobot = new JCheckBox("create java.awt.Robot");
 //	private final JCheckBox checkListenAllAWTEvents = new JCheckBox("listen all AWT events");
@@ -97,6 +99,9 @@ public class LinkNamePanel  extends JPanel {
 		checkWriteProperty.setToolTipText(HCPermissionConstant.WRITE_PROP_TIP);
 		perm_memAccessSystem.setToolTipText(HCPermissionConstant.MEMBER_ACCESS_SYSTEM_TIP);
 		
+		checkLocation.setToolTipText(HCPermissionConstant.LOCATION_OF_MOBILE);
+		checkScriptPanel.setToolTipText(HCPermissionConstant.SCRIPT_PANEL);
+		
 		checkLoadLib.setToolTipText(HCPermissionConstant.LOAD_LIB_TIP);
 		checkRobot.setToolTipText(HCPermissionConstant.ROBOT_TIP);
 //		checkListenAllAWTEvents.setToolTipText(HCPermissionConstant.LISTEN_ALL_AWT_EVENTS_TIP);
@@ -128,6 +133,20 @@ public class LinkNamePanel  extends JPanel {
 				isModiPermission = true;
 			}
 		}, threadPoolToken));	
+		checkLocation.addItemListener(new HCActionListener(new Runnable() {
+			@Override
+			public void run() {
+				csc.setLocation(checkLocation.isSelected());
+				isModiPermission = true;
+			}
+		}, threadPoolToken));
+		checkScriptPanel.addItemListener(new HCActionListener(new Runnable() {
+			@Override
+			public void run() {
+				csc.setScriptPanel(checkScriptPanel.isSelected());
+				isModiPermission = true;
+			}
+		}, threadPoolToken));
 		checkRobot.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -242,6 +261,10 @@ public class LinkNamePanel  extends JPanel {
 			tabbedPane.addTab((String)ResourceUtil.get(9095), ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER));
 		}
 		
+		final JPanel mobilePanel = new JPanel(new GridLayout(1, 4));
+		mobilePanel.add(checkLocation);
+		mobilePanel.add(checkScriptPanel);
+		
 		final JPanel osPermPanel = new JPanel(new GridLayout(2, 2));
 		osPermPanel.add(perm_write);
 		osPermPanel.add(perm_exec);
@@ -261,7 +284,8 @@ public class LinkNamePanel  extends JPanel {
 		sysOtherPropPanel.add(checkSetFactory);
 //		sysOtherPropPanel.add(checkListenAllAWTEvents);
 //		sysOtherPropPanel.add(checkAccessClipboard);
-		final JComponent[] components = {osPermPanel, new JSeparator(SwingConstants.HORIZONTAL), 
+		final JComponent[] components = {mobilePanel, new JSeparator(SwingConstants.HORIZONTAL), 
+				osPermPanel, new JSeparator(SwingConstants.HORIZONTAL), 
 				sysPropPanel, new JSeparator(SwingConstants.HORIZONTAL), 
 				perm_sock_panel, new JSeparator(SwingConstants.HORIZONTAL),
 				sysOtherPropPanel
@@ -304,6 +328,8 @@ public class LinkNamePanel  extends JPanel {
 		perm_memAccessSystem.setSelected(contextSecurityConfig.isMemberAccessSystem());
 		
 		checkLoadLib.setSelected(contextSecurityConfig.isLoadLib());
+		checkLocation.setSelected(contextSecurityConfig.isLocation());
+		checkScriptPanel.setSelected(contextSecurityConfig.isScriptPanel());
 		checkRobot.setSelected(contextSecurityConfig.isRobot());
 //		checkListenAllAWTEvents.setSelected(contextSecurityConfig.isListenAllAWTEvents());
 //		checkAccessClipboard.setSelected(contextSecurityConfig.isAccessClipboard());

@@ -17,11 +17,11 @@ import hc.server.ui.J2SESessionManager;
 import hc.server.ui.MenuItem;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
-import hc.server.ui.ProjectInputDialog;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.SessionMobiMenu;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.MobiUIResponsor;
+import hc.server.ui.design.SystemDialog;
 import hc.server.ui.design.SystemHTMLMlet;
 import hc.server.util.VoiceCommand;
 import hc.util.PropertiesManager;
@@ -93,7 +93,7 @@ public class AIPersistentManager {
 		}
 		
 		if(uiObj instanceof SystemHTMLMlet
-				|| uiObj instanceof ProjectInputDialog){
+				|| uiObj instanceof SystemDialog){
 			return false;
 		}
 		

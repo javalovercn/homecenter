@@ -35,7 +35,6 @@ import hc.server.msb.Robot;
 import hc.server.msb.RobotWrapper;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.msb.WorkingDeviceList;
-import hc.server.ui.ClientSession;
 import hc.server.ui.ClientSessionForSys;
 import hc.server.ui.CtrlResponse;
 import hc.server.ui.HTMLMlet;
@@ -46,7 +45,7 @@ import hc.server.ui.ProjectContext;
 import hc.server.ui.ServCtrlCanvas;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
-import hc.server.ui.SizeHeightForXML;
+import hc.server.ui.SizeHeight;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.hpj.HCjar;
@@ -91,6 +90,8 @@ public class ProjResponser {
 	final boolean isRoot;
 	final ClassLoader jrubyClassLoader;
 	final boolean hasNative;
+	public final boolean hasLocationOfMobile;
+	public final boolean hasPermissionScriptPanel;
 	final SessionMobileContext mobileContexts = new SessionMobileContext();
 	private final ThreadGroup token = App.getThreadPoolToken();
 	
@@ -120,7 +121,7 @@ public class ProjResponser {
 	public final void initSessionContext(final J2SESession coreSS){
 		if(getMobileSession(coreSS) == null){//有可能安装HAR时，因为showInputDialog，已设置完成
 			final SessionContext mc = useFreeMobileContext(coreSS);
-			mc.setClientSession(coreSS, new ClientSession(), new ClientSessionForSys(coreSS, token));
+			mc.setClientSession(coreSS, ServerUIAPIAgent.buildClientSession(coreSS, hasLocationOfMobile), new ClientSessionForSys(coreSS, token));
 		}
 	}
 	
@@ -438,6 +439,10 @@ public class ProjResponser {
 		return robots;
 	}
 	
+	public final void setLocationUpdates(final long minTimes){
+		mobiResp.setPublishLocationMS(minTimes);
+	}
+	
 	public ProjResponser(final String projID, final Map<String, Object> p_map, final MobiUIResponsor baseRep,
 			final LinkProjectStore lps) {
 		this.projectID = projID;
@@ -512,6 +517,10 @@ public class ProjResponser {
 		csc.setProjResponser(this);
 		csc.initSocketPermissionCollection();
 		ContextSecurityManager.putContextSecurityConfig(threadGroup, csc);
+		
+		hasLocationOfMobile = csc.isLocation();
+		hasPermissionScriptPanel = csc.isScriptPanel();
+		baseRep.hasLocationOfMobile(hasLocationOfMobile);
 		
 		{
 			//加载全部native lib
@@ -1025,29 +1034,34 @@ public class ProjResponser {
 		final StringBuilder initHTML = StringBuilderCacher.getFree();
 		
 		final String scale;
-		if(isIOS){
-			scale = String.valueOf( 1 / Float.valueOf(coreSS.clientDesc.getClientScale()));
-		}else{
+//		if(isIOS){
+//			scale = String.valueOf( 1 / Float.valueOf(coreSS.clientDesc.getClientScale()));
+//		}else{
 			scale = MobileAgent.DEFAULT_SCALE;
-		}
+//		}
 		
 		if(L.isInWorkshop){
 			LogManager.log("HTMLMlet scale : " + scale);
 		}
 		
 		final String colorForBodyByHexString = HTMLMlet.getColorForBodyByHexString();
-		final SizeHeightForXML sizeHeightForXML = new SizeHeightForXML(coreSS);
+		final SizeHeight sizeHeight = new SizeHeight(coreSS);
 		
 		final String startBody = 
+//				"<!DOCTYPE html>" +//开启会导致：1. 不被视为quirks模式，尽管有box-sizing，
 				"<html dir='ltr'>" +
 				"<head>" +
 				"<meta charset=\"utf-8\" />" +//注意：某些手机不支持width=device-width，必须width=600
-				"<meta name=\"viewport\" content=\"target-densitydpi=device-dpi, user-scalable=no, width=" + UserThreadResourceUtil.getMobileWidthFrom(coreSS) + ", initial-scale=" + scale + ", minimum-scale=" + scale + ", maximum-scale=" + scale + "\"/>" +
+				"<meta name=\"viewport\" content=\"target-densitydpi=device-dpi, user-scalable=no, width=" + UserThreadResourceUtil.getMletWidthFrom(coreSS) + ", initial-scale=" + scale + ", minimum-scale=" + scale + ", maximum-scale=" + scale + "\"/>" +
 				"<style type=\"text/css\">" +
+				"  html {-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;}\n" +
+				"  *, *:before, *:after {-webkit-box-sizing: inherit;-moz-box-sizing: inherit;box-sizing: inherit;}\n" + 
 				"  div > img {vertical-align:middle;}div > input {vertical-align:middle;}div > label{vertical-align:middle;}\n" +
-				"  input, select, textarea, button{font-family:inherit;font-size:inherit;}\n" +
+				"  button > img {vertical-align:middle;}\n" +
+				//table will not be inherited in quirks mode, so add table as following, tested pass in letv mobile.
+				"  input, select, textarea, button, table, caption{font-family:inherit;font-size:inherit;font-weight: inherit; font-style: inherit; font-variant: inherit;}\n" +
 				"  .HC_DIV_SYS_0 {" +
-					"font-size:" + sizeHeightForXML.getFontSizeForNormal() + "px;" +
+					"font-size:" + sizeHeight.getFontSizeForNormal() + "px;" +
 					"background-color:#" + colorForBodyByHexString + ";" +
 					"}" +
 				"</style>" +
@@ -1055,9 +1069,9 @@ public class ProjResponser {
 				"<body style=\"position:relative;margin:0px;background-color:transparent;color:#" + HTMLMlet.getColorForFontByHexString() + ";\">" +
 				"<div id=\"HC_DIV_0\" class=\"HC_DIV_SYS_0\"></div>" +
 				"<div id=\"HC_DIV_loading\" style=\"position:absolute;background-color:#" + colorForBodyByHexString + ";" +
-						"width:" + UserThreadResourceUtil.getMobileWidthFrom(coreSS) + "px;" +
-						"height:" + UserThreadResourceUtil.getMobileHeightFrom(coreSS) + "px;\"></div>" +
-				"<div id=\"HC_DIV_tip\" style=\"pointer-events:none;font-size:" + (int)(UserThreadResourceUtil.getMobileDPIFrom(coreSS) * 1.4 /10) + "px;position:absolute;visibility:hidden;height:auto;top:30px;\">" +
+						"width:" + UserThreadResourceUtil.getMletWidthFrom(coreSS) + "px;" +
+						"height:" + UserThreadResourceUtil.getMletHeightFrom(coreSS) + "px;\"></div>" +
+				"<div id=\"HC_DIV_tip\" style=\"pointer-events:none;font-size:" + (int)(UserThreadResourceUtil.getMletDPIFrom(coreSS) * 1.4 /10) + "px;position:absolute;visibility:hidden;height:auto;top:30px;\">" +
 				"</div>";
 		final String endBody = 
 				"</body>" +
@@ -1084,6 +1098,7 @@ public class ProjResponser {
 		initHTML.append(endBody);
 		
 		final String sbStr = initHTML.toString();
+		L.V = L.WShop ? false : LogManager.log(sbStr);
 		StringBuilderCacher.cycle(initHTML);
 		final byte[] bs = StringUtil.getBytes(sbStr);
 		
@@ -1107,14 +1122,19 @@ public class ProjResponser {
 	}
 	
 	public static final int getMletComponentCount(final J2SESession coreSS, final ProjectContext ctx, final Mlet mlet){
-		final ReturnableRunnable run = new ReturnableRunnable() {
-			@Override
-			public Object run() {
-				return mlet.getComponentCount();
-			}
-		};
-
-		return (Integer)ServerUIAPIAgent.getProjResponserMaybeNull(ctx).getMobileSession(coreSS).recycleRes.threadPool.runAndWait(run);
+		final SessionContext mobileSession = ServerUIAPIAgent.getProjResponserMaybeNull(ctx).getMobileSession(coreSS);
+		if(mobileSession != null){
+			final ReturnableRunnable run = new ReturnableRunnable() {
+				@Override
+				public Object run() {
+					return mlet.getComponentCount();
+				}
+			};
+			return (Integer)mobileSession.recycleRes.threadPool.runAndWait(run);
+		}else{
+			L.V = L.WShop ? false : LogManager.log("no mobile session for J2SESession.");
+			return -1;
+		}
 	}
 
 	public static final Mlet startMlet(final J2SESession coreSS,

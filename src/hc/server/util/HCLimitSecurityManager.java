@@ -45,8 +45,22 @@ import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.AddHarIsBusy;
 import hc.server.ui.design.BindHTMLMlet;
 import hc.server.ui.design.LicenseHTMLMlet;
+import hc.server.ui.design.ProjListScriptPanel;
+import hc.server.ui.design.ProjMgrDialog;
+import hc.server.ui.design.SystemDialog;
 import hc.server.ui.design.SystemHTMLMlet;
 import hc.server.ui.design.hpj.HCjar;
+import hc.server.util.json.JSONArray;
+import hc.server.util.json.JSONException;
+import hc.server.util.json.JSONML;
+import hc.server.util.json.JSONObject;
+import hc.server.util.json.JSONPointer;
+import hc.server.util.json.JSONPointerBuilder;
+import hc.server.util.json.JSONPointerException;
+import hc.server.util.json.JSONString;
+import hc.server.util.json.JSONTokener;
+import hc.server.util.json.JSONXML;
+import hc.server.util.json.JSONXMLTokener;
 import hc.server.util.scheduler.AnnualJobCalendar;
 import hc.server.util.scheduler.BaseJobCalendar;
 import hc.server.util.scheduler.CronExcludeJobCalendar;
@@ -326,12 +340,15 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    			Converter.class, DialogHTMLMlet.class, DialogMlet.class, Device.class, Message.class, 
 	    			Robot.class, RobotWrapper.class, RobotEvent.class, RobotListener.class, SimuRobot.class,
 	    			DeviceCompatibleDescription.class, 
-	    			AddHarHTMLMlet.class, AddHarIsBusy.class, BindHTMLMlet.class, Dialog.class, 
+	    			AddHarHTMLMlet.class, AddHarIsBusy.class, BindHTMLMlet.class, Dialog.class, SystemDialog.class,
+	    			ProjMgrDialog.class, ProjListScriptPanel.class,
 	    			LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
 	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class, ProjectInputDialog.class,
 	    			Assistant.class, VoiceCommand.class, AnalysableRobotParameter.class, JavaString.class, IDEUtil.class, Scheduler.class, 
 	    			JobCalendar.class, BaseJobCalendar.class, AnnualJobCalendar.class, CronExcludeJobCalendar.class, DailyJobCalendar.class, 
 	    			HolidayJobCalendar.class, MonthlyJobCalendar.class, WeeklyJobCalendar.class, 
+	    			JSONArray.class, JSONException.class, JSONML.class, JSONObject.class, JSONPointer.class, JSONPointerException.class,
+	    			JSONString.class, JSONTokener.class, JSONXML.class, JSONXMLTokener.class, JSONPointerBuilder.class, Null.class,
 	    			WiFiAccount.class, ScriptPanel.class, ScriptTester.class, SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class};//按API类单列
 //	    	{
 //	    		Vector<Class> allowVect = new Vector<Class>();

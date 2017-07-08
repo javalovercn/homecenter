@@ -562,7 +562,7 @@
 		},
 
 		setButtonSelected: function(hashID, isSelected) {
-			document.getElementById(CONS.HC_CMP + hashID).checked=isSelected;
+			document.getElementById(CONS.HC_CMP + hashID).checked=isSelected;/*removeAttribute('checked');不行*/
 		},
 		
 		setTextComponentEditable: function(hashID, isEditable) {

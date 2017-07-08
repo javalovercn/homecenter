@@ -101,6 +101,8 @@ public class HCjar {
 	public static final String PERMISSION_SYS_PROP_READ = PERMISSION_SYS_PROP + "Read";
 	public static final String PERMISSION_SYS_PROP_WRITE = PERMISSION_SYS_PROP + "Write";
 	
+	public static final String PERMISSION_LOCATION = PERMISSION_HEADER + "Location";
+	public static final String PERMISSION_SCRIPT_PANEL = PERMISSION_HEADER + "ScriptPanel";
 	public static final String PERMISSION_LOAD_LIB = PERMISSION_HEADER + "LoadLib";
 	public static final String PERMISSION_ROBOT = PERMISSION_HEADER + "Robot";
 //	public static final String PERMISSION_LISTEN_ALL_AWT_EVNTS = PERMISSION_HEADER + "AllAWTEvents";

@@ -120,7 +120,7 @@ public class LinkProjectManager{
 			final String curr_hc_ver = StarterManager.getHCVersion();
 			final String curr_jruby_ver = PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer, "1.0");
 			
-			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(true);
+			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 			while(it.hasNext()){
 				final LinkProjectStore lp = it.next();
 				if(lp.isActive() == false){
@@ -322,7 +322,7 @@ public class LinkProjectManager{
 	}
 	
 	private static JScrollPane buildErroDownloadingPanel(){
-		final Iterator<LinkProjectStore> it = getLinkProjsIterator(true);
+		final Iterator<LinkProjectStore> it = getLinkProjsIteratorInUserSysThread(true);
 		final Vector<LinkProjectStore> errLists = new Vector<LinkProjectStore>();
 		while (it.hasNext()) {
 			final LinkProjectStore lps = it.next();
@@ -668,7 +668,7 @@ public class LinkProjectManager{
 	}
 	
 	public static int getActiveProjNum(){
-		final Iterator<LinkProjectStore> lpsIt = getLinkProjsIterator(true);
+		final Iterator<LinkProjectStore> lpsIt = getLinkProjsIteratorInUserSysThread(true);
 		int count = 0;
 		while(lpsIt.hasNext()){
 			final LinkProjectStore lps = lpsIt.next();
@@ -707,7 +707,12 @@ public class LinkProjectManager{
 		return 0;
 	}
 	
-	static Iterator<LinkProjectStore> getLinkProjsIterator(final boolean includeRoot){
+	/**
+	 * 注意：被ProjMgrDialog在用户级线程使用，但是相同包
+	 * @param includeRoot
+	 * @return
+	 */
+	static Iterator<LinkProjectStore> getLinkProjsIteratorInUserSysThread(final boolean includeRoot){
 		if(includeRoot){
 			return lpsVector.iterator();
 		}else{
@@ -978,7 +983,7 @@ public class LinkProjectManager{
 	/**
 	 * @return 返回被依赖的一个非active工程。null表示完整。
 	 */
-	private static String[] checkReferencedDependency(final Vector<LinkProjectStore> stores){
+	private static String[] checkReferencedDependencyInSysThread(final Vector<LinkProjectStore> stores){
 		final int size = stores.size();
 		final Vector<String> activeProjects = new Vector<String>();
 		
@@ -1024,22 +1029,32 @@ public class LinkProjectManager{
 	 * @param stores
 	 * @return false表示失败
 	 */
-	static boolean checkReferencedDependency(final JFrame self, final Vector<LinkProjectStore> stores) {
-		final String[] projID = checkReferencedDependency(stores);
+	static void showReferencedDependencyError(final JFrame self, String text) {
+		text = "<html>" +
+				text +
+				"</html>";
+		
+		final JPanel panel = new JPanel(new BorderLayout());
+		panel.add(new JLabel(text, App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
+		App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, self, true, false, null, false, false);
+	}
+	
+	/**
+	 * 
+	 * @param stores
+	 * @return text for error
+	 */
+	static String checkReferencedDependencyForErrorInSysThread(final Vector<LinkProjectStore> stores){
+		final String[] projID = checkReferencedDependencyInSysThread(stores);
 		
 		if(projID != null){
-			final JPanel panel = new JPanel(new BorderLayout());
-			String text = "<html>" +
-					(String)ResourceUtil.get(8012) +
-					"</html>";
+			String text = (String)ResourceUtil.get(8012);//注意：该信息不仅被手机端使用，也被PC端使用，请不要使用<BR>
 			text = StringUtil.replace(text, "{proj1}", projID[0]);
 			text = StringUtil.replace(text, "{proj2}", projID[1]);
-			panel.add(new JLabel(text, App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
-			App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, self, true, false, null, false, false);
-			return false;
+			
+			return text;
 		}
-		
-		return true;
+		return null;
 	}
 
 	public static void startAutoUpgradeBiz() {
@@ -1069,8 +1084,8 @@ public class LinkProjectManager{
 		App.showMessageDialog(frame, getNoMenuItemInRoot(), ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 	}
 
-	private static String getNoMenuItemInRoot() {
-		return "There is NO menu item in root active project!";
+	static String getNoMenuItemInRoot() {
+		return "There is NO designed menu item (not dynamic item) in root active project!";
 	}
 	
 }

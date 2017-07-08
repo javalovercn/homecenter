@@ -81,7 +81,7 @@ public class LogManager {
 	}
 	
 	/**
-	 * 通知出错，要进行UI提示
+	 * 通知出错，要进行UI提示，支持用户级线程。
 	 * @param msg
 	 */
 	public static void err(String msg){

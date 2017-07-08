@@ -5,7 +5,6 @@ import hc.UIActionListener;
 import hc.core.ContextManager;
 import hc.core.IConstant;
 import hc.core.L;
-import hc.core.cache.CacheManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
@@ -24,12 +23,10 @@ import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.DelDeployedProjManager;
 import hc.server.util.SignHelper;
-import hc.server.util.ai.AIPersistentManager;
 import hc.util.HttpUtil;
 import hc.util.IBiz;
 import hc.util.LinkPropertiesOption;
 import hc.util.PropertiesManager;
-import hc.util.PropertiesSet;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
@@ -51,7 +48,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.ButtonGroup;
@@ -79,14 +75,11 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 public class LinkProjectPanel extends ProjectListPanel{
 	final ThreadGroup threadPoolToken = App.getThreadPoolToken();
-	final String saveAndApply = (String) ResourceUtil.get(1017) + " + " + (String) ResourceUtil.get(9041);
+	final String saveAndApply = ResourceUtil.getSaveAndApply(null);
 
 	final HCTablePanel tablePanel;
 	final JButton designBut, rebindBut, importBut, editBut, removeBut, upBut, downBut;
-	final Vector<LinkEditData> delList = new Vector<LinkEditData>(0);
-	boolean isChanged = false;
 	boolean isCancelOp = false;
-	public static String ACTIVE = (String)ResourceUtil.get(8020);
 
 	final JRadioButton rb_startup = new JRadioButton(LinkPropertiesOption.getDispOpNextStartUp());
 	final JRadioButton rb_ask = new JRadioButton(LinkPropertiesOption.getDispOpAsk());
@@ -114,34 +107,6 @@ public class LinkProjectPanel extends ProjectListPanel{
 		}
 	}
 	
-	private void transRootToOtherActive(){
-		final int length = data.size();
-		for (int i = 0; i < length; i++) {
-			final LinkEditData led = (LinkEditData)data.elementAt(i)[IDX_OBJ_STORE];
-			if(led != null){
-				if(led.lps.isActive()){
-					led.lps.setRoot(true);
-					led.op = LinkProjectManager.STATUS_MODIFIED;
-					return;
-				}
-			}
-		}
-	}
-	
-	private LinkProjectStore searchRoot(){
-		final int size = data.size();
-		for (int i = 0; i < size; i++) {
-			final LinkEditData led = (LinkEditData)data.elementAt(i)[IDX_OBJ_STORE];
-			if(led != null){
-				if(led.lps.isRoot()){
-					return led.lps;
-				}
-			}else{
-				return null;
-			}
-		}
-		return null;
-	}
 	final JPanel contentPane;
 	final JButton saveAndApplyBtn;
 	boolean isOpenApply = false;
@@ -153,12 +118,13 @@ public class LinkProjectPanel extends ProjectListPanel{
 	final Window dialog;
 	final Component relativeTo;
 	final JLabel compSelectMode, compPermssionsMode;
+	final JFrame self;
 	
 	public LinkProjectPanel(final JFrame owner, final boolean newFrame, final Component relativeTo) {
 		super();
 		final String title = (String)ResourceUtil.get(9059);
 		dialog = App.buildCloseableWindow(newFrame, owner, title, true);
-		final JFrame self = (owner==null && (dialog instanceof JFrame))?(JFrame)dialog:owner;
+		self = (owner==null && (dialog instanceof JFrame))?(JFrame)dialog:owner;
 		this.relativeTo = relativeTo;
 		
 		final String threeSpace = "   ";
@@ -224,24 +190,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 					}else if(columnIndex == COL_VER){
 							lps.setVersion((String)aValue);
 					}else if(columnIndex == COL_IS_ROOT){
-						if(lps.isRoot()){
-							lps.setRoot(false);
-							lps.setActive(false);
-							
-							transRootToOtherActive();
-						}else{
-							final LinkProjectStore root_lps = searchRoot();
-							if(root_lps != null){
-								root_lps.setRoot(false);
-	//							if(root_lps.getProjectID().equals(HCURL.ROOT_MENU)){
-	//								root_lps.setProjectID("oldroot");
-	//							}
-							}
-							lps.setRoot((Boolean)aValue);
-							lps.setActive(true);
-						}
-						notifyNeedToSave();
-						led.op = (LinkProjectManager.STATUS_MODIFIED);
+						final Boolean isRoot = (Boolean)aValue;
+						clickOnRoot(led, lps, isRoot);
 						
 						tablePanel.table.repaint();
 					}else if(columnIndex == COL_PROJ_ACTIVE){
@@ -253,21 +203,9 @@ public class LinkProjectPanel extends ProjectListPanel{
 //								return;
 //							}
 //						}
-						lps.setActive((Boolean)aValue);
-						if((Boolean)aValue){
-							if(searchRoot() == null){
-								lps.setRoot(true);
-							}
-						}else{
-							if(lps.isRoot()){
-								lps.setRoot(false);
-								//将root移交给其它工程
-								transRootToOtherActive();
-							}
-						}
-						notifyNeedToSave();
+						final Boolean isActive = (Boolean)aValue;
+						clickOnActive(led, lps, isActive);
 						tablePanel.table.repaint();
-						led.op = (LinkProjectManager.STATUS_MODIFIED);
 					}else if(columnIndex == COL_PROJ_LINK_NAME){
 						lps.setLinkName((String)aValue);
 					}else if(columnIndex == COL_PROJ_DESC){
@@ -355,8 +293,6 @@ public class LinkProjectPanel extends ProjectListPanel{
 			}
 		};
 		
-		dataRowNum = data.size();
-		
 		tablePanel = new HCTablePanel(tableModel, data, colNames, dataRowNum, 
 				upBut, downBut, removeBut, importBut, editBut,
 				//upOrDownMovingBiz
@@ -372,7 +308,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 					public final void doBiz() {
 						if (ResourceUtil.isAndroidServerPlatform() && data.size() == 1 && isDeployed(0)){
 							final JPanel askPanel = new JPanel();
-							final String keepOne = (String)ResourceUtil.get(9258);
+							final String keepOne = getKeepOneProjWarn(null);
 							askPanel.add(new JLabel(keepOne, App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
 							
 							final AbstractDelayBiz selfBiz = this;
@@ -849,7 +785,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 				}
 			}
 		};
-		saveAndApplyBtn.setEnabled(false);
+		resetSave();
 		if(ServerUIUtil.isStarted() == false){
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
@@ -874,6 +810,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 		final ActionListener cancelListener = new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
+				LinkProjectManager.reloadLinkProjects();
 				LinkProjectStatus.exitStatus();
 				isCancelOp = true;
 			}
@@ -893,20 +830,9 @@ public class LinkProjectPanel extends ProjectListPanel{
 		final ActionListener listener = new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				final LinkProjectStore rootLPS = searchRoot();
-				if(rootLPS != null){
-					final Map<String, Object> rootMap = HCjar.loadHarFromLPS(rootLPS);
-					if(LinkProjectManager.hasMenuItemNumInProj(rootMap) == false){
-						LinkProjectManager.showNoMenuInRootError(self);
-						return;
-					}
-				}
-				
-				saveAndApplyBtn.setEnabled(false);
-				
 				final Window[] back = new Window[1];
 				ProcessingWindowManager.showCenterMessageOnTop(self, true, saveAndApply + "...", back);
-				saveAndApply(self);
+				saveAndApply();
 				Designer.checkBindEnable(rebindBut);
 				back[0].dispose();
 			}
@@ -953,32 +879,10 @@ public class LinkProjectPanel extends ProjectListPanel{
 		}, threadPoolToken));
 
 	}
-	
-	private final boolean isDeployed(final int selectedRow){
-		final Object[] elementAt = data.elementAt(selectedRow);
-		if(elementAt == null){
-			return false;
-		}
-		
-		final LinkEditData led = (LinkEditData)elementAt[IDX_OBJ_STORE];
-		return led != null && led.status == LinkProjectManager.STATUS_DEPLOYED;
-	}
 
 	public Window toShow(){
 		return App.showCenterNoOwner(contentPane, 0, 0, true, exitBtn, saveAndApplyBtn, 
 				true, exitAction, saveAction, dialog, relativeTo, true);//isResizabel=false,会导致漂移
-	}
-
-	private final void storeData() {
-		final int size = dataRowNum;
-		
-		final LinkProjectStore[] lpss = new LinkProjectStore[size];
-		for (int i = 0; i < size; i++) {
-			lpss[i] = ((LinkEditData)data.elementAt(i)[IDX_OBJ_STORE]).lps;
-		}
-		
-		final PropertiesSet projIDSet = AddHarHTMLMlet.newLinkProjSetInstance();
-		AddHarHTMLMlet.saveLinkStore(lpss, projIDSet);
 	}
 
 	protected LinkNamePanel showInputLinkName(final JFrame self, final String linkName, final String mem, 
@@ -1138,156 +1042,38 @@ public class LinkProjectPanel extends ProjectListPanel{
 		return;
 	}
 
-	private void notifyNeedToSave(){
+	@Override
+	public final void notifyNeedToSave(){
 		saveAndApplyBtn.setEnabled(true);
 	}
 	
-	private void delProjInList(final LinkEditData led) {
-		delList.add(led);
-		dataRowNum--;
+	@Override
+	public final void restartServer() {
+		restartServerImpl(true, self);
+
+		loadDataInUserSysThread();
+		tablePanel.table.repaint();//检查完善Root,Active，故刷新
 	}
 
-	private void saveAndApply(final JFrame self) {
-		{
-			final Vector<LinkProjectStore> stores = new Vector<LinkProjectStore>();
-			
-			for (int i = 0; i < dataRowNum; i++) {
-				final LinkEditData led = (LinkEditData)data.elementAt(i)[IDX_OBJ_STORE];
-				final LinkProjectStore lps = led.lps;
-				
-				if(lps.isActive()){
-					stores.add(lps);
-				}
-			}
-			
-			if(LinkProjectManager.checkReferencedDependency(self, stores) == false){
-				return;
-			}
+	@Override
+	public final void saveUpgradeOptions() {
+		if(rb_startup.isSelected()){
+			PropertiesManager.setValue(PropertiesManager.p_OpNewLinkedInProjVer, LinkPropertiesOption.OP_NEXT_START_UP);
+		}else if(rb_ask.isSelected()){
+			PropertiesManager.setValue(PropertiesManager.p_OpNewLinkedInProjVer, LinkPropertiesOption.OP_ASK);
+		}else if(rb_imme.isSelected()){
+			PropertiesManager.setValue(PropertiesManager.p_OpNewLinkedInProjVer, LinkPropertiesOption.OP_IMMEDIATE);
+		}
+
+		if(rb_perm_no.isSelected()){
+			PropertiesManager.setValue(PropertiesManager.p_OpAcceptNewPermissions, LinkPropertiesOption.OP_PERM_NO_CHANGE);
+		}else if(rb_perm_acceptIfSigned.isSelected()){
+			PropertiesManager.setValue(PropertiesManager.p_OpAcceptNewPermissions, LinkPropertiesOption.OP_PERM_ACCEPT_IF_SIGNED);
 		}
 		
-		final HashMap<String, File> delBackFileMap = new HashMap<String, File>();
+		PropertiesManager.setValue(PropertiesManager.p_EnableLinkedInProjUpgrade, ch_autoUpgrade.isSelected()?IConstant.TRUE:IConstant.FALSE);
 		
-		final String[] delCacheProjIDS;
-		final String[] removedAndNotUpgrade;
-		synchronized (ServerUIUtil.LOCK) {
-			//将已发布，且准备进行删除的进行删除操作
-			{
-				final int size = delList.size();
-				delCacheProjIDS = new String[size];
-				removedAndNotUpgrade = new String[size];
-				
-				for (int i = 0; i < size; i++) {
-					final LinkEditData led = delList.elementAt(i);
-					final LinkProjectStore lps = led.lps;
-					boolean isRemoved = false;
-					if(led.status == LinkProjectManager.STATUS_DEPLOYED){
-						final File oldBackEditFile = LinkProjectManager.removeLinkProjectPhic(lps, true);
-						isRemoved = true;
-						if(oldBackEditFile != null){
-							delBackFileMap.put(lps.getProjectID(), oldBackEditFile);
-						}
-						isChanged = true;
-					}
-					
-					if(led.isUpgrade == false){
-//						LinkProjectManager.removeOnlyLPS(lps);
-						delCacheProjIDS[i] = lps.getProjectID();
-						if(isRemoved){
-							DelDeployedProjManager.addDeledDeployed(lps.getProjectID());
-							removedAndNotUpgrade[i] = lps.getProjectID();
-						}
-					}
-				}
-				delList.removeAllElements();
-			}
-			
-			final Vector<String> noActiveProjs = new Vector<String>();
-			
-			for (int i = 0; i < dataRowNum; i++) {
-				final LinkEditData led = (LinkEditData)data.elementAt(i)[IDX_OBJ_STORE];
-				final LinkProjectStore lps = led.lps;
-				if(led.status == LinkProjectManager.STATUS_NEW){
-					final File oldBackEditFile = delBackFileMap.get(lps.getProjectID());
-					final boolean result = AddHarHTMLMlet.addHarToDeployArea(J2SESession.NULL_J2SESESSION_FOR_PROJECT, 
-							led, lps, false, true, oldBackEditFile);
-					isChanged = isChanged?true:result;
-				}else if(led.op == LinkProjectManager.STATUS_MODIFIED){
-					if(lps.isActive() == false){
-						noActiveProjs.add(lps.getProjectID());
-					}
-					isChanged = true;
-				}
-				led.op = (LinkProjectManager.STATUS_NEW);
-			}
-			
-			if(noActiveProjs.size() > 0){
-				final String[] noActive = new String[noActiveProjs.size()];
-				for (int i = 0; i < noActive.length; i++) {
-					noActive[i] = noActiveProjs.elementAt(i);
-				}
-				CacheManager.delProjects(noActive);//因为手机端会上线后，进行同步，所以noActive必须执行本操作
-			}
-			
-			if(rb_startup.isSelected()){
-				PropertiesManager.setValue(PropertiesManager.p_OpNewLinkedInProjVer, LinkPropertiesOption.OP_NEXT_START_UP);
-			}else if(rb_ask.isSelected()){
-				PropertiesManager.setValue(PropertiesManager.p_OpNewLinkedInProjVer, LinkPropertiesOption.OP_ASK);
-			}else if(rb_imme.isSelected()){
-				PropertiesManager.setValue(PropertiesManager.p_OpNewLinkedInProjVer, LinkPropertiesOption.OP_IMMEDIATE);
-			}
-
-			if(rb_perm_no.isSelected()){
-				PropertiesManager.setValue(PropertiesManager.p_OpAcceptNewPermissions, LinkPropertiesOption.OP_PERM_NO_CHANGE);
-			}else if(rb_perm_acceptIfSigned.isSelected()){
-				PropertiesManager.setValue(PropertiesManager.p_OpAcceptNewPermissions, LinkPropertiesOption.OP_PERM_ACCEPT_IF_SIGNED);
-			}
-			
-			PropertiesManager.setValue(PropertiesManager.p_EnableLinkedInProjUpgrade, ch_autoUpgrade.isSelected()?IConstant.TRUE:IConstant.FALSE);
-			
-			PropertiesManager.saveFile();
-			
-			if(isChanged){
-//								LogManager.log("restarting service...");
-				//启动时，需要较长时间初始化，有可能用户快速打开并更新保存，所以加锁。
-				synchronized (ServerUIUtil.LOCK) {
-					if(ServerUIUtil.promptAndStop(true, self) == false){
-					}
-					
-					storeData();
-					
-					//更新后必须reload
-					LinkProjectManager.reloadLinkProjects();
-					
-					//由于上行已更新，所以可以采用searchRoot
-					final LinkProjectStore root = LinkProjectManager.searchRoot(true);//必须查询为active状态的。
-					if(root != null){
-						Designer.setProjectOn();
-					}else{
-						Designer.setProjectOff();	
-					}
-				}
-				
-				//启动远屏或菜单
-				ServerUIUtil.restartResponsorServer(self, null);
-				
-				if(isChanged){
-					final Designer design = Designer.getInstance();
-					if(design != null){
-						design.refresh();//注意：要在restartResponsorServer之后
-					}
-				}
-
-				loadData();
-				tablePanel.table.repaint();//检查完善Root,Active，故刷新
-				
-				//如果是升级型，则可能出现null
-				CacheManager.delProjects(delCacheProjIDS);
-				AIPersistentManager.removeAndNotUpgrade(removedAndNotUpgrade);
-				PropertiesManager.saveFile();
-				
-				isChanged = false;
-			}
-		}
+		PropertiesManager.saveFile();
 	}
 
 	private final void enableUpgradeMode(final boolean selected) {
@@ -1300,6 +1086,21 @@ public class LinkProjectPanel extends ProjectListPanel{
 		
 		compSelectMode.setEnabled(selected);
 		compPermssionsMode.setEnabled(selected);
+	}
+
+	@Override
+	public void showReferencedDependencyError(final String text) {
+		LinkProjectManager.showReferencedDependencyError(self, text);
+	}
+
+	@Override
+	final void showNoMenuInRootError() {
+		LinkProjectManager.showNoMenuInRootError(self);
+	}
+
+	@Override
+	final void resetSave() {
+		saveAndApplyBtn.setEnabled(false);
 	}
 
 }

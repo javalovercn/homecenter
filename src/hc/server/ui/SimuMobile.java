@@ -20,6 +20,14 @@ public class SimuMobile {
 	public static final int MOBILE_WIDTH = 1024;
 	public static final int MOBILE_HEIGHT = 768;
 	public static final int MOBILE_DPI = 300;
+
+	public static final double MOBILE_LATITUDE = 90.1;
+	public static final double MOBILE_LONGITUDE = 60.2;
+	public static final double MOBILE_ALTITUDE = 123.4;
+	public static final double MOBILE_COURSE = 90.2;
+	public static final double MOBILE_SPEED = 12.3;
+	public static final boolean MOBILE_GPS = true;
+	public static final boolean MOBILE_FRESH = true;
 	
 	public static final int PROJ_LEVEL_MOBILE_WIDTH = 0;
 	public static final int PROJ_LEVEL_MOBILE_HEIGHT = 0;
@@ -86,5 +94,5 @@ public class SimuMobile {
 		}
 	}
 
-	public static ClientSession testSimuClientSession = new ClientSession();
+	public static ClientSession testSimuClientSession = new ClientSession(null, true);
 }

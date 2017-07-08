@@ -159,7 +159,16 @@ public class JPTrayIcon implements PlatformTrayIcon{
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
-				App.invokeAndWaitUI(new Runnable() {
+//				at : java.lang.Object.wait(Native Method)
+//				at : java.lang.Object.wait(Object.java:503)
+//				at : java.awt.EventQueue.invokeAndWait(EventQueue.java:1266)
+//				at : java.awt.EventQueue.invokeAndWait(EventQueue.java:1247)
+//				at : javax.swing.SwingUtilities.invokeAndWait(SwingUtilities.java:1347)
+//				at : hc.App.invokeAndWaitUI(App.java:1479)
+//				at : hc.server.j2se.JPTrayIcon$3.run(JPTrayIcon.java:162)
+//				at : hc.core.util.RecycleThread.run(RecycleThread.java:27)
+//				at : java.lang.Thread.run(Thread.java:744)
+				App.invokeLaterUI(new Runnable() {//注意：invokeAndWaitUI会导致上述异常，改为invokeLaterUI
 					@Override
 					public void run() {
 						trayIcon.displayMessage(caption, text, messageType);

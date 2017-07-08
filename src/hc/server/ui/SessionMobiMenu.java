@@ -16,7 +16,7 @@ import java.util.Vector;
 
 public class SessionMobiMenu extends MobiMenu{
 	final MobiMenu projectMenu;
-	boolean enableQRInMobiMenu, enableWiFiInMobiMenu, enableVoiceCommand;
+	boolean enableQRInMobiMenu, enableWiFiInMobiMenu, enableVoiceCommand, enableMgrProjs;
 	final J2SESession coreSS;
 	public final int targetMobileIconSize;
 	
@@ -26,7 +26,7 @@ public class SessionMobiMenu extends MobiMenu{
 		this.projectMenu = pMenu;
 		this.coreSS = coreSS;
 		
-		targetMobileIconSize = UIUtil.calMenuIconSize(UserThreadResourceUtil.getMobileWidthFrom(coreSS), UserThreadResourceUtil.getMobileHeightFrom(coreSS), UserThreadResourceUtil.getMobileDPIFrom(coreSS));
+		targetMobileIconSize = UIUtil.calMenuIconSize(UserThreadResourceUtil.getMletWidthFrom(coreSS), UserThreadResourceUtil.getMletHeightFrom(coreSS), UserThreadResourceUtil.getMletDPIFrom(coreSS));
 
 		if(isRoot){
 			//可能新用户重新登录，手机WiFi状态不一
@@ -35,6 +35,9 @@ public class SessionMobiMenu extends MobiMenu{
 			enableWiFiInMobiMenu = ResourceUtil.isDemoServer() == false && HCURL.isUsingWiFiWPS && ResourceUtil.canCtrlWiFi(coreSS);// || PropertiesManager.isSimu();
 		
 			enableVoiceCommand = UserThreadResourceUtil.getMobileAgent(coreSS).isEnableVoiceCommand();
+			
+			//可能重新开启，故关闭条件getProjResponserSize() > 1
+			enableMgrProjs = ResourceUtil.isEnableClientAddHAR();//ServerUIUtil.getMobiResponsor().getProjResponserSize() > 1
 		}
 		
 		initMenuItemArray();
@@ -240,6 +243,10 @@ public class SessionMobiMenu extends MobiMenu{
 				continue;
 			}
 			
+			if(item.itemURL == HCURL.URL_CMD_MGR_PROJS_COMMAND){
+				continue;
+			}
+			
 			if(isCurrProj == false && 
 					(item.itemURL.equals(HCURL.URL_CMD_EXIT) || item.itemURL.equals(HCURL.URL_CMD_CONFIG))){
 				continue;
@@ -292,6 +299,19 @@ public class SessionMobiMenu extends MobiMenu{
 		final int res_add = 9016;
 		final int fold_type = JarMainMenu.FOLD_TYPE;
 		
+		if(enableMgrProjs){
+			final int res_mgr_projs = 9260;
+			final String name = (String)ResourceUtil.get(res_mgr_projs);
+			final int type = fold_type;
+			final String image = UIUtil.SYS_FOLDER_MGR_ICON;
+			final String url = HCURL.URL_CMD_MGR_PROJS_COMMAND;
+			final I18NStoreableHashMapWithModifyFlag i18nName = ResourceUtil.getI18NByResID(res_mgr_projs);
+			final String listen = ""; 
+			final String extend_map = "";
+			
+			addTail(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen, extend_map));
+		}
+
 		if(enableQRInMobiMenu){
 			final String name = (String)ResourceUtil.get(res_add);
 			final int type = fold_type;

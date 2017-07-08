@@ -1,8 +1,13 @@
 package hc.server.util;
 
+import hc.core.util.LogManager;
 import hc.server.ui.ClientSession;
+import hc.server.ui.ProjectContext;
+import hc.server.ui.design.HCPermissionConstant;
 import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.Location;
 import hc.server.ui.design.ProjResponser;
+import hc.server.ui.design.SessionContext;
 
 import java.util.Locale;
 
@@ -13,11 +18,15 @@ public class VoiceCommand {
 	final String text;
 	final J2SESession j2seCoreSS;
 	final ProjResponser pr;
+	final ProjectContext ctx;
+	final Location location;
 	
 	VoiceCommand(final String text, final J2SESession j2seCoreSS, final ProjResponser pr){
 		this.text = text;
 		this.j2seCoreSS = j2seCoreSS;
 		this.pr = pr;
+		this.ctx = pr.context;
+		this.location = j2seCoreSS.location;
 	}
 	
 	/**
@@ -33,11 +42,97 @@ public class VoiceCommand {
 	}
 	
 	/**
+	 * returns the latitude of current session mobile.
+	 * 	<BR><BR>
+	 * <STRONG>Warning :</STRONG>location may not be available and return -1.0
+	 * <BR><BR>
+	 * for more, see {@link ClientSession#getLocationLatitude()}.
+	 * @return
+	 * @see #getLocationLongitude()
+	 * @see #isLocationGPS()
+	 * @see #isLocationFresh()
+	 */
+	public final double getLocationLatitude(){
+		if(pr.hasLocationOfMobile == false){
+			LogManager.err(HCPermissionConstant.NO_PERMISSION_OF_LOCATION_OF_MOBILE);
+		}
+		return location.latitude;
+	}
+	
+	/**
+	 * for more, see {@link ClientSession#isLocationGPS()}.
+	 * @return
+	 */
+	public final boolean isLocationGPS(){
+		if(pr.hasLocationOfMobile == false){
+			LogManager.err(HCPermissionConstant.NO_PERMISSION_OF_LOCATION_OF_MOBILE);
+		}
+		return location.isGPS;
+	}
+	
+	/**
+	 * for more, see {@link ClientSession#isLocationFresh()}.
+	 * @return
+	 */
+	public final boolean isLocationFresh(){
+		if(pr.hasLocationOfMobile == false){
+			LogManager.err(HCPermissionConstant.NO_PERMISSION_OF_LOCATION_OF_MOBILE);
+		}
+		return location.isFresh;
+	}
+	
+	/**
+	 * returns the longitude of current session mobile.
+	 * 	<BR><BR>
+	 * <STRONG>Warning :</STRONG>location may not be available and return -1.0
+	 * 	<BR><BR>
+	 * for more, see {@link ClientSession#getLocationLongitude()}.
+	 * @return
+	 * @see #getLocationLatitude()
+	 * @see #isLocationGPS()
+	 * @see #isLocationFresh()
+	 * @see ClientSession#getLocationLongitude()
+	 */
+	public final double getLocationLongitude(){
+		if(pr.hasLocationOfMobile == false){
+			LogManager.err(HCPermissionConstant.NO_PERMISSION_OF_LOCATION_OF_MOBILE);
+		}
+		return location.longitude;
+	}
+	
+	/**
+	 * returns the speed of current session mobile.
+	 * <BR><BR>
+	 * for more, see {@link ClientSession#getLocationSpeed()}.
+	 * @return
+	 * @see #getLocationLongitude()
+	 */
+	public final double getLocationSpeed(){
+		if(pr.hasLocationOfMobile == false){
+			LogManager.err(HCPermissionConstant.NO_PERMISSION_OF_LOCATION_OF_MOBILE);
+		}
+		return location.speed;
+	}
+	
+	/**
+	 * returns the project context.
+	 * @return
+	 */
+	public final ProjectContext getProjectContext(){
+		return ctx;
+	}
+	
+	/**
 	 * return the {@link ClientSession} of current session.
 	 * @return
 	 */
 	public final ClientSession getClientSession(){
-		return pr.getMobileSession(j2seCoreSS).getClientSession();
+		final SessionContext mobileSession = pr.getMobileSession(j2seCoreSS);
+		if(mobileSession != null){
+			return mobileSession.getClientSession();
+		}else{
+			return null;
+		}
 	}
 	
 	/**

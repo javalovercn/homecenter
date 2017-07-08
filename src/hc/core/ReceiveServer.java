@@ -19,6 +19,7 @@ public class ReceiveServer implements Runnable{
     final CoreSession coreSocketSession;
     final boolean isEnableTestRebuildConn = IConstant.serverSide == false 
     		&& ((Boolean)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_IS_SIMU, null)).booleanValue();//限客户端
+    boolean isSimuRetransError = false;
     long lastBuildConnMS = System.currentTimeMillis();
     
 	public ReceiveServer(final CoreSession coreSocketSession){
@@ -102,6 +103,7 @@ public class ReceiveServer implements Runnable{
 	static final Exception overflowException = new Exception("Overflow or Error data, maybe clientReset Error");
 	static final Exception checkException = new Exception("fail on check integrity of package data");
 	String threadID;
+	long lastRetransXorPackageMS;
 	
 	public void run(){
 		threadID = Thread.currentThread().toString();
@@ -216,21 +218,30 @@ public class ReceiveServer implements Runnable{
 					final int dataCheckLen = dataLen + MsgBuilder.MIN_LEN_MSG;
 					final int xorPackgeIdxOff = dataCheckLen + 2;
 
+					boolean isAddNextXorPackageID = false;
 					if(isXor){
 						//检查是否为重发包
 						final long realXorPackageID = ByteUtil.eightBytesToLong(bs, xorPackgeIdxOff);
-						if(realXorPackageID < readyReceiveXorPackageID){
+//						final boolean isForceXorError = isSimuRetransError == false && isEnableTestRebuildConn && ((realXorPackageID % 50) == 0);
+//						if(isForceXorError == false && readyReceiveXorPackageID == realXorPackageID){
+						if(readyReceiveXorPackageID == realXorPackageID){
+							if(isInWorkshop){
+								LogManager.log("received XorPackageID : " + realXorPackageID + ", ready to check...");
+							}
+							isAddNextXorPackageID = true;
+							readyReceiveXorPackageID++;
+						}else{//小于或大于
+//							if(isForceXorError){
+//								isSimuRetransError = true;
+//							}
+
 							//为重发包
 							recBytesCacher.cycle(bs);
 							if(isInWorkshop){
 								LogManager.log("skip received XorPackageID : " + realXorPackageID + ", expected XorPackageID : " + readyReceiveXorPackageID);
 							}
+							doFailCheck(false);
 							continue;
-						}else if(readyReceiveXorPackageID == realXorPackageID){
-							if(isInWorkshop){
-								LogManager.log("received XorPackageID : " + realXorPackageID + ", ready to check...");
-							}
-							readyReceiveXorPackageID++;
 						}
 					}
 					
@@ -277,9 +288,7 @@ public class ReceiveServer implements Runnable{
 					}else{
 //						LogManager.errToLog("check idx : " + dataCheckLen + ", real : " + realCheckAnd + "" + realCheckMinus + ", expected : " + bs[dataCheckLen] + "" + bs[dataCheckLen + 1]);
 						//fail on check
-						LogManager.errToLog("fail on check integrity of package data, force close current connection!");
-						coreSocketSession.context.doExtBiz(IContext.BIZ_DATA_CHECK_ERROR, null);
-						throw checkException;
+						doFailCheck(isAddNextXorPackageID);
 					}
 				}
 
@@ -306,6 +315,10 @@ public class ReceiveServer implements Runnable{
 					//由于大数据可能导致过载，所以此处直接处理。
 					coreSocketSession.context.rootTagListener.action(bs, coreSocketSession, hcConnection);
 					recBytesCacher.cycle(bs);
+					continue;
+				}else if(ctrlTag == MsgBuilder.E_RE_TRANS_XOR_PACKAGE){
+					L.V = L.WShop ? false : LogManager.log("receive E_RE_TRANS_XOR_PACKAGE!!!");
+					coreSocketSession.hcConnection.resendUnReachablePackage();
 					continue;
 				}else{
 					final EventBack eb = ebCacher.getFreeEB();
@@ -346,9 +359,7 @@ public class ReceiveServer implements Runnable{
             	}
             	
             	if(System.currentTimeMillis() - receiveUpdateMS < 100){
-//            		if(L.isInWorkshop){
-//            			LogManager.log("[workshop] receive is changing new socket. continue");
-//            		}
+            		L.V = L.WShop ? false : LogManager.log("[workshop] receive is changing new socket. continue");
 //            		try{
 //            			Thread.sleep(100);
 //            		}catch (Exception ex) {
@@ -437,6 +448,25 @@ public class ReceiveServer implements Runnable{
         }//while
     	
     	L.V = L.WShop ? false : LogManager.log("Receiver shutdown " + threadID);
+	}
+
+	private final void doFailCheck(final boolean isAddNextXorPackageID) throws Exception {
+		final long currMS = System.currentTimeMillis();
+		if(currMS - lastRetransXorPackageMS < 10000){//最近多个包连续错误
+			//注意：要置于下段之前
+		}else if(currMS - lastRetransXorPackageMS < 15000){//
+			LogManager.errToLog("fail on check integrity of package data, force close current connection!");
+			coreSocketSession.context.doExtBiz(IContext.BIZ_DATA_CHECK_ERROR, null);
+			throw checkException;
+		}else{//首次出错
+			lastRetransXorPackageMS = currMS;
+			
+			if(isAddNextXorPackageID){
+				readyReceiveXorPackageID--;
+			}
+			L.V = L.WShop ? false : LogManager.log("fail check, send E_RE_TRANS_XOR_PACKAGE!!!");
+			coreSocketSession.context.send(MsgBuilder.E_RE_TRANS_XOR_PACKAGE);
+		}
 	}
 	
 	private boolean isShutdown = false;

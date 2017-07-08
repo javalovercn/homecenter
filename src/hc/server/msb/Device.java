@@ -246,7 +246,7 @@ public abstract class Device extends Processor{
 //	/**
 //	 * when new {@link WiFiAccount} is created, the old WiFI account is still valid for keep connection.
 //	 * <BR>the manager of server inputs new WiFI account from dialog, then this method of all {@link Device} of active HAR project will be invoked.
-//	 * <BR><BR>what you should do is just like following:
+//	 * <BR><BR>what you should do is just as following:
 //	 * <BR>1. overrides this empty method.
 //	 * <BR>2. notify the real device to change WiFi account via the old alive connection.
 //	 * <BR>3. close and release old connection.

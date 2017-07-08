@@ -61,7 +61,7 @@ public class UpgradeManager {
 			}
 		}
 		
-		final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(true);//必须为true，因为有可能正好编辑为非Root工程
+		final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);//必须为true，因为有可能正好编辑为非Root工程
 		while(it.hasNext()){
 			final LinkProjectStore lps = it.next();
 			final File edit_file = LinkProjectManager.buildBackEditFile(lps);

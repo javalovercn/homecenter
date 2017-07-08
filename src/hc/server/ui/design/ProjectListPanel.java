@@ -6,23 +6,16 @@ import hc.util.ResourceUtil;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
-import java.util.Iterator;
-import java.util.Vector;
 
 import javax.swing.JTable;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 
-public class ProjectListPanel {
-	public static final int COL_NO = 0, COL_IS_ROOT = 1, COL_PROJ_ID = 2, COL_VER = 3, COL_PROJ_ACTIVE = 4, 
-			COL_PROJ_LINK_NAME = 5, COL_PROJ_DESC = 6, COL_UPGRADE_URL = 7;
-	final int COL_NUM = 2;
-	final int IDX_OBJ_STORE = 1;
+public abstract class ProjectListPanel extends BaseProjList {
 
 	final PropertiesSet projWidthSet = new PropertiesSet(PropertiesManager.S_LINK_PROJECTS_COLUMNS_WIDTH);
 
-	final String upgradeURL = (String)ResourceUtil.get(8023);
 	final Object[] colNames = {(String)ResourceUtil.get(9109),//No, 序号 
 			(String)ResourceUtil.get(8017),//"is Root", 
 			(String)ResourceUtil.get(8018),//"Project ID", 
@@ -33,8 +26,6 @@ public class ProjectListPanel {
 			upgradeURL,//upgradeURL
 			};
 
-	final Vector<Object[]> data = new Vector<Object[]>();//[COL_NUM];
-	int dataRowNum = 0;
 	public ProjectListPanel(){
 //		for (int i = 0; i < LinkProjectManager.MAX_LINK_PROJ_NUM; i++) {
 //			data.add(new Object[COL_NUM]);
@@ -46,27 +37,9 @@ public class ProjectListPanel {
 //				}
 //			}
 //		}
-		
-		loadData();
+		super();
 	}
 
-	protected final void loadData() {
-		data.clear();
-		
-		int i = 0;
-		final Iterator<LinkProjectStore> itx = LinkProjectManager.getLinkProjsIterator(true);
-		while(itx.hasNext()){
-			final LinkEditData led = new LinkEditData();
-			led.lps = itx.next();
-			led.op = (LinkProjectManager.STATUS_NEW);
-			led.status = (LinkProjectManager.STATUS_DEPLOYED);
-
-			data.add(new Object[COL_NUM]);
-			data.elementAt(i)[0] = String.valueOf(i+1);
-			data.elementAt(i++)[IDX_OBJ_STORE] = led;
-		}
-	}
-	
 	public void initTable(final JTable table){
 		//装入用户调整后的列宽度
 		if(projWidthSet.size() > 0){

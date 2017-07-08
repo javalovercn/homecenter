@@ -99,7 +99,7 @@ public class Mlet extends JPanel implements ICanvas {
 					
 					ServerUIAPIAgent.flushCSS(htmlMlet, diffTodo);
 
-					ServerUIAPIAgent.loadJS(htmlMlet);//加载JSPanel的动作脚本
+					ServerUIAPIAgent.flushJSForScriptPanel(htmlMlet);//加载JSPanel的动作脚本
 				}
 			}
 		}
@@ -300,7 +300,6 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @see #go(String, String)
 	 * @see #goMlet(Mlet, String, boolean)
 	 * @see #setAutoReleaseAfterGo(boolean)
-	 * @see #goExternalURL(String, boolean)
 	 * @since 7.0
 	 */
 	public void go(final String url){
@@ -321,7 +320,9 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 	
 	/**
-	 * back and return.
+	 * back and return.<BR><BR>
+	 * it is equals with <code>go(URL_EXIT)</code>.
+	 * @see #go(String)
 	 * @since 7.30
 	 */
 	public void back(){
@@ -421,7 +422,6 @@ public class Mlet extends JPanel implements ICanvas {
 	 * <BR>1. the external URL may be sniffed when in moving (exclude HTTPS).
 	 * <BR>2. iOS 9 and above must use secure URLs.
 	 * @param url for example : https://homecenter.mobi
-	 * @see #goExternalURL(String, boolean)
 	 * @since 7.30
 	 */
 	public void goExternalURL(final String url) {

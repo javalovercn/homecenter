@@ -114,7 +114,7 @@ public class SessionManager {
 			}
 		}else{
 			if(L.isInWorkshop){
-				LogManager.log("there is more than one sessions on server, skip shutdown server!");
+				LogManager.log("there is more than one sessions on server, skip shutdown ExceptionReporter!");
 			}
 			return;
 		}

@@ -432,10 +432,12 @@ public final class HCConnection {
 			for (int i = 0; i < size; i++) {
 				final XorPackage xp = (XorPackage)v.elementAt(i);
 				L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] re-send XorPackage ID : " + xp.packageID + " in resendUnReachablePackage.");
-				try{
-					outStream.write(xp.bs, 0, xp.len);
-					outStream.flush();
-				}catch (Exception ex) {
+				synchronized (outStream) {//注意：不影响keepalive
+					try{
+						outStream.write(xp.bs, 0, xp.len);
+						outStream.flush();
+					}catch (Exception ex) {
+					}
 				}
 			}
 		}

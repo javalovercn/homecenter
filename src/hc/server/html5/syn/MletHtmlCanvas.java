@@ -116,18 +116,21 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 			differTodo.setLTR( !rtl );
 		}
 		
-		final ProjResponser projResponser = ServerUIAPIAgent.getProjResponserMaybeNull(projectContext);
-		if(projResponser != null){
-			//AddHar下可能为null
-			final String dftStyles = (String)projResponser.map.get(HCjar.PROJ_STYLES);
-			final String defaultStyles = (dftStyles==null?"":dftStyles.trim());//AddHAR可能出现null
-			if(defaultStyles.length() > 0){
-				final String replaceVariable = StyleManager.replaceVariable(coreSS, defaultStyles, mlet, projectContext);
-//				LogManager.log(replaceVariable);
-				differTodo.loadStyles(replaceVariable);
+		if(ResourceUtil.isSystemMletOrDialog(mlet)){
+			//系统级Mlet，Dialog不加载
+		}else{
+			final ProjResponser projResponser = ServerUIAPIAgent.getProjResponserMaybeNull(projectContext);
+			if(projResponser != null){
+				//AddHar下可能为null
+				final String dftStyles = (String)projResponser.map.get(HCjar.PROJ_STYLES);
+				final String defaultStyles = (dftStyles==null?"":dftStyles.trim());//AddHAR可能出现null
+				if(defaultStyles.length() > 0){
+					final String replaceVariable = StyleManager.replaceVariable(coreSS, defaultStyles, mlet, projectContext);
+	//				LogManager.log(replaceVariable);
+					differTodo.loadStyles(replaceVariable, true);
+				}
 			}
 		}
-		
 		ServerUIAPIAgent.setDiffTodo(mlet, differTodo);
 //		printComp(scrolPanel, 0);
 		

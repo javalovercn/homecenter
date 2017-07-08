@@ -12,6 +12,7 @@ import hc.server.CallContext;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.SessionContext;
 import hc.util.ResourceUtil;
 import hc.util.ThreadConfig;
 
@@ -63,7 +64,12 @@ public class RubyExector {
 		};
 		
 		if(coreSS != null){
-			return ServerUIAPIAgent.getProjResponserMaybeNull(context).getMobileSession(coreSS).recycleRes.threadPool.runAndWait(run);
+			final SessionContext mobileSession = ServerUIAPIAgent.getProjResponserMaybeNull(context).getMobileSession(coreSS);
+			if(mobileSession != null){
+				return mobileSession.recycleRes.threadPool.runAndWait(run);
+			}else{
+				return null;
+			}
 		}else{
 			if(L.isInWorkshop){
 				LogManager.log("[workshop] this script runs in project level.");

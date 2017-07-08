@@ -514,6 +514,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 //				sc.setProperty(ServerConfig.P_SERVER_HEIGHT, 360);				
 				sc.setLongProperty(ServerConfig.P_SERVER_CONN_ID, hcConnection.connectionID);
 				sc.setProperty(ServerConfig.P_IS_DEMO_MAINTENANCE, ResourceUtil.isDemoMaintenance()?IConstant.TRUE:IConstant.FALSE);
+				sc.setProperty(ServerConfig.P_IS_WORKSHOP_MODE, IConstant.toString(L.isInWorkshop));
 				return sc.toTransString();
 			}else{
 				return null;
@@ -893,7 +894,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	
 	public static final String MAX_HC_VER = "9999999";//注意与Starter.NO_UPGRADE_VER保持同步
 	
-	private final String minMobiVerRequiredByServer = "7.15";//(含)，
+	private final String minMobiVerRequiredByServer = "7.21";//(含)，
 	//你可能 还 需要修改服务器版本，StarterManager HCVertion = "6.97";
 	public WiFiDeviceManager remoteWrapper;
 	
@@ -1238,7 +1239,10 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	}
 
 	static void doLineOffProcess(final J2SESession coreSS, final boolean isClientReq) {
-		coreSS.eventCenterDriver.notifyShutdown();//考虑到用户应用的复杂度，不回收
+		//由于多Session共用eventCenterDriver，所以不关闭
+		if(false){
+			coreSS.eventCenterDriver.notifyShutdown();
+		}
 		
 		coreSS.streamBuilder.notifyExceptionForReleaseStreamResources(new IOException("System Line Off Exception"));
 		

@@ -7,6 +7,7 @@ import hc.core.ConfigManager;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.GlobalConditionWatcher;
+import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.IWatcher;
 import hc.core.L;
@@ -68,6 +69,66 @@ public class MobiUIResponsor extends BaseResponsor {
 	final MSBAgent msbAgent;
 	public BindRobotSource bindRobotSource;
 	boolean isEventProjStartDone = false;
+	long publishLocationMS = HCTimer.ONE_MINUTE * 5;
+	boolean hasLocationOfMobile;
+	final ThreadGroup threadToken;
+	
+	public final int getProjResponserSize(){
+		return responserSize;
+	}
+	
+	final void setPublishLocationMS(final long newMS){
+		if(newMS < 1000){
+			LogManager.error("illegal argument publish location ms : " + newMS + ", must bigger than 1000.");
+			return;
+		}
+		
+		if(hasLocationOfMobile && newMS < publishLocationMS){
+			publishLocationMS = newMS;
+			
+			//用户级线程请求更新
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					applyLocationUpdatsToAllSessions();
+					L.V = L.WShop ? false : LogManager.log("successful setPublishLocationMS : " + newMS);
+				}
+			}, threadToken);
+		}
+	}
+	
+	/**
+	 * 更新权限状态
+	 * @param hasLoc
+	 */
+	public final void hasLocationOfMobile(final boolean hasLoc){
+		if(hasLocationOfMobile == false && hasLoc){//只要一个工程有权限，即全部会话都开启GPS
+			hasLocationOfMobile = true;
+			
+			applyLocationUpdatsToAllSessions();
+		}
+	}
+
+	private final void applyLocationUpdatsToAllSessions() {
+		final J2SESession[] coreSSS = J2SESessionManager.getAllOnlineSocketSessions();
+		if(coreSSS != null && coreSSS.length > 0){
+			for (int i = 0; i < coreSSS.length; i++) {
+				final J2SESession j2seCoreSS = coreSSS[i];
+				changePublishLocationMS(j2seCoreSS);//注意：新添加工程时，触发启动会话的location
+			}
+		}
+	}
+	
+	/**
+	 * 注意：本方法被两次调用，其触发方式不一样 
+	 * @param j2seCoreSS
+	 */
+	private final void changePublishLocationMS(final CoreSession j2seCoreSS){
+		if(hasLocationOfMobile){//由多个工程共同决定
+			final long minMS = publishLocationMS;//由多个工程决定最小值
+			HCURLUtil.sendCmd(j2seCoreSS, HCURL.DATA_CMD_PUBLISH_LOCATION_MS, "value", String.valueOf(minMS));
+		}
+	}
 	
 	@Override
 	public final void enableLog(final boolean enable){
@@ -101,6 +162,17 @@ public class MobiUIResponsor extends BaseResponsor {
 		}
 		
 		return false;
+	}
+	
+	public final void dispatchLocation(final J2SESession j2seCoreSS, final Location location){
+		j2seCoreSS.setLocation(location);
+		
+		for (int i = 0; i < responserSize; i++) {
+			final ProjResponser projResp = responsors[i];
+			if(projResp.hasLocationOfMobile){
+				fireSystemEventListenerInSequence(j2seCoreSS, projResp, projResp.context, ProjectContext.EVENT_SYS_MOBILE_LOCATION);
+			}
+		}
 	}
 	
 	/**
@@ -160,7 +232,7 @@ public class MobiUIResponsor extends BaseResponsor {
 			return projResp;
 		}
 		
-		final Iterator<LinkProjectStore> lpsIt = LinkProjectManager.getLinkProjsIterator(true);
+		final Iterator<LinkProjectStore> lpsIt = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		while(lpsIt.hasNext()){
 			final LinkProjectStore lps = lpsIt.next();
 			if(!lps.isActive()){
@@ -223,7 +295,8 @@ public class MobiUIResponsor extends BaseResponsor {
 	}
 	
 	public MobiUIResponsor(final ExceptionCatcherToWindow ec) {
-		UILang.initToken(App.getThreadPoolToken());
+		threadToken = App.getThreadPoolToken();
+		UILang.initToken(threadToken);
 		LuceneManager.init();
 		
 		this.ec = ec;
@@ -239,7 +312,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		maps = new Map[responserSize];
 		responsors = new ProjResponser[responserSize];
 		
-		final Iterator<LinkProjectStore> lpsIt = LinkProjectManager.getLinkProjsIterator(true);
+		final Iterator<LinkProjectStore> lpsIt = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		int count = 0;
 		while(lpsIt.hasNext()){
 			final LinkProjectStore lps = lpsIt.next();
@@ -557,6 +630,7 @@ public class MobiUIResponsor extends BaseResponsor {
 				changeMobileProjectID(j2seCoreSS, rootProjID);
 				
 				notifyMobileLogin(j2seCoreSS);
+				changePublishLocationMS(j2seCoreSS);//注意：新会话上线时，将启动会话的location
 			}else if(event == ProjectContext.EVENT_SYS_MOBILE_LOGOUT){
 				if(j2seCoreSS != null){
 					j2seCoreSS.notifyMobileLogout();

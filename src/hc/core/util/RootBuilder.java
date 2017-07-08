@@ -9,7 +9,8 @@ public abstract class RootBuilder {
 	public static final short ROOT_BUILD_NEW_CONNECTION = 6;
 	public static final short ROOT_CHECK_CHECKPERMISSION = 7;
 	public static final short ROOT_GET_RESOURCE = 8;
-	
+	public static final short ROOT_SET_PUBLISH_LOCATION_INTER_MS = 9;
+		
 	private static RootBuilder instance;
 	
 	public static void setInstance(RootBuilder builder){

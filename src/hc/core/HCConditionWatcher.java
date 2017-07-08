@@ -9,6 +9,12 @@ public class HCConditionWatcher {
 	private boolean isNotifyShutdown;
 	
 	public final void notifyShutdown(){
+		synchronized (watchers) {
+			if(L.isInWorkshop){
+				LogManager.log("notifyShutdown(), watcherTimer enable : " + watcherTimer.isEnable + ", watchers.size : " + watchers.size() + ", usedRewatchers.size : " + usedRewatchers.size());
+			}
+		}
+		
 		isNotifyShutdown = true;
 	}
 	
@@ -59,9 +65,9 @@ public class HCConditionWatcher {
 						break;
 					}
 					
-//					if(isInWorkshop){
-//						LogManager.log("[" + timeName + "] processing a watcher : " + temp.hashCode());
-//					}
+					if(isNotifyShutdown && isInWorkshop){
+						LogManager.log("[" + timeName + "] processing a watcher : " + temp.hashCode());
+					}
 					
 					//因为在执行本实例时，有可能遇到同时请求移出，所以加实例锁，并在内部加集合锁
 					synchronized (temp) {
@@ -76,15 +82,15 @@ public class HCConditionWatcher {
 							ExceptionReporter.printStackTrace(e);
 						}
 					}
-//					if(isInWorkshop){
-//						LogManager.log("[" + timeName + "] processed a watcher : " + temp.hashCode());
-//					}
+					if(isNotifyShutdown && isInWorkshop){
+						LogManager.log("[" + timeName + "] processed a watcher : " + temp.hashCode());
+					}
 				}while(true);
 				
 				if(isAddUnUsed){
-//					if(isInWorkshop){
-//						LogManager.log("[" + timeName + "] processing unUsed watcher.");
-//					}
+					if(isNotifyShutdown && isInWorkshop){
+						LogManager.log("[" + timeName + "] processing unUsed watcher.");
+					}
 					
 					synchronized (watchers) {
 						Object rewatcher;
@@ -164,6 +170,9 @@ public class HCConditionWatcher {
 	public final void waitForAllDone(){
 		synchronized (watchers) {
 			if(isEmptyImpl() == false){
+				if(L.isInWorkshop){
+					LogManager.log("waitForAllDone(), watcherTimer enable : " + watcherTimer.isEnable + ", watchers.size : " + watchers.size() + ", usedRewatchers.size : " + usedRewatchers.size());
+				}
 				try {
 					watchers.wait(ThreadPriorityManager.SEQUENCE_TASK_MAX_WAIT_MS);
 				} catch (InterruptedException e) {
@@ -180,9 +189,9 @@ public class HCConditionWatcher {
 	 * @param watcher
 	 */
 	public final void addWatcher(final IWatcher watcher){
-//		if(isNotifyShutdown){//允许继续添加
-//			return;
-//		}
+		if(isNotifyShutdown){//此处不同于EventCenter.action
+			return;
+		}
 		
 //		if(isInWorkshop){
 //			LogManager.log("[" + timeName + "] add watcher : " + watcher.hashCode());

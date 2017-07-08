@@ -320,10 +320,22 @@ public class CodeHelper {
 				addToMethod(c, list, TO_UPPER_CASE, "String", String.class.getSimpleName());
 				addToMethod(c, list, TO_I, "int", String.class.getSimpleName());
 				addToMethod(c, list, TO_F, "float", String.class.getSimpleName());
+			}else if(c == byte.class){
+				addToMethod(c, list, TO_S, "String", "byte");
+			}else if(c == char.class){
+				addToMethod(c, list, TO_S, "String", "char");
+			}else if(c == short.class){
+				addToMethod(c, list, TO_S, "String", "short");
 			}else if(c == int.class){
 				addToMethod(c, list, TO_S, "String", "int");
+			}else if(c == long.class){
+				addToMethod(c, list, TO_S, "String", "long");
 			}else if(c == float.class){
 				addToMethod(c, list, TO_S, "String", "float");
+			}else if(c == double.class){
+				addToMethod(c, list, TO_S, "String", "double");
+			}else if(c == boolean.class){
+				addToMethod(c, list, TO_S, "String", "boolean");
 			}else if(c == Object.class){
 				addToField(c, list, NIL, "Object", "Object");//is Nil
 			}else if(isForClass){//一般用于用户Jar库的类
@@ -371,6 +383,8 @@ public class CodeHelper {
 				}
 			}
 			
+			final Vector<String> deprecatedMethods = CodeStaticHelper.deprecatedMethodsAndFields.get(c);
+			
 			for (int i = 0; i < methodSize; i++) {
 				final Method method = allMethods[i];
 				final int modifiers = method.getModifiers();
@@ -412,6 +426,10 @@ public class CodeHelper {
 					final String codeMethodForDisplay = method.getName() + (paraStrForDisplay.length()==0?"()":"(" + paraStrForDisplay + ")");
 					final String codeMethodForInput = (isForClass==false && isStatic)?(CLASS_STATIC_PREFIX + codeMethod):codeMethod;
 					final String codeMethodForDoc = (isForClass==false && isStatic)?(CLASS_STATIC_PREFIX + codeMethodForDisplay):codeMethodForDisplay;
+					
+					if(deprecatedMethods != null && deprecatedMethods.contains(codeMethodForDoc)){
+						continue;
+					}
 					
 					final CodeItem item = CodeItem.getFree();
 					item.fieldOrMethodOrClassName = method.getName();
@@ -2114,13 +2132,18 @@ public class CodeHelper {
     	if(receiverNode instanceof CallNode){
     		final CallNode callNode = (CallNode)receiverNode;
     		if(callNode.getName().equals(JRUBY_NEW)){
+    			JRubyClassDesc out;
     			final Node receiver = callNode.getReceiver();
     			if(receiver != null && receiver instanceof ConstNode && ((ConstNode)receiver).getName().equals(JRUBY_CLASS_FOR_NEW)){
     				//Class.new(Java::hc.a.b){}.new
-    				return buildDescFromCallNodeNew(callNode, codeContext);
+    				out = buildDescFromCallNodeNew(callNode, codeContext);
     			}else{
-    				return findClassFromReceiverNode(receiver, false, codeContext);//直接new
+    				out = findClassFromReceiverNode(receiver, false, codeContext);//直接new
     			}
+    			if(out != null && out.isInstance == false){
+    				out.isInstance = true;
+    			}
+    			return out;
     		}else{
     			final JRubyClassDesc out = findClassFromCallNode(callNode, codeContext);
     			
@@ -2132,7 +2155,19 @@ public class CodeHelper {
 			}
     	}else if(receiverNode instanceof FCallNode){//在定义内getProjectContext()
     		final ClassNode defClassNode = codeContext.getDefClassNode();
+    		
+    		Class superClass = null;
     		if(defClassNode != null){
+    			superClass = getDefSuperClass(defClassNode, codeContext);
+    		}
+    		if(superClass == null){
+    			final JRubyClassDesc defJRubyClassDesc = codeContext.getDefJRubyClassDesc();
+    			if(defJRubyClassDesc != null){
+    				superClass = defJRubyClassDesc.baseClass;
+    			}
+    		}
+    		
+    		if(superClass != null){
 	    		final FCallNode fcallNode = (FCallNode)receiverNode;
 	    		final Node parametersNode = fcallNode.getArgs();
 	    		
@@ -2141,7 +2176,7 @@ public class CodeHelper {
 	//    				return findClassFromRightAssign(call.getReceiver(), codeContext);
 	//    			}
 	    			final Class[] paraClass = findClasssFromArgs((ListNode)parametersNode, codeContext);//注意：org.jrubyparser.ast.ArrayNode extends org.jrubyparser.ast.ListNode
-    				return findMethodReturn(getDefSuperClass(defClassNode, codeContext), fcallNode.getName(), paraClass);
+    				return findMethodReturn(superClass, fcallNode.getName(), paraClass);
 	    		}
     		}
     		return null;
@@ -2160,22 +2195,26 @@ public class CodeHelper {
     		}
     	}else if(receiverNode instanceof LocalVarNode){
     		final LocalVarNode lvn = (LocalVarNode)receiverNode;
-    		final Node node = findVarDefNode(codeContext.bottomNode, lvn.getName(), TYPE_VAR_LOCAL, 
+    		final Node upperRowNode = codeContext.getUpperRowNode(receiverNode);//codeContext.bottomNode
+    		final Node node = findVarDefNode(upperRowNode, lvn.getName(), TYPE_VAR_LOCAL, 
     				null, false, codeContext.getDefClassNode() != null, codeContext);
 			return preFindClassFromReceiverNode(node, codeContext, lvn.getName());
     	}else if(receiverNode instanceof VCallNode){
     		final VCallNode vcn = (VCallNode)receiverNode;
-    		final Node node = findVarDefNode(codeContext.bottomNode, vcn.getName(), TYPE_VAR_LOCAL, 
+    		final Node upperRowNode = codeContext.getUpperRowNode(receiverNode);//codeContext.bottomNode
+    		final Node node = findVarDefNode(upperRowNode, vcn.getName(), TYPE_VAR_LOCAL, 
     				null, false, codeContext.getDefClassNode() != null, codeContext);
 			return preFindClassFromReceiverNode(node, codeContext, vcn.getName());
     	}else if(receiverNode instanceof InstVarNode){
     		final InstVarNode ivn = (InstVarNode)receiverNode;
-    		final Node node = findVarDefNode(codeContext.bottomNode, ivn.getName(), TYPE_VAR_INSTANCE, 
+    		final Node upperRowNode = codeContext.getUpperRowNode(receiverNode);//codeContext.bottomNode
+    		final Node node = findVarDefNode(upperRowNode, ivn.getName(), TYPE_VAR_INSTANCE, 
     				null, false, codeContext.getDefClassNode() != null, codeContext);
 			return preFindClassFromReceiverNode(node, codeContext, ivn.getName());
     	}else if(receiverNode instanceof GlobalVarNode){
     		final GlobalVarNode gvn = (GlobalVarNode)receiverNode;
-    		final Node node = findVarDefNode(codeContext.bottomNode, gvn.getName(), TYPE_VAR_GLOBAL, 
+    		final Node upperRowNode = codeContext.getUpperRowNode(receiverNode);//codeContext.bottomNode
+    		final Node node = findVarDefNode(upperRowNode, gvn.getName(), TYPE_VAR_GLOBAL, 
     				null, false, codeContext.getDefClassNode() != null, codeContext);
 			return preFindClassFromReceiverNode(node, codeContext, gvn.getName());
     	}else if(receiverNode instanceof ConstNode){
@@ -3358,21 +3397,21 @@ public class CodeHelper {
 	private final static char[] import_java_chars = PRE_IMPORT_JAVA.toCharArray();
 	private final static int import_java_chars_len = import_java_chars.length;
 	
-	private final static boolean matchChars(final char[] search, final char[] chars, final int offset){
+	public final static boolean matchChars(final char[] lineChars, final int offset, final char[] matchChars){
 		if(offset < 0){
 			return false;
 		}
 		
-		if(search.length < (chars.length - offset)){
+		if(lineChars.length < (matchChars.length - offset)){
 			return false;
 		}
-		if(search.length - offset < chars.length){
+		if(lineChars.length - offset < matchChars.length){
 			return false;
 		}
 		
-		final int endIdx = offset + chars.length;
+		final int endIdx = offset + matchChars.length;
 		for (int i = offset; i < endIdx; i++) {
-			if(chars[i - offset] != search[i]){
+			if(matchChars[i - offset] != lineChars[i]){
 				return false;
 			}
 		}
@@ -3614,7 +3653,7 @@ public class CodeHelper {
 		final int javaMHlength = searchChars.length;
 		for (int i = size - javaMHlength; i >= fromIdx; i--) {
 			if(lines[i] == firstChar){
-				if(matchChars(lines, searchChars, i)){
+				if(matchChars(lines, i, searchChars)){
 					return i;
 				}
 			}
@@ -3647,7 +3686,7 @@ public class CodeHelper {
 				}
 			}
 			
-			if(i >= DEF_MEMBER_BS.length && lineHeader[i] == ' ' && matchChars(lineHeader, DEF_MEMBER_BS, i - DEF_MEMBER_BS.length)){
+			if(i >= DEF_MEMBER_BS.length && lineHeader[i] == ' ' && matchChars(lineHeader, i - DEF_MEMBER_BS.length, DEF_MEMBER_BS)){
 				final int preIdx = i + 1;
 				i -= (DEF_MEMBER_BS.length + 1);
 				for (; i >= 0; i--) {
@@ -3718,10 +3757,10 @@ public class CodeHelper {
 		final int partStartIdx = 0;
 		final char firstChar = lineHeader[partStartIdx];
 		if(firstChar != '\t' && firstChar != ' '){
-			if(matchChars(lineHeader, import_chars, partStartIdx)){
+			if(matchChars(lineHeader, partStartIdx, import_chars)){
 				if(columnIdx < import_chars_len){
 					preCode = "";
-				}else if(matchChars(lineHeader, import_java_chars, partStartIdx)){
+				}else if(matchChars(lineHeader, partStartIdx, import_java_chars)){
 					preCode = String.valueOf(lineHeader, import_java_chars_len, columnIdx - import_java_chars_len);
 					return PRE_TYPE_AFTER_IMPORTJAVA;//import Java::ab
 				}else{
@@ -3790,7 +3829,7 @@ public class CodeHelper {
 		}
 		
 		//java.lang.Strin or 1 + java.lang.Integer::v
-		if(matchChars(lineHeader, java_dot_chars, partStartIdx) || matchChars(lineHeader, javax_dot_chars, partStartIdx)){
+		if(matchChars(lineHeader, partStartIdx, java_dot_chars) || matchChars(lineHeader, partStartIdx, javax_dot_chars)){
 			final int maohaoIdx = searchSubChars(lineHeader, MAO_HAO_ONLY, partStartIdx);
 			if(maohaoIdx < 0){
 				preCode = String.valueOf(lineHeader, partStartIdx, columnIdx - partStartIdx);
@@ -3821,7 +3860,7 @@ public class CodeHelper {
 			for (int i = 0; i < lineHeader.length; i++) {
 				final char c = lineHeader[i];
 				if(c != '\t' && c != ' '){
-					if(matchChars(lineHeader, include_chars, i)){
+					if(matchChars(lineHeader, i, include_chars)){
 						final int cutIdx = i + include_chars_len;
 						preCode = String.valueOf(lineHeader, cutIdx, columnIdx - cutIdx);
 						return PRE_TYPE_AFTER_INCLUDE;
@@ -3919,10 +3958,13 @@ public class CodeHelper {
 		int leftKuoIdx = searchLeftMethodStartIdx(lineHeader, rightKuoIdx, partStartIdx);
 		
 		//变量名段
-		if(leftKuoIdx > partStartIdx){
+		if(leftKuoIdx >= partStartIdx 
+				|| 
+				(partStartIdx == 0 && leftKuoIdx == -1)){//行首ProjectContext::getProjectContext().
 			for (; leftKuoIdx >= partStartIdx; leftKuoIdx--) {
 				final char c = lineHeader[leftKuoIdx];
-				if(c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '_' || c == ':' || c == '$' || c == '@'){
+				//必须使用包含 . ，否则出现swing.JLable::getLocale()
+				if(c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '_' || c == ':' || c == '$' || c == '@' || c == '.'){
 					continue;
 				}else{
 					break;
@@ -3973,7 +4015,7 @@ public class CodeHelper {
 					break;
 				}
 			}else if(c == ':'){
-				leftKuoIdx -= 2;
+				leftKuoIdx -= 1;//注意：不是2
 			}else{
 				break;
 			}
@@ -4033,8 +4075,11 @@ public class CodeHelper {
 				final String assignStr = searchLeftAssign(lineHeader, i, 0);//从左向提取类，注意：不能用partStartIdx
 				final List<Node> childNodes = parseScripts(assignStr).childNodes();
 				if(childNodes.size() > 0){
-					final Node node = childNodes.get(0).childNodes().get(0);//(RootNode, (NewlineNode, (CallNode:add,
-					final CodeContext codeContext = new CodeContext(this, root, rowIdx);
+					//共有以下两种情形
+					//[(NewlineNode, (CallNode:put, (GlobalVarNode:aa), (ArrayNode, (StrNode), (StrNode))))]
+					//(RootNode, (NewlineNode, (CallNode:add,
+					final Node node = childNodes.get(0).childNodes().get(0);
+					final CodeContext codeContext = new CodeContext(this, root, rowIdx, true);//parseScripts(assignStr)
 					return findClassFromRightAssign(node, codeContext);
 				}
 			}else{

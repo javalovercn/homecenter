@@ -237,6 +237,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	public static final int SUB_NODES_OF_ROOT_IN_NEW_PROJ = 1;
 	
 	private boolean needRebuildTestJRuby = true;
+	
+	public boolean isNeedLoadThirdLibForDoc;
+	public boolean isLoadedThirdLibsForDoc;
+	
 	private final HCTimer refreshAliveServerInLocalNetwork = new HCTimer("", 60 * 1000, false) {
 		final Runnable run = new Runnable() {
 			@Override
@@ -1133,7 +1137,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 
 				{
 					//检查本工程的依赖性
-					final Iterator<LinkProjectStore> its = LinkProjectManager.getLinkProjsIterator(true);
+					final Iterator<LinkProjectStore> its = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 					final Vector<LinkProjectStore> stores = new Vector<LinkProjectStore>();
 					while(its.hasNext()){
 						final LinkProjectStore lps = its.next();
@@ -1146,7 +1150,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 						}
 					}
 					
-					if(LinkProjectManager.checkReferencedDependency(self, stores) == false){
+					final String text = LinkProjectManager.checkReferencedDependencyForErrorInSysThread(stores);
+					if(text != null){
+						LinkProjectManager.showReferencedDependencyError(self, text);
 						return;
 					}
 				}
@@ -1811,14 +1817,23 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		updateCssClassOfProjectLevel(null);
 		Designer.expandTree(tree);
 		
+		isNeedLoadThirdLibForDoc = false;
+		isLoadedThirdLibsForDoc = false;
+		
 		final DefaultMutableTreeNode shareJarFolder = getShareJarFolder();
 		if(shareJarFolder.getChildCount() > 0){
+			isNeedLoadThirdLibForDoc = true;
 			GlobalConditionWatcher.addWatcher(new IWatcher() {
 				final long startMS = System.currentTimeMillis();
 				@Override
 				public boolean watch() {
 					if(System.currentTimeMillis() - startMS > ThreadPriorityManager.UI_CODE_HELPER_DELAY_MS){
-						codeHelper.initCodeHelper(shareJarFolder);
+						try{
+							codeHelper.initCodeHelper(shareJarFolder);
+						}catch (final Throwable e) {
+							ExceptionReporter.printStackTrace(e);
+						}
+						isLoadedThirdLibsForDoc = true;
 						return true;
 					}
 					return false;

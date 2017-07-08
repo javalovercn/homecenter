@@ -118,9 +118,9 @@ public class CSSNodeEditPanel extends NameEditPanel {
 	
 	private final JPanel cssPanel = new JPanel();
 	private final JLabel tipCssLabel = new JLabel("<html>" +
-			"1. the above styles will be shared to all HTMLMlet/Dialog(s) in current project." +
+			"1. all above will be loaded automatically to all HTMLMlet/Dialog(s) in current project by server." +
 			"<BR>" +
-			"2. if you want special styles for a HTMLMlet/Dialog, please invoke <STRONG>loadCSS</STRONG>." +
+			"2. if you want special styles, please invoke <STRONG>loadCSS</STRONG>." +
 			"<BR>" +
 			"3. to get CSS (2.2) properties or variables, please press shortcut keys for word completion." +
 			"</html>");
@@ -189,7 +189,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 		boolean inputSelfBackEnd = false;
 		try {
 			final int positionLine = line;
-			while(line > 0){
+			while(line >= 0){//第一行等于0
 				final int startIdx = ScriptEditPanel.getLineStartOffset(cssDocument, line);
 
 				//获得缩进串
@@ -262,11 +262,14 @@ public class CSSNodeEditPanel extends NameEditPanel {
 					}
 				}
 				boolean isNextIndentAlready = false;
+				boolean hasNextHuaKuoHao = false;
 				if(withEndInd){
 					//检查下行是否已缩进，
 					try{
 						final String nextLine = cssDocument.getText(InsertPosition + 1, ScriptEditPanel.getLineEndOffset(cssDocument, positionLine + 2) - (InsertPosition + 1));
-						
+						if(nextLine.startsWith("}", 0)){
+							hasNextHuaKuoHao = true;
+						}
 						final char[] nextLineChars = nextLine.toCharArray();
 						
 						int charIdxNextRemovedTab = 0;
@@ -298,12 +301,22 @@ public class CSSNodeEditPanel extends NameEditPanel {
 				}
 				if(charNewIdxRemovedTab != 0 || withEndInd){
 					newPosition = InsertPosition + sb.length();
-					if(withEndInd && (isNextIndentAlready == false)){//&& (nextRowIndent == false)
+					if(hasNextHuaKuoHao == false && withEndInd && (isNextIndentAlready == false)){//&& (nextRowIndent == false)
 						sb.append("\n");
 						sb.append(String.valueOf(chars, 0, charNewIdxRemovedTab - 1));//下一行，减少一个缩位
 						
-						final String strEnd = "}";
-						sb.append(strEnd);
+						try{
+							final String end = cssDocument.getText(InsertPosition, 1);
+							if(end.startsWith("}", 0)){
+								hasNextHuaKuoHao = true;
+							}
+						}catch (final Throwable e) {
+						}
+						
+						if(hasNextHuaKuoHao == false){
+							final String strEnd = "}";
+							sb.append(strEnd);
+						}
 						final String txt = sb.toString();
 						appendEnterText(txt, newPosition);
 						isDoneEnter = true;

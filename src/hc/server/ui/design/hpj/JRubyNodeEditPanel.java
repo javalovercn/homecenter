@@ -48,12 +48,7 @@ public class JRubyNodeEditPanel extends ScriptEditPanel {
 		super.init(data, tree);
 
 		final String listener = getListener();
-		final String scripts = listener == null ? "" : listener;
-		
-		setInitText(scripts);
-		TabHelper.initScriptPanel(jtaScript, this);
-		
-		initColor(false, 0);
+		TabHelper.initScriptPanel(jtaScript, this, listener);
 		
 		extInit();
 		

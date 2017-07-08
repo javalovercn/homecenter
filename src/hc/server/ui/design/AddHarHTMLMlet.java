@@ -19,7 +19,6 @@ import hc.server.TrayMenuUtil;
 import hc.server.msb.ConverterInfo;
 import hc.server.msb.DeviceBindInfo;
 import hc.server.msb.RealDeviceInfo;
-import hc.server.msb.UserThreadResourceUtil;
 import hc.server.msb.WiFiAccount;
 import hc.server.msb.WiFiHelper;
 import hc.server.ui.ClientSessionForSys;
@@ -40,7 +39,6 @@ import hc.util.PropertiesSet;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -68,13 +66,11 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 public class AddHarHTMLMlet extends SystemHTMLMlet {
-	final JPanel addProcessingPanel = new JPanel(new BorderLayout());
 	final JTextArea msgArea = new JTextArea();
 	final String css = "errorStatus {color:red}";
 	final String css_error = "errorStatus";
 	public final JButton exitButton;
 	final ProjectContext ctx;
-	final J2SESession localCoreSS;
 	
 	final BufferedImage okImage, cancelImage;//该值同时被LicenseHTMLMlet引用
 	String iagreeStr, acceptStr, cancelStr, acceptAllAndNeverDisplay;//该值被LicenseHTMLMlet引用
@@ -104,7 +100,6 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	
 	public AddHarHTMLMlet(){
 		ctx = getProjectContext();
-		this.localCoreSS = UserThreadResourceUtil.getCoreSSFromCtx(ctx);
 		
 		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
@@ -143,41 +138,43 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		
 		{
 			final ProjResponser pr = ServerUIAPIAgent.getProjResponserMaybeNull(ctx);
-			okImage = (BufferedImage)ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr, ClientSessionForSys.CLIENT_SESSION_ATTRIBUTE_OK_ICON);
-			cancelImage = (BufferedImage)ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr, ClientSessionForSys.CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON);
+			okImage = (BufferedImage)ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr, ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_OK_ICON);
+			cancelImage = (BufferedImage)ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr, ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON);
 		}
 		
-		exitButton = new JButton(exitButtonStr);
-		loadCSS(css);
-		
 		final int fontSizePX = okImage.getHeight();
+
+		loadCSS(SystemHTMLMlet.buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(), getColorForBodyByIntValue()) + css, false);
 		
+		exitButton = new JButton(exitButtonStr);
+		setButtonStyle(exitButton);
+
 		setLayout(new BorderLayout());
-		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
-		setCSS(msgArea, null, "width:100%;height:100%;" +
-				"background-color:" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.getColorForFontByHexString() + ";" +
+		setCSS(msgArea, null, "width:100%;height:100%;border:1px solid #" + getColorForBodyByHexString() + ";" +
+				"background-color:#" + getColorForBodyByHexString() + ";color:#" + HTMLMlet.getColorForFontByHexString() + ";" +
 				"font-size:" + (int)(fontSizePX * 0.7) + "px;");
 
 		appendMessage(processingMsg);
 
-		final String fontSizeCSS = "font-size:" + fontSizePX + "px;";
-		setCSS(this, null, fontSizeCSS);//系统Mlet, //不考虑in user thread
-		addProcessingPanel.add(msgArea, BorderLayout.CENTER);
 		exitButton.setIcon(new ImageIcon(okImage));
-		exitButton.setEnabled(false);
-		exitButton.setPreferredSize(new Dimension(getMobileWidth(), Math.max(fontSizePX + getFontSizeForNormal(), getButtonHeight())));
-		setCSS(exitButton, null, "text-align:center;vertical-align:middle;width:100%;height:100%;" + fontSizeCSS);//系统Mlet, //不考虑in user thread
+		setButtonEnable(exitButton, false);
+		exitButton.setPreferredSize(new Dimension(getMobileWidth(), SystemHTMLMlet.getButtonHeight(fontSizePX + getFontSizeForNormal(), getButtonHeight())));
+//		setCSS(exitButton, null, "width:100%;height:100%;border-radius: " + getButtonHeight() + "px;display: block;transition: all 0.15s ease;border: 0.1em solid #" + HTMLMlet.getColorForFontByHexString() + ";" + fontSizeCSS);//系统Mlet, //不考虑in user thread
+//		setCSSForDiv(exitButton, null, BUTTON_DIV);
 		exitButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				go(URL_EXIT);
 			}
 		});
-		addProcessingPanel.add(exitButton, BorderLayout.SOUTH);
-		
-		this.add(addProcessingPanel, BorderLayout.CENTER);
+
+		final String fontSizeCSS = "font-size:" + fontSizePX + "px;";
+		setCSS(this, null, fontSizeCSS);//系统Mlet, //不考虑in user thread
+
+		add(msgArea, BorderLayout.CENTER);
+		add(exitButton, BorderLayout.SOUTH);
 	}
-	
+
 	public static AddHarHTMLMlet getCurrAddHarHTMLMlet(){
 		return runingAddHar;//最多只有一个运行实例
 	}
@@ -237,7 +234,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 			final String closeStr = (String)ResourceUtil.get(coreSS, 9129);
 			
 			appendMessage(StringUtil.replace(StringUtil.replace(closeStr, "{designer}", designMenuItem), "{panel}", linkProjectMenuItem));
-			exitButton.setEnabled(true);
+			setButtonEnable(exitButton, true);
 			return;
 		}
 		
@@ -364,6 +361,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 							LicenseHTMLMlet mlet;
 							@Override
 							public boolean watch() {
+								L.V = L.WShop ? false : LogManager.log("[AddHarHTMLMlet] cancel license.");
 								mlet.back();
 								
 								appendMessage(opIsCanceled);
@@ -441,7 +439,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 				appendMessage(ResourceUtil.getErrorI18N(coreSS) + " : " + e.getMessage());
 			}finally{
 				LinkProjectStatus.exitStatus();
-				exitButton.setEnabled(true);
+				setButtonEnable(exitButton, true);
 			}
 		}
 	}
@@ -575,7 +573,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		final LinkEditData led = buildAddHarDesc(fileHar, map, "", "");
 		AddHarHTMLMlet.addHarToDeployArea(coreSS, led, led.lps, isRoot, isUpgrade, oldBackEditFile);
 		
-		final Iterator<LinkProjectStore> lpsIT = LinkProjectManager.getLinkProjsIterator(true);
+		final Iterator<LinkProjectStore> lpsIT = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		final Vector<LinkProjectStore> lpsVectorNewStore = new Vector<LinkProjectStore>();
 		while(lpsIT.hasNext()){
 			lpsVectorNewStore.add(lpsIT.next());
@@ -684,7 +682,6 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 					@Override
 					public void run() {
 						addHarHTMLMlet.removeAll();
-						addHarHTMLMlet.add(addProcessingPanel, BorderLayout.CENTER);
 						
 						revalidateMlet(addHarHTMLMlet);
 					}
@@ -758,8 +755,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 				"return " + claz.getSimpleName() + ".new()\n";
 
 		try{
-			final MobiUIResponsor responsor = (MobiUIResponsor)ServerUIUtil.getResponsor();
-			final ProjResponser pr = responsor.getCurrentProjResponser(coreSS);//必须使用用户级实例，比如clientSession
+			final ProjResponser pr = ServerUIAPIAgent.getCurrentProjResponser(coreSS);
 			
 			final boolean isSynchronized = true;
 			final ProjectContext context = pr.context;

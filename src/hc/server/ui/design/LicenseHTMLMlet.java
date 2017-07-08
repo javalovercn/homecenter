@@ -25,11 +25,6 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 	final IWatcher acceptListener, cancelListener;
 	final JTextArea area;
 	
-	public static final String BUTTON_FOR_DIV = "display: -webkit-box; display: -moz-box; display: -ms-flexbox; display: -webkit-flex;" +
-			"display: flex; -webkit-box-align: center; -moz-box-align: center; -ms-flex-align: center;" +
-			"-webkit-align-items: center; align-items: center; justify-content: center; -webkit-justify-content: center;" +
-			"-webkit-box-pack: center; -moz-box-pack: center; -ms-flex-pack: center;";
-	
 	public LicenseHTMLMlet(final String license, final String acceptAll, final IWatcher acceptListener, final IWatcher cancelListener,
 			final BufferedImage okImage, final BufferedImage cancelImage,
 			final String iagreeStr, final String acceptStr, final String cancelStr){
@@ -41,17 +36,20 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		setLayout(new BorderLayout(gapPixel, gapPixel));
 		
 		final int fontSizePX = okImage.getHeight();//不能采用此作为check字号，iPhone下过大
-		final int areaFontSize = (int)(fontSizePX * 0.7);
+		loadCSS(buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(), getColorForBodyByIntValue()), false);
+		
+		final int areaFontSize = getFontSizeForNormal();
 
 		final String accept = StringUtil.replace(acceptStr, "{iagree}", iagreeStr);
 		final JLabel label = new JLabel(accept);
 		final String labelDivStyle = "overflow:hidden;";
-		setCSSForDiv(label, null, labelDivStyle);
-		final String labelStyle = "display:block;vertical-align:middle;font-weight:bold;font-size:" + areaFontSize + "px;";
-		setCSS(label, null, labelStyle);
+//		setCSSForDiv(label, null, labelDivStyle);
+//		final String labelStyle = "display:block;vertical-align:middle;font-weight:bold;font-size:" + areaFontSize + "px;";
+//		setCSS(label, null, labelStyle);
+		setLabelCSS(this, label);
 		
 		final int labelHeight = (int)(fontSizePX * 1.4);
-		final int buttonPanelHeight = Math.max(fontSizePX + getFontSizeForNormal(), getButtonHeight());
+		final int buttonPanelHeight = getButtonHeight(fontSizePX + getFontSizeForNormal(), getButtonHeight());
 		final int areaHeight = getMobileHeight() - labelHeight * 2 - buttonPanelHeight;
 
 		final int mobileWidth = getMobileWidth();
@@ -74,7 +72,6 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		
 		area = new JTextArea(30, 30);
 		area.setEditable(false);
-//		setCSSForDiv(area, null, "overflow:hidden; resize: both;");
 		area.setPreferredSize(new Dimension(mobileWidth, areaHeight));
 		
 		final JPanel areaPanel = new JPanel(new BorderLayout());
@@ -89,20 +86,22 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 
 		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
 		final int areaFontColor = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker().getRGB();
-		setCSS(area, null, "width:" + mobileWidth+ "px;height:" + areaHeight + "px;" +
+		setCSS(area, null, "width:100%;height:100%;border:1px solid #" + getColorForBodyByHexString() + ";" +
 				"overflow-y:auto;font-size:" + areaFontSize + "px;" +
 				"background-color:#" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.toHexColor(areaFontColor, false) + ";");
 		
-		final String buttonStyle = "text-align:center;vertical-align:middle;width:100%;height:100%;font-size:" + fontSizePX + "px;";
+//		final String buttonStyle = "text-align:center;vertical-align:middle;width:100%;height:100%;font-size:" + fontSizePX + "px;";
 		final JButton ok = new JButton(iagreeStr, new ImageIcon(okImage));
 		final JButton cancel = new JButton(cancelStr, new ImageIcon(cancelImage));
+		setButtonStyle(ok);
+		setButtonStyle(cancel);
 
 		final ProjectContext ctx = getProjectContext();
 		ok.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
-				ok.setEnabled(false);
-				cancel.setEnabled(false);
+				setButtonEnable(ok, false);
+				setButtonEnable(cancel, false);
 				ctx.run(new Runnable() {
 					@Override
 					public void run() {
@@ -111,8 +110,6 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 				});
 			}
 		});
-//		setCSSForDiv(ok, null, BUTTON_FOR_DIV);
-		setCSS(ok, null, buttonStyle);
 		
 		cancel.addActionListener(new ActionListener() {
 			@Override
@@ -120,8 +117,6 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 				cancelListener.watch();//由是否需要绑定，来决定back/goMlet
 			}
 		});
-//		setCSSForDiv(cancel, null, BUTTON_FOR_DIV);
-		setCSS(cancel, null, buttonStyle);
 		
 		final JPanel btnPanel = new JPanel();
 		btnPanel.setLayout(new GridLayout(1, 2, gapPixel, gapPixel));
@@ -131,7 +126,7 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		
 		add(btnPanel, BorderLayout.SOUTH);
 	}
-	
+
 	@Override
 	public void goMlet(final Mlet toMlet, final String targetOfMlet, final boolean isAutoReleaseCurrentMlet){
 		setAutoReleaseAfterGo(isAutoReleaseCurrentMlet);

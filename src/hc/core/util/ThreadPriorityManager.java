@@ -15,6 +15,11 @@ public class ThreadPriorityManager {
 	
 	public static final int HC_LIMIT_THREADGROUP_PRIORITY = 3;
 	
+	//与HC_LIMIT_THREADGROUP_PRIORITY的相同考虑：
+	//1. 同一会话的多个事件，可以批处理。
+	//2. 不同会话的事件，平行处理，以减少并发
+	public static final int GECD_THREADGROUP_PRIORITY = HC_LIMIT_THREADGROUP_PRIORITY;
+	
 	public static final int PROJ_CONTEXT_THREADPOOL_PRIORITY = 2;//应高于AI_BACK
 	
 	public static final int AI_BACKGROUND = Thread.MIN_PRIORITY;//应低于PROJ_CONTEXT_THREADPOOL_PRIORITY

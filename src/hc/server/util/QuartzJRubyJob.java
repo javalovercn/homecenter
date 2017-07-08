@@ -13,6 +13,7 @@ public class QuartzJRubyJob implements Job {
 	public void execute(final JobExecutionContext context) throws JobExecutionException {
 		final JobDetail jobDetail = context.getJobDetail();
 		final JobDataMap map = jobDetail.getJobDataMap();
+		QuartzRunnableJob.printCronAndNextFireTime(context);
 		ProjectContext.getProjectContext().eval(getJobScripts(map));
 	}
 	

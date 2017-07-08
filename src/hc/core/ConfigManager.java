@@ -11,7 +11,7 @@ import java.util.Hashtable;
 public class ConfigManager {
 	public static final boolean isTCPOnly = true;
 	
-	public final static Hashtable table = new Hashtable(32);
+	public final static Hashtable table = new Hashtable(64);
 	
 	public final static void put(final Object p, final Object value){
 		table.put(p, value);
@@ -38,6 +38,8 @@ public class ConfigManager {
 	public static final String DEVICE_XDPI = "hc.ui.device.xdpi";//每英寸像素数，比如一个像素为240x320，大小为1.5"x2"的屏幕，其xdpi=240/1.5=160，ydpi=320/2=160。
 	public static final String DEVICE_YDPI = "hc.ui.device.ydpi";//注意这个值不一定是整数。float
 	public static final String DEVICE_DENSITY = "hc.ui.device.density";//float 屏幕密度（0.75 / 1.0 / 1.5）
+	public static final String IOS_DRAW_WIDTH = "hc.ui.ios.draw.width";
+	public static final String IOS_DRAW_HEIGHT = "hc.ui.ios.draw.height";
 	public static final String NOTIFICATION = "hc.notification";
 	public static final String STATUS_NET_TYPE = "hc.status.net";
 	public static final String STATUS_MOBI_OS = "hc.status.mobi.os";

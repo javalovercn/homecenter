@@ -21,7 +21,7 @@ public class IoTNameMapper extends NameMapper{
 	public final void reloadMap() {
 		if(isFirstLoad){
 			isFirstLoad = false;
-			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(true);
+			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 			while(it.hasNext()){
 				final LinkProjectStore lps = it.next();
 				if(lps.isActive()){

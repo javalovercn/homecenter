@@ -8,6 +8,7 @@ import java.awt.GridBagLayout;
 public class DialogHTMLMlet extends HTMLMlet {
 	public DialogGlobalLock resLock;
 	public DialogProcessedChecker checker;
+	public Dialog dialog;
 	
 	public final void setDialogGlobalLock(final DialogGlobalLock resLock){
 		this.resLock = resLock;
@@ -18,6 +19,7 @@ public class DialogHTMLMlet extends HTMLMlet {
 	}
 
 	public final void addDialog(final Dialog dialog) {
+		this.dialog = dialog;
 		setLayout(new GridBagLayout());
 		
 //		final JPanel dialogContainer = new JPanel(new GridBagLayout());

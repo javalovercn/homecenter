@@ -156,7 +156,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.plaf.FontUIResource;
 
 public class App {//注意：本类名被工程HCAndroidServer的ServerMainActivity反射引用，请勿改名
-	public static final int EXIT_MAX_DELAY_MS = 15 * 1000;//10秒不够
+	public static final int EXIT_MAX_DELAY_MS = 60 * 1000;//10秒不够
 
 	public static final String TAG_INI_DEBUG_ON = "debugOn";
 	public static final String TAG_INI_DEBUG_THREAD_POOL_ON = "debugThreadPoolOn";
@@ -735,7 +735,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	private static void setServerLog() {
 		final String log = PropertiesManager.getValue(PropertiesManager.p_Log);
 		if(log == null || log.equals(IConstant.TRUE)){
-			LogManager.setLog(new LogServerSide());
+			LogManager.setLog(PlatformManager.getService().getLog());//log到文件或console
 		}else{
 			LogManager.setLog(new NoLogForRoot());
 		}

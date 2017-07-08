@@ -104,6 +104,8 @@ public class ContextSecurityConfig {
 		setSysPropRead(true);
 		setSysPropWrite(false);
 		setLoadLib(false);
+		setLocation(false);
+		setScriptPanel(false);
 		setRobot(false);
 //		setListenAllAWTEvents(false);
 //		setAccessClipboard(false);
@@ -244,8 +246,24 @@ public class ContextSecurityConfig {
 		setBoolean(HCjar.PERMISSION_LOAD_LIB, bool);
 	}
 	
+	public final void setLocation(final boolean bool){
+		setBoolean(HCjar.PERMISSION_LOCATION, bool);
+	}
+	
+	public final void setScriptPanel(final boolean bool){
+		setBoolean(HCjar.PERMISSION_SCRIPT_PANEL, bool);
+	}
+	
 	public final boolean isLoadLib(){
 		return isTrue(HCjar.PERMISSION_LOAD_LIB, true);
+	}
+	
+	public final boolean isLocation(){
+		return isTrue(HCjar.PERMISSION_LOCATION, false);
+	}
+	
+	public final boolean isScriptPanel(){
+		return isTrue(HCjar.PERMISSION_SCRIPT_PANEL, true);
 	}
 	
 	public final void setRobot(final boolean bool){

@@ -90,6 +90,7 @@ public class UIUtil {
 	public static final String SYS_ICON_PREFIX = "Sys_";
 	
 	public static final String SYS_FOLDER_ICON = SYS_ICON_PREFIX + "Folder";
+	public static final String SYS_FOLDER_MGR_ICON = SYS_ICON_PREFIX + "FolderMgr";
 	public static final String SYS_ADD_DEVICE_BY_QR_ICON = SYS_ICON_PREFIX + "AddDeviceQR";
 	public static final String SYS_ADD_DEVICE_BY_WIFI_ICON = SYS_ICON_PREFIX + "AddDeviceWiFi";
 	public static final String SYS_VOICE_COMMAND = SYS_ICON_PREFIX + HCURL.VOICE_COMMAND;
@@ -137,6 +138,9 @@ public class UIUtil {
 	public static final short DARK_GRAY = 8;
 	
 	public static final short TXT_FONT_COLOR = GREEN;//如果更改，请与下行同步
-	public static final int TXT_FONT_COLOR_INT_FOR_ANDROID = 0xFF20B900;//green - 70, 不接受ff00ff这种6个的颜色表示
+	public static final int TXT_FONT_COLOR_INT_FOR_MLET = 0xFF20B900;//green - 70, 不接受ff00ff这种6个的颜色表示
 	
+	//colors.xml / ui_color_white
+	public static final int TXT_FONT_COLOR_INT_FOR_ANDROID = 0xFFF0F0F0;
+
 }

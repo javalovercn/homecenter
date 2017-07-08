@@ -67,7 +67,10 @@ public class KeepaliveManager {
 					coreSS.notifyLineOff(true, false);
 				}
 				
-				coreSS.keepaliveManager.removeConnBuilderWatcher();
+				final KeepaliveManager keepaliveManager = coreSS.keepaliveManager;
+				if(keepaliveManager != null){
+					keepaliveManager.removeConnBuilderWatcher();
+				}
 			}
 			@Override
 			public void setEnable(final boolean enable){

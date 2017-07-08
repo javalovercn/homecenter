@@ -369,10 +369,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 				+ ((pv.length() > 0) ? ("?" + pv) : ""));
 		final String listener = ((HPMenuItem)currItem).listener;
 		
-		setInitText(listener == null ? "" : listener);
-		TabHelper.initScriptPanel(jtaScript, this);
-		
-		initColor(false, 0);
+		TabHelper.initScriptPanel(jtaScript, this, listener);
 	}
 
 	@Override

@@ -68,6 +68,15 @@ public class ServerUIAPIAgent {
 		ServerAPIAgent.init();
 	}
 	
+	public static ProjResponser getCurrentProjResponser(final J2SESession coreSS){
+		final MobiUIResponsor responsor = (MobiUIResponsor)ServerUIUtil.getResponsor();
+		return responsor.getCurrentProjResponser(coreSS);//必须使用用户级实例，比如clientSession
+	}
+	
+	public static ClientSession buildClientSession(final J2SESession j2seCoreSS, final boolean hasLocationOfMobile){
+		return new ClientSession(j2seCoreSS, hasLocationOfMobile);
+	}
+	
 	public static void removeScheduler(final ProjectContext ctx, final String domain){
 		ctx.removeScheduler(domain);
 	}
@@ -321,7 +330,7 @@ public class ServerUIAPIAgent {
 	
 	public static DialogParameter buildDialogParameter(final J2SESession coreSS, 
 			final ProjectContext ctx, final DialogGlobalLock dialogLock, final int dialogID){
-		final DialogParameter dp = new DialogParameter(dialogLock);
+		final DialogParameter dp = new DialogParameter(coreSS, dialogLock);
 		
 		register(coreSS, ctx, dialogID, dp);
 		
@@ -395,13 +404,16 @@ public class ServerUIAPIAgent {
 	 */
 	public static void execInSequenceForSession(final J2SESession coreSS,
 			final ProjResponser resp, final ReturnableRunnable runnable) {
-		resp.getMobileSession(coreSS).recycleRes.sequenceWatcher.addWatcher(new BaseWatcher() {
-			@Override
-			public boolean watch() {
-				ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, resp, runnable);
-				return true;
-			}
-		});
+		final SessionContext mobileSession = resp.getMobileSession(coreSS);
+		if(mobileSession != null){
+			mobileSession.recycleRes.sequenceWatcher.addWatcher(new BaseWatcher() {
+				@Override
+				public boolean watch() {
+					ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, resp, runnable);
+					return true;
+				}
+			});
+		}
 	}
 	
 	public static void runInProjContext(final ProjectContext ctx, final Runnable run){
@@ -413,7 +425,10 @@ public class ServerUIAPIAgent {
 	}
 	
 	public static void runInSessionThreadPool(final J2SESession coreSS, final ProjResponser resp, final Runnable run){
-		resp.getMobileSession(coreSS).recycleRes.threadPool.run(run);
+		final SessionContext mobileSession = resp.getMobileSession(coreSS);
+		if(mobileSession != null){
+			mobileSession.recycleRes.threadPool.run(run);
+		}
 	}
 	
 	public static Assistant getVoiceAssistant(final ProjectContext ctx){
@@ -489,15 +504,35 @@ public class ServerUIAPIAgent {
 		}
 		
 		if(isFromCancel){
-			exitDialogMlet(out);
+			exitDialogMlet(out, isFromCancel);
 		}
 		return out;
 	}
 
-	public static void exitDialogMlet(final ResParameter out) {
+	public static void exitDialogMlet(final ResParameter out, final boolean isFromCancel) {
 		if(out != null && out instanceof DialogParameter){
 			final DialogParameter para = (DialogParameter)out;
-			para.getGlobalLock().mletCanvas.onExit(false);
+			final IMletCanvas mletCanvas = para.getGlobalLock().mletCanvas;
+			
+			if(isFromCancel){
+				para.isDismissedByBack = true;
+				final Mlet mlet = mletCanvas.getMlet();
+				if(mlet != null && mlet instanceof DialogHTMLMlet){
+					final Dialog dialog = ((DialogHTMLMlet)mlet).dialog;
+					final ProjResponser resp = ServerUIAPIAgent.getProjResponserMaybeNull(out.ctx);
+					if(dialog != null && resp != null){
+						L.V = L.WShop ? false : LogManager.log("Dialog.dismiss() is invoked by cancel/back/lineoff.");
+						ServerUIAPIAgent.runInSessionThreadPool(para.coreSS, resp, new Runnable() {
+							@Override
+							public void run() {
+								dialog.dismiss();
+							}
+						});
+					}
+				}
+			}
+			
+			mletCanvas.onExit(false);
 		}
 	}
 	
@@ -510,28 +545,41 @@ public class ServerUIAPIAgent {
 	}
 	
 	public final static void loadStyles(final HTMLMlet mlet) {
-		final Vector<String> stylesToDeliver = mlet.sizeHeightForXML.stylesToDeliver;
+		final Vector<CacheString> stylesToDeliver = mlet.sizeHeightForXML.stylesToDeliver;
 		
 		if(stylesToDeliver != null){
 			final int count = stylesToDeliver.size();
 			for (int i = 0; i < count; i++) {
-				final String styles = stylesToDeliver.elementAt(i);
-				mlet.loadCSS(styles);
+				final CacheString cs = stylesToDeliver.elementAt(i);
+				mlet.sizeHeightForXML.loadStylesImpl(mlet, cs.jsOrStyles, cs.isCacheEnabled);
 			}
 			stylesToDeliver.clear();
 		}
 	}
 	
-	public final static void loadJS(final HTMLMlet mlet) {
-		final Vector<String> scriptToDeliver = mlet.sizeHeightForXML.scriptToDeliver;
-		
-		if(scriptToDeliver != null){
-			final int count = scriptToDeliver.size();
-			for (int i = 0; i < count; i++) {
-				final String JS = scriptToDeliver.elementAt(i);
-				mlet.sizeHeightForXML.loadScript(mlet, JS);
+	public final static void flushJSForScriptPanel(final HTMLMlet mlet) {
+		final ScriptCSSSizeHeight sizeHeightForXML = mlet.sizeHeightForXML;
+		{
+			final Vector<CacheString> scriptToDeliver = sizeHeightForXML.scriptToDeliver;
+			
+			if(scriptToDeliver != null){
+				final int count = scriptToDeliver.size();
+				for (int i = 0; i < count; i++) {
+					final CacheString cs = scriptToDeliver.elementAt(i);
+					sizeHeightForXML.loadScriptImplForScriptPanel(mlet, cs.jsOrStyles, cs.isCacheEnabled);
+				}
+				scriptToDeliver.clear();
 			}
-			scriptToDeliver.clear();
+		}
+		
+		final Vector<String> jsNoCacheToDeliver = sizeHeightForXML.jsNoCacheToDeliver;
+		if(jsNoCacheToDeliver != null){
+			final int count = jsNoCacheToDeliver.size();
+			for (int i = 0; i < count; i++) {
+				final String JS = jsNoCacheToDeliver.elementAt(i);
+				sizeHeightForXML.diffTodo.executeJSWithoutCacheForScriptPanel(JS);
+			}
+			jsNoCacheToDeliver.clear();
 		}
 	}
 	
@@ -711,15 +759,26 @@ public class ServerUIAPIAgent {
 	}
 
 	public final static void removeClientSessionAttributeForSys(final J2SESession coreSS, final ProjResponser pr, final String attributeName){
-		pr.getMobileSession(coreSS).getClientSessionForSys().removeAttribute(attributeName);
+		final SessionContext mobileSession = pr.getMobileSession(coreSS);
+		if(mobileSession != null){
+			mobileSession.getClientSessionForSys().removeAttribute(attributeName);
+		}
 	}
 
 	public final static Object getClientSessionAttributeForSys(final J2SESession coreSS, final ProjResponser pr, final String attributeName){
-		return pr.getMobileSession(coreSS).getClientSessionForSys().getAttribute(attributeName);
+		final SessionContext mobileSession = pr.getMobileSession(coreSS);
+		if(mobileSession != null){
+			return mobileSession.getClientSessionForSys().getAttribute(attributeName);
+		}else{
+			return null;
+		}
 	}
 
 	public final static void setClientSessionAttributeForSys(final J2SESession coreSS, final ProjResponser pr, final String attributeName, final Object value){
-		pr.getMobileSession(coreSS).getClientSessionForSys().setAttribute(attributeName, value);
+		final SessionContext mobileSession = pr.getMobileSession(coreSS);
+		if(mobileSession != null){
+			mobileSession.getClientSessionForSys().setAttribute(attributeName, value);
+		}
 	}
 	
 	public static String getProcessorNameFromCtx(final ProjectContext ctx, String name, final String prop) {
@@ -816,6 +875,23 @@ public class ServerUIAPIAgent {
 		});
 	}
 	
+	public static void sendVoice(final J2SESession[] coreSS, final String voice) {
+		if(coreSS == null){
+			return;
+		}
+		
+		runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				for (int i = 0; i < coreSS.length; i++) {
+					final J2SESession oneCoreSS = coreSS[i];
+					sendVoice(oneCoreSS, voice);
+				}
+				return null;
+			}
+		});
+	}
+	
 	public static void setMletTarget(final Mlet mlet, final String targetOfMlet){
 		mlet.__target = buildTargetForElement(targetOfMlet);//后置式，注意：不是新建时获得。
 	}
@@ -889,11 +965,11 @@ public class ServerUIAPIAgent {
 				isHTMLMlet = false;
 			}
 			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_MLET, screenID);
-			mcanvas = new MletSnapCanvas(coreSS, UserThreadResourceUtil.getMobileWidthFrom(coreSS), UserThreadResourceUtil.getMobileHeightFrom(coreSS));
+			mcanvas = new MletSnapCanvas(coreSS, UserThreadResourceUtil.getMletWidthFrom(coreSS), UserThreadResourceUtil.getMletHeightFrom(coreSS));
 		}else{
 			ProjResponser.sendMletBodyOnlyOneTime(coreSS, context);
 			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_HTMLMLET, screenID);
-			mcanvas = new MletHtmlCanvas(coreSS, UserThreadResourceUtil.getMobileWidthFrom(coreSS), UserThreadResourceUtil.getMobileHeightFrom(coreSS));
+			mcanvas = new MletHtmlCanvas(coreSS, UserThreadResourceUtil.getMletWidthFrom(coreSS), UserThreadResourceUtil.getMletHeightFrom(coreSS));
 		}
 		
 		mcanvas.setScreenIDAndTitle(screenID, title);//注意：要在setMlet之前，因为后者可能用到本参数
@@ -1052,6 +1128,10 @@ public class ServerUIAPIAgent {
 
 	public static void sendOneMovingMsg(final CoreSession oneCoreSS, final String msg) {
 		HCURLUtil.sendCmd(oneCoreSS, HCURL.DATA_CMD_MOVING_MSG, "value", msg);
+	}
+	
+	public static void sendVoice(final CoreSession oneCoreSS, final String voice) {
+		HCURLUtil.sendCmd(oneCoreSS, HCURL.DATA_CMD_VOICE, "value", voice);
 	}
 
 	public static void goInSysThread(final J2SESession coreSS, final ProjectContext ctx,

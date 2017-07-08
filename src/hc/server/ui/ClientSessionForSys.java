@@ -11,8 +11,27 @@ import java.util.Hashtable;
 
 public class ClientSessionForSys {
 	public final static String CLIENT_SESSION_ATTRIBUTE_IS_TRANSED_MLET_BODY = CCoreUtil.SYS_RESERVED_KEYS_START + "mlet_html_body";
-	public final static String CLIENT_SESSION_ATTRIBUTE_OK_ICON = CCoreUtil.SYS_RESERVED_KEYS_START + "okIcon";
-	public final static String CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON = CCoreUtil.SYS_RESERVED_KEYS_START + "cancelIcon";
+	
+	private final static int CLIENT_SESSION_ATTRIBUTE_OK_ICON = 0;
+	private final static int CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON = 1;
+	private final static int CLIENT_SESSION_ATTRIBUTE_MOV_UP_ICON = 2;
+	private final static int CLIENT_SESSION_ATTRIBUTE_MOV_DOWN_ICON = 3;
+	private final static int CLIENT_SESSION_ATTRIBUTE_REMOVE_ICON = 4;
+	
+	public final static String STR_CLIENT_SESSION_ATTRIBUTE_OK_ICON = String.valueOf(CLIENT_SESSION_ATTRIBUTE_OK_ICON);
+	public final static String STR_CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON = String.valueOf(CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON);
+	public final static String STR_CLIENT_SESSION_ATTRIBUTE_MOV_UP_ICON = String.valueOf(CLIENT_SESSION_ATTRIBUTE_MOV_UP_ICON);
+	public final static String STR_CLIENT_SESSION_ATTRIBUTE_MOV_DOWN_ICON = String.valueOf(CLIENT_SESSION_ATTRIBUTE_MOV_DOWN_ICON);
+	public final static String STR_CLIENT_SESSION_ATTRIBUTE_REMOVE_ICON = String.valueOf(CLIENT_SESSION_ATTRIBUTE_REMOVE_ICON);
+	
+	private final static String[] ICON_KEYS = {STR_CLIENT_SESSION_ATTRIBUTE_OK_ICON, STR_CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON,
+		STR_CLIENT_SESSION_ATTRIBUTE_MOV_UP_ICON, STR_CLIENT_SESSION_ATTRIBUTE_MOV_DOWN_ICON, 
+		STR_CLIENT_SESSION_ATTRIBUTE_REMOVE_ICON};
+	
+	private static final String[] SMALL_PATHS = {ImageSrc.HC_RES_OK_22_PNG_PATH, ImageSrc.HC_RES_CANCEL_22_PNG_PATH,
+		ImageSrc.HC_RES_UP_22_PNG_PATH, ImageSrc.HC_RES_DOWN_22_PNG_PATH, ImageSrc.HC_RES_REMOVE_22_PNG_PATH};
+	private static final String[] NORM_PATHS = {ImageSrc.HC_RES_OK_44_PNG_PATH, ImageSrc.HC_RES_CANCEL_44_PNG_PATH,
+		ImageSrc.HC_RES_UP_44_PNG_PATH, ImageSrc.HC_RES_DOWN_44_PNG_PATH, ImageSrc.HC_RES_REMOVE_44_PNG_PATH};
 
 	private final ThreadGroup token;
 	private final J2SESession coreSS;
@@ -27,49 +46,35 @@ public class ClientSessionForSys {
 	public final Object getAttribute(final String name) {
 		Object out = attribute_map.get(name);
 		if(out == null){
-			if(CLIENT_SESSION_ATTRIBUTE_OK_ICON == name){
-				out = ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
-					@Override
-					public Object run() {
-						return getOK(name);
-					}
-				}, token);
-			}else if(CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON == name){
-				out = ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
-					@Override
-					public Object run() {
-						return getCancel(name);
-					}
-				}, token);
+			for (int i = 0; i < ICON_KEYS.length; i++) {
+				if(ICON_KEYS[i] == name){
+					final int nameIdx = i;
+					out = ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+						@Override
+						public Object run() {
+							return getIcon(nameIdx, name);
+						}
+					}, token);
+					break;
+				}
 			}
+			
 		}
 		return out;
 	}
 
-	private Object getCancel(final String name) {
+	private final Object getIcon(final int nameIdx, final String key) {
 		Object out;
-		final int dpi = UserThreadResourceUtil.getMobileDPIFrom(coreSS);
+		final int dpi = UserThreadResourceUtil.getMletDPIFrom(coreSS);
 		if(dpi < 300){
-			out = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_CANCEL_22_PNG_PATH);
+			out = ImageSrc.loadImageFromPath(SMALL_PATHS[nameIdx]);
 		}else{
-			out = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_CANCEL_44_PNG_PATH);
+			out = ImageSrc.loadImageFromPath(NORM_PATHS[nameIdx]);
 		}
-		attribute_map.put(name, out);
+		attribute_map.put(key, out);
 		return out;
 	}
 
-	private Object getOK(final String name) {
-		Object out;
-		final int dpi = UserThreadResourceUtil.getMobileDPIFrom(coreSS);
-		if(dpi < 300){
-			out = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_OK_22_PNG_PATH);
-		}else{
-			out = ImageSrc.loadImageFromPath(ImageSrc.HC_RES_OK_44_PNG_PATH);
-		}
-		attribute_map.put(name, out);
-		return out;
-	}
-	
 	public final Object getAttribute(final String name, final Object defaultValue) {
 		final Object value = getAttribute(name);
 		if (value == null) {

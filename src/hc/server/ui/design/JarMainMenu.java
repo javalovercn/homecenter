@@ -76,7 +76,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 	private final void initMenuItemArray() {
 		if(isRoot){
 			//添加LinkProject文件夹
-			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(false);
+			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIteratorInUserSysThread(false);
 			while(it.hasNext()) {
 				final LinkProjectStore lps = it.next();
 				if(lps.isActive() == false){

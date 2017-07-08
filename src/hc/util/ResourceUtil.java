@@ -31,7 +31,11 @@ import hc.server.data.KeyComperPanel;
 import hc.server.data.StoreDirManager;
 import hc.server.msb.AnalysableRobotParameter;
 import hc.server.msb.UserThreadResourceUtil;
+import hc.server.ui.DialogHTMLMlet;
+import hc.server.ui.Mlet;
 import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.SystemDialog;
+import hc.server.ui.design.SystemHTMLMlet;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -979,6 +983,12 @@ public class ResourceUtil {
 		return null;
 	}
 	
+	/**
+	 * 
+	 * @param coreSS 可以为null
+	 * @param id
+	 * @return
+	 */
 	public static Object get(final CoreSession coreSS, final int id){
 		if(id < MAX_RES_ID){
 			if(coreSS == null){
@@ -2058,4 +2068,20 @@ public class ResourceUtil {
 
 	public static final String LOAD_NATIVE_LIB = "load native lib";
 
+	public static final String LOCATION_OF_MOBILE = "location of mobile";
+	public static final String SCRIPT_PANEL = "ScriptPanel";
+
+	/**
+	 * 
+	 * @param coreSS 有null情形
+	 * @return
+	 */
+	public static String getSaveAndApply(final CoreSession coreSS) {
+		return (String) get(coreSS, 1017) + " + " + (String) get(coreSS, 9041);
+	}
+
+	public static boolean isSystemMletOrDialog(final Mlet mlet) {
+		return (mlet instanceof SystemHTMLMlet) 
+				|| (mlet instanceof DialogHTMLMlet) && ((DialogHTMLMlet)mlet).dialog instanceof SystemDialog;
+	}
 }

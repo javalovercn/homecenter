@@ -61,6 +61,8 @@ public class ConnectionRebuilder {
 								startBuildNew();
 							}
 						});//由于是客户端发起，所以无需token
+					}else{
+						L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] isStartBuildingNewAtMobileSide = true");
 					}
 				}
 				return waitForNew(isFromSender);
@@ -71,6 +73,7 @@ public class ConnectionRebuilder {
 	}
 	
 	private final void startBuildNew(){
+		L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] startBuildNew");
 		final long startMS = System.currentTimeMillis();
 		final Object out = buildConn();
 		if(out != null && out == IConstant.TRUE){

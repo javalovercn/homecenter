@@ -2,6 +2,7 @@ package hc.server;
 
 import hc.PlatformTrayIcon;
 import hc.core.util.WiFiDeviceManager;
+import hc.util.LogServerSide;
 
 import java.awt.Image;
 import java.awt.Robot;
@@ -23,10 +24,6 @@ public interface PlatformService {
 	public static final int BIZ_INIT_RUBOTO_ENVIROMENT = 6;
 	public static final int BIZ_GO_HOME = 7;
 	public static final int BIZ_BCL = 8;
-	
-	public static final int LOG_LEVEL_INFO = 1;
-	public static final int LOG_LEVEL_WARN = 2;
-	public static final int LOG_LEVEL_ERROR = 3;
 	
 	/**
 	 * 
@@ -89,7 +86,7 @@ public interface PlatformService {
 	
 	public Shape getImageShape(Image img);
 	
-	public void extLog(final int level, final String msg);
+	public LogServerSide getLog();
 	
 	public void setWindowShape(Window win, Shape shape);
 	

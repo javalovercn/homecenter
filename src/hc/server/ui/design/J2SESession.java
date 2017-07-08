@@ -84,6 +84,14 @@ public final class J2SESession extends CoreSession{
 		}
 	}
 	
+	public static final double NO_PERMISSION_LOC = -1;
+	
+	public Location location = new Location();
+	
+	public final void setLocation(final Location location){
+		this.location = location;
+	}
+	
 	final void shutdowScheduler(final ProjectContext ctx){
 		if(sessionScheduler != null){
 			final Vector<String> vector;
@@ -250,22 +258,25 @@ public final class J2SESession extends CoreSession{
 		}
 		
 		final int p_size = size;
-		resp.getMobileSession(this).recycleRes.threadPool.runAndWait(new ReturnableRunnable() {//因event回收，所以wait
-			@Override
-			public Object run() {
-				try{
-					for (int i = 0; i < p_size; i++) {
-						final RobotListener robotListener = list.get(i);
-						robotListener.action(event);
+		final SessionContext mobileSession = resp.getMobileSession(this);
+		if(mobileSession != null){
+			mobileSession.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {//因event回收，所以wait
+				@Override
+				public Object run() {
+					try{
+						for (int i = 0; i < p_size; i++) {
+							final RobotListener robotListener = list.get(i);
+							robotListener.action(event);
+						}
+					}catch (final IndexOutOfBoundsException outOfBound) {
+						//越界或不存在或已删除
+					}catch (final Throwable e) {
+						ExceptionReporter.printStackTrace(e);
 					}
-				}catch (final IndexOutOfBoundsException outOfBound) {
-					//越界或不存在或已删除
-				}catch (final Throwable e) {
-					ExceptionReporter.printStackTrace(e);
+					return null;
 				}
-				return null;
-			}
-		});
+			});
+		}
 	}
 	
 	private boolean isReleased;
@@ -293,7 +304,7 @@ public final class J2SESession extends CoreSession{
 		
 		for (int i = 0; i < keys.length; i++) {
 			final ResParameter resPara = questionOrDialogMap.get(keys[i]);
-			ServerUIAPIAgent.exitDialogMlet(resPara);
+			ServerUIAPIAgent.exitDialogMlet(resPara, true);
 		}
 		
 		if(L.isInWorkshop){

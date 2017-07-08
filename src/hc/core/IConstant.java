@@ -28,6 +28,18 @@ public abstract class IConstant {
 		return uuid;
 	}
 	
+	public static final String toString(final boolean isBool){
+		return isBool?TRUE:FALSE;
+	}
+	
+	public static final boolean toBoolean(final String str){
+		if(TRUE.equals(str)){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	
 	/**
 	 * 
 	 * @return true:is HC Server. false : Relay Server or other

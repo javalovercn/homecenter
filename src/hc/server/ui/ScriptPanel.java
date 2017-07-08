@@ -93,12 +93,12 @@ public class ScriptPanel extends JPanel {
 	 */
 	public static final String CLICK = JSCore.CLICK;
 	
-	SizeHeightForXML sizeHeightForXML;
+	ScriptCSSSizeHeight sizeHeightForXML;
 	Mlet mlet;
-	Vector<String> scriptToDeliver;
+	Vector<CacheString> loadedScriptToDeliver;
 	ProjectContext context;
-	Vector<String> jsToDeliver;
-	String innerHTMLToDeliver;
+	Vector<String> jsNoCacheToDeliver;
+	CacheString innerHTMLToDeliver;
 	final Object lock;
 	
 	public ScriptPanel(){
@@ -106,7 +106,7 @@ public class ScriptPanel extends JPanel {
 		lock = this;
 	}
 	
-	final void setSizeHeightForXML(final Mlet mlet, final SizeHeightForXML size){
+	final void setSizeHeightForXML(final Mlet mlet, final ScriptCSSSizeHeight size){
 		synchronized (lock) {
 			if(this.mlet != null){
 				throw new IllegalAccessError("ScriptPanel is added to parent twice or more!");
@@ -116,55 +116,74 @@ public class ScriptPanel extends JPanel {
 			this.sizeHeightForXML = size;
 			
 			if(innerHTMLToDeliver != null){//完成初始id的构造，所以要在scriptToDeliver之前
-				sizeHeightForXML.setInnerHTML(mlet, this, innerHTMLToDeliver);
+				sizeHeightForXML.setInnerHTMLImplForScriptPanel(mlet, this, innerHTMLToDeliver.jsOrStyles, innerHTMLToDeliver.isCacheEnabled);
 				innerHTMLToDeliver = null;
 			}
 			
-			if(scriptToDeliver != null){//注意：必须要在innerHTMLToDeliver之后
-				final int count = scriptToDeliver.size();
+			if(loadedScriptToDeliver != null){//注意：必须要在innerHTMLToDeliver之后
+				final int count = loadedScriptToDeliver.size();
 				for (int i = 0; i < count; i++) {
-					final String JS = scriptToDeliver.elementAt(i);
-					sizeHeightForXML.loadScript(mlet, JS);
+					final CacheString cs = loadedScriptToDeliver.elementAt(i);
+					sizeHeightForXML.loadScriptImplForScriptPanel(mlet, cs.jsOrStyles, cs.isCacheEnabled);
 				}
-				scriptToDeliver.clear();
-				scriptToDeliver = null;
+				loadedScriptToDeliver.clear();
+				loadedScriptToDeliver = null;
 			}
 			
-			if(jsToDeliver != null){
-				final int count = jsToDeliver.size();
+			if(jsNoCacheToDeliver != null){
+				final int count = jsNoCacheToDeliver.size();
 				for (int i = 0; i < count; i++) {
-					final String JS = jsToDeliver.elementAt(i);
-					sizeHeightForXML.executeScriptWithoutCache(mlet, JS);
+					final String JS = jsNoCacheToDeliver.elementAt(i);
+					sizeHeightForXML.executeScriptWithoutCacheForScriptPanel(mlet, JS);
 				}
-				jsToDeliver.clear();
-				jsToDeliver = null;
+				jsNoCacheToDeliver.clear();
+				jsNoCacheToDeliver = null;
 			}
 		}
 	}
 	
 	/**
 	 * load script for current {@link ScriptPanel}.
-	 * <BR><BR><STRONG>Warning</STRONG> : all id of elements of HTML created by server is begin with '<STRONG>HC</STRONG>'.
+	 * <BR>it is full script, HTML (<code>&lt;script type="text/javascript"&gt;</code>) can NOT be included.
+	 * <BR><BR><STRONG>Warning</STRONG> : <BR>
+	 * 1. <code>window.onload</code> will NOT be triggered, please invoke it by {@link #executeScript(String)}<BR>
+	 * 2. all id of elements of HTML created by server is begin with '<STRONG>HC</STRONG>'.
 	 * <BR><BR>About cache :<BR>
 	 * don't worry about script too large for re-translating to mobile, <BR>
 	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether transmission or loading cache from mobile (if script is too small, it will not be cached).
 	 * What you should do is put more into one script, because if there is too much pieces of cache in a project, the system will automatically clear the cache and restart caching.
+	 * <BR><BR>
+	 * to disable cache for current script, see {@link #loadScript(String, boolean)}.
 	 * @param script
 	 * @since 7.36
 	 */
-	public final void loadScript(final String script){
+	public void loadScript(final String script){
+		loadScript(script, true);
+	}
+	
+	/**
+	 * load script for current {@link ScriptPanel}.
+	 * <BR>it is full script, HTML (<code>&lt;script type="text/javascript"&gt;</code>) can NOT be included.
+	 * <BR><BR><STRONG>Warning</STRONG> : <BR>
+	 * 1. <code>window.onload</code> will NOT be triggered, please invoke it by {@link #executeScript(String)}<BR>
+	 * 2. all id of elements of HTML created by server is begin with '<STRONG>HC</STRONG>'.
+	 * @param script
+	 * @param enableCache true means this script may be cached if it is too large.
+	 * @see #loadScript(String)
+	 */
+	public void loadScript(final String script, final boolean enableCache){
 		if(script == null){
 			return;
 		}
 		
 		synchronized (lock) {
 			if(sizeHeightForXML != null){
-				sizeHeightForXML.loadScript(mlet, script);
+				sizeHeightForXML.loadScriptImplForScriptPanel(mlet, script, enableCache);//loadScript(mlet, script);
 			}else{
-				if(scriptToDeliver == null){
-					scriptToDeliver = new Vector<String>();
+				if(loadedScriptToDeliver == null){
+					loadedScriptToDeliver = new Vector<CacheString>();
 				}
-				scriptToDeliver.add(script);
+				loadedScriptToDeliver.add(new CacheString(script, enableCache));
 			}
 		}
 	}
@@ -182,23 +201,35 @@ public class ScriptPanel extends JPanel {
 	 * don't worry about inner HTML too large for re-translating to mobile, <BR>
 	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether transmission or loading cache from mobile (if inner HTML is too small, it will not be cached).
 	 * If there is too much pieces of cache in a project, system will automatically clear the cache and restart caching.
+	 * <BR><BR>
+	 * to disable cache for current HTML, see {@link #setInnerHTML(String, boolean)}.
 	 * @param html the inner HTML, for example : <code>&lt;div id='myScriptDiv'&gt;some canvas html&lt;/div&gt;</code>
 	 * @see HTMLMlet#setCSS(javax.swing.JComponent, String, String)
 	 * @since 7.36
 	 */
-	public final void setInnerHTML(final String html){
+	public void setInnerHTML(final String html){
+		setInnerHTML(html, true);
+	}
+	
+	/**
+	 * set inner HTML for current {@link ScriptPanel}.
+	 * @param html
+	 * @param enableCache true means this HTML may be cached if it is too large.
+	 * @see #setInnerHTML(String)
+	 */
+	public void setInnerHTML(final String html, final boolean enableCache){
 		if(html == null){
 			return;
 		}
 		
 		synchronized (lock) {
 			if(sizeHeightForXML != null){
-				sizeHeightForXML.setInnerHTML(mlet, this, html);
+				sizeHeightForXML.setInnerHTMLForScriptPanel(mlet, this, html, enableCache);
 			}else{
 				if(innerHTMLToDeliver != null){
 					LogManager.errToLog("the older innerHTML will be thrown away for the newest innerHTML!\n" + html);
 				}
-				innerHTMLToDeliver = html;
+				innerHTMLToDeliver = new CacheString(html, enableCache);
 			}
 		}
 	}
@@ -216,19 +247,19 @@ public class ScriptPanel extends JPanel {
 	 * @see #onEvent(String, String, String[])
 	 * @since 7.36
 	 */
-	public final void executeScript(final String script){
+	public void executeScript(final String script){
 		if(script == null){
 			return;
 		}
 		
 		synchronized (lock) {
 			if(sizeHeightForXML != null){
-				sizeHeightForXML.executeScriptWithoutCache(mlet, script);
+				sizeHeightForXML.executeScriptWithoutCacheForScriptPanel(mlet, script);
 			}else{
-				if(jsToDeliver == null){
-					jsToDeliver = new Vector<String>();
+				if(jsNoCacheToDeliver == null){
+					jsNoCacheToDeliver = new Vector<String>();
 				}
-				jsToDeliver.add(script);
+				jsNoCacheToDeliver.add(script);
 			}
 		}
 		

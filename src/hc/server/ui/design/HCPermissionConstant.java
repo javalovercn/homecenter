@@ -23,6 +23,12 @@ public class HCPermissionConstant {
 	public static final String LOAD_LIB_TIP = "<html>dynamic linking of the specified native code library." +
 			"<br>see <STRONG>java.lang.Runtime</STRONG>.loadXXX()</html>";
 	
+	public static final String LOCATION_OF_MOBILE = "<html>GPS/Location of mobile.<BR>to get it, see getProjectContext().getClientSession().getLatitude()</html>";
+	
+	public static final String SCRIPT_PANEL = "<html>load and execute JavaScript in Mlet.</html>";
+	
+	public static final String NO_PERMISSION_OF_LOCATION_OF_MOBILE = "no permission of [Location of mobile].";
+
 	public static final String ROBOT_TIP = "<html>The <STRONG>java.awt.Robot</STRONG> (not IoT Robot) object allows code to generate mouse and keyboard events." +
 			"<br>It could allow malicious code to control the system, run other programs, read the display.</html>";
 	
@@ -48,4 +54,5 @@ public class HCPermissionConstant {
 	
 	public static final String SET_FACTORY_TIP = "<html>set global factory object for <STRONG>socket</STRONG>, " +
 			"<STRONG>URL</STRONG>, <STRONG>Naming</STRONG> or other.</html>";
+
 }

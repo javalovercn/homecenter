@@ -57,7 +57,7 @@ import third.apache.lucene.util.RamUsageEstimator;
 public class LuceneManager {
 	public static void init(){
 		try{
-			final int i = RamUsageEstimator.NUM_BYTES_INT;//init static
+			RamUsageEstimator.alignObjectSize(100);//init static
 		}catch (final Throwable e) {
 			e.printStackTrace();
 		}

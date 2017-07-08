@@ -1,8 +1,8 @@
 package hc.server.ui;
 
+import hc.core.ConfigManager;
 import hc.core.HCConfig;
 import hc.core.IConstant;
-import hc.core.L;
 import hc.core.util.LangUtil;
 import hc.core.util.LogManager;
 import hc.core.util.MobileAgent;
@@ -41,10 +41,21 @@ public class ClientDesc {
 	private float xdpi, ydpi, density;
 	private String clientLang;
 	private String hcClientVer;//非操作系统的版本
+	private int iosDrawWidth, iosDrawHeight;
+	
 	private MobileAgent agent = new MobileAgent();
 	
 	public final MobileAgent getAgent(){
 		return agent;
+	}
+	
+	Boolean isIOS;
+	
+	public final boolean isIOS(){
+		if(isIOS == null){
+			isIOS = ProjectContext.OS_IOS.equals(agent.getOS());
+		}
+		return isIOS;
 	}
 	
 	public final int getDPI(){
@@ -69,6 +80,14 @@ public class ClientDesc {
 	
 	public final String getHCClientVer(){
 		return hcClientVer;
+	}
+	
+	public final int getIOSDrawWidth(){
+		return iosDrawWidth;
+	}
+	
+	public final int getIOSDrawHeight(){
+		return iosDrawHeight;
 	}
 	
 	public final void refreshClientInfo(final J2SESession coreSS, final String serial){
@@ -97,6 +116,17 @@ public class ClientDesc {
 			serialMobileAgent = HCConfig.getProperty(v, (short)8);
 			agent = MobileAgent.toObject(serialMobileAgent);
 			
+			final int iw = (int)Float.parseFloat(agent.get(ConfigManager.IOS_DRAW_WIDTH, "0"));
+			final int ih = (int)Float.parseFloat(agent.get(ConfigManager.IOS_DRAW_HEIGHT, "0"));
+			
+			if(clientHeight > clientWidth){
+				iosDrawWidth = Math.min(iw, ih);
+				iosDrawHeight = Math.max(iw, ih);
+			}else{
+				iosDrawHeight = Math.min(iw, ih);
+				iosDrawWidth = Math.max(iw, ih);
+			}
+			
 			PNGCapturer.updateColorBit(coreSS, agent.getColorBit());
 			PNGCapturer.updateRefreshMS(coreSS, agent.getRefreshMS());
 			
@@ -118,7 +148,8 @@ public class ClientDesc {
 				agent.get(i, kv);
 				
 				final String key = (String)kv[0];
-				if(key.startsWith(MobileAgent.TAG_HIDE_PREFIX)){//节省log及美观
+				if(key.startsWith(MobileAgent.TAG_HIDE_PREFIX)//节省log及美观
+						|| key.startsWith("hc.", 0)){//hc.ui.ios.draw.width
 					continue;
 				}
 

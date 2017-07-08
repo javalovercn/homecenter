@@ -2,7 +2,6 @@ package hc.server.ui.design;
 
 import hc.core.ContextManager;
 import hc.core.util.ReturnableRunnable;
-import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.HTMLMlet;
 import hc.server.util.HCLimitSecurityManager;
 import hc.util.ResourceUtil;
@@ -32,8 +31,6 @@ public class AddHarIsBusy extends SystemHTMLMlet {
 	}
 	
 	public AddHarIsBusy(){
-		final J2SESession localCoreSS = UserThreadResourceUtil.getCoreSSFromCtx(getProjectContext());
-
 		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() {
@@ -52,9 +49,11 @@ public class AddHarIsBusy extends SystemHTMLMlet {
 			}
 		}, AddHarHTMLMlet.token);
 		
+		loadCSS(buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(), getColorForBodyByIntValue()) + css, false);
+
 		exitButton = new JButton(exitButtonStr);
-		loadCSS(css);
-		
+		setButtonStyle(exitButton);
+
 		setLayout(new BorderLayout());
 		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
 		setCSS(msgArea, null, "width:100%;height:100%;" +
@@ -68,7 +67,7 @@ public class AddHarIsBusy extends SystemHTMLMlet {
 		setCSS(this, null, btnFontSizeCSS);//系统Mlet, //不考虑in user thread
 		addProcessingPanel.add(msgArea, BorderLayout.CENTER);
 		exitButton.setPreferredSize(new Dimension(getMobileWidth(), getButtonHeight()));
-		setCSS(exitButton, null, "text-align:center;vertical-align:middle;width:100%;height:100%;" + btnFontSizeCSS);//系统Mlet, //不考虑in user thread
+//		setCSS(exitButton, null, "text-align:center;vertical-align:middle;width:100%;height:100%;" + btnFontSizeCSS);//系统Mlet, //不考虑in user thread
 		exitButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {

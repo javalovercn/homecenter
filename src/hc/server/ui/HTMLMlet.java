@@ -1,5 +1,7 @@
 package hc.server.ui;
 
+import java.awt.Color;
+
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -34,14 +36,14 @@ import javax.swing.JToggleButton;
 public class HTMLMlet extends Mlet {
 	private static final long serialVersionUID = 1234L;
 	
-	final SizeHeightForXML sizeHeightForXML;
+	final ScriptCSSSizeHeight sizeHeightForXML;
 
 	/**
 	 * @deprecated
 	 */
 	@Deprecated
 	public HTMLMlet(){
-		sizeHeightForXML = new SizeHeightForXML(coreSS);
+		sizeHeightForXML = new ScriptCSSSizeHeight(coreSS, __context);
 	}
 	
 	/**
@@ -58,6 +60,8 @@ public class HTMLMlet extends Mlet {
 	 * don't worry about styles too large for re-translating to mobile, <BR>
 	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether transmission or loading cache from mobile (if styles is too small, it will not be cached).
 	 * What you should do is put more data into one style file, because if there is too much pieces of cache in a project, system will automatically clear the cache and restart caching.
+	 * <BR><BR>
+	 * to disable cache for current styles, see {@link #loadCSS(String, boolean)}.
 	 * @param styles for example, "<i>h1 {color:red} p {color:blue}</i>".
 	 * @see #setCSS(JComponent, String, String)
 	 * @see #setCSSForToggle(JToggleButton, String, String)
@@ -65,13 +69,27 @@ public class HTMLMlet extends Mlet {
 	 * @since 7.0
 	 */
 	public void loadCSS(final String styles){
-		sizeHeightForXML.loadCSSImpl(this, __context, styles);
+		loadCSS(styles, true);
+	}
+	
+	/**
+	 * load special styles for current {@link HTMLMlet}.
+	 * @param styles
+	 * @param enableCache true means this styles may be cached if it is too large.
+	 * @see #loadCSS(String)
+	 */
+	public void loadCSS(final String styles, final boolean enableCache){
+		sizeHeightForXML.loadCSSImpl(this, __context, styles, enableCache);
 	}
 	
 	/**
 	 * set CSS <i>class</i> and/or CSS <i>style</i> for HTML div tag of {@link JComponent}.
 	 * <BR><BR>
 	 * for more, see {@link #setCSS(JComponent, String, String)}.
+	 * <BR><BR>
+	 * <STRONG>Important :</STRONG><BR>
+	 * the CSS box model is <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a> default (quirks mode), NOT the w3c <code>content-box</code>.<BR>
+	 * most browsers use a DOCTYPE to decide whether to handle it in quirks mode or standards mode, so there is no DOCTYPE in HTML.
 	 * @param component the JComponent to set style.
 	 * @param className the class name of styles defined <i>Resources/CSS Styles</i> in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
 	 * @param styles the styles defined <i>Resources/CSS Styles</i> in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
@@ -127,7 +145,11 @@ public class HTMLMlet extends Mlet {
 	 * it is effective immediately to mobile.<BR>
 	 * it is allowed to invoke this method in constructor of {@link HTMLMlet}.
 	 * <BR><BR>
-	 * know more : 
+	 * <STRONG>Important :</STRONG><BR>
+	 * the CSS box model is <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a> default (quirks mode), NOT the w3c <code>content-box</code>.<BR>
+	 * most browsers use a DOCTYPE to decide whether to handle it in quirks mode or standards mode, so there is no DOCTYPE in HTML.
+	 * <BR><BR>
+	 * Know more CSS : 
 	 * <BR>
 	 * 1. the effect of CSS depends on the run-time environment of mobile client.
 	 * <BR>
@@ -139,7 +161,7 @@ public class HTMLMlet extends Mlet {
 	 * <BR>
 	 * 5. if your UI is ugly, please ask your CSS artist for pleasantly surprised!
 	 * <BR><BR>
-	 * Swing {@link JComponent}s are translated to HTML like following:
+	 * Swing {@link JComponent}s are translated to HTML as following:
 	 * <table border='1'>
 	 * <tr>
 	 * <th>JComponent</th><th>translated HTML</th><th>available</th><th>note</th>
@@ -380,11 +402,13 @@ public class HTMLMlet extends Mlet {
 	 * <STRONG>Important : </STRONG>the color may be changed in different implementation or version.
 	 * @return
 	 * @see #getColorForFontByHexString()
+	 * @see #getDarkerColor(int)
+	 * @see #getBrighterColor(int)
 	 * @see #toHexColor(int, boolean)
 	 * @since 7.9
 	 */
 	public static final int getColorForFontByIntValue(){
-		return SizeHeightForXML.getColorForFontByIntValue();
+		return ScriptCSSSizeHeight.getColorForFontByIntValue();
 	}
 
 	/**
@@ -397,7 +421,7 @@ public class HTMLMlet extends Mlet {
 	 * @since 7.9
 	 */
 	public static final String getColorForFontByHexString(){
-		return SizeHeightForXML.getColorForFontByHexString();
+		return ScriptCSSSizeHeight.getColorForFontByHexString();
 	}
 
 	/**
@@ -416,9 +440,11 @@ public class HTMLMlet extends Mlet {
 	 * @param useAlpha true, use the alpha channel.
 	 * @return
 	 * @since 7.9
+	 * @see #getDarkerColor(int)
+	 * @see #getBrighterColor(int)
 	 */
 	public static final String toHexColor(final int color, final boolean useAlpha){
-		return SizeHeightForXML.toHexColor(color, useAlpha);
+		return ScriptCSSSizeHeight.toHexColor(color, useAlpha);
 	}
 
 	/**
@@ -427,11 +453,35 @@ public class HTMLMlet extends Mlet {
 	 * <STRONG>Important : </STRONG>the color may be changed in different implementation or version.
 	 * @return
 	 * @see #getColorForBodyByHexString()
+	 * @see #getDarkerColor(int)
 	 * @see #toHexColor(int, boolean)
 	 * @since 7.9
 	 */
 	public static final int getColorForBodyByIntValue(){
-		return SizeHeightForXML.getColorForBodyByIntValue();
+		return ScriptCSSSizeHeight.getColorForBodyByIntValue();
+	}
+	
+	/**
+	 * Creates a new Color that is a darker version of this <code>rgbColorWithAlpha</code>.
+	 * @param rgbColorWithAlpha
+	 * @return
+	 * @see #getBrighterColor(int)
+	 * @see Color#darker()
+	 * @see #toHexColor(int, boolean)
+	 */
+	public static final int getDarkerColor(final int rgbColorWithAlpha){
+		return new Color(rgbColorWithAlpha, true).darker().getRGB();
+	}
+	
+	/**
+	 * Creates a new Color that is a brighter version of this <code>rgbColorWithAlpha</code>.
+	 * @param rgbColorWithAlpha
+	 * @return
+	 * @see #getDarkerColor(int)
+	 * @see Color#brighter()
+	 */
+	public static final int getBrighterColor(final int rgbColorWithAlpha){
+		return new Color(rgbColorWithAlpha, true).brighter().getRGB();
 	}
 
 	/**
@@ -444,7 +494,7 @@ public class HTMLMlet extends Mlet {
 	 * @since 7.9
 	 */
 	public static final String getColorForBodyByHexString(){
-		return SizeHeightForXML.getColorForBodyByHexString();
+		return ScriptCSSSizeHeight.getColorForBodyByHexString();
 	}
 
 }

@@ -1001,7 +1001,7 @@ public class TrayMenuUtil {
 						ExceptionReporter.printStackTrace(e);
 					}
 					
-					final JLabel productName = new JLabel("HomeCenter - connect my home cloud anywhere", null, JLabel.CENTER);
+					final JLabel productName = new JLabel("HomeCenter - connect home cloud anywhere", null, JLabel.CENTER);
 					try {
 						productName.setIcon(new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/verify_22.png"))));
 					} catch (final IOException e3) {

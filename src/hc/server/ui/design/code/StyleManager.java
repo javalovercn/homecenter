@@ -29,7 +29,7 @@ public class StyleManager {
 					@Override
 					public Object run() {
 						final Object[] values = {htmlmlet.getFontSizeForSmall(), htmlmlet.getFontSizeForNormal(), htmlmlet.getFontSizeForLarge(),
-								htmlmlet.getFontSizeForButton(), htmlmlet.getButtonHeight(), UserThreadResourceUtil.getMobileWidthFrom(coreSS), UserThreadResourceUtil.getMobileHeightFrom(coreSS),
+								htmlmlet.getFontSizeForButton(), htmlmlet.getButtonHeight(), UserThreadResourceUtil.getMletWidthFrom(coreSS), UserThreadResourceUtil.getMletHeightFrom(coreSS),
 								HTMLMlet.getColorForBodyByHexString(), HTMLMlet.getColorForFontByHexString()};
 						return values;
 					}

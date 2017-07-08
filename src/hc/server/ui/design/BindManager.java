@@ -30,7 +30,7 @@ public class BindManager {
 		
 		final HashSet<LinkProjectStore> set = new HashSet<LinkProjectStore>();
 		
-		final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(true);
+		final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		while(it.hasNext()){
 			final LinkProjectStore lps = it.next();
 			if(lps.isActive() && (lps.isDoneBind() == false)){

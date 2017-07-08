@@ -1134,19 +1134,20 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		return null;
 	}
 	
-	private final boolean isELSIFIndentKeyWords(final char[] chars, final int startIdx, final char[] isIndentChar){
-		int m = startIdx;
-		boolean inputSelfBackEnd = true;
-		for (int k = 0; k < isIndentChar.length && m < chars.length; k++, m++) {
-			if(isIndentChar[k] != chars[m]){
-				inputSelfBackEnd = false;
-				break;
-			}
-			if(inputSelfBackEnd){
-				return true;
-			}
-		}
-		return false;
+	private final boolean isELSIFIndentKeyWords(final char[] chars, final int startIdx, final char[] isIndentChar){//xx
+		return CodeHelper.matchChars(chars, startIdx, isIndentChar);
+//		int m = startIdx;
+//		boolean inputSelfBackEnd = true;
+//		for (int k = 0; k < isIndentChar.length && m < chars.length; k++, m++) {
+//			if(isIndentChar[k] != chars[m]){
+//				inputSelfBackEnd = false;
+//				break;
+//			}
+//			if(inputSelfBackEnd){
+//				return true;
+//			}
+//		}
+//		return false;
 	}
 		
 	public abstract void updateScript(String script);
@@ -1514,7 +1515,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 //		}
 //	};
 	
-	final void initColor(final boolean useOldPosition, final int position){
+	public final void initColor(final boolean useOldPosition, final int position){
 		try{
 			int colorOffset = 0, colorLen = -1;
 			if(useOldPosition && position != 0){
@@ -1576,7 +1577,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		@Override
 		public void run() {
 			jtaScript.requestFocus();
-			jtaScript.setCaretPosition(0);
+//			jtaScript.setCaretPosition(0);
 		}
 	};
 	
@@ -1644,7 +1645,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 //		}
 	}
 
-	protected final void setInitText(final String listener) {
+	public final void setInitText(final String listener) {
 		setUndoText(listener, 0);
 	}
 

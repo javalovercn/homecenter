@@ -187,9 +187,9 @@ public class LogViewer extends HCJFrame {
 		pnlBody.add(jsp, BorderLayout.CENTER);
 		pnlBody.setBorder(new TitledBorder("log :"));
 		
-		btnSearch = new JButton("", new ImageIcon(ImageSrc.SEARCH_ICON));
-		btnNext = new JButton("", new ImageIcon(ImageSrc.DOWN_ICON));
-		btnPre = new JButton("", new ImageIcon(ImageSrc.UP_ICON));
+		btnSearch = new JButton("", new ImageIcon(ImageSrc.SEARCH_SMALL_ICON));
+		btnNext = new JButton("", new ImageIcon(ImageSrc.DOWN_SMALL_ICON));
+		btnPre = new JButton("", new ImageIcon(ImageSrc.UP_SMALL_ICON));
 		btnRefresh = new JButton("", new ImageIcon(ResourceUtil.getImage(ResourceUtil.getResource("hc/res/refres_22.png"))));
 		
 		btnNext.setEnabled(false);

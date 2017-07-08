@@ -135,6 +135,8 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 		listAllBtn = new JRadioButton("list all");
 		
 		final int fontSizePX = okImage.getHeight();
+		loadCSS(buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(), getColorForBodyByIntValue()), false);
+		
 		final int labelHeight = (int)(fontSizePX * 1.4);
 
 		{
@@ -182,9 +184,10 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 		final JPanel convPanel = new JPanel(new BorderLayout());
 		final JPanel devPanel = new JPanel(new BorderLayout());
 		
-		final String buttonStyle = "text-align:center;vertical-align:middle;width:100%;height:100%;font-size:" + fontSizePX + "px;";
 		final JButton ok = new JButton(okDesc, new ImageIcon(okImage));
 		final JButton cancel = new JButton(cancelDesc, new ImageIcon(cancelImage));
+		setButtonStyle(ok);
+		setButtonStyle(cancel);
 
 		final String labelDivStyle = "overflow:hidden;";
 		final String labelStyle = "display:block;vertical-align:middle;font-weight:bold;font-size:" + fontSizePX + "px;";
@@ -269,9 +272,9 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 						deviceArea.setText(selectDevice());
 						final boolean allBinded = isAllBinded();
 						
-						ok.setEnabled(allBinded);
+						setButtonEnable(ok, allBinded);
 						if(nextUnbindOneBtn != null){
-							nextUnbindOneBtn.setEnabled(!allBinded);
+							setButtonEnable(nextUnbindOneBtn, !allBinded);
 						}
 					}catch (final Throwable ex) {
 						ex.printStackTrace();
@@ -290,7 +293,6 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 				BindHTMLMlet.this.back();
 			}
 		});
-		setCSS(ok, null, buttonStyle);
 		
 		cancel.addActionListener(new ActionListener() {
 			@Override
@@ -298,11 +300,10 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 				BindHTMLMlet.this.back();
 			}
 		});
-		setCSS(cancel, null, buttonStyle);
 		
 		if(isUnbindDefault){
 			nextUnbindOneBtn = new JButton(nextOne);
-			setCSS(nextUnbindOneBtn, null, buttonStyle);
+			setButtonStyle(nextUnbindOneBtn);
 			
 			nextUnbindOneBtn.addActionListener(new ActionListener() {
 				@Override
@@ -332,9 +333,9 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 		final int buttonPanelHeight = Math.max(fontSizePX + getFontSizeForNormal(), getButtonHeight());
 		bottomButtonPanel.setPreferredSize(new Dimension(mobileWidth, buttonPanelHeight));
 		
-		cancel.setEnabled(!isUnbindDefault);//必须绑定
+		setButtonEnable(cancel, !isUnbindDefault);//必须绑定
 		
-		ok.setEnabled(isAllBinded());
+		setButtonEnable(ok, isAllBinded());
 		
 		final JPanel listPanel = new JPanel(new GridLayout(3, 1));
 		listPanel.add(robotsPanel);
@@ -358,8 +359,8 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 	private final void updateBoxs(final Vector<String> list){
 		final boolean isZero = list.size() == 0;
 		
-		converterBox.setEnabled(!isZero);
-		deviceBox.setEnabled(!isZero);
+		setComboBoxEnable(converterBox, !isZero);
+		setComboBoxEnable(deviceBox, !isZero);
 		
 		if(isZero == false){
 			refreshForRobot();

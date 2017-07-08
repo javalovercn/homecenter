@@ -89,6 +89,13 @@ public class ContextManager {
 		return false;
 	}
 
+	public static boolean isClientExit(final IContext ic){
+		if(ic != null && ic.cmStatus == ContextManager.STATUS_EXIT){
+			return true;
+		}
+		return false;
+	}
+
 	public static boolean isNotWorkingStatus(final IContext ic){
 		final int[] notWorking = {ContextManager.STATUS_READY_TO_LINE_ON, ContextManager.STATUS_EXIT, ContextManager.STATUS_NEED_NAT, ContextManager.STATUS_LINEOFF};
 		final int m = ic.cmStatus;

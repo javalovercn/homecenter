@@ -1,9 +1,8 @@
 package hc.server.ui;
 
-import hc.server.msb.UserThreadResourceUtil;
-import hc.server.ui.design.J2SESession;
-import hc.server.ui.design.LicenseHTMLMlet;
 import hc.server.ui.design.ProjResponser;
+import hc.server.ui.design.SystemDialog;
+import hc.server.ui.design.SystemHTMLMlet;
 import hc.util.HttpUtil;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
@@ -23,7 +22,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
-public class ProjectInputDialog extends Dialog{
+public class ProjectInputDialog extends SystemDialog{
 	public ProjectInputDialog(final String title,	final String[] fieldNames, final String[] fieldDescs, 
 			final String[] out){
 		final int fieldNum = fieldNames.length;
@@ -33,8 +32,10 @@ public class ProjectInputDialog extends Dialog{
 		}
 		
 		final ProjResponser pr = ServerUIAPIAgent.getProjResponserMaybeNull(getProjectContext());
-		final BufferedImage okImage = (BufferedImage)ServerUIAPIAgent.getClientSessionAttributeForSys(UserThreadResourceUtil.getCoreSSFromCtx(getProjectContext()), pr, ClientSessionForSys.CLIENT_SESSION_ATTRIBUTE_OK_ICON);
+		final BufferedImage okImage = (BufferedImage)ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr, ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_OK_ICON);
 		final int fontSizePX = okImage.getHeight();//不能采用此作为check字号，iPhone下过大
+		loadCSS(SystemHTMLMlet.buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(), getColorForBodyByIntValue()));
+		
 		final int areaFontSize = (int)(fontSizePX * 0.7);
 		final int labelHeight = (int)(fontSizePX * 1.4);
 		
@@ -47,14 +48,13 @@ public class ProjectInputDialog extends Dialog{
 			field.setPreferredSize(new Dimension(halfMobileW, labelHeight));
 			
 			fields[i] = field;
-			setCSSForDiv(field, null, LicenseHTMLMlet.BUTTON_FOR_DIV);
+			setCSSForDiv(field, null, SystemHTMLMlet.CENTER_FOR_DIV);
 			setCSS(field, null, fieldStyle);
 			
 			fields[i].setColumns(18);
 		}
 		
 		final JPanel tablePanel = new JPanel(new GridLayout(fieldNum * 2 + 1, 1));
-		final J2SESession coreSSFromCtx = UserThreadResourceUtil.getCoreSSFromCtx(getProjectContext());
 		{
 			final String labelDivStyle = "overflow:hidden;";
 			final String labelStyle = "font-weight:bold;font-size:" + areaFontSize + "px;";
@@ -71,7 +71,7 @@ public class ProjectInputDialog extends Dialog{
 				tablePanel.add(fields[i]);
 			}
 			
-			final String descI18N = (String)ResourceUtil.get(coreSSFromCtx, 9095);
+			final String descI18N = getRes(9095);
 			final JLabel label = new JLabel(descI18N);
 			
 			label.setPreferredSize(new Dimension(halfMobileW, labelHeight));
@@ -121,13 +121,10 @@ public class ProjectInputDialog extends Dialog{
 		final JPanel centerPanel = new JPanel(new BorderLayout());
 		centerPanel.add(panel, BorderLayout.CENTER);
 		
-		final J2SESession coreSS = coreSSFromCtx;
-		final JButton ok = new JButton(ResourceUtil.getOKI18N(coreSS), new ImageIcon(okImage));
+		final JButton ok = new JButton(ResourceUtil.getOKI18N(localCoreSS), new ImageIcon(okImage));
+		setButtonStyle(ok);
 		
 		final int buttonPanelHeight = Math.max(fontSizePX + getFontSizeForNormal(), getButtonHeight());
-		final String buttonStyle = "text-align:center;vertical-align:middle;display: block;width:100%;height:100%;font-size:" + fontSizePX + "px;";
-		setCSS(ok, null, buttonStyle);
-//		setCSSForDiv(ok, null, LicenseHTMLMlet.BUTTON_FOR_DIV);
 		centerPanel.add(ok, BorderLayout.SOUTH);
 		
 		ok.setMinimumSize(new Dimension(10, buttonPanelHeight));

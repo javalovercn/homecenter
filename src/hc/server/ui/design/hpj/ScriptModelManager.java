@@ -57,7 +57,7 @@ public class ScriptModelManager {
 					|| url.elementID.equals(HCURL.DATA_CMD_CONFIG)){
 			}else{
 				//my-command
-				return buildMyCommand();
+				return "";
 			}
 		}else if(type == HPNode.TYPE_MENU_ITEM_IOT){
 			if(url.getURLLower().indexOf(HCURL.DATA_IOT_ROBOT.toLowerCase()) >= 0){
@@ -211,13 +211,7 @@ public class ScriptModelManager {
 		getCompatibleDesc.add("}.new");
 	}
 	
-	private static String buildMyCommand(){
-		final StringBuffer sb = new StringBuffer();
-		
-		sb.append("#encoding:utf-8\n\n");
-		
-		return sb.toString();
-	}
+	public final static String ENCODING_UTF_8 = "#encoding:utf-8\n\n";
 	
 	/**
 	 * 如果不合规范，则返回null；成功后，返回新替换后的脚本

@@ -272,7 +272,7 @@ public class BindRobotSource extends IoTSource{
 	@Override
 	public RealDeviceInfo getRealDeviceBindInfo(final String bind_id) {
 		//由于全内存运算，所以不计性能，不用cache到变量
-		final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(true);
+		final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		while(it.hasNext()){
 			final LinkProjectStore lps = it.next();
 			if(lps.isActive() == false){
@@ -302,7 +302,7 @@ public class BindRobotSource extends IoTSource{
 	@Override
 	public ConverterInfo getConverterBindInfo(final String bind_id) {
 		//由于全内存运算，所以不计性能，不用cache到变量
-		final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIterator(true);
+		final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		while(it.hasNext()){
 			final LinkProjectStore lps = it.next();
 			if(lps.isActive() == false){

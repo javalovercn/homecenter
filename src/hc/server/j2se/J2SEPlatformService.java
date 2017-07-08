@@ -10,6 +10,7 @@ import hc.core.util.WiFiDeviceManager;
 import hc.server.PlatformService;
 import hc.util.ClassUtil;
 import hc.util.ExitManager;
+import hc.util.LogServerSide;
 import hc.util.ResourceUtil;
 
 import java.awt.AlphaComposite;
@@ -507,7 +508,8 @@ public class J2SEPlatformService implements PlatformService {
 	}
 
 	@Override
-	public void extLog(final int level, final String msg) {
+	public LogServerSide getLog() {
+		return new LogServerSide();
 	}
 
 	@Override

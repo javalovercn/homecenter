@@ -1,5 +1,9 @@
 package hc.server.ui;
 
+import hc.core.util.LogManager;
+import hc.server.ui.design.HCPermissionConstant;
+import hc.server.ui.design.J2SESession;
+
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -17,9 +21,161 @@ import java.util.NoSuchElementException;
  */
 public class ClientSession {
 	private final Hashtable<String, Object> attribute_map = new Hashtable<String, Object>();
+	final J2SESession j2seCoreSSMaybeNull;
+	final boolean hasLocationOfMobile;
 	
-	public ClientSession(){
+	ClientSession(final J2SESession j2seCoreSS, final boolean hasLocationOfMobile){
+		this.j2seCoreSSMaybeNull = j2seCoreSS;//在Simu下传入null
+		this.hasLocationOfMobile = hasLocationOfMobile;
+	}
+	
+	/**
+	 * returns the last known latitude.<BR><BR>
+	 * for location of mobile, please enable permission [<STRONG>Location of mobile</STRONG>] of project.
+	 * <BR><BR>
+	 * if no permission (project or mobile) or low GPS signal, then return -1.0;
+	 * <BR><BR>
+	 * to set location updates frequency, see {@link ProjectContext#setLocationUpdates(long)}.
+	 * @return
+	 * @see #getLocationLongitude()
+	 * @see ProjectContext#EVENT_SYS_MOBILE_LOCATION
+	 * @see ProjectContext#addSystemEventListener(hc.server.util.SystemEventListener)
+	 * @see #getLocationAltitude()
+	 * @see #getLocationCourse()
+	 * @see #getLocationSpeed()
+	 */
+	public final double getLocationLatitude(){//纬度
+		if(hasLocationOfMobile == false){
+			LogManager.err(HCPermissionConstant.NO_PERMISSION_OF_LOCATION_OF_MOBILE);
+			return J2SESession.NO_PERMISSION_LOC;
+		}
 		
+		if(j2seCoreSSMaybeNull == null){
+			return SimuMobile.MOBILE_LATITUDE;
+		}
+		return j2seCoreSSMaybeNull.location.latitude;
+	}
+	
+	/**
+	 * true means GPS; false means otherwise, maybe WiFi.
+	 * @return
+	 * @see #getLocationLongitude()
+	 */
+	public final boolean isLocationGPS(){
+		if(hasLocationOfMobile == false){
+			LogManager.err(HCPermissionConstant.NO_PERMISSION_OF_LOCATION_OF_MOBILE);
+			return false;
+		}
+		
+		if(j2seCoreSSMaybeNull == null){
+			return SimuMobile.MOBILE_GPS;
+		}
+		return j2seCoreSSMaybeNull.location.isGPS;
+	}
+	
+	/**
+	 * true means fresh; false means otherwise, maybe last known GPS.
+	 * @return
+	 * @see #getLocationLongitude()
+	 */
+	public final boolean isLocationFresh(){
+		if(hasLocationOfMobile == false){
+			LogManager.err(HCPermissionConstant.NO_PERMISSION_OF_LOCATION_OF_MOBILE);
+			return false;
+		}
+		
+		if(j2seCoreSSMaybeNull == null){
+			return SimuMobile.MOBILE_FRESH;
+		}
+		return j2seCoreSSMaybeNull.location.isFresh;
+	}
+	
+	/**
+	 * returns the last known altitude (unit : meter).
+	 * <BR>
+	 * if no permission (project or mobile) or low GPS signal, then return -1.0;
+	 * @return
+	 * @see #getLocationLongitude()
+	 */
+	public final double getLocationAltitude(){//海拔：米
+		if(hasLocationOfMobile == false){
+			LogManager.err(HCPermissionConstant.NO_PERMISSION_OF_LOCATION_OF_MOBILE);
+			return J2SESession.NO_PERMISSION_LOC;
+		}
+		
+		if(j2seCoreSSMaybeNull == null){
+			return SimuMobile.MOBILE_ALTITUDE;
+		}
+		return j2seCoreSSMaybeNull.location.altitude;
+	}
+	
+	/**
+	 * returns the last known course.<BR>
+	 * -1.0 means unknown (some Android return 0.0).<BR><BR>
+	 * 0 means north<BR>
+	 * 90 means east<BR>
+	 * 180 means south<BR>
+	 * 270 means west
+	 * @return
+	 * @see #getLocationLongitude()
+	 */
+	public final double getLocationCourse(){//航向：0表示北 90东 180南 270西
+		if(hasLocationOfMobile == false){
+			LogManager.err(HCPermissionConstant.NO_PERMISSION_OF_LOCATION_OF_MOBILE);
+			return J2SESession.NO_PERMISSION_LOC;
+		}
+		
+		if(j2seCoreSSMaybeNull == null){
+			return SimuMobile.MOBILE_COURSE;
+		}
+		return j2seCoreSSMaybeNull.location.course;
+	}
+	
+	/**
+	 * returns the last known speed (unit : meter/second).<BR>
+	 * -1.0 means unknown (some Android return 0.0).<BR><BR>
+	 * @return
+	 * @see #getLocationLongitude()
+	 */
+	public final double getLocationSpeed(){//设备移动速度：米/秒
+		if(hasLocationOfMobile == false){
+			LogManager.err(HCPermissionConstant.NO_PERMISSION_OF_LOCATION_OF_MOBILE);
+			return J2SESession.NO_PERMISSION_LOC;
+		}
+		
+		if(j2seCoreSSMaybeNull == null){
+			return SimuMobile.MOBILE_SPEED;
+		}
+		return j2seCoreSSMaybeNull.location.speed;
+	}
+	
+	/**
+	 * returns the last known longitude.<BR><BR>
+	 * for location of mobile, please enable permission [<STRONG>Location of mobile</STRONG>] of project.
+	 * <BR><BR>
+	 * if no permission (project or mobile) or low GPS signal, then return -1.0;
+	 * <BR><BR>
+	 * to set location updates frequency, see {@link ProjectContext#setLocationUpdates(long)}.
+	 * @return
+	 * @see #getLocationLatitude()
+	 * @see ProjectContext#EVENT_SYS_MOBILE_LOCATION
+	 * @see ProjectContext#addSystemEventListener(hc.server.util.SystemEventListener)
+	 * @see #getLocationAltitude()
+	 * @see #getLocationCourse()
+	 * @see #getLocationSpeed()
+	 * @see #isLocationGPS()
+	 * @see #isLocationFresh()
+	 */
+	public final double getLocationLongitude(){//经度
+		if(hasLocationOfMobile == false){
+			LogManager.err(HCPermissionConstant.NO_PERMISSION_OF_LOCATION_OF_MOBILE);
+			return J2SESession.NO_PERMISSION_LOC;
+		}
+		
+		if(j2seCoreSSMaybeNull == null){
+			return SimuMobile.MOBILE_LONGITUDE;
+		}
+		return j2seCoreSSMaybeNull.location.longitude;
 	}
 	
 	/**

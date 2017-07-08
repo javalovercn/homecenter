@@ -3,8 +3,10 @@ package hc.util;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
+import hc.core.GlobalEventCenterDriver;
 import hc.core.HCTimer;
 import hc.core.IConstant;
+import hc.core.L;
 import hc.core.RootServerConnector;
 import hc.core.SessionManager;
 import hc.core.util.ExceptionReporter;
@@ -52,8 +54,15 @@ public class ExitManager {
 		LogManager.log("Start ExitManager");
 //		SessionManager.notifyShutdown();
 //		ServerUIUtil.stop();
-		ServerUIUtil.promptAndStop(false, null);
+		final GlobalEventCenterDriver gecd = GlobalEventCenterDriver.getGECD();
+		gecd.notifyShutdown();
 		
+		ExitManager.startForceExitThread();
+
+		L.V = L.WShop ? false : LogManager.log("GECD waitForAllDone...");
+		gecd.waitForAllDone();
+		L.V = L.WShop ? false : LogManager.log("GECD waitForAllDone OK!");
+		ServerUIUtil.promptAndStop(false, null);//会stopAllSession
 		//注意：AI manager永久使用连接，所以只能此处进行关闭
 		DatabaseManager.closeDatabases(Database.CLOSEMODE_NORMAL);
 		LogManager.log("closed all HSQLDB databases.");
@@ -63,11 +72,10 @@ public class ExitManager {
 
     	TrayMenuUtil.removeTray(App.getThreadPoolToken());
 
-		HttpUtil.notifyStopServer(false, null);
+//		HttpUtil.notifyStopServer(false, null);
 		//以上逻辑不能置于notifyShutdown中，因为这些方法有可能被其它外部事件，如手机下线，中继下线触发。
 		
-		J2SESessionManager.stopAllSession(true, false, false);//注意：是false
-		ExitManager.startForceExitThread();
+		J2SESessionManager.stopAllSession(true, false, false);//注意：notifyRelineon是false
 		
 		exit();	
 		LogManager.exit();

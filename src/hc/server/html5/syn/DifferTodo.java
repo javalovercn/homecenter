@@ -23,6 +23,7 @@ import hc.server.util.CacheComparator;
 import hc.server.util.ai.AIPersistentManager;
 import hc.util.JSUtil;
 import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 
 import java.awt.Component;
@@ -150,8 +151,8 @@ public class DifferTodo {
 		this.elementIDBS = ByteUtil.getBytes(elementID, IConstant.UTF_8);
 		elementIDLen = this.elementIDBS.length;
 
-		this.mobileWarningWidth = UserThreadResourceUtil.getMobileWidthFrom(coreSS) + 2;//标准J2SE会比实际宽度多一个像素。
-		this.mobileWarningHeight = UserThreadResourceUtil.getMobileHeightFrom(coreSS) + 2;
+		this.mobileWarningWidth = UserThreadResourceUtil.getMletWidthFrom(coreSS) + 2;//标准J2SE会比实际宽度多一个像素。
+		this.mobileWarningHeight = UserThreadResourceUtil.getMletHeightFrom(coreSS) + 2;
 		
 		this.projID = projectContext.getProjectID();
 		this.projIDbs = ByteUtil.getBytes(projID, IConstant.UTF_8);
@@ -283,7 +284,7 @@ public class DifferTodo {
 	 * for example : body{background-color:#f00;}
 	 * @param css
 	 */
-	public final void loadStyles(String css){
+	public final void loadStyles(String css, final boolean enableCache){
 		css = yinHaoPattern.matcher(css).replaceAll(yinHaoEncode);
 //		css = css.replace("\"", "\\\"");//改"为\"
 		css = JSUtil.replaceNewLine(JSUtil.replaceReturnWithEmtpySpace(css));//修复换行不能执行的问题
@@ -300,19 +301,30 @@ public class DifferTodo {
 		System.arraycopy(cssBS, 0, noCycleBS, BS_LOAD_STYLE.length, cssBSLen);
 		System.arraycopy(BS_LOAD_STYLE_END, 0, noCycleBS, BS_LOAD_STYLE.length + cssBSLen, BS_LOAD_STYLE_END.length);
 		
-		sendBytesJSOrCache(noCycleBS, needGzip, true);
+		sendBytesJSOrCache(noCycleBS, needGzip, enableCache);
 	}
 	
 	static final Pattern yinHaoPattern = Pattern.compile("\"", Pattern.LITERAL);
 	static final String yinHaoEncode = Matcher.quoteReplacement("\\\"");
 	
+	static final String blockScriptPanel = "block Permission [ScriptPanle]";
+
+	final String getBlockScriptMsg() {
+		return blockScriptPanel + " in HAR Project  [" + resp.projectID + "].";
+	}
+	
 	/**
 	 * 加载JS到html->header->script段。
-	 * 注意：它不同于{@link #executeJSWithoutCache(String)}
+	 * 注意：它不同于{@link #executeJSWithoutCacheForScriptPanel(String)}
 	 * for example : body{background-color:#f00;}
 	 * @param js
 	 */
-	public final void loadScript(String js){
+	public final void loadScriptForScriptPanel(String js, final boolean isCacheEnabled){
+		if(isNoScriptPanelPermission()){
+			LogManager.err(getBlockScriptMsg());
+			return;
+		}
+		
 		js = yinHaoPattern.matcher(js).replaceAll(yinHaoEncode);
 //		js = js.replace("\"", "\\\"");//改"为\"
 		js = JSUtil.replaceNewLine(JSUtil.replaceReturnWithEmtpySpace(js));//修复换行不能执行的问题
@@ -327,7 +339,7 @@ public class DifferTodo {
 		System.arraycopy(jsBS, 0, noCycleBS, BS_LOAD_JS.length, jsBS.length);
 		System.arraycopy(BS_LOAD_JS_END, 0, noCycleBS, BS_LOAD_JS.length + jsBS.length, BS_LOAD_JS_END.length);
 		
-		sendBytesJSOrCache(noCycleBS, needGzip, true);
+		sendBytesJSOrCache(noCycleBS, needGzip, isCacheEnabled);
 	}
 
 	private static final int GZIP_MIN_SIZE = 1024 * 100;
@@ -337,7 +349,12 @@ public class DifferTodo {
 	 * 它不同于{@link #loadScript(String)}
 	 * @param script
 	 */
-	public final void executeJSWithoutCache(final String script){
+	public final void executeJSWithoutCacheForScriptPanel(final String script){
+		if(isNoScriptPanelPermission()){
+			LogManager.err(getBlockScriptMsg());
+			return;
+		}
+		
 		final boolean needGzip = ((script.length()>GZIP_MIN_SIZE)?true:false);
 		sendStringJSOrCache(script, needGzip, false);
 	}
@@ -475,15 +492,23 @@ public class DifferTodo {
 		StringBuilderCacher.cycle(sb);
 	}
 
-	public final void setDivInnerHTML(final int hashID, String innerHTML){
+	public final void setDivInnerHTMLForScriptPanel(final int hashID, String innerHTML, final boolean enableCache){
+		if(isNoScriptPanelPermission()){
+			innerHTML = blockScriptPanel;
+		}
+		
 		innerHTML = yinHaoPattern.matcher(innerHTML).replaceAll(yinHaoEncode);
 		innerHTML = JSUtil.replaceNewLine(JSUtil.replaceReturnWithEmtpySpace(innerHTML));//低版本android环境下必须
 		
 		final boolean needGzip = ((innerHTML.length()>GZIP_MIN_SIZE)?true:false);
 		
 		final StringBuilder sb;
-		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setDivInnerHTML(" ).append( hashID ).append( ", \"" ).append( innerHTML ).append( "\");").toString(), needGzip, true);
+		sendStringJSOrCache((sb = StringBuilderCacher.getFree()).append("window.hcj2se.setDivInnerHTML(" ).append( hashID ).append( ", \"" ).append( innerHTML ).append( "\");").toString(), needGzip, enableCache);
 		StringBuilderCacher.cycle(sb);
+	}
+
+	private final boolean isNoScriptPanelPermission() {
+		return ResourceUtil.isSystemMletOrDialog(mlet) == false && resp.hasPermissionScriptPanel == false;
 	}
 	
 	public final void notifyAddTextArea(final int containerHashID, final int index, final int hashID, final String tip){

@@ -181,6 +181,10 @@ public class MobiMenu {
 		}
 	}
 	
+	/**
+	 * 添加系统级菜单项，比如工程Folder。
+	 * @param item
+	 */
 	public final void addHeader(final MenuItem item){
 		MenuItem tail = null;
 		synchronized (menuItems) {
@@ -196,6 +200,10 @@ public class MobiMenu {
 		}
 	}
 	
+	/**
+	 * 添加系统级菜单项，比如QR，语音，工程维护
+	 * @param item
+	 */
 	public final void addTail(final MenuItem item){
 		MenuItem tail = null;
 		synchronized (menuItems) {

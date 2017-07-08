@@ -18,6 +18,27 @@ public class ByteUtil {
 		}
 	}
 	
+	/**
+	 * 将一个串，转换成Hex串。<BR>
+	 * @param src
+	 * @return
+	 * @see #unserialHexString(String)
+	 */
+	public static final String serialHexString(final String src){
+		return ByteUtil.toHex(ByteUtil.getBytes(src, IConstant.UTF_8));
+	}
+	
+	/**
+	 * 将一个Hex串，还原为Str。<BR>
+	 * @param code
+	 * @return
+	 * @see #serialHexString(String)
+	 */
+	public static final String unserialHexString(final String code){
+		final byte[] bs = toBytesFromHexStr(code);
+		return toString(bs, 0, bs.length);
+	}
+	
 	public static final byte[] cloneBS(final byte[] bs){
 		final int len = bs.length;
 		final byte[] out = new byte[len];

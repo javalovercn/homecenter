@@ -126,7 +126,6 @@ public class Dialog extends JPanel {
 	 * @see #go(String, String)
 	 * @see #goMlet(Mlet, String)
 	 * @see Mlet#setAutoReleaseAfterGo(boolean)
-	 * @see #goExternalURL(String, boolean)
 	 * @since 7.30
 	 */
 	public void go(final String url){
@@ -153,7 +152,6 @@ public class Dialog extends JPanel {
 	 * <BR>1. the external URL may be sniffed when in moving (exclude HTTPS).
 	 * <BR>2. iOS 9 and above must use secure URLs.
 	 * @param url for example : https://homecenter.mobi
-	 * @see #goExternalURL(String, boolean)
 	 * @since 7.30
 	 */
 	public void goExternalURL(final String url) {
@@ -262,6 +260,8 @@ public class Dialog extends JPanel {
 	 * don't worry about styles too large for re-translating to mobile, <BR>
 	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether transmission or loading cache from mobile (if styles is too small, it will not be cached).
 	 * What you should do is put more data into one style file, because if there is too much pieces of cache in a project, system will automatically clear the cache and restart caching.
+	 * <BR><BR>
+	 * to disable cache for current styles, see {@link #loadCSS(String, boolean)}.
 	 * @param styles for example, "<i>h1 {color:red} p {color:blue}</i>".
 	 * @see #setCSS(JComponent, String, String)
 	 * @see #setCSSForToggle(JToggleButton, String, String)
@@ -269,13 +269,27 @@ public class Dialog extends JPanel {
 	 * @since 7.30
 	 */
 	public void loadCSS(final String styles){
-		sizeHeightForXML.loadCSSImpl(dialogCanvas, __context, styles);
+		loadCSS(styles, true);
+	}
+	
+	/**
+	 * load special styles for current {@link Dialog}.
+	 * @param styles
+	 * @param enableCache true means this styles may be cached if it is too large.
+	 * @see #loadCSS(String)
+	 */
+	public void loadCSS(final String styles, final boolean enableCache){
+		sizeHeightForXML.loadCSSImpl(dialogCanvas, __context, styles, enableCache);
 	}
 	
 	/**
 	 * set CSS <i>class</i> and/or CSS <i>style</i> for HTML div tag of {@link JComponent}.
 	 * <BR><BR>
 	 * for more, see {@link #setCSS(JComponent, String, String)}.
+	 * <BR><BR>
+	 * <STRONG>Important :</STRONG><BR>
+	 * the CSS box model is <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a> default (quirks mode), NOT the w3c <code>content-box</code>.<BR>
+	 * most browsers use a DOCTYPE to decide whether to handle it in quirks mode or standards mode, so there is no DOCTYPE in HTML.
 	 * @param component the JComponent to set style.
 	 * @param className the class name of styles defined <i>Resources/CSS Styles</i> in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
 	 * @param styles the styles defined <i>Resources/CSS Styles</i> in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
@@ -308,7 +322,11 @@ public class Dialog extends JPanel {
 	 * it is effective immediately to mobile.<BR>
 	 * it is allowed to invoke this method in constructor of {@link HTMLMlet}.
 	 * <BR><BR>
-	 * know more : 
+	 * <STRONG>Important :</STRONG><BR>
+	 * the CSS box model is <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a> default (quirks mode), NOT the w3c <code>content-box</code>.<BR>
+	 * most browsers use a DOCTYPE to decide whether to handle it in quirks mode or standards mode, so there is no DOCTYPE in HTML.
+	 * <BR><BR>
+	 * Know more CSS : 
 	 * <BR>
 	 * 1. the effect of CSS depends on the run-time environment of mobile client.
 	 * <BR>
@@ -320,7 +338,7 @@ public class Dialog extends JPanel {
 	 * <BR>
 	 * 5. if your UI is ugly, please ask your CSS artist for pleasantly surprised!
 	 * <BR><BR>
-	 * Swing {@link JComponent}s are translated to HTML like following:
+	 * Swing {@link JComponent}s are translated to HTML as following:
 	 * <table border='1'>
 	 * <tr>
 	 * <th>JComponent</th><th>translated HTML</th><th>available</th><th>note</th>
@@ -466,20 +484,26 @@ public class Dialog extends JPanel {
 	/**
      * releases all of the resources used by this
      * <code>Dialog</code>, and they will be marked as undisplayable.
+     * <BR><BR>
+     * this method will be invoked by server for following cases :<BR>
+     * 1. user maybe press back key to cancel a dialog (in Android client),<BR>
+     * 2. server shutdown or the session of dialog is line-off,
      * @since 7.30
    	 */
 	public void dismiss(){
 		synchronized (synLock) {
 			if(resLock != null){
-				final DialogGlobalLock dialogLock = resLock;
-				ServerUIAPIAgent.runInSysThread(new Runnable() {
-					@Override
-					public void run() {
-						dialogLock.dismiss(coreSS, dialogLock.dialogID);
-						ServerUIAPIAgent.removeQuestionDialogFromMap(coreSS, dialogLock.dialogID, false);
-						((ICanvas)dialogLock.mletCanvas).onExit();
-					}
-				});
+				if(resLock.dialogParameter.isDismissedByBack == false){
+					final DialogGlobalLock dialogLock = resLock;
+					ServerUIAPIAgent.runInSysThread(new Runnable() {
+						@Override
+						public void run() {
+							dialogLock.dismiss(coreSS, dialogLock.dialogID);
+							ServerUIAPIAgent.removeQuestionDialogFromMap(coreSS, dialogLock.dialogID, false);
+							((ICanvas)dialogLock.mletCanvas).onExit();
+						}
+					});
+				}
 				resLock = null;
 			}else{
 				LogManager.log("dismiss() is invoked twice or more, maybe it is dismissed by go()/goExternalURL()/goMlet().");
@@ -489,7 +513,7 @@ public class Dialog extends JPanel {
 	
 	DialogGlobalLock resLock;
 	
-	private final SizeHeightForXML sizeHeightForXML;//注意：不能为null，即使在SIMU下
+	private final ScriptCSSSizeHeight sizeHeightForXML;//注意：不能为null，即使在SIMU下
 	final Mlet dialogCanvas;
 	
 	/**
@@ -528,7 +552,7 @@ public class Dialog extends JPanel {
 		
 		if(coreSS != SimuMobile.SIMU_NULL && ProjResponser.isMletMobileEnv(coreSS)){
 			dialogCanvas = new DialogMlet();
-			sizeHeightForXML = new SizeHeightForXML(coreSS);
+			sizeHeightForXML = new ScriptCSSSizeHeight(coreSS, __context);
 		}else{
 			dialogCanvas = new DialogHTMLMlet();
 			sizeHeightForXML = ((HTMLMlet)dialogCanvas).sizeHeightForXML;
@@ -645,7 +669,7 @@ public class Dialog extends JPanel {
 	 * @since 7.30
 	 */
 	public static final int getColorForFontByIntValue(){
-		return SizeHeightForXML.getColorForFontByIntValue();
+		return ScriptCSSSizeHeight.getColorForFontByIntValue();
 	}
 
 	/**
@@ -658,7 +682,7 @@ public class Dialog extends JPanel {
 	 * @since 7.30
 	 */
 	public static final String getColorForFontByHexString(){
-		return SizeHeightForXML.getColorForFontByHexString();
+		return ScriptCSSSizeHeight.getColorForFontByHexString();
 	}
 
 	/**
@@ -679,7 +703,7 @@ public class Dialog extends JPanel {
 	 * @since 7.30
 	 */
 	public static final String toHexColor(final int color, final boolean useAlpha){
-		return SizeHeightForXML.toHexColor(color, useAlpha);
+		return ScriptCSSSizeHeight.toHexColor(color, useAlpha);
 	}
 
 	/**
@@ -692,7 +716,7 @@ public class Dialog extends JPanel {
 	 * @since 7.30
 	 */
 	public static final int getColorForBodyByIntValue(){
-		return SizeHeightForXML.getColorForBodyByIntValue();
+		return ScriptCSSSizeHeight.getColorForBodyByIntValue();
 	}
 
 	/**
@@ -705,6 +729,6 @@ public class Dialog extends JPanel {
 	 * @since 7.30
 	 */
 	public static final String getColorForBodyByHexString(){
-		return SizeHeightForXML.getColorForBodyByHexString();
+		return ScriptCSSSizeHeight.getColorForBodyByHexString();
 	}
 }

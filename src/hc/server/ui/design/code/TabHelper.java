@@ -5,6 +5,7 @@ import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.Stack;
 import hc.server.ui.design.hpj.ScriptEditPanel;
+import hc.server.ui.design.hpj.ScriptModelManager;
 
 import java.awt.Color;
 import java.awt.event.KeyEvent;
@@ -23,11 +24,18 @@ public class TabHelper {
 	static JTextPane scriptPanel;
 	static int currFocusHighlightStartIdx, currFocusHighlightEndIdx, inputShiftOffset;
 	
-	public static void initScriptPanel(final JTextPane sPanel, final ScriptEditPanel sep){
+	public static void initScriptPanel(final JTextPane sPanel, final ScriptEditPanel sep, final String listenerScript){
+		final String scripts = (listenerScript == null || listenerScript.length() == 0) ? ScriptModelManager.ENCODING_UTF_8 : listenerScript;
+		
+		sep.setInitText(scripts);
+		final int initLoc = (ScriptModelManager.ENCODING_UTF_8.equals(scripts)?ScriptModelManager.ENCODING_UTF_8.length():0);
+		
 		sep.rebuildASTNode();
 		
 		scriptPanel = sPanel;
-		scriptPanel.setCaretPosition(0);
+		scriptPanel.setCaretPosition(initLoc);
+		
+		sep.initColor(false, 0);
 	}
 	
 	public final static Stack tabBlockStack = new Stack(2);
@@ -174,6 +182,7 @@ public class TabHelper {
 			if(L.isInWorkshop){
 				System.out.println("---------notifyInputKey char : " + inputChar);
 			}
+			final boolean isDelete = inputChar==KeyEvent.VK_DELETE;
 			if(isBackspace){
 			}else if(event != null && (inputChar == '\t' || event.isActionKey())){
 				if(L.isInWorkshop){
@@ -194,7 +203,7 @@ public class TabHelper {
 				currFocusHighlightEndIdx -= selectionOrPasteLen;
 				currentTabBlock.parameterEndOffsetIdx[parameterIdx] -= selectionOrPasteLen;
 			}
-			if(isBackspace){
+			if(isBackspace || isDelete){
 				if(selectionOrPasteLen == 0){
 					currentTabBlock.parameterEndOffsetIdx[parameterIdx]--;
 					currFocusHighlightEndIdx--;

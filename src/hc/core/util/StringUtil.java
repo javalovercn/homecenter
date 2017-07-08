@@ -32,6 +32,14 @@ public class StringUtil {
 		return out;
 	}
 	
+	public static int parseInt(final String int_str){
+		try{
+			return Integer.parseInt(int_str);
+		}catch (Throwable e) {
+		}
+		return 0;
+	}
+	
 	/**
 	 * 
 	 * @param src

@@ -4,14 +4,11 @@ import hc.App;
 import hc.core.HCConnection;
 import hc.core.IConstant;
 import hc.core.IContext;
-import hc.core.L;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.res.ImageSrc;
-import hc.server.PlatformManager;
-import hc.server.PlatformService;
 import hc.server.TrayMenuUtil;
 import hc.server.util.ServerCUtil;
 
@@ -28,18 +25,22 @@ import java.util.Calendar;
 
 import javax.swing.JPanel;
 
+/**
+ * log到文件或console。它被AndroidLogServerSide继承
+ *
+ */
 public class LogServerSide implements ILog {
 	private FileOutputStream outLogger = null;	
 	private OutputStreamWriter osw;
 	private BufferedWriter bw;
-	private final boolean isAndroidPlatform = ResourceUtil.isAndroidServerPlatform();
-	private final PlatformService pService = PlatformManager.getService();
+	protected final boolean isLogToFile;
 	
 	public LogServerSide() {
 		buildOutStream();
+		isLogToFile = osw != null;
 	}
-
-	public synchronized void buildOutStream() {
+	
+	public final synchronized void buildOutStream() {
 		if(LogManager.INI_DEBUG_ON  || (IConstant.isRegister() == false)){
 		}else{
 			if(osw != null){
@@ -119,7 +120,7 @@ public class LogServerSide implements ILog {
 	}
 	
 	@Override
-	public void exit(){
+	public final void exit(){
 		if(outLogger != null){
 			flush();
 			
@@ -171,9 +172,6 @@ public class LogServerSide implements ILog {
 		
 		try {
 			if(osw != null){
-				if(isAndroidPlatform){
-					pService.extLog(PlatformService.LOG_LEVEL_INFO, msg);
-				}
 				bw.append(pMsg);
 			}else{
 				System.out.print(pMsg);
@@ -184,7 +182,7 @@ public class LogServerSide implements ILog {
 	}
 	
 	@Override
-	public void errWithTip(final String msg){
+	public final void errWithTip(final String msg){
 		err(msg);
 		TrayMenuUtil.displayMessage((String)ResourceUtil.get(IContext.ERROR), msg, IContext.ERROR, null, 0);
 	}
@@ -210,9 +208,6 @@ public class LogServerSide implements ILog {
 		timestampBuf.append("." + (nanos==0?"000":String.valueOf(nanos).substring(0, 3)));
 
 		System.err.println(timestampBuf.toString() + ILog.ERR + msg);
-		if(isAndroidPlatform){
-			pService.extLog(PlatformService.LOG_LEVEL_ERROR, msg);
-		}
 		flush();
 	}
 	

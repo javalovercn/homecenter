@@ -110,7 +110,7 @@ public final class Scheduler {
 	 * @param projectContext
 	 * @param domainName
 	 * @param isAllInRAM
-	 * @param sessionID
+	 * @param j2seSession
 	 */
 	@Deprecated
 	public Scheduler(final ProjectContext projectContext, final String domainName, final boolean isAllInRAM,
@@ -511,7 +511,7 @@ public final class Scheduler {
      * <BR><BR>
      * if fail to add job, invoke {@link #getThrownException()} to get thrown exception.
      * @param jobKey
-     * @param runnable
+     * @param runnable to build instance, see {@link IDEUtil#buildRunnable(Runnable)}.
      */
     public final void addJob(final String jobKey, final Runnable runnable) {
     	try{
@@ -1574,12 +1574,13 @@ public final class Scheduler {
      * Pay attention to the effects of '?' and '*' in the day-of-week and day-of-month fields!
      * <BR>
      * <BR>
+     * <STRONG>author</STRONG> Sharada Jambula, James House<BR>
+     * <STRONG>author</STRONG> Contributions from Mads Henderson<BR>
+     * <STRONG>author</STRONG> Refactoring from CronTrigger to CronExpression by Aaron Craven
+     * <BR><BR>
      * @param cronExpression the cron expression
      * @return a boolean indicating whether the given expression is a valid cron
      *         expression
-     * @author Sharada Jambula, James House
-     * @author Contributions from Mads Henderson
-     * @author Refactoring from CronTrigger to CronExpression by Aaron Craven
      */
     public final boolean isValidCronExpression(final String cronExpression) {//***注意***：如果CronExpression升级，请同步更新Doc
         return CronExpression.isValidExpression(cronExpression);

@@ -873,8 +873,8 @@ public class ScreenCapturer extends PNGCapturer{
 	 * @param y
 	 */
 	public void refreshRectange(final int x, final int y){	
-		final int mobileWidth = UserThreadResourceUtil.getMobileWidthFrom(coreSS);
-		final int mobileHeight = UserThreadResourceUtil.getMobileHeightFrom(coreSS);
+		final int mobileWidth = UserThreadResourceUtil.getDeviceWidthFrom(coreSS);
+		final int mobileHeight = UserThreadResourceUtil.getDeviceHeightFrom(coreSS);
 		
 		synchronized (LOCK) {
 //			locX = 0;

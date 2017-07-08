@@ -2,6 +2,7 @@ package hc.core;
 
 import hc.core.util.HCURL;
 import hc.core.util.LogManager;
+import hc.core.util.RootBuilder;
 
 import java.io.UnsupportedEncodingException;
 
@@ -38,6 +39,17 @@ public class ClientCmdExector {
 				return true;
 			}else if(elementID.equals(HCURL.DATA_CMD_MOVING_MSG)){
 				ctx.doExtBiz(IContext.BIZ_MOVING_SCREEN_TIP, url.getValueofPara("value"));
+				return true;
+			}else if(elementID.equals(HCURL.DATA_CMD_VOICE)){
+				ctx.doExtBiz(IContext.BIZ_VOICE, url.getValueofPara("value"));
+				return true;
+			}else if(HCURL.DATA_CMD_PUBLISH_LOCATION_MS.equals(elementID)){
+				try{
+					final String ms = url.getValueofPara("value");
+					RootBuilder.getInstance().doBiz(RootBuilder.ROOT_SET_PUBLISH_LOCATION_INTER_MS, ms);
+				}catch (Throwable e) {
+					e.printStackTrace();
+				}
 				return true;
 			}else if(elementID.equals(HCURL.DATA_CMD_CTRL_BTN_TXT)){
 				ctx.doExtBiz(IContext.BIZ_CTRL_BTN_TXT, url);

@@ -70,6 +70,8 @@ public class HCURL {
 	public static final String DATA_CMD_ALERT = "_alert";
 	public static final String DATA_CMD_MSG = "_msg";
 	public static final String DATA_CMD_MOVING_MSG = "_mv_msg";
+	public static final String DATA_CMD_VOICE = "_voice";
+	public static final String DATA_CMD_PUBLISH_LOCATION_MS = "_publish_loc_ms";
 	public static final String DATA_CMD_CTRL_BTN_TXT = "_ctl_btn_txt";
 	//关闭，并合并入DATA_CMD_EXIT
 //	public static final String DATA_CMD_BYE_SCREEN = "_byeScreen";
@@ -77,6 +79,15 @@ public class HCURL {
 	
 	public static final String DATA_PARA_INPUT = "Input";
 
+	public static final String DATA_PARA_PUBLISH_LOCATION = "publish_location";
+	public static final String DATA_PARA_LOCATION_STR_LATITUDE = "Latitude";
+	public static final String DATA_PARA_LOCATION_STR_LONGITUDE = "Longitude";
+	public static final String DATA_PARA_LOCATION_STR_ALTITUDE = "Altitude";
+	public static final String DATA_PARA_LOCATION_STR_COURSE = "Course";
+	public static final String DATA_PARA_LOCATION_STR_SPEED = "Speed";
+	public static final String DATA_PARA_LOCATION_STR_IS_GPS = "IsGPS";
+	public static final String DATA_PARA_LOCATION_STR_IS_FRESH = "IsFresh";
+	
 //	public static final String DATA_PARA_TOKEN = "Token";//采用HideToken来代替
 	public static final String DATA_PARA_RIGHT_CLICK = "rc";
 	public static final String DATA_PARA_VALUE_CTRL = "ctrl";
@@ -104,6 +115,7 @@ public class HCURL {
 	public static final String DATA_PARA_PUBLISH_STATUS_ID = "publishStatusID";
 	public static final String DATA_PARA_PUBLISH_STATUS_VALUE = "publishStatusValue";
 	public static final String DATA_PARA_VOICE_COMMANDS = CCoreUtil.SYS_PREFIX + "voiceCommand";
+	public static final String DATA_PARA_MGR_PROJS_COMMANDS = CCoreUtil.SYS_PREFIX + "MgrProjs";
 	public static final String DATA_PARA_CHANGE_PASSWORD = "changePassword";
 
 	public static final String DATA_RECEIVER_MLET = "rev_mlet";
@@ -113,6 +125,8 @@ public class HCURL {
 	public static final String ADD_HAR_QR = "addHARByQR";
 	public static final String ADD_HAR_WIFI = "addHARByWiFi";
 	public static final String VOICE_COMMAND = DATA_PARA_VOICE_COMMANDS;
+	public static final String MGR_PROJS_COMMAND = DATA_PARA_MGR_PROJS_COMMANDS;
+	
 	
 	public static final String URL_CMD_EXIT = buildStandardURL(HCURL.CMD_PROTOCAL, HCURL.DATA_CMD_EXIT);
 	public static final String URL_CMD_CONFIG = buildStandardURL(HCURL.CMD_PROTOCAL, HCURL.DATA_CMD_CONFIG);
@@ -123,6 +137,7 @@ public class HCURL {
 	public static final String URL_CFG_ADD_DEVICE_BY_QR = buildStandardURL(HCURL.CFG_PROTOCAL, ADD_HAR_QR);
 	public static final String URL_CFG_ADD_DEVICE_BY_WIFI = buildStandardURL(HCURL.CFG_PROTOCAL, ADD_HAR_WIFI);
 	public static final String URL_CMD_VOICE_COMMAND = buildStandardURL(HCURL.CMD_PROTOCAL, VOICE_COMMAND);
+	public static final String URL_CMD_MGR_PROJS_COMMAND = buildStandardURL(HCURL.CMD_PROTOCAL, MGR_PROJS_COMMAND);
 	
 	public static final String URL_DEFAULT_MLET_ALIAS = "";
 	

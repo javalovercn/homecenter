@@ -212,7 +212,9 @@ public abstract class CoreSession {
 	public HCTimer udpAliveMobiDetectTimer;
 	protected final HCConnection hcConnection = new HCConnection();
 
-	public final HCConditionWatcher eventCenterDriver = new HCConditionWatcher("EventCenterDriver", ThreadPriorityManager.LOWEST_PRIORITY);
+	//注意：多会话共用一个EventCenterDriver，以避免并发处理
+	public final GlobalEventCenterDriver eventCenterDriver = GlobalEventCenterDriver.gecd;
+	
 	public byte[] mobileUidBSForCache;
 	public final byte[] codeBSforMobileSave = new byte[CacheManager.CODE_LEN];
 	public IHCURLAction urlAction;

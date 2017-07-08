@@ -3,7 +3,7 @@ package hc.server.ui;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.IContext;
-import hc.core.L;
+import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
 import hc.core.util.Stack;
 import hc.core.util.StringUtil;
@@ -26,6 +26,7 @@ public class LinkProjectStatus {
 	public static final int MANAGER_IMPORT = 4;
 	public static final int MANAGER_JRUBY_INSTALL = 5;
 	public static final int MANAGER_ADD_HAR_VIA_MOBILE = 6;
+	public static final int MANAGER_VIA_MOBILE = 7;
 
 	private static int manager_status = MANAGER_IDLE;
 	
@@ -42,6 +43,8 @@ public class LinkProjectStatus {
 	}
 	
 	public static synchronized void exitStatus(){
+		CCoreUtil.checkAccess();
+		
 		final int oldStatus = manager_status;
 		final Object pop = stack.pop();
 		if(pop != null){
@@ -67,9 +70,22 @@ public class LinkProjectStatus {
 	/**
 	 * 检查当前状态是否可以进行发布，Link-in Project的添加或维护
 	 * return true表示可以进行后续操作
+	 * @param 如果toStatus==MANAGER_VIA_MOBILE，parent 为null
 	 */
 	public static synchronized boolean tryEnterStatus(final JFrame parent, final int toStatus){
+		CCoreUtil.checkAccess();
+		
 		if(isIdle() == false){
+			if(toStatus == MANAGER_VIA_MOBILE){//从手机进入管理，
+				//注意：不进行错误提示，只返回
+				return false;
+			}
+			
+			if(manager_status == MANAGER_VIA_MOBILE){//从电脑进入，但是已被手机用户先占用
+				showNotify(parent, (String)ResourceUtil.get(9262), IContext.INFO);//手機用戶正在管理項目！
+				return false;
+			}
+			
 			if(manager_status != toStatus){
 				if(toStatus == MANAGER_UPGRADE_DOWNLOADING){
 					//无需提示的优先
@@ -78,7 +94,7 @@ public class LinkProjectStatus {
 				
 				if(manager_status == MANAGER_UPGRADE_DOWNLOADING){
 					isWantDesingOrLinkProjects = true;
-					showNotify(parent, (String)ResourceUtil.get(9161), IContext.INFO);
+					showNotify(parent, (String)ResourceUtil.get(9161), IContext.INFO);//system is downloading and upgrading project(s), please wait for a moment.
 					return false;
 				}else if(manager_status == MANAGER_IMPORT){
 					

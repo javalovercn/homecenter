@@ -64,6 +64,7 @@ public class MsgBuilder {
 	public static final byte E_RANDOM_FOR_CHECK_SERVER = 27;
 	public static final byte E_ACK_XOR_PACKAGE_ID = 28;
 	public static final byte E_SYN_XOR_PACKAGE_ID = 29;
+	public static final byte E_RE_TRANS_XOR_PACKAGE = 30;
 	//UN_XOR_MSG_TAG_MIN以上(含)，低于(含)此值，强制使用TCP
 	public static final byte UN_XOR_MSG_TAG_MIN = 39;
 	

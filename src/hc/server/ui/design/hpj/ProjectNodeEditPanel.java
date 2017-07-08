@@ -67,6 +67,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 	final JCheckBox perm_memAccessSystem = new JCheckBox(HCPermissionConstant.MEMBER_ACCESS_SYSTEM);
 	
 	private final JCheckBox checkLoadLib = new JCheckBox(ResourceUtil.LOAD_NATIVE_LIB);
+	private final JCheckBox checkLocation = new JCheckBox(ResourceUtil.LOCATION_OF_MOBILE);
+	private final JCheckBox checkScriptPanel = new JCheckBox(ResourceUtil.SCRIPT_PANEL);
 	private final JCheckBox checkRobot = new JCheckBox("create java.awt.Robot");
 //	private final JCheckBox checkListenAllAWTEvents = new JCheckBox("listen all AWT events");
 //	private final JCheckBox checkAccessClipboard = new JCheckBox("access clipboard");
@@ -451,6 +453,9 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		checkWriteProperty.setToolTipText(HCPermissionConstant.WRITE_PROP_TIP);
 		perm_memAccessSystem.setToolTipText(HCPermissionConstant.MEMBER_ACCESS_SYSTEM_TIP);
 		
+		checkLocation.setToolTipText(HCPermissionConstant.LOCATION_OF_MOBILE);
+		checkScriptPanel.setToolTipText(HCPermissionConstant.SCRIPT_PANEL);
+		
 		checkLoadLib.setToolTipText(HCPermissionConstant.LOAD_LIB_TIP);
 		checkRobot.setToolTipText(HCPermissionConstant.ROBOT_TIP);
 //		checkListenAllAWTEvents.setToolTipText(HCPermissionConstant.LISTEN_ALL_AWT_EVENTS_TIP);
@@ -497,6 +502,20 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				notifyModiPermissions();	
 			}
 		}, threadPoolToken));	
+		checkLocation.addItemListener(new HCActionListener(new Runnable() {
+			@Override
+			public void run() {
+				((HPProject)currItem).csc.setLocation(checkLocation.isSelected());
+				notifyModiPermissions();
+			}
+		}, threadPoolToken));
+		checkScriptPanel.addItemListener(new HCActionListener(new Runnable() {
+			@Override
+			public void run() {
+				((HPProject)currItem).csc.setScriptPanel(checkScriptPanel.isSelected());
+				notifyModiPermissions();
+			}
+		}, threadPoolToken));
 		checkRobot.addItemListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -574,6 +593,11 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				notifyModiPermissions();	
 			}
 		}, threadPoolToken));	
+		
+		final JPanel mobilePermPanel = new JPanel(new GridLayout(1, 4));
+		mobilePermPanel.add(checkLocation);
+		mobilePermPanel.add(checkScriptPanel);
+		
 		final JPanel osPermPanel = new JPanel(new GridLayout(1, 4));
 		osPermPanel.add(perm_write);
 		osPermPanel.add(perm_exec);
@@ -593,7 +617,9 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		sysOtherPropPanel.add(checkSetFactory);
 //		sysOtherPropPanel.add(checkListenAllAWTEvents);
 //		sysOtherPropPanel.add(checkAccessClipboard);
-		final JComponent[] components = {osPermPanel, new JSeparator(SwingConstants.HORIZONTAL), 
+		final JComponent[] components = {new JSeparator(SwingConstants.HORIZONTAL), 
+				mobilePermPanel, new JSeparator(SwingConstants.HORIZONTAL), 
+				osPermPanel, new JSeparator(SwingConstants.HORIZONTAL), 
 				sysPropPanel, new JSeparator(SwingConstants.HORIZONTAL), 
 				perm_sock_panel, new JSeparator(SwingConstants.HORIZONTAL),
 				sysOtherPropPanel
@@ -639,6 +665,9 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		checkReadProperty.setSelected(csc.isSysPropRead());
 		checkWriteProperty.setSelected(csc.isSysPropWrite());
 		perm_memAccessSystem.setSelected(csc.isMemberAccessSystem());
+		
+		checkLocation.setSelected(csc.isLocation());
+		checkScriptPanel.setSelected(csc.isScriptPanel());
 		
 		checkLoadLib.setSelected(csc.isLoadLib());
 		checkRobot.setSelected(csc.isRobot());

@@ -3,6 +3,7 @@ package hc.server.ui.design.hpj;
 import hc.core.HCTimer;
 import hc.core.L;
 import hc.core.util.LogManager;
+import hc.server.ui.design.Designer;
 import hc.server.ui.design.code.CodeHelper;
 
 import java.awt.Point;
@@ -47,6 +48,13 @@ public class MouseMovingTipTimer extends HCTimer {
 
 	@Override
 	public void doBiz() {
+		final Designer designer = scriptPanel.designer;
+		
+		if(designer.isNeedLoadThirdLibForDoc && designer.isLoadedThirdLibsForDoc == false){
+			L.V = L.WShop ? false : LogManager.log("waiting for load third libs...");
+			return;
+		}
+		
 		getCodeHelper();
 		
 		synchronized (ScriptEditPanel.scriptEventLock) {

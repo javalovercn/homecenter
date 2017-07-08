@@ -17,12 +17,14 @@ import hc.core.util.IHCURLAction;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
 import hc.core.util.RecycleRes;
+import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
 import hc.core.util.WiFiDeviceManager;
 import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.AirCmdsUtil;
 import hc.server.msb.UserThreadResourceUtil;
+import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.MenuItem;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.QuestionParameter;
@@ -32,13 +34,17 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SingleMessageNotify;
 import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.Location;
 import hc.server.ui.design.MobiUIResponsor;
+import hc.server.ui.design.ProjMgrDialog;
+import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.util.VoiceParameter;
 import hc.server.util.ai.ProjectTargetForAI;
 import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
+import hc.util.StringBuilderCacher;
 
 import java.awt.BorderLayout;
 import java.awt.Robot;
@@ -84,8 +90,8 @@ public class J2SEServerURLAction implements IHCURLAction {
 					coreSS.context.send(MsgBuilder.E_SCREEN_REMOTE_SIZE, homeBS, ss.getLength());
 				}
 				
-				final int mobileWidth = UserThreadResourceUtil.getMobileWidthFrom(j2seCoreSS);
-				final int mobileHeight = UserThreadResourceUtil.getMobileHeightFrom(j2seCoreSS);
+				final int mobileWidth = UserThreadResourceUtil.getDeviceWidthFrom(j2seCoreSS);
+				final int mobileHeight = UserThreadResourceUtil.getDeviceHeightFrom(j2seCoreSS);
 				
 				final String screenID = ServerUIAPIAgent.buildScreenID(MultiUsingManager.NULL_PROJECT_ID, HCURL.URL_HOME_SCREEN);
 				MultiUsingManager.enter(j2seCoreSS, screenID, HCURL.URL_HOME_SCREEN);
@@ -109,9 +115,44 @@ public class J2SEServerURLAction implements IHCURLAction {
 				}
 				
 				return true;
+			}else if(elementID.equals(HCURL.MGR_PROJS_COMMAND)){
+				final ThreadGroup token = App.getThreadPoolToken();
+				final ProjResponser resp = ServerUIAPIAgent.getCurrentProjResponser(j2seCoreSS);
+				ServerUIAPIAgent.runInSessionThreadPool(j2seCoreSS, resp, new Runnable() {
+					@Override
+					public void run() {
+						final boolean tryEnter = (Boolean)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable(){
+							@Override
+							public Object run() {
+								return LinkProjectStatus.tryEnterStatus(null, LinkProjectStatus.MANAGER_VIA_MOBILE);
+							}
+							
+						}, token);
+						
+						if(tryEnter == false){
+							final int status = LinkProjectStatus.getStatus();
+							
+							int msgID = 0;
+							if(status == LinkProjectStatus.MANAGER_VIA_MOBILE){
+								msgID = 9262;
+							}else if (status == LinkProjectStatus.MANAGER_UPGRADE_DOWNLOADING){
+								//system is downloading and upgrading project(s), please wait for a moment.
+								msgID = 9161;
+							}else{
+								msgID = 9263;//server is managing/locking projects!
+							}
+							
+							ProjectContext.getProjectContext().sendMessage(ResourceUtil.getErrorI18N(j2seCoreSS), (String)ResourceUtil.get(j2seCoreSS, msgID), ProjectContext.MESSAGE_ERROR, null, 0);
+							return;
+						}
+						
+						ProjectContext.getProjectContext().sendDialogWhenInSession(new ProjMgrDialog(j2seCoreSS, token));
+					}
+				});
+				return true;
 			}else if(elementID.equals(HCURL.DATA_CMD_SendPara)){
-				final String para1= url.getParaAtIdx(0);
-				if(para1 != null && para1.equals(HCURL.DATA_PARA_RIGHT_CLICK)){
+				final String para1 = url.getParaAtIdx(0);
+				if(HCURL.DATA_PARA_RIGHT_CLICK.equals(para1)){
 					final String value1 = url.getValueofPara(para1);
 					if(value1 != null){
 						if(value1.equals(HCURL.DATA_PARA_VALUE_CTRL)){
@@ -132,6 +173,34 @@ public class J2SEServerURLAction implements IHCURLAction {
 							return true;
 						}
 					}
+				}else if(HCURL.DATA_PARA_PUBLISH_LOCATION.equals(para1)){
+					try{
+						final String latitude = url.getValueofPara(HCURL.DATA_PARA_LOCATION_STR_LATITUDE);
+						final String longitude = url.getValueofPara(HCURL.DATA_PARA_LOCATION_STR_LONGITUDE);
+						final String altitude = url.getValueofPara(HCURL.DATA_PARA_LOCATION_STR_ALTITUDE);
+						final String course = url.getValueofPara(HCURL.DATA_PARA_LOCATION_STR_COURSE);
+						final String speed = url.getValueofPara(HCURL.DATA_PARA_LOCATION_STR_SPEED);
+						final String isGPS = url.getValueofPara(HCURL.DATA_PARA_LOCATION_STR_IS_GPS);
+						final String isFresh = url.getValueofPara(HCURL.DATA_PARA_LOCATION_STR_IS_FRESH);
+						
+						final StringBuilder sb = StringBuilderCacher.getFree();
+						sb.append("mobile location latitude : ").append(latitude).append(", longitude : ").append(longitude).
+							append(", altitude : ").append(altitude).append(", course : ").append(course).append(", speed : ").append(speed).
+							append(", isFresh : ").append(isFresh);
+
+						final String log = sb.toString();
+						LogManager.log(log);
+						StringBuilderCacher.cycle(sb);
+						
+						final Location location = new Location(Double.parseDouble(latitude), Double.parseDouble(longitude),
+								Double.parseDouble(altitude), Double.parseDouble(course), Double.parseDouble(speed),
+								IConstant.TRUE.equals(isGPS), IConstant.TRUE.equals(isFresh));
+						
+						ServerUIUtil.getMobiResponsor().dispatchLocation(j2seCoreSS, location);
+					}catch (final Throwable e) {
+						e.printStackTrace();
+					}
+					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_QUESTION_ID)){
 					ServerUIAPIAgent.execQuestionResult(
 							j2seCoreSS, 
@@ -183,39 +252,12 @@ public class J2SEServerURLAction implements IHCURLAction {
 					return true;
 				}else if(HCURL.DATA_PARA_VOICE_COMMANDS.equals(para1)){
 					final String voiceText = VoiceParameter.format(url.getValueofPara(HCURL.DATA_PARA_VOICE_COMMANDS));
-					final VoiceParameter vp = new VoiceParameter(voiceText);
-					final MenuItem out = j2seCoreSS.searchMenuItemByVoiceCommand(vp);
-					if(out != null){
-						if(out.isEnabled()){
-							final String itemURL = ServerUIAPIAgent.getMobiMenuItem_URL(out);
-							LogManager.log(ILog.OP_STR + "execute [" + itemURL + "] by voice command [" + voiceText + "].");
-							ServerUIAPIAgent.goInSysThread(j2seCoreSS, ServerUIAPIAgent.getBelongMobiMenu(out).resp.context, itemURL);
-						}else{
-							final String msg = "[" + voiceText + "] : " + ((String)ResourceUtil.get(9247));
-							ServerUIAPIAgent.sendOneMovingMsg(j2seCoreSS, msg);
-							LogManager.log(ILog.OP_STR + "voice command " + msg);
+					ContextManager.getThreadPool().run(new Runnable() {//可能较长时间，
+						@Override
+						public void run() {
+							processVoice(j2seCoreSS, voiceText);
 						}
-					}else{
-						
-						final MobiUIResponsor resp = (MobiUIResponsor)ServerUIUtil.getResponsor();
-						if(resp.dispatchVoiceCommand(j2seCoreSS, voiceText) == false){
-							//没有工程级assistant响应，则HCAI进行处理
-							final String locale = UserThreadResourceUtil.getMobileLocaleFrom(j2seCoreSS);
-							
-							final ProjectTargetForAI target = resp.query(j2seCoreSS, locale, voiceText);
-							
-							if(target == null){
-								ServerUIAPIAgent.sendOneMovingMsg(coreSS, StringUtil.replace((String)ResourceUtil.get(coreSS, 9245), "{voice}", voiceText));
-							}else{
-								LogManager.log(ILog.OP_STR + "find target [" + target + "] for voice [" + voiceText + "].");
-								final ProjectContext ctx = resp.getProjResponser(target.projectID).context;
-								ServerUIAPIAgent.goInSysThread(j2seCoreSS, ctx, target.target);
-								
-								final String vcTip = StringUtil.replace((String)ResourceUtil.get(9257), "{cmd}", voiceText);
-								ServerUIAPIAgent.sendOneMovingMsg(j2seCoreSS, vcTip);
-							}
-						}
-					}
+					});
 					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_CERT_RECEIVED)){
 					final String value1 = url.getValueofPara(para1);
@@ -322,7 +364,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 						
 						if(url == null && totalSleep >= maxSleepMS){
 							mlet.appendMessage((String)ResourceUtil.get(j2seCoreSS, 9133));
-							mlet.exitButton.setEnabled(true);
+							mlet.setButtonEnable(mlet.exitButton, true);
 							return;
 						}
 						final String downloadURL = url;
@@ -356,6 +398,42 @@ public class J2SEServerURLAction implements IHCURLAction {
 			}
 		}
 		return ServerUIUtil.getResponsor().doBiz(coreSS, url);
+	}
+
+	private final void processVoice(final J2SESession j2seCoreSS, final String voiceText) {
+		final VoiceParameter vp = new VoiceParameter(voiceText);
+		final MenuItem out = j2seCoreSS.searchMenuItemByVoiceCommand(vp);
+		if(out != null){
+			if(out.isEnabled()){
+				final String itemURL = ServerUIAPIAgent.getMobiMenuItem_URL(out);
+				LogManager.log(ILog.OP_STR + "execute [" + itemURL + "] by voice command [" + voiceText + "].");
+				ServerUIAPIAgent.goInSysThread(j2seCoreSS, ServerUIAPIAgent.getBelongMobiMenu(out).resp.context, itemURL);
+			}else{
+				final String msg = "[" + voiceText + "] : " + ((String)ResourceUtil.get(9247));
+				ServerUIAPIAgent.sendOneMovingMsg(j2seCoreSS, msg);
+				LogManager.log(ILog.OP_STR + "voice command " + msg);
+			}
+		}else{
+			
+			final MobiUIResponsor resp = (MobiUIResponsor)ServerUIUtil.getResponsor();
+			if(resp.dispatchVoiceCommand(j2seCoreSS, voiceText) == false){
+				//没有工程级assistant响应，则HCAI进行处理
+				final String locale = UserThreadResourceUtil.getMobileLocaleFrom(j2seCoreSS);
+				
+				final ProjectTargetForAI target = resp.query(j2seCoreSS, locale, voiceText);
+				
+				if(target == null){
+					ServerUIAPIAgent.sendOneMovingMsg(j2seCoreSS, StringUtil.replace((String)ResourceUtil.get(j2seCoreSS, 9245), "{voice}", voiceText));
+				}else{
+					LogManager.log(ILog.OP_STR + "find target [" + target + "] for voice [" + voiceText + "].");
+					final ProjectContext ctx = resp.getProjResponser(target.projectID).context;
+					ServerUIAPIAgent.goInSysThread(j2seCoreSS, ctx, target.target);
+					
+					final String vcTip = StringUtil.replace((String)ResourceUtil.get(9257), "{cmd}", voiceText);
+					ServerUIAPIAgent.sendOneMovingMsg(j2seCoreSS, vcTip);
+				}
+			}
+		}
 	}
 
 	final static Object[] SYS_JRUBY_ENGINE = new Object[2];

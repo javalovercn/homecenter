@@ -17,6 +17,18 @@ import javax.swing.JComponent;
  * @since 7.47
  */
 public class Assistant {
+	private ProjectContext ctx;
+	
+	/**
+	 * returns the project context.
+	 * @return
+	 */
+	public final ProjectContext getProjectContext(){
+		if(ctx == null){
+			ctx = ProjectContext.getProjectContext();
+		}
+		return ctx;
+	}
 	
 	/**
 	 * process a voice command.

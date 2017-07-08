@@ -50,11 +50,11 @@ public class ServerUIUtil {
 	public static boolean useHARProject = PropertiesManager.isTrue(PropertiesManager.p_IsMobiMenu);
 	private static BaseResponsor responsor;
 	
-	public static void setMlet(final ScriptPanel panel, final Mlet mlet, final SizeHeightForXML size){
+	public static void setMlet(final ScriptPanel panel, final Mlet mlet, final ScriptCSSSizeHeight size){
 		panel.setSizeHeightForXML(mlet, size);
 	}
 	
-	public static SizeHeightForXML getSizeHeightForXML(final HTMLMlet mlet){
+	public static ScriptCSSSizeHeight getSizeHeightForXML(final HTMLMlet mlet){
 		return mlet.sizeHeightForXML;
 	}
 	
