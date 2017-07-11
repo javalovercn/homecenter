@@ -195,11 +195,11 @@ public class MobileAgent {
 		set(TAG_VER, ver);
 	}
 	
-	public final String getUID(){
+	public final String getSoftUID(){
 		return get(TAG_UID, "");
 	}
 	
-	public final void setUID(final String uuid){
+	public final void setSoftUID(final String uuid){
 		set(TAG_UID, uuid);
 	}
 }

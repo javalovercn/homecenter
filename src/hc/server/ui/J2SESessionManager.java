@@ -115,7 +115,7 @@ public class J2SESessionManager extends SessionManager {
 	}
 	
 	private final static void startJ2SESession(){
-		final J2SESession socketSession = new J2SESession();
+		final J2SESession socketSession = new J2SESession(ServerUIUtil.getResponsor());
 		if(L.isInWorkshop){
 			LogManager.log("creating idle session for client login : " + socketSession.hashCode());
 		}else{

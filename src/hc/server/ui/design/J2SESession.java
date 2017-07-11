@@ -58,14 +58,19 @@ import java.util.Vector;
  */
 public final class J2SESession extends CoreSession{
 	private static long sessionIDCounter = 1;
+	private final BaseResponsor br;
 	
-	public J2SESession(){
+	public J2SESession(final BaseResponsor br){
 		synchronized (J2SESession.class) {
 			sessionID = sessionIDCounter++;
 		}
-		
+		this.br = br;
 		keepaliveManager = new KeepaliveManager(this);
 		urlAction = new J2SEServerURLAction();
+	}
+	
+	public final BaseResponsor getBaseResponsor(){
+		return br;
 	}
 	
 	Map<String, Vector<String>> sessionScheduler;
@@ -176,6 +181,10 @@ public final class J2SESession extends CoreSession{
 	}
 	
 	public final void notifyMobileLogout(){
+		if(br != null){
+			br.notifyCacheSoftUIDLogout();
+		}
+		
 		final UpdateOneTimeRunnable updateOneTimeKeysRunnable = (UpdateOneTimeRunnable)hcConnection.updateOneTimeKeysRunnable;
 		
 		if(updateOneTimeKeysRunnable != null){

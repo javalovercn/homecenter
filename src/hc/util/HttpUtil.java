@@ -13,6 +13,7 @@ import hc.core.util.ByteUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
+import hc.core.util.StringBufferCacher;
 import hc.core.util.StringUtil;
 import hc.core.util.URLEncoder;
 import hc.j2se.HCAjaxX509TrustManager;
@@ -47,6 +48,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 public class HttpUtil {
+	public static final String UNALLOWED_DOMAIN = "unallowed.domain";
 	public static final String USER_AGENT = "User-Agent";
 
 	static {
@@ -64,6 +66,45 @@ public class HttpUtil {
 			ExceptionReporter.printStackTrace(e);
 		}
 		return false;
+	}
+	
+	final static Pattern[] domainPattern = {Pattern.compile("://([\\.a-z0-9A-Z-\u0080-\uFFFF]+)+"), Pattern.compile("://\\[([\\.a-f0-9A-F:]+)+\\]")};
+	final static int domainPatternSize = domainPattern.length;
+	
+	/**
+	 * 将非允许的域，进行替换
+	 * @param str
+	 * @param allowedDomains
+	 * @return
+	 */
+	public static String replaceUnallowedDomain(String str, final Vector<String> allowedDomains){
+		StringBuffer sb = null;
+		for (int i = 0; i < domainPatternSize; i++) {
+			final Matcher m = domainPattern[i].matcher(str);
+			boolean isFind = false;
+			while(m.find()){
+				isFind = true;
+				final String domain = m.group(1);
+				if(allowedDomains.contains(domain) == false){
+					if(sb == null){
+						sb = StringBufferCacher.getFree();
+					}
+					m.appendReplacement(sb, "");
+					sb.append("://");
+					sb.append(UNALLOWED_DOMAIN);
+					LogManager.err("find un-allowed domain : [" + domain + "] in CSS, please add it to socket permission or disable limit socket/connect!");
+				}
+			}
+			if(isFind && sb != null){
+				m.appendTail(sb);
+				
+				final String out = sb.toString();
+				StringBufferCacher.cycle(sb);
+				str = out;
+			}
+		}
+		
+		return str;
 	}
 	
 	public static String getHtmlLineStartTag(){

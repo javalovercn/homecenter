@@ -9,6 +9,7 @@ import hc.core.util.MobileAgent;
 import hc.core.util.StringUtil;
 import hc.server.data.screen.PNGCapturer;
 import hc.server.ui.design.J2SESession;
+import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
 import hc.util.StringBuilderCacher;
 
@@ -115,6 +116,13 @@ public class ClientDesc {
 			
 			serialMobileAgent = HCConfig.getProperty(v, (short)8);
 			agent = MobileAgent.toObject(serialMobileAgent);
+			
+			final BaseResponsor br = coreSS.getBaseResponsor();
+			if(br != null){
+				br.addCacheSoftUID(agent.getSoftUID());
+			}else{
+				LogManager.err("BaseResponsor is null for J2SESession!");
+			}
 			
 			final int iw = (int)Float.parseFloat(agent.get(ConfigManager.IOS_DRAW_WIDTH, "0"));
 			final int ih = (int)Float.parseFloat(agent.get(ConfigManager.IOS_DRAW_HEIGHT, "0"));

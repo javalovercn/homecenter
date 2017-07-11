@@ -54,7 +54,7 @@ public abstract class SocketEditPanel extends JPanel{
 	private final IntTextField portField, portFromField, portToField;
 	private final ButtonGroup hostAndIPGroup = new ButtonGroup();
 	private final ButtonGroup portAndRangeGroup = new ButtonGroup();
-	private final JRadioButton hostRadioBtn = new JRadioButton("host/ipv4/ipv6 :");
+	private final JRadioButton hostRadioBtn = new JRadioButton("host/IPv4/IPv6 :");
 	private final JRadioButton rangeRadioBtn = new JRadioButton("range :");
 	private final JRadioButton ipRadioBtn = new JRadioButton("ipv4 :");
 	private final JRadioButton portRadioBtn = new JRadioButton("port :");

@@ -21,13 +21,9 @@ public class CacheManager {
 	static{
 		RootConfig.addListener(new RootConfigListener() {
 			public void onRefresh() {
-				CacheManager.resetMinCacheSize();
+				fastSnapMinSize = getMinCacheSizeFromRC();
 			}
 		});
-	}
-	
-	public static void resetMinCacheSize(){
-		fastSnapMinSize = 0;
 	}
 	
 	/**
@@ -70,6 +66,8 @@ public class CacheManager {
 	private static final String _LIST = "_list";
 	public static final int TYPE_CSS = 1;
 	public static final int TYPE_JS = 2;
+	
+	public static final int MAX_CACHE_SOFTUID_NUM = 10;
 	
 	public static final int CODE_LEN = 20;
 	

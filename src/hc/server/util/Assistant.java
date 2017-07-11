@@ -41,9 +41,9 @@ public class Assistant {
 	 * <STRONG>Important :</STRONG><BR>
 	 * 1. assistant instance serve only one session at same time (synchronism).<BR>
 	 * 2. no all clients support all languages voice command.<BR>
-	 * 3. server will try to process voice for you instead of writing codes here, which is based on analysing the {@link AnalysableRobotParameter} between Robot and UI, so it is NOT recommended to use complex object defined by yourself in {@link Robot#operate(long, Object)}.
+	 * 3. server will try to process voice for you instead of writing codes here, which is based on analysing the {@link AnalysableRobotParameter} between {@link Robot} and UI, so it is NOT recommended to use complex object defined by yourself in {@link Robot#operate(long, Object)}.
 	 * <BR><BR>
-	 * How to more effectively help the server understand the relationship between UI and Robot, to enhance the automatic processing of voice instruction accuracy?<BR>
+	 * How to more effectively help the server understand the relationship between UI and {@link Robot}, to enhance the automatic processing of voice instruction accuracy?<BR>
 	 * 1. set keywords by {@link JComponent#setToolTipText(String)}<BR>
 	 * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for example, there are two project on server, one for ice box, and other for air conditioner. 
 	 * when people speaks "what is the temperature of ice box?", of cause the voice command should NOT be dispatched to air conditioner,

@@ -21,6 +21,7 @@ import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.server.util.CacheComparator;
 import hc.server.util.ai.AIPersistentManager;
+import hc.util.HttpUtil;
 import hc.util.JSUtil;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
@@ -141,12 +142,26 @@ public class DifferTodo {
 	public final J2SESession coreSS;
 	public final ProjectContext projectContext;
 	public final ProjResponser resp;
+	private final boolean isSocketLimitOn;
+	private final Vector<String> allowedDomains;
 	
 	public DifferTodo(final J2SESession coreSS, final String elementID, final HTMLMlet mlet) {
 		this.coreSS = coreSS;
 		this.mlet = mlet;
 		projectContext = ServerUIAPIAgent.getProjectContextFromMlet(mlet);
 		resp = ServerUIAPIAgent.getProjResponserMaybeNull(projectContext);
+		
+		isSocketLimitOn = resp.isCSCSocketLimitOn();
+		if(isSocketLimitOn){
+			final Vector<String> tmp = resp.getCSCAllowedDomains();
+			if(tmp == null){
+				allowedDomains = new Vector<String>(0);
+			}else{
+				allowedDomains = tmp;
+			}
+		}else{
+			allowedDomains = null;
+		}
 		
 		this.elementIDBS = ByteUtil.getBytes(elementID, IConstant.UTF_8);
 		elementIDLen = this.elementIDBS.length;
@@ -285,6 +300,10 @@ public class DifferTodo {
 	 * @param css
 	 */
 	public final void loadStyles(String css, final boolean enableCache){
+		if(isSocketLimitOn){
+			css = HttpUtil.replaceUnallowedDomain(css, allowedDomains);
+		}
+		
 		css = yinHaoPattern.matcher(css).replaceAll(yinHaoEncode);
 //		css = css.replace("\"", "\\\"");//改"为\"
 		css = JSUtil.replaceNewLine(JSUtil.replaceReturnWithEmtpySpace(css));//修复换行不能执行的问题
@@ -537,6 +556,9 @@ public class DifferTodo {
 	 */
 	public final void setStyleForDiv(final int hashID, final String className, String styles){
 		if(styles != null){
+			if(isSocketLimitOn){
+				styles = HttpUtil.replaceUnallowedDomain(styles, allowedDomains);
+			}
 			styles = StringUtil.formatJS(styles);
 		}
 		final StringBuilder sb;
@@ -546,6 +568,10 @@ public class DifferTodo {
 	
 	public final void setStyleForJCheckBoxText(final int hashID, final String className, String styles){
 		if(styles != null){
+			if(isSocketLimitOn){
+				styles = HttpUtil.replaceUnallowedDomain(styles, allowedDomains);
+			}
+			
 			styles = StringUtil.formatJS(styles);
 		}
 		final StringBuilder sb;
@@ -555,6 +581,10 @@ public class DifferTodo {
 	
 	public final void setStyleForInputTag(final int eleID, final String className, String styles){
 		if(styles != null){
+			if(isSocketLimitOn){
+				styles = HttpUtil.replaceUnallowedDomain(styles, allowedDomains);
+			}
+			
 			styles = StringUtil.formatJS(styles);
 		}
 		final StringBuilder sb;

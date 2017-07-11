@@ -200,7 +200,7 @@ global CSS for current project :
 8. there is a demo HAR project (NOT "MyFirst" project) in designer on server, covers 80% of JRuby syntax and 90% of functions of HomeCenter server.
 9. for API, please press alt+/ in designer or go http://homecenter.mobi/download/javadoc/index.html
 10. any question, please open issues https://github.com/javalovercn/homecenter/issues or Email : help at homecenter.mobi
-11. these source files are synchronized to [git.oschina.net](https://git.oschina.net/javalovercn/homecenter).
+11. these source files are synchronized to [gitee.com/git.oschina.net](https://gitee.com/javalovercn/homecenter).
 ***
 
 ![splash](http://homecenter.mobi/images/splash_n_txt.png)

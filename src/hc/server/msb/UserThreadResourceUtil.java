@@ -69,7 +69,7 @@ public class UserThreadResourceUtil {
 	}
 
 	public final static String getMobileSoftUID(final J2SESession coreSS){
-		return getMobileAgent(coreSS).getUID();
+		return getMobileAgent(coreSS).getSoftUID();
 	}
 
 	public static int getDeviceWidthFrom(final J2SESession coreSS) {

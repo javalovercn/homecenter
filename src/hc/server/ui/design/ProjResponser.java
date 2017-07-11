@@ -79,6 +79,8 @@ public class ProjResponser {
 	final ThreadGroup threadGroup;
 	final String lpsLinkName;
 	public final ProjectContext context;
+	final boolean isCSCSocketLimitOn;
+	final Vector<String> allowedDomains;
 	private final Object assistantLock = new Object();
 	private final Hashtable<String, Object> sys_att_map_sys = new Hashtable<String, Object>();
 	Robot[] robots;
@@ -103,6 +105,14 @@ public class ProjResponser {
 			lockSequTask.notifyAll();
 		}
 		L.V = L.WShop ? false : LogManager.log("notify all sequence task is done [" + projectID + "].");
+	}
+	
+	public final boolean isCSCSocketLimitOn(){
+		return isCSCSocketLimitOn;
+	}
+	
+	public final Vector<String> getCSCAllowedDomains(){
+		return allowedDomains;
 	}
 	
 	final void waitForFinishAllSequTask(){
@@ -518,6 +528,8 @@ public class ProjResponser {
 		csc.initSocketPermissionCollection();
 		ContextSecurityManager.putContextSecurityConfig(threadGroup, csc);
 		
+		isCSCSocketLimitOn = csc.isSocketLimitOn();
+		allowedDomains = csc.getAllowedDomains();
 		hasLocationOfMobile = csc.isLocation();
 		hasPermissionScriptPanel = csc.isScriptPanel();
 		baseRep.hasLocationOfMobile(hasLocationOfMobile);

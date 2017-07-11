@@ -248,7 +248,11 @@ public class Dialog extends JPanel {
 	
 	/**
 	 * load special styles for current {@link Dialog}, it must be invoked before {@link #setCSS(JComponent, String, String)} which refer to these styles.
-	 * <BR><BR>More about CSS styles : 
+	 * <BR><BR>
+	 * Network connection permission : <BR>
+	 * if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect permission or disable limit socket/connect.
+	 * <BR><BR>
+	 * More about CSS styles : 
 	 * <BR>
 	 * 1. the <i>CSS Styles</i> tree node in designer is shared to all {@link HTMLMlet}/{@link Dialog}s in same project.
 	 * In other words, it will be loaded automatically by server for each HTMLMlet/Dialog.
@@ -325,6 +329,9 @@ public class Dialog extends JPanel {
 	 * <STRONG>Important :</STRONG><BR>
 	 * the CSS box model is <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a> default (quirks mode), NOT the w3c <code>content-box</code>.<BR>
 	 * most browsers use a DOCTYPE to decide whether to handle it in quirks mode or standards mode, so there is no DOCTYPE in HTML.
+	 * <BR><BR>
+	 * Network connection permission : <BR>
+	 * if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect permission or disable limit socket/connect.
 	 * <BR><BR>
 	 * Know more CSS : 
 	 * <BR>

@@ -28,6 +28,8 @@ public class ContextSecurityConfig {
 	ThreadGroup threadGroup;
 	ProjectContext ctx;
 	private PermissionCollection sockCollection;
+	private Vector<String> allowedDomains;
+	private boolean isSocketLimitOn;
 	
 	public void copyToSocketPanel(final SocketEditPanel sockPanel){
 		CCoreUtil.checkAccess();
@@ -53,10 +55,19 @@ public class ContextSecurityConfig {
 		ctx = context;
 	}
 	
+	public final boolean isSocketLimitOn(){
+		return isSocketLimitOn;
+	}
+	
+	public final Vector<String> getAllowedDomains(){
+		return allowedDomains;
+	}
+	
 	public final void initSocketPermissionCollection(){
 		CCoreUtil.checkAccess();
 		
-		if(isSocketLimitOn(this)){
+		isSocketLimitOn = isSocketLimitOn(this);
+		if(isSocketLimitOn){
 			if(allowSockets == null){
 				loadToVector();
 			}
@@ -74,6 +85,10 @@ public class ContextSecurityConfig {
 						if(sockCollection == null){
 							sockCollection = sockPerm.newPermissionCollection();
 						}
+						if(allowedDomains == null){
+							allowedDomains = new Vector<String>(size);
+						}
+						allowedDomains.add(desc.getHost());
 						sockCollection.add(sockPerm);
 					}catch (final Exception e) {
 						LogManager.errToLog("Error SocketPermission, host : " + hostIP + ", action : " + actionDesc + " in project [" + projID + "].");
