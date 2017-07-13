@@ -46,7 +46,7 @@ public class MultiThreadDownloader {
 		return progress;
 	}
 	
-	public void download(final Vector url_download, final File file, final String md5,
+	public void download(final Vector url_download, final File file, final CheckSum checkSum,
 			final IBiz biz, final IBiz failBiz, final boolean isVisiable, final boolean isCancelableByUser) {
 		this.fileName = file.getName();
 		final int threadNum = url_download.size();
@@ -88,7 +88,7 @@ public class MultiThreadDownloader {
         
 		final long startMS = System.currentTimeMillis();
 		final String dnFileName = firstURL.substring(firstURL.lastIndexOf("/") + 1);
-		final String desc_str = buildDownloadMsg(dnFileName, fileName, md5, downloadByte, totalByted, startMS);
+		final String desc_str = buildDownloadMsg(dnFileName, fileName, checkSum, downloadByte, totalByted, startMS);
         final JLabel desc = new JLabel();
 		desc.setText(desc_str);
 
@@ -128,7 +128,7 @@ public class MultiThreadDownloader {
         				Thread.sleep(1000);
         			}catch (final Exception e) {
 					}
-        			final String desc_str = buildDownloadMsg(dnFileName, fileName, md5, downloadByte, totalByted, startMS);
+        			final String desc_str = buildDownloadMsg(dnFileName, fileName, checkSum, downloadByte, totalByted, startMS);
         			desc.setText(desc_str);
         			final int percent = (int)process;
 					progress.setValue(percent);
@@ -158,10 +158,12 @@ public class MultiThreadDownloader {
         			return;
         		}else{
         			final String filemd5 = ResourceUtil.getMD5(file);
-        			if(filemd5.toLowerCase().equals(md5.toLowerCase())){
+        			final String filesha512 = ResourceUtil.getSHA512(file);
+        			if(checkSum.isEquals(filemd5, filesha512)){
         				biz.start();
         			}else{
-        				RootServerConnector.notifyLineOffType(SessionManager.getPreparedSocketSession(), "lof=MTD_ERR_MD5");
+        				LogManager.err("fail to checksum : " + fileName);
+        				RootServerConnector.notifyLineOffType(SessionManager.getPreparedSocketSession(), "lof=MTD_ERR_CHECKSUM");
     					final String message = "File [" + fileName + "] MD5 error, please try download it later!";
     					LogManager.log(message);
         				if(isVisiable){
@@ -184,7 +186,7 @@ public class MultiThreadDownloader {
 	int storeLastIdx = 0;
 	float process;
 	
-	private String buildDownloadMsg(final String fromURL, final String storeFile, final String md5, 
+	private String buildDownloadMsg(final String fromURL, final String storeFile, final CheckSum md5, 
 			final int readed, final int total, final long startMS){
 		final int readedSec = readed - lastDispReaded;
 		lastDispReaded = readed;
@@ -206,7 +208,7 @@ public class MultiThreadDownloader {
 		out += "<STRONG>downloaded :    " + String.format("%.2f", readedM) + "M / " + String.format("%.2f", totalM) + "M, </STRONG><BR><BR>";
 		out += "source :      " + fromURL + "<BR>";
 		//out += "Download to :   " + storeFile + "<BR>";
-		out += "md5 :           " + md5 + "<BR>";
+		out += "md5 :           " + md5.md5 + "<BR>";
  		out += "speed :         " + ((costMS==0)?0:(avg)) + " KB/s<BR>";
 		out += "cost time : " + toHHMMSS((int)(costMS / 1000)) + "<BR>";
 		out += "time left :     " + toHHMMSS((int)(leftSeconds)) + "<BR>";

@@ -25,7 +25,7 @@ public class HCPermissionConstant {
 	
 	public static final String LOCATION_OF_MOBILE = "<html>GPS/Location of mobile.<BR>to get it, see getProjectContext().getClientSession().getLatitude()</html>";
 	
-	public static final String SCRIPT_PANEL = "<html>load and execute JavaScript in Mlet.</html>";
+	public static final String SCRIPT_PANEL = "<html>load and execute JavaScript in HTMLMlet/Dialog.</html>";
 	
 	public static final String NO_PERMISSION_OF_LOCATION_OF_MOBILE = "no permission of [Location of mobile].";
 

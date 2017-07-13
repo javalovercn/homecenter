@@ -113,7 +113,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	public static final SimpleAttributeSet STR_LIGHTER = build(Color.decode("#4EA539"), false);
 	public static final SimpleAttributeSet REM_LIGHTER = build(Color.decode("#3AC2EB"), false);
 	private static final SimpleAttributeSet MAP_LIGHTER = build(Color.BLACK, true);
-	static final SimpleAttributeSet KEYWORDS_LIGHTER = build(Color.BLUE, true);
+	static final SimpleAttributeSet KEYWORDS_LIGHTER = build(ResourceUtil.toDarker(Color.BLUE, 0.8F), false);
 	private static final SimpleAttributeSet NUM_LIGHTER = build(Color.decode("#887BE0"), true);
 	public static final SimpleAttributeSet DEFAULT_LIGHTER = build(Color.BLACK, false);
 	private static final SimpleAttributeSet VAR_LIGHTER = build(Color.decode("#f19e37"), false);

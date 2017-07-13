@@ -178,10 +178,10 @@ public class TypeWizard {
 						//screen -Mlet "<html>Mlet Screen is a panel in mobile side for dispaly and controlling status of PC side, <BR>which is instance from java class and JRuby in PC side.</html> ");
 						final String[] subItems = {"HTMLMlet", "Mlet"};
 						final String[] desc = {
-								"a HTML panel is in mobile side to display and control status of server or smart devices, " +
-								"<BR>which is runs in server side.",
-								"a snapshot panel is in mobile side for display and controlling status of server or smart devices, " +
-								"<BR>which is runs in server side."
+								"a HTML panel is in mobile side to display and control status, which runs in server side." +
+								"<BR>ScriptPanel is suppored in it.",
+								"a snapshot panel is in mobile side for display and controlling status, which runs in server side." +
+								"<BR>ScriptPanel is <STRONG>NOT</STRONG> suppored in it."
 								};
 						selectSub(owner, ok, subItems, desc);
 					}else if(type == HPNode.TYPE_MENU_ITEM_IOT){

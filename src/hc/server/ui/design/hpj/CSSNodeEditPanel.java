@@ -76,7 +76,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 	private static final SimpleAttributeSet JUMP_CLASS_DEF_LIGHTER = ScriptEditPanel.buildBackground(new Color(165, 199, 234));
 	
 	private static final Pattern class_pattern = Pattern.compile("(\\s*?(.*?)\\s*?)\\{");
-	private static final Pattern item_pattern = Pattern.compile("(\\b*?([a-zA-Z_0-9-]+)\\b*?\\s*?):");
+	private static final Pattern item_pattern = Pattern.compile("(\\b*?([a-zA-Z_0-9-]+)\\b*?\\s*?):(?!/)");//排除如url(http://domain/)
 	private static final Pattern css_rem_pattern = Pattern.compile("(/\\*(.*?)\\*/)", Pattern.MULTILINE|Pattern.DOTALL);
 	private static final Pattern var_pattern = Pattern.compile("(\\$(.*?)\\$)");
 	private static final Pattern spliter_pattern = Pattern.compile("([\\{\\};:])");
@@ -89,9 +89,34 @@ public class CSSNodeEditPanel extends NameEditPanel {
 		buildSytleHighlight(cssEditPane, item_pattern, ITEM_LIGHTER, offset, text, isReplace);//要置于字符串之前，因为字符串中可能含有数字
 		buildSytleHighlight(cssEditPane, var_pattern, VARIABLE_LIGHTER, offset, text, isReplace);
 		buildSytleHighlight(cssEditPane, css_rem_pattern, ScriptEditPanel.REM_LIGHTER, offset, text, isReplace);//字符串中含有#{}，所以要置于STR_LIGHTER之前
-		buildSytleHighlight(cssEditPane, spliter_pattern, SPLITTER_LIGHTER, offset, text, isReplace);//字符串中含有#{}，所以要置于STR_LIGHTER之前
+		buildSytleHighlightForSpliter(cssEditPane, spliter_pattern, SPLITTER_LIGHTER, offset, text, isReplace);//字符串中含有#{}，所以要置于STR_LIGHTER之前
 	}
 	
+	private static final void buildSytleHighlightForSpliter(final JTextPane pane, final Pattern pattern, final SimpleAttributeSet attributes, final int offset, final String text, final boolean isReplace) {
+		final StyledDocument document = (StyledDocument)pane.getDocument();
+		final Matcher matcher = pattern.matcher(text);
+		while (matcher.find()) {
+			final int start = matcher.start(1) + offset;
+			final int end = matcher.end(1) + offset;
+			
+			if(getChar(document, start) == ':'){
+				if(getChar(document, start + 1) == '/'){//排除如url(http://domain/)
+					continue;
+				}
+			}
+			document.setCharacterAttributes(start, end - start, attributes, isReplace);
+		}
+	}
+	
+	private static char getChar(final Document doc, final int idx){
+		try{
+			final String chars = doc.getText(idx, 1);
+			return chars.charAt(0);
+		}catch (final Throwable e) {
+		}
+		return 0;
+	}
+
 	private static final void buildSytleHighlight(final JTextPane pane, final Pattern pattern, final SimpleAttributeSet attributes, final int offset, final String text, final boolean isReplace) {
 		final StyledDocument document = (StyledDocument)pane.getDocument();
 		final Matcher matcher = pattern.matcher(text);

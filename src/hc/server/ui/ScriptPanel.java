@@ -12,9 +12,14 @@ import javax.swing.JPanel;
  * {@link ScriptPanel} is used to load JavaScript and execute JavaScript.
  * <BR><BR>
  * a {@link ScriptPanel} can be used in {@link HTMLMlet} and {@link Dialog} like JPanel.
+ * <BR><BR>
+ * <STRONG>Important</STRONG> : <BR>
+ * permission of <code>ScriptPanel</code> is required for project.
  * @since 7.36
  */
 public class ScriptPanel extends JPanel {
+	private static final long serialVersionUID = 1L;
+
 	/**
 	 * this action is recommended for HTML <code>div</code> or <code>canvas</code>.
 	 * <BR><BR>
@@ -101,6 +106,10 @@ public class ScriptPanel extends JPanel {
 	CacheString innerHTMLToDeliver;
 	final Object lock;
 	
+	/**
+	 * <STRONG>Important</STRONG> : <BR>
+	 * permission of <code>ScriptPanel</code> is required for project.
+	 */
 	public ScriptPanel(){
 		super();
 		lock = this;
@@ -148,6 +157,9 @@ public class ScriptPanel extends JPanel {
 	 * <BR><BR><STRONG>Warning</STRONG> : <BR>
 	 * 1. <code>window.onload</code> will NOT be triggered, please invoke it by {@link #executeScript(String)}<BR>
 	 * 2. all id of elements of HTML created by server is begin with '<STRONG>HC</STRONG>'.
+	 * <BR><BR>
+	 * <STRONG>Important</STRONG> : <BR>
+	 * permission of <code>ScriptPanel</code> is required for project.
 	 * <BR><BR>About cache :<BR>
 	 * don't worry about script too large for re-translating to mobile, <BR>
 	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether transmission or loading cache from mobile (if script is too small, it will not be cached).
@@ -241,6 +253,9 @@ public class ScriptPanel extends JPanel {
 	 * <BR><BR>
 	 * to receive event of input in panel, please overrides {@link #onEvent(String, String, String[])}.
 	 * <BR><BR><STRONG>Warning</STRONG> : all id of elements of HTML created by server is begin with '<STRONG>HC</STRONG>'.
+	 * <BR><BR>
+	 * <STRONG>Important</STRONG> : <BR>
+	 * permission of <code>ScriptPanel</code> is required for project.
 	 * @param script
 	 * @see #loadScript(String)
 	 * @see #setInnerHTML(String)

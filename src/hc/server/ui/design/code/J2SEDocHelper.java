@@ -2,6 +2,7 @@ package hc.server.ui.design.code;
 
 import hc.core.L;
 import hc.core.util.LogManager;
+import hc.util.CheckSum;
 import hc.util.IBiz;
 import hc.util.MultiThreadDownloader;
 import hc.util.PropertiesManager;
@@ -41,7 +42,8 @@ public class J2SEDocHelper {
 		if(PropertiesManager.getValue(PropertiesManager.p_J2SEDocVersion) == null){
 			docFile.delete();
 			final String j2seDocVersion = "8";
-			final String j2seDocMD5 = "ffc867acdf4b7411fa0d6aa3be10a7df";
+			final String sha512J2seDoc = "f962ad8af2434e00bde525ecf3b29aeb03be9745b3856da1870de22f0c38d1606b226c1bad27da5d8693f5caabcdbcb69f9df07af371a9a25213c4a117ba465f";
+			final CheckSum checkSum = new CheckSum("ffc867acdf4b7411fa0d6aa3be10a7df", sha512J2seDoc);
 			final String downloadURL = "http://homecenter.mobi/download/" + j2seDoc;
 			final MultiThreadDownloader mtd = new MultiThreadDownloader();
 			final Vector<String> urls = new Vector<String>(1);
@@ -76,7 +78,7 @@ public class J2SEDocHelper {
 				public void setMap(final HashMap map) {
 				}
 			};
-			mtd.download(urls, docFile, j2seDocMD5, succBiz, failBiz, true, false);
+			mtd.download(urls, docFile, checkSum, succBiz, failBiz, true, false);
 			
 			synchronized (isDone) {
 				try {

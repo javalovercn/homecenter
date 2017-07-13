@@ -37,6 +37,7 @@ import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.SystemDialog;
 import hc.server.ui.design.SystemHTMLMlet;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -144,6 +145,13 @@ public class ResourceUtil {
         if (ourCause != null){
         	printStackTrace(ourCause);
         }
+	}
+	
+	public static Color toDarker(final Color color, final float factor){
+		return new Color(Math.max((int)(color.getRed()*factor), 0),
+                Math.max((int)(color.getGreen()*factor), 0),
+                Math.max((int)(color.getBlue() *factor), 0),
+                color.getAlpha());
 	}
 	
 	/**
@@ -1501,12 +1509,17 @@ public class ResourceUtil {
 	}
 
 	public static String getMD5(final File file) {
+		final String algorithm = "MD5";
+		return getCheckSum(file, algorithm);
+	}
+
+	private static String getCheckSum(final File file, final String algorithm) {
 		MessageDigest digest = null;
 		FileInputStream in = null;
 		final byte buffer[] = new byte[1024];
 		int len;
 		try {
-			digest = MessageDigest.getInstance("MD5");
+			digest = MessageDigest.getInstance(algorithm);
 			in = new FileInputStream(file);
 			while ((len = in.read(buffer, 0, 1024)) != -1) {
 				digest.update(buffer, 0, len);
@@ -1521,6 +1534,11 @@ public class ResourceUtil {
 			}
 		}
 		return "";
+	}
+	
+	public static String getSHA512(final File file) {
+		final String algorithm = "SHA-512";
+		return getCheckSum(file, algorithm);
 	}
 	
 	private static String convertMD5BytesToString(final byte[] result){

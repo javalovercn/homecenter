@@ -14,6 +14,7 @@ import hc.core.util.StringUtil;
 import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.J2SESession;
+import hc.util.CheckSum;
 import hc.util.HttpUtil;
 import hc.util.IBiz;
 import hc.util.MultiThreadDownloader;
@@ -38,9 +39,9 @@ import javax.swing.SwingConstants;
 public class JRubyInstaller {
 	static MultiThreadDownloader mtd;
 
-	private static String getInnverJRubyMD5(final String outerVersion, final String outerMD5){
+	private static String getInnverJRubyMD5(final String outerVersion){
 		if(ResourceUtil.isAndroidServerPlatform()){
-			return getInnverAndroidJRubyMD5(outerVersion, outerMD5);
+			return getInnverAndroidJRubyMD5(outerVersion);
 		}
 		
 		final String[] versions = {"1.7.3"};
@@ -52,10 +53,27 @@ public class JRubyInstaller {
 			}
 		}
 		
-		return outerMD5;
+		return innerMD5[0];
 	}
 
-	private static String getInnverAndroidJRubyMD5(final String outerVersion, final String outerMD5){
+	private static String getInnverJRubySHA512(final String outerVersion){
+		if(ResourceUtil.isAndroidServerPlatform()){
+			return getInnverAndroidJRubySHA512(outerVersion);
+		}
+		
+		final String[] versions = {"1.7.3"};
+		final String[] innerMD5 = {"7313983a8aefc933c231a7dcd7c4d23cc1bbc057cb0ba119ea36dc6d8d83fd5a747285a5fe1322b41ede9e1402f3ec302b8488c2a5b4d756e8f31c29b596ba75"};
+		
+		for (int i = 0; i < versions.length; i++) {
+			if(versions[i].equals(outerVersion)){
+				return innerMD5[i];
+			}
+		}
+		
+		return innerMD5[0];
+	}
+
+	private static String getInnverAndroidJRubyMD5(final String outerVersion){
 //		RubotoCore version 1.0.5
 //		1. Updated to JRuby 1.7.19
 //		2. Updated to Ruboto 1.3.0
@@ -71,7 +89,26 @@ public class JRubyInstaller {
 			}
 		}
 		
-		return outerMD5;
+		return innerMD5[0];
+	}
+	
+	private static String getInnverAndroidJRubySHA512(final String outerVersion){
+//		RubotoCore version 1.0.5
+//		1. Updated to JRuby 1.7.19
+//		2. Updated to Ruboto 1.3.0
+//		3. Updated to ActiveRecord 4.1.10
+//		4. Updated to activerecord-jdbc-adapter 1.3.15
+//		5. Added thread_safe gem
+		final String[] versions = {"1.7.19"};
+		final String[] innerMD5 = {"7376ef7e5466a1afb399615b3f6117818f36e5123d1a146768b53264f357f8f32a4991c911d2f929ff2706ec997669abc7aa5ae2dd00812d4516836a52a957b7"};
+		
+		for (int i = 0; i < versions.length; i++) {
+			if(versions[i].equals(outerVersion)){
+				return innerMD5[i];
+			}
+		}
+		
+		return innerMD5[0];
 	}
 	public static boolean checkInstalledJRuby(){
 		return PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer) != null;
@@ -141,9 +178,12 @@ public class JRubyInstaller {
 		}
 
 		final String _lastJrubyVer = thirdlibs.getProperty(jruby_ver);
-		final String _lastJrubyMd5 = thirdlibs.getProperty(jruby_md5);
+		final String _lastJrubyMd5 = thirdlibs.getProperty(jruby_md5);//停用
 
-		final String md5 = getInnverJRubyMD5(_lastJrubyVer, _lastJrubyMd5);
+		final String md5 = getInnverJRubyMD5(_lastJrubyVer);
+		final String sha512 = getInnverJRubySHA512(_lastJrubyVer);
+		final CheckSum checkSum = new CheckSum(md5, sha512);
+		
 		String fromURL = thirdlibs.getProperty(jruby_urls);
 		if(PropertiesManager.isSimu()){
 			fromURL = HttpUtil.replaceSimuURL(fromURL, true);
@@ -196,7 +236,7 @@ public class JRubyInstaller {
 
 		refreshProgressWindow();
 
-		mtd.download(StringUtil.split(fromURL, RootConfig.CFG_SPLIT), rubyjar, md5, biz, failBiz, false, true);
+		mtd.download(StringUtil.split(fromURL, RootConfig.CFG_SPLIT), rubyjar, checkSum, biz, failBiz, false, true);
 	}
 
 	private static void redownload() {
