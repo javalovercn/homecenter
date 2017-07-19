@@ -59,7 +59,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.Statement;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -208,7 +207,7 @@ public class ProjectContext {
 	 * <BR><BR>
 	 * <STRONG>Note :</STRONG><BR>
 	 * 1. {@link java.sql.SQLXML} is NOT supported.<BR>
-	 * 2. the default WRITE DELAY property of database is <code>true</code>, which is 500 milliseconds. see <code>SET FILES WRITE DELAY</code> for more.<BR>
+	 * 2. the default WRITE DELAY property of database is <code>true</code>, which is 500 milliseconds. see <code>SET FILES WRITE DELAY</code> in <a href="http://hsqldb.org/doc/guide/guide.html">guide</a> for more.<BR>
 	 * 3. be careful the exception of deadlock when in multiple threads.
 	 * <BR><BR>
 	 * the latest build-in database server is HSQLDB 2.3.4, user guide is <a href="http://hsqldb.org/doc/2.0/guide/index.html">here</a>.
@@ -305,23 +304,9 @@ public class ProjectContext {
 	 * @see #removeDB(String)
 	 */
 	public final void closeDB(final Connection connection, final boolean isCompactAlso){
-		if(connection == null){
-			return;
-		}
-		
-		try{
-			final Statement state = connection.createStatement();
-			if(isCompactAlso){
-				state.execute(AIPersistentManager.SHUTDOWN_COMPACT);
-			}else{
-				state.execute("SHUTDOWN");
-			}
-			state.close();
-		}catch (final Exception e) {
-			ExceptionReporter.printStackTrace(e);
-		}
+		ResourceUtil.shutdownHSQLDB(connection, isCompactAlso);
 	}
-	
+
 	/**
 	 * remove all files of database named <code>dbName</code>.
 	 * <BR><BR>
@@ -1952,7 +1937,7 @@ public class ProjectContext {
 	 * </LI>
 	 * <LI>
 	 * if exception is caught by server, NOT by project, it will be reported to project provider implicitly.</LI>
-	 * <LI>if field <STRONG>Report Exception URL</STRONG> of project is blank, then reporting is DISABLED and print stack trace only.</LI>
+	 * <LI>if field <STRONG>Report exception URL / Email address</STRONG> of project is blank, then reporting is DISABLED and print stack trace only.</LI>
 	 * <LI>it is NOT required to apply for the permission of connection.</LI>
 	 * <LI>it reports stack trace on server, NOT for mobile.</LI>
 	 * </UL>

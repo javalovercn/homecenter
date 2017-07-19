@@ -19,6 +19,7 @@ package hc.server.util;
 
 import hc.core.HCTimer;
 import hc.core.IConstant;
+import hc.core.L;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
@@ -35,6 +36,7 @@ import hc.server.util.scheduler.HolidayJobCalendar;
 import hc.server.util.scheduler.JobCalendar;
 import hc.server.util.scheduler.MonthlyJobCalendar;
 import hc.server.util.scheduler.WeeklyJobCalendar;
+import hc.util.ResourceUtil;
 import hc.util.ThreadConfig;
 
 import java.io.File;
@@ -149,6 +151,9 @@ public final class Scheduler {
 		DBConnectionManager.getInstance().addConnectionProvider(key, new ConnectionProvider() {
 			@Override
 			public final void shutdown() throws SQLException {
+				L.V = L.WShop ? false : LogManager.log("Scheduler ready to shutdown db connection : " + absPath);
+				ResourceUtil.shutdownHSQLDB(getConnection(), false);
+				L.V = L.WShop ? false : LogManager.log("Scheduler successful shutdown db connection : " + absPath);
 			}
 			
 			@Override
@@ -174,15 +179,24 @@ public final class Scheduler {
 							absPath = dbName.getAbsolutePath();
 							connection = buildNewConn();
 							
-							if(isNewDB){
-								setLastCompactMS(projectContext, domainName);
+							if(isNewDB || getLastCompactMS(projectContext, domainName) == 0){
 								try{
+									L.V = L.WShop ? false : LogManager.log("init quartz scheduler database.");
+									
 									final SqlFile sqlFile = new SqlFile(new InputStreamReader(HSQLDBDelegate.class.getResourceAsStream("tables_hsqldb.sql"),
 							                IConstant.UTF_8),
 							                "init", System.out, IConstant.UTF_8, false,
 							                null);
 									sqlFile.setConnection(connection);
 									sqlFile.execute();
+									
+									try{
+										//HSQLDB doesn't write changes immediately to disk after a commit
+										Thread.sleep(500);//wait WRITE DELAY
+									}catch (final Exception e) {
+									}
+									setLastCompactMS(projectContext, domainName);
+									
 								}catch (final Exception e) {
 //									ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, e);
 									ExceptionReporter.printStackTrace(e);
@@ -202,7 +216,7 @@ public final class Scheduler {
 				
 				return connection;
 			}
-
+			
 			private final Connection buildNewConn() throws SQLException {
 				return AIPersistentManager.getConnection(absPath, user, password);
 			}
@@ -233,7 +247,7 @@ public final class Scheduler {
 				if(System.currentTimeMillis() - getLastCompactMS(projectContext, domainName) > half_year){//低频率能增强数据库安全
 					try{
 						final Statement state = connection.createStatement();
-						state.execute(AIPersistentManager.SHUTDOWN_COMPACT);
+						state.execute(ResourceUtil.SHUTDOWN_COMPACT);
 						state.close();
 					}catch (final Exception e) {
 						ExceptionReporter.printStackTrace(e);

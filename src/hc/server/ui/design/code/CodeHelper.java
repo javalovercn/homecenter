@@ -157,17 +157,28 @@ public class CodeHelper {
 		}
 	};
 	
-	public final void reset(){
-		PlatformManager.getService().resetClassPool();
-		
-		final int size = classCacheMethodAndPropForProject.size();
-		for (int i = 0; i < size; i++) {
-			final String key = classCacheMethodAndPropForProject.get(i);
-			classCacheMethodAndPropForClass.remove(key);
-			classCacheMethodAndPropForInstance.remove(key);
+	public final void resetAll(){
+		synchronized (classCacheMethodAndPropForProject) {
+			PlatformManager.getService().resetClassPool();
+			classCacheMethodAndPropForClass.clear();
+			classCacheMethodAndPropForInstance.clear();
+			classCacheMethodAndPropForProject.clear();
 		}
-		
-		classCacheMethodAndPropForProject.clear();
+	}
+	
+	public final void reset(){
+		synchronized (classCacheMethodAndPropForProject) {
+			PlatformManager.getService().resetClassPool();
+			
+			final int size = classCacheMethodAndPropForProject.size();
+			for (int i = 0; i < size; i++) {
+				final String key = classCacheMethodAndPropForProject.get(i);
+				classCacheMethodAndPropForClass.remove(key);
+				classCacheMethodAndPropForInstance.remove(key);
+			}
+			
+			classCacheMethodAndPropForProject.clear();
+		}
 	}
 	
 	/**
@@ -2765,8 +2776,10 @@ public class CodeHelper {
         	return true;
         }
         
-		initPreCode(lineChars, lineIdx, rowIdx);
-		if(isForcePopup == false && outAndCycle.size() == 0){
+        synchronized (classCacheMethodAndPropForProject) {
+        	initPreCode(lineChars, lineIdx, rowIdx);
+        }
+        if(isForcePopup == false && outAndCycle.size() == 0){
 			return false;
 		}
 		if(isForceResTip == false && preCodeType == PRE_TYPE_RESOURCES){
@@ -3068,7 +3081,9 @@ public class CodeHelper {
 			}
 		}
 		
-		initPreCode(lineChars, lineIdx, rowIdx);
+		synchronized (classCacheMethodAndPropForProject) {
+			initPreCode(lineChars, lineIdx, rowIdx);
+		}
 		if(isForcePopup == false && outAndCycle.size() == 0){
 			return false;
 		}
@@ -3213,7 +3228,9 @@ public class CodeHelper {
 			CSSHelper.getProperties();
 			
 			clearArray(outAndCycle);
-			CodeItem.append(outAndCycle, DocHelper.cssCodeItems);
+			synchronized (DocHelper.cssCodeItems) {
+				CodeItem.append(outAndCycle, DocHelper.cssCodeItems);
+			}
 			
 	//		final int input_x = win_loc.x + ((caretPosition==null)?0:caretPosition.x);
 	//		final int input_y = win_loc.y + ((caretPosition==null)?0:caretPosition.y);

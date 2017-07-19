@@ -285,9 +285,9 @@ public class LinkNamePanel  extends JPanel {
 //		sysOtherPropPanel.add(checkListenAllAWTEvents);
 //		sysOtherPropPanel.add(checkAccessClipboard);
 		final JComponent[] components = {mobilePanel, new JSeparator(SwingConstants.HORIZONTAL), 
+				perm_sock_panel, new JSeparator(SwingConstants.HORIZONTAL),
 				osPermPanel, new JSeparator(SwingConstants.HORIZONTAL), 
 				sysPropPanel, new JSeparator(SwingConstants.HORIZONTAL), 
-				perm_sock_panel, new JSeparator(SwingConstants.HORIZONTAL),
 				sysOtherPropPanel
 				};
 		final JPanel buildNorthPanel =  ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER);

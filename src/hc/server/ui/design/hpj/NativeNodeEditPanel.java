@@ -21,7 +21,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 public class NativeNodeEditPanel extends NameEditPanel {
-	final VerTextPanel verPanel = new VerTextPanel("native file");
+	final VerTextPanel verPanel = new VerTextPanel("native file", true, false);
 	
 	final JCheckBox cb_window = new JCheckBox("Windows");
 	final JCheckBox cb_linux = new JCheckBox("Linux");
@@ -97,7 +97,7 @@ public class NativeNodeEditPanel extends NameEditPanel {
 		center.add(verPanel, BorderLayout.NORTH);
 		
 		final JPanel osPanel = new JPanel(new BorderLayout());
-		osPanel.setBorder(new TitledBorder("lib for OS"));
+		osPanel.setBorder(new TitledBorder("For OS"));
 		{
 			final JPanel osListPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 			osListPanel.add(cb_android);
@@ -118,8 +118,8 @@ public class NativeNodeEditPanel extends NameEditPanel {
 				"<BR>1. the native lib will be automatically loaded (System.load) by server before event <STRONG>" + ProjectContext.EVENT_SYS_PROJ_STARTUP + "</STRONG>." +
 				"<BR>2. they are loaded in accordance with the sequence of the tree nodes." +
 				"<BR>3. if native lib is changed and upgraded, restarting server may be required after upgrading HAR package." +
-				"<BR>4. in order to meet the complex loading situation by yourself, put them as resources in jar or download it online." +
-				"<BR>5. enable [" + ResourceUtil.LOAD_NATIVE_LIB + "] in permissions.</html>");
+				"<BR>4. in order to meet the complex loading situation, put them as resources in jar or download it online." +
+				"<BR>5. permission [" + ResourceUtil.LOAD_NATIVE_LIB + "] is required.</html>");
 		final JComponent[] components = {center, //new JSeparator(SwingConstants.HORIZONTAL), 
 				noteLabel};		
 		add(ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER), BorderLayout.CENTER);

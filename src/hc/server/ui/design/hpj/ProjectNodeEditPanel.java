@@ -19,10 +19,7 @@ import hc.util.SocketEditPanel;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Enumeration;
@@ -39,14 +36,13 @@ import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 public class ProjectNodeEditPanel extends NameEditPanel {
 	final JPanel idPanel = new JPanel();
 	final JTextField idField = new JTextField();
-	final VerTextPanel verPanel = new VerTextPanel("project");
+	final VerTextPanel verPanel = new VerTextPanel("project", false, true);
 	final JTextField urlField = new JTextField();
 	final JTextField exceptionField = new JTextField();
 	final JButton testExceptionBtn = new JButton("Test Exception Post");
@@ -107,9 +103,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				}
 			});
 			
-			final String reURL = "Report Exception URL";//注意：请与ProjectContext.printAndReportStackTrace使用描述字段保持一致
-			
-			fieldPanel.add(new JLabel("Receive URL / Email address : "));
+			fieldPanel.add(new JLabel("Report exception URL / Email address : "));//注意：请与ProjectContext.printAndReportStackTrace使用描述字段保持一致
 			fieldPanel.add(exceptionField);
 			testExceptionBtn.setToolTipText("<html>" +
 					"post a exception to current URL or email address," +
@@ -173,10 +167,9 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 			fieldPanel.add(testExceptionBtn);
 			
 			exceptionPanel.add(fieldPanel, BorderLayout.NORTH);
-			exceptionPanel.add(new JLabel("<html>report exception to HAR provider via URL or Email, NOT both. if blank then disable report." +
-					"<BR><BR>for more, please reference API ProjectContext.<STRONG>printAndReportStackTrace</STRONG>(throwable, isCopyToHomeCenter).</html>"),
+			exceptionPanel.add(ResourceUtil.addSpaceBeforePanel(new JLabel("<html>report exception to HAR provider via URL or Email, NOT both. if blank then disable report." +
+					"<BR>for more, please reference API ProjectContext.<STRONG>printAndReportStackTrace</STRONG>(throwable, isCopyToHomeCenter).</html>")),
 					BorderLayout.CENTER);
-			exceptionPanel.setBorder(new TitledBorder(reURL));
 		}
 		return exceptionPanel;
 	}
@@ -209,7 +202,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		}
 		
 		idPanel.setLayout(new FlowLayout(FlowLayout.LEADING));
-		final JLabel idLabel = new JLabel("ID : ");
+		final JLabel idLabel = new JLabel("Project ID : ");
 		final JLabel tipLabel = ProjectIDDialog.buildIDTipLabel();
 //		tipLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 		idPanel.add(idLabel);
@@ -245,24 +238,13 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		idField.setColumns(20);
 		idPanel.add(idField);
 		
-		final JPanel center = new JPanel();
-		center.setLayout(new FlowLayout(FlowLayout.LEADING));
+		final JPanel center = new JPanel(new BorderLayout());
 		{
-			final JPanel compose = new JPanel(new GridLayout(2, 1));
-			compose.add(idPanel);
-			compose.add(tipLabel);
+			final JPanel compose = new JPanel(new BorderLayout());
+			compose.add(idPanel, BorderLayout.NORTH);
+			compose.add(ResourceUtil.addSpaceBeforePanel(tipLabel), BorderLayout.CENTER);
 			
-			compose.setBorder(new TitledBorder("Project ID"));
-			int idxGridY = 1;
 			{
-				final JPanel composeAndVer = new JPanel(new GridBagLayout());
-				final GridBagConstraints c = new GridBagConstraints(0, 0, 1, 1, 0, 0,
-						GridBagConstraints.WEST, GridBagConstraints.NONE,
-						new Insets(0, 0, 0, 0), 0, 0);
-				
-				composeAndVer.add(compose, c);
-				c.gridy = idxGridY++;
-				composeAndVer.add(verPanel, c);
 				final JPanel upgradePanel = new JPanel(new BorderLayout());
 				{
 					final JPanel urlPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -289,7 +271,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 							modify();
 						}
 					});
-					urlPanel.add(new JLabel("URL : "));
+					final String upgradeURL = "Upgrade URL";
+					urlPanel.add(new JLabel(upgradeURL + " : "));
 					urlPanel.add(urlField);
 					testHADBtn.addActionListener(new HCActionListener(new Runnable() {
 						@Override
@@ -332,24 +315,16 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 					urlPanel.add(testHADBtn);
 					
 					upgradePanel.add(urlPanel, BorderLayout.NORTH);
-					final String upgradeURL = "Upgrade URL";
-					upgradePanel.add(new JLabel("<html>the auto upgrade URL of new version of current project. if no upgrade, please keep blank." +
+					upgradePanel.add(ResourceUtil.addSpaceBeforePanel(new JLabel("<html>the auto upgrade URL of new version of current project, to disable upgrade, please keep blank." +
 							"<br><br>for example, <strong>http://example.com/dir_or_virtual/tv.had</strong> , <strong>NOTE:</strong> it is <strong>had</strong> file, not <strong>har</strong> file." +
 							"<br>please put both <strong>tv.har</strong>, <strong>tv.had</strong> in directory <strong>dir_or_virtual</strong> for download." +
 							"<br><br><strong>had</strong> file provides version information which is used to determine upgrade or not." +
 							"<br>click <strong>" + Designer.SAVE_AS_TEXT + "</strong> button, <strong>had</strong> file is automatically created with <strong>har</strong> if <strong>" + upgradeURL + "</strong> is not blank." +
 							"<br><br>for more about server, see user-agent of HTTP/HTTPS request log." +
-							"</html>"),
+							"</html>")),
 							BorderLayout.CENTER);
-					upgradePanel.setBorder(new TitledBorder(upgradeURL));
 				}
-				c.gridy = idxGridY++;
-				composeAndVer.add(upgradePanel, c);
 				
-				c.gridy = idxGridY++;
-				composeAndVer.add(buildExceptionPanel(), c);
-				
-				c.gridy = idxGridY++;
 				desc.setColumns(30);
 				desc.getDocument().addDocumentListener(new ModifyDocumentListener() {
 					@Override
@@ -358,8 +333,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 						notifyModified(true);
 					}
 				});
-				composeAndVer.add(buildItemPanel(desc, "Description : ", 30), c);
-				c.gridy = idxGridY++;
+
 				license.getDocument().addDocumentListener(new ModifyDocumentListener() {
 					@Override
 					public void modify() {
@@ -367,8 +341,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 						notifyModified(true);
 					}
 				});
-				composeAndVer.add(buildItemPanel(license, "Text license URL for current project : ", 30), c);
-				c.gridy = idxGridY++;
+				
 				contact.setColumns(30);
 				contact.getDocument().addDocumentListener(new ModifyDocumentListener() {
 					@Override
@@ -377,8 +350,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 						notifyModified(true);
 					}
 				});
-				composeAndVer.add(buildItemPanel(contact, "Contact : ", 30), c);
-				c.gridy = idxGridY++;
+				
 				copyright.setColumns(30);
 				copyright.getDocument().addDocumentListener(new ModifyDocumentListener() {
 					@Override
@@ -387,8 +359,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 						notifyModified(true);
 					}
 				});
-				composeAndVer.add(buildItemPanel(copyright, "Copyright : ", 30), c);
-				
+
 				final VerTextField verField = verPanel.verTextField;
 				verField.getDocument().addDocumentListener(new DocumentListener() {
 					private void modify(){
@@ -419,7 +390,24 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 					}
 				}, threadPoolToken));
 
-				center.add(composeAndVer);
+				final JComponent[] listPanels = {compose, 
+						new JSeparator(SwingConstants.HORIZONTAL),
+						verPanel, 
+						new JSeparator(SwingConstants.HORIZONTAL),
+						upgradePanel, 
+						new JSeparator(SwingConstants.HORIZONTAL),
+						buildExceptionPanel(),
+						new JSeparator(SwingConstants.HORIZONTAL),
+						buildItemPanel(desc, "Description : ", 30),
+						new JSeparator(SwingConstants.HORIZONTAL),
+						buildItemPanel(license, "Text license URL for current project : ", 30),
+						new JSeparator(SwingConstants.HORIZONTAL),
+						buildItemPanel(contact, "Contact : ", 30),
+						new JSeparator(SwingConstants.HORIZONTAL),
+						buildItemPanel(copyright, "Copyright : ", 30)};
+				final JPanel buildNorthPanel = ServerUIUtil.buildNorthPanel(listPanels, 0, BorderLayout.CENTER);
+
+				center.add(buildNorthPanel, BorderLayout.CENTER);
 			}
 		}
 		
@@ -429,7 +417,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 			final JLabel noteLabel = new JLabel("<html><BR><font color='red'>Note : </font><BR>" +
 					"1. these permissions are NOT run-time, they are for design only.<BR>" +
 					"2. to set run-time permissions, click /Shift Project/{project}/Modify|Permission.<BR>" +
-					"3. run-time permissions will keep their values even if the project is upgraded/re-activated/restarted.<BR>" +
+//					"3. run-time permissions will keep their values even if the project is upgraded/re-activated/restarted.<BR>" +
 //					"3. these permissions works on standard J2SE JVM, NOT for server on Android or other.<BR>" +
 					"&nbsp;</html>");
 //			noteLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -619,9 +607,9 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 //		sysOtherPropPanel.add(checkAccessClipboard);
 		final JComponent[] components = {new JSeparator(SwingConstants.HORIZONTAL), 
 				mobilePermPanel, new JSeparator(SwingConstants.HORIZONTAL), 
+				perm_sock_panel, new JSeparator(SwingConstants.HORIZONTAL),
 				osPermPanel, new JSeparator(SwingConstants.HORIZONTAL), 
 				sysPropPanel, new JSeparator(SwingConstants.HORIZONTAL), 
-				perm_sock_panel, new JSeparator(SwingConstants.HORIZONTAL),
 				sysOtherPropPanel
 				};		
 		return ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER);
@@ -684,8 +672,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		field.setColumns(colNum);
 		
 		final JPanel tmpPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-		tmpPanel.setBorder(new TitledBorder(label));
-//		tmpPanel.add(new JLabel(label));
+		tmpPanel.add(new JLabel(label));
 		tmpPanel.add(field);
 		
 		return tmpPanel;

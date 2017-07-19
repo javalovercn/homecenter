@@ -143,7 +143,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 		}    					
 
 		designBut = new JButton((String)ResourceUtil.get(9014), designIco);
-		final String designTip = StringUtil.replace((String)ResourceUtil.get(9140), "{apply}", saveAndApply);
+		final String designTip = (String)ResourceUtil.get(9140);
+//		designTip = StringUtil.replace(designTip, "{apply}", saveAndApply);
 		designBut.setToolTipText("<html>" + designTip + "</html>");
 		rebindBut = new JButton((String)ResourceUtil.get(9139), Designer.loadImg("device_24.png"));
 		final BindButtonRefresher bindBtnRefresher = new BindButtonRefresher() {

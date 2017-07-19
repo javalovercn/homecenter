@@ -49,7 +49,6 @@ import third.hsqldb.jdbc.JDBCDriver;
 
 public class AIPersistentManager {
 	
-	public static final String SHUTDOWN_COMPACT = "SHUTDOWN COMPACT";
 	final static File AI_DIR = new File(ResourceUtil.getBaseDir(), "ai");
 	
 	static {
@@ -859,7 +858,7 @@ public class AIPersistentManager {
 
     		final Statement state = conn.createStatement();
     		LogManager.log("ready to compact AI database for project : " + projectID);
-	    	state.execute(SHUTDOWN_COMPACT);
+	    	state.execute(ResourceUtil.SHUTDOWN_COMPACT);
 	    	LogManager.log("successful done compact AI database for project : " + projectID);
 	    	conn = null;
 	    	

@@ -10,7 +10,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 public class JarNodeEditPanel extends NameEditPanel{
-	final VerTextPanel verPanel = new VerTextPanel("jar");
+	final VerTextPanel verPanel = new VerTextPanel("jar", true, false);
 	
 	
 	public JarNodeEditPanel(){

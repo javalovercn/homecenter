@@ -349,7 +349,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 		errorTimer.setErrorLable(errRunInfo, testBtn);
 		
-		final String runTip = "this button is used to check the executable of scripts." +
+		final String runTip = "submit the script to engine to test the executable of it." +
 				"<BR><BR>" +
 				"<STRONG>Note : </STRONG><BR>" +
 				"1. even if a green bar is displayed in bottom, defects may be in the scripts that are not covered,<BR>" +

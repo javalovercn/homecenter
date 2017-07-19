@@ -578,13 +578,21 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final Designer self = this;
 		
 		final MouseListener ml = new MouseListener() {
+			int clickX, clickY;
+			
 			@Override
 			public void mousePressed(final MouseEvent e) {
+				clickX = e.getX();
+				clickY = e.getY();
 			}
 
 			// 鼠标松开时获得需要拖到哪个父节点
 			@Override
 			public void mouseReleased(final MouseEvent e) {
+				if(Math.abs(e.getX() - clickX) > 5 || Math.abs(e.getY() - clickY) > 5){
+					return;
+				}
+				
 				GlobalConditionWatcher.addWatcher(new IWatcher(){//确保正常次序处理完成
 					@Override
 					public boolean watch() {
@@ -810,8 +818,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 		}, threadPoolToken));
 		sampleButton.setToolTipText("<html>" +
-				"load a example project.<BR>" +
-				"there are many powerful mobile menu items and sample code in it." +
+				"there are many powerful sample codes in it." +
 //				"<BR><BR>Tip : when the version of online demo project is newer than you had imported, it will display new red star." +
 				"</html>");
 		toolbar.add(sampleButton);
@@ -849,7 +856,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				ProjectIDDialog.showInputProjectID(instance, root);
 			}
 		}, threadPoolToken));
-		newButton.setToolTipText("<html>create new HAR project.</html>");
+		newButton.setToolTipText("<html>create new project.</html>");
 		toolbar.add(newButton);
 		
 		addItemButton.addActionListener(new HCActionListener(new Runnable() {
@@ -858,18 +865,19 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				MenuManager.addMenuItem(instance, addItemButton, mainMenuNode, msbFolder);
 			}
 		}, threadPoolToken));
-		addItemButton.setToolTipText("<html>add a controller, UI Panel(Mlet), script of commands and etc." +
+		addItemButton.setToolTipText("<html>add a controller, panel(HTMLMlet), commands and others." +
 				"</html>");
 		toolbar.add(addItemButton);
 		
-		saveButton.setToolTipText("<html>save to disk ("+ResourceUtil.getAbstractCtrlKeyText()+" + S)<BR>current project will be auto loaded when open this designer." +
+		saveButton.setToolTipText("<html>save current modified project to disk ("+ResourceUtil.getAbstractCtrlKeyText()+" + S)." +
+				"<BR><BR>current project will be the default editing project." +
 //				"<BR><BR>Tip : Saving has no effect on a deployed project(which is maybe using by mobile)." +
-				"<BR><BR>Note : only one project is edited at same time." +
+//				"<BR><BR>Note : only one project is edited at same time." +
 				"</html>");
 		toolbar.add(saveButton);
 		
-		activeButton.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + D)<BR>after click activate, current project will be active and displayed to mobile when mobile login." +
-				"<BR><BR><STRONG>Note :</STRONG>please <STRONG>re-activate</STRONG> after modifying current project." +
+		activeButton.setToolTipText("<html>after click activate, current project will be active and menu will be displayed to mobile ("+ResourceUtil.getAbstractCtrlKeyText()+" + D)." +
+				"<BR><BR><STRONG>Note :</STRONG><BR>if the project is modified, please <STRONG>re-activate</STRONG> it with this button." +
 				"</html>");
 		{
 			final Action deployAction = new AbstractAction() {
@@ -1105,8 +1113,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			checkHARButtonsEnable();
 		}
 		
-		deactiveButton.setToolTipText("<html>deactivate current project, excluding other project." +
-				"<BR>If no project is active, then screen of desktop is accessed when mobile login." +
+		deactiveButton.setToolTipText("<html>deactivate current project if it is active." +
+//				"<BR>If no project is active, then screen of desktop is accessed when mobile login." +
 				"</html>");
 		deactiveButton.addActionListener(new HCActionListener(new Runnable() {
 			@Override
@@ -1215,12 +1223,12 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}, threadPoolToken));
 		toolbar.add(deactiveButton);
 		saveAsButton.setToolTipText("<html>" +
-				"save and sign current project to HAR/HAD file on your disk," +
+				"save and sign current project to HAR/HAD file," +
 				"<BR><BR>" +
 				"<STRONG>Important :</STRONG>" +
 				"<BR>1. if developer certificate is created, HAR will be signed with it also," +
-				"<BR>2. unsigned HAR will be upgraded by signed HAR successfully," +
-				"<BR>3. signed HAR will NOT be upgraded by signed HAR, if developer certificate is NOT same," +
+				"<BR>2. unsigned HAR can be upgraded by signed HAR," +
+				"<BR>3. signed HAR can NOT be upgraded by other signed HAR, if developer certificate is NOT same," +
 //				"<BR>4. a signed HAR will update/upgrade a signed HAR, if at least one certificate is same." +
 				"</html>");
 		saveAsButton.addActionListener(new HCActionListener(new Runnable() {
@@ -1287,8 +1295,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				}
 			}
 		}, threadPoolToken));
-		loadButton.setToolTipText("<html>load and edit a project from a har file." +
-				"<BR><BR>the loaded project will be the default project after click [<STRONG>" + saveButton.getText() + "</STRONG>] button.</html>");
+		loadButton.setToolTipText("<html>load a project from a har file." +
+				"<BR><BR>Note :<BR>the loaded project will be the default editing project after click [<STRONG>" + saveButton.getText() + "</STRONG>] button.</html>");
 
 		toolbar.add(loadButton);
 		toolbar.add(saveAsButton);
@@ -1300,14 +1308,14 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 		}, threadPoolToken, null));
 		
-		shiftProjButton.setToolTipText("<html>add and delete projects, or choose other project for editing.</html>");
+		shiftProjButton.setToolTipText("<html>shift other project to current editing project, or manage projects.</html>");
 		
 		certButton.setToolTipText("<html>create, manage developer certificate, which is used to sign your HAR project." +
 				"<BR><BR>" +
 				"<STRONG>Important :</STRONG><BR>" +
-				"1. HAR will be signed when you click [<STRONG>" + SAVE_AS_TEXT + "</STRONG>] button if developer certificate is created/restored.<BR>" +
-				"2. it is <STRONG>NOT</STRONG> certificate for mobile connection.<BR>" +
-				"3. it is recommended that sign HAR on development HomeCenter server, NOT on business HomeCenter server.</html>");
+				"1. HAR will be signed when click [<STRONG>" + SAVE_AS_TEXT + "</STRONG>] button if developer certificate is created/restored.<BR>" +
+//				"2. it is <STRONG>NOT</STRONG> certificate for mobile connection.<BR>" +
+				"2. it is recommended to sign HAR on development server, NOT on business server.</html>");
 		certButton.addActionListener(new HCActionListener(new Runnable() {
 			int errorPwd = 0;
 			
@@ -1455,8 +1463,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		rebindBut.setToolTipText("<html>" +
 				"rebind (Not bind) reference device(s) of robot in active projects to real device(s)." +
 				"<BR>service will be stopped before rebinding, and restart after rebinding." +
-				"<BR><BR>binding (Not rebind) dialog will automatic pop-up after '<STRONG>" + ACTIVE + "</STRONG>' project if binding is required." +
-				"<BR>this button will be disable if there is no reference device of robot in <STRONG>all</STRONG> active (not current) projects." +
+				"<BR><BR>" +
+				"Know more" +
+				"<BR>1. binding (Not rebind) dialog will automatic pop-up after '<STRONG>" + ACTIVE + "</STRONG>' project if binding is required." +
+				"<BR>2. this button will be disable if there is no reference device of robot in <STRONG>all</STRONG> active (not current) projects." +
 				"</html>");
 		
 		rebindBut.addActionListener(new HCActionListener(new Runnable() {

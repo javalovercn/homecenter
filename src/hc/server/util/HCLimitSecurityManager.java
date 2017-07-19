@@ -291,7 +291,8 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 
 	    	{
 		    	final String[] writebats = {"HomeCenter.bat", "HomeCenter.sh", "HomeCenter.command",  
-		    			"splash.png", "starter.jar", "starter.properties", "jruby.jar", "hc.pem", "hc.jar", hcHardIdFileName, devCertFileName};
+		    			"splash.png", "starter.jar", "starter.properties", "jruby.jar", "hc.pem", "hc.jar", "stub.jar",
+		    			hcHardIdFileName, devCertFileName};
 		    	blockWriteFullPathLists = new String[writebats.length];
 		    	for (int i = 0; i < writebats.length; i++) {
 		    		final String file = writebats[i];

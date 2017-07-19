@@ -286,16 +286,32 @@ public class J2SESIPContext extends ISIPContext {
 		
 		final int tc = RootConfig.getInstance().getIntProperty(RootConfig.p_TrafficClass);
 		if(tc != 0){
-			s.setTrafficClass(tc);
+			try{
+				s.setTrafficClass(tc);
+			}catch (final Throwable ex) {
+				ex.printStackTrace();
+			}
 		}
 
 //			例如, 如果参数 connectionTime 为 2, 参数 latency 为 1, 而参数bandwidth 为 3, 就表示最高带宽最重要, 其次是最少连接时间, 最后是最小延迟.
 		s.setPerformancePreferences(5, 2, 1);
 
 		//KeepAlive_Tag
-		s.setKeepAlive(false);
-		s.setTcpNoDelay(true);
-		s.setSoLinger(true, 5);
+		try{
+			s.setKeepAlive(true);//由于某此环境下，节能可能关闭应用，而导致连接空挂。
+		}catch (final Throwable ex) {
+			ex.printStackTrace();
+		}
+		try{
+			s.setTcpNoDelay(false);//sendStringJSOrCache会产生大量小块数据，故开启Delay
+		}catch (final Throwable ex) {
+			ex.printStackTrace();
+		}
+		try{
+			s.setSoLinger(true, 5);
+		}catch (final Throwable ex) {
+			ex.printStackTrace();
+		}
 		final int ServerSndBF = RootConfig.getInstance().getIntProperty(RootConfig.p_ClientServerSendBufferSize);
 		if(ServerSndBF != 0){
 			s.setSendBufferSize(ServerSndBF);

@@ -40,6 +40,7 @@ import hc.server.ui.design.SystemHTMLMlet;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -63,6 +64,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
@@ -72,6 +74,8 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.MessageDigest;
+import java.sql.Connection;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -93,6 +97,8 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -493,6 +499,25 @@ public class ResourceUtil {
 		return "";
 	}
 	
+	public static final boolean saveToFile(final InputStream is, final File file){
+		final byte[] buffer = ByteUtil.byteArrayCacher.getFree(1024);
+		try{
+			final OutputStream os = new FileOutputStream(file);
+			int bytesRead = 0;
+			while ((bytesRead = is.read(buffer, 0, buffer.length)) != -1) {
+				os.write(buffer, 0, bytesRead);
+			}
+			os.close();
+			is.close();
+			return true;
+		}catch (final Throwable e) {
+			e.printStackTrace();
+			return false;
+		}finally{
+			ByteUtil.byteArrayCacher.cycle(buffer);
+		}
+	}
+	
 	static final String rem_format1 = "//";
 
 	public static String getStringFromInputStream(final InputStream is, final String charset, final boolean keepReturnChar, final boolean removeRem) {
@@ -749,10 +774,8 @@ public class ResourceUtil {
 		}
 		return rubyAnd3rdLibsClassLoaderCache;
 	}
-
-	public static ClassLoader buildJRubyClassLoader() {
-		CCoreUtil.checkAccess();
-		
+	
+	private static ClassLoader buildJRubyClassLoader() {
 		final File jruby = new File(ResourceUtil.getBaseDir(), J2SEContext.jrubyjarname);
 		
 		PlatformManager.getService().setJRubyHome(PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer), jruby.getAbsolutePath());
@@ -984,6 +1007,11 @@ public class ResourceUtil {
 		}, threadToken);
 	}
 	
+	/**
+	 * 5000段，应用于AndroidServer
+	 * @param id
+	 * @return
+	 */
 	public static Object get(final int id){
 		if(id < MAX_RES_ID){
 			return UILang.getUILang(id);
@@ -1729,6 +1757,18 @@ public class ResourceUtil {
 		return (String) get(IContext.ERROR);
 	}
 	
+	public static String getConfirmI18N() {
+		return (String) get(IContext.CONFIRMATION);
+	}
+	
+	public static String getYesI18N(){
+		return (String) get(1032);
+	}
+	
+	public static String getNoI18N(){
+		return (String) get(1033);
+	}
+	
 	public static String getInfoI18N(final J2SESession coreSS) {
 		return (String) get(coreSS, IContext.INFO);
 	}
@@ -2101,5 +2141,33 @@ public class ResourceUtil {
 	public static boolean isSystemMletOrDialog(final Mlet mlet) {
 		return (mlet instanceof SystemHTMLMlet) 
 				|| (mlet instanceof DialogHTMLMlet) && ((DialogHTMLMlet)mlet).dialog instanceof SystemDialog;
+	}
+
+	public static final String SHUTDOWN_COMPACT = "SHUTDOWN COMPACT";
+	private static final String SHUTDOWN = "SHUTDOWN";
+
+	public static void shutdownHSQLDB(final Connection connection, final boolean isCompactAlso) {
+		if(connection == null){
+			return;
+		}
+		
+		try{
+			final Statement state = connection.createStatement();
+			if(isCompactAlso){
+				state.execute(SHUTDOWN_COMPACT);
+			}else{
+				state.execute(SHUTDOWN);
+			}
+			state.close();
+		}catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+	}
+
+	public static final JPanel addSpaceBeforePanel(final JComponent content){
+		final JPanel out = new JPanel(new FlowLayout(FlowLayout.LEADING));
+		out.add(new JLabel(" "));
+		out.add(content);
+		return out;
 	}
 }

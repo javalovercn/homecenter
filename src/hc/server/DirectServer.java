@@ -210,8 +210,21 @@ public class DirectServer extends Thread {
 					socket.getInetAddress().getHostAddress() + 
 					":" + socket.getPort() + "]");
 			
-			socket.setKeepAlive(true);
-			socket.setTcpNoDelay(true);
+			try{
+				socket.setKeepAlive(true);//由于某此环境下，节能可能关闭应用，而导致连接空挂。
+			}catch (final Throwable ex) {
+				ex.printStackTrace();
+			}
+			try{
+				socket.setTcpNoDelay(false);//sendStringJSOrCache会产生大量小块数据，故开启Delay
+			}catch (final Throwable ex) {
+				ex.printStackTrace();
+			}
+			try{
+				socket.setSoLinger(true, 3);
+			}catch (final Throwable ex) {
+				ex.printStackTrace();
+			}
 			
 			final int maxTryCount = 5;
 			final HCTimer watcher = new HCTimer("", maxTryCount * 1000, true) {

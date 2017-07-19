@@ -47,8 +47,6 @@ public class LinkMenuManager {
 		}
 	}
 	
-	private static boolean isDownloadJ2SEDoc;
-	
 	/**
 	 * 重要，请勿在Event线程中调用，
 	 * @param loadInit
@@ -56,16 +54,15 @@ public class LinkMenuManager {
 	public static void startDesigner(final boolean loadInit){
 		SimuMobile.init();
 		
-		if(isDownloadJ2SEDoc){
-			return;
-		}
-		
 		if(LinkProjectStatus.tryEnterStatus(null, LinkProjectStatus.MANAGER_DESIGN)){
 			if(J2SEDocHelper.isBuildIn() == false){
-				synchronized (J2SEDocHelper.class) {
-					isDownloadJ2SEDoc = true;
-					J2SEDocHelper.downloadJ2SEDoc();
-					isDownloadJ2SEDoc = false;
+				if(J2SEDocHelper.isJ2SEDocReady() == false) {
+					ContextManager.getThreadPool().run(new Runnable() {
+						@Override
+						public void run() {
+							J2SEDocHelper.checkJ2SEDocAndDownload();
+						}
+					});
 				}
 			}
 			

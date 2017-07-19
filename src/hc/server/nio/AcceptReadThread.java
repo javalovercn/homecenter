@@ -14,6 +14,8 @@ import hc.server.util.StarterParameter;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
@@ -69,11 +71,12 @@ public class AcceptReadThread extends Thread {
 		ssc.configureBlocking(false);
 		this.ip = ip;
 		final InetSocketAddress address = new InetSocketAddress(ip, localPort);
-		ssc.socket().setPerformancePreferences(5, 2, 1);
-		ssc.socket().setReuseAddress(true);
-		ssc.socket().bind(address);
+		final ServerSocket socket = ssc.socket();
+		socket.setPerformancePreferences(5, 2, 1);
+		socket.setReuseAddress(true);
+		socket.bind(address);
 		if(localPort == 0){
-			StarterParameter.relayServerLocalPort = ssc.socket().getLocalPort();//Port();
+			StarterParameter.relayServerLocalPort = socket.getLocalPort();//Port();
 		}
 		LogManager.log("Build Relay Server at localPort:" + localPort);
 
@@ -360,9 +363,10 @@ public class AcceptReadThread extends Thread {
 			final ServerSocketChannel readyChannel = (ServerSocketChannel) key.channel();
 			final SocketChannel incomingChannel = readyChannel.accept();
 			
+			final Socket incomingSocket = incomingChannel.socket();
 			if(read.isTop(incomingChannel)){
 				try {
-					incomingChannel.socket().close();
+					incomingSocket.close();
 				} catch (final IOException e) {
 				}
 				
@@ -385,7 +389,7 @@ public class AcceptReadThread extends Thread {
 				final int tc = RootConfig.getInstance().getIntProperty(RootConfig.p_TrafficClass);
 				if(tc != 0){
 					try{
-						incomingChannel.socket().setTrafficClass(tc);
+						incomingSocket.setTrafficClass(tc);
 					}catch (final Exception e) {
 						//部分虚拟机可能不支持该参数
 					}
@@ -395,26 +399,26 @@ public class AcceptReadThread extends Thread {
 	//			参数 latency: 表示最小延迟.
 	//			参数 bandwidth: 表示最高带宽.
 				
-				incomingChannel.socket().setPerformancePreferences(5, 2, 1);
+				incomingSocket.setPerformancePreferences(5, 2, 1);
 				
 								//.设置发送逗留时间 socket.setSoLinger(true, 2); 
 				//这个参数是socket发送数据时的超时，如果对方在固定时间内不接受，则关闭socket。
 				//与socket.setSoTimeout(2000)不同，这个是设置InputStream上调用 read()阻塞超时时间。
 				
-				incomingChannel.socket().setSoLinger(true, 3);
+				incomingSocket.setSoLinger(true, 3);
 				
-				LogManager.log("Accept new SocketChannel socket:" + incomingChannel.socket().hashCode() + ", remotePort:" + incomingChannel.socket().getPort());
+				LogManager.log("Accept new SocketChannel socket:" + incomingSocket.hashCode() + ", remotePort:" + incomingSocket.getPort());
 				
 				//KeepAlive_Tag
-				incomingChannel.socket().setKeepAlive(true);
-				incomingChannel.socket().setTcpNoDelay(true);
+				incomingSocket.setKeepAlive(true);
+				incomingSocket.setTcpNoDelay(true);
 				final int sendBuff = RootConfig.getInstance().getIntProperty(RootConfig.p_ServerSendBufferSize);
 				if(sendBuff != 0){
-					incomingChannel.socket().setSendBufferSize(sendBuff);
+					incomingSocket.setSendBufferSize(sendBuff);
 				}
 				final int receiveBuff = RootConfig.getInstance().getIntProperty(RootConfig.p_ServerReceiveBufferSize);
 				if(receiveBuff != 0){
-					incomingChannel.socket().setReceiveBufferSize(receiveBuff);
+					incomingSocket.setReceiveBufferSize(receiveBuff);
 				}
 				
 				//如将本方法置于AcceptThread中，会导致下行代码假死，估计是没有read数据

@@ -2580,12 +2580,44 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			lockPanel.add(congPanel, BorderLayout.CENTER);
 		}
 		
+		boolean isAutoStart = false;
+		
+		final boolean androidServerPlatform = ResourceUtil.isAndroidServerPlatform();
+		if(androidServerPlatform){
+			isAutoStart = true;
+			PlatformManager.getService().setAutoStart(isAutoStart);
+		}
+		
 		if(PropertiesManager.getValue(PropertiesManager.p_isReportException) == null){
 			PropertiesManager.setValue(PropertiesManager.p_isReportException, IConstant.TRUE);
 			PropertiesManager.saveFile();
 		}
+
+		final JCheckBox reportExceptionCheckBox = buildReportExceptionCheckBox(true);
+
+		if(androidServerPlatform){
+			final JPanel checkPanel = new JPanel(new GridLayout(1, 2));
+			
+			final JCheckBox autoStartCheck = new JCheckBox((String)ResourceUtil.get(6001));
+			autoStartCheck.setToolTipText("<html>" + (String)ResourceUtil.get(9195) + "</html>");
+			autoStartCheck.setSelected(isAutoStart);
+			autoStartCheck.addActionListener(new HCActionListener(new Runnable() {
+				@Override
+				public void run() {
+					final boolean isSelected = autoStartCheck.isSelected();
+					PlatformManager.getService().setAutoStart(isSelected);
+				}
+			}, threadPoolToken));
+			
+			checkPanel.add(autoStartCheck);
+			checkPanel.add(reportExceptionCheckBox);
+
+			lockPanel.add(checkPanel, BorderLayout.SOUTH);
+		}else{
+			lockPanel.add(reportExceptionCheckBox, BorderLayout.SOUTH);
+		}
 		
-		lockPanel.add(buildReportExceptionCheckBox(true), BorderLayout.SOUTH);
+		final ActionListener closeListener = null;
 		
 		App.showCenterOKDisposeDelayMode(
 				lockPanel,
@@ -2593,7 +2625,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				ResourceUtil.getInfoI18N(),
 				false,
 				null,
-				null, null, null, true, null,
+				null, closeListener, closeListener, true, null,
 					false, false, null, false, false);
 	}
 	

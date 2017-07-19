@@ -28,9 +28,18 @@ import third.hsqldb.Database;
 import third.hsqldb.DatabaseManager;
 
 public class ExitManager {
+	private static boolean isStartingExitSystem;
+	
 	public static void startExitSystem(){
 		ResourceUtil.checkHCStackTrace();
 
+		synchronized (ExitManager.class) {
+			if(isStartingExitSystem){
+				return;
+			}
+			isStartingExitSystem = true;
+		}
+		
 		J2SESessionManager.notifyReadyShutdown();
 		
 		//直接采用主线程，会导致退出提示信息会延时显示，效果较差
@@ -82,7 +91,9 @@ public class ExitManager {
 
 		ThreadPool.shutdown();
     	SessionManager.shutdown();
-
+    	if(L.isInWorkshop){
+    		System.out.println("done [startExitSystem]!");
+    	}
 	}
 	
 	private static void exit(){

@@ -51,14 +51,26 @@ public class DocHelper {
 			if(LinkProjectStatus.getStatus() == LinkProjectStatus.MANAGER_DESIGN){
 				resetTimerCount();
 			}else{
-				cache.clear();
-				CodeItem.cycle(cssCodeItems);
-				cssDocs.clear();
-				cssProperties.clear();
+				resetCache();
 				setEnable(false);
 			}
 		}
 	};
+
+	static void resetCache() {
+		synchronized (cache) {
+			cache.clear();
+		}
+		synchronized (cssCodeItems) {
+			CodeItem.cycle(cssCodeItems);
+		}
+		synchronized (cssDocs) {
+			cssDocs.clear();
+		}
+		synchronized(cssProperties){
+			cssProperties.clear();
+		}
+	}
 	
 	static final String bodyRule = "body { font-family:Dialog, Arial, Helvetica, sans-serif; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
 	static final String strongRule = ".strong { font-weight:bold; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
@@ -379,28 +391,30 @@ public class DocHelper {
 			return CSSHelper.getDocs(fieldOrMethod);
 		}
 		
-		HashMap<String, String> map = cache.get(claz);
-		
-		if(map == null){
-			try{
-				Thread.sleep(ThreadPriorityManager.UI_WAIT_MS);//不能采用Notify技术，因为有可能不是目标claz装入
-			}catch (final Exception e) {
-			}
-			map = cache.get(claz);//等待异步线程完成doc内容
+		synchronized (cache) {
+			HashMap<String, String> map = cache.get(claz);
+			
 			if(map == null){
-				return null;
+				try{
+					Thread.sleep(ThreadPriorityManager.UI_WAIT_MS);//不能采用Notify技术，因为有可能不是目标claz装入
+				}catch (final Exception e) {
+				}
+				map = cache.get(claz);//等待异步线程完成doc内容
+				if(map == null){
+					return null;
+				}
 			}
-		}
-		
-		if(L.isInWorkshop){
-			final Set<String> set = map.keySet();
-			final Iterator<String> it = set.iterator();
-			while(it.hasNext()){
-				LogManager.log("==>" + it.next());
+			
+			if(L.isInWorkshop){
+				final Set<String> set = map.keySet();
+				final Iterator<String> it = set.iterator();
+				while(it.hasNext()){
+					LogManager.log("==>" + it.next());
+				}
 			}
+			
+			return map.get(fieldOrMethod);
 		}
-		
-		return map.get(fieldOrMethod);
 	}
 	
 	private final void loadDoc(final String doc) {
@@ -408,14 +422,16 @@ public class DocHelper {
 	}
 
 	public static void processDoc(final CodeHelper codeHelper, final Class c, final boolean processInDelay){
-		resetClear();
+		resetClearTimer();
 		
 		final String clasName = c.getName();
 		if(clasName.indexOf('$') > 0){
 			return;
 		}
-		if(cache.containsKey(clasName)){
-			return;
+		synchronized (cache) {
+			if(cache.containsKey(clasName)){
+				return;
+			}
 		}
 //		if(processInDelay){
 //			ContextManager.getThreadPool().run(new Runnable() {
@@ -429,7 +445,7 @@ public class DocHelper {
 //		}
 	}
 
-	static void resetClear() {
+	static void resetClearTimer() {
 		if(resetTimer.isEnable()){
 		}else{
 			resetTimer.setEnable(true);
@@ -461,7 +477,12 @@ public class DocHelper {
 	}
 
 	private static void read(final CodeHelper codeHelper, final boolean isRubyClass, final String clasName, final InputStream in) {
+		
 		if(in == null){
+			if(J2SEDocHelper.isBuildIn() == false && J2SEDocHelper.isJ2SEDocReady() == false){
+				return;
+			}
+			
 			synchronized (cache) {
 				cache.put(clasName, new HashMap<String, String>());
 			}
@@ -708,8 +729,10 @@ public class DocHelper {
 	 */
 	private static void processDoc(final CodeHelper codeHelper, final Class c, final String clasName, 
 			final boolean isNeedShiftToBackground) {
-		if(cache.containsKey(clasName)){
-			return;
+		synchronized (cache) {
+			if(cache.containsKey(clasName)){
+				return;
+			}
 		}
 		
 		processDocForOneLevel(codeHelper, c, clasName);

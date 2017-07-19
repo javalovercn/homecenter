@@ -358,7 +358,7 @@ public class ReceiveServer implements Runnable{
             		continue;
             	}
             	
-            	if(System.currentTimeMillis() - receiveUpdateMS < 100){
+            	if(System.currentTimeMillis() - receiveUpdateMS < 500){//Android环境下100太小，
             		L.V = L.WShop ? false : LogManager.log("[workshop] receive is changing new socket. continue");
 //            		try{
 //            			Thread.sleep(100);
@@ -472,7 +472,7 @@ public class ReceiveServer implements Runnable{
 	private boolean isShutdown = false;
 	
 	public void shutDown() {
-		L.V = L.WShop ? false : LogManager.log("notify shutdown ReceiveServer.");
+		L.V = L.WShop ? false : LogManager.log("notify shutdown ReceiveServer threadName : " + threadID);
     	isShutdown = true;
     	synchronized (LOCK) {
 			LOCK.notify();
@@ -483,9 +483,9 @@ public class ReceiveServer implements Runnable{
 	boolean isNeverReceivedAfterNewConn;
 	
 	void setUdpServerSocket(final Object tcpOrUDPsocket, final boolean isCloseOld) {
-		DataInputStream oldIS = this.dataInputStream;
+		final DataInputStream oldIS = this.dataInputStream;
 		if(tcpOrUDPsocket != null){
-			L.V = L.WShop ? false : LogManager.log("ReceiveServer threadName : " + threadID + " setDataInputStream : " + tcpOrUDPsocket.hashCode());
+			L.V = L.WShop ? false : LogManager.log("setUdpServerSocket ReceiveServer threadName : " + threadID + " setDataInputStream : " + tcpOrUDPsocket.hashCode());
 		}
 		this.dataInputStream = (DataInputStream)tcpOrUDPsocket;
 		if(dataInputStream != null){

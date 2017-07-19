@@ -1,5 +1,7 @@
 package hc.server.ui.design.hpj;
 
+import hc.util.ResourceUtil;
+
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 
@@ -11,13 +13,13 @@ public class VerTextPanel extends JPanel{
 	VerTextField verTextField = new VerTextField();
 	final String nodeDesc;
 	
-	public VerTextPanel(final String nodeDesc) {
+	public VerTextPanel(final String nodeDesc, final boolean withBorder, final boolean withSpaceDesc) {
 		this.nodeDesc = nodeDesc;
 		
 		final JPanel idPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-		final JLabel verLabel = new JLabel("ver : ");
+		final JLabel verLabel = new JLabel("Version : ");
 		final JLabel tipLabel = new JLabel("<html>" +
-				"1. input version of the current " + nodeDesc + ".<BR>" +
+				"1. version of the current " + nodeDesc + ".<BR>" +
 				"2. valid char are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 and dot.</html>");
 //		tipLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 		idPanel.add(verLabel);
@@ -26,8 +28,14 @@ public class VerTextPanel extends JPanel{
 		
 		setLayout(new GridLayout(2, 1));
 		add(idPanel);
-		add(tipLabel);
+		if(withSpaceDesc){
+			add(ResourceUtil.addSpaceBeforePanel(tipLabel));
+		}else{
+			add(tipLabel);
+		}
 		
-		setBorder(new TitledBorder("Version"));
+		if(withBorder){
+			setBorder(new TitledBorder("Version"));
+		}
 	}
 }

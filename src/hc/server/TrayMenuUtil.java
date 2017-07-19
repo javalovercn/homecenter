@@ -33,6 +33,7 @@ import hc.server.ui.design.J2SESession;
 import hc.server.util.HCJDialog;
 import hc.server.util.ServerCUtil;
 import hc.server.util.VerifyEmailManager;
+import hc.util.ExitManager;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
@@ -820,7 +821,7 @@ public class TrayMenuUtil {
 		        //浏览当天当前的日志
 		        final JMenuItem browseCurrLog = new JMenuItem((String)ResourceUtil.get(9002));
 				browseCurrLog.setIcon(new ImageIcon(ImageSrc.LOG_ICON));
-				browseCurrLog.setToolTipText("view current log of starting up HomeCenter server");
+				browseCurrLog.setToolTipText((String)ResourceUtil.get(9264));
 				final ActionListener currLogAction = new HCActionListener(new Runnable() {
 					String opName = browseCurrLog.getText();
 					LogViewer lv;
@@ -852,7 +853,7 @@ public class TrayMenuUtil {
 	            if(file.exists()){
 			        final JMenuItem browseLogBak = new JMenuItem((String)ResourceUtil.get(9003));
 					browseLogBak.setIcon(new ImageIcon(ImageSrc.LOG_BAK_ICON));
-					browseLogBak.setToolTipText("view log of last shutdown HomeCenter server");
+					browseLogBak.setToolTipText((String)ResourceUtil.get(9265));
 					browseLogBak.addActionListener(new HCActionListener(new Runnable() {
 						String opName = browseLogBak.getText();
 						LogViewer lv;
@@ -1252,7 +1253,7 @@ public class TrayMenuUtil {
         				}    					
     				}
 
-    				designer.setToolTipText((String)ResourceUtil.get(9080));
+//    				designer.setToolTipText((String)ResourceUtil.get(9080));
 	            	designer.setIcon(designIco);
     	            designer.addActionListener(new HCActionListener(new Runnable() {
     	                @Override
@@ -1581,7 +1582,7 @@ public class TrayMenuUtil {
 	}
 	
 	public static final void doBefore(){
-		ToolTipManager.sharedInstance().setDismissDelay(1000 * 20);
+		ToolTipManager.sharedInstance().setDismissDelay(1000 * 1000);
 		showTray();
 		
 		ServerUIUtil.restartResponsorServer(null, null);
@@ -1611,13 +1612,7 @@ public class TrayMenuUtil {
         Runtime.getRuntime().addShutdownHook(new Thread(){
         	@Override
 			public void run(){
-        		PropertiesManager.notifyShutdownHook();
-        		//因为系统调用System.exit时，会激活此处。
-        		if(SessionManager.checkAtLeastOneNotMeet(ContextManager.STATUS_EXIT)){
-	        		LogManager.log("User Power Off");
-//	        		SessionManager.notifyShutdown();
-	        		
-        		}
+        		ExitManager.startExitSystem();
         	}
         });
         

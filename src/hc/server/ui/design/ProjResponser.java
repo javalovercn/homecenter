@@ -27,6 +27,7 @@ import hc.core.util.ThreadPriorityManager;
 import hc.server.CallContext;
 import hc.server.HCJRubyException;
 import hc.server.MultiUsingManager;
+import hc.server.PlatformManager;
 import hc.server.ScreenServer;
 import hc.server.msb.Converter;
 import hc.server.msb.Device;
@@ -66,6 +67,7 @@ import hc.util.StringBuilderCacher;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Hashtable;
 import java.util.Map;
@@ -474,7 +476,8 @@ public class ProjResponser {
 
 //		final ClassLoader projClassLoader = ResourceUtil.buildProjClassLoader(deployPath, projID);
 //		**注意**：理论上native lib应加载到userLib，而不是JRubyClassLoader。但是无法获得用户类作为参数，所以简化之
-		jrubyClassLoader = hasNative?ResourceUtil.buildJRubyClassLoader():ResourceUtil.getJRubyClassLoader(false);
+		final ClassLoader baseClassLoader = ResourceUtil.getJRubyClassLoader(false);
+		jrubyClassLoader = hasNative?buildStubNativeLibClassLoaderWrapper(baseClassLoader):baseClassLoader;
 		final ClassLoader projClassLoader = ResourceUtil.buildProjClassPath(deployPath, jrubyClassLoader, projID);
 		final String reportExceptionURL = (String)this.map.get(HCjar.PROJ_EXCEPTION_REPORT_URL);
 		this.hcje = new HCJRubyEngine(deployPath.getAbsolutePath(), projClassLoader, reportExceptionURL != null && reportExceptionURL.length() > 0);
@@ -557,13 +560,13 @@ public class ProjResponser {
 						
 						boolean isLoadOK = false;
 						try{
-							loadLibByClassLoad(projClassLoader, absolutePath);
+							loadNativeLibByClassLoad(jrubyClassLoader, absolutePath);
 							isLoadOK = true;
 						}catch (final Throwable e) {
 						}
 						if(isLoadOK == false){
 							try{
-								loadLibByScript(hcje, absolutePath);
+								loadNativeLibByScript(hcje, absolutePath);
 								isLoadOK = true;
 							}catch (final Throwable e) {
 							}
@@ -598,17 +601,20 @@ public class ProjResponser {
 		}
 	}
 
-	private final void loadLibByClassLoad(final ClassLoader loader, final String absolutePath) throws Throwable {
-		final Class jrubyClass = Class.forName(HCJRubyEngine.ORG_JRUBY_EMBED_SCRIPTING_CONTAINER, false, loader);
+	private final void loadNativeLibByClassLoad(final ClassLoader loader, final String absolutePath) throws Throwable {
+		final Class jrubyClass = Class.forName("stub.StubLib", false, loader);//加载native到stub的ClassLoader上，而不是JRubyClassLoader
+		L.V = L.WShop ? false : LogManager.log("successful load class [stub.StubLib].");
+		
 		final Class classLoader = ClassLoader.class;
 		
 //		static void loadLibrary(Class fromClass, String name, boolean isAbsolute)
 		final Class[] paraTypes = {Class.class, String.class, boolean.class};
 		final Object[] para = {jrubyClass, absolutePath, Boolean.TRUE};
 		ClassUtil.invokeWithExceptionOut(classLoader, classLoader, "loadLibrary", paraTypes, para, true);
+		L.V = L.WShop ? false : LogManager.log("successful loadNativeLibByClassLoad : " + absolutePath);
 	}
 	
-	private final void loadLibByScript(final HCJRubyEngine hcje, final String absolutePath) throws Throwable {
+	private final void loadNativeLibByScript(final HCJRubyEngine hcje, final String absolutePath) throws Throwable {
 		final String scripts = "import Java::hc.server.util.JavaLangSystemAgent\n" +
 				"path = \"" + absolutePath + "\"\n" +
 				"JavaLangSystemAgent.load(path)\n";
@@ -617,6 +623,7 @@ public class ProjResponser {
 		//1. 不能在工程级线程中执行，因为目录无权限
 		//2. 必须要用hcje的classloader来加载
 		RubyExector.runAndWaitOnEngine(scripts, "loadNativeLib", null, hcje);
+		L.V = L.WShop ? false : LogManager.log("successful loadNativeLibByScript : " + absolutePath);
 	}
 	
 	public final void initJarMainMenu(){
@@ -1002,6 +1009,24 @@ public class ProjResponser {
 		}
 		
 		return false;
+	}
+
+	static ClassLoader buildStubNativeLibClassLoaderWrapper(final ClassLoader cl) {
+		final String stubLibName;
+		if(ResourceUtil.isAndroidServerPlatform()){
+			stubLibName = "stub.dex.jar";
+		}else{
+			stubLibName = "stub.jar";
+		}
+		
+		final File stubFile = new File(ResourceUtil.getBaseDir(), stubLibName);
+		if(stubFile.exists() == false){
+			final InputStream is = ResourceUtil.getResourceAsStream("hc/res/" + stubLibName);
+			ResourceUtil.saveToFile(is, stubFile);
+		}
+		
+		final File[] files = {stubFile};
+		return PlatformManager.getService().loadClasses(files, cl, true, "stub");
 	}
 
 	public static final boolean bringMletToTop(final J2SESession coreSS, final ProjectContext ctx, final String screenIDLower, final String targetURLLower) {

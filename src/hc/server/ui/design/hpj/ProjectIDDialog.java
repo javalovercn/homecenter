@@ -89,7 +89,7 @@ public class ProjectIDDialog {
 	public static JLabel buildIDTipLabel() {
 		return new JLabel("<html>it is used to identify this project from other when install and upgrade." +
 				"<BR>'root' is system reserved ID." +
-				"<BR>valid char : A-Z, a-z, 0-9, _</html>");
+				"<BR>valid char : A-Z, a-z, 0-9, _ and .</html>");
 	}
 
 }
