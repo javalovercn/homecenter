@@ -21,7 +21,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 public class NativeNodeEditPanel extends NameEditPanel {
-	final VerTextPanel verPanel = new VerTextPanel("native file", true, false);
+	final VerTextPanel verPanel = new VerTextPanel("native file", true, false, false);
 	
 	final JCheckBox cb_window = new JCheckBox("Windows");
 	final JCheckBox cb_linux = new JCheckBox("Linux");
@@ -107,8 +107,8 @@ public class NativeNodeEditPanel extends NameEditPanel {
 			
 			osPanel.add(osListPanel, BorderLayout.CENTER);
 			osPanel.add(new JLabel("<html>" +
-					"1. select the OS that the local library can run.<BR>" +
-					"2. if hosting OS is not selected, the current library will not be loaded in that OS." +
+					"1. select the OS that the library will runs on.<BR>" +
+					"2. if hosting OS is not selected, then the library will not be loaded in that OS." +
 					"</html>"), BorderLayout.SOUTH);
 		}
 		

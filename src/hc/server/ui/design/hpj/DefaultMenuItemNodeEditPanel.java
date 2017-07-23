@@ -1,6 +1,7 @@
 package hc.server.ui.design.hpj;
 
 import hc.core.util.HCURL;
+import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -75,8 +76,7 @@ public class DefaultMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 	@Override
 	public void addTargetURLPanel(){
 		cmd_url_panel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		cmd_url_panel.add(targetLoca);
-		cmd_url_panel.add(targetLocator);
+		cmd_url_panel.add(ResourceUtil.buildFixedWidthPanel(targetLoca, targetLocator));
 		cmd_url_panel.add(testBtn);
 		cmd_url_panel.add(formatBtn);
 		cmd_url_panel.add(scriptBtn);

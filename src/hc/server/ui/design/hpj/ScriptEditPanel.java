@@ -413,13 +413,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			        (KeyStroke) formatAction.getValue(Action.ACCELERATOR_KEY), "formatAction");
 		}
 		testBtn.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + T)" +
-				"<BR>" +
 				"<BR>" + runTip + 
 				"<BR><BR>JRuby compat version : <STRONG>" + HCJRubyEngine.JRUBY_VERSION + "</STRONG>" +
 				"</html>");
 		testBtn.setIcon(Designer.loadImg("test_16.png"));
 		
-		formatBtn.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + F) <BR><BR>format the JRuby script.</html>");
+		formatBtn.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + F) <BR>format the JRuby script.</html>");
 		formatBtn.setIcon(Designer.loadImg(ImageSrc.FORMAT_16_PNG));
 		
 		scriptBtn.addActionListener(new ActionListener() {
@@ -470,7 +469,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				sb.append("\\n\")\n");
 			}
 		});
-		scriptBtn.setToolTipText("<html>1. select scripts in <STRONG>" + JRubyNodeEditPanel.JRUBY_SCRIPT + "</STRONG> panel,<BR>2. click this button,<BR>3. move cursor to where want to insert string code,<BR>4. press paste keys,</html>");
+		scriptBtn.setToolTipText("<html>" +
+				"translate scripts to a string for ProjectContext.<STRONG>eval</STRONG>." +
+				"<BR><BR>Do as following steps :" +
+				"<BR>1. select scripts in <STRONG>" + JRubyNodeEditPanel.JRUBY_SCRIPT + "</STRONG> panel," +
+				"<BR>2. click this button," +
+				"<BR>3. move cursor to where want to insert string," +
+				"<BR>4. press paste keys,</html>");
 		scriptBtn.setIcon(Designer.loadImg("script_16.png"));
 		
 		//		jtaScript.setTabSize(2);

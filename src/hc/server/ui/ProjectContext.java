@@ -623,17 +623,17 @@ public class ProjectContext {
 	/**
 	 * <STRONG>Warning</STRONG> : when in project level it will do nothing.
 	 * <BR><BR>
-	 * go/run target URL by <code>elementID</code>.
+	 * go/run target URL by <code>locator</code>.
 	 * @param scheme one of {@link MenuItem#CMD_SCHEME}, 
 	 * {@link MenuItem#CONTROLLER_SCHEME}, {@link MenuItem#FORM_SCHEME} or {@link MenuItem#SCREEN_SCHEME}.
-	 * @param elementID for example, run scripts of menu item "cmd://myCommand", the scheme is {@linkplain MenuItem#CMD_SCHEME}, and element ID is "myCommand",
+	 * @param locator for example, run scripts of menu item "cmd://myCommand", the scheme is {@linkplain MenuItem#CMD_SCHEME}, and locator is "myCommand",
 	 * @see #goWhenInSession(String)
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.30
 	 */
-	public final void goWhenInSession(final String scheme, final String elementID){		
-		final String target = HCURL.buildStandardURL(scheme, elementID);
-		goWhenInSession(target);
+	public final void goWhenInSession(final String scheme, final String locator){		
+		final String target_url = HCURL.buildStandardURL(scheme, locator);
+		goWhenInSession(target_url);
 	}
 	
 	/**

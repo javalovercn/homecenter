@@ -671,6 +671,8 @@ public class PropertiesManager {
 	    		final FileInputStream inputFile = new FileInputStream(loadFile);
 	            propertie.load(inputFile);
 	            inputFile.close();
+    		}else{
+    			//为新建服务器，创建缺省项
     		}
         } catch (final Throwable ex){
         	ExceptionReporter.printStackTrace(ex);

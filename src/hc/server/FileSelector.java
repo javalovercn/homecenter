@@ -1,5 +1,6 @@
 package hc.server;
 
+import hc.core.util.ExceptionReporter;
 import hc.util.PropertiesManager;
 
 import java.awt.Component;
@@ -7,6 +8,7 @@ import java.io.File;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -102,7 +104,18 @@ public class FileSelector {
 			Thread.sleep(100);//增加延时，否则debug时，不出FileDialog
 		}catch (final Exception e) {
 		}
-		final int ans = (isOpen?chooser.showOpenDialog(parent):chooser.showSaveDialog(parent));
+		final int[] out = {JFileChooser.ERROR_OPTION};
+		try{
+			SwingUtilities.invokeAndWait(new Runnable() {
+				@Override
+				public void run() {
+					out[0] = (isOpen?chooser.showOpenDialog(parent):chooser.showSaveDialog(parent));
+				}
+			});
+		}catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+		final int ans = out[0];
 		if (ans == JFileChooser.APPROVE_OPTION) {
 			PropertiesManager.setValue(PropertiesManager.p_FileChooserDir, 
 					chooser.getCurrentDirectory().getAbsolutePath());

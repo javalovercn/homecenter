@@ -7,6 +7,7 @@ import hc.core.util.ExceptionJSON;
 import hc.core.util.HarHelper;
 import hc.core.util.HarInfoForJSON;
 import hc.core.util.RootBuilder;
+import hc.res.ImageSrc;
 import hc.server.HCActionListener;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.Designer;
@@ -18,13 +19,15 @@ import hc.util.ResourceUtil;
 import hc.util.SocketEditPanel;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Enumeration;
 import java.util.Properties;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -40,9 +43,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 public class ProjectNodeEditPanel extends NameEditPanel {
-	final JPanel idPanel = new JPanel();
 	final JTextField idField = new JTextField();
-	final VerTextPanel verPanel = new VerTextPanel("project", false, true);
+	final VerTextPanel verPanel = new VerTextPanel("project", false, true, true);
 	final JTextField urlField = new JTextField();
 	final JTextField exceptionField = new JTextField();
 	final JButton testExceptionBtn = new JButton("Test Exception Post");
@@ -77,7 +79,6 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 	private final JPanel buildExceptionPanel(){
 		final JPanel exceptionPanel = new JPanel(new BorderLayout());
 		{
-			final JPanel fieldPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 			exceptionField.setColumns(30);
 			exceptionField.getDocument().addDocumentListener(new DocumentListener() {
 				private void modify(){
@@ -103,8 +104,6 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				}
 			});
 			
-			fieldPanel.add(new JLabel("Report exception URL / Email address : "));//注意：请与ProjectContext.printAndReportStackTrace使用描述字段保持一致
-			fieldPanel.add(exceptionField);
 			testExceptionBtn.setToolTipText("<html>" +
 					"post a exception to current URL or email address," +
 					"<BR><BR><STRONG>URL</STRONG> : refresh log to view response (UTF-8 is required). it is very useful to debug the receiving codes." +
@@ -164,9 +163,23 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 					testExceptionBtn.setEnabled(true);
 				}
 			}, threadPoolToken));
-			fieldPanel.add(testExceptionBtn);
 			
-			exceptionPanel.add(fieldPanel, BorderLayout.NORTH);
+			final JPanel tmpPanel = new JPanel(new GridLayout(2, 1));
+			tmpPanel.add(new JLabel("<html><STRONG>Report exception URL / Email address</STRONG> : </html>"));//注意：请与ProjectContext.printAndReportStackTrace使用描述字段保持一致
+			final JPanel flowPanel = new JPanel(new GridBagLayout());
+			final GridBagConstraints c = new GridBagConstraints();
+			c.weightx = 0;
+			c.fill = GridBagConstraints.NONE;
+			flowPanel.add(new JLabel("   "), c);
+			c.weightx = 1;
+            c.fill = GridBagConstraints.HORIZONTAL;
+			flowPanel.add(exceptionField, c);
+			c.weightx = 0;
+			c.fill = GridBagConstraints.NONE;
+			flowPanel.add(testExceptionBtn, c);
+			tmpPanel.add(flowPanel);
+			
+			exceptionPanel.add(tmpPanel, BorderLayout.NORTH);
 			exceptionPanel.add(ResourceUtil.addSpaceBeforePanel(new JLabel("<html>report exception to HAR provider via URL or Email, NOT both. if blank then disable report." +
 					"<BR>for more, please reference API ProjectContext.<STRONG>printAndReportStackTrace</STRONG>(throwable, isCopyToHomeCenter).</html>")),
 					BorderLayout.CENTER);
@@ -182,6 +195,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		
 		{
 			final JButton i18nBtn = new JButton(BaseMenuItemNodeEditPanel.I18N_BTN_TEXT);
+			i18nBtn.setIcon(new ImageIcon(ImageSrc.loadImageFromPath("hc/res/global_16.png")));
 			i18nBtn.setToolTipText(BaseMenuItemNodeEditPanel.buildI18nButtonTip(nameLabel));
 			i18nBtn.addActionListener(new HCActionListener(new Runnable() {
 				@Override
@@ -201,11 +215,11 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 			namePanel.add(i18nBtn);
 		}
 		
-		idPanel.setLayout(new FlowLayout(FlowLayout.LEADING));
-		final JLabel idLabel = new JLabel("Project ID : ");
+		final JPanel idPanle = new JPanel(new GridLayout(2, 1));
+		final JLabel idLabel = new JLabel("<html><STRONG>Project ID</STRONG> : </html>");
 		final JLabel tipLabel = ProjectIDDialog.buildIDTipLabel();
 //		tipLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
-		idPanel.add(idLabel);
+		idPanle.add(idLabel);
 		ProjectIDDialog.buildIDFieldKeyListener(idField);	
 		idField.getDocument().addDocumentListener(new DocumentListener() {
 			private void modify(){
@@ -236,18 +250,29 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 			}
 		}, threadPoolToken));
 		idField.setColumns(20);
-		idPanel.add(idField);
+		{
+			final JPanel grid = new JPanel(new GridBagLayout());
+			final GridBagConstraints c = new GridBagConstraints();
+            c.weightx = 0;
+            c.fill = GridBagConstraints.NONE;
+            grid.add(new JLabel("   "), c);
+            
+            c.weightx = 1;
+            c.fill = GridBagConstraints.HORIZONTAL;
+            grid.add(idField, c);
+            
+            idPanle.add(grid);
+		}
 		
 		final JPanel center = new JPanel(new BorderLayout());
 		{
 			final JPanel compose = new JPanel(new BorderLayout());
-			compose.add(idPanel, BorderLayout.NORTH);
+			compose.add(idPanle, BorderLayout.NORTH);
 			compose.add(ResourceUtil.addSpaceBeforePanel(tipLabel), BorderLayout.CENTER);
 			
 			{
 				final JPanel upgradePanel = new JPanel(new BorderLayout());
 				{
-					final JPanel urlPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 					urlField.setColumns(30);
 					urlField.getDocument().addDocumentListener(new DocumentListener() {
 						private void modify(){
@@ -272,8 +297,6 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 						}
 					});
 					final String upgradeURL = "Upgrade URL";
-					urlPanel.add(new JLabel(upgradeURL + " : "));
-					urlPanel.add(urlField);
 					testHADBtn.addActionListener(new HCActionListener(new Runnable() {
 						@Override
 						public void run() {
@@ -312,12 +335,27 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 							}
 						}
 					}, threadPoolToken));
-					urlPanel.add(testHADBtn);
 					
-					upgradePanel.add(urlPanel, BorderLayout.NORTH);
+					final JPanel panel = new JPanel(new GridLayout(2, 1));
+					panel.add(new JLabel("<html><STRONG>" + upgradeURL + "</STRONG> : </html>"));
+					
+					final JPanel grid = new JPanel(new GridBagLayout());
+					final GridBagConstraints c = new GridBagConstraints();
+					c.weightx = 0;
+			        c.fill = GridBagConstraints.NONE;
+			        grid.add(new JLabel("   "), c);
+					c.weightx = 1;
+			        c.fill = GridBagConstraints.HORIZONTAL;
+			        grid.add(urlField, c);
+					c.weightx = 0;
+			        c.fill = GridBagConstraints.NONE;
+			        grid.add(testHADBtn, c);
+			        panel.add(grid);
+					
+					upgradePanel.add(panel, BorderLayout.NORTH);
 					upgradePanel.add(ResourceUtil.addSpaceBeforePanel(new JLabel("<html>the auto upgrade URL of new version of current project, to disable upgrade, please keep blank." +
-							"<br><br>for example, <strong>http://example.com/dir_or_virtual/tv.had</strong> , <strong>NOTE:</strong> it is <strong>had</strong> file, not <strong>har</strong> file." +
-							"<br>please put both <strong>tv.har</strong>, <strong>tv.had</strong> in directory <strong>dir_or_virtual</strong> for download." +
+							"<br><br>for example, http://example.com/dir_or_virtual/tv.had , NOTE: it is <strong>had</strong> file, not <strong>har</strong> file." +
+							"<br>please put both tv.har, tv.had in directory dir_or_virtual for download." +
 							"<br><br><strong>had</strong> file provides version information which is used to determine upgrade or not." +
 							"<br>click <strong>" + Designer.SAVE_AS_TEXT + "</strong> button, <strong>had</strong> file is automatically created with <strong>har</strong> if <strong>" + upgradeURL + "</strong> is not blank." +
 							"<br><br>for more about server, see user-agent of HTTP/HTTPS request log." +
@@ -398,13 +436,13 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 						new JSeparator(SwingConstants.HORIZONTAL),
 						buildExceptionPanel(),
 						new JSeparator(SwingConstants.HORIZONTAL),
-						buildItemPanel(desc, "Description : ", 30),
+						buildItemPanel(desc, "<html><STRONG>Description</STRONG> : </html>", 30),
 						new JSeparator(SwingConstants.HORIZONTAL),
-						buildItemPanel(license, "Text license URL for current project : ", 30),
+						buildItemPanel(license, "<html><STRONG>License URL</STRONG> : </html>", 30),
 						new JSeparator(SwingConstants.HORIZONTAL),
-						buildItemPanel(contact, "Contact : ", 30),
+						buildItemPanel(contact, "<html><STRONG>Contact</STRONG> : </html>", 30),
 						new JSeparator(SwingConstants.HORIZONTAL),
-						buildItemPanel(copyright, "Copyright : ", 30)};
+						buildItemPanel(copyright, "<html><STRONG>Copyright</STRONG> : </html>", 30)};
 				final JPanel buildNorthPanel = ServerUIUtil.buildNorthPanel(listPanels, 0, BorderLayout.CENTER);
 
 				center.add(buildNorthPanel, BorderLayout.CENTER);
@@ -668,12 +706,23 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		perm_sock_panel.refresh(csc);
 	}
 	
-	private JPanel buildItemPanel(final JTextField field, final String label, final int colNum){
+	private final JPanel buildItemPanel(final JTextField field, final String label, final int colNum){
 		field.setColumns(colNum);
 		
-		final JPanel tmpPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+		final JPanel tmpPanel = new JPanel(new GridLayout(2, 1));
 		tmpPanel.add(new JLabel(label));
-		tmpPanel.add(field);
+		
+		final JPanel grid = new JPanel(new GridBagLayout());
+		final GridBagConstraints c = new GridBagConstraints();
+		c.weightx = 0;
+        c.fill = GridBagConstraints.NONE;
+        grid.add(new JLabel("   "), c);
+        
+		c.weightx = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        grid.add(field, c);
+        
+		tmpPanel.add(grid);
 		
 		return tmpPanel;
 	}

@@ -1,10 +1,12 @@
 package hc.server.ui.design.hpj;
 
 import hc.App;
+import hc.core.ContextManager;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.ThreadPriorityManager;
 import hc.core.util.UIUtil;
+import hc.res.ImageSrc;
 import hc.server.FileSelector;
 import hc.server.HCActionListener;
 import hc.server.ui.ServerUIUtil;
@@ -61,7 +63,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 	};
 	protected JLabel errCommandTip = new JLabel();
 	private final JLabel iconLabel = new JLabel();
-	protected final JButton browIconBtn = new JButton("Change Icon [" + UIUtil.ICON_MAX + " X " + UIUtil.ICON_MAX + "]");
+	protected final JButton browIconBtn = new JButton("Icon [" + UIUtil.ICON_MAX + " X " + UIUtil.ICON_MAX + "]...");
 	protected final ImageIcon sys_icon = Designer.loadImg("hc_" + UIUtil.ICON_DESIGN_SHOW_SIZE + ".png");
 	final JPanel jtascriptPanel = new JPanel();
 	final JLabel targetLoca = new JLabel(HPMenuItem.TARGET_LOCATOR + " :");
@@ -139,6 +141,9 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 		errCommandTip.setVisible(false);
 		errCommandTip.setForeground(Color.RED);
 		
+		targetLoca.setToolTipText("<html>it is used for API to go to / open this item from other item." +
+				"<BR><BR>" +
+				"see <STRONG>ProjectContext.goWhenInSession</STRONG> for more.</html>");
 		targetLocator.setColumns(20);
 		targetLocator.setFocusLostBehavior(JFormattedTextField.COMMIT);
 		targetLocator.getDocument().addDocumentListener(new DocumentListener() {
@@ -230,24 +235,30 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 						if(UIUtil.SYS_DEFAULT_ICON.equals(base64)){
 							return;
 						}
-						File file = FileSelector.selectImageFile(iconLabel, FileSelector.PNG_FILTER, false);
-						if(file == null){
-							return;
-						}
-						final String extPNG = ".png";
-						if(file.toString().endsWith(extPNG)){
-						}else{
-							file = new File(file.getPath() + extPNG);
-						}
 						
-						try {
-							if(ImageIO.write(ServerUIUtil.base64ToBufferedImage(base64), "png", file)){
-								App.showMessageDialog(designer, "Successful save icon to file!", ResourceUtil.getInfoI18N(), JOptionPane.INFORMATION_MESSAGE, App.getSysIcon(App.SYS_INFO_ICON));
-								return;
+						ContextManager.getThreadPool().run(new Runnable() {
+							@Override
+							public void run() {
+								File file = FileSelector.selectImageFile(iconLabel, FileSelector.PNG_FILTER, false);
+								if(file == null){
+									return;
+								}
+								final String extPNG = ".png";
+								if(file.toString().endsWith(extPNG)){
+								}else{
+									file = new File(file.getPath() + extPNG);
+								}
+								
+								try {
+									if(ImageIO.write(ServerUIUtil.base64ToBufferedImage(base64), "png", file)){
+										App.showMessageDialog(designer, "Successful save icon to file!", ResourceUtil.getInfoI18N(), JOptionPane.INFORMATION_MESSAGE, App.getSysIcon(App.SYS_INFO_ICON));
+										return;
+									}
+								}catch (final Throwable ex) {
+								}
+								App.showMessageDialog(designer, "fail to write image file!", ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 							}
-						}catch (final Throwable ex) {
-						}
-						App.showMessageDialog(designer, "fail to write image file!", ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+						}, threadPoolToken);
 					}
 				}
 			});
@@ -256,10 +267,13 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 		}
 		
 		localnamePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		localnamePanel.add(new JLabel(displayName + " :"));
 		nameField.setColumns(10);
-		localnamePanel.add(nameField);
-		browIconBtn.setToolTipText("All icons of items should be same size, if they are 64, please choose 64 X 64.");
+		localnamePanel.add(ResourceUtil.buildFixedWidthPanel(new JLabel(displayName + " :"), nameField));
+		browIconBtn.setIcon(Designer.loadImg("hc_16.png"));
+		browIconBtn.setToolTipText("<html>" +
+				"change menu item icon." +
+				"<BR>" +
+				"all icons of items are recommended to be same size, if they are 64, please choose 64 X 64.</html>");
 		browIconBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -292,6 +306,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 		
 		{
 			final JButton i18nBtn = new JButton(I18N_BTN_TEXT);
+			i18nBtn.setIcon(new ImageIcon(ImageSrc.loadImageFromPath("hc/res/global_16.png")));
 			i18nBtn.setToolTipText(buildI18nButtonTip(displayName));
 			i18nBtn.addActionListener(new HCActionListener(new Runnable() {
 				@Override

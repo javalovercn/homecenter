@@ -43,6 +43,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
@@ -121,6 +123,24 @@ public class ResourceUtil {
 			starterClass = loadClass(StarterManager.CLASSNAME_STARTER_STARTER, false);
 		}
 		return starterClass;
+	}
+	
+	public static JPanel buildFixedWidthPanel(final JLabel label, final JComponent comp){
+		final JPanel grid = new JPanel(new GridBagLayout());
+		final GridBagConstraints c = new GridBagConstraints();
+		
+		c.weightx = 0;
+        c.fill = GridBagConstraints.NONE;
+        grid.add(label, c);
+        
+		c.weightx = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        grid.add(comp, c);
+        
+        final Dimension dimen = grid.getPreferredSize();
+        dimen.width = dimen.height * 10;
+        grid.setPreferredSize(dimen);
+        return grid;
 	}
 	
 	public static void printStackTrace(final Throwable t){

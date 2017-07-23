@@ -232,7 +232,8 @@ public class CodeHelper {
 		"to_s", "to_str", "tr(from_str, to_str)", "tr!(from_str, to_str)", "tr_s(from_str, to_str)", "tr_s!(from_str, to_str)",
 		"unpack(format)", "upcase", "upcase!", "upto(other_str)"};
 	
-	private static final Class[] rubyClass = {String.class};
+	static final Class j2seStringClass = String.class;
+	private static final Class[] rubyClass = {j2seStringClass};
 	
 	public static final boolean isRubyClass(final Class c){
 		for (int i = 0; i < rubyClass.length; i++) {

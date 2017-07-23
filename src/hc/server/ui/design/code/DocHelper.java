@@ -14,6 +14,7 @@ import hc.util.HttpUtil;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
@@ -32,6 +33,7 @@ import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.html.HTML;
@@ -76,24 +78,73 @@ public class DocHelper {
 	static final String strongRule = ".strong { font-weight:bold; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
 	static final String aRule = "a { font-family:Dialog, Arial, Helvetica, sans-serif; text-decoration:underline; color:blue; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
 	static final String codeRule = "code { font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
+	static final String preRule = "pre { font-weight:bold; font-family:Dialog, Arial, Helvetica, sans-serif; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
+	static final String background_color = "#FAFBC5";
+	static final Color bg_color = Color.decode(background_color);
 	
 	private JFrame codeFrame;
 	private DocLayoutLimit layoutLimit;
 	private final JEditorPane docPane = new JEditorPane();
-	private final JScrollPane scrollPanel = new JScrollPane(docPane);
+	private final JScrollPane scrollPanel = new JScrollPane(docPane);//不能使用NEVER，因为内容可能含图片
 	private final JFrame docFrame = new JFrame("");
 	public final CodeHelper codeHelper;
 	public boolean isForMouseOverTip;
 	public int mouseOverX, mouseOverY, mouseOverFontHeight;
 	private CodeItem currItem;
+	boolean isEntered = false;
+
+	private final HCTimer readyMouseExitTimer = new HCTimer("", HCTimer.HC_INTERNAL_MS * 2, false) {
+		@Override
+		public void doBiz() {
+			isEntered = false;
+			codeHelper.notifyUsingByDoc(false);
+			setEnable(false);
+		}
+	};
+	
+	private final void disableReadyMouseExitTimer(){
+		readyMouseExitTimer.setEnable(false);
+	}
+	
+	private final void enableReadyMouseExitTimer(){
+		readyMouseExitTimer.resetTimerCount();
+		readyMouseExitTimer.setEnable(true);
+	}
 	
 	DocHelper(final CodeHelper codeHelper, final CodeWindow codeWindow) {
 		this.codeHelper = codeHelper;
 		
 		docPane.addKeyListener(codeWindow.keyListener);
-		
+		docPane.setBorder(new EmptyBorder(4, 4, 4, 4));
+		docPane.setBackground(bg_color);
 		docPane.setContentType("text/html");
 	    final StyleSheet styleSheet = ((HTMLDocument)docPane.getDocument()).getStyleSheet();
+	    final MouseListener scrollBarListener = new MouseListener() {
+			@Override
+			public void mouseReleased(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mousePressed(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mouseExited(final MouseEvent e) {
+				enableReadyMouseExitTimer();
+			}
+			
+			@Override
+			public void mouseEntered(final MouseEvent e) {
+				disableReadyMouseExitTimer();
+			}
+			
+			@Override
+			public void mouseClicked(final MouseEvent e) {
+			}
+		};
+		scrollPanel.getHorizontalScrollBar().addMouseListener(scrollBarListener);
+		scrollPanel.getVerticalScrollBar().addMouseListener(scrollBarListener);
+		
 		docPane.addMouseListener(new MouseListener() {
 			@Override
 			public void mouseReleased(final MouseEvent e) {
@@ -105,12 +156,16 @@ public class DocHelper {
 			
 			@Override
 			public void mouseExited(final MouseEvent e) {
-				codeHelper.notifyUsingByDoc(false);
+				enableReadyMouseExitTimer();
 			}
 			
 			@Override
 			public void mouseEntered(final MouseEvent e) {
-				codeHelper.notifyUsingByDoc(true);
+				if(isEntered == false){
+					codeHelper.notifyUsingByDoc(true);
+					isEntered = true;
+				}
+				disableReadyMouseExitTimer();
 			}
 			
 			final HTMLDocument hDoc = (HTMLDocument)docPane.getDocument();
@@ -201,6 +256,9 @@ public class DocHelper {
 						}
 						
 						final String fmClass = href.substring(classStartIdx, classEndIdx).replace('/', '.');
+						if(fmClass.equals(CodeHelper.j2seStringClass.getName())){
+							return;
+						}
 						
 						String fieldOrMethodName = CLASS_DESC;
 						final int methodSplitIdx = href.indexOf(methodSpliter, classEndIdx);
@@ -254,6 +312,7 @@ public class DocHelper {
 		styleSheet.addRule(bodyRule);
 		styleSheet.addRule(strongRule);
 		styleSheet.addRule(aRule);
+		styleSheet.addRule(preRule);
 		styleSheet.addRule(codeRule);
 		
 		docPane.setEditable(false);
@@ -328,6 +387,7 @@ public class DocHelper {
 	
 	public final void release(){
 		docFrame.dispose();
+		HCTimer.remove(readyMouseExitTimer);
 	}
 	
 	public final boolean isShowing(){
@@ -418,7 +478,7 @@ public class DocHelper {
 	}
 	
 	private final void loadDoc(final String doc) {
-		docPane.setText("<html><body style=\"background-color:#FAFBC5\">" + doc +"</body></html>");
+		docPane.setText("<html><body style=\"background-color:" + background_color + "\">" + doc +"</body></html>");
 	}
 
 	public static void processDoc(final CodeHelper codeHelper, final Class c, final boolean processInDelay){
@@ -457,7 +517,7 @@ public class DocHelper {
 //		System.out.println("-----processDocForOneLevel : " + claz.getName());
 
 		if(CodeHelper.isRubyClass(c)){
-			if(clasName.equals(String.class.getName())){
+			if(clasName.equals(CodeHelper.j2seStringClass.getName())){
 				read(codeHelper, true, clasName, ResourceUtil.getResourceAsStream("hc/res/docs/ruby/RubyString2_2_0.htm"));
 			}
 			return;
@@ -647,6 +707,7 @@ public class DocHelper {
 		final Matcher matchFieldOrMethodName = fieldOrMethodNamePattern.matcher(item);
 		if(matchFieldOrMethodName.find()){
 			String fieldOrMethodName = matchFieldOrMethodName.group(1);
+			final String fieldOrMethodNameWithBR = "<pre>" + fieldOrMethodName + "</pre><BR>";
 			fieldOrMethodName = jianKuoHao.matcher(fieldOrMethodName).replaceAll("");
 			fieldOrMethodName = generics_e_type.matcher(fieldOrMethodName).replaceAll("");
 			fieldOrMethodName = generics_e_to_object_pattern.matcher(fieldOrMethodName).replaceAll("Object");
@@ -697,7 +758,7 @@ public class DocHelper {
 //					System.out.println(apiDoc + "\n\n");
 //				}
 				//getFreeMessage(String)
-				docMap.put(fieldOrMethodName, apiDoc);
+				docMap.put(fieldOrMethodName, fieldOrMethodNameWithBR + apiDoc);
 			}
 		}
 	}

@@ -274,6 +274,10 @@ public abstract class HCTimer {
 			}
 		}
 	}
+	
+	public final void remove(){
+		remove(this);
+	}
 
 	/**
 	 * 删除时，会将enable置于false。

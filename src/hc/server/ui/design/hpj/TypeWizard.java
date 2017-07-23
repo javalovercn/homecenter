@@ -95,7 +95,7 @@ public class TypeWizard {
 		type = 0;
 		wizardEnd = null;
 		
-		final JDialog dialog = new HCJDialog(owner, "select menu type", true);
+		final JDialog dialog = new HCJDialog(owner, "Add Menu Item Type", true);
 		final ButtonGroup buttonGroup = new ButtonGroup();
 		final JPanel panel = new JPanel(new GridLayout(1, HPNode.WIZARD_SELECTABLE_MENU_ITEM_SIZE));
 		panel.setBorder(new TitledBorder("Select Menu Item Type:"));
@@ -111,9 +111,9 @@ public class TypeWizard {
 				HPNode.TYPE_MENU_ITEM_IOT};
 		final String[] icons = {"form_22.png", "controller_22.png", "cmd_22.png", "screen_22.png", "iot_22.png"};
 		final String desc = "<html>" +
-				"<STRONG>form</STRONG> : Mlet/HTMLMlet contains J2SE Swing JComponents.<BR><BR>" +
+				"<STRONG>form</STRONG> : Mlet/HTMLMlet is implemented by J2SE Swing JComponents.<BR><BR>" +
 				"<STRONG>controller</STRONG> : a controller of smart device on mobile.<BR><BR>" +
-				"<STRONG>cmd</STRONG> : run JRuby script or executable command on server; or enter configration form of mobile; or exit/back menu item.<BR><BR>" +
+				"<STRONG>cmd</STRONG> : run JRuby script or executable command on server; or open configration form of mobile; or exit/back.<BR><BR>" +
 				"<STRONG>screen</STRONG> : display desktop of current server on mobile.<BR><BR>" +
 				"<STRONG>IoT</STRONG> : device, converter, or robot (coordinate zero or multiple devices) for IoT." +
 				"</html>";
@@ -168,9 +168,9 @@ public class TypeWizard {
 						//cmd - My Command "do some response biz in server side when current item is clicked from mobile side");
 						final String[] subItems = {"command", HCURL.DATA_CMD_EXIT, HCURL.DATA_CMD_CONFIG};
 						final String[] desc = {
-								"run a JRuby script in server side when current item is clicked from mobile side",
-								"exit current menu and return to parent menu or exit",
-								"enter mobile config panel in mobile side when current item is clicked."
+								"running JRuby script in server side by clicking it from mobile menu.",
+								"return to root menu or exit client.",
+								"open mobile configration panel by clicking it from mobile menu."
 								};
 						selectSub(owner, ok, subItems, desc);
 					}else if(type == HPNode.TYPE_MENU_ITEM_FORM){
@@ -178,10 +178,10 @@ public class TypeWizard {
 						//screen -Mlet "<html>Mlet Screen is a panel in mobile side for dispaly and controlling status of PC side, <BR>which is instance from java class and JRuby in PC side.</html> ");
 						final String[] subItems = {"HTMLMlet", "Mlet"};
 						final String[] desc = {
-								"a HTML panel is in mobile side to display and control status, which runs in server side." +
-								"<BR>ScriptPanel is suppored in it.",
-								"a snapshot panel is in mobile side for display and controlling status, which runs in server side." +
-								"<BR>ScriptPanel is <STRONG>NOT</STRONG> suppored in it."
+								"a HTML panel display and control status  in mobile side, which runs in server side." +
+								"<BR>adding ScriptPanel in it is allowed.",
+								"a snapshot panel display and controlling status in mobile side, which runs in server side." +
+								"<BR>adding ScriptPanel in it is <STRONG>NOT</STRONG> allowed."
 								};
 						selectSub(owner, ok, subItems, desc);
 					}else if(type == HPNode.TYPE_MENU_ITEM_IOT){
@@ -246,7 +246,7 @@ public class TypeWizard {
 			_panel.add(panel, BorderLayout.NORTH);
 			{
 				final JPanel _subPanel = new JPanel(new BorderLayout());
-				_subPanel.add(new JLabel("Description:"), BorderLayout.NORTH);
+				_subPanel.add(new JLabel("Description :"), BorderLayout.NORTH);
 				final JPanel _desc = new JPanel(new BorderLayout());
 				_desc.add(new JLabel(desc), BorderLayout.CENTER);
 				_desc.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
@@ -377,7 +377,7 @@ public class TypeWizard {
 			_panel.add(panel, BorderLayout.NORTH);
 			{
 				final JPanel _subPanel = new JPanel(new BorderLayout());
-				_subPanel.add(new JLabel("Description:"), BorderLayout.NORTH);
+				_subPanel.add(new JLabel("Description :"), BorderLayout.NORTH);
 				final JPanel _desc = new JPanel(new BorderLayout());
 				_desc.add(new JLabel(descs), BorderLayout.CENTER);
 				_desc.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
@@ -444,9 +444,9 @@ public class TypeWizard {
 		
 		final String[] subItems = {HCURL.DATA_IOT_ROBOT, HCURL.DATA_IOT_CONVERTER, HCURL.DATA_IOT_DEVICE};
 		final String[] desc = {
-				"real robot or smart module to control one or multiple devices.",
-				"converter message format between device and robot, if device is NOT standard to robot.",
-				"drive the real device and controlled by robot only."
+				"real robot or AI module, which controls one or multiple devices.",
+				"convert message between device and robot, if device is NOT supported by robot directly.",
+				"drive the real device and controlled by robot."
 				};
 		selectSub(owner, relativeTo, subItems, desc);
 	}

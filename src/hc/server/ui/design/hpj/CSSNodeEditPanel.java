@@ -145,11 +145,11 @@ public class CSSNodeEditPanel extends NameEditPanel {
 	private final JLabel tipCssLabel = new JLabel("<html>" +
 			"1. if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect permission or disable limit socket/connect." +
 			"<BR>" +
-			"2. all above will be loaded automatically to all HTMLMlet/Dialog(s) in current project by server." +
+			"2. all above will be loaded automatically to all HTMLMlet/Dialog(s) of current project by server." +
 			"<BR>" +
-			"3. if you want special styles, please invoke <STRONG>loadCSS</STRONG>." +
+			"3. if you want special styles, please invoke <STRONG>loadCSS</STRONG> in HTMLMlet/Dialog." +
 			"<BR>" +
-			"4. to get CSS (2.2) properties or variables, please press shortcut keys for word completion." +
+			"4. for get CSS (2.2) properties or variables, please press shortcut keys for word completion." +
 			"</html>");
 	
 	CSSUndoableEditListener cssUndoListener;
@@ -501,7 +501,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 		
 		cssDocument = cssEditPane.getDocument();
 		
-		tipCssLabel.setBorder(new TitledBorder("Tip :"));
+		tipCssLabel.setBorder(new TitledBorder("Description :"));
 		cssPanel.setLayout(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
 		
 		if(IDArrayGroup.checkAndAdd(IDArrayGroup.MSG_CSS_NOTE)){
@@ -518,7 +518,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			tmpPanel.add(cssScrollPane, BorderLayout.CENTER);
 			
 			final JPanel toolPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-			toolPanel.setBorder(new TitledBorder(""));
+//			toolPanel.setBorder(new TitledBorder(""));
 			toolPanel.add(formatBtn);
 			toolPanel.add(commentBtn);
 			editToolPane.add(toolPanel, BorderLayout.NORTH);

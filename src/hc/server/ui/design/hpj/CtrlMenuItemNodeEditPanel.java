@@ -6,6 +6,7 @@ import hc.server.HCActionListener;
 import hc.server.ui.CtrlResponse;
 import hc.server.ui.design.hpj.ctrl.CtrlTotalPanel;
 import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -132,8 +133,7 @@ public class CtrlMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 	@Override
 	public void addTargetURLPanel(){
 		cmd_url_panel.setLayout(new FlowLayout(FlowLayout.LEFT));
-		cmd_url_panel.add(targetLoca);
-		cmd_url_panel.add(targetLocator);
+		cmd_url_panel.add(ResourceUtil.buildFixedWidthPanel(targetLoca, targetLocator));
 		cmd_url_panel.add(errCommandTip);
 	}
 

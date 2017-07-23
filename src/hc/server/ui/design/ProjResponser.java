@@ -684,7 +684,7 @@ public class ProjResponser {
 							fos.flush();
 							fos.close();
 							
-							LogManager.log("successful save native lib idx : " + idx);
+							L.V = L.WShop ? false : LogManager.log("successful save native lib idx : " + idx);
 						}catch (final Throwable e) {
 							LogManager.errToLog("fail to save native lib idx : " + idx);
 							ExceptionReporter.printStackTrace(e);

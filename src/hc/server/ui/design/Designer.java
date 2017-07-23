@@ -144,6 +144,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 public class Designer extends SingleJFrame implements IModifyStatus, BindButtonRefresher{
+	public static final String MENU = "Menu";
 	private static final String PWD_DEV_CERT = "password of developer certificates";
 	public static final String DESC_PASSWORD_OF_DEVELOPER_CERTIFICATE = "the " + PWD_DEV_CERT + ".<BR>it is NOT the password for mobile connection.";
 	public static final int COLUMNS_PWD_DEV_CERT = 15;
@@ -833,7 +834,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				HCjar.initMap(map);
 				map.put(HCjar.MENU_NUM, "1");
 				map.put(HCjar.MAIN_MENU_IDX_PRE, "0");
-				map.put(HCjar.replaceIdxPattern(HCjar.MENU_NAME, 0), "my menu");
+				map.put(HCjar.replaceIdxPattern(HCjar.MENU_NAME, 0), MENU);
 				map.put(HCjar.replaceIdxPattern(HCjar.MENU_COL_NUM, 0), "0");
 				map.put(HCjar.replaceIdxPattern(HCjar.MENU_ID, 0), HCURL.ROOT_MENU);				
 				
@@ -869,14 +870,17 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				"</html>");
 		toolbar.add(addItemButton);
 		
-		saveButton.setToolTipText("<html>save current modified project to disk ("+ResourceUtil.getAbstractCtrlKeyText()+" + S)." +
+		saveButton.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + S)" +
+				"<BR>save current modified project to disk." +
 				"<BR><BR>current project will be the default editing project." +
 //				"<BR><BR>Tip : Saving has no effect on a deployed project(which is maybe using by mobile)." +
 //				"<BR><BR>Note : only one project is edited at same time." +
 				"</html>");
 		toolbar.add(saveButton);
 		
-		activeButton.setToolTipText("<html>after click activate, current project will be active and menu will be displayed to mobile ("+ResourceUtil.getAbstractCtrlKeyText()+" + D)." +
+		activeButton.setToolTipText("<html>" +
+				"("+ResourceUtil.getAbstractCtrlKeyText()+" + D)" +
+				"<BR>after click activate, current project will be active and menu will be displayed to mobile." +
 				"<BR><BR><STRONG>Note :</STRONG><BR>if the project is modified, please <STRONG>re-activate</STRONG> it with this button." +
 				"</html>");
 		{
@@ -1383,7 +1387,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 //		toolbar.addSeparator();
 		
 		final JPanel treePanel = new JPanel();
-		treePanel.setBorder(new TitledBorder("Menu Tree :"));
+		treePanel.setBorder(new TitledBorder("Item Tree :"));
 		final JScrollPane scrollPane = new JScrollPane(tree);
 		treePanel.setLayout(new BorderLayout());
 		treePanel.add(scrollPane, BorderLayout.CENTER);
