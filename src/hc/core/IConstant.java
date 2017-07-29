@@ -118,6 +118,8 @@ public abstract class IConstant {
 	public static final String ON = "on";
 	public static final String OFF = "off";
 	
+	public static final boolean IS_ENABLE_FUNC = false;
+	
 	public abstract int getInt(String p);
 	
 	public abstract Object getObject(String p);

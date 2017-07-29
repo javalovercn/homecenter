@@ -155,7 +155,7 @@ public class PropertiesManager {
 	public static final String p_WindowWidth = "_ww";
 	public static final String p_WindowHeight = "_wh";
 	
-	public static final String p_isNonUIServer = "isNonUIServer";//for Non-UI demo server, for example No-X11 CentOS
+	public static final String p_isNonUIServer = "isNonUIServer";//for Non-UI server, for example No-X11 CentOS
 	public static final String p_NonUIServerIP = "NonUIServerIP";
 	
 	public static final String p_isDemoServer = "isDemoServer";

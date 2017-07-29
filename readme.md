@@ -7,15 +7,15 @@ the full codes are following : (Do you like JavaScript? [ScriptPanel](http://hom
 ```JRuby
 #encoding:utf-8
 
+import java.awt.BorderLayout
+import java.awt.GridLayout
+import java.awt.Dimension
+import java.net.URL
+import javax.imageio.ImageIO
 import javax.swing.JButton
 import javax.swing.JTextArea
 import javax.swing.JPanel
-import java.awt.BorderLayout
-import java.awt.GridLayout
 import javax.swing.ImageIcon
-import java.net.URL
-import java.awt.Dimension
-import javax.imageio.ImageIO
 import javax.swing.SwingConstants
 import Java::hc.server.ui.ProjectContext
 
@@ -167,7 +167,7 @@ global CSS for current project :
 ### Demo Account
 1. download client mobile App from https://github.com/javalovercn/client
 2. when first open mobile app, click "Demo ID" in login form, or input account : 012345，password : 012345
-3. to run server with your account, please run this source codes or [binary distribution](https://github.com/javalovercn/hc_server_dist)
+3. to build server with your own account or customer, please run this source codes or [binary distribution](https://github.com/javalovercn/hc_server_dist)
 
 ***
 ### Main Features of server
@@ -176,7 +176,7 @@ global CSS for current project :
 2. double click to run, no configuration.
 3. scan QRcode from mobile to download and load HAR (home archive) project on server, plug and play, it is not required to restart server.
 4. focus your business and UI with Java J2SE technology, the rest of work are ours.
-5. the component HTMLMlet (the sample above) will be translated to HTML5+JavaScript+CSS for Android/iPhone mobile client on air.
+5. the component HTMLMlet (the sample above) will be translated to HTML5+JavaScript+CSS for Android/iPhone mobile client on air, translate user inputs to J2SE Event and dispatch to listener.
 6. built-in lucene analysis HTMLMlet background, according to the most suitable form for voice.
 7. built-in Quartz job scheduler.
 8. build-in HSQLDB database.

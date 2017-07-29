@@ -127,7 +127,7 @@ public class StarterManager {//注意：本类的getHCVersion被starter.jar反�
 		
 		//客户端对服务器最低版本要求，在J2MEContext.miniHCServerVer
 		
-		return "7.68";//请同步修改go.php, android.php
+		return "7.69";//请同步修改go.php, android.php
 	}
 
 }

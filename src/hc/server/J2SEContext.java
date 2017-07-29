@@ -729,10 +729,14 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			if(bizNo == IContext.BIZ_SERVER_AFTER_CERTKEY_AND_PWD_PASS){
 			}else if(bizNo == IContext.BIZ_SERVER_AFTER_CERTKEY_ERROR){
 				doAfterCertKeyError(coreSS, hcConnection);
-				RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_CertErr_STR);
+				if(IConstant.IS_ENABLE_FUNC){
+					RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_CertErr_STR);
+				}
 			}else if(bizNo == IContext.BIZ_SERVER_AFTER_PWD_ERROR){
 				doAfterPwdError(coreSS);
-				RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_pwdErr_STR);
+				if(IConstant.IS_ENABLE_FUNC){
+					RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_pwdErr_STR);
+				}
 			}
 		}else{
 			if(bizNo == IContext.BIZ_SERVER_AFTER_CERTKEY_AND_PWD_PASS){
