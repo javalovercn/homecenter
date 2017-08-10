@@ -142,5 +142,8 @@ public class UIUtil {
 	
 	//colors.xml / ui_color_white
 	public static final int TXT_FONT_COLOR_INT_FOR_ANDROID = 0xFFF0F0F0;
+	
+	//colors.xml / ui_color_darkgray
+	public static final int TXT_DISABLE_FONT_COLOR_INT_FOR_ANDROID = 0xFFA9A9A9;
 
 }

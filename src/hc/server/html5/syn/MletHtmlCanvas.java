@@ -20,6 +20,7 @@ import hc.server.ui.IMletCanvas;
 import hc.server.ui.Mlet;
 import hc.server.ui.MletSnapCanvas;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.ScriptCSSSizeHeight;
 import hc.server.ui.ScriptPanel;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.J2SESession;
@@ -117,7 +118,7 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		}
 		
 		if(ResourceUtil.isSystemMletOrDialog(mlet)){
-			//系统级Mlet，Dialog不加载
+			//系统级Mlet，和系统级Dialog不加载
 		}else{
 			final ProjResponser projResponser = ServerUIAPIAgent.getProjResponserMaybeNull(projectContext);
 			if(projResponser != null){
@@ -125,7 +126,8 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 				final String dftStyles = (String)projResponser.map.get(HCjar.PROJ_STYLES);
 				final String defaultStyles = (dftStyles==null?"":dftStyles.trim());//AddHAR可能出现null
 				if(defaultStyles.length() > 0){
-					final String replaceVariable = StyleManager.replaceVariable(coreSS, defaultStyles, mlet, projectContext);
+					final ScriptCSSSizeHeight sizeHeight = ServerUIAPIAgent.getScriptCSSSizeHeight(mlet);
+					final String replaceVariable = StyleManager.replaceVariable(coreSS, defaultStyles, sizeHeight, projectContext);
 	//				LogManager.log(replaceVariable);
 					differTodo.loadStyles(replaceVariable, true);
 				}

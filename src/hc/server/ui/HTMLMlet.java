@@ -92,7 +92,7 @@ public class HTMLMlet extends Mlet {
 	 * for more, see {@link #setCSS(JComponent, String, String)}.
 	 * <BR><BR>
 	 * <STRONG>Important :</STRONG><BR>
-	 * the CSS box model is <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a> default (quirks mode), NOT the w3c <code>content-box</code>.<BR>
+	 * CSS box model of HomeCenter is <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a> default (quirks mode), NOT the w3c <code>content-box</code>.<BR>
 	 * most browsers use a DOCTYPE to decide whether to handle it in quirks mode or standards mode, so there is no DOCTYPE in HTML.
 	 * @param component the JComponent to set style.
 	 * @param className the class name of styles defined <i>Resources/CSS Styles</i> in designer or {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for clear.
@@ -150,7 +150,7 @@ public class HTMLMlet extends Mlet {
 	 * it is allowed to invoke this method in constructor of {@link HTMLMlet}.
 	 * <BR><BR>
 	 * <STRONG>Important :</STRONG><BR>
-	 * the CSS box model is <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a> default (quirks mode), NOT the w3c <code>content-box</code>.<BR>
+	 * CSS box model of HomeCenter is <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a> default (quirks mode), NOT the w3c <code>content-box</code>.<BR>
 	 * most browsers use a DOCTYPE to decide whether to handle it in quirks mode or standards mode, so there is no DOCTYPE in HTML.
 	 * <BR><BR>
 	 * Network connection permission : <BR>

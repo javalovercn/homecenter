@@ -73,7 +73,22 @@ public class ExitManager {
 		L.V = L.WShop ? false : LogManager.log("GECD waitForAllDone OK!");
 		ServerUIUtil.promptAndStop(false, null);//会stopAllSession
 		//注意：AI manager永久使用连接，所以只能此处进行关闭
-		DatabaseManager.closeDatabases(Database.CLOSEMODE_NORMAL);
+		try{
+			DatabaseManager.closeDatabases(Database.CLOSEMODE_NORMAL);
+		}catch (final Throwable e) {
+			e.printStackTrace();
+//			third.hsqldb.HsqlException: file input/output error java.io.FileNotFoundException: /Users/homecenter/Documents/eclipse_workspace/homecenter/test_run/user_data/testFull.Mlet/_HC/DB/test/test.script.new (No such file or directory) /Users/homecenter/Documents/eclipse_workspace/homecenter/test_run/user_data/testFull.Mlet/_HC/DB/test/test.script.new
+//			at third.hsqldb.error.Error.error(Error.java:139)
+//			at third.hsqldb.scriptio.ScriptWriterEncode.openFile(ScriptWriterEncode.java:116)
+//			at third.hsqldb.scriptio.ScriptWriterBase.<init>(ScriptWriterBase.java:174)
+//			at third.hsqldb.scriptio.ScriptWriterText.<init>(ScriptWriterText.java:126)
+//			at third.hsqldb.scriptio.ScriptWriterEncode.<init>(ScriptWriterEncode.java:82)
+//			at third.hsqldb.persist.Log.writeScript(Log.java:725)
+//			at third.hsqldb.persist.Log.close(Log.java:203)
+//			at third.hsqldb.persist.Logger.close(Logger.java:720)
+//			at third.hsqldb.Database.close(Database.java:642)
+//			at third.hsqldb.DatabaseManager.closeDatabases(DatabaseManager.java:121)
+		}
 		LogManager.log("closed all HSQLDB databases.");
 
 		RMSLastAccessTimeManager.checkIdleAndRemove();

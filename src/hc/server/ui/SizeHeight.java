@@ -12,6 +12,7 @@ public class SizeHeight {
 	int fontSizeForLarge;
 	int fontSizeForButton;
 	int buttonHeight;
+	int dialogBorderRadius;
 	protected final J2SESession coreSS;
 	private static final int INT_COLOR_BODY = UIUtil.DEFAULT_COLOR_BACKGROUND;
 
@@ -42,6 +43,13 @@ public class SizeHeight {
 		}
 		return fontSizeForButton;
 	}
+	
+	public final int getDialogBorderRadius(){
+		if(dialogBorderRadius == 0){
+			initFontSize();
+		}
+		return dialogBorderRadius;
+	}
 
 	public final int getButtonHeight() {
 		if(buttonHeight == 0){
@@ -71,6 +79,9 @@ public class SizeHeight {
 		final int height = getMobileHeight(coreSS);
 		
 		final int maxWH = Math.max(width, height);
+		
+		dialogBorderRadius = Math.round(maxWH / 100f);
+		
 		if(maxWH < 800){
 			fontSizeForNormal = maxWH / 44;//45
 		}else if(maxWH < 1200){

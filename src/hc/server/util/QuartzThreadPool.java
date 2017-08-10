@@ -98,6 +98,9 @@ public class QuartzThreadPool implements ThreadPool{
 			while(true){
 				synchronized (lock) {
 					if(counter > shutingDownJob){
+						if(L.isInWorkshop){
+							LogManager.log("scheduler [" + domain + "] is shutdown and wait for job finish, consuming total : " + counter + ", shutingdownJob : " + shutingDownJob);
+						}
 						try {
 							lock.wait();
 						} catch (final InterruptedException e) {

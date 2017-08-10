@@ -525,7 +525,7 @@ public final class Scheduler {
      * <BR><BR>
      * if fail to add job, invoke {@link #getThrownException()} to get thrown exception.
      * @param jobKey
-     * @param runnable to build instance, see {@link IDEUtil#buildRunnable(Runnable)}.
+     * @param runnable to build instance in IDE, see {@link IDEUtil#buildRunnable(Runnable)}.
      */
     public final void addJob(final String jobKey, final Runnable runnable) {
     	try{
@@ -626,7 +626,10 @@ public final class Scheduler {
      * @param jrubyScripts the max length is 1GB.
      * @param isDurable false means the job will also be deleted if there is no other trigger refers to it.<BR>see {@link #deleteTrigger(String)}.
      * @param jobShouldRecover Instructs the Scheduler whether or not the Job should be re-executed if a 'recovery' or 'fail-over' situation is encountered. If not explicitly set, the default value is false.
-     * @param storeNonDurableWhileAwaitingScheduling
+     * @param storeNonDurableWhileAwaitingScheduling With the <code>storeNonDurableWhileAwaitingScheduling</code> parameter
+     * set to <code>true</code>, a non-durable job can be stored.  Once it is
+     * scheduled, it will resume normal non-durable behavior (i.e. be deleted
+     * once there are no remaining associated triggers).
      */
     public final void addJob(final String jobKey, final String jrubyScripts, final boolean isDurable, final boolean jobShouldRecover,
     		final boolean storeNonDurableWhileAwaitingScheduling) {
@@ -649,29 +652,29 @@ public final class Scheduler {
     
     private final JobDetail buildJobDetail(final String jobKey, final String jobScripts, final boolean isDurable, final boolean jobShouldRecover){
     	final JobDataMap map = new JobDataMap();
-    	QuartzJRubyJob.setJobScripts(map, jobScripts);
+    	QuartzJRubyJob.setJobScripts(map, jobScripts, projectContext.getProjectID(), domainName, jobKey);
     	
     	final JobBuilder builder = JobBuilder.newJob(QuartzJRubyJob.class);
-    	builder.withIdentity(jobKey, defaultJobGroup);
-    	builder.setJobData(map);
-    	builder.storeDurably(isDurable);
-    	builder.requestRecovery(jobShouldRecover);
-    	
-    	return builder.build();
+    	return setBuilderJob(builder, map, jobKey, isDurable, jobShouldRecover);
     }
-    
+
     private final JobDetail buildJobDetail(final String jobKey, final Runnable run, final boolean isDurable, final boolean jobShouldRecover){
     	final JobDataMap map = new JobDataMap();
-    	QuartzRunnableJob.setRunnable(map, run);
+    	QuartzRunnableJob.setRunnable(map, run, projectContext.getProjectID(), domainName, jobKey);
     	
     	final JobBuilder builder = JobBuilder.newJob(QuartzRunnableJob.class);
-    	builder.withIdentity(jobKey, defaultJobGroup);
+    	return setBuilderJob(builder, map, jobKey, isDurable, jobShouldRecover);
+    }
+    
+	private final JobDetail setBuilderJob(final JobBuilder builder, final JobDataMap map,
+			final String jobKey, final boolean isDurable, final boolean jobShouldRecover) {
+		builder.withIdentity(jobKey, defaultJobGroup);
     	builder.setJobData(map);
     	builder.storeDurably(isDurable);
     	builder.requestRecovery(jobShouldRecover);
     	
     	return builder.build();
-    }
+	}
     
     /**
      * Delete the identified <code>Job</code>s and any

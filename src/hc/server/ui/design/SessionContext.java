@@ -5,6 +5,7 @@ import hc.core.util.LogManager;
 import hc.core.util.RecycleRes;
 import hc.core.util.RecycleThread;
 import hc.core.util.ThreadPool;
+import hc.core.util.ThreadPriorityManager;
 import hc.server.ui.ClientSession;
 import hc.server.ui.ClientSessionForSys;
 
@@ -91,7 +92,10 @@ public class SessionContext {
 			
 			@Override
 			protected Thread buildThread(final RecycleThread rt) {
-				return new Thread(mtg, rt, getNextThreadID());
+				final Thread t = new Thread(mtg, rt, getNextThreadID());
+				t.setPriority(ThreadPriorityManager.PROJ_CONTEXT_THREADPOOL_PRIORITY);
+				t.setDaemon(ProjResponser.threadPoolDaemon);
+				return t;
 			}
 		};
 		

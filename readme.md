@@ -128,9 +128,9 @@ global CSS for current project :
 ```css
 .iconStyle {
 	text-align:center;
-    vertical-align:middle;
-    width:100%;
-    height:100%;
+	vertical-align:middle;
+	width:100%;
+	height:100%;
 	transition: all 0.15s ease;
 	border: 1px solid #fff;
 	background-color: #fff;

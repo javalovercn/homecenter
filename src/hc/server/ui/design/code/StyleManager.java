@@ -4,6 +4,7 @@ import hc.core.util.ReturnableRunnable;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.ScriptCSSSizeHeight;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.J2SESession;
 import hc.util.StringBuilderCacher;
@@ -12,24 +13,25 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StyleManager {
-	
 	//注意：如果增加，请同步更改replaceVariable
 	public static final char PARAMETER_BORDER_CHAR = '$';
 	
-	public static final String[] variables = {"$smallFontSize$", "$normalFontSize$", "$largeFontSize$", "$buttonFontSize$", 
-			"$buttonHeight$", "$mobileWidth$", "$mobileHeight$", 
-			"$colorForBodyByHexString$", "$colorForFontByHexString$"};
+	static final String[] variables = {"$smallFontSize$", "$normalFontSize$", "$largeFontSize$", 
+		"$buttonFontSize$", "$buttonHeight$", "$mobileWidth$", "$mobileHeight$", 
+		"$dialogBorderRadius$",
+		"$colorForBodyByHexString$", "$colorForFontByHexString$"};
 	
 	private static final Pattern variableForPattern = Pattern.compile("\\$\\w+\\$");
 	
-	public static String replaceVariable(final J2SESession coreSS, final String styles, final HTMLMlet htmlmlet, final ProjectContext ctx){
+	public static String replaceVariable(final J2SESession coreSS, final String styles, final ScriptCSSSizeHeight sizeHeightForXML, final ProjectContext ctx){
 		if(styles.indexOf(PARAMETER_BORDER_CHAR, 0) > 0){
 			if(coreSS.mobileValuesForCSS == null){
 				coreSS.mobileValuesForCSS = (Object[])ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
 					@Override
 					public Object run() {
-						final Object[] values = {htmlmlet.getFontSizeForSmall(), htmlmlet.getFontSizeForNormal(), htmlmlet.getFontSizeForLarge(),
-								htmlmlet.getFontSizeForButton(), htmlmlet.getButtonHeight(), UserThreadResourceUtil.getMletWidthFrom(coreSS), UserThreadResourceUtil.getMletHeightFrom(coreSS),
+						final Object[] values = {sizeHeightForXML.getFontSizeForSmall(), sizeHeightForXML.getFontSizeForNormal(), sizeHeightForXML.getFontSizeForLarge(),
+								sizeHeightForXML.getFontSizeForButton(), sizeHeightForXML.getButtonHeight(), UserThreadResourceUtil.getMletWidthFrom(coreSS), UserThreadResourceUtil.getMletHeightFrom(coreSS), 
+								sizeHeightForXML.getDialogBorderRadius(),
 								HTMLMlet.getColorForBodyByHexString(), HTMLMlet.getColorForFontByHexString()};
 						return values;
 					}

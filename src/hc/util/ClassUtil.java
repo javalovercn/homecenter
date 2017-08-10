@@ -235,7 +235,7 @@ public class ClassUtil {
 		if(name != null){
 			sb.append("\n");
 		}else{
-			sb.append("\n------------------------------------All Non-Daemon StackTraces---------------------------------\n");
+			sb.append("\n------------------------------------All StackTraces---------------------------------\n");
 		}
 		final Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
 		final Iterator<Thread> it = map.keySet().iterator();
@@ -243,7 +243,7 @@ public class ClassUtil {
 			final Thread t = it.next();
 			final String threadName = t.getName();
 			final boolean isDaemon = t.isDaemon();
-			if(t != null && (name == null || name.equals(threadName)) && isDaemon == false){
+			if(t != null && (name == null || name.equals(threadName))){// && isDaemon == false
 				sb.append("--------------- Thread Name : ");
 				sb.append(t.getName());
 //				sb.append("@:");
@@ -269,7 +269,7 @@ public class ClassUtil {
 		if(name != null){
 			LogManager.log("\n");
 		}else{
-			LogManager.log("\n------------------------------------All Non-Daemon StackTraces---------------------------------\n");
+			LogManager.log("\n------------------------------------All StackTraces---------------------------------\n");
 		}
 		final Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
 		final Iterator<Thread> it = map.keySet().iterator();
@@ -277,7 +277,7 @@ public class ClassUtil {
 			final Thread t = it.next();
 			final String threadName = t.getName();
 			final boolean isDaemon = t.isDaemon();
-			if(t != null && (name == null || name.equals(threadName)) && isDaemon == false){
+			if(t != null && (name == null || name.equals(threadName))){//&& isDaemon == false
 				final StringBuilder sb = StringBuilderCacher.getFree();
 				
 				sb.append("--------------- Thread Name : ");

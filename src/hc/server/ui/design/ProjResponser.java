@@ -74,6 +74,7 @@ import java.util.Map;
 import java.util.Vector;
 
 public class ProjResponser {
+	final static boolean threadPoolDaemon = true;
 	public final Map<String, Object> map;
 	public final RecycleRes recycleRes;
 	public JarMainMenu jarMainMenu;//注意：menu不允许为null，主菜单可能出现空内容
@@ -504,6 +505,9 @@ public class ProjResponser {
 					final Thread thread = new Thread((ThreadGroup)threadGroup, rt);
 					thread.setName("lmtThread-in-" + ((ThreadGroup)threadGroup).getName() + "-" + thread.getId());
 					thread.setPriority(ThreadPriorityManager.PROJ_CONTEXT_THREADPOOL_PRIORITY);
+					
+					//考虑到scheduler,数据库均已关闭，故设置daemon=true
+					thread.setDaemon(threadPoolDaemon);//缺省取parent.isDaemon()
 					return thread;
 				}
 				
@@ -580,24 +584,6 @@ public class ProjResponser {
 					}
 				}
 			}
-		}
-		
-		final Object object = map.get(HCjar.MENU_NUM);
-		if(object != null){
-			//final int menuNum;
-			Integer.parseInt((String)object);
-			
-			//mainMenuIdx;
-			Integer.parseInt((String)map.get(HCjar.MAIN_MENU_IDX_PRE));
-			
-//			new JarMainMenu[menuNum];
-//			for (int i = HCjar.MAIN_MENU_IDX; i < menuNum; i++) {
-//				menu = new JarMainMenu(i, map, 
-//						lps.isRoot(), 
-//						baseRep, lps.getLinkName());
-//			}
-		}else{
-//			menu = null;
 		}
 	}
 

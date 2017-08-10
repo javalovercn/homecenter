@@ -14,7 +14,10 @@ import java.util.Vector;
 public class RootServerConnector {
 	public static final String MULTI_CLIENT_BUSY = "busy";
 	public static final String PORT_8080_WITH_MAOHAO = ":8080";
+	
+	//请同步到HCAndroidServer/starter/HttpUtil.java，J2SE~Starter~HttpUtil.java
 	public static final int PORT_44X = 444;
+	
 	public static final String PORT_44X_WITH_MAOHAO = ":" + String.valueOf(PORT_44X);
 	public static final String PORT_808044X = PORT_8080_WITH_MAOHAO + PORT_44X_WITH_MAOHAO;
 	public static final String PORT_44X_WITH_MAOHAO_PATH = PORT_44X_WITH_MAOHAO + "/";

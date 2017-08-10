@@ -68,6 +68,10 @@ public class ServerUIAPIAgent {
 		ServerAPIAgent.init();
 	}
 	
+	public final static ScriptCSSSizeHeight getScriptCSSSizeHeight(final HTMLMlet htmlMlet){
+		return htmlMlet.sizeHeightForXML;
+	}
+	
 	public static ProjResponser getCurrentProjResponser(final J2SESession coreSS){
 		final MobiUIResponsor responsor = (MobiUIResponsor)ServerUIUtil.getResponsor();
 		return responsor.getCurrentProjResponser(coreSS);//必须使用用户级实例，比如clientSession

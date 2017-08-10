@@ -143,6 +143,7 @@ public class J2SERootBuilder extends RootBuilder {
 	@Override
 	public Object doBiz(final int rootBizNo, final Object para) {
 		 if(rootBizNo == ROOT_BIZ_AJAX_X509_PATH){
+			//注意：手工同步到HCAndroidServer/starter/ajax.der，和J2SE~Starter~starter/ajax.der
 			 return "/hc/res/ajax.der";
 		 }else if(rootBizNo == ROOT_BIZ_IS_SIMU){
 			 return PropertiesManager.isSimu();

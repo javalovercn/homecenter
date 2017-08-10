@@ -84,6 +84,7 @@ public class HCAjaxX509TrustManager{
 //		TLSv1	Supports RFC 2246: TLS version 1.0 ; may support other versions
 //		TLSv1.1	Supports RFC 4346: TLS version 1.1 ; may support other versions
 		
+		//注意：请同步到HCAndroidServer/starter/HCAjaxX509TrustManager.java，J2SE~starter~HCAjaxX509TrustManager.java
 		final String[] algorithms = {"SSL", "SSLv2", "SSLv3", "TLS", "TLSv1", "TLSv1.1"};
 		
 		for (int i = algorithms.length - 1; i >= 0; i--) {
