@@ -68,6 +68,10 @@ public class ServerUIAPIAgent {
 		ServerAPIAgent.init();
 	}
 	
+	public static void notifyClientSessionWaitObjectShutdown(final ClientSession clientSession){
+		clientSession.notifyClientSessionWaitObjectShutdown();
+	}
+	
 	public final static ScriptCSSSizeHeight getScriptCSSSizeHeight(final HTMLMlet htmlMlet){
 		return htmlMlet.sizeHeightForXML;
 	}
@@ -79,6 +83,10 @@ public class ServerUIAPIAgent {
 	
 	public static ClientSession buildClientSession(final J2SESession j2seCoreSS, final boolean hasLocationOfMobile){
 		return new ClientSession(j2seCoreSS, hasLocationOfMobile);
+	}
+	
+	public static void notifyClientSessionQRResult(final ClientSession clientSession, final String result){
+		clientSession.notifyQRCode(result);
 	}
 	
 	public static void removeScheduler(final ProjectContext ctx, final String domain){
@@ -278,6 +286,19 @@ public class ServerUIAPIAgent {
 		CCoreUtil.checkAccess();
 		
 		return getAllOnlineSocketSessionsNoCheck();
+	}
+	
+	static final boolean isClientLineOn(){
+		synchronized (sessionListSnapThreadSafe) {
+			final int size = sessionListSnapThreadSafe.size();
+			for (int i = 0; i < size; i++) {
+				final J2SESession coreSS = (J2SESession)sessionListSnapThreadSafe.elementAt(i);
+				if(UserThreadResourceUtil.isInServing(coreSS.context)){
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -1004,9 +1025,11 @@ public class ServerUIAPIAgent {
 		}
 	}
 	
+	static final String[] FAST_NOT_RESP_URL = {HCURL.URL_CMD_EXIT, HCURL.URL_CMD_CONFIG};
+
 	private static boolean isCmdExitOrConfig(final String lowcase){
-		for (int i = 0; i < HCURL.FAST_NOT_RESP_URL.length; i++) {
-			if(HCURL.FAST_NOT_RESP_URL[i].equals(lowcase)){
+		for (int i = 0; i < FAST_NOT_RESP_URL.length; i++) {
+			if(FAST_NOT_RESP_URL[i].equals(lowcase)){
 				return true;
 			}
 		}
@@ -1164,6 +1187,7 @@ public class ServerUIAPIAgent {
 		
 		HCURLUtil.hcurlCacher.cycle(hu);
 		
+		L.V = L.WShop ? false : LogManager.log("tranURL to client : " + url);
 		HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_TRANSURL, url);
 	}
 

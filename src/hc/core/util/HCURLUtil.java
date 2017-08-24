@@ -351,7 +351,8 @@ public class HCURLUtil {
 	public static final String CLASS_ERR_ON_CACHE = "errOnCache";
 	public static final String CLASS_TRANS_SERVER_UID = "transServerUID";
 	public static final String CLASS_MOV_NEW_SERVER = "movNewServer";
-
+	public static final String CLASS_TRANS_FILE = "transFile";
+	
 	public static final String INNER_MODE = "_inner:";
 	
 	public static final int HTTPS_CONN_TIMEOUT = 10 * 1000;

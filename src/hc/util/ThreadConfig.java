@@ -10,6 +10,7 @@ public class ThreadConfig {
 	public static final Integer TARGET_URL = 2;
 	public static final Integer BUILD_DIALOG_INSTANCE = 3;
 	public static final Integer SCHEDULER_THROWN_EXCEPTION = 4;
+	public static final Integer QR_RESULT = 5;
 	
 	private static final Integer SYS_CONFIG = 100000;//该值以下，不作系统级权限要求
 	
@@ -20,7 +21,12 @@ public class ThreadConfig {
 			CCoreUtil.checkAccess();
 		}
 		
-		final long currID = Thread.currentThread().getId();
+		final Thread currentThread = Thread.currentThread();
+		putValue(currentThread, tag, value);
+	}
+
+	public static void putValue(final Thread currentThread, final Integer tag, final Object value) {
+		final long currID = currentThread.getId();
 		HashMap<Integer, Object> table = threadTable.get(currID);
 		if(table == null){
 			table = new HashMap<Integer, Object>(8);

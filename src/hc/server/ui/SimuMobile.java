@@ -50,6 +50,7 @@ public class SimuMobile {
 	public static final boolean MOBILE_ON_RELAY = false;
 	public static final boolean MOBILE_IN_BACKGROUND = false;
 	public static final boolean CURR_IN_SESSION = true;
+	public static final String MOBILE_QR_RESULT = "qrcode:1234567890";
 	
 	final static RecycleRes tempLimitRecycleRes = HCLimitSecurityManager.getTempLimitRecycleRes();
 	

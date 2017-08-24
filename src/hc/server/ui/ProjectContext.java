@@ -685,17 +685,15 @@ public class ProjectContext {
 	/**
 	 * <STRONG>Warning</STRONG> : when in project level it will do nothing.
 	 * <BR><BR>
-	 * go to external URL in client application.
-	 * <BR>
-	 * it is equals with <code>goExternalURLWhenInSession(url, false)</code>.
+	 * open/go to external URL in client application.
 	 * <BR><BR>
 	 * <STRONG>Important : </STRONG>
 	 * <BR>socket/connect permissions is required even if the domain of external URL is the same with the domain of upgrade HAR project URL.
 	 * <BR><BR>
 	 * More about back :<BR>
-	 * 1. <code>onclick='javascript:window.hcserver.back();'</code><BR>
-	 * 2. <code>history.back = function(){window.hcserver.back();};</code><BR>
-	 * 3. there is always a float button on browser for user back.
+	 * 1. there is always a float button for back.
+	 * 2. <code>onclick='javascript:window.hcserver.back();'</code><BR>
+	 * 3. <code>history.back = function(){window.hcserver.back();};</code><BR>
 	 * <BR><BR>
 	 * <STRONG>Warning : </STRONG>
 	 * <BR>1. the external URL may be sniffed when in moving (exclude HTTPS).
@@ -728,6 +726,7 @@ public class ProjectContext {
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.30
 	 */
+	@Deprecated
 	public final void goExternalURLWhenInSession(final String url, final boolean isUseExtBrowser) {
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
 //			return false;
@@ -1532,6 +1531,7 @@ public class ProjectContext {
 	 *            to not display this button.
 	 * @since 7.0
 	 * @see #isCurrentThreadInSessionLevel()
+	 * @see #isClientLineOn()
 	 */
 	public final void sendQuestion(String caption, String text,
 			final BufferedImage image, final Runnable yesRunnable,
@@ -2556,6 +2556,14 @@ public class ProjectContext {
 	}
 	
 	/**
+	 * 
+	 * @return true means one or more clients are online.
+	 */
+	public final boolean isClientLineOn(){
+		return ServerUIAPIAgent.isClientLineOn();
+	}
+	
+	/**
 	 * check current server is running on Android or not.
 	 * 
 	 * @return true means run on Android; false means run on Oracle JRE/JDK, OpenJDK JVM or other.
@@ -2632,13 +2640,51 @@ public class ProjectContext {
 			}
 		}
 	}
+	
+	/**
+	 * cancel alert which is created in session or project level, no matter current thread is session or project level.
+	 * @param alertKey the key will be canceled from alert. If the key is canceled already or not exists, then do nothing.
+	 * @see #isCurrentThreadInSessionLevel()
+	 * @see #alertOn(String)
+	 * @since 7.71
+	 */
+	public final void alertOff(final String alertKey) {
+		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
+			return;
+		}
+		
+		final J2SESession[] coreSS;
+//		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
+//		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+//			if(L.isInWorkshop){
+//				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
+//			}
+//			if(isLoggerOn == false){
+//				ServerUIAPIAgent.printInProjectLevelWarn("alertOff");
+//			}
+			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+//		}else{
+//			coreSS = toArray(sessionContext.j2seSocketSession);
+//		}
+		
+		if(coreSS != null && coreSS.length > 0){
+			final String projAlertKey = projectID + alertKey;
+			for (int i = 0; i < coreSS.length; i++) {
+				final J2SESession oneCoreSS = coreSS[i];
+				if(oneCoreSS.alertOff(projAlertKey)){
+					sendCmd(oneCoreSS, HCURL.DATA_CMD_ALERT, "status", IConstant.OFF);			
+				}
+			}
+		}
+	}
 
 	/**
 	 * set alert off on mobile if in session level, or set alert off to all client sessions if in project level.
-	 * 
+	 * <BR><STRONG>deprecated</STRONG>, replaced by {@link #alertOff(String)}.
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 6.98
 	 */
+	@Deprecated
 	public final void alertOff() {
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
 			return;
@@ -2664,13 +2710,53 @@ public class ProjectContext {
 			}
 		}
 	}
+	
+	/**
+	 * set alert on for mobile if in session level, or set alert on to all client sessions if in project level.
+	 * <BR><BR>
+	 * when alert on, mobile will keep vibrate and play a tone.
+	 * @param alertKey the key is used for cancel the alert, no matter it is created in session or project level.
+	 * @see #alertOff(String)
+	 * @see #isCurrentThreadInSessionLevel()
+	 * @since 7.71
+	 */
+	public final void alertOn(final String alertKey) {
+		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
+			return;
+		}
+		
+		final J2SESession[] coreSS;
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
+		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+			if(L.isInWorkshop){
+				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
+			}
+			if(isLoggerOn == false){
+				ServerUIAPIAgent.printInProjectLevelWarn("alertOn");
+			}
+			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+		}else{
+			coreSS = toArray(sessionContext.j2seSocketSession);
+		}
+		
+		if(coreSS != null && coreSS.length > 0){
+			final String projAlertKey = projectID + alertKey;
+			for (int i = 0; i < coreSS.length; i++) {
+				final J2SESession oneCoreSS = coreSS[i];
+				if(oneCoreSS.alertOn(projAlertKey)){
+					sendCmd(oneCoreSS, HCURL.DATA_CMD_ALERT, "status", IConstant.ON);
+				}
+			}
+		}		
+	}
 
 	/**
 	 * set alert on on mobile if in session level, or set alert on to all client sessions if in project level.
-	 * 
+	 * <BR><STRONG>deprecated</STRONG>, replaced by {@link #alertOn(String)}.
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 6.98
 	 */
+	@Deprecated
 	public final void alertOn() {
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
 			return;
@@ -2961,6 +3047,7 @@ public class ProjectContext {
 	 * notification is also created for mobile.
 	 * @param runnable the <code>Runnable</code> to build instance from a defined JRuby class or a Java class.
 	 * @see #sendDialogWhenInSession(Dialog)
+	 * @see #isClientLineOn()
 	 * @since 7.30
 	 */
 	public final void sendDialogByBuilding(final Runnable runnable){

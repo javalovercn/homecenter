@@ -29,6 +29,8 @@ public class CodeStaticHelper {
 			final Vector<String> fields = new Vector<String>(2);
 			fields.add("goExternalURLWhenInSession(String, boolean)");
 			fields.add("getIntervalMSForRestart()");
+			fields.add("alertOn()");
+			fields.add("alertOff()");
 			
 			out.put(ProjectContext.class, fields);
 		}
@@ -116,6 +118,7 @@ public class CodeStaticHelper {
 			out.add("hc.server.util.SystemEventListener");
 			out.add("hc.server.util.JavaLangSystemAgent");
 			out.add("hc.server.util.Scheduler");
+			out.add("hc.server.util.HCInputStream");
 			out.add("hc.server.util.scheduler.AnnualJobCalendar");
 			out.add("hc.server.util.scheduler.CronExcludeJobCalendar");
 			out.add("hc.server.util.scheduler.DailyJobCalendar");

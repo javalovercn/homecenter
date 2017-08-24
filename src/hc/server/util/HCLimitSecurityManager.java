@@ -346,6 +346,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    			LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
 	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class, ProjectInputDialog.class,
 	    			Assistant.class, VoiceCommand.class, AnalysableRobotParameter.class, JavaString.class, IDEUtil.class, Scheduler.class, 
+	    			HCInputStream.class, 
 	    			JobCalendar.class, BaseJobCalendar.class, AnnualJobCalendar.class, CronExcludeJobCalendar.class, DailyJobCalendar.class, 
 	    			HolidayJobCalendar.class, MonthlyJobCalendar.class, WeeklyJobCalendar.class, 
 	    			JSONArray.class, JSONException.class, JSONML.class, JSONObject.class, JSONPointer.class, JSONPointerException.class,

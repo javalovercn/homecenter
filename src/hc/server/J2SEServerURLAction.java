@@ -243,6 +243,13 @@ public class J2SEServerURLAction implements IHCURLAction {
 					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_WIFI_MANAGER)){
 //					final String methodName = url.getValueofPara(HCURL.DATA_PARA_WIFI_MANAGER);
+				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_SCAN_QR_CODE)){
+					final String urlHexStr = url.getValueofPara(HCURL.DATA_PARA_SCAN_QR_CODE);
+					final byte[] bs = ByteUtil.toBytesFromHexStr(urlHexStr);
+					final String result = StringUtil.bytesToString(bs, 0, bs.length);
+					
+					ServerUIAPIAgent.notifyClientSessionQRResult(j2seCoreSS.clientSession, result);
+					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_PROC_ADD_HAR_URL)){
 					final String urlHexStr = url.getValueofPara(HCURL.DATA_PARA_PROC_ADD_HAR_URL);
 					final byte[] bs = ByteUtil.toBytesFromHexStr(urlHexStr);

@@ -29,6 +29,7 @@ import hc.server.msb.Robot;
 import hc.server.msb.RobotEvent;
 import hc.server.msb.RobotListener;
 import hc.server.ui.ClientDesc;
+import hc.server.ui.ClientSession;
 import hc.server.ui.ICanvas;
 import hc.server.ui.IMletCanvas;
 import hc.server.ui.MenuItem;
@@ -59,6 +60,8 @@ import java.util.Vector;
 public final class J2SESession extends CoreSession{
 	private static long sessionIDCounter = 1;
 	private final BaseResponsor br;
+	private Vector<String> alertOnKeys;
+	public ClientSession clientSession;
 	
 	public J2SESession(final BaseResponsor br){
 		synchronized (J2SESession.class) {
@@ -67,6 +70,38 @@ public final class J2SESession extends CoreSession{
 		this.br = br;
 		keepaliveManager = new KeepaliveManager(this);
 		urlAction = new J2SEServerURLAction();
+	}
+	
+	/**
+	 * true means need to send to client.
+	 * @param projAlertKey
+	 * @return
+	 */
+	public final boolean alertOn(final String projAlertKey){
+		synchronized (this) {
+			if(alertOnKeys == null){
+				alertOnKeys = new Vector<String>(2);
+			}
+			final boolean isNotAlert = (alertOnKeys.size() == 0);
+			if(alertOnKeys.contains(projAlertKey) == false){
+				alertOnKeys.add(projAlertKey);
+			}
+			return isNotAlert;
+		}
+	}
+	
+	/**
+	 * true means need to send to client.
+	 * @param projAlertKey
+	 * @return
+	 */
+	public final boolean alertOff(final String projAlertKey){
+		synchronized (this) {
+			if(alertOnKeys == null){
+				return false;
+			}
+			return alertOnKeys.remove(projAlertKey) && alertOnKeys.size() == 0;//注意：如果没有该key，则不进行send
+		}
 	}
 	
 	public final BaseResponsor getBaseResponsor(){
@@ -183,6 +218,10 @@ public final class J2SESession extends CoreSession{
 	public final void notifyMobileLogout(){
 		if(br != null){
 			br.notifyCacheSoftUIDLogout();
+		}
+		
+		if(clientSession != null){
+			ServerUIAPIAgent.notifyClientSessionWaitObjectShutdown(clientSession);
 		}
 		
 		final UpdateOneTimeRunnable updateOneTimeKeysRunnable = (UpdateOneTimeRunnable)hcConnection.updateOneTimeKeysRunnable;

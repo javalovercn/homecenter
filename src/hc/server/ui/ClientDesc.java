@@ -96,8 +96,8 @@ public class ClientDesc {
 		
 		clientWidth = HCConfig.getIntProperty(v, (short)0);
 		clientHeight = HCConfig.getIntProperty(v, (short)1);
-//		clientWidth = 320;
-//		clientHeight = 480;
+//		clientWidth = 240;
+//		clientHeight = 320;//480
 		dpi = HCConfig.getIntProperty(v, (short)2);
 		clientLang = HCConfig.getProperty(v, (short)3);
 		final String testClientLocale = PropertiesManager.getValue(PropertiesManager.t_testClientLocale);

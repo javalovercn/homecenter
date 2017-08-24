@@ -3,6 +3,7 @@ package hc.server.ui;
 import hc.core.util.LogManager;
 import hc.server.ui.design.HCPermissionConstant;
 import hc.server.ui.design.J2SESession;
+import hc.util.ThreadConfig;
 
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -23,9 +24,14 @@ public class ClientSession {
 	private final Hashtable<String, Object> attribute_map = new Hashtable<String, Object>();
 	final J2SESession j2seCoreSSMaybeNull;
 	final boolean hasLocationOfMobile;
+	Thread waitThread;
+	boolean isLogout;
 	
 	ClientSession(final J2SESession j2seCoreSS, final boolean hasLocationOfMobile){
 		this.j2seCoreSSMaybeNull = j2seCoreSS;//在Simu下传入null
+		if(j2seCoreSSMaybeNull != null){
+			j2seCoreSSMaybeNull.clientSession = this;
+		}
 		this.hasLocationOfMobile = hasLocationOfMobile;
 	}
 	
@@ -54,6 +60,79 @@ public class ClientSession {
 			return SimuMobile.MOBILE_LATITUDE;
 		}
 		return j2seCoreSSMaybeNull.location.latitude;
+	}
+	
+//	public final HCInputStream browseFile(final String type){
+//		return null;
+//	}
+	
+//	/**
+//	 * scan QR code on client and wait for result.
+//	 * <BR><BR>
+//	 * <STRONG>Important</STRONG> : <BR>
+//	 * it will block current thread for result.<BR><BR>
+//	 * mobile client will not display alert/question/dialog when scanning code.
+//	 * @return null means canceled by user or other exception.
+//	 * @since 7.72
+//	 */
+//	public final String scanQRCode(){
+//		if(j2seCoreSSMaybeNull == null){
+//			return SimuMobile.MOBILE_QR_RESULT;
+//		}
+//		
+//		final Thread threadSnap = Thread.currentThread();
+//		waitThread = threadSnap;//注意：不考虑多线程并发调用
+//		
+//		ServerUIAPIAgent.runInSysThread(new Runnable() {
+//			@Override
+//			public void run() {
+//				HCURLUtil.sendCmd(j2seCoreSSMaybeNull, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_SCAN_QR_CODE, "");
+//			}
+//		});
+//		
+//		synchronized (threadSnap) {
+//			if(isLogout){
+//				return null;
+//			}
+//			try {
+//				threadSnap.wait();
+//			} catch (final InterruptedException e) {
+//			}
+//		}
+//		
+//		final String result = (String)ThreadConfig.getValue(ThreadConfig.QR_RESULT, true);
+//		if(HCURL.CANCEL_HC_CMD.equals(result)){
+//			LogManager.log("user cancel scan QR code.");
+//			return null;
+//		}
+//		
+//		return result;
+//	}
+	
+	final void notifyClientSessionWaitObjectShutdown(){
+		isLogout = true;
+		
+		notifyClientSessionWaitObject(waitThread);
+	}
+
+	private final void notifyClientSessionWaitObject(final Thread threadSnap) {
+		if(threadSnap != null){
+			synchronized (threadSnap) {
+				threadSnap.notify();
+			}
+//			threadSnap = null;//不注释可能会导致notifyQRCode出现null情形
+		}
+	}
+	
+	final void notifyQRCode(final String result){
+		final Thread threadSnap = waitThread;
+		if(threadSnap != null){
+			ThreadConfig.putValue(threadSnap, ThreadConfig.QR_RESULT, result);
+			
+			notifyClientSessionWaitObject(threadSnap);
+		}else{
+			LogManager.errToLog("Error on notifyQRCode");
+		}
 	}
 	
 	/**

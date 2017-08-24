@@ -224,7 +224,7 @@ public class CodeHelper {
 		"chop", "chop!", "concat(other_str)", "count(str)", "crypt(other_str)", "delete(other_str)", "delete!(other_str)",
 		"downcase", "downcase!", "dump", "empty?", "eql?(other)", "gsub(pattern, replacement)", "gsub!(pattern, replacement)",
 		"hash", "hex", "include?(other_str)", "index(substring)", "insert(index, other_str)", "inspect", "intern", "to_sym",
-		"length", "ljust(integer, padstr)", "lstrip", "lstrip!", "match(pattern)", "oct", "partition(sep)", "replace(other_str)", "reverse", 
+		"length", "ljust(integer, padstr)", "lstrip", "lstrip!", "match(pattern)", NIL, "oct", "partition(sep)", "replace(other_str)", "reverse", 
 		"reverse!", "rindex(substring)", "rjust(integer, padstr)", "rpartition(sep)", "rstrip", "rstrip!", "scan(pattern)", 
 		"size", "slice(fixnum)", "slice!(fixnum)", "split(pattern)", "squeeze(other_str)", "squeeze!(other_str)", "start_with?(prefix)", 
 		"strip", "strip!", "sub(pattern, replacement)", "sub!(pattern, replacement)", "succ", "succ!", "next", "next!", "sum()", 

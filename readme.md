@@ -26,11 +26,12 @@ class MyHTMLMlet < Java::hc.server.ui.HTMLMlet
 		@area = JTextArea.new()
 		@btn_light = JButton.new()
 		@btn_switch = JButton.new()
-		@icon_press_on = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/press_on_64.png")))
-		@icon_press_off = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/press_off_64.png")))
 		
 		@context = getProjectContext()
+		@context.sendMovingMsg("loading images from network...")
 		
+		@icon_press_on = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/press_on_64.png")))
+		@icon_press_off = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/press_off_64.png")))
 		@icon_light_on = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/light_on_64.png")))
 		@icon_light_off = ImageIcon.new(ImageIO.read(URL.new("http://homecenter.mobi/images/light_off_64.png")))
 		
@@ -201,6 +202,13 @@ global CSS for current project :
 9. for API, please press alt+/ in designer or go http://homecenter.mobi/download/javadoc/index.html
 10. any question, please open issues https://github.com/javalovercn/homecenter/issues or Email : help at homecenter.mobi
 11. these source files are synchronized to [gitee.com/git.oschina.net](https://gitee.com/javalovercn/homecenter).
+
+***
+### Mirrors
+
+1. https://github.com/javalovercn/homecenter
+2. https://gitee.com/javalovercn/homecenter
+
 ***
 
 ![splash](http://homecenter.mobi/images/splash_n_txt.png)
@@ -209,7 +217,7 @@ global CSS for current project :
 
 ![screenshot](http://homecenter.mobi/images/sc6.png)
 ![screenshot](http://homecenter.mobi/images/sc8.png)
-![screenshot](http://homecenter.mobi/images/sc_mlet.png)
+![screenshot](http://homecenter.mobi/images/sc_mlet_bg.png)
 
 ***
 

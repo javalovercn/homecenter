@@ -94,6 +94,8 @@ public abstract class IConstant {
 	
 	public static final String UTF_8 = "UTF-8";
 	public static final String ISO_8859_1 = "ISO-8859-1";
+	
+	
 //	public static final byte DATA_PROTOCAL_HEAD_H = 'H';
 //	public static final byte DATA_PROTOCAL_HEAD_C = 'c';
 	//注意：J2SEReceiveServer和J2MEReceiveServer固化了长度2，换言之，此处以后不可再更改

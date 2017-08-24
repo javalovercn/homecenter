@@ -47,6 +47,8 @@ public class HCURL {
 		return urlLower;
 	}
 	
+	public static final String CANCEL_HC_CMD = "_Cancel_HC_Cmd";
+
 	public static final String CMD_PROTOCAL = "cmd";
 	public static final String SCREEN_PROTOCAL = "screen";
 	public static final String CONTROLLER_PROTOCAL = "controller";
@@ -117,6 +119,7 @@ public class HCURL {
 	public static final String DATA_PARA_VOICE_COMMANDS = CCoreUtil.SYS_PREFIX + "voiceCommand";
 	public static final String DATA_PARA_MGR_PROJS_COMMANDS = CCoreUtil.SYS_PREFIX + "MgrProjs";
 	public static final String DATA_PARA_CHANGE_PASSWORD = "changePassword";
+	public static final String DATA_PARA_SCAN_QR_CODE = "scanQRCode";
 
 	public static final String DATA_RECEIVER_MLET = "rev_mlet";
 	public static final String DATA_RECEIVER_HTMLMLET = "rev_htmlmlet";
@@ -130,8 +133,7 @@ public class HCURL {
 	
 	public static final String URL_CMD_EXIT = buildStandardURL(HCURL.CMD_PROTOCAL, HCURL.DATA_CMD_EXIT);
 	public static final String URL_CMD_CONFIG = buildStandardURL(HCURL.CMD_PROTOCAL, HCURL.DATA_CMD_CONFIG);
-	//注意：如果增加新项，请同步增加到FAST_NOT_RESP_URL
-	public static final String[] FAST_NOT_RESP_URL = {URL_CMD_EXIT, URL_CMD_CONFIG};
+	//注意：如果增加新项，请同步增加到ServerUIAPIAgent.FAST_NOT_RESP_URL
 	
 	public static final String URL_HOME_SCREEN = buildStandardURL(HCURL.SCREEN_PROTOCAL, HCURL.REMOTE_HOME_SCREEN);
 	public static final String URL_CFG_ADD_DEVICE_BY_QR = buildStandardURL(HCURL.CFG_PROTOCAL, ADD_HAR_QR);
