@@ -9,6 +9,9 @@ public final class RobotEvent {
 	Object oldValue;
 	Object newValue;
 	
+	RobotEvent(){//Not visible to JavaDoc
+	}
+
 	/**
 	 * return the event source wrapper of {@link Robot}.
 	 * @return 

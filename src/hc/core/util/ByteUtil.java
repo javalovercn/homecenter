@@ -3,13 +3,15 @@ package hc.core.util;
 
 import hc.core.IConstant;
 import hc.core.MsgBuilder;
+import hc.core.cache.CacheManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 
 public class ByteUtil {
 	public static final ByteArrayCacher byteArrayCacher = new ByteArrayCacher(2048, MsgBuilder.MAX_BYTE_ARRAY_LEN, 2);
-	
+	private static final byte[] zeroBS = new byte[0];
+
 	public static final String toString(final byte[] bs, final int offset, final int len){
 		try {
 			return new String(bs, offset, len, IConstant.UTF_8);
@@ -84,6 +86,10 @@ public class ByteUtil {
 	}
 	
 	public static final byte[] getBytes(final String str, final String charset){
+		if(str.length() == 0){
+			return zeroBS;
+		}
+		
 		try {
 			return str.getBytes(charset);
 		} catch (final UnsupportedEncodingException e) {
@@ -625,47 +631,53 @@ public class ByteUtil {
 		return null;
 	}
 
-	public static void encodeFileXOR(final byte[] bs, final int offset, final int len, final byte[] coderbs, final int offsetCoder, final int lenCoder) {
-			{//重置code数组。
-				final int endIdx = offsetCoder + lenCoder;
-				for (int i = offsetCoder; i < endIdx; i++) {
-	//				System.out.println("--------coderBs index : " + i);
-					coderbs[i] = 0;
-				}
-			}
-			
-			byte total = 0;
-			{
-				final int endCoder = offsetCoder + lenCoder;
-				final int endIdx = offset + len;
-				for (int i = offset, j = offsetCoder; i < endIdx; i++, j++) {
-	//				System.out.println("--------srcBs index : " + i);
-					final byte oneByte = bs[i];
-					total += oneByte;
-					if(j == endCoder){
-						j = offsetCoder;
-					}
-	//				System.out.println("--------coderBs index : " + j);
-					coderbs[j] ^= oneByte;
-				}
-			}
-			
-			final int halfLenCoder = lenCoder / 2;
-			{
-				final int endIdx = offsetCoder + halfLenCoder;
-				for (int i = offsetCoder; i < endIdx; i++) {
-	//				System.out.println("--------coderBs index : " + i);
-					coderbs[i] ^= total;
-				}
-			}
-			
-			{
-				final int endIdx = offsetCoder + lenCoder;
-				for (int i = offsetCoder + halfLenCoder; i < endIdx; i++) {
-	//				System.out.println("--------coderBs index : " + i);
-					coderbs[i] ^= lenCoder;
-				}
+	public static void encodeFileXOR(final byte[] bs, final int offset, final int len, final byte[] coderbs) {
+		longToEightBytes(len, coderbs, 0);
+
+		final int lenCoder = CacheManager.CACHE_CODE_XOR_LEN;
+		final int offsetCoder = CacheManager.CACHE_CODE_DATA_LEN;
+		
+		{// 重置code数组。
+			final int endIdx = offsetCoder + lenCoder;
+			for (int i = offsetCoder; i < endIdx; i++) {
+				// System.out.println("--------coderBs index : " + i);
+				coderbs[i] = 0;
 			}
 		}
+
+		byte total = 0;
+		{
+			final int endCoder = offsetCoder + lenCoder;
+			final int endIdx = offset + len;
+			for (int i = offset, j = offsetCoder; i < endIdx; i++, j++) {
+//				 System.out.println("--------srcBs index : " + i);
+				final byte oneByte = bs[i];
+				total += oneByte;
+				if (j == endCoder) {
+					j = offsetCoder;
+				}
+//				 System.out.println("--------coderBs index : " + j);
+				coderbs[j] ^= oneByte;
+			}
+		}
+
+		final int halfLenCoder = lenCoder / 2;
+		{
+			final int endIdx = offsetCoder + halfLenCoder;
+			for (int i = offsetCoder; i < endIdx; i++) {
+//				 System.out.println("----coderBs index : " + i);
+				coderbs[i] ^= total;
+			}
+		}
+
+		{
+			final int endIdx = offsetCoder + lenCoder;
+			for (int i = offsetCoder + halfLenCoder; i < endIdx; i++) {
+//				 System.out.println("--------coderBs index : " + i);
+				coderbs[i] ^= lenCoder;
+			}
+		}
+		
+	}
 	
 }

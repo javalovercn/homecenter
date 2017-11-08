@@ -58,7 +58,7 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		
 		final JCheckBox acceptAllCheck = new JCheckBox(acceptAll);
 		setCSSForDiv(acceptAllCheck, null, labelDivStyle);
-		final String checkStyle = "vertical-align:middle;font-weight:bold;font-size:" + areaFontSize + "px;";
+		final String checkStyle = "vertical-align:middle;font-weight:bold;";
 		setCSS(acceptAllCheck, null, checkStyle);
 		final int checkBoxHeight = (int)(labelHeight * 0.8);
 		setCSSForToggle(acceptAllCheck, null, "vertical-align:middle;width: " + checkBoxHeight + "px; height: " + checkBoxHeight + "px;");
@@ -87,7 +87,7 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
 		final int areaFontColor = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker().getRGB();
 		setCSS(area, null, "width:100%;height:100%;border:1px solid #" + getColorForBodyByHexString() + ";" +
-				"overflow-y:auto;font-size:" + areaFontSize + "px;" +
+				"overflow-y:auto;" +
 				"background-color:#" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.toHexColor(areaFontColor, false) + ";");
 		
 //		final String buttonStyle = "text-align:center;vertical-align:middle;width:100%;height:100%;font-size:" + fontSizePX + "px;";

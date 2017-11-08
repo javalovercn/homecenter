@@ -64,7 +64,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 		
 		final String protocal = url.protocal;
 		
-//		LogManager.log("goto " + url.url);
+		L.V = L.WShop ? false : LogManager.log("J2SEServerURLAction processing : " + url.url);
 		
 		final J2SESession j2seCoreSS = (J2SESession)coreSS;
 		if(protocal == HCURL.SCREEN_PROTOCAL){
@@ -109,6 +109,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 			final String elementID = url.elementID;
 			
 			if(HCURL.DATA_CMD_EXIT.equals(url.getElementIDLower())){
+				L.V = L.WShop ? false : LogManager.log("client send Exit command.");
 				if(ScreenServer.popScreen(j2seCoreSS) == false){
 //					System.out.println("Receiv Exit , and Notify exit by mobile");
 					J2SEContext.notifyExitByMobi(j2seCoreSS);
@@ -116,6 +117,8 @@ public class J2SEServerURLAction implements IHCURLAction {
 				
 				return true;
 			}else if(elementID.equals(HCURL.MGR_PROJS_COMMAND)){
+				j2seCoreSS.notifyCanvasMenuResponse();
+
 				final ThreadGroup token = App.getThreadPoolToken();
 				final ProjResponser resp = ServerUIAPIAgent.getCurrentProjResponser(j2seCoreSS);
 				ServerUIAPIAgent.runInSessionThreadPool(j2seCoreSS, resp, new Runnable() {
@@ -186,7 +189,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 						final StringBuilder sb = StringBuilderCacher.getFree();
 						sb.append("mobile location latitude : ").append(latitude).append(", longitude : ").append(longitude).
 							append(", altitude : ").append(altitude).append(", course : ").append(course).append(", speed : ").append(speed).
-							append(", isFresh : ").append(isFresh);
+							append(", isGPS : ").append(isGPS).append(", isFresh : ").append(isFresh);
 
 						final String log = sb.toString();
 						LogManager.log(log);
@@ -251,6 +254,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 					ServerUIAPIAgent.notifyClientSessionQRResult(j2seCoreSS.clientSession, result);
 					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_PROC_ADD_HAR_URL)){
+					j2seCoreSS.notifyCanvasMenuResponse();//置于startAddHTMLHarUI之后，mouse busy界面不能刷新
 					final String urlHexStr = url.getValueofPara(HCURL.DATA_PARA_PROC_ADD_HAR_URL);
 					final byte[] bs = ByteUtil.toBytesFromHexStr(urlHexStr);
 					final String urlStr = StringUtil.bytesToString(bs, 0, bs.length);
@@ -337,6 +341,8 @@ public class J2SEServerURLAction implements IHCURLAction {
 			final String elementID = url.elementID;
 			
 			if(elementID.equals(HCURL.ADD_HAR_WIFI)){//注意：此处为WiFi添加模式
+				j2seCoreSS.notifyCanvasMenuResponse();//因为手机端请求时，进入等待状态
+				
 				final boolean isInstallFromClient = true;
 				AddHarHTMLMlet.startAddHTMLHarUI(j2seCoreSS, null, isInstallFromClient);
 				ContextManager.getThreadPool().run(new Runnable() {
@@ -453,7 +459,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 		CCoreUtil.checkAccess();
 		
 		if(SYS_JRUBY_ENGINE[0] == null){
-			final HCJRubyEngine hcje = new HCJRubyEngine(null, ResourceUtil.getJRubyClassLoader(false), true);
+			final HCJRubyEngine hcje = new HCJRubyEngine(null, ResourceUtil.getJRubyClassLoader(false), true, HCJRubyEngine.IDE_LEVEL_ENGINE + "SYS_JRUBY_ENGINE");
 			final RecycleRes recycleRes = new RecycleRes("JRubyEngine", ContextManager.getThreadPool(), RecycleRes.getSequenceTempWatcher());
 			final ProjectContext context = ServerUIUtil.buildProjectContext("", "", recycleRes, null, null);
 			SYS_JRUBY_ENGINE[0] = hcje;

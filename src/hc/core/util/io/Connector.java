@@ -26,13 +26,13 @@ public class Connector {
 						if(data == -1){
 							break;
 						}else{
-							buffer.writeIn(data);
+							buffer.write(data);
 							int readLen;
 							int bufferTotal = 0;
 							do{
 								readLen = is.read(cache);
 								if(readLen > 0){
-									bufferTotal = buffer.writeIn(cache, 0, readLen);
+									bufferTotal = buffer.write(cache, 0, readLen);
 								}
 							}while(readLen > 0 && bufferTotal < maxBlock);
 							os.write(buffer.buffer, 0, bufferTotal);
@@ -52,7 +52,7 @@ public class Connector {
 					}
 					
 					ByteUtil.byteArrayCacher.cycle(cache);
-					buffer.release();
+					buffer.recycle();
 				}
 			}
 		});

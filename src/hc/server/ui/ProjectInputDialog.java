@@ -39,7 +39,7 @@ public class ProjectInputDialog extends SystemDialog{
 		final int areaFontSize = (int)(fontSizePX * 0.7);
 		final int labelHeight = (int)(fontSizePX * 1.4);
 		
-		final String fieldStyle = "display: block;box-sizing: border-box;width: 100%;vertical-align:middle;font-size:" + areaFontSize + "px;";
+		final String fieldStyle = "display: block;box-sizing: border-box;width: 100%;vertical-align:middle;";//font-size:" + areaFontSize + "px;
 		final int halfMobileW = getMobileWidth() / 2;
 		
 		final JTextField[] fields = new JTextField[fieldNum];
@@ -57,7 +57,7 @@ public class ProjectInputDialog extends SystemDialog{
 		final JPanel tablePanel = new JPanel(new GridLayout(fieldNum * 2 + 1, 1));
 		{
 			final String labelDivStyle = "overflow:hidden;";
-			final String labelStyle = "font-weight:bold;font-size:" + areaFontSize + "px;";
+			final String labelStyle = "font-weight:bold;";//font-size:" + areaFontSize + "px;
 			
 			for (int i = 0; i < fieldNum; i++) {
 				final String text = fieldNames[i];
@@ -112,7 +112,8 @@ public class ProjectInputDialog extends SystemDialog{
 			final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
 			final int areaFontColor = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker().getRGB();
 			setCSS(area, null, "width:100%;height:100%;" +
-					"overflow-y:auto;font-size:" + areaFontSize + "px;" +
+					"overflow-y:auto;" +
+//					"font-size:" + areaFontSize + "px;" +
 					"background-color:#" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.toHexColor(areaFontColor, false) + ";");
 
 			panel.add(area, BorderLayout.CENTER);

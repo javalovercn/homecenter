@@ -105,6 +105,7 @@ public class CodeHelper {
 	private static final String TO_DOWN_CASE = "downcase";
 	private static final String TO_S = "to_s";
 	private static final String TO_F = "to_f";
+	private static final String TO_A = "to_a";
 	private static final String TO_I = "to_i";
 	private static final String NIL = "nil";
 	private static final String JRUBY_CLASS_INITIALIZE_DEF = "initialize";
@@ -350,6 +351,7 @@ public class CodeHelper {
 				addToMethod(c, list, TO_S, "String", "boolean");
 			}else if(c == Object.class){
 				addToField(c, list, NIL, "Object", "Object");//is Nil
+				addToField(c, list, TO_A, "JRuby[]", "Object[]");
 			}else if(isForClass){//一般用于用户Jar库的类
 				if(c != JRUBY_JAVA_CLASS_AGENT){
 					addToField(c, list, JRUBY_JAVA_CLASS, "Class", "JRubyClass");//后两参数仅表示，没有实际相关
@@ -381,7 +383,7 @@ public class CodeHelper {
 					final CodeItem item = CodeItem.getFree();
 					item.fieldOrMethodOrClassName = codeField;
 					item.code = codeFieldForInput;
-					item.codeForDoc = item.code;
+					item.codeForDoc = codeField;//item.code; 后者可能含有class.getProjectContext()，导致不能打开Doc
 					final Class<?> fieldClass = field.getDeclaringClass();
 					item.fmClass = fieldClass.getName();
 					item.codeDisplay = codeField + " : " + field.getType().getSimpleName() + " - " + fieldClass.getSimpleName();
@@ -437,7 +439,7 @@ public class CodeHelper {
 					final String codeMethod = method.getName() + (paraStr.length()==0?"()":"(" + paraStr + ")");
 					final String codeMethodForDisplay = method.getName() + (paraStrForDisplay.length()==0?"()":"(" + paraStrForDisplay + ")");
 					final String codeMethodForInput = (isForClass==false && isStatic)?(CLASS_STATIC_PREFIX + codeMethod):codeMethod;
-					final String codeMethodForDoc = (isForClass==false && isStatic)?(CLASS_STATIC_PREFIX + codeMethodForDisplay):codeMethodForDisplay;
+					final String codeMethodForDoc = codeMethodForDisplay;//[(isForClass==false && isStatic)?(CLASS_STATIC_PREFIX + codeMethodForDisplay):codeMethodForDisplay] 后者可能含有class.getProjectContext()，导致不能打开Doc
 					
 					if(deprecatedMethods != null && deprecatedMethods.contains(codeMethodForDoc)){
 						continue;
@@ -1043,8 +1045,7 @@ public class CodeHelper {
 		final byte[] fileContent = jar.content;
 		final String fileShortName = jar.name;
 		
-		final String tmpFileName = ResourceUtil.createRandomFileNameWithExt(StoreDirManager.TEMP_DIR, StoreDirManager.HCTMP_EXT);
-		final File tmpFile = new File(StoreDirManager.TEMP_DIR, tmpFileName);
+		final File tmpFile = ResourceUtil.createRandomFileWithExt(StoreDirManager.TEMP_DIR, StoreDirManager.HCTMP_EXT);
 		
 		if(ResourceUtil.writeToFile(fileContent, tmpFile)){
 			final ArrayList<String> classAndRes = J2SEClassBuilder.getClassAndResByJar(tmpFile, true);
@@ -2578,7 +2579,7 @@ public class CodeHelper {
 	}
 	
 	final CallContext callCtxNeverCycle = CallContext.getFree();
-
+	
 	private final Node buildNodeRemoveCurrEditErrLine(final String script, final ScriptEditPanel sep){
 		final int idx = sep.jtaScript.getCaretPosition();
 		try{

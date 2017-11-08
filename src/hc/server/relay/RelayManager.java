@@ -432,7 +432,7 @@ public class RelayManager {
 					if(L.isLogInRelay) {
 						LogManager.log("remove tdn");
 					}
-					tdn[uuidlen].delNode(sc.uuidbs.bytes, 0, uuidlen);
+					tdn[uuidlen].delNode(sc, sc.uuidbs.bytes, 0, uuidlen);
 				}
 			}
 			
@@ -536,12 +536,11 @@ public class RelayManager {
 						final String newToken = dr.getTokenDataOut();
 						if(newToken.equals(sc.token)){//上次的连接仍alive，待接入者进行等待
 							if(L.isLogInRelay){
-								LogManager.errToLog("the same token account seem alive, override, token [" + newToken + "].");
+								LogManager.log("the same token account seem alive, append second or more, token [" + newToken + "].");
 							}
 							
-							sc = overrideSameToken(sc, bs, len);
-							
-							GlobalConditionWatcher.addWatcher(overrideSameTokenWatcher);
+							sc = appendSameToken(bs, len);
+//							GlobalConditionWatcher.addWatcher(overrideSameTokenWatcher);
 						}else if(firstOrReset == MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST
 								|| firstOrReset == MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_BUILD_NEW_CONN){
 							final String uuidString = sc.getUUIDString();
@@ -600,7 +599,7 @@ public class RelayManager {
 						}
 						sc.isMatched = true;
 						sc.isDelTDN = true;
-						tdn[len].delNode(bs, uuidIndex, endIdx);
+						tdn[len].delNode(sc, bs, uuidIndex, endIdx);
 						minusServNum();
 					}
 				}else{//sc == null
@@ -680,7 +679,11 @@ public class RelayManager {
 		}
 		return false;
 	}
-
+	
+	private static SessionConnector appendSameToken(final byte[] bs,	final int len) {
+		return buildSessionConn(bs, len);
+	}
+	
 	private static SessionConnector overrideSameToken(SessionConnector sc, final byte[] bs,
 			final int len) {
 		closePare(sc, true);
@@ -982,7 +985,7 @@ public class RelayManager {
 							if(L.isLogInRelay) {
 								LogManager.log("remove tdn");
 							}
-							tdn[i].delNode(c.uuidbs.bytes, 0, c.uuidbs.len);
+							tdn[i].delNode(c, c.uuidbs.bytes, 0, c.uuidbs.len);
 							moveCount++;
 						}catch (final Exception e) {
 							ExceptionReporter.printStackTrace(e);

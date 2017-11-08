@@ -154,10 +154,10 @@ public abstract class MCanvasMenu extends MUIView {
 	}
 	
 	@Override
-	public String buildJcip(final J2SESession coreSS){
+	public void transMenuWithCache(final J2SESession coreSS){
 		final SessionMobiMenu menu = coreSS.getMenu(projectID);
 		int countPrint = 0;
-		while(menu.isIncrementMode() == false){
+		while(menu.isEnableFlushMenu() == false){
 			if(L.isInWorkshop){
 				LogManager.log("waiting session menu to increment mode...");
 			}
@@ -182,8 +182,11 @@ public abstract class MCanvasMenu extends MUIView {
 			}
 		}
 		
-		final Vector<MenuItem> menuItems = coreSS.getDisplayMenuItems(projectID);
-		
+		menu.transMenuWithCache(projectID, this);
+	}
+
+	@Override
+	public final String buildJcip(final J2SESession coreSS, final Vector<MenuItem> menuItems){
 		synchronized (buildLock) {//注意：存在复用对象，故加锁
 			final StringBuilder sb = StringBuilderCacher.getFree();
 			

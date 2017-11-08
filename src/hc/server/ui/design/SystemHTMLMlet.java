@@ -65,7 +65,7 @@ public class SystemHTMLMlet extends HTMLMlet {
 		final int areaFontColor = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker().getRGB();
 		mlet.setCSSForDiv(area, "areaForDiv", null);
 		mlet.setCSS(area, null, "width:100%;height:100%;" +
-				"overflow:scroll;font-size:" + normalFontSize + "px;" +
+				"overflow:scroll;" +//font-size:" + normalFontSize + "px;
 				"background-color:#" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.toHexColor(areaFontColor, false) + ";");
 	}
 	
@@ -94,10 +94,11 @@ public class SystemHTMLMlet extends HTMLMlet {
 				
 				".btnStyle {width:100%;height:100%;border-radius: " + buttonHeight + "px;display: block;transition: all 0.15s ease;" +
 				"border: 0em solid #"+ buttonBGColor + ";background-color: #" + buttonBGColor + ";color: #"+ strHexFontColor + ";" +
-				"font-size:" + fontSize + "px;}" +
+				"}" +
 				
 				".btnDisableStyle {width:100%;height:100%;border-radius: " + buttonHeight + "px;display: block;transition: all 0.15s ease;" +
 				"border: 0em solid #"+ buttonDisableBGColor + ";background-color: #" + buttonDisableBGColor + ";" +
-				"color: #"+ fontDisableColor + ";font-size:" + fontSize + "px;}";
+				"color: #"+ fontDisableColor + ";" +
+				"}";
 	}
 }

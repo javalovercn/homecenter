@@ -95,6 +95,7 @@ public abstract class IConstant {
 	public static final String UTF_8 = "UTF-8";
 	public static final String ISO_8859_1 = "ISO-8859-1";
 	
+	public static final String DOUBLE_NEGATIVE_ONE = "-1.0";
 	
 //	public static final byte DATA_PROTOCAL_HEAD_H = 'H';
 //	public static final byte DATA_PROTOCAL_HEAD_C = 'c';
@@ -119,6 +120,11 @@ public abstract class IConstant {
 	
 	public static final String ON = "on";
 	public static final String OFF = "off";
+	
+	public static final String FILE_AUDIO = "audio";
+	public static final String FILE_IMAGE = "image";
+	public static final String FILE_VIDEO = "video";
+	public static final String FILE_ALL = "all";
 	
 	public static final boolean IS_ENABLE_FUNC = false;
 	

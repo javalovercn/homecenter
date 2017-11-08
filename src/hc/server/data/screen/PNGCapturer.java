@@ -1,7 +1,5 @@
 package hc.server.data.screen;
 
-import hc.core.ContextManager;
-import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
@@ -10,7 +8,6 @@ import hc.core.data.DataInputEvent;
 import hc.core.data.DataPNG;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
-import hc.core.util.MobileAgent;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPriorityManager;
 import hc.server.ui.HCByteArrayOutputStream;
@@ -132,25 +129,6 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		return coreSS.mask;
 	}
 
-	public static int getMaskFromBit(final int cBit) {
-		int colorBit = 0;
-		if(cBit == IConstant.COLOR_64_BIT){
-			colorBit = IConstant.COLOR_64_BIT;
-		}else if(cBit == IConstant.COLOR_32_BIT){
-			colorBit = IConstant.COLOR_32_BIT;
-		}else if(cBit == IConstant.COLOR_16_BIT){
-			colorBit = IConstant.COLOR_16_BIT;
-		}else if(cBit == IConstant.COLOR_8_BIT){
-			colorBit = IConstant.COLOR_8_BIT;
-		}else if(cBit == IConstant.COLOR_4_BIT){
-			colorBit = IConstant.COLOR_4_BIT;
-		}else{
-			colorBit = IConstant.COLOR_8_BIT;
-		}
-		final int mask_one = ((0x01 << (colorBit - 1)) - 1);
-		return (mask_one << 16) | (mask_one << 8) | mask_one;
-	}
-	
 	protected boolean isStopCap = false;
 	
 	protected void enableStopCap(final boolean sc){
@@ -385,59 +363,6 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		synchronized (WAITING) {
 			WAITING.notify();
 		}
-	}
-
-	public static void updateRefreshMS(final J2SESession coreSS, int millSecond) {
-		if(millSecond == MobileAgent.INT_UN_KNOW){
-			return;
-		}
-		
-		final int msOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_MS_On_Relay));
-		if(coreSS.isOnRelay()){
-			if(millSecond < msOnRelay){
-				millSecond = msOnRelay;
-			}
-		}else{
-			final short mode = coreSS.context.getConnectionModeStatus();
-			if(mode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
-				millSecond = 100;
-			}else if(mode == ContextManager.MODE_CONNECTION_PUBLIC_UPNP_DIRECT){
-				millSecond = Math.min(millSecond, 1000);
-			}else if(mode == ContextManager.MODE_CONNECTION_PUBLIC_DIRECT){
-				millSecond = Math.min(millSecond, 1000);
-			}
-		}
-		
-		LogManager.log("Client change refresh MillSecond to:" + millSecond);
-		coreSS.refreshMillSecond = millSecond;
-	}
-
-	public static void updateColorBit(final J2SESession coreSS, int mode) {
-		if(mode == MobileAgent.INT_UN_KNOW){
-			return;
-		}
-		
-		final int colorOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_Color_On_Relay));
-		if(coreSS.isOnRelay()){
-			if((IConstant.COLOR_STAR_TOP - mode) > colorOnRelay){
-				mode = (IConstant.COLOR_STAR_TOP - colorOnRelay);
-			}
-		}else{
-			final short connMode = coreSS.context.getConnectionModeStatus();
-			if(connMode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
-				//取最大值
-				mode = IConstant.COLOR_64_BIT;
-			}else if(connMode == ContextManager.MODE_CONNECTION_PUBLIC_UPNP_DIRECT){
-				mode = Math.min(mode, IConstant.COLOR_16_BIT);
-			}else if(connMode == ContextManager.MODE_CONNECTION_PUBLIC_DIRECT){
-				mode = Math.min(mode, IConstant.COLOR_32_BIT);
-			}
-			
-		}
-	
-		LogManager.log("Client change colorMode to level : " + (IConstant.COLOR_STAR_TOP - mode) + " (after limited)");
-
-		coreSS.mask = getMaskFromBit(mode);
 	}
 
 }

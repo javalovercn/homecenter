@@ -10,6 +10,9 @@ public abstract class RootBuilder {
 	public static final short ROOT_CHECK_CHECKPERMISSION = 7;
 	public static final short ROOT_GET_RESOURCE = 8;
 	public static final short ROOT_SET_PUBLISH_LOCATION_INTER_MS = 9;
+	public static final short ROOT_SET_THREAD_PARA = 10;//引用parameter : KeyValue [Integer, Object]
+	public static final short ROOT_IS_IN_LOGIN_PROCESS = 11;
+	public static final short ROOT_PRINT_STACK_WITH_FULL_CAUSE = 12;
 		
 	private static RootBuilder instance;
 	

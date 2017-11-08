@@ -16,8 +16,8 @@ public class ConnectionRebuilder {
 	
 	public boolean isReleased;
 	
-	private final void delayReset(){
-		isSuccNewConn = false;
+	private final void delayResetRebuilder(){
+		isSuccNewConn = false;//需要delayReset，因为需要此状态来判定
 		isStartBuildingNewAtMobileSide = false;
 	}
 	
@@ -51,6 +51,11 @@ public class ConnectionRebuilder {
 				return false;
 			}
 		}else{
+			if(RootBuilder.getInstance().doBiz(RootBuilder.ROOT_IS_IN_LOGIN_PROCESS, null) == IConstant.TRUE){
+				//手机登录时，不进行重新连接。
+				return false;
+			}
+
 			if(cmStatus == ContextManager.STATUS_CLIENT_SELF){
 				synchronized (this) {
 					if(isStartBuildingNewAtMobileSide == false){
@@ -137,11 +142,10 @@ public class ConnectionRebuilder {
 		ContextManager.getThreadPool().run(new Runnable() {
 			public void run() {
 				try{
-					Thread.sleep(ThreadPriorityManager.UI_DELAY_MOMENT);
+					Thread.sleep(ThreadPriorityManager.UI_DELAY_MOMENT * 2);
 				}catch (Exception e) {
 				}
-				
-				delayReset();
+				delayResetRebuilder();
 			}
 		});
 	}

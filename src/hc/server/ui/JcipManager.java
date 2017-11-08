@@ -25,13 +25,13 @@ public class JcipManager {
 			if(ctrlCanvas.getScreenID().equals(screenID)){
 				onClick(coreSS, jcip, ctrlCanvas);
 				return;
-			}else{
-				final ServCtrlCanvas searchCtrlCanvas = ScreenServer.searchCtrlCanvas(coreSS, screenID);
-				if(searchCtrlCanvas != null){
-					onClick(coreSS, jcip, searchCtrlCanvas);
-					return;
-				}
 			}
+		}
+		
+		final ServCtrlCanvas searchCtrlCanvas = ScreenServer.searchCtrlCanvas(coreSS, screenID);
+		if(searchCtrlCanvas != null){
+			onClick(coreSS, jcip, searchCtrlCanvas);
+			return;
 		}
 		
 		LogManager.errToLog("fail to search CtrlResponse : " + screenID);

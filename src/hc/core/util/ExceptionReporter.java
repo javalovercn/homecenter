@@ -3,6 +3,7 @@ package hc.core.util;
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.RootConfig;
+import hc.core.util.LogManager;
 
 public class ExceptionReporter {
 	private static boolean status = false;
@@ -111,7 +112,11 @@ public class ExceptionReporter {
 	 * @param invokeFrom one of {@link #INVOKE_NORMAL}, {@link #INVOKE_HAR}, {@link #INVOKE_THREADPOOL}
 	 */
 	public static final void printStackTrace(final Throwable throwable, final String script, final String errMessage, final int invokeFrom){
-		throwable.printStackTrace();
+		if(L.isInWorkshop){
+			RootBuilder.getInstance().doBiz(RootBuilder.ROOT_PRINT_STACK_WITH_FULL_CAUSE, throwable);//printStackTrace or cause by without more
+		}else{
+			throwable.printStackTrace();
+		}
 		
 		if(status == false){
 			return;

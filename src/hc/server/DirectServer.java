@@ -10,9 +10,11 @@ import hc.core.MsgBuilder;
 import hc.core.data.DataReg;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
+import hc.core.util.ThreadPriorityManager;
 import hc.server.ui.J2SESessionManager;
 import hc.server.ui.design.J2SESession;
 import hc.server.util.StarterParameter;
+import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
@@ -45,6 +47,7 @@ public class DirectServer extends Thread {
 	
 	public DirectServer(final InetAddress ia, final String naName) {
 		super("DirectServer");
+		setPriority(ThreadPriorityManager.DIRECT_SERVER_RECEIVE_PRIORITY);
 		if(ResourceUtil.isNonUIServer()){
 			final String demoIP = PropertiesManager.getValue(PropertiesManager.p_NonUIServerIP);//由于searchReachable，所以几乎不会使用p_DemoServerIP
 			if(demoIP != null){
@@ -158,15 +161,7 @@ public class DirectServer extends Thread {
 				LogManager.log("[direct server] ready for new client.");
 				socket = server.accept();
 				
-				final Socket para_socket = socket;
-				final J2SESession coreSSMaybeNull = J2SESessionManager.lockIdelSession();
-				socket = null;
-				ContextManager.getThreadPool().run(new Runnable() {
-					@Override
-					public void run() {
-						processOneClient(para_socket, coreSSMaybeNull);
-					}
-				});
+				processOneClient(socket, J2SESessionManager.lockIdelSession());//不用threadPool，以减少时间
 			}catch (final Throwable e) {
 				LogManager.log("[direct server] Exception : " + e.toString());
 				if(isDemoServer){
@@ -226,6 +221,8 @@ public class DirectServer extends Thread {
 				ex.printStackTrace();
 			}
 			
+			HttpUtil.initReceiveSendBufferForSocket(socket);
+
 			final int maxTryCount = 5;
 			final HCTimer watcher = new HCTimer("", maxTryCount * 1000, true) {
 				@Override
@@ -265,7 +262,7 @@ public class DirectServer extends Thread {
 					LogManager.errToLog("no idle session for new client.");
 					return;
 				}
-				
+
 				try{
 					coreSSMaybeNull.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_DIRECT_CONN_OK);
 				}catch (final Throwable e) {
@@ -276,7 +273,6 @@ public class DirectServer extends Thread {
 //					Thread.sleep(ThreadPriorityManager.NET_FLUSH_DELAY);//override same token，所以关闭
 //				}catch (final Exception e) {
 //				}
-				J2SESessionManager.startNewIdleSession();
 				
 				setServerConfigPara(coreSSMaybeNull, true, false);
 				coreSSMaybeNull.context.setConnectionModeStatus(ContextManager.MODE_CONNECTION_HOME_WIRELESS);

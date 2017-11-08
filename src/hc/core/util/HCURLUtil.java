@@ -1,7 +1,9 @@
 package hc.core.util;
 
 import hc.core.CoreSession;
+import hc.core.HCMessage;
 import hc.core.IConstant;
+import hc.core.L;
 import hc.core.MsgBuilder;
 
 import java.io.UnsupportedEncodingException;
@@ -44,6 +46,29 @@ public class HCURLUtil {
 	 */
 	public static HCURL extract(String url){
 		return extract(url, true);
+	}
+	
+	/**
+	 * empty string means no file extension.
+	 * @param url
+	 * @return the lower case of file extension.
+	 */
+	public static String extractFileExtension(final String url){
+		final int idx = url.indexOf('.');
+		if(idx == -1){
+			return "";
+		}else{
+			return url.substring(idx + 1).toLowerCase();
+		}
+	}
+	
+	public static String extractFileName(final String url){
+		int cut = url.lastIndexOf('/');
+	    if (cut != -1) {
+	    	return url.substring(cut + 1);
+	    }else{
+	    	return "unknow";
+	    }
 	}
 	
 	public static HCURL extract(String url, final boolean isDecodeValue){
@@ -252,6 +277,13 @@ public class HCURLUtil {
 		return (needToChange ? sb.toString() : s);
 	}
 	
+	public static final boolean processGotoUrlForNormalAndSuperLevel(final byte[] bs, final CoreSession coreSS) {
+		final String cmd = HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA);
+		L.V = L.WShop ? false : LogManager.log("======>Receive URL:" + cmd);
+		HCURLUtil.process(coreSS, cmd, coreSS.urlAction);
+		return true;
+	}
+	
 	public static boolean process(final CoreSession coreSS, String url, IHCURLAction action){
 		boolean isDone = false;
 		HCURL hu = HCURLUtil.extract(url);
@@ -283,6 +315,7 @@ public class HCURLUtil {
 	}
 	
 	public static void sendCmd(CoreSession coreSS, String cmdType, String para, String value){
+		L.V = L.WShop ? false : LogManager.log("send E_GOTO_URL : " + para);
 		pSendCmd(coreSS, MsgBuilder.E_GOTO_URL, cmdType, encode(para), encode(value));
 	}
 
@@ -351,14 +384,20 @@ public class HCURLUtil {
 	public static final String CLASS_ERR_ON_CACHE = "errOnCache";
 	public static final String CLASS_TRANS_SERVER_UID = "transServerUID";
 	public static final String CLASS_MOV_NEW_SERVER = "movNewServer";
-	public static final String CLASS_TRANS_FILE = "transFile";
-	
 	public static final String INNER_MODE = "_inner:";
 	
 	public static final int HTTPS_CONN_TIMEOUT = 10 * 1000;
 	public static final int HTTPS_READ_TIMEOUT = 10 * 1000;
 			
-	public static void sendCmd(CoreSession coreSS, String cmdType, String[] para, String[] value){
+	public static void sendCmd(final CoreSession coreSS, final String cmdType, final String[] para, final String[] value){
+		sendCmd(false, coreSS, cmdType, para, value);
+	}
+	
+	public static void sendCmdReceiveLevel(final CoreSession coreSS, final String cmdType, final String[] para, final String[] value){
+		sendCmd(true, coreSS, cmdType, para, value);
+	}
+
+	private static void sendCmd(final boolean isReceiveLevel, final CoreSession coreSS, final String cmdType, final String[] para, final String[] value){
 //		sendWrap进行了拦截
 		final StringBuffer sb = StringBufferCacher.getFree();
 		
@@ -370,7 +409,12 @@ public class HCURLUtil {
 			}
 			sb.append(encode(para[i])).append('=').append(encode(value[i]));
 		}
-		coreSS.context.send(MsgBuilder.E_GOTO_URL, sb.toString());
+		
+		final byte ctrl_tag = isReceiveLevel?MsgBuilder.E_GOTO_URL_SUPER_LEVEL:MsgBuilder.E_GOTO_URL;
+		final String url = sb.toString();
+		
+		L.V = L.WShop ? false : LogManager.log("send E_GOTO_URL[HIGH_LEVEL] : " + url);
+		coreSS.context.send(ctrl_tag, url);
 		
 		StringBufferCacher.cycle(sb);
 	}

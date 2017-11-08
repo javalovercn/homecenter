@@ -29,7 +29,6 @@ import hc.server.ui.J2SESessionManager;
 import hc.server.ui.MenuItem;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
-import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SessionMobiMenu;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.ServerAPIAgent;
@@ -356,7 +355,7 @@ public class MobiUIResponsor extends BaseResponsor {
 //		final HCJRubyEngine hcje = responsors[0].hcje;
 //		RubyExector.initActive(hcje);
 	}
-
+	
 	public final void preLoadJRubyScripts(){
 		final int seconds = ResourceUtil.getSecondsForPreloadJRuby();
 		if(seconds < 0){
@@ -836,14 +835,14 @@ public class MobiUIResponsor extends BaseResponsor {
 				
 				
 				if(ProjectContext.EVENT_SYS_PROJ_STARTUP == event){
-					resp.jarMainMenu.projectMenu.notifyIncrementMode();//完成初始状态，后续转为增量方式
+					resp.jarMainMenu.projectMenu.notifyEnableFlushMenu();//完成初始状态，后续转为增量方式
 					if(L.isInWorkshop){
-						LogManager.log("change project menu to increment mode.");
+						LogManager.log("change project level menu [" + resp.projectID + "] to increment mode.");
 					}
 				}else if(ProjectContext.EVENT_SYS_MOBILE_LOGIN == event){
-					coreSS.getMenu(resp.projectID).notifyIncrementMode();//完成初始状态，后续转为增量方式
+					coreSS.getMenu(resp.projectID).notifyEnableFlushMenu();//完成初始状态，后续转为增量方式
 					if(L.isInWorkshop){
-						LogManager.log("change session menu [" + resp.projectID + "] to increment mode.");
+						LogManager.log("change session level menu [" + resp.projectID + "] to increment mode.");
 					}
 				}
 				
@@ -903,6 +902,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		
 		//拦截Menu处理
 		if(url.protocal == HCURL.MENU_PROTOCAL){
+			j2seCoreSS.notifyCanvasMenuResponse();
 			final String newContext = url.elementID;
 			
 			if(newContext.equals(HCURL.ROOT_MENU) == false //保留支持旧的ROOT_ID
@@ -913,12 +913,13 @@ public class MobiUIResponsor extends BaseResponsor {
 				final ProjResponser resp = findContext(newContext);
 				final JarMainMenu linkMenu = resp.jarMainMenu;
 				
-				ServerUIUtil.transMenuWithCache(j2seCoreSS, linkMenu.buildJcip(j2seCoreSS), resp.context.getProjectID());//newContext
+				linkMenu.transMenuWithCache(j2seCoreSS);
 				
 				ScreenServer.pushScreen(j2seCoreSS, linkMenu);
 				
 				LogManager.log(ILog.OP_STR + "enter project : [" + linkMenu.projectID + "]");
 				LogManager.log(ILog.OP_STR + "open menu : [" + linkMenu.linkOrProjectName + "]");
+				
 				return true;
 			}
 		}

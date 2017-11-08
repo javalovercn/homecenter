@@ -25,63 +25,14 @@ public class ClientInitor {
 		//无论客户端，服务器都设置
 		eventCenter.addListener(ic.rootTagListener);
 		
-		eventCenter.addListener(new IEventHCListener() {
-			
-			public byte getEventTag() {
-				return MsgBuilder.E_ACK_XOR_PACKAGE_ID;
-			}
-			
-			public boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
-				final long ackPakcageID = ByteUtil.eightBytesToLong(bs, MsgBuilder.INDEX_MSG_DATA);
-				if(hcConnection.ackXorPackage(ackPakcageID)){
-					L.V = L.WShop ? false : LogManager.log("successful ack XorPackageID : " + ackPakcageID);
-				}else{
-					LogManager.errToLog("error ack package!");
-					coreSS.notifyLineOff(false, false);
-				}
-				return true;
-			}
-		});
-		
-		eventCenter.addListener(new IEventHCListener() {
-			
-			public final byte getEventTag() {
-				return MsgBuilder.E_STREAM_MANAGE;
-			}
-			
-			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
-//				final int sendLen = 1 + STREAM_ID_LEN + 1 + classNameLen + 2 + len;
-				int offsetidx = MsgBuilder.INDEX_MSG_DATA;
-				final boolean isInputStream = (bs[offsetidx]==1);
-				offsetidx += 1;
-				final int streamID = (int)ByteUtil.fourBytesToLong(bs, offsetidx);
-				offsetidx += StreamBuilder.STREAM_ID_LEN;
-				final int classNameLen = ByteUtil.oneByteToInteger(bs, offsetidx);
-				offsetidx += 1;
-				final String className = ByteUtil.buildString(bs, offsetidx, classNameLen, IConstant.UTF_8);
-				if(className.equals(StreamBuilder.TAG_CLOSE_STREAM)){
-					final Object stream = coreSS.streamBuilder.closeStream(isInputStream, streamID);
-					if(stream != null && stream instanceof IHCStream){
-						((IHCStream)stream).notifyClose();
-					}
-					return true;
-				}
-				
-				offsetidx += classNameLen;
-				final int paraBSLen = ByteUtil.twoBytesToInteger(bs, offsetidx);
-				offsetidx +=2;
-				final byte[] paraBS = ByteUtil.byteArrayCacher.getFree(paraBSLen);
-				System.arraycopy(bs, offsetidx, paraBS, 0, paraBSLen);
-				
-				coreSS.context.notifyStreamReceiverBuilder(isInputStream, className, streamID, paraBS, 0, paraBSLen);
-				ByteUtil.byteArrayCacher.cycle(paraBS);
-				return true;
-			}
-		});
-		
 		eventCenter.addListener(new IEventHCListener(){
 //			long lastReceive = 0;
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
+				if(coreSS.isExchangeStatus()){
+					LogManager.errToLog("ignore E_TAG_MOVE_TO_NEW_RELAY when in exchange status.");
+					return true;
+				}
+				
 				try{
 					//要先行关闭，因为有可能会导致新生成的连接被关闭(连接发出端或中继端)
 					coreSS.closeSocket(coreSS.getSocket());
@@ -226,38 +177,13 @@ public class ClientInitor {
 			}
 		});
 
-		eventCenter.addListener(new IEventHCListener() {
-			public final byte getEventTag() {
-				return MsgBuilder.E_STREAM_DATA;
-			}
-			
-			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
-				final Hashtable inputStreamTable = coreSS.streamBuilder.inputStreamTable;
-				
-				final int len = HCMessage.getMsgLen(bs);
-				final int streamID = (int)ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_MSG_DATA);
-				Object is;
-				final int dataLen = len - StreamBuilder.STREAM_ID_LEN;
-				
-				synchronized (coreSS.streamBuilder.LOCK) {
-					is = inputStreamTable.get(new Integer(streamID));
-				}
-				if(is != null){
-					((HCInputStream)is).appendStream(bs, MsgBuilder.INDEX_MSG_DATA + StreamBuilder.STREAM_ID_LEN, dataLen);
-					return true;
-				}
-				
-				return true;
-			}
-		});
-		
 		if(IConstant.serverSide == false){
 			//客户端
 			
 			eventCenter.addListener(new IEventHCListener(){
 				public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 					final String cmd = HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA);
-//					LogManager.log("======>Receive:" + cmd);
+					L.V = L.WShop ? false : LogManager.log("======>Receive:" + cmd);
 					HCURLUtil.process(coreSS, cmd, coreSS.urlAction);
 					return true;
 				}

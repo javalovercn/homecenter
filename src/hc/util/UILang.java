@@ -1,9 +1,11 @@
 package hc.util;
 
 import hc.core.ContextManager;
+import hc.core.L;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LangUtil;
+import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
 
@@ -64,7 +66,9 @@ public class UILang {
 	}
 	
 	public static String getUILang(final int id){
-		return resources.get(String.valueOf(id));
+		final String result = resources.get(String.valueOf(id));
+//		L.V = L.WShop ? false : LogManager.log("res " + id + " : " + result + ", locale : " + locale);
+		return result;
 	}
 	
 	public static Locale getUsedLocale(){

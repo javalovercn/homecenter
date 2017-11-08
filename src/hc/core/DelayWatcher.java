@@ -6,6 +6,9 @@ public abstract class DelayWatcher implements IWatcher {
 	private final long execMS;
 	
 	public DelayWatcher(final int msDelay){
+		if(msDelay <= 0){
+			new IllegalArgumentException("error parameter delaywatcher : " + msDelay);
+		}
 		execMS = System.currentTimeMillis() + msDelay;
 	}
 	

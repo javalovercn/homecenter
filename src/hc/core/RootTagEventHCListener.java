@@ -39,7 +39,7 @@ public class RootTagEventHCListener extends IEventHCListener{
 			return true;
 		}else if(subTag == MsgBuilder.DATA_ROOT_MATCHED_FOR_CLIENT_ON_RELAY){
 			LogManager.log("session is matched for client on relay.");
-			coreSS.context.doExtBiz(IContext.BIZ_MATCHED_FOR_CLIENT_ON_RELAY, null);
+//			coreSS.context.doExtBiz(IContext.BIZ_MATCHED_FOR_CLIENT_ON_RELAY, null);
 			return true;
 		}else if(subTag == MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_SERVERING){
 			if(IConstant.serverSide == false){
@@ -50,7 +50,7 @@ public class RootTagEventHCListener extends IEventHCListener{
 				//服务器收到mobi回应
 				hcConnection.receiveMS = System.currentTimeMillis();
 				if(L.isInWorkshop){
-					LogManager.log("Receive line watch at RootTagEventHCListener");
+					LogManager.log("[keepalive] Receive line watch at RootTagEventHCListener");
 				}
 			}
 			
@@ -71,7 +71,7 @@ public class RootTagEventHCListener extends IEventHCListener{
 				sameIDMsg = "same ID is using, try another ID please!";
 			}
 			LogManager.err(sameIDMsg);
-			coreSS.context.displayMessage("Error", sameIDMsg, 
+			coreSS.context.displayMessage(false, "Error", sameIDMsg, 
 					IContext.ERROR, null, 0);
 			return true;
 		}else if(subTag == MsgBuilder.DATA_ROOT_UDP_PORT_NOTIFY){

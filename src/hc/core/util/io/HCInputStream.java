@@ -6,6 +6,7 @@ import hc.core.util.ByteArrayCacher;
 import hc.core.util.ByteUtil;
 import hc.core.util.LogManager;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -24,7 +25,7 @@ public class HCInputStream extends InputStream implements IHCStream{
 		this.streamID = streamID;
 		streamBuilder = coreSS.streamBuilder;
 		
-		synchronized (streamBuilder.LOCK) {
+		synchronized (streamBuilder.lock) {
 			streamBuilder.inputStreamTable.put(new Integer(streamID), this);
 		}
 	}
@@ -34,8 +35,9 @@ public class HCInputStream extends InputStream implements IHCStream{
 			this.isEof = true;
 			//recycleInLock();//可能还有未用完的数据，所以不能调用
 			notify();
-			return;
 		}
+		L.V = L.WShop ? false : LogManager.log("notify close HCInputStream : " + streamID);
+//		close();//可能还有未用完的数据，所以不能调用
 	}
 	
 	public final void appendStream(final byte[] bs, final int offset, final int len){
@@ -76,6 +78,23 @@ public class HCInputStream extends InputStream implements IHCStream{
 			exception = exp;
 			notify();
 		}
+		L.V = L.WShop ? false : LogManager.log("notify notifyExceptionAndCycle HCInputStream : " + streamID);
+	}
+	
+	public final void readFully(byte[] b) throws IOException{
+		readFully(b, 0, b.length);
+	}
+	
+	public final void readFully(byte[] b, int off, int len) throws IOException {
+		if (len < 0)
+            throw new IndexOutOfBoundsException();
+        int n = 0;
+        while (n < len) {
+            int count = read_0(b, off + n, len - n, true);
+            if (count < 0)
+                throw new EOFException();
+            n += count;
+        }
 	}
 
 	private final void recycleInLock() {
@@ -104,16 +123,16 @@ public class HCInputStream extends InputStream implements IHCStream{
 					}
 					return out;
 				}else{
+					if(exception != null){
+						throw exception;
+					}
+					
 					if(isEof){
 						return -1;
 					}
 					
 					if(isclosed){
 						return -1;
-					}
-					
-					if(exception != null){
-						throw exception;
 					}
 					
 					if(unread == null){
@@ -128,7 +147,7 @@ public class HCInputStream extends InputStream implements IHCStream{
 	}
 
 	public final int read(final byte[] b) throws IOException {
-		return read_0(b, 0, b.length);
+		return read_0(b, 0, b.length, false);
 	}
 	
 	/**
@@ -136,47 +155,57 @@ public class HCInputStream extends InputStream implements IHCStream{
 	 * @param b
 	 * @param off
 	 * @param len
+	 * @param isWaitForData
 	 * @return  -1 if there is no more data because the end of the stream has been reached.
 	 * @throws IOException
 	 */
-	private final int read_0(final byte[] b, final int off, final int len) throws IOException {
-		synchronized (this) {
-			if(unread != null){
-				final long calUnreadLen = storeEndIdx - offreadidx;
-				
-				final int returnLen = (int)((calUnreadLen > len)?len:calUnreadLen);
-				System.arraycopy(unread, offreadidx, b, off, returnLen);
-				if(returnLen == calUnreadLen){
-					cacher.cycle(unread);
-					unread = null;
-					storeEndIdx = 0;
-					offreadidx = 0;
+	private final int read_0(final byte[] b, final int off, final int len, final boolean isWaitForData) throws IOException {
+		do{
+			synchronized (this) {
+				if(unread != null){
+					final long calUnreadLen = storeEndIdx - offreadidx;
+					
+					final int returnLen = (int)((calUnreadLen > len)?len:calUnreadLen);
+					System.arraycopy(unread, offreadidx, b, off, returnLen);
+					if(returnLen == calUnreadLen){
+						cacher.cycle(unread);
+						unread = null;
+						storeEndIdx = 0;
+						offreadidx = 0;
+					}else{
+						final long unreadLeft = calUnreadLen - returnLen;
+						System.arraycopy(unread, offreadidx + returnLen, unread, 0, (int)unreadLeft);
+						storeEndIdx = unreadLeft;
+						offreadidx = 0;
+					}
+					return returnLen;
 				}else{
-					final long unreadLeft = calUnreadLen - returnLen;
-					System.arraycopy(unread, offreadidx + returnLen, unread, 0, (int)unreadLeft);
-					storeEndIdx = unreadLeft;
-					offreadidx = 0;
-				}
-				return returnLen;
-			}else{
-				if(isEof){
-					return -1;
-				}
-
-				if(isclosed){
-					return -1;
-				}
-				
-				if(exception != null){
-					throw exception;
+					if(exception != null){
+						throw exception;
+					}
+					
+					if(isEof){
+						return -1;
+					}
+	
+					if(isclosed){
+						return -1;
+					}
+					
+					if(unread == null && isWaitForData){
+						try {
+							this.wait();
+						} catch (final InterruptedException e) {
+						}
+					}
 				}
 			}
-			return 0;
-		}
+		}while (isWaitForData);
+		return 0;
 	}
 
 	public final int read(final byte[] b, final int off, final int len) throws IOException {
-		return read_0(b, off, len);
+		return read_0(b, off, len, false);
 	}
 
 	/**
@@ -229,12 +258,12 @@ public class HCInputStream extends InputStream implements IHCStream{
 	
 	public final void close() throws IOException {
 		if(L.isInWorkshop){
-			LogManager.log("close HCInputStream : " + streamID);
+			LogManager.log("notify close HCInputStream : " + streamID);
 		}
 		synchronized (this) {
-			if(exception != null){
-				throw exception;
-			}
+//			if(exception != null){
+//				throw exception;
+//			}
 			
 			if(isclosed){
 				return;

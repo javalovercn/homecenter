@@ -10,9 +10,15 @@ import hc.server.msb.SimuRobot;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.JarMainMenu;
 import hc.server.ui.design.engine.HCJRubyEngine;
+import hc.server.util.HCAudioInputStream;
+import hc.server.util.HCFileInputStream;
+import hc.server.util.HCImageInputStream;
+import hc.server.util.HCInputStreamBuilder;
 import hc.server.util.HCLimitSecurityManager;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
+
+import java.io.ByteArrayInputStream;
 
 public class SimuMobile {
 	public static final J2SESession SIMU_NULL = null;
@@ -52,6 +58,32 @@ public class SimuMobile {
 	public static final boolean CURR_IN_SESSION = true;
 	public static final String MOBILE_QR_RESULT = "qrcode:1234567890";
 	
+	public static final HCFileInputStream buildMobileImageFileStream(){
+		final String fileExtension = "png";
+		final String fileName = "screen.png";
+		return buildMobileFileStream(fileExtension, fileName);
+	}
+	
+	public static final HCFileInputStream buildMobileAudioFileStream(){
+		final String fileExtension = "3gp";
+		final String fileName = "audio.3gp";
+		return buildMobileFileStream(fileExtension, fileName);
+	}
+
+	private static HCFileInputStream buildMobileFileStream(final String fileExtension,
+			final String fileName) {
+		final ByteArrayInputStream bis = new ByteArrayInputStream(new byte[0], 0, 0);
+		return HCInputStreamBuilder.build(bis, fileExtension, fileName);
+	}
+	
+	public static final HCImageInputStream buildMobileImageStream(){
+		return HCInputStreamBuilder.buildImageStream(ResourceUtil.getResourceAsStream("hc/res/ok_22.png"), 0, -90, 0, "png", -1.0, -1.0, -1.0);
+	}
+	
+	public static final HCAudioInputStream buildMobileAudioStream(){
+		return HCInputStreamBuilder.buildAudioStream(ResourceUtil.getResourceAsStream("hc/res/helloworld.mp3"), "mp3", -1.0, -1.0, -1.0);
+	}
+	
 	final static RecycleRes tempLimitRecycleRes = HCLimitSecurityManager.getTempLimitRecycleRes();
 	
 	/**
@@ -84,7 +116,8 @@ public class SimuMobile {
 
 	public static synchronized HCJRubyEngine rebuildJRubyEngine() {
 		terminateJRubyEngine();
-		runTestEngine = new HCJRubyEngine(StoreDirManager.RUN_TEST_DIR.getAbsolutePath(), ResourceUtil.buildProjClassLoader(StoreDirManager.RUN_TEST_DIR, "hc.testDir"), true);
+		runTestEngine = new HCJRubyEngine(StoreDirManager.RUN_TEST_DIR.getAbsolutePath(), 
+				ResourceUtil.buildProjClassLoader(StoreDirManager.RUN_TEST_DIR, "hc.testDir"), true, HCJRubyEngine.IDE_LEVEL_ENGINE + "TestEngine");
 		return runTestEngine;
 	}
 

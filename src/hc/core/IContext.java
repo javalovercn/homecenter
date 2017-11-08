@@ -15,6 +15,8 @@ public abstract class IContext {
 	public short cmStatus;
 	protected final EventCenter eventCenter;
 	public final RootTagEventHCListener rootTagListener;
+	
+	public abstract void onEventLineOff(final boolean isClientReq);
 
 	/**
 	 * 注意：本方法被override
@@ -133,6 +135,8 @@ public abstract class IContext {
 	}
 	
 	public final void send(final byte event_type, final String body) {
+		L.V = L.WShop ? false : LogManager.log("send [" + event_type + "], message body : " + body);
+		
 		synchronized (sendLock) {
 			if(connectionRebuilder.isEnterBuildWaitNewConnection){
 				connectionRebuilder.waitBeforeSend();
@@ -175,6 +179,15 @@ public abstract class IContext {
 			}
 			hcConnection.sendImpl(os, ctrlTag, subTag);//注意：与下段重建连接重发，同步
 		}
+	}
+	
+	public final void sendWrapWithoutLockForKeepAliveOnly(final byte ctrlTag, final byte[] jcip_bs, final int offset, final int len) {
+//		synchronized (sendLock) {//大数据在发送时，外围层并没释放本锁，尽管内层间隔性释放。
+//			if(connectionRebuilder.isEnterBuildWaitNewConnection){
+//				connectionRebuilder.waitBeforeSend();
+//			}
+			hcConnection.sendWrapActionImpl(ctrlTag, jcip_bs, offset, len, cmStatus);//注意：与下段重建连接重发，同步
+//		}
 	}
 	
 	public final void sendWithoutLockForKeepAliveOnly(OutputStream os, final byte ctrlTag, final byte subTag){//因为可能在传送大数据时，keepAlive
@@ -344,15 +357,16 @@ public abstract class IContext {
 	public static final short BIZ_SERVER_ACCOUNT_BUSY = 33;
 	public static final short BIZ_UPDATE_ONE_TIME_KEYS_IN_CHANNEL = 34;
 	public static final short BIZ_REPLY_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL = 35;
-	public static final short BIZ_MATCHED_FOR_CLIENT_ON_RELAY = 36;
+//	public static final short BIZ_MATCHED_FOR_CLIENT_ON_RELAY = 36;
 	public static final short BIZ_SHOW_ONCE_SAME_ID = 37;
 	public static final short BIZ_VOICE = 38;
+	public static final short BIZ_CLIENT_RELOGIN = 39;
 
 	public abstract WiFiDeviceManager getWiFiDeviceManager();
 	public abstract void exit();
 	public abstract void notifyShutdown();
 	public abstract void run();
-	public abstract void displayMessage(String caption, String text, int type, Object imageData, int timeOut);
+	public abstract void displayMessage(boolean isFromServerAlertMsg, String caption, String text, int type, Object imageData, int timeOut);
 
 	public abstract Object getSysImg();
 	

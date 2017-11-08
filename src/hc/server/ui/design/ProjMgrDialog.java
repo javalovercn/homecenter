@@ -353,7 +353,7 @@ public class ProjMgrDialog extends SystemDialog {
 		add(projListPanel, BorderLayout.CENTER);
 		add(bottomPanel, BorderLayout.SOUTH);
 		
-		setCSS(this, null, "font-size:" + getFontSizeForNormal() + "px;");
+//		setCSS(this, null, "font-size:" + getFontSizeForNormal() + "px;");
 		
 		setPreferredSize(new Dimension(dialogWidth, dialogHeight));
 		

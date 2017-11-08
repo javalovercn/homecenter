@@ -1,6 +1,10 @@
 package hc.core.util;
 
 public class KeyValue {
-	Object key;
-	Object value;
+	public Object key;
+	public Object value;
+	
+	public final String toString(){
+		return key + " : " + value;
+	}
 }

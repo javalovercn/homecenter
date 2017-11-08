@@ -21,6 +21,7 @@ import hc.server.ui.LinkProjectStatus;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
+import hc.server.util.SafeDataManager;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.SignHelper;
 import hc.util.HttpUtil;
@@ -885,6 +886,8 @@ public class LinkProjectManager{
 			final String userProjIDPath = HCLimitSecurityManager.getUserDataBaseDir(projectID);
 			final String delPath = userProjIDPath.substring(0, userProjIDPath.length() - 1);//去掉最后一个/
 			PropertiesManager.addDelDir(delPath);
+			PropertiesManager.addDelDir(new File(StoreDirManager.SAFE_DATA_DIR, projectID));
+			SafeDataManager.romoveBackupTask(projectID);
 		}
 		
 		//删除jar文件

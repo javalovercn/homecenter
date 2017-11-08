@@ -140,9 +140,9 @@ public class EventCenter {
 //		eventCacher.cycle(event);
 	}
 	
-	public final void notifyLineOff(final byte[] bs) {
-		action(MsgBuilder.E_LINE_OFF_EXCEPTION, bs, nestAction);
-	}
+//	public final void notifyLineOff(final byte[] bs) {
+//		action(MsgBuilder.E_LINE_OFF_EXCEPTION, bs, nestAction);
+//	}
 
 	public final NestAction nestAction = (NestAction)ConfigManager.get(ConfigManager.BUILD_NESTACTION, null);
 

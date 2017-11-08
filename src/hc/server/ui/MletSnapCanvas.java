@@ -8,6 +8,7 @@ import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
+import hc.core.util.UIUtil;
 import hc.server.MultiUsingManager;
 import hc.server.ScreenServer;
 import hc.server.data.screen.PNGCapturer;
@@ -74,7 +75,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 	boolean isForDialog;
 	
 	public MletSnapCanvas(final J2SESession coreSS, final int w, final int h) {
-		super(coreSS, w, h, false, getMaskFromBit(IConstant.COLOR_64_BIT));
+		super(coreSS, w, h, false, UIUtil.getMaskFromBit(IConstant.COLOR_64_BIT));
 		
 		this.width = w;
 		this.height = h;
@@ -393,6 +394,8 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 
 		final DataInputEvent cloneE = new DataInputEvent();
 		cloneE.setBytes(cloneBS);
+		
+		coreSS.uiEventInput.setMletEvent(isForDialog);
 		
 		//注意：考虑可能有长时间事件处理，此处不wait
 		ServerUIAPIAgent.runInSessionThreadPool(coreSS, projResp, new Runnable() {

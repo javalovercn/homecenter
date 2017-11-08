@@ -31,6 +31,7 @@ import java.net.HttpURLConnection;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -608,13 +609,13 @@ public class HttpUtil {
 
 	public static String buildLangURL(final String langURL, final String lang)
 			throws UnsupportedEncodingException {
-		String url = URLEncoder.encode("https://homecenter.mobi/_lang_/" + langURL, IConstant.UTF_8);
+		String url = URLEncoder.encode("http://homecenter.mobi/_lang_/" + langURL, IConstant.UTF_8);
 		if(lang == null){
 			url = "?to=" + url;
 		}else{
 			url = "?lang=" + lang + "&to=" + url;
 		}
-		return "https://homecenter.mobi/gotolang.php" + url;
+		return "http://homecenter.mobi/gotolang.php" + url;
 	}
 
 	public static boolean browse(final String webURL) {
@@ -894,5 +895,25 @@ public class HttpUtil {
 	public static boolean isLocalNetworkIP(final String ip) {
 		return ip.startsWith("192.168.") || ip.startsWith("10.") || ip.startsWith("127.") 
 				|| ip.startsWith("172.16.") || ip.startsWith("172.31.") || ip.startsWith("169.254.");
+	}
+
+	public static void initReceiveSendBufferForSocket(final Socket socket) {
+		final int sendBuff = RootConfig.getInstance().getIntProperty(RootConfig.p_ServerSendBufferSize);
+		if(sendBuff != 0){
+			try{
+				socket.setSendBufferSize(sendBuff);
+			}catch (final Throwable e) {
+				e.printStackTrace();
+			}
+		}
+	
+		final int receiveBuff = RootConfig.getInstance().getIntProperty(RootConfig.p_ServerReceiveBufferSize);
+		if(receiveBuff != 0){
+			try{
+				socket.setReceiveBufferSize(receiveBuff);
+			}catch (final Throwable e) {
+				e.printStackTrace();
+			}
+		}
 	} 
 }

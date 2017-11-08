@@ -4,6 +4,7 @@ import hc.App;
 import hc.core.ContextManager;
 import hc.core.util.ExceptionJSON;
 import hc.core.util.ExceptionJSONBuilder;
+import hc.core.util.KeyValue;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.RootBuilder;
@@ -14,9 +15,12 @@ import hc.server.PlatformManager;
 import hc.server.StarterManager;
 import hc.server.rms.RMSLastAccessTimeManager;
 import hc.server.ui.design.J2SESession;
+import hc.util.ClassUtil;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
+import hc.util.StringBuilderCacher;
+import hc.util.ThreadConfig;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -169,6 +173,14 @@ public class J2SERootBuilder extends RootBuilder {
 			 }catch (final Throwable e) {
 				 e.printStackTrace();
 			 }
+		 }else if(rootBizNo == ROOT_SET_THREAD_PARA){
+			 final KeyValue map = (KeyValue)para;
+			 ThreadConfig.putValue((Integer)map.key, map.value);
+		 }else if(rootBizNo == ROOT_PRINT_STACK_WITH_FULL_CAUSE){
+			 final StringBuilder sb = StringBuilderCacher.getFree();
+			 ClassUtil.buildOneStackWithCause((Throwable)para, sb, false, false);
+			 LogManager.log(sb.toString());
+			 StringBuilderCacher.cycle(sb);
 		 }
 		 
 		 return null;

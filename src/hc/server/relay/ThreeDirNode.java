@@ -2,8 +2,29 @@ package hc.server.relay;
 
 import hc.core.util.Stack;
 
+import java.util.Vector;
+
 public class ThreeDirNode {
-	public SessionConnector data = null;
+	public Vector<SessionConnector> data = null;
+	
+	public final void appendSessionConnector(final SessionConnector sc){
+		synchronized (this) {
+			if(data == null){
+				data = new Vector<SessionConnector>(4);
+			}
+			data.add(sc);
+		}
+	}
+	
+	public final SessionConnector popupSessionConnector(){
+		synchronized (this) {
+			if(data == null || data.size() == 0){
+				return null;
+			}else{
+				return data.remove(0);
+			}
+		}
+	}
 
 	protected ThreeDirNode lowNode;
 	protected ThreeDirNode eqNode;
@@ -14,7 +35,7 @@ public class ThreeDirNode {
 	public static final byte MID_BYTE = (byte)((126-48)/2);
 	private static final Stack nodeCache = new Stack();
 	
-	private static ThreeDirNode getFree(byte sByte){
+	private static ThreeDirNode getFree(final byte sByte){
 		synchronized (nodeCache) {
 			if(nodeCache.isEmpty()){
 				return new ThreeDirNode(sByte);
@@ -26,13 +47,13 @@ public class ThreeDirNode {
 		}
 	}
 	
-	private static void cycle(ThreeDirNode node){
+	private static void cycle(final ThreeDirNode node){
 		synchronized (nodeCache) {
 			nodeCache.push(node);
 		}
 	}
 	
-	public ThreeDirNode(byte singleByte) {
+	public ThreeDirNode(final byte singleByte) {
 		this.singleByte = singleByte;
 	}
 	
@@ -40,9 +61,14 @@ public class ThreeDirNode {
 	 * 将所存数据对象全部收集到集合stack中
 	 * @param stack
 	 */
-	public void getDataSet(Stack stack){
-		if(data != null){
-			stack.push(data);
+	public final void getDataSet(final Stack stack){
+		synchronized (data) {
+			if(data != null){
+				final int size = data.size();
+				for (int i = 0; i < size; i++) {
+					stack.push(data.elementAt(i));
+				}
+			}
 		}
 		
 		if(lowNode != null){
@@ -56,8 +82,8 @@ public class ThreeDirNode {
 		}
 	}
 	
-	public int countDataNodes(){
-		int count = ((data == null)?0:1);
+	public final int countDataNodes(){
+		int count = ((data == null)?0:data.size());
 		if(lowNode != null){
 			count += lowNode.countDataNodes();
 		}
@@ -70,7 +96,7 @@ public class ThreeDirNode {
 		return count;
 	}
 	
-	public int countNodes(){
+	public final int countNodes(){
 		int count = 1;
 		if(lowNode != null){
 			count += lowNode.countNodes();
@@ -92,11 +118,18 @@ public class ThreeDirNode {
 	 * @param endIdx = idx + bs.length
 	 * @return
 	 */
-	public boolean delNode(final byte[] bs, int idx, final int endIdx){
+	public final boolean delNode(final SessionConnector sc, final byte[] bs, int idx, final int endIdx){
 		final int cpmResult = bs[idx] - singleByte;
 		if(cpmResult == 0){
 			if((++idx) == endIdx){
-				data = null;
+				synchronized (this) {
+					if(data != null){
+						data.remove(sc);
+						if(data.size() > 0){
+							return false;
+						}
+					}
+				}
 				if(highNode == null && lowNode == null && eqNode == null){
 					return true;
 				}else{
@@ -106,10 +139,10 @@ public class ThreeDirNode {
 			if(eqNode == null){
 				return false;
 			}
-			if(eqNode.delNode(bs, idx, endIdx)){
+			if(eqNode.delNode(sc, bs, idx, endIdx)){
 				cycle(eqNode);
 				eqNode = null;
-				if(highNode == null && lowNode == null && data == null){
+				if(highNode == null && lowNode == null && (data == null || data.size() == 0)){
 					return true;
 				}
 			}
@@ -118,10 +151,10 @@ public class ThreeDirNode {
 			if(lowNode == null){
 				return false;
 			}
-			if(lowNode.delNode(bs, idx, endIdx)){
+			if(lowNode.delNode(sc, bs, idx, endIdx)){
 				cycle(lowNode);
 				lowNode = null;
-				if(eqNode == null && highNode == null && data == null){
+				if(eqNode == null && highNode == null && (data == null || data.size() == 0)){
 					return true;
 				}
 			}
@@ -130,10 +163,10 @@ public class ThreeDirNode {
 			if(highNode == null){
 				return false;
 			}
-			if(highNode.delNode(bs, idx, endIdx)){
+			if(highNode.delNode(sc, bs, idx, endIdx)){
 				cycle(highNode);
 				highNode = null;
-				if(eqNode == null && lowNode == null && data == null){
+				if(eqNode == null && lowNode == null && (data == null || data.size() == 0)){
 					return true;
 				}
 			}
@@ -181,14 +214,14 @@ public class ThreeDirNode {
 	 * @param endIdx = idx + bs.length
 	 * @return
 	 */
-	public SessionConnector getNodeData(final byte[] bs, int idx, final int endIdx) {
+	public final SessionConnector getNodeData(final byte[] bs, int idx, final int endIdx) {
 		ThreeDirNode current = this;
 		final byte currByte = bs[idx];
 		while (true) {
 			final int cpmResult = currByte - current.singleByte;
 			if(cpmResult == 0){
 				if((++idx) == endIdx){
-					return current.data;
+					return current.popupSessionConnector();
 				}
 				if(current.eqNode == null){
 					return null;
@@ -215,14 +248,14 @@ public class ThreeDirNode {
 	 * @param endIdx = idx + bs.length
 	 * @return
 	 */
-	public void addNodeData(final byte[] bs, int idx, final int endIdx, SessionConnector data) {
+	public final void addNodeData(final byte[] bs, int idx, final int endIdx, final SessionConnector data) {
 		ThreeDirNode current = this;
 		while (true) {
 			final byte currByte = bs[idx];
 			final int cpmResult = currByte - current.singleByte;
 			if(cpmResult == 0){
 				if((++idx) == endIdx){
-					current.data = data;
+					current.appendSessionConnector(data);
 					return;
 				}
 				if(current.eqNode == null) {

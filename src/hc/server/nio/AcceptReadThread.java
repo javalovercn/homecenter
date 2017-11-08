@@ -11,6 +11,7 @@ import hc.core.util.ThreadPriorityManager;
 import hc.server.relay.RelayManager;
 import hc.server.relay.SessionConnector;
 import hc.server.util.StarterParameter;
+import hc.util.HttpUtil;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -412,14 +413,7 @@ public class AcceptReadThread extends Thread {
 				//KeepAlive_Tag
 				incomingSocket.setKeepAlive(true);
 				incomingSocket.setTcpNoDelay(true);
-				final int sendBuff = RootConfig.getInstance().getIntProperty(RootConfig.p_ServerSendBufferSize);
-				if(sendBuff != 0){
-					incomingSocket.setSendBufferSize(sendBuff);
-				}
-				final int receiveBuff = RootConfig.getInstance().getIntProperty(RootConfig.p_ServerReceiveBufferSize);
-				if(receiveBuff != 0){
-					incomingSocket.setReceiveBufferSize(receiveBuff);
-				}
+				HttpUtil.initReceiveSendBufferForSocket(incomingSocket);
 				
 				//如将本方法置于AcceptThread中，会导致下行代码假死，估计是没有read数据
 				incomingChannel.register(connectSelector, SelectionKey.OP_READ);

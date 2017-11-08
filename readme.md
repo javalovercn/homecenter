@@ -1,9 +1,19 @@
-### Sample
+### Snapshot of mobile
+![screenshot](http://homecenter.mobi/images/sc6.png)
+![screenshot](http://homecenter.mobi/images/sc_mlet_bg.png)
+![screenshot](http://homecenter.mobi/images/sc8.png)
+
+***
+### Sample mobile UI
 ![screenshot](http://homecenter.mobi/images/sc_mlet.png)
 
-to implement above UI functionality for Android, iPhone, and J2ME mobile,
+to implement above UI functionality for Android and iPhone mobile, do it as follows.
 
-the full codes are following : (Do you like JavaScript? [ScriptPanel](http://homecenter.mobi/download/javadoc/hc/server/ui/ScriptPanel.html) is ready for you)
+start HomeCenter server, open designer, the project "MyFirst" is default.
+
+click "Add Item" button, select "form", click "next",
+
+select "HTMLMlet", click "OK", copy follow codes to "JRuby Scripts", and change "Display Name" with "FirstMlet".
 ```JRuby
 #encoding:utf-8
 
@@ -123,9 +133,9 @@ return MyHTMLMlet.new
 
 **Note : **
 
-to enable net connection permission, select node "My Project", click tab "Permission", un-check "limit socket/connect".
+to enable connection permission to access image from network, select root of tree node (project node), click tab "Permission", un-check "limit socket/connect".
 
-global CSS for current project :
+copy following CSS to "CSS Styles" tree node.
 ```css
 .iconStyle {
 	text-align:center;
@@ -160,25 +170,27 @@ global CSS for current project :
 	-ms-flex-pack: center;
 }
 ```
+
+click "Activate" button to apply changes to project, login in from mobile, click "FirstMlet" menu item to show above form.
 ***
 ### License
 1. please read and agree the license file "bcl.txt", "hc_license.txt" and "mpl_license.txt".
 
 ***
 ### Demo Account
-1. download client mobile App from https://github.com/javalovercn/client
-2. when first open mobile app, click "Demo ID" in login form, or input account : 012345，password : 012345
-3. to build server with your own account or customer, please run this source codes or [binary distribution](https://github.com/javalovercn/hc_server_dist)
+1. download mobile client from https://github.com/javalovercn/client
+2. click "Demo ID" in login form, or input account : 012345，password : 012345
+3. to create server with your own account or customer, please run this source codes or [binary distribution](https://github.com/javalovercn/hc_server_dist)
 
 ***
-### Main Features of server
+### Features
 
-1. HomeCenter server runs not only on Oracle/OpenJDK JDK/JRE, but also Android, because there is a library ["J2SE for Android"](https://github.com/javalovercn/j2se_for_android).
+1. HomeCenter server runs not only on Oracle JDK/JRE (OpenJDK), but also Android, because there is a library ["J2SE for Android"](https://github.com/javalovercn/j2se_for_android).
 2. double click to run, no configuration.
 3. scan QRcode from mobile to download and load HAR (home archive) project on server, plug and play, it is not required to restart server.
 4. focus your business and UI with Java J2SE technology, the rest of work are ours.
 5. the component HTMLMlet (the sample above) will be translated to HTML5+JavaScript+CSS for Android/iPhone mobile client on air, translate user inputs to J2SE Event and dispatch to listener.
-6. built-in lucene analysis HTMLMlet background, according to the most suitable form for voice.
+6. built-in Lucene analysis HTMLMlet background, according to the most suitable form for voice command.
 7. built-in Quartz job scheduler.
 8. build-in HSQLDB database.
 9. voice command API to drive IoT.
@@ -189,7 +201,7 @@ global CSS for current project :
 14. build-in SecurityManager lets project runs in a optional, security, limited computing and networking environment.
 
 ***
-### How to use source
+### How to Use
 
 1. these source files are HomeCenter Application Server, which is NOT client for mobile.
 2. JRE/JDK 7 or above is required.
@@ -201,7 +213,6 @@ global CSS for current project :
 8. there is a demo HAR project (NOT "MyFirst" project) in designer on server, covers 80% of JRuby syntax and 90% of functions of HomeCenter server.
 9. for API, please press alt+/ in designer or go http://homecenter.mobi/download/javadoc/index.html
 10. any question, please open issues https://github.com/javalovercn/homecenter/issues or Email : help at homecenter.mobi
-11. these source files are synchronized to [gitee.com/git.oschina.net](https://gitee.com/javalovercn/homecenter).
 
 ***
 ### Mirrors
@@ -210,14 +221,9 @@ global CSS for current project :
 2. https://gitee.com/javalovercn/homecenter
 
 ***
+### Snapshot of server
 
 ![splash](http://homecenter.mobi/images/splash_n_txt.png)
-
-***
-
-![screenshot](http://homecenter.mobi/images/sc6.png)
-![screenshot](http://homecenter.mobi/images/sc8.png)
-![screenshot](http://homecenter.mobi/images/sc_mlet_bg.png)
 
 ***
 

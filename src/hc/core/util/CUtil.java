@@ -33,7 +33,10 @@ public class CUtil {
 		
 		if(keys == null){
 			//比如连接未建立，但MIDletActivity.onResume通知background
-			throw new Error(ONE_TIME_CERT_KEY_IS_NULL);
+			LogManager.errToLog("HCConnection : " + hcConnection.hashCode() + ", " + ONE_TIME_CERT_KEY_IS_NULL);
+			final Error error = new Error(ONE_TIME_CERT_KEY_IS_NULL);
+			error.printStackTrace();
+			throw error;
 		}
 		
 		final int k_len = keys.length;
@@ -275,6 +278,11 @@ public class CUtil {
 		//客户端环境
 		eventCenter.addListener(new IEventHCListener(){
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
+				if(coreSS.isExchangeStatus()){
+					LogManager.errToLog("ignore E_AFTER_CERT_STATUS when in exchange status.");
+					return true;
+				}
+				
 				final String status = HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA);
 //					System.out.println("Status:" + status);
 				if(status.equals(String.valueOf(IContext.BIZ_SERVER_AFTER_PWD_ERROR))){

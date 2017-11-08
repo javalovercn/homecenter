@@ -655,7 +655,7 @@ public class RootServerConnector {
 	public static final String convertToHttpAjax(String https_url){
 		if(IConstant.serverSide == false 
 				&& (
-						(ConfigManager.getOSType() == ConfigManager.OS_J2ME)
+						(ConfigManager.isJ2MEClient())
 						||
 						(
 							ConfigManager.getOSType() == ConfigManager.OS_IPHONE

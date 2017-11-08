@@ -43,7 +43,10 @@ public final class HCConnection {
 	public ReceiveServer rServer;
 	public UDPReceiveServer udpReceivServer;
 	public byte[] userPassword = clonePwd();
-	
+	private final Object sendLock = new Object();
+	private boolean isRelayModeSendSlow = true;
+    public final SenderSlowCounter sendSlowPackageCounter = new SenderSlowCounter();
+    
 	public final void setIContext(IContext ctx){
 		this.iContext = ctx;
 	}
@@ -61,7 +64,7 @@ public final class HCConnection {
 	public IPAndPort relayIpPort = new IPAndPort();
 	public boolean isStartLineOffProcess;
 
-	public final ConnectionRebuilder connectionRebuilder = new ConnectionRebuilder();
+	final ConnectionRebuilder connectionRebuilder = new ConnectionRebuilder();
 	long xorPackageID = 0;
 	
 	public byte[] package_tcp_bs;
@@ -78,7 +81,23 @@ public final class HCConnection {
 	public long startTime ;
 
 	public Object updateOneTimeKeysRunnable;
-	public final Object oneTimeReceiveNotifyLock = new Object();
+	private final Object oneTimeReceiveNotifyLock = new Object();
+	
+	public final void waitOneTimeReceiveNotifyLock(){
+		synchronized (oneTimeReceiveNotifyLock) {
+			try {
+				oneTimeReceiveNotifyLock.wait();//时间长短不定，故不限定
+			} catch (final InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public final void notifyOneTimeReceiveNotifyLock(){
+		synchronized (oneTimeReceiveNotifyLock) {
+			oneTimeReceiveNotifyLock.notify();
+		}
+	}
 	
 	private final byte splitPackageSubTag = 0;
 	public boolean isSecondCertKeyError = false;
@@ -87,6 +106,9 @@ public final class HCConnection {
 	private boolean hasReceiveUncheckCert = false;
 	public byte[] random_for_server;
 
+	/**
+	 * 收到新证书，但未验证服务器
+	 */
 	public final void receiveUncheckCert(){
 		hasReceiveUncheckCert = true;
 	}
@@ -136,8 +158,15 @@ public final class HCConnection {
 	//-------------------UpdateOneTime-------------------
 	public boolean isStopRunning = false;
 	public byte[] oneTime = new byte[CCoreUtil.CERT_KEY_LEN];
-	public int updateMinMinutes = RootConfig.getInstance().getIntProperty(RootConfig.p_UpdateOneTimeMinMinutes);
+	private final int updateMinMinutes = RootConfig.getInstance().getIntProperty(RootConfig.p_UpdateOneTimeMinMinutes);
 	public boolean isReceivedOneTimeInSecuChannalFromMobile = false;
+	
+	public final int getUpdateMinMinutes(){
+		if(updateMinMinutes <= 0 || updateMinMinutes > 20){
+			return 20;
+		}
+		return updateMinMinutes;
+	}
 	
 	public final boolean isUsingUDPAtMobile(){
 		return (IConstant.serverSide == false) && isBuildedUPDChannel && isDoneUDPChannelCheck;
@@ -155,34 +184,18 @@ public final class HCConnection {
 	private final Object BIGLOCK = new Object();
 	private final Object LOCK = new Object();
 	
-	public boolean isCheckOn;
 	public final short checkBitLen = MsgBuilder.EXT_BYTE_NUM;
-	public byte checkTotal;
-	public byte checkAND;
-	public byte checkMINUS;
-	
-	public final void setCheck(final boolean isCheckOn){
-		if(isInWorkshop){
-			LogManager.log("set CheckDataIntegrity : " + isCheckOn);
-		}
-		this.isCheckOn = isCheckOn;
-		if(isCheckOn){
-			checkTotal = 0;
-			checkAND = 0;
-			checkMINUS = 0;
-		}
-		
-		if(rServer != null){
-			rServer.setCheck(isCheckOn);
-		}
-	}
+	private byte checkTotal;
+	private byte checkAND;
+	private byte checkMINUS;
 	
 	public final void setOutputStream(final Object tcpOrUDPSocket) {
 		if(tcpOrUDPSocket != null){
-			L.V = L.WShop ? false : LogManager.log("[Chang] HCConnection Send outputStream : " + tcpOrUDPSocket.hashCode());
+			L.V = L.WShop ? false : LogManager.log("[Change] HCConnection Send outputStream : " + tcpOrUDPSocket.hashCode());
 		}
 		
 		this.outStream = (DataOutputStream)tcpOrUDPSocket;
+		isRelayModeSendSlow = sipContext.isOnRelay;
 	}
 
 	private DataOutputStream outStream;
@@ -246,58 +259,58 @@ public final class HCConnection {
 					int sendWithCheckLen = splitSendLen;
 					
 					if(isInWorkshop){
-						LogManager.log("Send [" + ctrlTag + "], len:" + eachLen + ", isCheckOn : " + isCheckOn + " from " + outStream.hashCode());
+						LogManager.log("Send [" + ctrlTag + "], len:" + eachLen + " from " + outStream.hashCode());
 					}
 					
-					synchronized (outStream) {
-						if(isCheckOn){//不需要检查dataLen
-							sendWithCheckLen += checkBitLen;
-							{
-								final byte oneByte = bs[0];//INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
-								checkTotal += oneByte;
-								checkAND ^= checkTotal;
-								checkAND += oneByte;
-								checkMINUS ^= checkTotal;
-								checkMINUS -= oneByte;
-							}
-							for (int i = 2; i < splitSendLen; i++) {
-								final byte oneByte = bs[i];
-								checkTotal += oneByte;
-								checkAND ^= checkTotal;
-								checkAND += oneByte;
-								checkMINUS ^= checkTotal;
-								checkMINUS -= oneByte;
-							}
-							bs[splitSendLen] = checkAND;
-							bs[splitSendLen + 1] = checkMINUS;
-							
-							ByteUtil.longToEightBytes(++xorPackageID, bs, splitSendLen + 2);
+					synchronized (sendLock) {
+						sendWithCheckLen += checkBitLen;
+						{
+							final byte oneByte = bs[0];//INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
+							checkTotal += oneByte;
+							checkAND ^= checkTotal;
+							checkAND += oneByte;
+							checkMINUS ^= checkTotal;
+							checkMINUS -= oneByte;
 						}
+						for (int i = 2; i < splitSendLen; i++) {
+							final byte oneByte = bs[i];
+							checkTotal += oneByte;
+							checkAND ^= checkTotal;
+							checkAND += oneByte;
+							checkMINUS ^= checkTotal;
+							checkMINUS -= oneByte;
+						}
+						bs[splitSendLen] = checkAND;
+						bs[splitSendLen + 1] = checkMINUS;
 						
-//							LogManager.log("dataLen : " + (splitSendLen - MsgBuilder.INDEX_MSG_DATA) + ", data : " + ByteUtil.toHex(bs, 0, sendWithCheckLen));
+						ByteUtil.longToEightBytes(++xorPackageID, bs, splitSendLen + 2);
 						
-			    		//加密
-			    		//			    LogManager.log("Xor len:" + eachLen);
-		    			CUtil.superXor(this, OneTimeCertKey, bs, MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen, null, true, true);//考虑前段数据较长，不用加密更为安全，所以不从TCP_SPLIT_STORE_IDX开始加密
+						L.V = L.WShop ? false : LogManager.log("send XorPackage : " + xorPackageID);
+					}
+						
+//					LogManager.log("dataLen : " + (splitSendLen - MsgBuilder.INDEX_MSG_DATA) + ", data : " + ByteUtil.toHex(bs, 0, sendWithCheckLen));
+						
+		    		//加密
+		    		//			    LogManager.log("Xor len:" + eachLen);
+	    			CUtil.superXor(this, OneTimeCertKey, bs, MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen, null, true, true);//考虑前段数据较长，不用加密更为安全，所以不从TCP_SPLIT_STORE_IDX开始加密
 
-//    					    LogManager.log("Send BIGMSG split ID : " + tcp_package_split_next_id + "[" + ctrlTag + "], len:" + eachLen);
-						try{
-							outStream.write(bs, 0, sendWithCheckLen);
-							if(leftLen <= 0){
-								outStream.flush();
-							}
-						}catch (Exception e) {
-							hasException = e;
+//    			    LogManager.log("Send BIGMSG split ID : " + tcp_package_split_next_id + "[" + ctrlTag + "], len:" + eachLen);
+					cloneXorPackage(bs, sendWithCheckLen, xorPackageID);//极端情形下，有可能未入clone，但签收已到，所以要先于write/flush
+
+					try{
+						outStream.write(bs, 0, sendWithCheckLen);
+						if(leftLen <= 0){
+							outStream.flush();
 						}
-						
-						if(isCheckOn){
-							cloneXorPackage(bs, sendWithCheckLen, xorPackageID);
-						}
+					}catch (Exception e) {
+						hasException = e;
+						LogManager.errToLog("send exception : " + e.toString());
 					}
 				}
 			}
 		}else{//普通大小消息块
-			final int minSizeAndCheckLen = minSize + checkBitLen;
+			final boolean isXor = !(len == 0 || ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN);
+			final int minSizeAndCheckLen = isXor?(minSize + checkBitLen):minSize;
 			synchronized (LOCK) {
 				if(blobBS.length < minSizeAndCheckLen){
 					blobBS = new byte[minSizeAndCheckLen];
@@ -314,17 +327,11 @@ public final class HCConnection {
 				}
 				
 				if(isInWorkshop){
-					LogManager.log("Send [" + ctrlTag + "], len:" + len + ", isCheckOn : " + isCheckOn + " from " + outStream.hashCode());
+					LogManager.log("Send [" + ctrlTag + "], len:" + len + " from " + outStream.hashCode());
 				}
 				
-				int sendWithCheckLen = minSize;
-				synchronized (outStream) {
-					final boolean isCheck = isCheckOn && len > 0;
-					final boolean isXor = !(len == 0 || ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN);
-
-					if(isCheck){
-						sendWithCheckLen += checkBitLen;
-
+				synchronized (sendLock) {
+					if(isXor){
 						{
 							final byte oneByte = bs[0];//INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
 							checkTotal += oneByte;
@@ -344,29 +351,22 @@ public final class HCConnection {
 						bs[minSize] = checkAND;
 						bs[minSize + 1] = checkMINUS;
 						
-						if(isXor){
-							ByteUtil.longToEightBytes(++xorPackageID, bs, minSize + 2);
-						}
-					}
+						ByteUtil.longToEightBytes(++xorPackageID, bs, minSize + 2);
 
-//						LogManager.log("dataLen : " + len + ", data : " + ByteUtil.toHex(bs, 0, sendWithCheckLen));
-					
-					if(isXor){
 			    		//加密
 			    		//			    LogManager.log("Xor len:" + len);
 		    			CUtil.superXor(this, OneTimeCertKey, bs, MsgBuilder.INDEX_MSG_DATA, len, null, true, true);
-			    	}
+
+						cloneXorPackage(bs, minSizeAndCheckLen, xorPackageID);//极端情形下，有可能未入clone，但签收已到，所以要先于write/flush
+					}
 
 					try{
-						outStream.write(bs, 0, sendWithCheckLen);
+						outStream.write(bs, 0, minSizeAndCheckLen);
 						outStream.flush();
 					}catch (Exception e) {
 						hasException = e;
 					}
 					
-					if(isCheck && isXor){
-						cloneXorPackage(bs, sendWithCheckLen, xorPackageID);
-					}
 				}
 			}
 		}
@@ -400,7 +400,18 @@ public final class HCConnection {
 	public UDPPacketResender udpSender = null;
 	private final LinkedSet xorPackageSet = new LinkedSet();
 	
-	public final boolean ackXorPackage(final long xorPackageID){
+	public final void ackXorPackage(final byte[] bs, final CoreSession coreSS) {
+		final long ackPakcageID = ByteUtil.eightBytesToLong(bs, MsgBuilder.INDEX_MSG_DATA);
+		if(ackXorPackage(ackPakcageID)){
+			L.V = L.WShop ? false : LogManager.log("successful ack XorPackageID : " + ackPakcageID);
+		}else{
+			LogManager.errToLog("error ack package!");
+			coreSS.notifyLineOff(false, false);
+		}
+	}
+
+	
+	private final boolean ackXorPackage(final long xorPackageID){
 		synchronized (xorPackageSet) {
 			XorPackage xp;
 			while((xp = (XorPackage)xorPackageSet.getFirst()) != null){
@@ -426,13 +437,13 @@ public final class HCConnection {
 	}
 	
 	public final void resendUnReachablePackage(){
-		synchronized (xorPackageSet) {
-			final Vector v = xorPackageSet.toVector();
-			final int size = v.size();
-			for (int i = 0; i < size; i++) {
-				final XorPackage xp = (XorPackage)v.elementAt(i);
-				L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] re-send XorPackage ID : " + xp.packageID + " in resendUnReachablePackage.");
-				synchronized (outStream) {//注意：不影响keepalive
+		synchronized (sendLock) {//注意：要外于xorPackageSet，不影响keepalive
+			synchronized (xorPackageSet) {
+				final Vector v = xorPackageSet.toVector();
+				final int size = v.size();
+				for (int i = 0; i < size; i++) {
+					final XorPackage xp = (XorPackage)v.elementAt(i);
+					L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] re-send XorPackage ID : " + xp.packageID + " in resendUnReachablePackage.");
 					try{
 						outStream.write(xp.bs, 0, xp.len);
 						outStream.flush();
@@ -455,6 +466,16 @@ public final class HCConnection {
 
 		synchronized (xorPackageSet) {
 			xorPackageSet.addTail(xp);
+		}
+
+		if(isRelayModeSendSlow){
+			if(sendSlowPackageCounter.addOne() > MsgBuilder.sendSlowMaxUnackPackageNum){
+				L.V = L.WShop ? false : LogManager.log("force send slow when package is too long to receive.");
+				try{
+					Thread.sleep(50);
+				}catch (Exception e) {
+				}
+			}
 		}
 	}
 	
@@ -480,7 +501,7 @@ public final class HCConnection {
 	
 	public final void setReceiveServerInputStream(final Object inputStream, final boolean isShutDown, final boolean isCloseOld){
 		if(inputStream != null){
-			L.V = L.WShop ? false : LogManager.log("[Chang] Receive inputStream :" + inputStream.hashCode());
+			L.V = L.WShop ? false : LogManager.log("[Change] Receive inputStream :" + inputStream.hashCode());
 		}
 		
 		if(rServer != null){
@@ -521,10 +542,10 @@ public final class HCConnection {
 		bsModi[MsgBuilder.INDEX_CTRL_TAG] = ctrlTag;
 		boolean isNeedRecyle = false;
 		
+		final boolean isXor = ! (ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN || data_len == 0);
 		final int sendLenWithoutCheck = data_len + MsgBuilder.INDEX_MSG_DATA;
 		int sendWithCheckLen = sendLenWithoutCheck;
-		final boolean isCheck = isCheckOn && data_len > 0;
-		if(isCheck){
+		if(isXor){
 			sendWithCheckLen += checkBitLen;
 			
 			if(bsModi.length < sendWithCheckLen){
@@ -536,13 +557,11 @@ public final class HCConnection {
 		}
 		
 		if(isInWorkshop){
-			LogManager.log("Send [" + ctrlTag + "], len:" + data_len + ", isCheckOn : " + isCheck + " from " + outStream.hashCode());
+			LogManager.log("Send [" + ctrlTag + "], len:" + data_len + " from " + outStream.hashCode());
 		}
 		
-		synchronized (outStream) {
-			final boolean isXor = ! (ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN || data_len == 0);
-
-			if(isCheck){
+		synchronized (sendLock) {
+			if(isXor){
 				{
 					final byte oneByte = bsModi[0];//INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
 					checkTotal += oneByte;
@@ -562,18 +581,14 @@ public final class HCConnection {
 				bsModi[sendLenWithoutCheck] = checkAND;
 				bsModi[sendLenWithoutCheck + 1] = checkMINUS;
 				
-				if(isXor){
-					ByteUtil.longToEightBytes(++xorPackageID, bsModi, sendLenWithoutCheck + 2);
-				}
-			}
-			
-//				LogManager.log("dataLen : " + data_len + ", data : " + ByteUtil.toHex(bs, 0, sendWithCheckLen));
-			
-			if(isXor){
+				ByteUtil.longToEightBytes(++xorPackageID, bsModi, sendLenWithoutCheck + 2);
+				
 	    		//加密
 //		    		LogManager.log("Xor len:" + data_len);
 	    		CUtil.superXor(this, OneTimeCertKey, bsModi, MsgBuilder.INDEX_MSG_DATA, data_len, null, true, true);
-	    	}
+
+				cloneXorPackage(bsModi, sendWithCheckLen, xorPackageID);//极端情形下，有可能未入clone，但签收已到，所以要先于write/flush
+			}
 
 //			LogManager.log("Send [" + ctrlTag + "], len:" + data_len);
 			try{
@@ -583,9 +598,6 @@ public final class HCConnection {
 				hasException = e;
 			}
 			
-			if(isCheck && isXor){
-				cloneXorPackage(bsModi, sendWithCheckLen, xorPackageID);
-			}
 		}//end synchronized
 		
 		if(isNeedRecyle){
@@ -623,7 +635,7 @@ public final class HCConnection {
 			oneTagBS[MsgBuilder.INDEX_CTRL_TAG] = ctrlTag;
 
 //				LogManager.log("Send [" + ctrlTag + "], len:" + 0);
-			synchronized (outStream) {
+			synchronized (sendLock) {
 				try{
 					outStream.write(oneTagBS, 0, MsgBuilder.MIN_LEN_MSG);
 					outStream.flush();
@@ -661,7 +673,7 @@ public final class HCConnection {
 			}
 			
 //				LogManager.log("Send [" + ctrlTag + "], subTage:" + subTag);
-			synchronized (os) {
+			synchronized (sendLock) {
 				try{
 					os.write(zeroLenbs, 0, MsgBuilder.MIN_LEN_MSG);
 					os.flush();

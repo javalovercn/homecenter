@@ -156,7 +156,7 @@ public class DatabaseManager {
                                      String zoneString, int timeZoneSeconds) {
 
         Database db = getDatabase(type, path, props);
-
+        
         return db.connect(user, password, zoneString, timeZoneSeconds);
     }
 

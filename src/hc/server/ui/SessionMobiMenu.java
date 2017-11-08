@@ -1,10 +1,13 @@
 package hc.server.ui;
 
+import hc.core.L;
 import hc.core.util.HCURL;
+import hc.core.util.LogManager;
 import hc.core.util.UIUtil;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.JarMainMenu;
+import hc.server.ui.design.MCanvasMenu;
 import hc.server.ui.design.ProjResponser;
 import hc.server.util.VoiceParameter;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
@@ -58,8 +61,12 @@ public class SessionMobiMenu extends MobiMenu{
 	}
 	
 	@Override
-	public final boolean isIncrementMode(){
-		return projectMenu.isIncrementMode && isIncrementMode;
+	public final boolean isEnableFlushMenu(){
+		synchronized(projectMenu.menuLock){
+			synchronized (menuLock) {
+				return projectMenu.isEnableFlushMenu && isEnableFlushMenu;
+			}
+		}
 	}
 	
 	@Override
@@ -161,16 +168,17 @@ public class SessionMobiMenu extends MobiMenu{
 					menuItems.add(shiftIdx, item);
 					item.belongToMenu = this;
 					isAddedSucc = true;
+					L.V = L.WShop ? false : LogManager.log("insert session menu item : " + item.getText());
 				}catch (final Throwable e) {
 				}
-			}
-		}
-		
-		if(isAddedSucc){
-			if(isIncrementMode){
-				publishToMobi(ADD_ITEM, item, tail);
-			}
-			return true;
+
+				if(isAddedSucc){
+					if(isFlushedBaseMenu){
+						publishToMobi(ADD_ITEM, item, tail);
+					}
+					return true;
+				}
+			}//end inner lock
 		}
 		
 		return false;
@@ -190,17 +198,35 @@ public class SessionMobiMenu extends MobiMenu{
 		}
 	}
 	
-	public final Vector<MenuItem> getFlushMenuItems(){
-		final Vector<MenuItem> out = new Vector<MenuItem>(projectMenu.menuItems.size() + menuItems.size() + 2);
-		
+	public final void transMenuWithCache(final String projectID, final MCanvasMenu mcm){
 		synchronized(projectMenu.menuLock){
 			synchronized (menuLock) {
-				appendAllItems(projectMenu.menuItems, out);
-				appendAllItems(menuItems, out);
+				final Vector<MenuItem> v = getFlushMenuItems();
+				
+				if(isFlushedBaseMenu == false){
+					isFlushedBaseMenu = true;
+				}
+				
+				if(projectMenu.isFlushedBaseMenu == false){
+					projectMenu.isFlushedBaseMenu = true;
+				}
+				
+				ServerUIUtil.transMenuWithCache(coreSS, mcm.buildJcip(coreSS, v), projectID);
 			}
 		}
-		
-		return out;
+	}
+	
+	public final Vector<MenuItem> getFlushMenuItems(){
+		synchronized(projectMenu.menuLock){
+			synchronized (menuLock) {
+				final Vector<MenuItem> out = new Vector<MenuItem>(projectMenu.menuItems.size() + menuItems.size() + 2);
+
+				appendAllItems(projectMenu.menuItems, out);
+				appendAllItems(menuItems, out);
+				
+				return out;
+			}
+		}
 	}
 	
 	public final MenuItem searchMenuItem(final String urlLower, final String aliasUrlLower){

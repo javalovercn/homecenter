@@ -134,14 +134,14 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 		listNotBindBtn = new JRadioButton("list unbind");
 		listAllBtn = new JRadioButton("list all");
 		
-		final int fontSizePX = okImage.getHeight();
+		final int fontSizePX = Math.max(okImage.getHeight(), getFontSizeForNormal());//有可能字体偏大，导致UI美观问题
 		loadCSS(buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(), getColorForBodyByIntValue()), false);
 		
 		final int labelHeight = (int)(fontSizePX * 1.4);
 
 		{
 			final int checkBoxHeight = (int)(labelHeight * 0.95);
-			final String checkStyle = "vertical-align:middle;font-weight:bold;font-size:" + fontSizePX + "px;";
+			final String checkStyle = "vertical-align:middle;font-weight:bold;";
 			
 			setCSS(listNotBindBtn, null, checkStyle);
 			setCSSForToggle(listNotBindBtn, null, "width: " + checkBoxHeight + "px; height: " + checkBoxHeight + "px;");
@@ -190,12 +190,12 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 		setButtonStyle(cancel);
 
 		final String labelDivStyle = "overflow:hidden;";
-		final String labelStyle = "display:block;vertical-align:middle;font-weight:bold;font-size:" + fontSizePX + "px;";
+		final String labelStyle = "display:block;vertical-align:middle;font-weight:bold;";
 
 		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
 		final int areaFontColor = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker().getRGB();
 		final String areaStyle = "width:100%;height:100%;" +
-				"overflow-y:auto;font-size:" + (int)(fontSizePX * 0.7) + "px;" +
+				"overflow-y:auto;" +
 				"background-color:#" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.toHexColor(areaFontColor, false) + ";";
 
 		final int mobileWidth = getMobileWidth();

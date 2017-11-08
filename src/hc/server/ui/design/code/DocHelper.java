@@ -78,7 +78,7 @@ public class DocHelper {
 	static final String strongRule = ".strong { font-weight:bold; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
 	static final String aRule = "a { font-family:Dialog, Arial, Helvetica, sans-serif; text-decoration:underline; color:blue; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
 	static final String codeRule = "code { font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
-	static final String preRule = "pre { font-weight:bold; font-family:Dialog, Arial, Helvetica, sans-serif; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
+	static final String preRule = "pre { font-style:italic; font-family:Dialog, Arial, Helvetica, sans-serif; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";//font-family: " + font.getFamily() + ";
 	static final String background_color = "#FAFBC5";
 	static final Color bg_color = Color.decode(background_color);
 	
@@ -624,6 +624,8 @@ public class DocHelper {
 				if(hrIdx >= 0){
 					doc = doc.substring(hrIdx + hr.length());
 				}
+				doc = doc.replaceFirst("<pre>", "<strong>");
+				doc = doc.replaceFirst("</pre>", "</strong><BR><BR>");
 				docMap.put(CLASS_DESC, doc);
 			}
 		}
@@ -665,14 +667,14 @@ public class DocHelper {
 	}
 	
 	/**
-	 * (int hello, boolean[] yes) => (hello, yes)
+	 * (java.lang.String hello, int j, boolean[] yes) => (hello, j, yes)
 	 * () => ()
 	 * @param method
 	 * @return
 	 */
 	private static String buildCodeParameterList(String parameter){
-		parameter = parameter.replaceAll(", [\\w\\[\\]]+ ", ", ");//method(int hello, boolean[] yes) => method(int, boolean yes)
-		parameter = parameter.replaceAll("\\([\\w\\[\\]]+ ", "(");//method(int, boolean yes) => method(int, boolean)//有可能boolean另起一行
+		parameter = parameter.replaceAll(", [\\w\\.\\[\\]]+ ", ", ");//method(java.lang.String hello, boolean[] yes) => method(String, boolean yes)
+		parameter = parameter.replaceAll("\\([\\w\\.\\[\\]]+ ", "(");//method(int, boolean yes) => method(int, boolean)//有可能boolean另起一行
 		parameter = parameter.replace(" ", "");//去掉多余空格
 		return parameter.replace(",", ", ");
 	}
@@ -707,7 +709,7 @@ public class DocHelper {
 		final Matcher matchFieldOrMethodName = fieldOrMethodNamePattern.matcher(item);
 		if(matchFieldOrMethodName.find()){
 			String fieldOrMethodName = matchFieldOrMethodName.group(1);
-			final String fieldOrMethodNameWithBR = "<pre>" + fieldOrMethodName + "</pre><BR>";
+			final String fieldOrMethodNameWithBR = "<strong>" + fieldOrMethodName + "</strong><BR><BR>";
 			fieldOrMethodName = jianKuoHao.matcher(fieldOrMethodName).replaceAll("");
 			fieldOrMethodName = generics_e_type.matcher(fieldOrMethodName).replaceAll("");
 			fieldOrMethodName = generics_e_to_object_pattern.matcher(fieldOrMethodName).replaceAll("Object");
@@ -732,6 +734,7 @@ public class DocHelper {
 				final int kuohaoLeftIdx = fieldOrMethodName.indexOf("(");
 				String parameter = fieldOrMethodName.substring(kuohaoLeftIdx);
 				final String codeParameterList = buildCodeParameterList(parameter);
+				parameter = parameter.replaceAll("[\\w]+\\.", "");//method(java.lang.String hello, boolean yes) => method(String hello, boolean yes)
 				parameter = parameter.replaceAll(" \\w+,", ",");//method(int hello, boolean yes) => method(int, boolean yes)
 				parameter = parameter.replaceAll(" \\w+\\)", ")");//method(int, boolean yes) => method(int, boolean)//有可能boolean另起一行
 				parameter = parameter.replace(" ", "");
@@ -758,7 +761,10 @@ public class DocHelper {
 //					System.out.println(apiDoc + "\n\n");
 //				}
 				//getFreeMessage(String)
-				docMap.put(fieldOrMethodName, fieldOrMethodNameWithBR + apiDoc);
+				String formatMethodDocContent = fieldOrMethodNameWithBR.replace("\n", " ").replace("&nbsp;", " ").replaceAll("[ ]{2,}", " ");//消除换行和多个空格
+				formatMethodDocContent = formatMethodDocContent.replaceAll("java\\.lang\\.String", "String");
+				formatMethodDocContent = formatMethodDocContent.replaceAll("java\\.lang\\.Object", "Object");
+				docMap.put(fieldOrMethodName, formatMethodDocContent + apiDoc);
 			}
 		}
 	}

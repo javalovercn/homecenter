@@ -17,6 +17,8 @@
 
 package third.quartz.utils;
 
+import hc.core.util.RootBuilder;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -87,6 +89,7 @@ public class DBConnectionManager {
 
     public void addConnectionProvider(String dataSourceName,
             ConnectionProvider provider) {
+    	RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_CHECK_STACK_TRACE, null);
         this.providers.put(dataSourceName, provider);
     }
 

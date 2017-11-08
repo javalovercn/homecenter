@@ -32,16 +32,11 @@ import java.util.Locale;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * this class is used to provide java String functions in JRuby.<BR>
- * for more, see {@link String}.
+ * in JRuby, all Java String instance are traded as JRuby String, NOT Java String, so this class is helpful to provide Java String functions/methods in JRuby.
  * @author  Lee Boynton
  * @author  Arthur van Hoff
  * @author  Martin Buchholz
  * @author  Ulf Zibis
- * @see     java.lang.Object#toString()
- * @see     java.lang.StringBuffer
- * @see     java.lang.StringBuilder
- * @see     java.nio.charset.Charset
  */
 public final class JavaString {
 	private final String str;

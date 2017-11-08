@@ -9,7 +9,7 @@ import java.util.Vector;
 import javax.swing.JPanel;
 
 /**
- * {@link ScriptPanel} is used to load JavaScript and execute JavaScript.
+ * {@link ScriptPanel} is JComponent to load JavaScript and execute JavaScript.
  * <BR><BR>
  * a {@link ScriptPanel} can be used in {@link HTMLMlet} and {@link Dialog} like JPanel.
  * <BR><BR>

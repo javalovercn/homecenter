@@ -9,13 +9,11 @@ public class HCConditionWatcher {
 	private boolean isNotifyShutdown;
 	
 	public final void notifyShutdown(){
-		synchronized (watchers) {
-			if(L.isInWorkshop){
-				LogManager.log("notifyShutdown(), watcherTimer enable : " + watcherTimer.isEnable + ", watchers.size : " + watchers.size() + ", usedRewatchers.size : " + usedRewatchers.size());
-			}
-		}
-		
 		isNotifyShutdown = true;
+		
+		synchronized (watchers) {
+			watcherTimer.setEnable(true);
+		}
 	}
 	
 	private final String timeName;
@@ -74,11 +72,14 @@ public class HCConditionWatcher {
 						try{
 							if(temp.watch() == false){
 								synchronized (watchers) {
-									usedRewatchers.addTail(temp);
-									isAddUnUsed = true;
+									if(isNotifyShutdown == false){//shutdown时，关闭长时间任务
+										usedRewatchers.addTail(temp);
+										isAddUnUsed = true;
+									}
 								}
 							}
 						}catch (Throwable e) {//异常不会返回true，导致永久执行
+							LogManager.errToLog("Error IWatcher class : " + temp.getClass());
 							ExceptionReporter.printStackTrace(e);
 						}
 					}
@@ -100,10 +101,15 @@ public class HCConditionWatcher {
 					}
 				}else{
 					synchronized (watchers) {
-						if(watchers.isEmpty()){
+						if(isNotifyShutdown == false){
+							if(watchers.isEmpty()){
+								setEnable(false);
+								watchers.notifyAll();
+								return;
+							}
+						}else{
 							setEnable(false);
-							watchers.notifyAll();
-							return;
+							notifyAllDoneAfterShutdown();
 						}
 					}
 				}
@@ -165,6 +171,10 @@ public class HCConditionWatcher {
 
 	private final boolean isEmptyImpl() {
 		return watchers.isEmpty() && usedRewatchers.isEmpty();
+	}
+	
+	public void notifyAllDoneAfterShutdown(){
+		watcherTimer.remove();
 	}
 	
 	public final void waitForAllDone(){

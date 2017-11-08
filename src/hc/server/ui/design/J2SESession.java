@@ -7,18 +7,27 @@ import hc.core.GlobalConditionWatcher;
 import hc.core.HCConnection;
 import hc.core.HCMessage;
 import hc.core.HCTimer;
+import hc.core.IConstant;
+import hc.core.IContext;
 import hc.core.IEventHCListener;
 import hc.core.L;
 import hc.core.MsgBuilder;
+import hc.core.RootConfig;
+import hc.core.SessionManager;
 import hc.core.cache.PendStore;
 import hc.core.data.DataClientAgent;
 import hc.core.data.DataInputEvent;
 import hc.core.data.DataSelectTxt;
+import hc.core.data.XorPackageData;
 import hc.core.util.ByteUtil;
 import hc.core.util.ExceptionReporter;
+import hc.core.util.HCURL;
+import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
+import hc.core.util.MobileAgent;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.Stack;
+import hc.core.util.ThreadPriorityManager;
 import hc.core.util.UIUtil;
 import hc.server.J2SEServerURLAction;
 import hc.server.KeepaliveManager;
@@ -28,10 +37,13 @@ import hc.server.data.screen.ScreenCapturer;
 import hc.server.msb.Robot;
 import hc.server.msb.RobotEvent;
 import hc.server.msb.RobotListener;
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.ClientDesc;
+import hc.server.ui.ClientFontSize;
 import hc.server.ui.ClientSession;
 import hc.server.ui.ICanvas;
 import hc.server.ui.IMletCanvas;
+import hc.server.ui.J2SESessionManager;
 import hc.server.ui.MenuItem;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ResParameter;
@@ -44,6 +56,7 @@ import hc.util.BaseResponsor;
 import hc.util.ResourceUtil;
 import hc.util.UpdateOneTimeRunnable;
 
+import java.io.DataInputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -59,17 +72,29 @@ import java.util.Vector;
  */
 public final class J2SESession extends CoreSession{
 	private static long sessionIDCounter = 1;
-	private final BaseResponsor br;
 	private Vector<String> alertOnKeys;
 	public ClientSession clientSession;
+	public final ClientFontSize clientFontSize = new ClientFontSize();
+	public boolean isTranedMletBody;
+	public final UIEventInput uiEventInput = new UIEventInput();
 	
-	public J2SESession(final BaseResponsor br){
+	public J2SESession(){
 		synchronized (J2SESession.class) {
 			sessionID = sessionIDCounter++;
 		}
-		this.br = br;
 		keepaliveManager = new KeepaliveManager(this);
 		urlAction = new J2SEServerURLAction();
+	}
+	
+	@Override
+	public final boolean isExchangeStatus(){
+		final IContext ctx = context;
+		return ctx != null && ctx.cmStatus == ContextManager.STATUS_SERVER_SELF;
+	}
+	
+	public final void notifyCanvasMenuResponse(){
+		L.V = L.WShop ? false : LogManager.log("[CanvasMenu] notify menu response.");
+		HCURLUtil.sendCmd(this, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_NOTIFY_CANVAS_MENU_DONE, IConstant.TRUE);
 	}
 	
 	/**
@@ -104,8 +129,52 @@ public final class J2SESession extends CoreSession{
 		}
 	}
 	
-	public final BaseResponsor getBaseResponsor(){
-		return br;
+	@Override
+	public final void synXorPackageID(final byte[] bs) {
+		L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] receive SYN_XOR_PACKAGE_ID");
+		
+		final XorPackageData xpd = XorPackageData.buildEmptyPackageData();
+//		try{
+//			Thread.sleep(ThreadPriorityManager.NET_RESPONSE_DELAY_MS);//等待就绪
+//		}catch (Exception e) {
+//		}
+
+		xpd.setBytes(bs);
+		
+		final J2SESession oldCoreSS = (J2SESession)SessionManager.getCoreSessionByConnectionID(xpd.getConnectionPackageID());
+//		final J2SESession oldCoreSS = (J2SESession)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+//			@Override
+//			public Object run() {
+//				return SessionManager.getCoreSessionByConnectionID(xpd.getConnectionPackageID());
+//			}
+//		}, threadToken);
+		
+		if(oldCoreSS != null && UserThreadResourceUtil.isInServing(oldCoreSS.context)){
+			final HCConnection oldServConn = oldCoreSS.getHCConnection();
+			
+			L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] find old server HcConnection, ready to swap connection.");
+			final DataInputStream dropInputStream = swapSocket(oldServConn, hcConnection, true);
+			try{
+				L.V = L.WShop ? false : LogManager.log("drop old DataInputStream in ReceiveServer.");
+				dropInputStream.close();//废弃的dis可能占用ReceiveServer的线程，所以要强制close
+			}catch (final Throwable e) {
+			}
+
+			oldCoreSS.keepaliveManager.keepalive.resetTimerCount();
+			oldCoreSS.keepaliveManager.sendAlive(oldCoreSS.context.cmStatus);
+			
+			oldCoreSS.notifyContinue();
+		}else{
+			L.V = L.WShop ? false : LogManager.log("the old session is NOT serving (maybe released), stop swap connection!!!");
+		}
+		
+		GlobalConditionWatcher.addWatcher(new DelayWatcher(ThreadPriorityManager.REBUILD_SWAP_SOCK_MIN_MS - 2000) {
+			@Override
+			public void doBiz() {
+				L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] close connection after success renewal.");
+				J2SESession.this.notifyLineOff(false, false);
+			}
+		});
 	}
 	
 	Map<String, Vector<String>> sessionScheduler;
@@ -180,6 +249,8 @@ public final class J2SESession extends CoreSession{
 		if(isIdelSession == false){
 			return false;
 		}else{
+			J2SESessionManager.startNewIdleSession();
+
 			isIdelSession = false;
 			L.V = L.WShop ? false : LogManager.log("a session is leave idel : " + hashCode());
 			return true;
@@ -216,9 +287,7 @@ public final class J2SESession extends CoreSession{
 	}
 	
 	public final void notifyMobileLogout(){
-		if(br != null){
-			br.notifyCacheSoftUIDLogout();
-		}
+		ServerUIUtil.notifyCacheSoftUIDLogout();
 		
 		if(clientSession != null){
 			ServerUIAPIAgent.notifyClientSessionWaitObjectShutdown(clientSession);
@@ -228,6 +297,7 @@ public final class J2SESession extends CoreSession{
 		
 		if(updateOneTimeKeysRunnable != null){
 			hcConnection.isStopRunning = true;
+			hcConnection.notifyOneTimeReceiveNotifyLock();
 		}
 		
 		if(L.isInWorkshop){
@@ -360,6 +430,7 @@ public final class J2SESession extends CoreSession{
 		}
 		
 		keepaliveManager = null;
+		
 	}
 
 	public final void initScreenEvent(){
@@ -538,7 +609,7 @@ public final class J2SESession extends CoreSession{
 				//Donate会变量此值，所以不宜做属性。
 				final int mode = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				
-				PNGCapturer.updateColorBit(((J2SESession)coreSS), mode);
+				((J2SESession)coreSS).updateColorBit(mode);
 				return true;
 			}});
 		
@@ -554,7 +625,7 @@ public final class J2SESession extends CoreSession{
 				
 				final int millSecond = (int)ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_MSG_DATA);
 				
-				PNGCapturer.updateRefreshMS(((J2SESession)coreSS), millSecond);
+				((J2SESession)coreSS).updateRefreshMS(millSecond);
 				return true;
 			}});
 	
@@ -581,5 +652,58 @@ public final class J2SESession extends CoreSession{
 				setNull();
 			}
 		});
+	}
+
+	public final void updateRefreshMS(int millSecond) {
+		if(millSecond == MobileAgent.INT_UN_KNOW){
+			return;
+		}
+		
+		final int msOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_MS_On_Relay));
+		if(isOnRelay()){
+			if(millSecond < msOnRelay){
+				millSecond = msOnRelay;
+			}
+		}else{
+			final short mode = context.getConnectionModeStatus();
+			if(mode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
+				millSecond = 100;
+			}else if(mode == ContextManager.MODE_CONNECTION_PUBLIC_UPNP_DIRECT){
+				millSecond = Math.min(millSecond, 1000);
+			}else if(mode == ContextManager.MODE_CONNECTION_PUBLIC_DIRECT){
+				millSecond = Math.min(millSecond, 1000);
+			}
+		}
+		
+		LogManager.log("Client change refresh MillSecond to:" + millSecond);
+		refreshMillSecond = millSecond;
+	}
+
+	public final void updateColorBit(int mode) {
+		if(mode == MobileAgent.INT_UN_KNOW){
+			return;
+		}
+		
+		final int colorOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_Color_On_Relay));
+		if(isOnRelay()){
+			if((IConstant.COLOR_STAR_TOP - mode) > colorOnRelay){
+				mode = (IConstant.COLOR_STAR_TOP - colorOnRelay);
+			}
+		}else{
+			final short connMode = context.getConnectionModeStatus();
+			if(connMode == ContextManager.MODE_CONNECTION_HOME_WIRELESS){
+				//取最大值
+				mode = IConstant.COLOR_64_BIT;
+			}else if(connMode == ContextManager.MODE_CONNECTION_PUBLIC_UPNP_DIRECT){
+				mode = Math.min(mode, IConstant.COLOR_16_BIT);
+			}else if(connMode == ContextManager.MODE_CONNECTION_PUBLIC_DIRECT){
+				mode = Math.min(mode, IConstant.COLOR_32_BIT);
+			}
+			
+		}
+	
+		LogManager.log("Client change colorMode to level : " + (IConstant.COLOR_STAR_TOP - mode) + " (after limited)");
+	
+		mask = UIUtil.getMaskFromBit(mode);
 	}
 }

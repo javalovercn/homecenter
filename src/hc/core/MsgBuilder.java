@@ -59,11 +59,11 @@ public class MsgBuilder {
 	public static final byte E_TRANS_NEW_CERT_KEY = 22;//传输证书
 	public static final byte E_TRANS_ONE_TIME_CERT_KEY = 23;//传输OneTime证书
 	public static final byte E_TRANS_SERVER_CONFIG = 24;
-	public static final byte E_CLIENT_INFO = 25;
+	public static final byte E_CLIENT_VER_INFO = 25;
 	public static final byte E_GOTO_URL_UN_XOR = 26;
 	public static final byte E_RANDOM_FOR_CHECK_SERVER = 27;
 	public static final byte E_ACK_XOR_PACKAGE_ID = 28;
-	public static final byte E_SYN_XOR_PACKAGE_ID = 29;
+	public static final byte E_SWAP_SOCK_SYN_XOR_PACKAGE_ID = 29;
 	public static final byte E_RE_TRANS_XOR_PACKAGE = 30;
 	//UN_XOR_MSG_TAG_MIN以上(含)，低于(含)此值，强制使用TCP
 	public static final byte UN_XOR_MSG_TAG_MIN = 39;
@@ -75,11 +75,13 @@ public class MsgBuilder {
 	//以上段，不进行加密解密处理，
 	public static final byte E_SCREEN_EXT_MOUSE_ICON = 40;//必须能重发
 	
+	public static final byte E_CLIENT_INFO_IN_SECS_CHANNEL = 41;
 	public static final byte E_CANVAS_MAIN = 50;
 	public static final byte E_GOTO_URL = 51;
 	
 	public static final byte E_INPUT_EVENT = 52;
 	public static final byte E_MENU_REFRESH = 53;
+	public static final byte E_GOTO_URL_SUPER_LEVEL = 54;
 	
 	//用于服务器和手机端双向通知下线，需要加密，因为要保护Token
 	public static final byte E_TAG_SHUT_DOWN_BETWEEN_CS = 60;
@@ -225,9 +227,11 @@ public class MsgBuilder {
 			return 1 << 12;
 		}else{
 //			System.out.println("getMaxLenTCP : 1 << 17");
-			return 1 << 17;//128K
+			return 1 << 17;//128K。注意：请与以下参数保持联动 sendSlowMaxUnackPackageNum
 		}
 	}
+	
+	public static final int sendSlowMaxUnackPackageNum = 25;
 	
 	/**
 	 * UDP数组结构区

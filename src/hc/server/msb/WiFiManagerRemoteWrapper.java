@@ -9,8 +9,10 @@ import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
 import hc.core.util.SerialUtil;
 import hc.core.util.WiFiDeviceManager;
+import hc.core.util.io.HCInputStream;
+import hc.core.util.io.StreamBuilder;
+import hc.core.util.io.StreamReader;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -51,7 +53,7 @@ public class WiFiManagerRemoteWrapper extends WiFiDeviceManager{
 	@Override
 	public OutputStream createWiFiMulticastStream(final String multicastIP, final int port) {
 		final byte[] parameter = ByteUtil.getBytes(multicastIP + "&" + port, IConstant.UTF_8);
-		return coreSS.streamBuilder.buildOutputStream(WiFiDeviceManager.S_WiFiDeviceManager_createWiFiMulticastStream, parameter, 0, parameter.length, true);
+		return coreSS.streamBuilder.buildOutputStream(StreamBuilder.S_WiFiDeviceManager_createWiFiMulticastStream, parameter, 0, parameter.length, true);
 	}
 
 	@Override
@@ -66,42 +68,19 @@ public class WiFiManagerRemoteWrapper extends WiFiDeviceManager{
 
 	@Override
 	public String[] getSSIDListOnAir() {
-		byte[] parameter = ByteUtil.byteArrayCacher.getFree(1024);
-		final InputStream is = coreSS.streamBuilder.buildInputStream(
-				WiFiDeviceManager.S_WiFiDeviceManager_getSSIDListOnAir, parameter, 0, 0, true);
-		int storeIdx = 0;
-		try{
-			while(true){
-				final int n = is.read();
-				if(n == -1){
-					break;
-				}else{
-					parameter[storeIdx++] = (byte)n;
-					final int lastLen = parameter.length;
-					if(storeIdx == lastLen){
-						final byte[] nextPara = ByteUtil.byteArrayCacher.getFree(lastLen * 2);
-						System.arraycopy(parameter, 0, nextPara, 0, lastLen);
-						ByteUtil.byteArrayCacher.cycle(parameter);
-						parameter = nextPara;
-					}
-				}
-			}
-		}catch (final Exception e) {
-		}finally{
-			try {
-				is.close();
-			} catch (final IOException e) {
-			}
-		}
-		if(storeIdx == 0){
+		final HCInputStream is = coreSS.streamBuilder.buildInputStream(
+				StreamBuilder.S_WiFiDeviceManager_getSSIDListOnAir, null, 0, 0, true);
+		final StreamReader sr = new StreamReader(ByteUtil.byteArrayCacher.getFree(1024), is);
+		sr.readFull();
+		if(sr.storeIdx == 0){
 			if(L.isInWorkshop){
 				LogManager.log("None getSSIDListOnAir");
 			}
-			ByteUtil.byteArrayCacher.cycle(parameter);
+			sr.recycle();
 			return new String[0];
 		}else{
-			final String buildString = ByteUtil.buildString(parameter, 0, storeIdx, IConstant.UTF_8);
-			ByteUtil.byteArrayCacher.cycle(parameter);
+			final String buildString = ByteUtil.buildString(sr.bs, 0, sr.storeIdx, IConstant.UTF_8);
+			sr.recycle();
 			return SerialUtil.unserialToStringArray(buildString);
 		}
 	}
@@ -109,7 +88,7 @@ public class WiFiManagerRemoteWrapper extends WiFiDeviceManager{
 	@Override
 	public InputStream listenFromWiFiMulticast(final String multicastIP, final int port) {
 		final byte[] parameter = ByteUtil.getBytes(multicastIP + "&" + port, IConstant.UTF_8);
-		return coreSS.streamBuilder.buildInputStream(WiFiDeviceManager.S_WiFiDeviceManager_listenFromWiFiMulticast, parameter, 0, parameter.length, true);
+		return coreSS.streamBuilder.buildInputStream(StreamBuilder.S_WiFiDeviceManager_listenFromWiFiMulticast, parameter, 0, parameter.length, true);
 	}
 
 	@Override

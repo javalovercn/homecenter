@@ -598,7 +598,7 @@ public class SecurityDataProtector {
 //		org.jruby.proxy.java.lang.Object$Proxy0.toString(Unknown Source)
 //		hc.util.SecurityDataProtector.getPrivateHardwareCodeForAndroid(SecurityDataProtector.java:306)
 		
-		final HCJRubyEngine engine = new HCJRubyEngine(null, ResourceUtil.getJRubyClassLoader(false), true);
+		final HCJRubyEngine engine = new HCJRubyEngine(null, ResourceUtil.getJRubyClassLoader(false), true, HCJRubyEngine.IDE_LEVEL_ENGINE + "SecurityDataProtect");
 		try{
 			final String script = "" +
 					"import java.lang.Thread\n" +

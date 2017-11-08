@@ -1141,10 +1141,7 @@ public void run() {
 			final JScrollPane scrollpane = new JScrollPane(tablePanel.table);
 			scrollpane.setPreferredSize(new Dimension(600, 100));
 			
-			final JPanel descPane = ServerUIUtil.buildDescPanel(
-					"1. these libraries are available to all HAR projects.<BR>" +
-					"2. it may conflict with jar libraries in HAR projects. it is better to put it in HAR project.<BR>" +
-					"3. the added jar libraries are J2SE standard, no matter the server is Android, Window or other.");
+			final JPanel descPane = ServerUIUtil.buildDescPanel((String)ResourceUtil.get(9266));
 			
 			thirdLibsPane.add(scrollpane, BorderLayout.CENTER);
 			thirdLibsPane.add(buttonsList, BorderLayout.NORTH);

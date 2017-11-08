@@ -1,5 +1,7 @@
 package hc.core.util;
 
+import hc.core.IConstant;
+
 /**
  * 最底层参数
  *
@@ -26,6 +28,14 @@ public class UIUtil {
 		}
 
 		return ICON_64;
+	}
+	
+	public static String getUIString(final String resID, final String defaultStr){
+		if(IConstant.serverSide){
+			return defaultStr;
+		}else{
+			return (String)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_RESOURCE, resID);
+		}
 	}
 	
 	/**
@@ -145,5 +155,24 @@ public class UIUtil {
 	
 	//colors.xml / ui_color_darkgray
 	public static final int TXT_DISABLE_FONT_COLOR_INT_FOR_ANDROID = 0xFFA9A9A9;
+
+	public static int getMaskFromBit(final int cBit) {
+		int colorBit = 0;
+		if(cBit == IConstant.COLOR_64_BIT){
+			colorBit = IConstant.COLOR_64_BIT;
+		}else if(cBit == IConstant.COLOR_32_BIT){
+			colorBit = IConstant.COLOR_32_BIT;
+		}else if(cBit == IConstant.COLOR_16_BIT){
+			colorBit = IConstant.COLOR_16_BIT;
+		}else if(cBit == IConstant.COLOR_8_BIT){
+			colorBit = IConstant.COLOR_8_BIT;
+		}else if(cBit == IConstant.COLOR_4_BIT){
+			colorBit = IConstant.COLOR_4_BIT;
+		}else{
+			colorBit = IConstant.COLOR_8_BIT;
+		}
+		final int mask_one = ((0x01 << (colorBit - 1)) - 1);
+		return (mask_one << 16) | (mask_one << 8) | mask_one;
+	}
 
 }

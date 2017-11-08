@@ -3,7 +3,6 @@ package hc.util;
 import hc.core.HCTimer;
 import hc.core.L;
 import hc.core.cache.CacheManager;
-import hc.core.util.CCoreUtil;
 import hc.core.util.IHCURLAction;
 import hc.core.util.LogManager;
 import hc.server.ui.J2SESessionManager;
@@ -38,8 +37,6 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction{
 	private final Vector<String> cacheSoftUID = new Vector<String>(CacheManager.MAX_CACHE_SOFTUID_NUM + 1);
 	
 	public final void addCacheSoftUID(final String uid){
-		CCoreUtil.checkAccess();
-		
 		L.V = L.WShop ? false : LogManager.log("addCacheSoftUID : " + uid);
 		synchronized(cacheSoftUID){
 			if(cacheSoftUID.contains(uid) == false){

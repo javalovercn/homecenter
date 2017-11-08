@@ -23,6 +23,8 @@ import java.util.Properties;
  * @since 7.1
  */
 public class JavaLangSystemAgent {
+	JavaLangSystemAgent(){//invisible for JavaDoc
+	}
 	
     /**
      * the agent method for <code>System.in</code>.

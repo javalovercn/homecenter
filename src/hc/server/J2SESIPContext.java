@@ -312,11 +312,7 @@ public class J2SESIPContext extends ISIPContext {
 		}catch (final Throwable ex) {
 			ex.printStackTrace();
 		}
-		final int ServerSndBF = RootConfig.getInstance().getIntProperty(RootConfig.p_ClientServerSendBufferSize);
-		if(ServerSndBF != 0){
-			s.setSendBufferSize(ServerSndBF);
-			s.setReceiveBufferSize(1024 * 250);
-		}
+		HttpUtil.initReceiveSendBufferForSocket(s);
 		
 //			LogManager.log("SndBuf:" + s.getSendBufferSize());
 //			LogManager.log("RcvBuf:" + s.getReceiveBufferSize());

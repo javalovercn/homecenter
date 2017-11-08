@@ -859,7 +859,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}, threadPoolToken));
 		newButton.setToolTipText("<html>create new project.</html>");
 		toolbar.add(newButton);
-		
+		toolbar.add(loadButton);
+
 		addItemButton.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -868,7 +869,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}, threadPoolToken));
 		addItemButton.setToolTipText("<html>add a controller, panel(HTMLMlet), commands and others." +
 				"</html>");
-		toolbar.add(addItemButton);
 		
 		saveButton.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + S)" +
 				"<BR>save current modified project to disk." +
@@ -877,7 +877,11 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 //				"<BR><BR>Note : only one project is edited at same time." +
 				"</html>");
 		toolbar.add(saveButton);
+		toolbar.add(saveAsButton);
 		
+		toolbar.addSeparator();
+		toolbar.add(addItemButton);
+
 		activeButton.setToolTipText("<html>" +
 				"("+ResourceUtil.getAbstractCtrlKeyText()+" + D)" +
 				"<BR>after click activate, current project will be active and menu will be displayed to mobile." +
@@ -891,7 +895,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 						@Override
 						public void run(){
 							if(DelDeployedProjManager.isDeledDeployed(getCurrProjID())){
-								App.showMessageDialog(self, ResourceUtil.PROJ_IS_DELED_NEED_RESTART, 
+								App.showMessageDialog(self, ResourceUtil.getErrProjIsDeledNeedRestart(null), 
 										ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE);
 								return;
 							}
@@ -958,6 +962,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			activeButton.addMouseListener(new MouseListener() {
 				@Override
 				public void mouseReleased(final MouseEvent e) {
+					processClick(e);
 				}
 				
 				@Override
@@ -973,8 +978,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				}
 				
 				@Override
-				public void mouseClicked(final MouseEvent e) {
-					processClick(e);
+				public void mouseClicked(final MouseEvent e) {//mouse drag时，不触发此事件
 				}
 				
 				final void processClick(final MouseEvent e) {
@@ -1082,7 +1086,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 					final byte[] fileBS = ResourceUtil.getContent(deployFile);
 					try{
 						sender.sendData(fileBS, 0, fileBS.length);
-						showHCMessage("Successful activate project, " +
+						showHCMessage("successful activate project, " +
 								"mobile can access this resources now.", ACTIVE + " OK", self, true, null);
 					}catch (final Exception e) {
 						if(e instanceof DeployError){
@@ -1246,7 +1250,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				}
 			}
 		}, threadPoolToken));
-		toolbar.addSeparator();
 //		if(new File(EDIT_HAR).exists() == false){
 //			deployButton.setEnabled(false);
 //			saveAsButton.setEnabled(false);
@@ -1301,9 +1304,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}, threadPoolToken));
 		loadButton.setToolTipText("<html>load a project from a har file." +
 				"<BR><BR>Note :<BR>the loaded project will be the default editing project after click [<STRONG>" + saveButton.getText() + "</STRONG>] button.</html>");
-
-		toolbar.add(loadButton);
-		toolbar.add(saveAsButton);
 
 		shiftProjButton.addActionListener(new HCButtonEnabledActionListener(shiftProjButton, new Runnable() {
 			@Override
@@ -1387,7 +1387,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 //		toolbar.addSeparator();
 		
 		final JPanel treePanel = new JPanel();
-		treePanel.setBorder(new TitledBorder("Item Tree :"));
+		treePanel.setBorder(new TitledBorder("Items Tree :"));
 		final JScrollPane scrollPane = new JScrollPane(tree);
 		treePanel.setLayout(new BorderLayout());
 		treePanel.add(scrollPane, BorderLayout.CENTER);
@@ -2508,7 +2508,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 			if(br instanceof MobiUIResponsor){
 				if(ec.isNoError()){
-					showHCMessage("Successful activate project, " +
+					showHCMessage("successful activate project, " +
 							"mobile can access this resources now.", ACTIVE + " OK", this, true, null);
 				}
 				return true;

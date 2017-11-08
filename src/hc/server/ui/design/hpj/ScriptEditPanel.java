@@ -444,12 +444,17 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					}
 				}
 				appendLine(sb, selectedChars, startIdx, selectedChars.length - startIdx);
+				sb.deleteCharAt(sb.length() - 1);//删除最后一个回车
+				
 //				sb.append("Java::hc.server.ui.ProjectContext::getProjectContext().eval(sb.toString())\n");
 				final String scripts = sb.toString();
 				StringBuilderCacher.cycle(sb);
 				
-				ResourceUtil.sendToClipboard(scripts);
-				JOptionPane.showMessageDialog(designer, "successful generate string sources to clipboard!", ResourceUtil.getInfoI18N(), JOptionPane.INFORMATION_MESSAGE, App.getSysIcon(App.SYS_INFO_ICON));
+				jtaScript.replaceSelection(scripts);
+				
+				doAfterModifyBlock();
+//				ResourceUtil.sendToClipboard(scripts);
+//				JOptionPane.showMessageDialog(designer, "successful generate string sources to clipboard!", ResourceUtil.getInfoI18N(), JOptionPane.INFORMATION_MESSAGE, App.getSysIcon(App.SYS_INFO_ICON));
 			}
 			
 			private final void appendLine(final StringBuilder sb, final char[] chars, final int startIdx, final int len){
@@ -473,9 +478,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				"translate scripts to a string for ProjectContext.<STRONG>eval</STRONG>." +
 				"<BR><BR>Do as following steps :" +
 				"<BR>1. select scripts in <STRONG>" + JRubyNodeEditPanel.JRUBY_SCRIPT + "</STRONG> panel," +
-				"<BR>2. click this button," +
-				"<BR>3. move cursor to where want to insert string," +
-				"<BR>4. press paste keys,</html>");
+				"<BR>2. click this button,</html>");
 		scriptBtn.setIcon(Designer.loadImg("script_16.png"));
 		
 		//		jtaScript.setTabSize(2);
@@ -1504,6 +1507,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 	}
 	
+	final void doAfterModifyBlock() {
+		rebuildASTNode();
+		format(jtaScript.getDocument());
+		updateScript(jtaScript.getText());
+	}
+
 	boolean newline = false;
 //	final Runnable colorAll = new Runnable() {
 //		int position = 0;
@@ -2261,9 +2270,7 @@ class HCUndoableEdit implements UndoableEdit{
 		try{
 			final int newLineNo = ScriptEditPanel.getLineOfOffset(document, jta.getCaretPosition());
 			if(oldLineNo != newLineNo){
-				panel.rebuildASTNode();
-				panel.format(jta.getDocument());
-				panel.updateScript(jta.getText());
+				panel.doAfterModifyBlock();
 			}else{
 				jta.refreshCurrLineAfterKey(newLineNo);
 			}

@@ -10,7 +10,7 @@ public class TCPSplitTester {
 	
 	public static void printBigData(final byte[] bs){
 		final int len = HCMessage.getBigMsgLen(bs);
-		ByteUtil.encodeFileXOR(bs, MsgBuilder.INDEX_MSG_DATA, len, code, 0, code.length);
+		ByteUtil.encodeFileXOR(bs, MsgBuilder.INDEX_MSG_DATA, len, code);
 		LogManager.log("----[Big Msg]-----data len : " + len + ", code base64 : " + ByteUtil.encodeBase64(code));
 	}
 	
@@ -36,7 +36,7 @@ public class TCPSplitTester {
 				fchar = 'A';
 			}
 		}
-		ByteUtil.encodeFileXOR(testData, 0, len, code, 0, code.length);
+		ByteUtil.encodeFileXOR(testData, 0, len, code);
 		LogManager.log("----[Big Msg]-----data len : " + len + ", code base64 : " + ByteUtil.encodeBase64(code));
 		fastSender.sendWrapAction(MsgBuilder.E_BIG_MSG_JS_TO_MOBILE, testData, 0, len);
 		LogManager.log("----[Big Msg]-----done send");

@@ -69,6 +69,7 @@ public class HCjar {
 	public static final String PROJ_UPGRADE_URL = "Project.upgradeURL";
 	public static final String PROJ_EXCEPTION_REPORT_URL = "Project.exceptionReportURL";
 	
+	public static final String PROJ_COMPACT_DAYS = "Project.CompactDays";
 	public static final String PROJ_CONTACT = "Project.Contact";
 	public static final String PROJ_COPYRIGHT = "Project.Copyright";
 	public static final String PROJ_DESC = "Project.Desc";
@@ -236,6 +237,7 @@ public class HCjar {
 		setNullDefaultValue(map, PROJ_NEXT_NODE_IDX, "1");
 		setNullDefaultValue(map, PROJ_ID, HPProject.convertProjectIDFromName((String)map.get(PROJ_NAME)));
 		setNullDefaultValue(map, PROJ_VER, HPProject.DEFAULT_VER);
+		setNullDefaultValue(map, PROJ_COMPACT_DAYS, String.valueOf(365 / 2));
 		setNullDefaultValue(map, PROJ_UPGRADE_URL, "");
 		setNullDefaultValue(map, PROJ_EXCEPTION_REPORT_URL, "");
 		setNullDefaultValue(map, PROJ_CONTACT, "");
@@ -623,6 +625,7 @@ public class HCjar {
 			final HPProject hpProject = (HPProject)item;
 			map.put(PROJ_ID, hpProject.id);
 			map.put(PROJ_VER, hpProject.ver);
+			map.put(PROJ_COMPACT_DAYS, hpProject.compactDays);
 			map.put(PROJ_NEXT_NODE_IDX, String.valueOf(MenuManager.getCurrNodeIdx()));
 			map.put(PROJ_UPGRADE_URL, hpProject.upgradeURL);
 			map.put(PROJ_EXCEPTION_REPORT_URL, hpProject.exceptionURL);

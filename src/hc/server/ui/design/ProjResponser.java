@@ -29,6 +29,7 @@ import hc.server.HCJRubyException;
 import hc.server.MultiUsingManager;
 import hc.server.PlatformManager;
 import hc.server.ScreenServer;
+import hc.server.data.StoreDirManager;
 import hc.server.msb.Converter;
 import hc.server.msb.Device;
 import hc.server.msb.MSBAgent;
@@ -57,6 +58,7 @@ import hc.server.util.CacheComparator;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.HCLimitSecurityManager;
+import hc.server.util.SafeDataManager;
 import hc.server.util.VoiceCommand;
 import hc.server.util.ai.AIPersistentManager;
 import hc.util.BaseResponsor;
@@ -180,8 +182,12 @@ public class ProjResponser {
 		return sys_att_map_sys.remove(name);
 	}
 	
-	public final Object __getSysAtt(final String name) {
-		return sys_att_map_sys.get(name);
+	public final Object __getSysAtt(final String name, final boolean isClearAfterGet) {
+		if(isClearAfterGet){
+			return sys_att_map_sys.remove(name);
+		}else{
+			return sys_att_map_sys.get(name);
+		}
 	}
 	
 	/**
@@ -226,6 +232,8 @@ public class ProjResponser {
 	public final void stop(){
 		L.V = L.WShop ? false : LogManager.log("stop ProjResponser [" + projectID + "]");
 
+		SafeDataManager.romoveBackupTask(projectID);
+		
 		ServerUIAPIAgent.shutdownSchedulers(context, null);//置于hcje.terminate之前
 
 		try{
@@ -291,7 +299,7 @@ public class ProjResponser {
 			LogManager.log("try build instance for Converter [" + converterName + "] in project [" + projectID + "]...");
 			
 			//将转换器名称装入properties
-			ServerUIAPIAgent.setSuperProp(context, ServerUIAPIAgent.CONVERT_NAME_PROP, converterName);
+			ServerUIAPIAgent.setHCSysProperties(context, ServerUIAPIAgent.CONVERT_NAME_PROP, converterName);
 			final CallContext callCtx = CallContext.getFree();
 			final Object converter = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtx, 
 					src.elementAt(itemIdx), scriptName, null, hcje, context, Converter.class);
@@ -365,7 +373,7 @@ public class ProjResponser {
 			LogManager.log("try build instance for Device [" + devName + "] in project [" + projectID + "]...");
 			
 			//将设备名称装入properties
-			ServerUIAPIAgent.setSuperProp(context, ServerUIAPIAgent.DEVICE_NAME_PROP, devName);
+			ServerUIAPIAgent.setHCSysProperties(context, ServerUIAPIAgent.DEVICE_NAME_PROP, devName);
 			final CallContext callCtx = CallContext.getFree();
 			final Object device = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtx,
 					devListener, scriptName, null, hcje, context, Device.class);
@@ -434,7 +442,7 @@ public class ProjResponser {
 			LogManager.log("try build intance for Robot [" + robotName + "] in project [" + projectID + "]...");
 			
 			//将设备名称装入properties
-			ServerUIAPIAgent.setSuperProp(context, ServerUIAPIAgent.ROBOT_NAME_PROP, robotName);
+			ServerUIAPIAgent.setHCSysProperties(context, ServerUIAPIAgent.ROBOT_NAME_PROP, robotName);
 			final CallContext callCtx = CallContext.getFree();
 			final Object robot = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtx,
 					robotListener, scriptName, null, hcje, context, Robot.class);
@@ -459,6 +467,8 @@ public class ProjResponser {
 	public ProjResponser(final String projID, final Map<String, Object> p_map, final MobiUIResponsor baseRep,
 			final LinkProjectStore lps) {
 		this.projectID = projID;
+		SafeDataManager.addBackupTask(projectID);
+		
 		{
 			final String absProjBasePath = HCLimitSecurityManager.getUserDataBaseDir(projectID);
 			final File userDir = new File(absProjBasePath);//不能使用App.getBaseDir
@@ -481,7 +491,8 @@ public class ProjResponser {
 		jrubyClassLoader = hasNative?buildStubNativeLibClassLoaderWrapper(baseClassLoader):baseClassLoader;
 		final ClassLoader projClassLoader = ResourceUtil.buildProjClassPath(deployPath, jrubyClassLoader, projID);
 		final String reportExceptionURL = (String)this.map.get(HCjar.PROJ_EXCEPTION_REPORT_URL);
-		this.hcje = new HCJRubyEngine(deployPath.getAbsolutePath(), projClassLoader, reportExceptionURL != null && reportExceptionURL.length() > 0);
+		this.hcje = new HCJRubyEngine(deployPath.getAbsolutePath(), projClassLoader, 
+				reportExceptionURL != null && reportExceptionURL.length() > 0, projID);
 		
 		final RecycleRes tmpRecycleRes = RecycleProjThreadPool.getFree(projID);
 		
@@ -585,6 +596,9 @@ public class ProjResponser {
 				}
 			}
 		}
+		
+		final File tmp_sub_for_hc_sys = StoreDirManager.getTmpSubForUserManagedByHcSys(context);
+		ResourceUtil.deleteDirectoryNowAndExit(tmp_sub_for_hc_sys, false);//注意：false means 不删除顶级tmp目录
 	}
 
 	private final void loadNativeLibByClassLoad(final ClassLoader loader, final String absolutePath) throws Throwable {
@@ -717,17 +731,27 @@ public class ProjResponser {
 			return null;
 		}else if(isScriptEventToAllProjects(event)){
 			//优先执行主菜单的事件
-			final String script = (String)map.get(HCjar.buildEventMapKey(HCjar.MAIN_MENU_IDX, event.toString()));
+			final String eventName = event.toString();
+			final String script = (String)map.get(HCjar.buildEventMapKey(HCjar.MAIN_MENU_IDX, eventName));
 			if(script != null && script.trim().length() > 0){
+				final boolean checkHasProjStartScriptErr;
+				if(ProjectContext.EVENT_SYS_MOBILE_LOGIN.equals(eventName)){
+					checkHasProjStartScriptErr = IConstant.TRUE.equals(ServerUIAPIAgent.getSysAttribute(this, ServerUIAPIAgent.KEY_HAS_ERROR_PS_SCRIPT, true));
+				}else{
+					checkHasProjStartScriptErr = false;
+				}
 				final ReturnableRunnable runnable = new ReturnableRunnable() {
 					@Override
 					public Object run() {
-						final String eventName = event.toString();
 						
 						L.V = L.WShop ? false : LogManager.log("start OnEvent : " + event + " for project : " + context.getProjectID());
+						if(checkHasProjStartScriptErr){
+							notifyScriptErrorInProjectOrSessionPool(coreSS, ProjectContext.EVENT_SYS_PROJ_STARTUP);
+						}
 						final CallContext callCtx = CallContext.getFree();
 						RubyExector.runAndWaitInProjectOrSessionPool(coreSS, callCtx, script, eventName, null, hcje, context);//考虑到PROJ_SHUTDOWN，所以改为阻塞模式
 						if(callCtx.isError){
+							notifyScriptErrorInProjectOrSessionPool(coreSS, eventName);
 							if(mobiResp.ec != null){
 								mobiResp.ec.setThrowable(new HCJRubyException(callCtx));
 							}
@@ -749,11 +773,41 @@ public class ProjResponser {
 						}
 					});
 				}
+			}else{//else script null or zero length
+				if(ProjectContext.EVENT_SYS_MOBILE_LOGIN.equals(eventName)){
+					final Object sysAtt = ServerUIAPIAgent.getSysAttribute(this, ServerUIAPIAgent.KEY_HAS_ERROR_PS_SCRIPT, true);//in system thread level
+					if(IConstant.TRUE.equals(sysAtt)){
+						ServerUIAPIAgent.runInSessionThreadPool(coreSS, this, new Runnable() {
+							@Override
+							public void run() {
+								notifyScriptErrorInProjectOrSessionPool(coreSS, ProjectContext.EVENT_SYS_PROJ_STARTUP);//补充通知Project_StartUp错误
+							}
+						});
+					}
+				}
 			}
 
 			return null;
 		}else{
 			return null;
+		}
+	}
+	
+	private final void notifyScriptErrorInProjectOrSessionPool(final J2SESession coreSSMaybeNull, final String eventName){
+		if(ProjectContext.EVENT_SYS_MOBILE_LOGIN.equals(eventName)
+				|| ProjectContext.EVENT_SYS_PROJ_STARTUP.equals(eventName)){
+			final String errorI18N = ResourceUtil.getErrorI18N(coreSSMaybeNull);
+			String notExecuted = (String)ResourceUtil.get(coreSSMaybeNull, 9267);
+			notExecuted = StringUtil.replace(notExecuted, "{projID}", projectID);
+			notExecuted = StringUtil.replace(notExecuted, "{eventName}", eventName);
+			if(context.sendMessage(errorI18N, notExecuted, ProjectContext.MESSAGE_ERROR, null, 0) == false){
+				ContextManager.getThreadPool().run(new Runnable() {
+					@Override
+					public void run() {
+						ServerUIAPIAgent.setSysAttribute(ProjResponser.this, ServerUIAPIAgent.KEY_HAS_ERROR_PS_SCRIPT, IConstant.TRUE);
+					}
+				}, token);
+			}
 		}
 	}
 	
@@ -793,6 +847,8 @@ public class ProjResponser {
 	}
 	
 	public final void preLoadJRubyScripts(){
+		L.V = L.WShop ? false : LogManager.log("pre load JRuby scripts for project [" + projectID + "].");
+		
 		final Object menuItemObj = map.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, HCjar.MAIN_MENU_IDX));
 		if(menuItemObj != null){
 			final int itemCount = Integer.parseInt((String)menuItemObj);
@@ -860,8 +916,7 @@ public class ProjResponser {
 				final JarMainMenu currMainMenu = jarMainMenu;
 				LogManager.log(ILog.OP_STR + "open menu : [" + currMainMenu.getTitle(coreSS) + "]");
 				
-				ServerUIUtil.transMenuWithCache(coreSS, currMainMenu.buildJcip(coreSS), projectID);//elementID
-				
+				currMainMenu.transMenuWithCache(coreSS);
 				ScreenServer.pushScreen(coreSS, currMainMenu);
 				return true;
 	//			}else if(url.elementID.equals("no1")){
@@ -869,6 +924,7 @@ public class ProjResponser {
 			}
 
 		}else if(url.protocal == HCURL.CMD_PROTOCAL){
+			coreSS.notifyCanvasMenuResponse();
 			//由于可能不同context，所以要进行全遍历，而非假定在前一当前打开的基础上。
 			final MenuItem item = getItem(coreSS, url, true);
 			if(item != null){
@@ -888,6 +944,7 @@ public class ProjResponser {
 			}
 		}else if(((url.protocal == HCURL.SCREEN_PROTOCAL) && (HCURL.REMOTE_HOME_SCREEN.equals(url.getElementIDLower()) == false))//注意：screen://home必须手机先行调用
 				|| url.protocal == HCURL.FORM_PROTOCAL){
+			coreSS.notifyCanvasMenuResponse();
 			//由于可能不同context，所以要进行全遍历，而非假定在前一当前打开的基础上。
 			final MenuItem item = getItem(coreSS, url, true);
 			if(item != null){
@@ -912,6 +969,7 @@ public class ProjResponser {
 				}
 			}
 		}else if(url.protocal == HCURL.CONTROLLER_PROTOCAL){
+			coreSS.notifyCanvasMenuResponse();
 			final MenuItem item = getItem(coreSS, url, true);
 			if(item != null){
 				final String listener = getItemProp(item, PROP_LISTENER);
@@ -968,7 +1026,7 @@ public class ProjResponser {
 									cmap.setTitle(title);
 									final String screenID = ServerUIAPIAgent.buildScreenID(projectID, targetURL);
 									cmap.setID(screenID);
-									ServerUIUtil.response(coreSS, new MController(map, cmap.map.toSerial()).buildJcip(coreSS));
+									ServerUIUtil.response(coreSS, new MController(map, cmap.map.toSerial()).buildJcip(coreSS, null));
 									
 									final ServCtrlCanvas ccanvas = new ServCtrlCanvas(coreSS, responsor);
 									ScreenServer.pushScreen(coreSS, ccanvas);
@@ -1038,13 +1096,9 @@ public class ProjResponser {
 	private static final String hcj2seScript = loadLocalJS("hcj2se.js");
 	private static final String iOS2serverScript = loadLocalJS("ios2server.js");
 	
-	public static final void sendMletBodyOnlyOneTime(final J2SESession coreSS, final ProjectContext ctx){
-		final String attBody = ClientSessionForSys.CLIENT_SESSION_ATTRIBUTE_IS_TRANSED_MLET_BODY;
-		final ProjResponser pr = ServerUIAPIAgent.getProjResponserMaybeNull(ctx);
-		
-		final Object result = ServerUIAPIAgent.getClientSessionAttributeForSys(coreSS, pr, attBody);
-		if(result == null){
-			ServerUIAPIAgent.setClientSessionAttributeForSys(coreSS, pr, attBody, Boolean.TRUE);
+	public static final void sendMletBodyOnlyOneTime(final J2SESession coreSS){
+		if(coreSS.isTranedMletBody == false){
+			coreSS.isTranedMletBody = true;
 		}else{
 			return;//已发送，无需再发送。
 		}
@@ -1082,7 +1136,8 @@ public class ProjResponser {
 				"  div > img {vertical-align:middle;}div > input {vertical-align:middle;}div > label{vertical-align:middle;}\n" +
 				"  button > img {vertical-align:middle;}\n" +
 				//table will not be inherited in quirks mode, so add table as following, tested pass in letv mobile.
-				"  input, select, textarea, button, table, caption{font-family:inherit;font-size:inherit;font-weight: inherit; font-style: inherit; font-variant: inherit;}\n" +
+				"  input, select, textarea, table, caption{font-family:inherit;font-size:inherit;font-weight: inherit; font-style: inherit; font-variant: inherit;}\n" +
+				"  button {font-family:inherit;font-weight: inherit; font-style: inherit; font-variant: inherit;font-size:" + sizeHeight.getFontSizeForButton() + "px;}\n" +
 				"  .HC_DIV_SYS_0 {" +
 					"font-size:" + sizeHeight.getFontSizeForNormal() + "px;" +
 					"background-color:#" + colorForBodyByHexString + ";" +

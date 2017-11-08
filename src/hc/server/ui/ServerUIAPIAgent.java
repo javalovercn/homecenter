@@ -54,13 +54,18 @@ public class ServerUIAPIAgent {
 	public static final String QUESTION_CANCEL = "cancel";
 
 	public final static String KEY_IS_INSTALL_FROM_CLIENT = CCoreUtil.SYS_RESERVED_KEYS_START + "_isInstallFromClient";
+	public final static String KEY_HAS_ERROR_PS_SCRIPT = CCoreUtil.SYS_RESERVED_KEYS_START + "_hasErrorPSScript";//SYS_PROJ_STARTUP
 	
 
+	//以下存放于hc_config.properties，而非user/project.properties
 	public final static String CONVERT_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START + "convert_name_prop";
 	public final static String DEVICE_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START + "device_name_prop";
 	public final static String ROBOT_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START + "robot_name_prop";
 	public final static String PROJ_DB_PASSWORD = CCoreUtil.SYS_RESERVED_KEYS_START + "db_pwd";
+	
+	//以下存放于user/project.properties，而非hc_config.properties
 	public final static String PROJ_CRON_DB_COMPACT_MS = CCoreUtil.SYS_RESERVED_KEYS_START + "cron_db_compact_ms_";
+	public final static String PROJ_USER_DB_COMPACT_MS = CCoreUtil.SYS_RESERVED_KEYS_START + "user_db_compact_ms_";
 	
 	final static Object threadToken = App.getThreadPoolToken();
 	
@@ -70,6 +75,10 @@ public class ServerUIAPIAgent {
 	
 	public static void notifyClientSessionWaitObjectShutdown(final ClientSession clientSession){
 		clientSession.notifyClientSessionWaitObjectShutdown();
+	}
+	
+	public static ProjDesignConf getProjDesignConf(final ProjectContext ctx){
+		return ctx.projDesignConfig;
 	}
 	
 	public final static ScriptCSSSizeHeight getScriptCSSSizeHeight(final HTMLMlet htmlMlet){
@@ -499,6 +508,8 @@ public class ServerUIAPIAgent {
 			}
 		}
 		
+		coreSS.uiEventInput.setQuestionEvent();
+		
 		final ProjResponser resp = qp.ctx.__projResponserMaybeNull;
 		if("yes".equals(result)){
 			if(qp.yesRunnable != null){
@@ -559,14 +570,6 @@ public class ServerUIAPIAgent {
 			
 			mletCanvas.onExit(false);
 		}
-	}
-	
-	public final static void setHCSysProperties(final ProjectContext ctx, final String key, final String value){
-		ctx.__setPropertySuper(key, value);
-	}
-	
-	public final static String getHCSysProperties(final ProjectContext ctx, final String key){
-		return ctx.__getPropertySuper(key);
 	}
 	
 	public final static void loadStyles(final HTMLMlet mlet) {
@@ -753,12 +756,20 @@ public class ServerUIAPIAgent {
 		}
 	}
 
-	public final static void setSuperProp(final ProjectContext ctx, final String propName, final String value){
-		ctx.__setPropertySuper(propName, value);
+	public final static void saveHCSysProperties(final ProjectContext ctx){
+		ctx.__saveSysPropertiesOnHC();
+	}
+	
+	public final static void setHCSysProperties(final ProjectContext ctx, final String propName, final String value){
+		ctx.__setPropertySuperOnHC(propName, value);
 	}
 
-	public final static void removeSuperProp(final ProjectContext ctx, final String propName){
-		ctx.__removePropertySuper(propName);
+	public final static void setSysPropertiesOnProj(final ProjectContext ctx, final String propName, final String value){
+		ctx.__setPropertySuperOnProj(propName, value);
+	}
+	
+	public final static void removeHCSysProperties(final ProjectContext ctx, final String propName){
+		ctx.__removePropertySuperOnHC(propName);
 	}
 	
 	public static final String CRATE_DB_PASSWORD = null;
@@ -767,10 +778,14 @@ public class ServerUIAPIAgent {
 		return ctx.dbPassword;
 	}
 
-	public final static String getSuperProp(final ProjectContext ctx, final String propName){
-		return ctx.__getPropertySuper(propName);
+	public final static String getHCSysProperties(final ProjectContext ctx, final String propName){
+		return ctx.__getPropertySuperOnHC(propName);
 	}
-
+	
+	public final static String getSysPropertiesOnProj(final ProjectContext ctx, final String propName){
+		return ctx.__getPropertySuperOnProj(propName);
+	}
+	
 	public final static void setSysAttribute(final ProjResponser pr, final String attributeName, final Object value){
 		pr.__setSysAtt(attributeName, value);
 	}
@@ -779,8 +794,8 @@ public class ServerUIAPIAgent {
 		pr.__removeSysAtt(attributeName);
 	}
 
-	public final static Object getSysAttribute(final ProjResponser pr, final String attributeName){
-		return pr.__getSysAtt(attributeName);
+	public final static Object getSysAttribute(final ProjResponser pr, final String attributeName, final boolean isClearAfterGet){
+		return pr.__getSysAtt(attributeName, isClearAfterGet);
 	}
 
 	public final static void removeClientSessionAttributeForSys(final J2SESession coreSS, final ProjResponser pr, final String attributeName){
@@ -809,8 +824,8 @@ public class ServerUIAPIAgent {
 	public static String getProcessorNameFromCtx(final ProjectContext ctx, String name, final String prop) {
 		if(name != null && name.length() > 0){
 		}else{
-			name = getSuperProp(ctx, prop);
-			removeSuperProp(ctx, prop);
+			name = getHCSysProperties(ctx, prop);
+			removeHCSysProperties(ctx, prop);
 		}
 		if(name == null){
 			name = "";
@@ -990,9 +1005,9 @@ public class ServerUIAPIAgent {
 				isHTMLMlet = false;
 			}
 			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_MLET, screenID);
-			mcanvas = new MletSnapCanvas(coreSS, UserThreadResourceUtil.getMletWidthFrom(coreSS), UserThreadResourceUtil.getMletHeightFrom(coreSS));
+			mcanvas = new MletSnapCanvas(coreSS, UserThreadResourceUtil.getMletWidthFrom(coreSS, false), UserThreadResourceUtil.getMletHeightFrom(coreSS, false));
 		}else{
-			ProjResponser.sendMletBodyOnlyOneTime(coreSS, context);
+			ProjResponser.sendMletBodyOnlyOneTime(coreSS);
 			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_HTMLMLET, screenID);
 			mcanvas = new MletHtmlCanvas(coreSS, UserThreadResourceUtil.getMletWidthFrom(coreSS), UserThreadResourceUtil.getMletHeightFrom(coreSS));
 		}
@@ -1191,7 +1206,7 @@ public class ServerUIAPIAgent {
 		HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_TRANSURL, url);
 	}
 
-	public static Object getSysAttrInUserThread(final String key) {
+	public static Object getSysAttrInUserThread(final String key, final boolean isClearAfterGet) {
 		return ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() {
@@ -1199,10 +1214,30 @@ public class ServerUIAPIAgent {
 				if(pr == null){
 					return null;
 				}
-				final Object out = getSysAttribute(pr, key);
+				final Object out = getSysAttribute(pr, key, isClearAfterGet);
 				return out;
 			}
 		}, threadToken);
+	}
+
+	public static void setProjProp(final ProjectContext ctx, final String propPre, final String key, final boolean value) {
+		final String prop = propPre + key;
+		setHCSysProperties(ctx, prop, String.valueOf(value));
+		ctx.__saveSysPropertiesOnHC();
+	}
+
+	public static boolean isProjPropTrue(final ProjectContext ctx, final String propPre,
+			final String key) {
+		final String value = getHCSysProperties(ctx, propPre + key);
+		if (value == null) {
+			return false;
+		} else {
+			try {
+				return Boolean.parseBoolean(value);
+			} catch (final Exception e) {
+			}
+		}
+		return false;
 	}
 
 }

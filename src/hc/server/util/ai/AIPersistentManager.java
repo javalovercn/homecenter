@@ -14,10 +14,8 @@ import hc.server.html5.syn.DifferTodo;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.J2SESessionManager;
-import hc.server.ui.MenuItem;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
-import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.SessionMobiMenu;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.MobiUIResponsor;
@@ -230,7 +228,7 @@ public class AIPersistentManager {
 			screenScore = listScore.get(i);
 			final String url = screenScore.target;
 			
-			if(searchURL(coreSS, screenScore, url)){
+			if(searchURL(coreSS, screenScore, url)){//大小写不敏感，原为大小写敏感
 				break;
 			}else{
 				final AIPersistentManager mgr = AIPersistentManager.getManagerByProjectIDInDelay(screenScore.projectID);
@@ -274,16 +272,17 @@ public class AIPersistentManager {
 			return false;
 		}
 		
-		final Vector<MenuItem> menuItems = sessionMobiMenu.getFlushMenuItems();//coreSS.getDisplayMenuItems();
-		final int size = menuItems.size();
-		for (int j = 0; j < size; j++) {
-			final MenuItem item = menuItems.elementAt(j);
-			final String itemUrl = ServerUIAPIAgent.getMobiMenuItem_URL(item);
-			if(url.equals(itemUrl)){
-				return true;
-			}
-		}
-		return false;
+		return sessionMobiMenu.searchMenuItem(url.toLowerCase(), null) != null;
+//		final Vector<MenuItem> menuItems = sessionMobiMenu.getFlushMenuItems();//coreSS.getDisplayMenuItems();
+//		final int size = menuItems.size();
+//		for (int j = 0; j < size; j++) {
+//			final MenuItem item = menuItems.elementAt(j);
+//			final String itemUrl = ServerUIAPIAgent.getMobiMenuItem_URL(item);
+//			if(url.equals(itemUrl)){
+//				return true;
+//			}
+//		}
+//		return false;
 	}
 	
 	public static boolean isEnableHCAI(){
@@ -376,6 +375,7 @@ public class AIPersistentManager {
     
     public static void waitForAllDone(){
     	delayExecutor.waitForAllDone();
+    	delayExecutor.notifyAllDoneAfterShutdown();
     }
     
     public static void processFormData(final FormData data){
@@ -619,7 +619,7 @@ public class AIPersistentManager {
 	    	final String projID = PropertiesManager.getValue(PropertiesManager.p_compackingAIDB);
 	    	if(projID != null){
 	    		final File projDir = buildAIDirForProj(projID);
-	    		ResourceUtil.deleteDirectoryNowAndExit(projDir);
+	    		ResourceUtil.deleteDirectoryNowAndExit(projDir, true);
 	    		
 	    		PropertiesManager.remove(PropertiesManager.p_compackingAIDB);
 	    		PropertiesManager.saveFile();

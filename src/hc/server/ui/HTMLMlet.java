@@ -17,15 +17,18 @@ import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 
 /**
- * {@link HTMLMlet} is a JPanel, which contains JComponents and present them as HTML on mobile (not snapshot), you can set CSS for these JComponents.<BR>
- * <BR>Tip : to load and execute JavaScript, please use {@link ScriptPanel}.
- * <BR><BR>
- * Not all HTML tag are supported by mobile runtime environment.
- * <BR>To support HTML5, Android 4.4 (or above) / iPhone 4s (or above) is required.
+ * {@link HTMLMlet} is a UI interaction component, which contains JComponents and present them as HTML (not snapshot) on mobile, you can set CSS for these JComponents.
+ * <BR><BR><STRONG>Important :</STRONG><BR>In Swing, layout manager is noticing that JButton (and JCheckBox, JComboBox, JLabel, JRadioButton, JTextField) has a preferred size and adjusting your pane to accommodate JButton, 
+ * in other words, <code>setMinimumSize</code> will not working for JButton. 
  * <BR>
- * To synchronize status with mobile, AWT/Swing listeners are added to these JComponents, please don't remove them.
+ * <code>setMinimumSize</code> for JPanel, adding JButton in it and setting CSS for JButton to grow full space is a good choice.
+ * <BR><BR>to load and execute JavaScript, please use {@link ScriptPanel}.
  * <BR><BR>
- * <STRONG>Important :</STRONG>
+ * not all HTML tag are supported by mobile runtime environment.
+ * <BR>to support HTML5, Android 4.4 (or above) / iPhone 4s (or above) is required.
+ * <BR><BR>
+ * to synchronize status with mobile, AWT/Swing listeners are added to these JComponents by server, please don't remove them.
+ * <BR>
  * <BR>it is considered as {@link Mlet} and presents as snapshot to mobile, when one of the following conditions is met:
  * <BR>1. there is no sub component in {@link HTMLMlet} and it overrides {@link JComponent#paint(java.awt.Graphics)} method, 
  * <BR>2. the mobile client is J2ME (Java phone) mobile.
@@ -49,18 +52,18 @@ public class HTMLMlet extends Mlet {
 	/**
 	 * load special styles for current {@link HTMLMlet}, it must be invoked before {@link #setCSS(JComponent, String, String)} which refer to these styles.
 	 * <BR><BR>
-	 * Network connection permission : <BR>
+	 * <STRONG>Network connection permission</STRONG> : <BR>
 	 * if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect permission or disable limit socket/connect.
 	 * <BR><BR>
-	 * More about CSS styles : 
+	 * <STRONG>More about CSS styles</STRONG> : 
 	 * <BR>
 	 * 1. the <i>CSS Styles</i> tree node in designer is shared to all {@link HTMLMlet}/{@link Dialog}s in same project.
 	 * In other words, it will be loaded automatically by server for each HTMLMlet/Dialog.
 	 * <BR>
-	 * 2. this method can be invoked as many times as you want.
+	 * 2. it is allowed to load styles as many as you like.
 	 * <BR>
 	 * 3. this method can be invoked also in constructor method (the initialize method in JRuby).
-	 * <BR><BR>About cache :<BR>
+	 * <BR><BR><STRONG>About cache</STRONG> :<BR>
 	 * don't worry about styles too large for re-translating to mobile, <BR>
 	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether transmission or loading cache from mobile (if styles is too small, it will not be cached).
 	 * What you should do is put more data into one style file, because if there is too much pieces of cache in a project, system will automatically clear the cache and restart caching.
@@ -328,7 +331,7 @@ public class HTMLMlet extends Mlet {
 
 	/**
 	 * get normal font size in pixels of current session mobile.<BR>
-	 * user may change default font size in optional from mobile.
+	 * user may change font size from mobile when session.
 	 * @return the recommended normal font size in pixels, it is normal used for CSS <code>font-size</code>.
 	 * @since 7.0
 	 * @see #getFontSizeForSmall()
@@ -340,7 +343,7 @@ public class HTMLMlet extends Mlet {
 	
 	/**
 	 * get small font size in pixels of current session mobile.<BR>
-	 * user may change small font size in optional from mobile.
+	 * user may change font size from mobile when session.
 	 * @return the recommended small font size in pixels, it is normal used for CSS <code>font-size</code>.
 	 * @since 7.0
 	 * @see #getFontSizeForNormal()
@@ -352,7 +355,7 @@ public class HTMLMlet extends Mlet {
 	
 	/**
 	 * get large font size in pixels of current session mobile.<BR>
-	 * user may change large font size in optional from mobile.
+	 * user may change font size from mobile when session.
 	 * @return the recommended large font size in pixels, it is normal used for CSS <code>font-size</code>.
 	 * @since 7.0
 	 * @see #getFontSizeForSmall()
@@ -364,7 +367,7 @@ public class HTMLMlet extends Mlet {
 	
 	/**
 	 * get button font size in pixels of current session mobile.<BR>
-	 * user may change default font size in optional from mobile.
+	 * user may change font size from mobile when session.
 	 * @return the recommended button font size in pixels, it is normal used for CSS <code>font-size</code>.
 	 * @since 7.0
 	 * @see #getButtonHeight()
@@ -385,22 +388,40 @@ public class HTMLMlet extends Mlet {
 	
 	/**
 	 * the width pixel of login mobile.
-	 * <BR>it is equals with <code>getProjectContext().getMobileWidth()</code>
 	 * @return
 	 * @since 7.3
 	 */
+	@Override
 	public int getMobileWidth(){
-		return sizeHeightForXML.getMobileWidth(coreSS);
+		return sizeHeightForXML.getMobileWidth();
 	}
 	
 	/**
 	 * the height pixel of login mobile.
-	 * <BR>it is equals with <code>getProjectContext().getMobileHeight()</code>
 	 * @return
 	 * @since 7.3
 	 */
+	@Override
 	public int getMobileHeight(){
-		return sizeHeightForXML.getMobileHeight(coreSS);
+		return sizeHeightForXML.getMobileHeight();
+	}
+	
+	/**
+	 * it is equals with {@link #getMobileHeight()}.
+	 * @return
+	 */
+	@Override
+	public int getClientHeight() {
+		return getMobileHeight();
+	}
+	
+	/**
+	 * it is equals with {@link #getMobileWidth()}.
+	 * @return
+	 */
+	@Override
+	public int getClientWidth() {
+		return getMobileWidth();
 	}
 	
 	/**

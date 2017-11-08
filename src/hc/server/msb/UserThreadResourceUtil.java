@@ -92,9 +92,9 @@ public class UserThreadResourceUtil {
 		}
 	}
 	
-	public static int getMletWidthFrom(final J2SESession coreSS) {
+	public static int getMletWidthFrom(final J2SESession coreSS, final boolean isForHtmlMlet) {
 		if (isInServing(coreSS.context)) {
-			if(isIOS(coreSS)){
+			if(isForHtmlMlet && isIOS(coreSS)){
 				return coreSS.clientDesc.getIOSDrawWidth();
 			}else{
 				return coreSS.clientDesc.getClientWidth();
@@ -103,17 +103,25 @@ public class UserThreadResourceUtil {
 			return 0;
 		}
 	}
+	
+	public static int getMletWidthFrom(final J2SESession coreSS) {
+		return getMletWidthFrom(coreSS, true);
+	}
 
-	public static int getMletHeightFrom(final J2SESession coreSS) {
+	public static int getMletHeightFrom(final J2SESession coreSS, final boolean isForHtmlMlet) {
 		if (isInServing(coreSS.context)) {
-			if(isIOS(coreSS)){
+			if(isForHtmlMlet && isIOS(coreSS)){
 				return coreSS.clientDesc.getIOSDrawHeight();
 			}else{
 				return coreSS.clientDesc.getClientHeight();
 			}
 		}else{
 			return 0;
-		}
+		}	
+	}
+	
+	public static int getMletHeightFrom(final J2SESession coreSS) {
+		return getMletHeightFrom(coreSS, true);
 	}
 
 	public static String getMobileOSVerFrom(final J2SESession coreSS) {

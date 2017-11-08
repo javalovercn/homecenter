@@ -57,14 +57,13 @@ public class AddHarIsBusy extends SystemHTMLMlet {
 		setLayout(new BorderLayout());
 		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
 		setCSS(msgArea, null, "width:100%;height:100%;" +
-				"background-color:" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.getColorForFontByHexString() + ";" +
-				"font-size:" + getFontSizeForNormal() + "px;");
+				"background-color:" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.getColorForFontByHexString() + ";");
 
 		appendMessage(busyMsg);
 		appendMessage(waitAndTry);
 		
-		final String btnFontSizeCSS = "font-size:" + getFontSizeForButton() + "px;";
-		setCSS(this, null, btnFontSizeCSS);//系统Mlet, //不考虑in user thread
+//		final String btnFontSizeCSS = "font-size:" + getFontSizeForButton() + "px;";
+//		setCSS(this, null, btnFontSizeCSS);//系统Mlet, //不考虑in user thread
 		addProcessingPanel.add(msgArea, BorderLayout.CENTER);
 		exitButton.setPreferredSize(new Dimension(getMobileWidth(), getButtonHeight()));
 //		setCSS(exitButton, null, "text-align:center;vertical-align:middle;width:100%;height:100%;" + btnFontSizeCSS);//系统Mlet, //不考虑in user thread

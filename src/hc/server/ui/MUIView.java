@@ -2,9 +2,13 @@ package hc.server.ui;
 
 import hc.server.ui.design.J2SESession;
 
+import java.util.Vector;
+
 
 public abstract class MUIView {
-	public abstract String buildJcip(final J2SESession coreSS);
+	public abstract void transMenuWithCache(final J2SESession coreSS);
+	
+	public abstract String buildJcip(final J2SESession coreSS, final Vector<MenuItem> menuItems);
 	
 	public MUIView() {
 		super();

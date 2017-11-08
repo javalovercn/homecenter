@@ -26,22 +26,22 @@ import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 
 /**
- * Dialog is a top-level JPanel, locate at center of mobile client.<BR>
- * and it is typically used for inputs from user.
+ * Dialog is a top-level UI interaction component at center of mobile client.
  * <BR><BR>
- * if there is a alert message, question or other dialog is showing and not closed, 
+ * to send a dialog instance for current session, invoke {@link ProjectContext#sendDialogWhenInSession(Dialog)}.
+ * <BR><BR>
+ * to send same dialogs to all session for project level, invoke {@link ProjectContext#sendDialogByBuilding(Runnable)}.<BR>
+ * if one session replies, then the same dialog(s) in other sessions will be dismissed from client.
+ * <BR><BR>
+ * if there is an alert message, question or other dialog is showing and not closed, the dialog will be delayed to show automatically.
+ * <BR><BR><STRONG>Important :</STRONG><BR>In Swing, layout manager is noticing that JButton (and JCheckBox, JComboBox, JLabel, JRadioButton, JTextField) has a preferred size and adjusting your pane to accommodate JButton, 
+ * in other words, <code>setMinimumSize</code> will not working for JButton. 
  * <BR>
- * the dialog will be delayed to show.
+ * <code>setMinimumSize</code> for JPanel, adding JButton in it and setting CSS for JButton to grow full space is a good choice.
  * <BR><BR>
- * 1. to send a dialog instance for current session,<BR>
- * please invoke {@link ProjectContext#sendDialogWhenInSession(Dialog)}.
+ * setting CSS for Dialog is just like {@link HTMLMlet}.
  * <BR>
- * 2. to send a user defined dialog (NOT instance) to all session for project level,<BR>
- * please invoke {@link ProjectContext#sendDialogByBuilding(Runnable)}.<BR>
- * if a JComponent of one session replies, then the same dialog(s) in other sessions will be dismissed. 
- * <BR><BR>
- * setting CSS for JComponents in dialog is as same as {@link HTMLMlet}.
- * <BR><BR>Tip : to load and execute JavaScript, please use {@link ScriptPanel}.
+ * to load and execute JavaScript in dialog, please use {@link ScriptPanel}.
  */
 public class Dialog extends JPanel {
 	private static final long serialVersionUID = 5869314873711129148L;
@@ -163,7 +163,7 @@ public class Dialog extends JPanel {
 	 * <STRONG>Warning : </STRONG>
 	 * <BR>1. the external URL may be sniffed when in moving (exclude HTTPS).
 	 * <BR>2. iOS 9 and above must use secure URLs.
-	 * @param url for example : https://homecenter.mobi
+	 * @param url for example : http://homecenter.mobi
 	 * @since 7.30
 	 */
 	public void goExternalURL(final String url) {
@@ -185,7 +185,9 @@ public class Dialog extends JPanel {
 	 * @param url
 	 * @param isUseExtBrowser true : use system web browser to open URL; false : the URL will be opened in client application and still keep foreground.
 	 * @since 7.7
+	 * @deprecated
 	 */
+	@Deprecated
 	public void goExternalURL(final String url, final boolean isUseExtBrowser) {
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return;
@@ -261,18 +263,18 @@ public class Dialog extends JPanel {
 	/**
 	 * load special styles for current {@link Dialog}, it must be invoked before {@link #setCSS(JComponent, String, String)} which refer to these styles.
 	 * <BR><BR>
-	 * Network connection permission : <BR>
+	 * <STRONG>Network connection permission</STRONG> : <BR>
 	 * if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect permission or disable limit socket/connect.
 	 * <BR><BR>
-	 * More about CSS styles : 
+	 * <STRONG>More about CSS styles</STRONG> : 
 	 * <BR>
 	 * 1. the <i>CSS Styles</i> tree node in designer is shared to all {@link HTMLMlet}/{@link Dialog}s in same project.
 	 * In other words, it will be loaded automatically by server for each HTMLMlet/Dialog.
 	 * <BR>
-	 * 2. this method can be invoked as many times as you want.
+	 * 2. it is allowed to load styles as many as you like.
 	 * <BR>
 	 * 3. this method can be invoked also in constructor method (the initialize method in JRuby).
-	 * <BR><BR>About cache :<BR>
+	 * <BR><BR><STRONG>About cache</STRONG> :<BR>
 	 * don't worry about styles too large for re-translating to mobile, <BR>
 	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether transmission or loading cache from mobile (if styles is too small, it will not be cached).
 	 * What you should do is put more data into one style file, because if there is too much pieces of cache in a project, system will automatically clear the cache and restart caching.
@@ -291,7 +293,7 @@ public class Dialog extends JPanel {
 	/**
 	 * load special styles for current {@link Dialog}.
 	 * @param styles
-	 * @param enableCache true means this styles may be cached if it is too large.
+	 * @param enableCache true means this styles may be cached if it is too large, false means never cached.
 	 * @see #loadCSS(String)
 	 */
 	public void loadCSS(final String styles, final boolean enableCache){
@@ -501,12 +503,13 @@ public class Dialog extends JPanel {
 	}
 	
 	/**
-     * releases all of the resources used by this
-     * <code>Dialog</code>, and they will be marked as undisplayable.
+     * dismiss current dialog.
      * <BR><BR>
      * this method will be invoked by server for following cases :<BR>
      * 1. user maybe press back key to cancel a dialog (in Android client),<BR>
      * 2. server shutdown or the session of dialog is line-off,
+     * @see #go(String)
+     * @see #goExternalURL(String)
      * @since 7.30
    	 */
 	public void dismiss(){
@@ -603,7 +606,7 @@ public class Dialog extends JPanel {
 	
 	/**
 	 * get normal font size in pixels of current session mobile.<BR>
-	 * user may change default font size in optional from mobile.
+	 * user may change font size from mobile when session.
 	 * @return the recommended normal font size in pixels, it is normal used for CSS <code>font-size</code>.
 	 * @since 7.30
 	 * @see #getFontSizeForSmall()
@@ -615,7 +618,7 @@ public class Dialog extends JPanel {
 	
 	/**
 	 * get small font size in pixels of current session mobile.<BR>
-	 * user may change small font size in optional from mobile.
+	 * user may change font size from mobile when session.
 	 * @return the recommended small font size in pixels, it is normal used for CSS <code>font-size</code>.
 	 * @since 7.30
 	 * @see #getFontSizeForNormal()
@@ -627,7 +630,7 @@ public class Dialog extends JPanel {
 	
 	/**
 	 * get large font size in pixels of current session mobile.<BR>
-	 * user may change large font size in optional from mobile.
+	 * user may change font size from mobile when session.
 	 * @return the recommended large font size in pixels, it is normal used for CSS <code>font-size</code>.
 	 * @since 7.30
 	 * @see #getFontSizeForSmall()
@@ -639,7 +642,7 @@ public class Dialog extends JPanel {
 	
 	/**
 	 * get button font size in pixels of current session mobile.<BR>
-	 * user may change default font size in optional from mobile.
+	 * user may change font size from mobile when session.
 	 * @return the recommended button font size in pixels, it is normal used for CSS <code>font-size</code>.
 	 * @since 7.30
 	 * @see #getButtonHeight()
@@ -660,22 +663,36 @@ public class Dialog extends JPanel {
 	
 	/**
 	 * the width pixel of login mobile.
-	 * <BR>it is equals with <code>getProjectContext().getMobileWidth()</code>
 	 * @return
 	 * @since 7.30
 	 */
 	public int getMobileWidth(){
-		return sizeHeightForXML.getMobileWidth(coreSS);
+		return sizeHeightForXML.getMobileWidth();
 	}
 	
 	/**
 	 * the height pixel of login mobile.
-	 * <BR>it is equals with <code>getProjectContext().getMobileHeight()</code>
 	 * @return
 	 * @since 7.30
 	 */
 	public int getMobileHeight(){
-		return sizeHeightForXML.getMobileHeight(coreSS);
+		return sizeHeightForXML.getMobileHeight();
+	}
+	
+	/**
+	 * it is equals with {@link #getMobileHeight()}.
+	 * @return
+	 */
+	public int getClientHeight() {
+		return getMobileHeight();
+	}
+	
+	/**
+	 * it is equals with {@link #getMobileWidth()}.
+	 * @return
+	 */
+	public int getClientWidth() {
+		return getMobileWidth();
 	}
 	
 	/**

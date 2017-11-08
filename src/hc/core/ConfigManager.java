@@ -55,8 +55,10 @@ public class ConfigManager {
 	public static final String UI_SCREEN_ON = "hc.ui.setScreenOn";
 	public static final String UI_DISMISS_ALERT = "hc.ui.dismissAlert";
 	public static final String UI_DISMISS_DIALOG = "hc.ui.dismissDialog";
-	public static final String UI_PLUG_DIALOG = "hc.ui.plugDialog";
-	public static final String UI_SHOW_DIALOG = "hc.ui.showDialog";
+	public static final String UI_PLUG_DIALOG = "hc.ui.plugDialog";//仅装载，显示由UI_SHOW_DIALOG事件来完成
+	public static final String UI_SHOW_DIALOG = "hc.ui.showDialog";//显示 UI_PLUG_DIALOG已装载的View
+	public static final String UI_HIDE_DIALOG = "hc.ui.hideDialog";
+	public static final String UI_RESHOW_DIALOG = "hc.ui.reshowDialog";
 	public static final String UI_IS_BACKGROUND = "hc.ui.isBackground";
 	public static final String UI_FORM_SIZE = "hc.ui.formSize";
 	public static final String UI_RELEASE_OBJECT = "hc.ui.releaseObject";
@@ -87,6 +89,8 @@ public class ConfigManager {
 	public static final String MOV_MSG_FAST = "hc.biz.movMsgFast";
 	public static final String MOV_MSG_NORM = "hc.biz.movMsgNorm";
 	
+	public static final String SHOW_SUPER_LEVEL_ALERT_QUESTION = "hc.biz.showSuperLevelAlertDialog";
+
 	/**
 	 * 判断客户端是否是后台运行。
 	 * @return
@@ -109,6 +113,10 @@ public class ConfigManager {
 			return OS_J2ME;
 		}
 		return ((Integer)v).intValue();
+	}
+	
+	public static boolean isJ2MEClient(){
+		return getOSType() == OS_J2ME;
 	}
 	
 	public static String getOSDesc(){

@@ -38,7 +38,7 @@ public class EventBack implements IWatcher{
 			ctrlTag = bs[MsgBuilder.INDEX_CTRL_TAG];
 			
 			if(isInWorkshop){
-				LogManager.log("EventBack Receive ctrlTag : " + ctrlTag + " in session [" + coreSocketSession.hashCode() + "].");
+				LogManager.log("EventBack Receive ctrlTag : [" + ctrlTag + "] in session [" + coreSocketSession.hashCode() + "].");
 			}
 			
 			//内容服务Tag必须系统处于服务状态
@@ -46,7 +46,7 @@ public class EventBack implements IWatcher{
 			if(serverSide && ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN){
 				if(coreSocketSession.context.cmStatus == ContextManager.STATUS_SERVER_SELF){
 				}else{
-					LogManager.log("Invalid statue tag received["+ctrlTag+"]");
+					LogManager.log("Invalid statue tag received["+ctrlTag+"], cmStatus : " + coreSocketSession.context.cmStatus);
 					cancel();
 					return true;
 				}
@@ -115,76 +115,23 @@ public class EventBack implements IWatcher{
 			ctrlTag = bs[MsgBuilder.INDEX_CTRL_TAG];
 			
 			if(isInWorkshop){
-				LogManager.log("EventBack Receive ctrlTag : " + ctrlTag + " in session [" + coreSocketSession.hashCode() + "].");
+				LogManager.log("EventBack Receive ctrlTag : [" + ctrlTag + "] in session [" + coreSocketSession.hashCode() + "].");
 			}
 			
 			if(serverSide && ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN){
 				if(coreSocketSession.context.cmStatus == ContextManager.STATUS_SERVER_SELF){
 				}else{
-					LogManager.log("Invalid statue tag received["+ctrlTag+"]");
+					LogManager.log("Invalid statue tag received["+ctrlTag+"], cmStatus : " + coreSocketSession.context.cmStatus);
 					cancel();
 					return true;
 				}
 			}
 
-			if(ctrlTag == MsgBuilder.E_PACKAGE_SPLIT_TCP){
-				//TCP合并包
-				final int newPackageID = (int)ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_TCP_SPLIT_SUB_GROUP_ID);
-				if(hcConnection.package_tcp_id != 0 && hcConnection.package_tcp_id != newPackageID){
-					LogManager.errToLog("invalid TCP sub package id : " + newPackageID + ", expected id : " + hcConnection.package_tcp_id);
-					resetForNextBigData(hcConnection);
-//					cancel();
-					return true;
-				}
-				if(hcConnection.package_tcp_id == 0){
-					hcConnection.package_tcp_id = newPackageID;
-					hcConnection.packaeg_tcp_num = (int)ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_TCP_SPLIT_SUB_GROUP_NUM);
-					if(isInWorkshop){
-						System.out.println("----[Big Msg]-----package tcp id : " + newPackageID + ", num : " + hcConnection.packaeg_tcp_num);
-					}
-					hcConnection.package_tcp_bs = new byte[MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT * hcConnection.packaeg_tcp_num + MsgBuilder.TCP_PACKAGE_SPLIT_EXT_BUF_SIZE];
-					hcConnection.packaeg_tcp_appended_num = 0;
-					hcConnection.package_tcp_last_store_idx = MsgBuilder.INDEX_MSG_DATA;
-					
-					for (int i = 0; i < MsgBuilder.INDEX_MSG_DATA; i++) {
-						hcConnection.package_tcp_bs[i] = bs[i];
-					}
-					
-					hcConnection.package_tcp_bs[MsgBuilder.INDEX_CTRL_TAG] = bs[MsgBuilder.INDEX_TCP_SPLIT_TAG];
-					hcConnection.package_tcp_bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = bs[MsgBuilder.INDEX_TCP_SPLIT_SUB_TAG];
-				}
-				
-				final int eachLen = dataLen - MsgBuilder.LEN_TCP_PACKAGE_SPLIT_DATA_BLOCK_LEN;
-				System.arraycopy(bs, MsgBuilder.TCP_SPLIT_STORE_IDX, hcConnection.package_tcp_bs, hcConnection.package_tcp_last_store_idx, eachLen);
-				hcConnection.package_tcp_last_store_idx += eachLen;
-
-				if(isInWorkshop){
-					System.out.println("----[Big Msg]-----append data tcp id : " + newPackageID + ", num : " + (hcConnection.packaeg_tcp_appended_num + 1) + ", curr len : " + eachLen);
-				}
-				
-				if(++hcConnection.packaeg_tcp_appended_num == hcConnection.packaeg_tcp_num){
-					HCMessage.setBigMsgLen(hcConnection.package_tcp_bs, hcConnection.package_tcp_last_store_idx - MsgBuilder.INDEX_MSG_DATA);//还原数据块总长度
-					final byte[] snap_bs = hcConnection.package_tcp_bs;
-					resetForNextBigData(hcConnection);//先执行，以下下块逻辑可能产生异常
-					eventCenter.action(snap_bs[MsgBuilder.INDEX_CTRL_TAG], snap_bs, eventCenter.nestAction);
-				}
-				
-//				cancel();//释放当前块
-				return true;
-			}else{//普通tcp包，非大消息块
-	//			LogManager.log("Receive ctrlTag : " + ctrlTag);
-			}
 		}
 		
 		eventCenter.action(ctrlTag, bs, eventCenter.nestAction);
 		cancel();//释放当前块
 		return true;
-	}
-
-	private final void resetForNextBigData(final HCConnection hcConnection) {
-		hcConnection.package_tcp_id = 0;
-		hcConnection.packaeg_tcp_appended_num = 0;
-		hcConnection.package_tcp_bs = null;//释放合并后的块
 	}
 	
 	/**

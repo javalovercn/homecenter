@@ -72,14 +72,7 @@ public class ContextManager {
 	}
 
 	public static boolean isServerStatus(final IContext ic){
-		final int[] servermode = {ContextManager.STATUS_SERVER_SELF};
-		final int m = ic.cmStatus;
-		for (int i = 0; i < servermode.length; i++) {
-			if(m == servermode[i]){
-				return true;
-			}
-		}
-		return false;
+		return ic != null && ic.cmStatus == ContextManager.STATUS_SERVER_SELF;
 	}
 
 	public static boolean isClientStatus(final IContext ic){

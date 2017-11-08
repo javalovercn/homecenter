@@ -7,9 +7,7 @@ import hc.core.util.LangUtil;
 import hc.core.util.LogManager;
 import hc.core.util.MobileAgent;
 import hc.core.util.StringUtil;
-import hc.server.data.screen.PNGCapturer;
 import hc.server.ui.design.J2SESession;
-import hc.util.BaseResponsor;
 import hc.util.PropertiesManager;
 import hc.util.StringBuilderCacher;
 
@@ -91,7 +89,21 @@ public class ClientDesc {
 		return iosDrawHeight;
 	}
 	
-	public final void refreshClientInfo(final J2SESession coreSS, final String serial){
+	public final void refreshClientVersionAndEncryptionStrength(final J2SESession coreSS, final String serial){
+		final Vector v = StringUtil.split(serial, HCConfig.CFG_SPLIT);
+		
+		hcClientVer = HCConfig.getProperty(v, (short)4);
+	
+		String serialMobileAgent = "";
+		try{
+			serialMobileAgent = HCConfig.getProperty(v, (short)8);
+			agent = MobileAgent.toObject(serialMobileAgent);
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public final void refreshClientInfoInSecuChannel(final J2SESession coreSS, final String serial){
 		final Vector v = StringUtil.split(serial, HCConfig.CFG_SPLIT);
 		
 		clientWidth = HCConfig.getIntProperty(v, (short)0);
@@ -105,24 +117,31 @@ public class ClientDesc {
 			LogManager.log("use testClientLocale : " + testClientLocale);
 			clientLang = testClientLocale;
 		}
-		//clientLang = "ar";
-		hcClientVer = HCConfig.getProperty(v, (short)4);
 	
 		String serialMobileAgent = "";
 		try{
-			xdpi = Float.valueOf(HCConfig.getProperty(v, (short)5));
-			ydpi = Float.valueOf(HCConfig.getProperty(v, (short)6));
-			density = Float.valueOf(HCConfig.getProperty(v, (short)7));
+			xdpi = Float.valueOf(HCConfig.getProperty(v, (short)4));
+			ydpi = Float.valueOf(HCConfig.getProperty(v, (short)5));
+			density = Float.valueOf(HCConfig.getProperty(v, (short)6));
 			
-			serialMobileAgent = HCConfig.getProperty(v, (short)8);
+			serialMobileAgent = HCConfig.getProperty(v, (short)7);
 			agent = MobileAgent.toObject(serialMobileAgent);
-			
-			final BaseResponsor br = coreSS.getBaseResponsor();
-			if(br != null){
-				br.addCacheSoftUID(agent.getSoftUID());
-			}else{
-				LogManager.err("BaseResponsor is null for J2SESession!");
+			final int largeFont = agent.getForInt(MobileAgent.TAG_FONT_SIZE_FOR_LARGE, 0);
+			final int normalFont = agent.getForInt(MobileAgent.TAG_FONT_SIZE_FOR_NORMAL, 0);
+			final int smallFont = agent.getForInt(MobileAgent.TAG_FONT_SIZE_FOR_SMALL, 0);
+			final int buttonFont = agent.getForInt(MobileAgent.TAG_FONT_SIZE_FOR_BUTTON, 0);
+			final boolean isEquals = coreSS.clientFontSize.updateFontSize(Math.max(clientWidth, clientHeight), 
+					largeFont, normalFont, smallFont, buttonFont);
+			if(isEquals == false){
+				coreSS.isTranedMletBody = false;//需要重传
 			}
+			
+			if(ProjectContext.OS_ANDROID.equals(agent.getOS())){
+				LogManager.log("Android Client Manufacturer : " + agent.get(MobileAgent.TAG_ANDROID_MANUFACTURER, "") + ", Model : " +
+						agent.get(MobileAgent.TAG_ANDROID_MODEL, ""));
+			}
+			
+			ServerUIUtil.addCacheSoftUID(agent.getSoftUID());
 			
 			final int iw = (int)Float.parseFloat(agent.get(ConfigManager.IOS_DRAW_WIDTH, "0"));
 			final int ih = (int)Float.parseFloat(agent.get(ConfigManager.IOS_DRAW_HEIGHT, "0"));
@@ -135,51 +154,44 @@ public class ClientDesc {
 				iosDrawWidth = Math.max(iw, ih);
 			}
 			
-			PNGCapturer.updateColorBit(coreSS, agent.getColorBit());
-			PNGCapturer.updateRefreshMS(coreSS, agent.getRefreshMS());
+			coreSS.updateColorBit(agent.getColorBit());
+			coreSS.updateRefreshMS(agent.getRefreshMS());
 			
 			final String pWifiIsmobileviawifi = PropertiesManager.p_WiFi_isMobileViaWiFi;
 			if(PropertiesManager.getValue(pWifiIsmobileviawifi) == null || PropertiesManager.isTrue(pWifiIsmobileviawifi) != agent.ctrlWiFi()){
 				PropertiesManager.setValue(pWifiIsmobileviawifi, agent.ctrlWiFi()?IConstant.TRUE:IConstant.FALSE);
 				PropertiesManager.saveFile();
 			}
-		}catch (final Throwable e) {
-		}
 
-		final StringBuilder sb = StringBuilderCacher.getFree();
-		{
-			sb.append("Receive client agent information : ");
-			final int size = agent.size();
-			final Object[] kv = new Object[2];
-			
-			for (int i = 0; i < size; i++) {
-				agent.get(i, kv);
+			final StringBuilder sb = StringBuilderCacher.getFree();
+			{
+				sb.append("Receive client agent information : ");
+				final int size = agent.size();
+				final Object[] kv = new Object[2];
 				
-				final String key = (String)kv[0];
-				if(key.startsWith(MobileAgent.TAG_HIDE_PREFIX)//节省log及美观
-						|| key.startsWith("hc.", 0)){//hc.ui.ios.draw.width
-					continue;
-				}
-
-				Object value = kv[1];
-				if("encryptionStrength".equals(key)){
-					if("0".equals(value)){
-						value = "low";
-					}else if("1".equals(value)){
-						value = "middle";
-					}else{
-						value = "high";
+				for (int i = 0; i < size; i++) {
+					agent.get(i, kv);
+					
+					final String key = (String)kv[0];
+					if(key.startsWith(MobileAgent.TAG_HIDE_PREFIX)//节省log及美观
+							|| key.startsWith("hc.", 0)){//hc.ui.ios.draw.width
+						continue;
 					}
+
+					final Object value = kv[1];
+					sb.append("\n  [" + key + " = " + value + "]");
 				}
-				sb.append("\n  [" + key + " = " + value + "]");
 			}
+			final String sbStr = sb.toString();
+			StringBuilderCacher.cycle(sb);
+			LogManager.log(sbStr);
+			LogManager.log("Receive client desc, w:" + clientWidth + ", h:" + clientHeight 
+					+ ", dpi:" + dpi + ((dpi==0)?"(unknow)":"") + ", xdpi:" + xdpi + ", ydpi:" + ydpi + ", density:" + density
+					+ ", smallFont:" + smallFont + ", normalFont:" + normalFont + ", largeFont:" + largeFont + ", buttonFont:" + buttonFont);
+			LogManager.log("  Important : the w (h) maybe not equal to the real width (height) of mobile in pixels, UI may be scaled to the best size.");
+		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
-		final String sbStr = sb.toString();
-		StringBuilderCacher.cycle(sb);
-		LogManager.log(sbStr);
-		LogManager.log("Receive client desc, locale:" + clientLang + ",  w:" + clientWidth + ", h:" + clientHeight 
-				+ ", dpi:" + dpi + ((dpi==0)?"(unknow)":"") + ", hcClientVer:" + hcClientVer + ", xdpi:" + xdpi + ", ydpi:" + ydpi + ", density:" + density);
-		LogManager.log("  Important : the w (h) maybe not equal to the real width (height) of mobile in pixels, UI may be scaled to the best size.");
 	}
 	
 	public static final int vgap = 5;

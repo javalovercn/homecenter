@@ -3,7 +3,10 @@ package hc.server.ui.design;
 import hc.core.util.HCURL;
 import hc.core.util.StoreableHashMap;
 import hc.server.ui.MUIView;
+import hc.server.ui.MenuItem;
 import hc.util.StringBuilderCacher;
+
+import java.util.Vector;
 
 public class MController extends MUIView {
 	final StoreableHashMap map;
@@ -12,9 +15,13 @@ public class MController extends MUIView {
 		this.map = map;
 		this.map_str = map_str;
 	}
+	
+	@Override
+	public void transMenuWithCache(final J2SESession coreSS){
+	}
 
 	@Override
-	public String buildJcip(final J2SESession coreSS) {
+	public String buildJcip(final J2SESession coreSS, final Vector<MenuItem> menuItems) {
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		
 		sb.append("{'" + HCURL.CONTROLLER_PROTOCAL + "' : ");

@@ -3,17 +3,21 @@ package hc.core;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Hashtable;
 
 import hc.core.cache.CacheManager;
 import hc.core.data.ServerConfig;
 import hc.core.sip.ISIPContext;
 import hc.core.sip.SIPManager;
+import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.HCURL;
 import hc.core.util.IHCURLAction;
 import hc.core.util.LogManager;
 import hc.core.util.RootBuilder;
 import hc.core.util.ThreadPriorityManager;
+import hc.core.util.io.HCInputStream;
+import hc.core.util.io.IHCStream;
 import hc.core.util.io.StreamBuilder;
 
 public abstract class CoreSession {
@@ -23,6 +27,12 @@ public abstract class CoreSession {
 		return isNotifyShutdown;
 	}
 	
+	/**
+	 * C/S处理通讯交互状态
+	 * @return
+	 */
+	public abstract boolean isExchangeStatus();
+	
 	public static void setNotifyShutdown(){
 		CCoreUtil.checkAccess();
 		
@@ -30,11 +40,53 @@ public abstract class CoreSession {
 	}
 	
 	public final void notifyContinue(){
+		hcConnection.resendUnReachablePackage();
 		hcConnection.connectionRebuilder.notifyContinue();
 	}
 	
-	public final void setCheck(final boolean isCheck){
-		hcConnection.setCheck(isCheck);
+	public final void dispatchStream(final byte[] bs){
+		final Hashtable inputStreamTable = streamBuilder.inputStreamTable;
+		
+		final int len = HCMessage.getMsgLen(bs);
+		final int streamID = (int)ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_MSG_DATA);
+		Object is;
+		final int dataLen = len - StreamBuilder.STREAM_ID_LEN;
+		
+		synchronized (streamBuilder.lock) {
+			is = inputStreamTable.get(new Integer(streamID));
+		}
+		if(is != null){
+			((HCInputStream)is).appendStream(bs, MsgBuilder.INDEX_MSG_DATA + StreamBuilder.STREAM_ID_LEN, dataLen);
+		}
+	}
+	
+	public final void manageStream(final byte[] bs) {
+//		final int sendLen = 1 + STREAM_ID_LEN + 1 + classNameLen + 2 + len;
+		int offsetidx = MsgBuilder.INDEX_MSG_DATA;
+		final boolean isInputStream = (bs[offsetidx]==1);
+		offsetidx += 1;
+		final int streamID = (int)ByteUtil.fourBytesToLong(bs, offsetidx);
+		offsetidx += StreamBuilder.STREAM_ID_LEN;
+		final int classNameLen = ByteUtil.oneByteToInteger(bs, offsetidx);
+		offsetidx += 1;
+		final String className = ByteUtil.buildString(bs, offsetidx, classNameLen, IConstant.UTF_8);
+		if(className.equals(StreamBuilder.TAG_CLOSE_STREAM)){
+			final Object stream = streamBuilder.closeStream(isInputStream, streamID);
+			if(stream != null && stream instanceof IHCStream){
+				((IHCStream)stream).notifyClose();
+			}
+			return;
+		}
+		
+		offsetidx += classNameLen;
+		final int paraBSLen = ByteUtil.twoBytesToInteger(bs, offsetidx);
+		offsetidx +=2;
+		final byte[] paraBS = ByteUtil.byteArrayCacher.getFree(paraBSLen);
+		System.arraycopy(bs, offsetidx, paraBS, 0, paraBSLen);
+		
+		context.notifyStreamReceiverBuilder(isInputStream, className, streamID, paraBS, 0, paraBSLen);
+		ByteUtil.byteArrayCacher.cycle(paraBS);
+		return;
 	}
 	
 	public final void resetCheck(){
@@ -100,15 +152,14 @@ public abstract class CoreSession {
 
 		context.setStatus(ContextManager.STATUS_LINEOFF);
 		hcConnection.resetCheck();
-		final String cr = String.valueOf(isClientRequest);
-		
-		final byte[] line_off_bs = buildLineOff();
-		
-		HCMessage.setMsgBody(line_off_bs, cr);
 
 		hcConnection.reset();
-
-		eventCenter.notifyLineOff(line_off_bs);
+		
+//		final String cr = String.valueOf(isClientRequest);
+//		final byte[] line_off_bs = buildLineOff();
+//		HCMessage.setMsgBody(line_off_bs, cr);
+//		eventCenter.notifyLineOff(line_off_bs);
+		context.onEventLineOff(isClientRequest);
 	}
 	
 	private final byte[] buildLineOff(){
@@ -212,11 +263,11 @@ public abstract class CoreSession {
 	public HCTimer udpAliveMobiDetectTimer;
 	protected final HCConnection hcConnection = new HCConnection();
 
-	//注意：多会话共用一个EventCenterDriver，以避免并发处理
-	public final GlobalEventCenterDriver eventCenterDriver = GlobalEventCenterDriver.gecd;
+	//禁止多会话共用，会导致全局锁
+	public final EventCenterDriver eventCenterDriver = new EventCenterDriver();
 	
 	public byte[] mobileUidBSForCache;
-	public final byte[] codeBSforMobileSave = new byte[CacheManager.CODE_LEN];
+	public final byte[] codeBSforMobileSave = new byte[CacheManager.CACHE_CODE_LEN];
 	public IHCURLAction urlAction;
 	public int urlParaIdx = 1;
 	public HCURL contextHCURL;
@@ -225,6 +276,8 @@ public abstract class CoreSession {
 	public CoreSession(){
 		streamBuilder = new StreamBuilder(this);
 	}
+	
+	public abstract void synXorPackageID(final byte[] bs);
 	
 	public final HCConnection getHCConnection(){
 		RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_CHECK_STACK_TRACE, null);
@@ -259,10 +312,13 @@ public abstract class CoreSession {
 	protected abstract void delayToSetNull();
 	
 	public void release(){
+		L.V = L.WShop ? false : LogManager.log("release CoreSession...");
 		hcConnection.release();
 		delayToSetNull();
 		
 		HCTimer.remove(udpAliveMobiDetectTimer);
+		eventCenterDriver.notifyShutdown();
+		L.V = L.WShop ? false : LogManager.log("done release CoreSession.");
 	}
 
 	protected final void setNull() {

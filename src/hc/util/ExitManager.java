@@ -3,7 +3,7 @@ package hc.util;
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
-import hc.core.GlobalEventCenterDriver;
+import hc.core.EventCenterDriver;
 import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.L;
@@ -63,15 +63,15 @@ public class ExitManager {
 		LogManager.log("Start ExitManager");
 //		SessionManager.notifyShutdown();
 //		ServerUIUtil.stop();
-		final GlobalEventCenterDriver gecd = GlobalEventCenterDriver.getGECD();
-		gecd.notifyShutdown();
 		
 		ExitManager.startForceExitThread();
 
-		L.V = L.WShop ? false : LogManager.log("GECD waitForAllDone...");
-		gecd.waitForAllDone();
-		L.V = L.WShop ? false : LogManager.log("GECD waitForAllDone OK!");
 		ServerUIUtil.promptAndStop(false, null);//会stopAllSession
+		
+		L.V = L.WShop ? false : LogManager.log("GECD waitForAllDone...");
+		EventCenterDriver.waitForAllDriverDone();
+		L.V = L.WShop ? false : LogManager.log("GECD waitForAllDone OK!");
+		
 		//注意：AI manager永久使用连接，所以只能此处进行关闭
 		try{
 			DatabaseManager.closeDatabases(Database.CLOSEMODE_NORMAL);

@@ -432,7 +432,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 										strharurl = had.getProperty(HCjad.HAD_HAR_URL, HCjad.convertToExtHar(url));
 										final String projID = had.getProperty(HCjad.HAD_ID, "");
 										if(DelDeployedProjManager.isDeledDeployed(projID)){
-											throw new Exception(ResourceUtil.PROJ_IS_DELED_NEED_RESTART);
+											throw new Exception(ResourceUtil.getErrProjIsDeledNeedRestart(null));
 										}
 									}else{
 										throw new Exception("invaild url, it must be har or had file.");
@@ -444,14 +444,15 @@ public class LinkProjectPanel extends ProjectListPanel{
 									final boolean succ = HttpUtil.download(fileHar, new URL(strharurl), 3, ResourceUtil.getUserAgentForHAD());
 									if(succ == false){
 										ProcessingWindowManager.disposeProcessingWindow();
-										throw new Exception("http connection error");
+										final String httpError = (String)ResourceUtil.get(9269);//connection error or timeout
+										throw new Exception(httpError);
 									}
 									
 							        if((hadmd5.length() > 0 && ResourceUtil.getMD5(fileHar).toLowerCase().equals(hadmd5.toLowerCase()))
 							        		|| hadmd5.length() == 0){
 							        	addProjFromLocal(self, selfBiz, fileHar);
 							        }else{
-							        	throw new Exception("md5 error, try after a minute");
+							        	throw new Exception((String)ResourceUtil.get(9270));//9270=file verification error, try again later
 							        }
 								}catch (final Exception e) {
 									ExceptionReporter.printStackTrace(e);
@@ -932,7 +933,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 					final String proj_id = (String)map.get(HCjar.PROJ_ID);
 					
 					if(DelDeployedProjManager.isDeledDeployed(proj_id)){
-						App.showMessageDialog(self, ResourceUtil.PROJ_IS_DELED_NEED_RESTART, 
+						App.showMessageDialog(self, ResourceUtil.getErrProjIsDeledNeedRestart(null), 
 								failTitle, JOptionPane.ERROR_MESSAGE);
 					}else if(SignHelper.verifyJar(file, LinkProjectManager.getCertificatesByID(proj_id)) == null){//完整性检查进行前置
 						App.showMessageDialog(self, ResourceUtil.FILE_IS_MODIFIED_AFTER_SIGNED, 

@@ -1,7 +1,6 @@
 package hc.server.ui;
 
 import hc.core.ContextManager;
-import hc.core.util.CCoreUtil;
 import hc.core.util.ReturnableRunnable;
 import hc.res.ImageSrc;
 import hc.server.msb.UserThreadResourceUtil;
@@ -10,7 +9,6 @@ import hc.server.ui.design.J2SESession;
 import java.util.Hashtable;
 
 public class ClientSessionForSys {
-	public final static String CLIENT_SESSION_ATTRIBUTE_IS_TRANSED_MLET_BODY = CCoreUtil.SYS_RESERVED_KEYS_START + "mlet_html_body";
 	
 	private final static int CLIENT_SESSION_ATTRIBUTE_OK_ICON = 0;
 	private final static int CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON = 1;

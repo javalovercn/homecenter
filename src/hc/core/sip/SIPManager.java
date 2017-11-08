@@ -14,13 +14,12 @@ import hc.core.RootServerConnector;
 import hc.core.data.DataReg;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
-import hc.core.util.RootBuilder;
 import hc.core.util.StringUtil;
+import hc.core.util.UIUtil;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Vector;
 
 public class SIPManager {
 
@@ -103,7 +102,9 @@ public class SIPManager {
 			
 			if(out < 0){
 				if(out == CONN_ERR_BIZ_SERVER_LINEOFF){
-					coreSS.context.doExtBiz(IContext.BIZ_SERVER_LINEOFF, null);
+//					由于连接画面已提示，故关闭
+//					coreSS.context.doExtBiz(IContext.BIZ_SERVER_LINEOFF, null);
+					coreSS.context.doExtBiz(IContext.BIZ_CLIENT_RELOGIN, null);
 				}else if(out == CONN_ERR_BIZ_SERVER_ACCOUNT_BUSY){
 					coreSS.context.doExtBiz(IContext.BIZ_SERVER_ACCOUNT_BUSY, null);
 				}else if(out == CONN_ERR_MOBI_FAIL_CONN){
@@ -147,41 +148,57 @@ public class SIPManager {
 		Object obj;
 		int count = 0;
 		
-		LogManager.info("try connect : [" + IConstant.getUUID() + "]");
+		final String tryConn = StringUtil.replace(UIUtil.getUIString("m100", "try connect : [{uuid}]"), "{uuid}", IConstant.getUUID());
+		LogManager.info(tryConn);
 		
 		boolean isShowServerBusy = false;
 		
 		final int maxTryCount = 14;//14/2=7, 7 > call.php/TIME_TO_SEC/3 * 2
 		do{
+			L.V = L.WShop ? false : LogManager.log("try get server ip/port...");
 			obj = RootServerConnector.getServerIPAndPortV2(RootServerConnector.getHideToken());
-			
 			if(obj == null){
+				L.V = L.WShop ? false : LogManager.log("done to get server ip/port : null");
 				//	              LogManager.info("please check as follow:");
 				//	              LogManager.info("1. ID[" + IConstant.uuid + "] maybe wrong HomeCenter ID. It is free.");
 				//	              LogManager.info("2. PC server maybe NOT running.");
 				//	              LogManager.info("3. try 'Enable Transmit Certification' for server.");
 				//	              LogManager.info("4. HomeCenter server maybe reconnecting, try later.");
-				
+				L.V = L.WShop ? false : LogManager.log("no server connection for : [" + IConstant.getUUID() + "] now, wait and try later.");
 				if(isShowServerBusy == false && count < maxTryCount / 2){
 				}else if(isShowServerBusy){
 				}else{
-					LogManager.info("server : off/hide");
+					LogManager.info(UIUtil.getUIString("m101", "server : off/hide"));
+					
+					LogManager.info(UIUtil.getUIString("m123", "if server is lineon, please choose one or both:"));
+					String msg = UIUtil.getUIString("m124", "1. [{showUp}] on server,");
+					msg = StringUtil.replace(msg, "{showUp}", UIUtil.getUIString("9180", "Show up"));
+					LogManager.info(msg);//9180=Show up
+					msg = UIUtil.getUIString("m125", "2. [{etc}] on server,");
+					msg = StringUtil.replace(msg, "{etc}", UIUtil.getUIString("1020", "Enable Transmit Certification"));
+					LogManager.info(msg);
+					
+					LogManager.info(UIUtil.getUIString("m115", "press screen to exit!"));//press screen to exit!
+					
 					return CONN_ERR_BIZ_SERVER_LINEOFF;
 				}
 				
+				L.V = L.WShop ? false : LogManager.log("try sleep 1000ms...");
 				try{
 					Thread.sleep(1000);
 				}catch (Exception e) {
 				}
 			}else if(isShowServerBusy || obj instanceof String && RootServerConnector.MULTI_CLIENT_BUSY.equals(obj)){
+				L.V = L.WShop ? false : LogManager.log("done to get server ip/port : MULTI_CLIENT_BUSY");
 				if(isShowServerBusy == false){
 					isShowServerBusy = true;
-					LogManager.info("server : busy");
-					LogManager.info("do our best to connect...");
+					LogManager.info(UIUtil.getUIString("m102", "server : busy"));
+					LogManager.info(UIUtil.getUIString("m103", "do our best to connect..."));
 				}
 				
+				L.V = L.WShop ? false : LogManager.log("try sleep 1000ms...");
 				try{
-					Thread.sleep(3000);//与call.php/busy/3 seconds
+					Thread.sleep(1000);//与call.php/busy/3 seconds
 				}catch (Exception e) {
 				}
 			}else{
@@ -192,6 +209,7 @@ public class SIPManager {
 		}while(count < maxTryCount);
 		
 		if(obj instanceof String && RootServerConnector.MULTI_CLIENT_BUSY.equals(obj)){
+			L.V = L.WShop ? false : LogManager.log("fail to connect : CONN_ERR_BIZ_SERVER_ACCOUNT_BUSY");
 			return CONN_ERR_BIZ_SERVER_ACCOUNT_BUSY;
 		}
 		
@@ -202,13 +220,13 @@ public class SIPManager {
 //			}catch (Throwable e) {
 //			}
 		
-		LogManager.info("server : online");
+		LogManager.info(UIUtil.getUIString("m104", "server : online"));
 		final String[] out = (String[])obj;
 
 		//优先尝试直接连接
 		if(out[idx_localport].equals("0") == false){
 			//家庭内网直联
-			LogManager.info("try direct connect...");
+			LogManager.info(UIUtil.getUIString("m105", "try direct connect..."));
 			IPAndPort l_directIpPort = null;
 			try{
 				int timeOut = 5000;
@@ -216,7 +234,7 @@ public class SIPManager {
 				if(ip.startsWith("192.168.")){
 					final String[] ipv4 = StringUtil.splitToArray(ip, ".");
 					if(ipv4 != null && ipv4.length == 4){
-						timeOut -= 2000;//内网，减两秒
+						timeOut -= 1000;//内网，减一秒，原减两秒太长
 					}
 				}
 				final IPAndPort ipport = new IPAndPort(ip, Integer.parseInt(out[idx_localport]));
@@ -226,7 +244,7 @@ public class SIPManager {
 			}
 			if(l_directIpPort != null){
 				//EnumNAT.OPEN_INTERNET or Symmetric
-				LogManager.info("direct mode : yes");
+				LogManager.info(UIUtil.getUIString("m106", "direct mode : yes"));
 
 				//家庭内网不需要调用本步
 				//发送REG到服务器,触发服务器初始化进程
@@ -234,12 +252,12 @@ public class SIPManager {
 
 				return CONN_OK_MODE_CONNECTION_HOME_WIRELESS;
 			}else{
-				LogManager.info("direct mode : fail");
+				LogManager.info(UIUtil.getUIString("m107", "direct mode : fail"));
 			}
 		}
 
 		if(out[idx_relayport].equals("0") == false){
-			LogManager.info("try relay connect...");
+			LogManager.info(UIUtil.getUIString("m108", "try relay connect..."));
 			final int maxConnTryCount = 3;
 			int tryCount = 0;
 			while(tryCount < maxConnTryCount){
@@ -248,7 +266,7 @@ public class SIPManager {
 						"Relay Mode", EnumNAT.FULL_AGENT_BY_OTHER, SIPManager.REG_WAITING_MS + 1000,
 						tokenBS);//Android机器出现relay fail情形，再试成功，故增加1秒
 				if(l_relayIpPort != null){
-					LogManager.info("relay mode : yes");
+					LogManager.info(UIUtil.getUIString("m109", "relay mode : yes"));
 	
 					//中继时，可能并非3G/4G，也许是WiFi，3G/4G由其它逻辑提示
 					//					LogManager.info("3G/4G/...");//more time and unreliable
@@ -259,7 +277,7 @@ public class SIPManager {
 					tryCount++;
 				}
 			}
-			LogManager.info("relay mode : fail");
+			LogManager.info(UIUtil.getUIString("m110", "relay mode : fail"));
 		}
 
 		//尝试无法连接
@@ -410,7 +428,7 @@ public class SIPManager {
 					throw new Exception();
 				}
 			}
-			LogManager.log("Receive Echo");
+			LogManager.log(UIUtil.getUIString("m111", "receive echo"));
 			return send;
 		}catch (final Throwable e) {
 			LogManager.errToLog("fail to receive echo!");

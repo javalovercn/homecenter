@@ -31,6 +31,12 @@ public class CodeStaticHelper {
 			fields.add("getIntervalMSForRestart()");
 			fields.add("alertOn()");
 			fields.add("alertOff()");
+			fields.add("closeDB(Connection, boolean)");
+			fields.add("getClientHeight()");
+			fields.add("getClientWidth()");
+			fields.add("getMobileHeight()");
+			fields.add("getMobileWidth()");
+			fields.add("sendAUSound(byte[])");
 			
 			out.put(ProjectContext.class, fields);
 		}
@@ -119,6 +125,9 @@ public class CodeStaticHelper {
 			out.add("hc.server.util.JavaLangSystemAgent");
 			out.add("hc.server.util.Scheduler");
 			out.add("hc.server.util.HCInputStream");
+			out.add("hc.server.util.HCFileInputStream");
+			out.add("hc.server.util.HCImageInputStream");
+			out.add("hc.server.util.HCAudioInputStream");
 			out.add("hc.server.util.scheduler.AnnualJobCalendar");
 			out.add("hc.server.util.scheduler.CronExcludeJobCalendar");
 			out.add("hc.server.util.scheduler.DailyJobCalendar");

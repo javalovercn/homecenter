@@ -27,7 +27,16 @@ public class MobileAgent {
 	private final static String TAG_SCALE = TAG_HIDE_PREFIX + "Scale";//iOS screen scale
 	private final static String TAG_VOICE_COMMAND = "voiceCommand";
 	
+	public final static String TAG_FONT_SIZE_FOR_NORMAL = "fontSizeForNormal";
+	public final static String TAG_FONT_SIZE_FOR_SMALL = "fontSizeForSmall";
+	public final static String TAG_FONT_SIZE_FOR_LARGE = "fontSizeForLarge";
+	public final static String TAG_FONT_SIZE_FOR_BUTTON = "fontSizeForButton";
+
+	public final static String TAG_ANDROID_MANUFACTURER = "androidManufacturer";
+	public final static String TAG_ANDROID_MODEL = "androidModel";
 	
+	public final static String TAG_SCAN_QR_SERIAL_ID = "scanQRSerialID";
+
 	private final static String SPLIT = ";";
 	private final static String EQUAL = "=";
 	
@@ -41,6 +50,17 @@ public class MobileAgent {
 		}
 		
 		return ma;
+	}
+	
+	public final void clearExcludeEncryptionStrength(){
+		final int size = size();
+		for (int i = 0; i < size; i++) {
+			final KeyValue keyValue = (KeyValue)vectorMap.elementAt(i);
+			if(keyValue.key.equals(TAG_EncryptionStrength)){
+			}else{
+				keyValue.value = "";
+			}
+		}
 	}
 	
 	public final int size(){
@@ -79,6 +99,15 @@ public class MobileAgent {
 	
 	public final String get(final String key, final String defaultValue){
 		return (String)vectorMap.get(key, defaultValue);
+	}
+	
+	public final int getForInt(final String key, final int defaultValue){
+		final String result = (String)vectorMap.get(key, null);
+		if(result == null){
+			return defaultValue;
+		}else{
+			return Integer.parseInt(result);
+		}
 	}
 	
 	public final void set(final String key, final String value){

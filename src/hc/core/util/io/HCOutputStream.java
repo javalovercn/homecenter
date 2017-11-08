@@ -26,7 +26,7 @@ public class HCOutputStream extends OutputStream implements IHCStream{
 		this.streamID = streamID;
 		streamBuilder = coreSS.streamBuilder;
 		
-		synchronized (streamBuilder.LOCK) {
+		synchronized (streamBuilder.lock) {
 			streamBuilder.outputStreamTable.put(new Integer(streamID), this);
 		}
 	}
@@ -41,6 +41,7 @@ public class HCOutputStream extends OutputStream implements IHCStream{
 		synchronized (this) {
 			isclosed = true;
 		}
+		L.V = L.WShop ? false : LogManager.log("notify close HCOutStream : " + streamID);
 	}
 	
 	byte[] oneByte;
@@ -87,6 +88,9 @@ public class HCOutputStream extends OutputStream implements IHCStream{
 	}
 
 	public final void write(final byte[] b, final int off, final int len) throws IOException{
+		if(len == 0){
+			return;
+		}
 		write_0(b, off, len);
 	}
 	
@@ -95,7 +99,7 @@ public class HCOutputStream extends OutputStream implements IHCStream{
 	
 	public final void close() throws IOException{
 		if(L.isInWorkshop){
-			LogManager.log("close HCOutputStream : " + streamID);
+			LogManager.log("notify close HCOutputStream : " + streamID);
 		}
 		
 		synchronized (this) {

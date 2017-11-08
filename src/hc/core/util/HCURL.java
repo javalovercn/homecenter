@@ -48,6 +48,7 @@ public class HCURL {
 	}
 	
 	public static final String CANCEL_HC_CMD = "_Cancel_HC_Cmd";
+	public static final byte[] BS_CANCEL_HC_CMD = CANCEL_HC_CMD.getBytes();
 
 	public static final String CMD_PROTOCAL = "cmd";
 	public static final String SCREEN_PROTOCAL = "screen";
@@ -120,6 +121,7 @@ public class HCURL {
 	public static final String DATA_PARA_MGR_PROJS_COMMANDS = CCoreUtil.SYS_PREFIX + "MgrProjs";
 	public static final String DATA_PARA_CHANGE_PASSWORD = "changePassword";
 	public static final String DATA_PARA_SCAN_QR_CODE = "scanQRCode";
+	public static final String DATA_PARA_NOTIFY_CANVAS_MENU_DONE = "notifyCanvasMenuDone";
 
 	public static final String DATA_RECEIVER_MLET = "rev_mlet";
 	public static final String DATA_RECEIVER_HTMLMLET = "rev_htmlmlet";
@@ -130,6 +132,7 @@ public class HCURL {
 	public static final String VOICE_COMMAND = DATA_PARA_VOICE_COMMANDS;
 	public static final String MGR_PROJS_COMMAND = DATA_PARA_MGR_PROJS_COMMANDS;
 	
+	public static final String FILE_EXTENSION_SPLITTER = "|";
 	
 	public static final String URL_CMD_EXIT = buildStandardURL(HCURL.CMD_PROTOCAL, HCURL.DATA_CMD_EXIT);
 	public static final String URL_CMD_CONFIG = buildStandardURL(HCURL.CMD_PROTOCAL, HCURL.DATA_CMD_CONFIG);
@@ -151,8 +154,6 @@ public class HCURL {
 	public static final boolean isUsingWiFiWPS = false;
 	
 	public static final String[] URL_PROTOCAL = {CMD_PROTOCAL, SCREEN_PROTOCAL, CONTROLLER_PROTOCAL,
-		FORM_PROTOCAL, CFG_PROTOCAL, MENU_PROTOCAL};
-	public static final String[] WAIT_URL_PROTOCAL = {SCREEN_PROTOCAL, CONTROLLER_PROTOCAL,
 		FORM_PROTOCAL, CFG_PROTOCAL, MENU_PROTOCAL};
 	
 	public static String buildStandardURL(final String protocal, final String target){

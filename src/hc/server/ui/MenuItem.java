@@ -13,11 +13,11 @@ import java.util.Map;
 /**
  * An implementation of an item in a menu. A menu item is essentially a button sitting in a list.
  * <BR><BR>
- * A menu presented on the mobile client is composed of menu items of project level and session level,
- * <BR>
- * the menu items of session level will gone after line-off / logout.
+ * A menu presented on the mobile client is composed of menu items of project level and session level, 
+ * items of session level are visible only to owned session and will automatically gone after logout or line-off.
  * <BR><BR>
- * The menu item added in designer is project level, invoke {@link ProjectContext#getMenuItemBy(String, String)} to get it.
+ * The menu items in [Items Tree] in designer are project level, invoking {@link ProjectContext#getMenuItemBy(String, String)} to get it.
+ * @see ProjectContext#addMenuItem(MenuItem)
  * @see ProjectContext#insertMenuItemToProjectLevel(MenuItem, int)
  * @see ProjectContext#insertMenuItemToSessionLevel(MenuItem, int)
  * @see ProjectContext#getMenuItemFromProjectLevel(int)

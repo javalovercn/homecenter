@@ -6,6 +6,7 @@ import hc.core.util.LogManager;
 import hc.server.html5.syn.DiffManager;
 import hc.server.html5.syn.DifferTodo;
 import hc.server.html5.syn.JPanelDiff;
+import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
@@ -23,12 +24,16 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 /**
- * {@link Mlet} is an instance running in HomeCenter server, and the <STRONG>snapshot</STRONG> of {@link Mlet} is presented on mobile.
- * It looks more like a form, dialog, control panel or game canvas running in mobile.
+ * {@link Mlet} is an instance running in server, and the <STRONG>snapshot</STRONG> of {@link Mlet} is presented to mobile.
+ * It looks more like a form, control panel or canvas running in mobile.
  * <BR><BR>
- * {@link Mlet} is extends {@link javax.swing.JPanel JPanel}, so you can bring all JPanel features to mobile UI, no matter whether your mobile is Android, iPhone or other.
+ * {@link Mlet} is extends {@link javax.swing.JPanel JPanel}, its advantage is bringing all JPanel features to mobile UI, no matter client is Android, iPhone or other.
  * <BR><BR>
  * To present JComponents to mobile in HTML (not snapshot) and set CSS for these JComponents, please use {@link HTMLMlet}, which is extends {@link Mlet}.
+ * <BR><BR><STRONG>Important :</STRONG><BR>In Swing, layout manager is noticing that JButton (and JCheckBox, JComboBox, JLabel, JRadioButton, JTextField) has a preferred size and adjusting your pane to accommodate JButton, 
+ * in other words, <code>setMinimumSize</code> will not working for JButton. 
+ * <BR>
+ * <code>setMinimumSize</code> for JPanel, adding JButton in it and setting CSS for JButton to grow full space is a good choice.
  * @see HTMLMlet
  * @since 7.0
  */
@@ -103,6 +108,46 @@ public class Mlet extends JPanel implements ICanvas {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * the width pixel of login mobile.
+	 * @return
+	 */
+	public int getMobileWidth(){
+		if(coreSS == SimuMobile.SIMU_NULL){
+			return SimuMobile.MOBILE_WIDTH;
+		}else{
+			return UserThreadResourceUtil.getMletWidthFrom(coreSS, false);
+		}
+	}
+	
+	/**
+	 * the height pixel of login mobile.
+	 * @return
+	 */
+	public int getMobileHeight(){
+		if(coreSS == SimuMobile.SIMU_NULL){
+			return SimuMobile.MOBILE_HEIGHT;
+		}else{
+			return UserThreadResourceUtil.getMletHeightFrom(coreSS, false);
+		}
+	}
+	
+	/**
+	 * it is equals with {@link #getMobileHeight()}.
+	 * @return
+	 */
+	public int getClientHeight() {
+		return getMobileHeight();
+	}
+	
+	/**
+	 * it is equals with {@link #getMobileWidth()}.
+	 * @return
+	 */
+	public int getClientWidth() {
+		return getMobileWidth();
 	}
 
 	/**
@@ -421,7 +466,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * <STRONG>Warning : </STRONG>
 	 * <BR>1. the external URL may be sniffed when in moving (exclude HTTPS).
 	 * <BR>2. iOS 9 and above must use secure URLs.
-	 * @param url for example : https://homecenter.mobi
+	 * @param url for example : http://homecenter.mobi
 	 * @since 7.30
 	 */
 	public void goExternalURL(final String url) {
@@ -443,7 +488,9 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @param url
 	 * @param isUseExtBrowser true : use system web browser to open URL; false : the URL will be opened in client application and still keep foreground.
 	 * @since 7.7
+	 * @deprecated
 	 */
+	@Deprecated
 	public void goExternalURL(final String url, final boolean isUseExtBrowser) {
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return;

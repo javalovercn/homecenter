@@ -59,6 +59,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.Statement;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -75,16 +76,17 @@ import third.hsqldb.jdbc.JDBCDriver;
 
 /**
  * There is one {@link ProjectContext} instance for each HAR Project at runtime. <BR><BR>
- * <STRONG>Important : </STRONG>
- * <BR>restarting HAR projects (NOT restart server), new instance of {@link ProjectContext} is created. 
+ * a {@link ProjectContext} instance will be created before {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}, and will be released after {@link ProjectContext#EVENT_SYS_PROJ_SHUTDOWN}.
+ * <BR>reloading HAR projects (NOT restart server), new instance of {@link ProjectContext} will be created. 
  * <BR><BR>
- * to get instance of ProjectContext : <br>
- * 1. {@link ProjectContext#getProjectContext()} <br>
- * 2. {@link Mlet#getProjectContext()} <br>
- * 3. {@link CtrlResponse#getProjectContext()} <br>
- * 4. {@link Robot#getProjectContext()} <br>
- * 5. {@link Converter#getProjectContext()} <br>
- * 6. {@link Device#getProjectContext()}
+ * it is easy to get instance of ProjectContext from everywhere, for examples : <br>
+ * 1. {@link ProjectContext#getProjectContext()} by static method,<br>
+ * 2. {@link Mlet#getProjectContext()}, <br>
+ * 3. {@link Assistant#getProjectContext()}, <br>
+ * 4. {@link CtrlResponse#getProjectContext()}, <br>
+ * 5. {@link Robot#getProjectContext()}, <br>
+ * 6. {@link Converter#getProjectContext()}, <br>
+ * 7. {@link Device#getProjectContext()},
  * 
  * @since 7.0
  */
@@ -97,6 +99,8 @@ public class ProjectContext {
 	final Vector<SystemEventListener> projectLevelEventListeners = new Vector<SystemEventListener>();
 	Hashtable<String, Scheduler> schedulerMapForProjAndSess;//线程安全必需
 	final String dbPassword;
+	final ProjectPropertiesManager ppm;
+	final ProjDesignConf projDesignConfig;
 	
 	/**
 	 * for example HAR is installing from client, and it is required to input token for device connection, 
@@ -108,7 +112,7 @@ public class ProjectContext {
 	 * @since 7.46
 	 */
 	public final boolean isInstallingFromClient(){
-		final Object out = ServerUIAPIAgent.getSysAttrInUserThread(ServerUIAPIAgent.KEY_IS_INSTALL_FROM_CLIENT);
+		final Object out = ServerUIAPIAgent.getSysAttrInUserThread(ServerUIAPIAgent.KEY_IS_INSTALL_FROM_CLIENT, false);
 		if(out != null && out instanceof Boolean){
 			return ((Boolean)out).booleanValue();
 		}
@@ -207,15 +211,15 @@ public class ProjectContext {
 	 * <BR><BR>
 	 * <STRONG>Note :</STRONG><BR>
 	 * 1. {@link java.sql.SQLXML} is NOT supported.<BR>
-	 * 2. the default WRITE DELAY property of database is <code>true</code>, which is 500 milliseconds. see <code>SET FILES WRITE DELAY</code> in <a href="http://hsqldb.org/doc/guide/guide.html">guide</a> for more.<BR>
+	 * 2. the default WRITE DELAY property of database is <code>true</code>, which is 500 milliseconds. To change it see <a href="http://hsqldb.org/doc/guide/guide.html">SET FILES WRITE DELAY</a>.<BR>
 	 * 3. be careful the exception of deadlock when in multiple threads.
 	 * <BR><BR>
 	 * the latest build-in database server is HSQLDB 2.3.4, user guide is <a href="http://hsqldb.org/doc/2.0/guide/index.html">here</a>.
 	 * @param dbName
 	 * @param username
 	 * @param password 
-	 * @return null means a database access error occurs.
-	 * @see #closeDB(Connection, boolean)
+	 * @return null means database error occurs.
+	 * @see #closeDB(Connection)
 	 * @see #removeDB(String)
 	 * @since 7.50
 	 */
@@ -230,19 +234,22 @@ public class ProjectContext {
 	 * @param username
 	 * @param password
 	 * @param isAllInMem true means stored entirely in RAM, without any persistence beyond the JVM process's life
-	 * @return
+	 * @return null means database error occurs.
 	 * @see #getDBConnection(String, String, String)
 	 * @see #getDBConnection(String, String, String, boolean, Properties)
-	 * @see #closeDB(Connection, boolean)
+	 * @see #closeDB(Connection)
 	 * @see #removeDB(String)
 	 * @since 7.50
 	 */
 	public final Connection getDBConnection(final String dbName, final String username, final String password,
 			final boolean isAllInMem){
+        return getDBConnection(dbName, username, password, isAllInMem, buildDBProp());
+	}
+
+	private final Properties buildDBProp() {
 		final Properties props = new Properties();
         props.setProperty("loginTimeout", Integer.toString(0));
-        
-        return getDBConnection(dbName, username, password, isAllInMem, props);
+		return props;
 	}
 	
 	private final Object lockForGetDBConn = new Object();
@@ -255,10 +262,10 @@ public class ProjectContext {
 	 * @param password
 	 * @param isAllInMem
 	 * @param props  list of arbitrary string tag/value pairs as connection arguments
-	 * @return null means a database access error occurs.
+	 * @return null means database error occurs.
 	 * @see #getDBConnection(String, String, String)
 	 * @see #getDBConnection(String, String, String, boolean)
-	 * @see #closeDB(Connection, boolean)
+	 * @see #closeDB(Connection)
 	 * @see #removeDB(String)
 	 * @since 7.50
 	 */
@@ -271,21 +278,79 @@ public class ProjectContext {
 					final String hexProjID = ByteUtil.toHex(StringUtil.getBytes(projectID));
 					url = "jdbc:hsqldb:mem:" + hexProjID + dbName;
 				}else{
-					final File hcSysDir = buildDBBaseDir(dbName);
-					final File defaultFile = new File(hcSysDir, dbName);
-					url = "jdbc:hsqldb:file:" + defaultFile.getAbsolutePath();
+					url = buildDBURL(dbName);
 				}
 				
 				props.setProperty("user", username);
 		        props.setProperty("password", password);
 		        
-				return JDBCDriver.getConnection(url, props);
+				Connection result = JDBCDriver.getConnection(url, props);
+				if(isAllInMem == false){
+					if(compackDB(result, dbName)){
+						result = JDBCDriver.getConnection(url, props);
+					}
+				}
+				return result;
 			}
 		}catch (final Throwable e) {
 			e.printStackTrace();
 		}
 		
 		return null;
+	}
+	
+	private final boolean compackDB(final Connection connection, final String domainName) {
+		if (System.currentTimeMillis() - getLastCompactMS(domainName) > projDesignConfig.compactDayMS) {// 低频率能增强数据库安全
+			try {
+				LogManager.log("compacting database : " + domainName + " in project [" + projectID + "].");
+				final Statement state = connection.createStatement();
+				state.execute(ResourceUtil.SHUTDOWN_COMPACT);
+				state.close();
+				LogManager.log("done compacting database : " + domainName + " in project [" + projectID + "].");
+			} catch (final Exception e) {
+				ExceptionReporter.printStackTrace(e);
+			}
+			setLastCompactMS(domainName);
+			return true;
+		}
+		return false;
+	}
+	
+	private final void setLastCompactMS(final String dbName) {
+		final String prop = ServerUIAPIAgent.PROJ_USER_DB_COMPACT_MS + dbName;
+		__setPropertySuperOnProj(prop, String.valueOf(System.currentTimeMillis()));
+		saveProperties();
+	}
+	
+	private final void removeLastCompactMS(final String dbName) {
+		final String prop = ServerUIAPIAgent.PROJ_USER_DB_COMPACT_MS + dbName;
+		__removePropertySuperOnProj(prop);
+		saveProperties();
+	}
+	
+	private final long getLastCompactMS(final String dbName) {
+		final String prop = ServerUIAPIAgent.PROJ_USER_DB_COMPACT_MS + dbName;
+		final String value = __getPropertySuperOnProj(prop);
+		if (value == null) {
+			return 0;
+		} else {
+			try {
+				return Long.parseLong(value);
+			} catch (final Exception e) {
+			}
+		}
+		return 0;
+	}
+
+	private final String buildDBURL(final String dbName) {
+		final String url;
+		final File hcSysDir = buildDBBaseDir(dbName);
+		if(hcSysDir.exists() == false){
+			setLastCompactMS(dbName);
+		}
+		final File defaultFile = new File(hcSysDir, dbName);
+		url = "jdbc:hsqldb:file:" + defaultFile.getAbsolutePath();
+		return url;
 	}
 
 	private final File buildDBBaseDir(final String dbName) {
@@ -294,34 +359,51 @@ public class ProjectContext {
 	}
 	
 	/**
-	 * close a working database.<BR><BR>
-	 * <STRONG>Note</STRONG> :<BR>
-	 * 1. be careful that the user turn off the power when closing database with compact mode.<BR>
-	 * 2. it is required before {@link #removeDB(String)}.<BR>
+	 * close a working database.<BR><BR>it is not required to close DB when shutdown project.<BR><BR>
+	 * <STRONG>Tip</STRONG> :<BR>
+	 * 1. server will compact each databases after six months (182 days).<BR>
+	 * 2. to change frequency, see <STRONG>[Compact DB Days]</STRONG> of project node in designer.<BR>
+	 * @param connection
+	 * @since 7.72
+	 * @see #removeDB(String)
+	 */
+	public final void closeDB(final Connection connection){
+		closeDB(connection, false);
+	}
+	
+	/**
+	 * close a working database with compact or not.<BR>
+	 * <BR><STRONG>deprecated</STRONG>, replaced by {@link #closeDB(Connection)}.<BR><BR>
+	 * <STRONG>Tip</STRONG> :<BR>
+	 * 1. server will compact each databases after six months.<BR>
+	 * 2. if you need compact it more frequent, please do it in {@link #EVENT_SYS_PROJ_STARTUP}, NOT in {@link #EVENT_SYS_PROJ_SHUTDOWN}.<BR>
 	 * @param connection
 	 * @param isCompactAlso true means close database with compact mode.
 	 * @since 7.50
 	 * @see #removeDB(String)
+	 * @deprecated
 	 */
+	@Deprecated
 	public final void closeDB(final Connection connection, final boolean isCompactAlso){
 		ResourceUtil.shutdownHSQLDB(connection, isCompactAlso);
 	}
 
 	/**
-	 * remove all files of database named <code>dbName</code>.
+	 * remove database named <code>dbName</code>.
 	 * <BR><BR>
 	 * <STRONG>Note</STRONG> :<BR>
 	 * before remove database, please ensure that the database is closed.<BR>
-	 * to close a working database, invoke {@link #closeDB(Connection, boolean)}.
+	 * to close a working database, invoke {@link #closeDB(Connection)}.
 	 * @param dbName
 	 * @return true means all sub directories and files are deleted, false means some file may be using and not removed.
 	 * @see #getDBConnection(String, String, String)
 	 * @since 7.50
 	 */
 	public final boolean removeDB(final String dbName){
+		removeLastCompactMS(dbName);
 		log("remove user database : " + dbName);
 		final File baseDir = buildDBBaseDir(dbName);
-		return ResourceUtil.deleteDirectoryNowAndExit(baseDir);
+		return ResourceUtil.deleteDirectoryNowAndExit(baseDir, true);
 	}
 	
 	private final Object lockForScheduler = new Object();
@@ -364,7 +446,7 @@ public class ProjectContext {
 	 * <STRONG>one scheduler or multiple?</STRONG><BR>
 	 * 	1. please add multiple jobs, calendars and triggers in one scheduler, <BR>
 	 * 2. start, standby, clear, and shutdown a scheduler, <BR>
-	 * 3. to stop/clear some triggers, but don't want to stop others, then you should create multiple schedulers.<BR>
+	 * 3. to stop/clear some triggers, not others, then you should create multiple schedulers.<BR>
 	 * <BR>
 	 * current job scheduler is based on Quartz 2.2.3<BR>
 	 * @param domain each domain is stored in different database.
@@ -401,7 +483,7 @@ public class ProjectContext {
 			try{
 				final Scheduler scheduler = schedulerMapForProjAndSess.remove(domain);
 				if(scheduler != null){//session级已shutdown，但仍在J2SESession中保留domain
-					LogManager.log("shutdown scheduler [" + domain + "] (session level is [sessionID_domain]) in project [" + projectID + "].");
+					LogManager.log("shutdown scheduler [" + domain + "] (session level format [sessionID_domain]) in project [" + projectID + "].");
 					scheduler.shutdown(true);
 				}
 			}catch (final Throwable e) {
@@ -541,15 +623,18 @@ public class ProjectContext {
 		projectID = id;
 		projectVer = ver;
 		isLoggerOn = ServerUIAPIAgent.isLoggerOn();
+		projDesignConfig = new ProjDesignConf(projResponser);
 		this.recycleRes = recycleRes;
 		this.__projResponserMaybeNull = projResponser;// 由于应用复杂，可能为null
 		this.finder = finder;
+		proj_prop_map = new PropertiesMap(PropertiesManager.p_PROJ_RECORD + getProjectID());
+		ppm = new ProjectPropertiesManager(proj_prop_map, this, projectID);
 		if(dbPassword == ServerUIAPIAgent.CRATE_DB_PASSWORD){
-			String dbPwd = ServerUIAPIAgent.getSuperProp(this, ServerUIAPIAgent.PROJ_DB_PASSWORD);
+			String dbPwd = ServerUIAPIAgent.getHCSysProperties(this, ServerUIAPIAgent.PROJ_DB_PASSWORD);
 			if(dbPwd == null){
 				dbPwd = ResourceUtil.buildUUID();
-				ServerUIAPIAgent.setSuperProp(this, ServerUIAPIAgent.PROJ_DB_PASSWORD, dbPwd);
-				saveProperties();//注意，一定要用这个，不能用PropertiesManager.save
+				ServerUIAPIAgent.setHCSysProperties(this, ServerUIAPIAgent.PROJ_DB_PASSWORD, dbPwd);
+				__saveSysPropertiesOnHC();//注意，一定要用这个，不能用PropertiesManager.save
 			}
 			this.dbPassword = dbPwd;
 		}else{
@@ -698,7 +783,7 @@ public class ProjectContext {
 	 * <STRONG>Warning : </STRONG>
 	 * <BR>1. the external URL may be sniffed when in moving (exclude HTTPS).
 	 * <BR>2. iOS 9 and above must use secure URLs.
-	 * @param url for example : https://homecenter.mobi
+	 * @param url for example : http://homecenter.mobi
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.30
 	 */
@@ -1316,18 +1401,24 @@ public class ProjectContext {
 	 * <code>return</code> command. <BR>
 	 * <BR>
 	 * for example, a scripts with four lines, (<STRONG>'\n'</STRONG> is
-	 * required for each line at end) : <BR>
+	 * required for each line at end) : <BR><BR>
 	 * <i>
 	 * <code>t = 100<BR> i = 2 + t<BR>puts i<BR> return i # 102<BR></code>
 	 * </i> <BR>
-	 * it is recommended that set variable in {@link #setAttribute(String, Object)} and {@link ClientSession} rather than set global variable in JRuby scripts (begin with $) .<BR><BR>
-	 * <STRONG>More about JRuby engine :</STRONG> <BR>
-	 * the container for running JRuby script of current project is instanced as
-	 * following:<BR>
-	 * <i>
-	 * <code>new ScriptingContainer(LocalContextScope.SINGLETHREAD, LocalVariableBehavior.TRANSIENT, true);</code>
-	 * </i>
+	 * it is recommended that set variable in {@link #setAttribute(String, Object)} for project level and {@link ClientSession#setAttribute(String, Object)} for session level rather than set global variable (begin with $) in JRuby scripts.
+	 * <BR><BR>
+	 * the above script is safe even if multiple threads calling, because they are all local variable (TRANSIENT).
+	 * <BR><BR>
+	 * <STRONG>CAUTION : </STRONG><BR>
+	 * variable (if it is NOT local variable) set by one thread will be visible to another thread.
+	 * <pre>
+	 * import java.lang.Thread
+	 * import Java::hc.server.util.JavaLangSystemAgent
 	 * 
+	 * {@literal @}callMS = JavaLangSystemAgent.currentTimeMillis().to_s()
+	 * Thread.sleep(10 * 1000)
+	 * puts "callMS : " + {@literal @}callMS</pre>
+	 * if thread B call it after thread A one second, then print out the same value.
 	 * @param shell
 	 *            the evaluate shell scripts.
 	 * @return a object if with <code>return</code> command.
@@ -1620,7 +1711,9 @@ public class ProjectContext {
 	 * it is equals with {@link #getMobileWidth()}.
 	 * @return
 	 * @since 7.50
+	 * @deprecated
 	 */
+	@Deprecated
 	public final int getClientWidth() {
 		return getMobileWidth();
 	}
@@ -1630,7 +1723,9 @@ public class ProjectContext {
 	 * @return the width pixel of login mobile; 0 means mobile not login or not in session level.
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.0
+	 * @deprecated
 	 */
+	@Deprecated
 	public final int getMobileWidth() {
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
 			return SimuMobile.MOBILE_WIDTH;
@@ -1674,6 +1769,462 @@ public class ProjectContext {
 	public final Object setAttribute(final String name, final Object obj) {
 		return att_map.put(name, obj);
 	}
+	
+	/**
+	 * if name is not exists or not Boolean object, then return false
+	 * @param name
+	 * @return 
+	 * @see #getBooleanAttribute(String, boolean)
+	 */
+	public final boolean getBooleanAttribute(final String name){
+		final Object obj = att_map.get(name);
+		if(obj != null && obj instanceof Boolean){
+			return ((Boolean)obj).booleanValue();
+		}
+		return false;
+	}
+	
+	/**
+	 * if name is not exists or not Boolean object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of attribute <code>name</code>
+	 * @see #getBooleanAttribute(String)
+	 */
+	public final boolean getBooleanAttribute(final String name, final boolean defaultValue){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Boolean){
+				return ((Boolean)obj).booleanValue();
+			}
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not convertible object, then return 0
+	 * @param name
+	 * @return 
+	 * @see #getByteAttribute(String, byte)
+	 */
+	public final byte getByteAttribute(final String name){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Byte){
+				return ((Byte)obj).byteValue();
+			}else if(obj instanceof Double){
+				return ((Double)obj).byteValue();
+			}else if(obj instanceof Float){
+				return ((Float)obj).byteValue();
+			}else if(obj instanceof Long){
+				return ((Long)obj).byteValue();
+			}else if(obj instanceof Integer){
+				return ((Integer)obj).byteValue();
+			}else if(obj instanceof Short){
+				return ((Short)obj).byteValue();
+			}
+		}
+		return 0;
+	}
+	
+	/**
+	 * if name is not exists or not convertible object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of attribute <code>name</code>
+	 * @see #getByteAttribute(String)
+	 */
+	public final byte getByteAttribute(final String name, final byte defaultValue){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Byte){
+				return ((Byte)obj).byteValue();
+			}else if(obj instanceof Double){
+				return ((Double)obj).byteValue();
+			}else if(obj instanceof Float){
+				return ((Float)obj).byteValue();
+			}else if(obj instanceof Long){
+				return ((Long)obj).byteValue();
+			}else if(obj instanceof Integer){
+				return ((Integer)obj).byteValue();
+			}else if(obj instanceof Short){
+				return ((Short)obj).byteValue();
+			}
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not byte[] object, then return null.
+	 * @param name
+	 * @return
+	 */
+	public final byte[] getByteArrayAttribute(final String name){
+		final Object obj = att_map.get(name);
+		if(obj != null && obj instanceof byte[]){
+			return (byte[])obj;
+		}
+			
+		return null;
+	}
+	
+	/**
+	 * if name is not exists or not byte[] object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue
+	 * @return
+	 */
+	public final byte[] getByteArrayAttribute(final String name, final byte[] defaultValue){
+		final Object obj = att_map.get(name);
+		if(obj != null && obj instanceof byte[]){
+			return (byte[])obj;
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not Character object, then return 0
+	 * @param name
+	 * @return 
+	 * @see #getCharAttribute(String, char)
+	 */
+	public final char getCharAttribute(final String name){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Character){
+				return ((Character)obj);
+			}
+		}
+		return 0;
+	}
+	
+	/**
+	 * if name is not exists or not Character object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of attribute <code>name</code>
+	 * @see #getCharAttribute(String)
+	 */
+	public final char getCharAttribute(final String name, final char defaultValue){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Character){
+				return ((Character)obj);
+			}
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not convertible object, then return 0
+	 * @param name
+	 * @return 
+	 * @see #getShortAttribute(String, short)
+	 */
+	public final short getShortAttribute(final String name){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Short){
+				return ((Short)obj).shortValue();
+			}else if(obj instanceof Double){
+				return ((Double)obj).shortValue();
+			}else if(obj instanceof Float){
+				return ((Float)obj).shortValue();
+			}else if(obj instanceof Long){
+				return ((Long)obj).shortValue();
+			}else if(obj instanceof Integer){
+				return ((Integer)obj).shortValue();
+			}else if(obj instanceof Byte){
+				return ((Byte)obj).shortValue();
+			}
+		}
+		return 0;
+	}
+	
+	/**
+	 * if name is not exists or not convertible object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of attribute <code>name</code>
+	 * @see #getShortAttribute(String)
+	 */
+	public final short getShortAttribute(final String name, final short defaultValue){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Short){
+				return ((Short)obj).shortValue();
+			}else if(obj instanceof Double){
+				return ((Double)obj).shortValue();
+			}else if(obj instanceof Float){
+				return ((Float)obj).shortValue();
+			}else if(obj instanceof Long){
+				return ((Long)obj).shortValue();
+			}else if(obj instanceof Integer){
+				return ((Integer)obj).shortValue();
+			}else if(obj instanceof Byte){
+				return ((Byte)obj).shortValue();
+			}
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not convertible object, then return 0
+	 * @param name
+	 * @return 
+	 * @see #getIntAttribute(String, int)
+	 */
+	public final int getIntAttribute(final String name){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Integer){
+				return ((Integer)obj).intValue();
+			}else if(obj instanceof Double){
+				return ((Double)obj).intValue();
+			}else if(obj instanceof Float){
+				return ((Float)obj).intValue();
+			}else if(obj instanceof Long){
+				return ((Long)obj).intValue();
+			}else if(obj instanceof Short){
+				return ((Short)obj).intValue();
+			}else if(obj instanceof Byte){
+				return ((Byte)obj).intValue();
+			}
+		}
+		return 0;
+	}
+	
+	/**
+	 * if name is not exists or not convertible object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of attribute <code>name</code>
+	 * @see #getIntAttribute(String)
+	 */
+	public final int getIntAttribute(final String name, final int defaultValue){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Integer){
+				return ((Integer)obj).intValue();
+			}else if(obj instanceof Double){
+				return ((Double)obj).intValue();
+			}else if(obj instanceof Float){
+				return ((Float)obj).intValue();
+			}else if(obj instanceof Long){
+				return ((Long)obj).intValue();
+			}else if(obj instanceof Short){
+				return ((Short)obj).intValue();
+			}else if(obj instanceof Byte){
+				return ((Byte)obj).intValue();
+			}
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not convertible object, then return 0
+	 * @param name
+	 * @return 
+	 * @see #getLongAttribute(String, long)
+	 */
+	public final long getLongAttribute(final String name){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Long){
+				return ((Long)obj).longValue();
+			}else if(obj instanceof Double){
+				return ((Double)obj).longValue();
+			}else if(obj instanceof Float){
+				return ((Float)obj).longValue();
+			}else if(obj instanceof Integer){
+				return ((Integer)obj).longValue();
+			}else if(obj instanceof Short){
+				return ((Short)obj).longValue();
+			}else if(obj instanceof Byte){
+				return ((Byte)obj).longValue();
+			}
+		}
+		return 0;
+	}
+	
+	/**
+	 * if name is not exists or not convertible object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of attribute <code>name</code>
+	 * @see #getLongAttribute(String)
+	 */
+	public final long getLongAttribute(final String name, final long defaultValue){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Long){
+				return ((Long)obj).longValue();
+			}else if(obj instanceof Double){
+				return ((Double)obj).longValue();
+			}else if(obj instanceof Float){
+				return ((Float)obj).longValue();
+			}else if(obj instanceof Integer){
+				return ((Integer)obj).longValue();
+			}else if(obj instanceof Short){
+				return ((Short)obj).longValue();
+			}else if(obj instanceof Byte){
+				return ((Byte)obj).longValue();
+			}
+		}
+		
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not convertible object, then return 0
+	 * @param name
+	 * @return 
+	 * @see #getFloatAttribute(String, float)
+	 */
+	public final float getFloatAttribute(final String name){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Float){
+				return ((Float)obj).floatValue();
+			}else if(obj instanceof Double){
+				return ((Double)obj).floatValue();
+			}else if(obj instanceof Long){
+				return ((Long)obj).floatValue();
+			}else if(obj instanceof Integer){
+				return ((Integer)obj).floatValue();
+			}else if(obj instanceof Short){
+				return ((Short)obj).floatValue();
+			}else if(obj instanceof Byte){
+				return ((Byte)obj).floatValue();
+			}
+		}
+		return 0;
+	}
+	
+	/**
+	 * if name is not exists or not convertible object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of attribute <code>name</code>
+	 * @see #getFloatAttribute(String)
+	 */
+	public final float getFloatAttribute(final String name, final float defaultValue){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Float){
+				return ((Float)obj).floatValue();
+			}else if(obj instanceof Double){
+				return ((Double)obj).floatValue();
+			}else if(obj instanceof Long){
+				return ((Long)obj).floatValue();
+			}else if(obj instanceof Integer){
+				return ((Integer)obj).floatValue();
+			}else if(obj instanceof Short){
+				return ((Short)obj).floatValue();
+			}else if(obj instanceof Byte){
+				return ((Byte)obj).floatValue();
+			}
+		}
+			
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists or not convertible object, then return 0
+	 * @param name
+	 * @return 
+	 * @see #getDoubleAttribute(String, double)
+	 */
+	public final double getDoubleAttribute(final String name){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Double){
+				return ((Double)obj).doubleValue();
+			}else if(obj instanceof Float){
+				return ((Float)obj).doubleValue();
+			}else if(obj instanceof Long){
+				return ((Long)obj).doubleValue();
+			}else if(obj instanceof Integer){
+				return ((Integer)obj).doubleValue();
+			}else if(obj instanceof Short){
+				return ((Short)obj).doubleValue();
+			}else if(obj instanceof Byte){
+				return ((Byte)obj).doubleValue();
+			}
+		}
+		return 0;
+	}
+	
+	/**
+	 * if name is not exists or not convertible object, then return defaultValue.
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of attribute <code>name</code>
+	 * @see #getDoubleAttribute(String)
+	 */
+	public final double getDoubleAttribute(final String name, final double defaultValue){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof Double){
+				return ((Double)obj).doubleValue();
+			}else if(obj instanceof Float){
+				return ((Float)obj).doubleValue();
+			}else if(obj instanceof Long){
+				return ((Long)obj).doubleValue();
+			}else if(obj instanceof Integer){
+				return ((Integer)obj).doubleValue();
+			}else if(obj instanceof Short){
+				return ((Short)obj).doubleValue();
+			}else if(obj instanceof Byte){
+				return ((Byte)obj).doubleValue();
+			}
+		}
+		return defaultValue;
+	}
+	
+	/**
+	 * if name is not exists, return null; if the attribute of name is not String object, return obj.toString()
+	 * @param name
+	 * @return 
+	 * @see #getStringAttribute(String, String)
+	 */
+	public final String getStringAttribute(final String name){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof String){
+				return (String)obj;
+			}else{
+				return obj.toString();
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * if name is not exists, then return defaultValue; if the attribute of name is not String object, return obj.toString()
+	 * @param name
+	 * @param defaultValue 
+	 * @return the value of attribute <code>name</code>
+	 * @see #getStringAttribute(String)
+	 */
+	public final String getStringAttribute(final String name, final String defaultValue){
+		final Object obj = att_map.get(name);
+		if(obj != null){
+			if(obj instanceof String){
+				return (String)obj;
+			}else{
+				return obj.toString();
+			}
+		}else{
+			return defaultValue;
+		}
+	}
 
 	/**
 	 * removes the attribute with the given name. 
@@ -1707,16 +2258,124 @@ public class ProjectContext {
 	 * attribute by that name. <BR>
 	 * It is thread safe.
 	 * 
+	 * @param name
+	 * @return the attribute with the <code>name</code>.
+	 * @since 6.98
+	 * @see #getIntAttribute(String)
+	 * @see #getBooleanAttribute(String)
+	 * @see #getStringAttribute(String)
 	 * @see #getAttributeNames()
 	 * @see #setAttribute(String, Object)
 	 * @see #removeAttribute(String)
 	 * @see #clearAttribute(String)
-	 * @param name
-	 * @return the attribute with the <code>name</code>.
-	 * @since 6.98
 	 */
 	public final Object getAttribute(final String name) {
 		return att_map.get(name);
+	}
+	
+	/**
+	 * set attribute name with value.
+	 * @param name
+	 * @param value
+	 */
+	public final void setBooleanAttribute(final String name, final boolean value){
+		att_map.put(name, Boolean.valueOf(value));
+	}
+	
+	/**
+	 * set attribute name with value.
+	 * @param name
+	 * @param value
+	 */
+	public final void setByteAttribute(final String name, final byte value){
+		att_map.put(name, Byte.valueOf(value));
+	}
+	
+	/**
+	 * set <code>value</code> for the <code>name</code> in attribute.<BR>
+	 * to copy to new byte array , please invoke {@link #setByteArrayAttribute(String, byte[], int, int)}.
+	 * @param name
+	 * @param value is NOT copied.
+	 */
+	public final void setByteArrayAttribute(final String name, final byte[] value){
+		att_map.put(name, value);
+	}
+
+	/**
+	 * set name with new byte array, which copy values from bs.
+	 * @param name
+	 * @param bs the values is copied to new byte array.
+	 * @param offset
+	 * @param length
+	 * @see #setByteArrayAttribute(String, byte[])
+	 */
+	public final void setByteArrayAttribute(final String name, final byte[] bs, final int offset, final int length){
+		final byte[] outbs = new byte[length];
+		System.arraycopy(bs, offset, outbs, 0, length);
+		att_map.put(name, outbs);
+	}
+	
+	/**
+	 * set attribute name with value.
+	 * @param name
+	 * @param value
+	 */
+	public final void setCharAttribute(final String name, final char value){
+		att_map.put(name, Character.valueOf(value));
+	}
+	
+	/**
+	 * set attribute name with value.
+	 * @param name
+	 * @param value
+	 */
+	public final void setShortAttribute(final String name, final short value){
+		att_map.put(name, Short.valueOf(value));
+	}
+	
+	/**
+	 * set attribute name with value.
+	 * @param name
+	 * @param value
+	 */
+	public final void setIntAttribute(final String name, final int value){
+		att_map.put(name, Integer.valueOf(value));
+	}
+	
+	/**
+	 * set attribute name with value.
+	 * @param name
+	 * @param value
+	 */
+	public final void setLongAttribute(final String name, final long value){
+		att_map.put(name, Long.valueOf(value));
+	}
+	
+	/**
+	 * set attribute name with value.
+	 * @param name
+	 * @param value
+	 */
+	public final void setFloatAttribute(final String name, final float value){
+		att_map.put(name, Float.valueOf(value));
+	}
+	
+	/**
+	 * set attribute name with value.
+	 * @param name
+	 * @param value
+	 */
+	public final void setDoubleAttribute(final String name, final double value){
+		att_map.put(name, Double.valueOf(value));
+	}
+	
+	/**
+	 * set attribute name with value.
+	 * @param name
+	 * @param value
+	 */
+	public final void setStringAttribute(final String name, final String value){
+		att_map.put(name, value);
 	}
 	
 	/**
@@ -1729,6 +2388,9 @@ public class ProjectContext {
 	 * @return <code>defaultValue</code> if this map contains no attribute for
 	 *         the name
 	 * @since 7.0
+	 * @see #getIntAttribute(String, int)
+	 * @see #getBooleanAttribute(String, boolean)
+	 * @see #getStringAttribute(String, String)
 	 */
 	public final Object getAttribute(final String name,
 			final Object defaultValue) {
@@ -1793,7 +2455,9 @@ public class ProjectContext {
 	 * it is equals with {@link #getMobileHeight()}.
 	 * @return
 	 * @since 7.50
+	 * @deprecated
 	 */
+	@Deprecated
 	public final int getClientHeight() {
 		return getMobileHeight();
 	}
@@ -1804,7 +2468,9 @@ public class ProjectContext {
 	 * @return 0 means mobile not login or in project level.
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.0
+	 * @deprecated
 	 */
+	@Deprecated
 	public final int getMobileHeight() {
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
 			return SimuMobile.MOBILE_HEIGHT;
@@ -1888,7 +2554,7 @@ public class ProjectContext {
 					+ "', it is reserved by system.");
 		}
 
-		return __setPropertySuper(key, value);
+		return (String)ppm.propertie.put(key, value);
 	}
 
 	/**
@@ -1899,14 +2565,10 @@ public class ProjectContext {
 	 * @return an enumeration of all properties names.
 	 */
 	public final synchronized Enumeration getPropertiesNames() {
-		if (prop_map == null) {
-			init();
-		}
-
-		final Iterator<String> it = prop_map.keySet().iterator();
-		final HashSet<String> set = new HashSet<String>();
+		final Iterator<Object> it = ppm.propertie.keySet().iterator();
+		final HashSet<Object> set = new HashSet<Object>();
 		while (it.hasNext()) {
-			final String item = it.next();
+			final String item = (String)it.next();
 			if (item.startsWith(CCoreUtil.SYS_RESERVED_KEYS_START, 0)) {
 				continue;
 			} else {
@@ -1914,7 +2576,7 @@ public class ProjectContext {
 			}
 		}
 
-		final Iterator<String> setit = set.iterator();
+		final Iterator<Object> setit = set.iterator();
 		return new Enumeration() {
 			@Override
 			public boolean hasMoreElements() {
@@ -1962,29 +2624,20 @@ public class ProjectContext {
 	 * @param value
 	 */
 	@Deprecated
-	final synchronized String __setPropertySuper(final String key,
+	final String __setPropertySuperOnProj(final String key,
 			final String value) {
-		if (prop_map == null) {
-			init();
-		}
-		
-		return prop_map.put(key, value);
+		return (String)ppm.propertie.put(key, value);
 	}
-
-	private final void init() {
-		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
-			prop_map = new PropertiesMap(PropertiesManager.p_PROJ_RECORD
-					+ getProjectID());
-			return;
-		}
-		
-		runAndWait(new Runnable() {
-			@Override
-			public void run() {
-				prop_map = new PropertiesMap(PropertiesManager.p_PROJ_RECORD
-						+ getProjectID());
-			}
-		});
+	
+	/**
+	 * @deprecated
+	 * @param key
+	 * @param value
+	 */
+	@Deprecated
+	final synchronized String __setPropertySuperOnHC(final String key,
+			final String value) {
+		return proj_prop_map.put(key, value);
 	}
 
 	/**
@@ -2002,12 +2655,12 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final String getProperty(final String key) {
-		if (key.startsWith(CCoreUtil.SYS_RESERVED_KEYS_START, 0)) {
-			throw new Error("the key of property can't start with '"
-					+ CCoreUtil.SYS_RESERVED_KEYS_START + "'");
-		}
+//		if (key.startsWith(CCoreUtil.SYS_RESERVED_KEYS_START, 0)) {
+//			throw new Error("the key of property can't start with '"
+//					+ CCoreUtil.SYS_RESERVED_KEYS_START + "'");
+//		}
 
-		return __getPropertySuper(key);
+		return ppm.propertie.getProperty(key);
 	}
 
 	/**
@@ -2036,11 +2689,18 @@ public class ProjectContext {
 	 * @return the property of key.
 	 */
 	@Deprecated
-	final synchronized String __getPropertySuper(final String key) {
-		if (prop_map == null) {
-			init();
-		}
-		return prop_map.get(key);
+	final String __getPropertySuperOnProj(final String key) {
+		return (String)ppm.propertie.get(key);
+	}
+	
+	/**
+	 * @deprecated
+	 * @param key
+	 * @return the property of key.
+	 */
+	@Deprecated
+	final synchronized String __getPropertySuperOnHC(final String key) {
+		return proj_prop_map.get(key);
 	}
 
 	/**
@@ -2059,7 +2719,7 @@ public class ProjectContext {
 					+ CCoreUtil.SYS_RESERVED_KEYS_START + "'");
 		}
 
-		return __removePropertySuper(key);
+		return (String)ppm.propertie.remove(key);
 	}
 
 	/**
@@ -2078,11 +2738,17 @@ public class ProjectContext {
 	 * @param key
 	 */
 	@Deprecated
-	final synchronized String __removePropertySuper(final String key) {
-		if (prop_map == null) {
-			init();
-		}
-		return prop_map.remove(key);
+	final String __removePropertySuperOnProj(final String key) {
+		return (String)ppm.propertie.remove(key);
+	}
+	
+	/**
+	 * @deprecated
+	 * @param key
+	 */
+	@Deprecated
+	final synchronized String __removePropertySuperOnHC(final String key) {
+		return proj_prop_map.remove(key);
 	}
 
 	/**
@@ -2093,7 +2759,9 @@ public class ProjectContext {
 	 * 4. <code>getPrivateFile("mySubDir/testFile");</code><br>
 	 * 5. <code>getPrivateFile("mySubDir2/subSubDir/testFile");</code><br>
 	 * 6. <code>new File(getPrivateFile("mySubDir"), "testFile");</code><br>
-	 * 7. <code>new File(getPrivateFile("mySubDir2/subSubDir"), "testFile");</code><br>
+	 * 7. <code>new File(getPrivateFile("mySubDir2/subSubDir"), "testFile");</code><BR>
+	 * <BR><STRONG>Tip :</STRONG><BR>
+	 * if parent directory of result is not exists, then it will be created before return.<BR>
 	 * <BR><STRONG>private file VS DB connection :</STRONG><BR>
 	 * When project runs in Home environment, please pay more attention about power off, 
 	 * it may be caused by children, no wait to shutdown. 
@@ -2107,9 +2775,9 @@ public class ProjectContext {
 	 * 2. the File <code>fileName</code> is read/written in directory <i>{HC_Home}/user_data/{projectID}/{fileName}</i>. <br>
 	 * 3. sub directory <code>"{projectID}/_HC/"</code> is reservered by server, see {@link #getDBConnection(String, String, String)},<br>
 	 * 4. if current project is deleted, all private files of current project will be deleted. <BR>
-	 * 5. to save small data, you may need {@link #saveProperties()}.<BR>
+	 * 5. to save small data, please invoke {@link #saveProperties()}.<BR>
 	 * 6. if the data is important, please encrypt data or stored separately.<BR>
-	 * 7. if this server runs on Android Marshmallow or later, Android will 'Auto Backup for Apps'.
+	 * 7. if this server runs on Android Marshmallow or later, Android will do "Auto Backup for Apps".
 	 * @param fileName 
 	 * @return the private file <code>fileName</code>.
 	 * @see #saveProperties()
@@ -2119,7 +2787,16 @@ public class ProjectContext {
 	public final File getPrivateFile(final String fileName) {
 		final String absProjBasePath = HCLimitSecurityManager.getUserDataBaseDir(projectID);
 		final String absPathname = absProjBasePath + HttpUtil.encodeFileName(fileName);
-		return new File(absPathname);//App.getBaseDir
+		final File fileResult = new File(absPathname);//App.getBaseDir
+		try{
+			final File parent = fileResult.getParentFile();
+			if(parent != null){
+				parent.mkdirs();
+			}
+		}catch (final Exception e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+		return fileResult;
 	}
 
 	/**
@@ -2140,14 +2817,14 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final void saveProperties() {
-		if (prop_map == null) {
-			return;
-		}
-
-		prop_map.save();
+		ppm.save();
+	}
+	
+	final void __saveSysPropertiesOnHC() {
+		proj_prop_map.save();
 	}
 
-	private PropertiesMap prop_map;
+	private final PropertiesMap proj_prop_map;
 
 	/**
 	 * if your mobile is Android, it will return this after invoke {@link #getMobileOS()}.
@@ -3038,7 +3715,7 @@ public class ProjectContext {
 	 * for example, there are three sessions, the <code>runnable</code> will be executed three times, <BR>
 	 * and three instances of {@link Dialog} are builded for each session.
 	 * <br><br>
-	 * if there is a alert message, question or other dialog is presented on client and NOT be closed, the dialog will be delayed.
+	 * if there is a alert message, question or other dialog is presented on client and NOT closed, the dialog will be delayed.
 	 * <br><br>
 	 * this method is <STRONG>asynchronous</STRONG>, server will NOT wait for
 	 * the result of dialog to the caller. <BR>
@@ -3177,10 +3854,10 @@ public class ProjectContext {
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 6.98
 	 */
-	public final void sendMessage(final String caption, final String text, final int type,
+	public final boolean sendMessage(final String caption, final String text, final int type,
 			final BufferedImage image, final int timeOut) {
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
-			return;
+			return false;
 		}
 		
 		final J2SESession[] coreSS;
@@ -3201,7 +3878,10 @@ public class ProjectContext {
 			ServerUIAPIAgent.sendMessageViaCoreSS(coreSS, caption, text, type, image, timeOut);
 			
 			processFormData(text);
+			return true;
 		}
+		
+		return false;
 	}
 
 	/**
@@ -3414,7 +4094,7 @@ public class ProjectContext {
 	 * <STRONG>Tip :</STRONG>
 	 * <BR>1. all objects based on session level will gone automatically after {@link #EVENT_SYS_MOBILE_LOGOUT}, exclude {@link #run(Runnable)} and {@link #runAndWait(Runnable)}.
 	 * <BR>2. in session level, these following methods serve only for that session; 
-	 * <BR>3. in project level, they serve for all sessions. (in other word, one command for all session)
+	 * <BR>3. in project level, they serve for all sessions. (in other word, one command for all sessions)
 	 * <BR><BR>
 	 * the difference between session level and project level :
 	 * <table border='1'>

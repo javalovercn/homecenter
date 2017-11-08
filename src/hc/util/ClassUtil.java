@@ -151,6 +151,14 @@ public class ClassUtil {
 		return c.newInstance(para);
 	}
 	
+	public static final Object invoke(final Class claz, final Object obj, final String methodName){
+		return invoke(claz, obj, methodName, NULL_PARA_TYPES, NULL_PARAS, false);
+	}
+
+	public static final Object invokeWithExceptionOut(final Class claz, final Object obj, final String methodName) throws Exception{
+		return invokeWithExceptionOut(claz, obj, methodName, NULL_PARA_TYPES, NULL_PARAS, false);
+	}
+	
 	public static final Object invoke(final Class claz, final Object obj, final String methodName, final Class[] paraTypes, final Object[] para, final boolean needModiAccessible){
 		try{
 		    return invokeWithExceptionOut(claz, obj, methodName, paraTypes,
@@ -298,6 +306,32 @@ public class ClassUtil {
 				LogManager.log(sb.toString());
 				StringBuilderCacher.cycle(sb);
 			}
+		}
+	}
+
+	public static void buildOneStackWithCause(final Throwable t, final StringBuilder sb, final boolean isAfterCauseBy, final boolean isAfterScript) {
+		if(isAfterScript){
+			sb.append('\n');
+		}
+		
+		if(isAfterCauseBy){
+			sb.append("\nCaused by : ");
+		}
+		sb.append(t.getMessage());
+		sb.append('\n');
+		final StackTraceElement[] ste = t.getStackTrace();
+		for (int i = 0; i < ste.length; i++) {
+			final StackTraceElement one = ste[i];
+			if(i > 0){
+				sb.append('\n');
+			}
+			sb.append('\t');
+			sb.append(one.toString());
+		}
+		
+		final Throwable causeBy = t.getCause();
+		if(causeBy != null){
+			buildOneStackWithCause(causeBy, sb, true, false);
 		}
 	}
 

@@ -6,10 +6,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public abstract class WiFiDeviceManager {
-	public static final String S_WiFiDeviceManager_getSSIDListOnAir = "WiFiDeviceManager.getSSIDListOnAir";
-	public static final String S_WiFiDeviceManager_createWiFiMulticastStream = "WiFiDeviceManager.createWiFiMulticastStream";
-	public static final String S_WiFiDeviceManager_listenFromWiFiMulticast = "WiFiDeviceManager.listenFromWiFiMulticast";
-	
 	public static final WiFiDeviceManager getInstance(final CoreSession coreSS){
 		//注意：由于服务器端可能手机连接或断开，所以WifiDeviceManager会变动，不能暂存
 		return coreSS.context.getWiFiDeviceManager();

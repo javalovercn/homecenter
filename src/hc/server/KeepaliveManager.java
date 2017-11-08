@@ -14,7 +14,6 @@ import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
-import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.design.J2SESession;
 import hc.util.HttpUtil;
 import hc.util.ResourceUtil;
@@ -34,58 +33,13 @@ public class KeepaliveManager {
 	public final long KEEPALIVE_MS = Long.parseLong(RootConfig.getInstance().
 			getProperty(RootConfig.p_KeepAliveMS));
 	
-	private HCTimer connBuilderWatcher = buildKeepAliveWatcher();
-	
-	public final void startConnBuilderWatcherIfNotStart(){
-		final HCTimer connBuilderWatcherSnap = connBuilderWatcher;
-		if(connBuilderWatcherSnap != null && connBuilderWatcherSnap.isEnable() == false){
-			connBuilderWatcherSnap.resetTimerCount();
-			connBuilderWatcherSnap.setEnable(true);
-		}
-	}
-	
-	public final void removeConnBuilderWatcher(){
-		HCTimer.remove(connBuilderWatcher);
-		connBuilderWatcher = null;
-	}
-	
 	/**
 	 * 每小时刷新alive变量到Root服务器
 	 */
 	public final HCTimer aliveToRootRefresher;
 	
 	public static final long MAX_CONN_BUILDER_WATCHER_MS = 12 * HCTimer.ONE_SECOND;
-	
-	private final HCTimer buildKeepAliveWatcher(){
-		return new HCTimer("ConnBuilderWatcher", MAX_CONN_BUILDER_WATCHER_MS, false){
-			@Override
-			public void doBiz(){
-				if(UserThreadResourceUtil.isInServing(coreSS.context)){
-				}else{
-					LogManager.err("timeover for building connection for client.");
-					RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_OverTimeConn_STR);
-					coreSS.notifyLineOff(true, false);
-				}
-				
-				final KeepaliveManager keepaliveManager = coreSS.keepaliveManager;
-				if(keepaliveManager != null){
-					keepaliveManager.removeConnBuilderWatcher();
-				}
-			}
-			@Override
-			public void setEnable(final boolean enable){
-				hcConnection.startTime = System.currentTimeMillis();
-				
-//					if(enable == false){
-//						LogManager.log("-----------ConnBuilderWatcher DIS able----------");
-//					}else{
-//						LogManager.log("-----------ConnBuilderWatcher EN able----------");
-//					}
-				super.setEnable(enable);
-			}
-		};
-	}
-	
+
 	public final void resetSendData(){
 		hcConnection.isSendLive = false;
 	}
@@ -104,7 +58,6 @@ public class KeepaliveManager {
 			LogManager.log("remove all KepaliveManager HCTimer.");
 		}
 		
-		HCTimer.remove(connBuilderWatcher);
 		HCTimer.remove(keepalive);
 	}
 
@@ -196,10 +149,10 @@ public class KeepaliveManager {
 				}
 				//保持TCP不断，同时需要回应，并检测联线状态
 				coreSS.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_SERVERING);
-//				L.V = L.WShop ? false : LogManager.log("[keepalive] try DATA_ROOT_LINE_WATCHER_ON_SERVERING");
+				L.V = L.WShop ? false : LogManager.log("[keepalive] try DATA_ROOT_LINE_WATCHER_ON_SERVERING");
 			}else{
 				coreSS.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_RELAY);
-//				L.V = L.WShop ? false : LogManager.log("[keepalive] try DATA_ROOT_LINE_WATCHER_ON_RELAY");
+				L.V = L.WShop ? false : LogManager.log("[keepalive] try DATA_ROOT_LINE_WATCHER_ON_RELAY");
 			}
 		}catch (final Exception e) {
 			coreSS.notifyLineOff(false, false);
@@ -232,7 +185,7 @@ public class KeepaliveManager {
 	    		hcConnection.isSendLive = false;
 	    		
 				final boolean isConn = isOnRelay();
-				L.V = L.WShop ? false : LogManager.log("keepalive onRelay : " + isConn + ", at coreSS : " + coreSS.hashCode());
+				L.V = L.WShop ? false : LogManager.log("[keepalive] keepalive onRelay : " + isConn + ", at coreSS : " + coreSS.hashCode());
 				
 				if(isConn == false){
 //					if(getIntervalMS() == KEEPALIVE_MS){
@@ -260,12 +213,13 @@ public class KeepaliveManager {
 					//setIntervalMS(lineWatcherMS);
 					if(hcConnection.isSendLive){
 						//检查上次发送包是否正常收到，必须要加=，不能仅>，因为在单机极速环境下，出现相同情形
-						if(Math.abs(coreSS.context.rootTagListener.getServerReceiveMS() - hcConnection.sendLineMS) < lineWatcherMS){
+						final long diffMS = Math.abs(coreSS.context.rootTagListener.getServerReceiveMS() - hcConnection.sendLineMS);
+						if(diffMS < lineWatcherMS){
 							//通
 //							LogManager.log("Received last line watcher package");
 						}else{
 							//不通
-							LogManager.log("remote lineoff detected by keepalive");
+							LogManager.log("[keepalive] remote lineoff detected by keepalive, diffMS(abs) : " + diffMS);
 							coreSS.notifyLineOff(false, false);
 							return;
 						}
@@ -285,6 +239,14 @@ public class KeepaliveManager {
 			super.setEnable(enable);
 		}
 	};
+	
+	/**
+	 * 由于连接可能导致长时间，在半途强制以增长连接时间
+	 */
+	public final void renewalSendLineMS(){
+		L.V = L.WShop ? false : LogManager.log("renewal SendLineMS.");
+		coreSS.context.rootTagListener.setServerReceiveMS(hcConnection.sendLineMS);
+	}
 }
 
 class TCPTestThread extends Thread{

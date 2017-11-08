@@ -14,6 +14,7 @@ import hc.server.ui.design.Designer;
 import hc.server.ui.design.HCPermissionConstant;
 import hc.server.ui.design.I18nTitlesEditor;
 import hc.server.util.ContextSecurityConfig;
+import hc.util.IntTextField;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 import hc.util.SocketEditPanel;
@@ -50,6 +51,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 	final JButton testExceptionBtn = new JButton("Test Exception Post");
 	final JButton testHADBtn = new JButton("Test HAD");
 
+	final IntTextField compactDays = new IntTextField(1, Integer.MAX_VALUE);
 	final JTextField contact = new JTextField();
 	final JTextField copyright = new JTextField();
 	final JTextField desc = new JTextField();
@@ -389,6 +391,22 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 					}
 				});
 				
+				compactDays.setColumns(30);
+				compactDays.getDocument().addDocumentListener(new ModifyDocumentListener() {
+					@Override
+					public void modify() {
+						final String days = compactDays.getText();
+						try{
+							final int int_day = Integer.parseInt(days);
+							if(int_day > 0){
+								((HPProject)currItem).compactDays = days;
+								notifyModified(true);
+							}
+						}catch (final Exception e) {
+						}
+					}
+				});
+				
 				copyright.setColumns(30);
 				copyright.getDocument().addDocumentListener(new ModifyDocumentListener() {
 					@Override
@@ -432,6 +450,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 						new JSeparator(SwingConstants.HORIZONTAL),
 						verPanel, 
 						new JSeparator(SwingConstants.HORIZONTAL),
+						buildItemPanel(compactDays, "<html><STRONG>Compact DB Days</STRONG> : </html>", 30),
+						new JSeparator(SwingConstants.HORIZONTAL),
 						upgradePanel, 
 						new JSeparator(SwingConstants.HORIZONTAL),
 						buildExceptionPanel(),
@@ -453,7 +473,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		tabbedPane.addTab((String)ResourceUtil.get(9095), new JScrollPane(center));
 		{
 			final JLabel noteLabel = new JLabel("<html><BR><font color='red'>Note : </font><BR>" +
-					"1. these permissions are NOT run-time, they are for design only.<BR>" +
+					"1. these permissions are NOT run-time, they are for design period.<BR>" +
 					"2. to set run-time permissions, click /Shift Project/{project}/Modify|Permission.<BR>" +
 //					"3. run-time permissions will keep their values even if the project is upgraded/re-activated/restarted.<BR>" +
 //					"3. these permissions works on standard J2SE JVM, NOT for server on Android or other.<BR>" +
@@ -680,6 +700,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		desc.setText(hpProject.desc);
 		copyright.setText(hpProject.copyright);
 		contact.setText(hpProject.contact);
+		compactDays.setText(hpProject.compactDays);
 		
 		final ContextSecurityConfig csc = hpProject.csc;
 		

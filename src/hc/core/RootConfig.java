@@ -116,6 +116,7 @@ public class RootConfig extends HCConfig{
 	public static final short p_isMovToGooglePlayStore = 43;
 	public static final short p_CacheMinSize = 44;
 	public static final short p_isDisplayVIPMenu = 45;
+	public static final short p_NovVIPClientFileMaxSizeK = 46;
 	
 	public RootConfig(String msg) {
 //		System.out.println(msg);

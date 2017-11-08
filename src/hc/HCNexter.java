@@ -51,6 +51,6 @@ public class HCNexter {
 	}
 
 	private BufferedImage getImg(final int idx) throws IOException, MalformedURLException {
-		return ImageIO.read(new URL("https://homecenter.mobi/images/" + imgUrl[idx]));
+		return ImageIO.read(new URL("http://homecenter.mobi/images/" + imgUrl[idx]));
 	}
 }

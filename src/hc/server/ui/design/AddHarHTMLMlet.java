@@ -151,8 +151,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 
 		setLayout(new BorderLayout());
 		setCSS(msgArea, null, "width:100%;height:100%;border:1px solid #" + getColorForBodyByHexString() + ";" +
-				"background-color:#" + getColorForBodyByHexString() + ";color:#" + HTMLMlet.getColorForFontByHexString() + ";" +
-				"font-size:" + (int)(fontSizePX * 0.7) + "px;");
+				"background-color:#" + getColorForBodyByHexString() + ";color:#" + HTMLMlet.getColorForFontByHexString() + ";");
 
 		appendMessage(processingMsg);
 
@@ -168,13 +167,21 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 			}
 		});
 
-		final String fontSizeCSS = "font-size:" + fontSizePX + "px;";
-		setCSS(this, null, fontSizeCSS);//系统Mlet, //不考虑in user thread
+//		final String fontSizeCSS = "font-size:" + fontSizePX + "px;";
+//		setCSS(this, null, fontSizeCSS);//系统Mlet, //不考虑in user thread
 
 		add(msgArea, BorderLayout.CENTER);
 		add(exitButton, BorderLayout.SOUTH);
 	}
 
+	public static J2SESession getCurrAddHarHTMLMletCoreSession(){
+		final AddHarHTMLMlet addHar = runingAddHar;
+		if(addHar != null){
+			return addHar.localCoreSS;
+		}
+		return null;
+	}
+	
 	public static AddHarHTMLMlet getCurrAddHarHTMLMlet(){
 		return runingAddHar;//最多只有一个运行实例
 	}
@@ -254,7 +261,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 					LinkProjectManager.loadHAD(url, had);
 					final String projID = had.getProperty(HCjad.HAD_ID, "");
 					if(DelDeployedProjManager.isDeledDeployed(projID)){
-						throw new Exception(ResourceUtil.PROJ_IS_DELED_NEED_RESTART);
+						throw new Exception(ResourceUtil.getErrProjIsDeledNeedRestart(coreSS));
 					}
 					strharurl = had.getProperty(HCjad.HAD_HAR_URL, HCjad.convertToExtHar(url));
 				}else{
@@ -265,7 +272,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 				final String hadmd5 = had.getProperty(HCjad.HAD_HAR_MD5, "");
 				final boolean succ = HttpUtil.download(fileHar, new URL(strharurl), 1, ResourceUtil.getUserAgentForHAD());
 				if(succ == false){
-					final String httpErr = "http download error";
+					final String httpErr = (String)ResourceUtil.get(coreSS, 9269);//connection error or timeout
 					throw new Exception(httpErr);
 				}
 				
@@ -285,7 +292,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 					
 					final String proj_id = (String)map.get(HCjar.PROJ_ID);
 					if(DelDeployedProjManager.isDeledDeployed(proj_id)){
-						throw new Exception(ResourceUtil.PROJ_IS_DELED_NEED_RESTART);
+						throw new Exception(ResourceUtil.getErrProjIsDeledNeedRestart(coreSS));
 					}
 					
 					if(SignHelper.verifyJar(fileHar, LinkProjectManager.getCertificatesByID(proj_id)) == null){//完整性检查进行前置
@@ -431,8 +438,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 						throw runException[0];
 					}
 		        }else{
-		        	final String errMsg = "md5 error, try after a minute";
-					throw new Exception(errMsg);
+					throw new Exception((String)ResourceUtil.get(coreSS, 9270));//file verification error, try again later
 		        }
 			}catch (final Throwable e) {
 //				ExceptionReporter.printStackTrace(e);可能网络不正常，所以无需
@@ -918,7 +924,8 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		if(currMlet != null){
 			currMlet.appendMessage(msg);
 		}
-		TrayMenuUtil.displayMessage((String) ResourceUtil.get(msgType),
+		final J2SESession coreSS = AddHarHTMLMlet.getCurrAddHarHTMLMletCoreSession();
+		TrayMenuUtil.displayMessage((String) ResourceUtil.get(coreSS, msgType),
 				msg, msgType, null, 0);
 	}
 

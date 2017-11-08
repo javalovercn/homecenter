@@ -11,9 +11,9 @@ import hc.server.ui.ScriptPanel;
 import javax.swing.JComponent;
 
 /**
- * the assistant of current project is implemented by project provider, which process voice command.<BR><BR>
+ * the assistant of current project is implemented by project provider, which process voice command.<BR>
+ * to register the assistant for a project, please invoke {@link ProjectContext#registerAssistant(Assistant)}.<BR><BR>
  * if you don't want to implement a assistant, and hope HCAI (HomeCenter AI) to do same work for you, please see detail on {@link #onVoice(VoiceCommand)}.
- * @see ProjectContext#registerAssistant(Assistant)
  * @since 7.47
  */
 public class Assistant {

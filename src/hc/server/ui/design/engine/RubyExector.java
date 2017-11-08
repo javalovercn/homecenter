@@ -21,10 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RubyExector {
-	public static final void removeCache(final String script, final HCJRubyEngine hcje){
-		hcje.removeCache(script);
-	}
-	
 	public static final Object runAndWaitInProjectOrSessionPoolWithRepErr(final J2SESession coreSS, final CallContext runCtx, final String script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context, final Class requireReturnClass) {
 		Object out = null;
 		try{
@@ -49,7 +45,7 @@ public class RubyExector {
 	}
 	
 	public static final Object runAndWaitInProjectOrSessionPool(final J2SESession coreSS, final CallContext callCtx, final String script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context) {
-		RubyExector.parse(callCtx, script, scriptName, hcje, true);
+//		RubyExector.parse(callCtx, script, scriptName, hcje, true);
 		
 		if(callCtx.isError){
 			return null;
@@ -83,7 +79,9 @@ public class RubyExector {
 			hcje.parse(script, scriptName);
 		} catch (final Throwable e) {
 			if(isReportException){
-				ExceptionReporter.printStackTrace(e, script, e.toString(), ExceptionReporter.INVOKE_NORMAL);
+				final String errorMsg = "project [" + hcje.projectIDMaybeBeginWithIDE + "] script error : " + e.toString();
+				LogManager.errToLog(errorMsg);
+				ExceptionReporter.printStackTrace(e, script, errorMsg, ExceptionReporter.INVOKE_NORMAL);
 			}
 			
 			final String err = hcje.errorWriter.getMessage();
@@ -122,9 +120,11 @@ public class RubyExector {
 //			}
 			
 		} catch (final Throwable e) {
-			final String err = hcje.errorWriter.getMessage();
+			String err = hcje.errorWriter.getMessage();
 			ExceptionReporter.printStackTraceFromHAR(e, script, err);
-			System.err.println("------------------error on JRuby script : " + err + "------------------\n" + script + "\n--------------------end error on script---------------------");
+			err = StringUtil.replace(err, "\n", "");//去掉换行
+			err = StringUtil.replace(err, "\t", "");//去掉缩进
+			System.err.println("------------------error on JRuby script : [" + err + "] ------------------\n" + script + "\n--------------------end error on script---------------------");
 			if(callCtx != null){
 				callCtx.setError(err, script, e);
 			}
@@ -192,12 +192,11 @@ public class RubyExector {
 
 	public static void initActive(final HCJRubyEngine hcje) {
 		final String script = 
-				"str_class = Java::java.lang.String\n" +
-				"return str_class::valueOf(\"1\")\n";//初始引擎及调试之用
+				"str_class = java.lang.String\n" +
+				"return str_class::valueOf(1)\n";//初始引擎及调试之用
 		final String scriptName = null;
-		parse(null, script, scriptName, hcje, false);
+//		parse(null, script, scriptName, hcje, false);
 		runAndWaitOnEngine(null, script, scriptName, null, hcje);
-		removeCache(script, hcje);
 	}
 
 	private static final void notifyMobileErrorScript(final J2SESession coreSS, final ProjectContext ctx, final String title){

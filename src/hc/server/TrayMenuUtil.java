@@ -1330,7 +1330,7 @@ public class TrayMenuUtil {
 							}else if(ResourceUtil.isMacOSX()){
 								os = "Mac";
 							}
-							HttpUtil.browse("https://homecenter.mobi/download/HC_Server_For_" + os + ".zip");
+							HttpUtil.browse("http://homecenter.mobi/download/HC_Server_For_" + os + ".zip");
 						}
 					}, threadPoolToken), null, null, false, false, null, false, false);
 				}
@@ -1513,17 +1513,13 @@ public class TrayMenuUtil {
 			}
 		}, threadPoolToken));
 	
-		final JPanel btnPanel = new JPanel();
-		btnPanel.setLayout(new GridLayout(1, 2, 5, 5));
-		btnPanel.add(ok);
-	
 		final JPanel botton = new JPanel();
-		botton.setLayout(new BorderLayout(5, 5));
-		botton.add(btnPanel, "East");
+		botton.setLayout(new BorderLayout(10, 10));
+		botton.add(ok, BorderLayout.EAST);
 	
 		final JScrollPane jsp = new JScrollPane(area);
-		c.add(jsp, "Center");
-		c.add(botton, "South");
+		c.add(jsp, BorderLayout.CENTER);
+		c.add(botton, BorderLayout.SOUTH);
 	
 		dialog.setSize(700, 600);
 		dialog.setResizable(false);

@@ -10,7 +10,9 @@ public class DataCache extends HCData {
 	
 	public final int setCacheInfo(final byte[] projID, final int projIdx, final int projLen,
 			final byte[] urlID, final int urlIdx, final int urlLen,
-			final byte[] codeID, final int codeIdx, final int codeLen){
+			final byte[] codeID){
+		final int codeIdx = 0;
+		final int codeLen = codeID.length;
 		final int dataLen = projLen + urlLen + codeLen + LEN_STORE_LEN * 3;
 		final int maxLen = dataLen + MsgBuilder.INDEX_MSG_DATA;
 		if(maxLen > bs.length){

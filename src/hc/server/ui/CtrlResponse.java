@@ -20,7 +20,7 @@ import java.util.TreeMap;
 
 /**
  * {@link CtrlResponse} is used to design a remote controller.
- * <BR><BR>if you want design a powerful controller with complex UI, see {@link HTMLMlet} or {@link Mlet}
+ * <BR><BR>if want to design a powerful controller with complex UI, see {@link HTMLMlet}.
  * @since 6.98
  */
 public abstract class CtrlResponse {

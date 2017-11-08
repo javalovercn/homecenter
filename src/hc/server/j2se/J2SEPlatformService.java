@@ -354,6 +354,9 @@ public class J2SEPlatformService implements PlatformService {
 		}
 	}
 	
+	/**
+	 * 遗留功能，新用户停止开放！
+	 */
 	@Override
 	public void startCaptureIfEnable() {
 //		CapManager.startCapture();

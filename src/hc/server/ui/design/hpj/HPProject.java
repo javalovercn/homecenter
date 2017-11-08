@@ -14,7 +14,7 @@ public class HPProject extends HPNode{
 	public static final String HAR_EXT = "har";
 	public static final String HAD_EXT = "had";
 	
-	public String id, ver, upgradeURL = "", exceptionURL = "", contact = "", copyright = "", desc = "", license = "", styles = "";
+	public String id, ver, upgradeURL = "", exceptionURL = "", contact = "", compactDays = "", copyright = "", desc = "", license = "", styles = "";
 	public ContextSecurityConfig csc;
 	
 	public static String convertProjectIDFromName(final String name){
@@ -42,6 +42,11 @@ public class HPProject extends HPNode{
 			this.desc = (String)map.get(HCjar.PROJ_DESC);
 			this.license = (String)map.get(HCjar.PROJ_LICENSE);
 			this.styles = (String)map.get(HCjar.PROJ_STYLES);
+			
+			this.compactDays = (String)map.get(HCjar.PROJ_COMPACT_DAYS);
+		}
+		if(compactDays == null || compactDays.length() == 0){
+			this.compactDays = String.valueOf(365 / 2);
 		}
 	}
 	

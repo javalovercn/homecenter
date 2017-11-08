@@ -4,9 +4,7 @@ import hc.core.DelayWatcher;
 import hc.core.GlobalConditionWatcher;
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
-import hc.core.util.LRUCache;
 import hc.core.util.LogManager;
-import hc.core.util.StringUtil;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
 import hc.server.data.StoreDirManager;
@@ -14,7 +12,6 @@ import hc.server.ui.design.hpj.RubyWriter;
 import hc.util.ClassUtil;
 import hc.util.ResourceUtil;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.Writer;
@@ -30,6 +27,7 @@ import java.util.List;
 //import org.jruby.javasupport.JavaEmbedUtils.EvalUnit;
 
 public class HCJRubyEngine {
+	public static final String IDE_LEVEL_ENGINE = "_IDE_";
 	public static final String ORG_JRUBY_EMBED_SCRIPTING_CONTAINER = "org.jruby.embed.ScriptingContainer";
 	private static final boolean isAndroidServerPlatform = ResourceUtil.isAndroidServerPlatform();
 	public static final String JRUBY_VERSION = "RUBY1_8";//for container and parser
@@ -39,7 +37,7 @@ public class HCJRubyEngine {
 //	private final ScriptingContainer container;	
 	private Class classScriptingContainer;
 	private Object container;	
-	private final LRUCache lruCache = new LRUCache(128);
+//	private final LRUCache lruCache = new LRUCache(128);
 	
 	public final void resetError(){
 		errorWriter.reset();
@@ -59,16 +57,16 @@ public class HCJRubyEngine {
 	}
 	
 	public final void removeCache(final String script){
-		synchronized (engineLock) {
-			lruCache.remove(script);
-		}
+//		synchronized (engineLock) {
+//			lruCache.remove(script);
+//		}
 	}
 	
 	final Object parse(final String script, final String scriptName) throws Exception{
-		Object unit;
-		synchronized (engineLock) {
-			unit = lruCache.get(script);
-		}
+		Object unit = null;
+//		synchronized (engineLock) {
+//			unit = lruCache.get(script);
+//		}
 		if(unit == null){
 //			EvalUnit unit = container.parse(script);//后面的int是可选参数
 			unit = putCompileUnit(script, scriptName);
@@ -76,7 +74,7 @@ public class HCJRubyEngine {
 		return unit;
 	}
 
-	private final Object putCompileUnit(final String script, String scriptName) throws Exception {
+	private final Object putCompileUnit(final String script, final String scriptName) throws Exception {
 		if(isShutdown){
 			return null;
 		}
@@ -89,30 +87,32 @@ public class HCJRubyEngine {
 //			LogManager.log("JRubyEngine getCurrentDirectory : " + currentDirectory);
 //		}
 //		LogManager.log("JRubyEngine getHomeDirectory : " + getHomeDirectory());
-		if(isReportException){
-//			InputStream istream, String filename, int... lines
-			final InputStream in = new ByteArrayInputStream(StringUtil.getBytes(script));//支持中文
-			scriptName = (scriptName==null||scriptName.length()==0)?"<script>":("<" + scriptName + ">");
-//			LogManager.log("compile name : " + scriptName + " for src : " + script);
-			final Object[] para = {in, scriptName, zero};
-			unit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse", parseStreamParaTypes, para, false);
-		}else{
+//		if(isReportException){
+////			InputStream istream, String filename, int... lines
+//			final InputStream in = new ByteArrayInputStream(StringUtil.getBytes(script));//支持中文
+//			scriptName = (scriptName==null||scriptName.length()==0)?"<script>":("<" + scriptName + ">");
+////			LogManager.log("compile name : " + scriptName + " for src : " + script);
+//			final Object[] para = {in, scriptName, zero};
+//			unit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse", parseStreamParaTypes, para, false);
+//		}else{
 			final Object[] para = {script, zero};
 			unit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse", parseParaTypes, para, false);
-		}
-		synchronized (engineLock) {
-			lruCache.put(script, unit);
-		}
+//		}
+//		synchronized (engineLock) {
+//			lruCache.put(script, unit);
+//		}
+		
+		L.V = L.WShop ? false : LogManager.log("[CallTime] : compile MS " + hashCode());
 		return unit;
 	}
-	
+
 	Class classEvalUnit;
 	final Class[] emptyParaTypes = {};
 	final Object[] emptyPara = {};
 	Class classJavaEmbedUtils;
 	Class classIRubyObject;
 	Class[] rubyToJavaParaTypes;// = {classIRubyObject};
-	final Object runScriptlet(final String script, final String scriptName) throws Throwable{
+	public final Object runScriptlet(final String script, final String scriptName) throws Throwable{
 //        return JavaEmbedUtils.rubyToJava(evalUnitMap.get(script).run());
 		final Object evalUnit = parse(script, scriptName);
 		if(isShutdown){
@@ -125,9 +125,9 @@ public class HCJRubyEngine {
 			final Object[] para = {runOut};
 			return ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils, classJavaEmbedUtils, "rubyToJava", rubyToJavaParaTypes, para, false);
 		}catch (final Throwable e) {
-			synchronized (engineLock) {
-				lruCache.remove(script);//执行错误后，需重新编译
-			}
+//			synchronized (engineLock) {
+//				lruCache.remove(script);//执行错误后，需重新编译
+//			}
 			throw e;
 		}finally{
 			L.V = L.WShop ? false : LogManager.log("finish run in [" + Thread.currentThread().getName() + "]!");
@@ -166,7 +166,7 @@ public class HCJRubyEngine {
 	}
 	
 	private final ClassLoader projClassLoader;
-	private final boolean isReportException;
+	public final String projectIDMaybeBeginWithIDE;
 	
 	public ClassLoader getProjClassLoader(){
 		return projClassLoader;
@@ -179,7 +179,8 @@ public class HCJRubyEngine {
 	 * @param absPath 可以为null
 	 * @param projClassLoader
 	 */
-	public HCJRubyEngine(final String absPath, final ClassLoader projClassLoader, final boolean isReportException){
+	public HCJRubyEngine(final String absPath, final ClassLoader projClassLoader, final boolean isReportException, final String projectID){
+		this.projectIDMaybeBeginWithIDE = projectID;
 		engineLock = this;
 		
 		if(isInit == false){
@@ -224,7 +225,7 @@ public class HCJRubyEngine {
 	            // System.setProperty("jruby.compat.version", "RUBY2_0"); 
 	            // END Ruboto RubyVersion
 	            // System.setProperty("jruby.compile.backend", "DALVIK");
-	            System.setProperty("jruby.compile.mode", "OFF"); // OFF OFFIR JITIR? FORCE FORCEIR
+//	            System.setProperty("jruby.compile.mode", "OFF"); // OFF OFFIR JITIR? FORCE FORCEIR
 	            System.setProperty("jruby.interfaces.useProxy", "true");
 	            System.setProperty("jruby.ir.passes", "LocalOptimizationPass,DeadCodeElimination");
 	            System.setProperty("jruby.management.enabled", "false");
@@ -237,28 +238,10 @@ public class HCJRubyEngine {
 	            // Analyse the output: grep "LoadService:   <-" | cut -f5 -d- | cut -c2- | cut -f1 -dm | awk '{total = total + $1}END{print total}'
 	            // System.setProperty("jruby.debug.loadService", "true");
 	            // System.setProperty("jruby.debug.loadService.timing", "true");
-
-		        try{
-			        final Class scriptingContainerClass = Class.forName(ORG_JRUBY_EMBED_SCRIPTING_CONTAINER, true, projClassLoader);
-			        
-		            final Class rubyClass = Class.forName("org.jruby.Ruby", true, scriptingContainerClass.getClassLoader());
-		            final Class rubyInstanceConfigClass = Class.forName("org.jruby.RubyInstanceConfig", true, scriptingContainerClass.getClassLoader());
-		
-		            final Object config = rubyInstanceConfigClass.getConstructor().newInstance();
-		            rubyInstanceConfigClass.getMethod("setDisableGems", boolean.class).invoke(config, true);
-		            rubyInstanceConfigClass.getMethod("setLoader", ClassLoader.class).invoke(config, projClassLoader);
-		            
-	                // This will become the global runtime and be used by our ScriptingContainer
-	                rubyClass.getMethod("newInstance", rubyInstanceConfigClass).invoke(null, config);
-	                
-		        }catch (final Throwable e) {
-		        	e.printStackTrace();
-		        }
 			}
 		}
 		
 		this.projClassLoader = projClassLoader;
-		this.isReportException = isReportException;
 		
 		try{
 		classJavaEmbedUtils = projClassLoader.loadClass("org.jruby.javasupport.JavaEmbedUtils");
@@ -290,10 +273,20 @@ public class HCJRubyEngine {
 		final Class[] construParaTypes = {classLocalContextScope, classLocalVariableBehavior, boolean.class};
 		final Constructor constr = classScriptingContainer.getConstructor(construParaTypes);
 		final Object[] constrPara = {
-				ClassUtil.getField(classLocalContextScope, classLocalContextScope, "SINGLETHREAD", false, true),//SINGLETHREAD : ScriptingContainer will not do any multiplexing at all.
+				ClassUtil.getField(classLocalContextScope, classLocalContextScope, "SINGLETHREAD", false, true),//SINGLETHREAD : SingleThreadLocalContextProvider.getRuntime().
 				ClassUtil.getField(classLocalVariableBehavior, classLocalVariableBehavior, "TRANSIENT", false, true),//TRANSIENT
 				Boolean.TRUE};
 		container = constr.newInstance(constrPara);
+		
+		//container.setAttribute(AttributeName.SHARING_VARIABLES, Boolean.FALSE);
+		{
+			final Class AttributeName = projClassLoader.loadClass("org.jruby.embed.AttributeName");
+			final Class[] setAttributeTypes = {Object.class, Object.class};
+			final Object[] setAttributePara = {
+					ClassUtil.getField(AttributeName, AttributeName, "SHARING_VARIABLES", false, true),
+					Boolean.FALSE};
+			ClassUtil.invoke(classScriptingContainer, container, "setAttribute", setAttributeTypes, setAttributePara, false);
+		}
 		
 //		System.out.println("getHomeDirectory : " + getHomeDirectory());
 //		System.out.println("getCurrentDirectory : " + getCurrentDirectory());
@@ -322,26 +315,26 @@ public class HCJRubyEngine {
 		}
 
 //		container.setCompileMode(org.jruby.RubyInstanceConfig$CompileMode.FORCE);
-		if(isReportException){
-			Object compileMode;
-			final Class compileModeClass = projClassLoader.loadClass("org.jruby.RubyInstanceConfig$CompileMode");
-////			TRUFFLE
-//			compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "TRUFFLE", false, false);
-//			if(compileMode != null){
-//				LogManager.log("JRubyEngine compileMode : TRUFFLE");
-//			}else{
-				if(isAndroidServerPlatform){
-					compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "JIT", false, true);
-//					LogManager.log("JRubyEngine compileMode : JIT");//多实例，无意义
-				}else{
-					compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "FORCE", false, true);//in Android, 1.8，2.0均不能parse(AddHAR)
-//					LogManager.log("JRubyEngine compileMode : FORCE");//多实例，无意义
-				}
-//			}
-			final Class[] paraTypes = {compileModeClass};
-			final Object[] para = {compileMode};
-			ClassUtil.invoke(classScriptingContainer, container, "setCompileMode", paraTypes, para, false);
-		}
+//		if(isReportException){
+//			Object compileMode;
+//			final Class compileModeClass = projClassLoader.loadClass("org.jruby.RubyInstanceConfig$CompileMode");
+//////			TRUFFLE
+////			compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "TRUFFLE", false, false);
+////			if(compileMode != null){
+////				LogManager.log("JRubyEngine compileMode : TRUFFLE");
+////			}else{
+//				if(isAndroidServerPlatform){
+//					compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "JIT", false, true);
+////					LogManager.log("JRubyEngine compileMode : JIT");//多实例，无意义
+//				}else{
+//					compileMode = ClassUtil.getField(compileModeClass, compileModeClass, "FORCE", false, true);//in Android, 1.8，2.0均不能parse(AddHAR)
+////					LogManager.log("JRubyEngine compileMode : FORCE");//多实例，无意义
+//				}
+////			}
+//			final Class[] paraTypes = {compileModeClass};
+//			final Object[] para = {compileMode};
+//			ClassUtil.invoke(classScriptingContainer, container, "setCompileMode", paraTypes, para, false);
+//		}
 		
 		if(absPath != null && absPath.length() > 0){
 			final ArrayList<String> loadPaths = new ArrayList<String>(1);

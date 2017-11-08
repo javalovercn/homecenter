@@ -42,7 +42,9 @@ public final class MSBAgent {
 	}
 	
 	public final static void setRobotWrapperNull(final Robot robot){
-		robot.robotWrapper = null;
+		if(robot != null){
+			robot.robotWrapper = null;
+		}
 	}
 	
 	public final static Workbench buildWorkbench(final NameMapper mapper){

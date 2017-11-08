@@ -115,9 +115,9 @@ public class J2SESessionManager extends SessionManager {
 	}
 	
 	private final static void startJ2SESession(){
-		final J2SESession socketSession = new J2SESession(ServerUIUtil.getResponsor());
+		final J2SESession socketSession = new J2SESession();
 		if(L.isInWorkshop){
-			LogManager.log("creating idle session for client login : " + socketSession.hashCode());
+			LogManager.log("creating idle session for client login, session hashCode : " + socketSession.hashCode());
 		}else{
 			LogManager.log("creating idle session for client login.");
 		}
@@ -153,7 +153,10 @@ public class J2SESessionManager extends SessionManager {
 		if(notifyRelineon){
 			coreSS.notifyLineOff(false, isForce);
 		}
-		coreSS.eventCenter.stop();//停止产生可能新的sequence任务
+		try{
+			coreSS.eventCenter.stop();//eventCenter可能为null, 停止产生可能新的sequence任务
+		}catch (final Exception e) {
+		}
 	}
 	
 	public static J2SESession lockIdelSession(){

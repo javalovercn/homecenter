@@ -94,6 +94,9 @@ public interface PlatformService {
 	
 	public void buildCaptureMenu(JPopupMenu popupTi, ThreadGroup threadPoolToken);
 	
+	/**
+	 * 遗留功能，新用户停止开放！
+	 */
 	public void startCaptureIfEnable();
 	
 	public void stopCaptureIfEnable();

@@ -263,6 +263,10 @@ public class PropertiesManager {
 
 	private static int delDirNum = 0;
 	
+	public static final void addDelDir(final File file){
+		addDelFile(file);
+	}
+	
 	public static final void addDelFile(final File file){
 		addDelDir(file.getPath());
 	}
@@ -295,7 +299,7 @@ public class PropertiesManager {
 					if(L.isInWorkshop){
 						LogManager.log("delete file/dir : " + delFile.getAbsolutePath());
 					}
-					ResourceUtil.deleteDirectoryNowAndExit(delFile);
+					ResourceUtil.deleteDirectoryNowAndExit(delFile, true);
 				}
 				
 				//删除绝对路径型，如privateFiel/user_data
@@ -304,7 +308,7 @@ public class PropertiesManager {
 					if(L.isInWorkshop){
 						LogManager.log("delete file/dir : " + delFile.getAbsolutePath());
 					}
-					ResourceUtil.deleteDirectoryNowAndExit(delFile);
+					ResourceUtil.deleteDirectoryNowAndExit(delFile, true);
 				}
 				
 				remove(key);

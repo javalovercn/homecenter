@@ -79,6 +79,7 @@ import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -116,7 +117,10 @@ public class ResourceUtil {
 	private static Class starterClass;
 	public static final String SYS_LOOKFEEL = "System - ";
 	public static final String LF_NIMBUS = SYS_LOOKFEEL + "Nimbus";
-
+	final static Random random = new Random();
+	private static final Calendar calendarForRandom = Calendar.getInstance();
+	private static final StringBuilder stringBuilderForRandom = new StringBuilder(128);
+	
 	private static Class getStarterClass(){
 		if(isCheckStarter == false){
 			isCheckStarter = true;
@@ -594,7 +598,7 @@ public class ResourceUtil {
         try{
 	        for(final File curFile:TrxFiles ){
 	        	if(curFile.isDirectory()){
-	        		deleteDirectoryNowAndExit(curFile);
+	        		deleteDirectoryNowAndExit(curFile, true);
 	        	}else{
 	        		curFile.delete();  
 	        	}
@@ -1468,10 +1472,9 @@ public class ResourceUtil {
 	 * @param parent
 	 * @param ext with ., such as ".har", ".had"
 	 * @return
+	 * @see ResourceUtil#createDateTimeSerialUUID()
 	 */
 	public static String createRandomFileNameWithExt(final File parent, final String ext) {
-		final Random random = new Random();
-		random.setSeed(System.currentTimeMillis());
 		while(true){
 			final int r = random.nextInt(99999999);
 			final String str_r = String.valueOf(r) + ext;
@@ -1479,10 +1482,36 @@ public class ResourceUtil {
 			if(parent == null){
 				file_r = new File(ResourceUtil.getBaseDir(), str_r);
 			}else{
+//				parent.mkdirs();//未经充分测试，可能存在用户线程操作系统目录
 				file_r = new File(parent, str_r);
 			}
 			if(file_r.exists() == false){
 				return str_r;
+			}
+		}
+	}
+	
+	/**
+	 * @param parent
+	 * @param ext with ., such as ".har", ".had"，可以为null
+	 * @return
+	 */
+	public static File createRandomFileWithExt(final File parent, final String ext) {
+		while(true){
+			final int r = random.nextInt(99999999);
+			String str_r = String.valueOf(r);
+			if(ext != null){
+				str_r += ext;
+			}
+			File file_r;
+			if(parent == null){
+				file_r = new File(ResourceUtil.getBaseDir(), str_r);
+			}else{
+				parent.mkdirs();//经充分测试
+				file_r = new File(parent, str_r);
+			}
+			if(file_r.exists() == false){
+				return file_r;
 			}
 		}
 	}
@@ -1606,7 +1635,7 @@ public class ResourceUtil {
 	public static final String EXT_DEX_JAR = ".dex.jar";
 	public static final String EXT_JAR = ".jar";
 	
-	public static final boolean deleteDirectoryNowAndExit(final File directory) {
+	public static final boolean deleteDirectoryNowAndExit(final File directory, final boolean isRemoveDirAlso) {
 		//CCoreUtil.checkAccess();//projectCtx.removeDB is using
 	
 	    if(directory.exists()){
@@ -1614,7 +1643,7 @@ public class ResourceUtil {
 	        if(null!=files){
 	            for(int i=0; i<files.length; i++) {
 	                if(files[i].isDirectory()) {
-	                    deleteDirectoryNowAndExit(files[i]);
+	                    deleteDirectoryNowAndExit(files[i], true);
 	                } else {
 	                    if(files[i].delete() == false){
 	                    	LogManager.errToLog("fail del file : " + files[i].getAbsolutePath());
@@ -1623,11 +1652,15 @@ public class ResourceUtil {
 	            }
 	        }
 	        
-		    final boolean isDel = directory.delete();
-		    if(isDel == false){
-		    	LogManager.errToLog("fail del dir/file : " + directory.getAbsolutePath());
-		    }
-		    return isDel;
+	        if(isRemoveDirAlso){
+			    final boolean isDel = directory.delete();
+			    if(isDel == false){
+			    	LogManager.errToLog("fail del dir/file : " + directory.getAbsolutePath());
+			    }
+			    return isDel;
+	        }else{
+	        	return false;
+	        }
 	    }
 	    return true;
 	}
@@ -1702,9 +1735,7 @@ public class ResourceUtil {
 	}
 
 	public static File getTempFileName(final String extFileName){
-		final String fileName = createRandomFileNameWithExt(StoreDirManager.TEMP_DIR, extFileName);
-		final File outTempFile = new File(StoreDirManager.TEMP_DIR, fileName);
-		return outTempFile;
+		return createRandomFileWithExt(StoreDirManager.TEMP_DIR, extFileName);
 	}
 
 	/**
@@ -1841,10 +1872,13 @@ public class ResourceUtil {
 		return false;
 	}
 
-	public static final String PROJ_IS_DELED_NEED_RESTART = "the same project is removed, restart me and install project again!";
 	public static final String FILE_IS_MODIFIED_AFTER_SIGNED = "file is incomplete or modified after signed";
 	public static final String RESERVED_PACKAGE_NAME_IS_IN_HAR = "reserved package name [hc/java/javax] is in HAR!";
 	public static final String HAR_PROJECT_FILE_IS_CORRUPTED = "HAR project file is corrupted or incomplete.";
+	
+	public static String getErrProjIsDeledNeedRestart(final J2SESession coreSS){
+		return (String)ResourceUtil.get(coreSS, 9271);//project is removed, restart server and add again!
+	}
 
 	public static void generateCertForNullOrError() {
 		CCoreUtil.checkAccess();
@@ -1949,11 +1983,29 @@ public class ResourceUtil {
 	}
 	
 	public static void buildRandom(final byte[] bs){
-		final Random r = new Random(System.currentTimeMillis());
-
 		for (int i = 0; i < bs.length; i++) {
-			bs[i] = (byte) (r.nextInt() & 0xFF);
+			bs[i] = (byte) (random.nextInt() & 0xFF);
 		}
+	}
+	
+	/**
+	 * 返回 日期时间+最长6位的随机数
+	 */
+	public synchronized static String createDateTimeSerialUUID(){
+		calendarForRandom.setTimeInMillis(System.currentTimeMillis());
+		stringBuilderForRandom.append(calendarForRandom.get(Calendar.YEAR));
+		stringBuilderForRandom.append((calendarForRandom.get(Calendar.MONTH) + 1));
+		stringBuilderForRandom.append(calendarForRandom.get(Calendar.DAY_OF_MONTH));
+		stringBuilderForRandom.append(calendarForRandom.get(Calendar.HOUR_OF_DAY));
+		stringBuilderForRandom.append(calendarForRandom.get(Calendar.MINUTE));
+		stringBuilderForRandom.append(calendarForRandom.get(Calendar.SECOND));
+		stringBuilderForRandom.append(calendarForRandom.get(Calendar.MILLISECOND));
+		stringBuilderForRandom.append('_');
+		stringBuilderForRandom.append(random.nextInt(999999));
+		
+		final String result = stringBuilderForRandom.toString();
+		stringBuilderForRandom.setLength(0);
+		return result;
 	}
 
 	public static void sendToClipboard(final String text) {

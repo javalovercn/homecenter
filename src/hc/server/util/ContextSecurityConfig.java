@@ -31,6 +31,10 @@ public class ContextSecurityConfig {
 	private Vector<String> allowedDomains;
 	private boolean isSocketLimitOn;
 	
+	public final ProjResponser getProjResponser(){//for J2SE_For_Android
+		return projResponser;
+	}
+	
 	public void copyToSocketPanel(final SocketEditPanel sockPanel){
 		CCoreUtil.checkAccess();
 		

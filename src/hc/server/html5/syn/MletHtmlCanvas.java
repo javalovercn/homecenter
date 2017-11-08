@@ -330,6 +330,8 @@ public class MletHtmlCanvas implements ICanvas, IMletCanvas, HCJSInterface {
 		final byte[] cloneBS = ByteUtil.byteArrayCacher.getFree(length);
 		System.arraycopy(bs, 0, cloneBS, 0, length);
 
+		coreSS.uiEventInput.setHTMLMletEvent(isForDialog);
+		
 		//注意：考虑可能有长时间事件处理，此处不wait
 		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {//事件的先后性保证
 			@Override

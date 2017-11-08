@@ -23,8 +23,7 @@ public abstract class CacheComparator {
 		return coreSS.pendStoreVector;
 	}
 	
-	private final byte[] code = new byte[CacheManager.CODE_LEN];
-	private final int codeLen = code.length;
+	private final byte[] code = new byte[CacheManager.CACHE_CODE_LEN];
 
 	private final DataCache dataCache = new DataCache();
 
@@ -80,33 +79,33 @@ public abstract class CacheComparator {
 //			return;
 //		}
 		
-		boolean isNeedCache = false;
-		
-		ByteUtil.encodeFileXOR(noCycleBS, data_idx, data_len, code, 0, codeLen);
+		ByteUtil.encodeFileXOR(noCycleBS, data_idx, data_len, code);
 //		LogManager.log("encodeGetCompare cache code : " + ByteUtil.encodeBase64(code));
 		
 		RMSLastAccessTimeManager.notifyAccess(projID, softUID);
 		
 		final byte[] cacheScriptBS;
 		
-		if(enableCacheForProc && (cacheScriptBS = CacheManager.getCacheFileBS(projID, softUID, urlID, code, 0, codeLen)) != null){
+		boolean isNewCacheItem = false;
+
+		if(enableCacheForProc && (cacheScriptBS = CacheManager.getCacheFileBS(projID, softUID, urlID, code)) != null){
 			final int cacheBSLen = cacheScriptBS.length;
 			
 			if(cacheBSLen != data_len){
-				isNeedCache = true;
+				isNewCacheItem = true;
 			}else{
 				for (int i = 0; i < cacheBSLen; i++) {
 					if(noCycleBS[data_idx + i] != cacheScriptBS[i]){
-						isNeedCache = true;
+						isNewCacheItem = true;
 						break;
 					}
 				}
 			}
 		}else{
-			isNeedCache = true;
+			isNewCacheItem = true;
 		}
 		
-		if(isNeedCache || enableCache == false){
+		if(isNewCacheItem || enableCache == false){
 //			sendJSBytes(scriptBS, 0, scriptBS.length, needGzip, true);//注意：需要通知进行cache
 			sendData(paras);
 			
@@ -114,13 +113,11 @@ public abstract class CacheComparator {
 					projIDbs, softUidBS, urlIDbs, 
 					code, noCycleBS));
 		}else{
-			final int dataLen = dataCache.setCacheInfo(projIDbs, 0, projIDbs.length, urlIDbs, 0, urlIDbs.length, code, 0, codeLen);
+			final int dataLen = dataCache.setCacheInfo(projIDbs, 0, projIDbs.length, urlIDbs, 0, urlIDbs.length, code);
 			
 			//服务端发送
 			coreSS.context.sendWrap(MsgBuilder.E_LOAD_CACHE, dataCache.bs, MsgBuilder.INDEX_MSG_DATA, dataLen);		
-			if(isSimu){
-				LogManager.log("[cache] find match cache item for [" + projID + "/" + softUID + "/" + urlID + "]");
-			}
+			L.V = L.WShop ? false : LogManager.log("[cache] find match cache item for [ProjID/SoftUID/urlID] : [" + projID + "/" + softUID + "/" + urlID + "]");
 		}
 	}
 

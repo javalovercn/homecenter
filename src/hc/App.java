@@ -167,7 +167,6 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	private static ThreadGroup threadPoolToken;
 	public static boolean DEBUG_THREAD_POOL_ON = false;
 	
-	public static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	public static final char WINDOW_PATH_SEPARATOR = '\\';
 
 	static FileLock lock;
@@ -767,7 +766,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		try {
 			TrayMenuUtil.doBefore();
 			
-			PlatformManager.getService().startCaptureIfEnable();//JMF is NOT installed for the newer version
+			PlatformManager.getService().startCaptureIfEnable();//遗留功能，新用户停止开放！JMF is NOT installed for the newer version
 			if(JRubyInstaller.checkInstalledJRuby() == false){
 				JRubyInstaller.startInstall();
 			}
@@ -2060,9 +2059,9 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		showCenter(panel, 0, 0, passwdStr, true, jbOK, jbCancle,
 				jbOKAction, cancelAction, null, false, false, null, false);
 		if(isRegister){
-			jtfuuid.requestFocus();
+			jtfuuid.requestFocusInWindow();
 		}else{
-			passwd1.requestFocus();
+			passwd1.requestFocusInWindow();
 		}
 	}
 

@@ -2,12 +2,9 @@ package hc.server;
 
 import hc.App;
 import hc.core.ClientInitor;
-import hc.core.ConfigManager;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
-import hc.core.DelayWatcher;
 import hc.core.EventCenter;
-import hc.core.GlobalConditionWatcher;
 import hc.core.HCConnection;
 import hc.core.HCMessage;
 import hc.core.HCTimer;
@@ -25,7 +22,6 @@ import hc.core.SessionManager;
 import hc.core.cache.CacheManager;
 import hc.core.cache.PendStore;
 import hc.core.data.ServerConfig;
-import hc.core.data.XorPackageData;
 import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
@@ -34,9 +30,7 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLCacher;
 import hc.core.util.HCURLUtil;
-import hc.core.util.IHCURLAction;
 import hc.core.util.LogManager;
-import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
 import hc.core.util.ThreadPriorityManager;
 import hc.core.util.WiFiDeviceManager;
@@ -71,8 +65,6 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.util.Vector;
 
 import javax.swing.ImageIcon;
@@ -159,7 +151,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
     }
 	
 //	private static long lastCanvasMainAction = 0;
-	private void doCanvasMain(final String url){
+	private final void doCanvasMain(final String url){
 		//删除时间过滤，由于版本普遍更新后，该过滤将失去作用
 		//为了防服务器推送后,旧版本的客户端的请求再次到来,加时间过滤.
 //		final long currentTimeMillis = System.currentTimeMillis();
@@ -255,8 +247,9 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			eventCenter.addListener(new IEventHCListener(){
 				@Override
 				public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
+					j2seCoreSS.uiEventInput.setCtrlEvent();
 					final String jcip = HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA);
-					JcipManager.responseCtrlSubmit((J2SESession)coreSS, jcip);
+					JcipManager.responseCtrlSubmit(j2seCoreSS, jcip);
 					return true;
 				}
 
@@ -294,7 +287,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					final J2SESession j2seCoreSS = (J2SESession)coreSS;
 					final ClientDesc clientDesc = j2seCoreSS.clientDesc;
 					
-					clientDesc.refreshClientInfo(j2seCoreSS, HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA));
+					clientDesc.refreshClientVersionAndEncryptionStrength(j2seCoreSS, HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA));
 
 					final String pcReqMobiVer = (String)doExtBiz(BIZ_GET_REQ_MOBI_VER_FROM_PC, null);
 					if(StringUtil.higher(pcReqMobiVer, clientDesc.getHCClientVer())){
@@ -305,8 +298,6 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 						coreSS.notifyLineOff(false, false);
 						return true;
 					}
-					
-					hcConnection.setCheck(true);
 					
 //						if(ServerUIAPIAgent.getMobileAgent(j2seCoreSS).getRMSCacheServerUID().length() == 0){
 //							//有可能手机端删除了曾登录账号，又重新连接时，出现此情况。
@@ -330,7 +321,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 				@Override
 				public final byte getEventTag() {
-					return MsgBuilder.E_CLIENT_INFO;
+					return MsgBuilder.E_CLIENT_VER_INFO;
 				}});
 			
 			eventCenter.addListener(new IEventHCListener() {
@@ -396,7 +387,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	}
 	
     @Override
-	public void displayMessage(final String caption, final String text, final int type, final Object imageData, final int timeOut){
+	public void displayMessage(final boolean isFromServerAlertMsg, final String caption, final String text, final int type, final Object imageData, final int timeOut){
     	TrayMenuUtil.displayMessage(caption, text, type, imageData, timeOut);
     }
     
@@ -529,22 +520,22 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					(String)ResourceUtil.get(IContext.ERROR),
 					SingleMessageNotify.NEVER_AUTO_CLOSE, App.getSysIcon(App.SYS_ERROR_ICON));
 			return null;
-		}else if(bizNo == BIZ_MATCHED_FOR_CLIENT_ON_RELAY){
-			j2seCoreSS.keepaliveManager.startConnBuilderWatcherIfNotStart();
-			return null;
+//		}else if(bizNo == BIZ_MATCHED_FOR_CLIENT_ON_RELAY){
+//			j2seCoreSS.keepaliveManager.startConnBuilderWatcherIfNotStart();
+//			return null;
 		}else if(bizNo == BIZ_REPLY_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL){
 //			LogManager.info("successful E_REPLY_TRANS_ONE_TIME_CERT_KEY_IN_SECU_CHANNEL");
-			hcConnection.isReceivedOneTimeInSecuChannalFromMobile = true;
-			if(hcConnection.updateOneTimeKeysRunnable != null){
-//				synchronized (coreSS.context.sendLock) {//由于发送时加锁，故此处无需加锁
-					coreSS.setOneTimeCertKey(hcConnection.oneTime);
-//				}
-				synchronized (hcConnection.oneTimeReceiveNotifyLock) {
-					hcConnection.oneTimeReceiveNotifyLock.notify();
+			if(hcConnection.isReceivedOneTimeInSecuChannalFromMobile == false){
+				hcConnection.isReceivedOneTimeInSecuChannalFromMobile = true;
+				if(hcConnection.updateOneTimeKeysRunnable != null){
+//					synchronized (coreSS.context.sendLock) {//由于发送时加锁，故此处无需加锁
+						coreSS.setOneTimeCertKey(hcConnection.oneTime);
+//					}
+					hcConnection.notifyOneTimeReceiveNotifyLock();
 				}
-			}
-			if(L.isInWorkshop){
-				LogManager.log("success update OneTimeKeys");
+				if(L.isInWorkshop){
+					LogManager.log("success update OneTimeKeys");
+				}
 			}
 			return null;
 		}else if(bizNo == IContext.BIZ_UPLOAD_LINE_ON){
@@ -638,10 +629,10 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			if(IConstant.serverSide){
 				//服务器端
 				final String sc = (String)doExtBiz(IContext.BIZ_LOAD_SERVER_CONFIG, null);
+				isSendServerConfig = true;
+				sendServerConfigMS = System.currentTimeMillis();//要先于send，因为可能高速网络，因置后而没执行
 				coreSS.context.send(
 						MsgBuilder.E_TRANS_SERVER_CONFIG, sc != null?sc:"");//必须发送，因为手机端会返回
-				isSendServerConfig = true;
-				sendServerConfigMS = System.currentTimeMillis();
 				LogManager.log("Transed Server Config");
 				
 
@@ -756,39 +747,6 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		return null;
 	}
 
-	public final void startTransMobileContent() {
-//		if(true || ScreenServer.askForService((J2SESocketSession)coreSS)){//多路服务模式
-			ServerCUtil.transOneTimeCertKey(this, hcConnection);
-			
-			LogManager.log("Pass Certification Key and password");
-			
-			HCURLUtil.sendEClass(coreSS, HCURLUtil.CLASS_TRANS_SERVER_UID, PropertiesManager.getValue(PropertiesManager.p_RMSServerUID));
-			
-			//由于会传送OneTimeKey，所以不需要下步
-			//instance.send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_CERTKEY_AND_PWD_PASS));
-
-			//必须要提前到sleep(1000)之前，以便接收相应状态的消息。否则Invalid statue tag received
-			setStatus(ContextManager.STATUS_SERVER_SELF);
-
-			if(ConfigManager.isTCPOnly == false){//UDP情形下，等待OneTimeCertKey数据到达
-				try{
-					Thread.sleep(1000);
-				}catch (final Exception e) {
-				}
-			}
-			
-			//由原来的客户端请求,改为服务器推送
-			doCanvasMain("menu://root");
-			
-//			final TargetPeer target = KeepaliveManager.target;
-
-			final String msg = TrayMenuUtil.buildMobileConnectionTip();
-			displayMessage(ResourceUtil.getInfoI18N(), msg, 
-					IContext.INFO, null, 0);
-			TrayMenuUtil.notifyMobileLineOn();
-			
-	}
-
 	private static void doAfterPwdError(final CoreSession coreSS) {
 		LogManager.log("Send Error password status to client");
 		coreSS.context.send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_PWD_ERROR));
@@ -844,6 +802,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		final J2SESession j2seCoreSS = (J2SESession)coreSS;
 
 		if(statusTo == ContextManager.STATUS_LINEOFF){
+			j2seCoreSS.streamBuilder.notifyExceptionForReleaseStreamResources();//多次调用，是保证前次可能先行释放
 			j2seCoreSS.keepaliveManager.release();
 			
 			if(statusFrom == ContextManager.STATUS_SERVER_SELF){
@@ -881,7 +840,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 		if(statusTo == ContextManager.STATUS_READY_MTU){
 			//直联或中继初始接入，但未进入验证参数传送
-			j2seCoreSS.keepaliveManager.startConnBuilderWatcherIfNotStart();
+//			j2seCoreSS.keepaliveManager.startConnBuilderWatcherIfNotStart();
 		}
 		
 		if(statusTo == ContextManager.STATUS_SERVER_SELF){
@@ -898,7 +857,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	
 	public static final String MAX_HC_VER = "9999999";//注意与Starter.NO_UPGRADE_VER保持同步
 	
-	private final String minMobiVerRequiredByServer = "7.21";//(含)，
+	private final String minMobiVerRequiredByServer = "7.23";//(含)，
 	//你可能 还 需要修改服务器版本，StarterManager HCVertion = "6.97";
 	public WiFiDeviceManager remoteWrapper;
 	
@@ -909,7 +868,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	public static void notifyExitByMobi(final J2SESession coreSS) {
 		LogManager.log("Client/Relay request lineoff!");
 
-		coreSS.context.displayMessage(
+		coreSS.context.displayMessage(false,
 				ResourceUtil.getInfoI18N(), 
 				(String)ResourceUtil.get(9006), IContext.INFO, null, 0);
 
@@ -955,23 +914,19 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	private final void addListenerForServer() {
 		final ThreadGroup threadPoolToken = App.getThreadPoolToken();
 		eventCenter.addListener(new IEventHCListener(){
-			IHCURLAction urlAction;
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
-				final String cmd = HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA);
-//				L.V = L.WShop ? false : LogManager.log("======>Receive URL:" + cmd);
-				if(urlAction == null){
-					urlAction = coreSS.urlAction;
-				}
-				HCURLUtil.process(coreSS, cmd, urlAction);
-				return true;
+//				if(bs[MsgBuilder.INDEX_CTRL_TAG] == MsgBuilder.E_GOTO_URL){
+//					j2seCoreSS.uiEventInput.setMenuEvent();//比如后台状态，不属于Menu事件，故关闭，未来启用时，可考虑增加isFromMenu子参数
+//				}
+				return HCURLUtil.processGotoUrlForNormalAndSuperLevel(bs, coreSS);
 			}
 
 			@Override
 			public final byte getEventTag() {
 				return MsgBuilder.E_GOTO_URL;
 			}});
-
+		
 		eventCenter.addListener(new IEventHCListener(){
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
@@ -1010,7 +965,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 								if(cmStatus != ContextManager.STATUS_READY_TO_LINE_ON){
 									final String forbid_update_cert = (String)doExtBiz(IContext.BIZ_GET_FORBID_UPDATE_CERT_I18N, null);
 									
-									LogManager.err("mobile side:" + forbid_update_cert);
+									LogManager.err(ResourceUtil.get(9268) + " : " + forbid_update_cert);//9268 : client side
 									coreSS.notifyLineOff(true, false);
 									RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_forbidCert_STR);
 									SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_FORBID_CERT, 
@@ -1045,9 +1000,8 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {				
 				final Boolean isClientReq = Boolean.parseBoolean(HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA));
 
-				doLineOffProcess((J2SESession)coreSS, isClientReq);
-				
-				J2SESessionManager.startNewIdleSession();
+				LogManager.errToLog("STOP process event : E_LINE_OFF_EXCEPTION!");
+//				onEventLineOff(isClientReq);
 				return true;
 			}});
 		
@@ -1067,6 +1021,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				final J2SESession j2seCoreSS = (J2SESession)coreSS;
 				
 				if(j2seCoreSS.isWillCheckServer){
+					j2seCoreSS.keepaliveManager.renewalSendLineMS();
 					eventCenter.removeListener(this);
 					j2seCoreSS.isWillCheckServer = false;
 					final int len = HCMessage.getBigMsgLen(bs);
@@ -1077,15 +1032,49 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					coreSS.context.sendWrap(MsgBuilder.E_RANDOM_FOR_CHECK_SERVER, 
 							bs, MsgBuilder.INDEX_MSG_DATA, len);
 					
-					//必须先发回服务器签名，才能发送正常的内容。
-					//客户端认可服务器失败后，会拒收以下的数据
+					ServerCUtil.transOneTimeCertKey(J2SEContext.this, hcConnection);
 					
-					ContextManager.getThreadPool().run(new Runnable() {
-						@Override
-						public void run() {
-							startTransMobileContent();
-						}
-					});
+					LogManager.log("Pass Certification Key and password");
+					
+					final String array = 
+							PropertiesManager.getValue(PropertiesManager.p_RMSServerUID) + 
+							StringUtil.SPLIT_LEVEL_1_AT +
+							PropertiesManager.getValue(PropertiesManager.p_Token);
+					
+					HCURLUtil.sendEClass(coreSS, HCURLUtil.CLASS_TRANS_SERVER_UID, array);
+					
+					setStatus(ContextManager.STATUS_SERVER_SELF);
+				}
+				return true;
+			}
+		});
+		
+		eventCenter.addListener(new IEventHCListener() {
+			@Override
+			public byte getEventTag() {
+				return MsgBuilder.E_CLIENT_INFO_IN_SECS_CHANNEL;
+			}
+			
+			boolean isFirst = true;
+			
+			@Override
+			public boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
+				final ClientDesc clientDesc = j2seCoreSS.clientDesc;
+				
+				clientDesc.refreshClientInfoInSecuChannel(j2seCoreSS, HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA));
+
+				if(isFirst){
+					isFirst = false;
+					
+					//由原来的客户端请求,改为服务器推送
+					doCanvasMain("menu://root");
+					
+	//				final TargetPeer target = KeepaliveManager.target;
+	
+					final String msg = TrayMenuUtil.buildMobileConnectionTip();
+					displayMessage(false, ResourceUtil.getInfoI18N(), msg, 
+							IContext.INFO, null, 0);
+					TrayMenuUtil.notifyMobileLineOn();
 				}
 				return true;
 			}
@@ -1095,6 +1084,11 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			int tryCount = 0;
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
+				if(coreSS.isExchangeStatus()){
+					LogManager.errToLog("ignore E_RANDOM_FOR_CHECK_CK_PWD when in exchange status.");
+					return true;
+				}
+				
 				if(isReceiveClientInfo == false){
 					SystemLockManager.addOneConnBuildTry(coreSS);
 					return true;
@@ -1171,11 +1165,15 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			
 			@Override
 			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
+				if(coreSS.isExchangeStatus()){
+					LogManager.errToLog("ignore E_TAG_SERVER_RELAY_START when in exchange status.");
+					return true;
+				}
+				
 				setConnectionModeStatus(ContextManager.MODE_CONNECTION_RELAY);
 				
 				if(SIPManager.isOnRelay(hcConnection)){
 					if(j2seCoreSS.lockIdelSession()){
-						J2SESessionManager.startNewIdleSession();
 						setStatus(ContextManager.STATUS_READY_MTU);
 					}else{
 						LogManager.errToLog("Session [" + j2seCoreSS.hashCode() + "] is locked by other client!!!");
@@ -1185,86 +1183,27 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			}
 		});
 		
-		eventCenter.addListener(new IEventHCListener() {
-			
-			@Override
-			public byte getEventTag() {
-				return MsgBuilder.E_SYN_XOR_PACKAGE_ID;//注意：仅用于服务器端，客户端特殊实现
-			}
-			
-			final Object threadToken = ContextManager.getThreadPoolToken();
-			
-			@Override
-			public boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
-				L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] receive SYN_XOR_PACKAGE_ID");
-				
-				final XorPackageData xpd = XorPackageData.buildEmptyPackageData();
-//				try{
-//					Thread.sleep(ThreadPriorityManager.NET_RESPONSE_DELAY_MS);//等待就绪
-//				}catch (Exception e) {
-//				}
-
-				xpd.setBytes(bs);
-				
-				final J2SESession oldCoreSS = (J2SESession)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
-					@Override
-					public Object run() {
-						return SessionManager.getCoreSessionByConnectionID(xpd.getConnectionPackageID());
-					}
-				}, threadToken);
-				
-				if(oldCoreSS != null && UserThreadResourceUtil.isInServing(oldCoreSS.context)){
-					final HCConnection oldServConn = oldCoreSS.getHCConnection();
-					
-					L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] find old server HcConnection, ready to swap connection.");
-					final DataInputStream dropInputStream = coreSS.swapSocket(oldServConn, hcConnection, true);
-					try{
-						L.V = L.WShop ? false : LogManager.log("drop old DataInputStream in ReceiveServer.");
-						dropInputStream.close();//废弃的dis可能占用ReceiveServer的线程，所以要强制close
-					}catch (final Throwable e) {
-					}
-
-					oldCoreSS.keepaliveManager.sendAlive(oldCoreSS.context.cmStatus);
-					oldServConn.resendUnReachablePackage();
-					oldServConn.connectionRebuilder.notifyContinue();
-					
-					GlobalConditionWatcher.addWatcher(new DelayWatcher(5 * 1000) {
-						@Override
-						public void doBiz() {
-							L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] close connection after success renewal.");
-							coreSS.notifyLineOff(false, false);
-						}
-					});
-				}
-				
-				return true;
-			}
-		});
 	}
 
-	static void doLineOffProcess(final J2SESession coreSS, final boolean isClientReq) {
-		//由于多Session共用eventCenterDriver，所以不关闭
-		if(false){
-			coreSS.eventCenterDriver.notifyShutdown();
-		}
+	@Override
+	public final void onEventLineOff(final boolean isClientReq){
+		L.V = L.WShop ? false : LogManager.log("onEventLineOff...");
 		
-		coreSS.streamBuilder.notifyExceptionForReleaseStreamResources(new IOException("System Line Off Exception"));
+		coreSS.eventCenterDriver.notifyShutdown();
+		
+		coreSS.streamBuilder.notifyExceptionForReleaseStreamResources();
 		
 		final IContext ctx = coreSS.context;
 		
 		ctx.setStatus(ContextManager.STATUS_NEED_NAT);
-		if(ctx != null){
-			coreSS.setCheck(false);
-		}
 		
 		//可能更新p_Encrypt_Factor，故刷新(不论正常断线或手机请求)
 		RootConfig.reset(true);
 
 		coreSS.resetCheck();
 		
-		coreSS.keepaliveManager.keepalive.setEnable(false);
-		coreSS.keepaliveManager.keepalive.setIntervalMS(coreSS.keepaliveManager.KEEPALIVE_MS);
-		coreSS.keepaliveManager.removeConnBuilderWatcher();
+		j2seCoreSS.keepaliveManager.keepalive.setEnable(false);
+		j2seCoreSS.keepaliveManager.keepalive.setIntervalMS(j2seCoreSS.keepaliveManager.KEEPALIVE_MS);
 		
 		ctx.coreSS.resetNearDeployTime();
 		
@@ -1281,7 +1220,12 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 //		ConditionWatcher.cancelAllWatch();//释放在途EventBack事件，须在sleep之后
 		
 		SessionManager.release(coreSS);
+		
+		J2SESessionManager.startNewIdleSession();
+		
+		L.V = L.WShop ? false : LogManager.log("done onEventLineOff.");
 	}
+
 }
 
 class PWDDialog extends HCJDialog {

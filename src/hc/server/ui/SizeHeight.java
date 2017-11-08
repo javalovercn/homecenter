@@ -6,59 +6,38 @@ import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.design.J2SESession;
 
 public class SizeHeight {
-
-	int fontSizeForNormal;
-	int fontSizeForSmall;
-	int fontSizeForLarge;
-	int fontSizeForButton;
-	int buttonHeight;
-	int dialogBorderRadius;
 	protected final J2SESession coreSS;
 	private static final int INT_COLOR_BODY = UIUtil.DEFAULT_COLOR_BACKGROUND;
 
+	public SizeHeight(final J2SESession coreSS) {
+		this.coreSS = coreSS;
+	}
+	
 	public final int getFontSizeForNormal() {
-		if(fontSizeForNormal == 0){
-			initFontSize();
-		}
-		return fontSizeForNormal;
+		return coreSS.clientFontSize.fontSizeForNormal;
 	}
 
 	public final int getFontSizeForSmall() {
-		if(fontSizeForSmall == 0){
-			initFontSize();
-		}
-		return fontSizeForSmall;
+		return coreSS.clientFontSize.fontSizeForSmall;
 	}
 
 	public final int getFontSizeForLarge() {
-		if(fontSizeForLarge == 0){
-			initFontSize();
-		}
-		return fontSizeForLarge;
+		return coreSS.clientFontSize.fontSizeForLarge;
 	}
 
 	public final int getFontSizeForButton() {
-		if(fontSizeForButton == 0){
-			initFontSize();
-		}
-		return fontSizeForButton;
+		return coreSS.clientFontSize.fontSizeForButton;
 	}
 	
 	public final int getDialogBorderRadius(){
-		if(dialogBorderRadius == 0){
-			initFontSize();
-		}
-		return dialogBorderRadius;
+		return coreSS.clientFontSize.dialogBorderRadius;
 	}
 
 	public final int getButtonHeight() {
-		if(buttonHeight == 0){
-			initFontSize();
-		}
-		return buttonHeight;
+		return coreSS.clientFontSize.buttonHeight;
 	}
 
-	public final int getMobileWidth(final J2SESession coreSS) {
+	public final int getMobileWidth() {
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return SimuMobile.MOBILE_WIDTH;
 		}else{
@@ -66,51 +45,12 @@ public class SizeHeight {
 		}
 	}
 
-	public final int getMobileHeight(final J2SESession coreSS) {
+	public final int getMobileHeight() {
 		if(coreSS == SimuMobile.SIMU_NULL){
 			return SimuMobile.MOBILE_HEIGHT;
 		}else{
 			return UserThreadResourceUtil.getMletHeightFrom(coreSS);
 		}
-	}
-
-	private final void initFontSize() {
-		final int width = getMobileWidth(coreSS);
-		final int height = getMobileHeight(coreSS);
-		
-		final int maxWH = Math.max(width, height);
-		
-		dialogBorderRadius = Math.round(maxWH / 100f);
-		
-		if(maxWH < 800){
-			fontSizeForNormal = maxWH / 44;//45
-		}else if(maxWH < 1200){
-			fontSizeForNormal = maxWH / 48;//50
-		}else if(maxWH < 1600){
-			fontSizeForNormal = maxWH / 50;//55
-		}else if(maxWH < 2000){
-			fontSizeForNormal = maxWH / 60;
-		}else{
-			fontSizeForNormal = maxWH / 65;
-		}
-	
-		final int baseFontSize = 14;
-		
-		if(fontSizeForNormal < baseFontSize){
-			fontSizeForNormal = baseFontSize;
-		}
-		
-		fontSizeForSmall = (int)Math.floor(fontSizeForNormal * 0.7);
-		if(fontSizeForNormal == baseFontSize){
-			fontSizeForSmall+=2;
-		}
-		fontSizeForButton = (int)Math.ceil(fontSizeForNormal * 1.3);
-		if(fontSizeForNormal == baseFontSize){
-			fontSizeForButton-=2;
-		}
-		fontSizeForLarge = fontSizeForButton;
-		
-		buttonHeight = fontSizeForButton * 2;//原 * 3在800X600的机器上偏大
 	}
 
 	private static final String COLOR_BODY = StringUtil.toARGB(INT_COLOR_BODY, false);
@@ -188,10 +128,6 @@ public class SizeHeight {
 	 */
 	public static final String getColorForBodyByHexString() {
 		return COLOR_BODY;
-	}
-
-	public SizeHeight(final J2SESession coreSS) {
-		this.coreSS = coreSS;
 	}
 
 }

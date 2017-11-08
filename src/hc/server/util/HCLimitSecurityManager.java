@@ -16,6 +16,7 @@ import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
 import hc.res.ImageSrc;
 import hc.server.HCSecurityException;
+import hc.server.data.StoreDirManager;
 import hc.server.msb.AnalysableRobotParameter;
 import hc.server.msb.Converter;
 import hc.server.msb.Device;
@@ -95,18 +96,18 @@ import java.util.logging.LoggingPermission;
 
 import javax.net.ssl.SSLPermission;
 
+import third.quartz.utils.DBConnectionManager;
+
 public class HCLimitSecurityManager extends WrapperSecurityManager implements HarHelper{
 	private final String USE_JAVA_NET_PROXY_CLASS = "please use java.net.Proxy class in HAR project.";
 	private static final String devCertFileName = SecurityDataProtector.getDevCertFileName();
 	private static final String hcHardIdFileName = SecurityDataProtector.getHcHardId();
 
 	private final String OUTSIDE_HAR_WORKING_THREAD = " in EventQueue thread, try using ProjectContext.invokeLater and ProjectContext.getPrivateFile";
-	public static final String USER_DATA = "user_data";
-	public static final String PATH_USER_DATA_OF_OS = USER_DATA + File.separator;//前部不能用File.separator，因为是当前目录
 	public static final String SYS_THREAD_POOL = "block access system level ThreadPool instance.";
 	public static final String SYS_PROPERTIES = "block access properties in PropertiesManager.";
 	public static final String HC_FAIL_TO_ACCESS_HOME_CENTER_NON_PUBLIC_API = "block access HomeCenter non-public API.";
-	
+	private static final Class QUARTZ_CONN_MGR_CLASS = DBConnectionManager.class;
 	private static final SecurityManager oriSecurityManager = System.getSecurityManager();
 	private static HCLimitSecurityManager hcSecurityManager;
 	private static RecycleRes tempLimitRecycleRes;
@@ -214,7 +215,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	 * @return
 	 */
 	public static final String getUserDataBaseDir(final String projID) {
-		return user_data_dir + HttpUtil.encodeFileName(projID) + App.FILE_SEPARATOR;
+		return user_data_dir + HttpUtil.encodeFileName(projID) + File.separator;
 	}
 	
 	public static final void switchHCSecurityManager(final boolean on){
@@ -346,7 +347,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    			LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
 	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class, ProjectInputDialog.class,
 	    			Assistant.class, VoiceCommand.class, AnalysableRobotParameter.class, JavaString.class, IDEUtil.class, Scheduler.class, 
-	    			HCInputStream.class, 
+	    			HCInputStream.class, HCFileInputStream.class, HCImageInputStream.class, HCAudioInputStream.class, 
 	    			JobCalendar.class, BaseJobCalendar.class, AnnualJobCalendar.class, CronExcludeJobCalendar.class, DailyJobCalendar.class, 
 	    			HolidayJobCalendar.class, MonthlyJobCalendar.class, WeeklyJobCalendar.class, 
 	    			JSONArray.class, JSONException.class, JSONML.class, JSONObject.class, JSONPointer.class, JSONPointerException.class,
@@ -391,9 +392,9 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	private final String[] blockMemberAccessLists;
 	private final Class[] memberAccessLists;
 	
-	private static final String hcRootPath = getCanonicalPath("./") + App.FILE_SEPARATOR;
+	private static final String hcRootPath = getCanonicalPath("./") + File.separator;
 	private static final String hcRootPathLower = hcRootPath.toLowerCase(locale);
-	private static final String user_data_dir = hcRootPath + USER_DATA + App.FILE_SEPARATOR;
+	private static final String user_data_dir = hcRootPath + StoreDirManager.USER_DATA + File.separator;
 	private static final String user_data_dirLower = user_data_dir.toLowerCase(locale);
 	private final String propertiesName;
 	
@@ -694,6 +695,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 					}
 					boolean startWithHC = false;
 					if(containblockMemberAccessLists 
+							|| clazz == QUARTZ_CONN_MGR_CLASS
 							|| (startWithHC = name.startsWith("hc.", 0))){
 //									&& ( ! (name.startsWith("hc.hsqldb.", 0))))){
 						if(containblockMemberAccessLists){
@@ -707,8 +709,8 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 						}else{
 							if(startWithHC){
 								throw new HCSecurityException("block memberAccess on Class [" + name + "] in package [hc.]");
-//							}else{
-//								throw new HCSecurityException("block memberAccess on Class : " + name + ", package in [sun.]");
+							}else{
+								throw new HCSecurityException("block memberAccess on Class : " + name);//QUARTZ_CONN_MGR_CLASS
 							}
 						}
 					}
@@ -796,7 +798,6 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		String harDir;
 		if(csc == null){
 			//checkHCStackTraceInclude会导致运算加重
-			
 			if(fileCanonicalPath.endsWith(hcHardIdFileName)
 					|| fileCanonicalPath.endsWith(devCertFileName)){
 				ResourceUtil.checkHCStackTrace();

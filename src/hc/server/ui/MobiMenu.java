@@ -21,7 +21,8 @@ import java.util.Vector;
 
 public class MobiMenu {
 	final Vector<MenuItem> menuItems = new Vector<MenuItem>(12);
-	boolean isIncrementMode;
+	boolean isFlushedBaseMenu;
+	boolean isEnableFlushMenu;
 	public int headerStartIdx = 0;//优先显示的工程文件夹数量
 	public int tailCount = 0;//扩展QR_ADD按钮的数量
 	protected final Object menuLock;
@@ -35,7 +36,9 @@ public class MobiMenu {
 	}
 
 	protected final int getSessionItemsCountInLock() {
-		return menuItems.size() - headerStartIdx - tailCount;
+		synchronized(menuLock){
+			return menuItems.size() - headerStartIdx - tailCount;
+		}
 	}
 	
 	public MobiMenu(final String projectID, final ProjResponser resp){
@@ -98,11 +101,11 @@ public class MobiMenu {
 				}
 			}catch (final Throwable e) {
 			}
-		}
-		
-		if(removed != null){
-			if(isIncrementMode){
-				publishToMobi(REMOVE_ITEM, removed, null);
+
+			if(removed != null){
+				if(isFlushedBaseMenu){
+					publishToMobi(REMOVE_ITEM, removed, null);
+				}
 			}
 		}
 		
@@ -116,12 +119,13 @@ public class MobiMenu {
 			if(isRemoved){
 				item.belongToMenu = null;
 			}
-		}
-		
-		if(isRemoved){
-			if(isIncrementMode){
-				publishToMobi(REMOVE_ITEM, item, null);
+
+			if(isRemoved){
+				if(isFlushedBaseMenu){
+					publishToMobi(REMOVE_ITEM, item, null);
+				}
 			}
+			
 		}
 		
 		return isRemoved;
@@ -148,13 +152,13 @@ public class MobiMenu {
 				isAddedSucc = true;
 			}catch (final Throwable e) {
 			}
-		}
-		
-		if(isAddedSucc){
-			if(isIncrementMode){
-				publishToMobi(ADD_ITEM, item, tail);
+
+			if(isAddedSucc){
+				if(isFlushedBaseMenu){
+					publishToMobi(ADD_ITEM, item, tail);
+				}
+				return true;
 			}
-			return true;
 		}
 		
 		return false;
@@ -166,7 +170,7 @@ public class MobiMenu {
 	 */
 	public void addModifiableItem(final MenuItem item){
 		MenuItem tail = null;
-		synchronized (menuItems) {
+		synchronized (menuLock) {
 			final int size = menuItems.size();
 			final int tailEndIdx = size - tailCount;
 			if(tailEndIdx> 0){
@@ -174,10 +178,10 @@ public class MobiMenu {
 			}
 			menuItems.insertElementAt(item, tailEndIdx);
 			item.belongToMenu = this;
-		}
-		
-		if(isIncrementMode){
-			publishToMobi(ADD_ITEM, item, tail);
+
+			if(isFlushedBaseMenu){
+				publishToMobi(ADD_ITEM, item, tail);
+			}
 		}
 	}
 	
@@ -187,16 +191,16 @@ public class MobiMenu {
 	 */
 	public final void addHeader(final MenuItem item){
 		MenuItem tail = null;
-		synchronized (menuItems) {
+		synchronized (menuLock) {
 			if(headerStartIdx > 0){
 				tail = menuItems.elementAt(headerStartIdx - 1);
 			}
 			menuItems.insertElementAt(item, headerStartIdx++);
 			item.belongToMenu = this;
-		}
-		
-		if(isIncrementMode){
-			publishToMobi(ADD_ITEM, item, tail);
+
+			if(isFlushedBaseMenu){
+				publishToMobi(ADD_ITEM, item, tail);
+			}
 		}
 	}
 	
@@ -206,7 +210,7 @@ public class MobiMenu {
 	 */
 	public final void addTail(final MenuItem item){
 		MenuItem tail = null;
-		synchronized (menuItems) {
+		synchronized (menuLock) {
 			final int size = menuItems.size();
 			if(size> 0){
 				tail = menuItems.elementAt(size - 1);
@@ -214,37 +218,45 @@ public class MobiMenu {
 			menuItems.add(item);
 			item.belongToMenu = this;
 			tailCount++;
-		}
-		
-		if(isIncrementMode){
-			publishToMobi(ADD_ITEM, item, tail);
+
+			if(isFlushedBaseMenu){
+				publishToMobi(ADD_ITEM, item, tail);
+			}
 		}
 	}
 	
-	public boolean isIncrementMode(){
-		return isIncrementMode;
+	public boolean isEnableFlushMenu(){
+		synchronized (menuLock) {
+			return isEnableFlushMenu;
+		}
 	}
 	
 	public final void notifyChangeIcon(final MenuItem item){
-		if(isIncrementMode){
-			publishToMobi(CHANGE_ICON_ITEM, item, null);
+		synchronized (menuLock) {
+			if(isFlushedBaseMenu){
+				publishToMobi(CHANGE_ICON_ITEM, item, null);
+			}
 		}
 	}
 	
 	public final void notifyModify(final MenuItem item){
-		if(isIncrementMode){
-			synchronized (item) {
-				if(item.isNeedRefresh){
-					return;
+		synchronized (menuLock) {
+			if(isFlushedBaseMenu){
+				synchronized (item) {
+					if(item.isNeedRefresh){
+						return;
+					}
+					item.isNeedRefresh = true;
 				}
-				item.isNeedRefresh = true;
+				publishToMobi(MODIFY_ITEM, item, null);
 			}
-			publishToMobi(MODIFY_ITEM, item, null);
 		}
 	}
 	
-	public final void notifyIncrementMode(){
-		isIncrementMode = true;
+	public final void notifyEnableFlushMenu(){
+		synchronized (menuLock) {
+			isEnableFlushMenu = true;
+		}
 	}
 	
 	protected static final String ADD_ITEM = "add";
@@ -266,10 +278,12 @@ public class MobiMenu {
 
 	protected final void switchCoreSS(final J2SESession coreSS, final String op, final MenuItem item,
 			final MenuItem itemBefore) {
-		if(MODIFY_ITEM.equals(op)){
-			publishToMobiToWatcher(coreSS, op, item, itemBefore);
-		}else{
+		L.V = L.WShop ? false : LogManager.log(op + " one menu item : " + item.itemName);
+		
+		if(ADD_ITEM.equals(op)){
 			flushRefresh(item, itemBefore, coreSS, op);
+		}else{
+			publishToMobiToWatcher(coreSS, op, item, itemBefore);
 		}
 	}
 	
@@ -280,10 +294,11 @@ public class MobiMenu {
 		
 		final IWatcher watcher = buildRefreshWatcher(item, itemBefore, coreSS, op);
 		if(coreSS == TO_PROJECT_LEVEL){
-			ServerUIAPIAgent.runInSysThread(new Runnable() {
+			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {//runAndWait for synch
 				@Override
-				public void run() {
+				public Object run() {
 					GlobalConditionWatcher.addWatcher(watcher);
+					return null;
 				}
 			});
 		}else{
@@ -295,7 +310,7 @@ public class MobiMenu {
 	
 	protected final void sendRefreshMenuData(final J2SESession coreSS, final MenuItem item, final MenuItem itemBefore, final String op){
 		if(L.isInWorkshop){
-			LogManager.log("sendRefreshMenuData.");
+			LogManager.log("flush MenuItem E_MENU_REFRESH [53] data, op [" + op + "], item [" + item.itemName + "].");
 		}
 		
 		if(MODIFY_ITEM.equals(op)){

@@ -3,6 +3,7 @@ package hc.server.ui;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.IConstant;
+import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.SessionManager;
 import hc.core.cache.CacheManager;
@@ -78,6 +79,24 @@ public class ServerUIUtil {
 		CCoreUtil.checkAccess();
 		
 		return responsor;//synchronized (LOCK) 会使SIPManager.startLineOffForce互锁
+	}
+	
+	public static void addCacheSoftUID(final String cacheID){
+		CCoreUtil.checkAccess();
+
+		final BaseResponsor snap = responsor;
+		if(snap != null){
+			snap.addCacheSoftUID(cacheID);
+		}else{
+			LogManager.err("BaseResponsor is null for J2SESession!");
+		}
+	}
+	
+	public static void notifyCacheSoftUIDLogout(){
+		final BaseResponsor snap = responsor;
+		if(snap != null){
+			snap.notifyCacheSoftUIDLogout();
+		}
 	}
 	
 	/**
@@ -281,6 +300,8 @@ public class ServerUIUtil {
 	}
 
 	public static void transMenuWithCache(final J2SESession coreSS, final String menuData, final String projID) {
+		L.V = L.WShop ? false : LogManager.log("tranas Menu on [" + projID + "]");
+		
 		final byte[] data = StringUtil.getBytes(menuData);
 		
 		final byte[] projIDbs = ByteUtil.getBytes(projID, IConstant.UTF_8);
@@ -316,9 +337,9 @@ public class ServerUIUtil {
 		final boolean isPrompt = isServing();
 		if(isPrompt){
 			HttpUtil.notifyStopServer(isQuery, parent);
-			
-			J2SESessionManager.stopAllSession(true, true, false);//触发EVENT_SYS_MOBILE_LOGOUT，确保在Event shutdown之前
 		}
+		
+		J2SESessionManager.stopAllSession(true, true, false);//触发EVENT_SYS_MOBILE_LOGOUT，确保在Event shutdown之前
 
 		ServerUIUtil.stop();//event shutdown 需要被确保执行，所以提前
 		

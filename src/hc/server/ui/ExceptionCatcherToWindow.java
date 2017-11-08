@@ -5,6 +5,7 @@ import hc.core.ContextManager;
 import hc.core.L;
 import hc.core.util.LogManager;
 import hc.server.HCJRubyException;
+import hc.util.ClassUtil;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 
@@ -142,36 +143,9 @@ public class ExceptionCatcherToWindow {
 			sb.append(jrubyScript);
 			sb.append("\n-------------------------------end error script-------------------------------\n");
 		}
-		buildOneStack(t, sb, false, true);
+		ClassUtil.buildOneStackWithCause(t, sb, false, true);
 		final String out = sb.toString();
 		StringBuilderCacher.cycle(sb);
 		return out;
-	}
-
-	private void buildOneStack(final Throwable t, final StringBuilder sb, boolean isAfterCauseBy, boolean isAfterScript) {
-		final Throwable causeBy = t.getCause();
-		if(causeBy != null){
-			buildOneStack(causeBy, sb, false, isAfterScript);
-			isAfterScript = false;
-			isAfterCauseBy = true;
-		}
-		
-		if(isAfterScript){
-			sb.append("\n");
-		}
-		
-		if(isAfterCauseBy){
-			sb.append("\n\nCaused by : ");
-		}
-		sb.append(t.getMessage());
-		sb.append("\n");
-		final StackTraceElement[] ste = t.getStackTrace();
-		for (int i = 0; i < ste.length; i++) {
-			final StackTraceElement one = ste[i];
-			if(i > 0){
-				sb.append("\n");
-			}
-			sb.append(one.toString());
-		}
 	}
 }

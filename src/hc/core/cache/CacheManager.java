@@ -69,7 +69,9 @@ public class CacheManager {
 	
 	public static final int MAX_CACHE_SOFTUID_NUM = 10;
 	
-	public static final int CODE_LEN = 20;
+	public static final int CACHE_CODE_DATA_LEN = 8;
+	public static final int CACHE_CODE_XOR_LEN = 20;
+	public static final int CACHE_CODE_LEN = CACHE_CODE_XOR_LEN + CACHE_CODE_DATA_LEN;
 	
 	public static final String RS_PROJ_LIST = "cach_prj_list";
 	private static final String RS_PRE_PROJ_UUID_LIST = "cach_uid_";
@@ -164,7 +166,7 @@ public class CacheManager {
 		
 		LogManager.log("save a cache for [" + projID + "/" + uid + "/" + urlID + "]");
 		
-		ByteUtil.encodeFileXOR(scriptBS, scriptIndex, scriptLen, codeBSforMobileSave, 0, codeBSforMobileSaveLength);
+		ByteUtil.encodeFileXOR(scriptBS, scriptIndex, scriptLen, codeBSforMobileSave);
 
 		CacheManager.storeCache(projID, uid, urlID, 
 				projIdBS, projIdIdx, projIdLen, 
@@ -464,9 +466,9 @@ public class CacheManager {
 	 * @return
 	 */
 	public static byte[] getCacheFileBS(final String projID, final String softUID, final String urlID, 
-			final byte[] codeBS, final int codeOffset, final int codeLen){
+			final byte[] codeBS){
 		CacheDataItem item = getCacheFileItem(projID, softUID, urlID, 
-				codeBS, codeOffset, codeLen);
+				codeBS, 0, codeBS.length);
 		if(item != null){
 			return item.bs;
 		}else{
@@ -477,9 +479,8 @@ public class CacheManager {
 	/**
 	 * 获得指定特征码的数据字符串。
 	 */
-	public static String getCacheFileString(final String projID, final String softUID, final String urlID, 
-			final byte[] codeBS, final int codeOffset, final int codeLen){
-		CacheDataItem item = getCacheFileItem(projID, softUID, urlID, codeBS, codeOffset, codeLen);
+	public static String getCacheFileString(final String projID, final String softUID, final String urlID, final byte[] codeBS){
+		CacheDataItem item = getCacheFileItem(projID, softUID, urlID, codeBS, 0, codeBS.length);
 		if(item != null){
 			return item.toStringValue();
 		}else{

@@ -4,9 +4,9 @@ import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 
 /**
- * {@link Converter} is useful to convert data format between {@link Robot} and {@link Device} (maybe data source for cloud), if data format exchanged between them is inconsistent.
+ * {@link Converter} is useful to convert data format between {@link Robot} and {@link Device} (device also means data source for cloud), when format between them is inconsistent.
  * <BR><BR>
- * if {@link Device} or data source is changed, you may still keep {@link Robot} intact, <BR><BR>
+ * when {@link Device} or data source is upgraded, you can still keep {@link Robot} unchanging, <BR><BR>
  * for example, {@link Robot} <i>R</i> (in HAR project <i>proj_r</i>) drive {@link Device} <i>A</i> (in HAR project <i>proj_dev_a</i>). If {@link Device} <i>A</i> is substituted by {@link Device} <i>B</i>, 
  * then do as following:<BR>
  * 1. remove HAR project <i>proj_dev_a</i> from server,<BR>
