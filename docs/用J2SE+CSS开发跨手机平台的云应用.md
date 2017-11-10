@@ -11,7 +11,8 @@
 ![](http://homecenter.mobi/images/sc_mlet.png)
 
 打开服务器端的&quot;设计器&quot;，如果没有安装，请参阅&quot;**附录-安装开发环境**&quot;。
-初次安装，服务器缺省打开工程&quot;MyFirst&quot;
+
+初次安装，服务器缺省打开工程&quot;MyFirst&quot;。
 
 ### 1. 添加一个HTMLMlet的菜单项
 
