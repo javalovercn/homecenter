@@ -196,7 +196,7 @@ return MyHTMLMlet.new
   7. 关注、下载最新服务器源代码，请转至[https://github.com/javalovercn/homecenter](https://github.com/javalovercn/homecenter)
 
 ## 附录-安装开发环境
-1. 确保已安装Java运行环境(Java Runtime Environment)或Java开发环境(Java SE Development Kit)，没安装，从[https://www.java.com/](https://www.java.com/)下载安装。
+1. 确保已安装Java运行环境7(Java Runtime Environment)或Java开发环境7(Java SE Development Kit)或更高版本。如没安装，点击[https://www.java.com/](https://www.java.com/)。
 2. 安装HomeCenter启动器，打开[https://github.com/javalovercn/hc_server_dist](https://github.com/javalovercn/hc_server_dist)，下载相应操作系统压缩包，比如Windows系统，则是&quot;HC\_Server\_For\_Win.zip&quot;。
 3. 手机端下载，请打开[https://github.com/javalovercn/client](https://github.com/javalovercn/client)。
 4. 解压包，双击可执行脚本。例如：Windows系统是&quot;HomeCenter.bat&quot;；Mac系统则是&quot;HomeCenter.command&quot;。
