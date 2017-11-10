@@ -2,7 +2,7 @@
 
  
 ## 开发第一个HTMLMlet
-新型交互面板HTMLMlet，继承J2SE的JPanel，遵循J2SE的界面开发方法，通过API为JComponent设置CSS，以获得CSS强大展示，实例化时，服务器将其转换为手机端所需的HTML5+JavaScript+CSS，并将用户响应转换为J2SE的Event，驱动JComponent侦听器。
+新型交互面板HTMLMlet，继承J2SE的JPanel，遵循J2SE的界面开发方法，通过API为JComponent设置CSS，以获得CSS强大展示，实例化时，服务器将其实时生成手机端所需的HTML5+JavaScript+CSS，并将用户响应转换为J2SE的Event，驱动JComponent侦听器。
 
 因此，仅需关注业务界面构造和事件响应，其它则全部交与容器。
 
@@ -11,6 +11,7 @@
 ![](http://homecenter.mobi/images/sc_mlet.png)
 
 打开服务器端的&quot;设计器&quot;，如果没有安装，请参阅&quot;**附录-安装开发环境**&quot;。
+初次安装，服务器缺省打开工程&quot;MyFirst&quot;
 
 ### 1. 添加一个HTMLMlet的菜单项
 
