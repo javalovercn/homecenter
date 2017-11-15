@@ -192,7 +192,7 @@ upload two files (the extension is har and had), generate QR image to download h
   3. build-in HSQLDB.
   4. click &quot;Demo&quot; to load demo project, it covers more than 80% JRuby grammar and more than 90% frequently functions.
   5. Java 8 API and CSS 2.2 documents.
-  6. without any changes, it will be able to run on Android, because there is a open source &quot;J2SE for Android&quot; library on the server for Android (it will transcode jar to dex when adding project).
+  6. without any changes, it can run on Android, because there is a open source &quot;J2SE for Android&quot; library on the server for Android (it will transcode jar to dex when adding project).
   7. for the newer source codes of server, please click [https://github.com/javalovercn/homecenter](https://github.com/javalovercn/homecenter)
 
 ## Appendix - Installation Development Environment
