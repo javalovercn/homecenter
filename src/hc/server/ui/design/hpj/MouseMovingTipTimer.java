@@ -11,7 +11,7 @@ import java.awt.Point;
 import javax.swing.text.AbstractDocument;
 
 public class MouseMovingTipTimer extends HCTimer {
-	int x, y;
+	int x, y, lastShowX, lastShowY;
 	final HCTextPane jtaScript;
 	final AbstractDocument jtaDocment;
 	final int fontHeight;
@@ -72,11 +72,11 @@ public class MouseMovingTipTimer extends HCTimer {
 					return;
 				}
 			
-				codeHelper.mouseExitHideDocForMouseMovTimer.triggerOn();
 				final boolean isOn = codeHelper.mouseMovOn(scriptPanel, jtaScript, jtaDocment, fontHeight, true, 
 						caretPosition);
-				if(isOn == false){
-					
+				if(isOn){
+					lastShowX = x;
+					lastShowY = y;
 				}
 			}catch (final Exception ex) {
 				//比如java.awt.IllegalComponentStateException: component must be showing on the screen to determine its location

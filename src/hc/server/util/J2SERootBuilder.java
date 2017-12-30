@@ -36,6 +36,15 @@ public class J2SERootBuilder extends RootBuilder {
 	}
 	
 	@Override
+	public final void setDaemonThread(final Thread thread){
+		try{
+			thread.setDaemon(true);
+		}catch (final Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
 	public final void reportException(final ExceptionJSON json){
 		RMSLastAccessTimeManager.save();//故障可能导致数据丢失前，进行一次保存。
 		

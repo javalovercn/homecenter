@@ -291,7 +291,7 @@ public final class MSBAgent {
 	}
 	
 	/**
-	 * stop and remove this {@link Device}, and <b>NO</b> {@link Message} will be processed by it in the future.
+	 * stop and remove this <code>Device</code>, and <b>NO</b> <code>Message</code> will be processed by it in the future.
 	 * @param proc
 	 * @see #addProcessor(Device)
 	 */

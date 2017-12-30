@@ -50,6 +50,7 @@ public class JPTrayIcon implements PlatformTrayIcon{
 	private String toolTip;
 	
 	{
+		frame.setFocusableWindowState(false);
 		frame.setUndecorated(true);
 		frame.setAlwaysOnTop(true);
 	}

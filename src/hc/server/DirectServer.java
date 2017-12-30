@@ -146,6 +146,9 @@ public class DirectServer extends Thread {
 		while(!isShutdown){
 			if(server == null){
 				synchronized (LOCK) {
+					if(isShutdown){
+						break;
+					}
 					if(server == null){
 						try{
 							LOCK.wait();

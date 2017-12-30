@@ -32,7 +32,7 @@ public class J2SEClassBuilder {
 		final String classFullName = J2SEClassBuilder.class.getName();
 		final String packageName = classFullName.substring(0, classFullName.lastIndexOf("."));
 		
-		final String blockSystemClass = "java.lang.System";
+		final String blockSystemClass = "";//"java.lang.System";
 		
 		builder.append("package " + packageName + ";\n");
 		builder.append("\n");

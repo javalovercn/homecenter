@@ -61,6 +61,10 @@ public class TabHelper {
 		
 		focusParameter();
 	}
+	
+	public static boolean isInTabBlock(){
+		return currentTabBlock != null;
+	}
 
 	private static void focusParameter() {
 		calculateIdx();

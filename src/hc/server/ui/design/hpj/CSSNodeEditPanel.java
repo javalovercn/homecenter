@@ -27,6 +27,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,13 +67,12 @@ import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 
 public class CSSNodeEditPanel extends NameEditPanel {
-	public final CSSJumpRunnable jumpRunnable;
 	
-	private static final SimpleAttributeSet CLASS_LIGHTER = ScriptEditPanel.build(Color.decode("#088A29"), false);//dark green
-	private static final SimpleAttributeSet ITEM_LIGHTER = ScriptEditPanel.build(Color.decode("#0431B4"), false);
-	private static final SimpleAttributeSet SPLITTER_LIGHTER = ScriptEditPanel.build(Color.BLACK, false);
-	private static final SimpleAttributeSet VALUE_LIGHTER = ScriptEditPanel.build(Color.decode("#B18904"), false);
-	private static final SimpleAttributeSet VARIABLE_LIGHTER = ScriptEditPanel.build(Color.decode("#DF0101"), false);
+	private static final SimpleAttributeSet CLASS_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#088A29"), false);//dark green
+	private static final SimpleAttributeSet ITEM_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#0431B4"), false);
+	private static final SimpleAttributeSet SPLITTER_LIGHTER = ResourceUtil.buildAttrSet(Color.BLACK, false);
+	private static final SimpleAttributeSet VALUE_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#B18904"), false);
+	private static final SimpleAttributeSet VARIABLE_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#DF0101"), false);
 	
 	private static final SimpleAttributeSet JUMP_CLASS_DEF_LIGHTER = ScriptEditPanel.buildBackground(new Color(165, 199, 234));
 	
@@ -139,6 +140,18 @@ public class CSSNodeEditPanel extends NameEditPanel {
 
 	private final void colorStyle(){
 		SwingUtilities.invokeLater(colorRunnable);
+	}
+	
+	private final Runnable buildCommentUncommentAction(){
+		return new Runnable() {
+			@Override
+			public void run() {
+				if(CSSUtil.comment(cssEditPane)){
+					colorRunnable.run();
+					cssEditPane.requestFocus();
+				}				
+			}
+		};
 	}
 	
 	private final JPanel cssPanel = new JPanel();
@@ -390,7 +403,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 	}
 	
 	final JButton formatBtn = new JButton(ScriptEditPanel.FORMAT_BUTTON_TEXT);
-	final JButton commentBtn = new JButton("Comment/Uncomment");
+	final JButton commentBtn = ScriptEditPanel.buildCommentUncommentButton(buildCommentUncommentAction());
 	
 	public CSSNodeEditPanel(){
 		super();
@@ -403,7 +416,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 		cssScrollPane.setRowHeaderView(lineNumber);
 		cssScrollPane.getVerticalScrollBar().setUnitIncrement(ServerUIUtil.SCROLLPANE_VERTICAL_UNIT_PIXEL);
 		
-		jumpRunnable = new CSSJumpRunnable() {
+		jumpRunnable = new EditorJumpRunnable() {
 			final SimpleAttributeSet defaultBackground = ScriptEditPanel.buildBackground(cssEditPane.getBackground());
 			final Runnable jumpLoc = new Runnable() {
 				@Override
@@ -454,28 +467,6 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			}
 		};
 	
-		commentBtn.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + /)<BR><BR>comment/uncomment the selected rows.</html>");
-		commentBtn.setIcon(Designer.loadImg("comment_16.png"));
-		final Action commentAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						if(CSSUtil.comment(cssEditPane)){
-							colorRunnable.run();
-							cssEditPane.requestFocus();
-						}
-					}
-				});
-			}
-		};
-		ResourceUtil.buildAcceleratorKeyOnAction(commentAction, KeyEvent.VK_SLASH);
-		commentBtn.addActionListener(commentAction);
-		commentBtn.getActionMap().put("commentCSSAction", commentAction);
-		commentBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-		        (KeyStroke) commentAction.getValue(Action.ACCELERATOR_KEY), "commentCSSAction");
-		
 		formatBtn.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + F)<BR><BR>format the CSS.</html>");
 		formatBtn.setIcon(Designer.loadImg(ImageSrc.FORMAT_16_PNG));
 		
@@ -558,6 +549,30 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			cssEditPane.setParagraphAttributes(aset, false);
 		}
 		
+		cssEditPane.addMouseListener(new MouseListener() {
+			
+			@Override
+			public void mouseReleased(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mousePressed(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mouseExited(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mouseEntered(final MouseEvent e) {
+			}
+			
+			@Override
+			public void mouseClicked(final MouseEvent e) {
+				designer.codeHelper.window.hide();				
+			}
+		});
+		
 		cssEditPane.addKeyListener(new KeyListener() {
 			final boolean isMacOS = ResourceUtil.isMacOSX();
 			final int fontHeight = cssEditPane.getFontMetrics(cssEditPane.getFont()).getHeight();
@@ -626,6 +641,13 @@ public class CSSNodeEditPanel extends NameEditPanel {
 					return;
 				}
 				
+				if(codeHelper.window.isVisible()){
+					codeHelper.window.keyPressed(event);
+					ScriptEditPanel.consumeEvent(event);
+					isEventConsumed = true;
+					return;
+				}
+				
 				if (modifiers == KeyEvent.CTRL_MASK) {
 	                if (keycode == KeyEvent.VK_Z) {
 	                	//ctrl + z
@@ -659,12 +681,13 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			@Override
 			public void focusLost(final FocusEvent e) {
 				designer.setProjCSS(cssEditPane.getText());
+				designer.codeHelper.window.hide();
 			}
 			@Override
 			public void focusGained(final FocusEvent e) {
 				final CodeWindow window = designer.codeHelper.window;
 				if(window.isWillOrAlreadyToFront){
-					window.hide(true);
+					window.hide();
 				}
 			}
 		});

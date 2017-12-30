@@ -13,7 +13,7 @@
  * rights and limitations under the License.
  *
  * Copyright (C) 2009 Thomas E. Enebo <tom.enebo@gmail.com>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -42,16 +42,16 @@ public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcc
     protected String lexicalName;
     private boolean hasParens = false;
 
-    public CallNode(final SourcePosition position, final Node receiverNode, final String name, final Node argsNode) {
+    public CallNode(SourcePosition position, Node receiverNode, String name, Node argsNode) {
         this(position, receiverNode, name, argsNode, null);
     }
-    
-    public CallNode(final SourcePosition position, final Node receiverNode, final String name, final Node argsNode, 
-            final Node iterNode) {
+
+    public CallNode(SourcePosition position, Node receiverNode, String name, Node argsNode,
+            Node iterNode) {
         super(position);
-        
+
         assert receiverNode != null : "receiverNode is not null";
-        
+
         this.receiverNode = adopt(receiverNode);
         setArgs(argsNode);
         this.iterNode = adopt(iterNode);
@@ -67,43 +67,39 @@ public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcc
      * @return Returns a boolean
      */
     @Override
-    public boolean isSame(final Node node) {
+    public boolean isSame(Node node) {
         return super.isSame(node) && isNameMatch(((CallNode) node).getName());
     }
 
 
-    @Override
-	public NodeType getNodeType() {
+    public NodeType getNodeType() {
         return NodeType.CALLNODE;
     }
-    
+
     /**
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
-    @Override
-	public Object accept(final NodeVisitor iVisitor) {
+    public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitCallNode(this);
     }
-    
+
     @Deprecated
     public Node getIterNode() {
         return getIter();
     }
-    
-    @Override
-	public Node getIter() {
+
+    public Node getIter() {
         return iterNode;
     }
-    
-    public Node setIterNode(final Node iterNode) {
+
+    public Node setIterNode(Node iterNode) {
         setIter(iterNode);
-        
+
         return this;
     }
-    
-    @Override
-	public void setIter(final Node iter) {
+
+    public void setIter(Node iter) {
         this.iterNode = adopt(iter);
     }
 
@@ -115,44 +111,40 @@ public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcc
     public Node getArgsNode() {
         return getArgs();
     }
-    
-    @Override
-	public Node getArgs() {
+
+    public Node getArgs() {
         return argsNode;
     }
-    
+
     /**
      * Set the argsNode.
-     * 
+     *
      * @param argsNode set the arguments for this node.
+     * @return the current argsNode
      */
     @Deprecated
-    public Node setArgsNode(final Node argsNode) {
+    public Node setArgsNode(Node argsNode) {
         setArgs(argsNode);
-        
+
         return getArgs();
     }
-    
-    @Override
-	public void setArgs(Node argsNode) {
+
+    public void setArgs(Node argsNode) {
         if (argsNode == null) {
 	    argsNode = new ListNode(getReceiver().getPosition());
         }
         this.argsNode = adopt(argsNode);
     }
 
-    @Override
-	public boolean hasParens() {
+    public boolean hasParens() {
         return hasParens;
     }
 
-    @Override
-	public void setHasParens(final boolean hasParens) {
+    public void setHasParens(boolean hasParens) {
         this.hasParens = hasParens;
     }
-    
-    @Override
-	public String getLexicalName() {
+
+    public String getLexicalName() {
         return lexicalName;
     }
 
@@ -161,27 +153,24 @@ public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcc
 	 * name is the name of the method called
      * @return name
      */
-    @Override
-	public String getName() {
+    public String getName() {
         return name;
     }
 
-    @Override
-	public void setName(final String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    public void setLexicalName(final String lexcicalName) {
-        this.lexicalName = lexcicalName;
+    public void setLexicalName(String lexcicalName) {
+        this.lexicalName = lexicalName;
     }
 
-    @Override
-	public boolean isNameMatch(final String name) {
-        final String thisName = getName();
-        
+    public boolean isNameMatch(String name) {
+        String thisName = getName();
+
         return thisName != null && thisName.equals(name);
     }
-    
+
     /**
      * Gets the receiverNode.
 	 * receiverNode is the object on which the method is being called
@@ -191,25 +180,23 @@ public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcc
     public Node getReceiverNode() {
         return getReceiver();
     }
-    
+
     public Node getReceiver() {
         return receiverNode;
     }
-    
-    public void setReceiver(final Node receiver) {
+
+    public void setReceiver(Node receiver) {
         this.receiverNode = adopt(receiver);
     }
 
-    @Override
-	public SourcePosition getNamePosition() {
-        final SourcePosition pos = receiverNode.getPosition();
-        
+    public SourcePosition getNamePosition() {
+        SourcePosition pos = receiverNode.getPosition();
+
         return new SourcePosition(pos.getFile(), pos.getStartLine(), pos.getEndLine(),
                 pos.getEndOffset(), pos.getEndOffset() + getName().length());
     }
-    
-    @Override
-	public SourcePosition getLexicalNamePosition() {
+
+    public SourcePosition getLexicalNamePosition() {
         return getNamePosition();
     }
 }

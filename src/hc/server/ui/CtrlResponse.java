@@ -19,8 +19,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 /**
- * {@link CtrlResponse} is used to design a remote controller.
- * <BR><BR>if want to design a powerful controller with complex UI, see {@link HTMLMlet}.
+ * <code>CtrlResponse</code> is used to design a remote controller.
+ * <BR><BR>if want to design a powerful controller with complex UI, see <code>HTMLMlet</code>.
  * @since 6.98
  */
 public abstract class CtrlResponse {

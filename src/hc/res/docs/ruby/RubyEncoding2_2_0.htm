@@ -1,0 +1,1972 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <!-- classpage -- >
+    <!-- RD version: 0.39.0  -->
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+  <meta name='description' content='  Class : Encoding  -   Ruby 2.2.0 ' />
+  <meta content="2017-09-09 18:34:19 -0500" http-equiv="change-date" />
+  <!-- rel_prefix  = ''  ENV['RDOC_FOR_WEBSITE']   = true-->
+    
+    
+    
+  <!-- rel_prefix = '.'   asset_rel_prefix = ''  --> 
+  <title>Class: Encoding (Ruby 2.2.0) </title>
+  <link rel="stylesheet" href="/css/associated.css" type="text/css" >
+  <!-- link rel="stylesheet" href=".css/obf.css"  -->
+  <link rel="stylesheet" href="/css/inuit.css" >
+  <link rel="stylesheet" href="/css/grid.inuit.css" >
+  <link rel="stylesheet" href="/css/2011.css" type="text/css" >
+  <link rel="stylesheet" href="/css/rdoc.css" type="text/css" >
+    <link rel="stylesheet" href="/css/carbon17.css" type="text/css" >
+
+
+  <script src="/js/jquery.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/thickbox-compressed.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/quicksearch.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/rubydoc.js" type="text/javascript" charset="utf-8"></script> 
+
+
+   
+<script src="/js/highlight.min.js"></script>
+<script> 
+  hljs.tabReplace = '  ';
+  hljs.initHighlightingOnLoad();
+  </script> 
+
+  <style type='text/css'>
+
+    #vulns-alert #vulns{
+      background-color: #c33 ! important;
+      width: 100%;
+      text-align: center;
+   }
+   
+   #vulns-alert #vulns a {
+    color: #F99 ! important;
+   }
+ </style>
+
+   <link rel="stylesheet" href="/css/extra.css" type="text/css" >
+  <script  src="/js/extra.js"  ></script>
+
+
+</head>
+
+<body id="top" class="class rdocstar">
+
+<div id='actionbar' >
+<div class='wrapper'>
+  <ul class='grids g0'>
+	<li class='grid-2' ><a href='/' target='_top' >Home</a></li>
+	<li class='grid-2' ><a href='/core-2.2.0' target='_top' >Core 2.2.0</a></li>
+	<li class='grid-2' ><a href='/stdlib-2.2.0' target='_top' >Std-lib 2.2.0</a></li>
+
+   <li class='grid-2' ><a href='/downloads' target='_top' >Downloads</a></li>
+	 <li class='grid-5 right' id='rd-action-search'><form id="searchbox_011815814100681837392:wnccv6st5qk" action="http://ruby-doc.com/search.html"><input type="hidden" name="cx" value="011815814100681837392:wnccv6st5qk" ><input  id='rd-search-input' name="q" type="text" size="20" >&#160;&#160;<input type="submit" name="sa" value="Search" ><input type="hidden" name="cof" value="FORID:9" ></form></li>
+	</ul>
+</div>
+<span id='vulns-alert'></span>
+<div id='versionheader'>
+<p>Support for the Ruby 2.2 series will end March 2018. See <a href='https://www.ruby-lang.org/en/news/2017/04/01/support-of-ruby-2-1-has-ended/'>here</a> for reference.</p>
+</div>
+</div> <!-- end action bar -->
+ <div class='wrapper'>
+  
+   <!-- carbon17 added here 2017-09-09 -->
+ 
+   <script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD627W', 'placement:rubydocorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+ 
+
+   <div id="metadata">
+    <div id="home-metadata">
+      <div id="home-section" class="section">
+        <h3 class="section-header">
+          <a href="./index.html">Home</a>
+          <a href="./index.html#classes">Classes</a>
+          <a href="./index.html#methods">Methods</a>
+          
+          
+          <!-- br><a id='alternateFormatLink' class='rotate' href="#" onclick='matchingYardUrl()'>YARD version</a -->
+          
+        </h3>
+      </div>
+    </div>
+
+    <div id="file-metadata">
+      <div id="file-list-section" class="section">
+        <h3 class="section-header">In Files</h3>
+        <div class="section-body">
+          <ul id='file-metadata'>
+
+          
+          
+          
+          <li class='in-file'>encoding.c</li>      
+            
+          
+          <li class='in-file'>transcode.c</li>      
+            
+          </ul>
+        </div>
+      </div>
+
+      
+    </div>
+
+    <div id="class-metadata">
+      
+      <!-- Parent Class -->
+      <div id="parent-class-section" class="section">
+        <h3 class="section-header">Parent</h3>
+        
+        <p class="link"><a href="Object.html">Object</a></p>
+        
+      </div>
+      
+
+      
+
+      
+      <!-- Namespace Contents -->
+      <div id="namespace-list-section" class="section">
+        <h3 class="section-header">Namespace</h3>
+        <ul class="link-list">
+          
+          <li><span class="type">CLASS</span> <a href="Encoding/CompatibilityError.html">Encoding::CompatibilityError</a></li>
+          
+          <li><span class="type">CLASS</span> <a href="Encoding/Converter.html">Encoding::Converter</a></li>
+          
+          <li><span class="type">CLASS</span> <a href="Encoding/ConverterNotFoundError.html">Encoding::ConverterNotFoundError</a></li>
+          
+          <li><span class="type">CLASS</span> <a href="Encoding/InvalidByteSequenceError.html">Encoding::InvalidByteSequenceError</a></li>
+          
+          <li><span class="type">CLASS</span> <a href="Encoding/UndefinedConversionError.html">Encoding::UndefinedConversionError</a></li>
+          
+        </ul>
+      </div>
+      
+
+      
+      <!-- Method Quickref -->
+      <div id="method-list-section" class="section">
+        <h3 class="section-header">Methods</h3>
+        <ul class="link-list">
+          
+          <li><a href="#method-c-aliases">::aliases</a></li>
+          
+          <li><a href="#method-c-compatible-3F">::compatible?</a></li>
+          
+          <li><a href="#method-c-default_external">::default_external</a></li>
+          
+          <li><a href="#method-c-default_external-3D">::default_external=</a></li>
+          
+          <li><a href="#method-c-default_internal">::default_internal</a></li>
+          
+          <li><a href="#method-c-default_internal-3D">::default_internal=</a></li>
+          
+          <li><a href="#method-c-find">::find</a></li>
+          
+          <li><a href="#method-c-list">::list</a></li>
+          
+          <li><a href="#method-c-name_list">::name_list</a></li>
+          
+          <li><a href="#method-i-ascii_compatible-3F">#ascii_compatible?</a></li>
+          
+          <li><a href="#method-i-dummy-3F">#dummy?</a></li>
+          
+          <li><a href="#method-i-inspect">#inspect</a></li>
+          
+          <li><a href="#method-i-name">#name</a></li>
+          
+          <li><a href="#method-i-names">#names</a></li>
+          
+          <li><a href="#method-i-replicate">#replicate</a></li>
+          
+          <li><a href="#method-i-to_s">#to_s</a></li>
+          
+        </ul>
+      </div>
+      
+
+      
+    </div>
+
+    <div id="project-metadata">
+      
+      
+      <div id="fileindex-section" class="section project-section">
+        <h3 class="section-header">Files</h3>
+        <ul id='files'>
+        
+          
+          <li class="file"><a href="./_lib/racc/rdoc/grammar_en_rdoc.html">grammar.en.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./_test/rdoc/test_ja_rdoc.html">test.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributing_rdoc.html">contributing.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributors_rdoc.html">contributors.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/dtrace_probes_rdoc.html">dtrace_probes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/globals_rdoc.html">globals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/keywords_rdoc.html">keywords.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/maintainers_rdoc.html">maintainers.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/marshal_rdoc.html">marshal.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/regexp_rdoc.html">regexp.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/security_rdoc.html">security.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/standard_library_rdoc.html">standard_library.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax_rdoc.html">syntax.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/assignment_rdoc.html">assignment.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/calling_methods_rdoc.html">calling_methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/control_expressions_rdoc.html">control_expressions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/exceptions_rdoc.html">exceptions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/literals_rdoc.html">literals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/methods_rdoc.html">methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/miscellaneous_rdoc.html">miscellaneous.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/modules_and_classes_rdoc.html">modules_and_classes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/precedence_rdoc.html">precedence.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/refinements_rdoc.html">refinements.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_ja_rdoc.html">README.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_rdoc.html">README.rdoc</a></li>
+        
+        </ul>
+      </div>
+      
+
+      <div id="classindex-section" class="section project-section">
+        <h3 class="section-header">Class/Module Index
+          <span class="search-toggle"><img src="./images/find.png"
+            height="16" width="16" alt="[+]"
+            title="show/hide quicksearch" /></span></h3>
+        <form action="#" method="get" accept-charset="utf-8" class="initially-hidden">
+        <fieldset>
+          <legend>Quicksearch</legend>
+          <input type="text" name="quicksearch" value=""
+            class="quicksearch-field" />
+        </fieldset>
+        </form>
+
+        <ul class="link-list">
+          
+          
+          
+          <li><a href="./ArgumentError.html">ArgumentError</a></li>
+        
+          
+          
+          <li><a href="./Array.html">Array</a></li>
+        
+          
+          
+          <li><a href="./BasicObject.html">BasicObject</a></li>
+        
+          
+          
+          <li><a href="./Bignum.html">Bignum</a></li>
+        
+          
+          
+          <li><a href="./Binding.html">Binding</a></li>
+        
+          
+          
+          <li><a href="./Class.html">Class</a></li>
+        
+          
+          
+          <li><a href="./Comparable.html">Comparable</a></li>
+        
+          
+          
+          <li><a href="./Complex.html">Complex</a></li>
+        
+          
+          
+          <li><a href="./Complex/compatible.html">Complex::compatible</a></li>
+        
+          
+          
+          <li><a href="./ConditionVariable.html">ConditionVariable</a></li>
+        
+          
+          
+          <li><a href="./Continuation.html">Continuation</a></li>
+        
+          
+          
+          <li><a href="./Data.html">Data</a></li>
+        
+          
+          
+          <li><a href="./Dir.html">Dir</a></li>
+        
+          
+          
+          <li><a href="./ENV.html">ENV</a></li>
+        
+          
+          
+          <li><a href="./EOFError.html">EOFError</a></li>
+        
+          
+          
+          <li><a href="./Encoding.html">Encoding</a></li>
+        
+          
+          
+          <li><a href="./Encoding/CompatibilityError.html">Encoding::CompatibilityError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/Converter.html">Encoding::Converter</a></li>
+        
+          
+          
+          <li><a href="./Encoding/ConverterNotFoundError.html">Encoding::ConverterNotFoundError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/InvalidByteSequenceError.html">Encoding::InvalidByteSequenceError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/UndefinedConversionError.html">Encoding::UndefinedConversionError</a></li>
+        
+          
+          
+          <li><a href="./EncodingError.html">EncodingError</a></li>
+        
+          
+          
+          <li><a href="./Enumerable.html">Enumerable</a></li>
+        
+          
+          
+          <li><a href="./Enumerator.html">Enumerator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Generator.html">Enumerator::Generator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Lazy.html">Enumerator::Lazy</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Yielder.html">Enumerator::Yielder</a></li>
+        
+          
+          
+          <li><a href="./Errno.html">Errno</a></li>
+        
+          
+          
+          <li><a href="./Exception.html">Exception</a></li>
+        
+          
+          
+          <li><a href="./FalseClass.html">FalseClass</a></li>
+        
+          
+          
+          <li><a href="./Fiber.html">Fiber</a></li>
+        
+          
+          
+          <li><a href="./FiberError.html">FiberError</a></li>
+        
+          
+          
+          <li><a href="./File.html">File</a></li>
+        
+          
+          
+          <li><a href="./File/Constants.html">File::Constants</a></li>
+        
+          
+          
+          <li><a href="./File/Stat.html">File::Stat</a></li>
+        
+          
+          
+          <li><a href="./FileTest.html">FileTest</a></li>
+        
+          
+          
+          <li><a href="./Fixnum.html">Fixnum</a></li>
+        
+          
+          
+          <li><a href="./Float.html">Float</a></li>
+        
+          
+          
+          <li><a href="./FloatDomainError.html">FloatDomainError</a></li>
+        
+          
+          
+          <li><a href="./GC.html">GC</a></li>
+        
+          
+          
+          <li><a href="./GC/Profiler.html">GC::Profiler</a></li>
+        
+          
+          
+          <li><a href="./Hash.html">Hash</a></li>
+        
+          
+          
+          <li><a href="./IO.html">IO</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitReadable.html">IO::EAGAINWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitWritable.html">IO::EAGAINWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitReadable.html">IO::EINPROGRESSWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitWritable.html">IO::EINPROGRESSWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitReadable.html">IO::EWOULDBLOCKWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitWritable.html">IO::EWOULDBLOCKWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitReadable.html">IO::WaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitWritable.html">IO::WaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IOError.html">IOError</a></li>
+        
+          
+          
+          <li><a href="./IndexError.html">IndexError</a></li>
+        
+          
+          
+          <li><a href="./Integer.html">Integer</a></li>
+        
+          
+          
+          <li><a href="./Interrupt.html">Interrupt</a></li>
+        
+          
+          
+          <li><a href="./Kernel.html">Kernel</a></li>
+        
+          
+          
+          <li><a href="./KeyError.html">KeyError</a></li>
+        
+          
+          
+          <li><a href="./LoadError.html">LoadError</a></li>
+        
+          
+          
+          <li><a href="./LocalJumpError.html">LocalJumpError</a></li>
+        
+          
+          
+          <li><a href="./Marshal.html">Marshal</a></li>
+        
+          
+          
+          <li><a href="./MatchData.html">MatchData</a></li>
+        
+          
+          
+          <li><a href="./Math.html">Math</a></li>
+        
+          
+          
+          <li><a href="./Math/DomainError.html">Math::DomainError</a></li>
+        
+          
+          
+          <li><a href="./Method.html">Method</a></li>
+        
+          
+          
+          <li><a href="./Module.html">Module</a></li>
+        
+          
+          
+          <li><a href="./Mutex.html">Mutex</a></li>
+        
+          
+          
+          <li><a href="./NameError.html">NameError</a></li>
+        
+          
+          
+          <li><a href="./NilClass.html">NilClass</a></li>
+        
+          
+          
+          <li><a href="./NoMemoryError.html">NoMemoryError</a></li>
+        
+          
+          
+          <li><a href="./NoMethodError.html">NoMethodError</a></li>
+        
+          
+          
+          <li><a href="./NotImplementedError.html">NotImplementedError</a></li>
+        
+          
+          
+          <li><a href="./Numeric.html">Numeric</a></li>
+        
+          
+          
+          <li><a href="./Object.html">Object</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace.html">ObjectSpace</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace/WeakMap.html">ObjectSpace::WeakMap</a></li>
+        
+          
+          
+          <li><a href="./Proc.html">Proc</a></li>
+        
+          
+          
+          <li><a href="./Process.html">Process</a></li>
+        
+          
+          
+          <li><a href="./Process/GID.html">Process::GID</a></li>
+        
+          
+          
+          <li><a href="./Process/Status.html">Process::Status</a></li>
+        
+          
+          
+          <li><a href="./Process/Sys.html">Process::Sys</a></li>
+        
+          
+          
+          <li><a href="./Process/UID.html">Process::UID</a></li>
+        
+          
+          
+          <li><a href="./Process/Waiter.html">Process::Waiter</a></li>
+        
+          
+          
+          <li><a href="./Queue.html">Queue</a></li>
+        
+          
+          
+          <li><a href="./Random.html">Random</a></li>
+        
+          
+          
+          <li><a href="./Range.html">Range</a></li>
+        
+          
+          
+          <li><a href="./RangeError.html">RangeError</a></li>
+        
+          
+          
+          <li><a href="./Rational.html">Rational</a></li>
+        
+          
+          
+          <li><a href="./Rational/compatible.html">Rational::compatible</a></li>
+        
+          
+          
+          <li><a href="./Regexp.html">Regexp</a></li>
+        
+          
+          
+          <li><a href="./RegexpError.html">RegexpError</a></li>
+        
+          
+          
+          <li><a href="./RubyVM.html">RubyVM</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/Env.html">RubyVM::Env</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/InstructionSequence.html">RubyVM::InstructionSequence</a></li>
+        
+          
+          
+          <li><a href="./RuntimeError.html">RuntimeError</a></li>
+        
+          
+          
+          <li><a href="./ScriptError.html">ScriptError</a></li>
+        
+          
+          
+          <li><a href="./SecurityError.html">SecurityError</a></li>
+        
+          
+          
+          <li><a href="./Signal.html">Signal</a></li>
+        
+          
+          
+          <li><a href="./SignalException.html">SignalException</a></li>
+        
+          
+          
+          <li><a href="./SizedQueue.html">SizedQueue</a></li>
+        
+          
+          
+          <li><a href="./StandardError.html">StandardError</a></li>
+        
+          
+          
+          <li><a href="./StopIteration.html">StopIteration</a></li>
+        
+          
+          
+          <li><a href="./String.html">String</a></li>
+        
+          
+          
+          <li><a href="./Struct.html">Struct</a></li>
+        
+          
+          
+          <li><a href="./Symbol.html">Symbol</a></li>
+        
+          
+          
+          <li><a href="./SyntaxError.html">SyntaxError</a></li>
+        
+          
+          
+          <li><a href="./SystemCallError.html">SystemCallError</a></li>
+        
+          
+          
+          <li><a href="./SystemExit.html">SystemExit</a></li>
+        
+          
+          
+          <li><a href="./SystemStackError.html">SystemStackError</a></li>
+        
+          
+          
+          <li><a href="./Thread.html">Thread</a></li>
+        
+          
+          
+          <li><a href="./Thread/Backtrace/Location.html">Thread::Backtrace::Location</a></li>
+        
+          
+          
+          <li><a href="./ThreadError.html">ThreadError</a></li>
+        
+          
+          
+          <li><a href="./ThreadGroup.html">ThreadGroup</a></li>
+        
+          
+          
+          <li><a href="./Time.html">Time</a></li>
+        
+          
+          
+          <li><a href="./TracePoint.html">TracePoint</a></li>
+        
+          
+          
+          <li><a href="./TrueClass.html">TrueClass</a></li>
+        
+          
+          
+          <li><a href="./TypeError.html">TypeError</a></li>
+        
+          
+          
+          <li><a href="./UnboundMethod.html">UnboundMethod</a></li>
+        
+          
+          
+          <li><a href="./UncaughtThrowError.html">UncaughtThrowError</a></li>
+        
+          
+          
+          <li><a href="./ZeroDivisionError.html">ZeroDivisionError</a></li>
+        
+          
+          
+          <li><a href="./fatal.html">fatal</a></li>
+        
+          
+          
+          <li><a href="./unknown.html">unknown</a></li>
+        
+        </ul>
+        <div id="no-class-search-results" style="display: none;">No matching classes.</div>
+      </div>
+
+      
+    </div>
+  </div> <!-- metadata -->
+  <div class='adzbox'  id="azk83167">
+    
+   <div id="carbonads-container"><div class="carbonad">
+    <script async type="text/javascript" src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=rubydocorg" 
+      id="_carbonads_js">
+      </script>
+  </div></div>
+
+   
+  </div> 
+  <div id="documentation">
+    <h1 class="class">Encoding</h1>
+
+    <div id="description" class="description">
+      
+<p>An <a href="Encoding.html">Encoding</a> instance represents a character
+encoding usable in Ruby. It is defined as a constant under the <a
+href="Encoding.html">Encoding</a> namespace. It has a name and optionally,
+aliases:</p>
+
+<pre class="ruby"><span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">ISO_8859_1</span>.<span class="ruby-identifier">name</span>
+<span class="ruby-comment">#=&gt; #&lt;Encoding:ISO-8859-1&gt;</span>
+
+<span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">ISO_8859_1</span>.<span class="ruby-identifier">names</span>
+<span class="ruby-comment">#=&gt; [&quot;ISO-8859-1&quot;, &quot;ISO8859-1&quot;]</span>
+</pre>
+
+<p>Ruby methods dealing with encodings return or accept <a
+href="Encoding.html">Encoding</a> instances as arguments (when a method
+accepts an <a href="Encoding.html">Encoding</a> instance as an argument, it
+can be passed an <a href="Encoding.html">Encoding</a> name or alias
+instead).</p>
+
+<pre class="ruby"><span class="ruby-string">&quot;some string&quot;</span>.<span class="ruby-identifier">encoding</span>
+<span class="ruby-comment">#=&gt; #&lt;Encoding:UTF-8&gt;</span>
+
+<span class="ruby-identifier">string</span> = <span class="ruby-string">&quot;some string&quot;</span>.<span class="ruby-identifier">encode</span>(<span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">ISO_8859_1</span>)
+<span class="ruby-comment">#=&gt; &quot;some string&quot;</span>
+<span class="ruby-identifier">string</span>.<span class="ruby-identifier">encoding</span>
+<span class="ruby-comment">#=&gt; #&lt;Encoding:ISO-8859-1&gt;</span>
+
+<span class="ruby-string">&quot;some string&quot;</span>.<span class="ruby-identifier">encode</span> <span class="ruby-string">&quot;ISO-8859-1&quot;</span>
+<span class="ruby-comment">#=&gt; &quot;some string&quot;</span>
+</pre>
+
+<p><code>Encoding::ASCII_8BIT</code> is a special encoding that is usually
+used for a byte string, not a character string. But as the name insists,
+its characters in the range of ASCII are considered as ASCII characters.
+This is useful when you use ASCII-8BIT characters with other ASCII
+compatible characters.</p>
+
+<h2 id="class-Encoding-label-Changing+an+encoding">Changing an encoding<span><a href="#class-Encoding-label-Changing+an+encoding">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>The associated <a href="Encoding.html">Encoding</a> of a <a
+href="String.html">String</a> can be changed in two different ways.</p>
+
+<p>First, it is possible to set the <a href="Encoding.html">Encoding</a> of a
+string to a new <a href="Encoding.html">Encoding</a> without changing the
+internal byte representation of the string, with <a
+href="String.html#method-i-force_encoding">String#force_encoding</a>. This
+is how you can tell Ruby the correct encoding of a string.</p>
+
+<pre class="ruby"><span class="ruby-identifier">string</span>
+<span class="ruby-comment">#=&gt; &quot;R\xC3\xA9sum\xC3\xA9&quot;</span>
+<span class="ruby-identifier">string</span>.<span class="ruby-identifier">encoding</span>
+<span class="ruby-comment">#=&gt; #&lt;Encoding:ISO-8859-1&gt;</span>
+<span class="ruby-identifier">string</span>.<span class="ruby-identifier">force_encoding</span>(<span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">UTF_8</span>)
+<span class="ruby-comment">#=&gt; &quot;R\u00E9sum\u00E9&quot;</span>
+</pre>
+
+<p>Second, it is possible to transcode a string, i.e. translate its internal
+byte representation to another encoding. Its associated encoding is also
+set to the other encoding. See <a
+href="String.html#method-i-encode">String#encode</a> for the various forms
+of transcoding, and the <a
+href="Encoding/Converter.html">Encoding::Converter</a> class for additional
+control over the transcoding process.</p>
+
+<pre class="ruby"><span class="ruby-identifier">string</span>
+<span class="ruby-comment">#=&gt; &quot;R\u00E9sum\u00E9&quot;</span>
+<span class="ruby-identifier">string</span>.<span class="ruby-identifier">encoding</span>
+<span class="ruby-comment">#=&gt; #&lt;Encoding:UTF-8&gt;</span>
+<span class="ruby-identifier">string</span> = <span class="ruby-identifier">string</span>.<span class="ruby-identifier">encode!</span>(<span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">ISO_8859_1</span>)
+<span class="ruby-comment">#=&gt; &quot;R\xE9sum\xE9&quot;</span>
+<span class="ruby-identifier">string</span>.<span class="ruby-identifier">encoding</span>
+<span class="ruby-comment">#=&gt; #&lt;Encoding::ISO-8859-1&gt;</span>
+</pre>
+
+<h2 id="class-Encoding-label-Script+encoding">Script encoding<span><a href="#class-Encoding-label-Script+encoding">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>All Ruby script code has an associated <a href="Encoding.html">Encoding</a>
+which any <a href="String.html">String</a> literal created in the source
+code will be associated to.</p>
+
+<p>The default script encoding is <code>Encoding::UTF-8</code> after v2.0, but
+it can be changed by a magic comment on the first line of the source code
+file (or second line, if there is a shebang line on the first). The comment
+must contain the word <code>coding</code> or <code>encoding</code>,
+followed by a colon, space and the <a href="Encoding.html">Encoding</a>
+name or alias:</p>
+
+<pre class="ruby"><span class="ruby-comment"># encoding: UTF-8</span>
+
+<span class="ruby-string">&quot;some string&quot;</span>.<span class="ruby-identifier">encoding</span>
+<span class="ruby-comment">#=&gt; #&lt;Encoding:UTF-8&gt;</span>
+</pre>
+
+<p>The <code>__ENCODING__</code> keyword returns the script encoding of the
+file which the keyword is written:</p>
+
+<pre class="ruby"><span class="ruby-comment"># encoding: ISO-8859-1</span>
+
+<span class="ruby-identifier">__ENCODING__</span>
+<span class="ruby-comment">#=&gt; #&lt;Encoding:ISO-8859-1&gt;</span>
+</pre>
+
+<p><code>ruby -K</code> will change the default locale encoding, but this is
+not recommended. Ruby source files should declare its script encoding by a
+magic comment even when they only depend on US-ASCII strings or regular
+expressions.</p>
+
+<h2 id="class-Encoding-label-Locale+encoding">Locale encoding<span><a href="#class-Encoding-label-Locale+encoding">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>The default encoding of the environment. Usually derived from locale.</p>
+
+<p>see Encoding.locale_charmap, <a
+href="Encoding.html#method-c-find">::find</a>(‘locale’)</p>
+
+<h2 id="class-Encoding-label-Filesystem+encoding">Filesystem encoding<span><a href="#class-Encoding-label-Filesystem+encoding">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>The default encoding of strings from the filesystem of the environment.
+This is used for strings of file names or paths.</p>
+
+<p>see <a href="Encoding.html#method-c-find">::find</a>(‘filesystem’)</p>
+
+<h2 id="class-Encoding-label-External+encoding">External encoding<span><a href="#class-Encoding-label-External+encoding">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>Each <a href="IO.html">IO</a> object has an external encoding which
+indicates the encoding that Ruby will use to read its data. By default Ruby
+sets the external encoding of an <a href="IO.html">IO</a> object to the
+default external encoding. The default external encoding is set by locale
+encoding or the interpreter <code>-E</code> option. <a
+href="Encoding.html#method-c-default_external">::default_external</a>
+returns the current value of the external encoding.</p>
+
+<pre>ENV[&quot;LANG&quot;]
+#=&gt; &quot;UTF-8&quot;
+Encoding.default_external
+#=&gt; #&lt;Encoding:UTF-8&gt;
+
+$ ruby -E ISO-8859-1 -e &quot;p Encoding.default_external&quot;
+#&lt;Encoding:ISO-8859-1&gt;
+
+$ LANG=C ruby -e 'p Encoding.default_external'
+#&lt;Encoding:US-ASCII&gt;</pre>
+
+<p>The default external encoding may also be set through <a
+href="Encoding.html#method-c-default_external-3D">::default_external=</a>,
+but you should not do this as strings created before and after the change
+will have inconsistent encodings.  Instead use <code>ruby -E</code> to
+invoke ruby with the correct external encoding.</p>
+
+<p>When you know that the actual encoding of the data of an <a
+href="IO.html">IO</a> object is not the default external encoding, you can
+reset its external encoding with <a
+href="IO.html#method-i-set_encoding">IO#set_encoding</a> or set it at <a
+href="IO.html">IO</a> object creation (see <a
+href="IO.html#method-c-new">IO.new</a> options).</p>
+
+<h2 id="class-Encoding-label-Internal+encoding">Internal encoding<span><a href="#class-Encoding-label-Internal+encoding">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>To process the data of an <a href="IO.html">IO</a> object which has an
+encoding different from its external encoding, you can set its internal
+encoding. Ruby will use this internal encoding to transcode the data when
+it is read from the <a href="IO.html">IO</a> object.</p>
+
+<p>Conversely, when data is written to the <a href="IO.html">IO</a> object it
+is transcoded from the internal encoding to the external encoding of the <a
+href="IO.html">IO</a> object.</p>
+
+<p>The internal encoding of an <a href="IO.html">IO</a> object can be set with
+<a href="IO.html#method-i-set_encoding">IO#set_encoding</a> or at <a
+href="IO.html">IO</a> object creation (see <a
+href="IO.html#method-c-new">IO.new</a> options).</p>
+
+<p>The internal encoding is optional and when not set, the Ruby default
+internal encoding is used. If not explicitly set this default internal
+encoding is <code>nil</code> meaning that by default, no transcoding
+occurs.</p>
+
+<p>The default internal encoding can be set with the interpreter option
+<code>-E</code>. <a
+href="Encoding.html#method-c-default_internal">::default_internal</a>
+returns the current internal encoding.</p>
+
+<pre>$ ruby -e 'p Encoding.default_internal'
+nil
+
+$ ruby -E ISO-8859-1:UTF-8 -e &quot;p [Encoding.default_external, \
+  Encoding.default_internal]&quot;
+[#&lt;Encoding:ISO-8859-1&gt;, #&lt;Encoding:UTF-8&gt;]</pre>
+
+<p>The default internal encoding may also be set through <a
+href="Encoding.html#method-c-default_internal-3D">::default_internal=</a>,
+but you should not do this as strings created before and after the change
+will have inconsistent encodings.  Instead use <code>ruby -E</code> to
+invoke ruby with the correct internal encoding.</p>
+
+<h2 id="class-Encoding-label-IO+encoding+example"><a href="IO.html">IO</a> encoding example<span><a href="#class-Encoding-label-IO+encoding+example">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>In the following example a UTF-8 encoded string “Ru00E9sumu00E9” is
+transcoded for output to ISO-8859-1 encoding, then read back in and
+transcoded to UTF-8:</p>
+
+<pre class="ruby"><span class="ruby-identifier">string</span> = <span class="ruby-string">&quot;R\u00E9sum\u00E9&quot;</span>
+
+<span class="ruby-identifier">open</span>(<span class="ruby-string">&quot;transcoded.txt&quot;</span>, <span class="ruby-string">&quot;w:ISO-8859-1&quot;</span>) <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+  <span class="ruby-identifier">io</span>.<span class="ruby-identifier">write</span>(<span class="ruby-identifier">string</span>)
+<span class="ruby-keyword">end</span>
+
+<span class="ruby-identifier">puts</span> <span class="ruby-string">&quot;raw text:&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-constant">File</span>.<span class="ruby-identifier">binread</span>(<span class="ruby-string">&quot;transcoded.txt&quot;</span>)
+<span class="ruby-identifier">puts</span>
+
+<span class="ruby-identifier">open</span>(<span class="ruby-string">&quot;transcoded.txt&quot;</span>, <span class="ruby-string">&quot;r:ISO-8859-1:UTF-8&quot;</span>) <span class="ruby-keyword">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">io</span><span class="ruby-operator">|</span>
+  <span class="ruby-identifier">puts</span> <span class="ruby-string">&quot;transcoded text:&quot;</span>
+  <span class="ruby-identifier">p</span> <span class="ruby-identifier">io</span>.<span class="ruby-identifier">read</span>
+<span class="ruby-keyword">end</span>
+</pre>
+
+<p>While writing the file, the internal encoding is not specified as it is
+only necessary for reading.  While reading the file both the internal and
+external encoding must be specified to obtain the correct result.</p>
+
+<pre>$ ruby t.rb
+raw text:
+&quot;R\xE9sum\xE9&quot;
+
+transcoded text:
+&quot;R\u00E9sum\u00E9&quot;</pre>
+
+    </div><!-- description -->
+
+    
+    
+    
+    <div id="5Buntitled-5D" class="documentation-section">
+      
+
+      
+
+      
+
+      
+
+      <!-- Methods -->
+      
+      <div id="public-class-method-details" class="method-section section">
+        <h3 class="section-header">Public Class Methods</h3>
+
+      
+        <div id="aliases-method" class="method-detail ">
+          <a name="method-c-aliases"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">aliases &rarr; {"alias1" => "orig1", "alias2" => "orig2", ...}</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the hash of available encoding alias and original encoding name.</p>
+
+<pre>Encoding.aliases
+#=&gt; {&quot;BINARY&quot;=&gt;&quot;ASCII-8BIT&quot;, &quot;ASCII&quot;=&gt;&quot;US-ASCII&quot;, &quot;ANSI_X3.4-1986&quot;=&gt;&quot;US-ASCII&quot;,
+      &quot;SJIS&quot;=&gt;&quot;Shift_JIS&quot;, &quot;eucJP&quot;=&gt;&quot;EUC-JP&quot;, &quot;CP932&quot;=&gt;&quot;Windows-31J&quot;}</pre>
+            
+
+            
+            <div class="method-source-code" id="aliases-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_enc_aliases(VALUE klass)
+{
+    VALUE aliases[2];
+    aliases[0] = rb_hash_new();
+    aliases[1] = rb_ary_new();
+    st_foreach(enc_table.names, rb_enc_aliases_enc_i, (st_data_t)aliases);
+    return aliases[0];
+}
+            </pre> 
+            </div><!-- aliases-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- aliases-method -->
+      
+        <div id="compatible-3F-method" class="method-detail ">
+          <a name="method-c-compatible-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">compatible?(obj1, obj2) &rarr; enc or nil</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Checks the compatibility of two objects.</p>
+
+<p>If the objects are both strings they are compatible when they are
+concatenatable.  The encoding of the concatenated string will be returned
+if they are compatible, nil if they are not.</p>
+
+<pre class="ruby"><span class="ruby-constant">Encoding</span>.<span class="ruby-identifier">compatible?</span>(<span class="ruby-string">&quot;\xa1&quot;</span>.<span class="ruby-identifier">force_encoding</span>(<span class="ruby-string">&quot;iso-8859-1&quot;</span>), <span class="ruby-string">&quot;b&quot;</span>)
+<span class="ruby-comment">#=&gt; #&lt;Encoding:ISO-8859-1&gt;</span>
+
+<span class="ruby-constant">Encoding</span>.<span class="ruby-identifier">compatible?</span>(
+  <span class="ruby-string">&quot;\xa1&quot;</span>.<span class="ruby-identifier">force_encoding</span>(<span class="ruby-string">&quot;iso-8859-1&quot;</span>),
+  <span class="ruby-string">&quot;\xa1\xa1&quot;</span>.<span class="ruby-identifier">force_encoding</span>(<span class="ruby-string">&quot;euc-jp&quot;</span>))
+<span class="ruby-comment">#=&gt; nil</span>
+</pre>
+
+<p>If the objects are non-strings their encodings are compatible when they
+have an encoding and:</p>
+<ul><li>
+<p>Either encoding is US-ASCII compatible</p>
+</li><li>
+<p>One of the encodings is a 7-bit encoding</p>
+</li></ul>
+            
+
+            
+            <div class="method-source-code" id="compatible-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+enc_compatible_p(VALUE klass, VALUE str1, VALUE str2)
+{
+    rb_encoding *enc;
+
+    if (!enc_capable(str1)) return Qnil;
+    if (!enc_capable(str2)) return Qnil;
+    enc = rb_enc_compatible(str1, str2);
+    if (!enc) return Qnil;
+    return rb_enc_from_encoding(enc);
+}
+            </pre> 
+            </div><!-- compatible-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- compatible-3F-method -->
+      
+        <div id="default_external-method" class="method-detail ">
+          <a name="method-c-default_external"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">default_external &rarr; enc</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns default external encoding.</p>
+
+<p>The default external encoding is used by default for strings created from
+the following locations:</p>
+<ul><li>
+<p>CSV</p>
+</li><li>
+<p><a href="File.html">File</a> data read from disk</p>
+</li><li>
+<p>SDBM</p>
+</li><li>
+<p>StringIO</p>
+</li><li>
+<p>Zlib::GzipReader</p>
+</li><li>
+<p>Zlib::GzipWriter</p>
+</li><li>
+<p><a href="String.html#method-i-inspect">String#inspect</a></p>
+</li><li>
+<p><a href="Regexp.html#method-i-inspect">Regexp#inspect</a></p>
+</li></ul>
+
+<p>While strings created from these locations will have this encoding, the
+encoding may not be valid.  Be sure to check <a
+href="String.html#method-i-valid_encoding-3F">String#valid_encoding?</a>.</p>
+
+<p><a href="File.html">File</a> data written to disk will be transcoded to the
+default external encoding when written.</p>
+
+<p>The default external encoding is initialized by the locale or -E option.</p>
+            
+
+            
+            <div class="method-source-code" id="default_external-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+get_default_external(VALUE klass)
+{
+    return rb_enc_default_external();
+}
+            </pre> 
+            </div><!-- default_external-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- default_external-method -->
+      
+        <div id="default_external-3D-method" class="method-detail ">
+          <a name="method-c-default_external-3D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">default_external = enc</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Sets default external encoding.  You should not set <a
+href="Encoding.html#method-c-default_external">::default_external</a> in
+ruby code as strings created before changing the value may have a different
+encoding from strings created after the value was changed., instead you
+should use <code>ruby -E</code> to invoke ruby with the correct
+default_external.</p>
+
+<p>See <a
+href="Encoding.html#method-c-default_external">::default_external</a> for
+information on how the default external encoding is used.</p>
+            
+
+            
+            <div class="method-source-code" id="default_external-3D-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+set_default_external(VALUE klass, VALUE encoding)
+{
+    rb_warning(&quot;setting Encoding.default_external&quot;);
+    rb_enc_set_default_external(encoding);
+    return encoding;
+}
+            </pre> 
+            </div><!-- default_external-3D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- default_external-3D-method -->
+      
+        <div id="default_internal-method" class="method-detail ">
+          <a name="method-c-default_internal"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">default_internal &rarr; enc</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns default internal encoding.  Strings will be transcoded to the
+default internal encoding in the following places if the default internal
+encoding is not nil:</p>
+<ul><li>
+<p>CSV</p>
+</li><li>
+<p>Etc.sysconfdir and Etc.systmpdir</p>
+</li><li>
+<p><a href="File.html">File</a> data read from disk</p>
+</li><li>
+<p><a href="File.html">File</a> names from <a href="Dir.html">Dir</a></p>
+</li><li>
+<p><a href="Integer.html#method-i-chr">Integer#chr</a></p>
+</li><li>
+<p><a href="String.html#method-i-inspect">String#inspect</a> and <a
+href="Regexp.html#method-i-inspect">Regexp#inspect</a></p>
+</li><li>
+<p>Strings returned from Readline</p>
+</li><li>
+<p>Strings returned from SDBM</p>
+</li><li>
+<p><a href="Time.html#method-i-zone">Time#zone</a></p>
+</li><li>
+<p>Values from <a href="ENV.html">ENV</a></p>
+</li><li>
+<p>Values in ARGV including $PROGRAM_NAME</p>
+</li></ul>
+
+<p>Additionally <a href="String.html#method-i-encode">String#encode</a> and <a
+href="String.html#method-i-encode-21">String#encode!</a> use the default
+internal encoding if no encoding is given.</p>
+
+<p>The locale encoding (__ENCODING__), not <a
+href="Encoding.html#method-c-default_internal">::default_internal</a>, is
+used as the encoding of created strings.</p>
+
+<p><a href="Encoding.html#method-c-default_internal">::default_internal</a> is
+initialized by the source file's internal_encoding or -E option.</p>
+            
+
+            
+            <div class="method-source-code" id="default_internal-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+get_default_internal(VALUE klass)
+{
+    return rb_enc_default_internal();
+}
+            </pre> 
+            </div><!-- default_internal-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- default_internal-method -->
+      
+        <div id="default_internal-3D-method" class="method-detail ">
+          <a name="method-c-default_internal-3D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">default_internal = enc or nil</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Sets default internal encoding or removes default internal encoding when
+passed nil.  You should not set <a
+href="Encoding.html#method-c-default_internal">::default_internal</a> in
+ruby code as strings created before changing the value may have a different
+encoding from strings created after the change.  Instead you should use
+<code>ruby -E</code> to invoke ruby with the correct default_internal.</p>
+
+<p>See <a
+href="Encoding.html#method-c-default_internal">::default_internal</a> for
+information on how the default internal encoding is used.</p>
+            
+
+            
+            <div class="method-source-code" id="default_internal-3D-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+set_default_internal(VALUE klass, VALUE encoding)
+{
+    rb_warning(&quot;setting Encoding.default_internal&quot;);
+    rb_enc_set_default_internal(encoding);
+    return encoding;
+}
+            </pre> 
+            </div><!-- default_internal-3D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- default_internal-3D-method -->
+      
+        <div id="find-method" class="method-detail ">
+          <a name="method-c-find"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">find(string) &rarr; enc</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Search the encoding with specified <em>name</em>. <em>name</em> should be a
+string.</p>
+
+<pre class="ruby"><span class="ruby-constant">Encoding</span>.<span class="ruby-identifier">find</span>(<span class="ruby-string">&quot;US-ASCII&quot;</span>)  <span class="ruby-comment">#=&gt; #&lt;Encoding:US-ASCII&gt;</span>
+</pre>
+
+<p>Names which this method accept are encoding names and aliases including
+following special aliases</p>
+<dl class="rdoc-list note-list"><dt>“external”
+<dd>
+<p>default external encoding</p>
+</dd><dt>“internal”
+<dd>
+<p>default internal encoding</p>
+</dd><dt>“locale”
+<dd>
+<p>locale encoding</p>
+</dd><dt>“filesystem”
+<dd>
+<p>filesystem encoding</p>
+</dd></dl>
+
+<p>An <a href="ArgumentError.html">ArgumentError</a> is raised when no
+encoding with <em>name</em>. Only
+<code>Encoding.find(&quot;internal&quot;)</code> however returns nil when
+no encoding named “internal”, in other words, when Ruby has no default
+internal encoding.</p>
+            
+
+            
+            <div class="method-source-code" id="find-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+enc_find(VALUE klass, VALUE enc)
+{
+    int idx;
+    if (is_obj_encoding(enc))
+        return enc;
+    idx = str_to_encindex(enc);
+    if (idx == UNSPECIFIED_ENCODING) return Qnil;
+    return rb_enc_from_encoding_index(idx);
+}
+            </pre> 
+            </div><!-- find-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- find-method -->
+      
+        <div id="list-method" class="method-detail ">
+          <a name="method-c-list"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">list &rarr; [enc1, enc2, ...]</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the list of loaded encodings.</p>
+
+<pre class="ruby"><span class="ruby-constant">Encoding</span>.<span class="ruby-identifier">list</span>
+<span class="ruby-comment">#=&gt; [#&lt;Encoding:ASCII-8BIT&gt;, #&lt;Encoding:UTF-8&gt;,</span>
+      <span class="ruby-comment">#&lt;Encoding:ISO-2022-JP (dummy)&gt;]</span>
+
+<span class="ruby-constant">Encoding</span>.<span class="ruby-identifier">find</span>(<span class="ruby-string">&quot;US-ASCII&quot;</span>)
+<span class="ruby-comment">#=&gt; #&lt;Encoding:US-ASCII&gt;</span>
+
+<span class="ruby-constant">Encoding</span>.<span class="ruby-identifier">list</span>
+<span class="ruby-comment">#=&gt; [#&lt;Encoding:ASCII-8BIT&gt;, #&lt;Encoding:UTF-8&gt;,</span>
+      <span class="ruby-comment">#&lt;Encoding:US-ASCII&gt;, #&lt;Encoding:ISO-2022-JP (dummy)&gt;]</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="list-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+enc_list(VALUE klass)
+{
+    VALUE ary = rb_ary_new2(0);
+    rb_ary_replace(ary, rb_encoding_list);
+    return ary;
+}
+            </pre> 
+            </div><!-- list-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- list-method -->
+      
+        <div id="name_list-method" class="method-detail ">
+          <a name="method-c-name_list"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">name_list &rarr; ["enc1", "enc2", ...]</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the list of available encoding names.</p>
+
+<pre>Encoding.name_list
+#=&gt; [&quot;US-ASCII&quot;, &quot;ASCII-8BIT&quot;, &quot;UTF-8&quot;,
+      &quot;ISO-8859-1&quot;, &quot;Shift_JIS&quot;, &quot;EUC-JP&quot;,
+      &quot;Windows-31J&quot;,
+      &quot;BINARY&quot;, &quot;CP932&quot;, &quot;eucJP&quot;]</pre>
+            
+
+            
+            <div class="method-source-code" id="name_list-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_enc_name_list(VALUE klass)
+{
+    VALUE ary = rb_ary_new2(enc_table.names-&gt;num_entries);
+    st_foreach(enc_table.names, rb_enc_name_list_i, (st_data_t)ary);
+    return ary;
+}
+            </pre> 
+            </div><!-- name_list-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- name_list-method -->
+      
+      </div><!-- public-class-method-details -->
+    
+      <div id="public-instance-method-details" class="method-section section">
+        <h3 class="section-header">Public Instance Methods</h3>
+
+      
+        <div id="ascii_compatible-3F-method" class="method-detail ">
+          <a name="method-i-ascii_compatible-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">ascii_compatible? &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns whether ASCII-compatible or not.</p>
+
+<pre class="ruby"><span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">UTF_8</span>.<span class="ruby-identifier">ascii_compatible?</span>     <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">UTF_16BE</span>.<span class="ruby-identifier">ascii_compatible?</span>  <span class="ruby-comment">#=&gt; false</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="ascii_compatible-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+enc_ascii_compatible_p(VALUE enc)
+{
+    return rb_enc_asciicompat(must_encoding(enc)) ? Qtrue : Qfalse;
+}
+            </pre> 
+            </div><!-- ascii_compatible-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- ascii_compatible-3F-method -->
+      
+        <div id="dummy-3F-method" class="method-detail ">
+          <a name="method-i-dummy-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">dummy? &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns true for dummy encodings. A dummy encoding is an encoding for which
+character handling is not properly implemented. It is used for stateful
+encodings.</p>
+
+<pre class="ruby"><span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">ISO_2022_JP</span>.<span class="ruby-identifier">dummy?</span>       <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">UTF_8</span>.<span class="ruby-identifier">dummy?</span>             <span class="ruby-comment">#=&gt; false</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="dummy-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+enc_dummy_p(VALUE enc)
+{
+    return ENC_DUMMY_P(must_encoding(enc)) ? Qtrue : Qfalse;
+}
+            </pre> 
+            </div><!-- dummy-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- dummy-3F-method -->
+      
+        <div id="inspect-method" class="method-detail ">
+          <a name="method-i-inspect"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">inspect &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a string which represents the encoding for programmers.</p>
+
+<pre class="ruby"><span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">UTF_8</span>.<span class="ruby-identifier">inspect</span>       <span class="ruby-comment">#=&gt; &quot;#&lt;Encoding:UTF-8&gt;&quot;</span>
+<span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">ISO_2022_JP</span>.<span class="ruby-identifier">inspect</span> <span class="ruby-comment">#=&gt; &quot;#&lt;Encoding:ISO-2022-JP (dummy)&gt;&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="inspect-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+enc_inspect(VALUE self)
+{
+    rb_encoding *enc;
+
+    if (!is_data_encoding(self)) {
+        not_encoding(self);
+    }
+    if (!(enc = DATA_PTR(self)) || rb_enc_from_index(rb_enc_to_index(enc)) != enc) {
+        rb_raise(rb_eTypeError, &quot;broken Encoding&quot;);
+    }
+    return rb_enc_sprintf(rb_usascii_encoding(),
+                          &quot;#&lt;%&quot;PRIsVALUE&quot;:%s%s%s&gt;&quot;, rb_obj_class(self),
+                          rb_enc_name(enc),
+                          (ENC_DUMMY_P(enc) ? &quot; (dummy)&quot; : &quot;&quot;),
+                          enc_autoload_p(enc) ? &quot; (autoload)&quot; : &quot;&quot;);
+}
+            </pre> 
+            </div><!-- inspect-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- inspect-method -->
+      
+        <div id="name-method" class="method-detail ">
+          <a name="method-i-name"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">name &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the name of the encoding.</p>
+
+<pre class="ruby"><span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">UTF_8</span>.<span class="ruby-identifier">name</span>      <span class="ruby-comment">#=&gt; &quot;UTF-8&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="name-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+enc_name(VALUE self)
+{
+    return rb_usascii_str_new2(rb_enc_name((rb_encoding*)DATA_PTR(self)));
+}
+            </pre> 
+            </div><!-- name-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- name-method -->
+      
+        <div id="names-method" class="method-detail ">
+          <a name="method-i-names"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">names &rarr; array</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the list of name and aliases of the encoding.</p>
+
+<pre class="ruby"><span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">WINDOWS_31J</span>.<span class="ruby-identifier">names</span>  <span class="ruby-comment">#=&gt; [&quot;Windows-31J&quot;, &quot;CP932&quot;, &quot;csWindows31J&quot;]</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="names-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+enc_names(VALUE self)
+{
+    VALUE args[2];
+
+    args[0] = (VALUE)rb_to_encoding_index(self);
+    args[1] = rb_ary_new2(0);
+    st_foreach(enc_table.names, enc_names_i, (st_data_t)args);
+    return args[1];
+}
+            </pre> 
+            </div><!-- names-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- names-method -->
+      
+        <div id="replicate-method" class="method-detail ">
+          <a name="method-i-replicate"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">replicate(name) &rarr; encoding</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a replicated encoding of <em>enc</em> whose name is <em>name</em>.
+The new encoding should have the same byte structure of <em>enc</em>. If
+<em>name</em> is used by another encoding, raise <a
+href="ArgumentError.html">ArgumentError</a>.</p>
+            
+
+            
+            <div class="method-source-code" id="replicate-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+enc_replicate(VALUE encoding, VALUE name)
+{
+    return rb_enc_from_encoding_index(
+        rb_enc_replicate(StringValueCStr(name),
+                         rb_to_encoding(encoding)));
+}
+            </pre> 
+            </div><!-- replicate-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- replicate-method -->
+      
+        <div id="to_s-method" class="method-detail ">
+          <a name="method-i-to_s"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_s &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the name of the encoding.</p>
+
+<pre class="ruby"><span class="ruby-constant">Encoding</span><span class="ruby-operator">::</span><span class="ruby-constant">UTF_8</span>.<span class="ruby-identifier">name</span>      <span class="ruby-comment">#=&gt; &quot;UTF-8&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="to_s-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+enc_name(VALUE self)
+{
+    return rb_usascii_str_new2(rb_enc_name((rb_encoding*)DATA_PTR(self)));
+}
+            </pre> 
+            </div><!-- to_s-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- to_s-method -->
+      
+      </div><!-- public-instance-method-details -->
+    
+    </div><!-- 5Buntitled-5D -->
+  
+  <div id='tx_Encoding_versioned' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_Encoding_versioned").load("/associated/2.2.0/Encoding.ihtml");</script> <div id='tx_Encoding' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_Encoding").load("/associated/Encoding.ihtml");</script> 
+      
+  <!-- dsqus ? -->
+     
+
+  
+  </div><!-- documentation -->
+  <div id='dynamic'>
+  </div>
+      
+          
+
+      
+<div class='grids wrapper' id="footer">
+  <p><small>This page was generated for Ruby 2.2.0</small></p> 
+  
+   <p><a href="http://ruby-doc.org">Ruby-doc.org</a> is a service of <a href="http://jamesbritt.com">James Britt</a> and <a href="http://neurogami.com">Neurogami</a>, an <a href="http://neurogami.com">application development company in Scottsdale, AZ</a>.  <div class='oio-inline'><ins data-revive-zoneid="1" data-revive-id="58924a5717c091dfee6dda3f7d38c4d7"></ins><script async src="//ras.ruby-doc.org/vvv/delivery/thesinkjs.php"></script></div></p>
+ 
+       <p><small>Generated with Ruby-doc Rdoc Generator 0.39.0</small>.</p>
+  </div>
+</div>
+  
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-335317-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+    
+ <script type='text/javascript'>
+$(document).ready(function() {
+      $.ajaxSetup({ cache: false });
+      $("#vulns-alert").load("/associated/vulns.ihtml");
+    });
+
+    </script>
+
+
+ 
+		<script type='text/javascript'>
+
+	function loadPlus(plusdocs){
+			$(plusdocs).find("div[class='associated_wrapper']").each (function() {
+					$("#" + this.id).append($(plusdocs).find("#" + this.id ));
+					});
+	} 
+
+   //function loadInline(json){
+   // for (var lookFor in json) {
+    //  $(lookFor).after(json[lookFor]);
+    // }
+  // } // end loadInline
+
+
+$(document).ready(function() {
+		$.ajaxSetup({ cache: false });
+			$.get('/associated/2.2.0/plus_Encoding.ihtml', 
+			function(plusdocs) {
+			setTimeout(function() {
+				loadPlus(plusdocs);
+				}, 2000);
+			}
+			);
+
+
+//     $.ajax({
+//     dataType: "json",
+//      url: '/associated/2.2.0/inline_Encoding.js',
+//      success: function(json) {
+// 			setTimeout(function() {
+// 				loadInline(json);
+// 				}, 2000);
+// 			}
+//    });
+
+		});
+</script>
+		
+</body>
+</html>
+
+

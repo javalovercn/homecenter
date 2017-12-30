@@ -1361,8 +1361,9 @@ public class Ruby19Parser implements RubyParser {
   /** the generated parser, with debugging messages.
       Maintains a dynamic state and value stack.
       @param yyLex scanner.
-      @param yydebug debug message writer implementing <tt>yyDebug</tt>, or <tt>null</tt>.
+      @param ayydebug debug message writer implementing <tt>yyDebug</tt>, or <tt>null</tt>.
       @return result of the last reduction, if any.
+      @throws IOException if crap happens
     */
   public Object yyparse (final Lexer yyLex, final Object ayydebug)
 				throws java.io.IOException {
@@ -1390,6 +1391,7 @@ public class Ruby19Parser implements RubyParser {
       Maintains a dynamic state and value stack.
       @param yyLex scanner.
       @return result of the last reduction, if any.
+      @throws IOException if crap happens
     */
   public Object yyparse (final Lexer yyLex) throws java.io.IOException {
     if (yyMax <= 0) yyMax = 256;			// initial size
@@ -4669,7 +4671,7 @@ public Object execute(final ParserSupport support, final Lexer lexer, final Obje
                 // ignore, no debugger present
             }
         }
-        //yyparse(lexer, new jay.yydebug.yyAnim("JRuby", 9));
+        //yyparse(lexer, new org.jay.yydebug.yyAnim("JRuby", 9));
         yyparse(lexer, debugger);
         
         return support.getResult();

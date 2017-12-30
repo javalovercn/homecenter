@@ -1,21 +1,19 @@
 package hc.server.msb;
 
-import hc.server.ui.ProjectContext;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Vector;
 
 /**
- * {@link Message} is medium between {@link Robot} and {@link Device}. 
+ * <code>Message</code> is medium between <code>Robot</code> and <code>Device</code>. 
  * <br><br>
- * {@link Message} is never used outside of {@link Robot}, {@link Converter} and {@link Device}. 
- * <BR>To drive {@link Device}, please via {@link Robot}. 
- * <BR>To get {@link Robot} instance and operate it, please invoke {@link ProjectContext#getRobot(String)} and {@link Robot#operate(long, Object)}.
- * <br><br>There are two parts of a {@link Message}, <i>header</i> is for control data and <i>body</i> is for business data.
- * <BR><BR>To get an instance of {@link Message}, invoke {@link Robot#getFreeMessage(String)} or {@link Device#getFreeMessage(String)}.
- * <br><br><STRONG>Important</STRONG> : <BR>Don't keep any reference of {@link Message} in any threads and instances, it will be auto recycled and cleaned after being consumed.
+ * <code>Message</code> is never used outside of <code>Robot</code>, <code>Converter</code> and <code>Device</code>. 
+ * <BR>To drive <code>Device</code>, please via <code>Robot</code>. 
+ * <BR>To get <code>Robot</code> instance and operate it, please invoke <code>ProjectContext.getRobot(String)</code> and <code>Robot.operate(long, Object)</code>.
+ * <br><br>There are two parts of a <code>Message</code>, <i>header</i> is for control data and <i>body</i> is for business data.
+ * <BR><BR>To get an instance of <code>Message</code>, invoke <code>Robot.getFreeMessage(String)</code> or <code>Device.getFreeMessage(String)</code>.
+ * <br><br><STRONG>Important</STRONG> : <BR>Don't keep any reference of <code>Message</code> in any threads and instances, it will be auto recycled and cleaned after being consumed.
  */
 public final class Message {
 	
@@ -46,9 +44,9 @@ public final class Message {
 	String ctrl_dev_id;
 	
 	/**
-	 * In {@link Robot}, it means <i>Reference Device ID</i>; 
+	 * In <code>Robot</code>, it means <i>Reference Device ID</i>; 
 	 * <BR>
-	 * In {@link Device}, it means real device ID.
+	 * In <code>Device</code>, it means real device ID.
 	 * @return
 	 */
 	public final String getDevID(){

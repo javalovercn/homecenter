@@ -60,13 +60,14 @@ public class ProjectPropertiesManager {
 		propertiesFile = projectContext.getPrivateFile(StoreDirManager.HC_SYS_FOR_USER_PRIVATE_DIR
 				+ StoreDirManager.PROJ_PROPERTIES);
 
-		if(propertiesFile.exists() == false){
+		final boolean exists = propertiesFile.exists();
+		if(exists == false){
 			loadFromSystemProp(sysMap, projectID);
 			return;
 		}
     	
     	try{
-    		if(propertiesFile.exists()){
+    		if(exists){
 	    		final FileInputStream inputFile = new FileInputStream(propertiesFile);
 	            propertie.load(inputFile);
 	            inputFile.close();

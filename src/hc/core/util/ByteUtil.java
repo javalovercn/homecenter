@@ -2,14 +2,14 @@ package hc.core.util;
 
 
 import hc.core.IConstant;
-import hc.core.MsgBuilder;
 import hc.core.cache.CacheManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 
 public class ByteUtil {
-	public static final ByteArrayCacher byteArrayCacher = new ByteArrayCacher(2048, MsgBuilder.MAX_BYTE_ARRAY_LEN, 2);
+	public static final int MAX_BYTE_ARRAY_LEN = 1024 * 1024 * 2;
+	public static final ByteArrayCacher byteArrayCacher = new ByteArrayCacher(2048, MAX_BYTE_ARRAY_LEN, 2);
 	private static final byte[] zeroBS = new byte[0];
 
 	public static final String toString(final byte[] bs, final int offset, final int len){
@@ -679,5 +679,5 @@ public class ByteUtil {
 		}
 		
 	}
-	
+
 }

@@ -1,0 +1,3258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <!-- classpage -- >
+    <!-- RD version: 0.39.0  -->
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+  <meta name='description' content='  Class : Regexp  -   Ruby 2.2.0 ' />
+  <meta content="2017-09-09 18:34:25 -0500" http-equiv="change-date" />
+  <!-- rel_prefix  = ''  ENV['RDOC_FOR_WEBSITE']   = true-->
+    
+    
+    
+  <!-- rel_prefix = '.'   asset_rel_prefix = ''  --> 
+  <title>Class: Regexp (Ruby 2.2.0) </title>
+  <link rel="stylesheet" href="/css/associated.css" type="text/css" >
+  <!-- link rel="stylesheet" href=".css/obf.css"  -->
+  <link rel="stylesheet" href="/css/inuit.css" >
+  <link rel="stylesheet" href="/css/grid.inuit.css" >
+  <link rel="stylesheet" href="/css/2011.css" type="text/css" >
+  <link rel="stylesheet" href="/css/rdoc.css" type="text/css" >
+    <link rel="stylesheet" href="/css/carbon17.css" type="text/css" >
+
+
+  <script src="/js/jquery.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/thickbox-compressed.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/quicksearch.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/rubydoc.js" type="text/javascript" charset="utf-8"></script> 
+
+
+   
+<script src="/js/highlight.min.js"></script>
+<script> 
+  hljs.tabReplace = '  ';
+  hljs.initHighlightingOnLoad();
+  </script> 
+
+  <style type='text/css'>
+
+    #vulns-alert #vulns{
+      background-color: #c33 ! important;
+      width: 100%;
+      text-align: center;
+   }
+   
+   #vulns-alert #vulns a {
+    color: #F99 ! important;
+   }
+ </style>
+
+   <link rel="stylesheet" href="/css/extra.css" type="text/css" >
+  <script  src="/js/extra.js"  ></script>
+
+
+</head>
+
+<body id="top" class="class rdocstar">
+
+<div id='actionbar' >
+<div class='wrapper'>
+  <ul class='grids g0'>
+	<li class='grid-2' ><a href='/' target='_top' >Home</a></li>
+	<li class='grid-2' ><a href='/core-2.2.0' target='_top' >Core 2.2.0</a></li>
+	<li class='grid-2' ><a href='/stdlib-2.2.0' target='_top' >Std-lib 2.2.0</a></li>
+
+   <li class='grid-2' ><a href='/downloads' target='_top' >Downloads</a></li>
+	 <li class='grid-5 right' id='rd-action-search'><form id="searchbox_011815814100681837392:wnccv6st5qk" action="http://ruby-doc.com/search.html"><input type="hidden" name="cx" value="011815814100681837392:wnccv6st5qk" ><input  id='rd-search-input' name="q" type="text" size="20" >&#160;&#160;<input type="submit" name="sa" value="Search" ><input type="hidden" name="cof" value="FORID:9" ></form></li>
+	</ul>
+</div>
+<span id='vulns-alert'></span>
+<div id='versionheader'>
+<p>Support for the Ruby 2.2 series will end March 2018. See <a href='https://www.ruby-lang.org/en/news/2017/04/01/support-of-ruby-2-1-has-ended/'>here</a> for reference.</p>
+</div>
+</div> <!-- end action bar -->
+ <div class='wrapper'>
+  
+   <!-- carbon17 added here 2017-09-09 -->
+ 
+   <script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD627W', 'placement:rubydocorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+ 
+
+   <div id="metadata">
+    <div id="home-metadata">
+      <div id="home-section" class="section">
+        <h3 class="section-header">
+          <a href="./index.html">Home</a>
+          <a href="./index.html#classes">Classes</a>
+          <a href="./index.html#methods">Methods</a>
+          
+          
+          <!-- br><a id='alternateFormatLink' class='rotate' href="#" onclick='matchingYardUrl()'>YARD version</a -->
+          
+        </h3>
+      </div>
+    </div>
+
+    <div id="file-metadata">
+      <div id="file-list-section" class="section">
+        <h3 class="section-header">In Files</h3>
+        <div class="section-body">
+          <ul id='file-metadata'>
+
+          
+          
+          
+          <li class='in-file'>re.c</li>      
+            
+          </ul>
+        </div>
+      </div>
+
+      
+    </div>
+
+    <div id="class-metadata">
+      
+      <!-- Parent Class -->
+      <div id="parent-class-section" class="section">
+        <h3 class="section-header">Parent</h3>
+        
+        <p class="link"><a href="Object.html">Object</a></p>
+        
+      </div>
+      
+
+      
+
+      
+
+      
+      <!-- Method Quickref -->
+      <div id="method-list-section" class="section">
+        <h3 class="section-header">Methods</h3>
+        <ul class="link-list">
+          
+          <li><a href="#method-c-compile">::compile</a></li>
+          
+          <li><a href="#method-c-escape">::escape</a></li>
+          
+          <li><a href="#method-c-last_match">::last_match</a></li>
+          
+          <li><a href="#method-c-new">::new</a></li>
+          
+          <li><a href="#method-c-quote">::quote</a></li>
+          
+          <li><a href="#method-c-try_convert">::try_convert</a></li>
+          
+          <li><a href="#method-c-union">::union</a></li>
+          
+          <li><a href="#method-i-3D-3D">#==</a></li>
+          
+          <li><a href="#method-i-3D-3D-3D">#===</a></li>
+          
+          <li><a href="#method-i-3D-7E">#=~</a></li>
+          
+          <li><a href="#method-i-casefold-3F">#casefold?</a></li>
+          
+          <li><a href="#method-i-encoding">#encoding</a></li>
+          
+          <li><a href="#method-i-eql-3F">#eql?</a></li>
+          
+          <li><a href="#method-i-fixed_encoding-3F">#fixed_encoding?</a></li>
+          
+          <li><a href="#method-i-hash">#hash</a></li>
+          
+          <li><a href="#method-i-inspect">#inspect</a></li>
+          
+          <li><a href="#method-i-match">#match</a></li>
+          
+          <li><a href="#method-i-named_captures">#named_captures</a></li>
+          
+          <li><a href="#method-i-names">#names</a></li>
+          
+          <li><a href="#method-i-options">#options</a></li>
+          
+          <li><a href="#method-i-source">#source</a></li>
+          
+          <li><a href="#method-i-to_s">#to_s</a></li>
+          
+          <li><a href="#method-i-7E">#~</a></li>
+          
+        </ul>
+      </div>
+      
+
+      
+    </div>
+
+    <div id="project-metadata">
+      
+      
+      <div id="fileindex-section" class="section project-section">
+        <h3 class="section-header">Files</h3>
+        <ul id='files'>
+        
+          
+          <li class="file"><a href="./_lib/racc/rdoc/grammar_en_rdoc.html">grammar.en.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./_test/rdoc/test_ja_rdoc.html">test.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributing_rdoc.html">contributing.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributors_rdoc.html">contributors.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/dtrace_probes_rdoc.html">dtrace_probes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/globals_rdoc.html">globals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/keywords_rdoc.html">keywords.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/maintainers_rdoc.html">maintainers.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/marshal_rdoc.html">marshal.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/regexp_rdoc.html">regexp.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/security_rdoc.html">security.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/standard_library_rdoc.html">standard_library.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax_rdoc.html">syntax.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/assignment_rdoc.html">assignment.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/calling_methods_rdoc.html">calling_methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/control_expressions_rdoc.html">control_expressions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/exceptions_rdoc.html">exceptions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/literals_rdoc.html">literals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/methods_rdoc.html">methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/miscellaneous_rdoc.html">miscellaneous.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/modules_and_classes_rdoc.html">modules_and_classes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/precedence_rdoc.html">precedence.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/refinements_rdoc.html">refinements.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_ja_rdoc.html">README.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_rdoc.html">README.rdoc</a></li>
+        
+        </ul>
+      </div>
+      
+
+      <div id="classindex-section" class="section project-section">
+        <h3 class="section-header">Class/Module Index
+          <span class="search-toggle"><img src="./images/find.png"
+            height="16" width="16" alt="[+]"
+            title="show/hide quicksearch" /></span></h3>
+        <form action="#" method="get" accept-charset="utf-8" class="initially-hidden">
+        <fieldset>
+          <legend>Quicksearch</legend>
+          <input type="text" name="quicksearch" value=""
+            class="quicksearch-field" />
+        </fieldset>
+        </form>
+
+        <ul class="link-list">
+          
+          
+          
+          <li><a href="./ArgumentError.html">ArgumentError</a></li>
+        
+          
+          
+          <li><a href="./Array.html">Array</a></li>
+        
+          
+          
+          <li><a href="./BasicObject.html">BasicObject</a></li>
+        
+          
+          
+          <li><a href="./Bignum.html">Bignum</a></li>
+        
+          
+          
+          <li><a href="./Binding.html">Binding</a></li>
+        
+          
+          
+          <li><a href="./Class.html">Class</a></li>
+        
+          
+          
+          <li><a href="./Comparable.html">Comparable</a></li>
+        
+          
+          
+          <li><a href="./Complex.html">Complex</a></li>
+        
+          
+          
+          <li><a href="./Complex/compatible.html">Complex::compatible</a></li>
+        
+          
+          
+          <li><a href="./ConditionVariable.html">ConditionVariable</a></li>
+        
+          
+          
+          <li><a href="./Continuation.html">Continuation</a></li>
+        
+          
+          
+          <li><a href="./Data.html">Data</a></li>
+        
+          
+          
+          <li><a href="./Dir.html">Dir</a></li>
+        
+          
+          
+          <li><a href="./ENV.html">ENV</a></li>
+        
+          
+          
+          <li><a href="./EOFError.html">EOFError</a></li>
+        
+          
+          
+          <li><a href="./Encoding.html">Encoding</a></li>
+        
+          
+          
+          <li><a href="./Encoding/CompatibilityError.html">Encoding::CompatibilityError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/Converter.html">Encoding::Converter</a></li>
+        
+          
+          
+          <li><a href="./Encoding/ConverterNotFoundError.html">Encoding::ConverterNotFoundError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/InvalidByteSequenceError.html">Encoding::InvalidByteSequenceError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/UndefinedConversionError.html">Encoding::UndefinedConversionError</a></li>
+        
+          
+          
+          <li><a href="./EncodingError.html">EncodingError</a></li>
+        
+          
+          
+          <li><a href="./Enumerable.html">Enumerable</a></li>
+        
+          
+          
+          <li><a href="./Enumerator.html">Enumerator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Generator.html">Enumerator::Generator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Lazy.html">Enumerator::Lazy</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Yielder.html">Enumerator::Yielder</a></li>
+        
+          
+          
+          <li><a href="./Errno.html">Errno</a></li>
+        
+          
+          
+          <li><a href="./Exception.html">Exception</a></li>
+        
+          
+          
+          <li><a href="./FalseClass.html">FalseClass</a></li>
+        
+          
+          
+          <li><a href="./Fiber.html">Fiber</a></li>
+        
+          
+          
+          <li><a href="./FiberError.html">FiberError</a></li>
+        
+          
+          
+          <li><a href="./File.html">File</a></li>
+        
+          
+          
+          <li><a href="./File/Constants.html">File::Constants</a></li>
+        
+          
+          
+          <li><a href="./File/Stat.html">File::Stat</a></li>
+        
+          
+          
+          <li><a href="./FileTest.html">FileTest</a></li>
+        
+          
+          
+          <li><a href="./Fixnum.html">Fixnum</a></li>
+        
+          
+          
+          <li><a href="./Float.html">Float</a></li>
+        
+          
+          
+          <li><a href="./FloatDomainError.html">FloatDomainError</a></li>
+        
+          
+          
+          <li><a href="./GC.html">GC</a></li>
+        
+          
+          
+          <li><a href="./GC/Profiler.html">GC::Profiler</a></li>
+        
+          
+          
+          <li><a href="./Hash.html">Hash</a></li>
+        
+          
+          
+          <li><a href="./IO.html">IO</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitReadable.html">IO::EAGAINWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitWritable.html">IO::EAGAINWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitReadable.html">IO::EINPROGRESSWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitWritable.html">IO::EINPROGRESSWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitReadable.html">IO::EWOULDBLOCKWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitWritable.html">IO::EWOULDBLOCKWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitReadable.html">IO::WaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitWritable.html">IO::WaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IOError.html">IOError</a></li>
+        
+          
+          
+          <li><a href="./IndexError.html">IndexError</a></li>
+        
+          
+          
+          <li><a href="./Integer.html">Integer</a></li>
+        
+          
+          
+          <li><a href="./Interrupt.html">Interrupt</a></li>
+        
+          
+          
+          <li><a href="./Kernel.html">Kernel</a></li>
+        
+          
+          
+          <li><a href="./KeyError.html">KeyError</a></li>
+        
+          
+          
+          <li><a href="./LoadError.html">LoadError</a></li>
+        
+          
+          
+          <li><a href="./LocalJumpError.html">LocalJumpError</a></li>
+        
+          
+          
+          <li><a href="./Marshal.html">Marshal</a></li>
+        
+          
+          
+          <li><a href="./MatchData.html">MatchData</a></li>
+        
+          
+          
+          <li><a href="./Math.html">Math</a></li>
+        
+          
+          
+          <li><a href="./Math/DomainError.html">Math::DomainError</a></li>
+        
+          
+          
+          <li><a href="./Method.html">Method</a></li>
+        
+          
+          
+          <li><a href="./Module.html">Module</a></li>
+        
+          
+          
+          <li><a href="./Mutex.html">Mutex</a></li>
+        
+          
+          
+          <li><a href="./NameError.html">NameError</a></li>
+        
+          
+          
+          <li><a href="./NilClass.html">NilClass</a></li>
+        
+          
+          
+          <li><a href="./NoMemoryError.html">NoMemoryError</a></li>
+        
+          
+          
+          <li><a href="./NoMethodError.html">NoMethodError</a></li>
+        
+          
+          
+          <li><a href="./NotImplementedError.html">NotImplementedError</a></li>
+        
+          
+          
+          <li><a href="./Numeric.html">Numeric</a></li>
+        
+          
+          
+          <li><a href="./Object.html">Object</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace.html">ObjectSpace</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace/WeakMap.html">ObjectSpace::WeakMap</a></li>
+        
+          
+          
+          <li><a href="./Proc.html">Proc</a></li>
+        
+          
+          
+          <li><a href="./Process.html">Process</a></li>
+        
+          
+          
+          <li><a href="./Process/GID.html">Process::GID</a></li>
+        
+          
+          
+          <li><a href="./Process/Status.html">Process::Status</a></li>
+        
+          
+          
+          <li><a href="./Process/Sys.html">Process::Sys</a></li>
+        
+          
+          
+          <li><a href="./Process/UID.html">Process::UID</a></li>
+        
+          
+          
+          <li><a href="./Process/Waiter.html">Process::Waiter</a></li>
+        
+          
+          
+          <li><a href="./Queue.html">Queue</a></li>
+        
+          
+          
+          <li><a href="./Random.html">Random</a></li>
+        
+          
+          
+          <li><a href="./Range.html">Range</a></li>
+        
+          
+          
+          <li><a href="./RangeError.html">RangeError</a></li>
+        
+          
+          
+          <li><a href="./Rational.html">Rational</a></li>
+        
+          
+          
+          <li><a href="./Rational/compatible.html">Rational::compatible</a></li>
+        
+          
+          
+          <li><a href="./Regexp.html">Regexp</a></li>
+        
+          
+          
+          <li><a href="./RegexpError.html">RegexpError</a></li>
+        
+          
+          
+          <li><a href="./RubyVM.html">RubyVM</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/Env.html">RubyVM::Env</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/InstructionSequence.html">RubyVM::InstructionSequence</a></li>
+        
+          
+          
+          <li><a href="./RuntimeError.html">RuntimeError</a></li>
+        
+          
+          
+          <li><a href="./ScriptError.html">ScriptError</a></li>
+        
+          
+          
+          <li><a href="./SecurityError.html">SecurityError</a></li>
+        
+          
+          
+          <li><a href="./Signal.html">Signal</a></li>
+        
+          
+          
+          <li><a href="./SignalException.html">SignalException</a></li>
+        
+          
+          
+          <li><a href="./SizedQueue.html">SizedQueue</a></li>
+        
+          
+          
+          <li><a href="./StandardError.html">StandardError</a></li>
+        
+          
+          
+          <li><a href="./StopIteration.html">StopIteration</a></li>
+        
+          
+          
+          <li><a href="./String.html">String</a></li>
+        
+          
+          
+          <li><a href="./Struct.html">Struct</a></li>
+        
+          
+          
+          <li><a href="./Symbol.html">Symbol</a></li>
+        
+          
+          
+          <li><a href="./SyntaxError.html">SyntaxError</a></li>
+        
+          
+          
+          <li><a href="./SystemCallError.html">SystemCallError</a></li>
+        
+          
+          
+          <li><a href="./SystemExit.html">SystemExit</a></li>
+        
+          
+          
+          <li><a href="./SystemStackError.html">SystemStackError</a></li>
+        
+          
+          
+          <li><a href="./Thread.html">Thread</a></li>
+        
+          
+          
+          <li><a href="./Thread/Backtrace/Location.html">Thread::Backtrace::Location</a></li>
+        
+          
+          
+          <li><a href="./ThreadError.html">ThreadError</a></li>
+        
+          
+          
+          <li><a href="./ThreadGroup.html">ThreadGroup</a></li>
+        
+          
+          
+          <li><a href="./Time.html">Time</a></li>
+        
+          
+          
+          <li><a href="./TracePoint.html">TracePoint</a></li>
+        
+          
+          
+          <li><a href="./TrueClass.html">TrueClass</a></li>
+        
+          
+          
+          <li><a href="./TypeError.html">TypeError</a></li>
+        
+          
+          
+          <li><a href="./UnboundMethod.html">UnboundMethod</a></li>
+        
+          
+          
+          <li><a href="./UncaughtThrowError.html">UncaughtThrowError</a></li>
+        
+          
+          
+          <li><a href="./ZeroDivisionError.html">ZeroDivisionError</a></li>
+        
+          
+          
+          <li><a href="./fatal.html">fatal</a></li>
+        
+          
+          
+          <li><a href="./unknown.html">unknown</a></li>
+        
+        </ul>
+        <div id="no-class-search-results" style="display: none;">No matching classes.</div>
+      </div>
+
+      
+    </div>
+  </div> <!-- metadata -->
+  <div class='adzbox'  id="azk83167">
+    
+   <div id="carbonads-container"><div class="carbonad">
+    <script async type="text/javascript" src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=rubydocorg" 
+      id="_carbonads_js">
+      </script>
+  </div></div>
+
+   
+  </div> 
+  <div id="documentation">
+    <h1 class="class">Regexp</h1>
+
+    <div id="description" class="description">
+      
+<p>A <code>Regexp</code> holds a regular expression, used to match a pattern
+against strings. Regexps are created using the <code>/.../</code> and
+<code>%r{...}</code> literals, and by the <code>Regexp::new</code>
+constructor.</p>
+
+<p>Regular expressions (<em>regexp</em>s) are patterns which describe the
+contents of a string. They’re used for testing whether a string contains a
+given pattern, or extracting the portions that match. They are created with
+the <code>/</code><em>pat</em><code>/</code> and
+<code>%r{</code><em>pat</em><code>}</code> literals or the
+<code>Regexp.new</code> constructor.</p>
+
+<p>A regexp is usually delimited with forward slashes (<code>/</code>). For
+example:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/hay/</span> <span class="ruby-operator">=~</span> <span class="ruby-string">'haystack'</span>   <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-regexp">/y/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'haystack'</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;y&quot;&gt;</span>
+</pre>
+
+<p>If a string contains the pattern it is said to <em>match</em>. A literal
+string matches itself.</p>
+
+<p>Here ‘haystack’ does not contain the pattern ‘needle’, so it doesn’t match:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/needle/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'haystack'</span>) <span class="ruby-comment">#=&gt; nil</span>
+</pre>
+
+<p>Here ‘haystack’ contains the pattern ‘hay’, so it matches:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/hay/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'haystack'</span>)    <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;hay&quot;&gt;</span>
+</pre>
+
+<p>Specifically, <code>/st/</code> requires that the string contains the
+letter <em>s</em> followed by the letter <em>t</em>, so it matches
+<em>haystack</em>, also.</p>
+
+<h2 id="class-Regexp-label-3D-7E+and+Regexp-23match"><code>=~</code> and <a href="Regexp.html#method-i-match">#match</a><span><a href="#class-Regexp-label-3D-7E+and+Regexp-23match">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>Pattern matching may be achieved by using <code>=~</code> operator or <a
+href="Regexp.html#method-i-match">#match</a> method.</p>
+
+<h3 id="class-Regexp-label-3D-7E+operator"><code>=~</code> operator<span><a href="#class-Regexp-label-3D-7E+operator">&para;</a> <a href="#top">&uarr;</a></span></h3>
+
+<p><code>=~</code> is Ruby's basic pattern-matching operator.  When one
+operand is a regular expression and the other is a string then the regular
+expression is used as a pattern to match against the string.  (This
+operator is equivalently defined by <a href="Regexp.html">Regexp</a> and <a
+href="String.html">String</a> so the order of <a
+href="String.html">String</a> and <a href="Regexp.html">Regexp</a> do not
+matter. Other classes may have different implementations of
+<code>=~</code>.)  If a match is found, the operator returns index of first
+match in string, otherwise it returns <code>nil</code>.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/hay/</span> <span class="ruby-operator">=~</span> <span class="ruby-string">'haystack'</span>   <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-string">'haystack'</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp">/hay/</span>   <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-regexp">/a/</span>   <span class="ruby-operator">=~</span> <span class="ruby-string">'haystack'</span>   <span class="ruby-comment">#=&gt; 1</span>
+<span class="ruby-regexp">/u/</span>   <span class="ruby-operator">=~</span> <span class="ruby-string">'haystack'</span>   <span class="ruby-comment">#=&gt; nil</span>
+</pre>
+
+<p>Using <code>=~</code> operator with a <a href="String.html">String</a> and
+<a href="Regexp.html">Regexp</a> the <code>$~</code> global variable is set
+after a successful match.  <code>$~</code> holds a <a
+href="MatchData.html">MatchData</a> object. <a
+href="Regexp.html#method-c-last_match">::last_match</a> is equivalent to
+<code>$~</code>.</p>
+
+<h3 id="class-Regexp-label-Regexp-23match+method"><a href="Regexp.html#method-i-match">#match</a> method<span><a href="#class-Regexp-label-Regexp-23match+method">&para;</a> <a href="#top">&uarr;</a></span></h3>
+
+<p>The <a href="Regexp.html#method-i-match">match</a> method returns a <a
+href="MatchData.html">MatchData</a> object:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/st/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'haystack'</span>)   <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;st&quot;&gt;</span>
+</pre>
+
+<h2 id="class-Regexp-label-Metacharacters+and+Escapes">Metacharacters and Escapes<span><a href="#class-Regexp-label-Metacharacters+and+Escapes">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>The following are <em>metacharacters</em> <code>(</code>, <code>)</code>,
+<code>[</code>, <code>]</code>, <code>{</code>, <code>}</code>,
+<code>.</code>, <code>?</code>, <code>+</code>, <code>*</code>. They have a
+specific meaning when appearing in a pattern. To match them literally they
+must be backslash-escaped. To match a backslash literally backslash-escape
+that: <code>\\\</code>.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/1 \+ 2 = 3\?/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'Does 1 + 2 = 3?'</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;1 + 2 = 3?&quot;&gt;</span>
+</pre>
+
+<p>Patterns behave like double-quoted strings so can contain the same
+backslash escapes.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/\s\u{6771 4eac 90fd}/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;Go to 東京都&quot;</span>)
+    <span class="ruby-comment">#=&gt; #&lt;MatchData &quot; 東京都&quot;&gt;</span>
+</pre>
+
+<p>Arbitrary Ruby expressions can be embedded into patterns with the
+<code>#{...}</code> construct.</p>
+
+<pre class="ruby"><span class="ruby-identifier">place</span> = <span class="ruby-string">&quot;東京都&quot;</span>
+<span class="ruby-node">/#{place}/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;Go to 東京都&quot;</span>)
+    <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;東京都&quot;&gt;</span>
+</pre>
+
+<h2 id="class-Regexp-label-Character+Classes">Character Classes<span><a href="#class-Regexp-label-Character+Classes">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>A <em>character class</em> is delimited with square brackets
+(<code>[</code>, <code>]</code>) and lists characters that may appear at
+that point in the match. <code>/[ab]/</code> means <em>a</em> or
+<em>b</em>, as opposed to <code>/ab/</code> which means <em>a</em> followed
+by <em>b</em>.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/W[aeiou]rd/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;Word&quot;</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;Word&quot;&gt;</span>
+</pre>
+
+<p>Within a character class the hyphen (<code>-</code>) is a metacharacter
+denoting an inclusive range of characters. <code>[abcd]</code> is
+equivalent to <code>[a-d]</code>. A range can be followed by another range,
+so <code>[abcdwxyz]</code> is equivalent to <code>[a-dw-z]</code>. The
+order in which ranges or individual characters appear inside a character
+class is irrelevant.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/[0-9a-f]/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'9f'</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;9&quot;&gt;</span>
+<span class="ruby-regexp">/[9f]/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'9f'</span>)     <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;9&quot;&gt;</span>
+</pre>
+
+<p>If the first character of a character class is a caret (<code>^</code>) the
+class is inverted: it matches any character <em>except</em> those named.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/[^a-eg-z]/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'f'</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;f&quot;&gt;</span>
+</pre>
+
+<p>A character class may contain another character class. By itself this isn’t
+useful because <code>[a-z[0-9]]</code> describes the same set as
+<code>[a-z0-9]</code>. However, character classes also support the
+<code>&amp;&amp;</code> operator which performs set intersection on its
+arguments. The two can be combined as follows:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/[a-w&amp;&amp;[^c-g]z]/</span> <span class="ruby-comment"># ([a-w] AND ([^c-g] OR z))</span>
+</pre>
+
+<p>This is equivalent to:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/[abh-w]/</span>
+</pre>
+
+<p>The following metacharacters also behave like character classes:</p>
+<ul><li>
+<p><code>/./</code> - Any character except a newline.</p>
+</li><li>
+<p><code>/./m</code> - Any character (the <code>m</code> modifier enables
+multiline mode)</p>
+</li><li>
+<p><code>/\w/</code> - A word character (<code>[a-zA-Z0-9_]</code>)</p>
+</li><li>
+<p><code>/\W/</code> - A non-word character (<code>[^a-zA-Z0-9_]</code>).
+Please take a look at <a href="https://bugs.ruby-lang.org/issues/4044">Bug
+#4044</a> if using <code>/\W/</code> with the <code>/i</code> modifier.</p>
+</li><li>
+<p><code>/\d/</code> - A digit character (<code>[0-9]</code>)</p>
+</li><li>
+<p><code>/\D/</code> - A non-digit character (<code>[^0-9]</code>)</p>
+</li><li>
+<p><code>/\h/</code> - A hexdigit character (<code>[0-9a-fA-F]</code>)</p>
+</li><li>
+<p><code>/\H/</code> - A non-hexdigit character (<code>[^0-9a-fA-F]</code>)</p>
+</li><li>
+<p><code>/\s/</code> - A whitespace character: <code>/[ \t\r\n\f]/</code></p>
+</li><li>
+<p><code>/\S/</code> - A non-whitespace character: <code>/[^ \t\r\n\f]/</code></p>
+</li></ul>
+
+<p>POSIX <em>bracket expressions</em> are also similar to character classes.
+They provide a portable alternative to the above, with the added benefit
+that they encompass non-ASCII characters. For instance, <code>/\d/</code>
+matches only the ASCII decimal digits (0-9); whereas
+<code>/[[:digit:]]/</code> matches any character in the Unicode <em>Nd</em>
+category.</p>
+<ul><li>
+<p><code>/[[:alnum:]]/</code> - Alphabetic and numeric character</p>
+</li><li>
+<p><code>/[[:alpha:]]/</code> - Alphabetic character</p>
+</li><li>
+<p><code>/[[:blank:]]/</code> - Space or tab</p>
+</li><li>
+<p><code>/[[:cntrl:]]/</code> - Control character</p>
+</li><li>
+<p><code>/[[:digit:]]/</code> - Digit</p>
+</li><li>
+<p><code>/[[:graph:]]/</code> - Non-blank character (excludes spaces, control
+characters, and similar)</p>
+</li><li>
+<p><code>/[[:lower:]]/</code> - Lowercase alphabetical character</p>
+</li><li>
+<p><code>/[[:print:]]/</code> - Like [:graph:], but includes the space
+character</p>
+</li><li>
+<p><code>/[[:punct:]]/</code> - Punctuation character</p>
+</li><li>
+<p><code>/[[:space:]]/</code> - Whitespace character (<code>[:blank:]</code>,
+newline, carriage return, etc.)</p>
+</li><li>
+<p><code>/[[:upper:]]/</code> - Uppercase alphabetical</p>
+</li><li>
+<p><code>/[[:xdigit:]]/</code> - Digit allowed in a hexadecimal number (i.e.,
+0-9a-fA-F)</p>
+</li></ul>
+
+<p>Ruby also supports the following non-POSIX character classes:</p>
+<ul><li>
+<p><code>/[[:word:]]/</code> - A character in one of the following Unicode
+general categories <em>Letter</em>, <em>Mark</em>, <em>Number</em>,
+<em>Connector_Punctuation</em></p>
+</li><li>
+<p><code>/[[:ascii:]]/</code> - A character in the ASCII character set</p>
+
+<pre class="ruby"><span class="ruby-comment"># U+06F2 is &quot;EXTENDED ARABIC-INDIC DIGIT TWO&quot;</span>
+<span class="ruby-regexp">/[[:digit:]]/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;\u06F2&quot;</span>)    <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;\u{06F2}&quot;&gt;</span>
+<span class="ruby-regexp">/[[:upper:]][[:lower:]]/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;Hello&quot;</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;He&quot;&gt;</span>
+<span class="ruby-regexp">/[[:xdigit:]][[:xdigit:]]/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;A6&quot;</span>)  <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;A6&quot;&gt;</span>
+</pre>
+</li></ul>
+
+<h2 id="class-Regexp-label-Repetition">Repetition<span><a href="#class-Regexp-label-Repetition">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>The constructs described so far match a single character. They can be
+followed by a repetition metacharacter to specify how many times they need
+to occur. Such metacharacters are called <em>quantifiers</em>.</p>
+<ul><li>
+<p><code>*</code> - Zero or more times</p>
+</li><li>
+<p><code>+</code> - One or more times</p>
+</li><li>
+<p><code>?</code> - Zero or one times (optional)</p>
+</li><li>
+<p><code>{</code><em>n</em><code>}</code> - Exactly <em>n</em> times</p>
+</li><li>
+<p><code>{</code><em>n</em><code>,}</code> - <em>n</em> or more times</p>
+</li><li>
+<p><code>{,</code><em>m</em><code>}</code> - <em>m</em> or less times</p>
+</li><li>
+<p><code>{</code><em>n</em><code>,</code><em>m</em><code>}</code> - At least
+<em>n</em> and at most <em>m</em> times</p>
+</li></ul>
+
+<p>At least one uppercase character (‘H’), at least one lowercase character
+(‘e’), two ‘l’ characters, then one ‘o’:</p>
+
+<pre class="ruby"><span class="ruby-string">&quot;Hello&quot;</span>.<span class="ruby-identifier">match</span>(<span class="ruby-regexp">/[[:upper:]]+[[:lower:]]+l{2}o/</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;Hello&quot;&gt;</span>
+</pre>
+
+<p>Repetition is <em>greedy</em> by default: as many occurrences as possible
+are matched while still allowing the overall match to succeed. By contrast,
+<em>lazy</em> matching makes the minimal amount of matches necessary for
+overall success. A greedy metacharacter can be made lazy by following it
+with <code>?</code>.</p>
+
+<p>Both patterns below match the string. The first uses a greedy quantifier so
+‘.+’ matches ‘&lt;a&gt;&lt;b&gt;’; the second uses a lazy quantifier so
+‘.+?’ matches ‘&lt;a&gt;’:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/&lt;.+&gt;/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;&lt;a&gt;&lt;b&gt;&quot;</span>)  <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;&lt;a&gt;&lt;b&gt;&quot;&gt;</span>
+<span class="ruby-regexp">/&lt;.+?&gt;/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;&lt;a&gt;&lt;b&gt;&quot;</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;&lt;a&gt;&quot;&gt;</span>
+</pre>
+
+<p>A quantifier followed by <code>+</code> matches <em>possessively</em>: once
+it has matched it does not backtrack. They behave like greedy quantifiers,
+but having matched they refuse to “give up” their match even if this
+jeopardises the overall match.</p>
+
+<h2 id="class-Regexp-label-Capturing">Capturing<span><a href="#class-Regexp-label-Capturing">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>Parentheses can be used for <em>capturing</em>. The text enclosed by the
+<em>n</em>&lt;sup&gt;th&lt;/sup&gt; group of parentheses can be
+subsequently referred to with <em>n</em>. Within a pattern use the
+<em>backreference</em> <code>\n</code>; outside of the pattern use
+<code>MatchData[n]</code>.</p>
+
+<p>‘at’ is captured by the first group of parentheses, then referred to later
+with <code>\1</code>:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/[csh](..) [csh]\1 in/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;The cat sat in the hat&quot;</span>)
+    <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;cat sat in&quot; 1:&quot;at&quot;&gt;</span>
+</pre>
+
+<p><a href="Regexp.html#method-i-match">#match</a> returns a <a
+href="MatchData.html">MatchData</a> object which makes the captured text
+available with its [] method:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/[csh](..) [csh]\1 in/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;The cat sat in the hat&quot;</span>)[<span class="ruby-value">1</span>] <span class="ruby-comment">#=&gt; 'at'</span>
+</pre>
+
+<p>Capture groups can be referred to by name when defined with the
+<code>(?&lt;</code><em>name</em><code>&gt;)</code> or
+<code>(?'</code><em>name</em><code>')</code> constructs.</p>
+
+<pre>/\$(?&lt;dollars&gt;\d+)\.(?&lt;cents&gt;\d+)/.match(&quot;$3.67&quot;)
+    =&gt; #&lt;MatchData &quot;$3.67&quot; dollars:&quot;3&quot; cents:&quot;67&quot;&gt;
+/\$(?&lt;dollars&gt;\d+)\.(?&lt;cents&gt;\d+)/.match(&quot;$3.67&quot;)[:dollars] #=&gt; &quot;3&quot;</pre>
+
+<p>Named groups can be backreferenced with
+<code>\k&lt;</code><em>name</em><code>&gt;</code>, where <em>name</em> is
+the group name.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/(?&lt;vowel&gt;[aeiou]).\k&lt;vowel&gt;.\k&lt;vowel&gt;/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'ototomy'</span>)
+    <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;ototo&quot; vowel:&quot;o&quot;&gt;</span>
+</pre>
+
+<p><strong>Note</strong>: A regexp can't use named backreferences and numbered
+backreferences simultaneously.</p>
+
+<p>When named capture groups are used with a literal regexp on the left-hand
+side of an expression and the <code>=~</code> operator, the captured text
+is also assigned to local variables with corresponding names.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/\$(?&lt;dollars&gt;\d+)\.(?&lt;cents&gt;\d+)/</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;$3.67&quot;</span> <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-identifier">dollars</span> <span class="ruby-comment">#=&gt; &quot;3&quot;</span>
+</pre>
+
+<h2 id="class-Regexp-label-Grouping">Grouping<span><a href="#class-Regexp-label-Grouping">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>Parentheses also <em>group</em> the terms they enclose, allowing them to be
+quantified as one <em>atomic</em> whole.</p>
+
+<p>The pattern below matches a vowel followed by 2 word characters:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/[aeiou]\w{2}/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;Caenorhabditis elegans&quot;</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;aen&quot;&gt;</span>
+</pre>
+
+<p>Whereas the following pattern matches a vowel followed by a word character,
+twice, i.e. <code>[aeiou]\w[aeiou]\w</code>: ‘enor’.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/([aeiou]\w){2}/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;Caenorhabditis elegans&quot;</span>)
+    <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;enor&quot; 1:&quot;or&quot;&gt;</span>
+</pre>
+
+<p>The <code>(?:</code>…<code>)</code> construct provides grouping without
+capturing. That is, it combines the terms it contains into an atomic whole
+without creating a backreference. This benefits performance at the slight
+expense of readability.</p>
+
+<p>The first group of parentheses captures ‘n’ and the second ‘ti’. The second
+group is referred to later with the backreference <code>\2</code>:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/I(n)ves(ti)ga\2ons/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;Investigations&quot;</span>)
+    <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;Investigations&quot; 1:&quot;n&quot; 2:&quot;ti&quot;&gt;</span>
+</pre>
+
+<p>The first group of parentheses is now made non-capturing with ‘?:’, so it
+still matches ‘n’, but doesn’t create the backreference. Thus, the
+backreference <code>\1</code> now refers to ‘ti’.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/I(?:n)ves(ti)ga\1ons/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;Investigations&quot;</span>)
+    <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;Investigations&quot; 1:&quot;ti&quot;&gt;</span>
+</pre>
+
+<h3 id="class-Regexp-label-Atomic+Grouping">Atomic Grouping<span><a href="#class-Regexp-label-Atomic+Grouping">&para;</a> <a href="#top">&uarr;</a></span></h3>
+
+<p>Grouping can be made <em>atomic</em> with
+<code>(?&gt;</code><em>pat</em><code>)</code>. This causes the
+subexpression <em>pat</em> to be matched independently of the rest of the
+expression such that what it matches becomes fixed for the remainder of the
+match, unless the entire subexpression must be abandoned and subsequently
+revisited. In this way <em>pat</em> is treated as a non-divisible whole.
+Atomic grouping is typically used to optimise patterns so as to prevent the
+regular expression engine from backtracking needlessly.</p>
+
+<p>The <code>&quot;</code> in the pattern below matches the first character of
+the string, then <code>.*</code> matches <em>Quote“</em>. This causes the
+overall match to fail, so the text matched by <code>.*</code> is
+backtracked by one position, which leaves the final character of the string
+available to match <code>&quot;</code></p>
+
+<pre class="ruby"><span class="ruby-regexp">/&quot;.*&quot;/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'&quot;Quote&quot;'</span>)     <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;\&quot;Quote\&quot;&quot;&gt;</span>
+</pre>
+
+<p>If <code>.*</code> is grouped atomically, it refuses to backtrack
+<em>Quote“</em>, even though this means that the overall match fails</p>
+
+<pre class="ruby"><span class="ruby-regexp">/&quot;(?&gt;.*)&quot;/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'&quot;Quote&quot;'</span>) <span class="ruby-comment">#=&gt; nil</span>
+</pre>
+
+<h2 id="class-Regexp-label-Subexpression+Calls">Subexpression Calls<span><a href="#class-Regexp-label-Subexpression+Calls">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>The <code>\g&lt;</code><em>name</em><code>&gt;</code> syntax matches the
+previous subexpression named <em>name</em>, which can be a group name or
+number, again. This differs from backreferences in that it re-executes the
+group rather than simply trying to re-match the same text.</p>
+
+<p>This pattern matches a <em>(</em> character and assigns it to the
+<code>paren</code> group, tries to call that the <code>paren</code>
+sub-expression again but fails, then matches a literal <em>)</em>:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/\A(?&lt;paren&gt;\(\g&lt;paren&gt;*\))*\z/</span> <span class="ruby-operator">=~</span> <span class="ruby-string">'()'</span>
+
+<span class="ruby-regexp">/\A(?&lt;paren&gt;\(\g&lt;paren&gt;*\))*\z/</span> <span class="ruby-operator">=~</span> <span class="ruby-string">'(())'</span> <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-comment"># ^1</span>
+<span class="ruby-comment">#      ^2</span>
+<span class="ruby-comment">#           ^3</span>
+<span class="ruby-comment">#                 ^4</span>
+<span class="ruby-comment">#      ^5</span>
+<span class="ruby-comment">#           ^6</span>
+<span class="ruby-comment">#                      ^7</span>
+<span class="ruby-comment">#                       ^8</span>
+<span class="ruby-comment">#                       ^9</span>
+<span class="ruby-comment">#                           ^10</span>
+</pre>
+<ol><li>
+<p>Matches at the beginning of the string, i.e. before the first character.</p>
+</li><li>
+<p>Enters a named capture group called <code>paren</code></p>
+</li><li>
+<p>Matches a literal <em>(</em>, the first character in the string</p>
+</li><li>
+<p>Calls the <code>paren</code> group again, i.e. recurses back to the second
+step</p>
+</li><li>
+<p>Re-enters the <code>paren</code> group</p>
+</li><li>
+<p>Matches a literal <em>(</em>, the second character in the string</p>
+</li><li>
+<p>Try to call <code>paren</code> a third time, but fail because doing so
+would prevent an overall successful match</p>
+</li><li>
+<p>Match a literal <em>)</em>, the third character in the string. Marks the
+end of the second recursive call</p>
+</li><li>
+<p>Match a literal <em>)</em>, the fourth character in the string</p>
+</li><li>
+<p>Match the end of the string</p>
+</li></ol>
+
+<h2 id="class-Regexp-label-Alternation">Alternation<span><a href="#class-Regexp-label-Alternation">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>The vertical bar metacharacter (<code>|</code>) combines two expressions
+into a single one that matches either of the expressions. Each expression
+is an <em>alternative</em>.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/\w(and|or)\w/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;Feliformia&quot;</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;form&quot; 1:&quot;or&quot;&gt;</span>
+<span class="ruby-regexp">/\w(and|or)\w/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;furandi&quot;</span>)    <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;randi&quot; 1:&quot;and&quot;&gt;</span>
+<span class="ruby-regexp">/\w(and|or)\w/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;dissemblance&quot;</span>) <span class="ruby-comment">#=&gt; nil</span>
+</pre>
+
+<h2 id="class-Regexp-label-Character+Properties">Character Properties<span><a href="#class-Regexp-label-Character+Properties">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>The <code>\p{}</code> construct matches characters with the named property,
+much like POSIX bracket classes.</p>
+<ul><li>
+<p><code>/\p{Alnum}/</code> - Alphabetic and numeric character</p>
+</li><li>
+<p><code>/\p{Alpha}/</code> - Alphabetic character</p>
+</li><li>
+<p><code>/\p{Blank}/</code> - Space or tab</p>
+</li><li>
+<p><code>/\p{Cntrl}/</code> - Control character</p>
+</li><li>
+<p><code>/\p{Digit}/</code> - Digit</p>
+</li><li>
+<p><code>/\p{Graph}/</code> - Non-blank character (excludes spaces, control
+characters, and similar)</p>
+</li><li>
+<p><code>/\p{Lower}/</code> - Lowercase alphabetical character</p>
+</li><li>
+<p><code>/\p{Print}/</code> - Like <code>\p{Graph}</code>, but includes the
+space character</p>
+</li><li>
+<p><code>/\p{Punct}/</code> - Punctuation character</p>
+</li><li>
+<p><code>/\p{Space}/</code> - Whitespace character (<code>[:blank:]</code>,
+newline, carriage return, etc.)</p>
+</li><li>
+<p><code>/\p{Upper}/</code> - Uppercase alphabetical</p>
+</li><li>
+<p><code>/\p{XDigit}/</code> - Digit allowed in a hexadecimal number (i.e.,
+0-9a-fA-F)</p>
+</li><li>
+<p><code>/\p{Word}/</code> - A member of one of the following Unicode general
+category <em>Letter</em>, <em>Mark</em>, <em>Number</em>,
+<em>Connector_Punctuation</em></p>
+</li><li>
+<p><code>/\p{ASCII}/</code> - A character in the ASCII character set</p>
+</li><li>
+<p><code>/\p{Any}/</code> - Any Unicode character (including unassigned
+characters)</p>
+</li><li>
+<p><code>/\p{Assigned}/</code> - An assigned character</p>
+</li></ul>
+
+<p>A Unicode character’s <em>General Category</em> value can also be matched
+with <code>\p{</code><em>Ab</em><code>}</code> where <em>Ab</em> is the
+category’s abbreviation as described below:</p>
+<ul><li>
+<p><code>/\p{L}/</code> - 'Letter'</p>
+</li><li>
+<p><code>/\p{Ll}/</code> - 'Letter: Lowercase'</p>
+</li><li>
+<p><code>/\p{Lm}/</code> - 'Letter: Mark'</p>
+</li><li>
+<p><code>/\p{Lo}/</code> - 'Letter: Other'</p>
+</li><li>
+<p><code>/\p{Lt}/</code> - 'Letter: Titlecase'</p>
+</li><li>
+<p><code>/\p{Lu}/</code> - 'Letter: Uppercase</p>
+</li><li>
+<p><code>/\p{Lo}/</code> - 'Letter: Other'</p>
+</li><li>
+<p><code>/\p{M}/</code> - 'Mark'</p>
+</li><li>
+<p><code>/\p{Mn}/</code> - 'Mark: Nonspacing'</p>
+</li><li>
+<p><code>/\p{Mc}/</code> - 'Mark: Spacing Combining'</p>
+</li><li>
+<p><code>/\p{Me}/</code> - 'Mark: Enclosing'</p>
+</li><li>
+<p><code>/\p{N}/</code> - 'Number'</p>
+</li><li>
+<p><code>/\p{Nd}/</code> - 'Number: Decimal Digit'</p>
+</li><li>
+<p><code>/\p{Nl}/</code> - 'Number: Letter'</p>
+</li><li>
+<p><code>/\p{No}/</code> - 'Number: Other'</p>
+</li><li>
+<p><code>/\p{P}/</code> - 'Punctuation'</p>
+</li><li>
+<p><code>/\p{Pc}/</code> - 'Punctuation: Connector'</p>
+</li><li>
+<p><code>/\p{Pd}/</code> - 'Punctuation: Dash'</p>
+</li><li>
+<p><code>/\p{Ps}/</code> - 'Punctuation: Open'</p>
+</li><li>
+<p><code>/\p{Pe}/</code> - 'Punctuation: Close'</p>
+</li><li>
+<p><code>/\p{Pi}/</code> - 'Punctuation: Initial Quote'</p>
+</li><li>
+<p><code>/\p{Pf}/</code> - 'Punctuation: Final Quote'</p>
+</li><li>
+<p><code>/\p{Po}/</code> - 'Punctuation: Other'</p>
+</li><li>
+<p><code>/\p{S}/</code> - 'Symbol'</p>
+</li><li>
+<p><code>/\p{Sm}/</code> - 'Symbol: Math'</p>
+</li><li>
+<p><code>/\p{Sc}/</code> - 'Symbol: Currency'</p>
+</li><li>
+<p><code>/\p{Sc}/</code> - 'Symbol: Currency'</p>
+</li><li>
+<p><code>/\p{Sk}/</code> - 'Symbol: Modifier'</p>
+</li><li>
+<p><code>/\p{So}/</code> - 'Symbol: Other'</p>
+</li><li>
+<p><code>/\p{Z}/</code> - 'Separator'</p>
+</li><li>
+<p><code>/\p{Zs}/</code> - 'Separator: Space'</p>
+</li><li>
+<p><code>/\p{Zl}/</code> - 'Separator: Line'</p>
+</li><li>
+<p><code>/\p{Zp}/</code> - 'Separator: Paragraph'</p>
+</li><li>
+<p><code>/\p{C}/</code> - 'Other'</p>
+</li><li>
+<p><code>/\p{Cc}/</code> - 'Other: Control'</p>
+</li><li>
+<p><code>/\p{Cf}/</code> - 'Other: Format'</p>
+</li><li>
+<p><code>/\p{Cn}/</code> - 'Other: Not Assigned'</p>
+</li><li>
+<p><code>/\p{Co}/</code> - 'Other: Private Use'</p>
+</li><li>
+<p><code>/\p{Cs}/</code> - 'Other: Surrogate'</p>
+</li></ul>
+
+<p>Lastly, <code>\p{}</code> matches a character’s Unicode <em>script</em>.
+The following scripts are supported: <em>Arabic</em>, <em>Armenian</em>,
+<em>Balinese</em>, <em>Bengali</em>, <em>Bopomofo</em>, <em>Braille</em>,
+<em>Buginese</em>, <em>Buhid</em>, <em>Canadian_Aboriginal</em>,
+<em>Carian</em>, <em>Cham</em>, <em>Cherokee</em>, <em>Common</em>,
+<em>Coptic</em>, <em>Cuneiform</em>, <em>Cypriot</em>, <em>Cyrillic</em>,
+<em>Deseret</em>, <em>Devanagari</em>, <em>Ethiopic</em>,
+<em>Georgian</em>, <em>Glagolitic</em>, <em>Gothic</em>, <em>Greek</em>,
+<em>Gujarati</em>, <em>Gurmukhi</em>, <em>Han</em>, <em>Hangul</em>,
+<em>Hanunoo</em>, <em>Hebrew</em>, <em>Hiragana</em>, <em>Inherited</em>,
+<em>Kannada</em>, <em>Katakana</em>, <em>Kayah_Li</em>,
+<em>Kharoshthi</em>, <em>Khmer</em>, <em>Lao</em>, <em>Latin</em>,
+<em>Lepcha</em>, <em>Limbu</em>, <em>Linear_B</em>, <em>Lycian</em>,
+<em>Lydian</em>, <em>Malayalam</em>, <em>Mongolian</em>, <em>Myanmar</em>,
+<em>New_Tai_Lue</em>, <em>Nko</em>, <em>Ogham</em>, <em>Ol_Chiki</em>,
+<em>Old_Italic</em>, <em>Old_Persian</em>, <em>Oriya</em>,
+<em>Osmanya</em>, <em>Phags_Pa</em>, <em>Phoenician</em>, <em>Rejang</em>,
+<em>Runic</em>, <em>Saurashtra</em>, <em>Shavian</em>, <em>Sinhala</em>,
+<em>Sundanese</em>, <em>Syloti_Nagri</em>, <em>Syriac</em>,
+<em>Tagalog</em>, <em>Tagbanwa</em>, <em>Tai_Le</em>, <em>Tamil</em>,
+<em>Telugu</em>, <em>Thaana</em>, <em>Thai</em>, <em>Tibetan</em>,
+<em>Tifinagh</em>, <em>Ugaritic</em>, <em>Vai</em>, and <em>Yi</em>.</p>
+
+<p>Unicode codepoint U+06E9 is named “ARABIC PLACE OF SAJDAH” and belongs to
+the Arabic script:</p>
+
+<pre>/\p{Arabic}/.match(&quot;\u06E9&quot;) #=&gt; #&lt;MatchData &quot;\u06E9&quot;&gt;</pre>
+
+<p>All character properties can be inverted by prefixing their name with a
+caret (<code>^</code>).</p>
+
+<p>Letter ‘A’ is not in the Unicode Ll (Letter; Lowercase) category, so this
+match succeeds:</p>
+
+<pre>/\p{^Ll}/.match(&quot;A&quot;) #=&gt; #&lt;MatchData &quot;A&quot;&gt;</pre>
+
+<h2 id="class-Regexp-label-Anchors">Anchors<span><a href="#class-Regexp-label-Anchors">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>Anchors are metacharacter that match the zero-width positions between
+characters, <em>anchoring</em> the match to a specific position.</p>
+<ul><li>
+<p><code>^</code> - Matches beginning of line</p>
+</li><li>
+<p><code>$</code> - Matches end of line</p>
+</li><li>
+<p><code>\A</code> - Matches beginning of string.</p>
+</li><li>
+<p><code>\Z</code> - Matches end of string. If string ends with a newline, it
+matches just before newline</p>
+</li><li>
+<p><code>\z</code> - Matches end of string</p>
+</li><li>
+<p><code>\G</code> - Matches point where last match finished</p>
+</li><li>
+<p><code>\b</code> - Matches word boundaries when outside brackets; backspace
+(0x08) when inside brackets</p>
+</li><li>
+<p><code>\B</code> - Matches non-word boundaries</p>
+</li><li>
+<p><code>(?=</code><em>pat</em><code>)</code> - <em>Positive lookahead</em>
+assertion: ensures that the following characters match <em>pat</em>, but
+doesn't include those characters in the matched text</p>
+</li><li>
+<p><code>(?!</code><em>pat</em><code>)</code> - <em>Negative lookahead</em>
+assertion: ensures that the following characters do not match <em>pat</em>,
+but doesn't include those characters in the matched text</p>
+</li><li>
+<p><code>(?&lt;=</code><em>pat</em><code>)</code> - <em>Positive
+lookbehind</em> assertion: ensures that the preceding characters match
+<em>pat</em>, but doesn't include those characters in the matched text</p>
+</li><li>
+<p><code>(?&lt;!</code><em>pat</em><code>)</code> - <em>Negative
+lookbehind</em> assertion: ensures that the preceding characters do not
+match <em>pat</em>, but doesn't include those characters in the matched
+text</p>
+</li></ul>
+
+<p>If a pattern isn’t anchored it can begin at any point in the string:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/real/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;surrealist&quot;</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;real&quot;&gt;</span>
+</pre>
+
+<p>Anchoring the pattern to the beginning of the string forces the match to
+start there. ‘real’ doesn’t occur at the beginning of the string, so now
+the match fails:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/\Areal/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;surrealist&quot;</span>) <span class="ruby-comment">#=&gt; nil</span>
+</pre>
+
+<p>The match below fails because although ‘Demand’ contains ‘and’, the pattern
+does not occur at a word boundary.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/\band/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;Demand&quot;</span>)
+</pre>
+
+<p>Whereas in the following example ‘and’ has been anchored to a non-word
+boundary so instead of matching the first ‘and’ it matches from the fourth
+letter of ‘demand’ instead:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/\Band.+/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;Supply and demand curve&quot;</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;and curve&quot;&gt;</span>
+</pre>
+
+<p>The pattern below uses positive lookahead and positive lookbehind to match
+text appearing in  tags without including the tags in the match:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/(?&lt;=&lt;b&gt;)\w+(?=&lt;\/b&gt;)/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;Fortune favours the &lt;b&gt;bold&lt;/b&gt;&quot;</span>)
+    <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;bold&quot;&gt;</span>
+</pre>
+
+<h2 id="class-Regexp-label-Options">Options<span><a href="#class-Regexp-label-Options">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>The end delimiter for a regexp can be followed by one or more single-letter
+options which control how the pattern can match.</p>
+<ul><li>
+<p><code>/pat/i</code> - Ignore case</p>
+</li><li>
+<p><code>/pat/m</code> - Treat a newline as a character matched by
+<code>.</code></p>
+</li><li>
+<p><code>/pat/x</code> - Ignore whitespace and comments in the pattern</p>
+</li><li>
+<p><code>/pat/o</code> - Perform <code>#{}</code> interpolation only once</p>
+</li></ul>
+
+<p><code>i</code>, <code>m</code>, and <code>x</code> can also be applied on
+the subexpression level with the
+<code>(?</code><em>on</em><code>-</code><em>off</em><code>)</code>
+construct, which enables options <em>on</em>, and disables options
+<em>off</em> for the expression enclosed by the parentheses.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/a(?i:b)c/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'aBc'</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;aBc&quot;&gt;</span>
+<span class="ruby-regexp">/a(?i:b)c/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'abc'</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;abc&quot;&gt;</span>
+</pre>
+
+<p>Options may also be used with <code>Regexp.new</code>:</p>
+
+<pre class="ruby"><span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;abc&quot;</span>, <span class="ruby-constant">Regexp</span><span class="ruby-operator">::</span><span class="ruby-constant">IGNORECASE</span>)                     <span class="ruby-comment">#=&gt; /abc/i</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;abc&quot;</span>, <span class="ruby-constant">Regexp</span><span class="ruby-operator">::</span><span class="ruby-constant">MULTILINE</span>)                      <span class="ruby-comment">#=&gt; /abc/m</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-node">&quot;abc # Comment&quot;</span>, <span class="ruby-constant">Regexp</span><span class="ruby-operator">::</span><span class="ruby-constant">EXTENDED</span>)             <span class="ruby-comment">#=&gt; /abc # Comment/x</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;abc&quot;</span>, <span class="ruby-constant">Regexp</span><span class="ruby-operator">::</span><span class="ruby-constant">IGNORECASE</span> <span class="ruby-operator">|</span> <span class="ruby-constant">Regexp</span><span class="ruby-operator">::</span><span class="ruby-constant">MULTILINE</span>) <span class="ruby-comment">#=&gt; /abc/mi</span>
+</pre>
+
+<h2 id="class-Regexp-label-Free-Spacing+Mode+and+Comments">Free-Spacing Mode and Comments<span><a href="#class-Regexp-label-Free-Spacing+Mode+and+Comments">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>As mentioned above, the <code>x</code> option enables <em>free-spacing</em>
+mode. Literal white space inside the pattern is ignored, and the octothorpe
+(<code>#</code>) character introduces a comment until the end of the line.
+This allows the components of the pattern to be organized in a potentially
+more readable fashion.</p>
+
+<p>A contrived pattern to match a number with optional decimal places:</p>
+
+<pre class="ruby"><span class="ruby-identifier">float_pat</span> = <span class="ruby-node">/\A
+    [[:digit:]]+ # 1 or more digits before the decimal point
+    (\.          # Decimal point
+        [[:digit:]]+ # 1 or more digits after the decimal point
+    )? # The decimal point and following digits are optional
+\Z/x</span>
+<span class="ruby-identifier">float_pat</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'3.14'</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;3.14&quot; 1:&quot;.14&quot;&gt;</span>
+</pre>
+
+<p>There are a number of strategies for matching whitespace:</p>
+<ul><li>
+<p>Use a pattern such as <code>\s</code> or <code>\p{Space}</code>.</p>
+</li><li>
+<p>Use escaped whitespace such as <code>\ </code>, i.e. a space preceded by a
+backslash.</p>
+</li><li>
+<p>Use a character class such as <code>[ ]</code>.</p>
+</li></ul>
+
+<p>Comments can be included in a non-<code>x</code> pattern with the
+<code>(?#</code><em>comment</em><code>)</code> construct, where
+<em>comment</em> is arbitrary text ignored by the regexp engine.</p>
+
+<h2 id="class-Regexp-label-Encoding"><a href="Encoding.html">Encoding</a><span><a href="#class-Regexp-label-Encoding">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>Regular expressions are assumed to use the source encoding. This can be
+overridden with one of the following modifiers.</p>
+<ul><li>
+<p><code>/</code><em>pat</em><code>/u</code> - UTF-8</p>
+</li><li>
+<p><code>/</code><em>pat</em><code>/e</code> - EUC-JP</p>
+</li><li>
+<p><code>/</code><em>pat</em><code>/s</code> - Windows-31J</p>
+</li><li>
+<p><code>/</code><em>pat</em><code>/n</code> - ASCII-8BIT</p>
+</li></ul>
+
+<p>A regexp can be matched against a string when they either share an
+encoding, or the regexp’s encoding is <em>US-ASCII</em> and the string’s
+encoding is ASCII-compatible.</p>
+
+<p>If a match between incompatible encodings is attempted an
+<code>Encoding::CompatibilityError</code> exception is raised.</p>
+
+<p>The <code>Regexp#fixed_encoding?</code> predicate indicates whether the
+regexp has a <em>fixed</em> encoding, that is one incompatible with ASCII.
+A regexp’s encoding can be explicitly fixed by supplying
+<code>Regexp::FIXEDENCODING</code> as the second argument of
+<code>Regexp.new</code>:</p>
+
+<pre>r = Regexp.new(&quot;a&quot;.force_encoding(&quot;iso-8859-1&quot;),Regexp::FIXEDENCODING)
+r =~&quot;a\u3042&quot;
+   #=&gt; Encoding::CompatibilityError: incompatible encoding regexp match
+        (ISO-8859-1 regexp with UTF-8 string)</pre>
+
+<h2 id="class-Regexp-label-Special+global+variables">Special global variables<span><a href="#class-Regexp-label-Special+global+variables">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>Pattern matching sets some global variables :</p>
+<ul><li>
+<p><code>$~</code> is equivalent to <a
+href="Regexp.html#method-c-last_match">::last_match</a>;</p>
+</li><li>
+<p><code>$&amp;</code> contains the complete matched text;</p>
+</li><li>
+<p><code>$`</code> contains string before match;</p>
+</li><li>
+<p><code>$'</code> contains string after match;</p>
+</li><li>
+<p><code>$1</code>, <code>$2</code> and so on contain text matching first,
+second, etc capture group;</p>
+</li><li>
+<p><code>$+</code> contains last capture group.</p>
+</li></ul>
+
+<p>Example:</p>
+
+<pre class="ruby"><span class="ruby-identifier">m</span> = <span class="ruby-regexp">/s(\w{2}).*(c)/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">'haystack'</span>) <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;stac&quot; 1:&quot;ta&quot; 2:&quot;c&quot;&gt;</span>
+<span class="ruby-identifier">$~</span>                                    <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;stac&quot; 1:&quot;ta&quot; 2:&quot;c&quot;&gt;</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">last_match</span>                     <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;stac&quot; 1:&quot;ta&quot; 2:&quot;c&quot;&gt;</span>
+
+<span class="ruby-node">$&amp;</span>      <span class="ruby-comment">#=&gt; &quot;stac&quot;</span>
+        <span class="ruby-comment"># same as m[0]</span>
+<span class="ruby-node">$`</span>      <span class="ruby-comment">#=&gt; &quot;hay&quot;</span>
+        <span class="ruby-comment"># same as m.pre_match</span>
+<span class="ruby-node">$'</span>      <span class="ruby-comment">#=&gt; &quot;k&quot;</span>
+        <span class="ruby-comment"># same as m.post_match</span>
+<span class="ruby-node">$1</span>      <span class="ruby-comment">#=&gt; &quot;ta&quot;</span>
+        <span class="ruby-comment"># same as m[1]</span>
+<span class="ruby-node">$2</span>      <span class="ruby-comment">#=&gt; &quot;c&quot;</span>
+        <span class="ruby-comment"># same as m[2]</span>
+<span class="ruby-node">$3</span>      <span class="ruby-comment">#=&gt; nil</span>
+        <span class="ruby-comment"># no third group in pattern</span>
+<span class="ruby-node">$+</span>      <span class="ruby-comment">#=&gt; &quot;c&quot;</span>
+        <span class="ruby-comment"># same as m[-1]</span>
+</pre>
+
+<p>These global variables are thread-local and method-local variables.</p>
+
+<h2 id="class-Regexp-label-Performance">Performance<span><a href="#class-Regexp-label-Performance">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>Certain pathological combinations of constructs can lead to abysmally bad
+performance.</p>
+
+<p>Consider a string of 25 <em>a</em>s, a <em>d</em>, 4 <em>a</em>s, and a
+<em>c</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">s</span> = <span class="ruby-string">'a'</span> <span class="ruby-operator">*</span> <span class="ruby-value">25</span> <span class="ruby-operator">+</span> <span class="ruby-string">'d'</span> <span class="ruby-operator">+</span> <span class="ruby-string">'a'</span> <span class="ruby-operator">*</span> <span class="ruby-value">4</span> <span class="ruby-operator">+</span> <span class="ruby-string">'c'</span>
+<span class="ruby-comment">#=&gt; &quot;aaaaaaaaaaaaaaaaaaaaaaaaadaaaac&quot;</span>
+</pre>
+
+<p>The following patterns match instantly as you would expect:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/(b|a)/</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">s</span> <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-regexp">/(b|a+)/</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">s</span> <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-regexp">/(b|a+)*/</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">s</span> <span class="ruby-comment">#=&gt; 0</span>
+</pre>
+
+<p>However, the following pattern takes appreciably longer:</p>
+
+<pre class="ruby"><span class="ruby-regexp">/(b|a+)*c/</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">s</span> <span class="ruby-comment">#=&gt; 26</span>
+</pre>
+
+<p>This happens because an atom in the regexp is quantified by both an
+immediate <code>+</code> and an enclosing <code>*</code> with nothing to
+differentiate which is in control of any particular character. The
+nondeterminism that results produces super-linear performance. (Consult
+<em>Mastering Regular Expressions</em> (3rd ed.), pp 222, by <em>Jeffery
+Friedl</em>, for an in-depth analysis). This particular case can be fixed
+by use of atomic grouping, which prevents the unnecessary backtracking:</p>
+
+<pre class="ruby">(<span class="ruby-identifier">start</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-regexp">/(b|a+)*c/</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">s</span> <span class="ruby-operator">&amp;&amp;</span> (<span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">start</span>)
+   <span class="ruby-comment">#=&gt; 24.702736882</span>
+(<span class="ruby-identifier">start</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>) <span class="ruby-operator">&amp;&amp;</span> <span class="ruby-regexp">/(?&gt;b|a+)*c/</span> <span class="ruby-operator">=~</span> <span class="ruby-identifier">s</span> <span class="ruby-operator">&amp;&amp;</span> (<span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">start</span>)
+   <span class="ruby-comment">#=&gt; 0.000166571</span>
+</pre>
+
+<p>A similar case is typified by the following example, which takes
+approximately 60 seconds to execute for me:</p>
+
+<p>Match a string of 29 <em>a</em>s against a pattern of 29 optional
+<em>a</em>s followed by 29 mandatory <em>a</em>s:</p>
+
+<pre class="ruby"><span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">'a?'</span> <span class="ruby-operator">*</span> <span class="ruby-value">29</span> <span class="ruby-operator">+</span> <span class="ruby-string">'a'</span> <span class="ruby-operator">*</span> <span class="ruby-value">29</span>) <span class="ruby-operator">=~</span> <span class="ruby-string">'a'</span> <span class="ruby-operator">*</span> <span class="ruby-value">29</span>
+</pre>
+
+<p>The 29 optional <em>a</em>s match the string, but this prevents the 29
+mandatory <em>a</em>s that follow from matching. Ruby must then backtrack
+repeatedly so as to satisfy as many of the optional matches as it can while
+still matching the mandatory 29. It is plain to us that none of the
+optional matches can succeed, but this fact unfortunately eludes Ruby.</p>
+
+<p>The best way to improve performance is to significantly reduce the amount
+of backtracking needed.  For this case, instead of individually matching 29
+optional <em>a</em>s, a range of optional <em>a</em>s can be matched all at
+once with <em>a{0,29}</em>:</p>
+
+<pre class="ruby"><span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">'a{0,29}'</span> <span class="ruby-operator">+</span> <span class="ruby-string">'a'</span> <span class="ruby-operator">*</span> <span class="ruby-value">29</span>) <span class="ruby-operator">=~</span> <span class="ruby-string">'a'</span> <span class="ruby-operator">*</span> <span class="ruby-value">29</span>
+</pre>
+
+    </div><!-- description -->
+
+    
+    
+    
+    <div id="5Buntitled-5D" class="documentation-section">
+      
+
+      
+
+      
+      <!-- Constants -->
+      <div id="constants-list" class="section">
+        <h3 class="section-header">Constants</h3>
+        <dl>
+        
+          <dt><a name="EXTENDED">EXTENDED</a></dt>
+          
+          <dd class="description"><p>see <a href="Regexp.html#method-i-options">#options</a> and <a
+href="Regexp.html#method-c-new">::new</a></p></dd>
+          
+        
+          <dt><a name="FIXEDENCODING">FIXEDENCODING</a></dt>
+          
+          <dd class="description"><p>see <a href="Regexp.html#method-i-options">#options</a> and <a
+href="Regexp.html#method-c-new">::new</a></p></dd>
+          
+        
+          <dt><a name="IGNORECASE">IGNORECASE</a></dt>
+          
+          <dd class="description"><p>see <a href="Regexp.html#method-i-options">#options</a> and <a
+href="Regexp.html#method-c-new">::new</a></p></dd>
+          
+        
+          <dt><a name="MULTILINE">MULTILINE</a></dt>
+          
+          <dd class="description"><p>see <a href="Regexp.html#method-i-options">#options</a> and <a
+href="Regexp.html#method-c-new">::new</a></p></dd>
+          
+        
+          <dt><a name="NOENCODING">NOENCODING</a></dt>
+          
+          <dd class="description"><p>see <a href="Regexp.html#method-i-options">#options</a> and <a
+href="Regexp.html#method-c-new">::new</a></p></dd>
+          
+        
+        </dl>
+      </div>
+      
+
+      
+
+      <!-- Methods -->
+      
+      <div id="public-class-method-details" class="method-section section">
+        <h3 class="section-header">Public Class Methods</h3>
+
+      
+        <div id="compile-method" class="method-detail ">
+          <a name="method-c-compile"></a>
+
+          
+          <div class="method-heading">
+            <span class="method-name">compile</span><span
+              class="method-args">(*args)</span>
+            <span class="method-click-advice">click to toggle source</span>
+          </div>
+          
+          <div>
+  
+            
+            <p>Synonym for <code>Regexp.new</code></p>
+            
+
+            
+          </div>
+
+          
+
+          
+        </div><!-- compile-method -->
+      
+        <div id="escape-method" class="method-detail ">
+          <a name="method-c-escape"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">escape(str)   &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Escapes any characters that would have special meaning in a regular
+expression. Returns a new escaped string, or self if no characters are
+escaped.  For any string,
+<code>Regexp.new(Regexp.escape(<em>str</em>))=~<em>str</em></code> will be
+true.</p>
+
+<pre class="ruby"><span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">escape</span>(<span class="ruby-string">'\*?{}.'</span>)   <span class="ruby-comment">#=&gt; \\\*\?\{\}\.</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="escape-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_s_quote(VALUE c, VALUE str)
+{
+    return rb_reg_quote(reg_operand(str, TRUE));
+}
+            </pre> 
+            </div><!-- escape-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- escape-method -->
+      
+        <div id="last_match-method" class="method-detail ">
+          <a name="method-c-last_match"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">last_match           &rarr; matchdata</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">last_match(n)        &rarr; str</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>The first form returns the <a href="MatchData.html">MatchData</a> object
+generated by the last successful pattern match.  Equivalent to reading the
+special global variable <code>$~</code> (see Special global variables in <a
+href="Regexp.html">Regexp</a> for details).</p>
+
+<p>The second form returns the <em>n</em>th field in this <a
+href="MatchData.html">MatchData</a> object. <em>n</em> can be a string or
+symbol to reference a named capture.</p>
+
+<p>Note that the <a href="Regexp.html#method-c-last_match">::last_match</a> is
+local to the thread and method scope of the method that did the pattern
+match.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/c(.)t/</span> <span class="ruby-operator">=~</span> <span class="ruby-string">'cat'</span>        <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">last_match</span>       <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;cat&quot; 1:&quot;a&quot;&gt;</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">last_match</span>(<span class="ruby-value">0</span>)    <span class="ruby-comment">#=&gt; &quot;cat&quot;</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">last_match</span>(<span class="ruby-value">1</span>)    <span class="ruby-comment">#=&gt; &quot;a&quot;</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">last_match</span>(<span class="ruby-value">2</span>)    <span class="ruby-comment">#=&gt; nil</span>
+
+<span class="ruby-regexp">/(?&lt;lhs&gt;\w+)\s*=\s*(?&lt;rhs&gt;\w+)/</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;var = val&quot;</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">last_match</span>       <span class="ruby-comment">#=&gt; #&lt;MatchData &quot;var = val&quot; lhs:&quot;var&quot; rhs:&quot;val&quot;&gt;</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">last_match</span>(:<span class="ruby-identifier">lhs</span>) <span class="ruby-comment">#=&gt; &quot;var&quot;</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">last_match</span>(:<span class="ruby-identifier">rhs</span>) <span class="ruby-comment">#=&gt; &quot;val&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="last_match-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_s_last_match(int argc, VALUE *argv)
+{
+    VALUE nth;
+
+    if (argc &gt; 0 &amp;&amp; rb_scan_args(argc, argv, &quot;01&quot;, &amp;nth) == 1) {
+        VALUE match = rb_backref_get();
+        int n;
+        if (NIL_P(match)) return Qnil;
+        n = match_backref_number(match, nth);
+        return rb_reg_nth_match(n, match);
+    }
+    return match_getter();
+}
+            </pre> 
+            </div><!-- last_match-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- last_match-method -->
+      
+        <div id="new-method" class="method-detail ">
+          <a name="method-c-new"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">new(string, [options [, kcode]])        &rarr; regexp</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">new(regexp)                            &rarr; regexp</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">compile(string, [options [, kcode]])    &rarr; regexp</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">compile(regexp)                        &rarr; regexp</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Constructs a new regular expression from <code>pattern</code>, which can be
+either a <a href="String.html">String</a> or a <a
+href="Regexp.html">Regexp</a> (in which case that regexp’s options are
+propagated), and new options may not be specified (a change as of Ruby
+1.8).</p>
+
+<p>If <code>options</code> is a <a href="Fixnum.html">Fixnum</a>, it should be
+one or more of the constants Regexp::EXTENDED, Regexp::IGNORECASE, and
+Regexp::MULTILINE, <em>or</em>-ed together.  Otherwise, if
+<code>options</code> is not <code>nil</code> or <code>false</code>, the
+regexp will be case insensitive.</p>
+
+<p>When the <code>kcode</code> parameter is `n’ or `N’ sets the regexp no
+encoding. It means that the regexp is for binary strings.</p>
+
+<pre class="ruby"><span class="ruby-identifier">r1</span> = <span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">'^a-z+:\s+\w+'</span>) <span class="ruby-comment">#=&gt; /^a-z+:\s+\w+/</span>
+<span class="ruby-identifier">r2</span> = <span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">'cat'</span>, <span class="ruby-keyword">true</span>)     <span class="ruby-comment">#=&gt; /cat/i</span>
+<span class="ruby-identifier">r3</span> = <span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">r2</span>)              <span class="ruby-comment">#=&gt; /cat/i</span>
+<span class="ruby-identifier">r4</span> = <span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">'dog'</span>, <span class="ruby-constant">Regexp</span><span class="ruby-operator">::</span><span class="ruby-constant">EXTENDED</span> <span class="ruby-operator">|</span> <span class="ruby-constant">Regexp</span><span class="ruby-operator">::</span><span class="ruby-constant">IGNORECASE</span>) <span class="ruby-comment">#=&gt; /dog/ix</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="new-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_initialize_m(int argc, VALUE *argv, VALUE self)
+{
+    onig_errmsg_buffer err = &quot;&quot;;
+    int flags = 0;
+    VALUE str;
+    rb_encoding *enc;
+    const char *ptr;
+    long len;
+
+    rb_check_arity(argc, 1, 3);
+    if (RB_TYPE_P(argv[0], T_REGEXP)) {
+        VALUE re = argv[0];
+
+        if (argc &gt; 1) {
+            rb_warn(&quot;flags ignored&quot;);
+        }
+        rb_reg_check(re);
+        flags = rb_reg_options(re);
+        ptr = RREGEXP_SRC_PTR(re);
+        len = RREGEXP_SRC_LEN(re);
+        enc = rb_enc_get(re);
+        if (rb_reg_initialize(self, ptr, len, enc, flags, err, NULL, 0)) {
+            str = rb_enc_str_new(ptr, len, enc);
+            rb_reg_raise_str(str, flags, err);
+        }
+    }
+    else {
+        if (argc &gt;= 2) {
+            if (FIXNUM_P(argv[1])) flags = FIX2INT(argv[1]);
+            else if (RTEST(argv[1])) flags = ONIG_OPTION_IGNORECASE;
+        }
+        enc = 0;
+        if (argc == 3 &amp;&amp; !NIL_P(argv[2])) {
+            char *kcode = StringValuePtr(argv[2]);
+            if (kcode[0] == 'n' || kcode[0] == 'N') {
+                enc = rb_ascii8bit_encoding();
+                flags |= ARG_ENCODING_NONE;
+            }
+            else {
+                rb_warn(&quot;encoding option is ignored - %s&quot;, kcode);
+            }
+        }
+        str = argv[0];
+        ptr = StringValuePtr(str);
+        if (enc
+            ? rb_reg_initialize(self, ptr, RSTRING_LEN(str), enc, flags, err, NULL, 0)
+            : rb_reg_initialize_str(self, str, flags, err, NULL, 0)) {
+            rb_reg_raise_str(str, flags, err);
+        }
+    }
+    return self;
+}
+            </pre> 
+            </div><!-- new-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- new-method -->
+      
+        <div id="quote-method" class="method-detail ">
+          <a name="method-c-quote"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">quote(str)    &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Escapes any characters that would have special meaning in a regular
+expression. Returns a new escaped string, or self if no characters are
+escaped.  For any string,
+<code>Regexp.new(Regexp.escape(<em>str</em>))=~<em>str</em></code> will be
+true.</p>
+
+<pre class="ruby"><span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">escape</span>(<span class="ruby-string">'\*?{}.'</span>)   <span class="ruby-comment">#=&gt; \\\*\?\{\}\.</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="quote-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_s_quote(VALUE c, VALUE str)
+{
+    return rb_reg_quote(reg_operand(str, TRUE));
+}
+            </pre> 
+            </div><!-- quote-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- quote-method -->
+      
+        <div id="try_convert-method" class="method-detail ">
+          <a name="method-c-try_convert"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">try_convert(obj) &rarr; re or nil</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Try to convert <em>obj</em> into a <a href="Regexp.html">Regexp</a>, using
+to_regexp method. Returns converted regexp or nil if <em>obj</em> cannot be
+converted for any reason.</p>
+
+<pre class="ruby"><span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">try_convert</span>(<span class="ruby-regexp">/re/</span>)         <span class="ruby-comment">#=&gt; /re/</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">try_convert</span>(<span class="ruby-string">&quot;re&quot;</span>)         <span class="ruby-comment">#=&gt; nil</span>
+
+<span class="ruby-identifier">o</span> = <span class="ruby-constant">Object</span>.<span class="ruby-identifier">new</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">try_convert</span>(<span class="ruby-identifier">o</span>)            <span class="ruby-comment">#=&gt; nil</span>
+<span class="ruby-keyword">def</span> <span class="ruby-identifier">o</span>.<span class="ruby-identifier">to_regexp</span>() <span class="ruby-operator">/</span><span class="ruby-identifier">foo</span><span class="ruby-operator">/</span> <span class="ruby-keyword">end</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">try_convert</span>(<span class="ruby-identifier">o</span>)            <span class="ruby-comment">#=&gt; /foo/</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="try_convert-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_s_try_convert(VALUE dummy, VALUE re)
+{
+    return rb_check_regexp_type(re);
+}
+            </pre> 
+            </div><!-- try_convert-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- try_convert-method -->
+      
+        <div id="union-method" class="method-detail ">
+          <a name="method-c-union"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">union(pat1, pat2, ...)            &rarr; new_regexp</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">union(pats_ary)                   &rarr; new_regexp</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Return a <code>Regexp</code> object that is the union of the given
+<em>pattern</em>s, i.e., will match any of its parts. The <em>pattern</em>s
+can be <a href="Regexp.html">Regexp</a> objects, in which case their
+options will be preserved, or Strings. If no patterns are given, returns
+<code>/(?!)/</code>. The behavior is unspecified if any given
+<em>pattern</em> contains capture.</p>
+
+<pre class="ruby"><span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">union</span>                         <span class="ruby-comment">#=&gt; /(?!)/</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">union</span>(<span class="ruby-string">&quot;penzance&quot;</span>)             <span class="ruby-comment">#=&gt; /penzance/</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">union</span>(<span class="ruby-string">&quot;a+b*c&quot;</span>)                <span class="ruby-comment">#=&gt; /a\+b\*c/</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">union</span>(<span class="ruby-string">&quot;skiing&quot;</span>, <span class="ruby-string">&quot;sledding&quot;</span>)   <span class="ruby-comment">#=&gt; /skiing|sledding/</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">union</span>([<span class="ruby-string">&quot;skiing&quot;</span>, <span class="ruby-string">&quot;sledding&quot;</span>]) <span class="ruby-comment">#=&gt; /skiing|sledding/</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">union</span>(<span class="ruby-regexp">/dogs/</span>, <span class="ruby-regexp">/cats/i</span>)        <span class="ruby-comment">#=&gt; /(?-mix:dogs)|(?i-mx:cats)/</span>
+</pre>
+
+<p>Note: the arguments for <a href="Regexp.html#method-c-union">::union</a>
+will try to be converted into a regular expression literal via to_regexp.</p>
+            
+
+            
+            <div class="method-source-code" id="union-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_s_union_m(VALUE self, VALUE args)
+{
+    VALUE v;
+    if (RARRAY_LEN(args) == 1 &amp;&amp;
+        !NIL_P(v = rb_check_array_type(rb_ary_entry(args, 0)))) {
+        return rb_reg_s_union(self, v);
+    }
+    return rb_reg_s_union(self, args);
+}
+            </pre> 
+            </div><!-- union-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- union-method -->
+      
+      </div><!-- public-class-method-details -->
+    
+      <div id="public-instance-method-details" class="method-section section">
+        <h3 class="section-header">Public Instance Methods</h3>
+
+      
+        <div id="3D-3D-method" class="method-detail ">
+          <a name="method-i-3D-3D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">rxp == other_rxp      &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Equality—Two regexps are equal if their patterns are identical, they have
+the same character set code, and their <code>casefold?</code> values are
+the same.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/abc/</span>  <span class="ruby-operator">==</span> <span class="ruby-regexp">/abc/x</span>   <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-regexp">/abc/</span>  <span class="ruby-operator">==</span> <span class="ruby-regexp">/abc/i</span>   <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-regexp">/abc/</span>  <span class="ruby-operator">==</span> <span class="ruby-regexp">/abc/u</span>   <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-regexp">/abc/u</span> <span class="ruby-operator">==</span> <span class="ruby-regexp">/abc/n</span>   <span class="ruby-comment">#=&gt; false</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="3D-3D-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_equal(VALUE re1, VALUE re2)
+{
+    if (re1 == re2) return Qtrue;
+    if (!RB_TYPE_P(re2, T_REGEXP)) return Qfalse;
+    rb_reg_check(re1); rb_reg_check(re2);
+    if (FL_TEST(re1, KCODE_FIXED) != FL_TEST(re2, KCODE_FIXED)) return Qfalse;
+    if (RREGEXP(re1)-&gt;ptr-&gt;options != RREGEXP(re2)-&gt;ptr-&gt;options) return Qfalse;
+    if (RREGEXP_SRC_LEN(re1) != RREGEXP_SRC_LEN(re2)) return Qfalse;
+    if (ENCODING_GET(re1) != ENCODING_GET(re2)) return Qfalse;
+    if (memcmp(RREGEXP_SRC_PTR(re1), RREGEXP_SRC_PTR(re2), RREGEXP_SRC_LEN(re1)) == 0) {
+        return Qtrue;
+    }
+    return Qfalse;
+}
+            </pre> 
+            </div><!-- 3D-3D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 3D-3D-method -->
+      
+        <div id="3D-3D-3D-method" class="method-detail ">
+          <a name="method-i-3D-3D-3D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">rxp === str   &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Case Equality—Used in case statements.</p>
+
+<pre class="ruby"><span class="ruby-identifier">a</span> = <span class="ruby-string">&quot;HELLO&quot;</span>
+<span class="ruby-keyword">case</span> <span class="ruby-identifier">a</span>
+<span class="ruby-keyword">when</span> <span class="ruby-regexp">/^[a-z]*$/</span>; <span class="ruby-identifier">print</span> <span class="ruby-string">&quot;Lower case\n&quot;</span>
+<span class="ruby-keyword">when</span> <span class="ruby-regexp">/^[A-Z]*$/</span>; <span class="ruby-identifier">print</span> <span class="ruby-string">&quot;Upper case\n&quot;</span>
+<span class="ruby-keyword">else</span>;            <span class="ruby-identifier">print</span> <span class="ruby-string">&quot;Mixed case\n&quot;</span>
+<span class="ruby-keyword">end</span>
+<span class="ruby-comment">#=&gt; &quot;Upper case&quot;</span>
+</pre>
+
+<p>Following a regular expression literal with the <a
+href="Regexp.html#method-i-3D-3D-3D">===</a> operator allows you to compare
+against a <a href="String.html">String</a>.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/^[a-z]*$/</span> <span class="ruby-operator">===</span> <span class="ruby-string">&quot;HELLO&quot;</span> <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-regexp">/^[A-Z]*$/</span> <span class="ruby-operator">===</span> <span class="ruby-string">&quot;HELLO&quot;</span> <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="3D-3D-3D-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_reg_eqq(VALUE re, VALUE str)
+{
+    long start;
+
+    str = reg_operand(str, FALSE);
+    if (NIL_P(str)) {
+        rb_backref_set(Qnil);
+        return Qfalse;
+    }
+    start = rb_reg_search(re, str, 0, 0);
+    if (start &lt; 0) {
+        return Qfalse;
+    }
+    return Qtrue;
+}
+            </pre> 
+            </div><!-- 3D-3D-3D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 3D-3D-3D-method -->
+      
+        <div id="3D-7E-method" class="method-detail ">
+          <a name="method-i-3D-7E"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">rxp =~ str    &rarr; integer or nil</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Match—Matches <em>rxp</em> against <em>str</em>.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/at/</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;input data&quot;</span>   <span class="ruby-comment">#=&gt; 7</span>
+<span class="ruby-regexp">/ax/</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;input data&quot;</span>   <span class="ruby-comment">#=&gt; nil</span>
+</pre>
+
+<p>If <code>=~</code> is used with a regexp literal with named captures,
+captured strings (or nil) is assigned to local variables named by the
+capture names.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/(?&lt;lhs&gt;\w+)\s*=\s*(?&lt;rhs&gt;\w+)/</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;  x = y  &quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">lhs</span>    <span class="ruby-comment">#=&gt; &quot;x&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">rhs</span>    <span class="ruby-comment">#=&gt; &quot;y&quot;</span>
+</pre>
+
+<p>If it is not matched, nil is assigned for the variables.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/(?&lt;lhs&gt;\w+)\s*=\s*(?&lt;rhs&gt;\w+)/</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;  x = &quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">lhs</span>    <span class="ruby-comment">#=&gt; nil</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">rhs</span>    <span class="ruby-comment">#=&gt; nil</span>
+</pre>
+
+<p>This assignment is implemented in the Ruby parser. The parser detects
+‘regexp-literal =~ expression’ for the assignment. The regexp must be a
+literal without interpolation and placed at left hand side.</p>
+
+<p>The assignment does not occur if the regexp is not a literal.</p>
+
+<pre class="ruby"><span class="ruby-identifier">re</span> = <span class="ruby-regexp">/(?&lt;lhs&gt;\w+)\s*=\s*(?&lt;rhs&gt;\w+)/</span>
+<span class="ruby-identifier">re</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;  x = y  &quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">lhs</span>    <span class="ruby-comment"># undefined local variable</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">rhs</span>    <span class="ruby-comment"># undefined local variable</span>
+</pre>
+
+<p>A regexp interpolation, <code>#{}</code>, also disables the assignment.</p>
+
+<pre class="ruby"><span class="ruby-identifier">rhs_pat</span> = <span class="ruby-regexp">/(?&lt;rhs&gt;\w+)/</span>
+<span class="ruby-node">/(?&lt;lhs&gt;\w+)\s*=\s*#{rhs_pat}/</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;x = y&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">lhs</span>    <span class="ruby-comment"># undefined local variable</span>
+</pre>
+
+<p>The assignment does not occur if the regexp is placed at the right hand
+side.</p>
+
+<pre class="ruby"><span class="ruby-string">&quot;  x = y  &quot;</span> <span class="ruby-operator">=~</span> <span class="ruby-regexp">/(?&lt;lhs&gt;\w+)\s*=\s*(?&lt;rhs&gt;\w+)/</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">lhs</span>, <span class="ruby-identifier">rhs</span> <span class="ruby-comment"># undefined local variable</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="3D-7E-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_reg_match(VALUE re, VALUE str)
+{
+    long pos = reg_match_pos(re, &amp;str, 0);
+    if (pos &lt; 0) return Qnil;
+    pos = rb_str_sublen(str, pos);
+    return LONG2FIX(pos);
+}
+            </pre> 
+            </div><!-- 3D-7E-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 3D-7E-method -->
+      
+        <div id="casefold-3F-method" class="method-detail ">
+          <a name="method-i-casefold-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">casefold?   &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the value of the case-insensitive flag.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/a/</span>.<span class="ruby-identifier">casefold?</span>           <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-regexp">/a/i</span>.<span class="ruby-identifier">casefold?</span>          <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-regexp">/(?i:a)/</span>.<span class="ruby-identifier">casefold?</span>      <span class="ruby-comment">#=&gt; false</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="casefold-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_casefold_p(VALUE re)
+{
+    rb_reg_check(re);
+    if (RREGEXP(re)-&gt;ptr-&gt;options &amp; ONIG_OPTION_IGNORECASE) return Qtrue;
+    return Qfalse;
+}
+            </pre> 
+            </div><!-- casefold-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- casefold-3F-method -->
+      
+        <div id="encoding-method" class="method-detail ">
+          <a name="method-i-encoding"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">encoding   &rarr; encoding</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the <a href="Encoding.html">Encoding</a> object that represents the
+encoding of obj.</p>
+            
+
+            
+            <div class="method-source-code" id="encoding-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_obj_encoding(VALUE obj)
+{
+    int idx = rb_enc_get_index(obj);
+    if (idx &lt; 0) {
+	rb_raise(rb_eTypeError, &quot;unknown encoding&quot;);
+    }
+    return rb_enc_from_encoding_index(idx &amp; ENC_INDEX_MASK);
+}
+            </pre> 
+            </div><!-- encoding-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- encoding-method -->
+      
+        <div id="eql-3F-method" class="method-detail ">
+          <a name="method-i-eql-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">eql?(other_rxp)   &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Equality—Two regexps are equal if their patterns are identical, they have
+the same character set code, and their <code>casefold?</code> values are
+the same.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/abc/</span>  <span class="ruby-operator">==</span> <span class="ruby-regexp">/abc/x</span>   <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-regexp">/abc/</span>  <span class="ruby-operator">==</span> <span class="ruby-regexp">/abc/i</span>   <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-regexp">/abc/</span>  <span class="ruby-operator">==</span> <span class="ruby-regexp">/abc/u</span>   <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-regexp">/abc/u</span> <span class="ruby-operator">==</span> <span class="ruby-regexp">/abc/n</span>   <span class="ruby-comment">#=&gt; false</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="eql-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_equal(VALUE re1, VALUE re2)
+{
+    if (re1 == re2) return Qtrue;
+    if (!RB_TYPE_P(re2, T_REGEXP)) return Qfalse;
+    rb_reg_check(re1); rb_reg_check(re2);
+    if (FL_TEST(re1, KCODE_FIXED) != FL_TEST(re2, KCODE_FIXED)) return Qfalse;
+    if (RREGEXP(re1)-&gt;ptr-&gt;options != RREGEXP(re2)-&gt;ptr-&gt;options) return Qfalse;
+    if (RREGEXP_SRC_LEN(re1) != RREGEXP_SRC_LEN(re2)) return Qfalse;
+    if (ENCODING_GET(re1) != ENCODING_GET(re2)) return Qfalse;
+    if (memcmp(RREGEXP_SRC_PTR(re1), RREGEXP_SRC_PTR(re2), RREGEXP_SRC_LEN(re1)) == 0) {
+        return Qtrue;
+    }
+    return Qfalse;
+}
+            </pre> 
+            </div><!-- eql-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- eql-3F-method -->
+      
+        <div id="fixed_encoding-3F-method" class="method-detail ">
+          <a name="method-i-fixed_encoding-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">fixed_encoding?   &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns false if rxp is applicable to a string with any ASCII compatible
+encoding. Returns true otherwise.</p>
+
+<pre class="ruby"><span class="ruby-identifier">r</span> = <span class="ruby-regexp">/a/</span>
+<span class="ruby-identifier">r</span>.<span class="ruby-identifier">fixed_encoding?</span>                               <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">r</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;\u{6666} a&quot;</span>                               <span class="ruby-comment">#=&gt; 2</span>
+<span class="ruby-identifier">r</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;\xa1\xa2 a&quot;</span>.<span class="ruby-identifier">force_encoding</span>(<span class="ruby-string">&quot;euc-jp&quot;</span>)      <span class="ruby-comment">#=&gt; 2</span>
+<span class="ruby-identifier">r</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;abc&quot;</span>.<span class="ruby-identifier">force_encoding</span>(<span class="ruby-string">&quot;euc-jp&quot;</span>)             <span class="ruby-comment">#=&gt; 0</span>
+
+<span class="ruby-identifier">r</span> = <span class="ruby-regexp">/a/u</span>
+<span class="ruby-identifier">r</span>.<span class="ruby-identifier">fixed_encoding?</span>                               <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-identifier">r</span>.<span class="ruby-identifier">encoding</span>                                      <span class="ruby-comment">#=&gt; #&lt;Encoding:UTF-8&gt;</span>
+<span class="ruby-identifier">r</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;\u{6666} a&quot;</span>                               <span class="ruby-comment">#=&gt; 2</span>
+<span class="ruby-identifier">r</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;\xa1\xa2&quot;</span>.<span class="ruby-identifier">force_encoding</span>(<span class="ruby-string">&quot;euc-jp&quot;</span>)        <span class="ruby-comment">#=&gt; ArgumentError</span>
+<span class="ruby-identifier">r</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;abc&quot;</span>.<span class="ruby-identifier">force_encoding</span>(<span class="ruby-string">&quot;euc-jp&quot;</span>)             <span class="ruby-comment">#=&gt; 0</span>
+
+<span class="ruby-identifier">r</span> = <span class="ruby-regexp">/\u{6666}/</span>
+<span class="ruby-identifier">r</span>.<span class="ruby-identifier">fixed_encoding?</span>                               <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-identifier">r</span>.<span class="ruby-identifier">encoding</span>                                      <span class="ruby-comment">#=&gt; #&lt;Encoding:UTF-8&gt;</span>
+<span class="ruby-identifier">r</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;\u{6666} a&quot;</span>                               <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-identifier">r</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;\xa1\xa2&quot;</span>.<span class="ruby-identifier">force_encoding</span>(<span class="ruby-string">&quot;euc-jp&quot;</span>)        <span class="ruby-comment">#=&gt; ArgumentError</span>
+<span class="ruby-identifier">r</span> <span class="ruby-operator">=~</span> <span class="ruby-string">&quot;abc&quot;</span>.<span class="ruby-identifier">force_encoding</span>(<span class="ruby-string">&quot;euc-jp&quot;</span>)             <span class="ruby-comment">#=&gt; nil</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="fixed_encoding-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_fixed_encoding_p(VALUE re)
+{
+    if (FL_TEST(re, KCODE_FIXED))
+        return Qtrue;
+    else
+        return Qfalse;
+}
+            </pre> 
+            </div><!-- fixed_encoding-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- fixed_encoding-3F-method -->
+      
+        <div id="hash-method" class="method-detail ">
+          <a name="method-i-hash"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">hash   &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Produce a hash based on the text and options of this regular expression.</p>
+
+<p>See also <a href="Object.html#method-i-hash">Object#hash</a>.</p>
+            
+
+            
+            <div class="method-source-code" id="hash-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_hash(VALUE re)
+{
+    st_index_t hashval = reg_hash(re);
+    return LONG2FIX(hashval);
+}
+            </pre> 
+            </div><!-- hash-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- hash-method -->
+      
+        <div id="inspect-method" class="method-detail ">
+          <a name="method-i-inspect"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">inspect   &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Produce a nicely formatted string-version of <em>rxp</em>. Perhaps
+surprisingly, <code>#inspect</code> actually produces the more natural
+version of the string than <code>#to_s</code>.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/ab+c/ix</span>.<span class="ruby-identifier">inspect</span>        <span class="ruby-comment">#=&gt; &quot;/ab+c/ix&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="inspect-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_inspect(VALUE re)
+{
+    if (!RREGEXP(re)-&gt;ptr || !RREGEXP_SRC(re) || !RREGEXP_SRC_PTR(re)) {
+        return rb_any_to_s(re);
+    }
+    return rb_reg_desc(RREGEXP_SRC_PTR(re), RREGEXP_SRC_LEN(re), re);
+}
+            </pre> 
+            </div><!-- inspect-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- inspect-method -->
+      
+        <div id="match-method" class="method-detail ">
+          <a name="method-i-match"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">match(str)       &rarr; matchdata or nil</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">match(str,pos)   &rarr; matchdata or nil</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a <code>MatchData</code> object describing the match, or
+<code>nil</code> if there was no match. This is equivalent to retrieving
+the value of the special variable <code>$~</code> following a normal match.
+If the second parameter is present, it specifies the position in the string
+to begin the search.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/(.)(.)(.)/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;abc&quot;</span>)[<span class="ruby-value">2</span>]   <span class="ruby-comment">#=&gt; &quot;b&quot;</span>
+<span class="ruby-regexp">/(.)(.)/</span>.<span class="ruby-identifier">match</span>(<span class="ruby-string">&quot;abc&quot;</span>, <span class="ruby-value">1</span>)[<span class="ruby-value">2</span>]   <span class="ruby-comment">#=&gt; &quot;c&quot;</span>
+</pre>
+
+<p>If a block is given, invoke the block with <a
+href="MatchData.html">MatchData</a> if match succeed, so that you can write</p>
+
+<pre>pat.match(str) {|m| ...}</pre>
+
+<p>instead of</p>
+
+<pre>if m = pat.match(str)
+  ...
+end</pre>
+
+<p>The return value is a value from block execution in this case.</p>
+            
+
+            
+            <div class="method-source-code" id="match-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_match_m(int argc, VALUE *argv, VALUE re)
+{
+    VALUE result, str, initpos;
+    long pos;
+
+    if (rb_scan_args(argc, argv, &quot;11&quot;, &amp;str, &amp;initpos) == 2) {
+        pos = NUM2LONG(initpos);
+    }
+    else {
+        pos = 0;
+    }
+
+    pos = reg_match_pos(re, &amp;str, pos);
+    if (pos &lt; 0) {
+        rb_backref_set(Qnil);
+        return Qnil;
+    }
+    result = rb_backref_get();
+    rb_match_busy(result);
+    if (!NIL_P(result) &amp;&amp; rb_block_given_p()) {
+        return rb_yield(result);
+    }
+    return result;
+}
+            </pre> 
+            </div><!-- match-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- match-method -->
+      
+        <div id="named_captures-method" class="method-detail ">
+          <a name="method-i-named_captures"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">named_captures  &rarr; hash</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a hash representing information about named captures of
+<em>rxp</em>.</p>
+
+<p>A key of the hash is a name of the named captures. A value of the hash is
+an array which is list of indexes of corresponding named captures.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/(?&lt;foo&gt;.)(?&lt;bar&gt;.)/</span>.<span class="ruby-identifier">named_captures</span>
+<span class="ruby-comment">#=&gt; {&quot;foo&quot;=&gt;[1], &quot;bar&quot;=&gt;[2]}</span>
+
+<span class="ruby-regexp">/(?&lt;foo&gt;.)(?&lt;foo&gt;.)/</span>.<span class="ruby-identifier">named_captures</span>
+<span class="ruby-comment">#=&gt; {&quot;foo&quot;=&gt;[1, 2]}</span>
+</pre>
+
+<p>If there are no named captures, an empty hash is returned.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/(.)(.)/</span>.<span class="ruby-identifier">named_captures</span>
+<span class="ruby-comment">#=&gt; {}</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="named_captures-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_named_captures(VALUE re)
+{
+    VALUE hash = rb_hash_new();
+    rb_reg_check(re);
+    onig_foreach_name(RREGEXP(re)-&gt;ptr, reg_named_captures_iter, (void*)hash);
+    return hash;
+}
+            </pre> 
+            </div><!-- named_captures-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- named_captures-method -->
+      
+        <div id="names-method" class="method-detail ">
+          <a name="method-i-names"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">names   &rarr; [name1, name2, ...]</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a list of names of captures as an array of strings.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/(?&lt;foo&gt;.)(?&lt;bar&gt;.)(?&lt;baz&gt;.)/</span>.<span class="ruby-identifier">names</span>
+<span class="ruby-comment">#=&gt; [&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;]</span>
+
+<span class="ruby-regexp">/(?&lt;foo&gt;.)(?&lt;foo&gt;.)/</span>.<span class="ruby-identifier">names</span>
+<span class="ruby-comment">#=&gt; [&quot;foo&quot;]</span>
+
+<span class="ruby-regexp">/(.)(.)/</span>.<span class="ruby-identifier">names</span>
+<span class="ruby-comment">#=&gt; []</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="names-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_names(VALUE re)
+{
+    VALUE ary = rb_ary_new();
+    rb_reg_check(re);
+    onig_foreach_name(RREGEXP(re)-&gt;ptr, reg_names_iter, (void*)ary);
+    return ary;
+}
+            </pre> 
+            </div><!-- names-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- names-method -->
+      
+        <div id="options-method" class="method-detail ">
+          <a name="method-i-options"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">options   &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the set of bits corresponding to the options used when creating
+this <a href="Regexp.html">Regexp</a> (see <code>Regexp::new</code> for
+details. Note that additional bits may be set in the returned options:
+these are used internally by the regular expression code. These extra bits
+are ignored if the options are passed to <code>Regexp::new</code>.</p>
+
+<pre class="ruby"><span class="ruby-constant">Regexp</span><span class="ruby-operator">::</span><span class="ruby-constant">IGNORECASE</span>                  <span class="ruby-comment">#=&gt; 1</span>
+<span class="ruby-constant">Regexp</span><span class="ruby-operator">::</span><span class="ruby-constant">EXTENDED</span>                    <span class="ruby-comment">#=&gt; 2</span>
+<span class="ruby-constant">Regexp</span><span class="ruby-operator">::</span><span class="ruby-constant">MULTILINE</span>                   <span class="ruby-comment">#=&gt; 4</span>
+
+<span class="ruby-regexp">/cat/</span>.<span class="ruby-identifier">options</span>                       <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-regexp">/cat/ix</span>.<span class="ruby-identifier">options</span>                     <span class="ruby-comment">#=&gt; 3</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">'cat'</span>, <span class="ruby-keyword">true</span>).<span class="ruby-identifier">options</span>     <span class="ruby-comment">#=&gt; 1</span>
+<span class="ruby-regexp">/\xa1\xa2/e</span>.<span class="ruby-identifier">options</span>                 <span class="ruby-comment">#=&gt; 16</span>
+
+<span class="ruby-identifier">r</span> = <span class="ruby-regexp">/cat/ix</span>
+<span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">r</span>.<span class="ruby-identifier">source</span>, <span class="ruby-identifier">r</span>.<span class="ruby-identifier">options</span>)     <span class="ruby-comment">#=&gt; /cat/ix</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="options-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_options_m(VALUE re)
+{
+    int options = rb_reg_options(re);
+    return INT2NUM(options);
+}
+            </pre> 
+            </div><!-- options-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- options-method -->
+      
+        <div id="source-method" class="method-detail ">
+          <a name="method-i-source"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">source   &rarr; str</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the original string of the pattern.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/ab+c/ix</span>.<span class="ruby-identifier">source</span> <span class="ruby-comment">#=&gt; &quot;ab+c&quot;</span>
+</pre>
+
+<p>Note that escape sequences are retained as is.</p>
+
+<pre class="ruby"><span class="ruby-regexp">/\x20\+/</span>.<span class="ruby-identifier">source</span>  <span class="ruby-comment">#=&gt; &quot;\\x20\\+&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="source-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_source(VALUE re)
+{
+    VALUE str;
+
+    rb_reg_check(re);
+    str = rb_enc_str_new(RREGEXP_SRC_PTR(re),RREGEXP_SRC_LEN(re), rb_enc_get(re));
+    if (OBJ_TAINTED(re)) OBJ_TAINT(str);
+    return str;
+}
+            </pre> 
+            </div><!-- source-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- source-method -->
+      
+        <div id="to_s-method" class="method-detail ">
+          <a name="method-i-to_s"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_s   &rarr; str</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a string containing the regular expression and its options (using
+the <code>(?opts:source)</code> notation. This string can be fed back in to
+<code>Regexp::new</code> to a regular expression with the same semantics as
+the original. (However, <code>Regexp#==</code> may not return true when
+comparing the two, as the source of the regular expression itself may
+differ, as the example shows).  <code>Regexp#inspect</code> produces a
+generally more readable version of <em>rxp</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">r1</span> = <span class="ruby-regexp">/ab+c/ix</span>           <span class="ruby-comment">#=&gt; /ab+c/ix</span>
+<span class="ruby-identifier">s1</span> = <span class="ruby-identifier">r1</span>.<span class="ruby-identifier">to_s</span>            <span class="ruby-comment">#=&gt; &quot;(?ix-m:ab+c)&quot;</span>
+<span class="ruby-identifier">r2</span> = <span class="ruby-constant">Regexp</span>.<span class="ruby-identifier">new</span>(<span class="ruby-identifier">s1</span>)     <span class="ruby-comment">#=&gt; /(?ix-m:ab+c)/</span>
+<span class="ruby-identifier">r1</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">r2</span>                <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">r1</span>.<span class="ruby-identifier">source</span>               <span class="ruby-comment">#=&gt; &quot;ab+c&quot;</span>
+<span class="ruby-identifier">r2</span>.<span class="ruby-identifier">source</span>               <span class="ruby-comment">#=&gt; &quot;(?ix-m:ab+c)&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="to_s-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_reg_to_s(VALUE re)
+{
+    int options, opt;
+    const int embeddable = ONIG_OPTION_MULTILINE|ONIG_OPTION_IGNORECASE|ONIG_OPTION_EXTEND;
+    long len;
+    const UChar* ptr;
+    VALUE str = rb_str_buf_new2(&quot;(?&quot;);
+    char optbuf[5];
+    rb_encoding *enc = rb_enc_get(re);
+
+    rb_reg_check(re);
+
+    rb_enc_copy(str, re);
+    options = RREGEXP(re)-&gt;ptr-&gt;options;
+    ptr = (UChar*)RREGEXP_SRC_PTR(re);
+    len = RREGEXP_SRC_LEN(re);
+  again:
+    if (len &gt;= 4 &amp;&amp; ptr[0] == '(' &amp;&amp; ptr[1] == '?') {
+        int err = 1;
+        ptr += 2;
+        if ((len -= 2) &gt; 0) {
+            do {
+                opt = char_to_option((int )*ptr);
+                if (opt != 0) {
+                    options |= opt;
+                }
+                else {
+                    break;
+                }
+                ++ptr;
+            } while (--len &gt; 0);
+        }
+        if (len &gt; 1 &amp;&amp; *ptr == '-') {
+            ++ptr;
+            --len;
+            do {
+                opt = char_to_option((int )*ptr);
+                if (opt != 0) {
+                    options &amp;= ~opt;
+                }
+                else {
+                    break;
+                }
+                ++ptr;
+            } while (--len &gt; 0);
+        }
+        if (*ptr == ')') {
+            --len;
+            ++ptr;
+            goto again;
+        }
+        if (*ptr == ':' &amp;&amp; ptr[len-1] == ')') {
+            Regexp *rp;
+            VALUE verbose = ruby_verbose;
+            ruby_verbose = Qfalse;
+
+            ++ptr;
+            len -= 2;
+            err = onig_new(&amp;rp, ptr, ptr + len, ONIG_OPTION_DEFAULT,
+                           enc, OnigDefaultSyntax, NULL);
+            onig_free(rp);
+            ruby_verbose = verbose;
+        }
+        if (err) {
+            options = RREGEXP(re)-&gt;ptr-&gt;options;
+            ptr = (UChar*)RREGEXP_SRC_PTR(re);
+            len = RREGEXP_SRC_LEN(re);
+        }
+    }
+
+    if (*option_to_str(optbuf, options)) rb_str_buf_cat2(str, optbuf);
+
+    if ((options &amp; embeddable) != embeddable) {
+        optbuf[0] = '-';
+        option_to_str(optbuf + 1, ~options);
+        rb_str_buf_cat2(str, optbuf);
+    }
+
+    rb_str_buf_cat2(str, &quot;:&quot;);
+    if (rb_enc_asciicompat(enc)) {
+        rb_reg_expr_str(str, (char*)ptr, len, enc, NULL);
+        rb_str_buf_cat2(str, &quot;)&quot;);
+    }
+    else {
+        const char *s, *e;
+        char *paren;
+        ptrdiff_t n;
+        rb_str_buf_cat2(str, &quot;)&quot;);
+        rb_enc_associate(str, rb_usascii_encoding());
+        str = rb_str_encode(str, rb_enc_from_encoding(enc), 0, Qnil);
+
+        /* backup encoded &quot;)&quot; to paren */
+        s = RSTRING_PTR(str);
+        e = RSTRING_END(str);
+        s = rb_enc_left_char_head(s, e-1, e, enc);
+        n = e - s;
+        paren = ALLOCA_N(char, n);
+        memcpy(paren, s, n);
+        rb_str_resize(str, RSTRING_LEN(str) - n);
+
+        rb_reg_expr_str(str, (char*)ptr, len, enc, NULL);
+        rb_str_buf_cat(str, paren, n);
+    }
+    rb_enc_copy(str, re);
+
+    OBJ_INFECT(str, re);
+    return str;
+}
+            </pre> 
+            </div><!-- to_s-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- to_s-method -->
+      
+        <div id="7E-method" class="method-detail ">
+          <a name="method-i-7E"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">~ rxp   &rarr; integer or nil</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Match—Matches <em>rxp</em> against the contents of <code>$_</code>.
+Equivalent to <code><em>rxp</em> =~ $_</code>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">$_</span> = <span class="ruby-string">&quot;input data&quot;</span>
+<span class="ruby-operator">~</span> <span class="ruby-regexp">/at/</span>   <span class="ruby-comment">#=&gt; 7</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="7E-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_reg_match2(VALUE re)
+{
+    long start;
+    VALUE line = rb_lastline_get();
+
+    if (!RB_TYPE_P(line, T_STRING)) {
+        rb_backref_set(Qnil);
+        return Qnil;
+    }
+
+    start = rb_reg_search(re, line, 0, 0);
+    if (start &lt; 0) {
+        return Qnil;
+    }
+    start = rb_str_sublen(line, start);
+    return LONG2FIX(start);
+}
+            </pre> 
+            </div><!-- 7E-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 7E-method -->
+      
+      </div><!-- public-instance-method-details -->
+    
+    </div><!-- 5Buntitled-5D -->
+  
+  <div id='tx_Regexp_versioned' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_Regexp_versioned").load("/associated/2.2.0/Regexp.ihtml");</script> <div id='tx_Regexp' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_Regexp").load("/associated/Regexp.ihtml");</script> 
+      
+  <!-- dsqus ? -->
+     
+
+  
+  </div><!-- documentation -->
+  <div id='dynamic'>
+  </div>
+      
+          
+
+      
+<div class='grids wrapper' id="footer">
+  <p><small>This page was generated for Ruby 2.2.0</small></p> 
+  
+   <p><a href="http://ruby-doc.org">Ruby-doc.org</a> is a service of <a href="http://jamesbritt.com">James Britt</a> and <a href="http://neurogami.com">Neurogami</a>, an <a href="http://neurogami.com">application development company in Scottsdale, AZ</a>.  <div class='oio-inline'><ins data-revive-zoneid="1" data-revive-id="58924a5717c091dfee6dda3f7d38c4d7"></ins><script async src="//ras.ruby-doc.org/vvv/delivery/thesinkjs.php"></script></div></p>
+ 
+       <p><small>Generated with Ruby-doc Rdoc Generator 0.39.0</small>.</p>
+  </div>
+</div>
+  
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-335317-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+    
+ <script type='text/javascript'>
+$(document).ready(function() {
+      $.ajaxSetup({ cache: false });
+      $("#vulns-alert").load("/associated/vulns.ihtml");
+    });
+
+    </script>
+
+
+ 
+		<script type='text/javascript'>
+
+	function loadPlus(plusdocs){
+			$(plusdocs).find("div[class='associated_wrapper']").each (function() {
+					$("#" + this.id).append($(plusdocs).find("#" + this.id ));
+					});
+	} 
+
+   //function loadInline(json){
+   // for (var lookFor in json) {
+    //  $(lookFor).after(json[lookFor]);
+    // }
+  // } // end loadInline
+
+
+$(document).ready(function() {
+		$.ajaxSetup({ cache: false });
+			$.get('/associated/2.2.0/plus_Regexp.ihtml', 
+			function(plusdocs) {
+			setTimeout(function() {
+				loadPlus(plusdocs);
+				}, 2000);
+			}
+			);
+
+
+//     $.ajax({
+//     dataType: "json",
+//      url: '/associated/2.2.0/inline_Regexp.js',
+//      success: function(json) {
+// 			setTimeout(function() {
+// 				loadInline(json);
+// 				}, 2000);
+// 			}
+//    });
+
+		});
+</script>
+		
+</body>
+</html>
+
+

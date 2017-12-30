@@ -1,5 +1,6 @@
 package hc.server.ui;
 
+import hc.core.util.CCoreUtil;
 import hc.core.util.HCURL;
 import hc.core.util.LangUtil;
 import hc.core.util.RecycleRes;
@@ -10,11 +11,14 @@ import hc.server.msb.SimuRobot;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.JarMainMenu;
 import hc.server.ui.design.engine.HCJRubyEngine;
+import hc.server.ui.design.hpj.ConsoleTextPane;
+import hc.server.ui.design.hpj.ConsoleWriter;
 import hc.server.util.HCAudioInputStream;
 import hc.server.util.HCFileInputStream;
 import hc.server.util.HCImageInputStream;
 import hc.server.util.HCInputStreamBuilder;
 import hc.server.util.HCLimitSecurityManager;
+import hc.server.util.ServerUtil;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
 
@@ -23,6 +27,9 @@ import java.io.ByteArrayInputStream;
 public class SimuMobile {
 	public static final J2SESession SIMU_NULL = null;
 	
+	public static final int MOBILE_BORDER_RADIUS = 5;
+	public static final int MOBILE_FONT_SIZE_FOR_BUTTON = 24;
+	public static final int MOBILE_BUTTON_HEIGHT = 32;
 	public static final int MOBILE_WIDTH = 1024;
 	public static final int MOBILE_HEIGHT = 768;
 	public static final int MOBILE_DPI = 300;
@@ -52,6 +59,7 @@ public class SimuMobile {
 	public static final String MOBILE_DEFAULT_LOCALE = LangUtil.EN_US;
 	public static final String MOBILE_LOCALE = MOBILE_DEFAULT_LOCALE;
 	public static final String MOBILE_SOFT_UID = "UID_1234567890";
+	public static final String MOBILE_LOGIN_ID = "ID_012345";
 	public static final boolean MOBILE_CONNECTING = true;
 	public static final boolean MOBILE_ON_RELAY = false;
 	public static final boolean MOBILE_IN_BACKGROUND = false;
@@ -106,6 +114,25 @@ public class SimuMobile {
 
 	//要置于createRunTestDir之后
 	private static HCJRubyEngine runTestEngine;
+	private static ConsoleTextPane consoleTextPane;
+	private static ConsoleWriter consoleWriter;
+	
+	private static ConsoleWriter getConsoleWriter(){
+		if(consoleWriter == null){
+			synchronized (SimuMobile.class) {
+				if(consoleWriter == null){
+					consoleTextPane = new ConsoleTextPane();
+					consoleWriter = new ConsoleWriter(consoleTextPane);
+				}
+			}
+		}
+		return consoleWriter;
+	}
+	
+	public static void changeCTP(final ConsoleTextPane ctp){
+		CCoreUtil.checkAccess();
+		getConsoleWriter().setCTP(ctp);
+	}
 
 	public static synchronized final HCJRubyEngine getRunTestEngine(){
 		if(runTestEngine == null){
@@ -116,8 +143,8 @@ public class SimuMobile {
 
 	public static synchronized HCJRubyEngine rebuildJRubyEngine() {
 		terminateJRubyEngine();
-		runTestEngine = new HCJRubyEngine(StoreDirManager.RUN_TEST_DIR.getAbsolutePath(), 
-				ResourceUtil.buildProjClassLoader(StoreDirManager.RUN_TEST_DIR, "hc.testDir"), true, HCJRubyEngine.IDE_LEVEL_ENGINE + "TestEngine");
+		runTestEngine = new HCJRubyEngine(getConsoleWriter(), StoreDirManager.RUN_TEST_ABS_PATH, 
+				ServerUtil.buildProjClassLoader(StoreDirManager.RUN_TEST_DIR, "hc.testDir"), true, HCJRubyEngine.IDE_LEVEL_ENGINE + "TestEngine");
 		return runTestEngine;
 	}
 

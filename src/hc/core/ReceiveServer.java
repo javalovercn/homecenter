@@ -113,6 +113,9 @@ public class ReceiveServer implements Runnable{
     	while (!isShutdown) {
 			if(dataInputStream == null){
 	    		synchronized (LOCK) {
+	    			if(isShutdown){
+	    				break;
+	    			}
 	    			if(dataInputStream == null){
 	    				try {
 							LOCK.wait();

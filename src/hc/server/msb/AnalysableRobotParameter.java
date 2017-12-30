@@ -6,13 +6,15 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * this class is used to pass parameter between Robot and UI (includes {@link Assistant}).<BR>
+ * this class is used to pass parameter between UI (includes <code>Assistant</code>) and <code>Robot</code>.<BR>
  * it is helpful for server to analyze the parameter and know more about the relationship between business and user interface.
  * <BR><BR>
  * it is recommended to be used in {@link Robot#operate(long, Object)} and the return object.
  * <BR><BR>
  * <STRONG>Note :</STRONG><BR>
  * the instance is NOT recyclable, because server will analyst it background.
+ * @see Robot
+ * @see Assistant
  */
 public class AnalysableRobotParameter {
 

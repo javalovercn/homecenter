@@ -22,7 +22,6 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.SafeDataManager;
-import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.SignHelper;
 import hc.util.HttpUtil;
 import hc.util.LinkPropertiesOption;
@@ -103,7 +102,7 @@ public class LinkProjectManager{
 			return false;
 		}
 		
-		if(JRubyInstaller.checkInstalledJRuby() == false){
+		if(JRubyInstaller.checkUpgradeJRuby()){
 			return false;
 		}
 		
@@ -111,6 +110,7 @@ public class LinkProjectManager{
 			return false;
 		}
 		
+		SafeDataManager.disableSafeBackup();
 		LinkProjectStatus.resetWantDesignOrLinkProjectsNotify();
 		
 		final Vector<LinkProjectStore> downloadingLPS = new Vector<LinkProjectStore>();
@@ -883,11 +883,9 @@ public class LinkProjectManager{
 		final String projectID = lps.getProjectID();
 		if(delPersistent){
 			PropertiesManager.remove(PropertiesManager.p_PROJ_RECORD + projectID);
-			final String userProjIDPath = HCLimitSecurityManager.getUserDataBaseDir(projectID);
+			final String userProjIDPath = StoreDirManager.getUserDataBaseDir(projectID);
 			final String delPath = userProjIDPath.substring(0, userProjIDPath.length() - 1);//去掉最后一个/
 			PropertiesManager.addDelDir(delPath);
-			PropertiesManager.addDelDir(new File(StoreDirManager.SAFE_DATA_DIR, projectID));
-			SafeDataManager.romoveBackupTask(projectID);
 		}
 		
 		//删除jar文件

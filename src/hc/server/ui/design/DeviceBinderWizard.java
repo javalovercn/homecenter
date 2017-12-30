@@ -15,6 +15,7 @@ import hc.server.msb.RealDeviceInfo;
 import hc.server.ui.ServerUIUtil;
 import hc.server.util.HCJDialog;
 import hc.server.util.HCJFrame;
+import hc.util.ClassUtil;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
@@ -157,7 +158,7 @@ public class DeviceBinderWizard extends JPanel{
 		}
 		
 		editPanel.validate();
-		editPanel.revalidate();
+		ClassUtil.revalidate(editPanel);
 		editPanel.repaint();
 	}
 

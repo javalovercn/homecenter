@@ -446,9 +446,11 @@ public class TrayMenuUtil {
 						return false;
 					}
 					
-					displayMessage(ResourceUtil.getInfoI18N(), 
+					if(ExitManager.isStartingExitSystem() == false){
+						displayMessage(ResourceUtil.getInfoI18N(), 
 							(String)ResourceUtil.get(9009), 
 							IContext.INFO, null, 0);
+					}
 				}
 				
 				ti.setImage(hc_Disable);

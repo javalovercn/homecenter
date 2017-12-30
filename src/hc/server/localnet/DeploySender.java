@@ -1,7 +1,9 @@
 package hc.server.localnet;
 
 import hc.core.IConstant;
+import hc.core.L;
 import hc.core.util.ByteUtil;
+import hc.core.util.LogManager;
 import hc.util.ResourceUtil;
 
 import java.io.IOException;
@@ -10,15 +12,14 @@ import java.net.Socket;
 
 public class DeploySender {
 
-	private static DeploySocket buildDeploySocket(final String hostAddress) throws Exception {
-		final Socket s = buildSocketTo(hostAddress);
-		final DeploySocket socket = new DeploySocket(s);
-		return socket;
+	private static DeploySocket buildDeploySocket(final String hostAddress, final boolean showErrInfo) throws Exception {
+		final Socket s = buildSocketTo(hostAddress, showErrInfo);
+		return new DeploySocket(s);
 	}
 	
 	public static boolean isAlive(final String ip, final String projectID) {
 		
-		final Socket s = buildSocketTo(ip);
+		final Socket s = buildSocketTo(ip, false);
 		
 		if(s == null){
 			return false;
@@ -45,6 +46,9 @@ public class DeploySender {
 			}
 			return hasAliveSameProjID;
 		}catch (final Throwable e) {
+//			if(L.isInWorkshop){
+//				LogManager.errToLog("check ip alive exception : " + e.toString());
+//			}
 		}finally{
 			try{
 				s.close();
@@ -55,13 +59,18 @@ public class DeploySender {
 		return false;
 	}
 	
-	private static Socket buildSocketTo(final String ip) {
+	private static Socket buildSocketTo(final String ip, final boolean showErrInfo) {
 		try {
 			final Socket client = new Socket();   
 			//设置connect timeout
 			client.connect(new InetSocketAddress(ip, ReceiveDeployServer.port), DeploySocket.CONN_TIMEOUT_MS);
 			return client;
 		} catch (final Throwable e) {
+			if(showErrInfo){
+				if(L.isInWorkshop){
+					LogManager.errToLog("[Deploy] fail to connect : " + ip + ", exception : " + e.toString());
+				}
+			}
 		}
 		return null;
 	}
@@ -69,8 +78,8 @@ public class DeploySender {
 	private final DeploySocket socket;
 	private byte[] passwordBS;
 	
-	public DeploySender(final String ip, final byte[] passBS) throws Exception {
-		this(buildDeploySocket(ip), passBS);
+	public DeploySender(final String ip, final byte[] passBS, final boolean showErrInfo) throws Exception {
+		this(buildDeploySocket(ip, showErrInfo), passBS);
 	}
 
 	public DeploySender(final DeploySocket socket, final byte[] passwordBS){

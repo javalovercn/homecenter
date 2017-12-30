@@ -129,7 +129,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				
 				final ExceptionChecker checker = new ExceptionChecker(){
 					@Override
-					public final boolean isPosted(final String projectID, final String stackTrace){
+					public final boolean isPosted(final String projectID, final String errMsg, final String stackTrace){
 						return false;
 					}
 				};

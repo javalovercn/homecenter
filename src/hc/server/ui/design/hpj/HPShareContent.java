@@ -2,9 +2,9 @@ package hc.server.ui.design.hpj;
 
 public class HPShareContent extends HPNode {
 
-	public HPShareContent(int type, String name) {
+	public HPShareContent(final int type, final String name) {
 		super(type, name);
 	}
 
-	String content = "";
+	public String content = "";
 }

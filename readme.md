@@ -7,7 +7,7 @@
 ### Sample mobile UI
 ![screenshot](http://homecenter.mobi/images/sc_mlet.png)
 
-to implement above UI functionality for Android and iPhone mobile, do it as follows.
+to implement above UI functionality for Android and iPhone mobile, do it as follows ([details...](https://github.com/javalovercn/homecenter/blob/master/docs/develop%20cloud%20app%20with%20J2SE%2BCSS%20for%20iPhone%20and%20Android.md)).
 
 start HomeCenter server, open designer, the project "MyFirst" is default.
 
@@ -177,10 +177,9 @@ click "Activate" button to apply changes to project, login in from mobile, click
 1. please read and agree the license file "bcl.txt", "hc_license.txt" and "mpl_license.txt".
 
 ***
-### Demo Account
+### Mobile Demo Account
 1. download mobile client from https://github.com/javalovercn/client
 2. click "Demo ID" in login form, or input account : 012345，password : 012345
-3. to create server with your own account or customer, please run this source codes or [binary distribution](https://github.com/javalovercn/hc_server_dist)
 
 ***
 ### Features
@@ -194,7 +193,7 @@ click "Activate" button to apply changes to project, login in from mobile, click
 7. built-in Quartz job scheduler.
 8. build-in HSQLDB database.
 9. voice command API to drive IoT.
-10. the designer on server is integrated with Java API Doc and is also an IDE for JRuby, hint of code and resource file(in user jar) will be auto completion.
+10. the designer on server is integrated with Java 8 API, Ruby 2.2.0 and CSS 2.2 (part) documents, hint of code and resource file(in user jar) will be auto completion.
 11. stratify IoT, Robot+Converter+Device(device is required to open source or provide API), provides powerful device adaptability and data format conversion.
 12. HAR project is self-signed and be upgraded automatically if the newer on web.
 13. exception is automatically reported to your Email or website if end user enable reports exception.
@@ -212,13 +211,13 @@ click "Activate" button to apply changes to project, login in from mobile, click
 7. please keep the source code for the latest version, otherwise it may causes abnormal connections with mobile.
 8. there is a demo HAR project (NOT "MyFirst" project) in designer on server, covers 80% of JRuby syntax and 90% of functions of HomeCenter server.
 9. for API, please press alt+/ in designer or go http://homecenter.mobi/download/javadoc/index.html
-10. any question, please open issues https://github.com/javalovercn/homecenter/issues or Email : help at homecenter.mobi
+10. to create server with your own account or for [host](https://github.com/javalovercn/homecenter/blob/master/docs/NoUI%20server%20on%20host.md), please run this source codes or [binary distribution](https://github.com/javalovercn/hc_server_dist).
+11. any question, please open issues https://github.com/javalovercn/homecenter/issues or Email : help at homecenter.mobi
 
 ***
 ### Mirrors
 
-1. https://github.com/javalovercn/homecenter
-2. https://gitee.com/javalovercn/homecenter
+1. https://gitee.com/javalovercn/homecenter
 
 ***
 ### Snapshot of server

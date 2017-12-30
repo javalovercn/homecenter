@@ -1,13 +1,10 @@
 package hc.server.rms;
 
 import hc.App;
-import hc.core.ContextManager;
 import hc.core.HCTimer;
-import hc.core.L;
 import hc.core.cache.CacheManager;
 import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
-import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
 import hc.util.PropertiesManager;
 import hc.util.PropertiesMap;
@@ -27,15 +24,9 @@ public class RMSLastAccessTimeManager {
 	 * 有可能在ExceptionReporter.print中调用，故要入pool
 	 */
 	public static final void save(){
-		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
-			@Override
-			public Object run() {
-				synchronized (map) {
-					map.save();
-				}
-				return null;
-			}
-		}, token);
+		synchronized (map) {//不能使用threadpool进行异步
+			map.save();
+		}
 	}
 	
 	private static String KEY_SPLITTER = StringUtil.SPLIT_LEVEL_3_DOLLAR;

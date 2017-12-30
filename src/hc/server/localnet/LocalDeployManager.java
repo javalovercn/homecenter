@@ -2,7 +2,9 @@ package hc.server.localnet;
 
 import hc.core.L;
 import hc.core.util.LogManager;
+import hc.server.ui.design.Designer;
 import hc.server.util.DownlistButton;
+import hc.server.util.ListAction;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 
@@ -21,7 +23,7 @@ public class LocalDeployManager {
 		PropertiesManager.saveFile();
 	}
 	
-	public static void refreshAliveServerFromLocalNetwork(final DownlistButton actionButton, 	final String projectID){
+	public static void refreshAliveServerFromLocalNetwork(final DownlistButton actionButton, 	final String projectID, final Designer designer){
 		//do network search
 		final InetAddress ia = HttpUtil.getLocal();
 		if(ia == null || ia instanceof Inet6Address){
@@ -35,7 +37,7 @@ public class LocalDeployManager {
 			return;
 		}
 		
-		final Vector<String> newAlive = new Vector<String>();
+		final Vector<ListAction> newAlive = new Vector<ListAction>();
 		final String preIP = ip.substring(0, ip.lastIndexOf('.') + 1);
 		
 		final String recentIP = PropertiesManager.getValue(PropertiesManager.p_Deploy_RecentIP);
@@ -43,6 +45,10 @@ public class LocalDeployManager {
 		int startIP = 1;
 		//2 - 254
 		for (; startIP < 255; startIP++) {
+			if(designer.isDisposed()){
+				return;
+			}
+			
 			final String testIP;
 			if(startIP == 1){
 				if(recentIP == null){
@@ -63,19 +69,13 @@ public class LocalDeployManager {
 				}
 			}
 			
+			final ListAction item = new ListAction(testIP);
 			if(DeploySender.isAlive(testIP, projectID)){
 				L.V = L.WShop ? false : LogManager.log("[Deploy] find a live server at " + testIP);
-				newAlive.add(testIP);
-				actionButton.addList(newAlive);
-				actionButton.addDownArrow();
+				actionButton.addListAction(item);
+			}else{
+				actionButton.removeListAction(item);
 			}
 		}
-		
-		if(newAlive.size() == 0){
-			actionButton.reset();
-		}
 	}
-	
-
-	
 }

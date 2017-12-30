@@ -17,19 +17,86 @@ public class StringUtil {
 	public final static String JAD_EXT = ".jad";
 	public final static String URL_EXTERNAL_PREFIX = "http";
 	
+	/**
+	 * 比如(Map<? extends K, ? extends V> map) => (Map map)。
+	 * 它允许嵌套，如(Map<? extends K, Map<? extends K, ? extends V>> map) => (Map map)
+	 * @param src
+	 * @param left
+	 * @param right
+	 * @param replaceTo
+	 * @return
+	 */
+	public static String replaceBound(final String src, final char left, final char right, final String replaceTo){
+		int idx = src.indexOf(left, 0);
+		if(idx >= 0){
+			final char[] chars = src.toCharArray();
+			final StringBuffer sb = StringBufferCacher.getFree();
+			if(idx > 0){
+				sb.append(chars, 0, idx);
+			}
+			int copyIdx = 0;
+			int deepCount = 1;
+			idx++;
+			final int length = chars.length;
+			for (; idx < length; idx++) {
+				final char c = chars[idx];
+				if(c == left){
+					if(deepCount == 0){
+						sb.append(chars, copyIdx, idx - copyIdx);
+						copyIdx = idx + 1;
+					}
+					deepCount++;
+				}else if(c == right){
+					if((--deepCount) == 0){
+						if(replaceTo.length() > 0){
+							sb.append(replaceTo);
+						}
+						copyIdx = idx + 1;
+					}
+				}
+			}
+			final int lastLen = length - copyIdx;
+			if(lastLen > 0){
+				sb.append(chars, copyIdx, lastLen);
+			}
+			final String out = sb.toString();
+			StringBufferCacher.cycle(sb);
+			return out;
+		}else{
+			return src;
+		}
+	}
+	
+	private static String replace(final String src, final StringBuffer sb, int index, final String find, final String replaceTo){
+		final int findLen = find.length();
+		final int replaceLen = replaceTo.length();
+		
+		int indexSrc = index;
+		int indexSrcNextFind = index;
+		while(indexSrc >= 0){
+			sb.delete(index, index + findLen);
+			sb.insert(index, replaceTo);
+			index += replaceLen;
+			indexSrc += findLen;
+			indexSrcNextFind = src.indexOf(find, indexSrc);
+			index += indexSrcNextFind - indexSrc;
+			indexSrc = indexSrcNextFind;
+		}
+		return sb.toString();
+	}
+	
 	public static String replace(String src, final String find, final String replaceTo){
 		int index = 0;
-		String out = src;
-		while(index >= 0){
-			index = src.indexOf(find, index);
-			if(index >= 0){
-				out = src.substring(0, index) + replaceTo + src.substring(index + find.length());
-				//如替换:80为:8080，没有下行命令，则会进入循环
-				index += replaceTo.length();
-				src = out;
-			}
+		index = src.indexOf(find, index);
+		if(index >= 0){
+			final StringBuffer sb = StringBufferCacher.getFree();
+			sb.append(src);
+			final String out = replace(src, sb, index, find, replaceTo);
+			StringBufferCacher.cycle(sb);
+			return out;
+		}else{
+			return src;
 		}
-		return out;
 	}
 	
 	public static int parseInt(final String int_str){

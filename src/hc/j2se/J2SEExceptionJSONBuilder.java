@@ -50,15 +50,15 @@ public abstract class J2SEExceptionJSONBuilder extends ExceptionJSONBuilder {
 			}
 		}
 
-		final StringBuilder sb = printStackTraceToStringBuilder(projectID, checker, throwable, null, "");
+		final String blockMessage = scriptErrMsg!=null?scriptErrMsg:"***";
+
+		final StringBuilder sb = printStackTraceToStringBuilder(projectID, checker, throwable, null, "", blockMessage);
 		if(sb == null){
 //			LogManager.log("Exception is posted!");
 			//isPosted
 			return null;
 		}
 		
-		final String blockMessage = "***";
-
 		final ExceptionJSON data = new ExceptionJSON(reportURL);
 		final String threadName = Thread.currentThread().getName();
 		final String exceptionClassName = throwable.getClass().getName();
@@ -88,12 +88,12 @@ public abstract class J2SEExceptionJSONBuilder extends ExceptionJSONBuilder {
 	final static String red_sb_script = ".<font color='red'>rb</font>:";
 	
 	public static final StringBuilder printStackTraceToStringBuilder(final String harID, final ExceptionChecker checker, final Throwable throwable, 
-			StringBuilder sb, final String tab) {
+			StringBuilder sb, final String tab, final String errMsg) {
 //		sb.append("ThreadName : " + throwable.get)
 		final StackTraceElement[] ste = throwable.getStackTrace();
 		
 		if(checker != null && ste.length > 0){
-			if(checker.isPosted(harID, ste[0].toString())){
+			if(checker.isPosted(harID, errMsg, ste[0].toString())){
 				return null;
 			}
 		}
@@ -137,7 +137,7 @@ public abstract class J2SEExceptionJSONBuilder extends ExceptionJSONBuilder {
 //			sb.append(ExceptionJSON.replaceToWriteCode(cause.getMessage()));
 			sb.append("</strong>");
 			sb.append(ExceptionJSON.BR);
-			printStackTraceToStringBuilder(null, null, cause, sb, currTab);
+			printStackTraceToStringBuilder(null, null, cause, sb, currTab, errMsg);
 		}
 		
 		return sb;

@@ -23,12 +23,17 @@ import hc.server.ui.J2SESessionManager;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.J2SESession;
 import hc.server.util.HCLimitSecurityManager;
+import hc.server.util.SafeDataManager;
 import hc.server.util.StarterParameter;
 import third.hsqldb.Database;
 import third.hsqldb.DatabaseManager;
 
 public class ExitManager {
 	private static boolean isStartingExitSystem;
+	
+	public static boolean isStartingExitSystem(){
+		return isStartingExitSystem;
+	}
 	
 	public static void startExitSystem(){
 		ResourceUtil.checkHCStackTrace();
@@ -44,6 +49,8 @@ public class ExitManager {
 		
 		//直接采用主线程，会导致退出提示信息会延时显示，效果较差
 		ProcessingWindowManager.showCenterMessage((String)ResourceUtil.get(9067));
+		
+		SafeDataManager.notifyShutdown();
 		
 		if(ResourceUtil.isAndroidServerPlatform()){
 			ContextManager.getThreadPool().run(new Runnable() {
@@ -94,6 +101,8 @@ public class ExitManager {
 		RMSLastAccessTimeManager.checkIdleAndRemove();
 		RMSLastAccessTimeManager.save();
 
+		SafeDataManager.setPowerOffOK();
+		
     	TrayMenuUtil.removeTray(App.getThreadPoolToken());
 
 //		HttpUtil.notifyStopServer(false, null);
@@ -103,7 +112,8 @@ public class ExitManager {
 		
 		exit();	
 		LogManager.exit();
-
+		
+		ExceptionReporter.shutdown();
 		ThreadPool.shutdown();
     	SessionManager.shutdown();
     	if(L.isInWorkshop){
@@ -178,27 +188,25 @@ public class ExitManager {
 			@Override
 			public void run(){
 				LogManager.log("ready " + (App.EXIT_MAX_DELAY_MS/1000) + "-seconds to force exit...");
-				while(true){
-					if(System.currentTimeMillis() - curr > App.EXIT_MAX_DELAY_MS){
-						LogManager.log("force to exit.");
-						LogManager.exit();
-						
-						if(LogManager.INI_DEBUG_ON){
-							System.out.println("-------------------------------------------------------------------------------------------");
-							System.out.println("------------------------before force exit, print all thread stack----------------------");
-							System.out.println("-------------------------------------------------------------------------------------------");
-							ClassUtil.printThreadStack(null);
-							System.out.println("-------------------------------------------------------------------------------------------");
-						}
-						
-						PlatformManager.getService().exitSystem();
-					}else{
-						try{
-							Thread.sleep(1000);
-						}catch (final Exception e) {
-						}
-					}
+				try{
+					Thread.sleep(App.EXIT_MAX_DELAY_MS);
+				}catch (final Exception e) {
 				}
+				
+				try{
+					LogManager.log("force to exit.");
+					LogManager.exit();
+				
+					if(LogManager.INI_DEBUG_ON){
+						System.out.println("-------------------------------------------------------------------------------------------");
+						System.out.println("------------------------before force exit, print all thread stack----------------------");
+						System.out.println("-------------------------------------------------------------------------------------------");
+						ClassUtil.printThreadStack(null);
+						System.out.println("-------------------------------------------------------------------------------------------");
+					}
+				}catch (final Throwable e) {
+				}
+				PlatformManager.getService().exitSystem();
 			}
 		};
 		foreceExit.setDaemon(true);

@@ -132,6 +132,7 @@ public class MessageTipFrame extends HCJFrame {//LinuxTrayIcon下需要改为HCJ
 	public MessageTipFrame(){
 		setAlwaysOnTop(true);
 		setUndecorated(true);//去掉窗口的边框
+		setFocusableWindowState(false);
 		try{
 			PlatformManager.getService().setWindowOpaque(this, false);//透明
 		}catch (final Throwable e) {

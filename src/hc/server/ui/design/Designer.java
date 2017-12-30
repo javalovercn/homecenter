@@ -44,15 +44,18 @@ import hc.server.ui.design.code.CodeItem;
 import hc.server.ui.design.code.CodeStaticHelper;
 import hc.server.ui.design.engine.RubyExector;
 import hc.server.ui.design.hpj.CSSClassIndex;
-import hc.server.ui.design.hpj.CSSJumpRunnable;
-import hc.server.ui.design.hpj.CSSNodeEditPanel;
+import hc.server.ui.design.hpj.EditorJumpRunnable;
 import hc.server.ui.design.hpj.HCShareFileResource;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.ui.design.hpj.HPItemContext;
 import hc.server.ui.design.hpj.HPMenuEvent;
+import hc.server.ui.design.hpj.HPMenuEventItem;
+import hc.server.ui.design.hpj.HPMenuItem;
 import hc.server.ui.design.hpj.HPNode;
+import hc.server.ui.design.hpj.HPProcessor;
 import hc.server.ui.design.hpj.HPProject;
+import hc.server.ui.design.hpj.HPShareJRuby;
 import hc.server.ui.design.hpj.HPShareJRubyFolder;
 import hc.server.ui.design.hpj.HPShareJar;
 import hc.server.ui.design.hpj.HPShareJarFolder;
@@ -67,8 +70,10 @@ import hc.server.util.CSSUtil;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.DelDeployedProjManager;
 import hc.server.util.DownlistButton;
+import hc.server.util.ListAction;
 import hc.server.util.SignHelper;
 import hc.util.BaseResponsor;
+import hc.util.ClassUtil;
 import hc.util.Constant;
 import hc.util.IBiz;
 import hc.util.PropertiesManager;
@@ -82,7 +87,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -118,11 +122,9 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
@@ -144,7 +146,6 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 public class Designer extends SingleJFrame implements IModifyStatus, BindButtonRefresher{
-	public static final String MENU = "Menu";
 	private static final String PWD_DEV_CERT = "password of developer certificates";
 	public static final String DESC_PASSWORD_OF_DEVELOPER_CERTIFICATE = "the " + PWD_DEV_CERT + ".<BR>it is NOT the password for mobile connection.";
 	public static final int COLUMNS_PWD_DEV_CERT = 15;
@@ -246,9 +247,18 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final Runnable run = new Runnable() {
 			@Override
 			public void run() {
-				LocalDeployManager.refreshAliveServerFromLocalNetwork(activeButton, getCurrProjID());
+				synchronized (this) {
+					if(isRuning){
+						return;
+					}
+					isRuning = true;
+				}
+				LocalDeployManager.refreshAliveServerFromLocalNetwork(activeButton, getCurrProjID(), Designer.this);
+				isRuning = false;
 			}
 		};
+		
+		boolean isRuning;
 		
 		@Override
 		public void doBiz() {
@@ -291,8 +301,20 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}
 	}
 	
+	boolean isDisposed;
+	
+	public final boolean isDisposed(){
+		return isDisposed;
+	}
+	
 	@Override
 	public void dispose(){
+		isDisposed = true;
+		
+		if(searchDialog != null){
+			searchDialog.release();
+		}
+		
 		HCTimer.remove(refreshAliveServerInLocalNetwork);
 		
 		LinkProjectStatus.exitStatus();
@@ -306,8 +328,18 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		
 		codeHelper.release();
 		super.dispose();
+		ContextManager.getThreadPool().run(new Runnable() {
+			@Override
+			public void run() {
+				codeHelper.window.codeInvokeCounter.save();
+			}
+		});
 		
 		if(System.getProperty(Constant.DESIGNER_IN_TEST) != null){
+			try{
+				Thread.sleep(2000);//等待CodeInvokeCounter save
+			}catch (final Exception e) {
+			}
 			System.exit(0);
 		}
 	}
@@ -387,12 +419,12 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	private final DefaultMutableTreeNode createEventFolder(){
-		final HPMenuEvent folder = new HPMenuEvent(HPNode.MASK_EVENT_FOLDER, "Events");
+		final HPMenuEvent folder = new HPMenuEvent(HPNode.MASK_EVENT_FOLDER, HPNode.NODE_EVENTS);
 		return new DefaultMutableTreeNode(folder);
 	}
 	
 	private DefaultMutableTreeNode createMSBFoulder(){
-		final HPMenuEvent folder = new HPMenuEvent(HPNode.MASK_MSB_FOLDER, "IoT");
+		final HPMenuEvent folder = new HPMenuEvent(HPNode.MASK_MSB_FOLDER, HPNode.NODE_IOT);
 		final DefaultMutableTreeNode eventFold = new DefaultMutableTreeNode(folder);
 		return eventFold;
 	}
@@ -423,7 +455,24 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	private NodeEditPanel nodeEditPanel = emptyNodeEditPanel;
 	final JButton sampleButton = new JButton(EXAMPLE, getSampleIcon());
 	final JButton saveButton = new JButton("Save", loadImg("save_24.png"));
-	final DownlistButton activeButton = new DownlistButton(ACTIVE, loadImg("deploy_24.png"));
+	final JButton searchButton = new JButton("Search", loadImg("search_24.png"));
+	SearchDialog searchDialog;
+	
+	final DownlistButton activeButton = new DownlistButton(ACTIVE, loadImg("deploy_24.png")){
+		@Override
+		public void listActionPerformed(final ListAction action) {
+			ContextManager.getThreadPool().run(new Runnable() {
+				@Override
+				public void run() {
+					final int out = App.showConfirmDialog(Designer.this, "are you sure to deploy to [" + action.getDisplayName() + "]", ResourceUtil.getInfoI18N(), 
+							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
+					if(out == JOptionPane.YES_OPTION){
+						deployTo(action.getDisplayName());
+					}
+				}
+			});
+		}
+	};
 	final JButton deactiveButton = new JButton(DEACTIVE, loadImg("undeploy_24.png"));
 	final JButton addItemButton = new JButton("Add Item", loadImg("controller_24.png"));
 	final JButton newButton = new JButton("New Project", loadImg("new_24.png"));
@@ -597,8 +646,18 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				GlobalConditionWatcher.addWatcher(new IWatcher(){//确保正常次序处理完成
 					@Override
 					public boolean watch() {
-						if(isToolbarVisible() == false){
-							return false;
+						{
+							int timeCount = 0;
+							while(isToolbarVisible() == false){
+								timeCount += 200;
+								try{
+									Thread.sleep(200);
+								}catch (final Exception e) {
+								}
+								if(timeCount > 4000){
+									break;
+								}
+							}
 						}
 						
 						try{
@@ -736,6 +795,25 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			        (KeyStroke) saveAction.getValue(Action.ACCELERATOR_KEY), "myAction");
 		}
 		
+		{
+			final Action searchAction = new AbstractAction() {
+				@Override
+				public void actionPerformed(final ActionEvent e) {
+					ContextManager.getThreadPool().run(new Runnable() {
+						@Override
+						public void run() {
+							search();
+						}
+					}, threadPoolToken);
+				}
+			};
+			ResourceUtil.buildAcceleratorKeyOnAction(searchAction, KeyEvent.VK_H);//同时支持Windows下的Ctrl+S和Mac下的Command+S
+			searchButton.addActionListener(searchAction);
+			searchButton.getActionMap().put("mySearchAction", searchAction);
+			searchButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+			        (KeyStroke) searchAction.getValue(Action.ACCELERATOR_KEY), "mySearchAction");
+		}
+		
 //		//检查是否有新版本
 		final String lastSampleVer = PropertiesManager.getValue(PropertiesManager.p_LastSampleVer, "1.0");
 		if(StringUtil.higher(J2SEContext.getSampleHarVersion(), lastSampleVer)){
@@ -834,7 +912,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				HCjar.initMap(map);
 				map.put(HCjar.MENU_NUM, "1");
 				map.put(HCjar.MAIN_MENU_IDX_PRE, "0");
-				map.put(HCjar.replaceIdxPattern(HCjar.MENU_NAME, 0), MENU);
+				map.put(HCjar.replaceIdxPattern(HCjar.MENU_NAME, 0), HPNode.NODE_MENU);
 				map.put(HCjar.replaceIdxPattern(HCjar.MENU_COL_NUM, 0), "0");
 				map.put(HCjar.replaceIdxPattern(HCjar.MENU_ID, 0), HCURL.ROOT_MENU);				
 				
@@ -881,6 +959,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		
 		toolbar.addSeparator();
 		toolbar.add(addItemButton);
+		searchButton.setToolTipText("<html>" +
+				"("+ResourceUtil.getAbstractCtrlKeyText()+" + H)" +
+				"<BR>search source codes from current project.</html>");
+		toolbar.add(searchButton);
 
 		activeButton.setToolTipText("<html>" +
 				"("+ResourceUtil.getAbstractCtrlKeyText()+" + D)" +
@@ -959,149 +1041,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			};
 			ResourceUtil.buildAcceleratorKeyOnAction(deployAction, KeyEvent.VK_D);
 //			activeButton.addActionListener(deployAction);
-			activeButton.addMouseListener(new MouseListener() {
-				@Override
-				public void mouseReleased(final MouseEvent e) {
-					processClick(e);
-				}
-				
-				@Override
-				public void mousePressed(final MouseEvent e) {
-				}
-				
-				@Override
-				public void mouseExited(final MouseEvent e) {
-				}
-				
-				@Override
-				public void mouseEntered(final MouseEvent e) {
-				}
-				
-				@Override
-				public void mouseClicked(final MouseEvent e) {//mouse drag时，不触发此事件
-				}
-				
-				final void processClick(final MouseEvent e) {
-					if(activeButton.isEnabled()){
-						final int actionButtonWidth = activeButton.getWidth();
-						
-						final Point p = e.getPoint();
-						Vector<String> ipList = null;
-						if(p.x > (actionButtonWidth - actionButtonWidth / 5) && (ipList = activeButton.getList()).size() > 0){
-							final JPopupMenu popMenu = new JPopupMenu();
-							for (int i = 0; i < ipList.size(); i++) {
-								final String ip = ipList.get(i);
-								final JMenuItem item = new JMenuItem(ip);
-								item.addActionListener(new ActionListener() {
-									@Override
-									public void actionPerformed(final ActionEvent e) {
-										ContextManager.getThreadPool().run(new Runnable() {
-											@Override
-											public void run() {
-												final int out = App.showConfirmDialog(self, "are you sure to deploy to [" + ip + "]", ResourceUtil.getInfoI18N(), 
-														JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
-												if(out == JOptionPane.YES_OPTION){
-													deployTo(ip);
-												}
-											}
-										});
-									}
-								});
-								popMenu.add(item);
-							}
-							popMenu.show(activeButton, 0, activeButton.getHeight());
-						}else{
-							deployAction.actionPerformed(null);
-						}
-					}else{
-						L.V = L.WShop ? false : LogManager.log("activate button is disable");
-					}
-				}
-				
-				private final void deployTo(final String ip){
-					try{
-						final String oldRecentIP = PropertiesManager.getValue(PropertiesManager.p_Deploy_RecentIP);
-						
-						PropertiesManager.setValue(PropertiesManager.p_Deploy_RecentIP, ip);
-						PropertiesManager.saveFile();
-						
-						final byte[] passBS;
-						String recentPassword;
-						if(ip.equals(oldRecentIP) && (recentPassword = LocalDeployManager.getRecentPasswordForIP()) != null){
-							passBS = ByteUtil.getBytes(recentPassword, IConstant.UTF_8);
-						}else{
-							passBS = ByteUtil.cloneBS(IConstant.getPasswordBS());
-						}
-						final DeploySender sender = new DeploySender(ip, passBS);
-						try{
-							boolean isPassPassword = sender.auth();
-							if(isPassPassword == false){
-								final JLabel jPassword = new JLabel("please input password of " + ip);
-								final JPasswordField password = new JPasswordField();
-						        final JPanel panel = new JPanel(new GridLayout(2, 1));
-						        panel.add(jPassword);
-						        panel.add(password);
-						        final int result = App.showConfirmDialog(self, panel, ResourceUtil.getInfoI18N(), JOptionPane.OK_CANCEL_OPTION, 
-						        		JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
-						        if (result != JOptionPane.OK_OPTION) {
-						        	return;
-						        }
-								
-						        final String pwd = String.valueOf(password.getPassword());
-						        LocalDeployManager.saveRecentPasswordForIP(pwd);
-								sender.changePassword(ByteUtil.getBytes(pwd, IConstant.UTF_8));
-								isPassPassword = sender.auth();
-								if(isPassPassword == false){
-									showError("the password is error");
-									return;
-								}
-							}
-							
-							deploy(sender);
-						}catch (final Exception e) {
-							showError("unknown error!");
-						}finally{
-							sender.close();
-						}
-					}catch (final Throwable e) {
-						showError("fail to connect " + ip);
-					}
-				}
-				
-				private final void deploy(final DeploySender sender){
-					Map<String, Object> map = null;
-					if(isModified){
-						final int out = modifyNotify();
-						if(out == JOptionPane.YES_OPTION){
-							map = save();
-							if(map == null){
-								return;
-							}
-						}else{
-							return;
-						}
-					}
-					
-					final File deployFile = getDefaultEditFile();
-					final byte[] fileBS = ResourceUtil.getContent(deployFile);
-					try{
-						sender.sendData(fileBS, 0, fileBS.length);
-						showHCMessage("successful activate project, " +
-								"mobile can access this resources now.", ACTIVE + " OK", self, true, null);
-					}catch (final Exception e) {
-						if(e instanceof DeployError){
-							final byte[] eBS = ((DeployError)e).errorBS;
-							final String desc = ByteUtil.buildString(eBS, 0, eBS.length, IConstant.UTF_8);
-							showError(desc);
-						}
-					}
-					return;
-				}
-				
-				private final void showError(final String error){
-					App.showMessageDialog(self, error, ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
-				}
-			});
+			activeButton.setDefaultAction(deployAction);
+
 			activeButton.getActionMap().put("myDeloyAction", deployAction);
 			activeButton.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
 			        (KeyStroke) deployAction.getValue(Action.ACCELERATOR_KEY), "myDeloyAction");
@@ -1425,6 +1366,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		ContextManager.getThreadPool().run(new Runnable(){
 			@Override
 			public void run() {
+				codeHelper.window.codeInvokeCounter.loadLastSave();
 				CodeStaticHelper.doNothing();
 				
 				try{
@@ -1451,6 +1393,93 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		
 	}
 
+	private final void deployTo(final String ip){
+		try{
+			final String oldRecentIP = PropertiesManager.getValue(PropertiesManager.p_Deploy_RecentIP);
+			
+			PropertiesManager.setValue(PropertiesManager.p_Deploy_RecentIP, ip);
+			PropertiesManager.saveFile();
+			
+			final byte[] passBS;
+			String recentPassword;
+			if(ip.equals(oldRecentIP) && (recentPassword = LocalDeployManager.getRecentPasswordForIP()) != null){
+				passBS = ByteUtil.getBytes(recentPassword, IConstant.UTF_8);
+			}else{
+				passBS = ByteUtil.cloneBS(IConstant.getPasswordBS());
+			}
+			final DeploySender sender = new DeploySender(ip, passBS, true);
+			try{
+				boolean isPassPassword = sender.auth();
+				if(isPassPassword == false){
+					final JLabel jPassword = new JLabel("please input password of " + ip);
+					final JPasswordField password = new JPasswordField();
+			        final JPanel panel = new JPanel(new GridLayout(2, 1));
+			        panel.add(jPassword);
+			        panel.add(password);
+			        final int result = App.showConfirmDialog(this, panel, ResourceUtil.getInfoI18N(), JOptionPane.OK_CANCEL_OPTION, 
+			        		JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
+			        if (result != JOptionPane.OK_OPTION) {
+			        	return;
+			        }
+					
+			        final String pwd = String.valueOf(password.getPassword());
+			        LocalDeployManager.saveRecentPasswordForIP(pwd);
+					sender.changePassword(ByteUtil.getBytes(pwd, IConstant.UTF_8));
+					isPassPassword = sender.auth();
+					if(isPassPassword == false){
+						showError("the password is error");
+						return;
+					}
+				}
+				
+				deploy(sender);
+			}catch (final Exception e) {
+				showError("unknown error!");
+			}finally{
+				sender.close();
+			}
+		}catch (final Throwable e) {
+			e.printStackTrace();
+			showError("fail to connect " + ip + ", exception : " + e.toString());
+		}
+	}
+	
+	private final void deploy(final DeploySender sender){
+		Map<String, Object> map = null;
+		if(isModified){
+			final int out = modifyNotify();
+			if(out == JOptionPane.YES_OPTION){
+				map = save();
+				if(map == null){
+					return;
+				}
+			}else{
+				return;
+			}
+		}
+		
+		final File deployFile = getDefaultEditFile();
+		final byte[] fileBS = ResourceUtil.getContent(deployFile);
+		try{
+			ProcessingWindowManager.showCenterMessage((String)ResourceUtil.get(9130));
+			sender.sendData(fileBS, 0, fileBS.length);
+			showHCMessage("successful activate project, " +
+					"mobile can access this resources now.", ACTIVE + " OK", this, true, null);
+		}catch (final Exception e) {
+			ProcessingWindowManager.disposeProcessingWindow();
+			if(e instanceof DeployError){
+				final byte[] eBS = ((DeployError)e).errorBS;
+				final String desc = ByteUtil.buildString(eBS, 0, eBS.length, IConstant.UTF_8);
+				showError(desc);
+			}
+		}
+		return;
+	}
+	
+	private final void showError(final String error){
+		App.showMessageDialog(this, error, ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+	}
+	
 	private static JFrame certJFrame;
 	
 	private static final void showCertPanel(final Component relativeTo, final String pwd) {
@@ -1842,6 +1871,12 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				@Override
 				public boolean watch() {
 					if(System.currentTimeMillis() - startMS > ThreadPriorityManager.UI_CODE_HELPER_DELAY_MS){
+						final Enumeration enumeration = shareFolders[IDX_SHARE_JRUBY_FOLDER].children();
+						while(enumeration.hasMoreElements()){
+							final DefaultMutableTreeNode node = (DefaultMutableTreeNode)enumeration.nextElement();
+							codeHelper.loadLibForTest((HPNode)node.getUserObject());
+						}
+						
 						try{
 							codeHelper.initCodeHelper(shareJarFolder);
 						}catch (final Throwable e) {
@@ -1886,13 +1921,14 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			final CodeItem item = CodeItem.getFree();
 			final String className = c.className;
 			
-			item.type = CodeItem.TYPE_FIELD;
+			item.type = CodeItem.TYPE_CSS;
 			item.code = className;
 			item.codeForDoc = item.code;
 			item.codeDisplay = className;
 			item.codeLowMatch = className.toLowerCase();
 			item.isCSSClass = true;
 			item.userObject = element;
+			item.fmClass = CodeItem.FM_CLASS_CSS;
 			
 			beforeSort[i] = item;
 		}
@@ -1933,12 +1969,15 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		App.invokeLaterUI(updateTreeRunnable);
 		setModified(true);
 		
-		notifySelectNode(newNode, (HPNode)newNode.getUserObject(), null);
+		final HPNode hpNode = (HPNode)newNode.getUserObject();
+		notifySelectNode(newNode, hpNode, null);
 		
 		//检查是否是jar
 		{
 			if(isJarNode(newNode)){
 				codeHelper.loadLibToCodeHelper(newNode);
+			}else if(isRBNode(newNode)){
+				codeHelper.loadLibForTest(hpNode);
 			}
 		}
 	}
@@ -1950,6 +1989,14 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			if(jar.type == HPNode.MASK_RESOURCE_JAR){
 				return true;
 			}
+		}
+		return false;
+	}
+	
+	private static boolean isRBNode(final DefaultMutableTreeNode node){
+		final HPNode hpnode = (HPNode)node.getUserObject();
+		if(hpnode.type == HPNode.MASK_SHARE_RB){
+			return true;
 		}
 		return false;
 	}
@@ -2008,30 +2055,38 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		
 		//检查是否是jar文档
 		{
-			if(isJarNode(selectedNode)){
-				final HPShareJar jar = (HPShareJar)selectedNode.getUserObject();
-				codeHelper.unloadLibFromCodeHelper(jar.name);
+			if(isJarNode(selectedNode) || isRBNode(selectedNode)){
+				final HPNode jar = (HPNode)selectedNode.getUserObject();
+				codeHelper.unloadLibFromCodeHelper(jar);//为require ''之用
 			}
 		}
 		
 		setModified(true);
 		
-		{
-			//检查如果是Mlet，则进行全局Styles删除检查
-			if(NodeEditPanelManager.isMletNode((HPNode)selectedNode.getUserObject())){
-				//如果不存在Mlet节点，则进行Styles清空
-				final Vector<DefaultMutableTreeNode> results = new Vector<DefaultMutableTreeNode>();
-				searchNode(root, results, new NodeMatcher() {
-					@Override
-					public boolean match(final HPNode node) {
-						return NodeEditPanelManager.isMletNode(node);
-					}
-				});
-				if(results.size() == 0){
-					setProjCSS("");
-				}
-			}
-		}
+//		{
+//			//检查如果是Mlet，则进行全局Styles删除检查
+//			if(NodeEditPanelManager.isMletNode((HPNode)selectedNode.getUserObject())){
+//				//如果不存在Mlet节点，则进行Styles清空
+//				final Vector<DefaultMutableTreeNode> results = new Vector<DefaultMutableTreeNode>();
+//				searchNode(root, results, new NodeMatcher() {
+//					@Override
+//					public boolean match(final HPNode node) {
+//						return NodeEditPanelManager.isMletNode(node);
+//					}
+//				});
+//				if(results.size() == 0){
+//					ContextManager.getThreadPool().run(new Runnable() {
+//						@Override
+//						public void run() {
+//							final int result = App.showConfirmDialog(instance, "CSS Styles is never used now, delete or not?", ResourceUtil.getConfirmI18N(), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
+//							if(result == JOptionPane.YES_OPTION){
+//								setProjCSS("");
+//							}
+//						}
+//					});
+//				}
+//			}
+//		}
 		
 		selectedNode = null;
 
@@ -2059,13 +2114,13 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	
 	public final void jumpCSSDefine(final int startIdx, final int len){
 		final HPNode hpNode = (HPNode)cssNode.getUserObject();
-		final CSSJumpRunnable run = ((CSSNodeEditPanel)nm.switchNodeEditPanel(hpNode.type, hpNode, this)).jumpRunnable;
+		final EditorJumpRunnable run = nm.switchNodeEditPanel(hpNode.type, hpNode, this).jumpRunnable;
 		run.setLocation(startIdx, len);
 		jumpToNode(cssNode, model, tree);
 		notifySelectNode(cssNode, hpNode, run);
 	}
 
-	public void notifySelectNode(final DefaultMutableTreeNode sNode, final HPNode nodeData, final Runnable run) {
+	public final void notifySelectNode(final DefaultMutableTreeNode sNode, final HPNode nodeData, final Runnable run) {
 		selectedNode = sNode;
 		
 		final NodeEditPanel nep = nm.switchNodeEditPanel(nodeData.type, nodeData, this);
@@ -2088,7 +2143,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				editPanel.remove(oldPanel.getMainPanel());
 				editPanel.add(nodeEditPanel.getMainPanel());
 				editPanel.validate();
-				editPanel.revalidate();
+				ClassUtil.revalidate(editPanel);
 				editPanel.repaint();
 				
 				nodeEditPanel.loadAfterShow(run);
@@ -2218,7 +2273,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	private void appendShareTop() {
 		//加载共享库结点，
 		//注意：如果ROOT下增加新结点，请更新参数SUB_NODES_OF_ROOT_IN_NEW_PROJ + 1
-		final HPShareRoot sr = new HPShareRoot(HPNode.MASK_SHARE_TOP, "Resources");
+		final HPShareRoot sr = new HPShareRoot(HPNode.MASK_SHARE_TOP, HPNode.NODE_RES);
 		
 		final DefaultMutableTreeNode shareRoot = new DefaultMutableTreeNode(sr);
 		shareRoot.add(cssNode);
@@ -2322,7 +2377,14 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		return true;
 	}
 
-	private Map<String, Object> save() {
+	private final void search(){
+		if(searchDialog == null){
+			searchDialog = new SearchDialog(this);
+		}
+		searchDialog.popUp(searchButton);
+	}
+	
+	private final Map<String, Object> save() {
 		try{
 			final Map<String, Object> map = buildMapFromTree();
 			
@@ -2749,6 +2811,47 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final HashMap<String, Object> map = new HashMap<String, Object>();
 		durateMap(durationMap, map);
 		return HCjar.toMap(root, msbFolder, eventFolder, shareFolders, map);
+	}
+	
+	final void jumpSearchItem(final SearchDialog searchDialog, final SearchResult sr){
+		if(selectedNode != sr.treeNode){
+			final HPNode hpNode = (HPNode)sr.treeNode.getUserObject();
+			final EditorJumpRunnable run = nm.switchNodeEditPanel(hpNode.type, hpNode, this).jumpRunnable;
+			run.setLocation(sr.offset, sr.length);
+			run.setUserObject(searchDialog);
+			
+			jumpToNode(sr.treeNode, model, tree);
+			notifySelectNode(sr.treeNode, (HPNode)sr.treeNode.getUserObject(), run);
+		}else{
+			nodeEditPanel.jumpRunnable.setLocation(sr.offset, sr.length);
+			nodeEditPanel.jumpRunnable.setUserObject(searchDialog);
+			
+			nodeEditPanel.loadAfterShow(nodeEditPanel.jumpRunnable);
+		}
+	}
+	
+	public final void traverseScriptNode(final DefaultMutableTreeNode node, final DesignScriptNodeIterator iterator){
+		final Object userObj = node.getUserObject();
+		if(userObj != null){
+			if(userObj instanceof HPMenuEventItem){
+				final HPMenuEventItem hpNode = (HPMenuEventItem)userObj;
+				iterator.next(node, hpNode, hpNode.type, hpNode.name, hpNode.content);
+			}else if(userObj instanceof HPProcessor){
+				final HPProcessor hpNode = (HPProcessor)userObj;
+				iterator.next(node, hpNode, hpNode.type, hpNode.name, hpNode.listener);
+			}else if(userObj instanceof HPMenuItem){
+				final HPMenuItem hpNode = (HPMenuItem)userObj;
+				iterator.next(node, hpNode, hpNode.type, hpNode.name, hpNode.listener);
+			}else if(userObj instanceof HPShareJRuby){
+				final HPShareJRuby hpNode = (HPShareJRuby)userObj;
+				iterator.next(node, hpNode, hpNode.type, hpNode.name, hpNode.content);
+			}
+		}
+		
+		final int size = node.getChildCount();
+		for (int i = 0; i < size; i++) {
+			traverseScriptNode((DefaultMutableTreeNode)node.getChildAt(i), iterator);
+		}
 	}
 	
 	private final Map<String, Object> durationMap = new HashMap<String, Object>();

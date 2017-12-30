@@ -23,19 +23,22 @@ public class ReceiveDeployServer {
 			final InetAddress ia = HttpUtil.getLocal();
 			
 			if(ia == null || ia instanceof Inet6Address){
-				LogManager.log("can't create receive-deploy service on IPv6 interface.");
+				LogManager.log("[Deploy] can't create receive-deploy service on IPv6 interface.");
 				return;
 			}
 			
 			final String ip = ia.getHostAddress();
 			if(HttpUtil.isLocalNetworkIP(ip) == false){
-				LogManager.log("can't create receive-deploy service on NON local network.");
+				LogManager.log("[Deploy] can't create receive-deploy service on NON local network.");
 				return;
 			}
 			
 			final String gateIP = ip.substring(0, ip.lastIndexOf('.') + 1) + "1";
 
 			final int backlog = 2;
+			if(server != null){
+				server.close();
+			}
 			server = new ServerSocket(port, backlog, ia);
 			
 			final Thread t = new Thread("ReceiveDeployServer"){
@@ -69,12 +72,13 @@ public class ReceiveDeployServer {
 							e.printStackTrace();
 						}
 					}
+					LogManager.errToLog("[Deploy] shutdown deploy service : " + ip);
 				}
 			};
 			t.setDaemon(true);
 			t.start();
 			
-			LogManager.log("successful start receive-deploy service from local network at [" + ip + "/" + port + "].");
+			LogManager.log("[Deploy] successful start receive-deploy service from local network at [" + ip + "/" + port + "].");
 		}catch (final Throwable e) {
 			e.printStackTrace();
 		}
@@ -91,7 +95,7 @@ public class ReceiveDeployServer {
 			}catch (final Throwable e) {
 				e.printStackTrace();
 			}
-			LogManager.log("stop receive-deploy service, which receives deployment from local network.");
+			LogManager.log("[Deploy] stop receive-deploy service, which receives deployment from local network.");
 		}
 	}
 }

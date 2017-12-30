@@ -13,7 +13,7 @@
  * rights and limitations under the License.
  *
  * Copyright (C) 2009 Thomas E. Enebo <tom.enebo@gmail.com>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -38,14 +38,15 @@ public class ClassVarAsgnNode extends AssignableNode implements IClassVariable {
     private String name;
 
     /**
+     * @param position the position
      * @param name id of the class variable to assign to
      * @param valueNode  Node used to compute the new value when the assignment is evaled
      */
     public ClassVarAsgnNode(SourcePosition position, String name, Node valueNode) {
         super(position, valueNode);
-        
+
         if (name.startsWith("@@")) name = name.substring(2);
-        
+
         this.name = name;
     }
 
@@ -69,10 +70,10 @@ public class ClassVarAsgnNode extends AssignableNode implements IClassVariable {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
-    public Object accept(NodeVisitor iVisitor) {
+    public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitClassVarAsgnNode(this);
     }
-    
+
     public String getLexicalName() {
         return "@@" + getName();
     }
@@ -84,21 +85,21 @@ public class ClassVarAsgnNode extends AssignableNode implements IClassVariable {
     public String getName() {
         return name;
     }
-    
+
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public boolean isNameMatch(String name) {
         String thisName = getName();
-        
+
         return thisName != null && thisName.equals(name);
-    }    
+    }
 
     public SourcePosition getNamePosition() {
         return getLexicalNamePosition().fromEnd(getName().length());
     }
-    
+
     public SourcePosition getLexicalNamePosition() {
         return getPosition().fromBeginning(getLexicalName().length());
     }

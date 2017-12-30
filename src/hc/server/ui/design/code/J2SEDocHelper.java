@@ -129,7 +129,6 @@ public class J2SEDocHelper {
 		}
 		
 		if(isSuccDownDoc){
-			DocHelper.resetCache();
 			final Designer designer = Designer.getInstance();
 			if(designer != null){
 				designer.codeHelper.resetAll();

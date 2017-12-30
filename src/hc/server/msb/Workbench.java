@@ -15,10 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * A Machine Service Bus (MSB, a smart module is a abstract machine) is a infrastructure that unifies and connects machines, services, and resources within a network. It also supports intelligently directed communication and mediated relationships among loosely coupled and decoupled machines and smart modules.
  *<br><br>
- * a {@link Message} may be consumed by multiple {@link Device}/{@link Robot} in <b>different</b> HAR projects. <br>So a {@link Message} can't be modified after {@link #dispatch(Message, boolean, int)}, {@link #waitFor(Message, long, boolean, int, Processor)}, 
+ * a <code>Message</code> may be consumed by multiple <code>Device</code>/<code>Robot</code> in <b>different</b> HAR projects. <br>So a <code>Message</code> can't be modified after {@link #dispatch(Message, boolean, int)}, {@link #waitFor(Message, long, boolean, int, Processor)}, 
  * in other words, it can't be modified in {@link Device#response(Message)}, {@link Converter#downConvert(Message, Message)}, {@link Converter#upConvert(Message, Message)}}, {@link Robot#response(Message)}.
  * <br><br>
- * In a classic user case, a machine (air conditioning) <i>A</i> is substituted by other model air conditioning <i>B</i>, then a transformation {@link Converter} (or <b>a HAR project contains only one {@link Converter}</b>) may be plugged-in to transform old {@link Message} for air conditioning <i>B</i>.
+ * In a classic user case, a machine (air conditioning) <i>A</i> is substituted by other model air conditioning <i>B</i>, then a transformation <code>Converter</code> (or <b>a HAR project contains only one <code>Converter</code></b>) may be plugged-in to transform old <code>Message</code> for air conditioning <i>B</i>.
  */
 public class Workbench{
 	final static MessagePool messagePool = new MessagePool();
@@ -457,7 +457,7 @@ public class Workbench{
 	}
 	
 	/**
-	 * get a new / unused {@link Message}
+	 * get a new / unused <code>Message</code>
 	 * @return
 	 */
 	protected final Message getFreeMessage(){
@@ -471,12 +471,12 @@ public class Workbench{
 	protected final int FORWARDED_SYNC_ID = Integer.MAX_VALUE;
 	private final int MAX_SYNC_ID = Integer.MAX_VALUE - 1;
 	/**
-	 * process a {@link Message} synchronous and waiting for response.
+	 * process a <code>Message</code> synchronous and waiting for response.
 	 * @param msg the object must be got from {@link #getFreeMessage()}, and processed by this method only one time. the object will be auto recycled by server.
 	 * @param isDownward <br>true : from smart module to device, or <b>control flow</b> to device.<br>false (Upward) : from device to smart module, or <b>status flow</b> from device.
 	 * @param fromProcType
 	 * @param processor
-	 * @return null if it is not processed by all {@link Device}.<br>You must call {@link #recycle(Message)} to recycle the return object after finish business.
+	 * @return null if it is not processed by all <code>Device</code>.<br>You must call {@link #recycle(Message)} to recycle the return object after finish business.
 	 * @see #waitFor(Message, long, boolean, int, Processor)
 	 * @see #dispatch(Message, boolean, int)
 	 */
@@ -485,13 +485,13 @@ public class Workbench{
 	}
 	
 	/**
-	 * process a {@link Message} synchronous and waiting for response.
+	 * process a <code>Message</code> synchronous and waiting for response.
 	 * @param msg the object must be got from {@link #getFreeMessage()}, and processed by this method only one time. the object will be auto recycled by server.
 	 * @param timeout the maximum time to wait in milliseconds.
 	 * @param downward <br>true : from smart module to device, or <b>control flow</b> to device.<br>false (upward) : from device to smart module, or <b>status flow</b> from device.
 	 * @param fromProcType 
 	 * @param processor
-	 * @return null if it is not processed by all {@link Device} or the time is out.
+	 * @return null if it is not processed by all <code>Device</code> or the time is out.
 	 * @see #process(Message, boolean, int, Processor)
 	 * @see #dispatch(Message, boolean, int)
 	 */
@@ -524,7 +524,7 @@ public class Workbench{
 	}
 	
 	/**
-	 * dispatch a {@link Message} and process it in asynchronous and NO waiting.
+	 * dispatch a <code>Message</code> and process it in asynchronous and NO waiting.
 	 * @param msg the object must be got from {@link #getFreeMessage()}, and send by this method only one time. the object will be auto recycled by server.
 	 * @param isDownward <br>true : from smart module to device, or <b>control flow</b> to device.<br>false (Upward) : from device to smart module, or <b>status flow</b> from device.
 	 * @param fromProcType 
@@ -539,7 +539,7 @@ public class Workbench{
 	}
 	
 	/**
-	 * recycle a {@link Message} instance.
+	 * recycle a <code>Message</code> instance.
 	 * <br>Important : the object msg must be returned from {@link #process(Message, boolean, int, Processor)} or {@link #waitFor(Message, long, boolean, int, Processor)}.
 	 * @param msg the object which is not returned from above methods should be auto recycled by Server.
 	 */

@@ -64,9 +64,9 @@ public class CCoreUtil {
 	public static final void globalExit(){
 		checkAccess();
 		
-		synchronized (GLOBAL_LOCK) {
+//		synchronized (GLOBAL_LOCK) {//导致互锁，可能导致不被执行
 			System.exit(0);
-		}
+//		}
 	}
 
 	public static int resetFactor(){

@@ -3,6 +3,7 @@ package hc.core;
 import hc.core.sip.ISIPContext;
 import hc.core.util.EventBackCacher;
 import hc.core.util.LogManager;
+import hc.core.util.RootBuilder;
 import hc.core.util.ThreadPriorityManager;
 
 import java.io.IOException;
@@ -13,6 +14,7 @@ public abstract class UDPReceiveServer extends Thread{
 	public UDPReceiveServer(final CoreSession coreSS){
 		this.coreSS = coreSS;
 		setPriority(ThreadPriorityManager.DATA_TRANS_PRIORITY);
+		RootBuilder.getInstance().setDaemonThread(this);
         //J2ME不支持setName
 		//thread.setName("Receive Server");
     }
@@ -28,6 +30,9 @@ public abstract class UDPReceiveServer extends Thread{
     	while (!isShutdown) {
 			if(socket == null){
 	    		synchronized (LOCK) {
+	    			if(isShutdown){
+	    				break;
+	    			}
 	    			if(socket == null){
 	    				try {
 							LOCK.wait();

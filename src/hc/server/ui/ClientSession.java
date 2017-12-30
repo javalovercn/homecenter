@@ -40,7 +40,7 @@ import java.util.Vector;
  * a {@link ClientSession} instance will be created before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}, and will be released by server after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
  * <BR><BR>
  * invoking {@link ProjectContext#getClientSession()} to get this instance for current session.
- * <BR><BR>it is thread safe.
+ * <BR><BR>it is thread safe for attribute set/get.
  * @since 7.7
  */
 public class ClientSession {

@@ -4,6 +4,7 @@ import hc.core.cache.CacheManager;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.DelDeployedProjManager;
+import hc.server.util.SafeDataManager;
 import hc.server.util.ai.AIPersistentManager;
 import hc.util.PropertiesManager;
 import hc.util.PropertiesSet;
@@ -154,6 +155,8 @@ public abstract class BaseProjList {
 		final String[] delCacheProjIDS;
 		final String[] removedAndNotUpgrade;
 		synchronized (ServerUIUtil.LOCK) {
+			SafeDataManager.disableSafeBackup();
+			
 			//将已发布，且准备进行删除的进行删除操作
 			{
 				final int size = delList.size();

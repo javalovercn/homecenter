@@ -26,8 +26,8 @@ public class DeploySocket {
 
 	public static final int AUTH_LEN = 100;
 	public static final int MAX_DATA_LEN = 1 * 1024 * 1024;
-	public static final int TIMEOUT_MS = 0;//5000;
-	public static final int CONN_TIMEOUT_MS = 50;
+	public static final int TIMEOUT_MS = 10000;//5000;
+	public static final int CONN_TIMEOUT_MS = 4000;//太小会导致无法正常连接
 	
 	public static final String TEST_PASSWORD = "Hello world";
 

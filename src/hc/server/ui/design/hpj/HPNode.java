@@ -45,6 +45,25 @@ public class HPNode {
 	public static final int TYPE_MENU_ITEM_IOT = 6 | MASK_MENU_ITEM;
 	public static final int TYPE_MENU_ITEM_CFG = 7 | MASK_MENU_ITEM;
 	public static final int WIZARD_SELECTABLE_MENU_ITEM_SIZE = 5;
+	
+	public final static String typeToNodeFolderDesc(final int type){
+		if((type & MASK_MSB_ITEM) == MASK_MSB_ITEM){
+			return NODE_IOT;
+		}else if((type & MASK_MENU_ITEM) == MASK_MENU_ITEM){
+			return NODE_MENU;
+		}else if((type & MASK_EVENT_ITEM) == MASK_EVENT_ITEM){
+			return NODE_EVENTS;
+		}else if((type & MASK_RESOURCE_ITEM) == MASK_RESOURCE_ITEM || (type & MASK_SHARE_RB) == MASK_SHARE_RB){
+			return NODE_RES;
+		}else{
+			return "";
+		}
+	}
+	
+	public static final String NODE_IOT = "IoT";
+	public static final String NODE_EVENTS = "Events";
+	public static final String NODE_MENU = "Menu";
+	public static final String NODE_RES = "Resources";
 
 	/**
 	 * 用作展示，所以小写
@@ -108,7 +127,7 @@ public class HPNode {
 	
 	@Override
 	public boolean equals(final Object obj){
-		return toString().toLowerCase().equals(obj.toString().toLowerCase());
+		return this == obj || toString().toLowerCase().equals(obj.toString().toLowerCase());
 	}
 	
 	public String validate(){

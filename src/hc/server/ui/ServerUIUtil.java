@@ -14,6 +14,7 @@ import hc.core.util.LogManager;
 import hc.core.util.RecycleRes;
 import hc.core.util.StringUtil;
 import hc.core.util.UIUtil;
+import hc.server.JRubyInstaller;
 import hc.server.ProcessingWindowManager;
 import hc.server.ThirdlibManager;
 import hc.server.msb.MSBAgent;
@@ -22,6 +23,8 @@ import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.ProjResponser;
 import hc.server.util.CacheComparator;
+import hc.server.util.SafeDataManager;
+import hc.server.util.ServerUtil;
 import hc.server.util.ai.AIPersistentManager;
 import hc.util.BaseResponsor;
 import hc.util.HttpUtil;
@@ -182,11 +185,11 @@ public class ServerUIUtil {
 		synchronized (LOCK) {
 			stop();
 			
-			if(useHARProject){
+			if(useHARProject && JRubyInstaller.isJRubyReady()){
 				if(isModiThirdLibs){
 					isModiThirdLibs = false;
 					ThirdlibManager.loadThirdLibs();
-					ResourceUtil.getJRubyClassLoader(true);
+					ServerUtil.getJRubyClassLoader(true);
 				}
 				
 				BaseResponsor respo = null;
@@ -220,6 +223,7 @@ public class ServerUIUtil {
 				responsor.start();
 				
 				if(responsor instanceof MobiUIResponsor){
+					SafeDataManager.enableSafeBackup(false, false);
 					LogManager.log("successful start all HAR projects");
 					((MobiUIResponsor)responsor).preLoadJRubyScripts();
 				}
@@ -230,6 +234,7 @@ public class ServerUIUtil {
 				cancelHAR(responsor);
 				
 				if(responsor instanceof MobiUIResponsor){
+					SafeDataManager.disableSafeBackup();
 					responsor = new DefaultUIResponsor();
 					responsor.start();
 				}
@@ -295,6 +300,8 @@ public class ServerUIUtil {
 				}
 				
 				//注意：此处不能关闭hsqldb，因为ai manager永久使用
+				
+				SafeDataManager.disableSafeBackup();
 			}
 		}
 	}

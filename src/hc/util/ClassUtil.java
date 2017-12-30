@@ -19,8 +19,12 @@ public class ClassUtil {
 	final static float jreVersion = App.getJREVer();
 	
 	public final static void revalidate(final Component comp){
-		if(jreVersion >= 1.7){
-			invoke(Component.class, comp, "revalidate", NULL_PARA_TYPES, NULL_PARAS, true);
+		try{
+			comp.revalidate();
+		}catch (final Throwable e) {
+			if(jreVersion >= 1.7){
+				invoke(Component.class, comp, "revalidate", NULL_PARA_TYPES, NULL_PARAS, true);
+			}
 		}
 	}
 	

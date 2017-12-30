@@ -40,6 +40,7 @@ import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.HCEventQueue;
 import hc.server.util.HCLimitSecurityManager;
+import hc.server.util.SafeDataManager;
 import hc.server.util.Scheduler;
 import hc.server.util.SystemEventListener;
 import hc.server.util.VoiceCommand;
@@ -75,9 +76,9 @@ import javax.swing.JOptionPane;
 import third.hsqldb.jdbc.JDBCDriver;
 
 /**
- * There is one {@link ProjectContext} instance for each HAR Project at runtime. <BR><BR>
- * a {@link ProjectContext} instance will be created before {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}, and will be released after {@link ProjectContext#EVENT_SYS_PROJ_SHUTDOWN}.
- * <BR>reloading HAR projects (NOT restart server), new instance of {@link ProjectContext} will be created. 
+ * There is one <code>ProjectContext</code> instance for each HAR Project at runtime. <BR><BR>
+ * a <code>ProjectContext</code> instance will be created before {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}, and will be released after {@link ProjectContext#EVENT_SYS_PROJ_SHUTDOWN}.
+ * <BR>reloading HAR projects (NOT restart server), new instance of <code>ProjectContext</code> will be created. 
  * <BR><BR>
  * it is easy to get instance of ProjectContext from everywhere, for examples : <br>
  * 1. {@link ProjectContext#getProjectContext()} by static method,<br>
@@ -104,7 +105,7 @@ public class ProjectContext {
 	
 	/**
 	 * for example HAR is installing from client, and it is required to input token for device connection, 
-	 * you can use {@link Dialog} for custom input, otherwise if is installing from PC desktop, 
+	 * you can use <code>Dialog</code> for custom input, otherwise if is installing from PC desktop, 
 	 * you must use {@link #showInputDialog(String, String[], String[])}.
 	 * <BR><BR>
 	 * it returns false when project normal start up even if it was installed from client.
@@ -221,6 +222,7 @@ public class ProjectContext {
 	 * @return null means database error occurs.
 	 * @see #closeDB(Connection)
 	 * @see #removeDB(String)
+	 * @see #backup()
 	 * @since 7.50
 	 */
 	public final Connection getDBConnection(final String dbName, final String username, final String password){
@@ -453,6 +455,7 @@ public class ProjectContext {
 	 * @return if a scheduler is shutdown and invoke this method with the same <code>domain</code>, then a new instance scheduler will be created, otherwise the same instance returned.
 	 * @see #getScheduler(String, boolean)
 	 * @see #getScheduler(String, boolean, boolean)
+	 * @see #backup()
 	 * @since 7.57
 	 */
 	public final Scheduler getScheduler(final String domain){
@@ -833,14 +836,14 @@ public class ProjectContext {
 	/**
 	 * <STRONG>Warning</STRONG> : when in project level it will do nothing.
 	 * <BR><BR>
-	 * go and open a {@link Mlet} or {@link HTMLMlet} (which is probably created by {@link ProjectContext#eval(String)}).
+	 * go and open a <code>Mlet</code> or <code>HTMLMlet</code> (which is probably created by {@link ProjectContext#eval(String)}).
 	 * <BR><BR>
 	 * the target of <i>toMlet</i> will be set as <i>targetOfMlet</i>.<BR><BR>
 	 * <STRONG>Important : </STRONG>
 	 * <BR>if the same name <i>target</i> or <i>form://target</i> is opened, then it will be brought to top.
 	 * <BR>for more, see {@link #goWhenInSession(String, String)}.
 	 * @param toMlet
-	 * @param targetOfMlet target of {@link Mlet}. The prefix <i>form://</i> is <STRONG>NOT</STRONG> required.
+	 * @param targetOfMlet target of <code>Mlet</code>. The prefix <i>form://</i> is <STRONG>NOT</STRONG> required.
 	 * @see ProjectContext#eval(String)
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @see #goWhenInSession(String, String)
@@ -1235,7 +1238,7 @@ public class ProjectContext {
 	 * for example, in order to connect device, user may be required to input
 	 * token of devices. 
 	 * <br><br>
-	 * you can also custom {@link Dialog} when is installing HAR from client, see {@link #isInstallingFromClient()}.
+	 * you can also custom <code>Dialog</code> when is installing HAR from client, see {@link #isInstallingFromClient()}.
 	 * <BR><BR>
 	 * to save token, see {@link #setProperty(String, String)} and
 	 * {@link #saveProperties()}
@@ -1412,11 +1415,10 @@ public class ProjectContext {
 	 * <STRONG>CAUTION : </STRONG><BR>
 	 * variable (if it is NOT local variable) set by one thread will be visible to another thread.
 	 * <pre>
-	 * import java.lang.Thread
 	 * import Java::hc.server.util.JavaLangSystemAgent
 	 * 
 	 * {@literal @}callMS = JavaLangSystemAgent.currentTimeMillis().to_s()
-	 * Thread.sleep(10 * 1000)
+	 * sleep(10)
 	 * puts "callMS : " + {@literal @}callMS</pre>
 	 * if thread B call it after thread A one second, then print out the same value.
 	 * @param shell
@@ -1593,7 +1595,7 @@ public class ProjectContext {
 	 * send a question to mobile if in session level, or send same question to all client sessions if in project level. <br>
 	 * in project level, if one session replies, then the same question in other sessions will be dismissed.
 	 * <br><br>
-	 * if there is an alert message, other question or a {@link Dialog} is presented on client and NOT be closed, the question will be delayed.
+	 * if there is an alert message, other question or a <code>Dialog</code> is presented on client and NOT be closed, the question will be delayed.
 	 * <br><br>
 	 * this method is <STRONG>asynchronous</STRONG>. system will NOT wait for
 	 * the result of question to the caller. <BR>
@@ -1696,6 +1698,30 @@ public class ProjectContext {
 			}
 		});
 		}
+	}
+	
+	/**
+	 * backup user properties and private files of current project.<BR><BR>
+	 * usually this method is not used, <BR>
+	 * because the server will automatically backup regularly, only when the following conditions are meet :<BR>
+	 * 1. some data saved local, and some stored on cloud, if power off occurs, the status saved recently will gone, but the cloud not gone.<BR>
+	 * 2. if this method is invoked, when power off occurs, server will restore all at the next startup.<BR>
+	 * <BR>
+	 * <STRONG>Know More :</STRONG><BR>
+	 * 1. DB is not required to close before backup.<BR>
+	 * 2. private file which is opening or writing is not required to close before backup.<BR>
+	 * 3. backup will not work on Windows because of exclusive lock.<BR>
+	 * 4. backup works well on Linux, macOS, Android.<BR>
+	 * 5. return normally means backup successfully.
+	 */
+	public final void backup(){
+		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() {
+				SafeDataManager.backup(projectID);
+				return null;
+			}
+		});
 	}
 
 	/**
@@ -2785,7 +2811,7 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final File getPrivateFile(final String fileName) {
-		final String absProjBasePath = HCLimitSecurityManager.getUserDataBaseDir(projectID);
+		final String absProjBasePath = StoreDirManager.getUserDataBaseDir(projectID);
 		final String absPathname = absProjBasePath + HttpUtil.encodeFileName(fileName);
 		final File fileResult = new File(absPathname);//App.getBaseDir
 		try{
@@ -2814,6 +2840,7 @@ public class ProjectContext {
 	 * @see #setProperty(String, String)
 	 * @see #getProperty(String)
 	 * @see #removeProperty(String)
+	 * @see #backup()
 	 * @since 7.0
 	 */
 	public final void saveProperties() {
@@ -3491,7 +3518,7 @@ public class ProjectContext {
 	/**
 	 * return the login ID/Email which is NOT verified by HomeCenter.MOBI possibly.
 	 * <BR><BR><STRONG>Important : </STRONG><BR>
-	 * user maybe change ID according to their own wishes, project will restart and new instance of {@link ProjectContext} will be created if the login ID/Email is changed.
+	 * user maybe change ID according to their own wishes, project will restart and new instance of <code>ProjectContext</code> will be created if the login ID/Email is changed.
 	 * <BR><BR>do follow steps to check the login Email account is verified by HomeCenter.MOBI or not:
 	 * <BR>1. get login ID/Email by {@link #getLoginID()}
 	 * <BR>2. get token for check by {@link #getTokenForCheck()}
@@ -3515,6 +3542,9 @@ public class ProjectContext {
 					return IConstant.getUUID();
 				}
 			});
+			if(loginID == null){
+				loginID = SimuMobile.MOBILE_LOGIN_ID;
+			}
 		}
 		return loginID;
 	}
@@ -3648,7 +3678,7 @@ public class ProjectContext {
 	/**
 	 * <STRONG>Warning</STRONG> : when in project level it will do nothing.
 	 * <BR><BR>
-	 * send a {@link Dialog} to client.
+	 * send a <code>Dialog</code> to client.
 	 * <br><br>
 	 * if there is a alert message, question or other dialog is presented on client and NOT be closed, the dialog will be delayed.
 	 * <br><br>
@@ -3713,7 +3743,7 @@ public class ProjectContext {
 	 * <BR>
 	 * because the layout of dialog is depends on the client screen size of that session.<BR>
 	 * for example, there are three sessions, the <code>runnable</code> will be executed three times, <BR>
-	 * and three instances of {@link Dialog} are builded for each session.
+	 * and three instances of <code>Dialog</code> are builded for each session.
 	 * <br><br>
 	 * if there is a alert message, question or other dialog is presented on client and NOT closed, the dialog will be delayed.
 	 * <br><br>
@@ -3832,7 +3862,7 @@ public class ProjectContext {
 	/**
 	 * send an alert message to current mobile if in session level, or send the same alert to all client sessions if in project level.
 	 * <br><br>
-	 * if there is an other alert message, question or a {@link Dialog} is presented on client and NOT be closed, the alert message will be delayed.
+	 * if there is an other alert message, question or a <code>Dialog</code> is presented on client and NOT be closed, the alert message will be delayed.
 	 * <BR><BR>
 	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
 	 * notification is also created for mobile.<BR><BR>
@@ -4167,9 +4197,9 @@ public class ProjectContext {
 	 * the following scripts are executed in project level :
 	 * <UL>
 	 * <LI><code>EVENT_SYS_PROJ_STARTUP</code></LI>
-	 * <LI>scripts in IoT, such as {@link Robot}, {@link Converter}, {@link Device}</LI>
+	 * <LI>scripts in IoT, such as <code>Robot</code>, <code>Converter</code>, <code>Device</code></LI>
 	 * <LI>the procedure of {@link RobotListener#action(hc.server.msb.RobotEvent)} if it is added in project level,
-	 * <BR>if it is added in {@link CtrlResponse} or {@link HTMLMlet}, then the procedure is in session level
+	 * <BR>if it is added in <code>CtrlResponse</code> or <code>HTMLMlet</code>, then the procedure is in session level
 	 * </LI>
 	 * <LI>the new thread runs in project level if it is builded in project level</LI>
 	 * <LI><code>runnable</code> runs in project level if {@link #run(Runnable)} is in project level</LI>
@@ -4179,7 +4209,7 @@ public class ProjectContext {
 	 * <BR>the following scripts are executed in session level :
 	 * <UL>
 	 * <LI><code>EVENT_SYS_MOBILE_LOGIN</code></LI>
-	 * <LI>menu item scripts, for examples Command, {@link Mlet}/{@link HTMLMlet} and {@link CtrlResponse}</LI>
+	 * <LI>menu item scripts, for examples Command, <code>Mlet</code>/<code>HTMLMlet</code> and <code>CtrlResponse</code></LI>
 	 * <LI>the procedure of {@link SystemEventListener#onEvent(String)} triggered by session events (<STRONG>NOT</STRONG> project event EVENT_SYS_PROJ_SHUTDOWN), even if it is added in project level</LI>
 	 * <LI>the procedure of {@link RobotListener#action(hc.server.msb.RobotEvent)} if the RobotListener is added in session level</LI>
 	 * <LI>the procedure of {@link Robot#operate(long, Object)} to execute command from user</LI>

@@ -109,6 +109,7 @@ public class CtrlMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 			btnPanel.add(testBtn);
 			btnPanel.add(formatBtn);
 			btnPanel.add(scriptBtn);
+			btnPanel.add(commentBtn);
 			script_panel.add(btnPanel, BorderLayout.NORTH);
 			script_panel.add(jtascriptPanel, BorderLayout.CENTER);
 			script_panel.setBorder(new TitledBorder(""));

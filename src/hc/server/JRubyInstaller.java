@@ -6,14 +6,18 @@ import hc.core.CoreSession;
 import hc.core.GlobalConditionWatcher;
 import hc.core.IContext;
 import hc.core.IWatcher;
+import hc.core.L;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
 import hc.core.SessionManager;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
+import hc.server.ui.J2SESessionManager;
 import hc.server.ui.LinkProjectStatus;
+import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.Designer;
 import hc.server.ui.design.J2SESession;
+import hc.server.util.SafeDataManager;
 import hc.util.CheckSum;
 import hc.util.HttpUtil;
 import hc.util.IBiz;
@@ -28,7 +32,6 @@ import java.awt.Window;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.HashMap;
-import java.util.Properties;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -37,8 +40,31 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
 
 public class JRubyInstaller {
+	/**
+	 * 如果jruby.jar升级，由于Android环境下依赖此，重要测试
+	 */
+	public static final String jrubyjarname = ResourceUtil.getLibNameForAllPlatforms("jruby");
+
 	static MultiThreadDownloader mtd;
 
+	private static String getInnverJRubyDownloadFile(final String outerVersion){
+		if(ResourceUtil.isAndroidServerPlatform()){
+			return getInnverAndroidJRubyDownloadFile(outerVersion);
+		}
+		
+		final String[] versions = {"1.7.3"};
+		final String[] fileName = {"jruby-complete-1.7.3.jar"};
+//		"1.7.3", 75a612d9ba57a61f01dcd6e3e586a34b
+		
+		for (int i = 0; i < versions.length; i++) {
+			if(versions[i].equals(outerVersion)){
+				return fileName[i];
+			}
+		}
+		
+		return fileName[0];
+	}
+	
 	private static String getInnverJRubyMD5(final String outerVersion){
 		if(ResourceUtil.isAndroidServerPlatform()){
 			return getInnverAndroidJRubyMD5(outerVersion);
@@ -73,6 +99,25 @@ public class JRubyInstaller {
 		return innerMD5[0];
 	}
 
+	private static String getInnverAndroidJRubyDownloadFile(final String outerVersion){
+//		RubotoCore version 1.0.5
+//		1. Updated to JRuby 1.7.19
+//		2. Updated to Ruboto 1.3.0
+//		3. Updated to ActiveRecord 4.1.10
+//		4. Updated to activerecord-jdbc-adapter 1.3.15
+//		5. Added thread_safe gem
+		final String[] versions = {"1.7.19"};
+		final String[] fileName = {"ruboto_core_1_0_5.apk"};
+		
+		for (int i = 0; i < versions.length; i++) {
+			if(versions[i].equals(outerVersion)){
+				return fileName[i];
+			}
+		}
+		
+		return fileName[0];
+	}
+	
 	private static String getInnverAndroidJRubyMD5(final String outerVersion){
 //		RubotoCore version 1.0.5
 //		1. Updated to JRuby 1.7.19
@@ -110,8 +155,43 @@ public class JRubyInstaller {
 		
 		return innerMD5[0];
 	}
-	public static boolean checkInstalledJRuby(){
-		return PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer) != null;
+	
+	static Boolean isJRubyReady;
+	static boolean isJRubyNeedUpgrade = false;
+	
+	public static synchronized boolean isJRubyReady(){
+		if(isJRubyReady == null){
+			checkUpgradeJRuby();
+		}
+		return isJRubyReady;
+	}
+	
+	public static synchronized boolean checkUpgradeJRuby(){
+		if(isJRubyReady == null){
+			isJRubyReady = checkJRubyReady();
+		}
+		return isJRubyReady == false;
+	}
+	
+	private static boolean checkJRubyReady(){
+		//如果是低版本，要删除，并清除properties状态
+		final String localVer = PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer);
+		final boolean isInstalled = localVer != null;
+		if(isInstalled){
+			final String romoteVer = getRomoteVer();
+			isJRubyNeedUpgrade = StringUtil.higher(romoteVer, localVer);
+			if(isJRubyNeedUpgrade){
+				L.V = L.WShop ? false : LogManager.log("[JRubyInstaller] remote version : " + romoteVer + ", local version : " + localVer);
+			}
+			return isJRubyNeedUpgrade == false;
+		}else{
+			L.V = L.WShop ? false : LogManager.log("[JRubyInstaller] first install JRuby.");
+			return isInstalled;
+		}
+	}
+	
+	private static String getRomoteVer(){
+		return RootConfig.getInstance().getProperty(ResourceUtil.isAndroidServerPlatform()?RootConfig.p_AndroidJRubyVer:RootConfig.p_JRubyVer);
 	}
 	
 	public static void startInstall(){
@@ -127,20 +207,11 @@ public class JRubyInstaller {
 	
 	public static void callDownload(final boolean isRedownload){
 		if(isRedownload){
-			LogManager.log("fail on download and retry download JRuby engine...");
+			LogManager.log("[JRubyInstaller] fail on download and retry download JRuby engine...");
 		}else{
-			LogManager.log("download JRuby engine...");
+			LogManager.log("[JRubyInstaller] download JRuby engine...");
 		}
-		String jruby_ver = "jruby.ver";
-		String jruby_md5 = "jruby.md5";
-		String jruby_urls = "jruby.url";
 		
-		if(ResourceUtil.isAndroidServerPlatform()){
-			jruby_ver = "android." + jruby_ver;
-			jruby_md5 = "android." + jruby_md5;
-			jruby_urls = "android." + jruby_urls;
-		}
-
 		if(isRedownload == false){
 			GlobalConditionWatcher.addWatcher(new IWatcher() {
 				final long ms = System.currentTimeMillis();
@@ -169,52 +240,52 @@ public class JRubyInstaller {
 			});
 		}
 
-		final Properties thirdlibs = ResourceUtil.loadThirdLibs();
-		if(thirdlibs == null){
-			redownload();
-			return;
-		}else{
-			LogManager.log("success get download online lib information.");
-		}
-
-		final String _lastJrubyVer = thirdlibs.getProperty(jruby_ver);
-		final String _lastJrubyMd5 = thirdlibs.getProperty(jruby_md5);//停用
+		final String _lastJrubyVer = getRomoteVer();
 
 		final String md5 = getInnverJRubyMD5(_lastJrubyVer);
 		final String sha512 = getInnverJRubySHA512(_lastJrubyVer);
 		final CheckSum checkSum = new CheckSum(md5, sha512);
 		
-		String fromURL = thirdlibs.getProperty(jruby_urls);
+		String fromURL = "http://homecenter.mobi/download/" + getInnverJRubyDownloadFile(_lastJrubyVer);
 		if(PropertiesManager.isSimu()){
 			fromURL = HttpUtil.replaceSimuURL(fromURL, true);
 		}
-		final String storeFile = J2SEContext.jrubyjarname;
+		final String storeFile = JRubyInstaller.jrubyjarname;
 		final File rubyjar = new File(ResourceUtil.getBaseDir(), storeFile);
 		if(rubyjar.exists()){
-			LogManager.log("remove fail download or old version file [" + storeFile + "].");
+			LogManager.log("[JRubyInstaller] remove fail download or old version file [" + storeFile + "].");
 			rubyjar.delete();
 		}
 		
 		final IBiz biz = new IBiz() {
 			@Override
 			public void start() {
-				PropertiesManager.setValue(PropertiesManager.p_jrubyJarFile, J2SEContext.jrubyjarname);	
+				PropertiesManager.setValue(PropertiesManager.p_jrubyJarFile, JRubyInstaller.jrubyjarname);	
 				PropertiesManager.setValue(PropertiesManager.p_jrubyJarVer, _lastJrubyVer);
 				PropertiesManager.saveFile();
 				
+				isJRubyReady = true;
+				
 				try{
-					LogManager.log("successful installed JRuby.");
+					LogManager.log("[JRubyInstaller] successful installed/upgrade JRuby to version : " + _lastJrubyVer);
 					
 					RootServerConnector.notifyLineOffType(J2SESession.NULL_J2SESESSION_FOR_PROJECT, "lof=jrubyOK");
 					
 					SecurityDataProtector.init();//Android环境下进行数据加密
 					
-					notifySuccessInstalled();
+					if(isJRubyNeedUpgrade == false){//初次安装
+						startMyFirstDesigner();
+						Designer.setupMyFirstAndApply();
+					}else{
+						ServerUIUtil.restartResponsorServer(null, null);
+					}
 					
-					Designer.setupMyFirstAndApply();
+					J2SESessionManager.startNewIdleSession();//安卓服务器可能升级JRuby时，不能接入客户端
 				}finally{
 					LinkProjectStatus.exitStatus();		
 					closeProgressWindow();
+					isJRubyNeedUpgrade = false;
+					SafeDataManager.startSafeBackupProcess(true, true);
 				}
 			}
 			
@@ -241,7 +312,7 @@ public class JRubyInstaller {
 
 	private static void redownload() {
 		try{
-			LogManager.log("fail to get download online lib information, wait for a moment...");
+			LogManager.log("[JRubyInstaller] fail to get download online lib information, wait for a moment...");
 			Thread.sleep(5000);
 			callDownload(true);
 		}catch (final Exception e) {
@@ -258,7 +329,7 @@ public class JRubyInstaller {
 		return mtd.getFinishPercent();
 	}
 	
-	private static void notifySuccessInstalled(){
+	private static void startMyFirstDesigner(){
 		TrayMenuUtil.displayMessage(
 				ResourceUtil.getInfoI18N(),  (String)ResourceUtil.get(9108), 
 				IContext.INFO, null, 0);
@@ -336,4 +407,5 @@ public class JRubyInstaller {
 				progressWindow.toFront();
 			}
 		}
+
 }

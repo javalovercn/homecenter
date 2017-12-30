@@ -28,6 +28,9 @@ public class ThreadTimer extends Thread {
 				final long sleepMS = timer.nextExecMS - nowMS;
 				if(sleepMS > 0){
 					synchronized (timer) {
+						if(isShutDown){
+							break;
+						}
 						try {
 							timer.wait(sleepMS);
 						} catch (InterruptedException e) {
@@ -37,6 +40,9 @@ public class ThreadTimer extends Thread {
 				}
 			}else{
 				synchronized (timer) {
+					if(isShutDown){
+						break;
+					}
 					try {
 						timer.wait();
 					} catch (final InterruptedException e) {

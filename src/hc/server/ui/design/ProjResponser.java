@@ -57,8 +57,8 @@ import hc.server.util.Assistant;
 import hc.server.util.CacheComparator;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
-import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.SafeDataManager;
+import hc.server.util.ServerUtil;
 import hc.server.util.VoiceCommand;
 import hc.server.util.ai.AIPersistentManager;
 import hc.util.BaseResponsor;
@@ -232,8 +232,6 @@ public class ProjResponser {
 	public final void stop(){
 		L.V = L.WShop ? false : LogManager.log("stop ProjResponser [" + projectID + "]");
 
-		SafeDataManager.romoveBackupTask(projectID);
-		
 		ServerUIAPIAgent.shutdownSchedulers(context, null);//置于hcje.terminate之前
 
 		try{
@@ -467,10 +465,8 @@ public class ProjResponser {
 	public ProjResponser(final String projID, final Map<String, Object> p_map, final MobiUIResponsor baseRep,
 			final LinkProjectStore lps) {
 		this.projectID = projID;
-		SafeDataManager.addBackupTask(projectID);
-		
 		{
-			final String absProjBasePath = HCLimitSecurityManager.getUserDataBaseDir(projectID);
+			final String absProjBasePath = StoreDirManager.getUserDataBaseDir(projectID);
 			final File userDir = new File(absProjBasePath);//不能使用App.getBaseDir
 
 			if (userDir.exists() == false) {
@@ -487,11 +483,11 @@ public class ProjResponser {
 
 //		final ClassLoader projClassLoader = ResourceUtil.buildProjClassLoader(deployPath, projID);
 //		**注意**：理论上native lib应加载到userLib，而不是JRubyClassLoader。但是无法获得用户类作为参数，所以简化之
-		final ClassLoader baseClassLoader = ResourceUtil.getJRubyClassLoader(false);
+		final ClassLoader baseClassLoader = ServerUtil.getJRubyClassLoader(false);
 		jrubyClassLoader = hasNative?buildStubNativeLibClassLoaderWrapper(baseClassLoader):baseClassLoader;
-		final ClassLoader projClassLoader = ResourceUtil.buildProjClassPath(deployPath, jrubyClassLoader, projID);
+		final ClassLoader projClassLoader = ServerUtil.buildProjClassPath(deployPath, jrubyClassLoader, projID);
 		final String reportExceptionURL = (String)this.map.get(HCjar.PROJ_EXCEPTION_REPORT_URL);
-		this.hcje = new HCJRubyEngine(deployPath.getAbsolutePath(), projClassLoader, 
+		this.hcje = new HCJRubyEngine(null, deployPath.getAbsolutePath(), projClassLoader, 
 				reportExceptionURL != null && reportExceptionURL.length() > 0, projID);
 		
 		final RecycleRes tmpRecycleRes = RecycleProjThreadPool.getFree(projID);
@@ -1058,9 +1054,9 @@ public class ProjResponser {
 	static ClassLoader buildStubNativeLibClassLoaderWrapper(final ClassLoader cl) {
 		final String stubLibName;
 		if(ResourceUtil.isAndroidServerPlatform()){
-			stubLibName = "stub.dex.jar";
+			stubLibName = SafeDataManager.STUB_DEX_JAR;
 		}else{
-			stubLibName = "stub.jar";
+			stubLibName = SafeDataManager.STUB_JAR;
 		}
 		
 		final File stubFile = new File(ResourceUtil.getBaseDir(), stubLibName);

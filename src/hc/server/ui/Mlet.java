@@ -24,12 +24,12 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 /**
- * {@link Mlet} is an instance running in server, and the <STRONG>snapshot</STRONG> of {@link Mlet} is presented to mobile.
+ * <code>Mlet</code> is an instance running in server, and the <STRONG>snapshot</STRONG> of <code>Mlet</code> is presented to mobile.
  * It looks more like a form, control panel or canvas running in mobile.
  * <BR><BR>
- * {@link Mlet} is extends {@link javax.swing.JPanel JPanel}, its advantage is bringing all JPanel features to mobile UI, no matter client is Android, iPhone or other.
+ * <code>Mlet</code> is extends {@link javax.swing.JPanel JPanel}, its advantage is bringing all JPanel features to mobile UI, no matter client is Android, iPhone or other.
  * <BR><BR>
- * To present JComponents to mobile in HTML (not snapshot) and set CSS for these JComponents, please use {@link HTMLMlet}, which is extends {@link Mlet}.
+ * To present JComponents to mobile in HTML (not snapshot) and set CSS for these JComponents, please use <code>HTMLMlet</code>, which is extends <code>Mlet</code>.
  * <BR><BR><STRONG>Important :</STRONG><BR>In Swing, layout manager is noticing that JButton (and JCheckBox, JComboBox, JLabel, JRadioButton, JTextField) has a preferred size and adjusting your pane to accommodate JButton, 
  * in other words, <code>setMinimumSize</code> will not working for JButton. 
  * <BR>
@@ -48,17 +48,17 @@ public class Mlet extends JPanel implements ICanvas {
 	public static final int STATUS_INIT = 0;
 	
 	/**
-	 * when {@link #onStart()} or {@link #onResume()}, {@link Mlet} is changed to this status.
+	 * when {@link #onStart()} or {@link #onResume()}, <code>Mlet</code> is changed to this status.
 	 */
 	public static final int STATUS_RUNNING = 1;
 	
 	/**
-	 * when {@link #onPause()}, {@link Mlet} is changed to this status.
+	 * when {@link #onPause()}, <code>Mlet</code> is changed to this status.
 	 */
 	public static final int STATUS_PAUSE = 2;
 	
 	/**
-	 * when {@link #onExit()}, {@link Mlet} is changed to this status.
+	 * when {@link #onExit()}, <code>Mlet</code> is changed to this status.
 	 */
 	public static final int STATUS_EXIT = 3;
 	
@@ -151,7 +151,7 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * exit current {@link Mlet} or {@link HTMLMlet} and return back.
+	 * exit current <code>Mlet</code> or <code>HTMLMlet</code> and return back.
 	 * @since 7.0
 	 * @see #go(String)
 	 */
@@ -210,9 +210,9 @@ public class Mlet extends JPanel implements ICanvas {
 	boolean isAutoReleaseAfterGo = false;
 	
 	/**
-	 * when invoke {@link #go(String)}, this {@link Mlet} will be released by server or not.
+	 * when invoke {@link #go(String)}, this <code>Mlet</code> will be released by server or not.
 	 * @return true : it will be released after leave and {@link #onExit()} will be executed by server before releasing;
-	 * <BR>false : keep this {@link Mlet} alive and user will return back to this {@link Mlet}.
+	 * <BR>false : keep this <code>Mlet</code> alive and user will return back to this <code>Mlet</code>.
 	 * <BR><BR>default is false.
 	 * @see #setAutoReleaseAfterGo(boolean)
 	 * @since 7.7
@@ -222,13 +222,13 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 	
 	/**
-	 * when invoke {@link #go(String)}, this {@link Mlet} will be released by server or not.
+	 * when invoke {@link #go(String)}, this <code>Mlet</code> will be released by server or not.
 	 * <BR><BR>
 	 * default is false.
 	 * <BR><BR>
 	 * <STRONG>Tip : </STRONG>it is no effect when the URL is script command (for example, cmd://myCmd).
 	 * @param isAutoRelease true : it will be released after leave and {@link #onExit()} will be executed by server before releasing;
-	 * <BR>false : keep this {@link Mlet} alive and user will return/back to this {@link Mlet}.
+	 * <BR>false : keep this <code>Mlet</code> alive and user will return/back to this <code>Mlet</code>.
 	 * @see #isAutoReleaseAfterGo()
 	 * @see #goMlet(Mlet, String, boolean)
 	 * @since 7.7
@@ -375,14 +375,14 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * go and open a {@link Mlet} or {@link HTMLMlet} (which is probably created by {@link ProjectContext#eval(String)}).
+	 * go and open a <code>Mlet</code> or <code>HTMLMlet</code> (which is probably created by {@link ProjectContext#eval(String)}).
 	 * <BR><BR>
 	 * the target of <i>toMlet</i> will be set as <i>targetOfMlet</i>.<BR><BR>
 	 * <STRONG>Important : </STRONG>
 	 * <BR>if the same name <i>target</i> or <i>form://target</i> is opened, then it will be brought to top.
 	 * <BR>for more, see {@link #go(String)}.
 	 * @param toMlet
-	 * @param targetOfMlet target of {@link Mlet}. The prefix <i>form://</i> is <STRONG>NOT</STRONG> required.
+	 * @param targetOfMlet target of <code>Mlet</code>. The prefix <i>form://</i> is <STRONG>NOT</STRONG> required.
 	 * @param isAutoReleaseCurrentMlet true means the called Mlet will be released after go successfully.<BR>for more, see {@link Mlet#setAutoReleaseAfterGo(boolean)}.
 	 * @see ProjectContext#eval(String)
 	 * @see #go(String)
@@ -409,7 +409,7 @@ public class Mlet extends JPanel implements ICanvas {
 	
 	
 	/**
-	 * enter this {@link Mlet}, server will invoke this method.
+	 * enter this <code>Mlet</code>, server will invoke this method.
 	 * <BR><BR>
 	 * invoke {@link #getStatus()} in this method will returns {@link #STATUS_RUNNING}.
 	 * <BR><BR>
@@ -432,7 +432,7 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * the server will invoke this method when exit from next form/screen, and enter this {@link Mlet} again.
+	 * the server will invoke this method when exit from next form/screen, and enter this <code>Mlet</code> again.
 	 * <BR><BR>
 	 * invoke {@link #getStatus()} in this method will returns {@link #STATUS_RUNNING}.
 	 * @see #onPause()
@@ -443,12 +443,12 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * the server will invoke this method when exit this {@link Mlet} or line off.
+	 * the server will invoke this method when exit this <code>Mlet</code> or line off.
 	 * <BR><BR>
 	 * invoke {@link #getStatus()} in this method will returns {@link #STATUS_EXIT}.
 	 * <BR><BR>
 	 * <STRONG>Important : </STRONG><BR>
-	 * if there is a running {@link Runnable} is started by this {@link Mlet} via {@link ProjectContext#run(Runnable)}, 
+	 * if there is a running {@link Runnable} is started by this <code>Mlet</code> via {@link ProjectContext#run(Runnable)}, 
 	 * it is a good practice that the running {@link Runnable} check {@link #getStatus()} in loop and finish task when exit.
 	 * <BR>Please DON'T to get <code>Thread</code> of it and invoke {@link Thread#stop()}.
 	 * @since 7.0

@@ -148,8 +148,8 @@ public class ContextManager {
 	}
 
 	public static final ThreadPool getThreadPool(){
-		if(ContextManager.threadPool == null){
-			ContextManager.threadPool = new ThreadPool(null){
+		if(threadPool == null){
+			threadPool = new ThreadPool(null){
 				protected Thread buildThread(final RecycleThread rt) {
 					return new Thread(rt);
 				}
@@ -158,7 +158,7 @@ public class ContextManager {
 				}
 			};
 		}
-		return ContextManager.threadPool;
+		return threadPool;
 	}
 
 	/**

@@ -1,0 +1,2381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <!-- classpage -- >
+    <!-- RD version: 0.39.0  -->
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+  <meta name='description' content='  Module : Math  -   Ruby 2.2.0 ' />
+  <meta content="2017-09-09 18:34:22 -0500" http-equiv="change-date" />
+  <!-- rel_prefix  = ''  ENV['RDOC_FOR_WEBSITE']   = true-->
+    
+    
+    
+  <!-- rel_prefix = '.'   asset_rel_prefix = ''  --> 
+  <title>Module: Math (Ruby 2.2.0) </title>
+  <link rel="stylesheet" href="/css/associated.css" type="text/css" >
+  <!-- link rel="stylesheet" href=".css/obf.css"  -->
+  <link rel="stylesheet" href="/css/inuit.css" >
+  <link rel="stylesheet" href="/css/grid.inuit.css" >
+  <link rel="stylesheet" href="/css/2011.css" type="text/css" >
+  <link rel="stylesheet" href="/css/rdoc.css" type="text/css" >
+    <link rel="stylesheet" href="/css/carbon17.css" type="text/css" >
+
+
+  <script src="/js/jquery.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/thickbox-compressed.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/quicksearch.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/rubydoc.js" type="text/javascript" charset="utf-8"></script> 
+
+
+   
+<script src="/js/highlight.min.js"></script>
+<script> 
+  hljs.tabReplace = '  ';
+  hljs.initHighlightingOnLoad();
+  </script> 
+
+  <style type='text/css'>
+
+    #vulns-alert #vulns{
+      background-color: #c33 ! important;
+      width: 100%;
+      text-align: center;
+   }
+   
+   #vulns-alert #vulns a {
+    color: #F99 ! important;
+   }
+ </style>
+
+   <link rel="stylesheet" href="/css/extra.css" type="text/css" >
+  <script  src="/js/extra.js"  ></script>
+
+
+</head>
+
+<body id="top" class="module rdocstar">
+
+<div id='actionbar' >
+<div class='wrapper'>
+  <ul class='grids g0'>
+	<li class='grid-2' ><a href='/' target='_top' >Home</a></li>
+	<li class='grid-2' ><a href='/core-2.2.0' target='_top' >Core 2.2.0</a></li>
+	<li class='grid-2' ><a href='/stdlib-2.2.0' target='_top' >Std-lib 2.2.0</a></li>
+
+   <li class='grid-2' ><a href='/downloads' target='_top' >Downloads</a></li>
+	 <li class='grid-5 right' id='rd-action-search'><form id="searchbox_011815814100681837392:wnccv6st5qk" action="http://ruby-doc.com/search.html"><input type="hidden" name="cx" value="011815814100681837392:wnccv6st5qk" ><input  id='rd-search-input' name="q" type="text" size="20" >&#160;&#160;<input type="submit" name="sa" value="Search" ><input type="hidden" name="cof" value="FORID:9" ></form></li>
+	</ul>
+</div>
+<span id='vulns-alert'></span>
+<div id='versionheader'>
+<p>Support for the Ruby 2.2 series will end March 2018. See <a href='https://www.ruby-lang.org/en/news/2017/04/01/support-of-ruby-2-1-has-ended/'>here</a> for reference.</p>
+</div>
+</div> <!-- end action bar -->
+ <div class='wrapper'>
+  
+   <!-- carbon17 added here 2017-09-09 -->
+ 
+   <script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD627W', 'placement:rubydocorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+ 
+
+   <div id="metadata">
+    <div id="home-metadata">
+      <div id="home-section" class="section">
+        <h3 class="section-header">
+          <a href="./index.html">Home</a>
+          <a href="./index.html#classes">Classes</a>
+          <a href="./index.html#methods">Methods</a>
+          
+          
+          <!-- br><a id='alternateFormatLink' class='rotate' href="#" onclick='matchingYardUrl()'>YARD version</a -->
+          
+        </h3>
+      </div>
+    </div>
+
+    <div id="file-metadata">
+      <div id="file-list-section" class="section">
+        <h3 class="section-header">In Files</h3>
+        <div class="section-body">
+          <ul id='file-metadata'>
+
+          
+          
+          
+          <li class='in-file'>math.c</li>      
+            
+          </ul>
+        </div>
+      </div>
+
+      
+    </div>
+
+    <div id="class-metadata">
+      
+
+      
+
+      
+      <!-- Namespace Contents -->
+      <div id="namespace-list-section" class="section">
+        <h3 class="section-header">Namespace</h3>
+        <ul class="link-list">
+          
+          <li><span class="type">CLASS</span> <a href="Math/DomainError.html">Math::DomainError</a></li>
+          
+        </ul>
+      </div>
+      
+
+      
+      <!-- Method Quickref -->
+      <div id="method-list-section" class="section">
+        <h3 class="section-header">Methods</h3>
+        <ul class="link-list">
+          
+          <li><a href="#method-c-acos">::acos</a></li>
+          
+          <li><a href="#method-c-acosh">::acosh</a></li>
+          
+          <li><a href="#method-c-asin">::asin</a></li>
+          
+          <li><a href="#method-c-asinh">::asinh</a></li>
+          
+          <li><a href="#method-c-atan">::atan</a></li>
+          
+          <li><a href="#method-c-atan2">::atan2</a></li>
+          
+          <li><a href="#method-c-atanh">::atanh</a></li>
+          
+          <li><a href="#method-c-cbrt">::cbrt</a></li>
+          
+          <li><a href="#method-c-cos">::cos</a></li>
+          
+          <li><a href="#method-c-cosh">::cosh</a></li>
+          
+          <li><a href="#method-c-erf">::erf</a></li>
+          
+          <li><a href="#method-c-erfc">::erfc</a></li>
+          
+          <li><a href="#method-c-exp">::exp</a></li>
+          
+          <li><a href="#method-c-frexp">::frexp</a></li>
+          
+          <li><a href="#method-c-gamma">::gamma</a></li>
+          
+          <li><a href="#method-c-hypot">::hypot</a></li>
+          
+          <li><a href="#method-c-ldexp">::ldexp</a></li>
+          
+          <li><a href="#method-c-lgamma">::lgamma</a></li>
+          
+          <li><a href="#method-c-log">::log</a></li>
+          
+          <li><a href="#method-c-log10">::log10</a></li>
+          
+          <li><a href="#method-c-log2">::log2</a></li>
+          
+          <li><a href="#method-c-sin">::sin</a></li>
+          
+          <li><a href="#method-c-sinh">::sinh</a></li>
+          
+          <li><a href="#method-c-sqrt">::sqrt</a></li>
+          
+          <li><a href="#method-c-tan">::tan</a></li>
+          
+          <li><a href="#method-c-tanh">::tanh</a></li>
+          
+        </ul>
+      </div>
+      
+
+      
+    </div>
+
+    <div id="project-metadata">
+      
+      
+      <div id="fileindex-section" class="section project-section">
+        <h3 class="section-header">Files</h3>
+        <ul id='files'>
+        
+          
+          <li class="file"><a href="./_lib/racc/rdoc/grammar_en_rdoc.html">grammar.en.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./_test/rdoc/test_ja_rdoc.html">test.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributing_rdoc.html">contributing.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributors_rdoc.html">contributors.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/dtrace_probes_rdoc.html">dtrace_probes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/globals_rdoc.html">globals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/keywords_rdoc.html">keywords.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/maintainers_rdoc.html">maintainers.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/marshal_rdoc.html">marshal.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/regexp_rdoc.html">regexp.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/security_rdoc.html">security.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/standard_library_rdoc.html">standard_library.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax_rdoc.html">syntax.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/assignment_rdoc.html">assignment.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/calling_methods_rdoc.html">calling_methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/control_expressions_rdoc.html">control_expressions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/exceptions_rdoc.html">exceptions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/literals_rdoc.html">literals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/methods_rdoc.html">methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/miscellaneous_rdoc.html">miscellaneous.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/modules_and_classes_rdoc.html">modules_and_classes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/precedence_rdoc.html">precedence.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/refinements_rdoc.html">refinements.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_ja_rdoc.html">README.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_rdoc.html">README.rdoc</a></li>
+        
+        </ul>
+      </div>
+      
+
+      <div id="classindex-section" class="section project-section">
+        <h3 class="section-header">Class/Module Index
+          <span class="search-toggle"><img src="./images/find.png"
+            height="16" width="16" alt="[+]"
+            title="show/hide quicksearch" /></span></h3>
+        <form action="#" method="get" accept-charset="utf-8" class="initially-hidden">
+        <fieldset>
+          <legend>Quicksearch</legend>
+          <input type="text" name="quicksearch" value=""
+            class="quicksearch-field" />
+        </fieldset>
+        </form>
+
+        <ul class="link-list">
+          
+          
+          
+          <li><a href="./ArgumentError.html">ArgumentError</a></li>
+        
+          
+          
+          <li><a href="./Array.html">Array</a></li>
+        
+          
+          
+          <li><a href="./BasicObject.html">BasicObject</a></li>
+        
+          
+          
+          <li><a href="./Bignum.html">Bignum</a></li>
+        
+          
+          
+          <li><a href="./Binding.html">Binding</a></li>
+        
+          
+          
+          <li><a href="./Class.html">Class</a></li>
+        
+          
+          
+          <li><a href="./Comparable.html">Comparable</a></li>
+        
+          
+          
+          <li><a href="./Complex.html">Complex</a></li>
+        
+          
+          
+          <li><a href="./Complex/compatible.html">Complex::compatible</a></li>
+        
+          
+          
+          <li><a href="./ConditionVariable.html">ConditionVariable</a></li>
+        
+          
+          
+          <li><a href="./Continuation.html">Continuation</a></li>
+        
+          
+          
+          <li><a href="./Data.html">Data</a></li>
+        
+          
+          
+          <li><a href="./Dir.html">Dir</a></li>
+        
+          
+          
+          <li><a href="./ENV.html">ENV</a></li>
+        
+          
+          
+          <li><a href="./EOFError.html">EOFError</a></li>
+        
+          
+          
+          <li><a href="./Encoding.html">Encoding</a></li>
+        
+          
+          
+          <li><a href="./Encoding/CompatibilityError.html">Encoding::CompatibilityError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/Converter.html">Encoding::Converter</a></li>
+        
+          
+          
+          <li><a href="./Encoding/ConverterNotFoundError.html">Encoding::ConverterNotFoundError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/InvalidByteSequenceError.html">Encoding::InvalidByteSequenceError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/UndefinedConversionError.html">Encoding::UndefinedConversionError</a></li>
+        
+          
+          
+          <li><a href="./EncodingError.html">EncodingError</a></li>
+        
+          
+          
+          <li><a href="./Enumerable.html">Enumerable</a></li>
+        
+          
+          
+          <li><a href="./Enumerator.html">Enumerator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Generator.html">Enumerator::Generator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Lazy.html">Enumerator::Lazy</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Yielder.html">Enumerator::Yielder</a></li>
+        
+          
+          
+          <li><a href="./Errno.html">Errno</a></li>
+        
+          
+          
+          <li><a href="./Exception.html">Exception</a></li>
+        
+          
+          
+          <li><a href="./FalseClass.html">FalseClass</a></li>
+        
+          
+          
+          <li><a href="./Fiber.html">Fiber</a></li>
+        
+          
+          
+          <li><a href="./FiberError.html">FiberError</a></li>
+        
+          
+          
+          <li><a href="./File.html">File</a></li>
+        
+          
+          
+          <li><a href="./File/Constants.html">File::Constants</a></li>
+        
+          
+          
+          <li><a href="./File/Stat.html">File::Stat</a></li>
+        
+          
+          
+          <li><a href="./FileTest.html">FileTest</a></li>
+        
+          
+          
+          <li><a href="./Fixnum.html">Fixnum</a></li>
+        
+          
+          
+          <li><a href="./Float.html">Float</a></li>
+        
+          
+          
+          <li><a href="./FloatDomainError.html">FloatDomainError</a></li>
+        
+          
+          
+          <li><a href="./GC.html">GC</a></li>
+        
+          
+          
+          <li><a href="./GC/Profiler.html">GC::Profiler</a></li>
+        
+          
+          
+          <li><a href="./Hash.html">Hash</a></li>
+        
+          
+          
+          <li><a href="./IO.html">IO</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitReadable.html">IO::EAGAINWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitWritable.html">IO::EAGAINWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitReadable.html">IO::EINPROGRESSWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitWritable.html">IO::EINPROGRESSWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitReadable.html">IO::EWOULDBLOCKWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitWritable.html">IO::EWOULDBLOCKWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitReadable.html">IO::WaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitWritable.html">IO::WaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IOError.html">IOError</a></li>
+        
+          
+          
+          <li><a href="./IndexError.html">IndexError</a></li>
+        
+          
+          
+          <li><a href="./Integer.html">Integer</a></li>
+        
+          
+          
+          <li><a href="./Interrupt.html">Interrupt</a></li>
+        
+          
+          
+          <li><a href="./Kernel.html">Kernel</a></li>
+        
+          
+          
+          <li><a href="./KeyError.html">KeyError</a></li>
+        
+          
+          
+          <li><a href="./LoadError.html">LoadError</a></li>
+        
+          
+          
+          <li><a href="./LocalJumpError.html">LocalJumpError</a></li>
+        
+          
+          
+          <li><a href="./Marshal.html">Marshal</a></li>
+        
+          
+          
+          <li><a href="./MatchData.html">MatchData</a></li>
+        
+          
+          
+          <li><a href="./Math.html">Math</a></li>
+        
+          
+          
+          <li><a href="./Math/DomainError.html">Math::DomainError</a></li>
+        
+          
+          
+          <li><a href="./Method.html">Method</a></li>
+        
+          
+          
+          <li><a href="./Module.html">Module</a></li>
+        
+          
+          
+          <li><a href="./Mutex.html">Mutex</a></li>
+        
+          
+          
+          <li><a href="./NameError.html">NameError</a></li>
+        
+          
+          
+          <li><a href="./NilClass.html">NilClass</a></li>
+        
+          
+          
+          <li><a href="./NoMemoryError.html">NoMemoryError</a></li>
+        
+          
+          
+          <li><a href="./NoMethodError.html">NoMethodError</a></li>
+        
+          
+          
+          <li><a href="./NotImplementedError.html">NotImplementedError</a></li>
+        
+          
+          
+          <li><a href="./Numeric.html">Numeric</a></li>
+        
+          
+          
+          <li><a href="./Object.html">Object</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace.html">ObjectSpace</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace/WeakMap.html">ObjectSpace::WeakMap</a></li>
+        
+          
+          
+          <li><a href="./Proc.html">Proc</a></li>
+        
+          
+          
+          <li><a href="./Process.html">Process</a></li>
+        
+          
+          
+          <li><a href="./Process/GID.html">Process::GID</a></li>
+        
+          
+          
+          <li><a href="./Process/Status.html">Process::Status</a></li>
+        
+          
+          
+          <li><a href="./Process/Sys.html">Process::Sys</a></li>
+        
+          
+          
+          <li><a href="./Process/UID.html">Process::UID</a></li>
+        
+          
+          
+          <li><a href="./Process/Waiter.html">Process::Waiter</a></li>
+        
+          
+          
+          <li><a href="./Queue.html">Queue</a></li>
+        
+          
+          
+          <li><a href="./Random.html">Random</a></li>
+        
+          
+          
+          <li><a href="./Range.html">Range</a></li>
+        
+          
+          
+          <li><a href="./RangeError.html">RangeError</a></li>
+        
+          
+          
+          <li><a href="./Rational.html">Rational</a></li>
+        
+          
+          
+          <li><a href="./Rational/compatible.html">Rational::compatible</a></li>
+        
+          
+          
+          <li><a href="./Regexp.html">Regexp</a></li>
+        
+          
+          
+          <li><a href="./RegexpError.html">RegexpError</a></li>
+        
+          
+          
+          <li><a href="./RubyVM.html">RubyVM</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/Env.html">RubyVM::Env</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/InstructionSequence.html">RubyVM::InstructionSequence</a></li>
+        
+          
+          
+          <li><a href="./RuntimeError.html">RuntimeError</a></li>
+        
+          
+          
+          <li><a href="./ScriptError.html">ScriptError</a></li>
+        
+          
+          
+          <li><a href="./SecurityError.html">SecurityError</a></li>
+        
+          
+          
+          <li><a href="./Signal.html">Signal</a></li>
+        
+          
+          
+          <li><a href="./SignalException.html">SignalException</a></li>
+        
+          
+          
+          <li><a href="./SizedQueue.html">SizedQueue</a></li>
+        
+          
+          
+          <li><a href="./StandardError.html">StandardError</a></li>
+        
+          
+          
+          <li><a href="./StopIteration.html">StopIteration</a></li>
+        
+          
+          
+          <li><a href="./String.html">String</a></li>
+        
+          
+          
+          <li><a href="./Struct.html">Struct</a></li>
+        
+          
+          
+          <li><a href="./Symbol.html">Symbol</a></li>
+        
+          
+          
+          <li><a href="./SyntaxError.html">SyntaxError</a></li>
+        
+          
+          
+          <li><a href="./SystemCallError.html">SystemCallError</a></li>
+        
+          
+          
+          <li><a href="./SystemExit.html">SystemExit</a></li>
+        
+          
+          
+          <li><a href="./SystemStackError.html">SystemStackError</a></li>
+        
+          
+          
+          <li><a href="./Thread.html">Thread</a></li>
+        
+          
+          
+          <li><a href="./Thread/Backtrace/Location.html">Thread::Backtrace::Location</a></li>
+        
+          
+          
+          <li><a href="./ThreadError.html">ThreadError</a></li>
+        
+          
+          
+          <li><a href="./ThreadGroup.html">ThreadGroup</a></li>
+        
+          
+          
+          <li><a href="./Time.html">Time</a></li>
+        
+          
+          
+          <li><a href="./TracePoint.html">TracePoint</a></li>
+        
+          
+          
+          <li><a href="./TrueClass.html">TrueClass</a></li>
+        
+          
+          
+          <li><a href="./TypeError.html">TypeError</a></li>
+        
+          
+          
+          <li><a href="./UnboundMethod.html">UnboundMethod</a></li>
+        
+          
+          
+          <li><a href="./UncaughtThrowError.html">UncaughtThrowError</a></li>
+        
+          
+          
+          <li><a href="./ZeroDivisionError.html">ZeroDivisionError</a></li>
+        
+          
+          
+          <li><a href="./fatal.html">fatal</a></li>
+        
+          
+          
+          <li><a href="./unknown.html">unknown</a></li>
+        
+        </ul>
+        <div id="no-class-search-results" style="display: none;">No matching classes.</div>
+      </div>
+
+      
+    </div>
+  </div> <!-- metadata -->
+  <div class='adzbox'  id="azk83167">
+    
+   <div id="carbonads-container"><div class="carbonad">
+    <script async type="text/javascript" src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=rubydocorg" 
+      id="_carbonads_js">
+      </script>
+  </div></div>
+
+   
+  </div> 
+  <div id="documentation">
+    <h1 class="module">Math</h1>
+
+    <div id="description" class="description">
+      
+<p>The <a href="Math.html">Math</a> module contains module functions for basic
+trigonometric and transcendental functions. See class <a
+href="Float.html">Float</a> for a list of constants that define Ruby’s
+floating point accuracy.</p>
+
+<p>Domains and codomains are given only for real (not complex) numbers.</p>
+
+    </div><!-- description -->
+
+    
+    
+    
+    <div id="5Buntitled-5D" class="documentation-section">
+      
+
+      
+
+      
+      <!-- Constants -->
+      <div id="constants-list" class="section">
+        <h3 class="section-header">Constants</h3>
+        <dl>
+        
+          <dt><a name="E">E</a></dt>
+          
+          <dd class="description"><p>Definition of the mathematical constant <a href="Math.html#E">E</a> (e) as
+a <a href="Float.html">Float</a> number.</p></dd>
+          
+        
+          <dt><a name="PI">PI</a></dt>
+          
+          <dd class="description"><p>Definition of the mathematical constant <a href="Math.html#PI">PI</a> as a
+<a href="Float.html">Float</a> number.</p></dd>
+          
+        
+        </dl>
+      </div>
+      
+
+      
+
+      <!-- Methods -->
+      
+      <div id="public-class-method-details" class="method-section section">
+        <h3 class="section-header">Public Class Methods</h3>
+
+      
+        <div id="acos-method" class="method-detail ">
+          <a name="method-c-acos"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">acos(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Computes the arc cosine of <code>x</code>. Returns 0..PI.</p>
+
+<p>Domain: [-1, 1]</p>
+
+<p>Codomain: [0, PI]</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">acos</span>(<span class="ruby-value">0</span>) <span class="ruby-operator">==</span> <span class="ruby-constant">Math</span><span class="ruby-operator">::</span><span class="ruby-constant">PI</span><span class="ruby-operator">/</span><span class="ruby-value">2</span>  <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="acos-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_acos(VALUE obj, VALUE x)
+{
+    double d0, d;
+
+    Need_Float(x);
+    d0 = RFLOAT_VALUE(x);
+    /* check for domain error */
+    if (d0 &lt; -1.0 || 1.0 &lt; d0) domain_error(&quot;acos&quot;);
+    d = acos(d0);
+    return DBL2NUM(d);
+}
+            </pre> 
+            </div><!-- acos-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- acos-method -->
+      
+        <div id="acosh-method" class="method-detail ">
+          <a name="method-c-acosh"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">acosh(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Computes the inverse hyperbolic cosine of <code>x</code>.</p>
+
+<p>Domain: [1, INFINITY)</p>
+
+<p>Codomain: [0, INFINITY)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">acosh</span>(<span class="ruby-value">1</span>) <span class="ruby-comment">#=&gt; 0.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="acosh-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_acosh(VALUE obj, VALUE x)
+{
+    double d0, d;
+
+    Need_Float(x);
+    d0 = RFLOAT_VALUE(x);
+    /* check for domain error */
+    if (d0 &lt; 1.0) domain_error(&quot;acosh&quot;);
+    d = acosh(d0);
+    return DBL2NUM(d);
+}
+            </pre> 
+            </div><!-- acosh-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- acosh-method -->
+      
+        <div id="asin-method" class="method-detail ">
+          <a name="method-c-asin"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">asin(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Computes the arc sine of <code>x</code>. Returns -PI/2..PI/2.</p>
+
+<p>Domain: [-1, -1]</p>
+
+<p>Codomain: [-PI/2, PI/2]</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">asin</span>(<span class="ruby-value">1</span>) <span class="ruby-operator">==</span> <span class="ruby-constant">Math</span><span class="ruby-operator">::</span><span class="ruby-constant">PI</span><span class="ruby-operator">/</span><span class="ruby-value">2</span>  <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="asin-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_asin(VALUE obj, VALUE x)
+{
+    double d0, d;
+
+    Need_Float(x);
+    d0 = RFLOAT_VALUE(x);
+    /* check for domain error */
+    if (d0 &lt; -1.0 || 1.0 &lt; d0) domain_error(&quot;asin&quot;);
+    d = asin(d0);
+    return DBL2NUM(d);
+}
+            </pre> 
+            </div><!-- asin-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- asin-method -->
+      
+        <div id="asinh-method" class="method-detail ">
+          <a name="method-c-asinh"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">asinh(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Computes the inverse hyperbolic sine of <code>x</code>.</p>
+
+<p>Domain: (-INFINITY, INFINITY)</p>
+
+<p>Codomain: (-INFINITY, INFINITY)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">asinh</span>(<span class="ruby-value">1</span>) <span class="ruby-comment">#=&gt; 0.881373587019543</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="asinh-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_asinh(VALUE obj, VALUE x)
+{
+    Need_Float(x);
+    return DBL2NUM(asinh(RFLOAT_VALUE(x)));
+}
+            </pre> 
+            </div><!-- asinh-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- asinh-method -->
+      
+        <div id="atan-method" class="method-detail ">
+          <a name="method-c-atan"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">atan(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Computes the arc tangent of <code>x</code>. Returns -PI/2..PI/2.</p>
+
+<p>Domain: (-INFINITY, INFINITY)</p>
+
+<p>Codomain: (-PI/2, PI/2)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan</span>(<span class="ruby-value">0</span>) <span class="ruby-comment">#=&gt; 0.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="atan-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_atan(VALUE obj, VALUE x)
+{
+    Need_Float(x);
+    return DBL2NUM(atan(RFLOAT_VALUE(x)));
+}
+            </pre> 
+            </div><!-- atan-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- atan-method -->
+      
+        <div id="atan2-method" class="method-detail ">
+          <a name="method-c-atan2"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">atan2(y, x)  &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Computes the arc tangent given <code>y</code> and <code>x</code>. Returns a
+<a href="Float.html">Float</a> in the range -PI..PI.</p>
+
+<p>Domain: (-INFINITY, INFINITY)</p>
+
+<p>Codomain: [-PI, PI]</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-value">-0.0</span>, <span class="ruby-value">-1.0</span>) <span class="ruby-comment">#=&gt; -3.141592653589793</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-value">-1.0</span>, <span class="ruby-value">-1.0</span>) <span class="ruby-comment">#=&gt; -2.356194490192345</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-value">-1.0</span>, <span class="ruby-value">0.0</span>)  <span class="ruby-comment">#=&gt; -1.5707963267948966</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-value">-1.0</span>, <span class="ruby-value">1.0</span>)  <span class="ruby-comment">#=&gt; -0.7853981633974483</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-value">-0.0</span>, <span class="ruby-value">1.0</span>)  <span class="ruby-comment">#=&gt; -0.0</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-value">0.0</span>, <span class="ruby-value">1.0</span>)   <span class="ruby-comment">#=&gt; 0.0</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-value">1.0</span>, <span class="ruby-value">1.0</span>)   <span class="ruby-comment">#=&gt; 0.7853981633974483</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-value">1.0</span>, <span class="ruby-value">0.0</span>)   <span class="ruby-comment">#=&gt; 1.5707963267948966</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-value">1.0</span>, <span class="ruby-value">-1.0</span>)  <span class="ruby-comment">#=&gt; 2.356194490192345</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-value">0.0</span>, <span class="ruby-value">-1.0</span>)  <span class="ruby-comment">#=&gt; 3.141592653589793</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-constant">INFINITY</span>, <span class="ruby-constant">INFINITY</span>)   <span class="ruby-comment">#=&gt; 0.7853981633974483</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-constant">INFINITY</span>, <span class="ruby-operator">-</span><span class="ruby-constant">INFINITY</span>)  <span class="ruby-comment">#=&gt; 2.356194490192345</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-operator">-</span><span class="ruby-constant">INFINITY</span>, <span class="ruby-constant">INFINITY</span>)  <span class="ruby-comment">#=&gt; -0.7853981633974483</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">atan2</span>(<span class="ruby-operator">-</span><span class="ruby-constant">INFINITY</span>, <span class="ruby-operator">-</span><span class="ruby-constant">INFINITY</span>) <span class="ruby-comment">#=&gt; -2.356194490192345</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="atan2-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_atan2(VALUE obj, VALUE y, VALUE x)
+{
+#ifndef M_PI
+# define M_PI 3.14159265358979323846
+#endif
+    double dx, dy;
+    Need_Float2(y, x);
+    dx = RFLOAT_VALUE(x);
+    dy = RFLOAT_VALUE(y);
+    if (dx == 0.0 &amp;&amp; dy == 0.0) {
+        if (!signbit(dx))
+            return DBL2NUM(dy);
+        if (!signbit(dy))
+            return DBL2NUM(M_PI);
+        return DBL2NUM(-M_PI);
+    }
+#ifndef ATAN2_INF_C99
+    if (isinf(dx) &amp;&amp; isinf(dy)) {
+        /* optimization for FLONUM */
+        if (dx &lt; 0.0) {
+            const double dz = (3.0 * M_PI / 4.0);
+            return (dy &lt; 0.0) ? DBL2NUM(-dz) : DBL2NUM(dz);
+        }
+        else {
+            const double dz = (M_PI / 4.0);
+            return (dy &lt; 0.0) ? DBL2NUM(-dz) : DBL2NUM(dz);
+        }
+    }
+#endif
+    return DBL2NUM(atan2(dy, dx));
+}
+            </pre> 
+            </div><!-- atan2-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- atan2-method -->
+      
+        <div id="atanh-method" class="method-detail ">
+          <a name="method-c-atanh"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">atanh(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Computes the inverse hyperbolic tangent of <code>x</code>.</p>
+
+<p>Domain: (-1, 1)</p>
+
+<p>Codomain: (-INFINITY, INFINITY)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">atanh</span>(<span class="ruby-value">1</span>) <span class="ruby-comment">#=&gt; Infinity</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="atanh-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_atanh(VALUE obj, VALUE x)
+{
+    double d0, d;
+
+    Need_Float(x);
+    d0 = RFLOAT_VALUE(x);
+    /* check for domain error */
+    if (d0 &lt;  -1.0 || +1.0 &lt;  d0) domain_error(&quot;atanh&quot;);
+    /* check for pole error */
+    if (d0 == -1.0) return DBL2NUM(-INFINITY);
+    if (d0 == +1.0) return DBL2NUM(+INFINITY);
+    d = atanh(d0);
+    return DBL2NUM(d);
+}
+            </pre> 
+            </div><!-- atanh-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- atanh-method -->
+      
+        <div id="cbrt-method" class="method-detail ">
+          <a name="method-c-cbrt"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">cbrt(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the cube root of <code>x</code>.</p>
+
+<p>Domain: [0, INFINITY)</p>
+
+<p>Codomain:[0, INFINITY)</p>
+
+<pre class="ruby"><span class="ruby-value">-9</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-value">9</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span>
+  <span class="ruby-identifier">p</span> [<span class="ruby-identifier">x</span>, <span class="ruby-constant">Math</span>.<span class="ruby-identifier">cbrt</span>(<span class="ruby-identifier">x</span>), <span class="ruby-constant">Math</span>.<span class="ruby-identifier">cbrt</span>(<span class="ruby-identifier">x</span>)<span class="ruby-operator">**</span><span class="ruby-value">3</span>]
+}
+<span class="ruby-comment">#=&gt; [-9, -2.0800838230519, -9.0]</span>
+<span class="ruby-comment">#   [-8, -2.0, -8.0]</span>
+<span class="ruby-comment">#   [-7, -1.91293118277239, -7.0]</span>
+<span class="ruby-comment">#   [-6, -1.81712059283214, -6.0]</span>
+<span class="ruby-comment">#   [-5, -1.7099759466767, -5.0]</span>
+<span class="ruby-comment">#   [-4, -1.5874010519682, -4.0]</span>
+<span class="ruby-comment">#   [-3, -1.44224957030741, -3.0]</span>
+<span class="ruby-comment">#   [-2, -1.25992104989487, -2.0]</span>
+<span class="ruby-comment">#   [-1, -1.0, -1.0]</span>
+<span class="ruby-comment">#   [0, 0.0, 0.0]</span>
+<span class="ruby-comment">#   [1, 1.0, 1.0]</span>
+<span class="ruby-comment">#   [2, 1.25992104989487, 2.0]</span>
+<span class="ruby-comment">#   [3, 1.44224957030741, 3.0]</span>
+<span class="ruby-comment">#   [4, 1.5874010519682, 4.0]</span>
+<span class="ruby-comment">#   [5, 1.7099759466767, 5.0]</span>
+<span class="ruby-comment">#   [6, 1.81712059283214, 6.0]</span>
+<span class="ruby-comment">#   [7, 1.91293118277239, 7.0]</span>
+<span class="ruby-comment">#   [8, 2.0, 8.0]</span>
+<span class="ruby-comment">#   [9, 2.0800838230519, 9.0]</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="cbrt-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_cbrt(VALUE obj, VALUE x)
+{
+    Need_Float(x);
+    return DBL2NUM(cbrt(RFLOAT_VALUE(x)));
+}
+            </pre> 
+            </div><!-- cbrt-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- cbrt-method -->
+      
+        <div id="cos-method" class="method-detail ">
+          <a name="method-c-cos"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">cos(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Computes the cosine of <code>x</code> (expressed in radians). Returns a <a
+href="Float.html">Float</a> in the range -1.0..1.0.</p>
+
+<p>Domain: (-INFINITY, INFINITY)</p>
+
+<p>Codomain: [-1, 1]</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">cos</span>(<span class="ruby-constant">Math</span><span class="ruby-operator">::</span><span class="ruby-constant">PI</span>) <span class="ruby-comment">#=&gt; -1.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="cos-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_cos(VALUE obj, VALUE x)
+{
+    Need_Float(x);
+    return DBL2NUM(cos(RFLOAT_VALUE(x)));
+}
+            </pre> 
+            </div><!-- cos-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- cos-method -->
+      
+        <div id="cosh-method" class="method-detail ">
+          <a name="method-c-cosh"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">cosh(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Computes the hyperbolic cosine of <code>x</code> (expressed in radians).</p>
+
+<p>Domain: (-INFINITY, INFINITY)</p>
+
+<p>Codomain: [1, INFINITY)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">cosh</span>(<span class="ruby-value">0</span>) <span class="ruby-comment">#=&gt; 1.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="cosh-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_cosh(VALUE obj, VALUE x)
+{
+    Need_Float(x);
+    return DBL2NUM(cosh(RFLOAT_VALUE(x)));
+}
+            </pre> 
+            </div><!-- cosh-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- cosh-method -->
+      
+        <div id="erf-method" class="method-detail ">
+          <a name="method-c-erf"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">erf(x)  &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Calculates the error function of <code>x</code>.</p>
+
+<p>Domain: (-INFINITY, INFINITY)</p>
+
+<p>Codomain: (-1, 1)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">erf</span>(<span class="ruby-value">0</span>) <span class="ruby-comment">#=&gt; 0.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="erf-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_erf(VALUE obj, VALUE x)
+{
+    Need_Float(x);
+    return DBL2NUM(erf(RFLOAT_VALUE(x)));
+}
+            </pre> 
+            </div><!-- erf-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- erf-method -->
+      
+        <div id="erfc-method" class="method-detail ">
+          <a name="method-c-erfc"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">erfc(x)  &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Calculates the complementary error function of x.</p>
+
+<p>Domain: (-INFINITY, INFINITY)</p>
+
+<p>Codomain: (0, 2)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">erfc</span>(<span class="ruby-value">0</span>) <span class="ruby-comment">#=&gt; 1.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="erfc-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_erfc(VALUE obj, VALUE x)
+{
+    Need_Float(x);
+    return DBL2NUM(erfc(RFLOAT_VALUE(x)));
+}
+            </pre> 
+            </div><!-- erfc-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- erfc-method -->
+      
+        <div id="exp-method" class="method-detail ">
+          <a name="method-c-exp"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">exp(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns e**x.</p>
+
+<p>Domain: (-INFINITY, INFINITY)</p>
+
+<p>Codomain: (0, INFINITY)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">exp</span>(<span class="ruby-value">0</span>)       <span class="ruby-comment">#=&gt; 1.0</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">exp</span>(<span class="ruby-value">1</span>)       <span class="ruby-comment">#=&gt; 2.718281828459045</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">exp</span>(<span class="ruby-value">1.5</span>)     <span class="ruby-comment">#=&gt; 4.4816890703380645</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="exp-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_exp(VALUE obj, VALUE x)
+{
+    Need_Float(x);
+    return DBL2NUM(exp(RFLOAT_VALUE(x)));
+}
+            </pre> 
+            </div><!-- exp-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- exp-method -->
+      
+        <div id="frexp-method" class="method-detail ">
+          <a name="method-c-frexp"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">frexp(x)    &rarr; [fraction, exponent]</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a two-element array containing the normalized fraction (a <a
+href="Float.html">Float</a>) and exponent (a <a
+href="Fixnum.html">Fixnum</a>) of <code>x</code>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">fraction</span>, <span class="ruby-identifier">exponent</span> = <span class="ruby-constant">Math</span>.<span class="ruby-identifier">frexp</span>(<span class="ruby-value">1234</span>)   <span class="ruby-comment">#=&gt; [0.6025390625, 11]</span>
+<span class="ruby-identifier">fraction</span> <span class="ruby-operator">*</span> <span class="ruby-value">2</span><span class="ruby-operator">**</span><span class="ruby-identifier">exponent</span>                  <span class="ruby-comment">#=&gt; 1234.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="frexp-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_frexp(VALUE obj, VALUE x)
+{
+    double d;
+    int exp;
+
+    Need_Float(x);
+
+    d = frexp(RFLOAT_VALUE(x), &amp;exp);
+    return rb_assoc_new(DBL2NUM(d), INT2NUM(exp));
+}
+            </pre> 
+            </div><!-- frexp-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- frexp-method -->
+      
+        <div id="gamma-method" class="method-detail ">
+          <a name="method-c-gamma"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">gamma(x)  &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Calculates the gamma function of x.</p>
+
+<p>Note that gamma(n) is same as fact(n-1) for integer n &gt; 0. However
+gamma(n) returns float and can be an approximation.</p>
+
+<pre class="ruby"><span class="ruby-keyword">def</span> <span class="ruby-identifier">fact</span>(<span class="ruby-identifier">n</span>) (<span class="ruby-value">1</span><span class="ruby-operator">..</span><span class="ruby-identifier">n</span>).<span class="ruby-identifier">inject</span>(<span class="ruby-value">1</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">r</span>,<span class="ruby-identifier">i</span><span class="ruby-operator">|</span> <span class="ruby-identifier">r</span><span class="ruby-operator">*</span><span class="ruby-identifier">i</span> } <span class="ruby-keyword">end</span>
+<span class="ruby-value">1</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-value">26</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">i</span><span class="ruby-operator">|</span> <span class="ruby-identifier">p</span> [<span class="ruby-identifier">i</span>, <span class="ruby-constant">Math</span>.<span class="ruby-identifier">gamma</span>(<span class="ruby-identifier">i</span>), <span class="ruby-identifier">fact</span>(<span class="ruby-identifier">i</span><span class="ruby-operator">-</span><span class="ruby-value">1</span>)] }
+<span class="ruby-comment">#=&gt; [1, 1.0, 1]</span>
+<span class="ruby-comment">#   [2, 1.0, 1]</span>
+<span class="ruby-comment">#   [3, 2.0, 2]</span>
+<span class="ruby-comment">#   [4, 6.0, 6]</span>
+<span class="ruby-comment">#   [5, 24.0, 24]</span>
+<span class="ruby-comment">#   [6, 120.0, 120]</span>
+<span class="ruby-comment">#   [7, 720.0, 720]</span>
+<span class="ruby-comment">#   [8, 5040.0, 5040]</span>
+<span class="ruby-comment">#   [9, 40320.0, 40320]</span>
+<span class="ruby-comment">#   [10, 362880.0, 362880]</span>
+<span class="ruby-comment">#   [11, 3628800.0, 3628800]</span>
+<span class="ruby-comment">#   [12, 39916800.0, 39916800]</span>
+<span class="ruby-comment">#   [13, 479001600.0, 479001600]</span>
+<span class="ruby-comment">#   [14, 6227020800.0, 6227020800]</span>
+<span class="ruby-comment">#   [15, 87178291200.0, 87178291200]</span>
+<span class="ruby-comment">#   [16, 1307674368000.0, 1307674368000]</span>
+<span class="ruby-comment">#   [17, 20922789888000.0, 20922789888000]</span>
+<span class="ruby-comment">#   [18, 355687428096000.0, 355687428096000]</span>
+<span class="ruby-comment">#   [19, 6.402373705728e+15, 6402373705728000]</span>
+<span class="ruby-comment">#   [20, 1.21645100408832e+17, 121645100408832000]</span>
+<span class="ruby-comment">#   [21, 2.43290200817664e+18, 2432902008176640000]</span>
+<span class="ruby-comment">#   [22, 5.109094217170944e+19, 51090942171709440000]</span>
+<span class="ruby-comment">#   [23, 1.1240007277776077e+21, 1124000727777607680000]</span>
+<span class="ruby-comment">#   [24, 2.5852016738885062e+22, 25852016738884976640000]</span>
+<span class="ruby-comment">#   [25, 6.204484017332391e+23, 620448401733239439360000]</span>
+<span class="ruby-comment">#   [26, 1.5511210043330954e+25, 15511210043330985984000000]</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="gamma-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_gamma(VALUE obj, VALUE x)
+{
+    static const double fact_table[] = {
+        /* fact(0) */ 1.0,
+        /* fact(1) */ 1.0,
+        /* fact(2) */ 2.0,
+        /* fact(3) */ 6.0,
+        /* fact(4) */ 24.0,
+        /* fact(5) */ 120.0,
+        /* fact(6) */ 720.0,
+        /* fact(7) */ 5040.0,
+        /* fact(8) */ 40320.0,
+        /* fact(9) */ 362880.0,
+        /* fact(10) */ 3628800.0,
+        /* fact(11) */ 39916800.0,
+        /* fact(12) */ 479001600.0,
+        /* fact(13) */ 6227020800.0,
+        /* fact(14) */ 87178291200.0,
+        /* fact(15) */ 1307674368000.0,
+        /* fact(16) */ 20922789888000.0,
+        /* fact(17) */ 355687428096000.0,
+        /* fact(18) */ 6402373705728000.0,
+        /* fact(19) */ 121645100408832000.0,
+        /* fact(20) */ 2432902008176640000.0,
+        /* fact(21) */ 51090942171709440000.0,
+        /* fact(22) */ 1124000727777607680000.0,
+        /* fact(23)=25852016738884976640000 needs 56bit mantissa which is
+         * impossible to represent exactly in IEEE 754 double which have
+         * 53bit mantissa. */
+    };
+    double d0, d;
+    double intpart, fracpart;
+    Need_Float(x);
+    d0 = RFLOAT_VALUE(x);
+    /* check for domain error */
+    if (isinf(d0) &amp;&amp; signbit(d0)) domain_error(&quot;gamma&quot;);
+    fracpart = modf(d0, &amp;intpart);
+    if (fracpart == 0.0) {
+        if (intpart &lt; 0) domain_error(&quot;gamma&quot;);
+        if (0 &lt; intpart &amp;&amp;
+            intpart - 1 &lt; (double)numberof(fact_table)) {
+            return DBL2NUM(fact_table[(int)intpart - 1]);
+        }
+    }
+    d = tgamma(d0);
+    return DBL2NUM(d);
+}
+            </pre> 
+            </div><!-- gamma-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- gamma-method -->
+      
+        <div id="hypot-method" class="method-detail ">
+          <a name="method-c-hypot"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">hypot(x, y)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns sqrt(x**2 + y**2), the hypotenuse of a right-angled triangle with
+sides <code>x</code> and <code>y</code>.</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">hypot</span>(<span class="ruby-value">3</span>, <span class="ruby-value">4</span>)   <span class="ruby-comment">#=&gt; 5.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="hypot-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_hypot(VALUE obj, VALUE x, VALUE y)
+{
+    Need_Float2(x, y);
+    return DBL2NUM(hypot(RFLOAT_VALUE(x), RFLOAT_VALUE(y)));
+}
+            </pre> 
+            </div><!-- hypot-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- hypot-method -->
+      
+        <div id="ldexp-method" class="method-detail ">
+          <a name="method-c-ldexp"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">ldexp(fraction, exponent) &rarr; float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the value of <code>fraction</code>*(2**<code>exponent</code>).</p>
+
+<pre class="ruby"><span class="ruby-identifier">fraction</span>, <span class="ruby-identifier">exponent</span> = <span class="ruby-constant">Math</span>.<span class="ruby-identifier">frexp</span>(<span class="ruby-value">1234</span>)
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">ldexp</span>(<span class="ruby-identifier">fraction</span>, <span class="ruby-identifier">exponent</span>)   <span class="ruby-comment">#=&gt; 1234.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="ldexp-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_ldexp(VALUE obj, VALUE x, VALUE n)
+{
+    Need_Float(x);
+    return DBL2NUM(ldexp(RFLOAT_VALUE(x), NUM2INT(n)));
+}
+            </pre> 
+            </div><!-- ldexp-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- ldexp-method -->
+      
+        <div id="lgamma-method" class="method-detail ">
+          <a name="method-c-lgamma"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">lgamma(x)  &rarr; [float, -1 or 1]</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Calculates the logarithmic gamma of <code>x</code> and the sign of gamma of
+<code>x</code>.</p>
+
+<p><a href="Math.html#method-c-lgamma">::lgamma</a> is same as</p>
+
+<pre class="ruby">[<span class="ruby-constant">Math</span>.<span class="ruby-identifier">log</span>(<span class="ruby-constant">Math</span>.<span class="ruby-identifier">gamma</span>(<span class="ruby-identifier">x</span>).<span class="ruby-identifier">abs</span>), <span class="ruby-constant">Math</span>.<span class="ruby-identifier">gamma</span>(<span class="ruby-identifier">x</span>) <span class="ruby-operator">&lt;</span> <span class="ruby-value">0</span> <span class="ruby-operator">?</span> <span class="ruby-value">-1</span> <span class="ruby-operator">:</span> <span class="ruby-value">1</span>]
+</pre>
+
+<p>but avoid overflow by <a href="Math.html#method-c-gamma">::gamma</a> for
+large x.</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">lgamma</span>(<span class="ruby-value">0</span>) <span class="ruby-comment">#=&gt; [Infinity, 1]</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="lgamma-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_lgamma(VALUE obj, VALUE x)
+{
+    double d0, d;
+    int sign=1;
+    VALUE v;
+    Need_Float(x);
+    d0 = RFLOAT_VALUE(x);
+    /* check for domain error */
+    if (isinf(d0)) {
+        if (signbit(d0)) domain_error(&quot;lgamma&quot;);
+        return rb_assoc_new(DBL2NUM(INFINITY), INT2FIX(1));
+    }
+    d = lgamma_r(d0, &amp;sign);
+    v = DBL2NUM(d);
+    return rb_assoc_new(v, INT2FIX(sign));
+}
+            </pre> 
+            </div><!-- lgamma-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- lgamma-method -->
+      
+        <div id="log-method" class="method-detail ">
+          <a name="method-c-log"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">log(x)          &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">log(x, base)    &rarr; Float</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the logarithm of <code>x</code>. If additional second argument is
+given, it will be the base of logarithm. Otherwise it is <code>e</code>
+(for the natural logarithm).</p>
+
+<p>Domain: (0, INFINITY)</p>
+
+<p>Codomain: (-INFINITY, INFINITY)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">log</span>(<span class="ruby-value">0</span>)          <span class="ruby-comment">#=&gt; -Infinity</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">log</span>(<span class="ruby-value">1</span>)          <span class="ruby-comment">#=&gt; 0.0</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">log</span>(<span class="ruby-constant">Math</span><span class="ruby-operator">::</span><span class="ruby-constant">E</span>)    <span class="ruby-comment">#=&gt; 1.0</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">log</span>(<span class="ruby-constant">Math</span><span class="ruby-operator">::</span><span class="ruby-constant">E</span><span class="ruby-operator">**</span><span class="ruby-value">3</span>) <span class="ruby-comment">#=&gt; 3.0</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">log</span>(<span class="ruby-value">12</span>, <span class="ruby-value">3</span>)      <span class="ruby-comment">#=&gt; 2.2618595071429146</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="log-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_log(int argc, const VALUE *argv, VALUE obj)
+{
+    VALUE x, base;
+    double d;
+
+    rb_scan_args(argc, argv, &quot;11&quot;, &amp;x, &amp;base);
+    d = math_log1(x);
+    if (argc == 2) {
+        d /= math_log1(base);
+    }
+    return DBL2NUM(d);
+}
+            </pre> 
+            </div><!-- log-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- log-method -->
+      
+        <div id="log10-method" class="method-detail ">
+          <a name="method-c-log10"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">log10(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the base 10 logarithm of <code>x</code>.</p>
+
+<p>Domain: (0, INFINITY)</p>
+
+<p>Codomain: (-INFINITY, INFINITY)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">log10</span>(<span class="ruby-value">1</span>)       <span class="ruby-comment">#=&gt; 0.0</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">log10</span>(<span class="ruby-value">10</span>)      <span class="ruby-comment">#=&gt; 1.0</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">log10</span>(<span class="ruby-value">10</span><span class="ruby-operator">**</span><span class="ruby-value">100</span>) <span class="ruby-comment">#=&gt; 100.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="log10-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_log10(VALUE obj, VALUE x)
+{
+    double d0, d;
+    size_t numbits;
+
+    if (RB_BIGNUM_TYPE_P(x) &amp;&amp; BIGNUM_POSITIVE_P(x) &amp;&amp;
+            DBL_MAX_EXP &lt;= (numbits = rb_absint_numwords(x, 1, NULL))) {
+        numbits -= DBL_MANT_DIG;
+        x = rb_big_rshift(x, SIZET2NUM(numbits));
+    }
+    else {
+        numbits = 0;
+    }
+
+    Need_Float(x);
+    d0 = RFLOAT_VALUE(x);
+    /* check for domain error */
+    if (d0 &lt; 0.0) domain_error(&quot;log10&quot;);
+    /* check for pole error */
+    if (d0 == 0.0) return DBL2NUM(-INFINITY);
+    d = log10(d0);
+    if (numbits)
+        d += numbits * log10(2); /* log10(2**numbits) */
+    return DBL2NUM(d);
+}
+            </pre> 
+            </div><!-- log10-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- log10-method -->
+      
+        <div id="log2-method" class="method-detail ">
+          <a name="method-c-log2"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">log2(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the base 2 logarithm of <code>x</code>.</p>
+
+<p>Domain: (0, INFINITY)</p>
+
+<p>Codomain: (-INFINITY, INFINITY)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">log2</span>(<span class="ruby-value">1</span>)      <span class="ruby-comment">#=&gt; 0.0</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">log2</span>(<span class="ruby-value">2</span>)      <span class="ruby-comment">#=&gt; 1.0</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">log2</span>(<span class="ruby-value">32768</span>)  <span class="ruby-comment">#=&gt; 15.0</span>
+<span class="ruby-constant">Math</span>.<span class="ruby-identifier">log2</span>(<span class="ruby-value">65536</span>)  <span class="ruby-comment">#=&gt; 16.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="log2-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_log2(VALUE obj, VALUE x)
+{
+    double d0, d;
+    size_t numbits;
+
+    if (RB_BIGNUM_TYPE_P(x) &amp;&amp; BIGNUM_POSITIVE_P(x) &amp;&amp;
+            DBL_MAX_EXP &lt;= (numbits = rb_absint_numwords(x, 1, NULL))) {
+        numbits -= DBL_MANT_DIG;
+        x = rb_big_rshift(x, SIZET2NUM(numbits));
+    }
+    else {
+        numbits = 0;
+    }
+
+    Need_Float(x);
+    d0 = RFLOAT_VALUE(x);
+    /* check for domain error */
+    if (d0 &lt; 0.0) domain_error(&quot;log2&quot;);
+    /* check for pole error */
+    if (d0 == 0.0) return DBL2NUM(-INFINITY);
+    d = log2(d0);
+    d += numbits;
+    return DBL2NUM(d);
+}
+            </pre> 
+            </div><!-- log2-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- log2-method -->
+      
+        <div id="sin-method" class="method-detail ">
+          <a name="method-c-sin"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">sin(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Computes the sine of <code>x</code> (expressed in radians). Returns a <a
+href="Float.html">Float</a> in the range -1.0..1.0.</p>
+
+<p>Domain: (-INFINITY, INFINITY)</p>
+
+<p>Codomain: [-1, 1]</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">sin</span>(<span class="ruby-constant">Math</span><span class="ruby-operator">::</span><span class="ruby-constant">PI</span><span class="ruby-operator">/</span><span class="ruby-value">2</span>) <span class="ruby-comment">#=&gt; 1.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="sin-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_sin(VALUE obj, VALUE x)
+{
+    Need_Float(x);
+    return DBL2NUM(sin(RFLOAT_VALUE(x)));
+}
+            </pre> 
+            </div><!-- sin-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- sin-method -->
+      
+        <div id="sinh-method" class="method-detail ">
+          <a name="method-c-sinh"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">sinh(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Computes the hyperbolic sine of <code>x</code> (expressed in radians).</p>
+
+<p>Domain: (-INFINITY, INFINITY)</p>
+
+<p>Codomain: (-INFINITY, INFINITY)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">sinh</span>(<span class="ruby-value">0</span>) <span class="ruby-comment">#=&gt; 0.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="sinh-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_sinh(VALUE obj, VALUE x)
+{
+    Need_Float(x);
+    return DBL2NUM(sinh(RFLOAT_VALUE(x)));
+}
+            </pre> 
+            </div><!-- sinh-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- sinh-method -->
+      
+        <div id="sqrt-method" class="method-detail ">
+          <a name="method-c-sqrt"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">sqrt(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the non-negative square root of <code>x</code>.</p>
+
+<p>Domain: [0, INFINITY)</p>
+
+<p>Codomain:[0, INFINITY)</p>
+
+<pre class="ruby"><span class="ruby-value">0</span>.<span class="ruby-identifier">upto</span>(<span class="ruby-value">10</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span>
+  <span class="ruby-identifier">p</span> [<span class="ruby-identifier">x</span>, <span class="ruby-constant">Math</span>.<span class="ruby-identifier">sqrt</span>(<span class="ruby-identifier">x</span>), <span class="ruby-constant">Math</span>.<span class="ruby-identifier">sqrt</span>(<span class="ruby-identifier">x</span>)<span class="ruby-operator">**</span><span class="ruby-value">2</span>]
+}
+<span class="ruby-comment">#=&gt; [0, 0.0, 0.0]</span>
+<span class="ruby-comment">#   [1, 1.0, 1.0]</span>
+<span class="ruby-comment">#   [2, 1.4142135623731, 2.0]</span>
+<span class="ruby-comment">#   [3, 1.73205080756888, 3.0]</span>
+<span class="ruby-comment">#   [4, 2.0, 4.0]</span>
+<span class="ruby-comment">#   [5, 2.23606797749979, 5.0]</span>
+<span class="ruby-comment">#   [6, 2.44948974278318, 6.0]</span>
+<span class="ruby-comment">#   [7, 2.64575131106459, 7.0]</span>
+<span class="ruby-comment">#   [8, 2.82842712474619, 8.0]</span>
+<span class="ruby-comment">#   [9, 3.0, 9.0]</span>
+<span class="ruby-comment">#   [10, 3.16227766016838, 10.0]</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="sqrt-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_sqrt(VALUE obj, VALUE x)
+{
+    double d0, d;
+
+    Need_Float(x);
+    d0 = RFLOAT_VALUE(x);
+    /* check for domain error */
+    if (d0 &lt; 0.0) domain_error(&quot;sqrt&quot;);
+    if (d0 == 0.0) return DBL2NUM(0.0);
+    d = sqrt(d0);
+    return DBL2NUM(d);
+}
+            </pre> 
+            </div><!-- sqrt-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- sqrt-method -->
+      
+        <div id="tan-method" class="method-detail ">
+          <a name="method-c-tan"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">tan(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Computes the tangent of <code>x</code> (expressed in radians).</p>
+
+<p>Domain: (-INFINITY, INFINITY)</p>
+
+<p>Codomain: (-INFINITY, INFINITY)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">tan</span>(<span class="ruby-value">0</span>) <span class="ruby-comment">#=&gt; 0.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="tan-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_tan(VALUE obj, VALUE x)
+{
+    Need_Float(x);
+    return DBL2NUM(tan(RFLOAT_VALUE(x)));
+}
+            </pre> 
+            </div><!-- tan-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- tan-method -->
+      
+        <div id="tanh-method" class="method-detail ">
+          <a name="method-c-tanh"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">tanh(x)    &rarr; Float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Computes the hyperbolic tangent of <code>x</code> (expressed in radians).</p>
+
+<p>Domain: (-INFINITY, INFINITY)</p>
+
+<p>Codomain: (-1, 1)</p>
+
+<pre class="ruby"><span class="ruby-constant">Math</span>.<span class="ruby-identifier">tanh</span>(<span class="ruby-value">0</span>) <span class="ruby-comment">#=&gt; 0.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="tanh-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+math_tanh(VALUE obj, VALUE x)
+{
+    Need_Float(x);
+    return DBL2NUM(tanh(RFLOAT_VALUE(x)));
+}
+            </pre> 
+            </div><!-- tanh-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- tanh-method -->
+      
+      </div><!-- public-class-method-details -->
+    
+    </div><!-- 5Buntitled-5D -->
+  
+  <div id='tx_Math_versioned' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_Math_versioned").load("/associated/2.2.0/Math.ihtml");</script> <div id='tx_Math' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_Math").load("/associated/Math.ihtml");</script> 
+      
+  <!-- dsqus ? -->
+     
+
+  
+  </div><!-- documentation -->
+  <div id='dynamic'>
+  </div>
+      
+          
+
+      
+<div class='grids wrapper' id="footer">
+  <p><small>This page was generated for Ruby 2.2.0</small></p> 
+  
+   <p><a href="http://ruby-doc.org">Ruby-doc.org</a> is provided by <a href="http://jamesbritt.com">James Britt</a> and <a href="http://neurogami.com">Neurogami</a>. <a href="http://neurogami.com">Maximum R+D</a>.  <div class='oio-inline'><ins data-revive-zoneid="1" data-revive-id="58924a5717c091dfee6dda3f7d38c4d7"></ins><script async src="//ras.ruby-doc.org/vvv/delivery/thesinkjs.php"></script></div></p>
+ 
+       <p><small>Generated with Ruby-doc Rdoc Generator 0.39.0</small>.</p>
+  </div>
+</div>
+  
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-335317-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+    
+ <script type='text/javascript'>
+$(document).ready(function() {
+      $.ajaxSetup({ cache: false });
+      $("#vulns-alert").load("/associated/vulns.ihtml");
+    });
+
+    </script>
+
+
+ 
+		<script type='text/javascript'>
+
+	function loadPlus(plusdocs){
+			$(plusdocs).find("div[class='associated_wrapper']").each (function() {
+					$("#" + this.id).append($(plusdocs).find("#" + this.id ));
+					});
+	} 
+
+   //function loadInline(json){
+   // for (var lookFor in json) {
+    //  $(lookFor).after(json[lookFor]);
+    // }
+  // } // end loadInline
+
+
+$(document).ready(function() {
+		$.ajaxSetup({ cache: false });
+			$.get('/associated/2.2.0/plus_Math.ihtml', 
+			function(plusdocs) {
+			setTimeout(function() {
+				loadPlus(plusdocs);
+				}, 2000);
+			}
+			);
+
+
+//     $.ajax({
+//     dataType: "json",
+//      url: '/associated/2.2.0/inline_Math.js',
+//      success: function(json) {
+// 			setTimeout(function() {
+// 				loadInline(json);
+// 				}, 2000);
+// 			}
+//    });
+
+		});
+</script>
+		
+</body>
+</html>
+
+

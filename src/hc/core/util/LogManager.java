@@ -1,15 +1,36 @@
 package hc.core.util;
 
+import java.util.Calendar;
+import java.util.Vector;
+
 public class LogManager {
 //	public static void logInTest(String msg){
 //		System.out.println(msg);
 //	}
+	static final Vector beforeInitLog = new Vector(10);
+	
+	public static void addBeforeInitLog(final LogMessage msg){
+		beforeInitLog.addElement(msg);
+		System.out.println(msg.msg);
+	}
 	
 	private static ILog log = null;
 	
 	public static void setLog(ILog ilog){
 		CCoreUtil.checkAccess();
 		log = ilog;
+		
+		final int size = beforeInitLog.size();
+		for (int i = 0; i < size; i++) {
+			final LogMessage lm = (LogMessage)beforeInitLog.elementAt(i);
+			if(lm.isError){
+				errToLog(lm.msg);
+			}else{
+				log(lm.msg);
+			}
+		}
+		
+		beforeInitLog.removeAllElements();
 	}
 	
 	public static ILog getLogger(){
@@ -33,9 +54,37 @@ public class LogManager {
 		if(log != null){
 			log.log(msg);
 		}else{
-			System.out.println(msg);
+			System.out.println(addTime(msg));
 		}
 		return false;
+	}
+
+	private static String addTime(String msg) {
+		final StringBuffer sb = StringBufferCacher.getFree();
+
+		Calendar calendar = Calendar.getInstance();
+		
+		sb.append(calendar.get(Calendar.YEAR));
+		sb.append("-");
+		sb.append((calendar.get(Calendar.MONTH) + 1));
+		sb.append("-");
+		sb.append(calendar.get(Calendar.DAY_OF_MONTH));
+		sb.append(" ");
+		sb.append(calendar.get(Calendar.HOUR_OF_DAY));
+		sb.append(":");
+		sb.append(calendar.get(Calendar.MINUTE));
+		sb.append(":");
+		sb.append(calendar.get(Calendar.SECOND));
+		sb.append(".");
+		sb.append(calendar.get(Calendar.MILLISECOND));
+		sb.append(" ");
+		
+		sb.append(msg);
+		
+		final String pMsg = sb.toString();
+		StringBufferCacher.cycle(sb);
+		
+		return pMsg;
 	}
 	
 	public static void debug(String msg){
@@ -75,7 +124,7 @@ public class LogManager {
 		if(log != null){
 			log.warning(msg);
 		}else{
-			System.out.println(ILog.WARNING + msg);
+			System.out.println(addTime(ILog.WARNING + msg));
 		}
 		return false;
 	}
@@ -88,7 +137,7 @@ public class LogManager {
 		if(log != null){
 			log.errWithTip(msg);
 		}else{
-			System.err.println(msg);
+			System.err.println(addTime(msg));
 		}
 	}
 	
@@ -104,7 +153,7 @@ public class LogManager {
 		if(log != null){
 			log.err(msg);
 		}else{
-			System.err.println(msg);
+			System.err.println(addTime(msg));
 		}
 		return false;
 	}
@@ -113,7 +162,7 @@ public class LogManager {
 		if(log != null){
 			log.err(msg);
 		}else{
-			System.err.println(msg);
+			System.err.println(addTime(msg));
 		}
 	}
 	
@@ -122,7 +171,7 @@ public class LogManager {
 			log.info(msg);
 			log.log(msg);
 		}else{
-			System.err.println(msg);
+			System.err.println(addTime(msg));
 		}
 	}
 

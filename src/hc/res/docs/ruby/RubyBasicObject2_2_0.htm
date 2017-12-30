@@ -1,0 +1,1750 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <!-- classpage -- >
+    <!-- RD version: 0.39.0  -->
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+  <meta name='description' content='  Class : BasicObject  -   Ruby 2.2.0 ' />
+  <meta content="2017-09-09 18:34:18 -0500" http-equiv="change-date" />
+  <!-- rel_prefix  = ''  ENV['RDOC_FOR_WEBSITE']   = true-->
+    
+    
+    
+  <!-- rel_prefix = '.'   asset_rel_prefix = ''  --> 
+  <title>Class: BasicObject (Ruby 2.2.0) </title>
+  <link rel="stylesheet" href="/css/associated.css" type="text/css" >
+  <!-- link rel="stylesheet" href=".css/obf.css"  -->
+  <link rel="stylesheet" href="/css/inuit.css" >
+  <link rel="stylesheet" href="/css/grid.inuit.css" >
+  <link rel="stylesheet" href="/css/2011.css" type="text/css" >
+  <link rel="stylesheet" href="/css/rdoc.css" type="text/css" >
+    <link rel="stylesheet" href="/css/carbon17.css" type="text/css" >
+
+
+  <script src="/js/jquery.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/thickbox-compressed.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/quicksearch.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/rubydoc.js" type="text/javascript" charset="utf-8"></script> 
+
+
+   
+<script src="/js/highlight.min.js"></script>
+<script> 
+  hljs.tabReplace = '  ';
+  hljs.initHighlightingOnLoad();
+  </script> 
+
+  <style type='text/css'>
+
+    #vulns-alert #vulns{
+      background-color: #c33 ! important;
+      width: 100%;
+      text-align: center;
+   }
+   
+   #vulns-alert #vulns a {
+    color: #F99 ! important;
+   }
+ </style>
+
+   <link rel="stylesheet" href="/css/extra.css" type="text/css" >
+  <script  src="/js/extra.js"  ></script>
+
+
+</head>
+
+<body id="top" class="class rdocstar">
+
+<div id='actionbar' >
+<div class='wrapper'>
+  <ul class='grids g0'>
+	<li class='grid-2' ><a href='/' target='_top' >Home</a></li>
+	<li class='grid-2' ><a href='/core-2.2.0' target='_top' >Core 2.2.0</a></li>
+	<li class='grid-2' ><a href='/stdlib-2.2.0' target='_top' >Std-lib 2.2.0</a></li>
+
+   <li class='grid-2' ><a href='/downloads' target='_top' >Downloads</a></li>
+	 <li class='grid-5 right' id='rd-action-search'><form id="searchbox_011815814100681837392:wnccv6st5qk" action="http://ruby-doc.com/search.html"><input type="hidden" name="cx" value="011815814100681837392:wnccv6st5qk" ><input  id='rd-search-input' name="q" type="text" size="20" >&#160;&#160;<input type="submit" name="sa" value="Search" ><input type="hidden" name="cof" value="FORID:9" ></form></li>
+	</ul>
+</div>
+<span id='vulns-alert'></span>
+<div id='versionheader'>
+<p>Support for the Ruby 2.2 series will end March 2018. See <a href='https://www.ruby-lang.org/en/news/2017/04/01/support-of-ruby-2-1-has-ended/'>here</a> for reference.</p>
+</div>
+</div> <!-- end action bar -->
+ <div class='wrapper'>
+  
+   <!-- carbon17 added here 2017-09-09 -->
+ 
+   <script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD627W', 'placement:rubydocorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+ 
+
+   <div id="metadata">
+    <div id="home-metadata">
+      <div id="home-section" class="section">
+        <h3 class="section-header">
+          <a href="./index.html">Home</a>
+          <a href="./index.html#classes">Classes</a>
+          <a href="./index.html#methods">Methods</a>
+          
+          
+          <!-- br><a id='alternateFormatLink' class='rotate' href="#" onclick='matchingYardUrl()'>YARD version</a -->
+          
+        </h3>
+      </div>
+    </div>
+
+    <div id="file-metadata">
+      <div id="file-list-section" class="section">
+        <h3 class="section-header">In Files</h3>
+        <div class="section-body">
+          <ul id='file-metadata'>
+
+          
+          
+          
+          <li class='in-file'>class.c</li>      
+            
+          
+          <li class='in-file'>gc.c</li>      
+            
+          
+          <li class='in-file'>object.c</li>      
+            
+          
+          <li class='in-file'>vm_eval.c</li>      
+            
+          </ul>
+        </div>
+      </div>
+
+      
+    </div>
+
+    <div id="class-metadata">
+      
+      <!-- Parent Class -->
+      <div id="parent-class-section" class="section">
+        <h3 class="section-header">Parent</h3>
+        
+        <p class="link"></p>
+        
+      </div>
+      
+
+      
+
+      
+
+      
+      <!-- Method Quickref -->
+      <div id="method-list-section" class="section">
+        <h3 class="section-header">Methods</h3>
+        <ul class="link-list">
+          
+          <li><a href="#method-c-new">::new</a></li>
+          
+          <li><a href="#method-i-21">#!</a></li>
+          
+          <li><a href="#method-i-21-3D">#!=</a></li>
+          
+          <li><a href="#method-i-3D-3D">#==</a></li>
+          
+          <li><a href="#method-i-__id__">#__id__</a></li>
+          
+          <li><a href="#method-i-__send__">#__send__</a></li>
+          
+          <li><a href="#method-i-equal-3F">#equal?</a></li>
+          
+          <li><a href="#method-i-instance_eval">#instance_eval</a></li>
+          
+          <li><a href="#method-i-instance_exec">#instance_exec</a></li>
+          
+          <li><a href="#method-i-method_missing">#method_missing</a></li>
+          
+          <li><a href="#method-i-singleton_method_added">#singleton_method_added</a></li>
+          
+          <li><a href="#method-i-singleton_method_removed">#singleton_method_removed</a></li>
+          
+          <li><a href="#method-i-singleton_method_undefined">#singleton_method_undefined</a></li>
+          
+        </ul>
+      </div>
+      
+
+      
+    </div>
+
+    <div id="project-metadata">
+      
+      
+      <div id="fileindex-section" class="section project-section">
+        <h3 class="section-header">Files</h3>
+        <ul id='files'>
+        
+          
+          <li class="file"><a href="./_lib/racc/rdoc/grammar_en_rdoc.html">grammar.en.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./_test/rdoc/test_ja_rdoc.html">test.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributing_rdoc.html">contributing.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributors_rdoc.html">contributors.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/dtrace_probes_rdoc.html">dtrace_probes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/globals_rdoc.html">globals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/keywords_rdoc.html">keywords.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/maintainers_rdoc.html">maintainers.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/marshal_rdoc.html">marshal.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/regexp_rdoc.html">regexp.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/security_rdoc.html">security.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/standard_library_rdoc.html">standard_library.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax_rdoc.html">syntax.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/assignment_rdoc.html">assignment.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/calling_methods_rdoc.html">calling_methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/control_expressions_rdoc.html">control_expressions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/exceptions_rdoc.html">exceptions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/literals_rdoc.html">literals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/methods_rdoc.html">methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/miscellaneous_rdoc.html">miscellaneous.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/modules_and_classes_rdoc.html">modules_and_classes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/precedence_rdoc.html">precedence.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/refinements_rdoc.html">refinements.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_ja_rdoc.html">README.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_rdoc.html">README.rdoc</a></li>
+        
+        </ul>
+      </div>
+      
+
+      <div id="classindex-section" class="section project-section">
+        <h3 class="section-header">Class/Module Index
+          <span class="search-toggle"><img src="./images/find.png"
+            height="16" width="16" alt="[+]"
+            title="show/hide quicksearch" /></span></h3>
+        <form action="#" method="get" accept-charset="utf-8" class="initially-hidden">
+        <fieldset>
+          <legend>Quicksearch</legend>
+          <input type="text" name="quicksearch" value=""
+            class="quicksearch-field" />
+        </fieldset>
+        </form>
+
+        <ul class="link-list">
+          
+          
+          
+          <li><a href="./ArgumentError.html">ArgumentError</a></li>
+        
+          
+          
+          <li><a href="./Array.html">Array</a></li>
+        
+          
+          
+          <li><a href="./BasicObject.html">BasicObject</a></li>
+        
+          
+          
+          <li><a href="./Bignum.html">Bignum</a></li>
+        
+          
+          
+          <li><a href="./Binding.html">Binding</a></li>
+        
+          
+          
+          <li><a href="./Class.html">Class</a></li>
+        
+          
+          
+          <li><a href="./Comparable.html">Comparable</a></li>
+        
+          
+          
+          <li><a href="./Complex.html">Complex</a></li>
+        
+          
+          
+          <li><a href="./Complex/compatible.html">Complex::compatible</a></li>
+        
+          
+          
+          <li><a href="./ConditionVariable.html">ConditionVariable</a></li>
+        
+          
+          
+          <li><a href="./Continuation.html">Continuation</a></li>
+        
+          
+          
+          <li><a href="./Data.html">Data</a></li>
+        
+          
+          
+          <li><a href="./Dir.html">Dir</a></li>
+        
+          
+          
+          <li><a href="./ENV.html">ENV</a></li>
+        
+          
+          
+          <li><a href="./EOFError.html">EOFError</a></li>
+        
+          
+          
+          <li><a href="./Encoding.html">Encoding</a></li>
+        
+          
+          
+          <li><a href="./Encoding/CompatibilityError.html">Encoding::CompatibilityError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/Converter.html">Encoding::Converter</a></li>
+        
+          
+          
+          <li><a href="./Encoding/ConverterNotFoundError.html">Encoding::ConverterNotFoundError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/InvalidByteSequenceError.html">Encoding::InvalidByteSequenceError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/UndefinedConversionError.html">Encoding::UndefinedConversionError</a></li>
+        
+          
+          
+          <li><a href="./EncodingError.html">EncodingError</a></li>
+        
+          
+          
+          <li><a href="./Enumerable.html">Enumerable</a></li>
+        
+          
+          
+          <li><a href="./Enumerator.html">Enumerator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Generator.html">Enumerator::Generator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Lazy.html">Enumerator::Lazy</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Yielder.html">Enumerator::Yielder</a></li>
+        
+          
+          
+          <li><a href="./Errno.html">Errno</a></li>
+        
+          
+          
+          <li><a href="./Exception.html">Exception</a></li>
+        
+          
+          
+          <li><a href="./FalseClass.html">FalseClass</a></li>
+        
+          
+          
+          <li><a href="./Fiber.html">Fiber</a></li>
+        
+          
+          
+          <li><a href="./FiberError.html">FiberError</a></li>
+        
+          
+          
+          <li><a href="./File.html">File</a></li>
+        
+          
+          
+          <li><a href="./File/Constants.html">File::Constants</a></li>
+        
+          
+          
+          <li><a href="./File/Stat.html">File::Stat</a></li>
+        
+          
+          
+          <li><a href="./FileTest.html">FileTest</a></li>
+        
+          
+          
+          <li><a href="./Fixnum.html">Fixnum</a></li>
+        
+          
+          
+          <li><a href="./Float.html">Float</a></li>
+        
+          
+          
+          <li><a href="./FloatDomainError.html">FloatDomainError</a></li>
+        
+          
+          
+          <li><a href="./GC.html">GC</a></li>
+        
+          
+          
+          <li><a href="./GC/Profiler.html">GC::Profiler</a></li>
+        
+          
+          
+          <li><a href="./Hash.html">Hash</a></li>
+        
+          
+          
+          <li><a href="./IO.html">IO</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitReadable.html">IO::EAGAINWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitWritable.html">IO::EAGAINWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitReadable.html">IO::EINPROGRESSWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitWritable.html">IO::EINPROGRESSWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitReadable.html">IO::EWOULDBLOCKWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitWritable.html">IO::EWOULDBLOCKWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitReadable.html">IO::WaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitWritable.html">IO::WaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IOError.html">IOError</a></li>
+        
+          
+          
+          <li><a href="./IndexError.html">IndexError</a></li>
+        
+          
+          
+          <li><a href="./Integer.html">Integer</a></li>
+        
+          
+          
+          <li><a href="./Interrupt.html">Interrupt</a></li>
+        
+          
+          
+          <li><a href="./Kernel.html">Kernel</a></li>
+        
+          
+          
+          <li><a href="./KeyError.html">KeyError</a></li>
+        
+          
+          
+          <li><a href="./LoadError.html">LoadError</a></li>
+        
+          
+          
+          <li><a href="./LocalJumpError.html">LocalJumpError</a></li>
+        
+          
+          
+          <li><a href="./Marshal.html">Marshal</a></li>
+        
+          
+          
+          <li><a href="./MatchData.html">MatchData</a></li>
+        
+          
+          
+          <li><a href="./Math.html">Math</a></li>
+        
+          
+          
+          <li><a href="./Math/DomainError.html">Math::DomainError</a></li>
+        
+          
+          
+          <li><a href="./Method.html">Method</a></li>
+        
+          
+          
+          <li><a href="./Module.html">Module</a></li>
+        
+          
+          
+          <li><a href="./Mutex.html">Mutex</a></li>
+        
+          
+          
+          <li><a href="./NameError.html">NameError</a></li>
+        
+          
+          
+          <li><a href="./NilClass.html">NilClass</a></li>
+        
+          
+          
+          <li><a href="./NoMemoryError.html">NoMemoryError</a></li>
+        
+          
+          
+          <li><a href="./NoMethodError.html">NoMethodError</a></li>
+        
+          
+          
+          <li><a href="./NotImplementedError.html">NotImplementedError</a></li>
+        
+          
+          
+          <li><a href="./Numeric.html">Numeric</a></li>
+        
+          
+          
+          <li><a href="./Object.html">Object</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace.html">ObjectSpace</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace/WeakMap.html">ObjectSpace::WeakMap</a></li>
+        
+          
+          
+          <li><a href="./Proc.html">Proc</a></li>
+        
+          
+          
+          <li><a href="./Process.html">Process</a></li>
+        
+          
+          
+          <li><a href="./Process/GID.html">Process::GID</a></li>
+        
+          
+          
+          <li><a href="./Process/Status.html">Process::Status</a></li>
+        
+          
+          
+          <li><a href="./Process/Sys.html">Process::Sys</a></li>
+        
+          
+          
+          <li><a href="./Process/UID.html">Process::UID</a></li>
+        
+          
+          
+          <li><a href="./Process/Waiter.html">Process::Waiter</a></li>
+        
+          
+          
+          <li><a href="./Queue.html">Queue</a></li>
+        
+          
+          
+          <li><a href="./Random.html">Random</a></li>
+        
+          
+          
+          <li><a href="./Range.html">Range</a></li>
+        
+          
+          
+          <li><a href="./RangeError.html">RangeError</a></li>
+        
+          
+          
+          <li><a href="./Rational.html">Rational</a></li>
+        
+          
+          
+          <li><a href="./Rational/compatible.html">Rational::compatible</a></li>
+        
+          
+          
+          <li><a href="./Regexp.html">Regexp</a></li>
+        
+          
+          
+          <li><a href="./RegexpError.html">RegexpError</a></li>
+        
+          
+          
+          <li><a href="./RubyVM.html">RubyVM</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/Env.html">RubyVM::Env</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/InstructionSequence.html">RubyVM::InstructionSequence</a></li>
+        
+          
+          
+          <li><a href="./RuntimeError.html">RuntimeError</a></li>
+        
+          
+          
+          <li><a href="./ScriptError.html">ScriptError</a></li>
+        
+          
+          
+          <li><a href="./SecurityError.html">SecurityError</a></li>
+        
+          
+          
+          <li><a href="./Signal.html">Signal</a></li>
+        
+          
+          
+          <li><a href="./SignalException.html">SignalException</a></li>
+        
+          
+          
+          <li><a href="./SizedQueue.html">SizedQueue</a></li>
+        
+          
+          
+          <li><a href="./StandardError.html">StandardError</a></li>
+        
+          
+          
+          <li><a href="./StopIteration.html">StopIteration</a></li>
+        
+          
+          
+          <li><a href="./String.html">String</a></li>
+        
+          
+          
+          <li><a href="./Struct.html">Struct</a></li>
+        
+          
+          
+          <li><a href="./Symbol.html">Symbol</a></li>
+        
+          
+          
+          <li><a href="./SyntaxError.html">SyntaxError</a></li>
+        
+          
+          
+          <li><a href="./SystemCallError.html">SystemCallError</a></li>
+        
+          
+          
+          <li><a href="./SystemExit.html">SystemExit</a></li>
+        
+          
+          
+          <li><a href="./SystemStackError.html">SystemStackError</a></li>
+        
+          
+          
+          <li><a href="./Thread.html">Thread</a></li>
+        
+          
+          
+          <li><a href="./Thread/Backtrace/Location.html">Thread::Backtrace::Location</a></li>
+        
+          
+          
+          <li><a href="./ThreadError.html">ThreadError</a></li>
+        
+          
+          
+          <li><a href="./ThreadGroup.html">ThreadGroup</a></li>
+        
+          
+          
+          <li><a href="./Time.html">Time</a></li>
+        
+          
+          
+          <li><a href="./TracePoint.html">TracePoint</a></li>
+        
+          
+          
+          <li><a href="./TrueClass.html">TrueClass</a></li>
+        
+          
+          
+          <li><a href="./TypeError.html">TypeError</a></li>
+        
+          
+          
+          <li><a href="./UnboundMethod.html">UnboundMethod</a></li>
+        
+          
+          
+          <li><a href="./UncaughtThrowError.html">UncaughtThrowError</a></li>
+        
+          
+          
+          <li><a href="./ZeroDivisionError.html">ZeroDivisionError</a></li>
+        
+          
+          
+          <li><a href="./fatal.html">fatal</a></li>
+        
+          
+          
+          <li><a href="./unknown.html">unknown</a></li>
+        
+        </ul>
+        <div id="no-class-search-results" style="display: none;">No matching classes.</div>
+      </div>
+
+      
+    </div>
+  </div> <!-- metadata -->
+  <div class='adzbox'  id="azk83167">
+    
+   <div id="carbonads-container"><div class="carbonad">
+    <script async type="text/javascript" src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=rubydocorg" 
+      id="_carbonads_js">
+      </script>
+  </div></div>
+
+   
+  </div> 
+  <div id="documentation">
+    <h1 class="class">BasicObject</h1>
+
+    <div id="description" class="description">
+      
+<p><a href="BasicObject.html">BasicObject</a> is the parent class of all
+classes in Ruby.  It's an explicit blank class.</p>
+
+<p><a href="BasicObject.html">BasicObject</a> can be used for creating object
+hierarchies independent of Ruby's object hierarchy, proxy objects like the
+Delegator class, or other uses where namespace pollution from Ruby's
+methods and classes must be avoided.</p>
+
+<p>To avoid polluting <a href="BasicObject.html">BasicObject</a> for other
+users an appropriately named subclass of <a
+href="BasicObject.html">BasicObject</a> should be created instead of
+directly modifying BasicObject:</p>
+
+<pre class="ruby"><span class="ruby-keyword">class</span> <span class="ruby-constant">MyObjectSystem</span> <span class="ruby-operator">&lt;</span> <span class="ruby-constant">BasicObject</span>
+<span class="ruby-keyword">end</span>
+</pre>
+
+<p><a href="BasicObject.html">BasicObject</a> does not include <a
+href="Kernel.html">Kernel</a> (for methods like <code>puts</code>) and <a
+href="BasicObject.html">BasicObject</a> is outside of the namespace of the
+standard library so common classes will not be found without using a full
+class path.</p>
+
+<p>A variety of strategies can be used to provide useful portions of the
+standard library to subclasses of <a
+href="BasicObject.html">BasicObject</a>.  A subclass could <code>include
+Kernel</code> to obtain <code>puts</code>, <code>exit</code>, etc.  A
+custom Kernel-like module could be created and included or delegation can
+be used via <a
+href="BasicObject.html#method-i-method_missing">method_missing</a>:</p>
+
+<pre class="ruby"><span class="ruby-keyword">class</span> <span class="ruby-constant">MyObjectSystem</span> <span class="ruby-operator">&lt;</span> <span class="ruby-constant">BasicObject</span>
+  <span class="ruby-constant">DELEGATE</span> = [:<span class="ruby-identifier">puts</span>, :<span class="ruby-identifier">p</span>]
+
+  <span class="ruby-keyword">def</span> <span class="ruby-identifier">method_missing</span>(<span class="ruby-identifier">name</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+    <span class="ruby-keyword">super</span> <span class="ruby-keyword">unless</span> <span class="ruby-constant">DELEGATE</span>.<span class="ruby-identifier">include?</span> <span class="ruby-identifier">name</span>
+    <span class="ruby-operator">::</span><span class="ruby-constant">Kernel</span>.<span class="ruby-identifier">send</span>(<span class="ruby-identifier">name</span>, <span class="ruby-operator">*</span><span class="ruby-identifier">args</span>, <span class="ruby-operator">&amp;</span><span class="ruby-identifier">block</span>)
+  <span class="ruby-keyword">end</span>
+
+  <span class="ruby-keyword">def</span> <span class="ruby-identifier">respond_to_missing?</span>(<span class="ruby-identifier">name</span>, <span class="ruby-identifier">include_private</span> = <span class="ruby-keyword">false</span>)
+    <span class="ruby-constant">DELEGATE</span>.<span class="ruby-identifier">include?</span>(<span class="ruby-identifier">name</span>) <span class="ruby-keyword">or</span> <span class="ruby-keyword">super</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span>
+</pre>
+
+<p>Access to classes and modules from the Ruby standard library can be
+obtained in a <a href="BasicObject.html">BasicObject</a> subclass by
+referencing the desired constant from the root like <code>::File</code> or
+<code>::Enumerator</code>. Like <a
+href="BasicObject.html#method-i-method_missing">method_missing</a>,
+const_missing can be used to delegate constant lookup to
+<code>Object</code>:</p>
+
+<pre class="ruby"><span class="ruby-keyword">class</span> <span class="ruby-constant">MyObjectSystem</span> <span class="ruby-operator">&lt;</span> <span class="ruby-constant">BasicObject</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-keyword">self</span>.<span class="ruby-identifier">const_missing</span>(<span class="ruby-identifier">name</span>)
+    <span class="ruby-operator">::</span><span class="ruby-constant">Object</span>.<span class="ruby-identifier">const_get</span>(<span class="ruby-identifier">name</span>)
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span>
+</pre>
+
+    </div><!-- description -->
+
+    
+    
+    
+    <div id="5Buntitled-5D" class="documentation-section">
+      
+
+      
+
+      
+
+      
+
+      <!-- Methods -->
+      
+      <div id="public-class-method-details" class="method-section section">
+        <h3 class="section-header">Public Class Methods</h3>
+
+      
+        <div id="new-method" class="method-detail ">
+          <a name="method-c-new"></a>
+
+          
+          <div class="method-heading">
+            <span class="method-name">new</span><span
+              class="method-args">()</span>
+            <span class="method-click-advice">click to toggle source</span>
+          </div>
+          
+          <div>
+  
+            
+            <p>Not documented</p>
+            
+
+            
+            <div class="method-source-code" id="new-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_obj_dummy(void)
+{
+    return Qnil;
+}
+            </pre> 
+            </div><!-- new-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- new-method -->
+      
+      </div><!-- public-class-method-details -->
+    
+      <div id="public-instance-method-details" class="method-section section">
+        <h3 class="section-header">Public Instance Methods</h3>
+
+      
+        <div id="21-method" class="method-detail ">
+          <a name="method-i-21"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">!obj    &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Boolean negate.</p>
+            
+
+            
+            <div class="method-source-code" id="21-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_obj_not(VALUE obj)
+{
+    return RTEST(obj) ? Qfalse : Qtrue;
+}
+            </pre> 
+            </div><!-- 21-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 21-method -->
+      
+        <div id="21-3D-method" class="method-detail ">
+          <a name="method-i-21-3D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">obj != other        &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns true if two objects are not-equal, otherwise false.</p>
+            
+
+            
+            <div class="method-source-code" id="21-3D-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_obj_not_equal(VALUE obj1, VALUE obj2)
+{
+    VALUE result = rb_funcall(obj1, id_eq, 1, obj2);
+    return RTEST(result) ? Qfalse : Qtrue;
+}
+            </pre> 
+            </div><!-- 21-3D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 21-3D-method -->
+      
+        <div id="3D-3D-method" class="method-detail ">
+          <a name="method-i-3D-3D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">obj == other        &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Equality — At the <code>Object</code> level, <code>==</code> returns
+<code>true</code> only if <code>obj</code> and <code>other</code> are the
+same object. Typically, this method is overridden in descendant classes to
+provide class-specific meaning.</p>
+
+<p>Unlike <code>==</code>, the <code>equal?</code> method should never be
+overridden by subclasses as it is used to determine object identity (that
+is, <code>a.equal?(b)</code> if and only if <code>a</code> is the same
+object as <code>b</code>):</p>
+
+<pre class="ruby"><span class="ruby-identifier">obj</span> = <span class="ruby-string">&quot;a&quot;</span>
+<span class="ruby-identifier">other</span> = <span class="ruby-identifier">obj</span>.<span class="ruby-identifier">dup</span>
+
+<span class="ruby-identifier">obj</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">other</span>      <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-identifier">obj</span>.<span class="ruby-identifier">equal?</span> <span class="ruby-identifier">other</span>  <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">obj</span>.<span class="ruby-identifier">equal?</span> <span class="ruby-identifier">obj</span>    <span class="ruby-comment">#=&gt; true</span>
+</pre>
+
+<p>The <code>eql?</code> method returns <code>true</code> if <code>obj</code>
+and <code>other</code> refer to the same hash key.  This is used by <a
+href="Hash.html">Hash</a> to test members for equality.  For objects of
+class <code>Object</code>, <code>eql?</code> is synonymous with
+<code>==</code>.  Subclasses normally continue this tradition by aliasing
+<code>eql?</code> to their overridden <code>==</code> method, but there are
+exceptions.  <code>Numeric</code> types, for example, perform type
+conversion across <code>==</code>, but not across <code>eql?</code>, so:</p>
+
+<pre class="ruby"><span class="ruby-value">1</span> <span class="ruby-operator">==</span> <span class="ruby-value">1.0</span>     <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-value">1</span>.<span class="ruby-identifier">eql?</span> <span class="ruby-value">1.0</span>   <span class="ruby-comment">#=&gt; false</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="3D-3D-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_obj_equal(VALUE obj1, VALUE obj2)
+{
+    if (obj1 == obj2) return Qtrue;
+    return Qfalse;
+}
+            </pre> 
+            </div><!-- 3D-3D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 3D-3D-method -->
+      
+        <div id="__id__-method" class="method-detail ">
+          <a name="method-i-__id__"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">__id__       &rarr; integer</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">object_id    &rarr; integer</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns an integer identifier for <code>obj</code>.</p>
+
+<p>The same number will be returned on all calls to <code>object_id</code> for
+a given object, and no two active objects will share an id.</p>
+
+<p>Note: that some objects of builtin classes are reused for optimization.
+This is the case for immediate values and frozen string literals.</p>
+
+<p>Immediate values are not passed by reference but are passed by value:
+<code>nil</code>, <code>true</code>, <code>false</code>, Fixnums, Symbols,
+and some Floats.</p>
+
+<pre class="ruby"><span class="ruby-constant">Object</span>.<span class="ruby-identifier">new</span>.<span class="ruby-identifier">object_id</span>  <span class="ruby-operator">==</span> <span class="ruby-constant">Object</span>.<span class="ruby-identifier">new</span>.<span class="ruby-identifier">object_id</span>  <span class="ruby-comment"># =&gt; false</span>
+(<span class="ruby-value">21</span> <span class="ruby-operator">*</span> <span class="ruby-value">2</span>).<span class="ruby-identifier">object_id</span>    <span class="ruby-operator">==</span> (<span class="ruby-value">21</span> <span class="ruby-operator">*</span> <span class="ruby-value">2</span>).<span class="ruby-identifier">object_id</span>    <span class="ruby-comment"># =&gt; true</span>
+<span class="ruby-string">&quot;hello&quot;</span>.<span class="ruby-identifier">object_id</span>     <span class="ruby-operator">==</span> <span class="ruby-string">&quot;hello&quot;</span>.<span class="ruby-identifier">object_id</span>     <span class="ruby-comment"># =&gt; false</span>
+<span class="ruby-string">&quot;hi&quot;</span>.<span class="ruby-identifier">freeze</span>.<span class="ruby-identifier">object_id</span> <span class="ruby-operator">==</span> <span class="ruby-string">&quot;hi&quot;</span>.<span class="ruby-identifier">freeze</span>.<span class="ruby-identifier">object_id</span> <span class="ruby-comment"># =&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="__id__-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_obj_id(VALUE obj)
+{
+    /*
+     *                32-bit VALUE space
+     *          MSB ------------------------ LSB
+     *  false   00000000000000000000000000000000
+     *  true    00000000000000000000000000000010
+     *  nil     00000000000000000000000000000100
+     *  undef   00000000000000000000000000000110
+     *  symbol  ssssssssssssssssssssssss00001110
+     *  object  oooooooooooooooooooooooooooooo00        = 0 (mod sizeof(RVALUE))
+     *  fixnum  fffffffffffffffffffffffffffffff1
+     *
+     *                    object_id space
+     *                                       LSB
+     *  false   00000000000000000000000000000000
+     *  true    00000000000000000000000000000010
+     *  nil     00000000000000000000000000000100
+     *  undef   00000000000000000000000000000110
+     *  symbol   000SSSSSSSSSSSSSSSSSSSSSSSSSSS0        S...S % A = 4 (S...S = s...s * A + 4)
+     *  object   oooooooooooooooooooooooooooooo0        o...o % A = 0
+     *  fixnum  fffffffffffffffffffffffffffffff1        bignum if required
+     *
+     *  where A = sizeof(RVALUE)/4
+     *
+     *  sizeof(RVALUE) is
+     *  20 if 32-bit, double is 4-byte aligned
+     *  24 if 32-bit, double is 8-byte aligned
+     *  40 if 64-bit
+     */
+    if (STATIC_SYM_P(obj)) {
+        return (SYM2ID(obj) * sizeof(RVALUE) + (4 &lt;&lt; 2)) | FIXNUM_FLAG;
+    }
+    else if (FLONUM_P(obj)) {
+#if SIZEOF_LONG == SIZEOF_VOIDP
+        return LONG2NUM((SIGNED_VALUE)obj);
+#else
+        return LL2NUM((SIGNED_VALUE)obj);
+#endif
+    }
+    else if (SPECIAL_CONST_P(obj)) {
+        return LONG2NUM((SIGNED_VALUE)obj);
+    }
+    return nonspecial_obj_id(obj);
+}
+            </pre> 
+            </div><!-- __id__-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- __id__-method -->
+      
+        <div id="__send__-method" class="method-detail ">
+          <a name="method-i-__send__"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">send(symbol [, args...])       &rarr; obj</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">__send__(symbol [, args...])   &rarr; obj</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">send(string [, args...])       &rarr; obj</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">__send__(string [, args...])   &rarr; obj</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Invokes the method identified by <em>symbol</em>, passing it any arguments
+specified. You can use <code>__send__</code> if the name <code>send</code>
+clashes with an existing method in <em>obj</em>. When the method is
+identified by a string, the string is converted to a symbol.</p>
+
+<pre class="ruby"><span class="ruby-keyword">class</span> <span class="ruby-constant">Klass</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-identifier">hello</span>(<span class="ruby-operator">*</span><span class="ruby-identifier">args</span>)
+    <span class="ruby-string">&quot;Hello &quot;</span> <span class="ruby-operator">+</span> <span class="ruby-identifier">args</span>.<span class="ruby-identifier">join</span>(<span class="ruby-string">' '</span>)
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span>
+<span class="ruby-identifier">k</span> = <span class="ruby-constant">Klass</span>.<span class="ruby-identifier">new</span>
+<span class="ruby-identifier">k</span>.<span class="ruby-identifier">send</span> :<span class="ruby-identifier">hello</span>, <span class="ruby-string">&quot;gentle&quot;</span>, <span class="ruby-string">&quot;readers&quot;</span>   <span class="ruby-comment">#=&gt; &quot;Hello gentle readers&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="__send__-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_f_send(int argc, VALUE *argv, VALUE recv)
+{
+    return send_internal(argc, argv, recv, CALL_FCALL);
+}
+            </pre> 
+            </div><!-- __send__-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- __send__-method -->
+      
+        <div id="equal-3F-method" class="method-detail ">
+          <a name="method-i-equal-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">equal?(other)   &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Equality — At the <code>Object</code> level, <code>==</code> returns
+<code>true</code> only if <code>obj</code> and <code>other</code> are the
+same object. Typically, this method is overridden in descendant classes to
+provide class-specific meaning.</p>
+
+<p>Unlike <code>==</code>, the <code>equal?</code> method should never be
+overridden by subclasses as it is used to determine object identity (that
+is, <code>a.equal?(b)</code> if and only if <code>a</code> is the same
+object as <code>b</code>):</p>
+
+<pre class="ruby"><span class="ruby-identifier">obj</span> = <span class="ruby-string">&quot;a&quot;</span>
+<span class="ruby-identifier">other</span> = <span class="ruby-identifier">obj</span>.<span class="ruby-identifier">dup</span>
+
+<span class="ruby-identifier">obj</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">other</span>      <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-identifier">obj</span>.<span class="ruby-identifier">equal?</span> <span class="ruby-identifier">other</span>  <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">obj</span>.<span class="ruby-identifier">equal?</span> <span class="ruby-identifier">obj</span>    <span class="ruby-comment">#=&gt; true</span>
+</pre>
+
+<p>The <code>eql?</code> method returns <code>true</code> if <code>obj</code>
+and <code>other</code> refer to the same hash key.  This is used by <a
+href="Hash.html">Hash</a> to test members for equality.  For objects of
+class <code>Object</code>, <code>eql?</code> is synonymous with
+<code>==</code>.  Subclasses normally continue this tradition by aliasing
+<code>eql?</code> to their overridden <code>==</code> method, but there are
+exceptions.  <code>Numeric</code> types, for example, perform type
+conversion across <code>==</code>, but not across <code>eql?</code>, so:</p>
+
+<pre class="ruby"><span class="ruby-value">1</span> <span class="ruby-operator">==</span> <span class="ruby-value">1.0</span>     <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-value">1</span>.<span class="ruby-identifier">eql?</span> <span class="ruby-value">1.0</span>   <span class="ruby-comment">#=&gt; false</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="equal-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_obj_equal(VALUE obj1, VALUE obj2)
+{
+    if (obj1 == obj2) return Qtrue;
+    return Qfalse;
+}
+            </pre> 
+            </div><!-- equal-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- equal-3F-method -->
+      
+        <div id="instance_eval-method" class="method-detail ">
+          <a name="method-i-instance_eval"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">instance_eval(string [, filename [, lineno]] )   &rarr; obj</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">instance_eval {|obj| block }                     &rarr; obj</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Evaluates a string containing Ruby source code, or the given block, within
+the context of the receiver (<em>obj</em>). In order to set the context,
+the variable <code>self</code> is set to <em>obj</em> while the code is
+executing, giving the code access to <em>obj</em>’s instance variables and
+private methods.</p>
+
+<p>When <code>instance_eval</code> is given a block, <em>obj</em> is also
+passed in as the block’s only argument.</p>
+
+<p>When <code>instance_eval</code> is given a <code>String</code>, the
+optional second and third parameters supply a filename and starting line
+number that are used when reporting compilation errors.</p>
+
+<pre class="ruby"><span class="ruby-keyword">class</span> <span class="ruby-constant">KlassWithSecret</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-identifier">initialize</span>
+    <span class="ruby-ivar">@secret</span> = <span class="ruby-value">99</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-identifier">private</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-identifier">the_secret</span>
+    <span class="ruby-node">&quot;Ssssh! The secret is #{@secret}.&quot;</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span>
+<span class="ruby-identifier">k</span> = <span class="ruby-constant">KlassWithSecret</span>.<span class="ruby-identifier">new</span>
+<span class="ruby-identifier">k</span>.<span class="ruby-identifier">instance_eval</span> { <span class="ruby-ivar">@secret</span> }          <span class="ruby-comment">#=&gt; 99</span>
+<span class="ruby-identifier">k</span>.<span class="ruby-identifier">instance_eval</span> { <span class="ruby-identifier">the_secret</span> }       <span class="ruby-comment">#=&gt; &quot;Ssssh! The secret is 99.&quot;</span>
+<span class="ruby-identifier">k</span>.<span class="ruby-identifier">instance_eval</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">obj</span><span class="ruby-operator">|</span> <span class="ruby-identifier">obj</span> <span class="ruby-operator">==</span> <span class="ruby-keyword">self</span> } <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="instance_eval-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_obj_instance_eval(int argc, const VALUE *argv, VALUE self)
+{
+    VALUE klass;
+
+    if (SPECIAL_CONST_P(self)) {
+        klass = rb_special_singleton_class(self);
+    }
+    else {
+        klass = rb_singleton_class(self);
+    }
+    return specific_eval(argc, argv, klass, self);
+}
+            </pre> 
+            </div><!-- instance_eval-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- instance_eval-method -->
+      
+        <div id="instance_exec-method" class="method-detail ">
+          <a name="method-i-instance_exec"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">instance_exec(arg...) {|var...| block }                       &rarr; obj</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Executes the given block within the context of the receiver (<em>obj</em>).
+In order to set the context, the variable <code>self</code> is set to
+<em>obj</em> while the code is executing, giving the code access to
+<em>obj</em>’s instance variables.  Arguments are passed as block
+parameters.</p>
+
+<pre class="ruby"><span class="ruby-keyword">class</span> <span class="ruby-constant">KlassWithSecret</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-identifier">initialize</span>
+    <span class="ruby-ivar">@secret</span> = <span class="ruby-value">99</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span>
+<span class="ruby-identifier">k</span> = <span class="ruby-constant">KlassWithSecret</span>.<span class="ruby-identifier">new</span>
+<span class="ruby-identifier">k</span>.<span class="ruby-identifier">instance_exec</span>(<span class="ruby-value">5</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-ivar">@secret</span><span class="ruby-operator">+</span><span class="ruby-identifier">x</span> }   <span class="ruby-comment">#=&gt; 104</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="instance_exec-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_obj_instance_exec(int argc, const VALUE *argv, VALUE self)
+{
+    VALUE klass;
+
+    if (SPECIAL_CONST_P(self)) {
+        klass = rb_special_singleton_class(self);
+    }
+    else {
+        klass = rb_singleton_class(self);
+    }
+    return yield_under(klass, self, rb_ary_new4(argc, argv));
+}
+            </pre> 
+            </div><!-- instance_exec-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- instance_exec-method -->
+      
+      </div><!-- public-instance-method-details -->
+    
+      <div id="private-instance-method-details" class="method-section section">
+        <h3 class="section-header">Private Instance Methods</h3>
+
+      
+        <div id="method_missing-method" class="method-detail ">
+          <a name="method-i-method_missing"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">method_missing(symbol [, *args] )   &rarr; result</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Invoked by Ruby when <em>obj</em> is sent a message it cannot handle.
+<em>symbol</em> is the symbol for the method called, and <em>args</em> are
+any arguments that were passed to it. By default, the interpreter raises an
+error when this method is called. However, it is possible to override the
+method to provide more dynamic behavior. If it is decided that a particular
+method should not be handled, then <em>super</em> should be called, so that
+ancestors can pick up the missing method. The example below creates a class
+<code>Roman</code>, which responds to methods with names consisting of
+roman numerals, returning the corresponding integer values.</p>
+
+<pre class="ruby"><span class="ruby-keyword">class</span> <span class="ruby-constant">Roman</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-identifier">roman_to_int</span>(<span class="ruby-identifier">str</span>)
+    <span class="ruby-comment"># ...</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-identifier">method_missing</span>(<span class="ruby-identifier">methId</span>)
+    <span class="ruby-identifier">str</span> = <span class="ruby-identifier">methId</span>.<span class="ruby-identifier">id2name</span>
+    <span class="ruby-identifier">roman_to_int</span>(<span class="ruby-identifier">str</span>)
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span>
+
+<span class="ruby-identifier">r</span> = <span class="ruby-constant">Roman</span>.<span class="ruby-identifier">new</span>
+<span class="ruby-identifier">r</span>.<span class="ruby-identifier">iv</span>      <span class="ruby-comment">#=&gt; 4</span>
+<span class="ruby-identifier">r</span>.<span class="ruby-identifier">xxiii</span>   <span class="ruby-comment">#=&gt; 23</span>
+<span class="ruby-identifier">r</span>.<span class="ruby-identifier">mm</span>      <span class="ruby-comment">#=&gt; 2000</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="method_missing-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_method_missing(int argc, const VALUE *argv, VALUE obj)
+{
+    rb_thread_t *th = GET_THREAD();
+    raise_method_missing(th, argc, argv, obj, th-&gt;method_missing_reason);
+    UNREACHABLE;
+}
+            </pre> 
+            </div><!-- method_missing-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- method_missing-method -->
+      
+        <div id="singleton_method_added-method" class="method-detail ">
+          <a name="method-i-singleton_method_added"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">singleton_method_added(symbol)</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Invoked as a callback whenever a singleton method is added to the receiver.</p>
+
+<pre class="ruby"><span class="ruby-keyword">module</span> <span class="ruby-constant">Chatty</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-constant">Chatty</span>.<span class="ruby-identifier">singleton_method_added</span>(<span class="ruby-identifier">id</span>)
+    <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Adding #{id.id2name}&quot;</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-keyword">self</span>.<span class="ruby-identifier">one</span>()     <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-identifier">two</span>()          <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-constant">Chatty</span>.<span class="ruby-identifier">three</span>() <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span>
+</pre>
+
+<p><em>produces:</em></p>
+
+<pre class="ruby"><span class="ruby-constant">Adding</span> <span class="ruby-identifier">singleton_method_added</span>
+<span class="ruby-constant">Adding</span> <span class="ruby-identifier">one</span>
+<span class="ruby-constant">Adding</span> <span class="ruby-identifier">three</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="singleton_method_added-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_obj_dummy(void)
+{
+    return Qnil;
+}
+            </pre> 
+            </div><!-- singleton_method_added-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- singleton_method_added-method -->
+      
+        <div id="singleton_method_removed-method" class="method-detail ">
+          <a name="method-i-singleton_method_removed"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">singleton_method_removed(symbol)</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Invoked as a callback whenever a singleton method is removed from the
+receiver.</p>
+
+<pre class="ruby"><span class="ruby-keyword">module</span> <span class="ruby-constant">Chatty</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-constant">Chatty</span>.<span class="ruby-identifier">singleton_method_removed</span>(<span class="ruby-identifier">id</span>)
+    <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Removing #{id.id2name}&quot;</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-keyword">self</span>.<span class="ruby-identifier">one</span>()     <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-identifier">two</span>()          <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-constant">Chatty</span>.<span class="ruby-identifier">three</span>() <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">class</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-keyword">self</span>
+    <span class="ruby-identifier">remove_method</span> :<span class="ruby-identifier">three</span>
+    <span class="ruby-identifier">remove_method</span> :<span class="ruby-identifier">one</span>
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span>
+</pre>
+
+<p><em>produces:</em></p>
+
+<pre class="ruby"><span class="ruby-constant">Removing</span> <span class="ruby-identifier">three</span>
+<span class="ruby-constant">Removing</span> <span class="ruby-identifier">one</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="singleton_method_removed-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_obj_dummy(void)
+{
+    return Qnil;
+}
+            </pre> 
+            </div><!-- singleton_method_removed-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- singleton_method_removed-method -->
+      
+        <div id="singleton_method_undefined-method" class="method-detail ">
+          <a name="method-i-singleton_method_undefined"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">singleton_method_undefined(symbol)</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Invoked as a callback whenever a singleton method is undefined in the
+receiver.</p>
+
+<pre class="ruby"><span class="ruby-keyword">module</span> <span class="ruby-constant">Chatty</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-constant">Chatty</span>.<span class="ruby-identifier">singleton_method_undefined</span>(<span class="ruby-identifier">id</span>)
+    <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Undefining #{id.id2name}&quot;</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">def</span> <span class="ruby-constant">Chatty</span>.<span class="ruby-identifier">one</span>()   <span class="ruby-keyword">end</span>
+  <span class="ruby-keyword">class</span> <span class="ruby-operator">&lt;&lt;</span> <span class="ruby-keyword">self</span>
+     <span class="ruby-identifier">undef_method</span>(:<span class="ruby-identifier">one</span>)
+  <span class="ruby-keyword">end</span>
+<span class="ruby-keyword">end</span>
+</pre>
+
+<p><em>produces:</em></p>
+
+<pre class="ruby"><span class="ruby-constant">Undefining</span> <span class="ruby-identifier">one</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="singleton_method_undefined-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_obj_dummy(void)
+{
+    return Qnil;
+}
+            </pre> 
+            </div><!-- singleton_method_undefined-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- singleton_method_undefined-method -->
+      
+      </div><!-- private-instance-method-details -->
+    
+    </div><!-- 5Buntitled-5D -->
+  
+  <div id='tx_BasicObject_versioned' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_BasicObject_versioned").load("/associated/2.2.0/BasicObject.ihtml");</script> <div id='tx_BasicObject' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_BasicObject").load("/associated/BasicObject.ihtml");</script> 
+      
+  <!-- dsqus ? -->
+     
+
+  
+  </div><!-- documentation -->
+  <div id='dynamic'>
+  </div>
+      
+          
+
+      
+<div class='grids wrapper' id="footer">
+  <p><small>This page was generated for Ruby 2.2.0</small></p> 
+  
+   <p><a href="http://ruby-doc.org">Ruby-doc.org</a> is provided by <a href="http://jamesbritt.com">James Britt</a> and <a href="http://neurogami.com">Neurogami</a>. <a href="http://neurogami.com">Maximum R+D</a>.  <div class='oio-inline'><ins data-revive-zoneid="1" data-revive-id="58924a5717c091dfee6dda3f7d38c4d7"></ins><script async src="//ras.ruby-doc.org/vvv/delivery/thesinkjs.php"></script></div></p>
+ 
+       <p><small>Generated with Ruby-doc Rdoc Generator 0.39.0</small>.</p>
+  </div>
+</div>
+  
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-335317-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+    
+ <script type='text/javascript'>
+$(document).ready(function() {
+      $.ajaxSetup({ cache: false });
+      $("#vulns-alert").load("/associated/vulns.ihtml");
+    });
+
+    </script>
+
+
+ 
+		<script type='text/javascript'>
+
+	function loadPlus(plusdocs){
+			$(plusdocs).find("div[class='associated_wrapper']").each (function() {
+					$("#" + this.id).append($(plusdocs).find("#" + this.id ));
+					});
+	} 
+
+   //function loadInline(json){
+   // for (var lookFor in json) {
+    //  $(lookFor).after(json[lookFor]);
+    // }
+  // } // end loadInline
+
+
+$(document).ready(function() {
+		$.ajaxSetup({ cache: false });
+			$.get('/associated/2.2.0/plus_BasicObject.ihtml', 
+			function(plusdocs) {
+			setTimeout(function() {
+				loadPlus(plusdocs);
+				}, 2000);
+			}
+			);
+
+
+//     $.ajax({
+//     dataType: "json",
+//      url: '/associated/2.2.0/inline_BasicObject.js',
+//      success: function(json) {
+// 			setTimeout(function() {
+// 				loadInline(json);
+// 				}, 2000);
+// 			}
+//    });
+
+		});
+</script>
+		
+</body>
+</html>
+
+

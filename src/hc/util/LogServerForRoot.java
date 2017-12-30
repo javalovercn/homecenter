@@ -47,7 +47,6 @@ public class LogServerForRoot implements ILog {
 				outLogger.flush();
 				outLogger.close();
 			} catch (final Exception e) {
-
 			}
 		}
 

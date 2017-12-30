@@ -9,7 +9,6 @@ import hc.server.ui.ProjClassLoaderFinder;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SimuMobile;
-import hc.server.ui.design.Designer;
 import hc.server.ui.design.LinkProjectStore;
 import hc.server.ui.design.NativeOSManager;
 import hc.server.util.ContextSecurityConfig;
@@ -414,7 +413,7 @@ public class HCjar {
 	
 				for (int idx = 0; idx < menuNum; idx++) {
 					String menuName = (String)map.get(replaceIdxPattern(MENU_NAME, idx));
-					menuName = Designer.MENU;//使用统一Menu菜单夹
+					menuName = HPNode.NODE_MENU;//使用统一Menu菜单夹
 					final String menuColNum = (String)map.get(replaceIdxPattern(MENU_COL_NUM, idx));
 					final HPMenu menu = new HPMenu((String)map.get(replaceIdxPattern(MENU_ID, idx)), 
 							HPNode.MASK_MENU, menuName, (menuColNum==null)?0:Integer.parseInt(menuColNum),

@@ -3,7 +3,6 @@ package hc.core;
 import hc.core.util.RootBuilder;
 
 public class MsgBuilder {
-	public static final int MAX_BYTE_ARRAY_LEN = 1024 * 1024 * 2;
 	public static final short XOR_PACKAGE_ID_LEN = 8;
 	public static final short EXT_BYTE_NUM = 2 + XOR_PACKAGE_ID_LEN;//2位校验，8位包号
 	

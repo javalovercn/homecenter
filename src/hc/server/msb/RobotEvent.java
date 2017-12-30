@@ -13,7 +13,7 @@ public final class RobotEvent {
 	}
 
 	/**
-	 * return the event source wrapper of {@link Robot}.
+	 * return the event source wrapper of <code>Robot</code>.
 	 * @return 
 	 */
 	public final Robot getSource(){

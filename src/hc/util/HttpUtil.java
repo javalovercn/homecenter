@@ -287,6 +287,7 @@ public class HttpUtil {
 		final boolean isSimu = PropertiesManager.isSimu();
 		url = replaceSimuURL(url, isSimu);
 		//---------reuseThisCode
+		LogManager.log("get ajax : " + url);
 		return getAjax(url, null);
 	}
 	
@@ -552,7 +553,9 @@ public class HttpUtil {
 			final Enumeration addresses = ni.getInetAddresses();
 			while (addresses.hasMoreElements()) {
 				final InetAddress address = (InetAddress) addresses.nextElement();
-				if (address.isLoopbackAddress() || (enableIPv6 == false && address instanceof Inet6Address)) {
+				if (address.isLoopbackAddress() 
+						|| address.isLinkLocalAddress()
+						|| (enableIPv6 == false && address instanceof Inet6Address)) {
 					continue;
 				}
 				return (address);

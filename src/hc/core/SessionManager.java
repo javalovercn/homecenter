@@ -118,8 +118,6 @@ public class SessionManager {
 			}
 			return;
 		}
-		
-		ExceptionReporter.shutdown();
 	}
 
 	public static boolean isReadyToLineOnAndOnlyOneSession() {

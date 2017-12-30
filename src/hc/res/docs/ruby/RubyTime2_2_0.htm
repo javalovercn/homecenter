@@ -1,0 +1,4590 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <!-- classpage -- >
+    <!-- RD version: 0.39.0  -->
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+  <meta name='description' content='  Class : Time  -   Ruby 2.2.0 ' />
+  <meta content="2017-09-09 18:34:27 -0500" http-equiv="change-date" />
+  <!-- rel_prefix  = ''  ENV['RDOC_FOR_WEBSITE']   = true-->
+    
+    
+    
+  <!-- rel_prefix = '.'   asset_rel_prefix = ''  --> 
+  <title>Class: Time (Ruby 2.2.0) </title>
+  <link rel="stylesheet" href="/css/associated.css" type="text/css" >
+  <!-- link rel="stylesheet" href=".css/obf.css"  -->
+  <link rel="stylesheet" href="/css/inuit.css" >
+  <link rel="stylesheet" href="/css/grid.inuit.css" >
+  <link rel="stylesheet" href="/css/2011.css" type="text/css" >
+  <link rel="stylesheet" href="/css/rdoc.css" type="text/css" >
+    <link rel="stylesheet" href="/css/carbon17.css" type="text/css" >
+
+
+  <script src="/js/jquery.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/thickbox-compressed.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/quicksearch.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/rubydoc.js" type="text/javascript" charset="utf-8"></script> 
+
+
+   
+<script src="/js/highlight.min.js"></script>
+<script> 
+  hljs.tabReplace = '  ';
+  hljs.initHighlightingOnLoad();
+  </script> 
+
+  <style type='text/css'>
+
+    #vulns-alert #vulns{
+      background-color: #c33 ! important;
+      width: 100%;
+      text-align: center;
+   }
+   
+   #vulns-alert #vulns a {
+    color: #F99 ! important;
+   }
+ </style>
+
+   <link rel="stylesheet" href="/css/extra.css" type="text/css" >
+  <script  src="/js/extra.js"  ></script>
+
+
+</head>
+
+<body id="top" class="class rdocstar">
+
+<div id='actionbar' >
+<div class='wrapper'>
+  <ul class='grids g0'>
+	<li class='grid-2' ><a href='/' target='_top' >Home</a></li>
+	<li class='grid-2' ><a href='/core-2.2.0' target='_top' >Core 2.2.0</a></li>
+	<li class='grid-2' ><a href='/stdlib-2.2.0' target='_top' >Std-lib 2.2.0</a></li>
+
+   <li class='grid-2' ><a href='/downloads' target='_top' >Downloads</a></li>
+	 <li class='grid-5 right' id='rd-action-search'><form id="searchbox_011815814100681837392:wnccv6st5qk" action="http://ruby-doc.com/search.html"><input type="hidden" name="cx" value="011815814100681837392:wnccv6st5qk" ><input  id='rd-search-input' name="q" type="text" size="20" >&#160;&#160;<input type="submit" name="sa" value="Search" ><input type="hidden" name="cof" value="FORID:9" ></form></li>
+	</ul>
+</div>
+<span id='vulns-alert'></span>
+<div id='versionheader'>
+<p>Support for the Ruby 2.2 series will end March 2018. See <a href='https://www.ruby-lang.org/en/news/2017/04/01/support-of-ruby-2-1-has-ended/'>here</a> for reference.</p>
+</div>
+</div> <!-- end action bar -->
+ <div class='wrapper'>
+  
+   <!-- carbon17 added here 2017-09-09 -->
+ 
+   <script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD627W', 'placement:rubydocorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+ 
+
+   <div id="metadata">
+    <div id="home-metadata">
+      <div id="home-section" class="section">
+        <h3 class="section-header">
+          <a href="./index.html">Home</a>
+          <a href="./index.html#classes">Classes</a>
+          <a href="./index.html#methods">Methods</a>
+          
+          
+          <!-- br><a id='alternateFormatLink' class='rotate' href="#" onclick='matchingYardUrl()'>YARD version</a -->
+          
+        </h3>
+      </div>
+    </div>
+
+    <div id="file-metadata">
+      <div id="file-list-section" class="section">
+        <h3 class="section-header">In Files</h3>
+        <div class="section-body">
+          <ul id='file-metadata'>
+
+          
+          
+          
+          <li class='in-file'>time.c</li>      
+            
+          </ul>
+        </div>
+      </div>
+
+      
+    </div>
+
+    <div id="class-metadata">
+      
+      <!-- Parent Class -->
+      <div id="parent-class-section" class="section">
+        <h3 class="section-header">Parent</h3>
+        
+        <p class="link"><a href="Object.html">Object</a></p>
+        
+      </div>
+      
+
+      
+
+      
+
+      
+      <!-- Method Quickref -->
+      <div id="method-list-section" class="section">
+        <h3 class="section-header">Methods</h3>
+        <ul class="link-list">
+          
+          <li><a href="#method-c-at">::at</a></li>
+          
+          <li><a href="#method-c-gm">::gm</a></li>
+          
+          <li><a href="#method-c-local">::local</a></li>
+          
+          <li><a href="#method-c-mktime">::mktime</a></li>
+          
+          <li><a href="#method-c-new">::new</a></li>
+          
+          <li><a href="#method-c-now">::now</a></li>
+          
+          <li><a href="#method-c-utc">::utc</a></li>
+          
+          <li><a href="#method-i-2B">#+</a></li>
+          
+          <li><a href="#method-i-2D">#-</a></li>
+          
+          <li><a href="#method-i-3C-3D-3E">#<=></a></li>
+          
+          <li><a href="#method-i-asctime">#asctime</a></li>
+          
+          <li><a href="#method-i-ctime">#ctime</a></li>
+          
+          <li><a href="#method-i-day">#day</a></li>
+          
+          <li><a href="#method-i-dst-3F">#dst?</a></li>
+          
+          <li><a href="#method-i-eql-3F">#eql?</a></li>
+          
+          <li><a href="#method-i-friday-3F">#friday?</a></li>
+          
+          <li><a href="#method-i-getgm">#getgm</a></li>
+          
+          <li><a href="#method-i-getlocal">#getlocal</a></li>
+          
+          <li><a href="#method-i-getutc">#getutc</a></li>
+          
+          <li><a href="#method-i-gmt-3F">#gmt?</a></li>
+          
+          <li><a href="#method-i-gmt_offset">#gmt_offset</a></li>
+          
+          <li><a href="#method-i-gmtime">#gmtime</a></li>
+          
+          <li><a href="#method-i-gmtoff">#gmtoff</a></li>
+          
+          <li><a href="#method-i-hash">#hash</a></li>
+          
+          <li><a href="#method-i-hour">#hour</a></li>
+          
+          <li><a href="#method-i-inspect">#inspect</a></li>
+          
+          <li><a href="#method-i-isdst">#isdst</a></li>
+          
+          <li><a href="#method-i-localtime">#localtime</a></li>
+          
+          <li><a href="#method-i-mday">#mday</a></li>
+          
+          <li><a href="#method-i-min">#min</a></li>
+          
+          <li><a href="#method-i-mon">#mon</a></li>
+          
+          <li><a href="#method-i-monday-3F">#monday?</a></li>
+          
+          <li><a href="#method-i-month">#month</a></li>
+          
+          <li><a href="#method-i-nsec">#nsec</a></li>
+          
+          <li><a href="#method-i-round">#round</a></li>
+          
+          <li><a href="#method-i-saturday-3F">#saturday?</a></li>
+          
+          <li><a href="#method-i-sec">#sec</a></li>
+          
+          <li><a href="#method-i-strftime">#strftime</a></li>
+          
+          <li><a href="#method-i-subsec">#subsec</a></li>
+          
+          <li><a href="#method-i-succ">#succ</a></li>
+          
+          <li><a href="#method-i-sunday-3F">#sunday?</a></li>
+          
+          <li><a href="#method-i-thursday-3F">#thursday?</a></li>
+          
+          <li><a href="#method-i-to_a">#to_a</a></li>
+          
+          <li><a href="#method-i-to_f">#to_f</a></li>
+          
+          <li><a href="#method-i-to_i">#to_i</a></li>
+          
+          <li><a href="#method-i-to_r">#to_r</a></li>
+          
+          <li><a href="#method-i-to_s">#to_s</a></li>
+          
+          <li><a href="#method-i-tuesday-3F">#tuesday?</a></li>
+          
+          <li><a href="#method-i-tv_nsec">#tv_nsec</a></li>
+          
+          <li><a href="#method-i-tv_sec">#tv_sec</a></li>
+          
+          <li><a href="#method-i-tv_usec">#tv_usec</a></li>
+          
+          <li><a href="#method-i-usec">#usec</a></li>
+          
+          <li><a href="#method-i-utc">#utc</a></li>
+          
+          <li><a href="#method-i-utc-3F">#utc?</a></li>
+          
+          <li><a href="#method-i-utc_offset">#utc_offset</a></li>
+          
+          <li><a href="#method-i-wday">#wday</a></li>
+          
+          <li><a href="#method-i-wednesday-3F">#wednesday?</a></li>
+          
+          <li><a href="#method-i-yday">#yday</a></li>
+          
+          <li><a href="#method-i-year">#year</a></li>
+          
+          <li><a href="#method-i-zone">#zone</a></li>
+          
+        </ul>
+      </div>
+      
+
+      
+      <!-- Included Modules -->
+      <div id="includes-section" class="section">
+        <h3 class="section-header">Included Modules</h3>
+        <ul class="link-list">
+        
+        
+          <li><a class="include" href="Comparable.html">Comparable</a></li>
+        
+        
+        </ul>
+      </div>
+      
+    </div>
+
+    <div id="project-metadata">
+      
+      
+      <div id="fileindex-section" class="section project-section">
+        <h3 class="section-header">Files</h3>
+        <ul id='files'>
+        
+          
+          <li class="file"><a href="./_lib/racc/rdoc/grammar_en_rdoc.html">grammar.en.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./_test/rdoc/test_ja_rdoc.html">test.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributing_rdoc.html">contributing.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributors_rdoc.html">contributors.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/dtrace_probes_rdoc.html">dtrace_probes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/globals_rdoc.html">globals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/keywords_rdoc.html">keywords.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/maintainers_rdoc.html">maintainers.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/marshal_rdoc.html">marshal.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/regexp_rdoc.html">regexp.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/security_rdoc.html">security.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/standard_library_rdoc.html">standard_library.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax_rdoc.html">syntax.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/assignment_rdoc.html">assignment.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/calling_methods_rdoc.html">calling_methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/control_expressions_rdoc.html">control_expressions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/exceptions_rdoc.html">exceptions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/literals_rdoc.html">literals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/methods_rdoc.html">methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/miscellaneous_rdoc.html">miscellaneous.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/modules_and_classes_rdoc.html">modules_and_classes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/precedence_rdoc.html">precedence.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/refinements_rdoc.html">refinements.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_ja_rdoc.html">README.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_rdoc.html">README.rdoc</a></li>
+        
+        </ul>
+      </div>
+      
+
+      <div id="classindex-section" class="section project-section">
+        <h3 class="section-header">Class/Module Index
+          <span class="search-toggle"><img src="./images/find.png"
+            height="16" width="16" alt="[+]"
+            title="show/hide quicksearch" /></span></h3>
+        <form action="#" method="get" accept-charset="utf-8" class="initially-hidden">
+        <fieldset>
+          <legend>Quicksearch</legend>
+          <input type="text" name="quicksearch" value=""
+            class="quicksearch-field" />
+        </fieldset>
+        </form>
+
+        <ul class="link-list">
+          
+          
+          
+          <li><a href="./ArgumentError.html">ArgumentError</a></li>
+        
+          
+          
+          <li><a href="./Array.html">Array</a></li>
+        
+          
+          
+          <li><a href="./BasicObject.html">BasicObject</a></li>
+        
+          
+          
+          <li><a href="./Bignum.html">Bignum</a></li>
+        
+          
+          
+          <li><a href="./Binding.html">Binding</a></li>
+        
+          
+          
+          <li><a href="./Class.html">Class</a></li>
+        
+          
+          
+          <li><a href="./Comparable.html">Comparable</a></li>
+        
+          
+          
+          <li><a href="./Complex.html">Complex</a></li>
+        
+          
+          
+          <li><a href="./Complex/compatible.html">Complex::compatible</a></li>
+        
+          
+          
+          <li><a href="./ConditionVariable.html">ConditionVariable</a></li>
+        
+          
+          
+          <li><a href="./Continuation.html">Continuation</a></li>
+        
+          
+          
+          <li><a href="./Data.html">Data</a></li>
+        
+          
+          
+          <li><a href="./Dir.html">Dir</a></li>
+        
+          
+          
+          <li><a href="./ENV.html">ENV</a></li>
+        
+          
+          
+          <li><a href="./EOFError.html">EOFError</a></li>
+        
+          
+          
+          <li><a href="./Encoding.html">Encoding</a></li>
+        
+          
+          
+          <li><a href="./Encoding/CompatibilityError.html">Encoding::CompatibilityError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/Converter.html">Encoding::Converter</a></li>
+        
+          
+          
+          <li><a href="./Encoding/ConverterNotFoundError.html">Encoding::ConverterNotFoundError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/InvalidByteSequenceError.html">Encoding::InvalidByteSequenceError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/UndefinedConversionError.html">Encoding::UndefinedConversionError</a></li>
+        
+          
+          
+          <li><a href="./EncodingError.html">EncodingError</a></li>
+        
+          
+          
+          <li><a href="./Enumerable.html">Enumerable</a></li>
+        
+          
+          
+          <li><a href="./Enumerator.html">Enumerator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Generator.html">Enumerator::Generator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Lazy.html">Enumerator::Lazy</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Yielder.html">Enumerator::Yielder</a></li>
+        
+          
+          
+          <li><a href="./Errno.html">Errno</a></li>
+        
+          
+          
+          <li><a href="./Exception.html">Exception</a></li>
+        
+          
+          
+          <li><a href="./FalseClass.html">FalseClass</a></li>
+        
+          
+          
+          <li><a href="./Fiber.html">Fiber</a></li>
+        
+          
+          
+          <li><a href="./FiberError.html">FiberError</a></li>
+        
+          
+          
+          <li><a href="./File.html">File</a></li>
+        
+          
+          
+          <li><a href="./File/Constants.html">File::Constants</a></li>
+        
+          
+          
+          <li><a href="./File/Stat.html">File::Stat</a></li>
+        
+          
+          
+          <li><a href="./FileTest.html">FileTest</a></li>
+        
+          
+          
+          <li><a href="./Fixnum.html">Fixnum</a></li>
+        
+          
+          
+          <li><a href="./Float.html">Float</a></li>
+        
+          
+          
+          <li><a href="./FloatDomainError.html">FloatDomainError</a></li>
+        
+          
+          
+          <li><a href="./GC.html">GC</a></li>
+        
+          
+          
+          <li><a href="./GC/Profiler.html">GC::Profiler</a></li>
+        
+          
+          
+          <li><a href="./Hash.html">Hash</a></li>
+        
+          
+          
+          <li><a href="./IO.html">IO</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitReadable.html">IO::EAGAINWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitWritable.html">IO::EAGAINWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitReadable.html">IO::EINPROGRESSWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitWritable.html">IO::EINPROGRESSWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitReadable.html">IO::EWOULDBLOCKWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitWritable.html">IO::EWOULDBLOCKWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitReadable.html">IO::WaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitWritable.html">IO::WaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IOError.html">IOError</a></li>
+        
+          
+          
+          <li><a href="./IndexError.html">IndexError</a></li>
+        
+          
+          
+          <li><a href="./Integer.html">Integer</a></li>
+        
+          
+          
+          <li><a href="./Interrupt.html">Interrupt</a></li>
+        
+          
+          
+          <li><a href="./Kernel.html">Kernel</a></li>
+        
+          
+          
+          <li><a href="./KeyError.html">KeyError</a></li>
+        
+          
+          
+          <li><a href="./LoadError.html">LoadError</a></li>
+        
+          
+          
+          <li><a href="./LocalJumpError.html">LocalJumpError</a></li>
+        
+          
+          
+          <li><a href="./Marshal.html">Marshal</a></li>
+        
+          
+          
+          <li><a href="./MatchData.html">MatchData</a></li>
+        
+          
+          
+          <li><a href="./Math.html">Math</a></li>
+        
+          
+          
+          <li><a href="./Math/DomainError.html">Math::DomainError</a></li>
+        
+          
+          
+          <li><a href="./Method.html">Method</a></li>
+        
+          
+          
+          <li><a href="./Module.html">Module</a></li>
+        
+          
+          
+          <li><a href="./Mutex.html">Mutex</a></li>
+        
+          
+          
+          <li><a href="./NameError.html">NameError</a></li>
+        
+          
+          
+          <li><a href="./NilClass.html">NilClass</a></li>
+        
+          
+          
+          <li><a href="./NoMemoryError.html">NoMemoryError</a></li>
+        
+          
+          
+          <li><a href="./NoMethodError.html">NoMethodError</a></li>
+        
+          
+          
+          <li><a href="./NotImplementedError.html">NotImplementedError</a></li>
+        
+          
+          
+          <li><a href="./Numeric.html">Numeric</a></li>
+        
+          
+          
+          <li><a href="./Object.html">Object</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace.html">ObjectSpace</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace/WeakMap.html">ObjectSpace::WeakMap</a></li>
+        
+          
+          
+          <li><a href="./Proc.html">Proc</a></li>
+        
+          
+          
+          <li><a href="./Process.html">Process</a></li>
+        
+          
+          
+          <li><a href="./Process/GID.html">Process::GID</a></li>
+        
+          
+          
+          <li><a href="./Process/Status.html">Process::Status</a></li>
+        
+          
+          
+          <li><a href="./Process/Sys.html">Process::Sys</a></li>
+        
+          
+          
+          <li><a href="./Process/UID.html">Process::UID</a></li>
+        
+          
+          
+          <li><a href="./Process/Waiter.html">Process::Waiter</a></li>
+        
+          
+          
+          <li><a href="./Queue.html">Queue</a></li>
+        
+          
+          
+          <li><a href="./Random.html">Random</a></li>
+        
+          
+          
+          <li><a href="./Range.html">Range</a></li>
+        
+          
+          
+          <li><a href="./RangeError.html">RangeError</a></li>
+        
+          
+          
+          <li><a href="./Rational.html">Rational</a></li>
+        
+          
+          
+          <li><a href="./Rational/compatible.html">Rational::compatible</a></li>
+        
+          
+          
+          <li><a href="./Regexp.html">Regexp</a></li>
+        
+          
+          
+          <li><a href="./RegexpError.html">RegexpError</a></li>
+        
+          
+          
+          <li><a href="./RubyVM.html">RubyVM</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/Env.html">RubyVM::Env</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/InstructionSequence.html">RubyVM::InstructionSequence</a></li>
+        
+          
+          
+          <li><a href="./RuntimeError.html">RuntimeError</a></li>
+        
+          
+          
+          <li><a href="./ScriptError.html">ScriptError</a></li>
+        
+          
+          
+          <li><a href="./SecurityError.html">SecurityError</a></li>
+        
+          
+          
+          <li><a href="./Signal.html">Signal</a></li>
+        
+          
+          
+          <li><a href="./SignalException.html">SignalException</a></li>
+        
+          
+          
+          <li><a href="./SizedQueue.html">SizedQueue</a></li>
+        
+          
+          
+          <li><a href="./StandardError.html">StandardError</a></li>
+        
+          
+          
+          <li><a href="./StopIteration.html">StopIteration</a></li>
+        
+          
+          
+          <li><a href="./String.html">String</a></li>
+        
+          
+          
+          <li><a href="./Struct.html">Struct</a></li>
+        
+          
+          
+          <li><a href="./Symbol.html">Symbol</a></li>
+        
+          
+          
+          <li><a href="./SyntaxError.html">SyntaxError</a></li>
+        
+          
+          
+          <li><a href="./SystemCallError.html">SystemCallError</a></li>
+        
+          
+          
+          <li><a href="./SystemExit.html">SystemExit</a></li>
+        
+          
+          
+          <li><a href="./SystemStackError.html">SystemStackError</a></li>
+        
+          
+          
+          <li><a href="./Thread.html">Thread</a></li>
+        
+          
+          
+          <li><a href="./Thread/Backtrace/Location.html">Thread::Backtrace::Location</a></li>
+        
+          
+          
+          <li><a href="./ThreadError.html">ThreadError</a></li>
+        
+          
+          
+          <li><a href="./ThreadGroup.html">ThreadGroup</a></li>
+        
+          
+          
+          <li><a href="./Time.html">Time</a></li>
+        
+          
+          
+          <li><a href="./TracePoint.html">TracePoint</a></li>
+        
+          
+          
+          <li><a href="./TrueClass.html">TrueClass</a></li>
+        
+          
+          
+          <li><a href="./TypeError.html">TypeError</a></li>
+        
+          
+          
+          <li><a href="./UnboundMethod.html">UnboundMethod</a></li>
+        
+          
+          
+          <li><a href="./UncaughtThrowError.html">UncaughtThrowError</a></li>
+        
+          
+          
+          <li><a href="./ZeroDivisionError.html">ZeroDivisionError</a></li>
+        
+          
+          
+          <li><a href="./fatal.html">fatal</a></li>
+        
+          
+          
+          <li><a href="./unknown.html">unknown</a></li>
+        
+        </ul>
+        <div id="no-class-search-results" style="display: none;">No matching classes.</div>
+      </div>
+
+      
+    </div>
+  </div> <!-- metadata -->
+  <div class='adzbox'  id="azk83167">
+    
+   <div id="carbonads-container"><div class="carbonad">
+    <script async type="text/javascript" src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=rubydocorg" 
+      id="_carbonads_js">
+      </script>
+  </div></div>
+
+   
+  </div> 
+  <div id="documentation">
+    <h1 class="class">Time</h1>
+
+    <div id="description" class="description">
+      
+<p><a href="Time.html">Time</a> is an abstraction of dates and times. <a
+href="Time.html">Time</a> is stored internally as the number of seconds
+with fraction since the <em>Epoch</em>, January 1, 1970 00:00 UTC. Also see
+the library module Date. The <a href="Time.html">Time</a> class treats GMT
+(Greenwich Mean <a href="Time.html">Time</a>) and UTC (Coordinated
+Universal <a href="Time.html">Time</a>) as equivalent. GMT is the older way
+of referring to these baseline times but persists in the names of calls on
+POSIX systems.</p>
+
+<p>All times may have fraction. Be aware of this fact when comparing times
+with each other – times that are apparently equal when displayed may be
+different when compared.</p>
+
+<p>Since Ruby 1.9.2, <a href="Time.html">Time</a> implementation uses a signed
+63 bit integer, <a href="Bignum.html">Bignum</a> or <a
+href="Rational.html">Rational</a>. The integer is a number of nanoseconds
+since the <em>Epoch</em> which can represent 1823-11-12 to 2116-02-20. When
+<a href="Bignum.html">Bignum</a> or <a href="Rational.html">Rational</a> is
+used (before 1823, after 2116, under nanosecond), <a
+href="Time.html">Time</a> works slower as when integer is used.</p>
+
+<h1 id="class-Time-label-Examples">Examples<span><a href="#class-Time-label-Examples">&para;</a> <a href="#top">&uarr;</a></span></h1>
+
+<p>All of these examples were done using the EST timezone which is GMT-5.</p>
+
+<h2 id="class-Time-label-Creating+a+new+Time+instance">Creating a new <a href="Time.html">Time</a> instance<span><a href="#class-Time-label-Creating+a+new+Time+instance">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>You can create a new instance of <a href="Time.html">Time</a> with <a
+href="Time.html#method-c-new">::new</a>. This will use the current system
+time. <a href="Time.html#method-c-now">::now</a> is an alias for this. You
+can also pass parts of the time to <a
+href="Time.html#method-c-new">::new</a> such as year, month, minute, etc.
+When you want to construct a time this way you must pass at least a year.
+If you pass the year with nothing else time will default to January 1 of
+that year at 00:00:00 with the current system timezone. Here are some
+examples:</p>
+
+<pre class="ruby"><span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2002</span>)         <span class="ruby-comment">#=&gt; 2002-01-01 00:00:00 -0500</span>
+<span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2002</span>, <span class="ruby-value">10</span>)     <span class="ruby-comment">#=&gt; 2002-10-01 00:00:00 -0500</span>
+<span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2002</span>, <span class="ruby-value">10</span>, <span class="ruby-value">31</span>) <span class="ruby-comment">#=&gt; 2002-10-31 00:00:00 -0500</span>
+<span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2002</span>, <span class="ruby-value">10</span>, <span class="ruby-value">31</span>, <span class="ruby-value">2</span>, <span class="ruby-value">2</span>, <span class="ruby-value">2</span>, <span class="ruby-string">&quot;+02:00&quot;</span>) <span class="ruby-comment">#=&gt; 2002-10-31 02:02:02 +0200</span>
+</pre>
+
+<p>You can also use gm, local and <a href="Time.html#method-i-utc">utc</a> to
+infer GMT, local and UTC timezones instead of using the current system
+setting.</p>
+
+<p>You can also create a new time using <a
+href="Time.html#method-c-at">::at</a> which takes the number of seconds (or
+fraction of seconds) since the <a
+href="http://en.wikipedia.org/wiki/Unix_time">Unix Epoch</a>.</p>
+
+<pre class="ruby"><span class="ruby-constant">Time</span>.<span class="ruby-identifier">at</span>(<span class="ruby-value">628232400</span>) <span class="ruby-comment">#=&gt; 1989-11-28 00:00:00 -0500</span>
+</pre>
+
+<h2 id="class-Time-label-Working+with+an+instance+of+Time">Working with an instance of <a href="Time.html">Time</a><span><a href="#class-Time-label-Working+with+an+instance+of+Time">&para;</a> <a href="#top">&uarr;</a></span></h2>
+
+<p>Once you have an instance of <a href="Time.html">Time</a> there is a
+multitude of things you can do with it. Below are some examples. For all of
+the following examples, we will work on the assumption that you have done
+the following:</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">1993</span>, <span class="ruby-value">02</span>, <span class="ruby-value">24</span>, <span class="ruby-value">12</span>, <span class="ruby-value">0</span>, <span class="ruby-value">0</span>, <span class="ruby-string">&quot;+09:00&quot;</span>)
+</pre>
+
+<p>Was that a monday?</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span>.<span class="ruby-identifier">monday?</span> <span class="ruby-comment">#=&gt; false</span>
+</pre>
+
+<p>What year was that again?</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span>.<span class="ruby-identifier">year</span> <span class="ruby-comment">#=&gt; 1993</span>
+</pre>
+
+<p>Was is daylight savings at the time?</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span>.<span class="ruby-identifier">dst?</span> <span class="ruby-comment">#=&gt; false</span>
+</pre>
+
+<p>What’s the day a year later?</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> <span class="ruby-operator">+</span> (<span class="ruby-value">60</span><span class="ruby-operator">*</span><span class="ruby-value">60</span><span class="ruby-operator">*</span><span class="ruby-value">24</span><span class="ruby-operator">*</span><span class="ruby-value">365</span>) <span class="ruby-comment">#=&gt; 1994-02-24 12:00:00 +0900</span>
+</pre>
+
+<p>How many seconds was that since the Unix Epoch?</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_i</span> <span class="ruby-comment">#=&gt; 730522800</span>
+</pre>
+
+<p>You can also do standard functions like compare two times.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t1</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2010</span>)
+<span class="ruby-identifier">t2</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2011</span>)
+
+<span class="ruby-identifier">t1</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">t2</span> <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t1</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">t1</span> <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-identifier">t1</span> <span class="ruby-operator">&lt;</span>  <span class="ruby-identifier">t2</span> <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-identifier">t1</span> <span class="ruby-operator">&gt;</span>  <span class="ruby-identifier">t2</span> <span class="ruby-comment">#=&gt; false</span>
+
+<span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2010</span>,<span class="ruby-value">10</span>,<span class="ruby-value">31</span>).<span class="ruby-identifier">between?</span>(<span class="ruby-identifier">t1</span>, <span class="ruby-identifier">t2</span>) <span class="ruby-comment">#=&gt; true</span>
+</pre>
+
+    </div><!-- description -->
+
+    
+    
+    
+    <div id="5Buntitled-5D" class="documentation-section">
+      
+
+      
+
+      
+
+      
+
+      <!-- Methods -->
+      
+      <div id="public-class-method-details" class="method-section section">
+        <h3 class="section-header">Public Class Methods</h3>
+
+      
+        <div id="at-method" class="method-detail ">
+          <a name="method-c-at"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">at(time) &rarr; time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">at(seconds_with_frac) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">at(seconds, microseconds_with_frac) &rarr; time</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Creates a new <a href="Time.html">Time</a> object with the value given by
+<code>time</code>, the given number of <code>seconds_with_frac</code>, or
+<code>seconds</code> and <code>microseconds_with_frac</code> since the
+Epoch. <code>seconds_with_frac</code> and
+<code>microseconds_with_frac</code> can be an <a
+href="Integer.html">Integer</a>, <a href="Float.html">Float</a>, <a
+href="Rational.html">Rational</a>, or other <a
+href="Numeric.html">Numeric</a>. non-portable feature allows the offset to
+be negative on some systems.</p>
+
+<p>If a numeric argument is given, the result is in local time.</p>
+
+<pre class="ruby"><span class="ruby-constant">Time</span>.<span class="ruby-identifier">at</span>(<span class="ruby-value">0</span>)                           <span class="ruby-comment">#=&gt; 1969-12-31 18:00:00 -0600</span>
+<span class="ruby-constant">Time</span>.<span class="ruby-identifier">at</span>(<span class="ruby-constant">Time</span>.<span class="ruby-identifier">at</span>(<span class="ruby-value">0</span>))                  <span class="ruby-comment">#=&gt; 1969-12-31 18:00:00 -0600</span>
+<span class="ruby-constant">Time</span>.<span class="ruby-identifier">at</span>(<span class="ruby-value">946702800</span>)                   <span class="ruby-comment">#=&gt; 1999-12-31 23:00:00 -0600</span>
+<span class="ruby-constant">Time</span>.<span class="ruby-identifier">at</span>(<span class="ruby-value">-284061600</span>)                  <span class="ruby-comment">#=&gt; 1960-12-31 00:00:00 -0600</span>
+<span class="ruby-constant">Time</span>.<span class="ruby-identifier">at</span>(<span class="ruby-value">946684800.2</span>).<span class="ruby-identifier">usec</span>            <span class="ruby-comment">#=&gt; 200000</span>
+<span class="ruby-constant">Time</span>.<span class="ruby-identifier">at</span>(<span class="ruby-value">946684800</span>, <span class="ruby-value">123456.789</span>).<span class="ruby-identifier">nsec</span>  <span class="ruby-comment">#=&gt; 123456789</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="at-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_s_at(int argc, VALUE *argv, VALUE klass)
+{
+    VALUE time, t;
+    wideval_t timew;
+
+    if (rb_scan_args(argc, argv, &quot;11&quot;, &amp;time, &amp;t) == 2) {
+        time = num_exact(time);
+        t = num_exact(t);
+        timew = wadd(rb_time_magnify(v2w(time)), wmulquoll(v2w(t), TIME_SCALE, 1000000));
+        t = time_new_timew(klass, timew);
+    }
+    else if (IsTimeval(time)) {
+        struct time_object *tobj, *tobj2;
+        GetTimeval(time, tobj);
+        t = time_new_timew(klass, tobj-&gt;timew);
+        GetTimeval(t, tobj2);
+        TIME_COPY_GMT(tobj2, tobj);
+    }
+    else {
+        timew = rb_time_magnify(v2w(num_exact(time)));
+        t = time_new_timew(klass, timew);
+    }
+
+    return t;
+}
+            </pre> 
+            </div><!-- at-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- at-method -->
+      
+        <div id="gm-method" class="method-detail ">
+          <a name="method-c-gm"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">gm(year) &rarr; time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">gm(year, month) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">gm(year, month, day) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">gm(year, month, day, hour) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">gm(year, month, day, hour, min) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">gm(year, month, day, hour, min, sec_with_frac) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">gm(year, month, day, hour, min, sec, usec_with_frac) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">gm(sec, min, hour, day, month, year, dummy, dummy, dummy, dummy) &rarr; time</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Creates a <a href="Time.html">Time</a> object based on given values,
+interpreted as UTC (GMT). The year must be specified. Other values default
+to the minimum value for that field (and may be <code>nil</code> or
+omitted). Months may be specified by numbers from 1 to 12, or by the
+three-letter English month names. Hours are specified on a 24-hour clock
+(0..23). Raises an <a href="ArgumentError.html">ArgumentError</a> if any
+values are out of range. Will also accept ten arguments in the order output
+by <a href="Time.html#method-i-to_a">#to_a</a>.</p>
+
+<p><code>sec_with_frac</code> and <code>usec_with_frac</code> can have a
+fractional part.</p>
+
+<pre class="ruby"><span class="ruby-constant">Time</span>.<span class="ruby-identifier">utc</span>(<span class="ruby-value">2000</span>,<span class="ruby-string">&quot;jan&quot;</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)  <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 UTC</span>
+<span class="ruby-constant">Time</span>.<span class="ruby-identifier">gm</span>(<span class="ruby-value">2000</span>,<span class="ruby-string">&quot;jan&quot;</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)   <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 UTC</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="gm-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_s_mkutc(int argc, VALUE *argv, VALUE klass)
+{
+    return time_utc_or_local(argc, argv, TRUE, klass);
+}
+            </pre> 
+            </div><!-- gm-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- gm-method -->
+      
+        <div id="local-method" class="method-detail ">
+          <a name="method-c-local"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">local(year) &rarr; time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">local(year, month) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">local(year, month, day) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">local(year, month, day, hour) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">local(year, month, day, hour, min) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">local(year, month, day, hour, min, sec_with_frac) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">local(year, month, day, hour, min, sec, usec_with_frac) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">local(sec, min, hour, day, month, year, dummy, dummy, isdst, dummy) &rarr; time</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Same as <a href="Time.html#method-c-gm">::gm</a>, but interprets the values
+in the local time zone.</p>
+
+<pre class="ruby"><span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>,<span class="ruby-string">&quot;jan&quot;</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)   <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 -0600</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="local-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_s_mktime(int argc, VALUE *argv, VALUE klass)
+{
+    return time_utc_or_local(argc, argv, FALSE, klass);
+}
+            </pre> 
+            </div><!-- local-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- local-method -->
+      
+        <div id="mktime-method" class="method-detail ">
+          <a name="method-c-mktime"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">mktime(year) &rarr; time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">mktime(year, month) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">mktime(year, month, day) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">mktime(year, month, day, hour) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">mktime(year, month, day, hour, min) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">mktime(year, month, day, hour, min, sec_with_frac) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">mktime(year, month, day, hour, min, sec, usec_with_frac) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">mktime(sec, min, hour, day, month, year, dummy, dummy, isdst, dummy) &rarr; time</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Same as <a href="Time.html#method-c-gm">::gm</a>, but interprets the values
+in the local time zone.</p>
+
+<pre class="ruby"><span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>,<span class="ruby-string">&quot;jan&quot;</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)   <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 -0600</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="mktime-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_s_mktime(int argc, VALUE *argv, VALUE klass)
+{
+    return time_utc_or_local(argc, argv, FALSE, klass);
+}
+            </pre> 
+            </div><!-- mktime-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- mktime-method -->
+      
+        <div id="new-method" class="method-detail ">
+          <a name="method-c-new"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">new &rarr; time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">new(year, month=nil, day=nil, hour=nil, min=nil, sec=nil, utc_offset=nil) &rarr; time</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a <a href="Time.html">Time</a> object.</p>
+
+<p>It is initialized to the current system time if no argument is given.</p>
+
+<p><strong>Note:</strong> The new object will use the resolution available on
+your system clock, and may include fractional seconds.</p>
+
+<p>If one or more arguments specified, the time is initialized to the
+specified time.</p>
+
+<p><code>sec</code> may have fraction if it is a rational.</p>
+
+<p><code>utc_offset</code> is the offset from UTC. It can be a string such as
+"+09:00" or a number of seconds such as 32400.</p>
+
+<pre class="ruby"><span class="ruby-identifier">a</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>      <span class="ruby-comment">#=&gt; 2007-11-19 07:50:02 -0600</span>
+<span class="ruby-identifier">b</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>      <span class="ruby-comment">#=&gt; 2007-11-19 07:50:02 -0600</span>
+<span class="ruby-identifier">a</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">b</span>            <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-string">&quot;%.6f&quot;</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">a</span>.<span class="ruby-identifier">to_f</span>   <span class="ruby-comment">#=&gt; &quot;1195480202.282373&quot;</span>
+<span class="ruby-string">&quot;%.6f&quot;</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">b</span>.<span class="ruby-identifier">to_f</span>   <span class="ruby-comment">#=&gt; &quot;1195480202.283415&quot;</span>
+
+<span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2008</span>,<span class="ruby-value">6</span>,<span class="ruby-value">21</span>, <span class="ruby-value">13</span>,<span class="ruby-value">30</span>,<span class="ruby-value">0</span>, <span class="ruby-string">&quot;+09:00&quot;</span>) <span class="ruby-comment">#=&gt; 2008-06-21 13:30:00 +0900</span>
+
+<span class="ruby-comment"># A trip for RubyConf 2007</span>
+<span class="ruby-identifier">t1</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2007</span>,<span class="ruby-value">11</span>,<span class="ruby-value">1</span>,<span class="ruby-value">15</span>,<span class="ruby-value">25</span>,<span class="ruby-value">0</span>, <span class="ruby-string">&quot;+09:00&quot;</span>) <span class="ruby-comment"># JST (Narita)</span>
+<span class="ruby-identifier">t2</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2007</span>,<span class="ruby-value">11</span>,<span class="ruby-value">1</span>,<span class="ruby-value">12</span>, <span class="ruby-value">5</span>,<span class="ruby-value">0</span>, <span class="ruby-string">&quot;-05:00&quot;</span>) <span class="ruby-comment"># CDT (Minneapolis)</span>
+<span class="ruby-identifier">t3</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2007</span>,<span class="ruby-value">11</span>,<span class="ruby-value">1</span>,<span class="ruby-value">13</span>,<span class="ruby-value">25</span>,<span class="ruby-value">0</span>, <span class="ruby-string">&quot;-05:00&quot;</span>) <span class="ruby-comment"># CDT (Minneapolis)</span>
+<span class="ruby-identifier">t4</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2007</span>,<span class="ruby-value">11</span>,<span class="ruby-value">1</span>,<span class="ruby-value">16</span>,<span class="ruby-value">53</span>,<span class="ruby-value">0</span>, <span class="ruby-string">&quot;-04:00&quot;</span>) <span class="ruby-comment"># EDT (Charlotte)</span>
+<span class="ruby-identifier">t5</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2007</span>,<span class="ruby-value">11</span>,<span class="ruby-value">5</span>, <span class="ruby-value">9</span>,<span class="ruby-value">24</span>,<span class="ruby-value">0</span>, <span class="ruby-string">&quot;-05:00&quot;</span>) <span class="ruby-comment"># EST (Charlotte)</span>
+<span class="ruby-identifier">t6</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2007</span>,<span class="ruby-value">11</span>,<span class="ruby-value">5</span>,<span class="ruby-value">11</span>,<span class="ruby-value">21</span>,<span class="ruby-value">0</span>, <span class="ruby-string">&quot;-05:00&quot;</span>) <span class="ruby-comment"># EST (Detroit)</span>
+<span class="ruby-identifier">t7</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2007</span>,<span class="ruby-value">11</span>,<span class="ruby-value">5</span>,<span class="ruby-value">13</span>,<span class="ruby-value">45</span>,<span class="ruby-value">0</span>, <span class="ruby-string">&quot;-05:00&quot;</span>) <span class="ruby-comment"># EST (Detroit)</span>
+<span class="ruby-identifier">t8</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2007</span>,<span class="ruby-value">11</span>,<span class="ruby-value">6</span>,<span class="ruby-value">17</span>,<span class="ruby-value">10</span>,<span class="ruby-value">0</span>, <span class="ruby-string">&quot;+09:00&quot;</span>) <span class="ruby-comment"># JST (Narita)</span>
+<span class="ruby-identifier">p</span>((<span class="ruby-identifier">t2</span><span class="ruby-operator">-</span><span class="ruby-identifier">t1</span>)<span class="ruby-operator">/</span><span class="ruby-value">3600.0</span>)                          <span class="ruby-comment">#=&gt; 10.666666666666666</span>
+<span class="ruby-identifier">p</span>((<span class="ruby-identifier">t4</span><span class="ruby-operator">-</span><span class="ruby-identifier">t3</span>)<span class="ruby-operator">/</span><span class="ruby-value">3600.0</span>)                          <span class="ruby-comment">#=&gt; 2.466666666666667</span>
+<span class="ruby-identifier">p</span>((<span class="ruby-identifier">t6</span><span class="ruby-operator">-</span><span class="ruby-identifier">t5</span>)<span class="ruby-operator">/</span><span class="ruby-value">3600.0</span>)                          <span class="ruby-comment">#=&gt; 1.95</span>
+<span class="ruby-identifier">p</span>((<span class="ruby-identifier">t8</span><span class="ruby-operator">-</span><span class="ruby-identifier">t7</span>)<span class="ruby-operator">/</span><span class="ruby-value">3600.0</span>)                          <span class="ruby-comment">#=&gt; 13.416666666666666</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="new-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_init(int argc, VALUE *argv, VALUE time)
+{
+    if (argc == 0)
+        return time_init_0(time);
+    else
+        return time_init_1(argc, argv, time);
+}
+            </pre> 
+            </div><!-- new-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- new-method -->
+      
+        <div id="now-method" class="method-detail ">
+          <a name="method-c-now"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">now &rarr; time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Creates a new <a href="Time.html">Time</a> object for the current time.
+This is same as <a href="Time.html#method-c-new">::new</a> without
+arguments.</p>
+
+<pre class="ruby"><span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>            <span class="ruby-comment">#=&gt; 2009-06-24 12:39:54 +0900</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="now-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_s_now(VALUE klass)
+{
+    return rb_class_new_instance(0, NULL, klass);
+}
+            </pre> 
+            </div><!-- now-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- now-method -->
+      
+        <div id="utc-method" class="method-detail ">
+          <a name="method-c-utc"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">utc(year) &rarr; time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">utc(year, month) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">utc(year, month, day) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">utc(year, month, day, hour) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">utc(year, month, day, hour, min) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">utc(year, month, day, hour, min, sec_with_frac) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">utc(year, month, day, hour, min, sec, usec_with_frac) &rarr; time</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">utc(sec, min, hour, day, month, year, dummy, dummy, dummy, dummy) &rarr; time</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Creates a <a href="Time.html">Time</a> object based on given values,
+interpreted as UTC (GMT). The year must be specified. Other values default
+to the minimum value for that field (and may be <code>nil</code> or
+omitted). Months may be specified by numbers from 1 to 12, or by the
+three-letter English month names. Hours are specified on a 24-hour clock
+(0..23). Raises an <a href="ArgumentError.html">ArgumentError</a> if any
+values are out of range. Will also accept ten arguments in the order output
+by <a href="Time.html#method-i-to_a">#to_a</a>.</p>
+
+<p><code>sec_with_frac</code> and <code>usec_with_frac</code> can have a
+fractional part.</p>
+
+<pre class="ruby"><span class="ruby-constant">Time</span>.<span class="ruby-identifier">utc</span>(<span class="ruby-value">2000</span>,<span class="ruby-string">&quot;jan&quot;</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)  <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 UTC</span>
+<span class="ruby-constant">Time</span>.<span class="ruby-identifier">gm</span>(<span class="ruby-value">2000</span>,<span class="ruby-string">&quot;jan&quot;</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)   <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 UTC</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="utc-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_s_mkutc(int argc, VALUE *argv, VALUE klass)
+{
+    return time_utc_or_local(argc, argv, TRUE, klass);
+}
+            </pre> 
+            </div><!-- utc-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- utc-method -->
+      
+      </div><!-- public-class-method-details -->
+    
+      <div id="public-instance-method-details" class="method-section section">
+        <h3 class="section-header">Public Instance Methods</h3>
+
+      
+        <div id="2B-method" class="method-detail ">
+          <a name="method-i-2B"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">time + numeric &rarr; time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Addition — Adds some number of seconds (possibly fractional) to
+<em>time</em> and returns that value as a new <a href="Time.html">Time</a>
+object.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>         <span class="ruby-comment">#=&gt; 2007-11-19 08:22:21 -0600</span>
+<span class="ruby-identifier">t</span> <span class="ruby-operator">+</span> (<span class="ruby-value">60</span> <span class="ruby-operator">*</span> <span class="ruby-value">60</span> <span class="ruby-operator">*</span> <span class="ruby-value">24</span>)   <span class="ruby-comment">#=&gt; 2007-11-20 08:22:21 -0600</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="2B-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_plus(VALUE time1, VALUE time2)
+{
+    struct time_object *tobj;
+    GetTimeval(time1, tobj);
+
+    if (IsTimeval(time2)) {
+        rb_raise(rb_eTypeError, &quot;time + time?&quot;);
+    }
+    return time_add(tobj, time2, 1);
+}
+            </pre> 
+            </div><!-- 2B-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 2B-method -->
+      
+        <div id="2D-method" class="method-detail ">
+          <a name="method-i-2D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">time - other_time &rarr; float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">time - numeric    &rarr; time</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Difference — Returns a new <a href="Time.html">Time</a> object that
+represents the difference between <em>time</em> and
+<code>other_time</code>, or subtracts the given number of seconds in
+<code>numeric</code> from <em>time</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>       <span class="ruby-comment">#=&gt; 2007-11-19 08:23:10 -0600</span>
+<span class="ruby-identifier">t2</span> = <span class="ruby-identifier">t</span> <span class="ruby-operator">+</span> <span class="ruby-value">2592000</span>   <span class="ruby-comment">#=&gt; 2007-12-19 08:23:10 -0600</span>
+<span class="ruby-identifier">t2</span> <span class="ruby-operator">-</span> <span class="ruby-identifier">t</span>             <span class="ruby-comment">#=&gt; 2592000.0</span>
+<span class="ruby-identifier">t2</span> <span class="ruby-operator">-</span> <span class="ruby-value">2592000</span>       <span class="ruby-comment">#=&gt; 2007-11-19 08:23:10 -0600</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="2D-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_minus(VALUE time1, VALUE time2)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time1, tobj);
+    if (IsTimeval(time2)) {
+        struct time_object *tobj2;
+
+        GetTimeval(time2, tobj2);
+        return rb_Float(rb_time_unmagnify_to_float(wsub(tobj-&gt;timew, tobj2-&gt;timew)));
+    }
+    return time_add(tobj, time2, -1);
+}
+            </pre> 
+            </div><!-- 2D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 2D-method -->
+      
+        <div id="3C-3D-3E-method" class="method-detail ">
+          <a name="method-i-3C-3D-3E"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">time <=> other_time &rarr; -1, 0, +1 or nil</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Comparison—Compares <code>time</code> with <code>other_time</code>.</p>
+
+<p>-1, 0, +1 or nil depending on whether <code>time</code> is less  than,
+equal to, or greater than <code>other_time</code>.</p>
+
+<p><code>nil</code> is returned if the two values are incomparable.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>       <span class="ruby-comment">#=&gt; 2007-11-19 08:12:12 -0600</span>
+<span class="ruby-identifier">t2</span> = <span class="ruby-identifier">t</span> <span class="ruby-operator">+</span> <span class="ruby-value">2592000</span>   <span class="ruby-comment">#=&gt; 2007-12-19 08:12:12 -0600</span>
+<span class="ruby-identifier">t</span> <span class="ruby-operator">&lt;=&gt;</span> <span class="ruby-identifier">t2</span>           <span class="ruby-comment">#=&gt; -1</span>
+<span class="ruby-identifier">t2</span> <span class="ruby-operator">&lt;=&gt;</span> <span class="ruby-identifier">t</span>           <span class="ruby-comment">#=&gt; 1</span>
+
+<span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>       <span class="ruby-comment">#=&gt; 2007-11-19 08:13:38 -0600</span>
+<span class="ruby-identifier">t2</span> = <span class="ruby-identifier">t</span> <span class="ruby-operator">+</span> <span class="ruby-value">0.1</span>       <span class="ruby-comment">#=&gt; 2007-11-19 08:13:38 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">nsec</span>             <span class="ruby-comment">#=&gt; 98222999</span>
+<span class="ruby-identifier">t2</span>.<span class="ruby-identifier">nsec</span>            <span class="ruby-comment">#=&gt; 198222999</span>
+<span class="ruby-identifier">t</span> <span class="ruby-operator">&lt;=&gt;</span> <span class="ruby-identifier">t2</span>           <span class="ruby-comment">#=&gt; -1</span>
+<span class="ruby-identifier">t2</span> <span class="ruby-operator">&lt;=&gt;</span> <span class="ruby-identifier">t</span>           <span class="ruby-comment">#=&gt; 1</span>
+<span class="ruby-identifier">t</span> <span class="ruby-operator">&lt;=&gt;</span> <span class="ruby-identifier">t</span>            <span class="ruby-comment">#=&gt; 0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="3C-3D-3E-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_cmp(VALUE time1, VALUE time2)
+{
+    struct time_object *tobj1, *tobj2;
+    int n;
+
+    GetTimeval(time1, tobj1);
+    if (IsTimeval(time2)) {
+        GetTimeval(time2, tobj2);
+        n = wcmp(tobj1-&gt;timew, tobj2-&gt;timew);
+    }
+    else {
+        return rb_invcmp(time1, time2);
+    }
+    if (n == 0) return INT2FIX(0);
+    if (n &gt; 0) return INT2FIX(1);
+    return INT2FIX(-1);
+}
+            </pre> 
+            </div><!-- 3C-3D-3E-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 3C-3D-3E-method -->
+      
+        <div id="asctime-method" class="method-detail ">
+          <a name="method-i-asctime"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">asctime &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a canonical string representation of <em>time</em>.</p>
+
+<pre class="ruby"><span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">asctime</span>   <span class="ruby-comment">#=&gt; &quot;Wed Apr  9 08:56:03 2003&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="asctime-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_asctime(VALUE time)
+{
+    return strftimev(&quot;%a %b %e %T %Y&quot;, time, rb_usascii_encoding());
+}
+            </pre> 
+            </div><!-- asctime-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- asctime-method -->
+      
+        <div id="ctime-method" class="method-detail ">
+          <a name="method-i-ctime"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">ctime   &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a canonical string representation of <em>time</em>.</p>
+
+<pre class="ruby"><span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>.<span class="ruby-identifier">asctime</span>   <span class="ruby-comment">#=&gt; &quot;Wed Apr  9 08:56:03 2003&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="ctime-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_asctime(VALUE time)
+{
+    return strftimev(&quot;%a %b %e %T %Y&quot;, time, rb_usascii_encoding());
+}
+            </pre> 
+            </div><!-- ctime-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- ctime-method -->
+      
+        <div id="day-method" class="method-detail ">
+          <a name="method-i-day"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">day  &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the day of the month (1..n) for <em>time</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-19 08:27:03 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">day</span>          <span class="ruby-comment">#=&gt; 19</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">mday</span>         <span class="ruby-comment">#=&gt; 19</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="day-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_mday(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    return INT2FIX(tobj-&gt;vtm.mday);
+}
+            </pre> 
+            </div><!-- day-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- day-method -->
+      
+        <div id="dst-3F-method" class="method-detail ">
+          <a name="method-i-dst-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">dst?  &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <em>time</em> occurs during Daylight Saving <a
+href="Time.html">Time</a> in its time zone.</p>
+
+<pre class="ruby"><span class="ruby-comment"># CST6CDT:</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">zone</span>    <span class="ruby-comment">#=&gt; &quot;CST&quot;</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">isdst</span>   <span class="ruby-comment">#=&gt; false</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">dst?</span>    <span class="ruby-comment">#=&gt; false</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">7</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">zone</span>    <span class="ruby-comment">#=&gt; &quot;CDT&quot;</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">7</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">isdst</span>   <span class="ruby-comment">#=&gt; true</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">7</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">dst?</span>    <span class="ruby-comment">#=&gt; true</span>
+
+<span class="ruby-comment"># Asia/Tokyo:</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">zone</span>    <span class="ruby-comment">#=&gt; &quot;JST&quot;</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">isdst</span>   <span class="ruby-comment">#=&gt; false</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">dst?</span>    <span class="ruby-comment">#=&gt; false</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">7</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">zone</span>    <span class="ruby-comment">#=&gt; &quot;JST&quot;</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">7</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">isdst</span>   <span class="ruby-comment">#=&gt; false</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">7</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">dst?</span>    <span class="ruby-comment">#=&gt; false</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="dst-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_isdst(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    return tobj-&gt;vtm.isdst ? Qtrue : Qfalse;
+}
+            </pre> 
+            </div><!-- dst-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- dst-3F-method -->
+      
+        <div id="eql-3F-method" class="method-detail ">
+          <a name="method-i-eql-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">eql?(other_time)</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <em>time</em> and <code>other_time</code> are
+both <a href="Time.html">Time</a> objects with the same seconds and
+fractional seconds.</p>
+            
+
+            
+            <div class="method-source-code" id="eql-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_eql(VALUE time1, VALUE time2)
+{
+    struct time_object *tobj1, *tobj2;
+
+    GetTimeval(time1, tobj1);
+    if (IsTimeval(time2)) {
+        GetTimeval(time2, tobj2);
+        return rb_equal(w2v(tobj1-&gt;timew), w2v(tobj2-&gt;timew));
+    }
+    return Qfalse;
+}
+            </pre> 
+            </div><!-- eql-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- eql-3F-method -->
+      
+        <div id="friday-3F-method" class="method-detail ">
+          <a name="method-i-friday-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">friday? &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <em>time</em> represents Friday.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">1987</span>, <span class="ruby-value">12</span>, <span class="ruby-value">18</span>)     <span class="ruby-comment">#=&gt; 1987-12-18 00:00:00 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">friday?</span>                        <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="friday-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_friday(VALUE time)
+{
+    wday_p(5);
+}
+            </pre> 
+            </div><!-- friday-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- friday-3F-method -->
+      
+        <div id="getgm-method" class="method-detail ">
+          <a name="method-i-getgm"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">getgm  &rarr; new_time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a new <a href="Time.html">Time</a> object representing
+<em>time</em> in UTC.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>,<span class="ruby-value">1</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)   <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmt?</span>                             <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">y</span> = <span class="ruby-identifier">t</span>.<span class="ruby-identifier">getgm</span>                        <span class="ruby-comment">#=&gt; 2000-01-02 02:15:01 UTC</span>
+<span class="ruby-identifier">y</span>.<span class="ruby-identifier">gmt?</span>                             <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-identifier">t</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">y</span>                             <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="getgm-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_getgmtime(VALUE time)
+{
+    return time_gmtime(time_dup(time));
+}
+            </pre> 
+            </div><!-- getgm-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- getgm-method -->
+      
+        <div id="getlocal-method" class="method-detail ">
+          <a name="method-i-getlocal"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">getlocal &rarr; new_time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">getlocal(utc_offset) &rarr; new_time</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a new <a href="Time.html">Time</a> object representing
+<em>time</em> in local time (using the local time zone in effect for this
+process).</p>
+
+<p>If <code>utc_offset</code> is given, it is used instead of the local time.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">utc</span>(<span class="ruby-value">2000</span>,<span class="ruby-value">1</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)  <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 UTC</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc?</span>                          <span class="ruby-comment">#=&gt; true</span>
+
+<span class="ruby-identifier">l</span> = <span class="ruby-identifier">t</span>.<span class="ruby-identifier">getlocal</span>                  <span class="ruby-comment">#=&gt; 2000-01-01 14:15:01 -0600</span>
+<span class="ruby-identifier">l</span>.<span class="ruby-identifier">utc?</span>                          <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">l</span>                          <span class="ruby-comment">#=&gt; true</span>
+
+<span class="ruby-identifier">j</span> = <span class="ruby-identifier">t</span>.<span class="ruby-identifier">getlocal</span>(<span class="ruby-string">&quot;+09:00&quot;</span>)        <span class="ruby-comment">#=&gt; 2000-01-02 05:15:01 +0900</span>
+<span class="ruby-identifier">j</span>.<span class="ruby-identifier">utc?</span>                          <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">j</span>                          <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="getlocal-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_getlocaltime(int argc, VALUE *argv, VALUE time)
+{
+    VALUE off;
+    rb_scan_args(argc, argv, &quot;01&quot;, &amp;off);
+
+    if (!NIL_P(off)) {
+        off = utc_offset_arg(off);
+        validate_utc_offset(off);
+
+        time = time_dup(time);
+        time_set_utc_offset(time, off);
+        return time_fixoff(time);
+    }
+
+    return time_localtime(time_dup(time));
+}
+            </pre> 
+            </div><!-- getlocal-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- getlocal-method -->
+      
+        <div id="getutc-method" class="method-detail ">
+          <a name="method-i-getutc"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">getutc &rarr; new_time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a new <a href="Time.html">Time</a> object representing
+<em>time</em> in UTC.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>,<span class="ruby-value">1</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)   <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmt?</span>                             <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">y</span> = <span class="ruby-identifier">t</span>.<span class="ruby-identifier">getgm</span>                        <span class="ruby-comment">#=&gt; 2000-01-02 02:15:01 UTC</span>
+<span class="ruby-identifier">y</span>.<span class="ruby-identifier">gmt?</span>                             <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-identifier">t</span> <span class="ruby-operator">==</span> <span class="ruby-identifier">y</span>                             <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="getutc-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_getgmtime(VALUE time)
+{
+    return time_gmtime(time_dup(time));
+}
+            </pre> 
+            </div><!-- getutc-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- getutc-method -->
+      
+        <div id="gmt-3F-method" class="method-detail ">
+          <a name="method-i-gmt-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">gmt? &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <em>time</em> represents a time in UTC (GMT).</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>                        <span class="ruby-comment">#=&gt; 2007-11-19 08:15:23 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc?</span>                              <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">gm</span>(<span class="ruby-value">2000</span>,<span class="ruby-string">&quot;jan&quot;</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)   <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 UTC</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc?</span>                              <span class="ruby-comment">#=&gt; true</span>
+
+<span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>                        <span class="ruby-comment">#=&gt; 2007-11-19 08:16:03 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmt?</span>                              <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">gm</span>(<span class="ruby-value">2000</span>,<span class="ruby-value">1</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)       <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 UTC</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmt?</span>                              <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="gmt-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_utc_p(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    if (TIME_UTC_P(tobj)) return Qtrue;
+    return Qfalse;
+}
+            </pre> 
+            </div><!-- gmt-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- gmt-3F-method -->
+      
+        <div id="gmt_offset-method" class="method-detail ">
+          <a name="method-i-gmt_offset"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">gmt_offset &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the offset in seconds between the timezone of <em>time</em> and
+UTC.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">gm</span>(<span class="ruby-value">2000</span>,<span class="ruby-value">1</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)   <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 UTC</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmt_offset</span>                    <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-identifier">l</span> = <span class="ruby-identifier">t</span>.<span class="ruby-identifier">getlocal</span>                  <span class="ruby-comment">#=&gt; 2000-01-01 14:15:01 -0600</span>
+<span class="ruby-identifier">l</span>.<span class="ruby-identifier">gmt_offset</span>                    <span class="ruby-comment">#=&gt; -21600</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="gmt_offset-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_utc_offset(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+
+    if (TIME_UTC_P(tobj)) {
+        return INT2FIX(0);
+    }
+    else {
+        return tobj-&gt;vtm.utc_offset;
+    }
+}
+            </pre> 
+            </div><!-- gmt_offset-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- gmt_offset-method -->
+      
+        <div id="gmtime-method" class="method-detail ">
+          <a name="method-i-gmtime"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">gmtime    &rarr; time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Converts <em>time</em> to UTC (GMT), modifying the receiver.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-19 08:18:31 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmt?</span>         <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmtime</span>       <span class="ruby-comment">#=&gt; 2007-11-19 14:18:31 UTC</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmt?</span>         <span class="ruby-comment">#=&gt; true</span>
+
+<span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-19 08:18:51 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc?</span>         <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc</span>          <span class="ruby-comment">#=&gt; 2007-11-19 14:18:51 UTC</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc?</span>         <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="gmtime-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_gmtime(VALUE time)
+{
+    struct time_object *tobj;
+    struct vtm vtm;
+
+    GetTimeval(time, tobj);
+    if (TIME_UTC_P(tobj)) {
+        if (tobj-&gt;tm_got)
+            return time;
+    }
+    else {
+        time_modify(time);
+    }
+
+    if (!gmtimew(tobj-&gt;timew, &amp;vtm))
+        rb_raise(rb_eArgError, &quot;gmtime error&quot;);
+    tobj-&gt;vtm = vtm;
+
+    tobj-&gt;tm_got = 1;
+    TIME_SET_UTC(tobj);
+    return time;
+}
+            </pre> 
+            </div><!-- gmtime-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- gmtime-method -->
+      
+        <div id="gmtoff-method" class="method-detail ">
+          <a name="method-i-gmtoff"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">gmtoff     &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the offset in seconds between the timezone of <em>time</em> and
+UTC.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">gm</span>(<span class="ruby-value">2000</span>,<span class="ruby-value">1</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)   <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 UTC</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmt_offset</span>                    <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-identifier">l</span> = <span class="ruby-identifier">t</span>.<span class="ruby-identifier">getlocal</span>                  <span class="ruby-comment">#=&gt; 2000-01-01 14:15:01 -0600</span>
+<span class="ruby-identifier">l</span>.<span class="ruby-identifier">gmt_offset</span>                    <span class="ruby-comment">#=&gt; -21600</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="gmtoff-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_utc_offset(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+
+    if (TIME_UTC_P(tobj)) {
+        return INT2FIX(0);
+    }
+    else {
+        return tobj-&gt;vtm.utc_offset;
+    }
+}
+            </pre> 
+            </div><!-- gmtoff-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- gmtoff-method -->
+      
+        <div id="hash-method" class="method-detail ">
+          <a name="method-i-hash"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">hash   &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a hash code for this <a href="Time.html">Time</a> object.</p>
+
+<p>See also <a href="Object.html#method-i-hash">Object#hash</a>.</p>
+            
+
+            
+            <div class="method-source-code" id="hash-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_hash(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    return rb_hash(w2v(tobj-&gt;timew));
+}
+            </pre> 
+            </div><!-- hash-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- hash-method -->
+      
+        <div id="hour-method" class="method-detail ">
+          <a name="method-i-hour"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">hour &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the hour of the day (0..23) for <em>time</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-19 08:26:20 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">hour</span>         <span class="ruby-comment">#=&gt; 8</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="hour-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_hour(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    return INT2FIX(tobj-&gt;vtm.hour);
+}
+            </pre> 
+            </div><!-- hour-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- hour-method -->
+      
+        <div id="inspect-method" class="method-detail ">
+          <a name="method-i-inspect"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">inspect &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a string representing <em>time</em>. Equivalent to calling <a
+href="Time.html#method-i-strftime">strftime</a> with the appropriate format
+string.</p>
+
+<pre>t = Time.now
+t.to_s                              =&gt; &quot;2012-11-10 18:16:12 +0100&quot;
+t.strftime &quot;%Y-%m-%d %H:%M:%S %z&quot;   =&gt; &quot;2012-11-10 18:16:12 +0100&quot;
+
+t.utc.to_s                          =&gt; &quot;2012-11-10 17:16:12 UTC&quot;
+t.strftime &quot;%Y-%m-%d %H:%M:%S UTC&quot;  =&gt; &quot;2012-11-10 17:16:12 UTC&quot;</pre>
+            
+
+            
+            <div class="method-source-code" id="inspect-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_to_s(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    if (TIME_UTC_P(tobj))
+        return strftimev(&quot;%Y-%m-%d %H:%M:%S UTC&quot;, time, rb_usascii_encoding());
+    else
+        return strftimev(&quot;%Y-%m-%d %H:%M:%S %z&quot;, time, rb_usascii_encoding());
+}
+            </pre> 
+            </div><!-- inspect-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- inspect-method -->
+      
+        <div id="isdst-method" class="method-detail ">
+          <a name="method-i-isdst"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">isdst &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <em>time</em> occurs during Daylight Saving <a
+href="Time.html">Time</a> in its time zone.</p>
+
+<pre class="ruby"><span class="ruby-comment"># CST6CDT:</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">zone</span>    <span class="ruby-comment">#=&gt; &quot;CST&quot;</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">isdst</span>   <span class="ruby-comment">#=&gt; false</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">dst?</span>    <span class="ruby-comment">#=&gt; false</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">7</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">zone</span>    <span class="ruby-comment">#=&gt; &quot;CDT&quot;</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">7</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">isdst</span>   <span class="ruby-comment">#=&gt; true</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">7</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">dst?</span>    <span class="ruby-comment">#=&gt; true</span>
+
+<span class="ruby-comment"># Asia/Tokyo:</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">zone</span>    <span class="ruby-comment">#=&gt; &quot;JST&quot;</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">isdst</span>   <span class="ruby-comment">#=&gt; false</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">1</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">dst?</span>    <span class="ruby-comment">#=&gt; false</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">7</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">zone</span>    <span class="ruby-comment">#=&gt; &quot;JST&quot;</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">7</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">isdst</span>   <span class="ruby-comment">#=&gt; false</span>
+  <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-value">7</span>, <span class="ruby-value">1</span>).<span class="ruby-identifier">dst?</span>    <span class="ruby-comment">#=&gt; false</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="isdst-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_isdst(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    return tobj-&gt;vtm.isdst ? Qtrue : Qfalse;
+}
+            </pre> 
+            </div><!-- isdst-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- isdst-method -->
+      
+        <div id="localtime-method" class="method-detail ">
+          <a name="method-i-localtime"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">localtime &rarr; time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">localtime(utc_offset) &rarr; time</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Converts <em>time</em> to local time (using the local time zone in effect
+for this process) modifying the receiver.</p>
+
+<p>If <code>utc_offset</code> is given, it is used instead of the local time.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">utc</span>(<span class="ruby-value">2000</span>, <span class="ruby-string">&quot;jan&quot;</span>, <span class="ruby-value">1</span>, <span class="ruby-value">20</span>, <span class="ruby-value">15</span>, <span class="ruby-value">1</span>) <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 UTC</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc?</span>                                  <span class="ruby-comment">#=&gt; true</span>
+
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">localtime</span>                             <span class="ruby-comment">#=&gt; 2000-01-01 14:15:01 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc?</span>                                  <span class="ruby-comment">#=&gt; false</span>
+
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">localtime</span>(<span class="ruby-string">&quot;+09:00&quot;</span>)                   <span class="ruby-comment">#=&gt; 2000-01-02 05:15:01 +0900</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc?</span>                                  <span class="ruby-comment">#=&gt; false</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="localtime-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_localtime_m(int argc, VALUE *argv, VALUE time)
+{
+    VALUE off;
+    rb_scan_args(argc, argv, &quot;01&quot;, &amp;off);
+
+    if (!NIL_P(off)) {
+        off = utc_offset_arg(off);
+        validate_utc_offset(off);
+
+        time_set_utc_offset(time, off);
+        return time_fixoff(time);
+    }
+
+    return time_localtime(time);
+}
+            </pre> 
+            </div><!-- localtime-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- localtime-method -->
+      
+        <div id="mday-method" class="method-detail ">
+          <a name="method-i-mday"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">mday &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the day of the month (1..n) for <em>time</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-19 08:27:03 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">day</span>          <span class="ruby-comment">#=&gt; 19</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">mday</span>         <span class="ruby-comment">#=&gt; 19</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="mday-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_mday(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    return INT2FIX(tobj-&gt;vtm.mday);
+}
+            </pre> 
+            </div><!-- mday-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- mday-method -->
+      
+        <div id="min-method" class="method-detail ">
+          <a name="method-i-min"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">min &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the minute of the hour (0..59) for <em>time</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-19 08:25:51 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">min</span>          <span class="ruby-comment">#=&gt; 25</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="min-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_min(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    return INT2FIX(tobj-&gt;vtm.min);
+}
+            </pre> 
+            </div><!-- min-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- min-method -->
+      
+        <div id="mon-method" class="method-detail ">
+          <a name="method-i-mon"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">mon   &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">month &rarr; fixnum</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the month of the year (1..12) for <em>time</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-19 08:27:30 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">mon</span>          <span class="ruby-comment">#=&gt; 11</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">month</span>        <span class="ruby-comment">#=&gt; 11</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="mon-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_mon(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    return INT2FIX(tobj-&gt;vtm.mon);
+}
+            </pre> 
+            </div><!-- mon-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- mon-method -->
+      
+        <div id="monday-3F-method" class="method-detail ">
+          <a name="method-i-monday-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">monday? &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <em>time</em> represents Monday.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2003</span>, <span class="ruby-value">8</span>, <span class="ruby-value">4</span>)       <span class="ruby-comment">#=&gt; 2003-08-04 00:00:00 -0500</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">monday?</span>                      <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="monday-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_monday(VALUE time)
+{
+    wday_p(1);
+}
+            </pre> 
+            </div><!-- monday-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- monday-3F-method -->
+      
+        <div id="month-method" class="method-detail ">
+          <a name="method-i-month"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">month &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the month of the year (1..12) for <em>time</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-19 08:27:30 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">mon</span>          <span class="ruby-comment">#=&gt; 11</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">month</span>        <span class="ruby-comment">#=&gt; 11</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="month-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_mon(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    return INT2FIX(tobj-&gt;vtm.mon);
+}
+            </pre> 
+            </div><!-- month-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- month-method -->
+      
+        <div id="nsec-method" class="method-detail ">
+          <a name="method-i-nsec"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">nsec    &rarr; int</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the number of nanoseconds for <em>time</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>        <span class="ruby-comment">#=&gt; 2007-11-17 15:18:03 +0900</span>
+<span class="ruby-string">&quot;%10.9f&quot;</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_f</span>   <span class="ruby-comment">#=&gt; &quot;1195280283.536151409&quot;</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">nsec</span>              <span class="ruby-comment">#=&gt; 536151406</span>
+</pre>
+
+<p>The lowest digits of <a href="Time.html#method-i-to_f">to_f</a> and <a
+href="Time.html#method-i-nsec">nsec</a> are different because IEEE 754
+double is not accurate enough to represent the exact number of nanoseconds
+since the Epoch.</p>
+
+<p>The more accurate value is returned by <a
+href="Time.html#method-i-nsec">nsec</a>.</p>
+            
+
+            
+            <div class="method-source-code" id="nsec-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_nsec(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    return rb_to_int(w2v(wmulquoll(wmod(tobj-&gt;timew, WINT2WV(TIME_SCALE)), 1000000000, TIME_SCALE)));
+}
+            </pre> 
+            </div><!-- nsec-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- nsec-method -->
+      
+        <div id="round-method" class="method-detail ">
+          <a name="method-i-round"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">round([ndigits])   &rarr; new_time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Rounds sub seconds to a given precision in decimal digits (0 digits by
+default). It returns a new <a href="Time.html">Time</a> object.
+<code>ndigits</code> should be zero or positive integer.</p>
+
+<pre class="ruby"><span class="ruby-identifier">require</span> <span class="ruby-string">'time'</span>
+
+<span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">utc</span>(<span class="ruby-value">2010</span>,<span class="ruby-value">3</span>,<span class="ruby-value">30</span>, <span class="ruby-value">5</span>,<span class="ruby-value">43</span>,<span class="ruby-string">&quot;25.123456789&quot;</span>.<span class="ruby-identifier">to_r</span>)
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">10</span>)           <span class="ruby-comment">#=&gt; &quot;2010-03-30T05:43:25.1234567890Z&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">round</span>.<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">10</span>)     <span class="ruby-comment">#=&gt; &quot;2010-03-30T05:43:25.0000000000Z&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">0</span>).<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">10</span>)  <span class="ruby-comment">#=&gt; &quot;2010-03-30T05:43:25.0000000000Z&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">1</span>).<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">10</span>)  <span class="ruby-comment">#=&gt; &quot;2010-03-30T05:43:25.1000000000Z&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">2</span>).<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">10</span>)  <span class="ruby-comment">#=&gt; &quot;2010-03-30T05:43:25.1200000000Z&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">3</span>).<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">10</span>)  <span class="ruby-comment">#=&gt; &quot;2010-03-30T05:43:25.1230000000Z&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">4</span>).<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">10</span>)  <span class="ruby-comment">#=&gt; &quot;2010-03-30T05:43:25.1235000000Z&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">5</span>).<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">10</span>)  <span class="ruby-comment">#=&gt; &quot;2010-03-30T05:43:25.1234600000Z&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">6</span>).<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">10</span>)  <span class="ruby-comment">#=&gt; &quot;2010-03-30T05:43:25.1234570000Z&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">7</span>).<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">10</span>)  <span class="ruby-comment">#=&gt; &quot;2010-03-30T05:43:25.1234568000Z&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">8</span>).<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">10</span>)  <span class="ruby-comment">#=&gt; &quot;2010-03-30T05:43:25.1234567900Z&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">9</span>).<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">10</span>)  <span class="ruby-comment">#=&gt; &quot;2010-03-30T05:43:25.1234567890Z&quot;</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">10</span>).<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">10</span>) <span class="ruby-comment">#=&gt; &quot;2010-03-30T05:43:25.1234567890Z&quot;</span>
+
+<span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">utc</span>(<span class="ruby-value">1999</span>,<span class="ruby-value">12</span>,<span class="ruby-value">31</span>, <span class="ruby-value">23</span>,<span class="ruby-value">59</span>,<span class="ruby-value">59</span>)
+<span class="ruby-identifier">p</span>((<span class="ruby-identifier">t</span> <span class="ruby-operator">+</span> <span class="ruby-value">0.4</span>).<span class="ruby-identifier">round</span>.<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">3</span>))    <span class="ruby-comment">#=&gt; &quot;1999-12-31T23:59:59.000Z&quot;</span>
+<span class="ruby-identifier">p</span>((<span class="ruby-identifier">t</span> <span class="ruby-operator">+</span> <span class="ruby-value">0.49</span>).<span class="ruby-identifier">round</span>.<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">3</span>))   <span class="ruby-comment">#=&gt; &quot;1999-12-31T23:59:59.000Z&quot;</span>
+<span class="ruby-identifier">p</span>((<span class="ruby-identifier">t</span> <span class="ruby-operator">+</span> <span class="ruby-value">0.5</span>).<span class="ruby-identifier">round</span>.<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">3</span>))    <span class="ruby-comment">#=&gt; &quot;2000-01-01T00:00:00.000Z&quot;</span>
+<span class="ruby-identifier">p</span>((<span class="ruby-identifier">t</span> <span class="ruby-operator">+</span> <span class="ruby-value">1.4</span>).<span class="ruby-identifier">round</span>.<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">3</span>))    <span class="ruby-comment">#=&gt; &quot;2000-01-01T00:00:00.000Z&quot;</span>
+<span class="ruby-identifier">p</span>((<span class="ruby-identifier">t</span> <span class="ruby-operator">+</span> <span class="ruby-value">1.49</span>).<span class="ruby-identifier">round</span>.<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">3</span>))   <span class="ruby-comment">#=&gt; &quot;2000-01-01T00:00:00.000Z&quot;</span>
+<span class="ruby-identifier">p</span>((<span class="ruby-identifier">t</span> <span class="ruby-operator">+</span> <span class="ruby-value">1.5</span>).<span class="ruby-identifier">round</span>.<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">3</span>))    <span class="ruby-comment">#=&gt; &quot;2000-01-01T00:00:01.000Z&quot;</span>
+
+<span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">utc</span>(<span class="ruby-value">1999</span>,<span class="ruby-value">12</span>,<span class="ruby-value">31</span>, <span class="ruby-value">23</span>,<span class="ruby-value">59</span>,<span class="ruby-value">59</span>)
+<span class="ruby-identifier">p</span> (<span class="ruby-identifier">t</span> <span class="ruby-operator">+</span> <span class="ruby-value">0.123456789</span>).<span class="ruby-identifier">round</span>(<span class="ruby-value">4</span>).<span class="ruby-identifier">iso8601</span>(<span class="ruby-value">6</span>)  <span class="ruby-comment">#=&gt; &quot;1999-12-31T23:59:59.123500Z&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="round-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_round(int argc, VALUE *argv, VALUE time)
+{
+    VALUE ndigits, v, a, b, den;
+    long nd;
+    struct time_object *tobj;
+
+    rb_scan_args(argc, argv, &quot;01&quot;, &amp;ndigits);
+
+    if (NIL_P(ndigits))
+        ndigits = INT2FIX(0);
+    else
+        ndigits = rb_to_int(ndigits);
+
+    nd = NUM2LONG(ndigits);
+    if (nd &lt; 0)
+        rb_raise(rb_eArgError, &quot;negative ndigits given&quot;);
+
+    GetTimeval(time, tobj);
+    v = w2v(rb_time_unmagnify(tobj-&gt;timew));
+
+    a = INT2FIX(1);
+    b = INT2FIX(10);
+    while (0 &lt; nd) {
+        if (nd &amp; 1)
+            a = mul(a, b);
+        b = mul(b, b);
+        nd = nd &gt;&gt; 1;
+    }
+    den = quo(INT2FIX(1), a);
+    v = mod(v, den);
+    if (lt(v, quo(den, INT2FIX(2))))
+        return time_add(tobj, v, -1);
+    else
+        return time_add(tobj, sub(den, v), 1);
+}
+            </pre> 
+            </div><!-- round-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- round-method -->
+      
+        <div id="saturday-3F-method" class="method-detail ">
+          <a name="method-i-saturday-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">saturday? &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <em>time</em> represents Saturday.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2006</span>, <span class="ruby-value">6</span>, <span class="ruby-value">10</span>)      <span class="ruby-comment">#=&gt; 2006-06-10 00:00:00 -0500</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">saturday?</span>                      <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="saturday-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_saturday(VALUE time)
+{
+    wday_p(6);
+}
+            </pre> 
+            </div><!-- saturday-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- saturday-3F-method -->
+      
+        <div id="sec-method" class="method-detail ">
+          <a name="method-i-sec"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">sec &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the second of the minute (0..60) for <em>time</em>.</p>
+
+<p><strong>Note:</strong> Seconds range from zero to 60 to allow the system to
+inject leap seconds. See <a
+href="http://en.wikipedia.org/wiki/Leap_second">en.wikipedia.org/wiki/Leap_second</a>
+for further details.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-19 08:25:02 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">sec</span>          <span class="ruby-comment">#=&gt; 2</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="sec-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_sec(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    return INT2FIX(tobj-&gt;vtm.sec);
+}
+            </pre> 
+            </div><!-- sec-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- sec-method -->
+      
+        <div id="strftime-method" class="method-detail ">
+          <a name="method-i-strftime"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">strftime( string ) &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Formats <em>time</em> according to the directives in the given format
+string.</p>
+
+<p>The directives begin with a percent (%) character. Any text not listed as a
+directive will be passed through to the output string.</p>
+
+<p>The directive consists of a percent (%) character, zero or more flags,
+optional minimum field width, optional modifier and a conversion specifier
+as follows:</p>
+
+<pre>%&lt;flags&gt;&lt;width&gt;&lt;modifier&gt;&lt;conversion&gt;</pre>
+
+<p>Flags:</p>
+
+<pre>-  don't pad a numerical output
+_  use spaces for padding
+0  use zeros for padding
+^  upcase the result string
+#  change case
+:  use colons for %z</pre>
+
+<p>The minimum field width specifies the minimum width.</p>
+
+<p>The modifiers are “E” and “O”. They are ignored.</p>
+
+<p>Format directives:</p>
+
+<pre>Date (Year, Month, Day):
+  %Y - Year with century if provided, will pad result at least 4 digits.
+          -0001, 0000, 1995, 2009, 14292, etc.
+  %C - year / 100 (rounded down such as 20 in 2009)
+  %y - year % 100 (00..99)
+
+  %m - Month of the year, zero-padded (01..12)
+          %_m  blank-padded ( 1..12)
+          %-m  no-padded (1..12)
+  %B - The full month name (``January'')
+          %^B  uppercased (``JANUARY'')
+  %b - The abbreviated month name (``Jan'')
+          %^b  uppercased (``JAN'')
+  %h - Equivalent to %b
+
+  %d - Day of the month, zero-padded (01..31)
+          %-d  no-padded (1..31)
+  %e - Day of the month, blank-padded ( 1..31)
+
+  %j - Day of the year (001..366)
+
+Time (Hour, Minute, Second, Subsecond):
+  %H - Hour of the day, 24-hour clock, zero-padded (00..23)
+  %k - Hour of the day, 24-hour clock, blank-padded ( 0..23)
+  %I - Hour of the day, 12-hour clock, zero-padded (01..12)
+  %l - Hour of the day, 12-hour clock, blank-padded ( 1..12)
+  %P - Meridian indicator, lowercase (``am'' or ``pm'')
+  %p - Meridian indicator, uppercase (``AM'' or ``PM'')
+
+  %M - Minute of the hour (00..59)
+
+  %S - Second of the minute (00..60)
+
+  %L - Millisecond of the second (000..999)
+       The digits under millisecond are truncated to not produce 1000.
+  %N - Fractional seconds digits, default is 9 digits (nanosecond)
+          %3N  millisecond (3 digits)
+          %6N  microsecond (6 digits)
+          %9N  nanosecond (9 digits)
+          %12N picosecond (12 digits)
+          %15N femtosecond (15 digits)
+          %18N attosecond (18 digits)
+          %21N zeptosecond (21 digits)
+          %24N yoctosecond (24 digits)
+       The digits under the specified length are truncated to avoid
+       carry up.
+
+Time zone:
+  %z - Time zone as hour and minute offset from UTC (e.g. +0900)
+          %:z - hour and minute offset from UTC with a colon (e.g. +09:00)
+          %::z - hour, minute and second offset from UTC (e.g. +09:00:00)
+  %Z - Abbreviated time zone name or similar information.  (OS dependent)
+
+Weekday:
+  %A - The full weekday name (``Sunday'')
+          %^A  uppercased (``SUNDAY'')
+  %a - The abbreviated name (``Sun'')
+          %^a  uppercased (``SUN'')
+  %u - Day of the week (Monday is 1, 1..7)
+  %w - Day of the week (Sunday is 0, 0..6)
+
+ISO 8601 week-based year and week number:
+The first week of YYYY starts with a Monday and includes YYYY-01-04.
+The days in the year before the first week are in the last week of
+the previous year.
+  %G - The week-based year
+  %g - The last 2 digits of the week-based year (00..99)
+  %V - Week number of the week-based year (01..53)
+
+Week number:
+The first week of YYYY that starts with a Sunday or Monday (according to %U
+or %W). The days in the year before the first week are in week 0.
+  %U - Week number of the year. The week starts with Sunday. (00..53)
+  %W - Week number of the year. The week starts with Monday. (00..53)
+
+Seconds since the Epoch:
+  %s - Number of seconds since 1970-01-01 00:00:00 UTC.
+
+Literal string:
+  %n - Newline character (\n)
+  %t - Tab character (\t)
+  %% - Literal ``%'' character
+
+Combination:
+  %c - date and time (%a %b %e %T %Y)
+  %D - Date (%m/%d/%y)
+  %F - The ISO 8601 date format (%Y-%m-%d)
+  %v - VMS date (%e-%^b-%4Y)
+  %x - Same as %D
+  %X - Same as %T
+  %r - 12-hour time (%I:%M:%S %p)
+  %R - 24-hour time (%H:%M)
+  %T - 24-hour time (%H:%M:%S)</pre>
+
+<p>This method is similar to strftime() function defined in ISO C and POSIX.</p>
+
+<p>While all directives are locale independent since Ruby 1.9, %Z is platform
+dependent. So, the result may differ even if the same format string is used
+in other systems such as C.</p>
+
+<p>%z is recommended over %Z. %Z doesn’t identify the timezone. For example,
+“CST” is used at America/Chicago (-06:00), America/Havana (-05:00),
+Asia/Harbin (+08:00), Australia/Darwin (+09:30) and Australia/Adelaide
+(+10:30). Also, %Z is highly dependent on the operating system. For
+example, it may generate a non ASCII string on Japanese Windows. i.e. the
+result can be different to “JST”. So the numeric time zone offset, %z, is
+recommended.</p>
+
+<p>Examples:</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">new</span>(<span class="ruby-value">2007</span>,<span class="ruby-value">11</span>,<span class="ruby-value">19</span>,<span class="ruby-value">8</span>,<span class="ruby-value">37</span>,<span class="ruby-value">48</span>,<span class="ruby-string">&quot;-06:00&quot;</span>) <span class="ruby-comment">#=&gt; 2007-11-19 08:37:48 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">strftime</span>(<span class="ruby-string">&quot;Printed on %m/%d/%Y&quot;</span>)   <span class="ruby-comment">#=&gt; &quot;Printed on 11/19/2007&quot;</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">strftime</span>(<span class="ruby-string">&quot;at %I:%M%p&quot;</span>)            <span class="ruby-comment">#=&gt; &quot;at 08:37AM&quot;</span>
+</pre>
+
+<p>Various ISO 8601 formats:</p>
+
+<pre>%Y%m%d           =&gt; 20071119                  Calendar date (basic)
+%F               =&gt; 2007-11-19                Calendar date (extended)
+%Y-%m            =&gt; 2007-11                   Calendar date, reduced accuracy, specific month
+%Y               =&gt; 2007                      Calendar date, reduced accuracy, specific year
+%C               =&gt; 20                        Calendar date, reduced accuracy, specific century
+%Y%j             =&gt; 2007323                   Ordinal date (basic)
+%Y-%j            =&gt; 2007-323                  Ordinal date (extended)
+%GW%V%u          =&gt; 2007W471                  Week date (basic)
+%G-W%V-%u        =&gt; 2007-W47-1                Week date (extended)
+%GW%V            =&gt; 2007W47                   Week date, reduced accuracy, specific week (basic)
+%G-W%V           =&gt; 2007-W47                  Week date, reduced accuracy, specific week (extended)
+%H%M%S           =&gt; 083748                    Local time (basic)
+%T               =&gt; 08:37:48                  Local time (extended)
+%H%M             =&gt; 0837                      Local time, reduced accuracy, specific minute (basic)
+%H:%M            =&gt; 08:37                     Local time, reduced accuracy, specific minute (extended)
+%H               =&gt; 08                        Local time, reduced accuracy, specific hour
+%H%M%S,%L        =&gt; 083748,000                Local time with decimal fraction, comma as decimal sign (basic)
+%T,%L            =&gt; 08:37:48,000              Local time with decimal fraction, comma as decimal sign (extended)
+%H%M%S.%L        =&gt; 083748.000                Local time with decimal fraction, full stop as decimal sign (basic)
+%T.%L            =&gt; 08:37:48.000              Local time with decimal fraction, full stop as decimal sign (extended)
+%H%M%S%z         =&gt; 083748-0600               Local time and the difference from UTC (basic)
+%T%:z            =&gt; 08:37:48-06:00            Local time and the difference from UTC (extended)
+%Y%m%dT%H%M%S%z  =&gt; 20071119T083748-0600      Date and time of day for calendar date (basic)
+%FT%T%:z         =&gt; 2007-11-19T08:37:48-06:00 Date and time of day for calendar date (extended)
+%Y%jT%H%M%S%z    =&gt; 2007323T083748-0600       Date and time of day for ordinal date (basic)
+%Y-%jT%T%:z      =&gt; 2007-323T08:37:48-06:00   Date and time of day for ordinal date (extended)
+%GW%V%uT%H%M%S%z =&gt; 2007W471T083748-0600      Date and time of day for week date (basic)
+%G-W%V-%uT%T%:z  =&gt; 2007-W47-1T08:37:48-06:00 Date and time of day for week date (extended)
+%Y%m%dT%H%M      =&gt; 20071119T0837             Calendar date and local time (basic)
+%FT%R            =&gt; 2007-11-19T08:37          Calendar date and local time (extended)
+%Y%jT%H%MZ       =&gt; 2007323T0837Z             Ordinal date and UTC of day (basic)
+%Y-%jT%RZ        =&gt; 2007-323T08:37Z           Ordinal date and UTC of day (extended)
+%GW%V%uT%H%M%z   =&gt; 2007W471T0837-0600        Week date and local time and difference from UTC (basic)
+%G-W%V-%uT%R%:z  =&gt; 2007-W47-1T08:37-06:00    Week date and local time and difference from UTC (extended)</pre>
+            
+
+            
+            <div class="method-source-code" id="strftime-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_strftime(VALUE time, VALUE format)
+{
+    struct time_object *tobj;
+    char buffer[SMALLBUF], *buf = buffer;
+    const char *fmt;
+    long len;
+    rb_encoding *enc;
+    VALUE str;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    StringValue(format);
+    if (!rb_enc_str_asciicompat_p(format)) {
+        rb_raise(rb_eArgError, &quot;format should have ASCII compatible encoding&quot;);
+    }
+    format = rb_str_new4(format);
+    fmt = RSTRING_PTR(format);
+    len = RSTRING_LEN(format);
+    enc = rb_enc_get(format);
+    if (len == 0) {
+        rb_warning(&quot;strftime called with empty format string&quot;);
+    }
+    else if (fmt[len] || memchr(fmt, '\0', len)) {
+        /* Ruby string may contain \0's. */
+        const char *p = fmt, *pe = fmt + len;
+
+        str = rb_str_new(0, 0);
+        while (p &lt; pe) {
+            len = rb_strftime_alloc(&amp;buf, format, p, enc,
+                                    &amp;tobj-&gt;vtm, tobj-&gt;timew, TIME_UTC_P(tobj));
+            rb_str_cat(str, buf, len);
+            p += strlen(p);
+            if (buf != buffer) {
+                xfree(buf);
+                buf = buffer;
+            }
+            for (fmt = p; p &lt; pe &amp;&amp; !*p; ++p);
+            if (p &gt; fmt) rb_str_cat(str, fmt, p - fmt);
+        }
+        return str;
+    }
+    else {
+        len = rb_strftime_alloc(&amp;buf, format, RSTRING_PTR(format), enc,
+                                &amp;tobj-&gt;vtm, tobj-&gt;timew, TIME_UTC_P(tobj));
+    }
+    str = rb_enc_str_new(buf, len, enc);
+    if (buf != buffer) xfree(buf);
+    return str;
+}
+            </pre> 
+            </div><!-- strftime-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- strftime-method -->
+      
+        <div id="subsec-method" class="method-detail ">
+          <a name="method-i-subsec"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">subsec    &rarr; number</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the fraction for <em>time</em>.</p>
+
+<p>The return value can be a rational number.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>        <span class="ruby-comment">#=&gt; 2009-03-26 22:33:12 +0900</span>
+<span class="ruby-string">&quot;%10.9f&quot;</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_f</span>   <span class="ruby-comment">#=&gt; &quot;1238074392.940563917&quot;</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">subsec</span>            <span class="ruby-comment">#=&gt; (94056401/100000000)</span>
+</pre>
+
+<p>The lowest digits of <a href="Time.html#method-i-to_f">to_f</a> and <a
+href="Time.html#method-i-subsec">subsec</a> are different because IEEE 754
+double is not accurate enough to represent the rational number.</p>
+
+<p>The more accurate value is returned by <a
+href="Time.html#method-i-subsec">subsec</a>.</p>
+            
+
+            
+            <div class="method-source-code" id="subsec-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_subsec(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    return quo(w2v(wmod(tobj-&gt;timew, WINT2FIXWV(TIME_SCALE))), INT2FIX(TIME_SCALE));
+}
+            </pre> 
+            </div><!-- subsec-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- subsec-method -->
+      
+        <div id="succ-method" class="method-detail ">
+          <a name="method-i-succ"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">succ   &rarr; new_time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a new <a href="Time.html">Time</a> object, one second later than
+<em>time</em>. <a href="Time.html#method-i-succ">#succ</a> is obsolete
+since 1.9.2 for time is not a discrete value.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>       <span class="ruby-comment">#=&gt; 2007-11-19 08:23:57 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">succ</span>             <span class="ruby-comment">#=&gt; 2007-11-19 08:23:58 -0600</span>
+</pre>
+
+<p>Use instead <code>time + 1</code></p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> <span class="ruby-operator">+</span> <span class="ruby-value">1</span>              <span class="ruby-comment">#=&gt; 2007-11-19 08:23:58 -0600</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="succ-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_time_succ(VALUE time)
+{
+    struct time_object *tobj;
+    struct time_object *tobj2;
+
+    rb_warn(&quot;Time#succ is obsolete; use time + 1&quot;);
+    GetTimeval(time, tobj);
+    time = time_new_timew(rb_cTime, wadd(tobj-&gt;timew, WINT2FIXWV(TIME_SCALE)));
+    GetTimeval(time, tobj2);
+    TIME_COPY_GMT(tobj2, tobj);
+    return time;
+}
+            </pre> 
+            </div><!-- succ-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- succ-method -->
+      
+        <div id="sunday-3F-method" class="method-detail ">
+          <a name="method-i-sunday-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">sunday? &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <em>time</em> represents Sunday.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">1990</span>, <span class="ruby-value">4</span>, <span class="ruby-value">1</span>)       <span class="ruby-comment">#=&gt; 1990-04-01 00:00:00 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">sunday?</span>                        <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="sunday-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_sunday(VALUE time)
+{
+    wday_p(0);
+}
+            </pre> 
+            </div><!-- sunday-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- sunday-3F-method -->
+      
+        <div id="thursday-3F-method" class="method-detail ">
+          <a name="method-i-thursday-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">thursday? &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <em>time</em> represents Thursday.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">1995</span>, <span class="ruby-value">12</span>, <span class="ruby-value">21</span>)     <span class="ruby-comment">#=&gt; 1995-12-21 00:00:00 -0600</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">thursday?</span>                    <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="thursday-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_thursday(VALUE time)
+{
+    wday_p(4);
+}
+            </pre> 
+            </div><!-- thursday-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- thursday-3F-method -->
+      
+        <div id="to_a-method" class="method-detail ">
+          <a name="method-i-to_a"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_a &rarr; array</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a ten-element <em>array</em> of values for <em>time</em>:</p>
+
+<pre class="ruby">[<span class="ruby-identifier">sec</span>, <span class="ruby-identifier">min</span>, <span class="ruby-identifier">hour</span>, <span class="ruby-identifier">day</span>, <span class="ruby-identifier">month</span>, <span class="ruby-identifier">year</span>, <span class="ruby-identifier">wday</span>, <span class="ruby-identifier">yday</span>, <span class="ruby-identifier">isdst</span>, <span class="ruby-identifier">zone</span>]
+</pre>
+
+<p>See the individual methods for an explanation of the valid ranges of each
+value. The ten elements can be passed directly to <a
+href="Time.html#method-c-utc">::utc</a> or <a
+href="Time.html#method-c-local">::local</a> to create a new <a
+href="Time.html">Time</a> object.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>     <span class="ruby-comment">#=&gt; 2007-11-19 08:36:01 -0600</span>
+<span class="ruby-identifier">now</span> = <span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_a</span>     <span class="ruby-comment">#=&gt; [1, 36, 8, 19, 11, 2007, 1, 323, false, &quot;CST&quot;]</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="to_a-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_to_a(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    return rb_ary_new3(10,
+                    INT2FIX(tobj-&gt;vtm.sec),
+                    INT2FIX(tobj-&gt;vtm.min),
+                    INT2FIX(tobj-&gt;vtm.hour),
+                    INT2FIX(tobj-&gt;vtm.mday),
+                    INT2FIX(tobj-&gt;vtm.mon),
+                    tobj-&gt;vtm.year,
+                    INT2FIX(tobj-&gt;vtm.wday),
+                    INT2FIX(tobj-&gt;vtm.yday),
+                    tobj-&gt;vtm.isdst?Qtrue:Qfalse,
+                    time_zone(time));
+}
+            </pre> 
+            </div><!-- to_a-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- to_a-method -->
+      
+        <div id="to_f-method" class="method-detail ">
+          <a name="method-i-to_f"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_f &rarr; float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the value of <em>time</em> as a floating point number of seconds
+since the Epoch.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>
+<span class="ruby-string">&quot;%10.5f&quot;</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_f</span>   <span class="ruby-comment">#=&gt; &quot;1270968744.77658&quot;</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_i</span>              <span class="ruby-comment">#=&gt; 1270968744</span>
+</pre>
+
+<p>Note that IEEE 754 double is not accurate enough to represent the number of
+nanoseconds since the Epoch.</p>
+            
+
+            
+            <div class="method-source-code" id="to_f-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_to_f(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    return rb_Float(rb_time_unmagnify_to_float(tobj-&gt;timew));
+}
+            </pre> 
+            </div><!-- to_f-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- to_f-method -->
+      
+        <div id="to_i-method" class="method-detail ">
+          <a name="method-i-to_i"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_i   &rarr; int</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the value of <em>time</em> as an integer number of seconds since
+the Epoch.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>
+<span class="ruby-string">&quot;%10.5f&quot;</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_f</span>   <span class="ruby-comment">#=&gt; &quot;1270968656.89607&quot;</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_i</span>              <span class="ruby-comment">#=&gt; 1270968656</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="to_i-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_to_i(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    return w2v(wdiv(tobj-&gt;timew, WINT2FIXWV(TIME_SCALE)));
+}
+            </pre> 
+            </div><!-- to_i-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- to_i-method -->
+      
+        <div id="to_r-method" class="method-detail ">
+          <a name="method-i-to_r"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_r &rarr; a_rational</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the value of <em>time</em> as a rational number of seconds since
+the Epoch.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_r</span>            <span class="ruby-comment">#=&gt; (1270968792716287611/1000000000)</span>
+</pre>
+
+<p>This methods is intended to be used to get an accurate value representing
+the nanoseconds since the Epoch. You can use this method to convert
+<em>time</em> to another Epoch.</p>
+            
+
+            
+            <div class="method-source-code" id="to_r-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_to_r(VALUE time)
+{
+    struct time_object *tobj;
+    VALUE v;
+
+    GetTimeval(time, tobj);
+    v = w2v(rb_time_unmagnify(tobj-&gt;timew));
+    if (!RB_TYPE_P(v, T_RATIONAL)) {
+        v = rb_Rational1(v);
+    }
+    return v;
+}
+            </pre> 
+            </div><!-- to_r-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- to_r-method -->
+      
+        <div id="to_s-method" class="method-detail ">
+          <a name="method-i-to_s"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_s    &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a string representing <em>time</em>. Equivalent to calling <a
+href="Time.html#method-i-strftime">strftime</a> with the appropriate format
+string.</p>
+
+<pre>t = Time.now
+t.to_s                              =&gt; &quot;2012-11-10 18:16:12 +0100&quot;
+t.strftime &quot;%Y-%m-%d %H:%M:%S %z&quot;   =&gt; &quot;2012-11-10 18:16:12 +0100&quot;
+
+t.utc.to_s                          =&gt; &quot;2012-11-10 17:16:12 UTC&quot;
+t.strftime &quot;%Y-%m-%d %H:%M:%S UTC&quot;  =&gt; &quot;2012-11-10 17:16:12 UTC&quot;</pre>
+            
+
+            
+            <div class="method-source-code" id="to_s-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_to_s(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    if (TIME_UTC_P(tobj))
+        return strftimev(&quot;%Y-%m-%d %H:%M:%S UTC&quot;, time, rb_usascii_encoding());
+    else
+        return strftimev(&quot;%Y-%m-%d %H:%M:%S %z&quot;, time, rb_usascii_encoding());
+}
+            </pre> 
+            </div><!-- to_s-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- to_s-method -->
+      
+        <div id="tuesday-3F-method" class="method-detail ">
+          <a name="method-i-tuesday-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">tuesday? &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <em>time</em> represents Tuesday.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">1991</span>, <span class="ruby-value">2</span>, <span class="ruby-value">19</span>)      <span class="ruby-comment">#=&gt; 1991-02-19 00:00:00 -0600</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">tuesday?</span>                     <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="tuesday-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_tuesday(VALUE time)
+{
+    wday_p(2);
+}
+            </pre> 
+            </div><!-- tuesday-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- tuesday-3F-method -->
+      
+        <div id="tv_nsec-method" class="method-detail ">
+          <a name="method-i-tv_nsec"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">tv_nsec &rarr; int</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the number of nanoseconds for <em>time</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>        <span class="ruby-comment">#=&gt; 2007-11-17 15:18:03 +0900</span>
+<span class="ruby-string">&quot;%10.9f&quot;</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_f</span>   <span class="ruby-comment">#=&gt; &quot;1195280283.536151409&quot;</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">nsec</span>              <span class="ruby-comment">#=&gt; 536151406</span>
+</pre>
+
+<p>The lowest digits of <a href="Time.html#method-i-to_f">to_f</a> and <a
+href="Time.html#method-i-nsec">nsec</a> are different because IEEE 754
+double is not accurate enough to represent the exact number of nanoseconds
+since the Epoch.</p>
+
+<p>The more accurate value is returned by <a
+href="Time.html#method-i-nsec">nsec</a>.</p>
+            
+
+            
+            <div class="method-source-code" id="tv_nsec-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_nsec(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    return rb_to_int(w2v(wmulquoll(wmod(tobj-&gt;timew, WINT2WV(TIME_SCALE)), 1000000000, TIME_SCALE)));
+}
+            </pre> 
+            </div><!-- tv_nsec-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- tv_nsec-method -->
+      
+        <div id="tv_sec-method" class="method-detail ">
+          <a name="method-i-tv_sec"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">tv_sec &rarr; int</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the value of <em>time</em> as an integer number of seconds since
+the Epoch.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>
+<span class="ruby-string">&quot;%10.5f&quot;</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_f</span>   <span class="ruby-comment">#=&gt; &quot;1270968656.89607&quot;</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_i</span>              <span class="ruby-comment">#=&gt; 1270968656</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="tv_sec-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_to_i(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    return w2v(wdiv(tobj-&gt;timew, WINT2FIXWV(TIME_SCALE)));
+}
+            </pre> 
+            </div><!-- tv_sec-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- tv_sec-method -->
+      
+        <div id="tv_usec-method" class="method-detail ">
+          <a name="method-i-tv_usec"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">tv_usec &rarr; int</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the number of microseconds for <em>time</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>        <span class="ruby-comment">#=&gt; 2007-11-19 08:03:26 -0600</span>
+<span class="ruby-string">&quot;%10.6f&quot;</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_f</span>   <span class="ruby-comment">#=&gt; &quot;1195481006.775195&quot;</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">usec</span>              <span class="ruby-comment">#=&gt; 775195</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="tv_usec-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_usec(VALUE time)
+{
+    struct time_object *tobj;
+    wideval_t w, q, r;
+
+    GetTimeval(time, tobj);
+
+    w = wmod(tobj-&gt;timew, WINT2WV(TIME_SCALE));
+    wmuldivmod(w, WINT2FIXWV(1000000), WINT2FIXWV(TIME_SCALE), &amp;q, &amp;r);
+    return rb_to_int(w2v(q));
+}
+            </pre> 
+            </div><!-- tv_usec-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- tv_usec-method -->
+      
+        <div id="usec-method" class="method-detail ">
+          <a name="method-i-usec"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">usec    &rarr; int</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the number of microseconds for <em>time</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>        <span class="ruby-comment">#=&gt; 2007-11-19 08:03:26 -0600</span>
+<span class="ruby-string">&quot;%10.6f&quot;</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">to_f</span>   <span class="ruby-comment">#=&gt; &quot;1195481006.775195&quot;</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">usec</span>              <span class="ruby-comment">#=&gt; 775195</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="usec-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_usec(VALUE time)
+{
+    struct time_object *tobj;
+    wideval_t w, q, r;
+
+    GetTimeval(time, tobj);
+
+    w = wmod(tobj-&gt;timew, WINT2WV(TIME_SCALE));
+    wmuldivmod(w, WINT2FIXWV(1000000), WINT2FIXWV(TIME_SCALE), &amp;q, &amp;r);
+    return rb_to_int(w2v(q));
+}
+            </pre> 
+            </div><!-- usec-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- usec-method -->
+      
+        <div id="utc-method" class="method-detail ">
+          <a name="method-i-utc"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">gmtime    &rarr; time</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">utc       &rarr; time</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Converts <em>time</em> to UTC (GMT), modifying the receiver.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-19 08:18:31 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmt?</span>         <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmtime</span>       <span class="ruby-comment">#=&gt; 2007-11-19 14:18:31 UTC</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmt?</span>         <span class="ruby-comment">#=&gt; true</span>
+
+<span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-19 08:18:51 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc?</span>         <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc</span>          <span class="ruby-comment">#=&gt; 2007-11-19 14:18:51 UTC</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc?</span>         <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="utc-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_gmtime(VALUE time)
+{
+    struct time_object *tobj;
+    struct vtm vtm;
+
+    GetTimeval(time, tobj);
+    if (TIME_UTC_P(tobj)) {
+        if (tobj-&gt;tm_got)
+            return time;
+    }
+    else {
+        time_modify(time);
+    }
+
+    if (!gmtimew(tobj-&gt;timew, &amp;vtm))
+        rb_raise(rb_eArgError, &quot;gmtime error&quot;);
+    tobj-&gt;vtm = vtm;
+
+    tobj-&gt;tm_got = 1;
+    TIME_SET_UTC(tobj);
+    return time;
+}
+            </pre> 
+            </div><!-- utc-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- utc-method -->
+      
+        <div id="utc-3F-method" class="method-detail ">
+          <a name="method-i-utc-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">utc? &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <em>time</em> represents a time in UTC (GMT).</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>                        <span class="ruby-comment">#=&gt; 2007-11-19 08:15:23 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc?</span>                              <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">gm</span>(<span class="ruby-value">2000</span>,<span class="ruby-string">&quot;jan&quot;</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)   <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 UTC</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">utc?</span>                              <span class="ruby-comment">#=&gt; true</span>
+
+<span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>                        <span class="ruby-comment">#=&gt; 2007-11-19 08:16:03 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmt?</span>                              <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">gm</span>(<span class="ruby-value">2000</span>,<span class="ruby-value">1</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)       <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 UTC</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmt?</span>                              <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="utc-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_utc_p(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    if (TIME_UTC_P(tobj)) return Qtrue;
+    return Qfalse;
+}
+            </pre> 
+            </div><!-- utc-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- utc-3F-method -->
+      
+        <div id="utc_offset-method" class="method-detail ">
+          <a name="method-i-utc_offset"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">utc_offset &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the offset in seconds between the timezone of <em>time</em> and
+UTC.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">gm</span>(<span class="ruby-value">2000</span>,<span class="ruby-value">1</span>,<span class="ruby-value">1</span>,<span class="ruby-value">20</span>,<span class="ruby-value">15</span>,<span class="ruby-value">1</span>)   <span class="ruby-comment">#=&gt; 2000-01-01 20:15:01 UTC</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">gmt_offset</span>                    <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-identifier">l</span> = <span class="ruby-identifier">t</span>.<span class="ruby-identifier">getlocal</span>                  <span class="ruby-comment">#=&gt; 2000-01-01 14:15:01 -0600</span>
+<span class="ruby-identifier">l</span>.<span class="ruby-identifier">gmt_offset</span>                    <span class="ruby-comment">#=&gt; -21600</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="utc_offset-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_utc_offset(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+
+    if (TIME_UTC_P(tobj)) {
+        return INT2FIX(0);
+    }
+    else {
+        return tobj-&gt;vtm.utc_offset;
+    }
+}
+            </pre> 
+            </div><!-- utc_offset-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- utc_offset-method -->
+      
+        <div id="wday-method" class="method-detail ">
+          <a name="method-i-wday"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">wday &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns an integer representing the day of the week, 0..6, with Sunday ==
+0.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-20 02:35:35 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">wday</span>         <span class="ruby-comment">#=&gt; 2</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">sunday?</span>      <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">monday?</span>      <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">tuesday?</span>     <span class="ruby-comment">#=&gt; true</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">wednesday?</span>   <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">thursday?</span>    <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">friday?</span>      <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">saturday?</span>    <span class="ruby-comment">#=&gt; false</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="wday-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_wday(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    return INT2FIX((int)tobj-&gt;vtm.wday);
+}
+            </pre> 
+            </div><!-- wday-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- wday-method -->
+      
+        <div id="wednesday-3F-method" class="method-detail ">
+          <a name="method-i-wednesday-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">wednesday? &rarr; true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <em>time</em> represents Wednesday.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">1993</span>, <span class="ruby-value">2</span>, <span class="ruby-value">24</span>)      <span class="ruby-comment">#=&gt; 1993-02-24 00:00:00 -0600</span>
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">t</span>.<span class="ruby-identifier">wednesday?</span>                   <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="wednesday-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_wednesday(VALUE time)
+{
+    wday_p(3);
+}
+            </pre> 
+            </div><!-- wednesday-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- wednesday-3F-method -->
+      
+        <div id="yday-method" class="method-detail ">
+          <a name="method-i-yday"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">yday &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns an integer representing the day of the year, 1..366.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-19 08:32:31 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">yday</span>         <span class="ruby-comment">#=&gt; 323</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="yday-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_yday(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    return INT2FIX(tobj-&gt;vtm.yday);
+}
+            </pre> 
+            </div><!-- yday-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- yday-method -->
+      
+        <div id="year-method" class="method-detail ">
+          <a name="method-i-year"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">year &rarr; fixnum</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the year for <em>time</em> (including the century).</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">now</span>   <span class="ruby-comment">#=&gt; 2007-11-19 08:27:51 -0600</span>
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">year</span>         <span class="ruby-comment">#=&gt; 2007</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="year-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_year(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+    return tobj-&gt;vtm.year;
+}
+            </pre> 
+            </div><!-- year-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- year-method -->
+      
+        <div id="zone-method" class="method-detail ">
+          <a name="method-i-zone"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">zone &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the name of the time zone used for <em>time</em>. As of Ruby 1.8,
+returns “UTC” rather than “GMT” for UTC times.</p>
+
+<pre class="ruby"><span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">gm</span>(<span class="ruby-value">2000</span>, <span class="ruby-string">&quot;jan&quot;</span>, <span class="ruby-value">1</span>, <span class="ruby-value">20</span>, <span class="ruby-value">15</span>, <span class="ruby-value">1</span>)
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">zone</span>   <span class="ruby-comment">#=&gt; &quot;UTC&quot;</span>
+<span class="ruby-identifier">t</span> = <span class="ruby-constant">Time</span>.<span class="ruby-identifier">local</span>(<span class="ruby-value">2000</span>, <span class="ruby-string">&quot;jan&quot;</span>, <span class="ruby-value">1</span>, <span class="ruby-value">20</span>, <span class="ruby-value">15</span>, <span class="ruby-value">1</span>)
+<span class="ruby-identifier">t</span>.<span class="ruby-identifier">zone</span>   <span class="ruby-comment">#=&gt; &quot;CST&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="zone-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+time_zone(VALUE time)
+{
+    struct time_object *tobj;
+
+    GetTimeval(time, tobj);
+    MAKE_TM(time, tobj);
+
+    if (TIME_UTC_P(tobj)) {
+        return rb_usascii_str_new_cstr(&quot;UTC&quot;);
+    }
+    if (tobj-&gt;vtm.zone == NULL)
+        return Qnil;
+
+    return time_zone_name(tobj-&gt;vtm.zone);
+}
+            </pre> 
+            </div><!-- zone-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- zone-method -->
+      
+      </div><!-- public-instance-method-details -->
+    
+    </div><!-- 5Buntitled-5D -->
+  
+  <div id='tx_Time_versioned' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_Time_versioned").load("/associated/2.2.0/Time.ihtml");</script> <div id='tx_Time' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_Time").load("/associated/Time.ihtml");</script> 
+      
+  <!-- dsqus ? -->
+     
+
+  
+  </div><!-- documentation -->
+  <div id='dynamic'>
+  </div>
+      
+          
+
+      
+<div class='grids wrapper' id="footer">
+  <p><small>This page was generated for Ruby 2.2.0</small></p> 
+  
+   <p><a href="http://ruby-doc.org">Ruby-doc.org</a> is provided by <a href="http://jamesbritt.com">James Britt</a> and <a href="http://neurogami.com">Neurogami</a>. <a href="http://neurogami.com">Maximum R+D</a>.  <div class='oio-inline'><ins data-revive-zoneid="1" data-revive-id="58924a5717c091dfee6dda3f7d38c4d7"></ins><script async src="//ras.ruby-doc.org/vvv/delivery/thesinkjs.php"></script></div></p>
+ 
+       <p><small>Generated with Ruby-doc Rdoc Generator 0.39.0</small>.</p>
+  </div>
+</div>
+  
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-335317-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+    
+ <script type='text/javascript'>
+$(document).ready(function() {
+      $.ajaxSetup({ cache: false });
+      $("#vulns-alert").load("/associated/vulns.ihtml");
+    });
+
+    </script>
+
+
+ 
+		<script type='text/javascript'>
+
+	function loadPlus(plusdocs){
+			$(plusdocs).find("div[class='associated_wrapper']").each (function() {
+					$("#" + this.id).append($(plusdocs).find("#" + this.id ));
+					});
+	} 
+
+   //function loadInline(json){
+   // for (var lookFor in json) {
+    //  $(lookFor).after(json[lookFor]);
+    // }
+  // } // end loadInline
+
+
+$(document).ready(function() {
+		$.ajaxSetup({ cache: false });
+			$.get('/associated/2.2.0/plus_Time.ihtml', 
+			function(plusdocs) {
+			setTimeout(function() {
+				loadPlus(plusdocs);
+				}, 2000);
+			}
+			);
+
+
+//     $.ajax({
+//     dataType: "json",
+//      url: '/associated/2.2.0/inline_Time.js',
+//      success: function(json) {
+// 			setTimeout(function() {
+// 				loadInline(json);
+// 				}, 2000);
+// 			}
+//    });
+
+		});
+</script>
+		
+</body>
+</html>
+
+

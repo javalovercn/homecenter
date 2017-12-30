@@ -102,6 +102,8 @@ public class PropertiesManager {
 	public static final String p_Deploy_RecentIP = "DeployRecentIP";
 	
 	public static final String p_isEnableHCAI = "isEnableHCAI";
+	
+	public static final String p_SearchDialogColumnWidths = "SearchDialogColumnWidths";
 
 	public static final String p_jrubyJarFile = "JRubyJarFile";
 	public static final String p_jrubyJarVer = "JRubyJarVer";
@@ -217,6 +219,9 @@ public class PropertiesManager {
 	public static final String p_DevCertPassword = "DevCertPassword";
 	public static final String p_isRememberDevCertPassword = "isRememberDevCertPassword";
 	
+	public static final String p_isShowJRubyTestConsole = "isShowJRubyTestConsole";
+	public static final String p_JRubyTestConsoleDividerLocation = "JRubyTestConsoleDividerLocation";
+	
 	public static final String p_isEnableClientAddHAR = "isEnableClientAddHAR";
 
 	public static final String t_testClientLocale = "testClientLocale";
@@ -250,6 +255,12 @@ public class PropertiesManager {
 		}else{
 			return Integer.parseInt(v);
 		}
+	}
+	
+	public static void setSimuToTrue(){
+		CCoreUtil.checkAccess();
+		isSimuCache = null;
+		setValue(p_IsSimu, IConstant.TRUE);
 	}
 	
 	private static Boolean isSimuCache;
@@ -321,36 +332,50 @@ public class PropertiesManager {
 	}
 	
 	static boolean statusChanged = false;
-	static Properties propertie;
+	final static Properties propertie = new Properties();
 	private static final Object writeNotify = new Object();
-	final static Object gLock = CCoreUtil.getGlobalLock();
 	private static Thread eventDispatchThread;
 	private static HCEventQueue hcEventQueue;
-	private static boolean isShutdownHook = false;
-	
-	public static void notifyShutdownHook(){
-		CCoreUtil.checkAccess();
-		isShutdownHook = true;
-		saveFile();
-	}
+//	private static boolean isShutdownHook = false;
+
+//	public static void notifyShutdownHook(){
+//		CCoreUtil.checkAccess();
+//		isShutdownHook = true;
+//		saveFile();
+//	}
 	
 	private static void buildAndStart(){
 		final Thread t = new Thread(){
 			
 			@Override
 			public void run(){
-				while(true){
-					synchronized (writeNotify) {
+				synchronized (writeNotify) {
+					while(true){
 						try{
 							writeNotify.wait();
 						}catch (final Exception e) {
 						}
 						
-						if(isShutdownHook){
-							break;
+//						if(isShutdownHook){
+//							break;
+//						}
+						
+						if(statusChanged == false){
+							continue;
 						}
 						
-						save();
+				        try{
+				        	final FileOutputStream outputFile = new FileOutputStream(propFile);//propFileWriting
+			                propertie.store(outputFile, null);
+				            outputFile.close();
+				            statusChanged = false;
+//				            propFile.delete();
+//				            propFileWriting.renameTo(propFile);
+				        } catch (final Exception e) {
+				        	ExceptionReporter.printStackTrace(e);
+				        	App.showMessageDialog(null, "write data to properties file error!", "Error", JOptionPane.ERROR_MESSAGE);
+//				            System.exit(0);
+				        }
 					}
 				}
 			}
@@ -364,27 +389,6 @@ public class PropertiesManager {
 		init();
 	}
 	
-	private static final void save(){
-		if(propertie == null
-				|| (statusChanged == false)){
-			return;
-		}
-        try{
-        	final FileOutputStream outputFile = new FileOutputStream(propFileWriting);
-        	synchronized (gLock) {
-                propertie.store(outputFile, null);
-			}
-            outputFile.close();
-            
-            propFile.delete();
-            propFileWriting.renameTo(propFile);
-        } catch (final Exception e) {
-        	ExceptionReporter.printStackTrace(e);
-        	App.showMessageDialog(null, "write data to properties file error!", "Error", JOptionPane.ERROR_MESSAGE);
-//            System.exit(0);
-        }
-    }
-
 	public static final void saveFile(){
 //		CCoreUtil.checkAccess();此处不需限权，
 		synchronized (writeNotify) {
@@ -452,14 +456,13 @@ public class PropertiesManager {
 			return;
 		}
 
-		String oldValue;
-		synchronized (gLock) {
+		final String oldValue;
+		synchronized (writeNotify) {
 			oldValue = (String)propertie.setProperty(key, value);
-		}
-		
-		if(oldValue != null && value.equals(oldValue)){
-		}else{
-			statusChanged = true;
+			if(oldValue != null && value.equals(oldValue)){
+			}else{
+				statusChanged = true;
+			}
 		}
     }
 
@@ -550,10 +553,34 @@ public class PropertiesManager {
 		}
 		
 		if(isChanged){
-			statusChanged = true;
+			synchronized (writeNotify) {
+				statusChanged = true;
+			}
 			securityPropertiesSet.save();
 		}
-		
+	}
+	
+	/**
+	 * @param key
+	 * @return 0 means key is not exists.
+	 */
+	public static final int getIntValue(final String key){
+		final String value = getValue(key);
+		try{
+			return Integer.valueOf(value);
+		}catch (final Exception e) {
+		}
+		return 0;
+	}
+	
+	public static final int getIntValue(final String key, final int defaultValue){
+		final String value = getValue(key);
+		try{
+			return Integer.valueOf(value);
+		}catch (final Exception e) {
+			e.printStackTrace();
+		}
+		return defaultValue;
 	}
 
 	/**
@@ -580,15 +607,15 @@ public class PropertiesManager {
 		}
 		
 		String storeData;
-		synchronized (gLock) {
+		synchronized (writeNotify) {
 			storeData = propertie.getProperty(key);
-	    	if(isSecurityData && storeData != null){
-	    		if(L.isInWorkshop){
-	    			LogManager.log("[SecurityDataProtector] try decode property : " + key);
-	    		}
-	    		storeData = SecurityDataProtector.decode(storeData);
-	    	}
 		}
+    	if(isSecurityData && storeData != null){
+    		if(L.isInWorkshop){
+    			LogManager.log("[SecurityDataProtector] try decode property : " + key);
+    		}
+    		storeData = SecurityDataProtector.decode(storeData);
+    	}
 		return storeData;//得到某一属
     }
 
@@ -642,13 +669,13 @@ public class PropertiesManager {
 				ResourceUtil.checkHCStackTrace();
 			}
 		}
-		statusChanged = true;
 		propertie.remove(key);
+		synchronized (writeNotify) {
+			statusChanged = true;
+		}
 	}
 	
 	private static final void init(){
-		propertie = new Properties();
-		
     	if(fileName == null){
     		fileName = "hc_config.properties";
     	}
@@ -656,6 +683,7 @@ public class PropertiesManager {
     	final String fileNameWriting = fileName + "Writing";
 
     	try{
+    		boolean isWritingExists = false;
     		if(ResourceUtil.isStandardJ2SEServer()){
     			propFile = new File(fileName);//遗留系统，故如此
     			propFileWriting = new File(fileNameWriting);
@@ -668,6 +696,7 @@ public class PropertiesManager {
     		if(propFile.exists()){
     			loadFile = propFile;
             }else if(propFileWriting.exists()){
+            	isWritingExists = true;
             	loadFile = propFileWriting;
             }
     		
@@ -675,6 +704,10 @@ public class PropertiesManager {
 	    		final FileInputStream inputFile = new FileInputStream(loadFile);
 	            propertie.load(inputFile);
 	            inputFile.close();
+	            
+	            if(isWritingExists){
+	            	propFileWriting.delete();
+	            }
     		}else{
     			//为新建服务器，创建缺省项
     		}

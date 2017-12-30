@@ -32,7 +32,9 @@ import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.hpj.HCjad;
 import hc.server.ui.design.hpj.HCjar;
 import hc.server.util.DelDeployedProjManager;
+import hc.server.util.SafeDataManager;
 import hc.server.util.SignHelper;
+import hc.util.ClassUtil;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.PropertiesSet;
@@ -246,6 +248,8 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		}
 		
 		if(LinkProjectStatus.tryEnterStatus(null, LinkProjectStatus.MANAGER_ADD_HAR_VIA_MOBILE)){
+			SafeDataManager.disableSafeBackup();
+			
 			try{
 				final File fileHar = ResourceUtil.getTempFileName(Designer.HAR_EXT);
 				final Properties had = new Properties();
@@ -444,6 +448,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 //				ExceptionReporter.printStackTrace(e);可能网络不正常，所以无需
 				appendMessage(ResourceUtil.getErrorI18N(coreSS) + " : " + e.getMessage());
 			}finally{
+				SafeDataManager.enableSafeBackup(true, true);
 				LinkProjectStatus.exitStatus();
 				setButtonEnable(exitButton, true);
 			}
@@ -723,7 +728,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	private void revalidateMlet(final AddHarHTMLMlet addHarHTMLMlet) {
 		addHarHTMLMlet.invalidate();
 		addHarHTMLMlet.validate();
-		addHarHTMLMlet.revalidate();
+		ClassUtil.revalidate(addHarHTMLMlet);
 	}
 	
 	final static Object startAddHarLock = new Object();

@@ -155,6 +155,9 @@ public class ExceptionJSON {
 			value = "";
 		}
 		
+		value = StringUtil.replace(value, "<", LT);
+		value = StringUtil.replace(value, ">", GT);
+		
 		if(value.indexOf(doubleHao) >= 0){
 			value = StringUtil.replace(value, doubleHao, YINHAO_HTML_REPLACE_TO);
 		}

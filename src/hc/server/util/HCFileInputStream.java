@@ -19,12 +19,22 @@ public class HCFileInputStream extends HCInputStream {
 		this.fileName = fileName;
 	}
 	
+	/**
+	 * create random file in <code>TEMP</code> directory (managed by server and will be empty at next startup).
+	 * @param fileExtension null means no file extension.
+	 * @return
+	 * @see #createRandomFile(File, String)
+	 */
+	public final File createRandomFile(final String fileExtension){
+		return createRandomFile(null, fileExtension);
+	}
 	
 	/**
 	 * create random file in <code>parent</code> directory.
-	 * @param parent null means create random file in <code>TEMP</code> directory.
+	 * @param parent null means create random file in <code>TEMP</code> directory (managed by server and will be empty at next startup).
 	 * @param fileExtension null means no file extension.
 	 * @return
+	 * @see #createRandomFile(String)
 	 */
 	public final File createRandomFile(File parent, final String fileExtension){
 		if(parent == null){

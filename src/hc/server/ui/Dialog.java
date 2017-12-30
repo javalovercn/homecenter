@@ -26,7 +26,7 @@ import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 
 /**
- * Dialog is a top-level UI interaction component at center of mobile client.
+ * <code>Dialog</code> is a top-level UI interaction component at center of mobile client.
  * <BR><BR>
  * to send a dialog instance for current session, invoke {@link ProjectContext#sendDialogWhenInSession(Dialog)}.
  * <BR><BR>
@@ -39,9 +39,10 @@ import javax.swing.JToggleButton;
  * <BR>
  * <code>setMinimumSize</code> for JPanel, adding JButton in it and setting CSS for JButton to grow full space is a good choice.
  * <BR><BR>
- * setting CSS for Dialog is just like {@link HTMLMlet}.
+ * setting CSS for Dialog is just like <code>HTMLMlet</code>.
  * <BR>
- * to load and execute JavaScript in dialog, please use {@link ScriptPanel}.
+ * to load and execute JavaScript in dialog, please use <code>ScriptPanel</code>.
+ * @see HTMLMlet
  */
 public class Dialog extends JPanel {
 	private static final long serialVersionUID = 5869314873711129148L;
@@ -199,14 +200,14 @@ public class Dialog extends JPanel {
 	}
 
 	/**
-	 * dismiss current dialog, and go and open a {@link Mlet} or {@link HTMLMlet} (which is probably created by {@link ProjectContext#eval(String)}).
+	 * dismiss current dialog, and go and open a <code>Mlet</code> or <code>HTMLMlet</code> (which is probably created by {@link ProjectContext#eval(String)}).
 	 * <BR><BR>
 	 * the target of <i>toMlet</i> will be set as <i>targetOfMlet</i>.<BR><BR>
 	 * <STRONG>Important : </STRONG>
 	 * <BR>if the same name <i>target</i> or <i>form://target</i> is opened, then it will be brought to top.
 	 * <BR>for more, see {@link #go(String)}.
 	 * @param toMlet
-	 * @param targetOfMlet target of {@link Mlet}. The prefix <i>form://</i> is <STRONG>NOT</STRONG> required.
+	 * @param targetOfMlet target of <code>Mlet</code>. The prefix <i>form://</i> is <STRONG>NOT</STRONG> required.
 	 * @see ProjectContext#eval(String)
 	 * @see #go(String)
 	 * @since 7.30
@@ -261,14 +262,14 @@ public class Dialog extends JPanel {
 	}
 	
 	/**
-	 * load special styles for current {@link Dialog}, it must be invoked before {@link #setCSS(JComponent, String, String)} which refer to these styles.
+	 * load special styles for current <code>Dialog</code>, it must be invoked before {@link #setCSS(JComponent, String, String)} which refer to these styles.
 	 * <BR><BR>
 	 * <STRONG>Network connection permission</STRONG> : <BR>
 	 * if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect permission or disable limit socket/connect.
 	 * <BR><BR>
 	 * <STRONG>More about CSS styles</STRONG> : 
 	 * <BR>
-	 * 1. the <i>CSS Styles</i> tree node in designer is shared to all {@link HTMLMlet}/{@link Dialog}s in same project.
+	 * 1. the <i>CSS Styles</i> tree node in designer is shared to all <code>HTMLMlet</code>/<code>Dialog</code>s in same project.
 	 * In other words, it will be loaded automatically by server for each HTMLMlet/Dialog.
 	 * <BR>
 	 * 2. it is allowed to load styles as many as you like.
@@ -291,7 +292,7 @@ public class Dialog extends JPanel {
 	}
 	
 	/**
-	 * load special styles for current {@link Dialog}.
+	 * load special styles for current <code>Dialog</code>.
 	 * @param styles
 	 * @param enableCache true means this styles may be cached if it is too large, false means never cached.
 	 * @see #loadCSS(String)
@@ -338,7 +339,7 @@ public class Dialog extends JPanel {
 	 * set CSS <i>class</i> and/or CSS <i>style</i> for {@link JComponent}.
 	 * <BR><BR>
 	 * it is effective immediately to mobile.<BR>
-	 * it is allowed to invoke this method in constructor of {@link HTMLMlet}.
+	 * it is allowed to invoke this method in constructor of <code>HTMLMlet</code>.
 	 * <BR><BR>
 	 * <STRONG>Important :</STRONG><BR>
 	 * CSS box model of HomeCenter is <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a> default (quirks mode), NOT the w3c <code>content-box</code>.<BR>
@@ -492,7 +493,7 @@ public class Dialog extends JPanel {
 	/**
 	 * set attribute 'dir' for a div of JComponent.<BR><BR>
 	 * Know more :<BR>
-	 * 1. a {@link Dialog} will be set RTL by server for the entire page if language of mobile is RTL.<BR>
+	 * 1. a <code>Dialog</code> will be set RTL by server for the entire page if language of mobile is RTL.<BR>
 	 * 2. in some case, a JComponent may be set RTL/LTR different from the entire page.
 	 * @param component
 	 * @param isRTL true means right to left, false means left to right.

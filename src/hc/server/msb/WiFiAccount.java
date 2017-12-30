@@ -29,11 +29,11 @@ import hc.core.ConfigManager;
  * <BR><BR>AirCmds is free to personal and commerce, license is NOT required.
  * <BR><BR>Let's see the detail to broadcast WiFi account
  * <BR>1 after download HAR project to server.
- * <BR>2 if there is a {@link Device} in HAR, the method {@link Device#connect()} will be invoked to build connection to new device.
+ * <BR>2 if there is a <code>Device</code> in HAR, the method {@link Device#connect()} will be invoked to build connection to new device.
  * <BR>2.1 because of the first connection, <i>projectContext.getProperty("isWiFiSetted", "false").equals("false")</i> return true.
  * <BR>2.2 invoke @{@link Device#getWiFiAccount()} and {@link Device#broadcastWiFiAccountAsSSID(String, String)} to broadcast WiFi account to air. See the following AirCmds for more.
  * <BR>2.3 initial and wait for device connecting
- * <BR>2.4 the real device get WiFi account from air, and build connection to {@link Device}.
+ * <BR>2.4 the real device get WiFi account from air, and build connection to <code>Device</code>.
  * <BR>2.5 successful receive device connection.
  * <BR>2.6 <i>projectContext.setProperty("isWiFiSetted", "true")</i>
  * <BR>2.7 <i>projectContext.saveProperties()</i>

@@ -10,6 +10,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 
 public class NodeEditPanel extends JPanel{
+	public EditorJumpRunnable jumpRunnable;
 	HPNode currItem;
 	boolean isInited = false;
 

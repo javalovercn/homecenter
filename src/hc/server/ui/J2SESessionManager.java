@@ -17,6 +17,7 @@ import hc.server.msb.WiFiHelper;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.server.util.StarterParameter;
+import hc.util.SecurityDataProtector;
 
 import java.util.Vector;
 
@@ -76,6 +77,10 @@ public class J2SESessionManager extends SessionManager {
 	}
 	
 	public final static void startNewIdleSession(){
+		if(SecurityDataProtector.isEnableSecurityData() == false){//Android可能正在升级JRuby
+			return;
+		}
+		
 		CCoreUtil.checkAccess();
 		
 		ContextManager.getThreadPool().run(new Runnable() {

@@ -15,8 +15,7 @@ public class ProcessorNodeEditPanel extends JRubyNodeEditPanel {
 	@Override
 	public void updateScript(final String script) {
 		((HPProcessor)currItem).listener = script;
-		
-		designer.setNeedRebuildTestJRuby(true);
+//		designer.setNeedRebuildTestJRuby(true);
 	}
 	
 }

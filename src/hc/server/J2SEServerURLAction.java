@@ -39,6 +39,7 @@ import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.ProjMgrDialog;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.engine.HCJRubyEngine;
+import hc.server.util.ServerUtil;
 import hc.server.util.VoiceParameter;
 import hc.server.util.ai.ProjectTargetForAI;
 import hc.util.BaseResponsor;
@@ -459,7 +460,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 		CCoreUtil.checkAccess();
 		
 		if(SYS_JRUBY_ENGINE[0] == null){
-			final HCJRubyEngine hcje = new HCJRubyEngine(null, ResourceUtil.getJRubyClassLoader(false), true, HCJRubyEngine.IDE_LEVEL_ENGINE + "SYS_JRUBY_ENGINE");
+			final HCJRubyEngine hcje = new HCJRubyEngine(null, null, ServerUtil.getJRubyClassLoader(false), true, HCJRubyEngine.IDE_LEVEL_ENGINE + "SYS_JRUBY_ENGINE");
 			final RecycleRes recycleRes = new RecycleRes("JRubyEngine", ContextManager.getThreadPool(), RecycleRes.getSequenceTempWatcher());
 			final ProjectContext context = ServerUIUtil.buildProjectContext("", "", recycleRes, null, null);
 			SYS_JRUBY_ENGINE[0] = hcje;

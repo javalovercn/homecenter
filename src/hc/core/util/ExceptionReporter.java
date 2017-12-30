@@ -11,14 +11,17 @@ public class ExceptionReporter {
 	private final static LinkedSet cache = new LinkedSet();
 	private final static Object lock = new Object();
 	
-	private static Thread backThread = new Thread(){
+	private static final Thread backThread = new Thread(){
 		public void run(){
 			final RootBuilder rootBuilder = RootBuilder.getInstance();
 
 			ExceptionJSON json = null;
 			
-			while(isShutDown == false){
+			while(true){
 				synchronized (cache) {
+					if(isShutDown){
+						break;
+					}
 					json = (ExceptionJSON)cache.getFirst();
 					if(json == null){
 						try {
@@ -48,7 +51,6 @@ public class ExceptionReporter {
 	private static ExceptionJSONBuilder builder;
 	private static ExceptionChecker checker;
 	private static boolean SERVER_SIDE;
-	private static RootConfig rootConfig;
 
 	public static final void start(final boolean withLog){
 		CCoreUtil.checkAccess();
@@ -63,8 +65,8 @@ public class ExceptionReporter {
 				builder = RootBuilder.getInstance().getExceptionJSONBuilder();
 				checker = ExceptionChecker.getInstance();
 				SERVER_SIDE = IConstant.serverSide;
-				rootConfig = RootConfig.getInstance();
 				
+				RootBuilder.getInstance().setDaemonThread(backThread);
 				backThread.start();
 				isStartThread = true;
 			}
@@ -123,14 +125,9 @@ public class ExceptionReporter {
 		}
 		
 		boolean isEmail = false;
-		String exceptionURL = null;
+		String exceptionURLOrEmail = null;
 		
-		final boolean blockExcetionReport = rootConfig.isTrue(RootConfig.p_blockExceptionReport);//不接收服务器或手机端的异常报告
-
 		if(SERVER_SIDE == false){
-			if(blockExcetionReport){
-				return;
-			}
 			
 			if(builder == null){//J2ME或没有
 				return;
@@ -149,11 +146,15 @@ public class ExceptionReporter {
 			
 			return;
 		}else{
-			exceptionURL = harHelper.getExceptionReportURL();//开发环境下可能得不到url
-			if(exceptionURL != null){
-				final int atIdx = exceptionURL.indexOf('@');
-				final int maoHaoIdx = exceptionURL.indexOf(':');
-				isEmail = exceptionURL!=null && atIdx > 0 && maoHaoIdx < 0;
+			exceptionURLOrEmail = harHelper.getExceptionReportURL();//开发环境下可能得不到url
+			if(exceptionURLOrEmail != null){
+				if(HarHelper.NO_REPORT_URL_IN_HAR == exceptionURLOrEmail){
+					return;
+				}
+				
+				final int atIdx = exceptionURLOrEmail.indexOf('@');
+				final int maoHaoIdx = exceptionURLOrEmail.indexOf(':');
+				isEmail = exceptionURLOrEmail!=null && atIdx > 0 && maoHaoIdx < 0;
 			}
 		}
 		
@@ -163,11 +164,7 @@ public class ExceptionReporter {
 //			}
 //		}
 		
-		if(isEmail || (blockExcetionReport == false 
-								&& (
-										(invokeFrom == INVOKE_NORMAL) 
-										|| (invokeFrom == INVOKE_THREADPOOL && exceptionURL == null)
-										))){
+		if(isEmail || ((invokeFrom == INVOKE_NORMAL) || (invokeFrom == INVOKE_THREADPOOL && exceptionURLOrEmail == null)	)){
 			//满足向服务器的条件。前者接收邮件；后者接收服务自身的
 			final ExceptionJSON json = builder.buildJSON(harHelper, checker, throwable, ExceptionJSON.HC_EXCEPTION_URL, script, errMessage);
 			
@@ -175,13 +172,12 @@ public class ExceptionReporter {
 				return;
 			}
 
-			if(blockExcetionReport || (invokeFrom == INVOKE_THREADPOOL && exceptionURL != null)
-				){//标记，HC不接收
+			if(exceptionURLOrEmail != null){//标记，HC不接收
 				json.setReceiveExceptionForHC(false);
 			}
 			
 			if(isEmail){
-				json.setAttToEmail(exceptionURL);
+				json.setAttToEmail(exceptionURLOrEmail);
 			}
 			
 			synchronized (cache) {
@@ -190,9 +186,9 @@ public class ExceptionReporter {
 			}
 		}
 		
-		if(exceptionURL != null && isEmail == false){
+		if(exceptionURLOrEmail != null && isEmail == false){
 			//满足向Har provider的条件
-			final ExceptionJSON json = builder.buildJSON(harHelper, checker, throwable, exceptionURL, script, errMessage);
+			final ExceptionJSON json = builder.buildJSON(harHelper, checker, throwable, exceptionURLOrEmail, script, errMessage);
 			if(json == null){
 				return;
 			}

@@ -31,6 +31,7 @@ public abstract class RootBuilder {
 	public abstract ExceptionJSONBuilder getExceptionJSONBuilder();
 	public abstract void reportException(final ExceptionJSON json);
 	public abstract String getAjax(String url);
+	public abstract void setDaemonThread(final Thread thread);
 
 	public abstract Object doBiz(final int rootBizNo, final Object para);
 	

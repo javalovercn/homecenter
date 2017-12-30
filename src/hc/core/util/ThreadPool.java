@@ -9,6 +9,7 @@ public abstract class ThreadPool {
 	static protected boolean isShutDown = false;
 	protected final Object threadGroup;
 	protected String name = "";
+	private final boolean isServerAppPool;
 	
 	private final static String DONE_RETURN = "doneReturn";
 	
@@ -44,7 +45,11 @@ public abstract class ThreadPool {
 					finalWait[0] = run.run();
 				}catch (Throwable e) {
 					finalWait[0] = e;
-					ExceptionReporter.printStackTraceFromThreadPool(e);
+					if(isServerAppPool){
+						ExceptionReporter.printStackTrace(e, null, null, ExceptionReporter.INVOKE_NORMAL);
+					}else{
+						ExceptionReporter.printStackTraceFromThreadPool(e);
+					}
 				}
 				
 				synchronized (finalWait) {
@@ -91,6 +96,11 @@ public abstract class ThreadPool {
 	 * @param threadGroup
 	 */
 	public ThreadPool(Object threadGroup){
+		this(threadGroup, false);
+	}
+	
+	public ThreadPool(Object threadGroup, final boolean isServerAppPool){
+		this.isServerAppPool = isServerAppPool;
 		this.threadGroup = threadGroup;
 		
 		synchronized (list) {
@@ -170,6 +180,7 @@ public abstract class ThreadPool {
 		rt = buildRecycleThread(this);
 		Thread t = buildThread(rt);
 		rt.setThread(t);
+//		RootBuilder.getInstance().setDaemonThread(t);
 		rt.setRunnable(new Runnable() {
 			public void run() {
 			}

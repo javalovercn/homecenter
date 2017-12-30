@@ -187,7 +187,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 		
 		jtascriptPanel.setBorder(new TitledBorder(JRubyNodeEditPanel.JRUBY_SCRIPT_BORDER));
 		jtascriptPanel.setLayout(new BorderLayout());
-		jtascriptPanel.add(scrollpane, BorderLayout.CENTER);
+		jtascriptPanel.add(editorPane, BorderLayout.CENTER);
 		jtascriptPanel.add(errRunInfo, BorderLayout.SOUTH);
 		
 		iconPanel.setLayout(new BorderLayout());

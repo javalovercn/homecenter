@@ -1,0 +1,2584 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <!-- classpage -- >
+    <!-- RD version: 0.39.0  -->
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+  <meta name='description' content='  Class : Dir  -   Ruby 2.2.0 ' />
+  <meta content="2017-09-09 18:34:19 -0500" http-equiv="change-date" />
+  <!-- rel_prefix  = ''  ENV['RDOC_FOR_WEBSITE']   = true-->
+    
+    
+    
+  <!-- rel_prefix = '.'   asset_rel_prefix = ''  --> 
+  <title>Class: Dir (Ruby 2.2.0) </title>
+  <link rel="stylesheet" href="/css/associated.css" type="text/css" >
+  <!-- link rel="stylesheet" href=".css/obf.css"  -->
+  <link rel="stylesheet" href="/css/inuit.css" >
+  <link rel="stylesheet" href="/css/grid.inuit.css" >
+  <link rel="stylesheet" href="/css/2011.css" type="text/css" >
+  <link rel="stylesheet" href="/css/rdoc.css" type="text/css" >
+    <link rel="stylesheet" href="/css/carbon17.css" type="text/css" >
+
+
+  <script src="/js/jquery.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/thickbox-compressed.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/quicksearch.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/rubydoc.js" type="text/javascript" charset="utf-8"></script> 
+
+
+   
+<script src="/js/highlight.min.js"></script>
+<script> 
+  hljs.tabReplace = '  ';
+  hljs.initHighlightingOnLoad();
+  </script> 
+
+  <style type='text/css'>
+
+    #vulns-alert #vulns{
+      background-color: #c33 ! important;
+      width: 100%;
+      text-align: center;
+   }
+   
+   #vulns-alert #vulns a {
+    color: #F99 ! important;
+   }
+ </style>
+
+   <link rel="stylesheet" href="/css/extra.css" type="text/css" >
+  <script  src="/js/extra.js"  ></script>
+
+
+</head>
+
+<body id="top" class="class rdocstar">
+
+<div id='actionbar' >
+<div class='wrapper'>
+  <ul class='grids g0'>
+	<li class='grid-2' ><a href='/' target='_top' >Home</a></li>
+	<li class='grid-2' ><a href='/core-2.2.0' target='_top' >Core 2.2.0</a></li>
+	<li class='grid-2' ><a href='/stdlib-2.2.0' target='_top' >Std-lib 2.2.0</a></li>
+
+   <li class='grid-2' ><a href='/downloads' target='_top' >Downloads</a></li>
+	 <li class='grid-5 right' id='rd-action-search'><form id="searchbox_011815814100681837392:wnccv6st5qk" action="http://ruby-doc.com/search.html"><input type="hidden" name="cx" value="011815814100681837392:wnccv6st5qk" ><input  id='rd-search-input' name="q" type="text" size="20" >&#160;&#160;<input type="submit" name="sa" value="Search" ><input type="hidden" name="cof" value="FORID:9" ></form></li>
+	</ul>
+</div>
+<span id='vulns-alert'></span>
+<div id='versionheader'>
+<p>Support for the Ruby 2.2 series will end March 2018. See <a href='https://www.ruby-lang.org/en/news/2017/04/01/support-of-ruby-2-1-has-ended/'>here</a> for reference.</p>
+</div>
+</div> <!-- end action bar -->
+ <div class='wrapper'>
+  
+   <!-- carbon17 added here 2017-09-09 -->
+ 
+   <script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD627W', 'placement:rubydocorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+ 
+
+   <div id="metadata">
+    <div id="home-metadata">
+      <div id="home-section" class="section">
+        <h3 class="section-header">
+          <a href="./index.html">Home</a>
+          <a href="./index.html#classes">Classes</a>
+          <a href="./index.html#methods">Methods</a>
+          
+          
+          <!-- br><a id='alternateFormatLink' class='rotate' href="#" onclick='matchingYardUrl()'>YARD version</a -->
+          
+        </h3>
+      </div>
+    </div>
+
+    <div id="file-metadata">
+      <div id="file-list-section" class="section">
+        <h3 class="section-header">In Files</h3>
+        <div class="section-body">
+          <ul id='file-metadata'>
+
+          
+          
+          
+          <li class='in-file'>dir.c</li>      
+            
+          </ul>
+        </div>
+      </div>
+
+      
+    </div>
+
+    <div id="class-metadata">
+      
+      <!-- Parent Class -->
+      <div id="parent-class-section" class="section">
+        <h3 class="section-header">Parent</h3>
+        
+        <p class="link"><a href="Object.html">Object</a></p>
+        
+      </div>
+      
+
+      
+
+      
+
+      
+      <!-- Method Quickref -->
+      <div id="method-list-section" class="section">
+        <h3 class="section-header">Methods</h3>
+        <ul class="link-list">
+          
+          <li><a href="#method-c-5B-5D">::[]</a></li>
+          
+          <li><a href="#method-c-chdir">::chdir</a></li>
+          
+          <li><a href="#method-c-chroot">::chroot</a></li>
+          
+          <li><a href="#method-c-delete">::delete</a></li>
+          
+          <li><a href="#method-c-entries">::entries</a></li>
+          
+          <li><a href="#method-c-exist-3F">::exist?</a></li>
+          
+          <li><a href="#method-c-exists-3F">::exists?</a></li>
+          
+          <li><a href="#method-c-foreach">::foreach</a></li>
+          
+          <li><a href="#method-c-getwd">::getwd</a></li>
+          
+          <li><a href="#method-c-glob">::glob</a></li>
+          
+          <li><a href="#method-c-home">::home</a></li>
+          
+          <li><a href="#method-c-mkdir">::mkdir</a></li>
+          
+          <li><a href="#method-c-new">::new</a></li>
+          
+          <li><a href="#method-c-open">::open</a></li>
+          
+          <li><a href="#method-c-pwd">::pwd</a></li>
+          
+          <li><a href="#method-c-rmdir">::rmdir</a></li>
+          
+          <li><a href="#method-c-unlink">::unlink</a></li>
+          
+          <li><a href="#method-i-close">#close</a></li>
+          
+          <li><a href="#method-i-each">#each</a></li>
+          
+          <li><a href="#method-i-fileno">#fileno</a></li>
+          
+          <li><a href="#method-i-inspect">#inspect</a></li>
+          
+          <li><a href="#method-i-path">#path</a></li>
+          
+          <li><a href="#method-i-pos">#pos</a></li>
+          
+          <li><a href="#method-i-pos-3D">#pos=</a></li>
+          
+          <li><a href="#method-i-read">#read</a></li>
+          
+          <li><a href="#method-i-rewind">#rewind</a></li>
+          
+          <li><a href="#method-i-seek">#seek</a></li>
+          
+          <li><a href="#method-i-tell">#tell</a></li>
+          
+          <li><a href="#method-i-to_path">#to_path</a></li>
+          
+        </ul>
+      </div>
+      
+
+      
+      <!-- Included Modules -->
+      <div id="includes-section" class="section">
+        <h3 class="section-header">Included Modules</h3>
+        <ul class="link-list">
+        
+        
+          <li><a class="include" href="Enumerable.html">Enumerable</a></li>
+        
+        
+        </ul>
+      </div>
+      
+    </div>
+
+    <div id="project-metadata">
+      
+      
+      <div id="fileindex-section" class="section project-section">
+        <h3 class="section-header">Files</h3>
+        <ul id='files'>
+        
+          
+          <li class="file"><a href="./_lib/racc/rdoc/grammar_en_rdoc.html">grammar.en.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./_test/rdoc/test_ja_rdoc.html">test.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributing_rdoc.html">contributing.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributors_rdoc.html">contributors.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/dtrace_probes_rdoc.html">dtrace_probes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/globals_rdoc.html">globals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/keywords_rdoc.html">keywords.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/maintainers_rdoc.html">maintainers.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/marshal_rdoc.html">marshal.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/regexp_rdoc.html">regexp.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/security_rdoc.html">security.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/standard_library_rdoc.html">standard_library.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax_rdoc.html">syntax.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/assignment_rdoc.html">assignment.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/calling_methods_rdoc.html">calling_methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/control_expressions_rdoc.html">control_expressions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/exceptions_rdoc.html">exceptions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/literals_rdoc.html">literals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/methods_rdoc.html">methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/miscellaneous_rdoc.html">miscellaneous.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/modules_and_classes_rdoc.html">modules_and_classes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/precedence_rdoc.html">precedence.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/refinements_rdoc.html">refinements.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_ja_rdoc.html">README.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_rdoc.html">README.rdoc</a></li>
+        
+        </ul>
+      </div>
+      
+
+      <div id="classindex-section" class="section project-section">
+        <h3 class="section-header">Class/Module Index
+          <span class="search-toggle"><img src="./images/find.png"
+            height="16" width="16" alt="[+]"
+            title="show/hide quicksearch" /></span></h3>
+        <form action="#" method="get" accept-charset="utf-8" class="initially-hidden">
+        <fieldset>
+          <legend>Quicksearch</legend>
+          <input type="text" name="quicksearch" value=""
+            class="quicksearch-field" />
+        </fieldset>
+        </form>
+
+        <ul class="link-list">
+          
+          
+          
+          <li><a href="./ArgumentError.html">ArgumentError</a></li>
+        
+          
+          
+          <li><a href="./Array.html">Array</a></li>
+        
+          
+          
+          <li><a href="./BasicObject.html">BasicObject</a></li>
+        
+          
+          
+          <li><a href="./Bignum.html">Bignum</a></li>
+        
+          
+          
+          <li><a href="./Binding.html">Binding</a></li>
+        
+          
+          
+          <li><a href="./Class.html">Class</a></li>
+        
+          
+          
+          <li><a href="./Comparable.html">Comparable</a></li>
+        
+          
+          
+          <li><a href="./Complex.html">Complex</a></li>
+        
+          
+          
+          <li><a href="./Complex/compatible.html">Complex::compatible</a></li>
+        
+          
+          
+          <li><a href="./ConditionVariable.html">ConditionVariable</a></li>
+        
+          
+          
+          <li><a href="./Continuation.html">Continuation</a></li>
+        
+          
+          
+          <li><a href="./Data.html">Data</a></li>
+        
+          
+          
+          <li><a href="./Dir.html">Dir</a></li>
+        
+          
+          
+          <li><a href="./ENV.html">ENV</a></li>
+        
+          
+          
+          <li><a href="./EOFError.html">EOFError</a></li>
+        
+          
+          
+          <li><a href="./Encoding.html">Encoding</a></li>
+        
+          
+          
+          <li><a href="./Encoding/CompatibilityError.html">Encoding::CompatibilityError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/Converter.html">Encoding::Converter</a></li>
+        
+          
+          
+          <li><a href="./Encoding/ConverterNotFoundError.html">Encoding::ConverterNotFoundError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/InvalidByteSequenceError.html">Encoding::InvalidByteSequenceError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/UndefinedConversionError.html">Encoding::UndefinedConversionError</a></li>
+        
+          
+          
+          <li><a href="./EncodingError.html">EncodingError</a></li>
+        
+          
+          
+          <li><a href="./Enumerable.html">Enumerable</a></li>
+        
+          
+          
+          <li><a href="./Enumerator.html">Enumerator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Generator.html">Enumerator::Generator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Lazy.html">Enumerator::Lazy</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Yielder.html">Enumerator::Yielder</a></li>
+        
+          
+          
+          <li><a href="./Errno.html">Errno</a></li>
+        
+          
+          
+          <li><a href="./Exception.html">Exception</a></li>
+        
+          
+          
+          <li><a href="./FalseClass.html">FalseClass</a></li>
+        
+          
+          
+          <li><a href="./Fiber.html">Fiber</a></li>
+        
+          
+          
+          <li><a href="./FiberError.html">FiberError</a></li>
+        
+          
+          
+          <li><a href="./File.html">File</a></li>
+        
+          
+          
+          <li><a href="./File/Constants.html">File::Constants</a></li>
+        
+          
+          
+          <li><a href="./File/Stat.html">File::Stat</a></li>
+        
+          
+          
+          <li><a href="./FileTest.html">FileTest</a></li>
+        
+          
+          
+          <li><a href="./Fixnum.html">Fixnum</a></li>
+        
+          
+          
+          <li><a href="./Float.html">Float</a></li>
+        
+          
+          
+          <li><a href="./FloatDomainError.html">FloatDomainError</a></li>
+        
+          
+          
+          <li><a href="./GC.html">GC</a></li>
+        
+          
+          
+          <li><a href="./GC/Profiler.html">GC::Profiler</a></li>
+        
+          
+          
+          <li><a href="./Hash.html">Hash</a></li>
+        
+          
+          
+          <li><a href="./IO.html">IO</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitReadable.html">IO::EAGAINWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitWritable.html">IO::EAGAINWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitReadable.html">IO::EINPROGRESSWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitWritable.html">IO::EINPROGRESSWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitReadable.html">IO::EWOULDBLOCKWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitWritable.html">IO::EWOULDBLOCKWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitReadable.html">IO::WaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitWritable.html">IO::WaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IOError.html">IOError</a></li>
+        
+          
+          
+          <li><a href="./IndexError.html">IndexError</a></li>
+        
+          
+          
+          <li><a href="./Integer.html">Integer</a></li>
+        
+          
+          
+          <li><a href="./Interrupt.html">Interrupt</a></li>
+        
+          
+          
+          <li><a href="./Kernel.html">Kernel</a></li>
+        
+          
+          
+          <li><a href="./KeyError.html">KeyError</a></li>
+        
+          
+          
+          <li><a href="./LoadError.html">LoadError</a></li>
+        
+          
+          
+          <li><a href="./LocalJumpError.html">LocalJumpError</a></li>
+        
+          
+          
+          <li><a href="./Marshal.html">Marshal</a></li>
+        
+          
+          
+          <li><a href="./MatchData.html">MatchData</a></li>
+        
+          
+          
+          <li><a href="./Math.html">Math</a></li>
+        
+          
+          
+          <li><a href="./Math/DomainError.html">Math::DomainError</a></li>
+        
+          
+          
+          <li><a href="./Method.html">Method</a></li>
+        
+          
+          
+          <li><a href="./Module.html">Module</a></li>
+        
+          
+          
+          <li><a href="./Mutex.html">Mutex</a></li>
+        
+          
+          
+          <li><a href="./NameError.html">NameError</a></li>
+        
+          
+          
+          <li><a href="./NilClass.html">NilClass</a></li>
+        
+          
+          
+          <li><a href="./NoMemoryError.html">NoMemoryError</a></li>
+        
+          
+          
+          <li><a href="./NoMethodError.html">NoMethodError</a></li>
+        
+          
+          
+          <li><a href="./NotImplementedError.html">NotImplementedError</a></li>
+        
+          
+          
+          <li><a href="./Numeric.html">Numeric</a></li>
+        
+          
+          
+          <li><a href="./Object.html">Object</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace.html">ObjectSpace</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace/WeakMap.html">ObjectSpace::WeakMap</a></li>
+        
+          
+          
+          <li><a href="./Proc.html">Proc</a></li>
+        
+          
+          
+          <li><a href="./Process.html">Process</a></li>
+        
+          
+          
+          <li><a href="./Process/GID.html">Process::GID</a></li>
+        
+          
+          
+          <li><a href="./Process/Status.html">Process::Status</a></li>
+        
+          
+          
+          <li><a href="./Process/Sys.html">Process::Sys</a></li>
+        
+          
+          
+          <li><a href="./Process/UID.html">Process::UID</a></li>
+        
+          
+          
+          <li><a href="./Process/Waiter.html">Process::Waiter</a></li>
+        
+          
+          
+          <li><a href="./Queue.html">Queue</a></li>
+        
+          
+          
+          <li><a href="./Random.html">Random</a></li>
+        
+          
+          
+          <li><a href="./Range.html">Range</a></li>
+        
+          
+          
+          <li><a href="./RangeError.html">RangeError</a></li>
+        
+          
+          
+          <li><a href="./Rational.html">Rational</a></li>
+        
+          
+          
+          <li><a href="./Rational/compatible.html">Rational::compatible</a></li>
+        
+          
+          
+          <li><a href="./Regexp.html">Regexp</a></li>
+        
+          
+          
+          <li><a href="./RegexpError.html">RegexpError</a></li>
+        
+          
+          
+          <li><a href="./RubyVM.html">RubyVM</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/Env.html">RubyVM::Env</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/InstructionSequence.html">RubyVM::InstructionSequence</a></li>
+        
+          
+          
+          <li><a href="./RuntimeError.html">RuntimeError</a></li>
+        
+          
+          
+          <li><a href="./ScriptError.html">ScriptError</a></li>
+        
+          
+          
+          <li><a href="./SecurityError.html">SecurityError</a></li>
+        
+          
+          
+          <li><a href="./Signal.html">Signal</a></li>
+        
+          
+          
+          <li><a href="./SignalException.html">SignalException</a></li>
+        
+          
+          
+          <li><a href="./SizedQueue.html">SizedQueue</a></li>
+        
+          
+          
+          <li><a href="./StandardError.html">StandardError</a></li>
+        
+          
+          
+          <li><a href="./StopIteration.html">StopIteration</a></li>
+        
+          
+          
+          <li><a href="./String.html">String</a></li>
+        
+          
+          
+          <li><a href="./Struct.html">Struct</a></li>
+        
+          
+          
+          <li><a href="./Symbol.html">Symbol</a></li>
+        
+          
+          
+          <li><a href="./SyntaxError.html">SyntaxError</a></li>
+        
+          
+          
+          <li><a href="./SystemCallError.html">SystemCallError</a></li>
+        
+          
+          
+          <li><a href="./SystemExit.html">SystemExit</a></li>
+        
+          
+          
+          <li><a href="./SystemStackError.html">SystemStackError</a></li>
+        
+          
+          
+          <li><a href="./Thread.html">Thread</a></li>
+        
+          
+          
+          <li><a href="./Thread/Backtrace/Location.html">Thread::Backtrace::Location</a></li>
+        
+          
+          
+          <li><a href="./ThreadError.html">ThreadError</a></li>
+        
+          
+          
+          <li><a href="./ThreadGroup.html">ThreadGroup</a></li>
+        
+          
+          
+          <li><a href="./Time.html">Time</a></li>
+        
+          
+          
+          <li><a href="./TracePoint.html">TracePoint</a></li>
+        
+          
+          
+          <li><a href="./TrueClass.html">TrueClass</a></li>
+        
+          
+          
+          <li><a href="./TypeError.html">TypeError</a></li>
+        
+          
+          
+          <li><a href="./UnboundMethod.html">UnboundMethod</a></li>
+        
+          
+          
+          <li><a href="./UncaughtThrowError.html">UncaughtThrowError</a></li>
+        
+          
+          
+          <li><a href="./ZeroDivisionError.html">ZeroDivisionError</a></li>
+        
+          
+          
+          <li><a href="./fatal.html">fatal</a></li>
+        
+          
+          
+          <li><a href="./unknown.html">unknown</a></li>
+        
+        </ul>
+        <div id="no-class-search-results" style="display: none;">No matching classes.</div>
+      </div>
+
+      
+    </div>
+  </div> <!-- metadata -->
+  <div class='adzbox'  id="azk83167">
+    
+   <div id="carbonads-container"><div class="carbonad">
+    <script async type="text/javascript" src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=rubydocorg" 
+      id="_carbonads_js">
+      </script>
+  </div></div>
+
+   
+  </div> 
+  <div id="documentation">
+    <h1 class="class">Dir</h1>
+
+    <div id="description" class="description">
+      
+<p>Objects of class <code>Dir</code> are directory streams representing
+directories in the underlying file system. They provide a variety of ways
+to list directories and their contents. See also <code>File</code>.</p>
+
+<p>The directory used in these examples contains the two regular files
+(<code>config.h</code> and <code>main.rb</code>), the parent directory
+(<code>..</code>), and the directory itself (<code>.</code>).</p>
+
+    </div><!-- description -->
+
+    
+    
+    
+    <div id="5Buntitled-5D" class="documentation-section">
+      
+
+      
+
+      
+
+      
+
+      <!-- Methods -->
+      
+      <div id="public-class-method-details" class="method-section section">
+        <h3 class="section-header">Public Class Methods</h3>
+
+      
+        <div id="5B-5D-method" class="method-detail ">
+          <a name="method-c-5B-5D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">Dir[ string [, string ...] ] &rarr; array</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Equivalent to calling <code>Dir.glob([string,...],0)</code>.</p>
+            
+
+            
+            <div class="method-source-code" id="5B-5D-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_s_aref(int argc, VALUE *argv, VALUE obj)
+{
+    if (argc == 1) {
+        return rb_push_glob(argv[0], 0);
+    }
+    return dir_globs(argc, argv, 0);
+}
+            </pre> 
+            </div><!-- 5B-5D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 5B-5D-method -->
+      
+        <div id="chdir-method" class="method-detail ">
+          <a name="method-c-chdir"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">chdir( [ string] ) &rarr; 0</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">chdir( [ string] ) {| path | block }  &rarr; anObject</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Changes the current working directory of the process to the given string.
+When called without an argument, changes the directory to the value of the
+environment variable <code>HOME</code>, or <code>LOGDIR</code>.
+<code>SystemCallError</code> (probably <code>Errno::ENOENT</code>) if the
+target directory does not exist.</p>
+
+<p>If a block is given, it is passed the name of the new current directory,
+and the block is executed with that as the current directory. The original
+working directory is restored when the block exits. The return value of
+<code>chdir</code> is the value of the block. <code>chdir</code> blocks can
+be nested, but in a multi-threaded program an error will be raised if a
+thread attempts to open a <code>chdir</code> block while another thread has
+one open.</p>
+
+<pre class="ruby"><span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span>(<span class="ruby-string">&quot;/var/spool/mail&quot;</span>)
+<span class="ruby-identifier">puts</span> <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">pwd</span>
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span>(<span class="ruby-string">&quot;/tmp&quot;</span>) <span class="ruby-keyword">do</span>
+  <span class="ruby-identifier">puts</span> <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">pwd</span>
+  <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span>(<span class="ruby-string">&quot;/usr&quot;</span>) <span class="ruby-keyword">do</span>
+    <span class="ruby-identifier">puts</span> <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">pwd</span>
+  <span class="ruby-keyword">end</span>
+  <span class="ruby-identifier">puts</span> <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">pwd</span>
+<span class="ruby-keyword">end</span>
+<span class="ruby-identifier">puts</span> <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">pwd</span>
+</pre>
+
+<p><em>produces:</em></p>
+
+<pre>/var/spool/mail
+/tmp
+/usr
+/tmp
+/var/spool/mail</pre>
+            
+
+            
+            <div class="method-source-code" id="chdir-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_s_chdir(int argc, VALUE *argv, VALUE obj)
+{
+    VALUE path = Qnil;
+
+    rb_secure(2);
+    if (rb_scan_args(argc, argv, &quot;01&quot;, &amp;path) == 1) {
+        FilePathValue(path);
+        path = rb_str_encode_ospath(path);
+    }
+    else {
+        const char *dist = getenv(&quot;HOME&quot;);
+        if (!dist) {
+            dist = getenv(&quot;LOGDIR&quot;);
+            if (!dist) rb_raise(rb_eArgError, &quot;HOME/LOGDIR not set&quot;);
+        }
+        path = rb_str_new2(dist);
+    }
+
+    if (chdir_blocking &gt; 0) {
+        if (!rb_block_given_p() || rb_thread_current() != chdir_thread)
+            rb_warn(&quot;conflicting chdir during another chdir block&quot;);
+    }
+
+    if (rb_block_given_p()) {
+        struct chdir_data args;
+
+        args.old_path = rb_str_encode_ospath(rb_dir_getwd());
+        args.new_path = path;
+        args.done = FALSE;
+        return rb_ensure(chdir_yield, (VALUE)&amp;args, chdir_restore, (VALUE)&amp;args);
+    }
+    dir_chdir(path);
+
+    return INT2FIX(0);
+}
+            </pre> 
+            </div><!-- chdir-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- chdir-method -->
+      
+        <div id="chroot-method" class="method-detail ">
+          <a name="method-c-chroot"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">chroot( string ) &rarr; 0</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Changes this process’s idea of the file system root. Only a privileged
+process may make this call. Not available on all platforms. On Unix
+systems, see <code>chroot(2)</code> for more information.</p>
+            
+
+            
+            <div class="method-source-code" id="chroot-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_s_chroot(VALUE dir, VALUE path)
+{
+    check_dirname(&amp;path);
+    if (chroot(RSTRING_PTR(path)) == -1)
+        rb_sys_fail_path(path);
+
+    return INT2FIX(0);
+}
+            </pre> 
+            </div><!-- chroot-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- chroot-method -->
+      
+        <div id="delete-method" class="method-detail ">
+          <a name="method-c-delete"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">delete( string ) &rarr; 0</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Deletes the named directory. Raises a subclass of
+<code>SystemCallError</code> if the directory isn’t empty.</p>
+            
+
+            
+            <div class="method-source-code" id="delete-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_s_rmdir(VALUE obj, VALUE dir)
+{
+    check_dirname(&amp;dir);
+    if (rmdir(RSTRING_PTR(dir)) &lt; 0)
+        rb_sys_fail_path(dir);
+
+    return INT2FIX(0);
+}
+            </pre> 
+            </div><!-- delete-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- delete-method -->
+      
+        <div id="entries-method" class="method-detail ">
+          <a name="method-c-entries"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">entries( dirname )                &rarr; array</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">entries( dirname, encoding: enc ) &rarr; array</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns an array containing all of the filenames in the given directory.
+Will raise a <code>SystemCallError</code> if the named directory doesn’t
+exist.</p>
+
+<p>The optional <em>enc</em> argument specifies the encoding of the directory.
+If not specified, the filesystem encoding is used.</p>
+
+<pre class="ruby"><span class="ruby-constant">Dir</span>.<span class="ruby-identifier">entries</span>(<span class="ruby-string">&quot;testdir&quot;</span>)   <span class="ruby-comment">#=&gt; [&quot;.&quot;, &quot;..&quot;, &quot;config.h&quot;, &quot;main.rb&quot;]</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="entries-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_entries(int argc, VALUE *argv, VALUE io)
+{
+    VALUE dir;
+
+    dir = dir_open_dir(argc, argv);
+    return rb_ensure(rb_Array, dir, dir_close, dir);
+}
+            </pre> 
+            </div><!-- entries-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- entries-method -->
+      
+        <div id="exist-3F-method" class="method-detail ">
+          <a name="method-c-exist-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">exist?(file_name)   &rarr;  true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if the named file is a directory,
+<code>false</code> otherwise.</p>
+            
+
+            
+            <div class="method-source-code" id="exist-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               VALUE
+rb_file_directory_p(void)
+{
+}
+            </pre> 
+            </div><!-- exist-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- exist-3F-method -->
+      
+        <div id="exists-3F-method" class="method-detail ">
+          <a name="method-c-exists-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">exists?(file_name)  &rarr;  true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Deprecated method. Don’t use.</p>
+            
+
+            
+            <div class="method-source-code" id="exists-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+rb_dir_exists_p(VALUE obj, VALUE fname)
+{
+    rb_warning(&quot;Dir.exists? is a deprecated name, use Dir.exist? instead&quot;);
+    return rb_file_directory_p(obj, fname);
+}
+            </pre> 
+            </div><!-- exists-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- exists-3F-method -->
+      
+        <div id="foreach-method" class="method-detail ">
+          <a name="method-c-foreach"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">foreach( dirname ) {| filename | block }                 &rarr; nil</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">foreach( dirname, encoding: enc ) {| filename | block }  &rarr; nil</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">foreach( dirname )                                       &rarr; an_enumerator</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">foreach( dirname, encoding: enc )                        &rarr; an_enumerator</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Calls the block once for each entry in the named directory, passing the
+filename of each entry as a parameter to the block.</p>
+
+<p>If no block is given, an enumerator is returned instead.</p>
+
+<pre class="ruby"><span class="ruby-constant">Dir</span>.<span class="ruby-identifier">foreach</span>(<span class="ruby-string">&quot;testdir&quot;</span>) {<span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Got #{x}&quot;</span> }
+</pre>
+
+<p><em>produces:</em></p>
+
+<pre>Got .
+Got ..
+Got config.h
+Got main.rb</pre>
+            
+
+            
+            <div class="method-source-code" id="foreach-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_foreach(int argc, VALUE *argv, VALUE io)
+{
+    VALUE dir;
+
+    RETURN_ENUMERATOR(io, argc, argv);
+    dir = dir_open_dir(argc, argv);
+    rb_ensure(dir_each, dir, dir_close, dir);
+    return Qnil;
+}
+            </pre> 
+            </div><!-- foreach-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- foreach-method -->
+      
+        <div id="getwd-method" class="method-detail ">
+          <a name="method-c-getwd"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">getwd &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the path to the current working directory of this process as a
+string.</p>
+
+<pre class="ruby"><span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span>(<span class="ruby-string">&quot;/tmp&quot;</span>)   <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">getwd</span>           <span class="ruby-comment">#=&gt; &quot;/tmp&quot;</span>
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">pwd</span>             <span class="ruby-comment">#=&gt; &quot;/tmp&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="getwd-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_s_getwd(VALUE dir)
+{
+    return rb_dir_getwd();
+}
+            </pre> 
+            </div><!-- getwd-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- getwd-method -->
+      
+        <div id="glob-method" class="method-detail ">
+          <a name="method-c-glob"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">glob( pattern, [flags] ) &rarr; matches</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">glob( pattern, [flags] ) { |filename| block }  &rarr; nil</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Expands <code>pattern</code>, which is an <a href="Array.html">Array</a> of
+patterns or a pattern <a href="String.html">String</a>, and returns the
+results as <code>matches</code> or as arguments given to the block.</p>
+
+<p>Note that this pattern is not a regexp, it’s closer to a shell glob.  See
+<a href="File.html#method-c-fnmatch">File.fnmatch</a> for the meaning of
+the <code>flags</code> parameter.  Note that case sensitivity depends on
+your system (so File::FNM_CASEFOLD is ignored), as does the order in which
+the results are returned.</p>
+<dl class="rdoc-list note-list"><dt><code>*</code>
+<dd>
+<p>Matches any file. Can be restricted by other values in the glob. Equivalent
+to <code>/ .* /x</code> in regexp.</p>
+<dl class="rdoc-list note-list"><dt><code>*</code>
+<dd>
+<p>Matches all files</p>
+</dd><dt><code>c*</code>
+<dd>
+<p>Matches all files beginning with <code>c</code></p>
+</dd><dt><code>*c</code>
+<dd>
+<p>Matches all files ending with <code>c</code></p>
+</dd><dt><code>*c*</code>
+<dd>
+<p>Match all files that have <code>c</code> in them (including at the
+beginning or end).</p>
+</dd></dl>
+
+<p>Note, this will not match Unix-like hidden files (dotfiles).  In order to
+include those in the match results, you must use the File::FNM_DOTMATCH
+flag or something like <code>&quot;{*,.*}&quot;</code>.</p>
+</dd><dt><code>**</code>
+<dd>
+<p>Matches directories recursively.</p>
+</dd><dt><code>?</code>
+<dd>
+<p>Matches any one character. Equivalent to <code>/.{1}/</code> in regexp.</p>
+</dd><dt><code>[set]</code>
+<dd>
+<p>Matches any one character in <code>set</code>.  Behaves exactly like
+character sets in <a href="Regexp.html">Regexp</a>, including set negation
+(<code>[^a-z]</code>).</p>
+</dd><dt><code>{p,q}</code>
+<dd>
+<p>Matches either literal <code>p</code> or literal <code>q</code>. Equivalent
+to pattern alternation in regexp.</p>
+
+<p>Matching literals may be more than one character in length.  More than two
+literals may be specified.</p>
+</dd><dt><code> \ </code>
+<dd>
+<p>Escapes the next metacharacter.</p>
+
+<p>Note that this means you cannot use backslash on windows as part of a glob,
+i.e.  <code>Dir["c:\foo*"]</code> will not work, use
+<code>Dir["c:/foo*"]</code> instead.</p>
+</dd></dl>
+
+<p>Examples:</p>
+
+<pre class="ruby"><span class="ruby-constant">Dir</span>[<span class="ruby-string">&quot;config.?&quot;</span>]                     <span class="ruby-comment">#=&gt; [&quot;config.h&quot;]</span>
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">glob</span>(<span class="ruby-string">&quot;config.?&quot;</span>)                <span class="ruby-comment">#=&gt; [&quot;config.h&quot;]</span>
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">glob</span>(<span class="ruby-string">&quot;*.[a-z][a-z]&quot;</span>)            <span class="ruby-comment">#=&gt; [&quot;main.rb&quot;]</span>
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">glob</span>(<span class="ruby-string">&quot;*.[^r]*&quot;</span>)                 <span class="ruby-comment">#=&gt; [&quot;config.h&quot;]</span>
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">glob</span>(<span class="ruby-string">&quot;*.{rb,h}&quot;</span>)                <span class="ruby-comment">#=&gt; [&quot;main.rb&quot;, &quot;config.h&quot;]</span>
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">glob</span>(<span class="ruby-string">&quot;*&quot;</span>)                       <span class="ruby-comment">#=&gt; [&quot;config.h&quot;, &quot;main.rb&quot;]</span>
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">glob</span>(<span class="ruby-string">&quot;*&quot;</span>, <span class="ruby-constant">File</span><span class="ruby-operator">::</span><span class="ruby-constant">FNM_DOTMATCH</span>)   <span class="ruby-comment">#=&gt; [&quot;.&quot;, &quot;..&quot;, &quot;config.h&quot;, &quot;main.rb&quot;]</span>
+
+<span class="ruby-identifier">rbfiles</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-string">&quot;**&quot;</span>, <span class="ruby-string">&quot;*.rb&quot;</span>)
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">glob</span>(<span class="ruby-identifier">rbfiles</span>)                   <span class="ruby-comment">#=&gt; [&quot;main.rb&quot;,</span>
+                                    <span class="ruby-comment">#    &quot;lib/song.rb&quot;,</span>
+                                    <span class="ruby-comment">#    &quot;lib/song/karaoke.rb&quot;]</span>
+<span class="ruby-identifier">libdirs</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-string">&quot;**&quot;</span>, <span class="ruby-string">&quot;lib&quot;</span>)
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">glob</span>(<span class="ruby-identifier">libdirs</span>)                   <span class="ruby-comment">#=&gt; [&quot;lib&quot;]</span>
+
+<span class="ruby-identifier">librbfiles</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-string">&quot;**&quot;</span>, <span class="ruby-string">&quot;lib&quot;</span>, <span class="ruby-string">&quot;**&quot;</span>, <span class="ruby-string">&quot;*.rb&quot;</span>)
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">glob</span>(<span class="ruby-identifier">librbfiles</span>)                <span class="ruby-comment">#=&gt; [&quot;lib/song.rb&quot;,</span>
+                                    <span class="ruby-comment">#    &quot;lib/song/karaoke.rb&quot;]</span>
+
+<span class="ruby-identifier">librbfiles</span> = <span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-string">&quot;**&quot;</span>, <span class="ruby-string">&quot;lib&quot;</span>, <span class="ruby-string">&quot;*.rb&quot;</span>)
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">glob</span>(<span class="ruby-identifier">librbfiles</span>)                <span class="ruby-comment">#=&gt; [&quot;lib/song.rb&quot;]</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="glob-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_s_glob(int argc, VALUE *argv, VALUE obj)
+{
+    VALUE str, rflags, ary;
+    int flags;
+
+    if (rb_scan_args(argc, argv, &quot;11&quot;, &amp;str, &amp;rflags) == 2)
+        flags = NUM2INT(rflags);
+    else
+        flags = 0;
+
+    ary = rb_check_array_type(str);
+    if (NIL_P(ary)) {
+        ary = rb_push_glob(str, flags);
+    }
+    else {
+        VALUE v = ary;
+        ary = dir_globs(RARRAY_LEN(v), RARRAY_CONST_PTR(v), flags);
+        RB_GC_GUARD(v);
+    }
+
+    if (rb_block_given_p()) {
+        rb_ary_each(ary);
+        return Qnil;
+    }
+    return ary;
+}
+            </pre> 
+            </div><!-- glob-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- glob-method -->
+      
+        <div id="home-method" class="method-detail ">
+          <a name="method-c-home"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">home()       &rarr; "/home/me"</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">home("root") &rarr; "/root"</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the home directory of the current user or the named user if given.</p>
+            
+
+            
+            <div class="method-source-code" id="home-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_s_home(int argc, VALUE *argv, VALUE obj)
+{
+    VALUE user;
+    const char *u = 0;
+
+    rb_check_arity(argc, 0, 1);
+    user = (argc &gt; 0) ? argv[0] : Qnil;
+    if (!NIL_P(user)) {
+        SafeStringValue(user);
+        rb_must_asciicompat(user);
+        u = StringValueCStr(user);
+        if (*u) {
+            return rb_home_dir_of(user, rb_str_new(0, 0));
+        }
+    }
+    return rb_default_home_dir(rb_str_new(0, 0));
+
+}
+            </pre> 
+            </div><!-- home-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- home-method -->
+      
+        <div id="mkdir-method" class="method-detail ">
+          <a name="method-c-mkdir"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">mkdir( string [, integer] ) &rarr; 0</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Makes a new directory named by <em>string</em>, with permissions specified
+by the optional parameter <em>anInteger</em>. The permissions may be
+modified by the value of <code>File::umask</code>, and are ignored on NT.
+Raises a <code>SystemCallError</code> if the directory cannot be created.
+See also the discussion of permissions in the class documentation for
+<code>File</code>.</p>
+
+<pre class="ruby"><span class="ruby-constant">Dir</span>.<span class="ruby-identifier">mkdir</span>(<span class="ruby-constant">File</span>.<span class="ruby-identifier">join</span>(<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">home</span>, <span class="ruby-string">&quot;.foo&quot;</span>), <span class="ruby-value">0700</span>) <span class="ruby-comment">#=&gt; 0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="mkdir-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_s_mkdir(int argc, VALUE *argv, VALUE obj)
+{
+    VALUE path, vmode;
+    int mode;
+
+    if (rb_scan_args(argc, argv, &quot;11&quot;, &amp;path, &amp;vmode) == 2) {
+        mode = NUM2INT(vmode);
+    }
+    else {
+        mode = 0777;
+    }
+
+    check_dirname(&amp;path);
+    if (mkdir(RSTRING_PTR(path), mode) == -1)
+        rb_sys_fail_path(path);
+
+    return INT2FIX(0);
+}
+            </pre> 
+            </div><!-- mkdir-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- mkdir-method -->
+      
+        <div id="new-method" class="method-detail ">
+          <a name="method-c-new"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">new( string ) &rarr; aDir</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">new( string, encoding: enc ) &rarr; aDir</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a new directory object for the named directory.</p>
+
+<p>The optional <em>enc</em> argument specifies the encoding of the directory.
+If not specified, the filesystem encoding is used.</p>
+            
+
+            
+            <div class="method-source-code" id="new-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_initialize(int argc, VALUE *argv, VALUE dir)
+{
+    struct dir_data *dp;
+    rb_encoding  *fsenc;
+    VALUE dirname, opt, orig;
+    static ID keyword_ids[1];
+
+    if (!keyword_ids[0]) {
+        keyword_ids[0] = rb_intern(&quot;encoding&quot;);
+    }
+
+    fsenc = rb_filesystem_encoding();
+
+    rb_scan_args(argc, argv, &quot;1:&quot;, &amp;dirname, &amp;opt);
+
+    if (!NIL_P(opt)) {
+        VALUE enc;
+        rb_get_kwargs(opt, keyword_ids, 0, 1, &amp;enc);
+        if (enc != Qundef &amp;&amp; !NIL_P(enc)) {
+            fsenc = rb_to_encoding(enc);
+        }
+    }
+
+    GlobPathValue(dirname, FALSE);
+    orig = rb_str_dup_frozen(dirname);
+    dirname = rb_str_encode_ospath(dirname);
+    dirname = rb_str_dup_frozen(dirname);
+
+    TypedData_Get_Struct(dir, struct dir_data, &amp;dir_data_type, dp);
+    if (dp-&gt;dir) closedir(dp-&gt;dir);
+    dp-&gt;dir = NULL;
+    dp-&gt;path = Qnil;
+    dp-&gt;enc = fsenc;
+    dp-&gt;dir = opendir(RSTRING_PTR(dirname));
+    if (dp-&gt;dir == NULL) {
+        if (errno == EMFILE || errno == ENFILE) {
+            rb_gc();
+            dp-&gt;dir = opendir(RSTRING_PTR(dirname));
+        }
+        if (dp-&gt;dir == NULL) {
+            rb_sys_fail_path(orig);
+        }
+    }
+    dp-&gt;path = orig;
+
+    return dir;
+}
+            </pre> 
+            </div><!-- new-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- new-method -->
+      
+        <div id="open-method" class="method-detail ">
+          <a name="method-c-open"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">open( string ) &rarr; aDir</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">open( string, encoding: enc ) &rarr; aDir</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">open( string ) {| aDir | block } &rarr; anObject</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">open( string, encoding: enc ) {| aDir | block } &rarr; anObject</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>The optional <em>enc</em> argument specifies the encoding of the directory.
+If not specified, the filesystem encoding is used.</p>
+
+<p>With no block, <code>open</code> is a synonym for <code>Dir::new</code>. If
+a block is present, it is passed <em>aDir</em> as a parameter. The
+directory is closed at the end of the block, and <code>Dir::open</code>
+returns the value of the block.</p>
+            
+
+            
+            <div class="method-source-code" id="open-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_s_open(int argc, VALUE *argv, VALUE klass)
+{
+    struct dir_data *dp;
+    VALUE dir = TypedData_Make_Struct(klass, struct dir_data, &amp;dir_data_type, dp);
+
+    dir_initialize(argc, argv, dir);
+    if (rb_block_given_p()) {
+        return rb_ensure(rb_yield, dir, dir_close, dir);
+    }
+
+    return dir;
+}
+            </pre> 
+            </div><!-- open-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- open-method -->
+      
+        <div id="pwd-method" class="method-detail ">
+          <a name="method-c-pwd"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">pwd &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the path to the current working directory of this process as a
+string.</p>
+
+<pre class="ruby"><span class="ruby-constant">Dir</span>.<span class="ruby-identifier">chdir</span>(<span class="ruby-string">&quot;/tmp&quot;</span>)   <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">getwd</span>           <span class="ruby-comment">#=&gt; &quot;/tmp&quot;</span>
+<span class="ruby-constant">Dir</span>.<span class="ruby-identifier">pwd</span>             <span class="ruby-comment">#=&gt; &quot;/tmp&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="pwd-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_s_getwd(VALUE dir)
+{
+    return rb_dir_getwd();
+}
+            </pre> 
+            </div><!-- pwd-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- pwd-method -->
+      
+        <div id="rmdir-method" class="method-detail ">
+          <a name="method-c-rmdir"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">rmdir( string ) &rarr; 0</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Deletes the named directory. Raises a subclass of
+<code>SystemCallError</code> if the directory isn’t empty.</p>
+            
+
+            
+            <div class="method-source-code" id="rmdir-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_s_rmdir(VALUE obj, VALUE dir)
+{
+    check_dirname(&amp;dir);
+    if (rmdir(RSTRING_PTR(dir)) &lt; 0)
+        rb_sys_fail_path(dir);
+
+    return INT2FIX(0);
+}
+            </pre> 
+            </div><!-- rmdir-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- rmdir-method -->
+      
+        <div id="unlink-method" class="method-detail ">
+          <a name="method-c-unlink"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">unlink( string ) &rarr; 0</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Deletes the named directory. Raises a subclass of
+<code>SystemCallError</code> if the directory isn’t empty.</p>
+            
+
+            
+            <div class="method-source-code" id="unlink-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_s_rmdir(VALUE obj, VALUE dir)
+{
+    check_dirname(&amp;dir);
+    if (rmdir(RSTRING_PTR(dir)) &lt; 0)
+        rb_sys_fail_path(dir);
+
+    return INT2FIX(0);
+}
+            </pre> 
+            </div><!-- unlink-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- unlink-method -->
+      
+      </div><!-- public-class-method-details -->
+    
+      <div id="public-instance-method-details" class="method-section section">
+        <h3 class="section-header">Public Instance Methods</h3>
+
+      
+        <div id="close-method" class="method-detail ">
+          <a name="method-i-close"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">close &rarr; nil</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Closes the directory stream. Any further attempts to access <em>dir</em>
+will raise an <code>IOError</code>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">d</span> = <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;testdir&quot;</span>)
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">close</span>   <span class="ruby-comment">#=&gt; nil</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="close-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_close(VALUE dir)
+{
+    struct dir_data *dirp;
+
+    GetDIR(dir, dirp);
+    closedir(dirp-&gt;dir);
+    dirp-&gt;dir = NULL;
+
+    return Qnil;
+}
+            </pre> 
+            </div><!-- close-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- close-method -->
+      
+        <div id="each-method" class="method-detail ">
+          <a name="method-i-each"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">each { |filename| block }  &rarr; dir</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">each                       &rarr; an_enumerator</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Calls the block once for each entry in this directory, passing the filename
+of each entry as a parameter to the block.</p>
+
+<p>If no block is given, an enumerator is returned instead.</p>
+
+<pre class="ruby"><span class="ruby-identifier">d</span> = <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;testdir&quot;</span>)
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">each</span>  {<span class="ruby-operator">|</span><span class="ruby-identifier">x</span><span class="ruby-operator">|</span> <span class="ruby-identifier">puts</span> <span class="ruby-node">&quot;Got #{x}&quot;</span> }
+</pre>
+
+<p><em>produces:</em></p>
+
+<pre>Got .
+Got ..
+Got config.h
+Got main.rb</pre>
+            
+
+            
+            <div class="method-source-code" id="each-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_each(VALUE dir)
+{
+    struct dir_data *dirp;
+    struct dirent *dp;
+    IF_HAVE_HFS(int hfs_p);
+
+    RETURN_ENUMERATOR(dir, 0, 0);
+    GetDIR(dir, dirp);
+    rewinddir(dirp-&gt;dir);
+    IF_HAVE_HFS(hfs_p = is_hfs(dirp-&gt;dir));
+    while ((dp = READDIR(dirp-&gt;dir, dirp-&gt;enc)) != NULL) {
+        const char *name = dp-&gt;d_name;
+        size_t namlen = NAMLEN(dp);
+        VALUE path;
+#if HAVE_HFS
+        if (hfs_p &amp;&amp; has_nonascii(name, namlen) &amp;&amp;
+            !NIL_P(path = rb_str_normalize_ospath(name, namlen))) {
+            path = rb_external_str_with_enc(path, dirp-&gt;enc);
+        }
+        else
+#endif
+        path = rb_external_str_new_with_enc(name, namlen, dirp-&gt;enc);
+        rb_yield(path);
+        if (dirp-&gt;dir == NULL) dir_closed();
+    }
+    return dir;
+}
+            </pre> 
+            </div><!-- each-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- each-method -->
+      
+        <div id="fileno-method" class="method-detail ">
+          <a name="method-i-fileno"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">fileno &rarr; integer</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the file descriptor used in <em>dir</em>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">d</span> = <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;..&quot;</span>)
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">fileno</span>   <span class="ruby-comment">#=&gt; 8</span>
+</pre>
+
+<p>This method uses dirfd() function defined by POSIX 2008. <a
+href="NotImplementedError.html">NotImplementedError</a> is raised on other
+platforms, such as Windows, which doesn’t provide the function.</p>
+            
+
+            
+            <div class="method-source-code" id="fileno-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_fileno(VALUE dir)
+{
+    struct dir_data *dirp;
+    int fd;
+
+    GetDIR(dir, dirp);
+    fd = dirfd(dirp-&gt;dir);
+    if (fd == -1)
+        rb_sys_fail(&quot;dirfd&quot;);
+    return INT2NUM(fd);
+}
+            </pre> 
+            </div><!-- fileno-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- fileno-method -->
+      
+        <div id="inspect-method" class="method-detail ">
+          <a name="method-i-inspect"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">inspect &rarr; string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Return a string describing this <a href="Dir.html">Dir</a> object.</p>
+            
+
+            
+            <div class="method-source-code" id="inspect-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_inspect(VALUE dir)
+{
+    struct dir_data *dirp;
+
+    TypedData_Get_Struct(dir, struct dir_data, &amp;dir_data_type, dirp);
+    if (!NIL_P(dirp-&gt;path)) {
+        VALUE str = rb_str_new_cstr(&quot;#&lt;&quot;);
+        rb_str_append(str, rb_class_name(CLASS_OF(dir)));
+        rb_str_cat2(str, &quot;:&quot;);
+        rb_str_append(str, dirp-&gt;path);
+        rb_str_cat2(str, &quot;&gt;&quot;);
+        return str;
+    }
+    return rb_funcall(dir, rb_intern(&quot;to_s&quot;), 0, 0);
+}
+            </pre> 
+            </div><!-- inspect-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- inspect-method -->
+      
+        <div id="path-method" class="method-detail ">
+          <a name="method-i-path"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">path &rarr; string or nil</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the path parameter passed to <em>dir</em>’s constructor.</p>
+
+<pre class="ruby"><span class="ruby-identifier">d</span> = <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;..&quot;</span>)
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">path</span>   <span class="ruby-comment">#=&gt; &quot;..&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="path-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_path(VALUE dir)
+{
+    struct dir_data *dirp;
+
+    TypedData_Get_Struct(dir, struct dir_data, &amp;dir_data_type, dirp);
+    if (NIL_P(dirp-&gt;path)) return Qnil;
+    return rb_str_dup(dirp-&gt;path);
+}
+            </pre> 
+            </div><!-- path-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- path-method -->
+      
+        <div id="pos-method" class="method-detail ">
+          <a name="method-i-pos"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">pos &rarr; integer</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the current position in <em>dir</em>. See also
+<code>Dir#seek</code>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">d</span> = <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;testdir&quot;</span>)
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">tell</span>   <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">read</span>   <span class="ruby-comment">#=&gt; &quot;.&quot;</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">tell</span>   <span class="ruby-comment">#=&gt; 12</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="pos-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_tell(VALUE dir)
+{
+    struct dir_data *dirp;
+    long pos;
+
+    GetDIR(dir, dirp);
+    pos = telldir(dirp-&gt;dir);
+    return rb_int2inum(pos);
+}
+            </pre> 
+            </div><!-- pos-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- pos-method -->
+      
+        <div id="pos-3D-method" class="method-detail ">
+          <a name="method-i-pos-3D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">pos = integer  &rarr; integer</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Synonym for <code>Dir#seek</code>, but returns the position parameter.</p>
+
+<pre class="ruby"><span class="ruby-identifier">d</span> = <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;testdir&quot;</span>)   <span class="ruby-comment">#=&gt; #&lt;Dir:0x401b3c40&gt;</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">read</span>                   <span class="ruby-comment">#=&gt; &quot;.&quot;</span>
+<span class="ruby-identifier">i</span> = <span class="ruby-identifier">d</span>.<span class="ruby-identifier">pos</span>                <span class="ruby-comment">#=&gt; 12</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">read</span>                   <span class="ruby-comment">#=&gt; &quot;..&quot;</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">pos</span> = <span class="ruby-identifier">i</span>                <span class="ruby-comment">#=&gt; 12</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">read</span>                   <span class="ruby-comment">#=&gt; &quot;..&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="pos-3D-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_set_pos(VALUE dir, VALUE pos)
+{
+    dir_seek(dir, pos);
+    return pos;
+}
+            </pre> 
+            </div><!-- pos-3D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- pos-3D-method -->
+      
+        <div id="read-method" class="method-detail ">
+          <a name="method-i-read"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">read &rarr; string or nil</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Reads the next entry from <em>dir</em> and returns it as a string. Returns
+<code>nil</code> at the end of the stream.</p>
+
+<pre class="ruby"><span class="ruby-identifier">d</span> = <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;testdir&quot;</span>)
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">read</span>   <span class="ruby-comment">#=&gt; &quot;.&quot;</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">read</span>   <span class="ruby-comment">#=&gt; &quot;..&quot;</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">read</span>   <span class="ruby-comment">#=&gt; &quot;config.h&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="read-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_read(VALUE dir)
+{
+    struct dir_data *dirp;
+    struct dirent *dp;
+
+    GetDIR(dir, dirp);
+    errno = 0;
+    if ((dp = READDIR(dirp-&gt;dir, dirp-&gt;enc)) != NULL) {
+        return rb_external_str_new_with_enc(dp-&gt;d_name, NAMLEN(dp), dirp-&gt;enc);
+    }
+    else {
+        if (errno != 0) rb_sys_fail(0);
+        return Qnil;           /* end of stream */
+    }
+}
+            </pre> 
+            </div><!-- read-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- read-method -->
+      
+        <div id="rewind-method" class="method-detail ">
+          <a name="method-i-rewind"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">rewind &rarr; dir</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Repositions <em>dir</em> to the first entry.</p>
+
+<pre class="ruby"><span class="ruby-identifier">d</span> = <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;testdir&quot;</span>)
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">read</span>     <span class="ruby-comment">#=&gt; &quot;.&quot;</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">rewind</span>   <span class="ruby-comment">#=&gt; #&lt;Dir:0x401b3fb0&gt;</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">read</span>     <span class="ruby-comment">#=&gt; &quot;.&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="rewind-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_rewind(VALUE dir)
+{
+    struct dir_data *dirp;
+
+    GetDIR(dir, dirp);
+    rewinddir(dirp-&gt;dir);
+    return dir;
+}
+            </pre> 
+            </div><!-- rewind-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- rewind-method -->
+      
+        <div id="seek-method" class="method-detail ">
+          <a name="method-i-seek"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">seek( integer ) &rarr; dir</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Seeks to a particular location in <em>dir</em>. <em>integer</em> must be a
+value returned by <code>Dir#tell</code>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">d</span> = <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;testdir&quot;</span>)   <span class="ruby-comment">#=&gt; #&lt;Dir:0x401b3c40&gt;</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">read</span>                   <span class="ruby-comment">#=&gt; &quot;.&quot;</span>
+<span class="ruby-identifier">i</span> = <span class="ruby-identifier">d</span>.<span class="ruby-identifier">tell</span>               <span class="ruby-comment">#=&gt; 12</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">read</span>                   <span class="ruby-comment">#=&gt; &quot;..&quot;</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">seek</span>(<span class="ruby-identifier">i</span>)                <span class="ruby-comment">#=&gt; #&lt;Dir:0x401b3c40&gt;</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">read</span>                   <span class="ruby-comment">#=&gt; &quot;..&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="seek-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_seek(VALUE dir, VALUE pos)
+{
+    struct dir_data *dirp;
+    long p = NUM2LONG(pos);
+
+    GetDIR(dir, dirp);
+    seekdir(dirp-&gt;dir, p);
+    return dir;
+}
+            </pre> 
+            </div><!-- seek-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- seek-method -->
+      
+        <div id="tell-method" class="method-detail ">
+          <a name="method-i-tell"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">tell &rarr; integer</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the current position in <em>dir</em>. See also
+<code>Dir#seek</code>.</p>
+
+<pre class="ruby"><span class="ruby-identifier">d</span> = <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;testdir&quot;</span>)
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">tell</span>   <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">read</span>   <span class="ruby-comment">#=&gt; &quot;.&quot;</span>
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">tell</span>   <span class="ruby-comment">#=&gt; 12</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="tell-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_tell(VALUE dir)
+{
+    struct dir_data *dirp;
+    long pos;
+
+    GetDIR(dir, dirp);
+    pos = telldir(dirp-&gt;dir);
+    return rb_int2inum(pos);
+}
+            </pre> 
+            </div><!-- tell-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- tell-method -->
+      
+        <div id="to_path-method" class="method-detail ">
+          <a name="method-i-to_path"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_path &rarr; string or nil</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the path parameter passed to <em>dir</em>’s constructor.</p>
+
+<pre class="ruby"><span class="ruby-identifier">d</span> = <span class="ruby-constant">Dir</span>.<span class="ruby-identifier">new</span>(<span class="ruby-string">&quot;..&quot;</span>)
+<span class="ruby-identifier">d</span>.<span class="ruby-identifier">path</span>   <span class="ruby-comment">#=&gt; &quot;..&quot;</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="to_path-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+dir_path(VALUE dir)
+{
+    struct dir_data *dirp;
+
+    TypedData_Get_Struct(dir, struct dir_data, &amp;dir_data_type, dirp);
+    if (NIL_P(dirp-&gt;path)) return Qnil;
+    return rb_str_dup(dirp-&gt;path);
+}
+            </pre> 
+            </div><!-- to_path-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- to_path-method -->
+      
+      </div><!-- public-instance-method-details -->
+    
+    </div><!-- 5Buntitled-5D -->
+  
+  <div id='tx_Dir_versioned' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_Dir_versioned").load("/associated/2.2.0/Dir.ihtml");</script> <div id='tx_Dir' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_Dir").load("/associated/Dir.ihtml");</script> 
+      
+  <!-- dsqus ? -->
+     
+
+  
+  </div><!-- documentation -->
+  <div id='dynamic'>
+  </div>
+      
+          
+
+      
+<div class='grids wrapper' id="footer">
+  <p><small>This page was generated for Ruby 2.2.0</small></p> 
+  
+   <p><a href="http://ruby-doc.org">Ruby-doc.org</a> is a service of <a href="http://jamesbritt.com">James Britt</a> and <a href="http://neurogami.com">Neurogami</a>, an <a href="http://neurogami.com">application development company in Scottsdale, AZ</a>.  <div class='oio-inline'><ins data-revive-zoneid="1" data-revive-id="58924a5717c091dfee6dda3f7d38c4d7"></ins><script async src="//ras.ruby-doc.org/vvv/delivery/thesinkjs.php"></script></div></p>
+ 
+       <p><small>Generated with Ruby-doc Rdoc Generator 0.39.0</small>.</p>
+  </div>
+</div>
+  
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-335317-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+    
+ <script type='text/javascript'>
+$(document).ready(function() {
+      $.ajaxSetup({ cache: false });
+      $("#vulns-alert").load("/associated/vulns.ihtml");
+    });
+
+    </script>
+
+
+ 
+		<script type='text/javascript'>
+
+	function loadPlus(plusdocs){
+			$(plusdocs).find("div[class='associated_wrapper']").each (function() {
+					$("#" + this.id).append($(plusdocs).find("#" + this.id ));
+					});
+	} 
+
+   //function loadInline(json){
+   // for (var lookFor in json) {
+    //  $(lookFor).after(json[lookFor]);
+    // }
+  // } // end loadInline
+
+
+$(document).ready(function() {
+		$.ajaxSetup({ cache: false });
+			$.get('/associated/2.2.0/plus_Dir.ihtml', 
+			function(plusdocs) {
+			setTimeout(function() {
+				loadPlus(plusdocs);
+				}, 2000);
+			}
+			);
+
+
+//     $.ajax({
+//     dataType: "json",
+//      url: '/associated/2.2.0/inline_Dir.js',
+//      success: function(json) {
+// 			setTimeout(function() {
+// 				loadInline(json);
+// 				}, 2000);
+// 			}
+//    });
+
+		});
+</script>
+		
+</body>
+</html>
+
+

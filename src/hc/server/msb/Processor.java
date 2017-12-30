@@ -58,7 +58,7 @@ public abstract class Processor{
 	}
 	
 	/**
-	 * @param dev_id the device ID of new free {@link Message}, which will be dispatched to. It is <i>Reference Device ID</i>, if it is dispatched from {@link Robot}; it is real device ID, if it is dispatched from {@link Device}.
+	 * @param dev_id the device ID of new free <code>Message</code>, which will be dispatched to. It is <i>Reference Device ID</i>, if it is dispatched from <code>Robot</code>; it is real device ID, if it is dispatched from <code>Device</code>.
 	 * @return
 	 */
 	final Message getFreeMessageInProc(final String dev_id) {
@@ -179,7 +179,7 @@ public abstract class Processor{
 
 	/**
 	 * start up the device or smart module.
-	 * <br><br>the start-up is in a thread owned by this {@link Device}, so it is no necessary to create new thread.
+	 * <br><br>the start-up is in a thread owned by this <code>Device</code>, so it is no necessary to create new thread.
 	 * <br><br>this start-up process may be never finished (if some error on hardware), and HomeCenter Server will shutdown, the method <i>interrupt</i> of this initial thread is invoked by Server.
 	 * <br><br>this method is invoked by server after {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}, so it is no necessary to execute in JRuby on event {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}
 	 */
@@ -187,15 +187,15 @@ public abstract class Processor{
 
 	/**
 	 * shut down the device or smart module.
-	 * <br><br>the shut-down is in a thread owned by this {@link Device}, so it is no necessary to create new thread.
+	 * <br><br>the shut-down is in a thread owned by this <code>Device</code>, so it is no necessary to create new thread.
 	 * <br><br>this method is invoked by server after {@link ProjectContext#EVENT_SYS_PROJ_SHUTDOWN}, so it is no necessary to execute in JRuby on event {@link ProjectContext#EVENT_SYS_PROJ_SHUTDOWN}
 	 */
 	abstract void __shutdown();
 
 	/**
 	 * call {@link #getFreeMessage()} to get new instance.
-	 * <br> call {@link #__response(Message, boolean)} to dispatch a {@link Message} to server.
-	 * <br><br><Strong>Note : </Strong>it is <Strong>not</Strong> allowed to keep any references of {@link Message} in the instance of Processor.
+	 * <br> call {@link #__response(Message, boolean)} to dispatch a <code>Message</code> to server.
+	 * <br><br><Strong>Note : </Strong>it is <Strong>not</Strong> allowed to keep any references of <code>Message</code> in the instance of Processor.
 	 * @param msg it is NOT allowed to modified any parts, because it may be consumed by other object.<br>the message will be auto recycled by HomeCenter server.
 	 */
 	public abstract void response(Message msg);

@@ -49,16 +49,19 @@ public class ExceptionCatcherToWindow {
 			this.t = t;
 		}
 		
-		synchronized (this) {
-			if(isShowing){
-				L.V = L.WShop ? false : LogManager.log("isShowing Error/Stack now, skip next Throwable.");
-				return;
-			}else{
-				isShowing = true;
-				if(owner == null){
-					showErrorWindow();
+		if(ResourceUtil.isAndroidServerPlatform()){//Android Server下不显示
+		}else{
+			synchronized (this) {
+				if(isShowing){
+					L.V = L.WShop ? false : LogManager.log("isShowing Error/Stack now, skip next Throwable.");
+					return;
 				}else{
-					showErrorDialog(owner);
+					isShowing = true;
+					if(owner == null){
+						showErrorWindow();
+					}else{
+						showErrorDialog(owner);
+					}
 				}
 			}
 		}

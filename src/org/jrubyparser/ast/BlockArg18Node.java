@@ -6,10 +6,12 @@ import org.jrubyparser.SourcePosition;
 /**
  * Similiar to BlockArg, but with idiosyncracies that 1.8.7 allows:
  *
- * proc { |a,&b| }
- * proc { |a,&FOO| }
+ * <pre>
+ * proc { |a,&amp;b| }
+ * proc { |a,&amp;FOO| }
  * proc { |a,b.c| }
  * proc { |a,b[0]| }
+ * </pre>
  *
  */
 public class BlockArg18Node extends Node {
@@ -36,7 +38,7 @@ public class BlockArg18Node extends Node {
     @Override
     public boolean isSame(Node node) {
         if (!super.isSame(node)) return false;
-        
+
         BlockArg18Node other = (BlockArg18Node) node;
 
         if (getArgs() == null && other.getArgs() == null) return getBlockArg().isSame(other.getBlockArg());
@@ -56,7 +58,7 @@ public class BlockArg18Node extends Node {
     }
 
     @Override
-    public Object accept(NodeVisitor visitor) {
+    public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitBlockArg18Node(this);
     }
 

@@ -17,22 +17,23 @@ import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 
 /**
- * {@link HTMLMlet} is a UI interaction component, which contains JComponents and present them as HTML (not snapshot) on mobile, you can set CSS for these JComponents.
+ * <code>HTMLMlet</code> is a UI interaction component, which contains JComponents and present them as HTML (not snapshot) on mobile, you can set CSS for these JComponents.
  * <BR><BR><STRONG>Important :</STRONG><BR>In Swing, layout manager is noticing that JButton (and JCheckBox, JComboBox, JLabel, JRadioButton, JTextField) has a preferred size and adjusting your pane to accommodate JButton, 
  * in other words, <code>setMinimumSize</code> will not working for JButton. 
  * <BR>
  * <code>setMinimumSize</code> for JPanel, adding JButton in it and setting CSS for JButton to grow full space is a good choice.
- * <BR><BR>to load and execute JavaScript, please use {@link ScriptPanel}.
+ * <BR><BR>to load and execute JavaScript, please use <code>ScriptPanel</code>.
  * <BR><BR>
  * not all HTML tag are supported by mobile runtime environment.
  * <BR>to support HTML5, Android 4.4 (or above) / iPhone 4s (or above) is required.
  * <BR><BR>
  * to synchronize status with mobile, AWT/Swing listeners are added to these JComponents by server, please don't remove them.
  * <BR>
- * <BR>it is considered as {@link Mlet} and presents as snapshot to mobile, when one of the following conditions is met:
- * <BR>1. there is no sub component in {@link HTMLMlet} and it overrides {@link JComponent#paint(java.awt.Graphics)} method, 
+ * <BR>it is considered as <code>Mlet</code> and presents as snapshot to mobile, when one of the following conditions is met:
+ * <BR>1. there is no sub component in <code>HTMLMlet</code> and it overrides {@link JComponent#paint(java.awt.Graphics)} method, 
  * <BR>2. the mobile client is J2ME (Java phone) mobile.
  * @see Mlet
+ * @see Dialog
  * @since 7.0
  */
 @SuppressWarnings("deprecation")
@@ -50,14 +51,14 @@ public class HTMLMlet extends Mlet {
 	}
 	
 	/**
-	 * load special styles for current {@link HTMLMlet}, it must be invoked before {@link #setCSS(JComponent, String, String)} which refer to these styles.
+	 * load special styles for current <code>HTMLMlet</code>, it must be invoked before {@link #setCSS(JComponent, String, String)} which refer to these styles.
 	 * <BR><BR>
 	 * <STRONG>Network connection permission</STRONG> : <BR>
 	 * if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect permission or disable limit socket/connect.
 	 * <BR><BR>
 	 * <STRONG>More about CSS styles</STRONG> : 
 	 * <BR>
-	 * 1. the <i>CSS Styles</i> tree node in designer is shared to all {@link HTMLMlet}/{@link Dialog}s in same project.
+	 * 1. the <i>CSS Styles</i> tree node in designer is shared to all <code>HTMLMlet</code>/<code>Dialog</code>s in same project.
 	 * In other words, it will be loaded automatically by server for each HTMLMlet/Dialog.
 	 * <BR>
 	 * 2. it is allowed to load styles as many as you like.
@@ -80,7 +81,7 @@ public class HTMLMlet extends Mlet {
 	}
 	
 	/**
-	 * load special styles for current {@link HTMLMlet}.
+	 * load special styles for current <code>HTMLMlet</code>.
 	 * @param styles
 	 * @param enableCache true means this styles may be cached if it is too large.
 	 * @see #loadCSS(String)
@@ -150,7 +151,7 @@ public class HTMLMlet extends Mlet {
 	 * set CSS <i>class</i> and/or CSS <i>style</i> for {@link JComponent}.
 	 * <BR><BR>
 	 * it is effective immediately to mobile.<BR>
-	 * it is allowed to invoke this method in constructor of {@link HTMLMlet}.
+	 * it is allowed to invoke this method in constructor of <code>HTMLMlet</code>.
 	 * <BR><BR>
 	 * <STRONG>Important :</STRONG><BR>
 	 * CSS box model of HomeCenter is <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a> default (quirks mode), NOT the w3c <code>content-box</code>.<BR>
@@ -319,7 +320,7 @@ public class HTMLMlet extends Mlet {
 	/**
 	 * set attribute 'dir' for a DIV of JComponent.<BR><BR>
 	 * Know more :<BR>
-	 * 1. a {@link HTMLMlet} will be set RTL by server for the entire page if language of mobile is RTL.<BR>
+	 * 1. a <code>HTMLMlet</code> will be set RTL by server for the entire page if language of mobile is RTL.<BR>
 	 * 2. in some case, a JComponent may be set RTL/LTR different from the entire page.
 	 * @param component
 	 * @param isRTL true means right to left, false means left to right.

@@ -1,5 +1,6 @@
 package hc.server.ui.design.hpj;
 
+import hc.server.ui.design.SearchDialog;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
@@ -11,6 +12,7 @@ import javax.swing.JTextPane;
 public abstract class HCTextPane extends JTextPane {
 	public long selectedWordsMS;
 	public boolean hasSelectedWords;
+	public SearchDialog searchDialog;
 	
 	public HCTextPane(){
 		this(new SelectWordAction());

@@ -199,7 +199,7 @@ public abstract class IContext {
 			byte[] bs;
 			int cmdLen = -1;
 			byte[] screenIDBS = null;
-			while(isExit == false){
+			while(true){
 				synchronized (this) {
 					bs = (byte[])sendBSBuffer.getFirst();
 					if(bs != null){
@@ -217,6 +217,9 @@ public abstract class IContext {
 				}
 				
 				synchronized (this) {
+					if(isExit){
+						break;
+					}
 					try {
 						this.wait();
 					} catch (InterruptedException e) {

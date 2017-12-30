@@ -31,12 +31,15 @@ public class LRUCache {
         return null;
     }
     
-    public final void remove(Object key){
+    public final Object remove(Object key){
         Node n = (Node)map.get(key);
+        Object result = null;
         if(n != null){
+        	result = n.value;
         	map.remove(key);
         	removeNode(n);
         }
+        return result;
     }
     
     public final int size(){

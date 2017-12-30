@@ -2,9 +2,9 @@ package hc.server.ui.design.hpj;
 
 public class HPProcessor extends HPNode {
 
-	public HPProcessor(int type, String name) {
+	public HPProcessor(final int type, final String name) {
 		super(type, name);
 	}
 
-	String listener = "";
+	public String listener = "";
 }

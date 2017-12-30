@@ -1,11 +1,9 @@
 package hc.server.ui.design.code;
 
-import hc.core.util.LogManager;
 import hc.util.ResourceUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Vector;
@@ -13,189 +11,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CSSHelper {
-	private static final String CSS_BASE = "hc/res/docs/css2/";
-	
-	final static HashMap<String, String> getProperties(){
-		synchronized (DocHelper.cssProperties) {
-			final HashMap<String, String> props = DocHelper.cssProperties;
-			if(props.size() != 0){
-				return props;
-			}
-			
-			props.put("azimuth", "aural.html");
-			props.put("background", "colors.html");
-			props.put("background-attachment", "colors.html");
-			props.put("background-color", "colors.html");
-			props.put("background-image", "colors.html");
-			props.put("background-position", "colors.html");
-			props.put("background-repeat", "colors.html");
-			props.put("border", "box.html");
-			props.put("border-bottom", "box.html");
-			props.put("border-bottom-color", "box.html");
-			props.put("border-bottom-style", "box.html");
-			props.put("border-bottom-width", "box.html");
-			props.put("border-collapse", "tables.html");
-			props.put("border-color", "box.html");
-			props.put("border-left", "box.html");
-			props.put("border-left-color", "box.html");
-			props.put("border-left-style", "box.html");
-			props.put("border-left-width", "box.html");
-			props.put("border-right", "box.html");
-			props.put("border-right-color", "box.html");
-			props.put("border-right-style", "box.html");
-			props.put("border-right-width", "box.html");
-			props.put("border-spacing", "tables.html");
-			props.put("border-style", "box.html");
-			props.put("border-top", "box.html");
-			props.put("border-top-color", "box.html");
-			props.put("border-top-style", "box.html");
-			props.put("border-top-width", "box.html");
-			props.put("border-width", "box.html");
-			props.put("bottom", "visuren.html");
-			props.put("caption-side", "tables.html");
-			props.put("clear", "visuren.html");
-			props.put("clip", "visufx.html");
-			props.put("color", "colors.html");
-			props.put("content", "generate.html");
-			props.put("counter-increment", "generate.html");
-			props.put("counter-reset", "generate.html");
-			props.put("cue", "aural.html");
-			props.put("cue-after", "aural.html");
-			props.put("cue-before", "aural.html");
-			props.put("cursor", "ui.html");
-			props.put("direction", "visuren.html");
-			props.put("display", "visuren.html");
-			props.put("elevation", "aural.html");
-			props.put("empty-cells", "tables.html");
-			props.put("float", "visuren.html");
-			props.put("font", "fonts.html");
-			props.put("font-family", "fonts.html");
-			props.put("font-size", "fonts.html");
-			props.put("font-style", "fonts.html");
-			props.put("font-variant", "fonts.html");
-			props.put("font-weight", "fonts.html");
-			props.put("height", "visudet.html");
-			props.put("left", "visuren.html");
-			props.put("letter-spacing", "text.html");
-			props.put("line-height", "visudet.html");
-			props.put("list-style", "generate.html");
-			props.put("list-style-image", "generate.html");
-			props.put("list-style-position", "generate.html");
-			props.put("list-style-type", "generate.html");
-			props.put("margin", "box.html");
-			props.put("margin-bottom", "box.html");
-			props.put("margin-left", "box.html");
-			props.put("margin-right", "box.html");
-			props.put("margin-top", "box.html");
-			props.put("max-height", "visudet.html");
-			props.put("max-width", "visudet.html");
-			props.put("min-height", "visudet.html");
-			props.put("min-width", "visudet.html");
-			props.put("orphans", "page.html");
-			props.put("outline", "ui.html");
-			props.put("outline-color", "ui.html");
-			props.put("outline-style", "ui.html");
-			props.put("outline-width", "ui.html");
-			props.put("overflow", "visufx.html");
-			props.put("padding", "box.html");
-			props.put("padding-bottom", "box.html");
-			props.put("padding-left", "box.html");
-			props.put("padding-right", "box.html");
-			props.put("padding-top", "box.html");
-			props.put("page-break-after", "page.html");
-			props.put("page-break-before", "page.html");
-			props.put("page-break-inside", "page.html");
-			props.put("pause", "aural.html");
-			props.put("pause-after", "aural.html");
-			props.put("pause-before", "aural.html");
-			props.put("pitch", "aural.html");
-			props.put("pitch-range", "aural.html");
-			props.put("play-during", "aural.html");
-			props.put("position", "visuren.html");
-			props.put("quotes", "generate.html");
-			props.put("richness", "aural.html");
-			props.put("right", "visuren.html");
-			props.put("speak", "aural.html");
-			props.put("speak-header", "aural.html");
-			props.put("speak-numeral", "aural.html");
-			props.put("speak-punctuation", "aural.html");
-			props.put("speech-rate", "aural.html");
-			props.put("stress", "aural.html");
-			props.put("table-layout", "tables.html");
-			props.put("text-align", "text.html");
-			props.put("text-decoration", "text.html");
-			props.put("text-indent", "text.html");
-			props.put("text-transform", "text.html");
-			props.put("top", "visuren.html");
-			props.put("unicode-bidi", "visuren.html");
-			props.put("vertical-align", "visudet.html");
-			props.put("visibility", "visufx.html");
-			props.put("voice-family", "aural.html");
-			props.put("volume", "aural.html");
-			props.put("white-space", "text.html");
-			props.put("widows", "page.html");
-			props.put("width", "visudet.html");
-			props.put("word-spacing", "text.html");
-			props.put("z-index", "visuren.html");
-	
-			buildPropCodeItems(props);
-			
-			return props;
-		}
-	}
+	public static final String CSS_BASE = "hc/res/docs/css2/";
+
 	
 	public static final String getCSSDocWebURL(final String fileNameWithFragment){
 		return "https://www.w3.org/TR/CSS22/" + fileNameWithFragment;
-	}
-	
-	final static void buildPropCodeItems(final HashMap<String, String> props){
-		final Object[] keys = props.keySet().toArray();
-		Arrays.sort(keys);
-		
-		final int size = keys.length;
-		for (int j = 0; j < size; j++) {
-			final CodeItem item = CodeItem.getFree();
-			item.type = CodeItem.TYPE_FIELD;
-			
-			final String prop = (String)keys[j];
-			item.code = prop;
-			item.codeForDoc = item.code;
-			item.codeDisplay = prop;
-			item.codeLowMatch = prop.toLowerCase();
-			item.isCSSProperty = true;
-			
-			synchronized (DocHelper.cssCodeItems) {
-				DocHelper.cssCodeItems.add(item);
-			}
-		}
-	}
-	
-	final static String getDocs(final String prop){
-		DocHelper.resetClearTimer();
-		
-		synchronized (DocHelper.cssDocs) {
-			final String doc = DocHelper.cssDocs.get(prop);
-			if(doc != null){
-				return doc;
-			}
-		}
-		
-		return processDoc(prop);
-	}
-	
-	private static String processDoc(final String prop){
-		final HashMap<String, String> map = getProperties();
-		final String fileName = map.get(prop);
-		if(fileName == null){
-			LogManager.errToLog("[CSS] property [" + prop + "] is not exits!");
-			return null;
-		}
-		
-		final String data = loadData(ResourceUtil.getResourceAsStream(buildCSSFilePath(fileName)));
-		synchronized (DocHelper.cssDocs) {
-			readCssDoc(data, DocHelper.cssDocs);
-			return DocHelper.cssDocs.get(prop);
-		}
 	}
 
 	public static void main(final String[] args){
@@ -205,7 +25,7 @@ public class CSSHelper {
 
 	private static void testCssDoc() {
 		final HashMap<String, String> cssDocs = new HashMap<String, String>(120);
-		final String data = loadData(ResourceUtil.getResourceAsStream(buildCSSFilePath("box.html")));
+		final String data = loadData(ResourceUtil.getResourceAsStream(DocHelper.buildCSSFilePath("box.html")));
 		readCssDoc(data, cssDocs);
 		System.out.println(cssDocs.get("margin"));
 	}
@@ -217,7 +37,7 @@ public class CSSHelper {
 		
 		for (int i = 0; i < size; i++) {
 			final String fileName = fileNames.elementAt(i);
-			final String data = loadData(ResourceUtil.getResourceAsStream(buildCSSFilePath(fileName)));
+			final String data = loadData(ResourceUtil.getResourceAsStream(DocHelper.buildCSSFilePath(fileName)));
 			readTabel(data, fileName, propVector);
 		}
 		
@@ -232,7 +52,7 @@ public class CSSHelper {
 			System.out.println("props.put(\"" + item + "\", \"" + fileName + "\");");
 			
 			if(propDocVector.get(item) == null){
-				final String data = loadData(ResourceUtil.getResourceAsStream(buildCSSFilePath(fileName)));
+				final String data = loadData(ResourceUtil.getResourceAsStream(DocHelper.buildCSSFilePath(fileName)));
 				readCssDoc(data, propDocVector);
 			}
 			
@@ -241,14 +61,6 @@ public class CSSHelper {
 				System.exit(0);
 			}
 		}
-	}
-	
-	public static URL getCSSResource(final String fileName){
-		return ResourceUtil.getResource(buildCSSFilePath(fileName));
-	}
-	
-	private static String buildCSSFilePath(final String fileName){
-		return CSS_BASE + fileName;
 	}
 	
 	final static String defTable = "<table class=\"def propdef\">";
@@ -293,7 +105,7 @@ public class CSSHelper {
 		}
 	}
 	
-	private static String loadData(final InputStream in) {
+	static String loadData(final InputStream in) {
 		try {
 			final ByteArrayOutputStream outStream = new ByteArrayOutputStream(200 * 1024);  
 			final int BUFFER_SIZE = 4096;
@@ -315,7 +127,7 @@ public class CSSHelper {
 	}
 	
 	private static Vector<String> getAllFiles(final String fileName) {
-		final InputStream in = ResourceUtil.getResourceAsStream(buildCSSFilePath(fileName));
+		final InputStream in = ResourceUtil.getResourceAsStream(DocHelper.buildCSSFilePath(fileName));
 		
 		final Vector<String> out = new Vector<String>(50);
 

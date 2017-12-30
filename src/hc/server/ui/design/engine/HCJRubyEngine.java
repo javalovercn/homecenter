@@ -8,6 +8,7 @@ import hc.core.util.LogManager;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
 import hc.server.data.StoreDirManager;
+import hc.server.ui.design.hpj.ConsoleWriter;
 import hc.server.ui.design.hpj.RubyWriter;
 import hc.util.ClassUtil;
 import hc.util.ResourceUtil;
@@ -31,13 +32,19 @@ public class HCJRubyEngine {
 	public static final String ORG_JRUBY_EMBED_SCRIPTING_CONTAINER = "org.jruby.embed.ScriptingContainer";
 	private static final boolean isAndroidServerPlatform = ResourceUtil.isAndroidServerPlatform();
 	public static final String JRUBY_VERSION = "RUBY1_8";//for container and parser
-
-	public final RubyWriter errorWriter = new RubyWriter();
-	private final HCJRubyEngine engineLock;
+	public static final String JRUBY_PARSE_VERSION = "RUBY1_8";//for container and parser
+	
+	public final RubyWriter errorWriter;
+//	private final HCJRubyEngine engineLock;
 //	private final ScriptingContainer container;	
 	private Class classScriptingContainer;
 	private Object container;	
-//	private final LRUCache lruCache = new LRUCache(128);
+//	private final HashMap<String, Object> lruCache = new LinkedHashMap<String, Object>(90, 0.75f, true) {
+//	    @Override
+//	    protected boolean removeEldestEntry(final Map.Entry<String, Object> eldest) {
+//	    	return size() > 256;
+//	    }
+//	};
 	
 	public final void resetError(){
 		errorWriter.reset();
@@ -51,9 +58,9 @@ public class HCJRubyEngine {
 	public final void put(final String key, final Object value){
 //		container.put(key, value);
 		final Object[] paras = {key, value};
-		synchronized (engineLock) {
-			ClassUtil.invoke(classScriptingContainer, container, "put", putparaTypes, paras, false);
-		}
+//		synchronized (engineLock) {
+//			ClassUtil.invoke(classScriptingContainer, container, "put", putparaTypes, paras, false);
+//		}
 	}
 	
 	public final void removeCache(final String script){
@@ -65,7 +72,7 @@ public class HCJRubyEngine {
 	final Object parse(final String script, final String scriptName) throws Exception{
 		Object unit = null;
 //		synchronized (engineLock) {
-//			unit = lruCache.get(script);
+//			unit = lruCache.remove(script);
 //		}
 		if(unit == null){
 //			EvalUnit unit = container.parse(script);//后面的int是可选参数
@@ -98,11 +105,7 @@ public class HCJRubyEngine {
 			final Object[] para = {script, zero};
 			unit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse", parseParaTypes, para, false);
 //		}
-//		synchronized (engineLock) {
-//			lruCache.put(script, unit);
-//		}
 		
-		L.V = L.WShop ? false : LogManager.log("[CallTime] : compile MS " + hashCode());
 		return unit;
 	}
 
@@ -123,11 +126,12 @@ public class HCJRubyEngine {
 		try{
 			final Object runOut = ClassUtil.invokeWithExceptionOut(classEvalUnit, evalUnit, "run", emptyParaTypes, emptyPara, false);
 			final Object[] para = {runOut};
-			return ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils, classJavaEmbedUtils, "rubyToJava", rubyToJavaParaTypes, para, false);
-		}catch (final Throwable e) {
+			final Object result = ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils, classJavaEmbedUtils, "rubyToJava", rubyToJavaParaTypes, para, false);
 //			synchronized (engineLock) {
-//				lruCache.remove(script);//执行错误后，需重新编译
+//				lruCache.put(script, evalUnit);
 //			}
+			return result;
+		}catch (final Throwable e) {
 			throw e;
 		}finally{
 			L.V = L.WShop ? false : LogManager.log("finish run in [" + Thread.currentThread().getName() + "]!");
@@ -179,9 +183,10 @@ public class HCJRubyEngine {
 	 * @param absPath 可以为null
 	 * @param projClassLoader
 	 */
-	public HCJRubyEngine(final String absPath, final ClassLoader projClassLoader, final boolean isReportException, final String projectID){
+	public HCJRubyEngine(final ConsoleWriter displayWriterMaybeNull, final String absPath, final ClassLoader projClassLoader, final boolean isReportException, final String projectID){
 		this.projectIDMaybeBeginWithIDE = projectID;
-		engineLock = this;
+//		engineLock = this;
+		errorWriter = new RubyWriter(displayWriterMaybeNull);
 		
 		if(isInit == false){
 			isInit = true;
@@ -210,7 +215,6 @@ public class HCJRubyEngine {
 	            System.setProperty("jruby.ji.proxyClassFactory", "org.ruboto.DalvikProxyClassFactory");
 	            System.setProperty("jruby.ji.upper.case.package.name.allowed", "true");
 	    		//the following property is for System.setProperty("jruby.ji.proxyClassFactory", "org.ruboto.DalvikProxyClassFactory");
-	            System.setProperty("java.io.tmpdir", StoreDirManager.TEMP_DIR.getAbsolutePath());
 	   		 
 		        {
 		        	final File proxyCache = new File(optimizBaseDir, "ruboto_cache");
@@ -346,17 +350,30 @@ public class HCJRubyEngine {
 		}
 		
 //		container.setCurrentDirectory(absPath);
-//		if(absPath != null){
-//			final Class[] paraType = {String.class};
-//			final Object[] para = {absPath};
-//			ClassUtil.invoke(classScriptingContainer, container, "setCurrentDirectory", paraType, para, false);
-//		}
+		if(absPath != null){//脚本工作目录，比如JRuby对象File, Dir生成文件
+			final String currDir;
+			if(absPath == StoreDirManager.RUN_TEST_ABS_PATH){
+				currDir = StoreDirManager.RUN_TEST_ABS_PATH;
+			}else{
+				currDir = StoreDirManager.getUserDataBaseDir(projectID);
+			}
+			
+			final Class[] paraType = {String.class};
+			final Object[] para = {currDir};
+			ClassUtil.invoke(classScriptingContainer, container, "setCurrentDirectory", paraType, para, false);
+		}
 		
 //		container.setError(errorWriter);
 		{
 			final Class[] paraType = {Writer.class};
 			final Object[] para = {errorWriter};
 			ClassUtil.invoke(classScriptingContainer, container, "setError", paraType, para, false);
+		}
+//		container.setOutput(errorWriter);
+		if(displayWriterMaybeNull != null){
+			final Class[] paraType = {Writer.class};
+			final Object[] para = {displayWriterMaybeNull};
+			ClassUtil.invoke(classScriptingContainer, container, "setOutput", paraType, para, false);
 		}
 		
 //		container.setClassLoader(projClassLoader);
@@ -365,6 +382,14 @@ public class HCJRubyEngine {
 		ClassUtil.invoke(classScriptingContainer, container, "setClassLoader", paraType, para, false);
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
+		}
+		
+//		container.getRuntime();
+		try{
+			//强制初始化，因为在用这线程会导致block PropertyPermission : (java.util.PropertyPermission java.net.preferIPv4Stack write) in HAR Project.
+			classScriptingContainer.getDeclaredMethod("getRuntime", null).invoke(container, null);
+		}catch (final Throwable e) {
+			e.printStackTrace();
 		}
 		
 		if(isAndroidServerPlatform){
@@ -376,13 +401,6 @@ public class HCJRubyEngine {
 		return ClassUtil.invoke(classScriptingContainer, container, "getCurrentDirectory", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
 	}
 
-	private Object setCurrentDirectory() {
-		final Class[] paraTypes = {String.class};
-		final Object[] para = {"/data/data/homecenter.mobi.server/files/jruby.jar.apk!/jruby.home/"};//{getHomeDirectory() + "!/"};
-		//[jruby.home] : file:/data/data/homecenter.mobi.server/files/jruby.jar.apk!/jruby.home
-		return ClassUtil.invoke(classScriptingContainer, container, "setCurrentDirectory", paraTypes, para, false);
-	}
-	
 	private Object getHomeDirectory() {
 		return ClassUtil.invoke(classScriptingContainer, container, "getHomeDirectory", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
 	}

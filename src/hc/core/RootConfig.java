@@ -117,6 +117,8 @@ public class RootConfig extends HCConfig{
 	public static final short p_CacheMinSize = 44;
 	public static final short p_isDisplayVIPMenu = 45;
 	public static final short p_NovVIPClientFileMaxSizeK = 46;
+	public static final short p_JRubyVer = 47;
+	public static final short p_AndroidJRubyVer = 48;
 	
 	public RootConfig(String msg) {
 //		System.out.println(msg);

@@ -53,7 +53,17 @@ import org.javassist.bytecode.LocalVariableAttribute;
 import org.javassist.bytecode.MethodInfo;
 
 public class J2SEPlatformService implements PlatformService {
-	final File baseDir = new File(".");
+	final File baseDir = buildCanonicalBase();
+	
+	private final File buildCanonicalBase(){
+		File file = new File(".");
+		try{
+			file = file.getCanonicalFile();
+		}catch (final Exception e) {
+			e.printStackTrace();
+		}
+		return file;
+	}
 	
 	@Override
 	public Object doExtBiz(final int bizID, final Object para){

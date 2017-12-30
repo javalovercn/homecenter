@@ -9,7 +9,7 @@ package hc.server.msb;
  */
 public abstract class DeviceCompatibleDescription {
 	/**
-	 * return the description about {@link Device}
+	 * return the description about <code>Device</code>
 	 * @return
 	 * @see #getCompatibleStringList()
 	 * @see #getVersion()
@@ -30,7 +30,7 @@ public abstract class DeviceCompatibleDescription {
 	 * for example, return "\"Sun AirCond Type1\", sun-aircond-type2".
 	 * <BR><BR><STRONG>Important : </STRONG>
 	 * <BR>1. "Sun_AirCond_Type1", "Sun-AirCond-Type1" and "SUN AirCond Type1" are treated as equivalent for auto-bind.
-	 * @return the compatible type/model list of this {@link Device}
+	 * @return the compatible type/model list of this <code>Device</code>
 	 * @see Robot#getDeviceCompatibleDescription(String)
 	 * @see Device#getDeviceCompatibleDescription()
 	 * @see Converter#getUpDeviceCompatibleDescription()
@@ -40,7 +40,7 @@ public abstract class DeviceCompatibleDescription {
 	public abstract String getCompatibleStringList();
 	
 	/**
-	 * return the version about the {@link Device}
+	 * return the version about the <code>Device</code>
 	 * @return
 	 * @see #getDescription()
 	 * @see #getCompatibleStringList()

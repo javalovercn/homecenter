@@ -2,8 +2,6 @@ package hc.server.msb;
 
 import hc.core.L;
 import hc.core.util.LogManager;
-import hc.server.ui.CtrlResponse;
-import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.J2SESession;
@@ -14,25 +12,28 @@ import java.util.Random;
 import java.util.Vector;
 
 /**
+ * A <code>Device</code> means a real equipment controlled by <code>Robot</code> or data source from cloud.
  * <UL>
  * <LI>In most cases, a real device provides one function. 
  * <BR>For example, a air condition provides temperature control function, if a air condition also provides lighting (equal a smart bulb),
- * you should design two {@link Device} to provide each one of functions.</LI>
- * <LI>A {@link Device} may be a agent to a virtual service.</LI>
- * <LI>A {@link Device} is means not only a real device. After {@link #connect()}, there are maybe two or more same model real devices managed by a instance of {@link Device}.</LI>
- * <LI>To drive {@link Device}, invoke {@link Robot#dispatch(Message, boolean)} or {@link Robot#waitFor(Message, long)}</LI>
- * <LI>The {@link Message#getDevID()} returns real device ID, if {@link Message} is received in {@link Device} or dispatched from {@link Device}. </LI>
- * <LI>The {@link Message#getDevID()} returns <i>Reference Device ID</i> (not real device ID), if the {@link Message} is received in {@link Robot} or dispatched from {@link Robot}.</LI>
- * <LI>After active and apply HAR project, <i>Reference Device ID</i> of {@link Robot} must refer to real device ID (a {@link Robot} can works well without any {@link Device}). If fail on auto-bind ({@link Robot#getDeviceCompatibleDescription(String)} for more), the binding dialog will be shown.</LI>
+ * you should design two <code>Device</code> to provide each one of functions.</LI>
+ * <LI>A <code>Device</code> may be a agent to a virtual service.</LI>
+ * <LI>A <code>Device</code> is means not only a real device. After {@link #connect()}, there are maybe two or more same model real devices managed by a instance of <code>Device</code>.</LI>
+ * <LI>To drive <code>Device</code>, invoke {@link Robot#dispatch(Message, boolean)} or {@link Robot#waitFor(Message, long)}</LI>
+ * <LI>The {@link Message#getDevID()} returns real device ID, if <code>Message</code> is received in <code>Device</code> or dispatched from <code>Device</code>. </LI>
+ * <LI>The {@link Message#getDevID()} returns <i>Reference Device ID</i> (not real device ID), if the <code>Message</code> is received in <code>Robot</code> or dispatched from <code>Robot</code>.</LI>
+ * <LI>After active and apply HAR project, <i>Reference Device ID</i> of <code>Robot</code> must refer to real device ID (a <code>Robot</code> can works well without any <code>Device</code>). If fail on auto-bind ({@link Robot#getDeviceCompatibleDescription(String)} for more), the binding dialog will be shown.</LI>
  * <LI>A real device ID may be referenced by more than one <i>Reference Device ID</i>. <BR>For example, a temperature device initiative publish current temperature to all robots by {@link #dispatch(Message, boolean)}, and the Message will be cloned (not deep).</LI>
- * <LI>{@link Robot} is the only way to drive {@link Device}, even if the {@link Device} is not in same HAR project. <BR>To access {@link Robot} instance from {@link Mlet} or {@link CtrlResponse}, please invoke {@link ProjectContext#getRobot(String)} and drive {@link Device} via {@link Robot#operate(long, Object)}. </li>
- * <LI>{@link Message} is an intermediary between {@link Robot} and {@link Device} (maybe {@link Converter}). <BR>{@link Message} is never used outside of {@link Robot}, {@link Converter} and {@link Device}. In other words, you can't get a instance of {@link Message} from {@link Mlet} or {@link CtrlResponse}.</LI>
- * <LI>Because the {@link Device} can communicate with the {@link Robot} which is not in the same HAR project. It may be a good practice to put only one {@link Device} in a HAR project. If the device need to be substituted or upgraded, what you should do is upgrade HAR project with the newer. Re-binding will not be executed in this case if real device ID is same. For more, see {@link Converter}.</LI>
+ * <LI><code>Robot</code> is the only way to drive <code>Device</code>, even if the <code>Device</code> is not in same HAR project. <BR>To access <code>Robot</code> instance from <code>Mlet</code> or <code>CtrlResponse</code>, please invoke {@link ProjectContext#getRobot(String)} and drive <code>Device</code> via {@link Robot#operate(long, Object)}. </li>
+ * <LI><code>Message</code> is an intermediary between <code>Robot</code> and <code>Device</code> (maybe <code>Converter</code>). <BR><code>Message</code> is never used outside of <code>Robot</code>, <code>Converter</code> and <code>Device</code>. In other words, you can't get a instance of <code>Message</code> from <code>Mlet</code> or <code>CtrlResponse</code>.</LI>
+ * <LI>Because the <code>Device</code> can communicate with the <code>Robot</code> which is not in the same HAR project. It may be a good practice to put only one <code>Device</code> in a HAR project. If the device need to be substituted or upgraded, what you should do is upgrade HAR project with the newer. Re-binding will not be executed in this case if real device ID is same. For more, see <code>Converter</code>.</LI>
  * </UL>
  * @see Robot
+ * @see Converter
+ * @see Message
  */
 public abstract class Device extends Processor{
-//	 * <LI>If a {@link Robot} is connecting to network via WiFi and manage no real {@link Device}, please create a {@link Device} for it, because <STRONG>No Device No WiFi-Connection</STRONG>.</LI>
+//	 * <LI>If a <code>Robot</code> is connecting to network via WiFi and manage no real <code>Device</code>, please create a <code>Device</code> for it, because <STRONG>No Device No WiFi-Connection</STRONG>.</LI>
 
 	/**
 	 * @deprecated
@@ -54,19 +55,19 @@ public abstract class Device extends Processor{
 	/**
 	 * response a message from robot.
 	 * <BR><BR>
-	 * the general procedure to response a {@link Message} passively is as following:
-	 * <br>1. <code>{@link Message} newMsg = this.getFreeMessage(msg.getDevID());</code>
+	 * the general procedure to response a <code>Message</code> passively is as following:
+	 * <br>1. <code><code>Message</code> newMsg = this.getFreeMessage(msg.getDevID());</code>
 	 * <br>2. set header or body of <code>newMsg</code>
 	 * <br>3. dispatch(newMsg, <strong>false</strong>);//false is required, because it is passively.
-	 * <br>4. it is allowed to dispatch an initiative {@link Message} in this method.
-	 * @param msg dispatched from {@link Robot#dispatch(Message, boolean)} or {@link Robot#waitFor(Message, long)} (it is also may be converted by a {@link Converter})
+	 * <br>4. it is allowed to dispatch an initiative <code>Message</code> in this method.
+	 * @param msg dispatched from {@link Robot#dispatch(Message, boolean)} or {@link Robot#waitFor(Message, long)} (it is also may be converted by a <code>Converter</code>)
 	 * @see Device#dispatch(Message, boolean)
 	 */
 	@Override
 	public abstract void response(final Message msg);
 	
 	/**
-	 * get the {@link ProjectContext} instance of current project.
+	 * get the <code>ProjectContext</code> instance of current project.
 	 * @return
 	 * @since 7.0
 	 */
@@ -121,22 +122,22 @@ public abstract class Device extends Processor{
 	}
 	
 	/**
-	 * get a free {@link Message} from recycling message pool.
+	 * get a free <code>Message</code> from recycling message pool.
 	 * @param from_dev_id the real device ID that the message is dispatched <STRONG>from</STRONG>. 
-	 * <br>The message may be converted by {@link Converter} or not depends on binding (after active current project).
-	 * @return a free {@link Message}
+	 * <br>The message may be converted by <code>Converter</code> or not depends on binding (after active current project).
+	 * @return a free <code>Message</code>
 	 */
 	protected Message getFreeMessage(final String from_dev_id) {//不能去掉，因为生成API时，由于没有附加生成Processor
 		return super.getFreeMessageInProc(from_dev_id);
 	}
 
 	/**
-	 * dispatch {@link Message} to robot(s).
+	 * dispatch <code>Message</code> to robot(s).
 	 * <br><br><strong>the <code>msg</code> can't be dispatched more than one time.</strong>
 	 * <br><br>to print log of creating/converting/transferring/recycling of message, please enable [Option/Developer/log MSB message].
-	 * @param msg the {@link Message} will be dispatched to robot(s). To get instance of the <code>msg</code>, call {@link #getFreeMessage(String)}.
+	 * @param msg the <code>Message</code> will be dispatched to robot(s). To get instance of the <code>msg</code>, call {@link #getFreeMessage(String)}.
 	 * @param isInitiative 
-	 * <br>if true, initiative to report status of {@link Device} to robot(s). If the device ID is binded to multiple robots, the <code>msg</code> will be cloned and dispatched to all these robots (NOT deep clone. copy keys of property/body and the corresponding values).
+	 * <br>if true, initiative to report status of <code>Device</code> to robot(s). If the device ID is binded to multiple robots, the <code>msg</code> will be cloned and dispatched to all these robots (NOT deep clone. copy keys of property/body and the corresponding values).
 	 * <br>if false, answer passively, passive mode is normally used in method {@link Device#response(Message)}, the <code>msg</code> will be dispatched ONLY to the request robot, even if the real device ID is binded to multiple <i>Reference Device ID</i>.
 	 * @see Robot#dispatch(Message, boolean)
 	 * @since 7.0
@@ -245,7 +246,7 @@ public abstract class Device extends Processor{
 	
 //	/**
 //	 * when new {@link WiFiAccount} is created, the old WiFI account is still valid for keep connection.
-//	 * <BR>the manager of server inputs new WiFI account from dialog, then this method of all {@link Device} of active HAR project will be invoked.
+//	 * <BR>the manager of server inputs new WiFI account from dialog, then this method of all <code>Device</code> of active HAR project will be invoked.
 //	 * <BR><BR>what you should do is just as following:
 //	 * <BR>1. overrides this empty method.
 //	 * <BR>2. notify the real device to change WiFi account via the old alive connection.

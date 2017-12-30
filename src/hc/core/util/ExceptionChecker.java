@@ -10,10 +10,12 @@ public class ExceptionChecker {
 	}
 	
 	//一直保留到关机。
-	final Vector table = new Vector(12);
+	final Vector table = new Vector(32);
 	
-	public boolean isPosted(final String projectID, final String stackTrace){
-		final String key = projectID + stackTrace;
+	public boolean isPosted(final String projectID, final String errMsg, final String stackTrace){
+		final StringBuffer sb = StringBufferCacher.getFree();
+		final String key = sb.append(projectID).append(errMsg).append(stackTrace).toString();
+		StringBufferCacher.cycle(sb);
 		final boolean isPosted = table.contains(key);
 		if(isPosted == false){
 			table.addElement(key);

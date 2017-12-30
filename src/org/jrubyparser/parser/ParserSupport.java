@@ -59,6 +59,7 @@ import org.jrubyparser.ast.Colon2ImplicitNode;
 import org.jrubyparser.ast.Colon2MethodNode;
 import org.jrubyparser.ast.Colon2Node;
 import org.jrubyparser.ast.Colon3Node;
+import org.jrubyparser.ast.ComplexNode;
 import org.jrubyparser.ast.ConstDeclNode;
 import org.jrubyparser.ast.ConstNode;
 import org.jrubyparser.ast.DAsgnNode;
@@ -89,8 +90,10 @@ import org.jrubyparser.ast.NewlineNode;
 import org.jrubyparser.ast.NilNode;
 import org.jrubyparser.ast.Node;
 import org.jrubyparser.ast.NthRefNode;
+import org.jrubyparser.ast.NumericNode;
 import org.jrubyparser.ast.OpElementAsgnNode;
 import org.jrubyparser.ast.OrNode;
+import org.jrubyparser.ast.RationalNode;
 import org.jrubyparser.ast.RegexpNode;
 import org.jrubyparser.ast.RestArgNode;
 import org.jrubyparser.ast.RootNode;
@@ -124,6 +127,7 @@ import org.jrubyparser.ast.DSymbolNode;
 import org.jrubyparser.ast.EncodingNode;
 import org.jrubyparser.ast.KeywordArgNode;
 import org.jrubyparser.ast.KeywordRestArgNode;
+import org.jrubyparser.ast.OpAsgnNode;
 import org.jrubyparser.ast.OpElementAsgnAndNode;
 import org.jrubyparser.ast.OpElementAsgnOrNode;
 import org.jrubyparser.ast.UndefNode;
@@ -300,8 +304,9 @@ public class ParserSupport {
     /**
      *  Wraps node with NEWLINE node.
      *
-     *@param node
-     *@return a NewlineNode or null if node is null.
+     * @param node to be wrapped
+     * @param position to be used
+     * @return a NewlineNode or null if node is null.
      */
     public Node newline_node(Node node, SourcePosition position) {
         if (node == null) return null;
@@ -453,9 +458,9 @@ public class ParserSupport {
         return new ArgsPushNode(position, node1, node2);
     }
     
-	/**
-	 * @fixme position
-	 **/
+	/*
+	 * Fixme: position
+	 */
     public Node node_assign(Node lhs, Node rhs) {
         if (lhs == null) return null;
 
@@ -766,6 +771,7 @@ public class ParserSupport {
      * them to re-insert them back into our new CaseNode the way we want.  The grammar is being
      * difficult and until I go back into the depths of that this is where things are.
      *
+     * @param position the position
      * @param expression of the case node (e.g. case foo)
      * @param firstWhenNode first when (which could also be the else)
      * @return a new case node
@@ -826,6 +832,14 @@ public class ParserSupport {
         return new OpElementAsgnNode(position, receiverNode, operatorName, argsNode, valueNode);
     }
     
+    public Node newOpAsgn(SourcePosition position, Node receiverNode, String callType, Node valueNode, String variableName, String operatorName) {
+        return new OpAsgnNode(position, receiverNode, valueNode, variableName, operatorName, isLazy(callType));
+    }
+    
+    public boolean isLazy(String callType) {
+        return "&.".equals(callType);
+    }
+    
     public Node new_attrassign(SourcePosition position, Node receiver, String name, Node args) {
         return new AttrAssignNode(position, receiver, name, args);
     }
@@ -883,7 +897,30 @@ public class ParserSupport {
     public Colon3Node new_colon3(SourcePosition position, String name) {
         return new Colon3Node(position, name);
     }
-    
+
+    public void frobnicate_fcall_args(FCallNode fcall, Node args, Node iter) {
+        if (args instanceof BlockPassNode) {
+            if (iter != null) {
+                throw new SyntaxException(PID.BLOCK_ARG_AND_BLOCK_GIVEN, iter.getPosition(),
+                        lexer.getCurrentLine(), "Both block arg and actual block given.");
+            }
+
+            BlockPassNode blockPass = (BlockPassNode) args;
+            args = blockPass.getArgs();
+            iter = blockPass;
+        }
+
+        fcall.setArgs(args);
+        fcall.setIter(iter);
+        if (iter != null || args != null) {
+            fcall.setPosition(fcall.getPosition().union(iter != null ? iter.getPosition() : args.getPosition()));
+        }
+    }
+
+    public Node new_fcall(Token operation) {
+        return new FCallNode(operation.getPosition(), (String) operation.getValue());
+    }
+
     public Node new_fcall(Token operation, Node args, Node iter) {
         SourcePosition position = union(operation, (iter != null ? iter : args));
 
@@ -1054,7 +1091,7 @@ public class ParserSupport {
         return new YieldNode(position, node, state);
     }
     
-    public Node negateInteger(Node integerNode) {
+    public NumericNode negateInteger(NumericNode integerNode) {
         if (integerNode instanceof FixnumNode) {
             FixnumNode fixnumNode = (FixnumNode) integerNode;
             
@@ -1068,13 +1105,30 @@ public class ParserSupport {
         
         return integerNode;
     }
-    
+
+    // FIXME: Update 1.8/1.9 grammar to use numericnode signature
+    public Node negateInteger(Node integerNode) {
+        return negateInteger((NumericNode) integerNode);
+    }
+
     public FloatNode negateFloat(FloatNode floatNode) {
         floatNode.setValue(-floatNode.getValue());
         
         return floatNode;
     }
-    
+
+    public ComplexNode negateComplexNode(ComplexNode complexNode) {
+        complexNode.setNumber(negateNumeric(complexNode.getNumber()));
+
+        return complexNode;
+    }
+
+    public RationalNode negateRational(RationalNode rationalNode) {
+        return new RationalNode(rationalNode.getPosition(),
+                -rationalNode.getNumerator(),
+                rationalNode.getDenominator());
+    }
+
     public SourcePosition createEmptyArgsNodePosition(SourcePosition pos) {
         return new SourcePosition(pos.getFile(), pos.getStartLine(), pos.getEndLine(), pos.getEndOffset() - 1, pos.getEndOffset() - 1);
     }
@@ -1156,6 +1210,7 @@ public class ParserSupport {
     
      /**
       * generate parsing error
+      * @param message to be used in error
       */
      public void yyerror(String message) {
          throw new SyntaxException(PID.GRAMMAR_ERROR, lexer.getPosition(), message);
@@ -1165,6 +1220,7 @@ public class ParserSupport {
       * generate parsing error
       * @param message text to be displayed.
       * @param expected list of acceptable tokens, if available.
+      * @param found what was actually found
       */
      public void yyerror(String message, String[] expected, String found) {
          String text = message + ", unexpected " + found + "\n";
@@ -1269,6 +1325,8 @@ public class ParserSupport {
       * If node is a splat and it is splatting a literal array then return the literal array.
       * Otherwise return null.  This allows grammar to not splat into a Ruby Array if splatting
       * a literal array.
+      * @param node to be splatted
+      * @return the value of the splat or null if not a splatable thing
       */
      public Node splat_array(Node node) {
          if (node instanceof SplatNode) node = ((SplatNode) node).getValue();
@@ -1334,6 +1392,8 @@ public class ParserSupport {
     /**
      * Since we can recieve positions at times we know can be null we
      * need an extra safety net here.
+     * @param pos the position
+     * @return the position
      */
     public SourcePosition getPosition2(ISourcePositionHolder pos) {
         return pos == null ? lexer.getPosition(null, false) : pos.getPosition();
@@ -1353,5 +1413,22 @@ public class ParserSupport {
     
     public KeywordArgNode keyword_arg(SourcePosition position, AssignableNode assignable) {
         return new KeywordArgNode(position, assignable);
+    }
+
+    public NumericNode negateNumeric(NumericNode node) {
+        switch (node.getNodeType()) {
+            case FIXNUMNODE:
+            case BIGNUMNODE:
+                return negateInteger(node);
+            case COMPLEXNODE:
+                return negateComplexNode((ComplexNode) node);
+            case FLOATNODE:
+                return negateFloat((FloatNode) node);
+            case RATIONALNODE:
+                return negateRational((RationalNode) node);
+        }
+
+        yyerror("Invalid or unimplemented numeric to negate: " + node.toString());
+        return null;
     }
 }

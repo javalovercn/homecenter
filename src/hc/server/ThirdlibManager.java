@@ -1,7 +1,6 @@
 package hc.server;
 
 import hc.App;
-import hc.core.L;
 import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
 import hc.util.PropertiesManager;

@@ -22,7 +22,6 @@ import hc.core.util.WiFiDeviceManager;
 import hc.res.ImageSrc;
 import hc.server.DefaultManager;
 import hc.server.HCSecurityException;
-import hc.server.J2SEContext;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
 import hc.server.StarterManager;
@@ -39,6 +38,7 @@ import hc.server.ui.design.SystemHTMLMlet;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
@@ -88,7 +88,6 @@ import java.util.MissingFormatArgumentException;
 import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
-import java.util.Vector;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
@@ -109,10 +108,12 @@ import javax.swing.KeyStroke;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 
 public class ResourceUtil {
 	private static final int MAX_RES_ID = 10000;
-	private static final String USER_PROJ = "user.proj.";
+	public static final String USER_PROJ = "user.proj.";
 	private static boolean isCheckStarter;
 	private static Class starterClass;
 	public static final String SYS_LOOKFEEL = "System - ";
@@ -434,39 +435,38 @@ public class ResourceUtil {
 	 * copy file only, not dir and recursive
 	 * @param from
 	 * @param to
+	 * @return true means OK
 	 */
 	public static boolean copy(final File from, final File to) {
-		if(L.isInWorkshop){
-			LogManager.log("copy file : " + from.getAbsolutePath() + ", to : " + to.getAbsolutePath());
-		}
+		L.V = L.WShop ? false : LogManager.log("copy file : " + from.getAbsolutePath() + ", to : " + to.getAbsolutePath());
+
 		FileInputStream in = null;
 		FileOutputStream out = null;
+		final byte[] buffer = ByteUtil.byteArrayCacher.getFree(1024 * 10);
 		try{
 			in = new FileInputStream(from);
 			out = new FileOutputStream(to);
-			final byte[] buffer = new byte[1024 * 5];
 			int ins = 0;
 			while ((ins = in.read(buffer)) != -1) {
 				out.write(buffer, 0, ins);
 			}
 			return true;
-		}catch (final Exception e) {
+		}catch (final Throwable e) {
 			return false;
 		}finally{
+			ByteUtil.byteArrayCacher.cycle(buffer);
+			
 			try{
 				in.close();
 			}catch (final Exception e) {
-				
 			}
 			try{
 				out.flush();
 			}catch (final Exception e) {
-				
 			}
 			try{
 				out.close();
 			}catch (final Exception e) {
-				
 			}
 		}
 	}
@@ -610,6 +610,27 @@ public class ResourceUtil {
         return false;
     }
 	
+	public static void copyDirAndSub(final File srcDir, final File targetDir){
+		if(targetDir.exists() == false){
+			targetDir.mkdirs();
+		}else{
+			deleteDirectoryNowAndExit(targetDir, false);
+		}
+		
+		final File[] subs = srcDir.listFiles();
+		final int length = subs.length;
+		for (int i = 0; i < length; i++) {
+			final File sub = subs[i];
+			final String name = sub.getName();
+			final File subTarget = new File(targetDir, name);
+			if(sub.isDirectory()){
+				copyDirAndSub(sub, subTarget);
+			}else{
+				copy(sub, subTarget);
+			}
+		}
+	}
+	
 	public static String getShowText(){
 		return (String)ResourceUtil.get(9180);
 	}
@@ -752,60 +773,9 @@ public class ResourceUtil {
 	public static String toStandardPath(final String path){
 		return path.replace(App.WINDOW_PATH_SEPARATOR, '/');
 	}
-
-	public static ClassLoader buildProjClassPath(final File deployPath, final ClassLoader jrubyClassLoader, final String projID){
-		CCoreUtil.checkAccess();
-
-		final Vector<File> jars = new Vector<File>();
-		final String[] subFileNames = deployPath.list();
-		for (int i = 0; subFileNames != null && i < subFileNames.length; i++) {
-			final String lowerCaseFileName = subFileNames[i].toLowerCase();
-			if(lowerCaseFileName.endsWith(EXT_JAR) && (lowerCaseFileName.endsWith(EXT_DEX_JAR) == false)){
-				jars.add(new File(deployPath, subFileNames[i]));
-			}
-		}
-		final File[] jars_arr = new File[jars.size()];
-		return PlatformManager.getService().loadClasses(jars.toArray(jars_arr), jrubyClassLoader, false, USER_PROJ + projID);
-	}
 	
 	public static void delProjOptimizeDir(final String projID){
 		PlatformManager.getService().doExtBiz(PlatformService.BIZ_DEL_HAR_OPTIMIZE_DIR, USER_PROJ + projID);
-	}
-	
-	public static ClassLoader buildProjClassLoader(final File libAbsPath, final String projID){
-		return buildProjClassPath(libAbsPath, ResourceUtil.getJRubyClassLoader(false), projID);
-	}
-	
-	private static ClassLoader rubyAnd3rdLibsClassLoaderCache;
-	
-	public static synchronized ClassLoader getJRubyClassLoader(final boolean forceRebuild){
-		CCoreUtil.checkAccess();
-
-		if(rubyAnd3rdLibsClassLoaderCache == null || forceRebuild){
-		}else{
-			return rubyAnd3rdLibsClassLoaderCache;
-		}
-//		PlatformManager.getService().closeLoader(rubyAnd3rdLibsClassLoaderCache);
-
-		rubyAnd3rdLibsClassLoaderCache = buildJRubyClassLoader();
-		if(rubyAnd3rdLibsClassLoaderCache == null){
-			final String message = "Error to get JRuby/3rdLibs ClassLoader!";
-			LogManager.errToLog(message);
-			final JPanel panel = App.buildMessagePanel(message, App.getSysIcon(App.SYS_ERROR_ICON));
-			App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, null, false, true, null, false, false);//JFrame
-		}else{
-			LogManager.log("Successful (re) create JRuby engine classLoader.");
-		}
-		return rubyAnd3rdLibsClassLoaderCache;
-	}
-	
-	private static ClassLoader buildJRubyClassLoader() {
-		final File jruby = new File(ResourceUtil.getBaseDir(), J2SEContext.jrubyjarname);
-		
-		PlatformManager.getService().setJRubyHome(PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer), jruby.getAbsolutePath());
-		
-		final File[] files = {jruby};
-		return PlatformManager.getService().loadClasses(files, PlatformManager.getService().get3rdAndServClassLoader(null), true, "hc.jruby");
 	}
 	
 	public static int[] getSimuScreenSize(){
@@ -1642,11 +1612,12 @@ public class ResourceUtil {
 	        final File[] files = directory.listFiles();
 	        if(null!=files){
 	            for(int i=0; i<files.length; i++) {
-	                if(files[i].isDirectory()) {
-	                    deleteDirectoryNowAndExit(files[i], true);
+	                final File file = files[i];
+					if(file.isDirectory()) {
+	                    deleteDirectoryNowAndExit(file, true);
 	                } else {
-	                    if(files[i].delete() == false){
-	                    	LogManager.errToLog("fail del file : " + files[i].getAbsolutePath());
+	                    if(file.delete() == false){
+	                    	LogManager.errToLog("fail del file : " + file.getAbsolutePath());
 	                    }
 	                }
 	            }
@@ -1727,7 +1698,28 @@ public class ResourceUtil {
 	}
 
 	public static String getLibNameForAllPlatforms(final String libName) {
-		return libName + (isAndroidServerPlatform()?EXT_APK:"");
+//		return getLibNameForAllPlatformsFor9K(libName);
+		final boolean isAndroid = isAndroidServerPlatform();
+		if(isAndroid){
+			return libName + EXT_JAR + EXT_APK;
+		}else{
+			return libName + EXT_JAR;
+		}
+	}
+
+	private static String getLibNameForAllPlatformsFor9K(final String libName) {
+		final boolean isAndroid = isAndroidServerPlatform();
+		if(isAndroid){
+			final File jruby1_7_x_in_android = new File(getBaseDir(), "jruby.jar" + EXT_APK);//旧采用roboto-X.apk方式
+			if(jruby1_7_x_in_android.exists()){
+				if(jruby1_7_x_in_android.delete()){
+					LogManager.log("successful delete 1.7.X " + jruby1_7_x_in_android.getName());
+				}else{
+					LogManager.errToLog("fail to delete 1.7.X " + jruby1_7_x_in_android.getName());
+				}
+			}
+		}
+		return libName + (isAndroid?EXT_DEX_JAR:EXT_JAR);
 	}
 
 	public static boolean isEnableDesigner(){
@@ -1912,12 +1904,36 @@ public class ResourceUtil {
 	 * @param moreMsg
 	 */
 	public static final void checkHCStackTraceInclude(final String callerClass, final ClassLoader loader, final String moreMsg) {
+		checkHCStackTraceInclude(callerClass, loader, moreMsg, null);
+	}
+	
+	/**
+	 * 检查stackTrace的类源都是系统包，且callerClass非null时，必须在stackTrace中。否则抛出异常。
+	 * @param callerClass
+	 * @param loader 使用指定的类加载器来检查类
+	 * @param moreMsg
+	 */
+	public static final void checkHCStackTraceInclude(final String callerClass, final ClassLoader loader, final String moreMsg, final String hclimitSecurityClassName) {
 		final StackTraceElement[] el = Thread.currentThread().getStackTrace();//index越小，距本方法越近
 		final ClassLoader checkLoader = (loader==null?ResourceUtil.class.getClassLoader():loader);
 		boolean isFromCallerClass = false;
+		int countInvokehclimitSecurityClass = 0;
 		
 		for (int i = el.length - 1; i >= 0; i--) {
-			final String className = el[i].getClassName();
+			String className = el[i].getClassName();
+			final int dollarIdx = className.indexOf('$', 0);
+			if(dollarIdx > 0){
+				className = className.substring(0, dollarIdx);
+			}
+//			if(className.equals("sun.reflect.GeneratedMethodAccessor3") 
+//					|| className.equals("sun.reflect.GeneratedMethodAccessor2")){
+//				return;
+//			}
+			if(hclimitSecurityClassName != null && className.equals(hclimitSecurityClassName)){
+				if(countInvokehclimitSecurityClass++ > 4){
+					return;
+				}
+			}
 			if(className.equals("org.jruby.embed.internal.EmbedEvalUnitImpl")){//动态解释执行
 				if(PropertiesManager.isSimu()){
 					LogManager.errToLog("Illegal class [" + className + "] is NOT allowed in stack trace in ClassLoader[" + checkLoader.toString() + "].");
@@ -2241,5 +2257,21 @@ public class ResourceUtil {
 		out.add(new JLabel(" "));
 		out.add(content);
 		return out;
+	}
+
+	public static SimpleAttributeSet buildAttrSet(final Color c, final boolean bold){
+			 final SimpleAttributeSet attributes = new SimpleAttributeSet();
+			 StyleConstants.setForeground(attributes, c);
+			 StyleConstants.setBold(attributes, bold);
+	//		 StyleConstants.setFontSize(attributes, fontSize);
+	//		 StyleConstants.setFontFamily(attrSet, "黑体");
+			 return attributes;
+		}
+
+	public static final void removeFromParent(final JComponent subPanel) {
+		final Container parent = subPanel.getParent();
+		if(parent != null){
+			parent.remove(subPanel);
+		}
 	}
 }

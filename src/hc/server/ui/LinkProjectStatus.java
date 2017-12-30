@@ -10,6 +10,7 @@ import hc.core.util.StringUtil;
 import hc.server.HCActionListener;
 import hc.server.JRubyInstaller;
 import hc.server.LinkMenuManager;
+import hc.server.util.SafeDataManager;
 import hc.util.ResourceUtil;
 
 import java.awt.BorderLayout;
@@ -49,6 +50,14 @@ public class LinkProjectStatus {
 		final Object pop = stack.pop();
 		if(pop != null){
 			manager_status = (Integer)pop;
+			if(MANAGER_IDLE == manager_status){
+				try{
+					if(ServerUIUtil.getMobiResponsor() != null){
+						SafeDataManager.enableSafeBackup(false, true);
+					}
+				}catch (final Throwable e) {
+				}
+			}
 			LogManager.log("return project lock status : " + manager_status + ", from : " + oldStatus);
 		}
 	}

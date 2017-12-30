@@ -792,11 +792,6 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		return PropertiesManager.getValue((String)propertyID);
 	}
 
-	/**
-	 * 如果jruby.jar升级，由于Android环境下依赖此，重要测试
-	 */
-	public static final String jrubyjarname = ResourceUtil.getLibNameForAllPlatforms("jruby.jar");
-
 	@Override
 	public void notify(final short statusFrom, final short statusTo) {
 		final J2SESession j2seCoreSS = (J2SESession)coreSS;

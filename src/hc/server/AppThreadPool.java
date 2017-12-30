@@ -9,18 +9,18 @@ import hc.util.ClassUtil;
 
 public class AppThreadPool extends ThreadPool {
 	public AppThreadPool(){
-		super(App.getRootThreadGroup());
+		super(App.getRootThreadGroup(), true);
 	}
 	
 	@Override
-	public Thread buildThread(RecycleThread rt) {
-		Thread t = new Thread((ThreadGroup)threadGroup, rt);
+	public Thread buildThread(final RecycleThread rt) {
+		final Thread t = new Thread((ThreadGroup)threadGroup, rt);
 		t.setPriority(ThreadPriorityManager.SERVER_THREADPOOL_PRIORITY);
 		return t;
 	}
 	
 	@Override
-	protected void checkAccessPool(Object token){
+	protected void checkAccessPool(final Object token){
 		CCoreUtil.checkAccess(token);
 	}
 	

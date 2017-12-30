@@ -13,7 +13,7 @@
  * rights and limitations under the License.
  *
  * Copyright (C) 2009 Thomas E. Enebo <tom.enebo@gmail.com>
- * 
+ *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
  * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -39,17 +39,34 @@ public class OpAsgnNode extends Node {
     private Node valueNode;
     private String operatorName;
     private String variableName;
+    private boolean isLazy;
 
+    // Be backward compatible for Ruby 1.8 and 1.9
     public OpAsgnNode(SourcePosition position, Node receiverNode, Node valueNode, String variableName, String operatorName) {
         super(position);
-        
+
         assert receiverNode != null : "receiverNode is not null";
         assert valueNode != null : "valueNode is not null";
-        
+
         this.receiverNode = adopt(receiverNode);
         this.valueNode = adopt(valueNode);
         this.operatorName = operatorName;
         this.variableName = variableName;
+        this.isLazy = false;
+    }
+    
+    
+    public OpAsgnNode(SourcePosition position, Node receiverNode, Node valueNode, String variableName, String operatorName, boolean isLazy) {
+        super(position);
+
+        assert receiverNode != null : "receiverNode is not null";
+        assert valueNode != null : "valueNode is not null";
+
+        this.receiverNode = adopt(receiverNode);
+        this.valueNode = adopt(valueNode);
+        this.operatorName = operatorName;
+        this.variableName = variableName;
+        this.isLazy = isLazy;
     }
 
 
@@ -62,7 +79,7 @@ public class OpAsgnNode extends Node {
     @Override
     public boolean isSame(Node node) {
         if (!super.isSame(node)) return false;
-        
+
         OpAsgnNode other = (OpAsgnNode) node;
 
         return getReceiver().isSame(other.getReceiver()) && getValue().isSame(other.getValue()) &&
@@ -78,7 +95,7 @@ public class OpAsgnNode extends Node {
      * Accept for the visitor pattern.
      * @param iVisitor the visitor
      **/
-    public Object accept(NodeVisitor iVisitor) {
+    public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitOpAsgnNode(this);
     }
 
@@ -105,12 +122,12 @@ public class OpAsgnNode extends Node {
     public Node getReceiver() {
         return receiverNode;
     }
-    
+
     @Deprecated
     public Node getReceiverNode() {
         return getReceiver();
     }
-    
+
     public void setReceiver(Node receiver) {
         this.receiverNode = adopt(receiver);
     }
@@ -122,13 +139,17 @@ public class OpAsgnNode extends Node {
     public Node getValue() {
         return valueNode;
     }
-    
+
     @Deprecated
     public Node getValueNode() {
         return getValue();
     }
-    
+
     public void setValue(Node value) {
         this.valueNode = adopt(value);
+    }
+    
+    public boolean isLazy() {
+        return isLazy;
     }
 }

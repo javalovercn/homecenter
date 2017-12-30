@@ -9,9 +9,9 @@ import java.util.Vector;
 import javax.swing.JPanel;
 
 /**
- * {@link ScriptPanel} is JComponent to load JavaScript and execute JavaScript.
+ * <code>ScriptPanel</code> is JComponent to load JavaScript and execute JavaScript on client.
  * <BR><BR>
- * a {@link ScriptPanel} can be used in {@link HTMLMlet} and {@link Dialog} like JPanel.
+ * a <code>ScriptPanel</code> can be used in <code>HTMLMlet</code> and <code>Dialog</code>.
  * <BR><BR>
  * <STRONG>Important</STRONG> : <BR>
  * permission of <code>ScriptPanel</code> is required for project.
@@ -152,7 +152,7 @@ public class ScriptPanel extends JPanel {
 	}
 	
 	/**
-	 * load script for current {@link ScriptPanel}.
+	 * load script for current <code>ScriptPanel</code>.
 	 * <BR>it is full script, HTML (<code>&lt;script type="text/javascript"&gt;</code>) can NOT be included.
 	 * <BR><BR><STRONG>Warning</STRONG> : <BR>
 	 * 1. <code>window.onload</code> will NOT be triggered, please invoke it by {@link #executeScript(String)}<BR>
@@ -174,7 +174,7 @@ public class ScriptPanel extends JPanel {
 	}
 	
 	/**
-	 * load script for current {@link ScriptPanel}.
+	 * load script for current <code>ScriptPanel</code>.
 	 * <BR>it is full script, HTML (<code>&lt;script type="text/javascript"&gt;</code>) can NOT be included.
 	 * <BR><BR><STRONG>Warning</STRONG> : <BR>
 	 * 1. <code>window.onload</code> will NOT be triggered, please invoke it by {@link #executeScript(String)}<BR>
@@ -201,14 +201,14 @@ public class ScriptPanel extends JPanel {
 	}
 	
 	/**
-	 * set inner HTML for current {@link ScriptPanel}.
+	 * set inner HTML for current <code>ScriptPanel</code>.
 	 * <BR><BR>
 	 * for example : <BR>
 	 * 1. a JPanel will be translated to <code>&lt;div id='HC_*'&gt;&lt;/div&gt;</code>,<BR>
 	 * 2. when invoke <code>setInnerHTML("&lt;div id='myScriptDiv'&gt;some canvas html&lt;/div&gt;")</code>, <BR>
 	 * 3. then the result is : <code>&lt;div id='HC_*'&gt;&lt;div id='myScriptDiv'&gt;some canvas html&lt;/div&gt;&lt;/div&gt;</code>
 	 *	<BR><BR><STRONG>Warning</STRONG> : all id of elements of HTML created by server is begin with '<STRONG>HC</STRONG>'.
-	 * <BR><BR>Note : there is maybe more ScriptPanels in a {@link Dialog} or {@link HTMLMlet}, make sure that IDs are unique among them.
+	 * <BR><BR>Note : there is maybe more ScriptPanels in a <code>Dialog</code> or <code>HTMLMlet</code>, make sure that IDs are unique among them.
 	 * <BR><BR>About cache :<BR>
 	 * don't worry about inner HTML too large for re-translating to mobile, <BR>
 	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether transmission or loading cache from mobile (if inner HTML is too small, it will not be cached).
@@ -224,7 +224,7 @@ public class ScriptPanel extends JPanel {
 	}
 	
 	/**
-	 * set inner HTML for current {@link ScriptPanel}.
+	 * set inner HTML for current <code>ScriptPanel</code>.
 	 * @param html
 	 * @param enableCache true means this HTML may be cached if it is too large.
 	 * @see #setInnerHTML(String)
@@ -247,7 +247,7 @@ public class ScriptPanel extends JPanel {
 	}
 	
 	/**
-	 * execute script on current {@link ScriptPanel}.
+	 * execute script on current <code>ScriptPanel</code>.
 	 * <BR><BR>
 	 * in general, please initialize this panel by {@link #setInnerHTML(String)} and {@link #loadScript(String)} first.
 	 * <BR><BR>
@@ -296,7 +296,7 @@ public class ScriptPanel extends JPanel {
 	 * <BR><BR><STRONG>Warning</STRONG> : all id of elements of HTML created by server is begin with '<STRONG>HC</STRONG>'.
 	 * <BR><BR>
 	 * Note :<BR>
-	 * if there is more than one ScriptPanels in a {@link Dialog} or {@link HTMLMlet}, the events of other ScriptPanel may be dispatched to this method, you should return <code>false</code> to tell server that the event is NOT for current ScriptPanel.
+	 * if there is more than one ScriptPanels in a <code>Dialog</code> or <code>HTMLMlet</code>, the events of other ScriptPanel may be dispatched to this method, you should return <code>false</code> to tell server that the event is NOT for current ScriptPanel.
 	 * <BR><BR><CENTER><STRONG>Table of Actions</STRONG> (NOT all)</CENTER><BR>
 	 * <table border='1'>
 	 * <tr>
@@ -387,7 +387,7 @@ public class ScriptPanel extends JPanel {
 	 * {@link #MOUSE_CLICKED}, {@link #MOUSE_DRAGGED}, {@link #MOUSE_ENTERED}, 
 	 * {@link #MOUSE_EXITED}, {@link #MOUSE_PRESSED}, {@link #MOUSE_RELEASED}.
 	 * @param values
-	 * @return true means the event is consumed; false means the event will be dispatched to other {@link ScriptPanel}.
+	 * @return true means the event is consumed; false means the event will be dispatched to other <code>ScriptPanel</code>.
 	 * @since 7.36
 	 */
 	public boolean onEvent(final String id, final String action, final String[] values){//注意：此方法禁止final

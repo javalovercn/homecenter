@@ -80,6 +80,7 @@ public class DefaultMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 		cmd_url_panel.add(testBtn);
 		cmd_url_panel.add(formatBtn);
 		cmd_url_panel.add(scriptBtn);
+		cmd_url_panel.add(commentBtn);
 		cmd_url_panel.add(errCommandTip);
 	}
 

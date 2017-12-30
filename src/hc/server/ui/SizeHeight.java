@@ -14,27 +14,51 @@ public class SizeHeight {
 	}
 	
 	public final int getFontSizeForNormal() {
-		return coreSS.clientFontSize.fontSizeForNormal;
+		if(coreSS == SimuMobile.SIMU_NULL){
+			return SimuMobile.MOBILE_FONT_SIZE_FOR_BUTTON;
+		}else{
+			return coreSS.clientFontSize.fontSizeForNormal;
+		}
 	}
 
 	public final int getFontSizeForSmall() {
-		return coreSS.clientFontSize.fontSizeForSmall;
+		if(coreSS == SimuMobile.SIMU_NULL){
+			return SimuMobile.MOBILE_FONT_SIZE_FOR_BUTTON;
+		}else{
+			return coreSS.clientFontSize.fontSizeForSmall;
+		}
 	}
 
 	public final int getFontSizeForLarge() {
-		return coreSS.clientFontSize.fontSizeForLarge;
+		if(coreSS == SimuMobile.SIMU_NULL){
+			return SimuMobile.MOBILE_FONT_SIZE_FOR_BUTTON;
+		}else{
+			return coreSS.clientFontSize.fontSizeForLarge;
+		}
 	}
 
 	public final int getFontSizeForButton() {
-		return coreSS.clientFontSize.fontSizeForButton;
+		if(coreSS == SimuMobile.SIMU_NULL){
+			return SimuMobile.MOBILE_FONT_SIZE_FOR_BUTTON;
+		}else{
+			return coreSS.clientFontSize.fontSizeForButton;
+		}
 	}
 	
 	public final int getDialogBorderRadius(){
-		return coreSS.clientFontSize.dialogBorderRadius;
+		if(coreSS == SimuMobile.SIMU_NULL){
+			return SimuMobile.MOBILE_BORDER_RADIUS;
+		}else{
+			return coreSS.clientFontSize.dialogBorderRadius;
+		}
 	}
 
 	public final int getButtonHeight() {
-		return coreSS.clientFontSize.buttonHeight;
+		if(coreSS == SimuMobile.SIMU_NULL){
+			return SimuMobile.MOBILE_BUTTON_HEIGHT;
+		}else{
+			return coreSS.clientFontSize.buttonHeight;
+		}
 	}
 
 	public final int getMobileWidth() {

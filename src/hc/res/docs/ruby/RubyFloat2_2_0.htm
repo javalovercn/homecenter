@@ -1,0 +1,3549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <!-- classpage -- >
+    <!-- RD version: 0.39.0  -->
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+  <meta name='description' content='  Class : Float  -   Ruby 2.2.0 ' />
+  <meta content="2017-09-09 18:34:21 -0500" http-equiv="change-date" />
+  <!-- rel_prefix  = ''  ENV['RDOC_FOR_WEBSITE']   = true-->
+    
+    
+    
+  <!-- rel_prefix = '.'   asset_rel_prefix = ''  --> 
+  <title>Class: Float (Ruby 2.2.0) </title>
+  <link rel="stylesheet" href="/css/associated.css" type="text/css" >
+  <!-- link rel="stylesheet" href=".css/obf.css"  -->
+  <link rel="stylesheet" href="/css/inuit.css" >
+  <link rel="stylesheet" href="/css/grid.inuit.css" >
+  <link rel="stylesheet" href="/css/2011.css" type="text/css" >
+  <link rel="stylesheet" href="/css/rdoc.css" type="text/css" >
+    <link rel="stylesheet" href="/css/carbon17.css" type="text/css" >
+
+
+  <script src="/js/jquery.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/thickbox-compressed.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/quicksearch.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/js/rubydoc.js" type="text/javascript" charset="utf-8"></script> 
+
+
+   
+<script src="/js/highlight.min.js"></script>
+<script> 
+  hljs.tabReplace = '  ';
+  hljs.initHighlightingOnLoad();
+  </script> 
+
+  <style type='text/css'>
+
+    #vulns-alert #vulns{
+      background-color: #c33 ! important;
+      width: 100%;
+      text-align: center;
+   }
+   
+   #vulns-alert #vulns a {
+    color: #F99 ! important;
+   }
+ </style>
+
+   <link rel="stylesheet" href="/css/extra.css" type="text/css" >
+  <script  src="/js/extra.js"  ></script>
+
+
+</head>
+
+<body id="top" class="class rdocstar">
+
+<div id='actionbar' >
+<div class='wrapper'>
+  <ul class='grids g0'>
+	<li class='grid-2' ><a href='/' target='_top' >Home</a></li>
+	<li class='grid-2' ><a href='/core-2.2.0' target='_top' >Core 2.2.0</a></li>
+	<li class='grid-2' ><a href='/stdlib-2.2.0' target='_top' >Std-lib 2.2.0</a></li>
+
+   <li class='grid-2' ><a href='/downloads' target='_top' >Downloads</a></li>
+	 <li class='grid-5 right' id='rd-action-search'><form id="searchbox_011815814100681837392:wnccv6st5qk" action="http://ruby-doc.com/search.html"><input type="hidden" name="cx" value="011815814100681837392:wnccv6st5qk" ><input  id='rd-search-input' name="q" type="text" size="20" >&#160;&#160;<input type="submit" name="sa" value="Search" ><input type="hidden" name="cof" value="FORID:9" ></form></li>
+	</ul>
+</div>
+<span id='vulns-alert'></span>
+<div id='versionheader'>
+<p>Support for the Ruby 2.2 series will end March 2018. See <a href='https://www.ruby-lang.org/en/news/2017/04/01/support-of-ruby-2-1-has-ended/'>here</a> for reference.</p>
+</div>
+</div> <!-- end action bar -->
+ <div class='wrapper'>
+  
+   <!-- carbon17 added here 2017-09-09 -->
+ 
+   <script src="//m.servedby-buysellads.com/monetization.js" type="text/javascript"></script>
+<div class="bsa-cpc"></div>
+<script>
+  (function(){
+    if(typeof _bsa !== 'undefined' && _bsa) {
+    _bsa.init('default', 'CKYD627W', 'placement:rubydocorg', {
+      target: '.bsa-cpc',
+      align: 'horizontal',
+      disable_css: 'true'
+    });
+      }
+  })();
+</script>
+
+ 
+
+   <div id="metadata">
+    <div id="home-metadata">
+      <div id="home-section" class="section">
+        <h3 class="section-header">
+          <a href="./index.html">Home</a>
+          <a href="./index.html#classes">Classes</a>
+          <a href="./index.html#methods">Methods</a>
+          
+          
+          <!-- br><a id='alternateFormatLink' class='rotate' href="#" onclick='matchingYardUrl()'>YARD version</a -->
+          
+        </h3>
+      </div>
+    </div>
+
+    <div id="file-metadata">
+      <div id="file-list-section" class="section">
+        <h3 class="section-header">In Files</h3>
+        <div class="section-body">
+          <ul id='file-metadata'>
+
+          
+          
+          
+          <li class='in-file'>complex.c</li>      
+            
+          
+          <li class='in-file'>numeric.c</li>      
+            
+          
+          <li class='in-file'>rational.c</li>      
+            
+          </ul>
+        </div>
+      </div>
+
+      
+    </div>
+
+    <div id="class-metadata">
+      
+      <!-- Parent Class -->
+      <div id="parent-class-section" class="section">
+        <h3 class="section-header">Parent</h3>
+        
+        <p class="link"><a href="Numeric.html">Numeric</a></p>
+        
+      </div>
+      
+
+      
+
+      
+
+      
+      <!-- Method Quickref -->
+      <div id="method-list-section" class="section">
+        <h3 class="section-header">Methods</h3>
+        <ul class="link-list">
+          
+          <li><a href="#method-i-25">#%</a></li>
+          
+          <li><a href="#method-i-2A">#*</a></li>
+          
+          <li><a href="#method-i-2A-2A">#**</a></li>
+          
+          <li><a href="#method-i-2B">#+</a></li>
+          
+          <li><a href="#method-i-2D">#-</a></li>
+          
+          <li><a href="#method-i-2D-40">#-@</a></li>
+          
+          <li><a href="#method-i-2F">#/</a></li>
+          
+          <li><a href="#method-i-3C">#<</a></li>
+          
+          <li><a href="#method-i-3C-3D">#<=</a></li>
+          
+          <li><a href="#method-i-3C-3D-3E">#<=></a></li>
+          
+          <li><a href="#method-i-3D-3D">#==</a></li>
+          
+          <li><a href="#method-i-3D-3D-3D">#===</a></li>
+          
+          <li><a href="#method-i-3E">#></a></li>
+          
+          <li><a href="#method-i-3E-3D">#>=</a></li>
+          
+          <li><a href="#method-i-abs">#abs</a></li>
+          
+          <li><a href="#method-i-angle">#angle</a></li>
+          
+          <li><a href="#method-i-arg">#arg</a></li>
+          
+          <li><a href="#method-i-ceil">#ceil</a></li>
+          
+          <li><a href="#method-i-coerce">#coerce</a></li>
+          
+          <li><a href="#method-i-denominator">#denominator</a></li>
+          
+          <li><a href="#method-i-divmod">#divmod</a></li>
+          
+          <li><a href="#method-i-eql-3F">#eql?</a></li>
+          
+          <li><a href="#method-i-fdiv">#fdiv</a></li>
+          
+          <li><a href="#method-i-finite-3F">#finite?</a></li>
+          
+          <li><a href="#method-i-floor">#floor</a></li>
+          
+          <li><a href="#method-i-hash">#hash</a></li>
+          
+          <li><a href="#method-i-infinite-3F">#infinite?</a></li>
+          
+          <li><a href="#method-i-inspect">#inspect</a></li>
+          
+          <li><a href="#method-i-magnitude">#magnitude</a></li>
+          
+          <li><a href="#method-i-modulo">#modulo</a></li>
+          
+          <li><a href="#method-i-nan-3F">#nan?</a></li>
+          
+          <li><a href="#method-i-next_float">#next_float</a></li>
+          
+          <li><a href="#method-i-numerator">#numerator</a></li>
+          
+          <li><a href="#method-i-phase">#phase</a></li>
+          
+          <li><a href="#method-i-prev_float">#prev_float</a></li>
+          
+          <li><a href="#method-i-quo">#quo</a></li>
+          
+          <li><a href="#method-i-rationalize">#rationalize</a></li>
+          
+          <li><a href="#method-i-round">#round</a></li>
+          
+          <li><a href="#method-i-to_f">#to_f</a></li>
+          
+          <li><a href="#method-i-to_i">#to_i</a></li>
+          
+          <li><a href="#method-i-to_int">#to_int</a></li>
+          
+          <li><a href="#method-i-to_r">#to_r</a></li>
+          
+          <li><a href="#method-i-to_s">#to_s</a></li>
+          
+          <li><a href="#method-i-truncate">#truncate</a></li>
+          
+          <li><a href="#method-i-zero-3F">#zero?</a></li>
+          
+        </ul>
+      </div>
+      
+
+      
+    </div>
+
+    <div id="project-metadata">
+      
+      
+      <div id="fileindex-section" class="section project-section">
+        <h3 class="section-header">Files</h3>
+        <ul id='files'>
+        
+          
+          <li class="file"><a href="./_lib/racc/rdoc/grammar_en_rdoc.html">grammar.en.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./_test/rdoc/test_ja_rdoc.html">test.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributing_rdoc.html">contributing.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/contributors_rdoc.html">contributors.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/dtrace_probes_rdoc.html">dtrace_probes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/globals_rdoc.html">globals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/keywords_rdoc.html">keywords.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/maintainers_rdoc.html">maintainers.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/marshal_rdoc.html">marshal.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/regexp_rdoc.html">regexp.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/security_rdoc.html">security.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/standard_library_rdoc.html">standard_library.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax_rdoc.html">syntax.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/assignment_rdoc.html">assignment.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/calling_methods_rdoc.html">calling_methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/control_expressions_rdoc.html">control_expressions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/exceptions_rdoc.html">exceptions.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/literals_rdoc.html">literals.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/methods_rdoc.html">methods.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/miscellaneous_rdoc.html">miscellaneous.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/modules_and_classes_rdoc.html">modules_and_classes.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/precedence_rdoc.html">precedence.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./doc/syntax/refinements_rdoc.html">refinements.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_ja_rdoc.html">README.ja.rdoc</a></li>
+        
+          
+          <li class="file"><a href="./sample/drb/README_rdoc.html">README.rdoc</a></li>
+        
+        </ul>
+      </div>
+      
+
+      <div id="classindex-section" class="section project-section">
+        <h3 class="section-header">Class/Module Index
+          <span class="search-toggle"><img src="./images/find.png"
+            height="16" width="16" alt="[+]"
+            title="show/hide quicksearch" /></span></h3>
+        <form action="#" method="get" accept-charset="utf-8" class="initially-hidden">
+        <fieldset>
+          <legend>Quicksearch</legend>
+          <input type="text" name="quicksearch" value=""
+            class="quicksearch-field" />
+        </fieldset>
+        </form>
+
+        <ul class="link-list">
+          
+          
+          
+          <li><a href="./ArgumentError.html">ArgumentError</a></li>
+        
+          
+          
+          <li><a href="./Array.html">Array</a></li>
+        
+          
+          
+          <li><a href="./BasicObject.html">BasicObject</a></li>
+        
+          
+          
+          <li><a href="./Bignum.html">Bignum</a></li>
+        
+          
+          
+          <li><a href="./Binding.html">Binding</a></li>
+        
+          
+          
+          <li><a href="./Class.html">Class</a></li>
+        
+          
+          
+          <li><a href="./Comparable.html">Comparable</a></li>
+        
+          
+          
+          <li><a href="./Complex.html">Complex</a></li>
+        
+          
+          
+          <li><a href="./Complex/compatible.html">Complex::compatible</a></li>
+        
+          
+          
+          <li><a href="./ConditionVariable.html">ConditionVariable</a></li>
+        
+          
+          
+          <li><a href="./Continuation.html">Continuation</a></li>
+        
+          
+          
+          <li><a href="./Data.html">Data</a></li>
+        
+          
+          
+          <li><a href="./Dir.html">Dir</a></li>
+        
+          
+          
+          <li><a href="./ENV.html">ENV</a></li>
+        
+          
+          
+          <li><a href="./EOFError.html">EOFError</a></li>
+        
+          
+          
+          <li><a href="./Encoding.html">Encoding</a></li>
+        
+          
+          
+          <li><a href="./Encoding/CompatibilityError.html">Encoding::CompatibilityError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/Converter.html">Encoding::Converter</a></li>
+        
+          
+          
+          <li><a href="./Encoding/ConverterNotFoundError.html">Encoding::ConverterNotFoundError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/InvalidByteSequenceError.html">Encoding::InvalidByteSequenceError</a></li>
+        
+          
+          
+          <li><a href="./Encoding/UndefinedConversionError.html">Encoding::UndefinedConversionError</a></li>
+        
+          
+          
+          <li><a href="./EncodingError.html">EncodingError</a></li>
+        
+          
+          
+          <li><a href="./Enumerable.html">Enumerable</a></li>
+        
+          
+          
+          <li><a href="./Enumerator.html">Enumerator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Generator.html">Enumerator::Generator</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Lazy.html">Enumerator::Lazy</a></li>
+        
+          
+          
+          <li><a href="./Enumerator/Yielder.html">Enumerator::Yielder</a></li>
+        
+          
+          
+          <li><a href="./Errno.html">Errno</a></li>
+        
+          
+          
+          <li><a href="./Exception.html">Exception</a></li>
+        
+          
+          
+          <li><a href="./FalseClass.html">FalseClass</a></li>
+        
+          
+          
+          <li><a href="./Fiber.html">Fiber</a></li>
+        
+          
+          
+          <li><a href="./FiberError.html">FiberError</a></li>
+        
+          
+          
+          <li><a href="./File.html">File</a></li>
+        
+          
+          
+          <li><a href="./File/Constants.html">File::Constants</a></li>
+        
+          
+          
+          <li><a href="./File/Stat.html">File::Stat</a></li>
+        
+          
+          
+          <li><a href="./FileTest.html">FileTest</a></li>
+        
+          
+          
+          <li><a href="./Fixnum.html">Fixnum</a></li>
+        
+          
+          
+          <li><a href="./Float.html">Float</a></li>
+        
+          
+          
+          <li><a href="./FloatDomainError.html">FloatDomainError</a></li>
+        
+          
+          
+          <li><a href="./GC.html">GC</a></li>
+        
+          
+          
+          <li><a href="./GC/Profiler.html">GC::Profiler</a></li>
+        
+          
+          
+          <li><a href="./Hash.html">Hash</a></li>
+        
+          
+          
+          <li><a href="./IO.html">IO</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitReadable.html">IO::EAGAINWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EAGAINWaitWritable.html">IO::EAGAINWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitReadable.html">IO::EINPROGRESSWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EINPROGRESSWaitWritable.html">IO::EINPROGRESSWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitReadable.html">IO::EWOULDBLOCKWaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/EWOULDBLOCKWaitWritable.html">IO::EWOULDBLOCKWaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitReadable.html">IO::WaitReadable</a></li>
+        
+          
+          
+          <li><a href="./IO/WaitWritable.html">IO::WaitWritable</a></li>
+        
+          
+          
+          <li><a href="./IOError.html">IOError</a></li>
+        
+          
+          
+          <li><a href="./IndexError.html">IndexError</a></li>
+        
+          
+          
+          <li><a href="./Integer.html">Integer</a></li>
+        
+          
+          
+          <li><a href="./Interrupt.html">Interrupt</a></li>
+        
+          
+          
+          <li><a href="./Kernel.html">Kernel</a></li>
+        
+          
+          
+          <li><a href="./KeyError.html">KeyError</a></li>
+        
+          
+          
+          <li><a href="./LoadError.html">LoadError</a></li>
+        
+          
+          
+          <li><a href="./LocalJumpError.html">LocalJumpError</a></li>
+        
+          
+          
+          <li><a href="./Marshal.html">Marshal</a></li>
+        
+          
+          
+          <li><a href="./MatchData.html">MatchData</a></li>
+        
+          
+          
+          <li><a href="./Math.html">Math</a></li>
+        
+          
+          
+          <li><a href="./Math/DomainError.html">Math::DomainError</a></li>
+        
+          
+          
+          <li><a href="./Method.html">Method</a></li>
+        
+          
+          
+          <li><a href="./Module.html">Module</a></li>
+        
+          
+          
+          <li><a href="./Mutex.html">Mutex</a></li>
+        
+          
+          
+          <li><a href="./NameError.html">NameError</a></li>
+        
+          
+          
+          <li><a href="./NilClass.html">NilClass</a></li>
+        
+          
+          
+          <li><a href="./NoMemoryError.html">NoMemoryError</a></li>
+        
+          
+          
+          <li><a href="./NoMethodError.html">NoMethodError</a></li>
+        
+          
+          
+          <li><a href="./NotImplementedError.html">NotImplementedError</a></li>
+        
+          
+          
+          <li><a href="./Numeric.html">Numeric</a></li>
+        
+          
+          
+          <li><a href="./Object.html">Object</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace.html">ObjectSpace</a></li>
+        
+          
+          
+          <li><a href="./ObjectSpace/WeakMap.html">ObjectSpace::WeakMap</a></li>
+        
+          
+          
+          <li><a href="./Proc.html">Proc</a></li>
+        
+          
+          
+          <li><a href="./Process.html">Process</a></li>
+        
+          
+          
+          <li><a href="./Process/GID.html">Process::GID</a></li>
+        
+          
+          
+          <li><a href="./Process/Status.html">Process::Status</a></li>
+        
+          
+          
+          <li><a href="./Process/Sys.html">Process::Sys</a></li>
+        
+          
+          
+          <li><a href="./Process/UID.html">Process::UID</a></li>
+        
+          
+          
+          <li><a href="./Process/Waiter.html">Process::Waiter</a></li>
+        
+          
+          
+          <li><a href="./Queue.html">Queue</a></li>
+        
+          
+          
+          <li><a href="./Random.html">Random</a></li>
+        
+          
+          
+          <li><a href="./Range.html">Range</a></li>
+        
+          
+          
+          <li><a href="./RangeError.html">RangeError</a></li>
+        
+          
+          
+          <li><a href="./Rational.html">Rational</a></li>
+        
+          
+          
+          <li><a href="./Rational/compatible.html">Rational::compatible</a></li>
+        
+          
+          
+          <li><a href="./Regexp.html">Regexp</a></li>
+        
+          
+          
+          <li><a href="./RegexpError.html">RegexpError</a></li>
+        
+          
+          
+          <li><a href="./RubyVM.html">RubyVM</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/Env.html">RubyVM::Env</a></li>
+        
+          
+          
+          <li><a href="./RubyVM/InstructionSequence.html">RubyVM::InstructionSequence</a></li>
+        
+          
+          
+          <li><a href="./RuntimeError.html">RuntimeError</a></li>
+        
+          
+          
+          <li><a href="./ScriptError.html">ScriptError</a></li>
+        
+          
+          
+          <li><a href="./SecurityError.html">SecurityError</a></li>
+        
+          
+          
+          <li><a href="./Signal.html">Signal</a></li>
+        
+          
+          
+          <li><a href="./SignalException.html">SignalException</a></li>
+        
+          
+          
+          <li><a href="./SizedQueue.html">SizedQueue</a></li>
+        
+          
+          
+          <li><a href="./StandardError.html">StandardError</a></li>
+        
+          
+          
+          <li><a href="./StopIteration.html">StopIteration</a></li>
+        
+          
+          
+          <li><a href="./String.html">String</a></li>
+        
+          
+          
+          <li><a href="./Struct.html">Struct</a></li>
+        
+          
+          
+          <li><a href="./Symbol.html">Symbol</a></li>
+        
+          
+          
+          <li><a href="./SyntaxError.html">SyntaxError</a></li>
+        
+          
+          
+          <li><a href="./SystemCallError.html">SystemCallError</a></li>
+        
+          
+          
+          <li><a href="./SystemExit.html">SystemExit</a></li>
+        
+          
+          
+          <li><a href="./SystemStackError.html">SystemStackError</a></li>
+        
+          
+          
+          <li><a href="./Thread.html">Thread</a></li>
+        
+          
+          
+          <li><a href="./Thread/Backtrace/Location.html">Thread::Backtrace::Location</a></li>
+        
+          
+          
+          <li><a href="./ThreadError.html">ThreadError</a></li>
+        
+          
+          
+          <li><a href="./ThreadGroup.html">ThreadGroup</a></li>
+        
+          
+          
+          <li><a href="./Time.html">Time</a></li>
+        
+          
+          
+          <li><a href="./TracePoint.html">TracePoint</a></li>
+        
+          
+          
+          <li><a href="./TrueClass.html">TrueClass</a></li>
+        
+          
+          
+          <li><a href="./TypeError.html">TypeError</a></li>
+        
+          
+          
+          <li><a href="./UnboundMethod.html">UnboundMethod</a></li>
+        
+          
+          
+          <li><a href="./UncaughtThrowError.html">UncaughtThrowError</a></li>
+        
+          
+          
+          <li><a href="./ZeroDivisionError.html">ZeroDivisionError</a></li>
+        
+          
+          
+          <li><a href="./fatal.html">fatal</a></li>
+        
+          
+          
+          <li><a href="./unknown.html">unknown</a></li>
+        
+        </ul>
+        <div id="no-class-search-results" style="display: none;">No matching classes.</div>
+      </div>
+
+      
+    </div>
+  </div> <!-- metadata -->
+  <div class='adzbox'  id="azk83167">
+    
+   <div id="carbonads-container"><div class="carbonad">
+    <script async type="text/javascript" src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=rubydocorg" 
+      id="_carbonads_js">
+      </script>
+  </div></div>
+
+   
+  </div> 
+  <div id="documentation">
+    <h1 class="class">Float</h1>
+
+    <div id="description" class="description">
+      
+<p><a href="Float.html">Float</a> objects represent inexact real numbers using
+the native architecture's double-precision floating point representation.</p>
+
+<p>Floating point has a different arithmetic and is an inexact number. So you
+should know its esoteric system. see following:</p>
+<ul><li>
+<p><a
+href="http://docs.sun.com/source/806-3568/ncg_goldberg.html">docs.sun.com/source/806-3568/ncg_goldberg.html</a></p>
+</li><li>
+<p><a
+href="http://wiki.github.com/rdp/ruby_tutorials_core/ruby-talk-faq#wiki-floats_imprecise">wiki.github.com/rdp/ruby_tutorials_core/ruby-talk-faq#wiki-floats_imprecise</a></p>
+</li><li>
+<p><a
+href="http://en.wikipedia.org/wiki/Floating_point#Accuracy_problems">en.wikipedia.org/wiki/Floating_point#Accuracy_problems</a></p>
+</li></ul>
+
+    </div><!-- description -->
+
+    
+    
+    
+    <div id="5Buntitled-5D" class="documentation-section">
+      
+
+      
+
+      
+      <!-- Constants -->
+      <div id="constants-list" class="section">
+        <h3 class="section-header">Constants</h3>
+        <dl>
+        
+          <dt><a name="DIG">DIG</a></dt>
+          
+          <dd class="description"><p>The minimum number of significant decimal digits in a double-precision
+floating point.</p>
+
+<p>Usually defaults to 15.</p></dd>
+          
+        
+          <dt><a name="EPSILON">EPSILON</a></dt>
+          
+          <dd class="description"><p>The difference between 1 and the smallest double-precision floating point
+number.</p>
+
+<p>Usually defaults to 2.2204460492503131e-16.</p></dd>
+          
+        
+          <dt><a name="INFINITY">INFINITY</a></dt>
+          
+          <dd class="description"><p>An expression representing positive infinity.</p></dd>
+          
+        
+          <dt><a name="MANT_DIG">MANT_DIG</a></dt>
+          
+          <dd class="description"><p>The number of base digits for the <code>double</code> data type.</p>
+
+<p>Usually defaults to 53.</p></dd>
+          
+        
+          <dt><a name="MAX">MAX</a></dt>
+          
+          <dd class="description"><p>The largest possible integer in a double-precision floating point number.</p>
+
+<p>Usually defaults to 1.7976931348623157e+308.</p></dd>
+          
+        
+          <dt><a name="MAX_10_EXP">MAX_10_EXP</a></dt>
+          
+          <dd class="description"><p>The largest positive exponent in a double-precision floating point where 10
+raised to this power minus 1.</p>
+
+<p>Usually defaults to 308.</p></dd>
+          
+        
+          <dt><a name="MAX_EXP">MAX_EXP</a></dt>
+          
+          <dd class="description"><p>The largest possible exponent value in a double-precision floating point.</p>
+
+<p>Usually defaults to 1024.</p></dd>
+          
+        
+          <dt><a name="MIN">MIN</a></dt>
+          
+          <dd class="description"><p>The smallest positive integer in a double-precision floating point.</p>
+
+<p>Usually defaults to 2.2250738585072014e-308.</p></dd>
+          
+        
+          <dt><a name="MIN_10_EXP">MIN_10_EXP</a></dt>
+          
+          <dd class="description"><p>The smallest negative exponent in a double-precision floating point where
+10 raised to this power minus 1.</p>
+
+<p>Usually defaults to -307.</p></dd>
+          
+        
+          <dt><a name="MIN_EXP">MIN_EXP</a></dt>
+          
+          <dd class="description"><p>The smallest posable exponent value in a double-precision floating point.</p>
+
+<p>Usually defaults to -1021.</p></dd>
+          
+        
+          <dt><a name="NAN">NAN</a></dt>
+          
+          <dd class="description"><p>An expression representing a value which is “not a number”.</p></dd>
+          
+        
+          <dt><a name="RADIX">RADIX</a></dt>
+          
+          <dd class="description"><p>The base of the floating point, or number of unique digits used to
+represent the number.</p>
+
+<p>Usually defaults to 2 on most systems, which would represent a base-10
+decimal.</p></dd>
+          
+        
+          <dt><a name="ROUNDS">ROUNDS</a></dt>
+          
+          <dd class="description"><p>Represents the rounding mode for floating point addition.</p>
+
+<p>Usually defaults to 1, rounding to the nearest number.</p>
+
+<p>Other modes include:</p>
+<dl class="rdoc-list note-list"><dt>-1
+<dd>
+<p>Indeterminable</p>
+</dd><dt>0
+<dd>
+<p>Rounding towards zero</p>
+</dd><dt>1
+<dd>
+<p>Rounding to the nearest number</p>
+</dd><dt>2
+<dd>
+<p>Rounding towards positive infinity</p>
+</dd><dt>3
+<dd>
+<p>Rounding towards negative infinity</p>
+</dd></dl></dd>
+          
+        
+        </dl>
+      </div>
+      
+
+      
+
+      <!-- Methods -->
+      
+      <div id="public-instance-method-details" class="method-section section">
+        <h3 class="section-header">Public Instance Methods</h3>
+
+      
+        <div id="25-method" class="method-detail ">
+          <a name="method-i-25"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">float % other        &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Return the modulo after division of <code>float</code> by
+<code>other</code>.</p>
+
+<pre class="ruby"><span class="ruby-value">6543.21</span>.<span class="ruby-identifier">modulo</span>(<span class="ruby-value">137</span>)      <span class="ruby-comment">#=&gt; 104.21</span>
+<span class="ruby-value">6543.21</span>.<span class="ruby-identifier">modulo</span>(<span class="ruby-value">137.24</span>)   <span class="ruby-comment">#=&gt; 92.9299999999996</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="25-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_mod(VALUE x, VALUE y)
+{
+    double fy;
+
+    if (RB_TYPE_P(y, T_FIXNUM)) {
+        fy = (double)FIX2LONG(y);
+    }
+    else if (RB_TYPE_P(y, T_BIGNUM)) {
+        fy = rb_big2dbl(y);
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        fy = RFLOAT_VALUE(y);
+    }
+    else {
+        return rb_num_coerce_bin(x, y, '%');
+    }
+    return DBL2NUM(ruby_float_mod(RFLOAT_VALUE(x), fy));
+}
+            </pre> 
+            </div><!-- 25-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 25-method -->
+      
+        <div id="2A-method" class="method-detail ">
+          <a name="method-i-2A"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">float * other  &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a new float which is the product of <code>float</code> and
+<code>other</code>.</p>
+            
+
+            
+            <div class="method-source-code" id="2A-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_mul(VALUE x, VALUE y)
+{
+    if (RB_TYPE_P(y, T_FIXNUM)) {
+        return DBL2NUM(RFLOAT_VALUE(x) * (double)FIX2LONG(y));
+    }
+    else if (RB_TYPE_P(y, T_BIGNUM)) {
+        return DBL2NUM(RFLOAT_VALUE(x) * rb_big2dbl(y));
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        return DBL2NUM(RFLOAT_VALUE(x) * RFLOAT_VALUE(y));
+    }
+    else {
+        return rb_num_coerce_bin(x, y, '*');
+    }
+}
+            </pre> 
+            </div><!-- 2A-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 2A-method -->
+      
+        <div id="2A-2A-method" class="method-detail ">
+          <a name="method-i-2A-2A"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">float ** other  &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Raises <code>float</code> to the power of <code>other</code>.</p>
+
+<pre class="ruby"><span class="ruby-value">2.0</span><span class="ruby-operator">**</span><span class="ruby-value">3</span>      <span class="ruby-comment">#=&gt; 8.0</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="2A-2A-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_pow(VALUE x, VALUE y)
+{
+    if (RB_TYPE_P(y, T_FIXNUM)) {
+        return DBL2NUM(pow(RFLOAT_VALUE(x), (double)FIX2LONG(y)));
+    }
+    else if (RB_TYPE_P(y, T_BIGNUM)) {
+        return DBL2NUM(pow(RFLOAT_VALUE(x), rb_big2dbl(y)));
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        {
+            double dx = RFLOAT_VALUE(x);
+            double dy = RFLOAT_VALUE(y);
+            if (dx &lt; 0 &amp;&amp; dy != round(dy))
+                return rb_funcall(rb_complex_raw1(x), rb_intern(&quot;**&quot;), 1, y);
+            return DBL2NUM(pow(dx, dy));
+        }
+    }
+    else {
+        return rb_num_coerce_bin(x, y, rb_intern(&quot;**&quot;));
+    }
+}
+            </pre> 
+            </div><!-- 2A-2A-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 2A-2A-method -->
+      
+        <div id="2B-method" class="method-detail ">
+          <a name="method-i-2B"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">float + other  &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a new float which is the sum of <code>float</code> and
+<code>other</code>.</p>
+            
+
+            
+            <div class="method-source-code" id="2B-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_plus(VALUE x, VALUE y)
+{
+    if (RB_TYPE_P(y, T_FIXNUM)) {
+        return DBL2NUM(RFLOAT_VALUE(x) + (double)FIX2LONG(y));
+    }
+    else if (RB_TYPE_P(y, T_BIGNUM)) {
+        return DBL2NUM(RFLOAT_VALUE(x) + rb_big2dbl(y));
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        return DBL2NUM(RFLOAT_VALUE(x) + RFLOAT_VALUE(y));
+    }
+    else {
+        return rb_num_coerce_bin(x, y, '+');
+    }
+}
+            </pre> 
+            </div><!-- 2B-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 2B-method -->
+      
+        <div id="2D-method" class="method-detail ">
+          <a name="method-i-2D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">float - other  &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a new float which is the difference of <code>float</code> and
+<code>other</code>.</p>
+            
+
+            
+            <div class="method-source-code" id="2D-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_minus(VALUE x, VALUE y)
+{
+    if (RB_TYPE_P(y, T_FIXNUM)) {
+        return DBL2NUM(RFLOAT_VALUE(x) - (double)FIX2LONG(y));
+    }
+    else if (RB_TYPE_P(y, T_BIGNUM)) {
+        return DBL2NUM(RFLOAT_VALUE(x) - rb_big2dbl(y));
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        return DBL2NUM(RFLOAT_VALUE(x) - RFLOAT_VALUE(y));
+    }
+    else {
+        return rb_num_coerce_bin(x, y, '-');
+    }
+}
+            </pre> 
+            </div><!-- 2D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 2D-method -->
+      
+        <div id="2D-40-method" class="method-detail ">
+          <a name="method-i-2D-40"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">-float  &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns float, negated.</p>
+            
+
+            
+            <div class="method-source-code" id="2D-40-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_uminus(VALUE flt)
+{
+    return DBL2NUM(-RFLOAT_VALUE(flt));
+}
+            </pre> 
+            </div><!-- 2D-40-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 2D-40-method -->
+      
+        <div id="2F-method" class="method-detail ">
+          <a name="method-i-2F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">float / other  &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a new float which is the result of dividing <code>float</code> by
+<code>other</code>.</p>
+            
+
+            
+            <div class="method-source-code" id="2F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_div(VALUE x, VALUE y)
+{
+    long f_y;
+    double d;
+
+    if (RB_TYPE_P(y, T_FIXNUM)) {
+        f_y = FIX2LONG(y);
+        return DBL2NUM(RFLOAT_VALUE(x) / (double)f_y);
+    }
+    else if (RB_TYPE_P(y, T_BIGNUM)) {
+        d = rb_big2dbl(y);
+        return DBL2NUM(RFLOAT_VALUE(x) / d);
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        return DBL2NUM(RFLOAT_VALUE(x) / RFLOAT_VALUE(y));
+    }
+    else {
+        return rb_num_coerce_bin(x, y, '/');
+    }
+}
+            </pre> 
+            </div><!-- 2F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 2F-method -->
+      
+        <div id="3C-method" class="method-detail ">
+          <a name="method-i-3C"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">float < real  &rarr;  true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <code>float</code> is less than
+<code>real</code>.</p>
+
+<p>The result of <code>NaN &lt; NaN</code> is undefined, so the
+implementation-dependent value is returned.</p>
+            
+
+            
+            <div class="method-source-code" id="3C-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_lt(VALUE x, VALUE y)
+{
+    double a, b;
+
+    a = RFLOAT_VALUE(x);
+    if (RB_TYPE_P(y, T_FIXNUM) || RB_TYPE_P(y, T_BIGNUM)) {
+        VALUE rel = rb_integer_float_cmp(y, x);
+        if (FIXNUM_P(rel))
+            return -FIX2INT(rel) &lt; 0 ? Qtrue : Qfalse;
+        return Qfalse;
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        b = RFLOAT_VALUE(y);
+#if defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300
+        if (isnan(b)) return Qfalse;
+#endif
+    }
+    else {
+        return rb_num_coerce_relop(x, y, '&lt;');
+    }
+#if defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300
+    if (isnan(a)) return Qfalse;
+#endif
+    return (a &lt; b)?Qtrue:Qfalse;
+}
+            </pre> 
+            </div><!-- 3C-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 3C-method -->
+      
+        <div id="3C-3D-method" class="method-detail ">
+          <a name="method-i-3C-3D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">float <= real  &rarr;  true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <code>float</code> is less than or equal to
+<code>real</code>.</p>
+
+<p>The result of <code>NaN &lt;= NaN</code> is undefined, so the
+implementation-dependent value is returned.</p>
+            
+
+            
+            <div class="method-source-code" id="3C-3D-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_le(VALUE x, VALUE y)
+{
+    double a, b;
+
+    a = RFLOAT_VALUE(x);
+    if (RB_TYPE_P(y, T_FIXNUM) || RB_TYPE_P(y, T_BIGNUM)) {
+        VALUE rel = rb_integer_float_cmp(y, x);
+        if (FIXNUM_P(rel))
+            return -FIX2INT(rel) &lt;= 0 ? Qtrue : Qfalse;
+        return Qfalse;
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        b = RFLOAT_VALUE(y);
+#if defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300
+        if (isnan(b)) return Qfalse;
+#endif
+    }
+    else {
+        return rb_num_coerce_relop(x, y, rb_intern(&quot;&lt;=&quot;));
+    }
+#if defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300
+    if (isnan(a)) return Qfalse;
+#endif
+    return (a &lt;= b)?Qtrue:Qfalse;
+}
+            </pre> 
+            </div><!-- 3C-3D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 3C-3D-method -->
+      
+        <div id="3C-3D-3E-method" class="method-detail ">
+          <a name="method-i-3C-3D-3E"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">float <=> real  &rarr;  -1, 0, +1 or nil</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns -1, 0, +1 or nil depending on whether <code>float</code> is less
+than, equal to, or greater than <code>real</code>. This is the basis for
+the tests in <a href="Comparable.html">Comparable</a>.</p>
+
+<p>The result of <code>NaN &lt;=&gt; NaN</code> is undefined, so the
+implementation-dependent value is returned.</p>
+
+<p><code>nil</code> is returned if the two values are incomparable.</p>
+            
+
+            
+            <div class="method-source-code" id="3C-3D-3E-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_cmp(VALUE x, VALUE y)
+{
+    double a, b;
+    VALUE i;
+
+    a = RFLOAT_VALUE(x);
+    if (isnan(a)) return Qnil;
+    if (RB_TYPE_P(y, T_FIXNUM) || RB_TYPE_P(y, T_BIGNUM)) {
+        VALUE rel = rb_integer_float_cmp(y, x);
+        if (FIXNUM_P(rel))
+            return INT2FIX(-FIX2INT(rel));
+        return rel;
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        b = RFLOAT_VALUE(y);
+    }
+    else {
+        if (isinf(a) &amp;&amp; (i = rb_check_funcall(y, rb_intern(&quot;infinite?&quot;), 0, 0)) != Qundef) {
+            if (RTEST(i)) {
+                int j = rb_cmpint(i, x, y);
+                j = (a &gt; 0.0) ? (j &gt; 0 ? 0 : +1) : (j &lt; 0 ? 0 : -1);
+                return INT2FIX(j);
+            }
+            if (a &gt; 0.0) return INT2FIX(1);
+            return INT2FIX(-1);
+        }
+        return rb_num_coerce_cmp(x, y, id_cmp);
+    }
+    return rb_dbl_cmp(a, b);
+}
+            </pre> 
+            </div><!-- 3C-3D-3E-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 3C-3D-3E-method -->
+      
+        <div id="3D-3D-method" class="method-detail ">
+          <a name="method-i-3D-3D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">float == obj  &rarr;  true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> only if <code>obj</code> has the same value as
+<code>float</code>. Contrast this with <a
+href="Float.html#method-i-eql-3F">#eql?</a>, which requires obj to be a <a
+href="Float.html">Float</a>.</p>
+
+<p>The result of <code>NaN == NaN</code> is undefined, so the
+implementation-dependent value is returned.</p>
+
+<pre class="ruby"><span class="ruby-value">1.0</span> <span class="ruby-operator">==</span> <span class="ruby-value">1</span>   <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="3D-3D-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_eq(VALUE x, VALUE y)
+{
+    volatile double a, b;
+
+    if (RB_TYPE_P(y, T_FIXNUM) || RB_TYPE_P(y, T_BIGNUM)) {
+        return rb_integer_float_eq(y, x);
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        b = RFLOAT_VALUE(y);
+#if defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300
+        if (isnan(b)) return Qfalse;
+#endif
+    }
+    else {
+        return num_equal(x, y);
+    }
+    a = RFLOAT_VALUE(x);
+#if defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300
+    if (isnan(a)) return Qfalse;
+#endif
+    return (a == b)?Qtrue:Qfalse;
+}
+            </pre> 
+            </div><!-- 3D-3D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 3D-3D-method -->
+      
+        <div id="3D-3D-3D-method" class="method-detail ">
+          <a name="method-i-3D-3D-3D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">float == obj  &rarr;  true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> only if <code>obj</code> has the same value as
+<code>float</code>. Contrast this with <a
+href="Float.html#method-i-eql-3F">#eql?</a>, which requires obj to be a <a
+href="Float.html">Float</a>.</p>
+
+<p>The result of <code>NaN == NaN</code> is undefined, so the
+implementation-dependent value is returned.</p>
+
+<pre class="ruby"><span class="ruby-value">1.0</span> <span class="ruby-operator">==</span> <span class="ruby-value">1</span>   <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="3D-3D-3D-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_eq(VALUE x, VALUE y)
+{
+    volatile double a, b;
+
+    if (RB_TYPE_P(y, T_FIXNUM) || RB_TYPE_P(y, T_BIGNUM)) {
+        return rb_integer_float_eq(y, x);
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        b = RFLOAT_VALUE(y);
+#if defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300
+        if (isnan(b)) return Qfalse;
+#endif
+    }
+    else {
+        return num_equal(x, y);
+    }
+    a = RFLOAT_VALUE(x);
+#if defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300
+    if (isnan(a)) return Qfalse;
+#endif
+    return (a == b)?Qtrue:Qfalse;
+}
+            </pre> 
+            </div><!-- 3D-3D-3D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 3D-3D-3D-method -->
+      
+        <div id="3E-method" class="method-detail ">
+          <a name="method-i-3E"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">float > real  &rarr;  true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <code>float</code> is greater than
+<code>real</code>.</p>
+
+<p>The result of <code>NaN &gt; NaN</code> is undefined, so the
+implementation-dependent value is returned.</p>
+            
+
+            
+            <div class="method-source-code" id="3E-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_gt(VALUE x, VALUE y)
+{
+    double a, b;
+
+    a = RFLOAT_VALUE(x);
+    if (RB_TYPE_P(y, T_FIXNUM) || RB_TYPE_P(y, T_BIGNUM)) {
+        VALUE rel = rb_integer_float_cmp(y, x);
+        if (FIXNUM_P(rel))
+            return -FIX2INT(rel) &gt; 0 ? Qtrue : Qfalse;
+        return Qfalse;
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        b = RFLOAT_VALUE(y);
+#if defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300
+        if (isnan(b)) return Qfalse;
+#endif
+    }
+    else {
+        return rb_num_coerce_relop(x, y, '&gt;');
+    }
+#if defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300
+    if (isnan(a)) return Qfalse;
+#endif
+    return (a &gt; b)?Qtrue:Qfalse;
+}
+            </pre> 
+            </div><!-- 3E-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 3E-method -->
+      
+        <div id="3E-3D-method" class="method-detail ">
+          <a name="method-i-3E-3D"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">float >= real  &rarr;  true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <code>float</code> is greater than or equal to
+<code>real</code>.</p>
+
+<p>The result of <code>NaN &gt;= NaN</code> is undefined, so the
+implementation-dependent value is returned.</p>
+            
+
+            
+            <div class="method-source-code" id="3E-3D-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_ge(VALUE x, VALUE y)
+{
+    double a, b;
+
+    a = RFLOAT_VALUE(x);
+    if (RB_TYPE_P(y, T_FIXNUM) || RB_TYPE_P(y, T_BIGNUM)) {
+        VALUE rel = rb_integer_float_cmp(y, x);
+        if (FIXNUM_P(rel))
+            return -FIX2INT(rel) &gt;= 0 ? Qtrue : Qfalse;
+        return Qfalse;
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        b = RFLOAT_VALUE(y);
+#if defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300
+        if (isnan(b)) return Qfalse;
+#endif
+    }
+    else {
+        return rb_num_coerce_relop(x, y, rb_intern(&quot;&gt;=&quot;));
+    }
+#if defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300
+    if (isnan(a)) return Qfalse;
+#endif
+    return (a &gt;= b)?Qtrue:Qfalse;
+}
+            </pre> 
+            </div><!-- 3E-3D-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- 3E-3D-method -->
+      
+        <div id="abs-method" class="method-detail ">
+          <a name="method-i-abs"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">abs        &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the absolute value of <code>float</code>.</p>
+
+<pre class="ruby">(<span class="ruby-value">-34.56</span>).<span class="ruby-identifier">abs</span>   <span class="ruby-comment">#=&gt; 34.56</span>
+<span class="ruby-value">-34.56</span>.<span class="ruby-identifier">abs</span>     <span class="ruby-comment">#=&gt; 34.56</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="abs-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_abs(VALUE flt)
+{
+    double val = fabs(RFLOAT_VALUE(flt));
+    return DBL2NUM(val);
+}
+            </pre> 
+            </div><!-- abs-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- abs-method -->
+      
+        <div id="angle-method" class="method-detail ">
+          <a name="method-i-angle"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">angle  &rarr;  0 or float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns 0 if the value is positive, pi otherwise.</p>
+            
+
+            
+            <div class="method-source-code" id="angle-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+float_arg(VALUE self)
+{
+    if (isnan(RFLOAT_VALUE(self)))
+        return self;
+    if (f_tpositive_p(self))
+        return INT2FIX(0);
+    return rb_const_get(rb_mMath, id_PI);
+}
+            </pre> 
+            </div><!-- angle-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- angle-method -->
+      
+        <div id="arg-method" class="method-detail ">
+          <a name="method-i-arg"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">arg    &rarr;  0 or float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns 0 if the value is positive, pi otherwise.</p>
+            
+
+            
+            <div class="method-source-code" id="arg-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+float_arg(VALUE self)
+{
+    if (isnan(RFLOAT_VALUE(self)))
+        return self;
+    if (f_tpositive_p(self))
+        return INT2FIX(0);
+    return rb_const_get(rb_mMath, id_PI);
+}
+            </pre> 
+            </div><!-- arg-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- arg-method -->
+      
+        <div id="ceil-method" class="method-detail ">
+          <a name="method-i-ceil"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">ceil  &rarr;  integer</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the smallest <a href="Integer.html">Integer</a> greater than or
+equal to <code>float</code>.</p>
+
+<pre class="ruby"><span class="ruby-value">1.2</span>.<span class="ruby-identifier">ceil</span>      <span class="ruby-comment">#=&gt; 2</span>
+<span class="ruby-value">2.0</span>.<span class="ruby-identifier">ceil</span>      <span class="ruby-comment">#=&gt; 2</span>
+(<span class="ruby-value">-1.2</span>).<span class="ruby-identifier">ceil</span>   <span class="ruby-comment">#=&gt; -1</span>
+(<span class="ruby-value">-2.0</span>).<span class="ruby-identifier">ceil</span>   <span class="ruby-comment">#=&gt; -2</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="ceil-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_ceil(VALUE num)
+{
+    double f = ceil(RFLOAT_VALUE(num));
+    long val;
+
+    if (!FIXABLE(f)) {
+        return rb_dbl2big(f);
+    }
+    val = (long)f;
+    return LONG2FIX(val);
+}
+            </pre> 
+            </div><!-- ceil-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- ceil-method -->
+      
+        <div id="coerce-method" class="method-detail ">
+          <a name="method-i-coerce"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">coerce(numeric)  &rarr;  array</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns an array with both a <code>numeric</code> and a <code>float</code>
+represented as <a href="Float.html">Float</a> objects.</p>
+
+<p>This is achieved by converting a <code>numeric</code> to a <a
+href="Float.html">Float</a>.</p>
+
+<pre class="ruby"><span class="ruby-value">1.2</span>.<span class="ruby-identifier">coerce</span>(<span class="ruby-value">3</span>)       <span class="ruby-comment">#=&gt; [3.0, 1.2]</span>
+<span class="ruby-value">2.5</span>.<span class="ruby-identifier">coerce</span>(<span class="ruby-value">1.1</span>)     <span class="ruby-comment">#=&gt; [1.1, 2.5]</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="coerce-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_coerce(VALUE x, VALUE y)
+{
+    return rb_assoc_new(rb_Float(y), x);
+}
+            </pre> 
+            </div><!-- coerce-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- coerce-method -->
+      
+        <div id="denominator-method" class="method-detail ">
+          <a name="method-i-denominator"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">denominator  &rarr;  integer</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the denominator (always positive).  The result is machine
+dependent.</p>
+
+<p>See numerator.</p>
+            
+
+            
+            <div class="method-source-code" id="denominator-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+float_denominator(VALUE self)
+{
+    double d = RFLOAT_VALUE(self);
+    if (isinf(d) || isnan(d))
+        return INT2FIX(1);
+    return rb_call_super(0, 0);
+}
+            </pre> 
+            </div><!-- denominator-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- denominator-method -->
+      
+        <div id="divmod-method" class="method-detail ">
+          <a name="method-i-divmod"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">divmod(numeric)  &rarr;  array</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>See <a href="Numeric.html#method-i-divmod">Numeric#divmod</a>.</p>
+
+<pre class="ruby"><span class="ruby-value">42.0</span>.<span class="ruby-identifier">divmod</span> <span class="ruby-value">6</span> <span class="ruby-comment">#=&gt; [7, 0.0]</span>
+<span class="ruby-value">42.0</span>.<span class="ruby-identifier">divmod</span> <span class="ruby-value">5</span> <span class="ruby-comment">#=&gt; [8, 2.0]</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="divmod-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_divmod(VALUE x, VALUE y)
+{
+    double fy, div, mod;
+    volatile VALUE a, b;
+
+    if (RB_TYPE_P(y, T_FIXNUM)) {
+        fy = (double)FIX2LONG(y);
+    }
+    else if (RB_TYPE_P(y, T_BIGNUM)) {
+        fy = rb_big2dbl(y);
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        fy = RFLOAT_VALUE(y);
+    }
+    else {
+        return rb_num_coerce_bin(x, y, rb_intern(&quot;divmod&quot;));
+    }
+    flodivmod(RFLOAT_VALUE(x), fy, &amp;div, &amp;mod);
+    a = dbl2ival(div);
+    b = DBL2NUM(mod);
+    return rb_assoc_new(a, b);
+}
+            </pre> 
+            </div><!-- divmod-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- divmod-method -->
+      
+        <div id="eql-3F-method" class="method-detail ">
+          <a name="method-i-eql-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">eql?(obj)  &rarr;  true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> only if <code>obj</code> is a <a
+href="Float.html">Float</a> with the same value as <code>float</code>.
+Contrast this with Float#==, which performs type conversions.</p>
+
+<p>The result of <code>NaN.eql?(NaN)</code> is undefined, so the
+implementation-dependent value is returned.</p>
+
+<pre class="ruby"><span class="ruby-value">1.0</span>.<span class="ruby-identifier">eql?</span>(<span class="ruby-value">1</span>)   <span class="ruby-comment">#=&gt; false</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="eql-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_eql(VALUE x, VALUE y)
+{
+    if (RB_TYPE_P(y, T_FLOAT)) {
+        double a = RFLOAT_VALUE(x);
+        double b = RFLOAT_VALUE(y);
+#if defined(_MSC_VER) &amp;&amp; _MSC_VER &lt; 1300
+        if (isnan(a) || isnan(b)) return Qfalse;
+#endif
+        if (a == b)
+            return Qtrue;
+    }
+    return Qfalse;
+}
+            </pre> 
+            </div><!-- eql-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- eql-3F-method -->
+      
+        <div id="fdiv-method" class="method-detail ">
+          <a name="method-i-fdiv"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">fdiv(numeric)  &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>float / numeric</code>, same as Float#/.</p>
+            
+
+            
+            <div class="method-source-code" id="fdiv-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_quo(VALUE x, VALUE y)
+{
+    return rb_funcall(x, '/', 1, y);
+}
+            </pre> 
+            </div><!-- fdiv-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- fdiv-method -->
+      
+        <div id="finite-3F-method" class="method-detail ">
+          <a name="method-i-finite-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">finite?  &rarr;  true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <code>float</code> is a valid IEEE floating
+point number (it is not infinite, and <a
+href="Float.html#method-i-nan-3F">#nan?</a> is <code>false</code>).</p>
+            
+
+            
+            <div class="method-source-code" id="finite-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_is_finite_p(VALUE num)
+{
+    double value = RFLOAT_VALUE(num);
+
+#ifdef HAVE_ISFINITE
+    if (!isfinite(value))
+        return Qfalse;
+#else
+    if (isinf(value) || isnan(value))
+        return Qfalse;
+#endif
+
+    return Qtrue;
+}
+            </pre> 
+            </div><!-- finite-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- finite-3F-method -->
+      
+        <div id="floor-method" class="method-detail ">
+          <a name="method-i-floor"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">floor  &rarr;  integer</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the largest integer less than or equal to <code>float</code>.</p>
+
+<pre class="ruby"><span class="ruby-value">1.2</span>.<span class="ruby-identifier">floor</span>      <span class="ruby-comment">#=&gt; 1</span>
+<span class="ruby-value">2.0</span>.<span class="ruby-identifier">floor</span>      <span class="ruby-comment">#=&gt; 2</span>
+(<span class="ruby-value">-1.2</span>).<span class="ruby-identifier">floor</span>   <span class="ruby-comment">#=&gt; -2</span>
+(<span class="ruby-value">-2.0</span>).<span class="ruby-identifier">floor</span>   <span class="ruby-comment">#=&gt; -2</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="floor-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_floor(VALUE num)
+{
+    double f = floor(RFLOAT_VALUE(num));
+    long val;
+
+    if (!FIXABLE(f)) {
+        return rb_dbl2big(f);
+    }
+    val = (long)f;
+    return LONG2FIX(val);
+}
+            </pre> 
+            </div><!-- floor-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- floor-method -->
+      
+        <div id="hash-method" class="method-detail ">
+          <a name="method-i-hash"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">hash  &rarr;  integer</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a hash code for this float.</p>
+
+<p>See also <a href="Object.html#method-i-hash">Object#hash</a>.</p>
+            
+
+            
+            <div class="method-source-code" id="hash-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_hash(VALUE num)
+{
+    double d;
+    st_index_t hash;
+
+    d = RFLOAT_VALUE(num);
+    /* normalize -0.0 to 0.0 */
+    if (d == 0.0) d = 0.0;
+    hash = rb_memhash(&amp;d, sizeof(d));
+    return LONG2FIX(hash);
+}
+            </pre> 
+            </div><!-- hash-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- hash-method -->
+      
+        <div id="infinite-3F-method" class="method-detail ">
+          <a name="method-i-infinite-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">infinite?  &rarr;  nil, -1, +1</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Return values corresponding to the value of <code>float</code>:</p>
+<dl class="rdoc-list note-list"><dt><code>finite</code>
+<dd>
+<p><code>nil</code></p>
+</dd><dt><code>-Infinity</code>
+<dd>
+<p><code>-1</code></p>
+</dd><dt>+<code>Infinity</code>
+<dd>
+<p><code>1</code></p>
+</dd></dl>
+
+<p>For example:</p>
+
+<pre class="ruby">(<span class="ruby-value">0.0</span>).<span class="ruby-identifier">infinite?</span>        <span class="ruby-comment">#=&gt; nil</span>
+(<span class="ruby-value">-1.0</span><span class="ruby-operator">/</span><span class="ruby-value">0.0</span>).<span class="ruby-identifier">infinite?</span>   <span class="ruby-comment">#=&gt; -1</span>
+(<span class="ruby-value">+1.0</span><span class="ruby-operator">/</span><span class="ruby-value">0.0</span>).<span class="ruby-identifier">infinite?</span>   <span class="ruby-comment">#=&gt; 1</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="infinite-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_is_infinite_p(VALUE num)
+{
+    double value = RFLOAT_VALUE(num);
+
+    if (isinf(value)) {
+        return INT2FIX( value &lt; 0 ? -1 : 1 );
+    }
+
+    return Qnil;
+}
+            </pre> 
+            </div><!-- infinite-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- infinite-3F-method -->
+      
+        <div id="inspect-method" class="method-detail method-alias">
+          <a name="method-i-inspect"></a>
+
+          
+          <div class="method-heading">
+            <span class="method-name">inspect</span><span
+              class="method-args">()</span>
+            <span class="method-click-advice">click to toggle source</span>
+          </div>
+          
+          <div>
+  
+            
+            
+            
+
+            
+          </div>
+
+          
+
+          
+          <div class="aliases">
+            Alias for: <a href="Float.html#method-i-to_s">to_s</a>
+          </div>
+          
+        </div><!-- inspect-method -->
+      
+        <div id="magnitude-method" class="method-detail ">
+          <a name="method-i-magnitude"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">magnitude  &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the absolute value of <code>float</code>.</p>
+
+<pre class="ruby">(<span class="ruby-value">-34.56</span>).<span class="ruby-identifier">abs</span>   <span class="ruby-comment">#=&gt; 34.56</span>
+<span class="ruby-value">-34.56</span>.<span class="ruby-identifier">abs</span>     <span class="ruby-comment">#=&gt; 34.56</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="magnitude-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_abs(VALUE flt)
+{
+    double val = fabs(RFLOAT_VALUE(flt));
+    return DBL2NUM(val);
+}
+            </pre> 
+            </div><!-- magnitude-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- magnitude-method -->
+      
+        <div id="modulo-method" class="method-detail ">
+          <a name="method-i-modulo"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">modulo(other)  &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Return the modulo after division of <code>float</code> by
+<code>other</code>.</p>
+
+<pre class="ruby"><span class="ruby-value">6543.21</span>.<span class="ruby-identifier">modulo</span>(<span class="ruby-value">137</span>)      <span class="ruby-comment">#=&gt; 104.21</span>
+<span class="ruby-value">6543.21</span>.<span class="ruby-identifier">modulo</span>(<span class="ruby-value">137.24</span>)   <span class="ruby-comment">#=&gt; 92.9299999999996</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="modulo-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_mod(VALUE x, VALUE y)
+{
+    double fy;
+
+    if (RB_TYPE_P(y, T_FIXNUM)) {
+        fy = (double)FIX2LONG(y);
+    }
+    else if (RB_TYPE_P(y, T_BIGNUM)) {
+        fy = rb_big2dbl(y);
+    }
+    else if (RB_TYPE_P(y, T_FLOAT)) {
+        fy = RFLOAT_VALUE(y);
+    }
+    else {
+        return rb_num_coerce_bin(x, y, '%');
+    }
+    return DBL2NUM(ruby_float_mod(RFLOAT_VALUE(x), fy));
+}
+            </pre> 
+            </div><!-- modulo-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- modulo-method -->
+      
+        <div id="nan-3F-method" class="method-detail ">
+          <a name="method-i-nan-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">nan?  &rarr;  true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <code>float</code> is an invalid IEEE floating
+point number.</p>
+
+<pre class="ruby"><span class="ruby-identifier">a</span> = <span class="ruby-value">-1.0</span>      <span class="ruby-comment">#=&gt; -1.0</span>
+<span class="ruby-identifier">a</span>.<span class="ruby-identifier">nan?</span>        <span class="ruby-comment">#=&gt; false</span>
+<span class="ruby-identifier">a</span> = <span class="ruby-value">0.0</span><span class="ruby-operator">/</span><span class="ruby-value">0.0</span>   <span class="ruby-comment">#=&gt; NaN</span>
+<span class="ruby-identifier">a</span>.<span class="ruby-identifier">nan?</span>        <span class="ruby-comment">#=&gt; true</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="nan-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_is_nan_p(VALUE num)
+{
+    double value = RFLOAT_VALUE(num);
+
+    return isnan(value) ? Qtrue : Qfalse;
+}
+            </pre> 
+            </div><!-- nan-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- nan-3F-method -->
+      
+        <div id="next_float-method" class="method-detail ">
+          <a name="method-i-next_float"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">next_float  &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the next representable floating-point number.</p>
+
+<p>Float::MAX.next_float and Float::INFINITY.next_float is Float::INFINITY.</p>
+
+<p>Float::NAN.next_float is Float::NAN.</p>
+
+<p>For example:</p>
+
+<pre class="ruby"><span class="ruby-identifier">p</span> <span class="ruby-value">0.01</span>.<span class="ruby-identifier">next_float</span>  <span class="ruby-comment">#=&gt; 0.010000000000000002</span>
+<span class="ruby-identifier">p</span> <span class="ruby-value">1.0</span>.<span class="ruby-identifier">next_float</span>   <span class="ruby-comment">#=&gt; 1.0000000000000002</span>
+<span class="ruby-identifier">p</span> <span class="ruby-value">100.0</span>.<span class="ruby-identifier">next_float</span> <span class="ruby-comment">#=&gt; 100.00000000000001</span>
+
+<span class="ruby-identifier">p</span> <span class="ruby-value">0.01</span>.<span class="ruby-identifier">next_float</span> <span class="ruby-operator">-</span> <span class="ruby-value">0.01</span>   <span class="ruby-comment">#=&gt; 1.734723475976807e-18</span>
+<span class="ruby-identifier">p</span> <span class="ruby-value">1.0</span>.<span class="ruby-identifier">next_float</span> <span class="ruby-operator">-</span> <span class="ruby-value">1.0</span>     <span class="ruby-comment">#=&gt; 2.220446049250313e-16</span>
+<span class="ruby-identifier">p</span> <span class="ruby-value">100.0</span>.<span class="ruby-identifier">next_float</span> <span class="ruby-operator">-</span> <span class="ruby-value">100.0</span> <span class="ruby-comment">#=&gt; 1.4210854715202004e-14</span>
+
+<span class="ruby-identifier">f</span> = <span class="ruby-value">0.01</span>; <span class="ruby-value">20</span>.<span class="ruby-identifier">times</span> { <span class="ruby-identifier">printf</span> <span class="ruby-string">&quot;%-20a %s\n&quot;</span>, <span class="ruby-identifier">f</span>, <span class="ruby-identifier">f</span>.<span class="ruby-identifier">to_s</span>; <span class="ruby-identifier">f</span> = <span class="ruby-identifier">f</span>.<span class="ruby-identifier">next_float</span> }
+<span class="ruby-comment">#=&gt; 0x1.47ae147ae147bp-7 0.01</span>
+<span class="ruby-comment">#   0x1.47ae147ae147cp-7 0.010000000000000002</span>
+<span class="ruby-comment">#   0x1.47ae147ae147dp-7 0.010000000000000004</span>
+<span class="ruby-comment">#   0x1.47ae147ae147ep-7 0.010000000000000005</span>
+<span class="ruby-comment">#   0x1.47ae147ae147fp-7 0.010000000000000007</span>
+<span class="ruby-comment">#   0x1.47ae147ae148p-7  0.010000000000000009</span>
+<span class="ruby-comment">#   0x1.47ae147ae1481p-7 0.01000000000000001</span>
+<span class="ruby-comment">#   0x1.47ae147ae1482p-7 0.010000000000000012</span>
+<span class="ruby-comment">#   0x1.47ae147ae1483p-7 0.010000000000000014</span>
+<span class="ruby-comment">#   0x1.47ae147ae1484p-7 0.010000000000000016</span>
+<span class="ruby-comment">#   0x1.47ae147ae1485p-7 0.010000000000000018</span>
+<span class="ruby-comment">#   0x1.47ae147ae1486p-7 0.01000000000000002</span>
+<span class="ruby-comment">#   0x1.47ae147ae1487p-7 0.010000000000000021</span>
+<span class="ruby-comment">#   0x1.47ae147ae1488p-7 0.010000000000000023</span>
+<span class="ruby-comment">#   0x1.47ae147ae1489p-7 0.010000000000000024</span>
+<span class="ruby-comment">#   0x1.47ae147ae148ap-7 0.010000000000000026</span>
+<span class="ruby-comment">#   0x1.47ae147ae148bp-7 0.010000000000000028</span>
+<span class="ruby-comment">#   0x1.47ae147ae148cp-7 0.01000000000000003</span>
+<span class="ruby-comment">#   0x1.47ae147ae148dp-7 0.010000000000000031</span>
+<span class="ruby-comment">#   0x1.47ae147ae148ep-7 0.010000000000000033</span>
+
+<span class="ruby-identifier">f</span> = <span class="ruby-value">0.0</span>
+<span class="ruby-value">100</span>.<span class="ruby-identifier">times</span> { <span class="ruby-identifier">f</span> <span class="ruby-operator">+=</span> <span class="ruby-value">0.1</span> }
+<span class="ruby-identifier">p</span> <span class="ruby-identifier">f</span>                            <span class="ruby-comment">#=&gt; 9.99999999999998       # should be 10.0 in the ideal world.</span>
+<span class="ruby-identifier">p</span> <span class="ruby-value">10</span><span class="ruby-operator">-</span><span class="ruby-identifier">f</span>                         <span class="ruby-comment">#=&gt; 1.9539925233402755e-14 # the floating-point error.</span>
+<span class="ruby-identifier">p</span>(<span class="ruby-value">10.0</span>.<span class="ruby-identifier">next_float</span><span class="ruby-operator">-</span><span class="ruby-value">10</span>)          <span class="ruby-comment">#=&gt; 1.7763568394002505e-15 # 1 ulp (units in the last place).</span>
+<span class="ruby-identifier">p</span>((<span class="ruby-value">10</span><span class="ruby-operator">-</span><span class="ruby-identifier">f</span>)<span class="ruby-operator">/</span>(<span class="ruby-value">10.0</span>.<span class="ruby-identifier">next_float</span><span class="ruby-operator">-</span><span class="ruby-value">10</span>)) <span class="ruby-comment">#=&gt; 11.0                   # the error is 11 ulp.</span>
+<span class="ruby-identifier">p</span>((<span class="ruby-value">10</span><span class="ruby-operator">-</span><span class="ruby-identifier">f</span>)<span class="ruby-operator">/</span>(<span class="ruby-value">10</span><span class="ruby-operator">*</span><span class="ruby-constant">Float</span><span class="ruby-operator">::</span><span class="ruby-constant">EPSILON</span>))  <span class="ruby-comment">#=&gt; 8.8                    # approximation of the above.</span>
+<span class="ruby-identifier">p</span> <span class="ruby-string">&quot;%a&quot;</span> <span class="ruby-operator">%</span> <span class="ruby-identifier">f</span>                     <span class="ruby-comment">#=&gt; &quot;0x1.3fffffffffff5p+3&quot; # the last hex digit is 5.  16 - 5 = 11 ulp.</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="next_float-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_next_float(VALUE vx)
+{
+    double x, y;
+    x = NUM2DBL(vx);
+    y = nextafter(x, INFINITY);
+    return DBL2NUM(y);
+}
+            </pre> 
+            </div><!-- next_float-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- next_float-method -->
+      
+        <div id="numerator-method" class="method-detail ">
+          <a name="method-i-numerator"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">numerator  &rarr;  integer</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the numerator.  The result is machine dependent.</p>
+
+<pre class="ruby"><span class="ruby-identifier">n</span> = <span class="ruby-value">0.3</span>.<span class="ruby-identifier">numerator</span>    <span class="ruby-comment">#=&gt; 5404319552844595</span>
+<span class="ruby-identifier">d</span> = <span class="ruby-value">0.3</span>.<span class="ruby-identifier">denominator</span>  <span class="ruby-comment">#=&gt; 18014398509481984</span>
+<span class="ruby-identifier">n</span>.<span class="ruby-identifier">fdiv</span>(<span class="ruby-identifier">d</span>)            <span class="ruby-comment">#=&gt; 0.3</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="numerator-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+float_numerator(VALUE self)
+{
+    double d = RFLOAT_VALUE(self);
+    if (isinf(d) || isnan(d))
+        return self;
+    return rb_call_super(0, 0);
+}
+            </pre> 
+            </div><!-- numerator-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- numerator-method -->
+      
+        <div id="phase-method" class="method-detail ">
+          <a name="method-i-phase"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">phase  &rarr;  0 or float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns 0 if the value is positive, pi otherwise.</p>
+            
+
+            
+            <div class="method-source-code" id="phase-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+float_arg(VALUE self)
+{
+    if (isnan(RFLOAT_VALUE(self)))
+        return self;
+    if (f_tpositive_p(self))
+        return INT2FIX(0);
+    return rb_const_get(rb_mMath, id_PI);
+}
+            </pre> 
+            </div><!-- phase-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- phase-method -->
+      
+        <div id="prev_float-method" class="method-detail ">
+          <a name="method-i-prev_float"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">prev_float  &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the previous representable floatint-point number.</p>
+
+<p>(-Float::MAX).prev_float and (-Float::INFINITY).prev_float is
+-Float::INFINITY.</p>
+
+<p>Float::NAN.prev_float is Float::NAN.</p>
+
+<p>For example:</p>
+
+<pre class="ruby"><span class="ruby-identifier">p</span> <span class="ruby-value">0.01</span>.<span class="ruby-identifier">prev_float</span>  <span class="ruby-comment">#=&gt; 0.009999999999999998</span>
+<span class="ruby-identifier">p</span> <span class="ruby-value">1.0</span>.<span class="ruby-identifier">prev_float</span>   <span class="ruby-comment">#=&gt; 0.9999999999999999</span>
+<span class="ruby-identifier">p</span> <span class="ruby-value">100.0</span>.<span class="ruby-identifier">prev_float</span> <span class="ruby-comment">#=&gt; 99.99999999999999</span>
+
+<span class="ruby-identifier">p</span> <span class="ruby-value">0.01</span> <span class="ruby-operator">-</span> <span class="ruby-value">0.01</span>.<span class="ruby-identifier">prev_float</span>   <span class="ruby-comment">#=&gt; 1.734723475976807e-18</span>
+<span class="ruby-identifier">p</span> <span class="ruby-value">1.0</span> <span class="ruby-operator">-</span> <span class="ruby-value">1.0</span>.<span class="ruby-identifier">prev_float</span>     <span class="ruby-comment">#=&gt; 1.1102230246251565e-16</span>
+<span class="ruby-identifier">p</span> <span class="ruby-value">100.0</span> <span class="ruby-operator">-</span> <span class="ruby-value">100.0</span>.<span class="ruby-identifier">prev_float</span> <span class="ruby-comment">#=&gt; 1.4210854715202004e-14</span>
+
+<span class="ruby-identifier">f</span> = <span class="ruby-value">0.01</span>; <span class="ruby-value">20</span>.<span class="ruby-identifier">times</span> { <span class="ruby-identifier">printf</span> <span class="ruby-string">&quot;%-20a %s\n&quot;</span>, <span class="ruby-identifier">f</span>, <span class="ruby-identifier">f</span>.<span class="ruby-identifier">to_s</span>; <span class="ruby-identifier">f</span> = <span class="ruby-identifier">f</span>.<span class="ruby-identifier">prev_float</span> }
+<span class="ruby-comment">#=&gt; 0x1.47ae147ae147bp-7 0.01</span>
+<span class="ruby-comment">#   0x1.47ae147ae147ap-7 0.009999999999999998</span>
+<span class="ruby-comment">#   0x1.47ae147ae1479p-7 0.009999999999999997</span>
+<span class="ruby-comment">#   0x1.47ae147ae1478p-7 0.009999999999999995</span>
+<span class="ruby-comment">#   0x1.47ae147ae1477p-7 0.009999999999999993</span>
+<span class="ruby-comment">#   0x1.47ae147ae1476p-7 0.009999999999999992</span>
+<span class="ruby-comment">#   0x1.47ae147ae1475p-7 0.00999999999999999</span>
+<span class="ruby-comment">#   0x1.47ae147ae1474p-7 0.009999999999999988</span>
+<span class="ruby-comment">#   0x1.47ae147ae1473p-7 0.009999999999999986</span>
+<span class="ruby-comment">#   0x1.47ae147ae1472p-7 0.009999999999999985</span>
+<span class="ruby-comment">#   0x1.47ae147ae1471p-7 0.009999999999999983</span>
+<span class="ruby-comment">#   0x1.47ae147ae147p-7  0.009999999999999981</span>
+<span class="ruby-comment">#   0x1.47ae147ae146fp-7 0.00999999999999998</span>
+<span class="ruby-comment">#   0x1.47ae147ae146ep-7 0.009999999999999978</span>
+<span class="ruby-comment">#   0x1.47ae147ae146dp-7 0.009999999999999976</span>
+<span class="ruby-comment">#   0x1.47ae147ae146cp-7 0.009999999999999974</span>
+<span class="ruby-comment">#   0x1.47ae147ae146bp-7 0.009999999999999972</span>
+<span class="ruby-comment">#   0x1.47ae147ae146ap-7 0.00999999999999997</span>
+<span class="ruby-comment">#   0x1.47ae147ae1469p-7 0.009999999999999969</span>
+<span class="ruby-comment">#   0x1.47ae147ae1468p-7 0.009999999999999967</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="prev_float-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_prev_float(VALUE vx)
+{
+    double x, y;
+    x = NUM2DBL(vx);
+    y = nextafter(x, -INFINITY);
+    return DBL2NUM(y);
+}
+            </pre> 
+            </div><!-- prev_float-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- prev_float-method -->
+      
+        <div id="quo-method" class="method-detail ">
+          <a name="method-i-quo"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">quo(numeric)  &rarr;  float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>float / numeric</code>, same as Float#/.</p>
+            
+
+            
+            <div class="method-source-code" id="quo-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_quo(VALUE x, VALUE y)
+{
+    return rb_funcall(x, '/', 1, y);
+}
+            </pre> 
+            </div><!-- quo-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- quo-method -->
+      
+        <div id="rationalize-method" class="method-detail ">
+          <a name="method-i-rationalize"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">rationalize([eps])  &rarr;  rational</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a simpler approximation of the value (flt-|eps| &lt;= result &lt;=
+flt+|eps|).  if the optional eps is not given, it will be chosen
+automatically.</p>
+
+<pre class="ruby"><span class="ruby-value">0.3</span>.<span class="ruby-identifier">rationalize</span>          <span class="ruby-comment">#=&gt; (3/10)</span>
+<span class="ruby-value">1.333</span>.<span class="ruby-identifier">rationalize</span>        <span class="ruby-comment">#=&gt; (1333/1000)</span>
+<span class="ruby-value">1.333</span>.<span class="ruby-identifier">rationalize</span>(<span class="ruby-value">0.01</span>)  <span class="ruby-comment">#=&gt; (4/3)</span>
+</pre>
+
+<p>See to_r.</p>
+            
+
+            
+            <div class="method-source-code" id="rationalize-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+float_rationalize(int argc, VALUE *argv, VALUE self)
+{
+    VALUE e;
+
+    if (f_negative_p(self))
+        return f_negate(float_rationalize(argc, argv, f_abs(self)));
+
+    rb_scan_args(argc, argv, &quot;01&quot;, &amp;e);
+
+    if (argc != 0) {
+        return rb_flt_rationalize_with_prec(self, e);
+    }
+    else {
+        return rb_flt_rationalize(self);
+    }
+}
+            </pre> 
+            </div><!-- rationalize-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- rationalize-method -->
+      
+        <div id="round-method" class="method-detail ">
+          <a name="method-i-round"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">round([ndigits])  &rarr;  integer or float</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Rounds <code>float</code> to a given precision in decimal digits (default 0
+digits).</p>
+
+<p>Precision may be negative.  Returns a floating point number when
+<code>ndigits</code> is more than zero.</p>
+
+<pre class="ruby"><span class="ruby-value">1.4</span>.<span class="ruby-identifier">round</span>      <span class="ruby-comment">#=&gt; 1</span>
+<span class="ruby-value">1.5</span>.<span class="ruby-identifier">round</span>      <span class="ruby-comment">#=&gt; 2</span>
+<span class="ruby-value">1.6</span>.<span class="ruby-identifier">round</span>      <span class="ruby-comment">#=&gt; 2</span>
+(<span class="ruby-value">-1.5</span>).<span class="ruby-identifier">round</span>   <span class="ruby-comment">#=&gt; -2</span>
+
+<span class="ruby-value">1.234567</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">2</span>)  <span class="ruby-comment">#=&gt; 1.23</span>
+<span class="ruby-value">1.234567</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">3</span>)  <span class="ruby-comment">#=&gt; 1.235</span>
+<span class="ruby-value">1.234567</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">4</span>)  <span class="ruby-comment">#=&gt; 1.2346</span>
+<span class="ruby-value">1.234567</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">5</span>)  <span class="ruby-comment">#=&gt; 1.23457</span>
+
+<span class="ruby-value">34567.89</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">-5</span>) <span class="ruby-comment">#=&gt; 0</span>
+<span class="ruby-value">34567.89</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">-4</span>) <span class="ruby-comment">#=&gt; 30000</span>
+<span class="ruby-value">34567.89</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">-3</span>) <span class="ruby-comment">#=&gt; 35000</span>
+<span class="ruby-value">34567.89</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">-2</span>) <span class="ruby-comment">#=&gt; 34600</span>
+<span class="ruby-value">34567.89</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">-1</span>) <span class="ruby-comment">#=&gt; 34570</span>
+<span class="ruby-value">34567.89</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">0</span>)  <span class="ruby-comment">#=&gt; 34568</span>
+<span class="ruby-value">34567.89</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">1</span>)  <span class="ruby-comment">#=&gt; 34567.9</span>
+<span class="ruby-value">34567.89</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">2</span>)  <span class="ruby-comment">#=&gt; 34567.89</span>
+<span class="ruby-value">34567.89</span>.<span class="ruby-identifier">round</span>(<span class="ruby-value">3</span>)  <span class="ruby-comment">#=&gt; 34567.89</span>
+</pre>
+            
+
+            
+            <div class="method-source-code" id="round-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_round(int argc, VALUE *argv, VALUE num)
+{
+    VALUE nd;
+    double number, f;
+    int ndigits = 0;
+    int binexp;
+    enum {float_dig = DBL_DIG+2};
+
+    if (argc &gt; 0 &amp;&amp; rb_scan_args(argc, argv, &quot;01&quot;, &amp;nd) == 1) {
+        ndigits = NUM2INT(nd);
+    }
+    if (ndigits &lt; 0) {
+        return int_round_0(flo_truncate(num), ndigits);
+    }
+    number  = RFLOAT_VALUE(num);
+    if (ndigits == 0) {
+        return dbl2ival(number);
+    }
+    frexp(number, &amp;binexp);
+
+/* Let `exp` be such that `number` is written as:&quot;0.#{digits}e#{exp}&quot;,
+   i.e. such that  10 ** (exp - 1) &lt;= |number| &lt; 10 ** exp
+   Recall that up to float_dig digits can be needed to represent a double,
+   so if ndigits + exp &gt;= float_dig, the intermediate value (number * 10 ** ndigits)
+   will be an integer and thus the result is the original number.
+   If ndigits + exp &lt;= 0, the result is 0 or &quot;1e#{exp}&quot;, so
+   if ndigits + exp &lt; 0, the result is 0.
+   We have:
+        2 ** (binexp-1) &lt;= |number| &lt; 2 ** binexp
+        10 ** ((binexp-1)/log_2(10)) &lt;= |number| &lt; 10 ** (binexp/log_2(10))
+        If binexp &gt;= 0, and since log_2(10) = 3.322259:
+           10 ** (binexp/4 - 1) &lt; |number| &lt; 10 ** (binexp/3)
+           floor(binexp/4) &lt;= exp &lt;= ceil(binexp/3)
+        If binexp &lt;= 0, swap the /4 and the /3
+        So if ndigits + floor(binexp/(4 or 3)) &gt;= float_dig, the result is number
+        If ndigits + ceil(binexp/(3 or 4)) &lt; 0 the result is 0
+*/
+    if (isinf(number) || isnan(number) ||
+        (ndigits &gt;= float_dig - (binexp &gt; 0 ? binexp / 4 : binexp / 3 - 1))) {
+        return num;
+    }
+    if (ndigits &lt; - (binexp &gt; 0 ? binexp / 3 + 1 : binexp / 4)) {
+        return DBL2NUM(0);
+    }
+    f = pow(10, ndigits);
+    return DBL2NUM(round(number * f) / f);
+}
+            </pre> 
+            </div><!-- round-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- round-method -->
+      
+        <div id="to_f-method" class="method-detail ">
+          <a name="method-i-to_f"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_f  &rarr;  self</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Since <code>float</code> is already a float, returns <code>self</code>.</p>
+            
+
+            
+            <div class="method-source-code" id="to_f-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_to_f(VALUE num)
+{
+    return num;
+}
+            </pre> 
+            </div><!-- to_f-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- to_f-method -->
+      
+        <div id="to_i-method" class="method-detail ">
+          <a name="method-i-to_i"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_i      &rarr;  integer</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_int    &rarr;  integer</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the <code>float</code> truncated to an <a
+href="Integer.html">Integer</a>.</p>
+
+<p>Synonyms are <a href="Float.html#method-i-to_i">to_i</a>, <a
+href="Float.html#method-i-to_int">to_int</a>, and <a
+href="Float.html#method-i-truncate">truncate</a>.</p>
+            
+
+            
+            <div class="method-source-code" id="to_i-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_truncate(VALUE num)
+{
+    double f = RFLOAT_VALUE(num);
+    long val;
+
+    if (f &gt; 0.0) f = floor(f);
+    if (f &lt; 0.0) f = ceil(f);
+
+    if (!FIXABLE(f)) {
+        return rb_dbl2big(f);
+    }
+    val = (long)f;
+    return LONG2FIX(val);
+}
+            </pre> 
+            </div><!-- to_i-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- to_i-method -->
+      
+        <div id="to_int-method" class="method-detail ">
+          <a name="method-i-to_int"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_int    &rarr;  integer</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the <code>float</code> truncated to an <a
+href="Integer.html">Integer</a>.</p>
+
+<p>Synonyms are <a href="Float.html#method-i-to_i">to_i</a>, <a
+href="Float.html#method-i-to_int">to_int</a>, and <a
+href="Float.html#method-i-truncate">truncate</a>.</p>
+            
+
+            
+            <div class="method-source-code" id="to_int-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_truncate(VALUE num)
+{
+    double f = RFLOAT_VALUE(num);
+    long val;
+
+    if (f &gt; 0.0) f = floor(f);
+    if (f &lt; 0.0) f = ceil(f);
+
+    if (!FIXABLE(f)) {
+        return rb_dbl2big(f);
+    }
+    val = (long)f;
+    return LONG2FIX(val);
+}
+            </pre> 
+            </div><!-- to_int-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- to_int-method -->
+      
+        <div id="to_r-method" class="method-detail ">
+          <a name="method-i-to_r"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_r  &rarr;  rational</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the value as a rational.</p>
+
+<p>NOTE: 0.3.to_r isn’t the same as ‘0.3’.to_r.  The latter is equivalent to
+‘3/10’.to_r, but the former isn’t so.</p>
+
+<pre class="ruby"><span class="ruby-value">2.0</span>.<span class="ruby-identifier">to_r</span>    <span class="ruby-comment">#=&gt; (2/1)</span>
+<span class="ruby-value">2.5</span>.<span class="ruby-identifier">to_r</span>    <span class="ruby-comment">#=&gt; (5/2)</span>
+<span class="ruby-value">-0.75</span>.<span class="ruby-identifier">to_r</span>  <span class="ruby-comment">#=&gt; (-3/4)</span>
+<span class="ruby-value">0.0</span>.<span class="ruby-identifier">to_r</span>    <span class="ruby-comment">#=&gt; (0/1)</span>
+</pre>
+
+<p>See rationalize.</p>
+            
+
+            
+            <div class="method-source-code" id="to_r-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+float_to_r(VALUE self)
+{
+    VALUE f, n;
+
+    float_decode_internal(self, &amp;f, &amp;n);
+#if FLT_RADIX == 2
+    {
+        long ln = FIX2LONG(n);
+
+        if (ln == 0)
+            return f_to_r(f);
+        if (ln &gt; 0)
+            return f_to_r(f_lshift(f, n));
+        ln = -ln;
+        return rb_rational_new2(f, f_lshift(ONE, INT2FIX(ln)));
+    }
+#else
+    return f_to_r(f_mul(f, f_expt(INT2FIX(FLT_RADIX), n)));
+#endif
+}
+            </pre> 
+            </div><!-- to_r-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- to_r-method -->
+      
+        <div id="to_s-method" class="method-detail ">
+          <a name="method-i-to_s"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">to_s  &rarr;  string</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns a string containing a representation of self. As well as a fixed or
+exponential form of the <code>float</code>, the call may return
+<code>NaN</code>, <code>Infinity</code>, and <code>-Infinity</code>.</p>
+            
+
+            
+            <div class="method-source-code" id="to_s-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_to_s(VALUE flt)
+{
+    enum {decimal_mant = DBL_MANT_DIG-DBL_DIG};
+    enum {float_dig = DBL_DIG+1};
+    char buf[float_dig + (decimal_mant + CHAR_BIT - 1) / CHAR_BIT + 10];
+    double value = RFLOAT_VALUE(flt);
+    VALUE s;
+    char *p, *e;
+    int sign, decpt, digs;
+
+    if (isinf(value))
+        return rb_usascii_str_new2(value &lt; 0 ? &quot;-Infinity&quot; : &quot;Infinity&quot;);
+    else if (isnan(value))
+        return rb_usascii_str_new2(&quot;NaN&quot;);
+
+    p = ruby_dtoa(value, 0, 0, &amp;decpt, &amp;sign, &amp;e);
+    s = sign ? rb_usascii_str_new_cstr(&quot;-&quot;) : rb_usascii_str_new(0, 0);
+    if ((digs = (int)(e - p)) &gt;= (int)sizeof(buf)) digs = (int)sizeof(buf) - 1;
+    memcpy(buf, p, digs);
+    xfree(p);
+    if (decpt &gt; 0) {
+        if (decpt &lt; digs) {
+            memmove(buf + decpt + 1, buf + decpt, digs - decpt);
+            buf[decpt] = '.';
+            rb_str_cat(s, buf, digs + 1);
+        }
+        else if (decpt &lt;= DBL_DIG) {
+            long len;
+            char *ptr;
+            rb_str_cat(s, buf, digs);
+            rb_str_resize(s, (len = RSTRING_LEN(s)) + decpt - digs + 2);
+            ptr = RSTRING_PTR(s) + len;
+            if (decpt &gt; digs) {
+                memset(ptr, '0', decpt - digs);
+                ptr += decpt - digs;
+            }
+            memcpy(ptr, &quot;.0&quot;, 2);
+        }
+        else {
+            goto exp;
+        }
+    }
+    else if (decpt &gt; -4) {
+        long len;
+        char *ptr;
+        rb_str_cat(s, &quot;0.&quot;, 2);
+        rb_str_resize(s, (len = RSTRING_LEN(s)) - decpt + digs);
+        ptr = RSTRING_PTR(s);
+        memset(ptr += len, '0', -decpt);
+        memcpy(ptr -= decpt, buf, digs);
+    }
+    else {
+      exp:
+        if (digs &gt; 1) {
+            memmove(buf + 2, buf + 1, digs - 1);
+        }
+        else {
+            buf[2] = '0';
+            digs++;
+        }
+        buf[1] = '.';
+        rb_str_cat(s, buf, digs + 1);
+        rb_str_catf(s, &quot;e%+03d&quot;, decpt - 1);
+    }
+    return s;
+}
+            </pre> 
+            </div><!-- to_s-source -->
+            
+          </div>
+
+          
+          <div class="aliases">
+            Also aliased as: <a href="Float.html#method-i-inspect">inspect</a>
+          </div>
+          
+
+          
+        </div><!-- to_s-method -->
+      
+        <div id="truncate-method" class="method-detail ">
+          <a name="method-i-truncate"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">truncate  &rarr;  integer</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns the <code>float</code> truncated to an <a
+href="Integer.html">Integer</a>.</p>
+
+<p>Synonyms are <a href="Float.html#method-i-to_i">to_i</a>, <a
+href="Float.html#method-i-to_int">to_int</a>, and <a
+href="Float.html#method-i-truncate">truncate</a>.</p>
+            
+
+            
+            <div class="method-source-code" id="truncate-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_truncate(VALUE num)
+{
+    double f = RFLOAT_VALUE(num);
+    long val;
+
+    if (f &gt; 0.0) f = floor(f);
+    if (f &lt; 0.0) f = ceil(f);
+
+    if (!FIXABLE(f)) {
+        return rb_dbl2big(f);
+    }
+    val = (long)f;
+    return LONG2FIX(val);
+}
+            </pre> 
+            </div><!-- truncate-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- truncate-method -->
+      
+        <div id="zero-3F-method" class="method-detail ">
+          <a name="method-i-zero-3F"></a>
+
+          
+          
+          <div class="method-heading">
+            <span class="method-callseq">zero?  &rarr;  true or false</span>
+            
+            <span class="method-click-advice">click to toggle source</span>
+            
+          </div>
+          
+          
+          <div>
+  
+            
+            <p>Returns <code>true</code> if <code>float</code> is 0.0.</p>
+            
+
+            
+            <div class="method-source-code" id="zero-3F-source">
+              <pre> <!-- method.markup_code 290 -->
+               static VALUE
+flo_zero_p(VALUE num)
+{
+    if (RFLOAT_VALUE(num) == 0.0) {
+        return Qtrue;
+    }
+    return Qfalse;
+}
+            </pre> 
+            </div><!-- zero-3F-source -->
+            
+          </div>
+
+          
+
+          
+        </div><!-- zero-3F-method -->
+      
+      </div><!-- public-instance-method-details -->
+    
+    </div><!-- 5Buntitled-5D -->
+  
+  <div id='tx_Float_versioned' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_Float_versioned").load("/associated/2.2.0/Float.ihtml");</script> <div id='tx_Float' class='associated_wrapper'></div><script type='text/javascript'>$("#tx_Float").load("/associated/Float.ihtml");</script> 
+      
+  <!-- dsqus ? -->
+     
+
+  
+  </div><!-- documentation -->
+  <div id='dynamic'>
+  </div>
+      
+          
+
+      
+<div class='grids wrapper' id="footer">
+  <p><small>This page was generated for Ruby 2.2.0</small></p> 
+  
+   <p><a href="http://ruby-doc.org">Ruby-doc.org</a> is a service of <a href="http://jamesbritt.com">James Britt</a> and <a href="http://neurogami.com">Neurogami</a>, a <a href="http://neurogami.com">software development company in Scottsdale, AZ</a>.  <div class='oio-inline'><ins data-revive-zoneid="1" data-revive-id="58924a5717c091dfee6dda3f7d38c4d7"></ins><script async src="//ras.ruby-doc.org/vvv/delivery/thesinkjs.php"></script></div></p>
+ 
+       <p><small>Generated with Ruby-doc Rdoc Generator 0.39.0</small>.</p>
+  </div>
+</div>
+  
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-335317-2', 'auto');
+  ga('send', 'pageview');
+
+</script>
+
+
+    
+ <script type='text/javascript'>
+$(document).ready(function() {
+      $.ajaxSetup({ cache: false });
+      $("#vulns-alert").load("/associated/vulns.ihtml");
+    });
+
+    </script>
+
+
+ 
+		<script type='text/javascript'>
+
+	function loadPlus(plusdocs){
+			$(plusdocs).find("div[class='associated_wrapper']").each (function() {
+					$("#" + this.id).append($(plusdocs).find("#" + this.id ));
+					});
+	} 
+
+   //function loadInline(json){
+   // for (var lookFor in json) {
+    //  $(lookFor).after(json[lookFor]);
+    // }
+  // } // end loadInline
+
+
+$(document).ready(function() {
+		$.ajaxSetup({ cache: false });
+			$.get('/associated/2.2.0/plus_Float.ihtml', 
+			function(plusdocs) {
+			setTimeout(function() {
+				loadPlus(plusdocs);
+				}, 2000);
+			}
+			);
+
+
+//     $.ajax({
+//     dataType: "json",
+//      url: '/associated/2.2.0/inline_Float.js',
+//      success: function(json) {
+// 			setTimeout(function() {
+// 				loadInline(json);
+// 				}, 2000);
+// 			}
+//    });
+
+		});
+</script>
+		
+</body>
+</html>
+
+

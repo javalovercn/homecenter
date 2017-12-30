@@ -8,9 +8,11 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.server.CallContext;
 import hc.server.HCActionListener;
+import hc.server.JRubyInstaller;
 import hc.server.ui.J2SESessionManager;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
+import hc.server.util.ServerUtil;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
@@ -56,7 +58,7 @@ public class SecurityDataProtector {
 	
 	public static boolean isEnableSecurityData(){
 		if(ResourceUtil.isAndroidServerPlatform()){
-			return PropertiesManager.getValue(PropertiesManager.p_jrubyJarFile) != null;//依赖于JRuby进行数据加密
+			return JRubyInstaller.checkUpgradeJRuby() == false;//依赖于JRuby进行数据加密
 		}else{
 			return true;
 		}
@@ -598,7 +600,7 @@ public class SecurityDataProtector {
 //		org.jruby.proxy.java.lang.Object$Proxy0.toString(Unknown Source)
 //		hc.util.SecurityDataProtector.getPrivateHardwareCodeForAndroid(SecurityDataProtector.java:306)
 		
-		final HCJRubyEngine engine = new HCJRubyEngine(null, ResourceUtil.getJRubyClassLoader(false), true, HCJRubyEngine.IDE_LEVEL_ENGINE + "SecurityDataProtect");
+		final HCJRubyEngine engine = new HCJRubyEngine(null, null, ServerUtil.getJRubyClassLoader(false), true, HCJRubyEngine.IDE_LEVEL_ENGINE + "SecurityDataProtect");
 		try{
 			final String script = "" +
 					"import java.lang.Thread\n" +

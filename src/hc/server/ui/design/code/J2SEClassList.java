@@ -636,6 +636,7 @@ public class J2SEClassList {
 		out.add("java.lang.StringCoding");
 		out.add("java.lang.StringIndexOutOfBoundsException");
 		out.add("java.lang.SuppressWarnings");
+		out.add("java.lang.System");
 		out.add("java.lang.SystemClassLoaderAction");
 		out.add("java.lang.Terminator");
 		out.add("java.lang.Thread");

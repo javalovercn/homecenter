@@ -48,25 +48,31 @@ public class SelectWordAction extends TextAction {
 				final int startIdx = clickStartIdx + 1;
 				final String selectedText = String.valueOf(lineChar, startIdx, clickEndIdx - startIdx);
 				
-				target.setSelectionStart(lineStartIdx + startIdx);
-				target.setSelectionEnd(lineStartIdx + clickEndIdx);
+				final int selectionStartIdx = lineStartIdx + startIdx;
+				final int selectionEndIdx = lineStartIdx + clickEndIdx;
+				target.setSelectionStart(selectionStartIdx);
+				target.setSelectionEnd(selectionEndIdx);
 				
 				final Object eventSrc = e.getSource();
 				if(selectedText.length() > 0 && eventSrc instanceof HCTextPane){
 					final HCTextPane pane = (HCTextPane)eventSrc;
-					final StyledDocument styleDoc = pane.getStyledDocument();
-					final String text = pane.getText();
-					
-					final String matchText = StringUtil.replace(selectedText, "$", "\\$");
-					final Pattern varPattern = Pattern.compile("\\b" + matchText + "\\b");
-					final Matcher m = varPattern.matcher(text);
-					while(m.find()){
-						final int start = m.start();
-						final int end = m.end();
-						styleDoc.setCharacterAttributes(start, end - start, BG_SELECTED_VAR, false);
+					if(pane.searchDialog == null){
+						final StyledDocument styleDoc = pane.getStyledDocument();
+						final String text = pane.getText();
+						
+						final String matchText = StringUtil.replace(selectedText, "$", "\\$");
+						final Pattern varPattern = Pattern.compile("\\b" + matchText + "\\b");
+						final Matcher m = varPattern.matcher(text);
+						while(m.find()){
+							final int start = m.start();
+							final int end = m.end();
+							if(start != selectionStartIdx){
+								styleDoc.setCharacterAttributes(start, end - start, BG_SELECTED_VAR, false);
+							}
+						}
+						pane.selectedWordsMS = System.currentTimeMillis();
+						pane.hasSelectedWords = true;
 					}
-					pane.selectedWordsMS = System.currentTimeMillis();
-					pane.hasSelectedWords = true;
 				}
 			}catch (final Throwable ex) {
 			}

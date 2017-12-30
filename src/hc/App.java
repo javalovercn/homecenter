@@ -64,6 +64,7 @@ import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.HCSecurityChecker;
 import hc.server.util.IDArrayGroup;
 import hc.server.util.J2SERootBuilder;
+import hc.server.util.SafeDataManager;
 import hc.server.util.VerifyEmailManager;
 import hc.util.ClassUtil;
 import hc.util.HttpUtil;
@@ -106,15 +107,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.Date;
 import java.util.Enumeration;
@@ -156,7 +154,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.plaf.FontUIResource;
 
 public class App {//注意：本类名被工程HCAndroidServer的ServerMainActivity反射引用，请勿改名
-	public static final int EXIT_MAX_DELAY_MS = 60 * 1000;//10秒不够
+	public static final int EXIT_MAX_DELAY_MS = 30 * 1000;//10秒不够，60秒太长
 
 	public static final String TAG_INI_DEBUG_ON = "debugOn";
 	public static final String TAG_INI_DEBUG_THREAD_POOL_ON = "debugThreadPoolOn";
@@ -240,8 +238,14 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	}
 	
 	private static void execMain(final String args[]) {
+		if(SafeDataManager.isPowerOffOK() == false){
+			SafeDataManager.restoreSafeBackup();
+		}else{
+			SafeDataManager.clearPowerOffOK();
+		}
+
 		if (ResourceUtil.isJ2SELimitFunction() && getJREVer() < 1.6) {
-			App.showMessageDialog(null, "JRE 1.6 or above!", "Error",
+			JOptionPane.showMessageDialog(null, "JRE 1.6 or above!", "Error",
 					JOptionPane.ERROR_MESSAGE);
 			CCoreUtil.globalExit();
 		}
@@ -256,46 +260,50 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			ExceptionReporter.printStackTrace(e);
 		}
 		
-		// 创建锁文件
-		try {
-			// Get a file channel for the file
-			final File file = new File(ResourceUtil.getBaseDir(), "lockme.hc");
-			final FileChannel channel = new RandomAccessFile(file, "rw").getChannel();
-			
-			final long startMS = System.currentTimeMillis();
-			
-			do{
-				try {
-					// lock = channel.lock();
-					lock = channel.tryLock();
-				} catch (final Exception e) {
-					// File is already locked in this thread or virtual machine
-				}
-				if(lock == null){
-					try{
-						Thread.sleep(200);
-					}catch (final Exception e) {
-					}
-				}
-			}while(lock == null && (System.currentTimeMillis() - startMS) <= EXIT_MAX_DELAY_MS);
-			
-			if (lock == null) {
-				App.showMessageDialog(null,
-						"HomeCenter is already runing!", "Error",
-						JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-			// Release the lock
-			// lock.release();
-			// Close the file
-			// channel.close();
-		} catch (final Exception e) {
-		}
+//		new File(ResourceUtil.getBaseDir(), SafeDataManager.lockme);//由于starter已提供，故停用
+//		// 创建锁文件
+//		try {
+//			// Get a file channel for the file
+//			final File file = new File(ResourceUtil.getBaseDir(), SafeDataManager.lockme);
+//			final FileChannel channel = new RandomAccessFile(file, "rw").getChannel();
+//			
+//			final long startMS = System.currentTimeMillis();
+//			
+//			do{
+//				try {
+//					// lock = channel.lock();
+//					lock = channel.tryLock();
+//				} catch (final Exception e) {
+//					// File is already locked in this thread or virtual machine
+//				}
+//				if(lock == null){
+//					try{
+//						Thread.sleep(200);
+//					}catch (final Exception e) {
+//					}
+//				}
+//			}while(lock == null && (System.currentTimeMillis() - startMS) <= 5000);
+//			
+//			if (lock == null) {
+//				JOptionPane.showMessageDialog(null,
+//						"HomeCenter is already runing!", "Error",
+//						JOptionPane.ERROR_MESSAGE);
+//				System.exit(0);//仅适合于Windows
+//				return;
+//			}
+//			// Release the lock
+//			// lock.release();
+//			// Close the file
+//			// channel.close();
+//		} catch (final Exception e) {
+//		}
 
 		threadPoolToken = getRootThreadGroup();
 		RootBuilder.setInstance(new J2SERootBuilder(threadPoolToken));
 
 		IConstant.setServerSide(true);//必须最先被执行
+
+        System.setProperty("java.io.tmpdir", StoreDirManager.TEMP_DIR.getAbsolutePath());
 
 		if (args != null) {
 			for (int i = 0; i < args.length; i++) {
@@ -341,7 +349,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 
 		if(isSimuFromArgs){
 			//只做强制isSimu，不做isSimu为false的情形，因为原配置可能为true
-			PropertiesManager.setValue(PropertiesManager.p_IsSimu, IConstant.TRUE);//注意：须在下行isSimu之前
+			PropertiesManager.setSimuToTrue();//注意：须在下行isSimu之前
+			LogManager.log("set isSimu : true.");
 		}
 		
 		final boolean isSimu = PropertiesManager.isSimu();
@@ -767,7 +776,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			TrayMenuUtil.doBefore();
 			
 			PlatformManager.getService().startCaptureIfEnable();//遗留功能，新用户停止开放！JMF is NOT installed for the newer version
-			if(JRubyInstaller.checkInstalledJRuby() == false){
+			if(JRubyInstaller.checkUpgradeJRuby()){
 				JRubyInstaller.startInstall();
 			}
 			LinkProjectManager.startAutoUpgradeBiz();

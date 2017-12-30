@@ -127,7 +127,7 @@ public class LogServerSide implements ILog {
 			try{
 				outLogger.close();
 			}catch (final Exception e) {
-				ExceptionReporter.printStackTrace(e);
+//				ExceptionReporter.printStackTrace(e);
 			}
 		}
 		

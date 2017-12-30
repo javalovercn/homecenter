@@ -4,17 +4,12 @@ import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.MutableArray;
-import hc.server.ui.CtrlResponse;
-import hc.server.ui.Dialog;
-import hc.server.ui.HTMLMlet;
 import hc.server.ui.J2SESessionManager;
-import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.SimuMobile;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
-import hc.server.util.Assistant;
 import hc.server.util.ai.AIObjectCache;
 import hc.server.util.ai.AIPersistentManager;
 import hc.server.util.ai.RobotEventData;
@@ -23,26 +18,26 @@ import hc.util.ResourceUtil;
 import java.util.ArrayList;
 
 /**
- * Robot is a intelligent control unit, which manage zero or multiple {@link Device}(s). 
- * <BR><BR>Through {@link Message}, robot communicates with devices. 
- * <BR><BR>When a user want to control or operate a {@link Robot} from {@link Mlet}, {@link HTMLMlet} or {@link CtrlResponse}, 
+ * <code>Robot</code> is a intelligent control unit, which manage zero or multiple <code>Device</code>(s). 
+ * <BR><BR>Through <code>Message</code>, robot communicates with devices. 
+ * <BR><BR>When a user want to control or operate a <code>Robot</code> from <code>Mlet</code>, <code>HTMLMlet</code> or <code>CtrlResponse</code>, 
  * please invoke {@link ProjectContext#getRobot(String)} and {@link Robot#operate(long, Object)},
- * <BR><BR><STRONG>Important : </STRONG>you can not bypass {@link Robot} to operate {@link Device} directly from {@link Mlet}, {@link HTMLMlet} or {@link CtrlResponse}.
+ * <BR><BR><STRONG>Important : </STRONG>you can not bypass <code>Robot</code> to operate <code>Device</code> directly from <code>Mlet</code>, <code>HTMLMlet</code> or <code>CtrlResponse</code>.
  * <BR><BR>
  * <UL>
- * <LI>The {@link Message#getDevID()} returns <i>Reference Device ID</i>(not real device ID), if the {@link Message} is received in {@link Robot} or dispatched from {@link Robot}.</LI>
- * <LI>The {@link Message#getDevID()} returns real device ID, if the {@link Message} is received in {@link Device} or dispatched from {@link Device}. </LI>
- * <LI>After active and apply HAR project, <i>Reference Device ID</i> of {@link Robot} in HAR project must refer to real device ID, we call it binding. If there is a <i>Reference Device ID</i> which is not binded, the binding dialog will be popped up before starting up HAR project.</LI>
- * <LI>a {@link Converter} is required if the {@link Message} between {@link Robot} and {@link Device} need to be converted and adapted.</LI>
+ * <LI>The {@link Message#getDevID()} returns <i>Reference Device ID</i>(not real device ID), if the <code>Message</code> is received in <code>Robot</code> or dispatched from <code>Robot</code>.</LI>
+ * <LI>The {@link Message#getDevID()} returns real device ID, if the <code>Message</code> is received in <code>Device</code> or dispatched from <code>Device</code>. </LI>
+ * <LI>After active and apply HAR project, <i>Reference Device ID</i> of <code>Robot</code> in HAR project must refer to real device ID, we call it binding. If there is a <i>Reference Device ID</i> which is not binded, the binding dialog will be popped up before starting up HAR project.</LI>
+ * <LI>a <code>Converter</code> is required if the <code>Message</code> between <code>Robot</code> and <code>Device</code> need to be converted and adapted.</LI>
  * <LI>A real device ID may be referenced by more than one <i>Reference Device ID</i>. For example, a temperature device initiative publish current temperature to all robots by {@link Device#dispatch(Message, boolean)}.</LI>
- * <LI>{@link Robot} is the only way to drive {@link Device}, no matter they are in same HAR project or not. To access {@link Robot} instance in {@link Mlet} or {@link CtrlResponse}, please invoke {@link ProjectContext#getRobot(String)} and {@link Robot#operate(long, Object)}. </LI>
- * <LI>{@link Message} is intermediary between {@link Robot} and {@link Device}, not intermediary between {@link Mlet}(or {@link CtrlResponse}) and {@link Device}. You can't get a instance of {@link Message} outside of {@link Robot}, {@link Converter} and {@link Device}.</LI>
+ * <LI><code>Robot</code> is the only way to drive <code>Device</code>, no matter they are in same HAR project or not. To access <code>Robot</code> instance in <code>Mlet</code> or <code>CtrlResponse</code>, please invoke {@link ProjectContext#getRobot(String)} and {@link Robot#operate(long, Object)}. </LI>
+ * <LI><code>Message</code> is intermediary between <code>Robot</code> and <code>Device</code>, not intermediary between <code>Mlet</code>(or <code>CtrlResponse</code>) and <code>Device</code>. You can't get a instance of <code>Message</code> outside of <code>Robot</code>, <code>Converter</code> and <code>Device</code>.</LI>
  * </UL>
  * @see Device
  * @see Message
  */
 public abstract class Robot extends Processor{
-//	 * <BR>If a {@link Robot} is connecting to network via WiFi and manage no real {@link Device}, please create a {@link Device} for it, because <STRONG>No Device No WiFi-Connection</STRONG>.
+//	 * <BR>If a <code>Robot</code> is connecting to network via WiFi and manage no real <code>Device</code>, please create a <code>Device</code> for it, because <STRONG>No Device No WiFi-Connection</STRONG>.
 
 	final ProjResponser resp;
 	RobotWrapper robotWrapper;
@@ -61,8 +56,8 @@ public abstract class Robot extends Processor{
 	}
 	
 	/**
-	 * get a {@link Message} from recycling pool.
-	 * <br><BR>The message will be converted by {@link Converter} or not depends on binding.
+	 * get a <code>Message</code> from recycling pool.
+	 * <br><BR>The message will be converted by <code>Converter</code> or not depends on binding.
 	 * @param ref_dev_id the <i>Reference Device ID</i> which the message is dispatched to. 
 	 * @return 
 	 */
@@ -75,7 +70,7 @@ public abstract class Robot extends Processor{
 	}
 	
 	/**
-	 * @return the name of {@link Robot}
+	 * @return the name of <code>Robot</code>
 	 * @since 7.0
 	 */
 	final String getName(){
@@ -92,26 +87,26 @@ public abstract class Robot extends Processor{
 	}
 	
 	/**
-	 * operate the {@link Robot} to do some business from caller, 
+	 * operate the <code>Robot</code> to do some business from caller, 
 	 * <BR><BR>
 	 * for example, adjust the temperature to 28℃, then the <code>parameter</code> is integer object with value 28, and <code>functionID</code> may be 1.
-	 * <br><br>the method is the only way to operate {@link Robot} to drive {@link Device} from UI, such as {@link CtrlResponse}, {@link HTMLMlet}/{@link Mlet}, {@link Dialog}, {@link Assistant}.
-	 * <BR><BR>to get {@link Robot} instance, invoke {@link ProjectContext#getRobot(String)}.
+	 * <br><br>the method is the only way to operate <code>Robot</code> to drive <code>Device</code> from UI, for example <code>CtrlResponse</code>, <code>HTMLMlet</code>/<code>Mlet</code>, <code>Dialog</code>, <code>Assistant</code>.
+	 * <BR><BR>to get <code>Robot</code> instance, invoke {@link ProjectContext#getRobot(String)}.
 	 * <br><br>
 	 * <STRONG>Important</STRONG> : <BR>
-	 * this method must be able to be executed in session level and project level.<BR>
+	 * the implementation of this method must be able to be executed in session level and project level.<BR>
 	 * @param functionID
-	 * @param parameter it can NOT be a {@link Message}. it is recommended to use the primitive types and their corresponding object wrapper classes and {@link AnalysableRobotParameter} to help server for {@link Assistant}.<BR>
+	 * @param parameter it can NOT be a <code>Message</code>. it is recommended to use the primitive types and their corresponding object wrapper classes and <code>AnalysableRobotParameter</code> to help server for <code>Assistant</code>.<BR>
 	 * <BR>NOTE : <BR>
-	 * the instance of {@link AnalysableRobotParameter} is <STRONG>NOT</STRONG> recyclable, because server will analyst it background.
-	 * @return it can NOT be a {@link Message}. <BR>it is recommended to use the primitive types and their corresponding object wrapper classes and {@link AnalysableRobotParameter}.
+	 * the instance of <code>AnalysableRobotParameter</code> is <STRONG>NOT</STRONG> recyclable, because server will analyst it background.
+	 * @return it can NOT be a <code>Message</code>. <BR>it is recommended to use the primitive types and their corresponding object wrapper classes and <code>AnalysableRobotParameter</code>.
 	 * @see ProjectContext#isCurrentThreadInSessionLevel()
 	 * @since 7.0
 	 */
 	public abstract Object operate(final long functionID, final Object parameter);
 	
 	/**
-	 * get the {@link ProjectContext} instance of current project.
+	 * get the <code>ProjectContext</code> instance of current project.
 	 * @return 
 	 * @since 7.0
 	 */
@@ -120,15 +115,15 @@ public abstract class Robot extends Processor{
 	}
 	
 	/**
-	 * dispatch a {@link Message} to a device asynchronous.
+	 * dispatch a <code>Message</code> to a device asynchronous.
 	 * <br><br>to get instance of the <code>msg</code>, invoke {@link #getFreeMessage(String)}
 	 * <BR><BR>Note : 
 	 * <BR>the <code>msg</code> can't be dispatched more than one time.
 	 * <BR>the <code>msg</code> will be recycled and clean after consumed, please do NOT keep any reference of it.
 	 * <br><br>to print log of creating/converting/transferring/recycling of message, please enable [Option/Developer/log MSB message].
-	 * @param msg the {@link Message} will be dispatched to device(s).
+	 * @param msg the <code>Message</code> will be dispatched to device(s).
 	 * @param isInitiative 
-	 * <br>false : answer passively, passive mode is invoked generally in method {@link Robot#response(Message)} after {@link Message} is received.
+	 * <br>false : answer passively, passive mode is invoked generally in method {@link Robot#response(Message)} after <code>Message</code> is received.
 	 * <br>true : dispatch initiative, initiative mode is invoked generally in method {@link #operate(long, Object)}.
 	 * @see #waitFor(Message, long)
 	 * @see Device#dispatch(Message, boolean)
@@ -150,7 +145,7 @@ public abstract class Robot extends Processor{
 	}
 	
 	/**
-	 * waiting for responding a {@link Message}.
+	 * waiting for responding a <code>Message</code>.
 	 * <BR><BR>
 	 * it is synchronous.
 	 * <br><br>to print log of creating/converting/transferring/recycling of message, please enable [Option/Developer/log MSB message].
@@ -167,7 +162,7 @@ public abstract class Robot extends Processor{
 	
 	/**
 	 * all the <i>Reference Device ID</i> names those are used in this robot, each one of them will correspond to a real device ID after binding.
-	 * <BR><BR><STRONG>Note</STRONG> : it is allowed that a {@link Robot} without <i>Reference Device ID</i>.
+	 * <BR><BR><STRONG>Note</STRONG> : it is allowed that a <code>Robot</code> without <i>Reference Device ID</i>.
 	 * @return all the <i>Reference Device ID</i> names those are used in this robot.
 	 * @see #getDeviceCompatibleDescription(String)
 	 * @since 7.0
@@ -297,7 +292,7 @@ public abstract class Robot extends Processor{
 	 * build a {@link RobotEvent} instance.
 	 * <BR><BR>
 	 * <STRONG>Note :</STRONG><BR>
-	 * it is recyclable, please don't keep any reference of it in {@link Robot} or {@link RobotListener}.
+	 * it is recyclable, please don't keep any reference of it in <code>Robot</code> or {@link RobotListener}.
 	 * @param propertyName the property name of event.
 	 * @param oldValue the old value of property of current event. Maybe null.
 	 * @param newValue the new value of property of current event. Maybe null.
@@ -379,8 +374,8 @@ public abstract class Robot extends Processor{
 	}
 	
 	/**
-	 * response {@link Message} <code>msg</code>, which is dispatched from {@link Device#dispatch(Message, boolean)} (may be converted by {@link Converter})
-	 * @param msg dispatched from {@link Device} (or may be converted by {@link Converter})
+	 * response <code>Message</code> <code>msg</code>, which is dispatched from {@link Device#dispatch(Message, boolean)} (may be converted by <code>Converter</code>)
+	 * @param msg dispatched from <code>Device</code> (or may be converted by <code>Converter</code>)
 	 */
 	@Override
 	public abstract void response(Message msg);
@@ -395,14 +390,14 @@ public abstract class Robot extends Processor{
 	}
 	
 	/**
-	 * start up and initialize the {@link Robot}.
+	 * start up and initialize the <code>Robot</code>.
 	 * <br><br>this method is invoked by server <STRONG>before</STRONG> {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}
 	 * @since 7.0
 	 */
 	public abstract void startup();
 	
 	/**
-	 * shutdown the {@link Robot}
+	 * shutdown the <code>Robot</code>
 	 * <br><br>this method is invoked by server <STRONG>after</STRONG> {@link ProjectContext#EVENT_SYS_PROJ_SHUTDOWN}
 	 * @since 7.0
 	 */

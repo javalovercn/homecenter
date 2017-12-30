@@ -29,12 +29,13 @@ public class JRubyNodeEditPanel extends ScriptEditPanel {
 		namePanel.add(testBtn);
 		namePanel.add(formatBtn);
 		namePanel.add(scriptBtn);
+		namePanel.add(commentBtn);
 		
 		final JPanel jtascriptPanel = new JPanel();
 		jtascriptPanel.setBorder(new TitledBorder(JRUBY_SCRIPT_BORDER));
 		jtascriptPanel.setLayout(new BorderLayout());
 		
-		jtascriptPanel.add(scrollpane, BorderLayout.CENTER);
+		jtascriptPanel.add(editorPane, BorderLayout.CENTER);
 		jtascriptPanel.add(errRunInfo, BorderLayout.SOUTH);
 
 		setLayout(new BorderLayout());
@@ -62,7 +63,9 @@ public class JRubyNodeEditPanel extends ScriptEditPanel {
 	@Override
 	public void updateScript(final String script) {
 		((HPShareContent)currItem).content = script;
-		designer.setNeedRebuildTestJRuby(true);
+		if(currItem instanceof HPShareJRuby){
+			designer.setNeedRebuildTestJRuby(true);
+		}
 	}
 
 	@Override

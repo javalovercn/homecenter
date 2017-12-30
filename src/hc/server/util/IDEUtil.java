@@ -6,9 +6,9 @@ public class IDEUtil {
 	
 	/**
 	 * tell IDE to treat the return object as an instance of class <code>claz</code>.
-	 * @param obj
-	 * @param claz
-	 * @return assigned by <code>obj</code>,
+	 * @param obj the object will be returned.
+	 * @param claz the class will be treated as.
+	 * @return the <code>obj</code>.
 	 * @since 7.52
 	 */
 	public static Object asClass(final Object obj, final Object claz){
