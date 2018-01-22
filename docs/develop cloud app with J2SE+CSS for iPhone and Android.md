@@ -2,9 +2,9 @@
 
  
 ## HTMLMlet
-HTMLMlet is extends J2SE JPanel, setting CSS for JComponent is our magical function, when initialization, the server will convert it to HTML5+JavaScript+CSS in real time for mobile, after user inputs, convert them to J2SE Events and trigger the listeners of JComponents.
+HTMLMlet is extends J2SE JPanel, setting CSS for JComponent is a magical function, when initialize this component, the server convert it to HTML5+JavaScript+CSS in real time for mobile, when user inputs, convert them to J2SE events and dispatch to listeners of JComponents.
 
-Focusing on UI and Event with J2SE technology, all other work is left to the container.
+Focusing UI and business with J2SE/Java/JRuby technology, all other work is left to container.
 
 let's do following three steps to delivery a cross-platform cloud app with J2SE+CSS.
 
@@ -191,7 +191,7 @@ upload two files (the extension is har and had), generate QR image to download h
   2. through the voice assistant API, in response to the mobile voice commands, to achieve more magical and interesting application scenarios.
   3. build-in HSQLDB.
   4. click &quot;Demo&quot; to load demo project, it covers more than 80% JRuby grammar and more than 90% frequently functions.
-  5. Java 8 API and CSS 2.2 documents.
+  5. Java 8 API, Ruby 2.2.0 and CSS 2.2 documents are included in code editor.
   6. without any changes, it can run on Android, because there is a open source &quot;[J2SE for Android](https://github.com/javalovercn/j2se_for_android)&quot; library on the server for Android (it will transcode jar to dex when adding project).
   7. for the newer source codes of server, please click [https://github.com/javalovercn/homecenter](https://github.com/javalovercn/homecenter)
 
