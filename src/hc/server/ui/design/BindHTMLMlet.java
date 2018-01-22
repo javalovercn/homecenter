@@ -330,7 +330,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 			bottomButtonPanel.add(cancel);
 		}
 		bottomButtonPanel.add(ok);
-		final int buttonPanelHeight = Math.max(fontSizePX + getFontSizeForNormal(), getButtonHeight());
+		final int buttonPanelHeight = Math.max(fontSizePX + getFontSizeForButton(), getButtonHeight());
 		bottomButtonPanel.setPreferredSize(new Dimension(mobileWidth, buttonPanelHeight));
 		
 		setButtonEnable(cancel, !isUnbindDefault);//必须绑定

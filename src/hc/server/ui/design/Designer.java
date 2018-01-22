@@ -71,6 +71,7 @@ import hc.server.util.ContextSecurityConfig;
 import hc.server.util.DelDeployedProjManager;
 import hc.server.util.DownlistButton;
 import hc.server.util.ListAction;
+import hc.server.util.SafeDataManager;
 import hc.server.util.SignHelper;
 import hc.util.BaseResponsor;
 import hc.util.ClassUtil;
@@ -191,13 +192,13 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 							
 							LogManager.log("current free memory (M) : " + freeMem);
 							isShowLowMem = true;
-							final String lowMem = StringUtil.replace((String)ResourceUtil.get(9207), "{mem}", String.valueOf(lowMem60));
+							final String lowMem = StringUtil.replace(ResourceUtil.get(9207), "{mem}", String.valueOf(lowMem60));
 							
 							final JPanel panel = new JPanel(new GridBagLayout());
 							final GridBagConstraints c = new GridBagConstraints();
 							c.anchor = GridBagConstraints.LINE_START;
 							panel.add(new JLabel(lowMem, App.getSysIcon(App.SYS_WARN_ICON), SwingConstants.LEADING), c);
-							final JCheckBox noDisplayAgain = new JCheckBox((String)ResourceUtil.get(9209));
+							final JCheckBox noDisplayAgain = new JCheckBox(ResourceUtil.get(9209));
 							noDisplayAgain.addChangeListener(new ChangeListener() {
 								@Override
 								public void stateChanged(final ChangeEvent e) {
@@ -571,7 +572,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	
 	public Designer() {
 		//+ " - [" + (String)ResourceUtil.get(9083) + "]"
-		super((String)ResourceUtil.get(9034), true);//9083 the rest is up to you
+		super(ResourceUtil.get(9034), true);//9083 the rest is up to you
 		
 		instance = this;
 		
@@ -1001,6 +1002,8 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 									checkHARButtonsEnable();
 								}
 							});
+
+							SafeDataManager.startSafeBackupProcess(true, false);
 						}
 						
 						/**
@@ -1021,7 +1024,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 								}
 							}
 							
-							w[0] = ProcessingWindowManager.showCenterMessage((String)ResourceUtil.get(9092));
+							w[0] = ProcessingWindowManager.showCenterMessage(ResourceUtil.get(9092));
 
 							if(map == null){
 								try{
@@ -1165,7 +1168,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				}else{
 					final JPanel panel = new JPanel(new BorderLayout());
 					panel.add(new JLabel("project [" + currProjID + "] is not active, you may have changed project ID!", App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
-					App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(IContext.ERROR), false, null, null, null, null, instance, true, false, null, false, false);
+					App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(IContext.ERROR), false, null, null, null, null, instance, true, false, null, false, false);
 					return;
 				}
 			}
@@ -1303,7 +1306,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 						}
 					});
 
-					App.showCenterPanelMain(totalPanel, 0, 0, (String)ResourceUtil.get(1007), false, null, null, listener, null, instance, true, false, certButton, false, false);
+					App.showCenterPanelMain(totalPanel, 0, 0, ResourceUtil.get(1007), false, null, null, listener, null, instance, true, false, certButton, false, false);
 				}else{
 					showCertPanel(certButton, null);
 				}
@@ -1461,7 +1464,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final File deployFile = getDefaultEditFile();
 		final byte[] fileBS = ResourceUtil.getContent(deployFile);
 		try{
-			ProcessingWindowManager.showCenterMessage((String)ResourceUtil.get(9130));
+			ProcessingWindowManager.showCenterMessage(ResourceUtil.get(9130));
 			sender.sendData(fileBS, 0, fileBS.length);
 			showHCMessage("successful activate project, " +
 					"mobile can access this resources now.", ACTIVE + " OK", this, true, null);
@@ -1512,7 +1515,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 					}
 				});
 				
-				ProcessingWindowManager.showCenterMessageOnTop(null, true, (String)ResourceUtil.get(9110), null);//processing...
+				ProcessingWindowManager.showCenterMessageOnTop(null, true, ResourceUtil.get(9110), null);//processing...
 				
 				try{
 					doRebind();
@@ -2589,7 +2592,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	private void doExportBiz(final Map<String, Object> map, final File fileExits, final File fileHadExits, final Designer self) {
-		final String recommendLastTip  = (String)ResourceUtil.get(9252);
+		final String recommendLastTip  = ResourceUtil.get(9252);
 		
 		final String[] last3Ver = HCjar.splitLast3Ver(map);
 		final boolean isLast3VerNull = last3Ver==null;
@@ -2752,7 +2755,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 								}
 							};
 							
-							App.showCenterPanelMain(totalPanel, 0, 0, (String)ResourceUtil.get(1007), false, null, null, listener, cancelListener, instance, true, false, relativeTo, false, false);
+							App.showCenterPanelMain(totalPanel, 0, 0, ResourceUtil.get(1007), false, null, null, listener, cancelListener, instance, true, false, relativeTo, false, false);
 						}
 					}, threadPoolToken);
 					
@@ -3058,7 +3061,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			c.weightx = 1.0F;
 			c.fill = GridBagConstraints.BOTH;
 			panel.add(field, c);
-			final JCheckBox remem = new JCheckBox((String)ResourceUtil.get(9219), PropertiesManager.isTrue(PropertiesManager.p_isRememberDevCertPassword));
+			final JCheckBox remem = new JCheckBox(ResourceUtil.get(9219), PropertiesManager.isTrue(PropertiesManager.p_isRememberDevCertPassword));
 			remem.addItemListener(new ItemListener() {
 				@Override
 				public void itemStateChanged(final ItemEvent e) {
@@ -3088,7 +3091,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		}
 		
 		final JPanel descPanel = new JPanel(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
-		descPanel.setBorder(new TitledBorder((String)ResourceUtil.get(9095)));
+		descPanel.setBorder(new TitledBorder(ResourceUtil.get(9095)));
 		descPanel.add(new JLabel("<html>" +
 				DESC_PASSWORD_OF_DEVELOPER_CERTIFICATE + "</html>"));
 		

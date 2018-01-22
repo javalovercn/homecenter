@@ -20,9 +20,18 @@ public class SystemHTMLMlet extends HTMLMlet {
 			"-webkit-align-items: center; align-items: center; justify-content: center; -webkit-justify-content: center;" +
 			"-webkit-box-pack: center; -moz-box-pack: center; -ms-flex-pack: center;";
 	
+	static final int AREA_BACK_COLOR = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
+	static final int FIELD_BACK_COLOR = new Color(HTMLMlet.getColorForBodyByIntValue(), true).brighter().getRGB();
+	public static final int AREA_FONT_COLOR = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker().getRGB();
+
 	static final String BTN_STYLE = "btnStyle";
 	static final String BTN_FOR_DIV = "btnForDiv";
 	static final String BTN_DISABLE_STYLE = "btnDisableStyle";
+	static final String FIELD_STYLE = "display: block;box-sizing: border-box;border:1px solid #" + HTMLMlet.toHexColor(FIELD_BACK_COLOR, false) + ";width: 100%;vertical-align:middle;" +
+			"background-color:#" + HTMLMlet.toHexColor(FIELD_BACK_COLOR, false) + ";color:#" + HTMLMlet.toHexColor(AREA_FONT_COLOR, false) + ";";
+	static final String LABEL_FOR_DIV = "overflow:hidden;";
+	public static final String LABEL_FOR_DIV_AUTO_NEW_LINE = "word-wrap: break-word;word-break: normal;";
+	static final String LABEL_STYLE = "font-weight:bold;";
 
 	protected final void setButtonStyle(final JButton button){
 		setCSSForDiv(button, BTN_FOR_DIV, null);
@@ -53,20 +62,25 @@ public class SystemHTMLMlet extends HTMLMlet {
 	}
 	
 	public final String getRes(final int id){
-		return (String)ResourceUtil.get(localCoreSS, id);
+		return ResourceUtil.get(localCoreSS, id);
 	}
 	
 	public final void setComboBoxEnable(final JComboBox comboBox, final boolean isEnable){
 		comboBox.setEnabled(isEnable);
 	}
 
-	public static void setAreaCSS(final HTMLMlet mlet, final JTextArea area, final int normalFontSize) {
-		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
-		final int areaFontColor = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker().getRGB();
+	public static void setAreaCSS(final HTMLMlet mlet, final JTextArea area) {
 		mlet.setCSSForDiv(area, "areaForDiv", null);
 		mlet.setCSS(area, null, "width:100%;height:100%;" +
 				"overflow:scroll;" +//font-size:" + normalFontSize + "px;
-				"background-color:#" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.toHexColor(areaFontColor, false) + ";");
+				"background-color:#" + HTMLMlet.toHexColor(AREA_BACK_COLOR, false) + ";color:#" + HTMLMlet.toHexColor(AREA_FONT_COLOR, false) + ";");
+	}
+	
+	public static void setAreaCSS(final Dialog dialog, final JTextArea area) {
+		dialog.setCSSForDiv(area, "areaForDiv", null);
+		dialog.setCSS(area, null, "width:100%;height:100%;" +
+				"overflow:scroll;" +//font-size:" + normalFontSize + "px;
+				"background-color:#" + HTMLMlet.toHexColor(AREA_BACK_COLOR, false) + ";color:#" + HTMLMlet.toHexColor(AREA_FONT_COLOR, false) + ";");
 	}
 	
 	public static void setLabelCSS(final HTMLMlet mlet, final JLabel label){

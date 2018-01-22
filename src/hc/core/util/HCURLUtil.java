@@ -71,6 +71,21 @@ public class HCURLUtil {
 	    }
 	}
 	
+	public static String toIPv6(final String ip){
+		return "::ffff:" + ip;
+	}
+	
+	public static byte[] toIPv6ByteArray(final String ipv4){
+		final String[] parts = StringUtil.splitToArray(ipv4, ".");
+		final byte[] out = new byte[16];
+		for (int i = 12; i < out.length; i++) {
+			out[i] = (byte)(Integer.parseInt(parts[i - 12]) & 0xFF);
+		}
+		out[10] = (byte)(255 & 0xFF);
+		out[11] = (byte)(255 & 0xFF);
+		return out;
+	}
+	
 	public static HCURL extract(String url, final boolean isDecodeValue){
 		try {
 			byte[] bs = url.getBytes(IConstant.UTF_8);
@@ -381,7 +396,6 @@ public class HCURLUtil {
 	public static final String CLASS_BODY_TO_MOBI = "BODY_TO_MOBI";
 	public static final String CLASS_GO_EXTERNAL_URL = "goExternalURL";
 	public static final String CLASS_CHANGE_PROJECT_ID = "changeProjID";
-	public static final String CLASS_ERR_ON_CACHE = "errOnCache";
 	public static final String CLASS_TRANS_SERVER_UID = "transServerUID";
 	public static final String CLASS_MOV_NEW_SERVER = "movNewServer";
 	public static final String INNER_MODE = "_inner:";
@@ -390,14 +404,20 @@ public class HCURLUtil {
 	public static final int HTTPS_READ_TIMEOUT = 10 * 1000;
 			
 	public static void sendCmd(final CoreSession coreSS, final String cmdType, final String[] para, final String[] value){
-		sendCmd(false, coreSS, cmdType, para, value);
+		sendCmdImpl(false, coreSS, cmdType, para, value);
 	}
 	
-	public static void sendCmdReceiveLevel(final CoreSession coreSS, final String cmdType, final String[] para, final String[] value){
-		sendCmd(true, coreSS, cmdType, para, value);
+	public static void sendCmdSuperLevel(final CoreSession coreSS, final String cmdType, final String para, final String value){
+		final String[] array1 = {para};
+		final String[] array2 = {value};
+		sendCmdSuperLevel(coreSS, cmdType, array1, array2);
+	}
+	
+	public static void sendCmdSuperLevel(final CoreSession coreSS, final String cmdType, final String[] para, final String[] value){
+		sendCmdImpl(true, coreSS, cmdType, para, value);
 	}
 
-	private static void sendCmd(final boolean isReceiveLevel, final CoreSession coreSS, final String cmdType, final String[] para, final String[] value){
+	private static void sendCmdImpl(final boolean isReceiveLevel, final CoreSession coreSS, final String cmdType, final String[] para, final String[] value){
 //		sendWrap进行了拦截
 		final StringBuffer sb = StringBufferCacher.getFree();
 		

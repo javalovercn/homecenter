@@ -59,6 +59,7 @@ public class SimuMobile {
 	public static final String MOBILE_DEFAULT_LOCALE = LangUtil.EN_US;
 	public static final String MOBILE_LOCALE = MOBILE_DEFAULT_LOCALE;
 	public static final String MOBILE_SOFT_UID = "UID_1234567890";
+	public static final String MOBILE_MEMBER_ID = "SimuMemberID_1";
 	public static final String MOBILE_LOGIN_ID = "ID_012345";
 	public static final boolean MOBILE_CONNECTING = true;
 	public static final boolean MOBILE_ON_RELAY = false;

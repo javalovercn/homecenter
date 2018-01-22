@@ -10,10 +10,12 @@ import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
+import hc.core.RootConfig;
 import hc.core.RootServerConnector;
 import hc.core.data.DataReg;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
+import hc.core.util.RootBuilder;
 import hc.core.util.StringUtil;
 import hc.core.util.UIUtil;
 
@@ -127,7 +129,7 @@ public class SIPManager {
 		final String[] out = (String[])coreSS.context.doExtBiz(IContext.BIZ_UPLOAD_LINE_ON, null);
 
 		if(IConstant.serverSide && (out != null)){
-			if(out[0].equals("false")){
+			if(IConstant.FALSE.equals(out[0])){
 				//服务器ID被占用或无法连接服务器
 				return false;
 			}
@@ -153,7 +155,32 @@ public class SIPManager {
 		
 		boolean isShowServerBusy = false;
 		
-		final int maxTryCount = 14;//14/2=7, 7 > call.php/TIME_TO_SEC/3 * 2
+		if(RootConfig.isFailToGetAliveRootCfg()){
+			final String ipAndPort = (String)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_QUERY_DIRECT_SERVER_IP, null);
+			if(ipAndPort != null){
+				try{
+					infoServerOnline();
+					
+					final String[] ipport = StringUtil.splitToArray(ipAndPort, StringUtil.SPLIT_LEVEL_2_JING);
+					final String ip = ipport[0];
+					final String port = ipport[1];
+					L.V = L.WShop ? false : LogManager.log("query direct server by multicast, ip : " + ip + ", port : " + port);
+					
+					final int timeOut = 5000;
+					final IPAndPort l_directIpPort = SIPManager.tryBuildConnOnDirect(hcConnection, subTag, new IPAndPort(ip, Integer.parseInt(port)), "Direct Mode",
+							EnumNAT.OPEN_INTERNET, timeOut, tokenBS);//内网直联最长时间改为一秒
+					if(l_directIpPort != null){
+						infoDirectModeYes();
+	
+						return CONN_OK_MODE_CONNECTION_HOME_WIRELESS;
+					}
+				}catch (Throwable e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		final int maxTryCount = 3;//14/2=7, 7 > call.php/TIME_TO_SEC/3 * 2
 		do{
 			L.V = L.WShop ? false : LogManager.log("try get server ip/port...");
 			obj = RootServerConnector.getServerIPAndPortV2(RootServerConnector.getHideToken());
@@ -219,8 +246,15 @@ public class SIPManager {
 //				return false;
 //			}catch (Throwable e) {
 //			}
+		if(RootConfig.isFailToGetAliveRootCfg()){
+			final String relayDisable = UIUtil.getUIString("1035", "Off-Line mode, net relay is not available!");
+			RootBuilder.getInstance().doBiz(RootBuilder.ROOT_SPEAK_VOICE, relayDisable);
+			LogManager.info(relayDisable);
+			LogManager.info(UIUtil.getUIString("m130", "line off, try last connection."));
+		}else{
+			infoServerOnline();
+		}
 		
-		LogManager.info(UIUtil.getUIString("m104", "server : online"));
 		final String[] out = (String[])obj;
 
 		//优先尝试直接连接
@@ -244,7 +278,7 @@ public class SIPManager {
 			}
 			if(l_directIpPort != null){
 				//EnumNAT.OPEN_INTERNET or Symmetric
-				LogManager.info(UIUtil.getUIString("m106", "direct mode : yes"));
+				infoDirectModeYes();
 
 				//家庭内网不需要调用本步
 				//发送REG到服务器,触发服务器初始化进程
@@ -279,9 +313,21 @@ public class SIPManager {
 			}
 			LogManager.info(UIUtil.getUIString("m110", "relay mode : fail"));
 		}
+		
+		if(RootConfig.isFailToGetAliveRootCfg()){
+			RootServerConnector.errorRepareNetwork();
+		}
 
 		//尝试无法连接
 		return CONN_ERR_MOBI_FAIL_CONN;
+	}
+
+	private static void infoDirectModeYes() {
+		LogManager.info(UIUtil.getUIString("m106", "direct mode : yes"));
+	}
+
+	private static void infoServerOnline() {
+		LogManager.info(UIUtil.getUIString("m104", "server : online"));
 	}
 
 //	public static IPAndPort reConnectAfterResetExcep(final HCConnection hcConnection, final byte[] tokenBS){

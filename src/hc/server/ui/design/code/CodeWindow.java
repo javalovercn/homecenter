@@ -158,7 +158,7 @@ public class CodeWindow {
 							|| (nextChar >= 'A' && nextChar <= 'Z') 
 							|| (nextChar >= '0' && nextChar <= '9') 
 							|| nextChar == '_'
-							|| nextChar == CodeHelper.RUBY_METHOD_BOOL_CHAR){
+							){
 						preCodeChars[preCodeCharsLen++] = nextChar;
 						textPane.setCaretPosition(++movingScriptIdx);
 						refill(e);
@@ -433,7 +433,8 @@ public class CodeWindow {
 		Collections.sort(target);
 	}
 	
-	public static void fillForAutoTip(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target, final String fieldOrMethod) {
+	public static void fillForAutoTip(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target, 
+			final boolean isBeginWith, final String fieldOrMethodWithoutGanTanHaoOrWenHao) {
 		target.clear();
 		final int size = src.size();
 		for (int i = 0; i < size; i++) {
@@ -449,7 +450,8 @@ public class CodeWindow {
 //					continue;
 //				}
 //			}
-			if(codeItem.fieldOrMethodOrClassName.equals(fieldOrMethod)){
+			if((isBeginWith && codeItem.fieldOrMethodOrClassName.startsWith(fieldOrMethodWithoutGanTanHaoOrWenHao, 0))//考虑ruby.method! | method? | method三型，所以改为startsWith
+					|| codeItem.fieldOrMethodOrClassName.equals(fieldOrMethodWithoutGanTanHaoOrWenHao)){
 				addItemExcludeOverride(codeItem, target);
 			}
 		}
@@ -558,15 +560,17 @@ public class CodeWindow {
 		}
 	};
 
+	char[] shujin;
+
 	public final void actionOnItem(final int selectedIndex) {
 		hide();
 
 		if(selectedIndex >= 0){
 			final CodeItem item = classData.get(selectedIndex);
 			if(item != null){
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
+//				SwingUtilities.invokeLater(new Runnable() {
+//					@Override
+//					public void run() {
 						if(item.anonymousClass != null){
 							insertAnonymouseClass(item);
 						}else if(item.isInnerClass){
@@ -574,144 +578,142 @@ public class CodeWindow {
 						}else{
 							insertMethod(item);
 						}
-					}
-					
-					private final String removeParameters(final String insertedCode){
-						return insertedCode.substring(0, insertedCode.indexOf("("));
-					}
-					
-					private final char[] getShuJin(final Document doc, int line) throws BadLocationException {
-						//获得缩进串
-						String lineStr;
-						while(true){
-							lineStr = ScriptEditPanel.getLineText(doc, line);
-							if(lineStr.length() > 0){
-								break;
-							}
-							line--;
-						}
-						return lineStr.toCharArray();
-					}
-
-					public final void insertInnerClass() {
-						try {
-							final int charIdxRemovedTab = getShujinTabIdx();
-							
-							document.remove(oriScriptIdx, preCodeCharsLen);
-							
-							final StringBuilder sb = StringBuilderCacher.getFree();
-							sb.append(CodeHelper.JRUBY_NEW);
-							sb.append("(BaseClass) {");
-							sb.append('\n');
-							
-							sb.append(shujin, 0, charIdxRemovedTab);
-							sb.append('\t');
-//							final int newLocIdx = sb.length();
-							sb.append('\n');
-							
-							sb.append(shujin, 0, charIdxRemovedTab);
-							sb.append("}.new");
-							
-							document.insertString(oriScriptIdx, sb.toString(), ScriptEditPanel.DEFAULT_LIGHTER);
-							StringBuilderCacher.cycle(sb);
-							
-							final int position = oriScriptIdx + CodeHelper.JRUBY_NEW.length() + 1;
-							textPane.setSelectionStart(position);
-							textPane.setSelectionEnd(position + 9);//BaseClass.length == 9
-							
-							TabHelper.setInnerClassTabBlock();
-						} catch (final BadLocationException e) {
-							ExceptionReporter.printStackTrace(e);
-						}
-					}
-					
-					char[] shujin;
-					
-					public final void insertAnonymouseClass(final CodeItem item) {
-						try {
-							final int charIdxRemovedTab = getShujinTabIdx();
-							
-							document.remove(oriScriptIdx, preCodeCharsLen);
-							final String insertedCode = removeParameters(item.code);
-							
-							final StringBuilder sb = StringBuilderCacher.getFree();
-							sb.append(insertedCode);
-							if(item.anonymousClass == Runnable.class){
-								sb.append(" {");
-							}else{
-								sb.append(" {|e|");
-							}
-							sb.append('\n');
-							
-							sb.append(shujin, 0, charIdxRemovedTab);
-							sb.append('\t');
-							final int newLocIdx = sb.length();
-							sb.append('\n');
-							
-							sb.append(shujin, 0, charIdxRemovedTab);
-							sb.append('}');
-							
-							document.insertString(oriScriptIdx, sb.toString(), ScriptEditPanel.DEFAULT_LIGHTER);
-							StringBuilderCacher.cycle(sb);
-							
-//							textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, oriScriptIdx));
-							final int position = oriScriptIdx + newLocIdx;
-							textPane.setCaretPosition(position);
-						} catch (final BadLocationException e) {
-							ExceptionReporter.printStackTrace(e);
-						}
-					}
-
-					private final int getShujinTabIdx() throws BadLocationException {
-						final int line = ScriptEditPanel.getLineOfOffset(document, oriScriptIdx);
-						shujin = getShuJin(document, line);
-						int charIdxRemovedTab = 0;
-						for (; charIdxRemovedTab < shujin.length; charIdxRemovedTab++) {
-							if(shujin[charIdxRemovedTab] == ' ' || shujin[charIdxRemovedTab] == '\t'){
-							}else{
-								break;
-							}
-						}
-						return charIdxRemovedTab;
-					}
-					
-					public final void insertMethod(final CodeItem item) {
-						try {
-							final int itemType = item.type;
-							if(codeInvokeCounter.isRecordableItemType(itemType)){
-								codeInvokeCounter.addOne(item);
-							}
-							
-							document.remove(oriScriptIdx, preCodeCharsLen);
-							final String insertedCode = item.code;
-							AttributeSet attSet = null;
-							if(item.isCSSProperty || item.isCSSClass){
-								attSet = ScriptEditPanel.STR_LIGHTER;
-							}
-							document.insertString(oriScriptIdx, insertedCode, attSet);//注：attSet不为null可减少闪烁，即使后有refreshCurrLineAfterKey
-							final int position = oriScriptIdx + insertedCode.length();
-							
-							textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, oriScriptIdx));
-							TabHelper.notifyInputBlock(insertedCode.length() - preCodeCharsLen);
-							
-							final char[] insertedCodeChars = insertedCode.toCharArray();
-							final int parameterNum = TabBlock.countParameterNum(insertedCodeChars);
-							if(parameterNum > 0){
-								TabHelper.setCurrentTabBlock(oriScriptIdx, insertedCodeChars, parameterNum);
-//								setCurrentTabBlock方法内有setCaretPosition，故不用
-//								textPane.setCaretPosition(position);
-							}else{
-								textPane.setCaretPosition(position);
-							}
-						} catch (final BadLocationException e) {
-//							ExceptionReporter.printStackTrace(e);
-						}
-					}
-				});
+//					}
+//				});
 			}
 		}
 	}
 
+	private final String removeParameters(final String insertedCode){
+		return insertedCode.substring(0, insertedCode.indexOf("("));
+	}
+	
+	private final char[] getShuJin(final Document doc, int line) throws BadLocationException {
+		//获得缩进串
+		String lineStr;
+		while(true){
+			lineStr = ScriptEditPanel.getLineText(doc, line);
+			if(lineStr.length() > 0){
+				break;
+			}
+			line--;
+		}
+		return lineStr.toCharArray();
+	}
+
+	private final void insertInnerClass() {
+		try {
+			final int charIdxRemovedTab = getShujinTabIdx();
+			
+			document.remove(oriScriptIdx, preCodeCharsLen);
+			
+			final StringBuilder sb = StringBuilderCacher.getFree();
+			sb.append(CodeHelper.JRUBY_NEW);
+			sb.append("(BaseClass) {");
+			sb.append('\n');
+			
+			sb.append(shujin, 0, charIdxRemovedTab);
+			sb.append('\t');
+//			final int newLocIdx = sb.length();
+			sb.append('\n');
+			
+			sb.append(shujin, 0, charIdxRemovedTab);
+			sb.append("}.new");
+			
+			document.insertString(oriScriptIdx, sb.toString(), ScriptEditPanel.DEFAULT_LIGHTER);
+			StringBuilderCacher.cycle(sb);
+			
+			final int position = oriScriptIdx + CodeHelper.JRUBY_NEW.length() + 1;
+			textPane.setSelectionStart(position);
+			textPane.setSelectionEnd(position + 9);//BaseClass.length == 9
+			
+			TabHelper.setInnerClassTabBlock();
+		} catch (final BadLocationException e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+	}
+	
+	private final void insertAnonymouseClass(final CodeItem item) {
+		try {
+			final int charIdxRemovedTab = getShujinTabIdx();
+			
+			document.remove(oriScriptIdx, preCodeCharsLen);
+			final String insertedCode = removeParameters(item.code);
+			
+			final StringBuilder sb = StringBuilderCacher.getFree();
+			sb.append(insertedCode);
+			if(item.anonymousClass == Runnable.class){
+				sb.append(" {");
+			}else{
+				sb.append(" {|e|");
+			}
+			sb.append('\n');
+			
+			sb.append(shujin, 0, charIdxRemovedTab);
+			sb.append('\t');
+			final int newLocIdx = sb.length();
+			sb.append('\n');
+			
+			sb.append(shujin, 0, charIdxRemovedTab);
+			sb.append('}');
+			
+			document.insertString(oriScriptIdx, sb.toString(), ScriptEditPanel.DEFAULT_LIGHTER);
+			StringBuilderCacher.cycle(sb);
+			
+//			textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, oriScriptIdx));
+			final int position = oriScriptIdx + newLocIdx;
+			textPane.setCaretPosition(position);
+		} catch (final BadLocationException e) {
+			ExceptionReporter.printStackTrace(e);
+		}
+	}
+
+	private final int getShujinTabIdx() throws BadLocationException {
+		final int line = ScriptEditPanel.getLineOfOffset(document, oriScriptIdx);
+		shujin = getShuJin(document, line);
+		int charIdxRemovedTab = 0;
+		for (; charIdxRemovedTab < shujin.length; charIdxRemovedTab++) {
+			if(shujin[charIdxRemovedTab] == ' ' || shujin[charIdxRemovedTab] == '\t'){
+			}else{
+				break;
+			}
+		}
+		return charIdxRemovedTab;
+	}
+	
+	private final void insertMethod(final CodeItem item) {
+		try {
+			final int itemType = item.type;
+			if(codeInvokeCounter.isRecordableItemType(itemType)){
+				codeInvokeCounter.addOne(item);
+			}
+			
+			document.remove(oriScriptIdx, preCodeCharsLen);
+			final String insertedCode = item.code;
+			AttributeSet attSet = null;
+			if(item.isCSSProperty || item.isCSSClass){
+				attSet = ScriptEditPanel.STR_LIGHTER;
+			}
+			document.insertString(oriScriptIdx, insertedCode, attSet);//注：attSet不为null可减少闪烁，即使后有refreshCurrLineAfterKey
+			final int position = oriScriptIdx + insertedCode.length();
+			
+			textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, oriScriptIdx));
+			TabHelper.notifyInputBlock(insertedCode.length() - preCodeCharsLen);
+			
+			final char[] insertedCodeChars = insertedCode.toCharArray();
+			final int parameterNum = TabBlock.countParameterNum(insertedCodeChars);
+			if(parameterNum > 0){
+				TabHelper.setCurrentTabBlock(oriScriptIdx, insertedCodeChars, parameterNum);
+//				setCurrentTabBlock方法内有setCaretPosition，故不用
+//				textPane.setCaretPosition(position);
+			}else{
+				textPane.setCaretPosition(position);
+			}
+		} catch (final BadLocationException e) {
+//			ExceptionReporter.printStackTrace(e);
+		}
+	}
+	
 	private final void dispatchEvent(final KeyEvent e, final int keyCode) {
 		if(e.getSource() != codeList){
 			codeList.dispatchEvent(new KeyEvent(codeList, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, keyCode, e.getKeyChar()));

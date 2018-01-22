@@ -73,7 +73,7 @@ public class ConfigManager {
 	public static final String UI_DISABLE_ROTATE = "hc.ui.disableRotate";
 	public static final String UI_ENABLE_ROTATE = "hc.ui.enableRotate";
 
-	public static final String UI_SCALE_OF_SCREEN = "hc.ui.scale";//iOS
+	public static final String UI_HTML_SCALE_OF_SCREEN = "hc.ui.HTMLScale";//iOS
 	public static final String UI_HIDE_INPUT_PANEL = "hc.ui.hideInputPanel";//iOS不需实现
 	
 	public static final String IOS_MOV_TO_SQLITE3 = "hc.movToSqlite3";

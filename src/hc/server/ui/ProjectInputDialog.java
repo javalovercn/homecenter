@@ -39,7 +39,6 @@ public class ProjectInputDialog extends SystemDialog{
 		final int areaFontSize = (int)(fontSizePX * 0.7);
 		final int labelHeight = (int)(fontSizePX * 1.4);
 		
-		final String fieldStyle = "display: block;box-sizing: border-box;width: 100%;vertical-align:middle;";//font-size:" + areaFontSize + "px;
 		final int halfMobileW = getMobileWidth() / 2;
 		
 		final JTextField[] fields = new JTextField[fieldNum];
@@ -48,24 +47,18 @@ public class ProjectInputDialog extends SystemDialog{
 			field.setPreferredSize(new Dimension(halfMobileW, labelHeight));
 			
 			fields[i] = field;
-			setCSSForDiv(field, null, SystemHTMLMlet.CENTER_FOR_DIV);
-			setCSS(field, null, fieldStyle);
 			
-			fields[i].setColumns(18);
+			setFieldCSS(field);
 		}
 		
 		final JPanel tablePanel = new JPanel(new GridLayout(fieldNum * 2 + 1, 1));
 		{
-			final String labelDivStyle = "overflow:hidden;";
-			final String labelStyle = "font-weight:bold;";//font-size:" + areaFontSize + "px;
-			
 			for (int i = 0; i < fieldNum; i++) {
 				final String text = fieldNames[i];
 				final JLabel label = new JLabel(text);
 				
 				label.setPreferredSize(new Dimension(halfMobileW, labelHeight));
-				setCSSForDiv(label, null, labelDivStyle);
-				setCSS(label, null, labelStyle);
+				setLabelCSS(label, false);
 
 				tablePanel.add(label);
 				tablePanel.add(fields[i]);
@@ -75,8 +68,7 @@ public class ProjectInputDialog extends SystemDialog{
 			final JLabel label = new JLabel(descI18N);
 			
 			label.setPreferredSize(new Dimension(halfMobileW, labelHeight));
-			setCSSForDiv(label, null, labelDivStyle);
-			setCSS(label, null, labelStyle);
+			setLabelCSS(label, false);
 			
 			tablePanel.add(label);
 		}
@@ -125,7 +117,7 @@ public class ProjectInputDialog extends SystemDialog{
 		final JButton ok = new JButton(ResourceUtil.getOKI18N(localCoreSS), new ImageIcon(okImage));
 		setButtonStyle(ok);
 		
-		final int buttonPanelHeight = Math.max(fontSizePX + getFontSizeForNormal(), getButtonHeight());
+		final int buttonPanelHeight = Math.max(fontSizePX + getFontSizeForButton(), getButtonHeight());
 		centerPanel.add(ok, BorderLayout.SOUTH);
 		
 		ok.setMinimumSize(new Dimension(10, buttonPanelHeight));

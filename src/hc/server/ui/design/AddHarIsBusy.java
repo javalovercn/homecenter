@@ -34,9 +34,9 @@ public class AddHarIsBusy extends SystemHTMLMlet {
 		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() {
-				exitButtonStr = (String)ResourceUtil.get(localCoreSS, 9131);
-				busyMsg = (String)ResourceUtil.get(localCoreSS, 9233);
-				waitAndTry = (String)ResourceUtil.get(localCoreSS, 9234);
+				exitButtonStr = ResourceUtil.get(localCoreSS, 9131);
+				busyMsg = ResourceUtil.get(localCoreSS, 9233);
+				waitAndTry = ResourceUtil.get(localCoreSS, 9234);
 				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(true);
 				return null;
 			}
@@ -65,7 +65,7 @@ public class AddHarIsBusy extends SystemHTMLMlet {
 //		final String btnFontSizeCSS = "font-size:" + getFontSizeForButton() + "px;";
 //		setCSS(this, null, btnFontSizeCSS);//系统Mlet, //不考虑in user thread
 		addProcessingPanel.add(msgArea, BorderLayout.CENTER);
-		exitButton.setPreferredSize(new Dimension(getMobileWidth(), getButtonHeight()));
+		exitButton.setPreferredSize(new Dimension(getMobileWidth(), SystemHTMLMlet.getButtonHeight(getFontSizeForNormal() + getFontSizeForButton(), getButtonHeight())));
 //		setCSS(exitButton, null, "text-align:center;vertical-align:middle;width:100%;height:100%;" + btnFontSizeCSS);//系统Mlet, //不考虑in user thread
 		exitButton.addActionListener(new ActionListener() {
 			@Override

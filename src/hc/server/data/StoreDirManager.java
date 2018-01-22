@@ -16,6 +16,7 @@ public class StoreDirManager {
 	public static final String HC_RMS = "hc_rms";
 	private static final String TEMP_DIR_NAME = "temp";
 	public static final String LINK_DIR_NAME = "link";
+	public static final String LOGS_DIR_NAME = "logs";
 	static final String CFG_DIR_NAME = "cfg";
 	
 	public final static String HC_SYS_FOR_USER_PRIVATE_DIR = "_HC" + File.separator;//getPrivateFile("mySubDir2/subSubDir").mkdirs();
@@ -60,6 +61,7 @@ public class StoreDirManager {
 	public static final File TEMP_DIR = new File(ResourceUtil.getBaseDir(), TEMP_DIR_NAME);
 	public static final File RMS_DIR = new File(ResourceUtil.getBaseDir(), HC_RMS);
 	public static final File LINK_DIR = new File(ResourceUtil.getBaseDir(), LINK_DIR_NAME);
+	public static final File LOGS_DIR = new File(ResourceUtil.getBaseDir(), LOGS_DIR_NAME);
 	public static final File CFG_DIR = new File(ResourceUtil.getBaseDir(), CFG_DIR_NAME);
 	public static final File RUN_TEST_DIR = new File(ResourceUtil.getBaseDir(), "runtest");
 	public static final String RUN_TEST_ABS_PATH = RUN_TEST_DIR.getAbsolutePath();
@@ -98,6 +100,10 @@ public class StoreDirManager {
 
 		if(RUN_TEST_DIR.exists() == false){
 			RUN_TEST_DIR.mkdirs();
+		}
+		
+		if(LOGS_DIR.exists() == false){
+			LOGS_DIR.mkdirs();
 		}
 	}
 

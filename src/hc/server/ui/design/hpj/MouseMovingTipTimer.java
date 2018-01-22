@@ -17,7 +17,7 @@ public class MouseMovingTipTimer extends HCTimer {
 	final int fontHeight;
 	CodeHelper codeHelper;
 	final ScriptEditPanel scriptPanel;
-	long setLocMS;
+	long setLocMS, lastShowMS;
 	
 	public final void setLocation(final int x, final int y){
 		setLocMS = System.currentTimeMillis();
@@ -27,8 +27,11 @@ public class MouseMovingTipTimer extends HCTimer {
 		resetTimerCount();
 	}
 	
+	static final int interMS = 600;
+	static final int interDirtyMS = interMS - 200;
+
 	public MouseMovingTipTimer(final ScriptEditPanel scriptPanel, final HCTextPane jtaScript, final AbstractDocument jtaDocment, final int fontHeight) {
-		super("MouseMovingTipTimer", 600, false);//由原来的1000=>600
+		super("MouseMovingTipTimer", interMS, false);//由原来的1000=>600
 		if(L.isInWorkshop){
 			LogManager.log("create MouseMovingTipTimer");
 		}
@@ -39,13 +42,6 @@ public class MouseMovingTipTimer extends HCTimer {
 		this.scriptPanel = scriptPanel;
 	}
 	
-	public final CodeHelper getCodeHelper(){
-		if(codeHelper == null){
-			codeHelper = scriptPanel.designer.codeHelper;
-		}
-		return codeHelper;
-	}
-
 	@Override
 	public void doBiz() {
 		final Designer designer = scriptPanel.designer;
@@ -55,12 +51,14 @@ public class MouseMovingTipTimer extends HCTimer {
 			return;
 		}
 		
-		getCodeHelper();
+		if(codeHelper == null){
+			codeHelper = scriptPanel.designer.codeHelper;
+		}
 		
 		synchronized (ScriptEditPanel.scriptEventLock) {
 			setEnable(false);
 			
-			if(System.currentTimeMillis() - 500 > setLocMS){//防止time已启动，但是事件又更新，导致eventPoint为脏数据
+			if(System.currentTimeMillis() - interDirtyMS > setLocMS){//防止time已启动，但是事件又更新，导致eventPoint为脏数据
 			}else{
 				return;
 			}
@@ -77,6 +75,7 @@ public class MouseMovingTipTimer extends HCTimer {
 				if(isOn){
 					lastShowX = x;
 					lastShowY = y;
+					lastShowMS = System.currentTimeMillis();
 				}
 			}catch (final Exception ex) {
 				//比如java.awt.IllegalComponentStateException: component must be showing on the screen to determine its location

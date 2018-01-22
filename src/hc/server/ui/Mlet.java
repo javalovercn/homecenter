@@ -41,6 +41,17 @@ public class Mlet extends JPanel implements ICanvas {
 	private static final long serialVersionUID = 7;
 	final Object synLock = new Object();
 	boolean enableApplyOrientationWhenRTL = true;
+	boolean isCancelable = true;
+	
+	/**
+	 * set current <code>Mlet/HTMLMlet</code> to be not cancelable, for example back key in Android.
+	 * <BR><BR>
+	 * <STRONG>Important :</STRONG><BR>
+	 * this method must be invoked before {@link ProjectContext#goMletWhenInSession(Mlet, String)}, {@link ProjectContext#goWhenInSession(String)} and {@link ProjectContext#goWhenInSession(String, String)}.
+	 */
+	public final void setCancelableToNo(){
+		this.isCancelable = false;
+	}
 	
 	/**
 	 * construct this instance.

@@ -71,6 +71,10 @@ public class UserThreadResourceUtil {
 	public final static String getMobileSoftUID(final J2SESession coreSS){
 		return getMobileAgent(coreSS).getSoftUID();
 	}
+	
+	public final static String getMobileMemberID(final J2SESession coreSS){
+		return getMobileAgent(coreSS).getMemberID();
+	}
 
 	public static int getDeviceWidthFrom(final J2SESession coreSS) {
 		if (isInServing(coreSS.context)) {

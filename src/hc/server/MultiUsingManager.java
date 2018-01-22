@@ -71,7 +71,7 @@ public class MultiUsingManager {
 
 	private static void sendWarning(final J2SESession coreSS) {
 		final J2SESession[] coreSSS = {coreSS};
-		ServerUIAPIAgent.sendMessageViaCoreSS(coreSSS, ResourceUtil.getWarnI18N(coreSS), (String)ResourceUtil.get(coreSS, 9239), ProjectContext.MESSAGE_WARN, null, 0);
+		ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, ResourceUtil.getWarnI18N(coreSS), (String)ResourceUtil.get(coreSS, 9239), ProjectContext.MESSAGE_WARN, null, 0);
 	}
 	
 	public final synchronized static void exit(final J2SESession coreSS, final String screenID){

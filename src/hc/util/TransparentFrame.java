@@ -36,11 +36,13 @@ public class TransparentFrame extends HCJFrame {
         this.setSize(img.getWidth(null), img.getHeight(null));
         this.setUndecorated(true);
  
-        //Shape形状
-        PlatformManager.getService().setWindowShape(this, ImageSrc.getImageShape(img));
-        //透明度
-        //AWTUtilities.setWindowOpacity
-        
+        try{
+	        //Shape形状
+	        PlatformManager.getService().setWindowShape(this, ImageSrc.getImageShape(img));
+	        //透明度
+	        //AWTUtilities.setWindowOpacity
+        }catch (final Throwable e) {
+		}
     }
  
     @Override

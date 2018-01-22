@@ -98,7 +98,7 @@ public class UpdateLockRowSemaphore extends DBSemaphore {
                 }
                 try {
                     Thread.sleep(1000L);
-                } catch (InterruptedException _) {
+                } catch (InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
             }

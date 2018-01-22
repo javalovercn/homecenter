@@ -104,6 +104,7 @@ public class HCURL {
 	public static final String DATA_PARA_REPORT_JUMP_EXCEPTION = "jmpExcp";
 	public static final String DATA_PARA_NOTIFY_RECEIVER = "notiRecv";
 	public static final String DATA_PARA_NOTIFY_RECEIVER_PARA = "notiRecvPara";
+	public static final String DATA_PARA_NOTIFY_RECEIVER_CANCEL_PARA = "notiRecvCancelPara";
 	public static final String DATA_PARA_REMOVE_SCREEN_BY_IDX = "removeScreenByIdx";
 	public static final String DATA_PARA_SHIFT_SCREEN_TO_TOP_FROM_IDX = "sftTopIdx";
 	public static final String DATA_PARA_SHIFT_SCREEN_TO_TOP_SIZE = "sftTopSize";
@@ -120,6 +121,8 @@ public class HCURL {
 	public static final String DATA_PARA_VOICE_COMMANDS = CCoreUtil.SYS_PREFIX + "voiceCommand";
 	public static final String DATA_PARA_MGR_PROJS_COMMANDS = CCoreUtil.SYS_PREFIX + "MgrProjs";
 	public static final String DATA_PARA_CHANGE_PASSWORD = "changePassword";
+	public static final String DATA_PARA_ERR_ON_CACHE = "errOnCache";
+	public static final String DATA_PARA_CHANGE_MEMBER_ID = "changeMemberID";
 	public static final String DATA_PARA_SCAN_QR_CODE = "scanQRCode";
 	public static final String DATA_PARA_NOTIFY_CANVAS_MENU_DONE = "notifyCanvasMenuDone";
 

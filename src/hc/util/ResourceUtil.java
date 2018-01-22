@@ -1,5 +1,87 @@
 package hc.util;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.OutputStream;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.security.MessageDigest;
+import java.sql.Connection;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.MissingFormatArgumentException;
+import java.util.Properties;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.imageio.ImageIO;
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.InputMap;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.DefaultEditorKit;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.undo.UndoableEdit;
+
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.CoreSession;
@@ -36,81 +118,6 @@ import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.SystemDialog;
 import hc.server.ui.design.SystemHTMLMlet;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Image;
-import java.awt.RenderingHints;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
-import java.security.MessageDigest;
-import java.sql.Connection;
-import java.sql.Statement;
-import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.MissingFormatArgumentException;
-import java.util.Properties;
-import java.util.Random;
-import java.util.UUID;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.imageio.ImageIO;
-import javax.swing.Action;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.InputMap;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
-import javax.swing.UIDefaults;
-import javax.swing.UIManager;
-import javax.swing.text.DefaultEditorKit;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-
 public class ResourceUtil {
 	private static final int MAX_RES_ID = 10000;
 	public static final String USER_PROJ = "user.proj.";
@@ -121,6 +128,71 @@ public class ResourceUtil {
 	final static Random random = new Random();
 	private static final Calendar calendarForRandom = Calendar.getInstance();
 	private static final StringBuilder stringBuilderForRandom = new StringBuilder(128);
+	private static final String IMPORT = "import ";
+	private static final Pattern IMPORT_PATTERN = Pattern.compile("^[ \\t]*import ([a-zA-Z0-9:_ \\.]+)$", Pattern.MULTILINE);
+	private static boolean isDoneForDocumentEventTypeWrapper = false;
+	private static Field documentEvent;
+	
+	public static AbstractDocument.DefaultDocumentEvent getDocumentEventType(final UndoableEdit edit) {
+		if(edit instanceof AbstractDocument.DefaultDocumentEvent){
+			return (AbstractDocument.DefaultDocumentEvent)edit;
+		}
+		
+		try {
+			if(documentEvent == null) {
+				if(isDoneForDocumentEventTypeWrapper == false) {
+					//以下是Java 9的实现
+					final Class claz = Class.forName("javax.swing.text.AbstractDocument$DefaultDocumentEventUndoableWrapper");
+					//final DefaultDocumentEvent dde;
+					isDoneForDocumentEventTypeWrapper = true;
+					documentEvent = claz.getDeclaredField("dde");
+					documentEvent.setAccessible(true);
+				}
+			}
+			if(documentEvent != null) {
+				return getDocumentEventType((UndoableEdit)documentEvent.get(edit));
+			}
+		}catch (final Exception e) {
+			e.printStackTrace();
+		}
+		throw new Error("unknow DocumentEventType.");
+	}
+	
+	public static String replaceImport(final String scripts){
+		if(scripts.indexOf(IMPORT, 0) >= 0){
+			final Matcher matcher = IMPORT_PATTERN.matcher(scripts);
+			StringBuilder sb = null;
+			int startIdx = 0;
+			while(matcher.find()){
+				if(sb == null){
+					sb = StringBuilderCacher.getFree();
+				}
+				final int shiftStartIdx = matcher.start();
+				final int shiftEndIdx = matcher.end();
+
+				final int endDocIdx = scripts.lastIndexOf('.', shiftEndIdx);
+				if(endDocIdx > shiftStartIdx){
+					if(shiftStartIdx > startIdx){
+						sb.append(scripts.substring(startIdx, shiftStartIdx));
+					}
+					
+					sb.append(scripts.substring(endDocIdx + 1, shiftEndIdx));
+					sb.append('=');
+					sb.append(scripts.substring(matcher.start(1), shiftEndIdx));
+					startIdx = shiftEndIdx;
+				}
+			}
+			if(sb == null){
+				return scripts;
+			}else{
+				sb.append(scripts.substring(startIdx));
+				final String out = sb.toString();
+				StringBuilderCacher.cycle(sb);
+				return out;
+			}
+		}
+		return scripts;
+	}
 	
 	private static Class getStarterClass(){
 		if(isCheckStarter == false){
@@ -146,6 +218,16 @@ public class ResourceUtil {
         dimen.width = dimen.height * 10;
         grid.setPreferredSize(dimen);
         return grid;
+	}
+	
+	public static String buildDescPrefix(final CoreSession coreSS, final String msg){
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		sb.append(get(coreSS, 9095));
+		sb.append(get(coreSS, 1041));
+		sb.append(msg);
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		return out;
 	}
 	
 	public static void printStackTrace(final Throwable t){
@@ -472,7 +554,7 @@ public class ResourceUtil {
 	}
 	
 	public static String getHideText(){
-		return (String)ResourceUtil.get(9179);
+		return ResourceUtil.get(9179);
 	}
 	
 	/**
@@ -521,6 +603,61 @@ public class ResourceUtil {
 			e.printStackTrace();
 		}
 		return "";
+	}
+	
+	public static final String toYYYYMMDD_HHMMSS(final long ms){
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		
+		final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		sb.append((timestamp.getYear() + 1900));
+		final int month = (timestamp.getMonth() + 1);
+		if(month < 10){
+			sb.append('0');
+		}
+		sb.append(month);
+		final int day = timestamp.getDate();
+		if(day < 10){
+			sb.append('0');
+		}
+		sb.append(day);
+		sb.append('_');
+		final int hour = timestamp.getHours();
+		if(hour < 10){
+			sb.append('0');
+		}
+		sb.append(hour);
+		final int minute = timestamp.getMinutes();
+		if(minute < 10){
+			sb.append('0');
+		}
+		sb.append(minute);
+		final int second = timestamp.getSeconds();
+		if(second < 10){
+			sb.append('0');
+		}
+		sb.append(second);
+		
+		final String out = sb.toString();
+		StringBuilderCacher.cycle(sb);
+		return out;
+	}
+	
+	/**
+	 * 0 means unknow
+	 * @param file
+	 * @return
+	 */
+	public static final long getFileCreateTime(final File file){
+        final Path filePath = file.toPath();
+
+        BasicFileAttributes attributes = null;
+        try{
+            attributes = Files.readAttributes(filePath, BasicFileAttributes.class);
+            return attributes.creationTime().to(TimeUnit.MILLISECONDS);
+        }catch (final IOException e){
+            e.printStackTrace();
+        }
+        return 0;
 	}
 	
 	public static final boolean saveToFile(final InputStream is, final File file){
@@ -598,7 +735,7 @@ public class ResourceUtil {
         try{
 	        for(final File curFile:TrxFiles ){
 	        	if(curFile.isDirectory()){
-	        		deleteDirectoryNowAndExit(curFile, true);
+	        		deleteDirectoryNow(curFile, true);
 	        	}else{
 	        		curFile.delete();  
 	        	}
@@ -614,7 +751,7 @@ public class ResourceUtil {
 		if(targetDir.exists() == false){
 			targetDir.mkdirs();
 		}else{
-			deleteDirectoryNowAndExit(targetDir, false);
+			deleteDirectoryNow(targetDir, false);
 		}
 		
 		final File[] subs = srcDir.listFiles();
@@ -632,26 +769,26 @@ public class ResourceUtil {
 	}
 	
 	public static String getShowText(){
-		return (String)ResourceUtil.get(9180);
+		return ResourceUtil.get(9180);
 	}
 	
 	public static String getHideTip(){
-		return (String)ResourceUtil.get(9181);
+		return ResourceUtil.get(9181);
 	}
 	
 	public static String getShowTip(){
-		return (String)ResourceUtil.get(9186);
+		return ResourceUtil.get(9186);
 	}
 	
 	public static boolean refreshHideCheckBox(final JCheckBox checkBox, final JMenuItem hideIDForErrCert){
 		final boolean isHide = DefaultManager.isHideIDForErrCert();
 		final String tip = "<html>" +
-				(String)ResourceUtil.get(9236) + (isHide?getHideText():getShowText()) + "<BR><BR>" +
+				ResourceUtil.get(9236) + (isHide?getHideText():getShowText()) + "<BR><BR>" +
 				"<STRONG>" + getHideText() + "</STRONG>&nbsp;" + getHideTip() +
 				"<BR>" +
 				"<STRONG>" + getShowText() + "</STRONG>&nbsp;" + getShowTip() +
 				"<BR><BR>" +
-				StringUtil.replace((String)ResourceUtil.get(9212), "{disable}", (String)ResourceUtil.get(1021)) +
+				StringUtil.replace(ResourceUtil.get(9212), "{disable}", ResourceUtil.get(1021)) +
 				"</html>";
 		
 		final String hideCheckText;
@@ -803,15 +940,15 @@ public class ResourceUtil {
 	public static boolean checkEmailID(final String donateIDStr, final Component parent){
 		if (donateIDStr.startsWith("0") == false && ResourceUtil.validEmail(donateIDStr) == false) {//保留旧HomeCenterID支持
 			App.showMessageDialog(parent,
-					(String)ResourceUtil.get(9073),
-					(String) ResourceUtil.get(IContext.ERROR),
+					ResourceUtil.get(9073),
+					ResourceUtil.get(IContext.ERROR),
 					JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 		if (IConstant.checkUUID(donateIDStr) == false) {
 			App.showMessageDialog(parent, 
-					StringUtil.replace((String)ResourceUtil.get(9072), "{max}", "" + MsgBuilder.LEN_MAX_UUID_VALUE),
-					(String) ResourceUtil.get(IContext.ERROR),
+					StringUtil.replace(ResourceUtil.get(9072), "{max}", "" + MsgBuilder.LEN_MAX_UUID_VALUE),
+					ResourceUtil.get(IContext.ERROR),
 					JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
@@ -915,7 +1052,7 @@ public class ResourceUtil {
 				if(key.equals("uuid")){
 					str = str.replace(g, IConstant.getUUID());
 				}else{
-					str = str.replace(g, (String)ResourceUtil.get(Integer.parseInt(key)));
+					str = str.replace(g, ResourceUtil.get(Integer.parseInt(key)));
 				}
 			}else{
 				break;
@@ -1006,7 +1143,7 @@ public class ResourceUtil {
 	 * @param id
 	 * @return
 	 */
-	public static Object get(final int id){
+	public static String get(final int id){
 		if(id < MAX_RES_ID){
 			return UILang.getUILang(id);
 		}
@@ -1014,12 +1151,12 @@ public class ResourceUtil {
 	}
 	
 	/**
-	 * 
+	 * 可同时用于用户级线程中。
 	 * @param coreSS 可以为null
 	 * @param id
 	 * @return
 	 */
-	public static Object get(final CoreSession coreSS, final int id){
+	public static String get(final CoreSession coreSS, final int id){
 		if(id < MAX_RES_ID){
 			if(coreSS == null){
 				return get(id);
@@ -1605,7 +1742,7 @@ public class ResourceUtil {
 	public static final String EXT_DEX_JAR = ".dex.jar";
 	public static final String EXT_JAR = ".jar";
 	
-	public static final boolean deleteDirectoryNowAndExit(final File directory, final boolean isRemoveDirAlso) {
+	public static final boolean deleteDirectoryNow(final File directory, final boolean isRemoveDirAlso) {
 		//CCoreUtil.checkAccess();//projectCtx.removeDB is using
 	
 	    if(directory.exists()){
@@ -1614,7 +1751,7 @@ public class ResourceUtil {
 	            for(int i=0; i<files.length; i++) {
 	                final File file = files[i];
 					if(file.isDirectory()) {
-	                    deleteDirectoryNowAndExit(file, true);
+	                    deleteDirectoryNow(file, true);
 	                } else {
 	                    if(file.delete() == false){
 	                    	LogManager.errToLog("fail del file : " + file.getAbsolutePath());
@@ -1789,39 +1926,39 @@ public class ResourceUtil {
 	}
 
 	public static String getInfoI18N() {
-		return (String) get(IContext.INFO);
+		return get(IContext.INFO);
 	}
 
 	public static String getWarnI18N() {
-		return (String) get(IContext.WARN);
+		return get(IContext.WARN);
 	}
 
 	public static String getErrorI18N() {
-		return (String) get(IContext.ERROR);
+		return get(IContext.ERROR);
 	}
 	
 	public static String getConfirmI18N() {
-		return (String) get(IContext.CONFIRMATION);
+		return get(IContext.CONFIRMATION);
 	}
 	
 	public static String getYesI18N(){
-		return (String) get(1032);
+		return get(1032);
 	}
 	
 	public static String getNoI18N(){
-		return (String) get(1033);
+		return get(1033);
 	}
 	
 	public static String getInfoI18N(final J2SESession coreSS) {
-		return (String) get(coreSS, IContext.INFO);
+		return get(coreSS, IContext.INFO);
 	}
 
 	public static String getWarnI18N(final J2SESession coreSS) {
-		return (String) get(coreSS, IContext.WARN);
+		return get(coreSS, IContext.WARN);
 	}
 
 	public static String getErrorI18N(final J2SESession coreSS) {
-		return (String) get(coreSS, IContext.ERROR);
+		return get(coreSS, IContext.ERROR);
 	}
 
 	/**
@@ -1869,7 +2006,7 @@ public class ResourceUtil {
 	public static final String HAR_PROJECT_FILE_IS_CORRUPTED = "HAR project file is corrupted or incomplete.";
 	
 	public static String getErrProjIsDeledNeedRestart(final J2SESession coreSS){
-		return (String)ResourceUtil.get(coreSS, 9271);//project is removed, restart server and add again!
+		return ResourceUtil.get(coreSS, 9271);//project is removed, restart server and add again!
 	}
 
 	public static void generateCertForNullOrError() {
@@ -2114,7 +2251,7 @@ public class ResourceUtil {
 	}
 
 	public static String getProductName() {
-		return (String) get(UILang.PRODUCT_NAME);
+		return get(UILang.PRODUCT_NAME);
 	}
 
 	public static void doCopyShortcutForMac() {
@@ -2170,14 +2307,10 @@ public class ResourceUtil {
 			return Class.forName(className);
 		}catch (final Throwable e) {
 			try{
-				return ClassLoader.getSystemClassLoader().loadClass(className);
-			}catch (final Throwable ex) {
-				try {
-					return ResourceUtil.class.getClassLoader().loadClass(className);
-				} catch (final Throwable e1) {
-					if(printWhenNoFound){
-						e1.printStackTrace();//不建议用ExceptionReporter
-					}
+				return ResourceUtil.class.getClassLoader().loadClass(className);
+			} catch (final Throwable e1) {
+				if(printWhenNoFound){
+					e1.printStackTrace();//不建议用ExceptionReporter
 				}
 			}
 		}
@@ -2194,11 +2327,11 @@ public class ResourceUtil {
 	}
 
 	public static String getOKI18N(final J2SESession coreSS) {
-		return (String)get(coreSS, 1010);
+		return get(coreSS, 1010);
 	}
 
 	public static String getOKI18N() {
-		return (String) get(1010);
+		return get(1010);
 	}
 
 	public static boolean isReceiveDeployFromLocalNetwork() {
@@ -2223,7 +2356,7 @@ public class ResourceUtil {
 	 * @return
 	 */
 	public static String getSaveAndApply(final CoreSession coreSS) {
-		return (String) get(coreSS, 1017) + " + " + (String) get(coreSS, 9041);
+		return get(coreSS, 1017) + " + " + get(coreSS, 9041);
 	}
 
 	public static boolean isSystemMletOrDialog(final Mlet mlet) {

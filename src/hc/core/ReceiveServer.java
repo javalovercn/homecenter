@@ -429,7 +429,12 @@ public class ReceiveServer implements Runnable{
 							continue;
 						}
 					}
-					coreSocketSession.eventCenterDriver.addWatcher(eb);
+					
+					if(ctrlTag == MsgBuilder.E_JS_EVENT_TO_SERVER){
+						coreSocketSession.getJSEventProcessor().addWatcher(eb);
+					}else{
+						coreSocketSession.eventCenterDriver.addWatcher(eb);
+					}
 				}
 //				LogManager.log("Finished Receive Biz Action");
             }catch (final Exception e) {

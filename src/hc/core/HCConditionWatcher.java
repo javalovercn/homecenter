@@ -6,9 +6,9 @@ import hc.core.util.LogManager;
 import hc.core.util.ThreadPriorityManager;
 
 public class HCConditionWatcher {
-	private boolean isNotifyShutdown;
+	protected boolean isNotifyShutdown;
 	
-	public final void notifyShutdown(){
+	public void notifyShutdown(){
 		isNotifyShutdown = true;
 		
 		synchronized (watchers) {
@@ -16,12 +16,13 @@ public class HCConditionWatcher {
 		}
 	}
 	
-	private final String timeName;
+	protected final String timeName;
 	//注意:
 	//由于本对象属于HCTimer，所以AckBatchHCTimer去掉锁，未来变动时，请开启AckBatchHCTimer的锁机制。
 	private final HCTimer watcherTimer;
-	private final boolean isInWorkshop;
-	
+	protected final boolean isInWorkshop;
+	boolean isAddUnUsed = false;
+
 	public HCConditionWatcher(final String timeName){
 		this(timeName, ThreadPriorityManager.LOWEST_PRIORITY);
 	}
@@ -30,8 +31,8 @@ public class HCConditionWatcher {
 		this(timeName, true, newThreadPrority);
 	}
 	
-	private HCConditionWatcher(final String timeName, final boolean isNewThread, final int newThreadPrority){
-		this.timeName = timeName;
+	private HCConditionWatcher(final String tName, final boolean isNewThread, final int newThreadPrority){
+		this.timeName = tName;
 		isInWorkshop = L.isInWorkshop;
 		
 		watcherTimer = new HCTimer(timeName, HCTimer.HC_INTERNAL_MS, false, isNewThread, newThreadPrority){
@@ -44,7 +45,6 @@ public class HCConditionWatcher {
 			
 			public final void doBiz() {
 				IWatcher temp;
-				boolean isAddUnUsed = false;
 				do{
 					synchronized (watchers) {
 						temp = (IWatcher)watchers.getFirst();//注意：必须先入先处理
@@ -67,25 +67,7 @@ public class HCConditionWatcher {
 						LogManager.log("[" + timeName + "] processing a watcher : " + temp.hashCode());
 					}
 					
-					//因为在执行本实例时，有可能遇到同时请求移出，所以加实例锁，并在内部加集合锁
-					synchronized (temp) {
-						try{
-							if(temp.watch() == false){
-								synchronized (watchers) {
-									if(isNotifyShutdown == false){//shutdown时，关闭长时间任务
-										usedRewatchers.addTail(temp);
-										isAddUnUsed = true;
-									}
-								}
-							}
-						}catch (Throwable e) {//异常不会返回true，导致永久执行
-							LogManager.errToLog("Error IWatcher class : " + temp.getClass());
-							ExceptionReporter.printStackTrace(e);
-						}
-					}
-					if(isNotifyShutdown && isInWorkshop){
-						LogManager.log("[" + timeName + "] processed a watcher : " + temp.hashCode());
-					}
+					processingItem(temp);
 				}while(true);
 				
 				if(isAddUnUsed){
@@ -98,6 +80,7 @@ public class HCConditionWatcher {
 						while((rewatcher = usedRewatchers.getFirst()) != null){
 							watchers.addTail(rewatcher);
 						}
+						isAddUnUsed = false;
 					}
 				}else{
 					synchronized (watchers) {
@@ -211,6 +194,28 @@ public class HCConditionWatcher {
 			if(watchers.addTail(watcher)){
 				watcherTimer.setEnable(true);
 			}
+		}
+	}
+
+	protected void processingItem(IWatcher temp) {
+		//因为在执行本实例时，有可能遇到同时请求移出，所以加实例锁，并在内部加集合锁
+		synchronized (temp) {
+			try{
+				if(temp.watch() == false){
+					synchronized (watchers) {
+						if(isNotifyShutdown == false){//shutdown时，关闭长时间任务
+							usedRewatchers.addTail(temp);
+							isAddUnUsed = true;
+						}
+					}
+				}
+			}catch (Throwable e) {//异常不会返回true，导致永久执行
+				LogManager.errToLog("Error IWatcher class : " + temp.getClass());
+				ExceptionReporter.printStackTrace(e);
+			}
+		}
+		if(isNotifyShutdown && isInWorkshop){
+			LogManager.log("[" + timeName + "] processed a watcher : " + temp.hashCode());
 		}
 	}
 

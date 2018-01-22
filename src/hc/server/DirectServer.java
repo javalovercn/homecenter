@@ -86,8 +86,7 @@ public class DirectServer extends Thread {
 					server.bind(new InetSocketAddress(ia, 0), backlog);
 				}
 				//供家庭环境内无线网，快捷访问
-				StarterParameter.homeWirelessIpPort.ip = server.getInetAddress().getHostAddress();
-				StarterParameter.homeWirelessIpPort.port = server.getLocalPort();
+				StarterParameter.setHomeWirelessIPPort(server.getInetAddress().getHostAddress(), server.getLocalPort());
 				
 				if(isAutoSelectPort){
 					final JPanel panel = new JPanel(new BorderLayout());

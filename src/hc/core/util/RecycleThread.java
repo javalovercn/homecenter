@@ -18,6 +18,14 @@ public class RecycleThread implements Runnable{
 		this.thread = thread;
 	}
 	
+	public final boolean isIdle(){
+		return isWaiting;
+	}
+	
+	public final Thread getThread(){
+		return thread;
+	}
+	
 	public final void run(){
 		final LinkedSet freeThreads = pool.freeThreads;
 

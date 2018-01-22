@@ -1,0 +1,3 @@
+remove class list :
+RemoteMBeanScheduler
+XMLSchedulingDataProcessor

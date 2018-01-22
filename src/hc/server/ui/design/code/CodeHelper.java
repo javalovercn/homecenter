@@ -151,7 +151,8 @@ public class CodeHelper {
 	public static final String JRUBY_NEW_METHOD = JRUBY_NEW + "(";
 	private static final String JRUBY_CLASS_FOR_NEW = "Class";
 	public static final String JRUBY_JAVA_CLASS = "java_class";
-	public static final char RUBY_METHOD_BOOL_CHAR = '?';
+	public static final char RUBY_METHOD_BOOL_CHAR = '?';//str.nil??case1:case2
+	public static final char RUBY_METHOD_MODI_CHAR = '!';
 	private static final Class JRUBY_JAVA_CLASS_AGENT = JavaClass.class;
 	static final String IterNodeClass = IterNode.class.getName();
 	private static final Class JRUBY_CLASS_FOR_BULDER = ClassBulder.class;
@@ -226,10 +227,8 @@ public class CodeHelper {
 ////		}
 //	}
 	
-
-	
 	private final static String getMethodNameFromRubyMethod(final String method){
-		int endIdx = method.indexOf('!');
+		int endIdx = method.indexOf(RUBY_METHOD_MODI_CHAR);
 		if(endIdx > 0){
 			return method.substring(0, endIdx);
 		}
@@ -3886,6 +3885,7 @@ public class CodeHelper {
         	return false;
         }
         
+		boolean isRubyCharInMethod = false;
 		char[] lineChars = doc.getText(editLineStartIdx, lineEndOffset - editLineStartIdx).toCharArray();
 		{
 			int i = lineIdx;
@@ -3896,9 +3896,12 @@ public class CodeHelper {
 						|| nextChar >= 'A' && nextChar <= 'Z'
 						|| nextChar >= '0' && nextChar <= '9'
 						|| nextChar == '_'
-						|| nextChar == RUBY_METHOD_BOOL_CHAR){
+						){
 					charCount++;
 				}else{
+					if(nextChar == RUBY_METHOD_BOOL_CHAR || nextChar == RUBY_METHOD_MODI_CHAR){
+						isRubyCharInMethod = true;
+					}
 					if(charCount == 0){
 						if(isVarChar(lineChars[i - 1])){//只有一个字符，且偏右时
 							columnIdx--;
@@ -3916,12 +3919,6 @@ public class CodeHelper {
 		}
 		
 		synchronized (classCacheMethodAndPropForProject) {
-			try{
-				if(lineChars[columnIdx - 1] == RUBY_METHOD_BOOL_CHAR){//ruby method_defined?(string|symbol)中的?带入会导致错误
-					columnIdx--;
-				}
-			}catch (final Throwable e) {
-			}
 			initPreCode(lineChars, columnIdx, rowIdx);
 		}
 		if(isForcePopup == false && outAndCycle.size() == 0){
@@ -3936,7 +3933,7 @@ public class CodeHelper {
 					|| nextChar >= 'A' && nextChar <= 'Z'
 					|| nextChar >= '0' && nextChar <= '9'
 					|| nextChar == '_'
-					|| nextChar == RUBY_METHOD_BOOL_CHAR){//eql?等ruby方法
+					){
 			}else{
 				break;
 			}
@@ -3948,7 +3945,7 @@ public class CodeHelper {
 					|| nextChar >= 'A' && nextChar <= 'Z'
 					|| nextChar >= '0' && nextChar <= '9'
 					|| nextChar == '_'
-					|| nextChar == RUBY_METHOD_BOOL_CHAR){//eql?等ruby方法
+					){
 			}else{
 				break;
 			}
@@ -4009,7 +4006,7 @@ public class CodeHelper {
 			return false;
 		}
 		
-		CodeWindow.fillForAutoTip(outAndCycle, autoTipOut, preCode);
+		CodeWindow.fillForAutoTip(outAndCycle, autoTipOut, isRubyCharInMethod, preCode);
 		
 		final int matchSize = autoTipOut.size();
 		if(matchSize == 0){

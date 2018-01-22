@@ -1,5 +1,7 @@
 package hc.core;
 
+import hc.core.util.ByteUtil;
+import hc.core.util.CCoreUtil;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LangUtil;
 import hc.core.util.LogManager;
@@ -12,6 +14,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 public class RootServerConnector {
+	public static final String OFFLINE_ROOT_CFG = null;//"false###409600###1414###0###0###2###3000###7.24###0###5###240###86400000###false###9000###false###9###45.125.166.199###28076###-2,1,-3,22,-4,96,55,16,72,16,55,48###10000###28###true###4194304###4194304###30000###4###true###0###0###500###10240###20###4096###11000###7###false###6.93###false###4096###12000###2###20###false###false###20480###false###1024###1.7.3###1.7.19###";
 	public static final String MULTI_CLIENT_BUSY = "busy";
 	public static final String PORT_8080_WITH_MAOHAO = ":8080";
 	
@@ -116,6 +119,40 @@ public class RootServerConnector {
 	private static final String HTTPS = "https";
 	private static final String HTTP = "http";
 	
+	public final static String MULTICAST_IPV6 = "FF7E:76::0728";//注意：请勿加[]
+	public final static String MULTICAST_IPV4 = "232.28.7.76";//see App.main java.net.preferIPv4Stack
+	public final static int MULTICAST_PORT = 28076;
+	public final static int MULTICAST_DATAGRAM_LEN = 1024;
+	
+	final static byte[] MC_QUERY_DIRECT_SERVER_IP = "queryDirectServerIP:".getBytes();
+	final static byte[] MC_CHECK_ALIVE = "checkAlive".getBytes();
+	
+	public static final byte[] getQueryDirectServerCmdBS(){
+		CCoreUtil.checkAccess();
+		return MC_QUERY_DIRECT_SERVER_IP;
+	}
+	
+	public static final byte[] getCheckAliveCmdBS(){
+		CCoreUtil.checkAccess();
+		return MC_CHECK_ALIVE;
+	}
+	
+	public final static boolean isQueryDirectServerIPCmd(final byte[] bs, int off, final int len){
+		if(len >= MC_QUERY_DIRECT_SERVER_IP.length){
+			return isCmd(bs, off, MC_QUERY_DIRECT_SERVER_IP.length, MC_QUERY_DIRECT_SERVER_IP);
+		}else{
+			return false;
+		}
+	}
+	
+	public final static boolean isCheckAliveCmd(final byte[] bs, int off, final int len){
+		return isCmd(bs, off, len, MC_CHECK_ALIVE);
+	}
+
+	private static boolean isCmd(final byte[] bs, int off, final int len, final byte[] cmdBS) {
+		return ByteUtil.isSame(bs, off, len, cmdBS, 0, cmdBS.length);
+	}
+	
 	private static void init(){
 		boolean isInit = false;
 		if(isInit == false){
@@ -137,6 +174,16 @@ public class RootServerConnector {
 		return false;
 	}
 	
+	static HCTimer repairNetTimer;
+	
+	static void stopRepairTipTimer(){
+		if(repairNetTimer != null){
+			repairNetTimer.setEnable(false);
+			repairNetTimer.remove();
+			repairNetTimer = null;
+		}
+	}
+	
 	/**
 	 * 返回null表示异常发生；
 	 * 返回空串，表示正常；
@@ -149,22 +196,27 @@ public class RootServerConnector {
 		int tryTims = 0;
 		while(true){
 			msg = RootBuilder.getInstance().getAjax(url);
-			if(msg == null && tryTims < 2){
+			if(msg == null && tryTims < 1){
 			}else{
 				break;
 			}
 			tryTims++;
 			try{
-				Thread.sleep(1000);
+				Thread.sleep(500);
 			}catch (Exception e) {
 				
 			}
 		}
 		if(msg == null){
 			if(isLastUnConnServer == false){
-				//repairing network
-				final Object repare_net = RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_RESOURCE, new Integer(100));
-				LogManager.err(repare_net.toString());
+				//show repairing network info for client or print for server.
+				repairNetTimer = new HCTimer("repairNew", 300, true) {
+					public void doBiz() {
+						errorRepareNetwork();
+						remove();
+					}
+				};
+
 				isLastUnConnServer = true;
 			}
 		}else{
@@ -348,6 +400,16 @@ public class RootServerConnector {
 				ID_STR + encryptePara(IConstant.uuid, hideToken) + "&" +
 				HIDE_TOKEN_STR + hideToken + "&" +
 				ENCRYPTER_STR + "true");
+		
+		if(msg == null || msg.length() == 0){
+			final String lastAlive = (String)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_LAST_ALIVE_IP_INFO, null);
+			if(lastAlive != null){
+				LogManager.errToLog("fail to get alive IP/Port, use last saved alive IP/Port!!!");
+				msg = lastAlive;
+			}
+		}else{
+			RootBuilder.getInstance().doBiz(RootBuilder.ROOT_SET_LAST_ALIVE_IP_INFO, msg);
+		}
 		
 		if(msg == null || msg.length() == 0){
 			return null;
@@ -669,6 +731,11 @@ public class RootServerConnector {
 		}
 		
 		return https_url;
+	}
+
+	public static void errorRepareNetwork() {
+		final Object repare_net = RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_RESOURCE, new Integer(100));
+		LogManager.err(repare_net.toString());
 	}
 	
 }

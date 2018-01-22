@@ -29,6 +29,7 @@ import hc.server.msb.RobotListener;
 import hc.server.msb.RobotWrapper;
 import hc.server.msb.SimuRobot;
 import hc.server.msb.WiFiAccount;
+import hc.server.ui.BlockSystemDialog;
 import hc.server.ui.ClientSession;
 import hc.server.ui.CtrlResponse;
 import hc.server.ui.Dialog;
@@ -36,6 +37,7 @@ import hc.server.ui.DialogHTMLMlet;
 import hc.server.ui.DialogMlet;
 import hc.server.ui.HTMLMlet;
 import hc.server.ui.ICanvas;
+import hc.server.ui.MemberIDInputDialog;
 import hc.server.ui.MenuItem;
 import hc.server.ui.Mlet;
 import hc.server.ui.ProjectContext;
@@ -345,9 +347,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	    			Robot.class, RobotWrapper.class, RobotEvent.class, RobotListener.class, SimuRobot.class,
 	    			DeviceCompatibleDescription.class, 
 	    			AddHarHTMLMlet.class, AddHarIsBusy.class, BindHTMLMlet.class, Dialog.class, SystemDialog.class,
-	    			ProjMgrDialog.class, ProjListScriptPanel.class,
+	    			BlockSystemDialog.class, ProjMgrDialog.class, ProjListScriptPanel.class,
 	    			LicenseHTMLMlet.class, SystemHTMLMlet.class, //由于需要传递token，会被JRuby反射，所以要开权限。
-	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class, ProjectInputDialog.class,
+	    			ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class, 
+	    			ProjectInputDialog.class, MemberIDInputDialog.class,
 	    			Assistant.class, VoiceCommand.class, AnalysableRobotParameter.class, JavaString.class, IDEUtil.class, Scheduler.class, 
 	    			HCInputStream.class, HCFileInputStream.class, HCImageInputStream.class, HCAudioInputStream.class, 
 	    			JobCalendar.class, BaseJobCalendar.class, AnnualJobCalendar.class, CronExcludeJobCalendar.class, DailyJobCalendar.class, 

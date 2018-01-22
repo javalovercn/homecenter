@@ -61,6 +61,17 @@ public class Dialog extends JPanel {
 	
 	private final Object synLock = new Object();
 	boolean enableApplyOrientationWhenRTL = true;
+	boolean isCancelable = true;
+	
+	/**
+	 * set current dialog to be not cancelable, for example back key in Android.
+	 * <BR><BR>
+	 * <STRONG>Important :</STRONG><BR>
+	 * this method must be invoked before {@link ProjectContext#sendDialogWhenInSession(Dialog)} or in {@link ProjectContext#sendDialogByBuilding(Runnable)}.
+	 */
+	public final void setCancelableToNo(){
+		this.isCancelable = false;
+	}
 	
 	/**
 	 * dismiss current dialog, and go/run target URL by <code>elementID</code>.

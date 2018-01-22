@@ -32,8 +32,8 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
-import java.awt.peer.RobotPeer;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.util.Random;
 import java.util.Vector;
 
@@ -42,8 +42,9 @@ public class ScreenCapturer extends PNGCapturer{
 	final private Rectangle moveNewRect = new Rectangle();
 
 	private final int screenWidth, screenHeigh;
-	public static Object robotPeer;
-	public static Robot robot;
+	private static Object robotPeerMaybeNull;
+	private static Class robotPeerClassMaybeNull;
+	private static Robot robot;
 	public KeyComper mobiUserIcons;
 	private final TimeWatcher timeWatcher;
 	private boolean clearCacheThumbnail = false;
@@ -57,7 +58,8 @@ public class ScreenCapturer extends PNGCapturer{
 			robot = new Robot();
 			robot.setAutoDelay(50);
 		    robot.setAutoWaitForIdle(true);
-			robotPeer = PlatformManager.getService().createRobotPeer(robot);
+			robotPeerMaybeNull = PlatformManager.getService().createRobotPeer(robot);
+			robotPeerClassMaybeNull = Class.forName("java.awt.peer.RobotPeer");
 		} catch (final Throwable e) {
 			//以上不能catch Exception
 			LogManager.err("Not Found : java.awt.peer.RobotPeer(Sun API), use java.awt.Robot");
@@ -945,18 +947,39 @@ public class ScreenCapturer extends PNGCapturer{
 
 	@Override
 	public int grabImage(final Rectangle bc, final int[] rgb){
-		int[] out;
+		int[] out = null;
 		
 		//与缩略图可能存在并发问题，所以加锁
 		synchronized (LOCK){
-			out  = (robotPeer!=null)?
-				((RobotPeer)robotPeer).getRGBPixels(bc):
-				robot.createScreenCapture(bc).getRGB(
-						0, 0, bc.width, bc.height, null, 0, bc.width);
+//			java.awt.peer.RobotPeer
+			if(robotPeerMaybeNull!=null){
+				try{
+					final Method m = robotPeerClassMaybeNull.getMethod("getRGBPixels", Rectangle.class);
+					out = (int[])m.invoke(robotPeerMaybeNull, bc);
+	//				out = ((RobotPeer)robotPeerMaybeNull).getRGBPixels(bc);
+				}catch (final Throwable e) {
+					e.printStackTrace();
+				}
+			}else{
+				out = robot.createScreenCapture(bc).getRGB(0, 0, bc.width, bc.height, null, 0, bc.width);
+			}
 		}
 		final int length = bc.width * bc.height;
 		System.arraycopy(out, 0, rgb, 0, length);
 		return length;
+	}
+	
+	public static final void doClickAt(final HCURL url, final int mode, final int x, final int y) {
+		synchronized (robot) {
+			robot.mouseMove(x, y);
+			
+			robot.keyPress(mode);
+	
+			robot.mousePress(InputEvent.BUTTON1_MASK);
+			robot.mouseRelease(InputEvent.BUTTON1_MASK);
+	
+			robot.keyRelease(mode);
+		}
 	}
 
 	public int getScreenWidth() {
@@ -998,8 +1021,8 @@ public class ScreenCapturer extends PNGCapturer{
 				MsgBuilder.DATA_ROOT_OS_IN_LOCK);
 				
 		SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_SCR_LOCKING, 
-				(String)ResourceUtil.get(9088), 
-				(String)ResourceUtil.get(9087), SingleMessageNotify.NEVER_AUTO_CLOSE, App.getSysIcon(App.SYS_ERROR_ICON));
+				ResourceUtil.get(9088), 
+				ResourceUtil.get(9087), SingleMessageNotify.NEVER_AUTO_CLOSE, App.getSysIcon(App.SYS_ERROR_ICON));
 		
 		RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_LockScreen_STR);
 	}

@@ -2,25 +2,29 @@ package hc.util;
 
 import hc.App;
 import hc.core.HCConnection;
+import hc.core.HCTimer;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
+import hc.core.util.StringBufferCacher;
 import hc.res.ImageSrc;
 import hc.server.TrayMenuUtil;
+import hc.server.data.StoreDirManager;
 import hc.server.util.ServerCUtil;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-import java.sql.Timestamp;
 import java.util.Calendar;
 
 import javax.swing.JPanel;
@@ -40,6 +44,45 @@ public class LogServerSide implements ILog {
 		isLogToFile = osw != null;
 	}
 	
+	private final void copyToLogsArea(final File srcFile){
+		final String pwd = PropertiesManager.getValue(PropertiesManager.p_LogPassword2);
+		if(pwd == null){
+			return;
+		}
+		
+		final String cipherAlgorithm = PropertiesManager.getValue(PropertiesManager.p_LogCipherAlgorithm2);
+		if(cipherAlgorithm == null){
+			return;
+		}
+		
+		long createMS = ResourceUtil.getFileCreateTime(srcFile);
+		if(createMS == 0){
+			createMS = srcFile.lastModified();
+		}
+		
+		final File toLogFile = new File(StoreDirManager.LOGS_DIR, ResourceUtil.toYYYYMMDD_HHMMSS(createMS) + ".log");
+		try{
+			final byte[] pwdBS = ResourceUtil.getFromBASE64(pwd).getBytes(IConstant.UTF_8);
+			final InputStream is = ServerCUtil.decodeStream(new FileInputStream(srcFile), pwdBS, cipherAlgorithm);
+			ResourceUtil.saveToFile(is, toLogFile);
+		}catch (final Throwable e) {
+		}
+	}
+	
+	private final void deleteLogsLongTimeAgo(){
+		final int maxDays = PropertiesManager.getIntValue(PropertiesManager.p_LogMaxDays, 20);
+		final long tooLongMS = System.currentTimeMillis() - (HCTimer.ONE_DAY * maxDays);
+		
+		final File[] files = StoreDirManager.LOGS_DIR.listFiles();
+		final int size = files.length;
+		for (int i = 0; i < size; i++) {
+			final File file = files[i];
+			if(file.lastModified() < tooLongMS){
+				file.delete();
+			}
+		}
+	}
+	
 	public final synchronized void buildOutStream() {
 		if(LogManager.INI_DEBUG_ON  || (IConstant.isRegister() == false)){
 		}else{
@@ -47,8 +90,13 @@ public class LogServerSide implements ILog {
 				return;
 			}
 			
+			deleteLogsLongTimeAgo();
+			
 			final File filebak = new File(ResourceUtil.getBaseDir(), ImageSrc.HC_LOG_BAK);
-			filebak.delete();
+			if(filebak.exists()){
+				copyToLogsArea(filebak);
+				filebak.delete();
+			}
 			
 			File newLog = new File(ResourceUtil.getBaseDir(), ImageSrc.HC_LOG);
 			if(newLog.exists()){
@@ -83,7 +131,7 @@ public class LogServerSide implements ILog {
 				ExceptionReporter.printStackTrace(e);
 				
 				final JPanel panel = App.buildMessagePanel(e.toString(), App.getSysIcon(App.SYS_ERROR_ICON));
-				App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil	.get(IContext.ERROR), false, null, null, new ActionListener() {
+				App.showCenterPanelMain(panel, 0, 0, ResourceUtil	.get(IContext.ERROR), false, null, null, new ActionListener() {
 					@Override
 					public void actionPerformed(final ActionEvent e) {
 						CCoreUtil.globalExit();							
@@ -144,80 +192,151 @@ public class LogServerSide implements ILog {
 	private final Calendar calendar = Calendar.getInstance();
 	
 	@Override
-	public void log(final String msg){
+	public void log(final String msg){//被AndroidLogServerSide覆盖
 		final StringBuilder sb = StringBuilderCacher.getFree();
 
-		calendar.setTimeInMillis(System.currentTimeMillis());
-		
-		sb.append(calendar.get(Calendar.YEAR));
-		sb.append("-");
-		sb.append((calendar.get(Calendar.MONTH) + 1));
-		sb.append("-");
-		sb.append(calendar.get(Calendar.DAY_OF_MONTH));
-		sb.append(" ");
-		sb.append(calendar.get(Calendar.HOUR_OF_DAY));
-		sb.append(":");
-		sb.append(calendar.get(Calendar.MINUTE));
-		sb.append(":");
-		sb.append(calendar.get(Calendar.SECOND));
-		sb.append(".");
-		sb.append(calendar.get(Calendar.MILLISECOND));
-		sb.append(" ");
-		
-		sb.append(msg);
-		sb.append("\n");
-		
-		final String pMsg = sb.toString();
-		StringBuilderCacher.cycle(sb);
-		
-		try {
-			if(osw != null){
-				bw.append(pMsg);
-			}else{
-				System.out.print(pMsg);
+		synchronized (calendar) {
+			calendar.setTimeInMillis(System.currentTimeMillis());
+			
+			sb.append(calendar.get(Calendar.YEAR));
+			sb.append("-");
+			final int month = calendar.get(Calendar.MONTH) + 1;
+			if(month < 10){
+				sb.append('0');
 			}
-		} catch (final IOException e) {
-			ExceptionReporter.printStackTrace(e);
+			sb.append(month);
+			sb.append("-");
+			final int day = calendar.get(Calendar.DAY_OF_MONTH);
+			if(day < 10){
+				sb.append('0');
+			}
+			sb.append(day);
+			sb.append(" ");
+			final int hour = calendar.get(Calendar.HOUR_OF_DAY);
+			if(hour < 10){
+				sb.append('0');
+			}
+			sb.append(hour);
+			sb.append(":");
+			final int minute = calendar.get(Calendar.MINUTE);
+			if(minute < 10){
+				sb.append('0');
+			}
+			sb.append(minute);
+			sb.append(":");
+			final int second = calendar.get(Calendar.SECOND);
+			if(second <10){
+				sb.append('0');
+			}
+			sb.append(second);
+			sb.append(".");
+			final int ms = calendar.get(Calendar.MILLISECOND);
+			if(ms < 10){
+				sb.append('0');
+				sb.append('0');
+			}else if(ms < 100){
+				sb.append('0');
+			}
+			sb.append(ms);
+			sb.append(" ");
+			
+			sb.append(msg);
+			sb.append('\n');
+			
+			final String pMsg = sb.toString();
+			try {
+				if(osw != null){
+					bw.append(pMsg);
+				}else{
+					System.out.print(pMsg);
+				}
+			} catch (final IOException e) {
+//				ExceptionReporter.printStackTrace(e);
+			}
 		}
+		StringBuilderCacher.cycle(sb);
 	}
 	
 	@Override
 	public final void errWithTip(final String msg){
 		err(msg);
-		TrayMenuUtil.displayMessage((String)ResourceUtil.get(IContext.ERROR), msg, IContext.ERROR, null, 0);
+		TrayMenuUtil.displayMessage(ResourceUtil.get(IContext.ERROR), msg, IContext.ERROR, null, 0);
 	}
 
 	@Override
-	public void err(final String msg) {
-		flush();
-
-		final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-		final StringBuffer timestampBuf = new StringBuffer(25);
-		timestampBuf.append((timestamp.getYear() + 1900) + "-");
-		final int month = (timestamp.getMonth() + 1);
-		timestampBuf.append((month < 10?("0"+month):month) + "-");
-		final int day = timestamp.getDate();
-		timestampBuf.append(day < 10?("0"+day):day);
-		final int hour = timestamp.getHours();
-		timestampBuf.append(" " + (hour < 10?("0"+hour):hour) + ":");
-		final int minute = timestamp.getMinutes();
-		timestampBuf.append((minute < 10?("0"+minute):minute) + ":");
-		final int second = timestamp.getSeconds();
-		timestampBuf.append((second < 10?("0"+second):second));
-		final int nanos = timestamp.getNanos();
-		timestampBuf.append("." + (nanos==0?"000":String.valueOf(nanos).substring(0, 3)));
-
-		System.err.println(timestampBuf.toString() + ILog.ERR + msg);
+	public void err(final String msg) {//被AndroidLogServerSide覆盖
+		final StringBuffer sb = StringBufferCacher.getFree();
+		
+		synchronized (calendar) {
+			calendar.setTimeInMillis(System.currentTimeMillis());
+			
+			sb.append(calendar.get(Calendar.YEAR));
+			sb.append("-");
+			final int month = calendar.get(Calendar.MONTH) + 1;
+			if(month < 10){
+				sb.append('0');
+			}
+			sb.append(month);
+			sb.append("-");
+			final int day = calendar.get(Calendar.DAY_OF_MONTH);
+			if(day < 10){
+				sb.append('0');
+			}
+			sb.append(day);
+			sb.append(" ");
+			final int hour = calendar.get(Calendar.HOUR_OF_DAY);
+			if(hour < 10){
+				sb.append('0');
+			}
+			sb.append(hour);
+			sb.append(":");
+			final int minute = calendar.get(Calendar.MINUTE);
+			if(minute < 10){
+				sb.append('0');
+			}
+			sb.append(minute);
+			sb.append(":");
+			final int second = calendar.get(Calendar.SECOND);
+			if(second <10){
+				sb.append('0');
+			}
+			sb.append(second);
+			sb.append(".");
+			final int ms = calendar.get(Calendar.MILLISECOND);
+			if(ms < 10){
+				sb.append('0');
+				sb.append('0');
+			}else if(ms < 100){
+				sb.append('0');
+			}
+			sb.append(ms);
+	
+			sb.append(ILog.ERR);
+			sb.append(msg);
+			sb.append('\n');
+			
+			final String pMsg = sb.toString();
+			try{
+			if(osw != null){
+				bw.append(pMsg);
+			}else{
+				System.err.print(pMsg);
+			}
+			}catch (final Exception e) {
+			}
+		}
+		StringBufferCacher.cycle(sb);
+		
 		flush();
 	}
 	
 	@Override
-	public void info(final String msg) {
+	public final void info(final String msg) {
 		
 	}
 
 	@Override
-	public void flush() {
+	public final void flush() {
 		if(outLogger != null){
 			try{
 				bw.flush();
@@ -230,7 +349,7 @@ public class LogServerSide implements ILog {
 	}
 
 	@Override
-	public void warning(final String msg) {
+	public void warning(final String msg) {//被AndroidLogServerSide覆盖
 		log(WARNING + msg);
 	}
 

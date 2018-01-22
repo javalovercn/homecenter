@@ -33,6 +33,8 @@ public abstract class CoreSession {
 	 */
 	public abstract boolean isExchangeStatus();
 	
+	public abstract HCConditionWatcher getJSEventProcessor();
+	
 	public static void setNotifyShutdown(){
 		CCoreUtil.checkAccess();
 		
@@ -147,7 +149,7 @@ public abstract class CoreSession {
 		startLineOffForce(isClientRequest);
 	}
 	
-	public synchronized final void startLineOffForce(final boolean isClientRequest) {
+	public final void startLineOffForce(final boolean isClientRequest) {
 		RootServerConnector.notifyLineOffType(this, RootServerConnector.LOFF_LineEx_STR);
 
 		context.setStatus(ContextManager.STATUS_LINEOFF);

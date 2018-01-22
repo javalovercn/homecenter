@@ -46,6 +46,10 @@ public class MultiThreadDownloader {
 		return progress;
 	}
 	
+	public final void shutdown(){
+		isCancel = true;
+	}
+	
 	public void download(final Vector url_download, final File file, final CheckSum checkSum,
 			final IBiz biz, final IBiz failBiz, final boolean isVisiable, final boolean isCancelableByUser) {
 		this.fileName = file.getName();

@@ -10,6 +10,7 @@ import hc.core.L;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
 import hc.core.SessionManager;
+import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
 import hc.core.util.StringUtil;
 import hc.server.ui.J2SESessionManager;
@@ -303,11 +304,29 @@ public class JRubyInstaller {
 			public void setMap(final HashMap map) {
 			}
 		};
+		if(isShutdown){
+			return;
+		}
 		mtd = new MultiThreadDownloader();
-
+		if(isShutdown){
+			return;
+		}
 		refreshProgressWindow();
 
 		mtd.download(StringUtil.split(fromURL, RootConfig.CFG_SPLIT), rubyjar, checkSum, biz, failBiz, false, true);
+	}
+	
+	private static boolean isShutdown;
+	
+	public static void shutdown(){
+		CCoreUtil.checkAccess();
+		
+		isShutdown = true;
+		final MultiThreadDownloader snap = mtd;
+		if(snap != null){
+			snap.shutdown();
+//			SafeDataManager.startSafeBackupProcess(true, true);
+		}
 	}
 
 	private static void redownload() {

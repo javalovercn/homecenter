@@ -5,6 +5,7 @@ import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.IConstant;
 import hc.core.IContext;
+import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.RootServerConnector;
@@ -28,6 +29,7 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -37,6 +39,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -112,6 +116,16 @@ public class HttpUtil {
 		return " <STRONG>·</STRONG> ";
 	}
 	
+	public static NetworkInterface getPreferNetworkInterface(){
+		final String networkInterfacename = PropertiesManager.getValue(PropertiesManager.p_selectedNetwork, HttpUtil.AUTO_DETECT_NETWORK);
+		if(HttpUtil.AUTO_DETECT_NETWORK.equals(networkInterfacename)){
+		}else{
+			return HttpUtil.getNetworkInterface(networkInterfacename);
+		}
+		return null;
+	}
+	
+	
 	public static boolean isValidEmail(final String email){
 	      final Pattern p = Pattern.compile("\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*");
 	      final Matcher m = p.matcher(email);
@@ -120,7 +134,7 @@ public class HttpUtil {
 	      }
 	      return false;
 	}
-
+	
 	public static InetAddress getInetAddress(final String dispname) {
 		try {
 			final Enumeration<NetworkInterface> ifaces = NetworkInterface
@@ -287,7 +301,7 @@ public class HttpUtil {
 		final boolean isSimu = PropertiesManager.isSimu();
 		url = replaceSimuURL(url, isSimu);
 		//---------reuseThisCode
-		LogManager.log("get ajax : " + url);
+		L.V = L.WShop ? false : LogManager.log("get ajax : " + url);
 		return getAjax(url, null);
 	}
 	
@@ -498,7 +512,7 @@ public class HttpUtil {
 		return filerInetAddress(getNetworkInterface(name), false);
 	}
 	
-	private static NetworkInterface getNetworkInterface(final String name){
+	public static NetworkInterface getNetworkInterface(final String name){
 		try{
 			final Enumeration nis = NetworkInterface.getNetworkInterfaces();
 			while (nis.hasMoreElements()) {
@@ -547,6 +561,110 @@ public class HttpUtil {
 		}
 		return null;
 	}
+	
+	public static void printAllNetworkInterface(){
+		try{
+			final Enumeration<NetworkInterface> nets = NetworkInterface.getNetworkInterfaces();
+			for (final NetworkInterface netint : Collections.list(nets))
+				displayInterfaceInformation(netint);
+		}catch (final Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static Vector<NetInterAddresses> getWLANNetworkInterfaces(){
+		final Vector<NetInterAddresses> out = new Vector<NetInterAddresses>(2);
+		try{
+			final Enumeration nis = NetworkInterface.getNetworkInterfaces();
+			while (nis.hasMoreElements()) {
+				final NetworkInterface lni = (NetworkInterface) nis.nextElement();
+				try{
+					if(lni.isLoopback() || (lni.isUp() == false) || lni.isVirtual() || (lni.supportsMulticast() == false)){
+						continue;
+					}
+					final NetInterAddresses niAddres = new NetInterAddresses(lni);
+					if(niAddres.getWLANInetAddress() != null){
+						out.add(niAddres);
+					}
+				}catch (final Throwable e) {
+					e.printStackTrace();
+				}
+			}
+			
+			Collections.sort(out, new Comparator<NetInterAddresses>() {
+				@Override
+				public int compare(final NetInterAddresses o1, final NetInterAddresses o2) {
+					final Vector<InetAddress> v1 = o1.addres;
+					final Vector<InetAddress> v2 = o2.addres;
+					
+					if(v1.size() > v2.size()){
+						return -1;
+					}
+					
+					final boolean hasIPv41 = hasIPv4(v1);
+					final boolean hasIPv42 = hasIPv4(v2);
+					if(hasIPv41 && (hasIPv42 == false)){
+						return -1;
+					}
+					if((hasIPv41 == false) && hasIPv42){
+						return 1;
+					}
+					return 0;
+				}
+				
+				private final boolean hasIPv4(final Vector<InetAddress> v){
+					final int size = v.size();
+					for (int i = 0; i < size; i++) {
+						if(v.elementAt(i) instanceof Inet4Address){
+							return true;
+						}
+					}
+					return false;
+				}
+			});
+		}catch (final Throwable ex) {
+			ex.printStackTrace();
+		}
+		return out;
+	}
+	
+	private static void displayInterfaceInformation(final NetworkInterface netint) throws SocketException {
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		sb.append("Display name: ");
+		sb.append(netint.getDisplayName());
+		sb.append(", name: ");
+		sb.append(netint.getName());
+		sb.append(", isLoopback: ");
+		sb.append(netint.isLoopback());
+		sb.append(", isPointToPoint: ");
+		sb.append(netint.isPointToPoint());
+		sb.append(", isUp: ");
+		sb.append(netint.isUp());
+		sb.append(", isVirtual: ");
+		sb.append(netint.isVirtual());
+		sb.append(", supportsMulticast: ");
+		sb.append(netint.supportsMulticast());
+		
+        final Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
+        for (final InetAddress inetAddress : Collections.list(inetAddresses)) {
+        	sb.append("\n  InetAddress: ");
+        	sb.append(inetAddress.toString());
+        	sb.append(", isAnyLocalAddress: ");
+        	sb.append(inetAddress.isAnyLocalAddress());
+        	sb.append(", isLinkLocalAddress: ");
+        	sb.append(inetAddress.isLinkLocalAddress());
+        	sb.append(", isLoopbackAddress: ");
+        	sb.append(inetAddress.isLoopbackAddress());
+        	sb.append(", isMulticastAddress: ");
+        	sb.append(inetAddress.isMulticastAddress());
+        	sb.append(", isSiteLocalAddress: ");
+        	sb.append(inetAddress.isSiteLocalAddress());
+        }
+        sb.append("\n");
+        
+        LogManager.log(sb.toString());
+        StringBuilderCacher.cycle(sb);
+     }
 
 	public static InetAddress filerInetAddress(final NetworkInterface ni, final boolean enableIPv6) {
 		try{
@@ -635,7 +753,7 @@ public class HttpUtil {
 			desktop.browse(new java.net.URI(webURL));
 		}catch(final Exception ex) {
 		    App.showMessageDialog(null, ex.getMessage(), 
-		    		(String)ResourceUtil.get(IContext.ERROR), JOptionPane.ERROR_MESSAGE);
+		    		ResourceUtil.get(IContext.ERROR), JOptionPane.ERROR_MESSAGE);
 		    return false;
 		}
 
@@ -745,9 +863,9 @@ public class HttpUtil {
 			if(isQuery){
 				final JPanel panel = new JPanel(new BorderLayout());
 				panel.add(new JLabel("<html>service/configuration is changed and mobile is connecting," +
-						"<BR>click '" + (String) ResourceUtil.get(IContext.OK) + "' to break off current mobile connection!" +
+						"<BR>click '" + ResourceUtil.get(IContext.OK) + "' to break off current mobile connection!" +
 						"</html>", App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
-				panel.add(new JLabel("<html><BR><strong>"+(String)ResourceUtil.get(IContext.TIP)+"</strong> : " +
+				panel.add(new JLabel("<html><BR><strong>"+ResourceUtil.get(IContext.TIP)+"</strong> : " +
 						"<BR>it is <strong>NOT</strong> required to restart HomeCenter server.</html>"), BorderLayout.SOUTH);
 				final ActionListener listener = new HCActionListener(new Runnable() {
 					@Override

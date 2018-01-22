@@ -222,6 +222,11 @@ public class PropertiesManager {
 	public static final String p_isShowJRubyTestConsole = "isShowJRubyTestConsole";
 	public static final String p_JRubyTestConsoleDividerLocation = "JRubyTestConsoleDividerLocation";
 	
+	public static final String p_lastRootCfg = "LastRootCfg";
+	
+	public static final String p_SafeDataBackupIntervalMinutes = "SafeDataBackupIntervalMinutes";
+	public static final String p_LogMaxDays = "LogMaxDays";
+	
 	public static final String p_isEnableClientAddHAR = "isEnableClientAddHAR";
 
 	public static final String t_testClientLocale = "testClientLocale";
@@ -310,7 +315,7 @@ public class PropertiesManager {
 					if(L.isInWorkshop){
 						LogManager.log("delete file/dir : " + delFile.getAbsolutePath());
 					}
-					ResourceUtil.deleteDirectoryNowAndExit(delFile, true);
+					ResourceUtil.deleteDirectoryNow(delFile, true);
 				}
 				
 				//删除绝对路径型，如privateFiel/user_data
@@ -319,7 +324,7 @@ public class PropertiesManager {
 					if(L.isInWorkshop){
 						LogManager.log("delete file/dir : " + delFile.getAbsolutePath());
 					}
-					ResourceUtil.deleteDirectoryNowAndExit(delFile, true);
+					ResourceUtil.deleteDirectoryNow(delFile, true);
 				}
 				
 				remove(key);
@@ -567,8 +572,11 @@ public class PropertiesManager {
 	public static final int getIntValue(final String key){
 		final String value = getValue(key);
 		try{
-			return Integer.valueOf(value);
+			if(value != null){
+				return Integer.valueOf(value);
+			}
 		}catch (final Exception e) {
+			e.printStackTrace();
 		}
 		return 0;
 	}
@@ -576,7 +584,9 @@ public class PropertiesManager {
 	public static final int getIntValue(final String key, final int defaultValue){
 		final String value = getValue(key);
 		try{
-			return Integer.valueOf(value);
+			if(value != null){
+				return Integer.valueOf(value);
+			}
 		}catch (final Exception e) {
 			e.printStackTrace();
 		}

@@ -12,6 +12,7 @@ import hc.core.SessionManager;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.ThreadPool;
+import hc.server.JRubyInstaller;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
 import hc.server.ProcessingWindowManager;
@@ -45,10 +46,14 @@ public class ExitManager {
 			isStartingExitSystem = true;
 		}
 		
+//		不考虑Android服务器关闭又进入，因为原界面仍含提示信息。
+		
+		JRubyInstaller.shutdown();//下载中，不能safebackup，导致部分用户设置，比如开机启动丢失。
+		
 		J2SESessionManager.notifyReadyShutdown();
 		
 		//直接采用主线程，会导致退出提示信息会延时显示，效果较差
-		ProcessingWindowManager.showCenterMessage((String)ResourceUtil.get(9067));
+		ProcessingWindowManager.showCenterMessage(ResourceUtil.get(9067));
 		
 		SafeDataManager.notifyShutdown();
 		

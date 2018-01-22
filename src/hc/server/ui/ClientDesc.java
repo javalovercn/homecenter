@@ -125,7 +125,7 @@ public class ClientDesc {
 			density = Float.valueOf(HCConfig.getProperty(v, (short)6));
 			
 			serialMobileAgent = HCConfig.getProperty(v, (short)7);
-			agent = MobileAgent.toObject(serialMobileAgent);
+			agent = MobileAgent.toObject(serialMobileAgent);//此方式线程安全
 			final int largeFont = agent.getForInt(MobileAgent.TAG_FONT_SIZE_FOR_LARGE, 0);
 			final int normalFont = agent.getForInt(MobileAgent.TAG_FONT_SIZE_FOR_NORMAL, 0);
 			final int smallFont = agent.getForInt(MobileAgent.TAG_FONT_SIZE_FOR_SMALL, 0);

@@ -68,7 +68,7 @@ public class RootTagEventHCListener extends IEventHCListener{
 		}else if(subTag == MsgBuilder.DATA_ROOT_SAME_ID_IS_USING){
 			String sameIDMsg = (String)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_RESOURCE, new Integer(9259));
 			if(sameIDMsg == null){
-				sameIDMsg = "same ID is using, try another ID please!";
+				sameIDMsg = "same ID is using by other server, try another ID please!";
 			}
 			LogManager.err(sameIDMsg);
 			coreSS.context.displayMessage(false, "Error", sameIDMsg, 

@@ -32,8 +32,6 @@ import java.nio.charset.CodingErrorAction;
 import java.util.Arrays;
 import java.util.Collection;
 
-import sun.nio.cs.StandardCharsets;
-
 /** This class emulates the new Java 7 "Try-With-Resources" statement.
  * Remove once Lucene is on Java 7.
  * @lucene.internal */
@@ -42,16 +40,12 @@ public final class IOUtils {
   /**
    * UTF-8 {@link Charset} instance to prevent repeated
    * {@link Charset#forName(String)} lookups
-   * @deprecated Use {@link StandardCharsets#UTF_8} instead.
    */
   @Deprecated
-  public static final Charset CHARSET_UTF_8 = Charset.forName("UTF-8");
+  public static final Charset CHARSET_UTF_8 = Charset.forName("UTF-8");//禁用sun.nio.cs.StandardCharsets
   
   /**
    * UTF-8 charset string.
-   * <p>Where possible, use {@link StandardCharsets#UTF_8} instead,
-   * as using the String constant may slow things down.
-   * @see StandardCharsets#UTF_8
    */
   public static final String UTF_8 = Charset.forName("UTF-8").name();
   

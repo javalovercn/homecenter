@@ -34,62 +34,51 @@ public abstract class IContext {
 		statusListen = listener;
 	}
 	
-	public final synchronized void setStatus(final short newCmStatus){
-		if(newCmStatus == cmStatus){
-			return;
-		}
-		
-		final short oldCmStatus = cmStatus;
-		
-		cmStatus = newCmStatus;
-
-		if((newCmStatus != ContextManager.STATUS_EXIT) && (oldCmStatus == ContextManager.STATUS_EXIT)){
-			LogManager.log("forbid change status from [" + oldCmStatus + "] to [" + newCmStatus + "]");
-			return;
-		}
-
-		L.V = L.WShop ? false : LogManager.log("Change Status, From [" + oldCmStatus + "] to [" + newCmStatus + "]");
-		if(statusListen != null){
-			statusListen.notify(oldCmStatus, newCmStatus);
-		}
-
-		if(newCmStatus == ContextManager.STATUS_LINEOFF){
-			modeStatus = ContextManager.MODE_CONNECTION_NONE;
-		}
-
-		if(newCmStatus == ContextManager.STATUS_READY_MTU){
-			if(IConstant.serverSide){
-				try{
-					//服务器稍等，提供客户初始化时间
-					Thread.sleep(200);
-				}catch (final Exception e) {
-				}
+	final Object lock = new Object();
+	
+	public final void setStatus(final short newCmStatus){
+		synchronized (lock) {
+			if(newCmStatus == cmStatus){
+				return;
 			}
-
-			//			LogManager.log("Do biz after Hole");
-
-			//激活KeepAlive hctimer
-			doExtBiz(IContext.BIZ_AFTER_HOLE, null);
-
-			//			if(IConstant.serverSide){
-			//			}else{
-			//			}
+			
+			final short oldCmStatus = cmStatus;
+			
+			cmStatus = newCmStatus;
+	
+			if((newCmStatus != ContextManager.STATUS_EXIT) && (oldCmStatus == ContextManager.STATUS_EXIT)){
+				LogManager.log("forbid change status from [" + oldCmStatus + "] to [" + newCmStatus + "]");
+				return;
+			}
+	
+			L.V = L.WShop ? false : LogManager.log("Change Status, From [" + oldCmStatus + "] to [" + newCmStatus + "]");
+			if(statusListen != null){
+				statusListen.notify(oldCmStatus, newCmStatus);
+			}
+	
+			if(newCmStatus == ContextManager.STATUS_LINEOFF){
+				modeStatus = ContextManager.MODE_CONNECTION_NONE;
+			}
+	
+			if(newCmStatus == ContextManager.STATUS_READY_MTU){
+				if(IConstant.serverSide){
+					try{
+						//服务器稍等，提供客户初始化时间
+						Thread.sleep(200);
+					}catch (final Exception e) {
+					}
+				}
+	
+				//			LogManager.log("Do biz after Hole");
+	
+				//激活KeepAlive hctimer
+				doExtBiz(IContext.BIZ_AFTER_HOLE, null);
+	
+				//			if(IConstant.serverSide){
+				//			}else{
+				//			}
+			}
 		}
-
-		//		if(mode == ContextManager.STATUS_SERVER_SELF){
-		//			ContextManager.getContextInstance().doExtBiz(IContext.BIZ_IS_ON_SERVICE);
-		//		}
-
-		//		if(mode == ContextManager.STATUS_READY_TO_LINE_ON){
-		//			LogManager.log("NO biz for status READY_TO_LINE_ON");
-		//		}
-
-		//		if(ContextManager.isClientStatus()){
-		//		}
-
-		//		if(ContextManager.isClientStatus() && ContextManager.isNotWorkingStatus() == false){
-		//			ScreenClientManager.init();
-		//		}
 	}
 	
 	private final ByteArrayCacher cache = ByteUtil.byteArrayCacher;

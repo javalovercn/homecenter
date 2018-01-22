@@ -405,7 +405,7 @@ public class ProjectContext {
 		removeLastCompactMS(dbName);
 		log("remove user database : " + dbName);
 		final File baseDir = buildDBBaseDir(dbName);
-		return ResourceUtil.deleteDirectoryNowAndExit(baseDir, true);
+		return ResourceUtil.deleteDirectoryNow(baseDir, true);
 	}
 	
 	private final Object lockForScheduler = new Object();
@@ -709,9 +709,9 @@ public class ProjectContext {
 	}
 	
 	/**
-	 * <STRONG>Warning</STRONG> : when in project level it will do nothing.
-	 * <BR><BR>
 	 * go/run target URL by <code>locator</code>.
+	 * <BR><BR>
+	 * <STRONG>Warning</STRONG> : in project level it will do nothing.
 	 * @param scheme one of {@link MenuItem#CMD_SCHEME}, 
 	 * {@link MenuItem#CONTROLLER_SCHEME}, {@link MenuItem#FORM_SCHEME} or {@link MenuItem#SCREEN_SCHEME}.
 	 * @param locator for example, run scripts of menu item "cmd://myCommand", the scheme is {@linkplain MenuItem#CMD_SCHEME}, and locator is "myCommand",
@@ -725,18 +725,18 @@ public class ProjectContext {
 	}
 	
 	/**
-	 * <STRONG>Warning</STRONG> : when in project level it will do nothing.
-	 * <BR><BR>
-	 * jump mobile to following targets:<BR>
+	 * Jump mobile to following targets:<BR>
 	 * 1. <i>{@link Mlet#URL_SCREEN}</i> : enter the desktop screen of server from mobile, <BR>
 	 * 2. <i>form://myMlet</i> : open and show a form, <BR>
 	 * 3. <i>controller://myctrl</i> : open and show a controller, <BR>
 	 * 4. <i>cmd://myCmd</i> : run script commands only,
 	 * <BR><BR>
-	 * bring to top : <BR>
+	 * Bring to top : <BR>
 	 * 1. jump to <i>form://B</i> from <i>form://A</i>, <BR>
 	 * 2. ready jump to <i>form://A</i> again from <i>form://B</i>.<BR>
 	 * 3. system will bring the target (form://A) to top if it is opened.
+	 * <BR><BR>
+	 * <STRONG>Warning</STRONG> : <BR>in project level it will do nothing.
 	 * <BR><BR>
 	 * <STRONG>Note</STRONG> :<BR>
 	 * go to external URL (for example, http://homecenter.mobi), invoke {@link #goExternalURLWhenInSession(String)}.
@@ -1234,14 +1234,13 @@ public class ProjectContext {
 	}
 
 	/**
-	 * show a dialog for input.<BR>
-	 * for example, in order to connect device, user may be required to input
-	 * token of devices. 
-	 * <br><br>
-	 * you can also custom <code>Dialog</code> when is installing HAR from client, see {@link #isInstallingFromClient()}.
+	 * show a dialog for input on this server, <STRONG>NOT</STRONG> on client.
+	 * <BR>if user is installing (scan QR code) current project from client, then the dialog is shown on client.
 	 * <BR><BR>
-	 * to save token, see {@link #setProperty(String, String)} and
-	 * {@link #saveProperties()}
+	 * you can also send custom {@link Dialog} when is installing HAR from client, see {@link #isInstallingFromClient()}.
+	 * <BR><BR>
+	 * this method is mainly used in the following scenarios :<BR>for example, in order to connect device, user may be required to input
+	 * token of devices. 
 	 * 
 	 * @param title
 	 *            the title of input dialog
@@ -1252,6 +1251,7 @@ public class ProjectContext {
 	 *            &lt;STRONG&gt; and &lt;BR&gt;, are supported.
 	 * @return the input values of each fields.
 	 * @since 7.0
+	 * @see #sendDialogWhenInSession(Dialog)
 	 */
 	public static final String[] showInputDialog(final String title,
 			final String[] fieldNames, final String[] fieldDescs) {
@@ -1305,7 +1305,7 @@ public class ProjectContext {
 	}
 	
 	private static final String appendProjectIDForTitle(final String title) {
-		String titleModel = (String)ResourceUtil.get(9211);
+		String titleModel = ResourceUtil.get(9211);
 		
 		//{proj}] {msg}
 		final String projID = getProjectContext().getProjectID();
@@ -1316,7 +1316,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * pop up an information message dialog on this server. <br>
+	 * pop up an information message dialog on this server, <STRONG>NOT</STRONG> on client.
+	 * <BR><BR>
 	 * if the <code>message</code> is displaying and not closed, then it will NOT be showed twice at same time. <br>
 	 * <br>
 	 * <STRONG>Important : </STRONG><BR>the current thread will NOT be blocked.
@@ -1326,11 +1327,12 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public static final void showMessageDialog(final String message) {
-		showMessageDialog(message, (String)ResourceUtil.get(9210), JOptionPane.INFORMATION_MESSAGE, null);
+		showMessageDialog(message, ResourceUtil.get(9210), JOptionPane.INFORMATION_MESSAGE, null);
 	}
 
 	/**
-	 * pop up a dialog to display a message on this server. <br>
+	 * pop up a dialog to display a message on this server, <STRONG>NOT</STRONG> on client.
+	 * <BR><BR>
 	 * if the <code>message</code> is displaying and not closed, then it will NOT be showed twice at same time. <br>
 	 * <br>
 	 * <STRONG>Important : </STRONG><BR>the current thread will NOT be blocked.
@@ -1354,7 +1356,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * pop up a dialog to display a message on this server. <br>
+	 * pop up a dialog to display a message on this server, <STRONG>NOT</STRONG> on client.
+	 * <BR><BR>
 	 * if the <code>message</code> is displaying and not closed, then it will NOT be showed twice at same time. <br>
 	 * <br>
 	 * <STRONG>Important : </STRONG><BR>the current thread will NOT be blocked.
@@ -1621,14 +1624,45 @@ public class ProjectContext {
 	 *            nothing.
 	 * @param cancelRunnable
 	 *            the runnable will be executed if choosing 'CANCEL'. Set null
-	 *            to not display this button.
+	 *            to not display this button, but it is still cancelable.<BR>To set question to be not cancelable, see {@link #sendQuestionNotCancelable(String, String, BufferedImage, Runnable, Runnable)}.
 	 * @since 7.0
+	 * @see #sendQuestionNotCancelable(String, String, BufferedImage, Runnable, Runnable)
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @see #isClientLineOn()
 	 */
-	public final void sendQuestion(String caption, String text,
+	public final void sendQuestion(final String caption, final String text,
 			final BufferedImage image, final Runnable yesRunnable,
 			final Runnable noRunnable, final Runnable cancelRunnable) {
+		sendQuestion(caption, text, image, yesRunnable, noRunnable, cancelRunnable, true);
+	}
+	
+	/**
+	 * send a not cancelable question to mobile if in session level, or send same question to all client sessions if in project level.
+	 * <BR><BR>
+	 * a cancelable question can be canceled, for example pressing <code>back</code> key in Android.
+	 * @param caption
+	 *            the caption of the question.
+	 * @param text
+	 *            the content of the question.
+	 * @param image
+	 *            a image to describe the question. Null for no image.
+	 * @param yesRunnable
+	 *            the runnable will be executed if choosing 'YES'. Null for
+	 *            doing nothing.
+	 * @param noRunnable
+	 *            the runnable will be executed if choosing 'NO'. Null for doing
+	 *            nothing.
+	 * @see #sendQuestion(String, String, BufferedImage, Runnable, Runnable, Runnable)
+	 */
+	public final void sendQuestionNotCancelable(final String caption, final String text,
+			final BufferedImage image, final Runnable yesRunnable,
+			final Runnable noRunnable) {
+		sendQuestion(caption, text, image, yesRunnable, noRunnable, null, false);
+	}
+	
+	private final void sendQuestion(String caption, String text,
+			final BufferedImage image, final Runnable yesRunnable,
+			final Runnable noRunnable, final Runnable cancelRunnable, final boolean isCancelable) {
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
 			return;
 		}
@@ -1672,7 +1706,7 @@ public class ProjectContext {
 			}
 		}
 
-		final String[] para = { HCURL.DATA_PARA_QUESTION_ID, "caption", "text", "image", "withCancel" };
+		final String[] para = { HCURL.DATA_PARA_QUESTION_ID, "isCancelable", "caption", "text", "image", "withCancel" };
 
 		final String p_caption = caption;
 		final String p_text = text;
@@ -1690,7 +1724,7 @@ public class ProjectContext {
 					ServerUIAPIAgent.buildQuestionParameter(
 							coreSS[i], p_ctx, quesLock, questionID, p_text, yesRunnable, noRunnable, cancelRunnable);
 					
-					final String[] values = { String.valueOf(questionID), p_caption,
+					final String[] values = { String.valueOf(questionID), IConstant.toString(isCancelable), p_caption,
 							p_text, p_imageData, (cancelRunnable != null) ? "1" : "0" };//注意：必须在外部转换
 					HCURLUtil.sendCmd(coreSS[i], HCURL.DATA_CMD_SendPara, para, values);
 				}
@@ -3516,7 +3550,7 @@ public class ProjectContext {
 	}
 
 	/**
-	 * return the login ID/Email which is NOT verified by HomeCenter.MOBI possibly.
+	 * return the login ID/Email, which is NOT verified by HomeCenter.MOBI possibly.
 	 * <BR><BR><STRONG>Important : </STRONG><BR>
 	 * user maybe change ID according to their own wishes, project will restart and new instance of <code>ProjectContext</code> will be created if the login ID/Email is changed.
 	 * <BR><BR>do follow steps to check the login Email account is verified by HomeCenter.MOBI or not:
@@ -3532,21 +3566,35 @@ public class ProjectContext {
 	 * <BR>1. if the verification is very important to your business, you should ensure the <STRONG>https</STRONG> is NOT under Man-in-the-middle attack.
 	 * <BR>2. user is NOT allowed to setup multiple servers with same login account, only one server is verified at same time.
 	 * @return login ID/Email on this server
+	 * @see #getMemberID()
 	 * @since 7.0
 	 */
 	public final String getLoginID() {
 		if(loginID == null){
-			loginID = (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
-				@Override
-				public Object run() {
-					return IConstant.getUUID();
-				}
-			});
+			loginID = IConstant.getUUID();
 			if(loginID == null){
 				loginID = SimuMobile.MOBILE_LOGIN_ID;
 			}
 		}
 		return loginID;
+	}
+	
+	/**
+	 * it is equals with {@link #getLoginID()}.
+	 * @return
+	 * @see #getClientMemberID()
+	 */
+	public final String getClientLoginID(){
+		return getLoginID();
+	}
+	
+	/**
+	 * it is equals with {@link #getLoginID()}.
+	 * @return
+	 * @see #getMemberID()
+	 */
+	public final String getMobileLoginID(){
+		return getLoginID();
 	}
 	
 	String loginID;
@@ -3589,12 +3637,21 @@ public class ProjectContext {
 //	}
 	
 	/**
-	 * it is equals with {@link #getMobileSoftUID()}.
+	 * it is equals with {@link #getSoftUID()}.
 	 * @return
 	 * @since 7.50
 	 */
 	public final String getClientSoftUID(){
-		return getMobileSoftUID();
+		return getSoftUID();
+	}
+	
+	/**
+	 * it is equals with {@link #getSoftUID()}.
+	 * @return
+	 * @since 7.2
+	 */
+	public final String getMobileSoftUID(){
+		return getSoftUID();
 	}
 	
 	/**
@@ -3604,10 +3661,12 @@ public class ProjectContext {
 	 * <BR><BR>
 	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
 	 * @return empty string if mobile not login or not in session level.
+	 * @see #getLoginID()
+	 * @see #getMemberID()
 	 * @see #isCurrentThreadInSessionLevel()
-	 * @since 7.2
+	 * @since 7.74
 	 */
-	public final String getMobileSoftUID(){
+	public final String getSoftUID(){
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
 			return SimuMobile.MOBILE_SOFT_UID;
 		}
@@ -3628,15 +3687,97 @@ public class ProjectContext {
 		final J2SESession coreSS = sessionContext.j2seSocketSession;
 		
 		if (UserThreadResourceUtil.isInServing(coreSS.context)) {
-		return (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
-			@Override
-			public Object run() {
 				return UserThreadResourceUtil.getMobileSoftUID(coreSS);
-			}
-		});
 		}else{
 			return noLoginUID;
 		}
+	}
+	
+	/**
+	 * it is equals with {@link #getMemberID()}.
+	 * @return
+	 * @since 7.74
+	 * @see #getMobileLoginID()
+	 */
+	public final String getMobileMemberID(){
+		return getMemberID();
+	}
+	
+	/**
+	 * it is equals with {@link #getMemberID()}.
+	 * @return
+	 * @since 7.74
+	 * @see #getClientLoginID()
+	 */
+	public final String getClientMemberID(){
+		return getMemberID();
+	}
+	
+	/**
+	 * <code>MemberID</code> is used to distinguish between different members of a family or group, which belongs to same <code>LoginID</code>.
+	 * <BR><BR>
+	 * <STRONG>Know more :</STRONG>
+	 * <BR>1. <code>MemberID</code> is stored in client.
+	 * <BR>2. if <code>MemberID</code> is not set, a dialog for input member ID is showed on client, and current thread is block until return <code>MemberID</code> or line off.
+	 * <BR>3. this method is synchronized for multiple projects.
+	 * <BR>4. the <code>MemberID</code> dialog can not be canceled (for example back key in Android).
+	 * <BR>5. user maybe set same <code>MemberID</code> in multiple mobile at same time.
+	 * <BR>6. if same <code>MemberID</code> connected at same time, then a warning message is send to each client.
+	 * <BR>7. to set/change <code>MemberID</code> before login, click "Option" button at client login form.
+	 * <BR>8. it is available in {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}.
+	 * @return empty string if line off, not login or not in session level.
+	 * @see #getLoginID()
+	 * @see #getSoftUID()
+	 * @see #isCurrentThreadInSessionLevel()
+	 * @since 7.74
+	 */
+	public final String getMemberID(){
+		final String memberID = getMobileMemberIDImpl();
+		if(memberID == null || memberID.length() == 0){
+			final ClientSession session = getClientSession();
+			if(session == null){
+				return memberID;
+			}else{
+				session.notifyInputMemberID(this);
+			}
+			
+			return getMobileMemberIDImpl();
+		}else{
+			return memberID;
+		}
+	}
+	
+	private final String getMobileMemberIDImpl(){
+		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
+			return SimuMobile.MOBILE_MEMBER_ID;
+		}
+		
+		final String noLoginUID = "";
+
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
+		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+			if(L.isInWorkshop){
+				throw new Error(ServerUIAPIAgent.ERR_CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
+//				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
+			}
+			if(isLoggerOn == false){
+				ServerUIAPIAgent.printInProjectLevelWarn("getMobileMemberID");
+			}
+			return noLoginUID;
+		}
+		final J2SESession coreSS = sessionContext.j2seSocketSession;
+		
+		if (UserThreadResourceUtil.isInServing(coreSS.context)) {
+			return UserThreadResourceUtil.getMobileMemberID(coreSS);
+		}else{
+			return noLoginUID;
+		}
+	}
+	
+	boolean isShutdown;
+	
+	final void shutdown(){
+		isShutdown = true;
 	}
 	
 	/**
@@ -3689,6 +3830,7 @@ public class ProjectContext {
 	 * notification is also created for mobile.<BR><BR>
 	 * @param dialog
 	 * @see #sendDialogByBuilding(Runnable)
+	 * @see #showInputDialog(String, String[], String[])
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.30
 	 */
@@ -3905,7 +4047,7 @@ public class ProjectContext {
 		}
 		
 		if (coreSS != null && coreSS.length > 0) {
-			ServerUIAPIAgent.sendMessageViaCoreSS(coreSS, caption, text, type, image, timeOut);
+			ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSS, caption, text, type, image, timeOut);
 			
 			processFormData(text);
 			return true;
@@ -4187,7 +4329,7 @@ public class ProjectContext {
 	 * <td>{@link #getMobileOS()}</td><td>mobile OS of current session</td><td>empty string if mobile not login or in project level</td>
 	 * </tr>
 	 * <tr>
-	 * <td>{@link #getMobileSoftUID()}</td><td>mobile Soft UID of current session</td><td>empty string if mobile not login or in project level</td>
+	 * <td>{@link #getSoftUID()}</td><td>mobile Soft UID of current session</td><td>empty string if mobile not login or in project level</td>
 	 * </tr>
 	 * <tr>
 	 * <td>{@link #getMobileDPI()}</td><td>mobile DPI of current session</td><td>-1 if mobile not login or in project level.</td>

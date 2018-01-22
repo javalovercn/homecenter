@@ -15,6 +15,7 @@ import hc.util.ResourceUtil;
 
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
+import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Rectangle;
@@ -34,6 +35,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.Provider;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -180,13 +182,22 @@ public class J2SEPlatformService implements PlatformService {
 	}
 	
 	@Override
-	public void setWindowOpaque(final Window win, final boolean bool) {
-		com.sun.awt.AWTUtilities.setWindowOpaque(win, bool);//透明		
+	public void setWindowOpaque(final Window win, final boolean bool) throws Exception{//外部支持异常
+		final Class awtUtilClass = Class.forName("com.sun.awt.AWTUtilities");
+		final Method m = awtUtilClass.getMethod("setWindowOpaque", Window.class, boolean.class);
+		m.invoke(awtUtilClass, win, bool);
+//		com.sun.awt.AWTUtilities.setWindowOpaque(win, bool);//透明，Java 9不支持com.sun.awt.AWTUtilities
 	}
 
 	@Override
 	public void addJCEProvider() {
-		Security.addProvider(new com.sun.crypto.provider.SunJCE());//in OpenJDK
+		try{
+			final Class sunJCEClass = Class.forName("com.sun.crypto.provider.SunJCE");
+			Security.addProvider((Provider)sunJCEClass.newInstance());//in OpenJDK
+			LogManager.log("successful add provider : com.sun.crypto.provider.SunJCE");
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}
 	}
 
 	private final Vector<File> added3rdLibs = new Vector<File>();
@@ -201,7 +212,7 @@ public class J2SEPlatformService implements PlatformService {
 				addSystemLib(files[i], true);//由于J2SE需要测试Skin，需即时动态加载；此处不同于Android服务器环境，
 			}
 		}
-		return ClassLoader.getSystemClassLoader();
+		return J2SEPlatformService.class.getClassLoader();
 	}
 
 	@Override
@@ -333,20 +344,20 @@ public class J2SEPlatformService implements PlatformService {
 	}
 	
 	@Override
-	public void setWindowShape(final Window win, final Shape shape) {
-		try{
-			com.sun.awt.AWTUtilities.setWindowShape(win, shape);
-		}catch (final Exception e) {
-			ExceptionReporter.printStackTrace(e);
-		}
+	public void setWindowShape(final Window win, final Shape shape) throws Exception{
+		final Class awtUtilClass = Class.forName("com.sun.awt.AWTUtilities");
+		final Method m = awtUtilClass.getMethod("setWindowShape", Window.class, Shape.class);
+		m.invoke(awtUtilClass, win, shape);
+//		com.sun.awt.AWTUtilities.setWindowShape(win, shape);
 	}
 
 	@Override
 	public Object createRobotPeer(final Robot robot) throws Throwable{
-		return ((sun.awt.ComponentFactory) Toolkit.getDefaultToolkit())
-				.createRobot(robot, GraphicsEnvironment
-						.getLocalGraphicsEnvironment()
-						.getDefaultScreenDevice());
+		final GraphicsDevice defaultScreenDevice = GraphicsEnvironment.getLocalGraphicsEnvironment()	.getDefaultScreenDevice();
+		final Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
+		final Class cf = Class.forName("sun.awt.ComponentFactory");//允许出错，由外部拦截
+		final Method m = cf.getMethod("createRobot", Robot.class, GraphicsDevice.class);
+		return m.invoke(defaultToolkit, robot, defaultScreenDevice);
 	}
 	
 	public static Class getCaptureDeviceManagerClass() {
@@ -424,7 +435,7 @@ public class J2SEPlatformService implements PlatformService {
 		
 		CCoreUtil.checkAccess();
 		
-		final URLClassLoader loader = (URLClassLoader) ClassLoader.getSystemClassLoader();
+		final URLClassLoader loader = (URLClassLoader) J2SEPlatformService.class.getClassLoader();
 
 		try {
 			addJar(loader, jardexFile);

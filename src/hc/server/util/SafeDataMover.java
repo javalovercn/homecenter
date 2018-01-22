@@ -12,6 +12,7 @@ import java.util.Vector;
 public class SafeDataMover {
 	final File src;
 	final String[] excludeExtensions;
+	final String[] excludeDirs;
 	final File target;
 	
 	final HashMap<File, SubItems> targetItems = new HashMap<File, SubItems>(32);
@@ -19,10 +20,11 @@ public class SafeDataMover {
 	final HashMap<File, Long> sourceFileLength = new HashMap<File, Long>(32);
 	final HashMap<File, String> sourceFileMD5 = new HashMap<File, String>(32);
 	
-	public SafeDataMover(final File src, final File target, final String[] excludes){
+	public SafeDataMover(final File src, final File target, final String[] exclude, final String[] excludeDirs){
 		this.src = src;
 		this.target = target;
-		this.excludeExtensions = excludes;
+		this.excludeExtensions = exclude;
+		this.excludeDirs = excludeDirs;
 	}
 	
 	public final void syncFirst(){
@@ -33,11 +35,11 @@ public class SafeDataMover {
 		
 		loadTargetFilesSnap(target);
 		
-		sync(src, target, excludeExtensions);
+		sync(src, target, excludeExtensions, excludeDirs);
 	}
 	
 	public final boolean syncAck(){
-		return sync(src, target, excludeExtensions);
+		return sync(src, target, excludeExtensions, excludeDirs);
 	}
 	
 	/**
@@ -47,7 +49,7 @@ public class SafeDataMover {
 	 * @param excluesExtentions
 	 * @return
 	 */
-	private final boolean sync(final File parentSrc, final File parentTarget, final String[] excluesExtentions){
+	private final boolean sync(final File parentSrc, final File parentTarget, final String[] excluesExtentions, final String[] excludeDirs){
 		final SubItems targetSubItems = targetItems.get(parentTarget);
 		if(targetSubItems == null){
 			copyToTarget(parentSrc, parentTarget);
@@ -60,7 +62,7 @@ public class SafeDataMover {
 		if(srcSubs == null){//已被删除
 			L.V = L.WShop ? false : LogManager.log("there is no thing in src : " + parentSrc.getAbsolutePath() + ", isDir : " + parentSrc.isDirectory());
 			targetItems.remove(parentTarget);
-			ResourceUtil.deleteDirectoryNowAndExit(parentTarget, true);
+			ResourceUtil.deleteDirectoryNow(parentTarget, true);
 			return true;
 		}
 		
@@ -73,19 +75,32 @@ public class SafeDataMover {
 		final int subFileNum = srcSubs.length;
 		final String[] srcSubNames = new String[subFileNum];
 		int sameSubCount = 0;
+		
 		final boolean hasExcludes = excluesExtentions != null;
+		final boolean hasExcludeDirs = excludeDirs != null;
 		
 		for (int i = 0; i < subFileNum; i++) {
 			final File srcItem = srcSubs[i];
+			final boolean isDir = srcItem.isDirectory();
 			
 			final String srcItemFileShortName = srcItem.getName();
 			srcSubNames[i] = srcItemFileShortName;//要置下行条件之前，否则可能为null
 			
-			if(hasExcludes && srcItem.equals(SafeDataManager.SAFE_DATA_DIR)){
-				continue;
+			if(hasExcludeDirs && isDir){
+				boolean isExcluds = false;
+				for (int j = 0; j < excludeDirs.length; j++) {
+					if(srcItemFileShortName.equals(excludeDirs[j])){
+						L.V = L.WShop ? false : LogManager.log("[SafeDataManager] exclude dir : " + srcItemFileShortName);
+						isExcluds = true;
+						break;
+					}
+				}
+				if(isExcluds){
+					continue;
+				}
 			}
 			
-			if(hasExcludes){
+			if(hasExcludes && (isDir == false)){
 				boolean isExcluds = false;
 				for (int j = 0; j < excluesExtentions.length; j++) {
 					if(srcItemFileShortName.endsWith(excluesExtentions[j])){
@@ -103,7 +118,7 @@ public class SafeDataMover {
 			
 			final File subParentTarget = new File(parentTarget, srcItemFileShortName);
 			if(isFindInTarget == false){
-				if(srcItem.isDirectory()){
+				if(isDir){
 					copyToTarget(srcItem, subParentTarget);
 					loadTargetFilesSnap(subParentTarget);
 					loadSourceFilesSnap(srcItem);
@@ -120,8 +135,8 @@ public class SafeDataMover {
 			}else{
 				sameSubCount++;
 				
-				if(srcItem.isDirectory()){
-					isChanged = isChanged || sync(srcItem, subParentTarget, null);
+				if(isDir){
+					isChanged = sync(srcItem, subParentTarget, null, null) || isChanged;
 				}else{
 					final long lastModified = srcItem.lastModified();
 					if(lastModified == 0){
@@ -171,7 +186,7 @@ public class SafeDataMover {
 					L.V = L.WShop ? false : LogManager.log("target exists, but not found in src, del : " + targetSubItemFile.getAbsolutePath());
 					
 					if(targetSubItemFile.isDirectory()){
-						ResourceUtil.deleteDirectoryNowAndExit(targetSubItemFile, true);
+						ResourceUtil.deleteDirectoryNow(targetSubItemFile, true);
 					}else{
 						final File subItemFile = new File(parentSrc, subItem);
 						sourceLastModi.remove(subItemFile);

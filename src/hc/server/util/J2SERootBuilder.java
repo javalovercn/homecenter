@@ -2,6 +2,7 @@ package hc.server.util;
 
 import hc.App;
 import hc.core.ContextManager;
+import hc.core.RootServerConnector;
 import hc.core.util.ExceptionJSON;
 import hc.core.util.ExceptionJSONBuilder;
 import hc.core.util.KeyValue;
@@ -190,6 +191,11 @@ public class J2SERootBuilder extends RootBuilder {
 			 ClassUtil.buildOneStackWithCause((Throwable)para, sb, false, false);
 			 LogManager.log(sb.toString());
 			 StringBuilderCacher.cycle(sb);
+		 }else if(rootBizNo == ROOT_GET_LAST_ROOT_CFG){
+			 return PropertiesManager.getValue(PropertiesManager.p_lastRootCfg, RootServerConnector.OFFLINE_ROOT_CFG);//OFFLINE_ROOT_CFG可能为null
+		 }else if(rootBizNo == ROOT_SET_LAST_ROOT_CFG){
+			 PropertiesManager.setValue(PropertiesManager.p_lastRootCfg, (String)para);
+			 PropertiesManager.saveFile();
 		 }
 		 
 		 return null;

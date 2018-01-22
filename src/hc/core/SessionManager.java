@@ -131,4 +131,18 @@ public class SessionManager {
 			return coreSS.context.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON;
 		}
 	}
+	
+	public static boolean isOnlyLineOnOneSession(){
+		int lineOnCounter = 0;
+		synchronized (sessionListThreadSafe) {
+			final int size = sessionListThreadSafe.size();
+			for (int i = 0; i < size; i++) {
+				CoreSession coreSS = (CoreSession)sessionListThreadSafe.elementAt(i);
+				if(coreSS.context.cmStatus == ContextManager.STATUS_SERVER_SELF){
+					lineOnCounter++;
+				}
+			}
+		}
+		return lineOnCounter == 1;
+	}
 }

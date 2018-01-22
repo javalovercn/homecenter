@@ -136,7 +136,7 @@ public class ServerCUtil {
 		}else if(logVersion == 1){
 			return decodeStreamV1(in, key, cipherAlgorithm);
 		}else{
-			LogManager.errToLog("");
+			LogManager.errToLog("unknow SecurityLogVersion.");
 		}
 		return null;
 	}

@@ -144,6 +144,8 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	
 	@Override
 	public void notifyShutdown(){
+		releaseUploadLineInfoTimer();
+		
 		//获得全部通讯，并通知下线。
 		LogManager.log("close a session for shutdown...");
 		
@@ -470,6 +472,18 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 //			packet.setPort(Integer.parseInt(port));
 //		}
 //	}
+	
+	HCTimer uploadLineInfoTimer;
+	
+	private final void releaseUploadLineInfoTimer(){
+		synchronized (this) {
+			if(uploadLineInfoTimer != null){
+				LogManager.log("[lineon] remove upload line-on info timer.");
+				uploadLineInfoTimer.remove();
+				uploadLineInfoTimer = null;
+			}
+		}
+	}
 
 	@Override
 	public Object doExtBiz(final short bizNo, final Object newParam) {
@@ -516,8 +530,8 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 //			}
 		}else if(bizNo == BIZ_SHOW_ONCE_SAME_ID){
 			SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_SAME_ID, 
-					(String)ResourceUtil.get(9259), 
-					(String)ResourceUtil.get(IContext.ERROR),
+					ResourceUtil.get(9259), 
+					ResourceUtil.get(IContext.ERROR),
 					SingleMessageNotify.NEVER_AUTO_CLOSE, App.getSysIcon(App.SYS_ERROR_ICON));
 			return null;
 //		}else if(bizNo == BIZ_MATCHED_FOR_CLIENT_ON_RELAY){
@@ -555,7 +569,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 //			ti.putTip(JPTrayIcon.PUBLIC_IP, hostAddress + ":" + String.valueOf(UDPChannel.publicPort));
 			
 			if(L.isInWorkshop){
-				LogManager.log("upload direct server : " + StarterParameter.homeWirelessIpPort.ip + ", port : " + StarterParameter.homeWirelessIpPort.port);
+				LogManager.log("upload direct server : " + StarterParameter.getHomeWirelessIP() + ", port : " + StarterParameter.getHomeWirelessPort());
 			}
 			
 			try{
@@ -564,26 +578,45 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			}
 
 			final String out = RootServerConnector.lineOn(
-					IConstant.getUUID(), StarterParameter.homeWirelessIpPort.ip, 
-					StarterParameter.homeWirelessIpPort.port, 0, 1, 
+					IConstant.getUUID(), StarterParameter.getHomeWirelessIP(), 
+					StarterParameter.getHomeWirelessPort(), 0, 1, 
 					StarterParameter.relayServerUPnPIP, StarterParameter.relayServerUPnPPort,
 					hcConnection.relayIpPort.ip, hcConnection.relayIpPort.port, TokenManager.getToken(), 
 					DefaultManager.isHideIDForErrCert(), RootServerConnector.getHideToken());
 			
 			if(out == null){
-				LogManager.err("unable to connect root server");
-				coreSS.notifyLineOff(true, false);
-				final String[] ret = {"false"};
+				if(uploadLineInfoTimer == null){
+					uploadLineInfoTimer = new HCTimer("uploadLineInfoTimer", HCTimer.ONE_MINUTE, true) {
+						final Runnable run = new Runnable() {
+							@Override
+							public void run() {
+								LogManager.log("[lineon] retry upload line-on info by timer when line-off mode.");
+								doExtBiz(IContext.BIZ_UPLOAD_LINE_ON, null);
+							}
+						};
+						
+						@Override
+						public void doBiz() {
+							ContextManager.getThreadPool().run(run);
+						}
+					};
+				}
+//				coreSS.notifyLineOff(true, false);//不停，一直尝试上传，直到成功
+				final String[] ret = {IConstant.FALSE};
 				return ret;
-			}else if(out.equals("e")){
-				String msg = (String)ResourceUtil.get(9113);
+			}else{
+				releaseUploadLineInfoTimer();
+			}
+			
+			if(out.equals("e")){
+				String msg = ResourceUtil.get(9113);
 				msg = StringUtil.replace(msg, "{uuid}", IConstant.getUUID());//html tag is in it.
 				
 				LogManager.errToLog(msg);//html can't be displayMessage in TrayIcon.
 				
 				LineFailManager.showLineFailWindow((J2SESession)coreSS, msg);
 				
-				final String[] ret = {"false"};
+				final String[] ret = {IConstant.FALSE};
 				return ret;
 			}else if(out.equals("d")){
 				RootConfig.getInstance().setProperty(RootConfig.p_Color_On_Relay, "5");
@@ -603,7 +636,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			LineFailManager.closeLineFailWindow();//外部网络故障消失，关闭窗口。
 			
 			if(TrayMenuUtil.setTrayEnable(true)){
-				final String msg = (String) ResourceUtil.get(9008);//Line On, Ready for client
+				final String msg = ResourceUtil.get(9008);//Line On, Ready for client
 				TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), 
 					msg, IContext.INFO, null, 0);
 			}
@@ -776,8 +809,8 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		}else{
 			LogManager.log("reject a mobile login with invalid certification.");
 			coreSS.context.send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_CERTKEY_ERROR));
-			final String errCertTitle = (String)ResourceUtil.get(9182);
-			final String errCert = (String)ResourceUtil.get(9183);
+			final String errCertTitle = ResourceUtil.get(9182);
+			final String errCert = ResourceUtil.get(9183);
 			SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_ERROR_CERT, 
 					errCert, errCertTitle, 1000 * 60,
 					App.getSysIcon(App.SYS_ERROR_ICON));
@@ -851,9 +884,9 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	}
 	
 	public static final String MAX_HC_VER = "9999999";//注意与Starter.NO_UPGRADE_VER保持同步
-	
-	private final String minMobiVerRequiredByServer = "7.23";//(含)，
+	private static final String minMobiVerRequiredByServer = "7.24";//(含)，
 	//你可能 还 需要修改服务器版本，StarterManager HCVertion = "6.97";
+	
 	public WiFiDeviceManager remoteWrapper;
 	
 	public static final String getSampleHarVersion(){
@@ -865,7 +898,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 
 		coreSS.context.displayMessage(false,
 				ResourceUtil.getInfoI18N(), 
-				(String)ResourceUtil.get(9006), IContext.INFO, null, 0);
+				ResourceUtil.get(9006), IContext.INFO, null, 0);
 
 		final String mobileUID = UserThreadResourceUtil.getMobileSoftUID(coreSS);//注意：需提前取得，否则可能关闭ClientSession，而得不到。
 		ContextManager.getThreadPool().run(new Runnable() {
@@ -964,8 +997,8 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 									coreSS.notifyLineOff(true, false);
 									RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_forbidCert_STR);
 									SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_FORBID_CERT, 
-											StringUtil.replace((String)ResourceUtil.get(9078), "{forbid}", forbid_update_cert), 
-											(String)ResourceUtil.get(IContext.ERROR),
+											StringUtil.replace(ResourceUtil.get(9078), "{forbid}", forbid_update_cert), 
+											ResourceUtil.get(IContext.ERROR),
 											60000 * 5, App.getSysIcon(App.SYS_ERROR_ICON));
 									
 								}
@@ -1071,6 +1104,22 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 							IContext.INFO, null, 0);
 					TrayMenuUtil.notifyMobileLineOn();
 				}
+				
+				//有可能是登录时，也有可能是会话时进行option
+				final String mobileMemberID = UserThreadResourceUtil.getMobileMemberID(j2seCoreSS);
+				final int memberIDLen = mobileMemberID.length();
+				if(memberIDLen == 0){
+					j2seCoreSS.memberIDSetStatus.value = false;
+				}else if(SessionManager.isOnlyLineOnOneSession() == false){//有两个或多个在线
+					new HCTimer("", HCTimer.ONE_SECOND * 5, true) {
+						@Override
+						public void doBiz() {
+							remove();
+							j2seCoreSS.checkSameMemberIDInSys(mobileMemberID, true);
+						}
+					};
+				}
+				
 				return true;
 			}
 		});
@@ -1193,7 +1242,7 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		ctx.setStatus(ContextManager.STATUS_NEED_NAT);
 		
 		//可能更新p_Encrypt_Factor，故刷新(不论正常断线或手机请求)
-		RootConfig.reset(true);
+		RootConfig.reset(false);
 
 		coreSS.resetCheck();
 		
@@ -1272,7 +1321,7 @@ class PWDDialog extends HCJDialog {
 		jbExit = new JButton("", new ImageIcon(ImageSrc.CANCEL_ICON));
 
 		// new LineBorder(Color.LIGHT_GRAY, 1, true)
-		titledBorder1 = new TitledBorder((String)ResourceUtil.get(1007));// BorderFactory.createEtchedBorder()
+		titledBorder1 = new TitledBorder(ResourceUtil.get(1007));// BorderFactory.createEtchedBorder()
 		
 		final JPanel root = new JPanel();
 		
@@ -1295,9 +1344,9 @@ class PWDDialog extends HCJDialog {
 //		jlPassword.setHorizontalAlignment(SwingConstants.RIGHT);
 		jbOK.setNextFocusableComponent(jbExit);
 		jbOK.setSelected(true);
-		jbOK.setText((String) ResourceUtil.get(IContext.OK));
+		jbOK.setText(ResourceUtil.get(IContext.OK));
 
-		jbExit.setText((String) ResourceUtil.get(1018));
+		jbExit.setText(ResourceUtil.get(1018));
 		jbExit.addActionListener(exitActionListener);
 
 		jPasswordField1.setEchoChar('*');

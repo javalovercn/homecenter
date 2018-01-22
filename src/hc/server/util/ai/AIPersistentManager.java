@@ -619,7 +619,7 @@ public class AIPersistentManager {
 	    	final String projID = PropertiesManager.getValue(PropertiesManager.p_compackingAIDB);
 	    	if(projID != null){
 	    		final File projDir = buildAIDirForProj(projID);
-	    		ResourceUtil.deleteDirectoryNowAndExit(projDir, true);
+	    		ResourceUtil.deleteDirectoryNow(projDir, true);
 	    		
 	    		PropertiesManager.remove(PropertiesManager.p_compackingAIDB);
 	    		PropertiesManager.saveFile();

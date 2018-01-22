@@ -236,9 +236,9 @@ public class LinkProjectManager{
 				final GridBagConstraints c = new GridBagConstraints();
 				JLabel label = null;
 				if(hasSucc){
-					String applyNowOrNextStartup = (String)ResourceUtil.get(9160);
-					applyNowOrNextStartup = StringUtil.replace(applyNowOrNextStartup, "{yes}", (String)ResourceUtil.get(IContext.OK));
-					applyNowOrNextStartup = StringUtil.replace(applyNowOrNextStartup, "{cancel}", (String)ResourceUtil.get(IContext.CANCEL));
+					String applyNowOrNextStartup = ResourceUtil.get(9160);
+					applyNowOrNextStartup = StringUtil.replace(applyNowOrNextStartup, "{yes}", ResourceUtil.get(IContext.OK));
+					applyNowOrNextStartup = StringUtil.replace(applyNowOrNextStartup, "{cancel}", ResourceUtil.get(IContext.CANCEL));
 					label = new JLabel("<html>" + applyNowOrNextStartup + "</html>", App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);	
 				}else{
 					label = new JLabel("");
@@ -270,7 +270,7 @@ public class LinkProjectManager{
 				}
 				
 				//apply new version project(s) now?
-				final String applyNow = (String)ResourceUtil.get(9159);
+				final String applyNow = ResourceUtil.get(9159);
 				
 				final String title = hasSucc?applyNow:"Error upgrade project";
 				App.showCenterPanelMain(jpanel, 0, 0, title, hasSucc, null, null, new HCActionListener(new Runnable() {
@@ -308,7 +308,7 @@ public class LinkProjectManager{
 			final JPanel panel = new JPanel(new BorderLayout());
 			final ActionListener listener = null;
 			final ActionListener cancelListener = null;
-			panel.add(new JLabel((String)ResourceUtil.get(9162), App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING), 
+			panel.add(new JLabel(ResourceUtil.get(9162), App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING), 
 					BorderLayout.CENTER);
 			App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), false, null, null, listener, cancelListener, null, false, true, null, false, true);
 		}
@@ -448,12 +448,13 @@ public class LinkProjectManager{
 	public static void appNewLinkedInProjNow(final Vector<LinkProjectStore> v, final boolean isServing, 
 			final boolean isForceApplyWhenUserIsConnecting, final boolean isForceUpgradeInLocalNetwork){//注意：不能将异常抛出
 		ResourceUtil.checkHCStackTrace();
-		
+		log("start apply new version...");
 		try{
 		while(ServerUIUtil.isServing()){
 			if(isForceApplyWhenUserIsConnecting){
 				break;
 			}else{
+				log("user is connecting, delay upgrade.");
 				Thread.sleep(60 * 1000);//用户连线时，不进行升级操作
 			}
 		}
@@ -466,9 +467,9 @@ public class LinkProjectManager{
 			
 			final String oldVersion = lps.getVersion();
 			final String newVersion = lps.getDownloadingVer();
-			final boolean isDelProj = newVersion.equals(LinkProjectStore.DEL_VERSION);
+			final boolean isDelCurrProjOnly = newVersion.equals(LinkProjectStore.DEL_VERSION);
 			
-			if(isDelProj || isForceUpgradeInLocalNetwork 
+			if(isDelCurrProjOnly || isForceUpgradeInLocalNetwork 
 					|| 
 				(!newVersion.equals(LinkProjectStore.DEFAULT_UNKOWN_VER) 
 					&& StringUtil.higher(newVersion, oldVersion)
@@ -485,7 +486,8 @@ public class LinkProjectManager{
 				}
 				
 				final File oldEditBackFile = LinkProjectManager.removeLinkProjectPhic(lps, false);
-				if(isDelProj){
+				log("success remove old version project : " + lps.getProjectID());
+				if(isDelCurrProjOnly){//仅删除旧版本，但不升级
 					//物理删除过时工程
 					delProjs.add(lps);
 					continue;
@@ -1049,7 +1051,7 @@ public class LinkProjectManager{
 		final String[] projID = checkReferencedDependencyInSysThread(stores);
 		
 		if(projID != null){
-			String text = (String)ResourceUtil.get(8012);//注意：该信息不仅被手机端使用，也被PC端使用，请不要使用<BR>
+			String text = ResourceUtil.get(8012);//注意：该信息不仅被手机端使用，也被PC端使用，请不要使用<BR>
 			text = StringUtil.replace(text, "{proj1}", projID[0]);
 			text = StringUtil.replace(text, "{proj2}", projID[1]);
 			

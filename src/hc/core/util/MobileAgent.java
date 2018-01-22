@@ -16,6 +16,7 @@ public class MobileAgent {
 	private final static String TAG_OS = "os";
 	private final static String TAG_VER = "osver";
 	private final static String TAG_UID = "uid";
+	private final static String TAG_MEMBER_ID = "memberID";
 	private final static String TAG_HAS_CAMERA = TAG_HIDE_PREFIX + "camera";
 	private final static String TAG_CONTROL_WIFI = TAG_HIDE_PREFIX + "ctrlWiFi";
 	private final static String TAG_EncryptionStrength = "encryptionStrength";
@@ -222,6 +223,14 @@ public class MobileAgent {
 	}
 	public final void setVer(final String ver){
 		set(TAG_VER, ver);
+	}
+	
+	public final String getMemberID(){
+		return get(TAG_MEMBER_ID, "");
+	}
+	
+	public final void setMemberID(final String memberID){
+		set(TAG_MEMBER_ID, memberID);
 	}
 	
 	public final String getSoftUID(){

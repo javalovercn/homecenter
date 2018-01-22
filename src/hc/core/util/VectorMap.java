@@ -17,43 +17,49 @@ public class VectorMap extends Vector{
 	 * @return
 	 */
 	public final Object[] get(final int idx, Object[] kv){
-		final KeyValue keyValue = (KeyValue)super.elementAt(idx);
-		if(kv != null && kv.length >= 2){
-		}else{
-			kv = new Object[2];
+		synchronized (this) {
+			final KeyValue keyValue = (KeyValue)super.elementAt(idx);
+			if(kv != null && kv.length >= 2){
+			}else{
+				kv = new Object[2];
+			}
+			kv[0] = keyValue.key;
+			kv[1] = keyValue.value;
+			return kv;
 		}
-		kv[0] = keyValue.key;
-		kv[1] = keyValue.value;
-		return kv;
 	}
 	
 	public final Object get(final Object key, final Object defaultValue){
-		final int size = super.size();
-		
-		for (int i = 0; i < size; i++) {
-			final KeyValue keyValue = (KeyValue)super.elementAt(i);
-			if(keyValue.key.equals(key)){
-				return keyValue.value;
+		synchronized (this) {
+			final int size = super.size();
+			
+			for (int i = 0; i < size; i++) {
+				final KeyValue keyValue = (KeyValue)super.elementAt(i);
+				if(keyValue.key.equals(key)){
+					return keyValue.value;
+				}
 			}
+			
+			return defaultValue;
 		}
-		
-		return defaultValue;
 	}
 	
 	public final void set(final Object key, final Object value){
-		final int size = super.size();
-		
-		for (int i = 0; i < size; i++) {
-			final KeyValue keyValue = (KeyValue)super.elementAt(i);
-			if(keyValue.key.equals(key)){
-				keyValue.value = value;
-				return;
+		synchronized (this) {
+			final int size = super.size();
+			
+			for (int i = 0; i < size; i++) {
+				final KeyValue keyValue = (KeyValue)super.elementAt(i);
+				if(keyValue.key.equals(key)){
+					keyValue.value = value;
+					return;
+				}
 			}
+			
+			final KeyValue keyValue = new KeyValue();
+			keyValue.key = key;
+			keyValue.value = value;
+			super.addElement(keyValue);
 		}
-		
-		final KeyValue keyValue = new KeyValue();
-		keyValue.key = key;
-		keyValue.value = value;
-		super.addElement(keyValue);
 	}
 }

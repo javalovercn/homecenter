@@ -4,6 +4,7 @@ import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.DelayWatcher;
 import hc.core.GlobalConditionWatcher;
+import hc.core.HCConditionWatcher;
 import hc.core.HCConnection;
 import hc.core.HCMessage;
 import hc.core.HCTimer;
@@ -19,6 +20,7 @@ import hc.core.data.DataClientAgent;
 import hc.core.data.DataInputEvent;
 import hc.core.data.DataSelectTxt;
 import hc.core.data.XorPackageData;
+import hc.core.util.BooleanValue;
 import hc.core.util.ByteUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
@@ -27,6 +29,7 @@ import hc.core.util.LogManager;
 import hc.core.util.MobileAgent;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.Stack;
+import hc.core.util.StringUtil;
 import hc.core.util.ThreadPriorityManager;
 import hc.core.util.UIUtil;
 import hc.server.J2SEServerURLAction;
@@ -77,6 +80,8 @@ public final class J2SESession extends CoreSession{
 	public final ClientFontSize clientFontSize = new ClientFontSize();
 	public boolean isTranedMletBody;
 	public final UIEventInput uiEventInput = new UIEventInput();
+	private JSEventCenterDriver jsEventProcessor;
+	public 	final BooleanValue memberIDSetStatus = new BooleanValue();
 	
 	public J2SESession(){
 		synchronized (J2SESession.class) {
@@ -84,6 +89,44 @@ public final class J2SESession extends CoreSession{
 		}
 		keepaliveManager = new KeepaliveManager(this);
 		urlAction = new J2SEServerURLAction();
+	}
+	
+	/**
+	 * 
+	 * @param currentMemberID
+	 * @param isSendMessage true means if same then send message to all same session.
+	 * @return
+	 */
+	public final boolean checkSameMemberIDInSys(final String currentMemberID, final boolean isSendMessage){
+		boolean isFindSame = false;
+		final CoreSession[] sessions = SessionManager.getAllSocketSessions();
+		for (int i = 0; i < sessions.length; i++) {
+			final CoreSession coreSS = sessions[i];
+			if(coreSS == this){
+				continue;
+			}
+			
+			final J2SESession j2seCoreSS = (J2SESession)coreSS;
+			final String memID = UserThreadResourceUtil.getMobileMemberID(j2seCoreSS);
+			if(currentMemberID.equals(memID)){
+				isFindSame = true;
+				if(isSendMessage){
+					sendMemberIDUsingByOther(j2seCoreSS, currentMemberID);
+				}
+			}
+		}
+		
+		if(isSendMessage){
+			sendMemberIDUsingByOther(this, currentMemberID);
+		}
+		return isFindSame;
+	}
+
+	private final void sendMemberIDUsingByOther(final J2SESession j2seCoreSS, final String currentMemberID) {
+		String msg = ResourceUtil.get(j2seCoreSS, 9273);//9273=Member ID [{memID}] is being used by other client.
+		msg = StringUtil.replace(msg, "{memID}", currentMemberID);
+		final J2SESession[] j2seCoreSSArray = {j2seCoreSS};
+		ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(j2seCoreSSArray, ResourceUtil.getWarnI18N(j2seCoreSS), msg, ProjectContext.MESSAGE_WARN, null, 0);
 	}
 	
 	@Override
@@ -126,6 +169,25 @@ public final class J2SESession extends CoreSession{
 				return false;
 			}
 			return alertOnKeys.remove(projAlertKey) && alertOnKeys.size() == 0;//注意：如果没有该key，则不进行send
+		}
+	}
+	
+	final ArrayList<Object> waitLock = new ArrayList<Object>(2);
+	
+	public final boolean addWaitLock(final Object lock){
+		synchronized (waitLock) {
+			if(isReleased){
+				return false;
+			}
+			
+			waitLock.add(lock);
+		}
+		return true;
+	}
+	
+	public final void removeWaitLock(final Object lock){
+		synchronized (waitLock) {
+			waitLock.remove(lock);
 		}
 	}
 	
@@ -410,6 +472,9 @@ public final class J2SESession extends CoreSession{
 		}
 		
 		super.release();
+		if(jsEventProcessor != null){
+			jsEventProcessor.notifyShutdown();
+		}
 		
 		Integer[] keys;
 		synchronized (questionOrDialogMap) {
@@ -423,6 +488,16 @@ public final class J2SESession extends CoreSession{
 		for (int i = 0; i < keys.length; i++) {
 			final ResParameter resPara = questionOrDialogMap.get(keys[i]);
 			ServerUIAPIAgent.exitDialogMlet(resPara, true);
+		}
+		
+		synchronized (waitLock) {
+			final int size = waitLock.size();
+			for (int i = size - 1; i >= 0; i--) {
+				final Object lock = waitLock.get(i);
+				synchronized (lock) {
+					lock.notifyAll();
+				}
+			}
 		}
 		
 		if(L.isInWorkshop){
@@ -705,5 +780,20 @@ public final class J2SESession extends CoreSession{
 		LogManager.log("Client change colorMode to level : " + (IConstant.COLOR_STAR_TOP - mode) + " (after limited)");
 	
 		mask = UIUtil.getMaskFromBit(mode);
+	}
+
+	@Override
+	public final HCConditionWatcher getJSEventProcessor() {
+		if(jsEventProcessor == null){
+			synchronized (J2SESession.class) {
+				if(jsEventProcessor == null){
+					jsEventProcessor = new JSEventCenterDriver();
+					if(isReleased){
+						jsEventProcessor.notifyShutdown();
+					}
+				}
+			}
+		}
+		return jsEventProcessor;
 	}
 }

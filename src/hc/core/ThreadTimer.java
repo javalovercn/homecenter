@@ -32,6 +32,7 @@ public class ThreadTimer extends Thread {
 							break;
 						}
 						try {
+//							L.V = L.WShop ? false : LogManager.log("[HCTimer] time : " + timer.name + ", will sleep : " + sleepMS);
 							timer.wait(sleepMS);
 						} catch (InterruptedException e) {
 						}

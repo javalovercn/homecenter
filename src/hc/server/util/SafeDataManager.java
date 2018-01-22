@@ -8,6 +8,7 @@ import hc.core.util.LogManager;
 import hc.core.util.LogMessage;
 import hc.server.data.StoreDirManager;
 import hc.util.HttpUtil;
+import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
 import java.io.File;
@@ -18,7 +19,6 @@ public class SafeDataManager {
 	private final static String BACKUP_SUB_TEMP = "temp" + File.separator;
 	private final static String BACKUP_SUB_STORE = "store" + File.separator;
 	private final static String BACKUP_SUB_SWAP = "swap" + File.separator;
-	final static String[] excluds = {".dex", ".png", ".ico", ".log", ".pem", ResourceUtil.EXT_JAR, ResourceUtil.EXT_APK, "dex_optimized"};//dex_optimized为android Server下目录
 	private final static int WAIT_MS = 300;
 
 	private final static String POWER_OFF_OK = "power_off_ok" + File.separator;
@@ -30,6 +30,10 @@ public class SafeDataManager {
 
 	public static final String USER_DATA = "user_data";
 	public static final String USER_DATA_SAFE = USER_DATA + "_safe";
+
+	final static String[] excluds = {".dex", ".png", ".ico", ".log", ".txt", ".har", ".harbak", ".hc", ".pem", 
+		".command", ".bat", ".sh", ResourceUtil.EXT_JAR, ResourceUtil.EXT_APK};
+	final static String[] excludsDir = {USER_DATA_SAFE, "dex_optimized", StoreDirManager.LOGS_DIR_NAME};//dex_optimized为android Server下目录
 
 	static final File SAFE_DATA_DIR = new File(ResourceUtil.getBaseDir(), USER_DATA_SAFE);
 
@@ -72,6 +76,7 @@ public class SafeDataManager {
 		}
 		
 		powerOffOKDir.mkdirs();
+		LogManager.log("[SafeDataManager] set shutdown safe!");
 	}
 	
 	public static boolean isPowerOffOK(){
@@ -118,17 +123,19 @@ public class SafeDataManager {
 		final LogMessage lm = new LogMessage(false, "[SafeDataManager] restore backup.");
 		LogManager.addBeforeInitLog(lm);
 		
-		restoreImpl(restoreSrc, workBaseDir, excluds);
+		restoreImpl(restoreSrc, workBaseDir, excluds, excludsDir);
 	}
 	
-	public static final void restoreImpl(final File parentSrc, final File parentTarget, final String[] excluesExtentions){
+	public static final void restoreImpl(final File parentSrc, final File parentTarget, final String[] excluesExtentions, final String[] excludeDirs){
 		final File[] oldTargetLists = parentTarget.listFiles();
 		final boolean hasExcludes = excluesExtentions != null;
-
+		final boolean hasExcludeDirs = excludeDirs != null;
+		
 		for (int i = 0; i < oldTargetLists.length; i++) {
 			final File oldTarget = oldTargetLists[i];
-			
-			if(hasExcludes){
+			final boolean isDir = oldTarget.isDirectory();
+
+			if(hasExcludes && (isDir == false)){
 				final String oldTargetName = oldTarget.getName();
 				boolean isExcludes = false;
 				for (int j = 0; j < excluesExtentions.length; j++) {
@@ -142,10 +149,22 @@ public class SafeDataManager {
 				}
 			}
 			
-			if(oldTarget.isDirectory()){
-				if(SAFE_DATA_DIR.equals(oldTarget) == false){
-					ResourceUtil.deleteDirectoryNowAndExit(oldTarget, true);
+			if(hasExcludeDirs && isDir){
+				final String oldTargetName = oldTarget.getName();
+				boolean isExcludes = false;
+				for (int j = 0; j < excludeDirs.length; j++) {
+					if(oldTargetName.equals(excludeDirs[j])){
+						isExcludes = true;
+						break;
+					}
 				}
+				if(isExcludes){
+					continue;
+				}
+			}
+			
+			if(isDir){
+				ResourceUtil.deleteDirectoryNow(oldTarget, true);
 			}else{
 				oldTarget.delete();
 			}
@@ -169,10 +188,12 @@ public class SafeDataManager {
 	
 	static SafeDataMover mover;
 	
-	static {
+	public static boolean isCreateInitDir(){
 		if(SAFE_DATA_DIR.exists() == false){
 			SAFE_DATA_DIR.mkdirs();
+			return true;
 		}
+		return false;
 	}
 	
 	public static void disableSafeBackup(){
@@ -220,7 +241,7 @@ public class SafeDataManager {
 	}
 
 	private static void buildTimer() {
-		autoSafeBackupTimer = new HCTimer("autoSafeBackupTimer", HCTimer.ONE_MINUTE * 1, false) {
+		autoSafeBackupTimer = new HCTimer("autoSafeBackupTimer", HCTimer.ONE_MINUTE * PropertiesManager.getIntValue(PropertiesManager.p_SafeDataBackupIntervalMinutes, 30), false) {
 			@Override
 			public void doBiz() {
 				startSafeBackupProcess(false, false);
@@ -271,7 +292,7 @@ public class SafeDataManager {
 				LogManager.log("[SafeDataManager] start SafeDataBackupProcess...");
 				
 				if(mover == null){
-					mover = new SafeDataMover(workBaseDir, backTempDir, excluds);
+					mover = new SafeDataMover(workBaseDir, backTempDir, excluds, excludsDir);
 					
 					if(backTempDir.exists() == false){
 						backTempDir.mkdirs();
@@ -352,7 +373,7 @@ public class SafeDataManager {
 						
 						backProjTemp.mkdirs();
 						
-						final SafeDataMover mov = new SafeDataMover(projectSrc, backProjTemp, null);
+						final SafeDataMover mov = new SafeDataMover(projectSrc, backProjTemp, null, null);
 						mov.syncFirst();
 						
 						boolean isChanged = true;
@@ -366,7 +387,7 @@ public class SafeDataManager {
 							isChanged = mov.syncAck();
 						}
 						
-						ResourceUtil.deleteDirectoryNowAndExit(backProjStore, false);
+						ResourceUtil.deleteDirectoryNow(backProjStore, false);
 						SafeDataMover.copyToTarget(backProjTemp, backProjStore);
 					}
 				}finally{

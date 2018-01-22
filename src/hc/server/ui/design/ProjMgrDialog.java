@@ -324,7 +324,7 @@ public class ProjMgrDialog extends SystemDialog {
 		buttonList.add(moveDownButton);
 		buttonList.add(removeButton);
 		
-		final int buttonToolHeight = Math.max(fontSizePX + getFontSizeForNormal(), getButtonHeight());
+		final int buttonToolHeight = Math.max(fontSizePX + getFontSizeForButton(), getButtonHeight());
 
 		buttonList.setPreferredSize(new Dimension(dialogWidth, buttonToolHeight));
 

@@ -223,7 +223,7 @@ public class TrayMenuUtil {
 				public boolean watch() {
 					if(coreSS.isTransedCertToMobile){
 						final J2SESession[] coreSSS = {coreSS};
-						ServerUIAPIAgent.sendMessageViaCoreSS(coreSSS, ResourceUtil.getInfoI18N(coreSS), (String) ResourceUtil.get(coreSS, 9033), IContext.INFO, null, 0);
+						ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, ResourceUtil.getInfoI18N(coreSS), (String) ResourceUtil.get(coreSS, 9033), IContext.INFO, null, 0);
 						return true;
 					}
 					if(System.currentTimeMillis() - curr > 3000){

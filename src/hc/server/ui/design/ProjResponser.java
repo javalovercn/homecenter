@@ -22,6 +22,7 @@ import hc.core.util.RecycleThread;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StoreableHashMap;
 import hc.core.util.StringUtil;
+import hc.core.util.StringValue;
 import hc.core.util.ThreadPool;
 import hc.core.util.ThreadPriorityManager;
 import hc.server.CallContext;
@@ -249,6 +250,7 @@ public class ProjResponser {
 			
 			mobileContexts.release(projectID);
 			
+			ServerUIAPIAgent.notifyShutdown(context);
 			ServerUIAPIAgent.set__projResponserMaybeNull(context, null);
 			
 			if(robots != null){
@@ -594,7 +596,7 @@ public class ProjResponser {
 		}
 		
 		final File tmp_sub_for_hc_sys = StoreDirManager.getTmpSubForUserManagedByHcSys(context);
-		ResourceUtil.deleteDirectoryNowAndExit(tmp_sub_for_hc_sys, false);//注意：false means 不删除顶级tmp目录
+		ResourceUtil.deleteDirectoryNow(tmp_sub_for_hc_sys, false);//注意：false means 不删除顶级tmp目录
 	}
 
 	private final void loadNativeLibByClassLoad(final ClassLoader loader, final String absolutePath) throws Throwable {
@@ -611,14 +613,15 @@ public class ProjResponser {
 	}
 	
 	private final void loadNativeLibByScript(final HCJRubyEngine hcje, final String absolutePath) throws Throwable {
-		final String scripts = "import Java::hc.server.util.JavaLangSystemAgent\n" +
+		final StringValue sv = new StringValue();
+		sv.value = "import Java::hc.server.util.JavaLangSystemAgent\n" +
 				"path = \"" + absolutePath + "\"\n" +
 				"JavaLangSystemAgent.load(path)\n";
 		
 		//注意：
 		//1. 不能在工程级线程中执行，因为目录无权限
 		//2. 必须要用hcje的classloader来加载
-		RubyExector.runAndWaitOnEngine(scripts, "loadNativeLib", null, hcje);
+		RubyExector.runAndWaitOnEngine(sv, "loadNativeLib", null, hcje);
 		L.V = L.WShop ? false : LogManager.log("successful loadNativeLibByScript : " + absolutePath);
 	}
 	
@@ -793,7 +796,7 @@ public class ProjResponser {
 		if(ProjectContext.EVENT_SYS_MOBILE_LOGIN.equals(eventName)
 				|| ProjectContext.EVENT_SYS_PROJ_STARTUP.equals(eventName)){
 			final String errorI18N = ResourceUtil.getErrorI18N(coreSSMaybeNull);
-			String notExecuted = (String)ResourceUtil.get(coreSSMaybeNull, 9267);
+			String notExecuted = ResourceUtil.get(coreSSMaybeNull, 9267);
 			notExecuted = StringUtil.replace(notExecuted, "{projID}", projectID);
 			notExecuted = StringUtil.replace(notExecuted, "{eventName}", eventName);
 			if(context.sendMessage(errorI18N, notExecuted, ProjectContext.MESSAGE_ERROR, null, 0) == false){
@@ -1042,7 +1045,7 @@ public class ProjResponser {
 		
 		if(sendMsgIfFail){
 			//没有找到相应的资源实现，比如:cmd://myCmd, screen://myScreen
-			final String resource = StringUtil.replace((String)ResourceUtil.get(coreSS, 9122), "{resource}", url.url);
+			final String resource = StringUtil.replace(ResourceUtil.get(coreSS, 9122), "{resource}", url.url);
 			final J2SESession[] coreSSS = {coreSS};
 			ServerUIAPIAgent.sendMovingMsg(coreSSS, resource);
 			LogManager.err(resource);
@@ -1237,9 +1240,9 @@ public class ProjResponser {
 		return ConfigManager.OS_J2ME_DESC.equals(UserThreadResourceUtil.getMobileAgent(coreSS).getOS());
 	}
 
-	public static void sendReceiver(final CoreSession coreSS, final String receiver, final String elementID) {
-		final String[] paras = {HCURL.DATA_PARA_NOTIFY_RECEIVER, HCURL.DATA_PARA_NOTIFY_RECEIVER_PARA};
-		final String[] values = {receiver, elementID};
+	public static void sendReceiver(final CoreSession coreSS, final String receiver, final String elementID, final boolean isCancelable) {
+		final String[] paras = {HCURL.DATA_PARA_NOTIFY_RECEIVER, HCURL.DATA_PARA_NOTIFY_RECEIVER_PARA, HCURL.DATA_PARA_NOTIFY_RECEIVER_CANCEL_PARA};
+		final String[] values = {receiver, elementID, IConstant.toString(isCancelable)};
 		HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, paras, values);
 	}
 

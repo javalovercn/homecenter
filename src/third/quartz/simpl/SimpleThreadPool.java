@@ -348,7 +348,7 @@ public class SimpleThreadPool implements ThreadPool {
                     while(handoffPending) {
                         try {
                             nextRunnableLock.wait(100);
-                        } catch(InterruptedException _) {
+                        } catch(InterruptedException e) {
                             interrupted = true;
                         }
                     }
@@ -364,7 +364,7 @@ public class SimpleThreadPool implements ThreadPool {
                             // note: with waiting infinite time the
                             // application may appear to 'hang'.
                             nextRunnableLock.wait(2000);
-                        } catch (InterruptedException _) {
+                        } catch (InterruptedException e) {
                             interrupted = true;
                         }
                     }
@@ -375,7 +375,7 @@ public class SimpleThreadPool implements ThreadPool {
                         try {
                             wt.join();
                             workerThreads.remove();
-                        } catch (InterruptedException _) {
+                        } catch (InterruptedException e) {
                             interrupted = true;
                         }
                     }

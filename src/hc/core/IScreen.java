@@ -10,4 +10,7 @@ public interface IScreen {
 	 */
 	public abstract void setScreenID(final String screenID);
 	
+	public abstract void setScreenCancelable(final boolean isCancelable);
+	
+	public abstract boolean isScreenCancelable();
 }

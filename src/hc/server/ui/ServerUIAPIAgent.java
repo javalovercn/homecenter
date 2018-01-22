@@ -29,6 +29,7 @@ import hc.server.ui.design.JarMainMenu;
 import hc.server.ui.design.MobiUIResponsor;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
+import hc.server.ui.design.SystemDialog;
 import hc.server.util.Assistant;
 import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.ServerAPIAgent;
@@ -196,6 +197,14 @@ public class ServerUIAPIAgent {
 		}
 		
 		final String screenID = ServerUIAPIAgent.buildScreenID(ctx.getProjectID(), targetURL);
+		
+		boolean isCancelable = true;
+		if(dialogMlet instanceof DialogHTMLMlet){
+			isCancelable = ((DialogHTMLMlet)dialogMlet).dialog.isCancelable;
+		}
+		if(isCancelable == false){
+			dialogMlet.setCancelableToNo();
+		}
 		openMletImpl(coreSS, screenID, "title-" + screenID, ctx, dialogMlet);
 	}
 
@@ -503,7 +512,7 @@ public class ServerUIAPIAgent {
 			final QuestionParameter qp, final int int_id, final String result) {
 		final QuestionGlobalLock quesLock = qp.getGlobalLockMaybeNull();
 		if(quesLock != null){
-			if(quesLock.isProcessed(coreSS, int_id, (String)ResourceUtil.get(coreSS, 9237) + qp.questionDesc)){
+			if(quesLock.isProcessed(coreSS, int_id, ResourceUtil.get(coreSS, 9237) + qp.questionDesc)){
 				return false;
 			}
 		}
@@ -557,11 +566,23 @@ public class ServerUIAPIAgent {
 					final Dialog dialog = ((DialogHTMLMlet)mlet).dialog;
 					final ProjResponser resp = ServerUIAPIAgent.getProjResponserMaybeNull(out.ctx);
 					if(dialog != null && resp != null){
+						if(dialog instanceof SystemDialog){
+							((SystemDialog)dialog).setCanceled();
+						}
+						
 						L.V = L.WShop ? false : LogManager.log("Dialog.dismiss() is invoked by cancel/back/lineoff.");
 						ServerUIAPIAgent.runInSessionThreadPool(para.coreSS, resp, new Runnable() {
 							@Override
 							public void run() {
-								dialog.dismiss();
+								try{
+									dialog.dismiss();
+								}catch (final Throwable e) {
+									e.printStackTrace();
+								}
+								
+								if(dialog instanceof BlockSystemDialog){
+									((BlockSystemDialog)dialog).notifyBlockUserThread();
+								}
 							}
 						});
 					}
@@ -711,6 +732,10 @@ public class ServerUIAPIAgent {
 		}
 	}
 	
+	public static final void notifyShutdown(final ProjectContext ctx){
+		ctx.shutdown();
+	}
+	
 	public static final void set__projResponserMaybeNull(final ProjectContext ctx, final ProjResponser resp){
 		ctx.__projResponserMaybeNull = resp;
 	}
@@ -846,7 +871,7 @@ public class ServerUIAPIAgent {
 	public static final String CURRENT_THREAD_IS_IN_PROJECT_LEVEL = "current thread is in project level, perhaps in MSB (Robot, Converter, Device).";
 	public static final String ERR_CURRENT_THREAD_IS_IN_PROJECT_LEVEL = "it is NOT allowed that current thread is in project level.";
 
-	public static void sendMessageViaCoreSS(final J2SESession[] coreSS,
+	public static void sendMessageViaCoreSSInUserOrSys(final J2SESession[] coreSS,
 			String caption, String text, final int type,
 			final BufferedImage image, final int timeOut) {
 		if (caption == null) {
@@ -1004,11 +1029,11 @@ public class ServerUIAPIAgent {
 				LogManager.log("force HTMLMlet to Mlet, because there is no component in it or for J2ME mobile.");
 				isHTMLMlet = false;
 			}
-			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_MLET, screenID);
+			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_MLET, screenID, mlet.isCancelable);
 			mcanvas = new MletSnapCanvas(coreSS, UserThreadResourceUtil.getMletWidthFrom(coreSS, false), UserThreadResourceUtil.getMletHeightFrom(coreSS, false));
 		}else{
 			ProjResponser.sendMletBodyOnlyOneTime(coreSS);
-			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_HTMLMLET, screenID);
+			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_HTMLMLET, screenID, mlet.isCancelable);
 			mcanvas = new MletHtmlCanvas(coreSS, UserThreadResourceUtil.getMletWidthFrom(coreSS), UserThreadResourceUtil.getMletHeightFrom(coreSS));
 		}
 		

@@ -9,9 +9,9 @@ import java.util.Vector;
 import javax.swing.JPanel;
 
 /**
- * <code>ScriptPanel</code> is JComponent to load JavaScript and execute JavaScript on client.
+ * <code>ScriptPanel</code> is JComponent to load JavaScript and execute JavaScript on mobile client.
  * <BR><BR>
- * a <code>ScriptPanel</code> can be used in <code>HTMLMlet</code> and <code>Dialog</code>.
+ * <code>ScriptPanel</code> can be used in <code>HTMLMlet</code> and <code>Dialog</code>.
  * <BR><BR>
  * <STRONG>Important</STRONG> : <BR>
  * permission of <code>ScriptPanel</code> is required for project.
@@ -203,18 +203,17 @@ public class ScriptPanel extends JPanel {
 	/**
 	 * set inner HTML for current <code>ScriptPanel</code>.
 	 * <BR><BR>
-	 * for example : <BR>
-	 * 1. a JPanel will be translated to <code>&lt;div id='HC_*'&gt;&lt;/div&gt;</code>,<BR>
+	 * 1. this <code>ScriptPanel</code> will be translated to <code>&lt;div id='HC_*'&gt;&lt;/div&gt;</code>,<BR>
 	 * 2. when invoke <code>setInnerHTML("&lt;div id='myScriptDiv'&gt;some canvas html&lt;/div&gt;")</code>, <BR>
-	 * 3. then the result is : <code>&lt;div id='HC_*'&gt;&lt;div id='myScriptDiv'&gt;some canvas html&lt;/div&gt;&lt;/div&gt;</code>
+	 * 3. the result is : <code>&lt;div id='HC_*'&gt;&lt;div id='myScriptDiv'&gt;some canvas html&lt;/div&gt;&lt;/div&gt;</code>.
 	 *	<BR><BR><STRONG>Warning</STRONG> : all id of elements of HTML created by server is begin with '<STRONG>HC</STRONG>'.
 	 * <BR><BR>Note : there is maybe more ScriptPanels in a <code>Dialog</code> or <code>HTMLMlet</code>, make sure that IDs are unique among them.
 	 * <BR><BR>About cache :<BR>
 	 * don't worry about inner HTML too large for re-translating to mobile, <BR>
 	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether transmission or loading cache from mobile (if inner HTML is too small, it will not be cached).
-	 * If there is too much pieces of cache in a project, system will automatically clear the cache and restart caching.
+	 * If there is too much caches, system will clear all caches and restart caching.
 	 * <BR><BR>
-	 * to disable cache for current HTML, see {@link #setInnerHTML(String, boolean)}.
+	 * to disable cache for inner HTML, see {@link #setInnerHTML(String, boolean)}.
 	 * @param html the inner HTML, for example : <code>&lt;div id='myScriptDiv'&gt;some canvas html&lt;/div&gt;</code>
 	 * @see HTMLMlet#setCSS(javax.swing.JComponent, String, String)
 	 * @since 7.36

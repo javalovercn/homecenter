@@ -8,6 +8,7 @@ import hc.core.util.HCURL;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
+import hc.core.util.StringValue;
 import hc.server.CallContext;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
@@ -74,19 +75,21 @@ public class RubyExector {
 		}
 	}
 
-	public static synchronized final void parse(final CallContext callCtx, final String script, final String scriptName, final HCJRubyEngine hcje, final boolean isReportException) {
+	public static synchronized final void parse(final CallContext callCtx, final String sc, final String scriptName, final HCJRubyEngine hcje, final boolean isReportException) {
+		final StringValue sv = new StringValue();
+		sv.value = sc;
 		try {
-			hcje.parse(script, scriptName);
+			hcje.parse(sv, scriptName);
 		} catch (final Throwable e) {
 			if(isReportException){
 				final String errorMsg = "project [" + hcje.projectIDMaybeBeginWithIDE + "] script error : " + e.toString();
 				LogManager.errToLog(errorMsg);
-				ExceptionReporter.printStackTrace(e, script, errorMsg, ExceptionReporter.INVOKE_NORMAL);
+				ExceptionReporter.printStackTrace(e, sv.value, errorMsg, ExceptionReporter.INVOKE_NORMAL);
 			}
 			
 			final String err = hcje.errorWriter.getMessage();
 			if(callCtx != null){
-				callCtx.setError(err, script, e);
+				callCtx.setError(err, sv.value, e);
 			}
 			hcje.resetError();
 //			LogManager.log("JRuby Script Error : " + err);
@@ -104,9 +107,11 @@ public class RubyExector {
 	 * @param hcje
 	 * @return
 	 */
-	public static final Object runAndWaitOnEngine(final CallContext callCtx, final String script, final String scriptName, final Map map, final HCJRubyEngine hcje) {
+	public static final Object runAndWaitOnEngine(final CallContext callCtx, final String sc, final String scriptName, final Map map, final HCJRubyEngine hcje) {
+		final StringValue sv = new StringValue();
+		sv.value = sc;
 		try {
-			return runAndWaitOnEngine(script, scriptName, map, hcje);
+			return runAndWaitOnEngine(sv, scriptName, map, hcje);
 			
 //			ScriptEngineManager manager = new ScriptEngineManager();  
 //			ScriptEngine engine = manager.getEngineByName("jruby");
@@ -121,12 +126,12 @@ public class RubyExector {
 			
 		} catch (final Throwable e) {
 			String err = hcje.errorWriter.getMessage();
-			ExceptionReporter.printStackTraceFromHAR(e, script, err);
+			ExceptionReporter.printStackTraceFromHAR(e, sv.value, err);
 			err = StringUtil.replace(err, "\n", "");//去掉换行
 			err = StringUtil.replace(err, "\t", "");//去掉缩进
-			System.err.println("------------------error on JRuby script : [" + err + "] ------------------\n" + script + "\n--------------------end error on script---------------------");
+			System.err.println("------------------error on JRuby script : [" + err + "] ------------------\n" + sv.value + "\n--------------------end error on script---------------------");
 			if(callCtx != null){
-				callCtx.setError(err, script, e);
+				callCtx.setError(err, sv.value, e);
 			}
 			hcje.resetError();
 //			LogManager.log("JRuby Script Error : " + err);
@@ -136,7 +141,7 @@ public class RubyExector {
 		}
 	}
 
-	public static Object runAndWaitOnEngine(final String script, final String scriptName,
+	public static Object runAndWaitOnEngine(final StringValue sv, final String scriptName,
 			final Map map, final HCJRubyEngine hcje) throws Throwable {
 		//			System.out.println("set JRuby path : " + hcje.path);
 		//			System.setProperty("org.jruby.embed.class.path", hcje.path);
@@ -166,7 +171,7 @@ public class RubyExector {
 		//			if(L.isInWorkshop){
 		//				LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] before runScriptlet.");
 		//			}
-					final Object out = hcje.runScriptlet(script, scriptName);
+					final Object out = hcje.runScriptlet(sv, scriptName);
 		//			if(L.isInWorkshop){
 		//				LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] after runScriptlet.");
 		//			}
@@ -204,11 +209,11 @@ public class RubyExector {
 			return;
 		}
 		
-		String msg = (String)ResourceUtil.get(coreSS, 9163);
+		String msg = ResourceUtil.get(coreSS, 9163);
 		msg = StringUtil.replace(msg, "{title}", title);
 		
 		final J2SESession[] coreSSS = {coreSS};
-		ServerUIAPIAgent.sendMessageViaCoreSS(coreSSS, (String)ResourceUtil.get(coreSS, IContext.ERROR), msg, ProjectContext.MESSAGE_ERROR, 
+		ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, ResourceUtil.get(coreSS, IContext.ERROR), msg, ProjectContext.MESSAGE_ERROR, 
 				null, 0);
 	}
 	

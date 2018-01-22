@@ -106,14 +106,14 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() {
-				exitButtonStr = (String)ResourceUtil.get(localCoreSS, 9131);
-				processingMsg = (String)ResourceUtil.get(localCoreSS, 9130);
+				exitButtonStr = ResourceUtil.get(localCoreSS, 9131);
+				processingMsg = ResourceUtil.get(localCoreSS, 9130);
 				
-				iagreeStr = (String)ResourceUtil.get(localCoreSS, 9115);
-				acceptStr = (String)ResourceUtil.get(localCoreSS, 9114);
-				acceptAllAndNeverDisplay = (String)ResourceUtil.get(localCoreSS, 9241);
+				iagreeStr = ResourceUtil.get(localCoreSS, 9115);
+				acceptStr = ResourceUtil.get(localCoreSS, 9114);
+				acceptAllAndNeverDisplay = ResourceUtil.get(localCoreSS, 9241);
 				acceptStr = StringUtil.replace(acceptStr, "{iagree}", iagreeStr);
-				cancelStr = (String) ResourceUtil.get(localCoreSS, IContext.CANCEL);
+				cancelStr = ResourceUtil.get(localCoreSS, IContext.CANCEL);
 				
 //				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(true);
 				return null;
@@ -159,7 +159,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 
 		exitButton.setIcon(new ImageIcon(okImage));
 		setButtonEnable(exitButton, false);
-		exitButton.setPreferredSize(new Dimension(getMobileWidth(), SystemHTMLMlet.getButtonHeight(fontSizePX + getFontSizeForNormal(), getButtonHeight())));
+		exitButton.setPreferredSize(new Dimension(getMobileWidth(), SystemHTMLMlet.getButtonHeight(fontSizePX + getFontSizeForButton(), getButtonHeight())));
 //		setCSS(exitButton, null, "width:100%;height:100%;border-radius: " + getButtonHeight() + "px;display: block;transition: all 0.15s ease;border: 0.1em solid #" + HTMLMlet.getColorForFontByHexString() + ";" + fontSizeCSS);//系统Mlet, //不考虑in user thread
 //		setCSSForDiv(exitButton, null, BUTTON_DIV);
 		exitButton.addActionListener(new ActionListener() {
@@ -168,7 +168,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 				go(URL_EXIT);
 			}
 		});
-
+		
 //		final String fontSizeCSS = "font-size:" + fontSizePX + "px;";
 //		setCSS(this, null, fontSizeCSS);//系统Mlet, //不考虑in user thread
 
@@ -214,7 +214,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	}
 	
 	public void notifyBroadcastWifiAccout(final J2SESession coreSS, final String projID, final String device){
-		final String isBroadcast = (String)ResourceUtil.get(coreSS, 9132);
+		final String isBroadcast = ResourceUtil.get(coreSS, 9132);
 		appendMessage(StringUtil.replace(StringUtil.replace(isBroadcast, "{projID}", projID), "{devName}", device));
 	}
 	
@@ -238,9 +238,9 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		
 		//关闭可能资源锁窗口，比如Designer或LinkProjectPanel
 		if(LinkProjectStatus.isIdle() == false){
-			final String designMenuItem = (String)ResourceUtil.get(coreSS, 9034);
-			final String linkProjectMenuItem = (String)ResourceUtil.get(coreSS, 9059);
-			final String closeStr = (String)ResourceUtil.get(coreSS, 9129);
+			final String designMenuItem = ResourceUtil.get(coreSS, 9034);
+			final String linkProjectMenuItem = ResourceUtil.get(coreSS, 9059);
+			final String closeStr = ResourceUtil.get(coreSS, 9129);
 			
 			appendMessage(StringUtil.replace(StringUtil.replace(closeStr, "{designer}", designMenuItem), "{panel}", linkProjectMenuItem));
 			setButtonEnable(exitButton, true);
@@ -276,7 +276,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 				final String hadmd5 = had.getProperty(HCjad.HAD_HAR_MD5, "");
 				final boolean succ = HttpUtil.download(fileHar, new URL(strharurl), 1, ResourceUtil.getUserAgentForHAD());
 				if(succ == false){
-					final String httpErr = (String)ResourceUtil.get(coreSS, 9269);//connection error or timeout
+					final String httpErr = ResourceUtil.get(coreSS, 9269);//connection error or timeout
 					throw new Exception(httpErr);
 				}
 				
@@ -307,7 +307,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 					final File oldBackEditFile = null;
 					if(isUpgrade){
 						//is added, can NOT be added again.
-						throw new Exception(StringUtil.replace((String)ResourceUtil.get(coreSS, 9192), "{projID}", proj_id));//是否覆盖为resID=9157
+						throw new Exception(StringUtil.replace(ResourceUtil.get(coreSS, 9192), "{projID}", proj_id));//是否覆盖为resID=9157
 					}
 					
 					final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
@@ -367,7 +367,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 					yesInUserThread.setPara(this);
 					
 					if(ResourceUtil.needAccepLicense(licenseURL)){
-						final String opIsCanceled = (String)ResourceUtil.get(coreSS, 9193);//需要系统特权。不能入Runnable
+						final String opIsCanceled = ResourceUtil.get(coreSS, 9193);//需要系统特权。不能入Runnable
 						final IWatcher noInUserThread = new IWatcher() {
 							LicenseHTMLMlet mlet;
 							@Override
@@ -442,7 +442,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 						throw runException[0];
 					}
 		        }else{
-					throw new Exception((String)ResourceUtil.get(coreSS, 9270));//file verification error, try again later
+					throw new Exception(ResourceUtil.get(coreSS, 9270));//file verification error, try again later
 		        }
 			}catch (final Throwable e) {
 //				ExceptionReporter.printStackTrace(e);可能网络不正常，所以无需
@@ -475,15 +475,15 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 
 	public final void enterBindInSysThread(final Boolean[] waitLock, final HTMLMlet mletFrom,
 			final BindRobotSource source, final J2SESession coreSS){
-		final String robotsDesc = (String)ResourceUtil.get(coreSS, 8024);
-		final String convDesc = (String)ResourceUtil.get(coreSS, 8004);
-		final String devDesc = (String)ResourceUtil.get(coreSS, 8007);
+		final String robotsDesc = ResourceUtil.get(coreSS, 8024);
+		final String convDesc = ResourceUtil.get(coreSS, 8004);
+		final String devDesc = ResourceUtil.get(coreSS, 8007);
 		
-		final String cancelDesc = (String)ResourceUtil.get(coreSS, 1018);
+		final String cancelDesc = ResourceUtil.get(coreSS, 1018);
 		final String okDesc = ResourceUtil.getOKI18N(coreSS);
-		final String emptyDesc = (String)ResourceUtil.get(coreSS, 9242);
+		final String emptyDesc = ResourceUtil.get(coreSS, 9242);
 		
-		final String nextOne = (String)ResourceUtil.get(coreSS, 8025);
+		final String nextOne = ResourceUtil.get(coreSS, 8025);
 		
 		final boolean isReleaseCurr = mletFrom instanceof LicenseHTMLMlet;
 
@@ -522,7 +522,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 			}
 		}
 		
-		showMsgForAddHar(IContext.INFO, (String)ResourceUtil.get(coreSS, 9092));
+		showMsgForAddHar(IContext.INFO, ResourceUtil.get(coreSS, 9092));
 		
 		BindRobotSource bindSource = mobiResp.bindRobotSource;
 		if(bindSource == null){
@@ -569,7 +569,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 //		}
 		
 		LogManager.log("successful apply added project to ACTIVE status.");
-		appendMessage((String)ResourceUtil.get(coreSS, 9128));
+		appendMessage(ResourceUtil.get(coreSS, 9128));
 	}
 
 	/**
@@ -620,7 +620,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		final JPanel progressPanel = new JPanel(new GridLayout(3, 1));
 		progressPanel.add(bar);
 		progressPanel.add(descLabel);
-		final JButton cancel = new JButton((String) ResourceUtil.get(IContext.CANCEL));
+		final JButton cancel = new JButton(ResourceUtil.get(IContext.CANCEL));
 		cancel.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
@@ -667,7 +667,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		final JLabel statusReport = new JLabel("", SwingConstants.LEFT);
 		inputPanel.add(statusReport);
 		
-		final JButton submit = new JButton((String) ResourceUtil.get(localCoreSS, IContext.OK));
+		final JButton submit = new JButton(ResourceUtil.get(localCoreSS, IContext.OK));
 		inputPanel.add(submit);
 		
 		submit.addActionListener(new HCActionListener(new Runnable() {
@@ -675,14 +675,14 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 			public void run() {
 				final AddHarHTMLMlet addHarHTMLMlet = AddHarHTMLMlet.this;
 				if(ssidField.getText().length() == 0){
-					statusReport.setText((String)ResourceUtil.get(localCoreSS, 9126));
+					statusReport.setText(ResourceUtil.get(localCoreSS, 9126));
 					ssidField.requestFocusInWindow();
 					addHarHTMLMlet.setCSS(statusReport, null, css_error);//系统Mlet, //不考虑in user thread
 					return;
 				}
 				
 				if(pass1.getText().equals(pass2.getText()) == false){
-					statusReport.setText((String)ResourceUtil.get(localCoreSS, 9127));
+					statusReport.setText(ResourceUtil.get(localCoreSS, 9127));
 					addHarHTMLMlet.setCSS(statusReport, null, css_error);//系统Mlet, //不考虑in user thread
 					return;
 				}
@@ -748,9 +748,9 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 				coreSS.sessionEventManager.addListener(SessionEventManager.EVENT_ADD_HAR_BUSY, new Runnable() {
 					@Override
 					public void run() {
-						final String notifyNotBusy = (String)ResourceUtil.get(coreSS, 9235);
+						final String notifyNotBusy = ResourceUtil.get(coreSS, 9235);
 						final J2SESession[] coreSSS = {coreSS};
-						ServerUIAPIAgent.sendMessageViaCoreSS(coreSSS, ResourceUtil.getInfoI18N(), notifyNotBusy, ProjectContext.MESSAGE_INFO, null, 0);
+						ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, ResourceUtil.getInfoI18N(), notifyNotBusy, ProjectContext.MESSAGE_INFO, null, 0);
 					}
 				});
 			}
@@ -912,7 +912,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		
 		final int requMin = 200;
 		if(PlatformManager.getService().getAvailableSize() < requMin * 1024 * 1024){// <200M
-			final String warnMsg = StringUtil.replace((String)ResourceUtil.get(coreSS, 9187), "{min}", String.valueOf(requMin));
+			final String warnMsg = StringUtil.replace(ResourceUtil.get(coreSS, 9187), "{min}", String.valueOf(requMin));
 			final int msgType = IContext.WARN;
 			showMsgForAddHar(msgType, warnMsg);		
 		}
@@ -930,7 +930,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 			currMlet.appendMessage(msg);
 		}
 		final J2SESession coreSS = AddHarHTMLMlet.getCurrAddHarHTMLMletCoreSession();
-		TrayMenuUtil.displayMessage((String) ResourceUtil.get(coreSS, msgType),
+		TrayMenuUtil.displayMessage(ResourceUtil.get(coreSS, msgType),
 				msg, msgType, null, 0);
 	}
 

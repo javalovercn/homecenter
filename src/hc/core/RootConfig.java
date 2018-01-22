@@ -3,6 +3,8 @@ package hc.core;
 import java.util.Vector;
 
 import hc.core.util.CCoreUtil;
+import hc.core.util.LogManager;
+import hc.core.util.RootBuilder;
 
 public class RootConfig extends HCConfig{
 	private static RootConfig rc;
@@ -33,6 +35,36 @@ public class RootConfig extends HCConfig{
 			listenerVector.addElement(listener);
 		}
 	}
+	
+	private static boolean isStartingUpdateRootCfgForFail;
+	
+	private static void startUpdateRootCfgWhenFail(){
+		synchronized (listenerVector) {
+			if(isStartingUpdateRootCfgForFail == false){
+				Thread t = new Thread(){
+					String msg;
+					public void run(){
+						do{
+							try{
+								Thread.sleep(HCTimer.ONE_MINUTE);
+							}catch (Exception e) {
+							}
+							msg  = RootServerConnector.getRootConfig();
+						}while(msg == null);
+						reset(false);
+						isStartingUpdateRootCfgForFail = false;
+					}
+				};
+				RootBuilder.getInstance().setDaemonThread(t);
+				t.start();
+				isStartingUpdateRootCfgForFail = true;
+			}
+		}
+	}
+	
+	public static boolean isFailToGetAliveRootCfg(){
+		return isStartingUpdateRootCfgForFail;
+	}
 
 	public static void reset(boolean isStillForData) {
 		CCoreUtil.checkAccess();
@@ -41,6 +73,20 @@ public class RootConfig extends HCConfig{
 		boolean lineOff;
 		do{
 			msg = RootServerConnector.getRootConfig();
+			
+			if(msg != null){
+				RootBuilder.getInstance().doBiz(RootBuilder.ROOT_SET_LAST_ROOT_CFG, msg);
+			}else{
+				final String lastRootCfg = (String)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_LAST_ROOT_CFG, null);
+				if(lastRootCfg != null){
+					RootServerConnector.stopRepairTipTimer();
+					LogManager.errToLog("shift to OFF-LINE mode!!!");
+					LogManager.errToLog("fail to get root config from net, use last root config!!!");
+					msg = lastRootCfg;
+					startUpdateRootCfgWhenFail();
+				}
+			}
+			
 			if(msg != null){
 				if(rc == null){
 					rc = new RootConfig(msg);

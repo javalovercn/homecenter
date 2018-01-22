@@ -1,20 +1,33 @@
 package hc.server.ui.design.code;
 
-import java.lang.reflect.GenericDeclaration;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 import java.util.AbstractMap;
 
 public class AutoJRubyObject {
 	public final Class javaClass;
 	public final String methodName;
 	public final Class returnType;
+	public final Type[] actualTypes;
 	
 	public AutoJRubyObject(final Class jClass, final String method, final Class rt){
 		this.javaClass = jClass;
 		this.methodName = method;
 		this.returnType = rt;
+		this.actualTypes = getActualTypes();
+	}
+	
+	private final Type[] getActualTypes(){
+		try{
+			final Type r = javaClass.getMethod(methodName, null).getGenericReturnType();
+			if(r instanceof ParameterizedType){
+				return ((ParameterizedType)r).getActualTypeArguments();
+			}
+		}catch (final Exception e) {
+			e.printStackTrace();
+		}
+		return new Type[0];
 	}
 	
 	final static AutoJRubyObject[] list = init();
@@ -37,23 +50,7 @@ public class AutoJRubyObject {
 		for (int i = 0; i < size; i++) {
 			final AutoJRubyObject item = list[i];
 			if(item.methodName.equals(method.getName()) && CodeHelper.isExtendsOrImplements(javaClass, item.javaClass)){
-				final Type[] typeVar = {new TypeVariable() {
-					@Override
-					public Type[] getBounds() {
-						return null;
-					}
-
-					@Override
-					public GenericDeclaration getGenericDeclaration() {
-						return null;
-					}
-
-					@Override
-					public String getName() {
-						return "V";
-					}
-				}};
-				return new HCParameterizedType(typeVar, item.returnType, null);
+				return new HCParameterizedType(item.actualTypes, item.returnType, null);
 			}
 		}
 		final Type rType = method.getGenericReturnType();

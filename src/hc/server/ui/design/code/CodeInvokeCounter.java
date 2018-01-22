@@ -90,7 +90,7 @@ public class CodeInvokeCounter {
             
             reader.close();  
         } catch (final Exception e) {  
-            e.printStackTrace();  
+//            e.printStackTrace();//新安装时，会产生此异常，故关闭
         }  
 	}
 

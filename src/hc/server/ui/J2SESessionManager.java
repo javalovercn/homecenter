@@ -96,6 +96,7 @@ public class J2SESessionManager extends SessionManager {
 	private final synchronized static void startNewIdleSessionImpl(){
 		if(isRestartDirecet){
 			StarterParameter.reconnect();
+			StarterParameter.startMulticastServer();
 			isRestartDirecet = false;
 		}
 		

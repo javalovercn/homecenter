@@ -43,13 +43,13 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		final String accept = StringUtil.replace(acceptStr, "{iagree}", iagreeStr);
 		final JLabel label = new JLabel(accept);
 		final String labelDivStyle = "overflow:hidden;";
-//		setCSSForDiv(label, null, labelDivStyle);
-//		final String labelStyle = "display:block;vertical-align:middle;font-weight:bold;font-size:" + areaFontSize + "px;";
-//		setCSS(label, null, labelStyle);
+//		setCSSForDiv(label, null, LABEL_FOR_DIV);
+//		final String LABEL_STYLE = "display:block;vertical-align:middle;font-weight:bold;font-size:" + areaFontSize + "px;";
+//		setCSS(label, null, LABEL_STYLE);
 		setLabelCSS(this, label);
 		
 		final int labelHeight = (int)(fontSizePX * 1.4);
-		final int buttonPanelHeight = getButtonHeight(fontSizePX + getFontSizeForNormal(), getButtonHeight());
+		final int buttonPanelHeight = getButtonHeight(fontSizePX + getFontSizeForButton(), getButtonHeight());
 		final int areaHeight = getMobileHeight() - labelHeight * 2 - buttonPanelHeight;
 
 		final int mobileWidth = getMobileWidth();

@@ -119,13 +119,19 @@ public abstract class ThreadPool {
 	
 	protected abstract void checkAccessPool(Object token);
 	
-	public final void run(Runnable run, Object token){
+	/**
+	 * 有可能返回null，比如shutdown时。
+	 * @param run
+	 * @param token
+	 * @return
+	 */
+	public final RecycleThread run(Runnable run, Object token){
 		checkAccessPool(token);
 		
 		RecycleThread rt;
 		
 		if(isShutDown){
-			return;
+			return null;
 		}
 		
 		synchronized (freeThreads) {
@@ -139,7 +145,7 @@ public abstract class ThreadPool {
 		}
 		
 		if(isShutDown){
-			return;
+			return null;
 		}
 		
 //			System.out.println("[" + name + "] -> RecycleThead : " + rt.toString());
@@ -167,12 +173,11 @@ public abstract class ThreadPool {
 				}
 			}
 			
-			this.run(run, token);//必须调用此，以重新找一个，而不能直接rt.setRunnable(run);
-			
-			return;
+			return this.run(run, token);//必须调用此，以重新找一个，而不能直接rt.setRunnable(run);
 		}
 		
 		rt.setRunnable(run);
+		return rt;
 	}
 
 	public final void buildNextOne() {
@@ -192,8 +197,8 @@ public abstract class ThreadPool {
 		return new RecycleThread(pool);
 	}
 	
-	public void run(Runnable run){
-		run(run, null);
+	public RecycleThread run(Runnable run){
+		return run(run, null);
 	}
 
 	protected abstract Thread buildThread(RecycleThread rt);

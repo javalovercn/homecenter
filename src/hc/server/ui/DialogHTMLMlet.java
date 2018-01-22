@@ -6,6 +6,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 public class DialogHTMLMlet extends HTMLMlet {
+	private static final long serialVersionUID = 1270832156284865606L;
+	
 	public DialogGlobalLock resLock;
 	public DialogProcessedChecker checker;
 	public Dialog dialog;
@@ -15,9 +17,6 @@ public class DialogHTMLMlet extends HTMLMlet {
 		checker = new DialogProcessedChecker(resLock);
 	}
 	
-	public DialogHTMLMlet(){
-	}
-
 	public final void addDialog(final Dialog dialog) {
 		this.dialog = dialog;
 		setLayout(new GridBagLayout());

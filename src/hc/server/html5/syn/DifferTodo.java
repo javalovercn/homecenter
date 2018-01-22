@@ -527,7 +527,7 @@ public class DifferTodo {
 	}
 
 	private final boolean isNoScriptPanelPermission() {
-		return ResourceUtil.isSystemMletOrDialog(mlet) == false && resp.hasPermissionScriptPanel == false;
+		return (resp.hasPermissionScriptPanel == false) && (ResourceUtil.isSystemMletOrDialog(mlet) == false);
 	}
 	
 	public final void notifyAddTextArea(final int containerHashID, final int index, final int hashID, final String tip){

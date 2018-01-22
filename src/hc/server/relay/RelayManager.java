@@ -12,6 +12,7 @@ import hc.core.MsgBuilder;
 import hc.core.RootServerConnector;
 import hc.core.data.DataNatReqConn;
 import hc.core.data.DataReg;
+import hc.core.util.ByteUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURLUtil;
 import hc.core.util.LogManager;
@@ -875,7 +876,7 @@ public class RelayManager {
 				}
 				notifyClientsLineOff();
 			}else{
-				final String slocalIP = HCURLUtil.convertIPv46(StarterParameter.homeWirelessIpPort.ip);
+				final String slocalIP = HCURLUtil.convertIPv46(StarterParameter.getHomeWirelessIP());
 
 				final int size = relays.size();
 
@@ -884,7 +885,7 @@ public class RelayManager {
 					final String ip = ipAndPorts[0];
 					final int port = Integer.parseInt(ipAndPorts[1]);
 					
-					if(StarterParameter.homeWirelessIpPort.port == port && slocalIP.equals(ip)){
+					if(StarterParameter.getHomeWirelessPort() == port && slocalIP.equals(ip)){
 					}else{
 						Socket socket = null;
 						try {
@@ -941,6 +942,46 @@ public class RelayManager {
 			}
 			return 1;
 		}
+	}
+	
+	/**
+	 * 此功能待实现，获取id, token存在问题
+	 * @param bs
+	 * @param offset
+	 * @param len
+	 * @return
+	 */
+	static boolean checkIDAlive(final byte[] bs, final int offset, final int len){
+		final Stack stack = new Stack();
+		tdn[len].getDataSet(stack);
+		
+		final int sizeStack = stack.size();
+		for (int j = 0; j < sizeStack; j++) {
+			final SessionConnector c = (SessionConnector)stack.elementAt(j);
+			try{
+				final ByteArr ba = c.uuidbs;
+				boolean isSame = true;
+				final int bsIdx = offset;
+				for (int i = 0; i < len; i++) {
+					if(bs[bsIdx] != ba.bytes[i]){
+						isSame = false;
+						break;
+					}
+				}
+				if(isSame){
+					L.V = L.WShop ? false : LogManager.log("uuid [" + ByteUtil.toString(bs, offset, len) + "] is alive!");
+					return true;
+				}
+			}catch (final Throwable e) {
+			}
+		}
+		
+		//删除数据库记录
+		L.V = L.WShop ? false : LogManager.log("uuid [" + ByteUtil.toString(bs, offset, len) + "] is NOT alive!");
+		final String id = "";
+		final String token = "";
+		RootServerConnector.delLineInfo(id, token, false);
+		return true;
 	}
 	
 	private static int moveToNewRelay(final String newRelayip, final int newRelayport){

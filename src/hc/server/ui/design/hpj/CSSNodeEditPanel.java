@@ -1,21 +1,5 @@
 package hc.server.ui.design.hpj;
 
-import hc.App;
-import hc.core.ContextManager;
-import hc.core.L;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.ThreadPriorityManager;
-import hc.res.ImageSrc;
-import hc.server.ui.ClientDesc;
-import hc.server.ui.ServerUIUtil;
-import hc.server.ui.design.Designer;
-import hc.server.ui.design.code.CodeHelper;
-import hc.server.ui.design.code.CodeWindow;
-import hc.server.ui.design.code.TabHelper;
-import hc.server.util.CSSUtil;
-import hc.server.util.IDArrayGroup;
-import hc.util.ResourceUtil;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -46,10 +30,10 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentEvent.EventType;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.AbstractDocument;
-import javax.swing.text.AbstractDocument.DefaultDocumentEvent;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
@@ -65,6 +49,22 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
+
+import hc.App;
+import hc.core.ContextManager;
+import hc.core.L;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.ThreadPriorityManager;
+import hc.res.ImageSrc;
+import hc.server.ui.ClientDesc;
+import hc.server.ui.ServerUIUtil;
+import hc.server.ui.design.Designer;
+import hc.server.ui.design.code.CodeHelper;
+import hc.server.ui.design.code.CodeWindow;
+import hc.server.ui.design.code.TabHelper;
+import hc.server.util.CSSUtil;
+import hc.server.util.IDArrayGroup;
+import hc.util.ResourceUtil;
 
 public class CSSNodeEditPanel extends NameEditPanel {
 	
@@ -587,7 +587,9 @@ public class CSSNodeEditPanel extends NameEditPanel {
 				final char inputChar = event.getKeyChar();
 				final int modifiers = event.getModifiers();
 
-				final CodeHelper codeHelper = designer.codeHelper;
+	            if(codeHelper == null){
+	            	codeHelper = designer.codeHelper;
+	            }
 				
 				if(isMacOS && (inputChar != 0 && inputChar == codeHelper.wordCompletionChar
 						&& ((codeHelper.wordCompletionModifyCode == KeyEvent.VK_ALT && modifiers == 0) 
@@ -615,12 +617,15 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			}
 			
 			boolean isEventConsumed;
-			
+            CodeHelper codeHelper;
+
 			@Override
 			public void keyPressed(final KeyEvent event) {
 				final int keycode = event.getKeyCode();
 	            final int modifiers = event.getModifiers();
-	            final CodeHelper codeHelper = designer.codeHelper;
+	            if(codeHelper == null){
+	            	codeHelper = designer.codeHelper;
+	            }
 				final int wordCompletionModifyMaskCode = codeHelper.wordCompletionModifyMaskCode;
 				//无输入字符时的触发提示代码
 				isEventConsumed = false;
@@ -785,13 +790,11 @@ class CSSUndoableEditListener implements UndoableEditListener{
 	public void undoableEditHappened(final UndoableEditEvent e) {
 		if(isForbidRecordUndoEdit == false){
 			final UndoableEdit edit = e.getEdit();
-			if(edit instanceof AbstractDocument.DefaultDocumentEvent){
-				final AbstractDocument.DefaultDocumentEvent dde = (AbstractDocument.DefaultDocumentEvent)edit;
-				if(dde.getType() == DocumentEvent.EventType.CHANGE){
-					return;
-				}
+			final AbstractDocument.DefaultDocumentEvent dde = ResourceUtil.getDocumentEventType(edit);
+			if(dde.getType() == DocumentEvent.EventType.CHANGE){
+				return;
 			}
-			manager.addEdit(new CSSUndoableEdit(panel, edit, undoModel));
+			manager.addEdit(new CSSUndoableEdit(panel, edit, undoModel, dde));
 		}
 	}
 }
@@ -807,11 +810,11 @@ class CSSUndoableEdit implements UndoableEdit{
 	final CSSNodeEditPanel panel;
 	final boolean isModi;
 	final long saveToken;
-	DocumentEvent.EventType type;
+	final AbstractDocument.DefaultDocumentEvent dde;
 	
-	CSSUndoableEdit(final CSSNodeEditPanel panel, final UndoableEdit base, final int undoModel){
+	CSSUndoableEdit(final CSSNodeEditPanel panel, final UndoableEdit base, final int undoModel, final AbstractDocument.DefaultDocumentEvent dde){
 		this.panel = panel;
-		
+		this.dde = dde;
 		this.cssPane = panel.cssEditPane;
 		this.caret = cssPane.getCaret();
 		beforeCaretPos = caret.getDot();
@@ -824,20 +827,17 @@ class CSSUndoableEdit implements UndoableEdit{
 			this.panel.notifyModified(true);//由于REMOVE和INSERT都是isModi==false,所以强制后续的INSERT为ture
 		}
 		
-		if(base instanceof DefaultDocumentEvent){
-			final DefaultDocumentEvent dde = (DefaultDocumentEvent)base;
-			type = dde.getType();
-			if(type == DocumentEvent.EventType.REMOVE){
-				if(undoModel == CSSUndoableEditListener.UNDO_MODEL_TYPE){
-					selectionLen = 1;
-				}else{
-					selectionLen = dde.getLength();
-				}
-			}else if(type == DocumentEvent.EventType.INSERT){
-				if(undoModel == CSSUndoableEditListener.UNDO_MODEL_TYPE){
-				}else{
-					selectionLen = dde.getLength();
-				}
+		final EventType type = dde.getType();
+		if(type == DocumentEvent.EventType.REMOVE){
+			if(undoModel == CSSUndoableEditListener.UNDO_MODEL_TYPE){
+				selectionLen = 1;
+			}else{
+				selectionLen = dde.getLength();
+			}
+		}else if(type == DocumentEvent.EventType.INSERT){
+			if(undoModel == CSSUndoableEditListener.UNDO_MODEL_TYPE){
+			}else{
+				selectionLen = dde.getLength();
 			}
 		}
 		
@@ -861,7 +861,7 @@ class CSSUndoableEdit implements UndoableEdit{
 		base.undo();
 		if(beforeCaretPos > 0){
 			if(undoModel == CSSUndoableEditListener.UNDO_MODEL_PASTE){
-				if(type == DocumentEvent.EventType.INSERT){
+				if(dde.getType() == DocumentEvent.EventType.INSERT){
 					caret.setDot(beforeCaretPos - selectionLen);
 				}else{
 					caret.setDot(beforeCaretPos);

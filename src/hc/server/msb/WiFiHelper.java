@@ -129,7 +129,7 @@ public class WiFiHelper {
 						currMlet.waitForInputWiFiPassword(token);
 					}else{
 						final J2SESession[] coreSSS = {coreSS};
-						ServerUIAPIAgent.sendMessageViaCoreSS(coreSSS, ResourceUtil.getInfoI18N(), "unknow status of Mlet", ProjectContext.MESSAGE_INFO, null, 0);
+						ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, ResourceUtil.getInfoI18N(), "unknow status of Mlet", ProjectContext.MESSAGE_INFO, null, 0);
 					}
 				}else{
 					showInputWiFiPassword(true);

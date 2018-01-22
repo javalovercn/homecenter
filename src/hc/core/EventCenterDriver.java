@@ -8,7 +8,7 @@ public class EventCenterDriver extends HCConditionWatcher {
 	private static int aliveCount = 0;
 	private static boolean notifyShutdown = false;
 	
-	EventCenterDriver(){
+	public EventCenterDriver(){
 		super("EventCenterDriver", ThreadPriorityManager.GECD_THREADGROUP_PRIORITY);
 		synchronized (lock) {
 			aliveCount++;

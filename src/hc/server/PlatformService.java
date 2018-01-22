@@ -37,7 +37,7 @@ public interface PlatformService {
 	
 	public Object doExtBiz(int bizID, Object para);
 	
-	public void setWindowOpaque(Window win, boolean bool);
+	public void setWindowOpaque(Window win, boolean bool) throws Exception;
 	
 	public void addJCEProvider();
 	
@@ -88,7 +88,7 @@ public interface PlatformService {
 	
 	public LogServerSide getLog();
 	
-	public void setWindowShape(Window win, Shape shape);
+	public void setWindowShape(Window win, Shape shape) throws Exception;
 	
 	public Object createRobotPeer(Robot robot) throws Throwable;
 	

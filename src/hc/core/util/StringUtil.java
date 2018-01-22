@@ -18,6 +18,57 @@ public class StringUtil {
 	public final static String URL_EXTERNAL_PREFIX = "http";
 	
 	/**
+	 * 0 means is valid.
+	 * @param id
+	 * @return
+	 */
+	public final static char isValidID(final String id){
+		final char[] chars = id.toCharArray();
+		for (int i = 0; i < chars.length; i++) {
+			final char one = chars[i];
+			if((one >= '0' && one <= '9') || (one >= 'a' && one <= 'z') || (one >= 'A' && one <= 'Z') || one == '-' || one == '_' || one == ' ' || one > 128){
+				continue;
+			}else{
+				return one;
+			}
+		}
+		return 0;
+	}
+	
+	/**
+	 * 进行四舍五入。6.9=>7, -6.9=>-7
+	 * @param f
+	 * @return
+	 */
+	public static int floatStringToInt(final String f){
+		try{
+			final char[] chars = f.toCharArray();
+			boolean isNag = false;
+			int idx = 0;
+			if(chars[0] == '-'){
+				isNag = true;
+				idx = 1;
+			}
+			int intStartIdx = idx;
+			int intPart = 0;
+			for (; idx < chars.length; idx++) {
+				if(chars[idx] == '.'){
+					intPart = Integer.parseInt(new String(chars, intStartIdx, idx - intStartIdx));
+					final int nextIntAfterDoc = Integer.parseInt(new String(chars, idx + 1, 1));
+					if(nextIntAfterDoc >= 5){
+						intPart++;
+					}
+					break;
+				}
+			}
+			return intPart * (isNag?-1:1);
+		}catch (Throwable e) {
+			LogManager.errToLog("fail to trans float [" + f + "] to int.");
+			return 0;
+		}
+	}
+	
+	/**
 	 * 比如(Map<? extends K, ? extends V> map) => (Map map)。
 	 * 它允许嵌套，如(Map<? extends K, Map<? extends K, ? extends V>> map) => (Map map)
 	 * @param src

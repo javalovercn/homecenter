@@ -8,11 +8,13 @@ import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
 import hc.core.MsgBuilder;
+import hc.core.cache.CacheManager;
 import hc.core.data.DataClientAgent;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
+import hc.core.util.HCURLUtil;
 import hc.core.util.IHCURLAction;
 import hc.core.util.ILog;
 import hc.core.util.LogManager;
@@ -48,9 +50,7 @@ import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 
 import java.awt.BorderLayout;
-import java.awt.Robot;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.UnsupportedEncodingException;
 
@@ -146,7 +146,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 								msgID = 9263;//server is managing/locking projects!
 							}
 							
-							ProjectContext.getProjectContext().sendMessage(ResourceUtil.getErrorI18N(j2seCoreSS), (String)ResourceUtil.get(j2seCoreSS, msgID), ProjectContext.MESSAGE_ERROR, null, 0);
+							ProjectContext.getProjectContext().sendMessage(ResourceUtil.getErrorI18N(j2seCoreSS), ResourceUtil.get(j2seCoreSS, msgID), ProjectContext.MESSAGE_ERROR, null, 0);
 							return;
 						}
 						
@@ -165,7 +165,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 
 							LogManager.log(ILog.OP_STR + "Ctrl + mouse left click at (" + x + ", " + y + ")");
 							
-							doClickAt(url, ResourceUtil.getAbstractCtrlKeyCode(), x, y);
+							ScreenCapturer.doClickAt(url, ResourceUtil.getAbstractCtrlKeyCode(), x, y);
 							return true;
 						}else if(value1.equals(HCURL.DATA_PARA_VALUE_SHIFT)){
 							final int x = Integer.parseInt(url.getValueofPara("x"));
@@ -173,7 +173,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 
 							LogManager.log(ILog.OP_STR + "Shift + mouse left click at (" + x + ", " + y + ")");
 							
-							doClickAt(url, KeyEvent.VK_SHIFT, x, y);
+							ScreenCapturer.doClickAt(url, KeyEvent.VK_SHIFT, x, y);
 							return true;
 						}
 					}
@@ -247,6 +247,18 @@ public class J2SEServerURLAction implements IHCURLAction {
 					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_WIFI_MANAGER)){
 //					final String methodName = url.getValueofPara(HCURL.DATA_PARA_WIFI_MANAGER);
+				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_ERR_ON_CACHE)){
+					final String projID = url.getValueofPara(HCURL.DATA_PARA_ERR_ON_CACHE);
+					//注意：以下要提前，以减少因网络导致不一致。
+					HCURLUtil.sendCmdSuperLevel(j2seCoreSS, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_ERR_ON_CACHE, projID);
+
+					//通知客户端可以删除cache，客户端不能自行删除。
+					final String softUID = UserThreadResourceUtil.getMobileSoftUID(j2seCoreSS);
+					LogManager.log("receive ERR_ON_CACHE on project [" + projID + "].");
+					if(CacheManager.removeUIDFrom(projID, softUID)){
+						LogManager.log("remove cache data for [" + projID + "/" + softUID + "].");
+					}
+					return true;
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_SCAN_QR_CODE)){
 					final String urlHexStr = url.getValueofPara(HCURL.DATA_PARA_SCAN_QR_CODE);
 					final byte[] bs = ByteUtil.toBytesFromHexStr(urlHexStr);
@@ -324,11 +336,11 @@ public class J2SEServerURLAction implements IHCURLAction {
 									}, App.getThreadPoolToken());
 									final JPanel msgpanel = new JPanel(new BorderLayout());
 									final String forbid_update_cert = "[" + (String)coreSS.context.doExtBiz(IContext.BIZ_GET_FORBID_UPDATE_CERT_I18N, null) + "]";
-									msgpanel.add(new JLabel("<html><body style=\"width:500\"><strong>" + (String)ResourceUtil.get(IContext.TIP) + "</strong>" +
-											"" + StringUtil.replace((String)ResourceUtil.get(9062), "{forbid}", forbid_update_cert)+
+									msgpanel.add(new JLabel("<html><body style=\"width:500\"><strong>" + ResourceUtil.get(IContext.TIP) + "</strong>" +
+											"" + StringUtil.replace(ResourceUtil.get(9062), "{forbid}", forbid_update_cert)+
 											"</body></html>",
 											App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEFT), BorderLayout.CENTER);
-									App.showCenterPanelMain(msgpanel, 0, 0, (String)ResourceUtil.get(IContext.TIP), false, null, null, al, al, null, false, true, null, false, true);
+									App.showCenterPanelMain(msgpanel, 0, 0, ResourceUtil.get(IContext.TIP), false, null, null, al, al, null, false, true, null, false, true);
 //							}
 								}
 							}.start();
@@ -366,7 +378,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 							}
 							
 							if(isNotifyPressStart == false){
-								mlet.appendMessage((String)ResourceUtil.get(j2seCoreSS, 9134));
+								mlet.appendMessage(ResourceUtil.get(j2seCoreSS, 9134));
 								isNotifyPressStart = true;
 							}
 							try{
@@ -377,7 +389,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 						}while(url == null && totalSleep < maxSleepMS);
 						
 						if(url == null && totalSleep >= maxSleepMS){
-							mlet.appendMessage((String)ResourceUtil.get(j2seCoreSS, 9133));
+							mlet.appendMessage(ResourceUtil.get(j2seCoreSS, 9133));
 							mlet.setButtonEnable(mlet.exitButton, true);
 							return;
 						}
@@ -402,7 +414,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 							ServerUIAPIAgent.runInSessionThreadPool(j2seCoreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {
 								@Override
 								public void run() {
-									projectContext.sendQuestion((String)ResourceUtil.get(j2seCoreSS, IContext.CONFIRMATION), downloadURL, null, yesRunnable, null, null);
+									projectContext.sendQuestion(ResourceUtil.get(j2seCoreSS, IContext.CONFIRMATION), downloadURL, null, yesRunnable, null, null);
 								}
 							});
 						}
@@ -423,7 +435,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 				LogManager.log(ILog.OP_STR + "execute [" + itemURL + "] by voice command [" + voiceText + "].");
 				ServerUIAPIAgent.goInSysThread(j2seCoreSS, ServerUIAPIAgent.getBelongMobiMenu(out).resp.context, itemURL);
 			}else{
-				final String msg = "[" + voiceText + "] : " + ((String)ResourceUtil.get(9247));
+				final String msg = "[" + voiceText + "] : " + ResourceUtil.get(9247);
 				ServerUIAPIAgent.sendOneMovingMsg(j2seCoreSS, msg);
 				LogManager.log(ILog.OP_STR + "voice command " + msg);
 			}
@@ -437,13 +449,13 @@ public class J2SEServerURLAction implements IHCURLAction {
 				final ProjectTargetForAI target = resp.query(j2seCoreSS, locale, voiceText);
 				
 				if(target == null){
-					ServerUIAPIAgent.sendOneMovingMsg(j2seCoreSS, StringUtil.replace((String)ResourceUtil.get(j2seCoreSS, 9245), "{voice}", voiceText));
+					ServerUIAPIAgent.sendOneMovingMsg(j2seCoreSS, StringUtil.replace(ResourceUtil.get(j2seCoreSS, 9245), "{voice}", voiceText));
 				}else{
 					LogManager.log(ILog.OP_STR + "find target [" + target + "] for voice [" + voiceText + "].");
 					final ProjectContext ctx = resp.getProjResponser(target.projectID).context;
 					ServerUIAPIAgent.goInSysThread(j2seCoreSS, ctx, target.target);
 					
-					final String vcTip = StringUtil.replace((String)ResourceUtil.get(9257), "{cmd}", voiceText);
+					final String vcTip = StringUtil.replace(ResourceUtil.get(9257), "{cmd}", voiceText);
 					ServerUIAPIAgent.sendOneMovingMsg(j2seCoreSS, vcTip);
 				}
 			}
@@ -469,18 +481,4 @@ public class J2SEServerURLAction implements IHCURLAction {
 		return SYS_JRUBY_ENGINE;
 	}
 	
-	private void doClickAt(final HCURL url, final int mode, final int x, final int y) {
-		final Robot robot = ScreenCapturer.robot;
-		synchronized (robot) {
-			robot.mouseMove(x, y);
-			
-			robot.keyPress(mode);
-	
-			robot.mousePress(InputEvent.BUTTON1_MASK);
-			robot.mouseRelease(InputEvent.BUTTON1_MASK);
-	
-			robot.keyRelease(mode);
-		}
-	}
-
 }

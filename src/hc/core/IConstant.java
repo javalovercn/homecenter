@@ -25,6 +25,7 @@ public abstract class IConstant {
 	static String uuid, password;
 	
 	public static final String getUUID(){
+		//由于应用能访问该值，所以不能checkAccess
 		return uuid;
 	}
 	

@@ -191,7 +191,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			}
 			
 			final String ver = System.getProperty("java.version");
-			final Pattern pattern = Pattern.compile("^(\\d\\.\\d)");
+			final Pattern pattern = Pattern.compile("^(\\d+\\.\\d+)");//1.10
 			final Matcher matcher = pattern.matcher(ver);
 			if (matcher.find()) {
 				jreVer = Float.parseFloat(matcher.group(1));
@@ -238,12 +238,15 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	}
 	
 	private static void execMain(final String args[]) {
-		if(SafeDataManager.isPowerOffOK() == false){
-			SafeDataManager.restoreSafeBackup();
+		if(SafeDataManager.isCreateInitDir()){
 		}else{
-			SafeDataManager.clearPowerOffOK();
+			if(SafeDataManager.isPowerOffOK() == false){
+				SafeDataManager.restoreSafeBackup();
+			}else{
+				SafeDataManager.clearPowerOffOK();
+			}
 		}
-
+		
 		if (ResourceUtil.isJ2SELimitFunction() && getJREVer() < 1.6) {
 			JOptionPane.showMessageDialog(null, "JRE 1.6 or above!", "Error",
 					JOptionPane.ERROR_MESSAGE);
@@ -422,8 +425,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		if(RootConfig.getInstance() == null){
 			SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_ERROR_CONNECTION, 
-					(String)ResourceUtil.get(1000)
-					+ "<BR><BR>" + (new Date().toLocaleString()), (String)ResourceUtil.get(IContext.ERROR),
+					ResourceUtil.get(1000)
+					+ "<BR><BR>" + (new Date().toLocaleString()), ResourceUtil.get(IContext.ERROR),
 					60000 * 5, App.getSysIcon(App.SYS_ERROR_ICON));
 			RootConfig.reset(true);
 		}
@@ -787,7 +790,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				//最低JRE要求7
 				final String msgMinJre7 = IDArrayGroup.MSG_MIN_JRE_7;
 				if(getJREVer() < 1.7 && IDArrayGroup.check(msgMinJre7) == false){
-					String msg = (String)ResourceUtil.get(9191);
+					String msg = ResourceUtil.get(9191);
 					msg = StringUtil.replace(msg, "{curr}", "6");
 					msg = StringUtil.replace(msg, "{to}", "7");
 					final JPanel panel = buildMessagePanel("<html>" + msg + "</html>", getSysIcon(SYS_WARN_ICON));
@@ -797,7 +800,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 							IDArrayGroup.checkAndAdd(msgMinJre7);
 						}
 					};
-					showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(IContext.WARN), false, null, null, okListener, null, null, false, true, null, false, true);
+					showCenterPanelMain(panel, 0, 0, ResourceUtil.get(IContext.WARN), false, null, null, okListener, null, null, false, true, null, false, true);
 				}
 			}
 		} catch (final Throwable e) {
@@ -826,10 +829,10 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 
 		addBorderGap(main, c);
 
-		final String iagree = (String)ResourceUtil.get(9115);
+		final String iagree = ResourceUtil.get(9115);
 		
 		try {
-			String accept = (String)ResourceUtil.get(9114);
+			String accept = ResourceUtil.get(9114);
 			accept = StringUtil.replace(accept, "{iagree}", iagree);
 			final JLabel label = new JLabel(accept,
 					(logoHC ? new ImageIcon(ImageIO.read(ResourceUtil
@@ -1107,7 +1110,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		};
 		if (jbOK == null) {
 			final JButton okButton = new JButton(
-					(String) ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
+					ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
 			jbOK = okButton;
 		}
 		final UIActionListener jbOKAction = new UIActionListener() {
@@ -1771,7 +1774,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		}catch (final Throwable e) {
 		}
 		if(title == null){
-			title = (String)ResourceUtil.get(9210);
+			title = ResourceUtil.get(9210);
 		}
 		return title;
 	}
@@ -1878,12 +1881,12 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	private static final HashSet<Object> displayHARMsg = new HashSet<Object>(8);
 	
 	public static final String getPasswordLocalStoreTip(){
-		return (String)ResourceUtil.get(9075);
+		return ResourceUtil.get(9075);
 	}
 	
 	public static void showInputPWDDialog(final String uuid, final String pwd1,
 			final String pwd2, final boolean isRegister) {
-		final String passwdStr = (String) ResourceUtil.get(9030);
+		final String passwdStr = ResourceUtil.get(9030);
 
 		final JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
@@ -2021,7 +2024,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 					GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets,
 					0, 0));
 		}
-		final JButton jbCancle = new JButton((String) ResourceUtil.get(1018),
+		final JButton jbCancle = new JButton(ResourceUtil.get(1018),
 				new ImageIcon(ImageSrc.CANCEL_ICON));
 		final UIActionListener cancelAction = new UIActionListener() {
 			@Override
@@ -2034,7 +2037,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			}
 		};
 		final JButton jbOK = new JButton(
-					(String) ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
+					ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
 		final UIActionListener jbOKAction = new UIActionListener() {
 			@Override
 			public void actionPerformed(final Window window, final JButton ok,
@@ -2056,8 +2059,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 						}
 					} else {
 						App.showMessageDialog(window,
-								StringUtil.replace((String)ResourceUtil.get(9077), "{min}", "" + App.MIN_PWD_LEN),//含密码不一致
-								(String)ResourceUtil.get(9076), JOptionPane.ERROR_MESSAGE);
+								StringUtil.replace(ResourceUtil.get(9077), "{min}", "" + App.MIN_PWD_LEN),//含密码不一致
+								ResourceUtil.get(9076), JOptionPane.ERROR_MESSAGE);
 					}
 				} catch (final UnsupportedEncodingException e) {
 					ExceptionReporter.printStackTrace(e);
@@ -2237,7 +2240,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			final JLabel imgLabel = new JLabel();
 			imgPanel.add(imgLabel);
 			JButton jbOK = null;
-			final String nextStr = (String) ResourceUtil.get(1029);
+			final String nextStr = ResourceUtil.get(1029);
 			try {
 				final JButton okButton = new JButton(nextStr, new ImageIcon(
 						ImageIO.read(ResourceUtil
@@ -2249,7 +2252,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			final JButton nextBtn = jbOK;
 			JButton jbpre = null;
 			try {
-				jbpre = new JButton((String) ResourceUtil.get(1030),
+				jbpre = new JButton(ResourceUtil.get(1030),
 						new ImageIcon(ImageIO.read(ResourceUtil
 								.getResource("hc/res/prev_22.png"))));
 				jbpre.setEnabled(false);
@@ -2271,7 +2274,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 						}
 						imgLabel.setIcon(new ImageIcon(image));
 						if (next.idx == (next.imgUrl.length - 1)) {
-							ok.setText((String) ResourceUtil.get(IContext.OK));
+							ok.setText(ResourceUtil.get(IContext.OK));
 							ok.setIcon(new ImageIcon(ImageSrc.OK_ICON));
 						}
 					} else {
@@ -2298,7 +2301,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				}
 			};
 			showCenter(imgPanel, 0, 0,
-					(String) ResourceUtil.get(9029), true, jbOK, jbpre, nextal,
+					ResourceUtil.get(9029), true, jbOK, jbpre, nextal,
 					preal, null, false, false, null, false);
 		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
@@ -2348,10 +2351,10 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		panel.add(donateKey);
 
 		final JButton jbOK = new JButton("OK", new ImageIcon(ImageSrc.OK_ICON));
-		jbOK.setText((String) ResourceUtil.get(IContext.OK));
+		jbOK.setText(ResourceUtil.get(IContext.OK));
 		showDonate.getRootPane().setDefaultButton(jbOK);
 		final JButton jbExit = new JButton("", new ImageIcon(ImageSrc.CANCEL_ICON));
-		jbExit.setText((String) ResourceUtil.get(1018));
+		jbExit.setText(ResourceUtil.get(1018));
 
 		jbOK.addActionListener(new HCActionListener(new Runnable() {
             @Override
@@ -2359,8 +2362,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 				final String emailID = donateID.getText().trim();
 				if(ResourceUtil.validEmail(emailID) == false){
 					App.showMessageDialog(showDonate,
-							(String)ResourceUtil.get(9073),
-							(String) ResourceUtil.get(IContext.ERROR),
+							ResourceUtil.get(9073),
+							ResourceUtil.get(IContext.ERROR),
 							JOptionPane.ERROR_MESSAGE);
 					donateID.selectAll();
 					return;
@@ -2456,20 +2459,20 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 							// 服务器上线，启动引导运行手机端
 							final JPanel totuQuest = new JPanel();
 							totuQuest.add(new JLabel(
-									((String) ResourceUtil
-											.get(9036)) + "?",
+									ResourceUtil
+											.get(9036) + "?",
 									App.getSysIcon(App.SYS_QUES_ICON),
 									SwingConstants.LEFT));
 							final JButton jbOK =new JButton(
-										(String) ResourceUtil
+										ResourceUtil
 												.get(IContext.OK),
 												new ImageIcon(ImageSrc.OK_ICON));
 							App.showCenterOKDisposeDelayMode(
 									totuQuest,
 									300,
 									120,
-									((String) ResourceUtil
-											.get(9029)) + "?",
+									ResourceUtil
+											.get(9029) + "?",
 									true,
 									jbOK,
 									null, new HCActionListener(new Runnable() {
@@ -2550,8 +2553,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		final JPanel congPanel = new JPanel(new BorderLayout());
 		final JLabel congLabel = new JLabel
 				("<html><body style=\"width:" + (panelWidth - cong_icon.getIconWidth()) + "\">"
-						+ StringUtil.replace((String)ResourceUtil.get(9065), "{uuid}", IConstant.getUUID()) + "<BR><BR>" +
-						(String)ResourceUtil.get(9089) +
+						+ StringUtil.replace(ResourceUtil.get(9065), "{uuid}", IConstant.getUUID()) + "<BR><BR>" +
+						ResourceUtil.get(9089) +
 						"</body></html>");
 		congPanel.add(congLabel, BorderLayout.CENTER);
 		congPanel.add(new JLabel(cong_icon), BorderLayout.WEST);
@@ -2606,8 +2609,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		if(androidServerPlatform){
 			final JPanel checkPanel = new JPanel(new GridLayout(1, 2));
 			
-			final JCheckBox autoStartCheck = new JCheckBox((String)ResourceUtil.get(6001));
-			autoStartCheck.setToolTipText("<html>" + (String)ResourceUtil.get(9195) + "</html>");
+			final JCheckBox autoStartCheck = new JCheckBox(ResourceUtil.get(6001));
+			autoStartCheck.setToolTipText("<html>" + ResourceUtil.get(9195) + "</html>");
 			autoStartCheck.setSelected(isAutoStart);
 			autoStartCheck.addActionListener(new HCActionListener(new Runnable() {
 				@Override
@@ -2688,21 +2691,21 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	}
 
 	public static JButton buildDefaultCancelButton() {
-		return new JButton((String) ResourceUtil.get(IContext.CANCEL), new ImageIcon(ImageSrc.CANCEL_ICON));
+		return new JButton(ResourceUtil.get(IContext.CANCEL), new ImageIcon(ImageSrc.CANCEL_ICON));
 	}
 
 	public static JButton buildDefaultOKButton() {
-		return new JButton((String) ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
+		return new JButton(ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
 	}
 
 	public static JButton buildDefaultCloseButton() {
 		return new JButton(
-				(String) ResourceUtil.get(9093), new ImageIcon(ImageSrc.CANCEL_ICON));
+				ResourceUtil.get(9093), new ImageIcon(ImageSrc.CANCEL_ICON));
 	}
 
 	public static final JCheckBox buildReportExceptionCheckBox(final boolean withActionListener) {
-		final JCheckBox enableReportException = new JCheckBox((String)ResourceUtil.get(9168));
-		enableReportException.setToolTipText((String)ResourceUtil.get(9169));
+		final JCheckBox enableReportException = new JCheckBox(ResourceUtil.get(9168));
+		enableReportException.setToolTipText(ResourceUtil.get(9169));
 		
 		final String isOldReportException = PropertiesManager.getValue(PropertiesManager.p_isReportException, IConstant.FALSE);
 		enableReportException.setSelected(isOldReportException.equals(IConstant.TRUE));

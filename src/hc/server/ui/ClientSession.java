@@ -2,6 +2,7 @@ package hc.server.ui;
 
 import hc.core.IConstant;
 import hc.core.L;
+import hc.core.util.BooleanValue;
 import hc.core.util.ByteUtil;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
@@ -43,7 +44,7 @@ import java.util.Vector;
  * <BR><BR>it is thread safe for attribute set/get.
  * @since 7.7
  */
-public class ClientSession {
+public final class ClientSession {
 	private final Hashtable<String, Object> attribute_map = new Hashtable<String, Object>();
 	final J2SESession j2seCoreSSMaybeNull;
 	final boolean hasLocationOfMobile;
@@ -56,6 +57,38 @@ public class ClientSession {
 			j2seCoreSSMaybeNull.clientSession = this;
 		}
 		this.hasLocationOfMobile = hasLocationOfMobile;
+	}
+	
+	/**
+	 * 其它工程或线程也需此功能，故锁session level
+	 * @param ctx
+	 */
+	final void notifyInputMemberID(final ProjectContext ctx){
+		final Object threadWait = new Object();
+		
+		final BooleanValue memberIDSetStatus = j2seCoreSSMaybeNull.memberIDSetStatus;
+		synchronized (memberIDSetStatus) {//多工程或多线程间同步
+			if(memberIDSetStatus.value){
+				return;
+			}
+			
+			if(j2seCoreSSMaybeNull.addWaitLock(threadWait) == false){
+				return;
+			}
+			
+			final MemberIDInputDialog inputMemberIDDialog = new MemberIDInputDialog(memberIDSetStatus, threadWait);
+			ctx.sendDialogWhenInSession(inputMemberIDDialog);
+			
+			synchronized (threadWait) {
+				try {
+					threadWait.wait();
+				} catch (final InterruptedException e) {
+				}
+			}
+
+		}
+		
+		j2seCoreSSMaybeNull.removeWaitLock(threadWait);
 	}
 	
 	/**

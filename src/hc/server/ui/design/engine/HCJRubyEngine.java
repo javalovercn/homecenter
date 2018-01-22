@@ -5,6 +5,7 @@ import hc.core.GlobalConditionWatcher;
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
+import hc.core.util.StringValue;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
 import hc.server.data.StoreDirManager;
@@ -69,14 +70,17 @@ public class HCJRubyEngine {
 //		}
 	}
 	
-	final Object parse(final String script, final String scriptName) throws Exception{
+	final Object parse(final StringValue sc, final String scriptName) throws Exception{
 		Object unit = null;
+		sc.value = ResourceUtil.replaceImport(sc.value);
+		L.V = L.WShop ? false : LogManager.log("parse/run [" + Thread.currentThread().getName() + "], scripts : \n" + sc.value);
+
 //		synchronized (engineLock) {
 //			unit = lruCache.remove(script);
 //		}
 		if(unit == null){
 //			EvalUnit unit = container.parse(script);//后面的int是可选参数
-			unit = putCompileUnit(script, scriptName);
+			unit = putCompileUnit(sc.value, scriptName);
 		}
 		return unit;
 	}
@@ -115,14 +119,13 @@ public class HCJRubyEngine {
 	Class classJavaEmbedUtils;
 	Class classIRubyObject;
 	Class[] rubyToJavaParaTypes;// = {classIRubyObject};
-	public final Object runScriptlet(final String script, final String scriptName) throws Throwable{
+	public final Object runScriptlet(final StringValue sc, final String scriptName) throws Throwable{
 //        return JavaEmbedUtils.rubyToJava(evalUnitMap.get(script).run());
-		final Object evalUnit = parse(script, scriptName);
+		final Object evalUnit = parse(sc, scriptName);
 		if(isShutdown){
-			LogManager.log("JRuby Engine is shutdown, skip runing scripts : \n" + script);
+			LogManager.log("JRuby Engine is shutdown, skip runing scripts : \n" + sc.value);
 			return null;
 		}
-		L.V = L.WShop ? false : LogManager.log("run in [" + Thread.currentThread().getName() + "], scripts : \n" + script);
 		try{
 			final Object runOut = ClassUtil.invokeWithExceptionOut(classEvalUnit, evalUnit, "run", emptyParaTypes, emptyPara, false);
 			final Object[] para = {runOut};

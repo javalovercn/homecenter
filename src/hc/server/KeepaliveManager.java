@@ -60,14 +60,32 @@ public class KeepaliveManager {
 		
 		HCTimer.remove(keepalive);
 	}
+	
+	private static boolean isReportRelayDisable;
 
 	public final boolean buildRelay() {
 			//完全Relay
 			Vector relays = (Vector)RootServerConnector.getNewRelayServers(IConstant.getUUID(), TokenManager.getToken());
 			if(relays == null || relays.size() == 0){
+				if(isReportRelayDisable == false){
+					isReportRelayDisable = true;
+					final String msg = (String) ResourceUtil.get(1035);//Off-Line mode, net relay is not available!
+					TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), 
+						msg, IContext.ERROR, null, 0);
+					LogManager.errToLog(msg);
+				}
+				
 				LogManager.errToLog("No HomeCenter root relay server.");
 				RootServerConnector.notifyLineOffType(null, RootServerConnector.LOFF_NO_ROOT_RELAY_Err_STR);
 				return false;
+			}else{
+				if(isReportRelayDisable){
+					final String msg = (String) ResourceUtil.get(1036);//network is fine, relay is available!
+					TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), 
+						msg, IContext.INFO, null, 0);
+					LogManager.log(msg);
+				}
+				isReportRelayDisable = false;
 			}
 			
 			final int size = relays.size();
