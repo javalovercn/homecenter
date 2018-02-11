@@ -27,7 +27,7 @@ public class UserThreadResourceUtil {
 		if(isLoggerOn == null){
 			isLoggerOn = (Boolean)runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					return ResourceUtil.isLoggerOn();
 				}
 			});

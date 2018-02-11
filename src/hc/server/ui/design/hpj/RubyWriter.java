@@ -1,10 +1,10 @@
 package hc.server.ui.design.hpj;
 
-import hc.core.util.LogManager;
-import hc.core.util.StringUtil;
-
 import java.io.IOException;
 import java.io.Writer;
+
+import hc.core.util.LogManager;
+import hc.core.util.StringUtil;
 
 public class RubyWriter extends Writer{
 	//file:/Users/homecenter/Documents/eclipse_workspace/homecenter/test_run/./jruby.jar!/jruby/java/core_ext/object.rb:73 warning: already initialized constant String
@@ -62,11 +62,7 @@ public class RubyWriter extends Writer{
 		final int warnIdx = StringUtil.indexOf(cbuf, off, len, warning, 0, warning.length, 0);
 		if(warnIdx >= 0){
 			replaceWarningLineNo(cbuf, off, len, warnIdx);
-			if(displayWriter == null){
-				LogManager.warning(new String(cbuf, off, len));
-			}else{
-				displayWriter.writeError(cbuf, off, len);
-			}
+			writeImpl(cbuf, off, len);
 			return;
 		}
 		
@@ -78,7 +74,15 @@ public class RubyWriter extends Writer{
 		System.arraycopy(cbuf, off, bs, writeIdx, len);
 		writeIdx += len;
 		
-		displayWriter.writeError(cbuf, off, len);
+		writeImpl(cbuf, off, len);
+	}
+
+	private final void writeImpl(final char[] cbuf, final int off, final int len) throws IOException {
+		if(displayWriter == null){
+			LogManager.warning(new String(cbuf, off, len));
+		}else{
+			displayWriter.writeError(cbuf, off, len);
+		}
 	}
 	
 	@Override

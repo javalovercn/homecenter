@@ -1,15 +1,15 @@
 package hc.server.util;
 
-import hc.App;
-import hc.core.util.CCoreUtil;
-import hc.server.DisposeListener;
-import hc.util.ResourceUtil;
-
 import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.Window;
 
 import javax.swing.JDialog;
+
+import hc.App;
+import hc.core.util.CCoreUtil;
+import hc.server.DisposeListener;
+import hc.util.ResourceUtil;
 
 public class HCJDialog extends JDialog {
 	private DisposeListener listener;
@@ -40,6 +40,11 @@ public class HCJDialog extends JDialog {
 	}
 
 	public HCJDialog(final Frame owner, final String title, final boolean modal) {
+		super(owner, title, modal);
+		init(title);
+	}
+	
+	public HCJDialog(final Dialog owner, final String title, final boolean modal) {
 		super(owner, title, modal);
 		init(title);
 	}

@@ -70,7 +70,7 @@ import third.quartz.spi.SchedulerSignaler;
 import third.quartz.spi.ThreadExecutor;
 import hc.core.L;
 import hc.core.util.ThirdLogManager;
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 
 /**

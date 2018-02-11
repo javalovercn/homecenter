@@ -1,5 +1,27 @@
 package hc.server.ui.design.hpj;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
+
+import javax.swing.tree.DefaultMutableTreeNode;
+
 import hc.App;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
@@ -18,27 +40,6 @@ import hc.util.BaseResponsor;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
-
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
-
-import javax.swing.tree.DefaultMutableTreeNode;
 
 public class HCjar {
 	public static final String ITEM_NAME = "Name";
@@ -174,7 +175,7 @@ public class HCjar {
 		CCoreUtil.checkAccess();
 		
 		final Properties p = new Properties();
-		final HashMap<String, Object> mapString = new HashMap<String, Object>();
+		final Hashtable<String, Object> mapString = new Hashtable<String, Object>();//必须线程安全，且Object可能为StringValue
 		
 		JarInputStream jis = null;
 		try{
@@ -197,7 +198,7 @@ public class HCjar {
 	}
 
 	private static void loadToMap(final JarEntry je, final InputStream is,
-			final Properties p, final HashMap<String, Object> mapString, final boolean loadFileByteArray) throws Throwable {
+			final Properties p, final Hashtable<String, Object> mapString, final boolean loadFileByteArray) throws Throwable {
 		final String jarEnterName = je.getName();
 		if(jarEnterName.startsWith("META-INF", 0)){
 			return;
@@ -216,7 +217,7 @@ public class HCjar {
 		}
 	}
 	
-	private static boolean setNullDefaultValue(final HashMap<String, Object> map, final String key, final String defaultValue){
+	private static boolean setNullDefaultValue(final Hashtable<String, Object> map, final String key, final String defaultValue){
 		if(map.get(key) == null){
 //			System.out.println("set key["+key+"] to default : " + defaultValue);
 			map.put(key, defaultValue);
@@ -225,7 +226,7 @@ public class HCjar {
 		return false;
 	}
 	
-	public static void initMap(final HashMap<String, Object> map){
+	public static void initMap(final Hashtable<String, Object> map){
 		if(setNullDefaultValue(map, PROJ_NAME, "My Project")){
 			final ContextSecurityConfig csc = new ContextSecurityConfig("");
 			csc.buildNewProjectPermissions();
@@ -280,7 +281,7 @@ public class HCjar {
 	public static final Map<String, Object> loadHar(final File jarfile, final boolean loadFileByteArray){
 		JarFile jf = null;
 		final Properties p = new Properties();
-		final HashMap<String, Object> mapString = new HashMap<String, Object>();
+		final Hashtable<String, Object> mapString = new Hashtable<String, Object>();
 		try{
 //			if(jarfile.exists() == false){
 //				throw new Exception("File["+jarfile.getName()+"] not exists!");
@@ -310,12 +311,12 @@ public class HCjar {
 	}
 
 	private static void pushStringMap(final Properties p,
-			final HashMap<String, Object> map, final InputStream is) throws IOException {
+			final Hashtable<String, Object> map, final InputStream is) throws IOException {
 		p.load(is);
 		pushStringMap(p, map);
 	}
 
-	private static void pushStringMap(final Properties p, final HashMap<String, Object> map) {
+	private static void pushStringMap(final Properties p, final Hashtable<String, Object> map) {
 		for(final Map.Entry<Object, Object> entry:p.entrySet()){  
 			map.put((String)entry.getKey(), entry.getValue());
 		}
@@ -337,18 +338,20 @@ public class HCjar {
 			jaros = buildJarOutputStream(jarfile);
 
 			//去掉非String型的value
-			final Iterator<Map.Entry<String, Object>> it = map.entrySet().iterator();  
+			Iterator<Map.Entry<String, Object>> it = map.entrySet().iterator();  
 	        while(it.hasNext()){  
 	            final Map.Entry<String, Object> entry=it.next();  
 	            final String keyName = entry.getKey();
 	            if(keyName.startsWith(MAP_FILE_PRE, 0)){
-	            	final String fileName = keyName.substring(MAP_FILE_PRE.length());
+		            	final String fileName = keyName.substring(MAP_FILE_PRE.length());
 		            jaros.putNextEntry(new JarEntry(fileName));
 					jaros.write((byte[])entry.getValue());
 					jaros.closeEntry();
-					
+						
 					//必须时行remove，以保留串型数据，而非二进制数据
-	            	it.remove();
+		            	map.remove(keyName);
+
+		            	it = map.entrySet().iterator();
 	            }
 	        }  
 			
@@ -765,6 +768,10 @@ public class HCjar {
 
 	public static String buildEventMapKey(final int idx, final String eventName) {
 		return "Menu." + idx + "." + eventName;
+	}
+	
+	public static String buildEventMapKeyForStringValue(final int idx, final String eventName) {
+		return "SV.Menu." + idx + "." + eventName;
 	}
 	
 	private static void checkSameNameNode(final DefaultMutableTreeNode parentNode, 

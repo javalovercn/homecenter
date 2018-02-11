@@ -1,5 +1,7 @@
 package hc.server.util;
 
+import java.io.File;
+
 import hc.core.ContextManager;
 import hc.core.HCTimer;
 import hc.core.L;
@@ -7,11 +9,10 @@ import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
 import hc.core.util.LogMessage;
 import hc.server.data.StoreDirManager;
+import hc.server.ui.design.LinkProjectManager;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
-
-import java.io.File;
 
 public class SafeDataManager {
 	final static File workBaseDir = ResourceUtil.getBaseDir();
@@ -32,7 +33,7 @@ public class SafeDataManager {
 	public static final String USER_DATA_SAFE = USER_DATA + "_safe";
 
 	final static String[] excluds = {".dex", ".png", ".ico", ".log", ".txt", ".har", ".harbak", ".hc", ".pem", 
-		".command", ".bat", ".sh", ResourceUtil.EXT_JAR, ResourceUtil.EXT_APK};
+		".command", ".bat", ".sh", "starter.properties", ResourceUtil.EXT_JAR, ResourceUtil.EXT_APK};
 	final static String[] excludsDir = {USER_DATA_SAFE, "dex_optimized", StoreDirManager.LOGS_DIR_NAME};//dex_optimized为android Server下目录
 
 	static final File SAFE_DATA_DIR = new File(ResourceUtil.getBaseDir(), USER_DATA_SAFE);
@@ -225,11 +226,8 @@ public class SafeDataManager {
 				return;
 			}
 			
-			isEnableSafeBackup = true;
-			if(autoSafeBackupTimer == null){
-				buildTimer();
-			}
-			autoSafeBackupTimer.setEnable(true);
+			buildTimer();
+			
 			if(startSafeBackupNow){
 				autoSafeBackupTimer.doNowAsynchronous();
 			}else{
@@ -241,12 +239,20 @@ public class SafeDataManager {
 	}
 
 	private static void buildTimer() {
-		autoSafeBackupTimer = new HCTimer("autoSafeBackupTimer", HCTimer.ONE_MINUTE * PropertiesManager.getIntValue(PropertiesManager.p_SafeDataBackupIntervalMinutes, 30), false) {
-			@Override
-			public void doBiz() {
-				startSafeBackupProcess(false, false);
-			}
-		};
+		isEnableSafeBackup = true;
+		final long ms = (LinkProjectManager.hasAlive()?1:4) * HCTimer.ONE_MINUTE * PropertiesManager.getIntValue(PropertiesManager.p_SafeDataBackupIntervalMinutes, 30);
+		if(autoSafeBackupTimer == null){
+			autoSafeBackupTimer = new HCTimer("autoSafeBackupTimer", ms, false) {
+				@Override
+				public void doBiz() {
+					startSafeBackupProcess(false, false);
+				}
+			};
+		}else {
+			autoSafeBackupTimer.setIntervalMS(ms);
+		}
+
+		autoSafeBackupTimer.setEnable(true);
 	}
 	
 	public static void startSafeBackupProcess(final boolean isForceBackup, final boolean isWaitForDone){
@@ -285,10 +291,7 @@ public class SafeDataManager {
 			isBackupFull = true;
 			
 			try{
-				if(autoSafeBackupTimer == null){
-					buildTimer();
-				}
-				autoSafeBackupTimer.setEnable(false);
+				buildTimer();
 				LogManager.log("[SafeDataManager] start SafeDataBackupProcess...");
 				
 				if(mover == null){

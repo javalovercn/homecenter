@@ -105,10 +105,10 @@ public class MsgBuilder {
 	public static final byte E_SCREEN_ZOOM = 84;
 	
 	//CS进行RemoteScreenSize双向通讯，保留旧方法，新的传输见E_TRANS_SERVER_CONFIG
-	public static final byte E_SCREEN_REMOTE_SIZE = 86;
+//	public static final byte E_SCREEN_REMOTE_SIZE = 86;
 	public static final byte E_SCREEN_COLOR_MODE = 87;
 	public static final byte E_SCREEN_REFRESH_MILLSECOND = 88;
-	public static final byte E_SCREEN_REFRESH_RECTANGLE = 89;
+//	public static final byte E_SCREEN_REFRESH_RECTANGLE = 89;
 	public static final byte E_BIG_MSG_JS_TO_MOBILE = 90;
 	public static final byte E_JS_EVENT_TO_SERVER = 91;
 	public static final byte E_STREAM_MANAGE = 92;

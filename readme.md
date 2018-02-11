@@ -7,7 +7,7 @@
 ### Sample mobile UI
 ![screenshot](http://homecenter.mobi/images/sc_mlet.png)
 
-to implement the cross-platform UI for Android/iPhone, write with JRuby/Java/J2SE/CSS as ([here](https://github.com/javalovercn/homecenter/blob/master/docs/develop%20cloud%20app%20with%20J2SE%2BCSS%20for%20iPhone%20and%20Android.md)).
+to implement the cross-platform UI for Android/iPhone, write with JRuby/Java/J2SE/CSS as [here](https://github.com/javalovercn/homecenter/blob/master/docs/develop%20cloud%20app%20with%20J2SE%2BCSS%20for%20iPhone%20and%20Android.md).
 
 ***
 ### License

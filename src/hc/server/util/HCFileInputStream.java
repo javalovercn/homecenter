@@ -1,11 +1,10 @@
 package hc.server.util;
 
-import hc.server.data.StoreDirManager;
-import hc.server.ui.ProjectContext;
-import hc.util.ResourceUtil;
-
 import java.io.File;
 import java.io.InputStream;
+
+import hc.server.ui.ProjectContext;
+import hc.util.ResourceUtil;
 
 public class HCFileInputStream extends HCInputStream {
 	final String fileExtension;
@@ -24,7 +23,9 @@ public class HCFileInputStream extends HCInputStream {
 	 * @param fileExtension null means no file extension.
 	 * @return
 	 * @see #createRandomFile(File, String)
+	 * @deprecated
 	 */
+	@Deprecated
 	public final File createRandomFile(final String fileExtension){
 		return createRandomFile(null, fileExtension);
 	}
@@ -35,12 +36,57 @@ public class HCFileInputStream extends HCInputStream {
 	 * @param fileExtension null means no file extension.
 	 * @return
 	 * @see #createRandomFile(String)
+	 * @deprecated
 	 */
-	public final File createRandomFile(File parent, final String fileExtension){
-		if(parent == null){
-			parent = StoreDirManager.getTmpSubForUserManagedByHcSys(ProjectContext.getProjectContext());
-		}
-		return ResourceUtil.createRandomFileWithExt(parent, fileExtension==null?null:("." + fileExtension));
+	@Deprecated
+	public final File createRandomFile(final File parent, final String fileExtension){
+		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), parent, fileExtension);
+	}
+	
+	/**
+	 * create temporary file in <code>parent</code> directory.
+	 * <BR><BR>
+	 * it is equals with {@link #getTempFile(File, String)}.
+	 * @param parent null means create random file in <code>TEMP</code> directory (managed by server and will be empty at next startup).
+	 * @param fileExtension null means no file extension.
+	 * @return
+	 */
+	public final File createTempFile(final File parent, final String fileExtension){
+		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), parent, fileExtension);
+	}
+	
+	/**
+	 * create temporary file in <code>TEMP</code> directory (managed by server and will be empty at next startup).
+	 * <BR><BR>
+	 * it is equals with {@link #getTempFile(String)}.
+	 * @param fileExtension null means no file extension.
+	 * @return
+	 */
+	public final File createTempFile(final String fileExtension){
+		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), null, fileExtension);
+	}
+	
+	/**
+	 * get temporary file in <code>parent</code> directory.
+	 * <BR><BR>
+	 * it is equals with {@link #createTempFile(File, String)}.
+	 * @param parent null means create random file in <code>TEMP</code> directory (managed by server and will be empty at next startup).
+	 * @param fileExtension null means no file extension.
+	 * @return
+	 */
+	public final File getTempFile(final File parent, final String fileExtension){
+		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), parent, fileExtension);
+	}
+	
+	/**
+	 * get temporary file in <code>TEMP</code> directory (managed by server and will be empty at next startup).
+	 * <BR><BR>
+	 * it is equals with {@link #createTempFile(String)}.
+	 * @param fileExtension null means no file extension.
+	 * @return
+	 */
+	public final File getTempFile(final String fileExtension){
+		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), null, fileExtension);
 	}
 
 	/**

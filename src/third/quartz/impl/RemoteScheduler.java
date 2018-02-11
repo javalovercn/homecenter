@@ -17,7 +17,7 @@
 
 package third.quartz.impl;
 
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;

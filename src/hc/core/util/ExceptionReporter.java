@@ -2,7 +2,6 @@ package hc.core.util;
 
 import hc.core.IConstant;
 import hc.core.L;
-import hc.core.RootConfig;
 import hc.core.util.LogManager;
 
 public class ExceptionReporter {
@@ -10,6 +9,7 @@ public class ExceptionReporter {
 	private static boolean isShutDown = false;
 	private final static LinkedSet cache = new LinkedSet();
 	private final static Object lock = new Object();
+	public static final String THROW_FROM = "Throw From : ";
 	
 	private static final Thread backThread = new Thread(){
 		public void run(){
@@ -106,6 +106,17 @@ public class ExceptionReporter {
 		printStackTrace(throwable, script, errMessage, INVOKE_HAR);
 	}
 	
+	public static boolean isCauseByLineOffSession(final Throwable throwable) {
+		Throwable t = throwable;
+		while(t != null) {
+			if(t instanceof SessionLineOffError) {
+				return true;
+			}
+			t = (Throwable)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_CAUSE_ERROR, t);
+		}
+		return false;
+	}
+	
 	/**
 	 * 
 	 * @param throwable
@@ -114,6 +125,10 @@ public class ExceptionReporter {
 	 * @param invokeFrom one of {@link #INVOKE_NORMAL}, {@link #INVOKE_HAR}, {@link #INVOKE_THREADPOOL}
 	 */
 	public static final void printStackTrace(final Throwable throwable, final String script, final String errMessage, final int invokeFrom){
+		if(isCauseByLineOffSession(throwable)){
+			return;
+		}
+		
 		if(L.isInWorkshop){
 			RootBuilder.getInstance().doBiz(RootBuilder.ROOT_PRINT_STACK_WITH_FULL_CAUSE, throwable);//printStackTrace or cause by without more
 		}else{

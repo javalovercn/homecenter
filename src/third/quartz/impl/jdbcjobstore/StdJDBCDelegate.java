@@ -65,7 +65,7 @@ import third.quartz.spi.OperableTrigger;
 
 import hc.core.L;
 import hc.core.util.ThirdLogManager;
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 /**
  * <p>

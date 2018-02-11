@@ -1,36 +1,5 @@
 package hc.server.ui;
 
-import hc.core.ContextManager;
-import hc.core.CoreSession;
-import hc.core.IConstant;
-import hc.core.L;
-import hc.core.MsgBuilder;
-import hc.core.SessionManager;
-import hc.core.cache.CacheManager;
-import hc.core.util.ByteUtil;
-import hc.core.util.CCoreUtil;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.LogManager;
-import hc.core.util.RecycleRes;
-import hc.core.util.StringUtil;
-import hc.core.util.UIUtil;
-import hc.server.JRubyInstaller;
-import hc.server.ProcessingWindowManager;
-import hc.server.ThirdlibManager;
-import hc.server.msb.MSBAgent;
-import hc.server.msb.UserThreadResourceUtil;
-import hc.server.ui.design.J2SESession;
-import hc.server.ui.design.MobiUIResponsor;
-import hc.server.ui.design.ProjResponser;
-import hc.server.util.CacheComparator;
-import hc.server.util.SafeDataManager;
-import hc.server.util.ServerUtil;
-import hc.server.util.ai.AIPersistentManager;
-import hc.util.BaseResponsor;
-import hc.util.HttpUtil;
-import hc.util.PropertiesManager;
-import hc.util.ResourceUtil;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Window;
@@ -45,17 +14,53 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 
+import hc.core.ContextManager;
+import hc.core.CoreSession;
+import hc.core.IConstant;
+import hc.core.L;
+import hc.core.MsgBuilder;
+import hc.core.SessionManager;
+import hc.core.cache.CacheManager;
+import hc.core.util.ByteUtil;
+import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
+import hc.core.util.RecycleRes;
+import hc.core.util.SessionLineOffError;
+import hc.core.util.StringUtil;
+import hc.core.util.UIUtil;
+import hc.server.JRubyInstaller;
+import hc.server.ProcessingWindowManager;
+import hc.server.ThirdlibManager;
+import hc.server.msb.MSBAgent;
+import hc.server.msb.UserThreadResourceUtil;
+import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.LinkProjectManager;
+import hc.server.ui.design.MobiUIResponsor;
+import hc.server.ui.design.ProjResponser;
+import hc.server.util.CacheComparator;
+import hc.server.util.DiskManager;
+import hc.server.util.SafeDataManager;
+import hc.server.util.ai.AIPersistentManager;
+import hc.util.BaseResponsor;
+import hc.util.HttpUtil;
+import hc.util.ResourceUtil;
+
 public class ServerUIUtil {
 	public static final Color LIGHT_BLUE_BG = new Color(245, 250, 254);
-	
 	public static final Object LOCK = new Object();
 	public static final int SCROLLPANE_VERTICAL_UNIT_PIXEL = 8;//缺省为1
 	
-	public static boolean useHARProject = PropertiesManager.isTrue(PropertiesManager.p_IsMobiMenu);
 	private static BaseResponsor responsor;
 	
 	public static void setMlet(final ScriptPanel panel, final Mlet mlet, final ScriptCSSSizeHeight size){
 		panel.setSizeHeightForXML(mlet, size);
+	}
+	
+	public static final void checkLineOnForAPI(final J2SESession coreSS) {
+		if(coreSS == null || coreSS.isExchangeStatus() == false) {
+			throw new SessionLineOffError();
+		}
 	}
 	
 	public static ScriptCSSSizeHeight getSizeHeightForXML(final HTMLMlet mlet){
@@ -141,7 +146,7 @@ public class ServerUIUtil {
 	public static JPanel buildDescPanel(final String htmlWithoutHTML){
 		final JPanel descPanel = new JPanel(new BorderLayout());
 		descPanel.add(new JLabel("<html>" + htmlWithoutHTML + "</html>"), BorderLayout.CENTER);
-		descPanel.setBorder(new TitledBorder((String)ResourceUtil.get(9095)));
+		descPanel.setBorder(new TitledBorder(ResourceUtil.get(9095)));
 		return descPanel;
 	}
 	
@@ -185,17 +190,17 @@ public class ServerUIUtil {
 		synchronized (LOCK) {
 			stop();
 			
-			if(useHARProject && JRubyInstaller.isJRubyReady()){
+			if(LinkProjectManager.hasAlive() && JRubyInstaller.checkNeedUpgradeJRubyAndWaitForEngine()){
 				if(isModiThirdLibs){
 					isModiThirdLibs = false;
 					ThirdlibManager.loadThirdLibs();
-					ServerUtil.getJRubyClassLoader(true);
 				}
 				
 				BaseResponsor respo = null;
 				try{
 					respo = (mobiUIRep != null)?mobiUIRep:(BaseResponsor)buildMobiUIResponsorInstance(new ExceptionCatcherToWindow(owner));
 					responsor = respo.checkAndReady(owner);
+					DiskManager.startDiskSpaceMonitor();
 				}catch (final Throwable e) {
 					if(respo instanceof MobiUIResponsor){
 						final ExceptionCatcherToWindow ec = ((MobiUIResponsor)respo).ec;
@@ -215,15 +220,17 @@ public class ServerUIUtil {
 				}
 			}else{
 				responsor = new DefaultUIResponsor();
+				DiskManager.disableDiskSpaceMonitor();
 			}
 			try{
 				CacheManager.clearBuffer();
 				MSBAgent.resetDeviceSet();
 				
+				SafeDataManager.enableSafeBackup(false, false);//不限于MobiUIResponsor
+
 				responsor.start();
 				
 				if(responsor instanceof MobiUIResponsor){
-					SafeDataManager.enableSafeBackup(false, false);
 					LogManager.log("successful start all HAR projects");
 					((MobiUIResponsor)responsor).preLoadJRubyScripts();
 				}
@@ -253,7 +260,7 @@ public class ServerUIUtil {
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-					final Window w = ProcessingWindowManager.showCenterMessage((String)ResourceUtil.get(9091));
+					final Window w = ProcessingWindowManager.showCenterMessage(ResourceUtil.get(9091));
 					try{
 						Thread.sleep(2000);
 					}catch (final Exception e) {

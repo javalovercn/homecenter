@@ -1,10 +1,8 @@
 package hc.server;
 
 import hc.core.IConstant;
-import hc.core.cache.CacheManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.HCURLUtil;
-import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.design.J2SESession;
 
 
@@ -13,8 +11,7 @@ public class J2SEEClassHelper {
 		final String classPara = ByteUtil.buildString(bs, offset, len, IConstant.UTF_8);
 		
 		if(className.equals(HCURLUtil.CLASS_MOV_NEW_SERVER)){
-			final String softUID = UserThreadResourceUtil.getMobileSoftUID(coreSS);
-			CacheManager.removeUIDFrom(softUID);
+			coreSS.isNeedRemoveCacheLater = true;
 		}
 //		if(className.equals("testClass")){
 //			System.out.println("testClass ====>" + ByteUtil.buildString(bs, offset, len, IConstant.UTF_8));

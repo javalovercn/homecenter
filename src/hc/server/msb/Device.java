@@ -1,15 +1,15 @@
 package hc.server.msb;
 
+import java.util.HashMap;
+import java.util.Random;
+import java.util.Vector;
+
 import hc.core.L;
 import hc.core.util.LogManager;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.SessionContext;
-
-import java.util.HashMap;
-import java.util.Random;
-import java.util.Vector;
 
 /**
  * A <code>Device</code> means a real equipment controlled by <code>Robot</code> or data source from cloud.
@@ -95,13 +95,13 @@ public abstract class Device extends Processor{
 		}finally{
 			if(isUseCmdGroup){
 				final SessionContext sessionContext = ServerUIAPIAgent.getProjResponserMaybeNull(__context).getSessionContextFromCurrThread();
-				if(sessionContext == null || sessionContext.j2seSocketSession == null){
+				J2SESession coreSS;
+				if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 					if(L.isInWorkshop){
 						LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 					}
 					return;
 				}
-				final J2SESession coreSS = sessionContext.j2seSocketSession;
 				
 				MSBAgent.clearWiFiAccountGroup(coreSS, this, getCmdGroup());
 				isUseCmdGroup = false;

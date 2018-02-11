@@ -1,5 +1,11 @@
 package hc.server.util;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.RootServerConnector;
@@ -22,12 +28,6 @@ import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 import hc.util.ThreadConfig;
-
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 public class J2SERootBuilder extends RootBuilder {
 	final ThreadGroup token;
@@ -139,7 +139,7 @@ public class J2SERootBuilder extends RootBuilder {
 				if(jrubyVersion == null){
 					jrubyVersion = (String)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 						@Override
-						public Object run() {
+						public Object run() throws Throwable {
 							return ResourceUtil.getJRubyVersion();//有可能为null
 						}
 					}, token);
@@ -196,7 +196,13 @@ public class J2SERootBuilder extends RootBuilder {
 		 }else if(rootBizNo == ROOT_SET_LAST_ROOT_CFG){
 			 PropertiesManager.setValue(PropertiesManager.p_lastRootCfg, (String)para);
 			 PropertiesManager.saveFile();
-		 }
+		 }else if(rootBizNo == ROOT_THROW_CAUSE_ERROR) {
+			throw new Error("ThreadPoolCauseThrowable", (Throwable)para);
+		}else if(rootBizNo == ROOT_GET_CAUSE_ERROR) {
+			return ((Throwable)para).getCause();
+		}else if(rootBizNo == ROOT_IS_CURR_THREAD_IN_SESSION_OR_PROJ_POOL) {
+			return App.isSessionOrProjectPool((Boolean)para);
+		}
 		 
 		 return null;
 	}

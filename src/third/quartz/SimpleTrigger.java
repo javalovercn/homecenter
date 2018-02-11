@@ -17,7 +17,7 @@
 
 package third.quartz;
 
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 /**
  * A <code>{@link Trigger}</code> that is used to fire a <code>Job</code>

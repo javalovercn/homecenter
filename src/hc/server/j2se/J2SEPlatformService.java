@@ -1,18 +1,5 @@
 package hc.server.j2se;
 
-import hc.App;
-import hc.PlatformTrayIcon;
-import hc.core.ContextManager;
-import hc.core.util.CCoreUtil;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.LogManager;
-import hc.core.util.WiFiDeviceManager;
-import hc.server.PlatformService;
-import hc.util.ClassUtil;
-import hc.util.ExitManager;
-import hc.util.LogServerSide;
-import hc.util.ResourceUtil;
-
 import java.awt.AlphaComposite;
 import java.awt.Graphics2D;
 import java.awt.GraphicsDevice;
@@ -53,6 +40,19 @@ import org.javassist.CtMethod;
 import org.javassist.bytecode.CodeAttribute;
 import org.javassist.bytecode.LocalVariableAttribute;
 import org.javassist.bytecode.MethodInfo;
+
+import hc.App;
+import hc.PlatformTrayIcon;
+import hc.core.ContextManager;
+import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
+import hc.core.util.WiFiDeviceManager;
+import hc.server.PlatformService;
+import hc.util.ClassUtil;
+import hc.util.ExitManager;
+import hc.util.LogServerSide;
+import hc.util.ResourceUtil;
 
 public class J2SEPlatformService implements PlatformService {
 	final File baseDir = buildCanonicalBase();
@@ -557,6 +557,11 @@ public class J2SEPlatformService implements PlatformService {
 	@Override
 	public String getOsNameAndVersion() {
 		return System.getProperty("os.name") + "/" + System.getProperty("os.version");
+	}
+
+	@Override
+	public File[] getRubotoAndDxFiles() {
+		return null;
 	}
 
 }

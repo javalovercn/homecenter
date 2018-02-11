@@ -1,5 +1,13 @@
 package hc.server.ui.design;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Vector;
+
+import javax.swing.JFrame;
+
 import hc.core.cache.CacheManager;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.design.hpj.HCjar;
@@ -10,22 +18,14 @@ import hc.util.PropertiesManager;
 import hc.util.PropertiesSet;
 import hc.util.ResourceUtil;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Vector;
-
-import javax.swing.JFrame;
-
 public abstract class BaseProjList {
 	public static final int COL_NO = 0, COL_IS_ROOT = 1, COL_PROJ_ID = 2, COL_VER = 3, COL_PROJ_ACTIVE = 4, 
 			COL_PROJ_LINK_NAME = 5, COL_PROJ_DESC = 6, COL_UPGRADE_URL = 7;
 	final int COL_NUM = 2;
 	final int IDX_OBJ_STORE = 1;
 
-	public static final String upgradeURL = (String)ResourceUtil.get(8023);
-	public static final String ACTIVE = (String)ResourceUtil.get(8020);
+	public static final String upgradeURL = ResourceUtil.get(8023);
+	public static final String ACTIVE = ResourceUtil.get(8020);
 
 	//删除时，后位前移，序号重算
 	final Vector<Object[]> data = new Vector<Object[]>();//[COL_NUM];
@@ -40,7 +40,7 @@ public abstract class BaseProjList {
 	}
 	
 	protected String getKeepOneProjWarn(final J2SESession coreSS) {
-		return (String)ResourceUtil.get(coreSS, 9258);
+		return ResourceUtil.get(coreSS, 9258);
 	}
 	
 	protected final boolean isDeployed(final int selectedRow){
@@ -90,13 +90,6 @@ public abstract class BaseProjList {
 		//								LogManager.log("restarting service...");
 		//启动时，需要较长时间初始化，有可能用户快速打开并更新保存，所以加锁。
 		synchronized (ServerUIUtil.LOCK) {
-			final LinkProjectStore root = LinkProjectManager.searchRoot(true);//必须查询为active状态的。
-			if(root != null){
-				Designer.setProjectOn();
-			}else{
-				Designer.setProjectOff();	
-			}
-			
 			ServerUIUtil.promptAndStop(isQuery, frame);
 		}
 		
@@ -236,6 +229,8 @@ public abstract class BaseProjList {
 				
 				isChanged = false;
 			}
+			
+			SafeDataManager.startSafeBackupProcess(true, false);
 		}
 		return true;
 	}
@@ -254,8 +249,8 @@ public abstract class BaseProjList {
 			lpss[i] = ((LinkEditData)data.elementAt(i)[IDX_OBJ_STORE]).lps;
 		}
 		
-		final PropertiesSet projIDSet = AddHarHTMLMlet.newLinkProjSetInstance();
-		AddHarHTMLMlet.saveLinkStore(lpss, projIDSet);
+		final PropertiesSet projIDSet = LinkProjectManager.newLinkProjSetInstance();
+		LinkProjectManager.saveLinkStore(lpss, projIDSet);
 	}
 	
 	/**

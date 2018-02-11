@@ -17,7 +17,7 @@
 
 package third.quartz.spi;
 
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 import java.util.Collection;
 import java.util.List;
@@ -54,7 +54,7 @@ import third.quartz.impl.matchers.GroupMatcher;
  * @see third.quartz.Job
  * @see third.quartz.JobDetail
  * @see third.quartz.JobDataMap
- * @see hc.server.util.scheduler.JobCalendar
+ * @see hc.server.util.calendar.JobCalendar
  *
  * @author James House
  * @author Eric Mueller
@@ -276,7 +276,7 @@ public interface JobStore {
     void clearAllSchedulingData() throws JobPersistenceException;
     
     /**
-     * Store the given <code>{@link hc.server.util.scheduler.JobCalendar}</code>.
+     * Store the given <code>{@link hc.server.util.calendar.JobCalendar}</code>.
      *
      * @param calendar
      *          The <code>Calendar</code> to be stored.
@@ -297,7 +297,7 @@ public interface JobStore {
         throws ObjectAlreadyExistsException, JobPersistenceException;
 
     /**
-     * Remove (delete) the <code>{@link hc.server.util.scheduler.JobCalendar}</code> with the
+     * Remove (delete) the <code>{@link hc.server.util.calendar.JobCalendar}</code> with the
      * given name.
      *
      * <p>
@@ -344,7 +344,7 @@ public interface JobStore {
         throws JobPersistenceException;
 
     /**
-     * Get the number of <code>{@link hc.server.util.scheduler.JobCalendar}</code> s that are
+     * Get the number of <code>{@link hc.server.util.calendar.JobCalendar}</code> s that are
      * stored in the <code>JobsStore</code>.
      */
     int getNumberOfCalendars()
@@ -399,7 +399,7 @@ public interface JobStore {
         throws JobPersistenceException;
 
     /**
-     * Get the names of all of the <code>{@link hc.server.util.scheduler.JobCalendar}</code> s
+     * Get the names of all of the <code>{@link hc.server.util.calendar.JobCalendar}</code> s
      * in the <code>JobStore</code>.
      *
      * <p>

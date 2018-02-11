@@ -1,5 +1,8 @@
 package hc.server.ui;
 
+import java.util.Map;
+import java.util.Vector;
+
 import hc.core.GlobalConditionWatcher;
 import hc.core.IWatcher;
 import hc.core.L;
@@ -14,9 +17,6 @@ import hc.server.ui.design.LinkProjectStore;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.hpj.HCjar;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
-
-import java.util.Map;
-import java.util.Vector;
 
 
 public class MobiMenu {
@@ -65,6 +65,11 @@ public class MobiMenu {
 		return null;
 	}
 	
+	/**
+	 * 如果越界，返回null
+	 * @param pos
+	 * @return
+	 */
 	public final MenuItem getModifiableItemAt(final int pos){
 		synchronized(menuLock){
 			final int shiftIdx = headerStartIdx + pos;
@@ -116,11 +121,13 @@ public class MobiMenu {
 		boolean isRemoved = false;
 		synchronized(menuLock){
 			isRemoved = menuItems.remove(item);
+			L.V = L.WShop ? false : LogManager.log("[publishMenuToMobi] successful removeModifiableItem : " + item.itemName);
 			if(isRemoved){
 				item.belongToMenu = null;
 			}
 
 			if(isRemoved){
+				item.isNeedRefresh = true;
 				if(isFlushedBaseMenu){
 					publishToMobi(REMOVE_ITEM, item, null);
 				}
@@ -278,7 +285,7 @@ public class MobiMenu {
 
 	protected final void switchCoreSS(final J2SESession coreSS, final String op, final MenuItem item,
 			final MenuItem itemBefore) {
-		L.V = L.WShop ? false : LogManager.log(op + " one menu item : " + item.itemName);
+		L.V = L.WShop ? false : LogManager.log("[publishMenuToMobi] [" + op + "] one menu item : " + item.itemName);
 		
 		if(ADD_ITEM.equals(op)){
 			flushRefresh(item, itemBefore, coreSS, op);
@@ -296,7 +303,7 @@ public class MobiMenu {
 		if(coreSS == TO_PROJECT_LEVEL){
 			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {//runAndWait for synch
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					GlobalConditionWatcher.addWatcher(watcher);
 					return null;
 				}
@@ -388,7 +395,7 @@ public class MobiMenu {
 		
 		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				if(coreSS == TO_PROJECT_LEVEL){
 					final J2SESession[] coreSSS = J2SESessionManager.getAllOnlineSocketSessions();
 					if(coreSSS != null){

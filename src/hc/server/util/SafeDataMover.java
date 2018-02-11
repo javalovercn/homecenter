@@ -1,13 +1,13 @@
 package hc.server.util;
 
-import hc.core.L;
-import hc.core.util.LogManager;
-import hc.util.ResourceUtil;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Vector;
+
+import hc.core.L;
+import hc.core.util.LogManager;
+import hc.util.ResourceUtil;
 
 public class SafeDataMover {
 	final File src;
@@ -169,17 +169,38 @@ public class SafeDataMover {
 			//存在删除的目录或文件
 			for (int i = targetSubNum - 1; i >= 0; i--) {
 				final String subItem = targetNames.get(i);
+				final File targetSubItemFile = targetSubs.get(i);
+				final boolean isTargetSubItemFile = targetSubItemFile.isFile();
 				
-				boolean isFind = false;
+				boolean isKeep = false;
 				for (int j = 0; j < srcSubNames.length; j++) {
 					if(srcSubNames[j].equals(subItem)){
-						isFind = true;
+						isKeep = true;
 						break;
 					}
 				}
 				
-				if(isFind == false){
-					final File targetSubItemFile = targetSubs.get(i);
+				if(isKeep) {
+					if(hasExcludes && isTargetSubItemFile){
+						for (int j = 0; j < excluesExtentions.length; j++) {
+							if(subItem.endsWith(excluesExtentions[j])){
+								L.V = L.WShop ? false : LogManager.log("[SafeDataManager] exclude file : " + subItem);
+								isKeep = false;
+								break;
+							}
+						}
+					}else if(hasExcludeDirs && (isTargetSubItemFile == false)) {
+						for (int j = 0; j < excludeDirs.length; j++) {
+							if(subItem.equals(excludeDirs[j])){
+								L.V = L.WShop ? false : LogManager.log("[SafeDataManager] exclude dir : " + subItem);
+								isKeep = false;
+								break;
+							}
+						}
+					}
+				}
+				
+				if(isKeep == false){
 					targetSubs.remove(i);
 					targetNames.remove(i);
 					

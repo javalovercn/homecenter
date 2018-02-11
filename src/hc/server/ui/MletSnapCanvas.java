@@ -1,22 +1,5 @@
 package hc.server.ui;
 
-import hc.core.IConstant;
-import hc.core.L;
-import hc.core.data.DataInputEvent;
-import hc.core.util.ByteUtil;
-import hc.core.util.HCURL;
-import hc.core.util.HCURLUtil;
-import hc.core.util.LogManager;
-import hc.core.util.ReturnableRunnable;
-import hc.core.util.UIUtil;
-import hc.server.MultiUsingManager;
-import hc.server.ScreenServer;
-import hc.server.data.screen.PNGCapturer;
-import hc.server.msb.UserThreadResourceUtil;
-import hc.server.ui.design.J2SESession;
-import hc.server.ui.design.ProjResponser;
-import hc.util.ResourceUtil;
-
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
 import java.awt.Button;
@@ -55,6 +38,23 @@ import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.text.JTextComponent;
 
+import hc.core.IConstant;
+import hc.core.L;
+import hc.core.data.DataInputEvent;
+import hc.core.util.ByteUtil;
+import hc.core.util.HCURL;
+import hc.core.util.HCURLUtil;
+import hc.core.util.LogManager;
+import hc.core.util.ReturnableRunnable;
+import hc.core.util.UIUtil;
+import hc.server.MultiUsingManager;
+import hc.server.ScreenServer;
+import hc.server.data.screen.PNGCapturer;
+import hc.server.msb.UserThreadResourceUtil;
+import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.ProjResponser;
+import hc.util.ResourceUtil;
+
 public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
     
     final int width, height;
@@ -92,14 +92,14 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		
 		scrollPrintRunnable = new ReturnableRunnable() {
 			@Override
-			public Object run(){
+			public Object run() throws Throwable {
 				mlet.print(graphcis);
 				return null;
 			}
 		};
 		listPrintRunnable = new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				listForJComboBox.print(bufferedImageCombo.getGraphics());
 				return null;
 			}
@@ -124,7 +124,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas{
 		
 		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				scrollPane = new JScrollPane(mlet, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 				return null;
 			}

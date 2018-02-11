@@ -1,5 +1,23 @@
 package hc.server.ui;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.Statement;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Vector;
+
+import javax.imageio.ImageIO;
+import javax.swing.Icon;
+import javax.swing.JOptionPane;
+
 import hc.App;
 import hc.core.ConfigManager;
 import hc.core.ContextManager;
@@ -19,6 +37,7 @@ import hc.core.util.LogManager;
 import hc.core.util.RecycleRes;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.StringUtil;
+import hc.core.util.StringValue;
 import hc.server.CallContext;
 import hc.server.PlatformManager;
 import hc.server.PlatformService;
@@ -54,25 +73,6 @@ import hc.util.PropertiesMap;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 import hc.util.TokenManager;
-
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.Statement;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Vector;
-
-import javax.imageio.ImageIO;
-import javax.swing.Icon;
-import javax.swing.JOptionPane;
-
 import third.hsqldb.jdbc.JDBCDriver;
 
 /**
@@ -419,7 +419,7 @@ public class ProjectContext {
 	 * <BR><BR>
 	 * usage of schedule (JRuby) :
 	 * <pre>
-	 * import Java::hc.server.util.scheduler.WeeklyJobCalendar
+	 * import Java::hc.server.util.calendar.WeeklyJobCalendar
 	 * import java.lang.StringBuilder
 	 * 
 	 * ctx = Java::hc.server.ui.ProjectContext::getProjectContext()
@@ -490,7 +490,7 @@ public class ProjectContext {
 					scheduler.shutdown(true);
 				}
 			}catch (final Throwable e) {
-				e.printStackTrace();
+//				e.printStackTrace();
 			}
 		}
 	}
@@ -529,10 +529,11 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			return getScheduler(domain, isAllInRAM, null);
 		}else{
-			return getScheduler(domain, isAllInRAM, sessionContext.j2seSocketSession);
+			return getScheduler(domain, isAllInRAM, coreSS);
 		}
 	}
 	
@@ -560,10 +561,11 @@ public class ProjectContext {
 			}
 			
 			final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-			if(sessionContext == null || sessionContext.j2seSocketSession == null){
+			J2SESession coreSS;
+			if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 				return null;
 			}else{
-				return getScheduler(domain, isAllInRAM, sessionContext.j2seSocketSession);
+				return getScheduler(domain, isAllInRAM, coreSS);
 			}
 		}else{
 			return getScheduler(domain, isAllInRAM, null);
@@ -588,7 +590,7 @@ public class ProjectContext {
 					LogManager.warn("all in RAM is required for session level scheduler [" + domain + "], force set isAllInRAM to TRUE.");
 				}
 
-				domain = j2seSession.getSessionID() + "_" + domain;
+				domain += "_for_session_" + j2seSession.getSessionID();
 			}
 			Scheduler cronManager = schedulerMapForProjAndSess.get(domain);
 			if(cronManager == null){
@@ -694,8 +696,8 @@ public class ProjectContext {
 	 */
 	private final MobiMenu getMobiMenu(){
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		final J2SESession[] coreSS;
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
@@ -704,7 +706,7 @@ public class ProjectContext {
 			}
 			return __projResponserMaybeNull.jarMainMenu.projectMenu;
 		}else{
-			return sessionContext.j2seSocketSession.getMenu(projectID);
+			return coreSS.getMenu(projectID);
 		}
 	}
 	
@@ -759,12 +761,13 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			errWhenInSession("goWhenInSession");
 //			return false;
 			return;
 		}else{
-			ServerUIAPIAgent.goInServer(sessionContext.j2seSocketSession, this, url);
+			ServerUIAPIAgent.goInServer(coreSS, this, url);
 //			return true;
 			return;
 		}
@@ -822,12 +825,13 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			errWhenInSession("goExternalURLWhenInSession");
 //			return false;
 			return;
 		}else{
-			ServerUIAPIAgent.goExternalURL(sessionContext.j2seSocketSession, this, url, isUseExtBrowser);
+			ServerUIAPIAgent.goExternalURL(coreSS, this, url, isUseExtBrowser);
 //			return true;
 			return;
 		}
@@ -856,13 +860,14 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			errWhenInSession("goMletWhenInSession");
 //			return false;
 			return;
 		}else{
 			final Mlet fromMlet = null;
-			ServerUIAPIAgent.goMlet(sessionContext.j2seSocketSession, this, fromMlet, toMlet, targetOfMlet, false);
+			ServerUIAPIAgent.goMlet(coreSS, this, fromMlet, toMlet, targetOfMlet, false);
 //			return true;
 			return;
 		}
@@ -978,8 +983,8 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		final J2SESession[] coreSS;
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
@@ -990,7 +995,7 @@ public class ProjectContext {
 			ServerUIAPIAgent.printInProjectLevelWarn("insertMenuItemToSessionLevel");
 			return false;
 		}else{
-			return sessionContext.j2seSocketSession.getMenu(projectID).insertModifiableItem(item, position);
+			return coreSS.getMenu(projectID).insertModifiableItem(item, position);
 		}
 	}
 	
@@ -1052,18 +1057,15 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		final J2SESession[] coreSS;
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
-			}
-			if(isLoggerOn == false){
-				ServerUIAPIAgent.printInProjectLevelWarn("getMenuItemFromSessionLevel");
 			}
 			ServerUIAPIAgent.printInProjectLevelWarn("getMenuItemFromSessionLevel");
 			return null;
 		}else{
-			return sessionContext.j2seSocketSession.getMenu(projectID).getModifiableItemAt(position);
+			return coreSS.getMenu(projectID).getModifiableItemAt(position);
 		}
 	}
 	
@@ -1105,19 +1107,16 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		final J2SESession[] coreSS;
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
-			}
-			if(isLoggerOn == false){
-				ServerUIAPIAgent.printInProjectLevelWarn("removeMenuItemFromSessionLevel");
 			}
 			ServerUIAPIAgent.printInProjectLevelWarn("removeMenuItemFromSessionLevel");
 			return null;
 //			return __projResponserMaybeNull.jarMainMenu.projectMenu;
 		}else{
-			return sessionContext.j2seSocketSession.getMenu(projectID).removeModifiableItemAt(position);
+			return coreSS.getMenu(projectID).removeModifiableItemAt(position);
 		}
 	}
 	
@@ -1219,8 +1218,8 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		final J2SESession[] coreSS;
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
@@ -1229,7 +1228,7 @@ public class ProjectContext {
 			}
 			return -1;
 		}else{
-			return sessionContext.j2seSocketSession.getMenu(projectID).getSessionItemsCount();
+			return coreSS.getMenu(projectID).getSessionItemsCount();
 		}
 	}
 
@@ -1438,9 +1437,15 @@ public class ProjectContext {
 				: __projResponserMaybeNull.hcje);
 		
 		final CallContext callCtx = CallContext.getFree();
-		final Object out = RubyExector.runAndWaitOnEngine(callCtx, shell, "evalInProjectContext", null, engine);
-		CallContext.cycle(callCtx);
-		return out;
+		try {
+			return RubyExector.runAndWaitOnEngine(callCtx, new StringValue(shell), "evalInProjectContext", null, engine);
+		}catch (final Throwable e) {
+//			if(ExceptionReporter.isCauseByLineOffSession(e)){
+				throw new Error(ExceptionReporter.THROW_FROM, e);
+//			}
+		}finally {
+			CallContext.cycle(callCtx);
+		}
 	}
 	
 	/**
@@ -1462,11 +1467,7 @@ public class ProjectContext {
 	}
 	
 	/**
-	 * this method is invoked when current thread is in session level, 
-	 * <BR>
-	 * but the <code>runnable</code> should be executed in project level.
-	 * <BR><BR>
-	 * there is NOT API for task to be executed in session level when in project level.
+	 * the <code>runnable</code> will be executed in project level, no matter current thread is in session or project level.
 	 * @param runnable
 	 * @see #runAndWait(Runnable)
 	 * @see #isCurrentThreadInSessionLevel()
@@ -1475,7 +1476,7 @@ public class ProjectContext {
 	public final void runAndWaitInProjectLevel(final Runnable runnable) {
 		final ReturnableRunnable run = new ReturnableRunnable() {
 			@Override
-			public final Object run() {
+			public Object run() throws Throwable {
 				runnable.run();
 				return null;
 			}
@@ -1510,7 +1511,8 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		final J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
@@ -1519,6 +1521,7 @@ public class ProjectContext {
 			}
 			recycleRes.threadPool.run(runnable);
 		}else{
+			ServerUIUtil.checkLineOnForAPI(coreSS);
 			sessionContext.recycleRes.threadPool.run(runnable);
 		}
 	}
@@ -1547,14 +1550,15 @@ public class ProjectContext {
 		
 		final ReturnableRunnable run = new ReturnableRunnable() {
 			@Override
-			public final Object run() {
+			public Object run() throws Throwable {
 				runnable.run();
 				return null;
 			}
 		};
 
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
@@ -1563,6 +1567,8 @@ public class ProjectContext {
 			}
 			recycleRes.threadPool.runAndWait(run);
 		}else{
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			
 			sessionContext.recycleRes.threadPool.runAndWait(run);
 		}
 	}
@@ -1586,12 +1592,8 @@ public class ProjectContext {
 	}
 	
 	private final J2SESession[] toArray(final J2SESession coreSS){
-		if(UserThreadResourceUtil.isInServing(coreSS.context)){
-			final J2SESession[] out = {coreSS};
-			return out;
-		}else{
-			return null;
-		}
+		final J2SESession[] out = {coreSS};
+		return out;
 	}
 
 	/**
@@ -1602,7 +1604,8 @@ public class ProjectContext {
 	 * <br><br>
 	 * this method is <STRONG>asynchronous</STRONG>. system will NOT wait for
 	 * the result of question to the caller. <BR>
-	 * <BR>
+	 * for <STRONG>synchronous</STRONG>, please use {@link #sendQuestionAndWait(String, String, BufferedImage, Runnable, Runnable, Runnable)}.
+	 * <BR><BR>
 	 * <STRONG>Important</STRONG> : the <code>yesRunnable</code>, <code>noRunnable</code>, <code>cancelRunnable</code> will be executed in session level, no matter current thread is project or session level.
 	 * <BR><BR>
 	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
@@ -1623,9 +1626,12 @@ public class ProjectContext {
 	 *            the runnable will be executed if choosing 'NO'. Null for doing
 	 *            nothing.
 	 * @param cancelRunnable
-	 *            the runnable will be executed if choosing 'CANCEL'. Set null
-	 *            to not display this button, but it is still cancelable.<BR>To set question to be not cancelable, see {@link #sendQuestionNotCancelable(String, String, BufferedImage, Runnable, Runnable)}.
+	 *            the runnable will be executed if choosing 'CANCEL'. 
+	 *            It will not be executed when line off.
+	 *            Set null to not display cancel button in question, but it is still cancelable.
+	 *            To set question to be not cancelable, use {@link #sendQuestionNotCancelable(String, String, BufferedImage, Runnable, Runnable)}.
 	 * @since 7.0
+	 * @see #sendQuestionAndWait(String, String, BufferedImage, Runnable, Runnable, Runnable)
 	 * @see #sendQuestionNotCancelable(String, String, BufferedImage, Runnable, Runnable)
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @see #isClientLineOn()
@@ -1633,7 +1639,27 @@ public class ProjectContext {
 	public final void sendQuestion(final String caption, final String text,
 			final BufferedImage image, final Runnable yesRunnable,
 			final Runnable noRunnable, final Runnable cancelRunnable) {
-		sendQuestion(caption, text, image, yesRunnable, noRunnable, cancelRunnable, true);
+		sendQuestionImpl(false, caption, text, image, yesRunnable, noRunnable, cancelRunnable, true);
+	}
+	
+	/**
+	 * for more, see {@link #sendQuestion(String, String, BufferedImage, Runnable, Runnable, Runnable)}
+	 * <BR><BR>
+	 * <STRONG>About return status :</STRONG><BR>
+	 * 1. in project level, return true means question is processed/canceled by one client, false means all sessions are line off.<BR>
+	 * 2. in session level, return true means question is processed by client, false means canceled by client, when line off the execution will be terminated.
+	 * @param caption
+	 * @param text
+	 * @param image
+	 * @param yesRunnable
+	 * @param noRunnable
+	 * @param cancelRunnable
+	 * @see #isClientLineOn()
+	 */
+	public final boolean sendQuestionAndWait(final String caption, final String text,
+			final BufferedImage image, final Runnable yesRunnable,
+			final Runnable noRunnable, final Runnable cancelRunnable) {
+		return sendQuestionImpl(true, caption, text, image, yesRunnable, noRunnable, cancelRunnable, true);
 	}
 	
 	/**
@@ -1652,39 +1678,64 @@ public class ProjectContext {
 	 * @param noRunnable
 	 *            the runnable will be executed if choosing 'NO'. Null for doing
 	 *            nothing.
+	 * @see #sendQuestionAndWaitNotCancelable(String, String, BufferedImage, Runnable, Runnable)
 	 * @see #sendQuestion(String, String, BufferedImage, Runnable, Runnable, Runnable)
 	 */
 	public final void sendQuestionNotCancelable(final String caption, final String text,
 			final BufferedImage image, final Runnable yesRunnable,
 			final Runnable noRunnable) {
-		sendQuestion(caption, text, image, yesRunnable, noRunnable, null, false);
+		sendQuestionImpl(false, caption, text, image, yesRunnable, noRunnable, null, false);
 	}
 	
-	private final void sendQuestion(String caption, String text,
+	/**
+	 * see {@link #sendQuestion(String, String, BufferedImage, Runnable, Runnable, Runnable)} for more.
+	 * <BR><BR>
+	 * <STRONG>About return status :</STRONG><BR>
+	 * 1. in project level, return true means question is processed by one client, false means all sessions are line off.<BR>
+	 * 2. in session level, return true means question is processed by client, when line off the execution will be terminated.
+	 * @param caption
+	 * @param text
+	 * @param image
+	 * @param yesRunnable
+	 * @param noRunnable
+	 * @return 
+	 * @see #isClientLineOn()
+	 */
+	public final boolean sendQuestionAndWaitNotCancelable(final String caption, final String text,
 			final BufferedImage image, final Runnable yesRunnable,
-			final Runnable noRunnable, final Runnable cancelRunnable, final boolean isCancelable) {
+			final Runnable noRunnable) {
+		return sendQuestionImpl(true, caption, text, image, yesRunnable, noRunnable, null, false);
+	}
+	
+	private final boolean sendQuestionImpl(final boolean isWaiting, String caption,
+			String text, final BufferedImage image,
+			final Runnable yesRunnable, final Runnable noRunnable, final Runnable cancelRunnable, final boolean isCancelable) {
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
-			return;
+			return true;
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		final J2SESession[] coreSS;
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		final J2SESession[] coreSSS;
+		J2SESession coreSS = null;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("sendQuestion");
 			}
-			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+			coreSSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
 		}else{
-			if(UserThreadResourceUtil.isInServing(sessionContext.j2seSocketSession.context) == false){
-				return;
-			}
-			coreSS = toArray(sessionContext.j2seSocketSession);
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			coreSSS = toArray(coreSS);
 		}
 		
-		if (coreSS != null && coreSS.length > 0) {
+		final boolean isForSession = coreSS != null;
+		
+		if(coreSSS == null || coreSSS.length == 0) {
+			return false;
+		}
+		
 		if (caption == null) {
 			caption = ResourceUtil.getInfoI18N();
 		}
@@ -1702,7 +1753,7 @@ public class ProjectContext {
 				byteArrayOutputStream.close();
 			} catch (final IOException e) {
 				ExceptionReporter.printStackTrace(e);
-				return;
+				return false;
 			}
 		}
 
@@ -1712,25 +1763,34 @@ public class ProjectContext {
 		final String p_text = text;
 		final String p_imageData = imageData;
 		final ProjectContext p_ctx = this;
+		
 		//如果同时发出两个Ques，则可能不同步，所以以下要wait
-		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+		final QuestionGlobalLock quesLock = (QuestionGlobalLock)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
-				final boolean isMultiple = coreSS.length > 1;
-				final QuestionGlobalLock quesLock = isMultiple?new QuestionGlobalLock(coreSS):null;
+			public Object run() throws Throwable {
+				final QuestionGlobalLock quesLock = new QuestionGlobalLock(isForSession, coreSSS, isWaiting);
 				final int questionID = ServerUIAPIAgent.buildQuestionID();//便于撤消
 				
-				for (int i = 0; i < coreSS.length; i++) {
+				for (int i = 0; i < coreSSS.length; i++) {
 					ServerUIAPIAgent.buildQuestionParameter(
-							coreSS[i], p_ctx, quesLock, questionID, p_text, yesRunnable, noRunnable, cancelRunnable);
+							coreSSS[i], p_ctx, quesLock, questionID, p_text, yesRunnable, noRunnable, cancelRunnable);
 					
 					final String[] values = { String.valueOf(questionID), IConstant.toString(isCancelable), p_caption,
 							p_text, p_imageData, (cancelRunnable != null) ? "1" : "0" };//注意：必须在外部转换
-					HCURLUtil.sendCmd(coreSS[i], HCURL.DATA_CMD_SendPara, para, values);
+					HCURLUtil.sendCmd(coreSSS[i], HCURL.DATA_CMD_SendPara, para, values);
 				}
-				return null;
+				return quesLock;
 			}
 		});
+		
+		if(isWaiting) {
+			final boolean processed = quesLock.waitingResult();
+			if(coreSS != null){
+				ServerUIUtil.checkLineOnForAPI(coreSS);
+			}
+			return processed;
+		}else {
+			return true;
 		}
 	}
 	
@@ -1751,7 +1811,7 @@ public class ProjectContext {
 	public final void backup(){
 		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				SafeDataManager.backup(projectID);
 				return null;
 			}
@@ -1792,7 +1852,8 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				throw new Error(ServerUIAPIAgent.ERR_CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 //				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
@@ -1803,7 +1864,7 @@ public class ProjectContext {
 			return SimuMobile.PROJ_LEVEL_MOBILE_WIDTH;
 		}
 		
-		return UserThreadResourceUtil.getMletWidthFrom(sessionContext.j2seSocketSession);
+		return UserThreadResourceUtil.getMletWidthFrom(coreSS);
 	}
 
 	/**
@@ -2483,7 +2544,8 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				throw new Error(ServerUIAPIAgent.ERR_CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 //				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
@@ -2537,7 +2599,8 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				throw new Error(ServerUIAPIAgent.ERR_CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 //				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
@@ -2548,7 +2611,7 @@ public class ProjectContext {
 			return SimuMobile.PROJ_LEVEL_MOBILE_HEIGHT;
 		}
 		
-		return UserThreadResourceUtil.getMletHeightFrom(sessionContext.j2seSocketSession);
+		return UserThreadResourceUtil.getMletHeightFrom(coreSS);
 	}
 	
 	/**
@@ -2574,7 +2637,8 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				throw new Error(ServerUIAPIAgent.ERR_CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 //				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
@@ -2584,7 +2648,6 @@ public class ProjectContext {
 			}
 			return SimuMobile.PROJ_LEVEL_MOBILE_DPI;
 		}
-		final J2SESession coreSS = sessionContext.j2seSocketSession;
 		
 		return UserThreadResourceUtil.getMletDPIFrom(coreSS);
 	}
@@ -2655,7 +2718,7 @@ public class ProjectContext {
 	 * <BR><BR>More about report exception : 
 	 * <UL>
 	 * <LI>
-	 *  enable option->developer-><STRONG>report exception</STRONG> is required.
+	 *  enable option-&gt;developer-&gt;<STRONG>report exception</STRONG> is required.
 	 * </LI>
 	 * <LI>
 	 * if exception is caught by server, NOT by project, it will be reported to project provider implicitly.</LI>
@@ -2840,6 +2903,7 @@ public class ProjectContext {
 	 * 7. if this server runs on Android Marshmallow or later, Android will do "Auto Backup for Apps".
 	 * @param fileName 
 	 * @return the private file <code>fileName</code>.
+	 * @see #createTempFile(String)
 	 * @see #saveProperties()
 	 * @see #getDBConnection(String, String, String)
 	 * @since 7.0
@@ -2857,6 +2921,15 @@ public class ProjectContext {
 			ExceptionReporter.printStackTrace(e);
 		}
 		return fileResult;
+	}
+	
+	/**
+	 * it is equals with {@link #getPrivateFile(String)}.
+	 * @param fileName
+	 * @return
+	 */
+	public final File createPrivateFile(final String fileName) {
+		return getPrivateFile(fileName);
 	}
 
 	/**
@@ -2931,7 +3004,8 @@ public class ProjectContext {
 		
 		//注意：不能用field来cache，因为可能发生变更
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				throw new Error(ServerUIAPIAgent.ERR_CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 //				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
@@ -2941,7 +3015,6 @@ public class ProjectContext {
 			}
 			return SimuMobile.PROJ_LEVEL_MOBILE_OS_VER;
 		}
-		final J2SESession coreSS = sessionContext.j2seSocketSession;
 		
 		return UserThreadResourceUtil.getMobileOSVerFrom(coreSS);
 	}
@@ -2975,7 +3048,8 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				throw new Error(ServerUIAPIAgent.ERR_CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 //				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
@@ -2985,7 +3059,6 @@ public class ProjectContext {
 			}
 			return SimuMobile.PROJ_LEVEL_MOBILE_OS;
 		}
-		final J2SESession coreSS = sessionContext.j2seSocketSession;
 		
 		//注意：不能用field来cache，因为可能发生变更
 		return UserThreadResourceUtil.getMobileOSFrom(coreSS);
@@ -3065,7 +3138,8 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
@@ -3074,8 +3148,6 @@ public class ProjectContext {
 			}
 			return ServerUIAPIAgent.getMobileLocaleFromAllSessionsNoCheck();
 		}
-		
-		final J2SESession coreSS = sessionContext.j2seSocketSession;
 		
 		return UserThreadResourceUtil.getMobileLocaleFrom(coreSS);
 	}
@@ -3095,7 +3167,7 @@ public class ProjectContext {
 	 * 1. the key name is searched first in <code>java.awt.event.KeyEvent</code>
 	 * ('VK_' is NOT required. 'VK_' is prefix in J2SE), <br>
 	 * 2. convert keyCode in J2SE to Android (e.g.
-	 * java.awt.event.KeyEvent.VK_BACK_SPACE =>
+	 * java.awt.event.KeyEvent.VK_BACK_SPACE =&gt;
 	 * android.view.KeyEvent.KEYCODE_DEL). <br>
 	 * 3. if your HAR package is designed for Android only, for example,
 	 * Shift+KEYCODE_a (for input 'A', 'KEYCODE_' is required prefix for Android).<br>
@@ -3117,7 +3189,7 @@ public class ProjectContext {
 		
 		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				KeyComper.actionKeys(keys);
 				return null;
 			}
@@ -3159,7 +3231,7 @@ public class ProjectContext {
 		if (UserThreadResourceUtil.isInServing(coreSS.context)) {
 			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					HCURLUtil.sendCmd(coreSS, cmdType, para, value);
 					return null;
 				}
@@ -3172,7 +3244,7 @@ public class ProjectContext {
 		if (UserThreadResourceUtil.isInServing(coreSS.context)) {
 			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					HCURLUtil.sendCmd(coreSS, cmdType, para, value);
 					return null;
 				}
@@ -3206,23 +3278,25 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		final J2SESession[] coreSS;
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		final J2SESession[] coreSSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("playTone");
 			}
-			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+			coreSSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
 		}else{
-			coreSS = toArray(sessionContext.j2seSocketSession);
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			coreSSS = toArray(coreSS);
 		}
 		
-		if(coreSS != null && coreSS.length > 0){
+		if(coreSSS != null && coreSSS.length > 0){
 			final String[] v = { "hc.j2me.load.Tone", String.valueOf(note), String.valueOf(duration), String.valueOf(volume) };
-			for (int i = 0; i < coreSS.length; i++) {
-				sendClass(coreSS[i], v);
+			for (int i = 0; i < coreSSS.length; i++) {
+				sendClass(coreSSS[i], v);
 			}
 		}
 	}
@@ -3251,23 +3325,25 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		final J2SESession[] coreSS;
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		final J2SESession[] coreSSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("sendNotification");
 			}
-			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+			coreSSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
 		}else{
-			coreSS = toArray(sessionContext.j2seSocketSession);
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			coreSSS = toArray(coreSS);
 		}
 		
-		if(coreSS != null && coreSS.length > 0){
+		if(coreSSS != null && coreSSS.length > 0){
 			final String[] v = { ConfigManager.HC_J2ME_LOAD_NOTIFICATION, title, text, String.valueOf(flags)};
-			for (int i = 0; i < coreSS.length; i++) {
-				sendClass(coreSS[i], v);				
+			for (int i = 0; i < coreSSS.length; i++) {
+				sendClass(coreSSS[i], v);				
 			}
 			
 			processFormData(text);
@@ -3287,18 +3363,43 @@ public class ProjectContext {
 		//注意：不能用field来cache，因为可能发生变更
 		return (Integer)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				return ResourceUtil.getIntervalSecondsForNextStartup() * 1000;
 			}
 		});
 	}
 	
 	/**
-	 * 
-	 * @return true means one or more clients are online.
+	 * in session level, true means mobile is line on.<BR>
+	 * in project level, true means one or more mobiles are online.
+	 * @return
 	 */
-	public final boolean isClientLineOn(){
-		return ServerUIAPIAgent.isClientLineOn();
+	public final boolean isMobileLineOn() {
+		return isClientLineOn();
+	}
+	
+	/**
+	 * it is equals with {@link #isMobileLineOn()}.
+	 * @return
+	 */
+	public final boolean isClientLineOn() {
+		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
+			return SimuMobile.MOBILE_CONNECTING;
+		}
+		
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
+		J2SESession coreSS = null;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
+			if(L.isInWorkshop){
+				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
+			}
+			if(isLoggerOn == false){
+				ServerUIAPIAgent.printInProjectLevelWarn("isClientLineOn");
+			}
+			return ServerUIAPIAgent.isClientLineOn();
+		}else{
+			return coreSS.isPreLineOff() == false;
+		}
 	}
 	
 	/**
@@ -3313,7 +3414,7 @@ public class ProjectContext {
 		if(isAndroidPlatform == null){
 			isAndroidPlatform = (Boolean)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					return ResourceUtil.isAndroidServerPlatform();
 				}
 			});
@@ -3321,7 +3422,7 @@ public class ProjectContext {
 		return isAndroidPlatform;
 	}
 	
-	Boolean isAndroidPlatform;
+	private Boolean isAndroidPlatform;
 
 	/**
 	 * check current server is running on J2SE platform (Oracle JDK/JRE, OpenJDK JVM) or not.
@@ -3334,7 +3435,7 @@ public class ProjectContext {
 		if(isJ2SEPlatform == null){
 			isJ2SEPlatform = (Boolean)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					return ResourceUtil.isStandardJ2SEServer();
 				}
 			});
@@ -3342,7 +3443,7 @@ public class ProjectContext {
 		return isJ2SEPlatform;
 	}
 	
-	Boolean isJ2SEPlatform;
+	private Boolean isJ2SEPlatform;
 
 	/**
 	 * notify vibrate to current mobile if in session level, or notify vibrate to all client session if in project level.
@@ -3358,23 +3459,25 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		final J2SESession[] coreSS;
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		final J2SESession[] coreSSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("vibrate");
 			}
-			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+			coreSSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
 		}else{
-			coreSS = toArray(sessionContext.j2seSocketSession);
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			coreSSS = toArray(coreSS);
 		}
 		
-		if(coreSS != null && coreSS.length > 0){
+		if(coreSSS != null && coreSSS.length > 0){
 			final String[] v = { "hc.j2me.load.Vibrate", String.valueOf(duration) };
-			for (int i = 0; i < coreSS.length; i++) {
-				sendClass(coreSS[i], v);
+			for (int i = 0; i < coreSSS.length; i++) {
+				sendClass(coreSSS[i], v);
 			}
 		}
 	}
@@ -3393,7 +3496,7 @@ public class ProjectContext {
 		
 		final J2SESession[] coreSS;
 //		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-//		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+//		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 //			if(L.isInWorkshop){
 //				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 //			}
@@ -3428,23 +3531,25 @@ public class ProjectContext {
 			return;
 		}
 		
-		final J2SESession[] coreSS;
+		final J2SESession[] coreSSS;
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("alertOff");
 			}
-			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+			coreSSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
 		}else{
-			coreSS = toArray(sessionContext.j2seSocketSession);
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			coreSSS = toArray(coreSS);
 		}
 		
-		if(coreSS != null && coreSS.length > 0){
-			for (int i = 0; i < coreSS.length; i++) {
-				sendCmd(coreSS[i], HCURL.DATA_CMD_ALERT, "status", IConstant.OFF);				
+		if(coreSSS != null && coreSSS.length > 0){
+			for (int i = 0; i < coreSSS.length; i++) {
+				sendCmd(coreSSS[i], HCURL.DATA_CMD_ALERT, "status", IConstant.OFF);				
 			}
 		}
 	}
@@ -3463,24 +3568,26 @@ public class ProjectContext {
 			return;
 		}
 		
-		final J2SESession[] coreSS;
+		final J2SESession[] coreSSS;
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("alertOn");
 			}
-			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+			coreSSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
 		}else{
-			coreSS = toArray(sessionContext.j2seSocketSession);
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			coreSSS = toArray(coreSS);
 		}
 		
-		if(coreSS != null && coreSS.length > 0){
+		if(coreSSS != null && coreSSS.length > 0){
 			final String projAlertKey = projectID + alertKey;
-			for (int i = 0; i < coreSS.length; i++) {
-				final J2SESession oneCoreSS = coreSS[i];
+			for (int i = 0; i < coreSSS.length; i++) {
+				final J2SESession oneCoreSS = coreSSS[i];
 				if(oneCoreSS.alertOn(projAlertKey)){
 					sendCmd(oneCoreSS, HCURL.DATA_CMD_ALERT, "status", IConstant.ON);
 				}
@@ -3500,23 +3607,25 @@ public class ProjectContext {
 			return;
 		}
 		
-		final J2SESession[] coreSS;
+		final J2SESession[] coreSSS;
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("alertOn");
 			}
-			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+			coreSSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
 		}else{
-			coreSS = toArray(sessionContext.j2seSocketSession);
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			coreSSS = toArray(coreSS);
 		}
 		
-		if(coreSS != null && coreSS.length > 0){
-			for (int i = 0; i < coreSS.length; i++) {
-				sendCmd(coreSS[i], HCURL.DATA_CMD_ALERT, "status", IConstant.ON);
+		if(coreSSS != null && coreSSS.length > 0){
+			for (int i = 0; i < coreSSS.length; i++) {
+				sendCmd(coreSSS[i], HCURL.DATA_CMD_ALERT, "status", IConstant.ON);
 			}
 		}
 	}
@@ -3611,7 +3720,7 @@ public class ProjectContext {
 		//注意：不能用field来cache，因为可能发生变更
 		return (String)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				final String token = TokenManager.getToken();
 				return ResourceUtil.getMD5(token);
 			}
@@ -3630,7 +3739,7 @@ public class ProjectContext {
 //	public final static long getFreeSpace(final File file){
 //		return (Long)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 //			@Override
-//			public Object run() {
+//			public Object run() throws Throwable {
 //				return file.getFreeSpace();
 //			}
 //		});
@@ -3674,7 +3783,8 @@ public class ProjectContext {
 		final String noLoginUID = "";
 
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				throw new Error(ServerUIAPIAgent.ERR_CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 //				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
@@ -3684,7 +3794,6 @@ public class ProjectContext {
 			}
 			return noLoginUID;
 		}
-		final J2SESession coreSS = sessionContext.j2seSocketSession;
 		
 		if (UserThreadResourceUtil.isInServing(coreSS.context)) {
 				return UserThreadResourceUtil.getMobileSoftUID(coreSS);
@@ -3755,7 +3864,8 @@ public class ProjectContext {
 		final String noLoginUID = "";
 
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				throw new Error(ServerUIAPIAgent.ERR_CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 //				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
@@ -3765,7 +3875,6 @@ public class ProjectContext {
 			}
 			return noLoginUID;
 		}
-		final J2SESession coreSS = sessionContext.j2seSocketSession;
 		
 		if (UserThreadResourceUtil.isInServing(coreSS.context)) {
 			return UserThreadResourceUtil.getMobileMemberID(coreSS);
@@ -3829,33 +3938,61 @@ public class ProjectContext {
 	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
 	 * notification is also created for mobile.<BR><BR>
 	 * @param dialog
+	 * @see #sendDialogAndWaitWhenInSession(Dialog)
 	 * @see #sendDialogByBuilding(Runnable)
 	 * @see #showInputDialog(String, String[], String[])
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.30
 	 */
 	public final void sendDialogWhenInSession(final Dialog dialog){
+		sendDialogWhenInSessionImpl(dialog, false);
+	}
+	
+	/**
+	 * see {@link #sendDialogWhenInSession(Dialog)} for more.
+	 * <BR><BR>
+	 * <STRONG>About return status :</STRONG><BR>
+	 * 1. in session level, return true means dialog is dismissed by client, false means canceled by client, when line off the execution will be terminated.<BR>
+	 * 2. in project level, return false;
+	 * @param dialog
+	 * @return
+	 * @see #isClientLineOn()
+	 */
+	public final boolean sendDialogAndWaitWhenInSession(final Dialog dialog){
+		return sendDialogWhenInSessionImpl(dialog, true);
+	}
+	
+	private final boolean sendDialogWhenInSessionImpl(final Dialog dialog, final boolean isWaiting){
 		if(dialog == null){
-			return;
+			return false;
 		}
 		
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
-//			return false;
-			return;
+			return true;
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			errWhenInSession("sendDialogWhenInSession");
-//			return false;
-			return;
+			return false;
 		}else{
-			final J2SESession[] coreSSS = {sessionContext.j2seSocketSession};
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			
+			final J2SESession[] coreSSS = {coreSS};
 
-			publishDialog(coreSSS, dialog, null);
-//			return true;
-			return;
+			return publishDialog(coreSS, coreSSS, dialog, null, isWaiting);
 		}
+	}
+	
+	/**
+	 * when line-off, the script for session which is running or will to run will be stopped by throwing line off error.
+	 * @param throwable
+	 * @return
+	 */
+	public final boolean isLineOffThrowable(final Throwable throwable) {
+		return ExceptionReporter.isCauseByLineOffSession(throwable);
 	}
 	
 	/**
@@ -3895,55 +4032,88 @@ public class ProjectContext {
 	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
 	 * notification is also created for mobile.
 	 * @param runnable the <code>Runnable</code> to build instance from a defined JRuby class or a Java class.
+	 * @see #sendDialogAndWaitByBuilding(Runnable)
 	 * @see #sendDialogWhenInSession(Dialog)
 	 * @see #isClientLineOn()
 	 * @since 7.30
 	 */
 	public final void sendDialogByBuilding(final Runnable runnable){
+		sendDialogByBuildingImpl(runnable, false);
+	}
+	
+	/**
+	 * see {@link #sendDialogByBuilding(Runnable)} for more.
+	 * <BR><BR>
+	 * <STRONG>About return status :</STRONG><BR>
+	 * 1. in project level, return true means dialog is dismissed/canceled by one client, false means all sessions are line off.<BR>
+	 * 2. in session level, return true means dialog is dismissed by client, false means canceled by client, when line off the execution will be terminated.
+	 * @param runnable
+	 * @return
+	 * @see #isClientLineOn()
+	 */
+	public final boolean sendDialogAndWaitByBuilding(final Runnable runnable){
+		return sendDialogByBuildingImpl(runnable, true);
+	}
+	
+	private final boolean sendDialogByBuildingImpl(final Runnable runnable, final boolean isWaiting){
 		if(runnable == null){
-			return;
+			return false;
 		}
 		
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
-			return;
+			return true;
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		final J2SESession[] coreSS;
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS = null;
+		final J2SESession[] coreSSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("sendDialogByBulding");
 			}
-			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+			coreSSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
 		}else{
-			coreSS = toArray(sessionContext.j2seSocketSession);
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			
+			coreSSS = toArray(coreSS);
 		}
 		
-		if (coreSS != null && coreSS.length > 0) {
-			publishDialog(coreSS, null, runnable);
+		if(coreSSS == null || coreSSS.length == 0) {
+			return false;
 		}
+		
+		return publishDialog(coreSS, coreSSS, null, runnable, isWaiting);
 	}
 
-	private final void publishDialog(final J2SESession[] coreSS, final Dialog dialog, final Runnable dialogBuildProc) {
+	private final boolean publishDialog(final J2SESession session, final J2SESession[] coreSSS, final Dialog dialog, final Runnable dialogBuildProc, final boolean isWaiting) {
 		final ProjectContext p_ctx = this;
 		//如果同时发出两个Dialog，则可能不同步，所以以下要wait
-		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+		final DialogGlobalLock dialogLock = (DialogGlobalLock)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				final int dialogID = ServerUIAPIAgent.buildDialogID();
+				final DialogGlobalLock dialogLock = new DialogGlobalLock(session != null, coreSSS, dialogID, isWaiting);//每个会话共用
 				
-				for (int i = 0; i < coreSS.length; i++) {
-					final J2SESession session = coreSS[i];
-					final DialogGlobalLock dialogLock = new DialogGlobalLock(coreSS, dialogID);//每个会话一个
-					ServerUIAPIAgent.buildDialogParameter(session, p_ctx, dialogLock, dialogID);
-					ServerUIAPIAgent.sendDialog(session, dialog, dialogBuildProc, p_ctx, dialogLock);
+				for (int i = 0; i < coreSSS.length; i++) {
+					final J2SESession session = coreSSS[i];
+					final DialogParameter dialogParameter = ServerUIAPIAgent.buildDialogParameter(session, p_ctx, dialogLock, dialogID);
+					ServerUIAPIAgent.sendDialog(dialogParameter, session, dialog, dialogBuildProc, p_ctx, dialogLock);
 				}
-				return null;
+				return dialogLock;
 			}
 		});
+		if(isWaiting) {
+			final boolean processed = dialogLock.waitingResult();
+			if(session != null){
+				ServerUIUtil.checkLineOnForAPI(session);
+			}
+			return processed;
+		}else {
+			return true;
+		}
 	}
 
 	/**
@@ -4032,22 +4202,24 @@ public class ProjectContext {
 			return false;
 		}
 		
-		final J2SESession[] coreSS;
+		final J2SESession[] coreSSS;
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("sendMessage");
 			}
-			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+			coreSSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
 		}else{
-			coreSS = toArray(sessionContext.j2seSocketSession);
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			coreSSS = toArray(coreSS);
 		}
 		
-		if (coreSS != null && coreSS.length > 0) {
-			ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSS, caption, text, type, image, timeOut);
+		if (coreSSS != null && coreSSS.length > 0) {
+			ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, caption, text, type, image, timeOut);
 			
 			processFormData(text);
 			return true;
@@ -4071,21 +4243,23 @@ public class ProjectContext {
 			return;
 		}
 		
-		final J2SESession[] coreSS;
+		final J2SESession[] coreSSS;
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("sendAUSound");
 			}
-			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+			coreSSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
 		}else{
-			coreSS = toArray(sessionContext.j2seSocketSession);
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			coreSSS = toArray(coreSS);
 		}
 		
-		if (coreSS != null && coreSS.length > 0) {
+		if (coreSSS != null && coreSSS.length > 0) {
 		try {
 			final long length = bs.length;
 
@@ -4100,9 +4274,9 @@ public class ProjectContext {
 			blob.setPNGDataLen((int) length, 0, 0, 0, 0);
 			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
-				public Object run() {
-					for (int i = 0; i < coreSS.length; i++) {
-						coreSS[i].context.sendWrap(
+				public Object run() throws Throwable {
+					for (int i = 0; i < coreSSS.length; i++) {
+						coreSSS[i].context.sendWrap(
 								MsgBuilder.E_SOUND, bytes,
 								MsgBuilder.INDEX_MSG_DATA,
 								(int) length + DataPNG.HEAD_LENGTH);
@@ -4152,16 +4326,20 @@ public class ProjectContext {
 	 * @see #addSystemEventListener(SystemEventListener)
 	 * @see #removeSystemEventListener(SystemEventListener)
 	 * @see #isMobileInBackground()
+	 * @see #isLineOffThrowable(Throwable)
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.0
+	 * @deprecated
 	 */
+	@Deprecated
 	public final boolean isMobileConnecting() {
 		if(__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)){
 			return SimuMobile.MOBILE_CONNECTING;
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
@@ -4170,7 +4348,6 @@ public class ProjectContext {
 			}
 			return SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_SERVER_SELF);
 		}else{
-			final J2SESession coreSS = sessionContext.j2seSocketSession;
 			return ContextManager.isMobileLogin(coreSS.context);
 		}
 	}
@@ -4190,7 +4367,8 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				throw new Error(ServerUIAPIAgent.ERR_CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 //				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
@@ -4198,17 +4376,24 @@ public class ProjectContext {
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("isMobileOnRelay");
 			}
-			final CoreSession[] coreSS = ServerUIAPIAgent.getAllSocketSessionsNoCheck();
-			for (int i = 0; i < coreSS.length; i++) {
-				if(coreSS[i].isOnRelay()){
+			final CoreSession[] coreSSS = ServerUIAPIAgent.getAllSocketSessionsNoCheck();
+			for (int i = 0; i < coreSSS.length; i++) {
+				if(coreSSS[i].isOnRelay()){
 					return true;
 				}
 			}
 			return false;
 		}else{
-			final J2SESession coreSS = sessionContext.j2seSocketSession;
 			return coreSS.isOnRelay();
 		}
+	}
+	
+	/**
+	 * it is equals with {@link #isMobileInBackground()}.
+	 * @return
+	 */
+	public final boolean isClientInBackground() {
+		return isMobileInBackground();
 	}
 
 	/**
@@ -4217,7 +4402,7 @@ public class ProjectContext {
 	 * <STRONG>Important</STRONG> : <BR>background mode may be NOT supported by mobile. 
 	 * <BR>application may be killed when turn to background.
 	 * @return 
-	 * @see #isMobileConnecting()
+	 * @see #isMobileLineOn()
 	 * @see #addSystemEventListener(SystemEventListener)
 	 * @see #EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND
 	 * @see #isCurrentThreadInSessionLevel()
@@ -4231,7 +4416,8 @@ public class ProjectContext {
 		//TODO 为优化性能，将来mobileagent置于projectContext之中
 		//注意：不能用变量暂存
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				throw new Error(ServerUIAPIAgent.ERR_CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 //				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
@@ -4239,15 +4425,14 @@ public class ProjectContext {
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("isMobileInBackground");
 			}
-			final CoreSession[] coreSS = ServerUIAPIAgent.getAllSocketSessionsNoCheck();
-			for (int i = 0; i < coreSS.length; i++) {
-				if(UserThreadResourceUtil.getMobileAgent((J2SESession)coreSS[i]).isBackground()){
+			final CoreSession[] coreSSS = ServerUIAPIAgent.getAllSocketSessionsNoCheck();
+			for (int i = 0; i < coreSSS.length; i++) {
+				if(UserThreadResourceUtil.getMobileAgent((J2SESession)coreSSS[i]).isBackground()){
 					return true;
 				}
 			}
 			return false;
 		}else{
-			final J2SESession coreSS = sessionContext.j2seSocketSession;
 			return UserThreadResourceUtil.getMobileAgent(coreSS).isBackground();
 		}
 	}
@@ -4272,7 +4457,7 @@ public class ProjectContext {
 	 * <table border='1'>
 	 * <tr><th>methods of ProjectContext</th><th>session level</th><th>project level</th></tr>
 	 * <tr>
-	 * <td>{@link #isMobileConnecting()}</td><td>return true, if current client keep connection</td><td>return true, at least one client session keep connection</td>
+	 * <td>{@link #isMobileLineOn()}</td><td>return true, if current client keep connection</td><td>return true, at least one client session keep connection</td>
 	 * </tr>
 	 * <tr>
 	 * <td>{@link #isMobileInBackground()}</td><td>return true, if current client run in background</td><td>return true, at least one client session is run in background</td>
@@ -4371,7 +4556,8 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = ctx.__projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			return false;
 		}else{
 			return true;
@@ -4391,22 +4577,24 @@ public class ProjectContext {
 			return;
 		}
 		
-		final J2SESession[] coreSS;
+		final J2SESession[] coreSSS;
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("sendVoice");
 			}
-			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+			coreSSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
 		}else{
-			coreSS = toArray(sessionContext.j2seSocketSession);
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			coreSSS = toArray(coreSS);
 		}
 		
-		if (coreSS != null && coreSS.length > 0) {
-			ServerUIAPIAgent.sendVoice(coreSS, voice);
+		if (coreSSS != null && coreSSS.length > 0) {
+			ServerUIAPIAgent.sendVoice(coreSSS, voice);
 			
 			processFormData(voice);
 		}
@@ -4430,22 +4618,24 @@ public class ProjectContext {
 			return;
 		}
 		
-		final J2SESession[] coreSS;
+		final J2SESession[] coreSSS;
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
 			if(isLoggerOn == false){
 				ServerUIAPIAgent.printInProjectLevelWarn("sendMovingMsg");
 			}
-			coreSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
+			coreSSS = ServerUIAPIAgent.getAllOnlineSocketSessionsNoCheck();
 		}else{
-			coreSS = toArray(sessionContext.j2seSocketSession);
+			ServerUIUtil.checkLineOnForAPI(coreSS);
+			coreSSS = toArray(coreSS);
 		}
 		
-		if (coreSS != null && coreSS.length > 0) {
-			ServerUIAPIAgent.sendMovingMsg(coreSS, msg);
+		if (coreSSS != null && coreSSS.length > 0) {
+			ServerUIAPIAgent.sendMovingMsg(coreSSS, msg);
 			
 			processFormData(msg);
 		}
@@ -4484,7 +4674,8 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.log("[workshop] remove ProjectLevel SystemEventListener.");
 			}
@@ -4494,9 +4685,8 @@ public class ProjectContext {
 			return projectLevelEventListeners.remove(listener);
 		}else{
 			if(L.isInWorkshop){
-				LogManager.log("[workshop] remove ProjectLevel SystemEventListener.");
+				LogManager.log("[workshop] remove SessionLevel SystemEventListener.");
 			}
-			final J2SESession coreSS = sessionContext.j2seSocketSession;
 			return coreSS.sessionLevelEventListeners.remove(listener);
 		}
 	}
@@ -4535,7 +4725,8 @@ public class ProjectContext {
 		}
 		
 		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.log("[workshop] add ProjectLevel SystemEventListener.");
 			}
@@ -4547,9 +4738,57 @@ public class ProjectContext {
 			if(L.isInWorkshop){
 				LogManager.log("[workshop] add SessionLevel SystemEventListener.");
 			}
-			final J2SESession coreSS = sessionContext.j2seSocketSession;
 			coreSS.sessionLevelEventListeners.add(listener);
 		}
+	}
+	
+	/**
+	 * get temporary file in <code>TEMP</code> directory (managed by server and will be empty at next startup).
+	 * <BR><BR>
+	 * it is equals with {@link #createTempFile(String)}.
+	 * @param fileExtension null means "tmp" will be used
+	 * @return
+	 * @see #getPrivateFile(String)
+	 * @see #createTempFile(String)
+	 */
+	public final File getTempFile(final String fileExtension) {
+		return createTempFile(fileExtension);
+	}
+	
+	/**
+	 * get temporary file.
+	 * <BR><BR>
+	 * it is equals with {@link #createTempFile(File, String)}.
+	 * @param parent null means create random file in <code>TEMP</code> directory (managed by server and will be empty at next startup).
+	 * @param fileExtension null means "tmp" will be used
+	 * @return
+	 */
+	public final File getTempFile(final File parent, final String fileExtension) {
+		return createTempFile(parent, fileExtension);
+	}
+
+	/**
+	 * create temporary file in <code>TEMP</code> directory (managed by server and will be empty at next startup).
+	 * <BR><BR>
+	 * it is equals with {@link #getTempFile(String)}.
+	 * @param fileExtension null means "tmp" will be used
+	 * @return
+	 * @see #getPrivateFile(String)
+	 */
+	public final File createTempFile(final String fileExtension) {
+		return ResourceUtil.createTempFileForHAR(this, null, fileExtension);
+	}
+	
+	/**
+	 * create temporary file.
+	 * <BR><BR>
+	 * it is equals with {@link #getTempFile(File, String)}.
+	 * @param parent null means create random file in <code>TEMP</code> directory (managed by server and will be empty at next startup).
+	 * @param fileExtension null means "tmp" will be used
+	 * @return
+	 */
+	public final File createTempFile(final File parent, final String fileExtension) {
+		return ResourceUtil.createTempFileForHAR(this, parent, fileExtension);
 	}
 
 	/**

@@ -18,7 +18,7 @@
 
 package third.quartz.impl.triggers;
 
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 import java.util.Date;
 
@@ -594,7 +594,7 @@ public abstract class AbstractTrigger<T extends Trigger> implements OperableTrig
      * repeat settings). 
      * </p>
      * 
-     * @see TriggerUtils#computeEndTimeToAllowParticularNumberOfFirings(third.quartz.spi.OperableTrigger, hc.server.util.scheduler.JobCalendar, int)
+     * @see TriggerUtils#computeEndTimeToAllowParticularNumberOfFirings(third.quartz.spi.OperableTrigger, hc.server.util.calendar.JobCalendar, int)
      */ 
     public abstract void setEndTime(Date endTime);
 
@@ -623,7 +623,7 @@ public abstract class AbstractTrigger<T extends Trigger> implements OperableTrig
      * has been added to the scheduler.
      * </p>
      *
-     * @see TriggerUtils#computeFireTimesBetween(third.quartz.spi.OperableTrigger, hc.server.util.scheduler.JobCalendar, java.util.Date, java.util.Date)
+     * @see TriggerUtils#computeFireTimesBetween(third.quartz.spi.OperableTrigger, hc.server.util.calendar.JobCalendar, java.util.Date, java.util.Date)
      */
     public abstract Date getNextFireTime();
 

@@ -1,14 +1,15 @@
 package hc.server.ui;
 
+import java.awt.image.BufferedImage;
+import java.util.Map;
+
 import hc.core.util.ByteUtil;
 import hc.core.util.HCURL;
+import hc.core.util.StringValue;
 import hc.core.util.UIUtil;
 import hc.server.ui.design.hpj.HPNode;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
-
-import java.awt.image.BufferedImage;
-import java.util.Map;
 
 /**
  * An implementation of an item in a menu. A menu item is essentially a button sitting in a list.
@@ -35,7 +36,8 @@ public class MenuItem {
 	String itemURL;
 	String itemURLLower;
 	I18NStoreableHashMapWithModifyFlag i18nName;
-	String itemListener;
+	String itemListenerOri;
+	final StringValue itemListener = new StringValue();
 	String extendMap;
 	
 	BufferedImage cacheOriImage;
@@ -91,7 +93,7 @@ public class MenuItem {
 		this.itemImage = image;
 		this.itemURL = url;
 		this.i18nName = i18nName;
-		this.itemListener = listener;
+		setScripts(listener);
 		this.extendMap = extendMap;
 	}
 	
@@ -106,7 +108,10 @@ public class MenuItem {
 	 * @since 7.20
 	 */
 	public void setScripts(final String scripts){
-		itemListener = scripts;
+		itemListenerOri = scripts;
+		synchronized (itemListener) {
+			itemListener.value = scripts;
+		}
 	}
 	
 	/**
@@ -115,7 +120,7 @@ public class MenuItem {
 	 * @since 7.20
 	 */
 	public String getScripts(){
-		return itemListener;
+		return itemListenerOri;
 	}
 	
 	/**
@@ -261,7 +266,7 @@ public class MenuItem {
 	 * <BR><BR>
 	 * if the MenuItem is added in project level, then the change will apply to all mobile clients.
 	 * <BR><BR>
-	 * for example, <code>map</code> is {"en-US" -> "Hello", "fr-FR" -> "Bonjour"}.
+	 * for example, <code>map</code> is {"en-US" -&gt; "Hello", "fr-FR" -&gt; "Bonjour"}.
 	 * @param map the map text for key locales.
 	 * @return false means <code>map</code> is null
 	 * @see #setText(String[], String[])

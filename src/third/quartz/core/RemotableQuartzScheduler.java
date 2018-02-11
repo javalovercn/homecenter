@@ -18,7 +18,7 @@
 
 package third.quartz.core;
 
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 import java.util.Date;
 import java.util.List;

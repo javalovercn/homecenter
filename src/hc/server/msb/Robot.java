@@ -1,5 +1,7 @@
 package hc.server.msb;
 
+import java.util.ArrayList;
+
 import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
@@ -8,14 +10,13 @@ import hc.server.ui.J2SESessionManager;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.SimuMobile;
+import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
 import hc.server.util.ai.AIObjectCache;
 import hc.server.util.ai.AIPersistentManager;
 import hc.server.util.ai.RobotEventData;
 import hc.util.ResourceUtil;
-
-import java.util.ArrayList;
 
 /**
  * <code>Robot</code> is a intelligent control unit, which manage zero or multiple <code>Device</code>(s). 
@@ -222,7 +223,8 @@ public abstract class Robot extends Processor{
 		}
 		
 		final SessionContext sessionContext = resp.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
@@ -236,7 +238,7 @@ public abstract class Robot extends Processor{
 				projectLevelRobotListeners.add(listener);
 			}
 		}else{
-			sessionContext.j2seSocketSession.addRobotListener(this, listener);
+			coreSS.addRobotListener(this, listener);
 		}
 	}
 	
@@ -261,7 +263,8 @@ public abstract class Robot extends Processor{
 		}
 		
 		final SessionContext sessionContext = resp.getSessionContextFromCurrThread();
-		if(sessionContext == null || sessionContext.j2seSocketSession == null){
+		J2SESession coreSS;
+		if(sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null){
 			if(L.isInWorkshop){
 				LogManager.warning(ServerUIAPIAgent.CURRENT_THREAD_IS_IN_PROJECT_LEVEL);
 			}
@@ -270,7 +273,7 @@ public abstract class Robot extends Processor{
 			}
 			return removeProjectLevelRobotListener(listener);
 		}else{
-			final boolean isInSession = sessionContext.j2seSocketSession.removeRobotListener(this, listener);
+			final boolean isInSession = coreSS.removeRobotListener(this, listener);
 			if(isInSession){
 				return true;
 			}else{

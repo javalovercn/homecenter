@@ -87,7 +87,7 @@ public class MemberIDInputDialog extends BlockSystemDialog{
 				
 				final boolean hasSame = (Boolean)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 					@Override
-					public Object run() {
+					public Object run() throws Throwable {
 						return localCoreSS.checkSameMemberIDInSys(memID, false);
 					}
 				});

@@ -102,4 +102,17 @@ public class ThumbnailHelper {
 		return back;
 	}
 
+	public static final void zoomOutRGB(final int[] zoomInData, final int zw, final int zh, final int zoomOut) {
+	//		System.out.println("zoomOutRGB zw : " + zw + ", zh : " + zh + ", zoom : " + zoomOut);
+		final int zoomOutWidth = zw / zoomOut;
+		final int zoomOutHeight = zh / zoomOut;
+		
+		//像素缩小N倍
+		for (int y = 0; y < zoomOutHeight; y++) {
+			for (int x = 0; x < zoomOutWidth; x++) {
+				zoomInData[y * zoomOutWidth + x] = zoomInData[y * zw * zoomOut+ x * zoomOut];
+			}
+		}
+	}
+
 }

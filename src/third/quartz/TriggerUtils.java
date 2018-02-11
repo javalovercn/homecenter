@@ -72,7 +72,7 @@ public class TriggerUtils {
      *          The number of next fire times to produce
      * @return List of java.util.Date objects
      */
-    public static List<Date> computeFireTimes(OperableTrigger trigg, hc.server.util.scheduler.JobCalendar cal,
+    public static List<Date> computeFireTimes(OperableTrigger trigg, hc.server.util.calendar.JobCalendar cal,
             int numTimes) {
         LinkedList<Date> lst = new LinkedList<Date>();
 
@@ -111,7 +111,7 @@ public class TriggerUtils {
      *          The number of next fire times to produce
      * @return the computed Date, or null if the trigger (as configured) will not fire that many times.
      */
-    public static Date computeEndTimeToAllowParticularNumberOfFirings(OperableTrigger trigg, hc.server.util.scheduler.JobCalendar cal, 
+    public static Date computeEndTimeToAllowParticularNumberOfFirings(OperableTrigger trigg, hc.server.util.calendar.JobCalendar cal, 
             int numTimes) {
 
         OperableTrigger t = (OperableTrigger) trigg.clone();
@@ -167,7 +167,7 @@ public class TriggerUtils {
      * @return List of java.util.Date objects
      */
     public static List<Date> computeFireTimesBetween(OperableTrigger trigg,
-            hc.server.util.scheduler.JobCalendar cal, Date from, Date to) {
+            hc.server.util.calendar.JobCalendar cal, Date from, Date to) {
         LinkedList<Date> lst = new LinkedList<Date>();
 
         OperableTrigger t = (OperableTrigger) trigg.clone();

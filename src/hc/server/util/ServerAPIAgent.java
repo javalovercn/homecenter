@@ -30,7 +30,7 @@ public class ServerAPIAgent {
 	static final HCTimer addQuartzLongTimeWarn(final String projID, final String schedulerName, final String jobName){
 		return (HCTimer)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				return new HCTimer("", HCTimer.ONE_SECOND * 30, true) {
 					@Override
 					public void doBiz() {

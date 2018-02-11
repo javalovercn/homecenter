@@ -1,20 +1,26 @@
 package hc.server.ui.design;
 
+import java.io.File;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.regex.Pattern;
+
 import hc.core.util.HCURL;
 import hc.server.ThirdlibManager;
 import hc.server.ui.design.hpj.HCjar;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 /**
  * 数据结构及应用服务器的升级统一管理，而非Linked-In Project升级
  */
 public class UpgradeManager {
+	private final static Pattern schedulerPackagePattern = Pattern.compile("hc\\.server\\.util\\.scheduler\\.");
+	
+	public static String preProcessScript(final String script) {
+		return schedulerPackagePattern.matcher(script).replaceAll("hc.server.util.calendar.");
+	}
 
 	public static void upgradeToLinkProjectsMode() {
 		final File edit = Designer.switchHar(new File(ResourceUtil.getBaseDir(), Designer.OLD_EDIT_JAR), new File(ResourceUtil.getBaseDir(), LinkProjectManager.EDIT_HAR));
@@ -31,26 +37,6 @@ public class UpgradeManager {
 				root.setVersion((String)map.get(HCjar.PROJ_VER));
 				root.setRoot(true);
 				LinkProjectManager.updateToLinkProject();
-			}
-		
-			//解决原遗留系统只有一个主工程时，不含Link Project的已发布数据的迁移
-			if(PropertiesManager.isTrue(PropertiesManager.p_IsMobiMenu)){
-				//已发布状态
-				if(LinkProjectManager.getProjByID(null) == null){
-					//新数据结构中，不含主工程时
-					
-					final String randomShareFolder = PropertiesManager.getValue(PropertiesManager.p_DeployTmpDir);
-					if(randomShareFolder != null){
-						//系统资源已拆分到随机目录下的状态
-						PropertiesManager.remove(PropertiesManager.p_DeployTmpDir);
-					}
-	
-					//登记到新的存储数据结构上，关闭旧的数据结构
-					final LinkProjectStore lps = LinkProjectManager.getProjLPSWithCreate((String)map.get(HCjar.PROJ_ID));
-					LinkProjectManager.importLinkProject(lps, har, false, null, false);
-	
-					LinkProjectManager.saveProjConfig(lps, true, true);
-				}
 			}
 		}
 		

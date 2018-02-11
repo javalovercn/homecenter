@@ -1,19 +1,5 @@
 package hc.util;
 
-import hc.App;
-import hc.core.IConstant;
-import hc.core.util.ByteUtil;
-import hc.core.util.CCoreUtil;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.LogManager;
-import hc.server.CallContext;
-import hc.server.HCActionListener;
-import hc.server.JRubyInstaller;
-import hc.server.ui.J2SESessionManager;
-import hc.server.ui.design.engine.HCJRubyEngine;
-import hc.server.ui.design.engine.RubyExector;
-import hc.server.util.ServerUtil;
-
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -33,6 +19,21 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+
+import hc.App;
+import hc.core.IConstant;
+import hc.core.util.ByteUtil;
+import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
+import hc.core.util.StringValue;
+import hc.server.CallContext;
+import hc.server.HCActionListener;
+import hc.server.JRubyInstaller;
+import hc.server.ui.J2SESessionManager;
+import hc.server.ui.design.engine.HCJRubyEngine;
+import hc.server.ui.design.engine.RubyExector;
+import hc.server.util.ServerUtil;
 
 public class SecurityDataProtector {
 	private static final String AES_CBC_ISO10126_PADDING = "AES/CBC/ISO10126Padding";
@@ -58,7 +59,7 @@ public class SecurityDataProtector {
 	
 	public static boolean isEnableSecurityData(){
 		if(ResourceUtil.isAndroidServerPlatform()){
-			return JRubyInstaller.checkUpgradeJRuby() == false;//依赖于JRuby进行数据加密
+			return JRubyInstaller.isJRubyInstalled();//依赖于JRuby进行数据加密，此处不强制升级，有用即可
 		}else{
 			return true;
 		}
@@ -187,7 +188,7 @@ public class SecurityDataProtector {
 						
 						final JPanel panel = new JPanel(new BorderLayout());
 						panel.add(
-								new JLabel("<html>" + (String)ResourceUtil.get(9208) + "</html>", App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), 
+								new JLabel("<html>" + ResourceUtil.get(9208) + "</html>", App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), 
 								BorderLayout.CENTER);
 						final ActionListener listener = new HCActionListener(new Runnable() {
 							@Override
@@ -488,18 +489,30 @@ public class SecurityDataProtector {
 	}
 	
 	private static Object androidHardwareObject;
-	
+	final static String dynClassName0 = "org.jruby.proxy.java.lang.Object$Proxy0";
+	final static String dynClassName1 = "org.jruby.proxy.java.lang.Object$Proxy1";//兼容旧的
+	final static String toStrMethodName = "toString";
+
 	public static final void checkHCStackTraceForSDP(final StackTraceElement[] el) throws Exception {//注意：请勿改方法
-		final String dynClassName = "org.jruby.proxy.java.lang.Object$Proxy0";
-		final String toStrMethodName = "toString";
 		
 		final ClassLoader checkLoader = SecurityDataProtector.class.getClassLoader();
+		
+//		for (int i = el.length - 1; i >= 0; i--) {
+//			final StackTraceElement ste = el[i];
+//			final String className = ste.getClassName();
+//			LogManager.log("idx : " + i + ", className : " + className + ", method : " + ste.getMethodName());
+//		}
 		
 		for (int i = el.length - 1; i >= 0; i--) {
 			final StackTraceElement ste = el[i];
 			final String className = ste.getClassName();
-			if(className.equals(dynClassName) && ste.getMethodName().equals(toStrMethodName)){
-				return;//pass
+			if((className.equals(dynClassName0) || className.equals(dynClassName1))&& ste.getMethodName().equals(toStrMethodName)){
+				//02-02 10:26:51.082: I/HomeCenter(2007): idx : 19 hc.util.SecurityDataProtector.getPrivateHardwareCodeForAndroid(SecurityDataProtector.java:656)
+				//02-02 10:26:51.082: I/HomeCenter(2007): idx : 18 org.jruby.proxy.java.lang.Object$Proxy1.toString(Unknown Source)
+				final StackTraceElement backSte = el[i + 1];
+				if(backSte.getMethodName().equals("getPrivateHardwareCodeForAndroid") && backSte.getClassName().equals(SecurityDataProtector.class.getName())) {
+					return;//pass
+				}
 			}
 			
 			try{
@@ -600,7 +613,7 @@ public class SecurityDataProtector {
 //		org.jruby.proxy.java.lang.Object$Proxy0.toString(Unknown Source)
 //		hc.util.SecurityDataProtector.getPrivateHardwareCodeForAndroid(SecurityDataProtector.java:306)
 		
-		final HCJRubyEngine engine = new HCJRubyEngine(null, null, ServerUtil.getJRubyClassLoader(false), true, HCJRubyEngine.IDE_LEVEL_ENGINE + "SecurityDataProtect");
+		final HCJRubyEngine engine = new HCJRubyEngine(null, null, ServerUtil.getJRubyClassLoader(), true, HCJRubyEngine.IDE_LEVEL_ENGINE + "SecurityDataProtect");
 		try{
 			final String script = "" +
 					"import java.lang.Thread\n" +
@@ -630,7 +643,7 @@ public class SecurityDataProtector {
 					"\n" +
 					"return AndroidSecurityData.new\n";
 			final CallContext callCtx = new CallContext();
-			androidHardwareObject = RubyExector.runAndWaitOnEngine(callCtx, script, "AndroidSecurityData", null, engine);
+			androidHardwareObject = RubyExector.runAndWaitOnEngine(callCtx, new StringValue(script), "AndroidSecurityData", null, engine);
 			if(callCtx.isError){
 				callCtx.rubyThrowable.printStackTrace();
 			}

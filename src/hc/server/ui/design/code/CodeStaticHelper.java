@@ -1,14 +1,15 @@
 package hc.server.ui.design.code;
 
-import hc.server.ui.Dialog;
-import hc.server.ui.Mlet;
-import hc.server.ui.ProjectContext;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
+
+import hc.server.ui.Dialog;
+import hc.server.ui.Mlet;
+import hc.server.ui.ProjectContext;
+import hc.server.util.HCFileInputStream;
 
 public class CodeStaticHelper {
 	protected final static String[] J2SE_CLASS_SET = convertArray(J2SEClassList.getList());
@@ -36,6 +37,7 @@ public class CodeStaticHelper {
 			fields.add("getClientWidth()");
 			fields.add("getMobileHeight()");
 			fields.add("getMobileWidth()");
+			fields.add("isMobileConnecting()");
 			fields.add("sendAUSound(byte[])");
 			
 			out.put(ProjectContext.class, fields);
@@ -46,6 +48,14 @@ public class CodeStaticHelper {
 			methods.add("goExternalURL(String, boolean)");
 			
 			out.put(Dialog.class, methods);
+		}
+		
+		{
+			final Vector<String> methods = new Vector<String>(1);
+			methods.add("createRandomFile(String)");
+			methods.add("createRandomFile(File, String)");
+			
+			out.put(HCFileInputStream.class, methods);
 		}
 		
 		{
@@ -128,12 +138,12 @@ public class CodeStaticHelper {
 			out.add("hc.server.util.HCFileInputStream");
 			out.add("hc.server.util.HCImageInputStream");
 			out.add("hc.server.util.HCAudioInputStream");
-			out.add("hc.server.util.scheduler.AnnualJobCalendar");
-			out.add("hc.server.util.scheduler.CronExcludeJobCalendar");
-			out.add("hc.server.util.scheduler.DailyJobCalendar");
-			out.add("hc.server.util.scheduler.HolidayJobCalendar");
-			out.add("hc.server.util.scheduler.MonthlyJobCalendar");
-			out.add("hc.server.util.scheduler.WeeklyJobCalendar");
+			out.add("hc.server.util.calendar.AnnualJobCalendar");
+			out.add("hc.server.util.calendar.CronExcludeJobCalendar");
+			out.add("hc.server.util.calendar.DailyJobCalendar");
+			out.add("hc.server.util.calendar.HolidayJobCalendar");
+			out.add("hc.server.util.calendar.MonthlyJobCalendar");
+			out.add("hc.server.util.calendar.WeeklyJobCalendar");
 			out.add("hc.server.util.Assistant");
 			out.add("hc.server.util.json.JSONArray");
 			out.add("hc.server.util.json.JSONException");

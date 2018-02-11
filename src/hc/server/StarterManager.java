@@ -1,5 +1,10 @@
 package hc.server;
 
+import java.io.File;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
@@ -7,11 +12,6 @@ import hc.core.util.StringUtil;
 import hc.util.HCVerify;
 import hc.util.HttpUtil;
 import hc.util.ResourceUtil;
-
-import java.io.File;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 
 public class StarterManager {//注意：本类的getHCVersion被starter.jar反射调用
 	public static final String CLASSNAME_STARTER_STARTER = "starter.Starter";
@@ -127,7 +127,7 @@ public class StarterManager {//注意：本类的getHCVersion被starter.jar反�
 		
 		//客户端对服务器最低版本要求，在J2MEContext.miniHCServerVer
 		
-		return "7.74";//请同步修改go.php, android.php
+		return "7.75";//请同步修改go.php, android.php
 	}
 
 }

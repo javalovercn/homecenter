@@ -1,5 +1,15 @@
 package hc.server.ui.design;
 
+import java.io.DataInputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+
 import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.DelayWatcher;
@@ -16,7 +26,6 @@ import hc.core.MsgBuilder;
 import hc.core.RootConfig;
 import hc.core.SessionManager;
 import hc.core.cache.PendStore;
-import hc.core.data.DataClientAgent;
 import hc.core.data.DataInputEvent;
 import hc.core.data.DataSelectTxt;
 import hc.core.data.XorPackageData;
@@ -59,16 +68,6 @@ import hc.util.BaseResponsor;
 import hc.util.ResourceUtil;
 import hc.util.UpdateOneTimeRunnable;
 
-import java.io.DataInputStream;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.Vector;
-
 /**
  * 该实例在ScreenServer中，被用于对象锁。
  *
@@ -80,8 +79,13 @@ public final class J2SESession extends CoreSession{
 	public final ClientFontSize clientFontSize = new ClientFontSize();
 	public boolean isTranedMletBody;
 	public final UIEventInput uiEventInput = new UIEventInput();
-	private JSEventCenterDriver jsEventProcessor;
-	public 	final BooleanValue memberIDSetStatus = new BooleanValue();
+	public JSEventCenterDriver jsEventProcessor;
+	public final BooleanValue memberIDSetStatus = new BooleanValue();
+	public boolean isNeedRemoveCacheLater;
+	
+	public final boolean isPreLineOff() {
+		return hcConnection.isStartLineOffProcess;
+	}
 	
 	public J2SESession(){
 		synchronized (J2SESession.class) {
@@ -94,10 +98,10 @@ public final class J2SESession extends CoreSession{
 	/**
 	 * 
 	 * @param currentMemberID
-	 * @param isSendMessage true means if same then send message to all same session.
+	 * @param isSendMessageToOthers true means if same then send message to all same session.
 	 * @return
 	 */
-	public final boolean checkSameMemberIDInSys(final String currentMemberID, final boolean isSendMessage){
+	public final boolean checkSameMemberIDInSys(final String currentMemberID, final boolean isSendMessageToOthers){
 		boolean isFindSame = false;
 		final CoreSession[] sessions = SessionManager.getAllSocketSessions();
 		for (int i = 0; i < sessions.length; i++) {
@@ -110,13 +114,13 @@ public final class J2SESession extends CoreSession{
 			final String memID = UserThreadResourceUtil.getMobileMemberID(j2seCoreSS);
 			if(currentMemberID.equals(memID)){
 				isFindSame = true;
-				if(isSendMessage){
+				if(isSendMessageToOthers){
 					sendMemberIDUsingByOther(j2seCoreSS, currentMemberID);
 				}
 			}
 		}
 		
-		if(isSendMessage){
+		if(isFindSame){
 			sendMemberIDUsingByOther(this, currentMemberID);
 		}
 		return isFindSame;
@@ -131,6 +135,10 @@ public final class J2SESession extends CoreSession{
 	
 	@Override
 	public final boolean isExchangeStatus(){
+		if(hcConnection.isStartLineOffProcess) {
+			return false;
+		}
+		
 		final IContext ctx = context;
 		return ctx != null && ctx.cmStatus == ContextManager.STATUS_SERVER_SELF;
 	}
@@ -206,7 +214,7 @@ public final class J2SESession extends CoreSession{
 		final J2SESession oldCoreSS = (J2SESession)SessionManager.getCoreSessionByConnectionID(xpd.getConnectionPackageID());
 //		final J2SESession oldCoreSS = (J2SESession)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 //			@Override
-//			public Object run() {
+//			public Object run() throws Throwable {
 //				return SessionManager.getCoreSessionByConnectionID(xpd.getConnectionPackageID());
 //			}
 //		}, threadToken);
@@ -442,7 +450,7 @@ public final class J2SESession extends CoreSession{
 		if(mobileSession != null){
 			mobileSession.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {//因event回收，所以wait
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					try{
 						for (int i = 0; i < p_size; i++) {
 							final RobotListener robotListener = list.get(i);
@@ -472,22 +480,25 @@ public final class J2SESession extends CoreSession{
 		}
 		
 		super.release();
-		if(jsEventProcessor != null){
-			jsEventProcessor.notifyShutdown();
-		}
 		
-		Integer[] keys;
+		ResParameter[] values;
 		synchronized (questionOrDialogMap) {
-			final Set<Integer> set = questionOrDialogMap.keySet();
+			final Collection<ResParameter> set = questionOrDialogMap.values();
 			final int size = set.size();
-			keys = new Integer[size];
-			keys = set.toArray(keys);
+			values = new ResParameter[size];
+			values = set.toArray(values);
 //			questionOrDialogMap.clear();
 		}
 		
-		for (int i = 0; i < keys.length; i++) {
-			final ResParameter resPara = questionOrDialogMap.get(keys[i]);
-			ServerUIAPIAgent.exitDialogMlet(resPara, true);
+		for (int i = 0; i < values.length; i++) {
+			final ResParameter resPara = values[i];
+			try {
+				ServerUIAPIAgent.exitDialogMlet(resPara, false, true);
+			}catch (final Throwable e) {
+				e.printStackTrace();
+			}
+			resPara.quesLock.notifyWaitStop(this, false, true);
+			LogManager.log(resPara.toString() + " is released by line off!");
 		}
 		
 		synchronized (waitLock) {
@@ -640,22 +651,6 @@ public final class J2SESession extends CoreSession{
 			@Override
 			public final byte getEventTag() {
 				return MsgBuilder.E_JS_EVENT_TO_SERVER;
-			}});
-		
-		eventCenter.addListener(new IEventHCListener(){
-	
-			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
-				final DataClientAgent rect = new DataClientAgent();
-				rect.setBytes(bs);
-				
-				((J2SESession)coreSS).cap.refreshRectange(rect.getWidth(), rect.getHeight());
-				return true;
-			}
-	
-			@Override
-			public final byte getEventTag() {
-				return MsgBuilder.E_SCREEN_REFRESH_RECTANGLE;
 			}});
 		
 		eventCenter.addListener(new IEventHCListener(){

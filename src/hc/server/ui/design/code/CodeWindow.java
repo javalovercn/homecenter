@@ -213,7 +213,7 @@ public class CodeWindow {
 	
 	public CodeWindow(final CodeHelper codeHelper){
 		this.codeHelper = codeHelper;
-		docHelper = new DocHelper(codeHelper, this);
+		docHelper = new DocHelper(codeHelper);
 		
 		codeList.setCellRenderer(new ListCellRenderer() {//JRE 1.6 not gerneric
 			protected final DefaultListCellRenderer defaultRenderer = new DefaultListCellRenderer();

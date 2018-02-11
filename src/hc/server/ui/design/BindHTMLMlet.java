@@ -1,16 +1,5 @@
 package hc.server.ui.design;
 
-import hc.core.ContextManager;
-import hc.core.L;
-import hc.core.util.LogManager;
-import hc.core.util.ReturnableRunnable;
-import hc.server.msb.ConverterInfo;
-import hc.server.msb.DataDeviceCapDesc;
-import hc.server.msb.DeviceBindInfo;
-import hc.server.msb.DeviceCompatibleDescription;
-import hc.server.msb.RealDeviceInfo;
-import hc.server.ui.HTMLMlet;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -35,6 +24,17 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextArea;
 import javax.swing.event.ListDataListener;
+
+import hc.core.ContextManager;
+import hc.core.L;
+import hc.core.util.LogManager;
+import hc.core.util.ReturnableRunnable;
+import hc.server.msb.ConverterInfo;
+import hc.server.msb.DataDeviceCapDesc;
+import hc.server.msb.DeviceBindInfo;
+import hc.server.msb.DeviceCompatibleDescription;
+import hc.server.msb.RealDeviceInfo;
+import hc.server.ui.HTMLMlet;
 
 public class BindHTMLMlet extends SystemHTMLMlet {
 	final JRadioButton listNotBindBtn, listAllBtn;
@@ -411,7 +411,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 	final void submitBind(){
 		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				final Iterator<String> proj = robotsOfProj.keySet().iterator();
 				while(proj.hasNext()){
 					final String projID = proj.next();
@@ -456,7 +456,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 		
 		return (String)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				DeviceCompatibleDescription compDesc;
 				try {
 					compDesc = source.getDeviceCompatibleDescByRobotName(bdn.projID, bdn.lever2Name, bdn.ref_dev_ID);

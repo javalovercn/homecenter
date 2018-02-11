@@ -1,25 +1,29 @@
 package hc.server.ui.design.engine;
 
-import hc.core.DelayWatcher;
-import hc.core.GlobalConditionWatcher;
-import hc.core.L;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.LogManager;
-import hc.core.util.StringValue;
-import hc.server.PlatformManager;
-import hc.server.PlatformService;
-import hc.server.data.StoreDirManager;
-import hc.server.ui.design.hpj.ConsoleWriter;
-import hc.server.ui.design.hpj.RubyWriter;
-import hc.util.ClassUtil;
-import hc.util.ResourceUtil;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.Writer;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
+import hc.core.DelayWatcher;
+import hc.core.GlobalConditionWatcher;
+import hc.core.L;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
+import hc.core.util.Stack;
+import hc.core.util.StringValue;
+import hc.server.PlatformManager;
+import hc.server.PlatformService;
+import hc.server.data.StoreDirManager;
+import hc.server.ui.design.UpgradeManager;
+import hc.server.ui.design.hpj.ConsoleWriter;
+import hc.server.ui.design.hpj.RubyWriter;
+import hc.util.ClassUtil;
+import hc.util.ResourceUtil;
 
 //import org.jruby.runtime.builtin.IRubyObject;
 //import org.jruby.embed.LocalContextScope;
@@ -32,20 +36,54 @@ public class HCJRubyEngine {
 	public static final String IDE_LEVEL_ENGINE = "_IDE_";
 	public static final String ORG_JRUBY_EMBED_SCRIPTING_CONTAINER = "org.jruby.embed.ScriptingContainer";
 	private static final boolean isAndroidServerPlatform = ResourceUtil.isAndroidServerPlatform();
-	public static final String JRUBY_VERSION = "RUBY1_8";//for container and parser
-	public static final String JRUBY_PARSE_VERSION = "RUBY1_8";//for container and parser
+	public static final String JRUBY_VERSION = "RUBY2_0";//for container and parser
+	public static final String JRUBY_PARSE_VERSION = "RUBY2_0";//for container and parser
 	
+	static {
+		java.util.logging.LogManager.getLogManager();//init 会调用特权，所以前置
+	}
+	
+	/**
+	 * jruby-complete-9.1.14.0.jar
+	 * cafeCode : 9.0
+	 * 
+	 * jruby-complete-9.1.13.0.jar, 12, 
+	 * android : Caused by : Failed resolution of: Ljava/lang/invoke/SwitchPoint;
+	 * HomeCenter: 	org.jruby.runtime.opto.FailoverSwitchPointInvalidator.<clinit>(FailoverSwitchPointInvalidator.java:34)
+	 */
+	
+	boolean isInitActive;
 	public final RubyWriter errorWriter;
-//	private final HCJRubyEngine engineLock;
-//	private final ScriptingContainer container;	
 	private Class classScriptingContainer;
 	private Object container;	
-//	private final HashMap<String, Object> lruCache = new LinkedHashMap<String, Object>(90, 0.75f, true) {
-//	    @Override
-//	    protected boolean removeEldestEntry(final Map.Entry<String, Object> eldest) {
-//	    	return size() > 256;
-//	    }
-//	};
+	private final LinkedHashMap<String, Stack> lruCache = new LinkedHashMap<String, Stack>(90, 0.75f, true) {
+	    @Override
+	    protected boolean removeEldestEntry(final Map.Entry<String, Stack> eldest) {
+	    		return size() > 128;
+	    }
+	};
+	
+	private final Object getCache(final String script) {
+		synchronized (lruCache) {
+			final Stack stack = lruCache.get(script);
+			if(stack == null) {
+				return null;
+			}else {
+				return stack.pop();
+			}
+		}
+	}
+	
+	private final void addToCache(final String script, final Object obj) {
+		synchronized (lruCache) {
+			Stack stack = lruCache.get(script);
+			if(stack == null) {
+				stack = new Stack(4);
+				lruCache.put(script, stack);
+			}
+			stack.push(obj);
+		}
+	}
 	
 	public final void resetError(){
 		errorWriter.reset();
@@ -65,51 +103,29 @@ public class HCJRubyEngine {
 	}
 	
 	public final void removeCache(final String script){
-//		synchronized (engineLock) {
-//			lruCache.remove(script);
-//		}
+		synchronized (lruCache) {
+			lruCache.remove(script);
+		}
 	}
 	
-	final Object parse(final StringValue sc, final String scriptName) throws Exception{
+	final Object parse(final StringValue sv, final String scriptName) throws Exception{
 		Object unit = null;
-		sc.value = ResourceUtil.replaceImport(sc.value);
-		L.V = L.WShop ? false : LogManager.log("parse/run [" + Thread.currentThread().getName() + "], scripts : \n" + sc.value);
+		String script;
+		synchronized (sv) {
+			script = sv.value;
+			script = RubyExector.replaceImport(script);
+			script = UpgradeManager.preProcessScript(script);
+			sv.value = script;
+		}
+		L.V = L.WShop ? false : LogManager.log("parse/run [" + Thread.currentThread().getName() + "], scripts : \n" + script);
 
-//		synchronized (engineLock) {
-//			unit = lruCache.remove(script);
-//		}
+		unit = getCache(script);
+		
 		if(unit == null){
 //			EvalUnit unit = container.parse(script);//后面的int是可选参数
-			unit = putCompileUnit(sc.value, scriptName);
-		}
-		return unit;
-	}
-
-	private final Object putCompileUnit(final String script, final String scriptName) throws Exception {
-		if(isShutdown){
-			return null;
-		}
-		
-		final Object unit;
-//		final Object currentDirectory = getCurrentDirectory();
-//		LogManager.log("JRubyEngine getCurrentDirectory : " + currentDirectory);
-//		if(currentDirectory == null){
-//			setCurrentDirectory();
-//			LogManager.log("JRubyEngine getCurrentDirectory : " + currentDirectory);
-//		}
-//		LogManager.log("JRubyEngine getHomeDirectory : " + getHomeDirectory());
-//		if(isReportException){
-////			InputStream istream, String filename, int... lines
-//			final InputStream in = new ByteArrayInputStream(StringUtil.getBytes(script));//支持中文
-//			scriptName = (scriptName==null||scriptName.length()==0)?"<script>":("<" + scriptName + ">");
-////			LogManager.log("compile name : " + scriptName + " for src : " + script);
-//			final Object[] para = {in, scriptName, zero};
-//			unit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse", parseStreamParaTypes, para, false);
-//		}else{
 			final Object[] para = {script, zero};
 			unit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse", parseParaTypes, para, false);
-//		}
-		
+		}
 		return unit;
 	}
 
@@ -119,23 +135,23 @@ public class HCJRubyEngine {
 	Class classJavaEmbedUtils;
 	Class classIRubyObject;
 	Class[] rubyToJavaParaTypes;// = {classIRubyObject};
-	public final Object runScriptlet(final StringValue sc, final String scriptName) throws Throwable{
-//        return JavaEmbedUtils.rubyToJava(evalUnitMap.get(script).run());
-		final Object evalUnit = parse(sc, scriptName);
+	final Object runScriptlet(final StringValue sv, final String scriptName) throws Throwable {
+		final String script;
+		final Object evalUnit;
+		synchronized (sv) {
+			evalUnit = parse(sv, scriptName);
+			script = sv.value;
+		}
 		if(isShutdown){
-			LogManager.log("JRuby Engine is shutdown, skip runing scripts : \n" + sc.value);
+			LogManager.log("JRuby Engine is shutdown, skip runing scripts : \n" + script);
 			return null;
 		}
 		try{
 			final Object runOut = ClassUtil.invokeWithExceptionOut(classEvalUnit, evalUnit, "run", emptyParaTypes, emptyPara, false);
 			final Object[] para = {runOut};
 			final Object result = ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils, classJavaEmbedUtils, "rubyToJava", rubyToJavaParaTypes, para, false);
-//			synchronized (engineLock) {
-//				lruCache.put(script, evalUnit);
-//			}
+			addToCache(script, evalUnit);
 			return result;
-		}catch (final Throwable e) {
-			throw e;
 		}finally{
 			L.V = L.WShop ? false : LogManager.log("finish run in [" + Thread.currentThread().getName() + "]!");
 		}
@@ -220,10 +236,13 @@ public class HCJRubyEngine {
 	    		//the following property is for System.setProperty("jruby.ji.proxyClassFactory", "org.ruboto.DalvikProxyClassFactory");
 	   		 
 		        {
-		        	final File proxyCache = new File(optimizBaseDir, "ruboto_cache");
-		        	proxyCache.mkdirs();
-		        	System.out.println("creaet dir : " + proxyCache.getAbsolutePath());
-		        	System.setProperty("jruby.class.cache.path", proxyCache.getAbsolutePath());
+			        	final File proxyCache = new File(optimizBaseDir, "ruboto_cache");
+			        	if(proxyCache.mkdirs()) {
+			        		System.out.println("creaet dir : " + proxyCache.getAbsolutePath());
+			        	}else{
+			        		ResourceUtil.deleteDirectoryNow(proxyCache, false);
+			        	}
+			        	System.setProperty("jruby.class.cache.path", proxyCache.getAbsolutePath());
 		        }
 		        
 	            System.setProperty("jruby.backtrace.style", "normal"); // normal raw full mri
@@ -239,15 +258,20 @@ public class HCJRubyEngine {
 	            System.setProperty("jruby.native.enabled", "false");
 	            System.setProperty("jruby.objectspace.enabled", "false");
 	            System.setProperty("jruby.rewrite.java.trace", "true");
-	            System.setProperty("jruby.thread.pooling", "true");
+	            System.setProperty("jruby.thread.pooling", "false");//原ruboto设置为true
 
+	            //Java 8缺省为true，但在Android会FailoverSwitchPointInvalidator
+	            //以下方法不适用于9.1.13.0
+	            System.setProperty("compile.invokedynamic", "false");
+	            LogManager.warn("compile.invokedynamic : false");
+	            
 	            // Uncomment these to debug/profile Ruby source loading
 	            // Analyse the output: grep "LoadService:   <-" | cut -f5 -d- | cut -c2- | cut -f1 -dm | awk '{total = total + $1}END{print total}'
 	            // System.setProperty("jruby.debug.loadService", "true");
 	            // System.setProperty("jruby.debug.loadService.timing", "true");
 			}
 		}
-		
+
 		this.projClassLoader = projClassLoader;
 		
 		try{

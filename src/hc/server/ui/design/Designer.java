@@ -1,5 +1,73 @@
 package hc.server.ui.design;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+
+import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
+import javax.swing.JToolBar;
+import javax.swing.JTree;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.text.Document;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
+
 import hc.App;
 import hc.UIActionListener;
 import hc.core.ContextManager;
@@ -80,71 +148,6 @@ import hc.util.IBiz;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 import hc.util.SecurityDataProtector;
-
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ComponentListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Vector;
-
-import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.ActionMap;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTextField;
-import javax.swing.JToolBar;
-import javax.swing.JTree;
-import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.border.TitledBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.text.Document;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
 
 public class Designer extends SingleJFrame implements IModifyStatus, BindButtonRefresher{
 	private static final String PWD_DEV_CERT = "password of developer certificates";
@@ -310,15 +313,21 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	
 	@Override
 	public void dispose(){
-		isDisposed = true;
-		
+		synchronized (this) {
+			if(isDisposed) {
+				return;
+			}
+			isDisposed = true;
+		}
+
+		LinkProjectStatus.exitStatus();
+		super.dispose();
+
 		if(searchDialog != null){
 			searchDialog.release();
 		}
 		
 		HCTimer.remove(refreshAliveServerInLocalNetwork);
-		
-		LinkProjectStatus.exitStatus();
 		
 		if(certJFrame != null && certJFrame.isVisible()){
 			certJFrame.dispose();
@@ -328,7 +337,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		instance = null;
 		
 		codeHelper.release();
-		super.dispose();
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
@@ -576,9 +584,9 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		
 		instance = this;
 		
-		if(PropertiesManager.isTrue(PropertiesManager.p_isLowMemWarnInDesigner, true)){
-			ContextManager.getThreadPool().run(buildMemWatcher());
-		}
+//		if(PropertiesManager.isTrue(PropertiesManager.p_isLowMemWarnInDesigner, true)){
+//			ContextManager.getThreadPool().run(buildMemWatcher());
+//		}
 		
 		setIconImage(App.SYS_LOGO);
 		setName("Designer");
@@ -909,7 +917,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 					return;
 				}
 				
-				final HashMap<String, Object> map = new HashMap<String, Object>();
+				final Hashtable<String, Object> map = new Hashtable<String, Object>(128);
 				HCjar.initMap(map);
 				map.put(HCjar.MENU_NUM, "1");
 				map.put(HCjar.MAIN_MENU_IDX_PRE, "0");
@@ -1141,8 +1149,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 						LinkProjectManager.updateToLinkProject();
 						
 						if(currRoot && newroot == false){
-							setProjectOff();
-	
 							//启动远屏或菜单
 							ServerUIUtil.restartResponsorServerDelayMode(self, null);
 							App.invokeLaterUI(new Runnable() {
@@ -1630,7 +1636,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	}
 	
 	public static void checkBindEnable(final JButton rebindBut){
-		if(ServerUIUtil.useHARProject && ServerUIUtil.isStarted()){
+		if(LinkProjectManager.hasAlive() && ServerUIUtil.isStarted()){
 			final BaseResponsor base = ServerUIUtil.getResponsor();
 			if(base instanceof MobiUIResponsor){
 				if(((MobiUIResponsor)base).hasRobotReferenceDevice()){
@@ -1797,7 +1803,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 				
 				//active
 				ServerUIUtil.promptAndStop(true, null);
-				setProjectOn();
 				ServerUIUtil.restartResponsorServer(null, null);
 			}
 		}catch (final Exception e) {
@@ -2366,16 +2371,21 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	 * 如果出错，则返回false，以便中止运行脚本。
 	 * @return
 	 */
-	public synchronized boolean tryBuildTestJRuby(){//用户点击或系统初始并发，所以加同步
-		if(needRebuildTestJRuby){
-			try{
-				final Map<String, Object> map = buildMapFromTree();
-				deployRunTest(map);
+	public boolean tryBuildTestJRuby(){
+		synchronized (this) {
+			if(needRebuildTestJRuby){
 				needRebuildTestJRuby = false;
-			}catch (final NodeInvalidException e) {
-				displayError(e);
-				return false;
+			}else {
+				return true;
 			}
+		}
+		
+		try{
+			final Map<String, Object> map = buildMapFromTree();
+			deployRunTest(map);
+		}catch (final NodeInvalidException e) {
+			displayError(e);
+			return false;
 		}
 		return true;
 	}
@@ -2524,8 +2534,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		synchronized (ServerUIUtil.LOCK) {
 			ServerUIUtil.promptAndStop(true, this);
 			
-			setProjectOn();
-
 			File oldEditBackFile = null;
 			if(oldlps != null){
 				oldEditBackFile = LinkProjectManager.removeLinkProjectPhic(oldlps, false);
@@ -2548,7 +2556,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			
 			if(changeToRoot == false){
 				//是否需要升级为root
-				final LinkProjectStore oldroot = LinkProjectManager.searchRoot(true);
+				final LinkProjectStore oldroot = LinkProjectManager.searchActiveRoot();
 				if(oldroot == null){
 					changeToRoot = true;
 				}
@@ -2582,15 +2590,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		return false;
 	}
 
-	public static void setProjectOn() {
-		ServerUIUtil.useHARProject = true;
-
-		if(PropertiesManager.isTrue(PropertiesManager.p_IsMobiMenu) == false){
-			PropertiesManager.setValue(PropertiesManager.p_IsMobiMenu, IConstant.TRUE);
-			PropertiesManager.saveFile();
-		}
-	}
-	
 	private void doExportBiz(final Map<String, Object> map, final File fileExits, final File fileHadExits, final Designer self) {
 		final String recommendLastTip  = ResourceUtil.get(9252);
 		
@@ -2600,9 +2599,10 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final int columnNum = isLast3VerNull?2:3;
 		final JPanel panel = new JPanel(new GridLayout(3, columnNum, ClientDesc.hgap, ClientDesc.vgap));
 		panel.add(new JLabel("JRE version : "));
-		final JTextField jre_field = new JTextField();
+		final String[] reverseJREVersion = ResourceUtil.reverseStringArray(ResourceUtil.getAllJREVersion());//高版本在前显示
+		final JComboBox<String> jre_field = new JComboBox(reverseJREVersion);
 		final String newJREVer = (String)map.get(HCjar.JRE_VER);
-		jre_field.setText(newJREVer);
+		jre_field.setSelectedItem(newJREVer);
 		panel.add(jre_field);
 		if(isLast3VerNull == false){
 			final String lastJREVer = last3Ver[0];
@@ -2610,7 +2610,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			btn.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(final ActionEvent e) {
-					jre_field.setText(lastJREVer);
+					jre_field.setSelectedItem(lastJREVer);
 				}
 			});
 			if(newJREVer.equals(lastJREVer)){
@@ -2688,7 +2688,40 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 		final ActionListener listener = new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				map.put(HCjar.JRE_VER, jre_field.getText());
+				final String exportJREVersion = (String)jre_field.getSelectedItem();
+
+				final Iterator<String> keys = map.keySet().iterator();
+				while(keys.hasNext()) {
+					final String key = keys.next();
+					if(key.startsWith(HCjar.MAP_FILE_PRE, 0)) {
+						final String fileName = key.substring(HCjar.MAP_FILE_PRE.length());
+						final String fileType = (String)map.get(HCjar.MAP_FILE_TYPE_PRE + fileName);
+						if(HPNode.MAP_FILE_JAR_TYPE.equals(fileType)) {
+							File tmp = null;
+							try {
+								tmp = File.createTempFile("export_jar_check", ".jar");
+								final byte[] content = (byte[])map.get(key);
+								final ByteArrayInputStream bis = new ByteArrayInputStream(content);
+								ResourceUtil.saveToFile(bis, tmp);
+								
+								final float jreVersion = ResourceUtil.getMaxJREVersionFromCompileJar(tmp);//0表示纯资源包
+								if(jreVersion > Float.valueOf(exportJREVersion)) {
+									final String msg = "export JRE/JDK version is [" + exportJREVersion + "], but jar [" + fileName + "] is compiled in [" + jreVersion + "]!";
+									App.showErrorMessageDialog(instance, msg, ResourceUtil.getErrorI18N());
+									return;
+								}
+							} catch (final Throwable e) {
+								e.printStackTrace();
+							}finally {
+								if(tmp != null) {
+									tmp.delete();
+								}
+							}
+						}
+					}
+				}
+				
+				map.put(HCjar.JRE_VER, exportJREVersion);
 				map.put(HCjar.HOMECENTER_VER, hc_field.getText());
 				map.put(HCjar.JRUBY_VER, jruby_field.getText());
 				
@@ -2874,7 +2907,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	 * 重要，请勿在Event线程中调用，
 	 * 注意：本方法被反射引用，并不要更名。
 	 */
-	public static synchronized boolean notifyCloseDesigner(){
+	public static boolean notifyCloseDesigner(){
 		return Designer.getInstance().notifyCloseWindow();
 	}
 	
@@ -2951,7 +2984,7 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	 * 重要，请勿在Event线程中调用，
 	 * @return
 	 */
-	public final synchronized boolean notifyCloseWindow() {
+	public final boolean notifyCloseWindow() {
 		if(instance == null){
 			return false;
 		}
@@ -2965,22 +2998,12 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 			}
 			if(out == JOptionPane.YES_OPTION || out == JOptionPane.NO_OPTION){
 				instance = null;
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						dispose();
-					}
-				});
+				dispose();
 				return true;
 			}
 		}else{
 			instance = null;
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					dispose();					
-				}
-			});
+			dispose();					
 			return true;
 		}
 		return false;
@@ -3129,13 +3152,6 @@ public class Designer extends SingleJFrame implements IModifyStatus, BindButtonR
 	        tree.expandPath(parent); 
 	//      tree.collapsePath(parent); 
 	    }
-
-	public static void setProjectOff() {
-		ServerUIUtil.useHARProject = false;
-		
-		PropertiesManager.setValue(PropertiesManager.p_IsMobiMenu, IConstant.FALSE);
-		PropertiesManager.saveFile();
-	}
 
 }
 

@@ -1,20 +1,5 @@
 package hc.server.ui;
 
-import hc.App;
-import hc.core.ContextManager;
-import hc.core.IConstant;
-import hc.core.IContext;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.ILog;
-import hc.core.util.LogManager;
-import hc.res.ImageSrc;
-import hc.server.DisposeListener;
-import hc.server.HCActionListener;
-import hc.server.SingleJFrame;
-import hc.server.util.HCJFrame;
-import hc.server.util.ServerCUtil;
-import hc.util.ResourceUtil;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -57,6 +42,21 @@ import javax.swing.text.Highlighter;
 import javax.swing.text.Highlighter.Highlight;
 import javax.swing.text.Highlighter.HighlightPainter;
 
+import hc.App;
+import hc.core.ContextManager;
+import hc.core.IConstant;
+import hc.core.IContext;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.ILog;
+import hc.core.util.LogManager;
+import hc.res.ImageSrc;
+import hc.server.DisposeListener;
+import hc.server.HCActionListener;
+import hc.server.SingleJFrame;
+import hc.server.util.HCJFrame;
+import hc.server.util.ServerCUtil;
+import hc.util.ResourceUtil;
+
 public class LogViewer extends HCJFrame {
 	private final ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	static Highlighter.HighlightPainter painterQuery = new DefaultHighlighter.DefaultHighlightPainter(
@@ -90,13 +90,13 @@ public class LogViewer extends HCJFrame {
         final File file = new File(ResourceUtil.getBaseDir(), fileName);
         if(file.exists() == false){
         	final JPanel panel = new JPanel(new BorderLayout());
-        	panel.add(new JLabel((String) ResourceUtil.get(9004), App.getSysIcon(App.SYS_ERROR_ICON), JLabel.LEADING), 
+        	panel.add(new JLabel(ResourceUtil.get(9004), App.getSysIcon(App.SYS_ERROR_ICON), JLabel.LEADING), 
         			BorderLayout.CENTER);
         	final JPanel descPanel = new JPanel(new BorderLayout());
-        	descPanel.add(new JLabel("<html><STRONG>"+(String)ResourceUtil.get(9095)+"</STRONG><BR>if <STRONG>debugOn</STRONG> is added to program argument, " +
+        	descPanel.add(new JLabel("<html><STRONG>"+ResourceUtil.get(9095)+"</STRONG><BR>if <STRONG>debugOn</STRONG> is added to program argument, " +
         			"the log file will NOT be created.</html>"), BorderLayout.CENTER);
         	panel.add(descPanel, BorderLayout.SOUTH);
-        	App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(IContext.ERROR), false, null, null, new ActionListener() {
+        	App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(IContext.ERROR), false, null, null, new ActionListener() {
 				@Override
 				public void actionPerformed(final ActionEvent e) {
 				}
@@ -295,31 +295,29 @@ public class LogViewer extends HCJFrame {
 						//Pattern pattern = Pattern.compile("\\b" + searchStr + "\\b");
 						final Pattern pattern = Pattern.compile(searchStr);
 						final Matcher matcher = pattern.matcher(myWord);
-						boolean matchFound = matcher.matches(); // false
-						if (!matchFound) {
-							while (matcher.find()) {
-								matchFound = true;
-								final int start = matcher.start();
-								searchIdx.add(start);
-								final int end = matcher.end();
-								try {
-//									Font font = new Font("Verdana", Font.BOLD, 40);
-									h.addHighlight(start, end, LogViewer.painterQuery);
-								} catch (final BadLocationException e) {
-									e.printStackTrace();
-								}
+						boolean matchFound = false;
+						while (matcher.find()) {
+							matchFound = true;
+							final int start = matcher.start();
+							searchIdx.add(start);
+							final int end = matcher.end();
+							try {
+//								Font font = new Font("Verdana", Font.BOLD, 40);
+								h.addHighlight(start, end, LogViewer.painterQuery);
+							} catch (final BadLocationException e) {
+								e.printStackTrace();
 							}
-							
-							if(matchFound){
-								currSearchIdx = 0;
-								jta.setCaretPosition(searchIdx.get(currSearchIdx++));
-								if(searchIdx.size() > currSearchIdx){
-									btnNext.setEnabled(true);
-									btnNext.setFocusable(true);
-								}
+						}
+						
+						if(matchFound){
+							currSearchIdx = 0;
+							jta.setCaretPosition(searchIdx.get(currSearchIdx++));
+							if(searchIdx.size() > currSearchIdx){
+								btnNext.setEnabled(true);
+								btnNext.setFocusable(true);
 							}
-//						}else {
-//							App.showMessageDialog(null, "No Match Found");
+						}else {
+							App.showMessageDialog(LogViewer.this, "No found!");
 						}		
 					}
 				}, null), null, LogViewer.this, true, false, btnSearch, false, false);

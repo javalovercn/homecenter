@@ -1,26 +1,16 @@
 package hc.server.ui.design.hpj;
 
-import hc.App;
-import hc.core.IContext;
-import hc.core.util.HCURL;
-import hc.core.util.HCURLUtil;
-import hc.res.ImageSrc;
-import hc.server.HCActionListener;
-import hc.server.HCWindowAdapter;
-import hc.server.ui.HTMLMlet;
-import hc.server.ui.design.Designer;
-import hc.server.util.HCJDialog;
-import hc.util.ResourceUtil;
-import hc.util.UILang;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Container;
+import java.awt.Dialog;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Window;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -46,6 +36,19 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.TitledBorder;
+
+import hc.App;
+import hc.core.IContext;
+import hc.core.util.HCURL;
+import hc.core.util.HCURLUtil;
+import hc.res.ImageSrc;
+import hc.server.HCActionListener;
+import hc.server.HCWindowAdapter;
+import hc.server.ui.HTMLMlet;
+import hc.server.ui.design.Designer;
+import hc.server.util.HCJDialog;
+import hc.util.ResourceUtil;
+import hc.util.UILang;
 
 public class TypeWizard {
 	static int type;
@@ -101,7 +104,7 @@ public class TypeWizard {
 		panel.setBorder(new TitledBorder("Select Menu Item Type:"));
 		final JRadioButton[] rbs = new JRadioButton[HPNode.WIZARD_SELECTABLE_MENU_ITEM_SIZE];
 		final JLabel[] dispButton = new JLabel[HPNode.WIZARD_SELECTABLE_MENU_ITEM_SIZE];
-		final String nextStepStr = (String) ResourceUtil.get(1029);
+		final String nextStepStr = ResourceUtil.get(1029);
 		final JButton ok = new JButton(nextStepStr, new ImageIcon(ImageSrc.OK_ICON));
 		final int[] typeDescs = {
 				HPNode.TYPE_MENU_ITEM_FORM,
@@ -136,7 +139,7 @@ public class TypeWizard {
 					}
 				}
 				if(type == HPNode.TYPE_MENU_ITEM_CONTROLLER || type == HPNode.TYPE_MENU_ITEM_SCREEN){
-					final String ok_text = (String)ResourceUtil.get(IContext.OK);
+					final String ok_text = ResourceUtil.get(IContext.OK);
 					if(ok.getText().equals(ok_text) == false) {
 						ok.setText(ok_text);
 					}
@@ -172,7 +175,7 @@ public class TypeWizard {
 								"return to root menu or exit client.",
 								"open mobile configration panel by clicking it from mobile menu."
 								};
-						selectSub(owner, ok, subItems, desc);
+						selectSub(dialog, ok, subItems, desc);
 					}else if(type == HPNode.TYPE_MENU_ITEM_FORM){
 						//screen -Desktop "enter disktop screen of PC in mobile side when current item is clicked.");
 						//screen -Mlet "<html>Mlet Screen is a panel in mobile side for dispaly and controlling status of PC side, <BR>which is instance from java class and JRuby in PC side.</html> ");
@@ -183,15 +186,15 @@ public class TypeWizard {
 								"a snapshot panel display and controlling status in mobile side, which runs in server side." +
 								"<BR>adding ScriptPanel in it is <STRONG>NOT</STRONG> allowed."
 								};
-						selectSub(owner, ok, subItems, desc);
+						selectSub(dialog, ok, subItems, desc);
 					}else if(type == HPNode.TYPE_MENU_ITEM_IOT){
-						selectIOT(owner, ok);
+						selectIOT(dialog, ok);
 					}
 					dialog.dispose();
 				}
 			}
 		}, App.getThreadPoolToken()));
-		final JButton cancel = new JButton((String) ResourceUtil.get(1018), new ImageIcon(ImageSrc.CANCEL_ICON));
+		final JButton cancel = new JButton(ResourceUtil.get(1018), new ImageIcon(ImageSrc.CANCEL_ICON));
 		cancel.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -330,13 +333,18 @@ public class TypeWizard {
 		}
 	}
 	
-	private static void selectSub(final JFrame owner, final Component relativeObj, final String[] items, final String[] desc){
-		final JDialog dialog = new HCJDialog(owner, "Choose Sub Type", true);
+	private static void selectSub(final Window owner, final Component relativeObj, final String[] items, final String[] desc){
+		final JDialog dialog;
+		if(owner instanceof Dialog) {
+			dialog = new HCJDialog((Dialog)owner, "Choose Sub Type", true);
+		}else {
+			dialog = new HCJDialog((Frame)owner, "Choose Sub Type", true);
+		}
 		final ButtonGroup buttonGroup = new ButtonGroup();
 		final JPanel panel = new JPanel(new GridLayout(1, items.length));
 		panel.setBorder(new TitledBorder("Sub Type:"));
 		final JRadioButton[] rbs = new JRadioButton[items.length];
-		final JButton ok = new JButton((String) ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
+		final JButton ok = new JButton(ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
 		final ActionListener actionListen = new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -345,7 +353,7 @@ public class TypeWizard {
 		});
 		ok.addActionListener(actionListen);
 		
-		final JButton cancel = new JButton((String) ResourceUtil.get(1018), new ImageIcon(ImageSrc.CANCEL_ICON));
+		final JButton cancel = new JButton(ResourceUtil.get(1018), new ImageIcon(ImageSrc.CANCEL_ICON));
 		cancel.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -438,7 +446,7 @@ public class TypeWizard {
 		return null;
 	}
 
-	public static void selectIOT(final JFrame owner, final Component relativeTo) {
+	public static void selectIOT(final Window owner, final Component relativeTo) {
 		type = HPNode.TYPE_MENU_ITEM_IOT;//有可能被直接调用，故再次赋值
 		wizardEnd = null;
 		

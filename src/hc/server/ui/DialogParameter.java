@@ -9,10 +9,14 @@ public class DialogParameter extends ResParameter {
 	public DialogParameter(final J2SESession coreSS, final DialogGlobalLock quesLock){
 		super(quesLock);
 		this.coreSS = coreSS;
-		quesLock.dialogParameter = this;
 	}
 	
 	public final DialogGlobalLock getGlobalLock(){
 		return (DialogGlobalLock)quesLock;
+	}
+	
+	@Override
+	public String toString() {
+		return "Dialog [" + getGlobalLock().dialogID + "]";
 	}
 }

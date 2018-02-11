@@ -1,5 +1,12 @@
 package hc.server.ui.design.engine;
 
+import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
@@ -7,6 +14,7 @@ import hc.core.util.ExceptionReporter;
 import hc.core.util.HCURL;
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
+import hc.core.util.StringBufferCacher;
 import hc.core.util.StringUtil;
 import hc.core.util.StringValue;
 import hc.server.CallContext;
@@ -15,14 +23,235 @@ import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.SessionContext;
 import hc.util.ResourceUtil;
+import hc.util.StringBuilderCacher;
 import hc.util.ThreadConfig;
 
-import java.net.URLDecoder;
-import java.util.HashMap;
-import java.util.Map;
-
 public class RubyExector {
-	public static final Object runAndWaitInProjectOrSessionPoolWithRepErr(final J2SESession coreSS, final CallContext runCtx, final String script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context, final Class requireReturnClass) {
+	public static final String JAVA_MAO_MAO = "Java::";
+	private static final String IMPORT = "import ";
+	private static final Pattern IMPORT_PATTERN = Pattern.compile("^\\s*(import(\\s+))([a-zA-Z0-9:_\\.]+)\\s*(#.*?)?$", Pattern.MULTILINE);
+
+	/**
+	 * 将java.lang.String转为JavaLangString
+	 * @param packageName
+	 * @return
+	 */
+	private static String toJavaConstant(final ScriptPosition sp) {
+		String packageName = sp.item;
+		if(packageName.startsWith(JAVA_MAO_MAO)) {
+			packageName = packageName.substring(JAVA_MAO_MAO.length());
+		}
+		
+		final Vector parts = StringUtil.split(packageName, ".");
+		final StringBuffer sb = StringBufferCacher.getFree();
+		final int size = parts.size();
+		final int lastItemIdx = size - 1;
+		sp.extItem1 = (String)parts.elementAt(lastItemIdx);
+		
+		for (int i = 0; i < size; i++) {
+			final String item = (String)parts.elementAt(i);
+			if(i == lastItemIdx) {
+				sb.append(item);
+			}else {
+				final char firstChar = item.charAt(0);
+				if(firstChar >= 'a' && firstChar <= 'z') {
+					//97(s) - 65(A)
+					sb.append((char)(firstChar - 32));
+				}else {
+					sb.append(firstChar);
+				}
+				if(item.length() > 1) {
+					sb.append(item.substring(1));
+				}
+			}
+		}
+		final String out = sb.toString();
+		StringBufferCacher.cycle(sb);
+		return out;
+	}
+	
+	public static String replaceImport(final String scripts){
+		final int firstIdx = scripts.indexOf(IMPORT, 0);
+		if(firstIdx < 0){
+			return scripts;
+		}
+	
+		ScriptPositionList classRefPositions = null;
+		ScriptPositionList imports = null;
+		ScriptPositionList rememOrString = null;
+		
+		try {
+			final Matcher matcher = IMPORT_PATTERN.matcher(scripts);
+			while(matcher.find()) {
+				if(imports == null) {
+					imports = new ScriptPositionList();
+				}
+				final ScriptPosition p = imports.addPosition(false, matcher.start(1), matcher.end(3), matcher.group(3), true);
+				final String constantName = toJavaConstant(p);
+				p.extItem2 = constantName;
+			}
+			
+			if(imports == null) {
+				return scripts;
+			}
+			
+			final char[] chars = scripts.toCharArray();
+			final int charsLen = chars.length;
+			rememOrString = new ScriptPositionList(64);
+			{
+				//add #
+				int remStartIdx = 0;
+				boolean isFindRem = false;
+				for (int i = 0; i < charsLen; i++) {
+					final char c = chars[i];
+					if(isFindRem == false) {
+						if(c == '#') {
+							isFindRem = true;
+							remStartIdx = i;
+						}
+					}else {
+						if(c == '\n') {
+							rememOrString.addPosition(false, remStartIdx, i, true);
+							isFindRem = false;
+						}
+					}
+				}
+				if(isFindRem) {
+					rememOrString.addPosition(false, remStartIdx, charsLen, true);
+				}
+			}
+			
+			{
+				//add '或“”
+				int stringStartIdx = 0;
+				boolean isFindStr = false;
+				char charType = 0;
+				for (int i = 0; i < charsLen; i++) {
+					final char c = chars[i];
+					if(c == '\'' || c == '\"') {
+						if(chars[i - 1] == '\\') {
+							continue;
+						}
+						if(isFindStr == false) {
+							charType = c;
+							isFindStr = true;
+							stringStartIdx = i;
+						}else{
+							if(charType == c) {
+								rememOrString.addPosition(true, stringStartIdx, i + 1, false);
+								isFindStr = false;
+							}
+						}
+					}
+				}
+			}
+			
+			classRefPositions = new ScriptPositionList(128);
+			final Vector<String> usedConstant = new Vector<String>(64);
+			for (int i = 0; i < imports.count; i++) {
+				final ScriptPosition sp = imports.positions[i];
+				final String constantName = sp.extItem2;
+
+				if(usedConstant.contains(constantName)) {//出现重复定义
+					continue;
+				}
+				usedConstant.add(constantName);
+				
+				final String shortClassName = sp.extItem1;
+				final int classNameLength = shortClassName.length();
+				
+				{
+					//search Class Ref Idx
+					int startIdx = sp.endIdx;
+					int idx = 0;
+					while((idx = scripts.indexOf(shortClassName, startIdx)) >= 0) {
+						final int afterIdx = idx + classNameLength;
+						startIdx = afterIdx;
+						
+						if(rememOrString.isInclude(idx)) {
+							continue;
+						}
+						{
+							final char beforeByte = chars[idx - 1];
+							if(beforeByte >= 'a' && beforeByte <= 'z' 
+									|| beforeByte >= 'A' && beforeByte <= 'Z' 
+									|| beforeByte >= '0' && beforeByte <= '9' 
+									|| beforeByte == '_'
+									|| beforeByte == '.'
+									|| beforeByte == ':') {
+								continue;
+							}
+						}
+						if(afterIdx < charsLen) {//文尾
+							final char afterByte = chars[afterIdx];
+							if(afterByte >= 'a' && afterByte <= 'z' 
+									|| afterByte >= 'A' && afterByte <= 'Z' 
+									|| afterByte >= '0' && afterByte <= '9' 
+									|| afterByte == '_') {
+								continue;
+							}
+						}
+						classRefPositions.addPosition(false, idx, startIdx, shortClassName, constantName, false);
+					}
+				}
+			}
+			
+			{
+				int imIdx = 0, consIdx = 0;
+				int jointIdx = 0;
+				StringBuilder sb = null;
+				ScriptPosition spIm = (imports.count==imIdx?null:imports.positions[imIdx++]);
+				ScriptPosition spCons = (classRefPositions.count==consIdx?null:classRefPositions.positions[consIdx++]);
+				while(true) {
+					if(spIm == null && spCons == null) {
+						if(sb == null) {
+							return scripts;
+						}else {
+							sb.append(chars, jointIdx, chars.length - jointIdx);
+							
+							final String out = sb.toString();
+							StringBuilderCacher.cycle(sb);
+							return out;
+						}
+					}
+					
+					if(sb == null) {
+						sb = StringBuilderCacher.getFree();
+					}
+					
+					if(spIm != null && (spCons == null || spIm.startIdx < spCons.startIdx)) {
+						sb.append(chars, jointIdx, spIm.startIdx - jointIdx);
+						jointIdx = spIm.endIdx;
+						
+						sb.append(spIm.extItem2);
+						sb.append('=');
+						sb.append(spIm.item);
+						
+						spIm = (imports.count==imIdx?null:imports.positions[imIdx++]);
+					}else {
+						sb.append(chars, jointIdx, spCons.startIdx - jointIdx);
+						jointIdx = spCons.endIdx;
+						
+						sb.append(spCons.extItem1);
+						
+						spCons = (classRefPositions.count==consIdx?null:classRefPositions.positions[consIdx++]);
+					}
+				}
+			}
+		}finally {
+			if(imports != null) {
+				imports.release();
+			}
+			if(rememOrString != null) {
+				rememOrString.release();
+			}
+			if(classRefPositions != null) {
+				classRefPositions.release();
+			}
+		}
+	}
+	
+	public static final Object runAndWaitInProjectOrSessionPoolWithRepErr(final J2SESession coreSS, final CallContext runCtx, final StringValue script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context, final Class requireReturnClass) {
 		Object out = null;
 		try{
 			out = requireReturnClass.cast(RubyExector.runAndWaitInProjectOrSessionPool(coreSS, runCtx, script, scriptName, map, hcje, context));
@@ -45,7 +274,7 @@ public class RubyExector {
 		return out;
 	}
 	
-	public static final Object runAndWaitInProjectOrSessionPool(final J2SESession coreSS, final CallContext callCtx, final String script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context) {
+	public static final Object runAndWaitInProjectOrSessionPool(final J2SESession coreSS, final CallContext callCtx, final StringValue script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context) {
 //		RubyExector.parse(callCtx, script, scriptName, hcje, true);
 		
 		if(callCtx.isError){
@@ -75,9 +304,7 @@ public class RubyExector {
 		}
 	}
 
-	public static synchronized final void parse(final CallContext callCtx, final String sc, final String scriptName, final HCJRubyEngine hcje, final boolean isReportException) {
-		final StringValue sv = new StringValue();
-		sv.value = sc;
+	public static synchronized final void parse(final CallContext callCtx, final StringValue sv, final String scriptName, final HCJRubyEngine hcje, final boolean isReportException) {
 		try {
 			hcje.parse(sv, scriptName);
 		} catch (final Throwable e) {
@@ -107,9 +334,7 @@ public class RubyExector {
 	 * @param hcje
 	 * @return
 	 */
-	public static final Object runAndWaitOnEngine(final CallContext callCtx, final String sc, final String scriptName, final Map map, final HCJRubyEngine hcje) {
-		final StringValue sv = new StringValue();
-		sv.value = sc;
+	public static final Object runAndWaitOnEngine(final CallContext callCtx, final StringValue sv, final String scriptName, final Map map, final HCJRubyEngine hcje) {
 		try {
 			return runAndWaitOnEngine(sv, scriptName, map, hcje);
 			
@@ -143,39 +368,20 @@ public class RubyExector {
 
 	public static Object runAndWaitOnEngine(final StringValue sv, final String scriptName,
 			final Map map, final HCJRubyEngine hcje) throws Throwable {
-		//			System.out.println("set JRuby path : " + hcje.path);
-		//			System.setProperty("org.jruby.embed.class.path", hcje.path);
-		//			if(userDir == null){
-		//				userDir = System.getProperty(USER_DIR_KEY);
-		//			}
-		//			System.setProperty(USER_DIR_KEY, hcje.path);
-					
-		//			System.out.println("Exec Script load path : " + hcje.container.getLoadPaths());
-					if(map == null){
-		//				return hcje.engine.eval(script);
-					}else{
-						LogManager.errToLog("$_hcmap is deprecated, there are serious concurrent risks in it. " +
-								"\nplease remove all parameters in target URL, and set them to attributes of ProjectContext or ClientSession.");
-						hcje.put("$_hcmap", map);
-						
-		//				container.put("message", "local variable");
-		//				container.put("@message", "instance variable");
-		//				container.put("$message", "global variable");
-		//				container.put("MESSAGE", "constant");
-						
-		//				Bindings bindings = new SimpleBindings();
-		//				bindings.put("_hcmap", map);
-		//				return hcje.engine.eval(script, bindings);
-					}
-					
+		if(map == null){
+		}else{
+//						LogManager.errToLog("$_hcmap is deprecated, there are serious concurrent risks in it. " +
+//								"\nplease remove all parameters in target URL, and set them to attributes of ProjectContext or ClientSession.");
+//						hcje.put("$_hcmap", map);
+		}
 		//			if(L.isInWorkshop){
 		//				LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] before runScriptlet.");
 		//			}
-					final Object out = hcje.runScriptlet(sv, scriptName);
+		final Object out = hcje.runScriptlet(sv, scriptName);
 		//			if(L.isInWorkshop){
 		//				LogManager.log("====>Thread [" + Thread.currentThread().getId() + "] after runScriptlet.");
 		//			}
-					return out;
+		return out;
 	}
 
 	public final static Map<String, String> toMap(final HCURL _hcurl) {
@@ -201,7 +407,7 @@ public class RubyExector {
 				"str_class = java.lang.String\n";//初始引擎及调试之用
 		final String scriptName = null;
 //		parse(null, script, scriptName, hcje, false);
-		runAndWaitOnEngine(null, script, scriptName, null, hcje);
+		runAndWaitOnEngine(null, new StringValue(script), scriptName, null, hcje);
 	}
 
 	private static final void notifyMobileErrorScript(final J2SESession coreSS, final ProjectContext ctx, final String title){

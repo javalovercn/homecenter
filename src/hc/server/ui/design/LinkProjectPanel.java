@@ -1,34 +1,5 @@
 package hc.server.ui.design;
 
-import hc.App;
-import hc.UIActionListener;
-import hc.core.ContextManager;
-import hc.core.IConstant;
-import hc.core.L;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.LogManager;
-import hc.core.util.StringUtil;
-import hc.res.ImageSrc;
-import hc.server.AbstractDelayBiz;
-import hc.server.FileSelector;
-import hc.server.HCActionListener;
-import hc.server.HCTablePanel;
-import hc.server.LinkMenuManager;
-import hc.server.ProcessingWindowManager;
-import hc.server.ui.ClientDesc;
-import hc.server.ui.LinkProjectStatus;
-import hc.server.ui.ServerUIUtil;
-import hc.server.ui.design.hpj.HCjad;
-import hc.server.ui.design.hpj.HCjar;
-import hc.server.util.ContextSecurityConfig;
-import hc.server.util.DelDeployedProjManager;
-import hc.server.util.SignHelper;
-import hc.util.HttpUtil;
-import hc.util.IBiz;
-import hc.util.LinkPropertiesOption;
-import hc.util.PropertiesManager;
-import hc.util.ResourceUtil;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -73,6 +44,35 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import hc.App;
+import hc.UIActionListener;
+import hc.core.ContextManager;
+import hc.core.IConstant;
+import hc.core.L;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
+import hc.core.util.StringUtil;
+import hc.res.ImageSrc;
+import hc.server.AbstractDelayBiz;
+import hc.server.FileSelector;
+import hc.server.HCActionListener;
+import hc.server.HCTablePanel;
+import hc.server.LinkMenuManager;
+import hc.server.ProcessingWindowManager;
+import hc.server.ui.ClientDesc;
+import hc.server.ui.LinkProjectStatus;
+import hc.server.ui.ServerUIUtil;
+import hc.server.ui.design.hpj.HCjad;
+import hc.server.ui.design.hpj.HCjar;
+import hc.server.util.ContextSecurityConfig;
+import hc.server.util.DelDeployedProjManager;
+import hc.server.util.SignHelper;
+import hc.util.HttpUtil;
+import hc.util.IBiz;
+import hc.util.LinkPropertiesOption;
+import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
+
 public class LinkProjectPanel extends ProjectListPanel{
 	final ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	final String saveAndApply = ResourceUtil.getSaveAndApply(null);
@@ -87,7 +87,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 	final JRadioButton rb_perm_no = new JRadioButton(LinkPropertiesOption.getDispOpPermNoChange());
 	final JRadioButton rb_perm_acceptIfSigned = new JRadioButton(LinkPropertiesOption.getDispOpPermAcceptIfSigned());
 
-	final JCheckBox ch_autoUpgrade = new JCheckBox((String)ResourceUtil.get(9138));
+	final JCheckBox ch_autoUpgrade = new JCheckBox(ResourceUtil.get(9138));
 	
 	public static final String getNewLinkedInProjOp(){
 		final String op = PropertiesManager.getValue(PropertiesManager.p_OpNewLinkedInProjVer, LinkPropertiesOption.OP_NEXT_START_UP);
@@ -122,14 +122,14 @@ public class LinkProjectPanel extends ProjectListPanel{
 	
 	public LinkProjectPanel(final JFrame owner, final boolean newFrame, final Component relativeTo) {
 		super();
-		final String title = (String)ResourceUtil.get(9059);
+		final String title = ResourceUtil.get(9059);
 		dialog = App.buildCloseableWindow(newFrame, owner, title, true);
 		self = (owner==null && (dialog instanceof JFrame))?(JFrame)dialog:owner;
 		this.relativeTo = relativeTo;
 		
 		final String threeSpace = "   ";
-		compSelectMode = new JLabel((String)ResourceUtil.get(9149) + threeSpace);
-		compPermssionsMode = new JLabel((String)ResourceUtil.get(9232) + threeSpace);
+		compSelectMode = new JLabel(ResourceUtil.get(9149) + threeSpace);
+		compPermssionsMode = new JLabel(ResourceUtil.get(9232) + threeSpace);
 
 		contentPane = new JPanel();
 		
@@ -142,11 +142,11 @@ public class LinkProjectPanel extends ProjectListPanel{
 			e.printStackTrace();
 		}    					
 
-		designBut = new JButton((String)ResourceUtil.get(9014), designIco);
-		final String designTip = (String)ResourceUtil.get(9140);
+		designBut = new JButton(ResourceUtil.get(9014), designIco);
+		final String designTip = ResourceUtil.get(9140);
 //		designTip = StringUtil.replace(designTip, "{apply}", saveAndApply);
 		designBut.setToolTipText("<html>" + designTip + "</html>");
-		rebindBut = new JButton((String)ResourceUtil.get(9139), Designer.loadImg("device_24.png"));
+		rebindBut = new JButton(ResourceUtil.get(9139), Designer.loadImg("device_24.png"));
 		final BindButtonRefresher bindBtnRefresher = new BindButtonRefresher() {
 			@Override
 			public void disableManageButtons() {
@@ -160,21 +160,21 @@ public class LinkProjectPanel extends ProjectListPanel{
 		};
 		Designer.buildRebindButton(rebindBut, threadPoolToken, bindBtnRefresher, self);
 		
-		upBut = new JButton((String)ResourceUtil.get(9019), new ImageIcon(ImageSrc.UP_SMALL_ICON));
-		downBut = new JButton((String)ResourceUtil.get(9020), new ImageIcon(ImageSrc.DOWN_SMALL_ICON));
-		removeBut = new JButton((String)ResourceUtil.get(9018), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
-		removeBut.setToolTipText("<html>" + (String)ResourceUtil.get(9141) + "</html>");
-		importBut = new JButton((String)ResourceUtil.get(9016) + "▼", new ImageIcon(ImageSrc.ADD_SMALL_ICON));
-		importBut.setToolTipText("<html>" + (String)ResourceUtil.get(9142)  + "</html>");
+		upBut = new JButton(ResourceUtil.get(9019), new ImageIcon(ImageSrc.UP_SMALL_ICON));
+		downBut = new JButton(ResourceUtil.get(9020), new ImageIcon(ImageSrc.DOWN_SMALL_ICON));
+		removeBut = new JButton(ResourceUtil.get(9018), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
+		removeBut.setToolTipText("<html>" + ResourceUtil.get(9141) + "</html>");
+		importBut = new JButton(ResourceUtil.get(9016) + "▼", new ImageIcon(ImageSrc.ADD_SMALL_ICON));
+		importBut.setToolTipText("<html>" + ResourceUtil.get(9142)  + "</html>");
 		importBut.requestFocus();
 		{
-			String editBtnText = (String)ResourceUtil.get(9017);
+			String editBtnText = ResourceUtil.get(9017);
 			if(ResourceUtil.isJ2SELimitFunction()){
-				editBtnText += " | " + (String)ResourceUtil.get(9094);
+				editBtnText += " | " + ResourceUtil.get(9094);
 			}
 			editBut = new JButton(editBtnText , new ImageIcon(ImageSrc.MODIFY_SMALL_ICON));
 		}
-		editBut.setToolTipText((String)ResourceUtil.get(9143));
+		editBut.setToolTipText(ResourceUtil.get(9143));
 		final AbstractTableModel tableModel = new AbstractTableModel() {
 			@Override
 			public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
@@ -320,7 +320,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 									selfBiz.setPara(back);
 								}
 							}, threadPoolToken);
-							App.showCenterPanelMain(askPanel, 0, 0, (String)ResourceUtil.get(9193), false, null, null, 
+							App.showCenterPanelMain(askPanel, 0, 0, ResourceUtil.get(9193), false, null, null, 
 									listener, listener, self, true, false, null, false, false);
 
 							return;
@@ -334,9 +334,9 @@ public class LinkProjectPanel extends ProjectListPanel{
 						final Object[] rows = (Object[])getPara();
 						final LinkEditData led = (LinkEditData)rows[IDX_OBJ_STORE];
 						final JPanel askPanel = new JPanel();
-						final String replaceID = StringUtil.replace((String)ResourceUtil.get(9144), "{id}", led.lps.getProjectID());
+						final String replaceID = StringUtil.replace(ResourceUtil.get(9144), "{id}", led.lps.getProjectID());
 						askPanel.add(new JLabel(replaceID, App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEFT));
-						App.showCenterPanelMain(askPanel, 0, 0, (String)ResourceUtil.get(9145), true, null, null, new HCActionListener(new Runnable() {
+						App.showCenterPanelMain(askPanel, 0, 0, ResourceUtil.get(9145), true, null, null, new HCActionListener(new Runnable() {
 							@Override
 							public void run() {
 								final LinkProjectStore lps = led.lps;
@@ -373,8 +373,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 						final AbstractDelayBiz selfBiz = this;
 						
 						final JPopupMenu pop = new JPopupMenu();
-						final JMenuItem addFromLocal = new JMenuItem((String)ResourceUtil.get(9146));
-						final JMenuItem addFromRemote = new JMenuItem((String)ResourceUtil.get(9147));
+						final JMenuItem addFromLocal = new JMenuItem(ResourceUtil.get(9146));
+						final JMenuItem addFromRemote = new JMenuItem(ResourceUtil.get(9147));
 						
 						pop.addPopupMenuListener(new PopupMenuListener() {
 							@Override
@@ -444,7 +444,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 									final boolean succ = HttpUtil.download(fileHar, new URL(strharurl), 3, ResourceUtil.getUserAgentForHAD());
 									if(succ == false){
 										ProcessingWindowManager.disposeProcessingWindow();
-										final String httpError = (String)ResourceUtil.get(9269);//connection error or timeout
+										final String httpError = ResourceUtil.get(9269);//connection error or timeout
 										throw new Exception(httpError);
 									}
 									
@@ -452,11 +452,11 @@ public class LinkProjectPanel extends ProjectListPanel{
 							        		|| hadmd5.length() == 0){
 							        	addProjFromLocal(self, selfBiz, fileHar);
 							        }else{
-							        	throw new Exception((String)ResourceUtil.get(9270));//9270=file verification error, try again later
+							        	throw new Exception(ResourceUtil.get(9270));//9270=file verification error, try again later
 							        }
 								}catch (final Exception e) {
 									ExceptionReporter.printStackTrace(e);
-									App.showConfirmDialog(self, "Fail download, Exception : " + e.toString(), "Fail download", JOptionPane.OK_OPTION);
+									App.showErrorMessageDialog(self, "Exception : " + e.toString(), "Fail download");
 									selfBiz.setPara(Boolean.FALSE);
 									return;
 								}
@@ -665,21 +665,21 @@ public class LinkProjectPanel extends ProjectListPanel{
 					}
 				};
 				
-				rb_startup.setToolTipText("<html>" + (String)ResourceUtil.get(9150) + "</html>");
+				rb_startup.setToolTipText("<html>" + ResourceUtil.get(9150) + "</html>");
 				bgUpgradeMode.add(rb_startup);
 				group.add(rb_startup);
 				if(op.equals(LinkPropertiesOption.OP_NEXT_START_UP)){
 					rb_startup.setSelected(true);
 				}
 				
-				rb_ask.setToolTipText((String)ResourceUtil.get(9151));
+				rb_ask.setToolTipText(ResourceUtil.get(9151));
 				bgUpgradeMode.add(rb_ask);
 				group.add(rb_ask);
 				if(op.equals(LinkPropertiesOption.OP_ASK)){
 					rb_ask.setSelected(true);
 				}
 				
-				rb_imme.setToolTipText((String)ResourceUtil.get(9152));
+				rb_imme.setToolTipText(ResourceUtil.get(9152));
 				bgUpgradeMode.add(rb_imme);
 				group.add(rb_imme);
 				if(op.equals(LinkPropertiesOption.OP_IMMEDIATE)){
@@ -693,14 +693,14 @@ public class LinkProjectPanel extends ProjectListPanel{
 				{
 					final ButtonGroup bgUpgradePermMode = new ButtonGroup();
 					
-					rb_perm_no.setToolTipText("<html>" + (String)ResourceUtil.get(9230) + "</html>");
+					rb_perm_no.setToolTipText("<html>" + ResourceUtil.get(9230) + "</html>");
 					bgUpgradePermMode.add(rb_perm_no);
 					groupPerm.add(rb_perm_no);
 					if(opPerm.equals(LinkPropertiesOption.OP_PERM_NO_CHANGE)){
 						rb_perm_no.setSelected(true);
 					}
 					
-					rb_perm_acceptIfSigned.setToolTipText("<html>" + (String)ResourceUtil.get(9231) + "</html>");
+					rb_perm_acceptIfSigned.setToolTipText("<html>" + ResourceUtil.get(9231) + "</html>");
 					bgUpgradePermMode.add(rb_perm_acceptIfSigned);
 					groupPerm.add(rb_perm_acceptIfSigned);
 					if(opPerm.equals(LinkPropertiesOption.OP_PERM_ACCEPT_IF_SIGNED)){
@@ -711,7 +711,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 					rb_perm_acceptIfSigned.addItemListener(itemListener);
 				}
 
-				String autoUpgradeTip = StringUtil.replace((String)ResourceUtil.get(9153), "{upgradeurl}", upgradeURL);
+				String autoUpgradeTip = StringUtil.replace(ResourceUtil.get(9153), "{upgradeurl}", upgradeURL);
 				autoUpgradeTip = StringUtil.replace(autoUpgradeTip, "{active}", ACTIVE);
 				ch_autoUpgrade.setToolTipText("<html>" + autoUpgradeTip + "</html>");
 				final boolean isEnableUpgrade = PropertiesManager.getValue(
@@ -760,9 +760,9 @@ public class LinkProjectPanel extends ProjectListPanel{
 				panel.add(checkPanel, BorderLayout.NORTH);				
 			}
 			{
-				final String line1 = StringUtil.replace((String)ResourceUtil.get(9154), "{isRoot}", (String)ResourceUtil.get(8017));
-				final String line2 = StringUtil.replace((String)ResourceUtil.get(9155), "{apply}", saveAndApply);
-				final String line3 = (String)ResourceUtil.get(9156);
+				final String line1 = StringUtil.replace(ResourceUtil.get(9154), "{isRoot}", ResourceUtil.get(8017));
+				final String line2 = StringUtil.replace(ResourceUtil.get(9155), "{apply}", saveAndApply);
+				final String line3 = ResourceUtil.get(9156);
 				final JPanel descPanel = ServerUIUtil.buildDescPanel(
 						HttpUtil.getHtmlLineStartTag() + line1 +
 						"<BR>" +
@@ -807,7 +807,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 		}else{
 			isOpenApply = true;
 		}
-		final String exitText = (String) ResourceUtil.get(1011);
+		final String exitText = ResourceUtil.get(1011);
 		
 		final ActionListener cancelListener = new HCActionListener(new Runnable() {
 			@Override
@@ -890,7 +890,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 	protected LinkNamePanel showInputLinkName(final JFrame self, final String linkName, final String mem, 
 			final Component relativeTo, final LinkProjectStore lps) {
 		final LinkNamePanel panel = new LinkNamePanel(linkName, mem, ContextSecurityConfig.getContextSecurityConfig(lps), lps);
-		App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(9017), true, null, null,
+		App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(9017), true, null, null,
 			null, //cancel
 			new HCActionListener(new Runnable() {
 				@Override
@@ -942,7 +942,7 @@ public class LinkProjectPanel extends ProjectListPanel{
 					}else{
 						final String licenseURL = ((String)map.get(HCjar.PROJ_LICENSE)).trim();
 						if(ResourceUtil.needAccepLicense(licenseURL)){
-							ProcessingWindowManager.showCenterMessageOnTop(self, true, (String)ResourceUtil.get(9110), null);//processing...
+							ProcessingWindowManager.showCenterMessageOnTop(self, true, ResourceUtil.get(9110), null);//processing...
 							final IBiz biz = new IBiz(){
 								@Override
 								public void setMap(final HashMap map) {
@@ -989,8 +989,8 @@ public class LinkProjectPanel extends ProjectListPanel{
 			if(lps.getProjectID().equals(proj_id)){
 //						tablePanel.table.setRowSelectionInterval(i, i);
 				//override project
-				final String overrideStr = StringUtil.replace((String)ResourceUtil.get(9157), "{id}", proj_id);
-				final int out = App.showOptionDialog(self, overrideStr, (String)ResourceUtil.get(9158));
+				final String overrideStr = StringUtil.replace(ResourceUtil.get(9157), "{id}", proj_id);
+				final int out = App.showOptionDialog(self, overrideStr, ResourceUtil.get(9158));
 				if(out == JOptionPane.YES_OPTION){
 					delProjInList(led);
 					

@@ -1,5 +1,19 @@
 package hc.server.ui.design;
 
+import java.awt.Window;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+
 import hc.App;
 import hc.UIActionListener;
 import hc.core.BaseWatcher;
@@ -43,20 +57,6 @@ import hc.util.PropertiesManager;
 import hc.util.RecycleProjThreadPool;
 import hc.util.ResourceUtil;
 import hc.util.UILang;
-
-import java.awt.Window;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Vector;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
 
 public class MobiUIResponsor extends BaseResponsor {
 	public final ExceptionCatcherToWindow ec;
@@ -313,19 +313,26 @@ public class MobiUIResponsor extends BaseResponsor {
 		
 		final Iterator<LinkProjectStore> lpsIt = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		int count = 0;
+		boolean hasRoot = false;
 		while(lpsIt.hasNext()){
 			final LinkProjectStore lps = lpsIt.next();
 			if(!lps.isActive()){
 				continue;
 			}
 			final Map<String, Object> map = HCjar.loadHarFromLPS(lps);
-			
+			if(lps.isRoot()) {
+				hasRoot = true;
+			}
 			//先暂存到Map中，因为后续需要检查判断。
 			maps[count] = map;
 			lpss[count] = lps;
 			projIDs[count] = lps.getProjectID();
 			
 			count++;
+		}
+		
+		if(hasRoot == false) {
+			lpss[0].setRoot(true);
 		}
 		
 		final boolean isInstallFromClient = false;
@@ -704,7 +711,7 @@ public class MobiUIResponsor extends BaseResponsor {
 				final ProjResponser projResponser = responsors[i];
 				ServerUIAPIAgent.addSequenceWatcherInProjContextForSessionFirst(j2seCoreSS, projResponser, new ReturnableRunnable() {
 					@Override
-					public Object run() {
+					public Object run() throws Throwable {
 						j2seCoreSS.shutdowScheduler(projResponser.context);
 						return null;
 					}
@@ -740,7 +747,7 @@ public class MobiUIResponsor extends BaseResponsor {
 				public boolean watch() {
 					ServerUIAPIAgent.runAndWaitInProjContext(context, new ReturnableRunnable() {
 						@Override
-						public Object run() {
+						public Object run() throws Throwable {
 							projResponser.notifyFinishAllSequTask();
 							return null;
 						}
@@ -819,7 +826,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	private final void fireSystemEventListenerInSequence(final J2SESession coreSS, final ProjResponser resp, final ProjectContext ctx, final String event) {
 		final ReturnableRunnable runnable = new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				final Enumeration<SystemEventListener> sels = ServerUIAPIAgent.getSystemEventListener(coreSS, ctx);
 				try{
 					while(sels.hasMoreElements()){
@@ -876,7 +883,7 @@ public class MobiUIResponsor extends BaseResponsor {
 				return projIDs[i];
 			}
 		}
-		return null;
+		return projIDs[0];//缺省
 	}
 	
 	public final ProjResponser getCurrentProjResponser(final J2SESession session){

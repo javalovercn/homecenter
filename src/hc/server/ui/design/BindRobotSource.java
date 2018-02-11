@@ -94,7 +94,7 @@ public class BindRobotSource extends IoTSource{
 				LogManager.log("try [declareReferenceDeviceID] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
 				final String[] referID = (String[])pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 					@Override
-					public Object run() {
+					public Object run() throws Throwable {
 						return r.declareReferenceDeviceID();
 					}
 				});
@@ -149,7 +149,7 @@ public class BindRobotSource extends IoTSource{
 	public final DeviceCompatibleDescription getDeviceCompatibleDescByRobotToUserThread(final ProjResponser pr, final Robot r, final String referenceDeviceID) {
 		return (DeviceCompatibleDescription)pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				return r.getDeviceCompatibleDescription(referenceDeviceID);
 			}
 		});
@@ -162,7 +162,7 @@ public class BindRobotSource extends IoTSource{
 		}else{
 			return (DataDeviceCapDesc)pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					return new DataDeviceCapDesc(devCompDesc.getDescription(), devCompDesc.getCompatibleStringList(), devCompDesc.getVersion());
 				}
 			});
@@ -177,7 +177,7 @@ public class BindRobotSource extends IoTSource{
 		
 		pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				deviceInfo.deviceCompatibleDescriptionCache = deviceInfo.device.getDeviceCompatibleDescription();
 				MSBAgent.getCompatibleItemToUserThread(pr, true, deviceInfo.deviceCompatibleDescriptionCache);
 				return null;
@@ -193,7 +193,7 @@ public class BindRobotSource extends IoTSource{
 		
 		pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				converterInfo.upDeviceCompatibleDescriptionCache = converterInfo.converter.getUpDeviceCompatibleDescription();
 				converterInfo.downDeviceCompatibleDescriptionCache = converterInfo.converter.getDownDeviceCompatibleDescription();
 				
@@ -243,7 +243,7 @@ public class BindRobotSource extends IoTSource{
 						
 						final String[] devRealIDS = (String[])pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 							@Override
-							public Object run() {
+							public Object run() throws Throwable {
 								LogManager.log("try [connect] for real device IDs of Device ["+ dev_name + "] in project [" + projectID + "]...");
 								final String[] out = MSBAgent.getRegisterDeviceID(device, respo.msbAgent.workbench);
 								LogManager.log("successful [connect] for real device IDs of Device ["+ dev_name + "] in project [" + projectID + "].");

@@ -1,17 +1,18 @@
 package hc.server.util;
 
+import java.io.File;
+import java.util.Vector;
+
+import javax.swing.JPanel;
+
 import hc.App;
 import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
 import hc.server.JRubyInstaller;
 import hc.server.PlatformManager;
+import hc.server.PlatformService;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
-
-import java.io.File;
-import java.util.Vector;
-
-import javax.swing.JPanel;
 
 public class ServerUtil {
 
@@ -31,12 +32,13 @@ public class ServerUtil {
 	}
 	
 	public static ClassLoader buildProjClassLoader(final File libAbsPath, final String projID){
-		return buildProjClassPath(libAbsPath, getJRubyClassLoader(false), projID);
+		return buildProjClassPath(libAbsPath, getJRubyClassLoader(), projID);
 	}
 	
 	static ClassLoader rubyAnd3rdLibsClassLoaderCache;
 	
-	public static synchronized ClassLoader getJRubyClassLoader(final boolean forceRebuild){
+	public static synchronized ClassLoader getJRubyClassLoader(){
+		final boolean forceRebuild = false;//强制使用新的。
 		CCoreUtil.checkAccess();
 
 		if(rubyAnd3rdLibsClassLoaderCache == null || forceRebuild){
@@ -54,15 +56,23 @@ public class ServerUtil {
 		}else{
 			LogManager.log("Successful (re) create JRuby engine classLoader.");
 		}
+		
 		return rubyAnd3rdLibsClassLoaderCache;
 	}
 	
 	private static ClassLoader buildJRubyClassLoader() {
 		final File jruby = new File(ResourceUtil.getBaseDir(), JRubyInstaller.jrubyjarname);
 		
-		PlatformManager.getService().setJRubyHome(PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer), jruby.getAbsolutePath());
+		final PlatformService service = PlatformManager.getService();
 		
-		final File[] files = {jruby};
-		return PlatformManager.getService().loadClasses(files, PlatformManager.getService().get3rdAndServClassLoader(null), true, "hc.jruby");
+		service.setJRubyHome(PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer), jruby.getAbsolutePath());
+		final File[] files;
+		if(ResourceUtil.isAndroidServerPlatform()) {
+			final File[] rubotoFile = service.getRubotoAndDxFiles();//in J2SE, return null;
+			files = new File[]{jruby, rubotoFile[0], rubotoFile[1]};
+		}else {
+			files = new File[]{jruby};
+		}
+		return service.loadClasses(files, service.get3rdAndServClassLoader(null), true, "hc.jruby");
 	}
 }

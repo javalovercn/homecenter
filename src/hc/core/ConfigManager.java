@@ -103,6 +103,19 @@ public class ConfigManager {
 		return ((Boolean)v).booleanValue();
 	}
 	
+	public static void put(final Object tag, final boolean value) {
+		put(tag, value?IConstant.TRUE:IConstant.FALSE);
+	}
+	
+	public static boolean isTrue(final Object tag, final boolean defaultValue) {
+		final Object result = table.get(tag);
+		if(result == null) {
+			return defaultValue;
+		}else {
+			return IConstant.TRUE.equals(result);
+		}
+	}
+	
 	public static void setBackground(boolean isBack){
 		table.put(UI_IS_BACKGROUND, new Boolean(isBack));
 	}
@@ -157,7 +170,7 @@ public class ConfigManager {
 	public static final int NET_TYPE_2G_3G_XG = 2;
 	
 	public static final Integer getCurrNetType(){
-		return (Integer)ConfigManager.get(ConfigManager.STATUS_NET_TYPE, new Integer(ConfigManager.NET_TYPE_2G_3G_XG));
+		return (Integer)ConfigManager.get(ConfigManager.STATUS_NET_TYPE, new Integer(ConfigManager.NET_TYPE_WIFI));
 	}
 	
 	public static final int FLAG_NOTIFICATION_SOUND = 1;

@@ -1,5 +1,18 @@
 package hc.server.ui;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Vector;
+
 import hc.core.IConstant;
 import hc.core.L;
 import hc.core.util.BooleanValue;
@@ -23,19 +36,6 @@ import hc.server.util.HCInputStreamBuilder;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 import hc.util.ThreadConfig;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Vector;
 
 /**
  * a {@link ClientSession} instance will be created before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}, and will be released by server after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
@@ -64,6 +64,8 @@ public final class ClientSession {
 	 * @param ctx
 	 */
 	final void notifyInputMemberID(final ProjectContext ctx){
+		ServerUIUtil.checkLineOnForAPI(j2seCoreSSMaybeNull);
+
 		final Object threadWait = new Object();
 		
 		final BooleanValue memberIDSetStatus = j2seCoreSSMaybeNull.memberIDSetStatus;
@@ -89,6 +91,7 @@ public final class ClientSession {
 		}
 		
 		j2seCoreSSMaybeNull.removeWaitLock(threadWait);
+		ServerUIUtil.checkLineOnForAPI(j2seCoreSSMaybeNull);
 	}
 	
 	/**
@@ -165,11 +168,13 @@ public final class ClientSession {
 			return SimuMobile.buildMobileImageStream();
 		}
 		
+		ServerUIUtil.checkLineOnForAPI(j2seCoreSSMaybeNull);
+		
 		final StreamBuilder streamBuilder = new StreamBuilder(j2seCoreSSMaybeNull);
 		
 		final hc.core.util.io.HCInputStream baseIS = (hc.core.util.io.HCInputStream)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				final StringBuilder sb = StringBuilderCacher.getFree();
 				
 				sb.append(IConstant.toString(isRequireLocation));
@@ -287,6 +292,7 @@ public final class ClientSession {
 			}catch (final Exception e) {
 			}
 		}
+		ServerUIUtil.checkLineOnForAPI(j2seCoreSSMaybeNull);
 		return null;
 	}
 	
@@ -370,11 +376,13 @@ public final class ClientSession {
 			return SimuMobile.buildMobileAudioStream();
 		}
 		
+		ServerUIUtil.checkLineOnForAPI(j2seCoreSSMaybeNull);
+		
 		final StreamBuilder streamBuilder = new StreamBuilder(j2seCoreSSMaybeNull);
 		
 		final hc.core.util.io.HCInputStream baseIS = (hc.core.util.io.HCInputStream)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				final StringBuilder sb = StringBuilderCacher.getFree();
 				
 				sb.append(IConstant.toString(isRequireLocation));
@@ -448,6 +456,7 @@ public final class ClientSession {
 			}catch (final Exception e) {
 			}
 		}
+		ServerUIUtil.checkLineOnForAPI(j2seCoreSSMaybeNull);
 		return null;
 	}
 	
@@ -560,6 +569,8 @@ public final class ClientSession {
 			return SimuMobile.buildMobileAudioFileStream();
 		}
 		
+		ServerUIUtil.checkLineOnForAPI(j2seCoreSSMaybeNull);
+		
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		
 		sb.append(TYPE_AUDIO);
@@ -585,6 +596,8 @@ public final class ClientSession {
 		if(j2seCoreSSMaybeNull == null){
 			return SimuMobile.buildMobileImageFileStream();
 		}
+		
+		ServerUIUtil.checkLineOnForAPI(j2seCoreSSMaybeNull);
 		
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		
@@ -662,6 +675,8 @@ public final class ClientSession {
 			}
 		}
 		
+		ServerUIUtil.checkLineOnForAPI(j2seCoreSSMaybeNull);
+		
 		if(type == null){
 			type = TYPE_ALL;
 		}
@@ -692,7 +707,7 @@ public final class ClientSession {
 		
 		final hc.core.util.io.HCInputStream baseIS = (hc.core.util.io.HCInputStream)ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				return streamBuilder.buildInputStream(eClass, typeBS, 0, typeBS.length, true);
 			}
 		});
@@ -759,6 +774,7 @@ public final class ClientSession {
 			}catch (final Exception e) {
 			}
 		}
+		ServerUIUtil.checkLineOnForAPI(j2seCoreSSMaybeNull);
 		return null;
 	}
 	
@@ -775,6 +791,8 @@ public final class ClientSession {
 		if(j2seCoreSSMaybeNull == null){
 			return SimuMobile.MOBILE_QR_RESULT;
 		}
+		
+		ServerUIUtil.checkLineOnForAPI(j2seCoreSSMaybeNull);
 		
 		final Thread threadSnap = Thread.currentThread();
 		waitThread = threadSnap;//注意：不考虑多线程并发调用
@@ -795,6 +813,8 @@ public final class ClientSession {
 			} catch (final InterruptedException e) {
 			}
 		}
+		
+		ServerUIUtil.checkLineOnForAPI(j2seCoreSSMaybeNull);
 		
 		final String result = (String)ThreadConfig.getValue(ThreadConfig.QR_RESULT, true);
 		if(HCURL.CANCEL_HC_CMD.equals(result)){

@@ -1,17 +1,5 @@
 package hc.server.ui.design;
 
-import hc.App;
-import hc.core.ContextManager;
-import hc.core.util.StringUtil;
-import hc.server.ui.ClientDesc;
-import hc.server.ui.design.hpj.HCTextPane;
-import hc.server.ui.design.hpj.HPNode;
-import hc.util.ClassUtil;
-import hc.util.HCDialog;
-import hc.util.PropertiesManager;
-import hc.util.ResourceUtil;
-import hc.util.StringBuilderCacher;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -57,6 +45,18 @@ import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
 import javax.swing.text.Highlighter.Highlight;
 import javax.swing.tree.DefaultMutableTreeNode;
+
+import hc.App;
+import hc.core.ContextManager;
+import hc.core.util.StringUtil;
+import hc.server.ui.ClientDesc;
+import hc.server.ui.design.hpj.HCTextPane;
+import hc.server.ui.design.hpj.HPNode;
+import hc.util.ClassUtil;
+import hc.util.HCDialog;
+import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
+import hc.util.StringBuilderCacher;
 
 public class SearchDialog extends HCDialog implements DesignScriptNodeIterator {
 	static Highlighter.HighlightPainter SEARCH_CODE_LINE_LIGHTER = new DefaultHighlighter.
@@ -193,7 +193,7 @@ public class SearchDialog extends HCDialog implements DesignScriptNodeIterator {
 	public SearchDialog(final Designer frame){
 		super(frame, "Search Dialog", false);
 		designer = frame;
-		
+		setAlwaysOnTop(true);
 		searchComboBox.setEditable(true);
 		
 		searchButton.addActionListener(new ActionListener() {

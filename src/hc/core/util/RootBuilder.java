@@ -19,6 +19,10 @@ public abstract class RootBuilder {
 	public static final short ROOT_SET_LAST_ALIVE_IP_INFO = 16;
 	public static final short ROOT_QUERY_DIRECT_SERVER_IP = 17;
 	public static final short ROOT_SPEAK_VOICE = 18;
+	public static final short ROOT_GET_MB_PROP = 19;
+	public static final short ROOT_THROW_CAUSE_ERROR = 20;
+	public static final short ROOT_GET_CAUSE_ERROR = 21;
+	public static final short ROOT_IS_CURR_THREAD_IN_SESSION_OR_PROJ_POOL = 22;
 	
 	private static RootBuilder instance;
 	
@@ -46,7 +50,7 @@ public abstract class RootBuilder {
 	 * @return
 	 */
 	public static final boolean isSimu(){
-		final Object out = getInstance().doBiz(RootBuilder.ROOT_BIZ_IS_SIMU, null);
+		final Object out = instance.doBiz(RootBuilder.ROOT_BIZ_IS_SIMU, null);
 		if(out != null && out instanceof Boolean){
 			return ((Boolean)out).booleanValue();
 		}

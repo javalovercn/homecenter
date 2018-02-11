@@ -1,5 +1,80 @@
 package hc;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.ComponentOrientation;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.lang.Thread.UncaughtExceptionHandler;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.channels.FileLock;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JRootPane;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.plaf.FontUIResource;
+
 import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.GlobalConditionWatcher;
@@ -79,80 +154,6 @@ import hc.util.StringBuilderCacher;
 import hc.util.TokenManager;
 import hc.util.UILang;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.ComponentOrientation;
-import java.awt.Container;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Frame;
-import java.awt.Graphics;
-import java.awt.GraphicsEnvironment;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.GridLayout;
-import java.awt.Insets;
-import java.awt.Toolkit;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.lang.Thread.UncaughtExceptionHandler;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.channels.FileLock;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JRootPane;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
-import javax.swing.border.BevelBorder;
-import javax.swing.border.Border;
-import javax.swing.border.EtchedBorder;
-import javax.swing.border.TitledBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.plaf.FontUIResource;
-
 public class App {//注意：本类名被工程HCAndroidServer的ServerMainActivity反射引用，请勿改名
 	public static final int EXIT_MAX_DELAY_MS = 30 * 1000;//10秒不够，60秒太长
 
@@ -164,6 +165,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 	
 	private static ThreadGroup threadPoolToken;
 	public static boolean DEBUG_THREAD_POOL_ON = false;
+	private static Vector poolVector;
 	
 	public static final char WINDOW_PATH_SEPARATOR = '\\';
 
@@ -237,6 +239,48 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		return group;
 	}
 	
+	/**
+	 * 
+	 * @param isThrowForProjAlsoObj false means not spread throw when in project level.
+	 * @return
+	 */
+	public static Boolean isSessionOrProjectPool(final Boolean isThrowForProjAlsoObj) {
+		final ThreadGroup tgCheck = Thread.currentThread().getThreadGroup();
+
+		final ReturnableRunnable runForInSessionProjPool = new ReturnableRunnable() {
+			@Override
+			public Object run() throws Throwable {
+				final Vector poolVectorLocal = poolVector;
+				if(poolVectorLocal == null) {
+					return IConstant.BOOL_FALSE;
+				}
+				final boolean isThrowForProjAlso = isThrowForProjAlsoObj.booleanValue();
+				
+				synchronized (poolVectorLocal) {
+					final int size = poolVectorLocal.size();
+					ThreadGroup tg = tgCheck;
+					while(tg != null) {
+						for (int i = 0; i < size; i++) {
+							final ThreadPool tp = (ThreadPool)poolVectorLocal.elementAt(i);
+							if(tp.getThreadGroup() == tg) {
+								final int poolType = tp.poolType;
+								if(poolType == ThreadPool.TYPE_SESSION || (isThrowForProjAlso && poolType == ThreadPool.TYPE_PROJECT)) {
+									return IConstant.BOOL_TRUE;
+								}else {
+									return IConstant.BOOL_FALSE;
+								}
+							}
+						}
+						tg = tg.getParent();
+					}
+				}
+				
+				return IConstant.BOOL_FALSE;
+			}
+		};
+		return (Boolean)ContextManager.getThreadPool().runAndWait(runForInSessionProjPool, threadPoolToken);
+	}
+	
 	private static void execMain(final String args[]) {
 		if(SafeDataManager.isCreateInitDir()){
 		}else{
@@ -247,8 +291,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 			}
 		}
 		
-		if (ResourceUtil.isJ2SELimitFunction() && getJREVer() < 1.6) {
-			JOptionPane.showMessageDialog(null, "JRE 1.6 or above!", "Error",
+		if (ResourceUtil.isJ2SELimitFunction() && getJREVer() < 1.7) {
+			JOptionPane.showMessageDialog(null, "JRE/JDK 1.7 or above is required!", "Error",
 					JOptionPane.ERROR_MESSAGE);
 			CCoreUtil.globalExit();
 		}
@@ -338,9 +382,12 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		if(ResourceUtil.isLoggerOn() == false){
 			LogManager.INI_DEBUG_ON = true;
 		}
+		
 		if(PropertiesManager.getValue(PropertiesManager.p_SetupVersion) == null){
 			PropertiesManager.setValue(PropertiesManager.p_SetupVersion, StarterManager.getHCVersion());
 		}
+		PropertiesManager.remove(PropertiesManager.p_jrubyJarFile);
+		PropertiesManager.remove(PropertiesManager.p_IsMobiMenu);
 		
 		if(isSimuFromArgs){
 			LogManager.log("init SecurityDataProtector...");
@@ -582,7 +629,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		PropertiesManager.saveFile();
 	}
 
-	public static void generateCert() {
+	public static void generateCertAndSave() {
 		CCoreUtil.checkAccess();
 		
 		byte[] newCertKey = CUtil.getCertKey();
@@ -593,11 +640,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		}
 
 		CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), newCertKey, 0, CCoreUtil.CERT_KEY_LEN);
-		if(IConstant.getInstance() != null){
-			IConstant.getInstance().setObject(IConstant.CertKey, newCertKey);
-		}else{
-			PropertiesManager.updateCertKey(newCertKey);
-		}
+		PropertiesManager.updateCertKey(newCertKey);
+		PropertiesManager.saveFile();
 	}
 	
 	private static void initServer() {
@@ -711,6 +755,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		PropertiesManager.remove(PropertiesManager.p_AutoStart);//废弃本项
 		LinkPropertiesOption.fixDisplayToOpValue();
 		
+		poolVector = ThreadPool.getPoolVector();
+		
 		final String password = PropertiesManager.getValue(PropertiesManager.p_password);
 		final String uuid = PropertiesManager.getValue(PropertiesManager.p_uuid);
 		if (password != null && uuid != null) {
@@ -776,12 +822,13 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		}
 		
 		try {
+			if(JRubyInstaller.checkNeedUpgradeJRuby()){//要置于下午doBefore之前
+				JRubyInstaller.startInstall();
+			}
+
 			TrayMenuUtil.doBefore();
 			
 			PlatformManager.getService().startCaptureIfEnable();//遗留功能，新用户停止开放！JMF is NOT installed for the newer version
-			if(JRubyInstaller.checkUpgradeJRuby()){
-				JRubyInstaller.startInstall();
-			}
 			LinkProjectManager.startAutoUpgradeBiz();
 			
 			J2SESessionManager.startNewIdleSession();
@@ -1580,7 +1627,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
     	
     	return ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				return JOptionPane.showInputDialog(parentComponent, message, title, messageType, 
 		    			icon, selectionValues, initialSelectionValue);
 			}
@@ -1637,7 +1684,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				ProcessingWindowManager.pause();
 
 				final ActionListener listener = new HCActionListener(new Runnable() {
@@ -1732,7 +1779,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		return (Integer)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				return JOptionPane.showConfirmDialog(parentComponent, message, title, optionType, messageType, icon);
 			}
 		});
@@ -1758,7 +1805,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 		return (Integer)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				return JOptionPane.showOptionDialog(parentComponent, message, title, optionType, messageType, icon, options, initialValue);
 			}
 		});
@@ -1789,6 +1836,14 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		showMessageDialog(parentComponent, message, title, messageType, null);
 	}
 	
+	public static void showInforMessageDialog(final Component parent, final String msg, final String title) {
+		App.showMessageDialog(parent, msg, title, App.INFORMATION_MESSAGE, App.getSysIcon(App.SYS_INFO_ICON));
+	}
+	
+	public static void showErrorMessageDialog(final Component parent, final String msg, final String title) {
+		App.showMessageDialog(parent, msg, title, App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+	}
+	
 	/**
 	 * 
 	 * @param parentComponent
@@ -1804,7 +1859,7 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 		
 //		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 //			@Override
-//			public Object run() {
+//			public Object run() throws Throwable {
 //				JOptionPane.showMessageDialog(parentComponent, message, title, messageType, icon);
 //				return null;
 //			}
@@ -2056,6 +2111,8 @@ public class App {//注意：本类名被工程HCAndroidServer的ServerMainActiv
 						App.storePWD(passwd2.getText());
 						if (isRegister) {
 							startAfterInfo();
+						}else {
+							SafeDataManager.startSafeBackupProcess(true, false);
 						}
 					} else {
 						App.showMessageDialog(window,

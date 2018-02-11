@@ -1,5 +1,14 @@
 package hc.server;
 
+import java.awt.BorderLayout;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.io.UnsupportedEncodingException;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+
 import hc.App;
 import hc.core.ConfigManager;
 import hc.core.ContextManager;
@@ -7,9 +16,7 @@ import hc.core.CoreSession;
 import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.L;
-import hc.core.MsgBuilder;
 import hc.core.cache.CacheManager;
-import hc.core.data.DataClientAgent;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
@@ -49,15 +56,6 @@ import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 
-import java.awt.BorderLayout;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.io.UnsupportedEncodingException;
-
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-
 public class J2SEServerURLAction implements IHCURLAction {
 	
 	@Override
@@ -80,16 +78,16 @@ public class J2SEServerURLAction implements IHCURLAction {
 				final int[] screenSize = ResourceUtil.getSimuScreenSize();
 				final int screenWidth = screenSize[0];
 				final int screenHeight = screenSize[1];
-				{
-					//保留旧的传送方式，另增加新的通道，参见E_TRANS_SERVER_CONFIG
-					final byte[] homeBS = new byte[MsgBuilder.UDP_BYTE_SIZE];
-					final DataClientAgent ss = new DataClientAgent();
-					ss.setBytes(homeBS);
-					
-					ss.setWidth(screenWidth);
-					ss.setHeight(screenHeight);
-					coreSS.context.send(MsgBuilder.E_SCREEN_REMOTE_SIZE, homeBS, ss.getLength());
-				}
+//				{
+//					//保留旧的传送方式，另增加新的通道，参见E_TRANS_SERVER_CONFIG
+//					final byte[] homeBS = new byte[MsgBuilder.UDP_BYTE_SIZE];
+//					final DataClientAgent ss = new DataClientAgent();
+//					ss.setBytes(homeBS);
+//					
+//					ss.setWidth(screenWidth / ResourceUtil.getScreenDeviceScale());
+//					ss.setHeight(screenHeight / ResourceUtil.getScreenDeviceScale());
+//					coreSS.context.send(MsgBuilder.E_SCREEN_REMOTE_SIZE, homeBS, ss.getLength());
+//				}
 				
 				final int mobileWidth = UserThreadResourceUtil.getDeviceWidthFrom(j2seCoreSS);
 				final int mobileHeight = UserThreadResourceUtil.getDeviceHeightFrom(j2seCoreSS);
@@ -127,7 +125,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 					public void run() {
 						final boolean tryEnter = (Boolean)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable(){
 							@Override
-							public Object run() {
+							public Object run() throws Throwable {
 								return LinkProjectStatus.tryEnterStatus(null, LinkProjectStatus.MANAGER_VIA_MOBILE);
 							}
 							
@@ -165,7 +163,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 
 							LogManager.log(ILog.OP_STR + "Ctrl + mouse left click at (" + x + ", " + y + ")");
 							
-							ScreenCapturer.doClickAt(url, ResourceUtil.getAbstractCtrlKeyCode(), x, y);
+							j2seCoreSS.cap.doClickAt(url, ResourceUtil.getAbstractCtrlKeyCode(), x, y);
 							return true;
 						}else if(value1.equals(HCURL.DATA_PARA_VALUE_SHIFT)){
 							final int x = Integer.parseInt(url.getValueofPara("x"));
@@ -173,7 +171,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 
 							LogManager.log(ILog.OP_STR + "Shift + mouse left click at (" + x + ", " + y + ")");
 							
-							ScreenCapturer.doClickAt(url, KeyEvent.VK_SHIFT, x, y);
+							j2seCoreSS.cap.doClickAt(url, KeyEvent.VK_SHIFT, x, y);
 							return true;
 						}
 					}
@@ -214,7 +212,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 				}else if(para1 != null && para1.equals(HCURL.DATA_PARA_DISMISS_QUES_DIALOG_BY_BACK)){
 					final int questionID = Integer.parseInt(url.getValueofPara(HCURL.DATA_PARA_DISMISS_QUES_DIALOG_BY_BACK));
 					
-					final ResParameter parameter = ServerUIAPIAgent.removeQuestionDialogFromMap(j2seCoreSS, questionID, true);
+					final ResParameter parameter = ServerUIAPIAgent.removeQuestionDialogFromMap(j2seCoreSS, questionID, true, false);
 					if(parameter != null){
 						if(parameter instanceof QuestionParameter){
 							ServerUIAPIAgent.execQuestionResult(j2seCoreSS, (QuestionParameter)parameter, 
@@ -472,7 +470,7 @@ public class J2SEServerURLAction implements IHCURLAction {
 		CCoreUtil.checkAccess();
 		
 		if(SYS_JRUBY_ENGINE[0] == null){
-			final HCJRubyEngine hcje = new HCJRubyEngine(null, null, ServerUtil.getJRubyClassLoader(false), true, HCJRubyEngine.IDE_LEVEL_ENGINE + "SYS_JRUBY_ENGINE");
+			final HCJRubyEngine hcje = new HCJRubyEngine(null, null, ServerUtil.getJRubyClassLoader(), true, HCJRubyEngine.IDE_LEVEL_ENGINE + "SYS_JRUBY_ENGINE");
 			final RecycleRes recycleRes = new RecycleRes("JRubyEngine", ContextManager.getThreadPool(), RecycleRes.getSequenceTempWatcher());
 			final ProjectContext context = ServerUIUtil.buildProjectContext("", "", recycleRes, null, null);
 			SYS_JRUBY_ENGINE[0] = hcje;

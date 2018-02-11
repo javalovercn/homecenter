@@ -55,7 +55,7 @@ import third.quartz.spi.TriggerFiredBundle;
 import third.quartz.spi.TriggerFiredResult;
 import hc.core.L;
 import hc.core.util.ThirdLogManager;
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 
 import static third.quartz.impl.matchers.EverythingMatcher.allTriggers;
@@ -702,7 +702,7 @@ public class RAMJobStore implements JobStore {
 
     /**
      * <p>
-     * Store the given <code>{@link hc.server.util.scheduler.JobCalendar}</code>.
+     * Store the given <code>{@link hc.server.util.calendar.JobCalendar}</code>.
      * </p>
      *
      * @param calendar
@@ -756,7 +756,7 @@ public class RAMJobStore implements JobStore {
 
     /**
      * <p>
-     * Remove (delete) the <code>{@link hc.server.util.scheduler.JobCalendar}</code> with the
+     * Remove (delete) the <code>{@link hc.server.util.calendar.JobCalendar}</code> with the
      * given name.
      * </p>
      *
@@ -836,7 +836,7 @@ public class RAMJobStore implements JobStore {
 
     /**
      * <p>
-     * Get the number of <code>{@link hc.server.util.scheduler.JobCalendar}</code> s that are
+     * Get the number of <code>{@link hc.server.util.calendar.JobCalendar}</code> s that are
      * stored in the <code>JobsStore</code>.
      * </p>
      */
@@ -895,7 +895,7 @@ public class RAMJobStore implements JobStore {
 
     /**
      * <p>
-     * Get the names of all of the <code>{@link hc.server.util.scheduler.JobCalendar}</code> s
+     * Get the names of all of the <code>{@link hc.server.util.calendar.JobCalendar}</code> s
      * in the <code>JobStore</code>.
      * </p>
      *

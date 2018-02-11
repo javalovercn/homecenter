@@ -22,8 +22,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import hc.server.util.lucene.Files;
-import hc.server.util.lucene.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,6 +41,8 @@ import third.apache.lucene.util.PriorityQueue;
 import third.apache.lucene.util.RamUsageEstimator;
 import third.apache.lucene.util.packed.GrowableWriter;
 import third.apache.lucene.util.packed.PackedInts;
+import third.hc.server.util.lucene.Files;
+import third.hc.server.util.lucene.Path;
 
 // TODO: break this into WritableFST and ReadOnlyFST.. then
 // we can have subclasses of ReadOnlyFST to handle the

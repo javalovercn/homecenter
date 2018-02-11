@@ -2,6 +2,8 @@ package hc.core.util;
 
 import java.util.Vector;
 
+import hc.core.IConstant;
+
 public abstract class ThreadPool {
 	private static final Stack waitStack = new Stack(32);
 	final static Vector list = new Vector(64);
@@ -9,9 +11,17 @@ public abstract class ThreadPool {
 	static protected boolean isShutDown = false;
 	protected final Object threadGroup;
 	protected String name = "";
-	private final boolean isServerAppPool;
+	private final boolean isServerLevelPool;
+	public final int poolType;
 	
-	private final static String DONE_RETURN = "doneReturn";
+	public final static int TYPE_DEFAULT = 0;
+	public final static int TYPE_PROJECT = 1;
+	public final static int TYPE_SESSION = 2;
+	
+	public final static Vector getPoolVector() {
+		RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_CHECK_STACK_TRACE, null);
+		return list;
+	}
 	
 	/**
 	 * 
@@ -29,23 +39,27 @@ public abstract class ThreadPool {
 	 * @return
 	 */
 	public final Object runAndWait(final ReturnableRunnable run, final Object threadToken){
-		Object[] wait;
+		return runAndWait(run, threadToken, false);
+	}
+	
+	public final Object runAndWait(final ReturnableRunnable run, final Object threadToken, final boolean isThrowError){
+		ThreadPoolResult wait;
 		synchronized (waitStack) {
-			wait = (Object[])waitStack.pop();
+			wait = (ThreadPoolResult)waitStack.pop();
 		}
 		if(wait == null){
-			wait = new Object[2];
+			wait = new ThreadPoolResult();
 		}
 		
-		final Object[] finalWait = wait;
+		final ThreadPoolResult finalWait = wait;
 		
 		this.run(new Runnable() {
 			public void run() {
 				try{
-					finalWait[0] = run.run();
+					finalWait.result = run.run();
 				}catch (Throwable e) {
-					finalWait[0] = e;
-					if(isServerAppPool){
+					finalWait.nestThrowable = e;
+					if(isServerLevelPool){
 						ExceptionReporter.printStackTrace(e, null, null, ExceptionReporter.INVOKE_NORMAL);
 					}else{
 						ExceptionReporter.printStackTraceFromThreadPool(e);
@@ -53,14 +67,14 @@ public abstract class ThreadPool {
 				}
 				
 				synchronized (finalWait) {
-					finalWait[1] = DONE_RETURN;
+					finalWait.isDone = true;
 					finalWait.notify();
 				}
 			}
 		}, threadToken);
 		
 		synchronized (finalWait) {
-			if(finalWait[1] == null){
+			if(finalWait.isDone == false){
 				try{
 					finalWait.wait();
 				}catch (Exception e) {
@@ -69,15 +83,25 @@ public abstract class ThreadPool {
 			}
 		}
 		
-		Object out = finalWait[0];
-		if(out != null && out instanceof Throwable){
-			this.printStack();
-			out = null;
-		}
-		finalWait[0] = null;
-		finalWait[1] = null;
+		Object out = finalWait.result;
+		final Throwable nestThrowable = finalWait.nestThrowable;
+		
+		finalWait.result = null;
+		finalWait.nestThrowable = null;
+		finalWait.isDone = false;
+		
 		synchronized (waitStack) {
 			waitStack.push(finalWait);
+		}
+		
+		if(nestThrowable != null) {
+			if(isThrowError  || ExceptionReporter.isCauseByLineOffSession(nestThrowable)) {
+				final RootBuilder instance = RootBuilder.getInstance();
+				final Boolean throwForProjAlso = isThrowError?IConstant.BOOL_TRUE:IConstant.BOOL_FALSE;
+				if(((Boolean)instance.doBiz(RootBuilder.ROOT_IS_CURR_THREAD_IN_SESSION_OR_PROJ_POOL, throwForProjAlso)).booleanValue()) {
+					instance.doBiz(RootBuilder.ROOT_THROW_CAUSE_ERROR, nestThrowable);
+				}
+			}
 		}
 		
 		return out;
@@ -100,8 +124,13 @@ public abstract class ThreadPool {
 	}
 	
 	public ThreadPool(Object threadGroup, final boolean isServerAppPool){
-		this.isServerAppPool = isServerAppPool;
+		this(threadGroup, isServerAppPool, TYPE_DEFAULT);
+	}
+	
+	public ThreadPool(Object threadGroup, final boolean isServerLevelPool, final int poolType){
+		this.isServerLevelPool = isServerLevelPool;
 		this.threadGroup = threadGroup;
+		this.poolType = poolType;
 		
 		synchronized (list) {
 			if(isShutDown){

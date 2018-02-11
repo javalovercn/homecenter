@@ -28,7 +28,7 @@ public class StyleManager {
 			if(coreSS.mobileValuesForCSS == null){
 				coreSS.mobileValuesForCSS = (Object[])ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
 					@Override
-					public Object run() {
+					public Object run() throws Throwable {
 						final Object[] values = {sizeHeightForXML.getFontSizeForSmall(), sizeHeightForXML.getFontSizeForNormal(), sizeHeightForXML.getFontSizeForLarge(),
 								sizeHeightForXML.getFontSizeForButton(), sizeHeightForXML.getButtonHeight(), UserThreadResourceUtil.getMletWidthFrom(coreSS), UserThreadResourceUtil.getMletHeightFrom(coreSS), 
 								sizeHeightForXML.getDialogBorderRadius(),

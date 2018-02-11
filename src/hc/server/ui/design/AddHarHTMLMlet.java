@@ -1,45 +1,5 @@
 package hc.server.ui.design;
 
-import hc.App;
-import hc.core.ContextManager;
-import hc.core.IContext;
-import hc.core.IWatcher;
-import hc.core.L;
-import hc.core.util.CCoreUtil;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.HCURL;
-import hc.core.util.LogManager;
-import hc.core.util.ReturnableRunnable;
-import hc.core.util.StringUtil;
-import hc.core.util.ThreadPriorityManager;
-import hc.server.HCActionListener;
-import hc.server.PlatformManager;
-import hc.server.ScreenServer;
-import hc.server.TrayMenuUtil;
-import hc.server.msb.ConverterInfo;
-import hc.server.msb.DeviceBindInfo;
-import hc.server.msb.RealDeviceInfo;
-import hc.server.msb.WiFiAccount;
-import hc.server.msb.WiFiHelper;
-import hc.server.ui.ClientSessionForSys;
-import hc.server.ui.HTMLMlet;
-import hc.server.ui.J2SESessionManager;
-import hc.server.ui.LinkProjectStatus;
-import hc.server.ui.Mlet;
-import hc.server.ui.ProjectContext;
-import hc.server.ui.ServerUIAPIAgent;
-import hc.server.ui.ServerUIUtil;
-import hc.server.ui.design.hpj.HCjad;
-import hc.server.ui.design.hpj.HCjar;
-import hc.server.util.DelDeployedProjManager;
-import hc.server.util.SafeDataManager;
-import hc.server.util.SignHelper;
-import hc.util.ClassUtil;
-import hc.util.HttpUtil;
-import hc.util.PropertiesManager;
-import hc.util.PropertiesSet;
-import hc.util.ResourceUtil;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -66,6 +26,46 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+
+import hc.App;
+import hc.core.ContextManager;
+import hc.core.IContext;
+import hc.core.IWatcher;
+import hc.core.L;
+import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.HCURL;
+import hc.core.util.LogManager;
+import hc.core.util.ReturnableRunnable;
+import hc.core.util.StringUtil;
+import hc.core.util.StringValue;
+import hc.core.util.ThreadPriorityManager;
+import hc.server.HCActionListener;
+import hc.server.PlatformManager;
+import hc.server.ScreenServer;
+import hc.server.TrayMenuUtil;
+import hc.server.msb.ConverterInfo;
+import hc.server.msb.DeviceBindInfo;
+import hc.server.msb.RealDeviceInfo;
+import hc.server.msb.WiFiAccount;
+import hc.server.msb.WiFiHelper;
+import hc.server.ui.ClientSessionForSys;
+import hc.server.ui.HTMLMlet;
+import hc.server.ui.J2SESessionManager;
+import hc.server.ui.LinkProjectStatus;
+import hc.server.ui.Mlet;
+import hc.server.ui.ProjectContext;
+import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.ServerUIUtil;
+import hc.server.ui.design.hpj.HCjad;
+import hc.server.ui.design.hpj.HCjar;
+import hc.server.util.DelDeployedProjManager;
+import hc.server.util.SafeDataManager;
+import hc.server.util.SignHelper;
+import hc.util.ClassUtil;
+import hc.util.HttpUtil;
+import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
 
 public class AddHarHTMLMlet extends SystemHTMLMlet {
 	final JTextArea msgArea = new JTextArea();
@@ -105,7 +105,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		
 		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				exitButtonStr = ResourceUtil.get(localCoreSS, 9131);
 				processingMsg = ResourceUtil.get(localCoreSS, 9130);
 				
@@ -326,7 +326,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 						public boolean watch() {
 							ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 								@Override
-								public Object run() {
+								public Object run() throws Throwable {
 									synchronized (isOvertime) {
 										if(isOvertime[0]){
 											return null;
@@ -407,7 +407,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 						
 						final LicenseHTMLMlet licenseHtmlMlet = (LicenseHTMLMlet)ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
 							@Override
-							public Object run() {
+							public Object run() throws Throwable {
 								return new LicenseHTMLMlet(licenseText, acceptAllAndNeverDisplay, yesInUserThread, noInUserThread,
 										okImage, cancelImage,
 										iagreeStr, acceptStr, cancelStr);
@@ -489,7 +489,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 
 		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				final BindHTMLMlet bindMlet = new BindHTMLMlet(source, token, nextOne, okImage, cancelImage,
 						okDesc, cancelDesc, true,
 						robotsDesc, convDesc, devDesc, waitLock, emptyDesc);
@@ -604,7 +604,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		
 		LinkProjectStore[] lpss = {};
 		lpss = lpsVectorNewStore.toArray(lpss);
-		AddHarHTMLMlet.saveLinkStore(lpss, AddHarHTMLMlet.newLinkProjSetInstance());//更新到LPS
+		LinkProjectManager.saveLinkStore(lpss, LinkProjectManager.newLinkProjSetInstance());//更新到LPS
 		return appendLPS;
 	}
 	
@@ -772,7 +772,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 			final ProjectContext context = pr.context;
 			final String elementID = CCoreUtil.SYS_PREFIX + claz.getSimpleName();
 			final String targetURL = HCURL.buildStandardURL(HCURL.FORM_PROTOCAL, elementID);
-			final AddHarHTMLMlet addHar = (AddHarHTMLMlet)ProjResponser.startMlet(coreSS, scripts, null, targetURL, elementID, "add HAR", pr.hcje, context, isSynchronized);
+			final AddHarHTMLMlet addHar = (AddHarHTMLMlet)ProjResponser.startMlet(coreSS, new StringValue(scripts), null, targetURL, elementID, "add HAR", pr.hcje, context, isSynchronized);
 			
 			return addHar;
 		}catch (final Throwable e) {
@@ -932,27 +932,6 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		final J2SESession coreSS = AddHarHTMLMlet.getCurrAddHarHTMLMletCoreSession();
 		TrayMenuUtil.displayMessage(ResourceUtil.get(coreSS, msgType),
 				msg, msgType, null, 0);
-	}
-
-	static PropertiesSet newLinkProjSetInstance() {
-		return new PropertiesSet(PropertiesManager.S_LINK_PROJECTS);
-	}
-
-	static void saveLinkStore(final LinkProjectStore[] lpss, final PropertiesSet projIDSet) {
-		final Object[] objs = new Object[lpss.length];
-		for (int i = 0; i < lpss.length; i++) {
-			final LinkProjectStore lps = lpss[i];
-			if(L.isInWorkshop){
-				LogManager.log("save link store for project [" + lps.getProjectID() + "] {" + lps + "}");
-			}
-			objs[i] = lps.toSerial();
-		}
-		
-		projIDSet.refill(objs);
-		projIDSet.save();
-		
-//		有可能只需要保存，而不需要拉新
-//		LinkProjectManager.reloadLinkProjects();
 	}
 	
 }

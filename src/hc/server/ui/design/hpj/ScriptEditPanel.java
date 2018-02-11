@@ -79,6 +79,7 @@ import hc.core.L;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
 import hc.core.util.StringBufferCacher;
+import hc.core.util.StringValue;
 import hc.core.util.ThreadPriorityManager;
 import hc.res.ImageSrc;
 import hc.server.CallContext;
@@ -220,7 +221,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	}
 	//不考虑负数，因为a-12不好处理
 	private static final Pattern num_pattern = Pattern.compile("\\b(((0|0b|0o|0d)?((\\d+(\\.)?\\d*|\\d*(\\.)?\\d+)|([0-9_]{4,}))(([eE]([-+])?)?\\d+)?)|(0x[0-9abcdefABCDEF]+))\\b", Pattern.MULTILINE);
-	private static final Pattern hc_map_pattern = Pattern.compile("\\$_hcmap\\b");
+//	private static final Pattern hc_map_pattern = Pattern.compile("\\$_hcmap\\b");
 	private static final Pattern rem_str_regexp_pattern = Pattern.compile("(#.*(?=\n)?)|(\".*?(?<!\\\\)\")|('.*?(?<!\\\\)')|(/.*?(?<!\\\\)/)");
 	private static final Pattern var_pattern = Pattern.compile("@{1,2}\\w+|\\$\\w+");//支持@@a的class instance和@a
 	
@@ -549,15 +550,16 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		consolePanel.ctp.clearText();
 		
 		try{
+			final StringValue sv = new StringValue(script);
 			{
 				callCtxNeverCycle.reset();
 				callCtxNeverCycle.targetURL = targetURL;
-				RubyExector.parse(callCtxNeverCycle, script, null, runTestEngine, false);
+				RubyExector.parse(callCtxNeverCycle, sv, null, runTestEngine, false);
 			}
 			if(callCtxNeverCycle.isError == false && (isRun || isCompileOnly == false)){
 				callCtxNeverCycle.reset();
 				callCtxNeverCycle.targetURL = targetURL;
-				RubyExector.runAndWaitInProjectOrSessionPool(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtxNeverCycle, script, null, map, runTestEngine, context);
+				RubyExector.runAndWaitInProjectOrSessionPool(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtxNeverCycle, sv, null, map, runTestEngine, context);
 			}
 		}catch (final Throwable e) {
 		}finally{
@@ -644,8 +646,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 		errorTimer.setErrorLable(errRunInfo, testBtn);
 		
-		final String runTip = "evaluate the script and execute it." +
-				"<BR>To apply modification and access from mobile, please click [<STRONG>" + Designer.ACTIVE + "</STRONG>]." +
+		final String runTip = "run this script for test, NOT activate current project for mobile client." +
+//				"<BR>To apply modification and access from mobile, please click [<STRONG>" + Designer.ACTIVE + "</STRONG>]." +
 				"<BR><BR>" +
 				"<STRONG>Note : </STRONG><BR>" +
 				"1. there is a JRuby engine instance for each project, and one for designer,<BR>" +
@@ -654,9 +656,13 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		{
 			final Action testAction = new AbstractAction() {
 				final String runTipHtml = "<html>" + runTip + "</html>";
-
+				boolean isClicked = false;
 				@Override
 				public void actionPerformed(final ActionEvent e) {
+					if(isClicked) {
+						return;
+					}
+					isClicked = true;
 					testBtn.setEnabled(false);
 					
 					ContextManager.getThreadPool().run(new Runnable() {
@@ -680,11 +686,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 //							});
 							
 							testBtn.setEnabled(true);
+							isClicked = false;
 						}
 					}, threadPoolToken);
 				}
 			};
-			ResourceUtil.buildAcceleratorKeyOnAction(testAction, KeyEvent.VK_T);//同时支持Windows下的Ctrl+T和Mac下的Command+T
+			ResourceUtil.buildAcceleratorKeyOnAction(testAction, KeyEvent.VK_R);//同时支持Windows下的Ctrl+R和Mac下的Command+R
 			testBtn.addActionListener(testAction);
 			testBtn.getActionMap().put("testAction", testAction);
 			testBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
@@ -708,7 +715,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			formatBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
 			        (KeyStroke) formatAction.getValue(Action.ACCELERATOR_KEY), "formatAction");
 		}
-		testBtn.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + T)" +
+		testBtn.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + R)" +
 				"<BR>" + runTip + 
 				"<BR><BR>JRuby compat version : <STRONG>" + HCJRubyEngine.JRUBY_PARSE_VERSION + "</STRONG>" +
 				"</html>");
@@ -2158,7 +2165,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		
 		jtaStyledDocment.setCharacterAttributes(offset, text.length(), DEFAULT_LIGHTER, true);
 		
-		buildHighlight(hc_map_pattern, MAP_LIGHTER, offset, text, isReplace);
+//		buildHighlight(hc_map_pattern, MAP_LIGHTER, offset, text, isReplace);
 		buildHighlight(num_pattern, NUM_LIGHTER, offset, text, isReplace);//要置于字符串之前，因为字符串中可能含有数字
 		buildHighlight(keywords_pattern, KEYWORDS_LIGHTER, offset, text, isReplace);
 		buildHighlight(var_pattern, VAR_LIGHTER, offset, text, isReplace);

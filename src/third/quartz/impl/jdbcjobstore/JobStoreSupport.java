@@ -19,7 +19,7 @@ package third.quartz.impl.jdbcjobstore;
 
 import hc.core.L;
 import hc.core.util.ThirdLogManager;
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
@@ -1638,7 +1638,7 @@ public abstract class JobStoreSupport implements JobStore, Constants {
 
     /**
      * <p>
-     * Store the given <code>{@link hc.server.util.scheduler.JobCalendar}</code>.
+     * Store the given <code>{@link hc.server.util.calendar.JobCalendar}</code>.
      * </p>
      * 
      * @param calName
@@ -1726,7 +1726,7 @@ public abstract class JobStoreSupport implements JobStore, Constants {
 
     /**
      * <p>
-     * Remove (delete) the <code>{@link hc.server.util.scheduler.JobCalendar}</code> with the
+     * Remove (delete) the <code>{@link hc.server.util.calendar.JobCalendar}</code> with the
      * given name.
      * </p>
      * 
@@ -1874,7 +1874,7 @@ public abstract class JobStoreSupport implements JobStore, Constants {
 
     /**
      * <p>
-     * Get the number of <code>{@link hc.server.util.scheduler.JobCalendar}</code> s that are
+     * Get the number of <code>{@link hc.server.util.calendar.JobCalendar}</code> s that are
      * stored in the <code>JobsStore</code>.
      * </p>
      */
@@ -2123,7 +2123,7 @@ public abstract class JobStoreSupport implements JobStore, Constants {
 
     /**
      * <p>
-     * Get the names of all of the <code>{@link hc.server.util.scheduler.JobCalendar}</code> s
+     * Get the names of all of the <code>{@link hc.server.util.calendar.JobCalendar}</code> s
      * in the <code>JobStore</code>.
      * </p>
      * 

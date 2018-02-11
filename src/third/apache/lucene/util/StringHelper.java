@@ -19,10 +19,11 @@ package third.apache.lucene.util;
 
 import java.io.DataInputStream;
 import java.math.BigInteger;
-import hc.server.util.lucene.Files;
-import hc.server.util.lucene.Paths;
 import java.util.Arrays;
 import java.util.Properties;
+
+import third.hc.server.util.lucene.Files;
+import third.hc.server.util.lucene.Paths;
 
 /**
  * Methods for manipulating strings.

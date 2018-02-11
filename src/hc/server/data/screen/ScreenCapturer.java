@@ -1,8 +1,20 @@
 package hc.server.data.screen;
 
+import java.awt.Rectangle;
+import java.awt.Robot;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
+import java.io.UnsupportedEncodingException;
+import java.util.Random;
+import java.util.Vector;
+
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.IConstant;
+import hc.core.L;
 import hc.core.MsgBuilder;
 import hc.core.RootServerConnector;
 import hc.core.data.DataInputEvent;
@@ -25,45 +37,18 @@ import hc.server.ui.design.J2SESession;
 import hc.server.util.IDArrayGroup;
 import hc.util.ResourceUtil;
 
-import java.awt.Rectangle;
-import java.awt.Robot;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.Transferable;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
-import java.util.Random;
-import java.util.Vector;
-
 public class ScreenCapturer extends PNGCapturer{
 	final private ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	final private Rectangle moveNewRect = new Rectangle();
 
 	private final int screenWidth, screenHeigh;
-	private static Object robotPeerMaybeNull;
-	private static Class robotPeerClassMaybeNull;
-	private static Robot robot;
+	private Robot robot;
 	public KeyComper mobiUserIcons;
 	private final TimeWatcher timeWatcher;
 	private boolean clearCacheThumbnail = false;
 	
 	public void clearCacheThumbnail(){
 		clearCacheThumbnail = true;
-	}
-	
-	static {
-		try {
-			robot = new Robot();
-			robot.setAutoDelay(50);
-		    robot.setAutoWaitForIdle(true);
-			robotPeerMaybeNull = PlatformManager.getService().createRobotPeer(robot);
-			robotPeerClassMaybeNull = Class.forName("java.awt.peer.RobotPeer");
-		} catch (final Throwable e) {
-			//以上不能catch Exception
-			LogManager.err("Not Found : java.awt.peer.RobotPeer(Sun API), use java.awt.Robot");
-		}
 	}
 	
 	/**
@@ -76,6 +61,15 @@ public class ScreenCapturer extends PNGCapturer{
 	public ScreenCapturer(final J2SESession coreSS, final int clientWidth, final int clientHeight, final int pcWidth, final int pcHeight) {
 		super(coreSS, pcWidth, pcHeight, true, 0);//全屏式
 	
+		try {
+			robot = new Robot();
+			robot.setAutoDelay(50);
+		    robot.setAutoWaitForIdle(true);
+		} catch (final Throwable e) {
+			//以上不能catch Exception
+			ExceptionReporter.printStackTrace(e);
+		}
+		
 		timeWatcher = new TimeWatcher(60 * 1000) {//超过一分钟
 			@Override
 			public final void doBiz() {
@@ -952,24 +946,14 @@ public class ScreenCapturer extends PNGCapturer{
 		//与缩略图可能存在并发问题，所以加锁
 		synchronized (LOCK){
 //			java.awt.peer.RobotPeer
-			if(robotPeerMaybeNull!=null){
-				try{
-					final Method m = robotPeerClassMaybeNull.getMethod("getRGBPixels", Rectangle.class);
-					out = (int[])m.invoke(robotPeerMaybeNull, bc);
-	//				out = ((RobotPeer)robotPeerMaybeNull).getRGBPixels(bc);
-				}catch (final Throwable e) {
-					e.printStackTrace();
-				}
-			}else{
-				out = robot.createScreenCapture(bc).getRGB(0, 0, bc.width, bc.height, null, 0, bc.width);
-			}
+			out = robot.createScreenCapture(bc).getRGB(0, 0, bc.width, bc.height, null, 0, bc.width);
 		}
 		final int length = bc.width * bc.height;
 		System.arraycopy(out, 0, rgb, 0, length);
 		return length;
 	}
 	
-	public static final void doClickAt(final HCURL url, final int mode, final int x, final int y) {
+	public final void doClickAt(final HCURL url, final int mode, final int x, final int y) {
 		synchronized (robot) {
 			robot.mouseMove(x, y);
 			

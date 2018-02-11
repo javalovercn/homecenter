@@ -1,14 +1,7 @@
 package hc.util;
 
-import hc.App;
-import hc.core.IContext;
-import hc.core.RootServerConnector;
-import hc.core.SessionManager;
-import hc.core.util.LogManager;
-import hc.server.HCActionListener;
-import hc.server.util.HCJFrame;
-
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +19,13 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
+import hc.App;
+import hc.core.IContext;
+import hc.core.RootServerConnector;
+import hc.core.SessionManager;
+import hc.core.util.LogManager;
+import hc.server.util.HCJFrame;
+
 public class MultiThreadDownloader {
 	private JFrame frame = new HCJFrame();
 	private final JProgressBar progress = new JProgressBar(0, 100);
@@ -36,8 +36,10 @@ public class MultiThreadDownloader {
 	Thread refreshProgress = null;
 	String fileName;
 	DownloadThread[] dts;
-	final ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	
+	/**
+	 * 注意：该类可能先于SecurityDataProtector执行，所以勿加载过多功能和逻辑。
+	 */
 	public MultiThreadDownloader(){
 		progress.setStringPainted(true);
 	}
@@ -100,9 +102,9 @@ public class MultiThreadDownloader {
 	        final JPanel panel = new JPanel(new BorderLayout());
 	        panel.add(progress, BorderLayout.NORTH);
 	        panel.add(desc, BorderLayout.CENTER);
-	        final ActionListener listener = new HCActionListener(new Runnable() {
+	        final ActionListener listener = new ActionListener() {
 				@Override
-				public void run() {
+				public void actionPerformed(final ActionEvent e) {
 					isCancel = true;
 					try{
 						if(frame != null){
@@ -112,9 +114,8 @@ public class MultiThreadDownloader {
 					}catch (final Exception ex) {
 					}
 				}
-			}, threadPoolToken);
-
-			final JButton button = new JButton((String)ResourceUtil.get(1018));
+	        };
+			final JButton button = new JButton(ResourceUtil.get(1018));
 			if(isCancelableByUser == false){
 				button.setEnabled(false);
 			}
@@ -153,7 +154,7 @@ public class MultiThreadDownloader {
     				LogManager.log(message);
         			if(isVisiable){
 						App.showMessageDialog(null, message, 
-        						(String)ResourceUtil.get(IContext.ERROR), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+        						ResourceUtil.get(IContext.ERROR), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
         			}
         			if(failBiz != null){
         				failBiz.start();
@@ -167,12 +168,12 @@ public class MultiThreadDownloader {
         				biz.start();
         			}else{
         				LogManager.err("fail to checksum : " + fileName);
-        				RootServerConnector.notifyLineOffType(SessionManager.getPreparedSocketSession(), "lof=MTD_ERR_CHECKSUM");
+        				RootServerConnector.notifyLineOffType(null, "lof=MTD_ERR_CHECKSUM");
     					final String message = "File [" + fileName + "] MD5 error, please try download it later!";
     					LogManager.log(message);
         				if(isVisiable){
 							App.showMessageDialog(null, message, 
-        						(String)ResourceUtil.get(IContext.ERROR), JOptionPane.ERROR_MESSAGE);
+        						ResourceUtil.get(IContext.ERROR), JOptionPane.ERROR_MESSAGE);
         				}
         				if(failBiz != null){
             				failBiz.start();

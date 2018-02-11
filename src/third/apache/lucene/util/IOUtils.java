@@ -17,9 +17,6 @@
 package third.apache.lucene.util;
 
 
-import hc.server.util.lucene.Files;
-import hc.server.util.lucene.Path;
-
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.IOException;
@@ -31,6 +28,9 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.util.Arrays;
 import java.util.Collection;
+
+import third.hc.server.util.lucene.Files;
+import third.hc.server.util.lucene.Path;
 
 /** This class emulates the new Java 7 "Try-With-Resources" statement.
  * Remove once Lucene is on Java 7.

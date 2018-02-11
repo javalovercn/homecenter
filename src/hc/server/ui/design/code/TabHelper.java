@@ -1,12 +1,5 @@
 package hc.server.ui.design.code;
 
-import hc.core.L;
-import hc.core.util.CCoreUtil;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.Stack;
-import hc.server.ui.design.hpj.ScriptEditPanel;
-import hc.server.ui.design.hpj.ScriptModelManager;
-
 import java.awt.Color;
 import java.awt.event.KeyEvent;
 
@@ -17,6 +10,14 @@ import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Document;
 import javax.swing.text.Highlighter;
 
+import hc.core.L;
+import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.Stack;
+import hc.server.ui.design.UpgradeManager;
+import hc.server.ui.design.hpj.ScriptEditPanel;
+import hc.server.ui.design.hpj.ScriptModelManager;
+
 public class TabHelper {
 	private static final Highlighter.HighlightPainter CODE_LIGHTER = new DefaultHighlighter.DefaultHighlightPainter(Color.decode("#B2D7FC"));
 	public static Object currFocusHighlight;
@@ -25,8 +26,8 @@ public class TabHelper {
 	static int currFocusHighlightStartIdx, currFocusHighlightEndIdx, inputShiftOffset;
 	
 	public static void initScriptPanel(final JTextPane sPanel, final ScriptEditPanel sep, final String listenerScript){
-		final String scripts = (listenerScript == null || listenerScript.length() == 0) ? ScriptModelManager.ENCODING_UTF_8 : listenerScript;
-		
+		String scripts = (listenerScript == null || listenerScript.length() == 0) ? ScriptModelManager.ENCODING_UTF_8 : listenerScript;
+		scripts = UpgradeManager.preProcessScript(scripts);
 		sep.setInitText(scripts);
 		final int initLoc = (ScriptModelManager.ENCODING_UTF_8.equals(scripts)?ScriptModelManager.ENCODING_UTF_8.length():0);
 		

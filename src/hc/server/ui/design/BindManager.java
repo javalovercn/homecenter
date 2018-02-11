@@ -235,7 +235,7 @@ public class BindManager {
 			final DeviceCompatibleDescription compDesc, final ArrayList<ConverterInfo> cbi){
 		return (ConverterInfo)pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				if(compDesc == null){
 					return null;
 				}
@@ -290,7 +290,7 @@ public class BindManager {
 			final DeviceCompatibleDescription compDesc, final ArrayList<RealDeviceInfo> rdbi){
 		return (RealDeviceInfo)pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				if(compDesc == null){
 					return null;
 				}

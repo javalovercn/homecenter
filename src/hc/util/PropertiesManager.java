@@ -1,5 +1,13 @@
 package hc.util;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.Properties;
+
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+
 import hc.App;
 import hc.core.IConstant;
 import hc.core.L;
@@ -15,14 +23,6 @@ import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
 import hc.server.util.HCEventQueue;
 import hc.server.util.HCLimitSecurityManager;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.util.Properties;
-
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
 public class PropertiesManager {
 	public static final String ILLEGAL_CLASS = "Illegal class attempts to access critical data or security codes.";
@@ -105,7 +105,7 @@ public class PropertiesManager {
 	
 	public static final String p_SearchDialogColumnWidths = "SearchDialogColumnWidths";
 
-	public static final String p_jrubyJarFile = "JRubyJarFile";
+	public static final String p_jrubyJarFile = "JRubyJarFile";//停用并清空
 	public static final String p_jrubyJarVer = "JRubyJarVer";
 	@Deprecated
 	public static final String p_SampleDeployNotify = "SampleNotify";
@@ -182,6 +182,8 @@ public class PropertiesManager {
 	public static final String p_IsReadedCAPCrash = "isReadedCrash";
 	public static final String p_selectedNetwork = "selectedNetwork";
 	public static final String p_selectedNetworkPort = "selectedNetworkPort";
+	
+	public static final String p_screenDeviceScale = "screenDeviceScale";
 	
 	/**
 	 * for Android auto start or not

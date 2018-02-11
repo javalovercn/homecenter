@@ -434,7 +434,7 @@ public class CronTriggerImpl extends AbstractTrigger<CronTrigger> implements Cro
      * has been added to the scheduler.
      * </p>
      *
-     * @see TriggerUtils#computeFireTimesBetween(third.quartz.spi.OperableTrigger, hc.server.util.scheduler.JobCalendar, java.util.Date, java.util.Date)
+     * @see TriggerUtils#computeFireTimesBetween(third.quartz.spi.OperableTrigger, hc.server.util.calendar.JobCalendar, java.util.Date, java.util.Date)
      */
     @Override
     public Date getNextFireTime() {
@@ -602,7 +602,7 @@ public class CronTriggerImpl extends AbstractTrigger<CronTrigger> implements Cro
      * </p>
      */
     @Override
-    public void updateAfterMisfire(hc.server.util.scheduler.JobCalendar cal) {
+    public void updateAfterMisfire(hc.server.util.calendar.JobCalendar cal) {
         int instr = getMisfireInstruction();
 
         if(instr == Trigger.MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY)
@@ -709,7 +709,7 @@ public class CronTriggerImpl extends AbstractTrigger<CronTrigger> implements Cro
      * @see #executionComplete(JobExecutionContext, JobExecutionException)
      */
     @Override
-    public void triggered(hc.server.util.scheduler.JobCalendar calendar) {
+    public void triggered(hc.server.util.calendar.JobCalendar calendar) {
         previousFireTime = nextFireTime;
         nextFireTime = getFireTimeAfter(nextFireTime);
 
@@ -721,10 +721,10 @@ public class CronTriggerImpl extends AbstractTrigger<CronTrigger> implements Cro
 
     /**
      *  
-     * @see AbstractTrigger#updateWithNewCalendar(hc.server.util.scheduler.JobCalendar, long)
+     * @see AbstractTrigger#updateWithNewCalendar(hc.server.util.calendar.JobCalendar, long)
      */
     @Override
-    public void updateWithNewCalendar(hc.server.util.scheduler.JobCalendar calendar, long misfireThreshold)
+    public void updateWithNewCalendar(hc.server.util.calendar.JobCalendar calendar, long misfireThreshold)
     {
         nextFireTime = getFireTimeAfter(previousFireTime);
         
@@ -775,7 +775,7 @@ public class CronTriggerImpl extends AbstractTrigger<CronTrigger> implements Cro
      *         </p>
      */
     @Override
-    public Date computeFirstFireTime(hc.server.util.scheduler.JobCalendar calendar) {
+    public Date computeFirstFireTime(hc.server.util.calendar.JobCalendar calendar) {
         nextFireTime = getFireTimeAfter(new Date(getStartTime().getTime() - 1000l));
 
         while (nextFireTime != null && calendar != null

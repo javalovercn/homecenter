@@ -90,7 +90,7 @@ public class SessionMobileContext {
 		}
 		
 		if(L.isInWorkshop){
-			LogManager.errToLog("fail to find current MobileContext of project");
+			LogManager.log("not find current MobileContext of project");
 		}
 		return null;
 	}

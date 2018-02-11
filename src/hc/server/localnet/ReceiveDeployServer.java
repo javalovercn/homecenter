@@ -1,16 +1,16 @@
 package hc.server.localnet;
 
-import hc.core.ContextManager;
-import hc.core.util.CCoreUtil;
-import hc.core.util.LogManager;
-import hc.util.HttpUtil;
-
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
+
+import hc.core.ContextManager;
+import hc.core.util.CCoreUtil;
+import hc.core.util.LogManager;
+import hc.util.HttpUtil;
 
 public class ReceiveDeployServer {
 
@@ -35,7 +35,7 @@ public class ReceiveDeployServer {
 			
 			final String gateIP = ip.substring(0, ip.lastIndexOf('.') + 1) + "1";
 
-			final int backlog = 2;
+			final int backlog = 10;
 			if(server != null){
 				server.close();
 			}

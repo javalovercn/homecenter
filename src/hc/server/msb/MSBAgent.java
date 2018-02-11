@@ -1,5 +1,9 @@
 package hc.server.msb;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashSet;
+
 import hc.core.ContextManager;
 import hc.core.CoreSession;
 import hc.core.util.CCoreUtil;
@@ -9,10 +13,6 @@ import hc.server.ui.ProjectContext;
 import hc.server.ui.design.AddHarHTMLMlet;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.HashSet;
 
 
 /**
@@ -30,7 +30,7 @@ public final class MSBAgent {
 		}else{
 			return (String[])pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					return compDesc.getCompatibleItem();
 				}
 			});
@@ -80,7 +80,7 @@ public final class MSBAgent {
 		if(hasToken){
 			ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					WiFiDeviceManager.getInstance(coreSS).clearWiFiAccountGroup(cmdGroup);		
 					return null;
 				}
@@ -95,7 +95,7 @@ public final class MSBAgent {
 		if(hasToken){
 			ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					WiFiDeviceManager.getInstance(coreSS).broadcastWiFiAccountAsSSID(encryptedCommand, cmdGroup);		
 					if(ContextManager.isMobileLogin(coreSS.context)){
 						final AddHarHTMLMlet mlet = AddHarHTMLMlet.getCurrAddHarHTMLMlet(coreSS);
@@ -116,7 +116,7 @@ public final class MSBAgent {
 		if(hasToken){
 			return (OutputStream)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					return WiFiDeviceManager.getInstance(coreSS).createWiFiMulticastStream(multicastIP, port);
 				}
 			}, sysThreadPoolToken);
@@ -145,7 +145,7 @@ public final class MSBAgent {
 		if(hasToken){
 			return (WiFiAccount)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					return WiFiHelper.getWiFiAccount(coreSS, ctx, (ThreadGroup)sysThreadPoolToken);
 				}
 			}, sysThreadPoolToken);
@@ -159,7 +159,7 @@ public final class MSBAgent {
 		if(hasToken){
 			final String[] out =  (String[])ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					return WiFiDeviceManager.getInstance(coreSS).getSSIDListOnAir();
 				}
 			}, sysThreadPoolToken);
@@ -177,7 +177,7 @@ public final class MSBAgent {
 		if(hasToken){
 			return (InputStream)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					return WiFiDeviceManager.getInstance(coreSS).listenFromWiFiMulticast(multicastIP, port);
 				}
 			}, sysThreadPoolToken);

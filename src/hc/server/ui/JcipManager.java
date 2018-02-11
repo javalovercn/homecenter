@@ -44,7 +44,7 @@ public class JcipManager {
 		final ProjectContext context = ServerUIAPIAgent.getProjectContextFromCtrl(cr);
 		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(context), new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				final int key = Integer.parseInt(keyValue);
 				cr.click(key);
 				

@@ -17,7 +17,7 @@
 
 package third.quartz.impl.jdbcjobstore;
 
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 import java.io.IOException;
 import java.sql.Connection;

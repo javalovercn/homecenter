@@ -54,7 +54,7 @@ public class UILang {
 			final String p_locale = locale;
 			ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					mobileRes.put(p_locale, buildMobiResourceBundle(p_locale));
 					return null;
 				}

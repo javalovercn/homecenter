@@ -1,5 +1,17 @@
 package hc.server.ui;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.Permission;
+import java.util.Enumeration;
+import java.util.Vector;
+
+import javax.imageio.ImageIO;
+import javax.swing.JToggleButton;
+
 import hc.App;
 import hc.core.BaseWatcher;
 import hc.core.ContextManager;
@@ -16,6 +28,7 @@ import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.core.util.Stack;
 import hc.core.util.StringUtil;
+import hc.core.util.StringValue;
 import hc.core.util.UIUtil;
 import hc.server.CallContext;
 import hc.server.MultiUsingManager;
@@ -38,18 +51,6 @@ import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 import hc.util.ThreadConfig;
-
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.security.Permission;
-import java.util.Enumeration;
-import java.util.Vector;
-
-import javax.imageio.ImageIO;
-import javax.swing.JToggleButton;
 
 public class ServerUIAPIAgent {
 	public static final String QUESTION_CANCEL = "cancel";
@@ -144,7 +145,7 @@ public class ServerUIAPIAgent {
 		return new MenuItem(name, type, image, url, i18nName, listener, extendMap);
 	}
 	
-	public final static void sendDialog(final J2SESession coreSS, final Dialog dialog_p, final Runnable buildProc, final ProjectContext ctx, 
+	public final static void sendDialog(final DialogParameter dialogParameter, final J2SESession coreSS, final Dialog dialog_p, final Runnable buildProc, final ProjectContext ctx, 
 			final DialogGlobalLock dialogLock){
 		final String elementID = HCURL.DIALOG_PRE + dialogLock.dialogID;
 
@@ -153,7 +154,7 @@ public class ServerUIAPIAgent {
 		runCtx.targetURL = targetURL;
 		final Mlet dialogMlet = (Mlet)runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				try{
 					final Dialog dialog;
 					if(dialog_p != null){
@@ -182,7 +183,7 @@ public class ServerUIAPIAgent {
 						dm.addDialog(dialog);
 					}
 	
-					dialog.resLock = dialogLock;
+					dialog.dialogParameter = dialogParameter;
 					return dialog.dialogCanvas;
 				}catch (final Throwable e) {
 					ExceptionReporter.printStackTrace(e);
@@ -257,7 +258,7 @@ public class ServerUIAPIAgent {
 		return item.i18nName;
 	}
 	
-	public final static String getMobiMenuItem_Listener(final MenuItem item){
+	public final static StringValue getMobiMenuItem_Listener(final MenuItem item){
 		return item.itemListener;
 	}
 	
@@ -381,9 +382,9 @@ public class ServerUIAPIAgent {
 	}
 	
 	public static QuestionParameter buildQuestionParameter(final J2SESession coreSS, 
-			final ProjectContext ctx, final QuestionGlobalLock quesLockMaybeNull, final int questionID, final String quesDesc,
+			final ProjectContext ctx, final QuestionGlobalLock quesLock, final int questionID, final String quesDesc,
 			final Runnable yesRunnable, final Runnable noRunnable, final Runnable cancelRunnable){
-		final QuestionParameter qp = new QuestionParameter(quesLockMaybeNull);
+		final QuestionParameter qp = new QuestionParameter(quesLock, questionID);
 		
 		qp.questionDesc = quesDesc;
 		
@@ -409,7 +410,7 @@ public class ServerUIAPIAgent {
 		if(isLoggerOn == null){
 			isLoggerOn = (Boolean)runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
-				public Object run() {
+				public Object run() throws Throwable {
 					return ResourceUtil.isLoggerOn();
 				}
 			});
@@ -464,12 +465,12 @@ public class ServerUIAPIAgent {
 	}
 	
 	public static Object runAndWaitInProjContext(final ProjectContext ctx, final ReturnableRunnable run){
-		return ctx.recycleRes.threadPool.runAndWait(run);
+		return ctx.recycleRes.threadPool.runAndWait(run, null);
 	}
 	
 	public static void runInSessionThreadPool(final J2SESession coreSS, final ProjResponser resp, final Runnable run){
 		final SessionContext mobileSession = resp.getMobileSession(coreSS);
-		if(mobileSession != null){
+		if(mobileSession != null){//&& coreSS.isExchangeStatus()
 			mobileSession.recycleRes.threadPool.run(run);
 		}
 	}
@@ -499,7 +500,7 @@ public class ServerUIAPIAgent {
 	public static void execQuestionResult(final J2SESession coreSS, final String ques_id, final String result){
 		try{
 			final int int_id = Integer.parseInt(ques_id);
-			final QuestionParameter qp = (QuestionParameter)removeQuestionDialogFromMap(coreSS, int_id, false);
+			final QuestionParameter qp = (QuestionParameter)removeQuestionDialogFromMap(coreSS, int_id, false, false);
 			if(qp != null){//有可能被撤消
 				execQuestionResult(coreSS, qp, int_id, result);
 			}
@@ -510,8 +511,8 @@ public class ServerUIAPIAgent {
 
 	public static boolean execQuestionResult(final J2SESession coreSS,
 			final QuestionParameter qp, final int int_id, final String result) {
-		final QuestionGlobalLock quesLock = qp.getGlobalLockMaybeNull();
-		if(quesLock != null){
+		final QuestionGlobalLock quesLock = qp.getGlobalLock();
+		if(quesLock.isForMultiple){
 			if(quesLock.isProcessed(coreSS, int_id, ResourceUtil.get(coreSS, 9237) + qp.questionDesc)){
 				return false;
 			}
@@ -521,76 +522,101 @@ public class ServerUIAPIAgent {
 		
 		final ProjResponser resp = qp.ctx.__projResponserMaybeNull;
 		if("yes".equals(result)){
-			if(qp.yesRunnable != null){
-				ServerUIAPIAgent.runInSessionThreadPool(coreSS, resp, qp.yesRunnable);
-				return true;
-			}
+			return processQuestionRunnable(false, coreSS, resp, qp.yesRunnable, quesLock);
 		}else if("no".equals(result)){
-			if(qp.noRunnable != null){
-				ServerUIAPIAgent.runInSessionThreadPool(coreSS, resp, qp.noRunnable);
-				return true;
-			}
+			return processQuestionRunnable(false, coreSS, resp, qp.noRunnable, quesLock);
 		}else if(QUESTION_CANCEL.equals(result)){
-			if(qp.cancelRunnable != null){
-				ServerUIAPIAgent.runInSessionThreadPool(coreSS, resp, qp.cancelRunnable);
-				return true;
-			}
+			return processQuestionRunnable(true, coreSS, resp, qp.cancelRunnable, quesLock);
 		}
 		
 		return false;
 	}
+	
+	private static boolean processQuestionRunnable(final boolean isFromCancel, final J2SESession coreSS, final ProjResponser resp, final Runnable run, final QuestionGlobalLock quesLock) {
+		if(run != null) {
+			final Runnable implRun = new Runnable() {
+				@Override
+				public void run() {
+					try {
+						run.run();
+					}finally {
+						quesLock.notifyWaitStop(coreSS, isFromCancel, false);
+					}
+				}
+			};
+			ServerUIAPIAgent.runInSessionThreadPool(coreSS, resp, implRun);
+			return true;
+		}else {
+			quesLock.notifyWaitStop(coreSS, isFromCancel, false);//解除锁定
+			return false;
+		}
+	}
 
 	public static ResParameter removeQuestionDialogFromMap(final J2SESession coreSS,
-			final int int_id, final boolean isFromCancel) {
+			final int int_id, final boolean isFromCancel, final boolean isFromLineOff) {
 		final ResParameter out;
 		
 		synchronized (coreSS.questionOrDialogMap) {
 			out = coreSS.questionOrDialogMap.remove(int_id);
 		}
 		
-		if(isFromCancel){
-			exitDialogMlet(out, isFromCancel);
-		}
+		exitDialogMlet(out, isFromCancel, isFromLineOff);
 		return out;
 	}
 
-	public static void exitDialogMlet(final ResParameter out, final boolean isFromCancel) {
-		if(out != null && out instanceof DialogParameter){
-			final DialogParameter para = (DialogParameter)out;
-			final IMletCanvas mletCanvas = para.getGlobalLock().mletCanvas;
-			
-			if(isFromCancel){
-				para.isDismissedByBack = true;
-				final Mlet mlet = mletCanvas.getMlet();
-				if(mlet != null && mlet instanceof DialogHTMLMlet){
-					final Dialog dialog = ((DialogHTMLMlet)mlet).dialog;
-					final ProjResponser resp = ServerUIAPIAgent.getProjResponserMaybeNull(out.ctx);
-					if(dialog != null && resp != null){
-						if(dialog instanceof SystemDialog){
-							((SystemDialog)dialog).setCanceled();
-						}
-						
-						L.V = L.WShop ? false : LogManager.log("Dialog.dismiss() is invoked by cancel/back/lineoff.");
-						ServerUIAPIAgent.runInSessionThreadPool(para.coreSS, resp, new Runnable() {
-							@Override
-							public void run() {
-								try{
-									dialog.dismiss();
-								}catch (final Throwable e) {
-									e.printStackTrace();
-								}
-								
-								if(dialog instanceof BlockSystemDialog){
-									((BlockSystemDialog)dialog).notifyBlockUserThread();
-								}
-							}
-						});
+	public static void exitDialogMlet(final ResParameter out, final boolean isFromCancel, final boolean isFromLineOff) {
+		if(out == null || out instanceof DialogParameter == false) {
+			return;
+		}
+		
+		final DialogParameter para = (DialogParameter)out;
+		final IMletCanvas mletCanvas = para.getGlobalLock().mletCanvas;
+		
+		if(isFromCancel || isFromLineOff){
+			para.isDismissedByBack = true;
+			final Mlet mlet = mletCanvas.getMlet();
+			if(mlet != null && mlet instanceof DialogHTMLMlet){
+				final Dialog dialog = ((DialogHTMLMlet)mlet).dialog;
+				final ProjResponser resp = ServerUIAPIAgent.getProjResponserMaybeNull(out.ctx);
+				if(dialog != null && resp != null){
+					if(dialog instanceof SystemDialog){
+						((SystemDialog)dialog).setCanceled();
 					}
+					
+					L.V = L.WShop ? false : LogManager.log("Dialog.dismiss() is invoked by cancel/back/lineoff.");
+					ServerUIAPIAgent.runInSessionThreadPool(para.coreSS, resp, new Runnable() {
+						@Override
+						public void run() {
+							try{
+								dialog.dismiss();//注意：cancel or line off
+							}catch (final Throwable e) {
+								e.printStackTrace();
+							}
+							
+							if(dialog instanceof BlockSystemDialog){
+								((BlockSystemDialog)dialog).notifyBlockUserThread();
+							}
+							
+							ServerUIAPIAgent.runInSysThread(new Runnable() {
+								@Override
+								public void run() {
+									releaseExit(isFromCancel, para, mletCanvas, isFromLineOff);
+								}
+							});
+						}
+					});
+					return;
 				}
 			}
-			
-			mletCanvas.onExit(false);
 		}
+		
+		releaseExit(isFromCancel, para, mletCanvas, isFromLineOff);//注意：此操作有可能在上段的back的会话中调用
+	}
+
+	private static void releaseExit(final boolean isFromCancel, final DialogParameter para, final IMletCanvas mletCanvas, final boolean isFromLineOff) {
+		mletCanvas.onExit(false);
+		
+		para.getGlobalLock().notifyWaitStop(para.coreSS, isFromCancel, isFromLineOff);
 	}
 	
 	public final static void loadStyles(final HTMLMlet mlet) {
@@ -902,7 +928,7 @@ public class ServerUIAPIAgent {
 		//如果同时发出两个msg，则可能不同步，所以以下要wait
 		runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				for (int i = 0; i < coreSS.length; i++) {
 					coreSS[i].context.send(MsgBuilder.E_GOTO_URL, url);
 				}
@@ -915,7 +941,7 @@ public class ServerUIAPIAgent {
 	static void tipOnTray(final String msg) {
 		runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), msg, IContext.INFO, null, 0);		
 				return null;
 			}
@@ -930,7 +956,7 @@ public class ServerUIAPIAgent {
 		
 		runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				for (int i = 0; i < coreSS.length; i++) {
 					final J2SESession oneCoreSS = coreSS[i];
 					sendOneMovingMsg(oneCoreSS, msg);
@@ -947,7 +973,7 @@ public class ServerUIAPIAgent {
 		
 		runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				for (int i = 0; i < coreSS.length; i++) {
 					final J2SESession oneCoreSS = coreSS[i];
 					sendVoice(oneCoreSS, voice);
@@ -982,7 +1008,7 @@ public class ServerUIAPIAgent {
 			if(fromMletMaybeNull != null && fromMletMaybeNull.isAutoReleaseAfterGo != isAutoReleaseCurrentMlet){//可能为null，比如从addHar
 				runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(context), new ReturnableRunnable() {
 					@Override
-					public Object run() {
+					public Object run() throws Throwable {
 						fromMletMaybeNull.setAutoReleaseAfterGo(isAutoReleaseCurrentMlet);
 						return null;
 					}
@@ -1047,7 +1073,7 @@ public class ServerUIAPIAgent {
 		mcanvas.setMlet(coreSS, mlet, context);
 		runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(context), new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				mcanvas.init();//in user thread
 				return null;
 			}
@@ -1088,7 +1114,7 @@ public class ServerUIAPIAgent {
 	//			final String encodeURL = URLEncoder.encode(url, IConstant.UTF_8);
 				runAndWaitInSysThread(new ReturnableRunnable() {
 					@Override
-					public Object run() {
+					public Object run() throws Throwable {
 						goInSysThread(coreSS, ctx, url);
 						return null;
 					}
@@ -1128,11 +1154,11 @@ public class ServerUIAPIAgent {
 				final Permission perm = urlConn.getPermission();
 				runAndWaitInSysThread(new ReturnableRunnable() {
 					@Override
-					public Object run() {
+					public Object run() throws Throwable {
 						final HCLimitSecurityManager manager = HCLimitSecurityManager.getHCSecurityManager();
 						runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
 							@Override
-							public Object run() {
+							public Object run() throws Throwable {
 								try{
 									ThreadConfig.putValue(ThreadConfig.AUTO_PUSH_EXCEPTION, false);//关闭push exception
 									manager.checkPermission(perm);
@@ -1184,7 +1210,7 @@ public class ServerUIAPIAgent {
 		
 		runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				setMletTarget(toMlet, targetOfMlet);
 				openMlet(coreSS, ctx, toMlet, targetOfMlet, isAutoReleaseCurrentMlet,
 						fromMletMaybeNull);
@@ -1234,7 +1260,7 @@ public class ServerUIAPIAgent {
 	public static Object getSysAttrInUserThread(final String key, final boolean isClearAfterGet) {
 		return ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				final ProjResponser pr = getProjResponserMaybeNull(ProjectContext.getProjectContext());
 				if(pr == null){
 					return null;

@@ -1,5 +1,6 @@
 package hc.server.ui;
 
+import hc.core.util.BooleanValue;
 import hc.core.util.HCURL;
 import hc.core.util.HCURLUtil;
 import hc.server.msb.UserThreadResourceUtil;
@@ -9,10 +10,67 @@ public class ResGlobalLock {
 	final String lockType;
 	public final J2SESession[] sessionGroup;
 	public boolean isProcessed;
+	final boolean isWaiting;
+	final boolean isSessionWait;
+	final BooleanValue waitingLock;
 
-	public ResGlobalLock(final J2SESession[] sessionGroup, final String lockType){
+	public ResGlobalLock(final boolean isForSession, final J2SESession[] sessionGroup, final String lockType, final boolean isWaiting){
+		this.isSessionWait = (isForSession && isWaiting);
 		this.sessionGroup = sessionGroup;
 		this.lockType = lockType;
+		this.isWaiting = isWaiting;
+		if(isWaiting) {
+			waitingLock = new BooleanValue();
+		}else {
+			waitingLock = null;
+		}
+	}
+	
+	public final boolean waitingResult() {
+		if(isWaiting) {
+			synchronized (waitingLock) {
+				try {
+					waitingLock.wait();
+				} catch (final InterruptedException e) {
+					e.printStackTrace();
+				}
+				return waitingLock.value;
+			}
+		}else {
+			return true;
+		}
+	}
+	
+	private boolean isSetNotifyResult;
+	
+	public final void notifyWaitStop(final J2SESession coreSS, final boolean isFromCancel, final boolean isFromLineOff) {
+		if(isWaiting == false) {
+			return;
+		}
+	
+		if(isFromLineOff) {
+			for (int i = 0; i < sessionGroup.length; i++) {
+				final J2SESession one = sessionGroup[i];
+				if(one != coreSS) {
+					if(one.isExchangeStatus()) {
+						return;
+					}
+				}
+			}
+		}
+		
+		synchronized (waitingLock) {
+			if(isSetNotifyResult == false) {
+				isSetNotifyResult = true;
+				
+				if(isSessionWait) {
+					waitingLock.value = (isFromCancel == false);
+				}else {
+					waitingLock.value = (isFromLineOff == false);
+				}
+			}
+			waitingLock.notifyAll();
+		}
 	}
 	
 	private final void cancelOthers(final int questionID, final J2SESession processingSession){
@@ -20,7 +78,7 @@ public class ResGlobalLock {
 			final J2SESession coreSS = sessionGroup[i];
 			if(coreSS != processingSession){
 				if(UserThreadResourceUtil.isInServing(coreSS.context)){
-					ServerUIAPIAgent.removeQuestionDialogFromMap(coreSS, questionID, true);
+					ServerUIAPIAgent.removeQuestionDialogFromMap(coreSS, questionID, true, false);
 					dismiss(coreSS, questionID);
 				}
 			}

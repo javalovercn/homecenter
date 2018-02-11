@@ -1,29 +1,5 @@
 package hc.server.ui.design.code;
 
-import hc.App;
-import hc.core.HCTimer;
-import hc.core.L;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.LogManager;
-import hc.server.CallContext;
-import hc.server.PlatformManager;
-import hc.server.data.KeyComperPanel;
-import hc.server.data.StoreDirManager;
-import hc.server.ui.Mlet;
-import hc.server.ui.SimuMobile;
-import hc.server.ui.design.engine.HCJRubyEngine;
-import hc.server.ui.design.engine.RubyExector;
-import hc.server.ui.design.hpj.HCTextPane;
-import hc.server.ui.design.hpj.HPNode;
-import hc.server.ui.design.hpj.HPShareJar;
-import hc.server.ui.design.hpj.MouseExitHideDocForMouseMovTimer;
-import hc.server.ui.design.hpj.ScriptEditPanel;
-import hc.server.util.IDEUtil;
-import hc.util.ClassUtil;
-import hc.util.PropertiesManager;
-import hc.util.ResourceUtil;
-import hc.util.StringBuilderCacher;
-
 import java.awt.Event;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -108,6 +84,31 @@ import org.jrubyparser.ast.VCallNode;
 import org.jrubyparser.ast.ZArrayNode;
 import org.jrubyparser.lexer.SyntaxException;
 import org.jrubyparser.parser.ParserConfiguration;
+
+import hc.App;
+import hc.core.HCTimer;
+import hc.core.L;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
+import hc.core.util.StringValue;
+import hc.server.CallContext;
+import hc.server.PlatformManager;
+import hc.server.data.KeyComperPanel;
+import hc.server.data.StoreDirManager;
+import hc.server.ui.Mlet;
+import hc.server.ui.SimuMobile;
+import hc.server.ui.design.engine.HCJRubyEngine;
+import hc.server.ui.design.engine.RubyExector;
+import hc.server.ui.design.hpj.HCTextPane;
+import hc.server.ui.design.hpj.HPNode;
+import hc.server.ui.design.hpj.HPShareJar;
+import hc.server.ui.design.hpj.MouseExitHideDocForMouseMovTimer;
+import hc.server.ui.design.hpj.ScriptEditPanel;
+import hc.server.util.IDEUtil;
+import hc.util.ClassUtil;
+import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
+import hc.util.StringBuilderCacher;
 
 public class CodeHelper {
 	public static final String OBJECT_STR = "Object";
@@ -3418,7 +3419,7 @@ public class CodeHelper {
 	
 	private final Node buildMiniNode(final String script, final ScriptEditPanel sep){
 		callCtxNeverCycle.reset();
-		RubyExector.parse(callCtxNeverCycle, script, null, SimuMobile.getRunTestEngine(), false);
+		RubyExector.parse(callCtxNeverCycle, new StringValue(script), null, SimuMobile.getRunTestEngine(), false);
 		
 		if(callCtxNeverCycle.isError == false){
 			return parseScripts(script);
@@ -5312,7 +5313,7 @@ public class CodeHelper {
 	}
 	
 	static final char[] JRUBY_JAVA_CLASS_CHARS = JRUBY_JAVA_CLASS.toCharArray();
-	static final char[] JAVA_MAO_MAO = "Java::".toCharArray();
+	static final char[] JAVA_MAO_MAO = RubyExector.JAVA_MAO_MAO.toCharArray();
 	static final char[] MAO_HAO_ONLY = "::".toCharArray();
 	static final char[] SET_CSS = "setCSS".toCharArray();
 	static final char[] SET_CSS_BY_CLASS = "setCSSByClass".toCharArray();

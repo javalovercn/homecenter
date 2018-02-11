@@ -1,5 +1,19 @@
 package hc.server;
 
+import java.awt.BorderLayout;
+import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.HCTimer;
@@ -17,20 +31,6 @@ import hc.server.util.StarterParameter;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
-
-import java.awt.BorderLayout;
-import java.awt.event.ActionListener;
-import java.io.DataInputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 public class DirectServer extends Thread {
 	ServerSocket server = null;
@@ -77,7 +77,7 @@ public class DirectServer extends Thread {
 				}catch (final Throwable e) {
 					LogManager.errToLog("[direct server] invalid port for direct server, use zero as port.");
 				}
-				final int backlog = 2;
+				final int backlog = 20;
 				boolean isAutoSelectPort = false;
 				try{
 					server.bind(new InetSocketAddress(ia, directServerPort), backlog);
@@ -92,7 +92,7 @@ public class DirectServer extends Thread {
 					final JPanel panel = new JPanel(new BorderLayout());
 					final String msg = "[direct server] port:" + directServerPort + " is used, select port:" + server.getLocalPort();
 					panel.add(new JLabel(msg, App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
-					App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(IContext.ERROR), false, 
+					App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(IContext.ERROR), false, 
 							(JButton)null, (String)null, (ActionListener)null, (ActionListener)null, (JFrame)null, 
 							false, true, null, false, false);
 					LogManager.err(msg);

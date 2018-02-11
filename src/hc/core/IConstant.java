@@ -119,6 +119,9 @@ public abstract class IConstant {
 	public static final String TRUE = "true";
 	public static final String FALSE = "false";
 	
+	public static final Boolean BOOL_TRUE = new Boolean(true);
+	public static final Boolean BOOL_FALSE = new Boolean(false);
+	
 	public static final String ON = "on";
 	public static final String OFF = "off";
 	

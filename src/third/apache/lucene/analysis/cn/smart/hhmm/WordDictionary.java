@@ -23,11 +23,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import hc.server.util.lucene.Files;
-import hc.server.util.lucene.Path;
-import hc.server.util.lucene.Paths;
 
 import third.apache.lucene.analysis.cn.smart.Utility;
+import third.hc.server.util.lucene.Files;
+import third.hc.server.util.lucene.Path;
+import third.hc.server.util.lucene.Paths;
 
 /**
  * SmartChineseAnalyzer Word Dictionary

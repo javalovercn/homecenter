@@ -1,5 +1,25 @@
 package hc.server;
 
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
+import java.util.Vector;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
+
 import hc.App;
 import hc.core.ClientInitor;
 import hc.core.ContextManager;
@@ -44,9 +64,11 @@ import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SingleMessageNotify;
 import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.JSEventCenterDriver;
 import hc.server.util.CacheComparator;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
+import hc.server.util.DiskManager;
 import hc.server.util.HCEventQueue;
 import hc.server.util.HCJDialog;
 import hc.server.util.HCLimitSecurityManager;
@@ -58,26 +80,6 @@ import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 import hc.util.TokenManager;
-
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.WindowEvent;
-import java.util.Vector;
-
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
-import javax.swing.border.TitledBorder;
 
 public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 	private final HCEventQueue hcEventQueue = HCLimitSecurityManager.getHCEventQueue();
@@ -263,21 +265,6 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 			eventCenter.addListener(new IEventHCListener(){
 				@Override
 				public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
-					final String url = HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA);
-
-					doCanvasMain(url);
-
-					return true;
-				}
-
-				@Override
-				public final byte getEventTag() {
-					return MsgBuilder.E_CANVAS_MAIN;
-				}});
-			
-			eventCenter.addListener(new IEventHCListener(){
-				@Override
-				public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 					if(isSendServerConfig == false){
 						SystemLockManager.addOneConnBuildTry(coreSS);
 						return true;
@@ -291,15 +278,15 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					
 					clientDesc.refreshClientVersionAndEncryptionStrength(j2seCoreSS, HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA));
 
-					final String pcReqMobiVer = (String)doExtBiz(BIZ_GET_REQ_MOBI_VER_FROM_PC, null);
-					if(StringUtil.higher(pcReqMobiVer, clientDesc.getHCClientVer())){
-						coreSS.context.send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS));
-						LogManager.err("mobile min version : [" + pcReqMobiVer + "] is required, current mobile version : [" + clientDesc.getHCClientVer() + "]");
-						LogManager.log("Cancel mobile login process");
-						sleepAfterError();
-						coreSS.notifyLineOff(false, false);
-						return true;
-					}
+//					final String pcReqMobiVer = (String)doExtBiz(BIZ_GET_REQ_MOBI_VER_FROM_PC, null);
+//					if(StringUtil.higher(pcReqMobiVer, clientDesc.getHCClientVer())){
+//						coreSS.context.send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS));
+//						LogManager.err("mobile min version : [" + pcReqMobiVer + "] is required, current mobile version : [" + clientDesc.getHCClientVer() + "]");
+//						LogManager.log("Cancel mobile login process");
+//						sleepAfterError();
+//						coreSS.notifyLineOff(false, false);
+//						return true;
+//					}
 					
 //						if(ServerUIAPIAgent.getMobileAgent(j2seCoreSS).getRMSCacheServerUID().length() == 0){
 //							//有可能手机端删除了曾登录账号，又重新连接时，出现此情况。
@@ -1090,7 +1077,12 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 				final ClientDesc clientDesc = j2seCoreSS.clientDesc;
 				
 				clientDesc.refreshClientInfoInSecuChannel(j2seCoreSS, HCMessage.getMsgBody(bs, MsgBuilder.INDEX_MSG_DATA));
-
+				if(j2seCoreSS.isNeedRemoveCacheLater) {
+					j2seCoreSS.isNeedRemoveCacheLater = false;
+					final String softUID = UserThreadResourceUtil.getMobileSoftUID(j2seCoreSS);
+					CacheManager.removeUIDFrom(softUID);
+				}
+				
 				if(isFirst){
 					isFirst = false;
 					
@@ -1103,6 +1095,8 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 					displayMessage(false, ResourceUtil.getInfoI18N(), msg, 
 							IContext.INFO, null, 0);
 					TrayMenuUtil.notifyMobileLineOn();
+					
+					DiskManager.checkFreeSpaceForSessionInSys(j2seCoreSS);
 				}
 				
 				//有可能是登录时，也有可能是会话时进行option
@@ -1234,6 +1228,13 @@ public final class J2SEContext extends CommJ2SEContext implements IStatusListen{
 		L.V = L.WShop ? false : LogManager.log("onEventLineOff...");
 		
 		coreSS.eventCenterDriver.notifyShutdown();
+		{
+			final J2SESession j2seCoreSS = (J2SESession)coreSS;
+			final JSEventCenterDriver jsecd = j2seCoreSS.jsEventProcessor;
+			if(jsecd != null) {
+				jsecd.notifyShutdown();
+			}
+		}
 		
 		coreSS.streamBuilder.notifyExceptionForReleaseStreamResources();
 		

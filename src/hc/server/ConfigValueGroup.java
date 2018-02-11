@@ -1,9 +1,10 @@
 package hc.server;
 
-import hc.core.util.ExceptionReporter;
-import hc.util.PropertiesManager;
-
 import java.util.Vector;
+
+import hc.core.util.ExceptionReporter;
+import hc.server.util.SafeDataManager;
+import hc.util.PropertiesManager;
 
 public class ConfigValueGroup {
 	final ConfigPane configPane;
@@ -58,6 +59,8 @@ public class ConfigValueGroup {
 		}
 		
 		dispose();
+		
+		SafeDataManager.startSafeBackupProcess(true, false);
 	}
 	
 	private void dispose(){

@@ -1,13 +1,5 @@
 package hc.server.ui;
 
-import hc.core.util.HCURL;
-import hc.core.util.LogManager;
-import hc.server.ui.design.J2SESession;
-import hc.server.ui.design.ProjResponser;
-import hc.server.ui.design.SessionContext;
-import hc.util.ResourceUtil;
-import hc.util.ThreadConfig;
-
 import java.awt.Container;
 import java.awt.image.BufferedImage;
 
@@ -25,13 +17,21 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 
+import hc.core.util.HCURL;
+import hc.core.util.LogManager;
+import hc.server.ui.design.J2SESession;
+import hc.server.ui.design.ProjResponser;
+import hc.server.ui.design.SessionContext;
+import hc.util.ResourceUtil;
+import hc.util.ThreadConfig;
+
 /**
  * <code>Dialog</code> is a top-level UI interaction component at center of mobile client.
  * <BR><BR>
  * to send a dialog instance for current session, invoke {@link ProjectContext#sendDialogWhenInSession(Dialog)}.
  * <BR><BR>
  * to send same dialogs to all session for project level, invoke {@link ProjectContext#sendDialogByBuilding(Runnable)}.<BR>
- * if one session replies, then the same dialog(s) in other sessions will be dismissed from client.
+ * if one session replies, then the same dialog(s) in other sessions will be dismissed by server.
  * <BR><BR>
  * if there is an alert message, question or other dialog is showing and not closed, the dialog will be delayed to show automatically.
  * <BR><BR><STRONG>Important :</STRONG><BR>In Swing, layout manager is noticing that JButton (and JCheckBox, JComboBox, JLabel, JRadioButton, JTextField) has a preferred size and adjusting your pane to accommodate JButton, 
@@ -379,7 +379,7 @@ public class Dialog extends JPanel {
 	 * 
 	 * <tr>
 	 * <td>{@link JPanel}</td><td>&lt;div&gt;&lt;/div&gt;</td>
-	 * <td>setCSSForDiv => div<BR>setCSS => div<BR><font style="text-decoration:line-through">setCSSForToggle</font>
+	 * <td>setCSSForDiv =&gt; div<BR>setCSS =&gt; div<BR><font style="text-decoration:line-through">setCSSForToggle</font>
 	 * </td>
 	 * <td>&nbsp;</td>
 	 * </tr>
@@ -390,7 +390,7 @@ public class Dialog extends JPanel {
 	 * 			<BR>&nbsp;&nbsp;&nbsp;&nbsp;&lt;img /&gt;
 	 * 			<BR>&nbsp;&nbsp;&lt;/button&gt;
 	 * 		<BR>&lt;/div&gt;</td>
-	 * <td>setCSSForDiv => div<BR>setCSS => button<BR><font style="text-decoration:line-through">setCSSForToggle</font>
+	 * <td>setCSSForDiv =&gt; div<BR>setCSS =&gt; button<BR><font style="text-decoration:line-through">setCSSForToggle</font>
 	 * </td>
 	 * <td>the image of JButton is optional</td>
 	 * </tr>
@@ -400,7 +400,7 @@ public class Dialog extends JPanel {
 	 * 		<BR>&nbsp;&nbsp;&lt;input type='checkbox'/&gt;
 	 * 		<BR>&nbsp;&nbsp;&lt;label /&gt;
 	 * 		<BR>&lt;/div&gt;</td>
-	 * <td style='white-space:nowrap'>setCSSForDiv => div<BR><STRONG>setCSSForToggle => input</STRONG><BR>setCSS => label
+	 * <td style='white-space:nowrap'>setCSSForDiv =&gt; div<BR><STRONG>setCSSForToggle =&gt; input</STRONG><BR>setCSS =&gt; label
 	 * </td>
 	 * <td>&nbsp;</td>
 	 * </tr>
@@ -410,7 +410,7 @@ public class Dialog extends JPanel {
 	 * 		<BR>&nbsp;&nbsp;&lt;input type='radio'/&gt;
 	 * 		<BR>&nbsp;&nbsp;&lt;label /&gt;
 	 * 		<BR>&lt;/div&gt;</td>
-	 * <td>setCSSForDiv => div<BR><STRONG>setCSSForToggle => input</STRONG><BR>setCSS => label
+	 * <td>setCSSForDiv =&gt; div<BR><STRONG>setCSSForToggle =&gt; input</STRONG><BR>setCSS =&gt; label
 	 * </td>
 	 * <td>&nbsp;</td>
 	 * </tr>
@@ -420,7 +420,7 @@ public class Dialog extends JPanel {
 	 * 		<BR>&nbsp;&nbsp;&lt;img /&gt;
 	 * 		<BR>&nbsp;&nbsp;&lt;label /&gt;
 	 * 		<BR>&lt;/div&gt;</td>
-	 * <td>setCSSForDiv => div<BR>setCSS => label<BR><font style="text-decoration:line-through">setCSSForToggle</font>
+	 * <td>setCSSForDiv =&gt; div<BR>setCSS =&gt; label<BR><font style="text-decoration:line-through">setCSSForToggle</font>
 	 * </td>
 	 * <td>the image of JLable is optional</td>
 	 * </tr>
@@ -429,7 +429,7 @@ public class Dialog extends JPanel {
 	 * <td>{@link JTextField}</td><td>&lt;div&gt;
 	 * 		<BR>&nbsp;&nbsp;&lt;input type='text|password'/&gt;
 	 * 		<BR>&lt;/div&gt;</td>
-	 * <td>setCSSForDiv => div<BR>setCSS => input<BR><font style="text-decoration:line-through">setCSSForToggle</font>
+	 * <td>setCSSForDiv =&gt; div<BR>setCSS =&gt; input<BR><font style="text-decoration:line-through">setCSSForToggle</font>
 	 * </td>
 	 * <td>&nbsp;</td>
 	 * </tr>
@@ -438,7 +438,7 @@ public class Dialog extends JPanel {
 	 * <td>{@link JTextArea}<BR>{@link JTextPane}</td><td>&lt;div&gt;
 	 * 		<BR>&nbsp;&nbsp;&lt;textarea/&gt;
 	 * 		<BR>&lt;/div&gt;</td>
-	 * <td>setCSSForDiv => div<BR>setCSS => textarea<BR><font style="text-decoration:line-through">setCSSForToggle</font>
+	 * <td>setCSSForDiv =&gt; div<BR>setCSS =&gt; textarea<BR><font style="text-decoration:line-through">setCSSForToggle</font>
 	 * </td>
 	 * <td>&nbsp;</td>
 	 * </tr>
@@ -449,7 +449,7 @@ public class Dialog extends JPanel {
 	 * 		<BR>&nbsp;&nbsp;&nbsp;&nbsp;&lt;/option&gt;&lt;/option&gt;
 	 * 		<BR>&nbsp;&nbsp;&lt;/select&gt;
 	 * 		<BR>&lt;/div&gt;</td>
-	 * <td>setCSSForDiv => div<BR>setCSS => select<BR><font style="text-decoration:line-through">setCSSForToggle</font>
+	 * <td>setCSSForDiv =&gt; div<BR>setCSS =&gt; select<BR><font style="text-decoration:line-through">setCSSForToggle</font>
 	 * </td>
 	 * <td>&nbsp;</td>
 	 * </tr>
@@ -458,7 +458,7 @@ public class Dialog extends JPanel {
 	 * <td>{@link JProgressBar}</td><td>&lt;div&gt;
 	 * 		<BR>&nbsp;&nbsp;&lt;progress /&gt;
 	 * 		<BR>&lt;/div&gt;</td>
-	 * <td>setCSSForDiv => div<BR>setCSS => progress<BR><font style="text-decoration:line-through">setCSSForToggle</font>
+	 * <td>setCSSForDiv =&gt; div<BR>setCSS =&gt; progress<BR><font style="text-decoration:line-through">setCSSForToggle</font>
 	 * </td>
 	 * <td>
 	 * <code>progress</code> is tag in HTML5, so <br>Android 4.4 (or above) or iPhone 4s (or above) is required.
@@ -470,7 +470,7 @@ public class Dialog extends JPanel {
 	 * <td>{@link JSlider}</td><td>&lt;div&gt;
 	 * 		<BR>&nbsp;&nbsp;&lt;input type='range'/&gt;
 	 * 		<BR>&lt;/div&gt;</td>
-	 * <td>setCSSForDiv => div<BR>setCSS => input<BR><font style="text-decoration:line-through">setCSSForToggle</font>
+	 * <td>setCSSForDiv =&gt; div<BR>setCSS =&gt; input<BR><font style="text-decoration:line-through">setCSSForToggle</font>
 	 * </td>
 	 * <td>the 'range' is tag in HTML5, <br>Android 4.4 (or above) or iPhone 4s (or above) is required.
 	 * <BR><STRONG>CAUTION : </STRONG>for Android Server (NOT Android client), <code>SeekBar</code> is used to render JSlider and there is no 'min' field in <code>SeekBar</code>.
@@ -519,33 +519,34 @@ public class Dialog extends JPanel {
      * <BR><BR>
      * this method will be invoked by server for following cases :<BR>
      * 1. user maybe press back key to cancel a dialog (in Android client),<BR>
-     * 2. server shutdown or the session of dialog is line-off,
+     * 2. server shutdown or the session of dialog is line off,
      * @see #go(String)
      * @see #goExternalURL(String)
      * @since 7.30
    	 */
 	public void dismiss(){
 		synchronized (synLock) {
-			if(resLock != null){
-				if(resLock.dialogParameter.isDismissedByBack == false){
-					final DialogGlobalLock dialogLock = resLock;
+			if(dialogParameter != null){
+				if(dialogParameter.isDismissedByBack == false){
+					final DialogGlobalLock dialogLock = dialogParameter.getGlobalLock();
 					ServerUIAPIAgent.runInSysThread(new Runnable() {
 						@Override
 						public void run() {
 							dialogLock.dismiss(coreSS, dialogLock.dialogID);
-							ServerUIAPIAgent.removeQuestionDialogFromMap(coreSS, dialogLock.dialogID, false);
+							ServerUIAPIAgent.removeQuestionDialogFromMap(coreSS, dialogLock.dialogID, false, false);
 							((ICanvas)dialogLock.mletCanvas).onExit();
+							dialogLock.notifyWaitStop(coreSS, false, false);
 						}
 					});
 				}
-				resLock = null;
+				dialogParameter = null;
 			}else{
 				LogManager.log("dismiss() is invoked twice or more, maybe it is dismissed by go()/goExternalURL()/goMlet().");
 			}
 		}
 	}
 	
-	DialogGlobalLock resLock;
+	DialogParameter dialogParameter;
 	
 	private final ScriptCSSSizeHeight sizeHeightForXML;//注意：不能为null，即使在SIMU下
 	final Mlet dialogCanvas;

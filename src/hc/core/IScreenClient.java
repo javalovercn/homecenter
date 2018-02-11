@@ -22,11 +22,6 @@ public interface IScreenClient extends IPNGScreen {
 	 */
 	public void succMoveUpRight(int pixleUp, int pixleRight);
 	
-	public void enableMoveUp(boolean e);
-	public void enableMoveDown(boolean e);
-	public void enableMoveLeft(boolean e);
-	public void enableMoveRight(boolean e);
-	
 	public void copyArea(int x, int y, int width, int height, int dx, int dy);
 	public void setGrayForEmptyArea();
 	public void fillRect(int x, int y, int width, int height);

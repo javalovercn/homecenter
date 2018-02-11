@@ -362,7 +362,7 @@ public class ProjMgrDialog extends SystemDialog {
 			public void actionPerformed(final ActionEvent e) {
 				final Boolean out = (Boolean)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 					@Override
-					public Object run() {
+					public Object run() throws Throwable {
 						return projList.saveAndApply();
 					}
 				}, token);

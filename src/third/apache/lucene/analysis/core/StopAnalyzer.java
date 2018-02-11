@@ -20,7 +20,6 @@ package third.apache.lucene.analysis.core;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
-import hc.server.util.lucene.Path;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,6 +27,7 @@ import third.apache.lucene.analysis.Tokenizer;
 import third.apache.lucene.analysis.util.CharArraySet;
 import third.apache.lucene.analysis.util.StopwordAnalyzerBase;
 import third.apache.lucene.analysis.util.WordlistLoader;
+import third.hc.server.util.lucene.Path;
 
 /** 
  * Filters {@link LetterTokenizer} with {@link LowerCaseFilter} and {@link StopFilter}.

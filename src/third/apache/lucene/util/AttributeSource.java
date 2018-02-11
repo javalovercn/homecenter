@@ -24,12 +24,11 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
-
-import hc.server.util.lucene.AttMapper;
-import hc.server.util.lucene.Objects;
 import java.util.Set;
 
 import third.apache.lucene.analysis.TokenStream;
+import third.hc.server.util.lucene.AttMapper;
+import third.hc.server.util.lucene.Objects;
 
 /**
  * An AttributeSource contains a list of different {@link AttributeImpl}s,

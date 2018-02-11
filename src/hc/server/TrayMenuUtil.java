@@ -1,44 +1,5 @@
 package hc.server;
 
-import hc.App;
-import hc.PlatformTrayIcon;
-import hc.core.ContextManager;
-import hc.core.CoreSession;
-import hc.core.GlobalConditionWatcher;
-import hc.core.HCConnection;
-import hc.core.IConstant;
-import hc.core.IContext;
-import hc.core.IWatcher;
-import hc.core.L;
-import hc.core.MsgBuilder;
-import hc.core.RootConfig;
-import hc.core.SessionManager;
-import hc.core.util.CCoreUtil;
-import hc.core.util.CUtil;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.HCURL;
-import hc.core.util.LogManager;
-import hc.core.util.StringUtil;
-import hc.core.util.WiFiDeviceManager;
-import hc.res.ImageSrc;
-import hc.server.data.KeyComperPanel;
-import hc.server.msb.UserThreadResourceUtil;
-import hc.server.msb.WiFiHelper;
-import hc.server.ui.J2SESessionManager;
-import hc.server.ui.LogViewer;
-import hc.server.ui.ServerUIAPIAgent;
-import hc.server.ui.ServerUIUtil;
-import hc.server.ui.SingleMessageNotify;
-import hc.server.ui.design.J2SESession;
-import hc.server.util.HCJDialog;
-import hc.server.util.ServerCUtil;
-import hc.server.util.VerifyEmailManager;
-import hc.util.ExitManager;
-import hc.util.HttpUtil;
-import hc.util.PropertiesManager;
-import hc.util.ResourceUtil;
-import hc.util.UILang;
-
 import java.awt.BorderLayout;
 import java.awt.ComponentOrientation;
 import java.awt.Container;
@@ -102,14 +63,54 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import hc.App;
+import hc.PlatformTrayIcon;
+import hc.core.ContextManager;
+import hc.core.CoreSession;
+import hc.core.GlobalConditionWatcher;
+import hc.core.HCConnection;
+import hc.core.IConstant;
+import hc.core.IContext;
+import hc.core.IWatcher;
+import hc.core.L;
+import hc.core.MsgBuilder;
+import hc.core.RootConfig;
+import hc.core.SessionManager;
+import hc.core.util.CCoreUtil;
+import hc.core.util.CUtil;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.HCURL;
+import hc.core.util.LogManager;
+import hc.core.util.StringUtil;
+import hc.core.util.WiFiDeviceManager;
+import hc.res.ImageSrc;
+import hc.server.data.KeyComperPanel;
+import hc.server.msb.UserThreadResourceUtil;
+import hc.server.msb.WiFiHelper;
+import hc.server.ui.J2SESessionManager;
+import hc.server.ui.LogViewer;
+import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.ServerUIUtil;
+import hc.server.ui.SingleMessageNotify;
+import hc.server.ui.design.J2SESession;
+import hc.server.util.HCJDialog;
+import hc.server.util.SafeDataManager;
+import hc.server.util.ServerCUtil;
+import hc.server.util.VerifyEmailManager;
+import hc.util.ExitManager;
+import hc.util.HttpUtil;
+import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
+import hc.util.UILang;
+
 public class TrayMenuUtil {
 	final static ThreadGroup threadPoolToken = App.getThreadPoolToken();
     private static JMenuItem transNewCertKey, hideIDForErrCert;
     static ImageIcon dl_certkey, disable_dl_certkey;
     static Image hc_Enable, hc_Disable, hc_mobi;
 	static PlatformTrayIcon ti;
-	final static String transOnTip = (String)ResourceUtil.get(9063);
-	final static String transOffTip = (String)ResourceUtil.get(9064);
+	final static String transOnTip = ResourceUtil.get(9063);
+	final static String transOffTip = ResourceUtil.get(9064);
 
     public static JPopupMenu popupTi = new JPopupMenu() ;//弹出菜单
 	
@@ -165,20 +166,20 @@ public class TrayMenuUtil {
 		if(opName != null){
 			LogManager.log("Desktop Menu [" + opName + "] password error!");
 		}
-		final Object[] options={(String)ResourceUtil.get(1010)};
+		final Object[] options={ResourceUtil.get(1010)};
 		App.showOptionDialog(null, ResourceUtil.get(1019), ResourceUtil.getProductName(), JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);
 		return false;
 	}
     
 	final static Window showSuccCreateNewCertDialog() {
 		final JPanel panel = new JPanel(new BorderLayout());
-		panel.add(new JLabel((String) ResourceUtil.get(9007), new ImageIcon(ImageSrc.OK_ICON), SwingConstants.LEFT), BorderLayout.NORTH);
+		panel.add(new JLabel(ResourceUtil.get(9007), new ImageIcon(ImageSrc.OK_ICON), SwingConstants.LEFT), BorderLayout.NORTH);
 		
-		final String transmitCert = (String)ResourceUtil.get(9117);
-		final String tipOn = (String)ResourceUtil.get(9118);
-		final String tipOff = (String)ResourceUtil.get(9119);
-		final String certTip = (String)ResourceUtil.get(9120);
-		panel.add(new JLabel("<html><body style=\"width:600\"><BR><STRONG>" + (String) ResourceUtil.get(IContext.TIP) + "</STRONG>" +
+		final String transmitCert = ResourceUtil.get(9117);
+		final String tipOn = ResourceUtil.get(9118);
+		final String tipOff = ResourceUtil.get(9119);
+		final String certTip = ResourceUtil.get(9120);
+		panel.add(new JLabel("<html><body style=\"width:600\"><BR><STRONG>" + ResourceUtil.get(IContext.TIP) + "</STRONG>" +
 				"<BR>" + certTip +
 				"<BR>4. " + transmitCert + ":<STRONG>" + tipOn + "</STRONG>, " + transOnTip +
 				"<BR>5. " + transmitCert + ":<STRONG>" + tipOff + "</STRONG>, " + transOffTip +
@@ -223,7 +224,7 @@ public class TrayMenuUtil {
 				public boolean watch() {
 					if(coreSS.isTransedCertToMobile){
 						final J2SESession[] coreSSS = {coreSS};
-						ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, ResourceUtil.getInfoI18N(coreSS), (String) ResourceUtil.get(coreSS, 9033), IContext.INFO, null, 0);
+						ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, ResourceUtil.getInfoI18N(coreSS), ResourceUtil.get(coreSS, 9033), IContext.INFO, null, 0);
 						return true;
 					}
 					if(System.currentTimeMillis() - curr > 3000){
@@ -338,7 +339,7 @@ public class TrayMenuUtil {
 		tipPanle.add(iconPanle, BorderLayout.CENTER);
 		{
 			final JPanel msgPanel = new JPanel(new BorderLayout());
-			msgPanel.add(new JLabel("<html><body style='width:450' align='left'><strong>"+(String)ResourceUtil.get(IContext.TIP)+"</strong> : <BR>"+(isEnable?transOnTip:transOffTip)+"</body></html>"), 
+			msgPanel.add(new JLabel("<html><body style='width:450' align='left'><strong>"+ResourceUtil.get(IContext.TIP)+"</strong> : <BR>"+(isEnable?transOnTip:transOffTip)+"</body></html>"), 
 					BorderLayout.CENTER);
 			if(isEnable == false){
 				final JCheckBox hideCheck = new JCheckBox();
@@ -448,7 +449,7 @@ public class TrayMenuUtil {
 					
 					if(ExitManager.isStartingExitSystem() == false){
 						displayMessage(ResourceUtil.getInfoI18N(), 
-							(String)ResourceUtil.get(9009), 
+							ResourceUtil.get(9009), 
 							IContext.INFO, null, 0);
 					}
 				}
@@ -470,23 +471,24 @@ public class TrayMenuUtil {
 	}
 
 	private static void buildCertMenu(final JPopupMenu popupMenu){
-		final String str_certification = (String)ResourceUtil.get(9060);
+		final String str_certification = ResourceUtil.get(9060);
 		final JMenu certMenu = new JMenu(str_certification);
 		certMenu.setIcon(new ImageIcon(ImageSrc.NEW_CERTKEY_ICON));
 		
         //生成新证书
-        final JMenuItem buildNewCertKey = new JMenuItem((String)ResourceUtil.get(9001));
-		buildNewCertKey.setToolTipText("<html>" + (String)ResourceUtil.get(9120) + "</html>");//注意：9120被其它处使用
+        final JMenuItem buildNewCertKey = new JMenuItem(ResourceUtil.get(9001));
+		buildNewCertKey.setToolTipText("<html>" + ResourceUtil.get(9120) + "</html>");//注意：9120被其它处使用
         buildNewCertKey.setIcon(new ImageIcon(ImageSrc.NEW_CERTKEY_ICON));
         buildNewCertKey.addActionListener(new HCActionListener(new Runnable() {
         	String opName = buildNewCertKey.getText();
 			@Override
 			public void run() {
 				refreshActionMS(false);
-				final int result = App.showConfirmDialog(null, "<html>" + (String)ResourceUtil.get(9227) + "</html>", (String)ResourceUtil.get(9001), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
+				final int result = App.showConfirmDialog(null, "<html>" + ResourceUtil.get(9227) + "</html>", ResourceUtil.get(9001), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
 				if(result == JOptionPane.YES_OPTION){
 					if(checkPasswordDirect(opName)){//强制输入密码，以防止删除
-						App.generateCert();
+						App.generateCertAndSave();
+						SafeDataManager.startSafeBackupProcess(true, false);
 						
 						final Window window = showSuccCreateNewCertDialog();
 
@@ -520,21 +522,21 @@ public class TrayMenuUtil {
 		transNewCertKey.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-            	refreshActionMS(false);
-            	if(checkPassword(true, transNewCertKey.getText())){
-            		GlobalConditionWatcher.addWatcher(new LineonAndServingExecWatcher(J2SESession.NULL_J2SESESSION_FOR_PROJECT, transNewCertKey.getText()){//注意：不参与具体coreSS
+				refreshActionMS(false);
+	            	if(checkPassword(true, transNewCertKey.getText())){
+	            		GlobalConditionWatcher.addWatcher(new LineonAndServingExecWatcher(J2SESession.NULL_J2SESESSION_FOR_PROJECT, transNewCertKey.getText()){//注意：不参与具体coreSS
 						@Override
 						public final void doBiz() {
-			            	flipTransable(!DefaultManager.isEnableTransNewCertNow(), false);
+							flipTransable(!DefaultManager.isEnableTransNewCertNow(), false);
 						}
-						
-						@Override
-	            		public boolean watch() {
-	            			doBiz();
-	            			return true;
-	            		}
+							
+							@Override
+		            		public boolean watch() {
+		            			doBiz();
+		            			return true;
+		            		}
 					});
-            	}
+	            	}
 			}
 		}, threadPoolToken));
 		certMenu.add(transNewCertKey);
@@ -587,15 +589,15 @@ public class TrayMenuUtil {
 	}
 
 	private static void refreshTransNewCertTip() {
-		final String transmitCert = (String)ResourceUtil.get(9117);
+		final String transmitCert = ResourceUtil.get(9117);
 
-		final String tipOn = (String)ResourceUtil.get(9118);
-		final String tipOff = (String)ResourceUtil.get(9119);
+		final String tipOn = ResourceUtil.get(9118);
+		final String tipOff = ResourceUtil.get(9119);
 		
 		final boolean isEnable = DefaultManager.isEnableTransNewCertNow();
 
 		transNewCertKey.setToolTipText("<html>" + 
-				(String)ResourceUtil.get(9236) + (isEnable?tipOn:tipOff) + "<BR><BR>" +
+				ResourceUtil.get(9236) + (isEnable?tipOn:tipOff) + "<BR><BR>" +
 				transmitCert + ":<STRONG>" + tipOn + "</STRONG>, " +
 				transOnTip +
 				";" +
@@ -605,10 +607,10 @@ public class TrayMenuUtil {
 		
 		if(isEnable){
 			transNewCertKey.setIcon(dl_certkey);
-			transNewCertKey.setText((String)ResourceUtil.get(1021));
+			transNewCertKey.setText(ResourceUtil.get(1021));
 		}else{
 			transNewCertKey.setIcon(disable_dl_certkey);
-			transNewCertKey.setText((String)ResourceUtil.get(1020));			
+			transNewCertKey.setText(ResourceUtil.get(1020));			
 		}
 	}
 	
@@ -633,10 +635,10 @@ public class TrayMenuUtil {
 		
 		//登录改为密码
 		{
-			final JMenuItem loginItem = new JMenuItem((String)ResourceUtil.get(1007));//菜单项
+			final JMenuItem loginItem = new JMenuItem(ResourceUtil.get(1007));//菜单项
 			final ImageIcon pwdIcon = new ImageIcon(ImageSrc.PASSWORD_ICON);
 			loginItem.setIcon(pwdIcon);
-		    loginItem.setToolTipText("<html>" + (String)ResourceUtil.get(9116) + "<BR> " + App.getPasswordLocalStoreTip() + "</html>");
+		    loginItem.setToolTipText("<html>" + ResourceUtil.get(9116) + "<BR> " + App.getPasswordLocalStoreTip() + "</html>");
 		    loginItem.addActionListener(new HCActionListener(new Runnable() {
 		    	String opName = loginItem.getText();
 				@Override
@@ -672,7 +674,7 @@ public class TrayMenuUtil {
 	}
 
 	private final static JMenu buildAccountMenu() {
-		final JMenu accountItem = new JMenu((String)ResourceUtil.get(9124));
+		final JMenu accountItem = new JMenu(ResourceUtil.get(9124));
         final ImageIcon passwordIcon = new ImageIcon(ImageSrc.ACCOUNT_ICON);
 		accountItem.setIcon(passwordIcon);
 		return accountItem;
@@ -683,7 +685,7 @@ public class TrayMenuUtil {
      * @param hcMenu
      */
 	private static void buildAutoUpgradMenuItem(final JMenu hcMenu) {
-		final JCheckBoxMenuItem upgradeItem = new JCheckBoxMenuItem((String)ResourceUtil.get(9031));
+		final JCheckBoxMenuItem upgradeItem = new JCheckBoxMenuItem(ResourceUtil.get(9031));
 		upgradeItem.setSelected(!PropertiesManager.isTrue(PropertiesManager.p_isNotAutoUpgrade));
 		try{
 			upgradeItem.setIcon(new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/upgrade_22.png"))));
@@ -696,15 +698,15 @@ public class TrayMenuUtil {
 				if(isAutoAfterClick == false){
 					final JPanel panel = new JPanel(new BorderLayout());
 					panel.add(new JLabel("<html><body style=\"width:500\">" +
-							(String)ResourceUtil.get(9103) +
-							"<BR><BR>" + StringUtil.replace((String)ResourceUtil.get(9104), "{ok}", (String)ResourceUtil.get(IContext.OK)) +
+							ResourceUtil.get(9103) +
+							"<BR><BR>" + StringUtil.replace(ResourceUtil.get(9104), "{ok}", ResourceUtil.get(IContext.OK)) +
 							"</body></html>"), BorderLayout.CENTER);
-					App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(9102), true, null, null, new HCActionListener(new Runnable() {
+					App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(9102), true, null, null, new HCActionListener(new Runnable() {
 						@Override
 						public void run() {
 							flipAutoUpgrade(upgradeItem, isAutoAfterClick);
 							final JPanel panel = new JPanel(new BorderLayout());
-							panel.add(new JLabel("<html>" + (String)ResourceUtil.get(9105) + "</html>", App.getSysIcon(App.SYS_INFO_ICON), JLabel.LEADING), BorderLayout.CENTER);
+							panel.add(new JLabel("<html>" + ResourceUtil.get(9105) + "</html>", App.getSysIcon(App.SYS_INFO_ICON), JLabel.LEADING), BorderLayout.CENTER);
 							App.showCenterPanel(panel, 0, 0, ResourceUtil.getInfoI18N());
 						}
 					}, threadPoolToken), new HCActionListener(new Runnable() {
@@ -747,7 +749,7 @@ public class TrayMenuUtil {
         ActionListener aboutAction;	
         
         {
-        	final String title = (String)ResourceUtil.get(9040);
+        		final String title = ResourceUtil.get(9040);
 			final JMenuItem option = new JMenuItem(title);
             ImageIcon optionIco = null;
             try{
@@ -769,13 +771,13 @@ public class TrayMenuUtil {
             
 			{
 		        //Multi user mode
-		        final JCheckBoxMenuItem multiUserMenu = new JCheckBoxMenuItem((String)ResourceUtil.get(9058));
+		        final JCheckBoxMenuItem multiUserMenu = new JCheckBoxMenuItem(ResourceUtil.get(9058));
 		        try{
 		        	multiUserMenu.setIcon(new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/group_22.png"))));
 		        }catch (final Exception e) {
 				}
 		        multiUserMenu.setSelected(PropertiesManager.isTrue(PropertiesManager.p_isMultiUserMode));
-		        final String tipMsg = (String)ResourceUtil.get(9099);
+		        final String tipMsg = ResourceUtil.get(9099);
 		        multiUserMenu.setToolTipText("<html>" + tipMsg + "</html>");
 		        multiUserMenu.addActionListener(new HCActionListener(new Runnable() {
 					@Override
@@ -783,9 +785,9 @@ public class TrayMenuUtil {
 						final boolean isMultMode = multiUserMenu.isSelected();
 						if(isMultMode){
 							final JPanel panel = new JPanel(new BorderLayout());
-							panel.add(new JLabel("<html><body style=\"width:500\">" + (String)ResourceUtil.get(9098) +
-									"<BR><BR><STRONG>" + (String)ResourceUtil.get(9100) + "</STRONG><BR>" + tipMsg +
-									"<BR>" + (String)ResourceUtil.get(9101) + "<br>" +
+							panel.add(new JLabel("<html><body style=\"width:500\">" + ResourceUtil.get(9098) +
+									"<BR><BR><STRONG>" + ResourceUtil.get(9100) + "</STRONG><BR>" + tipMsg +
+									"<BR>" + ResourceUtil.get(9101) + "<br>" +
 //											"if you click the same menu or other within few minutes, system treade you as a valid user." +
 //											"<BR>" +
 //											"<BR>" +
@@ -797,7 +799,7 @@ public class TrayMenuUtil {
 									"</body></html>",
 									App.getSysIcon(App.SYS_INFO_ICON),SwingConstants.LEADING)
 									);
-							App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(9096));
+							App.showCenterPanel(panel, 0, 0, ResourceUtil.get(9096));
 						}else{
 							if(checkPassword(false, multiUserMenu.getText()) == false){
 								multiUserMenu.setSelected(true);
@@ -805,10 +807,10 @@ public class TrayMenuUtil {
 							}
 							
 							final JPanel panel = new JPanel(new BorderLayout());
-							panel.add(new JLabel("<html>" + (String)ResourceUtil.get(9097) + "</html>",
+							panel.add(new JLabel("<html>" + ResourceUtil.get(9097) + "</html>",
 									App.getSysIcon(App.SYS_INFO_ICON),SwingConstants.LEADING)
 									);
-							App.showCenterPanel(panel, 0, 0, (String)ResourceUtil.get(9096));
+							App.showCenterPanel(panel, 0, 0, ResourceUtil.get(9096));
 						}
 						PropertiesManager.setValue(PropertiesManager.p_isMultiUserMode, 
 								isMultMode?IConstant.TRUE:IConstant.FALSE);
@@ -821,9 +823,9 @@ public class TrayMenuUtil {
 			if(LogManager.INI_DEBUG_ON == false){
 				hcMenu.addSeparator();
 		        //浏览当天当前的日志
-		        final JMenuItem browseCurrLog = new JMenuItem((String)ResourceUtil.get(9002));
+		        final JMenuItem browseCurrLog = new JMenuItem(ResourceUtil.get(9002));
 				browseCurrLog.setIcon(new ImageIcon(ImageSrc.LOG_ICON));
-				browseCurrLog.setToolTipText((String)ResourceUtil.get(9264));
+				browseCurrLog.setToolTipText(ResourceUtil.get(9264));
 				final ActionListener currLogAction = new HCActionListener(new Runnable() {
 					String opName = browseCurrLog.getText();
 					LogViewer lv;
@@ -837,7 +839,7 @@ public class TrayMenuUtil {
 								byte[] pwdBS;
 								try {
 									pwdBS = ResourceUtil.getFromBASE64(pwd).getBytes(IConstant.UTF_8);
-									lv = viewLog(ImageSrc.HC_LOG, pwdBS, ca1, (String)ResourceUtil.get(9002));
+									lv = viewLog(ImageSrc.HC_LOG, pwdBS, ca1, ResourceUtil.get(9002));
 								} catch (final UnsupportedEncodingException e) {
 									ExceptionReporter.printStackTrace(e);
 								}
@@ -853,9 +855,9 @@ public class TrayMenuUtil {
 				//浏览前次的日志
 				final File file = new File(ResourceUtil.getBaseDir(), ImageSrc.HC_LOG_BAK);
 	            if(file.exists()){
-			        final JMenuItem browseLogBak = new JMenuItem((String)ResourceUtil.get(9003));
+			        final JMenuItem browseLogBak = new JMenuItem(ResourceUtil.get(9003));
 					browseLogBak.setIcon(new ImageIcon(ImageSrc.LOG_BAK_ICON));
-					browseLogBak.setToolTipText((String)ResourceUtil.get(9265));
+					browseLogBak.setToolTipText(ResourceUtil.get(9265));
 					browseLogBak.addActionListener(new HCActionListener(new Runnable() {
 						String opName = browseLogBak.getText();
 						LogViewer lv;
@@ -870,7 +872,7 @@ public class TrayMenuUtil {
 										byte[] pwdBS;
 										try {
 											pwdBS = ResourceUtil.getFromBASE64(pwd).getBytes(IConstant.UTF_8);
-											lv = viewLog(ImageSrc.HC_LOG_BAK, pwdBS, ca2, (String)ResourceUtil.get(9003));
+											lv = viewLog(ImageSrc.HC_LOG_BAK, pwdBS, ca2, ResourceUtil.get(9003));
 										} catch (final UnsupportedEncodingException e) {
 											ExceptionReporter.printStackTrace(e);
 										}
@@ -925,7 +927,7 @@ public class TrayMenuUtil {
 	        
 			//FAQ
 	        if(ResourceUtil.isJ2SELimitFunction()){
-				final JMenuItem faqItem = new JMenuItem((String)ResourceUtil.get(9013));//菜单项
+				final JMenuItem faqItem = new JMenuItem(ResourceUtil.get(9013));//菜单项
 		        try {
 		        	faqItem.setIcon(new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/faq22.png"))));
 				} catch (final IOException e1) {
@@ -1125,13 +1127,13 @@ public class TrayMenuUtil {
         popupTi.add(hcMenu);
         
         //选择语言
-        final JMenu langSubItem = new JMenu((String)ResourceUtil.get(9165));
+        final JMenu langSubItem = new JMenu(ResourceUtil.get(9165));
     	langSubItem.setIcon(new ImageIcon(ImageSrc.LANG_ICON));
         {
         	final boolean isEn = PropertiesManager.isTrue(PropertiesManager.p_ForceEn);
         	
 	        final ButtonGroup group = new ButtonGroup();
-	        final JRadioButtonMenuItem rbMenuItem = new JRadioButtonMenuItem((String)ResourceUtil.get(9166));
+	        final JRadioButtonMenuItem rbMenuItem = new JRadioButtonMenuItem(ResourceUtil.get(9166));
 			rbMenuItem.setIcon(new ImageIcon(ImageSrc.LANG_ICON));
 	        rbMenuItem.setSelected(!isEn);
 	        group.add(rbMenuItem);
@@ -1205,13 +1207,13 @@ public class TrayMenuUtil {
         popupTi.addSeparator();
         
     	if(ResourceUtil.isJ2SELimitFunction()){//由于Android服务器版本布局不美观，故暂关闭
-			final JMenuItem mapItem = new JMenuItem((String)ResourceUtil.get(9035));//菜单项
+			final JMenuItem mapItem = new JMenuItem(ResourceUtil.get(9035));//菜单项
 	    	try {
 	    		mapItem.setIcon(new ImageIcon(ImageIO.read(
 						ResourceUtil.getResource("hc/res/map_22.png"))));
 			} catch (final IOException e1) {
 			}
-			mapItem.setToolTipText("<html>" + (String)ResourceUtil.get(9082) + "</html>");
+			mapItem.setToolTipText("<html>" + ResourceUtil.get(9082) + "</html>");
 	    	mapItem.addActionListener(new HCActionListener(new Runnable() {
 	            @Override
 				public void run() {
@@ -1236,7 +1238,7 @@ public class TrayMenuUtil {
 //    	        		|| TokenManager.isDonateToken()){
 //    		        popupTi.addSeparator();
         	if(ResourceUtil.isEnableDesigner()){
-    		        final JMenuItem designer = new JMenuItem((String)ResourceUtil.get(9034));//菜单项
+    		        final JMenuItem designer = new JMenuItem(ResourceUtil.get(9034));//菜单项
     		        ImageIcon designIco = null;
     		        
 //    				//检查是否有新版本
@@ -1282,13 +1284,13 @@ public class TrayMenuUtil {
 //            }
 
         	{
-        		final JMenuItem linkItem = new JMenuItem((String)ResourceUtil.get(9059));//菜单项
+        		final JMenuItem linkItem = new JMenuItem(ResourceUtil.get(9059));//菜单项
             	try {
             		linkItem.setIcon(new ImageIcon(ImageIO.read(
     						ResourceUtil.getResource("hc/res/menu_22.png"))));
     			} catch (final IOException e1) {
     			}
-    			linkItem.setToolTipText((String)ResourceUtil.get(9081));
+    			linkItem.setToolTipText(ResourceUtil.get(9081));
             	linkItem.addActionListener(new HCActionListener(new Runnable() {
 					@Override
 					public void run() {
@@ -1347,7 +1349,7 @@ public class TrayMenuUtil {
         final int indexOfAT = IConstant.getUUID().indexOf("@");
         final String uuid_for_email = (indexOfAT>0)?IConstant.getUUID().substring(0, indexOfAT):IConstant.getUUID();
         final JMenuItem exitItem = new JMenuItem(
-        		(String)ResourceUtil.get(IContext.EXIT) + "   (" + uuid_for_email + ")");//菜单项
+        		ResourceUtil.get(IContext.EXIT) + "   (" + uuid_for_email + ")");//菜单项
 		exitItem.setIcon(new ImageIcon(ImageSrc.EXIT_ICON));
         exitItem.addActionListener(new HCActionListener(new Runnable() {
         	String opName = exitItem.getText();
@@ -1388,7 +1390,7 @@ public class TrayMenuUtil {
     }
 
 	private static void doAfterMobileReceivedCert() {
-		displayMessage(ResourceUtil.getInfoI18N(), (String) ResourceUtil.get(9032), IContext.INFO, null, 0);
+		displayMessage(ResourceUtil.getInfoI18N(), ResourceUtil.get(9032), IContext.INFO, null, 0);
 	}
 
 	private static void flipAutoUpgrade(final JCheckBoxMenuItem upgradeItem,
@@ -1426,9 +1428,9 @@ public class TrayMenuUtil {
 			
 			if(isAutoAfterClick){
 				final JPanel panel = new JPanel();
-				panel.add(new JLabel("<html><body style=\"width:500\">" + (String)ResourceUtil.get(9107) +
+				panel.add(new JLabel("<html><body style=\"width:500\">" + ResourceUtil.get(9107) +
 						"</body></html>", new ImageIcon(ImageSrc.OK_ICON), SwingConstants.LEFT));
-				App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(9106), false, null, null, null, null, null, true, false, null, false, false);
+				App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(9106), false, null, null, null, null, null, true, false, null, false, false);
 			}
 		}
 
@@ -1532,16 +1534,16 @@ public class TrayMenuUtil {
 	    try {  
 	        final File file = new File(ResourceUtil.getBaseDir(), fileName);
 	        if(file.exists() == false){
-	        	displayMessage((String) ResourceUtil.get(IContext.ERROR), 
-						(String) ResourceUtil.get(9004), IContext.ERROR, null, 0);
+	        	displayMessage(ResourceUtil.get(IContext.ERROR), 
+						ResourceUtil.get(9004), IContext.ERROR, null, 0);
 	        	return;
 	        }
 	        final Desktop desktop = Desktop.getDesktop();  
 	        if (Desktop.isDesktopSupported() && desktop.isSupported(Desktop.Action.OPEN)) {  
 	            desktop.open(file);  
 	        }else{
-	        	displayMessage((String) ResourceUtil.get(IContext.ERROR), 
-						(String) ResourceUtil.get(9005), IContext.ERROR, null, 0);
+	        	displayMessage(ResourceUtil.get(IContext.ERROR), 
+						ResourceUtil.get(9005), IContext.ERROR, null, 0);
 	        }
 	    } catch (final IOException e) {  
 	        ExceptionReporter.printStackTrace(e);  
@@ -1614,7 +1616,7 @@ public class TrayMenuUtil {
         	}
         });
         
-    	final String msg = (String)ResourceUtil.get(9009);//初始化中...
+    	final String msg = ResourceUtil.get(9009);//初始化中...
 		displayMessage(ResourceUtil.getInfoI18N(), msg, 
     			IContext.INFO, null, 0);
 		if(ti != null){//isDemoServer时，为null
@@ -1649,11 +1651,11 @@ public class TrayMenuUtil {
 	}
 
 	public static String buildLineOnTrayTip() {
-		return (String) ResourceUtil.get(9008) + " (ID:" + IConstant.getUUID() + ")";
+		return ResourceUtil.get(9008) + " (ID:" + IConstant.getUUID() + ")";
 	}
 
 	public static String buildMobileConnectionTip() {
-		return (String)ResourceUtil.get(9012);
+		return ResourceUtil.get(9012);
 	}
 
 	public static void showTransQues(final ThreadGroup threadPoolToken) {
@@ -1668,7 +1670,7 @@ public class TrayMenuUtil {
 					final JPanel askPanle = new JPanel();
 					askPanle.setLayout(new BoxLayout(askPanle, BoxLayout.X_AXIS));
 					
-					askPanle.setBorder(new TitledBorder(((String)ResourceUtil.get(1021)) + "?"));
+					askPanle.setBorder(new TitledBorder((ResourceUtil.get(1021)) + "?"));
 					
 					askPanle.add(Box.createHorizontalGlue());
 					askPanle.add(new JLabel(dl_certkey));
@@ -1681,14 +1683,14 @@ public class TrayMenuUtil {
 					final JPanel panel = new JPanel(new BorderLayout());
 					{
 						final JPanel subPanel = new JPanel(new BorderLayout());
-						subPanel.add(new JLabel("<html>" + (String)ResourceUtil.get(9061) +
+						subPanel.add(new JLabel("<html>" + ResourceUtil.get(9061) +
 							"</html>", new ImageIcon(ResourceUtil.loadImage("ok_22.png")), SwingConstants.LEFT), BorderLayout.NORTH);
 						subPanel.add(new JLabel("<html><BR></html>"), BorderLayout.SOUTH);
 	
 						panel.add(subPanel, BorderLayout.NORTH);
 					}
 					panel.add(askPanle, BorderLayout.CENTER);
-					final String str_prevent = StringUtil.replace((String)ResourceUtil.get(9069), "{ok}",(String) ResourceUtil.get(IContext.OK));
+					final String str_prevent = StringUtil.replace(ResourceUtil.get(9069), "{ok}",ResourceUtil.get(IContext.OK));
 					panel.add(new JLabel("<html><body style=\"500\">" +
 							str_prevent +
 							"</body></html>"), BorderLayout.SOUTH);
@@ -1711,7 +1713,7 @@ public class TrayMenuUtil {
 			}.start();
 		}else{
 			displayMessage(
-					ResourceUtil.getInfoI18N(), (String)ResourceUtil.get(9061), IContext.INFO, null, 0);
+					ResourceUtil.getInfoI18N(), ResourceUtil.get(9061), IContext.INFO, null, 0);
 		}
 	}
 }

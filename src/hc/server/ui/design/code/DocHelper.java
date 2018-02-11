@@ -264,7 +264,7 @@ public class DocHelper {
 	public int mouseOverX, mouseOverY, mouseOverFontHeight;
 	private CodeItem currItem;
 
-	public DocHelper(final CodeHelper codeHelper, final CodeWindow codeWindow) {
+	public DocHelper(final CodeHelper codeHelper) {
 		this.codeHelper = codeHelper;
 		
 		docPane.setBorder(new EmptyBorder(4, 4, 4, 4));

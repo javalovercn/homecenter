@@ -14,7 +14,7 @@ public class ScriptTester {
 //		
 //		final BindRobotSource source = (BindRobotSource)ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 //			@Override
-//			public Object run() {
+//			public Object run() throws Throwable {
 //				okImage[0] = ImageSrc.OK_44_ICON;
 //				cancelImage[0] = ImageSrc.CANCEL_44_ICON;
 //				final BaseResponsor resp = ServerUIUtil.getResponsor();

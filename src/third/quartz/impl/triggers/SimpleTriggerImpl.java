@@ -18,7 +18,7 @@
 
 package third.quartz.impl.triggers;
 
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 import java.util.Date;
 
@@ -599,7 +599,7 @@ public class SimpleTriggerImpl extends AbstractTrigger<SimpleTrigger> implements
     }
 
     /**
-     * @see third.quartz.impl.triggers.AbstractTrigger#updateWithNewCalendar(hc.server.util.scheduler.JobCalendar, long)
+     * @see third.quartz.impl.triggers.AbstractTrigger#updateWithNewCalendar(hc.server.util.calendar.JobCalendar, long)
      */
     @Override
     public void updateWithNewCalendar(JobCalendar calendar, long misfireThreshold)
@@ -687,7 +687,7 @@ public class SimpleTriggerImpl extends AbstractTrigger<SimpleTrigger> implements
      * has been added to the scheduler.
      * </p>
      *
-     * @see TriggerUtils#computeFireTimesBetween(third.quartz.spi.OperableTrigger, hc.server.util.scheduler.JobCalendar, java.util.Date, java.util.Date)
+     * @see TriggerUtils#computeFireTimesBetween(third.quartz.spi.OperableTrigger, hc.server.util.calendar.JobCalendar, java.util.Date, java.util.Date)
      */
     @Override
     public Date getNextFireTime() {

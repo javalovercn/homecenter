@@ -49,7 +49,7 @@ public class ClientSessionForSys {
 					final int nameIdx = i;
 					out = ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 						@Override
-						public Object run() {
+						public Object run() throws Throwable {
 							return getIcon(nameIdx, name);
 						}
 					}, token);

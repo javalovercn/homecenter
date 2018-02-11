@@ -19,11 +19,11 @@ package third.apache.lucene.analysis.util;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.Charset;
-import hc.server.util.lucene.Files;
-import hc.server.util.lucene.Path;
 
 import third.apache.lucene.analysis.Analyzer;
 import third.apache.lucene.util.IOUtils;
+import third.hc.server.util.lucene.Files;
+import third.hc.server.util.lucene.Path;
 
 /**
  * Base class for Analyzers that need to make use of stopword sets. 

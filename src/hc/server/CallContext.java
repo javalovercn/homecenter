@@ -1,14 +1,15 @@
 package hc.server;
 
-import hc.core.util.Stack;
-import hc.server.ui.design.hpj.HCScriptException;
-import hc.util.StringBuilderCacher;
-
 import java.lang.reflect.InvocationTargetException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import hc.core.util.Stack;
+import hc.server.ui.design.hpj.HCScriptException;
+import hc.util.StringBuilderCacher;
+
 public class CallContext {
+	public boolean isLineOffError;
 	private static final Stack free = new Stack(8);
 	private static final Pattern linePattern = Pattern.compile("<script>:(\\d+)");
 	public final static String UN_KNOWN_TARGET = "unknown";
@@ -175,6 +176,7 @@ public class CallContext {
 	}
 	
 	public final void reset(){
+		isLineOffError = false;
 		isError = false;
 		isProccessed = false;
 		targetURL = null;

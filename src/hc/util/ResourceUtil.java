@@ -7,6 +7,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
@@ -114,9 +116,11 @@ import hc.server.msb.AnalysableRobotParameter;
 import hc.server.msb.UserThreadResourceUtil;
 import hc.server.ui.DialogHTMLMlet;
 import hc.server.ui.Mlet;
+import hc.server.ui.ProjectContext;
 import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.SystemDialog;
 import hc.server.ui.design.SystemHTMLMlet;
+import hc.server.util.SafeDataManager;
 
 public class ResourceUtil {
 	private static final int MAX_RES_ID = 10000;
@@ -128,10 +132,153 @@ public class ResourceUtil {
 	final static Random random = new Random();
 	private static final Calendar calendarForRandom = Calendar.getInstance();
 	private static final StringBuilder stringBuilderForRandom = new StringBuilder(128);
-	private static final String IMPORT = "import ";
-	private static final Pattern IMPORT_PATTERN = Pattern.compile("^[ \\t]*import ([a-zA-Z0-9:_ \\.]+)$", Pattern.MULTILINE);
 	private static boolean isDoneForDocumentEventTypeWrapper = false;
 	private static Field documentEvent;
+	
+	public static final String JAVA_VENDOR = System.getProperty("java.vm.vendor", "Unknown");
+	
+	private static String[] JAVA_VERSION = {"1.2", "1.3", "1.4", "5", "6", "7", "8", "9"};
+	private static float[] JRE_VERSION = {1.2F, 1.3F, 1.4F, 1.5F, 1.6F, 1.7F, 1.8F, 9.0F};
+	private static int [] CAFE_CODE = {46, 47, 48, 49, 50, 51, 52, 53};
+	private static final int JAVA_CLASS_MAGIC = 0xCAFEBABE;
+	
+	/**
+	 * 0 means error.
+	 * @param cafe
+	 * @return
+	 */
+	public static float getJREVersionFromCafeCode(final int cafe) {
+		for (int i = 0; i < CAFE_CODE.length; i++) {
+			if(CAFE_CODE[i] == cafe) {
+				return JRE_VERSION[i];
+			}
+		}
+		
+		return 0;
+	}
+
+	public static boolean containsIgnoreCase(final String where, final String what) {
+		return where.toLowerCase().indexOf(what.toLowerCase(), 0) >= 0;
+	}
+
+	public static final boolean isAppleJvm() {
+		return containsIgnoreCase(JAVA_VENDOR, "Apple");
+	}
+
+	public static final boolean isOracleJvm() {
+		return containsIgnoreCase(JAVA_VENDOR, "Oracle");
+	}
+
+	public static final boolean isSunJvm() {
+		return containsIgnoreCase(JAVA_VENDOR, "Sun")
+				&& containsIgnoreCase(JAVA_VENDOR, "Microsystems");
+	}
+
+	public static final boolean isIbmJvm() {
+		return containsIgnoreCase(JAVA_VENDOR, "IBM");
+	}
+	
+	private static Integer screenDeviceScale;
+	
+	public static int getScreenDeviceScale() {//for example, MacBook Pro retina screen
+		if(screenDeviceScale == null) {
+			final GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			final GraphicsDevice device = env.getDefaultScreenDevice();
+	
+			try {
+				final Field field = device.getClass().getDeclaredField("scale");//SystemInfo.isJavaVersionAtLeast("1.7.0_40") && SystemInfo.isOracleJvm
+	
+				if (field != null) {
+					field.setAccessible(true);
+					final Object scale = field.get(device);
+	
+					if (scale instanceof Integer) {
+						screenDeviceScale = ((Integer) scale).intValue();
+					}
+					field.setAccessible(false);
+				}
+			} catch (final Exception e) {
+			}finally {
+				if(screenDeviceScale == null) {
+					screenDeviceScale = PropertiesManager.getIntValue(PropertiesManager.p_screenDeviceScale, 1);
+				}
+			}
+		}
+		
+		return screenDeviceScale;
+	}
+	
+	public static String[] reverseStringArray(final String[] src) {
+		final int size = src.length;
+		final String[] out = new String[size];
+		for (int i = 0; i < size; i++) {
+			out[size - i - 1] = src[i];
+		}
+		return out;
+	}
+	
+	public static String[] getAllJREVersion() {
+		final int size = JRE_VERSION.length;
+		final String[] out = new String[size];
+		for (int i = 0; i < size; i++) {
+			out[i] = String.valueOf(JRE_VERSION[i]);
+		}
+		return out;
+	}
+	
+	/**
+	 * 0 means unknow or pure resource jar file.
+	 * @param file
+	 * @return
+	 * @throws Exception
+	 */
+	public static float getMaxJREVersionFromCompileJar(final File file) {
+		final int cafeCode = getMaxCompileCafeCode(file);
+		return getJREVersionFromCafeCode(cafeCode);
+	}
+
+	private static int getMaxCompileCafeCode(final File file) {
+		int maxVersion = -1;
+		JarFile jarFile = null;
+		try {
+			jarFile = new JarFile(file, false);
+			final Enumeration<JarEntry> enumeration = jarFile.entries();
+			while (enumeration.hasMoreElements()) {
+				final JarEntry entry = enumeration.nextElement();
+				if (entry.getName().endsWith(".class")) {
+					final InputStream in = jarFile.getInputStream(entry);
+					final int ver = getVersion(in);
+					if(ver > maxVersion) {
+						maxVersion = ver;
+					}
+					in.close();
+				}
+			}
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}finally {
+			try {
+				jarFile.close();
+			}catch (final Exception e) {
+			}
+		}
+		return maxVersion;
+	}
+
+	private static int getVersion(final InputStream in) {
+		final DataInputStream dis = new DataInputStream(in);
+		try {
+			final int magic = dis.readInt();
+			if (magic == JAVA_CLASS_MAGIC) {
+				dis.readUnsignedShort();
+				final int majorVersion = dis.readUnsignedShort();
+				return majorVersion;
+			}
+		}catch (final Throwable e) {
+			e.printStackTrace();
+		}
+		return -1;
+	}
 	
 	public static AbstractDocument.DefaultDocumentEvent getDocumentEventType(final UndoableEdit edit) {
 		if(edit instanceof AbstractDocument.DefaultDocumentEvent){
@@ -156,42 +303,6 @@ public class ResourceUtil {
 			e.printStackTrace();
 		}
 		throw new Error("unknow DocumentEventType.");
-	}
-	
-	public static String replaceImport(final String scripts){
-		if(scripts.indexOf(IMPORT, 0) >= 0){
-			final Matcher matcher = IMPORT_PATTERN.matcher(scripts);
-			StringBuilder sb = null;
-			int startIdx = 0;
-			while(matcher.find()){
-				if(sb == null){
-					sb = StringBuilderCacher.getFree();
-				}
-				final int shiftStartIdx = matcher.start();
-				final int shiftEndIdx = matcher.end();
-
-				final int endDocIdx = scripts.lastIndexOf('.', shiftEndIdx);
-				if(endDocIdx > shiftStartIdx){
-					if(shiftStartIdx > startIdx){
-						sb.append(scripts.substring(startIdx, shiftStartIdx));
-					}
-					
-					sb.append(scripts.substring(endDocIdx + 1, shiftEndIdx));
-					sb.append('=');
-					sb.append(scripts.substring(matcher.start(1), shiftEndIdx));
-					startIdx = shiftEndIdx;
-				}
-			}
-			if(sb == null){
-				return scripts;
-			}else{
-				sb.append(scripts.substring(startIdx));
-				final String out = sb.toString();
-				StringBuilderCacher.cycle(sb);
-				return out;
-			}
-		}
-		return scripts;
 	}
 	
 	private static Class getStarterClass(){
@@ -608,7 +719,7 @@ public class ResourceUtil {
 	public static final String toYYYYMMDD_HHMMSS(final long ms){
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		
-		final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		final Timestamp timestamp = new Timestamp(ms);
 		sb.append((timestamp.getYear() + 1900));
 		final int month = (timestamp.getMonth() + 1);
 		if(month < 10){
@@ -654,8 +765,7 @@ public class ResourceUtil {
         try{
             attributes = Files.readAttributes(filePath, BasicFileAttributes.class);
             return attributes.creationTime().to(TimeUnit.MILLISECONDS);
-        }catch (final IOException e){
-            e.printStackTrace();
+        }catch (final IOException e){//某些android不需要输出
         }
         return 0;
 	}
@@ -873,6 +983,8 @@ public class ResourceUtil {
 	public static void setHideIDForErrCertAndSave(final boolean isHide){
 		PropertiesManager.setValue(PropertiesManager.p_HideIDForErrCert, isHide?IConstant.TRUE:IConstant.FALSE);
 		PropertiesManager.saveFile();
+		
+		SafeDataManager.startSafeBackupProcess(true, false);
 		
 		ResourceUtil.refreshRootAlive();
 	}
@@ -1132,7 +1244,7 @@ public class ResourceUtil {
 	public static Object getResInUT(final int id, final Object threadToken){
 		return ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				return get(id);
 			}
 		}, threadToken);
@@ -1835,28 +1947,16 @@ public class ResourceUtil {
 	}
 
 	public static String getLibNameForAllPlatforms(final String libName) {
-//		return getLibNameForAllPlatformsFor9K(libName);
 		final boolean isAndroid = isAndroidServerPlatform();
-		if(isAndroid){
-			return libName + EXT_JAR + EXT_APK;
-		}else{
-			return libName + EXT_JAR;
-		}
-	}
+		final String newName = libName + (isAndroid?EXT_DEX_JAR:EXT_JAR);
 
-	private static String getLibNameForAllPlatformsFor9K(final String libName) {
-		final boolean isAndroid = isAndroidServerPlatform();
 		if(isAndroid){
-			final File jruby1_7_x_in_android = new File(getBaseDir(), "jruby.jar" + EXT_APK);//旧采用roboto-X.apk方式
-			if(jruby1_7_x_in_android.exists()){
-				if(jruby1_7_x_in_android.delete()){
-					LogManager.log("successful delete 1.7.X " + jruby1_7_x_in_android.getName());
-				}else{
-					LogManager.errToLog("fail to delete 1.7.X " + jruby1_7_x_in_android.getName());
-				}
+			final File jruby1_7_3_in_android = new File(getBaseDir(), "jruby.jar" + EXT_APK);//旧采用roboto-X.apk方式
+			if(jruby1_7_3_in_android.exists()){
+				jruby1_7_3_in_android.renameTo(new File(getBaseDir(), newName));
 			}
 		}
-		return libName + (isAndroid?EXT_DEX_JAR:EXT_JAR);
+		return newName;
 	}
 
 	public static boolean isEnableDesigner(){
@@ -2012,7 +2112,7 @@ public class ResourceUtil {
 	public static void generateCertForNullOrError() {
 		CCoreUtil.checkAccess();
 		
-		App.generateCert();
+		App.generateCertAndSave();
 		PropertiesManager.setValue(PropertiesManager.p_EnableTransNewCertKeyNow, IConstant.TRUE);
 		
 		App.setNoTransCert();
@@ -2405,6 +2505,17 @@ public class ResourceUtil {
 		final Container parent = subPanel.getParent();
 		if(parent != null){
 			parent.remove(subPanel);
+		}
+	}
+
+	public static File createTempFileForHAR(final ProjectContext ctx, File parent, final String fileExtension) {
+		if(parent == null){
+			parent = StoreDirManager.getTmpSubForUserManagedByHcSys(ctx);
+		}
+		try {
+			return File.createTempFile("tmp", fileExtension==null?null:("." + fileExtension), parent);
+		}catch (final Exception e) {
+			return createRandomFileWithExt(parent, fileExtension==null?null:("." + fileExtension));
 		}
 	}
 }

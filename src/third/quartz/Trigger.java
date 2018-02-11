@@ -18,7 +18,7 @@
 
 package third.quartz;
 
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 import java.io.Serializable;
 import java.util.Comparator;

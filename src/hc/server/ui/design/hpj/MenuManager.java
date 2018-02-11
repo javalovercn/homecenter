@@ -1,15 +1,5 @@
 package hc.server.ui.design.hpj;
 
-import hc.App;
-import hc.UIActionListener;
-import hc.core.util.ExceptionReporter;
-import hc.res.ImageSrc;
-import hc.server.ConfigPane;
-import hc.server.FileSelector;
-import hc.server.HCActionListener;
-import hc.server.ui.design.Designer;
-import hc.util.ResourceUtil;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Window;
@@ -29,6 +19,16 @@ import javax.swing.JTree;
 import javax.swing.SwingConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
+
+import hc.App;
+import hc.UIActionListener;
+import hc.core.util.ExceptionReporter;
+import hc.res.ImageSrc;
+import hc.server.ConfigPane;
+import hc.server.FileSelector;
+import hc.server.HCActionListener;
+import hc.server.ui.design.Designer;
+import hc.util.ResourceUtil;
 
 public class MenuManager {
 	private final ThreadGroup threadPoolToken = App.getThreadPoolToken();
@@ -244,9 +244,16 @@ public class MenuManager {
 						if(addJarFile != null){
 							//检查包中不能含有系统保留包名
 							if(ResourceUtil.checkSysPackageNameInJar(addJarFile)){
-								final JPanel ok = new JPanel();
-								ok.add(new JLabel(ResourceUtil.RESERVED_PACKAGE_NAME_IS_IN_HAR, new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
-								App.showCenterPanelMain(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null, false, false);
+								final String reservedPackageNameIsInHar = ResourceUtil.RESERVED_PACKAGE_NAME_IS_IN_HAR;
+								App.showErrorMessageDialog(designer, reservedPackageNameIsInHar, ResourceUtil.getErrorI18N());
+								return;
+							}
+							
+							//检查cafeCode是否高于当前运行环境
+							final float jreVersion = ResourceUtil.getMaxJREVersionFromCompileJar(addJarFile);//0表示纯资源包
+							final float currJRE = App.getJREVer();
+							if(jreVersion > currJRE) {
+								App.showErrorMessageDialog(designer, "current JRE/JDK version is [" + currJRE + "], but jar is compiled in [" + jreVersion + "]!", ResourceUtil.getErrorI18N());
 								return;
 							}
 							

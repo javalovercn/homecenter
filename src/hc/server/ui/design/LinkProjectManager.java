@@ -1,5 +1,29 @@
 package hc.server.ui.design;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.cert.X509Certificate;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Vector;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.SwingConstants;
+
 import hc.App;
 import hc.core.HCTimer;
 import hc.core.IConstant;
@@ -30,30 +54,6 @@ import hc.util.PropertiesSet;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Frame;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.security.cert.X509Certificate;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Vector;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.SwingConstants;
-
 public class LinkProjectManager{
 	private static final String PROJECT_MANAGER = "[AutoUpgradeManager] ";
 	public static final String EDIT_HAR = "myedit.har";
@@ -67,10 +67,10 @@ public class LinkProjectManager{
 	
 	final static Vector<LinkProjectStore> lpsVector = new Vector<LinkProjectStore>(5);
 	
-	static void reloadLinkProjects(){
+	static synchronized void reloadLinkProjects(){
 		lpsVector.clear();
 		try{
-			final PropertiesSet projIDSet = AddHarHTMLMlet.newLinkProjSetInstance();
+			final PropertiesSet projIDSet = newLinkProjSetInstance();
 			final int size = projIDSet.size();
 			for (int i = 0; i < size; i++) {
 				final String item = projIDSet.getItem(i);
@@ -87,7 +87,7 @@ public class LinkProjectManager{
 	 * 仅删除记录。
 	 * @param lps
 	 */
-	static void removeOnlyLPS(final LinkProjectStore lps){
+	static synchronized void removeOnlyLPS(final LinkProjectStore lps){
 		final int size = lpsVector.size();
 		for (int i = 0; i < size; i++) {
 			if(lpsVector.get(i).getProjectID().equals(lps.getProjectID())){
@@ -102,7 +102,7 @@ public class LinkProjectManager{
 			return false;
 		}
 		
-		if(JRubyInstaller.checkUpgradeJRuby()){
+		if(JRubyInstaller.checkNeedUpgradeJRuby()){
 			return false;
 		}
 		
@@ -410,16 +410,13 @@ public class LinkProjectManager{
 		timer.doBiz();
 	}
 
-	static LinkProjectStore searchRoot(final boolean mustActive){
+	static synchronized LinkProjectStore searchActiveRoot(){
 		final int size = lpsVector.size();
 		for (int i = 0; i < size; i++) {
-			final LinkProjectStore lps = LinkProjectManager.lpsVector.elementAt(i);
+			final LinkProjectStore lps = lpsVector.elementAt(i);
+			final boolean active = lps.isActive();
 			if(lps.isRoot()){
-				if(mustActive){
-					if(lps.isActive()){
-						return lps;
-					}
-				}else{
+				if(active){
 					return lps;
 				}
 			}
@@ -427,12 +424,16 @@ public class LinkProjectManager{
 		return null;
 	}
 	
+	public static boolean hasAlive() {
+		return searchOtherActive(null) != null;
+	}
+	
 	/**
 	 * 重新找到一个active作为Root
 	 * @param lps
 	 * @return
 	 */
-	static LinkProjectStore searchOtherActive(final LinkProjectStore lps){
+	static synchronized LinkProjectStore searchOtherActive(final LinkProjectStore lps){
 		final int size = lpsVector.size();
 		for (int i = 0; i < size; i++) {
 			final LinkProjectStore search = lpsVector.elementAt(i);
@@ -715,7 +716,7 @@ public class LinkProjectManager{
 	 * @param includeRoot
 	 * @return
 	 */
-	static Iterator<LinkProjectStore> getLinkProjsIteratorInUserSysThread(final boolean includeRoot){
+	static synchronized Iterator<LinkProjectStore> getLinkProjsIteratorInUserSysThread(final boolean includeRoot){
 		if(includeRoot){
 			return lpsVector.iterator();
 		}else{
@@ -723,7 +724,7 @@ public class LinkProjectManager{
 		}
 	}
 	
-	static final String getProjPaths(){
+	static synchronized final String getProjPaths(){
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		final Iterator<LinkProjectStore> it = lpsVector.iterator();
 		boolean isAdded = false;
@@ -740,7 +741,7 @@ public class LinkProjectManager{
 		return out;
 	}
 
-	static final LinkProjectStore getProjByID(final String projID){
+	static synchronized final LinkProjectStore getProjByID(final String projID){
 		final int size = lpsVector.size();
 		for (int i = 0; i < size; i++) {
 			final LinkProjectStore tmp = lpsVector.elementAt(i);
@@ -767,11 +768,11 @@ public class LinkProjectManager{
 		}
 	}
 	
-	static int getProjectSize(){
+	static synchronized int getProjectSize(){
 		return lpsVector.size();
 	}
 	
-	static final LinkProjectStore getProjLPSWithCreate(final String id){
+	static synchronized final LinkProjectStore getProjLPSWithCreate(final String id){
 		final int size = lpsVector.size();
 		LinkProjectStore lps = null;
 		for (int i = 0; i < size; i++) {
@@ -831,7 +832,7 @@ public class LinkProjectManager{
 		updateToLinkProject();
 	}
 	
-	static void updateToLinkProject() {//注意：不能将异常抛出
+	static synchronized void updateToLinkProject() {//注意：不能将异常抛出
 		try{
 			final int size = lpsVector.size();
 			final LinkProjectStore[] lpss = new LinkProjectStore[size];
@@ -840,7 +841,7 @@ public class LinkProjectManager{
 				lpss[i] = lpsVector.elementAt(i);
 			}
 			
-			AddHarHTMLMlet.saveLinkStore(lpss, AddHarHTMLMlet.newLinkProjSetInstance());
+			saveLinkStore(lpss, newLinkProjSetInstance());
 		}catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
@@ -1090,6 +1091,27 @@ public class LinkProjectManager{
 	static String getNoMenuItemInRoot() {
 		return "There is NO designed menu item (not dynamic item) in root active project!";
 	}
+
+	static PropertiesSet newLinkProjSetInstance() {
+		return new PropertiesSet(PropertiesManager.S_LINK_PROJECTS);
+	}
+
+	static void saveLinkStore(final LinkProjectStore[] lpss, final PropertiesSet projIDSet) {
+			final Object[] objs = new Object[lpss.length];
+			for (int i = 0; i < lpss.length; i++) {
+				final LinkProjectStore lps = lpss[i];
+				if(L.isInWorkshop){
+					LogManager.log("save link store for project [" + lps.getProjectID() + "] {" + lps + "}");
+				}
+				objs[i] = lps.toSerial();
+			}
+			
+			projIDSet.refill(objs);
+			projIDSet.save();
+			
+	//		有可能只需要保存，而不需要拉新
+	//		LinkProjectManager.reloadLinkProjects();
+		}
 	
 }
 

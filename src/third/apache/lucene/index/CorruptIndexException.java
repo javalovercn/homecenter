@@ -18,10 +18,10 @@ package third.apache.lucene.index;
 
 
 import java.io.IOException;
-import hc.server.util.lucene.Objects;
 
 import third.apache.lucene.store.DataInput;
 import third.apache.lucene.store.DataOutput;
+import third.hc.server.util.lucene.Objects;
 
 /**
  * This exception is thrown when Lucene detects

@@ -1,9 +1,5 @@
 package hc.server;
 
-import hc.PlatformTrayIcon;
-import hc.core.util.WiFiDeviceManager;
-import hc.util.LogServerSide;
-
 import java.awt.Image;
 import java.awt.Robot;
 import java.awt.Shape;
@@ -13,6 +9,10 @@ import java.io.File;
 import java.lang.reflect.Method;
 
 import javax.swing.JPopupMenu;
+
+import hc.PlatformTrayIcon;
+import hc.core.util.WiFiDeviceManager;
+import hc.util.LogServerSide;
 
 public interface PlatformService {
 	public static final ClassLoader SYSTEM_CLASS_LOADER = PlatformService.class.getClassLoader();
@@ -60,6 +60,8 @@ public interface PlatformService {
 	 * @return 剩余工作区可用磁盘字节数
 	 */
 	public long getAvailableSize();
+	
+	public File[] getRubotoAndDxFiles();
 	
 	/**
 	 * 

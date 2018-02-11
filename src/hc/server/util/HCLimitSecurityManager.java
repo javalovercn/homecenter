@@ -1,5 +1,24 @@
 package hc.server.util;
 
+import java.awt.AWTPermission;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.ReflectPermission;
+import java.net.NetPermission;
+import java.net.SocketPermission;
+import java.net.URLClassLoader;
+import java.security.Permission;
+import java.security.PermissionCollection;
+import java.util.Locale;
+import java.util.Map;
+import java.util.PropertyPermission;
+import java.util.Vector;
+import java.util.logging.LoggingPermission;
+
+import javax.net.ssl.SSLPermission;
+
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.IConstant;
@@ -16,6 +35,7 @@ import hc.core.util.StringUtil;
 import hc.core.util.ThreadPool;
 import hc.res.ImageSrc;
 import hc.server.HCSecurityException;
+import hc.server.JRubyInstaller;
 import hc.server.data.StoreDirManager;
 import hc.server.msb.AnalysableRobotParameter;
 import hc.server.msb.Converter;
@@ -53,6 +73,14 @@ import hc.server.ui.design.ProjMgrDialog;
 import hc.server.ui.design.SystemDialog;
 import hc.server.ui.design.SystemHTMLMlet;
 import hc.server.ui.design.hpj.HCjar;
+import hc.server.util.calendar.AnnualJobCalendar;
+import hc.server.util.calendar.BaseJobCalendar;
+import hc.server.util.calendar.CronExcludeJobCalendar;
+import hc.server.util.calendar.DailyJobCalendar;
+import hc.server.util.calendar.HolidayJobCalendar;
+import hc.server.util.calendar.JobCalendar;
+import hc.server.util.calendar.MonthlyJobCalendar;
+import hc.server.util.calendar.WeeklyJobCalendar;
 import hc.server.util.json.JSONArray;
 import hc.server.util.json.JSONException;
 import hc.server.util.json.JSONML;
@@ -64,40 +92,12 @@ import hc.server.util.json.JSONString;
 import hc.server.util.json.JSONTokener;
 import hc.server.util.json.JSONXML;
 import hc.server.util.json.JSONXMLTokener;
-import hc.server.util.scheduler.AnnualJobCalendar;
-import hc.server.util.scheduler.BaseJobCalendar;
-import hc.server.util.scheduler.CronExcludeJobCalendar;
-import hc.server.util.scheduler.DailyJobCalendar;
-import hc.server.util.scheduler.HolidayJobCalendar;
-import hc.server.util.scheduler.JobCalendar;
-import hc.server.util.scheduler.MonthlyJobCalendar;
-import hc.server.util.scheduler.WeeklyJobCalendar;
 import hc.util.ClassUtil;
 import hc.util.HttpUtil;
 import hc.util.PropertiesManager;
 import hc.util.ResourceUtil;
 import hc.util.SecurityDataProtector;
 import hc.util.SocketDesc;
-
-import java.awt.AWTPermission;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.ReflectPermission;
-import java.net.NetPermission;
-import java.net.SocketPermission;
-import java.net.URLClassLoader;
-import java.security.Permission;
-import java.security.PermissionCollection;
-import java.util.Locale;
-import java.util.Map;
-import java.util.PropertyPermission;
-import java.util.Vector;
-import java.util.logging.LoggingPermission;
-
-import javax.net.ssl.SSLPermission;
-
 import third.quartz.utils.DBConnectionManager;
 
 public class HCLimitSecurityManager extends WrapperSecurityManager implements HarHelper{
@@ -912,18 +912,20 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null)) || (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null){
 		}
 		if(csc != null){
-			final boolean isJFFIStubLoader = false;
+			boolean isJFFIStubLoader = false;
 			//com.kenai.jffi.internal.StubLoader.loadFromJar(StubLoader.java:367)
-//			final StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-//			final int size = stack.length;
-//			for (int i = 0; i < size; i++) {
-//				final StackTraceElement element = stack[i];
-//				if(element.getClassName().equals("com.kenai.jffi.internal.StubLoader")){
-//					LogManager.log("ignore checkLink for Class [com.kenai.jffi.internal.StubLoader].");
-//					isJFFIStubLoader = true;
-//					break;
-//				}
-//			}
+			if(JRubyInstaller.JRUBY_VERSION.equals(JRubyInstaller.JRUBY_VERSION_1_7_27)) {
+				final StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+				final int size = stack.length;
+				for (int i = 0; i < size; i++) {
+					final StackTraceElement element = stack[i];
+					if(element.getClassName().equals("com.kenai.jffi.internal.StubLoader")){
+						LogManager.log("ignore checkLink for Class [com.kenai.jffi.internal.StubLoader].");
+						isJFFIStubLoader = true;
+						break;
+					}
+				}
+			}
 			if(isJFFIStubLoader ==  false && csc.isLoadLib() == false){
 				throw new HCSecurityException("block java.lang.Runtime.load(lib) in HAR project  [" + csc.projID + "]."
 						+ buildPermissionOnDesc(HCjar.PERMISSION_LOAD_LIB));

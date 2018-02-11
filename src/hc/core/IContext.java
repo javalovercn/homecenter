@@ -311,11 +311,11 @@ public abstract class IContext {
 	public static final short BIZ_SERVER_AFTER_CERTKEY_ERROR = 3;
 	public static final short BIZ_SERVER_AFTER_SERVICE_IS_FULL = 4;
 	public static final short BIZ_SERVER_AFTER_UNKNOW_STATUS = 5;
-	/**
-	 * @deprecated
-	 * 本逻辑统一移到ServerConfig.p_MIN_MOBI_VER_REQUIRED_BY_PC
-	 */
-	public static final short BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS = 6;
+//	/**
+//	 * @deprecated
+//	 * 本逻辑统一移到ServerConfig.p_MIN_MOBI_VER_REQUIRED_BY_PC
+//	 */
+//	public static final short BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS = 6;
 	public static final short BIZ_AFTER_HOLE = 7;
 	public static final short BIZ_LOAD_SERVER_CONFIG = 8;
 	public static final short BIZ_UPLOAD_LINE_ON = 9;

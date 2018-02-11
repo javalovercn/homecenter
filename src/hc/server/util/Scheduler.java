@@ -17,22 +17,6 @@
 
 package hc.server.util;
 
-import hc.core.util.CCoreUtil;
-import hc.core.util.ExceptionReporter;
-import hc.core.util.LogManager;
-import hc.core.util.ReturnableRunnable;
-import hc.server.ui.ProjectContext;
-import hc.server.ui.ServerUIAPIAgent;
-import hc.server.ui.design.J2SESession;
-import hc.server.util.scheduler.AnnualJobCalendar;
-import hc.server.util.scheduler.CronExcludeJobCalendar;
-import hc.server.util.scheduler.DailyJobCalendar;
-import hc.server.util.scheduler.HolidayJobCalendar;
-import hc.server.util.scheduler.JobCalendar;
-import hc.server.util.scheduler.MonthlyJobCalendar;
-import hc.server.util.scheduler.WeeklyJobCalendar;
-import hc.util.ThreadConfig;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -40,6 +24,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
+import hc.core.util.CCoreUtil;
+import hc.core.util.ExceptionReporter;
+import hc.core.util.LogManager;
+import hc.core.util.ReturnableRunnable;
+import hc.server.ui.ProjectContext;
+import hc.server.ui.ServerUIAPIAgent;
+import hc.server.ui.design.J2SESession;
+import hc.server.util.calendar.AnnualJobCalendar;
+import hc.server.util.calendar.CronExcludeJobCalendar;
+import hc.server.util.calendar.DailyJobCalendar;
+import hc.server.util.calendar.HolidayJobCalendar;
+import hc.server.util.calendar.JobCalendar;
+import hc.server.util.calendar.MonthlyJobCalendar;
+import hc.server.util.calendar.WeeklyJobCalendar;
+import hc.util.ThreadConfig;
 import third.quartz.CronExpression;
 import third.quartz.CronScheduleBuilder;
 import third.quartz.CronTrigger;
@@ -126,7 +125,7 @@ public final class Scheduler {
 			sched = (third.quartz.Scheduler) ServerUIAPIAgent.runAndWaitInProjContext(
 					projectContext, new ReturnableRunnable() {
 						@Override
-						public Object run() {
+						public Object run() throws Throwable {
 							return getScheduler(key, domainName, isAllInRAM, j2seSession);
 						}
 					});
@@ -155,7 +154,7 @@ public final class Scheduler {
 			} else {
 				ServerAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 					@Override
-					public Object run() {
+					public Object run() throws Throwable {
 						buildProvider(key, projectContext, domainName);
 						return null;
 					}
@@ -1142,8 +1141,7 @@ public final class Scheduler {
 	 * 
 	 * <p>
 	 * If the returned value is <code>false</code> then the
-	 * <code>Scheduler</code> may remove the <code>Trigger</code> from
-	 * Store</code>.
+	 * <code>Scheduler</code> may remove the <code>Trigger</code> from Store.
 	 * </p>
 	 * 
 	 * @return false means not fire again or exception thrown.<BR>
@@ -1713,6 +1711,7 @@ public final class Scheduler {
 			final Date endTime, final int misfireOption, final String jobKey,
 			final String description) {
 		if (jobKey == null) {
+			LogManager.err("fail to addCronTrigger for jobyKey is null.");
 			return;
 		}
 

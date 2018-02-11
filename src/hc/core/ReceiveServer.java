@@ -16,8 +16,7 @@ public class ReceiveServer implements Runnable{
 	public static final ByteArrayCacher recBytesCacher = ByteUtil.byteArrayCacher;
     public Thread thread;
     final CoreSession coreSocketSession;
-    final boolean isEnableTestRebuildConn = IConstant.serverSide == false 
-    		&& ((Boolean)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BIZ_IS_SIMU, null)).booleanValue();//限客户端
+    final static boolean isEnableTestRebuildConn = isEnableTestRebuildConnection();//限客户端
     boolean isSimuRetransError = false;
     private long last_rebuild_swap_sock_ms;
     private boolean isExchangeStatus = false;
@@ -32,6 +31,11 @@ public class ReceiveServer implements Runnable{
         //J2ME不支持setName
 		//thread.setName("Receive Server");
     }
+	
+	private static boolean isEnableTestRebuildConnection() {
+		return IConstant.serverSide == false 
+	    		&& IConstant.TRUE.equals(RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_MB_PROP, "isEnableTestRebuildConn"));
+	}
 	
 	public void start(){
 		if(thread != null && thread.isAlive() == false){//手机端登录时，服务器正忙，导致重连
@@ -431,7 +435,7 @@ public class ReceiveServer implements Runnable{
 					}
 					
 					if(ctrlTag == MsgBuilder.E_JS_EVENT_TO_SERVER){
-						coreSocketSession.getJSEventProcessor().addWatcher(eb);
+						coreSocketSession.getJSEventProcessor().addWatcher(eb);//JSEvent会提交执行后，定时检查线程状态，如果完全wait，则终止等待，另开线程执行后续任务。
 					}else{
 						coreSocketSession.eventCenterDriver.addWatcher(eb);
 					}

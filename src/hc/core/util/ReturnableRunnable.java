@@ -1,5 +1,5 @@
 package hc.core.util;
 
 public interface ReturnableRunnable {
-	public Object run();
+	public Object run() throws Throwable;
 }

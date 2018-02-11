@@ -17,7 +17,7 @@
 
 package third.quartz.spi;
 
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 import java.util.Date;
 

@@ -1,11 +1,11 @@
 package hc.server.msb;
 
+import java.util.ArrayDeque;
+
 import hc.core.util.LogManager;
 import hc.core.util.ReturnableRunnable;
 import hc.server.ui.ProjectContext;
 import hc.server.ui.ServerUIAPIAgent;
-
-import java.util.ArrayDeque;
 
 public abstract class Processor{
 	String name;
@@ -32,7 +32,7 @@ public abstract class Processor{
 		
 		ServerUIAPIAgent.runAndWaitInProjContext(__context, new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				startableRunnable.start();
 				return null;
 			}

@@ -1,5 +1,8 @@
 package hc.server.ui.design;
 
+import java.util.HashMap;
+import java.util.Stack;
+
 import hc.core.L;
 import hc.core.util.LogManager;
 import hc.core.util.RecycleRes;
@@ -8,9 +11,6 @@ import hc.core.util.ThreadPool;
 import hc.core.util.ThreadPriorityManager;
 import hc.server.ui.ClientSession;
 import hc.server.ui.ClientSessionForSys;
-
-import java.util.HashMap;
-import java.util.Stack;
 
 public class SessionContext {
 	final static HashMap<String, Stack<SessionContext>> map = new HashMap<String, Stack<SessionContext>>(12);
@@ -77,7 +77,7 @@ public class SessionContext {
 			mtg = new ThreadGroup(projectGroup, "SessionThreadPoolGroup" + (groupIdx++));
 		}
 		
-		final ThreadPool sessionPool = new ThreadPool(mtg) {
+		final ThreadPool sessionPool = new ThreadPool(mtg, false, ThreadPool.TYPE_SESSION) {
 			int threadID = 1;
 			
 			@Override

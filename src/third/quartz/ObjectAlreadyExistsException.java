@@ -18,7 +18,7 @@
 
 package third.quartz;
 
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 /**
  * An exception that is thrown to indicate that an attempt to store a new

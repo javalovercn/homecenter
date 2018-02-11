@@ -31,10 +31,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package third.tartarus.snowball;
 
-import hc.server.util.lucene.MethodHandle;
-import hc.server.util.lucene.MethodHandles;
-import hc.server.util.lucene.MethodType;
 import java.util.Locale;
+
+import third.hc.server.util.lucene.MethodHandle;
+import third.hc.server.util.lucene.MethodHandles;
+import third.hc.server.util.lucene.MethodType;
 
 /**
  * This is the rev 502 of the Snowball SVN trunk,

@@ -33,7 +33,7 @@ public class AddHarIsBusy extends SystemHTMLMlet {
 	public AddHarIsBusy(){
 		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
-			public Object run() {
+			public Object run() throws Throwable {
 				exitButtonStr = ResourceUtil.get(localCoreSS, 9131);
 				busyMsg = ResourceUtil.get(localCoreSS, 9233);
 				waitAndTry = ResourceUtil.get(localCoreSS, 9234);

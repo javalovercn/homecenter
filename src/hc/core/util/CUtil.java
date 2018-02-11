@@ -296,8 +296,8 @@ public class CUtil {
 				}else if(status.equals(String.valueOf(IContext.BIZ_SERVER_AFTER_SERVICE_IS_FULL))){
 					LogManager.info("service is full");
 					ctx.doExtBiz(IContext.BIZ_SERVER_AFTER_SERVICE_IS_FULL, null);
-				}else if(status.equals(String.valueOf(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS))){
-					ctx.doExtBiz(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS, null);
+//				}else if(status.equals(String.valueOf(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS))){
+//					ctx.doExtBiz(IContext.BIZ_SERVER_AFTER_OLD_MOBI_VER_STATUS, null);
 				}else{
 					LogManager.info("account locked or unknown");
 					ctx.doExtBiz(IContext.BIZ_SERVER_AFTER_UNKNOW_STATUS, null);

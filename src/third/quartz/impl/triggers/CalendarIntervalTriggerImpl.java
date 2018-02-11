@@ -468,7 +468,7 @@ public class CalendarIntervalTriggerImpl extends AbstractTrigger<CalendarInterva
      * </p>
      */
     @Override
-    public void updateAfterMisfire(hc.server.util.scheduler.JobCalendar cal) {
+    public void updateAfterMisfire(hc.server.util.calendar.JobCalendar cal) {
         int instr = getMisfireInstruction();
 
         if(instr == Trigger.MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY)
@@ -506,7 +506,7 @@ public class CalendarIntervalTriggerImpl extends AbstractTrigger<CalendarInterva
      * @see #executionComplete(JobExecutionContext, JobExecutionException)
      */
     @Override
-    public void triggered(hc.server.util.scheduler.JobCalendar calendar) {
+    public void triggered(hc.server.util.calendar.JobCalendar calendar) {
         timesTriggered++;
         previousFireTime = nextFireTime;
         nextFireTime = getFireTimeAfter(nextFireTime);
@@ -531,10 +531,10 @@ public class CalendarIntervalTriggerImpl extends AbstractTrigger<CalendarInterva
 
     /**
      *  
-     * @see third.quartz.spi.OperableTrigger#updateWithNewCalendar(hc.server.util.scheduler.JobCalendar, long)
+     * @see third.quartz.spi.OperableTrigger#updateWithNewCalendar(hc.server.util.calendar.JobCalendar, long)
      */
     @Override
-    public void updateWithNewCalendar(hc.server.util.scheduler.JobCalendar calendar, long misfireThreshold)
+    public void updateWithNewCalendar(hc.server.util.calendar.JobCalendar calendar, long misfireThreshold)
     {
         nextFireTime = getFireTimeAfter(previousFireTime);
 
@@ -584,7 +584,7 @@ public class CalendarIntervalTriggerImpl extends AbstractTrigger<CalendarInterva
      *         </p>
      */
     @Override
-    public Date computeFirstFireTime(hc.server.util.scheduler.JobCalendar calendar) {
+    public Date computeFirstFireTime(hc.server.util.calendar.JobCalendar calendar) {
         nextFireTime = getStartTime();
 
         while (nextFireTime != null && calendar != null

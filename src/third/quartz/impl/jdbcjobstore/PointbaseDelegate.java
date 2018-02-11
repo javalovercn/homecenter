@@ -31,7 +31,7 @@ import java.sql.SQLException;
 import third.quartz.JobDetail;
 import third.quartz.spi.ClassLoadHelper;
 import third.quartz.spi.OperableTrigger;
-import hc.server.util.scheduler.JobCalendar;
+import hc.server.util.calendar.JobCalendar;
 
 /**
  * <p>
