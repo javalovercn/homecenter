@@ -8,43 +8,47 @@ public final class RobotEvent {
 	String propertyName;
 	Object oldValue;
 	Object newValue;
-	
-	RobotEvent(){//Not visible to JavaDoc
+
+	RobotEvent() {// Not visible to JavaDoc
 	}
 
 	/**
 	 * return the event source wrapper of <code>Robot</code>.
-	 * @return 
+	 * 
+	 * @return
 	 */
-	public final Robot getSource(){
+	public final Robot getSource() {
 		return sourceWrapper;
 	}
-	
+
 	/**
 	 * return the property name of event.
-	 * @return 
+	 * 
+	 * @return
 	 */
-	public final String getPropertyName(){
+	public final String getPropertyName() {
 		return propertyName;
 	}
-	
+
 	/**
 	 * return the old value of property. Maybe null.
-	 * @return 
+	 * 
+	 * @return
 	 */
-	public final Object getOldValue(){
+	public final Object getOldValue() {
 		return oldValue;
 	}
-	
+
 	/**
 	 * return the new value of property.
-	 * @return 
+	 * 
+	 * @return
 	 */
-	public final Object getNewValue(){
+	public final Object getNewValue() {
 		return newValue;
 	}
-	
-	final void clear(){
+
+	final void clear() {
 		sourceWrapper = null;
 		propertyName = null;
 		oldValue = null;

@@ -293,12 +293,6 @@ public abstract class IContext {
 		}
 	}
 
-	
-	public static final int ERROR = 1;
-	public static final int WARN = 2;
-	public static final int INFO = 3;
-	public static final int ALARM = 4;
-	public static final int CONFIRMATION = 5;
 	public static final int TIP = 6;
 	
 	public static final int OK = 1010;

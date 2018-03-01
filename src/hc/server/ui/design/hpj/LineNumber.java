@@ -10,8 +10,7 @@ import java.awt.Rectangle;
 import javax.swing.JComponent;
 
 public class LineNumber extends JComponent {
-	private final static Font DEFAULT_FONT = new Font("monospaced", Font.PLAIN,
-			12);
+	private final static Font DEFAULT_FONT = new Font("monospaced", Font.PLAIN, 12);
 	private final static int HEIGHT = Integer.MAX_VALUE - 1000000;
 	// Set right/left margin
 	private int lineHeight;
@@ -33,7 +32,7 @@ public class LineNumber extends JComponent {
 	}
 
 	public void setPreferredSize(final int row) {
-		if(row > maxRow){
+		if (row > maxRow) {
 			maxRow = row;
 			final int width = fontMetrics.stringWidth(String.valueOf(row));
 			final int doubleWidth = width * 2;
@@ -72,27 +71,26 @@ public class LineNumber extends JComponent {
 		final int lineHeight = getLineHeight();
 		final int startOffset = getStartOffset();
 		final Rectangle drawHere = g.getClipBounds();
-		g.setColor(getBackground());//使用缺省背景色getBackground()
-//		g.setColor(Color.YELLOW);
+		g.setColor(getBackground());// 使用缺省背景色getBackground()
+		// g.setColor(Color.YELLOW);
 		g.fillRect(drawHere.x, drawHere.y, drawHere.width, drawHere.height);
 		g.setColor(Color.LIGHT_GRAY);
 		final int x1 = drawHere.width - 5;
 		g.drawLine(x1, drawHere.y, x1, drawHere.y + drawHere.height);
-		g.setColor(new Color(165, 199, 234));//使用缺省背景色getBackground()
-//		g.setColor(Color.YELLOW);
-		g.fillRect(drawHere.x, drawHere.y, drawHere.width/2, drawHere.height);
+		g.setColor(new Color(165, 199, 234));// 使用缺省背景色getBackground()
+		// g.setColor(Color.YELLOW);
+		g.fillRect(drawHere.x, drawHere.y, drawHere.width / 2, drawHere.height);
 		// Determine the number of lines to draw in the foreground.
 		g.setColor(getForeground());
 		final int startLineNumber = (drawHere.y / lineHeight) + 1;
 		final int endLineNumber = startLineNumber + (drawHere.height / lineHeight);
-		int start = (drawHere.y / lineHeight) * lineHeight + lineHeight
-				- startOffset;
+		int start = (drawHere.y / lineHeight) * lineHeight + lineHeight - startOffset;
 		// System.out.println( startLineNumber + " : " + endLineNumber + " : " +
 		// start );
 		for (int i = startLineNumber; i <= endLineNumber; i++) {
 			final String lineNumber = String.valueOf(i);
 			final int width = fontMetrics.stringWidth(lineNumber);
-			g.drawString(lineNumber, currentRowWidth - width - currentRowWidth/2, start);
+			g.drawString(lineNumber, currentRowWidth - width - currentRowWidth / 2, start);
 			start += lineHeight;
 		}
 		setPreferredSize(endLineNumber);

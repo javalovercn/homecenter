@@ -7,25 +7,25 @@ public class ByteArrCacher {
 	private final Stack free;
 	private final int byte_size;
 
-	public ByteArrCacher(int byte_size){
-        free = new Stack();
-        this.byte_size = byte_size;
+	public ByteArrCacher(int byte_size) {
+		free = new Stack();
+		this.byte_size = byte_size;
 	}
-	
-	public ByteArr getFree(){
+
+	public ByteArr getFree() {
 		synchronized (free) {
-			if(free.size() == 0){
-				byte[] buffer=new byte[byte_size];
+			if (free.size() == 0) {
+				byte[] buffer = new byte[byte_size];
 				return new ByteArr(buffer, byte_size);
-			}else{
-				return (ByteArr)free.pop();
+			} else {
+				return (ByteArr) free.pop();
 			}
-        }
+		}
 	}
-	
-	public void cycle(ByteArr dp){
+
+	public void cycle(ByteArr dp) {
 		synchronized (free) {
 			free.push(dp);
-        }		
+		}
 	}
 }

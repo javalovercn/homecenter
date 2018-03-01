@@ -24,16 +24,26 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 /**
- * <code>Mlet</code> is an instance running in server, and the <STRONG>snapshot</STRONG> of <code>Mlet</code> is presented to mobile.
- * It looks more like a form, control panel or canvas running in mobile.
- * <BR><BR>
- * <code>Mlet</code> is extends {@link javax.swing.JPanel JPanel}, its advantage is bringing all JPanel features to mobile UI, no matter client is Android, iPhone or other.
- * <BR><BR>
- * To present JComponents to mobile in HTML (not snapshot) and set CSS for these JComponents, please use <code>HTMLMlet</code>, which is extends <code>Mlet</code>.
- * <BR><BR><STRONG>Important :</STRONG><BR>In Swing, layout manager is noticing that JButton (and JCheckBox, JComboBox, JLabel, JRadioButton, JTextField) has a preferred size and adjusting your pane to accommodate JButton, 
- * in other words, <code>setMinimumSize</code> will not working for JButton. 
+ * <code>Mlet</code> is an instance running in server, and the
+ * <STRONG>snapshot</STRONG> of <code>Mlet</code> is presented to mobile. It
+ * looks more like a form, control panel or canvas running in mobile. <BR>
  * <BR>
- * <code>setMinimumSize</code> for JPanel, adding JButton in it and setting CSS for JButton to grow full space is a good choice.
+ * <code>Mlet</code> is extends {@link javax.swing.JPanel JPanel}, its advantage
+ * is bringing all JPanel features to mobile UI, no matter client is Android,
+ * iPhone or other. <BR>
+ * <BR>
+ * To present JComponents to mobile in HTML (not snapshot) and set CSS for these
+ * JComponents, please use <code>HTMLMlet</code>, which is extends
+ * <code>Mlet</code>. <BR>
+ * <BR>
+ * <STRONG>Important :</STRONG><BR>
+ * In Swing, layout manager is noticing that JButton (and JCheckBox, JComboBox,
+ * JLabel, JRadioButton, JTextField) has a preferred size and adjusting your
+ * pane to accommodate JButton, in other words, <code>setMinimumSize</code> will
+ * not working for JButton. <BR>
+ * <code>setMinimumSize</code> for JPanel, adding JButton in it and setting CSS
+ * for JButton to grow full space is a good choice.
+ * 
  * @see HTMLMlet
  * @since 7.0
  */
@@ -42,44 +52,51 @@ public class Mlet extends JPanel implements ICanvas {
 	final Object synLock = new Object();
 	boolean enableApplyOrientationWhenRTL = true;
 	boolean isCancelable = true;
-	
+
 	/**
-	 * set current <code>Mlet/HTMLMlet</code> to be not cancelable, for example back key in Android.
-	 * <BR><BR>
+	 * set current <code>Mlet/HTMLMlet</code> to be not cancelable, for example
+	 * back key in Android. <BR>
+	 * <BR>
 	 * <STRONG>Important :</STRONG><BR>
-	 * this method must be invoked before {@link ProjectContext#goMletWhenInSession(Mlet, String)}, {@link ProjectContext#goWhenInSession(String)} and {@link ProjectContext#goWhenInSession(String, String)}.
+	 * this method must be invoked before
+	 * {@link ProjectContext#goMletWhenInSession(Mlet, String)},
+	 * {@link ProjectContext#goWhenInSession(String)} and
+	 * {@link ProjectContext#goWhenInSession(String, String)}.
 	 */
-	public final void setCancelableToNo(){
+	public final void setCancelableToNo() {
 		this.isCancelable = false;
 	}
-	
+
 	/**
 	 * construct this instance.
 	 */
 	public static final int STATUS_INIT = 0;
-	
+
 	/**
-	 * when {@link #onStart()} or {@link #onResume()}, <code>Mlet</code> is changed to this status.
+	 * when {@link #onStart()} or {@link #onResume()}, <code>Mlet</code> is
+	 * changed to this status.
 	 */
 	public static final int STATUS_RUNNING = 1;
-	
+
 	/**
 	 * when {@link #onPause()}, <code>Mlet</code> is changed to this status.
 	 */
 	public static final int STATUS_PAUSE = 2;
-	
+
 	/**
 	 * when {@link #onExit()}, <code>Mlet</code> is changed to this status.
 	 */
 	public static final int STATUS_EXIT = 3;
-	
+
 	int status = STATUS_INIT;
-	
+
 	/**
-	 * return {@link #STATUS_INIT}, {@link #STATUS_RUNNING}, {@link #STATUS_PAUSE}, {@link #STATUS_EXIT} or other.
-	 * @return 
+	 * return {@link #STATUS_INIT}, {@link #STATUS_RUNNING},
+	 * {@link #STATUS_PAUSE}, {@link #STATUS_EXIT} or other.
+	 * 
+	 * @return
 	 */
-	public int getStatus(){
+	public int getStatus() {
 		return status;
 	}
 
@@ -87,74 +104,80 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @deprecated
 	 */
 	@Deprecated
-	final void notifyStatusChanged(final int newStatus){//in user thread
-		synchronized (synLock) {//要置于外部
-			if(L.isInWorkshop){
-				LogManager.log("change Mlet/HTMLMlet [" + __target + "] from [" + status + "] to [" + newStatus + "].");
+	final void notifyStatusChanged(final int newStatus) {// in user thread
+		synchronized (synLock) {// 要置于外部
+			if (L.isInWorkshop) {
+				LogManager.log("change Mlet/HTMLMlet [" + __target + "] from [" + status + "] to ["
+						+ newStatus + "].");
 			}
-			
+
 			status = newStatus;
-			
-			if(this instanceof HTMLMlet){
-				final HTMLMlet htmlMlet = (HTMLMlet)this;
+
+			if (this instanceof HTMLMlet) {
+				final HTMLMlet htmlMlet = (HTMLMlet) this;
 				final DifferTodo diffTodo = htmlMlet.sizeHeightForXML.diffTodo;
-				if(newStatus == STATUS_RUNNING && diffTodo != null){
-					if(htmlMlet.sizeHeightForXML.isFlushCSS){
+				if (newStatus == STATUS_RUNNING && diffTodo != null) {
+					if (htmlMlet.sizeHeightForXML.isFlushCSS) {
 						return;
-					}else{
+					} else {
 						htmlMlet.sizeHeightForXML.isFlushCSS = true;
 					}
-					
-					//有可能为MletSnapCanvas模式调用本方法
+
+					// 有可能为MletSnapCanvas模式调用本方法
 					ServerUIAPIAgent.loadStyles(htmlMlet);
-					
-					JPanelDiff.addContainerEvent(this, diffTodo);//in user thread
-					
-					//in user thread
-					DiffManager.getDiff(JPanelDiff.class).diff(0, this, diffTodo);//必须置于onStart之前，因为要初始手机端对象结构树
-					
+
+					JPanelDiff.addContainerEvent(this, diffTodo);// in user
+																	// thread
+
+					// in user thread
+					DiffManager.getDiff(JPanelDiff.class).diff(0, this, diffTodo);// 必须置于onStart之前，因为要初始手机端对象结构树
+
 					ServerUIAPIAgent.flushCSS(htmlMlet, diffTodo);
 
-					ServerUIAPIAgent.flushJSForScriptPanel(htmlMlet);//加载JSPanel的动作脚本
+					ServerUIAPIAgent.flushJSForScriptPanel(htmlMlet);// 加载JSPanel的动作脚本
 				}
 			}
 		}
 	}
-	
+
 	/**
 	 * the width pixel of login mobile.
+	 * 
 	 * @return
 	 */
-	public int getMobileWidth(){
-		if(coreSS == SimuMobile.SIMU_NULL){
+	public int getMobileWidth() {
+		if (coreSS == SimuMobile.SIMU_NULL) {
 			return SimuMobile.MOBILE_WIDTH;
-		}else{
+		} else {
 			return UserThreadResourceUtil.getMletWidthFrom(coreSS, false);
 		}
 	}
-	
+
 	/**
 	 * the height pixel of login mobile.
+	 * 
 	 * @return
 	 */
-	public int getMobileHeight(){
-		if(coreSS == SimuMobile.SIMU_NULL){
+	public int getMobileHeight() {
+		if (coreSS == SimuMobile.SIMU_NULL) {
 			return SimuMobile.MOBILE_HEIGHT;
-		}else{
+		} else {
 			return UserThreadResourceUtil.getMletHeightFrom(coreSS, false);
 		}
 	}
-	
+
 	/**
 	 * it is equals with {@link #getMobileHeight()}.
+	 * 
 	 * @return
 	 */
 	public int getClientHeight() {
 		return getMobileHeight();
 	}
-	
+
 	/**
 	 * it is equals with {@link #getMobileWidth()}.
+	 * 
 	 * @return
 	 */
 	public int getClientWidth() {
@@ -163,95 +186,117 @@ public class Mlet extends JPanel implements ICanvas {
 
 	/**
 	 * exit current <code>Mlet</code> or <code>HTMLMlet</code> and return back.
+	 * 
 	 * @since 7.0
 	 * @see #go(String)
 	 */
 	public static final String URL_EXIT = HCURL.URL_CMD_EXIT;
-	
+
 	/**
 	 * enter the desktop screen of server.
+	 * 
 	 * @since 7.0
 	 * @see #go(String)
 	 */
 	public static final String URL_SCREEN = HCURL.URL_HOME_SCREEN;
-	
+
 	/**
 	 * @deprecated
 	 */
 	@Deprecated
-	public Mlet(){
+	public Mlet() {
 		__context = ProjectContext.getProjectContext();
-		
-		if(SimuMobile.checkSimuProjectContext(__context)){
+
+		if (SimuMobile.checkSimuProjectContext(__context)) {
 			coreSS = SimuMobile.SIMU_NULL;
-		}else{
+		} else {
 			final ProjResponser resp = __context.__projResponserMaybeNull;
 			SessionContext sc;
-			if(resp != null && (sc = resp.getSessionContextFromCurrThread()) != null){
+			if (resp != null && (sc = resp.getSessionContextFromCurrThread()) != null) {
 				coreSS = sc.j2seSocketSession;
-			}else{
-//				if((this instanceof SystemHTMLMlet) == false){
-					LogManager.errToLog("invalid invoke constructor Mlet in project level.");
-//				}
+			} else {
+				// if((this instanceof SystemHTMLMlet) == false){
+				LogManager.errToLog("invalid invoke constructor Mlet in project level.");
+				// }
 				coreSS = SimuMobile.SIMU_NULL;
 			}
 		}
-		__target = (String)ThreadConfig.getValue(ThreadConfig.TARGET_URL, true);//注意：sendDialogWhenInSession中的Dialog构造时，此返回null
+		__target = (String) ThreadConfig.getValue(ThreadConfig.TARGET_URL, true);// 注意：sendDialogWhenInSession中的Dialog构造时，此返回null
 	}
-	
+
 	/**
-	 * {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)} or not if client locale is RTL (Right to Left).<BR><BR>
-	 * <code>applyComponentOrientation</code> affect the following layout managers :<BR>
+	 * {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)}
+	 * or not if client locale is RTL (Right to Left).<BR>
+	 * <BR>
+	 * <code>applyComponentOrientation</code> affect the following layout
+	 * managers :<BR>
 	 * 1. {@link FlowLayout}<BR>
 	 * 2. {@link BorderLayout}<BR>
 	 * 3. {@link BoxLayout}<BR>
 	 * 4. {@link GridBagLayout}<BR>
 	 * 5. {@link GridLayout}<BR>
-	 * for more : <a href="https://docs.oracle.com/javase/tutorial/uiswing/layout/using.html">https://docs.oracle.com/javase/tutorial/uiswing/layout/using.html</a>
-	 * <BR><BR>
+	 * for more : <a href=
+	 * "https://docs.oracle.com/javase/tutorial/uiswing/layout/using.html">https://docs.oracle.com/javase/tutorial/uiswing/layout/using.html</a>
+	 * <BR>
+	 * <BR>
 	 * <STRONG>Note</STRONG> :<BR>
 	 * this method must be invoked in constructor (initialize in JRuby).
-	 * @param isEnable default is enable, means server will {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)} when client locale {@link ProjectContext#isRTL(String)}.
+	 * 
+	 * @param isEnable
+	 *            default is enable, means server will
+	 *            {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)}
+	 *            when client locale {@link ProjectContext#isRTL(String)}.
 	 * @since 7.40
 	 */
-	public void enableApplyOrientationWhenRTL(final boolean isEnable){//注意：请勿final
+	public void enableApplyOrientationWhenRTL(final boolean isEnable) {// 注意：请勿final
 		enableApplyOrientationWhenRTL = isEnable;
 	}
-	
+
 	boolean isAutoReleaseAfterGo = false;
-	
+
 	/**
-	 * when invoke {@link #go(String)}, this <code>Mlet</code> will be released by server or not.
-	 * @return true : it will be released after leave and {@link #onExit()} will be executed by server before releasing;
-	 * <BR>false : keep this <code>Mlet</code> alive and user will return back to this <code>Mlet</code>.
-	 * <BR><BR>default is false.
+	 * when invoke {@link #go(String)}, this <code>Mlet</code> will be released
+	 * by server or not.
+	 * 
+	 * @return true : it will be released after leave and {@link #onExit()} will
+	 *         be executed by server before releasing; <BR>
+	 * 		false : keep this <code>Mlet</code> alive and user will return
+	 *         back to this <code>Mlet</code>. <BR>
+	 * 		<BR>
+	 * 		default is false.
 	 * @see #setAutoReleaseAfterGo(boolean)
 	 * @since 7.7
 	 */
-	public boolean isAutoReleaseAfterGo(){
+	public boolean isAutoReleaseAfterGo() {
 		return isAutoReleaseAfterGo;
 	}
-	
+
 	/**
-	 * when invoke {@link #go(String)}, this <code>Mlet</code> will be released by server or not.
-	 * <BR><BR>
-	 * default is false.
-	 * <BR><BR>
-	 * <STRONG>Tip : </STRONG>it is no effect when the URL is script command (for example, cmd://myCmd).
-	 * @param isAutoRelease true : it will be released after leave and {@link #onExit()} will be executed by server before releasing;
-	 * <BR>false : keep this <code>Mlet</code> alive and user will return/back to this <code>Mlet</code>.
+	 * when invoke {@link #go(String)}, this <code>Mlet</code> will be released
+	 * by server or not. <BR>
+	 * <BR>
+	 * default is false. <BR>
+	 * <BR>
+	 * <STRONG>Tip : </STRONG>it is no effect when the URL is script command
+	 * (for example, cmd://myCmd).
+	 * 
+	 * @param isAutoRelease
+	 *            true : it will be released after leave and {@link #onExit()}
+	 *            will be executed by server before releasing; <BR>
+	 * 			false : keep this <code>Mlet</code> alive and user will
+	 *            return/back to this <code>Mlet</code>.
 	 * @see #isAutoReleaseAfterGo()
 	 * @see #goMlet(Mlet, String, boolean)
 	 * @since 7.7
 	 */
-	public void setAutoReleaseAfterGo(final boolean isAutoRelease){
+	public void setAutoReleaseAfterGo(final boolean isAutoRelease) {
 		isAutoReleaseAfterGo = isAutoRelease;
 	}
-	
+
 	/**
 	 * @deprecated
 	 */
-	@Deprecated 
+	@Deprecated
 	String __target;
 
 	/**
@@ -259,172 +304,206 @@ public class Mlet extends JPanel implements ICanvas {
 	 */
 	@Deprecated
 	ProjectContext __context;
-	
+
 	/**
 	 * @deprecated
 	 */
 	@Deprecated
 	final J2SESession coreSS;
-	
+
 	/**
 	 * for example, form://myMlet.<BR>
 	 * 
-	 * @return 
+	 * @return
 	 * @since 7.0
 	 */
-	public String getTarget(){
-		return __target;//支持Test Scripts
+	public String getTarget() {
+		return __target;// 支持Test Scripts
 	}
-	
+
 	/**
-	 * the elementID of current Mlet.
-	 * <BR><BR>
-	 * for example, current Mlet is "form://MyMlet", then the elementID is "MyMlet".
-	 * <BR><BR>
-	 * to get the instance of menu item for current Mlet in designer, invoke {@link ProjectContext#getMenuItemBy(String, String)}.
+	 * the elementID of current Mlet. <BR>
+	 * <BR>
+	 * for example, current Mlet is "form://MyMlet", then the elementID is
+	 * "MyMlet". <BR>
+	 * <BR>
+	 * to get the instance of menu item for current Mlet in designer, invoke
+	 * {@link ProjectContext#getMenuItemBy(String, String)}.
+	 * 
 	 * @return
 	 * @see ProjectContext#getMenuItemBy(String, String)
 	 * @since 7.20
 	 */
-	public String getElementID(){
-		if(elementID == null){
-			elementID = ResourceUtil.getElementIDFromTarget(__target);//支持Test Scripts
+	public String getElementID() {
+		if (elementID == null) {
+			elementID = ResourceUtil.getElementIDFromTarget(__target);// 支持Test
+																		// Scripts
 		}
 		return elementID;
 	}
-	
+
 	private String elementID;
 
 	/**
 	 * return current project context
-	 * @return 
+	 * 
+	 * @return
 	 * @since 7.0
 	 */
-	public ProjectContext getProjectContext(){
+	public ProjectContext getProjectContext() {
 		return __context;
 	}
 
 	private boolean isExited;
-	
+
 	/**
-	 * go/run target URL by <code>elementID</code>.
-	 * <BR><BR>
+	 * go/run target URL by <code>elementID</code>. <BR>
+	 * <BR>
 	 * jump mobile to following targets:<BR>
-	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from mobile, <BR>
+	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from
+	 * mobile, <BR>
 	 * 2. <i>form://myMlet</i> : open and show a form, <BR>
 	 * 3. <i>controller://myctrl</i> : open and show a controller, <BR>
 	 * 4. <i>{@link #URL_EXIT}</i> : exit current Mlet,<BR>
-	 * 5. <i>cmd://myCmd</i> : run script commands only,
-	 * <BR><BR>
+	 * 5. <i>cmd://myCmd</i> : run script commands only, <BR>
+	 * <BR>
 	 * bring to top : <BR>
 	 * 1. jump to <i>form://B</i> from <i>form://A</i>, <BR>
 	 * 2. ready jump to <i>form://A</i> again from <i>form://B</i>.<BR>
-	 * 3. system will bring the target (form://A) to top if it is opened.
-	 * <BR><BR>
+	 * 3. system will bring the target (form://A) to top if it is opened. <BR>
+	 * <BR>
 	 * <STRONG>Note</STRONG> :<BR>
-	 * go to external URL (for example, http://homecenter.mobi), invoke {@link #goExternalURL(String)}.
-	 * @param scheme one of {@link MenuItem#CMD_SCHEME}, 
-	 * {@link MenuItem#CONTROLLER_SCHEME}, {@link MenuItem#FORM_SCHEME} or {@link MenuItem#SCREEN_SCHEME}.
-	 * @param elementID for example, run scripts of menu item "cmd://myCommand", the scheme is {@linkplain MenuItem#CMD_SCHEME}, and element ID is "myCommand",
+	 * go to external URL (for example, http://homecenter.mobi), invoke
+	 * {@link #goExternalURL(String)}.
+	 * 
+	 * @param scheme
+	 *            one of {@link MenuItem#CMD_SCHEME},
+	 *            {@link MenuItem#CONTROLLER_SCHEME},
+	 *            {@link MenuItem#FORM_SCHEME} or
+	 *            {@link MenuItem#SCREEN_SCHEME}.
+	 * @param elementID
+	 *            for example, run scripts of menu item "cmd://myCommand", the
+	 *            scheme is {@linkplain MenuItem#CMD_SCHEME}, and element ID is
+	 *            "myCommand",
 	 * @see #go(String)
 	 */
-	public void go(final String scheme, final String elementID){
-		if(coreSS == SimuMobile.SIMU_NULL){
+	public void go(final String scheme, final String elementID) {
+		if (coreSS == SimuMobile.SIMU_NULL) {
 			return;
 		}
-		
+
 		final String target = HCURL.buildStandardURL(scheme, elementID);
 		go(target);
 	}
-	
+
 	/**
 	 * jump mobile to following targets:<BR>
-	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from mobile, <BR>
+	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from
+	 * mobile, <BR>
 	 * 2. <i>form://myMlet</i> : open and show a form, <BR>
 	 * 3. <i>controller://myctrl</i> : open and show a controller, <BR>
-	 * 4. <i>{@link #URL_EXIT}</i> : exit current Mlet, it is recommended to use {@link #back()}, <BR>
-	 * 5. <i>cmd://myCmd</i> : run script commands only,
-	 * <BR><BR>
+	 * 4. <i>{@link #URL_EXIT}</i> : exit current Mlet, it is recommended to use
+	 * {@link #back()}, <BR>
+	 * 5. <i>cmd://myCmd</i> : run script commands only, <BR>
+	 * <BR>
 	 * bring to top : <BR>
 	 * 1. jump to <i>form://B</i> from <i>form://A</i>, <BR>
 	 * 2. ready jump to <i>form://A</i> again from <i>form://B</i>.<BR>
-	 * 3. system will bring the target (form://A) to top if it is opened.
-	 * <BR><BR>
+	 * 3. system will bring the target (form://A) to top if it is opened. <BR>
+	 * <BR>
 	 * <STRONG>Note</STRONG> :<BR>
-	 * go to external URL (for example, http://homecenter.mobi), invoke {@link #goExternalURL(String)}.
+	 * go to external URL (for example, http://homecenter.mobi), invoke
+	 * {@link #goExternalURL(String)}.
+	 * 
 	 * @param url
 	 * @see #go(String, String)
 	 * @see #goMlet(Mlet, String, boolean)
 	 * @see #setAutoReleaseAfterGo(boolean)
 	 * @since 7.0
 	 */
-	public void go(final String url){
-		if(coreSS == SimuMobile.SIMU_NULL){
+	public void go(final String url) {
+		if (coreSS == SimuMobile.SIMU_NULL) {
 			return;
 		}
-		
-		if(URL_EXIT.equals(url)){
+
+		if (URL_EXIT.equals(url)) {
 			synchronized (synLock) {
-		    	if(isExited){//cant go exit and press back key.
-		    		return;
-		    	}
-		    	isExited = true;
-	    	}
+				if (isExited) {// cant go exit and press back key.
+					return;
+				}
+				isExited = true;
+			}
 		}
-		
+
 		ServerUIAPIAgent.goInServer(coreSS, __context, url);
 	}
-	
+
 	/**
-	 * back and return.<BR><BR>
+	 * back and return.<BR>
+	 * <BR>
 	 * it is equals with <code>go(URL_EXIT)</code>.
+	 * 
 	 * @see #go(String)
 	 * @since 7.30
 	 */
-	public void back(){
+	public void back() {
 		go(URL_EXIT);
 	}
 
 	/**
-	 * go and open a <code>Mlet</code> or <code>HTMLMlet</code> (which is probably created by {@link ProjectContext#eval(String)}).
-	 * <BR><BR>
-	 * the target of <i>toMlet</i> will be set as <i>targetOfMlet</i>.<BR><BR>
-	 * <STRONG>Important : </STRONG>
-	 * <BR>if the same name <i>target</i> or <i>form://target</i> is opened, then it will be brought to top.
-	 * <BR>for more, see {@link #go(String)}.
+	 * go and open a <code>Mlet</code> or <code>HTMLMlet</code> (which is
+	 * probably created by {@link ProjectContext#eval(String)}). <BR>
+	 * <BR>
+	 * the target of <i>toMlet</i> will be set as <i>targetOfMlet</i>.<BR>
+	 * <BR>
+	 * <STRONG>Important : </STRONG> <BR>
+	 * if the same name <i>target</i> or <i>form://target</i> is opened, then it
+	 * will be brought to top. <BR>
+	 * for more, see {@link #go(String)}.
+	 * 
 	 * @param toMlet
-	 * @param targetOfMlet target of <code>Mlet</code>. The prefix <i>form://</i> is <STRONG>NOT</STRONG> required.
-	 * @param isAutoReleaseCurrentMlet true means the called Mlet will be released after go successfully.<BR>for more, see {@link Mlet#setAutoReleaseAfterGo(boolean)}.
+	 * @param targetOfMlet
+	 *            target of <code>Mlet</code>. The prefix <i>form://</i> is
+	 *            <STRONG>NOT</STRONG> required.
+	 * @param isAutoReleaseCurrentMlet
+	 *            true means the called Mlet will be released after go
+	 *            successfully.<BR>
+	 * 			for more, see {@link Mlet#setAutoReleaseAfterGo(boolean)}.
 	 * @see ProjectContext#eval(String)
 	 * @see #go(String)
 	 * @since 7.7
 	 */
-	public void goMlet(final Mlet toMlet, final String targetOfMlet, final boolean isAutoReleaseCurrentMlet){
-		if(coreSS == SimuMobile.SIMU_NULL){
+	public void goMlet(final Mlet toMlet, final String targetOfMlet,
+			final boolean isAutoReleaseCurrentMlet) {
+		if (coreSS == SimuMobile.SIMU_NULL) {
 			return;
 		}
-		
-		ServerUIAPIAgent.goMlet(coreSS, __context, this, toMlet, targetOfMlet, isAutoReleaseCurrentMlet);
+
+		ServerUIAPIAgent.goMlet(coreSS, __context, this, toMlet, targetOfMlet,
+				isAutoReleaseCurrentMlet);
 	}
 
 	/**
 	 * resize a BufferedImage to the target size.
+	 * 
 	 * @param src
 	 * @param to_width
 	 * @param to_height
 	 * @return the resized image.
 	 */
-	public final static BufferedImage resizeImage(final BufferedImage src, final int to_width, final int to_height){
-		return ResourceUtil.resizeImage(src, to_width, to_height);//注意：不能进入runAndWaitInSysThread
+	public final static BufferedImage resizeImage(final BufferedImage src, final int to_width,
+			final int to_height) {
+		return ResourceUtil.resizeImage(src, to_width, to_height);// 注意：不能进入runAndWaitInSysThread
 	}
-	
-	
+
 	/**
-	 * enter this <code>Mlet</code>, server will invoke this method.
-	 * <BR><BR>
-	 * invoke {@link #getStatus()} in this method will returns {@link #STATUS_RUNNING}.
-	 * <BR><BR>
+	 * enter this <code>Mlet</code>, server will invoke this method. <BR>
+	 * <BR>
+	 * invoke {@link #getStatus()} in this method will returns
+	 * {@link #STATUS_RUNNING}. <BR>
+	 * <BR>
 	 * {@link #STATUS_INIT} is a status before {@link #STATUS_RUNNING}.
+	 * 
 	 * @since 7.0
 	 */
 	@Override
@@ -432,9 +511,12 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * when jump to other form/screen, the server will call {@link #onPause()} method before enter next form/screen.
-	 * <BR><BR>
-	 * invoke {@link #getStatus()} in this method will returns {@link #STATUS_PAUSE}.
+	 * when jump to other form/screen, the server will call {@link #onPause()}
+	 * method before enter next form/screen. <BR>
+	 * <BR>
+	 * invoke {@link #getStatus()} in this method will returns
+	 * {@link #STATUS_PAUSE}.
+	 * 
 	 * @see #onResume()
 	 * @since 7.0
 	 */
@@ -443,9 +525,12 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * the server will invoke this method when exit from next form/screen, and enter this <code>Mlet</code> again.
-	 * <BR><BR>
-	 * invoke {@link #getStatus()} in this method will returns {@link #STATUS_RUNNING}.
+	 * the server will invoke this method when exit from next form/screen, and
+	 * enter this <code>Mlet</code> again. <BR>
+	 * <BR>
+	 * invoke {@link #getStatus()} in this method will returns
+	 * {@link #STATUS_RUNNING}.
+	 * 
 	 * @see #onPause()
 	 * @since 7.0
 	 */
@@ -454,14 +539,20 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * the server will invoke this method when exit this <code>Mlet</code> or line off.
-	 * <BR><BR>
-	 * invoke {@link #getStatus()} in this method will returns {@link #STATUS_EXIT}.
-	 * <BR><BR>
+	 * the server will invoke this method when exit this <code>Mlet</code> or
+	 * line off. <BR>
+	 * <BR>
+	 * invoke {@link #getStatus()} in this method will returns
+	 * {@link #STATUS_EXIT}. <BR>
+	 * <BR>
 	 * <STRONG>Important : </STRONG><BR>
-	 * if there is a running {@link Runnable} is started by this <code>Mlet</code> via {@link ProjectContext#run(Runnable)}, 
-	 * it is a good practice that the running {@link Runnable} check {@link #getStatus()} in loop and finish task when exit.
-	 * <BR>Please DON'T to get <code>Thread</code> of it and invoke {@link Thread#stop()}.
+	 * if there is a running {@link Runnable} is started by this
+	 * <code>Mlet</code> via {@link ProjectContext#run(Runnable)}, it is a good
+	 * practice that the running {@link Runnable} check {@link #getStatus()} in
+	 * loop and finish task when exit. <BR>
+	 * Please DON'T to get <code>Thread</code> of it and invoke
+	 * {@link Thread#stop()}.
+	 * 
 	 * @since 7.0
 	 */
 	@Override
@@ -469,44 +560,56 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * go to external URL in client application.
-	 * <BR><BR>
-	 * <STRONG>Important : </STRONG>
-	 * <BR>socket/connect permissions is required even if the domain of external URL is the same with the domain of upgrade HAR project URL.
-	 * <BR><BR>
-	 * <STRONG>Warning : </STRONG>
-	 * <BR>1. the external URL may be sniffed when in moving (exclude HTTPS).
-	 * <BR>2. iOS 9 and above must use secure URLs.
-	 * @param url for example : http://homecenter.mobi
+	 * go to external URL in client application. <BR>
+	 * <BR>
+	 * <STRONG>Important : </STRONG> <BR>
+	 * socket/connect permissions is required even if the domain of external URL
+	 * is the same with the domain of upgrade HAR project URL. <BR>
+	 * <BR>
+	 * <STRONG>Warning : </STRONG> <BR>
+	 * 1. the external URL may be sniffed when in moving (exclude HTTPS). <BR>
+	 * 2. iOS 9 and above must use secure URLs.
+	 * 
+	 * @param url
+	 *            for example : http://homecenter.mobi
 	 * @since 7.30
 	 */
 	public void goExternalURL(final String url) {
 		goExternalURL(url, false);
 	}
-	
+
 	/**
 	 * <STRONG>deprecated</STRONG>, replaced by {@link #goExternalURL(String)}.
-	 * <BR><BR>
-	 * go to external URL in system web browser or client application.
-	 * <BR><BR>
-	 * <STRONG>Important : </STRONG>
-	 * <BR>socket/connect permissions is required even if the domain of external URL is the same with the domain of upgrade HAR project URL.
-	 * <BR><BR>
-	 * <STRONG>Warning : </STRONG>
-	 * <BR>1. the external URL may be sniffed when in moving (exclude HTTPS).
-	 * <BR>2. iOS 9 and above must use secure URLs.
-	 * <BR>3. In iOS (not Android), when go external URL and <code>isUseExtBrowser</code> is true, the application will be turn into background and released after seconds. In future, it maybe keep alive in background.
+	 * <BR>
+	 * <BR>
+	 * go to external URL in system web browser or client application. <BR>
+	 * <BR>
+	 * <STRONG>Important : </STRONG> <BR>
+	 * socket/connect permissions is required even if the domain of external URL
+	 * is the same with the domain of upgrade HAR project URL. <BR>
+	 * <BR>
+	 * <STRONG>Warning : </STRONG> <BR>
+	 * 1. the external URL may be sniffed when in moving (exclude HTTPS). <BR>
+	 * 2. iOS 9 and above must use secure URLs. <BR>
+	 * 3. In iOS (not Android), when go external URL and
+	 * <code>isUseExtBrowser</code> is true, the application will be turn into
+	 * background and released after seconds. In future, it maybe keep alive in
+	 * background.
+	 * 
 	 * @param url
-	 * @param isUseExtBrowser true : use system web browser to open URL; false : the URL will be opened in client application and still keep foreground.
+	 * @param isUseExtBrowser
+	 *            true : use system web browser to open URL; false : the URL
+	 *            will be opened in client application and still keep
+	 *            foreground.
 	 * @since 7.7
 	 * @deprecated
 	 */
 	@Deprecated
 	public void goExternalURL(final String url, final boolean isUseExtBrowser) {
-		if(coreSS == SimuMobile.SIMU_NULL){
+		if (coreSS == SimuMobile.SIMU_NULL) {
 			return;
 		}
-		
+
 		ServerUIAPIAgent.goExternalURL(coreSS, __context, url, isUseExtBrowser);
 	}
 

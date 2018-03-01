@@ -21,52 +21,54 @@ import javax.swing.JPanel;
 
 public class J2SEDocHelper {
 	private static final String j2seDoc = "j2sedoc.jar";
-	
+
 	private static boolean isBuildIn = checkIsBuildIn();
 	private static ClassLoader j2seDocLoader;
-	
-	private static boolean checkIsBuildIn(){
-		final String docPath = DocHelper.buildClassDocPath(JPanel.class.getName().replace('.', '/'));
+
+	private static boolean checkIsBuildIn() {
+		final String docPath = DocHelper
+				.buildClassDocPath(JPanel.class.getName().replace('.', '/'));
 		final InputStream in = ResourceUtil.getResourceAsStream(docPath);
 		final boolean out = in != null;
-		if(out){
-			try{
+		if (out) {
+			try {
 				in.close();
-			}catch (final Throwable e) {
+			} catch (final Throwable e) {
 			}
 		}
 		return out;
 	}
-	
-	public static boolean isBuildIn(){
+
+	public static boolean isBuildIn() {
 		return isBuildIn;
 	}
-	
-	static boolean isDownloading;//避免designer线程发起多次
-	
-	public static synchronized void checkJ2SEDocAndDownload(){
-		if(j2seDocLoader != null){
+
+	static boolean isDownloading;// 避免designer线程发起多次
+
+	public static synchronized void checkJ2SEDocAndDownload() {
+		if (j2seDocLoader != null) {
 			return;
 		}
-		
+
 		boolean isSuccDownDoc = false;
 		final File docFile = new File(ResourceUtil.getBaseDir(), j2seDoc);
-		if(PropertiesManager.getValue(PropertiesManager.p_J2SEDocVersion) == null){
-			if(isDownloading){
+		if (PropertiesManager.getValue(PropertiesManager.p_J2SEDocVersion) == null) {
+			if (isDownloading) {
 				return;
 			}
 			isDownloading = true;
 			docFile.delete();
 			final String j2seDocVersion = "8";
 			final String sha512J2seDoc = "f962ad8af2434e00bde525ecf3b29aeb03be9745b3856da1870de22f0c38d1606b226c1bad27da5d8693f5caabcdbcb69f9df07af371a9a25213c4a117ba465f";
-			final CheckSum checkSum = new CheckSum("ffc867acdf4b7411fa0d6aa3be10a7df", sha512J2seDoc);
+			final CheckSum checkSum = new CheckSum("ffc867acdf4b7411fa0d6aa3be10a7df",
+					sha512J2seDoc);
 			final String downloadURL = "http://homecenter.mobi/download/" + j2seDoc;
 			final MultiThreadDownloader mtd = new MultiThreadDownloader();
 			final Vector<String> urls = new Vector<String>(1);
 			urls.add(downloadURL);
-			
-			final Boolean[] isDone = {false};
-			
+
+			final Boolean[] isDone = { false };
+
 			final IBiz succBiz = new IBiz() {
 				@Override
 				public void start() {
@@ -77,7 +79,7 @@ public class J2SEDocHelper {
 					PropertiesManager.setValue(PropertiesManager.p_J2SEDocVersion, j2seDocVersion);
 					PropertiesManager.saveFile();
 				}
-				
+
 				@Override
 				public void setMap(final HashMap map) {
 				}
@@ -89,13 +91,13 @@ public class J2SEDocHelper {
 						isDone.notify();
 					}
 				}
-				
+
 				@Override
 				public void setMap(final HashMap map) {
 				}
 			};
-			mtd.download(urls, docFile, checkSum, succBiz, failBiz, false, false);//isVisible==false，改为后台下载
-			
+			mtd.download(urls, docFile, checkSum, succBiz, failBiz, false, false);// isVisible==false，改为后台下载
+
 			synchronized (isDone) {
 				try {
 					isDone.wait();
@@ -103,11 +105,11 @@ public class J2SEDocHelper {
 					e.printStackTrace();
 				}
 			}
-			
-			if(isDone[0] == false){
+
+			if (isDone[0] == false) {
 				docFile.delete();
 				L.V = L.WShop ? false : LogManager.log("fail to download j2sedoc.jar");
-				
+
 				isDownloading = false;
 				ContextManager.getThreadPool().run(new Runnable() {
 					@Override
@@ -116,40 +118,40 @@ public class J2SEDocHelper {
 					}
 				});
 				return;
-			}else{
+			} else {
 				isSuccDownDoc = true;
 				LogManager.log("successful download j2sedoc.jar!");
 			}
 		}
-		try{
-			final URL[] files = {docFile.toURI().toURL()};
+		try {
+			final URL[] files = { docFile.toURI().toURL() };
 			j2seDocLoader = new URLClassLoader(files);
-		}catch (final Throwable e) {
+		} catch (final Throwable e) {
 			e.printStackTrace();
 		}
-		
-		if(isSuccDownDoc){
+
+		if (isSuccDownDoc) {
 			final Designer designer = Designer.getInstance();
-			if(designer != null){
+			if (designer != null) {
 				designer.codeHelper.resetAll();
 			}
 		}
 	}
-	
-	public static boolean isJ2SEDocReady(){
+
+	public static boolean isJ2SEDocReady() {
 		return j2seDocLoader != null;
 	}
-	
+
 	/**
 	 * null means j2sedoc is not ready.
 	 */
-	public static InputStream getDocStream(final String docPath){
-		if(isBuildIn){
+	public static InputStream getDocStream(final String docPath) {
+		if (isBuildIn) {
 			return ResourceUtil.getResourceAsStream(docPath);
-		}else{
-			if(j2seDocLoader != null){
+		} else {
+			if (j2seDocLoader != null) {
 				return j2seDocLoader.getResourceAsStream(docPath);
-			}else{
+			} else {
 				return null;
 			}
 		}

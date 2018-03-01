@@ -6,7 +6,7 @@ public class RobotEventData extends AnalysableData {
 	public RobotWrapper robotWrapper;
 	public Object oldValue;
 	public Object newValue;
-	
+
 	@Override
 	public final boolean isSameWithPre(final AnalysableData pre) {
 		return false;

@@ -10,46 +10,47 @@ public class AutoJRubyObject {
 	public final String methodName;
 	public final Class returnType;
 	public final Type[] actualTypes;
-	
-	public AutoJRubyObject(final Class jClass, final String method, final Class rt){
+
+	public AutoJRubyObject(final Class jClass, final String method, final Class rt) {
 		this.javaClass = jClass;
 		this.methodName = method;
 		this.returnType = rt;
 		this.actualTypes = getActualTypes();
 	}
-	
-	private final Type[] getActualTypes(){
-		try{
+
+	private final Type[] getActualTypes() {
+		try {
 			final Type r = javaClass.getMethod(methodName, null).getGenericReturnType();
-			if(r instanceof ParameterizedType){
-				return ((ParameterizedType)r).getActualTypeArguments();
+			if (r instanceof ParameterizedType) {
+				return ((ParameterizedType) r).getActualTypeArguments();
 			}
-		}catch (final Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		return new Type[0];
 	}
-	
+
 	final static AutoJRubyObject[] list = init();
 	final static int size = list.length;
-	
-	private static AutoJRubyObject[] init(){
+
+	private static AutoJRubyObject[] init() {
 		final AutoJRubyObject[] result = {
-				new AutoJRubyObject(AbstractMap.class, "values", RubyHelper.JRUBY_ARRAY_CLASS)
-				};
+				new AutoJRubyObject(AbstractMap.class, "values", RubyHelper.JRUBY_ARRAY_CLASS) };
 		return result;
 	}
-	
+
 	/**
 	 * 自动将Java返回对象，转换为JRuby对象
+	 * 
 	 * @param method
 	 * @return
 	 */
-	static Type replace(final Method method){
+	static Type replace(final Method method) {
 		final Class javaClass = method.getDeclaringClass();
 		for (int i = 0; i < size; i++) {
 			final AutoJRubyObject item = list[i];
-			if(item.methodName.equals(method.getName()) && CodeHelper.isExtendsOrImplements(javaClass, item.javaClass)){
+			if (item.methodName.equals(method.getName())
+					&& CodeHelper.isExtendsOrImplements(javaClass, item.javaClass)) {
 				return new HCParameterizedType(item.actualTypes, item.returnType, null);
 			}
 		}

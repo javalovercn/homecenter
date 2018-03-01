@@ -39,9 +39,9 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 
-public abstract class SocketEditPanel extends JPanel{
+public abstract class SocketEditPanel extends JPanel {
 	final ThreadGroup threadPoolToken = App.getThreadPoolToken();
-	
+
 	private final JCheckBox checkLimitOn;
 	private final JCheckBox accessPrivateAddress;
 	JPanel formatPanel;
@@ -73,44 +73,44 @@ public abstract class SocketEditPanel extends JPanel{
 	private final int columnNum = columnAction + 1;
 	JPanel mainEditPanel = new JPanel();
 	private boolean isSelectModify = true;
-	
-	public final void switchEditable(final boolean isEdit){
+
+	public final void switchEditable(final boolean isEdit) {
 		accessPrivateAddress.setEnabled(isEdit);
-		
+
 		mainEditPanel.setEnabled(isEdit);
 		tableList.setEnabled(isEdit);
 		hostField.setEnabled(isEdit);
 		ipField.setEnabled(isEdit);
-		
+
 		portField.setEnabled(isEdit);
 		portFromField.setEnabled(isEdit);
 		portToField.setEnabled(isEdit);
-		
+
 		checkAccept.setEnabled(isEdit);
 		checkconnect.setEnabled(isEdit);
 		checklisten.setEnabled(isEdit);
-//		checkresolve.setEnabled(isEdit);
-		
+		// checkresolve.setEnabled(isEdit);
+
 		hostRadioBtn.setEnabled(isEdit);
 		ipRadioBtn.setEnabled(isEdit);
 		portRadioBtn.setEnabled(isEdit);
 		rangeRadioBtn.setEnabled(isEdit);
-		
+
 		formatPanel.setEnabled(isEdit);
 		actionPanel.setEnabled(isEdit);
 		portPanel.setEnabled(isEdit);
 		hostPanel.setEnabled(isEdit);
-		
+
 		addBtn.setEnabled(isEdit);
 		deleteBtn.setEnabled(isEdit);
-		
+
 		descLabel.setEnabled(isEdit);
-		
-		if(isEdit){
-			if(allowSockets != null && allowSockets.size() > 0){
+
+		if (isEdit) {
+			if (allowSockets != null && allowSockets.size() > 0) {
 				tableList.clearSelection();
 				tableList.getSelectionModel().setSelectionInterval(0, 0);
-			}else{
+			} else {
 				setInitEditPanelEnable(false);
 				deleteBtn.setEnabled(false);
 				hostField.setEnabled(false);
@@ -119,36 +119,29 @@ public abstract class SocketEditPanel extends JPanel{
 		}
 	}
 
-	public SocketEditPanel(){
+	public SocketEditPanel() {
 		checkLimitOn = new JCheckBox("limit socket/connect");
-		checkLimitOn.setToolTipText("" +
-				"<html>" +
-				"if not selected, then allow access all public address and private address." +
-				"<BR>" +
-				"if selected and there is no record in table, it means block all for current project." +
-				"</html>");
-		
+		checkLimitOn.setToolTipText("" + "<html>"
+				+ "if not selected, then allow access all public address and private address."
+				+ "<BR>"
+				+ "if selected and there is no record in table, it means block all for current project."
+				+ "</html>");
+
 		accessPrivateAddress = new JCheckBox("access private address");
-		accessPrivateAddress.setToolTipText("" +
-				"<html>" +
-				"access private address :" +
-				"<BR>" +
-				"&nbsp;·&nbsp;10.*.*.*<BR>" +
-				"&nbsp;·&nbsp;127.*.*.*, localhost<BR>" +
-				"&nbsp;·&nbsp;169.254.*.*<BR>" +
-				"&nbsp;·&nbsp;172.16.*.*, 172.31.*.*<BR>" +
-				"&nbsp;·&nbsp;192.168.*.*<BR>" +
-				"&nbsp;·&nbsp;224.0.0.0 - 239.255.255.255" +
-				"</html>");
-		
+		accessPrivateAddress.setToolTipText(
+				"" + "<html>" + "access private address :" + "<BR>" + "&nbsp;·&nbsp;10.*.*.*<BR>"
+						+ "&nbsp;·&nbsp;127.*.*.*, localhost<BR>" + "&nbsp;·&nbsp;169.254.*.*<BR>"
+						+ "&nbsp;·&nbsp;172.16.*.*, 172.31.*.*<BR>" + "&nbsp;·&nbsp;192.168.*.*<BR>"
+						+ "&nbsp;·&nbsp;224.0.0.0 - 239.255.255.255" + "</html>");
+
 		accessPrivateAddress.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				getCSCSource().setAccessPrivateAddress(accessPrivateAddress.isSelected());
 				notifyModify();
 			}
-		}, threadPoolToken));			
-		
+		}, threadPoolToken));
+
 		checkLimitOn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -157,118 +150,127 @@ public abstract class SocketEditPanel extends JPanel{
 				forceSwitchEdit(limitOn);
 			}
 		}, threadPoolToken));
-		
+
 		final AbstractTableModel modelSocket = new AbstractTableModel() {
 			@Override
 			public Object getValueAt(final int rowIndex, final int columnIndex) {
-				if(rowIndex >= allowSockets.size()){
+				if (rowIndex >= allowSockets.size()) {
 					return "";
 				}
-				
+
 				final SocketDesc socket = allowSockets.elementAt(rowIndex);
-				if(columnIndex == columnHost){
-					return socket.isIPMode()?socket.getIp():socket.getHost();
-				}else if(columnIndex == columnPort){
+				if (columnIndex == columnHost) {
+					return socket.isIPMode() ? socket.getIp() : socket.getHost();
+				} else if (columnIndex == columnPort) {
 					final String port = socket.getPort();
 					final String portFrom = socket.getPortFrom();
 					final String portTo = socket.getPortTo();
-					return socket.isRangeMode()?(((portFrom==null)?"":portFrom) + " - " + ((portTo==null)?"":portTo)):port;
-				}else if(columnIndex == columnAction){
+					return socket.isRangeMode()
+							? (((portFrom == null) ? "" : portFrom) + " - "
+									+ ((portTo == null) ? "" : portTo))
+							: port;
+				} else if (columnIndex == columnAction) {
 					return socket.getActionDesc();
 				}
 				return "";
 			}
+
 			@Override
 			public int getRowCount() {
-				return allowSockets==null?0:allowSockets.size();//Android环境下会出现null，估计与某些标签未实现
+				return allowSockets == null ? 0 : allowSockets.size();// Android环境下会出现null，估计与某些标签未实现
 			}
+
 			@Override
 			public int getColumnCount() {
 				return columnNum;
 			}
+
 			@Override
 			public String getColumnName(final int columnIndex) {
-				if(columnIndex == columnHost){
+				if (columnIndex == columnHost) {
 					return "Host";
-				}else if(columnIndex == columnPort){
+				} else if (columnIndex == columnPort) {
 					return "Port";
-				}else if(columnIndex == columnAction){
+				} else if (columnIndex == columnAction) {
 					return "Action";
-				}else{
+				} else {
 					return "";
 				}
 			}
 		};
 		tableList = new JTable(modelSocket);
 		tableList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-		
-		final HCEnableHeaderRenderer oldRend = new HCEnableHeaderRenderer(tableList.getTableHeader().getDefaultRenderer());
+
+		final HCEnableHeaderRenderer oldRend = new HCEnableHeaderRenderer(
+				tableList.getTableHeader().getDefaultRenderer());
 		tableList.getTableHeader().setDefaultRenderer(oldRend);
-		
+
 		tableList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			@Override
 			public void valueChanged(final ListSelectionEvent e) {
-				if(e.getValueIsAdjusting() == false){
-					final ListSelectionModel lsm = (ListSelectionModel)e.getSource();
-			        if (lsm.isSelectionEmpty()) {
-			        	return;
-			        } else {
-			            final int minIndex = lsm.getMinSelectionIndex();
-			            final int maxIndex = lsm.getMaxSelectionIndex();
-			            for (int i = minIndex; i <= maxIndex; i++) {
-			                if (lsm.isSelectedIndex(i)) {
-			                	currRow = i;
-			                	ContextManager.getThreadPool().run(new Runnable() {
-			    					@Override
+				if (e.getValueIsAdjusting() == false) {
+					final ListSelectionModel lsm = (ListSelectionModel) e.getSource();
+					if (lsm.isSelectionEmpty()) {
+						return;
+					} else {
+						final int minIndex = lsm.getMinSelectionIndex();
+						final int maxIndex = lsm.getMaxSelectionIndex();
+						for (int i = minIndex; i <= maxIndex; i++) {
+							if (lsm.isSelectedIndex(i)) {
+								currRow = i;
+								ContextManager.getThreadPool().run(new Runnable() {
+									@Override
 									public void run() {
-					                	isSelectModify = true;
-					                	updateFieldsFromTable();
-					                	try{
-					                		Thread.sleep(ThreadPriorityManager.UI_WAIT_MS);
-					                	}catch (final Exception e) {
+										isSelectModify = true;
+										updateFieldsFromTable();
+										try {
+											Thread.sleep(ThreadPriorityManager.UI_WAIT_MS);
+										} catch (final Exception e) {
 										}
-					                	isSelectModify = false;
-			    					}}, threadPoolToken);
-			                	return;
-			                }
-			            }
-			        }
+										isSelectModify = false;
+									}
+								}, threadPoolToken);
+								return;
+							}
+						}
+					}
 				}
 			}
 		});
-		
+
 		final int columnSize = 10;
 		final int portColumnSize = 4;
-		
+
 		final KeyListener refreshListener = new KeyListener() {
 			@Override
 			public void keyTyped(final KeyEvent e) {
 			}
-			
+
 			@Override
 			public void keyReleased(final KeyEvent e) {
 				App.invokeLaterUI(updateTableFromFields);
 			}
-			
+
 			@Override
 			public void keyPressed(final KeyEvent e) {
 			}
 		};
-		
+
 		final ActionListener actionActionListener = new HCActionListener(new ActionListenerRun() {
 			@Override
 			public void run() {
-				if(checkMinAction((JCheckBox)getActionEvent().getSource())){
+				if (checkMinAction((JCheckBox) getActionEvent().getSource())) {
 					return;
 				}
-				
+
 				final SocketDesc socket = allowSockets.elementAt(currRow);
 				updateCheckToDataBlock(socket);
 				notifyModify();
 			}
-			
-			private final boolean checkMinAction(final JCheckBox checkBox){
-				if(checkAccept.isSelected() == false && checkconnect.isSelected() == false && checklisten.isSelected() == false){
+
+			private final boolean checkMinAction(final JCheckBox checkBox) {
+				if (checkAccept.isSelected() == false && checkconnect.isSelected() == false
+						&& checklisten.isSelected() == false) {
 					ContextManager.getThreadPool().run(new Runnable() {
 						@Override
 						public void run() {
@@ -280,35 +282,35 @@ public abstract class SocketEditPanel extends JPanel{
 				return false;
 			}
 		}, threadPoolToken);
-		
+
 		checkAccept.addActionListener(actionActionListener);
 		checkconnect.addActionListener(actionActionListener);
 		checklisten.addActionListener(actionActionListener);
 		checkresolve.addActionListener(actionActionListener);
-		
+
 		checkresolve.setEnabled(false);
 
 		hostField = new JTextField(columnSize);
 		hostField.addKeyListener(refreshListener);
-		
+
 		ipField.addKeyListener(refreshListener);
-		
+
 		portField = new IntTextField(1, 65535);
 		portField.addKeyListener(refreshListener);
-		
+
 		portFromField = new IntTextField(1, 65535);
 		portFromField.addKeyListener(refreshListener);
-		
+
 		portToField = new IntTextField(1, 65535);
 		portToField.addKeyListener(refreshListener);
-		
+
 		portField.setColumns(portColumnSize);
 		portFromField.setColumns(portColumnSize);
 		portToField.setColumns(portColumnSize);
-		
-		hostRadioBtn.setToolTipText("<html>host name : www.google.com" +
-				"<br>ipv6 : <STRONG>[</STRONG>::ffff:8.8.8.8<STRONG>]</STRONG>, <STRONG>[]</STRONG> is required.</html>");
-		
+
+		hostRadioBtn.setToolTipText("<html>host name : www.google.com"
+				+ "<br>ipv6 : <STRONG>[</STRONG>::ffff:8.8.8.8<STRONG>]</STRONG>, <STRONG>[]</STRONG> is required.</html>");
+
 		hostAndIPGroup.add(hostRadioBtn);
 		hostRadioBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
@@ -325,7 +327,7 @@ public abstract class SocketEditPanel extends JPanel{
 				switchToHost(!isIP);
 			}
 		}, threadPoolToken));
-		
+
 		portAndRangeGroup.add(portRadioBtn);
 		portRadioBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
@@ -342,7 +344,7 @@ public abstract class SocketEditPanel extends JPanel{
 				switchToPort(!isRange);
 			}
 		}, threadPoolToken));
-		
+
 		final JPanel editPanel = new JPanel(new GridBagLayout());
 		final GridBagConstraints editgc = new GridBagConstraints();
 		editgc.fill = GridBagConstraints.BOTH;
@@ -350,24 +352,24 @@ public abstract class SocketEditPanel extends JPanel{
 		editgc.weighty = 1.0;
 		{
 			hostPanel = new JPanel(new GridLayout(4, 1));
-			
+
 			hostPanel.setBorder(new TitledBorder("host :"));
 			hostPanel.add(hostRadioBtn);
 			hostPanel.add(hostField);
 			hostPanel.add(ipRadioBtn);
 			hostPanel.add(ipField);
-			
+
 			editgc.gridx = 0;
 			editPanel.add(hostPanel, editgc);
 		}
 		{
 			portPanel = new JPanel(new GridLayout(4, 1));
-			
+
 			portPanel.setBorder(new TitledBorder("port :"));
 			portPanel.add(portRadioBtn);
 			portPanel.add(portField);
 			portPanel.add(rangeRadioBtn);
-			
+
 			{
 				final JPanel subPanel = new JPanel(new GridBagLayout());
 				final GridBagConstraints c = new GridBagConstraints();
@@ -381,31 +383,31 @@ public abstract class SocketEditPanel extends JPanel{
 				c.gridx = 2;
 				c.fill = GridBagConstraints.BOTH;
 				subPanel.add(portToField, c);
-				
+
 				portPanel.add(subPanel);
 			}
 			editgc.gridx = 1;
 			editPanel.add(portPanel, editgc);
 		}
-		
+
 		{
 			actionPanel = new JPanel(new GridLayout(4, 1));
-			
+
 			actionPanel.setBorder(new TitledBorder("action :"));
 			actionPanel.add(checkAccept);
 			actionPanel.add(checkconnect);
 			actionPanel.add(checklisten);
 			actionPanel.add(checkresolve);
-			
+
 			editgc.gridx = 2;
 			editPanel.add(actionPanel, editgc);
-			
+
 			checkAccept.setToolTipText(SocketDesc.ACCEPT_TIP);
 			checkconnect.setToolTipText(SocketDesc.CONNECT_TIP);
 			checklisten.setToolTipText(SocketDesc.LISTEN_TIP);
 			checkresolve.setToolTipText(SocketDesc.RESOLVE_TIP);
 		}
-		
+
 		{
 			hostField.setNextFocusableComponent(portField);
 			portField.setNextFocusableComponent(checkAccept);
@@ -417,7 +419,7 @@ public abstract class SocketEditPanel extends JPanel{
 			rangeRadioBtn.setNextFocusableComponent(portFromField);
 			portFromField.setNextFocusableComponent(portToField);
 		}
-		
+
 		mainEditPanel.setLayout(new GridBagLayout());
 		int gridyIdx = 0;
 		{
@@ -457,144 +459,140 @@ public abstract class SocketEditPanel extends JPanel{
 			c.weighty = 1.0;
 			formatPanel = new JPanel(new BorderLayout());
 			formatPanel.setBorder(new TitledBorder("host and port examples :"));
-			descLabel = new JLabel("<html>" +
-					" <STRONG>·</STRONG> www.sun.com" +
-					//", *.sun.com:80" +
-					", [::ffff:8.8.8.8]" +
-					"<br> <STRONG>·</STRONG> 8.8.8.8:1234" +
-					", 8.8.8.8:1234-" +
-					"<br> <STRONG>·</STRONG> localhost:1024-" +
-					", localhost:-1024" +
-					", localhost:1024-2048" +
-					"</html>", SwingConstants.LEADING);
+			descLabel = new JLabel("<html>" + " <STRONG>·</STRONG> www.sun.com" +
+			// ", *.sun.com:80" +
+					", [::ffff:8.8.8.8]" + "<br> <STRONG>·</STRONG> 8.8.8.8:1234"
+					+ ", 8.8.8.8:1234-" + "<br> <STRONG>·</STRONG> localhost:1024-"
+					+ ", localhost:-1024" + ", localhost:1024-2048" + "</html>",
+					SwingConstants.LEADING);
 			formatPanel.add(descLabel, BorderLayout.CENTER);
 			mainEditPanel.add(formatPanel, c);
 		}
 		mainEditPanel.setBorder(new TitledBorder("allowable public/private address list :"));
-		
+
 		{
 			setLayout(new BorderLayout());
-			
+
 			add(checkLimitOn, BorderLayout.NORTH);
 			{
 				final JPanel panel = new JPanel(new BorderLayout());
 				panel.add(accessPrivateAddress, BorderLayout.NORTH);
 				panel.add(mainEditPanel, BorderLayout.CENTER);
-				
+
 				add(panel, BorderLayout.CENTER);
 			}
 			add(new JLabel("      "), BorderLayout.LINE_START);
 		}
-		
+
 		initBtn();
 	}
-	
-	public void notifyLostEditPanelFocus(){
+
+	public void notifyLostEditPanelFocus() {
 	}
-	
+
 	public abstract void notifyModify();
-	
+
 	public abstract ContextSecurityConfig getCSCSource();
-	
-	public final void notifySocketLimitOn(final boolean isOn){
+
+	public final void notifySocketLimitOn(final boolean isOn) {
 		ContextSecurityConfig.setSocketLimitOn(getCSCSource(), isOn);
 	}
-	
-	public final boolean isSocketLimitOn(){
+
+	public final boolean isSocketLimitOn() {
 		return ContextSecurityConfig.isSocketLimitOn(getCSCSource());
 	}
-	
+
 	private final Runnable updateTableFromFields = new Runnable() {
 		@Override
 		public void run() {
-			if(allowSockets == null || allowSockets.size() == 0){
+			if (allowSockets == null || allowSockets.size() == 0) {
 				return;
 			}
-			
+
 			final SocketDesc socket = allowSockets.elementAt(currRow);
-			
-			if(hostField.isEnabled()){
+
+			if (hostField.isEnabled()) {
 				socket.setHost(hostField.getText());
-			}else{
+			} else {
 				socket.setIp(ipField.getAddress());
 			}
-			
-			if(portField.isEnabled()){
+
+			if (portField.isEnabled()) {
 				socket.setPort(portField.getText());
-			}else{
+			} else {
 				socket.setPortFrom(portFromField.getText());
 				socket.setPortTo(portToField.getText());
 			}
-			
+
 			updateCheckToDataBlock(socket);
-			
-			if(isSelectModify == false){
+
+			if (isSelectModify == false) {
 				notifyModify();
 			}
 		}
 	};
-	
-	public final void refresh(final ContextSecurityConfig cscOld){
+
+	public final void refresh(final ContextSecurityConfig cscOld) {
 		final ContextSecurityConfig csc = getCSCSource();
-		
-//		if(cscOld != csc){
-//			System.err.println("refresh must the same object!");
-//			throw new Error("refresh must the same object!");
-//		}
-		
-		if(csc != null){//有可能为null，比如测试
+
+		// if(cscOld != csc){
+		// System.err.println("refresh must the same object!");
+		// throw new Error("refresh must the same object!");
+		// }
+
+		if (csc != null) {// 有可能为null，比如测试
 			loadFromCSC(csc);
 		}
-		
+
 		final boolean isLimitOn = isSocketLimitOn();
 		forceSwitchEdit(isLimitOn);
-		
+
 		checkLimitOn.setSelected(isLimitOn);
 		accessPrivateAddress.setSelected(isLimitOn && csc.isAccessPrivateAddress());
 
 		final TableModel model = tableList.getModel();
-		if(model instanceof AbstractTableModel){
-			((AbstractTableModel)model).fireTableDataChanged(); 
+		if (model instanceof AbstractTableModel) {
+			((AbstractTableModel) model).fireTableDataChanged();
 		}
 		tableList.repaint();
-		
-		if(isLimitOn && allowSockets != null && allowSockets.size() > 0){
+
+		if (isLimitOn && allowSockets != null && allowSockets.size() > 0) {
 			tableList.getSelectionModel().setSelectionInterval(0, 0);
 		}
 	}
-	
-	public final void updateFieldsFromTable(){
-		if(allowSockets.size() == 0){
+
+	public final void updateFieldsFromTable() {
+		if (allowSockets.size() == 0) {
 			return;
 		}
-		
+
 		final SocketDesc socket = allowSockets.elementAt(currRow);
-		
+
 		{
 			final boolean isIPAddr = socket.isIPMode();
-			
-			if(isIPAddr){
+
+			if (isIPAddr) {
 				hostField.setText("");
 				ipField.setAddress(socket.getIp());
-			}else{
+			} else {
 				hostField.setText(socket.getHost());
 				ipField.setAddress(null);
 			}
 			hostField.setEnabled(!isIPAddr);
 			ipField.setEnabled(isIPAddr);
-			
+
 			hostRadioBtn.setSelected(!isIPAddr);
 			ipRadioBtn.setSelected(isIPAddr);
 		}
-		
+
 		{
 			final boolean isRange = socket.isRangeMode();
-			
-			if(isRange){
+
+			if (isRange) {
 				portField.setText("");
 				portFromField.setText(socket.getPortFrom());
 				portToField.setText(socket.getPortTo());
-			}else{
+			} else {
 				portField.setText(socket.getPort());
 				portFromField.setText("");
 				portToField.setText("");
@@ -602,157 +600,157 @@ public abstract class SocketEditPanel extends JPanel{
 			portField.setEnabled(!isRange);
 			portFromField.setEnabled(isRange);
 			portToField.setEnabled(isRange);
-			
+
 			portRadioBtn.setSelected(!isRange);
 			rangeRadioBtn.setSelected(isRange);
 		}
-		
+
 		checkAccept.setSelected(socket.isAcceptAction());
 		checkconnect.setSelected(socket.isConnectAction());
 		checklisten.setSelected(socket.isListenAction());
 		checkresolve.setSelected(socket.isResolveAction());
 	}
-	
-	private final void clearEditPanel(){
+
+	private final void clearEditPanel() {
 		hostField.setText("");
 		ipField.setAddress("");
-		
+
 		portField.setText("");
 		portFromField.setText("");
 		portToField.setText("");
-		
-//		accessPrivateAddress.setSelected(false);//与record数无关
-		
+
+		// accessPrivateAddress.setSelected(false);//与record数无关
+
 		checkAccept.setSelected(false);
 		checkconnect.setSelected(false);
 		checklisten.setSelected(false);
 		checkresolve.setSelected(false);
-		
+
 		hostRadioBtn.setSelected(true);
 		ipRadioBtn.setSelected(false);
-		
+
 		portRadioBtn.setSelected(true);
 		rangeRadioBtn.setSelected(false);
 	}
-	
+
 	/**
 	 * 记录数为0或转新增时，切换编辑状态。
+	 * 
 	 * @param isEnable
 	 */
-	private final void setInitEditPanelEnable(final boolean isEnable){
-//		accessPrivateAddress.setEnabled(isEnable);//此行与记录数为0或多条无关。
-		
+	private final void setInitEditPanelEnable(final boolean isEnable) {
+		// accessPrivateAddress.setEnabled(isEnable);//此行与记录数为0或多条无关。
+
 		hostRadioBtn.setEnabled(isEnable);
 		portRadioBtn.setEnabled(isEnable);
 		ipRadioBtn.setEnabled(isEnable);
 		rangeRadioBtn.setEnabled(isEnable);
-		
+
 		ipField.setEnabled(isEnable);
 		portFromField.setEnabled(isEnable);
 		portToField.setEnabled(isEnable);
-		
+
 		checkAccept.setEnabled(isEnable);
 		checkconnect.setEnabled(isEnable);
 		checklisten.setEnabled(isEnable);
-//		checkresolve.setEnabled(isEnable);
+		// checkresolve.setEnabled(isEnable);
 	}
-	
-	private final void initBtn(){
+
+	private final void initBtn() {
 		addBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				notifyModify();
-				
+
 				setInitEditPanelEnable(true);
-				
+
 				ContextSecurityConfig.addDefaultNewSocket(allowSockets);
 				final int size = allowSockets.size();
 				tableList.clearSelection();
-				
+
 				deleteBtn.setEnabled(true);
 				hostField.setEnabled(true);
 				portField.setEnabled(true);
-				
+
 				hostField.requestFocus();
-				
+
 				final TableModel model = tableList.getModel();
-				if(model instanceof AbstractTableModel){
-					((AbstractTableModel)model).fireTableDataChanged(); 
+				if (model instanceof AbstractTableModel) {
+					((AbstractTableModel) model).fireTableDataChanged();
 				}
-				
+
 				tableList.setRowSelectionInterval(size - 1, size - 1);
-				
+
 				ContextManager.getThreadPool().run(new Runnable() {
 					@Override
 					public void run() {
-						try{
+						try {
 							Thread.sleep(500);
-						}catch (final Exception e) {
+						} catch (final Exception e) {
 						}
 						hostField.selectAll();
 					}
 				}, threadPoolToken);
 			}
 		}, threadPoolToken));
-		
+
 		deleteBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				notifyModify();
-				
+
 				final int currRow = tableList.getSelectedRow();
-				
+
 				allowSockets.remove(currRow);
-				
+
 				tableList.clearSelection();
-				try{
+				try {
 					final int size = allowSockets.size();
-					if(size == 0){
+					if (size == 0) {
 						deleteBtn.setEnabled(false);
 						clearEditPanel();
 						setInitEditPanelEnable(false);
-						
+
 						hostField.setEnabled(false);
 						portField.setEnabled(false);
 					}
-					if(currRow < size){
+					if (currRow < size) {
 						tableList.setRowSelectionInterval(currRow, currRow);
-					}else{
-						if(size == 0){
-//							tableList.setRowSelectionInterval(0, 0);
-						}else{
+					} else {
+						if (size == 0) {
+							// tableList.setRowSelectionInterval(0, 0);
+						} else {
 							tableList.setRowSelectionInterval(size - 1, size - 1);
 						}
 					}
-				}catch (final Exception e) {
+				} catch (final Exception e) {
 					ExceptionReporter.printStackTrace(e);
 				}
 				tableList.updateUI();
 			}
 		}));
 	}
-	
+
 	private final void switchToHost(final boolean isHost) {
 		hostField.setEnabled(isHost);
 		ipField.setEnabled(!isHost);
 
-		
 		final SocketDesc elementAt = allowSockets.elementAt(currRow);
-		
+
 		elementAt.setIPMode(!isHost);
-		
-		if(isHost){
+
+		if (isHost) {
 			ipField.setAddress("");
 			elementAt.setIp("");
-		}else{
+		} else {
 			hostField.setText("");
 			elementAt.setHost("");
 		}
-		
+
 		tableList.updateUI();
 	}
-	
-	private final void loadFromCSC(final ContextSecurityConfig csc){
+
+	private final void loadFromCSC(final ContextSecurityConfig csc) {
 		csc.loadToVector();
 		csc.copyToSocketPanel(this);
 		updateFieldsFromTable();
@@ -762,20 +760,20 @@ public abstract class SocketEditPanel extends JPanel{
 		portField.setEnabled(isPort);
 		portFromField.setEnabled(!isPort);
 		portToField.setEnabled(!isPort);
-		
+
 		final SocketDesc elementAt = allowSockets.elementAt(currRow);
 		elementAt.setPortMode(isPort);
-		
-		if(isPort){
+
+		if (isPort) {
 			portFromField.setText("");
 			portToField.setText("");
 			elementAt.setPortFrom("");
 			elementAt.setPortTo("");
-		}else{
+		} else {
 			portField.setText("");
 			elementAt.setPort("");
 		}
-		
+
 		tableList.repaint();
 		tableList.updateUI();
 	}
@@ -783,10 +781,11 @@ public abstract class SocketEditPanel extends JPanel{
 	private void forceSwitchEdit(final boolean limitOn) {
 		notifySocketLimitOn(limitOn);
 		switchEditable(limitOn);
-		
-		final HCEnableHeaderRenderer hr = (HCEnableHeaderRenderer)tableList.getTableHeader().getDefaultRenderer();
+
+		final HCEnableHeaderRenderer hr = (HCEnableHeaderRenderer) tableList.getTableHeader()
+				.getDefaultRenderer();
 		hr.setEnabled(limitOn);
-		
+
 		final DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer();
 		dtcr.setEnabled(limitOn);
 		for (int i = 0; i < columnNum; i++) {
@@ -798,18 +797,18 @@ public abstract class SocketEditPanel extends JPanel{
 		final boolean isAccept = checkAccept.isSelected();
 		final boolean isConnect = checkconnect.isSelected();
 		final boolean isListen = checklisten.isSelected();
-		
-		if(isAccept || isConnect || isListen){
-			if(checkresolve.isSelected() == false){
+
+		if (isAccept || isConnect || isListen) {
+			if (checkresolve.isSelected() == false) {
 				checkresolve.setSelected(true);
 			}
 		}
-		
+
 		socket.setAction(SocketDesc.ACCEPT, isAccept);
 		socket.setAction(SocketDesc.CONNECT, isConnect);
 		socket.setAction(SocketDesc.LISTEN, isListen);
 		socket.setAction(SocketDesc.RESOLVE, checkresolve.isSelected());
-		
-		tableList.updateUI();//有可能更新check_resolve，所以要刷新
+
+		tableList.updateUI();// 有可能更新check_resolve，所以要刷新
 	}
 }

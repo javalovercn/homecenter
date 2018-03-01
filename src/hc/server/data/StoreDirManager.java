@@ -18,46 +18,50 @@ public class StoreDirManager {
 	public static final String LINK_DIR_NAME = "link";
 	public static final String LOGS_DIR_NAME = "logs";
 	static final String CFG_DIR_NAME = "cfg";
-	
-	public final static String HC_SYS_FOR_USER_PRIVATE_DIR = "_HC" + File.separator;//getPrivateFile("mySubDir2/subSubDir").mkdirs();
+
+	public final static String HC_SYS_FOR_USER_PRIVATE_DIR = "_HC" + File.separator;// getPrivateFile("mySubDir2/subSubDir").mkdirs();
 	public final static String DB_SUB_DIR_FOR_USER_PRIVATE_DIR = "DB" + File.separator;
 	public final static String CRON_SUB_DIR_FOR_USER_PRIVATE_DIR = "CRON" + File.separator;
 	public final static String TEMP_SUB_DIR_FOR_USER_PRIVATE_DIR = "TEMP" + File.separator;
-	
+
 	public final static String PROJ_PROPERTIES = "project.properties";
-	public static void createDirIfNeccesary(final String dir){
+
+	public static void createDirIfNeccesary(final String dir) {
 		final File file = new File(ResourceUtil.getBaseDir(), "." + dir);
-		if(file.isDirectory()){
-		}else{
+		if (file.isDirectory()) {
+		} else {
 			file.mkdirs();
 		}
 	}
-	
+
 	public static final Locale locale = Locale.getDefault();
 	private static final String hcRootPath = getCanonicalPath("./") + File.separator;
-	private static final String user_data_dir = hcRootPath + SafeDataManager.USER_DATA + File.separator;
-	private static final String user_data_safe_dir = hcRootPath + SafeDataManager.USER_DATA_SAFE + File.separator;
+	private static final String user_data_dir = hcRootPath + SafeDataManager.USER_DATA
+			+ File.separator;
+	private static final String user_data_safe_dir = hcRootPath + SafeDataManager.USER_DATA_SAFE
+			+ File.separator;
 	public static final String user_data_dirLower = user_data_dir.toLowerCase(locale);
 	public static final String user_data_safe_dirLower = user_data_safe_dir.toLowerCase(locale);
 
 	/**
 	 * 返回格式：user_data/projectID/。含尾的/
+	 * 
 	 * @param projID
 	 * @return
 	 */
 	public static final String getUserDataBaseDir(final String projID) {
 		return user_data_dir + HttpUtil.encodeFileName(projID) + File.separator;
 	}
-	
+
 	public static String getCanonicalPath(final String fileName) {
-		try{
+		try {
 			return new File(ResourceUtil.getBaseDir(), fileName).getCanonicalPath();
-		}catch (final Exception e) {
+		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}
 		return fileName;
 	}
-	
+
 	public static final File TEMP_DIR = new File(ResourceUtil.getBaseDir(), TEMP_DIR_NAME);
 	public static final File RMS_DIR = new File(ResourceUtil.getBaseDir(), HC_RMS);
 	public static final File LINK_DIR = new File(ResourceUtil.getBaseDir(), LINK_DIR_NAME);
@@ -67,42 +71,43 @@ public class StoreDirManager {
 	public static final String RUN_TEST_ABS_PATH = RUN_TEST_DIR.getAbsolutePath();
 	public static final String RUN_TEST_CANONICAL_PATH = buildCanonicalPath(RUN_TEST_DIR);
 	public static final String TEMP_CANONICAL_PATH = buildCanonicalPath(TEMP_DIR);
-	
+
 	private static String buildCanonicalPath(final File file) {
-		try{
+		try {
 			return file.getCanonicalPath() + File.separator;
-		}catch (final Exception e) {
+		} catch (final Exception e) {
 		}
 		return null;
 	}
-	
-	public final static File getTmpSubForUserManagedByHcSys(final ProjectContext projectContext){
-		return projectContext.getPrivateFile(HC_SYS_FOR_USER_PRIVATE_DIR + TEMP_SUB_DIR_FOR_USER_PRIVATE_DIR);
+
+	public final static File getTmpSubForUserManagedByHcSys(final ProjectContext projectContext) {
+		return projectContext
+				.getPrivateFile(HC_SYS_FOR_USER_PRIVATE_DIR + TEMP_SUB_DIR_FOR_USER_PRIVATE_DIR);
 	}
 
 	static {
-		if(TEMP_DIR.exists() == false){
+		if (TEMP_DIR.exists() == false) {
 			TEMP_DIR.mkdirs();
 		}
 		ResourceUtil.clearDir(TEMP_DIR);
-		
-		if(LINK_DIR.exists() == false){
+
+		if (LINK_DIR.exists() == false) {
 			LINK_DIR.mkdirs();
 		}
-		
-		if(CFG_DIR.exists() == false){
+
+		if (CFG_DIR.exists() == false) {
 			CFG_DIR.mkdirs();
 		}
 
-		if(RMS_DIR.exists() == false){
+		if (RMS_DIR.exists() == false) {
 			RMS_DIR.mkdirs();
 		}
 
-		if(RUN_TEST_DIR.exists() == false){
+		if (RUN_TEST_DIR.exists() == false) {
 			RUN_TEST_DIR.mkdirs();
 		}
-		
-		if(LOGS_DIR.exists() == false){
+
+		if (LOGS_DIR.exists() == false) {
 			LOGS_DIR.mkdirs();
 		}
 	}

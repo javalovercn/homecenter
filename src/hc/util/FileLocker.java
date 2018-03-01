@@ -13,27 +13,27 @@ public class FileLocker {
 	final File lockFile;
 	public static final String READ_MODE = "r";
 	public static final String READ_WRITE_MODE = "rw";
-	
-	public FileLocker(final File file, final String mode) throws FileNotFoundException{
+
+	public FileLocker(final File file, final String mode) throws FileNotFoundException {
 		this.lockFile = file;
 		raf = new RandomAccessFile(file, mode);
 		channel = raf.getChannel();
 	}
-	
-	public boolean lock() throws IOException{
-		lock = channel.tryLock();		
+
+	public boolean lock() throws IOException {
+		lock = channel.tryLock();
 		return lock != null;
 	}
-	
-	public void release() throws IOException{
-		lock.release();		
+
+	public void release() throws IOException {
+		lock.release();
 	}
-	
-	public void exit(){
-		try{
+
+	public void exit() {
+		try {
 			channel.close();
 			raf.close();
-		}catch (final Exception e) {
+		} catch (final Exception e) {
 		}
 	}
 }

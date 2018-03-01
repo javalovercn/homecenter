@@ -23,6 +23,7 @@ public abstract class RootBuilder {
 	public static final short ROOT_THROW_CAUSE_ERROR = 20;
 	public static final short ROOT_GET_CAUSE_ERROR = 21;
 	public static final short ROOT_IS_CURR_THREAD_IN_SESSION_OR_PROJ_POOL = 22;
+	public static final short ROOT_START_NEW_IDEL_SESSION = 23;
 	
 	private static RootBuilder instance;
 	

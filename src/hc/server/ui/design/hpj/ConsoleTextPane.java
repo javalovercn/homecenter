@@ -14,25 +14,26 @@ import javax.swing.text.SimpleAttributeSet;
 public class ConsoleTextPane {
 	ScriptEditPanel sep;
 	private int lastOffset;
-	
-	private static final SimpleAttributeSet ERR_LIGHTER = ResourceUtil.buildAttrSet(Color.RED, false);
+
+	private static final SimpleAttributeSet ERR_LIGHTER = ResourceUtil.buildAttrSet(Color.RED,
+			false);
 
 	final JTextPane textPane = new JTextPane();
 	private final Document textPaneDoc = textPane.getDocument();
-	
-	public ConsoleTextPane(){
-		try{
-			((DefaultCaret)textPane.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);//自动文尾
-		}catch (final Throwable e) {
+
+	public ConsoleTextPane() {
+		try {
+			((DefaultCaret) textPane.getCaret()).setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);// 自动文尾
+		} catch (final Throwable e) {
 			e.printStackTrace();
 		}
 	}
-	
-	public final void setScriptEditPanel(final ScriptEditPanel sep){
+
+	public final void setScriptEditPanel(final ScriptEditPanel sep) {
 		this.sep = sep;
 	}
-	
-	public final void clearText(){
+
+	public final void clearText() {
 		synchronized (ERR_LIGHTER) {
 			try {
 				textPaneDoc.remove(0, textPaneDoc.getLength());
@@ -42,25 +43,25 @@ public class ConsoleTextPane {
 			}
 		}
 	}
-	
-	final void write(final char[] cbuf, final int off, final int len, final boolean isError){
+
+	final void write(final char[] cbuf, final int off, final int len, final boolean isError) {
 		final String str = new String(cbuf, off, len);
 		synchronized (ERR_LIGHTER) {
 			try {
-				textPaneDoc.insertString(lastOffset, str, isError?ERR_LIGHTER:null);
+				textPaneDoc.insertString(lastOffset, str, isError ? ERR_LIGHTER : null);
 				lastOffset += str.length();
 			} catch (final BadLocationException e) {
 				e.printStackTrace();
 			}
 		}
 	}
-	
-	public final void clearScriptEditPanel(){
+
+	public final void clearScriptEditPanel() {
 		CCoreUtil.checkAccess();
 		sep = null;
 	}
-	
-	public final JTextPane getTextPane(){
+
+	public final JTextPane getTextPane() {
 		CCoreUtil.checkAccess();
 		return textPane;
 	}

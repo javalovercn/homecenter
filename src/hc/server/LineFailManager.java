@@ -1,7 +1,7 @@
 package hc.server;
 
 import hc.App;
-import hc.core.IContext;
+import hc.core.IConstant;
 import hc.core.util.CCoreUtil;
 import hc.server.ui.design.J2SESession;
 import hc.util.ResourceUtil;
@@ -14,23 +14,24 @@ import javax.swing.JPanel;
 
 public class LineFailManager {
 	private static Window lineFailWindow;
-	
+
 	public static synchronized void showLineFailWindow(final J2SESession coreSS, final String msg) {
-		if(lineFailWindow != null){
+		if (lineFailWindow != null) {
 			return;
 		}
-		
+
 		final JPanel panel = App.buildMessagePanel(msg, App.getSysIcon(App.SYS_ERROR_ICON));
-		lineFailWindow = App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil	.get(IContext.ERROR), false, null, null, new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				coreSS.context.notifyShutdown();
-			}
-		}, null, null, false, true, null, false, false);
+		lineFailWindow = App.showCenterPanelMain(panel, 0, 0,
+				(String) ResourceUtil.get(IConstant.ERROR), false, null, null, new ActionListener() {
+					@Override
+					public void actionPerformed(final ActionEvent e) {
+						coreSS.context.notifyShutdown();
+					}
+				}, null, null, false, true, null, false, false);
 	}
-	
-	public static synchronized void closeLineFailWindow(){
-		if(lineFailWindow != null){
+
+	public static synchronized void closeLineFailWindow() {
+		if (lineFailWindow != null) {
 			lineFailWindow.dispose();
 			lineFailWindow = null;
 		}

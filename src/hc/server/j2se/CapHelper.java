@@ -10,29 +10,30 @@ public class CapHelper {
 	public static final String CapNotify_CLASS = "hc.video.CapNotify";
 
 	public final static Object capNotify = buildCapNotifyInstance();
-	
+
 	static {
-		try{
+		try {
 			CapHelper.addListener(CapHelper.capNotify);
-		}catch (final Throwable e) {
+		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
 	}
-	
-	public static final void addListener(final Object cn){
-		try{
-			final Class[] paraTypes = {IMsgNotifier.class};
-			final Object[] para = {cn};
-			ClassUtil.invoke(getCapManagerClass(), getCapManagerClass(), "addListener", paraTypes, para, true);
-//		CapManager.addListener(capNotify);
-		}catch (final Throwable e) {
+
+	public static final void addListener(final Object cn) {
+		try {
+			final Class[] paraTypes = { IMsgNotifier.class };
+			final Object[] para = { cn };
+			ClassUtil.invoke(getCapManagerClass(), getCapManagerClass(), "addListener", paraTypes,
+					para, true);
+			// CapManager.addListener(capNotify);
+		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
 	}
-	
-	public static final Object buildCapNotifyInstance(){
-		final Class c = ResourceUtil.loadClass(CapNotify_CLASS, true);//Class.forName
-		if(c != null){
+
+	public static final Object buildCapNotifyInstance() {
+		final Class c = ResourceUtil.loadClass(CapNotify_CLASS, true);// Class.forName
+		if (c != null) {
 			try {
 				return c.newInstance();
 			} catch (final Throwable e) {
@@ -41,8 +42,8 @@ public class CapHelper {
 		}
 		return null;
 	}
-	
-	public static final Class getCapManagerClass(){
-		return ResourceUtil.loadClass(CapManager_CLASS, true);//Class.forName
+
+	public static final Class getCapManagerClass() {
+		return ResourceUtil.loadClass(CapManager_CLASS, true);// Class.forName
 	}
 }

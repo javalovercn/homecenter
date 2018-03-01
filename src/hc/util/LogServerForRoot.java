@@ -62,23 +62,22 @@ public class LogServerForRoot implements ILog {
 
 	@Override
 	public void log(final String msg) {
-		System.out.println((new Timestamp(System.currentTimeMillis()))
-				.toString() + " " + msg);
+		System.out.println((new Timestamp(System.currentTimeMillis())).toString() + " " + msg);
 	}
 
 	@Override
 	public void errWithTip(final String msg) {
 		err(msg);
-//		TrayMenuUtil.displayMessage((String) ResourceUtil.get(IContext.ERROR), msg, IContext.ERROR, null,	0);//RootServer close tip
+		// TrayMenuUtil.displayMessage((String)
+		// ResourceUtil.get(IContext.ERROR), msg, IContext.ERROR, null,
+		// 0);//RootServer close tip
 	}
-
 
 	@Override
 	public void err(final String msg) {
-		System.err.println((new Timestamp(System.currentTimeMillis()))
-				.toString() + ILog.ERR + msg);
+		System.err.println((new Timestamp(System.currentTimeMillis())).toString() + ILog.ERR + msg);
 	}
-	
+
 	@Override
 	public void info(final String msg) {
 
@@ -97,8 +96,8 @@ public class LogServerForRoot implements ILog {
 
 	@Override
 	public void warning(final String msg) {
-		System.out.println((new Timestamp(System.currentTimeMillis()))
-				.toString() + ILog.WARNING + msg);		
+		System.out.println(
+				(new Timestamp(System.currentTimeMillis())).toString() + ILog.WARNING + msg);
 	}
 
 }

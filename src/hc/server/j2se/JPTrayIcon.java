@@ -27,28 +27,28 @@ import javax.swing.JPopupMenu;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 
-public class JPTrayIcon implements PlatformTrayIcon{
+public class JPTrayIcon implements PlatformTrayIcon {
 	private final ThreadGroup threadGroupToken = App.getThreadPoolToken();
 	private final HashMap<String, String> tip = new HashMap<String, String>();
-	
+
 	final ITrayIcon trayIcon;
-	
+
 	public static final String NAT_DESC = "Nat_Desc";
 	public static final String PUBLIC_IP = "Pub_IP";
-//	public static final String PUBLIC_PORT = "Pub_Port";
-	
+	// public static final String PUBLIC_PORT = "Pub_Port";
+
 	private JPopupMenu menu;
 	private final HCJFrame frame = new HCJFrame();
 	final Runnable toDisvisibleRun = new Runnable() {
 		@Override
 		public void run() {
-			frame.setVisible(false);						
+			frame.setVisible(false);
 		}
 	};
 	private final PopupMenuListener popupListener;
 	private final MouseListener mouseListener;
 	private String toolTip;
-	
+
 	{
 		frame.setFocusableWindowState(false);
 		frame.setUndecorated(true);
@@ -59,87 +59,87 @@ public class JPTrayIcon implements PlatformTrayIcon{
 	public void exit() {
 		frame.dispose();
 	}
-	
-	public void putTip(final String key, final String value){
+
+	public void putTip(final String key, final String value) {
 		tip.put(key, value);
-		
-		//重算ToolTip
+
+		// 重算ToolTip
 		String toolTip = "";
-		
+
 		final Iterator<String> it = tip.keySet().iterator();
-		while(it.hasNext()){
-			if(toolTip.length() > 0){
+		while (it.hasNext()) {
+			if (toolTip.length() > 0) {
 				toolTip += "\n";
 			}
 			toolTip += tip.get(it.next());
 		}
-		
+
 		trayIcon.setToolTip(toolTip);
 	}
-	
+
 	@Override
-	public String getToolTip(){
+	public String getIconToolTip() {
 		return this.toolTip;
 	}
-	
+
 	@Override
-	public void setToolTip(final String tooltip){
+	public void setIconToolTip(final String tooltip) {
 		this.toolTip = tooltip;
 		trayIcon.setToolTip(tooltip);
 	}
-	
+
 	@Override
-	public void remove(){
+	public void remove() {
 		trayIcon.removeTray();
 	}
-	
+
 	@Override
-	public void setImage(final Image image){
+	public void setImage(final Image image) {
 		trayIcon.setImage(image);
 	}
-	
+
 	@Override
-	public Image getImage(){
+	public Image getImage() {
 		return trayIcon.getImage();
 	}
-	
-	private ITrayIcon buildTrayIcon(final Image image){
-//		if(ResourceUtil.isWindowsOS()){
-//			return new WindowTrayIcon();
-//		}else{
-//			return new LinuxTrayIcon(image);
-			
-//			if(ResourceUtil.isLinuxRelease("fedora")){
-//				return new LinuxTrayIcon(image);
-////			}else if(ResourceUtil.isLinuxRelease("centos")){
-////					return new WindowTrayIcon();
-////			}else if(ResourceUtil.isLinuxRelease("ubuntu")){
-////				return new WindowTrayIcon();
-//			}else if(ResourceUtil.isMacOSX()){10.9由于提示消息不正常
-//				return new LinuxTrayIcon(image);
-//			}else{
-//				return new WindowTrayIcon();
-//			}
-//		}
+
+	private ITrayIcon buildTrayIcon(final Image image) {
+		// if(ResourceUtil.isWindowsOS()){
+		// return new WindowTrayIcon();
+		// }else{
+		// return new LinuxTrayIcon(image);
+
+		// if(ResourceUtil.isLinuxRelease("fedora")){
+		// return new LinuxTrayIcon(image);
+		//// }else if(ResourceUtil.isLinuxRelease("centos")){
+		//// return new WindowTrayIcon();
+		//// }else if(ResourceUtil.isLinuxRelease("ubuntu")){
+		//// return new WindowTrayIcon();
+		// }else if(ResourceUtil.isMacOSX()){10.9由于提示消息不正常
+		// return new LinuxTrayIcon(image);
+		// }else{
+		// return new WindowTrayIcon();
+		// }
+		// }
 		return new WindowTrayIcon();
 	}
 
 	public JPTrayIcon(final Image image, final String productTip, final JPopupMenu menu) {
 		trayIcon = buildTrayIcon(image);
-		
-		//要置于setImage之前
+
+		// 要置于setImage之前
 		trayIcon.setImageAutoSize(true);
-		
+
 		trayIcon.setImage(image);
 		this.toolTip = productTip;
 		trayIcon.setToolTip(productTip);
 		frame.addWindowFocusListener(new WindowFocusListener() {
 			@Override
 			public void windowLostFocus(final WindowEvent e) {
-//				LogManager.log("Dialog Lose Focus");
+				// LogManager.log("Dialog Lose Focus");
 				App.invokeLaterUI(toDisvisibleRun);
 			}
-			
+
 			@Override
 			public void windowGainedFocus(final WindowEvent e) {
 			}
@@ -147,39 +147,41 @@ public class JPTrayIcon implements PlatformTrayIcon{
 		popupListener = new TrayPopupListener(frame);
 		mouseListener = new TrayMouseAdapter();
 		this.setJPopupMenu(menu);
-		
-		setToolTip(productTip);
-//		
+
+		setIconToolTip(productTip);
+		//
 		trayIcon.showTray();
-//		Locale l = Locale.getDefault();
-//		menu.applyComponentOrientation(ComponentOrientation.getOrientation(l));
+		// Locale l = Locale.getDefault();
+		// menu.applyComponentOrientation(ComponentOrientation.getOrientation(l));
 	}
-	
+
 	@Override
-	public void displayMessage(final String caption, final String text, final MessageType messageType){
+	public void displayMessage(final String caption, final String text,
+			final MessageType messageType) {
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
-//				at : java.lang.Object.wait(Native Method)
-//				at : java.lang.Object.wait(Object.java:503)
-//				at : java.awt.EventQueue.invokeAndWait(EventQueue.java:1266)
-//				at : java.awt.EventQueue.invokeAndWait(EventQueue.java:1247)
-//				at : javax.swing.SwingUtilities.invokeAndWait(SwingUtilities.java:1347)
-//				at : hc.App.invokeAndWaitUI(App.java:1479)
-//				at : hc.server.j2se.JPTrayIcon$3.run(JPTrayIcon.java:162)
-//				at : hc.core.util.RecycleThread.run(RecycleThread.java:27)
-//				at : java.lang.Thread.run(Thread.java:744)
-				App.invokeLaterUI(new Runnable() {//注意：invokeAndWaitUI会导致上述异常，改为invokeLaterUI
+				// at : java.lang.Object.wait(Native Method)
+				// at : java.lang.Object.wait(Object.java:503)
+				// at : java.awt.EventQueue.invokeAndWait(EventQueue.java:1266)
+				// at : java.awt.EventQueue.invokeAndWait(EventQueue.java:1247)
+				// at :
+				// javax.swing.SwingUtilities.invokeAndWait(SwingUtilities.java:1347)
+				// at : hc.App.invokeAndWaitUI(App.java:1479)
+				// at : hc.server.j2se.JPTrayIcon$3.run(JPTrayIcon.java:162)
+				// at : hc.core.util.RecycleThread.run(RecycleThread.java:27)
+				// at : java.lang.Thread.run(Thread.java:744)
+				App.invokeLaterUI(new Runnable() {// 注意：invokeAndWaitUI会导致上述异常，改为invokeLaterUI
 					@Override
 					public void run() {
 						trayIcon.displayMessage(caption, text, messageType);
 					}
 				});
 			}
-		},threadGroupToken);
+		}, threadGroupToken);
 	}
-	
-	public void setDefaultActionListener(final ActionListener listen){
+
+	public void setDefaultActionListener(final ActionListener listen) {
 		trayIcon.setDefaultActionListener(listen);
 	}
 
@@ -201,7 +203,8 @@ public class JPTrayIcon implements PlatformTrayIcon{
 			trayIcon.removeTrayMouseListener(mouseListener);
 		}
 		if (popmenu != null) {
-			popmenu.applyComponentOrientation(ComponentOrientation.getOrientation(UILang.getUsedLocale()));
+			popmenu.applyComponentOrientation(
+					ComponentOrientation.getOrientation(UILang.getUsedLocale()));
 
 			this.menu = popmenu;
 			this.menu.addPopupMenuListener(popupListener);
@@ -218,9 +221,8 @@ public class JPTrayIcon implements PlatformTrayIcon{
 					final Dimension screenSize = ResourceUtil.getScreenSize();
 					int loc_x = evt.getXOnScreen();
 					int loc_y = evt.getYOnScreen();
-					
-					frame.setLocation(evt.getX(), evt.getY()
-								- menu.getPreferredSize().height);
+
+					frame.setLocation(evt.getX(), evt.getY() - menu.getPreferredSize().height);
 					frame.setVisible(true);
 					menu.show(frame.getContentPane(), 0, 0);
 					// popup works only for focused windows
@@ -237,7 +239,7 @@ public class JPTrayIcon implements PlatformTrayIcon{
 						loc_x = loc_x - w;
 					}
 
-					if(loc_y + h > screenSize.height){
+					if (loc_y + h > screenSize.height) {
 						loc_y = loc_y - h;
 					}
 					menu.setLocation(loc_x, loc_y);
@@ -251,14 +253,14 @@ public class JPTrayIcon implements PlatformTrayIcon{
 
 		@Override
 		public void mousePressed(final MouseEvent evt) {
-//			showJPopupMenu(evt);
+			// showJPopupMenu(evt);
 		}
 
 		@Override
 		public void mouseReleased(final MouseEvent evt) {
 			if (menu != null) {
-				if(evt.isPopupTrigger() ||
-						(evt.getButton() == MouseEvent.BUTTON3 && evt.getClickCount() == 1)){
+				if (evt.isPopupTrigger()
+						|| (evt.getButton() == MouseEvent.BUTTON3 && evt.getClickCount() == 1)) {
 					showJPopupMenu(evt);
 				}
 			}
@@ -266,7 +268,7 @@ public class JPTrayIcon implements PlatformTrayIcon{
 
 		@Override
 		public void mouseClicked(final MouseEvent evt) {
-//			showJPopupMenu(evt);
+			// showJPopupMenu(evt);
 		}
 	}
 
@@ -284,15 +286,15 @@ public class JPTrayIcon implements PlatformTrayIcon{
 
 		@Override
 		public void popupMenuWillBecomeInvisible(final PopupMenuEvent evt) {
-//			LogManager.log("popupMenuWillBecomeInvisible");
-			//必须的，该逻辑是有用的。
+			// LogManager.log("popupMenuWillBecomeInvisible");
+			// 必须的，该逻辑是有用的。
 			dialog.setVisible(false);
 		}
 
 		@Override
 		public void popupMenuCanceled(final PopupMenuEvent evt) {
-//			LogManager.log("popupMenuCanceled");
-			//必须的，该逻辑是有用的。
+			// LogManager.log("popupMenuCanceled");
+			// 必须的，该逻辑是有用的。
 			dialog.setVisible(false);
 		}
 	}

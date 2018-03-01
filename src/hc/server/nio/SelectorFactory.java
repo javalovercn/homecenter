@@ -19,7 +19,7 @@ public class SelectorFactory {
 			} catch (final EmptyStackException ex) {
 			}
 
-			if(s == null){
+			if (s == null) {
 				try {
 					s = Selector.open();
 				} catch (final IOException e) {

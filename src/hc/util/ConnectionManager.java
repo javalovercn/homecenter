@@ -11,34 +11,34 @@ import hc.server.AbstractDelayBiz;
  */
 public class ConnectionManager {
 	private static Stack delayBiz = null;
-	
-	public static void addBeforeConnectionBiz(final AbstractDelayBiz biz){
+
+	public static void addBeforeConnectionBiz(final AbstractDelayBiz biz) {
 		CCoreUtil.checkAccess();
-		
+
 		synchronized (ConnectionManager.class) {
-			if(delayBiz == null){
+			if (delayBiz == null) {
 				delayBiz = new Stack();
 			}
 		}
-		
+
 		delayBiz.push(biz);
 	}
-	
-	public static void startBeforeConnectBiz(){
+
+	public static void startBeforeConnectBiz() {
 		CCoreUtil.checkAccess();
-		
-		if(delayBiz != null){
+
+		if (delayBiz != null) {
 			AbstractDelayBiz biz;
-			do{
-				biz = (AbstractDelayBiz)delayBiz.pop();
-				if(biz != null){
-					try{
+			do {
+				biz = (AbstractDelayBiz) delayBiz.pop();
+				if (biz != null) {
+					try {
 						biz.doBiz();
-					}catch (final Throwable e) {
+					} catch (final Throwable e) {
 						ExceptionReporter.printStackTrace(e);
 					}
 				}
-			}while(biz != null);
+			} while (biz != null);
 		}
 	}
 }

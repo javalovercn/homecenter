@@ -17,81 +17,81 @@ public class AIUtil {
 
 	public static final String floatReplace = "%!%";
 	public static final String intReplace = "%@%";
-	
+
 	public static final String UNReplace = "%?%";
-	
-	public final static String findPattern(String text){
+
+	public final static String findPattern(String text) {
 		text = findFloatPattern(text);
 		return findIntPattern(text);
 	}
-	
-	public final static String findAnyPattern(final String text){
+
+	public final static String findAnyPattern(final String text) {
 		return null;
 	}
-	
-	public final static String findFloatPattern(final String text){
+
+	public final static String findFloatPattern(final String text) {
 		final java.util.regex.Matcher m = floatPattern.matcher(text);
-	    boolean result = m.find();
-	    if (result) {
-	        final StringBuffer sb = StringBufferCacher.getFree();
-	        do {
-	            m.appendReplacement(sb, floatReplace);
-	            result = m.find();
-	        } while (result);
-	        m.appendTail(sb);
-	        final String out = sb.toString();
-	        StringBufferCacher.cycle(sb);
-	        return out;
-	    }
-	    
-	    return text;
+		boolean result = m.find();
+		if (result) {
+			final StringBuffer sb = StringBufferCacher.getFree();
+			do {
+				m.appendReplacement(sb, floatReplace);
+				result = m.find();
+			} while (result);
+			m.appendTail(sb);
+			final String out = sb.toString();
+			StringBufferCacher.cycle(sb);
+			return out;
+		}
+
+		return text;
 	}
 
-	public final static String findIntPattern(final String text){
+	public final static String findIntPattern(final String text) {
 		final java.util.regex.Matcher m = intPattern.matcher(text);
-	    boolean result = m.find();
-	    if (result) {
-	        final StringBuffer sb = StringBufferCacher.getFree();
-	        do {
-	            m.appendReplacement(sb, intReplace);
-	            result = m.find();
-	        } while (result);
-	        m.appendTail(sb);
-	        final String out = sb.toString();
-	        StringBufferCacher.cycle(sb);
-	        return out;
-	    }
-	    
-	    return text;
+		boolean result = m.find();
+		if (result) {
+			final StringBuffer sb = StringBufferCacher.getFree();
+			do {
+				m.appendReplacement(sb, intReplace);
+				result = m.find();
+			} while (result);
+			m.appendTail(sb);
+			final String out = sb.toString();
+			StringBufferCacher.cycle(sb);
+			return out;
+		}
+
+		return text;
 	}
 
 	public final static byte[] toRecord(final List<String> list) {
 		final byte[] bs = AIUtil.cache.getFree(AIUtil.maxByteLen);
 		int len = 0;
-		
+
 		final int itemSize = list.size();
 		for (int i = 0; i < itemSize; i++) {
 			final String str = list.get(i);
 			final byte[] itembs = StringUtil.getBytes(str);
-			
+
 			final int itemBsLen = itembs.length;
-			if(itemBsLen + 1 + len > AIUtil.maxByteLen){
+			if (itemBsLen + 1 + len > AIUtil.maxByteLen) {
 				LogManager.warning("trim too long data on : " + str);
 				break;
 			}
-			
-			bs[len++] = (byte)itemBsLen;
-			for (int j = 0; j < itemBsLen; ) {
+
+			bs[len++] = (byte) itemBsLen;
+			for (int j = 0; j < itemBsLen;) {
 				bs[len++] = itembs[j++];
 			}
 		}
-		
+
 		final byte[] storeBS = new byte[len];
 		for (int i = 0; i < len; i++) {
 			storeBS[i] = bs[i];
 		}
 		AIUtil.cache.cycle(bs);
-		
+
 		return storeBS;
 	}
 

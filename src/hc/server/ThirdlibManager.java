@@ -15,76 +15,79 @@ import javax.swing.JOptionPane;
 
 public class ThirdlibManager {
 	public final static String EXT_JAR = ".jar";
-//	private final static Vector<String> loadedClassPath = new Vector<String>();
-	
-//	public static void loadClassPath(){
-//		Vector<String> v = getClassPath();
-//		for (int i = 0; i < v.size(); i++) {
-//			String lib = v.elementAt(i);
-//			if(loadedClassPath.contains(lib)){
-//				continue;
-//			}
-//			try {
-//				loadedClassPath.add(lib);
-//				ResourceUtil.loadJar(new File(App.getBaseDir(), lib));
-////				LogManager.log("load classpath : " + lib);
-//			} catch (Exception e) {
-//				ExceptionReporter.printStackTrace(e);
-//			}
-//		}
-//	}
-	
+	// private final static Vector<String> loadedClassPath = new
+	// Vector<String>();
+
+	// public static void loadClassPath(){
+	// Vector<String> v = getClassPath();
+	// for (int i = 0; i < v.size(); i++) {
+	// String lib = v.elementAt(i);
+	// if(loadedClassPath.contains(lib)){
+	// continue;
+	// }
+	// try {
+	// loadedClassPath.add(lib);
+	// ResourceUtil.loadJar(new File(App.getBaseDir(), lib));
+	//// LogManager.log("load classpath : " + lib);
+	// } catch (Exception e) {
+	// ExceptionReporter.printStackTrace(e);
+	// }
+	// }
+	// }
+
 	public static PropertiesSet libsSet = new PropertiesSet(PropertiesManager.S_THIRD_DIR);
 	static {
 		final File lib_dir = new File(ResourceUtil.getBaseDir(), PropertiesManager.S_THIRD_DIR);
-		if(lib_dir.exists()){
-		}else{
+		if (lib_dir.exists()) {
+		} else {
 			lib_dir.mkdirs();
 		}
 	}
 
-	public static void refill(final Object[] libNames){
+	public static void refill(final Object[] libNames) {
 		CCoreUtil.checkAccess();
-		
+
 		libsSet.refill(libNames);
 		libsSet.save();
 	}
-	
+
 	public static void loadThirdLibs() {
-//		ThirdlibManager.loadClassPath();
+		// ThirdlibManager.loadClassPath();
 		final int size = libsSet.size();
 		final File[] libFiles = new File[size];
 		for (int i = 0; i < size; i++) {
 			final String item = libsSet.getItem(i);
 			libFiles[i] = new File(ResourceUtil.getBaseDir(), item);
 		}
-		PlatformManager.getService().get3rdAndServClassLoader(libFiles);//加参数，表示重建实例
+		PlatformManager.getService().get3rdAndServClassLoader(libFiles);// 加参数，表示重建实例
 	}
-	
-	public static File buildTarget(final String libNameWithoutJarExt){
+
+	public static File buildTarget(final String libNameWithoutJarExt) {
 		return new File(ResourceUtil.getBaseDir(), buildPath(libNameWithoutJarExt));
 	}
 
 	/**
 	 * 注意：与removePath对应
+	 * 
 	 * @param libNameWithoutJarExt
 	 * @return
 	 */
 	public static String buildPath(final String libNameWithoutJarExt) {
 		return "." + "/" + PropertiesManager.S_THIRD_DIR + "/" + libNameWithoutJarExt + EXT_JAR;
 	}
-	
+
 	/**
 	 * 注意：与buildPath对应
+	 * 
 	 * @param pathName
 	 * @param keepExtJar
 	 * @return
 	 */
-	public static String removePath(final String pathName, final boolean keepExtJar){
+	public static String removePath(final String pathName, final boolean keepExtJar) {
 		final String name = new File(ResourceUtil.getBaseDir(), pathName).getName();
-		if(keepExtJar){
+		if (keepExtJar) {
 			return name;
-		}else{
+		} else {
 			return removeExtJar(name);
 		}
 	}
@@ -92,60 +95,63 @@ public class ThirdlibManager {
 	private static String removeExtJar(final String name) {
 		return name.substring(0, name.length() - EXT_JAR.length());
 	}
-	
+
 	/**
 	 * 加入工程时，执行jar库复制，动态加载
+	 * 
 	 * @param sourceLib
 	 * @param libNameWithoutJarExt
 	 * @return
 	 */
-	public static File addLib(final File sourceLib, final String libNameWithoutJarExt){
+	public static File addLib(final File sourceLib, final String libNameWithoutJarExt) {
 		CCoreUtil.checkAccess();
-		
+
 		final File targetFile = buildTarget(libNameWithoutJarExt);
 		final String buildPath = buildPath(libNameWithoutJarExt);
-		if(libsSet.contains(buildPath)){
+		if (libsSet.contains(buildPath)) {
 			return targetFile;
 		}
-		
+
 		libsSet.appendItemIfNotContains(buildPath);
 		libsSet.save();
 
 		copy(sourceLib, targetFile);
-		
-//		try {
-//			ResourceUtil.loadJar(targetFile);
-//		} catch (Exception e1) {
-//			e1ExceptionReporter.printStackTrace(e);
-//		}
-		
+
+		// try {
+		// ResourceUtil.loadJar(targetFile);
+		// } catch (Exception e1) {
+		// e1ExceptionReporter.printStackTrace(e);
+		// }
+
 		return targetFile;
 	}
-	
+
 	/**
 	 * 
 	 * @param libName
-	 * @param withExtJar true:表示libName中含有.jar
+	 * @param withExtJar
+	 *            true:表示libName中含有.jar
 	 */
-	public static void removeLib(String libName, final boolean withExtJar){
+	public static void removeLib(String libName, final boolean withExtJar) {
 		CCoreUtil.checkAccess();
-		
-		if(withExtJar){
+
+		if (withExtJar) {
 			libName = removeExtJar(libName);
 		}
-		
+
 		final File remove = buildTarget(libName);
 		remove.delete();
-		
+
 		final String path = buildPath(libName);
 
-		if(remove.exists()){
-			LogManager.log("jar lib [" + libName + "] may be in using. Operation of delete will be done at next startup!");
+		if (remove.exists()) {
+			LogManager.log("jar lib [" + libName
+					+ "] may be in using. Operation of delete will be done at next startup!");
 			PropertiesManager.addDelDir(path);
 		}
-		if(ResourceUtil.isAndroidServerPlatform()){
+		if (ResourceUtil.isAndroidServerPlatform()) {
 			final File dexFile = new File(path + ResourceUtil.EXT_DEX_JAR);
-			if(dexFile.exists()){
+			if (dexFile.exists()) {
 				PropertiesManager.addDelDir(path + ResourceUtil.EXT_DEX_JAR);
 			}
 		}
@@ -160,26 +166,28 @@ public class ThirdlibManager {
 	public static String createLibName(final JFrame self, final File file) {
 		final String fileName = file.getName();
 		String libName = fileName.substring(0, fileName.lastIndexOf("."));
-		while(buildTarget(libName).exists()){
-			libName = App.showInputDialog(self, "name is used/exists, please input new lib name (without extension name)", "Same lib name!!!", JOptionPane.QUESTION_MESSAGE);
-			if(libName == null){
+		while (buildTarget(libName).exists()) {
+			libName = App.showInputDialog(self,
+					"name is used/exists, please input new lib name (without extension name)",
+					"Same lib name!!!", JOptionPane.QUESTION_MESSAGE);
+			if (libName == null) {
 				return null;
 			}
 		}
 		return libName;
 	}
 
-	public static Vector<String> getClassPath(){
+	public static Vector<String> getClassPath() {
 		final Vector<String> v = new Vector<String>();
 		final String cp = System.getenv("classpath");
-		if(cp == null){
+		if (cp == null) {
 			return v;
 		}
 		final String[] out = cp.split(System.getProperty("path.separator"));
-		
+
 		for (int i = 0; i < out.length; i++) {
 			final String element = out[i];
-			if(v.contains(element)){
+			if (v.contains(element)) {
 				continue;
 			}
 			v.add(element);

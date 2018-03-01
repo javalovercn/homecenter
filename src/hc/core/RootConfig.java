@@ -41,6 +41,7 @@ public class RootConfig extends HCConfig{
 	private static void startUpdateRootCfgWhenFail(){
 		synchronized (listenerVector) {
 			if(isStartingUpdateRootCfgForFail == false){
+				isStartingUpdateRootCfgForFail = true;
 				Thread t = new Thread(){
 					String msg;
 					public void run(){
@@ -51,13 +52,14 @@ public class RootConfig extends HCConfig{
 							}
 							msg  = RootServerConnector.getRootConfig();
 						}while(msg == null);
+						LogManager.log("shift to ON-LINE mode!!!");
 						reset(false);
+						RootBuilder.getInstance().doBiz(RootBuilder.ROOT_START_NEW_IDEL_SESSION, null);
 						isStartingUpdateRootCfgForFail = false;
 					}
 				};
 				RootBuilder.getInstance().setDaemonThread(t);
 				t.start();
-				isStartingUpdateRootCfgForFail = true;
 			}
 		}
 	}

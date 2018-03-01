@@ -7,27 +7,27 @@ import java.util.LinkedList;
 public class SelectorCacher {
 	private final LinkedList<Selector> free;
 
-	public SelectorCacher(){
-        free = new LinkedList<Selector>();
+	public SelectorCacher() {
+		free = new LinkedList<Selector>();
 	}
-	
-	public Selector getFree(){
+
+	public Selector getFree() {
 		synchronized (free) {
-			if(free.size() == 0){
+			if (free.size() == 0) {
 				try {
 					return Selector.open();
 				} catch (IOException e) {
 					return null;
 				}
-			}else{
+			} else {
 				return free.removeFirst();
 			}
-        }
+		}
 	}
-	
-	public void cycle(Selector dp){
+
+	public void cycle(Selector dp) {
 		synchronized (free) {
 			free.addLast(dp);
-        }		
+		}
 	}
 }

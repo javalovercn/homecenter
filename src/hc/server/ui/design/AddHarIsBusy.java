@@ -22,51 +22,61 @@ public class AddHarIsBusy extends SystemHTMLMlet {
 	final String css = "errorStatus {color:red}";
 	final String css_error = "errorStatus";
 	public final JButton exitButton;
-	
-	//need system level resource.
+
+	// need system level resource.
 	String busyMsg, waitAndTry, exitButtonStr;
-		
-	public final synchronized void appendMessage(final String msg){
+
+	public final synchronized void appendMessage(final String msg) {
 		msgArea.append(msg + "\n");
 	}
-	
-	public AddHarIsBusy(){
+
+	public AddHarIsBusy() {
 		ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() throws Throwable {
 				exitButtonStr = ResourceUtil.get(localCoreSS, 9131);
 				busyMsg = ResourceUtil.get(localCoreSS, 9233);
 				waitAndTry = ResourceUtil.get(localCoreSS, 9234);
-				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(true);
+				HCLimitSecurityManager.getHCSecurityManager()
+						.setAllowAccessSystemImageResource(true);
 				return null;
 			}
 		}, AddHarHTMLMlet.token);
-		
+
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
-				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(false);
+				HCLimitSecurityManager.getHCSecurityManager()
+						.setAllowAccessSystemImageResource(false);
 			}
 		}, AddHarHTMLMlet.token);
-		
-		loadCSS(buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(), getColorForBodyByIntValue()) + css, false);
+
+		loadCSS(buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(),
+				getColorForBodyByIntValue()) + css, false);
 
 		exitButton = new JButton(exitButtonStr);
 		setButtonStyle(exitButton);
 
 		setLayout(new BorderLayout());
-		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
-		setCSS(msgArea, null, "width:100%;height:100%;" +
-				"background-color:" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.getColorForFontByHexString() + ";");
+		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker()
+				.getRGB();
+		setCSS(msgArea, null,
+				"width:100%;height:100%;" + "background-color:"
+						+ HTMLMlet.toHexColor(areaBackColor, false) + ";color:#"
+						+ HTMLMlet.getColorForFontByHexString() + ";");
 
 		appendMessage(busyMsg);
 		appendMessage(waitAndTry);
-		
-//		final String btnFontSizeCSS = "font-size:" + getFontSizeForButton() + "px;";
-//		setCSS(this, null, btnFontSizeCSS);//系统Mlet, //不考虑in user thread
+
+		// final String btnFontSizeCSS = "font-size:" + getFontSizeForButton() +
+		// "px;";
+		// setCSS(this, null, btnFontSizeCSS);//系统Mlet, //不考虑in user thread
 		addProcessingPanel.add(msgArea, BorderLayout.CENTER);
-		exitButton.setPreferredSize(new Dimension(getMobileWidth(), SystemHTMLMlet.getButtonHeight(getFontSizeForNormal() + getFontSizeForButton(), getButtonHeight())));
-//		setCSS(exitButton, null, "text-align:center;vertical-align:middle;width:100%;height:100%;" + btnFontSizeCSS);//系统Mlet, //不考虑in user thread
+		exitButton.setPreferredSize(new Dimension(getMobileWidth(), SystemHTMLMlet.getButtonHeight(
+				getFontSizeForNormal() + getFontSizeForButton(), getButtonHeight())));
+		// setCSS(exitButton, null,
+		// "text-align:center;vertical-align:middle;width:100%;height:100%;" +
+		// btnFontSizeCSS);//系统Mlet, //不考虑in user thread
 		exitButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
@@ -74,7 +84,7 @@ public class AddHarIsBusy extends SystemHTMLMlet {
 			}
 		});
 		addProcessingPanel.add(exitButton, BorderLayout.SOUTH);
-		
+
 		this.add(addProcessingPanel, BorderLayout.CENTER);
 	}
 }

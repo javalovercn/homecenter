@@ -13,28 +13,29 @@ import hc.util.ResourceUtil;
 
 public class HCJDialog extends JDialog {
 	private DisposeListener listener;
-	
-	public HCJDialog(){
-		this((Frame)null, false);
+
+	public HCJDialog() {
+		this((Frame) null, false);
 	}
-	
+
 	public HCJDialog(final Frame owner) {
-        this(owner, false);
+		this(owner, false);
 	}
-	
-	public HCJDialog(final Frame owner, final boolean modal){
+
+	public HCJDialog(final Frame owner, final boolean modal) {
 		this(owner, "", modal);
 	}
-	
+
 	public HCJDialog(final Frame owner, final String title) {
-        this(owner, title, false);
+		this(owner, title, false);
 	}
-	
+
 	public HCJDialog(final Window owner, final String title) {
-        this(owner, title, Dialog.ModalityType.MODELESS);
+		this(owner, title, Dialog.ModalityType.MODELESS);
 	}
-	
-	public HCJDialog(final Window owner, final String title, final Dialog.ModalityType modalityType) {
+
+	public HCJDialog(final Window owner, final String title,
+			final Dialog.ModalityType modalityType) {
 		super(owner, title, modalityType);
 		init(title);
 	}
@@ -43,36 +44,36 @@ public class HCJDialog extends JDialog {
 		super(owner, title, modal);
 		init(title);
 	}
-	
+
 	public HCJDialog(final Dialog owner, final String title, final boolean modal) {
 		super(owner, title, modal);
 		init(title);
 	}
-	
+
 	private final void init(final String title) {
 		CCoreUtil.checkAccess();
-		
+
 		this.setTitle(title);
 		setIconImage(App.SYS_LOGO);
 	}
-	
+
 	@Override
 	public final void setTitle(String title) {
 		final String product = ResourceUtil.getProductName();
-		title = (title.indexOf(product) >= 0)?title:title + " - " + product;
+		title = (title.indexOf(product) >= 0) ? title : title + " - " + product;
 		super.setTitle(title);
 	}
-	
+
 	@Override
-	public void dispose(){
+	public void dispose() {
 		super.dispose();
-		if(listener != null){
+		if (listener != null) {
 			listener.dispose();
 		}
 	}
-	
-	public final void setDisposeListener(final DisposeListener dListener){
-		if(listener != null){
+
+	public final void setDisposeListener(final DisposeListener dListener) {
+		if (listener != null) {
 			final DisposeListener oldListener = listener;
 			listener = new DisposeListener() {
 				@Override
@@ -81,7 +82,7 @@ public class HCJDialog extends JDialog {
 					dListener.dispose();
 				}
 			};
-		}else{
+		} else {
 			listener = dListener;
 		}
 	}

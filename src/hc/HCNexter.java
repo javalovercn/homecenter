@@ -14,36 +14,36 @@ public class HCNexter {
 	final String[] imgUrl;
 	public int idx;
 	BufferedImage[] imgs;
-	
-	public HCNexter(final String[] urls) throws Exception{
+
+	public HCNexter(final String[] urls) throws Exception {
 		this.imgUrl = urls;
 		imgs = new BufferedImage[urls.length];
-		
+
 		imgs[0] = getImg(0);
-		
+
 		GlobalConditionWatcher.addWatcher(new IWatcher() {
-			
+
 			@Override
 			public boolean watch() {
-				try{
+				try {
 					for (int i = 1; i < imgUrl.length; i++) {
 						imgs[i] = getImg(i);
 					}
-				}catch (final Exception e) {
-					
+				} catch (final Exception e) {
+
 				}
 				return true;
 			}
-			
+
 			@Override
 			public void setPara(final Object p) {
 			}
-			
+
 			@Override
 			public boolean isCancelable() {
 				return false;
 			}
-			
+
 			@Override
 			public void cancel() {
 			}

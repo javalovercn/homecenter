@@ -6,7 +6,6 @@ import hc.core.IConstant;
 import java.io.Reader;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Hashtable;
 import java.util.Vector;
 
 public class StringUtil {
@@ -16,6 +15,7 @@ public class StringUtil {
 
 	public final static String JAD_EXT = ".jad";
 	public final static String URL_EXTERNAL_PREFIX = "http";
+	private final static char[] PUNCTUATION = {',', '.', '?', '!', ';', '，', '。', '？', '！', '；'};
 	
 	/**
 	 * 0 means is valid.
@@ -33,6 +33,16 @@ public class StringUtil {
 			}
 		}
 		return 0;
+	}
+	
+	public static final boolean isMoreThanPunctuation(final String words) {
+		final char firstChar = words.charAt(0);
+		for (int i = 0; i < PUNCTUATION.length; i++) {
+			if(PUNCTUATION[i] == firstChar) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	/**
@@ -391,17 +401,19 @@ public class StringUtil {
 		return v;
 	}
 
-	public static int adjustFontSize(int screenWidth, final int screenHeight) {
-		screenWidth=screenWidth>screenHeight?screenWidth:screenHeight;  
-	    final int rate = (int)(7*(float) screenWidth/320);
-	    if (rate<16){
-	    	return 16;
-	    }else if(rate > 36){//乐1 screenWidth:1854, rate:40
-	    	return rate;
-	    }else{
-	    	return rate;
-	    }
-	}
+//	public static int adjustFontSize(int screenWidth, final int screenHeight) {
+//		final int max = screenWidth>screenHeight?screenWidth:screenHeight;
+//	    int rate = (int)(7*(float) max/320);
+//	    final int adjustForBigScreen = max / 480;//将大屏的字体趋小化
+//	    rate -= adjustForBigScreen;
+//	    if (rate<16){
+//	    	return 16;
+//	    }else if(rate > 36){//乐1 screenWidth:1854, rate:40
+//	    	return rate;
+//	    }else{
+//	    	return rate;
+//	    }
+//	}
 
 	/**
 	 * 读取文件流到串
@@ -429,140 +441,6 @@ public class StringUtil {
 		return out;
 	}
 	
-	public static void load(final Reader stream, final Hashtable table) {
-		final LineInputStream line = new LineInputStream(stream);
-		final char[] Buf = new char[1024];
-		int limit;
-		int keyLen;
-		int start;
-		char c;
-		boolean hasSep;
-		boolean backslash;
-	
-		try {
-			while ((limit = line.readLine()) >= 0) {
-				c = 0;
-				keyLen = 0;
-				start = limit;
-				hasSep = false;
-	
-				backslash = false;
-				while (keyLen < limit) {
-					c = line.lineBuf[keyLen];
-					// need check if escaped.
-					if ((c == '=' || c == ':') && !backslash) {
-						start = keyLen + 1;
-						hasSep = true;
-						break;
-					} else if ((c == ' ' || c == '\t' || c == '\f')
-							&& !backslash) {
-						start = keyLen + 1;
-						break;
-					}
-					if (c == '\\') {
-						backslash = !backslash;
-					} else {
-						backslash = false;
-					}
-					keyLen++;
-				}
-				while (start < limit) {
-					c = line.lineBuf[start];
-					if (c != ' ' && c != '\t' && c != '\f') {
-						if (!hasSep && (c == '=' || c == ':')) {
-							hasSep = true;
-						} else {
-							break;
-						}
-					}
-					start++;
-				}
-				final String key = StringUtil.loadConvert(line.lineBuf, 0, keyLen, Buf);
-				final String value = StringUtil.loadConvert(line.lineBuf, start, limit - start, Buf);
-				
-				table.put(key, value);
-			}
-		} catch (final Exception e) {
-	
-		}finally{
-			try {
-				stream.close();
-			} catch (final Exception e) {
-			}
-		}
-	}
-
-	private static String loadConvert(final char[] in, int off, final int len,
-			char[] convtBuf) {
-		if (convtBuf.length < len) {
-			final int newLen = len * 2;
-			convtBuf = new char[newLen];
-		}
-		char aChar;
-		final char[] out = convtBuf;
-		int outLen = 0;
-		final int end = off + len;
-	
-		while (off < end) {
-			aChar = in[off++];
-			if (aChar == '\\') {
-				aChar = in[off++];
-				if (aChar == 'u') {
-					int value = 0;
-					for (int i = 0; i < 4; i++) {
-						aChar = in[off++];
-						switch (aChar) {
-						case '0':
-						case '1':
-						case '2':
-						case '3':
-						case '4':
-						case '5':
-						case '6':
-						case '7':
-						case '8':
-						case '9':
-							value = (value << 4) + aChar - '0';
-							break;
-						case 'a':
-						case 'b':
-						case 'c':
-						case 'd':
-						case 'e':
-						case 'f':
-							value = (value << 4) + 10 + aChar - 'a';
-							break;
-						case 'A':
-						case 'B':
-						case 'C':
-						case 'D':
-						case 'E':
-						case 'F':
-							value = (value << 4) + 10 + aChar - 'A';
-							break;
-						default:
-							throw new IllegalArgumentException("Error encoding.");
-						}
-					}
-					out[outLen++] = (char) value;
-				} else {
-					if (aChar == 't')
-						aChar = '\t';
-					else if (aChar == 'f')
-						aChar = '\f';
-					else if (aChar == 'r')
-						aChar = '\r';
-					else if (aChar == 'n')
-						aChar = '\n';
-					out[outLen++] = aChar;
-				}
-			} else {
-				out[outLen++] = aChar;
-			}
-		}
-		return new String(out, 0, outLen);
-	}
-
 	public static final String formatJS(final String js){
 		return js.replace('"', '\'');
 	}

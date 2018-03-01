@@ -10,10 +10,10 @@ import java.awt.event.MouseListener;
 public class WindowTrayIcon implements ITrayIcon {
 	TrayIcon tray;
 	boolean autosize = false;
-	
+
 	public WindowTrayIcon() {
 	}
-	
+
 	@Override
 	public void setToolTip(String tooltip) {
 		tray.setToolTip(tooltip);
@@ -21,9 +21,9 @@ public class WindowTrayIcon implements ITrayIcon {
 
 	@Override
 	public void setImage(Image image) {
-		if(tray == null){
+		if (tray == null) {
 			tray = new TrayIcon(image, "");
-		}else{
+		} else {
 			tray.setImage(image);
 		}
 		tray.setImageAutoSize(autosize);
@@ -48,9 +48,9 @@ public class WindowTrayIcon implements ITrayIcon {
 	public Image getImage() {
 		return tray.getImage();
 	}
-	
+
 	@Override
-	public void removeTray(){
+	public void removeTray() {
 		SystemTray stray = SystemTray.getSystemTray();
 		stray.remove(tray);
 	}
@@ -70,8 +70,7 @@ public class WindowTrayIcon implements ITrayIcon {
 	}
 
 	@Override
-	public void displayMessage(String caption, String text,
-			MessageType messageType) {
+	public void displayMessage(String caption, String text, MessageType messageType) {
 		tray.displayMessage(caption, text, messageType);
 	}
 }

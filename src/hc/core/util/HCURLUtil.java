@@ -301,7 +301,10 @@ public class HCURLUtil {
 	
 	public static boolean process(final CoreSession coreSS, String url, IHCURLAction action){
 		boolean isDone = false;
-		HCURL hu = HCURLUtil.extract(url);
+		if(IConstant.serverSide == false) {
+			url = StringUtil.replace(url, "%2b", "+");
+		}
+		HCURL hu = extract(url, IConstant.serverSide?true:false);
 		try{
 			isDone = action.doBiz(coreSS, hu);
 		}catch (Exception e) {

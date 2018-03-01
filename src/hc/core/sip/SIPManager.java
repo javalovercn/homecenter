@@ -246,14 +246,6 @@ public class SIPManager {
 //				return false;
 //			}catch (Throwable e) {
 //			}
-		if(RootConfig.isFailToGetAliveRootCfg()){
-			final String relayDisable = UIUtil.getUIString("1035", "Off-Line mode, net relay is not available!");
-			RootBuilder.getInstance().doBiz(RootBuilder.ROOT_SPEAK_VOICE, relayDisable);
-			LogManager.info(relayDisable);
-			LogManager.info(UIUtil.getUIString("m130", "line off, try last connection."));
-		}else{
-			infoServerOnline();
-		}
 		
 		final String[] out = (String[])obj;
 
@@ -326,7 +318,7 @@ public class SIPManager {
 		LogManager.info(UIUtil.getUIString("m106", "direct mode : yes"));
 	}
 
-	private static void infoServerOnline() {
+	public static void infoServerOnline() {
 		LogManager.info(UIUtil.getUIString("m104", "server : online"));
 	}
 

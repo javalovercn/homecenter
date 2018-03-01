@@ -6,13 +6,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * this class is used to pass parameter between UI (includes <code>Assistant</code>) and <code>Robot</code>.<BR>
- * it is helpful for server to analyze the parameter and know more about the relationship between business and user interface.
- * <BR><BR>
- * it is recommended to be used in {@link Robot#operate(long, Object)} and the return object.
- * <BR><BR>
+ * this class is used to pass parameter between UI (includes
+ * <code>Assistant</code>) and <code>Robot</code>.<BR>
+ * it is helpful for server to analyze the parameter and know more about the
+ * relationship between business and user interface. <BR>
+ * <BR>
+ * it is recommended to be used in {@link Robot#operate(long, Object)} and the
+ * return object. <BR>
+ * <BR>
  * <STRONG>Note :</STRONG><BR>
  * the instance is NOT recyclable, because server will analyst it background.
+ * 
  * @see Robot
  * @see Assistant
  */
@@ -23,7 +27,7 @@ public class AnalysableRobotParameter {
 
 	final HashMap<String, Object> table = new HashMap<String, Object>();
 	int level;
-	
+
 	/**
 	 * if name is not exists or not Boolean object, then return false
 	 * 
@@ -1020,14 +1024,16 @@ public class AnalysableRobotParameter {
 	 * @param name
 	 * @param value
 	 */
-	public final void setAnalysableRobotObject(final String name, final AnalysableRobotParameter value) {
-		if(this.level == 0){
+	public final void setAnalysableRobotObject(final String name,
+			final AnalysableRobotParameter value) {
+		if (this.level == 0) {
 			this.level = 1;
 		}
-		
-		if(value.level != 0){
-			throw new IllegalArgumentException(this.getClass().getSimpleName() + " can't be cycled or referenced by twice or more, maybe you need clone() method.");
-		}else{
+
+		if (value.level != 0) {
+			throw new IllegalArgumentException(this.getClass().getSimpleName()
+					+ " can't be cycled or referenced by twice or more, maybe you need clone() method.");
+		} else {
 			value.level = this.level + 1;
 		}
 		table.put(name, value);
@@ -1035,31 +1041,32 @@ public class AnalysableRobotParameter {
 
 	/**
 	 * returns a sub analysable object by name.
+	 * 
 	 * @param name
 	 * @return
 	 */
 	public final AnalysableRobotParameter getAnalysableRobotObject(final String name) {
 		return (AnalysableRobotParameter) table.get(name);
 	}
-	
+
 	/**
 	 * clone a analysable object.
 	 */
 	@Override
-	public final AnalysableRobotParameter clone(){
+	public final AnalysableRobotParameter clone() {
 		final AnalysableRobotParameter out = new AnalysableRobotParameter();
 		final HashMap<String, Object> targetTable = out.table;
-		
+
 		final Iterator<String> it = table.keySet().iterator();
-		while(it.hasNext()){
+		while (it.hasNext()) {
 			final String key = it.next();
 			Object value = table.get(key);
-			if(value != null && value instanceof AnalysableRobotParameter){
-				value = ((AnalysableRobotParameter)value).clone();
+			if (value != null && value instanceof AnalysableRobotParameter) {
+				value = ((AnalysableRobotParameter) value).clone();
 			}
 			targetTable.put(key, value);
 		}
-		
+
 		return out;
 	}
 

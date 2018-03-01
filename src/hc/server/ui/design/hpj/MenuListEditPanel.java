@@ -56,16 +56,16 @@ public class MenuListEditPanel extends NodeEditPanel {
 			}
 		});
 
-		final DefaultTableCellRenderer centerCellRender = new DefaultTableCellRenderer(){
-	        @Override
-			public Component getTableCellRendererComponent(
-	                final JTable table, final Object value, final boolean isSelected,
-	                final boolean hasFocus, final int row, final int column) {
-	        	setHorizontalAlignment(CENTER);
-		        return super.getTableCellRendererComponent(table, value,
-                        isSelected, hasFocus, row, column);
+		final DefaultTableCellRenderer centerCellRender = new DefaultTableCellRenderer() {
+			@Override
+			public Component getTableCellRendererComponent(final JTable table, final Object value,
+					final boolean isSelected, final boolean hasFocus, final int row,
+					final int column) {
+				setHorizontalAlignment(CENTER);
+				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
+						column);
 			}
-        };
+		};
 		table.getColumnModel().getColumn(0).setCellRenderer(centerCellRender);
 
 		table.setRowSelectionAllowed(true);
@@ -74,7 +74,7 @@ public class MenuListEditPanel extends NodeEditPanel {
 			@Override
 			public void run() {
 				final int selectedRow = table.getSelectedRow();
-				
+
 				final int toIdx = selectedRow - 1;
 				swapRow(selectedRow, toIdx);
 				table.setRowSelectionInterval(toIdx, toIdx);
@@ -85,14 +85,14 @@ public class MenuListEditPanel extends NodeEditPanel {
 			@Override
 			public void run() {
 				final int selectedRow = table.getSelectedRow();
-				
+
 				final int toIdx = selectedRow + 1;
 				swapRow(selectedRow, toIdx);
 				table.setRowSelectionInterval(toIdx, toIdx);
 				notifyModified(true);
 			}
 		}, threadPoolToken));
-		
+
 		final ListSelectionModel rowSM = table.getSelectionModel();
 		rowSM.addListSelectionListener(new ListSelectionListener() {
 			@Override
@@ -101,37 +101,39 @@ public class MenuListEditPanel extends NodeEditPanel {
 			}
 		});
 
-//		定义表格头样式
-//		final JTableHeader tableHeader = table.getTableHeader();
-//		Font oldFont = tableHeader.getFont();
-//		tableHeader.setFont(new Font(oldFont.getName(), Font.BOLD, oldFont.getSize()));
-//		tableHeader.setBackground(Color.YELLOW);
-		
+		// 定义表格头样式
+		// final JTableHeader tableHeader = table.getTableHeader();
+		// Font oldFont = tableHeader.getFont();
+		// tableHeader.setFont(new Font(oldFont.getName(), Font.BOLD,
+		// oldFont.getSize()));
+		// tableHeader.setBackground(Color.YELLOW);
+
 		tablePanel.setLayout(new BorderLayout());
 		tablePanel.add(new JScrollPane(table), BorderLayout.CENTER);
-//		table.setFillsViewportHeight(true);
-		
+		// table.setFillsViewportHeight(true);
+
 		buttonPanel.setLayout(new GridLayout(1, 3, ClientDesc.hgap, ClientDesc.vgap));
 		buttonPanel.add(upButton);
 		buttonPanel.add(downButton);
-		
+
 		namePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		namePanel.add(new JLabel("Name : "));
 		nameFiled.getDocument().addDocumentListener(new DocumentListener() {
-			private void modify(){
+			private void modify() {
 				currItem.name = nameFiled.getText();
 				notifyModified(true);
 			}
+
 			@Override
 			public void removeUpdate(final DocumentEvent e) {
 				modify();
 			}
-			
+
 			@Override
 			public void insertUpdate(final DocumentEvent e) {
 				modify();
 			}
-			
+
 			@Override
 			public void changedUpdate(final DocumentEvent e) {
 				modify();
@@ -147,31 +149,32 @@ public class MenuListEditPanel extends NodeEditPanel {
 		}, threadPoolToken));
 		nameFiled.setColumns(10);
 		namePanel.add(nameFiled);
-		
+
 		final JLabel colNumLabel = new JLabel("Column Number : ");
 		final boolean isAddColumnNumber = false;
-		if(isAddColumnNumber){//关闭Column Number设定
+		if (isAddColumnNumber) {// 关闭Column Number设定
 			namePanel.add(colNumLabel);
 		}
 		colNumFiled.getDocument().addDocumentListener(new DocumentListener() {
-			private void modify(){
-				if(isInited == false){
+			private void modify() {
+				if (isInited == false) {
 					return;
 				}
 				final String inputColNum = colNumFiled.getText();
-				((HPMenu)currItem).colNum = Integer.parseInt(inputColNum);
+				((HPMenu) currItem).colNum = Integer.parseInt(inputColNum);
 				notifyModified(true);
 			}
+
 			@Override
 			public void removeUpdate(final DocumentEvent e) {
-//				modify();
+				// modify();
 			}
-			
+
 			@Override
 			public void insertUpdate(final DocumentEvent e) {
 				modify();
 			}
-			
+
 			@Override
 			public void changedUpdate(final DocumentEvent e) {
 				modify();
@@ -180,113 +183,114 @@ public class MenuListEditPanel extends NodeEditPanel {
 		colNumFiled.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				((HPMenu)currItem).colNum = Integer.parseInt(colNumFiled.getText());
+				((HPMenu) currItem).colNum = Integer.parseInt(colNumFiled.getText());
 				App.invokeLaterUI(updateTreeRunnable);
 				notifyModified(true);
 			}
 		}, threadPoolToken));
-		colNumLabel.setToolTipText("<html>column number of each row, which display current menu in mobile." +
-				"<BR>set 0 to auto</html>");
+		colNumLabel.setToolTipText(
+				"<html>column number of each row, which display current menu in mobile."
+						+ "<BR>set 0 to auto</html>");
 		colNumFiled.setColumns(5);
-		if(isAddColumnNumber){
+		if (isAddColumnNumber) {
 			namePanel.add(colNumFiled);
 		}
-		
+
 		setLayout(new BorderLayout());
 		final JPanel topPanel = new JPanel();
 		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
-		if(isAddColumnNumber){
+		if (isAddColumnNumber) {
 			topPanel.add(namePanel);
 		}
 		topPanel.add(buttonPanel);
 		add(topPanel, BorderLayout.NORTH);
 		add(tablePanel, BorderLayout.CENTER);
-//		add(buttonPanel, BorderLayout.SOUTH);
+		// add(buttonPanel, BorderLayout.SOUTH);
 	}
-	
+
 	String body[][] = new String[MAX_MENUITEM][3];
-	String colTitle[] = { "No", "Name", "URL" };//"Type", 
+	String colTitle[] = { "No", "Name", "URL" };// "Type",
 
 	final JPanel tablePanel = new JPanel();
 	final JTable table = new JTable();
 	final JPanel buttonPanel = new JPanel();
-	
+
 	final JPanel namePanel = new JPanel();
 	final JTextField nameFiled = new JTextField();
 	final NumberFormatTextField colNumFiled = new NumberFormatTextField(0);
 	final JTextField menuIDField = new JTextField();
-	
+
 	final JButton upButton = new JButton("up", Designer.loadImg("up_22.png"));
 	final JButton downButton = new JButton("down", Designer.loadImg("down_22.png"));
-	
-//	TablePacker tp = new TablePacker(TablePacker.ALL_ROWS, true);
+
+	// TablePacker tp = new TablePacker(TablePacker.ALL_ROWS, true);
 	int size;
 
-	private void swapRow(final int fromIdx, final int toIdx){
+	private void swapRow(final int fromIdx, final int toIdx) {
 		for (int i = 1; i < body[0].length; i++) {
 			final String v1 = body[toIdx][i];
 			body[toIdx][i] = body[fromIdx][i];
 			body[fromIdx][i] = v1;
 		}
-		
+
 		final TreeNode fromNode = currNode.getChildAt(fromIdx);
 		currNode.remove(fromIdx);
-		currNode.insert((MutableTreeNode)fromNode, toIdx);
-		
+		currNode.insert((MutableTreeNode) fromNode, toIdx);
+
 		App.invokeLaterUI(updateTreeRunnable);
 	}
-	
+
 	@Override
-	public void init(final MutableTreeNode data, final JTree tree){
+	public void init(final MutableTreeNode data, final JTree tree) {
 		super.init(data, tree);
-		
+
 		for (int i = 0; i < MAX_MENUITEM; i++) {
 			for (int j = 0; j < body[0].length; j++) {
 				body[i][j] = "";
 			}
 		}
-		
+
 		isInited = false;
-		
-		currItem = (HPNode)currNode.getUserObject();
+
+		currItem = (HPNode) currNode.getUserObject();
 		nameFiled.setText(currItem.name);
-		colNumFiled.setText(String.valueOf(((HPMenu)currItem).colNum));
-		
+		colNumFiled.setText(String.valueOf(((HPMenu) currItem).colNum));
+
 		size = data.getChildCount();
-		
+
 		for (int i = 0; i < size; i++) {
 			final TreeNode tn = data.getChildAt(i);
-			final HPMenuItem mi = (HPMenuItem)((DefaultMutableTreeNode)tn).getUserObject();
+			final HPMenuItem mi = (HPMenuItem) ((DefaultMutableTreeNode) tn).getUserObject();
 			body[i][0] = String.valueOf(i + 1);
 			body[i][1] = mi.name;
-//			body[i][2] = String.valueOf(mi.type);
+			// body[i][2] = String.valueOf(mi.type);
 			body[i][2] = mi.url;
 		}
-		
+
 		table.setRowSelectionInterval(0, 0);
-		
+
 		refreshButton();
-		
+
 		isInited = true;
 	}
-	
-	private void refreshButton(){
+
+	private void refreshButton() {
 		final int selectedRow = table.getSelectedRow();
 		final int editRowNum = selectedRow + 1;
-			
-		if(editRowNum > size){
+
+		if (editRowNum > size) {
 			downButton.setEnabled(false);
 			upButton.setEnabled(false);
-		}else{
-			if(editRowNum == size){
+		} else {
+			if (editRowNum == size) {
 				downButton.setEnabled(false);
-			}else{
+			} else {
 				downButton.setEnabled(true);
 			}
-			
-			if(editRowNum == 1){
+
+			if (editRowNum == 1) {
 				upButton.setEnabled(false);
-			}else{
+			} else {
 				upButton.setEnabled(true);
 			}
 		}

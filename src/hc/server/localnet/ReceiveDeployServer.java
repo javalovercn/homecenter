@@ -15,47 +15,49 @@ import hc.util.HttpUtil;
 public class ReceiveDeployServer {
 
 	final static int port = 56152;
-	
+
 	static ServerSocket server = null;
-	
-	public static void startServer(){
-		try{
+
+	public static void startServer() {
+		try {
 			final InetAddress ia = HttpUtil.getLocal();
-			
-			if(ia == null || ia instanceof Inet6Address){
+
+			if (ia == null || ia instanceof Inet6Address) {
 				LogManager.log("[Deploy] can't create receive-deploy service on IPv6 interface.");
 				return;
 			}
-			
+
 			final String ip = ia.getHostAddress();
-			if(HttpUtil.isLocalNetworkIP(ip) == false){
-				LogManager.log("[Deploy] can't create receive-deploy service on NON local network.");
+			if (HttpUtil.isLocalNetworkIP(ip) == false) {
+				LogManager
+						.log("[Deploy] can't create receive-deploy service on NON local network.");
 				return;
 			}
-			
+
 			final String gateIP = ip.substring(0, ip.lastIndexOf('.') + 1) + "1";
 
 			final int backlog = 10;
-			if(server != null){
+			if (server != null) {
 				server.close();
 			}
 			server = new ServerSocket(port, backlog, ia);
-			
-			final Thread t = new Thread("ReceiveDeployServer"){
+
+			final Thread t = new Thread("ReceiveDeployServer") {
 				@Override
-				public void run(){
-					while(server != null){
+				public void run() {
+					while (server != null) {
 						Socket socket = null;
-						try{
+						try {
 							socket = server.accept();
 							LogManager.log("[Deploy] new deploy is coming.");
-							
+
 							final SocketAddress sa = socket.getRemoteSocketAddress();
-							if(sa instanceof InetSocketAddress){
-								final InetSocketAddress isa = (InetSocketAddress)sa;
+							if (sa instanceof InetSocketAddress) {
+								final InetSocketAddress isa = (InetSocketAddress) sa;
 								final String remoteIP = isa.getAddress().getHostAddress();
-								if(remoteIP.equals(gateIP)){
-									LogManager.errToLog("[Deploy] drap data from gateway : " + gateIP);
+								if (remoteIP.equals(gateIP)) {
+									LogManager.errToLog(
+											"[Deploy] drap data from gateway : " + gateIP);
 									socket.close();
 									continue;
 								}
@@ -68,7 +70,7 @@ public class ReceiveDeployServer {
 									deploylet.processOneClient();
 								}
 							});
-						}catch (final Throwable e) {
+						} catch (final Throwable e) {
 							e.printStackTrace();
 						}
 					}
@@ -77,25 +79,28 @@ public class ReceiveDeployServer {
 			};
 			t.setDaemon(true);
 			t.start();
-			
-			LogManager.log("[Deploy] successful start receive-deploy service from local network at [" + ip + "/" + port + "].");
-		}catch (final Throwable e) {
+
+			LogManager
+					.log("[Deploy] successful start receive-deploy service from local network at ["
+							+ ip + "/" + port + "].");
+		} catch (final Throwable e) {
 			e.printStackTrace();
 		}
 	}
-	
-	public static void stopServer(){
+
+	public static void stopServer() {
 		CCoreUtil.checkAccess();
-		
-		if(server != null){
+
+		if (server != null) {
 			final ServerSocket snap = server;
 			server = null;
-			try{
+			try {
 				snap.close();
-			}catch (final Throwable e) {
+			} catch (final Throwable e) {
 				e.printStackTrace();
 			}
-			LogManager.log("[Deploy] stop receive-deploy service, which receives deployment from local network.");
+			LogManager.log(
+					"[Deploy] stop receive-deploy service, which receives deployment from local network.");
 		}
 	}
 }

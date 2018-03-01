@@ -7,34 +7,34 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
-public class J2SEUDPReceiveServer extends UDPReceiveServer{
-	public J2SEUDPReceiveServer(final J2SESession socketSession){
+public class J2SEUDPReceiveServer extends UDPReceiveServer {
+	public J2SEUDPReceiveServer(final J2SESession socketSession) {
 		super(socketSession);
 	}
-	
+
 	@Override
-	public void receiveUDP(final Object dp) throws IOException{
-        ((DatagramSocket)socket).receive((DatagramPacket)dp);  
+	public void receiveUDP(final Object dp) throws IOException {
+		((DatagramSocket) socket).receive((DatagramPacket) dp);
 	}
-	
+
 	@Override
 	public final void shutDown() {
 		super.shutDown();
-		
-    	try {
-    		((DatagramSocket)socket).close();
+
+		try {
+			((DatagramSocket) socket).close();
 		} catch (final Exception e) {
 		}
 	}
 
 	@Override
 	public void closeOldSocket() {
-		final DatagramSocket snapSocket = (DatagramSocket)socket;
+		final DatagramSocket snapSocket = (DatagramSocket) socket;
 		socket = null;
-		
-		try{
+
+		try {
 			snapSocket.close();
-		}catch (final Exception e) {
+		} catch (final Exception e) {
 		}
 	}
 

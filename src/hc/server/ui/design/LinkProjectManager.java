@@ -54,22 +54,24 @@ import hc.util.PropertiesSet;
 import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 
-public class LinkProjectManager{
+public class LinkProjectManager {
 	private static final String PROJECT_MANAGER = "[AutoUpgradeManager] ";
 	public static final String EDIT_HAR = "myedit.har";
 	public static final String EDIT_BAK_HAR = "myedit.harbak";
 	public static final String LINK_UPGRADE_DIR_NAME = "upgrade";
-	//升级时，暂时下载放置目录
-	public static final File LINK_UPGRADE_DIR = new File(StoreDirManager.LINK_DIR, LINK_UPGRADE_DIR_NAME);
-	
-	public static final int STATUS_NEW = 0, STATUS_DEPLOYED = 1, STATUS_MODIFIED = 2, STATUS_DELETED = 3;
+	// 升级时，暂时下载放置目录
+	public static final File LINK_UPGRADE_DIR = new File(StoreDirManager.LINK_DIR,
+			LINK_UPGRADE_DIR_NAME);
+
+	public static final int STATUS_NEW = 0, STATUS_DEPLOYED = 1, STATUS_MODIFIED = 2,
+			STATUS_DELETED = 3;
 	public static final String CURRENT_DIR = ".";
-	
+
 	final static Vector<LinkProjectStore> lpsVector = new Vector<LinkProjectStore>(5);
-	
-	static synchronized void reloadLinkProjects(){
+
+	static synchronized void reloadLinkProjects() {
 		lpsVector.clear();
-		try{
+		try {
 			final PropertiesSet projIDSet = newLinkProjSetInstance();
 			final int size = projIDSet.size();
 			for (int i = 0; i < size; i++) {
@@ -78,151 +80,178 @@ public class LinkProjectManager{
 				lp.restore(item);
 				lpsVector.add(lp);
 			}
-		}catch (final Throwable e) {
+		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
 	}
 	
+	public static boolean hasMenuItemNumForLPS(final LinkProjectStore lps) {
+		final Map<String, Object> rootMap = HCjar.loadHarFromLPS(lps);
+		return hasMenuItemNumForMap(rootMap);
+	}
+
 	/**
 	 * 仅删除记录。
+	 * 
 	 * @param lps
 	 */
-	static synchronized void removeOnlyLPS(final LinkProjectStore lps){
+	static synchronized void removeOnlyLPS(final LinkProjectStore lps) {
 		final int size = lpsVector.size();
 		for (int i = 0; i < size; i++) {
-			if(lpsVector.get(i).getProjectID().equals(lps.getProjectID())){
+			if (lpsVector.get(i).getProjectID().equals(lps.getProjectID())) {
 				lpsVector.remove(i);
 				return;
 			}
 		}
 	}
-	
-	static boolean upgradeDownloading(){//单线程进行升级下载
-		if(SessionManager.isReadyToLineOnAndOnlyOneSession() == false){//必须要有一个，不能没有coreSS
+
+	static boolean upgradeDownloading() {// 单线程进行升级下载
+		if (SessionManager.isReadyToLineOnAndOnlyOneSession() == false) {// 必须要有一个，不能没有coreSS
 			return false;
 		}
-		
-		if(JRubyInstaller.checkNeedUpgradeJRuby()){
+
+		if (JRubyInstaller.checkNeedUpgradeJRuby()) {
 			return false;
 		}
-		
-		if(enterDownloadStatus() == false){
+
+		if (enterDownloadStatus() == false) {
 			return false;
 		}
-		
+
 		SafeDataManager.disableSafeBackup();
 		LinkProjectStatus.resetWantDesignOrLinkProjectsNotify();
-		
+
 		final Vector<LinkProjectStore> downloadingLPS = new Vector<LinkProjectStore>();
-		try{
+		try {
 			log("starting download and upgrading project(s) service...");
-			
+
 			final String curr_jvm_ver = String.valueOf(App.getJREVer());
 			final String curr_hc_ver = StarterManager.getHCVersion();
-			final String curr_jruby_ver = PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer, "1.0");
-			
-			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
-			while(it.hasNext()){
+			final String curr_jruby_ver = PropertiesManager
+					.getValue(PropertiesManager.p_jrubyJarVer, "1.0");
+
+			final Iterator<LinkProjectStore> it = LinkProjectManager
+					.getLinkProjsIteratorInUserSysThread(true);
+			while (it.hasNext()) {
 				final LinkProjectStore lp = it.next();
-				if(lp.isActive() == false){
+				if (lp.isActive() == false) {
 					continue;
 				}
 				final String upgradeurl = lp.getProjectUpgradeURL().trim();
-				if(upgradeurl != null && upgradeurl.length() > 0){
+				if (upgradeurl != null && upgradeurl.length() > 0) {
 					final Properties p_had = new Properties();
-					try{
+					try {
 						loadHAD(upgradeurl, p_had);
-					}catch (final Throwable e) {
-						LogManager.errToLog("Fail upgrade project [" + lp.getProjectID() + "], exception : " + e.toString());
+					} catch (final Throwable e) {
+						LogManager.errToLog("Fail upgrade project [" + lp.getProjectID()
+								+ "], exception : " + e.toString());
 						continue;
 					}
-					
-					//自动请求删除
-					if(lp.getProjectID().equals(p_had.getProperty(HCjad.HAD_ID))){
-						if(p_had.getProperty(HCjad.HAD_HAR_SIZE).equals("0")){
-							LogManager.errToLog("project will not be removed if [" + HCjad.HAD_HAR_SIZE + "] is zero.");
-//							log("remove deprecated project [" + lp.getProjectID() + "] by HAD size:0");
-//							lp.setVersion(LinkProjectStore.DEL_VERSION);
-//							lp.setDownloadingErr("deprecated project, remove it.");
+
+					// 自动请求删除
+					if (lp.getProjectID().equals(p_had.getProperty(HCjad.HAD_ID))) {
+						if (p_had.getProperty(HCjad.HAD_HAR_SIZE).equals("0")) {
+							LogManager.errToLog("project will not be removed if ["
+									+ HCjad.HAD_HAR_SIZE + "] is zero.");
+							// log("remove deprecated project [" +
+							// lp.getProjectID() + "] by HAD size:0");
+							// lp.setVersion(LinkProjectStore.DEL_VERSION);
+							// lp.setDownloadingErr("deprecated project, remove
+							// it.");
 							continue;
 						}
 					}
-					
+
 					{
-					final String p_jvm_ver = p_had.getProperty(HCjad.HAD_JRE_MIN_VERSION);
-					if(p_jvm_ver != null){
-						if(StringUtil.higher(p_jvm_ver, curr_jvm_ver)){
-							final String errDesc = "HAR Project ["+ lp.getProjectID() + ", " + lp.getProjectRemark() + "] require JRE Version (" + p_jvm_ver + "), but current JRE Version:" + curr_jvm_ver;
-							LogManager.errToLog(errDesc);
-							continue;
+						final String p_jvm_ver = p_had.getProperty(HCjad.HAD_JRE_MIN_VERSION);
+						if (p_jvm_ver != null) {
+							if (StringUtil.higher(p_jvm_ver, curr_jvm_ver)) {
+								final String errDesc = "HAR Project [" + lp.getProjectID() + "] - ["
+										+ lp.getProjectRemark() + "] require JRE Version ("
+										+ p_jvm_ver + "), but current JRE Version:" + curr_jvm_ver;
+								LogManager.errToLog(errDesc);
+								continue;
+							}
 						}
 					}
-					}
 					{
-					final String p_hc_ver = p_had.getProperty(HCjad.HAD_HC_MIN_VERSION);
-					if(p_hc_ver != null){
-						if(StringUtil.higher(p_hc_ver, curr_hc_ver)){
-							final String errDesc = "HAR Project ["+ lp.getProjectID() + ", " + lp.getProjectRemark() + "] require HomeCenter Server Version (" + p_hc_ver + "), but current HomeCenter Server Version:" + curr_hc_ver;
-							LogManager.errToLog(errDesc);
-							continue;
-						}	
-					}
+						final String p_hc_ver = p_had.getProperty(HCjad.HAD_HC_MIN_VERSION);
+						if (p_hc_ver != null) {
+							if (StringUtil.higher(p_hc_ver, curr_hc_ver)) {
+								final String errDesc = "HAR Project [" + lp.getProjectID() + "] - ["
+										+ lp.getProjectRemark()
+										+ "] require HomeCenter Server Version (" + p_hc_ver
+										+ "), but current HomeCenter Server Version:" + curr_hc_ver;
+								LogManager.errToLog(errDesc);
+								continue;
+							}
+						}
 					}
 					{
 						final String p_jruby_ver = p_had.getProperty(HCjad.HAD_JRUBY_MIN_VERSION);
-						if(p_jruby_ver != null){
-							if(StringUtil.higher(p_jruby_ver, curr_jruby_ver)){
-								final String errDesc = "HAR Project ["+ lp.getProjectID() + ", " + lp.getProjectRemark() + "] require JRuby Version (" + p_jruby_ver + "), but current JRuby Version:" + curr_jruby_ver;
-								LogManager.warning(errDesc);
-								continue;
-							}	
-						}
-					}
-					
-					{
-						final String p_ver = p_had.getProperty(HCjad.HAD_VERSION);
-						if(p_ver != null){
-							final String version = lp.getVersion();
-							final String downVer = lp.getDownloadingVer();
-							if(!version.equals(LinkProjectStore.DEFAULT_UNKOWN_VER) 
-									&& StringUtil.higher(p_ver, version) 
-									&& (downVer.equals(LinkProjectStore.DEFAULT_UNKOWN_VER)
-											|| StringUtil.higher(p_ver, downVer))){
-								if(!downVer.equals(LinkProjectStore.DEFAULT_UNKOWN_VER) && StringUtil.higher(p_ver, downVer)){
-									//已下载，但未被应用，又产生了新版本。
-									log("project [" + lp.getProjectID() + "] remote version is higher than the local un-applied new version.");
-								}
-								//必需更新
-								downloadHAR(lp, p_had);
-								if(lp.getDownloadingErr().equals("") && lp.getDownloadingPosition() > 0){
-									downloadingLPS.add(lp);										
-								}else{
-									//比如checkSign错误
-									final String errDesc = "HAR Project ["+ lp.getProjectID() + ", " + lp.getProjectRemark() + "] " + lp.getDownloadingErr();
-									LogManager.errToLog(errDesc);
-								}
-							}else{
+						if (p_jruby_ver != null) {
+							if (StringUtil.higher(p_jruby_ver, curr_jruby_ver)) {
+								final String errDesc = "HAR Project [" + lp.getProjectID() + "] - ["
+										+ lp.getProjectRemark() + "] require JRuby Version ("
+										+ p_jruby_ver + "), but current JRuby Version:"
+										+ curr_jruby_ver;
+								LogManager.errToLog(errDesc);
 								continue;
 							}
-						}else{
-							final String errDesc = "HAR Project ["+ lp.getProjectID() + ", " + lp.getProjectRemark() + "] unknow remote version";
+						}
+					}
+
+					{
+						final String p_ver = p_had.getProperty(HCjad.HAD_VERSION);
+						if (p_ver != null) {
+							final String version = lp.getVersion();
+							final String downVer = lp.getDownloadingVer();
+							if (!version.equals(LinkProjectStore.DEFAULT_UNKOWN_VER)
+									&& StringUtil.higher(p_ver, version)
+									&& (downVer.equals(LinkProjectStore.DEFAULT_UNKOWN_VER)
+											|| StringUtil.higher(p_ver, downVer))) {
+								if (!downVer.equals(LinkProjectStore.DEFAULT_UNKOWN_VER)
+										&& StringUtil.higher(p_ver, downVer)) {
+									// 已下载，但未被应用，又产生了新版本。
+									log("project [" + lp.getProjectID()
+											+ "] remote version is higher than the local un-applied new version.");
+								}
+								// 必需更新
+								downloadHAR(lp, p_had);
+								if (lp.getDownloadingErr().equals("")
+										&& lp.getDownloadingPosition() > 0) {
+									downloadingLPS.add(lp);
+								} else {
+									// 比如checkSign错误
+									final String errDesc = "HAR Project [" + lp.getProjectID()
+											+ ", " + lp.getProjectRemark() + "] "
+											+ lp.getDownloadingErr();
+									LogManager.errToLog(errDesc);
+								}
+							} else {
+								continue;
+							}
+						} else {
+							final String errDesc = "HAR Project [" + lp.getProjectID() + ", "
+									+ lp.getProjectRemark() + "] unknow remote version";
 							LogManager.errToLog(errDesc);
 						}
 					}
-					
-				}//end if upgradeurl
-			}//end while
-			
-		}catch (final Throwable e) {
+
+				} // end if upgradeurl
+			} // end while
+
+		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
-		}finally{
+		} finally {
 			boolean hasSucc = false;
 			{
 				final Iterator<LinkProjectStore> it = downloadingLPS.iterator();
-				while(it.hasNext()){
+				while (it.hasNext()) {
 					final LinkProjectStore lps = it.next();
 					final String downloadingErr = lps.getDownloadingErr();
-					if(downloadingErr != null && downloadingErr.length() == 0 && lps.getDownloadingPosition() > 0){
+					if (downloadingErr != null && downloadingErr.length() == 0
+							&& lps.getDownloadingPosition() > 0) {
 						hasSucc = true;
 						break;
 					}
@@ -230,26 +259,29 @@ public class LinkProjectManager{
 			}
 			final JScrollPane sp = buildErroDownloadingPanel();
 			final String op = LinkProjectPanel.getNewLinkedInProjOp();
-			
-			if(op.equals(LinkPropertiesOption.OP_ASK) && (hasSucc || sp != null)){
+
+			if (op.equals(LinkPropertiesOption.OP_ASK) && (hasSucc || sp != null)) {
 				final JPanel jpanel = new JPanel(new GridBagLayout());
 				final GridBagConstraints c = new GridBagConstraints();
 				JLabel label = null;
-				if(hasSucc){
+				if (hasSucc) {
 					String applyNowOrNextStartup = ResourceUtil.get(9160);
-					applyNowOrNextStartup = StringUtil.replace(applyNowOrNextStartup, "{yes}", ResourceUtil.get(IContext.OK));
-					applyNowOrNextStartup = StringUtil.replace(applyNowOrNextStartup, "{cancel}", ResourceUtil.get(IContext.CANCEL));
-					label = new JLabel("<html>" + applyNowOrNextStartup + "</html>", App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);	
-				}else{
+					applyNowOrNextStartup = StringUtil.replace(applyNowOrNextStartup, "{yes}",
+							ResourceUtil.get(IContext.OK));
+					applyNowOrNextStartup = StringUtil.replace(applyNowOrNextStartup, "{cancel}",
+							ResourceUtil.get(IContext.CANCEL));
+					label = new JLabel("<html>" + applyNowOrNextStartup + "</html>",
+							App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
+				} else {
 					label = new JLabel("");
 				}
 				c.gridx = 0;
 				c.gridy = 0;
 				c.fill = GridBagConstraints.NONE;
 				c.anchor = GridBagConstraints.LINE_START;
-				
+
 				jpanel.add(label, c);
-				if(sp != null){
+				if (sp != null) {
 					final JLabel er_label = new JLabel("Error donwload project(s):");
 					final JPanel errPanel = new JPanel(new GridBagLayout());
 					{
@@ -263,37 +295,38 @@ public class LinkProjectManager{
 						c_sub.fill = GridBagConstraints.BOTH;
 						errPanel.add(sp, c_sub);
 					}
-					
+
 					c.gridy = 1;
 					c.fill = GridBagConstraints.BOTH;
 					jpanel.add(errPanel, c);
 				}
-				
-				//apply new version project(s) now?
+
+				// apply new version project(s) now?
 				final String applyNow = ResourceUtil.get(9159);
-				
-				final String title = hasSucc?applyNow:"Error upgrade project";
-				App.showCenterPanelMain(jpanel, 0, 0, title, hasSucc, null, null, new HCActionListener(new Runnable() {
-					@Override
-					public void run() {
-						appNewLinkedInProjNow(downloadingLPS, true, true, false);
-						exitDownloadUpgrade();
-					}
-				}, App.getThreadPoolToken()), new HCActionListener(new Runnable() {
-					@Override
-					public void run() {
-						exitDownloadUpgrade();
-					}
-				}, App.getThreadPoolToken()), null, false, false, null, false, false);
-				
-				//exitDownloadUpgrade置于showCenterPanel之中
+
+				final String title = hasSucc ? applyNow : "Error upgrade project";
+				App.showCenterPanelMain(jpanel, 0, 0, title, hasSucc, null, null,
+						new HCActionListener(new Runnable() {
+							@Override
+							public void run() {
+								appNewLinkedInProjNow(downloadingLPS, true, true, false);
+								exitDownloadUpgrade();
+							}
+						}, App.getThreadPoolToken()), new HCActionListener(new Runnable() {
+							@Override
+							public void run() {
+								exitDownloadUpgrade();
+							}
+						}, App.getThreadPoolToken()), null, false, false, null, false, false);
+
+				// exitDownloadUpgrade置于showCenterPanel之中
 				return true;
-			}else if(op.equals(LinkPropertiesOption.OP_IMMEDIATE)){
+			} else if (op.equals(LinkPropertiesOption.OP_IMMEDIATE)) {
 				appNewLinkedInProjNow(downloadingLPS, true, false, false);
-			}else if(op.equals(LinkPropertiesOption.OP_NEXT_START_UP)){
-				updateToLinkProject();//注意：要正确关闭exitDownloadUpgrade，所以不能异常抛出
+			} else if (op.equals(LinkPropertiesOption.OP_NEXT_START_UP)) {
+				updateToLinkProject();// 注意：要正确关闭exitDownloadUpgrade，所以不能异常抛出
 			}
-			
+
 			exitDownloadUpgrade();
 		}
 		return true;
@@ -302,39 +335,41 @@ public class LinkProjectManager{
 	private static void exitDownloadUpgrade() {
 		LinkProjectStatus.exitStatus();
 		log("finish download and upgrading project(s) service.");
-		
-		if(LinkProjectStatus.isWantDesignOrLinkProjectsNotify()){
+
+		if (LinkProjectStatus.isWantDesignOrLinkProjectsNotify()) {
 			LinkProjectStatus.resetWantDesignOrLinkProjectsNotify();
 			final JPanel panel = new JPanel(new BorderLayout());
 			final ActionListener listener = null;
 			final ActionListener cancelListener = null;
-			panel.add(new JLabel(ResourceUtil.get(9162), App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING), 
-					BorderLayout.CENTER);
-			App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), false, null, null, listener, cancelListener, null, false, true, null, false, true);
+			panel.add(new JLabel(ResourceUtil.get(9162), App.getSysIcon(App.SYS_INFO_ICON),
+					SwingConstants.LEADING), BorderLayout.CENTER);
+			App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), false, null, null,
+					listener, cancelListener, null, false, true, null, false, true);
 		}
 	}
 
 	public static boolean enterDownloadStatus() {
-		return LinkProjectStatus.tryEnterStatus(null, LinkProjectStatus.MANAGER_UPGRADE_DOWNLOADING);
+		return LinkProjectStatus.tryEnterStatus(null,
+				LinkProjectStatus.MANAGER_UPGRADE_DOWNLOADING);
 	}
 
 	public static void loadHAD(final String upgradeurl, final Properties p_had) throws Exception {
 		ResourceUtil.loadFromURL(p_had, upgradeurl, ResourceUtil.getUserAgentForHAD());
 	}
-	
-	private static JScrollPane buildErroDownloadingPanel(){
+
+	private static JScrollPane buildErroDownloadingPanel() {
 		final Iterator<LinkProjectStore> it = getLinkProjsIteratorInUserSysThread(true);
 		final Vector<LinkProjectStore> errLists = new Vector<LinkProjectStore>();
 		while (it.hasNext()) {
 			final LinkProjectStore lps = it.next();
 			final String downloadingErr = lps.getDownloadingErr();
-			if(downloadingErr != null && downloadingErr.length() > 0){
+			if (downloadingErr != null && downloadingErr.length() > 0) {
 				errLists.add(lps);
 			}
 		}
-		
+
 		final int rows = errLists.size();
-		if(rows > 0){
+		if (rows > 0) {
 			final Object[][] playerInfo = new Object[rows][4];
 			final String[] Names = { "Project ID", "Desc", "Status", "Upgrade URL" };
 			for (int i = 0; i < rows; i++) {
@@ -348,58 +383,61 @@ public class LinkProjectManager{
 			final JTable table = new JTable(playerInfo, Names);
 			table.setPreferredScrollableViewportSize(new Dimension(600, 30));
 			final JScrollPane scrollPane = new JScrollPane(table);
-			
+
 			updateToLinkProject();
-			
+
 			return scrollPane;
 		}
 		return null;
 	}
-	
+
 	private static boolean isStartLinkedInProjectUpgradeTimer = false;
-	
-	static void startLinkedInProjectUpgradeTimer(){
-		if(isStartLinkedInProjectUpgradeTimer == false){
+
+	static void startLinkedInProjectUpgradeTimer() {
+		if (isStartLinkedInProjectUpgradeTimer == false) {
 			isStartLinkedInProjectUpgradeTimer = true;
-		}else{
+		} else {
 			return;
 		}
-		
+
 		final HCTimer timer = new HCTimer("HarUpgrading", HCTimer.ONE_DAY, true) {
 			boolean isRunning;
-			
+
 			@Override
 			public final void doBiz() {
-				CCoreUtil.getSecurityChecker().resetFastCheckThreads();//清空快速线程权限检查缓存
+				CCoreUtil.getSecurityChecker().resetFastCheckThreads();// 清空快速线程权限检查缓存
 
-				if(isRunning){
+				if (isRunning) {
 					return;
 				}
-				
+
 				isRunning = true;
-				
-				final Thread t = new Thread(){
+
+				final Thread t = new Thread() {
 					@Override
-					public void run(){
-						try{
-							while(true){
-								try{
-									Thread.sleep((PropertiesManager.isSimu()?5:120) * 1000);//考虑到60较小，改为120
-								}catch (final Exception e) {
+					public void run() {
+						try {
+							while (true) {
+								try {
+									Thread.sleep((PropertiesManager.isSimu() ? 5 : 120) * 1000);// 考虑到60较小，改为120
+								} catch (final Exception e) {
 								}
-								
-								if(PropertiesManager.getValue(PropertiesManager.p_EnableLinkedInProjUpgrade, IConstant.TRUE).equals(IConstant.TRUE)){
-									if(LinkProjectManager.upgradeDownloading()){
+
+								if (PropertiesManager
+										.getValue(PropertiesManager.p_EnableLinkedInProjUpgrade,
+												IConstant.TRUE)
+										.equals(IConstant.TRUE)) {
+									if (LinkProjectManager.upgradeDownloading()) {
 										break;
 									}
-								}else{
+								} else {
 									break;
 								}
 							}
-						}catch (final Throwable e) {
+						} catch (final Throwable e) {
 							ExceptionReporter.printStackTrace(e);
 						}
-						
+
 						isRunning = false;
 					}
 				};
@@ -410,163 +448,169 @@ public class LinkProjectManager{
 		timer.doBiz();
 	}
 
-	static synchronized LinkProjectStore searchActiveRoot(){
+	static synchronized LinkProjectStore searchActiveRoot() {
 		final int size = lpsVector.size();
 		for (int i = 0; i < size; i++) {
 			final LinkProjectStore lps = lpsVector.elementAt(i);
 			final boolean active = lps.isActive();
-			if(lps.isRoot()){
-				if(active){
+			if (lps.isRoot()) {
+				if (active) {
 					return lps;
 				}
 			}
 		}
 		return null;
 	}
-	
+
 	public static boolean hasAlive() {
 		return searchOtherActive(null) != null;
 	}
-	
+
 	/**
 	 * 重新找到一个active作为Root
+	 * 
 	 * @param lps
 	 * @return
 	 */
-	static synchronized LinkProjectStore searchOtherActive(final LinkProjectStore lps){
+	static synchronized LinkProjectStore searchOtherActive(final LinkProjectStore lps) {
 		final int size = lpsVector.size();
 		for (int i = 0; i < size; i++) {
 			final LinkProjectStore search = lpsVector.elementAt(i);
-			if(search != lps){
-				if(search.isActive()){
+			if (search != lps) {
+				if (search.isActive()) {
 					return search;
 				}
 			}
 		}
 		return null;
 	}
-	
-	public static void appNewLinkedInProjNow(final Vector<LinkProjectStore> v, final boolean isServing, 
-			final boolean isForceApplyWhenUserIsConnecting, final boolean isForceUpgradeInLocalNetwork){//注意：不能将异常抛出
+
+	public static void appNewLinkedInProjNow(final Vector<LinkProjectStore> v,
+			final boolean isServing, final boolean isForceApplyWhenUserIsConnecting,
+			final boolean isForceUpgradeInLocalNetwork) {// 注意：不能将异常抛出
 		ResourceUtil.checkHCStackTrace();
 		log("start apply new version...");
-		try{
-		while(ServerUIUtil.isServing()){
-			if(isForceApplyWhenUserIsConnecting){
-				break;
-			}else{
-				log("user is connecting, delay upgrade.");
-				Thread.sleep(60 * 1000);//用户连线时，不进行升级操作
+		try {
+			while (ServerUIUtil.isServing()) {
+				if (isForceApplyWhenUserIsConnecting) {
+					break;
+				} else {
+					log("user is connecting, delay upgrade.");
+					Thread.sleep(60 * 1000);// 用户连线时，不进行升级操作
+				}
 			}
-		}
-		final Iterator<LinkProjectStore> it = v.iterator();
-		final Vector<LinkProjectStore> delProjs = new Vector<LinkProjectStore>();
-		
-		boolean upgradedOrDeled = false;
-		while(it.hasNext()){
-			final LinkProjectStore lps = it.next();
-			
-			final String oldVersion = lps.getVersion();
-			final String newVersion = lps.getDownloadingVer();
-			final boolean isDelCurrProjOnly = newVersion.equals(LinkProjectStore.DEL_VERSION);
-			
-			if(isDelCurrProjOnly || isForceUpgradeInLocalNetwork 
-					|| 
-				(!newVersion.equals(LinkProjectStore.DEFAULT_UNKOWN_VER) 
-					&& StringUtil.higher(newVersion, oldVersion)
-					&& lps.getDownloadingErr().length() == 0
-					&& lps.getDownloadingPosition() > 0)){
-				if(upgradedOrDeled == false){
-					upgradedOrDeled = true;
-					
-					if(isServing){
-						//停止服务器
-						log("stop service for upgrade project.");
-						ServerUIUtil.promptAndStop(false, null);
+			final Iterator<LinkProjectStore> it = v.iterator();
+			final Vector<LinkProjectStore> delProjs = new Vector<LinkProjectStore>();
+
+			boolean upgradedOrDeled = false;
+			while (it.hasNext()) {
+				final LinkProjectStore lps = it.next();
+
+				final String oldVersion = lps.getVersion();
+				final String newVersion = lps.getDownloadingVer();
+				final boolean isDelCurrProjOnly = newVersion.equals(LinkProjectStore.DEL_VERSION);
+
+				if (isDelCurrProjOnly || isForceUpgradeInLocalNetwork
+						|| (!newVersion.equals(LinkProjectStore.DEFAULT_UNKOWN_VER)
+								&& StringUtil.higher(newVersion, oldVersion)
+								&& lps.getDownloadingErr().length() == 0
+								&& lps.getDownloadingPosition() > 0)) {
+					if (upgradedOrDeled == false) {
+						upgradedOrDeled = true;
+
+						if (isServing) {
+							// 停止服务器
+							log("stop service for upgrade project.");
+							ServerUIUtil.promptAndStop(false, null);
+						}
 					}
-				}
-				
-				final File oldEditBackFile = LinkProjectManager.removeLinkProjectPhic(lps, false);
-				log("success remove old version project : " + lps.getProjectID());
-				if(isDelCurrProjOnly){//仅删除旧版本，但不升级
-					//物理删除过时工程
-					delProjs.add(lps);
-					continue;
-				}
-				
-				final File newVerHar = new File(LINK_UPGRADE_DIR, lps.getHarFile());
 
-				LinkProjectManager.importLinkProject(lps, newVerHar, true, oldEditBackFile, false);
-				log("Successful upgrade project [" + lps.getProjectID() + "] from " + oldVersion + " to " + newVersion);
+					final File oldEditBackFile = LinkProjectManager.removeLinkProjectPhic(lps,
+							false);
+					log("success remove old version project : " + lps.getProjectID());
+					if (isDelCurrProjOnly) {// 仅删除旧版本，但不升级
+						// 物理删除过时工程
+						delProjs.add(lps);
+						continue;
+					}
 
-				newVerHar.delete();
-				if(L.isInWorkshop){
-					LogManager.log("del new upgraded file : " + newVerHar.getAbsolutePath());
+					final File newVerHar = new File(LINK_UPGRADE_DIR, lps.getHarFile());
+
+					LinkProjectManager.importLinkProject(lps, newVerHar, true, oldEditBackFile,
+							false);
+					log("Successful upgrade project [" + lps.getProjectID() + "] from " + oldVersion
+							+ " to " + newVersion);
+
+					newVerHar.delete();
+					if (L.isInWorkshop) {
+						LogManager.log("del new upgraded file : " + newVerHar.getAbsolutePath());
+					}
+					if (newVerHar.exists()) {
+						PropertiesManager.addDelFile(newVerHar);// 不前置添加，因为resetDownloading仍需store
+					}
+					lps.resetDownloading();
 				}
-				if(newVerHar.exists()){
-					PropertiesManager.addDelFile(newVerHar);//不前置添加，因为resetDownloading仍需store
+			}
+			if (upgradedOrDeled) {
+				final int size = delProjs.size();
+				for (int i = 0; i < size; i++) {
+					// 物理删除过时工程
+					final LinkProjectStore lps = delProjs.get(i);
+					removeOnlyLPS(lps);
 				}
-				lps.resetDownloading();
+
+				updateToLinkProject();
+
+				if (isServing) {
+					ServerUIUtil.restartResponsorServerDelayMode(null, null);
+				}
 			}
-		}
-		if(upgradedOrDeled){
-			final int size = delProjs.size();
-			for (int i = 0; i < size; i++) {
-				//物理删除过时工程
-				final LinkProjectStore lps = delProjs.get(i);
-				removeOnlyLPS(lps);
-			}
-			
-			updateToLinkProject();
-			
-			if(isServing){
-				ServerUIUtil.restartResponsorServerDelayMode(null, null);
-			}
-		}
-		}catch (final Throwable e) {
+		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
 	}
-	
-	private static void downloadHAR(final LinkProjectStore lps, final Properties p_had){
-        final File file = new File(LINK_UPGRADE_DIR, lps.getHarFile());//注意：临时文件下载到UPGRADE_DIR
-        
-        final String had_url = p_had.getProperty(HCjad.HAD_HAR_URL);
-		final String url_har = (had_url!=null)?had_url:HCjad.convertToExtHar(lps.getProjectUpgradeURL());
-		final String userAgent = ResourceUtil.getUserAgentForHAD();
-		
-		try {  
-			final URL url = new URL(url_har);  
-			LogManager.log("download new version HAR [" + lps.getProjectID() + "] from : " + url_har);
-			final String newVersion = p_had.getProperty(HCjad.HAD_VERSION);
-			if(newVersion.equals(lps.getDownloadingVer())){
-				//继续下载
-				downloadContinue(lps, p_had, file, url, file.length(), userAgent);
-			}else{
-	            final long totalByted = Long.parseLong(p_had.getProperty(HCjad.HAD_HAR_SIZE));
-                if(file.exists()){
-                	file.delete();
-                }
-				final RandomAccessFile raf = new RandomAccessFile(file, "rw");  
-                raf.setLength(totalByted);  
-                raf.close();  
 
-                lps.setDownloadingVersion(newVersion);
-	            downloadContinue(lps, p_had, file, url, totalByted, userAgent);
-	            
-	            //检查版本是否一致
-	            final Map<String, Object> map = HCjar.loadHar(file, false);
-	            if(newVersion.equals(map.get(HCjar.PROJ_VER)) == false){
-	            	setError(lps, "the version in har is NOT same with version in had");
-	            }
+	private static void downloadHAR(final LinkProjectStore lps, final Properties p_had) {
+		final File file = new File(LINK_UPGRADE_DIR, lps.getHarFile());// 注意：临时文件下载到UPGRADE_DIR
+
+		final String had_url = p_had.getProperty(HCjad.HAD_HAR_URL);
+		final String url_har = (had_url != null) ? had_url
+				: HCjad.convertToExtHar(lps.getProjectUpgradeURL());
+		final String userAgent = ResourceUtil.getUserAgentForHAD();
+
+		try {
+			final URL url = new URL(url_har);
+			LogManager
+					.log("download new version HAR [" + lps.getProjectID() + "] from : " + url_har);
+			final String newVersion = p_had.getProperty(HCjad.HAD_VERSION);
+			if (newVersion.equals(lps.getDownloadingVer())) {
+				// 继续下载
+				downloadContinue(lps, p_had, file, url, file.length(), userAgent);
+			} else {
+				final long totalByted = Long.parseLong(p_had.getProperty(HCjad.HAD_HAR_SIZE));
+				if (file.exists()) {
+					file.delete();
+				}
+				final RandomAccessFile raf = new RandomAccessFile(file, "rw");
+				raf.setLength(totalByted);
+				raf.close();
+
+				lps.setDownloadingVersion(newVersion);
+				downloadContinue(lps, p_had, file, url, totalByted, userAgent);
+
+				// 检查版本是否一致
+				final Map<String, Object> map = HCjar.loadHar(file, false);
+				if (newVersion.equals(map.get(HCjar.PROJ_VER)) == false) {
+					setError(lps, "the version in har is NOT same with version in had");
+				}
 			}
-        } catch (final Throwable e) { 
-        	setError(lps, e.toString());
-        	log("Error downloading HAR project : " + url_har);
-        	ExceptionReporter.printStackTrace(e);
-        	
-        	updateToLinkProject();
-        }
+		} catch (final Throwable e) {
+			setError(lps, e.toString());
+			log("Error downloading HAR project : " + url_har);
+			ExceptionReporter.printStackTrace(e);
+
+			updateToLinkProject();
+		}
 	}
 
 	private static void setError(final LinkProjectStore lps, final String str) {
@@ -574,163 +618,168 @@ public class LinkProjectManager{
 		lps.setDownloadingPosition(0);
 		err("Project ID [" + lps.getProjectID() + "] exception : " + str);
 	}
-	
+
 	/**
 	 * 单线程进行下载，以供自动升级之用
+	 * 
 	 * @param lps
 	 * @param p_had
 	 * @param file
 	 * @param url
 	 * @param end
 	 */
-	private static void downloadContinue(final LinkProjectStore lps, final Properties p_had, 
-			final File file, final URL url, final long end, final String userAgent){
+	private static void downloadContinue(final LinkProjectStore lps, final Properties p_had,
+			final File file, final URL url, final long end, final String userAgent) {
 		RandomAccessFile raf = null;
-		try {  
-			raf = new RandomAccessFile(file, "rw");  
+		try {
+			raf = new RandomAccessFile(file, "rw");
 
-            final int start = lps.getDownloadingPosition();
-            lps.setDownloadingErr("");
-            int tryNum = 0;
-            int downloadBS = 0;
-            //最多进行三次http异常
-            final int maxTryNum = 3;
-			while(tryNum < maxTryNum){
-	            try{
-		        	final HttpURLConnection conn = (HttpURLConnection) url.openConnection(); 
-		        	if(userAgent != null){
-		        		conn.setRequestProperty(HttpUtil.USER_AGENT, userAgent);
-		        	}
-		            conn.setRequestMethod("GET");  
-//		            conn.setReadTimeout(0); 
-					conn.setRequestProperty("Range", "bytes=" + start + "-" + end);  
-		            if (conn.getResponseCode() == 206) {  
-		                raf.seek(start + downloadBS);  
-		                final InputStream inStream = conn.getInputStream();  
-	                    final int oneMS = 1024 * 1024;
-		                final byte[] b = new byte[1024 * 10];  
-		                int len = 0;  
-		                int mb = 0;
-		                while (((start + downloadBS) <= end) && (len = inStream.read(b)) != -1) {  
-		                	raf.write(b, 0, len);  
-		                    downloadBS += len;
+			final int start = lps.getDownloadingPosition();
+			lps.setDownloadingErr("");
+			int tryNum = 0;
+			int downloadBS = 0;
+			// 最多进行三次http异常
+			final int maxTryNum = 3;
+			while (tryNum < maxTryNum) {
+				try {
+					final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+					if (userAgent != null) {
+						conn.setRequestProperty(HttpUtil.USER_AGENT, userAgent);
+					}
+					conn.setRequestMethod("GET");
+					// conn.setReadTimeout(0);
+					conn.setRequestProperty("Range", "bytes=" + start + "-" + end);
+					if (conn.getResponseCode() == 206) {
+						raf.seek(start + downloadBS);
+						final InputStream inStream = conn.getInputStream();
+						final int oneMS = 1024 * 1024;
+						final byte[] b = new byte[1024 * 10];
+						int len = 0;
+						int mb = 0;
+						while (((start + downloadBS) <= end) && (len = inStream.read(b)) != -1) {
+							raf.write(b, 0, len);
+							downloadBS += len;
 							final int newMB = downloadBS / oneMS;
-							if(newMB != mb){
-								//每隔1MB进行一次保存
+							if (newMB != mb) {
+								// 每隔1MB进行一次保存
 								mb = newMB;
 								updateToLinkProject();
 							}
-		                }  
-		            }else{
-		            	setError(lps, "http/206 not support download file.");
-		            	break;
-		            }
-		            conn.disconnect();
-		            break;
-	            }catch (final Exception e) {
-	            	tryNum++;
-	            	if(tryNum > maxTryNum){
-	            		throw e;
-	            	}
-	            	Thread.sleep(1000);
+						}
+					} else {
+						setError(lps, "http/206 not support download file.");
+						break;
+					}
+					conn.disconnect();
+					break;
+				} catch (final Exception e) {
+					tryNum++;
+					if (tryNum > maxTryNum) {
+						throw e;
+					}
+					Thread.sleep(1000);
 				}
-            }
-            //进行校验
-            final String md5 = ResourceUtil.getMD5(file);
-            if(md5.toLowerCase().equals(p_had.getProperty(HCjad.HAD_HAR_MD5).toLowerCase())){
-            	if(SignHelper.verifyJar(file, LinkProjectManager.getCertificatesByID(lps.getProjectID())) == null){
-            		setError(lps, ResourceUtil.FILE_IS_MODIFIED_AFTER_SIGNED);
-            	}else{
-		            lps.setDownloadingErr("");
-		            lps.setDownloadingPosition((int)end);
-		            log("successful download new version(" + lps.getDownloadingVer() + ") of project [" + lps.getProjectID() + "].");
-            	}
-            }else{
-            	setError(lps, "MD5 verify err file at " + lps.getProjectUpgradeURL());
-            }
-//            注意：考虑到完整性，不做保存，否则lps会更新hashID，而不在lpsVector
-//            updateToLinkProject();
-        } catch (final Exception e) { 
-        	setError(lps, e.toString());
-        }finally{
-        	if(raf != null){
-        		try {
+			}
+			// 进行校验
+			final String md5 = ResourceUtil.getMD5(file);
+			if (md5.toLowerCase().equals(p_had.getProperty(HCjad.HAD_HAR_MD5).toLowerCase())) {
+				if (SignHelper.verifyJar(file,
+						LinkProjectManager.getCertificatesByID(lps.getProjectID())) == null) {
+					setError(lps, ResourceUtil.FILE_IS_MODIFIED_AFTER_SIGNED);
+				} else {
+					lps.setDownloadingErr("");
+					lps.setDownloadingPosition((int) end);
+					log("successful download new version(" + lps.getDownloadingVer()
+							+ ") of project [" + lps.getProjectID() + "].");
+				}
+			} else {
+				setError(lps, "MD5 verify err file at " + lps.getProjectUpgradeURL());
+			}
+			// 注意：考虑到完整性，不做保存，否则lps会更新hashID，而不在lpsVector
+			// updateToLinkProject();
+		} catch (final Exception e) {
+			setError(lps, e.toString());
+		} finally {
+			if (raf != null) {
+				try {
 					raf.close();
 				} catch (final Exception e) {
 					ExceptionReporter.printStackTrace(e);
 				}
-        	}
-        }
+			}
+		}
 	}
-	
-	private static void log(final String msg){
+
+	private static void log(final String msg) {
 		LogManager.log(PROJECT_MANAGER + msg);
 	}
-	
-	private static void err(final String msg){
+
+	private static void err(final String msg) {
 		LogManager.errToLog(PROJECT_MANAGER + msg);
 	}
-	
-	public static int getActiveProjNum(){
+
+	public static int getActiveProjNum() {
 		final Iterator<LinkProjectStore> lpsIt = getLinkProjsIteratorInUserSysThread(true);
 		int count = 0;
-		while(lpsIt.hasNext()){
+		while (lpsIt.hasNext()) {
 			final LinkProjectStore lps = lpsIt.next();
-			if(!lps.isActive()){
+			if (!lps.isActive()) {
 				continue;
 			}
 			count++;
 		}
 		return count;
 	}
-	
+
 	/**
 	 * 
 	 * @param fileHar
 	 * @return 0 : OK; -1 : error
 	 */
-	public static int deployInLocalNetwork(final byte[] bs, final int len, final String projectID){
+	public static int deployInLocalNetwork(final byte[] bs, final int len, final String projectID) {
 		CCoreUtil.checkAccess();
-		
-		if(enterDownloadStatus() == false){
+
+		if (enterDownloadStatus() == false) {
 			return -1;
 		}
-		
+
 		LogManager.log("[Deploy] start deploy project in receive-deploy service...");
-		
+
 		final Vector<LinkProjectStore> upgradeLPS = new Vector<LinkProjectStore>(1);
-		
+
 		final LinkProjectStore lps = getProjByID(projectID);
 		final File fileHar = new File(LINK_UPGRADE_DIR, lps.getHarFile());
 		ResourceUtil.writeToFile(bs, 0, len, fileHar);
 		upgradeLPS.add(lps);
 		LinkProjectManager.appNewLinkedInProjNow(upgradeLPS, true, true, true);
-		
+
 		exitDownloadUpgrade();
-		
+
 		return 0;
 	}
-	
+
 	/**
 	 * 注意：被ProjMgrDialog在用户级线程使用，但是相同包
+	 * 
 	 * @param includeRoot
 	 * @return
 	 */
-	static synchronized Iterator<LinkProjectStore> getLinkProjsIteratorInUserSysThread(final boolean includeRoot){
-		if(includeRoot){
+	static synchronized Iterator<LinkProjectStore> getLinkProjsIteratorInUserSysThread(
+			final boolean includeRoot) {
+		if (includeRoot) {
 			return lpsVector.iterator();
-		}else{
+		} else {
 			return new IteratorWithoutRoot();
 		}
 	}
-	
-	static synchronized final String getProjPaths(){
+
+	static synchronized final String getProjPaths() {
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		final Iterator<LinkProjectStore> it = lpsVector.iterator();
 		boolean isAdded = false;
-		while(it.hasNext()){
+		while (it.hasNext()) {
 			final LinkProjectStore lps = it.next();
-			if(isAdded){
+			if (isAdded) {
 				sb.append(File.pathSeparator);
 			}
 			sb.append("." + File.separator + lps.getDeployTmpDir());
@@ -741,112 +790,114 @@ public class LinkProjectManager{
 		return out;
 	}
 
-	static synchronized final LinkProjectStore getProjByID(final String projID){
+	static synchronized final LinkProjectStore getProjByID(final String projID) {
 		final int size = lpsVector.size();
 		for (int i = 0; i < size; i++) {
 			final LinkProjectStore tmp = lpsVector.elementAt(i);
-			if(projID == null && tmp.isRoot()){
+			if (projID == null && tmp.isRoot()) {
 				return tmp;
-			}else if(tmp.getProjectID().equals(projID)){
+			} else if (tmp.getProjectID().equals(projID)) {
 				return tmp;
 			}
 		}
 		return null;
 	}
-	
+
 	/**
 	 * 如果工程不存在，或没有签名，则返回null
+	 * 
 	 * @param projID
 	 * @return
 	 */
-	static X509Certificate[] getCertificatesByID(final String projID){
+	static X509Certificate[] getCertificatesByID(final String projID) {
 		final LinkProjectStore lps = getProjByID(projID);
-		if(lps == null){
+		if (lps == null) {
 			return null;
-		}else{
+		} else {
 			return lps.getCertificates();
 		}
 	}
-	
-	static synchronized int getProjectSize(){
+
+	static synchronized int getProjectSize() {
 		return lpsVector.size();
 	}
-	
-	static synchronized final LinkProjectStore getProjLPSWithCreate(final String id){
+
+	static synchronized final LinkProjectStore getProjLPSWithCreate(final String id) {
 		final int size = lpsVector.size();
 		LinkProjectStore lps = null;
 		for (int i = 0; i < size; i++) {
 			final LinkProjectStore tmp = lpsVector.elementAt(i);
-			if(tmp.getProjectID().equals(id)){
+			if (tmp.getProjectID().equals(id)) {
 				lps = tmp;
 				break;
 			}
 		}
-		if(lps != null){
-		}else{
+		if (lps != null) {
+		} else {
 			lps = new LinkProjectStore();
 			lps.setProjectID(id);
-			
-//			if(context.equals(ROOT_PROJ_ID)){
-//				//置于第一个
-//				lpsVector.insertElementAt(lps, 0);
-//			}else{
-//				lpsVector.add(lps);
-//			}
+
+			// if(context.equals(ROOT_PROJ_ID)){
+			// //置于第一个
+			// lpsVector.insertElementAt(lps, 0);
+			// }else{
+			// lpsVector.add(lps);
+			// }
 			lpsVector.add(lps);
 		}
 		return lps;
 	}
-	
-	static File buildBackEditFile(final LinkProjectStore lps){
-		return new File(new File(ResourceUtil.getBaseDir(), lps.getHarParentDir()), "edit_" + lps.getHarFile());
+
+	static File buildBackEditFile(final LinkProjectStore lps) {
+		return new File(new File(ResourceUtil.getBaseDir(), lps.getHarParentDir()),
+				"edit_" + lps.getHarFile());
 	}
-	
-	static final void saveToLinkBack(final LinkProjectStore lps, final File edit){
+
+	static final void saveToLinkBack(final LinkProjectStore lps, final File edit) {
 		ThirdlibManager.copy(edit, buildBackEditFile(lps));
 	}
 
-	static final void copyCurrEditFromStorage(final LinkProjectStore lps, final boolean useDeploy){
+	static final void copyCurrEditFromStorage(final LinkProjectStore lps, final boolean useDeploy) {
 		File sourceFile = buildBackEditFile(lps);
-		if(useDeploy || sourceFile.exists() == false){
-			//将deploy版本覆盖backEdit版本
+		if (useDeploy || sourceFile.exists() == false) {
+			// 将deploy版本覆盖backEdit版本
 			final File deployFile = buildDepolyFile(lps);
 			ThirdlibManager.copy(deployFile, sourceFile);
 			lps.setChangedBeforeUpgrade(false);
 			updateToLinkProject();
-			
+
 			sourceFile = deployFile;
 		}
 		ThirdlibManager.copy(sourceFile, new File(ResourceUtil.getBaseDir(), EDIT_HAR));
-		
+
 		PropertiesManager.setValue(PropertiesManager.p_LINK_CURR_EDIT_PROJ_ID, lps.getProjectID());
 		PropertiesManager.setValue(PropertiesManager.p_LINK_CURR_EDIT_PROJ_VER, lps.getVersion());
 		PropertiesManager.saveFile();
 
 	}
-	
-	static final void saveProjConfig(final LinkProjectStore lps, final boolean isRoot, final boolean toActive){
+
+	static final void saveProjConfig(final LinkProjectStore lps, final boolean isRoot,
+			final boolean toActive) {
 		lps.setRoot(isRoot);
 		lps.setActive(toActive);
-		
+
 		updateToLinkProject();
 	}
-	
-	static synchronized void updateToLinkProject() {//注意：不能将异常抛出
-		try{
+
+	static synchronized void updateToLinkProject() {// 注意：不能将异常抛出
+		try {
 			final int size = lpsVector.size();
 			final LinkProjectStore[] lpss = new LinkProjectStore[size];
-			
+
 			for (int i = 0; i < size; i++) {
 				lpss[i] = lpsVector.elementAt(i);
 			}
-			
+
 			saveLinkStore(lpss, newLinkProjSetInstance());
-		}catch (final Throwable e) {
+		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
 	}
-
 
 	public static String buildSysProjID() {
 		return "Proj_" + ResourceUtil.getTimeStamp();
@@ -854,119 +905,125 @@ public class LinkProjectManager{
 
 	static String deployToRandomDir(final File har) {
 		String randomShareFolder;
-		//系统资源处于未拆分到随机目录下，需要重新读取并拆分
+		// 系统资源处于未拆分到随机目录下，需要重新读取并拆分
 		randomShareFolder = ResourceUtil.createRandomFileNameWithExt(ResourceUtil.getBaseDir(), "");
 		final Map<String, Object> map = HCjar.loadHar(har, true);
-		ProjResponser.deloyToWorkingDir(map, new File(ResourceUtil.getBaseDir(), randomShareFolder));
+		ProjResponser.deloyToWorkingDir(map,
+				new File(ResourceUtil.getBaseDir(), randomShareFolder));
 		return randomShareFolder;
 	}
 
-	static{
-		if(LINK_UPGRADE_DIR.exists() == false){
+	static {
+		if (LINK_UPGRADE_DIR.exists() == false) {
 			LINK_UPGRADE_DIR.mkdirs();
 		}
-		
+
 		reloadLinkProjects();
-		
-		try{
+
+		try {
 			UpgradeManager.upgradeToLinkProjectsMode();
-		}catch (final Throwable e) {
+		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
-		
-		//仅在启动时，更新上次下载的升级包
+
+		// 仅在启动时，更新上次下载的升级包
 		appNewLinkedInProjNow(lpsVector, false, true, false);
 	}
 
-	static File removeLinkProjectPhic(LinkProjectStore lps, final boolean delPersistent){
-		if(lps == null){
-			lps = getProjByID(null);			
+	static File removeLinkProjectPhic(LinkProjectStore lps, final boolean delPersistent) {
+		if (lps == null) {
+			lps = getProjByID(null);
 		}
-		
+
 		final String projectID = lps.getProjectID();
-		if(delPersistent){
+		if (delPersistent) {
 			PropertiesManager.remove(PropertiesManager.p_PROJ_RECORD + projectID);
 			final String userProjIDPath = StoreDirManager.getUserDataBaseDir(projectID);
-			final String delPath = userProjIDPath.substring(0, userProjIDPath.length() - 1);//去掉最后一个/
+			final String delPath = userProjIDPath.substring(0, userProjIDPath.length() - 1);// 去掉最后一个/
 			PropertiesManager.addDelDir(delPath);
 		}
-		
-		//删除jar文件
-		final File harFile = new File(new File(ResourceUtil.getBaseDir(), lps.getHarParentDir()), lps.getHarFile());
-//			harFile.delete();
+
+		// 删除jar文件
+		final File harFile = new File(new File(ResourceUtil.getBaseDir(), lps.getHarParentDir()),
+				lps.getHarFile());
+		// harFile.delete();
 		PropertiesManager.addDelFile(harFile);
 		final File oldBackEditFile = buildBackEditFile(lps);
 		PropertiesManager.addDelFile(oldBackEditFile);
-		
+
 		boolean isChanged = lps.isChangedBeforeUpgrade();
-		if(isChanged == false && oldBackEditFile.exists() && harFile.exists()){
+		if (isChanged == false && oldBackEditFile.exists() && harFile.exists()) {
 			final String md5Editing = ResourceUtil.getMD5(oldBackEditFile);
 			final String md5Har = ResourceUtil.getMD5(harFile);
-			if(md5Har.equals(md5Editing) == false){
+			if (md5Har.equals(md5Editing) == false) {
 				isChanged = true;
 			}
 		}
 
-		
-		//删除发布目录
-//		final File deployTmpDir = new File(lps.getDeployTmpDir());
-//		由于导入时，需要创建新TmpDir，不进行删除，可以防止新的TmpDir在极端情形下相同与本删除的。
-//		deployTmpDir.delete();
+		// 删除发布目录
+		// final File deployTmpDir = new File(lps.getDeployTmpDir());
+		// 由于导入时，需要创建新TmpDir，不进行删除，可以防止新的TmpDir在极端情形下相同与本删除的。
+		// deployTmpDir.delete();
 		final String deployTmpDir = lps.getDeployTmpDir();
-		if(deployTmpDir.equals(LinkProjectStore.NO_DEPLOY_TMP_DIR) == false){
-			PropertiesManager.addDelDir(deployTmpDir);	
+		if (deployTmpDir.equals(LinkProjectStore.NO_DEPLOY_TMP_DIR) == false) {
+			PropertiesManager.addDelDir(deployTmpDir);
 		}
-		
+
 		ResourceUtil.delProjOptimizeDir(projectID);
-		
+
 		PropertiesManager.saveFile();
-		return isChanged?oldBackEditFile:null;
+		return isChanged ? oldBackEditFile : null;
 	}
-	
-	static boolean importLinkProject(final LinkProjectStore lps, final File sourceNewVer, final boolean isUpgrade,
-			final File oldEditBackFile, final boolean isForceUpdatePermissionInDesigner){
-		final String fileName = ResourceUtil.createRandomFileNameWithExt(StoreDirManager.LINK_DIR, Designer.HAR_EXT);
-	
+
+	static boolean importLinkProject(final LinkProjectStore lps, final File sourceNewVer,
+			final boolean isUpgrade, final File oldEditBackFile,
+			final boolean isForceUpdatePermissionInDesigner) {
+		final String fileName = ResourceUtil.createRandomFileNameWithExt(StoreDirManager.LINK_DIR,
+				Designer.HAR_EXT);
+
 		lps.setHarFile(fileName);
 		lps.setHarParentDir(StoreDirManager.LINK_DIR_NAME);
 
-		//注意：此处不作证书检查，因为该逻辑也前置，详见#getCertificatesByID
-		final X509Certificate[] certs = SignHelper.verifyJar(sourceNewVer, null);//注意：此处仅提取证书，而不验证
-		
-		if(certs != null){//PropertiesManager.isSimu()
+		// 注意：此处不作证书检查，因为该逻辑也前置，详见#getCertificatesByID
+		final X509Certificate[] certs = SignHelper.verifyJar(sourceNewVer, null);// 注意：此处仅提取证书，而不验证
+
+		if (certs != null) {// PropertiesManager.isSimu()
 			for (int i = 0; i < certs.length; i++) {
-				LogManager.log("certificate (maybe self-signed) for [" + lps.getProjectID() + "] : " + certs[i]);
+				LogManager.log("certificate (maybe self-signed) for [" + lps.getProjectID() + "] : "
+						+ certs[i]);
 			}
 		}
-		lps.setCertificates(certs);//填充文件的证书
-	
+		lps.setCertificates(certs);// 填充文件的证书
+
 		final File har = buildDepolyFile(lps);
 		final File backEditFile = buildBackEditFile(lps);
-		
-		//发布工作文件
+
+		// 发布工作文件
 		ThirdlibManager.copy(sourceNewVer, har);
-		if(backEditFile.exists() == false || isUpgrade == false){//注意：backEdit文件必须存在。但升级或安装时，不得覆盖可能的修改
-			if(oldEditBackFile != null){
-				if(isUpgrade){
+		if (backEditFile.exists() == false || isUpgrade == false) {// 注意：backEdit文件必须存在。但升级或安装时，不得覆盖可能的修改
+			if (oldEditBackFile != null) {
+				if (isUpgrade) {
 					lps.setChangedBeforeUpgrade(true);
 				}
 				ThirdlibManager.copy(oldEditBackFile, backEditFile);
-			}else{
-				//编辑备份文件
+			} else {
+				// 编辑备份文件
 				ThirdlibManager.copy(sourceNewVer, backEditFile);
 			}
 		}
-		
+
 		final String randomShareFolder = deployToRandomDir(har);
 		lps.setDeployTmpDir(randomShareFolder);
-		
+
 		final Map<String, Object> map = HCjar.loadHar(sourceNewVer, false);
-		final boolean acceptPermIfSigned = LinkProjectPanel.getAcceptNewPermissionsOp().equals(LinkPropertiesOption.OP_PERM_ACCEPT_IF_SIGNED);
-		lps.copyFrom(map, isForceUpdatePermissionInDesigner || (certs != null && certs.length > 0 && acceptPermIfSigned));
-		
-		lps.setDoneBind(false);//新添加或升级的工程DoneBind=false
-//		lps.clearBindMap();//注意：不能删除此行。旧的绑定关系仍将使用
-		
+		final boolean acceptPermIfSigned = LinkProjectPanel.getAcceptNewPermissionsOp()
+				.equals(LinkPropertiesOption.OP_PERM_ACCEPT_IF_SIGNED);
+		lps.copyFrom(map, isForceUpdatePermissionInDesigner
+				|| (certs != null && certs.length > 0 && acceptPermIfSigned));
+
+		lps.setDoneBind(false);// 新添加或升级的工程DoneBind=false
+		// lps.clearBindMap();//注意：不能删除此行。旧的绑定关系仍将使用
+
 		return true;
 	}
 
@@ -976,6 +1033,7 @@ public class LinkProjectManager{
 
 	/**
 	 * check project is exist and active
+	 * 
 	 * @param proj_id
 	 * @return true if HAR project is exist and active
 	 */
@@ -987,43 +1045,44 @@ public class LinkProjectManager{
 	/**
 	 * @return 返回被依赖的一个非active工程。null表示完整。
 	 */
-	private static String[] checkReferencedDependencyInSysThread(final Vector<LinkProjectStore> stores){
+	private static String[] checkReferencedDependencyInSysThread(
+			final Vector<LinkProjectStore> stores) {
 		final int size = stores.size();
 		final Vector<String> activeProjects = new Vector<String>();
-		
+
 		for (int i = 0; i < size; i++) {
 			activeProjects.add(stores.elementAt(i).getProjectID());
 		}
-		
+
 		for (int i = 0; i < size; i++) {
 			final LinkProjectStore lps = stores.elementAt(i);
 			final Object[] devs = lps.getDevBindMap();
-			if(devs != null){
-				final RealDeviceInfo[] tmpRealDevs = (RealDeviceInfo[])devs[1];
+			if (devs != null) {
+				final RealDeviceInfo[] tmpRealDevs = (RealDeviceInfo[]) devs[1];
 				for (int j = 0; j < tmpRealDevs.length; j++) {
 					final RealDeviceInfo rdbi = tmpRealDevs[j];
 					final String proj_id = rdbi.proj_id;
-					if(activeProjects.contains(proj_id) == false){
-						final String[] out = {proj_id, lps.getProjectID()};
+					if (activeProjects.contains(proj_id) == false) {
+						final String[] out = { proj_id, lps.getProjectID() };
 						return out;
 					}
 				}
 			}
-			
+
 			final Object[] convs = lps.getConvBindMap();
-			if(convs != null){
-				final ConverterInfo[] tmpConv = (ConverterInfo[])convs[1];
+			if (convs != null) {
+				final ConverterInfo[] tmpConv = (ConverterInfo[]) convs[1];
 				for (int j = 0; j < tmpConv.length; j++) {
 					final ConverterInfo rbi = tmpConv[j];
 					final String proj_id = rbi.proj_id;
-					if(activeProjects.contains(proj_id) == false){
-						final String[] out = {proj_id, lps.getProjectID()};
+					if (activeProjects.contains(proj_id) == false) {
+						final String[] out = { proj_id, lps.getProjectID() };
 						return out;
 					}
 				}
 			}
 		}
-		
+
 		return null;
 	}
 
@@ -1034,28 +1093,29 @@ public class LinkProjectManager{
 	 * @return false表示失败
 	 */
 	static void showReferencedDependencyError(final JFrame self, String text) {
-		text = "<html>" +
-				text +
-				"</html>";
-		
+		text = "<html>" + text + "</html>";
+
 		final JPanel panel = new JPanel(new BorderLayout());
-		panel.add(new JLabel(text, App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
-		App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, self, true, false, null, false, false);
+		panel.add(new JLabel(text, App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING),
+				BorderLayout.CENTER);
+		App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null,
+				null, self, true, false, null, false, false);
 	}
-	
+
 	/**
 	 * 
 	 * @param stores
 	 * @return text for error
 	 */
-	static String checkReferencedDependencyForErrorInSysThread(final Vector<LinkProjectStore> stores){
+	static String checkReferencedDependencyForErrorInSysThread(
+			final Vector<LinkProjectStore> stores) {
 		final String[] projID = checkReferencedDependencyInSysThread(stores);
-		
-		if(projID != null){
-			String text = ResourceUtil.get(8012);//注意：该信息不仅被手机端使用，也被PC端使用，请不要使用<BR>
+
+		if (projID != null) {
+			String text = ResourceUtil.get(8012);// 注意：该信息不仅被手机端使用，也被PC端使用，请不要使用<BR>
 			text = StringUtil.replace(text, "{proj1}", projID[0]);
 			text = StringUtil.replace(text, "{proj2}", projID[1]);
-			
+
 			return text;
 		}
 		return null;
@@ -1063,33 +1123,36 @@ public class LinkProjectManager{
 
 	public static void startAutoUpgradeBiz() {
 		CCoreUtil.checkAccess();
-		
+
 		startLinkedInProjectUpgradeTimer();
 	}
 
-	public static boolean hasMenuItemNumInProj(final Map<String, Object> map){
-		try{
-			final Object chileCount = map.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, HCjar.MAIN_MENU_IDX));
-			if(chileCount != null){
-				if(Integer.parseInt((String)chileCount) > 0){
+	public static boolean hasMenuItemNumForMap(final Map<String, Object> map) {
+		try {
+			final Object chileCount = map
+					.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, HCjar.MAIN_MENU_IDX));
+			if (chileCount != null) {
+				if (Integer.parseInt((String) chileCount) > 0) {
 					return true;
 				}
 			}
-		}catch (final Exception e) {
+		} catch (final Exception e) {
 		}
 		return false;
 	}
 
 	public static void showNoMenuInRootWarn(final Frame frame) {
-		App.showMessageDialog(frame, getNoMenuItemInRoot(), ResourceUtil.getWarnI18N(), App.WARNING_MESSAGE, App.getSysIcon(App.SYS_WARN_ICON));
+		App.showMessageDialog(frame, getNoMenuItemInRoot(), ResourceUtil.getWarnI18N(),
+				App.WARNING_MESSAGE, App.getSysIcon(App.SYS_WARN_ICON));
 	}
 
 	public static void showNoMenuInRootError(final Frame frame) {
-		App.showMessageDialog(frame, getNoMenuItemInRoot(), ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+		App.showMessageDialog(frame, getNoMenuItemInRoot(), ResourceUtil.getErrorI18N(),
+				App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 	}
 
 	static String getNoMenuItemInRoot() {
-		return "There is NO designed menu item (not dynamic item) in root active project!";
+		return ResourceUtil.get(9276);//There is NO designed menu item (not dynamic item) in root active project!
 	}
 
 	static PropertiesSet newLinkProjSetInstance() {
@@ -1097,37 +1160,38 @@ public class LinkProjectManager{
 	}
 
 	static void saveLinkStore(final LinkProjectStore[] lpss, final PropertiesSet projIDSet) {
-			final Object[] objs = new Object[lpss.length];
-			for (int i = 0; i < lpss.length; i++) {
-				final LinkProjectStore lps = lpss[i];
-				if(L.isInWorkshop){
-					LogManager.log("save link store for project [" + lps.getProjectID() + "] {" + lps + "}");
-				}
-				objs[i] = lps.toSerial();
+		final Object[] objs = new Object[lpss.length];
+		for (int i = 0; i < lpss.length; i++) {
+			final LinkProjectStore lps = lpss[i];
+			if (L.isInWorkshop) {
+				LogManager.log(
+						"save link store for project [" + lps.getProjectID() + "] {" + lps + "}");
 			}
-			
-			projIDSet.refill(objs);
-			projIDSet.save();
-			
-	//		有可能只需要保存，而不需要拉新
-	//		LinkProjectManager.reloadLinkProjects();
+			objs[i] = lps.toSerial();
 		}
-	
+
+		projIDSet.refill(objs);
+		projIDSet.save();
+
+		// 有可能只需要保存，而不需要拉新
+		// LinkProjectManager.reloadLinkProjects();
+	}
+
 }
 
 class IteratorWithoutRoot implements Iterator<LinkProjectStore> {
 	int cursor = 0;
-	
+
 	@Override
 	public boolean hasNext() {
-		if(cursor == LinkProjectManager.lpsVector.size()){
+		if (cursor == LinkProjectManager.lpsVector.size()) {
 			return false;
 		}
 		final LinkProjectStore elementAt = LinkProjectManager.lpsVector.elementAt(cursor);
-		if(elementAt.isRoot()){
+		if (elementAt.isRoot()) {
 			cursor++;
 			return hasNext();
-		}else{
+		} else {
 			return true;
 		}
 	}

@@ -9,24 +9,24 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 public class NodeEditPanelManager {
-	public final void updateSkinUI(){
+	public final void updateSkinUI() {
 		final Iterator<NodeEditPanel> it = map.values().iterator();
-		while(it.hasNext()){
+		while (it.hasNext()) {
 			ConfigPane.updateComponentUI(it.next());
 		}
 	}
-	
+
 	/**
 	 * 清空可能因内存不足产生的问题EditPanel
 	 */
-	public final synchronized void clearCacheEditPanel(){
+	public final synchronized void clearCacheEditPanel() {
 		map.clear();
 	}
-	
-	public static boolean isMletNode(final HPNode node){
-		if(node != null && node instanceof HPMenuItem){
-			final HPMenuItem item = (HPMenuItem)node;
-			return (meetHTMLMletLimit(node) || node.type == HPNode.TYPE_MENU_ITEM_SCREEN) 
+
+	public static boolean isMletNode(final HPNode node) {
+		if (node != null && node instanceof HPMenuItem) {
+			final HPMenuItem item = (HPMenuItem) node;
+			return (meetHTMLMletLimit(node) || node.type == HPNode.TYPE_MENU_ITEM_SCREEN)
 					&& (item.url.equals(HCURL.URL_HOME_SCREEN) == false);
 		}
 		return false;
@@ -34,58 +34,59 @@ public class NodeEditPanelManager {
 
 	/**
 	 * 满足额外符合HTMLMlet的条件，须基于isMletNode
+	 * 
 	 * @param node
 	 * @return
 	 */
 	public static boolean meetHTMLMletLimit(final HPNode node) {
 		return node.type == HPNode.TYPE_MENU_ITEM_FORM;
 	}
-	
-	public final NodeEditPanel switchNodeEditPanel(final int nodeType, final HPNode hpnode, final Designer designer){
+
+	public final NodeEditPanel switchNodeEditPanel(final int nodeType, final HPNode hpnode,
+			final Designer designer) {
 		NodeEditPanel nep = null;
-		if(HPNode.isNodeType(nodeType, HPNode.MASK_MENU)){
+		if (HPNode.isNodeType(nodeType, HPNode.MASK_MENU)) {
 			nep = getInstance(MenuListEditPanel.class);
-		}else if(HPNode.isNodeType(nodeType, HPNode.MASK_MENU_ITEM)){
-			if(nodeType == HPNode.TYPE_MENU_ITEM_CONTROLLER){
+		} else if (HPNode.isNodeType(nodeType, HPNode.MASK_MENU_ITEM)) {
+			if (nodeType == HPNode.TYPE_MENU_ITEM_CONTROLLER) {
 				nep = getInstance(CtrlMenuItemNodeEditPanel.class);
-			}else if(isMletNode(hpnode)){//isMlet
+			} else if (isMletNode(hpnode)) {// isMlet
 				nep = getInstance(MletNodeEditPanel.class);
-			}else{
+			} else {
 				nep = getInstance(DefaultMenuItemNodeEditPanel.class);
 			}
-		}else if(HPNode.isNodeType(nodeType, HPNode.MASK_ROOT)){
+		} else if (HPNode.isNodeType(nodeType, HPNode.MASK_ROOT)) {
 			nep = getInstance(ProjectNodeEditPanel.class);
-		}else if(HPNode.isNodeType(nodeType, HPNode.MASK_SHARE_RB)){
+		} else if (HPNode.isNodeType(nodeType, HPNode.MASK_SHARE_RB)) {
 			nep = getInstance(JRubyNodeEditPanel.class);
-		}else if(nodeType == HPNode.MASK_RESOURCE_JAR){
+		} else if (nodeType == HPNode.MASK_RESOURCE_JAR) {
 			nep = getInstance(JarNodeEditPanel.class);
-		}else if(nodeType == HPNode.MASK_RESOURCE_CSS){
+		} else if (nodeType == HPNode.MASK_RESOURCE_CSS) {
 			nep = getInstance(CSSNodeEditPanel.class);
-		}else if(nodeType == HPNode.MASK_SHARE_NATIVE){
+		} else if (nodeType == HPNode.MASK_SHARE_NATIVE) {
 			nep = getInstance(NativeNodeEditPanel.class);
-		}else if(nodeType == HPNode.MASK_EVENT_ITEM){
+		} else if (nodeType == HPNode.MASK_EVENT_ITEM) {
 			nep = getInstance(EventNodeEditPanel.class);
-		}else if(nodeType == HPNode.MASK_MSB_ROBOT 
-				|| nodeType == HPNode.MASK_MSB_CONVERTER 
-				|| nodeType == HPNode.MASK_MSB_DEVICE){
+		} else if (nodeType == HPNode.MASK_MSB_ROBOT || nodeType == HPNode.MASK_MSB_CONVERTER
+				|| nodeType == HPNode.MASK_MSB_DEVICE) {
 			nep = getInstance(ProcessorNodeEditPanel.class);
-		}else{
+		} else {
 			nep = noneNodeEditPanel;
 		}
 		nep.designer = designer;
 		return nep;
 	}
 
-	public final synchronized NodeEditPanel getInstance(final Class c){
+	public final synchronized NodeEditPanel getInstance(final Class c) {
 		final String className = c.getName();
 		NodeEditPanel nep = map.get(className);
-		if(nep != null){
+		if (nep != null) {
 			return nep;
-		}else{
+		} else {
 			try {
-				nep = (NodeEditPanel)c.newInstance();
+				nep = (NodeEditPanel) c.newInstance();
 				map.put(className, nep);
-				
+
 				return nep;
 			} catch (final Exception e) {
 				ExceptionReporter.printStackTrace(e);

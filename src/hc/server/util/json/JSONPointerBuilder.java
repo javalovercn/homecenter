@@ -28,53 +28,59 @@ SOFTWARE.
 */
 
 /**
- * This class allows the user to build a JSONPointer in steps, using
- * exactly one segment in each step.
+ * This class allows the user to build a JSONPointer in steps, using exactly one
+ * segment in each step.
+ * 
  * @author JSON.org
  * @version 2016-05-14
  */
 public class JSONPointerBuilder {
 
-    // Segments for the eventual JSONPointer string
-    private final List<String> refTokens = new ArrayList<String>();
+	// Segments for the eventual JSONPointer string
+	private final List<String> refTokens = new ArrayList<String>();
 
-    /**
-     * Creates a {@code JSONPointer} instance using the tokens previously set using the
-     * {@link #append(String)} method calls.
-     */
-    public JSONPointer build() {
-        return new JSONPointer(this.refTokens);
-    }
+	/**
+	 * Creates a {@code JSONPointer} instance using the tokens previously set
+	 * using the {@link #append(String)} method calls.
+	 */
+	public JSONPointer build() {
+		return new JSONPointer(this.refTokens);
+	}
 
-    /**
-     * Adds an arbitrary token to the list of reference tokens. It can be any non-null value.
-     * 
-     * Unlike in the case of JSON string or URI fragment representation of JSON pointers, the
-     * argument of this method MUST NOT be escaped. If you want to query the property called
-     * {@code "a~b"} then you should simply pass the {@code "a~b"} string as-is, there is no
-     * need to escape it as {@code "a~0b"}.
-     * 
-     * @param token the new token to be appended to the list
-     * @return {@code this}
-     * @throws NullPointerException if {@code token} is null
-     */
-    public JSONPointerBuilder append(final String token) {
-        if (token == null) {
-            throw new NullPointerException("token cannot be null");
-        }
-        this.refTokens.add(token);
-        return this;
-    }
+	/**
+	 * Adds an arbitrary token to the list of reference tokens. It can be any
+	 * non-null value.
+	 * 
+	 * Unlike in the case of JSON string or URI fragment representation of JSON
+	 * pointers, the argument of this method MUST NOT be escaped. If you want to
+	 * query the property called {@code "a~b"} then you should simply pass the
+	 * {@code "a~b"} string as-is, there is no need to escape it as
+	 * {@code "a~0b"}.
+	 * 
+	 * @param token
+	 *            the new token to be appended to the list
+	 * @return {@code this}
+	 * @throws NullPointerException
+	 *             if {@code token} is null
+	 */
+	public JSONPointerBuilder append(final String token) {
+		if (token == null) {
+			throw new NullPointerException("token cannot be null");
+		}
+		this.refTokens.add(token);
+		return this;
+	}
 
-    /**
-     * Adds an integer to the reference token list. Although not necessarily, mostly this token will
-     * denote an array index. 
-     * 
-     * @param arrayIndex the array index to be added to the token list
-     * @return {@code this}
-     */
-    public JSONPointerBuilder append(final int arrayIndex) {
-        this.refTokens.add(String.valueOf(arrayIndex));
-        return this;
-    }
+	/**
+	 * Adds an integer to the reference token list. Although not necessarily,
+	 * mostly this token will denote an array index.
+	 * 
+	 * @param arrayIndex
+	 *            the array index to be added to the token list
+	 * @return {@code this}
+	 */
+	public JSONPointerBuilder append(final int arrayIndex) {
+		this.refTokens.add(String.valueOf(arrayIndex));
+		return this;
+	}
 }

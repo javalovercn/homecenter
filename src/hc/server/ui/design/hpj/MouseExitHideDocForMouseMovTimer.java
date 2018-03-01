@@ -13,14 +13,14 @@ public class MouseExitHideDocForMouseMovTimer extends HCTimer {
 	@Override
 	public void doBiz() {
 	}
-	
+
 	@Override
-	public void setEnable(final boolean enable){
-		if(L.isInWorkshop){
+	public void setEnable(final boolean enable) {
+		if (L.isInWorkshop) {
 			LogManager.log(getName() + " setEnable : " + enable);
-//			if(enable){
-//				ClassUtil.printCurrentThreadStack(getName() + ", setEnable");
-//			}
+			// if(enable){
+			// ClassUtil.printCurrentThreadStack(getName() + ", setEnable");
+			// }
 		}
 		super.setEnable(enable);
 	}

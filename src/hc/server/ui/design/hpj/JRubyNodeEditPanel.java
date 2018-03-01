@@ -17,10 +17,9 @@ public class JRubyNodeEditPanel extends ScriptEditPanel {
 	public static final String JRUBY_SCRIPT_BORDER = JRUBY_SCRIPT + " :";
 	final JLabel nameLabel = new JLabel("Script File Name :");
 
-	public JRubyNodeEditPanel(){
+	public JRubyNodeEditPanel() {
 		super();
-		
-		
+
 		final JPanel namePanel = new JPanel();
 		namePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		namePanel.add(nameLabel);
@@ -30,11 +29,11 @@ public class JRubyNodeEditPanel extends ScriptEditPanel {
 		namePanel.add(formatBtn);
 		namePanel.add(scriptBtn);
 		namePanel.add(commentBtn);
-		
+
 		final JPanel jtascriptPanel = new JPanel();
 		jtascriptPanel.setBorder(new TitledBorder(JRUBY_SCRIPT_BORDER));
 		jtascriptPanel.setLayout(new BorderLayout());
-		
+
 		jtascriptPanel.add(editorPane, BorderLayout.CENTER);
 		jtascriptPanel.add(errRunInfo, BorderLayout.SOUTH);
 
@@ -43,27 +42,27 @@ public class JRubyNodeEditPanel extends ScriptEditPanel {
 		add(jtascriptPanel, BorderLayout.CENTER);
 
 	}
-	
+
 	@Override
 	public void init(final MutableTreeNode data, final JTree tree) {
 		super.init(data, tree);
 
 		final String listener = getListener();
 		TabHelper.initScriptPanel(jtaScript, this, listener);
-		
+
 		extInit();
-		
+
 		super.isInited = true;
 	}
 
 	public String getListener() {
-		return ((HPShareContent)currItem).content;
+		return ((HPShareContent) currItem).content;
 	}
 
 	@Override
 	public void updateScript(final String script) {
-		((HPShareContent)currItem).content = script;
-		if(currItem instanceof HPShareJRuby){
+		((HPShareContent) currItem).content = script;
+		if (currItem instanceof HPShareJRuby) {
 			designer.setNeedRebuildTestJRuby(true);
 		}
 	}

@@ -13,19 +13,20 @@ import java.util.jar.Manifest;
 
 public class HCVerify {
 	public static boolean isPassVerify = true;
-	
+
 	/**
 	 * 
-	 * @param fileName 非DER格式
+	 * @param fileName
+	 *            非DER格式
 	 * @return
 	 */
 	private static X509Certificate readPublicKeyFromPEM(final File file) {
-		try{
+		try {
 			final FileInputStream inStream = new FileInputStream(file);
 			final CertificateFactory factory = CertificateFactory.getInstance("X.509");
 			final X509Certificate cert = (X509Certificate) factory.generateCertificate(inStream);
 			return cert;
-		}catch (final Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		return null;
@@ -33,14 +34,14 @@ public class HCVerify {
 
 	public static boolean verifyJar(final String filename, final X509Certificate trustedSigner) {
 		JarFile jf = null;
-		try{
+		try {
 			jf = new JarFile(filename, true);
 			final byte[] buf = new byte[4096];
-	
+
 			final Manifest manifest = jf.getManifest();
 			if (manifest == null)
 				return false;
-	
+
 			final Enumeration<JarEntry> ent = jf.entries();
 			while (ent.hasMoreElements()) {
 				final JarEntry je = ent.nextElement();
@@ -52,10 +53,10 @@ public class HCVerify {
 				} finally {
 					is.close();
 				}
-	
+
 				if (je.isDirectory())
 					continue;
-	
+
 				final Certificate[] certs = je.getCertificates();
 				if ((certs == null) || (certs.length == 0)) {
 					if (!je.getName().startsWith("META-INF", 0))
@@ -68,16 +69,16 @@ public class HCVerify {
 							break;
 						}
 					}
-					
+
 					if (!signedByHC) {
 						return false;
 					}
 				}
 			}
-	
+
 			return true;
-		}catch (final Throwable e) {
-		}finally{
+		} catch (final Throwable e) {
+		} finally {
 			try {
 				jf.close();
 			} catch (final Throwable e) {
@@ -86,11 +87,12 @@ public class HCVerify {
 		return false;
 	}
 
-	public static X509Certificate getCert(){
-		final byte[] bs = {'h', 'c', '.', 'p', 'e', 'm'};
+	public static X509Certificate getCert() {
+		final byte[] bs = { 'h', 'c', '.', 'p', 'e', 'm' };
 		final String fileName = new String(bs);
-		final X509Certificate c = readPublicKeyFromPEM(new File(ResourceUtil.getBaseDir(), fileName));//注意：此方式不适合于Android服务器
-		if(c == null){
+		final X509Certificate c = readPublicKeyFromPEM(
+				new File(ResourceUtil.getBaseDir(), fileName));// 注意：此方式不适合于Android服务器
+		if (c == null) {
 			HCVerify.isPassVerify = false;
 		}
 		return c;

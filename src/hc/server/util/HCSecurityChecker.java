@@ -12,39 +12,40 @@ public class HCSecurityChecker implements SecurityChecker {
 	final HCEventQueue hcEventQueue = HCLimitSecurityManager.getHCEventQueue();
 	final ThreadGroup threadPoolToken = App.getRootThreadGroup();
 	final ArrayList<Thread> allowedThread = new ArrayList<Thread>(128);
-	
+
 	@Override
 	public final void check(final Object token) {
 		ThreadGroup g = null;
 		Thread currentThread = null;
 		boolean isEventDispatchThread = false;
-		if(token != null && token instanceof ThreadGroup){
-			g = (ThreadGroup)token;
-		}else{
+		if (token != null && token instanceof ThreadGroup) {
+			g = (ThreadGroup) token;
+		} else {
 			currentThread = Thread.currentThread();
-			
-			if(allowedThread.contains(currentThread)){//多线程下安全
+
+			if (allowedThread.contains(currentThread)) {// 多线程下安全
 				return;
 			}
-			
+
 			isEventDispatchThread = (currentThread == eventDispatchThread);
-			if(isEventDispatchThread){
+			if (isEventDispatchThread) {
 				final ContextSecurityConfig csc = hcEventQueue.currentConfig;
-				if(csc != null){
+				if (csc != null) {
 					g = csc.threadGroup;
-				}else{
+				} else {
 					g = threadPoolToken;
 				}
-			}else{
+			} else {
 				g = currentThread.getThreadGroup();
 			}
 		}
-		
-		if(ContextSecurityManager.getConfig(g) != null){
-			throw new HCSecurityException(HCLimitSecurityManager.HC_FAIL_TO_ACCESS_HOME_CENTER_NON_PUBLIC_API);
+
+		if (ContextSecurityManager.getConfig(g) != null) {
+			throw new HCSecurityException(
+					HCLimitSecurityManager.HC_FAIL_TO_ACCESS_HOME_CENTER_NON_PUBLIC_API);
 		}
-		
-		if(token == null && isEventDispatchThread == false){
+
+		if (token == null && isEventDispatchThread == false) {
 			synchronized (this) {
 				allowedThread.add(currentThread);
 			}
@@ -54,7 +55,7 @@ public class HCSecurityChecker implements SecurityChecker {
 	@Override
 	public final void resetFastCheckThreads() {
 		CCoreUtil.checkAccess();
-		
+
 		synchronized (this) {
 			allowedThread.clear();
 		}

@@ -14,21 +14,26 @@ public class ResGlobalLock {
 	final boolean isSessionWait;
 	final BooleanValue waitingLock;
 
-	public ResGlobalLock(final boolean isForSession, final J2SESession[] sessionGroup, final String lockType, final boolean isWaiting){
+	public ResGlobalLock(final boolean isForSession, final J2SESession[] sessionGroup,
+			final String lockType, final boolean isWaiting) {
 		this.isSessionWait = (isForSession && isWaiting);
 		this.sessionGroup = sessionGroup;
 		this.lockType = lockType;
 		this.isWaiting = isWaiting;
-		if(isWaiting) {
+		if (isWaiting) {
 			waitingLock = new BooleanValue();
-		}else {
+		} else {
 			waitingLock = null;
 		}
 	}
-	
-	public final boolean waitingResult() {
-		if(isWaiting) {
+
+	public final boolean waitingResult(final J2SESession coreSS) {
+		if (isWaiting) {
 			synchronized (waitingLock) {
+				if (coreSS != null) {
+					ServerUIUtil.checkLineOnForAPI(coreSS);
+				}
+				
 				try {
 					waitingLock.wait();
 				} catch (final InterruptedException e) {
@@ -36,48 +41,49 @@ public class ResGlobalLock {
 				}
 				return waitingLock.value;
 			}
-		}else {
+		} else {
 			return true;
 		}
 	}
-	
+
 	private boolean isSetNotifyResult;
-	
-	public final void notifyWaitStop(final J2SESession coreSS, final boolean isFromCancel, final boolean isFromLineOff) {
-		if(isWaiting == false) {
+
+	public final void notifyWaitStop(final J2SESession coreSS, final boolean isFromCancel,
+			final boolean isFromLineOff) {
+		if (isWaiting == false) {
 			return;
 		}
-	
-		if(isFromLineOff) {
-			for (int i = 0; i < sessionGroup.length; i++) {
-				final J2SESession one = sessionGroup[i];
-				if(one != coreSS) {
-					if(one.isExchangeStatus()) {
-						return;
+
+		synchronized (waitingLock) {
+			if (isFromLineOff) {
+				for (int i = 0; i < sessionGroup.length; i++) {
+					final J2SESession one = sessionGroup[i];
+					if (one != coreSS) {
+						if (one.isExchangeStatus()) {
+							return;
+						}
 					}
 				}
 			}
-		}
-		
-		synchronized (waitingLock) {
-			if(isSetNotifyResult == false) {
+
+			if (isSetNotifyResult == false) {
 				isSetNotifyResult = true;
-				
-				if(isSessionWait) {
+
+				if (isSessionWait) {
 					waitingLock.value = (isFromCancel == false);
-				}else {
+				} else {
 					waitingLock.value = (isFromLineOff == false);
 				}
 			}
 			waitingLock.notifyAll();
 		}
 	}
-	
-	private final void cancelOthers(final int questionID, final J2SESession processingSession){
+
+	private final void cancelOthers(final int questionID, final J2SESession processingSession) {
 		for (int i = 0; i < sessionGroup.length; i++) {
 			final J2SESession coreSS = sessionGroup[i];
-			if(coreSS != processingSession){
-				if(UserThreadResourceUtil.isInServing(coreSS.context)){
+			if (coreSS != processingSession) {
+				if (UserThreadResourceUtil.isInServing(coreSS.context)) {
 					ServerUIAPIAgent.removeQuestionDialogFromMap(coreSS, questionID, true, false);
 					dismiss(coreSS, questionID);
 				}
@@ -87,22 +93,23 @@ public class ResGlobalLock {
 
 	public final void dismiss(final J2SESession coreSS, final int questionID) {
 		final String[] para = { lockType };
-		final String[] values = {String.valueOf(questionID)};//注意：必须在外部转换
+		final String[] values = { String.valueOf(questionID) };// 注意：必须在外部转换
 		HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, para, values);
 	}
-	
-	public final boolean isProcessed(final J2SESession coreSS, final int id, final String processedMsg){
+
+	public final boolean isProcessed(final J2SESession coreSS, final int id,
+			final String processedMsg) {
 		synchronized (this) {
-			if(isProcessed){
-				final J2SESession[] coreSSS = {coreSS};
+			if (isProcessed) {
+				final J2SESession[] coreSSS = { coreSS };
 				ServerUIAPIAgent.sendMovingMsg(coreSSS, processedMsg);
-				
+
 				return true;
 			}
 			isProcessed = true;
 		}
-		
-		//撤消其它
+
+		// 撤消其它
 		cancelOthers(id, coreSS);
 		return false;
 	}

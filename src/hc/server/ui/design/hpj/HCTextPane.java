@@ -13,35 +13,36 @@ public abstract class HCTextPane extends JTextPane {
 	public long selectedWordsMS;
 	public boolean hasSelectedWords;
 	public SearchDialog searchDialog;
-	
-	public HCTextPane(){
+
+	public HCTextPane() {
 		this(new SelectWordAction());
 	}
-	
-	public HCTextPane(final Action action){
+
+	public HCTextPane(final Action action) {
 		super();
-		
-        getActionMap().put("select-word", action);
+
+		getActionMap().put("select-word", action);
 	}
-	
+
 	@Override
-	public final Color getBackground(){
-		if(settedBG != null){
+	public final Color getBackground() {
+		if (settedBG != null) {
 			return settedBG;
-		}else if(PropertiesManager.getValue(PropertiesManager.C_SKIN, "").equals(ResourceUtil.LF_NIMBUS)){
-        	return Color.WHITE;//to fix : getBackground() == Color.GRAY
-		}else{
+		} else if (PropertiesManager.getValue(PropertiesManager.C_SKIN, "")
+				.equals(ResourceUtil.LF_NIMBUS)) {
+			return Color.WHITE;// to fix : getBackground() == Color.GRAY
+		} else {
 			return super.getBackground();
 		}
 	}
-	
+
 	private Color settedBG;
-	
+
 	@Override
-	public final void setBackground(final Color c){
+	public final void setBackground(final Color c) {
 		settedBG = c;
 		super.setBackground(c);
 	}
-	
+
 	public abstract void refreshCurrLineAfterKey(final int line);
 }

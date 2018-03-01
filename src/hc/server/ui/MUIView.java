@@ -4,12 +4,11 @@ import hc.server.ui.design.J2SESession;
 
 import java.util.Vector;
 
-
 public abstract class MUIView {
 	public abstract void transMenuWithCache(final J2SESession coreSS);
-	
+
 	public abstract String buildJcip(final J2SESession coreSS, final Vector<MenuItem> menuItems);
-	
+
 	public MUIView() {
 		super();
 	}
@@ -18,7 +17,7 @@ public abstract class MUIView {
 		sb.append('\'');
 		sb.append(b);
 		sb.append('\'');
-		if(withDouhao){
+		if (withDouhao) {
 			sb.append(',');
 		}
 	}
@@ -27,14 +26,14 @@ public abstract class MUIView {
 		sb.append('\'');
 		sb.append(i);
 		sb.append('\'');
-		if(withDouhao){
+		if (withDouhao) {
 			sb.append(',');
 		}
 	}
 
 	public void appendString(final StringBuilder sb, final String title, final boolean withDouhao) {
 		JcipManager.appendStringItem(sb, title);
-		if(withDouhao){
+		if (withDouhao) {
 			sb.append(',');
 		}
 	}

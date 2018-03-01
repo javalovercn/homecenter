@@ -10,8 +10,9 @@ public class HCShareFileResource extends HPNode {
 		super(type, name);
 		this.ID = name;
 	}
-	
-	public HCShareFileResource(final int type, final String name, final File file) throws Throwable{
+
+	public HCShareFileResource(final int type, final String name, final File file)
+			throws Throwable {
 		this(type, name);
 		this.ID = String.valueOf(MenuManager.getNextNodeIdx());
 		content = loadContent(file);
@@ -20,8 +21,8 @@ public class HCShareFileResource extends HPNode {
 	String ID = "";
 	public byte[] content = null;
 	String ver = "0.0.1";
-	
-	public static byte[] loadContent(final File file) throws Throwable{
+
+	public static byte[] loadContent(final File file) throws Throwable {
 		try {
 			return HCjar.readFromInputStream(new FileInputStream(file));
 		} catch (final Exception e) {

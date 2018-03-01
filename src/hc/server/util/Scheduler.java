@@ -122,8 +122,8 @@ public final class Scheduler {
 			j2seSession.addScheduler(projectID, domainName);
 		} else {
 			// 有可能当前是session，所以需runAndWaitInProjContext
-			sched = (third.quartz.Scheduler) ServerUIAPIAgent.runAndWaitInProjContext(
-					projectContext, new ReturnableRunnable() {
+			sched = (third.quartz.Scheduler) ServerUIAPIAgent
+					.runAndWaitInProjContext(projectContext, new ReturnableRunnable() {
 						@Override
 						public Object run() throws Throwable {
 							return getScheduler(key, domainName, isAllInRAM, j2seSession);
@@ -379,7 +379,8 @@ public final class Scheduler {
 	// }
 
 	/**
-	 * Clears (deletes!) all scheduling data - all Jobs, Triggers Calendars. <BR>
+	 * Clears (deletes!) all scheduling data - all Jobs, Triggers Calendars.
+	 * <BR>
 	 * <BR>
 	 * if fail to clear, invoke {@link #getThrownException()} to get thrown
 	 * exception.
@@ -398,11 +399,13 @@ public final class Scheduler {
 	/**
 	 * Add (if exists then replace) the given <code>Job</code> to the scheduler.
 	 * The <code>Job</code> will be silent until it is scheduled with a
-	 * <code>Trigger</code> or <code>Scheduler.triggerJob()</code> is called. <BR>
+	 * <code>Trigger</code> or <code>Scheduler.triggerJob()</code> is called.
+	 * <BR>
 	 * <BR>
 	 * a job can be scheduled by multiple triggers. <BR>
 	 * <BR>
-	 * the added job is durable, see {@link #deleteTrigger(String)} for more. <BR>
+	 * the added job is durable, see {@link #deleteTrigger(String)} for more.
+	 * <BR>
 	 * <BR>
 	 * if fail to add job, invoke {@link #getThrownException()} to get thrown
 	 * exception.
@@ -423,7 +426,8 @@ public final class Scheduler {
 	}
 
 	/**
-	 * add (if exists then replace) a <code>Runnable</code> instance as a job. <BR>
+	 * add (if exists then replace) a <code>Runnable</code> instance as a job.
+	 * <BR>
 	 * <BR>
 	 * <STRONG>Note :</STRONG><BR>
 	 * 1. this method is valid only in AllInRAM scheduler, because the instance
@@ -449,7 +453,9 @@ public final class Scheduler {
 			// level thread, then fail.
 			// if(ProjectContext.isCurrentThreadInSessionLevel()){
 			// throw new
-			// SchedulerException("addJob(String jobKey, Runnable runnable) can't run in session level thread when it is project level scheduler.");
+			// SchedulerException("addJob(String jobKey, Runnable runnable)
+			// can't run in session level thread when it is project level
+			// scheduler.");
 			// }
 			// }
 			sched.addJob(buildJobDetail(jobKey, runnable, isDurable, jobShouldRecover), true);
@@ -471,8 +477,8 @@ public final class Scheduler {
 		final ArrayList<String> out = new ArrayList<String>(10);
 		try {
 			ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, null);
-			final Set<JobKey> jobKeys = sched.getJobKeys(GroupMatcher
-					.jobGroupEquals(JobKey.DEFAULT_GROUP));
+			final Set<JobKey> jobKeys = sched
+					.getJobKeys(GroupMatcher.jobGroupEquals(JobKey.DEFAULT_GROUP));
 			final Iterator<JobKey> it = jobKeys.iterator();
 			while (it.hasNext()) {
 				out.add(it.next().getName());
@@ -496,8 +502,8 @@ public final class Scheduler {
 		final ArrayList<String> out = new ArrayList<String>(10);
 		try {
 			ThreadConfig.putValue(ThreadConfig.SCHEDULER_THROWN_EXCEPTION, null);
-			final Set<TriggerKey> triggerKeys = sched.getTriggerKeys(GroupMatcher
-					.triggerGroupEquals(TriggerKey.DEFAULT_GROUP));
+			final Set<TriggerKey> triggerKeys = sched
+					.getTriggerKeys(GroupMatcher.triggerGroupEquals(TriggerKey.DEFAULT_GROUP));
 			final Iterator<TriggerKey> it = triggerKeys.iterator();
 			while (it.hasNext()) {
 				out.add(it.next().getName());
@@ -544,7 +550,8 @@ public final class Scheduler {
 	}
 
 	/**
-	 * Add (if exists then replace) the given <code>Job</code> to the scheduler. <BR>
+	 * Add (if exists then replace) the given <code>Job</code> to the scheduler.
+	 * <BR>
 	 * <BR>
 	 * if fail to add job, invoke {@link #getThrownException()} to get thrown
 	 * exception.
@@ -1313,8 +1320,8 @@ public final class Scheduler {
 			}
 			if (isCheckCalHC) {
 				if (calName.startsWith(SYS_RESERVED)) {
-					throw new IllegalArgumentException("Calendar name can't be begin with '"
-							+ SYS_RESERVED + "'.");
+					throw new IllegalArgumentException(
+							"Calendar name can't be begin with '" + SYS_RESERVED + "'.");
 				}
 			}
 			sched.addCalendar(calName, calendar, true, true);
@@ -1470,8 +1477,8 @@ public final class Scheduler {
 	 * associated, then it is equivalent to having an all-inclusive calendar. A
 	 * value of "5C" in the day-of-month field means "the first day included by
 	 * the calendar on or after the 5th". A value of "1C" in the day-of-week
-	 * field means
-	 * "the first day included by the calendar on or after Sunday".-->
+	 * field means "the first day included by the calendar on or after
+	 * Sunday".-->
 	 * <P>
 	 * The legal characters and the names of months and days of the week are not
 	 * case sensitive.
@@ -1487,8 +1494,8 @@ public final class Scheduler {
 	 * at night until 2 o'clock in the morning, or you might have NOV-FEB. It is
 	 * very important to note that overuse of overflowing ranges creates ranges
 	 * that don't make sense and no effort has been made to determine which
-	 * interpretation CronExpression chooses. An example would be
-	 * "0 0 14-6 ? * FRI-MON".</li>
+	 * interpretation CronExpression chooses. An example would be "0 0 14-6 ? *
+	 * FRI-MON".</li>
 	 * <li>The legal characters and the names of months and days of the week are
 	 * not case sensitive. <tt>MON</tt> is the same as <tt>mon</tt>.</li>
 	 * </ul>
@@ -1530,12 +1537,14 @@ public final class Scheduler {
 	 * </tr>
 	 * <tr>
 	 * <td><tt>0 * 14 * * ?</tt></td>
-	 * <td>Fire every minute starting at 2pm and ending at 2:59pm, every day</td>
+	 * <td>Fire every minute starting at 2pm and ending at 2:59pm, every
+	 * day</td>
 	 * </tr>
 	 * <tr>
 	 * <td><tt>0 0/5 14 * * ?</tt></td>
 	 * 
-	 * <td>Fire every 5 minutes starting at 2pm and ending at 2:55pm, every day</td>
+	 * <td>Fire every 5 minutes starting at 2pm and ending at 2:55pm, every
+	 * day</td>
 	 * </tr>
 	 * <tr>
 	 * <td><tt>0 0/5 14,18 * * ?</tt></td>
@@ -1545,11 +1554,13 @@ public final class Scheduler {
 	 * <tr>
 	 * <td><tt>0 0-5 14 * * ?</tt></td>
 	 * 
-	 * <td>Fire every minute starting at 2pm and ending at 2:05pm, every day</td>
+	 * <td>Fire every minute starting at 2pm and ending at 2:05pm, every
+	 * day</td>
 	 * </tr>
 	 * <tr>
 	 * <td><tt>0 10,44 14 ? 3 WED</tt></td>
-	 * <td>Fire at 2:10pm and at 2:44pm every Wednesday in the month of March.</td>
+	 * <td>Fire at 2:10pm and at 2:44pm every Wednesday in the month of
+	 * March.</td>
 	 * </tr>
 	 * <tr>
 	 * <td><tt>0 15 10 ? * MON-FRI</tt></td>
@@ -1764,8 +1775,8 @@ public final class Scheduler {
 			if (calName == null) {
 				throw new IllegalAccessException("Calendar name is null");
 			} else if (calName.startsWith(SYS_RESERVED)) {
-				throw new IllegalArgumentException("Calendar name can't be begin with '"
-						+ SYS_RESERVED + "'.");
+				throw new IllegalArgumentException(
+						"Calendar name can't be begin with '" + SYS_RESERVED + "'.");
 			}
 			return sched.deleteCalendar(calName);
 		} catch (final Throwable e) {

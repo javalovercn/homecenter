@@ -9,13 +9,13 @@ public class HCParameterizedType implements ParameterizedType {
 	private final Type[] actualTypes;
 	private final Type rawType;
 	private final Type ownType;
-	
-	public HCParameterizedType(final Type[] actualTypes, final Type rawType, final Type ownType){
+
+	public HCParameterizedType(final Type[] actualTypes, final Type rawType, final Type ownType) {
 		this.actualTypes = actualTypes;
 		this.rawType = rawType;
 		this.ownType = ownType;
 	}
-	
+
 	@Override
 	public Type[] getActualTypeArguments() {
 		return actualTypes;
@@ -30,16 +30,16 @@ public class HCParameterizedType implements ParameterizedType {
 	public Type getOwnerType() {
 		return ownType;
 	}
-	
+
 	@Override
-	public final String toString(){
+	public final String toString() {
 		final StringBuffer sb = StringBufferCacher.getFree();
-		if(rawType != null){
+		if (rawType != null) {
 			sb.append(ReturnType.getGenericReturnTypeDesc(rawType));
-			if(actualTypes != null){
+			if (actualTypes != null) {
 				sb.append("<");
 				for (int i = 0; i < actualTypes.length; i++) {
-					if(i > 0){
+					if (i > 0) {
 						sb.append(", ");
 					}
 					sb.append(ReturnType.getGenericReturnTypeDesc(actualTypes[i]));

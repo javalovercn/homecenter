@@ -4,34 +4,34 @@ import hc.core.util.ExceptionReporter;
 
 public abstract class StartableRunnable implements Runnable {
 	boolean isStarted = false;
-	
-	public void start(){
+
+	public void start() {
 		synchronized (this) {
-			if(isStarted == false){
+			if (isStarted == false) {
 				isStarted = true;
 				notify();
 			}
 		}
 	}
-	
+
 	@Override
 	public void run() {
 		synchronized (this) {
-			if(isStarted == false){
-				try{
+			if (isStarted == false) {
+				try {
 					wait();
-				}catch (final Exception e) {
+				} catch (final Exception e) {
 				}
 			}
 		}
-		
-		try{
+
+		try {
 			runAfterStart();
-		}catch (final Throwable e) {
+		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
 	}
-	
+
 	public abstract void runAfterStart();
 
 }

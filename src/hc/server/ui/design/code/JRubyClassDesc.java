@@ -8,65 +8,65 @@ import org.jrubyparser.ast.SClassNode;
 
 public class JRubyClassDesc {
 	private final ReturnType type;
-	
-	public JRubyClassDesc(final ReturnType type){
+
+	public JRubyClassDesc(final ReturnType type) {
 		this.type = type;
 	}
-	
-	public final boolean isJRubyStruct(){
+
+	public final boolean isJRubyStruct() {
 		return type.getType() == RubyHelper.JRUBY_STRUCT_CLASS;
 	}
-	
-	public final Class getClassForDoc(){
-		if(type != null){
+
+	public final Class getClassForDoc() {
+		if (type != null) {
 			return type.getRawClass();
-		}else{
+		} else {
 			return null;
 		}
 	}
-	
-	public final Class getClassForSuper(){
-		if(type != null){
+
+	public final Class getClassForSuper() {
+		if (type != null) {
 			return type.getRawClass();
-		}else{
+		} else {
 			return null;
 		}
 	}
-	
-	public final Class getClassForParameter(){
-		if(type != null){
+
+	public final Class getClassForParameter() {
+		if (type != null) {
 			return type.getRawClass();
-		}else{
+		} else {
 			return null;
 		}
 	}
-	
-	public final ReturnType getReturnType(){
+
+	public final ReturnType getReturnType() {
 		return type;
 	}
-	
+
 	@Override
-	public final String toString(){
+	public final String toString() {
 		return type.toString() + ", isInstance : " + isInstance;
 	}
-	
+
 	public boolean isInstance;
 	public boolean isInExtend;
 
 	public IterNode defIterNode;
-	public Vector<Class> include;//implements;
-	
-	public final boolean hasExtChain(){
+	public Vector<Class> include;// implements;
+
+	public final boolean hasExtChain() {
 		return type.isDefClass;
 	}
-	
-	public final void appendInterface(final Class claz){
-		if(include == null){
+
+	public final void appendInterface(final Class claz) {
+		if (include == null) {
 			include = new Vector<Class>(2);
 		}
 		include.add(claz);
 	}
-	
+
 	public SClassNode defSClassNode;
-	public CallNode innerDefNode;//to getIter
+	public CallNode innerDefNode;// to getIter
 }

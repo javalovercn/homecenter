@@ -5,10 +5,10 @@ import hc.core.ExecBiz;
 public abstract class AIExecBiz extends ExecBiz {
 	@Override
 	public final boolean watch() {
-		try{
+		try {
 			doBiz();
-		}catch (final Throwable e) {
-			e.printStackTrace();//不report
+		} catch (final Throwable e) {
+			e.printStackTrace();// 不report
 		}
 		return true;
 	}

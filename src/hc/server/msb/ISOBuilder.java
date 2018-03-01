@@ -9,23 +9,23 @@ import java.util.Iterator;
 public class ISOBuilder {
 	private static HashMap<String, Integer> map3166_1 = buildMap3166_1();
 	private static HashMap<Integer, String> reverse_map3166_1 = buildReverseMap3166_1(map3166_1);
-	
-	private static HashMap<Integer, String> buildReverseMap3166_1(HashMap<String, Integer> map){
+
+	private static HashMap<Integer, String> buildReverseMap3166_1(HashMap<String, Integer> map) {
 		Iterator<String> it = map.keySet().iterator();
-		
+
 		HashMap<Integer, String> outmap = new HashMap<Integer, String>(map.size());
-		
-		while(it.hasNext()){
+
+		while (it.hasNext()) {
 			String c = it.next();
 			outmap.put(map.get(c), c);
 		}
-		
+
 		return outmap;
 	}
-	
-	private static HashMap<String, Integer> buildMap3166_1(){
+
+	private static HashMap<String, Integer> buildMap3166_1() {
 		HashMap<String, Integer> map = new HashMap<String, Integer>();
-		
+
 		map.put("Andorra", 20);
 		map.put("United Arab Emirates", 784);
 		map.put("Afghanistan", 4);
@@ -273,31 +273,32 @@ public class ISOBuilder {
 		map.put("South Africa", 710);
 		map.put("Zambia", 894);
 		map.put("Zimbabwe", 716);
-		
+
 		return map;
 	}
 
-	public static String getDevCountryDesc(final int dev_country){
+	public static String getDevCountryDesc(final int dev_country) {
 		String c = reverse_map3166_1.get(dev_country);
-		if(c != null){
+		if (c != null) {
 			return c;
 		}
 		return "";
 	}
 
-	public static String getDevTypeDesc(final int dev_hscode){
+	public static String getDevTypeDesc(final int dev_hscode) {
 		return "";
 	}
-	
+
 	/**
-	 *www.foreign-trade.com/reference/hscode.cfm?cat=13
+	 * www.foreign-trade.com/reference/hscode.cfm?cat=13
+	 * 
 	 * @return
 	 */
-	private static HashMap<Integer, String> buildHSCode(){
+	private static HashMap<Integer, String> buildHSCode() {
 		HashMap<Integer, String> map = new HashMap<Integer, String>();
-		
+
 		map.put(8501, "electric motors and generators");
-		
+
 		return map;
 	}
 }

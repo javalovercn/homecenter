@@ -9,9 +9,9 @@ public class J2SEConstant extends IConstant {
 
 	@Override
 	public int getInt(final String p) {
-		if(p.equals(IConstant.RelayMax)){
+		if (p.equals(IConstant.RelayMax)) {
 			return 1024;
-		}else if(p.equals(IConstant.IS_J2ME)){
+		} else if (p.equals(IConstant.IS_J2ME)) {
 			return 0;
 		}
 		return 20;
@@ -19,28 +19,27 @@ public class J2SEConstant extends IConstant {
 
 	@Override
 	public Object getObject(final String p) {
-		if(p.equals(IConstant.CertKey)){
+		if (p.equals(IConstant.CertKey)) {
 			byte[] keys = null;
 			final String ck = PropertiesManager.getValue(PropertiesManager.p_CertKey);
-			if(ck == null){
+			if (ck == null) {
 				keys = CUtil.INI_CERTKEY.getBytes();
-			}else{
+			} else {
 				keys = ByteUtil.decodeBase64(ck);
 			}
 			return keys;
-		}else{
+		} else {
 			return PropertiesManager.getValue(p);
 		}
 	}
 
 	@Override
 	public void setObject(final String key, final Object value) {
-		if(key.equals(IConstant.CertKey)){
-			PropertiesManager.updateCertKey((byte[])value);
+		if (key.equals(IConstant.CertKey)) {
+			PropertiesManager.updateCertKey((byte[]) value);
 			PropertiesManager.saveFile();
 			return;
 		}
 	}
-
 
 }

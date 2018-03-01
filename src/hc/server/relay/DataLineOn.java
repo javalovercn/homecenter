@@ -15,8 +15,8 @@ public class DataLineOn {
 	public int serverNum = 0;
 	public String hideToken;
 	public long alive = System.currentTimeMillis();
-	
-	public int getLenid(){
+
+	public int getLenid() {
 		return id.length();
 	}
 }

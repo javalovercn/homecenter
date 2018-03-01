@@ -72,7 +72,7 @@ public class RootTagEventHCListener extends IEventHCListener{
 			}
 			LogManager.err(sameIDMsg);
 			coreSS.context.displayMessage(false, "Error", sameIDMsg, 
-					IContext.ERROR, null, 0);
+					IConstant.ERROR, null, 0);
 			return true;
 		}else if(subTag == MsgBuilder.DATA_ROOT_UDP_PORT_NOTIFY){
 			int port = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);

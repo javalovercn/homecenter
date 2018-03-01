@@ -39,183 +39,195 @@ SOFTWARE.
  * 
  * In a nutshell, JSONPointer allows the user to navigate into a JSON document
  * using strings, and retrieve targeted objects, like a simple form of XPATH.
- * Path segments are separated by the '/' char, which signifies the root of
- * the document when it appears as the first char of the string. Array 
- * elements are navigated using ordinals, counting from 0. JSONPointer strings
- * may be extended to any arbitrary number of segments. If the navigation
- * is successful, the matched item is returned. A matched item may be a
- * JSONObject, a JSONArray, or a JSON value. If the JSONPointer string building 
- * fails, an appropriate exception is thrown. If the navigation fails to find
- * a match, a JSONPointerException is thrown. 
+ * Path segments are separated by the '/' char, which signifies the root of the
+ * document when it appears as the first char of the string. Array elements are
+ * navigated using ordinals, counting from 0. JSONPointer strings may be
+ * extended to any arbitrary number of segments. If the navigation is
+ * successful, the matched item is returned. A matched item may be a JSONObject,
+ * a JSONArray, or a JSON value. If the JSONPointer string building fails, an
+ * appropriate exception is thrown. If the navigation fails to find a match, a
+ * JSONPointerException is thrown.
  * 
  * @author JSON.org
  * @version 2016-05-14
  */
 public class JSONPointer {
 
-    // used for URL encoding and decoding
-    private static final String ENCODING = "utf-8";
+	// used for URL encoding and decoding
+	private static final String ENCODING = "utf-8";
 
-    /**
-     * Static factory method for {@link JSONPointerBuilder}. Example usage:
-     * 
-     * <pre><code>
-     * JSONPointer pointer = JSONPointer.builder()
-     *       .append("obj")
-     *       .append("other~key").append("another/key")
-     *       .append("\"")
-     *       .append(0)
-     *       .build();
-     * </code></pre>
-     * 
-     *  @return a builder instance which can be used to construct a {@code JSONPointer} instance by chained
-     *  {@link JSONPointerBuilder#append(String)} calls.
-     */
-    public static JSONPointerBuilder builder() {
-        return new JSONPointerBuilder();
-    }
+	/**
+	 * Static factory method for {@link JSONPointerBuilder}. Example usage:
+	 * 
+	 * <pre>
+	 * <code>
+	 * JSONPointer pointer = JSONPointer.builder()
+	 *       .append("obj")
+	 *       .append("other~key").append("another/key")
+	 *       .append("\"")
+	 *       .append(0)
+	 *       .build();
+	 * </code>
+	 * </pre>
+	 * 
+	 * @return a builder instance which can be used to construct a
+	 *         {@code JSONPointer} instance by chained
+	 *         {@link JSONPointerBuilder#append(String)} calls.
+	 */
+	public static JSONPointerBuilder builder() {
+		return new JSONPointerBuilder();
+	}
 
-    // Segments for the JSONPointer string
-    private final List<String> refTokens;
+	// Segments for the JSONPointer string
+	private final List<String> refTokens;
 
-    /**
-     * Pre-parses and initializes a new {@code JSONPointer} instance. If you want to
-     * evaluate the same JSON Pointer on different JSON documents then it is recommended
-     * to keep the {@code JSONPointer} instances due to performance considerations.
-     * 
-     * @param pointer the JSON String or URI Fragment representation of the JSON pointer.
-     * @throws IllegalArgumentException if {@code pointer} is not a valid JSON pointer
-     */
-    public JSONPointer(final String pointer) {
-        if (pointer == null) {
-            throw new NullPointerException("pointer cannot be null");
-        }
-        if (pointer.isEmpty() || pointer.equals("#")) {
-            this.refTokens = Collections.emptyList();
-            return;
-        }
-        String refs;
-        if (pointer.startsWith("#/")) {
-            refs = pointer.substring(2);
-            try {
-                refs = URLDecoder.decode(refs, ENCODING);
-            } catch (final UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
-            }
-        } else if (pointer.startsWith("/")) {
-            refs = pointer.substring(1);
-        } else {
-            throw new IllegalArgumentException("a JSON pointer should start with '/' or '#/'");
-        }
-        this.refTokens = new ArrayList<String>();
-        for (final String token : refs.split("/")) {
-            this.refTokens.add(unescape(token));
-        }
-    }
+	/**
+	 * Pre-parses and initializes a new {@code JSONPointer} instance. If you
+	 * want to evaluate the same JSON Pointer on different JSON documents then
+	 * it is recommended to keep the {@code JSONPointer} instances due to
+	 * performance considerations.
+	 * 
+	 * @param pointer
+	 *            the JSON String or URI Fragment representation of the JSON
+	 *            pointer.
+	 * @throws IllegalArgumentException
+	 *             if {@code pointer} is not a valid JSON pointer
+	 */
+	public JSONPointer(final String pointer) {
+		if (pointer == null) {
+			throw new NullPointerException("pointer cannot be null");
+		}
+		if (pointer.isEmpty() || pointer.equals("#")) {
+			this.refTokens = Collections.emptyList();
+			return;
+		}
+		String refs;
+		if (pointer.startsWith("#/")) {
+			refs = pointer.substring(2);
+			try {
+				refs = URLDecoder.decode(refs, ENCODING);
+			} catch (final UnsupportedEncodingException e) {
+				throw new RuntimeException(e);
+			}
+		} else if (pointer.startsWith("/")) {
+			refs = pointer.substring(1);
+		} else {
+			throw new IllegalArgumentException("a JSON pointer should start with '/' or '#/'");
+		}
+		this.refTokens = new ArrayList<String>();
+		for (final String token : refs.split("/")) {
+			this.refTokens.add(unescape(token));
+		}
+	}
 
-    public JSONPointer(final List<String> refTokens) {
-        this.refTokens = new ArrayList<String>(refTokens);
-    }
+	public JSONPointer(final List<String> refTokens) {
+		this.refTokens = new ArrayList<String>(refTokens);
+	}
 
-    private String unescape(final String token) {
-        return token.replace("~1", "/").replace("~0", "~")
-                .replace("\\\"", "\"")
-                .replace("\\\\", "\\");
-    }
+	private String unescape(final String token) {
+		return token.replace("~1", "/").replace("~0", "~").replace("\\\"", "\"").replace("\\\\",
+				"\\");
+	}
 
-    /**
-     * Evaluates this JSON Pointer on the given {@code document}. The {@code document}
-     * is usually a {@link JSONObject} or a {@link JSONArray} instance, but the empty
-     * JSON Pointer ({@code ""}) can be evaluated on any JSON values and in such case the
-     * returned value will be {@code document} itself. 
-     * 
-     * @param document the JSON document which should be the subject of querying.
-     * @return the result of the evaluation
-     * @throws JSONPointerException if an error occurs during evaluation
-     */
-    public Object queryFrom(final Object document) {
-        if (this.refTokens.isEmpty()) {
-            return document;
-        }
-        Object current = document;
-        for (final String token : this.refTokens) {
-            if (current instanceof JSONObject) {
-                current = ((JSONObject) current).opt(unescape(token));
-            } else if (current instanceof JSONArray) {
-                current = readByIndexToken(current, token);
-            } else {
-                throw new JSONPointerException(format(
-                        "value [%s] is not an array or object therefore its key %s cannot be resolved", current,
-                        token));
-            }
-        }
-        return current;
-    }
+	/**
+	 * Evaluates this JSON Pointer on the given {@code document}. The
+	 * {@code document} is usually a {@link JSONObject} or a {@link JSONArray}
+	 * instance, but the empty JSON Pointer ({@code ""}) can be evaluated on any
+	 * JSON values and in such case the returned value will be {@code document}
+	 * itself.
+	 * 
+	 * @param document
+	 *            the JSON document which should be the subject of querying.
+	 * @return the result of the evaluation
+	 * @throws JSONPointerException
+	 *             if an error occurs during evaluation
+	 */
+	public Object queryFrom(final Object document) {
+		if (this.refTokens.isEmpty()) {
+			return document;
+		}
+		Object current = document;
+		for (final String token : this.refTokens) {
+			if (current instanceof JSONObject) {
+				current = ((JSONObject) current).opt(unescape(token));
+			} else if (current instanceof JSONArray) {
+				current = readByIndexToken(current, token);
+			} else {
+				throw new JSONPointerException(format(
+						"value [%s] is not an array or object therefore its key %s cannot be resolved",
+						current, token));
+			}
+		}
+		return current;
+	}
 
-    /**
-     * Matches a JSONArray element by ordinal position
-     * @param current the JSONArray to be evaluated
-     * @param indexToken the array index in string form
-     * @return the matched object. If no matching item is found a
-     * JSONPointerException is thrown
-     */
-    @SuppressWarnings("boxing")
-    private Object readByIndexToken(final Object current, final String indexToken) {
-        try {
-            final int index = Integer.parseInt(indexToken);
-            final JSONArray currentArr = (JSONArray) current;
-            if (index >= currentArr.length()) {
-                throw new JSONPointerException(format("index %d is out of bounds - the array has %d elements", index,
-                        currentArr.length()));
-            }
-            return currentArr.get(index);
-        } catch (final NumberFormatException e) {
-            throw new JSONPointerException(format("%s is not an array index", indexToken), e);
-        }
-    }
+	/**
+	 * Matches a JSONArray element by ordinal position
+	 * 
+	 * @param current
+	 *            the JSONArray to be evaluated
+	 * @param indexToken
+	 *            the array index in string form
+	 * @return the matched object. If no matching item is found a
+	 *         JSONPointerException is thrown
+	 */
+	@SuppressWarnings("boxing")
+	private Object readByIndexToken(final Object current, final String indexToken) {
+		try {
+			final int index = Integer.parseInt(indexToken);
+			final JSONArray currentArr = (JSONArray) current;
+			if (index >= currentArr.length()) {
+				throw new JSONPointerException(
+						format("index %d is out of bounds - the array has %d elements", index,
+								currentArr.length()));
+			}
+			return currentArr.get(index);
+		} catch (final NumberFormatException e) {
+			throw new JSONPointerException(format("%s is not an array index", indexToken), e);
+		}
+	}
 
-    /**
-     * Returns a string representing the JSONPointer path value using string
-     * representation
-     */
-    @Override
-    public String toString() {
-        final StringBuilder rval = new StringBuilder("");
-        for (final String token: this.refTokens) {
-            rval.append('/').append(escape(token));
-        }
-        return rval.toString();
-    }
+	/**
+	 * Returns a string representing the JSONPointer path value using string
+	 * representation
+	 */
+	@Override
+	public String toString() {
+		final StringBuilder rval = new StringBuilder("");
+		for (final String token : this.refTokens) {
+			rval.append('/').append(escape(token));
+		}
+		return rval.toString();
+	}
 
-    /**
-     * Escapes path segment values to an unambiguous form.
-     * The escape char to be inserted is '~'. The chars to be escaped 
-     * are ~, which maps to ~0, and /, which maps to ~1. Backslashes
-     * and double quote chars are also escaped.
-     * @param token the JSONPointer segment value to be escaped
-     * @return the escaped value for the token
-     */
-    private String escape(final String token) {
-        return token.replace("~", "~0")
-                .replace("/", "~1")
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"");
-    }
+	/**
+	 * Escapes path segment values to an unambiguous form. The escape char to be
+	 * inserted is '~'. The chars to be escaped are ~, which maps to ~0, and /,
+	 * which maps to ~1. Backslashes and double quote chars are also escaped.
+	 * 
+	 * @param token
+	 *            the JSONPointer segment value to be escaped
+	 * @return the escaped value for the token
+	 */
+	private String escape(final String token) {
+		return token.replace("~", "~0").replace("/", "~1").replace("\\", "\\\\").replace("\"",
+				"\\\"");
+	}
 
-    /**
-     * Returns a string representing the JSONPointer path value using URI
-     * fragment identifier representation
-     */
-    public String toURIFragment() {
-        try {
-            final StringBuilder rval = new StringBuilder("#");
-            for (final String token : this.refTokens) {
-                rval.append('/').append(URLEncoder.encode(token, ENCODING));
-            }
-            return rval.toString();
-        } catch (final UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-    
+	/**
+	 * Returns a string representing the JSONPointer path value using URI
+	 * fragment identifier representation
+	 */
+	public String toURIFragment() {
+		try {
+			final StringBuilder rval = new StringBuilder("#");
+			for (final String token : this.refTokens) {
+				rval.append('/').append(URLEncoder.encode(token, ENCODING));
+			}
+			return rval.toString();
+		} catch (final UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 }

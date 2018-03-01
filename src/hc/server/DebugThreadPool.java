@@ -14,25 +14,27 @@ public class DebugThreadPool extends AppThreadPool {
 	protected HashMap<RecycleThread, Long> outList;
 	protected HashMap<RecycleThread, Thread> outStack;
 	Thread t = buildPrintThread();
-	
-	private Thread buildPrintThread(){
-		final Thread t = new Thread(){
+
+	private Thread buildPrintThread() {
+		final Thread t = new Thread() {
 			@Override
-			public void run(){
-				while(true){
-					try{
+			public void run() {
+				while (true) {
+					try {
 						Thread.sleep(10000);
-					}catch (final Exception e) {
+					} catch (final Exception e) {
 					}
-					
+
 					synchronized (RecycleThread.class) {
 						final int size = outList.size();
-						if(size > 0){
+						if (size > 0) {
 							final Iterator<RecycleThread> it = outList.keySet().iterator();
-							System.out.println("-----------------un-recycle thread (reported by DebugThreadPool.class). to disable this, remove program argument : debugThreadPoolOn-------------------");
-							while(it.hasNext()){
+							System.out.println(
+									"-----------------un-recycle thread (reported by DebugThreadPool.class). to disable this, remove program argument : debugThreadPoolOn-------------------");
+							while (it.hasNext()) {
 								final RecycleThread rt = it.next();
-								System.out.println(rt.toString() + " out time MS:" + (System.currentTimeMillis() - outList.get(rt)));
+								System.out.println(rt.toString() + " out time MS:"
+										+ (System.currentTimeMillis() - outList.get(rt)));
 								final Thread thread = outStack.get(rt);
 								final StackTraceElement[] ste = thread.getStackTrace();
 								final int steSize = ste.length;
@@ -40,7 +42,8 @@ public class DebugThreadPool extends AppThreadPool {
 									System.out.println("  \tat " + ste[i]);
 								}
 							}
-							System.out.println("------------------------------------------------------------");
+							System.out.println(
+									"------------------------------------------------------------");
 						}
 					}
 				}
@@ -50,14 +53,14 @@ public class DebugThreadPool extends AppThreadPool {
 		t.start();
 		return t;
 	}
-	
+
 	@Override
-	public final RecycleThread buildRecycleThread(final ThreadPool pool){
-		return new RecycleThread(pool){
+	public final RecycleThread buildRecycleThread(final ThreadPool pool) {
+		return new RecycleThread(pool) {
 			@Override
-			public final void setRunnable(final Runnable r){
+			public final void setRunnable(final Runnable r) {
 				synchronized (RecycleThread.class) {
-					if(outList == null){
+					if (outList == null) {
 						outList = new HashMap<RecycleThread, Long>();
 						outStack = new HashMap<RecycleThread, Thread>();
 					}
@@ -66,10 +69,12 @@ public class DebugThreadPool extends AppThreadPool {
 				}
 				super.setRunnable(r);
 			}
-			
+
 			@Override
-			public void notifyBack(){
-//				System.out.println("ThreadPool <- : " + this.toString() + " out time : " + (System.currentTimeMillis() - outList.get(this)));
+			public void notifyBack() {
+				// System.out.println("ThreadPool <- : " + this.toString() + "
+				// out time : " + (System.currentTimeMillis() -
+				// outList.get(this)));
 				synchronized (RecycleThread.class) {
 					outList.remove(this);
 					outStack.remove(this);
@@ -77,9 +82,9 @@ public class DebugThreadPool extends AppThreadPool {
 			}
 		};
 	}
-	
+
 	@Override
-	protected final void checkAccessPool(final Object token){
+	protected final void checkAccessPool(final Object token) {
 		CCoreUtil.checkAccess(token);
 	}
 }

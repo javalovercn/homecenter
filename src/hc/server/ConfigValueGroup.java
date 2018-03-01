@@ -11,85 +11,85 @@ public class ConfigValueGroup {
 	final Vector<ConfigValue> values = new Vector<ConfigValue>();
 	boolean isCancelApply = false;
 
-	ConfigValueGroup(final ConfigPane pane){
+	ConfigValueGroup(final ConfigPane pane) {
 		this.configPane = pane;
 	}
-	
-	public String getValueForApply(final String key){
+
+	public String getValueForApply(final String key) {
 		final int size = values.size();
 		for (int i = 0; i < size; i++) {
 			final ConfigValue cv = values.elementAt(i);
-			if(cv.key != null && cv.key.equals(key)){
-				if(isCancelApply == false){
+			if (cv.key != null && cv.key.equals(key)) {
+				if (isCancelApply == false) {
 					return cv.getNewValue();
-				}else{
+				} else {
 					return cv.getOldValue();
 				}
 			}
 		}
 		return null;
 	}
-	
-	public final void doSaveUI(){
-		try{
+
+	public final void doSaveUI() {
+		try {
 			applyAll(ConfigPane.OPTION_OK_BEFORE_SAVE);
-		}catch (final Exception e) {
+		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}
-		
-		if(configPane.isNeedShutdownAndRestart){
-			ConfigPane.rebuildConnection(null);//configPane
+
+		if (configPane.isNeedShutdownAndRestart) {
+			ConfigPane.rebuildConnection(null);// configPane
 		}
-		
+
 		final int size = values.size();
 		for (int i = 0; i < size; i++) {
 			final ConfigValue cv = values.elementAt(i);
 			final String key = cv.key;
 			final String newValue = cv.getNewValue();
-			if(key != null && newValue != null){
+			if (key != null && newValue != null) {
 				PropertiesManager.setValue(key, newValue);
 			}
 		}
-		PropertiesManager.saveFile();//注意：本逻辑要置于applyAll之后，因为applyAll有可以修改其它配置项
-		
-		try{
+		PropertiesManager.saveFile();// 注意：本逻辑要置于applyAll之后，因为applyAll有可以修改其它配置项
+
+		try {
 			applyAll(ConfigPane.OPTION_OK_SAVE_DONE);
-		}catch (final Exception e) {
+		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 		}
-		
+
 		dispose();
-		
+
 		SafeDataManager.startSafeBackupProcess(true, false);
 	}
-	
-	private void dispose(){
+
+	private void dispose() {
 		values.removeAllElements();
 		isCancelApply = false;
 	}
-	
-	public void applyAll(final int option){
+
+	public void applyAll(final int option) {
 		final int size = values.size();
 		for (int i = 0; i < size; i++) {
 			values.elementAt(i).applyBiz(option);
 		}
 	}
-	
-	public void doCancel(){
+
+	public void doCancel() {
 		isCancelApply = true;
-		
+
 		final int size = values.size();
 		for (int i = 0; i < size; i++) {
 			final ConfigValue cv = values.elementAt(i);
 			final String key = cv.key;
 			final String oldValue = cv.getOldValue();
-			if(key != null && oldValue != null){
+			if (key != null && oldValue != null) {
 				PropertiesManager.setValue(key, oldValue);
 			}
 		}
-		
+
 		applyAll(ConfigPane.OPTION_CANCEL);
-		
+
 		dispose();
 	}
 }

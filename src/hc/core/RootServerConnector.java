@@ -1,5 +1,6 @@
 package hc.core;
 
+import hc.core.sip.SIPManager;
 import hc.core.util.ByteUtil;
 import hc.core.util.CCoreUtil;
 import hc.core.util.HCURLUtil;
@@ -8,6 +9,7 @@ import hc.core.util.LogManager;
 import hc.core.util.RootBuilder;
 import hc.core.util.StringBufferCacher;
 import hc.core.util.StringUtil;
+import hc.core.util.UIUtil;
 import hc.core.util.URLEncoder;
 
 import java.util.Hashtable;
@@ -76,7 +78,6 @@ public class RootServerConnector {
 //	"f=rootcfg"
 	public final static String rootcfg_STR = unObfuscate("=fortofcg");
 //	"f=lineoff&"
-	final static String mobiLineIn_STR = unObfuscate("=fomibiLennI&");
 	final static String lineoff_STR = unObfuscate("=filenfo&f");
 //	"f=alive&"
 	final static String alive_STR = unObfuscate("=flavi&e");
@@ -402,12 +403,19 @@ public class RootServerConnector {
 				ENCRYPTER_STR + "true");
 		
 		if(msg == null || msg.length() == 0){
+			if(RootConfig.isFailToGetAliveRootCfg()){
+				final String relayDisable = UIUtil.getUIString("1035", "Off-Line mode, net relay is not available!");
+				RootBuilder.getInstance().doBiz(RootBuilder.ROOT_SPEAK_VOICE, relayDisable);
+				LogManager.info(relayDisable);
+			}
 			final String lastAlive = (String)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_LAST_ALIVE_IP_INFO, null);
 			if(lastAlive != null){
+				LogManager.info(UIUtil.getUIString("m130", "line off, try last connection."));//仅在离线信息时，
 				LogManager.errToLog("fail to get alive IP/Port, use last saved alive IP/Port!!!");
 				msg = lastAlive;
 			}
 		}else{
+			SIPManager.infoServerOnline();
 			RootBuilder.getInstance().doBiz(RootBuilder.ROOT_SET_LAST_ALIVE_IP_INFO, msg);
 		}
 		
@@ -602,16 +610,16 @@ public class RootServerConnector {
 	 * 下线或成功接入客户机时，调用此方法，以减少服务器的数据量
 	 * @param token
 	 */
-	public static String delLineInfo(String token, boolean isMobileLineIn) {
+	public static String delLineInfo(String token) {
 		if(IConstant.uuid == null){
 			return "";
 		}
 		
-		return delLineInfo(IConstant.uuid, token, isMobileLineIn);
+		return delLineInfo(IConstant.uuid, token);
 	}
 	
-	public static String delLineInfo(String uuid, String token, boolean isMobileLineIn) {
-		String lineOffStr = (isMobileLineIn?mobiLineIn_STR:lineoff_STR);
+	public static String delLineInfo(String uuid, String token) {
+		String lineOffStr = lineoff_STR;
 		return retry(CALL_STR +
 				lineOffStr +
 				ID_STR + encryptePara(uuid, token) + "&" +

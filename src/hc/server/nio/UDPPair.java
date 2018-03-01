@@ -23,57 +23,57 @@ public class UDPPair {
 		@Override
 		public ByteBuffer buildOne() {
 			return ByteBuffer.allocateDirect(
-				RootConfig.getInstance().getIntProperty(RootConfig.p_DefaultUDPSize));
+					RootConfig.getInstance().getIntProperty(RootConfig.p_DefaultUDPSize));
 		}
 	};
 	private final static Stack pareCache = new Stack();
-	
-	public static UDPPair getOneInstance(){
-		if(pareCache.isEmpty()){
+
+	public static UDPPair getOneInstance() {
+		if (pareCache.isEmpty()) {
 			return new UDPPair();
-		}else{
-			return (UDPPair)pareCache.pop();
+		} else {
+			return (UDPPair) pareCache.pop();
 		}
 	}
-	
+
 	public UDPPair target;
-	
-	public void reset(){
+
+	public void reset() {
 		port = 0;
 		addr = null;
-		
-		if(selectionKey != null){
-			try{
+
+		if (selectionKey != null) {
+			try {
 				selectionKey.cancel();
-			}catch (final Exception e) {
-				
+			} catch (final Exception e) {
+
 			}
 			selectionKey = null;
 		}
-		
-		if(channel != null){
-			try{
+
+		if (channel != null) {
+			try {
 				channel.disconnect();
-			}catch (final Exception e) {
+			} catch (final Exception e) {
 				LogManager.log("Fail disconnect udp channel");
 				ExceptionReporter.printStackTrace(e);
 			}
-			try{
+			try {
 				channel.close();
-			}catch (final Exception e) {
-				
+			} catch (final Exception e) {
+
 			}
 			channel = null;
 		}
-		
+
 		bbCache.cycleSet(writeToBackSet);
-		
-		if(target != null){
+
+		if (target != null) {
 			final UDPPair temp = target;
-			
+
 			target.target = null;
 			target = null;
-			
+
 			temp.reset();
 		}
 		pareCache.push(this);

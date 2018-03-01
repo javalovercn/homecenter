@@ -14,17 +14,17 @@ import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 
 public class J2SERecordWriterBuilder extends RecordWriterBuilder {
-	public J2SERecordWriterBuilder(){
+	public J2SERecordWriterBuilder() {
 		super(null);
 	}
-	
+
 	@Override
-	public RecordWriter openRecordStore(final String rmsName, final boolean createIfNecessary) throws Exception {
+	public RecordWriter openRecordStore(final String rmsName, final boolean createIfNecessary)
+			throws Exception {
 		return new J2SERMSRecordWriter(getFileForRMS(getTableRealName(rmsName)), rmsName);
 	}
 
-	public RandomAccessFile getFileForRMS(final String rmsName)
-			throws FileNotFoundException {
+	public RandomAccessFile getFileForRMS(final String rmsName) throws FileNotFoundException {
 		return new RandomAccessFile(getRMSFile(rmsName), "rw");
 	}
 
@@ -36,14 +36,14 @@ public class J2SERecordWriterBuilder extends RecordWriterBuilder {
 	public void deleteRecordStore(final String rmsName) throws Exception {
 		final String tableRealName = getTableRealName(rmsName);
 		super.deleteRecordStore(tableRealName);
-		
+
 		final File rmsFile = getRMSFile(tableRealName);
-		if(rmsFile.delete() == false){
+		if (rmsFile.delete() == false) {
 			LogManager.errToLog("fail to deleteRecordStore : " + rmsFile.getAbsolutePath());
-//			rmsFile.deleteOnExit();//注：不能使用PropertiesManager.addDeleteDir，因为可能被使用
+			// rmsFile.deleteOnExit();//注：不能使用PropertiesManager.addDeleteDir，因为可能被使用
 		}
 	}
-	
+
 	@Override
 	public void deleterCacheDir() {
 		ResourceUtil.clearDir(StoreDirManager.RMS_DIR);

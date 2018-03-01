@@ -10,43 +10,43 @@ import javax.swing.JFrame;
 public class HCJFrame extends JFrame {
 	private DisposeListener listener;
 	private final boolean withoutHC;
-	
-	public HCJFrame(){
+
+	public HCJFrame() {
 		this("", false);
 	}
-	
-	public HCJFrame(final String title, final boolean withoutHC){
+
+	public HCJFrame(final String title, final boolean withoutHC) {
 		super(title);
 		this.withoutHC = withoutHC;
-		
+
 		setTitle(title);
 		CCoreUtil.checkAccess();
 		setIconImage(App.SYS_LOGO);
 	}
-	
-	public HCJFrame(final String title){
+
+	public HCJFrame(final String title) {
 		this(title, false);
 	}
-	
+
 	@Override
 	public final void setTitle(String title) {
-		if(withoutHC == false){
+		if (withoutHC == false) {
 			final String product = ResourceUtil.getProductName();
-			title = (title.indexOf(product) >= 0)?title:title + " - " + product;
+			title = (title.indexOf(product) >= 0) ? title : title + " - " + product;
 		}
 		super.setTitle(title);
 	}
-	
+
 	@Override
-	public void dispose(){
+	public void dispose() {
 		super.dispose();
-		if(listener != null){
+		if (listener != null) {
 			listener.dispose();
 		}
 	}
-	
-	public final void setDisposeListener(final DisposeListener dListener){
-		if(listener != null){
+
+	public final void setDisposeListener(final DisposeListener dListener) {
+		if (listener != null) {
 			final DisposeListener oldListener = listener;
 			listener = new DisposeListener() {
 				@Override
@@ -55,7 +55,7 @@ public class HCJFrame extends JFrame {
 					dListener.dispose();
 				}
 			};
-		}else{
+		} else {
 			listener = dListener;
 		}
 	}

@@ -9,5 +9,5 @@ public class QuartzJRubyJob extends QuartzJob {
 	public void executeByMap(final JobDataMap map) throws JobExecutionException {
 		ProjectContext.getProjectContext().eval(getJobScripts(map));
 	}
-	
+
 }

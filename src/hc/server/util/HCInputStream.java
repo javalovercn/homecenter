@@ -8,21 +8,22 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 
 public class HCInputStream extends DataInputStream {
-	HCInputStream(final InputStream is){
+	HCInputStream(final InputStream is) {
 		super(is);
 	}
-	
+
 	/**
 	 * true means successful save stream to file.
+	 * 
 	 * @param file
 	 * @return
 	 */
-	public final boolean saveTo(final File file){
+	public final boolean saveTo(final File file) {
 		FileOutputStream fos = null;
 		final byte[] bytes = ByteUtil.byteArrayCacher.getFree(1024);
-		try{
+		try {
 			final File parent = file.getParentFile();
-			if(parent != null){
+			if (parent != null) {
 				parent.mkdirs();
 			}
 			fos = new FileOutputStream(file);
@@ -33,12 +34,12 @@ public class HCInputStream extends DataInputStream {
 			}
 			fos.flush();
 			return true;
-		}catch (final Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
-		}finally{
-			try{
+		} finally {
+			try {
 				fos.close();
-			}catch (final Exception e) {
+			} catch (final Exception e) {
 			}
 			ByteUtil.byteArrayCacher.cycle(bytes);
 		}

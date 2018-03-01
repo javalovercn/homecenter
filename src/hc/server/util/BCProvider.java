@@ -13,11 +13,11 @@ public class BCProvider {
 	static boolean isAdded = false;
 
 	public static final String BC_PROVIDER = "BC";
-	
+
 	public final static Provider getBCProvider() {
 		ResourceUtil.checkHCStackTrace();
 		synchronized (BCProvider.class) {
-			if(bcProvider == null){
+			if (bcProvider == null) {
 				bcProvider = new BouncyCastleProvider();
 			}
 		}
@@ -27,8 +27,8 @@ public class BCProvider {
 	/**
 	 * 注意：不推荐将bc加入到Security的provider中，建议直接将provider作为参数传入
 	 */
-	public static void addBCProvider(){
-		if(BCProvider.isAdded == false){
+	public static void addBCProvider() {
+		if (BCProvider.isAdded == false) {
 			BCProvider.isAdded = true;
 			CCoreUtil.checkAccess();
 			Security.addProvider(getBCProvider());

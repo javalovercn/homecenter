@@ -9,13 +9,13 @@ import java.util.Vector;
 
 public class StoreableHashMap extends Hashtable {
 
-	private final String SPLIT = ";;;";
-	private final String SPLIT_CHAR = ";";
-	private final String FAN_SPLIT = "&#-1x";
-	private final String EQUAL = "=";
+	private static final String SPLIT = ";;;";
+	private static final String SPLIT_CHAR = ";";
+	private static final String FAN_SPLIT = "&#-1x";
+	private static final String EQUAL = "=";
 	//用于value是数组型的
-	protected final String ARRAY_SPLIT = "^";
-	protected final String DOUBLE_ARRAY_SPLIT = ARRAY_SPLIT + ARRAY_SPLIT;
+	protected static final String ARRAY_SPLIT = "^";
+	protected static final String DOUBLE_ARRAY_SPLIT = ARRAY_SPLIT + ARRAY_SPLIT;
 
 	public StoreableHashMap() {
 		super();

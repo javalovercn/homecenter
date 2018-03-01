@@ -16,19 +16,19 @@ to implement the cross-platform UI for Android/iPhone, write with JRuby/Java/J2S
 ***
 ### Demo on mobile
 1. download mobile client from https://github.com/javalovercn/client
-2. click "Demo ID" in login form, or input account : 012345，password : 012345
+2. click "Demo" button in login form, or input account : 012345，password : 012345
 
 ***
 ### Features
 
 1. HomeCenter server runs not only on Oracle JDK/JRE (OpenJDK), but also Android (because of ["J2SE for Android"](https://github.com/javalovercn/j2se_for_android)).
 2. double click to run, no configuration.
-3. scan QRcode from mobile and download/load HAR (home archive) project on server, plug and play, not required to restart server.
-4. focus your business/UI with Java/J2SE technology.
-5. the component HTMLMlet (codes above) will be translated to HTML5+JavaScript+CSS for Android/iPhone client on air, user inputs will be translated to J2SE Event and dispatch to their listeners.
+3. the component HTMLMlet (codes above) will be translated to HTML5+JavaScript+CSS for Android/iPhone client on air, user inputs will be translated to J2SE Event and dispatch to their listeners.
+4. focus business/UI with Java/J2SE technology.
+5. scan QRcode from mobile and download/load HAR (home archive) project on server, plug and play, not required to restart server.
 6. ScriptPanel is used to load and execute JavaScript on mobile client.
 7. code editor supports Java 8 API, Ruby 2.2.0 and CSS 2.2 (part) documents, hint of code and resource file(in user jar) will be auto completion.
-8. built-in Lucene, Quartz and HSQLDB, see [API](http://homecenter.mobi/download/javadoc/index.html) for more.
+8. built-in Lucene, Quartz and HSQLDB, see [API](https://homecenter.mobi/download/javadoc/index.html) for more.
 9. mobile voice command API drives IoT and your business.
 10. stratify IoT, Robot+Converter+Device(device is required to open source or provide API), provides powerful device adaptability and data format conversion.
 11. HAR project is self-signed and be upgraded automatically if the newer on web.
@@ -44,11 +44,12 @@ to implement the cross-platform UI for Android/iPhone, write with JRuby/Java/J2S
 3. main class : hc.App
 4. VM arguments for main class : -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
 5. if fail on building, set [Compiler compliance level] of Eclipse to 1.7, NOT 1.8 or above.
-6. keep the source codes for the newest, otherwise it may causes abnormal connection with mobile.
-7. the demo project (NOT "MyFirst") in designer, covers 80% of JRuby syntax and 90% of functions of HomeCenter server.
-8. for [binary distribution](https://github.com/javalovercn/hc_server_dist).
-9. to host server on [non-UI server](https://github.com/javalovercn/homecenter/blob/master/docs/NoUI%20server%20on%20host.md).
-10. welcome any questions, open issues https://github.com/javalovercn/homecenter/issues or Email : help at homecenter.mobi
+6. properties are encoded by UTF-8.
+7. keep the source codes for the newest, otherwise it may causes abnormal connection with mobile.
+8. the demo project (NOT "MyFirst") in designer, covers 80% of JRuby syntax and 90% of functions of HomeCenter server.
+9. for [binary distribution](https://github.com/javalovercn/hc_server_dist).
+10. to host server on [non-UI server](https://github.com/javalovercn/homecenter/blob/master/docs/NoUI%20server%20on%20host.md).
+11. welcome any questions, open issues https://github.com/javalovercn/homecenter/issues or Email : help at homecenter.mobi
 
 ***
 ### Mirrors

@@ -14,22 +14,22 @@ public class TestHelper {
 	public static void initForTester() {
 		L.setInWorkshop(true);
 		System.setProperty(Constant.DESIGNER_IN_TEST, "true");
-		
+
 		IConstant.propertiesFileName = "hc_config.properties";
 		IConstant.serverSide = true;
 		RootBuilder.setInstance(new J2SERootBuilder(null));
 		IConstant.setInstance(new J2SEConstant());
 		ContextManager.setThreadPool(new DebugThreadPool(), App.getRootThreadGroup());
-		
-		final Thread t = new Thread(){
+
+		final Thread t = new Thread() {
 			@Override
-			public void run(){
-				while(true){
-					try{
+			public void run() {
+				while (true) {
+					try {
 						Thread.sleep(20000);
-					}catch (final Exception e) {
+					} catch (final Exception e) {
 					}
-					
+
 					ClassUtil.printThreadStack(null);
 				}
 			}

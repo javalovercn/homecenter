@@ -2,6 +2,7 @@ package hc.server.ui;
 
 import hc.App;
 import hc.core.ContextManager;
+import hc.core.IConstant;
 import hc.core.IContext;
 import hc.core.util.CCoreUtil;
 import hc.core.util.LogManager;
@@ -9,7 +10,7 @@ import hc.core.util.Stack;
 import hc.core.util.StringUtil;
 import hc.server.HCActionListener;
 import hc.server.JRubyInstaller;
-import hc.server.LinkMenuManager;
+import hc.server.ui.design.LinkMenuManager;
 import hc.server.util.SafeDataManager;
 import hc.util.ResourceUtil;
 
@@ -30,126 +31,144 @@ public class LinkProjectStatus {
 	public static final int MANAGER_VIA_MOBILE = 7;
 
 	private static int manager_status = MANAGER_IDLE;
-	
+
 	private static final Stack stack = new Stack();
-	
-	public static int getStatus(){
+
+	public static int getStatus() {
 		return manager_status;
 	}
-	
-	private static void setStatus(final int status){
+
+	private static void setStatus(final int status) {
 		stack.push(new Integer(manager_status));
 		manager_status = status;
 		LogManager.log("set project lock status : " + manager_status);
 	}
-	
-	public static synchronized void exitStatus(){
+
+	public static synchronized void exitStatus() {
 		CCoreUtil.checkAccess();
-		
+
 		final int oldStatus = manager_status;
 		final Object pop = stack.pop();
-		if(pop != null){
-			manager_status = (Integer)pop;
-			if(MANAGER_IDLE == manager_status){
-				try{
-					if(ServerUIUtil.getMobiResponsor() != null){
+		if (pop != null) {
+			manager_status = (Integer) pop;
+			if (MANAGER_IDLE == manager_status) {
+				try {
+					if (ServerUIUtil.getMobiResponsor() != null) {
 						SafeDataManager.enableSafeBackup(false, true);
 					}
-				}catch (final Throwable e) {
+				} catch (final Throwable e) {
 				}
 			}
-			LogManager.log("return project lock status : " + manager_status + ", from : " + oldStatus);
+			LogManager.log(
+					"return project lock status : " + manager_status + ", from : " + oldStatus);
 		}
 	}
-	
-	public static synchronized boolean isIdle(){
+
+	public static synchronized boolean isIdle() {
 		return manager_status == MANAGER_IDLE;
 	}
-	
-	public final static void resetWantDesignOrLinkProjectsNotify(){
+
+	public final static void resetWantDesignOrLinkProjectsNotify() {
 		isWantDesingOrLinkProjects = false;
 	}
-	
-	public final static boolean isWantDesignOrLinkProjectsNotify(){
+
+	public final static boolean isWantDesignOrLinkProjectsNotify() {
 		return isWantDesingOrLinkProjects;
 	}
-	
+
 	private static boolean isWantDesingOrLinkProjects;
-	
+
 	/**
-	 * 检查当前状态是否可以进行发布，Link-in Project的添加或维护
-	 * return true表示可以进行后续操作
-	 * @param 如果toStatus==MANAGER_VIA_MOBILE，parent 为null
+	 * 检查当前状态是否可以进行发布，Link-in Project的添加或维护 return true表示可以进行后续操作
+	 * 
+	 * @param 如果toStatus==MANAGER_VIA_MOBILE，parent
+	 *            为null
 	 */
-	public static synchronized boolean tryEnterStatus(final JFrame parent, final int toStatus){
+	public static synchronized boolean tryEnterStatus(final JFrame parent, final int toStatus) {
 		CCoreUtil.checkAccess();
-		
-		if(isIdle() == false){
-			if(toStatus == MANAGER_VIA_MOBILE){//从手机进入管理，
-				//注意：不进行错误提示，只返回
+
+		if (isIdle() == false) {
+			if (toStatus == MANAGER_VIA_MOBILE) {// 从手机进入管理，
+				// 注意：不进行错误提示，只返回
 				return false;
 			}
-			
-			if(manager_status == MANAGER_VIA_MOBILE){//从电脑进入，但是已被手机用户先占用
-				showNotify(parent, (String)ResourceUtil.get(9262), IContext.INFO);//手機用戶正在管理項目！
+
+			if (manager_status == MANAGER_VIA_MOBILE) {// 从电脑进入，但是已被手机用户先占用
+				showNotify(parent, (String) ResourceUtil.get(9262), IConstant.INFO);// 手機用戶正在管理項目！
 				return false;
 			}
-			
-			if(manager_status != toStatus){
-				if(toStatus == MANAGER_UPGRADE_DOWNLOADING){
-					//无需提示的优先
+
+			if (manager_status != toStatus) {
+				if (toStatus == MANAGER_UPGRADE_DOWNLOADING) {
+					// 无需提示的优先
 					return false;
 				}
-				
-				if(manager_status == MANAGER_UPGRADE_DOWNLOADING){
+
+				if (manager_status == MANAGER_UPGRADE_DOWNLOADING) {
 					isWantDesingOrLinkProjects = true;
-					showNotify(parent, (String)ResourceUtil.get(9161), IContext.INFO);//system is downloading and upgrading project(s), please wait for a moment.
+					showNotify(parent, (String) ResourceUtil.get(9161), IConstant.INFO);// system
+																						// is
+																						// downloading
+																						// and
+																						// upgrading
+																						// project(s),
+																						// please
+																						// wait
+																						// for
+																						// a
+																						// moment.
 					return false;
-				}else if(manager_status == MANAGER_IMPORT){
-					
-					final String replaced = isOpend((String)ResourceUtil.get(9059));
-	
-					final JLabel label = new JLabel("<html>" + replaced + "</html>", App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
+				} else if (manager_status == MANAGER_IMPORT) {
+
+					final String replaced = isOpend((String) ResourceUtil.get(9059));
+
+					final JLabel label = new JLabel("<html>" + replaced + "</html>",
+							App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
 					final JPanel panel = new JPanel(new BorderLayout());
 					panel.add(label, BorderLayout.CENTER);
-					
-					App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(9086), true, null, null, new HCActionListener(new Runnable() {
-						@Override
-						public void run() {
-							LinkMenuManager.closeLinkPanel();
-							try{
-								Thread.sleep(300);
-							}catch (final Exception e) {
-							}
-							LinkMenuManager.startDesigner(true);
-						}
-					}, App.getThreadPoolToken()), null, null, false, false, null, false, false);//isNewFrame=true时，会在MacOSX下发生漂移
+
+					App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(9086), true,
+							null, null, new HCActionListener(new Runnable() {
+								@Override
+								public void run() {
+									LinkMenuManager.closeLinkPanel();
+									try {
+										Thread.sleep(300);
+									} catch (final Exception e) {
+									}
+									LinkMenuManager.startDesigner(true);
+								}
+							}, App.getThreadPoolToken()), null, null, false, false, null, false,
+							false);// isNewFrame=true时，会在MacOSX下发生漂移
 					return false;
-				}else if(manager_status == MANAGER_DESIGN){
-					if(toStatus == MANAGER_IMPORT && parent != null){
-						//仅放行从设计器调用工程选择器
-					}else{
-						final String replaced = isOpend((String)ResourceUtil.get(9034));
-						
-						final JLabel label = new JLabel("<html>" + replaced + "</html>", App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
+				} else if (manager_status == MANAGER_DESIGN) {
+					if (toStatus == MANAGER_IMPORT && parent != null) {
+						// 仅放行从设计器调用工程选择器
+					} else {
+						final String replaced = isOpend((String) ResourceUtil.get(9034));
+
+						final JLabel label = new JLabel("<html>" + replaced + "</html>",
+								App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
 						final JPanel panel = new JPanel(new BorderLayout());
 						panel.add(label, BorderLayout.CENTER);
-						
-						App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(9086), true, null, null, new HCActionListener(new Runnable() {
-							@Override
-							public void run() {
-								if(LinkMenuManager.notifyCloseDesigner()){
-									try{
-										Thread.sleep(300);
-									}catch (final Exception e) {
+
+						App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(9086), true,
+								null, null, new HCActionListener(new Runnable() {
+									@Override
+									public void run() {
+										if (LinkMenuManager.notifyCloseDesigner()) {
+											try {
+												Thread.sleep(300);
+											} catch (final Exception e) {
+											}
+											LinkMenuManager.showLinkPanel(null);
+										}
 									}
-									LinkMenuManager.showLinkPanel(null);
-								}
-							}
-						}, App.getThreadPoolToken()), null, null, false, false, null, false, false);//isNewFrame=true时，会在MacOSX下发生漂移
+								}, App.getThreadPoolToken()), null, null, false, false, null, false,
+								false);// isNewFrame=true时，会在MacOSX下发生漂移
 						return false;
 					}
-				}else if(manager_status == MANAGER_JRUBY_INSTALL){
+				} else if (manager_status == MANAGER_JRUBY_INSTALL) {
 					ContextManager.getThreadPool().run(new Runnable() {
 						@Override
 						public void run() {
@@ -157,18 +176,20 @@ public class LinkProjectStatus {
 						}
 					});
 					return false;
-				}else if(manager_status == MANAGER_ADD_HAR_VIA_MOBILE){
-					showNotify(parent, "adding HAR from mobile now, please wait for a moment.", IContext.ERROR);
+				} else if (manager_status == MANAGER_ADD_HAR_VIA_MOBILE) {
+					showNotify(parent, "adding HAR from mobile now, please wait for a moment.",
+							IConstant.ERROR);
 					return false;
-				}else{
+				} else {
 					return false;
 				}
-			}else{
-				if(toStatus == MANAGER_UPGRADE_DOWNLOADING){
+			} else {
+				if (toStatus == MANAGER_UPGRADE_DOWNLOADING) {
 					return false;
-				}else{
-//					showNotify(parent, "current window is opened!", IContext.ERROR);
-					//可视窗口已打开，无需更新状态，由后续逻辑将相应窗口toFront
+				} else {
+					// showNotify(parent, "current window is opened!",
+					// IContext.ERROR);
+					// 可视窗口已打开，无需更新状态，由后续逻辑将相应窗口toFront
 					return true;
 				}
 			}
@@ -178,20 +199,21 @@ public class LinkProjectStatus {
 	}
 
 	private static String isOpend(final String winName) {
-		final String isOpend = (String)ResourceUtil.get(9085);
-				
+		final String isOpend = (String) ResourceUtil.get(9085);
+
 		String replaced = StringUtil.replace(isOpend, "{win_name}", winName);
 		replaced = StringUtil.replace(replaced, "{ok}", (String) ResourceUtil.get(IContext.OK));
 		return replaced;
 	}
 
 	private static void showNotify(final JFrame parent, final String msg, final int type) {
-		final JLabel label = new JLabel(msg, App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING);
+		final JLabel label = new JLabel(msg, App.getSysIcon(App.SYS_INFO_ICON),
+				SwingConstants.LEADING);
 		final JPanel panel = new JPanel(new BorderLayout());
 		panel.add(label, BorderLayout.CENTER);
-		
-		App.showCenterPanelMain(panel, 0, 0, (String)ResourceUtil.get(type), 
-				false, null, null, null, null, parent, true, true, null, false, false);
+
+		App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(type), false, null, null,
+				null, null, parent, true, true, null, false, false);
 	}
 
 }

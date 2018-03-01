@@ -131,6 +131,11 @@ public abstract class IConstant {
 	public static final String FILE_ALL = "all";
 	
 	public static final boolean IS_ENABLE_FUNC = false;
+	public static final int ERROR = 1;
+	public static final int WARN = 2;
+	public static final int INFO = 3;
+	public static final int ALARM = 4;
+	public static final int CONFIRMATION = 5;
 	
 	public abstract int getInt(String p);
 	

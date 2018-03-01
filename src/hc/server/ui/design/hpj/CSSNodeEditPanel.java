@@ -67,59 +67,74 @@ import hc.server.util.IDArrayGroup;
 import hc.util.ResourceUtil;
 
 public class CSSNodeEditPanel extends NameEditPanel {
-	
-	private static final SimpleAttributeSet CLASS_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#088A29"), false);//dark green
-	private static final SimpleAttributeSet ITEM_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#0431B4"), false);
-	private static final SimpleAttributeSet SPLITTER_LIGHTER = ResourceUtil.buildAttrSet(Color.BLACK, false);
-	private static final SimpleAttributeSet VALUE_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#B18904"), false);
-	private static final SimpleAttributeSet VARIABLE_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#DF0101"), false);
-	
-	private static final SimpleAttributeSet JUMP_CLASS_DEF_LIGHTER = ScriptEditPanel.buildBackground(new Color(165, 199, 234));
-	
+
+	private static final SimpleAttributeSet CLASS_LIGHTER = ResourceUtil
+			.buildAttrSet(Color.decode("#088A29"), false);// dark green
+	private static final SimpleAttributeSet ITEM_LIGHTER = ResourceUtil
+			.buildAttrSet(Color.decode("#0431B4"), false);
+	private static final SimpleAttributeSet SPLITTER_LIGHTER = ResourceUtil
+			.buildAttrSet(Color.BLACK, false);
+	private static final SimpleAttributeSet VALUE_LIGHTER = ResourceUtil
+			.buildAttrSet(Color.decode("#B18904"), false);
+	private static final SimpleAttributeSet VARIABLE_LIGHTER = ResourceUtil
+			.buildAttrSet(Color.decode("#DF0101"), false);
+
+	private static final SimpleAttributeSet JUMP_CLASS_DEF_LIGHTER = ScriptEditPanel
+			.buildBackground(new Color(165, 199, 234));
+
 	private static final Pattern class_pattern = Pattern.compile("(\\s*?(.*?)\\s*?)\\{");
-	private static final Pattern item_pattern = Pattern.compile("(\\b*?([a-zA-Z_0-9-]+)\\b*?\\s*?):(?!/)");//排除如url(http://domain/)
-	private static final Pattern css_rem_pattern = Pattern.compile("(/\\*(.*?)\\*/)", Pattern.MULTILINE|Pattern.DOTALL);
+	private static final Pattern item_pattern = Pattern
+			.compile("(\\b*?([a-zA-Z_0-9-]+)\\b*?\\s*?):(?!/)");// 排除如url(http://domain/)
+	private static final Pattern css_rem_pattern = Pattern.compile("(/\\*(.*?)\\*/)",
+			Pattern.MULTILINE | Pattern.DOTALL);
 	private static final Pattern var_pattern = Pattern.compile("(\\$(.*?)\\$)");
 	private static final Pattern spliter_pattern = Pattern.compile("([\\{\\};:])");
-	
-	private final void initSytleBlock(final String text, final int offset, final boolean isReplace) {
-		final StyledDocument document = (StyledDocument)cssEditPane.getDocument();
+
+	private final void initSytleBlock(final String text, final int offset,
+			final boolean isReplace) {
+		final StyledDocument document = (StyledDocument) cssEditPane.getDocument();
 		document.setCharacterAttributes(offset, text.length(), VALUE_LIGHTER, true);
-		
+
 		buildSytleHighlight(cssEditPane, class_pattern, CLASS_LIGHTER, offset, text, isReplace);
-		buildSytleHighlight(cssEditPane, item_pattern, ITEM_LIGHTER, offset, text, isReplace);//要置于字符串之前，因为字符串中可能含有数字
+		buildSytleHighlight(cssEditPane, item_pattern, ITEM_LIGHTER, offset, text, isReplace);// 要置于字符串之前，因为字符串中可能含有数字
 		buildSytleHighlight(cssEditPane, var_pattern, VARIABLE_LIGHTER, offset, text, isReplace);
-		buildSytleHighlight(cssEditPane, css_rem_pattern, ScriptEditPanel.REM_LIGHTER, offset, text, isReplace);//字符串中含有#{}，所以要置于STR_LIGHTER之前
-		buildSytleHighlightForSpliter(cssEditPane, spliter_pattern, SPLITTER_LIGHTER, offset, text, isReplace);//字符串中含有#{}，所以要置于STR_LIGHTER之前
+		buildSytleHighlight(cssEditPane, css_rem_pattern, ScriptEditPanel.REM_LIGHTER, offset, text,
+				isReplace);// 字符串中含有#{}，所以要置于STR_LIGHTER之前
+		buildSytleHighlightForSpliter(cssEditPane, spliter_pattern, SPLITTER_LIGHTER, offset, text,
+				isReplace);// 字符串中含有#{}，所以要置于STR_LIGHTER之前
 	}
-	
-	private static final void buildSytleHighlightForSpliter(final JTextPane pane, final Pattern pattern, final SimpleAttributeSet attributes, final int offset, final String text, final boolean isReplace) {
-		final StyledDocument document = (StyledDocument)pane.getDocument();
+
+	private static final void buildSytleHighlightForSpliter(final JTextPane pane,
+			final Pattern pattern, final SimpleAttributeSet attributes, final int offset,
+			final String text, final boolean isReplace) {
+		final StyledDocument document = (StyledDocument) pane.getDocument();
 		final Matcher matcher = pattern.matcher(text);
 		while (matcher.find()) {
 			final int start = matcher.start(1) + offset;
 			final int end = matcher.end(1) + offset;
-			
-			if(getChar(document, start) == ':'){
-				if(getChar(document, start + 1) == '/'){//排除如url(http://domain/)
+
+			if (getChar(document, start) == ':') {
+				if (getChar(document, start + 1) == '/') {// 排除如url(http://domain/)
 					continue;
 				}
 			}
 			document.setCharacterAttributes(start, end - start, attributes, isReplace);
 		}
 	}
-	
-	private static char getChar(final Document doc, final int idx){
-		try{
+
+	private static char getChar(final Document doc, final int idx) {
+		try {
 			final String chars = doc.getText(idx, 1);
 			return chars.charAt(0);
-		}catch (final Throwable e) {
+		} catch (final Throwable e) {
 		}
 		return 0;
 	}
 
-	private static final void buildSytleHighlight(final JTextPane pane, final Pattern pattern, final SimpleAttributeSet attributes, final int offset, final String text, final boolean isReplace) {
-		final StyledDocument document = (StyledDocument)pane.getDocument();
+	private static final void buildSytleHighlight(final JTextPane pane, final Pattern pattern,
+			final SimpleAttributeSet attributes, final int offset, final String text,
+			final boolean isReplace) {
+		final StyledDocument document = (StyledDocument) pane.getDocument();
 		final Matcher matcher = pattern.matcher(text);
 		while (matcher.find()) {
 			final int start = matcher.start(1) + offset;
@@ -127,63 +142,66 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			document.setCharacterAttributes(start, end - start, attributes, isReplace);
 		}
 	}
-	
+
 	private final Runnable colorRunnable = new Runnable() {
 		@Override
 		public void run() {
 			final String allText = cssEditPane.getText();
 			initSytleBlock(allText, 0, false);
-			
-			buildSytleHighlight(cssEditPane, css_rem_pattern, ScriptEditPanel.REM_LIGHTER, 0, allText, true);
+
+			buildSytleHighlight(cssEditPane, css_rem_pattern, ScriptEditPanel.REM_LIGHTER, 0,
+					allText, true);
 		}
 	};
 
-	private final void colorStyle(){
+	private final void colorStyle() {
 		SwingUtilities.invokeLater(colorRunnable);
 	}
-	
-	private final Runnable buildCommentUncommentAction(){
+
+	private final Runnable buildCommentUncommentAction() {
 		return new Runnable() {
 			@Override
 			public void run() {
-				if(CSSUtil.comment(cssEditPane)){
+				if (CSSUtil.comment(cssEditPane)) {
 					colorRunnable.run();
 					cssEditPane.requestFocus();
-				}				
+				}
 			}
 		};
 	}
-	
+
 	private final JPanel cssPanel = new JPanel();
-	private final JLabel tipCssLabel = new JLabel("<html>" +
-			"1. if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect permission or disable limit socket/connect." +
-			"<BR>" +
-			"2. all above will be loaded automatically to all HTMLMlet/Dialog(s) of current project by server." +
-			"<BR>" +
-			"3. if you want special styles, please invoke <STRONG>loadCSS</STRONG> in HTMLMlet/Dialog." +
-			"<BR>" +
-			"4. for get CSS (2.2) properties or variables, please press shortcut keys for word completion." +
-			"</html>");
-	
+	private final JLabel tipCssLabel = new JLabel("<html>"
+			+ "1. if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect permission or disable limit socket/connect."
+			+ "<BR>"
+			+ "2. all above will be loaded automatically to all HTMLMlet/Dialog(s) of current project by server."
+			+ "<BR>"
+			+ "3. if you want special styles, please invoke <STRONG>loadCSS</STRONG> in HTMLMlet/Dialog."
+			+ "<BR>"
+			+ "4. for get CSS (2.2) properties or variables, please press shortcut keys for word completion."
+			+ "</html>");
+
 	CSSUndoableEditListener cssUndoListener;
 	UndoManager cssUndoManager;
-	final HCTextPane cssEditPane = new HCTextPane(new CSSSelectWordAction()){
+	final HCTextPane cssEditPane = new HCTextPane(new CSSSelectWordAction()) {
 		@Override
-		public void paste(){
-			try{
+		public void paste() {
+			try {
 				cssUndoListener.setUndoModel(CSSUndoableEditListener.UNDO_MODEL_PASTE);
 				super.paste();
 				colorStyle();
-			}catch (final Throwable e) {
+			} catch (final Throwable e) {
 				ExceptionReporter.printStackTrace(e);
 			}
 		}
+
 		@Override
-		public void cut(){
+		public void cut() {
 			cssUndoListener.setUndoModel(CSSUndoableEditListener.UNDO_MODEL_CUT);
 			super.cut();
 			colorStyle();
 		}
+
 		@Override
 		public void refreshCurrLineAfterKey(final int line) {
 			SwingUtilities.invokeLater(new Runnable() {
@@ -196,8 +214,9 @@ public class CSSNodeEditPanel extends NameEditPanel {
 						final int endOff = ScriptEditPanel.getLineEndOffset(cssDocument, line);
 						final int length = endOff - startOff;
 						initSytleBlock(cssDocument.getText(startOff, length), startOff, true);
-						
-						buildSytleHighlight(cssEditPane, css_rem_pattern, ScriptEditPanel.REM_LIGHTER, 0, cssEditPane.getText(), true);
+
+						buildSytleHighlight(cssEditPane, css_rem_pattern,
+								ScriptEditPanel.REM_LIGHTER, 0, cssEditPane.getText(), true);
 					} catch (final BadLocationException e) {
 					}
 				}
@@ -206,7 +225,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 	};
 	private final JScrollPane cssScrollPane;
 	private final Document cssDocument;
-	
+
 	private final void appendEnterText(final String txt, final int newPos) {
 		final int oldPos = cssEditPane.getCaretPosition();
 		try {
@@ -215,49 +234,50 @@ public class CSSNodeEditPanel extends NameEditPanel {
 		}
 		cssEditPane.setCaretPosition(newPos);
 	}
-	
-	private final void actionOnEnterKey() throws Exception{
+
+	private final void actionOnEnterKey() throws Exception {
 		final StringBuilder sb = new StringBuilder(24);
 		boolean isDoneEnter = false;
 		boolean isMovSelfBack = false;
-		
+
 		final int InsertPosition = cssEditPane.getCaretPosition();
 		int line = ScriptEditPanel.getLineOfOffset(cssDocument, InsertPosition);
 		sb.append("\n");
-		
-		//复制上行的缩进到新行中
+
+		// 复制上行的缩进到新行中
 		boolean inputSelfBackEnd = false;
 		try {
 			final int positionLine = line;
-			while(line >= 0){//第一行等于0
+			while (line >= 0) {// 第一行等于0
 				final int startIdx = ScriptEditPanel.getLineStartOffset(cssDocument, line);
 
-				//获得缩进串
-				final String lineStr = cssDocument.getText(startIdx, InsertPosition - startIdx);//-1去掉\n
+				// 获得缩进串
+				final String lineStr = cssDocument.getText(startIdx, InsertPosition - startIdx);// -1去掉\n
 				final char[] chars = lineStr.toCharArray();
-				
-				if(chars.length == 0){
+
+				if (chars.length == 0) {
 					line--;
 					continue;
 				}
 				int charIdxRemovedTab = 0;
 				for (; charIdxRemovedTab < chars.length; charIdxRemovedTab++) {
-					if(chars[charIdxRemovedTab] == ' ' || chars[charIdxRemovedTab] == '\t'){
-						
-					}else{
+					if (chars[charIdxRemovedTab] == ' ' || chars[charIdxRemovedTab] == '\t') {
+
+					} else {
 						break;
 					}
 				}
-				final String trim_str = new String(chars, charIdxRemovedTab, chars.length - charIdxRemovedTab);
+				final String trim_str = new String(chars, charIdxRemovedTab,
+						chars.length - charIdxRemovedTab);
 				inputSelfBackEnd = false;
 				boolean nextRowIndent = false;
-				for (int k = chars.length - 1; k >= 0 ; k--) {
+				for (int k = chars.length - 1; k >= 0; k--) {
 					final char c = chars[k];
-					if('}' == c){
-						//查找前面是否有闭合
+					if ('}' == c) {
+						// 查找前面是否有闭合
 						boolean isFindStarter = false;
-						for (int m = k - 1; m >= 0 ; m--) {
-							if('{' == chars[m]){
+						for (int m = k - 1; m >= 0; m--) {
+							if ('{' == chars[m]) {
 								isFindStarter = true;
 								break;
 							}
@@ -266,36 +286,40 @@ public class CSSNodeEditPanel extends NameEditPanel {
 						break;
 					}
 				}
-				if(inputSelfBackEnd){
-//					nextRowIndent = inputSelfBackEnd;//yyh
-					//检查上行是否当前行已缩进。即在已有代码elsif xxx后进行回车，当前是否需要缩进
-					final int startUpRowIdx = ScriptEditPanel.getLineStartOffset(cssDocument, positionLine - 1);
-					try{
-						final String upRowStr = cssDocument.getText(startUpRowIdx, startIdx - 1 - startUpRowIdx);
+				if (inputSelfBackEnd) {
+					// nextRowIndent = inputSelfBackEnd;//yyh
+					// 检查上行是否当前行已缩进。即在已有代码elsif xxx后进行回车，当前是否需要缩进
+					final int startUpRowIdx = ScriptEditPanel.getLineStartOffset(cssDocument,
+							positionLine - 1);
+					try {
+						final String upRowStr = cssDocument.getText(startUpRowIdx,
+								startIdx - 1 - startUpRowIdx);
 						final char[] upRowChars = upRowStr.toCharArray();
 						int charIdxUpRowRemovedTab = 0;
 						for (; charIdxUpRowRemovedTab < upRowChars.length; charIdxUpRowRemovedTab++) {
-							if(upRowChars[charIdxUpRowRemovedTab] == ' ' || upRowChars[charIdxUpRowRemovedTab] == '\t'){
-								
-							}else{
+							if (upRowChars[charIdxUpRowRemovedTab] == ' '
+									|| upRowChars[charIdxUpRowRemovedTab] == '\t') {
+
+							} else {
 								break;
 							}
 						}
-						if(charIdxUpRowRemovedTab > charIdxRemovedTab){
-							inputSelfBackEnd = false;//取消自缩进
-						}else if(charIdxUpRowRemovedTab == charIdxRemovedTab){
-//							if(isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab, elsifChar)){
-//								inputSelfBackEnd = false;//取消自缩进
-//							}
+						if (charIdxUpRowRemovedTab > charIdxRemovedTab) {
+							inputSelfBackEnd = false;// 取消自缩进
+						} else if (charIdxUpRowRemovedTab == charIdxRemovedTab) {
+							// if(isELSIFIndentKeyWords(upRowChars,
+							// charIdxUpRowRemovedTab, elsifChar)){
+							// inputSelfBackEnd = false;//取消自缩进
+							// }
 						}
-					}catch (final Exception ex) {
+					} catch (final Exception ex) {
 					}
 				}
 				int charNewIdxRemovedTab = charIdxRemovedTab;
 				boolean withEndInd = false;
 				{
 					final int starter = trim_str.indexOf('{', 0);
-					if(starter >= 0  && trim_str.indexOf('}', 0) < 0){
+					if (starter >= 0 && trim_str.indexOf('}', 0) < 0) {
 						nextRowIndent = true;
 						chars[charNewIdxRemovedTab++] = '\t';
 						withEndInd = true;
@@ -303,121 +327,134 @@ public class CSSNodeEditPanel extends NameEditPanel {
 				}
 				boolean isNextIndentAlready = false;
 				boolean hasNextHuaKuoHao = false;
-				if(withEndInd){
-					//检查下行是否已缩进，
-					try{
-						final String nextLine = cssDocument.getText(InsertPosition + 1, ScriptEditPanel.getLineEndOffset(cssDocument, positionLine + 2) - (InsertPosition + 1));
-						if(nextLine.startsWith("}", 0)){
+				if (withEndInd) {
+					// 检查下行是否已缩进，
+					try {
+						final String nextLine = cssDocument.getText(InsertPosition + 1,
+								ScriptEditPanel.getLineEndOffset(cssDocument, positionLine + 2)
+										- (InsertPosition + 1));
+						if (nextLine.startsWith("}", 0)) {
 							hasNextHuaKuoHao = true;
 						}
 						final char[] nextLineChars = nextLine.toCharArray();
-						
+
 						int charIdxNextRemovedTab = 0;
 						for (; charIdxNextRemovedTab < nextLineChars.length; charIdxNextRemovedTab++) {
-							if(nextLineChars[charIdxNextRemovedTab] == ' ' || nextLineChars[charIdxNextRemovedTab] == '\t'){
-								
-							}else{
+							if (nextLineChars[charIdxNextRemovedTab] == ' '
+									|| nextLineChars[charIdxNextRemovedTab] == '\t') {
+
+							} else {
 								break;
 							}
 						}
-						if(charIdxNextRemovedTab > charIdxRemovedTab){
+						if (charIdxNextRemovedTab > charIdxRemovedTab) {
 							isNextIndentAlready = true;
 						}
-					}catch (final Exception e) {
-						if(e instanceof BadLocationException){
-						}else{
+					} catch (final Exception e) {
+						if (e instanceof BadLocationException) {
+						} else {
 							ExceptionReporter.printStackTrace(e);
 						}
 					}
 				}
-				
-				try{
-				final int newPosition;
-//				if(charNewIdxRemovedTab > 0 && (inputSelfBackEnd == false)){//不能}自缩进
-//					sb.append(String.valueOf(chars, 0, charNewIdxRemovedTab));
-//				}
-				if(nextRowIndent && (inputSelfBackEnd == false)){
-					sb.append("\t");
-				}
-				if(charNewIdxRemovedTab != 0 || withEndInd){
-					newPosition = InsertPosition + sb.length();
-					if(hasNextHuaKuoHao == false && withEndInd && (isNextIndentAlready == false)){//&& (nextRowIndent == false)
-						sb.append("\n");
-						sb.append(String.valueOf(chars, 0, charNewIdxRemovedTab - 1));//下一行，减少一个缩位
-						
-						try{
-							final String end = cssDocument.getText(InsertPosition, 1);
-							if(end.startsWith("}", 0)){
-								hasNextHuaKuoHao = true;
-							}
-						}catch (final Throwable e) {
-						}
-						
-						if(hasNextHuaKuoHao == false){
-							final String strEnd = "}";
-							sb.append(strEnd);
-						}
-						final String txt = sb.toString();
-						appendEnterText(txt, newPosition);
-						isDoneEnter = true;
-						colorStyle();
-					}else if(inputSelfBackEnd == false){
-						//复制上行的缩进
-						sb.append(String.valueOf(chars, 0, charIdxRemovedTab));
-						final String txt = sb.toString();
-						final int newPos = InsertPosition + sb.length();
-////						cssDocument.insertString(InsertPosition, txt, null);
-//						final int newPos = InsertPosition + sb.length();
-						appendEnterText(txt, newPos);
-						isDoneEnter = true;
-						return;
+
+				try {
+					final int newPosition;
+					// if(charNewIdxRemovedTab > 0 && (inputSelfBackEnd ==
+					// false)){//不能}自缩进
+					// sb.append(String.valueOf(chars, 0,
+					// charNewIdxRemovedTab));
+					// }
+					if (nextRowIndent && (inputSelfBackEnd == false)) {
+						sb.append("\t");
 					}
-					break;
-				}else{
-					break;
-				}
-				}catch (final Throwable e) {
+					if (charNewIdxRemovedTab != 0 || withEndInd) {
+						newPosition = InsertPosition + sb.length();
+						if (hasNextHuaKuoHao == false && withEndInd
+								&& (isNextIndentAlready == false)) {// &&
+																	// (nextRowIndent
+																	// == false)
+							sb.append("\n");
+							sb.append(String.valueOf(chars, 0, charNewIdxRemovedTab - 1));// 下一行，减少一个缩位
+
+							try {
+								final String end = cssDocument.getText(InsertPosition, 1);
+								if (end.startsWith("}", 0)) {
+									hasNextHuaKuoHao = true;
+								}
+							} catch (final Throwable e) {
+							}
+
+							if (hasNextHuaKuoHao == false) {
+								final String strEnd = "}";
+								sb.append(strEnd);
+							}
+							final String txt = sb.toString();
+							appendEnterText(txt, newPosition);
+							isDoneEnter = true;
+							colorStyle();
+						} else if (inputSelfBackEnd == false) {
+							// 复制上行的缩进
+							sb.append(String.valueOf(chars, 0, charIdxRemovedTab));
+							final String txt = sb.toString();
+							final int newPos = InsertPosition + sb.length();
+							//// cssDocument.insertString(InsertPosition, txt,
+							//// null);
+							// final int newPos = InsertPosition + sb.length();
+							appendEnterText(txt, newPos);
+							isDoneEnter = true;
+							return;
+						}
+						break;
+					} else {
+						break;
+					}
+				} catch (final Throwable e) {
 					ExceptionReporter.printStackTrace(e);
-				}finally{
-					if(inputSelfBackEnd && charNewIdxRemovedTab > 0){
-						cssDocument.remove(startIdx, 1);//}之前的字符去掉一个缩位
+				} finally {
+					if (inputSelfBackEnd && charNewIdxRemovedTab > 0) {
+						cssDocument.remove(startIdx, 1);// }之前的字符去掉一个缩位
 						isMovSelfBack = true;
 					}
 				}
 			}
-			if(isDoneEnter == false){
-				final String txt = (isMovSelfBack?"\n":sb.toString());
-//				try {
-//					cssDocument.insertString(InsertPosition, txt, null);
-//				} catch (final BadLocationException e) {
-//				}
-				final int newPos = InsertPosition + txt.length() + (isMovSelfBack?-1:0);
+			if (isDoneEnter == false) {
+				final String txt = (isMovSelfBack ? "\n" : sb.toString());
+				// try {
+				// cssDocument.insertString(InsertPosition, txt, null);
+				// } catch (final BadLocationException e) {
+				// }
+				final int newPos = InsertPosition + txt.length() + (isMovSelfBack ? -1 : 0);
 				appendEnterText(txt, newPos);
 			}
 		} catch (final Throwable e) {
-			if(e instanceof BadLocationException){
-			}else{
+			if (e instanceof BadLocationException) {
+			} else {
 				ExceptionReporter.printStackTrace(e);
 			}
 		}
 	}
-	
+
 	final JButton formatBtn = new JButton(ScriptEditPanel.FORMAT_BUTTON_TEXT);
-	final JButton commentBtn = ScriptEditPanel.buildCommentUncommentButton(buildCommentUncommentAction());
-	
-	public CSSNodeEditPanel(){
+	final JButton commentBtn = ScriptEditPanel
+			.buildCommentUncommentButton(buildCommentUncommentAction());
+
+	public CSSNodeEditPanel() {
 		super();
-	
-//		Disable Word wrap in JTextPane		
+
+		// Disable Word wrap in JTextPane
 		final JPanel NoWrapPanel = new JPanel(new BorderLayout());
 		NoWrapPanel.add(cssEditPane, BorderLayout.CENTER);
-		cssScrollPane = new JScrollPane(NoWrapPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		cssScrollPane = new JScrollPane(NoWrapPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		final LineNumber lineNumber = new LineNumber(cssEditPane);
 		cssScrollPane.setRowHeaderView(lineNumber);
-		cssScrollPane.getVerticalScrollBar().setUnitIncrement(ServerUIUtil.SCROLLPANE_VERTICAL_UNIT_PIXEL);
-		
+		cssScrollPane.getVerticalScrollBar()
+				.setUnitIncrement(ServerUIUtil.SCROLLPANE_VERTICAL_UNIT_PIXEL);
+
 		jumpRunnable = new EditorJumpRunnable() {
-			final SimpleAttributeSet defaultBackground = ScriptEditPanel.buildBackground(cssEditPane.getBackground());
+			final SimpleAttributeSet defaultBackground = ScriptEditPanel
+					.buildBackground(cssEditPane.getBackground());
 			final Runnable jumpLoc = new Runnable() {
 				@Override
 				public void run() {
@@ -431,7 +468,7 @@ public class CSSNodeEditPanel extends NameEditPanel {
 					}
 				}
 			};
-			
+
 			final Runnable lightRun = new Runnable() {
 				@Override
 				public void run() {
@@ -440,36 +477,39 @@ public class CSSNodeEditPanel extends NameEditPanel {
 					} catch (final Throwable e) {
 						e.printStackTrace();
 					}
-					
-					try{
+
+					try {
 						for (int i = 0; i < 5; i++) {
-							cssEditPane.getStyledDocument().setCharacterAttributes(getOffSet(), getLen(), JUMP_CLASS_DEF_LIGHTER, false);
+							cssEditPane.getStyledDocument().setCharacterAttributes(getOffSet(),
+									getLen(), JUMP_CLASS_DEF_LIGHTER, false);
 							Thread.sleep(500);
-							cssEditPane.getStyledDocument().setCharacterAttributes(getOffSet(), getLen(), defaultBackground, false);
+							cssEditPane.getStyledDocument().setCharacterAttributes(getOffSet(),
+									getLen(), defaultBackground, false);
 							Thread.sleep(500);
 						}
-					}catch (final Exception e) {
+					} catch (final Exception e) {
 					}
 				}
 			};
-			
+
 			@Override
 			public void run() {
 				ContextManager.getThreadPool().run(lightRun);
 			}
-			
-			private final int getOffSet(){
+
+			private final int getOffSet() {
 				return offset;
 			}
-			
-			private final int getLen(){
+
+			private final int getLen() {
 				return len;
 			}
 		};
-	
-		formatBtn.setToolTipText("<html>("+ResourceUtil.getAbstractCtrlKeyText()+" + F)<BR><BR>format the CSS.</html>");
+
+		formatBtn.setToolTipText("<html>(" + ResourceUtil.getAbstractCtrlKeyText()
+				+ " + F)<BR><BR>format the CSS.</html>");
 		formatBtn.setIcon(Designer.loadImg(ImageSrc.FORMAT_16_PNG));
-		
+
 		final Action formatAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
@@ -483,41 +523,41 @@ public class CSSNodeEditPanel extends NameEditPanel {
 				});
 			}
 		};
-		
+
 		ResourceUtil.buildAcceleratorKeyOnAction(formatAction, KeyEvent.VK_F);
 		formatBtn.addActionListener(formatAction);
 		formatBtn.getActionMap().put("formatCSSAction", formatAction);
-		formatBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-		        (KeyStroke) formatAction.getValue(Action.ACCELERATOR_KEY), "formatCSSAction");
-		
+		formatBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+				.put((KeyStroke) formatAction.getValue(Action.ACCELERATOR_KEY), "formatCSSAction");
+
 		cssDocument = cssEditPane.getDocument();
-		
+
 		tipCssLabel.setBorder(new TitledBorder("Description :"));
 		cssPanel.setLayout(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
-		
-		if(IDArrayGroup.checkAndAdd(IDArrayGroup.MSG_CSS_NOTE)){
+
+		if (IDArrayGroup.checkAndAdd(IDArrayGroup.MSG_CSS_NOTE)) {
 			cssPanel.add(tipCssLabel, BorderLayout.NORTH);
-		}else{
+		} else {
 			cssPanel.add(tipCssLabel, BorderLayout.SOUTH);
 		}
-		
+
 		{
 			final JPanel editToolPane = new JPanel(new BorderLayout());
-			
+
 			final JPanel tmpPanel = new JPanel(new BorderLayout());
 			tmpPanel.setBorder(new TitledBorder("Styles Edit Area :"));
 			tmpPanel.add(cssScrollPane, BorderLayout.CENTER);
-			
+
 			final JPanel toolPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
-//			toolPanel.setBorder(new TitledBorder(""));
+			// toolPanel.setBorder(new TitledBorder(""));
 			toolPanel.add(formatBtn);
 			toolPanel.add(commentBtn);
 			editToolPane.add(toolPanel, BorderLayout.NORTH);
 			editToolPane.add(tmpPanel, BorderLayout.CENTER);
-			
+
 			cssPanel.add(editToolPane, BorderLayout.CENTER);
 		}
-		
+
 		{
 			final AbstractAction enterAction = new AbstractAction() {
 				@Override
@@ -532,112 +572,118 @@ public class CSSNodeEditPanel extends NameEditPanel {
 			final KeyStroke enterKey = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
 			cssEditPane.getInputMap().put(enterKey, enterAction);
 		}
-		
-		//以下代码设置Tab跳过指定的空格
+
+		// 以下代码设置Tab跳过指定的空格
 		{
 			final FontMetrics fm = cssEditPane.getFontMetrics(cssEditPane.getFont());
 			cssEditPane.setForeground(cssEditPane.getBackground());
 			final int cw = fm.stringWidth("    ");
 			final float f = cw;
 			final TabStop[] tabs = new TabStop[10]; // this sucks
-			for(int i = 0; i < tabs.length; i++){
+			for (int i = 0; i < tabs.length; i++) {
 				tabs[i] = new TabStop(f * (i + 1), TabStop.ALIGN_LEFT, TabStop.LEAD_NONE);
 			}
 			final TabSet tabset = new TabSet(tabs);
 			final StyleContext sc = StyleContext.getDefaultStyleContext();
-			final AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.TabSet, tabset);
+			final AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY,
+					StyleConstants.TabSet, tabset);
 			cssEditPane.setParagraphAttributes(aset, false);
 		}
-		
+
 		cssEditPane.addMouseListener(new MouseListener() {
-			
+
 			@Override
 			public void mouseReleased(final MouseEvent e) {
 			}
-			
+
 			@Override
 			public void mousePressed(final MouseEvent e) {
 			}
-			
+
 			@Override
 			public void mouseExited(final MouseEvent e) {
 			}
-			
+
 			@Override
 			public void mouseEntered(final MouseEvent e) {
 			}
-			
+
 			@Override
 			public void mouseClicked(final MouseEvent e) {
-				designer.codeHelper.window.hide();				
+				designer.codeHelper.window.hide();
 			}
 		});
-		
+
 		cssEditPane.addKeyListener(new KeyListener() {
 			final boolean isMacOS = ResourceUtil.isMacOSX();
 			final int fontHeight = cssEditPane.getFontMetrics(cssEditPane.getFont()).getHeight();
-			
+
 			@Override
 			public void keyTyped(final KeyEvent event) {
-				if(isEventConsumed){
-					ScriptEditPanel.consumeEvent(event);//otherwise display shortcut key.
+				if (isEventConsumed) {
+					ScriptEditPanel.consumeEvent(event);// otherwise display
+														// shortcut key.
 					return;
 				}
-				
+
 				final char inputChar = event.getKeyChar();
 				final int modifiers = event.getModifiers();
 
-	            if(codeHelper == null){
-	            	codeHelper = designer.codeHelper;
-	            }
-				
-				if(isMacOS && (inputChar != 0 && inputChar == codeHelper.wordCompletionChar
-						&& ((codeHelper.wordCompletionModifyCode == KeyEvent.VK_ALT && modifiers == 0) 
-									|| (codeHelper.wordCompletionModifyMaskCode == modifiers)))){//注意：请同步从ScriptEditPanel
+				if (codeHelper == null) {
+					codeHelper = designer.codeHelper;
+				}
+
+				if (isMacOS && (inputChar != 0 && inputChar == codeHelper.wordCompletionChar
+						&& ((codeHelper.wordCompletionModifyCode == KeyEvent.VK_ALT
+								&& modifiers == 0)
+								|| (codeHelper.wordCompletionModifyMaskCode == modifiers)))) {// 注意：请同步从ScriptEditPanel
 					try {
 						final int caretPosition = cssEditPane.getCaretPosition();
-						final Rectangle caretRect=cssEditPane.modelToView(caretPosition);
+						final Rectangle caretRect = cssEditPane.modelToView(caretPosition);
 						final Point caretPointer = new Point(caretRect.x, caretRect.y);
-						codeHelper.inputForCSSInCSSEditor(0, cssEditPane, cssDocument, caretPointer, fontHeight, caretPosition);
+						codeHelper.inputForCSSInCSSEditor(0, cssEditPane, cssDocument, caretPointer,
+								fontHeight, caretPosition);
 					} catch (final Exception e) {
-						if(L.isInWorkshop){
+						if (L.isInWorkshop) {
 							ExceptionReporter.printStackTrace(e);
 						}
 					}
 					ScriptEditPanel.consumeEvent(event);
 					return;
 				}
-				
+
 				cssEditPane.refreshCurrLineAfterKey(0);
-				
+
 			}
-			
+
 			@Override
 			public void keyReleased(final KeyEvent e) {
 			}
-			
+
 			boolean isEventConsumed;
-            CodeHelper codeHelper;
+			CodeHelper codeHelper;
 
 			@Override
 			public void keyPressed(final KeyEvent event) {
 				final int keycode = event.getKeyCode();
-	            final int modifiers = event.getModifiers();
-	            if(codeHelper == null){
-	            	codeHelper = designer.codeHelper;
-	            }
+				final int modifiers = event.getModifiers();
+				if (codeHelper == null) {
+					codeHelper = designer.codeHelper;
+				}
 				final int wordCompletionModifyMaskCode = codeHelper.wordCompletionModifyMaskCode;
-				//无输入字符时的触发提示代码
+				// 无输入字符时的触发提示代码
 				isEventConsumed = false;
-				if(keycode == codeHelper.wordCompletionCode && (modifiers & wordCompletionModifyMaskCode) == wordCompletionModifyMaskCode){
-					//注意：请同步从ScriptEditPanel
+				if (keycode == codeHelper.wordCompletionCode && (modifiers
+						& wordCompletionModifyMaskCode) == wordCompletionModifyMaskCode) {
+					// 注意：请同步从ScriptEditPanel
 					try {
 						final int caretPosition = cssEditPane.getCaretPosition();
-						final Rectangle caretRect=cssEditPane.modelToView(caretPosition);
+						final Rectangle caretRect = cssEditPane.modelToView(caretPosition);
 						final Point caretPointer = new Point(caretRect.x, caretRect.y);
-						codeHelper.inputForCSSInCSSEditor(0, cssEditPane, cssDocument, caretPointer, fontHeight, caretPosition);
+						codeHelper.inputForCSSInCSSEditor(0, cssEditPane, cssDocument, caretPointer,
+								fontHeight, caretPosition);
 					} catch (final Exception e) {
-						if(L.isInWorkshop){
+						if (L.isInWorkshop) {
 							ExceptionReporter.printStackTrace(e);
 						}
 					}
@@ -645,153 +691,156 @@ public class CSSNodeEditPanel extends NameEditPanel {
 					isEventConsumed = true;
 					return;
 				}
-				
-				if(codeHelper.window.isVisible()){
+
+				if (codeHelper.window.isVisible()) {
 					codeHelper.window.keyPressed(event);
 					ScriptEditPanel.consumeEvent(event);
 					isEventConsumed = true;
 					return;
 				}
-				
+
 				if (modifiers == KeyEvent.CTRL_MASK) {
-	                if (keycode == KeyEvent.VK_Z) {
-	                	//ctrl + z
-	                    cssundo();
-	                }else if(keycode == KeyEvent.VK_Y) {
-	                	//ctrl + y
-	                    cssredo();
-	                }
-	            }else if(keycode == KeyEvent.VK_Z){
-					if(isMacOS){
-		                if (modifiers == KeyEvent.META_MASK) {
-		                	//cmd+z
-		                    cssundo();
-		                }else if(modifiers == (KeyEvent.META_MASK | KeyEvent.SHIFT_MASK)) {
-		                	cssredo();
-		                }
-	            	}
-	            }
-				
-				if(keycode == KeyEvent.VK_ESCAPE){
+					if (keycode == KeyEvent.VK_Z) {
+						// ctrl + z
+						cssundo();
+					} else if (keycode == KeyEvent.VK_Y) {
+						// ctrl + y
+						cssredo();
+					}
+				} else if (keycode == KeyEvent.VK_Z) {
+					if (isMacOS) {
+						if (modifiers == KeyEvent.META_MASK) {
+							// cmd+z
+							cssundo();
+						} else if (modifiers == (KeyEvent.META_MASK | KeyEvent.SHIFT_MASK)) {
+							cssredo();
+						}
+					}
+				}
+
+				if (keycode == KeyEvent.VK_ESCAPE) {
 					TabHelper.pushEscKey();
 					isEventConsumed = true;
 					return;
 				}
-				
+
 				cssUndoListener.setUndoModel(CSSUndoableEditListener.UNDO_MODEL_TYPE);
 			}
 		});
-		
+
 		cssEditPane.addFocusListener(new FocusListener() {
 			@Override
 			public void focusLost(final FocusEvent e) {
 				designer.setProjCSS(cssEditPane.getText());
 				designer.codeHelper.window.hide();
 			}
+
 			@Override
 			public void focusGained(final FocusEvent e) {
 				final CodeWindow window = designer.codeHelper.window;
-				if(window.isWillOrAlreadyToFront){
+				if (window.isWillOrAlreadyToFront) {
 					window.hide();
 				}
 			}
 		});
 	}
-	
+
 	private final void cssundo() {
-		if (cssUndoManager.canUndo()){
+		if (cssUndoManager.canUndo()) {
 			cssUndoManager.undo();
 			colorStyle();
 		}
 	}
 
 	private final void cssredo() {
-		if (cssUndoManager.canRedo()){
+		if (cssUndoManager.canRedo()) {
 			cssUndoManager.redo();
 			colorStyle();
 		}
 	}
-	
+
 	@Override
 	public void init(final MutableTreeNode data, final JTree tree) {
 		super.init(data, tree);
-		
-		if(cssUndoManager == null){
+
+		if (cssUndoManager == null) {
 			cssUndoManager = new UndoManager();
 			cssUndoManager.setLimit(100);
 			cssUndoListener = new CSSUndoableEditListener(this, cssUndoManager);
-			
+
 			cssEditPane.getDocument().addUndoableEditListener(cssUndoListener);
 		}
-		
-    	String text = designer.getProjCSS();
-		if(text.indexOf('\r') >= 0){
+
+		String text = designer.getProjCSS();
+		if (text.indexOf('\r') >= 0) {
 			text = text.replace("\r", "");
 		}
 		cssEditPane.setText(text);
-    	colorStyle();
-    	
+		colorStyle();
+
 	}
-	
+
 	@Override
-	public void loadAfterShow(final Runnable run){
+	public void loadAfterShow(final Runnable run) {
 		cssUndoListener.isForbidRecordUndoEdit = false;
 		cssUndoManager.discardAllEdits();
 		cssEditPane.setCaretPosition(0);
 		cssEditPane.requestFocus();
-		
+
 		super.loadAfterShow(run);
 	}
-	
+
 	@Override
-	public void notifyLostEditPanelFocus(){
+	public void notifyLostEditPanelFocus() {
 		cssUndoListener.isForbidRecordUndoEdit = true;
 		super.notifyLostEditPanelFocus();
-		
+
 		final String sameFullName = designer.updateCssClassOfProjectLevel(cssDocument);
-		if(sameFullName != null){
+		if (sameFullName != null) {
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-					App.showMessageDialog(designer, sameFullName, ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+					App.showMessageDialog(designer, sameFullName, ResourceUtil.getErrorI18N(),
+							JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 				}
 			});
 		}
 	}
-	
+
 	@Override
-	public JComponent getMainPanel(){
+	public JComponent getMainPanel() {
 		return cssPanel;
 	}
 
 }
 
-class CSSUndoableEditListener implements UndoableEditListener{
+class CSSUndoableEditListener implements UndoableEditListener {
 	static final int UNDO_MODEL_TYPE = 1;
 	static final int UNDO_MODEL_PASTE = 2;
 	static final int UNDO_MODEL_CUT = 3;
 	static final int UNDO_MODEL_ENTER = 4;
-	
+
 	boolean isForbidRecordUndoEdit = true;
 	final UndoManager manager;
 	final CSSNodeEditPanel panel;
 	private int undoModel = 0;
-	
-	final void setUndoModel(final int model){
+
+	final void setUndoModel(final int model) {
 		undoModel = model;
 	}
-	
-	CSSUndoableEditListener(final CSSNodeEditPanel panel, final UndoManager manager){
+
+	CSSUndoableEditListener(final CSSNodeEditPanel panel, final UndoManager manager) {
 		this.manager = manager;
 		this.panel = panel;
 	}
-	
+
 	@Override
 	public void undoableEditHappened(final UndoableEditEvent e) {
-		if(isForbidRecordUndoEdit == false){
+		if (isForbidRecordUndoEdit == false) {
 			final UndoableEdit edit = e.getEdit();
-			final AbstractDocument.DefaultDocumentEvent dde = ResourceUtil.getDocumentEventType(edit);
-			if(dde.getType() == DocumentEvent.EventType.CHANGE){
+			final AbstractDocument.DefaultDocumentEvent dde = ResourceUtil
+					.getDocumentEventType(edit);
+			if (dde.getType() == DocumentEvent.EventType.CHANGE) {
 				return;
 			}
 			manager.addEdit(new CSSUndoableEdit(panel, edit, undoModel, dde));
@@ -799,7 +848,7 @@ class CSSUndoableEditListener implements UndoableEditListener{
 	}
 }
 
-class CSSUndoableEdit implements UndoableEdit{
+class CSSUndoableEdit implements UndoableEdit {
 	final int beforeCaretPos;
 	int afterCaretPos;
 	final UndoableEdit base;
@@ -811,8 +860,9 @@ class CSSUndoableEdit implements UndoableEdit{
 	final boolean isModi;
 	final long saveToken;
 	final AbstractDocument.DefaultDocumentEvent dde;
-	
-	CSSUndoableEdit(final CSSNodeEditPanel panel, final UndoableEdit base, final int undoModel, final AbstractDocument.DefaultDocumentEvent dde){
+
+	CSSUndoableEdit(final CSSNodeEditPanel panel, final UndoableEdit base, final int undoModel,
+			final AbstractDocument.DefaultDocumentEvent dde) {
 		this.panel = panel;
 		this.dde = dde;
 		this.cssPane = panel.cssEditPane;
@@ -822,58 +872,58 @@ class CSSUndoableEdit implements UndoableEdit{
 		this.undoModel = undoModel;
 		isModi = this.panel.isModified();
 		saveToken = this.panel.getSaveToken();
-		
-		if(isModi == false){
-			this.panel.notifyModified(true);//由于REMOVE和INSERT都是isModi==false,所以强制后续的INSERT为ture
+
+		if (isModi == false) {
+			this.panel.notifyModified(true);// 由于REMOVE和INSERT都是isModi==false,所以强制后续的INSERT为ture
 		}
-		
+
 		final EventType type = dde.getType();
-		if(type == DocumentEvent.EventType.REMOVE){
-			if(undoModel == CSSUndoableEditListener.UNDO_MODEL_TYPE){
+		if (type == DocumentEvent.EventType.REMOVE) {
+			if (undoModel == CSSUndoableEditListener.UNDO_MODEL_TYPE) {
 				selectionLen = 1;
-			}else{
+			} else {
 				selectionLen = dde.getLength();
 			}
-		}else if(type == DocumentEvent.EventType.INSERT){
-			if(undoModel == CSSUndoableEditListener.UNDO_MODEL_TYPE){
-			}else{
+		} else if (type == DocumentEvent.EventType.INSERT) {
+			if (undoModel == CSSUndoableEditListener.UNDO_MODEL_TYPE) {
+			} else {
 				selectionLen = dde.getLength();
 			}
 		}
-		
-		if(undoModel == CSSUndoableEditListener.UNDO_MODEL_ENTER){
+
+		if (undoModel == CSSUndoableEditListener.UNDO_MODEL_ENTER) {
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-					try{
+					try {
 						Thread.sleep(ThreadPriorityManager.UI_WAIT_FOR_EVENTQUEUE);
-					}catch (final Exception e) {
+					} catch (final Exception e) {
 					}
 					afterCaretPos = caret.getDot();
-//					System.out.println("afterCaretPos : " + afterCaretPos);
+					// System.out.println("afterCaretPos : " + afterCaretPos);
 				}
 			});
 		}
 	}
-	
+
 	@Override
 	public void undo() throws CannotUndoException {
 		base.undo();
-		if(beforeCaretPos > 0){
-			if(undoModel == CSSUndoableEditListener.UNDO_MODEL_PASTE){
-				if(dde.getType() == DocumentEvent.EventType.INSERT){
+		if (beforeCaretPos > 0) {
+			if (undoModel == CSSUndoableEditListener.UNDO_MODEL_PASTE) {
+				if (dde.getType() == DocumentEvent.EventType.INSERT) {
 					caret.setDot(beforeCaretPos - selectionLen);
-				}else{
+				} else {
 					caret.setDot(beforeCaretPos);
 				}
 			}
 		}
-		if(saveToken == panel.getSaveToken()){
-			if(isModi == false){
+		if (saveToken == panel.getSaveToken()) {
+			if (isModi == false) {
 				panel.notifyModified(false);
 			}
-		}else{
-			if(panel.isModified() == false){
+		} else {
+			if (panel.isModified() == false) {
 				panel.notifyModified(true);
 			}
 		}
@@ -887,14 +937,14 @@ class CSSUndoableEdit implements UndoableEdit{
 	@Override
 	public void redo() throws CannotRedoException {
 		base.redo();
-		if(saveToken == panel.getSaveToken()){
-			if(isModi == false){
+		if (saveToken == panel.getSaveToken()) {
+			if (isModi == false) {
 				panel.notifyModified(true);
 			}
 		}
-		
-		if(afterCaretPos > 0){
-			if(undoModel == ScriptUndoableEditListener.UNDO_MODEL_ENTER){
+
+		if (afterCaretPos > 0) {
+			if (undoModel == ScriptUndoableEditListener.UNDO_MODEL_ENTER) {
 				caret.setDot(afterCaretPos);
 			}
 		}
@@ -939,5 +989,5 @@ class CSSUndoableEdit implements UndoableEdit{
 	public String getRedoPresentationName() {
 		return base.getRedoPresentationName();
 	}
-	
+
 }

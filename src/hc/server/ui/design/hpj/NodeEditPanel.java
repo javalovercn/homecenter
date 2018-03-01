@@ -9,66 +9,67 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 
-public class NodeEditPanel extends JPanel{
+public class NodeEditPanel extends JPanel {
 	public EditorJumpRunnable jumpRunnable;
 	HPNode currItem;
 	boolean isInited = false;
 
-	public JComponent getMainPanel(){
+	public JComponent getMainPanel() {
 		return this;
 	}
-	
-	public final void notifyModified(final boolean isModi){
-		if(isInited){
+
+	public final void notifyModified(final boolean isModi) {
+		if (isInited) {
 			currItem.getContext().modified.setModified(isModi);
 		}
 	}
-	
-	public final long getSaveToken(){
-		if(isInited){
+
+	public final long getSaveToken() {
+		if (isInited) {
 			return currItem.getContext().modified.getSaveToken();
-		}else{
+		} else {
 			return 0;
 		}
 	}
-	
-	public final boolean isModified(){
-		if(isInited){
+
+	public final boolean isModified() {
+		if (isInited) {
 			return currItem.getContext().modified.isModified();
-		}else{
+		} else {
 			return false;
 		}
 	}
-	
+
 	final Runnable updateTreeRunnable = new Runnable() {
 		@Override
 		public void run() {
 			tree.updateUI();
 		}
 	};
-	
+
 	final ThreadGroup threadPoolToken = App.getThreadPoolToken();
 	DefaultMutableTreeNode currNode;
 	JTree tree;
 	public Designer designer;
-	public DefaultMutableTreeNode getCurrNode(){
+
+	public DefaultMutableTreeNode getCurrNode() {
 		return currNode;
 	}
-	
-	public void loadAfterShow(final Runnable run){
-		if(run != null){
+
+	public void loadAfterShow(final Runnable run) {
+		if (run != null) {
 			run.run();
 		}
 	}
-	
-	public void init(final MutableTreeNode data, final JTree tree){
-		currNode = (DefaultMutableTreeNode)data;
+
+	public void init(final MutableTreeNode data, final JTree tree) {
+		currNode = (DefaultMutableTreeNode) data;
 		this.tree = tree;
 	}
 
-	public void extInit(){
+	public void extInit() {
 	}
 
-	public void notifyLostEditPanelFocus(){
+	public void notifyLostEditPanelFocus() {
 	}
 }
