@@ -35,35 +35,38 @@ import org.jrubyparser.SourcePosition;
  * Represents an 'undef' statement.
  */
 public class UndefNode extends Node {
-    private Node name;
+	private Node name;
 
-    public UndefNode(SourcePosition position, Node name) {
-        super(position);
-        this.name = adopt(name);
-    }
+	public UndefNode(SourcePosition position, Node name) {
+		super(position);
+		this.name = adopt(name);
+	}
 
-    @Override
-    public boolean isSame(Node other) {
-        return super.isSame(other) && getName().isSame(((UndefNode) other).getName());
-    }
+	@Override
+	public boolean isSame(Node other) {
+		return super.isSame(other) && getName().isSame(((UndefNode) other).getName());
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.UNDEFNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.UNDEFNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitUndefNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitUndefNode(this);
+	}
 
-    /**
-     * Gets the name.
-     * @return Returns a String
-     */
-    public Node getName() {
-        return name;
-    }
+	/**
+	 * Gets the name.
+	 * 
+	 * @return Returns a String
+	 */
+	public Node getName() {
+		return name;
+	}
 }

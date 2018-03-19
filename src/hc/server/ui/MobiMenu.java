@@ -123,9 +123,7 @@ public class MobiMenu {
 		boolean isRemoved = false;
 		synchronized (menuLock) {
 			isRemoved = menuItems.remove(item);
-			L.V = L.WShop ? false
-					: LogManager.log("[publishMenuToMobi] successful removeModifiableItem : "
-							+ item.itemName);
+			L.V = L.WShop ? false : LogManager.log("[publishMenuToMobi] successful removeModifiableItem : " + item.itemName);
 			if (isRemoved) {
 				item.belongToMenu = null;
 			}
@@ -292,11 +290,8 @@ public class MobiMenu {
 		switchCoreSS(TO_PROJECT_LEVEL, op, item, itemBefore);
 	}
 
-	protected final void switchCoreSS(final J2SESession coreSS, final String op,
-			final MenuItem item, final MenuItem itemBefore) {
-		L.V = L.WShop ? false
-				: LogManager
-						.log("[publishMenuToMobi] [" + op + "] one menu item : " + item.itemName);
+	protected final void switchCoreSS(final J2SESession coreSS, final String op, final MenuItem item, final MenuItem itemBefore) {
+		L.V = L.WShop ? false : LogManager.log("[publishMenuToMobi] [" + op + "] one menu item : " + item.itemName);
 
 		if (ADD_ITEM.equals(op)) {
 			flushRefresh(item, itemBefore, coreSS, op);
@@ -305,8 +300,7 @@ public class MobiMenu {
 		}
 	}
 
-	protected final void publishToMobiToWatcher(final J2SESession coreSS, final String op,
-			final MenuItem item, final MenuItem itemBefore) {
+	protected final void publishToMobiToWatcher(final J2SESession coreSS, final String op, final MenuItem item, final MenuItem itemBefore) {
 		if (L.isInWorkshop) {
 			LogManager.log("[publishMenuToMobi] for " + op);
 		}
@@ -329,11 +323,9 @@ public class MobiMenu {
 
 	private static final J2SESession TO_PROJECT_LEVEL = null;
 
-	protected final void sendRefreshMenuData(final J2SESession coreSS, final MenuItem item,
-			final MenuItem itemBefore, final String op) {
+	protected final void sendRefreshMenuData(final J2SESession coreSS, final MenuItem item, final MenuItem itemBefore, final String op) {
 		if (L.isInWorkshop) {
-			LogManager.log("flush MenuItem E_MENU_REFRESH [53] data, op [" + op + "], item ["
-					+ item.itemName + "].");
+			LogManager.log("flush MenuItem E_MENU_REFRESH [53] data, op [" + op + "], item [" + item.itemName + "].");
 		}
 
 		if (MODIFY_ITEM.equals(op)) {
@@ -358,8 +350,8 @@ public class MobiMenu {
 	 *            如果为null，表示projectLevel
 	 * @return
 	 */
-	protected final IWatcher buildRefreshWatcher(final MenuItem item, final MenuItem itemBefore,
-			final J2SESession coreSS, final String op) {
+	protected final IWatcher buildRefreshWatcher(final MenuItem item, final MenuItem itemBefore, final J2SESession coreSS,
+			final String op) {
 		final IWatcher watcher = new IWatcher() {
 			@Override
 			public boolean watch() {
@@ -397,23 +389,18 @@ public class MobiMenu {
 	public final void addFolderItem(final Map<String, Object> map, final LinkProjectStore lps) {
 		final String linkName = lps.getLinkName();
 
-		final String name = (linkName == null || linkName.length() == 0)
-				? (String) map.get(HCjar.PROJ_NAME)
-				: linkName;
+		final String name = (linkName == null || linkName.length() == 0) ? (String) map.get(HCjar.PROJ_NAME) : linkName;
 		final int type = JarMainMenu.FOLD_TYPE;
 		final String image = UIUtil.SYS_FOLDER_ICON;
 		final String url = HCURL.buildStandardURL(HCURL.MENU_PROTOCAL, lps.getProjectID());
-		final I18NStoreableHashMapWithModifyFlag i18nName = HCjar
-				.buildI18nMapFromSerial((String) map.get(HCjar.PROJ_I18N_NAME));
+		final I18NStoreableHashMapWithModifyFlag i18nName = HCjar.buildI18nMapFromSerial((String) map.get(HCjar.PROJ_I18N_NAME));
 		final String listen = "";
 		final String extend_map = "";
 
-		addHeader(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen,
-				extend_map));
+		addHeader(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen, extend_map));
 	}
 
-	protected final void flushRefresh(final MenuItem item, final MenuItem itemBefore,
-			final J2SESession coreSS, final String op) {
+	protected final void flushRefresh(final MenuItem item, final MenuItem itemBefore, final J2SESession coreSS, final String op) {
 		// refresh to mobile，如果此动作先传送menu，则手机端进行丢弃。
 
 		ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {

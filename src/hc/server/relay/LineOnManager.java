@@ -212,8 +212,7 @@ public class LineOnManager {
 				// "'.$_GET['token'].'";');
 				if (dlo.id.equals(para_ID) && dlo.token.equals(para_TOKEN)) {
 					if (L.isLogInRelay) {
-						LogManager.log(
-								" LineOnManager REMOVE lineOff | mobiLineIn for UUID : " + para_ID);
+						LogManager.log(" LineOnManager REMOVE lineOff | mobiLineIn for UUID : " + para_ID);
 					}
 					vector.remove(i);
 					break;
@@ -253,8 +252,7 @@ public class LineOnManager {
 				if (dlo.id.equals(para_ID) && dlo.token.equals(para_TOKEN)) {
 					dlo.serverNum = Integer.parseInt(hcurl.getValueofPara("serverNum"));
 					if (L.isLogInRelay) {
-						LogManager.log(" LineOnManager UPDATE ID=" + para_ID + " WITH serverNum = "
-								+ dlo.serverNum);
+						LogManager.log(" LineOnManager UPDATE ID=" + para_ID + " WITH serverNum = " + dlo.serverNum);
 					}
 					break;
 				}

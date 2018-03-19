@@ -6,8 +6,7 @@ public class CSSClassIndex implements Comparable<CSSClassIndex> {
 	public int startIdx;
 	public int lineNo;
 
-	public CSSClassIndex(final String fullName, final String className, final int idx,
-			final int lineNo) {
+	public CSSClassIndex(final String fullName, final String className, final int idx, final int lineNo) {
 		this.fullName = fullName;
 		this.className = className;
 		this.startIdx = idx;

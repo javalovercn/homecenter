@@ -73,8 +73,7 @@ public class BindRobotSource extends IoTSource {
 	}
 
 	@Override
-	public ArrayList<DeviceBindInfo> getReferenceDeviceListByRobotName(final String projID,
-			final String robotName) throws Exception {
+	public ArrayList<DeviceBindInfo> getReferenceDeviceListByRobotName(final String projID, final String robotName) throws Exception {
 		final ArrayList<DeviceBindInfo> list = new ArrayList<DeviceBindInfo>();
 
 		final ProjResponser pr = respo.getProjResponser(projID);
@@ -91,30 +90,28 @@ public class BindRobotSource extends IoTSource {
 			final Robot r = robots[i];
 			if (MSBAgent.getName(r).equals(robotName)) {
 
-				LogManager.log("try [declareReferenceDeviceID] for Robot [" + robotName
-						+ "] in project [" + pr.context.getProjectID() + "]...");
-				final String[] referID = (String[]) pr.recycleRes.threadPool
-						.runAndWait(new ReturnableRunnable() {
-							@Override
-							public Object run() throws Throwable {
-								return r.declareReferenceDeviceID();
-							}
-						});
+				LogManager.log(
+						"try [declareReferenceDeviceID] for Robot [" + robotName + "] in project [" + pr.context.getProjectID() + "]...");
+				final String[] referID = (String[]) pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
+					@Override
+					public Object run() throws Throwable {
+						return r.declareReferenceDeviceID();
+					}
+				});
 
 				if (referID != null) {
-					LogManager.log("successful [declareReferenceDeviceID] for Robot [" + robotName
-							+ "] in project [" + pr.context.getProjectID() + "]...");
+					LogManager.log("successful [declareReferenceDeviceID] for Robot [" + robotName + "] in project ["
+							+ pr.context.getProjectID() + "]...");
 					for (int j = 0; j < referID.length; j++) {
 						final DeviceBindInfo dbi = new DeviceBindInfo(projID, robotName);
 						dbi.ref_dev_id = referID[j];
-						dbi.bind_id = DeviceBindInfo.buildStandardBindID(projID, robotName,
-								dbi.ref_dev_id);
+						dbi.bind_id = DeviceBindInfo.buildStandardBindID(projID, robotName, dbi.ref_dev_id);
 
 						list.add(dbi);
 					}
 				} else {
-					LogManager.log("NO [declareReferenceDeviceID] for Robot [" + robotName
-							+ "] in project [" + pr.context.getProjectID() + "]...");
+					LogManager.log("NO [declareReferenceDeviceID] for Robot [" + robotName + "] in project [" + pr.context.getProjectID()
+							+ "]...");
 				}
 				return list;
 			}
@@ -124,8 +121,8 @@ public class BindRobotSource extends IoTSource {
 	}
 
 	@Override
-	public final DeviceCompatibleDescription getDeviceCompatibleDescByRobotName(final String projID,
-			final String robotName, final String referenceDeviceID) throws Exception {
+	public final DeviceCompatibleDescription getDeviceCompatibleDescByRobotName(final String projID, final String robotName,
+			final String referenceDeviceID) throws Exception {
 		final ProjResponser pr = respo.getProjResponser(projID);
 		if (pr == null) {
 			return null;
@@ -139,13 +136,12 @@ public class BindRobotSource extends IoTSource {
 		for (int i = 0; i < robots.length; i++) {
 			final Robot r = robots[i];
 			if (MSBAgent.getName(r).equals(robotName)) {
-				LogManager.log("try [getDeviceCompatibleDescription] for Robot [" + robotName
-						+ "] in project [" + pr.context.getProjectID() + "]...");
-				final DeviceCompatibleDescription out = getDeviceCompatibleDescByRobotToUserThread(
-						pr, r, referenceDeviceID);
+				LogManager.log("try [getDeviceCompatibleDescription] for Robot [" + robotName + "] in project [" + pr.context.getProjectID()
+						+ "]...");
+				final DeviceCompatibleDescription out = getDeviceCompatibleDescByRobotToUserThread(pr, r, referenceDeviceID);
 				if (out != null) {
-					LogManager.log("successful [getDeviceCompatibleDescription] for Robot ["
-							+ robotName + "] in project [" + pr.context.getProjectID() + "]...");
+					LogManager.log("successful [getDeviceCompatibleDescription] for Robot [" + robotName + "] in project ["
+							+ pr.context.getProjectID() + "]...");
 				}
 				return out;
 			}
@@ -154,38 +150,33 @@ public class BindRobotSource extends IoTSource {
 	}
 
 	@Override
-	public final DeviceCompatibleDescription getDeviceCompatibleDescByRobotToUserThread(
-			final ProjResponser pr, final Robot r, final String referenceDeviceID) {
-		return (DeviceCompatibleDescription) pr.recycleRes.threadPool
-				.runAndWait(new ReturnableRunnable() {
-					@Override
-					public Object run() throws Throwable {
-						return r.getDeviceCompatibleDescription(referenceDeviceID);
-					}
-				});
+	public final DeviceCompatibleDescription getDeviceCompatibleDescByRobotToUserThread(final ProjResponser pr, final Robot r,
+			final String referenceDeviceID) {
+		return (DeviceCompatibleDescription) pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
+			@Override
+			public Object run() throws Throwable {
+				return r.getDeviceCompatibleDescription(referenceDeviceID);
+			}
+		});
 	}
 
 	@Override
-	public final DataDeviceCapDesc getDataForDeviceCompatibleDesc(final ProjResponser pr,
-			final DeviceCompatibleDescription devCompDesc) {
+	public final DataDeviceCapDesc getDataForDeviceCompatibleDesc(final ProjResponser pr, final DeviceCompatibleDescription devCompDesc) {
 		if (devCompDesc == null) {
 			return new DataDeviceCapDesc("", "", "1.0");
 		} else {
-			return (DataDeviceCapDesc) pr.recycleRes.threadPool
-					.runAndWait(new ReturnableRunnable() {
-						@Override
-						public Object run() throws Throwable {
-							return new DataDeviceCapDesc(devCompDesc.getDescription(),
-									devCompDesc.getCompatibleStringList(),
-									devCompDesc.getVersion());
-						}
-					});
+			return (DataDeviceCapDesc) pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
+				@Override
+				public Object run() throws Throwable {
+					return new DataDeviceCapDesc(devCompDesc.getDescription(), devCompDesc.getCompatibleStringList(),
+							devCompDesc.getVersion());
+				}
+			});
 		}
 	}
 
 	@Override
-	public void getDeviceCompatibleDescByDevice(final ProjResponser pr,
-			final RealDeviceInfo deviceInfo) {
+	public void getDeviceCompatibleDescByDevice(final ProjResponser pr, final RealDeviceInfo deviceInfo) {
 		if (deviceInfo.deviceCompatibleDescriptionCache != null) {
 			return;
 		}
@@ -193,35 +184,27 @@ public class BindRobotSource extends IoTSource {
 		pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() throws Throwable {
-				deviceInfo.deviceCompatibleDescriptionCache = deviceInfo.device
-						.getDeviceCompatibleDescription();
-				MSBAgent.getCompatibleItemToUserThread(pr, true,
-						deviceInfo.deviceCompatibleDescriptionCache);
+				deviceInfo.deviceCompatibleDescriptionCache = deviceInfo.device.getDeviceCompatibleDescription();
+				MSBAgent.getCompatibleItemToUserThread(pr, true, deviceInfo.deviceCompatibleDescriptionCache);
 				return null;
 			}
 		});
 	}
 
 	@Override
-	public final void getConverterDescUpDownToUserThread(final ProjResponser pr,
-			final ConverterInfo converterInfo) {
-		if (converterInfo.upDeviceCompatibleDescriptionCache != null
-				|| converterInfo.downDeviceCompatibleDescriptionCache != null) {
+	public final void getConverterDescUpDownToUserThread(final ProjResponser pr, final ConverterInfo converterInfo) {
+		if (converterInfo.upDeviceCompatibleDescriptionCache != null || converterInfo.downDeviceCompatibleDescriptionCache != null) {
 			return;
 		}
 
 		pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() throws Throwable {
-				converterInfo.upDeviceCompatibleDescriptionCache = converterInfo.converter
-						.getUpDeviceCompatibleDescription();
-				converterInfo.downDeviceCompatibleDescriptionCache = converterInfo.converter
-						.getDownDeviceCompatibleDescription();
+				converterInfo.upDeviceCompatibleDescriptionCache = converterInfo.converter.getUpDeviceCompatibleDescription();
+				converterInfo.downDeviceCompatibleDescriptionCache = converterInfo.converter.getDownDeviceCompatibleDescription();
 
-				MSBAgent.getCompatibleItemToUserThread(pr, true,
-						converterInfo.upDeviceCompatibleDescriptionCache);
-				MSBAgent.getCompatibleItemToUserThread(pr, true,
-						converterInfo.downDeviceCompatibleDescriptionCache);
+				MSBAgent.getCompatibleItemToUserThread(pr, true, converterInfo.upDeviceCompatibleDescriptionCache);
+				MSBAgent.getCompatibleItemToUserThread(pr, true, converterInfo.downDeviceCompatibleDescriptionCache);
 
 				return converterInfo;
 			}
@@ -264,23 +247,17 @@ public class BindRobotSource extends IoTSource {
 						final Device device = devices[j];
 						final String dev_name = MSBAgent.getName(device);
 
-						final String[] devRealIDS = (String[]) pr.recycleRes.threadPool
-								.runAndWait(new ReturnableRunnable() {
-									@Override
-									public Object run() throws Throwable {
-										LogManager
-												.log("try [connect] for real device IDs of Device ["
-														+ dev_name + "] in project [" + projectID
-														+ "]...");
-										final String[] out = MSBAgent.getRegisterDeviceID(device,
-												respo.msbAgent.workbench);
-										LogManager.log(
-												"successful [connect] for real device IDs of Device ["
-														+ dev_name + "] in project [" + projectID
-														+ "].");
-										return out;
-									}
-								});
+						final String[] devRealIDS = (String[]) pr.recycleRes.threadPool.runAndWait(new ReturnableRunnable() {
+							@Override
+							public Object run() throws Throwable {
+								LogManager.log(
+										"try [connect] for real device IDs of Device [" + dev_name + "] in project [" + projectID + "]...");
+								final String[] out = MSBAgent.getRegisterDeviceID(device, respo.msbAgent.workbench);
+								LogManager.log("successful [connect] for real device IDs of Device [" + dev_name + "] in project ["
+										+ projectID + "].");
+								return out;
+							}
+						});
 
 						if (devRealIDS != null) {
 							for (int k = 0; k < devRealIDS.length; k++) {
@@ -303,8 +280,7 @@ public class BindRobotSource extends IoTSource {
 	@Override
 	public RealDeviceInfo getRealDeviceBindInfo(final String bind_id) {
 		// 由于全内存运算，所以不计性能，不用cache到变量
-		final Iterator<LinkProjectStore> it = LinkProjectManager
-				.getLinkProjsIteratorInUserSysThread(true);
+		final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		while (it.hasNext()) {
 			final LinkProjectStore lps = it.next();
 			if (lps.isActive() == false) {
@@ -334,8 +310,7 @@ public class BindRobotSource extends IoTSource {
 	@Override
 	public ConverterInfo getConverterBindInfo(final String bind_id) {
 		// 由于全内存运算，所以不计性能，不用cache到变量
-		final Iterator<LinkProjectStore> it = LinkProjectManager
-				.getLinkProjsIteratorInUserSysThread(true);
+		final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		while (it.hasNext()) {
 			final LinkProjectStore lps = it.next();
 			if (lps.isActive() == false) {
@@ -371,8 +346,8 @@ public class BindRobotSource extends IoTSource {
 	 *            true:use click 'Cancel' to connect all devices
 	 * @return
 	 */
-	public static JProgressBar showProgressBar(final int totalDevice, final int finishedDevice,
-			final JLabel descLabel, final Window[] back, final boolean[] isCancel) {
+	public static JProgressBar showProgressBar(final int totalDevice, final int finishedDevice, final JLabel descLabel, final Window[] back,
+			final boolean[] isCancel) {
 		final JProgressBar bar = new JProgressBar(finishedDevice, totalDevice);
 
 		final AddHarHTMLMlet currMlet = AddHarHTMLMlet.getCurrAddHarHTMLMlet();
@@ -405,8 +380,7 @@ public class BindRobotSource extends IoTSource {
 
 			final JPanel gapPanel = new JPanel(new GridBagLayout());
 			final GridBagConstraints c = new GridBagConstraints();
-			c.insets = new Insets(ClientDesc.hgap, ClientDesc.hgap, ClientDesc.vgap,
-					ClientDesc.vgap);
+			c.insets = new Insets(ClientDesc.hgap, ClientDesc.hgap, ClientDesc.vgap, ClientDesc.vgap);
 			gapPanel.add(panel, c);
 
 			ProcessingWindowManager.showCenterMessageOnTop(null, false, gapPanel, back);

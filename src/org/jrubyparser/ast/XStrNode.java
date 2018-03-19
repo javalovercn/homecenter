@@ -35,35 +35,38 @@ import org.jrubyparser.SourcePosition;
  * A Backtick(`) string
  */
 public class XStrNode extends Node implements ILiteralNode {
-    private String value;
+	private String value;
 
-    public XStrNode(SourcePosition position, String value) {
-        super(position);
-        this.value = (value == null ? "" : value);
-    }
+	public XStrNode(SourcePosition position, String value) {
+		super(position);
+		this.value = (value == null ? "" : value);
+	}
 
-    @Override
-    public boolean isSame(Node other) {
-        return super.isSame(other) && getValue().equals(((XStrNode) other).getValue());
-    }
+	@Override
+	public boolean isSame(Node other) {
+		return super.isSame(other) && getValue().equals(((XStrNode) other).getValue());
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.XSTRNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.XSTRNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitXStrNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitXStrNode(this);
+	}
 
-    /**
-     * Gets the value.
-     * @return Returns a String
-     */
-    public String getValue() {
-        return value;
-    }
+	/**
+	 * Gets the value.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getValue() {
+		return value;
+	}
 }

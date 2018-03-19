@@ -37,78 +37,81 @@ import org.jrubyparser.SourcePosition;
 // FIXME: ConstDecl could be two seperate classes (or done differently since constNode and name
 // never exist at the same time.
 public class ConstDeclNode extends AssignableNode implements INameNode {
-    private String name;
-    private INameNode constNode;
+	private String name;
+	private INameNode constNode;
 
-    // TODO: Split this into two sub-classes so that name and constNode can be specified seperately.
-    public ConstDeclNode(SourcePosition position, String name, INameNode constNode, Node valueNode) {
-        super(position, valueNode);
+	// TODO: Split this into two sub-classes so that name and constNode can be specified seperately.
+	public ConstDeclNode(SourcePosition position, String name, INameNode constNode, Node valueNode) {
+		super(position, valueNode);
 
-        this.name = name;
-        this.constNode = (INameNode) adopt((Node) constNode);
-    }
+		this.name = name;
+		this.constNode = (INameNode) adopt((Node) constNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param other
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node other) {
+		return super.isSame(other) && isNameMatch(((ConstDeclNode) other).getName());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param other to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node other) {
-        return super.isSame(other) && isNameMatch(((ConstDeclNode) other).getName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.CONSTDECLNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitConstDeclNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.CONSTDECLNODE;
-    }
+	public String getLexicalName() {
+		return getName();
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitConstDeclNode(this);
-    }
+	/**
+	 * Gets the name (this is the rightmost element of lhs (in Foo::BAR it is BAR). name is the
+	 * constant Name, it normally starts with a Capital
+	 * 
+	 * @return name
+	 */
+	public String getName() {
+		return (name == null ? constNode.getName() : name);
+	}
 
-    public String getLexicalName() {
-        return getName();
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    /**
-     * Gets the name (this is the rightmost element of lhs (in Foo::BAR it is BAR).
-	 * name is the constant Name, it normally starts with a Capital
-     * @return name
-     */
-    public String getName() {
-    	return (name == null ? constNode.getName() : name);
-    }
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+		return thisName != null && thisName.equals(name);
+	}
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+	/**
+	 * Get the path the name is associated with or null (in Foo::BAR it is Foo).
+	 * 
+	 * @return pathNode
+	 */
+	public Node getConstNode() {
+		return (Node) constNode;
+	}
 
-        return thisName != null && thisName.equals(name);
-    }
+	public SourcePosition getNamePosition() {
+		return getPosition().fromBeginning(getName().length());
+	}
 
-    /**
-     * Get the path the name is associated with or null (in Foo::BAR it is Foo).
-     * @return pathNode
-     */
-    public Node getConstNode() {
-        return (Node) constNode;
-    }
-
-    public SourcePosition getNamePosition() {
-        return getPosition().fromBeginning(getName().length());
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getNamePosition();
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getNamePosition();
+	}
 }

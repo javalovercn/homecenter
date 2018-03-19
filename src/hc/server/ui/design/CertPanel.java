@@ -68,8 +68,7 @@ public class CertPanel extends CertListPanel {
 	final boolean isLimitOneAlias = true;
 
 	final HCTablePanel tablePanel;
-	final JButton addBut, importBut, descBut, removeBut, saveBut, exitBut, changePwdBut, backupBut,
-			restoreBut;
+	final JButton addBut, importBut, descBut, removeBut, saveBut, exitBut, changePwdBut, backupBut, restoreBut;
 	boolean isChanged = false;
 
 	ListSelectionListener listSelectListener;
@@ -121,19 +120,16 @@ public class CertPanel extends CertListPanel {
 			fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
 			final String[] pfxFile = { SecurityDataProtector.DEV_CERT_FILE_EXT };
-			final FileNameExtensionFilter pfxFilter = new FileNameExtensionFilter(
-					SecurityDataProtector.DEV_CERT_FILE_EXT + " file", pfxFile);
+			final FileNameExtensionFilter pfxFilter = new FileNameExtensionFilter(SecurityDataProtector.DEV_CERT_FILE_EXT + " file",
+					pfxFile);
 			fileChooser.setFileFilter(pfxFilter);
 		}
 
-		final int returnVal = isOpen ? fileChooser.showOpenDialog(dialog)
-				: fileChooser.showSaveDialog(dialog);
+		final int returnVal = isOpen ? fileChooser.showOpenDialog(dialog) : fileChooser.showSaveDialog(dialog);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			File selectedFile = fileChooser.getSelectedFile();
-			if (selectedFile.getName()
-					.endsWith("." + SecurityDataProtector.DEV_CERT_FILE_EXT) == false) {
-				selectedFile = new File(selectedFile.getAbsolutePath() + "."
-						+ SecurityDataProtector.DEV_CERT_FILE_EXT);
+			if (selectedFile.getName().endsWith("." + SecurityDataProtector.DEV_CERT_FILE_EXT) == false) {
+				selectedFile = new File(selectedFile.getAbsolutePath() + "." + SecurityDataProtector.DEV_CERT_FILE_EXT);
 			}
 			return selectedFile;
 		} else {
@@ -157,10 +153,8 @@ public class CertPanel extends CertListPanel {
 
 		contentPane.setLayout(new BorderLayout(ClientDesc.hgap, ClientDesc.vgap));
 
-		addBut = new JButton((String) ResourceUtil.get(9016),
-				new ImageIcon(ImageSrc.ADD_SMALL_ICON));
-		addBut.setToolTipText("<html>"
-				+ "create a pare of self-signed public key and private key to current store.<BR><BR>"
+		addBut = new JButton((String) ResourceUtil.get(9016), new ImageIcon(ImageSrc.ADD_SMALL_ICON));
+		addBut.setToolTipText("<html>" + "create a pare of self-signed public key and private key to current store.<BR><BR>"
 				+ "if you publish an app and then lose the key with which you signed your app, "
 				+ "<BR>you will not be able to publish any updates to your app." + "</html>");
 		if (isLimitOneAlias) {
@@ -170,25 +164,19 @@ public class CertPanel extends CertListPanel {
 		}
 
 		saveBut = new JButton(saveButtonText, new ImageIcon(ImageSrc.OK_ICON));
-		changePwdBut = new JButton((String) ResourceUtil.get(1007),
-				new ImageIcon(ImageSrc.PASSWORD_ICON));
+		changePwdBut = new JButton((String) ResourceUtil.get(1007), new ImageIcon(ImageSrc.PASSWORD_ICON));
 		changePwdBut.setToolTipText("<html>set/change password of developer certificates."
-				+ "<BR>it will be effective after click <STRONG>[" + saveButtonText
-				+ "]</STRONG>.</html>");
+				+ "<BR>it will be effective after click <STRONG>[" + saveButtonText + "]</STRONG>.</html>");
 
 		exitBut = new JButton((String) ResourceUtil.get(1011), new ImageIcon(ImageSrc.CANCEL_ICON));
-		removeBut = new JButton((String) ResourceUtil.get(9018),
-				new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
+		removeBut = new JButton((String) ResourceUtil.get(9018), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
 		// removeBut.setToolTipText("<html>" + (String)ResourceUtil.get(9141) +
 		// "</html>");
 		final String str_import = (String) ResourceUtil.get(9223);
-		importBut = new JButton(str_import,
-				new ImageIcon(ImageSrc.loadImageFromPath(ImageSrc.HC_IMPORT_22_PATH)));
-		importBut
-				.setToolTipText("<html>import private key, chain from CA to current store.</html>");
+		importBut = new JButton(str_import, new ImageIcon(ImageSrc.loadImageFromPath(ImageSrc.HC_IMPORT_22_PATH)));
+		importBut.setToolTipText("<html>import private key, chain from CA to current store.</html>");
 		final String str_backup = (String) ResourceUtil.get(9221);
-		backupBut = new JButton(str_backup,
-				new ImageIcon(ImageSrc.loadImageFromPath(ImageSrc.HC_BACKUP_22_PATH)));
+		backupBut = new JButton(str_backup, new ImageIcon(ImageSrc.loadImageFromPath(ImageSrc.HC_BACKUP_22_PATH)));
 		backupBut.setToolTipText("backup developer certificates to disk or USB.");
 		backupBut.addActionListener(new HCActionListener(new Runnable() {
 			@Override
@@ -197,12 +185,10 @@ public class CertPanel extends CertListPanel {
 				if (saveFile != null) {
 					ResourceUtil.copy(SecurityDataProtector.getDevCertFile(), saveFile);
 					App.showMessageDialog(dialog,
-							new JLabel("<html>Successful backup developer certificates!" + "<BR>"
-									+ "<BR>" + "<STRONG>Important :</STRONG><BR>"
-									+ "please write down the password and place it in a safe place."
+							new JLabel("<html>Successful backup developer certificates!" + "<BR>" + "<BR>"
+									+ "<STRONG>Important :</STRONG><BR>" + "please write down the password and place it in a safe place."
 									+ "<BR>if you lose the password and certificates, your HAR can NOT be signed with it again!</html>"),
-							ResourceUtil.getInfoI18N(), App.INFORMATION_MESSAGE,
-							App.getSysIcon(App.SYS_INFO_ICON));
+							ResourceUtil.getInfoI18N(), App.INFORMATION_MESSAGE, App.getSysIcon(App.SYS_INFO_ICON));
 				}
 			}
 		}, threadPoolToken));
@@ -210,19 +196,16 @@ public class CertPanel extends CertListPanel {
 		backupBut.setEnabled(SecurityDataProtector.getDevCertFile().exists());
 
 		final String str_restore = (String) ResourceUtil.get(9222);
-		restoreBut = new JButton(str_restore,
-				new ImageIcon(ImageSrc.loadImageFromPath(ImageSrc.HC_RESTORE_22_PATH)));
-		restoreBut.setToolTipText("<html>restore developer certificates from a backup file,"
-				+ "<BR>the current certificates will be overrided.</html>");
+		restoreBut = new JButton(str_restore, new ImageIcon(ImageSrc.loadImageFromPath(ImageSrc.HC_RESTORE_22_PATH)));
+		restoreBut.setToolTipText(
+				"<html>restore developer certificates from a backup file," + "<BR>the current certificates will be overrided.</html>");
 		restoreBut.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				if (CertPanel.this.hasItem()) {
 					final int result = App.showConfirmDialog(dialog,
-							"<html>current certificates will be overried!<BR>"
-									+ "Are sure to restore?</html>",
-							"continue restore?", JOptionPane.YES_NO_OPTION,
-							JOptionPane.PLAIN_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
+							"<html>current certificates will be overried!<BR>" + "Are sure to restore?</html>", "continue restore?",
+							JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
 					if (result == JOptionPane.YES_OPTION) {
 						restoreCert();
 					}
@@ -234,8 +217,7 @@ public class CertPanel extends CertListPanel {
 			private final void restoreCert() {
 				final File restoreFile = chooseFile(true);
 				if (restoreFile != null) {
-					final JPasswordField field = new JPasswordField("",
-							Designer.COLUMNS_PWD_DEV_CERT);
+					final JPasswordField field = new JPasswordField("", Designer.COLUMNS_PWD_DEV_CERT);
 
 					final JPanel totalPanel = Designer.buildInputCertPwdPanel(field, false);
 
@@ -247,13 +229,10 @@ public class CertPanel extends CertListPanel {
 								final SignItem[] r = SignHelper.getContentformPfx(restoreFile, pwd);
 
 								// restore
-								ResourceUtil.copy(restoreFile,
-										SecurityDataProtector.getDevCertFile());
+								ResourceUtil.copy(restoreFile, SecurityDataProtector.getDevCertFile());
 
-								if (PropertiesManager
-										.getValue(PropertiesManager.p_DevCertPassword) != null) {
-									PropertiesManager.setValue(PropertiesManager.p_DevCertPassword,
-											pwd);
+								if (PropertiesManager.getValue(PropertiesManager.p_DevCertPassword) != null) {
+									PropertiesManager.setValue(PropertiesManager.p_DevCertPassword, pwd);
 								}
 								PropertiesManager.saveFile();
 
@@ -265,32 +244,27 @@ public class CertPanel extends CertListPanel {
 								refreshTable();
 								saveBut.setEnabled(false);
 							} catch (final Throwable e1) {
-								App.showMessageDialog(dialog, e1.getMessage(),
-										ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE,
+								App.showMessageDialog(dialog, e1.getMessage(), ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE,
 										App.getSysIcon(App.SYS_ERROR_ICON));
 							}
 						}
 					});
 
-					App.showCenterPanelMain(totalPanel, 0, 0, (String) ResourceUtil.get(1007),
-							false, null, null, listener, null, dialog, true, false, null, false,
-							false);
+					App.showCenterPanelMain(totalPanel, 0, 0, (String) ResourceUtil.get(1007), false, null, null, listener, null, dialog,
+							true, false, null, false, false);
 				}
 			}
 		}, threadPoolToken));
 
-		descBut = new JButton((String) ResourceUtil.get(9095),
-				new ImageIcon(ImageSrc.loadImageFromPath(ImageSrc.HC_CERT_22_PATH)));
+		descBut = new JButton((String) ResourceUtil.get(9095), new ImageIcon(ImageSrc.loadImageFromPath(ImageSrc.HC_CERT_22_PATH)));
 		// descBut.setToolTipText((String)ResourceUtil.get(9143));
 
 		addBut.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				if (items.size() >= 1) {
-					final int result = App.showConfirmDialog(dialog,
-							"one certificate is sufficient usually, are you continue?", "continue?",
-							JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
-							App.getSysIcon(App.SYS_WARN_ICON));
+					final int result = App.showConfirmDialog(dialog, "one certificate is sufficient usually, are you continue?",
+							"continue?", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, App.getSysIcon(App.SYS_WARN_ICON));
 					if (result == JOptionPane.YES_OPTION) {
 						add();
 					}
@@ -315,8 +289,7 @@ public class CertPanel extends CertListPanel {
 					@Override
 					public void run() {
 						App.showMessageDialog(dialog,
-								"<html>it will be effective after click <STRONG>[" + saveButtonText
-										+ "]</STRONG>.</html>");
+								"<html>it will be effective after click <STRONG>[" + saveButtonText + "]</STRONG>.</html>");
 					}
 				}, threadPoolToken);
 				showInputCertPwd(listern);
@@ -327,10 +300,8 @@ public class CertPanel extends CertListPanel {
 			@Override
 			public void run() {
 				if (saveBut.isEnabled()) {
-					final int result = App.showConfirmDialog(dialog,
-							"certificate has been modified, save changes?", "save changes?",
-							JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
-							App.getSysIcon(App.SYS_QUES_ICON));
+					final int result = App.showConfirmDialog(dialog, "certificate has been modified, save changes?", "save changes?",
+							JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, App.getSysIcon(App.SYS_QUES_ICON));
 					if (result == JOptionPane.YES_OPTION) {
 						final ActionListener disposeAction = new HCActionListener(new Runnable() {
 							@Override
@@ -438,8 +409,7 @@ public class CertPanel extends CertListPanel {
 								FileInputStream fis = null;
 								try {
 									fis = new FileInputStream(file);
-									final CertificateFactory cf = CertificateFactory
-											.getInstance("X.509");
+									final CertificateFactory cf = CertificateFactory.getInstance("X.509");
 									signItem.chain = (X509Certificate) cf.generateCertificate(fis);
 								} catch (final Exception e) {
 									showException(e);
@@ -474,8 +444,8 @@ public class CertPanel extends CertListPanel {
 					}
 				});
 
-				App.showCenterPanelMain(listPane, 0, 0, "import private key and chain from CA",
-						true, null, null, listener, null, dialog, true, false, null, false, false);
+				App.showCenterPanelMain(listPane, 0, 0, "import private key and chain from CA", true, null, null, listener, null, dialog,
+						true, false, null, false, false);
 			}
 		}, threadPoolToken));
 
@@ -547,8 +517,8 @@ public class CertPanel extends CertListPanel {
 		final JButton virtualDown = new JButton("");// 由于HCTablePanel内带更新逻辑，所以做一个虚的。
 		final JButton virtualEdit = new JButton("");// 由于HCTablePanel内带更新逻辑，所以做一个虚的。
 
-		tablePanel = new HCTablePanel(tableModel, null, colNames, items.size(), virtualUp,
-				virtualDown, virtualRemove, virtualImport, virtualEdit,
+		tablePanel = new HCTablePanel(tableModel, null, colNames, items.size(), virtualUp, virtualDown, virtualRemove, virtualImport,
+				virtualEdit,
 				// upOrDownMovingBiz
 				new AbstractDelayBiz(null) {
 					@Override
@@ -599,8 +569,7 @@ public class CertPanel extends CertListPanel {
 		initTable(tablePanel.table);
 
 		descBut.addActionListener(new HCActionListener(new Runnable() {
-			private final void append(final StringBuilder sb, final String item,
-					final String value) {
+			private final void append(final StringBuilder sb, final String item, final String value) {
 				if (sb.length() > 0) {
 					sb.append("<BR>");
 					sb.append("<BR>");
@@ -632,8 +601,8 @@ public class CertPanel extends CertListPanel {
 
 				panel.add(new JLabel("<html>" + sbStr + "</html>"));
 				final ActionListener listener = null;
-				App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(9095), false, null,
-						null, listener, null, dialog, true, false, null, false, false);
+				App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(9095), false, null, null, listener, null, dialog, true,
+						false, null, false, false);
 			}
 		}, threadPoolToken));
 		final JToolBar buttonsList = new JToolBar();
@@ -701,8 +670,7 @@ public class CertPanel extends CertListPanel {
 
 		final JPanel descPanel = new JPanel(new BorderLayout());
 		descPanel.setBorder(new TitledBorder((String) ResourceUtil.get(9095)));
-		descPanel.add(
-				new JLabel("<html>" + Designer.DESC_PASSWORD_OF_DEVELOPER_CERTIFICATE + "</html>"));
+		descPanel.add(new JLabel("<html>" + Designer.DESC_PASSWORD_OF_DEVELOPER_CERTIFICATE + "</html>"));
 
 		final JPanel totalPanel = new JPanel(new BorderLayout());
 		totalPanel.setBorder(new TitledBorder(title_pwd));
@@ -717,8 +685,7 @@ public class CertPanel extends CertListPanel {
 		final ActionListener listener = new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				if ((StringUtil.getBytes(field1.getText()).length >= App.MIN_PWD_LEN)
-						&& field2.getText().equals(field1.getText())) {
+				if ((StringUtil.getBytes(field1.getText()).length >= App.MIN_PWD_LEN) && field2.getText().equals(field1.getText())) {
 					password = new String(field1.getPassword());
 					notifyNeedToSave();
 					if (extAction != null) {
@@ -726,16 +693,14 @@ public class CertPanel extends CertListPanel {
 					}
 				} else {
 					JOptionPane.showMessageDialog(dialog,
-							StringUtil.replace((String) ResourceUtil.get(9077), "{min}",
-									"" + App.MIN_PWD_LEN), // 含密码不一致
+							StringUtil.replace((String) ResourceUtil.get(9077), "{min}", "" + App.MIN_PWD_LEN), // 含密码不一致
 							(String) ResourceUtil.get(9076), JOptionPane.ERROR_MESSAGE);
 					showInputCertPwd(extAction);
 				}
 			}
 		});
 
-		App.showCenterPanelMain(totalPanel, 0, 0, title_pwd, false, null, null, listener, null,
-				dialog, true, false, null, false, false);
+		App.showCenterPanelMain(totalPanel, 0, 0, title_pwd, false, null, null, listener, null, dialog, true, false, null, false, false);
 	}
 
 	public final JFrame toShow() {
@@ -753,9 +718,7 @@ public class CertPanel extends CertListPanel {
 		JRootPane rootPane = null;
 		rootPane = dialog.getRootPane();
 		if (rootPane != null) {
-			rootPane.registerKeyboardAction(quitAction,
-					KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-					JComponent.WHEN_IN_FOCUSED_WINDOW);
+			rootPane.registerKeyboardAction(quitAction, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
 		}
 
 		dialog.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -790,8 +753,7 @@ public class CertPanel extends CertListPanel {
 	}
 
 	private final void showException(final Throwable e) {
-		App.showMessageDialog(dialog, e.getMessage(), ResourceUtil.getErrorI18N(),
-				App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+		App.showMessageDialog(dialog, e.getMessage(), ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 	}
 
 	public void notifyHasRow(final boolean hasRow) {
@@ -814,8 +776,7 @@ public class CertPanel extends CertListPanel {
 		// required to input alias name.
 		// panel.add(f_Alias);
 
-		panel.add(new JLabel(
-				CertListPanel.COL_NAME_EXPIRES + " (" + (String) ResourceUtil.get(9226) + ")"));
+		panel.add(new JLabel(CertListPanel.COL_NAME_EXPIRES + " (" + (String) ResourceUtil.get(9226) + ")"));
 		panel.add(yearSpinner);
 
 		panel.add(new JLabel((String) ResourceUtil.get(9213)));
@@ -847,10 +808,8 @@ public class CertPanel extends CertListPanel {
 			public void run() {
 				final int year = Integer.parseInt(yearSpinner.getValue().toString());
 				if (year < 20) {
-					final int result = App.showConfirmDialog(dialog,
-							"the year of expires is too small, are you continue?", "continue?",
-							JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE,
-							App.getSysIcon(App.SYS_WARN_ICON));
+					final int result = App.showConfirmDialog(dialog, "the year of expires is too small, are you continue?", "continue?",
+							JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, App.getSysIcon(App.SYS_WARN_ICON));
 					if (result == JOptionPane.YES_OPTION) {
 						addCertificate(year);
 					}
@@ -862,10 +821,8 @@ public class CertPanel extends CertListPanel {
 			private final void addCertificate(final int year) {
 				ProcessingWindowManager.showCenterMessage("creating developer certificate...");
 
-				final String x500Name = "CN=" + format(f_CN.getText()) + ", OU="
-						+ format(f_OU.getText()) + ", O=" + format(f_O.getText()) + ", L="
-						+ format(f_L.getText()) + ", ST=" + format(f_S.getText()) + ", C="
-						+ format(f_C.getText());
+				final String x500Name = "CN=" + format(f_CN.getText()) + ", OU=" + format(f_OU.getText()) + ", O=" + format(f_O.getText())
+						+ ", L=" + format(f_L.getText()) + ", ST=" + format(f_S.getText()) + ", C=" + format(f_C.getText());
 
 				final Date notBefore = new Date();
 				final Calendar notAfterCal = Calendar.getInstance();
@@ -873,8 +830,7 @@ public class CertPanel extends CertListPanel {
 				notAfterCal.add(Calendar.YEAR, year);
 				final Date notAfter = notAfterCal.getTime();
 				try {
-					final SignItem item = SignHelper.generateKeys(x500Name, f_Alias.getText(),
-							notBefore, notAfter);
+					final SignItem item = SignHelper.generateKeys(x500Name, f_Alias.getText(), notBefore, notAfter);
 					items.add(item);
 					if (items.size() == 1) {
 						tablePanel.table.getSelectionModel().setSelectionInterval(0, 0);
@@ -893,8 +849,8 @@ public class CertPanel extends CertListPanel {
 			}
 		});
 
-		App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(9220), true, null, null,
-				listener, null, dialog, true, false, null, false, false);
+		App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(9220), true, null, null, listener, null, dialog, true, false, null,
+				false, false);
 	}
 
 	private final void savePfx() {
@@ -903,8 +859,8 @@ public class CertPanel extends CertListPanel {
 			saveBut.setEnabled(false);
 		} catch (final Exception e1) {
 			e1.printStackTrace();
-			App.showMessageDialog(dialog, e1.getMessage(), ResourceUtil.getErrorI18N(),
-					App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+			App.showMessageDialog(dialog, e1.getMessage(), ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE,
+					App.getSysIcon(App.SYS_ERROR_ICON));
 		}
 	}
 

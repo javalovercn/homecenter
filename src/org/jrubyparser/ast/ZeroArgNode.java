@@ -31,8 +31,9 @@ package org.jrubyparser.ast;
 import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
-/** Represents a zero arg in a block.
- * this is never visited and is used only in an instanceof check
+/**
+ * Represents a zero arg in a block. this is never visited and is used only in an instanceof check
+ * 
  * <pre>
  * do ||
  * end
@@ -40,18 +41,18 @@ import org.jrubyparser.SourcePosition;
  *
  */
 public class ZeroArgNode extends Node {
-    public ZeroArgNode(SourcePosition position) {
-        super(position);
-    }
+	public ZeroArgNode(SourcePosition position) {
+		super(position);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.ZEROARGNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.ZEROARGNODE;
+	}
 
-    /**
-     * @see Node#accept(NodeVisitor)
-     */
-    public <T> T accept(NodeVisitor<T> visitor) {
-    	return null; // never visited, should be ok
-    }
+	/**
+	 * @see Node#accept(NodeVisitor)
+	 */
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return null; // never visited, should be ok
+	}
 }

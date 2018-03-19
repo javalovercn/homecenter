@@ -8,8 +8,7 @@ public class ContextSecurityManager {
 	private static ThreadGroup[] group = new ThreadGroup[16];// 增加一个tempLimitPool
 	private static ContextSecurityConfig[] config = new ContextSecurityConfig[group.length];
 
-	public static synchronized final void putContextSecurityConfig(final ThreadGroup threadGroup,
-			final ContextSecurityConfig csc) {
+	public static synchronized final void putContextSecurityConfig(final ThreadGroup threadGroup, final ContextSecurityConfig csc) {
 		CCoreUtil.checkAccess();
 
 		for (int i = 0; i < length; i++) {

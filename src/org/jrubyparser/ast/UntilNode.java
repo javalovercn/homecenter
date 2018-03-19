@@ -35,88 +35,93 @@ import org.jrubyparser.SourcePosition;
  * Represents an until statement.
  */
 public class UntilNode extends Node {
-    private Node conditionNode;
-    private Node bodyNode;
-    private boolean evaluateAtStart;
+	private Node conditionNode;
+	private Node bodyNode;
+	private boolean evaluateAtStart;
 
-    public boolean containsNonlocalFlow = false;
+	public boolean containsNonlocalFlow = false;
 
-    public UntilNode(SourcePosition position, Node conditionNode, Node bodyNode) {
-        this(position, conditionNode, bodyNode, true);
-    }
+	public UntilNode(SourcePosition position, Node conditionNode, Node bodyNode) {
+		this(position, conditionNode, bodyNode, true);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.UNTILNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.UNTILNODE;
+	}
 
-    public UntilNode(SourcePosition position, Node conditionNode, Node bodyNode, boolean evaluateAtStart) {
-        super(position);
+	public UntilNode(SourcePosition position, Node conditionNode, Node bodyNode, boolean evaluateAtStart) {
+		super(position);
 
-        assert conditionNode != null : "conditionNode is not null";
+		assert conditionNode != null : "conditionNode is not null";
 
-        this.conditionNode = adopt(conditionNode);
-        this.bodyNode = adopt(bodyNode);
-        this.evaluateAtStart = evaluateAtStart;
-    }
+		this.conditionNode = adopt(conditionNode);
+		this.bodyNode = adopt(bodyNode);
+		this.evaluateAtStart = evaluateAtStart;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitUntilNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitUntilNode(this);
+	}
 
-     @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
-        UntilNode other = (UntilNode) node;
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
+		UntilNode other = (UntilNode) node;
 
-        return getBody().isSame(other.getBody()) && getCondition().isSame(other.getCondition()) &&
-                evaluateAtStart() == other.evaluateAtStart();
-    }
+		return getBody().isSame(other.getBody()) && getCondition().isSame(other.getCondition())
+				&& evaluateAtStart() == other.evaluateAtStart();
+	}
 
+	/**
+	 * Gets the bodyNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getBody() {
+		return bodyNode;
+	}
 
-    /**
-     * Gets the bodyNode.
-     * @return Returns a Node
-     */
-    public Node getBody() {
-        return bodyNode;
-    }
+	@Deprecated
+	public Node getBodyNode() {
+		return getBody();
+	}
 
-    @Deprecated
-    public Node getBodyNode() {
-        return getBody();
-    }
+	public void setBody(Node body) {
+		this.bodyNode = adopt(body);
+	}
 
-    public void setBody(Node body) {
-        this.bodyNode = adopt(body);
-    }
+	/**
+	 * Gets the conditionNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getCondition() {
+		return conditionNode;
+	}
 
-    /**
-     * Gets the conditionNode.
-     * @return Returns a Node
-     */
-    public Node getCondition() {
-        return conditionNode;
-    }
+	@Deprecated
+	public Node getConditionNode() {
+		return getCondition();
+	}
 
-    @Deprecated
-    public Node getConditionNode() {
-        return getCondition();
-    }
+	public void setConditionNode(Node condition) {
+		this.conditionNode = adopt(condition);
+	}
 
-    public void setConditionNode(Node condition) {
-        this.conditionNode = adopt(condition);
-    }
-
-    /**
-     * Determine whether this is while or do while
-     * @return true if you are a while, false if do while
-     */
-    public boolean evaluateAtStart() {
-        return evaluateAtStart;
-    }
+	/**
+	 * Determine whether this is while or do while
+	 * 
+	 * @return true if you are a while, false if do while
+	 */
+	public boolean evaluateAtStart() {
+		return evaluateAtStart;
+	}
 
 }

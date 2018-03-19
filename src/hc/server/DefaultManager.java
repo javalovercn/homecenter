@@ -7,8 +7,7 @@ public class DefaultManager {
 	public static final int DEFAULT_DOC_FONT_SIZE = 11;
 	public static final String DEFAULT_DOC_FONT_SIZE_INPUT = String.valueOf(DEFAULT_DOC_FONT_SIZE);
 	public static final int DEFAULT_DIRECT_SERVER_PORT = 0;
-	public static final String DEFAULT_DIRECT_SERVER_PORT_FOR_INPUT = String
-			.valueOf(DEFAULT_DIRECT_SERVER_PORT);
+	public static final String DEFAULT_DIRECT_SERVER_PORT_FOR_INPUT = String.valueOf(DEFAULT_DIRECT_SERVER_PORT);
 	public static final String DEFAULT_FONT_SIZE = "16";
 	public static final String INTERVAL_SECONDS_FOR_NEXT_STARTUP = "5";
 	public static final int ERR_TRY_TIMES = 10;
@@ -20,13 +19,11 @@ public class DefaultManager {
 	public static final String DEL_DAYS_FOR_INPUT = "3";
 
 	public static String getDesignerDocFontSize() {
-		return PropertiesManager.getValue(PropertiesManager.p_DesignerDocFontSize,
-				DEFAULT_DOC_FONT_SIZE_INPUT);
+		return PropertiesManager.getValue(PropertiesManager.p_DesignerDocFontSize, DEFAULT_DOC_FONT_SIZE_INPUT);
 	}
 
 	public static String getDirectServerPort() {
-		return PropertiesManager.getValue(PropertiesManager.p_selectedNetworkPort,
-				DEFAULT_DIRECT_SERVER_PORT_FOR_INPUT);
+		return PropertiesManager.getValue(PropertiesManager.p_selectedNetworkPort, DEFAULT_DIRECT_SERVER_PORT_FOR_INPUT);
 	}
 
 	public static boolean isHideIDForErrCert() {

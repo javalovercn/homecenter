@@ -14,8 +14,7 @@ import javax.swing.table.TableColumnModel;
 
 public abstract class ProjectListPanel extends BaseProjList {
 
-	final PropertiesSet projWidthSet = new PropertiesSet(
-			PropertiesManager.S_LINK_PROJECTS_COLUMNS_WIDTH);
+	final PropertiesSet projWidthSet = new PropertiesSet(PropertiesManager.S_LINK_PROJECTS_COLUMNS_WIDTH);
 
 	final Object[] colNames = { (String) ResourceUtil.get(9109), // No, 序号
 			(String) ResourceUtil.get(8017), // "is Root",
@@ -47,8 +46,7 @@ public abstract class ProjectListPanel extends BaseProjList {
 			final int columnCount = table.getColumnModel().getColumnCount();
 			try {
 				for (int j = 0; j < projWidthSet.size() && j < columnCount; j++) {
-					table.getColumnModel().getColumn(j)
-							.setPreferredWidth(Integer.parseInt(projWidthSet.getItem(j)));
+					table.getColumnModel().getColumn(j).setPreferredWidth(Integer.parseInt(projWidthSet.getItem(j)));
 				}
 			} catch (final Exception e) {
 			}
@@ -63,8 +61,7 @@ public abstract class ProjectListPanel extends BaseProjList {
 			@Override
 			public void mouseDragged(final MouseEvent e) {
 				try {
-					final TableColumn changedColumn = ((JTableHeader) e.getSource())
-							.getResizingColumn();
+					final TableColumn changedColumn = ((JTableHeader) e.getSource()).getResizingColumn();
 					if (changedColumn != null) {
 						final TableColumnModel tcm = table.getTableHeader().getColumnModel();
 						final int size = tcm.getColumnCount();

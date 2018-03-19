@@ -19,8 +19,7 @@ public class J2SERecordWriterBuilder extends RecordWriterBuilder {
 	}
 
 	@Override
-	public RecordWriter openRecordStore(final String rmsName, final boolean createIfNecessary)
-			throws Exception {
+	public RecordWriter openRecordStore(final String rmsName, final boolean createIfNecessary) throws Exception {
 		return new J2SERMSRecordWriter(getFileForRMS(getTableRealName(rmsName)), rmsName);
 	}
 

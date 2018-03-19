@@ -35,19 +35,21 @@ import org.jrubyparser.SourcePosition;
  * Represents 'true'.
  */
 public class TrueNode extends BareKeywordNode {
-    public TrueNode(SourcePosition position) {
-        super(position, "true");
-    }
+	public TrueNode(SourcePosition position) {
+		super(position, "true");
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.TRUENODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.TRUENODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitTrueNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitTrueNode(this);
+	}
 }

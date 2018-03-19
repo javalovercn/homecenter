@@ -22,19 +22,19 @@ import org.javassist.compiler.CompileError;
  * Instanceof expression.
  */
 public class InstanceOfExpr extends CastExpr {
-    public InstanceOfExpr(ASTList className, int dim, ASTree expr) {
-        super(className, dim, expr);
-    }
+	public InstanceOfExpr(ASTList className, int dim, ASTree expr) {
+		super(className, dim, expr);
+	}
 
-    public InstanceOfExpr(int type, int dim, ASTree expr) {
-        super(type, dim, expr);
-    }
+	public InstanceOfExpr(int type, int dim, ASTree expr) {
+		super(type, dim, expr);
+	}
 
-    public String getTag() {
-        return "instanceof:" + castType + ":" + arrayDim;
-    }
+	public String getTag() {
+		return "instanceof:" + castType + ":" + arrayDim;
+	}
 
-    public void accept(Visitor v) throws CompileError {
-        v.atInstanceOfExpr(this);
-    }
+	public void accept(Visitor v) throws CompileError {
+		v.atInstanceOfExpr(this);
+	}
 }

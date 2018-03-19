@@ -56,8 +56,7 @@ public class ServerUIUtil {
 
 	private static BaseResponsor responsor;
 
-	public static void setMlet(final ScriptPanel panel, final Mlet mlet,
-			final ScriptCSSSizeHeight size) {
+	public static void setMlet(final ScriptPanel panel, final Mlet mlet, final ScriptCSSSizeHeight size) {
 		panel.setSizeHeightForXML(mlet, size);
 	}
 
@@ -75,15 +74,13 @@ public class ServerUIUtil {
 		return isStared;
 	}
 
-	public static ProjectContext buildProjectContext(final String id, final String ver,
-			final RecycleRes recycleRes, final ProjResponser projResponser,
-			final ProjClassLoaderFinder finder) {
+	public static ProjectContext buildProjectContext(final String id, final String ver, final RecycleRes recycleRes,
+			final ProjResponser projResponser, final ProjClassLoaderFinder finder) {
 		return buildProjectContext(id, ver, recycleRes, projResponser, finder, "123456");
 	}
 
-	public static ProjectContext buildProjectContext(final String id, final String ver,
-			final RecycleRes recycleRes, final ProjResponser projResponser,
-			final ProjClassLoaderFinder finder, final String dbPassword) {
+	public static ProjectContext buildProjectContext(final String id, final String ver, final RecycleRes recycleRes,
+			final ProjResponser projResponser, final ProjClassLoaderFinder finder, final String dbPassword) {
 		return new ProjectContext(id, ver, recycleRes, projResponser, finder, dbPassword);
 	}
 
@@ -132,8 +129,7 @@ public class ServerUIUtil {
 	 * @param lastLayout
 	 * @return
 	 */
-	public static JPanel buildNorthPanel(final JComponent[] components, int startIdx,
-			final String lastLayout) {
+	public static JPanel buildNorthPanel(final JComponent[] components, int startIdx, final String lastLayout) {
 		final JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 		panel.add(components[startIdx], BorderLayout.NORTH);
@@ -191,16 +187,14 @@ public class ServerUIUtil {
 	 * @param mobiUIRep
 	 * @return
 	 */
-	public static BaseResponsor restartResponsorServer(final JFrame owner,
-			final BaseResponsor mobiUIRep) {
+	public static BaseResponsor restartResponsorServer(final JFrame owner, final BaseResponsor mobiUIRep) {
 		CCoreUtil.checkAccess();
 		SimuMobile.init();
 
 		synchronized (LOCK) {
 			stop();
 
-			if (LinkProjectManager.hasAlive()
-					&& JRubyInstaller.checkNeedUpgradeJRubyAndWaitForEngine()) {
+			if (LinkProjectManager.hasAlive() && JRubyInstaller.checkNeedUpgradeJRubyAndWaitForEngine()) {
 				if (isModiThirdLibs) {
 					isModiThirdLibs = false;
 					ThirdlibManager.loadThirdLibs();
@@ -210,20 +204,17 @@ public class ServerUIUtil {
 				BaseResponsor respo = null;
 				try {
 					respo = (mobiUIRep != null) ? mobiUIRep
-							: (BaseResponsor) buildMobiUIResponsorInstance(
-									new ExceptionCatcherToWindow(owner));
+							: (BaseResponsor) buildMobiUIResponsorInstance(new ExceptionCatcherToWindow(owner));
 					responsor = respo.checkAndReady(owner);
 					DiskManager.startDiskSpaceMonitor();
 				} catch (final Throwable e) {
-					if (e.getMessage().indexOf("PermGen", 0) >= 0
-							&& ResourceUtil.isStandardJ2SEServer()) {// PermGen
-																		// space
-																		// or
-																		// Java.Lang.OutOfMemoryError:
-																		// PermGen
+					if (e.getMessage().indexOf("PermGen", 0) >= 0 && ResourceUtil.isStandardJ2SEServer()) {// PermGen
+																											// space
+																											// or
+																											// Java.Lang.OutOfMemoryError:
+																											// PermGen
 						e.printStackTrace();
-						JOptionPane.showMessageDialog(null,
-								"low PermGen size!!!\nplease add '-XX:MaxPermSize=256m' to VM arguments.",
+						JOptionPane.showMessageDialog(null, "low PermGen size!!!\nplease add '-XX:MaxPermSize=256m' to VM arguments.",
 								"Error", App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 						System.exit(0);
 					}
@@ -285,8 +276,7 @@ public class ServerUIUtil {
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-					final Window w = ProcessingWindowManager
-							.showCenterMessage(ResourceUtil.get(9091));
+					final Window w = ProcessingWindowManager.showCenterMessage(ResourceUtil.get(9091));
 					try {
 						Thread.sleep(2000);
 					} catch (final Exception e) {
@@ -321,8 +311,7 @@ public class ServerUIUtil {
 
 			if (snap instanceof MobiUIResponsor) {
 				try {
-					final int halfSleep = ResourceUtil.getIntervalSecondsForNextStartup() * 1000
-							/ 2;
+					final int halfSleep = ResourceUtil.getIntervalSecondsForNextStartup() * 1000 / 2;
 
 					Thread.sleep(halfSleep);
 					System.gc();
@@ -340,8 +329,7 @@ public class ServerUIUtil {
 		}
 	}
 
-	public static void transMenuWithCache(final J2SESession coreSS, final String menuData,
-			final String projID) {
+	public static void transMenuWithCache(final J2SESession coreSS, final String menuData, final String projID) {
 		L.V = L.WShop ? false : LogManager.log("tranas Menu on [" + projID + "]");
 
 		final byte[] data = StringUtil.getBytes(menuData);
@@ -352,8 +340,7 @@ public class ServerUIUtil {
 		final String urlID = CacheManager.ELE_URL_ID_MENU;
 		final byte[] urlIDbs = CacheManager.ELE_URL_ID_MENU_BS;
 
-		final CacheComparator menuCacheComparer = new CacheComparator(projID, softUID, urlID,
-				projIDbs, softUidBS, urlIDbs) {
+		final CacheComparator menuCacheComparer = new CacheComparator(projID, softUID, urlID, projIDbs, softUidBS, urlIDbs) {
 			@Override
 			public void sendData(final Object[] paras) {
 				response(coreSS, menuData);
@@ -396,8 +383,11 @@ public class ServerUIUtil {
 		return SessionManager.checkAtLeastOneMeet(ContextManager.STATUS_SERVER_SELF);
 	}
 
-	public static void restartResponsorServerDelayMode(final JFrame owner,
-			final BaseResponsor mobiUIRep) {
+	public static boolean isReadyServOrServing() {
+		return SessionManager.checkAtLeastOneMeet(ContextManager.getReadyServOrServingStatus());
+	}
+
+	public static void restartResponsorServerDelayMode(final JFrame owner, final BaseResponsor mobiUIRep) {
 		CCoreUtil.checkAccess();
 
 		ContextManager.getThreadPool().run(new Runnable() {
@@ -432,8 +422,7 @@ public class ServerUIUtil {
 	 * @param iconByteArrayos
 	 * @return
 	 */
-	public static String imageToBase64(final BufferedImage bi,
-			final HCByteArrayOutputStream iconByteArrayos) {
+	public static String imageToBase64(final BufferedImage bi, final HCByteArrayOutputStream iconByteArrayos) {
 		final int doubleSize = bi.getHeight() * bi.getWidth() * 2;
 		byte[] iconBytes = iconByteArrayos.buf;// new byte[1024 * 20];
 

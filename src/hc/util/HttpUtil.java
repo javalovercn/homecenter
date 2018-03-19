@@ -120,8 +120,7 @@ public class HttpUtil {
 	}
 
 	public static NetworkInterface getPreferNetworkInterface() {
-		final String networkInterfacename = PropertiesManager
-				.getValue(PropertiesManager.p_selectedNetwork, HttpUtil.AUTO_DETECT_NETWORK);
+		final String networkInterfacename = PropertiesManager.getValue(PropertiesManager.p_selectedNetwork, HttpUtil.AUTO_DETECT_NETWORK);
 		if (HttpUtil.AUTO_DETECT_NETWORK.equals(networkInterfacename)) {
 		} else {
 			return HttpUtil.getNetworkInterface(networkInterfacename);
@@ -147,10 +146,8 @@ public class HttpUtil {
 					final Enumeration<InetAddress> iaddresses = iface.getInetAddresses();
 					while (iaddresses.hasMoreElements()) {
 						final InetAddress iaddress = iaddresses.nextElement();
-						if (java.net.Inet4Address.class.isInstance(iaddress)
-								|| java.net.Inet6Address.class.isInstance(iaddress)) {
-							if ((!iaddress.isLoopbackAddress())
-									&& (!iaddress.isLinkLocalAddress())) {
+						if (java.net.Inet4Address.class.isInstance(iaddress) || java.net.Inet6Address.class.isInstance(iaddress)) {
+							if ((!iaddress.isLoopbackAddress()) && (!iaddress.isLinkLocalAddress())) {
 								return iaddress;
 							}
 						}
@@ -191,10 +188,8 @@ public class HttpUtil {
 				final Enumeration<InetAddress> iaddresses = iface.getInetAddresses();
 				while (iaddresses.hasMoreElements()) {
 					final InetAddress iaddress = iaddresses.nextElement();
-					System.out.println(iface.getDisplayName() + ":" + iface.getName() + ", "
-							+ iaddress.getHostAddress());
-					if (java.net.Inet4Address.class.isInstance(iaddress)
-							|| java.net.Inet6Address.class.isInstance(iaddress)) {
+					System.out.println(iface.getDisplayName() + ":" + iface.getName() + ", " + iaddress.getHostAddress());
+					if (java.net.Inet4Address.class.isInstance(iaddress) || java.net.Inet6Address.class.isInstance(iaddress)) {
 						if ((!iaddress.isLoopbackAddress()) && (!iaddress.isLinkLocalAddress())) {
 							String displayName = iface.getDisplayName();
 							final int idx = displayName.indexOf(" - ");
@@ -306,11 +301,9 @@ public class HttpUtil {
 			final String hostString = RootServerConnector.IP_192_168_1_102 + ":80";// localhost:80
 			// url = StringUtil.replaceFirst(url,
 			// RootServerConnector.IP_192_168_1_102, hostString);//会导致relayIP被替换
-			url = StringUtil.replaceFirst(url, RootServerConnector.HOST_HOMECENTER_MOBI,
-					hostString);// 192.168.1.101
+			url = StringUtil.replaceFirst(url, RootServerConnector.HOST_HOMECENTER_MOBI, hostString);// 192.168.1.101
 			url = StringUtil.replaceFirst(url, ":80", RootServerConnector.PORT_8080_WITH_MAOHAO);// 192.168.1.101
-			url = StringUtil.replaceFirst(url, RootServerConnector.PORT_808044X,
-					RootServerConnector.PORT_44X_WITH_MAOHAO);
+			url = StringUtil.replaceFirst(url, RootServerConnector.PORT_808044X, RootServerConnector.PORT_44X_WITH_MAOHAO);
 			url = StringUtil.replaceFirst(url, "call.php", "callsimu.php");// 192.168.1.101
 		}
 
@@ -364,17 +357,14 @@ public class HttpUtil {
 						// sun.security.provider.certpath.SunCertPathBuilderException:
 						// unable to find valid certification path to requested
 						// target
-						LogManager.errToLog("HTTPS error [" + e.getMessage()
-								+ "], maybe ajax.crt/ajax.key is missing or invalid! [" + url_str
-								+ "]");
+						LogManager.errToLog(
+								"HTTPS error [" + e.getMessage() + "], maybe ajax.crt/ajax.key is missing or invalid! [" + url_str + "]");
 						if (ResourceUtil.isOpenJDK()) {
 							final String msg = "OpenJDK is depends /usr/lib64/libssl3.so, "
 									+ "\n\nto see where it is coming from, exec cmd \"yum provides /usr/lib64/libssl3.so\","
 									+ "\nif it is come from nss, exec cmd \"sudo yum upgrade nss\" to solve it.";
-							final String winMsg = "<html>" + StringUtil.replace(msg, "\n", "<BR>")
-									+ "</html>";
-							App.showHARMessageDialog(winMsg, e.getMessage(),
-									JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+							final String winMsg = "<html>" + StringUtil.replace(msg, "\n", "<BR>") + "</html>";
+							App.showHARMessageDialog(winMsg, e.getMessage(), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 							LogManager.errToLog(msg);
 						}
 						ExceptionReporter.printStackTrace(e);// 仅对SSL
@@ -590,8 +580,7 @@ public class HttpUtil {
 			while (nis.hasMoreElements()) {
 				final NetworkInterface lni = (NetworkInterface) nis.nextElement();
 				try {
-					if (lni.isLoopback() || (lni.isUp() == false) || lni.isVirtual()
-							|| (lni.supportsMulticast() == false)) {
+					if (lni.isLoopback() || (lni.isUp() == false) || lni.isVirtual() || (lni.supportsMulticast() == false)) {
 						continue;
 					}
 					final NetInterAddresses niAddres = new NetInterAddresses(lni);
@@ -640,8 +629,7 @@ public class HttpUtil {
 		return out;
 	}
 
-	private static void displayInterfaceInformation(final NetworkInterface netint)
-			throws SocketException {
+	private static void displayInterfaceInformation(final NetworkInterface netint) throws SocketException {
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		sb.append("Display name: ");
 		sb.append(netint.getDisplayName());
@@ -679,8 +667,7 @@ public class HttpUtil {
 		StringBuilderCacher.cycle(sb);
 	}
 
-	public static InetAddress filerInetAddress(final NetworkInterface ni,
-			final boolean enableIPv6) {
+	public static InetAddress filerInetAddress(final NetworkInterface ni, final boolean enableIPv6) {
 		try {
 			final Enumeration addresses = ni.getInetAddresses();
 			while (addresses.hasMoreElements()) {
@@ -709,8 +696,7 @@ public class HttpUtil {
 				final Enumeration<InetAddress> iaddresses = iface.getInetAddresses();
 				while (iaddresses.hasMoreElements()) {
 					final InetAddress iaddress = iaddresses.nextElement();
-					if (!iaddress.isLoopbackAddress() && !iaddress.isSiteLocalAddress()
-							&& !iaddress.isLinkLocalAddress()) {
+					if (!iaddress.isLoopbackAddress() && !iaddress.isSiteLocalAddress() && !iaddress.isLinkLocalAddress()) {
 						if (isIPv6 == false) {
 							if (java.net.Inet4Address.class.isInstance(iaddress)) {
 								return iaddress;
@@ -741,8 +727,7 @@ public class HttpUtil {
 		return HttpUtil.browse(langURL);
 	}
 
-	public static String buildLangURL(final String langURL, final String lang)
-			throws UnsupportedEncodingException {
+	public static String buildLangURL(final String langURL, final String lang) throws UnsupportedEncodingException {
 		String url = URLEncoder.encode("http://homecenter.mobi/_lang_/" + langURL, IConstant.UTF_8);
 		if (lang == null) {
 			url = "?to=" + url;
@@ -755,9 +740,7 @@ public class HttpUtil {
 	public static boolean browse(final String webURL) {
 		final java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
 		if (!desktop.isSupported(java.awt.Desktop.Action.BROWSE)) {
-			App.showMessageDialog(null,
-					"Desktop doesn't support the browse open action (fatal)\r\n"
-							+ "Please browse URL:" + webURL,
+			App.showMessageDialog(null, "Desktop doesn't support the browse open action (fatal)\r\n" + "Please browse URL:" + webURL,
 					"Unable Open URL", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
@@ -765,8 +748,7 @@ public class HttpUtil {
 		try {
 			desktop.browse(new java.net.URI(webURL));
 		} catch (final Exception ex) {
-			App.showMessageDialog(null, ex.getMessage(), ResourceUtil.get(IConstant.ERROR),
-					JOptionPane.ERROR_MESSAGE);
+			App.showMessageDialog(null, ex.getMessage(), ResourceUtil.get(IConstant.ERROR), JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 
@@ -825,8 +807,7 @@ public class HttpUtil {
 		return false;
 	}
 
-	private static boolean downloadFile(final File starter, final File filev, final String fileName,
-			final String base) {
+	private static boolean downloadFile(final File starter, final File filev, final String fileName, final String base) {
 		try {
 			if ((starter.exists() == false) || starter.setWritable(true)) {
 				InputStream is = null;
@@ -879,25 +860,20 @@ public class HttpUtil {
 		if (ServerUIUtil.isServing()) {
 			if (isQuery) {
 				final JPanel panel = new JPanel(new BorderLayout());
-				panel.add(
-						new JLabel(
-								"<html>service/configuration is changed and mobile is connecting,"
-										+ "<BR>click '" + ResourceUtil.get(IContext.OK)
-										+ "' to break off current mobile connection!" + "</html>",
-								App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING),
-						BorderLayout.CENTER);
-				panel.add(new JLabel("<html><BR><strong>" + ResourceUtil.get(IContext.TIP)
-						+ "</strong> : "
-						+ "<BR>it is <strong>NOT</strong> required to restart HomeCenter server.</html>"),
-						BorderLayout.SOUTH);
+				panel.add(new JLabel(
+						"<html>service/configuration is changed and mobile is connecting," + "<BR>click '" + ResourceUtil.get(IContext.OK)
+								+ "' to break off current mobile connection!" + "</html>",
+						App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
+				panel.add(new JLabel("<html><BR><strong>" + ResourceUtil.get(IContext.TIP) + "</strong> : "
+						+ "<BR>it is <strong>NOT</strong> required to restart HomeCenter server.</html>"), BorderLayout.SOUTH);
 				final ActionListener listener = new HCActionListener(new Runnable() {
 					@Override
 					public void run() {
 						doNotifyToAllMobile();
 					}
 				}, App.getThreadPoolToken());
-				App.showCenterPanelMain(panel, 0, 0, "break off connection of mobile", false, null,
-						null, listener, listener, parent, true, false, null, false, false);
+				App.showCenterPanelMain(panel, 0, 0, "break off connection of mobile", false, null, null, listener, listener, parent, true,
+						false, null, false, false);
 			} else {
 				doNotifyToAllMobile();
 			}
@@ -909,8 +885,7 @@ public class HttpUtil {
 		for (int i = 0; i < coreSSS.length; i++) {
 			final IContext context = coreSSS[i].context;
 			if (ContextManager.isMobileLogin(context)) {
-				context.send(MsgBuilder.E_TAG_SHUT_DOWN_BETWEEN_CS,
-						RootServerConnector.getHideToken());
+				context.send(MsgBuilder.E_TAG_SHUT_DOWN_BETWEEN_CS, RootServerConnector.getHideToken());
 			}
 		}
 
@@ -923,8 +898,7 @@ public class HttpUtil {
 		}
 	}
 
-	public static boolean download(final File file, final URL url, final int maxTryNum,
-			final String userAgent) {
+	public static boolean download(final File file, final URL url, final int maxTryNum, final String userAgent) {
 		file.delete();
 
 		RandomAccessFile raf = null;
@@ -1028,8 +1002,7 @@ public class HttpUtil {
 		}
 	}
 
-	private static final char[] ZERO_TO_DEF = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-			'a', 'b', 'c', 'd', 'e', 'f' };
+	private static final char[] ZERO_TO_DEF = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
 	private static final byte charToByte(final char c) {
 		for (int i = 0; i < ZERO_TO_DEF.length; i++) {
@@ -1041,14 +1014,12 @@ public class HttpUtil {
 	}
 
 	public static boolean isLocalNetworkIP(final String ip) {
-		return ip.startsWith("192.168.") || ip.startsWith("10.") || ip.startsWith("127.")
-				|| ip.startsWith("172.16.") || ip.startsWith("172.31.")
-				|| ip.startsWith("169.254.");
+		return ip.startsWith("192.168.") || ip.startsWith("10.") || ip.startsWith("127.") || ip.startsWith("172.16.")
+				|| ip.startsWith("172.31.") || ip.startsWith("169.254.");
 	}
 
 	public static void initReceiveSendBufferForSocket(final Socket socket) {
-		final int sendBuff = RootConfig.getInstance()
-				.getIntProperty(RootConfig.p_ServerSendBufferSize);
+		final int sendBuff = RootConfig.getInstance().getIntProperty(RootConfig.p_ServerSendBufferSize);
 		if (sendBuff != 0) {
 			try {
 				socket.setSendBufferSize(sendBuff);
@@ -1057,8 +1028,7 @@ public class HttpUtil {
 			}
 		}
 
-		final int receiveBuff = RootConfig.getInstance()
-				.getIntProperty(RootConfig.p_ServerReceiveBufferSize);
+		final int receiveBuff = RootConfig.getInstance().getIntProperty(RootConfig.p_ServerReceiveBufferSize);
 		if (receiveBuff != 0) {
 			try {
 				socket.setReceiveBufferSize(receiveBuff);

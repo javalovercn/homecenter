@@ -33,67 +33,71 @@ import org.jrubyparser.SourcePosition;
 import org.jrubyparser.StaticScope;
 
 /**
- * A 'for' statement.  This is implemented using iter and that is how MRI does things,
- * but 'for's do not have their own stack, so doing this way is mildly painful.
+ * A 'for' statement. This is implemented using iter and that is how MRI does things, but 'for's do
+ * not have their own stack, so doing this way is mildly painful.
  *
  * @see IterNode
  */
 public class ForNode extends IterNode {
 
-    private Node iterNode;
+	private Node iterNode;
 
-    public ForNode(SourcePosition position, Node varNode, Node bodyNode, Node iterNode, StaticScope scope) {
-        // For nodes do not have their own scope so we pass null to indicate this.
-        // 'For's are implemented as blocks in evaluation, but they have no scope so we
-        // just deal with this lack of scope throughout its lifespan.  We should probably
-        // change the way this works to get rid of multiple null checks.
-        super(position, varNode, scope, bodyNode);
+	public ForNode(SourcePosition position, Node varNode, Node bodyNode, Node iterNode, StaticScope scope) {
+		// For nodes do not have their own scope so we pass null to indicate this.
+		// 'For's are implemented as blocks in evaluation, but they have no scope so we
+		// just deal with this lack of scope throughout its lifespan.  We should probably
+		// change the way this works to get rid of multiple null checks.
+		super(position, varNode, scope, bodyNode);
 
-        assert iterNode != null : "iterNode is not null";
+		assert iterNode != null : "iterNode is not null";
 
-        this.iterNode = adopt(iterNode);
-    }
+		this.iterNode = adopt(iterNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		ForNode other = (ForNode) node;
 
-        ForNode other = (ForNode) node;
+		if (getVar() == null && other.getVar() == null)
+			return getIter().isSame(other.getIter()) && getBody().isSame(other.getBody());
+		if (getVar() == null || other.getVar() == null)
+			return false;
 
-        if (getVar() == null && other.getVar() == null) return getIter().isSame(other.getIter()) && getBody().isSame(other.getBody());
-        if (getVar() == null || other.getVar() == null) return false;
+		return getVar().isSame(other.getVar()) && getIter().isSame(other.getIter()) && getBody().isSame(other.getBody());
+	}
 
-        return getVar().isSame(other.getVar()) && getIter().isSame(other.getIter()) && getBody().isSame(other.getBody());
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.FORNODE;
+	}
 
+	public Node getIter() {
+		return iterNode;
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.FORNODE;
-    }
+	@Deprecated
+	public Node getIterNode() {
+		return getIter();
+	}
 
-    public Node getIter() {
-        return iterNode;
-    }
-
-    @Deprecated
-    public Node getIterNode() {
-        return getIter();
-    }
-
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitForNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	@Override
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitForNode(this);
+	}
 }

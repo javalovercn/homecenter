@@ -31,8 +31,7 @@ public class UPnPUtil {
 	 * @param localPort
 	 * @return
 	 */
-	public static String[] startUPnP(final InetAddress ia, final int localPort,
-			final int oldUPnPPort, final String upnpToken) {
+	public static String[] startUPnP(final InetAddress ia, final int localPort, final int oldUPnPPort, final String upnpToken) {
 		// if(hcgd != null){
 		// try {
 		// if(hcgd.isLineOn()){
@@ -78,8 +77,7 @@ public class UPnPUtil {
 
 		final UPnPDevice device = new UPnPDevice();
 
-		final BufferedReader brLine = new BufferedReader(
-				new InputStreamReader(new ByteArrayInputStream(reply, 0, len)));
+		final BufferedReader brLine = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(reply, 0, len)));
 		String line = null;
 		try {
 			line = brLine.readLine().trim();
@@ -119,9 +117,8 @@ public class UPnPUtil {
 	public static UPnPDevice discover(final InetAddress localAddress) {
 		UPnPDevice d = null;
 
-		final String searchHttp = "M-SEARCH * HTTP/1.1\r\n" + "HOST: " + UPNPIP + ":" + UPNPPORT
-				+ "\r\n" + "ST: " + "urn:schemas-upnp-org:device:InternetGatewayDevice:1" + "\r\n"
-				+ "MAN: \"ssdp:discover\"\r\nMX: 3\r\n\r\n";
+		final String searchHttp = "M-SEARCH * HTTP/1.1\r\n" + "HOST: " + UPNPIP + ":" + UPNPPORT + "\r\n" + "ST: "
+				+ "urn:schemas-upnp-org:device:InternetGatewayDevice:1" + "\r\n" + "MAN: \"ssdp:discover\"\r\nMX: 3\r\n\r\n";
 		DatagramSocket socket = null;
 
 		try {
@@ -173,11 +170,9 @@ public class UPnPUtil {
 			hcgd = discover(ia);
 
 			if (null != hcgd) {
-				final String idg = "[" + hcgd.getFriendlyName() + "(" + hcgd.getModelNumber()
-						+ ")]";
+				final String idg = "[" + hcgd.getFriendlyName() + "(" + hcgd.getModelNumber() + ")]";
 				LogManager.log("UPnP device found. " + idg);
-				TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), "UPnP : " + idg,
-						IConstant.INFO, null, 0);
+				TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), "UPnP : " + idg, IConstant.INFO, null, 0);
 			}
 
 			isCheckedUPnP = true;
@@ -199,8 +194,8 @@ public class UPnPUtil {
 	 *            TODO
 	 * @return {exteralAddress, exteralPort}，失败返回null
 	 */
-	private static String[] addMapping(int beginExteralPort, final InetAddress localAddress,
-			final int localPort, final int oldUPnPPort, final String upnpToken) {
+	private static String[] addMapping(int beginExteralPort, final InetAddress localAddress, final int localPort, final int oldUPnPPort,
+			final String upnpToken) {
 		try {
 			if (null != hcgd) {
 			} else {
@@ -248,12 +243,9 @@ public class UPnPUtil {
 				}
 				// LogManager.log("Sending port mapping request");
 
-				if (hcgd.addUPnPMapping(beginExteralPort, localPort, localAddress.getHostAddress(),
-						TCP, upnpToken)) {
-					LogManager.log("Success add UPnP exteral PortMap [" + externalIPAddress + ":"
-							+ beginExteralPort + "]");
-					final String[] out = { HCURLUtil.convertIPv46(externalIPAddress),
-							String.valueOf(beginExteralPort) };
+				if (hcgd.addUPnPMapping(beginExteralPort, localPort, localAddress.getHostAddress(), TCP, upnpToken)) {
+					LogManager.log("Success add UPnP exteral PortMap [" + externalIPAddress + ":" + beginExteralPort + "]");
+					final String[] out = { HCURLUtil.convertIPv46(externalIPAddress), String.valueOf(beginExteralPort) };
 					return out;
 				} else {
 					beginExteralPort++;
@@ -274,8 +266,7 @@ public class UPnPUtil {
 		return upnpToken.startsWith(desc);
 	}
 
-	private static boolean removeUPnPMapping(final int externalPort,
-			final InetAddress localAddress) {
+	private static boolean removeUPnPMapping(final int externalPort, final InetAddress localAddress) {
 		try {
 			if (null == hcgd) {
 				return false;
@@ -303,8 +294,7 @@ public class UPnPUtil {
 				final Enumeration<InetAddress> iaddresses = iface.getInetAddresses();
 				while (iaddresses.hasMoreElements()) {
 					final InetAddress iaddress = iaddresses.nextElement();
-					if (java.net.Inet4Address.class.isInstance(iaddress)
-							|| java.net.Inet6Address.class.isInstance(iaddress)) {
+					if (java.net.Inet4Address.class.isInstance(iaddress) || java.net.Inet6Address.class.isInstance(iaddress)) {
 						if ((!iaddress.isLoopbackAddress()) && (!iaddress.isLinkLocalAddress())) {
 							return iaddress;
 						}

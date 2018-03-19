@@ -35,47 +35,49 @@ import org.jrubyparser.SourcePosition;
  * Represents a float literal.
  */
 public class FloatNode extends NumericNode implements ILiteralNode {
-    private double value;
+	private double value;
 
-    public FloatNode(SourcePosition position, double value) {
-        super(position);
-        this.value = value;
-    }
+	public FloatNode(SourcePosition position, double value) {
+		super(position);
+		this.value = value;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && getValue() == ((FloatNode) node).getValue();
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && getValue() == ((FloatNode) node).getValue();
-    }
+	public NodeType getNodeType() {
+		return NodeType.FLOATNODE;
+	}
 
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitFloatNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.FLOATNODE;
-    }
+	/**
+	 * Gets the value.
+	 * 
+	 * @return Returns a double
+	 */
+	public double getValue() {
+		return value;
+	}
 
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitFloatNode(this);
-    }
-
-    /**
-     * Gets the value.
-     * @return Returns a double
-     */
-    public double getValue() {
-        return value;
-    }
-
-    /**
-     * Sets the value
-     * @param value to set
-     */
-    public void setValue(double value) {
-        this.value = value;
-    }
+	/**
+	 * Sets the value
+	 * 
+	 * @param value
+	 *            to set
+	 */
+	public void setValue(double value) {
+		this.value = value;
+	}
 }

@@ -9,44 +9,45 @@ public class StreamReader {
 	public byte[] bs;
 	public int storeIdx;
 	private final InputStream is;
-	
-	public StreamReader(final byte[] bs, final InputStream is){
-		if(bs == null){
+
+	public StreamReader(final byte[] bs, final InputStream is) {
+		if (bs == null) {
 			this.bs = ByteUtil.byteArrayCacher.getFree(2048);
-		}else{
+		} else {
 			this.bs = bs;
 		}
 		this.is = is;
 	}
-	
-	public final void readFull(){
-		try{
-			while(true){
+
+	public final void readFull() {
+		try {
+			while (true) {
 				final int n = is.read();
-				if(n == -1){
+				if (n == -1) {
 					break;
-				}else{
-					bs[storeIdx++] = (byte)n;
+				} else {
+					bs[storeIdx++] = (byte) n;
 					final int lastLen = bs.length;
-					if(storeIdx == lastLen){
-						final byte[] nextPara = ByteUtil.byteArrayCacher.getFree(lastLen * 2);
+					if (storeIdx == lastLen) {
+						final byte[] nextPara = ByteUtil.byteArrayCacher
+								.getFree(lastLen * 2);
 						System.arraycopy(bs, 0, nextPara, 0, lastLen);
 						ByteUtil.byteArrayCacher.cycle(bs);
 						bs = nextPara;
 					}
 				}
 			}
-		}catch (final Exception e) {
-		}finally{
+		} catch (final Exception e) {
+		} finally {
 			try {
 				is.close();
 			} catch (final IOException e) {
 			}
 		}
 	}
-	
-	public final void recycle(){
-		if(bs != null){
+
+	public final void recycle() {
+		if (bs != null) {
 			ByteUtil.byteArrayCacher.cycle(bs);
 		}
 	}

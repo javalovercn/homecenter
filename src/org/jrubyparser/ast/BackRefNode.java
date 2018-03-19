@@ -32,79 +32,78 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- *	Regexp back reference:
- *    - $&amp; last successful match
- *    - $+ highest numbered group matched in last successful match.
- *    - $` what precedes the last successful match
- *    - $' what follows the last successful match
+ * Regexp back reference: - $&amp; last successful match - $+ highest numbered group matched in last
+ * successful match. - $` what precedes the last successful match - $' what follows the last
+ * successful match
  */
 public class BackRefNode extends Node implements IGlobalVariable {
-    /**
-     * the character which generated the back reference
-     */
-    private char type;
+	/**
+	 * the character which generated the back reference
+	 */
+	private char type;
 
-    public BackRefNode(SourcePosition position, int type) {
-        super(position);
-        this.type = (char) type;
-    }
+	public BackRefNode(SourcePosition position, int type) {
+		super(position);
+		this.type = (char) type;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param other
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node other) {
+		return super.isSame(other) && getLexicalName().equals(((BackRefNode) other).getLexicalName());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param other to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node other) {
-        return super.isSame(other) && getLexicalName().equals(((BackRefNode) other).getLexicalName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.BACKREFNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitBackRefNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.BACKREFNODE;
-    }
+	/**
+	 * Gets the type
+	 *
+	 * @return the character which generates the back reference
+	 */
+	public char getType() {
+		return type;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitBackRefNode(this);
-    }
+	public String getName() {
+		return "" + type;
+	}
 
-    /**
-     * Gets the type
-     *
-     * @return the character which generates the back reference
-     */
-    public char getType() {
-        return type;
-    }
+	public String getLexicalName() {
+		return "$" + getName();
+	}
 
-    public String getName() {
-        return "" + type;
-    }
+	public void setName(String newName) {
+		type = newName.charAt(0); // FIXME: Some sanity to only allowing one char and a correct one?
+	}
 
-    public String getLexicalName() {
-        return "$" + getName();
-    }
+	public SourcePosition getNamePosition() {
+		return getPosition().fromEnd(getName().length());
+	}
 
-    public void setName(String newName) {
-        type = newName.charAt(0); // FIXME: Some sanity to only allowing one char and a correct one?
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getPosition();
+	}
 
-    public SourcePosition getNamePosition() {
-        return getPosition().fromEnd(getName().length());
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getPosition();
-    }
-
-    public boolean isNameMatch(String name) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
+	public boolean isNameMatch(String name) {
+		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	}
 
 }

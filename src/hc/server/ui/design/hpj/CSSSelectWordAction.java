@@ -92,8 +92,7 @@ public class CSSSelectWordAction extends TextAction {
 				final int line = ScriptEditPanel.getLineOfOffset(doc, offset);
 				final int lineStartIdx = ScriptEditPanel.getLineStartOffset(doc, line);
 				final int lineEndIdx = ScriptEditPanel.getLineEndOffset(doc, line);
-				final char[] lineChar = doc.getText(lineStartIdx, lineEndIdx - lineStartIdx)
-						.toCharArray();
+				final char[] lineChar = doc.getText(lineStartIdx, lineEndIdx - lineStartIdx).toCharArray();
 				final int clickStartIdx = offset - lineStartIdx;
 
 				PartLoc out;
@@ -134,8 +133,7 @@ public class CSSSelectWordAction extends TextAction {
 	}
 
 	private final boolean isAllowChar(final char c) {
-		if (c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'
-				|| c == '-' || c == '$') {
+		if (c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' || c == '-' || c == '$') {
 			return true;
 		}
 		return false;

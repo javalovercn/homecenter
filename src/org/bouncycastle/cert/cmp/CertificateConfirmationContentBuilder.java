@@ -16,63 +16,52 @@ import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.DigestCalculatorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 
-public class CertificateConfirmationContentBuilder
-{
-    private DigestAlgorithmIdentifierFinder digestAlgFinder;
-    private List acceptedCerts = new ArrayList();
-    private List acceptedReqIds = new ArrayList();
+public class CertificateConfirmationContentBuilder {
+	private DigestAlgorithmIdentifierFinder digestAlgFinder;
+	private List acceptedCerts = new ArrayList();
+	private List acceptedReqIds = new ArrayList();
 
-    public CertificateConfirmationContentBuilder()
-    {
-        this(new DefaultDigestAlgorithmIdentifierFinder());
-    }
+	public CertificateConfirmationContentBuilder() {
+		this(new DefaultDigestAlgorithmIdentifierFinder());
+	}
 
-    public CertificateConfirmationContentBuilder(DigestAlgorithmIdentifierFinder digestAlgFinder)
-    {
-        this.digestAlgFinder = digestAlgFinder;
-    }
-    
-    public CertificateConfirmationContentBuilder addAcceptedCertificate(X509CertificateHolder certHolder, BigInteger certReqID)
-    {
-        acceptedCerts.add(certHolder);
-        acceptedReqIds.add(certReqID);
+	public CertificateConfirmationContentBuilder(DigestAlgorithmIdentifierFinder digestAlgFinder) {
+		this.digestAlgFinder = digestAlgFinder;
+	}
 
-        return this;
-    }
+	public CertificateConfirmationContentBuilder addAcceptedCertificate(X509CertificateHolder certHolder, BigInteger certReqID) {
+		acceptedCerts.add(certHolder);
+		acceptedReqIds.add(certReqID);
 
-    public CertificateConfirmationContent build(DigestCalculatorProvider digesterProvider)
-        throws CMPException
-    {
-        ASN1EncodableVector v = new ASN1EncodableVector();
+		return this;
+	}
 
-        for (int i = 0; i != acceptedCerts.size(); i++)
-        {
-            X509CertificateHolder certHolder = (X509CertificateHolder)acceptedCerts.get(i);
-            BigInteger reqID = (BigInteger)acceptedReqIds.get(i);
+	public CertificateConfirmationContent build(DigestCalculatorProvider digesterProvider) throws CMPException {
+		ASN1EncodableVector v = new ASN1EncodableVector();
 
-            AlgorithmIdentifier digAlg = digestAlgFinder.find(certHolder.toASN1Structure().getSignatureAlgorithm());
-            if (digAlg == null)
-            {
-                throw new CMPException("cannot find algorithm for digest from signature");
-            }
+		for (int i = 0; i != acceptedCerts.size(); i++) {
+			X509CertificateHolder certHolder = (X509CertificateHolder) acceptedCerts.get(i);
+			BigInteger reqID = (BigInteger) acceptedReqIds.get(i);
 
-            DigestCalculator digester;
+			AlgorithmIdentifier digAlg = digestAlgFinder.find(certHolder.toASN1Structure().getSignatureAlgorithm());
+			if (digAlg == null) {
+				throw new CMPException("cannot find algorithm for digest from signature");
+			}
 
-            try
-            {
-                digester = digesterProvider.get(digAlg);
-            }
-            catch (OperatorCreationException e)
-            {
-                throw new CMPException("unable to create digest: " + e.getMessage(), e);
-            }
+			DigestCalculator digester;
 
-            CMPUtil.derEncodeToStream(certHolder.toASN1Structure(), digester.getOutputStream());
+			try {
+				digester = digesterProvider.get(digAlg);
+			} catch (OperatorCreationException e) {
+				throw new CMPException("unable to create digest: " + e.getMessage(), e);
+			}
 
-            v.add(new CertStatus(digester.getDigest(), reqID));
-        }
+			CMPUtil.derEncodeToStream(certHolder.toASN1Structure(), digester.getOutputStream());
 
-        return new CertificateConfirmationContent(CertConfirmContent.getInstance(new DERSequence(v)), digestAlgFinder);
-    }
+			v.add(new CertStatus(digester.getDigest(), reqID));
+		}
+
+		return new CertificateConfirmationContent(CertConfirmContent.getInstance(new DERSequence(v)), digestAlgFinder);
+	}
 
 }

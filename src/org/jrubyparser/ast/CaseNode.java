@@ -32,106 +32,110 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- * A Case statement.  Represents a complete case statement, including the body with its
- * when statements.
+ * A Case statement. Represents a complete case statement, including the body with its when
+ * statements.
  */
 public class CaseNode extends Node {
 	/**
 	 * the case expression.
 	 **/
-    private Node caseNode;
+	private Node caseNode;
 	/**
 	 * A list of all choices including else
 	 */
-    private ListNode cases;
-    private Node elseNode = null;
+	private ListNode cases;
+	private Node elseNode = null;
 
-    public CaseNode(SourcePosition position, Node caseNode, ListNode cases) {
-        super(position);
+	public CaseNode(SourcePosition position, Node caseNode, ListNode cases) {
+		super(position);
 
-        assert cases != null : "caseBody is not null";
-        // TODO: Rewriter and compiler assume case when empty expression.  In MRI this is just
-        // a when.
-//        assert caseNode != null : "caseNode is not null";
+		assert cases != null : "caseBody is not null";
+		// TODO: Rewriter and compiler assume case when empty expression.  In MRI this is just
+		// a when.
+		//        assert caseNode != null : "caseNode is not null";
 
-        this.caseNode = adopt(caseNode);
-        this.cases = (ListNode) adopt(cases);
-    }
+		this.caseNode = adopt(caseNode);
+		this.cases = (ListNode) adopt(cases);
+	}
 
-    public void setElseNode(Node elseNode) {
-        this.elseNode = elseNode;
-    }
+	public void setElseNode(Node elseNode) {
+		this.elseNode = elseNode;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		CaseNode other = (CaseNode) node;
 
-        CaseNode other = (CaseNode) node;
+		if (getCase() == null && other.getCase() == null)
+			return true;
+		if (getCase() == null || other.getCase() == null)
+			return false;
 
-        if (getCase() == null && other.getCase() == null) return true;
-        if (getCase() == null || other.getCase() == null) return false;
+		return getCase().isSame(other.getCase());
+	}
 
-        return getCase().isSame(other.getCase());
-    }
+	public NodeType getNodeType() {
+		return NodeType.CASENODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitCaseNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.CASENODE;
-    }
+	/**
+	 * Gets the caseNode. caseNode is the case expression
+	 * 
+	 * @return caseNode
+	 */
+	public Node getCase() {
+		return caseNode;
+	}
 
- 	/**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitCaseNode(this);
-    }
+	@Deprecated
+	public Node getCaseNode() {
+		return getCase();
+	}
 
-    /**
-     * Gets the caseNode.
-	 * caseNode is the case expression
-     * @return caseNode
-     */
-    public Node getCase() {
-        return caseNode;
-    }
+	public ListNode getCases() {
+		return cases;
+	}
 
-    @Deprecated
-    public Node getCaseNode() {
-        return getCase();
-    }
+	public Node getElse() {
+		return elseNode;
+	}
 
-    public ListNode getCases() {
-        return cases;
-    }
+	@Deprecated
+	public Node getElseNode() {
+		return getElse();
+	}
 
-    public Node getElse() {
-        return elseNode;
-    }
+	/**
+	 * Gets the first whenNode. the body of the case statement, the first of a list of WhenNodes
+	 * 
+	 * @return whenNode
+	 */
+	public Node getFirstWhen() {
+		return cases;
+	}
 
-    @Deprecated
-    public Node getElseNode() {
-        return getElse();
-    }
-
-    /**
-     * Gets the first whenNode.
-	 * the body of the case statement, the first of a list of WhenNodes
-     * @return whenNode
-     */
-    public Node getFirstWhen() {
-        return cases;
-    }
-
-    @Deprecated
-    public Node getFirstWhenNode() {
-        return getFirstWhen();
-    }
+	@Deprecated
+	public Node getFirstWhenNode() {
+		return getFirstWhen();
+	}
 }

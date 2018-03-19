@@ -176,8 +176,7 @@ public class ProjMgrDialog extends SystemDialog {
 		sb.append("\n");
 		sb.append("var table=document.getElementById('projListTable');");
 		sb.append("\n");
-		sb.append(
-				"table.rows[rowIdx + 1].parentNode.insertBefore(table.rows[rowIdx + 1], table.rows[rowIdx]);");
+		sb.append("table.rows[rowIdx + 1].parentNode.insertBefore(table.rows[rowIdx + 1], table.rows[rowIdx]);");
 		sb.append("\n");
 		sb.append("}");
 
@@ -188,11 +187,10 @@ public class ProjMgrDialog extends SystemDialog {
 
 	private final String buildInnerHTMLForListPanel(final int fontHeight) {
 		final StringBuilder sb = StringBuilderCacher.getFree();
-		final String borderColor = HTMLMlet
-				.toHexColor(HTMLMlet.getDarkerColor(getColorForBodyByIntValue()), false);
+		final String borderColor = HTMLMlet.toHexColor(HTMLMlet.getDarkerColor(getColorForBodyByIntValue()), false);
 		sb.append("<div style=\"padding:0em 0.2em;\">");// 上下有按钮边距
-		sb.append("<table id=\"projListTable\" border=\"1\" style=\"width:100%;border-color:#")
-				.append(borderColor).append(";border-collapse:collapse;\">");
+		sb.append("<table id=\"projListTable\" border=\"1\" style=\"width:100%;border-color:#").append(borderColor)
+				.append(";border-collapse:collapse;\">");
 		sb.append("\n");
 		sb.append("<thead style=\"text-align:center;\">");
 		sb.append("\n");
@@ -215,11 +213,10 @@ public class ProjMgrDialog extends SystemDialog {
 		sb.append("\n");
 
 		for (int i = 0; i < projList.dataRowNum; i++) {
-			final LinkEditData led = (LinkEditData) projList.data
-					.elementAt(i)[projList.IDX_OBJ_STORE];
+			final LinkEditData led = (LinkEditData) projList.data.elementAt(i)[projList.IDX_OBJ_STORE];
 			final LinkProjectStore lps = led == null ? null : led.lps;
-			appendRow(fontHeight, sb, i == 0, lps.isRoot(), lps.getProjectID(), lps.isActive(),
-					lps.getProjectRemark(), lps.getProjectUpgradeURL());
+			appendRow(fontHeight, sb, i == 0, lps.isRoot(), lps.getProjectID(), lps.isActive(), lps.getProjectRemark(),
+					lps.getProjectUpgradeURL());
 		}
 
 		sb.append("</tbody>");
@@ -232,9 +229,8 @@ public class ProjMgrDialog extends SystemDialog {
 		return out;
 	}
 
-	private final void appendRow(final int fontHeight, final StringBuilder sb,
-			final boolean selected, final boolean isRoot, final String projectID,
-			final boolean isActive, final String comment, final String upgradeURL) {
+	private final void appendRow(final int fontHeight, final StringBuilder sb, final boolean selected, final boolean isRoot,
+			final String projectID, final boolean isActive, final String comment, final String upgradeURL) {
 		final String base64ProjID = ByteUtil.serialHexString(projectID);
 
 		final String selectedID = SELECTED_PREFIX + base64ProjID;
@@ -268,12 +264,11 @@ public class ProjMgrDialog extends SystemDialog {
 		// </tr>
 	}
 
-	private void buildCheckCell(final int fontHeight, final StringBuilder sb, final String id,
-			final boolean selected, final String groupName) {
+	private void buildCheckCell(final int fontHeight, final StringBuilder sb, final String id, final boolean selected,
+			final String groupName) {
 		final String radionOrCheckBox = groupName != null ? "radio" : "checkbox";
 
-		sb.append("<input id=\"").append(id).append("\" type=\"").append(radionOrCheckBox)
-				.append("\"");
+		sb.append("<input id=\"").append(id).append("\" type=\"").append(radionOrCheckBox).append("\"");
 		if (groupName != null) {
 			sb.append(" name=\"").append(groupName).append("\"");// name='radiobutton'则为一组，以实现单选
 		}
@@ -288,8 +283,7 @@ public class ProjMgrDialog extends SystemDialog {
 		// .append(";-o-transform:scale(").append(zoom).append(")")
 		// .append(";transform:scale(").append(zoom).append(")")
 		// .append(";\"");
-		sb.append(" style=\"width:").append(fontHeight).append("px;height:").append(fontHeight)
-				.append("px;\"");
+		sb.append(" style=\"width:").append(fontHeight).append("px;height:").append(fontHeight).append("px;\"");
 
 		sb.append(" onclick=\"window.hcserver.click('").append(id).append("');\"></input>");
 	}
@@ -312,23 +306,22 @@ public class ProjMgrDialog extends SystemDialog {
 		pr = ServerUIAPIAgent.getProjResponserMaybeNull(ctx);
 
 		{
-			okImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS,
-					pr, ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_OK_ICON);
-			cancelImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(
-					localCoreSS, pr, ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON);
-			moveUpImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(
-					localCoreSS, pr, ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_MOV_UP_ICON);
-			moveDownImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(
-					localCoreSS, pr,
+			okImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr,
+					ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_OK_ICON);
+			cancelImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr,
+					ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON);
+			moveUpImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr,
+					ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_MOV_UP_ICON);
+			moveDownImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr,
 					ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_MOV_DOWN_ICON);
-			removeImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(
-					localCoreSS, pr, ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_REMOVE_ICON);
+			removeImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr,
+					ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_REMOVE_ICON);
 		}
 
 		final int fontSizePX = okImage.getHeight();
 
-		loadCSS(SystemHTMLMlet.buildCSS(getButtonHeight(), getFontSizeForButton(),
-				getColorForFontByIntValue(), getColorForBodyByIntValue()));
+		loadCSS(SystemHTMLMlet.buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(),
+				getColorForBodyByIntValue()));
 
 		final int dialogWidth = (int) (getMobileWidth() * 0.96);
 		final int dialogHeight = (int) (getMobileHeight() * 0.8);
@@ -342,8 +335,7 @@ public class ProjMgrDialog extends SystemDialog {
 		buttonList.add(moveDownButton);
 		buttonList.add(removeButton);
 
-		final int buttonToolHeight = Math.max(fontSizePX + getFontSizeForButton(),
-				getButtonHeight());
+		final int buttonToolHeight = Math.max(fontSizePX + getFontSizeForButton(), getButtonHeight());
 
 		buttonList.setPreferredSize(new Dimension(dialogWidth, buttonToolHeight));
 
@@ -364,8 +356,7 @@ public class ProjMgrDialog extends SystemDialog {
 		final int listPanelWidth = dialogWidth;
 		final int listPanelHeight = dialogHeight - buttonToolHeight * 2;
 		projListPanel.setPreferredSize(new Dimension(listPanelWidth, listPanelHeight));
-		setCSS(projListPanel, null, "overflow:scroll;max-width:" + listPanelWidth + "px;max-height:"
-				+ listPanelHeight + "px;");
+		setCSS(projListPanel, null, "overflow:scroll;max-width:" + listPanelWidth + "px;max-height:" + listPanelHeight + "px;");
 
 		setLayout(new BorderLayout());
 
@@ -380,13 +371,12 @@ public class ProjMgrDialog extends SystemDialog {
 		okButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
-				final Boolean out = (Boolean) ContextManager.getThreadPool()
-						.runAndWait(new ReturnableRunnable() {
-							@Override
-							public Object run() throws Throwable {
-								return projList.saveAndApply();
-							}
-						}, token);
+				final Boolean out = (Boolean) ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+					@Override
+					public Object run() throws Throwable {
+						return projList.saveAndApply();
+					}
+				}, token);
 
 				if (out == false) {
 					return;
@@ -435,8 +425,7 @@ public class ProjMgrDialog extends SystemDialog {
 					return;
 				}
 
-				final LinkEditData led = (LinkEditData) projList.data
-						.elementAt(currentSelectedIdx)[projList.IDX_OBJ_STORE];
+				final LinkEditData led = (LinkEditData) projList.data.elementAt(currentSelectedIdx)[projList.IDX_OBJ_STORE];
 				projList.delProjInList(led);
 				projList.data.remove(currentSelectedIdx);
 
@@ -466,8 +455,7 @@ public class ProjMgrDialog extends SystemDialog {
 	final int searchIdxByProjectID(final String projectID) {
 		final int length = projList.data.size();
 		for (int i = 0; i < length; i++) {
-			final LinkEditData led = (LinkEditData) projList.data
-					.elementAt(i)[projList.IDX_OBJ_STORE];
+			final LinkEditData led = (LinkEditData) projList.data.elementAt(i)[projList.IDX_OBJ_STORE];
 			if (led != null) {
 				if (led.lps.getProjectID().equals(projectID)) {
 					return i;

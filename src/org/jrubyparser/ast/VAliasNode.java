@@ -35,50 +35,54 @@ import org.jrubyparser.SourcePosition;
  * Represents an alias of a global variable.
  */
 public class VAliasNode extends Node {
-    private String oldName;
-    private String newName;
+	private String oldName;
+	private String newName;
 
-    public VAliasNode(SourcePosition position, String newName, String oldName) {
-        super(position);
-        this.oldName = oldName;
-        this.newName = newName;
-    }
+	public VAliasNode(SourcePosition position, String newName, String oldName) {
+		super(position);
+		this.oldName = oldName;
+		this.newName = newName;
+	}
 
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		VAliasNode other = (VAliasNode) node;
 
-        VAliasNode other = (VAliasNode) node;
+		return getOldName().equals(other.getOldName()) && getNewName().equals(other.getNewName());
+	}
 
-        return getOldName().equals(other.getOldName()) && getNewName().equals(other.getNewName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.VALIASNODE;
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.VALIASNODE;
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitVAliasNode(this);
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitVAliasNode(this);
-    }
+	/**
+	 * Gets the newName.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getNewName() {
+		return newName;
+	}
 
-    /**
-     * Gets the newName.
-     * @return Returns a String
-     */
-    public String getNewName() {
-        return newName;
-    }
-
-    /**
-     * Gets the oldName.
-     * @return Returns a String
-     */
-    public String getOldName() {
-        return oldName;
-    }
+	/**
+	 * Gets the oldName.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getOldName() {
+		return oldName;
+	}
 }

@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+import hc.core.RootServerConnector;
 import hc.core.util.CCoreUtil;
 import hc.core.util.ExceptionReporter;
 import hc.core.util.LogManager;
@@ -53,8 +54,7 @@ public class StarterManager {// 注意：本类的getHCVersion被starter.jar反�
 				public void run() {
 					try {
 						if (starterFile.setWritable(true, true) == false) {
-							throw new Exception("no permission to modify file " + STR_STARTER
-									+ ", fail upgrade.");
+							throw new Exception("no permission to modify file " + STR_STARTER + ", fail upgrade.");
 						}
 						Thread.sleep(20 * 1000);
 
@@ -63,16 +63,12 @@ public class StarterManager {// 注意：本类的getHCVersion被starter.jar反�
 
 						LogManager.log("find new ver starter, try downloading...");
 
-						final File starterTmp = new File(ResourceUtil.getBaseDir(),
-								STR_STARTER_TMP_UP);
+						final File starterTmp = new File(ResourceUtil.getBaseDir(), STR_STARTER_TMP_UP);
 
-						if (HttpUtil.download(starterTmp,
-								new URL("http://homecenter.mobi/download/starter.jar"), 3, null)) {
+						if (HttpUtil.download(starterTmp, new URL(RootServerConnector.HTTS_HC_44X + "/download/starter.jar"), 3, null)) {
 							// 检查签名
-							if (HCVerify.verifyJar(STR_STARTER_TMP_UP,
-									HCVerify.getCert()) == false) {
-								throw new Exception(
-										"fail verify new version starter.jar, maybe there is problem on net.");
+							if (HCVerify.verifyJar(STR_STARTER_TMP_UP, HCVerify.getCert()) == false) {
+								throw new Exception("fail verify new version starter.jar, maybe there is problem on net.");
 							}
 
 							LogManager.log("pass verify file " + STR_STARTER);
@@ -83,12 +79,10 @@ public class StarterManager {// 注意：本类的getHCVersion被starter.jar反�
 								final URL[] urls = { url };
 								final ClassLoader loader = new URLClassLoader(urls, null); // parent必须为null，否则会加载旧文件
 								final Class myClass = loader.loadClass(CLASSNAME_STARTER_STARTER);
-								final Method m = myClass.getDeclaredMethod(METHOD_GETVER,
-										new Class[] {});
+								final Method m = myClass.getDeclaredMethod(METHOD_GETVER, new Class[] {});
 								final String testVer = (String) m.invoke(null, new Object[] {});
 								if (testVer.equals(getNewStarterVersion())) {
-									LogManager.log(
-											"pass the right new version:" + getNewStarterVersion());
+									LogManager.log("pass the right new version:" + getNewStarterVersion());
 
 									// 考虑多用户使用及升级情形，所以允许全部writable
 									starterTmp.setWritable(true, false);
@@ -98,35 +92,27 @@ public class StarterManager {// 注意：本类的getHCVersion被starter.jar反�
 										starterFile.delete();
 										if (starterFile.exists()) {
 											if (starterTmp.renameTo(starterFile)) {
-												LogManager.log(
-														"successful finish download and upgrade file "
-																+ STR_STARTER);
+												LogManager.log("successful finish download and upgrade file " + STR_STARTER);
 												return;
 											}
-											throw new Exception(
-													"fail to del old version " + STR_STARTER);
+											throw new Exception("fail to del old version " + STR_STARTER);
 										}
 
 										if (starterTmp.renameTo(starterFile) == false) {
-											throw new Exception("fail to mv " + STR_STARTER_TMP_UP
-													+ " to " + STR_STARTER);
+											throw new Exception("fail to mv " + STR_STARTER_TMP_UP + " to " + STR_STARTER);
 										}
 
-										LogManager
-												.log("successful finish download and upgrade file "
-														+ STR_STARTER);
+										LogManager.log("successful finish download and upgrade file " + STR_STARTER);
 										return;
 									}
 								} else {
-									throw new Exception("fail check on the new file " + STR_STARTER
-											+ " ver:" + testVer + ", expected ver:"
+									throw new Exception("fail check on the new file " + STR_STARTER + " ver:" + testVer + ", expected ver:"
 											+ getNewStarterVersion());
 								}
 							}
 						}
 					} catch (final Throwable e) {
-						LogManager.errToLog("fail upgrade file " + STR_STARTER + ", exception : "
-								+ e.toString());
+						LogManager.errToLog("fail upgrade file " + STR_STARTER + ", exception : " + e.toString());
 						ExceptionReporter.printStackTrace(e);
 					}
 					hadUpgradeError = true;
@@ -145,7 +131,7 @@ public class StarterManager {// 注意：本类的getHCVersion被starter.jar反�
 
 		// 客户端对服务器最低版本要求，在J2MEContext.miniHCServerVer
 
-		return "7.76";// 请同步修改go.php, android.php
+		return "7.77";// 请同步修改go.php, android.php
 	}
 
 }

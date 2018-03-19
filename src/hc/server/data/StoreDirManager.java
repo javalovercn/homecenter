@@ -36,10 +36,8 @@ public class StoreDirManager {
 
 	public static final Locale locale = Locale.getDefault();
 	private static final String hcRootPath = getCanonicalPath("./") + File.separator;
-	private static final String user_data_dir = hcRootPath + SafeDataManager.USER_DATA
-			+ File.separator;
-	private static final String user_data_safe_dir = hcRootPath + SafeDataManager.USER_DATA_SAFE
-			+ File.separator;
+	private static final String user_data_dir = hcRootPath + SafeDataManager.USER_DATA + File.separator;
+	private static final String user_data_safe_dir = hcRootPath + SafeDataManager.USER_DATA_SAFE + File.separator;
 	public static final String user_data_dirLower = user_data_dir.toLowerCase(locale);
 	public static final String user_data_safe_dirLower = user_data_safe_dir.toLowerCase(locale);
 
@@ -81,8 +79,7 @@ public class StoreDirManager {
 	}
 
 	public final static File getTmpSubForUserManagedByHcSys(final ProjectContext projectContext) {
-		return projectContext
-				.getPrivateFile(HC_SYS_FOR_USER_PRIVATE_DIR + TEMP_SUB_DIR_FOR_USER_PRIVATE_DIR);
+		return projectContext.getPrivateFile(HC_SYS_FOR_USER_PRIVATE_DIR + TEMP_SUB_DIR_FOR_USER_PRIVATE_DIR);
 	}
 
 	static {

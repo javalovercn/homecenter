@@ -22,8 +22,7 @@ public class DeviceBindInfo {
 	public String ref_dev_id = "";
 	public String bind_id = "";
 
-	public static String buildStandardBindID(final String projID, final String robotName,
-			final String ref_devID) {
+	public static String buildStandardBindID(final String projID, final String robotName, final String ref_devID) {
 		return projID + SPLIT + robotName + SPLIT + ref_devID;
 	}
 

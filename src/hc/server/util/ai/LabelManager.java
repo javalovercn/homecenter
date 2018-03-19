@@ -25,8 +25,8 @@ public class LabelManager extends TableSM {
 	public LabelManager(final AIPersistentManager mgr, final KeySM keySM) throws SQLException {
 		super("LABEL_KEY", mgr);
 
-		appendPreparedState = mgr.getConnection().prepareStatement("INSERT INTO " + tableName
-				+ " (id, labelSrc, labelLocale, labelKey, splitKeys) VALUES (?, ?, ?, ?, ?);");
+		appendPreparedState = mgr.getConnection()
+				.prepareStatement("INSERT INTO " + tableName + " (id, labelSrc, labelLocale, labelKey, splitKeys) VALUES (?, ?, ?, ?, ?);");
 	}
 
 	private PreparedStatement deleteLabelPreparedStateFromXML;
@@ -34,8 +34,7 @@ public class LabelManager extends TableSM {
 	public final void deleteScreenIDFromXML(final String screenID) throws SQLException {
 		if (deleteLabelPreparedStateFromXML == null) {
 			deleteLabelPreparedStateFromXML = mgr.getConnection().prepareStatement(
-					"DELETE FROM " + tableName + " WHERE id IN (SELECT referLableID FROM "
-							+ mgr.xmlSM.tableName + " WHERE screenID = ?);");
+					"DELETE FROM " + tableName + " WHERE id IN (SELECT referLableID FROM " + mgr.xmlSM.tableName + " WHERE screenID = ?);");
 		}
 		deleteLabelPreparedStateFromXML.setString(1, screenID);
 		deleteLabelPreparedStateFromXML.executeUpdate();
@@ -47,9 +46,8 @@ public class LabelManager extends TableSM {
 
 	public final void deleteScreenIDFromTitle(final String screenID) throws SQLException {
 		if (deleteLabelPreparedStateFromItem == null) {
-			deleteLabelPreparedStateFromItem = mgr.getConnection().prepareStatement(
-					"DELETE FROM " + tableName + " WHERE id IN (SELECT referLableID FROM "
-							+ mgr.itemTitleSM.tableName + " WHERE screenID = ?);");
+			deleteLabelPreparedStateFromItem = mgr.getConnection().prepareStatement("DELETE FROM " + tableName
+					+ " WHERE id IN (SELECT referLableID FROM " + mgr.itemTitleSM.tableName + " WHERE screenID = ?);");
 		}
 		deleteLabelPreparedStateFromItem.setString(1, screenID);
 		deleteLabelPreparedStateFromItem.executeUpdate();
@@ -57,9 +55,8 @@ public class LabelManager extends TableSM {
 
 	@Override
 	public String getCreateTableBody() {
-		return "(" + "id INTEGER," + "labelSrc INTEGER," + "labelLocale varchar(20),"
-				+ "labelKey varchar(" + (AIUtil.maxByteLen / 2) + "), " + "splitKeys VARBINARY("
-				+ AIUtil.maxByteLen + ")" + // key1,key2,key3
+		return "(" + "id INTEGER," + "labelSrc INTEGER," + "labelLocale varchar(20)," + "labelKey varchar(" + (AIUtil.maxByteLen / 2)
+				+ "), " + "splitKeys VARBINARY(" + AIUtil.maxByteLen + ")" + // key1,key2,key3
 				")";
 	}
 
@@ -86,8 +83,7 @@ public class LabelManager extends TableSM {
 		return null;
 	}
 
-	public final int appendData(final int src, final String labelLocale, final String lable,
-			List<String> keys) {
+	public final int appendData(final int src, final String labelLocale, final String lable, List<String> keys) {
 		if (keys == null) {
 			keys = new ArrayList<String>();
 		}
@@ -178,8 +174,7 @@ public class LabelManager extends TableSM {
 		final int size = listLabel.size();
 		for (int i = 0; i < size; i++) {
 			final LabelData data = listLabel.get(i);
-			if (src == data.lableSrc && label.equals(data.label)
-					&& labelLocale.equals(data.labelLocale)) {
+			if (src == data.lableSrc && label.equals(data.label) && labelLocale.equals(data.labelLocale)) {
 				data.isAlive = true;
 				return data.id;
 			}
@@ -191,8 +186,7 @@ public class LabelManager extends TableSM {
 	private final void loadData() {
 		listLabel = new ArrayList<LabelData>(1024);
 		try {
-			final String sql = "SELECT id, labelSrc, labelLocale, labelKey, splitKeys FROM "
-					+ this.tableName + ";";
+			final String sql = "SELECT id, labelSrc, labelLocale, labelKey, splitKeys FROM " + this.tableName + ";";
 			final Statement listPreparedState = mgr.getConnection().createStatement();
 			final ResultSet rs = listPreparedState.executeQuery(sql);
 			while (rs.next()) {

@@ -11,13 +11,11 @@ import hc.server.ui.design.J2SESession;
 public class IOSBackgroundManager {
 
 	private final static HCTimer buildCloseIOSLongConnection(final J2SESession coreSS) {
-		final int iosMaxBGMinutes = UserThreadResourceUtil.getMobileAgent(coreSS)
-				.getIOSMaxBGMinutes();
+		final int iosMaxBGMinutes = UserThreadResourceUtil.getMobileAgent(coreSS).getIOSMaxBGMinutes();
 		return new HCTimer("iOSLongConnection", 1000 * 60 * iosMaxBGMinutes, true) {
 			@Override
 			public void doBiz() {
-				LogManager
-						.log("force close connection when iOS keep in background for max minutes!");
+				LogManager.log("force close connection when iOS keep in background for max minutes!");
 				J2SESessionManager.stopSession(coreSS, true, true, false);
 				setEnable(false);
 			}

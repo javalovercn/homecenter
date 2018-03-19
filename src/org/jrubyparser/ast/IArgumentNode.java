@@ -32,8 +32,11 @@ package org.jrubyparser.ast;
  * Does the node contain an argument list?
  */
 public interface IArgumentNode {
-    public Node getArgs();
-    public void setArgs(Node argsNode);
-    public boolean hasParens();
-    public void setHasParens(boolean hasParens);
+	public Node getArgs();
+
+	public void setArgs(Node argsNode);
+
+	public boolean hasParens();
+
+	public void setHasParens(boolean hasParens);
 }

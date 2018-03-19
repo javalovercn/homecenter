@@ -2566,80 +2566,83 @@
 package org.jay.yydebug;
 
 import java.io.PrintStream;
-/** writes one-line messages to standard output or a stream.
-  */
+
+/**
+ * writes one-line messages to standard output or a stream.
+ */
 public class yyDebugAdapter implements yyDebug {
-  /** message stream.
-    */
-  protected final PrintStream out;
+	/**
+	 * message stream.
+	 */
+	protected final PrintStream out;
 
-  public yyDebugAdapter (final PrintStream out) {
-    this.out = out;
-  }
+	public yyDebugAdapter(final PrintStream out) {
+		this.out = out;
+	}
 
-  public yyDebugAdapter () {
-    this(System.out);
-  }
+	public yyDebugAdapter() {
+		this(System.out);
+	}
 
-  @Override
-public void push (final int state, final Object value) {
-    out.println("push\tstate "+state+"\tvalue "+value);
-  }
+	@Override
+	public void push(final int state, final Object value) {
+		out.println("push\tstate " + state + "\tvalue " + value);
+	}
 
-  @Override
-public void lex (final int state, final int token, final String name, final Object value) {
-    out.println("lex\tstate "+state+"\treading "+name+"\tvalue "+value);
-  }
+	@Override
+	public void lex(final int state, final int token, final String name, final Object value) {
+		out.println("lex\tstate " + state + "\treading " + name + "\tvalue " + value);
+	}
 
-  @Override
-public void shift (final int from, final int to, final int errorFlag) {
-    switch (errorFlag) {
-    default:				// normally
-      out.println("shift\tfrom state "+from+" to "+to);
-      break;
-    case 0: case 1: case 2:		// in error recovery
-      out.println("shift\tfrom state "+from+" to "+to
-				+"\t"+errorFlag+" left to recover");
-      break;
-    case 3:				// normally
-      out.println("shift\tfrom state "+from+" to "+to+"\ton error");
-      break;
-    }
-  }
+	@Override
+	public void shift(final int from, final int to, final int errorFlag) {
+		switch (errorFlag) {
+		default: // normally
+			out.println("shift\tfrom state " + from + " to " + to);
+			break;
+		case 0:
+		case 1:
+		case 2: // in error recovery
+			out.println("shift\tfrom state " + from + " to " + to + "\t" + errorFlag + " left to recover");
+			break;
+		case 3: // normally
+			out.println("shift\tfrom state " + from + " to " + to + "\ton error");
+			break;
+		}
+	}
 
-  @Override
-public void pop (final int state) {
-    out.println("pop\tstate "+state+"\ton error");
-  }
+	@Override
+	public void pop(final int state) {
+		out.println("pop\tstate " + state + "\ton error");
+	}
 
-  @Override
-public void discard (final int state, final int token, final String name, final Object value) {
-    out.println("discard\tstate "+state+"\ttoken "+name+"\tvalue "+value);
-  }
+	@Override
+	public void discard(final int state, final int token, final String name, final Object value) {
+		out.println("discard\tstate " + state + "\ttoken " + name + "\tvalue " + value);
+	}
 
-  @Override
-public void reduce (final int from, final int to, final int rule, final String text, final int len) {
-    out.println("reduce\tstate "+from+"\tuncover "+to
-						+"\trule ("+rule+") "+text);
-  }
+	@Override
+	public void reduce(final int from, final int to, final int rule, final String text, final int len) {
+		out.println("reduce\tstate " + from + "\tuncover " + to + "\trule (" + rule + ") " + text);
+	}
 
-  @Override
-public void shift (final int from, final int to) {
-    out.println("goto\tfrom state "+from+" to "+to);
-  }
+	@Override
+	public void shift(final int from, final int to) {
+		out.println("goto\tfrom state " + from + " to " + to);
+	}
 
-  @Override
-public void accept (final Object value) {
-    out.println("accept\tvalue "+value);
-  }
+	@Override
+	public void accept(final Object value) {
+		out.println("accept\tvalue " + value);
+	}
 
-  @Override
-public void error (final String message) {
-    out.println("error\t"+message);
-  }
+	@Override
+	public void error(final String message) {
+		out.println("error\t" + message);
+	}
 
-  @Override
-public void reject () {
-    out.println("reject");
-  }
+	@Override
+	public void reject() {
+		out.println("reject");
+	}
 }

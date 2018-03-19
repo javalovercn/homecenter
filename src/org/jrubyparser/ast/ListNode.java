@@ -34,136 +34,144 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- * All Nodes which have a list representation inherit this.  This is also used
- * as generic container for additional information that is not directly evaluated.
- * In particular, f_arg production rule uses this to capture arg information for
- * the editor projects who want position info saved.
+ * All Nodes which have a list representation inherit this. This is also used as generic container
+ * for additional information that is not directly evaluated. In particular, f_arg production rule
+ * uses this to capture arg information for the editor projects who want position info saved.
  */
 public class ListNode extends Node {
-    private List<Node> list;
+	private List<Node> list;
 
-    /**
-     * Create a new ListNode.
-     *
-     * @param position type of listnode
-     * @param firstNode first element of the list
-     */
-    public ListNode(SourcePosition position, Node firstNode) {
-        this(position);
+	/**
+	 * Create a new ListNode.
+	 *
+	 * @param position
+	 *            type of listnode
+	 * @param firstNode
+	 *            first element of the list
+	 */
+	public ListNode(SourcePosition position, Node firstNode) {
+		this(position);
 
-        list = new ArrayList<Node>();
-        list.add(adopt(firstNode));
-    }
+		list = new ArrayList<Node>();
+		list.add(adopt(firstNode));
+	}
 
-    public ListNode(SourcePosition position) {
-        super(position);
+	public ListNode(SourcePosition position) {
+		super(position);
 
-        list = new ArrayList<Node>(0);
-    }
+		list = new ArrayList<Node>(0);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		ListNode other = (ListNode) node;
+		if (size() != other.size())
+			return false;
 
-        ListNode other = (ListNode) node;
-        if (size() != other.size()) return false;
+		for (int i = 0; i <= size() - 1; i++) {
+			if (!get(i).isSame(other.get(i)))
+				return false;
+		}
 
-        for (int i = 0; i <= size() - 1; i++) {
-            if (!get(i).isSame(other.get(i))) return false;
-        }
+		return true;
+	}
 
-        return true;
-    }
+	public NodeType getNodeType() {
+		return NodeType.LISTNODE;
+	}
 
+	public ListNode add(Node node) {
+		list.add(adopt(node));
 
-    public NodeType getNodeType() {
-        return NodeType.LISTNODE;
-    }
+		if (node == null)
+			return this;
 
-    public ListNode add(Node node) {
-        list.add(adopt(node));
+		if (getPosition() == null) {
+			setPosition(node.getPosition());
+		} else {
+			setPosition(getPosition().union(node.getPosition()));
+		}
 
-        if (node == null) return this;
+		return this;
+	}
 
-        if (getPosition() == null) {
-            setPosition(node.getPosition());
-        } else {
-            setPosition(getPosition().union(node.getPosition()));
-        }
+	public ListNode prepend(Node node) {
+		// Ruby Grammar productions return plenty of nulls.
+		if (node == null)
+			return this;
 
-        return this;
-    }
+		list.add(0, adopt(node));
 
-    public ListNode prepend(Node node) {
-        // Ruby Grammar productions return plenty of nulls.
-        if (node == null) return this;
+		setPosition(getPosition().union(node.getPosition()));
+		return this;
+	}
 
-        list.add(0, adopt(node));
+	public int size() {
+		return list.size();
+	}
 
-        setPosition(getPosition().union(node.getPosition()));
-        return this;
-    }
+	/**
+	 * Add all elements in other list to this list node.
+	 *
+	 * @param other
+	 *            list which has elements
+	 * @return this instance for method chaining
+	 */
+	public ListNode addAll(ListNode other) {
+		if (other != null && other.size() > 0) {
+			for (Node e : other.list) {
+				adopt(e);
+			}
+			list.addAll(other.list);
+			setPosition(getPosition().union(getLastNodePosition()));
+		}
+		return this;
+	}
 
-    public int size() {
-        return list.size();
-    }
+	/**
+	 * @return the position of the last node in this list that has a valid position (i.e. is not a
+	 *         NilImplicitNode).
+	 */
+	private SourcePosition getLastNodePosition() {
+		// sometimes the last node is a NilImplicitNode which has no valid position
+		for (int i = list.size() - 1; i >= 0; i--) {
+			Node last = list.get(i);
+			if (last != null)
+				return last.getPosition();
+		}
+		return null;
+	}
 
-    /**
-     * Add all elements in other list to this list node.
-     *
-     * @param other list which has elements
-     * @return this instance for method chaining
-     */
-    public ListNode addAll(ListNode other) {
-        if (other != null && other.size() > 0) {
-            for (Node e: other.list) {
-                adopt(e);
-            }
-            list.addAll(other.list);
-            setPosition(getPosition().union(getLastNodePosition()));
-        }
-        return this;
-    }
+	/**
+	 * Add other element to this list
+	 *
+	 * @param other
+	 *            list which has elements
+	 * @return this instance for method chaining
+	 */
+	public ListNode addAll(Node other) {
+		return add(other);
+	}
 
-    /**
-     * @return the position of the last node in this list that has a valid position
-     * (i.e. is not a NilImplicitNode).
-     */
-    private SourcePosition getLastNodePosition() {
-        // sometimes the last node is a NilImplicitNode which has no valid position
-        for (int i = list.size() - 1; i >= 0; i--) {
-            Node last = list.get(i);
-            if (last != null) return last.getPosition();
-        }
-        return null;
-    }
+	public Node getLast() {
+		return list.isEmpty() ? null : list.get(list.size() - 1);
+	}
 
-    /**
-     * Add other element to this list
-     *
-     * @param other list which has elements
-     * @return this instance for method chaining
-     */
-    public ListNode addAll(Node other) {
-        return add(other);
-    }
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitListNode(this);
+	}
 
-    public Node getLast() {
-    	return list.isEmpty() ? null : list.get(list.size() - 1);
-    }
-
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitListNode(this);
-    }
-
-    public Node get(int idx) {
-        return list.get(idx);
-    }
+	public Node get(int idx) {
+		return list.get(idx);
+	}
 }

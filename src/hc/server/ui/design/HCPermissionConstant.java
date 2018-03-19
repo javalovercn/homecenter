@@ -33,8 +33,7 @@ public class HCPermissionConstant {
 			+ "<br>It could allow malicious code to control the system, run other programs, read the display.</html>";
 
 	public static final String LISTEN_ALL_AWT_EVENTS_TIP = "<html>malicious code may scan all AWT events dispatched in the system, allowing it to read all user input (such as passwords)."
-			+ "<br>see <STRONG>java.awt.Toolkit</STRONG>.addAWTEventListener/removeAWTEventListener"
-			+ "</html>";
+			+ "<br>see <STRONG>java.awt.Toolkit</STRONG>.addAWTEventListener/removeAWTEventListener" + "</html>";
 
 	public static final String ACCESS_EVENT_QUEUE_TIP = "<html>malicious code may peek at and even remove existing events from the system."
 			+ "<br>see <STRONG>java.awt.Toolkit</STRONG>.getSystemEventQueue()</html>";

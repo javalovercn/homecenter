@@ -1,15 +1,5 @@
 package hc.server.ui.design.code;
 
-import hc.core.ContextManager;
-import hc.core.L;
-import hc.core.util.LogManager;
-import hc.server.ui.design.Designer;
-import hc.util.CheckSum;
-import hc.util.IBiz;
-import hc.util.MultiThreadDownloader;
-import hc.util.PropertiesManager;
-import hc.util.ResourceUtil;
-
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
@@ -19,6 +9,17 @@ import java.util.Vector;
 
 import javax.swing.JPanel;
 
+import hc.core.ContextManager;
+import hc.core.L;
+import hc.core.RootServerConnector;
+import hc.core.util.LogManager;
+import hc.server.ui.design.Designer;
+import hc.util.CheckSum;
+import hc.util.IBiz;
+import hc.util.MultiThreadDownloader;
+import hc.util.PropertiesManager;
+import hc.util.ResourceUtil;
+
 public class J2SEDocHelper {
 	private static final String j2seDoc = "j2sedoc.jar";
 
@@ -26,8 +27,7 @@ public class J2SEDocHelper {
 	private static ClassLoader j2seDocLoader;
 
 	private static boolean checkIsBuildIn() {
-		final String docPath = DocHelper
-				.buildClassDocPath(JPanel.class.getName().replace('.', '/'));
+		final String docPath = DocHelper.buildClassDocPath(JPanel.class.getName().replace('.', '/'));
 		final InputStream in = ResourceUtil.getResourceAsStream(docPath);
 		final boolean out = in != null;
 		if (out) {
@@ -60,9 +60,8 @@ public class J2SEDocHelper {
 			docFile.delete();
 			final String j2seDocVersion = "8";
 			final String sha512J2seDoc = "f962ad8af2434e00bde525ecf3b29aeb03be9745b3856da1870de22f0c38d1606b226c1bad27da5d8693f5caabcdbcb69f9df07af371a9a25213c4a117ba465f";
-			final CheckSum checkSum = new CheckSum("ffc867acdf4b7411fa0d6aa3be10a7df",
-					sha512J2seDoc);
-			final String downloadURL = "http://homecenter.mobi/download/" + j2seDoc;
+			final CheckSum checkSum = new CheckSum("ffc867acdf4b7411fa0d6aa3be10a7df", sha512J2seDoc);
+			final String downloadURL = RootServerConnector.HTTS_HC_44X + "/download/" + j2seDoc;
 			final MultiThreadDownloader mtd = new MultiThreadDownloader();
 			final Vector<String> urls = new Vector<String>(1);
 			urls.add(downloadURL);

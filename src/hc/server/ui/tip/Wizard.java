@@ -36,7 +36,6 @@ public class Wizard {
 		MessageTipFrame instanceMessageFrame = new MessageTipFrame();
 		instanceMessageFrame.setNextMode((index + 1 == buttons.length) ? false : true, al);
 		instanceMessageFrame.setCornerPosition(position, location.x, location.y, 0, 0);
-		instanceMessageFrame.showMessage(jButton.getText(), jButton.getToolTipText(),
-				MessageType.INFO);
+		instanceMessageFrame.showMessage(jButton.getText(), jButton.getToolTipText(), MessageType.INFO);
 	}
 }

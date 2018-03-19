@@ -19,8 +19,7 @@ public class HCButtonEnabledActionListener extends HCActionListener {
 	 * @param run
 	 * @param token
 	 */
-	public HCButtonEnabledActionListener(final AbstractButton btn, final Runnable run,
-			final ThreadGroup token) {
+	public HCButtonEnabledActionListener(final AbstractButton btn, final Runnable run, final ThreadGroup token) {
 		this(btn, run, token, null);
 	}
 
@@ -33,8 +32,7 @@ public class HCButtonEnabledActionListener extends HCActionListener {
 	 * @param iwatcher
 	 *            如果非null，则运行run后，执行watch方法，watch返回true，将button进行enable；返回false，停止。
 	 */
-	public HCButtonEnabledActionListener(final AbstractButton btn, final Runnable run,
-			final ThreadGroup token, final IWatcher iwatcher) {
+	public HCButtonEnabledActionListener(final AbstractButton btn, final Runnable run, final ThreadGroup token, final IWatcher iwatcher) {
 		super(run, token);
 		this.button = btn;
 		this.watcher = iwatcher;

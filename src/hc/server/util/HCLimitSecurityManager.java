@@ -152,11 +152,9 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 			try {
-				final String url = (String) csc.projResponser.map
-						.get(HCjar.PROJ_EXCEPTION_REPORT_URL);
+				final String url = (String) csc.projResponser.map.get(HCjar.PROJ_EXCEPTION_REPORT_URL);
 				if (url == null || url.length() == 0) {// 作null处理
 					return HarHelper.NO_REPORT_URL_IN_HAR;
 				}
@@ -175,11 +173,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 			if (csc.isSetFactory() == false) {
-				throw new HCSecurityException("block SetFactory in HAR Project  [" + csc.projID
-						+ "]." + buildPermissionOnDesc(HCjar.PERMISSION_SET_FACTORY));
+				throw new HCSecurityException(
+						"block SetFactory in HAR Project  [" + csc.projID + "]." + buildPermissionOnDesc(HCjar.PERMISSION_SET_FACTORY));
 			}
 		}
 		super.checkSetFactory();
@@ -192,8 +189,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 			try {
 				final Map<String, Object> map = csc.projResponser.map;
 				harInfo.projectID = (String) map.get(HCjar.PROJ_ID);
@@ -286,8 +282,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 
 			ContextSecurityManager.putContextSecurityConfig(tempLimitThreadgroup, csc);
 
-			tempLimitRecycleRes = new RecycleRes("tempLimit", tempLimitThreadPool,
-					RecycleRes.getSequenceTempWatcher());
+			tempLimitRecycleRes = new RecycleRes("tempLimit", tempLimitThreadPool, RecycleRes.getSequenceTempWatcher());
 		}
 
 		return tempLimitRecycleRes;
@@ -304,17 +299,14 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			final Class[] memberAccessLists;
 
 			{
-				final String[] writebats = { "HomeCenter.bat", "HomeCenter.sh",
-						"HomeCenter.command", "splash.png", "starter.jar", "starter.properties",
-						"jruby.jar", "hc.pem", SafeDataManager.HC_JAR,
-						SafeDataManager.HC_THIRDS_JAR, SafeDataManager.STUB_JAR, hcHardIdFileName,
-						devCertFileName };
+				final String[] writebats = { "HomeCenter.bat", "HomeCenter.sh", "HomeCenter.command", "splash.png", "starter.jar",
+						"starter.properties", "jruby.jar", "hc.pem", SafeDataManager.HC_JAR, SafeDataManager.HC_THIRDS_JAR,
+						SafeDataManager.STUB_JAR, hcHardIdFileName, devCertFileName };
 				blockWriteFullPathLists = new String[writebats.length];
 				for (int i = 0; i < writebats.length; i++) {
 					final String file = writebats[i];
 					try {
-						blockWriteFullPathLists[i] = new File(ResourceUtil.getBaseDir(), file)
-								.getCanonicalPath();
+						blockWriteFullPathLists[i] = new File(ResourceUtil.getBaseDir(), file).getCanonicalPath();
 					} catch (final IOException e) {
 						ExceptionReporter.printStackTrace(e);
 						blockWriteFullPathLists[i] = file;
@@ -343,8 +335,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 					} catch (final Throwable e) {
 						// 非Android环境报错
 						if (ResourceUtil.isJ2SELimitFunction()) {
-							System.err.println(
-									classNames[i] + " is NOT in some JVM (Not Oracle/Sun JVM).");
+							System.err.println(classNames[i] + " is NOT in some JVM (Not Oracle/Sun JVM).");
 							ExceptionReporter.printStackTrace(e);
 						}
 					}
@@ -356,27 +347,20 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			}
 
 			// 允许反射且不限的类
-			final Class[] arrClazz = { ProjectContext.class, Processor.class, Converter.class,
-					DialogHTMLMlet.class, DialogMlet.class, Device.class, Message.class,
-					Robot.class, RobotWrapper.class, RobotEvent.class, RobotListener.class,
-					SimuRobot.class, DeviceCompatibleDescription.class, AddHarHTMLMlet.class,
-					AddHarIsBusy.class, BindHTMLMlet.class, Dialog.class, SystemDialog.class,
-					BlockSystemDialog.class, ProjMgrDialog.class, ProjListScriptPanel.class,
-					LicenseHTMLMlet.class, SystemHTMLMlet.class, // 由于需要传递token，会被JRuby反射，所以要开权限。
-					ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class,
-					HTMLMlet.class, ICanvas.class, ProjectInputDialog.class,
-					MemberIDInputDialog.class, Assistant.class, VoiceCommand.class,
-					AnalysableRobotParameter.class, JavaString.class, IDEUtil.class,
-					Scheduler.class, HCInputStream.class, HCFileInputStream.class,
-					HCImageInputStream.class, HCAudioInputStream.class, JobCalendar.class,
-					BaseJobCalendar.class, AnnualJobCalendar.class, CronExcludeJobCalendar.class,
-					DailyJobCalendar.class, HolidayJobCalendar.class, MonthlyJobCalendar.class,
-					WeeklyJobCalendar.class, JSONArray.class, JSONException.class, JSONML.class,
-					JSONObject.class, JSONPointer.class, JSONPointerException.class,
-					JSONString.class, JSONTokener.class, JSONXML.class, JSONXMLTokener.class,
-					JSONPointerBuilder.class, Null.class, WiFiAccount.class, ScriptPanel.class,
-					ScriptTester.class, SystemEventListener.class, JavaLangSystemAgent.class,
-					CtrlKey.class };// 按API类单列
+			final Class[] arrClazz = { ProjectContext.class, Processor.class, Converter.class, DialogHTMLMlet.class, DialogMlet.class,
+					Device.class, Message.class, Robot.class, RobotWrapper.class, RobotEvent.class, RobotListener.class, SimuRobot.class,
+					DeviceCompatibleDescription.class, AddHarHTMLMlet.class, AddHarIsBusy.class, BindHTMLMlet.class, Dialog.class,
+					SystemDialog.class, BlockSystemDialog.class, ProjMgrDialog.class, ProjListScriptPanel.class, LicenseHTMLMlet.class,
+					SystemHTMLMlet.class, // 由于需要传递token，会被JRuby反射，所以要开权限。
+					ClientSession.class, CtrlResponse.class, Mlet.class, MenuItem.class, HTMLMlet.class, ICanvas.class,
+					ProjectInputDialog.class, MemberIDInputDialog.class, Assistant.class, VoiceCommand.class,
+					AnalysableRobotParameter.class, JavaString.class, IDEUtil.class, Scheduler.class, HCInputStream.class,
+					HCFileInputStream.class, HCImageInputStream.class, HCAudioInputStream.class, JobCalendar.class, BaseJobCalendar.class,
+					AnnualJobCalendar.class, CronExcludeJobCalendar.class, DailyJobCalendar.class, HolidayJobCalendar.class,
+					MonthlyJobCalendar.class, WeeklyJobCalendar.class, JSONArray.class, JSONException.class, JSONML.class, JSONObject.class,
+					JSONPointer.class, JSONPointerException.class, JSONString.class, JSONTokener.class, JSONXML.class, JSONXMLTokener.class,
+					JSONPointerBuilder.class, Null.class, WiFiAccount.class, ScriptPanel.class, ScriptTester.class,
+					SystemEventListener.class, JavaLangSystemAgent.class, CtrlKey.class };// 按API类单列
 			// {
 			// Vector<Class> allowVect = new Vector<Class>();
 			//
@@ -405,8 +389,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 			// }
 			// }
 
-			hcSecurityManager = new HCLimitSecurityManager(oriSecurityManager,
-					blockWriteFullPathLists, blockMemberAccessLists, arrClazz);
+			hcSecurityManager = new HCLimitSecurityManager(oriSecurityManager, blockWriteFullPathLists, blockMemberAccessLists, arrClazz);
 		}
 		return hcSecurityManager;
 	}
@@ -419,16 +402,14 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 
 	private final String propertiesName;
 
-	public HCLimitSecurityManager(final SecurityManager sm, final String[] blockWrite,
-			final String[] blockMem, final Class[] allowClazz) {
+	public HCLimitSecurityManager(final SecurityManager sm, final String[] blockWrite, final String[] blockMem, final Class[] allowClazz) {
 		super(sm);
 
 		selfClassName = this.getClass().getName();
 
 		final Object obj = ServerUtil.rubyAnd3rdLibsClassLoaderCache;// 强制init
 
-		propertiesName = StoreDirManager
-				.getCanonicalPath(PropertiesManager.getPropertiesFileName());
+		propertiesName = StoreDirManager.getCanonicalPath(PropertiesManager.getPropertiesFileName());
 
 		if (propertiesLockThreadID == 0) {
 			throw new HCSecurityException("unknow propertiesLockThreadID!");
@@ -459,8 +440,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 			if (permClass == ReflectPermission.class) {
 				if (perm.getName().equals("suppressAccessChecks")) {// JRuby使用反射
 					// if(csc != null && csc.isAccessPrivateField() == false){
@@ -471,8 +451,8 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 					// buildPermissionOnDesc(HCjar.PERMISSION_ACCESS_PRIVATE_FIELD));
 					// }
 				} else {
-					throw new HCSecurityException("block ReflectPermission : " + perm.toString()
-							+ " in HAR Project  [" + csc.projID + "].");
+					throw new HCSecurityException(
+							"block ReflectPermission : " + perm.toString() + " in HAR Project  [" + csc.projID + "].");
 				}
 			} else if (permClass == SocketPermission.class) {
 				if (csc != null) {
@@ -492,13 +472,10 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 								final String ip;
 								if (isIPv6) {
 									// ipv6
-									ip = ipAndPortAddress.substring(0,
-											ipAndPortAddress.lastIndexOf("]") + 1);
+									ip = ipAndPortAddress.substring(0, ipAndPortAddress.lastIndexOf("]") + 1);
 								} else {
 									final int lastPortSplitIdx = ipAndPortAddress.lastIndexOf(":");
-									ip = (lastPortSplitIdx > 0)
-											? ipAndPortAddress.substring(0, lastPortSplitIdx)
-											: ipAndPortAddress;
+									ip = (lastPortSplitIdx > 0) ? ipAndPortAddress.substring(0, lastPortSplitIdx) : ipAndPortAddress;
 								}
 
 								int firstDotIdx;
@@ -539,8 +516,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 						}
 						if (passPrivateCheck == false) {
 							if (collection.implies(perm) == false) {
-								throw new HCSecurityException("block Socket : " + perm.toString()
-										+ " in HAR Project  [" + csc.projID
+								throw new HCSecurityException("block Socket : " + perm.toString() + " in HAR Project  [" + csc.projID
 										+ "]. To enable socket, add it to permission list.");
 							}
 						}
@@ -550,35 +526,29 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				final String actions = perm.getActions();
 				if (csc != null) {
 					if (csc.isSysPropRead() == false && actions.indexOf("read") >= 0) {
-						throw new HCSecurityException("block PropertyPermission : "
-								+ perm.toString() + " in HAR Project  [" + csc.projID + "]."
-								+ buildPermissionOnDesc(HCjar.PERMISSION_SYS_PROP_READ));
+						throw new HCSecurityException("block PropertyPermission : " + perm.toString() + " in HAR Project  [" + csc.projID
+								+ "]." + buildPermissionOnDesc(HCjar.PERMISSION_SYS_PROP_READ));
 					}
 					if (csc.isSysPropWrite() == false && actions.indexOf("write") >= 0) {
-						throw new HCSecurityException("block PropertyPermission : "
-								+ perm.toString() + " in HAR Project  [" + csc.projID + "]."
-								+ buildPermissionOnDesc(HCjar.PERMISSION_SYS_PROP_WRITE));
+						throw new HCSecurityException("block PropertyPermission : " + perm.toString() + " in HAR Project  [" + csc.projID
+								+ "]." + buildPermissionOnDesc(HCjar.PERMISSION_SYS_PROP_WRITE));
 					}
 				} else {
 					if (actions.indexOf("write") >= 0) {
 						final String p_key = perm.getName();
 						// 阻止修改重要系统属性
 						if (p_key.equals("file.separator")) {
-							throw new HCSecurityException(
-									"block modify important system property : " + perm.toString());
+							throw new HCSecurityException("block modify important system property : " + perm.toString());
 						} else if (p_key.startsWith("http.")) {
-							if (p_key.equals("http.proxyHost") || p_key.equals("http.proxyPort")
-									|| p_key.equals("http.nonProxyHosts")) {
+							if (p_key.equals("http.proxyHost") || p_key.equals("http.proxyPort") || p_key.equals("http.nonProxyHosts")) {
 								checkHCStackTraceInclude(null, null, USE_JAVA_NET_PROXY_CLASS);
 							}
 						} else if (p_key.startsWith("ftp.")) {
-							if (p_key.equals("ftp.proxyHost") || p_key.equals("ftp.proxyPort")
-									|| p_key.equals("ftp.nonProxyHosts")) {
+							if (p_key.equals("ftp.proxyHost") || p_key.equals("ftp.proxyPort") || p_key.equals("ftp.nonProxyHosts")) {
 								checkHCStackTraceInclude(null, null, USE_JAVA_NET_PROXY_CLASS);
 							}
 						} else if (p_key.startsWith("https.")) {
-							if (p_key.equals("https.proxyHost")
-									|| p_key.equals("https.proxyPort")) {
+							if (p_key.equals("https.proxyHost") || p_key.equals("https.proxyPort")) {
 								checkHCStackTrace();
 							}
 						} else if (p_key.startsWith("socksProxy")) {
@@ -602,8 +572,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				if (permName.equals("createRobot")) {
 					if (csc != null && csc.isRobot() == false) {
 						throw new HCSecurityException(
-								"block createRobot in HAR Project  [" + csc.projID + "]."
-										+ buildPermissionOnDesc(HCjar.PERMISSION_ROBOT));
+								"block createRobot in HAR Project  [" + csc.projID + "]." + buildPermissionOnDesc(HCjar.PERMISSION_ROBOT));
 					}
 					// }else if(permName.equals("listenToAllAWTEvents")){
 					// if(csc != null && csc.isListenAllAWTEvents() == false){
@@ -615,9 +584,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 					// }
 				} else if (permName.equals("accessEventQueue")) {
 					if (csc != null) {
-						throw new HCSecurityException(
-								"block java.awt.Toolkit.getSystemEventQueue in HAR Project  ["
-										+ csc.projID + "].");
+						throw new HCSecurityException("block java.awt.Toolkit.getSystemEventQueue in HAR Project  [" + csc.projID + "].");
 					}
 					// }else if(permName.equals("accessClipboard")){
 					// if(csc != null && csc.isAccessClipboard() == false){
@@ -629,12 +596,11 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				} else if (permName.equals("readDisplayPixels")) {
 					if (csc != null) {// && csc.isReadDisplayPixels() == false
 						throw new HCSecurityException(
-								"block readDisplayPixels on java.awt.Graphics2d.setComposite in HAR Project  ["
-										+ csc.projID + "].");
+								"block readDisplayPixels on java.awt.Graphics2d.setComposite in HAR Project  [" + csc.projID + "].");
 					}
 				} else if (permName.equals("showWindowWithoutWarningBanner")) {// no
 																				// config
-					// if (limitRootThreadGroup.parentOf(currentThreadGroup)){
+																				// if (limitRootThreadGroup.parentOf(currentThreadGroup)){
 					throw new HCSecurityException("block showWindowWithoutWarningBanner");
 					// }
 				}
@@ -644,28 +610,21 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 					throw new HCSecurityException("block setSecurityManager.");
 				} else if (permissionName.equals("shutdownHooks")) {
 					if (csc != null && csc.isShutdownHooks() == false) {
-						throw new HCSecurityException(
-								"block java.lang.Runtime.addShutdownHook/removeShutdownHook in HAR Project  ["
-										+ csc.projID + "]."
-										+ buildPermissionOnDesc(HCjar.PERMISSION_SHUTDOWNHOOKS));
+						throw new HCSecurityException("block java.lang.Runtime.addShutdownHook/removeShutdownHook in HAR Project  ["
+								+ csc.projID + "]." + buildPermissionOnDesc(HCjar.PERMISSION_SHUTDOWNHOOKS));
 					}
 				} else if (permissionName.equals("setIO")) {
 					if (csc != null && csc.isSetIO() == false) {
-						throw new HCSecurityException(
-								"block java.lang.System.setIn/setOut/setErr in HAR Project  ["
-										+ csc.projID + "]."
-										+ buildPermissionOnDesc(HCjar.PERMISSION_SETIO));
+						throw new HCSecurityException("block java.lang.System.setIn/setOut/setErr in HAR Project  [" + csc.projID + "]."
+								+ buildPermissionOnDesc(HCjar.PERMISSION_SETIO));
 					}
-				} else if (permissionName.equals("getClassLoader")
-						|| permissionName.equals("getProtectionDomain")
-						|| permissionName.equals("createClassLoader")
-						|| permissionName.startsWith("accessClassInPackage")// accessClassInPackage.sun.reflect,
-																			// accessClassInPackage.sun.misc
+				} else if (permissionName.equals("getClassLoader") || permissionName.equals("getProtectionDomain")
+						|| permissionName.equals("createClassLoader") || permissionName.startsWith("accessClassInPackage")// accessClassInPackage.sun.reflect,
+																																																								// accessClassInPackage.sun.misc
 				) {// JRuby正常反射需要
 				} else if (permissionName.equals("setDefaultUncaughtExceptionHandler")) {
 					throw new HCSecurityException(
-							"block RuntimePermission [setDefaultUncaughtExceptionHandler] in HAR Project  ["
-									+ csc.projID + "].");
+							"block RuntimePermission [setDefaultUncaughtExceptionHandler] in HAR Project  [" + csc.projID + "].");
 					// }else
 					// if(permissionName.equals("getFileSystemAttributes")){//block
 					// getBaseDir().getTotalSpace() for getPrivateHardwareCode
@@ -686,8 +645,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				// new NetPermission("getNetworkInformation") to getMacAddress
 				// in getPrivateHardwareCode
 				if (permissionName.equals("getNetworkInformation")) {// 禁止csc访问getMacAddress
-					throw new HCSecurityException("block NetPermission [" + permissionName
-							+ "] in HAR Project  [" + csc.projID + "].");
+					throw new HCSecurityException("block NetPermission [" + permissionName + "] in HAR Project  [" + csc.projID + "].");
 				}
 				// if(permissionName.equals("setProxySelector") ||
 				// permissionName.equals("setCookieHandler")
@@ -707,8 +665,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				if (perm.getName().equals(setHostVerifier)) {
 					// HttpsURLConnection.setDefaultHostnameVerifier new
 					// SSLPermission("setHostnameVerifier")
-					throw new HCSecurityException("block SSLPermission [" + setHostVerifier
-							+ "] in HAR Project  [" + csc.projID + "].");
+					throw new HCSecurityException("block SSLPermission [" + setHostVerifier + "] in HAR Project  [" + csc.projID + "].");
 				}
 			} else {
 				// if(csc != null){//阻止其它Permission，
@@ -750,10 +707,8 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		if (which == Method.DECLARED) {
 			ContextSecurityConfig csc = null;
 			final Thread currentThread = Thread.currentThread();
-			if ((currentThread == eventDispatchThread
-					&& ((csc = hcEventQueue.currentConfig) != null))
-					|| (csc = ContextSecurityManager
-							.getConfig(currentThread.getThreadGroup())) != null) {
+			if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
+					|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 				if (clazz == System.class) {
 					LogManager.warning(
 							"memberAccess(reflection) on Class [java.lang.System] in JRuby script, it is recommended to use Class ["
@@ -763,9 +718,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 					// RuntimePermission("getClassLoader");
 					// 防止URLClassLoader.class.getDeclaredMethod("addURL", new
 					// Class[] { URL.class });
-					throw new HCSecurityException(
-							"block checkMemberAccess [URLClassLoader.class] in HAR Project  ["
-									+ csc.projID + "].");
+					throw new HCSecurityException("block checkMemberAccess [URLClassLoader.class] in HAR Project  [" + csc.projID + "].");
 				}
 
 				boolean containmemberAccessLists = false;
@@ -786,38 +739,31 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 						}
 					}
 					boolean startWithHC = false;
-					if (containblockMemberAccessLists || clazz == QUARTZ_CONN_MGR_CLASS
-							|| (startWithHC = name.startsWith("hc.", 0))) {
+					if (containblockMemberAccessLists || clazz == QUARTZ_CONN_MGR_CLASS || (startWithHC = name.startsWith("hc.", 0))) {
 						// && ( ! (name.startsWith("hc.hsqldb.", 0))))){
 						if (containblockMemberAccessLists) {
 							if (clazz == System.class) {
 								if (jreVersion < 1.7 && csc.isMemberAccessSystem() == false) {
-									throw new HCSecurityException(
-											"block memberAccess(reflection) on Class [" + name
-													+ "] in JRuby, please use methods in ["
-													+ JavaLangSystemAgent.class.getName() + "].");
+									throw new HCSecurityException("block memberAccess(reflection) on Class [" + name
+											+ "] in JRuby, please use methods in [" + JavaLangSystemAgent.class.getName() + "].");
 								}
 							} else {
-								throw new HCSecurityException(
-										"block memberAccess(reflection) on Class [" + name
-												+ "] in JRuby, please create agent/wrap class for it.");
+								throw new HCSecurityException("block memberAccess(reflection) on Class [" + name
+										+ "] in JRuby, please create agent/wrap class for it.");
 							}
 						} else {
 							if (startWithHC) {
-								throw new HCSecurityException("block memberAccess on Class [" + name
-										+ "] in package [hc.]");
+								throw new HCSecurityException("block memberAccess on Class [" + name + "] in package [hc.]");
 							} else {
-								throw new HCSecurityException(
-										"block memberAccess on Class : " + name);// QUARTZ_CONN_MGR_CLASS
+								throw new HCSecurityException("block memberAccess on Class : " + name);// QUARTZ_CONN_MGR_CLASS
 							}
 						}
 					}
 				}
 			} else {
 				// Not in csc
-				if (clazz == SecurityManager.class || clazz == IConstant.class
-						|| clazz == CUtil.class || clazz == HCLimitSecurityManager.class
-						|| clazz == SecurityDataProtector.class || clazz == URLClassLoader.class
+				if (clazz == SecurityManager.class || clazz == IConstant.class || clazz == CUtil.class
+						|| clazz == HCLimitSecurityManager.class || clazz == SecurityDataProtector.class || clazz == URLClassLoader.class
 						|| clazz == BCProvider.class) {// 禁止反射操作的类
 					ResourceUtil.checkHCStackTrace();
 				}
@@ -881,10 +827,8 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		final String fileCanonicalPath = toFileCanonicalPathForCheck(file);
 		if (allowAccessSystemResource) {
 			if (fileCanonicalPath.endsWith(".png")) {
-				if (isWindowPlatform
-						&& ((fileCanonicalPath.indexOf(ImageSrc.HC_RES_PATH_FOR_WIN) > 0)
-								|| (fileCanonicalPath
-										.indexOf(ImageSrc.HC_SERVER_UI_DESIGN_RES_FOR_WIN) > 0))) {
+				if (isWindowPlatform && ((fileCanonicalPath.indexOf(ImageSrc.HC_RES_PATH_FOR_WIN) > 0)
+						|| (fileCanonicalPath.indexOf(ImageSrc.HC_SERVER_UI_DESIGN_RES_FOR_WIN) > 0))) {
 					return;
 				} else if ((fileCanonicalPath.indexOf(ImageSrc.HC_RES_PATH) > 0)
 						|| (fileCanonicalPath.indexOf(ImageSrc.HC_SERVER_UI_DESIGN_RES) > 0)) {
@@ -896,23 +840,19 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 		}
 		String harDir;
 		if (csc == null) {
 			// checkHCStackTraceInclude会导致运算加重
 			if (fileCanonicalPath.startsWith(StoreDirManager.TEMP_CANONICAL_PATH, 0)) {
-			} else if (fileCanonicalPath.endsWith(hcHardIdFileName)
-					|| fileCanonicalPath.endsWith(devCertFileName)) {
+			} else if (fileCanonicalPath.endsWith(hcHardIdFileName) || fileCanonicalPath.endsWith(devCertFileName)) {
 				checkHCStackTrace();
 			}
 		} else {
-			if (csc != null
-					&& (fileCanonicalPath.startsWith(StoreDirManager.RUN_TEST_CANONICAL_PATH, 0)
-							|| fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
-							|| ((harDir.startsWith(fileCanonicalPath, 0)
-									&& harDir.length() == fileCanonicalPath.length() + 1)))) {
+			if (csc != null && (fileCanonicalPath.startsWith(StoreDirManager.RUN_TEST_CANONICAL_PATH, 0)
+					|| fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
+					|| ((harDir.startsWith(fileCanonicalPath, 0) && harDir.length() == fileCanonicalPath.length() + 1)))) {
 			} else {
 				if (currentThread.getId() != propertiesLockThreadID) {
 					if (fileCanonicalPath.equalsIgnoreCase(propertiesName)) {
@@ -923,11 +863,9 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 					if (fileCanonicalPath.startsWith(tempDirCanonicalPath, 0) == false) {// 非temp目录
 						final String fileCanonicalPathLower = fileCanonicalPath.toLowerCase(locale);
 						if (fileCanonicalPathLower.startsWith(StoreDirManager.user_data_dirLower, 0)
-								|| fileCanonicalPathLower
-										.startsWith(StoreDirManager.user_data_safe_dirLower, 0)) {
+								|| fileCanonicalPathLower.startsWith(StoreDirManager.user_data_safe_dirLower, 0)) {
 							// 非法读取其它工程
-							throw new HCSecurityException(
-									"block read file :" + file + OUTSIDE_HAR_WORKING_THREAD);
+							throw new HCSecurityException("block read file :" + file + OUTSIDE_HAR_WORKING_THREAD);
 						}
 					}
 				}
@@ -936,21 +874,16 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 	}
 
 	private final void checkHCStackTrace() {
-		ResourceUtil.checkHCStackTraceInclude(null, ServerUtil.rubyAnd3rdLibsClassLoaderCache, null,
-				selfClassName);// ResourceUtil.getJRubyClassLoader(false)
+		ResourceUtil.checkHCStackTraceInclude(null, ServerUtil.rubyAnd3rdLibsClassLoaderCache, null, selfClassName);// ResourceUtil.getJRubyClassLoader(false)
 	}
 
-	private final void checkHCStackTraceInclude(final String callerClass,
-			final ClassLoader loader) {
-		ResourceUtil.checkHCStackTraceInclude(callerClass,
-				loader == null ? ServerUtil.rubyAnd3rdLibsClassLoaderCache : loader, null,
+	private final void checkHCStackTraceInclude(final String callerClass, final ClassLoader loader) {
+		ResourceUtil.checkHCStackTraceInclude(callerClass, loader == null ? ServerUtil.rubyAnd3rdLibsClassLoaderCache : loader, null,
 				selfClassName);
 	}
 
-	private final void checkHCStackTraceInclude(final String callerClass, final ClassLoader loader,
-			final String moreMsg) {
-		ResourceUtil.checkHCStackTraceInclude(callerClass,
-				loader == null ? ServerUtil.rubyAnd3rdLibsClassLoaderCache : loader, moreMsg,
+	private final void checkHCStackTraceInclude(final String callerClass, final ClassLoader loader, final String moreMsg) {
+		ResourceUtil.checkHCStackTraceInclude(callerClass, loader == null ? ServerUtil.rubyAnd3rdLibsClassLoaderCache : loader, moreMsg,
 				selfClassName);
 	}
 
@@ -960,24 +893,20 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 		}
 		String harDir;
 		if (csc == null) {
 			// System.out.println("==> check write : " + file.toString());
 			if (fileCanonicalPath.startsWith(StoreDirManager.TEMP_CANONICAL_PATH, 0)) {
-			} else if (currentThread.getId() == propertiesLockThreadID
-					&& fileCanonicalPath.equalsIgnoreCase(propertiesName)) {
+			} else if (currentThread.getId() == propertiesLockThreadID && fileCanonicalPath.equalsIgnoreCase(propertiesName)) {
 			} else {
 				checkHCStackTrace();
 			}
 		} else {
-			if (csc != null
-					&& (fileCanonicalPath.startsWith(StoreDirManager.RUN_TEST_CANONICAL_PATH, 0)
-							|| fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
-							|| ((harDir.startsWith(fileCanonicalPath, 0)
-									&& harDir.length() == fileCanonicalPath.length() + 1)))) {
+			if (csc != null && (fileCanonicalPath.startsWith(StoreDirManager.RUN_TEST_CANONICAL_PATH, 0)
+					|| fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
+					|| ((harDir.startsWith(fileCanonicalPath, 0) && harDir.length() == fileCanonicalPath.length() + 1)))) {
 			} else {
 				if (currentThread.getId() != propertiesLockThreadID) {
 					if (fileCanonicalPath.equalsIgnoreCase(propertiesName)) {
@@ -995,11 +924,9 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 
 						final String fileCanonicalPathLower = fileCanonicalPath.toLowerCase(locale);
 						if (fileCanonicalPathLower.startsWith(StoreDirManager.user_data_dirLower, 0)
-								|| fileCanonicalPathLower
-										.startsWith(StoreDirManager.user_data_safe_dirLower, 0)) {
+								|| fileCanonicalPathLower.startsWith(StoreDirManager.user_data_safe_dirLower, 0)) {
 							// 非法读取其它工程
-							throw new HCSecurityException(
-									"block write file :" + file + OUTSIDE_HAR_WORKING_THREAD);
+							throw new HCSecurityException("block write file :" + file + OUTSIDE_HAR_WORKING_THREAD);
 						}
 
 						// {
@@ -1020,9 +947,8 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 						// }
 
 						if (csc.isWrite() == false) {
-							throw new HCSecurityException("block write file :" + file
-									+ " in HAR security permission in project [" + csc.projID + "]."
-									+ buildPermissionOnDesc(HCjar.PERMISSION_WRITE));
+							throw new HCSecurityException("block write file :" + file + " in HAR security permission in project ["
+									+ csc.projID + "]." + buildPermissionOnDesc(HCjar.PERMISSION_WRITE));
 						}
 					}
 				}
@@ -1037,8 +963,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 		}
 		if (csc != null) {
 			boolean isJFFIStubLoader = false;
@@ -1049,16 +974,15 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 				for (int i = 0; i < size; i++) {
 					final StackTraceElement element = stack[i];
 					if (element.getClassName().equals("com.kenai.jffi.internal.StubLoader")) {
-						LogManager.log(
-								"ignore checkLink for Class [com.kenai.jffi.internal.StubLoader].");
+						LogManager.log("ignore checkLink for Class [com.kenai.jffi.internal.StubLoader].");
 						isJFFIStubLoader = true;
 						break;
 					}
 				}
 			}
 			if (isJFFIStubLoader == false && csc.isLoadLib() == false) {
-				throw new HCSecurityException("block java.lang.Runtime.load(lib) in HAR project  ["
-						+ csc.projID + "]." + buildPermissionOnDesc(HCjar.PERMISSION_LOAD_LIB));
+				throw new HCSecurityException("block java.lang.Runtime.load(lib) in HAR project  [" + csc.projID + "]."
+						+ buildPermissionOnDesc(HCjar.PERMISSION_LOAD_LIB));
 			}
 		}
 
@@ -1070,14 +994,12 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 		}
 		if (csc != null) {
 			if (csc.isExit() == false) {
-				throw new HCSecurityException(
-						"block execute [exit] by HAR security permission in project [" + csc.projID
-								+ "]." + buildPermissionOnDesc(HCjar.PERMISSION_EXIT));
+				throw new HCSecurityException("block execute [exit] by HAR security permission in project [" + csc.projID + "]."
+						+ buildPermissionOnDesc(HCjar.PERMISSION_EXIT));
 			}
 		} else {
 			// Not in csc
@@ -1093,14 +1015,12 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 		}
 		String harDir;
 		if (csc != null && (fileCanonicalPath.startsWith(StoreDirManager.RUN_TEST_CANONICAL_PATH, 0)
 				|| fileCanonicalPath.startsWith((harDir = getUserDataBaseDir(csc)), 0)
-				|| ((harDir.startsWith(fileCanonicalPath, 0)
-						&& harDir.length() == fileCanonicalPath.length() + 1)))) {
+				|| ((harDir.startsWith(fileCanonicalPath, 0) && harDir.length() == fileCanonicalPath.length() + 1)))) {
 		} else {
 			if (csc == null) {
 				if (fileCanonicalPath.startsWith(StoreDirManager.TEMP_CANONICAL_PATH, 0)) {
@@ -1121,17 +1041,14 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 
 					final String fileCanonicalPathLower = fileCanonicalPath.toLowerCase(locale);
 					if (fileCanonicalPathLower.startsWith(StoreDirManager.user_data_dirLower, 0)
-							|| fileCanonicalPathLower
-									.startsWith(StoreDirManager.user_data_safe_dirLower, 0)) {
+							|| fileCanonicalPathLower.startsWith(StoreDirManager.user_data_safe_dirLower, 0)) {
 						// 非法读取其它工程
-						throw new HCSecurityException(
-								"block delete file :" + file + OUTSIDE_HAR_WORKING_THREAD);
+						throw new HCSecurityException("block delete file :" + file + OUTSIDE_HAR_WORKING_THREAD);
 					}
 
 					if (csc.isDelete() == false) {
-						throw new HCSecurityException("block delete file :" + file
-								+ " in HAR security permission in project [" + csc.projID + "]."
-								+ buildPermissionOnDesc(HCjar.PERMISSION_DELETE));
+						throw new HCSecurityException("block delete file :" + file + " in HAR security permission in project [" + csc.projID
+								+ "]." + buildPermissionOnDesc(HCjar.PERMISSION_DELETE));
 					}
 				}
 			}
@@ -1149,20 +1066,18 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 		}
 		if (csc != null) {
 			if (csc.isExecute() == false) {
-				throw new HCSecurityException("block execute [" + cmd
-						+ "] in HAR security permission in project [" + csc.projID + "]."
+				throw new HCSecurityException("block execute [" + cmd + "] in HAR security permission in project [" + csc.projID + "]."
 						+ buildPermissionOnDesc(HCjar.PERMISSION_EXECUTE));
 			} else {
 				// 工程开启了Execute权限
 
 				if (cmd.indexOf(hcHardIdFileName, 0) >= 0) {
-					throw new HCSecurityException("block execute [" + cmd + "] in project ["
-							+ csc.projID + "] for security data [" + hcHardIdFileName + "].");
+					throw new HCSecurityException(
+							"block execute [" + cmd + "] in project [" + csc.projID + "] for security data [" + hcHardIdFileName + "].");
 					// }else if(cmd.indexOf(PATH_USER_DATA_OF_OS, 0) >= 0){
 					// throw new HCSecurityException("block execute [" + cmd +
 					// "] in project [" + csc.projID + "] for security data [" +
@@ -1195,8 +1110,7 @@ public class HCLimitSecurityManager extends WrapperSecurityManager implements Ha
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 			throw new HCSecurityException("block checkSecurityAccess :" + target);
 		}
 

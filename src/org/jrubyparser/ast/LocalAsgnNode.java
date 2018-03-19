@@ -37,129 +37,134 @@ import org.jrubyparser.SourcePosition;
  * An assignment to a local variable.
  */
 public class LocalAsgnNode extends AssignableNode implements ILocalVariable {
-    // The name of the variable
-    private String name;
+	// The name of the variable
+	private String name;
 
-    // A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
-    // is what index in the right scope to set the value.
-    private int location;
+	// A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
+	// is what index in the right scope to set the value.
+	private int location;
 
-    public LocalAsgnNode(SourcePosition position, String name, int location, Node valueNode) {
-        super(position, valueNode);
-        this.name = name;
-        this.location = location;
-    }
+	public LocalAsgnNode(SourcePosition position, String name, int location, Node valueNode) {
+		super(position, valueNode);
+		this.name = name;
+		this.location = location;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && isNameMatch(((LocalAsgnNode) node).getName());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && isNameMatch(((LocalAsgnNode) node).getName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.LOCALASGNNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitLocalAsgnNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.LOCALASGNNODE;
-    }
+	public String getLexicalName() {
+		return getName();
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitLocalAsgnNode(this);
-    }
+	/**
+	 * Name of the local assignment.
+	 **/
+	public String getName() {
+		return name;
+	}
 
-    public String getLexicalName() {
-        return getName();
-    }
+	/**
+	 * Change the name of this local assignment (for refactoring)
+	 * 
+	 * @param name
+	 *            the name to set
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    /**
-     * Name of the local assignment.
-     **/
-    public String getName() {
-        return name;
-    }
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-    /**
-     * Change the name of this local assignment (for refactoring)
-     * @param name the name to set
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
+		return thisName != null && thisName.equals(name);
+	}
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+	/**
+	 * How many scopes should we burrow down to until we need to set the block variable value.
+	 *
+	 * @return 0 for current scope, 1 for one down, ...
+	 */
+	public int getDepth() {
+		return location >> 16;
+	}
 
-        return thisName != null && thisName.equals(name);
-    }
+	/**
+	 * Gets the index within the scope construct that actually holds the eval'd value of this local
+	 * variable
+	 *
+	 * @return Returns an int offset into storage structure
+	 */
+	public int getIndex() {
+		return location & 0xffff;
+	}
 
-    /**
-     * How many scopes should we burrow down to until we need to set the block variable value.
-     *
-     * @return 0 for current scope, 1 for one down, ...
-     */
-    public int getDepth() {
-        return location >> 16;
-    }
+	public IScope getDefinedScope() {
+		IScope scope = getClosestIScope();
 
-    /**
-     * Gets the index within the scope construct that actually holds the eval'd value
-     * of this local variable
-     *
-     * @return Returns an int offset into storage structure
-     */
-    public int getIndex() {
-        return location & 0xffff;
-    }
+		for (int i = 0; i < getDepth(); i++) {
+			scope = ((Node) scope).getClosestIScope();
+		}
 
-    public IScope getDefinedScope() {
-        IScope scope = getClosestIScope();
+		return scope;
+	}
 
-        for (int i = 0; i < getDepth(); i++) {
-            scope = ((Node) scope).getClosestIScope();
-        }
+	public List<ILocalVariable> getOccurrences() {
+		return getDefinedScope().getVariableReferencesNamed(getName());
+	}
 
-        return scope;
-    }
+	/**
+	 * Return parameter if this local assignment is referring to a parameter since that clearly is
+	 * the declaration.
+	 *
+	 * In the case that it is not a parameter then we pick itself since current assignment is what
+	 * most programmers will expect to be a declaration. Note: This is largely an arbitrary choice.
+	 * In LocalVar node we always pick the closest LocalAsgn to the beginning of the scope whereas
+	 * here we pick itself. Asking programmers what they thought was the declaration is why this
+	 * choice was made. Also NetBeans also came to the same decision.
+	 */
+	public ILocalVariable getDeclaration() {
+		List<ILocalVariable> list = getOccurrences();
+		if (list.size() > 0) {
+			ILocalVariable variable = list.get(0);
 
-    public List<ILocalVariable> getOccurrences() {
-        return getDefinedScope().getVariableReferencesNamed(getName());
-    }
+			if (variable instanceof IParameter)
+				return variable;
+			if (variable instanceof LocalAsgnNode)
+				return variable; // optarg (e.g. a=1) in 1.8
+		}
 
-    /**
-     * Return parameter if this local assignment is referring to a parameter since that clearly
-     * is the declaration.
-     *
-     * In the case that it is not a parameter then we pick itself since current assignment
-     * is what most programmers will expect to be a declaration.  Note: This is largely an
-     * arbitrary choice.  In LocalVar node we always pick the closest LocalAsgn to the beginning
-     * of the scope whereas here we pick itself.  Asking programmers what they thought was the
-     * declaration is why this choice was made.  Also NetBeans also came to the same decision.
-     */
-    public ILocalVariable getDeclaration() {
-        List<ILocalVariable> list = getOccurrences();
-        if (list.size() > 0) {
-            ILocalVariable variable = list.get(0);
+		return this;
+	}
 
-            if (variable instanceof IParameter) return variable;
-            if (variable instanceof LocalAsgnNode) return variable; // optarg (e.g. a=1) in 1.8
-        }
+	public SourcePosition getNamePosition() {
+		return getPosition().fromBeginning(getName().length());
+	}
 
-        return this;
-    }
-
-    public SourcePosition getNamePosition() {
-        return getPosition().fromBeginning(getName().length());
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getNamePosition();
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getNamePosition();
+	}
 }

@@ -25,91 +25,69 @@ import org.bouncycastle.jcajce.util.ProviderJcaJceHelper;
 import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.openssl.PEMKeyPair;
 
-public class JcaPEMKeyConverter
-{
-    private JcaJceHelper helper = new DefaultJcaJceHelper();
+public class JcaPEMKeyConverter {
+	private JcaJceHelper helper = new DefaultJcaJceHelper();
 
-    private static final Map algorithms = new HashMap();
+	private static final Map algorithms = new HashMap();
 
-    static
-    {
-        algorithms.put(X9ObjectIdentifiers.id_ecPublicKey, "ECDSA");
-        algorithms.put(PKCSObjectIdentifiers.rsaEncryption, "RSA");
-        algorithms.put(X9ObjectIdentifiers.id_dsa, "DSA");
-    }
+	static {
+		algorithms.put(X9ObjectIdentifiers.id_ecPublicKey, "ECDSA");
+		algorithms.put(PKCSObjectIdentifiers.rsaEncryption, "RSA");
+		algorithms.put(X9ObjectIdentifiers.id_dsa, "DSA");
+	}
 
-    public JcaPEMKeyConverter setProvider(Provider provider)
-    {
-        this.helper = new ProviderJcaJceHelper(provider);
+	public JcaPEMKeyConverter setProvider(Provider provider) {
+		this.helper = new ProviderJcaJceHelper(provider);
 
-        return this;
-    }
+		return this;
+	}
 
-    public JcaPEMKeyConverter setProvider(String providerName)
-    {
-        this.helper = new NamedJcaJceHelper(providerName);
+	public JcaPEMKeyConverter setProvider(String providerName) {
+		this.helper = new NamedJcaJceHelper(providerName);
 
-        return this;
-    }
+		return this;
+	}
 
-    public KeyPair getKeyPair(PEMKeyPair keyPair)
-        throws PEMException
-    {
-        try
-        {
-            KeyFactory keyFactory = getKeyFactory(keyPair.getPrivateKeyInfo().getPrivateKeyAlgorithm());
+	public KeyPair getKeyPair(PEMKeyPair keyPair) throws PEMException {
+		try {
+			KeyFactory keyFactory = getKeyFactory(keyPair.getPrivateKeyInfo().getPrivateKeyAlgorithm());
 
-            return new KeyPair(keyFactory.generatePublic(new X509EncodedKeySpec(keyPair.getPublicKeyInfo().getEncoded())),
-                                keyFactory.generatePrivate(new PKCS8EncodedKeySpec(keyPair.getPrivateKeyInfo().getEncoded())));
-        }
-        catch (Exception e)
-        {
-            throw new PEMException("unable to convert key pair: " + e.getMessage(), e);
-        }
-    }
+			return new KeyPair(keyFactory.generatePublic(new X509EncodedKeySpec(keyPair.getPublicKeyInfo().getEncoded())),
+					keyFactory.generatePrivate(new PKCS8EncodedKeySpec(keyPair.getPrivateKeyInfo().getEncoded())));
+		} catch (Exception e) {
+			throw new PEMException("unable to convert key pair: " + e.getMessage(), e);
+		}
+	}
 
-    public PublicKey getPublicKey(SubjectPublicKeyInfo publicKeyInfo)
-        throws PEMException
-    {
-        try
-        {
-            KeyFactory keyFactory = getKeyFactory(publicKeyInfo.getAlgorithm());
+	public PublicKey getPublicKey(SubjectPublicKeyInfo publicKeyInfo) throws PEMException {
+		try {
+			KeyFactory keyFactory = getKeyFactory(publicKeyInfo.getAlgorithm());
 
-            return keyFactory.generatePublic(new X509EncodedKeySpec(publicKeyInfo.getEncoded()));
-        }
-        catch (Exception e)
-        {
-            throw new PEMException("unable to convert key pair: " + e.getMessage(), e);
-        }
-    }
+			return keyFactory.generatePublic(new X509EncodedKeySpec(publicKeyInfo.getEncoded()));
+		} catch (Exception e) {
+			throw new PEMException("unable to convert key pair: " + e.getMessage(), e);
+		}
+	}
 
-    public PrivateKey getPrivateKey(PrivateKeyInfo privateKeyInfo)
-        throws PEMException
-    {
-        try
-        {
-            KeyFactory keyFactory = getKeyFactory(privateKeyInfo.getPrivateKeyAlgorithm());
+	public PrivateKey getPrivateKey(PrivateKeyInfo privateKeyInfo) throws PEMException {
+		try {
+			KeyFactory keyFactory = getKeyFactory(privateKeyInfo.getPrivateKeyAlgorithm());
 
-            return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded()));
-        }
-        catch (Exception e)
-        {
-            throw new PEMException("unable to convert key pair: " + e.getMessage(), e);
-        }
-    }
+			return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(privateKeyInfo.getEncoded()));
+		} catch (Exception e) {
+			throw new PEMException("unable to convert key pair: " + e.getMessage(), e);
+		}
+	}
 
-    private KeyFactory getKeyFactory(AlgorithmIdentifier algId)
-        throws NoSuchAlgorithmException, NoSuchProviderException
-    {
-        ASN1ObjectIdentifier algorithm =  algId.getAlgorithm();
+	private KeyFactory getKeyFactory(AlgorithmIdentifier algId) throws NoSuchAlgorithmException, NoSuchProviderException {
+		ASN1ObjectIdentifier algorithm = algId.getAlgorithm();
 
-        String algName = (String)algorithms.get(algorithm);
+		String algName = (String) algorithms.get(algorithm);
 
-        if (algName == null)
-        {
-            algName = algorithm.getId();
-        }
+		if (algName == null) {
+			algName = algorithm.getId();
+		}
 
-        return helper.createKeyFactory(algName);
-    }
+		return helper.createKeyFactory(algName);
+	}
 }

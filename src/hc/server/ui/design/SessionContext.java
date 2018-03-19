@@ -13,11 +13,10 @@ import hc.server.ui.ClientSession;
 import hc.server.ui.ClientSessionForSys;
 
 public class SessionContext {
-	final static HashMap<String, Stack<SessionContext>> map = new HashMap<String, Stack<SessionContext>>(
-			12);
+	final static HashMap<String, Stack<SessionContext>> map = new HashMap<String, Stack<SessionContext>>(12);
 
-	public static synchronized SessionContext getFreeMobileContext(final String projID,
-			final ThreadGroup projectGroup, final ProjResponser projResp) {
+	public static synchronized SessionContext getFreeMobileContext(final String projID, final ThreadGroup projectGroup,
+			final ProjResponser projResp) {
 		final Stack<SessionContext> stack = map.get(projID);
 		if (stack == null || stack.size() == 0) {
 			if (L.isInWorkshop) {
@@ -60,8 +59,7 @@ public class SessionContext {
 	 * @param ss
 	 * @param cs
 	 */
-	public final void setClientSession(final J2SESession ss, final ClientSession cs,
-			final ClientSessionForSys csForSys) {
+	public final void setClientSession(final J2SESession ss, final ClientSession cs, final ClientSessionForSys csForSys) {
 		this.j2seSocketSession = ss;
 		this.clientSession = cs;
 		this.clientSessionForSys = csForSys;

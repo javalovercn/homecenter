@@ -17,10 +17,10 @@ package org.android.signapk;
 
 public class Chunk {
 	final int start;
-    final int end;
+	final int end;
 
-    Chunk(final int start, final int end) {
-        this.start = start;
-        this.end = end;
-    }
+	Chunk(final int start, final int end) {
+		this.start = start;
+		this.end = end;
+	}
 }

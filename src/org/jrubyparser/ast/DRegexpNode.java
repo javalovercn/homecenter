@@ -33,56 +33,58 @@ import org.jrubyparser.RegexpOptions;
 import org.jrubyparser.SourcePosition;
 
 /**
- * A regexp which contains some expressions which will need to be evaluated everytime the regexp
- * is used for a match.
+ * A regexp which contains some expressions which will need to be evaluated everytime the regexp is
+ * used for a match.
  */
 public class DRegexpNode extends ListNode implements ILiteralNode {
-    private RegexpOptions options;
-    private boolean is19;
+	private RegexpOptions options;
+	private boolean is19;
 
-    public DRegexpNode(SourcePosition position, RegexpOptions options) {
-        this(position, options, false);
-    }
+	public DRegexpNode(SourcePosition position, RegexpOptions options) {
+		this(position, options, false);
+	}
 
-    public DRegexpNode(SourcePosition position, RegexpOptions options, boolean is19) {
-        super(position);
+	public DRegexpNode(SourcePosition position, RegexpOptions options, boolean is19) {
+		super(position);
 
-        this.options = options;
-        this.is19 = is19;
-    }
+		this.options = options;
+		this.is19 = is19;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param other
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node other) {
+		return super.isSame(other) && getOptions().equals(((DRegexpNode) other).getOptions());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param other to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node other) {
-        return super.isSame(other) && getOptions().equals(((DRegexpNode) other).getOptions());
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.DREGEXPNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	@Override
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitDRegxNode(this);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.DREGEXPNODE;
-    }
-
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitDRegxNode(this);
-    }
-
-    /**
-     * Gets the options.
-     * @return the options
-     */
-    public RegexpOptions getOptions() {
-        return options;
-    }
+	/**
+	 * Gets the options.
+	 * 
+	 * @return the options
+	 */
+	public RegexpOptions getOptions() {
+		return options;
+	}
 }

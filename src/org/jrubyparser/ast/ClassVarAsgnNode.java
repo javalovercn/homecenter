@@ -35,72 +35,79 @@ import org.jrubyparser.SourcePosition;
  * Class variable assignment node (e.g. @@foo = 1).
  */
 public class ClassVarAsgnNode extends AssignableNode implements IClassVariable {
-    private String name;
+	private String name;
 
-    /**
-     * @param position the position
-     * @param name id of the class variable to assign to
-     * @param valueNode  Node used to compute the new value when the assignment is evaled
-     */
-    public ClassVarAsgnNode(SourcePosition position, String name, Node valueNode) {
-        super(position, valueNode);
+	/**
+	 * @param position
+	 *            the position
+	 * @param name
+	 *            id of the class variable to assign to
+	 * @param valueNode
+	 *            Node used to compute the new value when the assignment is evaled
+	 */
+	public ClassVarAsgnNode(SourcePosition position, String name, Node valueNode) {
+		super(position, valueNode);
 
-        if (name.startsWith("@@")) name = name.substring(2);
+		if (name.startsWith("@@"))
+			name = name.substring(2);
 
-        this.name = name;
-    }
+		this.name = name;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && isNameMatch(((ClassVarAsgnNode) node).getName());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && isNameMatch(((ClassVarAsgnNode) node).getName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.CLASSVARASGNNODE;
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.CLASSVARASGNNODE;
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitClassVarAsgnNode(this);
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitClassVarAsgnNode(this);
-    }
+	public String getLexicalName() {
+		return "@@" + getName();
+	}
 
-    public String getLexicalName() {
-        return "@@" + getName();
-    }
+	/**
+	 * Gets the name.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getName() {
+		return name;
+	}
 
-    /**
-     * Gets the name.
-     * @return Returns a String
-     */
-    public String getName() {
-        return name;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+		return thisName != null && thisName.equals(name);
+	}
 
-        return thisName != null && thisName.equals(name);
-    }
+	public SourcePosition getNamePosition() {
+		return getLexicalNamePosition().fromEnd(getName().length());
+	}
 
-    public SourcePosition getNamePosition() {
-        return getLexicalNamePosition().fromEnd(getName().length());
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getPosition().fromBeginning(getLexicalName().length());
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getPosition().fromBeginning(getLexicalName().length());
+	}
 }

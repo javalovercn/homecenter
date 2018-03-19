@@ -35,121 +35,127 @@ import org.jrubyparser.SourcePosition;
  *
  */
 public class OpAsgnNode extends Node {
-    private Node receiverNode;
-    private Node valueNode;
-    private String operatorName;
-    private String variableName;
-    private boolean isLazy;
+	private Node receiverNode;
+	private Node valueNode;
+	private String operatorName;
+	private String variableName;
+	private boolean isLazy;
 
-    // Be backward compatible for Ruby 1.8 and 1.9
-    public OpAsgnNode(SourcePosition position, Node receiverNode, Node valueNode, String variableName, String operatorName) {
-        super(position);
+	// Be backward compatible for Ruby 1.8 and 1.9
+	public OpAsgnNode(SourcePosition position, Node receiverNode, Node valueNode, String variableName, String operatorName) {
+		super(position);
 
-        assert receiverNode != null : "receiverNode is not null";
-        assert valueNode != null : "valueNode is not null";
+		assert receiverNode != null : "receiverNode is not null";
+		assert valueNode != null : "valueNode is not null";
 
-        this.receiverNode = adopt(receiverNode);
-        this.valueNode = adopt(valueNode);
-        this.operatorName = operatorName;
-        this.variableName = variableName;
-        this.isLazy = false;
-    }
-    
-    
-    public OpAsgnNode(SourcePosition position, Node receiverNode, Node valueNode, String variableName, String operatorName, boolean isLazy) {
-        super(position);
+		this.receiverNode = adopt(receiverNode);
+		this.valueNode = adopt(valueNode);
+		this.operatorName = operatorName;
+		this.variableName = variableName;
+		this.isLazy = false;
+	}
 
-        assert receiverNode != null : "receiverNode is not null";
-        assert valueNode != null : "valueNode is not null";
+	public OpAsgnNode(SourcePosition position, Node receiverNode, Node valueNode, String variableName, String operatorName,
+			boolean isLazy) {
+		super(position);
 
-        this.receiverNode = adopt(receiverNode);
-        this.valueNode = adopt(valueNode);
-        this.operatorName = operatorName;
-        this.variableName = variableName;
-        this.isLazy = isLazy;
-    }
+		assert receiverNode != null : "receiverNode is not null";
+		assert valueNode != null : "valueNode is not null";
 
+		this.receiverNode = adopt(receiverNode);
+		this.valueNode = adopt(valueNode);
+		this.operatorName = operatorName;
+		this.variableName = variableName;
+		this.isLazy = isLazy;
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-        OpAsgnNode other = (OpAsgnNode) node;
+		OpAsgnNode other = (OpAsgnNode) node;
 
-        return getReceiver().isSame(other.getReceiver()) && getValue().isSame(other.getValue()) &&
-                getOperatorName().equals(other.getOperatorName()) && getVariableName().equals(other.getVariableName());
-    }
+		return getReceiver().isSame(other.getReceiver()) && getValue().isSame(other.getValue())
+				&& getOperatorName().equals(other.getOperatorName()) && getVariableName().equals(other.getVariableName());
+	}
 
+	public NodeType getNodeType() {
+		return NodeType.OPASGNNODE;
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.OPASGNNODE;
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitOpAsgnNode(this);
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitOpAsgnNode(this);
-    }
+	/**
+	 * Gets the methodName.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getOperatorName() {
+		return operatorName;
+	}
 
-    /**
-     * Gets the methodName.
-     * @return Returns a String
-     */
-    public String getOperatorName() {
-        return operatorName;
-    }
+	/**
+	 * Gets the varibaleName.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getVariableName() {
+		return variableName;
+	}
 
-    /**
-     * Gets the varibaleName.
-     * @return Returns a String
-     */
-    public String getVariableName() {
-        return variableName;
-    }
+	/**
+	 * Gets the receiverNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getReceiver() {
+		return receiverNode;
+	}
 
-    /**
-     * Gets the receiverNode.
-     * @return Returns a Node
-     */
-    public Node getReceiver() {
-        return receiverNode;
-    }
+	@Deprecated
+	public Node getReceiverNode() {
+		return getReceiver();
+	}
 
-    @Deprecated
-    public Node getReceiverNode() {
-        return getReceiver();
-    }
+	public void setReceiver(Node receiver) {
+		this.receiverNode = adopt(receiver);
+	}
 
-    public void setReceiver(Node receiver) {
-        this.receiverNode = adopt(receiver);
-    }
+	/**
+	 * Gets the valueNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getValue() {
+		return valueNode;
+	}
 
-    /**
-     * Gets the valueNode.
-     * @return Returns a Node
-     */
-    public Node getValue() {
-        return valueNode;
-    }
+	@Deprecated
+	public Node getValueNode() {
+		return getValue();
+	}
 
-    @Deprecated
-    public Node getValueNode() {
-        return getValue();
-    }
+	public void setValue(Node value) {
+		this.valueNode = adopt(value);
+	}
 
-    public void setValue(Node value) {
-        this.valueNode = adopt(value);
-    }
-    
-    public boolean isLazy() {
-        return isLazy;
-    }
+	public boolean isLazy() {
+		return isLazy;
+	}
 }

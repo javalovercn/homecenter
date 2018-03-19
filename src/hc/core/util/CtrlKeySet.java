@@ -10,31 +10,31 @@ public abstract class CtrlKeySet implements CtrlKey {
 	private int keySize;
 	public static final String SEND_STATUS = "sendStatus";
 
-	void buildOneMap(int key, String imageName, String ds){
+	void buildOneMap(int key, String imageName, String ds) {
 		keySize++;
 		used_keys[key] = USED_KEY;
 		pngs[key] = imageName;
 		desc[key] = ds;
-	}	
+	}
 
-	public int[] getDispKeys(){
+	public int[] getDispKeys() {
 		final int[] out = new int[keySize];
 		for (int i = 0, j = 0; i < used_keys.length; i++) {
-			if(used_keys[i] == USED_KEY){
+			if (used_keys[i] == USED_KEY) {
 				out[j++] = i;
 			}
 		}
 		return out;
 	}
-	
-	public String getKeyDesc(int keyValue){
+
+	public String getKeyDesc(int keyValue) {
 		return desc[keyValue];
 	}
-	
-	public String getPNGName(int keyValue){
+
+	public String getPNGName(int keyValue) {
 		return pngs[keyValue];
 	}
 
 	abstract void buildMapInfo();
-	
+
 }

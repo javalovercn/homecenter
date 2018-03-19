@@ -10,17 +10,12 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.operator.KeyWrapper;
 import org.bouncycastle.operator.OutputEncryptor;
 
-public class JcaEncryptedValueBuilder
-    extends EncryptedValueBuilder
-{
-    public JcaEncryptedValueBuilder(KeyWrapper wrapper, OutputEncryptor encryptor)
-    {
-        super(wrapper, encryptor);
-    }
+public class JcaEncryptedValueBuilder extends EncryptedValueBuilder {
+	public JcaEncryptedValueBuilder(KeyWrapper wrapper, OutputEncryptor encryptor) {
+		super(wrapper, encryptor);
+	}
 
-    public EncryptedValue build(X509Certificate certificate)
-        throws CertificateEncodingException, CRMFException
-    {
-        return build(new JcaX509CertificateHolder(certificate));
-    }
+	public EncryptedValue build(X509Certificate certificate) throws CertificateEncodingException, CRMFException {
+		return build(new JcaX509CertificateHolder(certificate));
+	}
 }

@@ -63,18 +63,15 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 	};
 	protected JLabel errCommandTip = new JLabel();
 	private final JLabel iconLabel = new JLabel();
-	protected final JButton browIconBtn = new JButton(
-			"Icon [" + UIUtil.ICON_MAX + " X " + UIUtil.ICON_MAX + "]...");
-	protected final ImageIcon sys_icon = Designer
-			.loadImg("hc_" + UIUtil.ICON_DESIGN_SHOW_SIZE + ".png");
+	protected final JButton browIconBtn = new JButton("Icon [" + UIUtil.ICON_MAX + " X " + UIUtil.ICON_MAX + "]...");
+	protected final ImageIcon sys_icon = Designer.loadImg("hc_" + UIUtil.ICON_DESIGN_SHOW_SIZE + ".png");
 	final JPanel jtascriptPanel = new JPanel();
 	final JLabel targetLoca = new JLabel(HPMenuItem.TARGET_LOCATOR + " :");
 	final JPanel cmd_url_panel = new JPanel();
 	final JPanel iconPanel = new JPanel();
 
-	private static final int[] URL_PROTOCAL_CODE = { HPNode.TYPE_MENU_ITEM_CMD,
-			HPNode.TYPE_MENU_ITEM_SCREEN, HPNode.TYPE_MENU_ITEM_CONTROLLER,
-			HPNode.TYPE_MENU_ITEM_FORM, HPNode.TYPE_MENU_ITEM_CFG, HPNode.TYPE_MENU_ITEM_SUB_MENU };
+	private static final int[] URL_PROTOCAL_CODE = { HPNode.TYPE_MENU_ITEM_CMD, HPNode.TYPE_MENU_ITEM_SCREEN,
+			HPNode.TYPE_MENU_ITEM_CONTROLLER, HPNode.TYPE_MENU_ITEM_FORM, HPNode.TYPE_MENU_ITEM_CFG, HPNode.TYPE_MENU_ITEM_SUB_MENU };
 
 	public abstract void addTargetURLPanel();
 
@@ -145,9 +142,8 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 		errCommandTip.setVisible(false);
 		errCommandTip.setForeground(Color.RED);
 
-		targetLoca.setToolTipText(
-				"<html>it is used for API to go to / open this item from other item." + "<BR><BR>"
-						+ "see API <STRONG>ProjectContext.goWhenInSession</STRONG> for more.</html>");
+		targetLoca.setToolTipText("<html>it is used for API to go to / open this item from other item." + "<BR><BR>"
+				+ "see API <STRONG>ProjectContext.goWhenInSession</STRONG> for more.</html>");
 		targetLocator.setColumns(20);
 		targetLocator.setFocusLostBehavior(JFormattedTextField.COMMIT);
 		targetLocator.getDocument().addDocumentListener(new DocumentListener() {
@@ -244,8 +240,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 						ContextManager.getThreadPool().run(new Runnable() {
 							@Override
 							public void run() {
-								File file = FileSelector.selectImageFile(iconLabel,
-										FileSelector.PNG_FILTER, false);
+								File file = FileSelector.selectImageFile(iconLabel, FileSelector.PNG_FILTER, false);
 								if (file == null) {
 									return;
 								}
@@ -256,20 +251,15 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 								}
 
 								try {
-									if (ImageIO.write(ServerUIUtil.base64ToBufferedImage(base64),
-											"png", file)) {
-										App.showMessageDialog(designer,
-												"Successful save icon to file!",
-												ResourceUtil.getInfoI18N(),
-												JOptionPane.INFORMATION_MESSAGE,
-												App.getSysIcon(App.SYS_INFO_ICON));
+									if (ImageIO.write(ServerUIUtil.base64ToBufferedImage(base64), "png", file)) {
+										App.showMessageDialog(designer, "Successful save icon to file!", ResourceUtil.getInfoI18N(),
+												JOptionPane.INFORMATION_MESSAGE, App.getSysIcon(App.SYS_INFO_ICON));
 										return;
 									}
 								} catch (final Throwable ex) {
 								}
-								App.showMessageDialog(designer, "fail to write image file!",
-										ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE,
-										App.getSysIcon(App.SYS_ERROR_ICON));
+								App.showMessageDialog(designer, "fail to write image file!", ResourceUtil.getErrorI18N(),
+										JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 							}
 						}, threadPoolToken);
 					}
@@ -281,8 +271,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 
 		localnamePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
 		nameField.setColumns(10);
-		localnamePanel
-				.add(ResourceUtil.buildFixedWidthPanel(new JLabel(displayName + " :"), nameField));
+		localnamePanel.add(ResourceUtil.buildFixedWidthPanel(new JLabel(displayName + " :"), nameField));
 		browIconBtn.setIcon(Designer.loadImg("hc_16.png"));
 		browIconBtn.setToolTipText("<html>" + "change menu item icon." + "<BR>"
 				+ "all icons of items are recommended to be same size, if they are 64, please choose 64 X 64.</html>");
@@ -291,15 +280,13 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 			public void run() {
 				BufferedImage bi;
 				try {
-					final File selectImageFile = FileSelector.selectImageFile(browIconBtn,
-							FileSelector.IMAGE_FILTER, true);
+					final File selectImageFile = FileSelector.selectImageFile(browIconBtn, FileSelector.IMAGE_FILTER, true);
 					if (selectImageFile == null) {
 						return;
 					}
 					bi = ImageIO.read(selectImageFile);
 				} catch (final IOException e2) {
-					App.showMessageDialog(tree, e2.toString(), "Error select resource!",
-							JOptionPane.ERROR_MESSAGE);
+					App.showMessageDialog(tree, e2.toString(), "Error select resource!", JOptionPane.ERROR_MESSAGE);
 					return;
 				}
 				if (bi != null) {
@@ -350,8 +337,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 	}
 
 	public static String buildI18nButtonTip(final String displayName) {
-		return "<html>input names for international. "
-				+ "<BR>if name for locale is not found, then <STRONG>" + displayName
+		return "<html>input names for international. " + "<BR>if name for locale is not found, then <STRONG>" + displayName
 				+ "</STRONG> as default.</html>";
 	}
 
@@ -408,8 +394,7 @@ public abstract class BaseMenuItemNodeEditPanel extends ScriptEditPanel {
 
 	private final void setItemIcon64(BufferedImage oriImage) {
 		final int oriWidth = oriImage.getWidth();
-		oriImage = ResourceUtil.standardMenuIconForAllPlatform(oriImage,
-				UIUtil.ICON_DESIGN_SHOW_SIZE, true);
+		oriImage = ResourceUtil.standardMenuIconForAllPlatform(oriImage, UIUtil.ICON_DESIGN_SHOW_SIZE, true);
 		setItemIcon(new ImageIcon(oriImage), oriWidth);
 	}
 

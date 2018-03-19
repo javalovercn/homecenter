@@ -6,20 +6,16 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.bouncycastle.operator.GenericKey;
 
-class OperatorUtils
-{
-    static Key getJceKey(GenericKey key)
-    {
-        if (key.getRepresentation() instanceof Key)
-        {
-            return (Key)key.getRepresentation();
-        }
+class OperatorUtils {
+	static Key getJceKey(GenericKey key) {
+		if (key.getRepresentation() instanceof Key) {
+			return (Key) key.getRepresentation();
+		}
 
-        if (key.getRepresentation() instanceof byte[])
-        {
-            return new SecretKeySpec((byte[])key.getRepresentation(), "ENC");
-        }
+		if (key.getRepresentation() instanceof byte[]) {
+			return new SecretKeySpec((byte[]) key.getRepresentation(), "ENC");
+		}
 
-        throw new IllegalArgumentException("unknown generic key type");
-    }
+		throw new IllegalArgumentException("unknown generic key type");
+	}
 }

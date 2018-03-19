@@ -6,13 +6,13 @@ import hc.core.IConstant;
 public class MobileAgent {
 	public static final String UN_KNOW = "-1";
 	public static final int INT_UN_KNOW = Integer.parseInt(UN_KNOW);
-	
+
 	final VectorMap vectorMap = new VectorMap(10);
-	
+
 	public static final String DEFAULT_SCALE = "1.0";
-	
+
 	public static final String TAG_HIDE_PREFIX = "hide_";
-	
+
 	private final static String TAG_OS = "os";
 	private final static String TAG_VER = "osver";
 	private final static String TAG_UID = "uid";
@@ -25,9 +25,11 @@ public class MobileAgent {
 	private final static String TAG_REFRESH_MS = "refreshMS";
 	private final static String TAG_IOS_MAX_BG_MINUTES = "iOSBGMinute";
 	private final static String TAG_MENU_TRUE_COLOR = "MenuTrueColor";
-	private final static String TAG_SCALE = TAG_HIDE_PREFIX + "Scale";//iOS screen scale
+	private final static String TAG_SCALE = TAG_HIDE_PREFIX + "Scale";// iOS
+																		// screen
+																		// scale
 	private final static String TAG_VOICE_COMMAND = "voiceCommand";
-	
+
 	public final static String TAG_FONT_SIZE_FOR_NORMAL = "fontSizeForNormal";
 	public final static String TAG_FONT_SIZE_FOR_SMALL = "fontSizeForSmall";
 	public final static String TAG_FONT_SIZE_FOR_LARGE = "fontSizeForLarge";
@@ -35,209 +37,211 @@ public class MobileAgent {
 
 	public final static String TAG_ANDROID_MANUFACTURER = "androidManufacturer";
 	public final static String TAG_ANDROID_MODEL = "androidModel";
-	
+
 	public final static String TAG_SCAN_QR_SERIAL_ID = "scanQRSerialID";
 
 	private final static String SPLIT = ";";
 	private final static String EQUAL = "=";
-	
-	public static final MobileAgent toObject(final String serial){
+
+	public static final MobileAgent toObject(final String serial) {
 		final MobileAgent ma = new MobileAgent();
-		
+
 		final String[] items = StringUtil.splitToArray(serial, SPLIT);
 		for (int i = 0; i < items.length; i++) {
-			final String[] kv = StringUtil.splitToArray(items[i], EQUAL);   
+			final String[] kv = StringUtil.splitToArray(items[i], EQUAL);
 			ma.set(kv[0], kv[1]);
 		}
-		
+
 		return ma;
 	}
-	
-	public final void clearExcludeEncryptionStrength(){
+
+	public final void clearExcludeEncryptionStrength() {
 		final int size = size();
 		for (int i = 0; i < size; i++) {
-			final KeyValue keyValue = (KeyValue)vectorMap.elementAt(i);
-			if(keyValue.key.equals(TAG_EncryptionStrength)){
-			}else{
+			final KeyValue keyValue = (KeyValue) vectorMap.elementAt(i);
+			if (keyValue.key.equals(TAG_EncryptionStrength)) {
+			} else {
 				keyValue.value = "";
 			}
 		}
 	}
-	
-	public final int size(){
+
+	public final int size() {
 		return vectorMap.size();
 	}
-	
+
 	/**
 	 * 将指定idx的key-value放入数组kv中，并返回。
+	 * 
 	 * @param idx
 	 * @param kv
 	 * @return
 	 */
-	public final Object[] get(final int idx, final Object[] kv){
+	public final Object[] get(final int idx, final Object[] kv) {
 		return vectorMap.get(idx, kv);
 	}
-	
-	public final String toSerial(){
+
+	public final String toSerial() {
 		final StringBuffer sb = StringBufferCacher.getFree();
 		final int size = vectorMap.size();
-		
+
 		for (int i = 0; i < size; i++) {
-			if(sb.length() > 0){
+			if (sb.length() > 0) {
 				sb.append(SPLIT);
 			}
-			
-			final KeyValue keyValue = (KeyValue)vectorMap.elementAt(i);
+
+			final KeyValue keyValue = (KeyValue) vectorMap.elementAt(i);
 			sb.append(keyValue.key);
 			sb.append(EQUAL);
 			sb.append(keyValue.value);
 		}
-		
+
 		final String out = sb.toString();
 		StringBufferCacher.cycle(sb);
 		return out;
 	}
-	
-	public final String get(final String key, final String defaultValue){
-		return (String)vectorMap.get(key, defaultValue);
+
+	public final String get(final String key, final String defaultValue) {
+		return (String) vectorMap.get(key, defaultValue);
 	}
-	
-	public final int getForInt(final String key, final int defaultValue){
-		final String result = (String)vectorMap.get(key, null);
-		if(result == null){
+
+	public final int getForInt(final String key, final int defaultValue) {
+		final String result = (String) vectorMap.get(key, null);
+		if (result == null) {
 			return defaultValue;
-		}else{
+		} else {
 			return Integer.parseInt(result);
 		}
 	}
-	
-	public final void set(final String key, final String value){
-//		LogManager.log("client mobile [" + key + ":" + value + "]");
+
+	public final void set(final String key, final String value) {
+		// LogManager.log("client mobile [" + key + ":" + value + "]");
 		vectorMap.set(key, value);
 	}
-	
-	public final boolean isBackground(){
+
+	public final boolean isBackground() {
 		String out = get(TAG_IS_BACKGROUND, IConstant.FALSE);
 		return out.equals(IConstant.TRUE);
 	}
-	
-	public final boolean isEnableVoiceCommand(){
+
+	public final boolean isEnableVoiceCommand() {
 		String out = get(TAG_VOICE_COMMAND, IConstant.FALSE);
 		return out.equals(IConstant.TRUE);
 	}
-	
-	public final String getOS(){
+
+	public final String getOS() {
 		return get(TAG_OS, "");
 	}
-	
-	public final void setOS(final String osName){
+
+	public final void setOS(final String osName) {
 		set(TAG_OS, osName);
 	}
-	
-	public final String getScale(){
+
+	public final String getScale() {
 		return get(TAG_SCALE, DEFAULT_SCALE);
 	}
-	
-	public final void setScale(final String scale){
+
+	public final void setScale(final String scale) {
 		set(TAG_SCALE, scale);
 	}
-	
-	public final int getColorBit(){
+
+	public final int getColorBit() {
 		return Integer.parseInt(get(TAG_COLOR_BIT, UN_KNOW));
 	}
-	
-	public final void setColorBit(final int colorBit){
+
+	public final void setColorBit(final int colorBit) {
 		set(TAG_COLOR_BIT, String.valueOf(colorBit));
 	}
-	
-	public final int getIOSMaxBGMinutes(){
+
+	public final int getIOSMaxBGMinutes() {
 		return Integer.parseInt(get(TAG_IOS_MAX_BG_MINUTES, UN_KNOW));
 	}
-	
-	public final void setIOSMaxBGMinutes(final int minutes){
+
+	public final void setIOSMaxBGMinutes(final int minutes) {
 		set(TAG_IOS_MAX_BG_MINUTES, String.valueOf(minutes));
 	}
-	
-	public final int getRefreshMS(){
+
+	public final int getRefreshMS() {
 		return Integer.parseInt(get(TAG_REFRESH_MS, UN_KNOW));
 	}
-	
-	public final void setRefreshMS(final int ms){
+
+	public final void setRefreshMS(final int ms) {
 		set(TAG_REFRESH_MS, String.valueOf(ms));
 	}
-	
-	public final boolean isMenuTrueColor(){
+
+	public final boolean isMenuTrueColor() {
 		final String color = get(TAG_MENU_TRUE_COLOR, IConstant.FALSE);
 		return color.equals(IConstant.TRUE);
 	}
-	
-	public final void setMenuTrueColor(final boolean trueColor){
-		set(TAG_MENU_TRUE_COLOR, trueColor?IConstant.TRUE:IConstant.FALSE);
+
+	public final void setMenuTrueColor(final boolean trueColor) {
+		set(TAG_MENU_TRUE_COLOR, trueColor ? IConstant.TRUE : IConstant.FALSE);
 	}
-	
-	public final void setVoiceCommand(final boolean enable){
-		set(TAG_VOICE_COMMAND, enable?IConstant.TRUE:IConstant.FALSE);
+
+	public final void setVoiceCommand(final boolean enable) {
+		set(TAG_VOICE_COMMAND, enable ? IConstant.TRUE : IConstant.FALSE);
 	}
-	
-	public final int getEncryptionStrength(){
-		return Integer.parseInt(get(TAG_EncryptionStrength, "0"));//缺省加密强度
+
+	public final int getEncryptionStrength() {
+		return Integer.parseInt(get(TAG_EncryptionStrength, "0"));// 缺省加密强度
 	}
-	
-	public final String getEncryptionStrengthDesc(){
+
+	public final String getEncryptionStrengthDesc() {
 		final int es = getEncryptionStrength();
 		return CCoreUtil.ENCRYPTION_STRENGTH_DESC[es];
 	}
-	
-	public final void setEncryptionStrength(final int es){
+
+	public final void setEncryptionStrength(final int es) {
 		set(TAG_EncryptionStrength, String.valueOf(es));
 	}
-	
-	public final boolean hasCamera(){
-		try{
+
+	public final boolean hasCamera() {
+		try {
 			return Integer.parseInt(get(TAG_HAS_CAMERA, "0")) > 0;
-		}catch (final Exception e) {
+		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 			return false;
 		}
 	}
-	
-	public final void setHasCamera(final String hasCamera){
+
+	public final void setHasCamera(final String hasCamera) {
 		set(TAG_HAS_CAMERA, hasCamera);
 	}
-	
-	public final String getVer(){
+
+	public final String getVer() {
 		return get(TAG_VER, "0");
 	}
-	
-	public final void setCtrlWiFi(final String ctrlWiFi){
+
+	public final void setCtrlWiFi(final String ctrlWiFi) {
 		set(TAG_CONTROL_WIFI, ctrlWiFi);
 	}
-	
-	public final boolean ctrlWiFi(){
-		try{
+
+	public final boolean ctrlWiFi() {
+		try {
 			return Integer.parseInt(get(TAG_CONTROL_WIFI, "0")) > 0;
-		}catch (final Exception e) {
+		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
 			return false;
 		}
 	}
-	public final void setVer(final String ver){
+
+	public final void setVer(final String ver) {
 		set(TAG_VER, ver);
 	}
-	
-	public final String getMemberID(){
+
+	public final String getMemberID() {
 		return get(TAG_MEMBER_ID, "");
 	}
-	
-	public final void setMemberID(final String memberID){
+
+	public final void setMemberID(final String memberID) {
 		set(TAG_MEMBER_ID, memberID);
 	}
-	
-	public final String getSoftUID(){
+
+	public final String getSoftUID() {
 		return get(TAG_UID, "");
 	}
-	
-	public final void setSoftUID(final String uuid){
+
+	public final void setSoftUID(final String uuid) {
 		set(TAG_UID, uuid);
 	}
 }

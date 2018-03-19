@@ -111,13 +111,11 @@ public class JPanelDiff extends JComponentDiff {
 						}
 
 						if (index == -1) {
-							LogManager.errToLog(
-									"unknow added component index at container : " + container);
+							LogManager.errToLog("unknow added component index at container : " + container);
 						} else {
 							synchronized (jpanelSrc) {
-								addOneComponent(containHashID, component, index, todo,
-										todo.searchHcCode(component));// in user
-																		// thread
+								addOneComponent(containHashID, component, index, todo, todo.searchHcCode(component));// in user
+																														// thread
 							}
 						}
 					}
@@ -127,8 +125,8 @@ public class JPanelDiff extends JComponentDiff {
 	}
 
 	// in user thread
-	private static void addOneComponent(final int containHashID, final Component comp, final int i,
-			final DifferTodo todo, final boolean isAddedEvent) {
+	private static void addOneComponent(final int containHashID, final Component comp, final int i, final DifferTodo todo,
+			final boolean isAddedEvent) {
 		if (comp instanceof JComponent) {
 			addComponent(containHashID, (JComponent) comp, i, todo, isAddedEvent);// in
 																					// user
@@ -139,8 +137,8 @@ public class JPanelDiff extends JComponentDiff {
 	}
 
 	// in user thread
-	private final static void addComponent(final int containHashID, final JComponent jcomp,
-			final int index, final DifferTodo todo, final boolean isAddedEvent) {
+	private final static void addComponent(final int containHashID, final JComponent jcomp, final int index, final DifferTodo todo,
+			final boolean isAddedEvent) {
 		final int compHcCode = todo.buildHcCode(jcomp);
 
 		if (AIPersistentManager.isEnableForSomeComponent && AIPersistentManager.isEnableHCAI()) {
@@ -195,8 +193,7 @@ public class JPanelDiff extends JComponentDiff {
 			// diffClass = AbstractButtonDiff.class;
 		} else if (jcomp instanceof JProgressBar) {
 			final JProgressBar progressBar = (JProgressBar) jcomp;
-			todo.notifyAddJProgressBar(containHashID, index, compHcCode, progressBar.getMaximum(),
-					progressBar.getValue());
+			todo.notifyAddJProgressBar(containHashID, index, compHcCode, progressBar.getMaximum(), progressBar.getValue());
 			diffClass = JProgressBarDiff.class;
 		} else if (jcomp instanceof JLabel) {
 			todo.notifyAddLabel(containHashID, index, compHcCode);
@@ -220,8 +217,7 @@ public class JPanelDiff extends JComponentDiff {
 			todo.notifyAddTextArea(containHashID, index, compHcCode, jcomp.getToolTipText());
 			diffClass = JTextAreaDiff.class;
 		} else if (jcomp instanceof JTextField) {
-			todo.notifyAddTextField(containHashID, index, compHcCode,
-					(jcomp instanceof JPasswordField) ? 1 : 0, jcomp.getToolTipText());
+			todo.notifyAddTextField(containHashID, index, compHcCode, (jcomp instanceof JPasswordField) ? 1 : 0, jcomp.getToolTipText());
 			diffClass = JTextFieldDiff.class;
 		} else if (jcomp instanceof JTextComponent) {
 			todo.notifyAddTextField(containHashID, index, compHcCode, 0, jcomp.getToolTipText());
@@ -234,8 +230,7 @@ public class JPanelDiff extends JComponentDiff {
 			final BoundedRangeModel brm = slider.getModel();
 			final int step = DifferTodo.getSliderStep(slider);
 
-			todo.notifyAddSlider(containHashID, index, compHcCode, brm.getMinimum(),
-					brm.getMaximum(), brm.getValue(), step);
+			todo.notifyAddSlider(containHashID, index, compHcCode, brm.getMinimum(), brm.getMaximum(), brm.getValue(), step);
 			diffClass = JSliderDiff.class;
 		} else if (jcomp instanceof JComponent) {// 必须置于最后
 			final String error = "[" + jcomp.getClass().getName()

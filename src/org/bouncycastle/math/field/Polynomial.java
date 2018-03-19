@@ -1,12 +1,11 @@
 package org.bouncycastle.math.field;
 
-public interface Polynomial
-{
-    int getDegree();
+public interface Polynomial {
+	int getDegree();
 
-//    BigInteger[] getCoefficients();
+	//    BigInteger[] getCoefficients();
 
-    int[] getExponentsPresent();
+	int[] getExponentsPresent();
 
-//    Term[] getNonZeroTerms();
+	//    Term[] getNonZeroTerms();
 }

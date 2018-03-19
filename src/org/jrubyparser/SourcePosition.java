@@ -34,36 +34,39 @@ import java.io.Serializable;
  * Position within a source.
  */
 public class SourcePosition implements Serializable {
-    private static final long serialVersionUID = 3762529027281400377L;
-    
-    // The file of the source
-    private final String file;
-    
-    // The state/end rows of the source
-    private final int startLine;
-    private final int endLine;
-    
-    // The start/end offsets of the source
-    private int startOffset;
-    private final int endOffset;
-    
-    /**
-     * Creates a default source position - required for serialization.
-     */
-    public SourcePosition() {
-    	this("", 0, 0);
-    }
-    
-    /**
-     * Creates a new source position.
-     * 
-     * @param file location of the source (must not be null)
-     * @param startLine what line the position starts within the source
-     * @param endLine what line the position ends within the source
-     */
+	private static final long serialVersionUID = 3762529027281400377L;
+
+	// The file of the source
+	private final String file;
+
+	// The state/end rows of the source
+	private final int startLine;
+	private final int endLine;
+
+	// The start/end offsets of the source
+	private int startOffset;
+	private final int endOffset;
+
+	/**
+	 * Creates a default source position - required for serialization.
+	 */
+	public SourcePosition() {
+		this("", 0, 0);
+	}
+
+	/**
+	 * Creates a new source position.
+	 * 
+	 * @param file
+	 *            location of the source (must not be null)
+	 * @param startLine
+	 *            what line the position starts within the source
+	 * @param endLine
+	 *            what line the position ends within the source
+	 */
 	public SourcePosition(String file, int startLine, int endLine) {
 		if (file == null) { //otherwise equals() and getInstance() will fail
-			throw new NullPointerException();  
+			throw new NullPointerException();
 		}
 		this.file = file;
 		this.startLine = startLine;
@@ -72,18 +75,23 @@ public class SourcePosition implements Serializable {
 		this.endOffset = 0;
 	}
 
-    /**
-     * Creates a new source position.
-     * 
-     * @param file location of the source (must not be null)
-     * @param startLine what line the position starts within the source
-     * @param endLine what line the position ends within the source
-     * @param startOffset which character offset the source begins at
-     * @param endOffset which character offset the source ends at
-     */
+	/**
+	 * Creates a new source position.
+	 * 
+	 * @param file
+	 *            location of the source (must not be null)
+	 * @param startLine
+	 *            what line the position starts within the source
+	 * @param endLine
+	 *            what line the position ends within the source
+	 * @param startOffset
+	 *            which character offset the source begins at
+	 * @param endOffset
+	 *            which character offset the source ends at
+	 */
 	public SourcePosition(String file, int startLine, int endLine, int startOffset, int endOffset) {
 		if (file == null) { //otherwise equals() and getInstance() will fail
-			throw new NullPointerException();  
+			throw new NullPointerException();
 		}
 		this.file = file;
 		this.startLine = startLine;
@@ -92,133 +100,136 @@ public class SourcePosition implements Serializable {
 		this.endOffset = endOffset;
 	}
 
-    public String getFile() {
-        return file;
-    }
-    
-    public int getStartLine() {
-    	return startLine;
-    }
+	public String getFile() {
+		return file;
+	}
 
-    public int getEndLine() {
-        return endLine;
-    }
+	public int getStartLine() {
+		return startLine;
+	}
 
-    /**
-     * @param object the object which should be compared
-     * @return simple Object.equals() implementation
-     */
-    @Override
-    public boolean equals(Object object) {
-        if (object == this) return true;
-        if (!(object instanceof SourcePosition)) return false;
-        
-        SourcePosition other = (SourcePosition) object;
+	public int getEndLine() {
+		return endLine;
+	}
 
-        return file.equals(other.file) && endLine == other.endLine;
-    }
+	/**
+	 * @param object
+	 *            the object which should be compared
+	 * @return simple Object.equals() implementation
+	 */
+	@Override
+	public boolean equals(Object object) {
+		if (object == this)
+			return true;
+		if (!(object instanceof SourcePosition))
+			return false;
 
-    /**
-     * Something we can use for identity in hashing, etc...
-     * 
-     * @see java.lang.Object#hashCode()
-     */
-    @Override
-    public int hashCode() {
-        return file.hashCode() ^ endLine;
-    }
+		SourcePosition other = (SourcePosition) object;
 
-    /**
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        return file + ":[" + startLine + "," + endLine + "]:[" + 
-            getStartOffset() + "," + getEndOffset() + "]";
-    }
-    
-    public void adjustStartOffset(int relativeValue) {
-        startOffset += relativeValue;
-        if(startOffset < 0) startOffset = 0;
-    }
-    
-    public int getStartOffset() {
-    	return startOffset;
-    }
-    
-    public int getEndOffset() {
-    	return endOffset;
-    }
-    
-    public boolean isWithin(int offset) {
-        return offset >= startOffset && offset <= endOffset;
-    }
-    
-    /**
-     * Is this a place-holder element for things like a zero-arg listnode?  These elements get
-     * added to the AST for that jruby-parser's rewriting can add arguments after the tree
-     * is constructed.
-     *
-     * @return this source location is 0 bytes wide
-     */
-    public boolean isEmpty() {
-        return startOffset == endOffset;
-    }
-    
-    public SourcePosition union(SourcePosition other) {
-        return new SourcePosition(file, startLine, other.getEndLine(), startOffset, other.getEndOffset());
-    }
-    
-    public SourcePosition fromEnd(int length) {
-        return new SourcePosition(file, startLine, endLine, endOffset - length, endOffset);
-    }
-    
-    public SourcePosition fromBeginning(int length) {
-        return new SourcePosition(file, startLine, endLine, startOffset, startOffset + length);        
-    }
-    
-    /**
-     * Not used in interpreter 
-     * Creates a new position the encloses both parameter positions.
-     * 
-     * @param firstPos The first position
-     * @param secondPos The first position
-     * @return position which is union of params
-     */
-    public static SourcePosition combinePosition(SourcePosition firstPos, SourcePosition secondPos){
-        String fileName = firstPos.getFile();
-        int startOffset = firstPos.getStartOffset();
-        int endOffset = firstPos.getEndOffset();
-        int startLine = firstPos.getStartLine();
-        int endLine = firstPos.getEndLine();
-        
-        if(startOffset > secondPos.getStartOffset()){
-            startOffset = secondPos.getStartOffset();
-            startLine = secondPos.getStartLine();
-        }
-        
-        if(endOffset < secondPos.getEndOffset()){
-            endOffset = secondPos.getEndOffset();
-            endLine = secondPos.getEndLine();
-        }
-        
-        SourcePosition combinedPosition = new SourcePosition(fileName, startLine, endLine, startOffset, endOffset);
-        
-        return combinedPosition;             
-    }
-    
-    /**
-     * Make a new SourcePosition instance which will be the index starting at the end of this one of
-     * 0 length.  This is so that empty arg lists know where to start when you use the rewriter
-     * to add arguments to an empty arg list.
-     *
-     * @return the empty position
-     */
-    public SourcePosition makeEmptyPositionAfterThis() {
-        return new SourcePosition(file, startLine, endLine, endOffset, endOffset);
-    }
-    
-    public SourcePosition makeEmptyPositionBeforeThis() {
-        return new SourcePosition(file, startLine, endLine, startOffset, startOffset);        
-    }
+		return file.equals(other.file) && endLine == other.endLine;
+	}
+
+	/**
+	 * Something we can use for identity in hashing, etc...
+	 * 
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		return file.hashCode() ^ endLine;
+	}
+
+	/**
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return file + ":[" + startLine + "," + endLine + "]:[" + getStartOffset() + "," + getEndOffset() + "]";
+	}
+
+	public void adjustStartOffset(int relativeValue) {
+		startOffset += relativeValue;
+		if (startOffset < 0)
+			startOffset = 0;
+	}
+
+	public int getStartOffset() {
+		return startOffset;
+	}
+
+	public int getEndOffset() {
+		return endOffset;
+	}
+
+	public boolean isWithin(int offset) {
+		return offset >= startOffset && offset <= endOffset;
+	}
+
+	/**
+	 * Is this a place-holder element for things like a zero-arg listnode? These elements get added
+	 * to the AST for that jruby-parser's rewriting can add arguments after the tree is constructed.
+	 *
+	 * @return this source location is 0 bytes wide
+	 */
+	public boolean isEmpty() {
+		return startOffset == endOffset;
+	}
+
+	public SourcePosition union(SourcePosition other) {
+		return new SourcePosition(file, startLine, other.getEndLine(), startOffset, other.getEndOffset());
+	}
+
+	public SourcePosition fromEnd(int length) {
+		return new SourcePosition(file, startLine, endLine, endOffset - length, endOffset);
+	}
+
+	public SourcePosition fromBeginning(int length) {
+		return new SourcePosition(file, startLine, endLine, startOffset, startOffset + length);
+	}
+
+	/**
+	 * Not used in interpreter Creates a new position the encloses both parameter positions.
+	 * 
+	 * @param firstPos
+	 *            The first position
+	 * @param secondPos
+	 *            The first position
+	 * @return position which is union of params
+	 */
+	public static SourcePosition combinePosition(SourcePosition firstPos, SourcePosition secondPos) {
+		String fileName = firstPos.getFile();
+		int startOffset = firstPos.getStartOffset();
+		int endOffset = firstPos.getEndOffset();
+		int startLine = firstPos.getStartLine();
+		int endLine = firstPos.getEndLine();
+
+		if (startOffset > secondPos.getStartOffset()) {
+			startOffset = secondPos.getStartOffset();
+			startLine = secondPos.getStartLine();
+		}
+
+		if (endOffset < secondPos.getEndOffset()) {
+			endOffset = secondPos.getEndOffset();
+			endLine = secondPos.getEndLine();
+		}
+
+		SourcePosition combinedPosition = new SourcePosition(fileName, startLine, endLine, startOffset, endOffset);
+
+		return combinedPosition;
+	}
+
+	/**
+	 * Make a new SourcePosition instance which will be the index starting at the end of this one of
+	 * 0 length. This is so that empty arg lists know where to start when you use the rewriter to
+	 * add arguments to an empty arg list.
+	 *
+	 * @return the empty position
+	 */
+	public SourcePosition makeEmptyPositionAfterThis() {
+		return new SourcePosition(file, startLine, endLine, endOffset, endOffset);
+	}
+
+	public SourcePosition makeEmptyPositionBeforeThis() {
+		return new SourcePosition(file, startLine, endLine, startOffset, startOffset);
+	}
 }

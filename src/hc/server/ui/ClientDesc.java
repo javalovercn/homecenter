@@ -89,8 +89,7 @@ public class ClientDesc {
 		return iosDrawHeight;
 	}
 
-	public final void refreshClientVersionAndEncryptionStrength(final J2SESession coreSS,
-			final String serial) {
+	public final void refreshClientVersionAndEncryptionStrength(final J2SESession coreSS, final String serial) {
 		final Vector v = StringUtil.split(serial, HCConfig.CFG_SPLIT);
 
 		hcClientVer = HCConfig.getProperty(v, (short) 4);
@@ -104,8 +103,7 @@ public class ClientDesc {
 		}
 	}
 
-	public final void refreshClientInfoInSecuChannel(final J2SESession coreSS,
-			final String serial) {
+	public final void refreshClientInfoInSecuChannel(final J2SESession coreSS, final String serial) {
 		final Vector v = StringUtil.split(serial, HCConfig.CFG_SPLIT);
 
 		clientWidth = HCConfig.getIntProperty(v, (short) 0);
@@ -114,8 +112,7 @@ public class ClientDesc {
 		// clientHeight = 320;//480
 		dpi = HCConfig.getIntProperty(v, (short) 2);
 		clientLang = HCConfig.getProperty(v, (short) 3);
-		final String testClientLocale = PropertiesManager
-				.getValue(PropertiesManager.t_testClientLocale);
+		final String testClientLocale = PropertiesManager.getValue(PropertiesManager.t_testClientLocale);
 		if (testClientLocale != null && testClientLocale.length() > 0) {
 			LogManager.log("use testClientLocale : " + testClientLocale);
 			clientLang = testClientLocale;
@@ -133,16 +130,14 @@ public class ClientDesc {
 			final int normalFont = agent.getForInt(MobileAgent.TAG_FONT_SIZE_FOR_NORMAL, 0);
 			final int smallFont = agent.getForInt(MobileAgent.TAG_FONT_SIZE_FOR_SMALL, 0);
 			final int buttonFont = agent.getForInt(MobileAgent.TAG_FONT_SIZE_FOR_BUTTON, 0);
-			final boolean isEquals = coreSS.clientFontSize.updateFontSize(
-					Math.max(clientWidth, clientHeight), largeFont, normalFont, smallFont,
-					buttonFont);
+			final boolean isEquals = coreSS.clientFontSize.updateFontSize(Math.max(clientWidth, clientHeight), largeFont, normalFont,
+					smallFont, buttonFont);
 			if (isEquals == false) {
 				coreSS.isTranedMletBody = false;// 需要重传
 			}
 
 			if (ProjectContext.OS_ANDROID.equals(agent.getOS())) {
-				LogManager.log("Android Client Manufacturer : "
-						+ agent.get(MobileAgent.TAG_ANDROID_MANUFACTURER, "") + ", Model : "
+				LogManager.log("Android Client Manufacturer : " + agent.get(MobileAgent.TAG_ANDROID_MANUFACTURER, "") + ", Model : "
 						+ agent.get(MobileAgent.TAG_ANDROID_MODEL, ""));
 			}
 
@@ -165,8 +160,7 @@ public class ClientDesc {
 			final String pWifiIsmobileviawifi = PropertiesManager.p_WiFi_isMobileViaWiFi;
 			if (PropertiesManager.getValue(pWifiIsmobileviawifi) == null
 					|| PropertiesManager.isTrue(pWifiIsmobileviawifi) != agent.ctrlWiFi()) {
-				PropertiesManager.setValue(pWifiIsmobileviawifi,
-						agent.ctrlWiFi() ? IConstant.TRUE : IConstant.FALSE);
+				PropertiesManager.setValue(pWifiIsmobileviawifi, agent.ctrlWiFi() ? IConstant.TRUE : IConstant.FALSE);
 				PropertiesManager.saveFile();
 			}
 
@@ -192,9 +186,8 @@ public class ClientDesc {
 			final String sbStr = sb.toString();
 			StringBuilderCacher.cycle(sb);
 			LogManager.log(sbStr);
-			LogManager.log("Receive client desc, w:" + clientWidth + ", h:" + clientHeight
-					+ ", dpi:" + dpi + ((dpi == 0) ? "(unknow)" : "") + ", xdpi:" + xdpi + ", ydpi:"
-					+ ydpi + ", density:" + density + ", smallFont:" + smallFont + ", normalFont:"
+			LogManager.log("Receive client desc, w:" + clientWidth + ", h:" + clientHeight + ", dpi:" + dpi + ((dpi == 0) ? "(unknow)" : "")
+					+ ", xdpi:" + xdpi + ", ydpi:" + ydpi + ", density:" + density + ", smallFont:" + smallFont + ", normalFont:"
 					+ normalFont + ", largeFont:" + largeFont + ", buttonFont:" + buttonFont);
 			LogManager.log(
 					"  Important : the w (h) maybe not equal to the real width (height) of mobile in pixels, UI may be scaled to the best size.");

@@ -26,14 +26,13 @@ import java.util.TreeSet;
 
 /**
  * <p>
- * This implementation of the JobCalendar stores a list of holidays (full days
- * that are excluded from scheduling).
+ * This implementation of the JobCalendar stores a list of holidays (full days that are excluded
+ * from scheduling).
  * </p>
  * 
  * <p>
- * The implementation DOES take the year into consideration, so if you want to
- * exclude July 4th for the next 10 years, you need to add 10 entries to the
- * exclude list.
+ * The implementation DOES take the year into consideration, so if you want to exclude July 4th for
+ * the next 10 years, you need to add 10 entries to the exclude list.
  * </p>
  * 
  * @author Sharada Jambula
@@ -69,8 +68,7 @@ public class HolidayJobCalendar extends BaseJobCalendar implements JobCalendar, 
 
 	/**
 	 * <p>
-	 * Determine whether the given time (in milliseconds) is 'included' by the
-	 * JobCalendar.
+	 * Determine whether the given time (in milliseconds) is 'included' by the JobCalendar.
 	 * </p>
 	 * 
 	 * <p>
@@ -90,8 +88,8 @@ public class HolidayJobCalendar extends BaseJobCalendar implements JobCalendar, 
 
 	/**
 	 * <p>
-	 * Determine the next time (in milliseconds) that is 'included' by the
-	 * JobCalendar after the given time.
+	 * Determine the next time (in milliseconds) that is 'included' by the JobCalendar after the
+	 * given time.
 	 * </p>
 	 * 
 	 * <p>
@@ -118,15 +116,14 @@ public class HolidayJobCalendar extends BaseJobCalendar implements JobCalendar, 
 
 	/**
 	 * <p>
-	 * Add the given date (java.util.Date) to the list of excluded days. Only
-	 * the month, day and year of the returned dates are significant.
+	 * Add the given date (java.util.Date) to the list of excluded days. Only the month, day and
+	 * year of the returned dates are significant.
 	 * </p>
 	 */
 	public void addExcludedDate(final Date excludedDate) {
 		final Date date = getStartOfDayJavaCalendar(excludedDate.getTime()).getTime();
 		/*
-		 * System.err.println( "HolidayJobCalendar.add(): date=" +
-		 * excludedDate.toLocaleString());
+		 * System.err.println( "HolidayJobCalendar.add(): date=" + excludedDate.toLocaleString());
 		 */
 		this.dates.add(date);
 	}
@@ -143,9 +140,8 @@ public class HolidayJobCalendar extends BaseJobCalendar implements JobCalendar, 
 
 	/**
 	 * <p>
-	 * Returns a <code>SortedSet</code> of dates (java.util.Date) representing
-	 * the excluded days. Only the month, day and year of the returned dates are
-	 * significant.
+	 * Returns a <code>SortedSet</code> of dates (java.util.Date) representing the excluded days.
+	 * Only the month, day and year of the returned dates are significant.
 	 * </p>
 	 */
 	public SortedSet<Date> getExcludedDates() {

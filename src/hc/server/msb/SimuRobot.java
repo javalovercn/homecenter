@@ -18,14 +18,12 @@ public class SimuRobot extends Robot {
 
 	@Override
 	public Object operate(final long functionID, final Object parameter) {
-		LogManager.err(
-				"In designer panel, create simu result object (empty string) for method [operate] of simu Robot.");
+		LogManager.err("In designer panel, create simu result object (empty string) for method [operate] of simu Robot.");
 		return "";
 	}
 
 	@Override
-	public DeviceCompatibleDescription getDeviceCompatibleDescription(
-			final String referenceDeviceID) {
+	public DeviceCompatibleDescription getDeviceCompatibleDescription(final String referenceDeviceID) {
 		return null;
 	}
 

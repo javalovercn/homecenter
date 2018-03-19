@@ -35,54 +35,59 @@ import org.jrubyparser.SourcePosition;
  * a call to 'super' with no arguments in a method.
  */
 public class ZSuperNode extends Node implements BlockAcceptingNode {
-    private Node iterNode;
+	private Node iterNode;
 
-    public ZSuperNode(SourcePosition position) {
-        super(position);
-    }
+	public ZSuperNode(SourcePosition position) {
+		super(position);
+	}
 
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-        ZSuperNode other = (ZSuperNode) node;
+		ZSuperNode other = (ZSuperNode) node;
 
-        if (getIter() == null && other.getIter() == null) return true;
-        if (getIter() == null || other.getIter() == null) return false;
+		if (getIter() == null && other.getIter() == null)
+			return true;
+		if (getIter() == null || other.getIter() == null)
+			return false;
 
-        return getIter().isSame(other.getIter());
-    }
+		return getIter().isSame(other.getIter());
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.ZSUPERNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.ZSUPERNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitZSuperNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitZSuperNode(this);
+	}
 
-    @Deprecated
-    public Node getIterNode() {
-        return getIter();
-    }
+	@Deprecated
+	public Node getIterNode() {
+		return getIter();
+	}
 
-    public Node getIter() {
-        return iterNode;
-    }
+	public Node getIter() {
+		return iterNode;
+	}
 
-    @Deprecated
-    public Node setIterNode(Node iterNode) {
-        setIter(iterNode);
+	@Deprecated
+	public Node setIterNode(Node iterNode) {
+		setIter(iterNode);
 
-        return this;
-    }
+		return this;
+	}
 
-    public void setIter(Node iter) {
-        this.iterNode = adopt(iter);
-    }
+	public void setIter(Node iter) {
+		this.iterNode = adopt(iter);
+	}
 
 }

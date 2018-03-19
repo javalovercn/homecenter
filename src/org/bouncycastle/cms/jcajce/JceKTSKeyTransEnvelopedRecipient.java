@@ -15,37 +15,28 @@ import org.bouncycastle.jcajce.io.CipherInputStream;
 import org.bouncycastle.operator.InputDecryptor;
 
 /**
- * the KeyTransRecipient class for a recipient who has been sent secret
- * key material encrypted using their public key that needs to be used to
- * derive a key and extract a message.
+ * the KeyTransRecipient class for a recipient who has been sent secret key material encrypted using
+ * their public key that needs to be used to derive a key and extract a message.
  */
-public class JceKTSKeyTransEnvelopedRecipient
-    extends JceKTSKeyTransRecipient
-{
-    public JceKTSKeyTransEnvelopedRecipient(PrivateKey recipientKey, KeyTransRecipientId recipientId)
-        throws IOException
-    {
-        super(recipientKey, getPartyVInfoFromRID(recipientId));
-    }
+public class JceKTSKeyTransEnvelopedRecipient extends JceKTSKeyTransRecipient {
+	public JceKTSKeyTransEnvelopedRecipient(PrivateKey recipientKey, KeyTransRecipientId recipientId) throws IOException {
+		super(recipientKey, getPartyVInfoFromRID(recipientId));
+	}
 
-    public RecipientOperator getRecipientOperator(AlgorithmIdentifier keyEncryptionAlgorithm, final AlgorithmIdentifier contentEncryptionAlgorithm, byte[] encryptedContentEncryptionKey)
-        throws CMSException
-    {
-        Key secretKey = extractSecretKey(keyEncryptionAlgorithm, contentEncryptionAlgorithm, encryptedContentEncryptionKey);
+	public RecipientOperator getRecipientOperator(AlgorithmIdentifier keyEncryptionAlgorithm,
+			final AlgorithmIdentifier contentEncryptionAlgorithm, byte[] encryptedContentEncryptionKey) throws CMSException {
+		Key secretKey = extractSecretKey(keyEncryptionAlgorithm, contentEncryptionAlgorithm, encryptedContentEncryptionKey);
 
-        final Cipher dataCipher = contentHelper.createContentCipher(secretKey, contentEncryptionAlgorithm);
+		final Cipher dataCipher = contentHelper.createContentCipher(secretKey, contentEncryptionAlgorithm);
 
-        return new RecipientOperator(new InputDecryptor()
-        {
-            public AlgorithmIdentifier getAlgorithmIdentifier()
-            {
-                return contentEncryptionAlgorithm;
-            }
+		return new RecipientOperator(new InputDecryptor() {
+			public AlgorithmIdentifier getAlgorithmIdentifier() {
+				return contentEncryptionAlgorithm;
+			}
 
-            public InputStream getInputStream(InputStream dataIn)
-            {
-                return new CipherInputStream(dataIn, dataCipher);
-            }
-        });
-    }
+			public InputStream getInputStream(InputStream dataIn) {
+				return new CipherInputStream(dataIn, dataCipher);
+			}
+		});
+	}
 }

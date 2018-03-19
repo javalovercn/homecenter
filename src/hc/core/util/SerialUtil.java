@@ -7,28 +7,31 @@ public class SerialUtil {
 
 	/**
 	 * 与unserialToStringArray相反
+	 * 
 	 * @param strings
 	 * @return
 	 */
-	public static String serial(final String[] strings){
+	public static String serial(final String[] strings) {
 		final StringBuffer sb = StringBufferCacher.getFree();
 		for (int i = 0; i < strings.length; i++) {
-			if(sb.length() > 0){
+			if (sb.length() > 0) {
 				sb.append(STRING_ARRAY_SPLIT);
 			}
-			sb.append(ByteUtil.toHex(ByteUtil.getBytes(strings[i], IConstant.UTF_8)));
+			sb.append(ByteUtil
+					.toHex(ByteUtil.getBytes(strings[i], IConstant.UTF_8)));
 		}
 		final String out = sb.toString();
 		StringBufferCacher.cycle(sb);
 		return out;
 	}
-	
+
 	/**
 	 * 与serial(final String[] strings)相反
+	 * 
 	 * @param str
 	 * @return
 	 */
-	public static String[] unserialToStringArray(final String str){
+	public static String[] unserialToStringArray(final String str) {
 		final String[] arr = StringUtil.splitToArray(str, STRING_ARRAY_SPLIT);
 		for (int i = 0; i < arr.length; i++) {
 			final byte[] bs = ByteUtil.toBytesFromHexStr(arr[i]);

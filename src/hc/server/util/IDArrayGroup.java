@@ -23,8 +23,7 @@ public class IDArrayGroup {
 	public static final String MSG_MIN_JRE_7 = "S6";
 	public static final String MSG_CSS_NOTE = "S7";
 
-	public static final void showMsg(final String msgId, final String sys_icon_str,
-			final String title, final String message) {
+	public static final void showMsg(final String msgId, final String sys_icon_str, final String title, final String message) {
 		if (checkAndAdd(msgId)) {
 
 			final JPanel panel = new JPanel();
@@ -32,8 +31,7 @@ public class IDArrayGroup {
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {
-					App.showCenterPanelMain(panel, 0, 0, title, false, null, null, null, null, null,
-							true, true, null, false, false);// 改为isNewFrame
+					App.showCenterPanelMain(panel, 0, 0, title, false, null, null, null, null, null, true, true, null, false, false);// 改为isNewFrame
 				}
 			});
 		}

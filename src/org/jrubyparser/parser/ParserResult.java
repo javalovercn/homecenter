@@ -43,62 +43,66 @@ import org.jrubyparser.ast.SyntaxNode;
 /**
  */
 public class ParserResult {
-    final public static List<Node> EMPTY_BEGIN_LIST = new ArrayList<Node>();
-    final public static List<CommentNode> EMPTY_COMMENT_LIST = new ArrayList<CommentNode>();
-    private List<Node> beginNodes;
-    private Node ast;
-    // __END__ marker offset (-1 means none present)
-    private int endOffset = -1;
-    private List<SyntaxNode> syntaxNodes;
-    private StaticScope scope;
-    
-    public Node getAST() {
-        return ast;
-    }
+	final public static List<Node> EMPTY_BEGIN_LIST = new ArrayList<Node>();
+	final public static List<CommentNode> EMPTY_COMMENT_LIST = new ArrayList<CommentNode>();
+	private List<Node> beginNodes;
+	private Node ast;
+	// __END__ marker offset (-1 means none present)
+	private int endOffset = -1;
+	private List<SyntaxNode> syntaxNodes;
+	private StaticScope scope;
 
-    /**
-     * Sets the ast.
-     * @param ast The ast to set
-     */
-    public void setAST(Node ast) {
-        this.ast = ast;
-    }
+	public Node getAST() {
+		return ast;
+	}
 
-    public void addSyntax(SyntaxNode node) {
-        if (syntaxNodes == null) syntaxNodes = new ArrayList<SyntaxNode>();
-        syntaxNodes.add(node);
-    }
-        
-    public void addBeginNode(PreExeNode node) {
-        if (beginNodes == null) beginNodes = new ArrayList<Node>();
-    	beginNodes.add(node);
-    }
-    
-    public List<Node> getBeginNodes() {
-        return beginNodes == null ? EMPTY_BEGIN_LIST : beginNodes;
-    }
-    
-    public int getEndOffset() {
-    	return endOffset;
-    }
-    
-    public List<SyntaxNode> getSyntaxNodes() {
-        return syntaxNodes;
-    } 
-    
-    public void setEndOffset(int endOffset) {
-    	this.endOffset = endOffset;
-    }
+	/**
+	 * Sets the ast.
+	 * 
+	 * @param ast
+	 *            The ast to set
+	 */
+	public void setAST(Node ast) {
+		this.ast = ast;
+	}
 
-    public void setScope(StaticScope scope) {
-        this.scope = scope;
-    }
+	public void addSyntax(SyntaxNode node) {
+		if (syntaxNodes == null)
+			syntaxNodes = new ArrayList<SyntaxNode>();
+		syntaxNodes.add(node);
+	}
 
-    public StaticScope getScope() {
-        return scope;
-    }
+	public void addBeginNode(PreExeNode node) {
+		if (beginNodes == null)
+			beginNodes = new ArrayList<Node>();
+		beginNodes.add(node);
+	}
 
-    public void weaveInExtraSyntax() {
-        ast.insertAll(getSyntaxNodes());
-    }
+	public List<Node> getBeginNodes() {
+		return beginNodes == null ? EMPTY_BEGIN_LIST : beginNodes;
+	}
+
+	public int getEndOffset() {
+		return endOffset;
+	}
+
+	public List<SyntaxNode> getSyntaxNodes() {
+		return syntaxNodes;
+	}
+
+	public void setEndOffset(int endOffset) {
+		this.endOffset = endOffset;
+	}
+
+	public void setScope(StaticScope scope) {
+		this.scope = scope;
+	}
+
+	public StaticScope getScope() {
+		return scope;
+	}
+
+	public void weaveInExtraSyntax() {
+		ast.insertAll(getSyntaxNodes());
+	}
 }

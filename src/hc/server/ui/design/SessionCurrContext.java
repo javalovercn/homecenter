@@ -21,8 +21,7 @@ public class SessionCurrContext {
 	public final void removeSession(J2SESession session) {
 		if (session == null) {
 			if (L.isInWorkshop) {
-				LogManager.errToLog(
-						"removeSession J2SESocketSession is null, try get it from thread.");
+				LogManager.errToLog("removeSession J2SESocketSession is null, try get it from thread.");
 			}
 
 			session = getCurrentSessionFromThread();

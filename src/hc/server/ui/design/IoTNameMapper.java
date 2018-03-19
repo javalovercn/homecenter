@@ -21,8 +21,7 @@ public class IoTNameMapper extends NameMapper {
 	public final void reloadMap() {
 		if (isFirstLoad) {
 			isFirstLoad = false;
-			final Iterator<LinkProjectStore> it = LinkProjectManager
-					.getLinkProjsIteratorInUserSysThread(true);
+			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 			while (it.hasNext()) {
 				final LinkProjectStore lps = it.next();
 				if (lps.isActive()) {
@@ -54,8 +53,7 @@ public class IoTNameMapper extends NameMapper {
 
 			for (int i = 0; i < rdbis.length; i++) {
 				final RealDeviceInfo rdbi = rdbis[i];
-				HashMap<String, HashMap<String, Vector<String>>> devProjID = searchBindIDFromDevice
-						.get(rdbi.proj_id);
+				HashMap<String, HashMap<String, Vector<String>>> devProjID = searchBindIDFromDevice.get(rdbi.proj_id);
 				if (devProjID == null) {
 					devProjID = new HashMap<String, HashMap<String, Vector<String>>>();
 					searchBindIDFromDevice.put(rdbi.proj_id, devProjID);
@@ -98,8 +96,7 @@ public class IoTNameMapper extends NameMapper {
 
 	@Override
 	public WorkingDeviceList getWorkingDeviceList(final String projectID) {
-		final HashMap<String, HashMap<String, Vector<String>>> devProjID = searchBindIDFromDevice
-				.get(projectID);
+		final HashMap<String, HashMap<String, Vector<String>>> devProjID = searchBindIDFromDevice.get(projectID);
 		if (devProjID == null) {
 			return new WorkingDeviceList();
 		}

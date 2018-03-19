@@ -5,8 +5,7 @@ public class IDEUtil {
 	}
 
 	/**
-	 * tell IDE to treat the return object as an instance of class
-	 * <code>claz</code>.
+	 * tell IDE to treat the return object as an instance of class <code>claz</code>.
 	 * 
 	 * @param obj
 	 *            the object will be returned.

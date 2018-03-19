@@ -23,30 +23,24 @@ public class SessionMobiMenu extends MobiMenu {
 	final J2SESession coreSS;
 	public final int targetMobileIconSize;
 
-	public SessionMobiMenu(final J2SESession coreSS, final ProjResponser resp, final boolean isRoot,
-			final MobiMenu pMenu) {
+	public SessionMobiMenu(final J2SESession coreSS, final ProjResponser resp, final boolean isRoot, final MobiMenu pMenu) {
 		super(resp.projectID, resp);
 
 		this.projectMenu = pMenu;
 		this.coreSS = coreSS;
 
-		targetMobileIconSize = UIUtil.calMenuIconSize(
-				UserThreadResourceUtil.getMletWidthFrom(coreSS),
-				UserThreadResourceUtil.getMletHeightFrom(coreSS),
-				UserThreadResourceUtil.getMletDPIFrom(coreSS));
+		targetMobileIconSize = UIUtil.calMenuIconSize(UserThreadResourceUtil.getMletWidthFrom(coreSS),
+				UserThreadResourceUtil.getMletHeightFrom(coreSS), UserThreadResourceUtil.getMletDPIFrom(coreSS));
 
 		if (isRoot) {
 			// 可能新用户重新登录，手机WiFi状态不一
-			enableQRInMobiMenu = ResourceUtil.isEnableClientAddHAR()
-					&& UserThreadResourceUtil.getMobileAgent(coreSS).hasCamera();// ||
-																					// PropertiesManager.isSimu();
-			// 关闭WiFi广播HAR
-			enableWiFiInMobiMenu = ResourceUtil.isDemoServer() == false && HCURL.isUsingWiFiWPS
-					&& ResourceUtil.canCtrlWiFi(coreSS);// ||
-														// PropertiesManager.isSimu();
+			enableQRInMobiMenu = ResourceUtil.isEnableClientAddHAR() && UserThreadResourceUtil.getMobileAgent(coreSS).hasCamera();// ||
+																																	// PropertiesManager.isSimu();
+																																	// 关闭WiFi广播HAR
+			enableWiFiInMobiMenu = ResourceUtil.isDemoServer() == false && HCURL.isUsingWiFiWPS && ResourceUtil.canCtrlWiFi(coreSS);// ||
+																																	// PropertiesManager.isSimu();
 
-			enableVoiceCommand = UserThreadResourceUtil.getMobileAgent(coreSS)
-					.isEnableVoiceCommand();
+			enableVoiceCommand = UserThreadResourceUtil.getMobileAgent(coreSS).isEnableVoiceCommand();
 
 			// 可能重新开启，故关闭条件getProjResponserSize() > 1
 			enableMgrProjs = ResourceUtil.isEnableClientAddHAR();// ServerUIUtil.getMobiResponsor().getProjResponserSize()
@@ -179,8 +173,7 @@ public class SessionMobiMenu extends MobiMenu {
 					menuItems.add(shiftIdx, item);
 					item.belongToMenu = this;
 					isAddedSucc = true;
-					L.V = L.WShop ? false
-							: LogManager.log("insert session menu item : " + item.getText());
+					L.V = L.WShop ? false : LogManager.log("insert session menu item : " + item.getText());
 				} catch (final Throwable e) {
 				}
 
@@ -231,8 +224,7 @@ public class SessionMobiMenu extends MobiMenu {
 	public final Vector<MenuItem> getFlushMenuItems() {
 		synchronized (projectMenu.menuLock) {
 			synchronized (menuLock) {
-				final Vector<MenuItem> out = new Vector<MenuItem>(
-						projectMenu.menuItems.size() + menuItems.size() + 2);
+				final Vector<MenuItem> out = new Vector<MenuItem>(projectMenu.menuItems.size() + menuItems.size() + 2);
 
 				appendAllItems(projectMenu.menuItems, out);
 				appendAllItems(menuItems, out);
@@ -255,12 +247,10 @@ public class SessionMobiMenu extends MobiMenu {
 		}
 	}
 
-	public final MenuItem searchMenuItemByVoiceCommand(final VoiceParameter voiceCommand,
-			final boolean isCurrProj) {
+	public final MenuItem searchMenuItemByVoiceCommand(final VoiceParameter voiceCommand, final boolean isCurrProj) {
 		synchronized (projectMenu.menuLock) {
 			synchronized (menuLock) {
-				final MenuItem out = searchMenuItemByVoiceCommand(projectMenu.menuItems,
-						voiceCommand, isCurrProj);
+				final MenuItem out = searchMenuItemByVoiceCommand(projectMenu.menuItems, voiceCommand, isCurrProj);
 				if (out != null) {
 					return out;
 				}
@@ -270,8 +260,8 @@ public class SessionMobiMenu extends MobiMenu {
 		}
 	}
 
-	private final MenuItem searchMenuItemByVoiceCommand(final Vector<MenuItem> from,
-			final VoiceParameter voiceCommand, final boolean isCurrProj) {
+	private final MenuItem searchMenuItemByVoiceCommand(final Vector<MenuItem> from, final VoiceParameter voiceCommand,
+			final boolean isCurrProj) {
 		final int size = from.size();
 		for (int j = 0; j < size; j++) {
 			final MenuItem item = from.elementAt(j);
@@ -288,8 +278,7 @@ public class SessionMobiMenu extends MobiMenu {
 				continue;
 			}
 
-			if (isCurrProj == false && (item.itemURL.equals(HCURL.URL_CMD_EXIT)
-					|| item.itemURL.equals(HCURL.URL_CMD_CONFIG))) {
+			if (isCurrProj == false && (item.itemURL.equals(HCURL.URL_CMD_EXIT) || item.itemURL.equals(HCURL.URL_CMD_CONFIG))) {
 				continue;
 			}
 
@@ -315,8 +304,7 @@ public class SessionMobiMenu extends MobiMenu {
 		return null;
 	}
 
-	private final MenuItem searchMenuItem(final Vector<MenuItem> from, final String urlLower,
-			final String aliasUrlLower) {
+	private final MenuItem searchMenuItem(final Vector<MenuItem> from, final String urlLower, final String aliasUrlLower) {
 		final int size = from.size();
 		for (int j = 0; j < size; j++) {
 			final MenuItem item = from.elementAt(j);
@@ -347,13 +335,11 @@ public class SessionMobiMenu extends MobiMenu {
 			final int type = fold_type;
 			final String image = UIUtil.SYS_FOLDER_MGR_ICON;
 			final String url = HCURL.URL_CMD_MGR_PROJS_COMMAND;
-			final I18NStoreableHashMapWithModifyFlag i18nName = ResourceUtil
-					.getI18NByResID(res_mgr_projs);
+			final I18NStoreableHashMapWithModifyFlag i18nName = ResourceUtil.getI18NByResID(res_mgr_projs);
 			final String listen = "";
 			final String extend_map = "";
 
-			addTail(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen,
-					extend_map));
+			addTail(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen, extend_map));
 		}
 
 		if (enableQRInMobiMenu) {
@@ -361,13 +347,11 @@ public class SessionMobiMenu extends MobiMenu {
 			final int type = fold_type;
 			final String image = UIUtil.SYS_ADD_DEVICE_BY_QR_ICON;
 			final String url = HCURL.URL_CFG_ADD_DEVICE_BY_QR;
-			final I18NStoreableHashMapWithModifyFlag i18nName = ResourceUtil
-					.getI18NByResID(res_add);
+			final I18NStoreableHashMapWithModifyFlag i18nName = ResourceUtil.getI18NByResID(res_add);
 			final String listen = "";
 			final String extend_map = "";
 
-			addTail(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen,
-					extend_map));
+			addTail(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen, extend_map));
 		}
 
 		if (enableWiFiInMobiMenu) {
@@ -375,13 +359,11 @@ public class SessionMobiMenu extends MobiMenu {
 			final int type = fold_type;
 			final String image = UIUtil.SYS_ADD_DEVICE_BY_WIFI_ICON;
 			final String url = HCURL.URL_CFG_ADD_DEVICE_BY_WIFI;
-			final I18NStoreableHashMapWithModifyFlag i18nName = ResourceUtil
-					.getI18NByResID(res_add);
+			final I18NStoreableHashMapWithModifyFlag i18nName = ResourceUtil.getI18NByResID(res_add);
 			final String listen = "";
 			final String extend_map = "";
 
-			addTail(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen,
-					extend_map));
+			addTail(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen, extend_map));
 		}
 
 		if (enableVoiceCommand) {
@@ -390,13 +372,11 @@ public class SessionMobiMenu extends MobiMenu {
 			final int type = fold_type;
 			final String image = UIUtil.SYS_VOICE_COMMAND;
 			final String url = HCURL.URL_CMD_VOICE_COMMAND;
-			final I18NStoreableHashMapWithModifyFlag i18nName = ResourceUtil
-					.getI18NByResID(res_voice);
+			final I18NStoreableHashMapWithModifyFlag i18nName = ResourceUtil.getI18NByResID(res_voice);
 			final String listen = "";
 			final String extend_map = "";
 
-			addTail(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen,
-					extend_map));
+			addTail(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen, extend_map));
 		}
 	}
 
@@ -409,8 +389,7 @@ public class SessionMobiMenu extends MobiMenu {
 	 *            位于新增之前的item，null表示位于最前
 	 */
 	@Override
-	public final void publishToMobi(final String op, final MenuItem item,
-			final MenuItem itemBefore) {
+	public final void publishToMobi(final String op, final MenuItem item, final MenuItem itemBefore) {
 		switchCoreSS(coreSS, op, item, itemBefore);
 	}
 }

@@ -120,8 +120,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 	public static final JButton buildCommentUncommentButton(final Runnable actionRun) {
 		final JButton commentBtn = new JButton("Comment");// Uncomment
-		commentBtn.setToolTipText("<html>(" + ResourceUtil.getAbstractCtrlKeyText()
-				+ " + /)<BR><BR>comment/uncomment the selected rows.</html>");
+		commentBtn.setToolTipText(
+				"<html>(" + ResourceUtil.getAbstractCtrlKeyText() + " + /)<BR><BR>comment/uncomment the selected rows.</html>");
 		commentBtn.setIcon(Designer.loadImg("comment_16.png"));
 
 		final Action commentAction = new AbstractAction() {
@@ -133,50 +133,38 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		ResourceUtil.buildAcceleratorKeyOnAction(commentAction, KeyEvent.VK_SLASH);
 		commentBtn.addActionListener(commentAction);
 		commentBtn.getActionMap().put("commentCSSAction", commentAction);
-		commentBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-				(KeyStroke) commentAction.getValue(Action.ACCELERATOR_KEY), "commentCSSAction");
+		commentBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) commentAction.getValue(Action.ACCELERATOR_KEY),
+				"commentCSSAction");
 		return commentBtn;
 	}
 
-	static Highlighter.HighlightPainter ERROR_CODE_LINE_LIGHTER = new DefaultHighlighter.DefaultHighlightPainter(
-			Color.RED);
+	static Highlighter.HighlightPainter ERROR_CODE_LINE_LIGHTER = new DefaultHighlighter.DefaultHighlightPainter(Color.RED);
 
-	public static final SimpleAttributeSet STR_LIGHTER = ResourceUtil
-			.buildAttrSet(Color.decode("#4EA539"), false);
-	public static final SimpleAttributeSet REM_LIGHTER = ResourceUtil
-			.buildAttrSet(Color.decode("#3AC2EB"), false);
-	private static final SimpleAttributeSet MAP_LIGHTER = ResourceUtil.buildAttrSet(Color.BLACK,
-			true);
-	static final SimpleAttributeSet KEYWORDS_LIGHTER = ResourceUtil
-			.buildAttrSet(ResourceUtil.toDarker(Color.BLUE, 0.8F), false);
-	private static final SimpleAttributeSet NUM_LIGHTER = ResourceUtil
-			.buildAttrSet(Color.decode("#887BE0"), true);
-	public static final SimpleAttributeSet DEFAULT_LIGHTER = ResourceUtil.buildAttrSet(Color.BLACK,
-			false);
-	private static final SimpleAttributeSet VAR_LIGHTER = ResourceUtil
-			.buildAttrSet(Color.decode("#f19e37"), false);
-	private static final SimpleAttributeSet REGEXP_LIGHTER = ResourceUtil
-			.buildAttrSet(Color.decode("#ffa07a"), false);
+	public static final SimpleAttributeSet STR_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#4EA539"), false);
+	public static final SimpleAttributeSet REM_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#3AC2EB"), false);
+	private static final SimpleAttributeSet MAP_LIGHTER = ResourceUtil.buildAttrSet(Color.BLACK, true);
+	static final SimpleAttributeSet KEYWORDS_LIGHTER = ResourceUtil.buildAttrSet(ResourceUtil.toDarker(Color.BLUE, 0.8F), false);
+	private static final SimpleAttributeSet NUM_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#887BE0"), true);
+	public static final SimpleAttributeSet DEFAULT_LIGHTER = ResourceUtil.buildAttrSet(Color.BLACK, false);
+	private static final SimpleAttributeSet VAR_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#f19e37"), false);
+	private static final SimpleAttributeSet REGEXP_LIGHTER = ResourceUtil.buildAttrSet(Color.decode("#ffa07a"), false);
 
 	private static final SimpleAttributeSet UNDERLINE_LIGHTER = buildUnderline(true);
 	private static final SimpleAttributeSet UNDERLINE_REMOVE_LIGHTER = buildUnderline(false);
 
-	public static final UnderlineHighlightPainter SYNTAX_ERROR_PAINTER = new UnderlineHighlightPainter(
-			Color.red);
+	public static final UnderlineHighlightPainter SYNTAX_ERROR_PAINTER = new UnderlineHighlightPainter(Color.red);
 
 	public final static Object scriptEventLock = new Object();
 
-	static final Pattern keywords_pattern = Pattern.compile(
-			"\\b(BEGIN|END|__ENCODING__|__END__|__FILE__|__LINE__|alias|"
-					+ "and|attr_accessor|attr_reader|attr_writer|begin|break|case|class |def|defined?|do|else|elsif|end|"
-					+ "ensure|extend|false|for|if|in|import|include|module|next|nil|not|or|private|protected|public|raise|redo|require|rescue|retry|return|"
-					+ "self|super|then|true|undef|unless|until|when|while|yield)\\b",
-			Pattern.MULTILINE);// class+space解决ctx.class.get()
+	static final Pattern keywords_pattern = Pattern.compile("\\b(BEGIN|END|__ENCODING__|__END__|__FILE__|__LINE__|alias|"
+			+ "and|attr_accessor|attr_reader|attr_writer|begin|break|case|class |def|defined?|do|else|elsif|end|"
+			+ "ensure|extend|false|for|if|in|import|include|module|next|nil|not|or|private|protected|public|raise|redo|require|rescue|retry|return|"
+			+ "self|super|then|true|undef|unless|until|when|while|yield)\\b", Pattern.MULTILINE);// class+space解决ctx.class.get()
 	// private static final String[] Indentation = {"begin", "case ", "class ",
 	// "def ", "else",
 	// "elsif ", "for ", "if ", "module ", "when ", "while ", "rescue "};
-	private static final String[] WithEndIndentation = { "begin", "case", "class ", "def ", "for ",
-			"if ", "module ", "while ", "until ", "unless " };// 将when移出
+	private static final String[] WithEndIndentation = { "begin", "case", "class ", "def ", "for ", "if ", "module ", "while ", "until ",
+			"unless " };// 将when移出
 	private static final int WithEndIndentationTrimEqual = 1;// begin, case, 必须
 																// equals
 	private static final String DO_WORD = "do";
@@ -184,8 +172,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 	// addActionListener{|exception, index| or do
 	// |exception|。|exception|段可能有，可能没有。如果测试，参见TestEndIndentKuoHao
-	private static final Pattern WithEndIndentationKuoHao = Pattern.compile("(\\{|\\s+" + DO_WORD
-			+ ")\\s*?(\\|\\s*?\\w+?\\s*?(,\\s*?\\w+\\s*?)*\\|)?\\s*?(?<!\\})\\s*?(#.*)?$");
+	private static final Pattern WithEndIndentationKuoHao = Pattern
+			.compile("(\\{|\\s+" + DO_WORD + ")\\s*?(\\|\\s*?\\w+?\\s*?(,\\s*?\\w+\\s*?)*\\|)?\\s*?(?<!\\})\\s*?(#.*)?$");
 
 	private static final char[] caseChar = { 'c', 'a', 's', 'e' };// 注意：不能带空格
 	private static final char[] whenChar = { 'w', 'h', 'e', 'n', ' ' };
@@ -193,13 +181,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	private static final char[] elsifChar = { 'e', 'l', 's', 'i', 'f', ' ' };
 	private static final char[] elseChar = { 'e', 'l', 's', 'e' };
 	private static final char[] endChar = { 'e', 'n', 'd' };
-	private static final char[][] backIndent = { elseChar, elsifChar, whenChar,
-			{ 'r', 'e', 's', 'c', 'u', 'e' }, // 可以没有异常类型段，所以去掉空格
+	private static final char[][] backIndent = { elseChar, elsifChar, whenChar, { 'r', 'e', 's', 'c', 'u', 'e' }, // 可以没有异常类型段，所以去掉空格
 			{ 'e', 'n', 's', 'u', 'r', 'e' } };
-	private static final String[] backIndentStr = { "end", "else", "when ", "elsif ", "rescue",
-			"ensure", "}" };// 带end，是供全局format之用
-	private static final String[] nextIndentStr = { "else", "elsif ", "when ", "rescue", "ensure",
-			"{" };// 带end，是供全局format之用
+	private static final String[] backIndentStr = { "end", "else", "when ", "elsif ", "rescue", "ensure", "}" };// 带end，是供全局format之用
+	private static final String[] nextIndentStr = { "else", "elsif ", "when ", "rescue", "ensure", "{" };// 带end，是供全局format之用
 
 	private static final char STRING_PRE_CHAR = '"';
 
@@ -264,10 +249,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				ResourceUtil.removeFromParent(scrollpane);
 
 				if (isShowJRubyTestConsole) {
-					final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-							scrollpane, consolePanel);
-					final int divLocation = PropertiesManager
-							.getIntValue(PropertiesManager.p_JRubyTestConsoleDividerLocation);
+					final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollpane, consolePanel);
+					final int divLocation = PropertiesManager.getIntValue(PropertiesManager.p_JRubyTestConsoleDividerLocation);
 					if (divLocation == 0) {
 						splitPane.setDividerLocation(0.8);
 					} else {
@@ -276,10 +259,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					splitPane.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
 						@Override
 						public void propertyChange(final java.beans.PropertyChangeEvent evt) {
-							if (evt.getPropertyName()
-									.equals(JSplitPane.DIVIDER_LOCATION_PROPERTY)) {
-								PropertiesManager.setValue(
-										PropertiesManager.p_JRubyTestConsoleDividerLocation,
+							if (evt.getPropertyName().equals(JSplitPane.DIVIDER_LOCATION_PROPERTY)) {
+								PropertiesManager.setValue(PropertiesManager.p_JRubyTestConsoleDividerLocation,
 										String.valueOf(splitPane.getDividerLocation()));
 								PropertiesManager.saveFile();
 							}
@@ -294,8 +275,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 				ClassUtil.revalidate(editorPane);
 
-				PropertiesManager.setValue(PropertiesManager.p_isShowJRubyTestConsole,
-						isShowJRubyTestConsole);
+				PropertiesManager.setValue(PropertiesManager.p_isShowJRubyTestConsole, isShowJRubyTestConsole);
 				PropertiesManager.saveFile();
 			}
 		}, token);
@@ -347,8 +327,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				final int startOff = getLineStartOffset(jtaDocment, beginLineNo);
 				final int endOff = getLineEndOffset(jtaDocment, endLineNo) - 1;// 去掉最后一个换行
 
-				final char[] blockArea = jtaDocment.getText(startOff, endOff - startOff)
-						.toCharArray();
+				final char[] blockArea = jtaDocment.getText(startOff, endOff - startOff).toCharArray();
 				final int size = blockArea.length;
 				final Vector<Integer> newLineIdx = new Vector<Integer>(32);
 				for (int j = size - 1; j >= 0; j--) {
@@ -379,8 +358,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				final int newStartOff = getLineStartOffset(jtaDocment, beginLineNo);
 				final int newEndOff = getLineEndOffset(jtaDocment, endLineNo);
 
-				initBlock(jtaDocment.getText(newStartOff, newEndOff - newStartOff), newStartOff,
-						false, false);
+				initBlock(jtaDocment.getText(newStartOff, newEndOff - newStartOff), newStartOff, false, false);
 				jtaScript.requestFocus();
 				doAfterModifyBlock(false);
 			} catch (final Exception e) {
@@ -388,8 +366,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			}
 		}
 
-		final void comment(final char[] block, final int blockStartIdx, int tabNum,
-				final int lastEndIdx, final int pStartIdx) throws BadLocationException {
+		final void comment(final char[] block, final int blockStartIdx, int tabNum, final int lastEndIdx, final int pStartIdx)
+				throws BadLocationException {
 			final StringBuffer sb = StringBufferCacher.getFree();
 			for (int i = blockStartIdx; i < blockStartIdx + tabNum && i < lastEndIdx; i++) {
 				if (block[i] != '\t') {
@@ -410,8 +388,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			StringBufferCacher.cycle(sb);
 		}
 
-		final void uncomment(final char[] block, final int blockStartIdx, final int lastEndIdx,
-				final int pStartIdx) throws BadLocationException {
+		final void uncomment(final char[] block, final int blockStartIdx, final int lastEndIdx, final int pStartIdx)
+				throws BadLocationException {
 			for (int i = blockStartIdx; i < lastEndIdx; i++) {
 				final char c = block[i];
 				if (c == '#') {
@@ -469,8 +447,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			}
 
 			final String name = action.getName();
-			final boolean isBEGIN_END = SurroundListAction.BLOCK_BEGIN.equals(name)
-					|| SurroundListAction.BLOCK_END.equals(name);
+			final boolean isBEGIN_END = SurroundListAction.BLOCK_BEGIN.equals(name) || SurroundListAction.BLOCK_END.equals(name);
 			sb.append(name);
 			if (action.extendInfo != null) {
 				sb.append(action.extendInfo);
@@ -544,7 +521,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		@Override
 		public void run() {
 			final HCJRubyEngine hcje = SimuMobile.rebuildJRubyEngine();// import逻辑已加载，必须重建实例
-			RubyExector.initActive(hcje);
+			RubyExector.initActive(hcje, false);
 		}
 	};
 
@@ -564,9 +541,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		runTestEngine = SimuMobile.getRunTestEngine();// 有可能上行重建
 
 		final ProjectContext context = ContextSecurityManager
-				.getConfig((ThreadGroup) HCLimitSecurityManager.getTempLimitRecycleRes().threadPool
-						.getThreadGroup())
-				.getProjectContext();
+				.getConfig((ThreadGroup) HCLimitSecurityManager.getTempLimitRecycleRes().threadPool.getThreadGroup()).getProjectContext();
 		// if(isRun){
 		// ServerUIAPIAgent.setTestSimuClientSession(context,
 		// designer.testSimuClientSession);
@@ -594,8 +569,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			if (callCtxNeverCycle.isError == false && (isRun || isCompileOnly == false)) {
 				callCtxNeverCycle.reset();
 				callCtxNeverCycle.targetURL = targetURL;
-				RubyExector.runAndWaitInProjectOrSessionPool(
-						J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtxNeverCycle, sv, null, map,
+				RubyExector.runAndWaitInProjectOrSessionPool(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtxNeverCycle, sv, null, map,
 						runTestEngine, context);
 			}
 		} catch (final Throwable e) {
@@ -639,8 +613,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					endIdx = chars.length;
 				}
 				try {
-					jtaScript.getHighlighter().addHighlight(startIdx, endIdx,
-							ERROR_CODE_LINE_LIGHTER);
+					jtaScript.getHighlighter().addHighlight(startIdx, endIdx, ERROR_CODE_LINE_LIGHTER);
 				} catch (final BadLocationException e1) {
 				}
 				jtaScript.setCaretPosition(startIdx);
@@ -685,10 +658,9 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 		errorTimer.setErrorLable(errRunInfo, testBtn);
 
-		final String runTip = "run this script for test, NOT activate current project for mobile client."
-				+
-				// "<BR>To apply modification and access from mobile, please
-				// click [<STRONG>" + Designer.ACTIVE + "</STRONG>]." +
+		final String runTip = "run this script for test, NOT activate current project for mobile client." +
+		// "<BR>To apply modification and access from mobile, please
+		// click [<STRONG>" + Designer.ACTIVE + "</STRONG>]." +
 				"<BR><BR>" + "<STRONG>Note : </STRONG><BR>"
 				+ "1. there is a JRuby engine instance for each project, and one for designer,<BR>"
 				+ "2. even if a green bar is displayed in bottom, defects may be in the scripts that are not covered,<BR>"
@@ -710,8 +682,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						@Override
 						public void run() {
 
-							IDArrayGroup.showMsg(IDArrayGroup.MSG_JRUBY_RUN_NO_COVER,
-									App.SYS_WARN_ICON, ResourceUtil.getInfoI18N(), runTipHtml);
+							IDArrayGroup.showMsg(IDArrayGroup.MSG_JRUBY_RUN_NO_COVER, App.SYS_WARN_ICON, ResourceUtil.getInfoI18N(),
+									runTipHtml);
 
 							try {
 								doTest(true, false);
@@ -735,8 +707,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			ResourceUtil.buildAcceleratorKeyOnAction(testAction, KeyEvent.VK_R);// 同时支持Windows下的Ctrl+R和Mac下的Command+R
 			testBtn.addActionListener(testAction);
 			testBtn.getActionMap().put("testAction", testAction);
-			testBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-					.put((KeyStroke) testAction.getValue(Action.ACCELERATOR_KEY), "testAction");
+			testBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) testAction.getValue(Action.ACCELERATOR_KEY),
+					"testAction");
 
 			final Action formatAction = new AbstractAction() {
 				@Override
@@ -753,16 +725,14 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 			ResourceUtil.buildAcceleratorKeyOnAction(formatAction, KeyEvent.VK_F);// 执行太快，感觉没反应
 			formatBtn.addActionListener(formatAction);
 			formatBtn.getActionMap().put("formatAction", formatAction);
-			formatBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-					.put((KeyStroke) formatAction.getValue(Action.ACCELERATOR_KEY), "formatAction");
+			formatBtn.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) formatAction.getValue(Action.ACCELERATOR_KEY),
+					"formatAction");
 		}
-		testBtn.setToolTipText("<html>(" + ResourceUtil.getAbstractCtrlKeyText() + " + R)" + "<BR>"
-				+ runTip + "<BR><BR>JRuby compat version : <STRONG>"
-				+ HCJRubyEngine.JRUBY_PARSE_VERSION + "</STRONG>" + "</html>");
+		testBtn.setToolTipText("<html>(" + ResourceUtil.getAbstractCtrlKeyText() + " + R)" + "<BR>" + runTip
+				+ "<BR><BR>JRuby compat version : <STRONG>" + HCJRubyEngine.JRUBY_PARSE_VERSION + "</STRONG>" + "</html>");
 		testBtn.setIcon(Designer.loadImg("test_16.png"));
 
-		formatBtn.setToolTipText("<html>(" + ResourceUtil.getAbstractCtrlKeyText()
-				+ " + F) <BR>format the JRuby script.</html>");
+		formatBtn.setToolTipText("<html>(" + ResourceUtil.getAbstractCtrlKeyText() + " + F) <BR>format the JRuby script.</html>");
 		formatBtn.setIcon(Designer.loadImg(ImageSrc.FORMAT_16_PNG));
 
 		{
@@ -808,12 +778,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				if (isLineEnd) {
 					sb.append('\n');
 					try {
-						final int lineNo = getLineOfOffset(jtaDocment,
-								jtaScript.getSelectionStart() + 1);// 下一行，不能使用当前行的缩进
+						final int lineNo = getLineOfOffset(jtaDocment, jtaScript.getSelectionStart() + 1);// 下一行，不能使用当前行的缩进
 						final int startOff = getLineStartOffset(jtaDocment, lineNo);
 						final int endOff = getLineEndOffset(jtaDocment, lineNo);
-						final char[] chars = jtaDocment.getText(startOff, endOff - startOff)
-								.toCharArray();
+						final char[] chars = jtaDocment.getText(startOff, endOff - startOff).toCharArray();
 						final int size = chars.length;
 						for (int i = 0; i < size; i++) {
 							if (chars[i] == '\t') {
@@ -839,8 +807,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				}
 
 				// sb.append("#encoding:utf-8\n");
-				sb.append(
-						"sb = java.lang.StringBuilder::new(" + (selectedChars.length * 2) + ")\n");
+				sb.append("sb = java.lang.StringBuilder::new(" + (selectedChars.length * 2) + ")\n");
 				int startIdx = 0;
 				for (int i = 0; i < selectedChars.length; i++) {
 					final char nextChar = selectedChars[i];
@@ -866,8 +833,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				// App.getSysIcon(App.SYS_INFO_ICON));
 			}
 
-			private final void appendLine(final StringBuilder sb, final char[] chars,
-					final int startIdx, final int len) {
+			private final void appendLine(final StringBuilder sb, final char[] chars, final int startIdx, final int len) {
 				sb.append("sb.append(\"");
 				final int endIdx = startIdx + len;
 				for (int i = startIdx; i < endIdx; i++) {
@@ -878,14 +844,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						for (; k < endIdx; k++) {
 							final char c = chars[k];
 							if (c == '"') {
-								while ((k + 1) < endIdx && chars[k + 1] == '"'
-										&& chars[k] != '\\') {
+								while ((k + 1) < endIdx && chars[k + 1] == '"' && chars[k] != '\\') {
 									k++;
 								}
 								continue;
 							} else if (c == '\'') {
-								while ((k + 1) < endIdx && chars[k + 1] == '\''
-										&& chars[k] != '\\') {
+								while ((k + 1) < endIdx && chars[k + 1] == '\'' && chars[k] != '\\') {
 									k++;
 								}
 								continue;
@@ -910,11 +874,9 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				sb.append("\\n\")\n");
 			}
 		});
-		scriptBtn.setToolTipText(
-				"<html>" + "translate scripts to a string for ProjectContext.<STRONG>eval</STRONG>."
-						+ "<BR><BR>Do as following steps :" + "<BR>1. select scripts in <STRONG>"
-						+ JRubyNodeEditPanel.JRUBY_SCRIPT + "</STRONG> panel,"
-						+ "<BR>2. click this button,</html>");
+		scriptBtn.setToolTipText("<html>" + "translate scripts to a string for ProjectContext.<STRONG>eval</STRONG>."
+				+ "<BR><BR>Do as following steps :" + "<BR>1. select scripts in <STRONG>" + JRubyNodeEditPanel.JRUBY_SCRIPT
+				+ "</STRONG> panel," + "<BR>2. click this button,</html>");
 		scriptBtn.setIcon(Designer.loadImg("script_16.png"));
 
 		// jtaScript.setTabSize(2);
@@ -956,8 +918,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						// e.getDot());
 						if (currLineNo != lastLineNo) {
 							TabHelper.clearAll();
-							designer.codeHelper.updateScriptASTNode(ScriptEditPanel.this,
-									jtaScript.getText(), isModifySourceForRebuildAST);
+							designer.codeHelper.updateScriptASTNode(ScriptEditPanel.this, jtaScript.getText(), isModifySourceForRebuildAST);
 							isModifySourceForRebuildAST = false;
 							// if(isErrorOnBuildScript || isSucc == false){
 							// SwingUtilities.invokeLater(doTestRunnable);
@@ -971,8 +932,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						final int endIdx = Math.max(e.getDot(), e.getMark());
 						// System.out.println("========> startIdx : " + startIdx
 						// + ", endIdx : " + endIdx);
-						jtaScript.searchDialog.splitHighlightWhenSelection(startIdx, endIdx,
-								jtaScript.getHighlighter());
+						jtaScript.searchDialog.splitHighlightWhenSelection(startIdx, endIdx, jtaScript.getHighlighter());
 					}
 
 					// final int editLineStartIdx =
@@ -1030,8 +990,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					TabHelper.pushShiftTabKey();
 				}
 			};
-			final KeyStroke shiftTabKey = KeyStroke.getKeyStroke(KeyEvent.VK_TAB,
-					InputEvent.SHIFT_DOWN_MASK);
+			final KeyStroke shiftTabKey = KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK);
 			jtaScript.getInputMap().put(shiftTabKey, shiftTabAction);
 		}
 		{
@@ -1044,8 +1003,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							isModifySourceForRebuildAST = false;// disable
 																// caretUpdate
 																// event
-							scriptUndoListener
-									.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_ENTER);
+							scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_ENTER);
 
 							actionOnEnterKey(jtaDocment);
 						} catch (final Exception ex) {
@@ -1130,11 +1088,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 						if (vector == null) {
 							if (firstMatcher == null) {
-								App.showMessageDialog(designer,
-										"<html>Not found defined CSS : <strong>" + className
-												+ "</strong></html>",
-										ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE,
-										App.getSysIcon(App.SYS_ERROR_ICON));
+								App.showMessageDialog(designer, "<html>Not found defined CSS : <strong>" + className + "</strong></html>",
+										ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 								return;
 							} else {
 								jumpCSSDefine(firstMatcher);
@@ -1170,9 +1125,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							ContextManager.getThreadPool().run(new Runnable() {
 								@Override
 								public void run() {
-									App.showCenterPanelMain(panel, 300, 210,
-											ResourceUtil.getInfoI18N(), true, null, null, listener,
-											null, designer, true, false, null, false, false);
+									App.showCenterPanelMain(panel, 300, 210, ResourceUtil.getInfoI18N(), true, null, null, listener, null,
+											designer, true, false, null, false, false);
 								}
 							});
 						}
@@ -1198,8 +1152,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				ContextManager.getThreadPool().run(new Runnable() {
 					@Override
 					public void run() {
-						designer.jumpCSSDefine(firstMatcherPara.startIdx,
-								firstMatcherPara.fullName.length());
+						designer.jumpCSSDefine(firstMatcherPara.startIdx, firstMatcherPara.fullName.length());
 					}
 				});
 			}
@@ -1213,8 +1166,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				public void action(final int startIdx, final int len) {
 					lastFocusUnderlineCSSStartIdx = startIdx;
 					lastFocusUnderlineCSSLen = len;
-					jtaStyledDoc.setCharacterAttributes(lastFocusUnderlineCSSStartIdx,
-							lastFocusUnderlineCSSLen, UNDERLINE_LIGHTER, false);
+					jtaStyledDoc.setCharacterAttributes(lastFocusUnderlineCSSStartIdx, lastFocusUnderlineCSSLen, UNDERLINE_LIGHTER, false);
 					jtaScript.setCursor(handCursor);
 					isHandCursor = true;
 				}
@@ -1233,10 +1185,9 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					final boolean codeWinIsShowing = designer.codeHelper.window.isVisible();
 					if (codeWinIsShowing) {
 						if (System.currentTimeMillis() - autoCodeTip.lastShowMS > 400
-								&& (Math.abs(e.getX() - autoCodeTip.lastShowX) >= fontHeight || Math
-										.abs(e.getY() - autoCodeTip.lastShowY) >= halfFontHeight)) {
-						} else if (Math.abs(e.getX() - moveX) <= quarFontHeight
-								&& Math.abs(e.getY() - moveY) <= quarFontHeight) {// 消除CodeList显示时，鼠标微动
+								&& (Math.abs(e.getX() - autoCodeTip.lastShowX) >= fontHeight
+										|| Math.abs(e.getY() - autoCodeTip.lastShowY) >= halfFontHeight)) {
+						} else if (Math.abs(e.getX() - moveX) <= quarFontHeight && Math.abs(e.getY() - moveY) <= quarFontHeight) {// 消除CodeList显示时，鼠标微动
 							moveX = e.getX();
 							moveY = e.getY();
 							return;
@@ -1257,8 +1208,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							}
 						}
 						// designer.codeHelper.hideAfterMouse(true);//有可能移到DocTip内
-						if (Math.abs(moveX - lastMouseClickX) >= fontHeight
-								|| Math.abs(moveY - lastMouseClickY) >= halfFontHeight) {
+						if (Math.abs(moveX - lastMouseClickX) >= fontHeight || Math.abs(moveY - lastMouseClickY) >= halfFontHeight) {
 							lastMouseClickX = -100;
 							lastMouseClickY = -100;
 							autoCodeTip.setLocation(moveX, moveY);
@@ -1274,8 +1224,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						setEditorDefaultCurosr();
 					}
 					if (lastFocusCSSStartIdxBack != startIdx && lastFocusCSSStartIdxBack != -1) {
-						jtaStyledDoc.setCharacterAttributes(lastFocusCSSStartIdxBack,
-								lastFocusCSSLenBak, UNDERLINE_REMOVE_LIGHTER, false);
+						jtaStyledDoc.setCharacterAttributes(lastFocusCSSStartIdxBack, lastFocusCSSLenBak, UNDERLINE_REMOVE_LIGHTER, false);
 					}
 				}
 			}
@@ -1329,13 +1278,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 					// 有输出字符时的触发提示代码。在Mac环境下Ctrl+.时，无输出字符，modifiers==ctrl_mask且inputChar!=0；在Mac环境下option+/时，出现字符÷且modifier==0
 					if (isMacOS && (inputChar != 0 && inputChar == codeHelper.wordCompletionChar
-							&& ((codeHelper.wordCompletionModifyCode == KeyEvent.VK_ALT
-									&& modifiers == 0)
+							&& ((codeHelper.wordCompletionModifyCode == KeyEvent.VK_ALT && modifiers == 0)
 									|| (codeHelper.wordCompletionModifyMaskCode == modifiers)))) {// 注意：请同步到MletNodeEditPanel
 						try {
 							final int caretPosition = jtaScript.getCaretPosition();
-							codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment,
-									fontHeight, true, caretPosition, true);
+							codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, caretPosition, true);
 						} catch (final Exception e) {
 							// if(L.isInWorkshop){
 							ExceptionReporter.printStackTrace(e);
@@ -1362,8 +1309,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 														// caretUpdate newline
 
 					if (inputChar == KeyEvent.VK_BACK_SPACE || inputChar == KeyEvent.VK_DELETE) {
-						scriptUndoListener
-								.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL);
+						scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL);
 					} else {
 						scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_TYPE);
 					}
@@ -1374,8 +1320,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 						jtaScript.refreshCurrLineAfterKey(line);
 
-						TabHelper.notifyInputKey(inputChar == KeyEvent.VK_BACK_SPACE, event,
-								inputChar, selectionLen);
+						TabHelper.notifyInputKey(inputChar == KeyEvent.VK_BACK_SPACE, event, inputChar, selectionLen);
 
 						final boolean isDot = inputChar == '.';
 						final boolean isPathSplit = inputChar == '/';
@@ -1384,12 +1329,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						final int lineIdx = position - lineStartIdx;
 
 						if (isDot || isPathSplit || inputChar == ':') {// 自动弹出代码提示条件
-							final char[] lineChars = jtaDocment.getText(lineStartIdx, lineIdx)
-									.toCharArray();
+							final char[] lineChars = jtaDocment.getText(lineStartIdx, lineIdx).toCharArray();
 							final int lineCharsLen = lineChars.length;
 
-							if (isHttpResource(lineChars, lineCharsLen - 1)
-									|| CodeHelper.searchGoGoExternalURL(lineChars)) {
+							if (isHttpResource(lineChars, lineCharsLen - 1) || CodeHelper.searchGoGoExternalURL(lineChars)) {
 								return;// 对于http型的资源，不弹出本地库资源代码提示
 							}
 
@@ -1399,8 +1342,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 								char isInStr = 0;
 								for (int i = lineCharsLen - 1; i >= 0; i--) {
 									final char checkSplitChar = lineChars[i];
-									if ((checkSplitChar == '"' || checkSplitChar == '\'') && (i == 0
-											|| ((i - 1) >= 0 && lineChars[i - 1] != '\\'))) {// array[var.indexOf("Hello")]
+									if ((checkSplitChar == '"' || checkSplitChar == '\'')
+											&& (i == 0 || ((i - 1) >= 0 && lineChars[i - 1] != '\\'))) {// array[var.indexOf("Hello")]
 										if (isInStr != 0) {
 											if (isInStr == checkSplitChar) {
 												isInStr = 0;
@@ -1425,8 +1368,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							char isInStr = 0;
 							for (int i = partSplitIdx; i < lineCharsLen; i++) {
 								final char checkSplitChar = lineChars[i];
-								if ((checkSplitChar == '\"' || checkSplitChar == '\'')
-										&& (i == 0 || i > 0 && lineChars[i - 1] != '\\')) {
+								if ((checkSplitChar == '\"' || checkSplitChar == '\'') && (i == 0 || i > 0 && lineChars[i - 1] != '\\')) {
 									if (isInStr != 0) {
 										if (isInStr == checkSplitChar) {
 											isInStr = 0;
@@ -1445,8 +1387,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 								}
 
 								if (L.isInWorkshop) {
-									LogManager.log(
-											"input dot (.) is in yinhao, skip auto popup codetip.");
+									LogManager.log("input dot (.) is in yinhao, skip auto popup codetip.");
 								}
 								return;
 							}
@@ -1457,10 +1398,9 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 							// 处于#之后
 							for (int i = partSplitIdx; i < lineCharsLen; i++) {
-								if (lineChars[i] == '#' && ((i + 1 == lineCharsLen)
-										|| (i + 1 < lineCharsLen) && lineChars[i + 1] != '{')) {// 但不含"Hello
-																								// #{}
-																								// world"
+								if (lineChars[i] == '#' && ((i + 1 == lineCharsLen) || (i + 1 < lineCharsLen) && lineChars[i + 1] != '{')) {// 但不含"Hello
+																																			// #{}
+																																			// world"
 									return;
 								}
 							}
@@ -1472,8 +1412,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 									final char oneChar = lineChars[i];
 									if (oneChar >= '0' && oneChar <= '9') {
 										continue;
-									} else if ((oneChar >= 'a' && oneChar <= 'z')
-											|| (oneChar >= 'A' && oneChar <= 'Z') || oneChar == '_'
+									} else if ((oneChar >= 'a' && oneChar <= 'z') || (oneChar >= 'A' && oneChar <= 'Z') || oneChar == '_'
 											|| oneChar == ')' || oneChar == ']') {// )表示方法；[]数组
 										isVarOrMethodCase = true;
 									}
@@ -1486,8 +1425,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 									// LogManager.log("input dot (.) is not for
 									// variable, skip auto popup codetip.");
 									// }
-									if (isNumberFirst(lineChars) || (lastTypedCharMS != 0
-											&& (currTypedCharMS - lastTypedCharMS) > 500)) {// 稍有等待，则
+									if (isNumberFirst(lineChars) || (lastTypedCharMS != 0 && (currTypedCharMS - lastTypedCharMS) > 500)) {// 稍有等待，则
 										popUpAuto(codeHelper);
 									}
 									return;
@@ -1539,8 +1477,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						synchronized (scriptEventLock) {
 							try {
 								final int caretPosition = jtaScript.getCaretPosition();
-								codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment,
-										fontHeight, false, caretPosition, false);
+								codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, false, caretPosition, false);
 							} catch (final Exception e) {
 								if (L.isInWorkshop) {
 									e.printStackTrace();
@@ -1602,13 +1539,12 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					final int wordCompletionModifyMaskCode = codeHelper.wordCompletionModifyMaskCode;
 					// 无输入字符时的触发提示代码
 					isEventConsumed = false;
-					if (keycode == codeHelper.wordCompletionCode && (modifierKeysPressed
-							& wordCompletionModifyMaskCode) == wordCompletionModifyMaskCode) {
+					if (keycode == codeHelper.wordCompletionCode
+							&& (modifierKeysPressed & wordCompletionModifyMaskCode) == wordCompletionModifyMaskCode) {
 						// 注意：请同步到MletNodeEditPanel
 						try {
 							final int caretPosition = jtaScript.getCaretPosition();
-							codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment,
-									fontHeight, true, caretPosition, true);
+							codeHelper.input(ScriptEditPanel.this, jtaScript, jtaDocment, fontHeight, true, caretPosition, true);
 						} catch (final Throwable e) {
 							ExceptionReporter.printStackTrace(e);
 						}
@@ -1630,8 +1566,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							if (modifierKeysPressed == KeyEvent.META_MASK) {
 								// cmd+z
 								undo();
-							} else if (modifierKeysPressed == (KeyEvent.META_MASK
-									| KeyEvent.SHIFT_MASK)) {
+							} else if (modifierKeysPressed == (KeyEvent.META_MASK | KeyEvent.SHIFT_MASK)) {
 								redo();
 							}
 						}
@@ -1645,8 +1580,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					}
 
 					if (keycode == KeyEvent.VK_BACK_SPACE || keycode == KeyEvent.VK_DELETE) {
-						scriptUndoListener
-								.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL);
+						scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL);
 					} else {
 						scriptUndoListener.setUndoModel(ScriptUndoableEditListener.UNDO_MODEL_TYPE);
 					}
@@ -1658,11 +1592,9 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		// Disable Word wrap in JTextPane
 		final JPanel NoWrapPanel = new JPanel(new BorderLayout());
 		NoWrapPanel.add(jtaScript, BorderLayout.CENTER);
-		scrollpane = new JScrollPane(NoWrapPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scrollpane = new JScrollPane(NoWrapPanel, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollpane.setRowHeaderView(lineNumber);
-		scrollpane.getVerticalScrollBar()
-				.setUnitIncrement(ServerUIUtil.SCROLLPANE_VERTICAL_UNIT_PIXEL);
+		scrollpane.getVerticalScrollBar().setUnitIncrement(ServerUIUtil.SCROLLPANE_VERTICAL_UNIT_PIXEL);
 
 		scrollpane.addMouseWheelListener(new MouseWheelListener() {
 			@Override
@@ -1731,8 +1663,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					for (int i = 0; i < size; i++) {
 						final SearchResult sr = list.get(i);
 						try {
-							sr.highLight = searchDialog.addSearchHighlight(highlighter, sr.offset,
-									sr.offset + sr.length);
+							sr.highLight = searchDialog.addSearchHighlight(highlighter, sr.offset, sr.offset + sr.length);
 							sr.highlighter = highlighter;
 						} catch (final Throwable e) {
 							e.printStackTrace();
@@ -1771,8 +1702,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		if (currNodeSuperClassName != null && newClassName.length() > 0) {
 			final char firstChar = newClassName.charAt(0);
 			if (firstChar >= 'A' && firstChar <= 'Z') {
-				final boolean isReplaced = ScriptModelManager.replaceClassNameForScripts(jtaDocment,
-						jtaScript.getText(), currNodeSuperClassName, newClassName);
+				final boolean isReplaced = ScriptModelManager.replaceClassNameForScripts(jtaDocment, jtaScript.getText(),
+						currNodeSuperClassName, newClassName);
 				if (isReplaced) {
 					SwingUtilities.invokeLater(submitModifyRunnable);
 				}
@@ -1781,19 +1712,16 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					@Override
 					public void run() {
 						final JPanel panel = new JPanel(new BorderLayout());
-						panel.add(
-								new JLabel("it must begin with an uppercase letter.",
-										App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING),
-								BorderLayout.CENTER);
+						panel.add(new JLabel("it must begin with an uppercase letter.", App.getSysIcon(App.SYS_ERROR_ICON),
+								SwingConstants.LEADING), BorderLayout.CENTER);
 						final ActionListener listener = new HCActionListener(new Runnable() {
 							@Override
 							public void run() {
 								inputField.requestFocus();
 							}
 						}, App.getThreadPoolToken());
-						App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false,
-								null, null, listener, null, designer, false, false, inputField,
-								false, false);
+						App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, listener, null, designer,
+								false, false, inputField, false, false);
 					}
 				});
 			}
@@ -1818,8 +1746,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		return null;
 	}
 
-	private final boolean isELSIFIndentKeyWords(final char[] chars, final int startIdx,
-			final char[] isIndentChar) {// xx
+	private final boolean isELSIFIndentKeyWords(final char[] chars, final int startIdx, final char[] isIndentChar) {// xx
 		return CodeHelper.matchChars(chars, startIdx, isIndentChar);
 		// int m = startIdx;
 		// boolean inputSelfBackEnd = true;
@@ -1846,8 +1773,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		return -1;
 	}
 
-	public static int getLineOfOffset(final Document doc, final int offset)
-			throws BadLocationException {
+	public static int getLineOfOffset(final Document doc, final int offset) throws BadLocationException {
 		// if (offset < 0) {
 		// throw new BadLocationException("Can't translate offset to line", -1);
 		// } else if (offset > doc.getLength()) {
@@ -1866,8 +1792,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	 * @return
 	 * @throws BadLocationException
 	 */
-	public static final String getLineText(final Document doc, final int line)
-			throws BadLocationException {
+	public static final String getLineText(final Document doc, final int line) throws BadLocationException {
 		final Element map = doc.getDefaultRootElement();
 		// if (line < 0) {
 		// throw new BadLocationException("Negative line", -1);
@@ -1881,8 +1806,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		// }
 	}
 
-	public static int getLineStartOffset(final Document doc, final int line)
-			throws BadLocationException {
+	public static int getLineStartOffset(final Document doc, final int line) throws BadLocationException {
 		final Element map = doc.getDefaultRootElement();
 		// if (line < 0) {
 		// throw new BadLocationException("Negative line", -1);
@@ -1894,8 +1818,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		// }
 	}
 
-	public static int getLineEndOffset(final Document doc, final int line)
-			throws BadLocationException {
+	public static int getLineEndOffset(final Document doc, final int line) throws BadLocationException {
 		final Element map = doc.getDefaultRootElement();
 		// if (line < 0) {
 		// throw new BadLocationException("Negative line", -1);
@@ -2028,8 +1951,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					try {
 						final int lineStartIdx = getLineStartOffset(jtaDocment, line);
 						final int lineEndIdx = getLineEndOffset(jtaDocment, line);
-						final String text = jtaDocment.getText(lineStartIdx,
-								lineEndIdx - lineStartIdx);
+						final String text = jtaDocment.getText(lineStartIdx, lineEndIdx - lineStartIdx);
 						// closeDocumentListener();
 						initBlock(text, lineStartIdx, false, false);
 						// openDocumentListener();
@@ -2104,8 +2026,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				// if(strLen == 0){
 				// continue;
 				// }
-				final String lineColorText = new String(lineChars, currOldIndent,
-						lineChars.length - currOldIndent);
+				final String lineColorText = new String(lineChars, currOldIndent, lineChars.length - currOldIndent);
 				final String strTrim = ((currOldIndent == 0 && strTrimIdx == lineCharsLen) ? line
 						: new String(lineChars, currOldIndent, strLen));
 				{
@@ -2249,8 +2170,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				text = jtaScript.getText();
 			} else {
 				try {
-					text = jtaScript.getText(colorOffset,
-							(colorLen == -1) ? jtaScript.getText().length() : colorLen);
+					text = jtaScript.getText(colorOffset, (colorLen == -1) ? jtaScript.getText().length() : colorLen);
 				} catch (final Exception e) {
 					text = jtaScript.getText();
 					colorOffset = 0;
@@ -2302,8 +2222,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 	};
 
-	public final void initBlock(final String text, final int offset, final boolean isReplace,
-			final boolean isFromInit) {
+	public final void initBlock(final String text, final int offset, final boolean isReplace, final boolean isFromInit) {
 		if (text.length() == 0) {
 			return;
 		}
@@ -2317,8 +2236,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		buildHighlightForStringAndRem(offset, text, isReplace, isFromInit);
 	}
 
-	private final void buildHighlight(final Pattern pattern, final SimpleAttributeSet attributes,
-			final int offset, final String text, final boolean isReplace) {
+	private final void buildHighlight(final Pattern pattern, final SimpleAttributeSet attributes, final int offset, final String text,
+			final boolean isReplace) {
 		final Matcher matcher = pattern.matcher(text);
 		while (matcher.find()) {
 			final int start = matcher.start() + offset;
@@ -2327,8 +2246,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 	}
 
-	private final void buildHighlightForStringAndRem(final int offset, final String text,
-			final boolean isReplace, final boolean isFromInit) {
+	private final void buildHighlightForStringAndRem(final int offset, final String text, final boolean isReplace,
+			final boolean isFromInit) {
 		if (isFromInit) {
 			SwingUtilities.invokeLater(new Runnable() {// 由于多语言绘制耗时，所以delay
 				@Override
@@ -2447,8 +2366,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					// }
 				}
 
-				final String trim_str = new String(chars, charIdxRemovedTab,
-						strTrimIdx - charIdxRemovedTab);
+				final String trim_str = new String(chars, charIdxRemovedTab, strTrimIdx - charIdxRemovedTab);
 				if (trim_str.length() == 0 || trim_str.startsWith("#")) {
 					// 复制上行的缩进
 					sb.append(String.valueOf(chars, 0, charIdxRemovedTab));
@@ -2475,13 +2393,11 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 						// 检查上行是否当前行已缩进。即在已有代码elsif xxx后进行回车，当前是否需要缩进
 						final int startUpRowIdx = getLineStartOffset(doc, positionLine - 1);
 						try {
-							final String upRowStr = doc.getText(startUpRowIdx,
-									startIdx - 1 - startUpRowIdx);
+							final String upRowStr = doc.getText(startUpRowIdx, startIdx - 1 - startUpRowIdx);
 							final char[] upRowChars = upRowStr.toCharArray();
 							int charIdxUpRowRemovedTab = 0;
 							for (; charIdxUpRowRemovedTab < upRowChars.length; charIdxUpRowRemovedTab++) {
-								if (upRowChars[charIdxUpRowRemovedTab] == ' '
-										|| upRowChars[charIdxUpRowRemovedTab] == '\t') {
+								if (upRowChars[charIdxUpRowRemovedTab] == ' ' || upRowChars[charIdxUpRowRemovedTab] == '\t') {
 
 								} else {
 									break;
@@ -2490,14 +2406,10 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							if (charIdxUpRowRemovedTab > charIdxRemovedTab) {
 								inputSelfBackEnd = false;// 取消自缩进
 							} else if (charIdxUpRowRemovedTab == charIdxRemovedTab) {
-								if (isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab,
-										elsifChar)
-										|| isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab,
-												ifChar)
-										|| isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab,
-												caseChar)// when上行为case
-										|| isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab,
-												whenChar)// else上行为when
+								if (isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab, elsifChar)
+										|| isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab, ifChar)
+										|| isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab, caseChar)// when上行为case
+										|| isELSIFIndentKeyWords(upRowChars, charIdxUpRowRemovedTab, whenChar)// else上行为when
 								) {
 									inputSelfBackEnd = false;// 取消自缩进
 								}
@@ -2532,9 +2444,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 				if (withEndInd == 0) {
 					final Matcher matcher = WithEndIndentationKuoHao.matcher(trim_str);
-					withEndInd = matcher.find()
-							? (matcher.group(1).indexOf(DO_WORD) >= 0 ? END_TYPE1 : END_TYPE2)
-							: 0;
+					withEndInd = matcher.find() ? (matcher.group(1).indexOf(DO_WORD) >= 0 ? END_TYPE1 : END_TYPE2) : 0;
 					if (withEndInd > 0) {
 						chars[charNewIdxRemovedTab++] = '\t';
 					}
@@ -2560,23 +2470,18 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					try {
 						int startOffOldNextLine = 0;
 						try {
-							afterNewEnterChars = doc
-									.getText(InsertPosition,
-											getLineEndOffset(doc, positionLine) - InsertPosition)
+							afterNewEnterChars = doc.getText(InsertPosition, getLineEndOffset(doc, positionLine) - InsertPosition)
 									.toCharArray();
 							startOffOldNextLine = getLineStartOffset(doc, positionLine + 1);
 							final String oldNextLineBeforeEnter = doc.getText(startOffOldNextLine,
 									getLineEndOffset(doc, positionLine + 1) - startOffOldNextLine);
-							final char[] oldNextLineCharsBeforeEnter = oldNextLineBeforeEnter
-									.toCharArray();
-							hasEndInOldNextRowButNeedNewLine = isELSIFIndentKeyWords(
-									afterNewEnterChars, 0, endChar) || afterNewEnterChars[0] == '}';
+							final char[] oldNextLineCharsBeforeEnter = oldNextLineBeforeEnter.toCharArray();
+							hasEndInOldNextRowButNeedNewLine = isELSIFIndentKeyWords(afterNewEnterChars, 0, endChar)
+									|| afterNewEnterChars[0] == '}';
 							if (hasEndInOldNextRowButNeedNewLine == false) {
-								hasEndInOldNextRowButNeedNewLine = isELSIFIndentKeyWords(
-										oldNextLineCharsBeforeEnter, charIdxRemovedTab, endChar)
-										|| oldNextLineCharsBeforeEnter[charIdxRemovedTab] == '}';
-								hasEndInOldNextRowButNeedNewLineCase2 = (hasEndInOldNextRowButNeedNewLine
-										& true);
+								hasEndInOldNextRowButNeedNewLine = isELSIFIndentKeyWords(oldNextLineCharsBeforeEnter, charIdxRemovedTab,
+										endChar) || oldNextLineCharsBeforeEnter[charIdxRemovedTab] == '}';
+								hasEndInOldNextRowButNeedNewLineCase2 = (hasEndInOldNextRowButNeedNewLine & true);
 							}
 						} catch (final Throwable e) {
 						}
@@ -2586,27 +2491,20 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 						final char[] nextLineChars = nextLineAfterEnter.toCharArray();
 						hasNewLineBeforeEnd = (nextLineChars[0] == '\n');
-						hasEnd = isELSIFIndentKeyWords(nextLineChars,
-								charIdxRemovedTab + (hasNewLineBeforeEnd ? 1 : 0), endChar)
-								|| nextLineChars[charIdxRemovedTab
-										+ (hasNewLineBeforeEnd ? 1 : 0)] == '}';
+						hasEnd = isELSIFIndentKeyWords(nextLineChars, charIdxRemovedTab + (hasNewLineBeforeEnd ? 1 : 0), endChar)
+								|| nextLineChars[charIdxRemovedTab + (hasNewLineBeforeEnd ? 1 : 0)] == '}';
 						int charIdxNextRemovedTab = hasNewLineBeforeEnd ? 1 : 0;
 						for (; charIdxNextRemovedTab < nextLineChars.length; charIdxNextRemovedTab++) {
-							if (nextLineChars[charIdxNextRemovedTab] == ' '
-									|| nextLineChars[charIdxNextRemovedTab] == '\t') {
+							if (nextLineChars[charIdxNextRemovedTab] == ' ' || nextLineChars[charIdxNextRemovedTab] == '\t') {
 
 							} else {
 								break;
 							}
 						}
-						final boolean isElse = isELSIFIndentKeyWords(nextLineChars,
-								charIdxNextRemovedTab, elsifChar)
-								|| isELSIFIndentKeyWords(nextLineChars, charIdxNextRemovedTab,
-										elseChar)
-								|| isELSIFIndentKeyWords(nextLineChars, charIdxNextRemovedTab,
-										whenChar);// case下行为when
-						if ((charIdxNextRemovedTab + (isElse ? 1 : 0)) > charIdxRemovedTab
-								+ (hasNewLineBeforeEnd ? 1 : 0)) {
+						final boolean isElse = isELSIFIndentKeyWords(nextLineChars, charIdxNextRemovedTab, elsifChar)
+								|| isELSIFIndentKeyWords(nextLineChars, charIdxNextRemovedTab, elseChar)
+								|| isELSIFIndentKeyWords(nextLineChars, charIdxNextRemovedTab, whenChar);// case下行为when
+						if ((charIdxNextRemovedTab + (isElse ? 1 : 0)) > charIdxRemovedTab + (hasNewLineBeforeEnd ? 1 : 0)) {
 							isNextIndentAlready = true;
 						}
 					} catch (final Throwable e) {
@@ -2627,25 +2525,20 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 					}
 					if (charNewIdxRemovedTab != 0 || withEndInd > 0) {
 						newPosition = InsertPosition + sb.length();
-						if (withEndInd > 0 && (isNextIndentAlready == false)
-								&& (nextRowIndent == false)) {
+						if (withEndInd > 0 && (isNextIndentAlready == false) && (nextRowIndent == false)) {
 							final String strEnd = ((withEndInd == END_TYPE1) ? "end" : "}");
-							if (hasEndInOldNextRowButNeedNewLine == false
-									|| hasNewLineBeforeEnd == false) {
+							if (hasEndInOldNextRowButNeedNewLine == false || hasNewLineBeforeEnd == false) {
 								final StringBuilder tailsb = new StringBuilder();
-								if (hasNewLineBeforeEnd == false
-										&& hasEndInOldNextRowButNeedNewLineCase2 == false) {
+								if (hasNewLineBeforeEnd == false && hasEndInOldNextRowButNeedNewLineCase2 == false) {
 									tailsb.append("\n");
-									tailsb.append(
-											String.valueOf(chars, 0, charNewIdxRemovedTab - 1));// 下一行，减少一个缩位
+									tailsb.append(String.valueOf(chars, 0, charNewIdxRemovedTab - 1));// 下一行，减少一个缩位
 								}
 								if (hasEnd == false && hasEndInOldNextRowButNeedNewLine == false) {
 									tailsb.append(strEnd);
 									if (afterNewEnterChars.length > noChar.length) {
 										try {
-											jtaDocment.insertString(
-													InsertPosition - 1 + afterNewEnterChars.length,
-													tailsb.toString(), KEYWORDS_LIGHTER);
+											jtaDocment.insertString(InsertPosition - 1 + afterNewEnterChars.length, tailsb.toString(),
+													KEYWORDS_LIGHTER);
 										} catch (final BadLocationException e) {
 										}
 									} else {
@@ -2659,8 +2552,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 							final String txt = sb.toString();
 							setUndoText(txt, newPosition);
 							isDoneEnter = true;
-							initBlock(strEnd, InsertPosition + sb.length() - strEnd.length(), false,
-									false);
+							initBlock(strEnd, InsertPosition + sb.length() - strEnd.length(), false, false);
 						}
 						break;
 					} else {
@@ -2741,22 +2633,20 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 				final int line = ScriptEditPanel.getLineOfOffset(jtaDocment, scriptIdx);
 				final int editLineStartIdx = ScriptEditPanel.getLineStartOffset(jtaDocment, line);
 				final int lineIdx = scriptIdx - editLineStartIdx;
-				final char[] lineChars = jtaDocment.getText(editLineStartIdx,
-						ScriptEditPanel.getLineEndOffset(jtaDocment, line) - editLineStartIdx)
-						.toCharArray();
+				final char[] lineChars = jtaDocment
+						.getText(editLineStartIdx, ScriptEditPanel.getLineEndOffset(jtaDocment, line) - editLineStartIdx).toCharArray();
 				final CSSIdx cssIdx = CodeHelper.getCSSIdx(lineChars, lineIdx, lineIdx);
 				if (cssIdx != null && cssIdx.classIdx != -1) {
 					int i = cssIdx.classIdx;
 					for (; i < lineChars.length; i++) {
 						final char nextChar = lineChars[i];
-						if (nextChar >= 'a' && nextChar <= 'z' || nextChar >= 'A' && nextChar <= 'Z'
-								|| nextChar >= '0' && nextChar <= '9' || nextChar == '_') {
+						if (nextChar >= 'a' && nextChar <= 'z' || nextChar >= 'A' && nextChar <= 'Z' || nextChar >= '0' && nextChar <= '9'
+								|| nextChar == '_') {
 						} else {
 							break;
 						}
 					}
-					final String className = String.valueOf(lineChars, cssIdx.classIdx,
-							i - cssIdx.classIdx);
+					final String className = String.valueOf(lineChars, cssIdx.classIdx, i - cssIdx.classIdx);
 					final int startIdx = editLineStartIdx + cssIdx.classIdx;
 					action.action(startIdx, i - cssIdx.classIdx);
 					return startIdx;
@@ -2770,8 +2660,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 
 	private final void clearCSSClassFocus() {
 		if (lastFocusUnderlineCSSStartIdx != -1) {
-			jtaScript.getStyledDocument().setCharacterAttributes(lastFocusUnderlineCSSStartIdx,
-					lastFocusUnderlineCSSLen, UNDERLINE_REMOVE_LIGHTER, false);
+			jtaScript.getStyledDocument().setCharacterAttributes(lastFocusUnderlineCSSStartIdx, lastFocusUnderlineCSSLen,
+					UNDERLINE_REMOVE_LIGHTER, false);
 			lastFocusUnderlineCSSStartIdx = -1;
 			setEditorDefaultCurosr();
 		}
@@ -2808,29 +2698,32 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		consumeEvent(e);
 		modifierKeysPressed = 0;
 	}
+	
+	@Override
+	public final void notifyLostWindowFocus() {
+		autoCodeTip.setEnable(false);
+		designer.codeHelper.window.hide();
+	}
 
 	final Runnable clearSelectionBGDelay = new Runnable() {// 否则导致paste，只清除selection，而没insert新内容
 		@Override
 		public void run() {
 			final StyledDocument styledDocument = jtaScript.getStyledDocument();
-			styledDocument.setCharacterAttributes(0, styledDocument.getLength(), normalBackground,
-					false);
+			styledDocument.setCharacterAttributes(0, styledDocument.getLength(), normalBackground, false);
 			jtaScript.selectedWordsMS = System.currentTimeMillis();
 			jtaScript.hasSelectedWords = false;
 		}
 	};
 
 	private final void clearSelectionBG() {
-		if (jtaScript.hasSelectedWords
-				&& (System.currentTimeMillis() - jtaScript.selectedWordsMS) > 500) {
+		if (jtaScript.hasSelectedWords && (System.currentTimeMillis() - jtaScript.selectedWordsMS) > 500) {
 			SwingUtilities.invokeLater(clearSelectionBGDelay);
 		}
 	}
 
 	private static final Pattern codeInStringPattern = Pattern.compile("#\\{(.*?)\\}");
 
-	private final void colorRemAndStr(final int offset, final String text,
-			final boolean isReplace) {
+	private final void colorRemAndStr(final int offset, final String text, final boolean isReplace) {
 		final Matcher matcher = rem_str_regexp_pattern.matcher(text);
 		while (matcher.find()) {
 			boolean isStr = false;
@@ -2861,8 +2754,8 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 		}
 	}
 
-	private final void colorCodeInStr(final int offset, final String text, final boolean isReplace,
-			final int shiftStartIdx, final int shiftEndIdx) {
+	private final void colorCodeInStr(final int offset, final String text, final boolean isReplace, final int shiftStartIdx,
+			final int shiftEndIdx) {
 		final String substring = text.substring(shiftStartIdx, shiftEndIdx);
 		final Matcher inCode = codeInStringPattern.matcher(substring);
 		while (inCode.find()) {
@@ -2874,8 +2767,7 @@ public abstract class ScriptEditPanel extends NodeEditPanel {
 	}
 
 	private final void showSelectCodesFirst() {
-		JOptionPane.showMessageDialog(designer, "please select source codes first!",
-				ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE,
+		JOptionPane.showMessageDialog(designer, "please select source codes first!", ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE,
 				App.getSysIcon(App.SYS_ERROR_ICON));
 	}
 
@@ -2899,13 +2791,12 @@ class UnderlineHighlightPainter extends LayeredHighlighter.LayerPainter {
 	}
 
 	@Override
-	public void paint(final Graphics g, final int offs0, final int offs1, final Shape bounds,
-			final JTextComponent c) {
+	public void paint(final Graphics g, final int offs0, final int offs1, final Shape bounds, final JTextComponent c) {
 	}
 
 	@Override
-	public Shape paintLayer(final Graphics g, final int offs0, final int offs1, final Shape bounds,
-			final JTextComponent c, final View view) {
+	public Shape paintLayer(final Graphics g, final int offs0, final int offs1, final Shape bounds, final JTextComponent c,
+			final View view) {
 		g.setColor(color == null ? c.getSelectionColor() : color);
 
 		Rectangle alloc = null;
@@ -2917,8 +2808,7 @@ class UnderlineHighlightPainter extends LayeredHighlighter.LayerPainter {
 			}
 		} else {
 			try {
-				final Shape shape = view.modelToView(offs0, Position.Bias.Forward, offs1,
-						Position.Bias.Backward, bounds);
+				final Shape shape = view.modelToView(offs0, Position.Bias.Forward, offs1, Position.Bias.Backward, bounds);
 				alloc = (shape instanceof Rectangle) ? (Rectangle) shape : shape.getBounds();
 			} catch (final BadLocationException e) {
 				return null;
@@ -2968,8 +2858,7 @@ class ScriptUndoableEditListener implements UndoableEditListener {
 	public void undoableEditHappened(final UndoableEditEvent e) {
 		if (isForbidRecordUndoEdit == false) {
 			final UndoableEdit edit = e.getEdit();
-			final AbstractDocument.DefaultDocumentEvent dde = ResourceUtil
-					.getDocumentEventType(edit);
+			final AbstractDocument.DefaultDocumentEvent dde = ResourceUtil.getDocumentEventType(edit);
 			if (dde.getType() == DocumentEvent.EventType.CHANGE) {
 				return;
 			}
@@ -3009,15 +2898,13 @@ class HCUndoableEdit implements UndoableEdit {
 
 		final EventType type = dde.getType();
 		if (type == DocumentEvent.EventType.REMOVE) {
-			if (undoModel == ScriptUndoableEditListener.UNDO_MODEL_TYPE
-					|| undoModel == ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL) {
+			if (undoModel == ScriptUndoableEditListener.UNDO_MODEL_TYPE || undoModel == ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL) {
 				selectionLen = 1;
 			} else {
 				selectionLen = dde.getLength();
 			}
 		} else if (type == DocumentEvent.EventType.INSERT) {
-			if (undoModel == ScriptUndoableEditListener.UNDO_MODEL_TYPE
-					|| undoModel == ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL) {
+			if (undoModel == ScriptUndoableEditListener.UNDO_MODEL_TYPE || undoModel == ScriptUndoableEditListener.UNDO_MODEL_BACK_OR_DEL) {
 			} else {
 				selectionLen = dde.getLength();
 			}
@@ -3042,8 +2929,7 @@ class HCUndoableEdit implements UndoableEdit {
 	public void undo() throws CannotUndoException {
 		final Document document = jta.getDocument();
 
-		final int oldLineNo = ScriptEditPanel.getLineOfOffsetWithoutException(document,
-				jta.getCaretPosition());
+		final int oldLineNo = ScriptEditPanel.getLineOfOffsetWithoutException(document, jta.getCaretPosition());
 
 		base.undo();
 
@@ -3094,8 +2980,7 @@ class HCUndoableEdit implements UndoableEdit {
 	public void redo() throws CannotRedoException {
 		final Document document = jta.getDocument();
 
-		final int oldLineNo = ScriptEditPanel.getLineOfOffsetWithoutException(document,
-				jta.getCaretPosition());
+		final int oldLineNo = ScriptEditPanel.getLineOfOffsetWithoutException(document, jta.getCaretPosition());
 
 		base.redo();
 
@@ -3114,11 +2999,9 @@ class HCUndoableEdit implements UndoableEdit {
 					if (matcher.find()) {
 						final int start = matcher.start() + startOff - 1;
 						final int end = matcher.end() + startOff;
-						panel.jtaStyledDocment.setCharacterAttributes(start, end - start,
-								ScriptEditPanel.KEYWORDS_LIGHTER, true);
+						panel.jtaStyledDocment.setCharacterAttributes(start, end - start, ScriptEditPanel.KEYWORDS_LIGHTER, true);
 					} else {
-						panel.jtaStyledDocment.setCharacterAttributes(startOff, endOff - startOff,
-								ScriptEditPanel.DEFAULT_LIGHTER, true);
+						panel.jtaStyledDocment.setCharacterAttributes(startOff, endOff - startOff, ScriptEditPanel.DEFAULT_LIGHTER, true);
 					}
 				} catch (final Exception e) {
 				}
@@ -3189,8 +3072,8 @@ class CSSListCellRenderer extends JLabel implements ListCellRenderer {
 	final Color listBackColor = ServerUIUtil.LIGHT_BLUE_BG;
 
 	@Override
-	public Component getListCellRendererComponent(final JList list, final Object value,
-			final int index, final boolean isSelected, final boolean cellHasFocus) {
+	public Component getListCellRendererComponent(final JList list, final Object value, final int index, final boolean isSelected,
+			final boolean cellHasFocus) {
 		setText(value.toString());
 
 		if (isSelected) {

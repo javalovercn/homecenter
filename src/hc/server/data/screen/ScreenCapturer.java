@@ -58,8 +58,7 @@ public class ScreenCapturer extends PNGCapturer {
 		DAOKeyComper.getInstance(this);
 	}
 
-	public ScreenCapturer(final J2SESession coreSS, final int clientWidth, final int clientHeight,
-			final int pcWidth, final int pcHeight) {
+	public ScreenCapturer(final J2SESession coreSS, final int clientWidth, final int clientHeight, final int pcWidth, final int pcHeight) {
 		super(coreSS, pcWidth, pcHeight, true, 0);// 全屏式
 
 		try {
@@ -83,8 +82,7 @@ public class ScreenCapturer extends PNGCapturer {
 			// 发送远屏缩略图
 			@Override
 			public void run() {
-				final int[] outSize = ThumbnailHelper.calcThumbnail(clientWidth, clientHeight,
-						pcWidth, pcHeight);
+				final int[] outSize = ThumbnailHelper.calcThumbnail(clientWidth, clientHeight, pcWidth, pcHeight);
 				final int thumbnailWidth = outSize[0];
 				final int thumbnailHeight = outSize[1];
 
@@ -111,8 +109,7 @@ public class ScreenCapturer extends PNGCapturer {
 						}
 
 						screen = ResourceUtil.resizeImage(screen, thumbnailWidth, thumbnailHeight);
-						screen.getRGB(0, 0, thumbnailWidth, thumbnailHeight, screenRGBData, 0,
-								thumbnailWidth);
+						screen.getRGB(0, 0, thumbnailWidth, thumbnailHeight, screenRGBData, 0, thumbnailWidth);
 
 						// 降低色彩度
 						for (int idxRGB = 0; idxRGB < thumbnailSize; idxRGB++) {
@@ -134,11 +131,9 @@ public class ScreenCapturer extends PNGCapturer {
 						for (int idxRGB = 0; idxRGB < thumbnailSize; idxRGB++) {
 							if (screenRGBData[idxRGB] != thumbnailRGBData[idxRGB]) {
 								if (++modiCount >= minModiNum) {
-									System.arraycopy(screenRGBData, 0, thumbnailRGBData, 0,
-											thumbnailSize);
+									System.arraycopy(screenRGBData, 0, thumbnailRGBData, 0, thumbnailSize);
 
-									sendBlock(0, 0, thumbnailRGBData, thumbnailSize, thumbnailWidth,
-											thumbnailHeight, false,
+									sendBlock(0, 0, thumbnailRGBData, thumbnailSize, thumbnailWidth, thumbnailHeight, false,
 											MsgBuilder.E_IMAGE_PNG_THUMBNAIL);
 									break;
 								}
@@ -174,8 +169,7 @@ public class ScreenCapturer extends PNGCapturer {
 			final_mobi_width = clientWidth;
 			final_mobi_height = clientHeight;
 
-			final int[] out = ThumbnailHelper.calNewLocXY(2, 1, 0, 0, pcWidth, pcHeight,
-					clientWidth, clientHeight);
+			final int[] out = ThumbnailHelper.calNewLocXY(2, 1, 0, 0, pcWidth, pcHeight, clientWidth, clientHeight);
 
 			client_width_zoomornot = out[2];
 			client_height_zoomornot = out[3];
@@ -262,8 +256,7 @@ public class ScreenCapturer extends PNGCapturer {
 			if (IDArrayGroup.checkAndAdd(IDArrayGroup.MSG_NOTIFIED_SERVER_DIRECT_MODE) == false) {
 			} else {
 				LogManager.log("Detect Server is in direct mode, notify mobile.");
-				coreSS.context.send(null, MsgBuilder.E_TAG_ROOT,
-						MsgBuilder.DATA_ROOT_SERVER_IN_DIRECT_MODE);
+				coreSS.context.send(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_SERVER_IN_DIRECT_MODE);
 			}
 		}
 
@@ -284,8 +277,8 @@ public class ScreenCapturer extends PNGCapturer {
 		final Random r = new Random(System.currentTimeMillis());
 		final int minW = screenWidth - MIN_BLOCK_CAP;
 		final int minH = screenHeigh - MIN_BLOCK_CAP;
-		final Rectangle testMinBlock = new Rectangle(((minW == 0) ? 0 : r.nextInt(minW)),
-				((minH == 0) ? 0 : r.nextInt(minH)), MIN_BLOCK_CAP, MIN_BLOCK_CAP);
+		final Rectangle testMinBlock = new Rectangle(((minW == 0) ? 0 : r.nextInt(minW)), ((minH == 0) ? 0 : r.nextInt(minH)),
+				MIN_BLOCK_CAP, MIN_BLOCK_CAP);
 		if (isSameColorBlock(testMinBlock, rgb)) {
 			isSameFullScreen();
 		}
@@ -293,8 +286,7 @@ public class ScreenCapturer extends PNGCapturer {
 
 	private void isSameFullScreen() {
 		// 产生一个模拟事件，以解除如屏保而导致的可自解锁型
-		LogManager.log(
-				"Screen maybe in lock or screensave, create ctrl-key push event to active screen.");
+		LogManager.log("Screen maybe in lock or screensave, create ctrl-key push event to active screen.");
 
 		// Point mousepoint = MouseInfo.getPointerInfo().getLocation();
 		// robot.mouseMove(0, 0);//会导致弹出移动，最小化菜单，故关闭
@@ -868,8 +860,7 @@ public class ScreenCapturer extends PNGCapturer {
 		}
 		// ctrlSomeKey(KeyEvent.VK_C);
 
-		LogManager.log(ILog.OP_STR + "drag from [" + startX + ", " + startY + "] to [" + endX + ", "
-				+ endY + "]");
+		LogManager.log(ILog.OP_STR + "drag from [" + startX + ", " + startY + "] to [" + endX + ", " + endY + "]");
 	}
 
 	/**
@@ -925,8 +916,8 @@ public class ScreenCapturer extends PNGCapturer {
 			// mobileH = client_height_zoomornot;
 		}
 		// initMobileArea();
-		final int[] newLocXY = ThumbnailHelper.calNewLocXY(fromZoom, toZoom, oldLocX, oldLocY,
-				screenWidth, screenHeigh, final_mobi_width, final_mobi_height);
+		final int[] newLocXY = ThumbnailHelper.calNewLocXY(fromZoom, toZoom, oldLocX, oldLocY, screenWidth, screenHeigh, final_mobi_width,
+				final_mobi_height);
 
 		locX = newLocXY[0];
 		locY = newLocXY[1];
@@ -970,8 +961,7 @@ public class ScreenCapturer extends PNGCapturer {
 				// ------------------------
 				final int len = (client_height_zoomornot - pixle) * client_width_zoomornot;
 				int fromRowIdx = len - 1;
-				for (int idxEnd = client_height_zoomornot * client_width_zoomornot
-						- 1; fromRowIdx >= 0;) {
+				for (int idxEnd = client_height_zoomornot * client_width_zoomornot - 1; fromRowIdx >= 0;) {
 					clientSnap[idxEnd--] = clientSnap[fromRowIdx--];
 				}
 
@@ -993,8 +983,7 @@ public class ScreenCapturer extends PNGCapturer {
 				}
 
 				final int toIdx = (client_height_zoomornot + pixle) * client_width_zoomornot;
-				for (int i = toIdx, end = client_height_zoomornot
-						* client_width_zoomornot; i < end;) {
+				for (int i = toIdx, end = client_height_zoomornot * client_width_zoomornot; i < end;) {
 					clientSnap[i++] = DEFAULT_BACK_COLOR;
 				}
 			}
@@ -1036,15 +1025,13 @@ public class ScreenCapturer extends PNGCapturer {
 					final int idxR = row * client_width_zoomornot;
 					int idxM = idxR + pixle;
 					// --********************
-					for (int x = idxR, end = idxR + client_width_zoomornot - pixle; x >= 0
-							&& x < end;) {
+					for (int x = idxR, end = idxR + client_width_zoomornot - pixle; x >= 0 && x < end;) {
 						// if(row == 0){
 						// LogManager.log("mov " + idxM + " to " + x);
 						// }
 						clientSnap[x++] = clientSnap[idxM++];
 					}
-					for (int end = idxR + client_width_zoomornot, i = end - pixle; i >= 0
-							&& i < end; i++) {
+					for (int end = idxR + client_width_zoomornot, i = end - pixle; i >= 0 && i < end; i++) {
 						// if(row == 0){
 						// LogManager.log("reset color idx " + i);
 						// }
@@ -1095,8 +1082,7 @@ public class ScreenCapturer extends PNGCapturer {
 			// locX = 0;
 			// locY = 0;
 
-			final Rectangle firstRect = new Rectangle(x, y, Math.min(mobileWidth, screenWidth),
-					Math.min(mobileHeight, screenHeigh));
+			final Rectangle firstRect = new Rectangle(x, y, Math.min(mobileWidth, screenWidth), Math.min(mobileHeight, screenHeigh));
 			// LogManager.log("First Screen x : " + x + ", y : " + y + ", w : "
 			// + firstRect.width + ", h : " + firstRect.height);
 			sendPNG(firstRect, firstRect.width, false);
@@ -1148,12 +1134,9 @@ public class ScreenCapturer extends PNGCapturer {
 		return r;
 	}
 
-	private void matchRect(final Rectangle rectangle, final int addOnePixelW,
-			final int addOnePixelH) {
-		rectangle.width = (((client_width_zoomornot < screenWidth) ? client_width_zoomornot
-				: screenWidth)) + addOnePixelW;
-		rectangle.height = (((client_height_zoomornot < screenHeigh) ? client_height_zoomornot
-				: screenHeigh)) + addOnePixelH;
+	private void matchRect(final Rectangle rectangle, final int addOnePixelW, final int addOnePixelH) {
+		rectangle.width = (((client_width_zoomornot < screenWidth) ? client_width_zoomornot : screenWidth)) + addOnePixelW;
+		rectangle.height = (((client_height_zoomornot < screenHeigh) ? client_height_zoomornot : screenHeigh)) + addOnePixelH;
 	}
 
 	/**
@@ -1171,8 +1154,7 @@ public class ScreenCapturer extends PNGCapturer {
 		// 与缩略图可能存在并发问题，所以加锁
 		synchronized (LOCK) {
 			// java.awt.peer.RobotPeer
-			out = robot.createScreenCapture(bc).getRGB(0, 0, bc.width, bc.height, null, 0,
-					bc.width);
+			out = robot.createScreenCapture(bc).getRGB(0, 0, bc.width, bc.height, null, 0, bc.width);
 		}
 		final int length = bc.width * bc.height;
 		System.arraycopy(out, 0, rgb, 0, length);
@@ -1202,8 +1184,7 @@ public class ScreenCapturer extends PNGCapturer {
 
 	@Override
 	public void onExit() {
-		final String screenID = ServerUIAPIAgent.buildScreenID(MultiUsingManager.NULL_PROJECT_ID,
-				HCURL.URL_HOME_SCREEN);
+		final String screenID = ServerUIAPIAgent.buildScreenID(MultiUsingManager.NULL_PROJECT_ID, HCURL.URL_HOME_SCREEN);
 		MultiUsingManager.exit(coreSS, screenID);
 		super.onExit();
 	}
@@ -1231,9 +1212,8 @@ public class ScreenCapturer extends PNGCapturer {
 		LogManager.errToLog("  please disable screen lock or screen saver.");
 		coreSS.context.send(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_OS_IN_LOCK);
 
-		SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_SCR_LOCKING, ResourceUtil.get(9088),
-				ResourceUtil.get(9087), SingleMessageNotify.NEVER_AUTO_CLOSE,
-				App.getSysIcon(App.SYS_ERROR_ICON));
+		SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_SCR_LOCKING, ResourceUtil.get(9088), ResourceUtil.get(9087),
+				SingleMessageNotify.NEVER_AUTO_CLOSE, App.getSysIcon(App.SYS_ERROR_ICON));
 
 		RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_LockScreen_STR);
 	}

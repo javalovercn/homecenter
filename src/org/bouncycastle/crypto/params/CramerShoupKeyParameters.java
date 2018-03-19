@@ -1,7 +1,7 @@
 package org.bouncycastle.crypto.params;
 
 public class CramerShoupKeyParameters extends AsymmetricKeyParameter {
-	
+
 	private CramerShoupParameters params;
 
 	protected CramerShoupKeyParameters(boolean isPrivate, CramerShoupParameters params) {

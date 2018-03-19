@@ -11,10 +11,8 @@ public class RLabelKeySM extends TableSM {
 	public RLabelKeySM(final AIPersistentManager mgr) throws SQLException {
 		super("R_LABEL_KEY", mgr);
 
-		query = mgr.getConnection().prepareStatement(
-				"SELECT labelID FROM " + tableName + " WHERE keyID = ? AND labelID = ?;");
-		insert = mgr.getConnection()
-				.prepareStatement("INSERT INTO " + tableName + " (labelID, keyID) VALUES (?, ?);");
+		query = mgr.getConnection().prepareStatement("SELECT labelID FROM " + tableName + " WHERE keyID = ? AND labelID = ?;");
+		insert = mgr.getConnection().prepareStatement("INSERT INTO " + tableName + " (labelID, keyID) VALUES (?, ?);");
 	}
 
 	@Override

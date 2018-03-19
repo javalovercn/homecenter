@@ -22,15 +22,21 @@ import org.javassist.compiler.CompileError;
  * Identifier.
  */
 public class Symbol extends ASTree {
-    protected String identifier;
+	protected String identifier;
 
-    public Symbol(String sym) {
-        identifier = sym;
-    }
+	public Symbol(String sym) {
+		identifier = sym;
+	}
 
-    public String get() { return identifier; }
+	public String get() {
+		return identifier;
+	}
 
-    public String toString() { return identifier; }
+	public String toString() {
+		return identifier;
+	}
 
-    public void accept(Visitor v) throws CompileError { v.atSymbol(this); }
+	public void accept(Visitor v) throws CompileError {
+		v.atSymbol(this);
+	}
 }

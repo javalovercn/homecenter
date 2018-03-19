@@ -35,76 +35,77 @@ import org.jrubyparser.ast.Node;
 import org.jrubyparser.ast.VCallNode;
 
 public class LocalStaticScope extends StaticScope {
-    private static final long serialVersionUID = 2204064248888411628L;
-    private static final String[] NO_NAMES = new String[0];
+	private static final long serialVersionUID = 2204064248888411628L;
+	private static final String[] NO_NAMES = new String[0];
 
-    public LocalStaticScope(StaticScope enclosingScope) {
-        this(enclosingScope, NO_NAMES);
-    }
+	public LocalStaticScope(StaticScope enclosingScope) {
+		this(enclosingScope, NO_NAMES);
+	}
 
-    public LocalStaticScope(StaticScope enclosingScope, String[] names) {
-        super(enclosingScope, names);
-        
-        // local scopes are argument scopes by default
-        setArgumentScope(true);
-    }
+	public LocalStaticScope(StaticScope enclosingScope, String[] names) {
+		super(enclosingScope, names);
 
-    public StaticScope getLocalScope() {
-        return this;
-    }
+		// local scopes are argument scopes by default
+		setArgumentScope(true);
+	}
 
-    public int isDefined(String name, int depth) {
-        return (depth << 16) | exists(name);
-    }
+	public StaticScope getLocalScope() {
+		return this;
+	}
 
-    /**
-     * @see org.jrubyparser.StaticScope#getAllNamesInScope()
-     */
-    public String[] getAllNamesInScope() {
-        return getVariables();
-    }
-    
-    public AssignableNode assign(SourcePosition position, String name, Node value, 
-            StaticScope topScope, int depth) {
-        int slot = exists(name);
-        
-        // We can assign if we already have variable of that name here or we are the only
-        // scope in the chain (which Local scopes always are).
-        if (slot >= 0) {
-            //System.out.println("LASGN1: " + name + ", l: " + depth + ", i: " + slot);
+	public int isDefined(String name, int depth) {
+		return (depth << 16) | exists(name);
+	}
 
-            // mark as captured if from containing scope
-            if (depth > 0) capture(slot);
+	/**
+	 * @see org.jrubyparser.StaticScope#getAllNamesInScope()
+	 */
+	public String[] getAllNamesInScope() {
+		return getVariables();
+	}
 
-            return new LocalAsgnNode(position, name, ((depth << 16) | slot), value);
-        } else if (topScope == this) {
-            slot = addVariable(name);
-            //System.out.println("LASGN2: " + name + ", l: " + depth + ", i: " + slot);
+	public AssignableNode assign(SourcePosition position, String name, Node value, StaticScope topScope, int depth) {
+		int slot = exists(name);
 
-            return new LocalAsgnNode(position, name, slot , value);
-        }
-        
-        // We know this is a block scope because a local scope cannot be within a local scope
-        // If topScope was itself it would have created a LocalAsgnNode above.
-        return ((BlockStaticScope) topScope).addAssign(position, name, value);
-    }
+		// We can assign if we already have variable of that name here or we are the only
+		// scope in the chain (which Local scopes always are).
+		if (slot >= 0) {
+			//System.out.println("LASGN1: " + name + ", l: " + depth + ", i: " + slot);
 
-    public Node declare(SourcePosition position, String name, int depth) {
-        int slot = exists(name);
-        
-        if (slot >= 0) {
-            // mark as captured if from containing scope
-            if (depth > 0) capture(slot);
-            
-            //System.out.println("LVAR: " + name + ", l: " + depth + ", i: " + slot);
-            return new LocalVarNode(position, ((depth << 16) | slot), name);
-        }
-        
-        return new VCallNode(position, name);
-    }
-    
-    @Override
-    public String toString() {
-        return "LocalScope: " + super.toString();
-    }
+			// mark as captured if from containing scope
+			if (depth > 0)
+				capture(slot);
+
+			return new LocalAsgnNode(position, name, ((depth << 16) | slot), value);
+		} else if (topScope == this) {
+			slot = addVariable(name);
+			//System.out.println("LASGN2: " + name + ", l: " + depth + ", i: " + slot);
+
+			return new LocalAsgnNode(position, name, slot, value);
+		}
+
+		// We know this is a block scope because a local scope cannot be within a local scope
+		// If topScope was itself it would have created a LocalAsgnNode above.
+		return ((BlockStaticScope) topScope).addAssign(position, name, value);
+	}
+
+	public Node declare(SourcePosition position, String name, int depth) {
+		int slot = exists(name);
+
+		if (slot >= 0) {
+			// mark as captured if from containing scope
+			if (depth > 0)
+				capture(slot);
+
+			//System.out.println("LVAR: " + name + ", l: " + depth + ", i: " + slot);
+			return new LocalVarNode(position, ((depth << 16) | slot), name);
+		}
+
+		return new VCallNode(position, name);
+	}
+
+	@Override
+	public String toString() {
+		return "LocalScope: " + super.toString();
+	}
 }

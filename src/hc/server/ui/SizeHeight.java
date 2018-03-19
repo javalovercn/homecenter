@@ -84,8 +84,7 @@ public class SizeHeight {
 	/**
 	 * return integer value of color of font, for example : 0x00FF00. <BR>
 	 * <BR>
-	 * <STRONG>Important : </STRONG>the color may be changed in different
-	 * implementation or version.
+	 * <STRONG>Important : </STRONG>the color may be changed in different implementation or version.
 	 * 
 	 * @return
 	 * @see #getColorForFontByHexString()
@@ -99,8 +98,7 @@ public class SizeHeight {
 	/**
 	 * return hex format string of color of font, for example : "00FF00". <BR>
 	 * <BR>
-	 * <STRONG>Important : </STRONG>the color may be changed in different
-	 * implementation or version.
+	 * <STRONG>Important : </STRONG>the color may be changed in different implementation or version.
 	 * 
 	 * @return
 	 * @see #getColorForFontByIntValue()
@@ -133,8 +131,7 @@ public class SizeHeight {
 	/**
 	 * return integer value of color of body, for example : 0x00FF00. <BR>
 	 * <BR>
-	 * <STRONG>Important : </STRONG>the color may be changed in different
-	 * implementation or version.
+	 * <STRONG>Important : </STRONG>the color may be changed in different implementation or version.
 	 * 
 	 * @return
 	 * @see #getColorForBodyByHexString()
@@ -148,8 +145,7 @@ public class SizeHeight {
 	/**
 	 * return hex format string of color of body, for example : "00FF00". <BR>
 	 * <BR>
-	 * <STRONG>Important : </STRONG>the color may be changed in different
-	 * implementation or version.
+	 * <STRONG>Important : </STRONG>the color may be changed in different implementation or version.
 	 * 
 	 * @return
 	 * @see #getColorForBodyByIntValue()

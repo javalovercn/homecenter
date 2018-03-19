@@ -20,8 +20,7 @@ public class SafeDataMover {
 	final HashMap<File, Long> sourceFileLength = new HashMap<File, Long>(32);
 	final HashMap<File, String> sourceFileMD5 = new HashMap<File, String>(32);
 
-	public SafeDataMover(final File src, final File target, final String[] exclude,
-			final String[] excludeDirs) {
+	public SafeDataMover(final File src, final File target, final String[] exclude, final String[] excludeDirs) {
 		this.src = src;
 		this.target = target;
 		this.excludeExtensions = exclude;
@@ -51,8 +50,8 @@ public class SafeDataMover {
 	 * @param excluesExtentions
 	 * @return
 	 */
-	private final boolean sync(final File parentSrc, final File parentTarget,
-			final String[] excluesExtentions, final String[] excludeDirs) {
+	private final boolean sync(final File parentSrc, final File parentTarget, final String[] excluesExtentions,
+			final String[] excludeDirs) {
 		final SubItems targetSubItems = targetItems.get(parentTarget);
 		if (targetSubItems == null) {
 			copyToTarget(parentSrc, parentTarget);
@@ -64,8 +63,7 @@ public class SafeDataMover {
 		final File[] srcSubs = parentSrc.listFiles();
 		if (srcSubs == null) {// 已被删除
 			L.V = L.WShop ? false
-					: LogManager.log("there is no thing in src : " + parentSrc.getAbsolutePath()
-							+ ", isDir : " + parentSrc.isDirectory());
+					: LogManager.log("there is no thing in src : " + parentSrc.getAbsolutePath() + ", isDir : " + parentSrc.isDirectory());
 			targetItems.remove(parentTarget);
 			ResourceUtil.deleteDirectoryNow(parentTarget, true);
 			return true;
@@ -94,9 +92,7 @@ public class SafeDataMover {
 				boolean isExcluds = false;
 				for (int j = 0; j < excludeDirs.length; j++) {
 					if (srcItemFileShortName.equals(excludeDirs[j])) {
-						L.V = L.WShop ? false
-								: LogManager.log(
-										"[SafeDataManager] exclude dir : " + srcItemFileShortName);
+						L.V = L.WShop ? false : LogManager.log("[SafeDataManager] exclude dir : " + srcItemFileShortName);
 						isExcluds = true;
 						break;
 					}
@@ -110,9 +106,7 @@ public class SafeDataMover {
 				boolean isExcluds = false;
 				for (int j = 0; j < excluesExtentions.length; j++) {
 					if (srcItemFileShortName.endsWith(excluesExtentions[j])) {
-						L.V = L.WShop ? false
-								: LogManager.log(
-										"[SafeDataManager] exclude file : " + srcItemFileShortName);
+						L.V = L.WShop ? false : LogManager.log("[SafeDataManager] exclude file : " + srcItemFileShortName);
 						isExcluds = true;
 						break;
 					}
@@ -157,8 +151,7 @@ public class SafeDataMover {
 						isChanged = true;
 					} else {
 						final Long srcLastModi = sourceLastModi.get(srcItem);
-						if (srcLastModi != null && lastModified == srcLastModi
-								&& srcItem.length() == sourceFileLength.get(srcItem)
+						if (srcLastModi != null && lastModified == srcLastModi && srcItem.length() == sourceFileLength.get(srcItem)
 								&& sourceFileMD5.get(srcItem).equals(getMD5(srcItem))) {
 						} else {
 							final String md5 = cp(srcItem, subParentTarget);
@@ -192,9 +185,7 @@ public class SafeDataMover {
 					if (hasExcludes && isTargetSubItemFile) {
 						for (int j = 0; j < excluesExtentions.length; j++) {
 							if (subItem.endsWith(excluesExtentions[j])) {
-								L.V = L.WShop ? false
-										: LogManager
-												.log("[SafeDataManager] exclude file : " + subItem);
+								L.V = L.WShop ? false : LogManager.log("[SafeDataManager] exclude file : " + subItem);
 								isKeep = false;
 								break;
 							}
@@ -202,9 +193,7 @@ public class SafeDataMover {
 					} else if (hasExcludeDirs && (isTargetSubItemFile == false)) {
 						for (int j = 0; j < excludeDirs.length; j++) {
 							if (subItem.equals(excludeDirs[j])) {
-								L.V = L.WShop ? false
-										: LogManager
-												.log("[SafeDataManager] exclude dir : " + subItem);
+								L.V = L.WShop ? false : LogManager.log("[SafeDataManager] exclude dir : " + subItem);
 								isKeep = false;
 								break;
 							}
@@ -217,8 +206,7 @@ public class SafeDataMover {
 					targetNames.remove(i);
 
 					L.V = L.WShop ? false
-							: LogManager.log("target exists, but not found in src, del : "
-									+ targetSubItemFile.getAbsolutePath());
+							: LogManager.log("target exists, but not found in src, del : " + targetSubItemFile.getAbsolutePath());
 
 					if (isTargetSubItemFile == false) {
 						ResourceUtil.deleteDirectoryNow(targetSubItemFile, true);
@@ -252,16 +240,15 @@ public class SafeDataMover {
 		final File[] lists = srcParent.listFiles();
 		if (lists == null) {
 			L.V = L.WShop ? false
-					: LogManager.log("there is no thing in src (cp) : "
-							+ srcParent.getAbsolutePath() + ", isDir : " + srcParent.isDirectory());
+					: LogManager
+							.log("there is no thing in src (cp) : " + srcParent.getAbsolutePath() + ", isDir : " + srcParent.isDirectory());
 			return;
 		}
 
 		targetParent.mkdirs();
 
 		L.V = L.WShop ? false
-				: LogManager.log("copy dir src : " + srcParent.getAbsolutePath() + ", target : "
-						+ targetParent.getAbsolutePath());
+				: LogManager.log("copy dir src : " + srcParent.getAbsolutePath() + ", target : " + targetParent.getAbsolutePath());
 
 		for (int i = 0; i < lists.length; i++) {
 			final File item = lists[i];
@@ -275,9 +262,7 @@ public class SafeDataMover {
 	}
 
 	static final String cp(final File src, final File target) {
-		L.V = L.WShop ? false
-				: LogManager.log("cp file src : " + src.getAbsolutePath() + ", target : "
-						+ target.getAbsolutePath());
+		L.V = L.WShop ? false : LogManager.log("cp file src : " + src.getAbsolutePath() + ", target : " + target.getAbsolutePath());
 		final String md5 = getMD5(src);
 		if (ResourceUtil.copy(src, target) == false) {
 			// 拷贝途中被删除源

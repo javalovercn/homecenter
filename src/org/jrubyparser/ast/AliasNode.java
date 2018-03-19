@@ -31,97 +31,111 @@ package org.jrubyparser.ast;
 import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
-/** Represents an alias statement (<code>alias newName oldName</code>).
+/**
+ * Represents an alias statement (<code>alias newName oldName</code>).
  */
 public class AliasNode extends Node {
-    private Node oldName;
-    private Node newName;
+	private Node oldName;
+	private Node newName;
 
-    public AliasNode(SourcePosition position, Node newName, Node oldName) {
-        super(position);
-        this.oldName = adopt(oldName);
-        this.newName = adopt(newName);
-    }
+	public AliasNode(SourcePosition position, Node newName, Node oldName) {
+		super(position);
+		this.oldName = adopt(oldName);
+		this.newName = adopt(newName);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		AliasNode aliasNode = (AliasNode) node;
 
-        AliasNode aliasNode = (AliasNode) node;
+		return getOldNameString().equals(aliasNode.getOldNameString()) && getNewNameString().equals(aliasNode.getNewNameString());
+	}
 
-        return getOldNameString().equals(aliasNode.getOldNameString()) && getNewNameString().equals(aliasNode.getNewNameString());
-    }
+	public NodeType getNodeType() {
+		return NodeType.ALIASNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitAliasNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.ALIASNODE;
-    }
+	/**
+	 * Gets the newName.
+	 * 
+	 * @return the newName as in the alias statement : <code> alias <b>newName</b> oldName </code>
+	 */
+	public Node getNewName() {
+		return newName;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitAliasNode(this);
-    }
+	/**
+	 * Gets the oldName.
+	 * 
+	 * @return the oldName as in the alias statement : <code> alias newName <b>oldName</b></code>
+	 */
+	public Node getOldName() {
+		return oldName;
+	}
 
-    /**
-     * Gets the newName.
-     * @return the newName as in the alias statement :  <code> alias <b>newName</b> oldName </code>
-     */
-    public Node getNewName() {
-        return newName;
-    }
+	public boolean oldNameMatches(String name) {
+		if (oldName instanceof INameNode)
+			return ((INameNode) oldName).isNameMatch(name);
+		if (oldName instanceof StrNode)
+			return ((StrNode) oldName).getValue().equals(name);
+		if (oldName instanceof LiteralNode)
+			return ((LiteralNode) oldName).getName().equals(name);
 
-    /**
-     * Gets the oldName.
-     * @return the oldName as in the alias statement :  <code> alias newName <b>oldName</b></code>
-     */
-    public Node getOldName() {
-        return oldName;
-    }
+		return false;
+	}
 
-    public boolean oldNameMatches(String name) {
-        if (oldName instanceof INameNode) return ((INameNode) oldName).isNameMatch(name);
-        if (oldName instanceof StrNode) return ((StrNode) oldName).getValue().equals(name);
-        if (oldName instanceof LiteralNode) return ((LiteralNode) oldName).getName().equals(name);
+	/**
+	 * Returns the actual string name of the old method from the alias statement, rather than the
+	 * node representing it.
+	 * 
+	 * @return the old name as a String
+	 */
+	public String getOldNameString() {
+		if (oldName instanceof INameNode)
+			return ((INameNode) oldName).getName();
+		if (oldName instanceof StrNode)
+			return ((StrNode) oldName).getValue();
+		if (oldName instanceof LiteralNode)
+			return ((LiteralNode) oldName).getName();
 
-        return false;
-    }
+		return "";
+	}
 
-    /**
-    * Returns the actual string name of the old method from the alias statement,
-    * rather than the node representing it.
-    * 
-    * @return the old name as a String
-    */
-    public String getOldNameString() {
-        if (oldName instanceof INameNode) return ((INameNode) oldName).getName();
-        if (oldName instanceof StrNode) return ((StrNode) oldName).getValue();
-        if (oldName instanceof LiteralNode) return ((LiteralNode) oldName).getName();
+	/**
+	 * Returns the actual string name that the method is being aliased to from the alias statement,
+	 * rather than the node representing it.
+	 *
+	 * @return the old name as a String
+	 */
+	public String getNewNameString() {
+		if (newName instanceof INameNode)
+			return ((INameNode) newName).getName();
+		if (newName instanceof StrNode)
+			return ((StrNode) newName).getValue();
+		if (newName instanceof LiteralNode)
+			return ((LiteralNode) newName).getName();
 
-        return "";
-    }
-
-    /**
-     * Returns the actual string name that the method is being aliased to from the alias statement,
-     * rather than the node representing it.
-     *
-     * @return the old name as a String
-     */
-    public String getNewNameString() {
-        if (newName instanceof INameNode) return ((INameNode) newName).getName();
-        if (newName instanceof StrNode) return ((StrNode) newName).getValue();
-        if (newName instanceof LiteralNode) return ((LiteralNode) newName).getName();
-
-        return "";
-    }
+		return "";
+	}
 
 }

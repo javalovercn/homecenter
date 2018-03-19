@@ -38,149 +38,166 @@ import org.jrubyparser.util.StaticAnalyzerHelper;
  *
  */
 public class MultipleAsgnNode extends AssignableNode {
-    private ListNode pre;
-    private Node rest;
-    private ListNode post;
+	private ListNode pre;
+	private Node rest;
+	private ListNode post;
 
-    // 1.8-only constructor
-    public MultipleAsgnNode(SourcePosition position, ListNode pre, Node rest) {
-        this(position, pre, rest, null);
-    }
+	// 1.8-only constructor
+	public MultipleAsgnNode(SourcePosition position, ListNode pre, Node rest) {
+		this(position, pre, rest, null);
+	}
 
-    // 1.9+ constructor
-    public MultipleAsgnNode(SourcePosition position, ListNode pre, Node rest, ListNode post) {
-        super(position);
-        this.pre = (ListNode) adopt(pre);
-        this.rest = adopt(rest);
-        this.post = (ListNode) adopt(post);
+	// 1.9+ constructor
+	public MultipleAsgnNode(SourcePosition position, ListNode pre, Node rest, ListNode post) {
+		super(position);
+		this.pre = (ListNode) adopt(pre);
+		this.rest = adopt(rest);
+		this.post = (ListNode) adopt(post);
 
-        assert pre != null || rest != null : "pre or rest must exist in a multipleasgn19node";
-    }
+		assert pre != null || rest != null : "pre or rest must exist in a multipleasgn19node";
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		MultipleAsgnNode other = (MultipleAsgnNode) node;
 
-        MultipleAsgnNode other = (MultipleAsgnNode) node;
+		// Make sure counts are correct since a nodes childNodes will exclude adds of null.
+		// Weird scenario of no rest arg method where 2pre == 1pre, 1post without this.
+		if (getPreCount() != other.getPreCount() || getPostCount() != other.getPostCount())
+			return false;
+		if (getRest() == null && other.getRest() == null) {
+			List<Node> kids = childNodes();
+			List<Node> otherKids = other.childNodes();
 
-        // Make sure counts are correct since a nodes childNodes will exclude adds of null.
-        // Weird scenario of no rest arg method where 2pre == 1pre, 1post without this.
-        if (getPreCount() != other.getPreCount() || getPostCount() != other.getPostCount()) return false;
-        if (getRest() == null && other.getRest() == null) {
-            List<Node> kids = childNodes();
-            List<Node> otherKids = other.childNodes();
+			for (int i = 0; i < kids.size(); i++) {
+				if (!kids.get(i).isSame(otherKids.get(i)))
+					return false;
+			}
+			return true;
+		}
+		if (getRest() == null || other.getRest() == null)
+			return false;
+		if (!getRest().isSame(other.getRest()))
+			return false;
 
-            for (int i = 0; i < kids.size(); i++) {
-                if (!kids.get(i).isSame(otherKids.get(i))) return false;
-            }
-            return true;
-        }
-        if (getRest() == null || other.getRest() == null) return false;
-        if (!getRest().isSame(other.getRest())) return false;
+		List<Node> kids = childNodes();
+		List<Node> otherKids = other.childNodes();
 
-        List<Node> kids = childNodes();
-        List<Node> otherKids = other.childNodes();
+		for (int i = 0; i < kids.size(); i++) {
+			if (!kids.get(i).isSame(otherKids.get(i)))
+				return false;
+		}
 
-        for (int i = 0; i < kids.size(); i++) {
-            if (!kids.get(i).isSame(otherKids.get(i))) return false;
-        }
+		return true;
+	}
 
-        return true;
-    }
+	public NodeType getNodeType() {
+		return NodeType.MULTIPLEASGNNODE;
+	}
 
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitMultipleAsgnNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.MULTIPLEASGNNODE;
-    }
+	public Node getRest() {
+		return rest;
+	}
 
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitMultipleAsgnNode(this);
-    }
+	public ListNode getPre() {
+		return pre;
+	}
 
-    public Node getRest() {
-        return rest;
-    }
+	/**
+	 * Get total count of all pre arguments ({pre},*rest,post).
+	 * 
+	 * @return the number of pre arguments
+	 */
+	public int getPreCount() {
+		return pre == null ? 0 : pre.size();
+	}
 
-    public ListNode getPre() {
-        return pre;
-    }
+	/**
+	 * Get total count of all post arguments (pre,*rest,{post}).
+	 * 
+	 * @return the number of post arguments
+	 */
+	public int getPostCount() {
+		return post == null ? 0 : post.size();
+	}
 
-    /**
-     * Get total count of all pre arguments ({pre},*rest,post).
-     * @return the number of pre arguments
-     */
-    public int getPreCount() {
-        return pre == null ? 0 : pre.size();
-    }
+	public ListNode getPost() {
+		return post;
+	}
 
-    /**
-     * Get total count of all post arguments (pre,*rest,{post}).
-     * @return the number of post arguments
-     */
-    public int getPostCount() {
-        return post == null ? 0 : post.size();
-    }
+	public int getRequiredCount() {
+		return getPreCount() + getPostCount();
+	}
 
-    public ListNode getPost() {
-        return post;
-    }
+	/**
+	 * In cases where some or all the the LHS to RHS assignments are known then return a list of
+	 * known mappings. This will only work on a subset of simple static resolvable mappings.
+	 * Something like:
+	 * 
+	 * <pre>
+	 *   a, *b, c = 1,2,3,4
+	 * </pre>
+	 * 
+	 * will work since all values can be computed simply ([a=1,b=[2,3],c=4]). For the case of b an
+	 * ArrayNode will get constructed with proper range offsets as a computed node. This example
+	 * used FixnumNodes but the node type can be anything which can be statically resolved.
+	 *
+	 * However:
+	 * 
+	 * <pre>
+	 *   a, *b, c = random_call
+	 *   a, *b, c = *[1,2,3,4]
+	 * </pre>
+	 * 
+	 * will not work since we cannot know what random_call will return. The splat case could be made
+	 * to work since it is statically resolvable, but at this point we do not want to replicate too
+	 * much of Ruby's semantics. So statically resolvable but compound static resolution is not
+	 * currently in scope for this method (although it might be added later).
+	 *
+	 * Note, this will return a partial list when part of the list is statically resolvable and the
+	 * unresolvable portions will have a null value to indicate they cannot be resolved:
+	 * 
+	 * <pre>
+	 *   a, *b, c = 1, *foo
+	 * </pre>
+	 * 
+	 * In this case we will get back [a=1,b=null,c=null]. Partial results are still useful for
+	 * inference in an IDE.
+	 *
+	 * @return a list of nodepairs for known bindings and null for values not bound.
+	 */
+	public List<NodePair> calculateStaticAssignments() {
+		return StaticAnalyzerHelper.calculateStaticAssignments(this, getValue());
+	}
 
-    public int getRequiredCount() {
-        return getPreCount() + getPostCount();
-    }
+	@Override
+	public SourcePosition getLeftHandSidePosition() {
+		SourcePosition leftPosition = null;
 
-    /**
-     * In cases where some or all the the LHS to RHS assignments are known then return a list of
-     * known mappings.  This will only work on a subset of simple static resolvable mappings.
-     * Something like:
-     * <pre>
-     *   a, *b, c = 1,2,3,4
-     * </pre>
-     * will work since all values can be computed simply ([a=1,b=[2,3],c=4]).  For the case of b
-     * an ArrayNode will get constructed with proper range offsets as a computed node.  This
-     * example used FixnumNodes but the node type can be anything which can be statically resolved.
-     *
-     * However:
-     * <pre>
-     *   a, *b, c = random_call
-     *   a, *b, c = *[1,2,3,4]
-     * </pre>
-     * will not work since we cannot know what random_call will return.  The splat case could be
-     * made to work since it is statically resolvable, but at this point we do not want to
-     * replicate too much of Ruby's semantics.  So statically resolvable but compound static
-     * resolution is not currently in scope for this method (although it might be added later).
-     *
-     * Note, this will return a partial list when part of the list is statically resolvable and
-     * the unresolvable portions will have a null value to indicate they cannot be resolved:
-     * <pre>
-     *   a, *b, c = 1, *foo
-     * </pre>
-     * In this case we will get back [a=1,b=null,c=null].  Partial results are still useful for
-     * inference in an IDE.
-     *
-     * @return a list of nodepairs for known bindings and null for values not bound.
-     */
-    public List<NodePair> calculateStaticAssignments() {
-        return StaticAnalyzerHelper.calculateStaticAssignments(this, getValue());
-    }
+		if (getPreCount() > 0)
+			leftPosition = getPre().getPosition();
+		if (leftPosition == null && getRest() != null)
+			leftPosition = getRest().getPosition();
+		// left position guaranteed non-nill based on constructor contract.
+		if (getPostCount() > 0)
+			return leftPosition.union(getPost().getPosition());
+		if (getRest() != null && leftPosition != getRest().getPosition())
+			return leftPosition.union(getRest().getPosition());
 
-    @Override
-    public SourcePosition getLeftHandSidePosition() {
-        SourcePosition leftPosition = null;
-
-        if (getPreCount() > 0) leftPosition = getPre().getPosition();
-        if (leftPosition == null && getRest() != null) leftPosition = getRest().getPosition();
-        // left position guaranteed non-nill based on constructor contract.
-        if (getPostCount() > 0) return leftPosition.union(getPost().getPosition());
-        if (getRest() != null && leftPosition != getRest().getPosition()) return leftPosition.union(getRest().getPosition());
-
-        return leftPosition;
-    }
+		return leftPosition;
+	}
 }

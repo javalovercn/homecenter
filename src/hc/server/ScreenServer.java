@@ -29,8 +29,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 public class ScreenServer {
-	public static final ServCtrlCanvas searchCtrlCanvas(final J2SESession coreSS,
-			final String screenID) {
+	public static final ServCtrlCanvas searchCtrlCanvas(final J2SESession coreSS, final String screenID) {
 		final Enumeration e = coreSS.mobiScreenMap.elements();
 		try {
 			while (e.hasMoreElements()) {
@@ -48,8 +47,7 @@ public class ScreenServer {
 		return null;
 	}
 
-	public static final Object searchScreen(final J2SESession coreSS, final byte[] bs,
-			final int offset, final int len) {
+	public static final Object searchScreen(final J2SESession coreSS, final byte[] bs, final int offset, final int len) {
 		final Enumeration e = coreSS.mobiScreenMap.elements();
 		try {
 			while (e.hasMoreElements()) {
@@ -74,11 +72,9 @@ public class ScreenServer {
 
 				if (canvas instanceof IMletCanvas) {
 					final IMletCanvas mhtml = (IMletCanvas) canvas;
-					if (mhtml.isSameScreenIDIgnoreCase(screenIDLowerChars, 0,
-							screenIDLowerChars.length)) {
+					if (mhtml.isSameScreenIDIgnoreCase(screenIDLowerChars, 0, screenIDLowerChars.length)) {
 						// 因为仅做画面次序调整，所以要先行，
-						final String[] para = { HCURL.DATA_PARA_SHIFT_SCREEN_TO_TOP_FROM_IDX,
-								HCURL.DATA_PARA_SHIFT_SCREEN_TO_TOP_SIZE };
+						final String[] para = { HCURL.DATA_PARA_SHIFT_SCREEN_TO_TOP_FROM_IDX, HCURL.DATA_PARA_SHIFT_SCREEN_TO_TOP_SIZE };
 						final String[] values = { String.valueOf(i), String.valueOf(size) };
 						HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, para, values);
 
@@ -168,8 +164,7 @@ public class ScreenServer {
 						removeRemoteDispalyByIdx(coreSS);
 						mletHtmlCanvas.onExit(true);
 						if (L.isInWorkshop) {
-							LogManager.log("===>successful auto release after go : "
-									+ mletHtmlCanvas.mlet.getTarget());
+							LogManager.log("===>successful auto release after go : " + mletHtmlCanvas.mlet.getTarget());
 						}
 						return;
 					}
@@ -181,8 +176,7 @@ public class ScreenServer {
 						removeRemoteDispalyByIdx(coreSS);
 						mletSnapCanvas.onExit(true);
 						if (L.isInWorkshop) {
-							LogManager.log("===>successful auto release after go : "
-									+ mletSnapCanvas.mlet.getTarget());
+							LogManager.log("===>successful auto release after go : " + mletSnapCanvas.mlet.getTarget());
 						}
 						return;
 					}
@@ -215,16 +209,13 @@ public class ScreenServer {
 		return isClass.isInstance(coreSS.currScreen);
 	}
 
-	public final static boolean isMatchScreen(final Object screenCap, final byte[] bs,
-			final int offset, final int len) {
-		return screenCap != null && ((screenCap instanceof PNGCapturer)
-				&& ((PNGCapturer) screenCap).isMatchScreenIDForCapture(bs, offset, len)
-				|| (screenCap instanceof IMletCanvas)
-						&& ((IMletCanvas) screenCap).isSameScreenID(bs, offset, len));
+	public final static boolean isMatchScreen(final Object screenCap, final byte[] bs, final int offset, final int len) {
+		return screenCap != null
+				&& ((screenCap instanceof PNGCapturer) && ((PNGCapturer) screenCap).isMatchScreenIDForCapture(bs, offset, len)
+						|| (screenCap instanceof IMletCanvas) && ((IMletCanvas) screenCap).isSameScreenID(bs, offset, len));
 	}
 
-	public static final IMletCanvas searchDialog(final J2SESession coreSS, final byte[] bs,
-			final int offset, final int screenIDLen) {
+	public static final IMletCanvas searchDialog(final J2SESession coreSS, final byte[] bs, final int offset, final int screenIDLen) {
 		final HashMap<Integer, ResParameter> questionOrDialogMap = coreSS.questionOrDialogMap;
 		synchronized (questionOrDialogMap) {
 			final Iterator<Integer> it = questionOrDialogMap.keySet().iterator();
@@ -325,68 +316,59 @@ public class ScreenServer {
 
 	public static final int J2SE_STANDARD_DPI = 96;
 
-	public static void onStartForMlet(final J2SESession coreSS, final ProjectContext projectContext,
-			final Mlet mlet) {
-		ServerUIAPIAgent.runInSessionThreadPool(coreSS,
-				ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {
-					@Override
-					public void run() {
-						ServerUIAPIAgent.notifyStatusChangedForMlet(mlet, Mlet.STATUS_RUNNING);// in
-																								// user
-																								// thread
-						mlet.onStart();
-					}
-				});
+	public static void onStartForMlet(final J2SESession coreSS, final ProjectContext projectContext, final Mlet mlet) {
+		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {
+			@Override
+			public void run() {
+				ServerUIAPIAgent.notifyStatusChangedForMlet(mlet, Mlet.STATUS_RUNNING);// in
+																						// user
+																						// thread
+				mlet.onStart();
+			}
+		});
 	}
 
-	public static void onExitForMlet(final J2SESession coreSS, final ProjectContext projectContext,
-			final Mlet mlet, final boolean isAutoReleaseAfterGo) {
-		ServerUIAPIAgent.removeMletURLHistory(coreSS, projectContext.getProjectID(),
-				mlet.getTarget());// 可能自然pop，也可能autoRelease
+	public static void onExitForMlet(final J2SESession coreSS, final ProjectContext projectContext, final Mlet mlet,
+			final boolean isAutoReleaseAfterGo) {
+		ServerUIAPIAgent.removeMletURLHistory(coreSS, projectContext.getProjectID(), mlet.getTarget());// 可能自然pop，也可能autoRelease
 
 		if (isAutoReleaseAfterGo) {
-			LogManager.log("Mlet/HTMLMlet [" + mlet.getTarget()
-					+ "] is auto released after go to other Mlet/HTMLMlet.");
+			LogManager.log("Mlet/HTMLMlet [" + mlet.getTarget() + "] is auto released after go to other Mlet/HTMLMlet.");
 		}
 
-		ServerUIAPIAgent.runInSessionThreadPool(coreSS,
-				ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {
-					@Override
-					public void run() {
-						ServerUIAPIAgent.notifyStatusChangedForMlet(mlet, Mlet.STATUS_EXIT);// in
-																							// user
-																							// thread
-						mlet.onExit();
-					}
-				});
+		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {
+			@Override
+			public void run() {
+				ServerUIAPIAgent.notifyStatusChangedForMlet(mlet, Mlet.STATUS_EXIT);// in
+																					// user
+																					// thread
+				mlet.onExit();
+			}
+		});
 	}
 
-	public static void onPauseForMlet(final J2SESession coreSS, final ProjectContext projectContext,
-			final Mlet mlet) {
-		ServerUIAPIAgent.runInSessionThreadPool(coreSS,
-				ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {
-					@Override
-					public void run() {
-						ServerUIAPIAgent.notifyStatusChangedForMlet(mlet, Mlet.STATUS_PAUSE);// in
-																								// user
-																								// thread
-						mlet.onPause();
-					}
-				});
+	public static void onPauseForMlet(final J2SESession coreSS, final ProjectContext projectContext, final Mlet mlet) {
+		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {
+			@Override
+			public void run() {
+				ServerUIAPIAgent.notifyStatusChangedForMlet(mlet, Mlet.STATUS_PAUSE);// in
+																						// user
+																						// thread
+				mlet.onPause();
+			}
+		});
 	}
 
-	public static void onResumeForMlet(final J2SESession coreSS,
-			final ProjectContext projectContext, final Mlet mlet) {
-		ServerUIAPIAgent.runInSessionThreadPool(coreSS,
-				ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {
-					@Override
-					public void run() {
-						ServerUIAPIAgent.notifyStatusChangedForMlet(mlet, Mlet.STATUS_RUNNING);// in
-																								// user
-																								// thread
-						mlet.onResume();
-					}
-				});
+	public static void onResumeForMlet(final J2SESession coreSS, final ProjectContext projectContext, final Mlet mlet) {
+		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(projectContext), new Runnable() {
+			@Override
+			public void run() {
+				ServerUIAPIAgent.notifyStatusChangedForMlet(mlet, Mlet.STATUS_RUNNING);// in
+																						// user
+																						// thread
+				mlet.onResume();
+			}
+		});
 	}
 
 }

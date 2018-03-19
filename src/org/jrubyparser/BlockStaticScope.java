@@ -34,80 +34,81 @@ import org.jrubyparser.ast.DVarNode;
 import org.jrubyparser.ast.Node;
 
 public class BlockStaticScope extends StaticScope {
-    private static final long serialVersionUID = -3882063260379968149L;
+	private static final long serialVersionUID = -3882063260379968149L;
 
-    public BlockStaticScope(StaticScope parentScope) {
-        super(parentScope, new String[0]);
-    }
+	public BlockStaticScope(StaticScope parentScope) {
+		super(parentScope, new String[0]);
+	}
 
-    public BlockStaticScope(StaticScope parentScope, String[] names) {
-        super(parentScope, names);
-    }
-    
-    public StaticScope getLocalScope() {
-        return enclosingScope.getLocalScope();
-    }
-    
-    public int isDefined(String name, int depth) {
-        int slot = exists(name); 
-        if (slot >= 0) return (depth << 16) | slot;
-        
-        return enclosingScope.isDefined(name, depth + 1);
-    }
-    
-    /**
-     */
-    public String[] getAllNamesInScope() {
-        String[] variables = enclosingScope.getAllNamesInScope();
-        String[] ourVariables = getVariables();
-        
-        // we know variables cannot be null since localstaticscope will create a 0 length one.
-        int newSize = variables.length + ourVariables.length;
-        String[] names = new String[newSize];
-        
-        System.arraycopy(variables, 0, names, 0, variables.length);
-        System.arraycopy(ourVariables, 0, names, variables.length, ourVariables.length);
-        
-        return names;
-    }
+	public BlockStaticScope(StaticScope parentScope, String[] names) {
+		super(parentScope, names);
+	}
 
-    protected AssignableNode assign(SourcePosition position, String name, Node value, 
-            StaticScope topScope, int depth) {
-        int slot = exists(name);
+	public StaticScope getLocalScope() {
+		return enclosingScope.getLocalScope();
+	}
 
-        
-        if (slot >= 0) {
-            // mark as captured if from containing scope
-            if (depth > 0) capture(slot);
-        
-            return new DAsgnNode(position, name, ((depth << 16) | slot), value);
-        }
+	public int isDefined(String name, int depth) {
+		int slot = exists(name);
+		if (slot >= 0)
+			return (depth << 16) | slot;
 
-        return enclosingScope.assign(position, name, value, topScope, depth + 1);
-    }
+		return enclosingScope.isDefined(name, depth + 1);
+	}
 
-    public AssignableNode addAssign(SourcePosition position, String name, Node value) {
-        int slot = addVariable(name);
-        
-        // No bit math to store level since we know level is zero for this case
-        return new DAsgnNode(position, name, slot, value);
-    }
+	/**
+	 */
+	public String[] getAllNamesInScope() {
+		String[] variables = enclosingScope.getAllNamesInScope();
+		String[] ourVariables = getVariables();
 
-    public Node declare(SourcePosition position, String name, int depth) {
-        int slot = exists(name);
-        
-        if (slot >= 0) {
-            // mark as captured if from containing scope
-            if (depth > 0) capture(slot);
-            
-            return new DVarNode(position, ((depth << 16) | slot), name);
-        }
-        
-        return enclosingScope.declare(position, name, depth + 1);
-    }
-    
-    @Override
-    public String toString() {
-        return "BlockScope: " + super.toString() + "\n" + getEnclosingScope();
-    }
+		// we know variables cannot be null since localstaticscope will create a 0 length one.
+		int newSize = variables.length + ourVariables.length;
+		String[] names = new String[newSize];
+
+		System.arraycopy(variables, 0, names, 0, variables.length);
+		System.arraycopy(ourVariables, 0, names, variables.length, ourVariables.length);
+
+		return names;
+	}
+
+	protected AssignableNode assign(SourcePosition position, String name, Node value, StaticScope topScope, int depth) {
+		int slot = exists(name);
+
+		if (slot >= 0) {
+			// mark as captured if from containing scope
+			if (depth > 0)
+				capture(slot);
+
+			return new DAsgnNode(position, name, ((depth << 16) | slot), value);
+		}
+
+		return enclosingScope.assign(position, name, value, topScope, depth + 1);
+	}
+
+	public AssignableNode addAssign(SourcePosition position, String name, Node value) {
+		int slot = addVariable(name);
+
+		// No bit math to store level since we know level is zero for this case
+		return new DAsgnNode(position, name, slot, value);
+	}
+
+	public Node declare(SourcePosition position, String name, int depth) {
+		int slot = exists(name);
+
+		if (slot >= 0) {
+			// mark as captured if from containing scope
+			if (depth > 0)
+				capture(slot);
+
+			return new DVarNode(position, ((depth << 16) | slot), name);
+		}
+
+		return enclosingScope.declare(position, name, depth + 1);
+	}
+
+	@Override
+	public String toString() {
+		return "BlockScope: " + super.toString() + "\n" + getEnclosingScope();
+	}
 }

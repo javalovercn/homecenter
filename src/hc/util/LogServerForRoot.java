@@ -1,9 +1,5 @@
 package hc.util;
 
-import hc.core.util.ExceptionReporter;
-import hc.core.util.ILog;
-import hc.core.util.LogManager;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -12,15 +8,23 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import hc.core.util.ExceptionReporter;
+import hc.core.util.ILog;
+import hc.core.util.LogManager;
+
 public class LogServerForRoot implements ILog {
 	private FileOutputStream outLogger = null;
 
 	public LogServerForRoot() {
+		this(null);
+	}
+
+	public LogServerForRoot(final String prefix) {
 		if (LogManager.INI_DEBUG_ON) {
 		} else {
 			final SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd_hhmmss");
 
-			final File newLog = new File("hc_" + df.format(new Date()) + ".log");
+			final File newLog = new File((prefix == null ? "hc_" : prefix) + df.format(new Date()) + ".log");
 
 			PrintStream printStream = null;
 			try {
@@ -96,8 +100,7 @@ public class LogServerForRoot implements ILog {
 
 	@Override
 	public void warning(final String msg) {
-		System.out.println(
-				(new Timestamp(System.currentTimeMillis())).toString() + ILog.WARNING + msg);
+		System.out.println((new Timestamp(System.currentTimeMillis())).toString() + ILog.WARNING + msg);
 	}
 
 }

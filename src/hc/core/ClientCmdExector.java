@@ -13,63 +13,69 @@ import java.io.UnsupportedEncodingException;
 public class ClientCmdExector {
 	/**
 	 * 如果已响应处理，则返回true；否则返回false
+	 * 
 	 * @param coreSS
 	 * @param url
 	 * @return
 	 */
 	public static boolean process(final CoreSession coreSS, HCURL url) {
 		IContext ctx = coreSS.context;
-		
-		if(url.protocal == HCURL.CMD_PROTOCAL){
+
+		if (url.protocal == HCURL.CMD_PROTOCAL) {
 			final String elementID = url.elementID;
-			if(elementID.equals(HCURL.DATA_CMD_ALERT)){
-				ctx.doExtBiz(IContext.BIZ_NEW_NOTIFICATION, url.getValueofPara("status"));
+			if (elementID.equals(HCURL.DATA_CMD_ALERT)) {
+				ctx.doExtBiz(IContext.BIZ_NEW_NOTIFICATION,
+						url.getValueofPara("status"));
 				return true;
-			}else if(elementID.equals(HCURL.DATA_CMD_MSG)){
-//				LogManager.log("Receive Cmd Msg");
+			} else if (elementID.equals(HCURL.DATA_CMD_MSG)) {
+				// LogManager.log("Receive Cmd Msg");
 
 				final String caption = url.getValueofPara("caption");
 				final String text = url.getValueofPara("text");
 				final int type = Integer.parseInt(url.getValueofPara("type"));
 				final String image = url.getValueofPara("image");
-				final int timeout = Integer.parseInt(url.getValueofPara("timeOut"));
-				
+				final int timeout = Integer
+						.parseInt(url.getValueofPara("timeOut"));
+
 				receiveAlert(true, ctx, caption, text, type, image, timeout);
-				
+
 				return true;
-			}else if(elementID.equals(HCURL.DATA_CMD_MOVING_MSG)){
-				ctx.doExtBiz(IContext.BIZ_MOVING_SCREEN_TIP, url.getValueofPara("value"));
+			} else if (elementID.equals(HCURL.DATA_CMD_MOVING_MSG)) {
+				ctx.doExtBiz(IContext.BIZ_MOVING_SCREEN_TIP,
+						url.getValueofPara("value"));
 				return true;
-			}else if(elementID.equals(HCURL.DATA_CMD_VOICE)){
+			} else if (elementID.equals(HCURL.DATA_CMD_VOICE)) {
 				ctx.doExtBiz(IContext.BIZ_VOICE, url.getValueofPara("value"));
 				return true;
-			}else if(HCURL.DATA_CMD_PUBLISH_LOCATION_MS.equals(elementID)){
-				try{
+			} else if (HCURL.DATA_CMD_PUBLISH_LOCATION_MS.equals(elementID)) {
+				try {
 					final String ms = url.getValueofPara("value");
-					RootBuilder.getInstance().doBiz(RootBuilder.ROOT_SET_PUBLISH_LOCATION_INTER_MS, ms);
-				}catch (Throwable e) {
+					RootBuilder.getInstance().doBiz(
+							RootBuilder.ROOT_SET_PUBLISH_LOCATION_INTER_MS, ms);
+				} catch (Throwable e) {
 					e.printStackTrace();
 				}
 				return true;
-			}else if(elementID.equals(HCURL.DATA_CMD_CTRL_BTN_TXT)){
+			} else if (elementID.equals(HCURL.DATA_CMD_CTRL_BTN_TXT)) {
 				ctx.doExtBiz(IContext.BIZ_CTRL_BTN_TXT, url);
 				return true;
 			}
-		}else if(url.protocal == HCURL.FORM_PROTOCAL){
-//			if(url.elementID.equals("/form1")){}
-		}else if(url.protocal == HCURL.MENU_PROTOCAL){
-//			if(url.elementID.equals("/root")){}
-		}else if(url.protocal == HCURL.CONTROLLER_PROTOCAL){
-//			if(url.elementID.equals("/root")){}
+		} else if (url.protocal == HCURL.FORM_PROTOCAL) {
+			// if(url.elementID.equals("/form1")){}
+		} else if (url.protocal == HCURL.MENU_PROTOCAL) {
+			// if(url.elementID.equals("/root")){}
+		} else if (url.protocal == HCURL.CONTROLLER_PROTOCAL) {
+			// if(url.elementID.equals("/root")){}
 		}
 		return false;
 	}
 
-	public static void receiveAlert(final boolean isFromServerAlertMsg, IContext ctx, final String caption,
-			final String text, final int type, final String image,
-			final int timeout) {
-		//仅处理服务器端过来的，不能置于displayMessage之中，因为本地异常也可能displayMessage
-		ctx.displayMessage(isFromServerAlertMsg, caption, text, type, image, timeout);
+	public static void receiveAlert(final boolean isFromServerAlertMsg,
+			IContext ctx, final String caption, final String text,
+			final int type, final String image, final int timeout) {
+		// 仅处理服务器端过来的，不能置于displayMessage之中，因为本地异常也可能displayMessage
+		ctx.displayMessage(isFromServerAlertMsg, caption, text, type, image,
+				timeout);
 	}
 
 	public static String decodeURL(String s, String enc)
@@ -77,8 +83,8 @@ public class ClientCmdExector {
 
 		boolean needToChange = false;
 		int numChars = s.length();
-		StringBuffer sb = new StringBuffer(numChars > 500 ? numChars / 2
-				: numChars);
+		StringBuffer sb = new StringBuffer(
+				numChars > 500 ? numChars / 2 : numChars);
 		int i = 0;
 
 		if (enc.length() == 0) {
@@ -104,8 +110,8 @@ public class ClientCmdExector {
 					int pos = 0;
 
 					while (((i + 2) < numChars) && (c == '%')) {
-						bytes[pos++] = (byte) Integer.parseInt(
-								s.substring(i + 1, i + 3), 16);
+						bytes[pos++] = (byte) Integer
+								.parseInt(s.substring(i + 1, i + 3), 16);
 						i += 3;
 						if (i < numChars)
 							c = s.charAt(i);

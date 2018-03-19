@@ -24,8 +24,7 @@ public class CSSHelper {
 
 	private static void testCssDoc() {
 		final HashMap<String, String> cssDocs = new HashMap<String, String>(120);
-		final String data = loadData(
-				ResourceUtil.getResourceAsStream(DocHelper.buildCSSFilePath("box.html")));
+		final String data = loadData(ResourceUtil.getResourceAsStream(DocHelper.buildCSSFilePath("box.html")));
 		readCssDoc(data, cssDocs);
 		System.out.println(cssDocs.get("margin"));
 	}
@@ -37,8 +36,7 @@ public class CSSHelper {
 
 		for (int i = 0; i < size; i++) {
 			final String fileName = fileNames.elementAt(i);
-			final String data = loadData(
-					ResourceUtil.getResourceAsStream(DocHelper.buildCSSFilePath(fileName)));
+			final String data = loadData(ResourceUtil.getResourceAsStream(DocHelper.buildCSSFilePath(fileName)));
 			readTabel(data, fileName, propVector);
 		}
 
@@ -53,8 +51,7 @@ public class CSSHelper {
 			System.out.println("props.put(\"" + item + "\", \"" + fileName + "\");");
 
 			if (propDocVector.get(item) == null) {
-				final String data = loadData(
-						ResourceUtil.getResourceAsStream(DocHelper.buildCSSFilePath(fileName)));
+				final String data = loadData(ResourceUtil.getResourceAsStream(DocHelper.buildCSSFilePath(fileName)));
 				readCssDoc(data, propDocVector);
 			}
 
@@ -66,20 +63,17 @@ public class CSSHelper {
 	}
 
 	final static String defTable = "<table class=\"def propdef\">";
-	final static Pattern pattern = Pattern.compile(defTable + "(.*?)</table>",
-			Pattern.MULTILINE | Pattern.DOTALL);// 注意：margin-top,
-												// margin-bottom共用一个
+	final static Pattern pattern = Pattern.compile(defTable + "(.*?)</table>", Pattern.MULTILINE | Pattern.DOTALL);// 注意：margin-top,
+																													// margin-bottom共用一个
 	final static Pattern prop_pattern = Pattern.compile("<dfn id=\"propdef-(.*?)\">(.*?)</dfn>");// 相关联的多个可能排列在一起(比如cue-before,
 																									// cue-after)，共用参数描述和example
-	// final static Pattern item_pattern =
-	// Pattern.compile("<tr><th>(.*?):<td>(.*?)\n");
-	final static Pattern patternDoc = Pattern.compile(
-			defTable + "(.*?)(?=(<hr|\n\n<H2>|\n\n<h2>|\n\n<H3>|\n\n<h3>|" + defTable + "))",
+																									// final static Pattern item_pattern =
+																									// Pattern.compile("<tr><th>(.*?):<td>(.*?)\n");
+	final static Pattern patternDoc = Pattern.compile(defTable + "(.*?)(?=(<hr|\n\n<H2>|\n\n<h2>|\n\n<H3>|\n\n<h3>|" + defTable + "))",
 			Pattern.MULTILINE | Pattern.DOTALL);// 注意：margin-top,
-												// margin-bottom共用一个
+																																													// margin-bottom共用一个
 
-	final static void readCssDoc(final String docContent,
-			final HashMap<String, String> propVector) {
+	final static void readCssDoc(final String docContent, final HashMap<String, String> propVector) {
 		final Matcher matcher = patternDoc.matcher(docContent);
 		while (matcher.find()) {
 			final String doc = defTable + matcher.group(1);
@@ -96,8 +90,7 @@ public class CSSHelper {
 		}
 	}
 
-	final static void readTabel(final String docContent, final String fileName,
-			final HashMap<String, String> propVector) {
+	final static void readTabel(final String docContent, final String fileName, final HashMap<String, String> propVector) {
 		final Matcher matcher = pattern.matcher(docContent);
 		while (matcher.find()) {
 			final String prop = matcher.group(1);
@@ -120,16 +113,15 @@ public class CSSHelper {
 
 	static String loadData(final InputStream in) {
 		final byte[] bs = ResourceUtil.getContent(in, 0);
-		if(bs == null) {
+		if (bs == null) {
 			return null;
-		}else {
+		} else {
 			return ByteUtil.bytesToStr(bs, 0, bs.length);
 		}
 	}
 
 	private static Vector<String> getAllFiles(final String fileName) {
-		final InputStream in = ResourceUtil
-				.getResourceAsStream(DocHelper.buildCSSFilePath(fileName));
+		final InputStream in = ResourceUtil.getResourceAsStream(DocHelper.buildCSSFilePath(fileName));
 
 		final Vector<String> out = new Vector<String>(50);
 

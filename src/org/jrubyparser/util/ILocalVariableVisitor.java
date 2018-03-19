@@ -24,120 +24,122 @@ import org.jrubyparser.ast.RootNode;
 import org.jrubyparser.ast.SClassNode;
 
 /**
- * Find all ILocalVariables for a particular scope.  The implementation will walk all children
- * until it runs into a nested scope which cannot possibly be in the current scope (e.g. a def
- * in a def).  IterNode is the lone IScope which can capture external ILocalVariables so we 
- * let the visitor enter into them.  Restricting this walking is meant as an optimization since
- * our logic will only allow variables of the same scope to be added to the list.
+ * Find all ILocalVariables for a particular scope. The implementation will walk all children until
+ * it runs into a nested scope which cannot possibly be in the current scope (e.g. a def in a def).
+ * IterNode is the lone IScope which can capture external ILocalVariables so we let the visitor
+ * enter into them. Restricting this walking is meant as an optimization since our logic will only
+ * allow variables of the same scope to be added to the list.
  * 
  */
 public class ILocalVariableVisitor extends NoopVisitor {
-    private List<ILocalVariable> list;
-    private String name;
-    private IScope scope;
-    
-    public static List<ILocalVariable> findOccurrencesIn(IScope scope, String name) {
-        ILocalVariableVisitor visitor = new ILocalVariableVisitor(scope, name);
-        
-        visitor.run();
-        
-        return visitor.getVariableList();
-    }
-    
-    public ILocalVariableVisitor(IScope scope, String name) {
-        list = new ArrayList<ILocalVariable>();
-        this.scope = scope;
-        this.name = name;
-    }
-    
-    public void run() {
-        for (Node child: ((Node) scope).childNodes()) {
-            child.accept(this);
-        }
-    }
-    
-    public List<ILocalVariable> getVariableList() {
-        return list;
-    }
-    
-    /*
-     * nested blocks in blocks can have variables masked with same name so we make sure scope is correct.
-     */
-    private void addVariableIfInScopeAndRightName(ILocalVariable variable) {
-        if (variable.getDefinedScope() == scope && name.equals(variable.getName())) list.add(variable);
-    }
+	private List<ILocalVariable> list;
+	private String name;
+	private IScope scope;
 
-    @Override
-    public Object visitArgumentNode(ArgumentNode iVisited) {
-        addVariableIfInScopeAndRightName(iVisited);
-        return null;
-    }
-    
-    @Override
-    public Object visitBlockArgNode(BlockArgNode iVisited) {
-        addVariableIfInScopeAndRightName(iVisited);
-        return null;
-    }
+	public static List<ILocalVariable> findOccurrencesIn(IScope scope, String name) {
+		ILocalVariableVisitor visitor = new ILocalVariableVisitor(scope, name);
 
-    @Override
-    public Object visitClassNode(ClassNode iVisited) {
-        return null;
-    }
+		visitor.run();
 
-    @Override
-    public Object visitDAsgnNode(DAsgnNode iVisited) {
-        addVariableIfInScopeAndRightName(iVisited);
-        visit(iVisited.getValue());
-        return null;
-    }
+		return visitor.getVariableList();
+	}
 
-    @Override
-    public Object visitDVarNode(DVarNode iVisited) {
-        addVariableIfInScopeAndRightName(iVisited);
-        return null;
-    }
+	public ILocalVariableVisitor(IScope scope, String name) {
+		list = new ArrayList<ILocalVariable>();
+		this.scope = scope;
+		this.name = name;
+	}
 
-    @Override
-    public Object visitDefnNode(DefnNode iVisited) {
-        return null;
-    }
+	public void run() {
+		for (Node child : ((Node) scope).childNodes()) {
+			child.accept(this);
+		}
+	}
 
-    @Override
-    public Object visitDefsNode(DefsNode iVisited) {
-        return null;
-    }
+	public List<ILocalVariable> getVariableList() {
+		return list;
+	}
 
-    @Override
-    public Object visitLocalAsgnNode(LocalAsgnNode iVisited) {
-        addVariableIfInScopeAndRightName(iVisited);
-        visit(iVisited.getValue());
-        return null;
-    }
+	/*
+	 * nested blocks in blocks can have variables masked with same name so we make sure scope is
+	 * correct.
+	 */
+	private void addVariableIfInScopeAndRightName(ILocalVariable variable) {
+		if (variable.getDefinedScope() == scope && name.equals(variable.getName()))
+			list.add(variable);
+	}
 
-    @Override
-    public Object visitLocalVarNode(LocalVarNode iVisited) {
-        addVariableIfInScopeAndRightName(iVisited);
-        return null;
-    }
+	@Override
+	public Object visitArgumentNode(ArgumentNode iVisited) {
+		addVariableIfInScopeAndRightName(iVisited);
+		return null;
+	}
 
-    @Override
-    public Object visitModuleNode(ModuleNode iVisited) {
-        return null;
-    }
-    
-    @Override
-    public Object visitRestArgNode(RestArgNode iVisited) {
-        addVariableIfInScopeAndRightName(iVisited);
-        return null;
-    }
+	@Override
+	public Object visitBlockArgNode(BlockArgNode iVisited) {
+		addVariableIfInScopeAndRightName(iVisited);
+		return null;
+	}
 
-    @Override
-    public Object visitRootNode(RootNode iVisited) {
-        return null; // should not happen
-    }
+	@Override
+	public Object visitClassNode(ClassNode iVisited) {
+		return null;
+	}
 
-    @Override
-    public Object visitSClassNode(SClassNode iVisited) {
-        return null;
-    }
+	@Override
+	public Object visitDAsgnNode(DAsgnNode iVisited) {
+		addVariableIfInScopeAndRightName(iVisited);
+		visit(iVisited.getValue());
+		return null;
+	}
+
+	@Override
+	public Object visitDVarNode(DVarNode iVisited) {
+		addVariableIfInScopeAndRightName(iVisited);
+		return null;
+	}
+
+	@Override
+	public Object visitDefnNode(DefnNode iVisited) {
+		return null;
+	}
+
+	@Override
+	public Object visitDefsNode(DefsNode iVisited) {
+		return null;
+	}
+
+	@Override
+	public Object visitLocalAsgnNode(LocalAsgnNode iVisited) {
+		addVariableIfInScopeAndRightName(iVisited);
+		visit(iVisited.getValue());
+		return null;
+	}
+
+	@Override
+	public Object visitLocalVarNode(LocalVarNode iVisited) {
+		addVariableIfInScopeAndRightName(iVisited);
+		return null;
+	}
+
+	@Override
+	public Object visitModuleNode(ModuleNode iVisited) {
+		return null;
+	}
+
+	@Override
+	public Object visitRestArgNode(RestArgNode iVisited) {
+		addVariableIfInScopeAndRightName(iVisited);
+		return null;
+	}
+
+	@Override
+	public Object visitRootNode(RootNode iVisited) {
+		return null; // should not happen
+	}
+
+	@Override
+	public Object visitSClassNode(SClassNode iVisited) {
+		return null;
+	}
 }

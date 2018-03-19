@@ -34,101 +34,101 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- * Simple Node that allows editor projects to keep position info in AST
- * (evaluation does not need this).
+ * Simple Node that allows editor projects to keep position info in AST (evaluation does not need
+ * this).
  */
 public class ArgumentNode extends Node implements IParameter {
-    private String identifier;
-    private int location;
+	private String identifier;
+	private int location;
 
-    public ArgumentNode(SourcePosition position, String identifier) {
-        super(position);
+	public ArgumentNode(SourcePosition position, String identifier) {
+		super(position);
 
-        this.identifier = identifier;
-    }
+		this.identifier = identifier;
+	}
 
-    public ArgumentNode(SourcePosition position, String identifier, int location) {
-        super(position);
+	public ArgumentNode(SourcePosition position, String identifier, int location) {
+		super(position);
 
-        this.identifier = identifier;
-        this.location = location;
-    }
+		this.identifier = identifier;
+		this.location = location;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param other
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node other) {
+		return super.isSame(other) && isNameMatch(((ArgumentNode) other).getName());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param other to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node other) {
-        return super.isSame(other) && isNameMatch(((ArgumentNode) other).getName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.ARGUMENTNODE;
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.ARGUMENTNODE;
-    }
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitArgumentNode(this);
+	}
 
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitArgumentNode(this);
-    }
+	/**
+	 * How many scopes should we burrow down to until we need to set the block variable value.
+	 *
+	 * @return 0 for current scope, 1 for one down, ...
+	 */
+	public int getDepth() {
+		return location >> 16;
+	}
 
-    /**
-     * How many scopes should we burrow down to until we need to set the block variable value.
-     *
-     * @return 0 for current scope, 1 for one down, ...
-     */
-    public int getDepth() {
-        return location >> 16;
-    }
+	/**
+	 * Gets the index within the scope construct that actually holds the eval'd value of this local
+	 * variable
+	 *
+	 * @return Returns an int offset into storage structure
+	 */
+	public int getIndex() {
+		return location & 0xffff;
+	}
 
-    /**
-     * Gets the index within the scope construct that actually holds the eval'd value
-     * of this local variable
-     *
-     * @return Returns an int offset into storage structure
-     */
-    public int getIndex() {
-        return location & 0xffff;
-    }
+	public String getLexicalName() {
+		return getName();
+	}
 
-    public String getLexicalName() {
-        return getName();
-    }
+	public String getName() {
+		return identifier;
+	}
 
-    public String getName() {
-        return identifier;
-    }
+	public void setName(String name) {
+		this.identifier = name;
+	}
 
-    public void setName(String name) {
-        this.identifier = name;
-    }
+	// Fixme: Can we assert name in constructor and remove null check?
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-    // Fixme: Can we assert name in constructor and remove null check?
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+		return thisName != null && thisName.equals(name);
+	}
 
-        return thisName != null && thisName.equals(name);
-    }
+	public IScope getDefinedScope() {
+		return getClosestIScope(); // argument list elements always belong to closest scope
+	}
 
-    public IScope getDefinedScope() {
-        return getClosestIScope(); // argument list elements always belong to closest scope
-    }
+	public List<ILocalVariable> getOccurrences() {
+		return getDefinedScope().getVariableReferencesNamed(getName());
+	}
 
-    public List<ILocalVariable> getOccurrences() {
-        return getDefinedScope().getVariableReferencesNamed(getName());
-    }
+	public ILocalVariable getDeclaration() {
+		return this;
+	}
 
-    public ILocalVariable getDeclaration() {
-        return this;
-    }
+	public SourcePosition getNamePosition() {
+		return getPosition();
+	}
 
-    public SourcePosition getNamePosition() {
-        return getPosition();
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getNamePosition();
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getNamePosition();
+	}
 }

@@ -37,9 +37,7 @@ public class Deploylet {
 		} catch (final Throwable e) {
 		} finally {
 			if (socket != null && socket.socket != null) {
-				L.V = L.WShop ? false
-						: LogManager.log(
-								"[Deploy] close a deploy session at " + socket.socket.hashCode());
+				L.V = L.WShop ? false : LogManager.log("[Deploy] close a deploy session at " + socket.socket.hashCode());
 			}
 			try {
 				socket.close();
@@ -54,17 +52,14 @@ public class Deploylet {
 	private final void processLoop() throws IOException {
 		while (true) {
 			if (socket != null && socket.socket != null) {
-				L.V = L.WShop ? false
-						: LogManager
-								.log("[Deploy] ready to receive at " + socket.socket.hashCode());
+				L.V = L.WShop ? false : LogManager.log("[Deploy] ready to receive at " + socket.socket.hashCode());
 			}
 			final byte header = socket.receive();
 			final int headerLen = socket.receiveDataLen();
 
 			if (header == DeploySocket.H_BYE) {
 				if (socket != null && socket.socket != null) {
-					L.V = L.WShop ? false
-							: LogManager.log("[Deploy] receive bye at " + socket.socket.hashCode());
+					L.V = L.WShop ? false : LogManager.log("[Deploy] receive bye at " + socket.socket.hashCode());
 				}
 				break;
 			} else if (header == DeploySocket.H_HELLO) {
@@ -111,8 +106,7 @@ public class Deploylet {
 				boolean isFailAuth = false;
 				for (int i = 0; i < authLen; i++) {
 					if (cloneRandom[i] != random[i]) {
-						LogManager.errToLog(
-								"receive-deploy service receive a error password connection!");
+						LogManager.errToLog("receive-deploy service receive a error password connection!");
 						isFailAuth = true;
 						socket.sendError(DeploySocket.ERR_PASSWORD);
 						break;
@@ -146,8 +140,7 @@ public class Deploylet {
 				final int transVerBSLen = socket.receiveDataLen();
 				final byte[] transVerBS = socket.receiveData(transVerBSLen, null);
 
-				if (ByteUtil.isSame(transVerBS, 0, transVerBSLen, DeploySocket.VERSION_1_0, 0,
-						DeploySocket.VERSION_1_0.length)) {
+				if (ByteUtil.isSame(transVerBS, 0, transVerBSLen, DeploySocket.VERSION_1_0, 0, DeploySocket.VERSION_1_0.length)) {
 					cache.cycle(transVerBS);
 
 					if (socket.receive() != DeploySocket.H_TRANS) {
@@ -161,10 +154,8 @@ public class Deploylet {
 					if (realMd5.equals(md5)) {
 						byte[] errorBS = null;
 
-						L.V = L.WShop ? false
-								: LogManager.log("[Deploy] succesful receive HAR data.");
-						if (LinkProjectManager.deployInLocalNetwork(dataBS, transBSLen,
-								projectID) == -1) {
+						L.V = L.WShop ? false : LogManager.log("[Deploy] succesful receive HAR data.");
+						if (LinkProjectManager.deployInLocalNetwork(dataBS, transBSLen, projectID) == -1) {
 							errorBS = DeploySocket.ERR_IS_BUSY;
 						}
 

@@ -25,106 +25,106 @@ import org.javassist.NotFoundException;
  * @author Jason T. Greene
  */
 public class MultiArrayType extends Type {
-    private MultiType component;
-    private int dims;
+	private MultiType component;
+	private int dims;
 
-    public MultiArrayType(MultiType component, int dims) {
-        super(null);
-        this.component = component;
-        this.dims = dims;
-    }
+	public MultiArrayType(MultiType component, int dims) {
+		super(null);
+		this.component = component;
+		this.dims = dims;
+	}
 
-    public CtClass getCtClass() {
-        CtClass clazz = component.getCtClass();
-        if (clazz == null)
-            return null;
+	public CtClass getCtClass() {
+		CtClass clazz = component.getCtClass();
+		if (clazz == null)
+			return null;
 
-        ClassPool pool = clazz.getClassPool();
-        if (pool == null)
-            pool = ClassPool.getDefault();
+		ClassPool pool = clazz.getClassPool();
+		if (pool == null)
+			pool = ClassPool.getDefault();
 
-        String name = arrayName(clazz.getName(), dims);
+		String name = arrayName(clazz.getName(), dims);
 
-        try {
-            return pool.get(name);
-        } catch (NotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
+		try {
+			return pool.get(name);
+		} catch (NotFoundException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    boolean popChanged() {
-        return component.popChanged();
-    }
+	boolean popChanged() {
+		return component.popChanged();
+	}
 
-    public int getDimensions() {
-        return dims;
-    }
+	public int getDimensions() {
+		return dims;
+	}
 
-    public Type getComponent() {
-       return dims == 1 ? (Type)component : new MultiArrayType(component, dims - 1);
-    }
+	public Type getComponent() {
+		return dims == 1 ? (Type) component : new MultiArrayType(component, dims - 1);
+	}
 
-    public int getSize() {
-        return 1;
-    }
+	public int getSize() {
+		return 1;
+	}
 
-    public boolean isArray() {
-        return true;
-    }
+	public boolean isArray() {
+		return true;
+	}
 
-    public boolean isAssignableFrom(Type type) {
-        throw new UnsupportedOperationException("Not implemented");
-    }
+	public boolean isAssignableFrom(Type type) {
+		throw new UnsupportedOperationException("Not implemented");
+	}
 
-    public boolean isReference() {
-       return true;
-    }
+	public boolean isReference() {
+		return true;
+	}
 
-    public boolean isAssignableTo(Type type) {
-        if (eq(type.getCtClass(), Type.OBJECT.getCtClass()))
-            return true;
+	public boolean isAssignableTo(Type type) {
+		if (eq(type.getCtClass(), Type.OBJECT.getCtClass()))
+			return true;
 
-        if (eq(type.getCtClass(), Type.CLONEABLE.getCtClass()))
-            return true;
+		if (eq(type.getCtClass(), Type.CLONEABLE.getCtClass()))
+			return true;
 
-        if (eq(type.getCtClass(), Type.SERIALIZABLE.getCtClass()))
-            return true;
+		if (eq(type.getCtClass(), Type.SERIALIZABLE.getCtClass()))
+			return true;
 
-        if (! type.isArray())
-            return false;
+		if (!type.isArray())
+			return false;
 
-        Type typeRoot = getRootComponent(type);
-        int typeDims = type.getDimensions();
+		Type typeRoot = getRootComponent(type);
+		int typeDims = type.getDimensions();
 
-        if (typeDims > dims)
-            return false;
+		if (typeDims > dims)
+			return false;
 
-        if (typeDims < dims) {
-            if (eq(typeRoot.getCtClass(), Type.OBJECT.getCtClass()))
-                return true;
+		if (typeDims < dims) {
+			if (eq(typeRoot.getCtClass(), Type.OBJECT.getCtClass()))
+				return true;
 
-            if (eq(typeRoot.getCtClass(), Type.CLONEABLE.getCtClass()))
-                return true;
+			if (eq(typeRoot.getCtClass(), Type.CLONEABLE.getCtClass()))
+				return true;
 
-            if (eq(typeRoot.getCtClass(), Type.SERIALIZABLE.getCtClass()))
-                return true;
+			if (eq(typeRoot.getCtClass(), Type.SERIALIZABLE.getCtClass()))
+				return true;
 
-            return false;
-        }
+			return false;
+		}
 
-        return component.isAssignableTo(typeRoot);
-    }
+		return component.isAssignableTo(typeRoot);
+	}
 
-    public boolean equals(Object o) {
-        if (! (o instanceof MultiArrayType))
-            return false;
-        MultiArrayType multi = (MultiArrayType)o;
+	public boolean equals(Object o) {
+		if (!(o instanceof MultiArrayType))
+			return false;
+		MultiArrayType multi = (MultiArrayType) o;
 
-        return component.equals(multi.component) && dims == multi.dims;
-    }
+		return component.equals(multi.component) && dims == multi.dims;
+	}
 
-    public String toString() {
-        // follows the same detailed formating scheme as component
-        return arrayName(component.toString(), dims);
-    }
+	public String toString() {
+		// follows the same detailed formating scheme as component
+		return arrayName(component.toString(), dims);
+	}
 }

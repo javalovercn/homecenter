@@ -37,113 +37,117 @@ import org.jrubyparser.SourcePosition;
  * An assignment to a dynamic variable (e.g. block scope local variable).
  */
 public class DAsgnNode extends AssignableNode implements ILocalVariable {
-    // The name of the variable
-    private String name;
+	// The name of the variable
+	private String name;
 
-    // A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
-    // is what index in the right scope to set the value.
-    private int location;
+	// A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
+	// is what index in the right scope to set the value.
+	private int location;
 
-    public DAsgnNode(SourcePosition position, String name, int location, Node valueNode) {
-        super(position, valueNode);
-        this.name = name;
-        this.location = location;
-    }
+	public DAsgnNode(SourcePosition position, String name, int location, Node valueNode) {
+		super(position, valueNode);
+		this.name = name;
+		this.location = location;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param other
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node other) {
+		return super.isSame(other) && isNameMatch(((DAsgnNode) other).getName());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param other to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node other) {
-        return super.isSame(other) && isNameMatch(((DAsgnNode) other).getName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.DASGNNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitDAsgnNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.DASGNNODE;
-    }
+	public String getLexicalName() {
+		return getName();
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitDAsgnNode(this);
-    }
+	/**
+	 * Gets the name.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getName() {
+		return name;
+	}
 
-    public String getLexicalName() {
-        return getName();
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    /**
-     * Gets the name.
-     * @return Returns a String
-     */
-    public String getName() {
-        return name;
-    }
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+		return thisName != null && thisName.equals(name);
+	}
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+	/**
+	 * How many scopes should we burrow down to until we need to set the block variable value.
+	 *
+	 * @return 0 for current scope, 1 for one down, ...
+	 */
+	public int getDepth() {
+		return location >> 16;
+	}
 
-        return thisName != null && thisName.equals(name);
-    }
+	/**
+	 * Gets the index within the scope construct that actually holds the eval'd value of this local
+	 * variable
+	 *
+	 * @return Returns an int offset into storage structure
+	 */
+	public int getIndex() {
+		return location & 0xffff;
+	}
 
-    /**
-     * How many scopes should we burrow down to until we need to set the block variable value.
-     *
-     * @return 0 for current scope, 1 for one down, ...
-     */
-    public int getDepth() {
-        return location >> 16;
-    }
+	public IScope getDefinedScope() {
+		IScope scope = getClosestIScope();
 
-    /**
-     * Gets the index within the scope construct that actually holds the eval'd value
-     * of this local variable
-     *
-     * @return Returns an int offset into storage structure
-     */
-    public int getIndex() {
-        return location & 0xffff;
-    }
+		for (int i = 0; i < getDepth(); i++) {
+			scope = ((Node) scope).getClosestIScope();
+		}
 
-    public IScope getDefinedScope() {
-        IScope scope = getClosestIScope();
+		return scope;
+	}
 
-        for (int i = 0; i < getDepth(); i++) {
-            scope = ((Node) scope).getClosestIScope();
-        }
+	public List<ILocalVariable> getOccurrences() {
+		return getDefinedScope().getVariableReferencesNamed(getName());
+	}
 
-        return scope;
-    }
+	public ILocalVariable getDeclaration() {
+		for (ILocalVariable variable : getOccurrences()) {
+			if (variable instanceof IParameter)
+				return variable;
+			if (variable instanceof DAsgnNode)
+				return variable;
+		}
 
-    public List<ILocalVariable> getOccurrences() {
-        return getDefinedScope().getVariableReferencesNamed(getName());
-    }
+		return this;
+	}
 
-    public ILocalVariable getDeclaration() {
-        for (ILocalVariable variable: getOccurrences()) {
-            if (variable instanceof IParameter) return variable;
-            if (variable instanceof DAsgnNode) return variable;
-        }
+	public SourcePosition getNamePosition() {
+		return getPosition().fromBeginning(getName().length());
+	}
 
-        return this;
-    }
-
-    public SourcePosition getNamePosition() {
-        return getPosition().fromBeginning(getName().length());
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getNamePosition();
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getNamePosition();
+	}
 }

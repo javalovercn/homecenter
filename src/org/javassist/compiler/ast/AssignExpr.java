@@ -22,20 +22,19 @@ import org.javassist.compiler.CompileError;
  * Assignment expression.
  */
 public class AssignExpr extends Expr {
-    /* operator must be either of:
-     * =, %=, &=, *=, +=, -=, /=, ^=, |=, <<=, >>=, >>>=
-     */
+	/*
+	 * operator must be either of: =, %=, &=, *=, +=, -=, /=, ^=, |=, <<=, >>=, >>>=
+	 */
 
-    private AssignExpr(int op, ASTree _head, ASTList _tail) {
-        super(op, _head, _tail);
-    }
+	private AssignExpr(int op, ASTree _head, ASTList _tail) {
+		super(op, _head, _tail);
+	}
 
-    public static AssignExpr makeAssign(int op, ASTree oprand1,
-                                        ASTree oprand2) {
-        return new AssignExpr(op, oprand1, new ASTList(oprand2));
-    }
+	public static AssignExpr makeAssign(int op, ASTree oprand1, ASTree oprand2) {
+		return new AssignExpr(op, oprand1, new ASTList(oprand2));
+	}
 
-    public void accept(Visitor v) throws CompileError {
-        v.atAssignExpr(this);
-    }
+	public void accept(Visitor v) throws CompileError {
+		v.atAssignExpr(this);
+	}
 }

@@ -10,7 +10,7 @@ public class DataSelectTxt extends HCData {
 	private final int end_y_index = end_x_index + 2;
 
 	public static final int STRUCT_LEN = 8;
-	
+
 	public int getStartX() {
 		return ByteUtil.twoBytesToInteger(bs, start_x_index);
 	}
@@ -42,7 +42,7 @@ public class DataSelectTxt extends HCData {
 	public void setEndY(int y) {
 		ByteUtil.integerToTwoBytes(y, bs, end_y_index);
 	}
-	
+
 	public int getLength() {
 		return STRUCT_LEN;
 	}

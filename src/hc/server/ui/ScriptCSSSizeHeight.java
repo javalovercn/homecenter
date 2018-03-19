@@ -22,8 +22,7 @@ public class ScriptCSSSizeHeight extends SizeHeight {
 	private final ProjectContext ctx;
 	final ProjResponser pr;
 
-	public final void loadCSSImpl(final Mlet mlet, final ProjectContext ctx, final String styles,
-			final boolean isCacheEnabled) {
+	public final void loadCSSImpl(final Mlet mlet, final ProjectContext ctx, final String styles, final boolean isCacheEnabled) {
 		if (SimuMobile.checkSimuProjectContext(ctx)) {
 			return;
 		}
@@ -49,8 +48,8 @@ public class ScriptCSSSizeHeight extends SizeHeight {
 		L.V = L.WShop ? false : LogManager.log(styles);
 	}
 
-	final void setInnerHTMLForScriptPanel(final Mlet mlet, final ScriptPanel scriptPanel,
-			final String innerHTML, final boolean enableCache) {
+	final void setInnerHTMLForScriptPanel(final Mlet mlet, final ScriptPanel scriptPanel, final String innerHTML,
+			final boolean enableCache) {
 		synchronized (mlet.synLock) {
 			if (mlet.status == Mlet.STATUS_INIT) {
 				LogManager.errToLog("invalid status to setInnerHTML : \n" + innerHTML);
@@ -61,8 +60,8 @@ public class ScriptCSSSizeHeight extends SizeHeight {
 		L.V = L.WShop ? false : LogManager.log(innerHTML);
 	}
 
-	final void setInnerHTMLImplForScriptPanel(final Mlet mlet, final ScriptPanel scriptPanel,
-			final String innerHTML, final boolean enableCache) {
+	final void setInnerHTMLImplForScriptPanel(final Mlet mlet, final ScriptPanel scriptPanel, final String innerHTML,
+			final boolean enableCache) {
 		synchronized (mlet.synLock) {
 			if (diffTodo != null && mlet.status < Mlet.STATUS_EXIT) {// 由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
 				final int hashID = diffTodo.buildHcCode(scriptPanel);
@@ -91,8 +90,7 @@ public class ScriptCSSSizeHeight extends SizeHeight {
 	 * @param js
 	 * @since 7.7
 	 */
-	final void loadScriptForScriptPanel(final Mlet mlet, final String js,
-			final boolean isCacheEnabled) {
+	final void loadScriptForScriptPanel(final Mlet mlet, final String js, final boolean isCacheEnabled) {
 		synchronized (mlet.synLock) {
 			if (mlet.status == Mlet.STATUS_INIT) {
 				if (scriptToDeliver == null) {
@@ -105,8 +103,7 @@ public class ScriptCSSSizeHeight extends SizeHeight {
 		}
 	}
 
-	final void loadScriptImplForScriptPanel(final Mlet mlet, final String js,
-			final boolean isCacheEnabled) {
+	final void loadScriptImplForScriptPanel(final Mlet mlet, final String js, final boolean isCacheEnabled) {
 		synchronized (mlet.synLock) {
 			if (diffTodo != null && mlet.status < Mlet.STATUS_EXIT) {// 由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
 				diffTodo.loadScriptForScriptPanel(js, isCacheEnabled);
@@ -114,10 +111,10 @@ public class ScriptCSSSizeHeight extends SizeHeight {
 		}
 	}
 
-	public final void setCSSImpl(final Mlet mlet, final ProjectContext ctx,
-			final JComponent component, final String className, final String styles) {// in
-																						// user
-																						// thread
+	public final void setCSSImpl(final Mlet mlet, final ProjectContext ctx, final JComponent component, final String className,
+			final String styles) {// in
+																																								// user
+																																								// thread
 		if (SimuMobile.checkSimuProjectContext(ctx) || component == null) {
 			return;
 		}
@@ -150,10 +147,10 @@ public class ScriptCSSSizeHeight extends SizeHeight {
 																					// thread
 	}
 
-	public final void setCSSForDivImpl(final Mlet mlet, final ProjectContext ctx,
-			final JComponent component, final String className, final String styles) {// in
-																						// user
-																						// thread
+	public final void setCSSForDivImpl(final Mlet mlet, final ProjectContext ctx, final JComponent component, final String className,
+			final String styles) {// in
+																																									// user
+																																									// thread
 		if (SimuMobile.checkSimuProjectContext(ctx) || component == null) {
 			return;
 		}
@@ -172,8 +169,7 @@ public class ScriptCSSSizeHeight extends SizeHeight {
 				if (styleItemToDeliver == null) {
 					styleItemToDeliver = new Vector<TodoItem>();
 				}
-				styleItemToDeliver
-						.add(new StyleItem(TodoItem.FOR_DIV, component, className, styles));
+				styleItemToDeliver.add(new StyleItem(TodoItem.FOR_DIV, component, className, styles));
 				return;
 			}
 			if (diffTodo != null && mlet.status < Mlet.STATUS_EXIT) {// 由于本方法可能在构造中被调用，而无法确定是否需要后期转发，所以diffTofo条件限于此。
@@ -184,8 +180,7 @@ public class ScriptCSSSizeHeight extends SizeHeight {
 		}
 	}
 
-	public final void setRTLForDivImpl(final Mlet mlet, final ProjectContext ctx,
-			final JComponent component, final boolean isRTL) {// in user thread
+	public final void setRTLForDivImpl(final Mlet mlet, final ProjectContext ctx, final JComponent component, final boolean isRTL) {// in user thread
 		if (SimuMobile.checkSimuProjectContext(ctx) || component == null) {
 			return;
 		}
@@ -211,8 +206,8 @@ public class ScriptCSSSizeHeight extends SizeHeight {
 		}
 	}
 
-	public final void setCSSForToggleImpl(final Mlet mlet, final ProjectContext ctx,
-			final JToggleButton togButton, final String className, final String styles) {
+	public final void setCSSForToggleImpl(final Mlet mlet, final ProjectContext ctx, final JToggleButton togButton, final String className,
+			final String styles) {
 		if (SimuMobile.checkSimuProjectContext(ctx) || togButton == null) {
 			return;
 		}
@@ -231,26 +226,23 @@ public class ScriptCSSSizeHeight extends SizeHeight {
 																						// thread
 	}
 
-	private final void doForLabelTag(final Mlet mlet, final JToggleButton togButton,
-			final String className, final String styles) {// in user thread
+	private final void doForLabelTag(final Mlet mlet, final JToggleButton togButton, final String className, final String styles) {// in user thread
 		synchronized (mlet.synLock) {
 			if (mlet.status == Mlet.STATUS_INIT) {
 				if (styleItemToDeliver == null) {
 					styleItemToDeliver = new Vector<TodoItem>();
 				}
-				styleItemToDeliver
-						.add(new StyleItem(TodoItem.FOR_JCOMPONENT, togButton, className, styles));
+				styleItemToDeliver.add(new StyleItem(TodoItem.FOR_JCOMPONENT, togButton, className, styles));
 				return;
 			}
 			if (diffTodo != null && mlet.status < Mlet.STATUS_EXIT) {
-				diffTodo.setStyleForJCheckBoxText(diffTodo.buildHcCode(togButton), className,
-						styles);// in user thread
+				diffTodo.setStyleForJCheckBoxText(diffTodo.buildHcCode(togButton), className, styles);// in user thread
 			}
 		}
 	}
 
-	private final void doForInputTag(final Mlet mlet, final int forType, final JComponent component,
-			final String className, final String styles) {// in user thread
+	private final void doForInputTag(final Mlet mlet, final int forType, final JComponent component, final String className,
+			final String styles) {// in user thread
 		synchronized (mlet.synLock) {
 			if (mlet.status == Mlet.STATUS_INIT) {
 				if (styleItemToDeliver == null) {

@@ -121,18 +121,13 @@ public abstract class SocketEditPanel extends JPanel {
 
 	public SocketEditPanel() {
 		checkLimitOn = new JCheckBox("limit socket/connect");
-		checkLimitOn.setToolTipText("" + "<html>"
-				+ "if not selected, then allow access all public address and private address."
-				+ "<BR>"
-				+ "if selected and there is no record in table, it means block all for current project."
-				+ "</html>");
+		checkLimitOn.setToolTipText("" + "<html>" + "if not selected, then allow access all public address and private address." + "<BR>"
+				+ "if selected and there is no record in table, it means block all for current project." + "</html>");
 
 		accessPrivateAddress = new JCheckBox("access private address");
-		accessPrivateAddress.setToolTipText(
-				"" + "<html>" + "access private address :" + "<BR>" + "&nbsp;·&nbsp;10.*.*.*<BR>"
-						+ "&nbsp;·&nbsp;127.*.*.*, localhost<BR>" + "&nbsp;·&nbsp;169.254.*.*<BR>"
-						+ "&nbsp;·&nbsp;172.16.*.*, 172.31.*.*<BR>" + "&nbsp;·&nbsp;192.168.*.*<BR>"
-						+ "&nbsp;·&nbsp;224.0.0.0 - 239.255.255.255" + "</html>");
+		accessPrivateAddress.setToolTipText("" + "<html>" + "access private address :" + "<BR>" + "&nbsp;·&nbsp;10.*.*.*<BR>"
+				+ "&nbsp;·&nbsp;127.*.*.*, localhost<BR>" + "&nbsp;·&nbsp;169.254.*.*<BR>" + "&nbsp;·&nbsp;172.16.*.*, 172.31.*.*<BR>"
+				+ "&nbsp;·&nbsp;192.168.*.*<BR>" + "&nbsp;·&nbsp;224.0.0.0 - 239.255.255.255" + "</html>");
 
 		accessPrivateAddress.addActionListener(new HCActionListener(new Runnable() {
 			@Override
@@ -165,10 +160,7 @@ public abstract class SocketEditPanel extends JPanel {
 					final String port = socket.getPort();
 					final String portFrom = socket.getPortFrom();
 					final String portTo = socket.getPortTo();
-					return socket.isRangeMode()
-							? (((portFrom == null) ? "" : portFrom) + " - "
-									+ ((portTo == null) ? "" : portTo))
-							: port;
+					return socket.isRangeMode() ? (((portFrom == null) ? "" : portFrom) + " - " + ((portTo == null) ? "" : portTo)) : port;
 				} else if (columnIndex == columnAction) {
 					return socket.getActionDesc();
 				}
@@ -201,8 +193,7 @@ public abstract class SocketEditPanel extends JPanel {
 		tableList = new JTable(modelSocket);
 		tableList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
 
-		final HCEnableHeaderRenderer oldRend = new HCEnableHeaderRenderer(
-				tableList.getTableHeader().getDefaultRenderer());
+		final HCEnableHeaderRenderer oldRend = new HCEnableHeaderRenderer(tableList.getTableHeader().getDefaultRenderer());
 		tableList.getTableHeader().setDefaultRenderer(oldRend);
 
 		tableList.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
@@ -269,8 +260,7 @@ public abstract class SocketEditPanel extends JPanel {
 			}
 
 			private final boolean checkMinAction(final JCheckBox checkBox) {
-				if (checkAccept.isSelected() == false && checkconnect.isSelected() == false
-						&& checklisten.isSelected() == false) {
+				if (checkAccept.isSelected() == false && checkconnect.isSelected() == false && checklisten.isSelected() == false) {
 					ContextManager.getThreadPool().run(new Runnable() {
 						@Override
 						public void run() {
@@ -461,9 +451,8 @@ public abstract class SocketEditPanel extends JPanel {
 			formatPanel.setBorder(new TitledBorder("host and port examples :"));
 			descLabel = new JLabel("<html>" + " <STRONG>·</STRONG> www.sun.com" +
 			// ", *.sun.com:80" +
-					", [::ffff:8.8.8.8]" + "<br> <STRONG>·</STRONG> 8.8.8.8:1234"
-					+ ", 8.8.8.8:1234-" + "<br> <STRONG>·</STRONG> localhost:1024-"
-					+ ", localhost:-1024" + ", localhost:1024-2048" + "</html>",
+					", [::ffff:8.8.8.8]" + "<br> <STRONG>·</STRONG> 8.8.8.8:1234" + ", 8.8.8.8:1234-"
+					+ "<br> <STRONG>·</STRONG> localhost:1024-" + ", localhost:-1024" + ", localhost:1024-2048" + "</html>",
 					SwingConstants.LEADING);
 			formatPanel.add(descLabel, BorderLayout.CENTER);
 			mainEditPanel.add(formatPanel, c);
@@ -782,8 +771,7 @@ public abstract class SocketEditPanel extends JPanel {
 		notifySocketLimitOn(limitOn);
 		switchEditable(limitOn);
 
-		final HCEnableHeaderRenderer hr = (HCEnableHeaderRenderer) tableList.getTableHeader()
-				.getDefaultRenderer();
+		final HCEnableHeaderRenderer hr = (HCEnableHeaderRenderer) tableList.getTableHeader().getDefaultRenderer();
 		hr.setEnabled(limitOn);
 
 		final DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer();

@@ -39,6 +39,7 @@ public class CodeStaticHelper {
 			fields.add("getMobileWidth()");
 			fields.add("isMobileConnecting()");
 			fields.add("sendAUSound(byte[])");
+			fields.add("send(String, String, int)");
 
 			out.put(ProjectContext.class, fields);
 		}

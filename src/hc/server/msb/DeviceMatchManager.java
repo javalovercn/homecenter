@@ -61,8 +61,7 @@ public class DeviceMatchManager {
 
 			if (isSplitChar) {
 				if (lastAvaiBeginCharIdx >= 0) {
-					addToVector(vector,
-							new String(chars, lastAvaiBeginCharIdx, i - lastAvaiBeginCharIdx));
+					addToVector(vector, new String(chars, lastAvaiBeginCharIdx, i - lastAvaiBeginCharIdx));
 					lastAvaiBeginCharIdx = -1;
 				}
 			} else {
@@ -75,8 +74,7 @@ public class DeviceMatchManager {
 			}
 		}
 		if (lastAvaiBeginCharIdx >= 0) {
-			addToVector(vector,
-					new String(chars, lastAvaiBeginCharIdx, size - lastAvaiBeginCharIdx));
+			addToVector(vector, new String(chars, lastAvaiBeginCharIdx, size - lastAvaiBeginCharIdx));
 		}
 
 		if (vector.size() > 0) {

@@ -55,25 +55,18 @@ import hc.util.ThreadConfig;
 public class ServerUIAPIAgent {
 	public static final String QUESTION_CANCEL = "cancel";
 
-	public final static String KEY_IS_INSTALL_FROM_CLIENT = CCoreUtil.SYS_RESERVED_KEYS_START
-			+ "_isInstallFromClient";
-	public final static String KEY_HAS_ERROR_PS_SCRIPT = CCoreUtil.SYS_RESERVED_KEYS_START
-			+ "_hasErrorPSScript";// SYS_PROJ_STARTUP
+	public final static String KEY_IS_INSTALL_FROM_CLIENT = CCoreUtil.SYS_RESERVED_KEYS_START + "_isInstallFromClient";
+	public final static String KEY_HAS_ERROR_PS_SCRIPT = CCoreUtil.SYS_RESERVED_KEYS_START + "_hasErrorPSScript";// SYS_PROJ_STARTUP
 
 	// 以下存放于hc_config.properties，而非user/project.properties
-	public final static String CONVERT_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START
-			+ "convert_name_prop";
-	public final static String DEVICE_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START
-			+ "device_name_prop";
-	public final static String ROBOT_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START
-			+ "robot_name_prop";
+	public final static String CONVERT_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START + "convert_name_prop";
+	public final static String DEVICE_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START + "device_name_prop";
+	public final static String ROBOT_NAME_PROP = CCoreUtil.SYS_RESERVED_KEYS_START + "robot_name_prop";
 	public final static String PROJ_DB_PASSWORD = CCoreUtil.SYS_RESERVED_KEYS_START + "db_pwd";
 
 	// 以下存放于user/project.properties，而非hc_config.properties
-	public final static String PROJ_CRON_DB_COMPACT_MS = CCoreUtil.SYS_RESERVED_KEYS_START
-			+ "cron_db_compact_ms_";
-	public final static String PROJ_USER_DB_COMPACT_MS = CCoreUtil.SYS_RESERVED_KEYS_START
-			+ "user_db_compact_ms_";
+	public final static String PROJ_CRON_DB_COMPACT_MS = CCoreUtil.SYS_RESERVED_KEYS_START + "cron_db_compact_ms_";
+	public final static String PROJ_USER_DB_COMPACT_MS = CCoreUtil.SYS_RESERVED_KEYS_START + "user_db_compact_ms_";
 
 	final static Object threadToken = App.getThreadPoolToken();
 
@@ -98,13 +91,11 @@ public class ServerUIAPIAgent {
 		return responsor.getCurrentProjResponser(coreSS);// 必须使用用户级实例，比如clientSession
 	}
 
-	public static ClientSession buildClientSession(final J2SESession j2seCoreSS,
-			final boolean hasLocationOfMobile) {
+	public static ClientSession buildClientSession(final J2SESession j2seCoreSS, final boolean hasLocationOfMobile) {
 		return new ClientSession(j2seCoreSS, hasLocationOfMobile);
 	}
 
-	public static void notifyClientSessionQRResult(final ClientSession clientSession,
-			final String result) {
+	public static void notifyClientSessionQRResult(final ClientSession clientSession, final String result) {
 		clientSession.notifyQRCode(result);
 	}
 
@@ -148,66 +139,62 @@ public class ServerUIAPIAgent {
 		}
 	}
 
-	public final static MenuItem buildMobiMenuItem(final String name, final int type,
-			final String image, final String url, final I18NStoreableHashMapWithModifyFlag i18nName,
-			final String listener, final String extendMap) {
+	public final static MenuItem buildMobiMenuItem(final String name, final int type, final String image, final String url,
+			final I18NStoreableHashMapWithModifyFlag i18nName, final String listener, final String extendMap) {
 		return new MenuItem(name, type, image, url, i18nName, listener, extendMap);
 	}
 
-	public final static void sendDialog(final DialogParameter dialogParameter,
-			final J2SESession coreSS, final Dialog dialog_p, final Runnable buildProc,
-			final ProjectContext ctx, final DialogGlobalLock dialogLock) {
+	public final static void sendDialog(final DialogParameter dialogParameter, final J2SESession coreSS, final Dialog dialog_p,
+			final Runnable buildProc, final ProjectContext ctx, final DialogGlobalLock dialogLock) {
 		final String elementID = HCURL.DIALOG_PRE + dialogLock.dialogID;
 
 		final CallContext runCtx = CallContext.getFree();
 		final String targetURL = HCURL.buildStandardURL(HCURL.FORM_PROTOCAL, elementID);
 		runCtx.targetURL = targetURL;
-		final Mlet dialogMlet = (Mlet) runAndWaitInSessionThreadPool(coreSS,
-				getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
-					@Override
-					public Object run() throws Throwable {
-						try {
-							final Dialog dialog;
-							if (dialog_p != null) {
-								dialog = dialog_p;
-								dialog.dialogCanvas.__target = runCtx.targetURL;
-							} else {
-								ThreadConfig.setThreadTargetURL(runCtx);
-								buildProc.run();
-								dialog = (Dialog) ThreadConfig
-										.getValue(ThreadConfig.BUILD_DIALOG_INSTANCE, true);
-								// LogManager.log("dialog sub component : " +
-								// dialog.getComponentCount());
-								if (dialog == null) {
-									throw new IllegalArgumentException(
-											"fail to build Dialog instance from ProjectContext.sendDialogByBulding(Runnable)");
-								}
-							}
-							// if(dialog.getComponentCount() == 0){
-							// LogManager.warning("there is no components in
-							// Dialog, it seems that NOT invoke super in
-							// initialize method.");
-							// }
-
-							if (dialog.dialogCanvas instanceof DialogHTMLMlet) {
-								final DialogHTMLMlet dm = (DialogHTMLMlet) dialog.dialogCanvas;
-								dm.setDialogGlobalLock(dialogLock);
-								dm.addDialog(dialog);
-							} else {
-								final DialogMlet dm = (DialogMlet) dialog.dialogCanvas;// 如果是j2ME，则返回DialogMlet
-								dm.setDialogGlobalLock(dialogLock);
-								dm.addDialog(dialog);
-							}
-
-							dialog.dialogParameter = dialogParameter;
-							return dialog.dialogCanvas;
-						} catch (final Throwable e) {
-							ExceptionReporter.printStackTrace(e);
+		final Mlet dialogMlet = (Mlet) runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
+			@Override
+			public Object run() throws Throwable {
+				try {
+					final Dialog dialog;
+					if (dialog_p != null) {
+						dialog = dialog_p;
+						dialog.dialogCanvas.__target = runCtx.targetURL;
+					} else {
+						ThreadConfig.setThreadTargetURL(runCtx);
+						buildProc.run();
+						dialog = (Dialog) ThreadConfig.getValue(ThreadConfig.BUILD_DIALOG_INSTANCE, true);
+						// LogManager.log("dialog sub component : " +
+						// dialog.getComponentCount());
+						if (dialog == null) {
+							throw new IllegalArgumentException(
+									"fail to build Dialog instance from ProjectContext.sendDialogByBulding(Runnable)");
 						}
-
-						return null;
 					}
-				});
+					// if(dialog.getComponentCount() == 0){
+					// LogManager.warning("there is no components in
+					// Dialog, it seems that NOT invoke super in
+					// initialize method.");
+					// }
+
+					if (dialog.dialogCanvas instanceof DialogHTMLMlet) {
+						final DialogHTMLMlet dm = (DialogHTMLMlet) dialog.dialogCanvas;
+						dm.setDialogGlobalLock(dialogLock);
+						dm.addDialog(dialog);
+					} else {
+						final DialogMlet dm = (DialogMlet) dialog.dialogCanvas;// 如果是j2ME，则返回DialogMlet
+						dm.setDialogGlobalLock(dialogLock);
+						dm.addDialog(dialog);
+					}
+
+					dialog.dialogParameter = dialogParameter;
+					return dialog.dialogCanvas;
+				} catch (final Throwable e) {
+					ExceptionReporter.printStackTrace(e);
+				}
+
+				return null;
+			}
+		});
 		CallContext.cycle(runCtx);
 		if (dialogMlet == null) {
 			return;
@@ -233,8 +220,8 @@ public class ServerUIAPIAgent {
 		return item.itemType;
 	}
 
-	public final static String getMobiMenuItem_Image(final JarMainMenu jarMenu,
-			final J2SESession coreSS, final MenuItem item, final int targetMobileIconSize) {
+	public final static String getMobiMenuItem_Image(final JarMainMenu jarMenu, final J2SESession coreSS, final MenuItem item,
+			final int targetMobileIconSize) {
 		String imgData = item.itemImage;
 
 		if (imgData.startsWith(UIUtil.SYS_ICON_PREFIX)) {
@@ -250,8 +237,7 @@ public class ServerUIAPIAgent {
 					imgData = jarMenu.getBitmapBase64ForMobile(coreSS, oriImage, imgData);
 				} else {
 					// 服务器端进行图片缩放
-					final BufferedImage newImg = ResourceUtil.resizeImage(oriImage,
-							targetMobileIconSize, targetMobileIconSize);
+					final BufferedImage newImg = ResourceUtil.resizeImage(oriImage, targetMobileIconSize, targetMobileIconSize);
 					// 使用适应尺寸的base64图标
 					imgData = jarMenu.getBitmapBase64ForMobile(coreSS, newImg, null);
 				}
@@ -271,8 +257,7 @@ public class ServerUIAPIAgent {
 		return item.getItemURLLower();
 	}
 
-	public final static I18NStoreableHashMapWithModifyFlag getMobiMenuItem_I18nName(
-			final MenuItem item) {
+	public final static I18NStoreableHashMapWithModifyFlag getMobiMenuItem_I18nName(final MenuItem item) {
 		return item.i18nName;
 	}
 
@@ -297,8 +282,7 @@ public class ServerUIAPIAgent {
 			for (int i = 0; i < size; i++) {
 				final J2SESession session = (J2SESession) sessionListSnapThreadSafe.elementAt(i);
 				if (UserThreadResourceUtil.isInServing(session.context)) {
-					final String curMobileLocale = UserThreadResourceUtil
-							.getMobileLocaleFrom(session);
+					final String curMobileLocale = UserThreadResourceUtil.getMobileLocaleFrom(session);
 					if (mobileLocale == null) {
 						mobileLocale = curMobileLocale;
 					} else if (mobileLocale.equals(curMobileLocale) == false) {
@@ -391,8 +375,8 @@ public class ServerUIAPIAgent {
 		}
 	}
 
-	public static DialogParameter buildDialogParameter(final J2SESession coreSS,
-			final ProjectContext ctx, final DialogGlobalLock dialogLock, final int dialogID) {
+	public static DialogParameter buildDialogParameter(final J2SESession coreSS, final ProjectContext ctx,
+			final DialogGlobalLock dialogLock, final int dialogID) {
 		final DialogParameter dp = new DialogParameter(coreSS, dialogLock);
 
 		register(coreSS, ctx, dialogID, dp);
@@ -400,10 +384,9 @@ public class ServerUIAPIAgent {
 		return dp;
 	}
 
-	public static QuestionParameter buildQuestionParameter(final J2SESession coreSS,
-			final ProjectContext ctx, final QuestionGlobalLock quesLock, final int questionID,
-			final String quesDesc, final Runnable yesRunnable, final Runnable noRunnable,
-			final Runnable cancelRunnable) {
+	public static QuestionParameter buildQuestionParameter(final J2SESession coreSS, final ProjectContext ctx,
+			final QuestionGlobalLock quesLock, final int questionID, final String quesDesc, final Runnable yesRunnable,
+			final Runnable noRunnable, final Runnable cancelRunnable) {
 		final QuestionParameter qp = new QuestionParameter(quesLock, questionID);
 
 		qp.questionDesc = quesDesc;
@@ -417,8 +400,7 @@ public class ServerUIAPIAgent {
 		return qp;
 	}
 
-	private static void register(final J2SESession coreSS, final ProjectContext ctx,
-			final int resID, final ResParameter qp) {
+	private static void register(final J2SESession coreSS, final ProjectContext ctx, final int resID, final ResParameter qp) {
 		qp.ctx = ctx;
 		synchronized (coreSS.questionOrDialogMap) {
 			coreSS.questionOrDialogMap.put(resID, qp);
@@ -450,8 +432,8 @@ public class ServerUIAPIAgent {
 	 * @param resp
 	 * @param runnable
 	 */
-	public static void addSequenceWatcherInProjContextForSessionFirst(final J2SESession coreSS,
-			final ProjResponser resp, final ReturnableRunnable runnable) {
+	public static void addSequenceWatcherInProjContextForSessionFirst(final J2SESession coreSS, final ProjResponser resp,
+			final ReturnableRunnable runnable) {
 		addSequenceWatcherInProjContext(resp.context, new BaseWatcher() {
 			@Override
 			public boolean watch() {
@@ -461,16 +443,14 @@ public class ServerUIAPIAgent {
 		});
 	}
 
-	public static void addSequenceWatcherInProjContext(final ProjectContext ctx,
-			final BaseWatcher watcher) {
+	public static void addSequenceWatcherInProjContext(final ProjectContext ctx, final BaseWatcher watcher) {
 		ctx.recycleRes.sequenceWatcher.addWatcher(watcher);
 	}
 
 	/**
 	 * 停用，被addSequenceWatcherInProjContextForSessionFirst代替
 	 */
-	public static void execInSequenceForSession(final J2SESession coreSS, final ProjResponser resp,
-			final ReturnableRunnable runnable) {
+	public static void execInSequenceForSession(final J2SESession coreSS, final ProjResponser resp, final ReturnableRunnable runnable) {
 		final SessionContext mobileSession = resp.getMobileSession(coreSS);
 		if (mobileSession != null) {
 			mobileSession.recycleRes.sequenceWatcher.addWatcher(new BaseWatcher() {
@@ -486,14 +466,16 @@ public class ServerUIAPIAgent {
 	public static void runInProjContext(final ProjectContext ctx, final Runnable run) {
 		ctx.recycleRes.threadPool.run(run);
 	}
+	
+	public static void setIDEConsoleWriterForProjectContext(final ProjectContext ctx) {
+		ctx.ideConsoleWriter = SimuMobile.getConsoleWriter();
+	}
 
-	public static Object runAndWaitInProjContext(final ProjectContext ctx,
-			final ReturnableRunnable run) {
+	public static Object runAndWaitInProjContext(final ProjectContext ctx, final ReturnableRunnable run) {
 		return ctx.recycleRes.threadPool.runAndWait(run, null);
 	}
 
-	public static void runInSessionThreadPool(final J2SESession coreSS, final ProjResponser resp,
-			final Runnable run) {
+	public static void runInSessionThreadPool(final J2SESession coreSS, final ProjResponser resp, final Runnable run) {
 		final SessionContext mobileSession = resp.getMobileSession(coreSS);
 		if (mobileSession != null) {// && coreSS.isExchangeStatus()
 			mobileSession.recycleRes.threadPool.run(run);
@@ -504,8 +486,7 @@ public class ServerUIAPIAgent {
 		return ctx.assistant;
 	}
 
-	public static Object runAndWaitInSessionThreadPool(final J2SESession coreSS,
-			final ProjResponser resp, final ReturnableRunnable run) {
+	public static Object runAndWaitInSessionThreadPool(final J2SESession coreSS, final ProjResponser resp, final ReturnableRunnable run) {
 		final SessionContext mobileSession = resp.getMobileSession(coreSS);
 		if (mobileSession != null) {
 			return mobileSession.recycleRes.threadPool.runAndWait(run);
@@ -520,16 +501,13 @@ public class ServerUIAPIAgent {
 	}
 
 	public static void printInProjectLevelWarn(final String method) {
-		LogManager.warning(
-				"projectContext." + method + "() runs in project level, perhaps in MSB Processor.");
+		LogManager.warning("projectContext." + method + "() runs in project level, perhaps in MSB Processor.");
 	}
 
-	public static void execQuestionResult(final J2SESession coreSS, final String ques_id,
-			final String result) {
+	public static void execQuestionResult(final J2SESession coreSS, final String ques_id, final String result) {
 		try {
 			final int int_id = Integer.parseInt(ques_id);
-			final QuestionParameter qp = (QuestionParameter) removeQuestionDialogFromMap(coreSS,
-					int_id, false, false);
+			final QuestionParameter qp = (QuestionParameter) removeQuestionDialogFromMap(coreSS, int_id, false, false);
 			if (qp != null) {// 有可能被撤消
 				execQuestionResult(coreSS, qp, int_id, result);
 			}
@@ -538,12 +516,10 @@ public class ServerUIAPIAgent {
 		}
 	}
 
-	public static boolean execQuestionResult(final J2SESession coreSS, final QuestionParameter qp,
-			final int int_id, final String result) {
+	public static boolean execQuestionResult(final J2SESession coreSS, final QuestionParameter qp, final int int_id, final String result) {
 		final QuestionGlobalLock quesLock = qp.getGlobalLock();
 		if (quesLock.isForMultiple) {
-			if (quesLock.isProcessed(coreSS, int_id,
-					ResourceUtil.get(coreSS, 9237) + qp.questionDesc)) {
+			if (quesLock.isProcessed(coreSS, int_id, ResourceUtil.get(coreSS, 9237) + qp.questionDesc)) {
 				return false;
 			}
 		}
@@ -562,9 +538,8 @@ public class ServerUIAPIAgent {
 		return false;
 	}
 
-	private static boolean processQuestionRunnable(final boolean isFromCancel,
-			final J2SESession coreSS, final ProjResponser resp, final Runnable run,
-			final QuestionGlobalLock quesLock) {
+	private static boolean processQuestionRunnable(final boolean isFromCancel, final J2SESession coreSS, final ProjResponser resp,
+			final Runnable run, final QuestionGlobalLock quesLock) {
 		if (run != null) {
 			final Runnable implRun = new Runnable() {
 				@Override
@@ -584,8 +559,8 @@ public class ServerUIAPIAgent {
 		}
 	}
 
-	public static ResParameter removeQuestionDialogFromMap(final J2SESession coreSS,
-			final int int_id, final boolean isFromCancel, final boolean isFromLineOff) {
+	public static ResParameter removeQuestionDialogFromMap(final J2SESession coreSS, final int int_id, final boolean isFromCancel,
+			final boolean isFromLineOff) {
 		final ResParameter out;
 
 		synchronized (coreSS.questionOrDialogMap) {
@@ -596,8 +571,7 @@ public class ServerUIAPIAgent {
 		return out;
 	}
 
-	public static void exitDialogMlet(final ResParameter out, final boolean isFromCancel,
-			final boolean isFromLineOff) {
+	public static void exitDialogMlet(final ResParameter out, final boolean isFromCancel, final boolean isFromLineOff) {
 		if (out == null || out instanceof DialogParameter == false) {
 			return;
 		}
@@ -616,8 +590,7 @@ public class ServerUIAPIAgent {
 						((SystemDialog) dialog).setCanceled();
 					}
 
-					L.V = L.WShop ? false
-							: LogManager.log("Dialog.dismiss() is invoked by cancel/back/lineoff.");
+					L.V = L.WShop ? false : LogManager.log("Dialog.dismiss() is invoked by cancel/back/lineoff.");
 					ServerUIAPIAgent.runInSessionThreadPool(para.coreSS, resp, new Runnable() {
 						@Override
 						public void run() {
@@ -647,8 +620,8 @@ public class ServerUIAPIAgent {
 		releaseExit(isFromCancel, para, mletCanvas, isFromLineOff);// 注意：此操作有可能在上段的back的会话中调用
 	}
 
-	private static void releaseExit(final boolean isFromCancel, final DialogParameter para,
-			final IMletCanvas mletCanvas, final boolean isFromLineOff) {
+	private static void releaseExit(final boolean isFromCancel, final DialogParameter para, final IMletCanvas mletCanvas,
+			final boolean isFromLineOff) {
 		mletCanvas.onExit(false);
 
 		para.getGlobalLock().notifyWaitStop(para.coreSS, isFromCancel, isFromLineOff);
@@ -676,8 +649,7 @@ public class ServerUIAPIAgent {
 				final int count = scriptToDeliver.size();
 				for (int i = 0; i < count; i++) {
 					final CacheString cs = scriptToDeliver.elementAt(i);
-					sizeHeightForXML.loadScriptImplForScriptPanel(mlet, cs.jsOrStyles,
-							cs.isCacheEnabled);
+					sizeHeightForXML.loadScriptImplForScriptPanel(mlet, cs.jsOrStyles, cs.isCacheEnabled);
 				}
 				scriptToDeliver.clear();
 			}
@@ -713,8 +685,7 @@ public class ServerUIAPIAgent {
 																						// thread
 				} else if (item.forType == TodoItem.FOR_JTOGGLEBUTTON) {
 					final StyleItem styleItem = (StyleItem) item;
-					mlet.setCSSForToggle((JToggleButton) item.component, styleItem.className,
-							styleItem.styles);// in user thread
+					mlet.setCSSForToggle((JToggleButton) item.component, styleItem.className, styleItem.styles);// in user thread
 				} else if (item.forType == TodoItem.FOR_RTL) {
 					mlet.setRTL(item.component, ((RTLItem) item).isRTL);
 				}
@@ -728,16 +699,15 @@ public class ServerUIAPIAgent {
 		}
 	}
 
-	public final static boolean isOnTopHistory(final J2SESession coreSS, final ProjectContext ctx,
-			final String screenIDLower, final String targetURLLower) {
+	public final static boolean isOnTopHistory(final J2SESession coreSS, final ProjectContext ctx, final String screenIDLower,
+			final String targetURLLower) {
 		synchronized (coreSS) {
 			if (coreSS.mletHistoryUrl != null) {
 				final int size = coreSS.mletHistoryUrl.size();
 				if (size > 0) {
 					final Object targetURL = coreSS.mletHistoryUrl.elementAt(size - 1);
-					final boolean isTop = targetURL.equals(screenIDLower)
-							|| targetURL.equals(ServerUIAPIAgent.buildScreenID(ctx.getProjectID(),
-									HCURL.buildMletAliasURL(targetURLLower)));
+					final boolean isTop = targetURL.equals(screenIDLower) || targetURL
+							.equals(ServerUIAPIAgent.buildScreenID(ctx.getProjectID(), HCURL.buildMletAliasURL(targetURLLower)));
 					if (L.isInWorkshop) {
 						LogManager.log("===>" + screenIDLower + " is on top : " + isTop);
 					}
@@ -748,8 +718,8 @@ public class ServerUIAPIAgent {
 		}
 	}
 
-	public final static boolean pushMletURLToHistory(final J2SESession coreSS,
-			final ProjectContext ctx, final String screenIDLower, final String targetURLLower) {
+	public final static boolean pushMletURLToHistory(final J2SESession coreSS, final ProjectContext ctx, final String screenIDLower,
+			final String targetURLLower) {
 		synchronized (coreSS) {
 			if (coreSS.mletHistoryUrl == null) {
 				coreSS.mletHistoryUrl = new Stack();
@@ -759,8 +729,7 @@ public class ServerUIAPIAgent {
 
 			final int size = mletHistoryUrl.size();
 			if (size > 0) {
-				final String mletAliasURL = ServerUIAPIAgent
-						.buildScreenID(ctx.getProjectID(), HCURL.buildMletAliasURL(targetURLLower))
+				final String mletAliasURL = ServerUIAPIAgent.buildScreenID(ctx.getProjectID(), HCURL.buildMletAliasURL(targetURLLower))
 						.toLowerCase();
 
 				int idx = mletHistoryUrl.search(screenIDLower);
@@ -785,8 +754,7 @@ public class ServerUIAPIAgent {
 		}
 	}
 
-	public final static void removeMletURLHistory(final J2SESession coreSS, final String projectID,
-			final String targetURL) {
+	public final static void removeMletURLHistory(final J2SESession coreSS, final String projectID, final String targetURL) {
 		final int removeIdx;
 		final Stack history = coreSS.mletHistoryUrl;
 		if (history != null) {
@@ -809,8 +777,7 @@ public class ServerUIAPIAgent {
 		ctx.shutdown();
 	}
 
-	public static final void set__projResponserMaybeNull(final ProjectContext ctx,
-			final ProjResponser resp) {
+	public static final void set__projResponserMaybeNull(final ProjectContext ctx, final ProjResponser resp) {
 		ctx.__projResponserMaybeNull = resp;
 	}
 
@@ -829,13 +796,11 @@ public class ServerUIAPIAgent {
 	 * @param ctx
 	 * @return
 	 */
-	public static final Enumeration<SystemEventListener> getSystemEventListener(
-			final J2SESession coreSS, final ProjectContext ctx) {
+	public static final Enumeration<SystemEventListener> getSystemEventListener(final J2SESession coreSS, final ProjectContext ctx) {
 		// 返回一个Vector新实例的
 		if (coreSS != null) {
 			final Vector<SystemEventListener> total = new Vector<SystemEventListener>(
-					ctx.projectLevelEventListeners.size()
-							+ coreSS.sessionLevelEventListeners.size());
+					ctx.projectLevelEventListeners.size() + coreSS.sessionLevelEventListeners.size());
 			total.addAll(ctx.projectLevelEventListeners);
 			total.addAll(coreSS.sessionLevelEventListeners);
 			return total.elements();
@@ -851,8 +816,7 @@ public class ServerUIAPIAgent {
 	 * @deprecated
 	 */
 	@Deprecated
-	public final static void __sendTextOfCtrlButton(final CoreSession coreSS, final int keyValue,
-			final String text) {
+	public final static void __sendTextOfCtrlButton(final CoreSession coreSS, final int keyValue, final String text) {
 		if (UserThreadResourceUtil.isInServing(coreSS.context)) {
 			final String[] keys = { "key", "text" };
 			final String[] values = { String.valueOf(keyValue), text };
@@ -864,18 +828,15 @@ public class ServerUIAPIAgent {
 		ctx.__saveSysPropertiesOnHC();
 	}
 
-	public final static void setHCSysProperties(final ProjectContext ctx, final String propName,
-			final String value) {
+	public final static void setHCSysProperties(final ProjectContext ctx, final String propName, final String value) {
 		ctx.__setPropertySuperOnHC(propName, value);
 	}
 
-	public final static void setSysPropertiesOnProj(final ProjectContext ctx, final String propName,
-			final String value) {
+	public final static void setSysPropertiesOnProj(final ProjectContext ctx, final String propName, final String value) {
 		ctx.__setPropertySuperOnProj(propName, value);
 	}
 
-	public final static void removeHCSysProperties(final ProjectContext ctx,
-			final String propName) {
+	public final static void removeHCSysProperties(final ProjectContext ctx, final String propName) {
 		ctx.__removePropertySuperOnHC(propName);
 	}
 
@@ -889,36 +850,32 @@ public class ServerUIAPIAgent {
 		return ctx.__getPropertySuperOnHC(propName);
 	}
 
-	public final static String getSysPropertiesOnProj(final ProjectContext ctx,
-			final String propName) {
+	public final static String getSysPropertiesOnProj(final ProjectContext ctx, final String propName) {
 		return ctx.__getPropertySuperOnProj(propName);
 	}
 
-	public final static void setSysAttribute(final ProjResponser pr, final String attributeName,
-			final Object value) {
+	public final static void setSysAttribute(final ProjResponser pr, final String attributeName, final Object value) {
 		pr.__setSysAtt(attributeName, value);
 	}
 
-	public final static void removeSysAttribute(final ProjResponser pr,
-			final String attributeName) {
+	public final static void removeSysAttribute(final ProjResponser pr, final String attributeName) {
 		pr.__removeSysAtt(attributeName);
 	}
 
-	public final static Object getSysAttribute(final ProjResponser pr, final String attributeName,
-			final boolean isClearAfterGet) {
+	public final static Object getSysAttribute(final ProjResponser pr, final String attributeName, final boolean isClearAfterGet) {
 		return pr.__getSysAtt(attributeName, isClearAfterGet);
 	}
 
-	public final static void removeClientSessionAttributeForSys(final J2SESession coreSS,
-			final ProjResponser pr, final String attributeName) {
+	public final static void removeClientSessionAttributeForSys(final J2SESession coreSS, final ProjResponser pr,
+			final String attributeName) {
 		final SessionContext mobileSession = pr.getMobileSession(coreSS);
 		if (mobileSession != null) {
 			mobileSession.getClientSessionForSys().removeAttribute(attributeName);
 		}
 	}
 
-	public final static Object getClientSessionAttributeForSys(final J2SESession coreSS,
-			final ProjResponser pr, final String attributeName) {
+	public final static Object getClientSessionAttributeForSys(final J2SESession coreSS, final ProjResponser pr,
+			final String attributeName) {
 		final SessionContext mobileSession = pr.getMobileSession(coreSS);
 		if (mobileSession != null) {
 			return mobileSession.getClientSessionForSys().getAttribute(attributeName);
@@ -927,16 +884,15 @@ public class ServerUIAPIAgent {
 		}
 	}
 
-	public final static void setClientSessionAttributeForSys(final J2SESession coreSS,
-			final ProjResponser pr, final String attributeName, final Object value) {
+	public final static void setClientSessionAttributeForSys(final J2SESession coreSS, final ProjResponser pr, final String attributeName,
+			final Object value) {
 		final SessionContext mobileSession = pr.getMobileSession(coreSS);
 		if (mobileSession != null) {
 			mobileSession.getClientSessionForSys().setAttribute(attributeName, value);
 		}
 	}
 
-	public static String getProcessorNameFromCtx(final ProjectContext ctx, String name,
-			final String prop) {
+	public static String getProcessorNameFromCtx(final ProjectContext ctx, String name, final String prop) {
 		if (name != null && name.length() > 0) {
 		} else {
 			name = getHCSysProperties(ctx, prop);
@@ -959,8 +915,8 @@ public class ServerUIAPIAgent {
 	public static final String CURRENT_THREAD_IS_IN_PROJECT_LEVEL = "current thread is in project level, perhaps in MSB (Robot, Converter, Device).";
 	public static final String ERR_CURRENT_THREAD_IS_IN_PROJECT_LEVEL = "it is NOT allowed that current thread is in project level.";
 
-	public static void sendMessageViaCoreSSInUserOrSys(final J2SESession[] coreSS, String caption,
-			String text, final int type, final BufferedImage image, final int timeOut) {
+	public static void sendMessageViaCoreSSInUserOrSys(final J2SESession[] coreSS, String caption, String text, final int type,
+			final BufferedImage image, final int timeOut) {
 		if (caption == null) {
 			caption = "information";
 		}
@@ -980,10 +936,9 @@ public class ServerUIAPIAgent {
 				return;
 			}
 		}
-		final String url = HCURL.CMD_PROTOCAL + HCURL.HTTP_SPLITTER + HCURL.DATA_CMD_MSG
-				+ "?caption=" + StringUtil.replace(caption, "&", "\\&") + "&text="
-				+ StringUtil.replace(text, "&", "\\&") + "&timeOut=" + timeOut + "&type="
-				+ String.valueOf(type) + (imageData);// 注意：必须在外部进行转换
+		final String url = HCURL.CMD_PROTOCAL + HCURL.HTTP_SPLITTER + HCURL.DATA_CMD_MSG + "?caption="
+				+ StringUtil.replace(caption, "&", "\\&") + "&text=" + StringUtil.replace(text, "&", "\\&") + "&timeOut=" + timeOut
+				+ "&type=" + String.valueOf(type) + (imageData);// 注意：必须在外部进行转换
 
 		// 如果同时发出两个msg，则可能不同步，所以以下要wait
 		runAndWaitInSysThread(new ReturnableRunnable() {
@@ -1001,8 +956,7 @@ public class ServerUIAPIAgent {
 		runAndWaitInSysThread(new ReturnableRunnable() {
 			@Override
 			public Object run() throws Throwable {
-				TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), msg, IConstant.INFO, null,
-						0);
+				TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), msg, IConstant.INFO, null, 0);
 				return null;
 			}
 		});
@@ -1049,35 +1003,29 @@ public class ServerUIAPIAgent {
 	private static String buildTargetForElement(final String targetOfMlet) {
 		final int httpSplitterIdx = targetOfMlet.indexOf(HCURL.HTTP_SPLITTER);
 		final boolean isWithHttpSplitter = httpSplitterIdx > 0;
-		return isWithHttpSplitter ? targetOfMlet
-				: HCURL.buildStandardURL(HCURL.FORM_PROTOCAL, targetOfMlet);
+		return isWithHttpSplitter ? targetOfMlet : HCURL.buildStandardURL(HCURL.FORM_PROTOCAL, targetOfMlet);
 	}
 
-	public static void openMlet(final J2SESession coreSS, final ProjectContext context,
-			final Mlet toMlet, final String targetOfMlet, final boolean isAutoReleaseCurrentMlet,
-			final Mlet fromMletMaybeNull) {
+	public static void openMlet(final J2SESession coreSS, final ProjectContext context, final Mlet toMlet, final String targetOfMlet,
+			final boolean isAutoReleaseCurrentMlet, final Mlet fromMletMaybeNull) {
 		final int httpSplitterIdx = targetOfMlet.indexOf(HCURL.HTTP_SPLITTER);
 		final boolean isWithHttpSplitter = httpSplitterIdx > 0;
-		final String targetURL = isWithHttpSplitter ? targetOfMlet
-				: HCURL.buildStandardURL(HCURL.FORM_PROTOCAL, targetOfMlet);
+		final String targetURL = isWithHttpSplitter ? targetOfMlet : HCURL.buildStandardURL(HCURL.FORM_PROTOCAL, targetOfMlet);
 		final String screenID = ServerUIAPIAgent.buildScreenID(context.getProjectID(), targetURL);
 
 		// 优先检查bringMletToTop
-		if (ProjResponser.bringMletToTop(coreSS, context, screenID.toLowerCase(),
-				targetURL.toLowerCase())) {
+		if (ProjResponser.bringMletToTop(coreSS, context, screenID.toLowerCase(), targetURL.toLowerCase())) {
 			return;
 		}
 
-		if (fromMletMaybeNull != null
-				&& fromMletMaybeNull.isAutoReleaseAfterGo != isAutoReleaseCurrentMlet) {// 可能为null，比如从addHar
-			runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(context),
-					new ReturnableRunnable() {
-						@Override
-						public Object run() throws Throwable {
-							fromMletMaybeNull.setAutoReleaseAfterGo(isAutoReleaseCurrentMlet);
-							return null;
-						}
-					});
+		if (fromMletMaybeNull != null && fromMletMaybeNull.isAutoReleaseAfterGo != isAutoReleaseCurrentMlet) {// 可能为null，比如从addHar
+			runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(context), new ReturnableRunnable() {
+				@Override
+				public Object run() throws Throwable {
+					fromMletMaybeNull.setAutoReleaseAfterGo(isAutoReleaseCurrentMlet);
+					return null;
+				}
+			});
 		}
 
 		// final String elementID =
@@ -1106,14 +1054,13 @@ public class ServerUIAPIAgent {
 	 * @param context
 	 * @param mlet
 	 */
-	public static void openMletImpl(final J2SESession coreSS, final String screenID,
-			final String title, final ProjectContext context, final Mlet mlet) {
+	public static void openMletImpl(final J2SESession coreSS, final String screenID, final String title, final ProjectContext context,
+			final Mlet mlet) {
 		if (L.isInWorkshop) {
 			if (mlet.getTarget() == null) {
 				throw new Error("target of Mlet is null");
 			}
-			LogManager.log(
-					"openMlet elementID : " + screenID + ", targetInMlet : " + mlet.getTarget());
+			LogManager.log("openMlet elementID : " + screenID + ", targetInMlet : " + mlet.getTarget());
 		}
 
 		boolean isHTMLMlet = (mlet instanceof HTMLMlet);
@@ -1121,19 +1068,15 @@ public class ServerUIAPIAgent {
 		if (isHTMLMlet == false || ProjResponser.isMletMobileEnv(coreSS)
 				|| ProjResponser.getMletComponentCount(coreSS, context, mlet) == 0) {
 			if (isHTMLMlet) {
-				LogManager.log(
-						"force HTMLMlet to Mlet, because there is no component in it or for J2ME mobile.");
+				LogManager.log("force HTMLMlet to Mlet, because there is no component in it or for J2ME mobile.");
 				isHTMLMlet = false;
 			}
-			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_MLET, screenID,
-					mlet.isCancelable);
-			mcanvas = new MletSnapCanvas(coreSS,
-					UserThreadResourceUtil.getMletWidthFrom(coreSS, false),
+			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_MLET, screenID, mlet.isCancelable);
+			mcanvas = new MletSnapCanvas(coreSS, UserThreadResourceUtil.getMletWidthFrom(coreSS, false),
 					UserThreadResourceUtil.getMletHeightFrom(coreSS, false));
 		} else {
 			ProjResponser.sendMletBodyOnlyOneTime(coreSS);
-			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_HTMLMLET, screenID,
-					mlet.isCancelable);
+			ProjResponser.sendReceiver(coreSS, HCURL.DATA_RECEIVER_HTMLMLET, screenID, mlet.isCancelable);
 			mcanvas = new MletHtmlCanvas(coreSS, UserThreadResourceUtil.getMletWidthFrom(coreSS),
 					UserThreadResourceUtil.getMletHeightFrom(coreSS));
 		}
@@ -1147,14 +1090,13 @@ public class ServerUIAPIAgent {
 		// }
 
 		mcanvas.setMlet(coreSS, mlet, context);
-		runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(context),
-				new ReturnableRunnable() {
-					@Override
-					public Object run() throws Throwable {
-						mcanvas.init();// in user thread
-						return null;
-					}
-				});
+		runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(context), new ReturnableRunnable() {
+			@Override
+			public Object run() throws Throwable {
+				mcanvas.init();// in user thread
+				return null;
+			}
+		});
 
 		ScreenServer.pushScreen(coreSS, (ICanvas) mcanvas);
 		final boolean isForm = MultiUsingManager.enter(coreSS, screenID, mlet.getTarget());
@@ -1180,8 +1122,7 @@ public class ServerUIAPIAgent {
 		return false;
 	}
 
-	public static void goInServer(final J2SESession coreSS, final ProjectContext ctx,
-			final String url) {
+	public static void goInServer(final J2SESession coreSS, final ProjectContext ctx, final String url) {
 		HCURL.checkSuperCmd(url);
 
 		if (L.isInWorkshop) {
@@ -1202,8 +1143,7 @@ public class ServerUIAPIAgent {
 		}
 	}
 
-	public static void goExternalURL(final J2SESession coreSS, final ProjectContext ctx,
-			final String url, final boolean isUseExtBrowser) {
+	public static void goExternalURL(final J2SESession coreSS, final ProjectContext ctx, final String url, final boolean isUseExtBrowser) {
 		if (url.endsWith(StringUtil.JAD_EXT)) {
 			throw new Error("external URL can NOT end with : " + StringUtil.JAD_EXT);
 		}
@@ -1234,25 +1174,21 @@ public class ServerUIAPIAgent {
 				runAndWaitInSysThread(new ReturnableRunnable() {
 					@Override
 					public Object run() throws Throwable {
-						final HCLimitSecurityManager manager = HCLimitSecurityManager
-								.getHCSecurityManager();
-						runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(ctx),
-								new ReturnableRunnable() {
-									@Override
-									public Object run() throws Throwable {
-										try {
-											ThreadConfig.putValue(ThreadConfig.AUTO_PUSH_EXCEPTION,
-													false);// 关闭push exception
-											manager.checkPermission(perm);
-										} catch (final Throwable e) {
-											exception[0] = e;
-										} finally {
-											ThreadConfig.putValue(ThreadConfig.AUTO_PUSH_EXCEPTION,
-													true);
-										}
-										return null;
-									}
-								});
+						final HCLimitSecurityManager manager = HCLimitSecurityManager.getHCSecurityManager();
+						runAndWaitInSessionThreadPool(coreSS, getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
+							@Override
+							public Object run() throws Throwable {
+								try {
+									ThreadConfig.putValue(ThreadConfig.AUTO_PUSH_EXCEPTION, false);// 关闭push exception
+									manager.checkPermission(perm);
+								} catch (final Throwable e) {
+									exception[0] = e;
+								} finally {
+									ThreadConfig.putValue(ThreadConfig.AUTO_PUSH_EXCEPTION, true);
+								}
+								return null;
+							}
+						});
 						return null;
 					}
 				});
@@ -1275,16 +1211,14 @@ public class ServerUIAPIAgent {
 			runInSysThread(new Runnable() {
 				@Override
 				public void run() {
-					HCURLUtil.sendEClass(coreSS, HCURLUtil.CLASS_GO_EXTERNAL_URL,
-							HCURLUtil.INNER_MODE + url);
+					HCURLUtil.sendEClass(coreSS, HCURLUtil.CLASS_GO_EXTERNAL_URL, HCURLUtil.INNER_MODE + url);
 				}
 			});
 		}
 	}
 
-	public static void goMlet(final J2SESession coreSS, final ProjectContext ctx,
-			final Mlet fromMletMaybeNull, final Mlet toMlet, final String targetOfMlet,
-			final boolean isAutoReleaseCurrentMlet) throws Error {
+	public static void goMlet(final J2SESession coreSS, final ProjectContext ctx, final Mlet fromMletMaybeNull, final Mlet toMlet,
+			final String targetOfMlet, final boolean isAutoReleaseCurrentMlet) throws Error {
 		if (toMlet == null) {
 			throw new Error("Mlet is null when goMlet.");
 		}
@@ -1297,8 +1231,7 @@ public class ServerUIAPIAgent {
 			@Override
 			public Object run() throws Throwable {
 				setMletTarget(toMlet, targetOfMlet);
-				openMlet(coreSS, ctx, toMlet, targetOfMlet, isAutoReleaseCurrentMlet,
-						fromMletMaybeNull);
+				openMlet(coreSS, ctx, toMlet, targetOfMlet, isAutoReleaseCurrentMlet, fromMletMaybeNull);
 				return null;
 			}
 		});
@@ -1312,8 +1245,7 @@ public class ServerUIAPIAgent {
 		HCURLUtil.sendCmd(oneCoreSS, HCURL.DATA_CMD_VOICE, "value", voice);
 	}
 
-	public static void goInSysThread(final J2SESession coreSS, final ProjectContext ctx,
-			final String url) {
+	public static void goInSysThread(final J2SESession coreSS, final ProjectContext ctx, final String url) {
 		final HCURL hu = HCURLUtil.extract(url);
 
 		final String protocal = hu.protocal;
@@ -1324,12 +1256,10 @@ public class ServerUIAPIAgent {
 				break;
 			}
 		}
-		if (isFastRespProtocal && ((protocal == HCURL.CMD_PROTOCAL
-				&& isCmdExitOrConfig(url.toLowerCase())) == false)) {
+		if (isFastRespProtocal && ((protocal == HCURL.CMD_PROTOCAL && isCmdExitOrConfig(url.toLowerCase())) == false)) {
 			final MobiUIResponsor mobiResp = (MobiUIResponsor) ServerUIUtil.getResponsor();
 			if (mobiResp != null) {
-				final boolean done = mobiResp.findContext(ctx.getProjectID()).doBiz(coreSS, hu,
-						false);// 直接处理，无需手机端转一圈
+				final boolean done = mobiResp.findContext(ctx.getProjectID()).doBiz(coreSS, hu, false);// 直接处理，无需手机端转一圈
 				L.V = L.WShop ? false : LogManager.log("exec url : " + url + ", result : " + done);
 				if (done) {
 					HCURLUtil.hcurlCacher.cycle(hu);
@@ -1348,8 +1278,7 @@ public class ServerUIAPIAgent {
 		return ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() throws Throwable {
-				final ProjResponser pr = getProjResponserMaybeNull(
-						ProjectContext.getProjectContext());
+				final ProjResponser pr = getProjResponserMaybeNull(ProjectContext.getProjectContext());
 				if (pr == null) {
 					return null;
 				}
@@ -1359,15 +1288,13 @@ public class ServerUIAPIAgent {
 		}, threadToken);
 	}
 
-	public static void setProjProp(final ProjectContext ctx, final String propPre, final String key,
-			final boolean value) {
+	public static void setProjProp(final ProjectContext ctx, final String propPre, final String key, final boolean value) {
 		final String prop = propPre + key;
 		setHCSysProperties(ctx, prop, String.valueOf(value));
 		ctx.__saveSysPropertiesOnHC();
 	}
 
-	public static boolean isProjPropTrue(final ProjectContext ctx, final String propPre,
-			final String key) {
+	public static boolean isProjPropTrue(final ProjectContext ctx, final String propPre, final String key) {
 		final String value = getHCSysProperties(ctx, propPre + key);
 		if (value == null) {
 			return false;

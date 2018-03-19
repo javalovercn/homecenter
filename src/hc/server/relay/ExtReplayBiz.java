@@ -12,6 +12,5 @@ public interface ExtReplayBiz {
 	 * @param bs
 	 * @throws Exception
 	 */
-	public boolean doExt(final SelectionKey key, SocketChannel socket, ByteBuffer buffer)
-			throws Exception;
+	public boolean doExt(final SelectionKey key, SocketChannel socket, ByteBuffer buffer) throws Exception;
 }

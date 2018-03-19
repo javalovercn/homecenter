@@ -40,49 +40,48 @@ import org.jrubyparser.lexer.SyntaxException.PID;
 import org.jrubyparser.lexer.Token;
 
 public class ParserSupport19 extends ParserSupport {
-    @Override
-    public AssignableNode assignable(Token lhs, Node value) {
-        checkExpression(value);
+	@Override
+	public AssignableNode assignable(Token lhs, Node value) {
+		checkExpression(value);
 
-        switch (lhs.getType()) {
-            case Tokens.kSELF:
-                throw new SyntaxException(PID.CANNOT_CHANGE_SELF, lhs.getPosition(), "Can't change the value of self");
-            case Tokens.kNIL:
-                throw new SyntaxException(PID.INVALID_ASSIGNMENT, lhs.getPosition(), "Can't assign to nil", "nil");
-            case Tokens.kTRUE:
-                throw new SyntaxException(PID.INVALID_ASSIGNMENT, lhs.getPosition(), "Can't assign to true", "true");
-            case Tokens.kFALSE:
-                throw new SyntaxException(PID.INVALID_ASSIGNMENT, lhs.getPosition(), "Can't assign to false", "false");
-            case Tokens.k__FILE__:
-                throw new SyntaxException(PID.INVALID_ASSIGNMENT, lhs.getPosition(), "Can't assign to __FILE__", "__FILE__");
-            case Tokens.k__LINE__:
-                throw new SyntaxException(PID.INVALID_ASSIGNMENT, lhs.getPosition(), "Can't assign to __LINE__", "__LINE__");
-            case Tokens.k__ENCODING__:
-                throw new SyntaxException(PID.INVALID_ASSIGNMENT, lhs.getPosition(), "Can't assign to __ENCODING__", "__ENCODING__");
-            case Tokens.tLABEL: // keyword args (only 2.0 grammar can ever call assignable with this token)
-            case Tokens.tIDENTIFIER:
-                // ENEBO: 1.9 has CURR nodes for local/block variables.  We don't.  I believe we follow proper logic
-                return currentScope.assign(value != null ? union(lhs, value) : lhs.getPosition(), (String) lhs.getValue(), value);
-            case Tokens.tCONSTANT:
-                if (isInDef() || isInSingle()) {
-                    throw new SyntaxException(PID.DYNAMIC_CONSTANT_ASSIGNMENT, lhs.getPosition(), "dynamic constant assignment");
-                }
-                return new ConstDeclNode(lhs.getPosition(), (String) lhs.getValue(), null, value);
-            case Tokens.tIVAR:
-                return new InstAsgnNode(lhs.getPosition(), (String) lhs.getValue(), value);
-            case Tokens.tCVAR:
-                return new ClassVarAsgnNode(lhs.getPosition(), (String) lhs.getValue(), value);
-            case Tokens.tGVAR:
-                return new GlobalAsgnNode(lhs.getPosition(), (String) lhs.getValue(), value);
-        }
+		switch (lhs.getType()) {
+		case Tokens.kSELF:
+			throw new SyntaxException(PID.CANNOT_CHANGE_SELF, lhs.getPosition(), "Can't change the value of self");
+		case Tokens.kNIL:
+			throw new SyntaxException(PID.INVALID_ASSIGNMENT, lhs.getPosition(), "Can't assign to nil", "nil");
+		case Tokens.kTRUE:
+			throw new SyntaxException(PID.INVALID_ASSIGNMENT, lhs.getPosition(), "Can't assign to true", "true");
+		case Tokens.kFALSE:
+			throw new SyntaxException(PID.INVALID_ASSIGNMENT, lhs.getPosition(), "Can't assign to false", "false");
+		case Tokens.k__FILE__:
+			throw new SyntaxException(PID.INVALID_ASSIGNMENT, lhs.getPosition(), "Can't assign to __FILE__", "__FILE__");
+		case Tokens.k__LINE__:
+			throw new SyntaxException(PID.INVALID_ASSIGNMENT, lhs.getPosition(), "Can't assign to __LINE__", "__LINE__");
+		case Tokens.k__ENCODING__:
+			throw new SyntaxException(PID.INVALID_ASSIGNMENT, lhs.getPosition(), "Can't assign to __ENCODING__", "__ENCODING__");
+		case Tokens.tLABEL: // keyword args (only 2.0 grammar can ever call assignable with this token)
+		case Tokens.tIDENTIFIER:
+			// ENEBO: 1.9 has CURR nodes for local/block variables.  We don't.  I believe we follow proper logic
+			return currentScope.assign(value != null ? union(lhs, value) : lhs.getPosition(), (String) lhs.getValue(), value);
+		case Tokens.tCONSTANT:
+			if (isInDef() || isInSingle()) {
+				throw new SyntaxException(PID.DYNAMIC_CONSTANT_ASSIGNMENT, lhs.getPosition(), "dynamic constant assignment");
+			}
+			return new ConstDeclNode(lhs.getPosition(), (String) lhs.getValue(), null, value);
+		case Tokens.tIVAR:
+			return new InstAsgnNode(lhs.getPosition(), (String) lhs.getValue(), value);
+		case Tokens.tCVAR:
+			return new ClassVarAsgnNode(lhs.getPosition(), (String) lhs.getValue(), value);
+		case Tokens.tGVAR:
+			return new GlobalAsgnNode(lhs.getPosition(), (String) lhs.getValue(), value);
+		}
 
-        throw new SyntaxException(PID.BAD_IDENTIFIER, lhs.getPosition(), "identifier " + 
-                (String) lhs.getValue() + " is not valid to set", lhs.getValue());
-    }
+		throw new SyntaxException(PID.BAD_IDENTIFIER, lhs.getPosition(), "identifier " + (String) lhs.getValue() + " is not valid to set",
+				lhs.getValue());
+	}
 
-    @Override
-    protected void getterIdentifierError(SourcePosition position, String identifier) {
-        throw new SyntaxException(PID.BAD_IDENTIFIER, position, "identifier " +
-                identifier + " is not valid to get", identifier);
-    }
+	@Override
+	protected void getterIdentifierError(SourcePosition position, String identifier) {
+		throw new SyntaxException(PID.BAD_IDENTIFIER, position, "identifier " + identifier + " is not valid to get", identifier);
+	}
 }

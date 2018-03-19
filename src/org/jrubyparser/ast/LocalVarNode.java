@@ -37,76 +37,79 @@ import org.jrubyparser.SourcePosition;
  * Access a local variable
  */
 public class LocalVarNode extends NamedNode implements ILocalVariable {
-    // A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
-    // is what index in the right scope to set the value.
-    private int location;
+	// A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
+	// is what index in the right scope to set the value.
+	private int location;
 
-    public LocalVarNode(SourcePosition position, int location, String name) {
-        super(position, name);
+	public LocalVarNode(SourcePosition position, int location, String name) {
+		super(position, name);
 
-        this.location = location;
-    }
+		this.location = location;
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.LOCALVARNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.LOCALVARNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitLocalVarNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitLocalVarNode(this);
+	}
 
-    /**
-     * How many scopes should we burrow down to until we need to set the block variable value.
-     *
-     * @return 0 for current scope, 1 for one down, ...
-     */
-    public int getDepth() {
-        return location >> 16;
-    }
+	/**
+	 * How many scopes should we burrow down to until we need to set the block variable value.
+	 *
+	 * @return 0 for current scope, 1 for one down, ...
+	 */
+	public int getDepth() {
+		return location >> 16;
+	}
 
-    /**
-     * Gets the index within the scope construct that actually holds the eval'd value
-     * of this local variable
-     *
-     * @return Returns an int offset into storage structure
-     */
-    public int getIndex() {
-        return location & 0xffff;
-    }
+	/**
+	 * Gets the index within the scope construct that actually holds the eval'd value of this local
+	 * variable
+	 *
+	 * @return Returns an int offset into storage structure
+	 */
+	public int getIndex() {
+		return location & 0xffff;
+	}
 
-    public IScope getDefinedScope() {
-        IScope scope = getClosestIScope();
+	public IScope getDefinedScope() {
+		IScope scope = getClosestIScope();
 
-        for (int i = 0; i < getDepth(); i++) {
-            scope = ((Node) scope).getClosestIScope();
-        }
+		for (int i = 0; i < getDepth(); i++) {
+			scope = ((Node) scope).getClosestIScope();
+		}
 
-        return scope;
-    }
+		return scope;
+	}
 
-    public List<ILocalVariable> getOccurrences() {
-        return getDefinedScope().getVariableReferencesNamed(getName());
-    }
+	public List<ILocalVariable> getOccurrences() {
+		return getDefinedScope().getVariableReferencesNamed(getName());
+	}
 
-    /**
-     * Declaration is the first parameter value (ArgumentNode) or the first LocalAsgnNode.
-     * The first LocalAsgnNode is somewhat arbtrarily defined as decl since there could be
-     * multiple LocalAsgnNode and one may seem more like the decl than another.  With
-     * static analysis we cannot know which one is really first so we choose the one
-     * closest to beginning of scope.
-     */
-    public ILocalVariable getDeclaration() {
-        for (ILocalVariable variable: getOccurrences()) {
-            if (variable instanceof IParameter) return variable;
-            if (variable instanceof LocalAsgnNode) return variable;
-        }
+	/**
+	 * Declaration is the first parameter value (ArgumentNode) or the first LocalAsgnNode. The first
+	 * LocalAsgnNode is somewhat arbtrarily defined as decl since there could be multiple
+	 * LocalAsgnNode and one may seem more like the decl than another. With static analysis we
+	 * cannot know which one is really first so we choose the one closest to beginning of scope.
+	 */
+	public ILocalVariable getDeclaration() {
+		for (ILocalVariable variable : getOccurrences()) {
+			if (variable instanceof IParameter)
+				return variable;
+			if (variable instanceof LocalAsgnNode)
+				return variable;
+		}
 
-        assert false: "Never found declaration for LocalVarNode";
+		assert false : "Never found declaration for LocalVarNode";
 
-        return this; // Should never happen
-    }
+		return this; // Should never happen
+	}
 }

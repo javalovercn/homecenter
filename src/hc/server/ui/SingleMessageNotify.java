@@ -43,8 +43,7 @@ public class SingleMessageNotify {
 	 *            指定时间后自动关闭；如果为{@link SingleMessageNotify#NEVER_AUTO_CLOSE}，表示须手工关闭
 	 * @param icon
 	 */
-	public static final void showOnce(final String type, final String msg, final String title,
-			final int disposeMS, final Icon icon) {
+	public static final void showOnce(final String type, final String msg, final String title, final int disposeMS, final Icon icon) {
 		synchronized (SingleMessageNotify.class) {
 			if (SingleMessageNotify.isShowMessage(type) == false) {
 				new SingleMessageNotify(type, msg, title, disposeMS, icon);
@@ -78,25 +77,22 @@ public class SingleMessageNotify {
 	 *            指定时间后自动关闭；如果为0，表示须手工关闭
 	 * @param icon
 	 */
-	public SingleMessageNotify(final String type, final String msg, final String title,
-			final int disposeMS, final Icon icon) {
+	public SingleMessageNotify(final String type, final String msg, final String title, final int disposeMS, final Icon icon) {
 		if (ResourceUtil.isNonUIServer()) {// Demo时，不显示UI界面
 			return;
 		}
 
 		final JPanel panel = new JPanel(new BorderLayout());
-		panel.add(new JLabel("<html><body>" + msg + "</body></html>", icon, SwingConstants.LEADING),
-				BorderLayout.CENTER);
+		panel.add(new JLabel("<html><body>" + msg + "</body></html>", icon, SwingConstants.LEADING), BorderLayout.CENTER);
 		final ActionListener quitAction = new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				closeDialog(type);
 			}
 		}, App.getThreadPoolToken());
-		final JButton okButton = new JButton((String) ResourceUtil.get(IContext.OK),
-				new ImageIcon(ImageSrc.OK_ICON));
-		final JDialog dialog = (JDialog) App.showCenterPanelMain(panel, 0, 0, title, false,
-				okButton, null, quitAction, quitAction, null, false, false, null, false, false);
+		final JButton okButton = new JButton((String) ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
+		final JDialog dialog = (JDialog) App.showCenterPanelMain(panel, 0, 0, title, false, okButton, null, quitAction, quitAction, null,
+				false, false, null, false, false);
 		typeDialogs.put(type, dialog);
 
 		if (disposeMS > NEVER_AUTO_CLOSE) {
@@ -119,8 +115,7 @@ public class SingleMessageNotify {
 							break;
 						}
 						okButton.setText((String) ResourceUtil.get(IContext.OK) + " ["
-								+ (int) ((startMS + disposeMS - System.currentTimeMillis()) / 1000)
-								+ "]");
+								+ (int) ((startMS + disposeMS - System.currentTimeMillis()) / 1000) + "]");
 					}
 				}
 			}.start();

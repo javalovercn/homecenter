@@ -32,9 +32,7 @@ public abstract class QuartzJob implements Job {
 		final String schedulerID = map.getString(jobMapSchedulerID);
 		final String jobKey = map.getString(jobMapJobName);
 
-		L.V = L.WShop ? false
-				: LogManager.log(
-						"begin QuartzJob [" + projectID + "/" + schedulerID + "/" + jobKey + "]");// projectID可以为null
+		L.V = L.WShop ? false : LogManager.log("begin QuartzJob [" + projectID + "/" + schedulerID + "/" + jobKey + "]");// projectID可以为null
 		final HCTimer warn = ServerAPIAgent.addQuartzLongTimeWarn(projectID, schedulerID, jobKey);
 		try {
 			executeByMap(map);
@@ -42,9 +40,7 @@ public abstract class QuartzJob implements Job {
 			throw new JobExecutionException(ex);
 		} finally {
 			warn.remove();
-			L.V = L.WShop ? false
-					: LogManager.log("end QuartzJob [" + projectID + "/" + schedulerID + "/"
-							+ jobKey + "].");
+			L.V = L.WShop ? false : LogManager.log("end QuartzJob [" + projectID + "/" + schedulerID + "/" + jobKey + "].");
 		}
 	}
 
@@ -92,14 +88,13 @@ public abstract class QuartzJob implements Job {
 	private static final String jobMapSchedulerID = "schedulerID";
 	private static final String jobMapJobName = "jobName";
 
-	public static void setRunnable(final JobDataMap map, final Runnable runnable,
-			final String projID, final String sche, final String job) {
+	public static void setRunnable(final JobDataMap map, final Runnable runnable, final String projID, final String sche,
+			final String job) {
 		map.put(jobMapRunnable, runnable);
 		setJobDetail(map, projID, sche, job);
 	}
 
-	static void setJobDetail(final JobDataMap map, final String projID, final String sche,
-			final String job) {
+	static void setJobDetail(final JobDataMap map, final String projID, final String sche, final String job) {
 		map.put(jobMapProjectID, projID);
 		map.put(jobMapSchedulerID, sche);
 		map.put(jobMapJobName, job);
@@ -109,8 +104,7 @@ public abstract class QuartzJob implements Job {
 		return (Runnable) map.get(jobMapRunnable);
 	}
 
-	public static void setJobScripts(final JobDataMap map, final String scripts,
-			final String projID, final String sche, final String job) {
+	public static void setJobScripts(final JobDataMap map, final String scripts, final String projID, final String sche, final String job) {
 		map.put(jobMapScriptsKey, scripts);
 		setJobDetail(map, projID, sche, job);
 	}

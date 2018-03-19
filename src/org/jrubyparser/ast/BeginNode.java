@@ -32,58 +32,60 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- * Begin/End block.  A Begin ... End block without rescue.
+ * Begin/End block. A Begin ... End block without rescue.
  */
 public class BeginNode extends Node {
-    private Node bodyNode;
+	private Node bodyNode;
 
-    public BeginNode(SourcePosition position, Node bodyNode) {
-        super(position);
+	public BeginNode(SourcePosition position, Node bodyNode) {
+		super(position);
 
-//        assert bodyNode != null : "bodyNode is not null";
+		//        assert bodyNode != null : "bodyNode is not null";
 
-        this.bodyNode = adopt(bodyNode);
-    }
+		this.bodyNode = adopt(bodyNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && getBody().isSame(((BeginNode) node).getBody());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && getBody().isSame(((BeginNode) node).getBody());
-    }
+	public NodeType getNodeType() {
+		return NodeType.BEGINNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitBeginNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.BEGINNODE;
-    }
+	/**
+	 * Gets the bodyNode.
+	 * 
+	 * @return Returns a INode
+	 */
+	@Deprecated
+	public Node getBodyNode() {
+		return getBody();
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitBeginNode(this);
-    }
+	public Node getBody() {
+		return bodyNode;
+	}
 
-    /**
-     * Gets the bodyNode.
-     * @return Returns a INode
-     */
-    @Deprecated
-    public Node getBodyNode() {
-        return getBody();
-    }
-
-    public Node getBody() {
-        return bodyNode;
-    }
-
-    public void setBody(Node body) {
-        this.bodyNode = adopt(body);
-    }
+	public void setBody(Node body) {
+		this.bodyNode = adopt(body);
+	}
 }

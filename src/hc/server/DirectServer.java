@@ -74,8 +74,7 @@ public class DirectServer extends Thread {
 				try {
 					directServerPort = Integer.parseInt(defaultPort);
 				} catch (final Throwable e) {
-					LogManager.errToLog(
-							"[direct server] invalid port for direct server, use zero as port.");
+					LogManager.errToLog("[direct server] invalid port for direct server, use zero as port.");
 				}
 				final int backlog = 20;
 				boolean isAutoSelectPort = false;
@@ -86,23 +85,18 @@ public class DirectServer extends Thread {
 					server.bind(new InetSocketAddress(ia, 0), backlog);
 				}
 				// 供家庭环境内无线网，快捷访问
-				StarterParameter.setHomeWirelessIPPort(server.getInetAddress().getHostAddress(),
-						server.getLocalPort());
+				StarterParameter.setHomeWirelessIPPort(server.getInetAddress().getHostAddress(), server.getLocalPort());
 
 				if (isAutoSelectPort) {
 					final JPanel panel = new JPanel(new BorderLayout());
-					final String msg = "[direct server] port:" + directServerPort
-							+ " is used, select port:" + server.getLocalPort();
-					panel.add(new JLabel(msg, App.getSysIcon(App.SYS_ERROR_ICON),
-							SwingConstants.LEADING), BorderLayout.CENTER);
-					App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(IConstant.ERROR), false,
-							(JButton) null, (String) null, (ActionListener) null,
-							(ActionListener) null, (JFrame) null, false, true, null, false, false);
+					final String msg = "[direct server] port:" + directServerPort + " is used, select port:" + server.getLocalPort();
+					panel.add(new JLabel(msg, App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
+					App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(IConstant.ERROR), false, (JButton) null, (String) null,
+							(ActionListener) null, (ActionListener) null, (JFrame) null, false, true, null, false, false);
 					LogManager.err(msg);
 				}
 
-				LogManager
-						.log("Build direct server at " + server.getLocalSocketAddress().toString());
+				LogManager.log("Build direct server at " + server.getLocalSocketAddress().toString());
 				LogManager.log("  on network interface [" + networkAddressName + "]");
 				LogManager.log("  for home wirless network");
 
@@ -122,8 +116,7 @@ public class DirectServer extends Thread {
 				serverSnap.close();
 				LogManager.log("[direct server] successful close old Home Wireless Server");
 			} catch (final Throwable e) {
-				LogManager
-						.log("[direct server] Error close home wireless server : " + e.toString());
+				LogManager.log("[direct server] Error close home wireless server : " + e.toString());
 			}
 
 			while (true) {
@@ -211,8 +204,7 @@ public class DirectServer extends Thread {
 			// socket.close();
 			// }catch (final Exception e) {
 			// }
-			LogManager.log("[direct server] client line on:["
-					+ socket.getInetAddress().getHostAddress() + ":" + socket.getPort() + "]");
+			LogManager.log("[direct server] client line on:[" + socket.getInetAddress().getHostAddress() + ":" + socket.getPort() + "]");
 
 			try {
 				socket.setKeepAlive(true);// 由于某此环境下，节能可能关闭应用，而导致连接空挂。
@@ -272,9 +264,10 @@ public class DirectServer extends Thread {
 					return;
 				}
 
+				coreSSMaybeNull.context.setStatus(ContextManager.STATUS_CLIENT_IN);
 				try {
-					coreSSMaybeNull.context.sendWithoutLockForKeepAliveOnly(null,
-							MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_DIRECT_CONN_OK);
+					coreSSMaybeNull.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT,
+							MsgBuilder.DATA_ROOT_DIRECT_CONN_OK);
 				} catch (final Throwable e) {
 				}
 
@@ -286,8 +279,7 @@ public class DirectServer extends Thread {
 				// }
 
 				setServerConfigPara(coreSSMaybeNull, true, false);
-				coreSSMaybeNull.context
-						.setConnectionModeStatus(ContextManager.MODE_CONNECTION_HOME_WIRELESS);
+				coreSSMaybeNull.context.setConnectionModeStatus(ContextManager.MODE_CONNECTION_HOME_WIRELESS);
 
 				final byte subTag = bs[MsgBuilder.INDEX_CTRL_SUB_TAG];
 				if (subTag == MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST) {
@@ -313,8 +305,7 @@ public class DirectServer extends Thread {
 		}
 	}
 
-	public static void setServerConfigPara(final J2SESession coreSS, final boolean keepalive,
-			final boolean isRelay) {
+	public static void setServerConfigPara(final J2SESession coreSS, final boolean keepalive, final boolean isRelay) {
 		// 家庭直联模式下，开启keepalive，不关闭KeepAlive
 		coreSS.keepaliveManager.keepalive.setEnable(keepalive);
 		coreSS.keepaliveManager.keepalive.resetTimerCount();

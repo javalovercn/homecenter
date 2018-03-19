@@ -32,58 +32,59 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- * The 'not' operator, as it was in 1.8. In 1.9 and 2.0 'not' is syntactic
- * sugar for '!' with a different precedence but semantically identical,
- * and there we represent applications of 'not' with a call to '!' with a
- * name of '!' and a lexical name of 'not'. So you will not see this node
+ * The 'not' operator, as it was in 1.8. In 1.9 and 2.0 'not' is syntactic sugar for '!' with a
+ * different precedence but semantically identical, and there we represent applications of 'not'
+ * with a call to '!' with a name of '!' and a lexical name of 'not'. So you will not see this node
  * except in a 1.8 AST.
  */
 public class NotNode extends Node {
-    private Node conditionNode;
+	private Node conditionNode;
 
-    public NotNode(SourcePosition position, Node conditionNode) {
-        super(position);
+	public NotNode(SourcePosition position, Node conditionNode) {
+		super(position);
 
-        assert conditionNode != null : "conditionNode is not null";
+		assert conditionNode != null : "conditionNode is not null";
 
-        this.conditionNode = adopt(conditionNode);
-    }
+		this.conditionNode = adopt(conditionNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && getCondition().isSame(((NotNode) node).getCondition());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && getCondition().isSame(((NotNode) node).getCondition());
-    }
+	public NodeType getNodeType() {
+		return NodeType.NOTNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitNotNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.NOTNODE;
-    }
+	/**
+	 * Gets the conditionNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getCondition() {
+		return conditionNode;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitNotNode(this);
-    }
-
-    /**
-     * Gets the conditionNode.
-     * @return Returns a Node
-     */
-    public Node getCondition() {
-        return conditionNode;
-    }
-
-    @Deprecated
-    public Node getConditionNode() {
-        return getCondition();
-    }
+	@Deprecated
+	public Node getConditionNode() {
+		return getCondition();
+	}
 }

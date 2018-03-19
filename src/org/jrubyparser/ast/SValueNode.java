@@ -32,30 +32,30 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 public class SValueNode extends Node {
-    private Node node;
+	private Node node;
 
-    public SValueNode(SourcePosition position, Node node) {
-        super(position);
+	public SValueNode(SourcePosition position, Node node) {
+		super(position);
 
-        assert node != null : "node is not null";
+		assert node != null : "node is not null";
 
-        this.node = adopt(node);
-    }
+		this.node = adopt(node);
+	}
 
-    @Override
-    public boolean isSame(Node other) {
-        return super.isSame(other) && getValue().isSame(((SValueNode) other).getValue());
-    }
+	@Override
+	public boolean isSame(Node other) {
+		return super.isSame(other) && getValue().isSame(((SValueNode) other).getValue());
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.SVALUENODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.SVALUENODE;
+	}
 
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitSValueNode(this);
-    }
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitSValueNode(this);
+	}
 
-    public Node getValue() {
-        return node;
-    }
+	public Node getValue() {
+		return node;
+	}
 }

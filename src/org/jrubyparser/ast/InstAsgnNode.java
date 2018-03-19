@@ -37,77 +37,83 @@ import org.jrubyparser.util.IInstanceVariableVisitor;
  * Represents an instance variable assignment.
  */
 public class InstAsgnNode extends AssignableNode implements IInstanceVariable {
-    private String name;
+	private String name;
 
-    /**
-     * @param position the position
-     * @param name the name of the instance variable
-     * @param valueNode the value of the variable
-     **/
-    public InstAsgnNode(SourcePosition position, String name, Node valueNode) {
-        super(position, valueNode);
+	/**
+	 * @param position
+	 *            the position
+	 * @param name
+	 *            the name of the instance variable
+	 * @param valueNode
+	 *            the value of the variable
+	 **/
+	public InstAsgnNode(SourcePosition position, String name, Node valueNode) {
+		super(position, valueNode);
 
-        if (name.startsWith("@")) name = name.substring(1);
+		if (name.startsWith("@"))
+			name = name.substring(1);
 
-        this.name = name;
-    }
+		this.name = name;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && isNameMatch(((InstAsgnNode) node).getName());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && isNameMatch(((InstAsgnNode) node).getName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.INSTASGNNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitInstAsgnNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.INSTASGNNODE;
-    }
+	public String getLexicalName() {
+		return "@" + getName();
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitInstAsgnNode(this);
-    }
+	/**
+	 * Gets the name.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getName() {
+		return name;
+	}
 
-    public String getLexicalName() {
-        return "@" + getName();
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    /**
-     * Gets the name.
-     * @return Returns a String
-     */
-    public String getName() {
-        return name;
-    }
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+		return thisName != null && thisName.equals(name);
+	}
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+	public SourcePosition getNamePosition() {
+		return getLexicalNamePosition().fromEnd(getName().length());
+	}
 
-        return thisName != null && thisName.equals(name);
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getPosition().fromBeginning(getLexicalName().length());
+	}
 
-    public SourcePosition getNamePosition() {
-        return getLexicalNamePosition().fromEnd(getName().length());
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getPosition().fromBeginning(getLexicalName().length());
-    }
-
-    public List<IInstanceVariable> getOccurences() {
-        return IInstanceVariableVisitor.findOccurrencesIn((Node) getClosestModule(), getName());
-    }
+	public List<IInstanceVariable> getOccurences() {
+		return IInstanceVariableVisitor.findOccurrencesIn((Node) getClosestModule(), getName());
+	}
 }

@@ -29,5 +29,5 @@
 package org.jrubyparser.ast;
 
 public interface IScopingNode {
-    public Colon3Node getCPath();
+	public Colon3Node getCPath();
 }

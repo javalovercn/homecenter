@@ -35,26 +35,26 @@ import org.jrubyparser.ast.Node;
 import org.jrubyparser.rewriter.ReWriteVisitor;
 
 public class MultipleAssignmentReWriteVisitor extends ReWriteVisitor {
-	
+
 	public MultipleAssignmentReWriteVisitor(ReWriterContext config) {
 		super(config);
 	}
-	
-    @Override
+
+	@Override
 	protected void printAssignmentOperator() {
 	}
-	
-    @Override
+
+	@Override
 	protected boolean inMultipleAssignment() {
 		return true;
 	}
-	
+
 	// This might lead to a problem with comments
-    @Override
+	@Override
 	public void visitAndPrintWithSeparator(Iterator<Node> it) {
 		while (it.hasNext()) {
 			Node n = (Node) it.next();
-			if(n instanceof ArgumentNode) {
+			if (n instanceof ArgumentNode) {
 				config.getOutput().print(((ArgumentNode) n).getName());
 			} else {
 				visitNode(n);

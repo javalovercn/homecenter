@@ -11,143 +11,172 @@ public class ConnectionRebuilder {
 	boolean isStartBuildingNewAtMobileSide;
 	boolean isEnterBuildWaitNewConnection;
 	long lastEnterBuildMS;
-	final long waitMSForNewConn = Integer.parseInt(RootConfig.getInstance().
-			getProperty(RootConfig.p_KeepAliveMS));
-	
+	final long waitMSForNewConn = Integer.parseInt(
+			RootConfig.getInstance().getProperty(RootConfig.p_KeepAliveMS));
+
 	public boolean isReleased;
-	
-	private final void delayResetRebuilder(){
-		isSuccNewConn = false;//需要delayReset，因为需要此状态来判定
+
+	private final void delayResetRebuilder() {
+		isSuccNewConn = false;// 需要delayReset，因为需要此状态来判定
 		isStartBuildingNewAtMobileSide = false;
 	}
-	
-	public final void waitBeforeSend(){
+
+	public final void waitBeforeSend() {
 		synchronized (sendNotifier) {
-			if(isEnterBuildWaitNewConnection && isReleased == false){
+			if (isEnterBuildWaitNewConnection && isReleased == false) {
 				final long startWaitMS = System.currentTimeMillis();
 				try {
-					L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] wait before send...");
+					L.V = L.WShop ? false
+							: LogManager.log(
+									"[ConnectionRebuilder] wait before send...");
 					sendNotifier.wait(waitMSForNewConn);
 				} catch (InterruptedException e) {
 				}
-				L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] timeout or continue from wait before send, WaitMS : " + (System.currentTimeMillis() - startWaitMS));
+				L.V = L.WShop ? false
+						: LogManager.log(
+								"[ConnectionRebuilder] timeout or continue from wait before send, WaitMS : "
+										+ (System.currentTimeMillis()
+												- startWaitMS));
 			}
 		}
 	}
-	
-	public final boolean notifyBuildNewConnection(final boolean isFromSender, final short cmStatus){
+
+	public final boolean notifyBuildNewConnection(final boolean isFromSender,
+			final short cmStatus) {
 		isEnterBuildWaitNewConnection = true;
 
-		if(isFromSender){
-			L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] ready buildNewConnection from Sender.");
-		}else{
-			L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] ready buildNewConnection from Receiver.");
+		if (isFromSender) {
+			L.V = L.WShop ? false
+					: LogManager.log(
+							"[ConnectionRebuilder] ready buildNewConnection from Sender.");
+		} else {
+			L.V = L.WShop ? false
+					: LogManager.log(
+							"[ConnectionRebuilder] ready buildNewConnection from Receiver.");
 		}
 		final boolean isServer = IConstant.serverSide;
-		if(isServer){
-			if(cmStatus == ContextManager.STATUS_SERVER_SELF){
+		if (isServer) {
+			if (cmStatus == ContextManager.STATUS_SERVER_SELF) {
 				return waitForNew(isFromSender);
-			}else{
+			} else {
 				return false;
 			}
-		}else{
-			if(RootBuilder.getInstance().doBiz(RootBuilder.ROOT_IS_IN_LOGIN_PROCESS, null) == IConstant.TRUE){
-				//手机登录时，不进行重新连接。
+		} else {
+			if (RootBuilder.getInstance().doBiz(
+					RootBuilder.ROOT_IS_IN_LOGIN_PROCESS,
+					null) == IConstant.TRUE) {
+				// 手机登录时，不进行重新连接。
 				return false;
 			}
 
-			if(cmStatus == ContextManager.STATUS_CLIENT_SELF){
+			if (cmStatus == ContextManager.STATUS_CLIENT_SELF) {
 				synchronized (this) {
-					if(isStartBuildingNewAtMobileSide == false){
+					if (isStartBuildingNewAtMobileSide == false) {
 						isStartBuildingNewAtMobileSide = true;
-						
+
 						ContextManager.getThreadPool().run(new Runnable() {
 							public void run() {
 								startBuildNew();
 							}
-						});//由于是客户端发起，所以无需token
-					}else{
-						L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] isStartBuildingNewAtMobileSide = true");
+						});// 由于是客户端发起，所以无需token
+					} else {
+						L.V = L.WShop ? false
+								: LogManager.log(
+										"[ConnectionRebuilder] isStartBuildingNewAtMobileSide = true");
 					}
 				}
 				return waitForNew(isFromSender);
-			}else{
+			} else {
 				return false;
 			}
 		}
 	}
-	
-	private final void startBuildNew(){
-		L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] startBuildNew");
+
+	private final void startBuildNew() {
+		L.V = L.WShop ? false
+				: LogManager.log("[ConnectionRebuilder] startBuildNew");
 		final long startMS = System.currentTimeMillis();
 		final Object out = buildConn();
-		if(out != null && out == IConstant.TRUE){
+		if (out != null && out == IConstant.TRUE) {
 			return;
 		}
-		
-		final long waitMS = (startMS + waitMSForNewConn / 2) - System.currentTimeMillis();
-		if(waitMS > 0){
-			try{
+
+		final long waitMS = (startMS + waitMSForNewConn / 2)
+				- System.currentTimeMillis();
+		if (waitMS > 0) {
+			try {
 				Thread.sleep(waitMS);
-			}catch (Exception e) {
+			} catch (Exception e) {
 			}
 		}
-		buildConn();//二次尝试
+		buildConn();// 二次尝试
 	}
 
 	private final Object buildConn() {
-		return RootBuilder.getInstance().doBiz(RootBuilder.ROOT_BUILD_NEW_CONNECTION, null);
+		return RootBuilder.getInstance()
+				.doBiz(RootBuilder.ROOT_BUILD_NEW_CONNECTION, null);
 	}
 
 	private final boolean waitForNew(boolean isFromSender) {
 		lastEnterBuildMS = System.currentTimeMillis();
-		
-		if(isFromSender){
-			L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] skip wait for new in sender");
+
+		if (isFromSender) {
+			L.V = L.WShop ? false
+					: LogManager.log(
+							"[ConnectionRebuilder] skip wait for new in sender");
 			return false;
-		}else{
+		} else {
 			synchronized (receiveNotifier) {
-				if(isSuccNewConn){
+				if (isSuccNewConn) {
 					return isSuccNewConn;
 				}
-				
+
 				final long startWaitMS = System.currentTimeMillis();
 				try {
-					L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] wait for new in receiver...");
+					L.V = L.WShop ? false
+							: LogManager.log(
+									"[ConnectionRebuilder] wait for new in receiver...");
 					receiveNotifier.wait(waitMSForNewConn);
 				} catch (InterruptedException e) {
 				}
-				L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] timeout or continue from wait for new in receiver, WaitMS : " + (System.currentTimeMillis() - startWaitMS));
+				L.V = L.WShop ? false
+						: LogManager.log(
+								"[ConnectionRebuilder] timeout or continue from wait for new in receiver, WaitMS : "
+										+ (System.currentTimeMillis()
+												- startWaitMS));
 			}
 		}
-		
+
 		return isSuccNewConn;
 	}
-	
-	public final void notifyContinue(){
-		L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] notifyContinue.");
-		
+
+	public final void notifyContinue() {
+		L.V = L.WShop ? false
+				: LogManager.log("[ConnectionRebuilder] notifyContinue.");
+
 		isEnterBuildWaitNewConnection = false;
 		isSuccNewConn = true;
-		
+
 		synchronized (receiveNotifier) {
 			receiveNotifier.notifyAll();
 		}
-		
+
 		synchronized (sendNotifier) {
-			sendNotifier.notifyAll();//发送端延后，否则导致receive不完整
+			sendNotifier.notifyAll();// 发送端延后，否则导致receive不完整
 		}
-		L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] notifyAll sendNotifier.");
-		
+		L.V = L.WShop ? false
+				: LogManager
+						.log("[ConnectionRebuilder] notifyAll sendNotifier.");
+
 		ContextManager.getThreadPool().run(new Runnable() {
 			public void run() {
-				try{
+				try {
 					Thread.sleep(ThreadPriorityManager.UI_DELAY_MOMENT * 2);
-				}catch (Exception e) {
+				} catch (Exception e) {
 				}
 				delayResetRebuilder();
 			}
 		});
 	}
-	
+
 }

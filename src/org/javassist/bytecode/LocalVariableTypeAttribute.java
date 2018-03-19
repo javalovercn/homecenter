@@ -26,38 +26,36 @@ import java.util.Map;
  * @since 3.11
  */
 public class LocalVariableTypeAttribute extends LocalVariableAttribute {
-    /**
-     * The name of the attribute <code>"LocalVariableTypeTable"</code>.
-     */
-    public static final String tag = LocalVariableAttribute.typeTag;
+	/**
+	 * The name of the attribute <code>"LocalVariableTypeTable"</code>.
+	 */
+	public static final String tag = LocalVariableAttribute.typeTag;
 
-    /**
-     * Constructs an empty LocalVariableTypeTable.
-     */
-    public LocalVariableTypeAttribute(ConstPool cp) {
-        super(cp, tag, new byte[2]);
-        ByteArray.write16bit(0, info, 0);
-    }
+	/**
+	 * Constructs an empty LocalVariableTypeTable.
+	 */
+	public LocalVariableTypeAttribute(ConstPool cp) {
+		super(cp, tag, new byte[2]);
+		ByteArray.write16bit(0, info, 0);
+	}
 
-    LocalVariableTypeAttribute(ConstPool cp, int n, DataInputStream in)
-        throws IOException
-    {
-        super(cp, n, in);
-    }
+	LocalVariableTypeAttribute(ConstPool cp, int n, DataInputStream in) throws IOException {
+		super(cp, n, in);
+	}
 
-    private LocalVariableTypeAttribute(ConstPool cp, byte[] dest) {
-        super(cp, tag, dest);
-    }
+	private LocalVariableTypeAttribute(ConstPool cp, byte[] dest) {
+		super(cp, tag, dest);
+	}
 
-    String renameEntry(String desc, String oldname, String newname) {
-        return SignatureAttribute.renameClass(desc, oldname, newname);
-    }
+	String renameEntry(String desc, String oldname, String newname) {
+		return SignatureAttribute.renameClass(desc, oldname, newname);
+	}
 
-    String renameEntry(String desc, Map classnames) {
-        return SignatureAttribute.renameClass(desc, classnames);
-    }
+	String renameEntry(String desc, Map classnames) {
+		return SignatureAttribute.renameClass(desc, classnames);
+	}
 
-    LocalVariableAttribute makeThisAttr(ConstPool cp, byte[] dest) {
-        return new LocalVariableTypeAttribute(cp, dest);
-    }
+	LocalVariableAttribute makeThisAttr(ConstPool cp, byte[] dest) {
+		return new LocalVariableTypeAttribute(cp, dest);
+	}
 }

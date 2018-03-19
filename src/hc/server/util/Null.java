@@ -2,8 +2,8 @@ package hc.server.util;
 
 public class Null {
 	/**
-	 * There is only intended to be a single instance of the NULL object, so the
-	 * clone method returns itself.
+	 * There is only intended to be a single instance of the NULL object, so the clone method
+	 * returns itself.
 	 *
 	 * @return NULL.
 	 */
@@ -17,8 +17,7 @@ public class Null {
 	 *
 	 * @param object
 	 *            An object to test for nullness.
-	 * @return true if the object parameter is the JSONObject.NULL object or
-	 *         null.
+	 * @return true if the object parameter is the JSONObject.NULL object or null.
 	 */
 	@Override
 	public boolean equals(final Object object) {

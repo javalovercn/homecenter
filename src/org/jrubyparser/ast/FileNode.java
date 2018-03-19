@@ -34,7 +34,7 @@ import org.jrubyparser.SourcePosition;
  * Represents __FILE__ nodes
  */
 public class FileNode extends StrNode {
-    public FileNode(SourcePosition position, String value) {
-        super(position, value);
-    }
+	public FileNode(SourcePosition position, String value) {
+		super(position, value);
+	}
 }

@@ -31,14 +31,15 @@ package org.jrubyparser.rewriter.utils;
 public class CallDepth {
 	private int nestedCallDepth;
 	private int savedNestedCallDepth;
-	
+
 	public void enterCall() {
 		nestedCallDepth++;
 	}
 
 	public void leaveCall() {
 		nestedCallDepth--;
-		if (nestedCallDepth < 0) nestedCallDepth = 0;
+		if (nestedCallDepth < 0)
+			nestedCallDepth = 0;
 	}
 
 	public boolean inCall() {
@@ -46,8 +47,7 @@ public class CallDepth {
 	}
 
 	/*
-	 * Those methods are used do disable the output of parantheses in arguments
-	 * of operator-calls
+	 * Those methods are used do disable the output of parantheses in arguments of operator-calls
 	 */
 	public void disableCallDepth() {
 		savedNestedCallDepth = nestedCallDepth;

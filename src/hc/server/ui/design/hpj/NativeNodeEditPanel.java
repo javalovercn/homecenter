@@ -106,9 +106,10 @@ public class NativeNodeEditPanel extends NameEditPanel {
 			osListPanel.add(cb_mac);
 
 			osPanel.add(osListPanel, BorderLayout.CENTER);
-			osPanel.add(new JLabel("<html>" + "1. select the OS that the library will runs on.<BR>"
-					+ "2. if hosting OS is not selected, then the library will not be loaded in that OS."
-					+ "</html>"), BorderLayout.SOUTH);
+			osPanel.add(
+					new JLabel("<html>" + "1. select the OS that the library will runs on.<BR>"
+							+ "2. if hosting OS is not selected, then the library will not be loaded in that OS." + "</html>"),
+					BorderLayout.SOUTH);
 		}
 
 		center.add(osPanel, BorderLayout.CENTER);
@@ -121,7 +122,7 @@ public class NativeNodeEditPanel extends NameEditPanel {
 				+ "<BR>4. in order to meet the complex loading situation, put them as resources in jar or download it online."
 				+ "<BR>5. permission [" + ResourceUtil.LOAD_NATIVE_LIB + "] is required.</html>");
 		final JComponent[] components = { center, // new
-													// JSeparator(SwingConstants.HORIZONTAL),
+				// JSeparator(SwingConstants.HORIZONTAL),
 				noteLabel };
 		add(ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER), BorderLayout.CENTER);
 	}

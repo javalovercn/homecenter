@@ -12,8 +12,7 @@ import java.net.Socket;
 
 public class DeploySender {
 
-	private static DeploySocket buildDeploySocket(final String hostAddress,
-			final boolean showErrInfo) throws Exception {
+	private static DeploySocket buildDeploySocket(final String hostAddress, final boolean showErrInfo) throws Exception {
 		final Socket s = buildSocketTo(hostAddress, showErrInfo);
 		return new DeploySocket(s);
 	}
@@ -65,14 +64,12 @@ public class DeploySender {
 		try {
 			final Socket client = new Socket();
 			// 设置connect timeout
-			client.connect(new InetSocketAddress(ip, ReceiveDeployServer.port),
-					DeploySocket.CONN_TIMEOUT_MS);
+			client.connect(new InetSocketAddress(ip, ReceiveDeployServer.port), DeploySocket.CONN_TIMEOUT_MS);
 			return client;
 		} catch (final Throwable e) {
 			if (showErrInfo) {
 				if (L.isInWorkshop) {
-					LogManager.errToLog(
-							"[Deploy] fail to connect : " + ip + ", exception : " + e.toString());
+					LogManager.errToLog("[Deploy] fail to connect : " + ip + ", exception : " + e.toString());
 				}
 			}
 		}
@@ -82,8 +79,7 @@ public class DeploySender {
 	private final DeploySocket socket;
 	private byte[] passwordBS;
 
-	public DeploySender(final String ip, final byte[] passBS, final boolean showErrInfo)
-			throws Exception {
+	public DeploySender(final String ip, final byte[] passBS, final boolean showErrInfo) throws Exception {
 		this(buildDeploySocket(ip, showErrInfo), passBS);
 	}
 
@@ -148,8 +144,7 @@ public class DeploySender {
 	 * @throws IOException
 	 *             可以抛出ERR_IS_BUSY
 	 */
-	public final boolean sendData(final byte[] bs, final int off, final int len)
-			throws IOException {
+	public final boolean sendData(final byte[] bs, final int off, final int len) throws IOException {
 		final String md5 = ResourceUtil.getMD5(bs, off, len);
 		final byte[] md5bs = ByteUtil.getBytes(md5, IConstant.UTF_8);
 

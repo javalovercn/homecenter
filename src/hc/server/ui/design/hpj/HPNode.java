@@ -53,8 +53,7 @@ public class HPNode {
 			return NODE_MENU;
 		} else if ((type & MASK_EVENT_ITEM) == MASK_EVENT_ITEM) {
 			return NODE_EVENTS;
-		} else if ((type & MASK_RESOURCE_ITEM) == MASK_RESOURCE_ITEM
-				|| (type & MASK_SHARE_RB) == MASK_SHARE_RB) {
+		} else if ((type & MASK_RESOURCE_ITEM) == MASK_RESOURCE_ITEM || (type & MASK_SHARE_RB) == MASK_SHARE_RB) {
 			return NODE_RES;
 		} else {
 			return "";
@@ -135,8 +134,7 @@ public class HPNode {
 
 	public String validate() {
 		if (name.startsWith(CCoreUtil.SYS_PREFIX)) {
-			return "Error [" + name + "] : <strong>" + CCoreUtil.SYS_PREFIX
-					+ "</strong> is system reserved prefix.";
+			return "Error [" + name + "] : <strong>" + CCoreUtil.SYS_PREFIX + "</strong> is system reserved prefix.";
 		}
 
 		return null;

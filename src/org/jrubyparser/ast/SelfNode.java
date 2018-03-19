@@ -35,19 +35,21 @@ import org.jrubyparser.SourcePosition;
  * Represents 'self' keyword
  */
 public class SelfNode extends BareKeywordNode {
-    public SelfNode(SourcePosition position) {
-        super(position, "self");
-    }
+	public SelfNode(SourcePosition position) {
+		super(position, "self");
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.SELFNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.SELFNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitSelfNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitSelfNode(this);
+	}
 }

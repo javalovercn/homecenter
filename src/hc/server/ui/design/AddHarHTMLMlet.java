@@ -143,32 +143,30 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 
 		{
 			final ProjResponser pr = ServerUIAPIAgent.getProjResponserMaybeNull(ctx);
-			okImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS,
-					pr, ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_OK_ICON);
-			cancelImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(
-					localCoreSS, pr, ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON);
+			okImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr,
+					ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_OK_ICON);
+			cancelImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr,
+					ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_CANCEL_ICON);
 		}
 
 		final int fontSizePX = okImage.getHeight();
 
-		loadCSS(SystemHTMLMlet.buildCSS(getButtonHeight(), getFontSizeForButton(),
-				getColorForFontByIntValue(), getColorForBodyByIntValue()) + css, false);
+		loadCSS(SystemHTMLMlet.buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(), getColorForBodyByIntValue())
+				+ css, false);
 
 		exitButton = new JButton(exitButtonStr);
 		setButtonStyle(exitButton);
 
 		setLayout(new BorderLayout());
-		setCSS(msgArea, null,
-				"width:100%;height:100%;border:1px solid #" + getColorForBodyByHexString() + ";"
-						+ "background-color:#" + getColorForBodyByHexString() + ";color:#"
-						+ HTMLMlet.getColorForFontByHexString() + ";");
+		setCSS(msgArea, null, "width:100%;height:100%;border:1px solid #" + getColorForBodyByHexString() + ";" + "background-color:#"
+				+ getColorForBodyByHexString() + ";color:#" + HTMLMlet.getColorForFontByHexString() + ";");
 
 		appendMessage(processingMsg);
 
 		exitButton.setIcon(new ImageIcon(okImage));
 		setButtonEnable(exitButton, false);
-		exitButton.setPreferredSize(new Dimension(getMobileWidth(), SystemHTMLMlet
-				.getButtonHeight(fontSizePX + getFontSizeForButton(), getButtonHeight())));
+		exitButton.setPreferredSize(
+				new Dimension(getMobileWidth(), SystemHTMLMlet.getButtonHeight(fontSizePX + getFontSizeForButton(), getButtonHeight())));
 		// setCSS(exitButton, null, "width:100%;height:100%;border-radius: " +
 		// getButtonHeight() + "px;display: block;transition: all 0.15s
 		// ease;border: 0.1em solid #" + HTMLMlet.getColorForFontByHexString() +
@@ -216,8 +214,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		return null;
 	}
 
-	public final void startAddHarProcessInSysThread(final J2SESession coreSS, final String url,
-			final boolean isInstallFromClient) {
+	public final void startAddHarProcessInSysThread(final J2SESession coreSS, final String url, final boolean isInstallFromClient) {
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
@@ -226,11 +223,9 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		});
 	}
 
-	public void notifyBroadcastWifiAccout(final J2SESession coreSS, final String projID,
-			final String device) {
+	public void notifyBroadcastWifiAccout(final J2SESession coreSS, final String projID, final String device) {
 		final String isBroadcast = ResourceUtil.get(coreSS, 9132);
-		appendMessage(StringUtil.replace(StringUtil.replace(isBroadcast, "{projID}", projID),
-				"{devName}", device));
+		appendMessage(StringUtil.replace(StringUtil.replace(isBroadcast, "{projID}", projID), "{devName}", device));
 	}
 
 	static void acceptAllHARLicenseInUT(final boolean isAccept) {
@@ -249,8 +244,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	 * @param coreSS
 	 * @param url
 	 */
-	private final void startAddHar(final J2SESession coreSS, final String url,
-			final boolean isInstallFromClient) {
+	private final void startAddHar(final J2SESession coreSS, final String url, final boolean isInstallFromClient) {
 		LogManager.log("try ready to download HAR [" + url.toString() + "]...");
 
 		// 关闭可能资源锁窗口，比如Designer或LinkProjectPanel
@@ -259,9 +253,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 			final String linkProjectMenuItem = ResourceUtil.get(coreSS, 9059);
 			final String closeStr = ResourceUtil.get(coreSS, 9129);
 
-			appendMessage(
-					StringUtil.replace(StringUtil.replace(closeStr, "{designer}", designMenuItem),
-							"{panel}", linkProjectMenuItem));
+			appendMessage(StringUtil.replace(StringUtil.replace(closeStr, "{designer}", designMenuItem), "{panel}", linkProjectMenuItem));
 			setButtonEnable(exitButton, true);
 			return;
 		}
@@ -293,8 +285,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 				PropertiesManager.addDelFile(fileHar);
 
 				final String hadmd5 = had.getProperty(HCjad.HAD_HAR_MD5, "");
-				final boolean succ = HttpUtil.download(fileHar, new URL(strharurl), 1,
-						ResourceUtil.getUserAgentForHAD());
+				final boolean succ = HttpUtil.download(fileHar, new URL(strharurl), 1, ResourceUtil.getUserAgentForHAD());
 				if (succ == false) {
 					final String httpErr = ResourceUtil.get(coreSS, 9269);// connection
 																			// error
@@ -307,8 +298,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 					throw new Exception(ResourceUtil.RESERVED_PACKAGE_NAME_IS_IN_HAR);
 				}
 
-				if ((hadmd5.length() > 0
-						&& ResourceUtil.getMD5(fileHar).toLowerCase().equals(hadmd5.toLowerCase()))
+				if ((hadmd5.length() > 0 && ResourceUtil.getMD5(fileHar).toLowerCase().equals(hadmd5.toLowerCase()))
 						|| hadmd5.length() == 0) {
 					final Map<String, Object> map = getMap(fileHar);
 					if (map.isEmpty()) {
@@ -324,8 +314,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 						throw new Exception(ResourceUtil.getErrProjIsDeledNeedRestart(coreSS));
 					}
 
-					if (SignHelper.verifyJar(fileHar,
-							LinkProjectManager.getCertificatesByID(proj_id)) == null) {// 完整性检查进行前置
+					if (SignHelper.verifyJar(fileHar, LinkProjectManager.getCertificatesByID(proj_id)) == null) {// 完整性检查进行前置
 						throw new Exception(ResourceUtil.FILE_IS_MODIFIED_AFTER_SIGNED);
 					}
 
@@ -333,8 +322,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 					final File oldBackEditFile = null;
 					if (isUpgrade) {
 						// is added, can NOT be added again.
-						throw new Exception(StringUtil.replace(ResourceUtil.get(coreSS, 9192),
-								"{projID}", proj_id));// 是否覆盖为resID=9157
+						throw new Exception(StringUtil.replace(ResourceUtil.get(coreSS, 9192), "{projID}", proj_id));// 是否覆盖为resID=9157
 					}
 
 					final String licenseURL = ((String) map.get(HCjar.PROJ_LICENSE)).trim();
@@ -359,8 +347,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 											return null;
 										}
 										try {
-											startAddAfterAgreeInQuestionThread(mlet, coreSS,
-													fileHar, map, isUpgrade, oldBackEditFile,
+											startAddAfterAgreeInQuestionThread(mlet, coreSS, fileHar, map, isUpgrade, oldBackEditFile,
 													isInstallFromClient);
 										} catch (final Exception e) {
 											runException[0] = e;
@@ -402,8 +389,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 
 							@Override
 							public boolean watch() {
-								L.V = L.WShop ? false
-										: LogManager.log("[AddHarHTMLMlet] cancel license.");
+								L.V = L.WShop ? false : LogManager.log("[AddHarHTMLMlet] cancel license.");
 								mlet.back();
 
 								appendMessage(opIsCanceled);
@@ -436,22 +422,16 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 							licenseText = licenseURL;
 						}
 
-						final LicenseHTMLMlet licenseHtmlMlet = (LicenseHTMLMlet) ServerUIAPIAgent
-								.runAndWaitInSessionThreadPool(coreSS,
-										ServerUIAPIAgent.getProjResponserMaybeNull(ctx),
-										new ReturnableRunnable() {
-											@Override
-											public Object run() throws Throwable {
-												return new LicenseHTMLMlet(licenseText,
-														acceptAllAndNeverDisplay, yesInUserThread,
-														noInUserThread, okImage, cancelImage,
-														iagreeStr, acceptStr, cancelStr);
-											}
-										});
+						final LicenseHTMLMlet licenseHtmlMlet = (LicenseHTMLMlet) ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS,
+								ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
+									@Override
+									public Object run() throws Throwable {
+										return new LicenseHTMLMlet(licenseText, acceptAllAndNeverDisplay, yesInUserThread, noInUserThread,
+												okImage, cancelImage, iagreeStr, acceptStr, cancelStr);
+									}
+								});
 
-						goMlet(licenseHtmlMlet,
-								CCoreUtil.SYS_PREFIX + LicenseHTMLMlet.class.getSimpleName(),
-								false);
+						goMlet(licenseHtmlMlet, CCoreUtil.SYS_PREFIX + LicenseHTMLMlet.class.getSimpleName(), false);
 					} else {
 						// 没有license的情形
 						yesInUserThread.watch();
@@ -499,8 +479,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		}
 	}
 
-	private final boolean enterMobileBindInSysThread(final BindRobotSource source,
-			final J2SESession coreSS, final HTMLMlet mletFrom) {
+	private final boolean enterMobileBindInSysThread(final BindRobotSource source, final J2SESession coreSS, final HTMLMlet mletFrom) {
 		final Boolean[] waitLock = { false };
 
 		enterBindInSysThread(waitLock, mletFrom, source, coreSS);
@@ -517,8 +496,8 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		return waitLock[0];
 	}
 
-	public final void enterBindInSysThread(final Boolean[] waitLock, final HTMLMlet mletFrom,
-			final BindRobotSource source, final J2SESession coreSS) {
+	public final void enterBindInSysThread(final Boolean[] waitLock, final HTMLMlet mletFrom, final BindRobotSource source,
+			final J2SESession coreSS) {
 		final String robotsDesc = ResourceUtil.get(coreSS, 8024);
 		final String convDesc = ResourceUtil.get(coreSS, 8004);
 		final String devDesc = ResourceUtil.get(coreSS, 8007);
@@ -531,19 +510,15 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 
 		final boolean isReleaseCurr = mletFrom instanceof LicenseHTMLMlet;
 
-		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS,
-				ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
-					@Override
-					public Object run() throws Throwable {
-						final BindHTMLMlet bindMlet = new BindHTMLMlet(source, token, nextOne,
-								okImage, cancelImage, okDesc, cancelDesc, true, robotsDesc,
-								convDesc, devDesc, waitLock, emptyDesc);
-						mletFrom.goMlet(bindMlet,
-								CCoreUtil.SYS_PREFIX + BindHTMLMlet.class.getSimpleName(),
-								isReleaseCurr);
-						return bindMlet;
-					}
-				});
+		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
+			@Override
+			public Object run() throws Throwable {
+				final BindHTMLMlet bindMlet = new BindHTMLMlet(source, token, nextOne, okImage, cancelImage, okDesc, cancelDesc, true,
+						robotsDesc, convDesc, devDesc, waitLock, emptyDesc);
+				mletFrom.goMlet(bindMlet, CCoreUtil.SYS_PREFIX + BindHTMLMlet.class.getSimpleName(), isReleaseCurr);
+				return bindMlet;
+			}
+		});
 	}
 
 	/**
@@ -552,12 +527,10 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	 * @param coreSS
 	 * @return true isNeedCloseLicenseMlet
 	 */
-	private final void startAddAfterAgreeInQuestionThread(final HTMLMlet mlet,
-			final J2SESession coreSS, final File fileHar, final Map<String, Object> map,
-			final boolean isUpgrade, final File oldBackEditFile, final boolean isInstallFromClient)
+	private final void startAddAfterAgreeInQuestionThread(final HTMLMlet mlet, final J2SESession coreSS, final File fileHar,
+			final Map<String, Object> map, final boolean isUpgrade, final File oldBackEditFile, final boolean isInstallFromClient)
 			throws Exception {
-		final ArrayList<LinkProjectStore> appendLPS = appendMapToSavedLPS(coreSS, fileHar, map,
-				false, isUpgrade, oldBackEditFile);
+		final ArrayList<LinkProjectStore> appendLPS = appendMapToSavedLPS(coreSS, fileHar, map, false, isUpgrade, oldBackEditFile);
 		LinkProjectManager.reloadLinkProjects();// 十分重要
 
 		final MobiUIResponsor mobiResp = (MobiUIResponsor) ServerUIUtil.getResponsor();
@@ -585,8 +558,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 			bindSource.getConverterInAllProject();
 
 			if (enterMobileBindInSysThread(bindSource, coreSS, mlet) == false) {
-				final String errMsg = "NOT binded for robots for project ["
-						+ (String) map.get(HCjar.PROJ_ID) + "].";
+				final String errMsg = "NOT binded for robots for project [" + (String) map.get(HCjar.PROJ_ID) + "].";
 				throw new Exception(errMsg);
 			}
 		}
@@ -634,14 +606,12 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	 * @param map
 	 * @return
 	 */
-	static final ArrayList<LinkProjectStore> appendMapToSavedLPS(final J2SESession coreSS,
-			final File fileHar, final Map<String, Object> map, final boolean isRoot,
-			final boolean isUpgrade, final File oldBackEditFile) throws Exception {// 本异常会被拦截，并转显到手机
+	static final ArrayList<LinkProjectStore> appendMapToSavedLPS(final J2SESession coreSS, final File fileHar,
+			final Map<String, Object> map, final boolean isRoot, final boolean isUpgrade, final File oldBackEditFile) throws Exception {// 本异常会被拦截，并转显到手机
 		final LinkEditData led = buildAddHarDesc(fileHar, map, "", "");
 		AddHarHTMLMlet.addHarToDeployArea(coreSS, led, led.lps, isRoot, isUpgrade, oldBackEditFile);
 
-		final Iterator<LinkProjectStore> lpsIT = LinkProjectManager
-				.getLinkProjsIteratorInUserSysThread(true);
+		final Iterator<LinkProjectStore> lpsIT = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		final Vector<LinkProjectStore> lpsVectorNewStore = new Vector<LinkProjectStore>();
 		while (lpsIT.hasNext()) {
 			lpsVectorNewStore.add(lpsIT.next());
@@ -674,8 +644,8 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	 *            true:use click 'Cancel' to connect all devices
 	 * @return
 	 */
-	public JProgressBar showProgressBar(final JProgressBar bar, final int totalDevice,
-			final int finishedDevice, final JLabel descLabel, final boolean[] isCancel) {
+	public JProgressBar showProgressBar(final JProgressBar bar, final int totalDevice, final int finishedDevice, final JLabel descLabel,
+			final boolean[] isCancel) {
 		final JPanel progressPanel = new JPanel(new GridLayout(3, 1));
 		progressPanel.add(bar);
 		progressPanel.add(descLabel);
@@ -695,13 +665,11 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 
 		final JPanel inputPanel = new JPanel(new GridLayout(11, 1));
 
-		inputPanel.add(
-				new JLabel(WiFiHelper.WIFI_SSID, WiFiHelper.getWiFiIcon(), SwingConstants.LEFT));
+		inputPanel.add(new JLabel(WiFiHelper.WIFI_SSID, WiFiHelper.getWiFiIcon(), SwingConstants.LEFT));
 		final JTextField ssidField = new JTextField("");
 		inputPanel.add(ssidField);
 
-		inputPanel.add(new JLabel(WiFiHelper.getPasswordDesc(), WiFiHelper.getWiFiIcon(),
-				SwingConstants.LEFT));
+		inputPanel.add(new JLabel(WiFiHelper.getPasswordDesc(), WiFiHelper.getWiFiIcon(), SwingConstants.LEFT));
 		final JPasswordField pass1 = new JPasswordField("");
 		pass1.setEchoChar('*');
 		inputPanel.add(pass1);
@@ -801,8 +769,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	final static Object startAddHarLock = new Object();
 	static AddHarHTMLMlet runingAddHar;
 
-	public static void startAddHTMLHarUI(final J2SESession coreSS, final String urlStr,
-			final boolean isInstallFromClient) {
+	public static void startAddHTMLHarUI(final J2SESession coreSS, final String urlStr, final boolean isInstallFromClient) {
 		initToken();// 暂时申请特权
 
 		synchronized (startAddHarLock) {
@@ -813,17 +780,15 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 				}
 			} else {
 				buildAndDispMlet(coreSS, AddHarIsBusy.class);
-				coreSS.sessionEventManager.addListener(SessionEventManager.EVENT_ADD_HAR_BUSY,
-						new Runnable() {
-							@Override
-							public void run() {
-								final String notifyNotBusy = ResourceUtil.get(coreSS, 9235);
-								final J2SESession[] coreSSS = { coreSS };
-								ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS,
-										ResourceUtil.getInfoI18N(), notifyNotBusy,
-										ProjectContext.MESSAGE_INFO, null, 0);
-							}
-						});
+				coreSS.sessionEventManager.addListener(SessionEventManager.EVENT_ADD_HAR_BUSY, new Runnable() {
+					@Override
+					public void run() {
+						final String notifyNotBusy = ResourceUtil.get(coreSS, 9235);
+						final J2SESession[] coreSSS = { coreSS };
+						ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, ResourceUtil.getInfoI18N(), notifyNotBusy,
+								ProjectContext.MESSAGE_INFO, null, 0);
+					}
+				});
 			}
 		}
 
@@ -831,8 +796,8 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	}
 
 	private static AddHarHTMLMlet buildAndDispMlet(final J2SESession coreSS, final Class claz) {
-		final String scripts = "" + "#encoding:utf-8\n" + "import Java::" + claz.getName() + "\n"
-				+ "return " + claz.getSimpleName() + ".new()\n";
+		final String scripts = "" + "#encoding:utf-8\n" + "import Java::" + claz.getName() + "\n" + "return " + claz.getSimpleName()
+				+ ".new()\n";
 
 		try {
 			final ProjResponser pr = ServerUIAPIAgent.getCurrentProjResponser(coreSS);
@@ -841,9 +806,8 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 			final ProjectContext context = pr.context;
 			final String elementID = CCoreUtil.SYS_PREFIX + claz.getSimpleName();
 			final String targetURL = HCURL.buildStandardURL(HCURL.FORM_PROTOCAL, elementID);
-			final AddHarHTMLMlet addHar = (AddHarHTMLMlet) ProjResponser.startMlet(coreSS,
-					new StringValue(scripts), null, targetURL, elementID, "add HAR", pr.hcje,
-					context, isSynchronized);
+			final AddHarHTMLMlet addHar = (AddHarHTMLMlet) ProjResponser.startMlet(coreSS, new StringValue(scripts), null, targetURL,
+					elementID, "add HAR", pr.hcje, context, isSynchronized);
 
 			return addHar;
 		} catch (final Throwable e) {
@@ -875,17 +839,15 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		}
 	}
 
-	private static void toArrayReferDevice(final String projID, final BindDeviceNode[] bdns,
-			final Vector<String> dev_bind_ids, final Vector<String> cov_bind_ids,
-			final Vector<BindDeviceNode> dev_binds) {
+	private static void toArrayReferDevice(final String projID, final BindDeviceNode[] bdns, final Vector<String> dev_bind_ids,
+			final Vector<String> cov_bind_ids, final Vector<BindDeviceNode> dev_binds) {
 		final int size = bdns.length;
 		if (size > 0) {
 			for (int i = 0; i < size; i++) {
 				final BindDeviceNode referBDN = bdns[i];
 				final String robotName = referBDN.lever2Name;
 
-				final String bindID = DeviceBindInfo.buildStandardBindID(projID, robotName,
-						referBDN.ref_dev_ID);
+				final String bindID = DeviceBindInfo.buildStandardBindID(projID, robotName, referBDN.ref_dev_ID);
 
 				if (referBDN.isBindedRealDevice()) {
 					dev_bind_ids.add(bindID);
@@ -899,8 +861,8 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		}
 	}
 
-	static void updateOneProjBindToLPS(final String projID, final Vector<String> dev_bind_ids,
-			final Vector<String> conv_bind_ids, final Vector<BindDeviceNode> dev_binds) {
+	static void updateOneProjBindToLPS(final String projID, final Vector<String> dev_bind_ids, final Vector<String> conv_bind_ids,
+			final Vector<BindDeviceNode> dev_binds) {
 		// CCoreUtil.checkAccess();//friend方式，关闭checkAccess
 
 		final LinkProjectStore lps = LinkProjectManager.getProjByID(projID);
@@ -960,8 +922,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 	 *            如果不是覆盖旧的，则为空串
 	 * @return
 	 */
-	static LinkEditData buildAddHarDesc(final File file, final Map<String, Object> map,
-			final String linkName, final String linkRemark) {
+	static LinkEditData buildAddHarDesc(final File file, final Map<String, Object> map, final String linkName, final String linkRemark) {
 		final LinkEditData led = new LinkEditData();
 		final LinkProjectStore lps = new LinkProjectStore();
 		led.lps = lps;
@@ -974,7 +935,7 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 
 		final boolean hasMenuItem = LinkProjectManager.hasMenuItemNumForMap(map);
 		lps.put(LinkProjectStore.FIELD_HAS_MENU_ITEM_FOR_INSTALL, IConstant.toString(hasMenuItem));
-		
+
 		lps.setActive(true);
 		lps.setLinkName(linkName);
 		lps.setProjectRemark(linkRemark);
@@ -983,18 +944,15 @@ public class AddHarHTMLMlet extends SystemHTMLMlet {
 		return led;
 	}
 
-	static boolean addHarToDeployArea(final J2SESession coreSS, final LinkEditData led,
-			final LinkProjectStore lps, final boolean isRoot, final boolean isUpgrade,
-			final File oldBackFile) {
+	static boolean addHarToDeployArea(final J2SESession coreSS, final LinkEditData led, final LinkProjectStore lps, final boolean isRoot,
+			final boolean isUpgrade, final File oldBackFile) {
 		final File source = new File(led.filePath);// 不能加App.getBaseDir(),
 													// 它是绝对路径。适合J2SE, Android
-		final boolean result = LinkProjectManager.importLinkProject(lps, source, isUpgrade,
-				oldBackFile, false);
+		final boolean result = LinkProjectManager.importLinkProject(lps, source, isUpgrade, oldBackFile, false);
 
 		final int requMin = 200;
 		if (PlatformManager.getService().getAvailableSize() < requMin * 1024 * 1024) {// <200M
-			final String warnMsg = StringUtil.replace(ResourceUtil.get(coreSS, 9187), "{min}",
-					String.valueOf(requMin));
+			final String warnMsg = StringUtil.replace(ResourceUtil.get(coreSS, 9187), "{min}", String.valueOf(requMin));
 			final int msgType = IConstant.WARN;
 			showMsgForAddHar(msgType, warnMsg);
 		}

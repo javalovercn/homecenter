@@ -26,31 +26,28 @@ import hc.util.ResourceUtil;
 import hc.util.ThreadConfig;
 
 /**
- * <code>Dialog</code> is a top-level UI interaction component at center of
- * mobile client. <BR>
+ * <code>Dialog</code> is a top-level UI interaction component at center of mobile client. <BR>
  * <BR>
  * to send a dialog instance for current session, invoke
  * {@link ProjectContext#sendDialogWhenInSession(Dialog)}. <BR>
  * <BR>
  * to send same dialogs to all session for project level, invoke
  * {@link ProjectContext#sendDialogByBuilding(Runnable)}.<BR>
- * if one session replies, then the same dialog(s) in other sessions will be
- * dismissed by server. <BR>
+ * if one session replies, then the same dialog(s) in other sessions will be dismissed by server.
  * <BR>
- * if there is an alert message, question or other dialog is showing and not
- * closed, the dialog will be delayed to show automatically. <BR>
+ * <BR>
+ * if there is an alert message, question or other dialog is showing and not closed, the dialog will
+ * be delayed to show automatically. <BR>
  * <BR>
  * <STRONG>Important :</STRONG><BR>
- * In Swing, layout manager is noticing that JButton (and JCheckBox, JComboBox,
- * JLabel, JRadioButton, JTextField) has a preferred size and adjusting your
- * pane to accommodate JButton, in other words, <code>setMinimumSize</code> will
- * not working for JButton. <BR>
- * <code>setMinimumSize</code> for JPanel, adding JButton in it and setting CSS
- * for JButton to grow full space is a good choice. <BR>
+ * In Swing, layout manager is noticing that JButton (and JCheckBox, JComboBox, JLabel,
+ * JRadioButton, JTextField) has a preferred size and adjusting your pane to accommodate JButton, in
+ * other words, <code>setMinimumSize</code> will not working for JButton. <BR>
+ * <code>setMinimumSize</code> for JPanel, adding JButton in it and setting CSS for JButton to grow
+ * full space is a good choice. <BR>
  * <BR>
  * setting CSS for Dialog is just like <code>HTMLMlet</code>. <BR>
- * to load and execute JavaScript in dialog, please use
- * <code>ScriptPanel</code>.
+ * to load and execute JavaScript in dialog, please use <code>ScriptPanel</code>.
  * 
  * @see HTMLMlet
  */
@@ -61,11 +58,9 @@ public class Dialog extends JPanel {
 	 * returns the border radius in pixels of dialog; <BR>
 	 * <BR>
 	 * Know more :<BR>
-	 * 1. the CSS of current dialog <code>overflow</code> is
-	 * <code>hidden</code>.<BR>
-	 * 2. <code>border-radius</code> of current dialog maybe NOT affect inner
-	 * elements in some low version of Android, even if <code>overflow</code> is
-	 * <code>hidden</code>.
+	 * 1. the CSS of current dialog <code>overflow</code> is <code>hidden</code>.<BR>
+	 * 2. <code>border-radius</code> of current dialog maybe NOT affect inner elements in some low
+	 * version of Android, even if <code>overflow</code> is <code>hidden</code>.
 	 * 
 	 * @return
 	 */
@@ -78,29 +73,25 @@ public class Dialog extends JPanel {
 	boolean isCancelable = true;
 
 	/**
-	 * set current dialog to be not cancelable, for example back key in Android.
-	 * <BR>
+	 * set current dialog to be not cancelable, for example back key in Android. <BR>
 	 * <BR>
 	 * <STRONG>Important :</STRONG><BR>
-	 * this method must be invoked before
-	 * {@link ProjectContext#sendDialogWhenInSession(Dialog)} or in
-	 * {@link ProjectContext#sendDialogByBuilding(Runnable)}.
+	 * this method must be invoked before {@link ProjectContext#sendDialogWhenInSession(Dialog)} or
+	 * in {@link ProjectContext#sendDialogByBuilding(Runnable)}.
 	 */
 	public final void setCancelableToNo() {
 		this.isCancelable = false;
 	}
 
 	/**
-	 * dismiss current dialog, and go/run target URL by <code>elementID</code>.
-	 * <BR>
+	 * dismiss current dialog, and go/run target URL by <code>elementID</code>. <BR>
 	 * <BR>
 	 * jump mobile to following targets:<BR>
-	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from
-	 * mobile, <BR>
+	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from mobile, <BR>
 	 * 2. <i>form://myMlet</i> : open and show a form, <BR>
 	 * 3. <i>controller://myctrl</i> : open and show a controller, <BR>
-	 * 4. <i>{@link #URL_EXIT}</i> : dismiss current Dialog, it is recommended
-	 * to use {@link #dismiss()}, <BR>
+	 * 4. <i>{@link #URL_EXIT}</i> : dismiss current Dialog, it is recommended to use
+	 * {@link #dismiss()}, <BR>
 	 * 5. <i>cmd://myCmd</i> : run script commands and dismiss dialog, <BR>
 	 * <BR>
 	 * bring to top : <BR>
@@ -113,14 +104,11 @@ public class Dialog extends JPanel {
 	 * {@link #goExternalURL(String)}.
 	 * 
 	 * @param scheme
-	 *            one of {@link MenuItem#CMD_SCHEME},
-	 *            {@link MenuItem#CONTROLLER_SCHEME},
-	 *            {@link MenuItem#FORM_SCHEME} or
-	 *            {@link MenuItem#SCREEN_SCHEME}.
+	 *            one of {@link MenuItem#CMD_SCHEME}, {@link MenuItem#CONTROLLER_SCHEME},
+	 *            {@link MenuItem#FORM_SCHEME} or {@link MenuItem#SCREEN_SCHEME}.
 	 * @param elementID
-	 *            for example, run scripts of menu item "cmd://myCommand", the
-	 *            scheme is {@linkplain MenuItem#CMD_SCHEME}, and element ID is
-	 *            "myCommand",
+	 *            for example, run scripts of menu item "cmd://myCommand", the scheme is
+	 *            {@linkplain MenuItem#CMD_SCHEME}, and element ID is "myCommand",
 	 * @see #go(String)
 	 * @since 7.30
 	 */
@@ -134,9 +122,8 @@ public class Dialog extends JPanel {
 	}
 
 	/**
-	 * execute or not
-	 * {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)}
-	 * if client locale is RTL (Right to Left).<BR>
+	 * execute or not {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)} if
+	 * client locale is RTL (Right to Left).<BR>
 	 * <BR>
 	 * <STRONG>Note</STRONG> :<BR>
 	 * this method must be invoked in constructor (initialize in JRuby).
@@ -168,8 +155,7 @@ public class Dialog extends JPanel {
 
 	/**
 	 * dismiss current dialog, and jump mobile to following targets:<BR>
-	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from
-	 * mobile, <BR>
+	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from mobile, <BR>
 	 * 2. <i>form://myMlet</i> : open and show a form, <BR>
 	 * 3. <i>controller://myctrl</i> : open and show a controller, <BR>
 	 * 4. <i>{@link #URL_EXIT}</i> : dismiss current Dialog,<BR>
@@ -205,12 +191,11 @@ public class Dialog extends JPanel {
 	}
 
 	/**
-	 * dismiss current dialog, and go to external URL in client application.
-	 * <BR>
+	 * dismiss current dialog, and go to external URL in client application. <BR>
 	 * <BR>
 	 * <STRONG>Important : </STRONG> <BR>
-	 * socket/connect permissions is required even if the domain of external URL
-	 * is the same with the domain of upgrade HAR project URL. <BR>
+	 * socket/connect permissions is required even if the domain of external URL is the same with
+	 * the domain of upgrade HAR project URL. <BR>
 	 * <BR>
 	 * <STRONG>Warning : </STRONG> <BR>
 	 * 1. the external URL may be sniffed when in moving (exclude HTTPS). <BR>
@@ -225,29 +210,26 @@ public class Dialog extends JPanel {
 	}
 
 	/**
-	 * <STRONG>deprecated</STRONG>, replaced by {@link #goExternalURL(String)}.
+	 * <STRONG>deprecated</STRONG>, replaced by {@link #goExternalURL(String)}. <BR>
 	 * <BR>
+	 * dismiss current dialog, and go to external URL in system web browser or client application.
 	 * <BR>
-	 * dismiss current dialog, and go to external URL in system web browser or
-	 * client application. <BR>
 	 * <BR>
 	 * <STRONG>Important : </STRONG> <BR>
-	 * socket/connect permissions is required even if the domain of external URL
-	 * is the same with the domain of upgrade HAR project URL. <BR>
+	 * socket/connect permissions is required even if the domain of external URL is the same with
+	 * the domain of upgrade HAR project URL. <BR>
 	 * <BR>
 	 * <STRONG>Warning : </STRONG> <BR>
 	 * 1. the external URL may be sniffed when in moving (exclude HTTPS). <BR>
 	 * 2. iOS 9 and above must use secure URLs. <BR>
-	 * 3. In iOS (not Android), when go external URL and
-	 * <code>isUseExtBrowser</code> is true, the application will be turn into
-	 * background and released after seconds. In future, it maybe keep alive in
-	 * background.
+	 * 3. In iOS (not Android), when go external URL and <code>isUseExtBrowser</code> is true, the
+	 * application will be turn into background and released after seconds. In future, it maybe keep
+	 * alive in background.
 	 * 
 	 * @param url
 	 * @param isUseExtBrowser
-	 *            true : use system web browser to open URL; false : the URL
-	 *            will be opened in client application and still keep
-	 *            foreground.
+	 *            true : use system web browser to open URL; false : the URL will be opened in
+	 *            client application and still keep foreground.
 	 * @since 7.7
 	 * @deprecated
 	 */
@@ -263,21 +245,20 @@ public class Dialog extends JPanel {
 	}
 
 	/**
-	 * dismiss current dialog, and go and open a <code>Mlet</code> or
-	 * <code>HTMLMlet</code> (which is probably created by
-	 * {@link ProjectContext#eval(String)}). <BR>
+	 * dismiss current dialog, and go and open a <code>Mlet</code> or <code>HTMLMlet</code> (which
+	 * is probably created by {@link ProjectContext#eval(String)}). <BR>
 	 * <BR>
 	 * the target of <i>toMlet</i> will be set as <i>targetOfMlet</i>.<BR>
 	 * <BR>
 	 * <STRONG>Important : </STRONG> <BR>
-	 * if the same name <i>target</i> or <i>form://target</i> is opened, then it
-	 * will be brought to top. <BR>
+	 * if the same name <i>target</i> or <i>form://target</i> is opened, then it will be brought to
+	 * top. <BR>
 	 * for more, see {@link #go(String)}.
 	 * 
 	 * @param toMlet
 	 * @param targetOfMlet
-	 *            target of <code>Mlet</code>. The prefix <i>form://</i> is
-	 *            <STRONG>NOT</STRONG> required.
+	 *            target of <code>Mlet</code>. The prefix <i>form://</i> is <STRONG>NOT</STRONG>
+	 *            required.
 	 * @see ProjectContext#eval(String)
 	 * @see #go(String)
 	 * @since 7.30
@@ -294,8 +275,8 @@ public class Dialog extends JPanel {
 	}
 
 	/**
-	 * set CSS <i>class</i> for {@link JComponent}, it's <code>div</code> and
-	 * it's <code>toggle</code> (if exists) with one step. <BR>
+	 * set CSS <i>class</i> for {@link JComponent}, it's <code>div</code> and it's
+	 * <code>toggle</code> (if exists) with one step. <BR>
 	 * <BR>
 	 * for example, defines CSS for JButton as following :<BR>
 	 * <BR>
@@ -307,17 +288,15 @@ public class Dialog extends JPanel {
 	 * &nbsp;&nbsp;color:blue;<BR>
 	 * }</code> <BR>
 	 * <BR>
-	 * invoking <code>setCSSByClass(btn, "<STRONG>btnStyle</STRONG>")</code> is
-	 * same with invoking
+	 * invoking <code>setCSSByClass(btn, "<STRONG>btnStyle</STRONG>")</code> is same with invoking
 	 * <code>setCSSForDiv(btn, "<STRONG>btnStyle</STRONG>", null)</code> and
 	 * <code>setCSS(btn, "<STRONG>btnStyle</STRONG>", null)</code>.
 	 * 
 	 * @param component
 	 *            the JComponent to set CSS class.
 	 * @param className
-	 *            the class name of styles defined <i>Resources/CSS Styles</i>
-	 *            in designer or {@link #loadCSS(String)}. Do nothing if Null.
-	 *            Empty string for clear.
+	 *            the class name of styles defined <i>Resources/CSS Styles</i> in designer or
+	 *            {@link #loadCSS(String)}. Do nothing if Null. Empty string for clear.
 	 * @see #setCSSForDiv(JComponent, String, String)
 	 * @see #setCSS(JComponent, String, String)
 	 * @see #setCSSForToggle(JToggleButton, String, String)
@@ -342,34 +321,29 @@ public class Dialog extends JPanel {
 	}
 
 	/**
-	 * load special styles for current <code>Dialog</code>, it must be invoked
-	 * before {@link #setCSS(JComponent, String, String)} which refer to these
-	 * styles. <BR>
+	 * load special styles for current <code>Dialog</code>, it must be invoked before
+	 * {@link #setCSS(JComponent, String, String)} which refer to these styles. <BR>
 	 * <BR>
 	 * <STRONG>Network connection permission</STRONG> : <BR>
-	 * if there is a <code>url()</code> in CSS, it is required to add domain of
-	 * it to socket/connect permission or disable limit socket/connect. <BR>
+	 * if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect
+	 * permission or disable limit socket/connect. <BR>
 	 * <BR>
 	 * <STRONG>More about CSS styles</STRONG> : <BR>
 	 * 1. the <i>CSS Styles</i> tree node in designer is shared to all
-	 * <code>HTMLMlet</code>/<code>Dialog</code>s in same project. In other
-	 * words, it will be loaded automatically by server for each
-	 * HTMLMlet/Dialog. <BR>
+	 * <code>HTMLMlet</code>/<code>Dialog</code>s in same project. In other words, it will be loaded
+	 * automatically by server for each HTMLMlet/Dialog. <BR>
 	 * 2. it is allowed to load styles as many as you like. <BR>
-	 * 3. this method can be invoked also in constructor method (the initialize
-	 * method in JRuby). <BR>
+	 * 3. this method can be invoked also in constructor method (the initialize method in JRuby).
+	 * <BR>
 	 * <BR>
 	 * <STRONG>About cache</STRONG> :<BR>
 	 * don't worry about styles too large for re-translating to mobile, <BR>
-	 * the cache subsystem of HomeCenter will intelligence analysis to determine
-	 * whether transmission or loading cache from mobile (if styles is too
-	 * small, it will not be cached). What you should do is put more data into
-	 * one style file, because if there is too much pieces of cache in a
-	 * project, system will automatically clear the cache and restart caching.
+	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether
+	 * transmission or loading cache from mobile (if styles is too small, it will not be cached).
+	 * What you should do is put more data into one style file, because if there is too much pieces
+	 * of cache in a project, system will automatically clear the cache and restart caching. <BR>
 	 * <BR>
-	 * <BR>
-	 * to disable cache for current styles, see
-	 * {@link #loadCSS(String, boolean)}.
+	 * to disable cache for current styles, see {@link #loadCSS(String, boolean)}.
 	 * 
 	 * @param styles
 	 *            for example, "<i>h1 {color:red} p {color:blue}</i>".
@@ -387,8 +361,7 @@ public class Dialog extends JPanel {
 	 * 
 	 * @param styles
 	 * @param enableCache
-	 *            true means this styles may be cached if it is too large, false
-	 *            means never cached.
+	 *            true means this styles may be cached if it is too large, false means never cached.
 	 * @see #loadCSS(String)
 	 */
 	public void loadCSS(final String styles, final boolean enableCache) {
@@ -396,59 +369,56 @@ public class Dialog extends JPanel {
 	}
 
 	/**
-	 * set CSS <i>class</i> and/or CSS <i>style</i> for HTML div tag of
-	 * {@link JComponent}. <BR>
+	 * set CSS <i>class</i> and/or CSS <i>style</i> for HTML div tag of {@link JComponent}. <BR>
 	 * <BR>
 	 * for more, see {@link #setCSS(JComponent, String, String)}. <BR>
 	 * <BR>
 	 * <STRONG>Important :</STRONG><BR>
-	 * CSS box model of HomeCenter is <a href=
-	 * "https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a>
-	 * default (quirks mode), NOT the w3c <code>content-box</code>.<BR>
-	 * most browsers use a DOCTYPE to decide whether to handle it in quirks mode
-	 * or standards mode, so there is no DOCTYPE in HTML.
+	 * CSS box model of HomeCenter is
+	 * <a href= "https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a> default
+	 * (quirks mode), NOT the w3c <code>content-box</code>.<BR>
+	 * most browsers use a DOCTYPE to decide whether to handle it in quirks mode or standards mode,
+	 * so there is no DOCTYPE in HTML.
 	 * 
 	 * @param component
 	 *            the JComponent to set style.
 	 * @param className
-	 *            the class name of styles defined <i>Resources/CSS Styles</i>
-	 *            in designer or {@link #loadCSS(String)}. Null for ignore and
-	 *            keep old value. Empty string for clear.
+	 *            the class name of styles defined <i>Resources/CSS Styles</i> in designer or
+	 *            {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for
+	 *            clear.
 	 * @param styles
 	 *            the styles defined <i>Resources/CSS Styles</i> in designer or
-	 *            {@link #loadCSS(String)}. Null for ignore and keep old value.
-	 *            Empty string for clear.
+	 *            {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for
+	 *            clear.
 	 * @see #setCSS(JComponent, String, String)
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.30
 	 */
-	public void setCSSForDiv(final JComponent component, final String className,
-			final String styles) {// in user thread
+	public void setCSSForDiv(final JComponent component, final String className, final String styles) {// in user thread
 		sizeHeightForXML.setCSSForDivImpl(dialogCanvas, __context, component, className, styles);
 	}
 
 	/**
-	 * set CSS <i>class</i> and/or CSS <i>style</i> for the HTML input tag of
-	 * {@link JCheckBox} and {@link JRadioButton}. <BR>
+	 * set CSS <i>class</i> and/or CSS <i>style</i> for the HTML input tag of {@link JCheckBox} and
+	 * {@link JRadioButton}. <BR>
 	 * <BR>
 	 * for more, see {@link #setCSS(JComponent, String, String)}.
 	 * 
 	 * @param togButton
 	 *            the JComponent (JCheckBox or JRadioButton) to set style.
 	 * @param className
-	 *            the class name of styles defined <i>Resources/CSS Styles</i>
-	 *            in designer or {@link #loadCSS(String)}. Null for ignore and
-	 *            keep old value. Empty string for clear.
+	 *            the class name of styles defined <i>Resources/CSS Styles</i> in designer or
+	 *            {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for
+	 *            clear.
 	 * @param styles
 	 *            the styles defined <i>Resources/CSS Styles</i> in designer or
-	 *            {@link #loadCSS(String)}. Null for ignore and keep old value.
-	 *            Empty string for clear.
+	 *            {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for
+	 *            clear.
 	 * @see #setCSSForDiv(JComponent, String, String)
 	 * @see #setCSS(JComponent, String, String)
 	 * @since 7.30
 	 */
-	public void setCSSForToggle(final JToggleButton togButton, final String className,
-			final String styles) {
+	public void setCSSForToggle(final JToggleButton togButton, final String className, final String styles) {
 		sizeHeightForXML.setCSSForToggleImpl(dialogCanvas, __context, togButton, className, styles);
 	}
 
@@ -456,36 +426,31 @@ public class Dialog extends JPanel {
 	 * set CSS <i>class</i> and/or CSS <i>style</i> for {@link JComponent}. <BR>
 	 * <BR>
 	 * it is effective immediately to mobile.<BR>
-	 * it is allowed to invoke this method in constructor of
-	 * <code>HTMLMlet</code>. <BR>
+	 * it is allowed to invoke this method in constructor of <code>HTMLMlet</code>. <BR>
 	 * <BR>
 	 * <STRONG>Important :</STRONG><BR>
-	 * CSS box model of HomeCenter is <a href=
-	 * "https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a>
-	 * default (quirks mode), NOT the w3c <code>content-box</code>.<BR>
-	 * most browsers use a DOCTYPE to decide whether to handle it in quirks mode
-	 * or standards mode, so there is no DOCTYPE in HTML. <BR>
+	 * CSS box model of HomeCenter is
+	 * <a href= "https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing">border-box</a> default
+	 * (quirks mode), NOT the w3c <code>content-box</code>.<BR>
+	 * most browsers use a DOCTYPE to decide whether to handle it in quirks mode or standards mode,
+	 * so there is no DOCTYPE in HTML. <BR>
 	 * <BR>
 	 * Network connection permission : <BR>
-	 * if there is a <code>url()</code> in CSS, it is required to add domain of
-	 * it to socket/connect permission or disable limit socket/connect. <BR>
+	 * if there is a <code>url()</code> in CSS, it is required to add domain of it to socket/connect
+	 * permission or disable limit socket/connect. <BR>
 	 * <BR>
 	 * Know more CSS : <BR>
-	 * 1. the effect of CSS depends on the run-time environment of mobile
-	 * client. <BR>
+	 * 1. the effect of CSS depends on the run-time environment of mobile client. <BR>
 	 * 2. to get environment information about mobile, please invoke
-	 * {@link ProjectContext#getMobileOS()} and
-	 * {@link ProjectContext#getMobileOSVer()}. <BR>
+	 * {@link ProjectContext#getMobileOS()} and {@link ProjectContext#getMobileOSVer()}. <BR>
 	 * 3. please resize image and save them in jar first, or invoke
-	 * {@link #resizeImage(java.awt.image.BufferedImage, int, int)}. It is not
-	 * recommend to resize image by your implementation, because the HAR project
-	 * may be executed on Android server which is NOT standard J2SE. <BR>
-	 * 4. the best practice is <STRONG>JComponent + LayoutManager + Listener +
-	 * CSS</STRONG>. (Note : the implementation of Swing/J2SE for Android is
-	 * differentiated from Oracle J2SE, if your HAR runs in Android server).
-	 * <BR>
-	 * 5. if your UI is ugly, please ask your CSS artist for pleasantly
-	 * surprised! <BR>
+	 * {@link #resizeImage(java.awt.image.BufferedImage, int, int)}. It is not recommend to resize
+	 * image by your implementation, because the HAR project may be executed on Android server which
+	 * is NOT standard J2SE. <BR>
+	 * 4. the best practice is <STRONG>JComponent + LayoutManager + Listener + CSS</STRONG>. (Note :
+	 * the implementation of Swing/J2SE for Android is differentiated from Oracle J2SE, if your HAR
+	 * runs in Android server). <BR>
+	 * 5. if your UI is ugly, please ask your CSS artist for pleasantly surprised! <BR>
 	 * <BR>
 	 * Swing {@link JComponent}s are translated to HTML as following:
 	 * <table border='1'>
@@ -600,8 +565,7 @@ public class Dialog extends JPanel {
 	 * <font style="text-decoration:line-through">setCSSForToggle</font></td>
 	 * <td><code>progress</code> is tag in HTML5, so <br>
 	 * Android 4.4 (or above) or iPhone 4s (or above) is required. <BR>
-	 * <STRONG>CAUTION : </STRONG>there is no 'min' attribute in
-	 * <code>progress</code>.</td>
+	 * <STRONG>CAUTION : </STRONG>there is no 'min' attribute in <code>progress</code>.</td>
 	 * </tr>
 	 * 
 	 * <tr>
@@ -614,34 +578,27 @@ public class Dialog extends JPanel {
 	 * <font style="text-decoration:line-through">setCSSForToggle</font></td>
 	 * <td>the 'range' is tag in HTML5, <br>
 	 * Android 4.4 (or above) or iPhone 4s (or above) is required. <BR>
-	 * <STRONG>CAUTION : </STRONG>for Android Server (NOT Android client),
-	 * <code>SeekBar</code> is used to render JSlider and there is no 'min'
-	 * field in <code>SeekBar</code>.</td>
+	 * <STRONG>CAUTION : </STRONG>for Android Server (NOT Android client), <code>SeekBar</code> is
+	 * used to render JSlider and there is no 'min' field in <code>SeekBar</code>.</td>
 	 * </tr>
 	 * 
 	 * </table>
 	 * <BR>
 	 * in general, <BR>
-	 * 1. <code>setCSSForDiv</code> is for the <code>div</code> tag of
-	 * <code>JComponent</code>, there is a <code>div</code> for each
-	 * <code>JComponent</code> for location and size.<BR>
+	 * 1. <code>setCSSForDiv</code> is for the <code>div</code> tag of <code>JComponent</code>,
+	 * there is a <code>div</code> for each <code>JComponent</code> for location and size.<BR>
 	 * 2. the location is set to the <code>left</code>(relative to the parent
-	 * div),<code>top</code>(relative to the parent div), <code>width</code>,
-	 * <code>height</code> of <code>div</code>.<BR>
-	 * 3. <code>setCSSForToggle</code> is for the <code>input</code> tag of
-	 * <code>JCheckBox</code> or <code>JRadioButton</code>,<BR>
-	 * 4. <code>setCSS</code> is just for <code>JComponent</code>, maybe for
-	 * <code>div</code> if it is JPanel, maybe for <code>label</code> if it is
-	 * JLabel.<BR>
+	 * div),<code>top</code>(relative to the parent div), <code>width</code>, <code>height</code> of
+	 * <code>div</code>.<BR>
+	 * 3. <code>setCSSForToggle</code> is for the <code>input</code> tag of <code>JCheckBox</code>
+	 * or <code>JRadioButton</code>,<BR>
+	 * 4. <code>setCSS</code> is just for <code>JComponent</code>, maybe for <code>div</code> if it
+	 * is JPanel, maybe for <code>label</code> if it is JLabel.<BR>
 	 * 5. visible : <i>getElementById({div}).style.visibility='visible'</i>;<BR>
-	 * 6. invisible :
-	 * <i>getElementById({div}).style.visibility='hidden'</i>;<BR>
-	 * 7. enable : <i>getElementById({input|label|selection|progress}).disabled
-	 * = false</i>;<BR>
-	 * 8. disable : <i>getElementById({input|label|selection|progress}).disabled
-	 * = true</i>;<BR>
-	 * 9. readonly :
-	 * <i>getElementById({input|label|selection|progress}).setAttribute('readonly',
+	 * 6. invisible : <i>getElementById({div}).style.visibility='hidden'</i>;<BR>
+	 * 7. enable : <i>getElementById({input|label|selection|progress}).disabled = false</i>;<BR>
+	 * 8. disable : <i>getElementById({input|label|selection|progress}).disabled = true</i>;<BR>
+	 * 9. readonly : <i>getElementById({input|label|selection|progress}).setAttribute('readonly',
 	 * 'readonly')</i>;<BR>
 	 * 10. editable :
 	 * <i>getElementById({input|label|selection|progress}).removeAttribute('readonly')</i>;<BR>
@@ -650,13 +607,13 @@ public class Dialog extends JPanel {
 	 * @param component
 	 *            the JComponent to set style.
 	 * @param className
-	 *            the class name of styles defined <i>Resources/CSS Styles</i>
-	 *            in designer or {@link #loadCSS(String)}. Null for ignore and
-	 *            keep old value. Empty string for clear.
+	 *            the class name of styles defined <i>Resources/CSS Styles</i> in designer or
+	 *            {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for
+	 *            clear.
 	 * @param styles
 	 *            the styles defined <i>Resources/CSS Styles</i> in designer or
-	 *            {@link #loadCSS(String)}. Null for ignore and keep old value.
-	 *            Empty string for clear.
+	 *            {@link #loadCSS(String)}. Null for ignore and keep old value. Empty string for
+	 *            clear.
 	 * @see #setCSSForDiv(JComponent, String, String)
 	 * @see #setCSSForToggle(JToggleButton, String, String)
 	 * @since 7.30
@@ -671,10 +628,9 @@ public class Dialog extends JPanel {
 	 * set attribute 'dir' for a div of JComponent.<BR>
 	 * <BR>
 	 * Know more :<BR>
-	 * 1. a <code>Dialog</code> will be set RTL by server for the entire page if
-	 * language of mobile is RTL.<BR>
-	 * 2. in some case, a JComponent may be set RTL/LTR different from the
-	 * entire page.
+	 * 1. a <code>Dialog</code> will be set RTL by server for the entire page if language of mobile
+	 * is RTL.<BR>
+	 * 2. in some case, a JComponent may be set RTL/LTR different from the entire page.
 	 * 
 	 * @param component
 	 * @param isRTL
@@ -707,8 +663,7 @@ public class Dialog extends JPanel {
 						@Override
 						public void run() {
 							dialogLock.dismiss(coreSS, dialogLock.dialogID);
-							ServerUIAPIAgent.removeQuestionDialogFromMap(coreSS,
-									dialogLock.dialogID, false, false);
+							ServerUIAPIAgent.removeQuestionDialogFromMap(coreSS, dialogLock.dialogID, false, false);
 							((ICanvas) dialogLock.mletCanvas).onExit();
 							dialogLock.notifyWaitStop(coreSS, false, false);
 						}
@@ -716,8 +671,7 @@ public class Dialog extends JPanel {
 				}
 				dialogParameter = null;
 			} else {
-				LogManager.log(
-						"dismiss() is invoked twice or more, maybe it is dismissed by go()/goExternalURL()/goMlet().");
+				LogManager.log("dismiss() is invoked twice or more, maybe it is dismissed by go()/goExternalURL()/goMlet().");
 			}
 		}
 	}
@@ -791,8 +745,7 @@ public class Dialog extends JPanel {
 	 * @return the resized image.
 	 * @since 7.30
 	 */
-	public final static BufferedImage resizeImage(final BufferedImage src, final int to_width,
-			final int to_height) {
+	public final static BufferedImage resizeImage(final BufferedImage src, final int to_width, final int to_height) {
 		return ResourceUtil.resizeImage(src, to_width, to_height);// 注意：不能进入runAndWaitInSysThread
 	}
 
@@ -800,8 +753,8 @@ public class Dialog extends JPanel {
 	 * get normal font size in pixels of current session mobile.<BR>
 	 * user may change font size from mobile when session.
 	 * 
-	 * @return the recommended normal font size in pixels, it is normal used for
-	 *         CSS <code>font-size</code>.
+	 * @return the recommended normal font size in pixels, it is normal used for CSS
+	 *         <code>font-size</code>.
 	 * @since 7.30
 	 * @see #getFontSizeForSmall()
 	 * @see #getFontSizeForLarge()
@@ -814,8 +767,8 @@ public class Dialog extends JPanel {
 	 * get small font size in pixels of current session mobile.<BR>
 	 * user may change font size from mobile when session.
 	 * 
-	 * @return the recommended small font size in pixels, it is normal used for
-	 *         CSS <code>font-size</code>.
+	 * @return the recommended small font size in pixels, it is normal used for CSS
+	 *         <code>font-size</code>.
 	 * @since 7.30
 	 * @see #getFontSizeForNormal()
 	 * @see #getFontSizeForLarge()
@@ -828,8 +781,8 @@ public class Dialog extends JPanel {
 	 * get large font size in pixels of current session mobile.<BR>
 	 * user may change font size from mobile when session.
 	 * 
-	 * @return the recommended large font size in pixels, it is normal used for
-	 *         CSS <code>font-size</code>.
+	 * @return the recommended large font size in pixels, it is normal used for CSS
+	 *         <code>font-size</code>.
 	 * @since 7.30
 	 * @see #getFontSizeForSmall()
 	 * @see #getFontSizeForNormal()
@@ -842,8 +795,8 @@ public class Dialog extends JPanel {
 	 * get button font size in pixels of current session mobile.<BR>
 	 * user may change font size from mobile when session.
 	 * 
-	 * @return the recommended button font size in pixels, it is normal used for
-	 *         CSS <code>font-size</code>.
+	 * @return the recommended button font size in pixels, it is normal used for CSS
+	 *         <code>font-size</code>.
 	 * @since 7.30
 	 * @see #getButtonHeight()
 	 */
@@ -903,8 +856,7 @@ public class Dialog extends JPanel {
 	/**
 	 * return integer value of color of font, for example : 0x00FF00. <BR>
 	 * <BR>
-	 * <STRONG>Important : </STRONG>the color may be changed in different
-	 * implementation or version.
+	 * <STRONG>Important : </STRONG>the color may be changed in different implementation or version.
 	 * 
 	 * @return
 	 * @see #getColorForFontByHexString()
@@ -918,8 +870,7 @@ public class Dialog extends JPanel {
 	/**
 	 * return hex format string of color of font, for example : "00FF00". <BR>
 	 * <BR>
-	 * <STRONG>Important : </STRONG>the color may be changed in different
-	 * implementation or version.
+	 * <STRONG>Important : </STRONG>the color may be changed in different implementation or version.
 	 * 
 	 * @return
 	 * @see #getColorForFontByIntValue()
@@ -952,8 +903,7 @@ public class Dialog extends JPanel {
 	/**
 	 * return integer value of color of body, for example : 0x00FF00. <BR>
 	 * <BR>
-	 * <STRONG>Important : </STRONG>the color may be changed in different
-	 * implementation or version.
+	 * <STRONG>Important : </STRONG>the color may be changed in different implementation or version.
 	 * 
 	 * @return
 	 * @see #getColorForBodyByHexString()
@@ -967,8 +917,7 @@ public class Dialog extends JPanel {
 	/**
 	 * return hex format string of color of body, for example : "00FF00". <BR>
 	 * <BR>
-	 * <STRONG>Important : </STRONG>the color may be changed in different
-	 * implementation or version.
+	 * <STRONG>Important : </STRONG>the color may be changed in different implementation or version.
 	 * 
 	 * @return
 	 * @see #getColorForBodyByIntValue()

@@ -23,17 +23,19 @@ import java.lang.ref.WeakReference;
 /**
  * A class search-path representing a class loader.
  *
- * <p>It is used for obtaining a class file from the given
- * class loader by <code>getResourceAsStream()</code>.
- * The <code>LoaderClassPath</code> refers to the class loader through
- * <code>WeakReference</code>.  If the class loader is garbage collected,
- * the other search pathes are examined.
+ * <p>
+ * It is used for obtaining a class file from the given class loader by
+ * <code>getResourceAsStream()</code>. The <code>LoaderClassPath</code> refers to the class loader
+ * through <code>WeakReference</code>. If the class loader is garbage collected, the other search
+ * pathes are examined.
  *
- * <p>The given class loader must have both <code>getResourceAsStream()</code>
- * and <code>getResource()</code>.
+ * <p>
+ * The given class loader must have both <code>getResourceAsStream()</code> and
+ * <code>getResource()</code>.
  * 
- * <p>Class files in a named module are private to that module.
- * This method cannot obtain class files in named modules.
+ * <p>
+ * Class files in a named module are private to that module. This method cannot obtain class files
+ * in named modules.
  * </p>
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
@@ -44,61 +46,59 @@ import java.lang.ref.WeakReference;
  * @see ClassClassPath
  */
 public class LoaderClassPath implements ClassPath {
-    private WeakReference clref;
+	private WeakReference clref;
 
-    /**
-     * Creates a search path representing a class loader.
-     */
-    public LoaderClassPath(ClassLoader cl) {
-        clref = new WeakReference(cl);
-    }
+	/**
+	 * Creates a search path representing a class loader.
+	 */
+	public LoaderClassPath(ClassLoader cl) {
+		clref = new WeakReference(cl);
+	}
 
-    public String toString() {
-        Object cl = null;
-        if (clref != null)
-            cl = clref.get();
+	public String toString() {
+		Object cl = null;
+		if (clref != null)
+			cl = clref.get();
 
-        return cl == null ? "<null>" : cl.toString();
-    }
+		return cl == null ? "<null>" : cl.toString();
+	}
 
-    /**
-     * Obtains a class file from the class loader.
-     * This method calls <code>getResourceAsStream(String)</code>
-     * on the class loader.
-     */
-    public InputStream openClassfile(String classname) throws NotFoundException {
-        String cname = classname.replace('.', '/') + ".class";
-        ClassLoader cl = (ClassLoader)clref.get();
-        if (cl == null)
-            return null;        // not found
-        else {
-            InputStream is = cl.getResourceAsStream(cname);
-            return is;
-        }
-    }
+	/**
+	 * Obtains a class file from the class loader. This method calls
+	 * <code>getResourceAsStream(String)</code> on the class loader.
+	 */
+	public InputStream openClassfile(String classname) throws NotFoundException {
+		String cname = classname.replace('.', '/') + ".class";
+		ClassLoader cl = (ClassLoader) clref.get();
+		if (cl == null)
+			return null; // not found
+		else {
+			InputStream is = cl.getResourceAsStream(cname);
+			return is;
+		}
+	}
 
-    /**
-     * Obtains the URL of the specified class file.
-     * This method calls <code>getResource(String)</code>
-     * on the class loader.
-     *
-     * @return null if the class file could not be found. 
-     */
-    public URL find(String classname) {
-        String cname = classname.replace('.', '/') + ".class";
-        ClassLoader cl = (ClassLoader)clref.get();
-        if (cl == null)
-            return null;        // not found
-        else {
-            URL url = cl.getResource(cname);
-            return url;
-        }
-    }
+	/**
+	 * Obtains the URL of the specified class file. This method calls
+	 * <code>getResource(String)</code> on the class loader.
+	 *
+	 * @return null if the class file could not be found.
+	 */
+	public URL find(String classname) {
+		String cname = classname.replace('.', '/') + ".class";
+		ClassLoader cl = (ClassLoader) clref.get();
+		if (cl == null)
+			return null; // not found
+		else {
+			URL url = cl.getResource(cname);
+			return url;
+		}
+	}
 
-    /**
-     * Closes this class path.
-     */
-    public void close() {
-        clref = null;
-    }
+	/**
+	 * Closes this class path.
+	 */
+	public void close() {
+		clref = null;
+	}
 }

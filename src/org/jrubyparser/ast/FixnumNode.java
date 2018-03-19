@@ -35,43 +35,43 @@ import org.jrubyparser.SourcePosition;
  * Represents an integer literal.
  */
 public class FixnumNode extends NumericNode implements ILiteralNode {
-    private long value;
+	private long value;
 
-    public FixnumNode(SourcePosition position, long value) {
-        super(position);
-        this.value = value;
-    }
+	public FixnumNode(SourcePosition position, long value) {
+		super(position);
+		this.value = value;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && getValue() == ((FixnumNode) node).getValue();
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && getValue() == ((FixnumNode) node).getValue();
-    }
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitFixnumNode(this);
+	}
 
+	public NodeType getNodeType() {
+		return NodeType.FIXNUMNODE;
+	}
 
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitFixnumNode(this);
-    }
+	/**
+	 * Gets the value.
+	 * 
+	 * @return Returns a long
+	 */
+	public long getValue() {
+		return value;
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.FIXNUMNODE;
-    }
-
-    /**
-     * Gets the value.
-     * @return Returns a long
-     */
-    public long getValue() {
-        return value;
-    }
-
-    public void setValue(long value) {
-        this.value = value;
-    }
+	public void setValue(long value) {
+		this.value = value;
+	}
 }

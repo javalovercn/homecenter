@@ -16,7 +16,6 @@
 
 package org.javassist.compiler.ast;
 
-
 import org.javassist.CtField;
 import org.javassist.compiler.CompileError;
 
@@ -24,18 +23,24 @@ import org.javassist.compiler.CompileError;
  * Member name.
  */
 public class Member extends Symbol {
-    // cache maintained by fieldAccess() in TypeChecker.
-    // this is used to obtain the value of a static final field.
-    private CtField field;
+	// cache maintained by fieldAccess() in TypeChecker.
+	// this is used to obtain the value of a static final field.
+	private CtField field;
 
-    public Member(String name) {
-        super(name);
-        field = null;
-    }
+	public Member(String name) {
+		super(name);
+		field = null;
+	}
 
-    public void setField(CtField f) { field = f; }
+	public void setField(CtField f) {
+		field = f;
+	}
 
-    public CtField getField() { return field; }
+	public CtField getField() {
+		return field;
+	}
 
-    public void accept(Visitor v) throws CompileError { v.atMember(this); }
+	public void accept(Visitor v) throws CompileError {
+		v.atMember(this);
+	}
 }

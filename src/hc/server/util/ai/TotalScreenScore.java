@@ -5,8 +5,7 @@ import java.util.Vector;
 public class TotalScreenScore {
 	Vector<ScreenScore> listScore;
 
-	public final void addScreenScore(final String projectID, final String targetID,
-			final MatchScore ms) {
+	public final void addScreenScore(final String projectID, final String targetID, final MatchScore ms) {
 		if (listScore == null) {
 			listScore = new Vector<ScreenScore>(10);
 		}
@@ -27,8 +26,7 @@ public class TotalScreenScore {
 		listScore.add(ss);
 	}
 
-	public final void addKeyOnly(final String projectID, final String targetID,
-			final String fromKey) {
+	public final void addKeyOnly(final String projectID, final String targetID, final String fromKey) {
 		if (listScore == null) {
 			return;
 		}
@@ -46,8 +44,7 @@ public class TotalScreenScore {
 			final int size = listScore.size();
 			for (int i = 0; i < size; i++) {
 				final ScreenScore screenScore = listScore.get(i);
-				if (screenScore.projectID.equals(projectID)
-						&& screenScore.target.equals(targetID)) {
+				if (screenScore.projectID.equals(projectID) && screenScore.target.equals(targetID)) {
 					screenScore.addKey(fromKey);
 					return;
 				}

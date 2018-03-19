@@ -102,8 +102,7 @@ public final class J2SESession extends CoreSession {
 	 *            true means if same then send message to all same session.
 	 * @return
 	 */
-	public final boolean checkSameMemberIDInSys(final String currentMemberID,
-			final boolean isSendMessageToOthers) {
+	public final boolean checkSameMemberIDInSys(final String currentMemberID, final boolean isSendMessageToOthers) {
 		boolean isFindSame = false;
 		final CoreSession[] sessions = SessionManager.getAllSocketSessions();
 		for (int i = 0; i < sessions.length; i++) {
@@ -128,15 +127,14 @@ public final class J2SESession extends CoreSession {
 		return isFindSame;
 	}
 
-	private final void sendMemberIDUsingByOther(final J2SESession j2seCoreSS,
-			final String currentMemberID) {
+	private final void sendMemberIDUsingByOther(final J2SESession j2seCoreSS, final String currentMemberID) {
 		String msg = ResourceUtil.get(j2seCoreSS, 9273);// 9273=Member ID
 														// [{memID}] is being
 														// used by other client.
 		msg = StringUtil.replace(msg, "{memID}", currentMemberID);
 		final J2SESession[] j2seCoreSSArray = { j2seCoreSS };
-		ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(j2seCoreSSArray,
-				ResourceUtil.getWarnI18N(j2seCoreSS), msg, ProjectContext.MESSAGE_WARN, null, 0);
+		ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(j2seCoreSSArray, ResourceUtil.getWarnI18N(j2seCoreSS), msg,
+				ProjectContext.MESSAGE_WARN, null, 0);
 	}
 
 	@Override
@@ -146,13 +144,12 @@ public final class J2SESession extends CoreSession {
 		}
 
 		final IContext ctx = context;
-		return ctx != null && ctx.cmStatus == ContextManager.STATUS_SERVER_SELF;
+		return ctx != null && ctx.getStatus() == ContextManager.STATUS_SERVER_SELF;
 	}
 
 	public final void notifyCanvasMenuResponse() {
 		L.V = L.WShop ? false : LogManager.log("[CanvasMenu] notify menu response.");
-		HCURLUtil.sendCmd(this, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_NOTIFY_CANVAS_MENU_DONE,
-				IConstant.TRUE);
+		HCURLUtil.sendCmd(this, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_NOTIFY_CANVAS_MENU_DONE, IConstant.TRUE);
 	}
 
 	/**
@@ -220,8 +217,7 @@ public final class J2SESession extends CoreSession {
 
 		xpd.setBytes(bs);
 
-		final J2SESession oldCoreSS = (J2SESession) SessionManager
-				.getCoreSessionByConnectionID(xpd.getConnectionPackageID());
+		final J2SESession oldCoreSS = (J2SESession) SessionManager.getCoreSessionByConnectionID(xpd.getConnectionPackageID());
 		// final J2SESession oldCoreSS =
 		// (J2SESession)ContextManager.getThreadPool().runAndWait(new
 		// ReturnableRunnable() {
@@ -235,37 +231,29 @@ public final class J2SESession extends CoreSession {
 		if (oldCoreSS != null && UserThreadResourceUtil.isInServing(oldCoreSS.context)) {
 			final HCConnection oldServConn = oldCoreSS.getHCConnection();
 
-			L.V = L.WShop ? false
-					: LogManager.log(
-							"[ConnectionRebuilder] find old server HcConnection, ready to swap connection.");
+			L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] find old server HcConnection, ready to swap connection.");
 			final DataInputStream dropInputStream = swapSocket(oldServConn, hcConnection, true);
 			try {
-				L.V = L.WShop ? false
-						: LogManager.log("drop old DataInputStream in ReceiveServer.");
+				L.V = L.WShop ? false : LogManager.log("drop old DataInputStream in ReceiveServer.");
 				dropInputStream.close();// 废弃的dis可能占用ReceiveServer的线程，所以要强制close
 			} catch (final Throwable e) {
 			}
 
 			oldCoreSS.keepaliveManager.keepalive.resetTimerCount();
-			oldCoreSS.keepaliveManager.sendAlive(oldCoreSS.context.cmStatus);
+			oldCoreSS.keepaliveManager.sendAlive(oldCoreSS.context.getStatus());
 
 			oldCoreSS.notifyContinue();
 		} else {
-			L.V = L.WShop ? false
-					: LogManager.log(
-							"the old session is NOT serving (maybe released), stop swap connection!!!");
+			L.V = L.WShop ? false : LogManager.log("the old session is NOT serving (maybe released), stop swap connection!!!");
 		}
 
-		GlobalConditionWatcher.addWatcher(
-				new DelayWatcher(ThreadPriorityManager.REBUILD_SWAP_SOCK_MIN_MS - 2000) {
-					@Override
-					public void doBiz() {
-						L.V = L.WShop ? false
-								: LogManager.log(
-										"[ConnectionRebuilder] close connection after success renewal.");
-						J2SESession.this.notifyLineOff(false, false);
-					}
-				});
+		GlobalConditionWatcher.addWatcher(new DelayWatcher(ThreadPriorityManager.REBUILD_SWAP_SOCK_MIN_MS - 2000) {
+			@Override
+			public void doBiz() {
+				L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] close connection after success renewal.");
+				J2SESession.this.notifyLineOff(false, false);
+			}
+		});
 	}
 
 	Map<String, Vector<String>> sessionScheduler;
@@ -329,14 +317,12 @@ public final class J2SESession extends CoreSession {
 	public Stack mletHistoryUrl;
 	public boolean isEventMobileLoginDone = false;
 	public final Vector<SystemEventListener> sessionLevelEventListeners = new Vector<SystemEventListener>();
-	private final HashMap<Robot, ArrayList<RobotListener>> sessionLevelRobotListeners = new HashMap<Robot, ArrayList<RobotListener>>(
-			2);
+	private final HashMap<Robot, ArrayList<RobotListener>> sessionLevelRobotListeners = new HashMap<Robot, ArrayList<RobotListener>>(2);
 	public final SessionEventManager sessionEventManager = new SessionEventManager();
 	public boolean isTransedCertToMobile = false;
 	public static final J2SESession NULL_J2SESESSION_FOR_PROJECT = null;
 	public Object[] mobileValuesForCSS = null;
-	private final HashMap<String, SessionMobiMenu> menuItemsMap = new HashMap<String, SessionMobiMenu>(
-			8);
+	private final HashMap<String, SessionMobiMenu> menuItemsMap = new HashMap<String, SessionMobiMenu>(8);
 
 	public final synchronized boolean lockIdelSession() {
 		if (isIdelSession == false) {
@@ -358,8 +344,7 @@ public final class J2SESession extends CoreSession {
 		return getMenu(projectID).getFlushMenuItems();
 	}
 
-	public final MenuItem searchMenuItem(final String projectID, final String urlLower,
-			final String aliasUrlLower) {
+	public final MenuItem searchMenuItem(final String projectID, final String urlLower, final String aliasUrlLower) {
 		return getMenu(projectID).searchMenuItem(urlLower, aliasUrlLower);
 	}
 
@@ -372,8 +357,7 @@ public final class J2SESession extends CoreSession {
 			// LogManager.log("is using UDP, skip
 			// startUpdateOneTimeKeysProcess");
 		} else if (isOnRelay()) {
-			final UpdateOneTimeRunnable updateOneTimeKeysRunnable = new UpdateOneTimeRunnable(this,
-					hcConnection);
+			final UpdateOneTimeRunnable updateOneTimeKeysRunnable = new UpdateOneTimeRunnable(this, hcConnection);
 			ContextManager.getThreadPool().run(updateOneTimeKeysRunnable);
 			hcConnection.updateOneTimeKeysRunnable = updateOneTimeKeysRunnable;
 			if (L.isInWorkshop) {
@@ -465,8 +449,7 @@ public final class J2SESession extends CoreSession {
 		}
 	}
 
-	public final void dispatchRobotEventSynchronized(final ProjResponser resp, final Robot robot,
-			final RobotEvent event) {
+	public final void dispatchRobotEventSynchronized(final ProjResponser resp, final Robot robot, final RobotEvent event) {
 		final ArrayList<RobotListener> list = sessionLevelRobotListeners.get(robot);
 		int size = 0;
 		if (list == null || (size = list.size()) == 0) {
@@ -555,8 +538,7 @@ public final class J2SESession extends CoreSession {
 			}
 
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS,
-					final HCConnection hcConnection) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final int pixle = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				((J2SESession) coreSS).cap.moveUp(pixle);
 				return true;
@@ -570,8 +552,7 @@ public final class J2SESession extends CoreSession {
 			}
 
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS,
-					final HCConnection hcConnection) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final int pixle = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				((J2SESession) coreSS).cap.moveRight((-1) * pixle);
 				return true;
@@ -585,8 +566,7 @@ public final class J2SESession extends CoreSession {
 			}
 
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS,
-					final HCConnection hcConnection) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final int pixle = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				((J2SESession) coreSS).cap.moveUp((-1) * pixle);
 				return true;
@@ -600,8 +580,7 @@ public final class J2SESession extends CoreSession {
 			}
 
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS,
-					final HCConnection hcConnection) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final int pixle = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				((J2SESession) coreSS).cap.moveRight(pixle);
 				return true;
@@ -614,8 +593,7 @@ public final class J2SESession extends CoreSession {
 			final DataInputEvent e = new DataInputEvent();
 
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS,
-					final HCConnection hcConnection) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				e.setBytes(bs);
 				final int screenIDLen = e.getScreenIDLen();
 				final J2SESession j2seSession = (J2SESession) coreSS;
@@ -626,9 +604,7 @@ public final class J2SESession extends CoreSession {
 						// 从其它form中搜寻
 						screenCap = ScreenServer.searchScreen(j2seSession, bs, offset, screenIDLen);
 						if (screenCap == null) {
-							L.V = L.WShop ? false
-									: LogManager.errForShop("Not found screen ID : "
-											+ new String(bs, offset, screenIDLen));
+							L.V = L.WShop ? false : LogManager.errForShop("Not found screen ID : " + new String(bs, offset, screenIDLen));
 							LogManager.warning("target may be closed, skip event input.");
 							return true;
 						}
@@ -650,32 +626,27 @@ public final class J2SESession extends CoreSession {
 		eventCenter.addListener(new IEventHCListener() {
 			final int screenIDIndex = MsgBuilder.INDEX_MSG_DATA + 1;
 
-			private boolean actionJSInput(final Object canvas, final byte[] bs,
-					final int screenIDlen) {
+			private boolean actionJSInput(final Object canvas, final byte[] bs, final int screenIDlen) {
 				final IMletCanvas iMletCanvas = (IMletCanvas) canvas;
 				if (iMletCanvas.isSameScreenID(bs, screenIDIndex, screenIDlen)) {
 					final int totalMsgLen = HCMessage.getMsgLen(bs);
-					iMletCanvas.actionJSInput(bs, screenIDIndex + screenIDlen,
-							totalMsgLen - 1 - screenIDlen);
+					iMletCanvas.actionJSInput(bs, screenIDIndex + screenIDlen, totalMsgLen - 1 - screenIDlen);
 					return true;
 				}
 				return false;
 			}
 
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS,
-					final HCConnection hcConnection) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final int screenIDlen = ByteUtil.oneByteToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 
 				final J2SESession j2seCoreSS = (J2SESession) coreSS;
 				final ICanvas screenCap = j2seCoreSS.currScreen;
 
-				if (screenCap != null && (screenCap instanceof IMletCanvas)
-						&& actionJSInput(screenCap, bs, screenIDlen)) {
+				if (screenCap != null && (screenCap instanceof IMletCanvas) && actionJSInput(screenCap, bs, screenIDlen)) {
 					return true;
 				} else {
-					final IMletCanvas dialogCap = ScreenServer.searchDialog(j2seCoreSS, bs,
-							screenIDIndex, screenIDlen);
+					final IMletCanvas dialogCap = ScreenServer.searchDialog(j2seCoreSS, bs, screenIDIndex, screenIDlen);
 					if (dialogCap != null && actionJSInput(dialogCap, bs, screenIDlen)) {
 						return true;
 					}
@@ -694,11 +665,8 @@ public final class J2SESession extends CoreSession {
 					} catch (final NoSuchElementException ex) {
 					}
 				}
-				L.V = L.WShop ? false
-						: LogManager.errForShop("Not found screen ID : "
-								+ new String(bs, screenIDIndex, screenIDlen));
-				LogManager
-						.warning("form/dialog/screen may be closed, skip JavaScript event input.");
+				L.V = L.WShop ? false : LogManager.errForShop("Not found screen ID : " + new String(bs, screenIDIndex, screenIDlen));
+				LogManager.warning("form/dialog/screen may be closed, skip JavaScript event input.");
 				return true;
 			}
 
@@ -712,12 +680,10 @@ public final class J2SESession extends CoreSession {
 			final DataSelectTxt txt = new DataSelectTxt();
 
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS,
-					final HCConnection hcConnection) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				txt.setBytes(bs);
 
-				((J2SESession) coreSS).cap.dragAndDrop(txt.getStartX(), txt.getStartY(),
-						txt.getEndX(), txt.getEndY());
+				((J2SESession) coreSS).cap.dragAndDrop(txt.getStartX(), txt.getStartY(), txt.getEndX(), txt.getEndY());
 				return true;
 			}
 
@@ -734,8 +700,7 @@ public final class J2SESession extends CoreSession {
 			}
 
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS,
-					final HCConnection hcConnection) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				// Donate会变量此值，所以不宜做属性。
 				final int mode = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 
@@ -751,12 +716,10 @@ public final class J2SESession extends CoreSession {
 			}
 
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS,
-					final HCConnection hcConnection) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				// Donate会变量此值，所以不宜做属性。
 
-				final int millSecond = (int) ByteUtil.fourBytesToLong(bs,
-						MsgBuilder.INDEX_MSG_DATA);
+				final int millSecond = (int) ByteUtil.fourBytesToLong(bs, MsgBuilder.INDEX_MSG_DATA);
 
 				((J2SESession) coreSS).updateRefreshMS(millSecond);
 				return true;
@@ -770,8 +733,7 @@ public final class J2SESession extends CoreSession {
 			}
 
 			@Override
-			public final boolean action(final byte[] bs, final CoreSession coreSS,
-					final HCConnection hcConnection) {
+			public final boolean action(final byte[] bs, final CoreSession coreSS, final HCConnection hcConnection) {
 				final int zoomMulti = ByteUtil.twoBytesToInteger(bs, MsgBuilder.INDEX_MSG_DATA);
 				((J2SESession) coreSS).cap.zoom(zoomMulti);
 				return true;
@@ -782,13 +744,12 @@ public final class J2SESession extends CoreSession {
 
 	@Override
 	protected void delayToSetNull() {
-		GlobalConditionWatcher.addWatcher(
-				new DelayWatcher(1000 * ResourceUtil.getIntervalSecondsForNextStartup()) {
-					@Override
-					public void doBiz() {
-						setNull();
-					}
-				});
+		GlobalConditionWatcher.addWatcher(new DelayWatcher(1000 * ResourceUtil.getIntervalSecondsForNextStartup()) {
+			@Override
+			public void doBiz() {
+				setNull();
+			}
+		});
 	}
 
 	public final void updateRefreshMS(int millSecond) {
@@ -796,8 +757,7 @@ public final class J2SESession extends CoreSession {
 			return;
 		}
 
-		final int msOnRelay = Integer
-				.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_MS_On_Relay));
+		final int msOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_MS_On_Relay));
 		if (isOnRelay()) {
 			if (millSecond < msOnRelay) {
 				millSecond = msOnRelay;
@@ -822,8 +782,7 @@ public final class J2SESession extends CoreSession {
 			return;
 		}
 
-		final int colorOnRelay = Integer
-				.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_Color_On_Relay));
+		final int colorOnRelay = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_Color_On_Relay));
 		if (isOnRelay()) {
 			if ((IConstant.COLOR_STAR_TOP - mode) > colorOnRelay) {
 				mode = (IConstant.COLOR_STAR_TOP - colorOnRelay);
@@ -841,8 +800,7 @@ public final class J2SESession extends CoreSession {
 
 		}
 
-		LogManager.log("Client change colorMode to level : " + (IConstant.COLOR_STAR_TOP - mode)
-				+ " (after limited)");
+		LogManager.log("Client change colorMode to level : " + (IConstant.COLOR_STAR_TOP - mode) + " (after limited)");
 
 		mask = UIUtil.getMaskFromBit(mode);
 	}

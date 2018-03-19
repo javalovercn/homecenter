@@ -58,8 +58,7 @@ public class MenuManager {
 
 	private final Map<Integer, JPopupMenu> map = new HashMap<Integer, JPopupMenu>();
 
-	public void popUpMenu(final int type, final TreeNode treeNode, final JTree tree,
-			final MouseEvent e, final Designer designer) {
+	public void popUpMenu(final int type, final TreeNode treeNode, final JTree tree, final MouseEvent e, final Designer designer) {
 		final Integer integer_type = Integer.valueOf(type);
 		JPopupMenu pMenu = map.get(integer_type);
 
@@ -93,8 +92,7 @@ public class MenuManager {
 				addItem.addActionListener(new HCActionListener(new Runnable() {
 					@Override
 					public void run() {
-						addMenuItem(designer, null, designer.getMainMenuNode(),
-								designer.getMSBFolderNode());
+						addMenuItem(designer, null, designer.getMainMenuNode(), designer.getMSBFolderNode());
 					}
 				}, threadPoolToken));
 				pMenu.add(addItem);
@@ -126,8 +124,7 @@ public class MenuManager {
 						} else {
 							final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(node);
 							final int menuType = node.type;
-							if (menuType == HPNode.MASK_MSB_ROBOT
-									|| menuType == HPNode.MASK_MSB_CONVERTER
+							if (menuType == HPNode.MASK_MSB_ROBOT || menuType == HPNode.MASK_MSB_CONVERTER
 									|| menuType == HPNode.MASK_MSB_DEVICE) {
 								designer.addNode(designer.getMSBFolderNode(), newNode);
 							}
@@ -137,8 +134,7 @@ public class MenuManager {
 				pMenu.add(addItem);
 
 				map.put(integer_type, pMenu);
-			} else if (HPNode.isNodeType(type, HPNode.MASK_MENU_ITEM)
-					|| HPNode.isNodeType(type, HPNode.MASK_MSB_ITEM)) {
+			} else if (HPNode.isNodeType(type, HPNode.MASK_MENU_ITEM) || HPNode.isNodeType(type, HPNode.MASK_MSB_ITEM)) {
 				pMenu = new JPopupMenu();
 
 				final JMenuItem delItem = new JMenuItem("del item");
@@ -174,8 +170,7 @@ public class MenuManager {
 					@Override
 					public void run() {
 						final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(
-								new HPShareJRuby(HPNode.MASK_SHARE_RB,
-										"share" + getNextNodeIdx() + ".rb"));
+								new HPShareJRuby(HPNode.MASK_SHARE_RB, "share" + getNextNodeIdx() + ".rb"));
 						designer.addNode(null, newNode);
 					}
 				}, threadPoolToken));
@@ -189,54 +184,46 @@ public class MenuManager {
 				addItem.addActionListener(new HCActionListener(new Runnable() {
 					@Override
 					public void run() {
-						final File addNativeFile = FileSelector.selectImageFile(designer,
-								FileSelector.NATIVE_FILTER, true);
+						final File addNativeFile = FileSelector.selectImageFile(designer, FileSelector.NATIVE_FILTER, true);
 						if (addNativeFile != null) {
 							DefaultMutableTreeNode newNode;
 							try {
 								newNode = new DefaultMutableTreeNode(
-										new HPShareNative(HPNode.MASK_SHARE_NATIVE,
-												addNativeFile.getName(), addNativeFile));
+										new HPShareNative(HPNode.MASK_SHARE_NATIVE, addNativeFile.getName(), addNativeFile));
 								designer.addNode(null, newNode);
 								// designer.setNeedRebuildTestJRuby(true);
 
 								if (designer.getRootUserObject().csc.isLoadLib() == false) {
 									final JButton ok = App.buildDefaultOKButton();
 									final JButton no = App.buildDefaultCloseButton();
-									final String addPerm = "click [" + ok.getText() + "] to add ["
-											+ ResourceUtil.LOAD_NATIVE_LIB
+									final String addPerm = "click [" + ok.getText() + "] to add [" + ResourceUtil.LOAD_NATIVE_LIB
 											+ "] permission to project!";
 									final JPanel panel = new JPanel(new BorderLayout());
-									final JLabel msg = new JLabel(addPerm,
-											App.getSysIcon(App.SYS_QUES_ICON),
-											SwingConstants.LEADING);
+									final JLabel msg = new JLabel(addPerm, App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
 									panel.add(msg, BorderLayout.CENTER);
 									final UIActionListener jbOKAction = new UIActionListener() {
 										@Override
-										public void actionPerformed(final Window window,
-												final JButton ok, final JButton cancel) {
+										public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
 											window.dispose();
 											designer.getRootUserObject().csc.setLoadLib(true);
 										}
 									};
 									final UIActionListener cancelAction = new UIActionListener() {
 										@Override
-										public void actionPerformed(final Window window,
-												final JButton ok, final JButton cancel) {
+										public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
 											window.dispose();
 										}
 									};
-									App.showCenter(panel, 0, 0, "add permission?", true, ok, no,
-											jbOKAction, cancelAction, designer, true, false, null,
-											false);
+									App.showCenter(panel, 0, 0, "add permission?", true, ok, no, jbOKAction, cancelAction, designer, true,
+											false, null, false);
 								}
 
 							} catch (final Throwable e) {
 								final JPanel ok = new JPanel();
-								ok.add(new JLabel("Error add native file, desc : " + e.toString(),
-										new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
-								App.showCenterPanelMain(ok, 0, 0, "Add Error!", false, null, null,
-										null, null, designer, true, false, null, false, false);
+								ok.add(new JLabel("Error add native file, desc : " + e.toString(), new ImageIcon(ImageSrc.CANCEL_ICON),
+										SwingConstants.LEFT));
+								App.showCenterPanelMain(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null,
+										false, false);
 
 								ExceptionReporter.printStackTrace(e);
 							}
@@ -253,25 +240,21 @@ public class MenuManager {
 				addItem.addActionListener(new HCActionListener(new Runnable() {
 					@Override
 					public void run() {
-						final File addJarFile = FileSelector.selectImageFile(designer,
-								FileSelector.JAR_FILTER, true);
+						final File addJarFile = FileSelector.selectImageFile(designer, FileSelector.JAR_FILTER, true);
 						if (addJarFile != null) {
 							// 检查包中不能含有系统保留包名
 							if (ResourceUtil.checkSysPackageNameInJar(addJarFile)) {
 								final String reservedPackageNameIsInHar = ResourceUtil.RESERVED_PACKAGE_NAME_IS_IN_HAR;
-								App.showErrorMessageDialog(designer, reservedPackageNameIsInHar,
-										ResourceUtil.getErrorI18N());
+								App.showErrorMessageDialog(designer, reservedPackageNameIsInHar, ResourceUtil.getErrorI18N());
 								return;
 							}
 
 							// 检查cafeCode是否高于当前运行环境
-							final float jreVersion = ResourceUtil
-									.getMaxJREVersionFromCompileJar(addJarFile);// 0表示纯资源包
+							final float jreVersion = ResourceUtil.getMaxJREVersionFromCompileJar(addJarFile);// 0表示纯资源包
 							final float currJRE = App.getJREVer();
 							if (jreVersion > currJRE) {
 								App.showErrorMessageDialog(designer,
-										"current JRE/JDK version is [" + currJRE
-												+ "], but jar is compiled in [" + jreVersion + "]!",
+										"current JRE/JDK version is [" + currJRE + "], but jar is compiled in [" + jreVersion + "]!",
 										ResourceUtil.getErrorI18N());
 								return;
 							}
@@ -279,16 +262,15 @@ public class MenuManager {
 							DefaultMutableTreeNode newNode;
 							try {
 								newNode = new DefaultMutableTreeNode(
-										new HPShareJar(HPNode.MASK_RESOURCE_JAR,
-												addJarFile.getName(), addJarFile));
+										new HPShareJar(HPNode.MASK_RESOURCE_JAR, addJarFile.getName(), addJarFile));
 								designer.addNode(null, newNode);
 								designer.setNeedRebuildTestJRuby(true);
 							} catch (final Throwable e) {
 								final JPanel ok = new JPanel();
-								ok.add(new JLabel("Error add jar file, desc : " + e.toString(),
-										new ImageIcon(ImageSrc.CANCEL_ICON), SwingConstants.LEFT));
-								App.showCenterPanelMain(ok, 0, 0, "Add Error!", false, null, null,
-										null, null, designer, true, false, null, false, false);
+								ok.add(new JLabel("Error add jar file, desc : " + e.toString(), new ImageIcon(ImageSrc.CANCEL_ICON),
+										SwingConstants.LEFT));
+								App.showCenterPanelMain(ok, 0, 0, "Add Error!", false, null, null, null, null, designer, true, false, null,
+										false, false);
 
 								ExceptionReporter.printStackTrace(e);
 							}
@@ -345,8 +327,7 @@ public class MenuManager {
 					delItem.addActionListener(new HCActionListener(new Runnable() {
 						@Override
 						public void run() {
-							final DefaultMutableTreeNode parent = (DefaultMutableTreeNode) designer
-									.getCurrSelectedNode().getParent();
+							final DefaultMutableTreeNode parent = (DefaultMutableTreeNode) designer.getCurrSelectedNode().getParent();
 							final boolean oneChildSize = parent.getChildCount() == 1;
 							designer.delNode();
 							// designer.setNeedRebuildTestJRuby(true);
@@ -354,33 +335,26 @@ public class MenuManager {
 								if (designer.getRootUserObject().csc.isLoadLib()) {
 									final JButton ok = App.buildDefaultOKButton();
 									final JButton close = App.buildDefaultCloseButton();
-									final String msg = "click [" + ok.getText()
-											+ "] to disable [<strong>"
-											+ ResourceUtil.LOAD_NATIVE_LIB
+									final String msg = "click [" + ok.getText() + "] to disable [<strong>" + ResourceUtil.LOAD_NATIVE_LIB
 											+ "</strong>] permission!";
 									final UIActionListener okAction = new UIActionListener() {
 										@Override
-										public void actionPerformed(final Window window,
-												final JButton ok, final JButton cancel) {
+										public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
 											window.dispose();
 											designer.getRootUserObject().csc.setLoadLib(false);
 										}
 									};
 									final UIActionListener closeAction = new UIActionListener() {
 										@Override
-										public void actionPerformed(final Window window,
-												final JButton ok, final JButton cancel) {
+										public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
 											window.dispose();
 										}
 									};
 									final JPanel panel = new JPanel(new BorderLayout());
-									final JLabel label = new JLabel(msg,
-											App.getSysIcon(App.SYS_QUES_ICON),
-											SwingConstants.LEADING);
+									final JLabel label = new JLabel(msg, App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
 									panel.add(label, BorderLayout.CENTER);
-									App.showCenter(panel, 0, 0, "disable permission?", true, ok,
-											close, okAction, closeAction, designer, true, false,
-											null, false);
+									App.showCenter(panel, 0, 0, "disable permission?", true, ok, close, okAction, closeAction, designer,
+											true, false, null, false);
 								}
 							}
 						}
@@ -401,8 +375,8 @@ public class MenuManager {
 		}
 	}
 
-	public static void addMenuItem(final Designer _designer, final Component relativeTo,
-			final DefaultMutableTreeNode mainMenuNode, final DefaultMutableTreeNode msbFoulder) {
+	public static void addMenuItem(final Designer _designer, final Component relativeTo, final DefaultMutableTreeNode mainMenuNode,
+			final DefaultMutableTreeNode msbFoulder) {
 		// 超过菜单最大数
 		if (mainMenuNode == null) {
 			return;
@@ -410,10 +384,10 @@ public class MenuManager {
 		final int currMenuItemNum = mainMenuNode.getChildCount();
 		if (currMenuItemNum >= MenuListEditPanel.MAX_MENUITEM) {
 			final JPanel panel = new JPanel();
-			panel.add(new JLabel("Curr menu item number > " + MenuListEditPanel.MAX_MENUITEM,
-					App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
-			App.showCenterPanelMain(panel, 0, 0, "Too much items!", false, null, null, null, null,
-					_designer, true, false, null, false, false);
+			panel.add(new JLabel("Curr menu item number > " + MenuListEditPanel.MAX_MENUITEM, App.getSysIcon(App.SYS_ERROR_ICON),
+					SwingConstants.LEFT));
+			App.showCenterPanelMain(panel, 0, 0, "Too much items!", false, null, null, null, null, _designer, true, false, null, false,
+					false);
 			return;
 		}
 
@@ -422,8 +396,7 @@ public class MenuManager {
 		} else {
 			final DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(node);
 			final int menuType = node.type;
-			if (menuType == HPNode.MASK_MSB_ROBOT || menuType == HPNode.MASK_MSB_CONVERTER
-					|| menuType == HPNode.MASK_MSB_DEVICE) {
+			if (menuType == HPNode.MASK_MSB_ROBOT || menuType == HPNode.MASK_MSB_CONVERTER || menuType == HPNode.MASK_MSB_DEVICE) {
 				_designer.addNode(msbFoulder, newNode);
 			} else {
 				_designer.addNode(mainMenuNode, newNode);

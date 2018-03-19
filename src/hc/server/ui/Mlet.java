@@ -24,25 +24,22 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 /**
- * <code>Mlet</code> is an instance running in server, and the
- * <STRONG>snapshot</STRONG> of <code>Mlet</code> is presented to mobile. It
- * looks more like a form, control panel or canvas running in mobile. <BR>
+ * <code>Mlet</code> is an instance running in server, and the <STRONG>snapshot</STRONG> of
+ * <code>Mlet</code> is presented to mobile. It looks more like a form, control panel or canvas
+ * running in mobile. <BR>
  * <BR>
- * <code>Mlet</code> is extends {@link javax.swing.JPanel JPanel}, its advantage
- * is bringing all JPanel features to mobile UI, no matter client is Android,
- * iPhone or other. <BR>
+ * <code>Mlet</code> is extends {@link javax.swing.JPanel JPanel}, its advantage is bringing all
+ * JPanel features to mobile UI, no matter client is Android, iPhone or other. <BR>
  * <BR>
- * To present JComponents to mobile in HTML (not snapshot) and set CSS for these
- * JComponents, please use <code>HTMLMlet</code>, which is extends
- * <code>Mlet</code>. <BR>
+ * To present JComponents to mobile in HTML (not snapshot) and set CSS for these JComponents, please
+ * use <code>HTMLMlet</code>, which is extends <code>Mlet</code>. <BR>
  * <BR>
  * <STRONG>Important :</STRONG><BR>
- * In Swing, layout manager is noticing that JButton (and JCheckBox, JComboBox,
- * JLabel, JRadioButton, JTextField) has a preferred size and adjusting your
- * pane to accommodate JButton, in other words, <code>setMinimumSize</code> will
- * not working for JButton. <BR>
- * <code>setMinimumSize</code> for JPanel, adding JButton in it and setting CSS
- * for JButton to grow full space is a good choice.
+ * In Swing, layout manager is noticing that JButton (and JCheckBox, JComboBox, JLabel,
+ * JRadioButton, JTextField) has a preferred size and adjusting your pane to accommodate JButton, in
+ * other words, <code>setMinimumSize</code> will not working for JButton. <BR>
+ * <code>setMinimumSize</code> for JPanel, adding JButton in it and setting CSS for JButton to grow
+ * full space is a good choice.
  * 
  * @see HTMLMlet
  * @since 7.0
@@ -54,12 +51,11 @@ public class Mlet extends JPanel implements ICanvas {
 	boolean isCancelable = true;
 
 	/**
-	 * set current <code>Mlet/HTMLMlet</code> to be not cancelable, for example
-	 * back key in Android. <BR>
+	 * set current <code>Mlet/HTMLMlet</code> to be not cancelable, for example back key in Android.
+	 * <BR>
 	 * <BR>
 	 * <STRONG>Important :</STRONG><BR>
-	 * this method must be invoked before
-	 * {@link ProjectContext#goMletWhenInSession(Mlet, String)},
+	 * this method must be invoked before {@link ProjectContext#goMletWhenInSession(Mlet, String)},
 	 * {@link ProjectContext#goWhenInSession(String)} and
 	 * {@link ProjectContext#goWhenInSession(String, String)}.
 	 */
@@ -73,8 +69,7 @@ public class Mlet extends JPanel implements ICanvas {
 	public static final int STATUS_INIT = 0;
 
 	/**
-	 * when {@link #onStart()} or {@link #onResume()}, <code>Mlet</code> is
-	 * changed to this status.
+	 * when {@link #onStart()} or {@link #onResume()}, <code>Mlet</code> is changed to this status.
 	 */
 	public static final int STATUS_RUNNING = 1;
 
@@ -91,8 +86,8 @@ public class Mlet extends JPanel implements ICanvas {
 	int status = STATUS_INIT;
 
 	/**
-	 * return {@link #STATUS_INIT}, {@link #STATUS_RUNNING},
-	 * {@link #STATUS_PAUSE}, {@link #STATUS_EXIT} or other.
+	 * return {@link #STATUS_INIT}, {@link #STATUS_RUNNING}, {@link #STATUS_PAUSE},
+	 * {@link #STATUS_EXIT} or other.
 	 * 
 	 * @return
 	 */
@@ -107,8 +102,7 @@ public class Mlet extends JPanel implements ICanvas {
 	final void notifyStatusChanged(final int newStatus) {// in user thread
 		synchronized (synLock) {// 要置于外部
 			if (L.isInWorkshop) {
-				LogManager.log("change Mlet/HTMLMlet [" + __target + "] from [" + status + "] to ["
-						+ newStatus + "].");
+				LogManager.log("change Mlet/HTMLMlet [" + __target + "] from [" + status + "] to [" + newStatus + "].");
 			}
 
 			status = newStatus;
@@ -225,11 +219,10 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)}
-	 * or not if client locale is RTL (Right to Left).<BR>
+	 * {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)} or not if client
+	 * locale is RTL (Right to Left).<BR>
 	 * <BR>
-	 * <code>applyComponentOrientation</code> affect the following layout
-	 * managers :<BR>
+	 * <code>applyComponentOrientation</code> affect the following layout managers :<BR>
 	 * 1. {@link FlowLayout}<BR>
 	 * 2. {@link BorderLayout}<BR>
 	 * 3. {@link BoxLayout}<BR>
@@ -244,8 +237,8 @@ public class Mlet extends JPanel implements ICanvas {
 	 * 
 	 * @param isEnable
 	 *            default is enable, means server will
-	 *            {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)}
-	 *            when client locale {@link ProjectContext#isRTL(String)}.
+	 *            {@link Container#applyComponentOrientation(java.awt.ComponentOrientation)} when
+	 *            client locale {@link ProjectContext#isRTL(String)}.
 	 * @since 7.40
 	 */
 	public void enableApplyOrientationWhenRTL(final boolean isEnable) {// 注意：请勿final
@@ -255,15 +248,14 @@ public class Mlet extends JPanel implements ICanvas {
 	boolean isAutoReleaseAfterGo = false;
 
 	/**
-	 * when invoke {@link #go(String)}, this <code>Mlet</code> will be released
-	 * by server or not.
+	 * when invoke {@link #go(String)}, this <code>Mlet</code> will be released by server or not.
 	 * 
-	 * @return true : it will be released after leave and {@link #onExit()} will
-	 *         be executed by server before releasing; <BR>
-	 * 		false : keep this <code>Mlet</code> alive and user will return
-	 *         back to this <code>Mlet</code>. <BR>
-	 * 		<BR>
-	 * 		default is false.
+	 * @return true : it will be released after leave and {@link #onExit()} will be executed by
+	 *         server before releasing; <BR>
+	 *         false : keep this <code>Mlet</code> alive and user will return back to this
+	 *         <code>Mlet</code>. <BR>
+	 *         <BR>
+	 *         default is false.
 	 * @see #setAutoReleaseAfterGo(boolean)
 	 * @since 7.7
 	 */
@@ -272,19 +264,19 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * when invoke {@link #go(String)}, this <code>Mlet</code> will be released
-	 * by server or not. <BR>
+	 * when invoke {@link #go(String)}, this <code>Mlet</code> will be released by server or not.
+	 * <BR>
 	 * <BR>
 	 * default is false. <BR>
 	 * <BR>
-	 * <STRONG>Tip : </STRONG>it is no effect when the URL is script command
-	 * (for example, cmd://myCmd).
+	 * <STRONG>Tip : </STRONG>it is no effect when the URL is script command (for example,
+	 * cmd://myCmd).
 	 * 
 	 * @param isAutoRelease
-	 *            true : it will be released after leave and {@link #onExit()}
-	 *            will be executed by server before releasing; <BR>
-	 * 			false : keep this <code>Mlet</code> alive and user will
-	 *            return/back to this <code>Mlet</code>.
+	 *            true : it will be released after leave and {@link #onExit()} will be executed by
+	 *            server before releasing; <BR>
+	 *            false : keep this <code>Mlet</code> alive and user will return/back to this
+	 *            <code>Mlet</code>.
 	 * @see #isAutoReleaseAfterGo()
 	 * @see #goMlet(Mlet, String, boolean)
 	 * @since 7.7
@@ -324,8 +316,7 @@ public class Mlet extends JPanel implements ICanvas {
 	/**
 	 * the elementID of current Mlet. <BR>
 	 * <BR>
-	 * for example, current Mlet is "form://MyMlet", then the elementID is
-	 * "MyMlet". <BR>
+	 * for example, current Mlet is "form://MyMlet", then the elementID is "MyMlet". <BR>
 	 * <BR>
 	 * to get the instance of menu item for current Mlet in designer, invoke
 	 * {@link ProjectContext#getMenuItemBy(String, String)}.
@@ -360,8 +351,7 @@ public class Mlet extends JPanel implements ICanvas {
 	 * go/run target URL by <code>elementID</code>. <BR>
 	 * <BR>
 	 * jump mobile to following targets:<BR>
-	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from
-	 * mobile, <BR>
+	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from mobile, <BR>
 	 * 2. <i>form://myMlet</i> : open and show a form, <BR>
 	 * 3. <i>controller://myctrl</i> : open and show a controller, <BR>
 	 * 4. <i>{@link #URL_EXIT}</i> : exit current Mlet,<BR>
@@ -377,14 +367,11 @@ public class Mlet extends JPanel implements ICanvas {
 	 * {@link #goExternalURL(String)}.
 	 * 
 	 * @param scheme
-	 *            one of {@link MenuItem#CMD_SCHEME},
-	 *            {@link MenuItem#CONTROLLER_SCHEME},
-	 *            {@link MenuItem#FORM_SCHEME} or
-	 *            {@link MenuItem#SCREEN_SCHEME}.
+	 *            one of {@link MenuItem#CMD_SCHEME}, {@link MenuItem#CONTROLLER_SCHEME},
+	 *            {@link MenuItem#FORM_SCHEME} or {@link MenuItem#SCREEN_SCHEME}.
 	 * @param elementID
-	 *            for example, run scripts of menu item "cmd://myCommand", the
-	 *            scheme is {@linkplain MenuItem#CMD_SCHEME}, and element ID is
-	 *            "myCommand",
+	 *            for example, run scripts of menu item "cmd://myCommand", the scheme is
+	 *            {@linkplain MenuItem#CMD_SCHEME}, and element ID is "myCommand",
 	 * @see #go(String)
 	 */
 	public void go(final String scheme, final String elementID) {
@@ -398,12 +385,11 @@ public class Mlet extends JPanel implements ICanvas {
 
 	/**
 	 * jump mobile to following targets:<BR>
-	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from
-	 * mobile, <BR>
+	 * 1. <i>{@link #URL_SCREEN}</i> : enter the desktop screen of server from mobile, <BR>
 	 * 2. <i>form://myMlet</i> : open and show a form, <BR>
 	 * 3. <i>controller://myctrl</i> : open and show a controller, <BR>
-	 * 4. <i>{@link #URL_EXIT}</i> : exit current Mlet, it is recommended to use
-	 * {@link #back()}, <BR>
+	 * 4. <i>{@link #URL_EXIT}</i> : exit current Mlet, it is recommended to use {@link #back()},
+	 * <BR>
 	 * 5. <i>cmd://myCmd</i> : run script commands only, <BR>
 	 * <BR>
 	 * bring to top : <BR>
@@ -451,36 +437,33 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * go and open a <code>Mlet</code> or <code>HTMLMlet</code> (which is
-	 * probably created by {@link ProjectContext#eval(String)}). <BR>
+	 * go and open a <code>Mlet</code> or <code>HTMLMlet</code> (which is probably created by
+	 * {@link ProjectContext#eval(String)}). <BR>
 	 * <BR>
 	 * the target of <i>toMlet</i> will be set as <i>targetOfMlet</i>.<BR>
 	 * <BR>
 	 * <STRONG>Important : </STRONG> <BR>
-	 * if the same name <i>target</i> or <i>form://target</i> is opened, then it
-	 * will be brought to top. <BR>
+	 * if the same name <i>target</i> or <i>form://target</i> is opened, then it will be brought to
+	 * top. <BR>
 	 * for more, see {@link #go(String)}.
 	 * 
 	 * @param toMlet
 	 * @param targetOfMlet
-	 *            target of <code>Mlet</code>. The prefix <i>form://</i> is
-	 *            <STRONG>NOT</STRONG> required.
+	 *            target of <code>Mlet</code>. The prefix <i>form://</i> is <STRONG>NOT</STRONG>
+	 *            required.
 	 * @param isAutoReleaseCurrentMlet
-	 *            true means the called Mlet will be released after go
-	 *            successfully.<BR>
-	 * 			for more, see {@link Mlet#setAutoReleaseAfterGo(boolean)}.
+	 *            true means the called Mlet will be released after go successfully.<BR>
+	 *            for more, see {@link Mlet#setAutoReleaseAfterGo(boolean)}.
 	 * @see ProjectContext#eval(String)
 	 * @see #go(String)
 	 * @since 7.7
 	 */
-	public void goMlet(final Mlet toMlet, final String targetOfMlet,
-			final boolean isAutoReleaseCurrentMlet) {
+	public void goMlet(final Mlet toMlet, final String targetOfMlet, final boolean isAutoReleaseCurrentMlet) {
 		if (coreSS == SimuMobile.SIMU_NULL) {
 			return;
 		}
 
-		ServerUIAPIAgent.goMlet(coreSS, __context, this, toMlet, targetOfMlet,
-				isAutoReleaseCurrentMlet);
+		ServerUIAPIAgent.goMlet(coreSS, __context, this, toMlet, targetOfMlet, isAutoReleaseCurrentMlet);
 	}
 
 	/**
@@ -491,16 +474,14 @@ public class Mlet extends JPanel implements ICanvas {
 	 * @param to_height
 	 * @return the resized image.
 	 */
-	public final static BufferedImage resizeImage(final BufferedImage src, final int to_width,
-			final int to_height) {
+	public final static BufferedImage resizeImage(final BufferedImage src, final int to_width, final int to_height) {
 		return ResourceUtil.resizeImage(src, to_width, to_height);// 注意：不能进入runAndWaitInSysThread
 	}
 
 	/**
 	 * enter this <code>Mlet</code>, server will invoke this method. <BR>
 	 * <BR>
-	 * invoke {@link #getStatus()} in this method will returns
-	 * {@link #STATUS_RUNNING}. <BR>
+	 * invoke {@link #getStatus()} in this method will returns {@link #STATUS_RUNNING}. <BR>
 	 * <BR>
 	 * {@link #STATUS_INIT} is a status before {@link #STATUS_RUNNING}.
 	 * 
@@ -511,11 +492,10 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * when jump to other form/screen, the server will call {@link #onPause()}
-	 * method before enter next form/screen. <BR>
+	 * when jump to other form/screen, the server will call {@link #onPause()} method before enter
+	 * next form/screen. <BR>
 	 * <BR>
-	 * invoke {@link #getStatus()} in this method will returns
-	 * {@link #STATUS_PAUSE}.
+	 * invoke {@link #getStatus()} in this method will returns {@link #STATUS_PAUSE}.
 	 * 
 	 * @see #onResume()
 	 * @since 7.0
@@ -525,11 +505,10 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * the server will invoke this method when exit from next form/screen, and
-	 * enter this <code>Mlet</code> again. <BR>
+	 * the server will invoke this method when exit from next form/screen, and enter this
+	 * <code>Mlet</code> again. <BR>
 	 * <BR>
-	 * invoke {@link #getStatus()} in this method will returns
-	 * {@link #STATUS_RUNNING}.
+	 * invoke {@link #getStatus()} in this method will returns {@link #STATUS_RUNNING}.
 	 * 
 	 * @see #onPause()
 	 * @since 7.0
@@ -539,19 +518,15 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * the server will invoke this method when exit this <code>Mlet</code> or
-	 * line off. <BR>
+	 * the server will invoke this method when exit this <code>Mlet</code> or line off. <BR>
 	 * <BR>
-	 * invoke {@link #getStatus()} in this method will returns
-	 * {@link #STATUS_EXIT}. <BR>
+	 * invoke {@link #getStatus()} in this method will returns {@link #STATUS_EXIT}. <BR>
 	 * <BR>
 	 * <STRONG>Important : </STRONG><BR>
-	 * if there is a running {@link Runnable} is started by this
-	 * <code>Mlet</code> via {@link ProjectContext#run(Runnable)}, it is a good
-	 * practice that the running {@link Runnable} check {@link #getStatus()} in
-	 * loop and finish task when exit. <BR>
-	 * Please DON'T to get <code>Thread</code> of it and invoke
-	 * {@link Thread#stop()}.
+	 * if there is a running {@link Runnable} is started by this <code>Mlet</code> via
+	 * {@link ProjectContext#run(Runnable)}, it is a good practice that the running {@link Runnable}
+	 * check {@link #getStatus()} in loop and finish task when exit. <BR>
+	 * Please DON'T to get <code>Thread</code> of it and invoke {@link Thread#stop()}.
 	 * 
 	 * @since 7.0
 	 */
@@ -563,8 +538,8 @@ public class Mlet extends JPanel implements ICanvas {
 	 * go to external URL in client application. <BR>
 	 * <BR>
 	 * <STRONG>Important : </STRONG> <BR>
-	 * socket/connect permissions is required even if the domain of external URL
-	 * is the same with the domain of upgrade HAR project URL. <BR>
+	 * socket/connect permissions is required even if the domain of external URL is the same with
+	 * the domain of upgrade HAR project URL. <BR>
 	 * <BR>
 	 * <STRONG>Warning : </STRONG> <BR>
 	 * 1. the external URL may be sniffed when in moving (exclude HTTPS). <BR>
@@ -579,28 +554,25 @@ public class Mlet extends JPanel implements ICanvas {
 	}
 
 	/**
-	 * <STRONG>deprecated</STRONG>, replaced by {@link #goExternalURL(String)}.
-	 * <BR>
+	 * <STRONG>deprecated</STRONG>, replaced by {@link #goExternalURL(String)}. <BR>
 	 * <BR>
 	 * go to external URL in system web browser or client application. <BR>
 	 * <BR>
 	 * <STRONG>Important : </STRONG> <BR>
-	 * socket/connect permissions is required even if the domain of external URL
-	 * is the same with the domain of upgrade HAR project URL. <BR>
+	 * socket/connect permissions is required even if the domain of external URL is the same with
+	 * the domain of upgrade HAR project URL. <BR>
 	 * <BR>
 	 * <STRONG>Warning : </STRONG> <BR>
 	 * 1. the external URL may be sniffed when in moving (exclude HTTPS). <BR>
 	 * 2. iOS 9 and above must use secure URLs. <BR>
-	 * 3. In iOS (not Android), when go external URL and
-	 * <code>isUseExtBrowser</code> is true, the application will be turn into
-	 * background and released after seconds. In future, it maybe keep alive in
-	 * background.
+	 * 3. In iOS (not Android), when go external URL and <code>isUseExtBrowser</code> is true, the
+	 * application will be turn into background and released after seconds. In future, it maybe keep
+	 * alive in background.
 	 * 
 	 * @param url
 	 * @param isUseExtBrowser
-	 *            true : use system web browser to open URL; false : the URL
-	 *            will be opened in client application and still keep
-	 *            foreground.
+	 *            true : use system web browser to open URL; false : the URL will be opened in
+	 *            client application and still keep foreground.
 	 * @since 7.7
 	 * @deprecated
 	 */

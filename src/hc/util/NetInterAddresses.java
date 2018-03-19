@@ -27,8 +27,8 @@ public class NetInterAddresses {
 			// ~ 10.255.255.255、172.16.0.0 ~ 172.31.255.255、192.168.0.0 ~
 			// 192.168.255.255。
 			// IPv6的地区本地地址的前12位是FEC，其他的位可以是任意取值，如FED0::、FEF1::都是地区本地地址。
-			if (ia.isSiteLocalAddress() && (ia.isLinkLocalAddress() == false)
-					&& (ia.isLoopbackAddress() == false) && (ia.isMulticastAddress() == false)) {
+			if (ia.isSiteLocalAddress() && (ia.isLinkLocalAddress() == false) && (ia.isLoopbackAddress() == false)
+					&& (ia.isMulticastAddress() == false)) {
 				return ia;
 			}
 		}

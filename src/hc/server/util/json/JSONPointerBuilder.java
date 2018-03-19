@@ -28,8 +28,8 @@ SOFTWARE.
 */
 
 /**
- * This class allows the user to build a JSONPointer in steps, using exactly one
- * segment in each step.
+ * This class allows the user to build a JSONPointer in steps, using exactly one segment in each
+ * step.
  * 
  * @author JSON.org
  * @version 2016-05-14
@@ -40,22 +40,20 @@ public class JSONPointerBuilder {
 	private final List<String> refTokens = new ArrayList<String>();
 
 	/**
-	 * Creates a {@code JSONPointer} instance using the tokens previously set
-	 * using the {@link #append(String)} method calls.
+	 * Creates a {@code JSONPointer} instance using the tokens previously set using the
+	 * {@link #append(String)} method calls.
 	 */
 	public JSONPointer build() {
 		return new JSONPointer(this.refTokens);
 	}
 
 	/**
-	 * Adds an arbitrary token to the list of reference tokens. It can be any
-	 * non-null value.
+	 * Adds an arbitrary token to the list of reference tokens. It can be any non-null value.
 	 * 
-	 * Unlike in the case of JSON string or URI fragment representation of JSON
-	 * pointers, the argument of this method MUST NOT be escaped. If you want to
-	 * query the property called {@code "a~b"} then you should simply pass the
-	 * {@code "a~b"} string as-is, there is no need to escape it as
-	 * {@code "a~0b"}.
+	 * Unlike in the case of JSON string or URI fragment representation of JSON pointers, the
+	 * argument of this method MUST NOT be escaped. If you want to query the property called
+	 * {@code "a~b"} then you should simply pass the {@code "a~b"} string as-is, there is no need to
+	 * escape it as {@code "a~0b"}.
 	 * 
 	 * @param token
 	 *            the new token to be appended to the list
@@ -72,8 +70,8 @@ public class JSONPointerBuilder {
 	}
 
 	/**
-	 * Adds an integer to the reference token list. Although not necessarily,
-	 * mostly this token will denote an array index.
+	 * Adds an integer to the reference token list. Although not necessarily, mostly this token will
+	 * denote an array index.
 	 * 
 	 * @param arrayIndex
 	 *            the array index to be added to the token list

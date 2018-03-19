@@ -10,17 +10,12 @@ import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.RespID;
 import org.bouncycastle.operator.DigestCalculator;
 
-public class JcaRespID
-    extends RespID
-{
-    public JcaRespID(X500Principal name)
-    {
-        super(X500Name.getInstance(name.getEncoded()));
-    }
+public class JcaRespID extends RespID {
+	public JcaRespID(X500Principal name) {
+		super(X500Name.getInstance(name.getEncoded()));
+	}
 
-    public JcaRespID(PublicKey pubKey, DigestCalculator digCalc)
-        throws OCSPException
-    {
-        super(SubjectPublicKeyInfo.getInstance(pubKey.getEncoded()), digCalc);
-    }
+	public JcaRespID(PublicKey pubKey, DigestCalculator digCalc) throws OCSPException {
+		super(SubjectPublicKeyInfo.getInstance(pubKey.getEncoded()), digCalc);
+	}
 }

@@ -22,15 +22,21 @@ import org.javassist.compiler.CompileError;
  * String literal.
  */
 public class StringL extends ASTree {
-    protected String text;
+	protected String text;
 
-    public StringL(String t) {
-        text = t;
-    }
+	public StringL(String t) {
+		text = t;
+	}
 
-    public String get() { return text; }
+	public String get() {
+		return text;
+	}
 
-    public String toString() { return "\"" + text + "\""; }
+	public String toString() {
+		return "\"" + text + "\"";
+	}
 
-    public void accept(Visitor v) throws CompileError { v.atStringL(this); }
+	public void accept(Visitor v) throws CompileError {
+		v.atStringL(this);
+	}
 }

@@ -20,20 +20,16 @@ public class SystemHTMLMlet extends HTMLMlet {
 			+ "-webkit-align-items: center; align-items: center; justify-content: center; -webkit-justify-content: center;"
 			+ "-webkit-box-pack: center; -moz-box-pack: center; -ms-flex-pack: center;";
 
-	static final int AREA_BACK_COLOR = new Color(HTMLMlet.getColorForBodyByIntValue(), true)
-			.darker().getRGB();
-	static final int FIELD_BACK_COLOR = new Color(HTMLMlet.getColorForBodyByIntValue(), true)
-			.brighter().getRGB();
-	public static final int AREA_FONT_COLOR = new Color(HTMLMlet.getColorForFontByIntValue(), true)
-			.darker().getRGB();
+	static final int AREA_BACK_COLOR = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
+	static final int FIELD_BACK_COLOR = new Color(HTMLMlet.getColorForBodyByIntValue(), true).brighter().getRGB();
+	public static final int AREA_FONT_COLOR = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker().getRGB();
 
 	static final String BTN_STYLE = "btnStyle";
 	static final String BTN_FOR_DIV = "btnForDiv";
 	static final String BTN_DISABLE_STYLE = "btnDisableStyle";
 	static final String FIELD_STYLE = "display: block;box-sizing: border-box;border:1px solid #"
-			+ HTMLMlet.toHexColor(FIELD_BACK_COLOR, false) + ";width: 100%;vertical-align:middle;"
-			+ "background-color:#" + HTMLMlet.toHexColor(FIELD_BACK_COLOR, false) + ";color:#"
-			+ HTMLMlet.toHexColor(AREA_FONT_COLOR, false) + ";";
+			+ HTMLMlet.toHexColor(FIELD_BACK_COLOR, false) + ";width: 100%;vertical-align:middle;" + "background-color:#"
+			+ HTMLMlet.toHexColor(FIELD_BACK_COLOR, false) + ";color:#" + HTMLMlet.toHexColor(AREA_FONT_COLOR, false) + ";";
 	static final String LABEL_FOR_DIV = "overflow:hidden;";
 	public static final String LABEL_FOR_DIV_AUTO_NEW_LINE = "word-wrap: break-word;word-break: normal;";
 	static final String LABEL_STYLE = "font-weight:bold;";
@@ -104,16 +100,13 @@ public class SystemHTMLMlet extends HTMLMlet {
 		dialog.setCSSForDiv(panel, null, "display: flex;align-items: center;");
 	}
 
-	public static String buildCSS(final int buttonHeight, final int fontSize, final int fontColor,
-			final int bgColor) {
+	public static String buildCSS(final int buttonHeight, final int fontSize, final int fontColor, final int bgColor) {
 		// final String strHexFontColor = HTMLMlet.toHexColor(fontColor, false);
 		final int darkerFontColor = HTMLMlet.getDarkerColor(fontColor);
-		final String strHexFontColor = HTMLMlet.toHexColor(HTMLMlet.getDarkerColor(darkerFontColor),
-				false);
+		final String strHexFontColor = HTMLMlet.toHexColor(HTMLMlet.getDarkerColor(darkerFontColor), false);
 		final String fontDisableColor = HTMLMlet.toHexColor(darkerFontColor, false);
 		final String buttonBGColor = HTMLMlet.toHexColor(HTMLMlet.getBrighterColor(bgColor), false);
-		final String buttonDisableBGColor = HTMLMlet.toHexColor(HTMLMlet.getDarkerColor(bgColor),
-				false);
+		final String buttonDisableBGColor = HTMLMlet.toHexColor(HTMLMlet.getDarkerColor(bgColor), false);
 
 		return ".btnForDiv {padding:0.2em;" + "-webkit-box-align: center;" + // display:
 																				// -webkit-box;display:
@@ -127,14 +120,12 @@ public class SystemHTMLMlet extends HTMLMlet {
 
 				".areaForDiv {padding:0.4em;}" +
 
-				".btnStyle {width:100%;height:100%;border-radius: " + buttonHeight
-				+ "px;display: block;transition: all 0.15s ease;" + "border: 0em solid #"
-				+ buttonBGColor + ";background-color: #" + buttonBGColor + ";color: #"
-				+ strHexFontColor + ";" + "}" +
+				".btnStyle {width:100%;height:100%;border-radius: " + buttonHeight + "px;display: block;transition: all 0.15s ease;"
+				+ "border: 0em solid #" + buttonBGColor + ";background-color: #" + buttonBGColor + ";color: #" + strHexFontColor + ";" + "}"
+				+
 
-				".btnDisableStyle {width:100%;height:100%;border-radius: " + buttonHeight
-				+ "px;display: block;transition: all 0.15s ease;" + "border: 0em solid #"
-				+ buttonDisableBGColor + ";background-color: #" + buttonDisableBGColor + ";"
-				+ "color: #" + fontDisableColor + ";" + "}";
+				".btnDisableStyle {width:100%;height:100%;border-radius: " + buttonHeight + "px;display: block;transition: all 0.15s ease;"
+				+ "border: 0em solid #" + buttonDisableBGColor + ";background-color: #" + buttonDisableBGColor + ";" + "color: #"
+				+ fontDisableColor + ";" + "}";
 	}
 }

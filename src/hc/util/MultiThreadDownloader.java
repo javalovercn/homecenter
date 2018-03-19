@@ -24,6 +24,7 @@ import hc.core.IConstant;
 import hc.core.RootServerConnector;
 import hc.core.SessionManager;
 import hc.core.util.LogManager;
+import hc.j2se.HCAjaxX509TrustManager;
 import hc.server.util.HCJFrame;
 
 public class MultiThreadDownloader {
@@ -52,9 +53,8 @@ public class MultiThreadDownloader {
 		isCancel = true;
 	}
 
-	public void download(final Vector url_download, final File file, final CheckSum checkSum,
-			final IBiz biz, final IBiz failBiz, final boolean isVisiable,
-			final boolean isCancelableByUser) {
+	public void download(final Vector url_download, final File file, final CheckSum checkSum, final IBiz biz, final IBiz failBiz,
+			final boolean isVisiable, final boolean isCancelableByUser) {
 		this.fileName = file.getName();
 		final int threadNum = url_download.size();
 		dts = new DownloadThread[threadNum];
@@ -67,6 +67,7 @@ public class MultiThreadDownloader {
 			final HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 			conn.setRequestMethod("GET");
 			conn.setReadTimeout(5000);
+			HCAjaxX509TrustManager.setAjaxSSLSocketFactory(url, conn);
 			if (conn.getResponseCode() == 200) {
 				totalByted = conn.getContentLength();
 				final RandomAccessFile raf = new RandomAccessFile(file, "rw");
@@ -83,8 +84,8 @@ public class MultiThreadDownloader {
 								new URL((String) url_download.get(threadId)));
 						startIdx = endIdx + 1;
 					} else {
-						dts[threadId] = new DownloadThread(threadId, this, startIdx, totalByted,
-								file, new URL((String) url_download.get(threadId)));
+						dts[threadId] = new DownloadThread(threadId, this, startIdx, totalByted, file,
+								new URL((String) url_download.get(threadId)));
 					}
 					dts[threadId].start();
 					LogManager.log("create a download thread and start.");
@@ -97,8 +98,7 @@ public class MultiThreadDownloader {
 
 		final long startMS = System.currentTimeMillis();
 		final String dnFileName = firstURL.substring(firstURL.lastIndexOf("/") + 1);
-		final String desc_str = buildDownloadMsg(dnFileName, fileName, checkSum, downloadByte,
-				totalByted, startMS);
+		final String desc_str = buildDownloadMsg(dnFileName, fileName, checkSum, downloadByte, totalByted, startMS);
 		final JLabel desc = new JLabel();
 		desc.setText(desc_str);
 
@@ -114,8 +114,7 @@ public class MultiThreadDownloader {
 						if (frame != null) {
 							frame.dispose();
 						}
-						RootServerConnector.notifyLineOffType(
-								SessionManager.getPreparedSocketSession(), "lof=MTD_cancel");
+						RootServerConnector.notifyLineOffType(SessionManager.getPreparedSocketSession(), "lof=MTD_cancel");
 					} catch (final Exception ex) {
 					}
 				}
@@ -125,8 +124,8 @@ public class MultiThreadDownloader {
 				button.setEnabled(false);
 			}
 			final String downloading = ResourceUtil.get(9275);//downloading...，原为""download " + dnFileName"
-			frame = (JFrame) App.showCenterPanelMain(panel, 0, 0, downloading, false,
-					button, null, listener, listener, null, false, true, null, false, false);
+			frame = (JFrame) App.showCenterPanelMain(panel, 0, 0, downloading, false, button, null, listener, listener, null, false, true,
+					null, false, false);
 		}
 		refreshProgress = new Thread() {
 			int ms = 0;
@@ -140,8 +139,7 @@ public class MultiThreadDownloader {
 						Thread.sleep(1000);
 					} catch (final Exception e) {
 					}
-					final String desc_str = buildDownloadMsg(dnFileName, fileName, checkSum,
-							downloadByte, totalByted, startMS);
+					final String desc_str = buildDownloadMsg(dnFileName, fileName, checkSum, downloadByte, totalByted, startMS);
 					desc.setText(desc_str);
 					final int percent = (int) process;
 					progress.setValue(percent);
@@ -152,8 +150,7 @@ public class MultiThreadDownloader {
 					final int newMS = downloadByte / 1024 / 1024;
 					if (newMS != ms) {
 						ms = newMS;
-						LogManager.log(
-								fileName + " installed " + ms + "MB, total " + totalMS + "MS.");
+						LogManager.log(fileName + " installed " + ms + "MB, total " + totalMS + "MS.");
 					}
 				}
 				if (frame != null) {
@@ -163,8 +160,8 @@ public class MultiThreadDownloader {
 					final String message = "Error on download file, please retry later.";
 					LogManager.log(message);
 					if (isVisiable) {
-						App.showMessageDialog(null, message, ResourceUtil.get(IConstant.ERROR),
-								JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+						App.showMessageDialog(null, message, ResourceUtil.get(IConstant.ERROR), JOptionPane.ERROR_MESSAGE,
+								App.getSysIcon(App.SYS_ERROR_ICON));
 					}
 					if (failBiz != null) {
 						failBiz.start();
@@ -179,12 +176,10 @@ public class MultiThreadDownloader {
 					} else {
 						LogManager.err("fail to checksum : " + fileName);
 						RootServerConnector.notifyLineOffType(null, "lof=MTD_ERR_CHECKSUM");
-						final String message = "File [" + fileName
-								+ "] MD5 error, please try download it later!";
+						final String message = "File [" + fileName + "] MD5 error, please try download it later!";
 						LogManager.log(message);
 						if (isVisiable) {
-							App.showMessageDialog(null, message, ResourceUtil.get(IConstant.ERROR),
-									JOptionPane.ERROR_MESSAGE);
+							App.showMessageDialog(null, message, ResourceUtil.get(IConstant.ERROR), JOptionPane.ERROR_MESSAGE);
 						}
 						if (failBiz != null) {
 							failBiz.start();
@@ -202,8 +197,8 @@ public class MultiThreadDownloader {
 	int storeLastIdx = 0;
 	float process;
 
-	private String buildDownloadMsg(final String fromURL, final String storeFile,
-			final CheckSum md5, final int readed, final int total, final long startMS) {
+	private String buildDownloadMsg(final String fromURL, final String storeFile, final CheckSum md5, final int readed, final int total,
+			final long startMS) {
 		final int readedSec = readed - lastDispReaded;
 		lastDispReaded = readed;
 
@@ -213,18 +208,16 @@ public class MultiThreadDownloader {
 			lastFiveTotal += lastDispReadedArr[i];
 		}
 		storeLastIdx++;
-		int avg = (storeLastIdx <= avgSecond) ? (lastFiveTotal / storeLastIdx)
-				: (lastFiveTotal / avgSecond);
+		int avg = (storeLastIdx <= avgSecond) ? (lastFiveTotal / storeLastIdx) : (lastFiveTotal / avgSecond);
 		avg = avg / 1024;
 		String out = "<html><BR>";
 		process = (float) readed / total * 100;// 算出百分比
 		final long costMS = System.currentTimeMillis() - startMS;
-		final long leftSeconds = ((readed == 0) ? 3600
-				: ((costMS * total / readed - costMS) / 1000));
+		final long leftSeconds = ((readed == 0) ? 3600 : ((costMS * total / readed - costMS) / 1000));
 		final float totalM = (total * 1.0F) / 1024.0F / 1024.0F;
 		final float readedM = (readed * 1.0F) / 1024.0F / 1024.0F;
-		out += "<STRONG>downloaded :    " + String.format("%.2f", readedM) + "M / "
-				+ String.format("%.2f", totalM) + "M, </STRONG><BR><BR>";
+		out += "<STRONG>downloaded :    " + String.format("%.2f", readedM) + "M / " + String.format("%.2f", totalM)
+				+ "M, </STRONG><BR><BR>";
 		out += "source :      " + fromURL + "<BR>";
 		// out += "Download to : " + storeFile + "<BR>";
 		out += "md5 :           " + md5.md5 + "<BR>";
@@ -342,8 +335,8 @@ class DownloadThread extends Thread {
 		return seconds;
 	}
 
-	public DownloadThread(final int threadId, final MultiThreadDownloader main, final int start,
-			final int end, final File file, final URL url) {
+	public DownloadThread(final int threadId, final MultiThreadDownloader main, final int start, final int end, final File file,
+			final URL url) {
 		this.main = main;
 		this.threadId = threadId;
 		this.start = start;
@@ -374,8 +367,7 @@ class DownloadThread extends Thread {
 			System.err.println("Error multi-thread download source:" + url.toString());
 			isError = true;
 			main = null;
-			RootServerConnector.notifyLineOffType(SessionManager.getPreparedSocketSession(),
-					"lof=MTD_" + url.toString());
+			RootServerConnector.notifyLineOffType(SessionManager.getPreparedSocketSession(), "lof=MTD_" + url.toString());
 		}
 		if (raf != null) {
 			try {
@@ -385,10 +377,10 @@ class DownloadThread extends Thread {
 		}
 	}
 
-	public HttpURLConnection downloadHttp206(final RandomAccessFile raf)
-			throws IOException, ProtocolException, Exception {
+	public HttpURLConnection downloadHttp206(final RandomAccessFile raf) throws IOException, ProtocolException, Exception {
 		HttpURLConnection conn = null;
 		conn = (HttpURLConnection) url.openConnection();
+		HCAjaxX509TrustManager.setAjaxSSLSocketFactory(url, conn);
 		conn.setRequestMethod("GET");
 		// conn.setReadTimeout(0);//无穷
 		conn.setRequestProperty("Range", "bytes=" + start + "-" + end);
@@ -402,8 +394,7 @@ class DownloadThread extends Thread {
 			do {
 				hasIOException = false;
 				try {
-					while ((!main.isCancel) && ((start + downloadBS) <= end)
-							&& (len = inStream.read(b)) != -1) {
+					while ((!main.isCancel) && ((start + downloadBS) <= end) && (len = inStream.read(b)) != -1) {
 						raf.write(b, 0, len);
 						synchronized (main) {
 							main.downloadByte += len;
@@ -449,6 +440,7 @@ class DownloadThread extends Thread {
 					}
 
 					conn = (HttpURLConnection) url.openConnection();
+					HCAjaxX509TrustManager.setAjaxSSLSocketFactory(url, conn);
 					conn.setRequestMethod("GET");
 					// conn.setReadTimeout(0);//无穷
 					conn.setRequestProperty("Range", "bytes=" + start + "-" + end);

@@ -3,12 +3,9 @@ package hc.server.util.ai;
 import hc.util.ObjectCache;
 
 public class AIObjectCache {
-	private static final ObjectCache<FormData> formDataCache = new ObjectCache<FormData>(
-			FormData.class);
-	private static final ObjectCache<RobotData> robotDataCache = new ObjectCache<RobotData>(
-			RobotData.class);
-	private static final ObjectCache<RobotEventData> robotEventDataCache = new ObjectCache<RobotEventData>(
-			RobotEventData.class);
+	private static final ObjectCache<FormData> formDataCache = new ObjectCache<FormData>(FormData.class);
+	private static final ObjectCache<RobotData> robotDataCache = new ObjectCache<RobotData>(RobotData.class);
+	private static final ObjectCache<RobotEventData> robotEventDataCache = new ObjectCache<RobotEventData>(RobotEventData.class);
 
 	public static final FormData getFormData() {
 		return formDataCache.getFree();

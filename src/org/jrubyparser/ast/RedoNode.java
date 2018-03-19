@@ -35,19 +35,21 @@ import org.jrubyparser.SourcePosition;
  * Represents a 'redo'
  */
 public class RedoNode extends Node {
-    public RedoNode(SourcePosition position) {
-        super(position);
-    }
+	public RedoNode(SourcePosition position) {
+		super(position);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.REDONODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.REDONODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitRedoNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitRedoNode(this);
+	}
 }

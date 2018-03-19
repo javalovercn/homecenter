@@ -23,8 +23,8 @@ public class LocalDeployManager {
 		PropertiesManager.saveFile();
 	}
 
-	public static void refreshAliveServerFromLocalNetwork(final DownlistButton actionButton,
-			final String projectID, final Designer designer) {
+	public static void refreshAliveServerFromLocalNetwork(final DownlistButton actionButton, final String projectID,
+			final Designer designer) {
 		// do network search
 		final InetAddress ia = HttpUtil.getLocal();
 		if (ia == null || ia instanceof Inet6Address) {

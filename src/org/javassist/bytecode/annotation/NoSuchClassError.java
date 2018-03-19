@@ -17,24 +17,23 @@
 package org.javassist.bytecode.annotation;
 
 /**
- * Thrown if the linkage fails.
- * It keeps the name of the class that caused this error. 
+ * Thrown if the linkage fails. It keeps the name of the class that caused this error.
  */
 public class NoSuchClassError extends Error {
-    private String className;
+	private String className;
 
-    /**
-     * Constructs an exception.
-     */
-    public NoSuchClassError(String className, Error cause) {
-        super(cause.toString(), cause);
-        this.className = className;
-    }
+	/**
+	 * Constructs an exception.
+	 */
+	public NoSuchClassError(String className, Error cause) {
+		super(cause.toString(), cause);
+		this.className = className;
+	}
 
-    /**
-     * Returns the name of the class not found. 
-     */
-    public String getClassName() {
-        return className;
-    }
+	/**
+	 * Returns the name of the class not found.
+	 */
+	public String getClassName() {
+		return className;
+	}
 }

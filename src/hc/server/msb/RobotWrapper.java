@@ -18,16 +18,14 @@ public class RobotWrapper extends Robot {
 	public final Object operate(final long functionID, final Object parameter) {
 		final Object out = robot.operate(functionID, parameter);
 
-		if (AIPersistentManager.isEnableAnalyseFlow && AIPersistentManager.isEnableHCAI()
-				&& ResourceUtil.isAnalysableParameter(parameter)
+		if (AIPersistentManager.isEnableAnalyseFlow && AIPersistentManager.isEnableHCAI() && ResourceUtil.isAnalysableParameter(parameter)
 				&& ResourceUtil.isAnalysableParameter(out)) {
 			final RobotData anaData = AIObjectCache.getRobotData();
 			anaData.functionID = functionID;
 			anaData.parameter = parameter;
 			anaData.out = out;
 
-			anaData.snap(robot.project_id, robot.getProjectContext().getClientLocale(),
-					AnalysableData.DIRECT_IN);
+			anaData.snap(robot.project_id, robot.getProjectContext().getClientLocale(), AnalysableData.DIRECT_IN);
 			AIPersistentManager.processRobotData(anaData);
 		}
 
@@ -40,8 +38,7 @@ public class RobotWrapper extends Robot {
 	}
 
 	@Override
-	public final DeviceCompatibleDescription getDeviceCompatibleDescription(
-			final String referenceDeviceID) {
+	public final DeviceCompatibleDescription getDeviceCompatibleDescription(final String referenceDeviceID) {
 		return robot.getDeviceCompatibleDescription(referenceDeviceID);
 	}
 
@@ -96,8 +93,7 @@ public class RobotWrapper extends Robot {
 	}
 
 	@Override
-	final protected RobotEvent buildRobotEvent(final String propertyName, final Object oldValue,
-			final Object newValue) {
+	final protected RobotEvent buildRobotEvent(final String propertyName, final Object oldValue, final Object newValue) {
 		return robot.buildRobotEvent(propertyName, oldValue, newValue);
 	}
 

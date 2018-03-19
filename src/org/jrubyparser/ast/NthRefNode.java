@@ -33,73 +33,76 @@ import org.jrubyparser.SourcePosition;
 
 /**
  * Represents a $number ($0..$9) variable.
-  */
+ */
 public class NthRefNode extends Node implements IGlobalVariable {
-    private int matchNumber;
+	private int matchNumber;
 
-    public NthRefNode(SourcePosition position, int matchNumber) {
-        super(position);
-        this.matchNumber = matchNumber;
-    }
+	public NthRefNode(SourcePosition position, int matchNumber) {
+		super(position);
+		this.matchNumber = matchNumber;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		NthRefNode other = (NthRefNode) node;
 
-        NthRefNode other = (NthRefNode) node;
+		return isNameMatch(other.getName()) && getMatchNumber() == other.getMatchNumber();
+	}
 
-        return isNameMatch(other.getName()) && getMatchNumber() == other.getMatchNumber();
-    }
+	public NodeType getNodeType() {
+		return NodeType.NTHREFNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitNthRefNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.NTHREFNODE;
-    }
+	/**
+	 * Gets the matchNumber.
+	 * 
+	 * @return Returns a int
+	 */
+	public int getMatchNumber() {
+		return matchNumber;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitNthRefNode(this);
-    }
+	public String getName() {
+		return "" + getMatchNumber();
+	}
 
-    /**
-     * Gets the matchNumber.
-     * @return Returns a int
-     */
-    public int getMatchNumber() {
-        return matchNumber;
-    }
+	public String getLexicalName() {
+		return "$" + getName();
+	}
 
-    public String getName() {
-        return "" + getMatchNumber();
-    }
+	public void setName(String newName) {
+		matchNumber = new Integer(newName);
+	}
 
-    public String getLexicalName() {
-        return "$" + getName();
-    }
+	public SourcePosition getNamePosition() {
+		return getPosition().fromEnd(getName().length());
+	}
 
-    public void setName(String newName) {
-        matchNumber = new Integer(newName);
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getPosition();
+	}
 
-    public SourcePosition getNamePosition() {
-        return getPosition().fromEnd(getName().length());
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getPosition();
-    }
-
-    public boolean isNameMatch(String name) {
-        return getName().equals(name);
-    }
+	public boolean isNameMatch(String name) {
+		return getName().equals(name);
+	}
 }

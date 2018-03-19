@@ -28,13 +28,11 @@ public class HCjad {
 		return hadURL.substring(0, hadURL.length() - Designer.HAD_EXT.length()) + Designer.HAR_EXT;
 	}
 
-	private static final void writeHadLine(final Writer out, final String key, final Object value)
-			throws Exception {
+	private static final void writeHadLine(final Writer out, final String key, final Object value) throws Exception {
 		out.write(key + ": " + value + "\r\n");
 	}
 
-	public static final void toHad(final Map<String, Object> map, final File hadfile,
-			final String harmd5, final int length) {
+	public static final void toHad(final Map<String, Object> map, final File hadfile, final String harmd5, final int length) {
 		if (hadfile.exists()) {
 			hadfile.delete();
 		}

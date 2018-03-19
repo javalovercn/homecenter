@@ -36,8 +36,8 @@ import org.jrubyparser.parser.Tokens;
 import org.jrubyparser.util.CStringBuilder;
 
 /**
- * A lexing unit for scanning a heredoc element.
- * Example:
+ * A lexing unit for scanning a heredoc element. Example:
+ * 
  * <pre>
  * foo(&lt;&lt;EOS, bar)
  * This is heredoc country!
@@ -47,216 +47,223 @@ import org.jrubyparser.util.CStringBuilder;
  * EOS = marker
  * ',bar)\n' = lastLine
  * </pre>
- *  
+ * 
  */
 public class HeredocTerm extends StrTerm {
-    // Marker delimiting heredoc boundary
-    private final String marker;
+	// Marker delimiting heredoc boundary
+	private final String marker;
 
-    // Expand variables, Indentation of final marker
-    private final int flags;
+	// Expand variables, Indentation of final marker
+	private final int flags;
 
-    // Portion of line right after beginning marker.  In preserve spaces mode this is not used
-    // since it parses in order (so it has no need to put lastLine back).
-    private final String lastLine;
-    
-    public HeredocTerm(String marker, int func, String lastLine) {
-        this.marker = marker;
-        this.flags = func;
-        this.lastLine = lastLine;
-    }
-    
-    public int parseString(Lexer lexer, LexerSource src) throws java.io.IOException {
-        boolean indent = (flags & Lexer.STR_FUNC_INDENT) != 0;
+	// Portion of line right after beginning marker.  In preserve spaces mode this is not used
+	// since it parses in order (so it has no need to put lastLine back).
+	private final String lastLine;
 
-        if (src.peek(Lexer.EOF)) syntaxError(src);
+	public HeredocTerm(String marker, int func, String lastLine) {
+		this.marker = marker;
+		this.flags = func;
+		this.lastLine = lastLine;
+	}
 
-        if (lexer.getPreserveSpaces()) {
-            boolean done = src.matchMarker(marker, indent, true);
-            if (done) {
-                lexer.yaccValue = new StrNode(lexer.getPosition(), "");
-                lexer.setStrTerm(new StringTerm(-1, '\0', '\0'));
-                src.setIsANewLine(true);
-                return Tokens.tSTRING_END;
-            }
-        }
+	public int parseString(Lexer lexer, LexerSource src) throws java.io.IOException {
+		boolean indent = (flags & Lexer.STR_FUNC_INDENT) != 0;
 
-        // Found end marker for this heredoc
-        if (src.lastWasBeginOfLine() && src.matchMarker(marker, indent, true)) {
-            unreadLastLine(src); // push back last line to lex stuff after initial heredoc marker
-            lexer.yaccValue = new Token(marker, lexer.getPosition());
-            return Tokens.tSTRING_END;
-        }
+		if (src.peek(Lexer.EOF))
+			syntaxError(src);
 
-        CStringBuilder str = new CStringBuilder();
-        SourcePosition position;
-        
-        if ((flags & Lexer.STR_FUNC_EXPAND) == 0) {
-            do {
-                str.append(src.readLineBytes());
-                str.append('\n');
-                if (src.peek(Lexer.EOF)) syntaxError(src);
-                position = lexer.getPosition();
-            } while (!src.matchMarker(marker, indent, true));
-        } else {
-            int c = src.read();
-            if (c == '#') {
-                switch (c = src.read()) {
-                case '$':
-                case '@':
-                    if (processingEmbedded == LOOKING_FOR_EMBEDDED) {
-                        processingEmbedded = EMBEDDED_DVAR;
-                    }
-                    src.unread(c);
-                    lexer.setValue(new Token("#" + c, lexer.getPosition()));
-                    return Tokens.tSTRING_DVAR;
-                case '{':
-                    if (processingEmbedded == LOOKING_FOR_EMBEDDED) {
-                        processingEmbedded = EMBEDDED_DEXPR;
-                    }
-                    lexer.setValue(new Token("#" + c, lexer.getPosition()));
-                    return Tokens.tSTRING_DBEG;
-                }
-                str.append('#');
-            }
+		if (lexer.getPreserveSpaces()) {
+			boolean done = src.matchMarker(marker, indent, true);
+			if (done) {
+				lexer.yaccValue = new StrNode(lexer.getPosition(), "");
+				lexer.setStrTerm(new StringTerm(-1, '\0', '\0'));
+				src.setIsANewLine(true);
+				return Tokens.tSTRING_END;
+			}
+		}
 
-            src.unread(c);
+		// Found end marker for this heredoc
+		if (src.lastWasBeginOfLine() && src.matchMarker(marker, indent, true)) {
+			unreadLastLine(src); // push back last line to lex stuff after initial heredoc marker
+			lexer.yaccValue = new Token(marker, lexer.getPosition());
+			return Tokens.tSTRING_END;
+		}
 
-            // MRI has extra pointer which makes our code look a little bit more strange 
-            // in comparison.
-            do {
-                StringTerm stringTerm = new StringTerm(flags, '\0', '\n');
-                stringTerm.processingEmbedded = processingEmbedded;
-                if ((c = stringTerm.parseStringIntoBuffer(lexer, src, str)) == Lexer.EOF) {
-                     syntaxError(src);
-                }
+		CStringBuilder str = new CStringBuilder();
+		SourcePosition position;
 
-                // Completed expansion token
-                if (processingEmbedded == EMBEDDED_DVAR || processingEmbedded == EMBEDDED_DEXPR) {
-                    processingEmbedded = LOOKING_FOR_EMBEDDED;
-                }
+		if ((flags & Lexer.STR_FUNC_EXPAND) == 0) {
+			do {
+				str.append(src.readLineBytes());
+				str.append('\n');
+				if (src.peek(Lexer.EOF))
+					syntaxError(src);
+				position = lexer.getPosition();
+			} while (!src.matchMarker(marker, indent, true));
+		} else {
+			int c = src.read();
+			if (c == '#') {
+				switch (c = src.read()) {
+				case '$':
+				case '@':
+					if (processingEmbedded == LOOKING_FOR_EMBEDDED) {
+						processingEmbedded = EMBEDDED_DVAR;
+					}
+					src.unread(c);
+					lexer.setValue(new Token("#" + c, lexer.getPosition()));
+					return Tokens.tSTRING_DVAR;
+				case '{':
+					if (processingEmbedded == LOOKING_FOR_EMBEDDED) {
+						processingEmbedded = EMBEDDED_DEXPR;
+					}
+					lexer.setValue(new Token("#" + c, lexer.getPosition()));
+					return Tokens.tSTRING_DBEG;
+				}
+				str.append('#');
+			}
 
-                if (c != '\n') {
-                    lexer.yaccValue = new StrNode(lexer.getPosition(), str.toString());
-                    return Tokens.tSTRING_CONTENT;
-                }
-                str.append(src.read());
-                
-                if (src.peek(Lexer.EOF)) syntaxError(src);
-                position = lexer.getPosition();
-            } while (!src.matchMarker(marker, indent, true));
-        }
+			src.unread(c);
 
-        // DVARs last only for a single string token so shut if off here.
-        if (processingEmbedded == EMBEDDED_DVAR) processingEmbedded = LOOKING_FOR_EMBEDDED;
+			// MRI has extra pointer which makes our code look a little bit more strange 
+			// in comparison.
+			do {
+				StringTerm stringTerm = new StringTerm(flags, '\0', '\n');
+				stringTerm.processingEmbedded = processingEmbedded;
+				if ((c = stringTerm.parseStringIntoBuffer(lexer, src, str)) == Lexer.EOF) {
+					syntaxError(src);
+				}
 
-        unreadLastLine(src); // push back last line to lex stuff after initial heredoc marker
+				// Completed expansion token
+				if (processingEmbedded == EMBEDDED_DVAR || processingEmbedded == EMBEDDED_DEXPR) {
+					processingEmbedded = LOOKING_FOR_EMBEDDED;
+				}
 
-        // When handling heredocs in syntax highlighting mode, process the end marker separately
-        if (lastLine == null) {
-            src.unreadMany(marker+"\n"); // \r?
-        } else {
-            lexer.setStrTerm(new StringTerm(-1, '\0', '\0'));
-        }
+				if (c != '\n') {
+					lexer.yaccValue = new StrNode(lexer.getPosition(), str.toString());
+					return Tokens.tSTRING_CONTENT;
+				}
+				str.append(src.read());
 
-        lexer.yaccValue = new StrNode(position, str.toString());
-        return Tokens.tSTRING_CONTENT;
-    }
-    
-    private void syntaxError(LexerSource src) {
-        throw new SyntaxException(PID.STRING_MARKER_MISSING, src.getPosition(), "can't find string \"" + marker
-                + "\" anywhere before EOF", marker);
-    }
+				if (src.peek(Lexer.EOF))
+					syntaxError(src);
+				position = lexer.getPosition();
+			} while (!src.matchMarker(marker, indent, true));
+		}
 
-    /**
-     * Report whether this string should be substituting things like \n into newlines.
-     * E.g. are we dealing with a "" string or a '' string (or their alternate representations)
-     */
-    public boolean isSubstituting() {
-        return (flags & Lexer.STR_FUNC_EXPAND) != 0;
-    }
+		// DVARs last only for a single string token so shut if off here.
+		if (processingEmbedded == EMBEDDED_DVAR)
+			processingEmbedded = LOOKING_FOR_EMBEDDED;
 
-    /**
-     * Record any mutable state from this StrTerm such that it can
-     * be set back to this exact state through a call to {@link setMutableState}
-     * later on. Necessary for incremental lexing where we may restart
-     * lexing parts of a string (since they can be split up due to
-     * Ruby embedding like "Evaluated by Ruby: #{foo}".
-     */
-    public Object getMutableState() {
-        return new MutableTermState(processingEmbedded);
-    }
+		unreadLastLine(src); // push back last line to lex stuff after initial heredoc marker
 
-    /**
-     * Apply the given state object (earlier returned by {@link getMutableState})
-     * to this StringTerm to revert state to the earlier snapshot.
-     */
-    public void setMutableState(Object o) {
-        MutableTermState state = (MutableTermState) o;
+		// When handling heredocs in syntax highlighting mode, process the end marker separately
+		if (lastLine == null) {
+			src.unreadMany(marker + "\n"); // \r?
+		} else {
+			lexer.setStrTerm(new StringTerm(-1, '\0', '\0'));
+		}
 
-        if (state != null) processingEmbedded = state.processingEmbedded;
-    }
+		lexer.yaccValue = new StrNode(position, str.toString());
+		return Tokens.tSTRING_CONTENT;
+	}
 
-    public void splitEmbeddedTokens() {
-        if (processingEmbedded == IGNORE_EMBEDDED) processingEmbedded = LOOKING_FOR_EMBEDDED;
-    }
+	private void syntaxError(LexerSource src) {
+		throw new SyntaxException(PID.STRING_MARKER_MISSING, src.getPosition(), "can't find string \"" + marker + "\" anywhere before EOF",
+				marker);
+	}
 
-    private void unreadLastLine(LexerSource src) {
-        if (lastLine != null) src.unreadMany(lastLine);
-    }
+	/**
+	 * Report whether this string should be substituting things like \n into newlines. E.g. are we
+	 * dealing with a "" string or a '' string (or their alternate representations)
+	 */
+	public boolean isSubstituting() {
+		return (flags & Lexer.STR_FUNC_EXPAND) != 0;
+	}
 
-    private class MutableTermState {
-        private MutableTermState(int embeddedCode) {
-            this.processingEmbedded = embeddedCode;
-        }
+	/**
+	 * Record any mutable state from this StrTerm such that it can be set back to this exact state
+	 * through a call to {@link setMutableState} later on. Necessary for incremental lexing where we
+	 * may restart lexing parts of a string (since they can be split up due to Ruby embedding like
+	 * "Evaluated by Ruby: #{foo}".
+	 */
+	public Object getMutableState() {
+		return new MutableTermState(processingEmbedded);
+	}
 
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null && getClass() != obj.getClass()) return false;
+	/**
+	 * Apply the given state object (earlier returned by {@link getMutableState}) to this StringTerm
+	 * to revert state to the earlier snapshot.
+	 */
+	public void setMutableState(Object o) {
+		MutableTermState state = (MutableTermState) o;
 
-            final MutableTermState other = (MutableTermState) obj;
+		if (state != null)
+			processingEmbedded = state.processingEmbedded;
+	}
 
-            return this.processingEmbedded == other.processingEmbedded;
-        }
+	public void splitEmbeddedTokens() {
+		if (processingEmbedded == IGNORE_EMBEDDED)
+			processingEmbedded = LOOKING_FOR_EMBEDDED;
+	}
 
-        @Override
-        public int hashCode() {
-            return 83 * 7 + this.processingEmbedded;
-        }
+	private void unreadLastLine(LexerSource src) {
+		if (lastLine != null)
+			src.unreadMany(lastLine);
+	}
 
-        @Override
-        public String toString() {
-            return "HeredocTermState[" + processingEmbedded + "]";
-        }
+	private class MutableTermState {
+		private MutableTermState(int embeddedCode) {
+			this.processingEmbedded = embeddedCode;
+		}
 
-        private int processingEmbedded;
-    }
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == null && getClass() != obj.getClass())
+				return false;
 
-    // Equals - primarily for unit testing (incremental lexing tests
-    // where we do full-file-lexing and compare state to incremental lexing)
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null || getClass() != obj.getClass()) return false;
+			final MutableTermState other = (MutableTermState) obj;
 
-        final HeredocTerm other = (HeredocTerm) obj;
+			return this.processingEmbedded == other.processingEmbedded;
+		}
 
-        return (marker == other.marker || (marker != null && marker.equals(other.marker)) &&
-               this.flags == other.flags &&
-               (lastLine == other.lastLine || (lastLine != null && lastLine.equals(other.lastLine))));
-    }
+		@Override
+		public int hashCode() {
+			return 83 * 7 + this.processingEmbedded;
+		}
 
-    @Override
-    public int hashCode() {
-        int hash = 7;
+		@Override
+		public String toString() {
+			return "HeredocTermState[" + processingEmbedded + "]";
+		}
 
-        hash = 83 * hash + (this.marker != null ? this.marker.hashCode() : 0);
-        hash = 83 * hash + this.flags;
-        hash = 83 * hash + (this.lastLine != null ? this.lastLine.hashCode() : 0);
-        return hash;
-    }
+		private int processingEmbedded;
+	}
 
-    @Override
-    public String toString() {
-        return "HeredocTerm[" + flags + "," + marker + "," + lastLine + "," + processingEmbedded + "]";
-    }
+	// Equals - primarily for unit testing (incremental lexing tests
+	// where we do full-file-lexing and compare state to incremental lexing)
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || getClass() != obj.getClass())
+			return false;
+
+		final HeredocTerm other = (HeredocTerm) obj;
+
+		return (marker == other.marker || (marker != null && marker.equals(other.marker)) && this.flags == other.flags
+				&& (lastLine == other.lastLine || (lastLine != null && lastLine.equals(other.lastLine))));
+	}
+
+	@Override
+	public int hashCode() {
+		int hash = 7;
+
+		hash = 83 * hash + (this.marker != null ? this.marker.hashCode() : 0);
+		hash = 83 * hash + this.flags;
+		hash = 83 * hash + (this.lastLine != null ? this.lastLine.hashCode() : 0);
+		return hash;
+	}
+
+	@Override
+	public String toString() {
+		return "HeredocTerm[" + flags + "," + marker + "," + lastLine + "," + processingEmbedded + "]";
+	}
 }

@@ -221,8 +221,7 @@ public class DocHelper {
 			return null;
 		}
 
-		final String data = CSSHelper
-				.loadData(ResourceUtil.getResourceAsStream(buildCSSFilePath(fileName)));
+		final String data = CSSHelper.loadData(ResourceUtil.getResourceAsStream(buildCSSFilePath(fileName)));
 		synchronized (cssDocs) {
 			CSSHelper.readCssDoc(data, cssDocs);
 			return cssDocs.get(prop);
@@ -246,28 +245,26 @@ public class DocHelper {
 
 	static final String bodyRule = "body { font-family:Dialog, Arial, Helvetica, sans-serif; font-size: "
 			+ DefaultManager.getDesignerDocFontSize() + "pt; }";// font-family:
-																// " +
-																// font.getFamily()
-																// + ";
-	static final String strongRule = ".strong { font-weight:bold; font-size: "
-			+ DefaultManager.getDesignerDocFontSize() + "pt; }";// font-family:
-																// " +
-																// font.getFamily()
-																// + ";
+																																										// " +
+																																										// font.getFamily()
+																																										// + ";
+	static final String strongRule = ".strong { font-weight:bold; font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";// font-family:
+																																	// " +
+																																	// font.getFamily()
+																																	// + ";
 	static final String aRule = "a { font-family:Dialog, Arial, Helvetica, sans-serif; text-decoration:underline; color:blue; font-size: "
 			+ DefaultManager.getDesignerDocFontSize() + "pt; }";// font-family:
-																// " +
-																// font.getFamily()
-																// + ";
-	static final String codeRule = "code { font-size: " + DefaultManager.getDesignerDocFontSize()
-			+ "pt; }";// font-family: " + font.getFamily() + ";
+																																																		// " +
+																																																		// font.getFamily()
+																																																		// + ";
+	static final String codeRule = "code { font-size: " + DefaultManager.getDesignerDocFontSize() + "pt; }";// font-family: " + font.getFamily() + ";
 	static final String preRule = "pre { font-style:italic; font-family:Dialog, Arial, Helvetica, sans-serif; font-size: "
 			+ DefaultManager.getDesignerDocFontSize() + "pt; }";// font-family:
-																// " +
-																// font.getFamily()
-																// + ";
-	static final String rubyMethodRule = ".method-callseq {font-weight:bold; font-size: "
-			+ DefaultManager.getDesignerDocFontSize() + "pt;}";
+																																														// " +
+																																														// font.getFamily()
+																																														// + ";
+	static final String rubyMethodRule = ".method-callseq {font-weight:bold; font-size: " + DefaultManager.getDesignerDocFontSize()
+			+ "pt;}";
 	static final String background_color = "#FAFBC5";
 	static final Color bg_color = Color.decode(background_color);
 
@@ -377,8 +374,7 @@ public class DocHelper {
 					final javax.swing.text.Element element = hDoc.getCharacterElement(pos);
 					final AttributeSet a = element.getAttributes();
 
-					final SimpleAttributeSet value = (SimpleAttributeSet) a
-							.getAttribute(HTML.Tag.A);
+					final SimpleAttributeSet value = (SimpleAttributeSet) a.getAttribute(HTML.Tag.A);
 					if (value != null) {
 						if (currItem.isCSSProperty) {
 							processCssDoc(value);
@@ -418,15 +414,13 @@ public class DocHelper {
 								rubyMethodIdx = href.indexOf(ruby_method_c, 0);
 								if (rubyMethodIdx > 0) {
 									isStatic = true;
-									methodName = href
-											.substring(rubyMethodIdx + ruby_method_c.length());
+									methodName = href.substring(rubyMethodIdx + ruby_method_c.length());
 								} else {
 									methodName = DOC_CLASS_DESC_KEY;
 								}
 							}
 
-							final RubyClassAndDoc rcd = RubyHelper
-									.searchRubyClassByShortName(shortClassName);
+							final RubyClassAndDoc rcd = RubyHelper.searchRubyClassByShortName(shortClassName);
 							if (rcd == null) {
 								return;
 							}
@@ -436,9 +430,7 @@ public class DocHelper {
 								processDocForOneLevel(codeHelper, rcd.claz, fullClassName);
 							}
 
-							doc = getDoc(fullClassName,
-									(isStatic ? (RubyHelper.RUBY_STATIC_MEMBER_DOC + methodName)
-											: methodName));
+							doc = getDoc(fullClassName, (isStatic ? (RubyHelper.RUBY_STATIC_MEMBER_DOC + methodName) : methodName));
 							return;
 						}
 
@@ -456,9 +448,8 @@ public class DocHelper {
 								}
 
 								final String preClass = href.substring(classStartIdx, classEndIdx);
-								final String fullClassName = preClass.replace('.', '$').replace('/',
-										'.');// java/util/Map.Entry =>
-												// java.util.Map$Entry
+								final String fullClassName = preClass.replace('.', '$').replace('/', '.');// java/util/Map.Entry =>
+																											// java.util.Map$Entry
 
 								// if(fullClassName.equals(CodeHelper.J2SE_STRING_CLASS.getName())){//有响应感，仅管无实用
 								// return;
@@ -467,40 +458,30 @@ public class DocHelper {
 								String fieldOrMethodName = DOC_CLASS_DESC_KEY;
 								final int methodSplitIdx = href.indexOf(methodSpliter, classEndIdx);
 								if (methodSplitIdx >= 0) {
-									final String methodPart = href
-											.substring(methodSplitIdx + methodSpliterLength);
-									final int firstParameterSpliterIdx = methodPart
-											.indexOf(parameterSpliter);
+									final String methodPart = href.substring(methodSplitIdx + methodSpliterLength);
+									final int firstParameterSpliterIdx = methodPart.indexOf(parameterSpliter);
 									if (firstParameterSpliterIdx < 0) {
-										fieldOrMethodName = removePackageName.matcher(methodPart)
-												.replaceAll("");
+										fieldOrMethodName = removePackageName.matcher(methodPart).replaceAll("");
 									} else {
-										final String methodName = methodPart.substring(0,
-												firstParameterSpliterIdx);
-										String parameter = methodPart.substring(
-												firstParameterSpliterIdx + parameterSpliterLength,
+										final String methodName = methodPart.substring(0, firstParameterSpliterIdx);
+										String parameter = methodPart.substring(firstParameterSpliterIdx + parameterSpliterLength,
 												methodPart.length() - parameterSpliterLength);
 										parameter = parameter.replaceAll(strParameterSpliter, ", ");
-										parameter = removePackageName.matcher(parameter)
-												.replaceAll("");
+										parameter = removePackageName.matcher(parameter).replaceAll("");
 										fieldOrMethodName = methodName + "(" + parameter + ")";
 									}
 
 									final int classIdx = fullClassName.lastIndexOf('.');
 									if (classIdx > 0) {
-										final String className = fullClassName
-												.substring(classIdx + 1);
+										final String className = fullClassName.substring(classIdx + 1);
 										if (fieldOrMethodName.startsWith(className)) {// 将构造方法转为new()
-											fieldOrMethodName = CodeHelper.JRUBY_NEW
-													+ fieldOrMethodName
-															.substring(className.length());
+											fieldOrMethodName = CodeHelper.JRUBY_NEW + fieldOrMethodName.substring(className.length());
 										}
 									}
 								}
 
 								try {
-									CodeHelper.buildForClass(codeHelper,
-											Class.forName(fullClassName, false, classLoader));
+									CodeHelper.buildForClass(codeHelper, Class.forName(fullClassName, false, classLoader));
 								} catch (final ClassNotFoundException e1) {
 								}
 
@@ -549,8 +530,7 @@ public class DocHelper {
 		// Numeric.html#method-i-divmod
 		final RubyClassAndDoc rcd = RubyHelper.searchRubyClass(rubyClass);
 		if (rcd != null) {
-			return " extends <a href=\"" + rcd.docShortName + ".html\">" + rcd.docShortName
-					+ "</a>";
+			return " extends <a href=\"" + rcd.docShortName + ".html\">" + rcd.docShortName + "</a>";
 		}
 		return null;
 	}
@@ -587,9 +567,8 @@ public class DocHelper {
 				showY = codeFrame.getY();
 				if (showX + codeFrameSize.width + docFrameSize.width > screenSize.width) {
 					if (showX - docFrameSize.width < 0) {
-						if (layoutLimit.isNotUpLayout == false
-								&& (layoutLimit.isNotDownLayout || showY + codeFrameSize.height
-										+ docFrameSize.height > screenSize.height)) {
+						if (layoutLimit.isNotUpLayout == false && (layoutLimit.isNotDownLayout
+								|| showY + codeFrameSize.height + docFrameSize.height > screenSize.height)) {
 							showY -= docFrameSize.height;// 上置
 						} else {
 							showY += codeFrameSize.height;// 下置
@@ -629,8 +608,8 @@ public class DocHelper {
 		currItem = item;
 	}
 
-	public final void popDocTipWindow(final CodeItem item, final JFrame codeWindow, String fmClass,
-			String fieldOrMethodName, final int type, final DocLayoutLimit layoutLimit) {
+	public final void popDocTipWindow(final CodeItem item, final JFrame codeWindow, String fmClass, String fieldOrMethodName,
+			final int type, final DocLayoutLimit layoutLimit) {
 		final boolean isForClassDoc = (type == CodeItem.TYPE_CLASS);
 
 		// 支持类的doc描述
@@ -651,16 +630,14 @@ public class DocHelper {
 			SwingUtilities.invokeLater(repainRunnable);
 		} else {
 			if (L.isInWorkshop) {
-				LogManager.log("[CodeTip] fail to get doc and setInvisible() about : " + fmClass
-						+ "/" + fieldOrMethodName);
+				LogManager.log("[CodeTip] fail to get doc and setInvisible() about : " + fmClass + "/" + fieldOrMethodName);
 			}
 			setInvisible();
 		}
 	}
 
 	public final boolean acceptType(final int type) {
-		return type == CodeItem.TYPE_FIELD || type == CodeItem.TYPE_METHOD
-				|| type == CodeItem.TYPE_CLASS || type == CodeItem.TYPE_CSS;
+		return type == CodeItem.TYPE_FIELD || type == CodeItem.TYPE_METHOD || type == CodeItem.TYPE_CLASS || type == CodeItem.TYPE_CSS;
 	}
 
 	private final boolean contains(final String claz) {
@@ -704,8 +681,7 @@ public class DocHelper {
 
 	private final void loadDoc(final String doc) {
 		final StringBuilder sb = StringBuilderCacher.getFree();
-		sb.append("<html><body style=\"background-color:").append(background_color).append("\">")
-				.append(doc).append("</body></html>");
+		sb.append("<html><body style=\"background-color:").append(background_color).append("\">").append(doc).append("</body></html>");
 		docPane.setText(sb.toString());
 		StringBuilderCacher.cycle(sb);
 		SwingUtilities.invokeLater(scrollToTopRun);
@@ -726,8 +702,7 @@ public class DocHelper {
 		return ResourceUtil.getResource(DocHelper.buildCSSFilePath(fileName));
 	}
 
-	public final void processDoc(final CodeHelper codeHelper, final Class c,
-			final boolean processInDelay) {
+	public final void processDoc(final CodeHelper codeHelper, final Class c, final boolean processInDelay) {
 		final String clasName = c.getName();
 		synchronized (cache) {
 			if (cache.containsKey(clasName)) {
@@ -746,14 +721,13 @@ public class DocHelper {
 		// }
 	}
 
-	private final void processDocForOneLevel(final CodeHelper codeHelper, final Class c,
-			final String clasName) {
+	private final void processDocForOneLevel(final CodeHelper codeHelper, final Class c, final String clasName) {
 		// System.out.println("-----processDocForOneLevel : " + claz.getName());
 
 		final RubyClassAndDoc clazDoc = RubyHelper.searchRubyClass(c);
 		if (clazDoc != null) {
-			read(c, codeHelper, true, clasName, ResourceUtil.getResourceAsStream(
-					"hc/res/docs/ruby/Ruby" + clazDoc.docShortName + "2_2_0.htm"));// RubyString2_2_0.htm
+			read(c, codeHelper, true, clasName,
+					ResourceUtil.getResourceAsStream("hc/res/docs/ruby/Ruby" + clazDoc.docShortName + "2_2_0.htm"));// RubyString2_2_0.htm
 			final Class rubyParent = clazDoc.claz.getSuperclass();
 			if (RubyHelper.searchRubyClass(rubyParent) != null) {
 				processDoc(codeHelper, rubyParent, false);
@@ -772,11 +746,9 @@ public class DocHelper {
 		}
 
 		if (clasName.startsWith(CodeHelper.JAVA_PACKAGE_CLASS_PREFIX)) {
-			read(c, codeHelper, false, clasName,
-					J2SEDocHelper.getDocStream(buildClassDocPath(fileName)));
+			read(c, codeHelper, false, clasName, J2SEDocHelper.getDocStream(buildClassDocPath(fileName)));
 		} else if (clasName.startsWith(CodeHelper.HC_PACKAGE_CLASS_PREFIX)) {
-			read(c, codeHelper, false, clasName,
-					ResourceUtil.getResourceAsStream("hc/res/docs/" + fileName + ".html"));
+			read(c, codeHelper, false, clasName, ResourceUtil.getResourceAsStream("hc/res/docs/" + fileName + ".html"));
 		}
 	}
 
@@ -784,8 +756,8 @@ public class DocHelper {
 		return "hc/res/docs/jdk_docs/api/" + clasName + ".html";
 	}
 
-	private final void read(final Class c, final CodeHelper codeHelper, final boolean isRubyClass,
-			final String clasName, final InputStream in) {
+	private final void read(final Class c, final CodeHelper codeHelper, final boolean isRubyClass, final String clasName,
+			final InputStream in) {
 		if (in == null) {
 			if (J2SEDocHelper.isBuildIn() == false && J2SEDocHelper.isJ2SEDocReady() == false) {
 				return;
@@ -821,31 +793,23 @@ public class DocHelper {
 	private static final Pattern generics_e_right = Pattern.compile("&gt;");
 	private static final Pattern generics_e_type = Pattern.compile("&lt;(.*?)&gt;");// 不能(.*)
 	private static final Pattern generics_e_to_object_pattern = Pattern.compile("\\b([A-Z]{1})\\b");
-	private static final Pattern blockPattern = Pattern.compile(
-			"<ul class=\"(blockListLast|blockList)\">\n<li class=\"blockList\">\n(.*?)</li>\n</ul>\n",
-			Pattern.DOTALL);
-	private static final Pattern fieldOrMethodNamePattern = Pattern.compile("<pre>(.*?)</pre>",
-			Pattern.DOTALL);// javaDoc method throws Exception有换行现象
-	private static final Pattern classDescPattern = Pattern.compile(
-			"<div class=\"description\">\n<ul class=\"blockList\">\n<li class=\"blockList\">\n" + // <hr>\n<br>\n
-					"(.*?)" + "\n</li>\n</ul>\n</div>\n",
-			Pattern.DOTALL);
-	private static final Pattern rubyStringMethodsList = Pattern.compile(
-			"<div id=\"method-list-section\" class=\"section\">" + "(.*?)" + "</div>",
-			Pattern.DOTALL);
-	private static final Pattern rubyConstantsList = Pattern.compile(
-			"<h3 class=\"section-header\">Constants</h3>\\s*" + "<dl>" + "(.*?)" + "</dl>",
-			Pattern.DOTALL);
-	private static final Pattern rubyConstantsItem = Pattern.compile(
-			"<dt><a name=\"(.*?)\">(.*?)</a></dt>\\s*<dd class=\"description\">(.*?)</dd>",
-			Pattern.DOTALL);
+	private static final Pattern blockPattern = Pattern
+			.compile("<ul class=\"(blockListLast|blockList)\">\n<li class=\"blockList\">\n(.*?)</li>\n</ul>\n", Pattern.DOTALL);
+	private static final Pattern fieldOrMethodNamePattern = Pattern.compile("<pre>(.*?)</pre>", Pattern.DOTALL);// javaDoc method throws Exception有换行现象
+	private static final Pattern classDescPattern = Pattern
+			.compile("<div class=\"description\">\n<ul class=\"blockList\">\n<li class=\"blockList\">\n" + // <hr>\n<br>\n
+					"(.*?)" + "\n</li>\n</ul>\n</div>\n", Pattern.DOTALL);
+	private static final Pattern rubyStringMethodsList = Pattern
+			.compile("<div id=\"method-list-section\" class=\"section\">" + "(.*?)" + "</div>", Pattern.DOTALL);
+	private static final Pattern rubyConstantsList = Pattern
+			.compile("<h3 class=\"section-header\">Constants</h3>\\s*" + "<dl>" + "(.*?)" + "</dl>", Pattern.DOTALL);
+	private static final Pattern rubyConstantsItem = Pattern
+			.compile("<dt><a name=\"(.*?)\">(.*?)</a></dt>\\s*<dd class=\"description\">(.*?)</dd>", Pattern.DOTALL);
 
-	private static final Pattern rubyStringMethodItem = Pattern
-			.compile("<li><a href=\"#(.*?)\">(#|::)(.*?)</a></li>");
+	private static final Pattern rubyStringMethodItem = Pattern.compile("<li><a href=\"#(.*?)\">(#|::)(.*?)</a></li>");
 	private static final Pattern rubyReturnTypeEnumeratorPattern = Pattern
 			.compile("<span class=\"method-callseq\">(.*?)(&rarr;|=>) an_enumerator</span>");
-	private static final Pattern rubyReturnTypePattern = Pattern
-			.compile("<span class=\"method-callseq\">(.*?)</span>");
+	private static final Pattern rubyReturnTypePattern = Pattern.compile("<span class=\"method-callseq\">(.*?)</span>");
 	private static final String ruby_method_i = "method-i-";
 	private static final String ruby_method_c = "method-c-";
 	private static final String[] arrowType = { "&rarr; ", " => " };
@@ -854,13 +818,12 @@ public class DocHelper {
 
 	public static final String NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME = "";
 
-	private static void processRubyDoc(final Class c, final HashMap<String, String> docMap,
-			final String docContent, final String simpleClassName) {
+	private static void processRubyDoc(final Class c, final HashMap<String, String> docMap, final String docContent,
+			final String simpleClassName) {
 		final RubyClassAndDoc rcd = RubyHelper.searchRubyClass(c);
 		final Class superClass = c.getSuperclass();
 		final String href = buildExtendsRubyClassHref(superClass);
-		final String rubyDocPre = "<STRONG>Ruby Doc</STRONG><BR><BR>" + rcd.docShortName
-				+ (href == null ? "" : href) + "<BR>";
+		final String rubyDocPre = "<STRONG>Ruby Doc</STRONG><BR><BR>" + rcd.docShortName + (href == null ? "" : href) + "<BR>";
 
 		{
 			final String classStartTag = "<div id=\"description\" class=\"description\">";
@@ -870,8 +833,7 @@ public class DocHelper {
 				final int endIdx = docContent.indexOf(classEndTag, startIdx);
 				if (endIdx > 0) {
 					startIdx += classStartTag.length();
-					docMap.put(DOC_CLASS_DESC_KEY,
-							rubyDocPre + docContent.substring(startIdx, endIdx));
+					docMap.put(DOC_CLASS_DESC_KEY, rubyDocPre + docContent.substring(startIdx, endIdx));
 				}
 			}
 		}
@@ -903,8 +865,7 @@ public class DocHelper {
 
 		// final int publicInstanceMethodIdx = docContent.indexOf("<h3
 		// class=\"section-header\">Public Instance Methods</h3>");
-		final int privateInstanceMethodIdx = docContent
-				.indexOf("<h3 class=\"section-header\">Private Instance Methods</h3>");
+		final int privateInstanceMethodIdx = docContent.indexOf("<h3 class=\"section-header\">Private Instance Methods</h3>");
 
 		final Matcher matcher = rubyStringMethodsList.matcher(docContent);
 		if (matcher.find()) {
@@ -922,19 +883,15 @@ public class DocHelper {
 				final String fieldOrMethodName = itemMatcher.group(3);
 
 				final String startStr = "<a name=\"" + locateID + "\"></a>";
-				final String endStr = "</div><!-- " + locateID.substring(rubyMethodTag.length())
-						+ "-method -->";
+				final String endStr = "</div><!-- " + locateID.substring(rubyMethodTag.length()) + "-method -->";
 
 				final int cutStartIdx = docContent.indexOf(startStr) + startStr.length();
 				final int cutEndIdx = docContent.indexOf(removeTail, cutStartIdx);
 				final int cutMaxEndIdx = docContent.indexOf(endStr, cutStartIdx);
 
-				final boolean isPublic = isStatic ? true
-						: (!(0 < privateInstanceMethodIdx
-								&& privateInstanceMethodIdx < cutStartIdx));
+				final boolean isPublic = isStatic ? true : (!(0 < privateInstanceMethodIdx && privateInstanceMethodIdx < cutStartIdx));
 
-				String doc = docContent.substring(cutStartIdx,
-						(cutMaxEndIdx < cutEndIdx || cutEndIdx == -1) ? cutMaxEndIdx : cutEndIdx);
+				String doc = docContent.substring(cutStartIdx, (cutMaxEndIdx < cutEndIdx || cutEndIdx == -1) ? cutMaxEndIdx : cutEndIdx);
 				final String firstPart = "<span class=\"method-click-advice\">click to toggle source</span>";// 相同的方法可能有多个同名，此段
 																												// 只
 																												// 用于第一个之后
@@ -953,23 +910,20 @@ public class DocHelper {
 				// "\n" + doc);
 				addDocItem(docMap, rubyDocPre, isStatic, fieldOrMethodName, doc);
 				if (isMethodsInited == false) {
-					final RubyMethodItem methodItem = new RubyMethodItem(fieldOrMethodName,
-							isPublic, returnType, c);
+					final RubyMethodItem methodItem = new RubyMethodItem(fieldOrMethodName, isPublic, returnType, c);
 					if (isStatic) {
 						classAndDoc.staticMethods.add(methodItem);// 含constants
 					} else {
 						classAndDoc.insMethods.add(methodItem);
 					}
-					searchAliasMethods(aliasMethods, fieldOrMethodName, docFinalDetail, methodItem,
-							isStatic, c);
+					searchAliasMethods(aliasMethods, fieldOrMethodName, docFinalDetail, methodItem, isStatic, c);
 				}
 			}
 
 			if (aliasMethods.size() > 0) {
 				for (int i = 0; i < aliasMethods.size(); i++) {
 					final RubyAliasMethod method = aliasMethods.get(i);
-					final Vector<RubyMethodItem> list = method.isStatic ? classAndDoc.staticMethods
-							: classAndDoc.insMethods;
+					final Vector<RubyMethodItem> list = method.isStatic ? classAndDoc.staticMethods : classAndDoc.insMethods;
 					if (containsMethod(list, method.methodName) == false) {
 						list.add(method.build());
 					}
@@ -983,17 +937,15 @@ public class DocHelper {
 		}
 	}
 
-	private static void addDocItem(final HashMap<String, String> docMap, final String rubyDocPre,
-			final boolean isStatic, final String fieldOrMethodName, final String doc) {
-		docMap.put((isStatic ? RubyHelper.RUBY_STATIC_MEMBER_DOC : "") + fieldOrMethodName,
-				rubyDocPre + "<BR>" + doc);
+	private static void addDocItem(final HashMap<String, String> docMap, final String rubyDocPre, final boolean isStatic,
+			final String fieldOrMethodName, final String doc) {
+		docMap.put((isStatic ? RubyHelper.RUBY_STATIC_MEMBER_DOC : "") + fieldOrMethodName, rubyDocPre + "<BR>" + doc);
 	}
 
 	private final static char[] removePartStart = { '(', '{', '[' };
 
-	private final static void searchAliasMethods(final Vector<RubyAliasMethod> aliasMethods,
-			final String fieldOrMethodName, final String doc, final RubyMethodItem methodItem,
-			final boolean isStatic, final Class c) {
+	private final static void searchAliasMethods(final Vector<RubyAliasMethod> aliasMethods, final String fieldOrMethodName,
+			final String doc, final RubyMethodItem methodItem, final boolean isStatic, final Class c) {
 		final Matcher returnMatcher = rubyReturnTypePattern.matcher(doc);// <span
 																			// class="method-callseq">now
 																			// &rarr;
@@ -1033,19 +985,15 @@ public class DocHelper {
 			}
 
 			if (unchar.matcher(searchAlias).find()) {
-				L.V = L.WShop ? false
-						: LogManager.log(
-								"one alias : [" + searchAlias + "] at " + c.getName() + "\n" + doc);
+				L.V = L.WShop ? false : LogManager.log("one alias : [" + searchAlias + "] at " + c.getName() + "\n" + doc);
 			}
-			aliasMethods
-					.add(new RubyAliasMethod(searchAlias, fieldOrMethodName, isStatic, methodItem));
+			aliasMethods.add(new RubyAliasMethod(searchAlias, fieldOrMethodName, isStatic, methodItem));
 		}
 	}
 
 	private final static Pattern unchar = Pattern.compile("[^a-zA-Z0-9_?=!]");
 
-	private final static boolean containsMethod(final Vector<RubyMethodItem> list,
-			final String methodName) {
+	private final static boolean containsMethod(final Vector<RubyMethodItem> list, final String methodName) {
 		final int size = list.size();
 		for (int i = 0; i < size; i++) {
 			if (list.get(i).methodOrField.equals(methodName)) {
@@ -1092,9 +1040,8 @@ public class DocHelper {
 		return null;
 	}
 
-	private static void processDoc(final CodeHelper codeHelper, final String clasName,
-			final HashMap<String, String> docMap, final String docContent,
-			final String simpleClassName) {
+	private static void processDoc(final CodeHelper codeHelper, final String clasName, final HashMap<String, String> docMap,
+			final String docContent, final String simpleClassName) {
 		{
 			final Matcher matcher = classDescPattern.matcher(docContent);
 			if (matcher.find()) {
@@ -1113,37 +1060,32 @@ public class DocHelper {
 		{
 			final int constructorDocIdx = docContent.indexOf("<h3>Constructor Detail</h3>");
 			if (constructorDocIdx > 0) {
-				processListBlock(codeHelper, clasName, docContent.substring(constructorDocIdx),
-						docMap, true, simpleClassName, true);
+				processListBlock(codeHelper, clasName, docContent.substring(constructorDocIdx), docMap, true, simpleClassName, true);
 			}
 		}
 
 		{
 			final int detailDocIdx = docContent.indexOf("<h3>Field Detail</h3>");
 			if (detailDocIdx > 0) {
-				processListBlock(codeHelper, clasName, docContent.substring(detailDocIdx), docMap,
-						false, simpleClassName, false);
+				processListBlock(codeHelper, clasName, docContent.substring(detailDocIdx), docMap, false, simpleClassName, false);
 			}
 		}
 
 		{
 			final int detailDocIdx = docContent.indexOf("<h3>Method Detail</h3>");
 			if (detailDocIdx > 0) {
-				processListBlock(codeHelper, clasName, docContent.substring(detailDocIdx), docMap,
-						true, simpleClassName, false);
+				processListBlock(codeHelper, clasName, docContent.substring(detailDocIdx), docMap, true, simpleClassName, false);
 			}
 		}
 	}
 
-	private static void processListBlock(final CodeHelper codeHelper, final String clasName,
-			final String docContent, final HashMap<String, String> docMap,
-			final boolean isForMethod, final String simpleClassName, final boolean isForConstruct) {
+	private static void processListBlock(final CodeHelper codeHelper, final String clasName, final String docContent,
+			final HashMap<String, String> docMap, final boolean isForMethod, final String simpleClassName, final boolean isForConstruct) {
 		{
 			final Matcher matcher = blockPattern.matcher(docContent);
 			while (matcher.find()) {
 				final String match = matcher.group(GROUP_IDX);
-				processItem(codeHelper, clasName, docMap, match, isForMethod, simpleClassName,
-						isForConstruct);
+				processItem(codeHelper, clasName, docMap, match, isForMethod, simpleClassName, isForConstruct);
 				if (matcher.group().startsWith(blockListLast)) {
 					return;
 				}
@@ -1152,8 +1094,7 @@ public class DocHelper {
 	}
 
 	/**
-	 * (java.lang.String hello, int j, boolean[] yes) => (hello, j, yes) () =>
-	 * ()
+	 * (java.lang.String hello, int j, boolean[] yes) => (hello, j, yes) () => ()
 	 * 
 	 * @param method
 	 * @return
@@ -1185,8 +1126,8 @@ public class DocHelper {
 		return parameter.replace(",", ", ");
 	}
 
-	private static void replaceCodeParameter(final CodeHelper codeHelper, final String clasName,
-			final String methodForDoc, final String codeParameterList) {
+	private static void replaceCodeParameter(final CodeHelper codeHelper, final String clasName, final String methodForDoc,
+			final String codeParameterList) {
 		ArrayList<CodeItem> list = codeHelper.classCacheMethodAndPropForClass.get(clasName);
 		if (list != null && replaceCode(clasName, methodForDoc, codeParameterList, list)) {
 			return;
@@ -1198,8 +1139,8 @@ public class DocHelper {
 		}
 	}
 
-	private static boolean replaceCode(final String clasName, final String methodForDoc,
-			final String codeParameterList, final ArrayList<CodeItem> list) {
+	private static boolean replaceCode(final String clasName, final String methodForDoc, final String codeParameterList,
+			final ArrayList<CodeItem> list) {
 		final int size = list.size();
 		for (int i = 0; i < size; i++) {
 			final CodeItem item = list.get(i);
@@ -1211,14 +1152,12 @@ public class DocHelper {
 		return false;
 	}
 
-	private static void processItem(final CodeHelper codeHelper, final String clasName,
-			final HashMap<String, String> docMap, final String item, final boolean isForMethod,
-			final String simpleClassName, final boolean isForConstruct) {
+	private static void processItem(final CodeHelper codeHelper, final String clasName, final HashMap<String, String> docMap,
+			final String item, final boolean isForMethod, final String simpleClassName, final boolean isForConstruct) {
 		final Matcher matchFieldOrMethodName = fieldOrMethodNamePattern.matcher(item);
 		if (matchFieldOrMethodName.find()) {
 			String fieldOrMethodName = matchFieldOrMethodName.group(1);
-			final String fieldOrMethodNameWithBR = "<strong>" + fieldOrMethodName
-					+ "</strong><BR><BR>";
+			final String fieldOrMethodNameWithBR = "<strong>" + fieldOrMethodName + "</strong><BR><BR>";
 			// fieldOrMethodName =
 			// jianKuoHao.matcher(fieldOrMethodName).replaceAll("");
 			// fieldOrMethodName =
@@ -1248,10 +1187,9 @@ public class DocHelper {
 
 			if (isForMethod) {
 				if (isForConstruct && simpleClassName != NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME) {
-					fieldOrMethodName = StringUtil.replaceFirst(fieldOrMethodName, simpleClassName,
-							CodeHelper.JRUBY_NEW);// 将构造方法转为new()方法，但不将后面的参数。new
-													// Properties(Properties) =>
-													// new(new)
+					fieldOrMethodName = StringUtil.replaceFirst(fieldOrMethodName, simpleClassName, CodeHelper.JRUBY_NEW);// 将构造方法转为new()方法，但不将后面的参数。new
+																															// Properties(Properties) =>
+																															// new(new)
 				}
 
 				final int kuohaoLeftIdx = fieldOrMethodName.indexOf("(");
@@ -1263,7 +1201,7 @@ public class DocHelper {
 																			// java.lang">String</a>
 																			// text)"=>"(String
 																			// text)"
-				// &lt;(.*?)&gt;//保留generic-type
+																			// &lt;(.*?)&gt;//保留generic-type
 				parameter = generics_e_left.matcher(parameter).replaceAll("<");
 				parameter = generics_e_right.matcher(parameter).replaceAll(">");
 				// parameter =
@@ -1301,8 +1239,7 @@ public class DocHelper {
 				replaceCodeParameter(codeHelper, clasName, fieldOrMethodName, codeParameterList);
 			} else {
 				// 去掉public final static...
-				fieldOrMethodName = fieldOrMethodName
-						.substring(fieldOrMethodName.lastIndexOf(" ") + 1);
+				fieldOrMethodName = fieldOrMethodName.substring(fieldOrMethodName.lastIndexOf(" ") + 1);
 			}
 
 			if (docMap.containsKey(fieldOrMethodName) == false) {
@@ -1316,14 +1253,11 @@ public class DocHelper {
 				// System.out.println(apiDoc + "\n\n");
 				// }
 				// getFreeMessage(String)
-				String formatMethodDocContent = fieldOrMethodNameWithBR.replace("\n", " ")
-						.replace("&nbsp;", " ").replaceAll("[ ]{2,}", " ");// 消除换行和多个空格
-				formatMethodDocContent = formatMethodDocContent
-						.replaceFirst("<a (.*?)>@Deprecated</a>", "@Deprecated<BR><BR>");
-				formatMethodDocContent = formatMethodDocContent.replaceAll("java\\.lang\\.String",
-						"String");
-				formatMethodDocContent = formatMethodDocContent.replaceAll("java\\.lang\\.Object",
-						CodeHelper.OBJECT_STR);
+				String formatMethodDocContent = fieldOrMethodNameWithBR.replace("\n", " ").replace("&nbsp;", " ").replaceAll("[ ]{2,}",
+						" ");// 消除换行和多个空格
+				formatMethodDocContent = formatMethodDocContent.replaceFirst("<a (.*?)>@Deprecated</a>", "@Deprecated<BR><BR>");
+				formatMethodDocContent = formatMethodDocContent.replaceAll("java\\.lang\\.String", "String");
+				formatMethodDocContent = formatMethodDocContent.replaceAll("java\\.lang\\.Object", CodeHelper.OBJECT_STR);
 				docMap.put(fieldOrMethodName, formatMethodDocContent + apiDoc);
 			}
 		}
@@ -1365,8 +1299,8 @@ public class DocHelper {
 		}
 	}
 
-	private final void toCache(final Class c, final CodeHelper codeHelper,
-			final boolean isRubyClass, final String clasName, final String docContent) {
+	private final void toCache(final Class c, final CodeHelper codeHelper, final boolean isRubyClass, final String clasName,
+			final String docContent) {
 		final HashMap<String, String> docMap = new HashMap<String, String>();
 		if (docContent != null) {
 			final int classIdx = clasName.lastIndexOf(".");
@@ -1374,11 +1308,9 @@ public class DocHelper {
 				processRubyDoc(c, docMap, docContent, clasName.substring(classIdx + 1));
 			} else {
 				if (classIdx > 0) {
-					processDoc(codeHelper, clasName, docMap, docContent,
-							clasName.substring(classIdx + 1));
+					processDoc(codeHelper, clasName, docMap, docContent, clasName.substring(classIdx + 1));
 				} else {
-					processDoc(codeHelper, clasName, docMap, docContent,
-							NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
+					processDoc(codeHelper, clasName, docMap, docContent, NULL_CONSTRUCTOR_SIMPLE_CLASS_NAME);
 				}
 			}
 		}
@@ -1392,8 +1324,7 @@ public class DocHelper {
 	 * @param c
 	 * @param clasName
 	 * @param isNeedShiftToBackground
-	 *            true:superAndInterface must process in background; false:
-	 *            current thread
+	 *            true:superAndInterface must process in background; false: current thread
 	 */
 	private final void processDoc(final CodeHelper codeHelper, final Class c, final String clasName,
 			final boolean isNeedShiftToBackground) {
@@ -1437,8 +1368,7 @@ class RubyAliasMethod {
 	public final RubyMethodItem rubyMethodItem;
 	public final boolean isStatic;
 
-	public RubyAliasMethod(final String name, final String docName, final boolean isStatic,
-			final RubyMethodItem item) {
+	public RubyAliasMethod(final String name, final String docName, final boolean isStatic, final RubyMethodItem item) {
 		this.methodName = name;
 		this.methodForDoc = docName;
 		this.isStatic = isStatic;
@@ -1446,7 +1376,6 @@ class RubyAliasMethod {
 	}
 
 	public final RubyMethodItem build() {
-		return new RubyMethodItem(methodName, methodForDoc, rubyMethodItem.isPublic, false,
-				rubyMethodItem.returnType);
+		return new RubyMethodItem(methodName, methodForDoc, rubyMethodItem.isPublic, false, rubyMethodItem.returnType);
 	}
 }

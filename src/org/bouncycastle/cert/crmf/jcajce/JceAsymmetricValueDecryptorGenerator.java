@@ -22,99 +22,74 @@ import org.bouncycastle.jcajce.util.NamedJcaJceHelper;
 import org.bouncycastle.jcajce.util.ProviderJcaJceHelper;
 import org.bouncycastle.operator.InputDecryptor;
 
-public class JceAsymmetricValueDecryptorGenerator
-    implements ValueDecryptorGenerator
-{
-    private PrivateKey recipientKey;
-    private CRMFHelper helper = new CRMFHelper(new DefaultJcaJceHelper());
+public class JceAsymmetricValueDecryptorGenerator implements ValueDecryptorGenerator {
+	private PrivateKey recipientKey;
+	private CRMFHelper helper = new CRMFHelper(new DefaultJcaJceHelper());
 
-    public JceAsymmetricValueDecryptorGenerator(PrivateKey recipientKey)
-    {
-        this.recipientKey = recipientKey;
-    }
+	public JceAsymmetricValueDecryptorGenerator(PrivateKey recipientKey) {
+		this.recipientKey = recipientKey;
+	}
 
-    public JceAsymmetricValueDecryptorGenerator setProvider(Provider provider)
-    {
-        this.helper = new CRMFHelper(new ProviderJcaJceHelper(provider));
+	public JceAsymmetricValueDecryptorGenerator setProvider(Provider provider) {
+		this.helper = new CRMFHelper(new ProviderJcaJceHelper(provider));
 
-        return this;
-    }
+		return this;
+	}
 
-    public JceAsymmetricValueDecryptorGenerator setProvider(String providerName)
-    {
-        this.helper = new CRMFHelper(new NamedJcaJceHelper(providerName));
+	public JceAsymmetricValueDecryptorGenerator setProvider(String providerName) {
+		this.helper = new CRMFHelper(new NamedJcaJceHelper(providerName));
 
-        return this;
-    }
+		return this;
+	}
 
-    private Key extractSecretKey(AlgorithmIdentifier keyEncryptionAlgorithm, AlgorithmIdentifier contentEncryptionAlgorithm, byte[] encryptedContentEncryptionKey)
-        throws CRMFException
-    {
-        try
-        {
-            Key sKey = null;
+	private Key extractSecretKey(AlgorithmIdentifier keyEncryptionAlgorithm, AlgorithmIdentifier contentEncryptionAlgorithm,
+			byte[] encryptedContentEncryptionKey) throws CRMFException {
+		try {
+			Key sKey = null;
 
-            Cipher keyCipher = helper.createCipher(keyEncryptionAlgorithm.getAlgorithm());
+			Cipher keyCipher = helper.createCipher(keyEncryptionAlgorithm.getAlgorithm());
 
-            try
-            {
-                keyCipher.init(Cipher.UNWRAP_MODE, recipientKey);
-                sKey = keyCipher.unwrap(encryptedContentEncryptionKey, contentEncryptionAlgorithm.getAlgorithm().getId(), Cipher.SECRET_KEY);
-            }
-            catch (GeneralSecurityException e)
-            {
-            }
-            catch (IllegalStateException e)
-            {
-            }
-            catch (UnsupportedOperationException e)
-            {
-            }
-            catch (ProviderException e)
-            {
-            }
+			try {
+				keyCipher.init(Cipher.UNWRAP_MODE, recipientKey);
+				sKey = keyCipher.unwrap(encryptedContentEncryptionKey, contentEncryptionAlgorithm.getAlgorithm().getId(),
+						Cipher.SECRET_KEY);
+			} catch (GeneralSecurityException e) {
+			} catch (IllegalStateException e) {
+			} catch (UnsupportedOperationException e) {
+			} catch (ProviderException e) {
+			}
 
-            // some providers do not support UNWRAP (this appears to be only for asymmetric algorithms)
-            if (sKey == null)
-            {
-                keyCipher.init(Cipher.DECRYPT_MODE, recipientKey);
-                sKey = new SecretKeySpec(keyCipher.doFinal(encryptedContentEncryptionKey), contentEncryptionAlgorithm.getAlgorithm().getId());
-            }
+			// some providers do not support UNWRAP (this appears to be only for asymmetric algorithms)
+			if (sKey == null) {
+				keyCipher.init(Cipher.DECRYPT_MODE, recipientKey);
+				sKey = new SecretKeySpec(keyCipher.doFinal(encryptedContentEncryptionKey),
+						contentEncryptionAlgorithm.getAlgorithm().getId());
+			}
 
-            return sKey;
-        }
-        catch (InvalidKeyException e)
-        {
-            throw new CRMFException("key invalid in message.", e);
-        }
-        catch (IllegalBlockSizeException e)
-        {
-            throw new CRMFException("illegal blocksize in message.", e);
-        }
-        catch (BadPaddingException e)
-        {
-            throw new CRMFException("bad padding in message.", e);
-        }
-    }
+			return sKey;
+		} catch (InvalidKeyException e) {
+			throw new CRMFException("key invalid in message.", e);
+		} catch (IllegalBlockSizeException e) {
+			throw new CRMFException("illegal blocksize in message.", e);
+		} catch (BadPaddingException e) {
+			throw new CRMFException("bad padding in message.", e);
+		}
+	}
 
-    public InputDecryptor getValueDecryptor(AlgorithmIdentifier keyEncryptionAlgorithm, final AlgorithmIdentifier contentEncryptionAlgorithm, byte[] encryptedContentEncryptionKey)
-        throws CRMFException
-    {
-        Key secretKey = extractSecretKey(keyEncryptionAlgorithm, contentEncryptionAlgorithm, encryptedContentEncryptionKey);
+	public InputDecryptor getValueDecryptor(AlgorithmIdentifier keyEncryptionAlgorithm,
+			final AlgorithmIdentifier contentEncryptionAlgorithm, byte[] encryptedContentEncryptionKey) throws CRMFException {
+		Key secretKey = extractSecretKey(keyEncryptionAlgorithm, contentEncryptionAlgorithm, encryptedContentEncryptionKey);
 
-        final Cipher dataCipher = helper.createContentCipher(secretKey, contentEncryptionAlgorithm);
+		final Cipher dataCipher = helper.createContentCipher(secretKey, contentEncryptionAlgorithm);
 
-        return new InputDecryptor()
-        {
-            public AlgorithmIdentifier getAlgorithmIdentifier()
-            {
-                return contentEncryptionAlgorithm;
-            }
+		return new InputDecryptor() {
+			public AlgorithmIdentifier getAlgorithmIdentifier() {
+				return contentEncryptionAlgorithm;
+			}
 
-            public InputStream getInputStream(InputStream dataIn)
-            {
-                return new CipherInputStream(dataIn, dataCipher);
-            }
-        };
-    }
+			public InputStream getInputStream(InputStream dataIn) {
+				return new CipherInputStream(dataIn, dataCipher);
+			}
+		};
+	}
 }

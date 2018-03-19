@@ -2,54 +2,54 @@ package hc.core.util;
 
 import hc.core.IConstant;
 
-
-public class RecycleThread implements Runnable{
-	//该变量能确保先进入waiting，而后被应用。否则极端下，有可能被应用，而后自己将自己waiting
+public class RecycleThread implements Runnable {
+	// 该变量能确保先进入waiting，而后被应用。否则极端下，有可能被应用，而后自己将自己waiting
 	boolean isWaiting = true;
 	Runnable runnable;
 	final ThreadPool pool;
 	protected Thread thread;
-	
-	public RecycleThread(ThreadPool p){
+
+	public RecycleThread(ThreadPool p) {
 		pool = p;
 	}
-	
-	public final void setThread(Thread thread){
+
+	public final void setThread(Thread thread) {
 		this.thread = thread;
 	}
-	
-	public final boolean isIdle(){
+
+	public final boolean isIdle() {
 		return isWaiting;
 	}
-	
-	public final Thread getThread(){
+
+	public final Thread getThread() {
 		return thread;
 	}
-	
-	public final void run(){
+
+	public final void run() {
 		final LinkedSet freeThreads = pool.freeThreads;
 
-		while(!ThreadPool.isShutDown){
-			if(runnable != null){
-				try{
+		while (!ThreadPool.isShutDown) {
+			if (runnable != null) {
+				try {
 					runnable.run();
-				}catch (Throwable e) {
+				} catch (Throwable e) {
 					ExceptionReporter.printStackTraceFromThreadPool(e);
 				}
-			}			
-			
-			notifyBack();//本行要置于push之前，以关闭完成前项逻辑。
-			
-			synchronized(this){
+			}
+
+			notifyBack();// 本行要置于push之前，以关闭完成前项逻辑。
+
+			synchronized (this) {
 				synchronized (freeThreads) {
-					if(ThreadPool.isShutDown){
+					if (ThreadPool.isShutDown) {
 						return;
 					}
 					freeThreads.addTail(this);
-					freeThreads.notify();//通知一个，生成一个后，再通知！不用notifyAll()
-	//				System.out.println("[" + pool.name + "] <- RecycleThead : " + toString());
+					freeThreads.notify();// 通知一个，生成一个后，再通知！不用notifyAll()
+					// System.out.println("[" + pool.name + "] <- RecycleThead :
+					// " + toString());
 				}
-			
+
 				isWaiting = true;
 				try {
 					this.wait();
@@ -57,14 +57,14 @@ public class RecycleThread implements Runnable{
 				}
 			}
 		}
-//		LogManager.log("Recycle Thread finished!");
+		// LogManager.log("Recycle Thread finished!");
 	}
-	
-	public void notifyBack(){
-		
+
+	public void notifyBack() {
+
 	}
-	
-	public void setRunnable(Runnable r){
+
+	public void setRunnable(Runnable r) {
 		runnable = r;
 		synchronized (this) {
 			isWaiting = false;
@@ -73,7 +73,7 @@ public class RecycleThread implements Runnable{
 	}
 
 	final void wakeUp() {
-		while(isWaiting == false){
+		while (isWaiting == false) {
 			try {
 				Thread.sleep(IConstant.THREAD_WAIT_INNER_MS);
 			} catch (InterruptedException e) {
@@ -84,5 +84,5 @@ public class RecycleThread implements Runnable{
 			this.notify();
 		}
 	}
-	
+
 }

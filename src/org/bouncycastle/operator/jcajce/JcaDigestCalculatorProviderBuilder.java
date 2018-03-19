@@ -14,101 +14,75 @@ import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.DigestCalculatorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 
-public class JcaDigestCalculatorProviderBuilder
-{
-    private OperatorHelper helper = new OperatorHelper(new DefaultJcaJceHelper());
+public class JcaDigestCalculatorProviderBuilder {
+	private OperatorHelper helper = new OperatorHelper(new DefaultJcaJceHelper());
 
-    public JcaDigestCalculatorProviderBuilder()
-    {
-    }
+	public JcaDigestCalculatorProviderBuilder() {
+	}
 
-    public JcaDigestCalculatorProviderBuilder setProvider(Provider provider)
-    {
-        this.helper = new OperatorHelper(new ProviderJcaJceHelper(provider));
+	public JcaDigestCalculatorProviderBuilder setProvider(Provider provider) {
+		this.helper = new OperatorHelper(new ProviderJcaJceHelper(provider));
 
-        return this;
-    }
+		return this;
+	}
 
-    public JcaDigestCalculatorProviderBuilder setProvider(String providerName)
-    {
-        this.helper = new OperatorHelper(new NamedJcaJceHelper(providerName));
+	public JcaDigestCalculatorProviderBuilder setProvider(String providerName) {
+		this.helper = new OperatorHelper(new NamedJcaJceHelper(providerName));
 
-        return this;
-    }
+		return this;
+	}
 
-    public DigestCalculatorProvider build()
-        throws OperatorCreationException
-    {
-        return new DigestCalculatorProvider()
-        {
-            public DigestCalculator get(final AlgorithmIdentifier algorithm)
-                throws OperatorCreationException
-            {
-                final DigestOutputStream stream;
+	public DigestCalculatorProvider build() throws OperatorCreationException {
+		return new DigestCalculatorProvider() {
+			public DigestCalculator get(final AlgorithmIdentifier algorithm) throws OperatorCreationException {
+				final DigestOutputStream stream;
 
-                try
-                {
-                    MessageDigest dig = helper.createDigest(algorithm);
+				try {
+					MessageDigest dig = helper.createDigest(algorithm);
 
-                    stream = new DigestOutputStream(dig);
-                }
-                catch (GeneralSecurityException e)
-                {
-                    throw new OperatorCreationException("exception on setup: " + e, e);
-                }
+					stream = new DigestOutputStream(dig);
+				} catch (GeneralSecurityException e) {
+					throw new OperatorCreationException("exception on setup: " + e, e);
+				}
 
-                return new DigestCalculator()
-                {
-                    public AlgorithmIdentifier getAlgorithmIdentifier()
-                    {
-                        return algorithm;
-                    }
-                    
-                    public OutputStream getOutputStream()
-                    {
-                        return stream;
-                    }
+				return new DigestCalculator() {
+					public AlgorithmIdentifier getAlgorithmIdentifier() {
+						return algorithm;
+					}
 
-                    public byte[] getDigest()
-                    {
-                        return stream.getDigest();
-                    }
-                };
-            }
-        };
-    }
+					public OutputStream getOutputStream() {
+						return stream;
+					}
 
-    private class DigestOutputStream
-        extends OutputStream
-    {
-        private MessageDigest dig;
+					public byte[] getDigest() {
+						return stream.getDigest();
+					}
+				};
+			}
+		};
+	}
 
-        DigestOutputStream(MessageDigest dig)
-        {
-            this.dig = dig;
-        }
+	private class DigestOutputStream extends OutputStream {
+		private MessageDigest dig;
 
-        public void write(byte[] bytes, int off, int len)
-            throws IOException
-        {
-            dig.update(bytes, off, len);
-        }
+		DigestOutputStream(MessageDigest dig) {
+			this.dig = dig;
+		}
 
-        public void write(byte[] bytes)
-            throws IOException
-        {
-           dig.update(bytes);
-        }
+		public void write(byte[] bytes, int off, int len) throws IOException {
+			dig.update(bytes, off, len);
+		}
 
-        public void write(int b)
-            throws IOException
-        {
-           dig.update((byte)b);
-        }
+		public void write(byte[] bytes) throws IOException {
+			dig.update(bytes);
+		}
 
-        byte[] getDigest()
-        {
-            return dig.digest();
-        }
-    }
+		public void write(int b) throws IOException {
+			dig.update((byte) b);
+		}
+
+		byte[] getDigest() {
+			return dig.digest();
+		}
+	}
 }

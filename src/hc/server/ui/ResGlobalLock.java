@@ -14,8 +14,7 @@ public class ResGlobalLock {
 	final boolean isSessionWait;
 	final BooleanValue waitingLock;
 
-	public ResGlobalLock(final boolean isForSession, final J2SESession[] sessionGroup,
-			final String lockType, final boolean isWaiting) {
+	public ResGlobalLock(final boolean isForSession, final J2SESession[] sessionGroup, final String lockType, final boolean isWaiting) {
 		this.isSessionWait = (isForSession && isWaiting);
 		this.sessionGroup = sessionGroup;
 		this.lockType = lockType;
@@ -33,7 +32,7 @@ public class ResGlobalLock {
 				if (coreSS != null) {
 					ServerUIUtil.checkLineOnForAPI(coreSS);
 				}
-				
+
 				try {
 					waitingLock.wait();
 				} catch (final InterruptedException e) {
@@ -48,8 +47,7 @@ public class ResGlobalLock {
 
 	private boolean isSetNotifyResult;
 
-	public final void notifyWaitStop(final J2SESession coreSS, final boolean isFromCancel,
-			final boolean isFromLineOff) {
+	public final void notifyWaitStop(final J2SESession coreSS, final boolean isFromCancel, final boolean isFromLineOff) {
 		if (isWaiting == false) {
 			return;
 		}
@@ -97,8 +95,7 @@ public class ResGlobalLock {
 		HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, para, values);
 	}
 
-	public final boolean isProcessed(final J2SESession coreSS, final int id,
-			final String processedMsg) {
+	public final boolean isProcessed(final J2SESession coreSS, final int id, final String processedMsg) {
 		synchronized (this) {
 			if (isProcessed) {
 				final J2SESession[] coreSSS = { coreSS };

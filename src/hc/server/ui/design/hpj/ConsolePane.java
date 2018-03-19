@@ -40,8 +40,7 @@ public class ConsolePane extends JPanel {
 
 		add(topPanel, BorderLayout.NORTH);
 		ResourceUtil.removeFromParent(ctp.textPane);
-		final JScrollPane scrollpane = new JScrollPane(ctp.textPane,
-				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+		final JScrollPane scrollpane = new JScrollPane(ctp.textPane, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		add(scrollpane, BorderLayout.CENTER);
 	}

@@ -21,236 +21,180 @@ import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.tsp.TimeStampTokenInfo;
 import org.bouncycastle.util.Arrays;
 
-class TimeStampDataUtil
-{
-    private final TimeStampAndCRL[] timeStamps;
+class TimeStampDataUtil {
+	private final TimeStampAndCRL[] timeStamps;
 
-    private final MetaDataUtil      metaDataUtil;
+	private final MetaDataUtil metaDataUtil;
 
-    TimeStampDataUtil(TimeStampedData timeStampedData)
-    {
-        this.metaDataUtil = new MetaDataUtil(timeStampedData.getMetaData());
+	TimeStampDataUtil(TimeStampedData timeStampedData) {
+		this.metaDataUtil = new MetaDataUtil(timeStampedData.getMetaData());
 
-        Evidence evidence = timeStampedData.getTemporalEvidence();
-        this.timeStamps = evidence.getTstEvidence().toTimeStampAndCRLArray();
-    }
+		Evidence evidence = timeStampedData.getTemporalEvidence();
+		this.timeStamps = evidence.getTstEvidence().toTimeStampAndCRLArray();
+	}
 
-    TimeStampDataUtil(TimeStampedDataParser timeStampedData)
-        throws IOException
-    {       
-        this.metaDataUtil = new MetaDataUtil(timeStampedData.getMetaData());
+	TimeStampDataUtil(TimeStampedDataParser timeStampedData) throws IOException {
+		this.metaDataUtil = new MetaDataUtil(timeStampedData.getMetaData());
 
-        Evidence evidence = timeStampedData.getTemporalEvidence();
-        this.timeStamps = evidence.getTstEvidence().toTimeStampAndCRLArray();
-    }
+		Evidence evidence = timeStampedData.getTemporalEvidence();
+		this.timeStamps = evidence.getTstEvidence().toTimeStampAndCRLArray();
+	}
 
-    TimeStampToken getTimeStampToken(TimeStampAndCRL timeStampAndCRL)
-        throws CMSException
-    {
-        ContentInfo timeStampToken = timeStampAndCRL.getTimeStampToken();
+	TimeStampToken getTimeStampToken(TimeStampAndCRL timeStampAndCRL) throws CMSException {
+		ContentInfo timeStampToken = timeStampAndCRL.getTimeStampToken();
 
-        try
-        {
-            TimeStampToken token = new TimeStampToken(timeStampToken);
-            return token;
-        }
-        catch (IOException e)
-        {
-            throw new CMSException("unable to parse token data: " + e.getMessage(), e);
-        }
-        catch (TSPException e)
-        {
-            if (e.getCause() instanceof CMSException)
-            {
-                throw (CMSException)e.getCause();
-            }
+		try {
+			TimeStampToken token = new TimeStampToken(timeStampToken);
+			return token;
+		} catch (IOException e) {
+			throw new CMSException("unable to parse token data: " + e.getMessage(), e);
+		} catch (TSPException e) {
+			if (e.getCause() instanceof CMSException) {
+				throw (CMSException) e.getCause();
+			}
 
-            throw new CMSException("token data invalid: " + e.getMessage(), e);
-        }
-        catch (IllegalArgumentException e)
-        {
-            throw new CMSException("token data invalid: " + e.getMessage(), e);
-        }
-    }
+			throw new CMSException("token data invalid: " + e.getMessage(), e);
+		} catch (IllegalArgumentException e) {
+			throw new CMSException("token data invalid: " + e.getMessage(), e);
+		}
+	}
 
-    void initialiseMessageImprintDigestCalculator(DigestCalculator calculator)
-        throws CMSException
-    {
-        metaDataUtil.initialiseMessageImprintDigestCalculator(calculator);
-    }
+	void initialiseMessageImprintDigestCalculator(DigestCalculator calculator) throws CMSException {
+		metaDataUtil.initialiseMessageImprintDigestCalculator(calculator);
+	}
 
-    DigestCalculator getMessageImprintDigestCalculator(DigestCalculatorProvider calculatorProvider)
-        throws OperatorCreationException
-    {
-        TimeStampToken token;
+	DigestCalculator getMessageImprintDigestCalculator(DigestCalculatorProvider calculatorProvider) throws OperatorCreationException {
+		TimeStampToken token;
 
-        try
-        {
-            token = this.getTimeStampToken(timeStamps[0]);
+		try {
+			token = this.getTimeStampToken(timeStamps[0]);
 
-            TimeStampTokenInfo info = token.getTimeStampInfo();
-            ASN1ObjectIdentifier algOID = info.getMessageImprintAlgOID();
+			TimeStampTokenInfo info = token.getTimeStampInfo();
+			ASN1ObjectIdentifier algOID = info.getMessageImprintAlgOID();
 
-            DigestCalculator calc = calculatorProvider.get(new AlgorithmIdentifier(algOID));
+			DigestCalculator calc = calculatorProvider.get(new AlgorithmIdentifier(algOID));
 
-            initialiseMessageImprintDigestCalculator(calc);
+			initialiseMessageImprintDigestCalculator(calc);
 
-            return calc;
-        }
-        catch (CMSException e)
-        {
-            throw new OperatorCreationException("unable to extract algorithm ID: " + e.getMessage(), e);
-        }
-    }
+			return calc;
+		} catch (CMSException e) {
+			throw new OperatorCreationException("unable to extract algorithm ID: " + e.getMessage(), e);
+		}
+	}
 
-    TimeStampToken[] getTimeStampTokens()
-        throws CMSException
-    {
-        TimeStampToken[] tokens = new TimeStampToken[timeStamps.length];
-        for (int i = 0; i < timeStamps.length; i++)
-        {
-            tokens[i] = this.getTimeStampToken(timeStamps[i]);
-        }
+	TimeStampToken[] getTimeStampTokens() throws CMSException {
+		TimeStampToken[] tokens = new TimeStampToken[timeStamps.length];
+		for (int i = 0; i < timeStamps.length; i++) {
+			tokens[i] = this.getTimeStampToken(timeStamps[i]);
+		}
 
-        return tokens;
-    }
+		return tokens;
+	}
 
-    TimeStampAndCRL[] getTimeStamps()
-    {
-        return timeStamps;
-    }
+	TimeStampAndCRL[] getTimeStamps() {
+		return timeStamps;
+	}
 
-    byte[] calculateNextHash(DigestCalculator calculator)
-        throws CMSException
-    {
-        TimeStampAndCRL tspToken = timeStamps[timeStamps.length - 1];
+	byte[] calculateNextHash(DigestCalculator calculator) throws CMSException {
+		TimeStampAndCRL tspToken = timeStamps[timeStamps.length - 1];
 
-        OutputStream out = calculator.getOutputStream();
+		OutputStream out = calculator.getOutputStream();
 
-        try
-        {
-            out.write(tspToken.getEncoded(ASN1Encoding.DER));
+		try {
+			out.write(tspToken.getEncoded(ASN1Encoding.DER));
 
-            out.close();
+			out.close();
 
-            return calculator.getDigest();
-        }
-        catch (IOException e)
-        {
-            throw new CMSException("exception calculating hash: " + e.getMessage(), e);
-        }
-    }
+			return calculator.getDigest();
+		} catch (IOException e) {
+			throw new CMSException("exception calculating hash: " + e.getMessage(), e);
+		}
+	}
 
-    /**
-     * Validate the digests present in the TimeStampTokens contained in the CMSTimeStampedData.
-     */
-    void validate(DigestCalculatorProvider calculatorProvider, byte[] dataDigest)
-        throws ImprintDigestInvalidException, CMSException
-    {
-        byte[] currentDigest = dataDigest;
+	/**
+	 * Validate the digests present in the TimeStampTokens contained in the CMSTimeStampedData.
+	 */
+	void validate(DigestCalculatorProvider calculatorProvider, byte[] dataDigest) throws ImprintDigestInvalidException, CMSException {
+		byte[] currentDigest = dataDigest;
 
-        for (int i = 0; i < timeStamps.length; i++)
-        {
-            try
-            {
-                TimeStampToken token = this.getTimeStampToken(timeStamps[i]);
-                if (i > 0)
-                {
-                    TimeStampTokenInfo info = token.getTimeStampInfo();
-                    DigestCalculator calculator = calculatorProvider.get(info.getHashAlgorithm());
+		for (int i = 0; i < timeStamps.length; i++) {
+			try {
+				TimeStampToken token = this.getTimeStampToken(timeStamps[i]);
+				if (i > 0) {
+					TimeStampTokenInfo info = token.getTimeStampInfo();
+					DigestCalculator calculator = calculatorProvider.get(info.getHashAlgorithm());
 
-                    calculator.getOutputStream().write(timeStamps[i - 1].getEncoded(ASN1Encoding.DER));
+					calculator.getOutputStream().write(timeStamps[i - 1].getEncoded(ASN1Encoding.DER));
 
-                    currentDigest = calculator.getDigest();
-                }
+					currentDigest = calculator.getDigest();
+				}
 
-                this.compareDigest(token, currentDigest);
-            }
-            catch (IOException e)
-            {
-                throw new CMSException("exception calculating hash: " + e.getMessage(), e);
-            }
-            catch (OperatorCreationException e)
-            {
-                throw new CMSException("cannot create digest: " + e.getMessage(), e);
-            }
-        }
-    }
+				this.compareDigest(token, currentDigest);
+			} catch (IOException e) {
+				throw new CMSException("exception calculating hash: " + e.getMessage(), e);
+			} catch (OperatorCreationException e) {
+				throw new CMSException("cannot create digest: " + e.getMessage(), e);
+			}
+		}
+	}
 
-    void validate(DigestCalculatorProvider calculatorProvider, byte[] dataDigest, TimeStampToken timeStampToken)
-        throws ImprintDigestInvalidException, CMSException
-    {
-        byte[] currentDigest = dataDigest;
-        byte[] encToken;
+	void validate(DigestCalculatorProvider calculatorProvider, byte[] dataDigest, TimeStampToken timeStampToken)
+			throws ImprintDigestInvalidException, CMSException {
+		byte[] currentDigest = dataDigest;
+		byte[] encToken;
 
-        try
-        {
-            encToken = timeStampToken.getEncoded();
-        }
-        catch (IOException e)
-        {
-            throw new CMSException("exception encoding timeStampToken: " + e.getMessage(), e);
-        }
+		try {
+			encToken = timeStampToken.getEncoded();
+		} catch (IOException e) {
+			throw new CMSException("exception encoding timeStampToken: " + e.getMessage(), e);
+		}
 
-        for (int i = 0; i < timeStamps.length; i++)
-        {
-            try
-            {
-                TimeStampToken token = this.getTimeStampToken(timeStamps[i]);
-                if (i > 0)
-                {
-                    TimeStampTokenInfo info = token.getTimeStampInfo();
-                    DigestCalculator calculator = calculatorProvider.get(info.getHashAlgorithm());
+		for (int i = 0; i < timeStamps.length; i++) {
+			try {
+				TimeStampToken token = this.getTimeStampToken(timeStamps[i]);
+				if (i > 0) {
+					TimeStampTokenInfo info = token.getTimeStampInfo();
+					DigestCalculator calculator = calculatorProvider.get(info.getHashAlgorithm());
 
-                    calculator.getOutputStream().write(timeStamps[i - 1].getEncoded(ASN1Encoding.DER));
+					calculator.getOutputStream().write(timeStamps[i - 1].getEncoded(ASN1Encoding.DER));
 
-                    currentDigest = calculator.getDigest();
-                }
+					currentDigest = calculator.getDigest();
+				}
 
-                this.compareDigest(token, currentDigest);
+				this.compareDigest(token, currentDigest);
 
-                if (Arrays.areEqual(token.getEncoded(), encToken))
-                {
-                    return;
-                }
-            }
-            catch (IOException e)
-            {
-                throw new CMSException("exception calculating hash: " + e.getMessage(), e);
-            }
-            catch (OperatorCreationException e)
-            {
-                throw new CMSException("cannot create digest: " + e.getMessage(), e);
-            }
-        }
+				if (Arrays.areEqual(token.getEncoded(), encToken)) {
+					return;
+				}
+			} catch (IOException e) {
+				throw new CMSException("exception calculating hash: " + e.getMessage(), e);
+			} catch (OperatorCreationException e) {
+				throw new CMSException("cannot create digest: " + e.getMessage(), e);
+			}
+		}
 
-        throw new ImprintDigestInvalidException("passed in token not associated with timestamps present", timeStampToken);
-    }
+		throw new ImprintDigestInvalidException("passed in token not associated with timestamps present", timeStampToken);
+	}
 
-    private void compareDigest(TimeStampToken timeStampToken, byte[] digest)
-        throws ImprintDigestInvalidException
-    {
-        TimeStampTokenInfo info = timeStampToken.getTimeStampInfo();
-        byte[] tsrMessageDigest = info.getMessageImprintDigest();
+	private void compareDigest(TimeStampToken timeStampToken, byte[] digest) throws ImprintDigestInvalidException {
+		TimeStampTokenInfo info = timeStampToken.getTimeStampInfo();
+		byte[] tsrMessageDigest = info.getMessageImprintDigest();
 
-        if (!Arrays.areEqual(digest, tsrMessageDigest))
-        {
-            throw new ImprintDigestInvalidException("hash calculated is different from MessageImprintDigest found in TimeStampToken", timeStampToken);
-        }
-    }
+		if (!Arrays.areEqual(digest, tsrMessageDigest)) {
+			throw new ImprintDigestInvalidException("hash calculated is different from MessageImprintDigest found in TimeStampToken",
+					timeStampToken);
+		}
+	}
 
-    String getFileName()
-    {
-        return metaDataUtil.getFileName();
-    }
+	String getFileName() {
+		return metaDataUtil.getFileName();
+	}
 
-    String getMediaType()
-    {
-        return metaDataUtil.getMediaType();
-    }
+	String getMediaType() {
+		return metaDataUtil.getMediaType();
+	}
 
-    AttributeTable getOtherMetaData()
-    {
-        return new AttributeTable(metaDataUtil.getOtherMetaData());
-    }
+	AttributeTable getOtherMetaData() {
+		return new AttributeTable(metaDataUtil.getOtherMetaData());
+	}
 }

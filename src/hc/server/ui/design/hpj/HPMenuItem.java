@@ -16,12 +16,10 @@ public class HPMenuItem extends HPNode {
 	public StoreableHashMap extendMap = new StoreableHashMap();
 
 	public HPMenuItem(final int type, final String name) {
-		this(type, name, new I18NStoreableHashMapWithModifyFlag(), HCURL.URL_CMD_EXIT,
-				UIUtil.SYS_DEFAULT_ICON);
+		this(type, name, new I18NStoreableHashMapWithModifyFlag(), HCURL.URL_CMD_EXIT, UIUtil.SYS_DEFAULT_ICON);
 	}
 
-	public HPMenuItem(final int type, final String name,
-			final I18NStoreableHashMapWithModifyFlag i18nMap, final String url,
+	public HPMenuItem(final int type, final String name, final I18NStoreableHashMapWithModifyFlag i18nMap, final String url,
 			final String imageData) {
 		super(type, name);
 		this.i18nMap = i18nMap;
@@ -40,8 +38,7 @@ public class HPMenuItem extends HPNode {
 			final HPMenuItem cp = (HPMenuItem) obj;
 			final HCURL hcurl1 = HCURLUtil.extract(url);
 			final HCURL hcurl2 = HCURLUtil.extract(cp.url);
-			if (name.toLowerCase().equals(cp.name.toLowerCase())
-					|| hcurl1.elementID.toLowerCase().equals(hcurl2.elementID.toLowerCase())) {
+			if (name.toLowerCase().equals(cp.name.toLowerCase()) || hcurl1.elementID.toLowerCase().equals(hcurl2.elementID.toLowerCase())) {
 				return true;
 			}
 		}
@@ -53,11 +50,10 @@ public class HPMenuItem extends HPNode {
 		final HCURL hcurl1 = HCURLUtil.extract(url);
 		final String elementID = hcurl1.elementID;
 		if (elementID.startsWith(CCoreUtil.SYS_PREFIX)) {
-			return "Error " + TARGET_LOCATOR + " [" + elementID + "] : <strong>"
-					+ CCoreUtil.SYS_PREFIX + "</strong> is system reserved prefix.";
+			return "Error " + TARGET_LOCATOR + " [" + elementID + "] : <strong>" + CCoreUtil.SYS_PREFIX
+					+ "</strong> is system reserved prefix.";
 		} else if (elementID.indexOf(" ") >= 0) {
-			return "Error " + TARGET_LOCATOR + " [" + elementID
-					+ "] : contains illegal character ' '";
+			return "Error " + TARGET_LOCATOR + " [" + elementID + "] : contains illegal character ' '";
 		}
 
 		return super.validate();

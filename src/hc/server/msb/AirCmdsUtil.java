@@ -26,8 +26,7 @@ public class AirCmdsUtil {
 				if (item.startsWith(AirCmdsUtil.PREFIX_AIRCMDS_HAR_URL)) {
 					if (header == null) {
 						firstSplitIdx = item.indexOf(JIN_HAO);
-						if (firstSplitIdx > 0
-								&& item.indexOf(JIN_HAO, firstSplitIdx + 1) > firstSplitIdx + 1) {
+						if (firstSplitIdx > 0 && item.indexOf(JIN_HAO, firstSplitIdx + 1) > firstSplitIdx + 1) {
 							header = item.substring(0, firstSplitIdx);
 						} else {
 							continue;

@@ -129,8 +129,7 @@ public class ReturnType {
 		return new ReturnType(rType);
 	}
 
-	private final ParameterizedType replace(final Method method, final ParameterizedType rType,
-			final Type type) {
+	private final ParameterizedType replace(final Method method, final ParameterizedType rType, final Type type) {
 		final Type rawType = rType.getRawType();
 		ParameterizedType out = null;
 		if (rawType != null) {
@@ -155,8 +154,7 @@ public class ReturnType {
 				final ParameterizedType acapt = (ParameterizedType) acaItem;
 				out = replace(null, acapt, type);
 				if (out != null) {
-					aca[i] = new HCParameterizedType(out.getActualTypeArguments(),
-							acapt.getRawType(), acapt.getOwnerType());
+					aca[i] = new HCParameterizedType(out.getActualTypeArguments(), acapt.getRawType(), acapt.getOwnerType());
 				}
 			} else if (acaItem instanceof TypeVariable) {
 				final String varName = ((TypeVariable) acaItem).getName();
@@ -167,13 +165,11 @@ public class ReturnType {
 		return new HCParameterizedType(aca, rawType, ownType);
 	}
 
-	private final ParameterizedType searchParameterizedTypeFromSuperOrInterfaces(
-			final Type searchClass, final Class targetClass) {
+	private final ParameterizedType searchParameterizedTypeFromSuperOrInterfaces(final Type searchClass, final Class targetClass) {
 		ParameterizedType out;
 
 		if (searchClass instanceof Class) {
-			out = searchParameterizedTypeFromSuperOrInterfaces(
-					((Class) searchClass).getGenericSuperclass(), targetClass);
+			out = searchParameterizedTypeFromSuperOrInterfaces(((Class) searchClass).getGenericSuperclass(), targetClass);
 			if (out != null) {
 				return out;
 			}
@@ -188,8 +184,7 @@ public class ReturnType {
 
 		if (searchClass instanceof ParameterizedType) {
 			final ParameterizedType pt = (ParameterizedType) searchClass;
-			if (pt.getRawType() == targetClass
-					|| CodeHelper.isExtendsOrImplements(pt.getRawType(), targetClass)) {
+			if (pt.getRawType() == targetClass || CodeHelper.isExtendsOrImplements(pt.getRawType(), targetClass)) {
 				return pt;
 			}
 		}
@@ -208,8 +203,7 @@ public class ReturnType {
 		return null;
 	}
 
-	private static final Type matchTypeDeepToSuper(final String name, final Class rawClass,
-			final Type type) {
+	private static final Type matchTypeDeepToSuper(final String name, final Class rawClass, final Type type) {
 		Class deepClass = null;
 		if (type instanceof ParameterizedType) {
 			final Type rawType = ((ParameterizedType) type).getRawType();
@@ -291,8 +285,7 @@ public class ReturnType {
 		return getRawClass().getMethods();
 	}
 
-	public final Method getMethod(final String name, final Class[] para)
-			throws NoSuchMethodException, SecurityException {
+	public final Method getMethod(final String name, final Class[] para) throws NoSuchMethodException, SecurityException {
 		return getRawClass().getMethod(name, para);
 	}
 

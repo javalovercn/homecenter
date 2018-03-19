@@ -49,8 +49,7 @@ public class LogServerSide implements ILog {
 			return;
 		}
 
-		final String cipherAlgorithm = PropertiesManager
-				.getValue(PropertiesManager.p_LogCipherAlgorithm2);
+		final String cipherAlgorithm = PropertiesManager.getValue(PropertiesManager.p_LogCipherAlgorithm2);
 		if (cipherAlgorithm == null) {
 			return;
 		}
@@ -60,12 +59,10 @@ public class LogServerSide implements ILog {
 			createMS = srcFile.lastModified();
 		}
 
-		final File toLogFile = new File(StoreDirManager.LOGS_DIR,
-				ResourceUtil.toYYYYMMDD_HHMMSS(createMS) + ".log");
+		final File toLogFile = new File(StoreDirManager.LOGS_DIR, ResourceUtil.toYYYYMMDD_HHMMSS(createMS) + ".log");
 		try {
 			final byte[] pwdBS = ResourceUtil.getFromBASE64(pwd).getBytes(IConstant.UTF_8);
-			final InputStream is = ServerCUtil.decodeStream(new FileInputStream(srcFile), pwdBS,
-					cipherAlgorithm);
+			final InputStream is = ServerCUtil.decodeStream(new FileInputStream(srcFile), pwdBS, cipherAlgorithm);
 			ResourceUtil.saveToFile(is, toLogFile);
 		} catch (final Throwable e) {
 		}
@@ -106,8 +103,7 @@ public class LogServerSide implements ILog {
 
 				// 迁移log1的密码到log2上
 				final String p1 = PropertiesManager.getValue(PropertiesManager.p_LogPassword1);
-				final String ca1 = PropertiesManager.getValue(
-						PropertiesManager.p_LogCipherAlgorithm1, ServerCUtil.oldCipherAlgorithm);
+				final String ca1 = PropertiesManager.getValue(PropertiesManager.p_LogCipherAlgorithm1, ServerCUtil.oldCipherAlgorithm);
 				if (p1 != null) {
 					PropertiesManager.setValue(PropertiesManager.p_LogPassword2, p1);
 				}
@@ -118,15 +114,13 @@ public class LogServerSide implements ILog {
 			// 记存log1的密码
 			final String pwd = PropertiesManager.getValue(PropertiesManager.p_password);
 			PropertiesManager.setValue(PropertiesManager.p_LogPassword1, pwd);
-			PropertiesManager.setValue(PropertiesManager.p_LogCipherAlgorithm1,
-					ServerCUtil.CipherAlgorithm);
+			PropertiesManager.setValue(PropertiesManager.p_LogCipherAlgorithm1, ServerCUtil.CipherAlgorithm);
 			PropertiesManager.saveFile();
 
 			FlushPrintStream printStream = null;
 			try {
 				outLogger = new FileOutputStream(newLog, false);
-				final PrintStream ps = new PrintStream(
-						ServerCUtil.encodeStream(outLogger, IConstant.getPasswordBS()));
+				final PrintStream ps = new PrintStream(ServerCUtil.encodeStream(outLogger, IConstant.getPasswordBS()));
 				printStream = new FlushPrintStream(ps, this);
 				osw = new OutputStreamWriter(ps, "UTF-8");
 				bw = new BufferedWriter(osw);
@@ -135,15 +129,13 @@ public class LogServerSide implements ILog {
 			} catch (final Exception e) {
 				ExceptionReporter.printStackTrace(e);
 
-				final JPanel panel = App.buildMessagePanel(e.toString(),
-						App.getSysIcon(App.SYS_ERROR_ICON));
-				App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(IConstant.ERROR), false, null,
-						null, new ActionListener() {
-							@Override
-							public void actionPerformed(final ActionEvent e) {
-								CCoreUtil.globalExit();
-							}
-						}, null, null, false, true, null, false, false);
+				final JPanel panel = App.buildMessagePanel(e.toString(), App.getSysIcon(App.SYS_ERROR_ICON));
+				App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(IConstant.ERROR), false, null, null, new ActionListener() {
+					@Override
+					public void actionPerformed(final ActionEvent e) {
+						CCoreUtil.globalExit();
+					}
+				}, null, null, false, true, null, false, false);
 
 				// 等待上行关闭退出
 				while (true) {

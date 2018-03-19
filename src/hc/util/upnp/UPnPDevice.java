@@ -59,15 +59,13 @@ public class UPnPDevice {
 		SCPDURL = compUrl(ctrlURL, SCPDURL);
 	}
 
-	public static Map<String, String> action(String action, String service, String url,
-			Map<String, String> para) {
+	public static Map<String, String> action(String action, String service, String url, Map<String, String> para) {
 		try {
 			StringBuffer req = new StringBuffer();
 
-			req.append("<?xml version=\"1.0\"?>\r\n"
-					+ "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" "
-					+ "SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">"
-					+ "<SOAP-ENV:Body><m:" + action + " xmlns:m=\"" + service + "\">");
+			req.append("<?xml version=\"1.0\"?>\r\n" + "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\" "
+					+ "SOAP-ENV:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" + "<SOAP-ENV:Body><m:" + action
+					+ " xmlns:m=\"" + service + "\">");
 
 			if (para != null && para.size() > 0) {
 				Set<Map.Entry<String, String>> entrySet = para.entrySet();
@@ -145,8 +143,7 @@ public class UPnPDevice {
 		}
 	}
 
-	public boolean addUPnPMapping(int outterPort, int innerPort, String internalClient,
-			String protocol, String description) {
+	public boolean addUPnPMapping(int outterPort, int innerPort, String internalClient, String protocol, String description) {
 		Map<String, String> para = new HashMap<String, String>();
 
 		para.put("NewRemoteHost", getNewRomoteHost());
@@ -185,8 +182,7 @@ public class UPnPDevice {
 		para.put("NewProtocol", protocol);
 		para.put("NewExternalPort", String.valueOf(externalPort));
 
-		Map<String, String> result = action("GetSpecificPortMappingEntry", SERVICETYPE, CONTROLURL,
-				para);
+		Map<String, String> result = action("GetSpecificPortMappingEntry", SERVICETYPE, CONTROLURL, para);
 		if (result == null) {
 			return false;
 		}

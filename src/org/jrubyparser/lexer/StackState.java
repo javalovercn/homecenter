@@ -33,42 +33,42 @@ package org.jrubyparser.lexer;
  * @author jpetersen
  */
 public class StackState implements Cloneable {
-    private long stack = 0;
+	private long stack = 0;
 
-    public void reset() {
-        reset(0);
-    }
+	public void reset() {
+		reset(0);
+	}
 
-    public void reset(long backup) {
-        stack = backup;
-    }
+	public void reset(long backup) {
+		stack = backup;
+	}
 
-    // PUSH(1)
-    public long begin() {
-        long old = stack;
-        stack <<= 1;
-        stack |= 1;
-        return old;
-    }
+	// PUSH(1)
+	public long begin() {
+		long old = stack;
+		stack <<= 1;
+		stack |= 1;
+		return old;
+	}
 
-    // POP
-    public void end() {
-        stack >>= 1;
-    }
+	// POP
+	public void end() {
+		stack >>= 1;
+	}
 
-    // PUSH(0).  If you look at original macro: stack |= (n&1) => stack |= 0 => no-change.
-    public void stop() {
-        stack <<= 1;
-    }
+	// PUSH(0).  If you look at original macro: stack |= (n&1) => stack |= 0 => no-change.
+	public void stop() {
+		stack <<= 1;
+	}
 
-    // LEXPOP
-    public void restart() {
-        stack |= (stack & 1) << 1;
-        stack >>= 1;
-    }
-    
-    // SET_P
-    public boolean isInState() {
-        return (stack & 1) != 0;
-    }
+	// LEXPOP
+	public void restart() {
+		stack |= (stack & 1) << 1;
+		stack >>= 1;
+	}
+
+	// SET_P
+	public boolean isInState() {
+		return (stack & 1) != 0;
+	}
 }

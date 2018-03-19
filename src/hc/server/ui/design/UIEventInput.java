@@ -49,8 +49,7 @@ public class UIEventInput {
 	}
 
 	public final void setHTMLMletEvent(final boolean isDialog) {
-		L.V = L.WShop ? false
-				: LogManager.log("[Mobile Event] : HTMLMLET_EVENT, isDialog : " + isDialog);
+		L.V = L.WShop ? false : LogManager.log("[Mobile Event] : HTMLMLET_EVENT, isDialog : " + isDialog);
 		if (isDialog) {
 			eventType = HTMLMLET_EVENT | DIALOG_EVENT;
 		} else {
@@ -63,8 +62,7 @@ public class UIEventInput {
 	}
 
 	public final void setMletEvent(final boolean isDialog) {
-		L.V = L.WShop ? false
-				: LogManager.log("[Mobile Event] : MLET_EVENT, isDialog : " + isDialog);
+		L.V = L.WShop ? false : LogManager.log("[Mobile Event] : MLET_EVENT, isDialog : " + isDialog);
 
 		if (isDialog) {
 			eventType = MLET_EVENT | DIALOG_EVENT;

@@ -9,12 +9,9 @@ import org.bouncycastle.cert.ocsp.CertificateID;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.operator.DigestCalculator;
 
-public class JcaCertificateID
-    extends CertificateID
-{
-    public JcaCertificateID(DigestCalculator digestCalculator, X509Certificate issuerCert, BigInteger number)
-        throws OCSPException, CertificateEncodingException
-    {
-        super(digestCalculator, new JcaX509CertificateHolder(issuerCert), number);
-    }
+public class JcaCertificateID extends CertificateID {
+	public JcaCertificateID(DigestCalculator digestCalculator, X509Certificate issuerCert, BigInteger number)
+			throws OCSPException, CertificateEncodingException {
+		super(digestCalculator, new JcaX509CertificateHolder(issuerCert), number);
+	}
 }

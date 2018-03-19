@@ -35,19 +35,21 @@ import org.jrubyparser.SourcePosition;
  * Represents a false literal.
  */
 public class FalseNode extends BareKeywordNode {
-    public FalseNode(SourcePosition position) {
-        super(position, "false");
-    }
+	public FalseNode(SourcePosition position) {
+		super(position, "false");
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.FALSENODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.FALSENODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitFalseNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitFalseNode(this);
+	}
 }

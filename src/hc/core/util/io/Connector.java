@@ -10,52 +10,53 @@ public class Connector {
 	final InputStream is;
 	final IOBuffer buffer;
 	final OutputStream os;
-	
+
 	public Connector(final InputStream is, final OutputStream os) {
 		this.is = is;
 		this.os = os;
 		buffer = new IOBuffer(1024);
-		
+
 		ContextManager.getThreadPool().run(new Runnable() {
 			public void run() {
 				final int maxBlock = 1024 * 4;
 				final byte[] cache = ByteUtil.byteArrayCacher.getFree(2048);
-				try{
-					while(true){
+				try {
+					while (true) {
 						final int data = is.read();
-						if(data == -1){
+						if (data == -1) {
 							break;
-						}else{
+						} else {
 							buffer.write(data);
 							int readLen;
 							int bufferTotal = 0;
-							do{
+							do {
 								readLen = is.read(cache);
-								if(readLen > 0){
-									bufferTotal = buffer.write(cache, 0, readLen);
+								if (readLen > 0) {
+									bufferTotal = buffer.write(cache, 0,
+											readLen);
 								}
-							}while(readLen > 0 && bufferTotal < maxBlock);
+							} while (readLen > 0 && bufferTotal < maxBlock);
 							os.write(buffer.buffer, 0, bufferTotal);
 							buffer.storeIdx = 0;
 							os.flush();
 						}
 					}
-				}catch (final Exception e) {
-				}finally{
-					try{
+				} catch (final Exception e) {
+				} finally {
+					try {
 						os.close();
-					}catch (final Exception e) {
+					} catch (final Exception e) {
 					}
-					try{
+					try {
 						is.close();
-					}catch (final Exception e) {
+					} catch (final Exception e) {
 					}
-					
+
 					ByteUtil.byteArrayCacher.cycle(cache);
 					buffer.recycle();
 				}
 			}
 		});
 	}
-	
+
 }

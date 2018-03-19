@@ -1,5 +1,12 @@
 package hc.server.ui;
 
+import java.awt.BorderLayout;
+
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.SwingConstants;
+
 import hc.App;
 import hc.core.ContextManager;
 import hc.core.IConstant;
@@ -14,13 +21,6 @@ import hc.server.ui.design.LinkMenuManager;
 import hc.server.util.SafeDataManager;
 import hc.util.ResourceUtil;
 
-import java.awt.BorderLayout;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
-
 public class LinkProjectStatus {
 	public static final int MANAGER_IDLE = 1;
 	public static final int MANAGER_UPGRADE_DOWNLOADING = 2;
@@ -31,6 +31,17 @@ public class LinkProjectStatus {
 	public static final int MANAGER_VIA_MOBILE = 7;
 
 	private static int manager_status = MANAGER_IDLE;
+
+	private static boolean isUpgradingHAR;
+
+	public static boolean isUpgradingHAR() {
+		return isUpgradingHAR;
+	}
+
+	public static void setUpgradingHAR(final boolean isUpgrading) {
+		CCoreUtil.checkAccess();
+		isUpgradingHAR = isUpgrading;
+	}
 
 	private static final Stack stack = new Stack();
 
@@ -59,8 +70,7 @@ public class LinkProjectStatus {
 				} catch (final Throwable e) {
 				}
 			}
-			LogManager.log(
-					"return project lock status : " + manager_status + ", from : " + oldStatus);
+			LogManager.log("return project lock status : " + manager_status + ", from : " + oldStatus);
 		}
 	}
 
@@ -94,7 +104,7 @@ public class LinkProjectStatus {
 			}
 
 			if (manager_status == MANAGER_VIA_MOBILE) {// 从电脑进入，但是已被手机用户先占用
-				showNotify(parent, (String) ResourceUtil.get(9262), IConstant.INFO);// 手機用戶正在管理項目！
+				showNotify(parent, ResourceUtil.get(9262), IConstant.INFO);// 手機用戶正在管理項目！
 				return false;
 			}
 
@@ -106,66 +116,62 @@ public class LinkProjectStatus {
 
 				if (manager_status == MANAGER_UPGRADE_DOWNLOADING) {
 					isWantDesingOrLinkProjects = true;
-					showNotify(parent, (String) ResourceUtil.get(9161), IConstant.INFO);// system
-																						// is
-																						// downloading
-																						// and
-																						// upgrading
-																						// project(s),
-																						// please
-																						// wait
-																						// for
-																						// a
-																						// moment.
+					showNotify(parent, ResourceUtil.get(9161), IConstant.INFO);// system
+																				// is
+																				// downloading
+																				// and
+																				// upgrading
+																				// project(s),
+																				// please
+																				// wait
+																				// for
+																				// a
+																				// moment.
 					return false;
 				} else if (manager_status == MANAGER_IMPORT) {
 
-					final String replaced = isOpend((String) ResourceUtil.get(9059));
+					final String replaced = isOpend(ResourceUtil.get(9059));
 
-					final JLabel label = new JLabel("<html>" + replaced + "</html>",
-							App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
+					final JLabel label = new JLabel("<html>" + replaced + "</html>", App.getSysIcon(App.SYS_QUES_ICON),
+							SwingConstants.LEADING);
 					final JPanel panel = new JPanel(new BorderLayout());
 					panel.add(label, BorderLayout.CENTER);
 
-					App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(9086), true,
-							null, null, new HCActionListener(new Runnable() {
-								@Override
-								public void run() {
-									LinkMenuManager.closeLinkPanel();
-									try {
-										Thread.sleep(300);
-									} catch (final Exception e) {
-									}
-									LinkMenuManager.startDesigner(true);
-								}
-							}, App.getThreadPoolToken()), null, null, false, false, null, false,
-							false);// isNewFrame=true时，会在MacOSX下发生漂移
+					App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(9086), true, null, null, new HCActionListener(new Runnable() {
+						@Override
+						public void run() {
+							LinkMenuManager.closeLinkPanel();
+							try {
+								Thread.sleep(300);
+							} catch (final Exception e) {
+							}
+							LinkMenuManager.startDesigner(true);
+						}
+					}, App.getThreadPoolToken()), null, null, false, false, null, false, false);// isNewFrame=true时，会在MacOSX下发生漂移
 					return false;
 				} else if (manager_status == MANAGER_DESIGN) {
 					if (toStatus == MANAGER_IMPORT && parent != null) {
 						// 仅放行从设计器调用工程选择器
 					} else {
-						final String replaced = isOpend((String) ResourceUtil.get(9034));
+						final String replaced = isOpend(ResourceUtil.get(9034));
 
-						final JLabel label = new JLabel("<html>" + replaced + "</html>",
-								App.getSysIcon(App.SYS_QUES_ICON), SwingConstants.LEADING);
+						final JLabel label = new JLabel("<html>" + replaced + "</html>", App.getSysIcon(App.SYS_QUES_ICON),
+								SwingConstants.LEADING);
 						final JPanel panel = new JPanel(new BorderLayout());
 						panel.add(label, BorderLayout.CENTER);
 
-						App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(9086), true,
-								null, null, new HCActionListener(new Runnable() {
-									@Override
-									public void run() {
-										if (LinkMenuManager.notifyCloseDesigner()) {
-											try {
-												Thread.sleep(300);
-											} catch (final Exception e) {
-											}
-											LinkMenuManager.showLinkPanel(null);
-										}
+						App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(9086), true, null, null, new HCActionListener(new Runnable() {
+							@Override
+							public void run() {
+								if (LinkMenuManager.notifyCloseDesigner()) {
+									try {
+										Thread.sleep(300);
+									} catch (final Exception e) {
 									}
-								}, App.getThreadPoolToken()), null, null, false, false, null, false,
-								false);// isNewFrame=true时，会在MacOSX下发生漂移
+									LinkMenuManager.showLinkPanel(null);
+								}
+							}
+						}, App.getThreadPoolToken()), null, null, false, false, null, false, false);// isNewFrame=true时，会在MacOSX下发生漂移
 						return false;
 					}
 				} else if (manager_status == MANAGER_JRUBY_INSTALL) {
@@ -177,8 +183,7 @@ public class LinkProjectStatus {
 					});
 					return false;
 				} else if (manager_status == MANAGER_ADD_HAR_VIA_MOBILE) {
-					showNotify(parent, "adding HAR from mobile now, please wait for a moment.",
-							IConstant.ERROR);
+					showNotify(parent, "adding HAR from mobile now, please wait for a moment.", IConstant.ERROR);
 					return false;
 				} else {
 					return false;
@@ -199,21 +204,19 @@ public class LinkProjectStatus {
 	}
 
 	private static String isOpend(final String winName) {
-		final String isOpend = (String) ResourceUtil.get(9085);
+		final String isOpend = ResourceUtil.get(9085);
 
 		String replaced = StringUtil.replace(isOpend, "{win_name}", winName);
-		replaced = StringUtil.replace(replaced, "{ok}", (String) ResourceUtil.get(IContext.OK));
+		replaced = StringUtil.replace(replaced, "{ok}", ResourceUtil.get(IContext.OK));
 		return replaced;
 	}
 
 	private static void showNotify(final JFrame parent, final String msg, final int type) {
-		final JLabel label = new JLabel(msg, App.getSysIcon(App.SYS_INFO_ICON),
-				SwingConstants.LEADING);
+		final JLabel label = new JLabel(msg, App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING);
 		final JPanel panel = new JPanel(new BorderLayout());
 		panel.add(label, BorderLayout.CENTER);
 
-		App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(type), false, null, null,
-				null, null, parent, true, true, null, false, false);
+		App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(type), false, null, null, null, null, parent, true, true, null, false, false);
 	}
 
 }

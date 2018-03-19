@@ -35,13 +35,11 @@ public class ServerCUtil {
 	 * @param storeVerifyIdx
 	 * @return
 	 */
-	public static short checkCertKeyAndPwd(final HCConnection hcConnection,
-			final byte[] OneTimeCertKey, final byte[] data, final int offset, final byte[] pwd,
-			final byte[] certKey, final byte[] oldData) {
+	public static short checkCertKeyAndPwd(final HCConnection hcConnection, final byte[] OneTimeCertKey, final byte[] data,
+			final int offset, final byte[] pwd, final byte[] certKey, final byte[] oldData) {
 		// LogManager.logInTest("before : \n" + CUtil.toHexString(oldData,
 		// CUtil.VERIFY_CERT_IDX + offset, CCoreUtil.CERT_KEY_LEN));
-		CUtil.buildCheckCertKeyAndPwd(hcConnection, OneTimeCertKey, oldData, offset, pwd, certKey,
-				true);
+		CUtil.buildCheckCertKeyAndPwd(hcConnection, OneTimeCertKey, oldData, offset, pwd, certKey, true);
 		// LogManager.logInTest("after : \n" + CUtil.toHexString(oldData,
 		// CUtil.VERIFY_CERT_IDX + offset, CCoreUtil.CERT_KEY_LEN));
 		// LogManager.logInTest("receive ckp : \n" + CUtil.toHexString(data,
@@ -81,18 +79,17 @@ public class ServerCUtil {
 
 		final String errPwd = (String) ResourceUtil.get(9185);
 		final String errPwdTitle = (String) ResourceUtil.get(9184);
-		SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_ERROR_PASS, errPwd, errPwdTitle,
-				1000 * 60, App.getSysIcon(App.SYS_ERROR_ICON));
+		SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_ERROR_PASS, errPwd, errPwdTitle, 1000 * 60,
+				App.getSysIcon(App.SYS_ERROR_ICON));
 		LogManager.errToLog(errPwd);
 	}
 
-	public static void transCertKey(final CoreSession coreSS, final HCConnection hcConnection,
-			final byte[] oneTimeCertKey, final byte msgTag, final boolean isOneTimeKeys) {
+	public static void transCertKey(final CoreSession coreSS, final HCConnection hcConnection, final byte[] oneTimeCertKey,
+			final byte msgTag, final boolean isOneTimeKeys) {
 		final byte[] transCKBS = new byte[MsgBuilder.UDP_BYTE_SIZE];
 
-		CUtil.generateTransCertKey(hcConnection, hcConnection.OneTimeCertKey,
-				ResourceUtil.getStartMS(), transCKBS, MsgBuilder.INDEX_MSG_DATA, oneTimeCertKey,
-				hcConnection.userPassword, isOneTimeKeys);
+		CUtil.generateTransCertKey(hcConnection, hcConnection.OneTimeCertKey, ResourceUtil.getStartMS(), transCKBS,
+				MsgBuilder.INDEX_MSG_DATA, oneTimeCertKey, hcConnection.userPassword, isOneTimeKeys);
 
 		coreSS.context.send(msgTag, transCKBS, CUtil.TRANS_CERT_KEY_LEN);
 	}
@@ -106,11 +103,9 @@ public class ServerCUtil {
 			oneTimeCertKey = new byte[CCoreUtil.CERT_KEY_LEN];
 			ctx.coreSS.setOneTimeCertKey(oneTimeCertKey);
 		}
-		CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), oneTimeCertKey, 0,
-				CCoreUtil.CERT_KEY_LEN);
+		CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), oneTimeCertKey, 0, CCoreUtil.CERT_KEY_LEN);
 		// LogManager.log("OneTime:" + CUtil.toHexString(CUtil.OneTimeCertKey));
-		transCertKey(ctx.coreSS, hcConnection, oneTimeCertKey, MsgBuilder.E_TRANS_ONE_TIME_CERT_KEY,
-				true);
+		transCertKey(ctx.coreSS, hcConnection, oneTimeCertKey, MsgBuilder.E_TRANS_ONE_TIME_CERT_KEY, true);
 	}
 
 	private final static String Algorithm = "DES"; // 定义
@@ -129,16 +124,14 @@ public class ServerCUtil {
 
 	public static int getSecurityLogVersion() {
 		try {
-			return Integer.parseInt(
-					PropertiesManager.getValue(PropertiesManager.p_SecurityLogVersion, "1"));
+			return Integer.parseInt(PropertiesManager.getValue(PropertiesManager.p_SecurityLogVersion, "1"));
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		return defaultSecurityLogVersion;
 	}
 
-	public static InputStream decodeStream(final InputStream in, final byte[] key,
-			final String cipherAlgorithm) throws Exception {
+	public static InputStream decodeStream(final InputStream in, final byte[] key, final String cipherAlgorithm) throws Exception {
 		final int logVersion = getSecurityLogVersion();
 		if (logVersion == defaultSecurityLogVersion) {
 			return decodeStreamV2(in, key, cipherAlgorithm);
@@ -150,8 +143,7 @@ public class ServerCUtil {
 		return null;
 	}
 
-	public static InputStream decodeStreamV2(final InputStream in, byte[] key,
-			final String cipherAlgorithm) throws Exception {
+	public static InputStream decodeStreamV2(final InputStream in, byte[] key, final String cipherAlgorithm) throws Exception {
 		key = ResourceUtil.buildFixLenBS(key, getDESSecretKeySize());
 
 		// DES算法要求有一个可信任的随机数源
@@ -174,8 +166,7 @@ public class ServerCUtil {
 		return cin;
 	}
 
-	public static InputStream decodeStreamV1(final InputStream in, byte[] key,
-			final String cipherAlgorithm) throws Exception {
+	public static InputStream decodeStreamV1(final InputStream in, byte[] key, final String cipherAlgorithm) throws Exception {
 		key = doubePWD(key);
 
 		// DES算法要求有一个可信任的随机数源
@@ -198,8 +189,7 @@ public class ServerCUtil {
 		return cin;
 	}
 
-	public static OutputStream encodeStream(final OutputStream out, final byte[] key)
-			throws Exception {
+	public static OutputStream encodeStream(final OutputStream out, final byte[] key) throws Exception {
 		final int logVersion = getSecurityLogVersion();
 		try {
 			if (logVersion == defaultSecurityLogVersion) {
@@ -211,19 +201,15 @@ public class ServerCUtil {
 			}
 		} catch (final Throwable e) {
 			if (logVersion > 1 && e instanceof java.security.InvalidKeyException) {
-				PropertiesManager.setValue(PropertiesManager.p_SecurityLogVersion,
-						Integer.toString(defaultSecurityLogVersion));
-				PropertiesManager.setValue(PropertiesManager.p_SecurityLogDESSecretKeySize,
-						Integer.toString(getDESSecretKeySize() * 2));
+				PropertiesManager.setValue(PropertiesManager.p_SecurityLogVersion, Integer.toString(defaultSecurityLogVersion));
+				PropertiesManager.setValue(PropertiesManager.p_SecurityLogDESSecretKeySize, Integer.toString(getDESSecretKeySize() * 2));
 				PropertiesManager.saveFile();
 				return encodeStream(out, key);
 			}
 			ExceptionReporter.printStackTrace(e);
-			LogManager.errToLog(
-					"try use the newer security log version : " + defaultSecurityLogVersion);
+			LogManager.errToLog("try use the newer security log version : " + defaultSecurityLogVersion);
 			if (logVersion != defaultSecurityLogVersion) {
-				PropertiesManager.setValue(PropertiesManager.p_SecurityLogVersion,
-						Integer.toString(defaultSecurityLogVersion));
+				PropertiesManager.setValue(PropertiesManager.p_SecurityLogVersion, Integer.toString(defaultSecurityLogVersion));
 				PropertiesManager.saveFile();
 				return encodeStream(out, key);
 			}
@@ -260,8 +246,7 @@ public class ServerCUtil {
 	private static int getDESSecretKeySize() {
 		final String defaultValue = "16";
 		try {
-			return Integer.parseInt(PropertiesManager
-					.getValue(PropertiesManager.p_SecurityLogDESSecretKeySize, defaultValue));
+			return Integer.parseInt(PropertiesManager.getValue(PropertiesManager.p_SecurityLogDESSecretKeySize, defaultValue));
 		} catch (final Throwable e) {
 		}
 		return Integer.parseInt(defaultValue);

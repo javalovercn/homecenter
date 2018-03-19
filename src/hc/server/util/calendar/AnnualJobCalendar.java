@@ -26,9 +26,8 @@ import java.util.TimeZone;
 
 /**
  * <p>
- * This implementation of the JobCalendar excludes a set of days of the year.
- * You may use it to exclude bank holidays which are on the same date every
- * year.
+ * This implementation of the JobCalendar excludes a set of days of the year. You may use it to
+ * exclude bank holidays which are on the same date every year.
  * </p>
  * 
  * @see hc.server.util.calendar.JobCalendar
@@ -68,8 +67,7 @@ public class AnnualJobCalendar extends BaseJobCalendar implements JobCalendar, S
 
 	/**
 	 * <p>
-	 * Get the array which defines the exclude-value of each day
-	 * (java.util.Calendar) of month
+	 * Get the array which defines the exclude-value of each day (java.util.Calendar) of month
 	 * </p>
 	 */
 	public ArrayList<java.util.Calendar> getDaysExcluded() {
@@ -141,8 +139,7 @@ public class AnnualJobCalendar extends BaseJobCalendar implements JobCalendar, S
 
 	/**
 	 * <p>
-	 * Redefine a certain day (java.util.Calendar) to be excluded (true) or
-	 * included (false).
+	 * Redefine a certain day (java.util.Calendar) to be excluded (true) or included (false).
 	 * </p>
 	 */
 	public void setDayExcluded(final java.util.Calendar day, final boolean exclude) {
@@ -210,8 +207,7 @@ public class AnnualJobCalendar extends BaseJobCalendar implements JobCalendar, S
 
 	/**
 	 * <p>
-	 * Determine whether the given time (in milliseconds) is 'included' by the
-	 * JobCalendar.
+	 * Determine whether the given time (in milliseconds) is 'included' by the JobCalendar.
 	 * </p>
 	 * 
 	 * <p>
@@ -233,9 +229,9 @@ public class AnnualJobCalendar extends BaseJobCalendar implements JobCalendar, S
 
 	/**
 	 * <p>
-	 * Determine the next time (in milliseconds) that is 'included' by the
-	 * JobCalendar after the given time. Return the original value if timeStamp
-	 * is included. Return 0 if all days are excluded.
+	 * Determine the next time (in milliseconds) that is 'included' by the JobCalendar after the
+	 * given time. Return the original value if timeStamp is included. Return 0 if all days are
+	 * excluded.
 	 * </p>
 	 * 
 	 * <p>

@@ -35,80 +35,90 @@ import org.jrubyparser.SourcePosition;
  * an 'if' statement.
  */
 public class IfNode extends Node {
-    private Node condition;
-    private Node thenBody;
-    private Node elseBody;
+	private Node condition;
+	private Node thenBody;
+	private Node elseBody;
 
-    public IfNode(SourcePosition position, Node condition, Node thenBody, Node elseBody) {
-        super(position);
+	public IfNode(SourcePosition position, Node condition, Node thenBody, Node elseBody) {
+		super(position);
 
-        assert condition != null : "condition is not null";
+		assert condition != null : "condition is not null";
 
-        this.condition = adopt(condition);
-        this.thenBody = adopt(thenBody);
-        this.elseBody = adopt(elseBody);
-    }
+		this.condition = adopt(condition);
+		this.thenBody = adopt(thenBody);
+		this.elseBody = adopt(elseBody);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		IfNode other = (IfNode) node;
 
-        IfNode other = (IfNode) node;
+		if (getThenBody() == null && other.getThenBody() == null) {
+			if (getElseBody() == null && other.getElseBody() == null)
+				return getCondition().isSame(other.getCondition());
+			if (getElseBody() == null || other.getElseBody() == null)
+				return false;
+		}
+		if (getThenBody() == null || other.getThenBody() == null)
+			return false;
+		if (getElseBody() == null && other.getElseBody() == null) {
+			return getThenBody().isSame(other.getThenBody()) && getCondition().isSame(other.getCondition());
+		}
+		if (getElseBody() == null || other.getElseBody() == null)
+			return false;
 
-        if (getThenBody() == null && other.getThenBody() == null) {
-            if (getElseBody() == null && other.getElseBody() == null) return getCondition().isSame(other.getCondition());
-            if (getElseBody() == null || other.getElseBody() == null) return false;
-        }
-        if (getThenBody() == null || other.getThenBody() == null) return false;
-        if (getElseBody() == null && other.getElseBody() == null) {
-            return getThenBody().isSame(other.getThenBody()) && getCondition().isSame(other.getCondition());
-        }
-        if (getElseBody() == null || other.getElseBody() == null) return false;
+		return getThenBody().isSame(other.getThenBody()) && getElseBody().isSame(other.getElseBody())
+				&& getCondition().isSame(other.getCondition());
+	}
 
-        return getThenBody().isSame(other.getThenBody()) &&
-                getElseBody().isSame(other.getElseBody()) && getCondition().isSame(other.getCondition());
-    }
+	public NodeType getNodeType() {
+		return NodeType.IFNODE;
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.IFNODE;
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitIfNode(this);
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitIfNode(this);
-    }
+	/**
+	 * Gets the condition.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getCondition() {
+		return condition;
+	}
 
-    /**
-     * Gets the condition.
-     * @return Returns a Node
-     */
-    public Node getCondition() {
-        return condition;
-    }
+	/**
+	 * Gets the elseBody.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getElseBody() {
+		return elseBody;
+	}
 
-    /**
-     * Gets the elseBody.
-     * @return Returns a Node
-     */
-    public Node getElseBody() {
-        return elseBody;
-    }
-
-    /**
-     * Gets the thenBody.
-     * @return Returns a Node
-     */
-    public Node getThenBody() {
-        return thenBody;
-    }
+	/**
+	 * Gets the thenBody.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getThenBody() {
+		return thenBody;
+	}
 }

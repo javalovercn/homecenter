@@ -22,17 +22,15 @@ public class RubyWriter extends Writer {
 	}
 
 	/**
-	 * <script>:10 warning: ambiguous Java methods found, using
-	 * setListData(java.lang.Object[]) ==> <script>: 9 warning: ambiguous Java
-	 * methods found, using setListData(java.lang.Object[])
+	 * <script>:10 warning: ambiguous Java methods found, using setListData(java.lang.Object[]) ==>
+	 * <script>: 9 warning: ambiguous Java methods found, using setListData(java.lang.Object[])
 	 * 
 	 * @param cbuf
 	 * @param off
 	 * @param len
 	 * @param warnIdx
 	 */
-	private final void replaceWarningLineNo(final char[] cbuf, final int off, final int len,
-			final int warnIdx) {
+	private final void replaceWarningLineNo(final char[] cbuf, final int off, final int len, final int warnIdx) {
 		final int scriptLen = script.length;
 		if (StringUtil.indexOf(cbuf, off, len, script, 0, scriptLen, 0) == 0) {
 			final int startIdx = warnIdx - 1;
@@ -80,8 +78,7 @@ public class RubyWriter extends Writer {
 		writeImpl(cbuf, off, len);
 	}
 
-	private final void writeImpl(final char[] cbuf, final int off, final int len)
-			throws IOException {
+	private final void writeImpl(final char[] cbuf, final int off, final int len) throws IOException {
 		if (displayWriter == null) {
 			LogManager.warning(new String(cbuf, off, len));
 		} else {

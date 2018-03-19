@@ -34,9 +34,8 @@ import java.io.StringWriter;
 import org.jrubyparser.rewriter.FormatHelper;
 import org.jrubyparser.SourcePosition;
 
-
 public class ReWriterContext {
-	
+
 	private final String source;
 	private final CallDepth callDepth = new CallDepth();
 	private final LocalVariables localVariables = new LocalVariables();
@@ -47,7 +46,7 @@ public class ReWriterContext {
 	private FormatHelper formatHelper;
 
 	private SourcePosition lastPosition;
-	
+
 	public LocalVariables getLocalVariables() {
 		return localVariables;
 	}
@@ -59,10 +58,10 @@ public class ReWriterContext {
 		this.formatHelper = formatHelper;
 	}
 
-	public ReWriterContext(StringWriter output, String source, FormatHelper formatHelper){
+	public ReWriterContext(StringWriter output, String source, FormatHelper formatHelper) {
 		this(new PrintWriter(output), source, formatHelper);
 	}
-	
+
 	public CallDepth getCallDepth() {
 		return callDepth;
 	}
@@ -82,17 +81,17 @@ public class ReWriterContext {
 	public void setLastPosition(SourcePosition lastPosition) {
 		this.lastPosition = lastPosition;
 	}
-	
+
 	public BooleanStateStack getPrintQuotesInString() {
 		return printQuotesInString;
 	}
-	
+
 	public boolean hasHereDocument() {
 		return hereDocument != null;
 	}
 
 	public HereDocument fetchHereDocument() {
-		HereDocument hd =  hereDocument;
+		HereDocument hd = hereDocument;
 		hereDocument = null;
 		return hd;
 	}

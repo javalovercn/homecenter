@@ -84,8 +84,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 
 		imageData = new int[width * height];
 		if (isJ2SEPanelInset) {
-			bufferedImage = new BufferedImage(width + J2SE_JPANEL_INSETS * 2,
-					height + J2SE_JPANEL_INSETS * 2, BufferedImage.TYPE_INT_RGB);
+			bufferedImage = new BufferedImage(width + J2SE_JPANEL_INSETS * 2, height + J2SE_JPANEL_INSETS * 2, BufferedImage.TYPE_INT_RGB);
 		} else {
 			bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		}
@@ -108,8 +107,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 	}
 
 	@Override
-	public void setMlet(final J2SESession coreSS, final Mlet mlet,
-			final ProjectContext projectCtx) {
+	public void setMlet(final J2SESession coreSS, final Mlet mlet, final ProjectContext projectCtx) {
 		if (mlet instanceof DialogMlet) {
 			isForDialog = true;
 			((DialogMlet) mlet).resLock.mletCanvas = this;
@@ -128,8 +126,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, new ReturnableRunnable() {
 			@Override
 			public Object run() throws Throwable {
-				scrollPane = new JScrollPane(mlet, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-						JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+				scrollPane = new JScrollPane(mlet, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 				return null;
 			}
 		});
@@ -161,8 +158,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 			isPrintLog = true;
 			LogManager.log(
 					"tip : in Mlet, there are insets(2, 2, 2, 2) between components and Mlet(JPanel) in edge, Mlet will dark pixels to the edge.");
-			LogManager.log(
-					"important : the insets(2, 2, 2, 2) is ONLY in J2SE server, not in Android server.");
+			LogManager.log("important : the insets(2, 2, 2, 2) is ONLY in J2SE server, not in Android server.");
 		}
 
 		innerColor1 = 0;
@@ -321,8 +317,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 		if (bc.x == 0 && bc.y == 0) {
 			ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, scrollPrintRunnable);
 			if (isJ2SEPanelInset) {
-				bufferedImage.getRGB(J2SE_JPANEL_INSETS, J2SE_JPANEL_INSETS, width, height,
-						imageData, 0, width);
+				bufferedImage.getRGB(J2SE_JPANEL_INSETS, J2SE_JPANEL_INSETS, width, height, imageData, 0, width);
 				// eraseMletEdge(imageData, width, height);
 			} else {
 				bufferedImage.getRGB(0, 0, width, height, imageData, 0, width);
@@ -337,17 +332,15 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 					// 有可能出现大于全屏的情形
 					imageDataComboBox = new int[listSize];
 				}
-				if ((bufferedImageCombo == null) || (bufferedImageCombo.getWidth() != listWidth
-						|| bufferedImageCombo.getHeight() != listHeight)) {
-					bufferedImageCombo = new BufferedImage(listWidth, listHeight,
-							BufferedImage.TYPE_INT_RGB);
+				if ((bufferedImageCombo == null)
+						|| (bufferedImageCombo.getWidth() != listWidth || bufferedImageCombo.getHeight() != listHeight)) {
+					bufferedImageCombo = new BufferedImage(listWidth, listHeight, BufferedImage.TYPE_INT_RGB);
 				}
 				ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, projResp, listPrintRunnable);
 
 				final int startX = locComboX, startY = locComboY;
 
-				bufferedImageCombo.getRGB(0, 0, listWidth, listHeight, imageDataComboBox, 0,
-						listWidth);
+				bufferedImageCombo.getRGB(0, 0, listWidth, listHeight, imageDataComboBox, 0, listWidth);
 
 				try {
 					final int maxLineDataLen = Math.min(listWidth, width - startX);
@@ -357,8 +350,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 						// + srcPos + ", max target : " +
 						// imageDataComboBox.length);
 						if (destPos >= 0) {
-							System.arraycopy(imageDataComboBox, srcPos, imageData, destPos,
-									maxLineDataLen);
+							System.arraycopy(imageDataComboBox, srcPos, imageData, destPos, maxLineDataLen);
 						}
 						srcPos += listWidth;
 						destPos += width;
@@ -431,8 +423,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 		final int x = e.getX();
 		final int y = e.getY();
 		if (L.isInWorkshop) {
-			LogManager.log(
-					"[workbench] inputEvent at x : " + x + ", y : " + y + ", type : " + eventType);
+			LogManager.log("[workbench] inputEvent at x : " + x + ", y : " + y + ", type : " + eventType);
 		}
 		if (eventType == DataInputEvent.TYPE_TAG_KEY_PRESS_V_SCREEN) {
 			keyPressed(x, y);// in user thread
@@ -554,10 +545,9 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 	}
 
 	private boolean isFocusableComponent(final Component c) {
-		return c.isVisible() && ((c instanceof Button) || (c instanceof AbstractButton)
-				|| (c instanceof JTextComponent) || (c instanceof TextComponent)
-				|| (c instanceof JComboBox) || (c instanceof JList) || (c instanceof JTree)
-				|| (c instanceof JTable));
+		return c.isVisible()
+				&& ((c instanceof Button) || (c instanceof AbstractButton) || (c instanceof JTextComponent) || (c instanceof TextComponent)
+						|| (c instanceof JComboBox) || (c instanceof JList) || (c instanceof JTree) || (c instanceof JTable));
 	}
 
 	private Component focusNext(final Component c, final boolean isContainIn) {// in
@@ -683,8 +673,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 		return preFocus;
 	}
 
-	private void doKeyAction(final int keyStates, final int gameAction,
-			final boolean isPressNotRelease) {// in user thread
+	private void doKeyAction(final int keyStates, final int gameAction, final boolean isPressNotRelease) {// in user thread
 		if (gameAction == LEFT || keyStates == KEY_NUM4) {
 			focusPrevious(currFocusObject);
 		} else if (gameAction == RIGHT || keyStates == KEY_NUM6) {
@@ -695,9 +684,8 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 			focusNext(currFocusObject);// in user thread
 		} else if (gameAction == FIRE || keyStates == KEY_NUM5) {
 			if (doActonForSingleClickMode(currFocusObject) == false) {
-				dispatchEvent(currFocusObject, new java.awt.event.KeyEvent(currFocusObject,
-						java.awt.event.KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0,
-						java.awt.event.KeyEvent.VK_ENTER, (char) java.awt.event.KeyEvent.VK_ENTER));
+				dispatchEvent(currFocusObject, new java.awt.event.KeyEvent(currFocusObject, java.awt.event.KeyEvent.KEY_PRESSED,
+						System.currentTimeMillis(), 0, java.awt.event.KeyEvent.VK_ENTER, (char) java.awt.event.KeyEvent.VK_ENTER));
 			}
 			// eq.postEvent(new ActionEvent(focusManager.getFocusOwner(), 500,
 			// "",
@@ -719,8 +707,8 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 			return;
 		}
 
-		final MouseEvent event = new MouseEvent(componentAt, MouseEvent.MOUSE_CLICKED,
-				System.currentTimeMillis(), MouseEvent.BUTTON1_MASK, x, y, 1, false);
+		final MouseEvent event = new MouseEvent(componentAt, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), MouseEvent.BUTTON1_MASK,
+				x, y, 1, false);
 
 		for (int i = getStartMouseListenerIdx(componentAt); i < ml.length; i++) {
 			ml[i].mousePressed(event);
@@ -801,9 +789,8 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 			final Dimension size = listForJComboBox.getSize();
 			boolean isFinished = false;
 			if ((comboX < size.width && comboX >= 0) && (comboY < size.height && comboY >= 0)) {
-				final MouseEvent me = new MouseEvent(listForJComboBox, MouseEvent.MOUSE_CLICKED,
-						System.currentTimeMillis(), MouseEvent.BUTTON1_MASK, comboX, comboY, 1,
-						false);
+				final MouseEvent me = new MouseEvent(listForJComboBox, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(),
+						MouseEvent.BUTTON1_MASK, comboX, comboY, 1, false);
 				// LogManager.log("JList x : " + comboX + ", y : " + comboY);
 				dispatchEvent(listForJComboBox, me);
 
@@ -864,9 +851,8 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 			getMletLocation(componentAt, x, y, locs);
 
 			// 然后执行MouseEvent，如果同一个组件注册多种类型事件侦听器，则可能被触发多次类型。
-			final MouseEvent e = new MouseEvent(componentAt, MouseEvent.MOUSE_CLICKED,
-					System.currentTimeMillis(), MouseEvent.BUTTON1_MASK, x - locs[0], y - locs[1],
-					1, false);
+			final MouseEvent e = new MouseEvent(componentAt, MouseEvent.MOUSE_CLICKED, System.currentTimeMillis(), MouseEvent.BUTTON1_MASK,
+					x - locs[0], y - locs[1], 1, false);
 
 			// LogManager.log("Released on MCanvas at x:" + e.getX() + ", y:" +
 			// e.getY());
@@ -932,8 +918,8 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 
 	public static boolean doActonForSingleClickMode(final Component componentAt) {
 		if (componentAt instanceof Button) {
-			final ActionEvent actionEvent = new ActionEvent(componentAt,
-					ActionEvent.ACTION_PERFORMED, ((Button) componentAt).getActionCommand());
+			final ActionEvent actionEvent = new ActionEvent(componentAt, ActionEvent.ACTION_PERFORMED,
+					((Button) componentAt).getActionCommand());
 			if (dispatchEvent(componentAt, actionEvent)) {
 				return true;
 			}
@@ -949,21 +935,20 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 					togButton.setSelected(!togButton.isSelected());
 				}
 			}
-			final ActionEvent actionEvent = new ActionEvent(componentAt,
-					ActionEvent.ACTION_PERFORMED,
+			final ActionEvent actionEvent = new ActionEvent(componentAt, ActionEvent.ACTION_PERFORMED,
 					((AbstractButton) componentAt).getActionCommand());
 			if (dispatchEvent(componentAt, actionEvent)) {
 				return true;
 			}
 		} else if (componentAt instanceof JComboBox) {
-			final ActionEvent actionEvent = new ActionEvent(componentAt,
-					ActionEvent.ACTION_PERFORMED, ((JComboBox) componentAt).getActionCommand());
+			final ActionEvent actionEvent = new ActionEvent(componentAt, ActionEvent.ACTION_PERFORMED,
+					((JComboBox) componentAt).getActionCommand());
 			if (dispatchEvent(componentAt, actionEvent)) {
 				return true;
 			}
 		} else if (componentAt instanceof JTextField) {
-			final ActionEvent actionEvent = new ActionEvent(componentAt,
-					ActionEvent.ACTION_PERFORMED, ((JTextField) componentAt).getText());
+			final ActionEvent actionEvent = new ActionEvent(componentAt, ActionEvent.ACTION_PERFORMED,
+					((JTextField) componentAt).getText());
 			if (dispatchEvent(componentAt, actionEvent)) {
 				return true;
 			}
@@ -1040,8 +1025,8 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 			return;
 		}
 
-		final MouseEvent event = new MouseEvent(componentAt, MouseEvent.MOUSE_DRAGGED,
-				System.currentTimeMillis(), MouseEvent.BUTTON1_MASK, x, y, 1, false);
+		final MouseEvent event = new MouseEvent(componentAt, MouseEvent.MOUSE_DRAGGED, System.currentTimeMillis(), MouseEvent.BUTTON1_MASK,
+				x, y, 1, false);
 
 		for (int i = 0; i < ml.length; i++) {
 			final MouseMotionListener mouseListener = ml[i];
@@ -1072,8 +1057,7 @@ public class MletSnapCanvas extends PNGCapturer implements IMletCanvas {
 		}
 
 		ScreenServer.onExitForMlet(coreSS, projectContext, mlet, isAutoReleaseAfterGo);
-		MultiUsingManager.exit(coreSS,
-				ServerUIAPIAgent.buildScreenID(projectContext.getProjectID(), mlet.getTarget()));
+		MultiUsingManager.exit(coreSS, ServerUIAPIAgent.buildScreenID(projectContext.getProjectID(), mlet.getTarget()));
 
 		frame.dispose();
 		frameCombobox.dispose();

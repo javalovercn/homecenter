@@ -37,74 +37,78 @@ import org.jrubyparser.SourcePosition;
  * Access a dynamic variable (e.g. block scope local variable).
  */
 public class DVarNode extends NamedNode implements ILocalVariable {
-    // A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
-    // is what index in the right scope to set the value.
-    private int location;
+	// A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
+	// is what index in the right scope to set the value.
+	private int location;
 
-    public DVarNode(SourcePosition position, int location, String name) {
-        super(position, name);
+	public DVarNode(SourcePosition position, int location, String name) {
+		super(position, name);
 
-        this.location = location;
-    }
+		this.location = location;
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.DVARNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.DVARNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitDVarNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitDVarNode(this);
+	}
 
-    /**
-     * How many scopes should we burrow down to until we need to set the block variable value.
-     *
-     * @return 0 for current scope, 1 for one down, ...
-     */
-    public int getDepth() {
-        return location >> 16;
-    }
+	/**
+	 * How many scopes should we burrow down to until we need to set the block variable value.
+	 *
+	 * @return 0 for current scope, 1 for one down, ...
+	 */
+	public int getDepth() {
+		return location >> 16;
+	}
 
-    /**
-     * Gets the index within the scope construct that actually holds the eval'd value
-     * of this local variable
-     *
-     * @return Returns an int offset into storage structure
-     */
-    public int getIndex() {
-        return location & 0xffff;
-    }
+	/**
+	 * Gets the index within the scope construct that actually holds the eval'd value of this local
+	 * variable
+	 *
+	 * @return Returns an int offset into storage structure
+	 */
+	public int getIndex() {
+		return location & 0xffff;
+	}
 
-    @Override
-    public boolean isBlockParameter() {
-        return false;
-    }
+	@Override
+	public boolean isBlockParameter() {
+		return false;
+	}
 
-    public IScope getDefinedScope() {
-        IScope scope = getClosestIScope();
+	public IScope getDefinedScope() {
+		IScope scope = getClosestIScope();
 
-        for (int i = 0; i < getDepth(); i++) {
-            scope = ((Node) scope).getClosestIScope();
-        }
+		for (int i = 0; i < getDepth(); i++) {
+			scope = ((Node) scope).getClosestIScope();
+		}
 
-        return scope;
-    }
+		return scope;
+	}
 
-    public List<ILocalVariable> getOccurrences() {
-        return getDefinedScope().getVariableReferencesNamed(getName());
-    }
+	public List<ILocalVariable> getOccurrences() {
+		return getDefinedScope().getVariableReferencesNamed(getName());
+	}
 
-    public ILocalVariable getDeclaration() {
-        for (ILocalVariable variable: getOccurrences()) {
-            if (variable instanceof IParameter) return variable;
-            if (variable instanceof DAsgnNode) return variable;
-        }
+	public ILocalVariable getDeclaration() {
+		for (ILocalVariable variable : getOccurrences()) {
+			if (variable instanceof IParameter)
+				return variable;
+			if (variable instanceof DAsgnNode)
+				return variable;
+		}
 
-        assert false: "Never found declaration for DVarNode";
+		assert false : "Never found declaration for DVarNode";
 
-        return null; // Should not reach here
-    }
+		return null; // Should not reach here
+	}
 }

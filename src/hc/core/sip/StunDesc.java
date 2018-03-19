@@ -9,38 +9,42 @@ public abstract class StunDesc {
 	protected int publicPort;
 	protected boolean error = false;
 	protected int natType = 0;
-    private Object connector;
+	private Object connector;
 	private String stunServer;
 	private int stunPort;
 	private String ip;
-	public String getPublicIP(){
+
+	public String getPublicIP() {
 		return ip;
 	}
-	public void setPublicIP(String ip){
+
+	public void setPublicIP(String ip) {
 		this.ip = ip;
 	}
-	
-//	public abstract void keepalive();
-	
+
+	// public abstract void keepalive();
+
 	public void setError(int responseCode, String reason) {
 		this.error = true;
 		this.errorResponseCode = responseCode;
 		this.errorReason = reason;
 	}
-	
-	public void setPublicPort(int port){
+
+	public void setPublicPort(int port) {
 		this.publicPort = port;
 	}
-	
-	public int getPublicPort(){
+
+	public int getPublicPort() {
 		return publicPort;
 	}
 
-	public int getNatType(){
+	public int getNatType() {
 		return natType;
 	}
+
 	public boolean isOpenAccess() {
-		if (error) return false;
+		if (error)
+			return false;
 		return natType == EnumNAT.OPEN_INTERNET;
 	}
 
@@ -49,16 +53,18 @@ public abstract class StunDesc {
 	}
 
 	public boolean isBlockedUDP() {
-		if (error) return false;
+		if (error)
+			return false;
 		return natType == EnumNAT.UDP_BLOCKED;
 	}
 
 	public void setBlockedUDP() {
 		natType = EnumNAT.UDP_BLOCKED;
 	}
-	
+
 	public boolean isFullCone() {
-		if (error) return false;
+		if (error)
+			return false;
 		return natType == EnumNAT.FULL_CONE_NAT;
 	}
 
@@ -67,7 +73,8 @@ public abstract class StunDesc {
 	}
 
 	public boolean isPortRestrictedCone() {
-		if (error) return false;
+		if (error)
+			return false;
 		return natType == EnumNAT.PORT_RESTRICTED_CONE_NAT;
 	}
 
@@ -76,7 +83,8 @@ public abstract class StunDesc {
 	}
 
 	public boolean isRestrictedCone() {
-		if (error) return false;
+		if (error)
+			return false;
 		return natType == EnumNAT.RESTRICTED_CONE_NAT;
 	}
 
@@ -85,7 +93,8 @@ public abstract class StunDesc {
 	}
 
 	public boolean isSymmetric() {
-		if (error) return false;
+		if (error)
+			return false;
 		return natType == EnumNAT.SYMMETRICT_NAT;
 	}
 
@@ -94,14 +103,15 @@ public abstract class StunDesc {
 	}
 
 	public boolean isSymmetricUDPFirewall() {
-		if (error) return false;
+		if (error)
+			return false;
 		return natType == EnumNAT.SYMMETRIC_FIREWALL;
 	}
 
 	public void setSymmetricUDPFirewall() {
 		natType = EnumNAT.SYMMETRIC_FIREWALL;
 	}
-	
+
 	public String toString() {
 		StringBuffer sb = StringBufferCacher.getFree();
 		if (error) {
@@ -110,22 +120,29 @@ public abstract class StunDesc {
 			StringBufferCacher.cycle(sb);
 			return out;
 		}
-		
+
 		sb.append("Result: ");
-		if (natType == EnumNAT.OPEN_INTERNET) sb.append("Open access to the Internet.\n");
-		else if (natType == EnumNAT.UDP_BLOCKED) sb.append("Firewall blocks UDP.\n");
-		else if (natType == EnumNAT.FULL_CONE_NAT) sb.append("Full Cone NAT handles connections.\n");
-		else if (natType == EnumNAT.RESTRICTED_CONE_NAT) sb.append("Restricted Cone NAT handles connections.\n");
-		else if (natType == EnumNAT.PORT_RESTRICTED_CONE_NAT) sb.append("Port restricted Cone NAT handles connections.\n");
-		else if (natType == EnumNAT.SYMMETRICT_NAT) sb.append("Symmetric Cone NAT handles connections.\n");
-		else if (natType == EnumNAT.SYMMETRIC_FIREWALL) sb.append ("Symmetric UDP Firewall handles connections.\n");
-		else sb.append("unkown\n");
-		
+		if (natType == EnumNAT.OPEN_INTERNET)
+			sb.append("Open access to the Internet.\n");
+		else if (natType == EnumNAT.UDP_BLOCKED)
+			sb.append("Firewall blocks UDP.\n");
+		else if (natType == EnumNAT.FULL_CONE_NAT)
+			sb.append("Full Cone NAT handles connections.\n");
+		else if (natType == EnumNAT.RESTRICTED_CONE_NAT)
+			sb.append("Restricted Cone NAT handles connections.\n");
+		else if (natType == EnumNAT.PORT_RESTRICTED_CONE_NAT)
+			sb.append("Port restricted Cone NAT handles connections.\n");
+		else if (natType == EnumNAT.SYMMETRICT_NAT)
+			sb.append("Symmetric Cone NAT handles connections.\n");
+		else if (natType == EnumNAT.SYMMETRIC_FIREWALL)
+			sb.append("Symmetric UDP Firewall handles connections.\n");
+		else
+			sb.append("unkown\n");
+
 		final String out = sb.toString();
 		StringBufferCacher.cycle(sb);
 		return out;
-	}	
-
+	}
 
 	public Object getSocket() {
 		return connector;
@@ -134,16 +151,20 @@ public abstract class StunDesc {
 	public void setSocket(Object socket) {
 		this.connector = socket;
 	}
+
 	public String getStunServer() {
 		return stunServer;
 	}
+
 	public void setStunServer(String stunServer) {
 		this.stunServer = stunServer;
 	}
+
 	public int getStunPort() {
 		return stunPort;
 	}
+
 	public void setStunPort(int stunPort) {
 		this.stunPort = stunPort;
-	}		
+	}
 }

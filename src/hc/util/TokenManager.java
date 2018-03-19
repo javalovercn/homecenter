@@ -93,8 +93,8 @@ public class TokenManager {
 		PropertiesManager.saveFile();
 	}
 
-	public static void changeTokenFromUI(final boolean isDonateOrVIPNowOrEven, final String id,
-			final String token, final boolean isVerified) {
+	public static void changeTokenFromUI(final boolean isDonateOrVIPNowOrEven, final String id, final String token,
+			final boolean isVerified) {
 		ConnectionManager.addBeforeConnectionBiz(new AbstractDelayBiz(null) {
 			@Override
 			public final void doBiz() {
@@ -109,11 +109,9 @@ public class TokenManager {
 						PropertiesManager.setValue(PropertiesManager.p_uuid, id);
 						PropertiesManager.setValue(PropertiesManager.p_Token, token);
 						if (isVerified) {
-							PropertiesManager.setValue(PropertiesManager.p_IsVerifiedEmail,
-									IConstant.TRUE);
+							PropertiesManager.setValue(PropertiesManager.p_IsVerifiedEmail, IConstant.TRUE);
 						}
-						PropertiesManager.setValue(PropertiesManager.p_isDonateOrVIPNowOrEver,
-								isDonateOrVIPNowOrEven);
+						PropertiesManager.setValue(PropertiesManager.p_isDonateOrVIPNowOrEver, isDonateOrVIPNowOrEven);
 
 						PropertiesManager.saveFile();
 

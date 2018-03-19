@@ -59,8 +59,7 @@ import hc.util.ResourceUtil;
 import hc.util.StringBuilderCacher;
 
 public class SearchDialog extends HCDialog implements DesignScriptNodeIterator {
-	static Highlighter.HighlightPainter SEARCH_CODE_LINE_LIGHTER = new DefaultHighlighter.DefaultHighlightPainter(
-			Color.decode("#ADD8E6"));
+	static Highlighter.HighlightPainter SEARCH_CODE_LINE_LIGHTER = new DefaultHighlighter.DefaultHighlightPainter(Color.decode("#ADD8E6"));
 
 	private static final String ZERO_RESULT = "0 result.";
 
@@ -105,8 +104,8 @@ public class SearchDialog extends HCDialog implements DesignScriptNodeIterator {
 			return "";
 		}
 	});
-	final JScrollPane resultScrollPane = new JScrollPane(resultTable,
-			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+	final JScrollPane resultScrollPane = new JScrollPane(resultTable, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
 	final JPanel searchPanel = new JPanel(new GridBagLayout());
 	public HCTextPane hcTextPane;
@@ -116,8 +115,7 @@ public class SearchDialog extends HCDialog implements DesignScriptNodeIterator {
 	private int lastSelectionEndOffset;
 	private Highlighter.Highlight beforeSelection, endSelection;
 
-	public final void splitHighlightWhenSelection(final int offset, final int endOffset,
-			final Highlighter highlighter) {
+	public final void splitHighlightWhenSelection(final int offset, final int endOffset, final Highlighter highlighter) {
 		// if(lastSelectionOffset != -1){
 		// if(beforeSelection != null){
 		// highlighter.removeHighlight(beforeSelection);
@@ -174,13 +172,12 @@ public class SearchDialog extends HCDialog implements DesignScriptNodeIterator {
 		// }
 	}
 
-	public final Highlighter.Highlight addSearchHighlight(final Highlighter highlighter,
-			final int startIdx, final int endIdx) throws BadLocationException {
+	public final Highlighter.Highlight addSearchHighlight(final Highlighter highlighter, final int startIdx, final int endIdx)
+			throws BadLocationException {
 		if (startIdx == endIdx) {
 			return null;
 		}
-		return (Highlighter.Highlight) highlighter.addHighlight(startIdx, endIdx,
-				SEARCH_CODE_LINE_LIGHTER);
+		return (Highlighter.Highlight) highlighter.addHighlight(startIdx, endIdx, SEARCH_CODE_LINE_LIGHTER);
 	}
 
 	private final Vector<String> buildTableColumns() {
@@ -229,16 +226,14 @@ public class SearchDialog extends HCDialog implements DesignScriptNodeIterator {
 						}
 					}
 				} catch (final Exception ex) {
-					App.showMessageDialog(SearchDialog.this, ex.toString(),
-							ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE,
+					App.showMessageDialog(SearchDialog.this, ex.toString(), ResourceUtil.getErrorI18N(), App.ERROR_MESSAGE,
 							App.getSysIcon(App.SYS_ERROR_ICON));
 					return;
 				}
 				doSearch(searchText);
 			}
 
-			final char[] reservedPatternChars = { '$', '(', ')', '*', '+', '.', '[', ']', '?', '\\',
-					'^', '{', '}', '|' };
+			final char[] reservedPatternChars = { '$', '(', ')', '*', '+', '.', '[', ']', '?', '\\', '^', '{', '}', '|' };
 
 			private final String toPatternStr(final String text) {
 				final int reservedSize = reservedPatternChars.length;
@@ -282,11 +277,9 @@ public class SearchDialog extends HCDialog implements DesignScriptNodeIterator {
 
 		resultTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		final TableColumnModel columnModel = resultTable.getColumnModel();
-		final String columnWidths = PropertiesManager
-				.getValue(PropertiesManager.p_SearchDialogColumnWidths);
+		final String columnWidths = PropertiesManager.getValue(PropertiesManager.p_SearchDialogColumnWidths);
 		if (columnWidths != null) {
-			final String[] widths = StringUtil.splitToArray(columnWidths,
-					StringUtil.SPLIT_LEVEL_1_AT);
+			final String[] widths = StringUtil.splitToArray(columnWidths, StringUtil.SPLIT_LEVEL_1_AT);
 			for (int i = 0; i < widths.length; i++) {
 				try {
 					columnModel.getColumn(i).setPreferredWidth(Integer.parseInt(widths[i]));
@@ -318,8 +311,7 @@ public class SearchDialog extends HCDialog implements DesignScriptNodeIterator {
 					}
 					sb.append(columnModel.getColumn(i).getWidth());
 				}
-				PropertiesManager.setValue(PropertiesManager.p_SearchDialogColumnWidths,
-						sb.toString());
+				PropertiesManager.setValue(PropertiesManager.p_SearchDialogColumnWidths, sb.toString());
 				PropertiesManager.saveFile();
 				StringBuilderCacher.cycle(sb);
 			}
@@ -388,8 +380,7 @@ public class SearchDialog extends HCDialog implements DesignScriptNodeIterator {
 		c.fill = GridBagConstraints.BOTH;
 		searchPanel.add(resultTopPanel, c);
 
-		searchPanel.setBorder(new EmptyBorder(ClientDesc.hgap, ClientDesc.vgap, ClientDesc.hgap,
-				ClientDesc.vgap));
+		searchPanel.setBorder(new EmptyBorder(ClientDesc.hgap, ClientDesc.vgap, ClientDesc.hgap, ClientDesc.vgap));
 		final Container contentPane = getContentPane();
 		contentPane.add(searchPanel, BorderLayout.CENTER);
 
@@ -426,14 +417,11 @@ public class SearchDialog extends HCDialog implements DesignScriptNodeIterator {
 			}
 		});
 
-		rootPane.registerKeyboardAction(escListener, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-				JComponent.WHEN_IN_FOCUSED_WINDOW);
+		rootPane.registerKeyboardAction(escListener, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 		rootPane.setDefaultButton(searchButton);
-		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ENTER"),
-				"none");
-		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-				.put(KeyStroke.getKeyStroke("released ENTER"), "press");
+		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ENTER"), "none");
+		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("released ENTER"), "press");
 		setResizable(false);
 	}
 
@@ -502,8 +490,7 @@ public class SearchDialog extends HCDialog implements DesignScriptNodeIterator {
 	}
 
 	@Override
-	public void next(final DefaultMutableTreeNode treeNode, final HPNode node, final int type,
-			final String name, final String script) {
+	public void next(final DefaultMutableTreeNode treeNode, final HPNode node, final int type, final String name, final String script) {
 		char[] scriptChars = null;
 		int scriptCharLen = 0;
 
@@ -536,8 +523,8 @@ public class SearchDialog extends HCDialog implements DesignScriptNodeIterator {
 				}
 			}
 
-			final SearchResult sr = new SearchResult(treeNode, type, name, offset, end - offset,
-					startLineNo, new String(scriptChars, startLineOff, lineEndOff - startLineOff));
+			final SearchResult sr = new SearchResult(treeNode, type, name, offset, end - offset, startLineNo,
+					new String(scriptChars, startLineOff, lineEndOff - startLineOff));
 			resultData.add(sr);
 		}
 	}

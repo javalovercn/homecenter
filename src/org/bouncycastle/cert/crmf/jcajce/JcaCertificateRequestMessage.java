@@ -16,69 +16,54 @@ import org.bouncycastle.jcajce.util.DefaultJcaJceHelper;
 import org.bouncycastle.jcajce.util.NamedJcaJceHelper;
 import org.bouncycastle.jcajce.util.ProviderJcaJceHelper;
 
-public class JcaCertificateRequestMessage
-    extends CertificateRequestMessage
-{
-    private CRMFHelper helper = new CRMFHelper(new DefaultJcaJceHelper());
+public class JcaCertificateRequestMessage extends CertificateRequestMessage {
+	private CRMFHelper helper = new CRMFHelper(new DefaultJcaJceHelper());
 
-    public JcaCertificateRequestMessage(byte[] certReqMsg)
-    {
-        this(CertReqMsg.getInstance(certReqMsg));
-    }
+	public JcaCertificateRequestMessage(byte[] certReqMsg) {
+		this(CertReqMsg.getInstance(certReqMsg));
+	}
 
-    public JcaCertificateRequestMessage(CertificateRequestMessage certReqMsg)
-    {
-        this(certReqMsg.toASN1Structure());
-    }
+	public JcaCertificateRequestMessage(CertificateRequestMessage certReqMsg) {
+		this(certReqMsg.toASN1Structure());
+	}
 
-    public JcaCertificateRequestMessage(CertReqMsg certReqMsg)
-    {
-        super(certReqMsg);
-    }
+	public JcaCertificateRequestMessage(CertReqMsg certReqMsg) {
+		super(certReqMsg);
+	}
 
-    public JcaCertificateRequestMessage setProvider(String providerName)
-    {
-        this.helper = new CRMFHelper(new NamedJcaJceHelper(providerName));
+	public JcaCertificateRequestMessage setProvider(String providerName) {
+		this.helper = new CRMFHelper(new NamedJcaJceHelper(providerName));
 
-        return this;
-    }
+		return this;
+	}
 
-    public JcaCertificateRequestMessage setProvider(Provider provider)
-    {
-        this.helper = new CRMFHelper(new ProviderJcaJceHelper(provider));
+	public JcaCertificateRequestMessage setProvider(Provider provider) {
+		this.helper = new CRMFHelper(new ProviderJcaJceHelper(provider));
 
-        return this;
-    }
+		return this;
+	}
 
-    public X500Principal getSubjectX500Principal()
-    {
-        X500Name subject = this.getCertTemplate().getSubject();
+	public X500Principal getSubjectX500Principal() {
+		X500Name subject = this.getCertTemplate().getSubject();
 
-        if (subject != null)
-        {
-            try
-            {
-                return new X500Principal(subject.getEncoded(ASN1Encoding.DER));
-            }
-            catch (IOException e)
-            {
-                throw new IllegalStateException("unable to construct DER encoding of name: " + e.getMessage());
-            }
-        }
+		if (subject != null) {
+			try {
+				return new X500Principal(subject.getEncoded(ASN1Encoding.DER));
+			} catch (IOException e) {
+				throw new IllegalStateException("unable to construct DER encoding of name: " + e.getMessage());
+			}
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    public PublicKey getPublicKey()
-        throws CRMFException
-    {
-        SubjectPublicKeyInfo subjectPublicKeyInfo = getCertTemplate().getPublicKey();
+	public PublicKey getPublicKey() throws CRMFException {
+		SubjectPublicKeyInfo subjectPublicKeyInfo = getCertTemplate().getPublicKey();
 
-        if (subjectPublicKeyInfo != null)
-        {
-            return helper.toPublicKey(subjectPublicKeyInfo);
-        }
+		if (subjectPublicKeyInfo != null) {
+			return helper.toPublicKey(subjectPublicKeyInfo);
+		}
 
-        return null;
-    }
+		return null;
+	}
 }

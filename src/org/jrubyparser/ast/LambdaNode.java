@@ -35,21 +35,21 @@ import org.jrubyparser.StaticScope;
  * Stubby lambda node (1.9 only)
  */
 public class LambdaNode extends IterNode {
-    public LambdaNode(SourcePosition position, ArgsNode args, Node body, StaticScope scope) {
-        super(position, args, body, scope);
-    }
+	public LambdaNode(SourcePosition position, ArgsNode args, Node body, StaticScope scope) {
+		super(position, args, body, scope);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.LAMBDANODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.LAMBDANODE;
+	}
 
-    public ArgsNode getArgs() {
-        return (ArgsNode)getVar();
-    }
+	public ArgsNode getArgs() {
+		return (ArgsNode) getVar();
+	}
 
-    @Override
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitLambdaNode(this);
-    }
+	@Override
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitLambdaNode(this);
+	}
 }

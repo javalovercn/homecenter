@@ -14,32 +14,27 @@ import org.bouncycastle.cms.RecipientOperator;
 import org.bouncycastle.jcajce.io.CipherInputStream;
 import org.bouncycastle.operator.InputDecryptor;
 
-public class JceKeyAgreeEnvelopedRecipient
-    extends JceKeyAgreeRecipient
-{
-    public JceKeyAgreeEnvelopedRecipient(PrivateKey recipientKey)
-    {
-        super(recipientKey);
-    }
+public class JceKeyAgreeEnvelopedRecipient extends JceKeyAgreeRecipient {
+	public JceKeyAgreeEnvelopedRecipient(PrivateKey recipientKey) {
+		super(recipientKey);
+	}
 
-    public RecipientOperator getRecipientOperator(AlgorithmIdentifier keyEncryptionAlgorithm, final AlgorithmIdentifier contentEncryptionAlgorithm, SubjectPublicKeyInfo senderPublicKey, ASN1OctetString userKeyingMaterial, byte[] encryptedContentKey)
-        throws CMSException
-    {
-        Key secretKey = extractSecretKey(keyEncryptionAlgorithm, contentEncryptionAlgorithm, senderPublicKey, userKeyingMaterial, encryptedContentKey);
+	public RecipientOperator getRecipientOperator(AlgorithmIdentifier keyEncryptionAlgorithm,
+			final AlgorithmIdentifier contentEncryptionAlgorithm, SubjectPublicKeyInfo senderPublicKey, ASN1OctetString userKeyingMaterial,
+			byte[] encryptedContentKey) throws CMSException {
+		Key secretKey = extractSecretKey(keyEncryptionAlgorithm, contentEncryptionAlgorithm, senderPublicKey, userKeyingMaterial,
+				encryptedContentKey);
 
-        final Cipher dataCipher = contentHelper.createContentCipher(secretKey, contentEncryptionAlgorithm);
+		final Cipher dataCipher = contentHelper.createContentCipher(secretKey, contentEncryptionAlgorithm);
 
-        return new RecipientOperator(new InputDecryptor()
-        {
-            public AlgorithmIdentifier getAlgorithmIdentifier()
-            {
-                return contentEncryptionAlgorithm;
-            }
+		return new RecipientOperator(new InputDecryptor() {
+			public AlgorithmIdentifier getAlgorithmIdentifier() {
+				return contentEncryptionAlgorithm;
+			}
 
-            public InputStream getInputStream(InputStream dataOut)
-            {
-                return new CipherInputStream(dataOut, dataCipher);
-            }
-        });
-    }
+			public InputStream getInputStream(InputStream dataOut) {
+				return new CipherInputStream(dataOut, dataCipher);
+			}
+		});
+	}
 }

@@ -22,86 +22,87 @@ import java.lang.reflect.Method;
 import org.javassist.ClassPool;
 import org.javassist.bytecode.ConstPool;
 
-
 /**
  * Floating-point number constant value.
  *
  * @author <a href="mailto:bill@jboss.org">Bill Burke</a>
  * @author Shigeru Chiba
- * @version $Revision: 1.1 $
+ * @version $Revision: 1.2 $
  */
 public class FloatMemberValue extends MemberValue {
-    int valueIndex;
+	int valueIndex;
 
-    /**
-     * Constructs a float constant value.  The initial value is specified
-     * by the constant pool entry at the given index.
-     *
-     * @param index     the index of a CONSTANT_Float_info structure.
-     */
-    public FloatMemberValue(int index, ConstPool cp) {
-        super('F', cp);
-        this.valueIndex = index;
-    }
+	/**
+	 * Constructs a float constant value. The initial value is specified by the constant pool entry
+	 * at the given index.
+	 *
+	 * @param index
+	 *            the index of a CONSTANT_Float_info structure.
+	 */
+	public FloatMemberValue(int index, ConstPool cp) {
+		super('F', cp);
+		this.valueIndex = index;
+	}
 
-    /**
-     * Constructs a float constant value.
-     *
-     * @param f         the initial value.
-     */
-    public FloatMemberValue(float f, ConstPool cp) {
-        super('F', cp);
-        setValue(f);
-    }
+	/**
+	 * Constructs a float constant value.
+	 *
+	 * @param f
+	 *            the initial value.
+	 */
+	public FloatMemberValue(float f, ConstPool cp) {
+		super('F', cp);
+		setValue(f);
+	}
 
-    /**
-     * Constructs a float constant value.  The initial value is 0.0.
-     */
-    public FloatMemberValue(ConstPool cp) {
-        super('F', cp);
-        setValue(0.0F);
-    }
+	/**
+	 * Constructs a float constant value. The initial value is 0.0.
+	 */
+	public FloatMemberValue(ConstPool cp) {
+		super('F', cp);
+		setValue(0.0F);
+	}
 
-    Object getValue(ClassLoader cl, ClassPool cp, Method m) {
-        return Float.valueOf(getValue());
-    }
+	Object getValue(ClassLoader cl, ClassPool cp, Method m) {
+		return Float.valueOf(getValue());
+	}
 
-    Class getType(ClassLoader cl) {
-        return float.class;
-    }
+	Class getType(ClassLoader cl) {
+		return float.class;
+	}
 
-    /**
-     * Obtains the value of the member.
-     */
-    public float getValue() {
-        return cp.getFloatInfo(valueIndex);
-    }
+	/**
+	 * Obtains the value of the member.
+	 */
+	public float getValue() {
+		return cp.getFloatInfo(valueIndex);
+	}
 
-    /**
-     * Sets the value of the member.
-     */
-    public void setValue(float newValue) {
-        valueIndex = cp.addFloatInfo(newValue);
-    }
+	/**
+	 * Sets the value of the member.
+	 */
+	public void setValue(float newValue) {
+		valueIndex = cp.addFloatInfo(newValue);
+	}
 
-    /**
-     * Obtains the string representation of this object.
-     */
-    public String toString() {
-        return Float.toString(getValue());
-    }
+	/**
+	 * Obtains the string representation of this object.
+	 */
+	public String toString() {
+		return Float.toString(getValue());
+	}
 
-    /**
-     * Writes the value.
-     */
-    public void write(AnnotationsWriter writer) throws IOException {
-        writer.constValueIndex(getValue());
-    }
+	/**
+	 * Writes the value.
+	 */
+	public void write(AnnotationsWriter writer) throws IOException {
+		writer.constValueIndex(getValue());
+	}
 
-    /**
-     * Accepts a visitor.
-     */
-    public void accept(MemberValueVisitor visitor) {
-        visitor.visitFloatMemberValue(this);
-    }
+	/**
+	 * Accepts a visitor.
+	 */
+	public void accept(MemberValueVisitor visitor) {
+		visitor.visitFloatMemberValue(this);
+	}
 }

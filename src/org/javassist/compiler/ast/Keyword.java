@@ -22,15 +22,21 @@ import org.javassist.compiler.CompileError;
  * Keyword.
  */
 public class Keyword extends ASTree {
-    protected int tokenId;
+	protected int tokenId;
 
-    public Keyword(int token) {
-        tokenId = token;
-    }
+	public Keyword(int token) {
+		tokenId = token;
+	}
 
-    public int get() { return tokenId; }
+	public int get() {
+		return tokenId;
+	}
 
-    public String toString() { return "id:" + tokenId; }
+	public String toString() {
+		return "id:" + tokenId;
+	}
 
-    public void accept(Visitor v) throws CompileError { v.atKeyword(this); }
+	public void accept(Visitor v) throws CompileError {
+		v.atKeyword(this);
+	}
 }

@@ -65,12 +65,10 @@ public class HCTablePanel {
 	 * @param colNumber
 	 *            列数。注意：有可能本值<>colName.length()。因为数据区可能使用复合对象
 	 */
-	public HCTablePanel(final AbstractTableModel tableModel, final Vector<Object[]> libs,
-			final Object[] colName, final int initRows, final JButton upBut, final JButton downBut,
-			final JButton removeBut, final JButton importBut, final JButton editBut,
-			final AbstractDelayBiz upOrDownMovingBiz, final AbstractDelayBiz removeBiz,
-			final AbstractDelayBiz importBiz, final boolean isFirstColLineIdx,
-			final int colNumber) {
+	public HCTablePanel(final AbstractTableModel tableModel, final Vector<Object[]> libs, final Object[] colName, final int initRows,
+			final JButton upBut, final JButton downBut, final JButton removeBut, final JButton importBut, final JButton editBut,
+			final AbstractDelayBiz upOrDownMovingBiz, final AbstractDelayBiz removeBiz, final AbstractDelayBiz importBiz,
+			final boolean isFirstColLineIdx, final int colNumber) {
 		// {
 		// System.out.println("print table value");
 		// final int size = tableModel.getRowCount();

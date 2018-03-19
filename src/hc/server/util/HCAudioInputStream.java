@@ -8,8 +8,7 @@ public final class HCAudioInputStream extends HCFileInputStream {
 	private final double longitude;
 	private final double altitude;
 
-	HCAudioInputStream(final InputStream is, final String format, final double latitude,
-			final double longitude, final double altitude) {
+	HCAudioInputStream(final InputStream is, final String format, final double latitude, final double longitude, final double altitude) {
 		super(is, format.toLowerCase(), nullFileName);
 		this.format = format;
 		this.latitude = latitude;

@@ -110,8 +110,8 @@ public class CodeItem implements Comparable<CodeItem> {
 	}
 
 	public final boolean isOverrideable() {
-		return type == TYPE_METHOD && Modifier.isFinal(modifiers) == false
-				&& Modifier.isStatic(modifiers) == false && Modifier.isPrivate(modifiers) == false;
+		return type == TYPE_METHOD && Modifier.isFinal(modifiers) == false && Modifier.isStatic(modifiers) == false
+				&& Modifier.isPrivate(modifiers) == false;
 	}
 
 	public final static int TYPE_VARIABLE = 1;// 优先排序
@@ -203,8 +203,7 @@ public class CodeItem implements Comparable<CodeItem> {
 
 	@Override
 	public final int compareTo(final CodeItem o) {// 注意：如果增加field，请同步到equals()
-		if (fmClass == CodeInvokeCounter.CLASS_UN_INVOKE_COUNT_STRUCT
-				&& o.fmClass != CodeInvokeCounter.CLASS_UN_INVOKE_COUNT_STRUCT) {
+		if (fmClass == CodeInvokeCounter.CLASS_UN_INVOKE_COUNT_STRUCT && o.fmClass != CodeInvokeCounter.CLASS_UN_INVOKE_COUNT_STRUCT) {
 			return -1;// 优先显示JRuby Struct枚举属性
 		}
 
@@ -238,8 +237,7 @@ public class CodeItem implements Comparable<CodeItem> {
 
 		if (o instanceof CodeItem) {
 			final CodeItem ci = (CodeItem) o;
-			if (this.type == ci.type && this.fmClass.equals(ci.fmClass)
-					&& this.fieldOrMethodOrClassName.equals(ci.fieldOrMethodOrClassName)
+			if (this.type == ci.type && this.fmClass.equals(ci.fmClass) && this.fieldOrMethodOrClassName.equals(ci.fieldOrMethodOrClassName)
 					&& this.codeDisplay.equals(ci.codeDisplay)) {
 				return true;
 			}
@@ -261,8 +259,7 @@ public class CodeItem implements Comparable<CodeItem> {
 		return findSameName;
 	}
 
-	public final static boolean containsSameFieldMethodName(final ArrayList<CodeItem> list,
-			final String fieldOrMethodOrClassName) {
+	public final static boolean containsSameFieldMethodName(final ArrayList<CodeItem> list, final String fieldOrMethodOrClassName) {
 		final int sizeList = list.size();
 		for (int j = 0; j < sizeList; j++) {
 			if (list.get(j).fieldOrMethodOrClassName.equals(fieldOrMethodOrClassName)) {
@@ -272,8 +269,7 @@ public class CodeItem implements Comparable<CodeItem> {
 		return false;
 	}
 
-	public final static boolean overrideMethod(final CodeItem item,
-			final ArrayList<CodeItem> list) {
+	public final static boolean overrideMethod(final CodeItem item, final ArrayList<CodeItem> list) {
 		final int sizeList = list.size();
 		boolean findSameName = false;
 		for (int j = sizeList - 1; j >= 0; j--) {
@@ -292,8 +288,7 @@ public class CodeItem implements Comparable<CodeItem> {
 
 	final boolean isOverrideItem(final CodeItem codeItem) {
 		// isRubyClass == fals，因为Object方法eql?和equal?使用相同的codeForDoc
-		return type == TYPE_METHOD && isRubyClass == false && codeItem.type == TYPE_METHOD
-				&& codeItem.codeForDoc.equals(codeForDoc);
+		return type == TYPE_METHOD && isRubyClass == false && codeItem.type == TYPE_METHOD && codeItem.codeForDoc.equals(codeForDoc);
 	}
 
 	public final void pushDownOverrideMethod() {

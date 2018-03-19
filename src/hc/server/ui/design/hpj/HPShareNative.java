@@ -30,8 +30,7 @@ public class HPShareNative extends HCShareFileResource {
 	@Override
 	public String validate() {
 		if (osMask == NativeOSManager.OS_UNKNOWN) {
-			return "choose at least one operation system for native lib [<strong>" + name
-					+ "</strong>] !";
+			return "choose at least one operation system for native lib [<strong>" + name + "</strong>] !";
 		}
 
 		return null;

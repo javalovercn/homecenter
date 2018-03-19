@@ -1,5 +1,4 @@
 
-
 package org.jrubyparser.lexer;
 
 import java.io.IOException;
@@ -9,316 +8,331 @@ import org.jrubyparser.parser.ParserConfiguration;
 import org.jrubyparser.util.CStringBuilder;
 
 public class ReaderLexerSource extends LexerSource {
-    private static final int INITIAL_PUSHBACK_SIZE = 100;
-    
-    // Where we get our newest char's
-    private final Reader in;
-    
-    // Our readback/pushback buffer.
-    private char buf[] = new char[INITIAL_PUSHBACK_SIZE];
-    
-    // index of last character in pushback buffer
-    private int bufLength = -1;
-    
-    // Character read before previous read
-    private int oneAgo = '\n';
-    private int twoAgo = 0;
-    
-    /**
-     * Create our food-source for the lexer
-     * 
-     * @param sourceName is the file we are reading
-     * @param in is what represents the contents of file sourceName
-     * @param line starting line number for source (used by eval)
-     */
-    public ReaderLexerSource(String sourceName, Reader in, int line) {
-        super(sourceName, line);
-        
-        this.in = in;
-    }
-    
-    /**
-     * Read next character from this source
-     * 
-     * @return next character to viewed by the source
-     * @throws IOException if crap happens
-     */
-    public int read() throws IOException {
-        int c;
-        
-        if (bufLength >= 0) {
-            c = buf[bufLength--];
-        } else {
-            c = wrappedRead();
-            
-            if (c == -1) return Lexer.EOF;
-        }
-        
-        advance(c);
-        
-        if (c == '\n') line++;
-            
-        return c; 
-    }
+	private static final int INITIAL_PUSHBACK_SIZE = 100;
 
-    /**
-     * Pushes char back onto this source.  Note, this also
-     * allows us to push whatever is passes back into the source.
-     * 
-     * @param c to be put back onto the source
-     */
-    public void unread(int c) {
-        if (c == Lexer.EOF) return;
-        
-        retreat();
-            
-        if (c == '\n') line--;
+	// Where we get our newest char's
+	private final Reader in;
 
-        buf[++bufLength] = (char) c;
-        
-        growBuf();
-    }
-    
-    /**
-     * Is the next character equal to 'to'
-     *
-     * @param to character to compare against
-     * @return true if the same
-     * @throws IOException if crap happens
-     */
-    public boolean peek(int to) throws IOException {
-        // keep value of twoAgo around so we can restore after we unread
-        int captureTwoAgo = twoAgo;
-        int c = read();
-        unread(c);
-        twoAgo = captureTwoAgo;
-        return c == to;
-    }
+	// Our readback/pushback buffer.
+	private char buf[] = new char[INITIAL_PUSHBACK_SIZE];
 
-    private void advance(int c) {
+	// index of last character in pushback buffer
+	private int bufLength = -1;
 
-        twoAgo = oneAgo;
-        oneAgo = c;
-        offset++;
-    }
+	// Character read before previous read
+	private int oneAgo = '\n';
+	private int twoAgo = 0;
 
-    private int carriageReturn(int c) throws IOException {
-        if ((c = in.read()) != '\n') {
-            unread((char) c);
-            c = '\n';
-        } else {
-            // Position within source must reflect the actual offset and column.  Since
-            // we ate an extra character here (this accounting is normally done in read
-            // ), we should update position info.
-            offset++;
-        }
-        return c;
-    }
+	/**
+	 * Create our food-source for the lexer
+	 * 
+	 * @param sourceName
+	 *            is the file we are reading
+	 * @param in
+	 *            is what represents the contents of file sourceName
+	 * @param line
+	 *            starting line number for source (used by eval)
+	 */
+	public ReaderLexerSource(String sourceName, Reader in, int line) {
+		super(sourceName, line);
 
-    private void growBuf() {
-        // If we outgrow our pushback stack then grow it (this should only happen in pretty 
-        // pathological cases).
-        if (bufLength + 1 == buf.length) {
-            char[] newBuf = new char[buf.length + INITIAL_PUSHBACK_SIZE];
+		this.in = in;
+	}
 
-            System.arraycopy(buf, 0, newBuf, 0, buf.length);
+	/**
+	 * Read next character from this source
+	 * 
+	 * @return next character to viewed by the source
+	 * @throws IOException
+	 *             if crap happens
+	 */
+	public int read() throws IOException {
+		int c;
 
-            buf = newBuf;
-        }
-    }
+		if (bufLength >= 0) {
+			c = buf[bufLength--];
+		} else {
+			c = wrappedRead();
 
-    private void retreat() {
+			if (c == -1)
+				return Lexer.EOF;
+		}
 
-        offset--;
-        oneAgo = twoAgo;
-        twoAgo = 0;
-    }
-    
-    /**
-     * Convenience method to hide exception.  If we do hit an exception
-     * we will pretend we EOF'd.
-     * 
-     * @return the current char or EOF (at EOF or on error)
-     */
-    private int wrappedRead() throws IOException {
-        int c = in.read();
-        
-        // If \r\n then just pass along \n (windows). 
-        // If \r[^\n] then pass along \n (MAC).
-        if (c == '\r') { 
-            c = carriageReturn(c);
-        }
+		advance(c);
 
-        return c;
-    }
-    
-    /**
-     * Create a source.
-     * 
-     * @param name the name of the source (e.g a filename: foo.rb)
-     * @param content the data of the source
-     * @param configuration the config for this parse/lex
-     * @return the new source
-     */
-    public static LexerSource getSource(String name, Reader content,
-            ParserConfiguration configuration) {
-        return new ReaderLexerSource(name, content, configuration.getLineNumber());
-    }
+		if (c == '\n')
+			line++;
 
-    @Override
-    public String readLineBytes() throws IOException {
-        CStringBuilder list = new CStringBuilder(80);
+		return c;
+	}
 
-        for (int c = read(); c != '\n' && c != Lexer.EOF; c = read()) {
-            list.append((char) c);
-        }
-        
-        return list.toString();
-    }
-    
-    @Override
-    public int skipUntil(int c) throws IOException {
-        for (c = read(); c != '\n' && c != Lexer.EOF; c = read()) {}
-        
-        return c;
-    }
+	/**
+	 * Pushes char back onto this source. Note, this also allows us to push whatever is passes back
+	 * into the source.
+	 * 
+	 * @param c
+	 *            to be put back onto the source
+	 */
+	public void unread(int c) {
+		if (c == Lexer.EOF)
+			return;
 
-    public void unreadMany(CharSequence buffer) {
-        int length = buffer.length();
-        for (int i = length - 1; i >= 0; i--) {
-            unread(buffer.charAt(i));
-        }
-    }
+		retreat();
 
-    @Override
-    public boolean matchMarker(String match, boolean indent, boolean checkNewline) throws IOException {
-        int length = match.length();
-        CStringBuilder buffer = new CStringBuilder(length + 1);
-        
-        if (indent) {
-            indentLoop(buffer);
-        }
-        
-        if (!matches(match, buffer, length)) return false;
-        
-        return finishMarker(checkNewline, buffer); 
-    }
+		if (c == '\n')
+			line--;
 
-    private void indentLoop(CStringBuilder buffer) throws IOException {
-        int c;
-        while ((c = read()) != Lexer.EOF) {
-            if (!Character.isWhitespace(c) || c == '\n') {
-                unread(c);
-                break;
-            }
-            buffer.append((char) c);
-        }
-    }
-    
-    private boolean matches(String match, CStringBuilder buffer, int length) throws IOException {
-        int c;
-        for (int i = 0; i < length; i++) {
-            c = read();
-            buffer.append((char) c);
-            if (match.charAt(i) != c) {
-                unreadMany(buffer);
-                return false;
-            }
-        }
-        return true;
-    }
+		buf[++bufLength] = (char) c;
 
-    private boolean finishMarker(boolean checkNewline, CStringBuilder buffer) throws IOException {
+		growBuf();
+	}
 
-        if (!checkNewline) {
-            return true;
-        }
-        int c = read();
+	/**
+	 * Is the next character equal to 'to'
+	 *
+	 * @param to
+	 *            character to compare against
+	 * @return true if the same
+	 * @throws IOException
+	 *             if crap happens
+	 */
+	public boolean peek(int to) throws IOException {
+		// keep value of twoAgo around so we can restore after we unread
+		int captureTwoAgo = twoAgo;
+		int c = read();
+		unread(c);
+		twoAgo = captureTwoAgo;
+		return c == to;
+	}
 
-        if (c == Lexer.EOF || c == '\n') {
-            return true;
-        }
-        buffer.append((char) c);
-        unreadMany(buffer);
+	private void advance(int c) {
 
-        return false;
-    }
-    
-    /**
-     * Was the last character read from the stream the first character on a line
-     * 
-     * @return true if so
-     */
-    public boolean wasBeginOfLine() {
-        return twoAgo == '\n';
-    }
+		twoAgo = oneAgo;
+		oneAgo = c;
+		offset++;
+	}
 
-    public boolean lastWasBeginOfLine() {
-        return oneAgo == '\n';
-    }
+	private int carriageReturn(int c) throws IOException {
+		if ((c = in.read()) != '\n') {
+			unread((char) c);
+			c = '\n';
+		} else {
+			// Position within source must reflect the actual offset and column.  Since
+			// we ate an extra character here (this accounting is normally done in read
+			// ), we should update position info.
+			offset++;
+		}
+		return c;
+	}
 
-    @Override
-    public String toString() {
-        try {
-            CStringBuilder buffer = new CStringBuilder(20);
-            buffer.append(twoAgo);
-            buffer.append(oneAgo);
-            buffer.append(new byte[] {'-', '>'});
-            int i = 0;
-            for (; i < 20; i++) {
-                int c = read();
-                if (c == 0) {
-                    i--;
-                    break;
-                }
-                buffer.append((char) c);
-            }
-            for (; i >= 0; i++) {
-                unread(buffer.charAt(i));
-            }
-            buffer.append(new byte[] {' ', '.', '.', '.'});
-            return buffer.toString();
-        } catch(Exception e) {
-            return null;
-        }
-    }
+	private void growBuf() {
+		// If we outgrow our pushback stack then grow it (this should only happen in pretty 
+		// pathological cases).
+		if (bufLength + 1 == buf.length) {
+			char[] newBuf = new char[buf.length + INITIAL_PUSHBACK_SIZE];
 
-    @Override
-    public String readUntil(char marker) throws IOException {
-        CStringBuilder list = new CStringBuilder(20);
-        int c;
-        
-        for (c = read(); c != marker && c != Lexer.EOF; c = read()) {
-            list.append((char) c);
-        }
-        
-        if (c == Lexer.EOF) return null;
-        
-        unread(c);
-        
-        return list.toString();
-    }
+			System.arraycopy(buf, 0, newBuf, 0, buf.length);
 
-    @Override
-    public int chompReadAhead() {
-        int result = bufLength + 1;
-        bufLength = -1;
-        return result;
-    }
+			buf = newBuf;
+		}
+	}
 
-    @Override
-    public boolean isANewLine() {
-        return oneAgo == '\n';
-    }
+	private void retreat() {
 
-    // Various places where we call LexerSource.unread(), the nextCharIsOnANewline value gets inaccurate (column/line too, but I don't care about those)
-    @Override
-    public void setIsANewLine(boolean nextCharIsOnANewLine) {
-        oneAgo = nextCharIsOnANewLine ? '\n' : oneAgo;
-    }
+		offset--;
+		oneAgo = twoAgo;
+		twoAgo = 0;
+	}
 
-    @Override
-    public void setOffset(int offset) {
-        this.offset = offset;
-    }
+	/**
+	 * Convenience method to hide exception. If we do hit an exception we will pretend we EOF'd.
+	 * 
+	 * @return the current char or EOF (at EOF or on error)
+	 */
+	private int wrappedRead() throws IOException {
+		int c = in.read();
+
+		// If \r\n then just pass along \n (windows). 
+		// If \r[^\n] then pass along \n (MAC).
+		if (c == '\r') {
+			c = carriageReturn(c);
+		}
+
+		return c;
+	}
+
+	/**
+	 * Create a source.
+	 * 
+	 * @param name
+	 *            the name of the source (e.g a filename: foo.rb)
+	 * @param content
+	 *            the data of the source
+	 * @param configuration
+	 *            the config for this parse/lex
+	 * @return the new source
+	 */
+	public static LexerSource getSource(String name, Reader content, ParserConfiguration configuration) {
+		return new ReaderLexerSource(name, content, configuration.getLineNumber());
+	}
+
+	@Override
+	public String readLineBytes() throws IOException {
+		CStringBuilder list = new CStringBuilder(80);
+
+		for (int c = read(); c != '\n' && c != Lexer.EOF; c = read()) {
+			list.append((char) c);
+		}
+
+		return list.toString();
+	}
+
+	@Override
+	public int skipUntil(int c) throws IOException {
+		for (c = read(); c != '\n' && c != Lexer.EOF; c = read()) {
+		}
+
+		return c;
+	}
+
+	public void unreadMany(CharSequence buffer) {
+		int length = buffer.length();
+		for (int i = length - 1; i >= 0; i--) {
+			unread(buffer.charAt(i));
+		}
+	}
+
+	@Override
+	public boolean matchMarker(String match, boolean indent, boolean checkNewline) throws IOException {
+		int length = match.length();
+		CStringBuilder buffer = new CStringBuilder(length + 1);
+
+		if (indent) {
+			indentLoop(buffer);
+		}
+
+		if (!matches(match, buffer, length))
+			return false;
+
+		return finishMarker(checkNewline, buffer);
+	}
+
+	private void indentLoop(CStringBuilder buffer) throws IOException {
+		int c;
+		while ((c = read()) != Lexer.EOF) {
+			if (!Character.isWhitespace(c) || c == '\n') {
+				unread(c);
+				break;
+			}
+			buffer.append((char) c);
+		}
+	}
+
+	private boolean matches(String match, CStringBuilder buffer, int length) throws IOException {
+		int c;
+		for (int i = 0; i < length; i++) {
+			c = read();
+			buffer.append((char) c);
+			if (match.charAt(i) != c) {
+				unreadMany(buffer);
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean finishMarker(boolean checkNewline, CStringBuilder buffer) throws IOException {
+
+		if (!checkNewline) {
+			return true;
+		}
+		int c = read();
+
+		if (c == Lexer.EOF || c == '\n') {
+			return true;
+		}
+		buffer.append((char) c);
+		unreadMany(buffer);
+
+		return false;
+	}
+
+	/**
+	 * Was the last character read from the stream the first character on a line
+	 * 
+	 * @return true if so
+	 */
+	public boolean wasBeginOfLine() {
+		return twoAgo == '\n';
+	}
+
+	public boolean lastWasBeginOfLine() {
+		return oneAgo == '\n';
+	}
+
+	@Override
+	public String toString() {
+		try {
+			CStringBuilder buffer = new CStringBuilder(20);
+			buffer.append(twoAgo);
+			buffer.append(oneAgo);
+			buffer.append(new byte[] { '-', '>' });
+			int i = 0;
+			for (; i < 20; i++) {
+				int c = read();
+				if (c == 0) {
+					i--;
+					break;
+				}
+				buffer.append((char) c);
+			}
+			for (; i >= 0; i++) {
+				unread(buffer.charAt(i));
+			}
+			buffer.append(new byte[] { ' ', '.', '.', '.' });
+			return buffer.toString();
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
+	@Override
+	public String readUntil(char marker) throws IOException {
+		CStringBuilder list = new CStringBuilder(20);
+		int c;
+
+		for (c = read(); c != marker && c != Lexer.EOF; c = read()) {
+			list.append((char) c);
+		}
+
+		if (c == Lexer.EOF)
+			return null;
+
+		unread(c);
+
+		return list.toString();
+	}
+
+	@Override
+	public int chompReadAhead() {
+		int result = bufLength + 1;
+		bufLength = -1;
+		return result;
+	}
+
+	@Override
+	public boolean isANewLine() {
+		return oneAgo == '\n';
+	}
+
+	// Various places where we call LexerSource.unread(), the nextCharIsOnANewline value gets inaccurate (column/line too, but I don't care about those)
+	@Override
+	public void setIsANewLine(boolean nextCharIsOnANewLine) {
+		oneAgo = nextCharIsOnANewLine ? '\n' : oneAgo;
+	}
+
+	@Override
+	public void setOffset(int offset) {
+		this.offset = offset;
+	}
 }

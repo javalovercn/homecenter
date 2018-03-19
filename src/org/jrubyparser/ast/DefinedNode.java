@@ -35,58 +35,63 @@ import org.jrubyparser.SourcePosition;
  * a defined statement.
  */
 public class DefinedNode extends Node {
-    private Node expressionNode;
+	private Node expressionNode;
 
-    public DefinedNode(SourcePosition position, Node expressionNode) {
-        super(position);
+	public DefinedNode(SourcePosition position, Node expressionNode) {
+		super(position);
 
-        assert expressionNode != null : "expressionNode is not null";
+		assert expressionNode != null : "expressionNode is not null";
 
-        this.expressionNode = adopt(expressionNode);
-    }
+		this.expressionNode = adopt(expressionNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		DefinedNode other = (DefinedNode) node;
 
-        DefinedNode other = (DefinedNode) node;
+		if (getExpression() == null && other.getExpression() == null)
+			return true;
+		if (getExpression() == null || other.getExpression() == null)
+			return false;
 
-        if (getExpression() == null && other.getExpression() == null) return true;
-        if (getExpression() == null || other.getExpression() == null) return false;
+		return getExpression().isSame(other.getExpression());
+	}
 
-        return getExpression().isSame(other.getExpression());
-    }
+	public NodeType getNodeType() {
+		return NodeType.DEFINEDNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitDefinedNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.DEFINEDNODE;
-    }
+	/**
+	 * Gets the expressionNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getExpression() {
+		return expressionNode;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitDefinedNode(this);
-    }
-
-    /**
-     * Gets the expressionNode.
-     * @return Returns a Node
-     */
-    public Node getExpression() {
-        return expressionNode;
-    }
-
-    @Deprecated
-    public Node getExpressionNode() {
-        return getExpression();
-    }
+	@Deprecated
+	public Node getExpressionNode() {
+		return getExpression();
+	}
 }

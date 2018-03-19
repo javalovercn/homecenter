@@ -11,44 +11,34 @@ import org.bouncycastle.openssl.PEMDecryptorProvider;
 import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.openssl.PasswordException;
 
-public class JcePEMDecryptorProviderBuilder
-{
-    private JcaJceHelper helper = new DefaultJcaJceHelper();
+public class JcePEMDecryptorProviderBuilder {
+	private JcaJceHelper helper = new DefaultJcaJceHelper();
 
-    public JcePEMDecryptorProviderBuilder setProvider(Provider provider)
-    {
-        this.helper = new ProviderJcaJceHelper(provider);
+	public JcePEMDecryptorProviderBuilder setProvider(Provider provider) {
+		this.helper = new ProviderJcaJceHelper(provider);
 
-        return this;
-    }
+		return this;
+	}
 
-    public JcePEMDecryptorProviderBuilder setProvider(String providerName)
-    {
-        this.helper = new NamedJcaJceHelper(providerName);
+	public JcePEMDecryptorProviderBuilder setProvider(String providerName) {
+		this.helper = new NamedJcaJceHelper(providerName);
 
-        return this;
-    }
+		return this;
+	}
 
-    public PEMDecryptorProvider build(final char[] password)
-    {
-        return new PEMDecryptorProvider()
-        {
-            public PEMDecryptor get(final String dekAlgName)
-            {
-                return new PEMDecryptor()
-                {
-                    public byte[] decrypt(byte[] keyBytes, byte[] iv)
-                        throws PEMException
-                    {
-                        if (password == null)
-                        {
-                            throw new PasswordException("Password is null, but a password is required");
-                        }
+	public PEMDecryptorProvider build(final char[] password) {
+		return new PEMDecryptorProvider() {
+			public PEMDecryptor get(final String dekAlgName) {
+				return new PEMDecryptor() {
+					public byte[] decrypt(byte[] keyBytes, byte[] iv) throws PEMException {
+						if (password == null) {
+							throw new PasswordException("Password is null, but a password is required");
+						}
 
-                        return PEMUtilities.crypt(false, helper, keyBytes, password, dekAlgName, iv);
-                    }
-                };
-            }
-        };
-    }
+						return PEMUtilities.crypt(false, helper, keyBytes, password, dekAlgName, iv);
+					}
+				};
+			}
+		};
+	}
 }

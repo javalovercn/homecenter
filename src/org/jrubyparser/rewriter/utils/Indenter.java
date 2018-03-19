@@ -31,7 +31,7 @@ package org.jrubyparser.rewriter.utils;
 import java.io.PrintWriter;
 
 public class Indenter {
-	
+
 	private int indentation;
 
 	private int indentationSteps;
@@ -50,7 +50,7 @@ public class Indenter {
 	public void outdent() {
 		indentation -= indentationSteps;
 	}
-	
+
 	public void printIndentation(PrintWriter out) {
 		for (int i = 0; i < indentation; i++)
 			out.print(indentationChar);

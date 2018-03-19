@@ -31,17 +31,17 @@ package org.jrubyparser.rewriter.utils;
 import java.util.HashSet;
 
 public class Operators {
-	
+
 	private static HashSet<String> operatorSet = new HashSet<String>();
 	static {
-		String[] operators = new String[] { "**", "<=>", "==", "=~", "===", ">=", "<=", "&", "%", 
-                "/", "+", "-", "*", "<", ">", "<<", ">>", "|"};
-        
-		for(int i = 0; i < operators.length; i++) {
+		String[] operators = new String[] { "**", "<=>", "==", "=~", "===", ">=", "<=", "&", "%", "/", "+", "-", "*", "<", ">", "<<", ">>",
+				"|" };
+
+		for (int i = 0; i < operators.length; i++) {
 			operatorSet.add(operators[i]);
 		}
 	}
-	
+
 	public static boolean contain(String name) {
 		return operatorSet.contains(name);
 	}

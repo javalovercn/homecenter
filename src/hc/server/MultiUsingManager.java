@@ -16,11 +16,9 @@ import java.util.Vector;
 public class MultiUsingManager {
 	public final static String NULL_PROJECT_ID = "NullProjID";
 
-	private final static HashMap<J2SESession, Vector<String>> usingMap = new HashMap<J2SESession, Vector<String>>(
-			2);
+	private final static HashMap<J2SESession, Vector<String>> usingMap = new HashMap<J2SESession, Vector<String>>(2);
 
-	public final synchronized static boolean enter(final J2SESession coreSS, final String screenID,
-			final String targetURL) {
+	public final synchronized static boolean enter(final J2SESession coreSS, final String screenID, final String targetURL) {
 		if (targetURL.startsWith(HCURL.URL_DIALOG_PRE, 0)) {
 			return false;
 		}
@@ -48,8 +46,7 @@ public class MultiUsingManager {
 		return true;
 	}
 
-	private final static synchronized void warningMutliUsing(final J2SESession coreSS,
-			final String screenID) {
+	private final static synchronized void warningMutliUsing(final J2SESession coreSS, final String screenID) {
 		if (usingMap.size() < 2) {
 			return;
 		}
@@ -74,8 +71,8 @@ public class MultiUsingManager {
 
 	private static void sendWarning(final J2SESession coreSS) {
 		final J2SESession[] coreSSS = { coreSS };
-		ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, ResourceUtil.getWarnI18N(coreSS),
-				(String) ResourceUtil.get(coreSS, 9239), ProjectContext.MESSAGE_WARN, null, 0);
+		ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, ResourceUtil.getWarnI18N(coreSS), (String) ResourceUtil.get(coreSS, 9239),
+				ProjectContext.MESSAGE_WARN, null, 0);
 	}
 
 	public final synchronized static void exit(final J2SESession coreSS, final String screenID) {

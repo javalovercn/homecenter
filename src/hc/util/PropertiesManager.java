@@ -395,8 +395,7 @@ public class PropertiesManager {
 							// propFileWriting.renameTo(propFile);
 						} catch (final Exception e) {
 							ExceptionReporter.printStackTrace(e);
-							App.showMessageDialog(null, "write data to properties file error!",
-									"Error", JOptionPane.ERROR_MESSAGE);
+							App.showMessageDialog(null, "write data to properties file error!", "Error", JOptionPane.ERROR_MESSAGE);
 							// System.exit(0);
 						}
 					}
@@ -453,13 +452,11 @@ public class PropertiesManager {
 
 			if (isSecurityData || key.startsWith(S_LINK_PROJECTS, 0)// S_LINK_PROJECTS
 																	// + "Lists"
-					|| key.startsWith(S_THIRD_DIR, 0) || key.startsWith(CAP_PREFIX, 0)
-					|| key.startsWith(S_SecurityProperties, 0) || key.equals(p_isDemoServer)// 影响securityManager
-					|| key.equals(p_NewCertIsNotTransed) || key.equals(p_EnableTransNewCertKeyNow)
-					|| key.equals(p_HideIDForErrCert) || key.equals(p_Log)
-					|| key.equals(p_SecurityCipher) || key.equals(p_SecuritySDPVersion)
-					|| key.equals(p_SecuritySecretKeySize)
-					|| key.equals(p_isRememberDevCertPassword)) {// 注意：如果增加逻辑，请同步到remove中
+					|| key.startsWith(S_THIRD_DIR, 0) || key.startsWith(CAP_PREFIX, 0) || key.startsWith(S_SecurityProperties, 0)
+					|| key.equals(p_isDemoServer)// 影响securityManager
+					|| key.equals(p_NewCertIsNotTransed) || key.equals(p_EnableTransNewCertKeyNow) || key.equals(p_HideIDForErrCert)
+					|| key.equals(p_Log) || key.equals(p_SecurityCipher) || key.equals(p_SecuritySDPVersion)
+					|| key.equals(p_SecuritySecretKeySize) || key.equals(p_isRememberDevCertPassword)) {// 注意：如果增加逻辑，请同步到remove中
 				ResourceUtil.checkHCStackTrace();
 			}
 
@@ -503,8 +500,8 @@ public class PropertiesManager {
 	 * 注意：<BR>
 	 * 如果增加项，请考虑增加逻辑到notifyErrorOnSecurityProperties
 	 */
-	static final String[] needSecurityProperties = { p_CertKey, p_password, p_LogPassword1,
-			p_LogPassword2, p_DevCertPassword, p_Deploy_RecentPassword };
+	static final String[] needSecurityProperties = { p_CertKey, p_password, p_LogPassword1, p_LogPassword2, p_DevCertPassword,
+			p_Deploy_RecentPassword };
 
 	final static void notifyErrorOnSecurityProperties() {
 		final String[] securityProperties = PropertiesManager.needSecurityProperties;
@@ -519,8 +516,7 @@ public class PropertiesManager {
 
 		{
 			final byte[] certKeys = new byte[CCoreUtil.CERT_KEY_LEN];
-			CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), certKeys, 0,
-					CCoreUtil.CERT_KEY_LEN);
+			CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), certKeys, 0, CCoreUtil.CERT_KEY_LEN);
 			PropertiesManager.updateCertKey(certKeys);
 		}
 
@@ -548,8 +544,7 @@ public class PropertiesManager {
 	}
 
 	final static void encodeSecurityDataFromTextMode() {
-		final PropertiesSet securityPropertiesSet = new PropertiesSet(
-				PropertiesManager.S_SecurityProperties);
+		final PropertiesSet securityPropertiesSet = new PropertiesSet(PropertiesManager.S_SecurityProperties);
 		boolean isChanged = false;
 
 		for (int i = 0; i < needSecurityProperties.length; i++) {
@@ -625,8 +620,7 @@ public class PropertiesManager {
 
 			isSecurityData = isSecurityProperties(key);
 
-			if (isSecurityData || key.startsWith(S_LINK_PROJECTS, 0) || key.equals(p_SecurityCipher)
-					|| key.equals(p_SecuritySDPVersion)) {
+			if (isSecurityData || key.startsWith(S_LINK_PROJECTS, 0) || key.equals(p_SecurityCipher) || key.equals(p_SecuritySDPVersion)) {
 				ResourceUtil.checkHCStackTrace();
 			}
 		}
@@ -653,8 +647,7 @@ public class PropertiesManager {
 		final Thread currentThread = Thread.currentThread();
 		ContextSecurityConfig csc = null;
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 			final String projID = csc.getProjectContext().getProjectID();
 			if (key.startsWith(PropertiesManager.p_PROJ_RECORD + projID, 0) == false) {
 				throw new Error("invalid project id [" + projID + "] for key : " + key);
@@ -690,8 +683,8 @@ public class PropertiesManager {
 		} else {
 			CCoreUtil.checkAccess();
 
-			if (key.equals(p_NewCertIsNotTransed) || key.equals(p_EnableTransNewCertKeyNow)
-					|| key.equals(p_HideIDForErrCert) || key.equals(p_isRememberDevCertPassword)) {
+			if (key.equals(p_NewCertIsNotTransed) || key.equals(p_EnableTransNewCertKeyNow) || key.equals(p_HideIDForErrCert)
+					|| key.equals(p_isRememberDevCertPassword)) {
 				ResourceUtil.checkHCStackTrace();
 			}
 		}
@@ -741,16 +734,14 @@ public class PropertiesManager {
 			ExceptionReporter.printStackTrace(ex);
 
 			final JPanel panel = App.buildMessagePanel(
-					"<html>error on read data from properties file!"
-							+ "<BR><BR>file may be using by application!</html>",
+					"<html>error on read data from properties file!" + "<BR><BR>file may be using by application!</html>",
 					App.getSysIcon(App.SYS_ERROR_ICON));
-			App.showCenterPanelMain(panel, 0, 0, "Error", false, null, null,
-					new HCActionListener(new Runnable() {
-						@Override
-						public void run() {
-							PlatformManager.getService().exitSystem();
-						}
-					}), null, null, false, true, null, false, false);
+			App.showCenterPanelMain(panel, 0, 0, "Error", false, null, null, new HCActionListener(new Runnable() {
+				@Override
+				public void run() {
+					PlatformManager.getService().exitSystem();
+				}
+			}), null, null, false, true, null, false, false);
 
 			while (true) {
 				try {

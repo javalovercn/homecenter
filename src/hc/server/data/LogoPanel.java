@@ -51,8 +51,7 @@ public class LogoPanel extends JPanel {
 					g.drawImage(image, 0, 0, maxWidth, realh, null);
 				}
 			} else {
-				g.drawImage(image, (maxWidth - imageWidth) / 2, (maxHeight - imageHeight) / 2,
-						imageWidth, imageHeight, null);
+				g.drawImage(image, (maxWidth - imageWidth) / 2, (maxHeight - imageHeight) / 2, imageWidth, imageHeight, null);
 			}
 
 		} else {

@@ -34,8 +34,7 @@ public class AutoJRubyObject {
 	final static int size = list.length;
 
 	private static AutoJRubyObject[] init() {
-		final AutoJRubyObject[] result = {
-				new AutoJRubyObject(AbstractMap.class, "values", RubyHelper.JRUBY_ARRAY_CLASS) };
+		final AutoJRubyObject[] result = { new AutoJRubyObject(AbstractMap.class, "values", RubyHelper.JRUBY_ARRAY_CLASS) };
 		return result;
 	}
 
@@ -49,8 +48,7 @@ public class AutoJRubyObject {
 		final Class javaClass = method.getDeclaringClass();
 		for (int i = 0; i < size; i++) {
 			final AutoJRubyObject item = list[i];
-			if (item.methodName.equals(method.getName())
-					&& CodeHelper.isExtendsOrImplements(javaClass, item.javaClass)) {
+			if (item.methodName.equals(method.getName()) && CodeHelper.isExtendsOrImplements(javaClass, item.javaClass)) {
 				return new HCParameterizedType(item.actualTypes, item.returnType, null);
 			}
 		}

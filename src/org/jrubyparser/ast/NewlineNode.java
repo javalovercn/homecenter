@@ -32,44 +32,44 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- * A new (logical) source code line.
- * This is used to change the value of the ruby interpreter source and line values.
- * There is one such node for each logical line.  Logical line differs
- * from physical line in that a ';' can be used to make several logical
- * line out of a physical line and a physical line if it is in a comment
- * or in a string does not necessarily correspond to a physical line.
- * This is normally a wrapper around another more significant node.
- * The parser generates such a node around each separate statement.
+ * A new (logical) source code line. This is used to change the value of the ruby interpreter source
+ * and line values. There is one such node for each logical line. Logical line differs from physical
+ * line in that a ';' can be used to make several logical line out of a physical line and a physical
+ * line if it is in a comment or in a string does not necessarily correspond to a physical line.
+ * This is normally a wrapper around another more significant node. The parser generates such a node
+ * around each separate statement.
  */
 public class NewlineNode extends Node {
-    private Node nextNode;
+	private Node nextNode;
 
-    public NewlineNode(SourcePosition position, Node nextNode) {
-        super(position);
+	public NewlineNode(SourcePosition position, Node nextNode) {
+		super(position);
 
-        assert nextNode != null : "nextNode is not null";
+		assert nextNode != null : "nextNode is not null";
 
-        this.nextNode = adopt(nextNode);
-    }
+		this.nextNode = adopt(nextNode);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.NEWLINENODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.NEWLINENODE;
+	}
 
-    /**
-     * RubyMethod used by visitors.
-     * accepts the visitor
-     * @param iVisitor the visitor to accept
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitNewlineNode(this);
-    }
+	/**
+	 * RubyMethod used by visitors. accepts the visitor
+	 * 
+	 * @param iVisitor
+	 *            the visitor to accept
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitNewlineNode(this);
+	}
 
-    /**
-     * Gets the nextNode.
-     * @return Returns a Node
-     */
-    public Node getNextNode() {
-        return nextNode;
-    }
+	/**
+	 * Gets the nextNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getNextNode() {
+		return nextNode;
+	}
 }

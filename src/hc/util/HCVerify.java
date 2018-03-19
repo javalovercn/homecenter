@@ -90,8 +90,7 @@ public class HCVerify {
 	public static X509Certificate getCert() {
 		final byte[] bs = { 'h', 'c', '.', 'p', 'e', 'm' };
 		final String fileName = new String(bs);
-		final X509Certificate c = readPublicKeyFromPEM(
-				new File(ResourceUtil.getBaseDir(), fileName));// 注意：此方式不适合于Android服务器
+		final X509Certificate c = readPublicKeyFromPEM(new File(ResourceUtil.getBaseDir(), fileName));// 注意：此方式不适合于Android服务器
 		if (c == null) {
 			HCVerify.isPassVerify = false;
 		}

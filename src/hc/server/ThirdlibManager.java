@@ -145,8 +145,7 @@ public class ThirdlibManager {
 		final String path = buildPath(libName);
 
 		if (remove.exists()) {
-			LogManager.log("jar lib [" + libName
-					+ "] may be in using. Operation of delete will be done at next startup!");
+			LogManager.log("jar lib [" + libName + "] may be in using. Operation of delete will be done at next startup!");
 			PropertiesManager.addDelDir(path);
 		}
 		if (ResourceUtil.isAndroidServerPlatform()) {
@@ -167,8 +166,7 @@ public class ThirdlibManager {
 		final String fileName = file.getName();
 		String libName = fileName.substring(0, fileName.lastIndexOf("."));
 		while (buildTarget(libName).exists()) {
-			libName = App.showInputDialog(self,
-					"name is used/exists, please input new lib name (without extension name)",
+			libName = App.showInputDialog(self, "name is used/exists, please input new lib name (without extension name)",
 					"Same lib name!!!", JOptionPane.QUESTION_MESSAGE);
 			if (libName == null) {
 				return null;

@@ -50,8 +50,7 @@ public class SystemDialog extends Dialog {
 	}
 
 	protected final void setLabelCSS(final JLabel label, final boolean isAutoNewLine) {
-		setCSSForDiv(label, null, isAutoNewLine ? SystemHTMLMlet.LABEL_FOR_DIV_AUTO_NEW_LINE
-				: SystemHTMLMlet.LABEL_FOR_DIV);
+		setCSSForDiv(label, null, isAutoNewLine ? SystemHTMLMlet.LABEL_FOR_DIV_AUTO_NEW_LINE : SystemHTMLMlet.LABEL_FOR_DIV);
 		setCSS(label, null, SystemHTMLMlet.LABEL_STYLE);
 	}
 

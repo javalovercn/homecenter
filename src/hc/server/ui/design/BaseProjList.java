@@ -18,8 +18,8 @@ import hc.util.PropertiesSet;
 import hc.util.ResourceUtil;
 
 public abstract class BaseProjList {
-	public static final int COL_NO = 0, COL_IS_ROOT = 1, COL_PROJ_ID = 2, COL_VER = 3,
-			COL_PROJ_ACTIVE = 4, COL_PROJ_LINK_NAME = 5, COL_PROJ_DESC = 6, COL_UPGRADE_URL = 7;
+	public static final int COL_NO = 0, COL_IS_ROOT = 1, COL_PROJ_ID = 2, COL_VER = 3, COL_PROJ_ACTIVE = 4, COL_PROJ_LINK_NAME = 5,
+			COL_PROJ_DESC = 6, COL_UPGRADE_URL = 7;
 	final int COL_NUM = 2;
 	final int IDX_OBJ_STORE = 1;
 
@@ -117,8 +117,9 @@ public abstract class BaseProjList {
 		{
 			final LinkProjectStore rootLPS = searchRoot();
 			if (rootLPS != null) {
-				final String result = (String)rootLPS.get(LinkProjectStore.FIELD_HAS_MENU_ITEM_FOR_INSTALL);
-				if (((result != null && IConstant.toBoolean(result) == false)) || (result == null && LinkProjectManager.hasMenuItemNumForLPS(rootLPS) == false)) {
+				final String result = (String) rootLPS.get(LinkProjectStore.FIELD_HAS_MENU_ITEM_FOR_INSTALL);
+				if (((result != null && IConstant.toBoolean(result) == false))
+						|| (result == null && LinkProjectManager.hasMenuItemNumForLPS(rootLPS) == false)) {
 					showNoMenuInRootError();
 					return false;
 				}
@@ -137,8 +138,7 @@ public abstract class BaseProjList {
 				}
 			}
 
-			final String text = LinkProjectManager
-					.checkReferencedDependencyForErrorInSysThread(stores);
+			final String text = LinkProjectManager.checkReferencedDependencyForErrorInSysThread(stores);
 			if (text != null) {
 				showReferencedDependencyError(text);
 				return false;
@@ -163,8 +163,7 @@ public abstract class BaseProjList {
 					final LinkProjectStore lps = led.lps;
 					boolean isRemoved = false;
 					if (led.status == LinkProjectManager.STATUS_DEPLOYED) {
-						final File oldBackEditFile = LinkProjectManager.removeLinkProjectPhic(lps,
-								true);
+						final File oldBackEditFile = LinkProjectManager.removeLinkProjectPhic(lps, true);
 						isRemoved = true;
 						if (oldBackEditFile != null) {
 							delBackFileMap.put(lps.getProjectID(), oldBackEditFile);
@@ -191,9 +190,8 @@ public abstract class BaseProjList {
 				final LinkProjectStore lps = led.lps;
 				if (led.status == LinkProjectManager.STATUS_NEW) {
 					final File oldBackEditFile = delBackFileMap.get(lps.getProjectID());
-					final boolean result = AddHarHTMLMlet.addHarToDeployArea(
-							J2SESession.NULL_J2SESESSION_FOR_PROJECT, led, lps, false, true,
-							oldBackEditFile);
+					final boolean result = AddHarHTMLMlet.addHarToDeployArea(J2SESession.NULL_J2SESESSION_FOR_PROJECT, led, lps, false,
+							true, oldBackEditFile);
 					isChanged = isChanged ? true : result;
 				} else if (led.op == LinkProjectManager.STATUS_MODIFIED) {
 					if (lps.isActive() == false) {
@@ -292,8 +290,7 @@ public abstract class BaseProjList {
 		return null;
 	}
 
-	final void clickOnRoot(final LinkEditData led, final LinkProjectStore lps,
-			final Boolean isRoot) {
+	final void clickOnRoot(final LinkEditData led, final LinkProjectStore lps, final Boolean isRoot) {
 		if (lps.isRoot()) {
 			lps.setRoot(false);
 			if (transRootToOtherActive(lps) == false) {
@@ -314,8 +311,7 @@ public abstract class BaseProjList {
 		led.op = (LinkProjectManager.STATUS_MODIFIED);
 	}
 
-	final void clickOnActive(final LinkEditData led, final LinkProjectStore lps,
-			final Boolean isActive) {
+	final void clickOnActive(final LinkEditData led, final LinkProjectStore lps, final Boolean isActive) {
 		lps.setActive(isActive);
 		if (isActive) {
 			if (searchRoot() == null) {
@@ -338,8 +334,7 @@ public abstract class BaseProjList {
 		data.clear();
 
 		int i = 0;
-		final Iterator<LinkProjectStore> itx = LinkProjectManager
-				.getLinkProjsIteratorInUserSysThread(true);
+		final Iterator<LinkProjectStore> itx = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		while (itx.hasNext()) {
 			final LinkEditData led = new LinkEditData();
 			led.lps = itx.next();

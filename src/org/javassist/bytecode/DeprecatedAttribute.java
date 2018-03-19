@@ -24,33 +24,34 @@ import java.util.Map;
  * <code>Deprecated_attribute</code>.
  */
 public class DeprecatedAttribute extends AttributeInfo {
-    /**
-     * The name of this attribute <code>"Deprecated"</code>.
-     */
-    public static final String tag = "Deprecated";
+	/**
+	 * The name of this attribute <code>"Deprecated"</code>.
+	 */
+	public static final String tag = "Deprecated";
 
-    DeprecatedAttribute(ConstPool cp, int n, DataInputStream in)
-        throws IOException
-    {
-        super(cp, n, in);
-    }
+	DeprecatedAttribute(ConstPool cp, int n, DataInputStream in) throws IOException {
+		super(cp, n, in);
+	}
 
-    /**
-     * Constructs a Deprecated attribute.
-     *
-     * @param cp                a constant pool table.
-     */
-    public DeprecatedAttribute(ConstPool cp) {
-        super(cp, tag, new byte[0]);
-    }
+	/**
+	 * Constructs a Deprecated attribute.
+	 *
+	 * @param cp
+	 *            a constant pool table.
+	 */
+	public DeprecatedAttribute(ConstPool cp) {
+		super(cp, tag, new byte[0]);
+	}
 
-    /**
-     * Makes a copy.
-     *
-     * @param newCp     the constant pool table used by the new copy.
-     * @param classnames        should be null.
-     */
-    public AttributeInfo copy(ConstPool newCp, Map classnames) {
-        return new DeprecatedAttribute(newCp);
-    }
+	/**
+	 * Makes a copy.
+	 *
+	 * @param newCp
+	 *            the constant pool table used by the new copy.
+	 * @param classnames
+	 *            should be null.
+	 */
+	public AttributeInfo copy(ConstPool newCp, Map classnames) {
+		return new DeprecatedAttribute(newCp);
+	}
 }

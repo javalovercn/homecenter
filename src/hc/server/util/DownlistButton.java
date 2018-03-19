@@ -57,8 +57,7 @@ public abstract class DownlistButton extends JButton {
 
 					final Point p = e.getPoint();
 					Vector<ListAction> ipList = null;
-					if (p.x > (actionButtonWidth - actionButtonWidth / 5)
-							&& (ipList = self.getList()).size() > 0) {
+					if (p.x > (actionButtonWidth - actionButtonWidth / 5) && (ipList = self.getList()).size() > 0) {
 						final JPopupMenu popMenu = new JPopupMenu();
 						for (int i = 0; i < ipList.size(); i++) {
 							final ListAction ip = ipList.get(i);

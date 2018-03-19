@@ -8,5 +8,5 @@ package org.jrubyparser.ast;
  * A node of this type can determine whether it matches a supplied String name
  */
 public interface INameMatchable {
-    public boolean isNameMatch(String name);
+	public boolean isNameMatch(String name);
 }

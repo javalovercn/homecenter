@@ -58,12 +58,10 @@ public class MenuListEditPanel extends NodeEditPanel {
 
 		final DefaultTableCellRenderer centerCellRender = new DefaultTableCellRenderer() {
 			@Override
-			public Component getTableCellRendererComponent(final JTable table, final Object value,
-					final boolean isSelected, final boolean hasFocus, final int row,
-					final int column) {
+			public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+					final boolean hasFocus, final int row, final int column) {
 				setHorizontalAlignment(CENTER);
-				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
-						column);
+				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			}
 		};
 		table.getColumnModel().getColumn(0).setCellRenderer(centerCellRender);
@@ -188,9 +186,7 @@ public class MenuListEditPanel extends NodeEditPanel {
 				notifyModified(true);
 			}
 		}, threadPoolToken));
-		colNumLabel.setToolTipText(
-				"<html>column number of each row, which display current menu in mobile."
-						+ "<BR>set 0 to auto</html>");
+		colNumLabel.setToolTipText("<html>column number of each row, which display current menu in mobile." + "<BR>set 0 to auto</html>");
 		colNumFiled.setColumns(5);
 		if (isAddColumnNumber) {
 			namePanel.add(colNumFiled);

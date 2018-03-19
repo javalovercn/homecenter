@@ -22,65 +22,42 @@ import org.bouncycastle.openssl.PEMEncryptor;
 /**
  * PEM generator for the original set of PEM objects used in Open SSL.
  */
-public class JcaMiscPEMGenerator
-    extends MiscPEMGenerator
-{
-    private Object obj;
-    private String algorithm;
-    private char[] password;
-    private SecureRandom random;
-    private Provider provider;
+public class JcaMiscPEMGenerator extends MiscPEMGenerator {
+	private Object obj;
+	private String algorithm;
+	private char[] password;
+	private SecureRandom random;
+	private Provider provider;
 
-    public JcaMiscPEMGenerator(Object o)
-        throws IOException
-    {
-        super(convertObject(o));
-    }
+	public JcaMiscPEMGenerator(Object o) throws IOException {
+		super(convertObject(o));
+	}
 
-    public JcaMiscPEMGenerator(Object o, PEMEncryptor encryptor)
-        throws IOException
-    {
-        super(convertObject(o), encryptor);
-    }
+	public JcaMiscPEMGenerator(Object o, PEMEncryptor encryptor) throws IOException {
+		super(convertObject(o), encryptor);
+	}
 
-    private static Object convertObject(Object o)
-        throws IOException
-    {
-        if (o instanceof X509Certificate)
-        {
-            try
-            {
-                return new JcaX509CertificateHolder((X509Certificate)o);
-            }
-            catch (CertificateEncodingException e)
-            {
-                throw new IllegalArgumentException("Cannot encode object: " + e.toString());
-            }
-        }
-        else if (o instanceof X509CRL)
-        {
-            try
-            {
-                return new JcaX509CRLHolder((X509CRL)o);
-            }
-            catch (CRLException e)
-            {
-                throw new IllegalArgumentException("Cannot encode object: " + e.toString());
-            }
-        }
-        else if (o instanceof KeyPair)
-        {
-            return convertObject(((KeyPair)o).getPrivate());
-        }
-        else if (o instanceof PrivateKey)
-        {
-            return PrivateKeyInfo.getInstance(((Key)o).getEncoded());
-        }
-        else if (o instanceof PublicKey)
-        {
-            return SubjectPublicKeyInfo.getInstance(((PublicKey)o).getEncoded());
-        }
+	private static Object convertObject(Object o) throws IOException {
+		if (o instanceof X509Certificate) {
+			try {
+				return new JcaX509CertificateHolder((X509Certificate) o);
+			} catch (CertificateEncodingException e) {
+				throw new IllegalArgumentException("Cannot encode object: " + e.toString());
+			}
+		} else if (o instanceof X509CRL) {
+			try {
+				return new JcaX509CRLHolder((X509CRL) o);
+			} catch (CRLException e) {
+				throw new IllegalArgumentException("Cannot encode object: " + e.toString());
+			}
+		} else if (o instanceof KeyPair) {
+			return convertObject(((KeyPair) o).getPrivate());
+		} else if (o instanceof PrivateKey) {
+			return PrivateKeyInfo.getInstance(((Key) o).getEncoded());
+		} else if (o instanceof PublicKey) {
+			return SubjectPublicKeyInfo.getInstance(((PublicKey) o).getEncoded());
+		}
 
-        return o;
-    }
+		return o;
+	}
 }

@@ -6,8 +6,7 @@ public class TabBlock {
 	public final int[] parameterEndOffsetIdx;
 	public int lastParameterIdxBeforeStack;
 
-	public TabBlock(final int startIdx, final char[] methodAndParameter,
-			final int countParameterNum) {
+	public TabBlock(final int startIdx, final char[] methodAndParameter, final int countParameterNum) {
 		this.startIdx = startIdx;
 
 		parameterBeginOffsetIdx = new int[countParameterNum];

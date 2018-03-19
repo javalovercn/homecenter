@@ -62,10 +62,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 	final JCheckBox perm_del = new JCheckBox("delete, exclude private file");
 	final JCheckBox perm_exit = new JCheckBox("exit");
 
-	private final JCheckBox checkReadProperty = new JCheckBox(
-			HCPermissionConstant.READ_SYSTEM_PROPERTIES);
-	private final JCheckBox checkWriteProperty = new JCheckBox(
-			HCPermissionConstant.WRITE_SYSTEM_PROPERTIES);
+	private final JCheckBox checkReadProperty = new JCheckBox(HCPermissionConstant.READ_SYSTEM_PROPERTIES);
+	private final JCheckBox checkWriteProperty = new JCheckBox(HCPermissionConstant.WRITE_SYSTEM_PROPERTIES);
 	final JCheckBox perm_memAccessSystem = new JCheckBox(HCPermissionConstant.MEMBER_ACCESS_SYSTEM);
 
 	private final JCheckBox checkLoadLib = new JCheckBox(ResourceUtil.LOAD_NATIVE_LIB);
@@ -111,11 +109,9 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				}
 			});
 
-			testExceptionBtn.setToolTipText("<html>"
-					+ "post a exception to current URL or email address,"
+			testExceptionBtn.setToolTipText("<html>" + "post a exception to current URL or email address,"
 					+ "<BR><BR><STRONG>URL</STRONG> : refresh log to view response (UTF-8 is required). it is very useful to debug the receiving codes."
-					+ "<BR><STRONG>Email</STRONG> : no attachment in Email, if it is not received, change it and try again!"
-					+ "</html>");
+					+ "<BR><STRONG>Email</STRONG> : no attachment in Email, if it is not received, change it and try again!" + "</html>");
 			testExceptionBtn.addActionListener(new HCActionListener(new Runnable() {
 				final HarHelper harhelper = new HarHelper() {
 					@Override
@@ -134,8 +130,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 
 				final ExceptionChecker checker = new ExceptionChecker() {
 					@Override
-					public final boolean isPosted(final String projectID, final String errMsg,
-							final String stackTrace) {
+					public final boolean isPosted(final String projectID, final String errMsg, final String stackTrace) {
 						return false;
 					}
 				};
@@ -143,8 +138,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 				@Override
 				public void run() {
 					if (PropertiesManager.isSimu()) {
-						App.showConfirmDialog(designer, "it can not work in simu mode!",
-								ResourceUtil.getErrorI18N(), JOptionPane.OK_OPTION,
+						App.showConfirmDialog(designer, "it can not work in simu mode!", ResourceUtil.getErrorI18N(), JOptionPane.OK_OPTION,
 								JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 						return;
 					}
@@ -158,9 +152,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 						t = e;
 					}
 					final RootBuilder rootBuilder = RootBuilder.getInstance();
-					final ExceptionJSON json = rootBuilder.getExceptionJSONBuilder().buildJSON(
-							harhelper, checker, t, ExceptionJSON.HC_EXCEPTION_URL,
-							"puts \"This is test script\\n\";\nputs \"this is second line.\"",
+					final ExceptionJSON json = rootBuilder.getExceptionJSONBuilder().buildJSON(harhelper, checker, t,
+							ExceptionJSON.HC_EXCEPTION_URL, "puts \"This is test script\\n\";\nputs \"this is second line.\"",
 							"Hello, 你好, Bonjour");
 					final String urlOrEmail = getExceptionURLFromEdit();
 					if (ResourceUtil.validEmail(urlOrEmail)) {
@@ -178,8 +171,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 			}, threadPoolToken));
 
 			final JPanel tmpPanel = new JPanel(new GridLayout(2, 1));
-			tmpPanel.add(new JLabel(
-					"<html><STRONG>Report exception URL / Email address</STRONG> : </html>"));// 注意：请与ProjectContext.printAndReportStackTrace使用描述字段保持一致
+			tmpPanel.add(new JLabel("<html><STRONG>Report exception URL / Email address</STRONG> : </html>"));// 注意：请与ProjectContext.printAndReportStackTrace使用描述字段保持一致
 			final JPanel flowPanel = new JPanel(new GridBagLayout());
 			final GridBagConstraints c = new GridBagConstraints();
 			c.weightx = 0;
@@ -194,8 +186,8 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 			tmpPanel.add(flowPanel);
 
 			exceptionPanel.add(tmpPanel, BorderLayout.NORTH);
-			exceptionPanel.add(ResourceUtil.addSpaceBeforePanel(new JLabel(
-					"<html>report exception to HAR provider via URL or Email, NOT both. if blank then disable report."
+			exceptionPanel.add(ResourceUtil.addSpaceBeforePanel(
+					new JLabel("<html>report exception to HAR provider via URL or Email, NOT both. if blank then disable report."
 							+ "<BR>for more, please reference API ProjectContext.<STRONG>printAndReportStackTrace</STRONG>(throwable, isCopyToHomeCenter).</html>")),
 					BorderLayout.CENTER);
 		}
@@ -320,8 +312,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 							final Properties had = new Properties();
 							try {
 								final String url = urlField.getText();
-								ResourceUtil.loadFromURL(had, url,
-										ResourceUtil.getUserAgentForHAD());
+								ResourceUtil.loadFromURL(had, url, ResourceUtil.getUserAgentForHAD());
 
 								final JPanel jpanel = new JPanel(new BorderLayout());
 								final StringBuffer sb = new StringBuffer();
@@ -336,26 +327,20 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 									} else {
 										sb.append("<br>");
 									}
-									sb.append("<strong>" + key + "</strong>: "
-											+ had.getProperty((String) key));
+									sb.append("<strong>" + key + "</strong>: " + had.getProperty((String) key));
 								}
 								sb.append("</html>");
 
-								jpanel.add(new JLabel(sb.toString(),
-										App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING),
+								jpanel.add(new JLabel(sb.toString(), App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING),
 										BorderLayout.CENTER);
-								App.showCenterPanelMain(jpanel, 0, 0, ResourceUtil.getInfoI18N(),
-										false, null, null, null, null, designer, true, false, null,
-										false, false);
+								App.showCenterPanelMain(jpanel, 0, 0, ResourceUtil.getInfoI18N(), false, null, null, null, null, designer,
+										true, false, null, false, false);
 							} catch (final Exception ex) {
 								final JPanel jpanel = new JPanel(new BorderLayout());
-								jpanel.add(new JLabel("fail to connect server file.",
-										App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING),
-										BorderLayout.CENTER);
-								App.showCenterPanelMain(jpanel, 0, 0,
-										(String) ResourceUtil.get(IConstant.ERROR), false, null,
-										null, null, null, designer, true, false, null, false,
-										false);
+								jpanel.add(new JLabel("fail to connect server file.", App.getSysIcon(App.SYS_ERROR_ICON),
+										SwingConstants.LEADING), BorderLayout.CENTER);
+								App.showCenterPanelMain(jpanel, 0, 0, (String) ResourceUtil.get(IConstant.ERROR), false, null, null, null,
+										null, designer, true, false, null, false, false);
 							}
 						}
 					}, threadPoolToken));
@@ -385,8 +370,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 									+ "<br>click <strong>" + Designer.SAVE_AS_TEXT
 									+ "</strong> button, <strong>had</strong> file is automatically created with <strong>har</strong> if <strong>"
 									+ upgradeURL + "</strong> is not blank."
-									+ "<br><br>for more about server, see user-agent of HTTP/HTTPS request log."
-									+ "</html>")),
+									+ "<br><br>for more about server, see user-agent of HTTP/HTTPS request log." + "</html>")),
 							BorderLayout.CENTER);
 				}
 
@@ -472,23 +456,17 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 					}
 				}, threadPoolToken));
 
-				final JComponent[] listPanels = { compose,
-						new JSeparator(SwingConstants.HORIZONTAL), verPanel,
+				final JComponent[] listPanels = { compose, new JSeparator(SwingConstants.HORIZONTAL), verPanel,
 						new JSeparator(SwingConstants.HORIZONTAL),
-						buildItemPanel(compactDays,
-								"<html><STRONG>Compact DB Days</STRONG> : </html>", 30),
-						new JSeparator(SwingConstants.HORIZONTAL), upgradePanel,
-						new JSeparator(SwingConstants.HORIZONTAL), buildExceptionPanel(),
-						new JSeparator(SwingConstants.HORIZONTAL),
-						buildItemPanel(desc, "<html><STRONG>Description</STRONG> : </html>", 30),
-						new JSeparator(SwingConstants.HORIZONTAL),
+						buildItemPanel(compactDays, "<html><STRONG>Compact DB Days</STRONG> : </html>", 30),
+						new JSeparator(SwingConstants.HORIZONTAL), upgradePanel, new JSeparator(SwingConstants.HORIZONTAL),
+						buildExceptionPanel(), new JSeparator(SwingConstants.HORIZONTAL),
+						buildItemPanel(desc, "<html><STRONG>Description</STRONG> : </html>", 30), new JSeparator(SwingConstants.HORIZONTAL),
 						buildItemPanel(license, "<html><STRONG>License URL</STRONG> : </html>", 30),
+						new JSeparator(SwingConstants.HORIZONTAL), buildItemPanel(contact, "<html><STRONG>Contact</STRONG> : </html>", 30),
 						new JSeparator(SwingConstants.HORIZONTAL),
-						buildItemPanel(contact, "<html><STRONG>Contact</STRONG> : </html>", 30),
-						new JSeparator(SwingConstants.HORIZONTAL), buildItemPanel(copyright,
-								"<html><STRONG>Copyright</STRONG> : </html>", 30) };
-				final JPanel buildNorthPanel = ServerUIUtil.buildNorthPanel(listPanels, 0,
-						BorderLayout.CENTER);
+						buildItemPanel(copyright, "<html><STRONG>Copyright</STRONG> : </html>", 30) };
+				final JPanel buildNorthPanel = ServerUIUtil.buildNorthPanel(listPanels, 0, BorderLayout.CENTER);
 
 				center.add(buildNorthPanel, BorderLayout.CENTER);
 			}
@@ -499,8 +477,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		{
 			final JLabel noteLabel = new JLabel("<html><BR><font color='red'>Note : </font><BR>"
 					+ "1. these permissions are NOT run-time, they are for design period.<BR>"
-					+ "2. to set run-time permissions, click /Shift Project/{project}/Modify|Permission.<BR>"
-					+
+					+ "2. to set run-time permissions, click /Shift Project/{project}/Modify|Permission.<BR>" +
 					// "3. run-time permissions will keep their values even if
 					// the project is upgraded/re-activated/restarted.<BR>" +
 					// "3. these permissions works on standard J2SE JVM, NOT for
@@ -509,8 +486,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 			// noteLabel.setHorizontalAlignment(SwingConstants.CENTER);
 			// new JSeparator(SwingConstants.HORIZONTAL),
 			final JComponent[] components = { noteLabel, buildPermissionPanel() };
-			final JPanel buildNorthPanel = ServerUIUtil.buildNorthPanel(components, 0,
-					BorderLayout.CENTER);
+			final JPanel buildNorthPanel = ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER);
 			tabbedPane.addTab((String) ResourceUtil.get(9094), new JScrollPane(buildNorthPanel));
 		}
 
@@ -694,11 +670,9 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		sysOtherPropPanel.add(checkSetFactory);
 		// sysOtherPropPanel.add(checkListenAllAWTEvents);
 		// sysOtherPropPanel.add(checkAccessClipboard);
-		final JComponent[] components = { new JSeparator(SwingConstants.HORIZONTAL),
-				mobilePermPanel, new JSeparator(SwingConstants.HORIZONTAL), perm_sock_panel,
-				new JSeparator(SwingConstants.HORIZONTAL), osPermPanel,
-				new JSeparator(SwingConstants.HORIZONTAL), sysPropPanel,
-				new JSeparator(SwingConstants.HORIZONTAL), sysOtherPropPanel };
+		final JComponent[] components = { new JSeparator(SwingConstants.HORIZONTAL), mobilePermPanel,
+				new JSeparator(SwingConstants.HORIZONTAL), perm_sock_panel, new JSeparator(SwingConstants.HORIZONTAL), osPermPanel,
+				new JSeparator(SwingConstants.HORIZONTAL), sysPropPanel, new JSeparator(SwingConstants.HORIZONTAL), sysOtherPropPanel };
 		return ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER);
 		// return permissionPanel;
 	}
@@ -757,8 +731,7 @@ public class ProjectNodeEditPanel extends NameEditPanel {
 		perm_sock_panel.refresh(csc);
 	}
 
-	private final JPanel buildItemPanel(final JTextField field, final String label,
-			final int colNum) {
+	private final JPanel buildItemPanel(final JTextField field, final String label, final int colNum) {
 		field.setColumns(colNum);
 
 		final JPanel tmpPanel = new JPanel(new GridLayout(2, 1));

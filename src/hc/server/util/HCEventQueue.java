@@ -62,8 +62,7 @@ public class HCEventQueue extends EventQueue {
 							}
 
 							final String threadName = t.getName();
-							if (threadName.startsWith("AWT-Shutdown")
-									|| threadName.startsWith("AWT-EventQueue-")
+							if (threadName.startsWith("AWT-Shutdown") || threadName.startsWith("AWT-EventQueue-")
 									|| threadName.startsWith("DestroyJavaVM")) {
 								remainCount++;
 							} else {
@@ -138,19 +137,16 @@ public class HCEventQueue extends EventQueue {
 			}
 		});
 		if (failModiGroup[0]) {
-			final JPanel panel = App.buildMessagePanel(
-					"Fail to modify Thread.group = null in " + eventQueueThreadArray[0].getName(),
+			final JPanel panel = App.buildMessagePanel("Fail to modify Thread.group = null in " + eventQueueThreadArray[0].getName(),
 					App.getSysIcon(App.SYS_ERROR_ICON));
-			App.showCenterPanelMain(panel, 0, 0, "JVM Error", false, null, null, null, null, null,
-					false, true, null, false, false);
+			App.showCenterPanelMain(panel, 0, 0, "JVM Error", false, null, null, null, null, null, false, true, null, false, false);
 		}
 		final Thread thread = eventQueueThreadArray[0];
 		if (thread != null) {
 			thread.setUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 				@Override
 				public void uncaughtException(final Thread t, final Throwable e) {
-					LogManager.log("This is UncaughtExceptionHandler for thread : " + t.getName()
-							+ ", Message : " + e.getMessage());
+					LogManager.log("This is UncaughtExceptionHandler for thread : " + t.getName() + ", Message : " + e.getMessage());
 					ExceptionReporter.printStackTrace(e);
 				}
 			});
@@ -201,8 +197,7 @@ public class HCEventQueue extends EventQueue {
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 			// if(csc == null){
 			// ClassUtil.printCurrentThreadStack("-------------------Non
 			// ContextSecurityConfig to postEvent-------------------");
@@ -240,9 +235,9 @@ public class HCEventQueue extends EventQueue {
 						we.getWindow().dispose();
 					}
 				});
-				App.showHARMessageDialog("<html>"
-						+ "Block open JFrame/JDialog in HAR project since 7.0,"
-						+ "<br>please use API ProjectContext.showInputDialog/showMessage.</html>",
+				App.showHARMessageDialog(
+						"<html>" + "Block open JFrame/JDialog in HAR project since 7.0,"
+								+ "<br>please use API ProjectContext.showInputDialog/showMessage.</html>",
 						"Error", JOptionPane.ERROR_MESSAGE);
 				throw new HCSecurityException("block open JFrame/JDialog in HAR project since 7.0,"
 						// +

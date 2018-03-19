@@ -47,8 +47,7 @@ public class CtrlTotalPanel extends JPanel {
 		this.ctrlMap = ctrlMap;
 	}
 
-	public CtrlTotalPanel(final JPanel sp, final BaseMenuItemNodeEditPanel base,
-			final JRadioButton h_button, final JRadioButton v_button) {
+	public CtrlTotalPanel(final JPanel sp, final BaseMenuItemNodeEditPanel base, final JRadioButton h_button, final JRadioButton v_button) {
 		panel_canvas = new CtrlPanel(this);
 		this.scriptPanel = sp;
 		this.baseMenuItemPanel = base;
@@ -64,8 +63,7 @@ public class CtrlTotalPanel extends JPanel {
 					final int keyValue = findKeyValue(e);
 					final Toolkit toolkit = Toolkit.getDefaultToolkit();
 					final BufferedImage img = ResourceUtil.unAlphaImage(cursor_images[keyValue]);
-					final Cursor c = toolkit.createCustomCursor(img,
-							new Point(img.getWidth() / 2, img.getHeight() / 2), "img");
+					final Cursor c = toolkit.createCustomCursor(img, new Point(img.getWidth() / 2, img.getHeight() / 2), "img");
 					updateCursor(c);
 				}
 			}
@@ -89,8 +87,7 @@ public class CtrlTotalPanel extends JPanel {
 					final int x = e.getXOnScreen();
 					final int y = e.getYOnScreen();
 					final Point locationOnScreen = panel_canvas.getLocationOnScreen();
-					if (x > locationOnScreen.x && y > locationOnScreen.y
-							&& x < locationOnScreen.x + panel_canvas.getWidth()
+					if (x > locationOnScreen.x && y > locationOnScreen.y && x < locationOnScreen.x + panel_canvas.getWidth()
 							&& y < locationOnScreen.y + panel_canvas.getHeight()) {
 						final int keyValue = findKeyValue(e);
 
@@ -121,8 +118,7 @@ public class CtrlTotalPanel extends JPanel {
 			for (int i = 0; i < keys.length; i++) {
 				final int keyValue = keys[i];
 				final String pngName = ctrlKey.getPNGName(keyValue);
-				final BufferedImage bufferedImage = Designer
-						.loadBufferedImage(pngName + CNCtrlKey.PNG_EXT);
+				final BufferedImage bufferedImage = Designer.loadBufferedImage(pngName + CNCtrlKey.PNG_EXT);
 				if (d == null) {
 					d = tk.getBestCursorSize(bufferedImage.getWidth(), bufferedImage.getHeight());
 				}
@@ -131,13 +127,11 @@ public class CtrlTotalPanel extends JPanel {
 					r_img = ResourceUtil.resizeImage(bufferedImage, d.width,
 							bufferedImage.getHeight() * d.width / bufferedImage.getWidth());
 				} else {
-					r_img = ResourceUtil.resizeImage(bufferedImage,
-							bufferedImage.getWidth() * d.height / bufferedImage.getHeight(),
+					r_img = ResourceUtil.resizeImage(bufferedImage, bufferedImage.getWidth() * d.height / bufferedImage.getHeight(),
 							d.height);
 				}
 				Graphics2D graphics2d;
-				final BufferedImage bufferedImage2 = new BufferedImage(d.width, d.height,
-						BufferedImage.TYPE_INT_ARGB);
+				final BufferedImage bufferedImage2 = new BufferedImage(d.width, d.height, BufferedImage.TYPE_INT_ARGB);
 				graphics2d = bufferedImage2.createGraphics();
 				final int y = (d.height - r_img.getHeight()) / 2;
 				// graphics2d.setComposite(AlphaComposite.SrcOver);//g.setComposite(AlphaComposite.Src);
@@ -151,8 +145,7 @@ public class CtrlTotalPanel extends JPanel {
 				} else {
 					canvas_images[keyValue] = bufferedImage;
 				}
-				final JButton jb = new JButton(ctrlKey.getKeyDesc(keyValue),
-						new ImageIcon(cursor_images[keyValue]));
+				final JButton jb = new JButton(ctrlKey.getKeyDesc(keyValue), new ImageIcon(cursor_images[keyValue]));
 				jb.setHorizontalAlignment(SwingConstants.LEFT);
 				jb.addMouseListener(ml);
 
@@ -165,8 +158,8 @@ public class CtrlTotalPanel extends JPanel {
 			this.setLayout(new BorderLayout());
 
 			comp = new JPanel(new BorderLayout());
-			comp.add(new JScrollPane(panle_but_list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-					JScrollPane.HORIZONTAL_SCROLLBAR_NEVER), BorderLayout.WEST);
+			comp.add(new JScrollPane(panle_but_list, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER),
+					BorderLayout.WEST);
 
 			comp.setBorder(new TitledBorder(""));
 
@@ -185,11 +178,9 @@ public class CtrlTotalPanel extends JPanel {
 		}
 
 		panelSubMRInfo = new JSplitPane(splitType,
-				new JScrollPane(panel_canvas, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-						JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
+				new JScrollPane(panel_canvas, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED),
 				scriptPanel);
-		final String dviLoca = PropertiesManager
-				.getValue(PropertiesManager.p_DesignerCtrlDividerLocation);
+		final String dviLoca = PropertiesManager.getValue(PropertiesManager.p_DesignerCtrlDividerLocation);
 		if (dviLoca == null) {
 			panelSubMRInfo.setDividerLocation(CtrlPanel.BLOCK_WIDTH);
 		} else {

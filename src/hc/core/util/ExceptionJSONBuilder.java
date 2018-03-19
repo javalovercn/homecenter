@@ -11,6 +11,7 @@ public abstract class ExceptionJSONBuilder {
 	 * @param scriptErrMsg
 	 * @return null if it is posted
 	 */
-	public abstract ExceptionJSON buildJSON(final HarHelper hellper, final ExceptionChecker checker, final Throwable throwable, 
+	public abstract ExceptionJSON buildJSON(final HarHelper hellper,
+			final ExceptionChecker checker, final Throwable throwable,
 			final String reportURL, final String script, String scriptErrMsg);
 }

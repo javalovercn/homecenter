@@ -35,17 +35,17 @@ import org.jrubyparser.SourcePosition;
  * Represents __ENCODING__.
  */
 public class EncodingNode extends Node {
-    public EncodingNode(SourcePosition position) {
-        super(position);
-    }
+	public EncodingNode(SourcePosition position) {
+		super(position);
+	}
 
-    @Override
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitEncodingNode(this);
-    }
+	@Override
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitEncodingNode(this);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.ENCODINGNODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.ENCODINGNODE;
+	}
 }

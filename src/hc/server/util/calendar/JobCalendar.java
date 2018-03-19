@@ -19,17 +19,15 @@
 package hc.server.util.calendar;
 
 /**
- * An interface to be implemented by objects that define spaces of time during
- * which an associated <code>Trigger</code> may (not) fire. Calendars do not
- * define actual fire times, but rather are used to limit a <code>Trigger</code>
- * from firing on its normal schedule if necessary. Most Calendars include all
- * times by default and allow the user to specify times to exclude.
+ * An interface to be implemented by objects that define spaces of time during which an associated
+ * <code>Trigger</code> may (not) fire. Calendars do not define actual fire times, but rather are
+ * used to limit a <code>Trigger</code> from firing on its normal schedule if necessary. Most
+ * Calendars include all times by default and allow the user to specify times to exclude.
  * 
  * <p>
- * As such, it is often useful to think of Calendars as being used to
- * <I>exclude</I> a block of time - as opposed to <I>include</I> a block of
- * time. (i.e. the schedule &quot;fire every five minutes except on
- * Sundays&quot; could be implemented with a <code>SimpleTrigger</code> and a
+ * As such, it is often useful to think of Calendars as being used to <I>exclude</I> a block of time
+ * - as opposed to <I>include</I> a block of time. (i.e. the schedule &quot;fire every five minutes
+ * except on Sundays&quot; could be implemented with a <code>SimpleTrigger</code> and a
  * <code>WeeklyJobCalendar</code> which excludes Sundays)
  * </p>
  * 
@@ -75,24 +73,23 @@ public interface JobCalendar extends java.io.Serializable, java.lang.Cloneable {
 
 	/**
 	 * <p>
-	 * Determine whether the given time (in milliseconds) is 'included' by the
-	 * JobCalendar.
+	 * Determine whether the given time (in milliseconds) is 'included' by the JobCalendar.
 	 * </p>
 	 */
 	boolean isTimeIncluded(long timeStamp);
 
 	/**
 	 * <p>
-	 * Determine the next time (in milliseconds) that is 'included' by the
-	 * JobCalendar after the given time.
+	 * Determine the next time (in milliseconds) that is 'included' by the JobCalendar after the
+	 * given time.
 	 * </p>
 	 */
 	long getNextIncludedTime(long timeStamp);
 
 	/**
 	 * <p>
-	 * Return the description given to the <code>JobCalendar</code> instance by
-	 * its creator (if any).
+	 * Return the description given to the <code>JobCalendar</code> instance by its creator (if
+	 * any).
 	 * </p>
 	 * 
 	 * @return null if no description was set.
@@ -101,9 +98,9 @@ public interface JobCalendar extends java.io.Serializable, java.lang.Cloneable {
 
 	/**
 	 * <p>
-	 * Set a description for the <code>JobCalendar</code> instance - may be
-	 * useful for remembering/displaying the purpose of the calendar, though the
-	 * description has no meaning to Quartz.
+	 * Set a description for the <code>JobCalendar</code> instance - may be useful for
+	 * remembering/displaying the purpose of the calendar, though the description has no meaning to
+	 * Quartz.
 	 * </p>
 	 */
 	void setDescription(String description);

@@ -11,28 +11,23 @@ import hc.util.ClassUtil;
 
 /**
  * the HomeCenter provide build-in SecurityManager for HAR project. <BR>
- * each JRuby code is based on reflection, malicious code can obtain system
- * privileges through private field security of Class java.lang.System, so even
- * if the {@link System#currentTimeMillis()} in JRuby will throws
- * SecurityException about <code>block memberAccess(reflection)</code> by
- * SecurityManager if JRE &lt; 1.7. <BR>
+ * each JRuby code is based on reflection, malicious code can obtain system privileges through
+ * private field security of Class java.lang.System, so even if the
+ * {@link System#currentTimeMillis()} in JRuby will throws SecurityException about
+ * <code>block memberAccess(reflection)</code> by SecurityManager if JRE &lt; 1.7. <BR>
  * <BR>
- * if JRE &gt;= 1.7, the field <code>security</code> of java.lang.System is
- * gone. <BR>
+ * if JRE &gt;= 1.7, the field <code>security</code> of java.lang.System is gone. <BR>
  * <BR>
- * so you can choose one of the following for your scripts (NOT code in jar) :
- * <BR>
+ * so you can choose one of the following for your scripts (NOT code in jar) : <BR>
  * 1. to support all JRE version, replace {@link System java.lang.System} with
- * {@link JavaLangSystemAgent} in JRuby scripts (<STRONG>NOT</STRONG> java
- * library). <BR>
+ * {@link JavaLangSystemAgent} in JRuby scripts (<STRONG>NOT</STRONG> java library). <BR>
  * 2. or upgrade JRE to 1.7 <BR>
- * 3. or enable [permissions->memberAccess java.lang.System] to suppress the
- * exception if JRE &lt; 1.7. <BR>
+ * 3. or enable [permissions->memberAccess java.lang.System] to suppress the exception if JRE &lt;
+ * 1.7. <BR>
  * <BR>
  * <STRONG>Important</STRONG> : <BR>
- * if your project is developed or distributed before version 7.1 of HomeCenter,
- * permission [memberAccess java.lang.System] is enabled default, otherwise is
- * disabled.
+ * if your project is developed or distributed before version 7.1 of HomeCenter, permission
+ * [memberAccess java.lang.System] is enabled default, otherwise is disabled.
  * 
  * @since 7.1
  */
@@ -161,8 +156,7 @@ public class JavaLangSystemAgent {
 	 * 
 	 * @since 7.1
 	 */
-	public final static void arraycopy(final Object src, final int srcPos, final Object dest,
-			final int destPos, final int length) {
+	public final static void arraycopy(final Object src, final int srcPos, final Object dest, final int destPos, final int length) {
 		System.arraycopy(src, srcPos, dest, destPos, length);
 	}
 
@@ -189,18 +183,17 @@ public class JavaLangSystemAgent {
 	/**
 	 * the agent method for <code>System.lineSeparator</code>.
 	 * 
-	 * @return Returns the system-dependent line separator string. It always
-	 *         returns the same value - the initial value of the
-	 *         {@linkplain #getProperty(String) system property}
+	 * @return Returns the system-dependent line separator string. It always returns the same value
+	 *         - the initial value of the {@linkplain #getProperty(String) system property}
 	 *         {@code line.separator}.
 	 *         <p>
-	 * 		On UNIX systems, it returns {@code "\n"}; on Microsoft Windows
-	 *         systems it returns {@code "\r\n"}.
+	 *         On UNIX systems, it returns {@code "\n"}; on Microsoft Windows systems it returns
+	 *         {@code "\r\n"}.
 	 * @since 7.1
 	 */
 	public final static String lineSeparator() {
-		return (String) ClassUtil.invoke(System.class, System.class, "lineSeparator",
-				ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
+		return (String) ClassUtil.invoke(System.class, System.class, "lineSeparator", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS,
+				false);
 		// return System.lineSeparator();//不是java 1.6的API
 	}
 

@@ -15,16 +15,16 @@ import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.ProjResponser;
 
 /**
- * Important : this class may be removed, changed , renamed... please don't use
- * any class and method outside API doc files.
+ * Important : this class may be removed, changed , renamed... please don't use any class and method
+ * outside API doc files.
  */
 public final class MSBAgent {
 	public static void recycle(final RobotEvent event) {
 		RobotEventPool.instance.recycle(event);
 	}
 
-	public final static String[] getCompatibleItemToUserThread(final ProjResponser pr,
-			final boolean isInUserThread, final DeviceCompatibleDescription compDesc) {
+	public final static String[] getCompatibleItemToUserThread(final ProjResponser pr, final boolean isInUserThread,
+			final DeviceCompatibleDescription compDesc) {
 		if (isInUserThread) {
 			return compDesc.getCompatibleItem();
 		} else {
@@ -75,8 +75,7 @@ public final class MSBAgent {
 	private static HashSet<Device> deviceSet = new HashSet<Device>(20);
 	private static Object sysThreadPoolToken = ContextManager.getThreadPoolToken();
 
-	public final static void clearWiFiAccountGroup(final CoreSession coreSS, final Device device,
-			final String cmdGroup) {
+	public final static void clearWiFiAccountGroup(final CoreSession coreSS, final Device device, final String cmdGroup) {
 		final boolean hasToken = hasToken(device);
 		if (hasToken) {
 			ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
@@ -91,16 +90,14 @@ public final class MSBAgent {
 		}
 	}
 
-	public final static void broadcastWiFiAccountAsSSID(final J2SESession coreSS,
-			final String projectID, final Device device, final String[] encryptedCommand,
-			final String cmdGroup) {
+	public final static void broadcastWiFiAccountAsSSID(final J2SESession coreSS, final String projectID, final Device device,
+			final String[] encryptedCommand, final String cmdGroup) {
 		final boolean hasToken = hasToken(device);
 		if (hasToken) {
 			ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 				@Override
 				public Object run() throws Throwable {
-					WiFiDeviceManager.getInstance(coreSS)
-							.broadcastWiFiAccountAsSSID(encryptedCommand, cmdGroup);
+					WiFiDeviceManager.getInstance(coreSS).broadcastWiFiAccountAsSSID(encryptedCommand, cmdGroup);
 					if (ContextManager.isMobileLogin(coreSS.context)) {
 						final AddHarHTMLMlet mlet = AddHarHTMLMlet.getCurrAddHarHTMLMlet(coreSS);
 						if (mlet != null) {
@@ -115,18 +112,16 @@ public final class MSBAgent {
 		}
 	}
 
-	public final static OutputStream createWiFiMulticastStream(final J2SESession coreSS,
-			final Device device, final String multicastIP, final int port) {
+	public final static OutputStream createWiFiMulticastStream(final J2SESession coreSS, final Device device, final String multicastIP,
+			final int port) {
 		final boolean hasToken = hasToken(device);
 		if (hasToken) {
-			return (OutputStream) ContextManager.getThreadPool()
-					.runAndWait(new ReturnableRunnable() {
-						@Override
-						public Object run() throws Throwable {
-							return WiFiDeviceManager.getInstance(coreSS)
-									.createWiFiMulticastStream(multicastIP, port);
-						}
-					}, sysThreadPoolToken);
+			return (OutputStream) ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+				@Override
+				public Object run() throws Throwable {
+					return WiFiDeviceManager.getInstance(coreSS).createWiFiMulticastStream(multicastIP, port);
+				}
+			}, sysThreadPoolToken);
 		} else {
 			throw new Error("no permission to createWiFiMulticastStream!");
 		}
@@ -136,8 +131,7 @@ public final class MSBAgent {
 	// device.__startup();
 	// }
 
-	public final static String[] getRegisterDeviceID(final Device device,
-			final Workbench workbench) {
+	public final static String[] getRegisterDeviceID(final Device device, final Workbench workbench) {
 		if (device.isStarted == false) {
 			device.init(workbench);
 		}
@@ -148,34 +142,29 @@ public final class MSBAgent {
 		return processor.isStarted && processor.isShutdown == false;
 	}
 
-	public final static WiFiAccount getWiFiAccount(final J2SESession coreSS, final Device device,
-			final ProjectContext ctx) {
+	public final static WiFiAccount getWiFiAccount(final J2SESession coreSS, final Device device, final ProjectContext ctx) {
 		final boolean hasToken = hasToken(device);
 		if (hasToken) {
-			return (WiFiAccount) ContextManager.getThreadPool()
-					.runAndWait(new ReturnableRunnable() {
-						@Override
-						public Object run() throws Throwable {
-							return WiFiHelper.getWiFiAccount(coreSS, ctx,
-									(ThreadGroup) sysThreadPoolToken);
-						}
-					}, sysThreadPoolToken);
+			return (WiFiAccount) ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+				@Override
+				public Object run() throws Throwable {
+					return WiFiHelper.getWiFiAccount(coreSS, ctx, (ThreadGroup) sysThreadPoolToken);
+				}
+			}, sysThreadPoolToken);
 		} else {
 			throw new Error("no permission to getWiFiAccount!");
 		}
 	}
 
-	public final static String[] getWiFiSSIDListOnAir(final CoreSession coreSS,
-			final Device device) {
+	public final static String[] getWiFiSSIDListOnAir(final CoreSession coreSS, final Device device) {
 		final boolean hasToken = hasToken(device);
 		if (hasToken) {
-			final String[] out = (String[]) ContextManager.getThreadPool()
-					.runAndWait(new ReturnableRunnable() {
-						@Override
-						public Object run() throws Throwable {
-							return WiFiDeviceManager.getInstance(coreSS).getSSIDListOnAir();
-						}
-					}, sysThreadPoolToken);
+			final String[] out = (String[]) ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+				@Override
+				public Object run() throws Throwable {
+					return WiFiDeviceManager.getInstance(coreSS).getSSIDListOnAir();
+				}
+			}, sysThreadPoolToken);
 			// for (int i = 0; i < out.length; i++) {
 			// System.out.println("getWiFiSSIDListOnAir : " + out[i]);
 			// }
@@ -185,18 +174,16 @@ public final class MSBAgent {
 		}
 	}
 
-	public final static InputStream listenFromWiFiMulticast(final CoreSession coreSS,
-			final Device device, final String multicastIP, final int port) {
+	public final static InputStream listenFromWiFiMulticast(final CoreSession coreSS, final Device device, final String multicastIP,
+			final int port) {
 		final boolean hasToken = hasToken(device);
 		if (hasToken) {
-			return (InputStream) ContextManager.getThreadPool()
-					.runAndWait(new ReturnableRunnable() {
-						@Override
-						public Object run() throws Throwable {
-							return WiFiDeviceManager.getInstance(coreSS)
-									.listenFromWiFiMulticast(multicastIP, port);
-						}
-					}, sysThreadPoolToken);
+			return (InputStream) ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+				@Override
+				public Object run() throws Throwable {
+					return WiFiDeviceManager.getInstance(coreSS).listenFromWiFiMulticast(multicastIP, port);
+				}
+			}, sysThreadPoolToken);
 		} else {
 			throw new Error("no permission to listenFromWiFiMulticast!");
 		}
@@ -286,8 +273,8 @@ public final class MSBAgent {
 		if (fproc instanceof Converter) {
 			final Converter tfv = fproc;
 			if (tfv.__fpwrapper != null) {
-				throw new MSBException(fproc.getClass().getSimpleName() + " [" + fproc.getName()
-						+ "] was added to server twice.", null, null);
+				throw new MSBException(fproc.getClass().getSimpleName() + " [" + fproc.getName() + "] was added to server twice.", null,
+						null);
 			}
 			final ConverterWrapper wrapper = new ConverterWrapper(tfv);
 			tfv.__fpwrapper = wrapper;
@@ -308,8 +295,8 @@ public final class MSBAgent {
 	}
 
 	/**
-	 * stop and remove this <code>Device</code>, and <b>NO</b>
-	 * <code>Message</code> will be processed by it in the future.
+	 * stop and remove this <code>Device</code>, and <b>NO</b> <code>Message</code> will be
+	 * processed by it in the future.
 	 * 
 	 * @param proc
 	 * @see #addProcessor(Device)

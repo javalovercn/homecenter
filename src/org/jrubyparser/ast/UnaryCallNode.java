@@ -33,118 +33,118 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- * An operator call on one of the unary operators '+' or '-' that lexically
- * appears to have the same name as the binary operator, but semantically has a
- * name decorated with an '@' sigil. These two operators are syntactically
- * distinct from use of other operators, so they are made distinct in the AST
- * with this node.
+ * An operator call on one of the unary operators '+' or '-' that lexically appears to have the same
+ * name as the binary operator, but semantically has a name decorated with an '@' sigil. These two
+ * operators are syntactically distinct from use of other operators, so they are made distinct in
+ * the AST with this node.
  */
 public class UnaryCallNode extends Node implements INameNode {
-    private Node receiverNode;
-    protected String lexicalName;
-    private boolean hasParens = false;
+	private Node receiverNode;
+	protected String lexicalName;
+	private boolean hasParens = false;
 
-    public UnaryCallNode(SourcePosition position, Node receiverNode, String lexicalName) {
-        super(position);
+	public UnaryCallNode(SourcePosition position, Node receiverNode, String lexicalName) {
+		super(position);
 
-        assert receiverNode != null : "receiverNode is not null";
+		assert receiverNode != null : "receiverNode is not null";
 
-        this.receiverNode = adopt(receiverNode);
-        this.lexicalName = lexicalName;
-    }
+		this.receiverNode = adopt(receiverNode);
+		this.lexicalName = lexicalName;
+	}
 
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-        UnaryCallNode other = (UnaryCallNode) node;
+		UnaryCallNode other = (UnaryCallNode) node;
 
-        return isNameMatch(other.getName()) && isLexicalNameMatch(other.getLexicalName()) &&
-                getReceiver().isSame(other.getReceiver());
-    }
+		return isNameMatch(other.getName()) && isLexicalNameMatch(other.getLexicalName()) && getReceiver().isSame(other.getReceiver());
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.UNARYCALLNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.UNARYCALLNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitUnaryCallNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitUnaryCallNode(this);
+	}
 
-    public boolean hasParens() {
-        return hasParens;
-    }
+	public boolean hasParens() {
+		return hasParens;
+	}
 
-    public void setHasParens(boolean hasParens) {
-        this.hasParens = hasParens;
-    }
+	public void setHasParens(boolean hasParens) {
+		this.hasParens = hasParens;
+	}
 
-    /**
-     * Gets the name as it lexically appears in the source code, undecorated by
-     * the '@' sigil.
-     */
-    public String getLexicalName() {
-        return lexicalName;
-    }
+	/**
+	 * Gets the name as it lexically appears in the source code, undecorated by the '@' sigil.
+	 */
+	public String getLexicalName() {
+		return lexicalName;
+	}
 
-    /**
-     * Gets the name as it is semantically, decorated by the '@' sigil.
-     */
-    public String getName() {
-        return lexicalName + "@";
-    }
+	/**
+	 * Gets the name as it is semantically, decorated by the '@' sigil.
+	 */
+	public String getName() {
+		return lexicalName + "@";
+	}
 
-    public void setLexicalName(String lexicalName) {
-        this.lexicalName = lexicalName;
-    }
+	public void setLexicalName(String lexicalName) {
+		this.lexicalName = lexicalName;
+	}
 
-    public void setName(String name) {
-        assert name.startsWith("@");
-        lexicalName = name.substring(1);
-    }
+	public void setName(String name) {
+		assert name.startsWith("@");
+		lexicalName = name.substring(1);
+	}
 
-    public boolean isLexicalNameMatch(String name) {
-        String thisName = getLexicalName();
+	public boolean isLexicalNameMatch(String name) {
+		String thisName = getLexicalName();
 
-        return thisName != null && thisName.equals(name);
-    }
+		return thisName != null && thisName.equals(name);
+	}
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-        return thisName != null && thisName.equals(name);
-    }
+		return thisName != null && thisName.equals(name);
+	}
 
-    /**
-     * Gets the receiverNode.
-   * receiverNode is the object on which the method is being called
-     * @return receiverNode
-     */
-    @Deprecated
-    public Node getReceiverNode() {
-        return getReceiver();
-    }
+	/**
+	 * Gets the receiverNode. receiverNode is the object on which the method is being called
+	 * 
+	 * @return receiverNode
+	 */
+	@Deprecated
+	public Node getReceiverNode() {
+		return getReceiver();
+	}
 
-    public Node getReceiver() {
-        return receiverNode;
-    }
+	public Node getReceiver() {
+		return receiverNode;
+	}
 
-    public void setReceiver(Node receiver) {
-        this.receiverNode = adopt(receiver);
-    }
+	public void setReceiver(Node receiver) {
+		this.receiverNode = adopt(receiver);
+	}
 
-    public SourcePosition getNamePosition() {
-        SourcePosition pos = receiverNode.getPosition();
+	public SourcePosition getNamePosition() {
+		SourcePosition pos = receiverNode.getPosition();
 
-        return new SourcePosition(pos.getFile(), pos.getStartLine(), pos.getEndLine(),
-                pos.getEndOffset(), pos.getEndOffset() + getName().length());
-    }
+		return new SourcePosition(pos.getFile(), pos.getStartLine(), pos.getEndLine(), pos.getEndOffset(),
+				pos.getEndOffset() + getName().length());
+	}
 
-    public SourcePosition getLexicalNamePosition() {
-        return getNamePosition();
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getNamePosition();
+	}
 }

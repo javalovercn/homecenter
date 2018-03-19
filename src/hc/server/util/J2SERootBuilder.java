@@ -60,8 +60,7 @@ public class J2SERootBuilder extends RootBuilder {
 			final String email = json.getAttToEmail();
 
 			if (forTest) {
-				System.out.println(
-						"[test] report exception to : " + (email != null ? email : urlStr));
+				System.out.println("[test] report exception to : " + (email != null ? email : urlStr));
 			}
 			// 创建连接
 			final URL url = new URL(urlStr);
@@ -79,8 +78,7 @@ public class J2SERootBuilder extends RootBuilder {
 			connection.setUseCaches(false);
 			connection.setInstanceFollowRedirects(true);
 
-			connection.setRequestProperty("Content-Type",
-					ExceptionJSON.APPLICATION_JSON_CHARSET_UTF_8);
+			connection.setRequestProperty("Content-Type", ExceptionJSON.APPLICATION_JSON_CHARSET_UTF_8);
 			connection.connect();
 
 			// POST请求
@@ -89,13 +87,11 @@ public class J2SERootBuilder extends RootBuilder {
 			out.flush();
 
 			// --------------------------以下接收响应--------------------------
-			final BufferedReader reader = new BufferedReader(
-					new InputStreamReader(connection.getInputStream()));
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			String lines;
 			final StringBuffer sb = new StringBuffer(1024);
 
-			sb.append(
-					"[test] response of report exception (the response will be ignore if NOT test) :\n");
+			sb.append("[test] response of report exception (the response will be ignore if NOT test) :\n");
 			while ((lines = reader.readLine()) != null) {
 				lines = new String(lines.getBytes(), "utf-8");
 				sb.append(lines);
@@ -141,13 +137,12 @@ public class J2SERootBuilder extends RootBuilder {
 			@Override
 			public final String getJRubyVer() {
 				if (jrubyVersion == null) {
-					jrubyVersion = (String) ContextManager.getThreadPool()
-							.runAndWait(new ReturnableRunnable() {
-								@Override
-								public Object run() throws Throwable {
-									return ResourceUtil.getJRubyVersion();// 有可能为null
-								}
-							}, token);
+					jrubyVersion = (String) ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
+						@Override
+						public Object run() throws Throwable {
+							return ResourceUtil.getJRubyVersion();// 有可能为null
+						}
+					}, token);
 				}
 				return jrubyVersion;
 			}
@@ -161,14 +156,14 @@ public class J2SERootBuilder extends RootBuilder {
 
 	@Override
 	public Object doBiz(final int rootBizNo, final Object para) {
-		try{
+		try {
 			return doBizImpl(rootBizNo, para);
-		}catch (final Throwable e) {
+		} catch (final Throwable e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
-	
+
 	private final Object doBizImpl(final int rootBizNo, final Object para) {
 		if (rootBizNo == ROOT_BIZ_AJAX_X509_PATH) {
 			// 注意：手工同步到HCAndroidServer/starter/ajax.der，和J2SE~Starter~starter/ajax.der
@@ -208,8 +203,7 @@ public class J2SERootBuilder extends RootBuilder {
 			LogManager.log(sb.toString());
 			StringBuilderCacher.cycle(sb);
 		} else if (rootBizNo == ROOT_GET_LAST_ROOT_CFG) {
-			return PropertiesManager.getValue(PropertiesManager.p_lastRootCfg,
-					RootServerConnector.OFFLINE_ROOT_CFG);// OFFLINE_ROOT_CFG可能为null
+			return PropertiesManager.getValue(PropertiesManager.p_lastRootCfg, RootServerConnector.OFFLINE_ROOT_CFG);// OFFLINE_ROOT_CFG可能为null
 		} else if (rootBizNo == ROOT_SET_LAST_ROOT_CFG) {
 			PropertiesManager.setValue(PropertiesManager.p_lastRootCfg, (String) para);
 			PropertiesManager.saveFile();
@@ -219,7 +213,7 @@ public class J2SERootBuilder extends RootBuilder {
 			return ((Throwable) para).getCause();
 		} else if (rootBizNo == ROOT_IS_CURR_THREAD_IN_SESSION_OR_PROJ_POOL) {
 			return App.isSessionOrProjectPool((Boolean) para);
-		}else if (rootBizNo == ROOT_START_NEW_IDEL_SESSION) {
+		} else if (rootBizNo == ROOT_START_NEW_IDEL_SESSION) {
 			J2SESessionManager.startNewIdleSession();
 		}
 

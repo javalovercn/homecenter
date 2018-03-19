@@ -29,36 +29,36 @@ public class InnerJarVerifier extends AbstractJarVerifier {
 
 	@Override
 	public X509Certificate[] verifyJar(final File jarFile, X509Certificate[] trustedSigner) {
-		if(trustedSigner == null){
+		if (trustedSigner == null) {
 			trustedSigner = new X509Certificate[0];
 		}
-		
+
 		final int signedLength = trustedSigner.length;
 
 		Certificate[] newCerts = null;
-		
+
 		JarFile jf = null;
-		try{
+		try {
 			final byte[] buf = new byte[4096];
 
 			jf = new JarFile(jarFile, true);
-	
-//			final Manifest manifest = jf.getManifest();
-//			if (manifest == null)
-//				return null;//注意：早期包是不带Manifest
-	
+
+			//			final Manifest manifest = jf.getManifest();
+			//			if (manifest == null)
+			//				return null;//注意：早期包是不带Manifest
+
 			final Enumeration<JarEntry> ent = jf.entries();
 			while (ent.hasMoreElements()) {
 				final JarEntry je = ent.nextElement();
-	
-				if (je.isDirectory()){
+
+				if (je.isDirectory()) {
 					continue;
 				}
-		        if (je.getName().startsWith("META-INF/", 0)) {
-		            continue;
-		        }
-		        
-		        final InputStream is = jf.getInputStream(je);
+				if (je.getName().startsWith("META-INF/", 0)) {
+					continue;
+				}
+
+				final InputStream is = jf.getInputStream(je);
 				int n;
 				try {
 					while ((n = is.read(buf, 0, buf.length)) != -1) {
@@ -66,14 +66,14 @@ public class InnerJarVerifier extends AbstractJarVerifier {
 				} finally {
 					is.close();
 				}
-				
+
 				newCerts = je.getCertificates();// now we can fetch security stuff;
 				if ((newCerts == null) || (newCerts.length == 0)) {
-					if(signedLength > 0){
+					if (signedLength > 0) {
 						return null;
 					}
 				} else {
-					if(signedLength > 0){
+					if (signedLength > 0) {
 						boolean signedByHC = false;
 						for (int i = 0; i < newCerts.length && signedByHC == false; i++) {
 							for (int j = 0; j < signedLength; j++) {
@@ -83,29 +83,29 @@ public class InnerJarVerifier extends AbstractJarVerifier {
 								}
 							}
 						}
-						
+
 						if (!signedByHC) {
 							return null;
 						}
 					}
 				}
 			}
-	
-			if(newCerts == null){
+
+			if (newCerts == null) {
 				return new X509Certificate[0];
-			}else{
+			} else {
 				final int len = newCerts.length;
 				final X509Certificate[] x509 = new X509Certificate[len];
 				for (int i = 0; i < len; i++) {
-					x509[i] = (X509Certificate)newCerts[i];
+					x509[i] = (X509Certificate) newCerts[i];
 				}
 				return x509;
 			}
-		}catch (final Throwable e) {
-			if(L.isInWorkshop){
+		} catch (final Throwable e) {
+			if (L.isInWorkshop) {
 				e.printStackTrace();//no display verified error
 			}
-		}finally{
+		} finally {
 			try {
 				jf.close();
 			} catch (final Throwable e) {

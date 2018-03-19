@@ -37,44 +37,44 @@ import org.jrubyparser.SourcePosition;
  * Represents a big integer literal.
  */
 public class BignumNode extends NumericNode implements ILiteralNode {
-    private BigInteger value;
+	private BigInteger value;
 
-    public BignumNode(SourcePosition position, BigInteger value) {
-        super(position);
-        this.value = value;
-    }
+	public BignumNode(SourcePosition position, BigInteger value) {
+		super(position);
+		this.value = value;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && getValue().equals(((BignumNode) node).getValue());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && getValue().equals(((BignumNode) node).getValue());
-    }
+	public NodeType getNodeType() {
+		return NodeType.BIGNUMNODE;
+	}
 
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitBignumNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.BIGNUMNODE;
-    }
+	/**
+	 * Gets the value.
+	 * 
+	 * @return Returns a BigInteger
+	 */
+	public BigInteger getValue() {
+		return value;
+	}
 
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitBignumNode(this);
-    }
-
-    /**
-     * Gets the value.
-     * @return Returns a BigInteger
-     */
-    public BigInteger getValue() {
-        return value;
-    }
-
-    public void setValue(BigInteger value) {
-        this.value = value;
-    }
+	public void setValue(BigInteger value) {
+		this.value = value;
+	}
 
 }

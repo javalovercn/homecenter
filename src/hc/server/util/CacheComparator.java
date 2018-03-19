@@ -16,8 +16,7 @@ import java.util.Vector;
 public abstract class CacheComparator {
 	// 仅禁用cache检查在服务器端（即：不发送E_LOAD_CACHE标识信息体），手机端仍会进行cache操作。
 	// 更改后，需要重启。
-	static final boolean enableCache = PropertiesManager.isTrue(PropertiesManager.p_enableCache,
-			true);
+	static final boolean enableCache = PropertiesManager.isTrue(PropertiesManager.p_enableCache, true);
 	static final boolean isSimu = PropertiesManager.isSimu();
 
 	public static Vector<PendStore> getPendStoreVector(final J2SESession coreSS) {
@@ -42,8 +41,8 @@ public abstract class CacheComparator {
 		}
 	}
 
-	public CacheComparator(final String projID, final String softUID, final String urlID,
-			final byte[] projIDbs, final byte[] softUidBS, final byte[] urlIDbs) {
+	public CacheComparator(final String projID, final String softUID, final String urlID, final byte[] projIDbs, final byte[] softUidBS,
+			final byte[] urlIDbs) {
 		this.projID = projID;
 		this.softUID = softUID;
 		this.urlID = urlID;
@@ -64,9 +63,8 @@ public abstract class CacheComparator {
 	 * @param data_len
 	 * @param paras
 	 */
-	public final synchronized void encodeGetCompare(final J2SESession coreSS,
-			final boolean enableCacheForProc, final byte[] noCycleBS, final int data_idx,
-			final int data_len, final Object[] paras) {
+	public final synchronized void encodeGetCompare(final J2SESession coreSS, final boolean enableCacheForProc, final byte[] noCycleBS,
+			final int data_idx, final int data_len, final Object[] paras) {
 		// LogManager.log("encodeGetCompare project ID : " + projID);
 		// LogManager.log("encodeGetCompare mobile UID : " + uuid);
 		// LogManager.log("encodeGetCompare url ID : " + urlID);
@@ -99,8 +97,7 @@ public abstract class CacheComparator {
 
 		boolean isNewCacheItem = false;
 
-		if (enableCacheForProc && (cacheScriptBS = CacheManager.getCacheFileBS(projID, softUID,
-				urlID, code)) != null) {
+		if (enableCacheForProc && (cacheScriptBS = CacheManager.getCacheFileBS(projID, softUID, urlID, code)) != null) {
 			final int cacheBSLen = cacheScriptBS.length;
 
 			if (cacheBSLen != data_len) {
@@ -122,18 +119,15 @@ public abstract class CacheComparator {
 			// true);//注意：需要通知进行cache
 			sendData(paras);
 
-			pendStore(coreSS, new PendStore(projID, softUID, urlID, projIDbs, softUidBS, urlIDbs,
-					code, noCycleBS));
+			pendStore(coreSS, new PendStore(projID, softUID, urlID, projIDbs, softUidBS, urlIDbs, code, noCycleBS));
 		} else {
-			final int dataLen = dataCache.setCacheInfo(projIDbs, 0, projIDbs.length, urlIDbs, 0,
-					urlIDbs.length, code);
+			final int dataLen = dataCache.setCacheInfo(projIDbs, 0, projIDbs.length, urlIDbs, 0, urlIDbs.length, code);
 
 			// 服务端发送
-			coreSS.context.sendWrap(MsgBuilder.E_LOAD_CACHE, dataCache.bs,
-					MsgBuilder.INDEX_MSG_DATA, dataLen);
+			coreSS.context.sendWrap(MsgBuilder.E_LOAD_CACHE, dataCache.bs, MsgBuilder.INDEX_MSG_DATA, dataLen);
 			L.V = L.WShop ? false
-					: LogManager.log("[cache] find match cache item for [ProjID/SoftUID/urlID] : ["
-							+ projID + "/" + softUID + "/" + urlID + "]");
+					: LogManager.log(
+							"[cache] find match cache item for [ProjID/SoftUID/urlID] : [" + projID + "/" + softUID + "/" + urlID + "]");
 		}
 	}
 

@@ -16,139 +16,105 @@ import org.bouncycastle.asn1.cms.RecipientInfo;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.operator.DigestCalculator;
 
-class CMSEnvelopedHelper
-{
-    static RecipientInformationStore buildRecipientInformationStore(
-        ASN1Set recipientInfos, AlgorithmIdentifier messageAlgorithm, CMSSecureReadable secureReadable)
-    {
-        return buildRecipientInformationStore(recipientInfos, messageAlgorithm, secureReadable, null);
-    }
+class CMSEnvelopedHelper {
+	static RecipientInformationStore buildRecipientInformationStore(ASN1Set recipientInfos, AlgorithmIdentifier messageAlgorithm,
+			CMSSecureReadable secureReadable) {
+		return buildRecipientInformationStore(recipientInfos, messageAlgorithm, secureReadable, null);
+	}
 
-    static RecipientInformationStore buildRecipientInformationStore(
-        ASN1Set recipientInfos, AlgorithmIdentifier messageAlgorithm, CMSSecureReadable secureReadable, AuthAttributesProvider additionalData)
-    {
-        List infos = new ArrayList();
-        for (int i = 0; i != recipientInfos.size(); i++)
-        {
-            RecipientInfo info = RecipientInfo.getInstance(recipientInfos.getObjectAt(i));
+	static RecipientInformationStore buildRecipientInformationStore(ASN1Set recipientInfos, AlgorithmIdentifier messageAlgorithm,
+			CMSSecureReadable secureReadable, AuthAttributesProvider additionalData) {
+		List infos = new ArrayList();
+		for (int i = 0; i != recipientInfos.size(); i++) {
+			RecipientInfo info = RecipientInfo.getInstance(recipientInfos.getObjectAt(i));
 
-            readRecipientInfo(infos, info, messageAlgorithm, secureReadable, additionalData);
-        }
-        return new RecipientInformationStore(infos);
-    }
+			readRecipientInfo(infos, info, messageAlgorithm, secureReadable, additionalData);
+		}
+		return new RecipientInformationStore(infos);
+	}
 
-    private static void readRecipientInfo(
-        List infos, RecipientInfo info, AlgorithmIdentifier messageAlgorithm, CMSSecureReadable secureReadable, AuthAttributesProvider additionalData)
-    {
-        ASN1Encodable recipInfo = info.getInfo();
-        if (recipInfo instanceof KeyTransRecipientInfo)
-        {
-            infos.add(new KeyTransRecipientInformation(
-                (KeyTransRecipientInfo)recipInfo, messageAlgorithm, secureReadable, additionalData));
-        }
-        else if (recipInfo instanceof KEKRecipientInfo)
-        {
-            infos.add(new KEKRecipientInformation(
-                (KEKRecipientInfo)recipInfo, messageAlgorithm, secureReadable, additionalData));
-        }
-        else if (recipInfo instanceof KeyAgreeRecipientInfo)
-        {
-            KeyAgreeRecipientInformation.readRecipientInfo(infos,
-                (KeyAgreeRecipientInfo)recipInfo, messageAlgorithm, secureReadable, additionalData);
-        }
-        else if (recipInfo instanceof PasswordRecipientInfo)
-        {
-            infos.add(new PasswordRecipientInformation(
-                (PasswordRecipientInfo)recipInfo, messageAlgorithm, secureReadable, additionalData));
-        }
-    }
+	private static void readRecipientInfo(List infos, RecipientInfo info, AlgorithmIdentifier messageAlgorithm,
+			CMSSecureReadable secureReadable, AuthAttributesProvider additionalData) {
+		ASN1Encodable recipInfo = info.getInfo();
+		if (recipInfo instanceof KeyTransRecipientInfo) {
+			infos.add(
+					new KeyTransRecipientInformation((KeyTransRecipientInfo) recipInfo, messageAlgorithm, secureReadable, additionalData));
+		} else if (recipInfo instanceof KEKRecipientInfo) {
+			infos.add(new KEKRecipientInformation((KEKRecipientInfo) recipInfo, messageAlgorithm, secureReadable, additionalData));
+		} else if (recipInfo instanceof KeyAgreeRecipientInfo) {
+			KeyAgreeRecipientInformation.readRecipientInfo(infos, (KeyAgreeRecipientInfo) recipInfo, messageAlgorithm, secureReadable,
+					additionalData);
+		} else if (recipInfo instanceof PasswordRecipientInfo) {
+			infos.add(
+					new PasswordRecipientInformation((PasswordRecipientInfo) recipInfo, messageAlgorithm, secureReadable, additionalData));
+		}
+	}
 
-    static class CMSDigestAuthenticatedSecureReadable
-        implements CMSSecureReadable
-    {
-        private DigestCalculator digestCalculator;
-        private CMSReadable readable;
+	static class CMSDigestAuthenticatedSecureReadable implements CMSSecureReadable {
+		private DigestCalculator digestCalculator;
+		private CMSReadable readable;
 
-        public CMSDigestAuthenticatedSecureReadable(DigestCalculator digestCalculator, CMSReadable readable)
-        {
-            this.digestCalculator = digestCalculator;
-            this.readable = readable;
-        }
+		public CMSDigestAuthenticatedSecureReadable(DigestCalculator digestCalculator, CMSReadable readable) {
+			this.digestCalculator = digestCalculator;
+			this.readable = readable;
+		}
 
-        public InputStream getInputStream()
-            throws IOException, CMSException
-        {
-            return new FilterInputStream(readable.getInputStream())
-            {
-                public int read()
-                    throws IOException
-                {
-                    int b = in.read();
+		public InputStream getInputStream() throws IOException, CMSException {
+			return new FilterInputStream(readable.getInputStream()) {
+				public int read() throws IOException {
+					int b = in.read();
 
-                    if (b >= 0)
-                    {
-                        digestCalculator.getOutputStream().write(b);
-                    }
+					if (b >= 0) {
+						digestCalculator.getOutputStream().write(b);
+					}
 
-                    return b;
-                }
+					return b;
+				}
 
-                public int read(byte[] inBuf, int inOff, int inLen)
-                    throws IOException
-                {
-                    int n = in.read(inBuf, inOff, inLen);
-                    
-                    if (n >= 0)
-                    {
-                        digestCalculator.getOutputStream().write(inBuf, inOff, n);
-                    }
+				public int read(byte[] inBuf, int inOff, int inLen) throws IOException {
+					int n = in.read(inBuf, inOff, inLen);
 
-                    return n;
-                }
-            };
-        }
+					if (n >= 0) {
+						digestCalculator.getOutputStream().write(inBuf, inOff, n);
+					}
 
-        public byte[] getDigest()
-        {
-            return digestCalculator.getDigest();
-        }
-    }
+					return n;
+				}
+			};
+		}
 
-    static class CMSAuthenticatedSecureReadable implements CMSSecureReadable
-    {
-        private AlgorithmIdentifier algorithm;
-        private CMSReadable readable;
+		public byte[] getDigest() {
+			return digestCalculator.getDigest();
+		}
+	}
 
-        CMSAuthenticatedSecureReadable(AlgorithmIdentifier algorithm, CMSReadable readable)
-        {
-            this.algorithm = algorithm;
-            this.readable = readable;
-        }
+	static class CMSAuthenticatedSecureReadable implements CMSSecureReadable {
+		private AlgorithmIdentifier algorithm;
+		private CMSReadable readable;
 
-        public InputStream getInputStream()
-            throws IOException, CMSException
-        {
-            return readable.getInputStream();
-        }
+		CMSAuthenticatedSecureReadable(AlgorithmIdentifier algorithm, CMSReadable readable) {
+			this.algorithm = algorithm;
+			this.readable = readable;
+		}
 
-    }
+		public InputStream getInputStream() throws IOException, CMSException {
+			return readable.getInputStream();
+		}
 
-    static class CMSEnvelopedSecureReadable implements CMSSecureReadable
-    {
-        private AlgorithmIdentifier algorithm;
-        private CMSReadable readable;
+	}
 
-        CMSEnvelopedSecureReadable(AlgorithmIdentifier algorithm, CMSReadable readable)
-        {
-            this.algorithm = algorithm;
-            this.readable = readable;
-        }
+	static class CMSEnvelopedSecureReadable implements CMSSecureReadable {
+		private AlgorithmIdentifier algorithm;
+		private CMSReadable readable;
 
-        public InputStream getInputStream()
-            throws IOException, CMSException
-        {
-            return readable.getInputStream();
-        }
+		CMSEnvelopedSecureReadable(AlgorithmIdentifier algorithm, CMSReadable readable) {
+			this.algorithm = algorithm;
+			this.readable = readable;
+		}
 
-    }
+		public InputStream getInputStream() throws IOException, CMSException {
+			return readable.getInputStream();
+		}
+
+	}
 }

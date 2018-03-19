@@ -36,85 +36,90 @@ import org.jrubyparser.SourcePosition;
  * Represents a yield statement.
  */
 public class YieldNode extends Node implements IArgumentNode {
-    private Node argsNode;
-    private boolean expandedArguments;
-    private boolean hasParens = false;
+	private Node argsNode;
+	private boolean expandedArguments;
+	private boolean hasParens = false;
 
-    /**
-     * Construct a new YieldNode.
-     *
-     * @param position position of the node in the source
-     * @param argsNode the arguments to the yield
-     * @param expandedArguments whether the arguments should be treated as directly-passed args
-     *                          as in yield 1, 2, 3 (expandArguments = true) versus
-     *                          yield [1, 2, 3] (expandArguments = false).
-     */
-    public YieldNode(SourcePosition position, Node argsNode, boolean expandedArguments) {
-        super(position);
+	/**
+	 * Construct a new YieldNode.
+	 *
+	 * @param position
+	 *            position of the node in the source
+	 * @param argsNode
+	 *            the arguments to the yield
+	 * @param expandedArguments
+	 *            whether the arguments should be treated as directly-passed args as in yield 1, 2,
+	 *            3 (expandArguments = true) versus yield [1, 2, 3] (expandArguments = false).
+	 */
+	public YieldNode(SourcePosition position, Node argsNode, boolean expandedArguments) {
+		super(position);
 
-        // block.yield depends on null to represent empty and nil to represent nil - [nil] vs []
-        //assert argsNode != null : "argsNode is not null";
+		// block.yield depends on null to represent empty and nil to represent nil - [nil] vs []
+		//assert argsNode != null : "argsNode is not null";
 
-        this.argsNode = adopt(argsNode);
-        this.expandedArguments = expandedArguments;
-    }
+		this.argsNode = adopt(argsNode);
+		this.expandedArguments = expandedArguments;
+	}
 
-    @Override
-    public boolean isSame(Node other) {
-        if (super.isSame(other)) {
-            YieldNode ynode = (YieldNode) other;
-            if (getArgs() != null && ynode.getArgs() != null) {
-                if (getArgs().isSame(ynode.getArgs()) && getExpandArguments() == ynode.getExpandArguments()){
-                    return true;
-                }
-            }
+	@Override
+	public boolean isSame(Node other) {
+		if (super.isSame(other)) {
+			YieldNode ynode = (YieldNode) other;
+			if (getArgs() != null && ynode.getArgs() != null) {
+				if (getArgs().isSame(ynode.getArgs()) && getExpandArguments() == ynode.getExpandArguments()) {
+					return true;
+				}
+			}
 
-            if ((getArgs() == null && ynode.getArgs() != null) || (getArgs() != null && ynode.getArgs() == null)) {
-                return false;
-            }
+			if ((getArgs() == null && ynode.getArgs() != null) || (getArgs() != null && ynode.getArgs() == null)) {
+				return false;
+			}
 
-        }
-        return false;
-    }
+		}
+		return false;
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.YIELDNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.YIELDNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitYieldNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitYieldNode(this);
+	}
 
-    /**
-     * Gets the argsNode.
-     * @return Returns a Node
-     */
-    @Deprecated
-    public Node getArgsNode() {
-        return getArgs();
-    }
+	/**
+	 * Gets the argsNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	@Deprecated
+	public Node getArgsNode() {
+		return getArgs();
+	}
 
-    public Node getArgs() {
-        return argsNode;
-    }
+	public Node getArgs() {
+		return argsNode;
+	}
 
-    public void setArgs(Node args) {
-        this.argsNode = adopt(args);
-    }
+	public void setArgs(Node args) {
+		this.argsNode = adopt(args);
+	}
 
-    public boolean getExpandArguments() {
-        return expandedArguments;
-    }
+	public boolean getExpandArguments() {
+		return expandedArguments;
+	}
 
-    public boolean hasParens() {
-        return hasParens;
-    }
+	public boolean hasParens() {
+		return hasParens;
+	}
 
-    public void setHasParens(boolean hasParens) {
-        this.hasParens = hasParens;
-    }
+	public void setHasParens(boolean hasParens) {
+		this.hasParens = hasParens;
+	}
 }

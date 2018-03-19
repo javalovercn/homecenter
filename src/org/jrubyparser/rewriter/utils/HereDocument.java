@@ -29,7 +29,7 @@
 package org.jrubyparser.rewriter.utils;
 
 public class HereDocument {
-	
+
 	public String content;
 	private ReWriterContext config;
 
@@ -50,5 +50,5 @@ public class HereDocument {
 		config.getIndentor().printIndentation(config.getOutput());
 		config.getOutput().print("EOF");
 	}
-	
+
 }

@@ -42,59 +42,64 @@ public abstract class MethodDefNode extends Node implements INameNode, ILocalSco
 	protected StaticScope scope;
 	protected Node bodyNode;
 
-	public MethodDefNode(SourcePosition position, MethodNameNode nameNode, ArgsNode argsNode,
-	        StaticScope scope, Node bodyNode) {
-            super(position);
+	public MethodDefNode(SourcePosition position, MethodNameNode nameNode, ArgsNode argsNode, StaticScope scope, Node bodyNode) {
+		super(position);
 
-            // TODO: Adding implicit nils caused multiple problems in compiler -- revist after landing
-            //assert bodyNode != null : "bodyNode is not null";
+		// TODO: Adding implicit nils caused multiple problems in compiler -- revist after landing
+		//assert bodyNode != null : "bodyNode is not null";
 
-            this.nameNode = (MethodNameNode) adopt(nameNode);
-            this.argsNode = (ArgsNode) adopt(argsNode);
-            this.scope = scope;
-            this.bodyNode = adopt(bodyNode);
+		this.nameNode = (MethodNameNode) adopt(nameNode);
+		this.argsNode = (ArgsNode) adopt(argsNode);
+		this.scope = scope;
+		this.bodyNode = adopt(bodyNode);
 	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-        @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-        MethodDefNode other = (MethodDefNode) node;
-        if (!isNameMatch(other.getName())) return false;
+		MethodDefNode other = (MethodDefNode) node;
+		if (!isNameMatch(other.getName()))
+			return false;
 
-        if (getBody() == null && other.getBody() == null) {
-            if (getArgs() == null && other.getArgs() == null) return true;
-            if (getArgs() == null || other.getArgs() == null) return false;
-            return getArgs().isSame(other.getArgs());
-        } else if (getBody() == null || other.getBody() == null) {
-            return false;
-        } else if (getArgs() == null && other.getArgs() == null) {
-            return getBody().isSame(other.getBody());
-        } else if (getArgs() == null || other.getArgs() == null) {
-            return false;
-        }
+		if (getBody() == null && other.getBody() == null) {
+			if (getArgs() == null && other.getArgs() == null)
+				return true;
+			if (getArgs() == null || other.getArgs() == null)
+				return false;
+			return getArgs().isSame(other.getArgs());
+		} else if (getBody() == null || other.getBody() == null) {
+			return false;
+		} else if (getArgs() == null && other.getArgs() == null) {
+			return getBody().isSame(other.getBody());
+		} else if (getArgs() == null || other.getArgs() == null) {
+			return false;
+		}
 
-        return getBody().isSame(other.getBody()) && getArgs().isSame(other.getArgs());
-    }
+		return getBody().isSame(other.getBody()) && getArgs().isSame(other.getArgs());
+	}
 
 	/**
 	 * Gets the argsNode.
+	 * 
 	 * @return Returns a Node
 	 */
 	public ArgsNode getArgs() {
-	    return argsNode;
+		return argsNode;
 	}
 
-        @Deprecated
-        public ArgsNode getArgsNode() {
-            return getArgs();
-        }
+	@Deprecated
+	public ArgsNode getArgsNode() {
+		return getArgs();
+	}
 
 	/**
 	 * Get the static scoping information.
@@ -102,7 +107,7 @@ public abstract class MethodDefNode extends Node implements INameNode, ILocalSco
 	 * @return the scoping info
 	 */
 	public StaticScope getScope() {
-	    return scope;
+		return scope;
 	}
 
 	/**
@@ -111,93 +116,96 @@ public abstract class MethodDefNode extends Node implements INameNode, ILocalSco
 	 * @return the contents
 	 */
 	public Node getBody() {
-	    return bodyNode;
+		return bodyNode;
 	}
 
-        @Deprecated
-        public Node getBodyNode() {
-            return getBody();
-        }
+	@Deprecated
+	public Node getBodyNode() {
+		return getBody();
+	}
 
-        public String getLexicalName() {
-            return getName();
-        }
+	public String getLexicalName() {
+		return getName();
+	}
 
 	/**
 	 * Gets the name's node.
+	 * 
 	 * @return Returns an ArgumentNode
 	 */
 	public MethodNameNode getNameNode() {
-	    return nameNode;
+		return nameNode;
 	}
 
 	/**
 	 * Gets the name.
+	 * 
 	 * @return Returns a String
 	 */
 	public String getName() {
-	    return nameNode.getName();
+		return nameNode.getName();
 	}
 
-        public void setName(String name) {
-            nameNode.setName(name);
-        }
+	public void setName(String name) {
+		nameNode.setName(name);
+	}
 
-        public boolean isNameMatch(String name) {
-            String thisName = getName();
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-            return thisName != null && thisName.equals(name);
-        }
+		return thisName != null && thisName.equals(name);
+	}
 
-        public SourcePosition getNamePosition() {
-            return getNameNode().getNamePosition();
-        }
+	public SourcePosition getNamePosition() {
+		return getNameNode().getNamePosition();
+	}
 
-        public SourcePosition getLexicalNamePosition() {
-            return getNameNode().getNamePosition();
-        }
+	public SourcePosition getLexicalNamePosition() {
+		return getNameNode().getNamePosition();
+	}
 
-        /**
-         * Given a name (presumably retrieve via getNormativeSignatureNameList()) is this parmeter used
-         * in this method definition?
-         *
-         * @param name to be checked
-         * @return if used or not.
-         */
-        public boolean isParameterUsed(String name) {
-            // FIXME: Do I need to worry about used vars in parameter initialization?
-            return VariableHelper.isParameterUsed(getBody(), name, true);
-        }
+	/**
+	 * Given a name (presumably retrieve via getNormativeSignatureNameList()) is this parmeter used
+	 * in this method definition?
+	 *
+	 * @param name
+	 *            to be checked
+	 * @return if used or not.
+	 */
+	public boolean isParameterUsed(String name) {
+		// FIXME: Do I need to worry about used vars in parameter initialization?
+		return VariableHelper.isParameterUsed(getBody(), name, true);
+	}
 
-        public ILocalVariable getParameterNamed(String name) {
-            return VariableHelper.getParameterName(getArgs(), name);
-        }
+	public ILocalVariable getParameterNamed(String name) {
+		return VariableHelper.getParameterName(getArgs(), name);
+	}
 
-        /**
-         * Note: This will give a string a representation which will always be consistent whether
-         * you specify a method definition using parens or not.  It is meant for use of IDES for
-         * indexing of hinting on completion.
-         *
-         * @return the signature as a String
-         */
-        public String getNormativeSignature() {
-            StringBuilder signature = new StringBuilder();
+	/**
+	 * Note: This will give a string a representation which will always be consistent whether you
+	 * specify a method definition using parens or not. It is meant for use of IDES for indexing of
+	 * hinting on completion.
+	 *
+	 * @return the signature as a String
+	 */
+	public String getNormativeSignature() {
+		StringBuilder signature = new StringBuilder();
 
-            signature.append(getName());
+		signature.append(getName());
 
-            List<String> args = getArgs().getNormativeParameterNameList(false);
-            int length = args.size();
+		List<String> args = getArgs().getNormativeParameterNameList(false);
+		int length = args.size();
 
-            if (length > 0) {
-                signature.append('(').append(args.get(0));
+		if (length > 0) {
+			signature.append('(').append(args.get(0));
 
-                for (int i = 1; i < length; i++) {
-                    signature.append(',').append(args.get(i));
-                }
+			for (int i = 1; i < length; i++) {
+				signature.append(',').append(args.get(i));
+			}
 
-                signature.append(')');
-            }
+			signature.append(')');
+		}
 
-            return signature.toString();
-        }
+		return signature.toString();
+	}
 }

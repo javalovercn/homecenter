@@ -11,8 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 public class LockTester {
-	private final static int step0Cancle = 0, step1Query = 1, step2Login = 2, step3LockScreen = 3,
-			step5Finish = 5;
+	private final static int step0Cancle = 0, step1Query = 1, step2Login = 2, step3LockScreen = 3, step5Finish = 5;
 
 	private final static ActionListener cancleListener = new ActionListener() {
 		@Override
@@ -23,8 +22,7 @@ public class LockTester {
 	final static String[] text = {
 			"{9070}<BR><BR>in some OS and JRE environment, mobile will display black if current screen is locked. <BR>"
 					+ "click '{1029}' to test it now.",
-			"login from mobile<BR><OL>" + "<LI>start mobile App,</LI>"
-					+ "<LI>input <STRONG>[{uuid}]</STRONG> and password,</LI>"
+			"login from mobile<BR><OL>" + "<LI>start mobile App,</LI>" + "<LI>input <STRONG>[{uuid}]</STRONG> and password,</LI>"
 					+ "<LI>press '{1010}' button on mobile to connect.</LI>"
 					+ "<LI>if you see this screen on mobile, click '{1029}'.</LI></OL>",
 			"" };
@@ -75,26 +73,25 @@ public class LockTester {
 		}
 
 		showStepDialog(testLockingScreen, ResourceUtil.replaceWithI18N(text[stepNow]),
-				(stepNow == step5Finish ? (String) ResourceUtil.get(1034)
-						: (String) ResourceUtil.get(1029)), // 下一步/完成
+				(stepNow == step5Finish ? (String) ResourceUtil.get(1034) : (String) ResourceUtil.get(1029)), // 下一步/完成
 				nextActoin, cancleListener);
 	}
 
-	private static void showStepDialog(final String title, final String text,
-			final String nextOrFinish, final ActionListener listener, final ActionListener cancle) {
+	private static void showStepDialog(final String title, final String text, final String nextOrFinish, final ActionListener listener,
+			final ActionListener cancle) {
 		final JPanel panel = new JPanel(new BorderLayout());
 		// try {
-		panel.add(new JLabel("<html><body style=\"width:600\">" + text + "</body></html>", null,
-				SwingConstants.LEADING), BorderLayout.CENTER);// new
-																// ImageIcon(ImageIO.read(ImageSrc.OK_ICON))
-		// panel.add(new JLabel("<html><br>The more powerful [" +
-		// (String)ResourceUtil.get(9034) + "] is ready for you now!" +
-		// "</html>"), BorderLayout.CENTER);
-		// } catch (IOException e) {
-		// }
+		panel.add(new JLabel("<html><body style=\"width:600\">" + text + "</body></html>", null, SwingConstants.LEADING),
+				BorderLayout.CENTER);// new
+																																						// ImageIcon(ImageIO.read(ImageSrc.OK_ICON))
+																																						// panel.add(new JLabel("<html><br>The more powerful [" +
+																																						// (String)ResourceUtil.get(9034) + "] is ready for you now!" +
+																																						// "</html>"), BorderLayout.CENTER);
+																																						// } catch (IOException e) {
+																																						// }
 
 		final JButton jbOK = new JButton(nextOrFinish);
-		App.showCenterPanelMain(panel, 0, 0, title, cancle == null ? false : true, jbOK, null,
-				listener, cancle, null, false, false, null, false, false);
+		App.showCenterPanelMain(panel, 0, 0, title, cancle == null ? false : true, jbOK, null, listener, cancle, null, false, false, null,
+				false, false);
 	}
 }

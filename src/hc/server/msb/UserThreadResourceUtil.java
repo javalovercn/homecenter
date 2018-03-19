@@ -41,7 +41,7 @@ public class UserThreadResourceUtil {
 
 	public final static boolean isInServing(final IContext ic) {
 		// Dont add checkAccess()
-		return ic != null && ic.cmStatus == ContextManager.STATUS_SERVER_SELF;
+		return ic != null && ic.getStatus() == ContextManager.STATUS_SERVER_SELF;
 	}
 
 	public static int getDeviceHeightFrom(final J2SESession coreSS) {
@@ -87,8 +87,7 @@ public class UserThreadResourceUtil {
 	public static int getMletDPIFrom(final J2SESession coreSS) {
 		if (isInServing(coreSS.context)) {
 			if (isIOS(coreSS)) {
-				return (int) (coreSS.clientDesc.getDPI()
-						/ Float.parseFloat(coreSS.clientDesc.getClientScale()));
+				return (int) (coreSS.clientDesc.getDPI() / Float.parseFloat(coreSS.clientDesc.getClientScale()));
 			} else {
 				return coreSS.clientDesc.getDPI();
 			}
@@ -139,8 +138,7 @@ public class UserThreadResourceUtil {
 
 	public static String getMobileOSFrom(final J2SESession coreSS) {
 		if (isInServing(coreSS.context)) {
-			final String[] allOS = { ProjectContext.OS_ANDROID, ProjectContext.OS_IOS,
-					ProjectContext.OS_J2ME };
+			final String[] allOS = { ProjectContext.OS_ANDROID, ProjectContext.OS_IOS, ProjectContext.OS_J2ME };
 
 			final String oldOS = getMobileAgent(coreSS).getOS();
 			for (int i = 0; i < allOS.length; i++) {
@@ -168,7 +166,6 @@ public class UserThreadResourceUtil {
 	}
 
 	public static J2SESession getCoreSSFromCtx(final ProjectContext ctx) {
-		return ServerUIAPIAgent.getProjResponserMaybeNull(ctx)
-				.getSessionContextFromCurrThread().j2seSocketSession;
+		return ServerUIAPIAgent.getProjResponserMaybeNull(ctx).getSessionContextFromCurrThread().j2seSocketSession;
 	}
 }

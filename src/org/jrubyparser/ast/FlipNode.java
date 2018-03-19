@@ -35,107 +35,109 @@ import org.jrubyparser.SourcePosition;
  * A Range in a boolean expression (named after a FlipFlop component in electronic?).
  */
 public class FlipNode extends Node {
-    private Node beginNode;
-    private Node endNode;
-    private boolean exclusive;
-    // A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
-    // is what index in the right scope to set the value.
-    private int location;
+	private Node beginNode;
+	private Node endNode;
+	private boolean exclusive;
+	// A scoped location of this variable (high 16 bits is how many scopes down and low 16 bits
+	// is what index in the right scope to set the value.
+	private int location;
 
-    public FlipNode(SourcePosition position, Node beginNode, Node endNode, boolean exclusive, int location) {
-        super(position);
+	public FlipNode(SourcePosition position, Node beginNode, Node endNode, boolean exclusive, int location) {
+		super(position);
 
-        assert beginNode != null : "beginNode is not null";
-        assert endNode != null : "endNode is not null";
+		assert beginNode != null : "beginNode is not null";
+		assert endNode != null : "endNode is not null";
 
-        this.beginNode = adopt(beginNode);
-        this.endNode = adopt(endNode);
-        this.exclusive = exclusive;
-        this.location = location;
-    }
+		this.beginNode = adopt(beginNode);
+		this.endNode = adopt(endNode);
+		this.exclusive = exclusive;
+		this.location = location;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		FlipNode other = (FlipNode) node;
 
-        FlipNode other = (FlipNode) node;
+		return getBegin().isSame(other.getBegin()) && getEnd().isSame(other.getEnd());
+	}
 
-        return getBegin().isSame(other.getBegin()) && getEnd().isSame(other.getEnd());
-    }
+	public NodeType getNodeType() {
+		return NodeType.FLIPNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitFlipNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.FLIPNODE;
-    }
+	/**
+	 * Gets the beginNode. beginNode will set the FlipFlop the first time it is true
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getBegin() {
+		return beginNode;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitFlipNode(this);
-    }
+	@Deprecated
+	public Node getBeginNode() {
+		return getBegin();
+	}
 
-    /**
-     * Gets the beginNode.
-	 * beginNode will set the FlipFlop the first time it is true
-     * @return Returns a Node
-     */
-    public Node getBegin() {
-        return beginNode;
-    }
+	/**
+	 * Gets the endNode. endNode will reset the FlipFlop when it is true while the FlipFlop is set.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getEnd() {
+		return endNode;
+	}
 
-    @Deprecated
-    public Node getBeginNode() {
-        return getBegin();
-    }
+	@Deprecated
+	public Node getEndNode() {
+		return getEnd();
+	}
 
-    /**
-     * Gets the endNode.
-	 * endNode will reset the FlipFlop when it is true while the FlipFlop is set.
-     * @return Returns a Node
-     */
-    public Node getEnd() {
-        return endNode;
-    }
+	/**
+	 * Gets the exclusive. if the range is a 2 dot range it is false if it is a three dot it is true
+	 * 
+	 * @return Returns a boolean
+	 */
+	public boolean isExclusive() {
+		return exclusive;
+	}
 
-    @Deprecated
-    public Node getEndNode() {
-        return getEnd();
-    }
+	/**
+	 * How many scopes should we burrow down to until we need to set the block variable value.
+	 *
+	 * @return 0 for current scope, 1 for one down, ...
+	 */
+	public int getDepth() {
+		return location >> 16;
+	}
 
-    /**
-     * Gets the exclusive.
-	 * if the range is a 2 dot range it is false if it is a three dot it is true
-     * @return Returns a boolean
-     */
-    public boolean isExclusive() {
-        return exclusive;
-    }
-
-    /**
-     * How many scopes should we burrow down to until we need to set the block variable value.
-     *
-     * @return 0 for current scope, 1 for one down, ...
-     */
-    public int getDepth() {
-        return location >> 16;
-    }
-
-    /**
-     * Gets the index within the scope construct that actually holds the eval'd value
-     * of this local variable
-     *
-     * @return Returns an int offset into storage structure
-     */
-    public int getIndex() {
-        return location & 0xffff;
-    }
+	/**
+	 * Gets the index within the scope construct that actually holds the eval'd value of this local
+	 * variable
+	 *
+	 * @return Returns an int offset into storage structure
+	 */
+	public int getIndex() {
+		return location & 0xffff;
+	}
 }

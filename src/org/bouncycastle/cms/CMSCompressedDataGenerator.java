@@ -17,58 +17,47 @@ import org.bouncycastle.operator.OutputCompressor;
  * <p>
  * A simple example of usage.
  * <p>
+ * 
  * <pre>
- *      CMSCompressedDataGenerator  fact = new CMSCompressedDataGenerator();
+ * CMSCompressedDataGenerator fact = new CMSCompressedDataGenerator();
  *
- *      CMSCompressedData           data = fact.generate(content, new ZlibCompressor());
+ * CMSCompressedData data = fact.generate(content, new ZlibCompressor());
  * </pre>
  */
-public class CMSCompressedDataGenerator
-{
-    public static final String  ZLIB    = "1.2.840.113549.1.9.16.3.8";
+public class CMSCompressedDataGenerator {
+	public static final String ZLIB = "1.2.840.113549.1.9.16.3.8";
 
-    /**
-     * base constructor
-     */
-    public CMSCompressedDataGenerator()
-    {
-    }
+	/**
+	 * base constructor
+	 */
+	public CMSCompressedDataGenerator() {
+	}
 
-    /**
-     * generate an object that contains an CMS Compressed Data
-     */
-    public CMSCompressedData generate(
-        CMSTypedData content,
-        OutputCompressor compressor)
-        throws CMSException
-    {
-        AlgorithmIdentifier     comAlgId;
-        ASN1OctetString         comOcts;
+	/**
+	 * generate an object that contains an CMS Compressed Data
+	 */
+	public CMSCompressedData generate(CMSTypedData content, OutputCompressor compressor) throws CMSException {
+		AlgorithmIdentifier comAlgId;
+		ASN1OctetString comOcts;
 
-        try
-        {
-            ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-            OutputStream zOut = compressor.getOutputStream(bOut);
+		try {
+			ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+			OutputStream zOut = compressor.getOutputStream(bOut);
 
-            content.write(zOut);
+			content.write(zOut);
 
-            zOut.close();
+			zOut.close();
 
-            comAlgId = compressor.getAlgorithmIdentifier();
-            comOcts = new BEROctetString(bOut.toByteArray());
-        }
-        catch (IOException e)
-        {
-            throw new CMSException("exception encoding data.", e);
-        }
+			comAlgId = compressor.getAlgorithmIdentifier();
+			comOcts = new BEROctetString(bOut.toByteArray());
+		} catch (IOException e) {
+			throw new CMSException("exception encoding data.", e);
+		}
 
-        ContentInfo     comContent = new ContentInfo(
-                                    content.getContentType(), comOcts);
+		ContentInfo comContent = new ContentInfo(content.getContentType(), comOcts);
 
-        ContentInfo     contentInfo = new ContentInfo(
-                                    CMSObjectIdentifiers.compressedData,
-                                    new CompressedData(comAlgId, comContent));
+		ContentInfo contentInfo = new ContentInfo(CMSObjectIdentifiers.compressedData, new CompressedData(comAlgId, comContent));
 
-        return new CMSCompressedData(contentInfo);
-    }
+		return new CMSCompressedData(contentInfo);
+	}
 }

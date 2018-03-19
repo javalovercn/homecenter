@@ -29,6 +29,7 @@ import hc.core.util.StringUtil;
 import hc.server.StarterManager;
 import hc.server.ui.ProjClassLoaderFinder;
 import hc.server.ui.ProjectContext;
+import hc.server.ui.ServerUIAPIAgent;
 import hc.server.ui.ServerUIUtil;
 import hc.server.ui.SimuMobile;
 import hc.server.ui.design.LinkProjectStore;
@@ -116,10 +117,8 @@ public class HCjar {
 	// PERMISSION_HEADER + "Clipboard";
 	public static final String PERMISSION_SHUTDOWNHOOKS = PERMISSION_HEADER + "Hook";
 	public static final String PERMISSION_SETIO = PERMISSION_HEADER + "SetIO";
-	public static final String PERMISSION_MEMBER_ACCESS_SYSTEM = PERMISSION_HEADER
-			+ "MemberAccessSystem";
-	public static final String PERMISSION_ACCESS_PRIVATE_ADDRESS = PERMISSION_HEADER
-			+ "PrivateAddress";
+	public static final String PERMISSION_MEMBER_ACCESS_SYSTEM = PERMISSION_HEADER + "MemberAccessSystem";
+	public static final String PERMISSION_ACCESS_PRIVATE_ADDRESS = PERMISSION_HEADER + "PrivateAddress";
 	public static final String PERMISSION_SET_FACTORY = PERMISSION_HEADER + "SetFactory";
 
 	private static final String PERMISSION_SOCK_HEADER = PERMISSION_HEADER + "Sock.";
@@ -173,8 +172,7 @@ public class HCjar {
 	}
 
 	/**
-	 * final String url =
-	 * "http://homecenter.mobi/download/sample.har";或本地resourcepath
+	 * final String url = "http://homecenter.mobi/download/sample.har";或本地resourcepath
 	 * 
 	 * @param url
 	 * @return
@@ -205,9 +203,8 @@ public class HCjar {
 		return mapString;
 	}
 
-	private static void loadToMap(final JarEntry je, final InputStream is, final Properties p,
-			final Hashtable<String, Object> mapString, final boolean loadFileByteArray)
-			throws Throwable {
+	private static void loadToMap(final JarEntry je, final InputStream is, final Properties p, final Hashtable<String, Object> mapString,
+			final boolean loadFileByteArray) throws Throwable {
 		final String jarEnterName = je.getName();
 		if (jarEnterName.startsWith("META-INF", 0)) {
 			return;
@@ -226,8 +223,7 @@ public class HCjar {
 		}
 	}
 
-	private static boolean setNullDefaultValue(final Hashtable<String, Object> map,
-			final String key, final String defaultValue) {
+	private static boolean setNullDefaultValue(final Hashtable<String, Object> map, final String key, final String defaultValue) {
 		if (map.get(key) == null) {
 			// System.out.println("set key["+key+"] to default : " +
 			// defaultValue);
@@ -246,8 +242,7 @@ public class HCjar {
 		}
 		setNullDefaultValue(map, PROJ_I18N_NAME, "");
 		setNullDefaultValue(map, PROJ_NEXT_NODE_IDX, "1");
-		setNullDefaultValue(map, PROJ_ID,
-				HPProject.convertProjectIDFromName((String) map.get(PROJ_NAME)));
+		setNullDefaultValue(map, PROJ_ID, HPProject.convertProjectIDFromName((String) map.get(PROJ_NAME)));
 		setNullDefaultValue(map, PROJ_VER, HPProject.DEFAULT_VER);
 		setNullDefaultValue(map, PROJ_LAST_SIGNED_VER, "0");
 		setNullDefaultValue(map, PROJ_COMPACT_DAYS, String.valueOf(365 / 2));
@@ -272,8 +267,7 @@ public class HCjar {
 				final String key = replaceIdxPattern(MENU_COL_NUM, idx);
 				setNullDefaultValue(map, key, "0");
 
-				final Object menuItemObj = map
-						.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, idx));
+				final Object menuItemObj = map.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, idx));
 				if (menuItemObj != null) {
 					final int itemCount = Integer.parseInt((String) menuItemObj);
 					final String Iheader = HCjar.replaceIdxPattern(HCjar.MENU_ITEM_HEADER, idx);
@@ -288,13 +282,11 @@ public class HCjar {
 	}
 
 	public static final Map<String, Object> loadHarFromLPS(final LinkProjectStore lps) {
-		final File har_load = new File(new File(ResourceUtil.getBaseDir(), lps.getHarParentDir()),
-				lps.getHarFile());
+		final File har_load = new File(new File(ResourceUtil.getBaseDir(), lps.getHarParentDir()), lps.getHarFile());
 		return HCjar.loadHar(har_load, false);
 	}
 
-	public static final Map<String, Object> loadHar(final File jarfile,
-			final boolean loadFileByteArray) {
+	public static final Map<String, Object> loadHar(final File jarfile, final boolean loadFileByteArray) {
 		JarFile jf = null;
 		final Properties p = new Properties();
 		final Hashtable<String, Object> mapString = new Hashtable<String, Object>();
@@ -326,8 +318,7 @@ public class HCjar {
 		return mapString;
 	}
 
-	private static void pushStringMap(final Properties p, final Hashtable<String, Object> map,
-			final InputStream is) throws IOException {
+	private static void pushStringMap(final Properties p, final Hashtable<String, Object> map, final InputStream is) throws IOException {
 		p.load(is);
 		pushStringMap(p, map);
 	}
@@ -395,33 +386,30 @@ public class HCjar {
 	 * @param root
 	 * @return
 	 */
-	public static final DefaultMutableTreeNode toNode(final Map<String, Object> map,
-			final DefaultMutableTreeNode root, final DefaultMutableTreeNode msbFolder,
-			final DefaultMutableTreeNode eventFolder, final DefaultMutableTreeNode[] scriptFolder) {
+	public static final DefaultMutableTreeNode toNode(final Map<String, Object> map, final DefaultMutableTreeNode root,
+			final DefaultMutableTreeNode msbFolder, final DefaultMutableTreeNode eventFolder, final DefaultMutableTreeNode[] scriptFolder) {
 		DefaultMutableTreeNode out_mainMenuNode = null;
 		// 装填ROOT
 		{
 			final ContextSecurityConfig csc = ContextSecurityConfig.getPermissionFromHARMap(map);
 			ContextSecurityManager.putContextSecurityConfig(
-					(ThreadGroup) HCLimitSecurityManager.getTempLimitRecycleRes().threadPool
-							.getThreadGroup(),
-					csc);
+					(ThreadGroup) HCLimitSecurityManager.getTempLimitRecycleRes().threadPool.getThreadGroup(), csc);
 
 			final String projID = (String) map.get(PROJ_ID);
 			final String projVer = (String) map.get(PROJ_VER);
 
-			final ProjectContext context = ServerUIUtil.buildProjectContext(projID, projVer,
-					HCLimitSecurityManager.getTempLimitRecycleRes(), null,
-					new ProjClassLoaderFinder() {
+			final ProjectContext simuContext = ServerUIUtil.buildProjectContext(projID, projVer,
+					HCLimitSecurityManager.getTempLimitRecycleRes(), null, new ProjClassLoaderFinder() {
 						@Override
 						public ClassLoader findProjClassLoader() {
 							return SimuMobile.getRunTestEngine().getProjClassLoader();
 						}
 					});
-			csc.setProjectContext(context);
+			ServerUIAPIAgent.setIDEConsoleWriterForProjectContext(simuContext);
+			csc.setProjectContext(simuContext);
 
-			root.setUserObject(new HPProject(HPNode.MASK_ROOT, (String) map.get(PROJ_NAME),
-					(String) map.get(PROJ_I18N_NAME), projID, projVer, csc, map));
+			root.setUserObject(new HPProject(HPNode.MASK_ROOT, (String) map.get(PROJ_NAME), (String) map.get(PROJ_I18N_NAME), projID,
+					projVer, csc, map));
 
 			MenuManager.setNextNodeIdx(Integer.parseInt((String) map.get(PROJ_NEXT_NODE_IDX)));
 		}
@@ -437,12 +425,9 @@ public class HCjar {
 				for (int idx = 0; idx < menuNum; idx++) {
 					String menuName = (String) map.get(replaceIdxPattern(MENU_NAME, idx));
 					menuName = HPNode.NODE_MENU;// 使用统一Menu菜单夹
-					final String menuColNum = (String) map
-							.get(replaceIdxPattern(MENU_COL_NUM, idx));
-					final HPMenu menu = new HPMenu(
-							(String) map.get(replaceIdxPattern(MENU_ID, idx)), HPNode.MASK_MENU,
-							menuName, (menuColNum == null) ? 0 : Integer.parseInt(menuColNum),
-							MainMenuIdx == idx);
+					final String menuColNum = (String) map.get(replaceIdxPattern(MENU_COL_NUM, idx));
+					final HPMenu menu = new HPMenu((String) map.get(replaceIdxPattern(MENU_ID, idx)), HPNode.MASK_MENU, menuName,
+							(menuColNum == null) ? 0 : Integer.parseInt(menuColNum), MainMenuIdx == idx);
 					final DefaultMutableTreeNode menuNode = new DefaultMutableTreeNode(menu);
 
 					// 四大事件
@@ -456,27 +441,21 @@ public class HCjar {
 
 					// 装填MenuItem
 					{
-						final Object menuItemObj = map
-								.get(replaceIdxPattern(MENU_CHILD_COUNT, idx));
+						final Object menuItemObj = map.get(replaceIdxPattern(MENU_CHILD_COUNT, idx));
 						if (menuItemObj != null) {
 							final int itemCount = Integer.parseInt((String) menuItemObj);
 							final String Iheader = replaceIdxPattern(MENU_ITEM_HEADER, idx);
 							for (int itemIdx = 0; itemIdx < itemCount; itemIdx++) {
 								final String header = Iheader + itemIdx + ".";
-								final HPMenuItem userObject = new HPMenuItem(
-										Integer.parseInt((String) map.get(header + ITEM_TYPE)),
+								final HPMenuItem userObject = new HPMenuItem(Integer.parseInt((String) map.get(header + ITEM_TYPE)),
 										(String) map.get(header + ITEM_NAME),
-										HCjar.buildI18nMapFromSerial(
-												(String) map.get(header + ITEM_I18N_NAME)),
-										(String) map.get(header + ITEM_URL),
-										(String) map.get(header + ITEM_IMAGE));
+										HCjar.buildI18nMapFromSerial((String) map.get(header + ITEM_I18N_NAME)),
+										(String) map.get(header + ITEM_URL), (String) map.get(header + ITEM_IMAGE));
 
 								userObject.listener = (String) map.get(header + ITEM_LISTENER);
-								userObject.extendMap
-										.restore((String) map.get(header + ITEM_EXTENDMAP));
+								userObject.extendMap.restore((String) map.get(header + ITEM_EXTENDMAP));
 
-								final DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(
-										userObject);
+								final DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(userObject);
 								menuNode.add(itemNode);
 							}
 						}
@@ -495,15 +474,11 @@ public class HCjar {
 					final int shareNum = Integer.parseInt((String) shareJRubyFileNum);
 
 					for (int idx = 0; idx < shareNum; idx++) {
-						final String fileName = (String) map
-								.get(replaceIdxPattern(SHARE_JRUBY_FILE_NAME, idx));
-						final String fileContent = (String) map
-								.get(replaceIdxPattern(SHARE_JRUBY_FILE_CONTENT, idx));
-						final HPShareJRuby userObject = new HPShareJRuby(HPNode.MASK_SHARE_RB,
-								fileName);
+						final String fileName = (String) map.get(replaceIdxPattern(SHARE_JRUBY_FILE_NAME, idx));
+						final String fileContent = (String) map.get(replaceIdxPattern(SHARE_JRUBY_FILE_CONTENT, idx));
+						final HPShareJRuby userObject = new HPShareJRuby(HPNode.MASK_SHARE_RB, fileName);
 						userObject.content = fileContent;
-						final DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(
-								userObject);
+						final DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(userObject);
 						scriptFolder[0].add(itemNode);
 					}
 				}
@@ -515,16 +490,13 @@ public class HCjar {
 					final int shareNum = Integer.parseInt((String) shareNativeFileNum);
 
 					for (int idx = 0; idx < shareNum; idx++) {
-						final String fileName = (String) map
-								.get(replaceIdxPattern(SHARE_NATIVE_FILE_NAME, idx));
+						final String fileName = (String) map.get(replaceIdxPattern(SHARE_NATIVE_FILE_NAME, idx));
 						final int osMask = NativeOSManager.getOSMaskFromMap(map, idx);
 						final byte[] fileContent = (byte[]) map.get(MAP_FILE_PRE + fileName);
-						final HPShareNative userObject = new HPShareNative(HPNode.MASK_SHARE_NATIVE,
-								fileName, osMask);
+						final HPShareNative userObject = new HPShareNative(HPNode.MASK_SHARE_NATIVE, fileName, osMask);
 						userObject.content = fileContent;
 						userObject.ver = (String) map.get(VERSION_FILE_PRE + fileName);
-						final DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(
-								userObject);
+						final DefaultMutableTreeNode itemNode = new DefaultMutableTreeNode(userObject);
 						scriptFolder[2].add(itemNode);
 					}
 				}
@@ -560,13 +532,11 @@ public class HCjar {
 		return out_mainMenuNode;
 	}
 
-	public static DefaultMutableTreeNode buildMSBNodes(final Map<String, Object> map,
-			final DefaultMutableTreeNode eventFold) {
+	public static DefaultMutableTreeNode buildMSBNodes(final Map<String, Object> map, final DefaultMutableTreeNode eventFold) {
 		{
 			final int msbSize = HCjarHelper.getRobotNum(map);
 			for (int idx = 0; idx < msbSize; idx++) {
-				final HPProcessor eventItem = new HPProcessor(HPNode.MASK_MSB_ROBOT,
-						HCjarHelper.getRobotNameAtIdx(map, idx));
+				final HPProcessor eventItem = new HPProcessor(HPNode.MASK_MSB_ROBOT, HCjarHelper.getRobotNameAtIdx(map, idx));
 				eventItem.listener = HCjarHelper.getRobotListenerAtIdx(map, idx);
 				final DefaultMutableTreeNode eventItemNode = new DefaultMutableTreeNode(eventItem);
 				eventFold.add(eventItemNode);
@@ -575,8 +545,7 @@ public class HCjar {
 		{
 			final int msbSize = HCjarHelper.getConverterNum(map);
 			for (int idx = 0; idx < msbSize; idx++) {
-				final HPProcessor eventItem = new HPProcessor(HPNode.MASK_MSB_CONVERTER,
-						HCjarHelper.getConverterNameAtIdx(map, idx));
+				final HPProcessor eventItem = new HPProcessor(HPNode.MASK_MSB_CONVERTER, HCjarHelper.getConverterNameAtIdx(map, idx));
 				eventItem.listener = HCjarHelper.getConverterListenerAtIdx(map, idx);
 				final DefaultMutableTreeNode eventItemNode = new DefaultMutableTreeNode(eventItem);
 				eventFold.add(eventItemNode);
@@ -585,8 +554,7 @@ public class HCjar {
 		{
 			final int msbSize = HCjarHelper.getDeviceNum(map);
 			for (int idx = 0; idx < msbSize; idx++) {
-				final HPProcessor eventItem = new HPProcessor(HPNode.MASK_MSB_DEVICE,
-						HCjarHelper.getDeviceNameAtIdx(map, idx));
+				final HPProcessor eventItem = new HPProcessor(HPNode.MASK_MSB_DEVICE, HCjarHelper.getDeviceNameAtIdx(map, idx));
 				eventItem.listener = HCjarHelper.getDeviceListenerAtIdx(map, idx);
 				final DefaultMutableTreeNode eventItemNode = new DefaultMutableTreeNode(eventItem);
 				eventFold.add(eventItemNode);
@@ -596,16 +564,15 @@ public class HCjar {
 		return eventFold;
 	}
 
-	public static void buildMenuEventNodes(final Map<String, Object> map, final int menuIdx,
-			final DefaultMutableTreeNode rootNode, final DefaultMutableTreeNode eventFolder) {
+	public static void buildMenuEventNodes(final Map<String, Object> map, final int menuIdx, final DefaultMutableTreeNode rootNode,
+			final DefaultMutableTreeNode eventFolder) {
 		eventFolder.removeAllChildren();
 		eventFolder.removeFromParent();
 
 		rootNode.add(eventFolder);
 
 		for (int i = 0; i < BaseResponsor.SCRIPT_EVENT_LIST.length; i++) {
-			final HPMenuEventItem eventItem = new HPMenuEventItem(HPNode.MASK_EVENT_ITEM,
-					BaseResponsor.SCRIPT_EVENT_LIST[i]);
+			final HPMenuEventItem eventItem = new HPMenuEventItem(HPNode.MASK_EVENT_ITEM, BaseResponsor.SCRIPT_EVENT_LIST[i]);
 			final DefaultMutableTreeNode eventItemNode = new DefaultMutableTreeNode(eventItem);
 			eventFolder.add(eventItemNode);
 
@@ -619,8 +586,7 @@ public class HCjar {
 	public static final void buildLast3Ver(final Map<String, Object> map) {
 		final String last3Split = StringUtil.SPLIT_LEVEL_2_JING;
 
-		final String last3 = map.get(HCjar.JRE_VER) + last3Split + map.get(HCjar.HOMECENTER_VER)
-				+ last3Split + map.get(HCjar.JRUBY_VER);
+		final String last3 = map.get(HCjar.JRE_VER) + last3Split + map.get(HCjar.HOMECENTER_VER) + last3Split + map.get(HCjar.JRUBY_VER);
 
 		map.put(LAST_3_VER, last3);
 	}
@@ -640,9 +606,8 @@ public class HCjar {
 		}
 	}
 
-	public static final Map<String, Object> toMap(final DefaultMutableTreeNode root,
-			final DefaultMutableTreeNode msbFold, final DefaultMutableTreeNode eventFold,
-			final DefaultMutableTreeNode[] folders, final HashMap<String, Object> map)
+	public static final Map<String, Object> toMap(final DefaultMutableTreeNode root, final DefaultMutableTreeNode msbFold,
+			final DefaultMutableTreeNode eventFold, final DefaultMutableTreeNode[] folders, final HashMap<String, Object> map)
 			throws NodeInvalidException {
 		map.put(HOMECENTER_VER, StarterManager.getHCVersion());
 		map.put(JRE_VER, String.valueOf(App.getJREVer()));
@@ -654,9 +619,8 @@ public class HCjar {
 		return toMap(map, root, msbFold, eventFold, folders);
 	}
 
-	private static final Map<String, Object> toMap(final HashMap<String, Object> map,
-			final DefaultMutableTreeNode root, final DefaultMutableTreeNode msbFold,
-			final DefaultMutableTreeNode eventFolder, final DefaultMutableTreeNode[] folders)
+	private static final Map<String, Object> toMap(final HashMap<String, Object> map, final DefaultMutableTreeNode root,
+			final DefaultMutableTreeNode msbFold, final DefaultMutableTreeNode eventFolder, final DefaultMutableTreeNode[] folders)
 			throws NodeInvalidException {
 		final int childCount = root.getChildCount();
 		checkSameNameNode(root, childCount);
@@ -695,8 +659,8 @@ public class HCjar {
 				// shutdown_proj...
 				final int size = eventFolder.getChildCount();
 				for (int i = 0; i < size; i++) {
-					final HPMenuEventItem eventItem = (HPMenuEventItem) ((DefaultMutableTreeNode) eventFolder
-							.getChildAt(i)).getUserObject();
+					final HPMenuEventItem eventItem = (HPMenuEventItem) ((DefaultMutableTreeNode) eventFolder.getChildAt(i))
+							.getUserObject();
 
 					map.put(buildEventMapKey(idx, eventItem.name), eventItem.content);
 				}
@@ -706,8 +670,7 @@ public class HCjar {
 				checkSameNameNode(msbFold, size);
 				// Iot
 				for (int i = 0; i < size; i++) {
-					final DefaultMutableTreeNode childAt = (DefaultMutableTreeNode) msbFold
-							.getChildAt(i);
+					final DefaultMutableTreeNode childAt = (DefaultMutableTreeNode) msbFold.getChildAt(i);
 					final HPProcessor menuItem = (HPProcessor) childAt.getUserObject();
 					String header = "";
 					int ito_idx = -1;
@@ -734,8 +697,7 @@ public class HCjar {
 			for (int i = 0; i < size; i++) {
 				final String header = Iheader + i + ".";
 
-				final HPMenuItem menuItem = (HPMenuItem) ((DefaultMutableTreeNode) root
-						.getChildAt(i)).getUserObject();
+				final HPMenuItem menuItem = (HPMenuItem) ((DefaultMutableTreeNode) root.getChildAt(i)).getUserObject();
 
 				map.put(header + ITEM_NAME, menuItem.name);
 				map.put(header + ITEM_I18N_NAME, menuItem.i18nMap.toSerial());
@@ -758,19 +720,16 @@ public class HCjar {
 			}
 			return map;
 		} else if (item.type == HPNode.MASK_SHARE_RB_FOLDER) {
-			return putMapFor(map, root, childCount, SHARE_JRUBY_FILES_NUM, SHARE_JRUBY_FILE_NAME,
-					SHARE_JRUBY_FILE_CONTENT);
+			return putMapFor(map, root, childCount, SHARE_JRUBY_FILES_NUM, SHARE_JRUBY_FILE_NAME, SHARE_JRUBY_FILE_CONTENT);
 		} else if (item.type == HPNode.MASK_SHARE_NATIVE_FOLDER) {
 			if (childCount > 0) {
 				map.put(SHARE_NATIVE_FILES_NUM, String.valueOf(childCount));
 
 				for (int i = 0; i < childCount; i++) {
-					final HPShareNative childItem = (HPShareNative) ((DefaultMutableTreeNode) root
-							.getChildAt(i)).getUserObject();
+					final HPShareNative childItem = (HPShareNative) ((DefaultMutableTreeNode) root.getChildAt(i)).getUserObject();
 
 					map.put(replaceIdxPattern(SHARE_NATIVE_FILE_NAME, i), childItem.name);
-					map.put(replaceIdxPattern(SHARE_NATIVE_FILE_OS_MASK, i),
-							String.valueOf(childItem.osMask));
+					map.put(replaceIdxPattern(SHARE_NATIVE_FILE_OS_MASK, i), String.valueOf(childItem.osMask));
 					map.put(MAP_FILE_PRE + childItem.name, childItem.content);
 					map.put(MAP_FILE_TYPE_PRE + childItem.name, String.valueOf(childItem.type));
 					map.put(VERSION_FILE_PRE + childItem.name, childItem.ver);
@@ -780,8 +739,7 @@ public class HCjar {
 		} else if (HPNode.isNodeType(item.type, HPNode.MASK_RESOURCE_FOLDER)) {
 			if (childCount > 0) {
 				for (int i = 0; i < childCount; i++) {
-					final HPShareJar childItem = (HPShareJar) ((DefaultMutableTreeNode) root
-							.getChildAt(i)).getUserObject();
+					final HPShareJar childItem = (HPShareJar) ((DefaultMutableTreeNode) root.getChildAt(i)).getUserObject();
 
 					map.put(MAP_FILE_PRE + childItem.name, childItem.content);
 					map.put(MAP_FILE_TYPE_PRE + childItem.name, String.valueOf(childItem.type));// HPNode.MAP_FILE_JAR_TYPE);//注意：早期到6.69的版本不含此标识
@@ -803,15 +761,13 @@ public class HCjar {
 		return map;
 	}
 
-	private static Map<String, Object> putMapFor(final HashMap<String, Object> map,
-			final DefaultMutableTreeNode root, final int childCount, final String TagFileCount,
-			final String TagFileName, final String TagFileContent) {
+	private static Map<String, Object> putMapFor(final HashMap<String, Object> map, final DefaultMutableTreeNode root, final int childCount,
+			final String TagFileCount, final String TagFileName, final String TagFileContent) {
 		if (childCount > 0) {
 			map.put(TagFileCount, String.valueOf(childCount));
 
 			for (int i = 0; i < childCount; i++) {
-				final HPShareContent childItem = (HPShareContent) ((DefaultMutableTreeNode) root
-						.getChildAt(i)).getUserObject();
+				final HPShareContent childItem = (HPShareContent) ((DefaultMutableTreeNode) root.getChildAt(i)).getUserObject();
 
 				map.put(replaceIdxPattern(TagFileName, i), childItem.name);
 				map.put(replaceIdxPattern(TagFileContent, i), childItem.content);
@@ -828,31 +784,26 @@ public class HCjar {
 		return "SV.Menu." + idx + "." + eventName;
 	}
 
-	private static void checkSameNameNode(final DefaultMutableTreeNode parentNode,
-			final int childNum) throws NodeInvalidException {
+	private static void checkSameNameNode(final DefaultMutableTreeNode parentNode, final int childNum) throws NodeInvalidException {
 		final HPNode proj = (HPNode) parentNode.getUserObject();
 		validate(parentNode, proj);
 
 		for (int i = 0; i < childNum; i++) {
-			final DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) parentNode
-					.getChildAt(i);
+			final DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode) parentNode.getChildAt(i);
 			final HPNode i_node = (HPNode) treeNode.getUserObject();
 			validate(treeNode, i_node);
 			for (int j = i + 1; j < childNum; j++) {
-				final HPNode j_node = (HPNode) ((DefaultMutableTreeNode) parentNode.getChildAt(j))
-						.getUserObject();
+				final HPNode j_node = (HPNode) ((DefaultMutableTreeNode) parentNode.getChildAt(j)).getUserObject();
 				if (i_node.equals(j_node)) {
-					final String desc = "there is same name " + "(or Target Locator) of <strong>["
-							+ i_node.name + "]</strong> with other node [<strong>" + j_node.name
-							+ "</strong>].";
+					final String desc = "there is same name " + "(or Target Locator) of <strong>[" + i_node.name
+							+ "]</strong> with other node [<strong>" + j_node.name + "</strong>].";
 					throw new NodeInvalidException(treeNode, desc);
 				}
 			}
 		}
 	}
 
-	private static void validate(final DefaultMutableTreeNode treeNode, final HPNode i_node)
-			throws NodeInvalidException {
+	private static void validate(final DefaultMutableTreeNode treeNode, final HPNode i_node) throws NodeInvalidException {
 		final String v = i_node.validate();
 		if (v != null) {
 			throw new NodeInvalidException(treeNode, v);
@@ -890,8 +841,8 @@ public class HCjar {
 		return new JarOutputStream(stream);
 	}
 
-	public static final void push(final JarOutputStream jarOutStream, final BufferedInputStream in,
-			final String jarEntryName) throws Exception {
+	public static final void push(final JarOutputStream jarOutStream, final BufferedInputStream in, final String jarEntryName)
+			throws Exception {
 		final JarEntry entry = new JarEntry(jarEntryName);
 		// entry.setTime(source.lastModified());
 		jarOutStream.putNextEntry(entry);
@@ -910,8 +861,7 @@ public class HCjar {
 		}
 	}
 
-	public static final void push(final JarOutputStream jarOutStream,
-			final Map<String, String> mapAttributes) throws Exception {
+	public static final void push(final JarOutputStream jarOutStream, final Map<String, String> mapAttributes) throws Exception {
 		final Manifest manifest = new Manifest();
 		final Iterator<String> it = mapAttributes.keySet().iterator();
 		final Attributes mainAttributes = manifest.getMainAttributes();

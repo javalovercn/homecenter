@@ -20,180 +20,142 @@ import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.operator.ContentSigner;
 
-public class OCSPReqBuilder
-{
-    private List            list = new ArrayList();
-    private GeneralName     requestorName = null;
-    private Extensions  requestExtensions = null;
-    
-    private class RequestObject
-    {
-        CertificateID   certId;
-        Extensions  extensions;
+public class OCSPReqBuilder {
+	private List list = new ArrayList();
+	private GeneralName requestorName = null;
+	private Extensions requestExtensions = null;
 
-        public RequestObject(
-            CertificateID   certId,
-            Extensions  extensions)
-        {
-            this.certId = certId;
-            this.extensions = extensions;
-        }
+	private class RequestObject {
+		CertificateID certId;
+		Extensions extensions;
 
-        public Request toRequest()
-            throws Exception
-        {
-            return new Request(certId.toASN1Primitive(), extensions);
-        }
-    }
+		public RequestObject(CertificateID certId, Extensions extensions) {
+			this.certId = certId;
+			this.extensions = extensions;
+		}
 
-    /**
-     * Add a request for the given CertificateID.
-     * 
-     * @param certId certificate ID of interest
-     */
-    public OCSPReqBuilder addRequest(
-        CertificateID   certId)
-    {
-        list.add(new RequestObject(certId, null));
+		public Request toRequest() throws Exception {
+			return new Request(certId.toASN1Primitive(), extensions);
+		}
+	}
 
-        return this;
-    }
+	/**
+	 * Add a request for the given CertificateID.
+	 * 
+	 * @param certId
+	 *            certificate ID of interest
+	 */
+	public OCSPReqBuilder addRequest(CertificateID certId) {
+		list.add(new RequestObject(certId, null));
 
-    /**
-     * Add a request with extensions
-     * 
-     * @param certId certificate ID of interest
-     * @param singleRequestExtensions the extensions to attach to the request
-     */
-    public OCSPReqBuilder addRequest(
-        CertificateID   certId,
-        Extensions singleRequestExtensions)
-    {
-        list.add(new RequestObject(certId, singleRequestExtensions));
+		return this;
+	}
 
-        return this;
-    }
+	/**
+	 * Add a request with extensions
+	 * 
+	 * @param certId
+	 *            certificate ID of interest
+	 * @param singleRequestExtensions
+	 *            the extensions to attach to the request
+	 */
+	public OCSPReqBuilder addRequest(CertificateID certId, Extensions singleRequestExtensions) {
+		list.add(new RequestObject(certId, singleRequestExtensions));
 
-    /**
-     * Set the requestor name to the passed in X500Principal
-     * 
-     * @param requestorName a X500Principal representing the requestor name.
-     */
-    public OCSPReqBuilder setRequestorName(
-        X500Name requestorName)
-    {
-        this.requestorName = new GeneralName(GeneralName.directoryName, requestorName);
+		return this;
+	}
 
-        return this;
-    }
+	/**
+	 * Set the requestor name to the passed in X500Principal
+	 * 
+	 * @param requestorName
+	 *            a X500Principal representing the requestor name.
+	 */
+	public OCSPReqBuilder setRequestorName(X500Name requestorName) {
+		this.requestorName = new GeneralName(GeneralName.directoryName, requestorName);
 
-    public OCSPReqBuilder setRequestorName(
-        GeneralName         requestorName)
-    {
-        this.requestorName = requestorName;
+		return this;
+	}
 
-        return this;
-    }
-    
-    public OCSPReqBuilder setRequestExtensions(
-        Extensions      requestExtensions)
-    {
-        this.requestExtensions = requestExtensions;
+	public OCSPReqBuilder setRequestorName(GeneralName requestorName) {
+		this.requestorName = requestorName;
 
-        return this;
-    }
+		return this;
+	}
 
-    private OCSPReq generateRequest(
-        ContentSigner           contentSigner,
-        X509CertificateHolder[] chain)
-        throws OCSPException
-    {
-        Iterator    it = list.iterator();
+	public OCSPReqBuilder setRequestExtensions(Extensions requestExtensions) {
+		this.requestExtensions = requestExtensions;
 
-        ASN1EncodableVector requests = new ASN1EncodableVector();
+		return this;
+	}
 
-        while (it.hasNext())
-        {
-            try
-            {
-                requests.add(((RequestObject)it.next()).toRequest());
-            }
-            catch (Exception e)
-            {
-                throw new OCSPException("exception creating Request", e);
-            }
-        }
+	private OCSPReq generateRequest(ContentSigner contentSigner, X509CertificateHolder[] chain) throws OCSPException {
+		Iterator it = list.iterator();
 
-        TBSRequest  tbsReq = new TBSRequest(requestorName, new DERSequence(requests), requestExtensions);
+		ASN1EncodableVector requests = new ASN1EncodableVector();
 
-        Signature               signature = null;
+		while (it.hasNext()) {
+			try {
+				requests.add(((RequestObject) it.next()).toRequest());
+			} catch (Exception e) {
+				throw new OCSPException("exception creating Request", e);
+			}
+		}
 
-        if (contentSigner != null)
-        {
-            if (requestorName == null)
-            {
-                throw new OCSPException("requestorName must be specified if request is signed.");
-            }
+		TBSRequest tbsReq = new TBSRequest(requestorName, new DERSequence(requests), requestExtensions);
 
-            try
-            {
-                OutputStream sOut = contentSigner.getOutputStream();
+		Signature signature = null;
 
-                sOut.write(tbsReq.getEncoded(ASN1Encoding.DER));
+		if (contentSigner != null) {
+			if (requestorName == null) {
+				throw new OCSPException("requestorName must be specified if request is signed.");
+			}
 
-                sOut.close();
-            }
-            catch (Exception e)
-            {
-                throw new OCSPException("exception processing TBSRequest: " + e, e);
-            }
+			try {
+				OutputStream sOut = contentSigner.getOutputStream();
 
-            DERBitString    bitSig = new DERBitString(contentSigner.getSignature());
+				sOut.write(tbsReq.getEncoded(ASN1Encoding.DER));
 
-            AlgorithmIdentifier sigAlgId = contentSigner.getAlgorithmIdentifier();
+				sOut.close();
+			} catch (Exception e) {
+				throw new OCSPException("exception processing TBSRequest: " + e, e);
+			}
 
-            if (chain != null && chain.length > 0)
-            {
-                ASN1EncodableVector v = new ASN1EncodableVector();
+			DERBitString bitSig = new DERBitString(contentSigner.getSignature());
 
-                for (int i = 0; i != chain.length; i++)
-                {
-                    v.add(chain[i].toASN1Structure());
-                }
+			AlgorithmIdentifier sigAlgId = contentSigner.getAlgorithmIdentifier();
 
-                signature = new Signature(sigAlgId, bitSig, new DERSequence(v));
-            }
-            else
-            {
-                signature = new Signature(sigAlgId, bitSig);
-            }
-        }
+			if (chain != null && chain.length > 0) {
+				ASN1EncodableVector v = new ASN1EncodableVector();
 
-        return new OCSPReq(new OCSPRequest(tbsReq, signature));
-    }
-    
-    /**
-     * Generate an unsigned request
-     * 
-     * @return the OCSPReq
-     * @throws org.bouncycastle.ocsp.OCSPException
-     */
-    public OCSPReq build()
-        throws OCSPException
-    {
-        return generateRequest(null, null);
-    }
+				for (int i = 0; i != chain.length; i++) {
+					v.add(chain[i].toASN1Structure());
+				}
 
-    public OCSPReq build(
-        ContentSigner             signer,
-        X509CertificateHolder[]   chain)
-        throws OCSPException, IllegalArgumentException
-    {
-        if (signer == null)
-        {
-            throw new IllegalArgumentException("no signer specified");
-        }
+				signature = new Signature(sigAlgId, bitSig, new DERSequence(v));
+			} else {
+				signature = new Signature(sigAlgId, bitSig);
+			}
+		}
 
-        return generateRequest(signer, chain);
-    }
+		return new OCSPReq(new OCSPRequest(tbsReq, signature));
+	}
+
+	/**
+	 * Generate an unsigned request
+	 * 
+	 * @return the OCSPReq
+	 * @throws org.bouncycastle.ocsp.OCSPException
+	 */
+	public OCSPReq build() throws OCSPException {
+		return generateRequest(null, null);
+	}
+
+	public OCSPReq build(ContentSigner signer, X509CertificateHolder[] chain) throws OCSPException, IllegalArgumentException {
+		if (signer == null) {
+			throw new IllegalArgumentException("no signer specified");
+		}
+
+		return generateRequest(signer, chain);
+	}
 }

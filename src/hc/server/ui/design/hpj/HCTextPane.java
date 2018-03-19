@@ -28,8 +28,7 @@ public abstract class HCTextPane extends JTextPane {
 	public final Color getBackground() {
 		if (settedBG != null) {
 			return settedBG;
-		} else if (PropertiesManager.getValue(PropertiesManager.C_SKIN, "")
-				.equals(ResourceUtil.LF_NIMBUS)) {
+		} else if (PropertiesManager.getValue(PropertiesManager.C_SKIN, "").equals(ResourceUtil.LF_NIMBUS)) {
 			return Color.WHITE;// to fix : getBackground() == Color.GRAY
 		} else {
 			return super.getBackground();

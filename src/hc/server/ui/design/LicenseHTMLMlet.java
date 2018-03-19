@@ -25,10 +25,9 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 	final IWatcher acceptListener, cancelListener;
 	final JTextArea area;
 
-	public LicenseHTMLMlet(final String license, final String acceptAll,
-			final IWatcher acceptListener, final IWatcher cancelListener,
-			final BufferedImage okImage, final BufferedImage cancelImage, final String iagreeStr,
-			final String acceptStr, final String cancelStr) {
+	public LicenseHTMLMlet(final String license, final String acceptAll, final IWatcher acceptListener, final IWatcher cancelListener,
+			final BufferedImage okImage, final BufferedImage cancelImage, final String iagreeStr, final String acceptStr,
+			final String cancelStr) {
 		final int gapPixel = 0;
 
 		acceptListener.setPara(this);
@@ -37,8 +36,7 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		setLayout(new BorderLayout(gapPixel, gapPixel));
 
 		final int fontSizePX = okImage.getHeight();// 不能采用此作为check字号，iPhone下过大
-		loadCSS(buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(),
-				getColorForBodyByIntValue()), false);
+		loadCSS(buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(), getColorForBodyByIntValue()), false);
 
 		final int areaFontSize = getFontSizeForNormal();
 
@@ -53,8 +51,7 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		setLabelCSS(this, label);
 
 		final int labelHeight = (int) (fontSizePX * 1.4);
-		final int buttonPanelHeight = getButtonHeight(fontSizePX + getFontSizeForButton(),
-				getButtonHeight());
+		final int buttonPanelHeight = getButtonHeight(fontSizePX + getFontSizeForButton(), getButtonHeight());
 		final int areaHeight = getMobileHeight() - labelHeight * 2 - buttonPanelHeight;
 
 		final int mobileWidth = getMobileWidth();
@@ -66,8 +63,7 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		final String checkStyle = "vertical-align:middle;font-weight:bold;";
 		setCSS(acceptAllCheck, null, checkStyle);
 		final int checkBoxHeight = (int) (labelHeight * 0.8);
-		setCSSForToggle(acceptAllCheck, null, "vertical-align:middle;width: " + checkBoxHeight
-				+ "px; height: " + checkBoxHeight + "px;");
+		setCSSForToggle(acceptAllCheck, null, "vertical-align:middle;width: " + checkBoxHeight + "px; height: " + checkBoxHeight + "px;");
 		acceptAllCheck.setPreferredSize(new Dimension(mobileWidth, labelHeight));
 		acceptAllCheck.addActionListener(new ActionListener() {
 			@Override
@@ -90,15 +86,11 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 		this.cancelListener = cancelListener;
 		area.setText(license);
 
-		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker()
-				.getRGB();
-		final int areaFontColor = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker()
-				.getRGB();
+		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
+		final int areaFontColor = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker().getRGB();
 		setCSS(area, null,
-				"width:100%;height:100%;border:1px solid #" + getColorForBodyByHexString() + ";"
-						+ "overflow-y:auto;" + "background-color:#"
-						+ HTMLMlet.toHexColor(areaBackColor, false) + ";color:#"
-						+ HTMLMlet.toHexColor(areaFontColor, false) + ";");
+				"width:100%;height:100%;border:1px solid #" + getColorForBodyByHexString() + ";" + "overflow-y:auto;" + "background-color:#"
+						+ HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.toHexColor(areaFontColor, false) + ";");
 
 		// final String buttonStyle =
 		// "text-align:center;vertical-align:middle;width:100%;height:100%;font-size:"
@@ -140,8 +132,7 @@ public class LicenseHTMLMlet extends SystemHTMLMlet {
 	}
 
 	@Override
-	public void goMlet(final Mlet toMlet, final String targetOfMlet,
-			final boolean isAutoReleaseCurrentMlet) {
+	public void goMlet(final Mlet toMlet, final String targetOfMlet, final boolean isAutoReleaseCurrentMlet) {
 		setAutoReleaseAfterGo(isAutoReleaseCurrentMlet);
 		super.goMlet(toMlet, targetOfMlet, isAutoReleaseCurrentMlet);
 	}

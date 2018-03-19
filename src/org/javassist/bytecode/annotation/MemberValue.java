@@ -16,7 +16,6 @@
 
 package org.javassist.bytecode.annotation;
 
-
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -24,7 +23,6 @@ import java.lang.reflect.Method;
 import org.javassist.ClassPool;
 import org.javassist.bytecode.ConstPool;
 import org.javassist.bytecode.Descriptor;
-
 
 /**
  * The value of a member declared in an annotation.
@@ -34,58 +32,50 @@ import org.javassist.bytecode.Descriptor;
  * @author Shigeru Chiba
  */
 public abstract class MemberValue {
-    ConstPool cp;
-    char tag;
+	ConstPool cp;
+	char tag;
 
-    MemberValue(char tag, ConstPool cp) {
-        this.cp = cp;
-        this.tag = tag;
-    }
+	MemberValue(char tag, ConstPool cp) {
+		this.cp = cp;
+		this.tag = tag;
+	}
 
-    /**
-     * Returns the value.  If the value type is a primitive type, the
-     * returned value is boxed.
-     */
-    abstract Object getValue(ClassLoader cl, ClassPool cp, Method m)
-        throws ClassNotFoundException;
+	/**
+	 * Returns the value. If the value type is a primitive type, the returned value is boxed.
+	 */
+	abstract Object getValue(ClassLoader cl, ClassPool cp, Method m) throws ClassNotFoundException;
 
-    abstract Class getType(ClassLoader cl) throws ClassNotFoundException;
+	abstract Class getType(ClassLoader cl) throws ClassNotFoundException;
 
-    static Class loadClass(ClassLoader cl, String classname)
-        throws ClassNotFoundException, NoSuchClassError
-    {
-        try {
-            return Class.forName(convertFromArray(classname), true, cl);
-        }
-        catch (LinkageError e) {
-            throw new NoSuchClassError(classname, e);
-        }
-    }
-    
-    private static String convertFromArray(String classname)
-    {
-        int index = classname.indexOf("[]"); 
-        if (index != -1) {
-            String rawType = classname.substring(0, index);
-            StringBuffer sb = new StringBuffer(Descriptor.of(rawType));
-            while (index != -1) {
-                sb.insert(0, "[");
-                index = classname.indexOf("[]", index + 1);
-            }
-            return sb.toString().replace('/', '.');
-        }
-        return classname;
-    }
+	static Class loadClass(ClassLoader cl, String classname) throws ClassNotFoundException, NoSuchClassError {
+		try {
+			return Class.forName(convertFromArray(classname), true, cl);
+		} catch (LinkageError e) {
+			throw new NoSuchClassError(classname, e);
+		}
+	}
 
-    /**
-     * Accepts a visitor.
-     */
-    public abstract void accept(MemberValueVisitor visitor);
+	private static String convertFromArray(String classname) {
+		int index = classname.indexOf("[]");
+		if (index != -1) {
+			String rawType = classname.substring(0, index);
+			StringBuffer sb = new StringBuffer(Descriptor.of(rawType));
+			while (index != -1) {
+				sb.insert(0, "[");
+				index = classname.indexOf("[]", index + 1);
+			}
+			return sb.toString().replace('/', '.');
+		}
+		return classname;
+	}
 
-    /**
-     * Writes the value.
-     */
-    public abstract void write(AnnotationsWriter w) throws IOException;
+	/**
+	 * Accepts a visitor.
+	 */
+	public abstract void accept(MemberValueVisitor visitor);
+
+	/**
+	 * Writes the value.
+	 */
+	public abstract void write(AnnotationsWriter w) throws IOException;
 }
-
-

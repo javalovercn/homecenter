@@ -32,54 +32,59 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- * A Literal Hash that can represent either a {a=&amp;b, c=&amp;d} type expression or the list
- * of default values in a method call.
+ * A Literal Hash that can represent either a {a=&amp;b, c=&amp;d} type expression or the list of
+ * default values in a method call.
  */
 public class HashNode extends Node {
-    private ListNode listNode;
+	private ListNode listNode;
 
-    public HashNode(SourcePosition position, ListNode listNode) {
-        super(position);
-        this.listNode = (ListNode) adopt(listNode);
-    }
+	public HashNode(SourcePosition position, ListNode listNode) {
+		super(position);
+		this.listNode = (ListNode) adopt(listNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		HashNode other = (HashNode) node;
 
-        HashNode other = (HashNode) node;
+		if (getListNode() == null && other.getListNode() == null)
+			return true;
+		if (getListNode() == null || other.getListNode() == null)
+			return false;
 
-        if (getListNode() == null && other.getListNode() == null) return true;
-        if (getListNode() == null || other.getListNode() == null) return false;
+		return getListNode().isSame(other.getListNode());
+	}
 
-        return getListNode().isSame(other.getListNode());
-    }
+	public NodeType getNodeType() {
+		return NodeType.HASHNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitHashNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.HASHNODE;
-    }
-
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitHashNode(this);
-    }
-
-    /**
-     * Gets the listNode.
-     * @return Returns a IListNode
-     */
-    public ListNode getListNode() {
-        return listNode;
-    }
+	/**
+	 * Gets the listNode.
+	 * 
+	 * @return Returns a IListNode
+	 */
+	public ListNode getListNode() {
+		return listNode;
+	}
 }

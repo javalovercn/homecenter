@@ -55,8 +55,7 @@ public class SecurityDataProtector {
 	}
 
 	private static boolean runOnce = false;
-	private static final boolean isHCServerAndNotRelayServer = IConstant
-			.isHCServerAndNotRelayServer();
+	private static final boolean isHCServerAndNotRelayServer = IConstant.isHCServerAndNotRelayServer();
 
 	public static boolean isEnableSecurityData() {
 		if (ResourceUtil.isAndroidServerPlatform()) {
@@ -73,8 +72,7 @@ public class SecurityDataProtector {
 			LogManager.log("[SecurityDataProtector] SecurityCheckAES : null");
 		} else {
 			if (testAESSrc.equals(checkResult) == false) {
-				LogManager.log("[SecurityDataProtector] fail SecurityCheckAES : ***, expected : "
-						+ testAESSrc);
+				LogManager.log("[SecurityDataProtector] fail SecurityCheckAES : ***, expected : " + testAESSrc);
 				return true;
 			}
 		}
@@ -95,8 +93,7 @@ public class SecurityDataProtector {
 	private static Map<String, String> getOldSecurityDataValues() {
 		final HashMap<String, String> map = new HashMap<String, String>(8);
 
-		final PropertiesSet securityPropertiesSet = new PropertiesSet(
-				PropertiesManager.S_SecurityProperties);
+		final PropertiesSet securityPropertiesSet = new PropertiesSet(PropertiesManager.S_SecurityProperties);
 		final int size = securityPropertiesSet.size();
 		for (int i = 0; i < size; i++) {
 			final String key = securityPropertiesSet.getItem(i);
@@ -186,14 +183,12 @@ public class SecurityDataProtector {
 							}
 
 							// 服务器也变化，比如直接拷贝到其它机器上
-							LogManager.errToLog(
-									"environment (network interface, disk, software...) is based by HomeCenter!"
-											+ "\nthey are changed, it will clause security data failure, you need reset password!");
+							LogManager.errToLog("environment (network interface, disk, software...) is based by HomeCenter!"
+									+ "\nthey are changed, it will clause security data failure, you need reset password!");
 
 							final JPanel panel = new JPanel(new BorderLayout());
-							panel.add(new JLabel("<html>" + ResourceUtil.get(9208) + "</html>",
-									App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING),
-									BorderLayout.CENTER);
+							panel.add(new JLabel("<html>" + ResourceUtil.get(9208) + "</html>", App.getSysIcon(App.SYS_ERROR_ICON),
+									SwingConstants.LEADING), BorderLayout.CENTER);
 							final ActionListener listener = new HCActionListener(new Runnable() {
 								@Override
 								public void run() {
@@ -209,9 +204,8 @@ public class SecurityDataProtector {
 								}
 							}, App.getThreadPoolToken());
 
-							App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false,
-									null, null, listener, listener, null, true, false, null, false,
-									true);
+							App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, listener, listener, null,
+									true, false, null, false, true);
 							// App.showConfirmDialog(null,
 							// "<html>" + (String)ResourceUtil.get(9208) +
 							// "</html>", ResourceUtil.getErrorI18N(),
@@ -236,8 +230,7 @@ public class SecurityDataProtector {
 	// }
 
 	private static String getCipherName() {
-		return PropertiesManager.getValue(PropertiesManager.p_SecurityCipher,
-				AES_CBC_ISO10126_PADDING);
+		return PropertiesManager.getValue(PropertiesManager.p_SecurityCipher, AES_CBC_ISO10126_PADDING);
 	}
 
 	private static int sdpVersion = -1;
@@ -245,8 +238,7 @@ public class SecurityDataProtector {
 	private static int getSDPVersion() {
 		if (sdpVersion == -1) {
 			try {
-				sdpVersion = Integer.valueOf(
-						PropertiesManager.getValue(PropertiesManager.p_SecuritySDPVersion, "1"));
+				sdpVersion = Integer.valueOf(PropertiesManager.getValue(PropertiesManager.p_SecuritySDPVersion, "1"));
 			} catch (final Throwable e) {
 				e.printStackTrace();
 				sdpVersion = 1;
@@ -260,8 +252,7 @@ public class SecurityDataProtector {
 	private static int getSecretKeySize() {
 		if (securityKeySize == -1) {
 			try {
-				securityKeySize = Integer.valueOf(
-						PropertiesManager.getValue(PropertiesManager.p_SecuritySecretKeySize, "0"));
+				securityKeySize = Integer.valueOf(PropertiesManager.getValue(PropertiesManager.p_SecuritySecretKeySize, "0"));
 			} catch (final Throwable e) {
 				e.printStackTrace();
 				securityKeySize = 0;
@@ -299,16 +290,14 @@ public class SecurityDataProtector {
 		return value;
 	}
 
-	private static String encodeByCipher(final String value, final String cipherName,
-			final int keySize) throws Throwable {
+	private static String encodeByCipher(final String value, final String cipherName, final int keySize) throws Throwable {
 		final byte[] privateBS = getServerKey();
 
 		final SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
 		secureRandom.setSeed(privateBS);
 
 		final Cipher cipher = Cipher.getInstance(cipherName);
-		final SecretKeySpec secretKeySpec = new SecretKeySpec(
-				ResourceUtil.buildFixLenBS(privateBS, keySize), "AES");
+		final SecretKeySpec secretKeySpec = new SecretKeySpec(ResourceUtil.buildFixLenBS(privateBS, keySize), "AES");
 		cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom);
 
 		final byte[] doFinal = cipher.doFinal(ByteUtil.getBytes(value, IConstant.UTF_8));
@@ -316,8 +305,7 @@ public class SecurityDataProtector {
 		return out;
 	}
 
-	private static String encodeByCipherV1(final String value, final String cipherName)
-			throws Throwable {
+	private static String encodeByCipherV1(final String value, final String cipherName) throws Throwable {
 		final byte[] privateBS = getServerKey();
 
 		final KeyGenerator kgen = KeyGenerator.getInstance("AES");
@@ -326,8 +314,7 @@ public class SecurityDataProtector {
 		kgen.init(128, secureRandom);
 
 		final Cipher cipher = Cipher.getInstance(cipherName);
-		final SecretKeySpec secretKeySpec = new SecretKeySpec(kgen.generateKey().getEncoded(),
-				"AES");
+		final SecretKeySpec secretKeySpec = new SecretKeySpec(kgen.generateKey().getEncoded(), "AES");
 		cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom);
 
 		final byte[] doFinal = cipher.doFinal(ByteUtil.getBytes(value, IConstant.UTF_8));
@@ -362,8 +349,7 @@ public class SecurityDataProtector {
 		return "";// 不能返回data，会导致解密成功
 	}
 
-	private static String decodeByCipher(final String data, final String cipherName,
-			final int keySize) throws Throwable {
+	private static String decodeByCipher(final String data, final String cipherName, final int keySize) throws Throwable {
 		final byte[] privateBS = getServerKey();
 		final byte[] src = ByteUtil.toBytesFromHexStr(data);
 
@@ -371,16 +357,14 @@ public class SecurityDataProtector {
 		secureRandom.setSeed(privateBS);
 
 		final Cipher cipher = Cipher.getInstance(cipherName);
-		final SecretKeySpec secretKeySpec = new SecretKeySpec(
-				ResourceUtil.buildFixLenBS(privateBS, keySize), "AES");
+		final SecretKeySpec secretKeySpec = new SecretKeySpec(ResourceUtil.buildFixLenBS(privateBS, keySize), "AES");
 		cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom);
 		final byte[] decryptBytes = cipher.doFinal(src);
 
 		return new String(decryptBytes, IConstant.UTF_8);
 	}
 
-	private static String decodeByCipherV1(final String data, final String cipherName)
-			throws Throwable {
+	private static String decodeByCipherV1(final String data, final String cipherName) throws Throwable {
 		final byte[] privateBS = getServerKey();
 		final byte[] src = ByteUtil.toBytesFromHexStr(data);
 
@@ -390,8 +374,7 @@ public class SecurityDataProtector {
 		kgen.init(128, secureRandom);
 
 		final Cipher cipher = Cipher.getInstance(cipherName);
-		final SecretKeySpec secretKeySpec = new SecretKeySpec(kgen.generateKey().getEncoded(),
-				"AES");
+		final SecretKeySpec secretKeySpec = new SecretKeySpec(kgen.generateKey().getEncoded(), "AES");
 		cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, buildIV(privateBS, 16), secureRandom);
 		final byte[] decryptBytes = cipher.doFinal(src);
 
@@ -530,8 +513,7 @@ public class SecurityDataProtector {
 	final static String dynClassName1 = "org.jruby.proxy.java.lang.Object$Proxy1";// 兼容旧的
 	final static String toStrMethodName = "toString";
 
-	public static final void checkHCStackTraceForSDP(final StackTraceElement[] el)
-			throws Exception {// 注意：请勿改方法
+	public static final void checkHCStackTraceForSDP(final StackTraceElement[] el) throws Exception {// 注意：请勿改方法
 
 		final ClassLoader checkLoader = SecurityDataProtector.class.getClassLoader();
 
@@ -545,8 +527,7 @@ public class SecurityDataProtector {
 		for (int i = el.length - 1; i >= 0; i--) {
 			final StackTraceElement ste = el[i];
 			final String className = ste.getClassName();
-			if ((className.equals(dynClassName0) || className.equals(dynClassName1))
-					&& ste.getMethodName().equals(toStrMethodName)) {
+			if ((className.equals(dynClassName0) || className.equals(dynClassName1)) && ste.getMethodName().equals(toStrMethodName)) {
 				// 02-02 10:26:51.082: I/HomeCenter(2007): idx : 19
 				// hc.util.SecurityDataProtector.getPrivateHardwareCodeForAndroid(SecurityDataProtector.java:656)
 				// 02-02 10:26:51.082: I/HomeCenter(2007): idx : 18
@@ -597,8 +578,7 @@ public class SecurityDataProtector {
 		final String httpAgent = "http.agent";
 
 		// 注意：os.name被getUserAgentForHAR使用
-		final String[] keys = { "os.version", httpAgent, "android.zlib.version",
-				"android.openssl.version", "android.icu.library.version",
+		final String[] keys = { "os.version", httpAgent, "android.zlib.version", "android.openssl.version", "android.icu.library.version",
 				"android.icu.unicode.version" };
 
 		for (int i = 0; i < keys.length; i++) {
@@ -610,7 +590,7 @@ public class SecurityDataProtector {
 			values.append(k1);
 			try {
 				if (key.equals(httpAgent)) {
-					System.setProperty(key, "Dalvik(HomeCenter)");
+					System.setProperty(key, "Dalvik/2.1.0 (Linux; Android 4.4; HomeCenter)");
 				} else {
 					System.setProperty(key, HC);
 				}
@@ -663,16 +643,12 @@ public class SecurityDataProtector {
 		// org.jruby.proxy.java.lang.Object$Proxy0.toString(Unknown Source)
 		// hc.util.SecurityDataProtector.getPrivateHardwareCodeForAndroid(SecurityDataProtector.java:306)
 
-		final HCJRubyEngine engine = new HCJRubyEngine(null, null,
-				ServerUtil.getJRubyClassLoader(false), true,
+		final HCJRubyEngine engine = new HCJRubyEngine(null, null, ServerUtil.getJRubyClassLoader(false), true,
 				HCJRubyEngine.IDE_LEVEL_ENGINE + "SecurityDataProtect");
 		try {
-			final String script = "" + "import java.lang.Thread\n"
-					+ "import java.lang.StackTraceElement\n" + "import java.lang.Exception\n"
-					+ "import java.lang.Object\n" + "import java.lang.System\n"
-					+ "import Java::hc.util.SecurityDataProtector\n" + "\n"
-					+ "class AndroidSecurityData < Object\n" + "	def toString\n"
-					+ "		#check traceStack\n"
+			final String script = "require 'java'\nimport java.lang.Thread\n" + "import java.lang.StackTraceElement\n" + "import java.lang.Exception\n"
+					+ "import java.lang.Object\n" + "import java.lang.System\n" + "import Java::hc.util.SecurityDataProtector\n" + "\n"
+					+ "class AndroidSecurityData < Object\n" + "	def toString\n" + "		#check traceStack\n"
 					+ "		java_array = Thread::currentThread().getStackTrace()\n" +
 					// " ruby_array = java_array.to_a\n" +
 					// " step = 0\n" +
@@ -680,13 +656,11 @@ public class SecurityDataProtector {
 					// " System::err.println(ruby_array[step])\n" +
 					// " step = step + 1\n" +
 					// " end\n" +
-					"		\n"
-					+ "		SecurityDataProtector::checkHCStackTraceForSDP(java_array)\n"
-					+ "		\n" + "		k1 = \"" + values.toString() + "\"\n" + "		return k1\n"
-					+ "	end\n" + "end\n" + "\n" + "return AndroidSecurityData.new\n";
+					"		\n" + "		SecurityDataProtector::checkHCStackTraceForSDP(java_array)\n" + "		\n" + "		k1 = \""
+					+ values.toString() + "\"\n" + "		return k1\n" + "	end\n" + "end\n" + "\n"
+					+ "return AndroidSecurityData.new\n";
 			final CallContext callCtx = new CallContext();
-			androidHardwareObject = RubyExector.runAndWaitOnEngine(callCtx, new StringValue(script),
-					"AndroidSecurityData", null, engine);
+			androidHardwareObject = RubyExector.runAndWaitOnEngine(callCtx, new StringValue(script), "AndroidSecurityData", null, engine);
 			if (callCtx.isError) {
 				callCtx.rubyThrowable.printStackTrace();
 			}
@@ -715,8 +689,7 @@ public class SecurityDataProtector {
 		PropertiesManager.remove(PropertiesManager.p_SecurityCipher);
 		PropertiesManager.remove(PropertiesManager.p_SecuritySDPVersion);
 
-		final String[] ciphers = { AES_CBC_ISO10126_PADDING, "AES/CBC/PKCS7Padding",
-				"AES/CBC/PKCS5Padding", "AES/CFB/NoPadding", "AES" };
+		final String[] ciphers = { AES_CBC_ISO10126_PADDING, "AES/CBC/PKCS7Padding", "AES/CBC/PKCS5Padding", "AES/CFB/NoPadding", "AES" };
 		final String testSrc = "Hello,My Server";// 15字符，不应为16
 		sdpVersion = defaultSDPVersion;
 
@@ -735,8 +708,7 @@ public class SecurityDataProtector {
 
 				while (true) {
 					try {
-						out = decodeByCipher(encodeByCipher(testSrc, cipherName, searchKeySize),
-								cipherName, searchKeySize);
+						out = decodeByCipher(encodeByCipher(testSrc, cipherName, searchKeySize), cipherName, searchKeySize);
 						break;
 					} catch (final Throwable e) {
 						if (e instanceof java.security.InvalidKeyException) {
@@ -750,12 +722,9 @@ public class SecurityDataProtector {
 
 				if (testSrc.equals(out)) {
 					PropertiesManager.setValue(PropertiesManager.p_SecurityCipher, cipherName);
-					PropertiesManager.setValue(PropertiesManager.p_SecuritySDPVersion,
-							Integer.toString(sdpVersion));
-					PropertiesManager.setValue(PropertiesManager.p_SecuritySecretKeySize,
-							Integer.toString(searchKeySize));
-					LogManager.log("[SecurityDataProtector] cipher : " + cipherName
-							+ ", SDPVersion : " + sdpVersion + "OK!");
+					PropertiesManager.setValue(PropertiesManager.p_SecuritySDPVersion, Integer.toString(sdpVersion));
+					PropertiesManager.setValue(PropertiesManager.p_SecuritySecretKeySize, Integer.toString(searchKeySize));
+					LogManager.log("[SecurityDataProtector] cipher : " + cipherName + ", SDPVersion : " + sdpVersion + "OK!");
 					break;
 				}
 			} catch (final Throwable e) {

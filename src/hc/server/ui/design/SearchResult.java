@@ -14,9 +14,8 @@ public class SearchResult {
 	public Highlighter.Highlight highLight;
 	public Highlighter highlighter;
 
-	public SearchResult(final DefaultMutableTreeNode treeNode, final int type,
-			final String itemName, final int offset, final int len, final int lineNo,
-			final String lineText) {
+	public SearchResult(final DefaultMutableTreeNode treeNode, final int type, final String itemName, final int offset, final int len,
+			final int lineNo, final String lineText) {
 		this.treeNode = treeNode;
 		this.type = type;
 		this.itemName = itemName;

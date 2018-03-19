@@ -31,12 +31,12 @@ package org.jrubyparser.ast;
 import org.jrubyparser.SourcePosition;
 
 /**
- * Represents a bare class declaration (e.g. class Foo/module Foo).  This is slightly misnamed
- * since it contains no double colons (::), but our cname production needs to be a common type.
- * In JRuby 2, we will rename this.
+ * Represents a bare class declaration (e.g. class Foo/module Foo). This is slightly misnamed since
+ * it contains no double colons (::), but our cname production needs to be a common type. In JRuby
+ * 2, we will rename this.
  */
 public class Colon2ImplicitNode extends Colon2Node {
-    public Colon2ImplicitNode(SourcePosition position, String name) {
-        super(position, null, name);
-    }
+	public Colon2ImplicitNode(SourcePosition position, String name) {
+		super(position, null, name);
+	}
 }

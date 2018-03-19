@@ -36,18 +36,18 @@ import org.jrubyparser.StaticScope;
  * A pre-execution construction (BEGIN { ... }).
  */
 public class PreExeNode extends IterNode {
-    public PreExeNode(SourcePosition position, StaticScope scope, Node body) {
-        super(position, null, scope, body);
-    }
+	public PreExeNode(SourcePosition position, StaticScope scope, Node body) {
+		super(position, null, scope, body);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.PREEXENODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.PREEXENODE;
+	}
 
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitPreExeNode(this);
-    }
+	@Override
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitPreExeNode(this);
+	}
 
 }

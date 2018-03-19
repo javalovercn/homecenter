@@ -15,55 +15,55 @@ import org.jrubyparser.SourcePosition;
  *
  */
 public class BlockArg18Node extends Node {
-    private Node normalBlockArgs;
-    private Node blockArgAssignee;
+	private Node normalBlockArgs;
+	private Node blockArgAssignee;
 
-    public BlockArg18Node(SourcePosition position, Node blockArgAssignee,
-            Node normalBlockArgs) {
-        super(position);
+	public BlockArg18Node(SourcePosition position, Node blockArgAssignee, Node normalBlockArgs) {
+		super(position);
 
-        assert blockArgAssignee != null : "Must be a value to assign too";
+		assert blockArgAssignee != null : "Must be a value to assign too";
 
-        this.blockArgAssignee = adopt(blockArgAssignee);
-        this.normalBlockArgs = adopt(normalBlockArgs);
-    }
+		this.blockArgAssignee = adopt(blockArgAssignee);
+		this.normalBlockArgs = adopt(normalBlockArgs);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		BlockArg18Node other = (BlockArg18Node) node;
 
-        BlockArg18Node other = (BlockArg18Node) node;
+		if (getArgs() == null && other.getArgs() == null)
+			return getBlockArg().isSame(other.getBlockArg());
+		if (getArgs() == null || other.getArgs() == null)
+			return false;
 
-        if (getArgs() == null && other.getArgs() == null) return getBlockArg().isSame(other.getBlockArg());
-        if (getArgs() == null || other.getArgs() == null) return false;
+		return getArgs().isSame(other.getArgs()) && getBlockArg().isSame(other.getBlockArg());
+	}
 
-        return getArgs().isSame(other.getArgs()) && getBlockArg().isSame(other.getBlockArg());
-    }
+	public Node getArgs() {
+		return normalBlockArgs;
+	}
 
+	public Node getBlockArg() {
+		return blockArgAssignee;
+	}
 
+	@Override
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitBlockArg18Node(this);
+	}
 
-    public Node getArgs() {
-        return normalBlockArgs;
-    }
-
-    public Node getBlockArg() {
-        return blockArgAssignee;
-    }
-
-    @Override
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitBlockArg18Node(this);
-    }
-
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.BLOCKARG18NODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.BLOCKARG18NODE;
+	}
 }

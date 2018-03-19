@@ -20,8 +20,7 @@ public class RubyClassAndDoc {
 		return docShortName;
 	}
 
-	private final RubyMethodItem searchMethod(final Vector<RubyMethodItem> ms,
-			final String methodName) {
+	private final RubyMethodItem searchMethod(final Vector<RubyMethodItem> ms, final String methodName) {
 		final int size = ms.size();
 		for (int i = 0; i < size; i++) {
 			final RubyMethodItem item = ms.get(i);
@@ -47,8 +46,7 @@ public class RubyClassAndDoc {
 		this(claz, docShortName, "Ruby" + docShortName);
 	}
 
-	public RubyClassAndDoc(final Class claz, final String docShortName,
-			final String displayClassName) {
+	public RubyClassAndDoc(final Class claz, final String docShortName, final String displayClassName) {
 		this(claz, docShortName, displayClassName, null, null);
 	}
 
@@ -60,8 +58,7 @@ public class RubyClassAndDoc {
 	 * @param additionMethods
 	 *            可以为null
 	 */
-	public RubyClassAndDoc(final Class claz, final String docShortName,
-			final String displayClassName, final String[] additionMethods,
+	public RubyClassAndDoc(final Class claz, final String docShortName, final String displayClassName, final String[] additionMethods,
 			final String[] additionStaticMethods) {
 		this.claz = claz;
 		this.docShortName = docShortName;

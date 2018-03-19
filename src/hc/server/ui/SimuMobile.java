@@ -1,5 +1,7 @@
 package hc.server.ui;
 
+import java.io.ByteArrayInputStream;
+
 import hc.core.util.CCoreUtil;
 import hc.core.util.HCURL;
 import hc.core.util.LangUtil;
@@ -21,8 +23,6 @@ import hc.server.util.HCLimitSecurityManager;
 import hc.server.util.ServerUtil;
 import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
-
-import java.io.ByteArrayInputStream;
 
 public class SimuMobile {
 	public static final J2SESession SIMU_NULL = null;
@@ -52,9 +52,8 @@ public class SimuMobile {
 	public static final boolean MOBILE_SUCC_INSERT = true;
 	public static final boolean MOBILE_SUCC_REMOVED = true;
 	public static final int MOBILE_MENU_ITEMS_SIZE = 100;// 太小可能导致getMenuItem出现异常
-	public static final MenuItem MOBILE_MENU_ITEM = new MenuItem("SIMU_ITEM", JarMainMenu.FOLD_TYPE,
-			UIUtil.SYS_FOLDER_ICON, HCURL.URL_CMD_EXIT, new I18NStoreableHashMapWithModifyFlag(),
-			"", "");
+	public static final MenuItem MOBILE_MENU_ITEM = new MenuItem("SIMU_ITEM", JarMainMenu.FOLD_TYPE, UIUtil.SYS_FOLDER_ICON,
+			HCURL.URL_CMD_EXIT, new I18NStoreableHashMapWithModifyFlag(), "", "");
 	public static final String MOBILE_OS_VER = "2.0";
 	public static final String MOBILE_OS = ProjectContext.OS_ANDROID;
 	public static final String MOBILE_DEFAULT_LOCALE = LangUtil.EN_US;
@@ -80,21 +79,18 @@ public class SimuMobile {
 		return buildMobileFileStream(fileExtension, fileName);
 	}
 
-	private static HCFileInputStream buildMobileFileStream(final String fileExtension,
-			final String fileName) {
+	private static HCFileInputStream buildMobileFileStream(final String fileExtension, final String fileName) {
 		final ByteArrayInputStream bis = new ByteArrayInputStream(new byte[0], 0, 0);
 		return HCInputStreamBuilder.build(bis, fileExtension, fileName);
 	}
 
 	public static final HCImageInputStream buildMobileImageStream() {
-		return HCInputStreamBuilder.buildImageStream(
-				ResourceUtil.getResourceAsStream("hc/res/ok_22.png"), 0, -90, 0, "png", -1.0, -1.0,
+		return HCInputStreamBuilder.buildImageStream(ResourceUtil.getResourceAsStream("hc/res/ok_22.png"), 0, -90, 0, "png", -1.0, -1.0,
 				-1.0);
 	}
 
 	public static final HCAudioInputStream buildMobileAudioStream() {
-		return HCInputStreamBuilder.buildAudioStream(
-				ResourceUtil.getResourceAsStream("hc/res/helloworld.mp3"), "mp3", -1.0, -1.0, -1.0);
+		return HCInputStreamBuilder.buildAudioStream(ResourceUtil.getResourceAsStream("hc/res/helloworld.mp3"), "mp3", -1.0, -1.0, -1.0);
 	}
 
 	final static RecycleRes tempLimitRecycleRes = HCLimitSecurityManager.getTempLimitRecycleRes();
@@ -109,8 +105,8 @@ public class SimuMobile {
 		return ctx.recycleRes.threadPool == tempLimitRecycleRes.threadPool;
 	}
 
-	final static ProjectContext simuContext = ServerUIUtil.buildProjectContext("SimuProjContext",
-			"1.0", tempLimitRecycleRes, null, (ProjClassLoaderFinder) null);
+	final static ProjectContext simuContext = ServerUIUtil.buildProjectContext("SimuProjContext", "1.0", tempLimitRecycleRes, null,
+			(ProjClassLoaderFinder) null);
 
 	public static Robot buildSimuRobot() {
 		// LogManager.err("In designer panel, create simu robot for testing
@@ -121,18 +117,18 @@ public class SimuMobile {
 	// 要置于createRunTestDir之后
 	private static HCJRubyEngine runTestEngine;
 	private static ConsoleTextPane consoleTextPane;
-	private static ConsoleWriter consoleWriter;
+	private static ConsoleWriter ideConsoleWriter;
 
-	private static ConsoleWriter getConsoleWriter() {
-		if (consoleWriter == null) {
+	static ConsoleWriter getConsoleWriter() {
+		if (ideConsoleWriter == null) {
 			synchronized (SimuMobile.class) {
-				if (consoleWriter == null) {
+				if (ideConsoleWriter == null) {
 					consoleTextPane = new ConsoleTextPane();
-					consoleWriter = new ConsoleWriter(consoleTextPane);
+					ideConsoleWriter = new ConsoleWriter(consoleTextPane);
 				}
 			}
 		}
-		return consoleWriter;
+		return ideConsoleWriter;
 	}
 
 	public static void changeCTP(final ConsoleTextPane ctp) {

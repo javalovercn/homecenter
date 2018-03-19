@@ -31,5 +31,6 @@ package org.jrubyparser;
  */
 public interface ISourcePositionHolder {
 	public SourcePosition getPosition();
+
 	public void setPosition(SourcePosition position);
 }

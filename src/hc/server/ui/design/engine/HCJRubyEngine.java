@@ -36,10 +36,8 @@ public class HCJRubyEngine {
 	public static final String IDE_LEVEL_ENGINE = "_IDE_";
 	public static final String ORG_JRUBY_EMBED_SCRIPTING_CONTAINER = "org.jruby.embed.ScriptingContainer";
 	private static final boolean isAndroidServerPlatform = ResourceUtil.isAndroidServerPlatform();
-	public static final String JRUBY_VERSION = "RUBY2_0";// for container and
-															// parser
-	public static final String JRUBY_PARSE_VERSION = "RUBY2_0";// for container
-																// and parser
+	public static final String JRUBY_VERSION = "RUBY2_0";// for container and parser
+	public static final String JRUBY_PARSE_VERSION = "RUBY2_0";// for container and parser
 
 	static {
 		java.util.logging.LogManager.getLogManager();// init 会调用特权，所以前置
@@ -48,8 +46,8 @@ public class HCJRubyEngine {
 	/**
 	 * jruby-complete-9.1.14.0.jar cafeCode : 9.0
 	 * 
-	 * jruby-complete-9.1.13.0.jar, 12, android : Caused by : Failed resolution
-	 * of: Ljava/lang/invoke/SwitchPoint; HomeCenter:
+	 * jruby-complete-9.1.13.0.jar, 12, android : Caused by : Failed resolution of:
+	 * Ljava/lang/invoke/SwitchPoint; HomeCenter:
 	 * org.jruby.runtime.opto.FailoverSwitchPointInvalidator.<clinit>(FailoverSwitchPointInvalidator.java:34)
 	 */
 
@@ -57,8 +55,7 @@ public class HCJRubyEngine {
 	public final RubyWriter errorWriter;
 	private Class classScriptingContainer;
 	private Object container;
-	private final LinkedHashMap<String, Stack> lruCache = new LinkedHashMap<String, Stack>(90,
-			0.75f, true) {
+	private final LinkedHashMap<String, Stack> lruCache = new LinkedHashMap<String, Stack>(90, 0.75f, true) {
 		@Override
 		protected boolean removeEldestEntry(final Map.Entry<String, Stack> eldest) {
 			return size() > 128;
@@ -120,17 +117,14 @@ public class HCJRubyEngine {
 			script = UpgradeManager.preProcessScript(script);
 			sv.value = script;
 		}
-		L.V = L.WShop ? false
-				: LogManager.log("parse/run [" + Thread.currentThread().getName()
-						+ "], scripts : \n" + script);
+		L.V = L.WShop ? false : LogManager.log("parse/run [" + Thread.currentThread().getName() + "], scripts : \n" + script);
 
 		unit = getCache(script);
 
 		if (unit == null) {
 			// EvalUnit unit = container.parse(script);//后面的int是可选参数
 			final Object[] para = { script, zero };
-			unit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse",
-					parseParaTypes, para, false);
+			unit = ClassUtil.invokeWithExceptionOut(classScriptingContainer, container, "parse", parseParaTypes, para, false);
 		}
 		return unit;
 	}
@@ -154,23 +148,20 @@ public class HCJRubyEngine {
 			return null;
 		}
 		try {
-			final Object runOut = ClassUtil.invokeWithExceptionOut(classEvalUnit, evalUnit, "run",
-					emptyParaTypes, emptyPara, false);
+			final Object runOut = ClassUtil.invokeWithExceptionOut(classEvalUnit, evalUnit, "run", emptyParaTypes, emptyPara, false);
 			final Object[] para = { runOut };
-			final Object result = ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils,
-					classJavaEmbedUtils, "rubyToJava", rubyToJavaParaTypes, para, false);
+			final Object result = ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils, classJavaEmbedUtils, "rubyToJava",
+					rubyToJavaParaTypes, para, false);
 			addToCache(script, evalUnit);
 			return result;
 		} finally {
-			L.V = L.WShop ? false
-					: LogManager.log("finish run in [" + Thread.currentThread().getName() + "]!");
+			L.V = L.WShop ? false : LogManager.log("finish run in [" + Thread.currentThread().getName() + "]!");
 		}
 	}
 
 	public final Object rubyToJava(final Object obj) throws Exception {
 		final Object[] para = { obj };
-		return ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils, classJavaEmbedUtils,
-				"rubyToJava", rubyToJavaParaTypes, para, false);
+		return ClassUtil.invokeWithExceptionOut(classJavaEmbedUtils, classJavaEmbedUtils, "rubyToJava", rubyToJavaParaTypes, para, false);
 	}
 
 	boolean isShutdown;
@@ -181,15 +172,13 @@ public class HCJRubyEngine {
 		GlobalConditionWatcher.addWatcher(new DelayWatcher(1000) {// 延时，不影响当前可能正在的任务
 			@Override
 			public void doBiz() {
-				ClassUtil.invoke(classScriptingContainer, container, "clear", emptyParaTypes,
-						emptyPara, false);
+				ClassUtil.invoke(classScriptingContainer, container, "clear", emptyParaTypes, emptyPara, false);
 				// try{
 				// container.clear();
 				// }catch (Throwable e) {
 				// }
 
-				ClassUtil.invoke(classScriptingContainer, container, "terminate", emptyParaTypes,
-						emptyPara, false);
+				ClassUtil.invoke(classScriptingContainer, container, "terminate", emptyParaTypes, emptyPara, false);
 				// try{
 				// container.terminate();
 				// }catch (Throwable e) {
@@ -216,9 +205,8 @@ public class HCJRubyEngine {
 	 *            可以为null
 	 * @param projClassLoader
 	 */
-	public HCJRubyEngine(final ConsoleWriter displayWriterMaybeNull, final String absPath,
-			final ClassLoader projClassLoader, final boolean isReportException,
-			final String projectID) {
+	public HCJRubyEngine(final ConsoleWriter displayWriterMaybeNull, final String absPath, final ClassLoader projClassLoader,
+			final boolean isReportException, final String projectID) {
 		this.projectIDMaybeBeginWithIDE = projectID;
 		// engineLock = this;
 		errorWriter = new RubyWriter(displayWriterMaybeNull);
@@ -227,8 +215,7 @@ public class HCJRubyEngine {
 			isInit = true;
 
 			if (isAndroidServerPlatform) {
-				final File optimizBaseDir = PlatformManager.getService()
-						.getJRubyAndroidOptimizBaseDir();
+				final File optimizBaseDir = PlatformManager.getService().getJRubyAndroidOptimizBaseDir();
 
 				// System.setProperty("jruby.compile.mode", "OFF"); // OFF OFFIR
 				// JITIR? FORCE FORCEIR
@@ -252,19 +239,20 @@ public class HCJRubyEngine {
 				// System.setProperty("jruby.debug.loadService.timing", "true");
 
 				// Used to enable JRuby to generate proxy classes
-				System.setProperty("jruby.ji.proxyClassFactory",
-						"org.ruboto.DalvikProxyClassFactory");
+				System.setProperty("jruby.ji.proxyClassFactory", "org.ruboto.DalvikProxyClassFactory");
 				System.setProperty("jruby.ji.upper.case.package.name.allowed", "true");
 				// the following property is for
 				// System.setProperty("jruby.ji.proxyClassFactory",
 				// "org.ruboto.DalvikProxyClassFactory");
 
 				{
-					final File proxyCache = new File(optimizBaseDir, "ruboto_cache");
+					final String robotoCache = "ruboto_cache";
+					final File proxyCache = new File(optimizBaseDir, robotoCache);
 					if (proxyCache.mkdirs()) {
-						System.out.println("creaet dir : " + proxyCache.getAbsolutePath());
+						LogManager.log("create dir : " + proxyCache.getAbsolutePath());
 					} else {
 						ResourceUtil.deleteDirectoryNow(proxyCache, false);
+						LogManager.log("clear dir : " + proxyCache.getAbsolutePath());
 					}
 					System.setProperty("jruby.class.cache.path", proxyCache.getAbsolutePath());
 				}
@@ -292,7 +280,13 @@ public class HCJRubyEngine {
 				// 以下方法不适用于9.1.13.0
 				System.setProperty("compile.invokedynamic", "false");
 				LogManager.warn("compile.invokedynamic : false");
-
+				
+//				try {
+//					final Class rubyClass = projClassLoader.loadClass("org.jruby.Ruby");//public static void setSecurityRestricted(boolean restricted) {
+//					rubyClass.getDeclaredMethod("setSecurityRestricted", boolean.class).invoke(rubyClass, true);
+//				}catch (final Throwable e) {
+//					e.printStackTrace();
+//				}
 				// Uncomment these to debug/profile Ruby source loading
 				// Analyse the output: grep "LoadService: <-" | cut -f5 -d- |
 				// cut -c2- | cut -f1 -dm | awk '{total = total + $1}END{print
@@ -306,8 +300,7 @@ public class HCJRubyEngine {
 
 		try {
 			classJavaEmbedUtils = projClassLoader.loadClass("org.jruby.javasupport.JavaEmbedUtils");
-			classEvalUnit = projClassLoader
-					.loadClass("org.jruby.javasupport.JavaEmbedUtils$EvalUnit");
+			classEvalUnit = projClassLoader.loadClass("org.jruby.javasupport.JavaEmbedUtils$EvalUnit");
 			classIRubyObject = projClassLoader.loadClass("org.jruby.runtime.builtin.IRubyObject");
 			final Class[] array = { classIRubyObject };
 			rubyToJavaParaTypes = array;
@@ -332,35 +325,33 @@ public class HCJRubyEngine {
 			// across multiple evaluations
 			// LocalVariableBehavior.PERSISTENT;
 
-			final Class classLocalContextScope = projClassLoader
-					.loadClass("org.jruby.embed.LocalContextScope");
-			final Class classLocalVariableBehavior = projClassLoader
-					.loadClass("org.jruby.embed.LocalVariableBehavior");
+			final Class classLocalContextScope = projClassLoader.loadClass("org.jruby.embed.LocalContextScope");
+			final Class classLocalVariableBehavior = projClassLoader.loadClass("org.jruby.embed.LocalVariableBehavior");
 
-			classScriptingContainer = projClassLoader
-					.loadClass(ORG_JRUBY_EMBED_SCRIPTING_CONTAINER);
-			final Class[] construParaTypes = { classLocalContextScope, classLocalVariableBehavior,
-					boolean.class };
+			classScriptingContainer = projClassLoader.loadClass(ORG_JRUBY_EMBED_SCRIPTING_CONTAINER);
+			final Class[] construParaTypes = { classLocalContextScope, classLocalVariableBehavior, boolean.class };
 			final Constructor constr = classScriptingContainer.getConstructor(construParaTypes);
-			final Object[] constrPara = {
-					ClassUtil.getField(classLocalContextScope, classLocalContextScope,
-							"SINGLETHREAD", false, true), // SINGLETHREAD :
-															// SingleThreadLocalContextProvider.getRuntime().
-					ClassUtil.getField(classLocalVariableBehavior, classLocalVariableBehavior,
-							"TRANSIENT", false, true), // TRANSIENT
+			final Object[] constrPara = { ClassUtil.getField(classLocalContextScope, classLocalContextScope, "SINGLETHREAD", false, true), // SINGLETHREAD :
+					// SingleThreadLocalContextProvider.getRuntime().
+					ClassUtil.getField(classLocalVariableBehavior, classLocalVariableBehavior, "TRANSIENT", false, true), // TRANSIENT
 					Boolean.TRUE };
 			container = constr.newInstance(constrPara);
 
+			// container.setClassLoader(projClassLoader);
+			{
+				final Class[] paraType = { ClassLoader.class };
+				final Object[] para = { projClassLoader };
+				ClassUtil.invoke(classScriptingContainer, container, "setClassLoader", paraType, para, false);
+			}
+			
 			// container.setAttribute(AttributeName.SHARING_VARIABLES,
 			// Boolean.FALSE);
 			{
-				final Class AttributeName = projClassLoader
-						.loadClass("org.jruby.embed.AttributeName");
+				final Class AttributeName = projClassLoader.loadClass("org.jruby.embed.AttributeName");
 				final Class[] setAttributeTypes = { Object.class, Object.class };
-				final Object[] setAttributePara = { ClassUtil.getField(AttributeName, AttributeName,
-						"SHARING_VARIABLES", false, true), Boolean.FALSE };
-				ClassUtil.invoke(classScriptingContainer, container, "setAttribute",
-						setAttributeTypes, setAttributePara, false);
+				final Object[] setAttributePara = { ClassUtil.getField(AttributeName, AttributeName, "SHARING_VARIABLES", false, true),
+						Boolean.FALSE };
+				ClassUtil.invoke(classScriptingContainer, container, "setAttribute", setAttributeTypes, setAttributePara, false);
 			}
 
 			// System.out.println("getHomeDirectory : " + getHomeDirectory());
@@ -382,15 +373,12 @@ public class HCJRubyEngine {
 			// container.setCompatVersion(org.jruby.CompatVersion.RUBY2_0);
 			// if(isAndroidServerPlatform)
 			{
-				final Class compatVersionClass = projClassLoader
-						.loadClass("org.jruby.CompatVersion");
-				final Object rubyVersion = ClassUtil.getField(compatVersionClass,
-						compatVersionClass, JRUBY_VERSION, false, true);
+				final Class compatVersionClass = projClassLoader.loadClass("org.jruby.CompatVersion");
+				final Object rubyVersion = ClassUtil.getField(compatVersionClass, compatVersionClass, JRUBY_VERSION, false, true);
 				final Class[] paraTypes = { compatVersionClass };
 				final Object[] para = { rubyVersion };
 
-				ClassUtil.invoke(classScriptingContainer, container, "setCompatVersion", paraTypes,
-						para, false);
+				ClassUtil.invoke(classScriptingContainer, container, "setCompatVersion", paraTypes, para, false);
 				if (ResourceUtil.isLoggerOn() == false) {
 					LogManager.warning("org.jruby.CompatVersion : " + JRUBY_VERSION);
 				}
@@ -431,8 +419,7 @@ public class HCJRubyEngine {
 				// paths Ruby scripts/libraries
 				final Class[] paraTypes = { List.class };
 				final Object[] para = { loadPaths };
-				ClassUtil.invoke(classScriptingContainer, container, "setLoadPaths", paraTypes,
-						para, false);
+				ClassUtil.invoke(classScriptingContainer, container, "setLoadPaths", paraTypes, para, false);
 			}
 
 			// container.setCurrentDirectory(absPath);
@@ -446,57 +433,56 @@ public class HCJRubyEngine {
 
 				final Class[] paraType = { String.class };
 				final Object[] para = { currDir };
-				ClassUtil.invoke(classScriptingContainer, container, "setCurrentDirectory",
-						paraType, para, false);
+				ClassUtil.invoke(classScriptingContainer, container, "setCurrentDirectory", paraType, para, false);
 			}
 
 			// container.setError(errorWriter);
 			{
 				final Class[] paraType = { Writer.class };
 				final Object[] para = { errorWriter };
-				ClassUtil.invoke(classScriptingContainer, container, "setError", paraType, para,
-						false);
+				ClassUtil.invoke(classScriptingContainer, container, "setError", paraType, para, false);
 			}
 			// container.setOutput(errorWriter);
 			if (displayWriterMaybeNull != null) {
 				final Class[] paraType = { Writer.class };
 				final Object[] para = { displayWriterMaybeNull };
-				ClassUtil.invoke(classScriptingContainer, container, "setOutput", paraType, para,
-						false);
+				ClassUtil.invoke(classScriptingContainer, container, "setOutput", paraType, para, false);
 			}
-
-			// container.setClassLoader(projClassLoader);
-			final Class[] paraType = { ClassLoader.class };
-			final Object[] para = { projClassLoader };
-			ClassUtil.invoke(classScriptingContainer, container, "setClassLoader", paraType, para,
-					false);
 		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
+		
+//		if(isAndroidServerPlatform){
+//			//container.setNativeEnabled
+//			try{
+//				classScriptingContainer.getDeclaredMethod("setNativeEnabled", boolean.class).invoke(container, false);
+//			}catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		}
 
 		// container.getRuntime();
 		try {
 			// 强制初始化，因为在用这线程会导致block PropertyPermission :
 			// (java.util.PropertyPermission java.net.preferIPv4Stack write) in
 			// HAR Project.
-			classScriptingContainer.getDeclaredMethod("getRuntime", null).invoke(container, null);
+			classScriptingContainer.getDeclaredMethod("getRuntime", ClassUtil.NULL_PARA_TYPES).invoke(container, ClassUtil.NULL_PARAS);
 		} catch (final Throwable e) {
 			e.printStackTrace();
 		}
 
 		if (isAndroidServerPlatform) {
-			PlatformManager.getService().doExtBiz(PlatformService.BIZ_INIT_RUBOTO_ENVIROMENT,
-					container);
+			PlatformManager.getService().doExtBiz(PlatformService.BIZ_INIT_RUBOTO_ENVIROMENT, container);
 		}
 	}
 
 	private Object getCurrentDirectory() {
-		return ClassUtil.invoke(classScriptingContainer, container, "getCurrentDirectory",
-				ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
+		return ClassUtil.invoke(classScriptingContainer, container, "getCurrentDirectory", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS,
+				false);
 	}
 
 	private Object getHomeDirectory() {
-		return ClassUtil.invoke(classScriptingContainer, container, "getHomeDirectory",
-				ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
+		return ClassUtil.invoke(classScriptingContainer, container, "getHomeDirectory", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS,
+				false);
 	}
 }

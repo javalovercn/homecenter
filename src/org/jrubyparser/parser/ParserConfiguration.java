@@ -34,63 +34,66 @@ import org.jrubyparser.CompatVersion;
 import org.jrubyparser.StaticScope;
 
 public class ParserConfiguration {
-    public enum SyntaxGathering { NONE, COMMENTS, ALL };
-    
-    // What linenumber will the source think it starts from?
-    private int lineNumber = 0;
+	public enum SyntaxGathering {
+		NONE, COMMENTS, ALL
+	};
 
-    // Should we display extra debug information while parsing?
-    private boolean isDebug = false;
+	// What linenumber will the source think it starts from?
+	private int lineNumber = 0;
 
-    private CompatVersion version = CompatVersion.RUBY1_8;
-    
-    // This scope is sent replaces the root scope.  The common scenario for this is
-    // having the parser accurately parse in an eval() context where local variables
-    // are already defined.  Without this, we would make all vars end getting declared
-    // as vcalls instead of localvars.
-    private StaticScope scope = null;
-    
-    // What additional purely syntactical elements should we retain in the AST.
-    private SyntaxGathering syntax = SyntaxGathering.NONE;
+	// Should we display extra debug information while parsing?
+	private boolean isDebug = false;
 
-    public ParserConfiguration() {}
-    
-    public ParserConfiguration(int lineNumber, CompatVersion version) {
-        this(lineNumber, version, null);
-    }
-    
-    public ParserConfiguration(int lineNumber, CompatVersion version, StaticScope scope) {
-        this.lineNumber = lineNumber;
-        this.version = version;
-        this.scope = scope;
-        this.syntax = SyntaxGathering.NONE;
-    }
+	private CompatVersion version = CompatVersion.RUBY1_8;
 
-    public boolean isDebug() {
-        return isDebug;
-    }
+	// This scope is sent replaces the root scope.  The common scenario for this is
+	// having the parser accurately parse in an eval() context where local variables
+	// are already defined.  Without this, we would make all vars end getting declared
+	// as vcalls instead of localvars.
+	private StaticScope scope = null;
 
-    public int getLineNumber() {
-        return lineNumber;
-    }
+	// What additional purely syntactical elements should we retain in the AST.
+	private SyntaxGathering syntax = SyntaxGathering.NONE;
 
-    public CompatVersion getVersion() {
-        return version;
-    }
-    
-    public StaticScope getScope() {
-        return scope;
-    }
-    
-    public String getEncoding() {
-        return "UTF-8"; // TODO: Replace with charset from IDE?
-    }
-    
-    public SyntaxGathering getSyntax() {
-        return syntax;
-    }
-    
-    public void setSyntax(SyntaxGathering syntax) {
-        this.syntax = syntax;
-    }
+	public ParserConfiguration() {
+	}
+
+	public ParserConfiguration(int lineNumber, CompatVersion version) {
+		this(lineNumber, version, null);
+	}
+
+	public ParserConfiguration(int lineNumber, CompatVersion version, StaticScope scope) {
+		this.lineNumber = lineNumber;
+		this.version = version;
+		this.scope = scope;
+		this.syntax = SyntaxGathering.NONE;
+	}
+
+	public boolean isDebug() {
+		return isDebug;
+	}
+
+	public int getLineNumber() {
+		return lineNumber;
+	}
+
+	public CompatVersion getVersion() {
+		return version;
+	}
+
+	public StaticScope getScope() {
+		return scope;
+	}
+
+	public String getEncoding() {
+		return "UTF-8"; // TODO: Replace with charset from IDE?
+	}
+
+	public SyntaxGathering getSyntax() {
+		return syntax;
+	}
+
+	public void setSyntax(SyntaxGathering syntax) {
+		this.syntax = syntax;
+	}
 }

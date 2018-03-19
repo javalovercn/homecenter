@@ -33,23 +33,23 @@ import org.jrubyparser.SourcePosition;
 
 // 1.8-only node
 public class ToAryNode extends Node {
-    private Node node;
+	private Node node;
 
-    public ToAryNode(SourcePosition position, Node node) {
-        super(position);
+	public ToAryNode(SourcePosition position, Node node) {
+		super(position);
 
-        this.node = adopt(node);
-    }
+		this.node = adopt(node);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.TOARYNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.TOARYNODE;
+	}
 
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitToAryNode(this);
-    }
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitToAryNode(this);
+	}
 
-    public Node getValue() {
-        return node;
-    }
+	public Node getValue() {
+		return node;
+	}
 }

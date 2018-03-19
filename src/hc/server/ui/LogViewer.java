@@ -58,20 +58,16 @@ import hc.util.ResourceUtil;
 
 public class LogViewer extends HCJFrame {
 	private final ThreadGroup threadPoolToken = App.getThreadPoolToken();
-	static Highlighter.HighlightPainter painterQuery = new DefaultHighlighter.DefaultHighlightPainter(
-			Color.YELLOW);
-	static Highlighter.HighlightPainter ERROR_LIGHTER = new DefaultHighlighter.DefaultHighlightPainter(
-			Color.RED);
-	static Highlighter.HighlightPainter OP_LIGHTER = new DefaultHighlighter.DefaultHighlightPainter(
-			Color.GREEN);
+	static Highlighter.HighlightPainter painterQuery = new DefaultHighlighter.DefaultHighlightPainter(Color.YELLOW);
+	static Highlighter.HighlightPainter ERROR_LIGHTER = new DefaultHighlighter.DefaultHighlightPainter(Color.RED);
+	static Highlighter.HighlightPainter OP_LIGHTER = new DefaultHighlighter.DefaultHighlightPainter(Color.GREEN);
 
 	private void highlightErrAndOpration(final JTextArea jta) {
 		buildHighlight(jta, ILog.ERR, ERROR_LIGHTER);
 		buildHighlight(jta, ILog.OP_STR, OP_LIGHTER);
 	}
 
-	private void buildHighlight(final JTextArea jta, final String patternStr,
-			final HighlightPainter lighter) {
+	private void buildHighlight(final JTextArea jta, final String patternStr, final HighlightPainter lighter) {
 		final Pattern pattern = Pattern.compile(patternStr);
 		final Matcher matcher = pattern.matcher(jta.getText());
 		boolean matchFound = matcher.matches(); // false
@@ -90,24 +86,23 @@ public class LogViewer extends HCJFrame {
 		}
 	}
 
-	public static LogViewer loadFile(final String fileName, final byte[] pwdBS,
-			final String cipherAlgorithm, final String title) throws Exception {
+	public static LogViewer loadFile(final String fileName, final byte[] pwdBS, final String cipherAlgorithm, final String title)
+			throws Exception {
 		final File file = new File(ResourceUtil.getBaseDir(), fileName);
 		if (file.exists() == false) {
 			final JPanel panel = new JPanel(new BorderLayout());
-			panel.add(new JLabel(ResourceUtil.get(9004), App.getSysIcon(App.SYS_ERROR_ICON),
-					JLabel.LEADING), BorderLayout.CENTER);
+			panel.add(new JLabel(ResourceUtil.get(9004), App.getSysIcon(App.SYS_ERROR_ICON), JLabel.LEADING), BorderLayout.CENTER);
 			final JPanel descPanel = new JPanel(new BorderLayout());
-			descPanel.add(new JLabel("<html><STRONG>" + ResourceUtil.get(9095)
-					+ "</STRONG><BR>if <STRONG>debugOn</STRONG> is added to program argument, "
-					+ "the log file will NOT be created.</html>"), BorderLayout.CENTER);
+			descPanel.add(new JLabel(
+					"<html><STRONG>" + ResourceUtil.get(9095) + "</STRONG><BR>if <STRONG>debugOn</STRONG> is added to program argument, "
+							+ "the log file will NOT be created.</html>"),
+					BorderLayout.CENTER);
 			panel.add(descPanel, BorderLayout.SOUTH);
-			App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(IConstant.ERROR), false, null,
-					null, new ActionListener() {
-						@Override
-						public void actionPerformed(final ActionEvent e) {
-						}
-					}, null, null, false, true, null, false, false);
+			App.showCenterPanelMain(panel, 0, 0, ResourceUtil.get(IConstant.ERROR), false, null, null, new ActionListener() {
+				@Override
+				public void actionPerformed(final ActionEvent e) {
+				}
+			}, null, null, false, true, null, false, false);
 			return null;
 		}
 		return new LogViewer(file, pwdBS, cipherAlgorithm, title);
@@ -125,8 +120,7 @@ public class LogViewer extends HCJFrame {
 	final File file;
 	final byte[] pwdBS;
 
-	public LogViewer(final File file, final byte[] pwdBS, final String cipherAlgorithm,
-			final String title) {
+	public LogViewer(final File file, final byte[] pwdBS, final String cipherAlgorithm, final String title) {
 		this.file = file;
 		this.pwdBS = pwdBS;
 
@@ -146,8 +140,8 @@ public class LogViewer extends HCJFrame {
 				self.dispose();
 			}
 		}, threadPoolToken);
-		this.getRootPane().registerKeyboardAction(exitActionListener,
-				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+		this.getRootPane().registerKeyboardAction(exitActionListener, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+				JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 		final JPanel contentpane = new JPanel();
 		getContentPane().add(contentpane);
@@ -197,8 +191,7 @@ public class LogViewer extends HCJFrame {
 		btnSearch = new JButton("", new ImageIcon(ImageSrc.SEARCH_SMALL_ICON));
 		btnNext = new JButton("", new ImageIcon(ImageSrc.DOWN_SMALL_ICON));
 		btnPre = new JButton("", new ImageIcon(ImageSrc.UP_SMALL_ICON));
-		btnRefresh = new JButton("", new ImageIcon(
-				ResourceUtil.getImage(ResourceUtil.getResource("hc/res/refres_22.png"))));
+		btnRefresh = new JButton("", new ImageIcon(ResourceUtil.getImage(ResourceUtil.getResource("hc/res/refres_22.png"))));
 
 		btnNext.setEnabled(false);
 		btnPre.setEnabled(false);
@@ -223,8 +216,7 @@ public class LogViewer extends HCJFrame {
 			}
 		};
 		{
-			nextAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_K,
-					ResourceUtil.getAbstractCtrlInputEvent()));
+			nextAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_K, ResourceUtil.getAbstractCtrlInputEvent()));
 			btnNext.addActionListener(new HCActionListener(new Runnable() {
 				@Override
 				public void run() {
@@ -232,8 +224,8 @@ public class LogViewer extends HCJFrame {
 				}
 			}, threadPoolToken));
 			btnNext.getActionMap().put("nextAction", nextAction);
-			btnNext.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-					.put((KeyStroke) nextAction.getValue(Action.ACCELERATOR_KEY), "nextAction");
+			btnNext.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) nextAction.getValue(Action.ACCELERATOR_KEY),
+					"nextAction");
 		}
 
 		final Action preAction = new AbstractAction() {
@@ -254,8 +246,8 @@ public class LogViewer extends HCJFrame {
 			}
 		};
 		{
-			preAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_K,
-					ResourceUtil.getAbstractCtrlInputEvent() | InputEvent.SHIFT_MASK));
+			preAction.putValue(Action.ACCELERATOR_KEY,
+					KeyStroke.getKeyStroke(KeyEvent.VK_K, ResourceUtil.getAbstractCtrlInputEvent() | InputEvent.SHIFT_MASK));
 			btnPre.addActionListener(new HCActionListener(new Runnable() {
 				@Override
 				public void run() {
@@ -263,8 +255,7 @@ public class LogViewer extends HCJFrame {
 				}
 			}, threadPoolToken));
 			btnPre.getActionMap().put("preAction", preAction);
-			btnPre.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-					.put((KeyStroke) preAction.getValue(Action.ACCELERATOR_KEY), "preAction");
+			btnPre.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) preAction.getValue(Action.ACCELERATOR_KEY), "preAction");
 		}
 
 		final Action findAction = new AbstractAction() {
@@ -276,69 +267,67 @@ public class LogViewer extends HCJFrame {
 				panel.add(new JLabel(btnSearch.getIcon()));
 				field.requestFocus();
 				panel.add(field);
-				App.showCenterPanelMain(panel, 0, 0, "Find...", true, null, null,
-						new HCActionListener(new Runnable() {
-							@Override
-							public void run() {
-								final String searchStr = field.getText();
-								searchLen = searchStr.length();
+				App.showCenterPanelMain(panel, 0, 0, "Find...", true, null, null, new HCActionListener(new Runnable() {
+					@Override
+					public void run() {
+						final String searchStr = field.getText();
+						searchLen = searchStr.length();
 
-								btnNext.setEnabled(false);
-								btnPre.setEnabled(false);
+						btnNext.setEnabled(false);
+						btnPre.setEnabled(false);
 
-								searchIdx.clear();
+						searchIdx.clear();
 
-								final String myWord = jta.getText();
+						final String myWord = jta.getText();
 
-								final Highlighter h = jta.getHighlighter();
+						final Highlighter h = jta.getHighlighter();
 
-								// h.removeHighlight(LogViewer.painter);
-								final Highlighter.Highlight[] hs = h.getHighlights();
-								for (int i = 0; i < hs.length; i++) {
-									final Highlight highlight = hs[i];
-									if (highlight.getPainter() == LogViewer.painterQuery) {
-										h.removeHighlight(highlight);
-									}
-								}
-
-								// Highlight(LogViewer.painter);
-
-								// Pattern pattern = Pattern.compile("\\b" +
-								// searchStr + "\\b");
-								final Pattern pattern = Pattern.compile(searchStr);
-								final Matcher matcher = pattern.matcher(myWord);
-								boolean matchFound = false;
-								while (matcher.find()) {
-									matchFound = true;
-									final int start = matcher.start();
-									searchIdx.add(start);
-									final int end = matcher.end();
-									try {
-										// Font font = new Font("Verdana",
-										// Font.BOLD, 40);
-										h.addHighlight(start, end, LogViewer.painterQuery);
-									} catch (final BadLocationException e) {
-										e.printStackTrace();
-									}
-								}
-
-								if (matchFound) {
-									currSearchIdx = 0;
-									jta.setCaretPosition(searchIdx.get(currSearchIdx++));
-									if (searchIdx.size() > currSearchIdx) {
-										btnNext.setEnabled(true);
-										btnNext.setFocusable(true);
-									}
-								} else {
-									App.showMessageDialog(LogViewer.this, "No found!");
-								}
+						// h.removeHighlight(LogViewer.painter);
+						final Highlighter.Highlight[] hs = h.getHighlights();
+						for (int i = 0; i < hs.length; i++) {
+							final Highlight highlight = hs[i];
+							if (highlight.getPainter() == LogViewer.painterQuery) {
+								h.removeHighlight(highlight);
 							}
-						}, null), null, LogViewer.this, true, false, btnSearch, false, false);
+						}
+
+						// Highlight(LogViewer.painter);
+
+						// Pattern pattern = Pattern.compile("\\b" +
+						// searchStr + "\\b");
+						final Pattern pattern = Pattern.compile(searchStr);
+						final Matcher matcher = pattern.matcher(myWord);
+						boolean matchFound = false;
+						while (matcher.find()) {
+							matchFound = true;
+							final int start = matcher.start();
+							searchIdx.add(start);
+							final int end = matcher.end();
+							try {
+								// Font font = new Font("Verdana",
+								// Font.BOLD, 40);
+								h.addHighlight(start, end, LogViewer.painterQuery);
+							} catch (final BadLocationException e) {
+								e.printStackTrace();
+							}
+						}
+
+						if (matchFound) {
+							currSearchIdx = 0;
+							jta.setCaretPosition(searchIdx.get(currSearchIdx++));
+							if (searchIdx.size() > currSearchIdx) {
+								btnNext.setEnabled(true);
+								btnNext.setFocusable(true);
+							}
+						} else {
+							App.showMessageDialog(LogViewer.this, "No found!");
+						}
+					}
+				}, null), null, LogViewer.this, true, false, btnSearch, false, false);
 			}
 		};
 		{
-			findAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F,
-					ResourceUtil.getAbstractCtrlInputEvent()));
+			findAction.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_F, ResourceUtil.getAbstractCtrlInputEvent()));
 			btnSearch.addActionListener(new HCActionListener(new Runnable() {
 				@Override
 				public void run() {
@@ -346,8 +335,8 @@ public class LogViewer extends HCJFrame {
 				}
 			}, threadPoolToken));
 			btnSearch.getActionMap().put("findAction", findAction);
-			btnSearch.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-					.put((KeyStroke) findAction.getValue(Action.ACCELERATOR_KEY), "findAction");
+			btnSearch.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) findAction.getValue(Action.ACCELERATOR_KEY),
+					"findAction");
 		}
 		{
 			final Action refreshAction = new AbstractAction() {
@@ -369,15 +358,13 @@ public class LogViewer extends HCJFrame {
 				}
 			}, threadPoolToken));
 			btnRefresh.getActionMap().put("refreshAction", refreshAction);
-			btnRefresh.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-					(KeyStroke) refreshAction.getValue(Action.ACCELERATOR_KEY), "refreshAction");
+			btnRefresh.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put((KeyStroke) refreshAction.getValue(Action.ACCELERATOR_KEY),
+					"refreshAction");
 
 		}
 		btnSearch.setToolTipText("Find (" + ResourceUtil.getAbstractCtrlInputEventText() + " + F)");
-		btnNext.setToolTipText(
-				"Find Next (" + ResourceUtil.getAbstractCtrlInputEventText() + " + K)");
-		btnPre.setToolTipText(
-				"Find Previous (" + ResourceUtil.getAbstractCtrlInputEventText() + " + Shift + K)");
+		btnNext.setToolTipText("Find Next (" + ResourceUtil.getAbstractCtrlInputEventText() + " + K)");
+		btnPre.setToolTipText("Find Previous (" + ResourceUtil.getAbstractCtrlInputEventText() + " + Shift + K)");
 		btnRefresh.setToolTipText("Refresh (" + ResourceUtil.getRefreshKeyText() + ")");
 
 		if (ResourceUtil.isAndroidServerPlatform()) {
@@ -397,8 +384,7 @@ public class LogViewer extends HCJFrame {
 
 		setSize(1024, 700);
 
-		if (LocationComponentListener.hasLocation(this)
-				&& LocationComponentListener.loadLocation(this)) {
+		if (LocationComponentListener.hasLocation(this) && LocationComponentListener.loadLocation(this)) {
 			setVisible(true);
 		} else {
 			App.showCenter(this);
@@ -425,8 +411,7 @@ public class LogViewer extends HCJFrame {
 		try {
 			final FileInputStream ins = new FileInputStream(file);
 
-			final InputStreamReader reader = new InputStreamReader(
-					ServerCUtil.decodeStream(ins, pwdBS, cipherAlgorithm), IConstant.UTF_8);
+			final InputStreamReader reader = new InputStreamReader(ServerCUtil.decodeStream(ins, pwdBS, cipherAlgorithm), IConstant.UTF_8);
 			jta.read(reader, null);
 		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);

@@ -8,44 +8,49 @@ import hc.core.IConstant;
  */
 public class UIUtil {
 	/**
-	 * 乐1分辨率:1920*1080像素
-	 * 乐1por分辨率:2560*1440像素，像素密度就达到534
+	 * 乐1分辨率:1920*1080像素 乐1por分辨率:2560*1440像素，像素密度就达到534
 	 * iPhone5:640*1136，像素密度就达到326PPI
 	 */
-	
+
 	public static final int ICON_128 = 128;
 	public static final int ICON_64 = 64;
-	
+
 	/**
-	 * 注意：如果变更此尺寸，请更新API相应Doc参数 {MenuItem.setIcon() 和 new MenuIcon(xx, xx, icon, ...)}
+	 * 注意：如果变更此尺寸，请更新API相应Doc参数 {MenuItem.setIcon() 和 new MenuIcon(xx, xx, icon,
+	 * ...)}
 	 */
 	public static final int ICON_MAX = ICON_128;
 	public static final int ICON_DESIGN_SHOW_SIZE = ICON_64;
 
-	public static int calMenuIconSize(final int width, final int height, final int ppi) {
+	public static int calMenuIconSize(final int width, final int height,
+			final int ppi) {
 		if (width > 1800 || height > 1800 || ppi > 300) {
 			return ICON_128;
 		}
 
 		return ICON_64;
 	}
-	
-	public static String getUIString(final String resID, final String defaultStr){
-		if(IConstant.serverSide){
+
+	public static String getUIString(final String resID,
+			final String defaultStr) {
+		if (IConstant.serverSide) {
 			return defaultStr;
-		}else{
-			return (String)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_RESOURCE, resID);
+		} else {
+			return (String) RootBuilder.getInstance()
+					.doBiz(RootBuilder.ROOT_GET_RESOURCE, resID);
 		}
 	}
-	
+
 	/**
 	 * 是否是整数倍大小
+	 * 
 	 * @param bigSize
 	 * @param smallSize
 	 * @return
 	 */
-	public static boolean isIntBeiShu(final int bigSize, final int smallSize){
-		return (bigSize != smallSize) && ((bigSize / smallSize * smallSize) == bigSize);
+	public static boolean isIntBeiShu(final int bigSize, final int smallSize) {
+		return (bigSize != smallSize)
+				&& ((bigSize / smallSize * smallSize) == bigSize);
 	}
 
 	/**
@@ -60,7 +65,8 @@ public class UIUtil {
 	 *            放大倍数
 	 * @return
 	 */
-	public static int[] zoomInRGB(int[] zoomData, final int ori_w, final int ori_h, final int zoomIn) {
+	public static int[] zoomInRGB(int[] zoomData, final int ori_w,
+			final int ori_h, final int zoomIn) {
 		final int newSize = ori_w * ori_h * zoomIn * zoomIn;
 
 		if (zoomData.length < newSize) {
@@ -98,41 +104,48 @@ public class UIUtil {
 	}
 
 	public static final String SYS_ICON_PREFIX = "Sys_";
-	
+
 	public static final String SYS_FOLDER_ICON = SYS_ICON_PREFIX + "Folder";
-	public static final String SYS_FOLDER_MGR_ICON = SYS_ICON_PREFIX + "FolderMgr";
-	public static final String SYS_ADD_DEVICE_BY_QR_ICON = SYS_ICON_PREFIX + "AddDeviceQR";
-	public static final String SYS_ADD_DEVICE_BY_WIFI_ICON = SYS_ICON_PREFIX + "AddDeviceWiFi";
-	public static final String SYS_VOICE_COMMAND = SYS_ICON_PREFIX + HCURL.VOICE_COMMAND;
+	public static final String SYS_FOLDER_MGR_ICON = SYS_ICON_PREFIX
+			+ "FolderMgr";
+	public static final String SYS_ADD_DEVICE_BY_QR_ICON = SYS_ICON_PREFIX
+			+ "AddDeviceQR";
+	public static final String SYS_ADD_DEVICE_BY_WIFI_ICON = SYS_ICON_PREFIX
+			+ "AddDeviceWiFi";
+	public static final String SYS_VOICE_COMMAND = SYS_ICON_PREFIX
+			+ HCURL.VOICE_COMMAND;
 	public static final String SYS_DEFAULT_ICON = SYS_ICON_PREFIX + "Img";
-	
-	public static final int COLOR_TRANS_LAY = 0xcc847139;//请同步更改Android/colors.xml/ui_background
-	public static final int DEFAULT_COLOR_BACKGROUND = COLOR_TRANS_LAY & 0x00FFFFFF;
+
+	public static final int COLOR_TRANS_LAY = 0xcc847139;// 请同步更改Android/colors.xml/ui_background,
+															// ui_pop_background
+	public static final int DEFAULT_COLOR_BACKGROUND = COLOR_TRANS_LAY
+			& 0x00FFFFFF;
 
 	/**
 	 * 为AndroidServer环境使用本功能，故移到此。
+	 * 
 	 * @param fromColor
 	 * @param light
 	 * @return
 	 */
-	public static int adjustColor(final int fromColor, final int light){
+	public static int adjustColor(final int fromColor, final int light) {
 		int r = (fromColor >> 16 & 0x000000FF) + light;
 		int g = (fromColor >> 8 & 0x000000FF) + light;
 		int b = (fromColor & 0x000000FF) + light;
-		
-		if(r > 255){
+
+		if (r > 255) {
 			r = 255;
-		}else if(r < 0){
+		} else if (r < 0) {
 			r = 0;
 		}
-		if(g > 255){
+		if (g > 255) {
 			g = 255;
-		}else if(g < 0){
+		} else if (g < 0) {
 			g = 0;
 		}
-		if(b > 255){
+		if (b > 255) {
 			b = 255;
-		}else if(b < 0){
+		} else if (b < 0) {
 			b = 0;
 		}
 		return (fromColor & 0xFF000000) | (r << 16) | (g << 8) | b;
@@ -146,29 +159,31 @@ public class UIUtil {
 	public static final short YELLOW = 6;
 	public static final short GREEN = 7;
 	public static final short DARK_GRAY = 8;
-	
-	public static final short TXT_FONT_COLOR = GREEN;//如果更改，请与下行同步
-	public static final int TXT_FONT_COLOR_INT_FOR_MLET = 0xFF20B900;//green - 70, 不接受ff00ff这种6个的颜色表示
-	
-	//colors.xml / ui_color_white
+
+	public static final short TXT_FONT_COLOR = GREEN;// 如果更改，请与下行同步
+	public static final int TXT_FONT_COLOR_INT_FOR_MLET = 0xFF20B900;// green -
+																		// 70,
+																		// 不接受ff00ff这种6个的颜色表示
+
+	// colors.xml / ui_color_white
 	public static final int TXT_FONT_COLOR_INT_FOR_ANDROID = 0xFFF0F0F0;
-	
-	//colors.xml / ui_color_darkgray
+
+	// colors.xml / ui_color_darkgray
 	public static final int TXT_DISABLE_FONT_COLOR_INT_FOR_ANDROID = 0xFFA9A9A9;
 
 	public static int getMaskFromBit(final int cBit) {
 		int colorBit = 0;
-		if(cBit == IConstant.COLOR_64_BIT){
+		if (cBit == IConstant.COLOR_64_BIT) {
 			colorBit = IConstant.COLOR_64_BIT;
-		}else if(cBit == IConstant.COLOR_32_BIT){
+		} else if (cBit == IConstant.COLOR_32_BIT) {
 			colorBit = IConstant.COLOR_32_BIT;
-		}else if(cBit == IConstant.COLOR_16_BIT){
+		} else if (cBit == IConstant.COLOR_16_BIT) {
 			colorBit = IConstant.COLOR_16_BIT;
-		}else if(cBit == IConstant.COLOR_8_BIT){
+		} else if (cBit == IConstant.COLOR_8_BIT) {
 			colorBit = IConstant.COLOR_8_BIT;
-		}else if(cBit == IConstant.COLOR_4_BIT){
+		} else if (cBit == IConstant.COLOR_4_BIT) {
 			colorBit = IConstant.COLOR_4_BIT;
-		}else{
+		} else {
 			colorBit = IConstant.COLOR_8_BIT;
 		}
 		final int mask_one = ((0x01 << (colorBit - 1)) - 1);

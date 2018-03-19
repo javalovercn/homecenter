@@ -28,165 +28,165 @@ import java.util.jar.Attributes;
  * http://java.sun.com/javase/6/docs/technotes/guides/jar/jar.html
  */
 class ManifestReader {
-    // There are relatively few unique attribute names,
-    // but a manifest might have thousands of entries.
-    private final HashMap<String, Attributes.Name> attributeNameCache = new HashMap<String, Attributes.Name>();
+	// There are relatively few unique attribute names,
+	// but a manifest might have thousands of entries.
+	private final HashMap<String, Attributes.Name> attributeNameCache = new HashMap<String, Attributes.Name>();
 
-    private final ByteArrayOutputStream valueBuffer = new ByteArrayOutputStream(80);
+	private final ByteArrayOutputStream valueBuffer = new ByteArrayOutputStream(80);
 
-    private final byte[] buf;
+	private final byte[] buf;
 
-    private final int endOfMainSection;
+	private final int endOfMainSection;
 
-    private int pos;
+	private int pos;
 
-    private Attributes.Name name;
+	private Attributes.Name name;
 
-    private String value;
+	private String value;
 
-    private int consecutiveLineBreaks = 0;
+	private int consecutiveLineBreaks = 0;
 
-    public ManifestReader(final byte[] buf, final Attributes main) throws IOException {
-        this.buf = buf;
-        while (readHeader()) {
-            main.put(name, value);
-        }
-        this.endOfMainSection = pos;
-    }
+	public ManifestReader(final byte[] buf, final Attributes main) throws IOException {
+		this.buf = buf;
+		while (readHeader()) {
+			main.put(name, value);
+		}
+		this.endOfMainSection = pos;
+	}
 
-    public static final Attributes.Name NAME = new Attributes.Name("Name");
-    
-    /**
-     * 
-     * @param entries
-     * @param chunks 本实用中，传入参数为null
-     * @throws IOException
-     */
-    public void readEntries(final Map<String, Attributes> entries, final Map<String, Chunk> chunks) throws IOException {
-        int mark = pos;
-        while (readHeader()) {
-            if (!NAME.equals(name)) {
-                throw new IOException("Entry is not named");
-            }
-            final String entryNameValue = value;
+	public static final Attributes.Name NAME = new Attributes.Name("Name");
 
-            Attributes entry = entries.get(entryNameValue);
-            if (entry == null) {
-                entry = new Attributes(12);
-            }
+	/**
+	 * 
+	 * @param entries
+	 * @param chunks
+	 *            本实用中，传入参数为null
+	 * @throws IOException
+	 */
+	public void readEntries(final Map<String, Attributes> entries, final Map<String, Chunk> chunks) throws IOException {
+		int mark = pos;
+		while (readHeader()) {
+			if (!NAME.equals(name)) {
+				throw new IOException("Entry is not named");
+			}
+			final String entryNameValue = value;
 
-            while (readHeader()) {
-                entry.put(name, value);
-            }
+			Attributes entry = entries.get(entryNameValue);
+			if (entry == null) {
+				entry = new Attributes(12);
+			}
 
-            if (chunks != null) {
-                if (chunks.get(entryNameValue) != null) {
-                    // TODO A bug: there might be several verification chunks for
-                    // the same name. I believe they should be used to update
-                    // signature in order of appearance; there are two ways to fix
-                    // this: either use a list of chunks, or decide on used
-                    // signature algorithm in advance and reread the chunks while
-                    // updating the signature; for now a defensive error is thrown
-                    throw new IOException("A jar verifier does not support more than one entry with the same name");
-                }
-                chunks.put(entryNameValue, new Chunk(mark, pos));
-                mark = pos;
-            }
+			while (readHeader()) {
+				entry.put(name, value);
+			}
 
-            entries.put(entryNameValue, entry);
-        }
-    }
+			if (chunks != null) {
+				if (chunks.get(entryNameValue) != null) {
+					// TODO A bug: there might be several verification chunks for
+					// the same name. I believe they should be used to update
+					// signature in order of appearance; there are two ways to fix
+					// this: either use a list of chunks, or decide on used
+					// signature algorithm in advance and reread the chunks while
+					// updating the signature; for now a defensive error is thrown
+					throw new IOException("A jar verifier does not support more than one entry with the same name");
+				}
+				chunks.put(entryNameValue, new Chunk(mark, pos));
+				mark = pos;
+			}
 
-    public int getEndOfMainSection() {
-        return endOfMainSection;
-    }
+			entries.put(entryNameValue, entry);
+		}
+	}
 
-    /**
-     * Read a single line from the manifest buffer.
-     */
-    private boolean readHeader() throws IOException {
-        if (consecutiveLineBreaks > 1) {
-            // break a section on an empty line
-            consecutiveLineBreaks = 0;
-            return false;
-        }
-        readName();
-        consecutiveLineBreaks = 0;
-        readValue();
-        // if the last line break is missed, the line
-        // is ignored by the reference implementation
-        return consecutiveLineBreaks > 0;
-    }
+	public int getEndOfMainSection() {
+		return endOfMainSection;
+	}
 
-    private void readName() throws IOException {
-        final int mark = pos;
+	/**
+	 * Read a single line from the manifest buffer.
+	 */
+	private boolean readHeader() throws IOException {
+		if (consecutiveLineBreaks > 1) {
+			// break a section on an empty line
+			consecutiveLineBreaks = 0;
+			return false;
+		}
+		readName();
+		consecutiveLineBreaks = 0;
+		readValue();
+		// if the last line break is missed, the line
+		// is ignored by the reference implementation
+		return consecutiveLineBreaks > 0;
+	}
 
-        while (pos < buf.length) {
-            if (buf[pos++] != ':') {
-                continue;
-            }
+	private void readName() throws IOException {
+		final int mark = pos;
 
-            final String nameString = new String(buf, mark, pos - mark - 1, Charset.forName("US-ASCII"));
+		while (pos < buf.length) {
+			if (buf[pos++] != ':') {
+				continue;
+			}
 
-            if (buf[pos++] != ' ') {
-                throw new IOException(String.format("Invalid value for attribute '%s'", nameString));
-            }
+			final String nameString = new String(buf, mark, pos - mark - 1, Charset.forName("US-ASCII"));
 
-            try {
-                name = attributeNameCache.get(nameString);
-                if (name == null) {
-                    name = new Attributes.Name(nameString);
-                    attributeNameCache.put(nameString, name);
-                }
-            } catch (final IllegalArgumentException e) {
-                // new Attributes.Name() throws IllegalArgumentException but we declare IOException
-                throw new IOException(e.getMessage());
-            }
-            return;
-        }
-    }
+			if (buf[pos++] != ' ') {
+				throw new IOException(String.format("Invalid value for attribute '%s'", nameString));
+			}
 
-    private void readValue() throws IOException {
-        boolean lastCr = false;
-        int mark = pos;
-        int last = pos;
-        valueBuffer.reset();
-        while (pos < buf.length) {
-            final byte next = buf[pos++];
-            switch (next) {
-            case 0:
-                throw new IOException("NUL character in a manifest");
-            case '\n':
-                if (lastCr) {
-                    lastCr = false;
-                } else {
-                    consecutiveLineBreaks++;
-                }
-                continue;
-            case '\r':
-                lastCr = true;
-                consecutiveLineBreaks++;
-                continue;
-            case ' ':
-                if (consecutiveLineBreaks == 1) {
-                    valueBuffer.write(buf, mark, last - mark);
-                    mark = pos;
-                    consecutiveLineBreaks = 0;
-                    continue;
-                }
-            }
+			try {
+				name = attributeNameCache.get(nameString);
+				if (name == null) {
+					name = new Attributes.Name(nameString);
+					attributeNameCache.put(nameString, name);
+				}
+			} catch (final IllegalArgumentException e) {
+				// new Attributes.Name() throws IllegalArgumentException but we declare IOException
+				throw new IOException(e.getMessage());
+			}
+			return;
+		}
+	}
 
-            if (consecutiveLineBreaks >= 1) {
-                pos--;
-                break;
-            }
-            last = pos;
-        }
+	private void readValue() throws IOException {
+		boolean lastCr = false;
+		int mark = pos;
+		int last = pos;
+		valueBuffer.reset();
+		while (pos < buf.length) {
+			final byte next = buf[pos++];
+			switch (next) {
+			case 0:
+				throw new IOException("NUL character in a manifest");
+			case '\n':
+				if (lastCr) {
+					lastCr = false;
+				} else {
+					consecutiveLineBreaks++;
+				}
+				continue;
+			case '\r':
+				lastCr = true;
+				consecutiveLineBreaks++;
+				continue;
+			case ' ':
+				if (consecutiveLineBreaks == 1) {
+					valueBuffer.write(buf, mark, last - mark);
+					mark = pos;
+					consecutiveLineBreaks = 0;
+					continue;
+				}
+			}
 
-        valueBuffer.write(buf, mark, last - mark);
-        // A bit frustrating that that Charset.forName will be called
-        // again.
-        value = valueBuffer.toString(Charset.forName("UTF-8").name());
-    }
+			if (consecutiveLineBreaks >= 1) {
+				pos--;
+				break;
+			}
+			last = pos;
+		}
+
+		valueBuffer.write(buf, mark, last - mark);
+		// A bit frustrating that that Charset.forName will be called
+		// again.
+		value = valueBuffer.toString(Charset.forName("UTF-8").name());
+	}
 }
-

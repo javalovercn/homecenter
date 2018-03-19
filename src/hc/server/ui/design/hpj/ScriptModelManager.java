@@ -25,16 +25,14 @@ public class ScriptModelManager {
 			final String[] imports = { "import Java::hc.core.util.CtrlKey\n\n" };
 			final String instanceName = "MyController";
 			final String superClassName = CtrlResponse.class.getName();
-			final String[] methods = { "click(keyValue)", "getButtonInitText(keyValue)", "onLoad",
-					"onExit" };
+			final String[] methods = { "click(keyValue)", "getButtonInitText(keyValue)", "onLoad", "onExit" };
 			final Vector<String>[] codes = new Vector[4];
 			codes[0] = buildAllKeyExample();
 			codes[1] = buildInitText();
 			codes[2] = buildOnLoad();
 			final boolean[] isEmpty = { false, true, true, true };
 			final String[] superCodes = { SUPER };
-			return buildScript(imports, instanceName, superClassName, superCodes, isEmpty, methods,
-					codes);
+			return buildScript(imports, instanceName, superClassName, superCodes, isEmpty, methods, codes);
 		} else if (type == HPNode.TYPE_MENU_ITEM_SCREEN || type == HPNode.TYPE_MENU_ITEM_FORM) {
 			if (url.elementID.equals(HCURL.REMOTE_HOME_SCREEN)) {
 			} else if (type == HPNode.TYPE_MENU_ITEM_FORM) {
@@ -44,21 +42,18 @@ public class ScriptModelManager {
 					final String[] methods = { "onStart", "onPause", "onResume", "onExit" };
 					final boolean[] isEmpty = { true, true, true, true };
 					final String[] superCodes = { SUPER };
-					return buildScript(null, instanceName, superClassName, superCodes, isEmpty,
-							methods, null);
+					return buildScript(null, instanceName, superClassName, superCodes, isEmpty, methods, null);
 				} else {
 					final String instanceName = "MyMlet";
 					final String superClassName = Mlet.class.getName();
 					final String[] methods = { "onStart", "onPause", "onResume", "onExit" };
 					final boolean[] isEmpty = { true, true, true, true };
 					final String[] superCodes = { SUPER };
-					return buildScript(null, instanceName, superClassName, superCodes, isEmpty,
-							methods, null);
+					return buildScript(null, instanceName, superClassName, superCodes, isEmpty, methods, null);
 				}
 			}
 		} else if (type == HPNode.TYPE_MENU_ITEM_CMD) {
-			if (url.elementID.equals(HCURL.DATA_CMD_EXIT)
-					|| url.elementID.equals(HCURL.DATA_CMD_CONFIG)) {
+			if (url.elementID.equals(HCURL.DATA_CMD_EXIT) || url.elementID.equals(HCURL.DATA_CMD_CONFIG)) {
 			} else {
 				// my-command
 				return "";
@@ -73,10 +68,8 @@ public class ScriptModelManager {
 						"import Java::hc.server.msb.Message\n\n" };
 				final String instanceName = "MyRobot";
 				final String superClassName = Robot.class.getName();
-				final String[] methods = { "operate(functionID, parameter)",
-						"declareReferenceDeviceID",
-						"getDeviceCompatibleDescription(referenceDeviceID)", "response(msg)",
-						"startup", "shutdown" };
+				final String[] methods = { "operate(functionID, parameter)", "declareReferenceDeviceID",
+						"getDeviceCompatibleDescription(referenceDeviceID)", "response(msg)", "startup", "shutdown" };
 				final Vector<String>[] codes = new Vector[methods.length];
 				{
 					final Vector<String> returnNil = new Vector<String>();
@@ -92,20 +85,17 @@ public class ScriptModelManager {
 					codes[2] = getDeviceCompatibleDesc;
 
 					final Vector<String> conn = new Vector<String>();
-					conn.add(
-							"#this method will be invoked by server to startup this robot before EVENT_SYS_PROJ_STARTUP");
+					conn.add("#this method will be invoked by server to startup this robot before EVENT_SYS_PROJ_STARTUP");
 					conn.add("puts \"Robot startup successful!\"");
 					codes[4] = conn;
 					final Vector<String> disConn = new Vector<String>();
-					disConn.add(
-							"#this method will be invoked by server to shutdown this robot after EVENT_SYS_PROJ_SHUTDOWN");
+					disConn.add("#this method will be invoked by server to shutdown this robot after EVENT_SYS_PROJ_SHUTDOWN");
 					disConn.add("puts \"Robot shutdown successful!\"");
 					codes[5] = disConn;
 				}
 				final boolean[] isEmpty = { false, false, false, false, false, false };
 				final String[] superCodes = { SUPER, "@refDev = \"DemoRefDevID\"" };
-				return buildScript(imports, instanceName, superClassName, superCodes, isEmpty,
-						methods, codes);
+				return buildScript(imports, instanceName, superClassName, superCodes, isEmpty, methods, codes);
 			} else if (url.getURLLower().indexOf(HCURL.DATA_IOT_CONVERTER.toLowerCase()) >= 0) {
 				final String[] imports = {
 						// "# for Converter API,
@@ -115,9 +105,8 @@ public class ScriptModelManager {
 						"import Java::hc.server.msb.Message\n\n" };
 				final String instanceName = "MyConverter";
 				final String superClassName = Converter.class.getName();
-				final String[] methods = { "upConvert(fromDevice, toRobot)",
-						"downConvert(fromRobot, toDevice)", "getUpDeviceCompatibleDescription",
-						"getDownDeviceCompatibleDescription", "startup", "shutdown" };
+				final String[] methods = { "upConvert(fromDevice, toRobot)", "downConvert(fromRobot, toDevice)",
+						"getUpDeviceCompatibleDescription", "getDownDeviceCompatibleDescription", "startup", "shutdown" };
 				final Vector<String>[] codes = new Vector[methods.length];
 				{
 					final Vector<String> getUpDeviceCompatibleDesc = new Vector<String>();
@@ -125,15 +114,13 @@ public class ScriptModelManager {
 					appendDeviceCompatibleDesc(getUpDeviceCompatibleDesc);
 					codes[2] = getUpDeviceCompatibleDesc;
 					final Vector<String> getDownDeviceCompatibleDesc = new Vector<String>();
-					getDownDeviceCompatibleDesc
-							.add("#the compatible description to downside(Device).");
+					getDownDeviceCompatibleDesc.add("#the compatible description to downside(Device).");
 					appendDeviceCompatibleDesc(getDownDeviceCompatibleDesc);
 					codes[3] = getDownDeviceCompatibleDesc;
 				}
 				final boolean[] isEmpty = { false, false, false, false, true, true };
 				final String[] superCodes = { SUPER };
-				return buildScript(imports, instanceName, superClassName, superCodes, isEmpty,
-						methods, codes);
+				return buildScript(imports, instanceName, superClassName, superCodes, isEmpty, methods, codes);
 			} else if (url.getURLLower().indexOf(HCURL.DATA_IOT_DEVICE.toLowerCase()) >= 0) {
 				final String[] imports = {
 						// "# for Device API ,
@@ -143,8 +130,7 @@ public class ScriptModelManager {
 						"import Java::hc.server.msb.Message\n\n" };
 				final String instanceName = "MyDevice";
 				final String superClassName = Device.class.getName();
-				final String[] methods = { "response(msg)", "connect", "disconnect",
-						"getDeviceCompatibleDescription" };// "notifyNewWiFiAccount(newAccount)"
+				final String[] methods = { "response(msg)", "connect", "disconnect", "getDeviceCompatibleDescription" };// "notifyNewWiFiAccount(newAccount)"
 				final Vector<String>[] codes = new Vector[methods.length];
 				{
 					final Vector<String> conn = new Vector<String>();
@@ -222,16 +208,14 @@ public class ScriptModelManager {
 				}
 				final boolean[] isEmptyMethod = { false, false, false, false };// true
 				final String[] superCodes = { SUPER, "@refDev = \"DemoDevID\"" };
-				return buildScript(imports, instanceName, superClassName, superCodes, isEmptyMethod,
-						methods, codes);
+				return buildScript(imports, instanceName, superClassName, superCodes, isEmptyMethod, methods, codes);
 			}
 		}
 		return "";
 	}
 
 	public static void appendDeviceCompatibleDesc(final Vector<String> getCompatibleDesc) {
-		getCompatibleDesc
-				.add("return Class.new(Java::hc.server.msb.DeviceCompatibleDescription) {");
+		getCompatibleDesc.add("return Class.new(Java::hc.server.msb.DeviceCompatibleDescription) {");
 		getCompatibleDesc.add("\t# override");
 		getCompatibleDesc.add("\tdef getVersion");
 		getCompatibleDesc.add("\t\treturn \"1.0\"");
@@ -257,10 +241,9 @@ public class ScriptModelManager {
 	 * @param newClassName
 	 * @return
 	 */
-	public static boolean replaceClassNameForScripts(final Document doc, final String src,
-			final String superClass, final String newClassName) {
-		final Pattern pattern = Pattern
-				.compile("\\bclass\\s+(\\w+)\\s+<\\s+Java::" + superClass.replace(".", "\\."));
+	public static boolean replaceClassNameForScripts(final Document doc, final String src, final String superClass,
+			final String newClassName) {
+		final Pattern pattern = Pattern.compile("\\bclass\\s+(\\w+)\\s+<\\s+Java::" + superClass.replace(".", "\\."));
 
 		final Matcher matcher = pattern.matcher(src);
 
@@ -278,8 +261,7 @@ public class ScriptModelManager {
 				try {
 					final int returnInsertIdx = returnIdx + returnStr.length();
 					doc.remove(returnInsertIdx, className.length());
-					doc.insertString(returnInsertIdx, newClassName,
-							ScriptEditPanel.DEFAULT_LIGHTER);
+					doc.insertString(returnInsertIdx, newClassName, ScriptEditPanel.DEFAULT_LIGHTER);
 
 					doc.remove(startIdx, endIdx - startIdx);
 					doc.insertString(startIdx, newClassName, ScriptEditPanel.DEFAULT_LIGHTER);
@@ -307,10 +289,8 @@ public class ScriptModelManager {
 	 * @param methods
 	 * @return
 	 */
-	private static String buildScript(final String[] imports, final String instanceName,
-			final String superClassName, final String[] superCodes,
-			final boolean[] isEmptyOrAbstract, final String[] methods,
-			final Vector<String>[] codeExamples) {
+	private static String buildScript(final String[] imports, final String instanceName, final String superClassName,
+			final String[] superCodes, final boolean[] isEmptyOrAbstract, final String[] methods, final Vector<String>[] codeExamples) {
 		final StringBuffer sb = new StringBuffer();
 		sb.append("#encoding:utf-8\n\n");
 		sb.append("#more JRuby, http://github.com/jruby/jruby/wiki\n\n");
@@ -334,8 +314,7 @@ public class ScriptModelManager {
 		sb.append("\tend\n\n");
 
 		for (int i = 0; i < methods.length; i++) {
-			sb.append("\t#override " + (isEmptyOrAbstract[i] ? "empty" : "abstract") + " method "
-					+ methods[i] + "\n");
+			sb.append("\t#override " + (isEmptyOrAbstract[i] ? "empty" : "abstract") + " method " + methods[i] + "\n");
 			sb.append("\tdef " + methods[i] + "\n");
 			if (codeExamples != null && codeExamples[i] != null) {
 				final Vector<String> codes = codeExamples[i];
@@ -360,8 +339,7 @@ public class ScriptModelManager {
 		codes.add("#sendStatus \"key1\", \"value1\"");
 		codes.add("#sendStatus \"key2\", \"value2\", true#true:isRightToLeft");
 		codes.add("#sendStatus [\"k1\",\"k2\"].to_java(:string), [\"v1\",\"v2\"].to_java(:string)");
-		codes.add(
-				"#sendStatus [\"k1\",\"k2\"].to_java(:string), [\"v1\",\"v2\"].to_java(:string), true#true:isRightToLeft");
+		codes.add("#sendStatus [\"k1\",\"k2\"].to_java(:string), [\"v1\",\"v2\"].to_java(:string), true#true:isRightToLeft");
 		// codes.add("");
 		return codes;
 	}
@@ -389,8 +367,7 @@ public class ScriptModelManager {
 		codes.add("#uncomment follow code to show a tip on mobile");
 		codes.add("#showTip \"press #{keyValue}\"");
 		codes.add("");
-		codes.add(
-				"#uncomment follow code to change text of some button, if the button is visiable");
+		codes.add("#uncomment follow code to change text of some button, if the button is visiable");
 		codes.add("#setButtonText CtrlKey::KEY_STANDBY, \"Power On\"");
 
 		buildAllKeyCase(codes);
@@ -406,8 +383,7 @@ public class ScriptModelManager {
 			final Field f = fs[j];
 			try {
 				final String keyJavaStaticProp = f.getName();
-				if (keyJavaStaticProp.startsWith("KEY_", 0)
-						&& java.lang.reflect.Modifier.isStatic(f.getModifiers())) {
+				if (keyJavaStaticProp.startsWith("KEY_", 0) && java.lang.reflect.Modifier.isStatic(f.getModifiers())) {
 					final int propStaticValue = f.getInt(CtrlKey.class);
 					for (int i = 0; i < keyValues.length; i++) {
 						final int keyValue = keyValues[i];

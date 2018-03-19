@@ -28,8 +28,7 @@ public class ClassUtil {
 		}
 	}
 
-	public final static void changeField(final Class clazz, final Object obj, final String name,
-			final Object value) throws Exception {
+	public final static void changeField(final Class clazz, final Object obj, final String name, final Object value) throws Exception {
 		try {
 			final Field field = clazz.getDeclaredField(name);
 			field.setAccessible(true);
@@ -48,8 +47,7 @@ public class ClassUtil {
 			ContextManager.getThreadPool().run(new Runnable() {
 				@Override
 				public void run() {// 重要，请勿在Event线程中调用，
-					App.showOptionDialog(null, "Fail to modify ThreadGroup.parent to null",
-							"JVM Error");
+					App.showOptionDialog(null, "Fail to modify ThreadGroup.parent to null", "JVM Error");
 				}
 			});
 		}
@@ -66,8 +64,7 @@ public class ClassUtil {
 	 * @param isReportException
 	 * @return if not matched, then return {@link ClassUtil#NO_MATCH_FIELD}
 	 */
-	public final static Object getFieldMatch(final Class clazz, final Object obj,
-			final Class matchClass, final boolean needModiAccessible,
+	public final static Object getFieldMatch(final Class clazz, final Object obj, final Class matchClass, final boolean needModiAccessible,
 			final boolean isReportException) {
 		try {
 			final Field[] fields = clazz.getDeclaredFields();
@@ -101,9 +98,8 @@ public class ClassUtil {
 		return null;
 	}
 
-	public final static Object getFieldMatch(final Class clazz, final Object obj,
-			final String hideClassName, final boolean needModiAccessible,
-			final boolean isReportException) {
+	public final static Object getFieldMatch(final Class clazz, final Object obj, final String hideClassName,
+			final boolean needModiAccessible, final boolean isReportException) {
 		try {
 			final Field[] fields = clazz.getDeclaredFields();
 
@@ -136,8 +132,8 @@ public class ClassUtil {
 		return null;
 	}
 
-	public final static Object getField(final Class clazz, final Object obj, final String name,
-			final boolean needModiAccessible, final boolean isReportException) {
+	public final static Object getField(final Class clazz, final Object obj, final String name, final boolean needModiAccessible,
+			final boolean isReportException) {
 		try {
 			final Field field = clazz.getDeclaredField(name);
 			if (needModiAccessible) {
@@ -156,8 +152,8 @@ public class ClassUtil {
 		return null;
 	}
 
-	public static final Object construct(final String clazName, final Class[] paraTypes,
-			final Object[] para, final boolean needModiAccessible) throws Exception {
+	public static final Object construct(final String clazName, final Class[] paraTypes, final Object[] para,
+			final boolean needModiAccessible) throws Exception {
 		final Class clas = ResourceUtil.loadClass(clazName, true);
 		final Constructor c = clas.getDeclaredConstructor(paraTypes);
 		return c.newInstance(para);
@@ -167,25 +163,22 @@ public class ClassUtil {
 		return invoke(claz, obj, methodName, NULL_PARA_TYPES, NULL_PARAS, false);
 	}
 
-	public static final Object invokeWithExceptionOut(final Class claz, final Object obj,
-			final String methodName) throws Exception {
+	public static final Object invokeWithExceptionOut(final Class claz, final Object obj, final String methodName) throws Exception {
 		return invokeWithExceptionOut(claz, obj, methodName, NULL_PARA_TYPES, NULL_PARAS, false);
 	}
 
-	public static final Object invoke(final Class claz, final Object obj, final String methodName,
-			final Class[] paraTypes, final Object[] para, final boolean needModiAccessible) {
+	public static final Object invoke(final Class claz, final Object obj, final String methodName, final Class[] paraTypes,
+			final Object[] para, final boolean needModiAccessible) {
 		try {
-			return invokeWithExceptionOut(claz, obj, methodName, paraTypes, para,
-					needModiAccessible);
+			return invokeWithExceptionOut(claz, obj, methodName, paraTypes, para, needModiAccessible);
 		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
 		}
 		return null;
 	}
 
-	public static final Object invokeWithExceptionOut(final Class claz, final Object obj,
-			final String methodName, final Class[] paraTypes, final Object[] para,
-			final boolean needModiAccessible) throws Exception {
+	public static final Object invokeWithExceptionOut(final Class claz, final Object obj, final String methodName, final Class[] paraTypes,
+			final Object[] para, final boolean needModiAccessible) throws Exception {
 		final Method addPath = claz.getDeclaredMethod(methodName, paraTypes);
 		if (needModiAccessible) {
 			addPath.setAccessible(true);
@@ -201,8 +194,7 @@ public class ClassUtil {
 		printCurrentThreadStack(lineInfo, delLine, false);
 	}
 
-	public static void printCurrentThreadStack(final String lineInfo, final String delLine,
-			final boolean isError) {
+	public static void printCurrentThreadStack(final String lineInfo, final String delLine, final boolean isError) {
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		sb.append(lineInfo);
 		sb.append("\n");
@@ -259,8 +251,7 @@ public class ClassUtil {
 		if (name != null) {
 			sb.append("\n");
 		} else {
-			sb.append(
-					"\n------------------------------------All StackTraces---------------------------------\n");
+			sb.append("\n------------------------------------All StackTraces---------------------------------\n");
 		}
 		final Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
 		final Iterator<Thread> it = map.keySet().iterator();
@@ -297,8 +288,7 @@ public class ClassUtil {
 		if (name != null) {
 			LogManager.log("\n");
 		} else {
-			LogManager.log(
-					"\n------------------------------------All StackTraces---------------------------------\n");
+			LogManager.log("\n------------------------------------All StackTraces---------------------------------\n");
 		}
 		final Map<Thread, StackTraceElement[]> map = Thread.getAllStackTraces();
 		final Iterator<Thread> it = map.keySet().iterator();
@@ -333,8 +323,8 @@ public class ClassUtil {
 		}
 	}
 
-	public static void buildOneStackWithCause(final Throwable t, final StringBuilder sb,
-			final boolean isAfterCauseBy, final boolean isAfterScript) {
+	public static void buildOneStackWithCause(final Throwable t, final StringBuilder sb, final boolean isAfterCauseBy,
+			final boolean isAfterScript) {
 		if (isAfterScript) {
 			sb.append('\n');
 		}

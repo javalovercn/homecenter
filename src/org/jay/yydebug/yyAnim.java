@@ -2587,212 +2587,252 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.InputStream;
 import java.io.PrintStream;
-/** delegates messages to a {@link yyAnimPanel} and optionally intercepts standard i/o.
-    This is not {@link java.io.Serializable}.
-		<p>If the panel is to simulate standard input it must be instantiated
-		before standard input is accessed. Otherwise the reader might be
-		waiting for a different stream.
-		@see java.lang.System#setIn
-  */
+
+/**
+ * delegates messages to a {@link yyAnimPanel} and optionally intercepts standard i/o. This is not
+ * {@link java.io.Serializable}.
+ * <p>
+ * If the panel is to simulate standard input it must be instantiated before standard input is
+ * accessed. Otherwise the reader might be waiting for a different stream.
+ * 
+ * @see java.lang.System#setIn
+ */
 public class yyAnim extends JFrame implements yyDebug {
 	/**
-	 * change log by HomeCenter
-	 * change awt to Swing, for example, Frame=>JFrame, Label => JLabel
+	 * change log by HomeCenter change awt to Swing, for example, Frame=>JFrame, Label => JLabel
 	 */
-	
-  /** counts instances to exit on last close.
-    */
-  protected static int nFrames;
-  { ++ nFrames;	// new instance
-  }
-  /** trap {@link java.lang.System#in}.
-    */
-  public static final int IN = 1;
-  /** trap {@link java.lang.System#out}.
-    */
-  public static final int OUT = 2;
-  /** input, stack, and comments.
-    */
-  protected yyAnimPanel panel;
-  /** set by the checkbox listener.
-    */
-  protected Thread eventThread;
-  /** breakpoint, only(!) set in GUI.
-    */
-  protected boolean outputBreak = false;
-  /** creates and displays the frame.
-	    @param io flags to trap standard input, and/or standard and diagnostic output.
-    */
-  public yyAnim (final String title, final int io) { this(System.class, title, io); }
-  /** creates and displays the frame.
-	    @param system hook to spoof {@link java.lang.System}.
-	    @param io flags to trap standard input, and/or standard and diagnostic output.
-	*/
-  public yyAnim (final Class system, final String title, final int io) {
-    super(title);
-	
+
+	/**
+	 * counts instances to exit on last close.
+	 */
+	protected static int nFrames;
+	{
+		++nFrames; // new instance
+	}
+	/**
+	 * trap {@link java.lang.System#in}.
+	 */
+	public static final int IN = 1;
+	/**
+	 * trap {@link java.lang.System#out}.
+	 */
+	public static final int OUT = 2;
+	/**
+	 * input, stack, and comments.
+	 */
+	protected yyAnimPanel panel;
+	/**
+	 * set by the checkbox listener.
+	 */
+	protected Thread eventThread;
+	/**
+	 * breakpoint, only(!) set in GUI.
+	 */
+	protected boolean outputBreak = false;
+
+	/**
+	 * creates and displays the frame.
+	 * 
+	 * @param io
+	 *            flags to trap standard input, and/or standard and diagnostic output.
+	 */
+	public yyAnim(final String title, final int io) {
+		this(System.class, title, io);
+	}
+
+	/**
+	 * creates and displays the frame.
+	 * 
+	 * @param system
+	 *            hook to spoof {@link java.lang.System}.
+	 * @param io
+	 *            flags to trap standard input, and/or standard and diagnostic output.
+	 */
+	public yyAnim(final Class system, final String title, final int io) {
+		super(title);
+
 		final Font font = new Font("Monospaced", Font.PLAIN, 12);
-		
+
 		final MenuBar mb = new MenuBar();
 		final Menu m = new Menu("yyAnim");
 		final MenuItem mi = new MenuItem("Quit");
 		mi.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed (final ActionEvent ae) {
-			  try {
-				  system.getMethod("exit", new Class[]{ int.class })
-			      .invoke(null, new Object[]{ new Integer(0) });
-				} catch (final Exception e) { System.exit(0); }
+			public void actionPerformed(final ActionEvent ae) {
+				try {
+					system.getMethod("exit", new Class[] { int.class }).invoke(null, new Object[] { new Integer(0) });
+				} catch (final Exception e) {
+					System.exit(0);
+				}
 			}
 		});
 		m.add(mi);
 		mb.add(m);
 		setMenuBar(mb);
-		  
+
 		add(panel = new yyAnimPanel(font), "Center");
-		
-		if ((io & (IN|OUT)) != 0) {
+
+		if ((io & (IN | OUT)) != 0) {
 			final JPanel p = new JPanel(new BorderLayout());
 			switch (io) {
 			case IN:
 				p.add(new JLabel("terminal input"), "North");
 				break;
-			case OUT: case IN|OUT:
+			case OUT:
+			case IN | OUT:
 				JCheckBox c;
-				final String ct = (io&IN) != 0 ? "terminal i/o" : "terminal output";
+				final String ct = (io & IN) != 0 ? "terminal i/o" : "terminal output";
 				p.add(c = new JCheckBox(ct, outputBreak), "North");
 				c.addItemListener(new ItemListener() {
-				  @Override
-				public void itemStateChanged (final ItemEvent ie) {
+					@Override
+					public void itemStateChanged(final ItemEvent ie) {
 						eventThread = Thread.currentThread();
 						outputBreak = ie.getStateChange() == ie.SELECTED;
-				  }
+					}
 				});
 			}
-			
+
 			final JTextArea t;
 			p.add(t = new JTextArea(10, 50), "Center");
-			t.setBackground(Color.white); t.setFont(font);
-			
-			if ((io&IN) != 0) {
-			  final yyInputStream in = new yyInputStream();
-			  t.addKeyListener(in); t.setEditable(true);
+			t.setBackground(Color.white);
+			t.setFont(font);
+
+			if ((io & IN) != 0) {
+				final yyInputStream in = new yyInputStream();
+				t.addKeyListener(in);
+				t.setEditable(true);
 				try {
-  			  system.getMethod("setIn", new Class[]{ InputStream.class })
-	  		  	.invoke(null, new Object[]{ in });
-				} catch (final Exception e) { System.setIn(in); }
+					system.getMethod("setIn", new Class[] { InputStream.class }).invoke(null, new Object[] { in });
+				} catch (final Exception e) {
+					System.setIn(in);
+				}
 			}
-			
-			if ((io&OUT) != 0) {
-			  final PrintStream out = new yyPrintStream() {	// PrintStream into TextArea
+
+			if ((io & OUT) != 0) {
+				final PrintStream out = new yyPrintStream() { // PrintStream into TextArea
 					@Override
-					public void close () { }
-					@Override
-					public void write (final byte b[], final int off, final int len) {
-						final String s = new String(b, off, len);
-						t.append(s); t.setCaretPosition(t.getText().length());
-						if (outputBreak && s.indexOf("\n") >= 0 && eventThread != null
-							  && Thread.currentThread() != eventThread)
-						  try {
-							  synchronized (panel) { panel.wait(); }
-						  } catch (final InterruptedException ie) { }
+					public void close() {
 					}
+
 					@Override
-					public void write (final int b) {
-						write(new byte[] { (byte)b }, 0, 1);
+					public void write(final byte b[], final int off, final int len) {
+						final String s = new String(b, off, len);
+						t.append(s);
+						t.setCaretPosition(t.getText().length());
+						if (outputBreak && s.indexOf("\n") >= 0 && eventThread != null && Thread.currentThread() != eventThread)
+							try {
+								synchronized (panel) {
+									panel.wait();
+								}
+							} catch (final InterruptedException ie) {
+							}
+					}
+
+					@Override
+					public void write(final int b) {
+						write(new byte[] { (byte) b }, 0, 1);
 					}
 				};
 				try {
-			    system.getMethod("setOut", new Class[]{ PrintStream.class })
-				    .invoke(null, new Object[]{ out });
-				} catch (final Exception e) { System.setOut(out); }
+					system.getMethod("setOut", new Class[] { PrintStream.class }).invoke(null, new Object[] { out });
+				} catch (final Exception e) {
+					System.setOut(out);
+				}
 				try {
-  			  system.getMethod("setErr", new Class[]{ PrintStream.class })
-	    			.invoke(null, new Object[]{ out });
-				} catch (final Exception e) { System.setErr(out); }
+					system.getMethod("setErr", new Class[] { PrintStream.class }).invoke(null, new Object[] { out });
+				} catch (final Exception e) {
+					System.setErr(out);
+				}
 			}
 			add(p, "South");
 		}
-		  
+
 		addWindowListener(new WindowAdapter() {
 			@Override
-			public void windowClosing (final WindowEvent we) {
-			  dispose();
-			  if (-- nFrames <= 0)
-				  try {
-    				system.getMethod("exit", new Class[]{ int.class }).invoke(null, new Object[]{ new Integer(0) });
-					} catch (final Exception e) { System.exit(0); }
+			public void windowClosing(final WindowEvent we) {
+				dispose();
+				if (--nFrames <= 0)
+					try {
+						system.getMethod("exit", new Class[] { int.class }).invoke(null, new Object[] { new Integer(0) });
+					} catch (final Exception e) {
+						System.exit(0);
+					}
 			}
 		});
 		pack();
 		setStaggeredLocation(this);
 		show();
-  }
-  /** try to cascade multiple instances of components.
-    */
-  public static void setStaggeredLocation (final Component c) {
-    final Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-    final Dimension d = c.getPreferredSize();
-	
-    int x = (screen.width - d.width)/2 + (nFrames-1)*32;
-    if (x < 32) x = 32;
-    else if (x > screen.width-128) x = screen.width-128;
-	
-    int y = (screen.height - d.height)/2 + (nFrames-1)*32;
-    if (y < 32) y = 32;
-    else if (y > screen.height-128) y = screen.height-128;
-	
-    c.setLocation(x, y);
-  }
-  
-  @Override
-public synchronized void lex (final int state, final int token, final String name, final Object value)
-  { panel.lex(state, token, name, value);
-  }
-  
-  @Override
-public void shift (final int from, final int to, final int errorFlag) {
-    panel.shift(from, to, errorFlag);
-  }
-  
-  @Override
-public void discard (final int state, final int token, final String name, final Object value) {
-    panel.discard(state, token, name, value);
-  }
-  
-  @Override
-public void shift (final int from, final int to) {
-    panel.shift(from, to);
-  }
-  
-  @Override
-public synchronized void accept (final Object value) {
-    panel.accept(value);
-  }
-  
-  @Override
-public void error (final String message) {
-    panel.error(message);
-  }
-  
-  @Override
-public void reject () {
-    panel.reject();
-  }
-  
-  @Override
-public synchronized void push (final int state, final Object value) {
-    panel.push(state, value);
-  }
-  
-  @Override
-public synchronized void pop (final int state) {
-    panel.pop(state);
-  }
-  
-  @Override
-public synchronized void reduce (final int from, final int to, final int rule, final String text,
-								   final int len) {
-    panel.reduce(from, to, rule, text, len);
-  }
+	}
+
+	/**
+	 * try to cascade multiple instances of components.
+	 */
+	public static void setStaggeredLocation(final Component c) {
+		final Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+		final Dimension d = c.getPreferredSize();
+
+		int x = (screen.width - d.width) / 2 + (nFrames - 1) * 32;
+		if (x < 32)
+			x = 32;
+		else if (x > screen.width - 128)
+			x = screen.width - 128;
+
+		int y = (screen.height - d.height) / 2 + (nFrames - 1) * 32;
+		if (y < 32)
+			y = 32;
+		else if (y > screen.height - 128)
+			y = screen.height - 128;
+
+		c.setLocation(x, y);
+	}
+
+	@Override
+	public synchronized void lex(final int state, final int token, final String name, final Object value) {
+		panel.lex(state, token, name, value);
+	}
+
+	@Override
+	public void shift(final int from, final int to, final int errorFlag) {
+		panel.shift(from, to, errorFlag);
+	}
+
+	@Override
+	public void discard(final int state, final int token, final String name, final Object value) {
+		panel.discard(state, token, name, value);
+	}
+
+	@Override
+	public void shift(final int from, final int to) {
+		panel.shift(from, to);
+	}
+
+	@Override
+	public synchronized void accept(final Object value) {
+		panel.accept(value);
+	}
+
+	@Override
+	public void error(final String message) {
+		panel.error(message);
+	}
+
+	@Override
+	public void reject() {
+		panel.reject();
+	}
+
+	@Override
+	public synchronized void push(final int state, final Object value) {
+		panel.push(state, value);
+	}
+
+	@Override
+	public synchronized void pop(final int state) {
+		panel.pop(state);
+	}
+
+	@Override
+	public synchronized void reduce(final int from, final int to, final int rule, final String text, final int len) {
+		panel.reduce(from, to, rule, text, len);
+	}
 }

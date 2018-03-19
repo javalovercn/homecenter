@@ -6,13 +6,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 /**
- * this class is used to pass parameter between UI (includes
- * <code>Assistant</code>) and <code>Robot</code>.<BR>
- * it is helpful for server to analyze the parameter and know more about the
- * relationship between business and user interface. <BR>
+ * this class is used to pass parameter between UI (includes <code>Assistant</code>) and
+ * <code>Robot</code>.<BR>
+ * it is helpful for server to analyze the parameter and know more about the relationship between
+ * business and user interface. <BR>
  * <BR>
- * it is recommended to be used in {@link Robot#operate(long, Object)} and the
- * return object. <BR>
+ * it is recommended to be used in {@link Robot#operate(long, Object)} and the return object. <BR>
  * <BR>
  * <STRONG>Note :</STRONG><BR>
  * the instance is NOT recyclable, because server will analyst it background.
@@ -461,8 +460,8 @@ public class AnalysableRobotParameter {
 	// }
 
 	/**
-	 * if name is not exists, return null; if the map of name is not String
-	 * object, return obj.toString()
+	 * if name is not exists, return null; if the map of name is not String object, return
+	 * obj.toString()
 	 * 
 	 * @param name
 	 * @return
@@ -578,8 +577,7 @@ public class AnalysableRobotParameter {
 
 	/**
 	 * set <code>value</code> for the <code>name</code>.<BR>
-	 * to copy to new byte array , please invoke
-	 * {@link #setByteArray(String, byte[], int, int)}.
+	 * to copy to new byte array , please invoke {@link #setByteArray(String, byte[], int, int)}.
 	 * 
 	 * @param name
 	 * @param value
@@ -599,8 +597,7 @@ public class AnalysableRobotParameter {
 	 * @param length
 	 * @see #setByteArray(String, byte[])
 	 */
-	public final void setByteArray(final String name, final byte[] bs, final int offset,
-			final int length) {
+	public final void setByteArray(final String name, final byte[] bs, final int offset, final int length) {
 		final byte[] outbs = new byte[length];
 		System.arraycopy(bs, offset, outbs, 0, length);
 		table.put(name, outbs);
@@ -668,8 +665,7 @@ public class AnalysableRobotParameter {
 
 	/**
 	 * set <code>value</code> for the <code>name</code>.<BR>
-	 * to copy to new short array , please invoke
-	 * {@link #setShortArray(String, short[], int, int)}.
+	 * to copy to new short array , please invoke {@link #setShortArray(String, short[], int, int)}.
 	 * 
 	 * @param name
 	 * @param value
@@ -689,8 +685,7 @@ public class AnalysableRobotParameter {
 	 * @param length
 	 * @see #setShortArray(String, short[])
 	 */
-	public final void setShortArray(final String name, final short[] bs, final int offset,
-			final int length) {
+	public final void setShortArray(final String name, final short[] bs, final int offset, final int length) {
 		final short[] outbs = new short[length];
 		System.arraycopy(bs, offset, outbs, 0, length);
 		table.put(name, outbs);
@@ -698,8 +693,7 @@ public class AnalysableRobotParameter {
 
 	/**
 	 * set <code>value</code> for the <code>name</code>.<BR>
-	 * to copy to new int array , please invoke
-	 * {@link #setIntArray(String, int[], int, int)}.
+	 * to copy to new int array , please invoke {@link #setIntArray(String, int[], int, int)}.
 	 * 
 	 * @param name
 	 * @param value
@@ -719,8 +713,7 @@ public class AnalysableRobotParameter {
 	 * @param length
 	 * @see #setIntArray(String, int[])
 	 */
-	public final void setIntArray(final String name, final int[] bs, final int offset,
-			final int length) {
+	public final void setIntArray(final String name, final int[] bs, final int offset, final int length) {
 		final int[] outbs = new int[length];
 		System.arraycopy(bs, offset, outbs, 0, length);
 		table.put(name, outbs);
@@ -728,8 +721,7 @@ public class AnalysableRobotParameter {
 
 	/**
 	 * set <code>value</code> for the <code>name</code>.<BR>
-	 * to copy to new float array , please invoke
-	 * {@link #setFloatArray(String, float[], int, int)}.
+	 * to copy to new float array , please invoke {@link #setFloatArray(String, float[], int, int)}.
 	 * 
 	 * @param name
 	 * @param value
@@ -749,8 +741,7 @@ public class AnalysableRobotParameter {
 	 * @param length
 	 * @see #setFloatArray(String, float[])
 	 */
-	public final void setFloatArray(final String name, final float[] bs, final int offset,
-			final int length) {
+	public final void setFloatArray(final String name, final float[] bs, final int offset, final int length) {
 		final float[] outbs = new float[length];
 		System.arraycopy(bs, offset, outbs, 0, length);
 		table.put(name, outbs);
@@ -758,8 +749,7 @@ public class AnalysableRobotParameter {
 
 	/**
 	 * set <code>value</code> for the <code>name</code>.<BR>
-	 * to copy to new char array , please invoke
-	 * {@link #setCharArray(String, char[], int, int)}.
+	 * to copy to new char array , please invoke {@link #setCharArray(String, char[], int, int)}.
 	 * 
 	 * @param name
 	 * @param value
@@ -779,8 +769,7 @@ public class AnalysableRobotParameter {
 	 * @param length
 	 * @see #setCharArray(String, char[])
 	 */
-	public final void setCharArray(final String name, final char[] bs, final int offset,
-			final int length) {
+	public final void setCharArray(final String name, final char[] bs, final int offset, final int length) {
 		final char[] outbs = new char[length];
 		System.arraycopy(bs, offset, outbs, 0, length);
 		table.put(name, outbs);
@@ -788,8 +777,7 @@ public class AnalysableRobotParameter {
 
 	/**
 	 * set <code>value</code> for the <code>name</code>.<BR>
-	 * to copy to new long array , please invoke
-	 * {@link #setLongArray(String, long[], int, int)}.
+	 * to copy to new long array , please invoke {@link #setLongArray(String, long[], int, int)}.
 	 * 
 	 * @param name
 	 * @param value
@@ -809,8 +797,7 @@ public class AnalysableRobotParameter {
 	 * @param length
 	 * @see #setLongArray(String, long[])
 	 */
-	public final void setLongArray(final String name, final long[] bs, final int offset,
-			final int length) {
+	public final void setLongArray(final String name, final long[] bs, final int offset, final int length) {
 		final long[] outbs = new long[length];
 		System.arraycopy(bs, offset, outbs, 0, length);
 		table.put(name, outbs);
@@ -839,8 +826,7 @@ public class AnalysableRobotParameter {
 	 * @param length
 	 * @see #setDoubleArray(String, double[])
 	 */
-	public final void setDoubleArray(final String name, final double[] bs, final int offset,
-			final int length) {
+	public final void setDoubleArray(final String name, final double[] bs, final int offset, final int length) {
 		final double[] outbs = new double[length];
 		System.arraycopy(bs, offset, outbs, 0, length);
 		table.put(name, outbs);
@@ -869,8 +855,7 @@ public class AnalysableRobotParameter {
 	 * @param length
 	 * @see #setStringArray(String, String[])
 	 */
-	public final void setStringArray(final String name, final String[] bs, final int offset,
-			final int length) {
+	public final void setStringArray(final String name, final String[] bs, final int offset, final int length) {
 		final String[] outbs = new String[length];
 		System.arraycopy(bs, offset, outbs, 0, length);
 		table.put(name, outbs);
@@ -899,8 +884,7 @@ public class AnalysableRobotParameter {
 	 * @param length
 	 * @see #setBooleanArray(String, boolean[])
 	 */
-	public final void setBooleanArray(final String name, final boolean[] bs, final int offset,
-			final int length) {
+	public final void setBooleanArray(final String name, final boolean[] bs, final int offset, final int length) {
 		final boolean[] outbs = new boolean[length];
 		System.arraycopy(bs, offset, outbs, 0, length);
 		table.put(name, outbs);
@@ -1024,15 +1008,14 @@ public class AnalysableRobotParameter {
 	 * @param name
 	 * @param value
 	 */
-	public final void setAnalysableRobotObject(final String name,
-			final AnalysableRobotParameter value) {
+	public final void setAnalysableRobotObject(final String name, final AnalysableRobotParameter value) {
 		if (this.level == 0) {
 			this.level = 1;
 		}
 
 		if (value.level != 0) {
-			throw new IllegalArgumentException(this.getClass().getSimpleName()
-					+ " can't be cycled or referenced by twice or more, maybe you need clone() method.");
+			throw new IllegalArgumentException(
+					this.getClass().getSimpleName() + " can't be cycled or referenced by twice or more, maybe you need clone() method.");
 		} else {
 			value.level = this.level + 1;
 		}

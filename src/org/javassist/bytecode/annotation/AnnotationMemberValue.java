@@ -21,7 +21,6 @@ import java.lang.reflect.Method;
 import org.javassist.ClassPool;
 import org.javassist.bytecode.ConstPool;
 
-
 /**
  * Nested annotation.
  *
@@ -29,70 +28,67 @@ import org.javassist.bytecode.ConstPool;
  * @author Shigeru Chiba
  */
 public class AnnotationMemberValue extends MemberValue {
-    Annotation value;
+	Annotation value;
 
-    /**
-     * Constructs an annotation member.  The initial value is not specified.
-     */
-    public AnnotationMemberValue(ConstPool cp) {
-        this(null, cp);
-    }
+	/**
+	 * Constructs an annotation member. The initial value is not specified.
+	 */
+	public AnnotationMemberValue(ConstPool cp) {
+		this(null, cp);
+	}
 
-    /**
-     * Constructs an annotation member.  The initial value is specified by
-     * the first parameter.
-     */
-    public AnnotationMemberValue(Annotation a, ConstPool cp) {
-        super('@', cp);
-        value = a;
-    }
+	/**
+	 * Constructs an annotation member. The initial value is specified by the first parameter.
+	 */
+	public AnnotationMemberValue(Annotation a, ConstPool cp) {
+		super('@', cp);
+		value = a;
+	}
 
-    Object getValue(ClassLoader cl, ClassPool cp, Method m)
-        throws ClassNotFoundException
-    {
-        return AnnotationImpl.make(cl, getType(cl), cp, value);
-    }
+	Object getValue(ClassLoader cl, ClassPool cp, Method m) throws ClassNotFoundException {
+		return AnnotationImpl.make(cl, getType(cl), cp, value);
+	}
 
-    Class getType(ClassLoader cl) throws ClassNotFoundException {
-        if (value == null)
-            throw new ClassNotFoundException("no type specified");
-        else
-            return loadClass(cl, value.getTypeName());
-    }
+	Class getType(ClassLoader cl) throws ClassNotFoundException {
+		if (value == null)
+			throw new ClassNotFoundException("no type specified");
+		else
+			return loadClass(cl, value.getTypeName());
+	}
 
-    /**
-     * Obtains the value.
-     */
-    public Annotation getValue() {
-        return value;
-    }
+	/**
+	 * Obtains the value.
+	 */
+	public Annotation getValue() {
+		return value;
+	}
 
-    /**
-     * Sets the value of this member.
-     */
-    public void setValue(Annotation newValue) {
-        value = newValue;
-    }
+	/**
+	 * Sets the value of this member.
+	 */
+	public void setValue(Annotation newValue) {
+		value = newValue;
+	}
 
-    /**
-     * Obtains the string representation of this object.
-     */
-    public String toString() {
-        return value.toString();
-    }
+	/**
+	 * Obtains the string representation of this object.
+	 */
+	public String toString() {
+		return value.toString();
+	}
 
-    /**
-     * Writes the value.
-     */
-    public void write(AnnotationsWriter writer) throws IOException {
-        writer.annotationValue();
-        value.write(writer);
-    }
+	/**
+	 * Writes the value.
+	 */
+	public void write(AnnotationsWriter writer) throws IOException {
+		writer.annotationValue();
+		value.write(writer);
+	}
 
-    /**
-     * Accepts a visitor.
-     */
-    public void accept(MemberValueVisitor visitor) {
-        visitor.visitAnnotationMemberValue(this);
-    }
+	/**
+	 * Accepts a visitor.
+	 */
+	public void accept(MemberValueVisitor visitor) {
+		visitor.visitAnnotationMemberValue(this);
+	}
 }

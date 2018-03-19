@@ -2581,233 +2581,264 @@ import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-/** animates messages with a graphical interface.
-    This is not {@link java.io.Serializable}.
-  */
+
+/**
+ * animates messages with a graphical interface. This is not {@link java.io.Serializable}.
+ */
 public class yyAnimPanel extends JPanel implements yyDebug {
 	/**
-	 * change log by HomeCenter
-	 * change awt to Swing, for example, Frame=>JFrame, Label => JLabel
+	 * change log by HomeCenter change awt to Swing, for example, Frame=>JFrame, Label => JLabel
 	 */
-	
-  /** current token and value.
-    */
-  protected transient JTextField token, value;
-  /** running explanations.
-    */
-  protected transient JTextArea comments;
-  /** state/value stack.
-    */
-  protected transient Stack stack;
-  /** breakpoints, set in GUI.
-    */
-  protected transient boolean tokenBreak = true, stackBreak, commentsBreak;
 
-  public yyAnimPanel (final Font font) {
-    super(new BorderLayout());
+	/**
+	 * current token and value.
+	 */
+	protected transient JTextField token, value;
+	/**
+	 * running explanations.
+	 */
+	protected transient JTextArea comments;
+	/**
+	 * state/value stack.
+	 */
+	protected transient Stack stack;
+	/**
+	 * breakpoints, set in GUI.
+	 */
+	protected transient boolean tokenBreak = true, stackBreak, commentsBreak;
 
-    Button b;
-    JCheckBox c;
-    JPanel p, q;
+	public yyAnimPanel(final Font font) {
+		super(new BorderLayout());
 
-    p = new JPanel(new BorderLayout());
-      p.add(c = new JCheckBox("token ", tokenBreak), "West");
-        c.addItemListener(new ItemListener() {
-	  @Override
-	public void itemStateChanged (final ItemEvent ie) {
-	    tokenBreak = ie.getStateChange() == ie.SELECTED;
-          }
-        });
-      q = new JPanel(new BorderLayout());
-        q.add(token = new JTextField(12), "West");
-          token.setEditable(false); token.setBackground(Color.white);
-          token.setFont(font);
-        q.add(value = new JTextField(24), "Center");
-          value.setEditable(false); value.setBackground(Color.white);
-          value.setFont(font);
-      p.add(q, "Center");
-      p.add(b = new Button(" continue "), "East");
-        b.addActionListener(new ActionListener() {
-	  @Override
-	public void actionPerformed (final ActionEvent ae) {
-	    synchronized (yyAnimPanel.this) {
-	      yyAnimPanel.this.notify();
-	    }
-          }
-        });
-    add(p, "North");
+		Button b;
+		JCheckBox c;
+		JPanel p, q;
 
-    p = new JPanel(new BorderLayout());
-      q = new JPanel(new BorderLayout());
-        q.add(c = new JCheckBox("stack", stackBreak), "North");
-          c.addItemListener(new ItemListener() {
-	    @Override
-		public void itemStateChanged (final ItemEvent ie) {
-	      stackBreak = ie.getStateChange() == ie.SELECTED;
-            }
-          });
-        q.add(stack = new Stack(font), "Center");
-      p.add(q, "Center");
-      q = new JPanel(new BorderLayout());
-        q.add(c = new JCheckBox("comments", commentsBreak), "North");
-          c.addItemListener(new ItemListener() {
-	    @Override
-		public void itemStateChanged (final ItemEvent ie) {
-	      commentsBreak = ie.getStateChange() == ie.SELECTED;
-            }
-          });
-        q.add(comments = new JTextArea(10, 40), "Center");
-          comments.setEditable(false); comments.setBackground(Color.white);
-          comments.setFont(font);
-      p.add(q, "East");
-    add(p, "Center");
-  }
-  /** animates state/value stack.
-    */
-  protected final static class Stack extends ScrollPane {
-    /** describes one level.
-	  */
-    protected static final GridBagConstraints level = new GridBagConstraints();
-    static {
-      level.anchor = level.NORTH;
-      level.fill = level.HORIZONTAL;
-      level.gridheight = 1; level.gridwidth = level.REMAINDER;
-      level.gridx = 0; level.gridy = level.RELATIVE;
-      level.weightx = 1.0;
-    }
-	/** font for the entries.
-	  */
-    protected final Font font;
-	/** real display area.
-	  */
-    protected final JPanel panel;
+		p = new JPanel(new BorderLayout());
+		p.add(c = new JCheckBox("token ", tokenBreak), "West");
+		c.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(final ItemEvent ie) {
+				tokenBreak = ie.getStateChange() == ie.SELECTED;
+			}
+		});
+		q = new JPanel(new BorderLayout());
+		q.add(token = new JTextField(12), "West");
+		token.setEditable(false);
+		token.setBackground(Color.white);
+		token.setFont(font);
+		q.add(value = new JTextField(24), "Center");
+		value.setEditable(false);
+		value.setBackground(Color.white);
+		value.setFont(font);
+		p.add(q, "Center");
+		p.add(b = new Button(" continue "), "East");
+		b.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent ae) {
+				synchronized (yyAnimPanel.this) {
+					yyAnimPanel.this.notify();
+				}
+			}
+		});
+		add(p, "North");
 
-    public Stack (final Font font) {
-      super(SCROLLBARS_AS_NEEDED);
-      this.font = font;
-      setSize(50, 100);
-      add(panel = new JPanel(new GridBagLayout()));
-    }
+		p = new JPanel(new BorderLayout());
+		q = new JPanel(new BorderLayout());
+		q.add(c = new JCheckBox("stack", stackBreak), "North");
+		c.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(final ItemEvent ie) {
+				stackBreak = ie.getStateChange() == ie.SELECTED;
+			}
+		});
+		q.add(stack = new Stack(font), "Center");
+		p.add(q, "Center");
+		q = new JPanel(new BorderLayout());
+		q.add(c = new JCheckBox("comments", commentsBreak), "North");
+		c.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(final ItemEvent ie) {
+				commentsBreak = ie.getStateChange() == ie.SELECTED;
+			}
+		});
+		q.add(comments = new JTextArea(10, 40), "Center");
+		comments.setEditable(false);
+		comments.setBackground(Color.white);
+		comments.setFont(font);
+		p.add(q, "East");
+		add(p, "Center");
+	}
 
-    public void push (final int state, final Object value) {
-      final JPanel q = new JPanel(new BorderLayout());
-      JTextField t;
-      q.add(t = new JTextField(""+state, 5), "West");
-	t.setEditable(false); t.setBackground(Color.white); t.setFont(font);
-      q.add(t = new JTextField(value != null ? value.toString() : ""), "Center");
-	t.setEditable(false); t.setBackground(Color.white); t.setFont(font);
-      panel.add(q, level, 0); validate();
-    }
+	/**
+	 * animates state/value stack.
+	 */
+	protected final static class Stack extends ScrollPane {
+		/**
+		 * describes one level.
+		 */
+		protected static final GridBagConstraints level = new GridBagConstraints();
+		static {
+			level.anchor = level.NORTH;
+			level.fill = level.HORIZONTAL;
+			level.gridheight = 1;
+			level.gridwidth = level.REMAINDER;
+			level.gridx = 0;
+			level.gridy = level.RELATIVE;
+			level.weightx = 1.0;
+		}
+		/**
+		 * font for the entries.
+		 */
+		protected final Font font;
+		/**
+		 * real display area.
+		 */
+		protected final JPanel panel;
 
-    public void pop (final int len) {
-      for (int n = 0; n < len; ++ n) {
-	panel.remove(0);
-        validate();	// Rhapsody DR2 java crashes if this is outside loop
-      }
-    }
+		public Stack(final Font font) {
+			super(SCROLLBARS_AS_NEEDED);
+			this.font = font;
+			setSize(50, 100);
+			add(panel = new JPanel(new GridBagLayout()));
+		}
 
-    public void pop () {
-      panel.removeAll(); validate();
-    }
-  }
-  /** post a comment.
-    */
-  protected synchronized void explain (final String what) {
-    if (comments.getText().length() > 0) comments.append("\n");
-    comments.append(what);
-    if (commentsBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
-  }
+		public void push(final int state, final Object value) {
+			final JPanel q = new JPanel(new BorderLayout());
+			JTextField t;
+			q.add(t = new JTextField("" + state, 5), "West");
+			t.setEditable(false);
+			t.setBackground(Color.white);
+			t.setFont(font);
+			q.add(t = new JTextField(value != null ? value.toString() : ""), "Center");
+			t.setEditable(false);
+			t.setBackground(Color.white);
+			t.setFont(font);
+			panel.add(q, level, 0);
+			validate();
+		}
 
-  @Override
-public synchronized void lex (final int state, final int token, final String name, final Object value)
-  { this.token.setText(name);
-    this.value.setText(value == null ? "" : value.toString());
-    explain("read "+name);
-    if (tokenBreak && !commentsBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
-  }
+		public void pop(final int len) {
+			for (int n = 0; n < len; ++n) {
+				panel.remove(0);
+				validate(); // Rhapsody DR2 java crashes if this is outside loop
+			}
+		}
 
-  @Override
-public void shift (final int from, final int to, final int errorFlag) {
-    switch (errorFlag) {
-    default:				// normally
-      explain("shift to "+to);
-      break;
-    case 0: case 1: case 2:		// in error recovery
-      explain("shift to "+to+", "+errorFlag+" left to recover");
-      break;
-    case 3:				// normally
-      explain("shift to "+to+" on error");
-    }
-  }
+		public void pop() {
+			panel.removeAll();
+			validate();
+		}
+	}
 
-  @Override
-public void discard (final int state, final int token, final String name, final Object value) {
-    explain("discard token "+name+", value "+value);
-  }
+	/**
+	 * post a comment.
+	 */
+	protected synchronized void explain(final String what) {
+		if (comments.getText().length() > 0)
+			comments.append("\n");
+		comments.append(what);
+		if (commentsBreak)
+			try {
+				wait();
+			} catch (final InterruptedException ie) {
+			}
+	}
 
-  @Override
-public void shift (final int from, final int to) {
-    explain("go to "+to);
-  }
+	@Override
+	public synchronized void lex(final int state, final int token, final String name, final Object value) {
+		this.token.setText(name);
+		this.value.setText(value == null ? "" : value.toString());
+		explain("read " + name);
+		if (tokenBreak && !commentsBreak)
+			try {
+				wait();
+			} catch (final InterruptedException ie) {
+			}
+	}
 
-  @Override
-public synchronized void accept (final Object value) {
-    explain("accept, value "+value);
-    stack.pop();
-    if (stackBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
-  }
+	@Override
+	public void shift(final int from, final int to, final int errorFlag) {
+		switch (errorFlag) {
+		default: // normally
+			explain("shift to " + to);
+			break;
+		case 0:
+		case 1:
+		case 2: // in error recovery
+			explain("shift to " + to + ", " + errorFlag + " left to recover");
+			break;
+		case 3: // normally
+			explain("shift to " + to + " on error");
+		}
+	}
 
-  @Override
-public void error (final String message) {
-    explain("error message");
-  }
+	@Override
+	public void discard(final int state, final int token, final String name, final Object value) {
+		explain("discard token " + name + ", value " + value);
+	}
 
-  @Override
-public void reject () {
-    explain("reject");
-    stack.pop();
-    if (stackBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
-  }
+	@Override
+	public void shift(final int from, final int to) {
+		explain("go to " + to);
+	}
 
-  @Override
-public synchronized void push (final int state, final Object value) {
-    stack.push(state, value);
-    if (stackBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
-  }
+	@Override
+	public synchronized void accept(final Object value) {
+		explain("accept, value " + value);
+		stack.pop();
+		if (stackBreak)
+			try {
+				wait();
+			} catch (final InterruptedException ie) {
+			}
+	}
 
-  @Override
-public synchronized void pop (final int state) {
-    explain("pop "+state+" on error");
-    stack.pop(1);
-    if (stackBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
-  }
+	@Override
+	public void error(final String message) {
+		explain("error message");
+	}
 
-  @Override
-public synchronized void reduce (final int from, final int to, final int rule, final String text,
-								final int len) {
-    explain("reduce ("+rule+"), uncover "+to+"\n("+rule+") "+ text);
-    stack.pop(len);
-    if (stackBreak)
-      try {
-	wait();
-      } catch (final InterruptedException ie) { }
-  }
+	@Override
+	public void reject() {
+		explain("reject");
+		stack.pop();
+		if (stackBreak)
+			try {
+				wait();
+			} catch (final InterruptedException ie) {
+			}
+	}
+
+	@Override
+	public synchronized void push(final int state, final Object value) {
+		stack.push(state, value);
+		if (stackBreak)
+			try {
+				wait();
+			} catch (final InterruptedException ie) {
+			}
+	}
+
+	@Override
+	public synchronized void pop(final int state) {
+		explain("pop " + state + " on error");
+		stack.pop(1);
+		if (stackBreak)
+			try {
+				wait();
+			} catch (final InterruptedException ie) {
+			}
+	}
+
+	@Override
+	public synchronized void reduce(final int from, final int to, final int rule, final String text, final int len) {
+		explain("reduce (" + rule + "), uncover " + to + "\n(" + rule + ") " + text);
+		stack.pop(len);
+		if (stackBreak)
+			try {
+				wait();
+			} catch (final InterruptedException ie) {
+			}
+	}
 }

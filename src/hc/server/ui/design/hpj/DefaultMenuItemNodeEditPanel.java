@@ -24,8 +24,7 @@ public class DefaultMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 		myCommand_Panel.add(jtascriptPanel, BorderLayout.CENTER);
 
 		noJRubyTip.setLayout(new BorderLayout());
-		noJRubyTip.add(new JLabel("There is no other editable content for current type item."),
-				BorderLayout.NORTH);
+		noJRubyTip.add(new JLabel("There is no other editable content for current type item."), BorderLayout.NORTH);
 
 		setLayout(new BorderLayout());
 		add(iconPanel, BorderLayout.NORTH);

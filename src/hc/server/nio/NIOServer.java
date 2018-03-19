@@ -21,8 +21,7 @@ public class NIOServer {
 	 * @param udpSpeedPort
 	 * @param read
 	 */
-	public NIOServer(final CoreSession coreSS, final String ip, final int localPort,
-			final int udpSpeedPort, final ActionRead read) {
+	public NIOServer(final CoreSession coreSS, final String ip, final int localPort, final int udpSpeedPort, final ActionRead read) {
 		try {
 			LogManager.log("try build relay server on IP : " + ip + ", port : " + localPort);
 			at = new AcceptReadThread(coreSS, ip, localPort, udpSpeedPort, read);

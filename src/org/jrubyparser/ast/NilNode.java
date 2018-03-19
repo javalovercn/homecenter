@@ -35,19 +35,21 @@ import org.jrubyparser.SourcePosition;
  * represents 'nil'
  */
 public class NilNode extends BareKeywordNode {
-    public NilNode(SourcePosition position) {
-        super(position, "nil");
-    }
+	public NilNode(SourcePosition position) {
+		super(position, "nil");
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.NILNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.NILNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitNilNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitNilNode(this);
+	}
 }

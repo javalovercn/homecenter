@@ -51,8 +51,7 @@ public class ExceptionViewer {
 	private static ExceptionViewer msbViewer;
 
 	private JFrame dialog;
-	private final JButton clearBtn = new JButton((String) ResourceUtil.get(8026),
-			new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
+	private final JButton clearBtn = new JButton((String) ResourceUtil.get(8026), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
 	private int currRow;
 	private final ScrollTable tableException, tableStacks;
 	private JScrollPane scrollPaneException, scrollPaneStacks;
@@ -258,8 +257,7 @@ public class ExceptionViewer {
 
 			tableException.setRowSelectionAllowed(true);
 			// panel.add(tableException, c);
-			scrollPaneException = new JScrollPane(tableException,
-					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+			scrollPaneException = new JScrollPane(tableException, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 			scrollPaneException.setPreferredSize(new Dimension(600, 200));
 			panel.add(scrollPaneException, c);
@@ -275,8 +273,7 @@ public class ExceptionViewer {
 			c.weightx = 1.0;
 
 			tableStacks.setRowSelectionAllowed(true);
-			scrollPaneStacks = new JScrollPane(tableStacks,
-					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+			scrollPaneStacks = new JScrollPane(tableStacks, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 			scrollPaneStacks.setPreferredSize(new Dimension(600, 300));
 			panel.add(scrollPaneStacks, c);
@@ -297,8 +294,8 @@ public class ExceptionViewer {
 
 		final ActionListener listener = null;
 		final JButton closeBtn = App.buildDefaultCloseButton();
-		dialog = (JFrame) App.showCenterPanelMain(total, 0, 0, "Exception List", false, closeBtn,
-				null, listener, null, null, false, true, null, true, false);
+		dialog = (JFrame) App.showCenterPanelMain(total, 0, 0, "Exception List", false, closeBtn, null, listener, null, null, false, true,
+				null, true, false);
 		App.setDisposeListener(dialog, new DisposeListener() {
 			@Override
 			public void dispose() {

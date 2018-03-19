@@ -13,12 +13,11 @@ public class CtrlManager extends TableSM {
 	public CtrlManager(final AIPersistentManager mgr) throws SQLException {
 		super("CTRLLOR", mgr);
 
-		getIDPreparedState = mgr.getConnection().prepareStatement(
-				"SELECT id FROM " + tableName + " WHERE " + "referLableID = ? AND ctrlID = ?;");
-		appendPreparedState = mgr.getConnection().prepareStatement(
-				"INSERT INTO " + tableName + " (id, referLableID, ctrlID) VALUES (?, ?, ?);");
-		getCtrlIDPreparedState = mgr.getConnection()
-				.prepareStatement("SELECT ctrlID FROM " + tableName + " WHERE referLableID = ?;");
+		getIDPreparedState = mgr.getConnection()
+				.prepareStatement("SELECT id FROM " + tableName + " WHERE " + "referLableID = ? AND ctrlID = ?;");
+		appendPreparedState = mgr.getConnection()
+				.prepareStatement("INSERT INTO " + tableName + " (id, referLableID, ctrlID) VALUES (?, ?, ?);");
+		getCtrlIDPreparedState = mgr.getConnection().prepareStatement("SELECT ctrlID FROM " + tableName + " WHERE referLableID = ?;");
 	}
 
 	@Override

@@ -11,22 +11,16 @@ import org.bouncycastle.crypto.engines.RSAEngine;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.util.PublicKeyFactory;
 
-public class BcRSAAsymmetricKeyWrapper
-    extends BcAsymmetricKeyWrapper
-{
-    public BcRSAAsymmetricKeyWrapper(AlgorithmIdentifier encAlgId, AsymmetricKeyParameter publicKey)
-    {
-        super(encAlgId, publicKey);
-    }
+public class BcRSAAsymmetricKeyWrapper extends BcAsymmetricKeyWrapper {
+	public BcRSAAsymmetricKeyWrapper(AlgorithmIdentifier encAlgId, AsymmetricKeyParameter publicKey) {
+		super(encAlgId, publicKey);
+	}
 
-    public BcRSAAsymmetricKeyWrapper(AlgorithmIdentifier encAlgId, SubjectPublicKeyInfo publicKeyInfo)
-        throws IOException
-    {
-        super(encAlgId, PublicKeyFactory.createKey(publicKeyInfo));
-    }
+	public BcRSAAsymmetricKeyWrapper(AlgorithmIdentifier encAlgId, SubjectPublicKeyInfo publicKeyInfo) throws IOException {
+		super(encAlgId, PublicKeyFactory.createKey(publicKeyInfo));
+	}
 
-    protected AsymmetricBlockCipher createAsymmetricWrapper(ASN1ObjectIdentifier algorithm)
-    {
-        return new PKCS1Encoding(new RSAEngine());
-    }
+	protected AsymmetricBlockCipher createAsymmetricWrapper(ASN1ObjectIdentifier algorithm) {
+		return new PKCS1Encoding(new RSAEngine());
+	}
 }

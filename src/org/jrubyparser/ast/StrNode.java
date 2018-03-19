@@ -35,42 +35,46 @@ import org.jrubyparser.SourcePosition;
  * Representing a simple String literal.
  */
 public class StrNode extends Node implements ILiteralNode {
-    private String value;
+	private String value;
 
-    public StrNode(SourcePosition position, String value) {
-        super(position);
-        this.value = value;
-    }
+	public StrNode(SourcePosition position, String value) {
+		super(position);
+		this.value = value;
+	}
 
-    public StrNode(SourcePosition position, StrNode head, StrNode tail) {
-        super(position);
+	public StrNode(SourcePosition position, StrNode head, StrNode tail) {
+		super(position);
 
-        this.value = head.getValue();
+		this.value = head.getValue();
 
-        value = value + tail.getValue();
-    }
+		value = value + tail.getValue();
+	}
 
-    @Override
-    public boolean isSame(Node other) {
-        return super.isSame(other) && getValue().equals(((StrNode) other).getValue());
-    }
+	@Override
+	public boolean isSame(Node other) {
+		return super.isSame(other) && getValue().equals(((StrNode) other).getValue());
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.STRNODE;
-    }
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitStrNode(this);
-    }
+	public NodeType getNodeType() {
+		return NodeType.STRNODE;
+	}
 
-    /**
-     * Gets the value.
-     * @return Returns a String
-     */
-    public String getValue() {
-        return value;
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitStrNode(this);
+	}
+
+	/**
+	 * Gets the value.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getValue() {
+		return value;
+	}
 }

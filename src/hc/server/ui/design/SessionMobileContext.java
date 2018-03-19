@@ -47,8 +47,7 @@ public class SessionMobileContext {
 				final SessionContext cycleMC = mobileContexts[matchIdx];
 				SessionContext.cycle(projectID, cycleMC);
 				if (L.isInWorkshop) {
-					LogManager.log(
-							"successful cycle SessionContext for project [" + projectID + "]!");
+					LogManager.log("successful cycle SessionContext for project [" + projectID + "]!");
 				}
 
 				int i = matchIdx + 1;

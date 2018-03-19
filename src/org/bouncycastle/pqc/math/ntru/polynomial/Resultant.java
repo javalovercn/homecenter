@@ -9,20 +9,18 @@ import java.math.BigInteger;
  * @see IntegerPolynomial#resultant()
  * @see IntegerPolynomial#resultant(int)
  */
-public class Resultant
-{
-    /**
-     * A polynomial such that <code>res = rho*this + t*(x^n-1) for some integer t</code>
-     */
-    public BigIntPolynomial rho;
-    /**
-     * Resultant of a polynomial with <code>x^n-1</code>
-     */
-    public BigInteger res;
+public class Resultant {
+	/**
+	 * A polynomial such that <code>res = rho*this + t*(x^n-1) for some integer t</code>
+	 */
+	public BigIntPolynomial rho;
+	/**
+	 * Resultant of a polynomial with <code>x^n-1</code>
+	 */
+	public BigInteger res;
 
-    Resultant(BigIntPolynomial rho, BigInteger res)
-    {
-        this.rho = rho;
-        this.res = res;
-    }
+	Resultant(BigIntPolynomial rho, BigInteger res) {
+		this.rho = rho;
+		this.res = res;
+	}
 }

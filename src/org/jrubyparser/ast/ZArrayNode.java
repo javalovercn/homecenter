@@ -37,19 +37,21 @@ import org.jrubyparser.SourcePosition;
  *
  */
 public class ZArrayNode extends Node implements ILiteralNode {
-    public ZArrayNode(SourcePosition position) {
-        super(position);
-    }
+	public ZArrayNode(SourcePosition position) {
+		super(position);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.ZARRAYNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.ZARRAYNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitZArrayNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitZArrayNode(this);
+	}
 }

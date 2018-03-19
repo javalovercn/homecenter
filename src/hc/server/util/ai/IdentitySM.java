@@ -10,12 +10,9 @@ public class IdentitySM extends TableSM {
 	public IdentitySM(final AIPersistentManager mgr) throws SQLException {
 		super("IDENTITY_LIST", mgr);
 
-		queryps = mgr.getConnection()
-				.prepareStatement("SELECT id FROM IDENTITY_LIST WHERE identityValue = ?;");
-		updateOnePS = mgr.getConnection()
-				.prepareStatement("UPDATE IDENTITY_LIST set id = ? WHERE identityValue = ?;");
-		insertPS = mgr.getConnection()
-				.prepareStatement("INSERT INTO IDENTITY_LIST (id, identityValue) VALUES (?, ?);");
+		queryps = mgr.getConnection().prepareStatement("SELECT id FROM IDENTITY_LIST WHERE identityValue = ?;");
+		updateOnePS = mgr.getConnection().prepareStatement("UPDATE IDENTITY_LIST set id = ? WHERE identityValue = ?;");
+		insertPS = mgr.getConnection().prepareStatement("INSERT INTO IDENTITY_LIST (id, identityValue) VALUES (?, ?);");
 	}
 
 	@Override

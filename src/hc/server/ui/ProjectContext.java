@@ -54,6 +54,7 @@ import hc.server.ui.design.ProjResponser;
 import hc.server.ui.design.SessionContext;
 import hc.server.ui.design.engine.HCJRubyEngine;
 import hc.server.ui.design.engine.RubyExector;
+import hc.server.ui.design.hpj.ConsoleWriter;
 import hc.server.util.Assistant;
 import hc.server.util.ContextSecurityConfig;
 import hc.server.util.ContextSecurityManager;
@@ -76,17 +77,15 @@ import hc.util.TokenManager;
 import third.hsqldb.jdbc.JDBCDriver;
 
 /**
- * There is one <code>ProjectContext</code> instance for each HAR Project at
- * runtime. <BR>
+ * There is one <code>ProjectContext</code> instance for each HAR Project at runtime. <BR>
  * <BR>
  * a <code>ProjectContext</code> instance will be created before
  * {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}, and will be released after
  * {@link ProjectContext#EVENT_SYS_PROJ_SHUTDOWN}. <BR>
- * reloading HAR projects (NOT restart server), new instance of
- * <code>ProjectContext</code> will be created. <BR>
+ * reloading HAR projects (NOT restart server), new instance of <code>ProjectContext</code> will be
+ * created. <BR>
  * <BR>
- * it is easy to get instance of ProjectContext from everywhere, for examples :
- * <br>
+ * it is easy to get instance of ProjectContext from everywhere, for examples : <br>
  * 1. {@link ProjectContext#getProjectContext()} by static method,<br>
  * 2. {@link Mlet#getProjectContext()}, <br>
  * 3. {@link Assistant#getProjectContext()}, <br>
@@ -102,6 +101,7 @@ public class ProjectContext {
 	private final boolean isLoggerOn;
 	private final String projectVer;
 	Assistant assistant;
+	ConsoleWriter ideConsoleWriter;
 	final RecycleRes recycleRes;
 	final Vector<SystemEventListener> projectLevelEventListeners = new Vector<SystemEventListener>();
 	Hashtable<String, Scheduler> schedulerMapForProjAndSess;// 线程安全必需
@@ -110,20 +110,17 @@ public class ProjectContext {
 	final ProjDesignConf projDesignConfig;
 
 	/**
-	 * for example HAR is installing from client, and it is required to input
-	 * token for device connection, you can use <code>Dialog</code> for custom
-	 * input, otherwise if is installing from PC desktop, you must use
-	 * {@link #showInputDialog(String, String[], String[])}. <BR>
+	 * for example HAR is installing from client, and it is required to input token for device
+	 * connection, you can use <code>Dialog</code> for custom input, otherwise if is installing from
+	 * PC desktop, you must use {@link #showInputDialog(String, String[], String[])}. <BR>
 	 * <BR>
-	 * it returns false when project normal start up even if it was installed
-	 * from client.
+	 * it returns false when project normal start up even if it was installed from client.
 	 * 
 	 * @return true means current project is installing from client.
 	 * @since 7.46
 	 */
 	public final boolean isInstallingFromClient() {
-		final Object out = ServerUIAPIAgent
-				.getSysAttrInUserThread(ServerUIAPIAgent.KEY_IS_INSTALL_FROM_CLIENT, false);
+		final Object out = ServerUIAPIAgent.getSysAttrInUserThread(ServerUIAPIAgent.KEY_IS_INSTALL_FROM_CLIENT, false);
 		if (out != null && out instanceof Boolean) {
 			return ((Boolean) out).booleanValue();
 		}
@@ -136,12 +133,11 @@ public class ProjectContext {
 	 * it is a suggested value.<BR>
 	 * <BR>
 	 * if <code>minTimes</code> is upper than the default, then do nothing.<BR>
-	 * if <code>minTimes</code> is lower than other project, then new
-	 * <code>minTimes</code> applies to all projects.
+	 * if <code>minTimes</code> is lower than other project, then new <code>minTimes</code> applies
+	 * to all projects.
 	 * 
 	 * @param milliseconds
-	 *            minimum time interval between location updates, in
-	 *            milliseconds
+	 *            minimum time interval between location updates, in milliseconds
 	 * @see #EVENT_SYS_MOBILE_LOCATION
 	 * @see ClientSession#getLocationLongitude()
 	 */
@@ -175,32 +171,26 @@ public class ProjectContext {
 	static final int CLASSLOADER_PROJECT_LEVEL = 3;
 
 	/**
-	 * 1. classloader_system_level is created first, it includes HomeCenter
-	 * runtime/API jars.<br>
-	 * 2. if you added third jar libraries to HomeCenter server in configuration
-	 * panel, then <i>classload_<b>server</b>_level = [third_libs...] +
-	 * classload_<b>system</b>_level</i>; if no third jar is added, then
-	 * <i>classload_<b>server</b>_level ≈ classload_<b>system</b>_level(NOT
+	 * 1. classloader_system_level is created first, it includes HomeCenter runtime/API jars.<br>
+	 * 2. if you added third jar libraries to HomeCenter server in configuration panel, then
+	 * <i>classload_<b>server</b>_level = [third_libs...] + classload_<b>system</b>_level</i>; if no
+	 * third jar is added, then <i>classload_<b>server</b>_level ≈ classload_<b>system</b>_level(NOT
 	 * =)</i>.<br>
-	 * 2.1 user maybe add third jar when HAR is running, then system will stop
-	 * all running HAR, create new instance of classload_server_level, and start
-	 * HAR again.<br>
-	 * 3. jar libraries maybe added to HAR project, before start HAR,
-	 * classloader_project_level is created. <i>classloader_<b>project</b>_level
-	 * = [jar in HAR...] + classload_<b>server</b>_level</i>, if no jar in HAR,
-	 * <i>classloader_<b>project</b>_level ≈ classload_<b>server</b>_level(NOT
-	 * =)</i>.<br>
-	 * 3.1 when add new HAR, or upgrade HAR, all HAR project instance will be
-	 * shutdown, and new classloader_project_level instance will be created
-	 * before start HAR. <br>
+	 * 2.1 user maybe add third jar when HAR is running, then system will stop all running HAR,
+	 * create new instance of classload_server_level, and start HAR again.<br>
+	 * 3. jar libraries maybe added to HAR project, before start HAR, classloader_project_level is
+	 * created. <i>classloader_<b>project</b>_level = [jar in HAR...] +
+	 * classload_<b>server</b>_level</i>, if no jar in HAR, <i>classloader_<b>project</b>_level ≈
+	 * classload_<b>server</b>_level(NOT =)</i>.<br>
+	 * 3.1 when add new HAR, or upgrade HAR, all HAR project instance will be shutdown, and new
+	 * classloader_project_level instance will be created before start HAR. <br>
 	 * <br>
-	 * <b>important</b> : it is also available in Android server (NOT client).
-	 * Jar library in J2SE standard will be converted to dex library
-	 * dynamically, and dex classloader instance will be created.
+	 * <b>important</b> : it is also available in Android server (NOT client). Jar library in J2SE
+	 * standard will be converted to dex library dynamically, and dex classloader instance will be
+	 * created.
 	 * 
 	 * @param level
-	 *            one of {@link #CLASSLOADER_SERVER_LEVEL},
-	 *            {@link #CLASSLOADER_THIRD_LIBS_LEVEL},
+	 *            one of {@link #CLASSLOADER_SERVER_LEVEL}, {@link #CLASSLOADER_THIRD_LIBS_LEVEL},
 	 *            {@link #CLASSLOADER_PROJECT_LEVEL}.
 	 * @return the ClassLoader.
 	 * @deprecated
@@ -223,16 +213,14 @@ public class ProjectContext {
 	/**
 	 * to create or open exists database.<BR>
 	 * <BR>
-	 * the database is stored in directory
-	 * <i>{HC_Home}/user_data/{projectID}/_HC/DB/{dbName}</i>, for more see
-	 * {@link #getPrivateFile(String)} <BR>
+	 * the database is stored in directory <i>{HC_Home}/user_data/{projectID}/_HC/DB/{dbName}</i>,
+	 * for more see {@link #getPrivateFile(String)} <BR>
 	 * <BR>
 	 * <STRONG>Note :</STRONG><BR>
 	 * 1. {@link java.sql.SQLXML} is NOT supported.<BR>
-	 * 2. the default WRITE DELAY property of database is <code>true</code>,
-	 * which is 500 milliseconds. To change it see
-	 * <a href="http://hsqldb.org/doc/guide/guide.html">SET FILES WRITE
-	 * DELAY</a>.<BR>
+	 * 2. the default WRITE DELAY property of database is <code>true</code>, which is 500
+	 * milliseconds. To change it see <a href="http://hsqldb.org/doc/guide/guide.html">SET FILES
+	 * WRITE DELAY</a>.<BR>
 	 * 3. be careful the exception of deadlock when in multiple threads. <BR>
 	 * <BR>
 	 * the latest build-in database server is HSQLDB 2.3.4, user guide is
@@ -247,14 +235,12 @@ public class ProjectContext {
 	 * @see #backup()
 	 * @since 7.50
 	 */
-	public final Connection getDBConnection(final String dbName, final String username,
-			final String password) {
+	public final Connection getDBConnection(final String dbName, final String username, final String password) {
 		return getDBConnection(dbName, username, password, false);
 	}
 
 	/**
-	 * create or open exists database, which stored in files or
-	 * all-in-memory.<BR>
+	 * create or open exists database, which stored in files or all-in-memory.<BR>
 	 * <BR>
 	 * for more, see {@link #getDBConnection(String, String, String)}.
 	 * 
@@ -262,8 +248,8 @@ public class ProjectContext {
 	 * @param username
 	 * @param password
 	 * @param isAllInMem
-	 *            true means stored entirely in RAM, without any persistence
-	 *            beyond the JVM process's life
+	 *            true means stored entirely in RAM, without any persistence beyond the JVM
+	 *            process's life
 	 * @return null means database error occurs.
 	 * @see #getDBConnection(String, String, String)
 	 * @see #getDBConnection(String, String, String, boolean, Properties)
@@ -271,8 +257,7 @@ public class ProjectContext {
 	 * @see #removeDB(String)
 	 * @since 7.50
 	 */
-	public final Connection getDBConnection(final String dbName, final String username,
-			final String password, final boolean isAllInMem) {
+	public final Connection getDBConnection(final String dbName, final String username, final String password, final boolean isAllInMem) {
 		return getDBConnection(dbName, username, password, isAllInMem, buildDBProp());
 	}
 
@@ -285,8 +270,7 @@ public class ProjectContext {
 	private final Object lockForGetDBConn = new Object();
 
 	/**
-	 * create or open exists database, which stored in files or
-	 * all-in-memory.<BR>
+	 * create or open exists database, which stored in files or all-in-memory.<BR>
 	 * <BR>
 	 * for more, see {@link #getDBConnection(String, String, String)}.
 	 * 
@@ -295,8 +279,7 @@ public class ProjectContext {
 	 * @param password
 	 * @param isAllInMem
 	 * @param props
-	 *            list of arbitrary string tag/value pairs as connection
-	 *            arguments
+	 *            list of arbitrary string tag/value pairs as connection arguments
 	 * @return null means database error occurs.
 	 * @see #getDBConnection(String, String, String)
 	 * @see #getDBConnection(String, String, String, boolean)
@@ -304,8 +287,8 @@ public class ProjectContext {
 	 * @see #removeDB(String)
 	 * @since 7.50
 	 */
-	public final Connection getDBConnection(final String dbName, final String username,
-			final String password, final boolean isAllInMem, final Properties props) {
+	public final Connection getDBConnection(final String dbName, final String username, final String password, final boolean isAllInMem,
+			final Properties props) {
 		try {
 			synchronized (lockForGetDBConn) {
 				final String url;
@@ -335,16 +318,13 @@ public class ProjectContext {
 	}
 
 	private final boolean compackDB(final Connection connection, final String domainName) {
-		if (System.currentTimeMillis()
-				- getLastCompactMS(domainName) > projDesignConfig.compactDayMS) {// 低频率能增强数据库安全
+		if (System.currentTimeMillis() - getLastCompactMS(domainName) > projDesignConfig.compactDayMS) {// 低频率能增强数据库安全
 			try {
-				LogManager.log(
-						"compacting database : " + domainName + " in project [" + projectID + "].");
+				LogManager.log("compacting database : " + domainName + " in project [" + projectID + "].");
 				final Statement state = connection.createStatement();
 				state.execute(ResourceUtil.SHUTDOWN_COMPACT);
 				state.close();
-				LogManager.log("done compacting database : " + domainName + " in project ["
-						+ projectID + "].");
+				LogManager.log("done compacting database : " + domainName + " in project [" + projectID + "].");
 			} catch (final Exception e) {
 				ExceptionReporter.printStackTrace(e);
 			}
@@ -392,8 +372,7 @@ public class ProjectContext {
 	}
 
 	private final File buildDBBaseDir(final String dbName) {
-		return getPrivateFile(StoreDirManager.HC_SYS_FOR_USER_PRIVATE_DIR
-				+ StoreDirManager.DB_SUB_DIR_FOR_USER_PRIVATE_DIR + dbName + "/");
+		return getPrivateFile(StoreDirManager.HC_SYS_FOR_USER_PRIVATE_DIR + StoreDirManager.DB_SUB_DIR_FOR_USER_PRIVATE_DIR + dbName + "/");
 	}
 
 	/**
@@ -403,8 +382,8 @@ public class ProjectContext {
 	 * <BR>
 	 * <STRONG>Tip</STRONG> :<BR>
 	 * 1. server will compact each databases after six months (182 days).<BR>
-	 * 2. to change frequency, see <STRONG>[Compact DB Days]</STRONG> of project
-	 * node in designer.<BR>
+	 * 2. to change frequency, see <STRONG>[Compact DB Days]</STRONG> of project node in
+	 * designer.<BR>
 	 * 
 	 * @param connection
 	 * @since 7.72
@@ -417,14 +396,12 @@ public class ProjectContext {
 	/**
 	 * close a working database with compact or not.<BR>
 	 * <BR>
-	 * <STRONG>deprecated</STRONG>, replaced by
-	 * {@link #closeDB(Connection)}.<BR>
+	 * <STRONG>deprecated</STRONG>, replaced by {@link #closeDB(Connection)}.<BR>
 	 * <BR>
 	 * <STRONG>Tip</STRONG> :<BR>
 	 * 1. server will compact each databases after six months.<BR>
-	 * 2. if you need compact it more frequent, please do it in
-	 * {@link #EVENT_SYS_PROJ_STARTUP}, NOT in
-	 * {@link #EVENT_SYS_PROJ_SHUTDOWN}.<BR>
+	 * 2. if you need compact it more frequent, please do it in {@link #EVENT_SYS_PROJ_STARTUP}, NOT
+	 * in {@link #EVENT_SYS_PROJ_SHUTDOWN}.<BR>
 	 * 
 	 * @param connection
 	 * @param isCompactAlso
@@ -446,8 +423,8 @@ public class ProjectContext {
 	 * to close a working database, invoke {@link #closeDB(Connection)}.
 	 * 
 	 * @param dbName
-	 * @return true means all sub directories and files are deleted, false means
-	 *         some file may be using and not removed.
+	 * @return true means all sub directories and files are deleted, false means some file may be
+	 *         using and not removed.
 	 * @see #getDBConnection(String, String, String)
 	 * @since 7.50
 	 */
@@ -463,12 +440,10 @@ public class ProjectContext {
 	/**
 	 * create or open exists project/session level job scheduler. <BR>
 	 * <BR>
-	 * if current thread is session level, then return a session level
-	 * scheduler.<BR>
-	 * if current thread is project level, then return a project level
-	 * scheduler.<BR>
-	 * for session level scheduler, same <code>domain</code> in difference
-	 * session means difference scheduler. <BR>
+	 * if current thread is session level, then return a session level scheduler.<BR>
+	 * if current thread is project level, then return a project level scheduler.<BR>
+	 * for session level scheduler, same <code>domain</code> in difference session means difference
+	 * scheduler. <BR>
 	 * <BR>
 	 * usage of schedule (JRuby) :
 	 * 
@@ -497,25 +472,20 @@ public class ProjectContext {
 	 * </pre>
 	 * 
 	 * <STRONG>Tip :</STRONG><BR>
-	 * session level scheduler will be shutdown by server after session is
-	 * logout/lineoff.<BR>
-	 * project level scheduler will be shutdown by server after shutdown
-	 * project. <BR>
+	 * session level scheduler will be shutdown by server after session is logout/lineoff.<BR>
+	 * project level scheduler will be shutdown by server after shutdown project. <BR>
 	 * <BR>
 	 * <STRONG>one scheduler or multiple?</STRONG><BR>
-	 * 1. please add multiple jobs, calendars and triggers in one scheduler,
-	 * <BR>
+	 * 1. please add multiple jobs, calendars and triggers in one scheduler, <BR>
 	 * 2. start, standby, clear, and shutdown a scheduler, <BR>
-	 * 3. to stop/clear some triggers, not others, then you should create
-	 * multiple schedulers.<BR>
+	 * 3. to stop/clear some triggers, not others, then you should create multiple schedulers.<BR>
 	 * <BR>
 	 * current job scheduler is based on Quartz 2.2.3<BR>
 	 * 
 	 * @param domain
 	 *            each domain is stored in different database.
-	 * @return if a scheduler is shutdown and invoke this method with the same
-	 *         <code>domain</code>, then a new instance scheduler will be
-	 *         created, otherwise the same instance returned.
+	 * @return if a scheduler is shutdown and invoke this method with the same <code>domain</code>,
+	 *         then a new instance scheduler will be created, otherwise the same instance returned.
 	 * @see #getScheduler(String, boolean)
 	 * @see #getScheduler(String, boolean, boolean)
 	 * @see #backup()
@@ -550,8 +520,7 @@ public class ProjectContext {
 			try {
 				final Scheduler scheduler = schedulerMapForProjAndSess.remove(domain);
 				if (scheduler != null) {// session级已shutdown，但仍在J2SESession中保留domain
-					LogManager.log("shutdown scheduler [" + domain
-							+ "] (session level format [sessionID_domain]) in project [" + projectID
+					LogManager.log("shutdown scheduler [" + domain + "] (session level format [sessionID_domain]) in project [" + projectID
 							+ "].");
 					scheduler.shutdown(true);
 				}
@@ -575,20 +544,16 @@ public class ProjectContext {
 	/**
 	 * create or open exists project/session level job scheduler. <BR>
 	 * <BR>
-	 * if current thread is session level, then return a session level
+	 * if current thread is session level, then return a session level scheduler.<BR>
+	 * if current thread is project level, then return a project level scheduler.<BR>
+	 * for session level scheduler, same <code>domain</code> in difference session means difference
 	 * scheduler.<BR>
-	 * if current thread is project level, then return a project level
-	 * scheduler.<BR>
-	 * for session level scheduler, same <code>domain</code> in difference
-	 * session means difference scheduler.<BR>
-	 * session level scheduler is all in RAM, even though pass
-	 * <code>isAllInRAM</code> with false. <BR>
+	 * session level scheduler is all in RAM, even though pass <code>isAllInRAM</code> with false.
+	 * <BR>
 	 * <BR>
 	 * <STRONG>Tip :</STRONG><BR>
-	 * session level scheduler will be shutdown by server after session is
-	 * logout/lineoff.<BR>
-	 * project level scheduler will be shutdown by server after shutdown
-	 * project.<BR>
+	 * session level scheduler will be shutdown by server after session is logout/lineoff.<BR>
+	 * project level scheduler will be shutdown by server after shutdown project.<BR>
 	 * 
 	 * @param domain
 	 * @param isAllInRAM
@@ -603,8 +568,7 @@ public class ProjectContext {
 			return getScheduler(domain, isAllInRAM, null);
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			return getScheduler(domain, isAllInRAM, null);
@@ -616,41 +580,35 @@ public class ProjectContext {
 	/**
 	 * create or open exists project/session level job scheduler. <BR>
 	 * <BR>
-	 * for session level scheduler, same <code>domain</code> in difference
-	 * session means difference scheduler.<BR>
-	 * session level scheduler is all in RAM, even though pass
-	 * <code>isAllInRAM</code> with false. <BR>
+	 * for session level scheduler, same <code>domain</code> in difference session means difference
+	 * scheduler.<BR>
+	 * session level scheduler is all in RAM, even though pass <code>isAllInRAM</code> with false.
+	 * <BR>
 	 * <BR>
 	 * <STRONG>Tip :</STRONG><BR>
-	 * session level scheduler will be shutdown by server after session is
-	 * logout/lineoff.<BR>
-	 * project level scheduler will be shutdown by server after shutdown
-	 * project.<BR>
+	 * session level scheduler will be shutdown by server after session is logout/lineoff.<BR>
+	 * project level scheduler will be shutdown by server after shutdown project.<BR>
 	 * 
 	 * @param domain
 	 * @param isAllInRAM
 	 *            true means all in RAM, false means stored in database.
 	 * @param isSessionScheduler
 	 *            true means create or get a session level scheduler. <BR>
-	 * 			if current thread is project level, and
-	 *            <code>isSessionScheduler</code> is true, then return null.
-	 *            <BR>
-	 * 			if current thread is session level, and
-	 *            <code>isSessionScheduler</code> is false, then return a
-	 *            project level.
-	 * @return null means current thread is project level, but
-	 *         <code>isSessionScheduler</code> is true.
+	 *            if current thread is project level, and <code>isSessionScheduler</code> is true,
+	 *            then return null. <BR>
+	 *            if current thread is session level, and <code>isSessionScheduler</code> is false,
+	 *            then return a project level.
+	 * @return null means current thread is project level, but <code>isSessionScheduler</code> is
+	 *         true.
 	 * @see #getScheduler(String)
 	 */
-	public final Scheduler getScheduler(final String domain, final boolean isAllInRAM,
-			final boolean isSessionScheduler) {
+	public final Scheduler getScheduler(final String domain, final boolean isAllInRAM, final boolean isSessionScheduler) {
 		if (isSessionScheduler) {
 			if (__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)) {
 				return null;
 			}
 
-			final SessionContext sessionContext = __projResponserMaybeNull
-					.getSessionContextFromCurrThread();
+			final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 			J2SESession coreSS;
 			if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 				return null;
@@ -670,8 +628,7 @@ public class ProjectContext {
 	 *            null means for project level
 	 * @return
 	 */
-	private final Scheduler getScheduler(String domain, boolean isAllInRAM,
-			final J2SESession j2seSession) {
+	private final Scheduler getScheduler(String domain, boolean isAllInRAM, final J2SESession j2seSession) {
 		synchronized (lockForScheduler) {
 			if (schedulerMapForProjAndSess == null) {
 				schedulerMapForProjAndSess = new Hashtable<String, Scheduler>(4);
@@ -679,8 +636,7 @@ public class ProjectContext {
 			if (j2seSession != null) {
 				if (isAllInRAM == false) {
 					isAllInRAM = true;
-					LogManager.warn("all in RAM is required for session level scheduler [" + domain
-							+ "], force set isAllInRAM to TRUE.");
+					LogManager.warn("all in RAM is required for session level scheduler [" + domain + "], force set isAllInRAM to TRUE.");
 				}
 
 				domain += "_for_session_" + j2seSession.getSessionID();
@@ -708,17 +664,15 @@ public class ProjectContext {
 	private final Hashtable<String, Object> att_map = new Hashtable<String, Object>();
 	private final ProjClassLoaderFinder finder;
 
-	private static final Thread eventDispatchThread = HCLimitSecurityManager
-			.getEventDispatchThread();
+	private static final Thread eventDispatchThread = HCLimitSecurityManager.getEventDispatchThread();
 	private static final HCEventQueue hcEventQueue = HCLimitSecurityManager.getHCEventQueue();
 
 	/**
 	 * @deprecated
 	 */
 	@Deprecated
-	ProjectContext(final String id, final String ver, final RecycleRes recycleRes,
-			final ProjResponser projResponser, final ProjClassLoaderFinder finder,
-			final String dbPassword) {// 为了不在代码提示中出来，请使用ServerUIUtil.buildProjectContext
+	ProjectContext(final String id, final String ver, final RecycleRes recycleRes, final ProjResponser projResponser,
+			final ProjClassLoaderFinder finder, final String dbPassword) {// 为了不在代码提示中出来，请使用ServerUIUtil.buildProjectContext
 		projectID = id;
 		projectVer = ver;
 		isLoggerOn = ServerUIAPIAgent.isLoggerOn();
@@ -729,8 +683,7 @@ public class ProjectContext {
 		proj_prop_map = new PropertiesMap(PropertiesManager.p_PROJ_RECORD + getProjectID());
 		ppm = new ProjectPropertiesManager(proj_prop_map, this, projectID);
 		if (dbPassword == ServerUIAPIAgent.CRATE_DB_PASSWORD) {
-			String dbPwd = ServerUIAPIAgent.getHCSysProperties(this,
-					ServerUIAPIAgent.PROJ_DB_PASSWORD);
+			String dbPwd = ServerUIAPIAgent.getHCSysProperties(this, ServerUIAPIAgent.PROJ_DB_PASSWORD);
 			if (dbPwd == null) {
 				dbPwd = ResourceUtil.buildUUID();
 				ServerUIAPIAgent.setHCSysProperties(this, ServerUIAPIAgent.PROJ_DB_PASSWORD, dbPwd);
@@ -743,12 +696,12 @@ public class ProjectContext {
 	}
 
 	/**
-	 * register/substitute a assistant, when a {@link VoiceCommand} is coming,
-	 * it will be dispatched to {@link Assistant#onVoice(VoiceCommand)}. <BR>
+	 * register/substitute a assistant, when a {@link VoiceCommand} is coming, it will be dispatched
+	 * to {@link Assistant#onVoice(VoiceCommand)}. <BR>
 	 * <BR>
-	 * it is not required to register assistant for project, if a voice command
-	 * is too complex to process, maybe server will do it for you, but it will
-	 * take a long time for the machine to learn.
+	 * it is not required to register assistant for project, if a voice command is too complex to
+	 * process, maybe server will do it for you, but it will take a long time for the machine to
+	 * learn.
 	 * 
 	 * @param assistant
 	 *            null means deregister a assistant.
@@ -757,7 +710,7 @@ public class ProjectContext {
 	public final void registerAssistant(final Assistant assistant) {
 		if (this.assistant != null) {
 			LogManager.warning("override assistant in project [" + projectID + "].");
-		}else{
+		} else {
 			LogManager.log("register assistant in project [" + projectID + "].");
 		}
 		this.assistant = assistant;
@@ -774,8 +727,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * return the version of JRE of standard JVM of Oracle or implementation of
-	 * AWT/Swing for Android server.
+	 * return the version of JRE of standard JVM of Oracle or implementation of AWT/Swing for
+	 * Android server.
 	 * 
 	 * @return
 	 * @since 7.5
@@ -792,7 +745,24 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final void error(final String logMessage) {
-		LogManager.errToLog(logMessage);
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		sb.append("[");
+		sb.append(projectID);
+		sb.append("]");
+		sb.append(' ');
+		sb.append(logMessage);
+
+		final String errMsg = sb.toString();
+		if(ideConsoleWriter == null) {
+			LogManager.errToLog(errMsg);
+		}else {
+			final char[] chars = LogManager.addTime(errMsg, true).toCharArray();
+			try {
+				ideConsoleWriter.writeError(chars, 0, chars.length);
+			} catch (final IOException e) {
+			}
+		}
+		StringBuilderCacher.cycle(sb);
 	}
 
 	/**
@@ -801,8 +771,7 @@ public class ProjectContext {
 	 * @return
 	 */
 	private final MobiMenu getMobiMenu() {
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -823,14 +792,11 @@ public class ProjectContext {
 	 * <STRONG>Warning</STRONG> : in project level it will do nothing.
 	 * 
 	 * @param scheme
-	 *            one of {@link MenuItem#CMD_SCHEME},
-	 *            {@link MenuItem#CONTROLLER_SCHEME},
-	 *            {@link MenuItem#FORM_SCHEME} or
-	 *            {@link MenuItem#SCREEN_SCHEME}.
+	 *            one of {@link MenuItem#CMD_SCHEME}, {@link MenuItem#CONTROLLER_SCHEME},
+	 *            {@link MenuItem#FORM_SCHEME} or {@link MenuItem#SCREEN_SCHEME}.
 	 * @param locator
-	 *            for example, run scripts of menu item "cmd://myCommand", the
-	 *            scheme is {@linkplain MenuItem#CMD_SCHEME}, and locator is
-	 *            "myCommand",
+	 *            for example, run scripts of menu item "cmd://myCommand", the scheme is
+	 *            {@linkplain MenuItem#CMD_SCHEME}, and locator is "myCommand",
 	 * @see #goWhenInSession(String)
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.30
@@ -842,8 +808,7 @@ public class ProjectContext {
 
 	/**
 	 * Jump mobile to following targets:<BR>
-	 * 1. <i>{@link Mlet#URL_SCREEN}</i> : enter the desktop screen of server
-	 * from mobile, <BR>
+	 * 1. <i>{@link Mlet#URL_SCREEN}</i> : enter the desktop screen of server from mobile, <BR>
 	 * 2. <i>form://myMlet</i> : open and show a form, <BR>
 	 * 3. <i>controller://myctrl</i> : open and show a controller, <BR>
 	 * 4. <i>cmd://myCmd</i> : run script commands only, <BR>
@@ -878,8 +843,7 @@ public class ProjectContext {
 			return;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			errWhenInSession("goWhenInSession");
@@ -898,8 +862,8 @@ public class ProjectContext {
 	 * open/go to external URL in client application. <BR>
 	 * <BR>
 	 * <STRONG>Important : </STRONG> <BR>
-	 * socket/connect permissions is required even if the domain of external URL
-	 * is the same with the domain of upgrade HAR project URL. <BR>
+	 * socket/connect permissions is required even if the domain of external URL is the same with
+	 * the domain of upgrade HAR project URL. <BR>
 	 * <BR>
 	 * More about back :<BR>
 	 * 1. there is always a float button for back. 2.
@@ -924,28 +888,25 @@ public class ProjectContext {
 	/**
 	 * <STRONG>Warning</STRONG> : when in project level it will do nothing. <BR>
 	 * <BR>
-	 * <STRONG>deprecated</STRONG>, replaced by
-	 * {@link #goExternalURLWhenInSession(String)}. <BR>
+	 * <STRONG>deprecated</STRONG>, replaced by {@link #goExternalURLWhenInSession(String)}. <BR>
 	 * <BR>
 	 * go to external URL in system web browser or client application. <BR>
 	 * <BR>
 	 * <STRONG>Important : </STRONG> <BR>
-	 * socket/connect permissions is required even if the domain of external URL
-	 * is the same with the domain of upgrade HAR project URL. <BR>
+	 * socket/connect permissions is required even if the domain of external URL is the same with
+	 * the domain of upgrade HAR project URL. <BR>
 	 * <BR>
 	 * <STRONG>Warning : </STRONG> <BR>
 	 * 1. the external URL may be sniffed when in moving (exclude HTTPS). <BR>
 	 * 2. iOS 9 and above must use secure URLs. <BR>
-	 * 3. In iOS (not Android), when go external URL and
-	 * <code>isUseExtBrowser</code> is true, the application will be turn into
-	 * background and released after seconds. In future, it maybe keep alive in
-	 * background.
+	 * 3. In iOS (not Android), when go external URL and <code>isUseExtBrowser</code> is true, the
+	 * application will be turn into background and released after seconds. In future, it maybe keep
+	 * alive in background.
 	 * 
 	 * @param url
 	 * @param isUseExtBrowser
-	 *            true : use system web browser to open URL; false : the URL
-	 *            will be opened in client application and still keep
-	 *            foreground.
+	 *            true : use system web browser to open URL; false : the URL will be opened in
+	 *            client application and still keep foreground.
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.30
 	 */
@@ -956,8 +917,7 @@ public class ProjectContext {
 			return;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			errWhenInSession("goExternalURLWhenInSession");
@@ -973,20 +933,20 @@ public class ProjectContext {
 	/**
 	 * <STRONG>Warning</STRONG> : when in project level it will do nothing. <BR>
 	 * <BR>
-	 * go and open a <code>Mlet</code> or <code>HTMLMlet</code> (which is
-	 * probably created by {@link ProjectContext#eval(String)}). <BR>
+	 * go and open a <code>Mlet</code> or <code>HTMLMlet</code> (which is probably created by
+	 * {@link ProjectContext#eval(String)}). <BR>
 	 * <BR>
 	 * the target of <i>toMlet</i> will be set as <i>targetOfMlet</i>.<BR>
 	 * <BR>
 	 * <STRONG>Important : </STRONG> <BR>
-	 * if the same name <i>target</i> or <i>form://target</i> is opened, then it
-	 * will be brought to top. <BR>
+	 * if the same name <i>target</i> or <i>form://target</i> is opened, then it will be brought to
+	 * top. <BR>
 	 * for more, see {@link #goWhenInSession(String, String)}.
 	 * 
 	 * @param toMlet
 	 * @param targetOfMlet
-	 *            target of <code>Mlet</code>. The prefix <i>form://</i> is
-	 *            <STRONG>NOT</STRONG> required.
+	 *            target of <code>Mlet</code>. The prefix <i>form://</i> is <STRONG>NOT</STRONG>
+	 *            required.
 	 * @see ProjectContext#eval(String)
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @see #goWhenInSession(String, String)
@@ -998,8 +958,7 @@ public class ProjectContext {
 			return;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			errWhenInSession("goMletWhenInSession");
@@ -1014,8 +973,7 @@ public class ProjectContext {
 	}
 
 	private final void errWhenInSession(final String method) {
-		LogManager.errToLog("[" + method + "] in project [" + projectID
-				+ "] must be invoked in session level.");
+		LogManager.errToLog("[" + method + "] in project [" + projectID + "] must be invoked in session level.");
 	}
 
 	/**
@@ -1024,13 +982,13 @@ public class ProjectContext {
 	 * if in project level, add item to list of project level.<BR>
 	 * if in session level, add item to list of session level. <BR>
 	 * <BR>
-	 * a menu presented on the mobile client is composed of menu items of
-	 * project level (priority) and session level. <BR>
+	 * a menu presented on the mobile client is composed of menu items of project level (priority)
+	 * and session level. <BR>
 	 * the menu items of session level will gone after line-off / logout. <BR>
 	 * <BR>
 	 * <STRONG>Important :</STRONG><BR>
-	 * the scripts of menu item works in session level, no matter which is added
-	 * to list of project level or session level. <BR>
+	 * the scripts of menu item works in session level, no matter which is added to list of project
+	 * level or session level. <BR>
 	 * <BR>
 	 * it is thread safe.
 	 * 
@@ -1063,20 +1021,18 @@ public class ProjectContext {
 	}
 
 	/**
-	 * inserts the menu item at a given <code>position</code> into project list.
-	 * <BR>
+	 * inserts the menu item at a given <code>position</code> into project list. <BR>
 	 * <BR>
 	 * <STRONG>Important :</STRONG><BR>
-	 * the scripts of menu item works in session level, no matter which is added
-	 * to list of project level or session level. <BR>
+	 * the scripts of menu item works in session level, no matter which is added to list of project
+	 * level or session level. <BR>
 	 * <BR>
 	 * it is thread safe.
 	 * 
 	 * @param item
 	 *            the <code>item</code> to add
 	 * @param position
-	 *            the <code>position</code> at which to add the new
-	 *            <code>item</code>
+	 *            the <code>position</code> at which to add the new <code>item</code>
 	 * @return true means insert successfully, false means index out of bounds.
 	 * @see #addMenuItem(MenuItem)
 	 * @see #getMenuItemFromProjectLevel(int)
@@ -1089,8 +1045,7 @@ public class ProjectContext {
 			return SimuMobile.MOBILE_SUCC_INSERT;
 		}
 
-		return __projResponserMaybeNull.jarMainMenu.projectMenu.insertModifiableItem(item,
-				position);
+		return __projResponserMaybeNull.jarMainMenu.projectMenu.insertModifiableItem(item, position);
 	}
 
 	/**
@@ -1118,18 +1073,16 @@ public class ProjectContext {
 	}
 
 	/**
-	 * inserts the menu item at a given <code>position</code> into session list.
-	 * <BR>
+	 * inserts the menu item at a given <code>position</code> into session list. <BR>
 	 * <BR>
 	 * it is thread safe.
 	 * 
 	 * @param item
 	 *            the <code>item</code> to add
 	 * @param position
-	 *            the <code>position</code> at which to add the new
-	 *            <code>item</code>
-	 * @return true means insert successfully, false means index out of bounds
-	 *         or current thread is in project level.
+	 *            the <code>position</code> at which to add the new <code>item</code>
+	 * @return true means insert successfully, false means index out of bounds or current thread is
+	 *         in project level.
 	 * @see #addMenuItem(MenuItem)
 	 * @see #getMenuItemFromSessionLevel(int)
 	 * @see #getMenuItemBy(String, String)
@@ -1141,8 +1094,7 @@ public class ProjectContext {
 			return SimuMobile.MOBILE_SUCC_INSERT;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -1185,13 +1137,11 @@ public class ProjectContext {
 	 * <BR>
 	 * it is thread safe. <BR>
 	 * <BR>
-	 * the menu items added possibly by system (for example, add QR) are
-	 * excluded.
+	 * the menu items added possibly by system (for example, add QR) are excluded.
 	 * 
 	 * @param position
 	 *            the position of the item to be retrieved.
-	 * @return menu item at the specified position, or null if index out of
-	 *         bounds.
+	 * @return menu item at the specified position, or null if index out of bounds.
 	 * @see #getMenuItemBy(String, String)
 	 * @see #getMenuItemFromSessionLevel(int)
 	 * @see #isCurrentThreadInSessionLevel()
@@ -1210,13 +1160,12 @@ public class ProjectContext {
 	 * <BR>
 	 * it is thread safe. <BR>
 	 * <BR>
-	 * the menu items added possibly by system (for example, add QR) are
-	 * excluded.
+	 * the menu items added possibly by system (for example, add QR) are excluded.
 	 * 
 	 * @param position
 	 *            the position of the item to be retrieved.
-	 * @return menu item at the specified position, or null if index out of
-	 *         bounds or current thread is in project level.
+	 * @return menu item at the specified position, or null if index out of bounds or current thread
+	 *         is in project level.
 	 * @see #getMenuItemBy(String, String)
 	 * @see #getMenuItemFromProjectLevel(int)
 	 * @see #isCurrentThreadInSessionLevel()
@@ -1227,8 +1176,7 @@ public class ProjectContext {
 			return SimuMobile.MOBILE_MENU_ITEM;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -1246,8 +1194,7 @@ public class ProjectContext {
 	 * <BR>
 	 * it is thread safe. <BR>
 	 * <BR>
-	 * the menu items added possibly by system (for example, add QR) are
-	 * excluded.
+	 * the menu items added possibly by system (for example, add QR) are excluded.
 	 * 
 	 * @param position
 	 *            the position of the item to be removed.
@@ -1269,13 +1216,12 @@ public class ProjectContext {
 	 * <BR>
 	 * it is thread safe. <BR>
 	 * <BR>
-	 * the menu items added possibly by system (for example, add QR) are
-	 * excluded.
+	 * the menu items added possibly by system (for example, add QR) are excluded.
 	 * 
 	 * @param position
 	 *            the position of the item to be removed.
-	 * @return element that was removed, or null if index out of bounds or
-	 *         current thread is in project level.
+	 * @return element that was removed, or null if index out of bounds or current thread is in
+	 *         project level.
 	 * @see #getMenuItemsSizeOfSessionLevel()
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.20
@@ -1285,8 +1231,7 @@ public class ProjectContext {
 			return SimuMobile.MOBILE_MENU_ITEM;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -1327,18 +1272,15 @@ public class ProjectContext {
 
 	/**
 	 * for example, to get menu item "cmd://myCommand", <BR>
-	 * the scheme is "{@link MenuItem#CMD_SCHEME}", and element ID is
-	 * "myCommand", <BR>
+	 * the scheme is "{@link MenuItem#CMD_SCHEME}", and element ID is "myCommand", <BR>
 	 * <BR>
 	 * if in project level, search item from list of project level.<BR>
-	 * if in session level, search item from total list of project level and
-	 * session level. <BR>
+	 * if in session level, search item from total list of project level and session level. <BR>
 	 * <BR>
 	 * it is thread safe.
 	 * 
 	 * @param scheme
-	 *            one of {@link MenuItem#CMD_SCHEME},
-	 *            {@link MenuItem#CONTROLLER_SCHEME},
+	 *            one of {@link MenuItem#CMD_SCHEME}, {@link MenuItem#CONTROLLER_SCHEME},
 	 *            {@link MenuItem#FORM_SCHEME}, {@link MenuItem#SCREEN_SCHEME}.
 	 * @param elementID
 	 * @return null means not found.
@@ -1371,8 +1313,7 @@ public class ProjectContext {
 	 * <BR>
 	 * it is thread safe. <BR>
 	 * <BR>
-	 * the menu items added possibly by system (for example, add QR) are
-	 * excluded.
+	 * the menu items added possibly by system (for example, add QR) are excluded.
 	 * 
 	 * @return
 	 * @see #getMenuItemsSizeOfSessionLevel()
@@ -1396,8 +1337,7 @@ public class ProjectContext {
 	 * <BR>
 	 * the menu items added by system possibly are excluded.
 	 * 
-	 * @return -1 means if current thread in project level, or the size of
-	 *         session level.
+	 * @return -1 means if current thread in project level, or the size of session level.
 	 * @see #getMenuItemsSizeOfProjectLevel()
 	 * @see #insertMenuItemToProjectLevel(MenuItem, int)
 	 * @see #insertMenuItemToSessionLevel(MenuItem, int)
@@ -1409,8 +1349,7 @@ public class ProjectContext {
 			return SimuMobile.MOBILE_MENU_ITEMS_SIZE;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -1426,31 +1365,28 @@ public class ProjectContext {
 	}
 
 	/**
-	 * show a dialog for input on this server, <STRONG>NOT</STRONG> on client.
+	 * show a dialog for input on this server, <STRONG>NOT</STRONG> on client. <BR>
+	 * if user is installing (scan QR code) current project from client, then the dialog is shown on
+	 * client. <BR>
 	 * <BR>
-	 * if user is installing (scan QR code) current project from client, then
-	 * the dialog is shown on client. <BR>
-	 * <BR>
-	 * you can also send custom {@link Dialog} when is installing HAR from
-	 * client, see {@link #isInstallingFromClient()}. <BR>
+	 * you can also send custom {@link Dialog} when is installing HAR from client, see
+	 * {@link #isInstallingFromClient()}. <BR>
 	 * <BR>
 	 * this method is mainly used in the following scenarios :<BR>
-	 * for example, in order to connect device, user may be required to input
-	 * token of devices.
+	 * for example, in order to connect device, user may be required to input token of devices.
 	 * 
 	 * @param title
 	 *            the title of input dialog
 	 * @param fieldNames
 	 *            the name of each field.
 	 * @param fieldDescs
-	 *            the description of the each field. The HTML tags, such as
-	 *            &lt;STRONG&gt; and &lt;BR&gt;, are supported.
+	 *            the description of the each field. The HTML tags, such as &lt;STRONG&gt; and
+	 *            &lt;BR&gt;, are supported.
 	 * @return the input values of each fields.
 	 * @since 7.0
 	 * @see #sendDialogWhenInSession(Dialog)
 	 */
-	public static final String[] showInputDialog(final String title, final String[] fieldNames,
-			final String[] fieldDescs) {
+	public static final String[] showInputDialog(final String title, final String[] fieldNames, final String[] fieldDescs) {
 		checkHARInput(fieldNames, fieldDescs);
 
 		final ProjectContext ctx = ProjectContext.getProjectContext();
@@ -1479,8 +1415,7 @@ public class ProjectContext {
 		}
 	}
 
-	private static void checkHARInput(final String[] fieldName, final String[] fieldDesc)
-			throws Error {
+	private static void checkHARInput(final String[] fieldName, final String[] fieldDesc) throws Error {
 		if (fieldName == null || searchNull(fieldName)) {
 			throw new Error("fieldName is null or null member");
 		}
@@ -1513,11 +1448,10 @@ public class ProjectContext {
 	}
 
 	/**
-	 * pop up an information message dialog on this server, <STRONG>NOT</STRONG>
-	 * on client. <BR>
+	 * pop up an information message dialog on this server, <STRONG>NOT</STRONG> on client. <BR>
 	 * <BR>
-	 * if the <code>message</code> is displaying and not closed, then it will
-	 * NOT be showed twice at same time. <br>
+	 * if the <code>message</code> is displaying and not closed, then it will NOT be showed twice at
+	 * same time. <br>
 	 * <br>
 	 * <STRONG>Important : </STRONG><BR>
 	 * the current thread will NOT be blocked.
@@ -1531,11 +1465,10 @@ public class ProjectContext {
 	}
 
 	/**
-	 * pop up a dialog to display a message on this server, <STRONG>NOT</STRONG>
-	 * on client. <BR>
+	 * pop up a dialog to display a message on this server, <STRONG>NOT</STRONG> on client. <BR>
 	 * <BR>
-	 * if the <code>message</code> is displaying and not closed, then it will
-	 * NOT be showed twice at same time. <br>
+	 * if the <code>message</code> is displaying and not closed, then it will NOT be showed twice at
+	 * same time. <br>
 	 * <br>
 	 * <STRONG>Important : </STRONG><BR>
 	 * the current thread will NOT be blocked.
@@ -1553,17 +1486,15 @@ public class ProjectContext {
 	 *            <code>{@link JOptionPane#PLAIN_MESSAGE}</code>
 	 * @since 7.0
 	 */
-	public static final void showMessageDialog(final String message, final String title,
-			final int messageType) {
+	public static final void showMessageDialog(final String message, final String title, final int messageType) {
 		showMessageDialog(message, title, messageType, null);
 	}
 
 	/**
-	 * pop up a dialog to display a message on this server, <STRONG>NOT</STRONG>
-	 * on client. <BR>
+	 * pop up a dialog to display a message on this server, <STRONG>NOT</STRONG> on client. <BR>
 	 * <BR>
-	 * if the <code>message</code> is displaying and not closed, then it will
-	 * NOT be showed twice at same time. <br>
+	 * if the <code>message</code> is displaying and not closed, then it will NOT be showed twice at
+	 * same time. <br>
 	 * <br>
 	 * <STRONG>Important : </STRONG><BR>
 	 * the current thread will NOT be blocked.
@@ -1583,8 +1514,7 @@ public class ProjectContext {
 	 *            the icon of message. null for no icon.
 	 * @since 7.0
 	 */
-	public final static void showMessageDialog(final String message, final String title,
-			final int messageType, final Icon icon) {
+	public final static void showMessageDialog(final String message, final String title, final int messageType, final Icon icon) {
 		App.showHARMessageDialog(message, appendProjectIDForTitle(title), messageType, icon);
 	}
 
@@ -1593,10 +1523,8 @@ public class ProjectContext {
 	 * <BR>
 	 * <STRONG>Important</STRONG> : <BR>
 	 * it is a wrapper of robot, not the instance created by your scripts.<BR>
-	 * it means that your methods not extend from Robot will NOT be accessed
-	 * from here.<BR>
-	 * because robot may be driven by intelligent assistant, for example voice
-	 * command.
+	 * it means that your methods not extend from Robot will NOT be accessed from here.<BR>
+	 * because robot may be driven by intelligent assistant, for example voice command.
 	 * 
 	 * @param name
 	 *            the name of robot.
@@ -1612,25 +1540,21 @@ public class ProjectContext {
 	}
 
 	/**
-	 * run a shell of JRuby script, and return a object if with
-	 * <code>return</code> command. <BR>
+	 * run a shell of JRuby script, and return a object if with <code>return</code> command. <BR>
 	 * <BR>
-	 * for example, a scripts with four lines, (<STRONG>'\n'</STRONG> is
-	 * required for each line at end) : <BR>
+	 * for example, a scripts with four lines, (<STRONG>'\n'</STRONG> is required for each line at
+	 * end) : <BR>
 	 * <BR>
-	 * <i> <code>t = 100<BR> i = 2 + t<BR>puts i<BR> return i # 102<BR></code>
-	 * </i> <BR>
-	 * it is recommended that set variable in
-	 * {@link #setAttribute(String, Object)} for project level and
-	 * {@link ClientSession#setAttribute(String, Object)} for session level
-	 * rather than set global variable (begin with $) in JRuby scripts. <BR>
+	 * <i> <code>t = 100<BR> i = 2 + t<BR>puts i<BR> return i # 102<BR></code> </i> <BR>
+	 * it is recommended that set variable in {@link #setAttribute(String, Object)} for project
+	 * level and {@link ClientSession#setAttribute(String, Object)} for session level rather than
+	 * set global variable (begin with $) in JRuby scripts. <BR>
 	 * <BR>
-	 * the above script is safe even if multiple threads calling, because they
-	 * are all local variable (TRANSIENT). <BR>
+	 * the above script is safe even if multiple threads calling, because they are all local
+	 * variable (TRANSIENT). <BR>
 	 * <BR>
 	 * <STRONG>CAUTION : </STRONG><BR>
-	 * variable (if it is NOT local variable) set by one thread will be visible
-	 * to another thread.
+	 * variable (if it is NOT local variable) set by one thread will be visible to another thread.
 	 * 
 	 * <pre>
 	 * import Java::hc.server.util.JavaLangSystemAgent
@@ -1640,8 +1564,7 @@ public class ProjectContext {
 	 * puts "callMS : " + {@literal @}callMS
 	 * </pre>
 	 * 
-	 * if thread B call it after thread A one second, then print out the same
-	 * value.
+	 * if thread B call it after thread A one second, then print out the same value.
 	 * 
 	 * @param shell
 	 *            the evaluate shell scripts.
@@ -1653,14 +1576,13 @@ public class ProjectContext {
 			return null;
 		}
 
-		final HCJRubyEngine engine = ((__projResponserMaybeNull == null
-				|| SimuMobile.checkSimuProjectContext(this)) ? SimuMobile.getRunTestEngine()
-						: __projResponserMaybeNull.hcje);
+		final HCJRubyEngine engine = ((__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this))
+				? SimuMobile.getRunTestEngine()
+				: __projResponserMaybeNull.hcje);
 
 		final CallContext callCtx = CallContext.getFree();
 		try {
-			return RubyExector.runAndWaitOnEngine(callCtx, new StringValue(shell),
-					"evalInProjectContext", null, engine);
+			return RubyExector.runAndWaitOnEngine(callCtx, new StringValue(shell), "evalInProjectContext", null, engine);
 		} catch (final Throwable e) {
 			// if(ExceptionReporter.isCauseByLineOffSession(e)){
 			throw new Error(ExceptionReporter.THROW_FROM, e);
@@ -1676,11 +1598,10 @@ public class ProjectContext {
 	 * <BR>
 	 * Note : <BR>
 	 * 1. please put long time task and network operation in here,<BR>
-	 * 2. it is a good choice to put task in {@link #getScheduler(String)},
-	 * because it will be shutdown by server and release all resources.<BR>
-	 * 3. there is NOT API for task to be executed in session level when in
-	 * project level thread. Maybe you need
-	 * {@link #sendDialogByBuilding(Runnable)}.
+	 * 2. it is a good choice to put task in {@link #getScheduler(String)}, because it will be
+	 * shutdown by server and release all resources.<BR>
+	 * 3. there is NOT API for task to be executed in session level when in project level thread.
+	 * Maybe you need {@link #sendDialogByBuilding(Runnable)}.
 	 * 
 	 * @param runnable
 	 * @see #run(Runnable)
@@ -1692,8 +1613,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * the <code>runnable</code> will be executed in project level, no matter
-	 * current thread is in session or project level.
+	 * the <code>runnable</code> will be executed in project level, no matter current thread is in
+	 * session or project level.
 	 * 
 	 * @param runnable
 	 * @see #runAndWait(Runnable)
@@ -1713,9 +1634,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * start a {@link Runnable} task asynchronous in project thread pool or
-	 * session thread pool depends on current thread is in project or session
-	 * level. <br>
+	 * start a {@link Runnable} task asynchronous in project thread pool or session thread pool
+	 * depends on current thread is in project or session level. <br>
 	 * <br>
 	 * in session level, the runnable task should be finished after
 	 * {@link #EVENT_SYS_MOBILE_LOGOUT}. <BR>
@@ -1724,8 +1644,8 @@ public class ProjectContext {
 	 * <BR>
 	 * Note : <BR>
 	 * 1. please put long time task and network operation in here.<BR>
-	 * 2. it is a good choice to put task in {@link #getScheduler(String)},
-	 * because it will be shutdown by server and release all resources.
+	 * 2. it is a good choice to put task in {@link #getScheduler(String)}, because it will be
+	 * shutdown by server and release all resources.
 	 * 
 	 * @param runnable
 	 * @see #runAndWait(Runnable)
@@ -1739,8 +1659,7 @@ public class ProjectContext {
 			return;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		final J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -1757,9 +1676,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * start a {@link Runnable} task and wait for done in project thread pool or
-	 * session thread pool depends on current thread is in project or session
-	 * level. <br>
+	 * start a {@link Runnable} task and wait for done in project thread pool or session thread pool
+	 * depends on current thread is in project or session level. <br>
 	 * <br>
 	 * in session level, the runnable task should be finished after
 	 * {@link #EVENT_SYS_MOBILE_LOGOUT}. <BR>
@@ -1786,8 +1704,7 @@ public class ProjectContext {
 			}
 		};
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -1829,31 +1746,30 @@ public class ProjectContext {
 	}
 
 	/**
-	 * send a question to mobile if in session level, or send same question to
-	 * all client sessions if in project level. <br>
-	 * in project level, if one session replies, then the same question in other
-	 * sessions will be dismissed. <br>
+	 * send a question to mobile if in session level, or send same question to all client sessions
+	 * if in project level. <br>
+	 * in project level, if one session replies, then the same question in other sessions will be
+	 * dismissed. <br>
 	 * <br>
-	 * if there is an alert message, other question or a <code>Dialog</code> is
-	 * presented on client and NOT be closed, the question will be delayed. <br>
+	 * if there is an alert message, other question or a <code>Dialog</code> is presented on client
+	 * and NOT be closed, the question will be delayed. <br>
 	 * <br>
-	 * this method is <STRONG>asynchronous</STRONG>. system will NOT wait for
-	 * the result of question to the caller. <BR>
+	 * this method is <STRONG>asynchronous</STRONG>. system will NOT wait for the result of question
+	 * to the caller. <BR>
 	 * for <STRONG>synchronous</STRONG>, please use
 	 * {@link #sendQuestionAndWait(String, String, BufferedImage, Runnable, Runnable, Runnable)}.
 	 * <BR>
 	 * <BR>
-	 * <STRONG>Important</STRONG> : the <code>yesRunnable</code>,
-	 * <code>noRunnable</code>, <code>cancelRunnable</code> will be executed in
-	 * session level, no matter current thread is project or session level. <BR>
+	 * <STRONG>Important</STRONG> : the <code>yesRunnable</code>, <code>noRunnable</code>,
+	 * <code>cancelRunnable</code> will be executed in session level, no matter current thread is
+	 * project or session level. <BR>
 	 * <BR>
-	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
-	 * notification is also created for mobile.<BR>
+	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a notification is also
+	 * created for mobile.<BR>
 	 * <BR>
-	 * if mobile option [Message, Notification to Speech also] is
-	 * <STRONG>on</STRONG>, it may be spoken.<BR>
-	 * the speech or not is depends on text, TTS engine, locale and mute of
-	 * mobile.
+	 * if mobile option [Message, Notification to Speech also] is <STRONG>on</STRONG>, it may be
+	 * spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
 	 * 
 	 * @param caption
 	 *            the caption of the question.
@@ -1862,43 +1778,34 @@ public class ProjectContext {
 	 * @param image
 	 *            a image to describe the question. Null for no image.
 	 * @param yesRunnable
-	 *            the runnable will be executed if choosing 'YES'. Null for
-	 *            doing nothing.
+	 *            the runnable will be executed if choosing 'YES'. Null for doing nothing.
 	 * @param noRunnable
-	 *            the runnable will be executed if choosing 'NO'. Null for doing
-	 *            nothing.
+	 *            the runnable will be executed if choosing 'NO'. Null for doing nothing.
 	 * @param cancelRunnable
-	 *            the runnable will be executed if choosing 'CANCEL'. It will
-	 *            not be executed when line off. Set null to not display cancel
-	 *            button in question, but it is still cancelable. To set
-	 *            question to be not cancelable, use
+	 *            the runnable will be executed if choosing 'CANCEL'. It will not be executed when
+	 *            line off. Set null to not display cancel button in question, but it is still
+	 *            cancelable. To set question to be not cancelable, use
 	 *            {@link #sendQuestionNotCancelable(String, String, BufferedImage, Runnable, Runnable)}.
 	 * @since 7.0
-	 * @see #sendQuestionAndWait(String, String, BufferedImage, Runnable,
-	 *      Runnable, Runnable)
-	 * @see #sendQuestionNotCancelable(String, String, BufferedImage, Runnable,
-	 *      Runnable)
+	 * @see #sendQuestionAndWait(String, String, BufferedImage, Runnable, Runnable, Runnable)
+	 * @see #sendQuestionNotCancelable(String, String, BufferedImage, Runnable, Runnable)
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @see #isClientLineOn()
 	 */
-	public final void sendQuestion(final String caption, final String text,
-			final BufferedImage image, final Runnable yesRunnable, final Runnable noRunnable,
-			final Runnable cancelRunnable) {
-		sendQuestionImpl(false, caption, text, image, yesRunnable, noRunnable, cancelRunnable,
-				true);
+	public final void sendQuestion(final String caption, final String text, final BufferedImage image, final Runnable yesRunnable,
+			final Runnable noRunnable, final Runnable cancelRunnable) {
+		sendQuestionImpl(false, caption, text, image, yesRunnable, noRunnable, cancelRunnable, true);
 	}
 
 	/**
 	 * for more, see
-	 * {@link #sendQuestion(String, String, BufferedImage, Runnable, Runnable, Runnable)}
-	 * <BR>
+	 * {@link #sendQuestion(String, String, BufferedImage, Runnable, Runnable, Runnable)} <BR>
 	 * <BR>
 	 * <STRONG>About return status :</STRONG><BR>
-	 * 1. in project level, return true means question is processed/canceled by
-	 * one client, false means all sessions are line off.<BR>
-	 * 2. in session level, return true means question is processed by client,
-	 * false means canceled by client, when line off the execution will be
-	 * terminated.
+	 * 1. in project level, return true means question is processed/canceled by one client, false
+	 * means all sessions are line off.<BR>
+	 * 2. in session level, return true means question is processed by client, false means canceled
+	 * by client, when line off the execution will be terminated.
 	 * 
 	 * @param caption
 	 * @param text
@@ -1908,19 +1815,16 @@ public class ProjectContext {
 	 * @param cancelRunnable
 	 * @see #isClientLineOn()
 	 */
-	public final boolean sendQuestionAndWait(final String caption, final String text,
-			final BufferedImage image, final Runnable yesRunnable, final Runnable noRunnable,
-			final Runnable cancelRunnable) {
-		return sendQuestionImpl(true, caption, text, image, yesRunnable, noRunnable, cancelRunnable,
-				true);
+	public final boolean sendQuestionAndWait(final String caption, final String text, final BufferedImage image, final Runnable yesRunnable,
+			final Runnable noRunnable, final Runnable cancelRunnable) {
+		return sendQuestionImpl(true, caption, text, image, yesRunnable, noRunnable, cancelRunnable, true);
 	}
 
 	/**
-	 * send a not cancelable question to mobile if in session level, or send
-	 * same question to all client sessions if in project level. <BR>
+	 * send a not cancelable question to mobile if in session level, or send same question to all
+	 * client sessions if in project level. <BR>
 	 * <BR>
-	 * a cancelable question can be canceled, for example pressing
-	 * <code>back</code> key in Android.
+	 * a cancelable question can be canceled, for example pressing <code>back</code> key in Android.
 	 * 
 	 * @param caption
 	 *            the caption of the question.
@@ -1929,31 +1833,26 @@ public class ProjectContext {
 	 * @param image
 	 *            a image to describe the question. Null for no image.
 	 * @param yesRunnable
-	 *            the runnable will be executed if choosing 'YES'. Null for
-	 *            doing nothing.
+	 *            the runnable will be executed if choosing 'YES'. Null for doing nothing.
 	 * @param noRunnable
-	 *            the runnable will be executed if choosing 'NO'. Null for doing
-	 *            nothing.
-	 * @see #sendQuestionAndWaitNotCancelable(String, String, BufferedImage,
-	 *      Runnable, Runnable)
-	 * @see #sendQuestion(String, String, BufferedImage, Runnable, Runnable,
-	 *      Runnable)
+	 *            the runnable will be executed if choosing 'NO'. Null for doing nothing.
+	 * @see #sendQuestionAndWaitNotCancelable(String, String, BufferedImage, Runnable, Runnable)
+	 * @see #sendQuestion(String, String, BufferedImage, Runnable, Runnable, Runnable)
 	 */
-	public final void sendQuestionNotCancelable(final String caption, final String text,
-			final BufferedImage image, final Runnable yesRunnable, final Runnable noRunnable) {
+	public final void sendQuestionNotCancelable(final String caption, final String text, final BufferedImage image,
+			final Runnable yesRunnable, final Runnable noRunnable) {
 		sendQuestionImpl(false, caption, text, image, yesRunnable, noRunnable, null, false);
 	}
 
 	/**
-	 * see
-	 * {@link #sendQuestion(String, String, BufferedImage, Runnable, Runnable, Runnable)}
-	 * for more. <BR>
+	 * see {@link #sendQuestion(String, String, BufferedImage, Runnable, Runnable, Runnable)} for
+	 * more. <BR>
 	 * <BR>
 	 * <STRONG>About return status :</STRONG><BR>
-	 * 1. in project level, return true means question is processed by one
-	 * client, false means all sessions are line off.<BR>
-	 * 2. in session level, return true means question is processed by client,
-	 * when line off the execution will be terminated.
+	 * 1. in project level, return true means question is processed by one client, false means all
+	 * sessions are line off.<BR>
+	 * 2. in session level, return true means question is processed by client, when line off the
+	 * execution will be terminated.
 	 * 
 	 * @param caption
 	 * @param text
@@ -1963,20 +1862,18 @@ public class ProjectContext {
 	 * @return
 	 * @see #isClientLineOn()
 	 */
-	public final boolean sendQuestionAndWaitNotCancelable(final String caption, final String text,
-			final BufferedImage image, final Runnable yesRunnable, final Runnable noRunnable) {
+	public final boolean sendQuestionAndWaitNotCancelable(final String caption, final String text, final BufferedImage image,
+			final Runnable yesRunnable, final Runnable noRunnable) {
 		return sendQuestionImpl(true, caption, text, image, yesRunnable, noRunnable, null, false);
 	}
 
-	private final boolean sendQuestionImpl(final boolean isWaiting, String caption, String text,
-			final BufferedImage image, final Runnable yesRunnable, final Runnable noRunnable,
-			final Runnable cancelRunnable, final boolean isCancelable) {
+	private final boolean sendQuestionImpl(final boolean isWaiting, String caption, String text, final BufferedImage image,
+			final Runnable yesRunnable, final Runnable noRunnable, final Runnable cancelRunnable, final boolean isCancelable) {
 		if (__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)) {
 			return true;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		final J2SESession[] coreSSS;
 		J2SESession coreSS = null;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
@@ -2019,8 +1916,7 @@ public class ProjectContext {
 			}
 		}
 
-		final String[] para = { HCURL.DATA_PARA_QUESTION_ID, "isCancelable", "caption", "text",
-				"image", "withCancel" };
+		final String[] para = { HCURL.DATA_PARA_QUESTION_ID, "isCancelable", "caption", "text", "image", "withCancel" };
 
 		final String p_caption = caption;
 		final String p_text = text;
@@ -2028,26 +1924,23 @@ public class ProjectContext {
 		final ProjectContext p_ctx = this;
 
 		// 如果同时发出两个Ques，则可能不同步，所以以下要wait
-		final QuestionGlobalLock quesLock = (QuestionGlobalLock) ServerUIAPIAgent
-				.runAndWaitInSysThread(new ReturnableRunnable() {
-					@Override
-					public Object run() throws Throwable {
-						final QuestionGlobalLock quesLock = new QuestionGlobalLock(isForSession,
-								coreSSS, isWaiting);
-						final int questionID = ServerUIAPIAgent.buildQuestionID();// 便于撤消
+		final QuestionGlobalLock quesLock = (QuestionGlobalLock) ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() throws Throwable {
+				final QuestionGlobalLock quesLock = new QuestionGlobalLock(isForSession, coreSSS, isWaiting);
+				final int questionID = ServerUIAPIAgent.buildQuestionID();// 便于撤消
 
-						for (int i = 0; i < coreSSS.length; i++) {
-							ServerUIAPIAgent.buildQuestionParameter(coreSSS[i], p_ctx, quesLock,
-									questionID, p_text, yesRunnable, noRunnable, cancelRunnable);
+				for (int i = 0; i < coreSSS.length; i++) {
+					ServerUIAPIAgent.buildQuestionParameter(coreSSS[i], p_ctx, quesLock, questionID, p_text, yesRunnable, noRunnable,
+							cancelRunnable);
 
-							final String[] values = { String.valueOf(questionID),
-									IConstant.toString(isCancelable), p_caption, p_text,
-									p_imageData, (cancelRunnable != null) ? "1" : "0" };// 注意：必须在外部转换
-							HCURLUtil.sendCmd(coreSSS[i], HCURL.DATA_CMD_SendPara, para, values);
-						}
-						return quesLock;
-					}
-				});
+					final String[] values = { String.valueOf(questionID), IConstant.toString(isCancelable), p_caption, p_text, p_imageData,
+							(cancelRunnable != null) ? "1" : "0" };// 注意：必须在外部转换
+					HCURLUtil.sendCmd(coreSSS[i], HCURL.DATA_CMD_SendPara, para, values);
+				}
+				return quesLock;
+			}
+		});
 
 		if (isWaiting) {
 			final boolean processed = quesLock.waitingResult(coreSS);
@@ -2064,17 +1957,16 @@ public class ProjectContext {
 	 * backup user properties and private files of current project.<BR>
 	 * <BR>
 	 * usually this method is not used, <BR>
-	 * because the server will automatically backup regularly, only when the
-	 * following conditions are meet :<BR>
-	 * 1. some data saved local, and some stored on cloud, if power off occurs,
-	 * the status saved recently will gone, but the cloud not gone.<BR>
-	 * 2. if this method is invoked, when power off occurs, server will restore
-	 * all at the next startup.<BR>
+	 * because the server will automatically backup regularly, only when the following conditions
+	 * are meet :<BR>
+	 * 1. some data saved local, and some stored on cloud, if power off occurs, the status saved
+	 * recently will gone, but the cloud not gone.<BR>
+	 * 2. if this method is invoked, when power off occurs, server will restore all at the next
+	 * startup.<BR>
 	 * <BR>
 	 * <STRONG>Know More :</STRONG><BR>
 	 * 1. DB is not required to close before backup.<BR>
-	 * 2. private file which is opening or writing is not required to close
-	 * before backup.<BR>
+	 * 2. private file which is opening or writing is not required to close before backup.<BR>
 	 * 3. backup will not work on Windows because of exclusive lock.<BR>
 	 * 4. backup works well on Linux, macOS, Android.<BR>
 	 * 5. return normally means backup successfully.
@@ -2112,11 +2004,10 @@ public class ProjectContext {
 	}
 
 	/**
-	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}
-	 * or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after
+	 * {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
 	 * 
-	 * @return the width pixel of login mobile; 0 means mobile not login or not
-	 *         in session level.
+	 * @return the width pixel of login mobile; 0 means mobile not login or not in session level.
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.0
 	 * @deprecated
@@ -2127,8 +2018,7 @@ public class ProjectContext {
 			return SimuMobile.MOBILE_WIDTH;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -2147,11 +2037,10 @@ public class ProjectContext {
 	/**
 	 * set an object to a given attribute name. <BR>
 	 * <BR>
-	 * to set an attribute for session, please see {@link #getClientSession()}.
+	 * to set an attribute for session, please see {@link #getClientSession()}. <BR>
 	 * <BR>
-	 * <BR>
-	 * <STRONG>Note : </STRONG>you can't save attribute to persistent system,
-	 * but you can save properties of current project to persistent system. <BR>
+	 * <STRONG>Note : </STRONG>you can't save attribute to persistent system, but you can save
+	 * properties of current project to persistent system. <BR>
 	 * <BR>
 	 * it is thread safe.
 	 * 
@@ -2163,8 +2052,7 @@ public class ProjectContext {
 	 *            the name of attribute.
 	 * @param obj
 	 *            the value of the attribute.
-	 * @return the previous value of the specified name, or null if it did not
-	 *         have one
+	 * @return the previous value of the specified name, or null if it did not have one
 	 * @since 7.0
 	 */
 	public final Object setAttribute(final String name, final Object obj) {
@@ -2233,8 +2121,7 @@ public class ProjectContext {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -2357,8 +2244,7 @@ public class ProjectContext {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -2414,8 +2300,7 @@ public class ProjectContext {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -2471,8 +2356,7 @@ public class ProjectContext {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -2528,8 +2412,7 @@ public class ProjectContext {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -2585,8 +2468,7 @@ public class ProjectContext {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -2614,8 +2496,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * if name is not exists, return null; if the attribute of name is not
-	 * String object, return obj.toString()
+	 * if name is not exists, return null; if the attribute of name is not String object, return
+	 * obj.toString()
 	 * 
 	 * @param name
 	 * @return
@@ -2634,8 +2516,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * if name is not exists, then return defaultValue; if the attribute of name
-	 * is not String object, return obj.toString()
+	 * if name is not exists, then return defaultValue; if the attribute of name is not String
+	 * object, return obj.toString()
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -2666,8 +2548,8 @@ public class ProjectContext {
 	 * @see #clearAttribute(String)
 	 * @param name
 	 *            the key that needs to be removed
-	 * @return the attribute to which the name had been mapped, or null if the
-	 *         name did not have a mapping
+	 * @return the attribute to which the name had been mapped, or null if the name did not have a
+	 *         mapping
 	 */
 	public final Object removeAttribute(final String name) {
 		return att_map.remove(name);
@@ -2678,8 +2560,8 @@ public class ProjectContext {
 	 * 
 	 * @param name
 	 *            the key that needs to be removed
-	 * @return the attribute to which the name had been mapped, or null if the
-	 *         name did not have a mapping
+	 * @return the attribute to which the name had been mapped, or null if the name did not have a
+	 *         mapping
 	 * @since 7.0
 	 */
 	public final Object clearAttribute(final String name) {
@@ -2687,8 +2569,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * returns the attribute with the given name, or null if there is no
-	 * attribute by that name. <BR>
+	 * returns the attribute with the given name, or null if there is no attribute by that name.
+	 * <BR>
 	 * It is thread safe.
 	 * 
 	 * @param name
@@ -2749,8 +2631,7 @@ public class ProjectContext {
 	 * @param length
 	 * @see #setByteArrayAttribute(String, byte[])
 	 */
-	public final void setByteArrayAttribute(final String name, final byte[] bs, final int offset,
-			final int length) {
+	public final void setByteArrayAttribute(final String name, final byte[] bs, final int offset, final int length) {
 		final byte[] outbs = new byte[length];
 		System.arraycopy(bs, offset, outbs, 0, length);
 		att_map.put(name, outbs);
@@ -2827,14 +2708,13 @@ public class ProjectContext {
 	}
 
 	/**
-	 * returns the attribute with the given name, or <code>defaultValue</code>
-	 * if there is no attribute for that name.
+	 * returns the attribute with the given name, or <code>defaultValue</code> if there is no
+	 * attribute for that name.
 	 * 
 	 * @param name
 	 * @param defaultValue
 	 *            the default value for name.
-	 * @return <code>defaultValue</code> if this map contains no attribute for
-	 *         the name
+	 * @return <code>defaultValue</code> if this map contains no attribute for the name
 	 * @since 7.0
 	 * @see #getIntAttribute(String, int)
 	 * @see #getBooleanAttribute(String, boolean)
@@ -2860,8 +2740,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}
-	 * or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after
+	 * {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}
 	 * 
 	 * @return null if mobile not login, logout or in project level.
 	 * @see #isCurrentThreadInSessionLevel()
@@ -2872,8 +2752,7 @@ public class ProjectContext {
 			return SimuMobile.testSimuClientSession;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -2890,8 +2769,7 @@ public class ProjectContext {
 	}
 
 	/**
-	 * returns an enumeration containing the attribute names available within
-	 * this context.
+	 * returns an enumeration containing the attribute names available within this context.
 	 * 
 	 * @return the enumeration of all attribute names.
 	 * @see #getAttribute(String)
@@ -2918,8 +2796,8 @@ public class ProjectContext {
 	/**
 	 * return the height pixel of login mobile; <BR>
 	 * <BR>
-	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}
-	 * or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after
+	 * {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
 	 * 
 	 * @return 0 means mobile not login or in project level.
 	 * @see #isCurrentThreadInSessionLevel()
@@ -2932,8 +2810,7 @@ public class ProjectContext {
 			return SimuMobile.MOBILE_HEIGHT;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -2962,11 +2839,11 @@ public class ProjectContext {
 	/**
 	 * for Android client, it means densityDpi; <BR>
 	 * <BR>
-	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}
-	 * or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after
+	 * {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
 	 * 
-	 * @return the DPI of login mobile, 0 means unknown; -1 means mobile not
-	 *         login or in project level.
+	 * @return the DPI of login mobile, 0 means unknown; -1 means mobile not login or in project
+	 *         level.
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.0
 	 */
@@ -2975,8 +2852,7 @@ public class ProjectContext {
 			return SimuMobile.MOBILE_DPI;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -2997,15 +2873,13 @@ public class ProjectContext {
 	 * <BR>
 	 * it is thread safe. <br>
 	 * <BR>
-	 * <code>{@link #saveProperties()}</code> is required to save properties to
-	 * persistent system.
+	 * <code>{@link #saveProperties()}</code> is required to save properties to persistent system.
 	 * 
 	 * @param key
 	 *            it can't start with reserved string '_HC_SYS'.
 	 * @param value
 	 *            the value of the property.
-	 * @return the previous property of the specified key, or null if it did not
-	 *         have one
+	 * @return the previous property of the specified key, or null if it did not have one
 	 * @since 7.0
 	 * @see #getProperty(String)
 	 * @see #removeProperty(String)
@@ -3014,16 +2888,14 @@ public class ProjectContext {
 	 */
 	public final String setProperty(final String key, final String value) {
 		if (key.startsWith(CCoreUtil.SYS_RESERVED_KEYS_START, 0)) {
-			throw new Error("the key of property can't start with '"
-					+ CCoreUtil.SYS_RESERVED_KEYS_START + "', it is reserved by system.");
+			throw new Error("the key of property can't start with '" + CCoreUtil.SYS_RESERVED_KEYS_START + "', it is reserved by system.");
 		}
 
 		return (String) ppm.propertie.put(key, value);
 	}
 
 	/**
-	 * returns an enumeration containing the properties names available within
-	 * this context.
+	 * returns an enumeration containing the properties names available within this context.
 	 * 
 	 * @since 7.0
 	 * @return an enumeration of all properties names.
@@ -3055,18 +2927,15 @@ public class ProjectContext {
 	}
 
 	/**
-	 * print stack trace to logger and report it to project provider explicitly
-	 * (not implicit). <BR>
+	 * print stack trace to logger and report it to project provider explicitly (not implicit). <BR>
 	 * <BR>
 	 * More about report exception :
 	 * <UL>
-	 * <LI>enable option-&gt;developer-&gt;<STRONG>report exception</STRONG> is
-	 * required.</LI>
-	 * <LI>if exception is caught by server, NOT by project, it will be reported
-	 * to project provider implicitly.</LI>
-	 * <LI>if field <STRONG>Report exception URL / Email address</STRONG> of
-	 * project is blank, then reporting is DISABLED and print stack trace
-	 * only.</LI>
+	 * <LI>enable option-&gt;developer-&gt;<STRONG>report exception</STRONG> is required.</LI>
+	 * <LI>if exception is caught by server, NOT by project, it will be reported to project provider
+	 * implicitly.</LI>
+	 * <LI>if field <STRONG>Report exception URL / Email address</STRONG> of project is blank, then
+	 * reporting is DISABLED and print stack trace only.</LI>
 	 * <LI>it is NOT required to apply for the permission of connection.</LI>
 	 * <LI>it reports stack trace on server, NOT for mobile.</LI>
 	 * </UL>
@@ -3114,8 +2983,8 @@ public class ProjectContext {
 	 * it is thread safe.
 	 * 
 	 * @param key
-	 * @return the value to which the specified key is mapped, or null if
-	 *         contains no mapping for the key.
+	 * @return the value to which the specified key is mapped, or null if contains no mapping for
+	 *         the key.
 	 * @see #setProperty(String, String)
 	 * @see #removeProperty(String)
 	 * @see #getPropertiesNames()
@@ -3133,8 +3002,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * get the attribute with the given key, return <code>defaultValue</code> if
-	 * the key is not set before.
+	 * get the attribute with the given key, return <code>defaultValue</code> if the key is not set
+	 * before.
 	 * 
 	 * @param key
 	 * @param defaultValue
@@ -3181,13 +3050,12 @@ public class ProjectContext {
 	 * @see #saveProperties()
 	 * @param key
 	 *            key whose property is to be removed
-	 * @return the property to which the key had been mapped, or null if the key
-	 *         did not have a property
+	 * @return the property to which the key had been mapped, or null if the key did not have a
+	 *         property
 	 */
 	public final String removeProperty(final String key) {
 		if (key.startsWith(CCoreUtil.SYS_RESERVED_KEYS_START, 0)) {
-			throw new Error("the key of property can't start with '"
-					+ CCoreUtil.SYS_RESERVED_KEYS_START + "'");
+			throw new Error("the key of property can't start with '" + CCoreUtil.SYS_RESERVED_KEYS_START + "'");
 		}
 
 		return (String) ppm.propertie.remove(key);
@@ -3198,8 +3066,8 @@ public class ProjectContext {
 	 * 
 	 * @param key
 	 *            key whose property is to be removed
-	 * @return the property to which the key had been mapped, or null if the key
-	 *         did not have a property
+	 * @return the property to which the key had been mapped, or null if the key did not have a
+	 *         property
 	 * @since 7.0
 	 */
 	public final String clearProperty(final String key) {
@@ -3234,36 +3102,29 @@ public class ProjectContext {
 	 * 4. <code>getPrivateFile("mySubDir/testFile");</code><br>
 	 * 5. <code>getPrivateFile("mySubDir2/subSubDir/testFile");</code><br>
 	 * 6. <code>new File(getPrivateFile("mySubDir"), "testFile");</code><br>
-	 * 7.
-	 * <code>new File(getPrivateFile("mySubDir2/subSubDir"), "testFile");</code><BR>
+	 * 7. <code>new File(getPrivateFile("mySubDir2/subSubDir"), "testFile");</code><BR>
 	 * <BR>
 	 * <STRONG>Tip :</STRONG><BR>
-	 * if parent directory of result is not exists, then it will be created
-	 * before return.<BR>
+	 * if parent directory of result is not exists, then it will be created before return.<BR>
 	 * <BR>
 	 * <STRONG>private file VS DB connection :</STRONG><BR>
-	 * When project runs in Home environment, please pay more attention about
-	 * power off, it may be caused by children, no wait to shutdown. If private
-	 * file is frequently written, using DB connection is a better choice,
-	 * because it appends data to log at the tail of file and DB manager will
-	 * fix error that abnormal shutdown. All-In-RAM DB never write file to
-	 * disk.<BR>
+	 * When project runs in Home environment, please pay more attention about power off, it may be
+	 * caused by children, no wait to shutdown. If private file is frequently written, using DB
+	 * connection is a better choice, because it appends data to log at the tail of file and DB
+	 * manager will fix error that abnormal shutdown. All-In-RAM DB never write file to disk.<BR>
 	 * <br>
 	 * <STRONG>More about private file :</STRONG><BR>
-	 * 1. the file is allowed full access and NOT limited by HomeCenter security
-	 * manager, and it is also protected from being read or written by other HAR
-	 * projects. <br>
+	 * 1. the file is allowed full access and NOT limited by HomeCenter security manager, and it is
+	 * also protected from being read or written by other HAR projects. <br>
 	 * 2. the File <code>fileName</code> is read/written in directory
 	 * <i>{HC_Home}/user_data/{projectID}/{fileName}</i>. <br>
-	 * 3. sub directory <code>"{projectID}/_HC/"</code> is reservered by server,
-	 * see {@link #getDBConnection(String, String, String)},<br>
-	 * 4. if current project is deleted, all private files of current project
-	 * will be deleted. <BR>
+	 * 3. sub directory <code>"{projectID}/_HC/"</code> is reservered by server, see
+	 * {@link #getDBConnection(String, String, String)},<br>
+	 * 4. if current project is deleted, all private files of current project will be deleted. <BR>
 	 * 5. to save small data, please invoke {@link #saveProperties()}.<BR>
-	 * 6. if the data is important, please encrypt data or stored
-	 * separately.<BR>
-	 * 7. if this server runs on Android Marshmallow or later, Android will do
-	 * "Auto Backup for Apps".
+	 * 6. if the data is important, please encrypt data or stored separately.<BR>
+	 * 7. if this server runs on Android Marshmallow or later, Android will do "Auto Backup for
+	 * Apps".
 	 * 
 	 * @param fileName
 	 * @return the private file <code>fileName</code>.
@@ -3302,14 +3163,13 @@ public class ProjectContext {
 	 * <br>
 	 * <STRONG>Important :</STRONG> <br>
 	 * 1. data of properties will be deleted if current project is removed. <br>
-	 * 2. it is a good practice to save small data in properties system and save
-	 * big data in local disk / cloud system. <br>
-	 * 3. if you want to create file on local disk, please use
-	 * {@link #getPrivateFile(String)} to get instance of File.<br>
+	 * 2. it is a good practice to save small data in properties system and save big data in local
+	 * disk / cloud system. <br>
+	 * 3. if you want to create file on local disk, please use {@link #getPrivateFile(String)} to
+	 * get instance of File.<br>
 	 * 4. to create and open database, please invoke
 	 * {@link #getDBConnection(String, String, String)}.<br>
-	 * 5. if this server runs on Android Marshmallow or later, Android will
-	 * 'Auto Backup for Apps'.
+	 * 5. if this server runs on Android Marshmallow or later, Android will 'Auto Backup for Apps'.
 	 * 
 	 * @see #setProperty(String, String)
 	 * @see #getProperty(String)
@@ -3328,24 +3188,21 @@ public class ProjectContext {
 	private final PropertiesMap proj_prop_map;
 
 	/**
-	 * if your mobile is Android, it will return this after invoke
-	 * {@link #getMobileOS()}.
+	 * if your mobile is Android, it will return this after invoke {@link #getMobileOS()}.
 	 * 
 	 * @since 7.0
 	 */
 	public static final String OS_ANDROID = ConfigManager.OS_ANDROID_DESC;
 
 	/**
-	 * if your mobile is iOS, it will return this after invoke
-	 * {@link #getMobileOS()}.
+	 * if your mobile is iOS, it will return this after invoke {@link #getMobileOS()}.
 	 * 
 	 * @since 7.0
 	 */
 	public static final String OS_IOS = ConfigManager.OS_IOS_DESC;
 
 	/**
-	 * if your mobile is J2ME, it will return this after invoke
-	 * {@link #getMobileOS()}.
+	 * if your mobile is J2ME, it will return this after invoke {@link #getMobileOS()}.
 	 * 
 	 * @since 7.0
 	 */
@@ -3362,11 +3219,11 @@ public class ProjectContext {
 	}
 
 	/**
-	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}
-	 * or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after
+	 * {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
 	 * 
 	 * @return the version of OS of mobile; <BR>
-	 * 		"0.0.1" means mobile not login or not in session level.
+	 *         "0.0.1" means mobile not login or not in session level.
 	 * @see #getMobileOS()
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.0
@@ -3377,8 +3234,7 @@ public class ProjectContext {
 		}
 
 		// 注意：不能用field来cache，因为可能发生变更
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -3412,8 +3268,8 @@ public class ProjectContext {
 	 * 4. {@link #OS_J2ME} <br>
 	 * 5. and other in the future. <BR>
 	 * <BR>
-	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}
-	 * or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after
+	 * {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
 	 * 
 	 * @return
 	 * @see #getMobileOSVer()
@@ -3425,8 +3281,7 @@ public class ProjectContext {
 			return SimuMobile.MOBILE_OS;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -3447,8 +3302,7 @@ public class ProjectContext {
 	 * find the best match locale from a map.<BR>
 	 * <BR>
 	 * the followings languages are treated as equivalents. (see Java Doc
-	 * <a href=
-	 * "https://docs.oracle.com/javase/7/docs/api/java/util/Locale.html">Locale</a>)<BR>
+	 * <a href= "https://docs.oracle.com/javase/7/docs/api/java/util/Locale.html">Locale</a>)<BR>
 	 * 1. <code>he</code> and <code>iw</code><BR>
 	 * 2. <code>yi</code> and <code>ji</code><BR>
 	 * 3. <code>id</code> and <code>in</code><BR>
@@ -3511,18 +3365,15 @@ public class ProjectContext {
 	 * 3. language-region ("zh-Hans-CN", "zh-Hant-CN", etc.)<br>
 	 * <br>
 	 * Know more :<BR>
-	 * 1. to find the best match from an I18N map, see
-	 * {@link #matchLocale(String, Map)}.<BR>
+	 * 1. to find the best match from an I18N map, see {@link #matchLocale(String, Map)}.<BR>
 	 * 2. user maybe change client language and country/region.<BR>
-	 * 3. to check a locale is RTL (Right To Left) or not, see
-	 * {@link #isRTL(String)}.<BR>
-	 * 4. for RTL layout, see
-	 * {@link Mlet#enableApplyOrientationWhenRTL(boolean)}.<BR>
+	 * 3. to check a locale is RTL (Right To Left) or not, see {@link #isRTL(String)}.<BR>
+	 * 4. for RTL layout, see {@link Mlet#enableApplyOrientationWhenRTL(boolean)}.<BR>
 	 * 5. to set RTL or not for HTML DIV and its sub elements, see
 	 * {@link HTMLMlet#setRTL(javax.swing.JComponent, boolean)}
 	 * 
 	 * @return in session level, return mobile locale; <BR>
-	 * 		in project level, returns the locale for all sessions or 'en-US'.
+	 *         in project level, returns the locale for all sessions or 'en-US'.
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.0
 	 */
@@ -3531,8 +3382,7 @@ public class ProjectContext {
 			return SimuMobile.MOBILE_LOCALE;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -3548,35 +3398,29 @@ public class ProjectContext {
 	}
 
 	/**
-	 * action keyboard keys on server. For example "Control+Shift+Escape",
-	 * "Shift+a" (for input 'A'), "B" (for input 'b'). <BR>
+	 * action keyboard keys on server. For example "Control+Shift+Escape", "Shift+a" (for input
+	 * 'A'), "B" (for input 'b'). <BR>
 	 * <BR>
 	 * more key string , please refer <a target="_blank" href=
-	 * "http://docs.oracle.com/javase/6/docs/api/java/awt/event/KeyEvent.html"
-	 * >http
+	 * "http://docs.oracle.com/javase/6/docs/api/java/awt/event/KeyEvent.html" >http
 	 * ://docs.oracle.com/javase/6/docs/api/java/awt/event/KeyEvent.html</a><br>
 	 * <br>
 	 * NOTE : NOT all keys are supported. (META is Max OS X Command)<br>
 	 * <br>
-	 * If a HAR package developed in J2SE, and run in Android platform, it does
-	 * as following:<br>
-	 * 1. the key name is searched first in <code>java.awt.event.KeyEvent</code>
-	 * ('VK_' is NOT required. 'VK_' is prefix in J2SE), <br>
-	 * 2. convert keyCode in J2SE to Android (e.g.
-	 * java.awt.event.KeyEvent.VK_BACK_SPACE =&gt;
+	 * If a HAR package developed in J2SE, and run in Android platform, it does as following:<br>
+	 * 1. the key name is searched first in <code>java.awt.event.KeyEvent</code> ('VK_' is NOT
+	 * required. 'VK_' is prefix in J2SE), <br>
+	 * 2. convert keyCode in J2SE to Android (e.g. java.awt.event.KeyEvent.VK_BACK_SPACE =&gt;
 	 * android.view.KeyEvent.KEYCODE_DEL). <br>
-	 * 3. if your HAR package is designed for Android only, for example,
-	 * Shift+KEYCODE_a (for input 'A', 'KEYCODE_' is required prefix for
-	 * Android).<br>
-	 * 4. more Android keys, please refer <a target="_blank" href=
-	 * "http://developer.android.com/reference/android/view/KeyEvent.html"
+	 * 3. if your HAR package is designed for Android only, for example, Shift+KEYCODE_a (for input
+	 * 'A', 'KEYCODE_' is required prefix for Android).<br>
+	 * 4. more Android keys, please refer
+	 * <a target="_blank" href= "http://developer.android.com/reference/android/view/KeyEvent.html"
 	 * >http://developer.android.com/reference/android/view/KeyEvent.html</a><br>
-	 * 5. in J2SE, keys begin with 'VK_'; in Android, keys begin with
-	 * 'KEYCODE_'. <br>
+	 * 5. in J2SE, keys begin with 'VK_'; in Android, keys begin with 'KEYCODE_'. <br>
 	 * 
 	 * @param keys
-	 *            for example, "Control+Shift+Escape" or "Tab" (case
-	 *            insensitive)
+	 *            for example, "Control+Shift+Escape" or "Tab" (case insensitive)
 	 * @since 7.0
 	 */
 	public final void actionKeys(final String keys) {
@@ -3611,7 +3455,24 @@ public class ProjectContext {
 	 * @since 7.0
 	 */
 	public final void log(final String msg) {
-		LogManager.log(msg);
+		final StringBuilder sb = StringBuilderCacher.getFree();
+		sb.append("[");
+		sb.append(projectID);
+		sb.append("]");
+		sb.append(' ');
+		sb.append(msg);
+
+		final String logMsg = sb.toString();
+		if(ideConsoleWriter == null) {
+			LogManager.log(logMsg);
+		}else {
+			final char[] chars = LogManager.addTime(logMsg, true).toCharArray();
+			try {
+				ideConsoleWriter.write(chars, 0, chars.length);
+			}catch (final Exception e) {
+			}
+		}
+		StringBuilderCacher.cycle(sb);
 	}
 
 	private final static String[] buildParaForClass(final int paraNum) {
@@ -3623,8 +3484,7 @@ public class ProjectContext {
 		return p;
 	}
 
-	private final static void sendCmd(final CoreSession coreSS, final String cmdType,
-			final String para, final String value) {
+	private final static void sendCmd(final CoreSession coreSS, final String cmdType, final String para, final String value) {
 		if (UserThreadResourceUtil.isInServing(coreSS.context)) {
 			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
@@ -3636,8 +3496,8 @@ public class ProjectContext {
 		}
 	}
 
-	private final static void sendCmdInSysThread(final CoreSession coreSS, final String cmdType,
-			final String[] para, final String[] value) {
+	private final static void sendCmdInSysThread(final CoreSession coreSS, final String cmdType, final String[] para,
+			final String[] value) {
 		if (UserThreadResourceUtil.isInServing(coreSS.context)) {
 			ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
 				@Override
@@ -3650,22 +3510,20 @@ public class ProjectContext {
 	}
 
 	private final static void sendClass(final CoreSession coreSS, final String[] para) {
-		sendCmdInSysThread(coreSS, HCURL.DATA_CMD_SendPara, buildParaForClass(para.length - 1),
-				para);
+		sendCmdInSysThread(coreSS, HCURL.DATA_CMD_SendPara, buildParaForClass(para.length - 1), para);
 	}
 
 	/**
-	 * play tone at mobile if in session level; or play tone to all client
-	 * session if in project level. <BR>
+	 * play tone at mobile if in session level; or play tone to all client session if in project
+	 * level. <BR>
 	 * <BR>
 	 * you should disable mute option on mobile first.
 	 * 
 	 * @param note
-	 *            A note is given in the range of 0 to 127 inclusive. Defines
-	 *            the tone of the note as specified by the above formula.
+	 *            A note is given in the range of 0 to 127 inclusive. Defines the tone of the note
+	 *            as specified by the above formula.
 	 * @param duration
-	 *            The duration of the tone in milli-seconds. Duration must be
-	 *            positive.
+	 *            The duration of the tone in milli-seconds. Duration must be positive.
 	 * @param volume
 	 *            Audio volume range from 0 to 100. 100 represents the maximum
 	 * @see #isCurrentThreadInSessionLevel()
@@ -3676,8 +3534,7 @@ public class ProjectContext {
 			return;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		final J2SESession[] coreSSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
@@ -3694,8 +3551,7 @@ public class ProjectContext {
 		}
 
 		if (coreSSS != null && coreSSS.length > 0) {
-			final String[] v = { "hc.j2me.load.Tone", String.valueOf(note),
-					String.valueOf(duration), String.valueOf(volume) };
+			final String[] v = { "hc.j2me.load.Tone", String.valueOf(note), String.valueOf(duration), String.valueOf(volume) };
 			for (int i = 0; i < coreSSS.length; i++) {
 				sendClass(coreSSS[i], v);
 			}
@@ -3703,13 +3559,12 @@ public class ProjectContext {
 	}
 
 	/**
-	 * send notification to current mobile if in session level, or send
-	 * notification to all client session if in project level. <BR>
+	 * send notification to current mobile if in session level, or send notification to all client
+	 * session if in project level. <BR>
 	 * <BR>
-	 * if mobile option [Message, Notification to Speech also] is
-	 * <STRONG>on</STRONG>, it may be spoken.<BR>
-	 * the speech or not is depends on text, TTS engine, locale and mute of
-	 * mobile.
+	 * if mobile option [Message, Notification to Speech also] is <STRONG>on</STRONG>, it may be
+	 * spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
 	 * 
 	 * @param title
 	 *            the title of notification.
@@ -3717,8 +3572,8 @@ public class ProjectContext {
 	 *            the body of notification.
 	 * @param flags
 	 *            one of the following or combination, or none. <BR>
-	 *            {@link #FLAG_NOTIFICATION_SOUND} : notification with sound. If
-	 *            mute option of mobile is enabled, then no sound; <BR>
+	 *            {@link #FLAG_NOTIFICATION_SOUND} : notification with sound. If mute option of
+	 *            mobile is enabled, then no sound; <BR>
 	 *            {@link #FLAG_NOTIFICATION_VIBRATE} : notification with vibrate
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.0
@@ -3728,8 +3583,7 @@ public class ProjectContext {
 			return;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		final J2SESession[] coreSSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
@@ -3746,8 +3600,7 @@ public class ProjectContext {
 		}
 
 		if (coreSSS != null && coreSSS.length > 0) {
-			final String[] v = { ConfigManager.HC_J2ME_LOAD_NOTIFICATION, title, text,
-					String.valueOf(flags) };
+			final String[] v = { ConfigManager.HC_J2ME_LOAD_NOTIFICATION, title, text, String.valueOf(flags) };
 			for (int i = 0; i < coreSSS.length; i++) {
 				sendClass(coreSSS[i], v);
 			}
@@ -3757,10 +3610,9 @@ public class ProjectContext {
 	}
 
 	/**
-	 * it is useful for thread of user to stop task and release resource when
-	 * stop project.<BR>
-	 * you can set new value in [option/other/interval seconds between stop and
-	 * restart HAR project]. <BR>
+	 * it is useful for thread of user to stop task and release resource when stop project.<BR>
+	 * you can set new value in [option/other/interval seconds between stop and restart HAR
+	 * project]. <BR>
 	 * <BR>
 	 * <STRONG>deprecated</STRONG><BR>
 	 * please use {@link #getScheduler(String, boolean)} for time scheduler.
@@ -3798,8 +3650,7 @@ public class ProjectContext {
 			return SimuMobile.MOBILE_CONNECTING;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS = null;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -3817,20 +3668,19 @@ public class ProjectContext {
 	/**
 	 * check current server is running on Android or not.
 	 * 
-	 * @return true means run on Android; false means run on Oracle JRE/JDK,
-	 *         OpenJDK JVM or other. platform.
+	 * @return true means run on Android; false means run on Oracle JRE/JDK, OpenJDK JVM or other.
+	 *         platform.
 	 * @see #isJ2SEPlatform()
 	 * @since 7.0
 	 */
 	public final boolean isAndroidPlatform() {
 		if (isAndroidPlatform == null) {
-			isAndroidPlatform = (Boolean) ServerUIAPIAgent
-					.runAndWaitInSysThread(new ReturnableRunnable() {
-						@Override
-						public Object run() throws Throwable {
-							return ResourceUtil.isAndroidServerPlatform();
-						}
-					});
+			isAndroidPlatform = (Boolean) ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+				@Override
+				public Object run() throws Throwable {
+					return ResourceUtil.isAndroidServerPlatform();
+				}
+			});
 		}
 		return isAndroidPlatform;
 	}
@@ -3838,23 +3688,20 @@ public class ProjectContext {
 	private Boolean isAndroidPlatform;
 
 	/**
-	 * check current server is running on J2SE platform (Oracle JDK/JRE, OpenJDK
-	 * JVM) or not.
+	 * check current server is running on J2SE platform (Oracle JDK/JRE, OpenJDK JVM) or not.
 	 * 
-	 * @return true means runs on J2SE; false means runs on Android or other
-	 *         platform.
+	 * @return true means runs on J2SE; false means runs on Android or other platform.
 	 * @see #isAndroidPlatform()
 	 * @since 7.0
 	 */
 	public final boolean isJ2SEPlatform() {
 		if (isJ2SEPlatform == null) {
-			isJ2SEPlatform = (Boolean) ServerUIAPIAgent
-					.runAndWaitInSysThread(new ReturnableRunnable() {
-						@Override
-						public Object run() throws Throwable {
-							return ResourceUtil.isStandardJ2SEServer();
-						}
-					});
+			isJ2SEPlatform = (Boolean) ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+				@Override
+				public Object run() throws Throwable {
+					return ResourceUtil.isStandardJ2SEServer();
+				}
+			});
 		}
 		return isJ2SEPlatform;
 	}
@@ -3862,8 +3709,8 @@ public class ProjectContext {
 	private Boolean isJ2SEPlatform;
 
 	/**
-	 * notify vibrate to current mobile if in session level, or notify vibrate
-	 * to all client session if in project level.
+	 * notify vibrate to current mobile if in session level, or notify vibrate to all client session
+	 * if in project level.
 	 * 
 	 * @param duration
 	 *            the number of milliseconds the vibrator should be run
@@ -3875,8 +3722,7 @@ public class ProjectContext {
 			return;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		final J2SESession[] coreSSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
@@ -3901,12 +3747,12 @@ public class ProjectContext {
 	}
 
 	/**
-	 * cancel alert which is created in session or project level, no matter
-	 * current thread is session or project level.
+	 * cancel alert which is created in session or project level, no matter current thread is
+	 * session or project level.
 	 * 
 	 * @param alertKey
-	 *            the key will be canceled from alert. If the key is canceled
-	 *            already or not exists, then do nothing.
+	 *            the key will be canceled from alert. If the key is canceled already or not exists,
+	 *            then do nothing.
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @see #alertOn(String)
 	 * @since 7.71
@@ -3944,8 +3790,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * set alert off on mobile if in session level, or set alert off to all
-	 * client sessions if in project level. <BR>
+	 * set alert off on mobile if in session level, or set alert off to all client sessions if in
+	 * project level. <BR>
 	 * <STRONG>deprecated</STRONG>, replaced by {@link #alertOff(String)}.
 	 * 
 	 * @see #isCurrentThreadInSessionLevel()
@@ -3958,8 +3804,7 @@ public class ProjectContext {
 		}
 
 		final J2SESession[] coreSSS;
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -3982,14 +3827,14 @@ public class ProjectContext {
 	}
 
 	/**
-	 * set alert on for mobile if in session level, or set alert on to all
-	 * client sessions if in project level. <BR>
+	 * set alert on for mobile if in session level, or set alert on to all client sessions if in
+	 * project level. <BR>
 	 * <BR>
 	 * when alert on, mobile will keep vibrate and play a tone.
 	 * 
 	 * @param alertKey
-	 *            the key is used for cancel the alert, no matter it is created
-	 *            in session or project level.
+	 *            the key is used for cancel the alert, no matter it is created in session or
+	 *            project level.
 	 * @see #alertOff(String)
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 7.71
@@ -4000,8 +3845,7 @@ public class ProjectContext {
 		}
 
 		final J2SESession[] coreSSS;
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -4028,8 +3872,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * set alert on on mobile if in session level, or set alert on to all client
-	 * sessions if in project level. <BR>
+	 * set alert on on mobile if in session level, or set alert on to all client sessions if in
+	 * project level. <BR>
 	 * <STRONG>deprecated</STRONG>, replaced by {@link #alertOn(String)}.
 	 * 
 	 * @see #isCurrentThreadInSessionLevel()
@@ -4042,8 +3886,7 @@ public class ProjectContext {
 		}
 
 		final J2SESession[] coreSSS;
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -4066,31 +3909,30 @@ public class ProjectContext {
 	}
 
 	/**
-	 * it is equals with
-	 * <code>sendMessage(caption, text, type, null, 0)</code>.<BR>
+	 * it is equals with <code>sendMessage(caption, text, type, null, 0)</code>.<BR>
 	 * <BR>
 	 * in session level, send a alert message to mobile.<BR>
 	 * in project level, send the same alert to all client sessions.<BR>
 	 * <BR>
-	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
-	 * notification is also created for mobile.<BR>
+	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a notification is also
+	 * created for mobile.<BR>
 	 * <BR>
-	 * if mobile option [Message, Notification to Speech also] is
-	 * <STRONG>on</STRONG>, it may be spoken.<BR>
-	 * the speech or not is depends on text, TTS engine, locale and mute of
-	 * mobile.
+	 * if mobile option [Message, Notification to Speech also] is <STRONG>on</STRONG>, it may be
+	 * spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
 	 * 
 	 * @param caption
 	 *            the caption of message.
 	 * @param text
 	 *            the body of message.
 	 * @param type
-	 *            one of {@link #MESSAGE_ERROR}, {@link #MESSAGE_WARN},
-	 *            {@link #MESSAGE_INFO}, {@link #MESSAGE_ALARM},
-	 *            {@link #MESSAGE_CONFIRMATION}.
+	 *            one of {@link #MESSAGE_ERROR}, {@link #MESSAGE_WARN}, {@link #MESSAGE_INFO},
+	 *            {@link #MESSAGE_ALARM}, {@link #MESSAGE_CONFIRMATION}.
 	 * @see #sendMessage(String, String, int, BufferedImage, int)
 	 * @since 6.98
+	 * @deprecated
 	 */
+	@Deprecated
 	public final void send(final String caption, final String text, final int type) {
 		try {
 			sendMessage(caption, text, type, null, 0);
@@ -4100,16 +3942,43 @@ public class ProjectContext {
 	}
 
 	/**
-	 * return the login ID/Email, which is NOT verified by HomeCenter.MOBI
-	 * possibly. <BR>
+	 * it is equals with {@link #sendMessage(String, String, int, BufferedImage, int)}.<BR>
+	 * <BR>
+	 * in session level, send a alert message to mobile.<BR>
+	 * in project level, send the same alert to all client sessions.<BR>
+	 * <BR>
+	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a notification is also
+	 * created for mobile.<BR>
+	 * <BR>
+	 * if mobile option [Message, Notification to Speech also] is <STRONG>on</STRONG>, it may be
+	 * spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
+	 * 
+	 * @param caption
+	 *            the caption of message.
+	 * @param text
+	 *            the body of message.
+	 * @param type
+	 *            one of {@link #MESSAGE_ERROR}, {@link #MESSAGE_WARN}, {@link #MESSAGE_INFO},
+	 *            {@link #MESSAGE_ALARM}, {@link #MESSAGE_CONFIRMATION}.
+	 * @see #sendMessage(String, String, int, BufferedImage, int)
+	 */
+	public final void sendMessage(final String caption, final String text, final int type) {
+		try {
+			sendMessage(caption, text, type, null, 0);
+		} catch (final Throwable e) {
+			// 设计时，手机非在线时，
+		}
+	}
+
+	/**
+	 * return the login ID/Email, which is NOT verified by HomeCenter.MOBI possibly. <BR>
 	 * <BR>
 	 * <STRONG>Important : </STRONG><BR>
-	 * user maybe change ID according to their own wishes, project will restart
-	 * and new instance of <code>ProjectContext</code> will be created if the
-	 * login ID/Email is changed. <BR>
+	 * user maybe change ID according to their own wishes, project will restart and new instance of
+	 * <code>ProjectContext</code> will be created if the login ID/Email is changed. <BR>
 	 * <BR>
-	 * do follow steps to check the login Email account is verified by
-	 * HomeCenter.MOBI or not: <BR>
+	 * do follow steps to check the login Email account is verified by HomeCenter.MOBI or not: <BR>
 	 * 1. get login ID/Email by {@link #getLoginID()} <BR>
 	 * 2. get token for check by {@link #getTokenForCheck()} <BR>
 	 * 3. if user donate or buy some service, the token will be changed! <BR>
@@ -4117,19 +3986,16 @@ public class ProjectContext {
 	 * "<STRONG>https</STRONG>://homecenter.mobi/ajax/call.php?f=checkEmail&email=%X%X&token=XX"
 	 * <BR>
 	 * 5. email should be encoded by
-	 * <STRONG>java.net.URLEncoder.encode("email@company.com","UTF-8")</STRONG>
-	 * <BR>
+	 * <STRONG>java.net.URLEncoder.encode("email@company.com","UTF-8")</STRONG> <BR>
 	 * 6. token is NOT required to encode. <BR>
-	 * 7. if successful then return "verified"; if not , then return "failed".
-	 * <BR>
+	 * 7. if successful then return "verified"; if not , then return "failed". <BR>
 	 * 8. there is not method do above, because this is open source server. <BR>
 	 * <BR>
 	 * <STRONG>Note : </STRONG> <BR>
-	 * 1. if the verification is very important to your business, you should
-	 * ensure the <STRONG>https</STRONG> is NOT under Man-in-the-middle attack.
-	 * <BR>
-	 * 2. user is NOT allowed to setup multiple servers with same login account,
-	 * only one server is verified at same time.
+	 * 1. if the verification is very important to your business, you should ensure the
+	 * <STRONG>https</STRONG> is NOT under Man-in-the-middle attack. <BR>
+	 * 2. user is NOT allowed to setup multiple servers with same login account, only one server is
+	 * verified at same time.
 	 * 
 	 * @return login ID/Email on this server
 	 * @see #getMemberID()
@@ -4228,15 +4094,15 @@ public class ProjectContext {
 	}
 
 	/**
-	 * <code>SoftUID</code> is an identifier created when mobile application is
-	 * installed on mobile. <BR>
+	 * <code>SoftUID</code> is an identifier created when mobile application is installed on mobile.
 	 * <BR>
-	 * if mobile application is removed and install again on same mobile, the
-	 * <code>SoftID</code> is changed. <BR>
+	 * <BR>
+	 * if mobile application is removed and install again on same mobile, the <code>SoftID</code> is
+	 * changed. <BR>
 	 * it is NOT ID from hardware. <BR>
 	 * <BR>
-	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}
-	 * or after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
+	 * you can't invoke it before {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN} or after
+	 * {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}.
 	 * 
 	 * @return empty string if mobile not login or not in session level.
 	 * @see #getLoginID()
@@ -4251,8 +4117,7 @@ public class ProjectContext {
 
 		final String noLoginUID = "";
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -4295,23 +4160,21 @@ public class ProjectContext {
 	}
 
 	/**
-	 * <code>MemberID</code> is used to distinguish between different members of
-	 * a family or group, which belongs to same <code>LoginID</code>. <BR>
+	 * <code>MemberID</code> is used to distinguish between different members of a family or group,
+	 * which belongs to same <code>LoginID</code>. <BR>
 	 * <BR>
 	 * <STRONG>Know more :</STRONG> <BR>
 	 * 1. <code>MemberID</code> is stored in client. <BR>
-	 * 2. if <code>MemberID</code> is not set, a dialog for input member ID is
-	 * showed on client, and current thread is block until return
-	 * <code>MemberID</code> or line off. <BR>
+	 * 2. if <code>MemberID</code> is not set, a dialog for input member ID is showed on client, and
+	 * current thread is block until return <code>MemberID</code> or line off. <BR>
 	 * 3. this method is synchronized for multiple projects. <BR>
-	 * 4. the <code>MemberID</code> dialog can not be canceled (for example back
-	 * key in Android). <BR>
-	 * 5. user maybe set same <code>MemberID</code> in multiple mobile at same
-	 * time. <BR>
-	 * 6. if same <code>MemberID</code> connected at same time, then a warning
-	 * message is send to each client. <BR>
-	 * 7. to set/change <code>MemberID</code> before login, click "Option"
-	 * button at client login form. <BR>
+	 * 4. the <code>MemberID</code> dialog can not be canceled (for example back key in Android).
+	 * <BR>
+	 * 5. user maybe set same <code>MemberID</code> in multiple mobile at same time. <BR>
+	 * 6. if same <code>MemberID</code> connected at same time, then a warning message is send to
+	 * each client. <BR>
+	 * 7. to set/change <code>MemberID</code> before login, click "Option" button at client login
+	 * form. <BR>
 	 * 8. it is available in {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}.
 	 * 
 	 * @return empty string if line off, not login or not in session level.
@@ -4343,8 +4206,7 @@ public class ProjectContext {
 
 		final String noLoginUID = "";
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -4373,8 +4235,7 @@ public class ProjectContext {
 	/**
 	 * return the projectContext instance of the current project.<BR>
 	 * <BR>
-	 * you can invoke this method anywhere even if there are two or more active
-	 * projects.
+	 * you can invoke this method anywhere even if there are two or more active projects.
 	 * 
 	 * @return
 	 */
@@ -4387,8 +4248,7 @@ public class ProjectContext {
 		ContextSecurityConfig csc = null;
 		final Thread currentThread = Thread.currentThread();
 		if ((currentThread == eventDispatchThread && ((csc = hcEventQueue.currentConfig) != null))
-				|| (csc = ContextSecurityManager
-						.getConfig(currentThread.getThreadGroup())) != null) {
+				|| (csc = ContextSecurityManager.getConfig(currentThread.getThreadGroup())) != null) {
 			return csc.getProjectContext();
 		}
 
@@ -4402,8 +4262,7 @@ public class ProjectContext {
 		sb.append("\n");
 		sb.append("-------------------------------important-----------------------------");
 		sb.append("\n");
-		sb.append(
-				"In designer, ProjectContext.getProjectContext will return a context just for test run!!!");
+		sb.append("In designer, ProjectContext.getProjectContext will return a context just for test run!!!");
 		sb.append("\n");
 		sb.append("------------------------------------------------------------------------");
 		LogManager.log(sb.toString());
@@ -4416,14 +4275,14 @@ public class ProjectContext {
 	 * <BR>
 	 * send a <code>Dialog</code> to client. <br>
 	 * <br>
-	 * if there is a alert message, question or other dialog is presented on
-	 * client and NOT be closed, the dialog will be delayed. <br>
+	 * if there is a alert message, question or other dialog is presented on client and NOT be
+	 * closed, the dialog will be delayed. <br>
 	 * <br>
-	 * this method is <STRONG>asynchronous</STRONG>. system will NOT wait for
-	 * the result of dialog to the caller. <BR>
+	 * this method is <STRONG>asynchronous</STRONG>. system will NOT wait for the result of dialog
+	 * to the caller. <BR>
 	 * <BR>
-	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
-	 * notification is also created for mobile.<BR>
+	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a notification is also
+	 * created for mobile.<BR>
 	 * <BR>
 	 * 
 	 * @param dialog
@@ -4441,9 +4300,8 @@ public class ProjectContext {
 	 * see {@link #sendDialogWhenInSession(Dialog)} for more. <BR>
 	 * <BR>
 	 * <STRONG>About return status :</STRONG><BR>
-	 * 1. in session level, return true means dialog is dismissed by client,
-	 * false means canceled by client, when line off the execution will be
-	 * terminated.<BR>
+	 * 1. in session level, return true means dialog is dismissed by client, false means canceled by
+	 * client, when line off the execution will be terminated.<BR>
 	 * 2. in project level, return false;
 	 * 
 	 * @param dialog
@@ -4454,8 +4312,7 @@ public class ProjectContext {
 		return sendDialogWhenInSessionImpl(dialog, true);
 	}
 
-	private final boolean sendDialogWhenInSessionImpl(final Dialog dialog,
-			final boolean isWaiting) {
+	private final boolean sendDialogWhenInSessionImpl(final Dialog dialog, final boolean isWaiting) {
 		if (dialog == null) {
 			return false;
 		}
@@ -4464,8 +4321,7 @@ public class ProjectContext {
 			return true;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
@@ -4481,8 +4337,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * when line-off, the script for session which is running or will to run
-	 * will be stopped by throwing line off error.
+	 * when line-off, the script for session which is running or will to run will be stopped by
+	 * throwing line off error.
 	 * 
 	 * @param throwable
 	 * @return
@@ -4492,11 +4348,11 @@ public class ProjectContext {
 	}
 
 	/**
-	 * send a dialog to mobile if in session level, or send same dialog(s) to
-	 * all client sessions if in project level. <br>
+	 * send a dialog to mobile if in session level, or send same dialog(s) to all client sessions if
+	 * in project level. <br>
 	 * <br>
-	 * in project level, if one session replies, then the same dialog(s) in
-	 * other sessions will be dismissed. <br>
+	 * in project level, if one session replies, then the same dialog(s) in other sessions will be
+	 * dismissed. <br>
 	 * <br>
 	 * code sample, <BR>
 	 * <BR>
@@ -4516,27 +4372,25 @@ public class ProjectContext {
 	 * &nbsp;&nbsp;}<BR>
 	 * });<BR>
 	 * </code> <BR>
-	 * <STRONG>Why</STRONG> the parameter is Runnable to build instance from
-	 * defined JRuby class or a Java class? <BR>
-	 * because the layout of dialog is depends on the client screen size of that
-	 * session.<BR>
-	 * for example, there are three sessions, the <code>runnable</code> will be
-	 * executed three times, <BR>
-	 * and three instances of <code>Dialog</code> are builded for each session.
+	 * <STRONG>Why</STRONG> the parameter is Runnable to build instance from defined JRuby class or
+	 * a Java class? <BR>
+	 * because the layout of dialog is depends on the client screen size of that session.<BR>
+	 * for example, there are three sessions, the <code>runnable</code> will be executed three
+	 * times, <BR>
+	 * and three instances of <code>Dialog</code> are builded for each session. <br>
 	 * <br>
+	 * if there is a alert message, question or other dialog is presented on client and NOT closed,
+	 * the dialog will be delayed. <br>
 	 * <br>
-	 * if there is a alert message, question or other dialog is presented on
-	 * client and NOT closed, the dialog will be delayed. <br>
-	 * <br>
-	 * this method is <STRONG>asynchronous</STRONG>, server will NOT wait for
-	 * the result of dialog to the caller. <BR>
+	 * this method is <STRONG>asynchronous</STRONG>, server will NOT wait for the result of dialog
+	 * to the caller. <BR>
 	 * <BR>
-	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
-	 * notification is also created for mobile.
+	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a notification is also
+	 * created for mobile.
 	 * 
 	 * @param runnable
-	 *            the <code>Runnable</code> to build instance from a defined
-	 *            JRuby class or a Java class.
+	 *            the <code>Runnable</code> to build instance from a defined JRuby class or a Java
+	 *            class.
 	 * @see #sendDialogAndWaitByBuilding(Runnable)
 	 * @see #sendDialogWhenInSession(Dialog)
 	 * @see #isClientLineOn()
@@ -4550,11 +4404,10 @@ public class ProjectContext {
 	 * see {@link #sendDialogByBuilding(Runnable)} for more. <BR>
 	 * <BR>
 	 * <STRONG>About return status :</STRONG><BR>
-	 * 1. in project level, return true means dialog is dismissed/canceled by
-	 * one client, false means all sessions are line off.<BR>
-	 * 2. in session level, return true means dialog is dismissed by client,
-	 * false means canceled by client, when line off the execution will be
-	 * terminated.
+	 * 1. in project level, return true means dialog is dismissed/canceled by one client, false
+	 * means all sessions are line off.<BR>
+	 * 2. in session level, return true means dialog is dismissed by client, false means canceled by
+	 * client, when line off the execution will be terminated.
 	 * 
 	 * @param runnable
 	 * @return
@@ -4564,8 +4417,7 @@ public class ProjectContext {
 		return sendDialogByBuildingImpl(runnable, true);
 	}
 
-	private final boolean sendDialogByBuildingImpl(final Runnable runnable,
-			final boolean isWaiting) {
+	private final boolean sendDialogByBuildingImpl(final Runnable runnable, final boolean isWaiting) {
 		if (runnable == null) {
 			return false;
 		}
@@ -4574,8 +4426,7 @@ public class ProjectContext {
 			return true;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS = null;
 		final J2SESession[] coreSSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
@@ -4599,29 +4450,25 @@ public class ProjectContext {
 		return publishDialog(coreSS, coreSSS, null, runnable, isWaiting);
 	}
 
-	private final boolean publishDialog(final J2SESession session, final J2SESession[] coreSSS,
-			final Dialog dialog, final Runnable dialogBuildProc, final boolean isWaiting) {
+	private final boolean publishDialog(final J2SESession session, final J2SESession[] coreSSS, final Dialog dialog,
+			final Runnable dialogBuildProc, final boolean isWaiting) {
 		final ProjectContext p_ctx = this;
 		// 如果同时发出两个Dialog，则可能不同步，所以以下要wait
 		final boolean isForSession = session != null;
-		final DialogGlobalLock dialogLock = (DialogGlobalLock) ServerUIAPIAgent
-				.runAndWaitInSysThread(new ReturnableRunnable() {
-					@Override
-					public Object run() throws Throwable {
-						final int dialogID = ServerUIAPIAgent.buildDialogID();
-						final DialogGlobalLock dialogLock = new DialogGlobalLock(isForSession,
-								coreSSS, dialogID, isWaiting);// 每个会话共用
+		final DialogGlobalLock dialogLock = (DialogGlobalLock) ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+			@Override
+			public Object run() throws Throwable {
+				final int dialogID = ServerUIAPIAgent.buildDialogID();
+				final DialogGlobalLock dialogLock = new DialogGlobalLock(isForSession, coreSSS, dialogID, isWaiting);// 每个会话共用
 
-						for (int i = 0; i < coreSSS.length; i++) {
-							final J2SESession session = coreSSS[i];
-							final DialogParameter dialogParameter = ServerUIAPIAgent
-									.buildDialogParameter(session, p_ctx, dialogLock, dialogID);
-							ServerUIAPIAgent.sendDialog(dialogParameter, session, dialog,
-									dialogBuildProc, p_ctx, dialogLock);
-						}
-						return dialogLock;
-					}
-				});
+				for (int i = 0; i < coreSSS.length; i++) {
+					final J2SESession session = coreSSS[i];
+					final DialogParameter dialogParameter = ServerUIAPIAgent.buildDialogParameter(session, p_ctx, dialogLock, dialogID);
+					ServerUIAPIAgent.sendDialog(dialogParameter, session, dialog, dialogBuildProc, p_ctx, dialogLock);
+				}
+				return dialogLock;
+			}
+		});
 		if (isWaiting) {
 			final boolean processed = dialogLock.waitingResult(session);
 			if (isForSession) {
@@ -4694,46 +4541,42 @@ public class ProjectContext {
 	public static final int MESSAGE_CONFIRMATION = 5;
 
 	/**
-	 * send an alert message to current mobile if in session level, or send the
-	 * same alert to all client sessions if in project level. <br>
+	 * send an alert message to current mobile if in session level, or send the same alert to all
+	 * client sessions if in project level. <br>
 	 * <br>
-	 * if there is an other alert message, question or a <code>Dialog</code> is
-	 * presented on client and NOT be closed, the alert message will be delayed.
+	 * if there is an other alert message, question or a <code>Dialog</code> is presented on client
+	 * and NOT be closed, the alert message will be delayed. <BR>
 	 * <BR>
+	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a notification is also
+	 * created for mobile.<BR>
 	 * <BR>
-	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
-	 * notification is also created for mobile.<BR>
-	 * <BR>
-	 * if mobile option [Message, Notification to Speech also] is
-	 * <STRONG>on</STRONG>, it may be spoken.<BR>
-	 * the speech or not is depends on text, TTS engine, locale and mute of
-	 * mobile.
+	 * if mobile option [Message, Notification to Speech also] is <STRONG>on</STRONG>, it may be
+	 * spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
 	 * 
 	 * @param caption
 	 *            the caption of message.
 	 * @param text
 	 *            the body of message.
 	 * @param type
-	 *            one of {@link #MESSAGE_ERROR}, {@link #MESSAGE_WARN},
-	 *            {@link #MESSAGE_INFO}, {@link #MESSAGE_ALARM},
-	 *            {@link #MESSAGE_CONFIRMATION}.
+	 *            one of {@link #MESSAGE_ERROR}, {@link #MESSAGE_WARN}, {@link #MESSAGE_INFO},
+	 *            {@link #MESSAGE_ALARM}, {@link #MESSAGE_CONFIRMATION}.
 	 * @param image
-	 *            null if no image, it should be small image, please not big
-	 *            image.
+	 *            null if no image, it should be small image, please not big image.
 	 * @param timeOut
 	 *            0:forever;a positive time value in milliseconds
+	 * @see #sendMessage(String, String, int)
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 6.98
 	 */
-	public final boolean sendMessage(final String caption, final String text, final int type,
-			final BufferedImage image, final int timeOut) {
+	public final boolean sendMessage(final String caption, final String text, final int type, final BufferedImage image,
+			final int timeOut) {
 		if (__projResponserMaybeNull == null || SimuMobile.checkSimuProjectContext(this)) {
 			return false;
 		}
 
 		final J2SESession[] coreSSS;
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -4749,8 +4592,7 @@ public class ProjectContext {
 		}
 
 		if (coreSSS != null && coreSSS.length > 0) {
-			ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, caption, text, type, image,
-					timeOut);
+			ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, caption, text, type, image, timeOut);
 
 			processFormData(text);
 			return true;
@@ -4760,8 +4602,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * send a AU sound data to current mobile if in session level, or send same
-	 * AU sound to all client sessions if in project level. <BR>
+	 * send a AU sound data to current mobile if in session level, or send same AU sound to all
+	 * client sessions if in project level. <BR>
 	 * <BR>
 	 * Important : it is deprecated.
 	 * 
@@ -4777,8 +4619,7 @@ public class ProjectContext {
 		}
 
 		final J2SESession[] coreSSS;
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -4809,8 +4650,8 @@ public class ProjectContext {
 					@Override
 					public Object run() throws Throwable {
 						for (int i = 0; i < coreSSS.length; i++) {
-							coreSSS[i].context.sendWrap(MsgBuilder.E_SOUND, bytes,
-									MsgBuilder.INDEX_MSG_DATA, (int) length + DataPNG.HEAD_LENGTH);
+							coreSSS[i].context.sendWrap(MsgBuilder.E_SOUND, bytes, MsgBuilder.INDEX_MSG_DATA,
+									(int) length + DataPNG.HEAD_LENGTH);
 						}
 
 						ByteUtil.byteArrayCacher.cycle(bytes);
@@ -4853,10 +4694,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * in session level, true means mobile is log-in and keep connecting (maybe
-	 * in background),<BR>
-	 * in project level, true means at least one client session is keep
-	 * connection;
+	 * in session level, true means mobile is log-in and keep connecting (maybe in background),<BR>
+	 * in project level, true means at least one client session is keep connection;
 	 * 
 	 * @return
 	 * @see #addSystemEventListener(SystemEventListener)
@@ -4873,8 +4712,7 @@ public class ProjectContext {
 			return SimuMobile.MOBILE_CONNECTING;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -4890,10 +4728,9 @@ public class ProjectContext {
 	}
 
 	/**
-	 * in session level, true means mobile is on relay server (not directly
-	 * connect to your server);<BR>
-	 * in project level, true means at least one client session is on relay.
-	 * <BR>
+	 * in session level, true means mobile is on relay server (not directly connect to your
+	 * server);<BR>
+	 * in project level, true means at least one client session is on relay. <BR>
 	 * <BR>
 	 * Important : when on relay, the data translated to mobile may be slowly.
 	 * 
@@ -4906,8 +4743,7 @@ public class ProjectContext {
 			return SimuMobile.MOBILE_ON_RELAY;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -4939,10 +4775,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * in session level, true means mobile is keep connecting and run in
-	 * background;<BR>
-	 * in project level, true means at least one client session is run in
-	 * background.<BR>
+	 * in session level, true means mobile is keep connecting and run in background;<BR>
+	 * in project level, true means at least one client session is run in background.<BR>
 	 * <BR>
 	 * <STRONG>Important</STRONG> : <BR>
 	 * background mode may be NOT supported by mobile. <BR>
@@ -4962,8 +4796,7 @@ public class ProjectContext {
 
 		// TODO 为优化性能，将来mobileagent置于projectContext之中
 		// 注意：不能用变量暂存
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -4975,8 +4808,7 @@ public class ProjectContext {
 			}
 			final CoreSession[] coreSSS = ServerUIAPIAgent.getAllSocketSessionsNoCheck();
 			for (int i = 0; i < coreSSS.length; i++) {
-				if (UserThreadResourceUtil.getMobileAgent((J2SESession) coreSSS[i])
-						.isBackground()) {
+				if (UserThreadResourceUtil.getMobileAgent((J2SESession) coreSSS[i]).isBackground()) {
 					return true;
 				}
 			}
@@ -4987,30 +4819,26 @@ public class ProjectContext {
 	}
 
 	/**
-	 * return true if current thread in session level; otherwise in project
-	 * level. <BR>
+	 * return true if current thread in session level; otherwise in project level. <BR>
 	 * <BR>
-	 * session level means current thread is serving for a mobile client
-	 * session, NOT for project. <BR>
-	 * a server can serve multiple sessions which login with same account at
-	 * same time. <BR>
+	 * session level means current thread is serving for a mobile client session, NOT for project.
 	 * <BR>
-	 * most of scripts are for session level to response the user request, but
-	 * some will start up before session and keep working after session is
-	 * closed, <BR>
-	 * for example the IoT, {@link #EVENT_SYS_PROJ_STARTUP} and
-	 * {@link #EVENT_SYS_PROJ_SHUTDOWN}. <BR>
-	 * some IoT threads maybe run as long as the project, and they are required
-	 * to serve for all sessions. <BR>
+	 * a server can serve multiple sessions which login with same account at same time. <BR>
+	 * <BR>
+	 * most of scripts are for session level to response the user request, but some will start up
+	 * before session and keep working after session is closed, <BR>
+	 * for example the IoT, {@link #EVENT_SYS_PROJ_STARTUP} and {@link #EVENT_SYS_PROJ_SHUTDOWN}.
+	 * <BR>
+	 * some IoT threads maybe run as long as the project, and they are required to serve for all
+	 * sessions. <BR>
 	 * <BR>
 	 * <STRONG>Tip :</STRONG> <BR>
 	 * 1. all objects based on session level will gone automatically after
 	 * {@link #EVENT_SYS_MOBILE_LOGOUT}, exclude {@link #run(Runnable)} and
 	 * {@link #runAndWait(Runnable)}. <BR>
-	 * 2. in session level, these following methods serve only for that session;
-	 * <BR>
-	 * 3. in project level, they serve for all sessions. (in other word, one
-	 * command for all sessions) <BR>
+	 * 2. in session level, these following methods serve only for that session; <BR>
+	 * 3. in project level, they serve for all sessions. (in other word, one command for all
+	 * sessions) <BR>
 	 * <BR>
 	 * the difference between session level and project level :
 	 * <table border='1'>
@@ -5031,8 +4859,7 @@ public class ProjectContext {
 	 * </tr>
 	 * <tr>
 	 * <td>{@link #isMobileOnRelay()}</td>
-	 * <td>return true, if current client is on relay server (not directly
-	 * connect to server)</td>
+	 * <td>return true, if current client is on relay server (not directly connect to server)</td>
 	 * <td>return true, at least one client session is on relay</td>
 	 * </tr>
 	 * <tr>
@@ -5132,40 +4959,34 @@ public class ProjectContext {
 	 * <LI><code>EVENT_SYS_PROJ_STARTUP</code></LI>
 	 * <LI>scripts in IoT, such as <code>Robot</code>, <code>Converter</code>,
 	 * <code>Device</code></LI>
-	 * <LI>the procedure of
-	 * {@link RobotListener#action(hc.server.msb.RobotEvent)} if it is added in
+	 * <LI>the procedure of {@link RobotListener#action(hc.server.msb.RobotEvent)} if it is added in
 	 * project level, <BR>
-	 * if it is added in <code>CtrlResponse</code> or <code>HTMLMlet</code>,
-	 * then the procedure is in session level</LI>
-	 * <LI>the new thread runs in project level if it is builded in project
+	 * if it is added in <code>CtrlResponse</code> or <code>HTMLMlet</code>, then the procedure is
+	 * in session level</LI>
+	 * <LI>the new thread runs in project level if it is builded in project level</LI>
+	 * <LI><code>runnable</code> runs in project level if {@link #run(Runnable)} is in project
 	 * level</LI>
-	 * <LI><code>runnable</code> runs in project level if {@link #run(Runnable)}
-	 * is in project level</LI>
-	 * <LI><code>runnable</code> runs in project level if
-	 * {@link #runAndWait(Runnable)} is in project level</LI>
+	 * <LI><code>runnable</code> runs in project level if {@link #runAndWait(Runnable)} is in
+	 * project level</LI>
 	 * <LI><code>EVENT_SYS_PROJ_SHUTDOWN</code></LI>
 	 * </UL>
 	 * <BR>
 	 * the following scripts are executed in session level :
 	 * <UL>
 	 * <LI><code>EVENT_SYS_MOBILE_LOGIN</code></LI>
-	 * <LI>menu item scripts, for examples Command,
-	 * <code>Mlet</code>/<code>HTMLMlet</code> and
+	 * <LI>menu item scripts, for examples Command, <code>Mlet</code>/<code>HTMLMlet</code> and
 	 * <code>CtrlResponse</code></LI>
-	 * <LI>the procedure of {@link SystemEventListener#onEvent(String)}
-	 * triggered by session events (<STRONG>NOT</STRONG> project event
-	 * EVENT_SYS_PROJ_SHUTDOWN), even if it is added in project level</LI>
-	 * <LI>the procedure of
-	 * {@link RobotListener#action(hc.server.msb.RobotEvent)} if the
-	 * RobotListener is added in session level</LI>
-	 * <LI>the procedure of {@link Robot#operate(long, Object)} to execute
-	 * command from user</LI>
-	 * <LI>the new thread runs in session level if it is builded in session
+	 * <LI>the procedure of {@link SystemEventListener#onEvent(String)} triggered by session events
+	 * (<STRONG>NOT</STRONG> project event EVENT_SYS_PROJ_SHUTDOWN), even if it is added in project
 	 * level</LI>
-	 * <LI><code>runnable</code> runs in session level if {@link #run(Runnable)}
-	 * is in session level</LI>
-	 * <LI><code>runnable</code> runs in session level if
-	 * {@link #runAndWait(Runnable)} is in session level</LI>
+	 * <LI>the procedure of {@link RobotListener#action(hc.server.msb.RobotEvent)} if the
+	 * RobotListener is added in session level</LI>
+	 * <LI>the procedure of {@link Robot#operate(long, Object)} to execute command from user</LI>
+	 * <LI>the new thread runs in session level if it is builded in session level</LI>
+	 * <LI><code>runnable</code> runs in session level if {@link #run(Runnable)} is in session
+	 * level</LI>
+	 * <LI><code>runnable</code> runs in session level if {@link #runAndWait(Runnable)} is in
+	 * session level</LI>
 	 * <LI><code>EVENT_SYS_MOBILE_LOGOUT</code></LI>
 	 * </UL>
 	 * 
@@ -5179,8 +5000,7 @@ public class ProjectContext {
 			return SimuMobile.CURR_IN_SESSION;
 		}
 
-		final SessionContext sessionContext = ctx.__projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = ctx.__projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			return false;
@@ -5192,8 +5012,8 @@ public class ProjectContext {
 	/**
 	 * send a voice to client/mobile.<BR>
 	 * <BR>
-	 * if you want show this voice as a moving message and speech again, please
-	 * use {@link #sendMovingMsg(String)}. <BR>
+	 * if you want show this voice as a moving message and speech again, please use
+	 * {@link #sendMovingMsg(String)}. <BR>
 	 * <BR>
 	 * 
 	 * @param voice
@@ -5206,8 +5026,7 @@ public class ProjectContext {
 		}
 
 		final J2SESession[] coreSSS;
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -5230,22 +5049,21 @@ public class ProjectContext {
 	}
 
 	/**
-	 * send a message moving from right to left for current mobile if in session
-	 * level, or send same message to all client sessions if in project
-	 * level.<BR>
+	 * send a message moving from right to left for current mobile if in session level, or send same
+	 * message to all client sessions if in project level.<BR>
 	 * <BR>
-	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a
-	 * notification is also created for mobile.<BR>
+	 * Note : if mobile is in background ({@link #isMobileInBackground()}), a notification is also
+	 * created for mobile.<BR>
 	 * <BR>
-	 * if mobile option [Message, Notification to Speech also] is
-	 * <STRONG>on</STRONG>, it may be spoken.<BR>
-	 * the speech or not is depends on text, TTS engine, locale and mute of
-	 * mobile. <BR>
+	 * if mobile option [Message, Notification to Speech also] is <STRONG>on</STRONG>, it may be
+	 * spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile. <BR>
 	 * <BR>
 	 * if the message is too long, {@link #sendVoice(String)} is a good choice.
 	 * 
 	 * @param msg
 	 *            the message to show.
+	 * @see #sendMessage(String, String, int, BufferedImage, int)
 	 * @see #isCurrentThreadInSessionLevel()
 	 * @since 6.98
 	 */
@@ -5255,8 +5073,7 @@ public class ProjectContext {
 		}
 
 		final J2SESession[] coreSSS;
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -5296,8 +5113,7 @@ public class ProjectContext {
 	 * {@link #EVENT_SYS_MOBILE_LOGOUT}.
 	 * 
 	 * @param listener
-	 *            If listener is null, no exception is thrown and no action is
-	 *            performed.
+	 *            If listener is null, no exception is thrown and no action is performed.
 	 * @return true if the projectContext contained the specified listener
 	 * @see #addSystemEventListener(SystemEventListener)
 	 * @see #isCurrentThreadInSessionLevel()
@@ -5312,8 +5128,7 @@ public class ProjectContext {
 			return false;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -5334,14 +5149,14 @@ public class ProjectContext {
 	/**
 	 * add the specified system event listener. <br>
 	 * <br>
-	 * If current thread is for session, then the listener is added in session
-	 * level, otherwise it is project level. <BR>
-	 * the listener in session level will gone automatically after
-	 * {@link #EVENT_SYS_MOBILE_LOGOUT}. <BR>
+	 * If current thread is for session, then the listener is added in session level, otherwise it
+	 * is project level. <BR>
+	 * the listener in session level will gone automatically after {@link #EVENT_SYS_MOBILE_LOGOUT}.
 	 * <BR>
-	 * the procedure of {@link SystemEventListener#onEvent(String)} is in
-	 * session level if triggered by session events (for example
-	 * EVENT_SYS_MOBILE_LOGIN), even if it is added in project level. <BR>
+	 * <BR>
+	 * the procedure of {@link SystemEventListener#onEvent(String)} is in session level if triggered
+	 * by session events (for example EVENT_SYS_MOBILE_LOGIN), even if it is added in project level.
+	 * <BR>
 	 * <BR>
 	 * these following events may be listened:
 	 * <ul>
@@ -5368,8 +5183,7 @@ public class ProjectContext {
 			return;
 		}
 
-		final SessionContext sessionContext = __projResponserMaybeNull
-				.getSessionContextFromCurrThread();
+		final SessionContext sessionContext = __projResponserMaybeNull.getSessionContextFromCurrThread();
 		J2SESession coreSS;
 		if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 			if (L.isInWorkshop) {
@@ -5388,8 +5202,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * get temporary file in <code>TEMP</code> directory (managed by server and
-	 * will be empty at next startup). <BR>
+	 * get temporary file in <code>TEMP</code> directory (managed by server and will be empty at
+	 * next startup). <BR>
 	 * <BR>
 	 * it is equals with {@link #createTempFile(String)}.
 	 * 
@@ -5409,8 +5223,8 @@ public class ProjectContext {
 	 * it is equals with {@link #createTempFile(File, String)}.
 	 * 
 	 * @param parent
-	 *            null means create random file in <code>TEMP</code> directory
-	 *            (managed by server and will be empty at next startup).
+	 *            null means create random file in <code>TEMP</code> directory (managed by server
+	 *            and will be empty at next startup).
 	 * @param fileExtension
 	 *            null means "tmp" will be used
 	 * @return
@@ -5420,8 +5234,8 @@ public class ProjectContext {
 	}
 
 	/**
-	 * create temporary file in <code>TEMP</code> directory (managed by server
-	 * and will be empty at next startup). <BR>
+	 * create temporary file in <code>TEMP</code> directory (managed by server and will be empty at
+	 * next startup). <BR>
 	 * <BR>
 	 * it is equals with {@link #getTempFile(String)}.
 	 * 
@@ -5440,8 +5254,8 @@ public class ProjectContext {
 	 * it is equals with {@link #getTempFile(File, String)}.
 	 * 
 	 * @param parent
-	 *            null means create random file in <code>TEMP</code> directory
-	 *            (managed by server and will be empty at next startup).
+	 *            null means create random file in <code>TEMP</code> directory (managed by server
+	 *            and will be empty at next startup).
 	 * @param fileExtension
 	 *            null means "tmp" will be used
 	 * @return
@@ -5502,14 +5316,13 @@ public class ProjectContext {
 	public static final String EVENT_SYS_MOBILE_LOGOUT = "SYS_MOBILE_LOGOUT";
 
 	/**
-	 * this event will be triggered when mobile enter pause (background) or
-	 * resume.<BR>
-	 * invoke {@link #isMobileInBackground()} to check whether is background
-	 * (onPause) or not (onResume). <BR>
+	 * this event will be triggered when mobile enter pause (background) or resume.<BR>
+	 * invoke {@link #isMobileInBackground()} to check whether is background (onPause) or not
+	 * (onResume). <BR>
 	 * <BR>
 	 * Note :<BR>
-	 * 1. server will trigger this event ({@link #isMobileInBackground()}
-	 * returns false) <STRONG>after</STRONG> {@link #EVENT_SYS_MOBILE_LOGIN}.
+	 * 1. server will trigger this event ({@link #isMobileInBackground()} returns false)
+	 * <STRONG>after</STRONG> {@link #EVENT_SYS_MOBILE_LOGIN}.
 	 * 
 	 * @since 7.0
 	 */

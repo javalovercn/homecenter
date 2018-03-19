@@ -34,40 +34,40 @@ public class Token implements ISourcePositionHolder {
 	SourcePosition position = null;
 	Object value;
 	int type = 0;
-	
+
 	public Token(Object value, SourcePosition position) {
-	    this.value = value;
-	    this.position = position;
+		this.value = value;
+		this.position = position;
 	}
-	
+
 	public Token(Object value, int type, SourcePosition position) {
 		this.value = value;
 		this.position = position;
 		this.type = type;
 	}
-	
+
 	public void setValue(Object value) {
 		this.value = value;
 	}
-	
+
 	public Object getValue() {
 		return value;
 	}
-	
+
 	public int getType() {
-	    return type;
+		return type;
 	}
-	
+
 	public SourcePosition getPosition() {
 		return position;
 	}
-	
+
 	public void setPosition(SourcePosition position) {
 		this.position = position;
 	}
-    
-    @Override
-    public String toString() {
-        return "Token { Value=" + value + ", Position=" + position + "}";
-    }
+
+	@Override
+	public String toString() {
+		return "Token { Value=" + value + ", Position=" + position + "}";
+	}
 }

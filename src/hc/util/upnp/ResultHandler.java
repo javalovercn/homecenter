@@ -26,8 +26,7 @@ public class ResultHandler extends DefaultHandler {
 		this.result = result;
 	}
 
-	public void startElement(String uri, String localName, String qName, Attributes attributes)
-			throws SAXException {
+	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 		element = localName;
 	}
 

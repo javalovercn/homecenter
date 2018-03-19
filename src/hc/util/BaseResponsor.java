@@ -14,9 +14,8 @@ import java.util.Vector;
 import javax.swing.JFrame;
 
 public abstract class BaseResponsor implements IBiz, IHCURLAction {
-	public static final String[] SCRIPT_EVENT_LIST = { ProjectContext.EVENT_SYS_PROJ_STARTUP,
-			ProjectContext.EVENT_SYS_MOBILE_LOGIN, ProjectContext.EVENT_SYS_MOBILE_LOGOUT,
-			ProjectContext.EVENT_SYS_PROJ_SHUTDOWN };
+	public static final String[] SCRIPT_EVENT_LIST = { ProjectContext.EVENT_SYS_PROJ_STARTUP, ProjectContext.EVENT_SYS_MOBILE_LOGIN,
+			ProjectContext.EVENT_SYS_MOBILE_LOGOUT, ProjectContext.EVENT_SYS_PROJ_SHUTDOWN };
 
 	protected final void notifyMobileLogin(final J2SESession coreSS) {
 		createClientSession(coreSS);
@@ -32,8 +31,7 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction {
 	public void stop() {
 	}
 
-	private final Vector<String> cacheSoftUID = new Vector<String>(
-			CacheManager.MAX_CACHE_SOFTUID_NUM + 1);
+	private final Vector<String> cacheSoftUID = new Vector<String>(CacheManager.MAX_CACHE_SOFTUID_NUM + 1);
 
 	public final void addCacheSoftUID(final String uid) {
 		L.V = L.WShop ? false : LogManager.log("addCacheSoftUID : " + uid);
@@ -55,8 +53,7 @@ public abstract class BaseResponsor implements IBiz, IHCURLAction {
 				if (sessions == null || sessions.length == 0) {
 					synchronized (cacheSoftUID) {
 						if (cacheSoftUID.size() >= CacheManager.MAX_CACHE_SOFTUID_NUM) {
-							L.V = L.WShop ? false
-									: LogManager.log("clear cacahe for reaching max num softuid.");
+							L.V = L.WShop ? false : LogManager.log("clear cacahe for reaching max num softuid.");
 							cacheSoftUID.clear();
 							CacheManager.clearBuffer();
 						}

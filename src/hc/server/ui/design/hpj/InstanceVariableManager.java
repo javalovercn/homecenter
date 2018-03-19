@@ -25,15 +25,14 @@ public class InstanceVariableManager {
 				}
 			}
 
-			return String.valueOf(lineChars, instanceVarStartIdx,
-					instanceVarEndIdx - instanceVarStartIdx);
+			return String.valueOf(lineChars, instanceVarStartIdx, instanceVarEndIdx - instanceVarStartIdx);
 		}
 
 		return null;
 	}
 
-	public static void replaceVariable(final String from, final String to,
-			final AbstractDocument doc, final Node root, final int scriptIdx) {
+	public static void replaceVariable(final String from, final String to, final AbstractDocument doc, final Node root,
+			final int scriptIdx) {
 		// if(from.length() > 0 && from.charAt(0) == '@'){
 		//
 		// }else{
@@ -57,8 +56,8 @@ public class InstanceVariableManager {
 	}
 
 	public static boolean isVariableChar(final char oneChar) {
-		if ((oneChar >= '0' && oneChar <= '9') || (oneChar >= 'a' && oneChar <= 'z')
-				|| (oneChar >= 'A' && oneChar <= 'Z') || oneChar == '_') {
+		if ((oneChar >= '0' && oneChar <= '9') || (oneChar >= 'a' && oneChar <= 'z') || (oneChar >= 'A' && oneChar <= 'Z')
+				|| oneChar == '_') {
 			return true;
 		}
 

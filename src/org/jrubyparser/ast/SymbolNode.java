@@ -36,20 +36,20 @@ import org.jrubyparser.SourcePosition;
  * Represents a symbol (:symbol_name).
  */
 public class SymbolNode extends NamedNode implements ILiteralNode, INameNode {
-    public SymbolNode(SourcePosition position, String name) {
-	    super(position, name);
-    }
+	public SymbolNode(SourcePosition position, String name) {
+		super(position, name);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.SYMBOLNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.SYMBOLNODE;
+	}
 
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitSymbolNode(this);
-    }
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitSymbolNode(this);
+	}
 
-    @Override
-    public String getLexicalName() {
-        return ":" + getName();
-    }
+	@Override
+	public String getLexicalName() {
+		return ":" + getName();
+	}
 }

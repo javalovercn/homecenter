@@ -57,8 +57,7 @@ public class WiFiHelper {
 	public static final String SECURITY_WIFI_NONE = "NONE";
 
 	public static void startAPIfExists(final CoreSession coreSS) {
-		final String isAutoCreated = PropertiesManager
-				.getValue(PropertiesManager.p_WiFi_currIsAutoCreated);
+		final String isAutoCreated = PropertiesManager.getValue(PropertiesManager.p_WiFi_currIsAutoCreated);
 		if (isAutoCreated != null && isAutoCreated.equals(IConstant.TRUE)) {// 启动自带WiFi模块的AP，而非router
 			startAPOnServer(coreSS);
 		}
@@ -69,8 +68,7 @@ public class WiFiHelper {
 	 * 
 	 * @return
 	 */
-	static WiFiAccount getWiFiAccount(final J2SESession coreSS, final ProjectContext ctx,
-			final ThreadGroup token) {
+	static WiFiAccount getWiFiAccount(final J2SESession coreSS, final ProjectContext ctx, final ThreadGroup token) {
 		synchronized (WiFiHelper.class) {// 有可能被多个Device同时调用，所以加锁
 			String currWiFiSSID = PropertiesManager.getValue(PropertiesManager.p_WiFi_currSSID);
 			if (currWiFiSSID == null) {
@@ -86,24 +84,19 @@ public class WiFiHelper {
 			}
 
 			currWiFiSSID = PropertiesManager.getValue(PropertiesManager.p_WiFi_currSSID);
-			final String currWiFiPWD = PropertiesManager
-					.getValue(PropertiesManager.p_WiFi_currPassword);
-			final String currWiFiSecurityOption = PropertiesManager
-					.getValue(PropertiesManager.p_WiFi_currSecurityOption);
+			final String currWiFiPWD = PropertiesManager.getValue(PropertiesManager.p_WiFi_currPassword);
+			final String currWiFiSecurityOption = PropertiesManager.getValue(PropertiesManager.p_WiFi_currSecurityOption);
 
-			final WiFiAccount account = new WiFiAccount(currWiFiSSID, currWiFiPWD,
-					currWiFiSecurityOption);
+			final WiFiAccount account = new WiFiAccount(currWiFiSSID, currWiFiPWD, currWiFiSecurityOption);
 
 			return account;
 		}
 	}
 
-	private static void createAccountAuto(final J2SESession coreSS, final ProjectContext projCtx,
-			final ThreadGroup token) {
+	private static void createAccountAuto(final J2SESession coreSS, final ProjectContext projCtx, final ThreadGroup token) {
 		final WiFiDeviceManager wifiDeviceManager = WiFiDeviceManager.getInstance(coreSS);
 
-		final String hasWiFiModuleKey = PropertiesManager
-				.getValue(PropertiesManager.p_WiFi_hasWiFiModule);
+		final String hasWiFiModuleKey = PropertiesManager.getValue(PropertiesManager.p_WiFi_hasWiFiModule);
 		boolean hasWiFiModule;
 		if (hasWiFiModuleKey == null) {
 			hasWiFiModule = wifiDeviceManager.hasWiFiModule();
@@ -115,8 +108,7 @@ public class WiFiHelper {
 
 		boolean canCreateAP = false;
 		if (hasWiFiModule) {
-			final String canCreateAPKey = PropertiesManager
-					.getValue(PropertiesManager.p_WiFi_canCreateAP);
+			final String canCreateAPKey = PropertiesManager.getValue(PropertiesManager.p_WiFi_canCreateAP);
 			if (canCreateAPKey == null) {
 				canCreateAP = wifiDeviceManager.canCreateWiFiAccount();
 				final String value = canCreateAP ? IConstant.TRUE : IConstant.FALSE;
@@ -126,8 +118,7 @@ public class WiFiHelper {
 			}
 		}
 
-		final String isAutoCreated = PropertiesManager
-				.getValue(PropertiesManager.p_WiFi_currIsAutoCreated);
+		final String isAutoCreated = PropertiesManager.getValue(PropertiesManager.p_WiFi_currIsAutoCreated);
 		if (canCreateAP) {
 			if (isAutoCreated == null) {
 				createAPOnServer();
@@ -141,16 +132,14 @@ public class WiFiHelper {
 						currMlet.waitForInputWiFiPassword(token);
 					} else {
 						final J2SESession[] coreSSS = { coreSS };
-						ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS,
-								ResourceUtil.getInfoI18N(), "unknow status of Mlet",
+						ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, ResourceUtil.getInfoI18N(), "unknow status of Mlet",
 								ProjectContext.MESSAGE_INFO, null, 0);
 					}
 				} else {
 					showInputWiFiPassword(true);
 				}
 
-				while (PropertiesManager
-						.getValue(PropertiesManager.p_WiFi_currIsAutoCreated) == null) {
+				while (PropertiesManager.getValue(PropertiesManager.p_WiFi_currIsAutoCreated) == null) {
 					try {
 						Thread.sleep(500);
 					} catch (final Exception e) {
@@ -176,15 +165,15 @@ public class WiFiHelper {
 		uuidPanelflow.add(jluuid);
 		uuidPanelflow.add(new JLabel(WIFI_SSID));
 		uuidPanelflow.add(new JLabel(":"));
-		panel.add(uuidPanelflow, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
+		panel.add(uuidPanelflow,
+				new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
 
 		final int columns = 15;
 		final JTextField jtfuuid = new JTextField("", columns);
 		jtfuuid.setForeground(Color.BLUE);
 		jtfuuid.setHorizontalAlignment(SwingConstants.RIGHT);
-		panel.add(jtfuuid, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
+		panel.add(jtfuuid,
+				new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
 
 		final JLabel jlPassword = new JLabel(passwdStr);
 		jlPassword.setIcon(getPasswordIcon());
@@ -203,11 +192,11 @@ public class WiFiHelper {
 		pwJpanel.setLayout(new FlowLayout());
 		pwJpanel.add(jlPassword);
 		pwJpanel.add(new JLabel(":"));
-		panel.add(pwJpanel, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
+		panel.add(pwJpanel,
+				new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
 		Component subItem = passwd1;
-		panel.add(subItem, new GridBagConstraints(1, 1, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
+		panel.add(subItem,
+				new GridBagConstraints(1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
 
 		final JPanel doublepw = new JPanel();
 		doublepw.setLayout(new FlowLayout());
@@ -217,15 +206,15 @@ public class WiFiHelper {
 
 		doublepw.add(new JLabel(":"));
 
-		panel.add(doublepw, new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
+		panel.add(doublepw,
+				new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
 
 		subItem = passwd2;
-		panel.add(subItem, new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
+		panel.add(subItem,
+				new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
 
-		panel.add(new JLabel(), new GridBagConstraints(0, 3, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
+		panel.add(new JLabel(),
+				new GridBagConstraints(0, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
 		final JPanel securityOptioncb = new JPanel(new FlowLayout());
 		final ButtonGroup bgSecurityOption = new ButtonGroup();
 		final JRadioButton rb_nopass = new JRadioButton(SECURITY_WIFI_NONE);
@@ -241,27 +230,24 @@ public class WiFiHelper {
 		securityOptioncb.add(rb_wpa);
 
 		rb_nopass.setSelected(true);
-		panel.add(securityOptioncb, new GridBagConstraints(1, 3, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
+		panel.add(securityOptioncb,
+				new GridBagConstraints(1, 3, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
 
-		panel.add(new JSeparator(SwingConstants.HORIZONTAL), new GridBagConstraints(0, 4, 2, 1, 0.0,
-				0.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
+		panel.add(new JSeparator(SwingConstants.HORIZONTAL),
+				new GridBagConstraints(0, 4, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
 
-		final JButton jbOK = new JButton((String) ResourceUtil.get(IContext.OK),
-				new ImageIcon(ImageSrc.OK_ICON));
+		final JButton jbOK = new JButton((String) ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
 		final UIActionListener jbOKAction = new UIActionListener() {
 			@Override
-			public void actionPerformed(final Window window, final JButton ok,
-					final JButton cancel) {
+			public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
 				final String ssid = jtfuuid.getText();
 				if (ssid.length() == 0) {
-					App.showMessageDialog(window, "WiFi SSID is empty!",
-							(String) ResourceUtil.get(IConstant.ERROR), JOptionPane.ERROR_MESSAGE);
+					App.showMessageDialog(window, "WiFi SSID is empty!", (String) ResourceUtil.get(IConstant.ERROR),
+							JOptionPane.ERROR_MESSAGE);
 					return;
 				}
 				if (passwd2.getText().equals(passwd1.getText())) {
-					final WiFiAccount wifiAccount = updateWiFiAccount(ssid, passwd1, rb_nopass,
-							rb_wep, rb_wpa);
+					final WiFiAccount wifiAccount = updateWiFiAccount(ssid, passwd1, rb_nopass, rb_wep, rb_wpa);
 
 					window.dispose();
 
@@ -282,9 +268,8 @@ public class WiFiHelper {
 										public void run() {
 											for (int i = 0; i < size; i++) {
 												final Device device = devs[i];
-												LogManager.log("notifyNewWiFiAccount to ["
-														+ device.project_id + "/" + device.getName()
-														+ "].");
+												LogManager.log(
+														"notifyNewWiFiAccount to [" + device.project_id + "/" + device.getName() + "].");
 												if (HCURL.isUsingWiFiWPS) {
 													// device.notifyNewWiFiAccount(wifiAccount);
 												}
@@ -296,8 +281,7 @@ public class WiFiHelper {
 						}
 					}
 				} else {
-					App.showMessageDialog(window,
-							StringUtil.replace((String) ResourceUtil.get(9077), "{min}", "" + 0),
+					App.showMessageDialog(window, StringUtil.replace((String) ResourceUtil.get(9077), "{min}", "" + 0),
 							(String) ResourceUtil.get(IConstant.ERROR), JOptionPane.ERROR_MESSAGE);
 				}
 			}
@@ -307,8 +291,7 @@ public class WiFiHelper {
 		if (isRequired) {
 			cancelAction = new UIActionListener() {
 				@Override
-				public void actionPerformed(final Window window, final JButton ok,
-						final JButton cancel) {
+				public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
 					window.dispose();
 					showInputWiFiPassword(isRequired);
 				}
@@ -316,8 +299,7 @@ public class WiFiHelper {
 		} else {
 			cancelAction = new UIActionListener() {
 				@Override
-				public void actionPerformed(final Window window, final JButton ok,
-						final JButton cancel) {
+				public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
 					window.dispose();
 				}
 			};
@@ -327,13 +309,13 @@ public class WiFiHelper {
 		centerPanel.add(panel, BorderLayout.CENTER);
 		final String withCancel = StringUtil.replace((String) ResourceUtil.get(9125), "{cancel}",
 				(String) ResourceUtil.get(IContext.CANCEL));
-		centerPanel.add(new JLabel("<html><STRONG>" + (String) ResourceUtil.get(9095)
-				+ "</STRONG><BR>" + withCancel + "</html>"), BorderLayout.SOUTH);
+		centerPanel.add(new JLabel("<html><STRONG>" + (String) ResourceUtil.get(9095) + "</STRONG><BR>" + withCancel + "</html>"),
+				BorderLayout.SOUTH);
 		centerPanel.setBorder(new TitledBorder(""));
 
 		App.showCenter(centerPanel, 0, 0, getInputWiFiAccountStr(), isRequired ? false : true, jbOK,
-				isRequired ? null : App.buildDefaultCancelButton(), jbOKAction,
-				isRequired ? null : cancelAction, null, false, false, null, false);
+				isRequired ? null : App.buildDefaultCancelButton(), jbOKAction, isRequired ? null : cancelAction, null, false, false, null,
+				false);
 		jtfuuid.requestFocus();
 	}
 
@@ -356,8 +338,7 @@ public class WiFiHelper {
 	static final void startAPOnServer(final CoreSession coreSS) {
 		final String ssid = PropertiesManager.getValue(PropertiesManager.p_WiFi_currSSID);
 		final String pwd = PropertiesManager.getValue(PropertiesManager.p_WiFi_currPassword);
-		final String option = PropertiesManager
-				.getValue(PropertiesManager.p_WiFi_currSecurityOption);
+		final String option = PropertiesManager.getValue(PropertiesManager.p_WiFi_currSecurityOption);
 
 		try {
 			WiFiDeviceManager.getInstance(coreSS).startWiFiAP(ssid, pwd, option);
@@ -387,8 +368,8 @@ public class WiFiHelper {
 		PropertiesManager.saveFile();
 	}
 
-	public static WiFiAccount updateWiFiAccount(final String ssid, final JPasswordField passwd1,
-			final JRadioButton rb_nopass, final JRadioButton rb_wep, final JRadioButton rb_wpa) {
+	public static WiFiAccount updateWiFiAccount(final String ssid, final JPasswordField passwd1, final JRadioButton rb_nopass,
+			final JRadioButton rb_wep, final JRadioButton rb_wpa) {
 		PropertiesManager.setValue(PropertiesManager.p_WiFi_currSSID, ssid);
 		final String pwd = passwd1.getText();
 		PropertiesManager.setValue(PropertiesManager.p_WiFi_currPassword, pwd);

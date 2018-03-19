@@ -9,7 +9,7 @@ public class CramerShoupParameters implements CipherParameters {
 
 	private BigInteger p; // prime order of G
 	private BigInteger g1, g2; // generate G
-	
+
 	private Digest H; // hash function
 
 	public CramerShoupParameters(BigInteger p, BigInteger g1, BigInteger g2, Digest H) {
@@ -32,22 +32,22 @@ public class CramerShoupParameters implements CipherParameters {
 	public int hashCode() {
 		return getP().hashCode() ^ getG1().hashCode() ^ getG2().hashCode();
 	}
-	
+
 	public BigInteger getG1() {
 		return g1;
 	}
-	
+
 	public BigInteger getG2() {
 		return g2;
 	}
-	
+
 	public BigInteger getP() {
 		return p;
 	}
-	
+
 	public Digest getH() {
 		H.reset();
 		return H;
 	}
-	
+
 }

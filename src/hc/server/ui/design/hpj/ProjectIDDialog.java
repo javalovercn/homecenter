@@ -18,8 +18,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class ProjectIDDialog {
-	public static final void showInputProjectID(final Designer designer,
-			final DefaultMutableTreeNode root) {
+	public static final void showInputProjectID(final Designer designer, final DefaultMutableTreeNode root) {
 		final JTextField idField = new JTextField();
 		final JPanel idPanel = new JPanel();
 
@@ -59,8 +58,7 @@ public class ProjectIDDialog {
 				}
 			}
 		};
-		App.showCenterPanelMain(compose, 0, 0, "Project ID", false, null, null, listener, null,
-				designer, true, false, null, false, false);
+		App.showCenterPanelMain(compose, 0, 0, "Project ID", false, null, null, listener, null, designer, true, false, null, false, false);
 	}
 
 	public static void buildIDFieldKeyListener(final JTextField idField) {
@@ -68,8 +66,8 @@ public class ProjectIDDialog {
 			@Override
 			public void keyTyped(final KeyEvent e) {
 				final char keyCh = e.getKeyChar();
-				if ((keyCh >= '0' && keyCh <= '9') || (keyCh >= 'a' && keyCh <= 'z')
-						|| (keyCh >= 'A' && keyCh <= 'Z') || keyCh == '_' || keyCh == '.') {
+				if ((keyCh >= '0' && keyCh <= '9') || (keyCh >= 'a' && keyCh <= 'z') || (keyCh >= 'A' && keyCh <= 'Z') || keyCh == '_'
+						|| keyCh == '.') {
 				} else {
 					e.setKeyChar('\0');
 				}
@@ -86,10 +84,8 @@ public class ProjectIDDialog {
 	}
 
 	public static JLabel buildIDTipLabel() {
-		return new JLabel(
-				"<html>it is used to identify this project from other when install and upgrade."
-						+ "<BR>'root' is system reserved ID."
-						+ "<BR>valid char : A-Z, a-z, 0-9, _ and .</html>");
+		return new JLabel("<html>it is used to identify this project from other when install and upgrade."
+				+ "<BR>'root' is system reserved ID." + "<BR>valid char : A-Z, a-z, 0-9, _ and .</html>");
 	}
 
 }

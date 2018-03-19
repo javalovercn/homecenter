@@ -14,21 +14,20 @@ public class HPProject extends HPNode {
 	public static final String HAR_EXT = "har";
 	public static final String HAD_EXT = "had";
 
-	public String id, ver, lastSignedVer, upgradeURL = "", exceptionURL = "", contact = "", compactDays = "",
-			copyright = "", desc = "", license = "", styles = "";
+	public String id, ver, lastSignedVer, upgradeURL = "", exceptionURL = "", contact = "", compactDays = "", copyright = "", desc = "",
+			license = "", styles = "";
 	public ContextSecurityConfig csc;
 
 	public static String convertProjectIDFromName(final String name) {
 		return LinkProjectManager.buildSysProjID();
 	}
 
-	public HPProject(final int type, final String name, final String id, final String ver,
-			final ContextSecurityConfig csc) {
+	public HPProject(final int type, final String name, final String id, final String ver, final ContextSecurityConfig csc) {
 		this(type, name, "", id, ver, csc, null);
 	}
 
-	public HPProject(final int type, final String name, final String i18nName, final String id,
-			final String ver, final ContextSecurityConfig csc, final Map<String, Object> map) {
+	public HPProject(final int type, final String name, final String i18nName, final String id, final String ver,
+			final ContextSecurityConfig csc, final Map<String, Object> map) {
 		super(type, name);
 		this.i18nMap = HCjar.buildI18nMapFromSerial(i18nName);
 		this.id = id;
@@ -76,16 +75,14 @@ public class HPProject extends HPNode {
 		} else if (id.indexOf(HCConfig.CFG_SPLIT) >= 0) {
 			return "invalid string [" + HCConfig.CFG_SPLIT + "].";
 		} else if (id.startsWith(CCoreUtil.SYS_PREFIX)) {
-			return "Error project ID [" + id + "] : <strong>" + CCoreUtil.SYS_PREFIX
-					+ "</strong> is system reserved prefix.";
+			return "Error project ID [" + id + "] : <strong>" + CCoreUtil.SYS_PREFIX + "</strong> is system reserved prefix.";
 		}
 
 		upgradeURL = upgradeURL.trim();
 
 		if (upgradeURL.length() > 0) {
 			if (!upgradeURL.endsWith(HAD_EXT)) {
-				return "upgrade url must end with <strong>" + HAD_EXT + "</strong>, not " + HAR_EXT
-						+ " file or other.";
+				return "upgrade url must end with <strong>" + HAD_EXT + "</strong>, not " + HAR_EXT + " file or other.";
 			} else if (!upgradeURL.startsWith("http")) {// 支持https
 				return "upgrade url must start with <strong>http</strong>.";
 			}

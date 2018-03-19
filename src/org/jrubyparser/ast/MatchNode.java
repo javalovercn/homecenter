@@ -32,51 +32,53 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 public class MatchNode extends Node {
-    private Node regexpNode;
+	private Node regexpNode;
 
-    public MatchNode(SourcePosition position, Node regexpNode) {
-        super(position);
+	public MatchNode(SourcePosition position, Node regexpNode) {
+		super(position);
 
-        assert regexpNode != null : "regexpNode is not null";
+		assert regexpNode != null : "regexpNode is not null";
 
-        this.regexpNode = adopt(regexpNode);
-    }
+		this.regexpNode = adopt(regexpNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && getRegexp().isSame(((MatchNode) node).getRegexp());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && getRegexp().isSame(((MatchNode) node).getRegexp());
-    }
+	public NodeType getNodeType() {
+		return NodeType.MATCHNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitMatchNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.MATCHNODE;
-    }
+	/**
+	 * Gets the regexpNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getRegexp() {
+		return regexpNode;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitMatchNode(this);
-    }
-
-    /**
-     * Gets the regexpNode.
-     * @return Returns a Node
-     */
-    public Node getRegexp() {
-        return regexpNode;
-    }
-
-    @Deprecated
-    public Node getRegexpNode() {
-        return getRegexp();
-    }
+	@Deprecated
+	public Node getRegexpNode() {
+		return getRegexp();
+	}
 }

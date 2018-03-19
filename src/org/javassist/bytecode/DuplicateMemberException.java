@@ -25,7 +25,7 @@ import org.javassist.CannotCompileException;
  * @see ClassFile#addField(FieldInfo)
  */
 public class DuplicateMemberException extends CannotCompileException {
-    public DuplicateMemberException(String msg) {
-        super(msg);
-    }
+	public DuplicateMemberException(String msg) {
+		super(msg);
+	}
 }

@@ -35,36 +35,39 @@ import org.jrubyparser.SourcePosition;
  * Represents a 'next' statement.
  */
 public class NextNode extends Node {
-    private Node valueNode;
+	private Node valueNode;
 
-    public NextNode(SourcePosition position, Node valueNode) {
-        super(position);
+	public NextNode(SourcePosition position, Node valueNode) {
+		super(position);
 
-        this.valueNode = adopt(valueNode);
-    }
+		this.valueNode = adopt(valueNode);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.NEXTNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.NEXTNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitNextNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitNextNode(this);
+	}
 
-    /**
-     * Gets the valueNode.
-     * @return Returns a Node
-     */
-    public Node getValue() {
-        return valueNode;
-    }
+	/**
+	 * Gets the valueNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getValue() {
+		return valueNode;
+	}
 
-    @Deprecated
-    public Node getValueNode() {
-        return getValue();
-    }
+	@Deprecated
+	public Node getValueNode() {
+		return getValue();
+	}
 }

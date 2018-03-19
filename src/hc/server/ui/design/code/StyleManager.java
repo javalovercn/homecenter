@@ -16,36 +16,27 @@ public class StyleManager {
 	// 注意：如果增加，请同步更改replaceVariable
 	public static final char PARAMETER_BORDER_CHAR = '$';
 
-	static final String[] variables = { "$smallFontSize$", "$normalFontSize$", "$largeFontSize$",
-			"$buttonFontSize$", "$buttonHeight$", "$mobileWidth$", "$mobileHeight$",
-			"$dialogBorderRadius$", "$colorForBodyByHexString$", "$colorForFontByHexString$" };
+	static final String[] variables = { "$smallFontSize$", "$normalFontSize$", "$largeFontSize$", "$buttonFontSize$", "$buttonHeight$",
+			"$mobileWidth$", "$mobileHeight$", "$dialogBorderRadius$", "$colorForBodyByHexString$", "$colorForFontByHexString$" };
 
 	private static final Pattern variableForPattern = Pattern.compile("\\$\\w+\\$");
 
-	public static String replaceVariable(final J2SESession coreSS, final String styles,
-			final ScriptCSSSizeHeight sizeHeightForXML, final ProjectContext ctx) {
+	public static String replaceVariable(final J2SESession coreSS, final String styles, final ScriptCSSSizeHeight sizeHeightForXML,
+			final ProjectContext ctx) {
 		if (styles.indexOf(PARAMETER_BORDER_CHAR, 0) > 0) {
 			if (coreSS.mobileValuesForCSS == null) {
-				coreSS.mobileValuesForCSS = (Object[]) ServerUIAPIAgent
-						.runAndWaitInSessionThreadPool(coreSS,
-								ServerUIAPIAgent.getProjResponserMaybeNull(ctx),
-								new ReturnableRunnable() {
-									@Override
-									public Object run() throws Throwable {
-										final Object[] values = {
-												sizeHeightForXML.getFontSizeForSmall(),
-												sizeHeightForXML.getFontSizeForNormal(),
-												sizeHeightForXML.getFontSizeForLarge(),
-												sizeHeightForXML.getFontSizeForButton(),
-												sizeHeightForXML.getButtonHeight(),
-												UserThreadResourceUtil.getMletWidthFrom(coreSS),
-												UserThreadResourceUtil.getMletHeightFrom(coreSS),
-												sizeHeightForXML.getDialogBorderRadius(),
-												HTMLMlet.getColorForBodyByHexString(),
-												HTMLMlet.getColorForFontByHexString() };
-										return values;
-									}
-								});
+				coreSS.mobileValuesForCSS = (Object[]) ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS,
+						ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new ReturnableRunnable() {
+							@Override
+							public Object run() throws Throwable {
+								final Object[] values = { sizeHeightForXML.getFontSizeForSmall(), sizeHeightForXML.getFontSizeForNormal(),
+										sizeHeightForXML.getFontSizeForLarge(), sizeHeightForXML.getFontSizeForButton(),
+										sizeHeightForXML.getButtonHeight(), UserThreadResourceUtil.getMletWidthFrom(coreSS),
+										UserThreadResourceUtil.getMletHeightFrom(coreSS), sizeHeightForXML.getDialogBorderRadius(),
+										HTMLMlet.getColorForBodyByHexString(), HTMLMlet.getColorForFontByHexString() };
+								return values;
+							}
+						});
 			}
 			final Object[] mobileValuesForCSS = coreSS.mobileValuesForCSS;
 

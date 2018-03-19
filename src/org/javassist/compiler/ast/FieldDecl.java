@@ -19,17 +19,23 @@ package org.javassist.compiler.ast;
 import org.javassist.compiler.CompileError;
 
 public class FieldDecl extends ASTList {
-    public FieldDecl(ASTree _head, ASTList _tail) {
-        super(_head, _tail);
-    }
+	public FieldDecl(ASTree _head, ASTList _tail) {
+		super(_head, _tail);
+	}
 
-    public ASTList getModifiers() { return (ASTList)getLeft(); }
+	public ASTList getModifiers() {
+		return (ASTList) getLeft();
+	}
 
-    public Declarator getDeclarator() { return (Declarator)tail().head(); }
+	public Declarator getDeclarator() {
+		return (Declarator) tail().head();
+	}
 
-    public ASTree getInit() { return (ASTree)sublist(2).head(); }
+	public ASTree getInit() {
+		return (ASTree) sublist(2).head();
+	}
 
-    public void accept(Visitor v) throws CompileError {
-        v.atFieldDecl(this);
-    }
+	public void accept(Visitor v) throws CompileError {
+		v.atFieldDecl(this);
+	}
 }

@@ -34,45 +34,45 @@ import org.jrubyparser.SourcePosition;
  *
  */
 public abstract class BinaryOperatorBaseNode extends Node implements BinaryOperatorNode {
-    private Node firstNode;
-    private Node secondNode;
+	private Node firstNode;
+	private Node secondNode;
 
-    public BinaryOperatorBaseNode(SourcePosition position, Node firstNode, Node secondNode) {
-        super(position);
-        
-        assert firstNode != null : "ArgsCatNode.first == null";
-        assert secondNode != null : "ArgsCatNode.second == null";
+	public BinaryOperatorBaseNode(SourcePosition position, Node firstNode, Node secondNode) {
+		super(position);
 
-        this.firstNode = adopt(firstNode);
-        this.secondNode = adopt(secondNode);
-    }
+		assert firstNode != null : "ArgsCatNode.first == null";
+		assert secondNode != null : "ArgsCatNode.second == null";
 
+		this.firstNode = adopt(firstNode);
+		this.secondNode = adopt(secondNode);
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-        BinaryOperatorBaseNode other = (BinaryOperatorBaseNode) node;
-        
-        return getFirst() == other.getFirst() && getSecond() == other.getSecond();
-    }
+		BinaryOperatorBaseNode other = (BinaryOperatorBaseNode) node;
 
+		return getFirst() == other.getFirst() && getSecond() == other.getSecond();
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.ARGSCATNODE;
-    }
-    
-    public Node getFirst() {
-        return firstNode;
-    }
-    
-    public Node getSecond() {
-        return secondNode;
-    }    
+	public NodeType getNodeType() {
+		return NodeType.ARGSCATNODE;
+	}
+
+	public Node getFirst() {
+		return firstNode;
+	}
+
+	public Node getSecond() {
+		return secondNode;
+	}
 }

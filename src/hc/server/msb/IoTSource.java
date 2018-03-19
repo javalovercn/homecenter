@@ -9,8 +9,7 @@ public abstract class IoTSource {
 
 	public abstract ArrayList<String> getRobotsByProjectID(String projID);
 
-	public abstract ArrayList<DeviceBindInfo> getReferenceDeviceListByRobotName(String projID,
-			String robotName) throws Exception;
+	public abstract ArrayList<DeviceBindInfo> getReferenceDeviceListByRobotName(String projID, String robotName) throws Exception;
 
 	/**
 	 * 可能返回null
@@ -20,17 +19,15 @@ public abstract class IoTSource {
 	 * @param referenceDeviceID
 	 * @return
 	 */
-	public abstract DeviceCompatibleDescription getDeviceCompatibleDescByRobotName(String projID,
-			String robotName, String referenceDeviceID) throws Exception;
+	public abstract DeviceCompatibleDescription getDeviceCompatibleDescByRobotName(String projID, String robotName,
+			String referenceDeviceID) throws Exception;
 
-	public abstract void getDeviceCompatibleDescByDevice(final ProjResponser pr,
-			final RealDeviceInfo deviceInfo);
+	public abstract void getDeviceCompatibleDescByDevice(final ProjResponser pr, final RealDeviceInfo deviceInfo);
 
-	public abstract void getConverterDescUpDownToUserThread(final ProjResponser pr,
-			final ConverterInfo converterInfo);
+	public abstract void getConverterDescUpDownToUserThread(final ProjResponser pr, final ConverterInfo converterInfo);
 
-	public abstract DeviceCompatibleDescription getDeviceCompatibleDescByRobotToUserThread(
-			final ProjResponser pr, final Robot r, final String referenceDeviceID);
+	public abstract DeviceCompatibleDescription getDeviceCompatibleDescByRobotToUserThread(final ProjResponser pr, final Robot r,
+			final String referenceDeviceID);
 
 	/**
 	 * @param pr
@@ -38,8 +35,7 @@ public abstract class IoTSource {
 	 *            支持null对象
 	 * @return
 	 */
-	public abstract DataDeviceCapDesc getDataForDeviceCompatibleDesc(final ProjResponser pr,
-			final DeviceCompatibleDescription devCompDesc);
+	public abstract DataDeviceCapDesc getDataForDeviceCompatibleDesc(final ProjResponser pr, final DeviceCompatibleDescription devCompDesc);
 
 	public abstract ArrayList<ConverterInfo> getConverterInAllProject() throws Exception;
 
@@ -65,8 +61,7 @@ public abstract class IoTSource {
 		int totalReferDevNum = 0;
 		for (int j = 0; j < robotList.size(); j++) {
 			final String robotID = robotList.get(j);
-			final ArrayList<DeviceBindInfo> refList = getReferenceDeviceListByRobotName(projID,
-					robotID);
+			final ArrayList<DeviceBindInfo> refList = getReferenceDeviceListByRobotName(projID, robotID);
 			totalReferDevNum += refList.size();
 		}
 

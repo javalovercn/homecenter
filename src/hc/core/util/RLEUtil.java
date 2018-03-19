@@ -47,7 +47,7 @@ public class RLEUtil {
 			target[targetIdx++] = (count);
 			// System.out.println("0xc1的"+(0xc1)+count);
 		}
-		
+
 		return targetIdx;
 	}
 
@@ -57,7 +57,7 @@ public class RLEUtil {
 		int count = 0;
 		while (offset < len) {
 			count = src[offset++];
-			if (count == 0xc1){
+			if (count == 0xc1) {
 				target[targetIdx++] = (src[offset++]);
 			} else if (count <= 0xc0) {
 				target[targetIdx++] = (count);
@@ -67,20 +67,22 @@ public class RLEUtil {
 					target[targetIdx++] = (next);
 			}
 		}
-		
+
 		return targetIdx - 1;
 	}
+
 	/**
-	 * byte:255,[单个串长度],{int1,int2,int3..}
-	 * byte:254,[一个byte，最多255个],{int}
+	 * byte:255,[单个串长度],{int1,int2,int3..} byte:254,[一个byte，最多255个],{int}
 	 * byte:253,[两个byte,j最多65535],{int}
+	 * 
 	 * @param rgb
 	 * @param len
 	 * @param bs
 	 * @param offset
 	 * @return
 	 */
-	public static int fastDeflate(int[] rgb, int len, byte[] bs, int bs_offset){
+	public static int fastDeflate(int[] rgb, int len, byte[] bs,
+			int bs_offset) {
 		int oldbs_off = bs_offset;
 		int offset = 0;
 		int next = 0;
@@ -91,17 +93,17 @@ public class RLEUtil {
 			next = rgb[offset++];
 			int counter = 1;// 计重复的次数
 			if (count == next) {// 如果有相同的
-				if(diffCounter > 0){
+				if (diffCounter > 0) {
 					diffCounter = 0;
 				}
 				counter++;
 				while (offset < len && (next == (count = rgb[offset++]))) {// 计算重复的次数
 					counter++;
-					if(counter == 65535){
-						bs[bs_offset++] = (byte)0xFD;//253
-						bs[bs_offset++] = (byte)0xFF;
-						bs[bs_offset++] = (byte)0xFF;
-						
+					if (counter == 65535) {
+						bs[bs_offset++] = (byte) 0xFD;// 253
+						bs[bs_offset++] = (byte) 0xFF;
+						bs[bs_offset++] = (byte) 0xFF;
+
 						bs[bs_offset++] = (byte) ((next >>> 16) & 0xFF);
 						bs[bs_offset++] = (byte) ((next >>> 8) & 0xFF);
 						bs[bs_offset++] = (byte) (next & 0xFF);
@@ -110,16 +112,16 @@ public class RLEUtil {
 					}
 				}
 				if (counter > 255) {
-					bs[bs_offset++] = (byte)0xFD;//253
-					bs[bs_offset++] = (byte)((counter >>> 8) & 0xFF);
-					bs[bs_offset++] = (byte)(counter & 0xFF);
+					bs[bs_offset++] = (byte) 0xFD;// 253
+					bs[bs_offset++] = (byte) ((counter >>> 8) & 0xFF);
+					bs[bs_offset++] = (byte) (counter & 0xFF);
 
 					bs[bs_offset++] = (byte) ((next >>> 16) & 0xFF);
 					bs[bs_offset++] = (byte) ((next >>> 8) & 0xFF);
 					bs[bs_offset++] = (byte) (next & 0xFF);
-				}else if (counter > 0) {
-					bs[bs_offset++] = (byte)0xFE;//254
-					bs[bs_offset++] = (byte)(counter & 0xFF);
+				} else if (counter > 0) {
+					bs[bs_offset++] = (byte) 0xFE;// 254
+					bs[bs_offset++] = (byte) (counter & 0xFF);
 
 					bs[bs_offset++] = (byte) ((next >>> 16) & 0xFF);
 					bs[bs_offset++] = (byte) ((next >>> 8) & 0xFF);
@@ -127,29 +129,29 @@ public class RLEUtil {
 				}
 				counter = 0;
 			} else {
-				if(diffCounter++ == 0){
-					bs[bs_offset++] = (byte)0xFF;//255
+				if (diffCounter++ == 0) {
+					bs[bs_offset++] = (byte) 0xFF;// 255
 					storeDiffIdx = bs_offset++;
-					bs[storeDiffIdx] = (byte)(diffCounter & 0xFF);
-					
+					bs[storeDiffIdx] = (byte) (diffCounter & 0xFF);
+
 					bs[bs_offset++] = (byte) ((count >>> 16) & 0xFF);
 					bs[bs_offset++] = (byte) ((count >>> 8) & 0xFF);
 					bs[bs_offset++] = (byte) (count & 0xFF);
 
-				}else{
-					if(diffCounter == 256){
+				} else {
+					if (diffCounter == 256) {
 						diffCounter -= 255;
 
-						bs[bs_offset++] = (byte)0xFF;//255
+						bs[bs_offset++] = (byte) 0xFF;// 255
 						storeDiffIdx = bs_offset++;
-						bs[storeDiffIdx] = (byte)(diffCounter & 0xFF);
-						
+						bs[storeDiffIdx] = (byte) (diffCounter & 0xFF);
+
 						bs[bs_offset++] = (byte) ((count >>> 16) & 0xFF);
 						bs[bs_offset++] = (byte) ((count >>> 8) & 0xFF);
 						bs[bs_offset++] = (byte) (count & 0xFF);
-					}else{
-						bs[storeDiffIdx] = (byte)(diffCounter & 0xFF);
-						
+					} else {
+						bs[storeDiffIdx] = (byte) (diffCounter & 0xFF);
+
 						bs[bs_offset++] = (byte) ((count >>> 16) & 0xFF);
 						bs[bs_offset++] = (byte) ((count >>> 8) & 0xFF);
 						bs[bs_offset++] = (byte) (count & 0xFF);
@@ -158,26 +160,26 @@ public class RLEUtil {
 				count = next;
 			}
 		}
-		
-		if(count != next){
-			bs[bs_offset++] = (byte)0xFF;//255
-			bs[bs_offset++] = (byte)(1 & 0xFF);
-			
+
+		if (count != next) {
+			bs[bs_offset++] = (byte) 0xFF;// 255
+			bs[bs_offset++] = (byte) (1 & 0xFF);
+
 			bs[bs_offset++] = (byte) ((count >>> 16) & 0xFF);
 			bs[bs_offset++] = (byte) ((count >>> 8) & 0xFF);
 			bs[bs_offset++] = (byte) (count & 0xFF);
-		}else{
-			if(diffCounter > 0){
-				if(diffCounter == 255){
-					bs[bs_offset++] = (byte)0xFF;//255
-					bs[bs_offset++] = (byte)(1 & 0xFF);
-					
+		} else {
+			if (diffCounter > 0) {
+				if (diffCounter == 255) {
+					bs[bs_offset++] = (byte) 0xFF;// 255
+					bs[bs_offset++] = (byte) (1 & 0xFF);
+
 					bs[bs_offset++] = (byte) ((count >>> 16) & 0xFF);
 					bs[bs_offset++] = (byte) ((count >>> 8) & 0xFF);
 					bs[bs_offset++] = (byte) (count & 0xFF);
-				}else{
-					bs[storeDiffIdx] = (byte)(++diffCounter & 0xFF);
-					
+				} else {
+					bs[storeDiffIdx] = (byte) (++diffCounter & 0xFF);
+
 					bs[bs_offset++] = (byte) ((count >>> 16) & 0xFF);
 					bs[bs_offset++] = (byte) ((count >>> 8) & 0xFF);
 					bs[bs_offset++] = (byte) (count & 0xFF);
@@ -188,21 +190,21 @@ public class RLEUtil {
 	}
 
 	/**
-	 * byte:255,[单个串长度],{int1,int2,int3..}
-	 * byte:254,[一个byte，最多255个],{int}
+	 * byte:255,[单个串长度],{int1,int2,int3..} byte:254,[一个byte，最多255个],{int}
 	 * byte:253,[两个byte,j最多65535],{int}
+	 * 
 	 * @param bs
 	 * @param offset
 	 * @param len
 	 * @param rgb
 	 * @return
 	 */
-	public static int fastInflate(byte[] bs, int offset, int len, int[] rgb){
+	public static int fastInflate(byte[] bs, int offset, int len, int[] rgb) {
 		int rgb_idx = 0;
 		int end = offset + len;
-		do{
+		do {
 			byte tag = bs[offset++];
-			if(tag == ((byte)0xFF)){//255
+			if (tag == ((byte) 0xFF)) {// 255
 				int count = bs[offset++] & 0xFF;
 				for (int i = 0; i < count; i++) {
 					int temp1 = bs[offset++] & 0xFF;
@@ -210,7 +212,7 @@ public class RLEUtil {
 					int temp3 = bs[offset++] & 0xFF;
 					rgb[rgb_idx++] = ((temp1 << 16) + (temp2 << 8) + temp3);
 				}
-			}else if(tag == ((byte)0xFE)){//254
+			} else if (tag == ((byte) 0xFE)) {// 254
 				int count = bs[offset++] & 0xFF;
 
 				int temp1 = bs[offset++] & 0xFF;
@@ -221,8 +223,9 @@ public class RLEUtil {
 				for (int i = 0; i < count; i++) {
 					rgb[rgb_idx++] = samev;
 				}
-			}else if(tag == ((byte)0xFD)){//253
-				int count = ((bs[offset++] & 0xFF)<< 8) + (bs[offset++] & 0xFF);
+			} else if (tag == ((byte) 0xFD)) {// 253
+				int count = ((bs[offset++] & 0xFF) << 8)
+						+ (bs[offset++] & 0xFF);
 
 				int temp1 = bs[offset++] & 0xFF;
 				int temp2 = bs[offset++] & 0xFF;
@@ -232,12 +235,12 @@ public class RLEUtil {
 				for (int i = 0; i < count; i++) {
 					rgb[rgb_idx++] = samev;
 				}
-			}else{
+			} else {
 				System.err.println("Unknow data Tag");
 				return 0;
 			}
-		}while(offset < end);
-		
+		} while (offset < end);
+
 		return rgb_idx;
 	}
 }

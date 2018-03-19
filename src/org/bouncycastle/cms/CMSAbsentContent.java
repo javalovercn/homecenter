@@ -10,40 +10,30 @@ import org.bouncycastle.asn1.cms.CMSObjectIdentifiers;
 /**
  * a class representing null or absent content.
  */
-public class CMSAbsentContent
-    implements CMSTypedData, CMSReadable
-{
-    private final ASN1ObjectIdentifier type;
+public class CMSAbsentContent implements CMSTypedData, CMSReadable {
+	private final ASN1ObjectIdentifier type;
 
-    public CMSAbsentContent()
-    {
-        this(new ASN1ObjectIdentifier(CMSObjectIdentifiers.data.getId()));
-    }
+	public CMSAbsentContent() {
+		this(new ASN1ObjectIdentifier(CMSObjectIdentifiers.data.getId()));
+	}
 
-    public CMSAbsentContent(
-        ASN1ObjectIdentifier type)
-    {
-        this.type = type;
-    }
+	public CMSAbsentContent(ASN1ObjectIdentifier type) {
+		this.type = type;
+	}
 
-    public InputStream getInputStream()
-    {
-        return null;
-    }
+	public InputStream getInputStream() {
+		return null;
+	}
 
-    public void write(OutputStream zOut)
-        throws IOException, CMSException
-    {
-        // do nothing
-    }
+	public void write(OutputStream zOut) throws IOException, CMSException {
+		// do nothing
+	}
 
-    public Object getContent()
-    {
-        return null;
-    }
+	public Object getContent() {
+		return null;
+	}
 
-    public ASN1ObjectIdentifier getContentType()
-    {
-        return type;
-    }
+	public ASN1ObjectIdentifier getContentType() {
+		return type;
+	}
 }

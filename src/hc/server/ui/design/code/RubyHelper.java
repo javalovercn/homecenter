@@ -168,108 +168,68 @@ public class RubyHelper {
 	static final Class JRUBY_PROCESS_CLASS = JRubyProcess.class;
 	static final Class JRUBY_CONDITIONVARIABLE_CLASS = JRubyConditionVariable.class;
 
-	static final String[] JRUBY_STR_MAP = { ARRAY, BASIC_OBJECT, BIGNUM, CLASS, COMPLEX,
-			CONDITIONVARIABLE, ENCODING, ENUMERATOR, EXCEPTION, FILE, FIXNUM, FLOAT, DIR, HASH,
-			INTEGER, IO, MARSHAL, MATH, METHOD, MODULE, MUTEX, NIL_CLASS, NUMERIC, OBJECT, PROC,
-			PROCESS, QUEUE, RANDOM, RANGE, REGEXP, SIGNAL, SIZEDQUEUE, SYMBOL, THREAD, THREADGROUP,
-			TIME, TRACEPOINT, STRUCT, STANDARDERROR, ARGUMENTERROR, IOERROR, EOFERROR,
-			ENCODINGERROR, FIBERERROR, RANGEERROR, FLOATDOMAINERROR, INDEXERROR, KEYERROR,
-			SCRIPTERROR, LOADERROR, LOCALJUMPERROR, NAMEERROR, NOMEMORYERROR, NOMETHODERROR,
-			NOTIMPLEMENTEDERROR, REGEXPERROR, RUNTIMEERROR, SECURITYERROR, SIGNALEXCEPTION, STRING,
-			SYNTAXERROR, SYSTEMCALLERROR, SYSTEMSTACKERROR, THREADERROR, UNCAUGHTTHROWERROR,
+	static final String[] JRUBY_STR_MAP = { ARRAY, BASIC_OBJECT, BIGNUM, CLASS, COMPLEX, CONDITIONVARIABLE, ENCODING, ENUMERATOR, EXCEPTION,
+			FILE, FIXNUM, FLOAT, DIR, HASH, INTEGER, IO, MARSHAL, MATH, METHOD, MODULE, MUTEX, NIL_CLASS, NUMERIC, OBJECT, PROC, PROCESS,
+			QUEUE, RANDOM, RANGE, REGEXP, SIGNAL, SIZEDQUEUE, SYMBOL, THREAD, THREADGROUP, TIME, TRACEPOINT, STRUCT, STANDARDERROR,
+			ARGUMENTERROR, IOERROR, EOFERROR, ENCODINGERROR, FIBERERROR, RANGEERROR, FLOATDOMAINERROR, INDEXERROR, KEYERROR, SCRIPTERROR,
+			LOADERROR, LOCALJUMPERROR, NAMEERROR, NOMEMORYERROR, NOMETHODERROR, NOTIMPLEMENTEDERROR, REGEXPERROR, RUNTIMEERROR,
+			SECURITYERROR, SIGNALEXCEPTION, STRING, SYNTAXERROR, SYSTEMCALLERROR, SYSTEMSTACKERROR, THREADERROR, UNCAUGHTTHROWERROR,
 			ZERODIVISIONERROR, TYPEERROR };
-	static final Class[] JRUBY_CLASS_MAP = { JRUBY_ARRAY_CLASS, JRUBY_BASICOBJECT_CLASS,
-			JRUBY_BIGNUM_CLASS, JRUBY_CLASS_CLASS, JRUBY_COMPLEX_CLASS,
-			JRUBY_CONDITIONVARIABLE_CLASS, JRUBY_ENCODING_CLASS, JRUBY_ENUMERATOR_CLASS,
-			JRUBY_EXCEPTION_CLASS, JRUBY_FILE_CLASS, JRUBY_FIXNUM_CLASS, JRUBY_FLOAT_CLASS,
-			JRUBY_DIR_CLASS, JRUBY_HASH_CLASS, JRUBY_INTEGER_CLASS, JRUBY_IO_CLASS,
-			JRUBY_MARSHAL_CLASS, JRUBY_MATH_CLASS, JRUBY_METHOD_CLASS, JRUBY_MODULE_CLASS,
-			JRUBY_MUTEX_CLASS, JRUBY_NILCLASS_CLASS, JRUBY_NUMERIC_CLASS, JRUBY_OBJECT_CLASS,
-			JRUBY_PROC_CLASS, JRUBY_PROCESS_CLASS, JRUBY_QUEUE_CLASS, JRUBY_RANDOM_CLASS,
-			JRUBY_RANGE_CLASS, JRUBY_REGEXP_CLASS, JRUBY_SIGNAL_CLASS, JRUBY_SIZEDQUEUE_CLASS,
-			JRUBY_SYMBOL_CLASS, JRUBY_THREAD_CLASS, JRUBY_THREADGROUP_CLASS, JRUBY_TIME_CLASS,
-			JRUBY_TRACEPOINT_CLASS, JRUBY_STRUCT_CLASS, JRUBY_STANDARDERROR_CLASS,
-			JRUBY_ARGUMENTERROR_CLASS, JRUBY_IOERROR_CLASS, JRUBY_EOFERROR_CLASS,
-			JRUBY_ENCODINGERROR_CLASS, JRUBY_FIBERERROR_CLASS, JRUBY_RANGEERROR_CLASS,
-			JRUBY_FLOATDOMAINERROR_CLASS, JRUBY_INDEXERROR_CLASS, JRUBY_KEYERROR_CLASS,
-			JRUBY_SCRIPTERROR_CLASS, JRUBY_LOADERROR_CLASS, JRUBY_LOCALJUMPERROR_CLASS,
-			JRUBY_NAMEERROR_CLASS, JRUBY_NOMEMORYERROR_CLASS, JRUBY_NOMETHODERROR_CLASS,
-			JRUBY_NOTIMPLEMENTEDERROR_CLASS, JRUBY_REGEXPERROR_CLASS, JRUBY_RUNTIMEERROR_CLASS,
-			JRUBY_SECURITYERROR_CLASS, JRUBY_SIGNALEXCEPTION_CLASS, JRUBY_STRING_CLASS,
-			JRUBY_SYNTAXERROR_CLASS, JRUBY_SYSTEMCALLERROR_CLASS, JRUBY_SYSTEMSTACKERROR_CLASS,
-			JRUBY_THREADERROR_CLASS, JRUBY_UNCAUGHTTHROWERROR_CLASS, JRUBY_ZERODIVISIONERROR_CLASS,
+	static final Class[] JRUBY_CLASS_MAP = { JRUBY_ARRAY_CLASS, JRUBY_BASICOBJECT_CLASS, JRUBY_BIGNUM_CLASS, JRUBY_CLASS_CLASS,
+			JRUBY_COMPLEX_CLASS, JRUBY_CONDITIONVARIABLE_CLASS, JRUBY_ENCODING_CLASS, JRUBY_ENUMERATOR_CLASS, JRUBY_EXCEPTION_CLASS,
+			JRUBY_FILE_CLASS, JRUBY_FIXNUM_CLASS, JRUBY_FLOAT_CLASS, JRUBY_DIR_CLASS, JRUBY_HASH_CLASS, JRUBY_INTEGER_CLASS, JRUBY_IO_CLASS,
+			JRUBY_MARSHAL_CLASS, JRUBY_MATH_CLASS, JRUBY_METHOD_CLASS, JRUBY_MODULE_CLASS, JRUBY_MUTEX_CLASS, JRUBY_NILCLASS_CLASS,
+			JRUBY_NUMERIC_CLASS, JRUBY_OBJECT_CLASS, JRUBY_PROC_CLASS, JRUBY_PROCESS_CLASS, JRUBY_QUEUE_CLASS, JRUBY_RANDOM_CLASS,
+			JRUBY_RANGE_CLASS, JRUBY_REGEXP_CLASS, JRUBY_SIGNAL_CLASS, JRUBY_SIZEDQUEUE_CLASS, JRUBY_SYMBOL_CLASS, JRUBY_THREAD_CLASS,
+			JRUBY_THREADGROUP_CLASS, JRUBY_TIME_CLASS, JRUBY_TRACEPOINT_CLASS, JRUBY_STRUCT_CLASS, JRUBY_STANDARDERROR_CLASS,
+			JRUBY_ARGUMENTERROR_CLASS, JRUBY_IOERROR_CLASS, JRUBY_EOFERROR_CLASS, JRUBY_ENCODINGERROR_CLASS, JRUBY_FIBERERROR_CLASS,
+			JRUBY_RANGEERROR_CLASS, JRUBY_FLOATDOMAINERROR_CLASS, JRUBY_INDEXERROR_CLASS, JRUBY_KEYERROR_CLASS, JRUBY_SCRIPTERROR_CLASS,
+			JRUBY_LOADERROR_CLASS, JRUBY_LOCALJUMPERROR_CLASS, JRUBY_NAMEERROR_CLASS, JRUBY_NOMEMORYERROR_CLASS, JRUBY_NOMETHODERROR_CLASS,
+			JRUBY_NOTIMPLEMENTEDERROR_CLASS, JRUBY_REGEXPERROR_CLASS, JRUBY_RUNTIMEERROR_CLASS, JRUBY_SECURITYERROR_CLASS,
+			JRUBY_SIGNALEXCEPTION_CLASS, JRUBY_STRING_CLASS, JRUBY_SYNTAXERROR_CLASS, JRUBY_SYSTEMCALLERROR_CLASS,
+			JRUBY_SYSTEMSTACKERROR_CLASS, JRUBY_THREADERROR_CLASS, JRUBY_UNCAUGHTTHROWERROR_CLASS, JRUBY_ZERODIVISIONERROR_CLASS,
 			JRUBY_TYPEERROR_CLASS };
 
 	static final RubyClassAndDoc[] JRUBY_CLASS = { new RubyClassAndDoc(JRUBY_STRING_CLASS, STRING),
-			new RubyClassAndDoc(JRUBY_ARRAY_CLASS, ARRAY, "Ruby[]", new String[] { "to_java()" },
-					null),
-			new RubyClassAndDoc(JRUBY_BASICOBJECT_CLASS, BASIC_OBJECT),
-			new RubyClassAndDoc(JRUBY_BIGNUM_CLASS, BIGNUM),
-			new RubyClassAndDoc(JRUBY_RATIONAL_CLASS, RATIONAL),
-			new RubyClassAndDoc(JRUBY_CLASS_CLASS, CLASS),
-			new RubyClassAndDoc(JRUBY_COMPLEX_CLASS, COMPLEX),
-			new RubyClassAndDoc(JRUBY_CONDITIONVARIABLE_CLASS, CONDITIONVARIABLE),
-			new RubyClassAndDoc(JRUBY_ENCODING_CLASS, ENCODING),
-			new RubyClassAndDoc(JRUBY_ENUMERATOR_CLASS, ENUMERATOR),
-			new RubyClassAndDoc(JRUBY_ENUMERABLE_CLASS, ENUMERABLE),
-			new RubyClassAndDoc(JRUBY_EXCEPTION_CLASS, EXCEPTION),
-			new RubyClassAndDoc(JRUBY_FALSE_CLASS, "FalseClass"),
-			new RubyClassAndDoc(JRUBY_FIXNUM_CLASS, FIXNUM),
-			new RubyClassAndDoc(JRUBY_FLOAT_CLASS, FLOAT),
-			new RubyClassAndDoc(JRUBY_FILE_CLASS, FILE), new RubyClassAndDoc(JRUBY_DIR_CLASS, DIR),
-			new RubyClassAndDoc(JRUBY_HASH_CLASS, HASH),
-			new RubyClassAndDoc(JRUBY_INTEGER_CLASS, INTEGER),
-			new RubyClassAndDoc(JRUBY_IO_CLASS, IO),
-			new RubyClassAndDoc(JRUBY_KERNEL_CLASS, KERNEL),
-			new RubyClassAndDoc(JRUBY_MATCHDATA_CLASS, MATCH_DATA),
-			new RubyClassAndDoc(JRUBY_MARSHAL_CLASS, MARSHAL),
-			new RubyClassAndDoc(JRUBY_MATH_CLASS, MATH),
-			new RubyClassAndDoc(JRUBY_METHOD_CLASS, METHOD),
-			new RubyClassAndDoc(JRUBY_MODULE_CLASS, MODULE),
-			new RubyClassAndDoc(JRUBY_MUTEX_CLASS, MUTEX),
-			new RubyClassAndDoc(JRUBY_NILCLASS_CLASS, NIL_CLASS),
-			new RubyClassAndDoc(JRUBY_NUMERIC_CLASS, NUMERIC),
-			new RubyClassAndDoc(JRUBY_OBJECT_CLASS, OBJECT),
-			new RubyClassAndDoc(JRUBY_PROC_CLASS, PROC),
-			new RubyClassAndDoc(JRUBY_PROCESS_CLASS, PROCESS),
-			new RubyClassAndDoc(JRUBY_QUEUE_CLASS, QUEUE),
-			new RubyClassAndDoc(JRUBY_RANDOM_CLASS, RANDOM),
-			new RubyClassAndDoc(JRUBY_RANGE_CLASS, RANGE),
-			new RubyClassAndDoc(JRUBY_REGEXP_CLASS, REGEXP),
+			new RubyClassAndDoc(JRUBY_ARRAY_CLASS, ARRAY, "Ruby[]", new String[] { "to_java()" }, null),
+			new RubyClassAndDoc(JRUBY_BASICOBJECT_CLASS, BASIC_OBJECT), new RubyClassAndDoc(JRUBY_BIGNUM_CLASS, BIGNUM),
+			new RubyClassAndDoc(JRUBY_RATIONAL_CLASS, RATIONAL), new RubyClassAndDoc(JRUBY_CLASS_CLASS, CLASS),
+			new RubyClassAndDoc(JRUBY_COMPLEX_CLASS, COMPLEX), new RubyClassAndDoc(JRUBY_CONDITIONVARIABLE_CLASS, CONDITIONVARIABLE),
+			new RubyClassAndDoc(JRUBY_ENCODING_CLASS, ENCODING), new RubyClassAndDoc(JRUBY_ENUMERATOR_CLASS, ENUMERATOR),
+			new RubyClassAndDoc(JRUBY_ENUMERABLE_CLASS, ENUMERABLE), new RubyClassAndDoc(JRUBY_EXCEPTION_CLASS, EXCEPTION),
+			new RubyClassAndDoc(JRUBY_FALSE_CLASS, "FalseClass"), new RubyClassAndDoc(JRUBY_FIXNUM_CLASS, FIXNUM),
+			new RubyClassAndDoc(JRUBY_FLOAT_CLASS, FLOAT), new RubyClassAndDoc(JRUBY_FILE_CLASS, FILE),
+			new RubyClassAndDoc(JRUBY_DIR_CLASS, DIR), new RubyClassAndDoc(JRUBY_HASH_CLASS, HASH),
+			new RubyClassAndDoc(JRUBY_INTEGER_CLASS, INTEGER), new RubyClassAndDoc(JRUBY_IO_CLASS, IO),
+			new RubyClassAndDoc(JRUBY_KERNEL_CLASS, KERNEL), new RubyClassAndDoc(JRUBY_MATCHDATA_CLASS, MATCH_DATA),
+			new RubyClassAndDoc(JRUBY_MARSHAL_CLASS, MARSHAL), new RubyClassAndDoc(JRUBY_MATH_CLASS, MATH),
+			new RubyClassAndDoc(JRUBY_METHOD_CLASS, METHOD), new RubyClassAndDoc(JRUBY_MODULE_CLASS, MODULE),
+			new RubyClassAndDoc(JRUBY_MUTEX_CLASS, MUTEX), new RubyClassAndDoc(JRUBY_NILCLASS_CLASS, NIL_CLASS),
+			new RubyClassAndDoc(JRUBY_NUMERIC_CLASS, NUMERIC), new RubyClassAndDoc(JRUBY_OBJECT_CLASS, OBJECT),
+			new RubyClassAndDoc(JRUBY_PROC_CLASS, PROC), new RubyClassAndDoc(JRUBY_PROCESS_CLASS, PROCESS),
+			new RubyClassAndDoc(JRUBY_QUEUE_CLASS, QUEUE), new RubyClassAndDoc(JRUBY_RANDOM_CLASS, RANDOM),
+			new RubyClassAndDoc(JRUBY_RANGE_CLASS, RANGE), new RubyClassAndDoc(JRUBY_REGEXP_CLASS, REGEXP),
 
-			new RubyClassAndDoc(JRUBY_SIGNAL_CLASS, SIGNAL),
-			new RubyClassAndDoc(JRUBY_SIZEDQUEUE_CLASS, SIZEDQUEUE),
-			new RubyClassAndDoc(JRUBY_SYMBOL_CLASS, SYMBOL),
-			new RubyClassAndDoc(JRUBY_THREAD_CLASS, THREAD),
-			new RubyClassAndDoc(JRUBY_THREADGROUP_CLASS, THREADGROUP),
-			new RubyClassAndDoc(JRUBY_TIME_CLASS, TIME),
-			new RubyClassAndDoc(JRUBY_TRUE_CLASS, TRUECLASS),
-			new RubyClassAndDoc(JRUBY_TRACEPOINT_CLASS, TRACEPOINT),
+			new RubyClassAndDoc(JRUBY_SIGNAL_CLASS, SIGNAL), new RubyClassAndDoc(JRUBY_SIZEDQUEUE_CLASS, SIZEDQUEUE),
+			new RubyClassAndDoc(JRUBY_SYMBOL_CLASS, SYMBOL), new RubyClassAndDoc(JRUBY_THREAD_CLASS, THREAD),
+			new RubyClassAndDoc(JRUBY_THREADGROUP_CLASS, THREADGROUP), new RubyClassAndDoc(JRUBY_TIME_CLASS, TIME),
+			new RubyClassAndDoc(JRUBY_TRUE_CLASS, TRUECLASS), new RubyClassAndDoc(JRUBY_TRACEPOINT_CLASS, TRACEPOINT),
 			new RubyClassAndDoc(JRUBY_STRUCT_CLASS, STRUCT),
 
 			new RubyClassAndDoc(JRUBY_ZERODIVISIONERROR_CLASS, ZERODIVISIONERROR),
 			new RubyClassAndDoc(JRUBY_UNCAUGHTTHROWERROR_CLASS, UNCAUGHTTHROWERROR),
-			new RubyClassAndDoc(JRUBY_THREADERROR_CLASS, THREADERROR),
-			new RubyClassAndDoc(JRUBY_SYSTEMSTACKERROR_CLASS, SYSTEMSTACKERROR),
-			new RubyClassAndDoc(JRUBY_SYSTEMCALLERROR_CLASS, SYSTEMCALLERROR),
-			new RubyClassAndDoc(JRUBY_SYNTAXERROR_CLASS, SYNTAXERROR),
+			new RubyClassAndDoc(JRUBY_THREADERROR_CLASS, THREADERROR), new RubyClassAndDoc(JRUBY_SYSTEMSTACKERROR_CLASS, SYSTEMSTACKERROR),
+			new RubyClassAndDoc(JRUBY_SYSTEMCALLERROR_CLASS, SYSTEMCALLERROR), new RubyClassAndDoc(JRUBY_SYNTAXERROR_CLASS, SYNTAXERROR),
 			new RubyClassAndDoc(JRUBY_SIGNALEXCEPTION_CLASS, SIGNALEXCEPTION),
-			new RubyClassAndDoc(JRUBY_SECURITYERROR_CLASS, SECURITYERROR),
-			new RubyClassAndDoc(JRUBY_RUNTIMEERROR_CLASS, RUNTIMEERROR),
+			new RubyClassAndDoc(JRUBY_SECURITYERROR_CLASS, SECURITYERROR), new RubyClassAndDoc(JRUBY_RUNTIMEERROR_CLASS, RUNTIMEERROR),
 			new RubyClassAndDoc(JRUBY_REGEXPERROR_CLASS, REGEXPERROR),
 			new RubyClassAndDoc(JRUBY_NOTIMPLEMENTEDERROR_CLASS, NOTIMPLEMENTEDERROR),
-			new RubyClassAndDoc(JRUBY_NOMETHODERROR_CLASS, NOMETHODERROR),
-			new RubyClassAndDoc(JRUBY_NAMEERROR_CLASS, NAMEERROR),
-			new RubyClassAndDoc(JRUBY_LOCALJUMPERROR_CLASS, LOCALJUMPERROR),
-			new RubyClassAndDoc(JRUBY_SCRIPTERROR_CLASS, SCRIPTERROR),
-			new RubyClassAndDoc(JRUBY_KEYERROR_CLASS, KEYERROR),
-			new RubyClassAndDoc(JRUBY_INDEXERROR_CLASS, INDEXERROR),
-			new RubyClassAndDoc(JRUBY_STANDARDERROR_CLASS, STANDARDERROR),
-			new RubyClassAndDoc(JRUBY_ARGUMENTERROR_CLASS, ARGUMENTERROR),
-			new RubyClassAndDoc(JRUBY_IOERROR_CLASS, IOERROR),
-			new RubyClassAndDoc(JRUBY_EOFERROR_CLASS, EOFERROR),
-			new RubyClassAndDoc(JRUBY_ENCODINGERROR_CLASS, ENCODINGERROR),
-			new RubyClassAndDoc(JRUBY_FIBERERROR_CLASS, FIBERERROR),
+			new RubyClassAndDoc(JRUBY_NOMETHODERROR_CLASS, NOMETHODERROR), new RubyClassAndDoc(JRUBY_NAMEERROR_CLASS, NAMEERROR),
+			new RubyClassAndDoc(JRUBY_LOCALJUMPERROR_CLASS, LOCALJUMPERROR), new RubyClassAndDoc(JRUBY_SCRIPTERROR_CLASS, SCRIPTERROR),
+			new RubyClassAndDoc(JRUBY_KEYERROR_CLASS, KEYERROR), new RubyClassAndDoc(JRUBY_INDEXERROR_CLASS, INDEXERROR),
+			new RubyClassAndDoc(JRUBY_STANDARDERROR_CLASS, STANDARDERROR), new RubyClassAndDoc(JRUBY_ARGUMENTERROR_CLASS, ARGUMENTERROR),
+			new RubyClassAndDoc(JRUBY_IOERROR_CLASS, IOERROR), new RubyClassAndDoc(JRUBY_EOFERROR_CLASS, EOFERROR),
+			new RubyClassAndDoc(JRUBY_ENCODINGERROR_CLASS, ENCODINGERROR), new RubyClassAndDoc(JRUBY_FIBERERROR_CLASS, FIBERERROR),
 			new RubyClassAndDoc(JRUBY_TYPEERROR_CLASS, TYPEERROR), };
 
 	private static final Class buildJRubyArrayClass() {
@@ -326,8 +286,7 @@ public class RubyHelper {
 			} catch (final Exception e) {
 			}
 			final File item = fileList.get(i);
-			if ((item.getName().equals(fileName) == false) && item.isFile()
-					&& item.delete() == false) {
+			if ((item.getName().equals(fileName) == false) && item.isFile() && item.delete() == false) {
 				System.err.println("fail to delete file : " + item.getName());
 				continue;
 			}
@@ -364,38 +323,34 @@ public class RubyHelper {
 		for (int i = 0; i < length; i++) {
 			final RubyClassAndDoc rubyClassAndDoc = JRUBY_CLASS[i];
 			final String docShortName = rubyClassAndDoc.docShortName;
-			if (docShortName.equalsIgnoreCase(returnStr)
-					|| returnStr.equalsIgnoreCase("a" + docShortName)
-					|| returnStr.equalsIgnoreCase("an" + docShortName)
-					|| returnStr.equalsIgnoreCase("a_" + docShortName)
-					|| returnStr.equalsIgnoreCase("an_" + docShortName)
-					|| returnStr.equalsIgnoreCase(docShortName + "_result")
+			if (docShortName.equalsIgnoreCase(returnStr) || returnStr.equalsIgnoreCase("a" + docShortName)
+					|| returnStr.equalsIgnoreCase("an" + docShortName) || returnStr.equalsIgnoreCase("a_" + docShortName)
+					|| returnStr.equalsIgnoreCase("an_" + docShortName) || returnStr.equalsIgnoreCase(docShortName + "_result")
 					|| returnStr.endsWith("_" + docShortName.toLowerCase())) {
 				return rubyClassAndDoc;
 			}
 		}
 
 		if (aliasType == null) {
-			aliasType = new String[] { "ary", "int", "true or false", "true, false,",
-					"(true or false)", "true", "true/false", "enc", "enum", "number", "num", "obj",
-					"hsh", "prng", "rat", "re", "real", "rng", "str", "sym", "thr", "mod",
+			aliasType = new String[] { "ary", "int", "true or false", "true, false,", "(true or false)", "true", "true/false", "enc",
+					"enum", "number", "num", "obj", "hsh", "prng", "rat", "re", "real", "rng", "str", "sym", "thr", "mod",
 					"integer or float", "thgrp" };
-			rcd = new RubyClassAndDoc[] { searchRubyClassByShortName(ARRAY),
-					searchRubyClassByShortName(INTEGER), searchRubyClassByShortName(TRUECLASS),
-					searchRubyClassByShortName(TRUECLASS), searchRubyClassByShortName(TRUECLASS),
-					searchRubyClassByShortName(TRUECLASS), searchRubyClassByShortName(TRUECLASS),
-					searchRubyClassByShortName(ENCODING), searchRubyClassByShortName(ENUMERATOR),
-					searchRubyClassByShortName(NUMERIC), searchRubyClassByShortName(NUMERIC),
-					searchRubyClassByShortName(OBJECT), searchRubyClassByShortName(HASH),
-					searchRubyClassByShortName(RANDOM), /*
-														 * A pseudorandom number
-														 * generator (PRNG)
-														 */
-					searchRubyClassByShortName(RATIONAL), searchRubyClassByShortName(REGEXP),
-					searchRubyClassByShortName(NUMERIC), searchRubyClassByShortName(RANGE),
-					searchRubyClassByShortName(STRING), searchRubyClassByShortName(SYMBOL),
-					searchRubyClassByShortName(THREAD), searchRubyClassByShortName(MODULE),
-					searchRubyClassByShortName(INTEGER), searchRubyClassByShortName(THREADGROUP) };
+			rcd = new RubyClassAndDoc[] { searchRubyClassByShortName(ARRAY), searchRubyClassByShortName(INTEGER),
+					searchRubyClassByShortName(TRUECLASS), searchRubyClassByShortName(TRUECLASS), searchRubyClassByShortName(TRUECLASS),
+					searchRubyClassByShortName(TRUECLASS), searchRubyClassByShortName(TRUECLASS), searchRubyClassByShortName(ENCODING),
+					searchRubyClassByShortName(ENUMERATOR), searchRubyClassByShortName(NUMERIC), searchRubyClassByShortName(
+							NUMERIC),
+					searchRubyClassByShortName(OBJECT), searchRubyClassByShortName(HASH), searchRubyClassByShortName(RANDOM), /*
+																																 * A
+																																 * pseudorandom
+																																 * number
+																																 * generator
+																																 * (PRNG)
+																																 */
+					searchRubyClassByShortName(RATIONAL), searchRubyClassByShortName(REGEXP), searchRubyClassByShortName(NUMERIC),
+					searchRubyClassByShortName(RANGE), searchRubyClassByShortName(STRING), searchRubyClassByShortName(SYMBOL),
+					searchRubyClassByShortName(THREAD), searchRubyClassByShortName(MODULE), searchRubyClassByShortName(INTEGER),
+					searchRubyClassByShortName(THREADGROUP) };
 			if (aliasType.length != rcd.length) {
 				System.err.println("fail equals length of array!");
 				System.exit(0);
@@ -452,23 +407,19 @@ public class RubyHelper {
 			baseType = JRUBY_STRING_CLASS;
 		} else if (baseType == boolean.class || baseType == Boolean.class) {
 			baseType = JRUBY_TRUE_CLASS;
-		} else if (baseType == byte.class || baseType == char.class || baseType == short.class
-				|| baseType == int.class || baseType == long.class || baseType == Byte.class
-				|| baseType == Character.class || baseType == Short.class
+		} else if (baseType == byte.class || baseType == char.class || baseType == short.class || baseType == int.class
+				|| baseType == long.class || baseType == Byte.class || baseType == Character.class || baseType == Short.class
 				|| baseType == Integer.class || baseType == Long.class) {
 			baseType = JRUBY_FIXNUM_CLASS;
-		} else if (baseType == float.class || baseType == double.class || baseType == Float.class
-				|| baseType == Double.class) {
+		} else if (baseType == float.class || baseType == double.class || baseType == Float.class || baseType == Double.class) {
 			baseType = JRUBY_FLOAT_CLASS;
 		}
 		return baseType;
 	}
 
 	static boolean isEnumerable(final Type type) {
-		return type == JRUBY_ARRAY_CLASS || type == JRUBY_RANGE_CLASS
-				|| type == JRUBY_ENUMERATOR_CLASS || type == JRUBY_IO_CLASS
-				|| type == JRUBY_DIR_CLASS || type == JRUBY_HASH_CLASS
-				|| type == JRUBY_STRUCT_CLASS;
+		return type == JRUBY_ARRAY_CLASS || type == JRUBY_RANGE_CLASS || type == JRUBY_ENUMERATOR_CLASS || type == JRUBY_IO_CLASS
+				|| type == JRUBY_DIR_CLASS || type == JRUBY_HASH_CLASS || type == JRUBY_STRUCT_CLASS;
 	}
 }
 

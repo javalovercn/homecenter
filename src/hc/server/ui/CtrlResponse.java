@@ -21,8 +21,7 @@ import hc.util.ThreadConfig;
 /**
  * <code>CtrlResponse</code> is used to design a remote controller. <BR>
  * <BR>
- * if want to design a powerful controller with complex UI, see
- * <code>HTMLMlet</code>.
+ * if want to design a powerful controller with complex UI, see <code>HTMLMlet</code>.
  * 
  * @since 6.98
  */
@@ -35,8 +34,7 @@ public abstract class CtrlResponse {
 	public CtrlResponse() {
 		context = ProjectContext.getProjectContext();
 		coreSS = SimuMobile.checkSimuProjectContext(context) ? SimuMobile.SIMU_NULL
-				: (ServerUIAPIAgent.getProjResponserMaybeNull(context)
-						.getSessionContextFromCurrThread().j2seSocketSession);
+				: (ServerUIAPIAgent.getProjResponserMaybeNull(context).getSessionContextFromCurrThread().j2seSocketSession);
 		target = (String) ThreadConfig.getValue(ThreadConfig.TARGET_URL, true);
 		screenID = ServerUIAPIAgent.buildScreenID(context.getProjectID(), target);
 		isRTL = LangUtil.isRTL(UserThreadResourceUtil.getMobileLocaleFrom(coreSS));
@@ -60,11 +58,11 @@ public abstract class CtrlResponse {
 	/**
 	 * the elementID of current CtrlResponse. <BR>
 	 * <BR>
-	 * for example, current CtrlResponse is "controller://MyCtrler", then the
-	 * elementID is "MyCtrler". <BR>
+	 * for example, current CtrlResponse is "controller://MyCtrler", then the elementID is
+	 * "MyCtrler". <BR>
 	 * <BR>
-	 * to get the instance of menu item for current CtrlResponse in designer,
-	 * invoke {@link ProjectContext#getMenuItemBy(String, String)}.
+	 * to get the instance of menu item for current CtrlResponse in designer, invoke
+	 * {@link ProjectContext#getMenuItemBy(String, String)}.
 	 * 
 	 * @return
 	 * @see ProjectContext#getMenuItemBy(String, String)
@@ -120,11 +118,9 @@ public abstract class CtrlResponse {
 	/**
 	 * set initial text for some key.<BR>
 	 * <BR>
-	 * this method is invoked by HomeCenter server to initialize the button text
-	 * of controller. <BR>
-	 * If you don't want to set button text, please don't override this method
-	 * or return null(or empty string) for <code>keyValue</code> in the
-	 * implementation.
+	 * this method is invoked by HomeCenter server to initialize the button text of controller. <BR>
+	 * If you don't want to set button text, please don't override this method or return null(or
+	 * empty string) for <code>keyValue</code> in the implementation.
 	 * 
 	 * @param keyValue
 	 *            see {@link CtrlKey}
@@ -165,14 +161,12 @@ public abstract class CtrlResponse {
 	/**
 	 * display a message moving from right to left on mobile <BR>
 	 * <BR>
-	 * Note : if mobile is in background
-	 * ({@link ProjectContext#isMobileInBackground()}), a notification is also
-	 * created for mobile. <BR>
+	 * Note : if mobile is in background ({@link ProjectContext#isMobileInBackground()}), a
+	 * notification is also created for mobile. <BR>
 	 * <BR>
-	 * if mobile option [Message, Notification to Speech also] is
-	 * <STRONG>on</STRONG>, it may be spoken. <BR>
-	 * the speech or not is depends on text, TTS engine, locale and mute of
-	 * mobile.
+	 * if mobile option [Message, Notification to Speech also] is <STRONG>on</STRONG>, it may be
+	 * spoken. <BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
 	 * 
 	 * @param msg
 	 *            the message to show.
@@ -186,14 +180,12 @@ public abstract class CtrlResponse {
 	/**
 	 * send a message moving from right to left.<BR>
 	 * <BR>
-	 * Note : if mobile is in background
-	 * ({@link ProjectContext#isMobileInBackground()}), a notification is also
-	 * created for mobile.<BR>
+	 * Note : if mobile is in background ({@link ProjectContext#isMobileInBackground()}), a
+	 * notification is also created for mobile.<BR>
 	 * <BR>
-	 * if mobile option [Message, Notification to Speech also] is
-	 * <STRONG>on</STRONG>, it may be spoken.<BR>
-	 * the speech or not is depends on text, TTS engine, locale and mute of
-	 * mobile.
+	 * if mobile option [Message, Notification to Speech also] is <STRONG>on</STRONG>, it may be
+	 * spoken.<BR>
+	 * the speech or not is depends on text, TTS engine, locale and mute of mobile.
 	 * 
 	 * @param msg
 	 *            the message to show.

@@ -45,8 +45,7 @@ public class CodeWindow {
 
 	private static final int scaleWindowSizeByFontSize(final int w_h) {
 		try {
-			return w_h * Integer.parseInt(DefaultManager.getDesignerDocFontSize())
-					/ DefaultManager.DEFAULT_DOC_FONT_SIZE;
+			return w_h * Integer.parseInt(DefaultManager.getDesignerDocFontSize()) / DefaultManager.DEFAULT_DOC_FONT_SIZE;
 		} catch (final Throwable e) {
 			return w_h;
 		}
@@ -119,18 +118,16 @@ public class CodeWindow {
 
 		synchronized (ScriptEditPanel.scriptEventLock) {
 			if (classFrame.isVisible()) {
-				if (keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_DOWN
-						|| keyCode == KeyEvent.VK_LEFT || keyCode == KeyEvent.VK_RIGHT) {
+				if (keyCode == KeyEvent.VK_UP || keyCode == KeyEvent.VK_DOWN || keyCode == KeyEvent.VK_LEFT
+						|| keyCode == KeyEvent.VK_RIGHT) {
 					if (keyCode == KeyEvent.VK_UP) {
 						if (codeList.getSelectedIndex() == 0) {
 							SwingUtilities.invokeLater(new Runnable() {// App.invokeLaterUI不正常
 								@Override
 								public void run() {
 									codeList.setSelectedIndex(codeList.getModel().getSize() - 1);
-									final JScrollBar verticalScrollBar = scrollPanel
-											.getVerticalScrollBar();
-									verticalScrollBar.setValue(verticalScrollBar.getMaximum()
-											- verticalScrollBar.getVisibleAmount());
+									final JScrollBar verticalScrollBar = scrollPanel.getVerticalScrollBar();
+									verticalScrollBar.setValue(verticalScrollBar.getMaximum() - verticalScrollBar.getVisibleAmount());
 								}
 							});
 						} else {
@@ -156,10 +153,8 @@ public class CodeWindow {
 						}
 					} else if (keyCode == KeyEvent.VK_RIGHT) {
 						try {
-							final char nextChar = textPane.getDocument().getText(movingScriptIdx, 1)
-									.toLowerCase().charAt(0);
-							if ((nextChar >= 'a' && nextChar <= 'z')
-									|| (nextChar >= 'A' && nextChar <= 'Z')
+							final char nextChar = textPane.getDocument().getText(movingScriptIdx, 1).toLowerCase().charAt(0);
+							if ((nextChar >= 'a' && nextChar <= 'z') || (nextChar >= 'A' && nextChar <= 'Z')
 									|| (nextChar >= '0' && nextChar <= '9') || nextChar == '_') {
 								preCodeChars[preCodeCharsLen++] = nextChar;
 								textPane.setCaretPosition(++movingScriptIdx);
@@ -200,8 +195,7 @@ public class CodeWindow {
 			document.remove(--movingScriptIdx, 1);
 			textPane.setCaretPosition(movingScriptIdx);
 			// textPane.updateUI();//会导致重新获得焦点时为posi:0
-			textPane.refreshCurrLineAfterKey(
-					ScriptEditPanel.getLineOfOffset(document, movingScriptIdx));
+			textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, movingScriptIdx));
 			TabHelper.notifyInputKey(true, e, e.getKeyChar(), 0);
 		} catch (final Exception ex) {
 		}
@@ -223,19 +217,17 @@ public class CodeWindow {
 			final Color defaultBackground = defaultRenderer.getBackground();
 
 			@Override
-			public final Component getListCellRendererComponent(final JList list,
-					final Object value, final int index, final boolean isSelected,
-					final boolean cellHasFocus) {
-				final JLabel renderer = (JLabel) defaultRenderer.getListCellRendererComponent(list,
-						value, index, isSelected, cellHasFocus);
+			public final Component getListCellRendererComponent(final JList list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus) {
+				final JLabel renderer = (JLabel) defaultRenderer.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 				if (isSelected) {
 					renderer.setBackground(Color.LIGHT_GRAY);
 				} else {
 					renderer.setBackground(defaultBackground);
 				}
 				final int type = classData.get(index).type;
-				if (type == CodeItem.TYPE_RESOURCES || type == CodeItem.TYPE_CSS_VAR
-						|| type == CodeItem.TYPE_CSS || type == CodeItem.TYPE_VARIABLE) {
+				if (type == CodeItem.TYPE_RESOURCES || type == CodeItem.TYPE_CSS_VAR || type == CodeItem.TYPE_CSS
+						|| type == CodeItem.TYPE_VARIABLE) {
 					renderer.setIcon(CodeRes.item5);
 				} else if (type == CodeItem.TYPE_IMPORT) {
 					renderer.setIcon(CodeRes.item4);
@@ -413,8 +405,7 @@ public class CodeWindow {
 
 	}
 
-	public final void fillPreCode(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target,
-			final String preCodeLower) {
+	public final void fillPreCode(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target, final String preCodeLower) {
 		target.clear();
 		final int size = src.size();
 		final int preLen = preCodeLower.length();
@@ -436,10 +427,8 @@ public class CodeWindow {
 			// codeItem.codeLowMatch + ", code : " + codeItem.code + ",
 			// fieldOrMethod : " + codeItem.fieldOrMethodOrClassName);
 
-			if (preLen == 0
-					|| (codeItem.isFullPackageAndClassName && codeItem.type == CodeItem.TYPE_CLASS
-							&& codeItem.codeLowMatch.indexOf(preCodeLower) >= 0)
-					|| codeItem.codeLowMatch.startsWith(preCodeLower)) {
+			if (preLen == 0 || (codeItem.isFullPackageAndClassName && codeItem.type == CodeItem.TYPE_CLASS
+					&& codeItem.codeLowMatch.indexOf(preCodeLower) >= 0) || codeItem.codeLowMatch.startsWith(preCodeLower)) {
 				addItemExcludeOverride(codeItem, target);
 			}
 		}
@@ -447,8 +436,7 @@ public class CodeWindow {
 		Collections.sort(target);
 	}
 
-	public static void fillForAutoTip(final ArrayList<CodeItem> src,
-			final ArrayList<CodeItem> target, final boolean isBeginWith,
+	public static void fillForAutoTip(final ArrayList<CodeItem> src, final ArrayList<CodeItem> target, final boolean isBeginWith,
 			final String fieldOrMethodWithoutGanTanHaoOrWenHao) {
 		target.clear();
 		final int size = src.size();
@@ -465,22 +453,19 @@ public class CodeWindow {
 			// continue;
 			// }
 			// }
-			if ((isBeginWith && codeItem.fieldOrMethodOrClassName
-					.startsWith(fieldOrMethodWithoutGanTanHaoOrWenHao, 0))// 考虑ruby.method!
-																			// |
-																			// method?
-																			// |
-																			// method三型，所以改为startsWith
-					|| codeItem.fieldOrMethodOrClassName
-							.equals(fieldOrMethodWithoutGanTanHaoOrWenHao)) {
+			if ((isBeginWith && codeItem.fieldOrMethodOrClassName.startsWith(fieldOrMethodWithoutGanTanHaoOrWenHao, 0))// 考虑ruby.method!
+					// |
+					// method?
+					// |
+					// method三型，所以改为startsWith
+					|| codeItem.fieldOrMethodOrClassName.equals(fieldOrMethodWithoutGanTanHaoOrWenHao)) {
 				addItemExcludeOverride(codeItem, target);
 			}
 		}
 		Collections.sort(target);
 	}
 
-	private static void addItemExcludeOverride(final CodeItem codeitem,
-			final ArrayList<CodeItem> target) {
+	private static void addItemExcludeOverride(final CodeItem codeitem, final ArrayList<CodeItem> target) {
 		if (codeitem.type == CodeItem.TYPE_METHOD) {
 			final int size = target.size();
 			for (int i = 0; i < size; i++) {
@@ -505,10 +490,8 @@ public class CodeWindow {
 	public boolean isWillOrAlreadyToFront;
 	public int preCodeType;
 
-	public final void toFront(final int preCodeType, final Class codeClass,
-			final ScriptEditPanel sep, final HCTextPane eventFromComponent, final int x,
-			final int y, final ArrayList<CodeItem> list, final String preCode, final int scriptIdx,
-			final int fontHeight) {
+	public final void toFront(final int preCodeType, final Class codeClass, final ScriptEditPanel sep, final HCTextPane eventFromComponent,
+			final int x, final int y, final ArrayList<CodeItem> list, final String preCode, final int scriptIdx, final int fontHeight) {
 		noCodeListManager.reset();
 		this.preCodeType = preCodeType;
 
@@ -721,8 +704,7 @@ public class CodeWindow {
 			document.insertString(oriScriptIdx, insertedCode, attSet);// 注：attSet不为null可减少闪烁，即使后有refreshCurrLineAfterKey
 			final int position = oriScriptIdx + insertedCode.length();
 
-			textPane.refreshCurrLineAfterKey(
-					ScriptEditPanel.getLineOfOffset(document, oriScriptIdx));
+			textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, oriScriptIdx));
 			TabHelper.notifyInputBlock(insertedCode.length() - preCodeCharsLen);
 
 			final char[] insertedCodeChars = insertedCode.toCharArray();
@@ -741,18 +723,15 @@ public class CodeWindow {
 
 	private final void dispatchEvent(final KeyEvent e, final int keyCode) {
 		if (e.getSource() != codeList) {
-			codeList.dispatchEvent(new KeyEvent(codeList, KeyEvent.KEY_PRESSED,
-					System.currentTimeMillis(), 0, keyCode, e.getKeyChar()));
+			codeList.dispatchEvent(new KeyEvent(codeList, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), 0, keyCode, e.getKeyChar()));
 			// codeList.dispatchEvent(new KeyEvent(codeList, KeyEvent.KEY_TYPED,
 			// System.currentTimeMillis(), 0, keyCode, e.getKeyChar()));
 		}
 	}
 
-	public final void startAutoPopTip(final CodeItem item, final HCTextPane jtaPaneMaybeNull,
-			final ScriptEditPanel scriptEditPanel) {
+	public final void startAutoPopTip(final CodeItem item, final HCTextPane jtaPaneMaybeNull, final ScriptEditPanel scriptEditPanel) {
 		if (L.isInWorkshop) {
-			ClassUtil.printCurrentThreadStack(
-					"---------------------------------startAutoPopTip---------------------------------");
+			ClassUtil.printCurrentThreadStack("---------------------------------startAutoPopTip---------------------------------");
 		}
 		synchronized (autoDocPopTip) {
 			autoDocPopTip.resetTimerCount();
@@ -786,8 +765,7 @@ public class CodeWindow {
 			textPane.setCaretPosition(movingScriptIdx);
 			// textPane.updateUI();//会导致重新获得焦点时为posi:0
 
-			textPane.refreshCurrLineAfterKey(
-					ScriptEditPanel.getLineOfOffset(document, movingScriptIdx));
+			textPane.refreshCurrLineAfterKey(ScriptEditPanel.getLineOfOffset(document, movingScriptIdx));
 			TabHelper.notifyInputKey(false, e, keyChar, 0);
 		} catch (final Exception ex) {
 		}
@@ -818,8 +796,7 @@ class DocTipTimer extends HCTimer {
 						CodeHelper.buildForClass(docHelper.codeHelper, c);
 					}
 				}
-				docHelper.popDocTipWindow(item, classFrame, fmClass, fieldOrMethodName, type,
-						layoutLimit);
+				docHelper.popDocTipWindow(item, classFrame, fmClass, fieldOrMethodName, type, layoutLimit);
 				setEnable(false);
 				docHelper.codeHelper.window.scriptEditPanel.autoCodeTip.setEnable(false);
 			}

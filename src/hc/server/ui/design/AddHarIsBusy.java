@@ -37,8 +37,7 @@ public class AddHarIsBusy extends SystemHTMLMlet {
 				exitButtonStr = ResourceUtil.get(localCoreSS, 9131);
 				busyMsg = ResourceUtil.get(localCoreSS, 9233);
 				waitAndTry = ResourceUtil.get(localCoreSS, 9234);
-				HCLimitSecurityManager.getHCSecurityManager()
-						.setAllowAccessSystemImageResource(true);
+				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(true);
 				return null;
 			}
 		}, AddHarHTMLMlet.token);
@@ -46,24 +45,19 @@ public class AddHarIsBusy extends SystemHTMLMlet {
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
-				HCLimitSecurityManager.getHCSecurityManager()
-						.setAllowAccessSystemImageResource(false);
+				HCLimitSecurityManager.getHCSecurityManager().setAllowAccessSystemImageResource(false);
 			}
 		}, AddHarHTMLMlet.token);
 
-		loadCSS(buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(),
-				getColorForBodyByIntValue()) + css, false);
+		loadCSS(buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(), getColorForBodyByIntValue()) + css, false);
 
 		exitButton = new JButton(exitButtonStr);
 		setButtonStyle(exitButton);
 
 		setLayout(new BorderLayout());
-		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker()
-				.getRGB();
-		setCSS(msgArea, null,
-				"width:100%;height:100%;" + "background-color:"
-						+ HTMLMlet.toHexColor(areaBackColor, false) + ";color:#"
-						+ HTMLMlet.getColorForFontByHexString() + ";");
+		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
+		setCSS(msgArea, null, "width:100%;height:100%;" + "background-color:" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#"
+				+ HTMLMlet.getColorForFontByHexString() + ";");
 
 		appendMessage(busyMsg);
 		appendMessage(waitAndTry);
@@ -72,8 +66,8 @@ public class AddHarIsBusy extends SystemHTMLMlet {
 		// "px;";
 		// setCSS(this, null, btnFontSizeCSS);//系统Mlet, //不考虑in user thread
 		addProcessingPanel.add(msgArea, BorderLayout.CENTER);
-		exitButton.setPreferredSize(new Dimension(getMobileWidth(), SystemHTMLMlet.getButtonHeight(
-				getFontSizeForNormal() + getFontSizeForButton(), getButtonHeight())));
+		exitButton.setPreferredSize(new Dimension(getMobileWidth(),
+				SystemHTMLMlet.getButtonHeight(getFontSizeForNormal() + getFontSizeForButton(), getButtonHeight())));
 		// setCSS(exitButton, null,
 		// "text-align:center;vertical-align:middle;width:100%;height:100%;" +
 		// btnFontSizeCSS);//系统Mlet, //不考虑in user thread

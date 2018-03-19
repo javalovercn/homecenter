@@ -39,20 +39,19 @@ import org.jrubyparser.util.ILocalVariableVisitor;
  * method definition node.
  */
 public class DefnNode extends MethodDefNode {
-    public DefnNode(SourcePosition position, MethodNameNode nameNode, ArgsNode argsNode,
-            StaticScope scope, Node bodyNode) {
-        super(position, nameNode, argsNode, scope, bodyNode);
-    }
+	public DefnNode(SourcePosition position, MethodNameNode nameNode, ArgsNode argsNode, StaticScope scope, Node bodyNode) {
+		super(position, nameNode, argsNode, scope, bodyNode);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.DEFNNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.DEFNNODE;
+	}
 
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitDefnNode(this);
-    }
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitDefnNode(this);
+	}
 
-    public List<ILocalVariable> getVariableReferencesNamed(String name) {
-        return ILocalVariableVisitor.findOccurrencesIn(this, name);
-    }
+	public List<ILocalVariable> getVariableReferencesNamed(String name) {
+		return ILocalVariableVisitor.findOccurrencesIn(this, name);
+	}
 }

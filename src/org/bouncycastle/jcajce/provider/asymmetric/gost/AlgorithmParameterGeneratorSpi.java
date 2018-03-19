@@ -11,55 +11,39 @@ import org.bouncycastle.jcajce.provider.asymmetric.util.BaseAlgorithmParameterGe
 import org.bouncycastle.jce.spec.GOST3410ParameterSpec;
 import org.bouncycastle.jce.spec.GOST3410PublicKeyParameterSetSpec;
 
-public abstract class AlgorithmParameterGeneratorSpi
-    extends BaseAlgorithmParameterGeneratorSpi
-{
-    protected SecureRandom random;
-    protected int strength = 1024;
+public abstract class AlgorithmParameterGeneratorSpi extends BaseAlgorithmParameterGeneratorSpi {
+	protected SecureRandom random;
+	protected int strength = 1024;
 
-    protected void engineInit(
-        int strength,
-        SecureRandom random)
-    {
-        this.strength = strength;
-        this.random = random;
-    }
+	protected void engineInit(int strength, SecureRandom random) {
+		this.strength = strength;
+		this.random = random;
+	}
 
-    protected void engineInit(
-        AlgorithmParameterSpec genParamSpec,
-        SecureRandom random)
-        throws InvalidAlgorithmParameterException
-    {
-        throw new InvalidAlgorithmParameterException("No supported AlgorithmParameterSpec for GOST3410 parameter generation.");
-    }
+	protected void engineInit(AlgorithmParameterSpec genParamSpec, SecureRandom random) throws InvalidAlgorithmParameterException {
+		throw new InvalidAlgorithmParameterException("No supported AlgorithmParameterSpec for GOST3410 parameter generation.");
+	}
 
-    protected AlgorithmParameters engineGenerateParameters()
-    {
-        GOST3410ParametersGenerator pGen = new GOST3410ParametersGenerator();
+	protected AlgorithmParameters engineGenerateParameters() {
+		GOST3410ParametersGenerator pGen = new GOST3410ParametersGenerator();
 
-        if (random != null)
-        {
-            pGen.init(strength, 2, random);
-        }
-        else
-        {
-            pGen.init(strength, 2, new SecureRandom());
-        }
+		if (random != null) {
+			pGen.init(strength, 2, random);
+		} else {
+			pGen.init(strength, 2, new SecureRandom());
+		}
 
-        GOST3410Parameters p = pGen.generateParameters();
+		GOST3410Parameters p = pGen.generateParameters();
 
-        AlgorithmParameters params;
+		AlgorithmParameters params;
 
-        try
-        {
-            params = createParametersInstance("GOST3410");
-            params.init(new GOST3410ParameterSpec(new GOST3410PublicKeyParameterSetSpec(p.getP(), p.getQ(), p.getA())));
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException(e.getMessage());
-        }
+		try {
+			params = createParametersInstance("GOST3410");
+			params.init(new GOST3410ParameterSpec(new GOST3410PublicKeyParameterSetSpec(p.getP(), p.getQ(), p.getA())));
+		} catch (Exception e) {
+			throw new RuntimeException(e.getMessage());
+		}
 
-        return params;
-    }
+		return params;
+	}
 }

@@ -12,8 +12,7 @@ public class HCjarHelper {
 		return getMSBXXXNameAtIdx(map, HCjar.ROBOT_ITEM_HEADER, idx);
 	}
 
-	public static final boolean isTrue(final Map map, final String key,
-			final boolean defaultValue) {
+	public static final boolean isTrue(final Map map, final String key, final boolean defaultValue) {
 		final String value = (String) map.get(key);
 		return (value == null) ? defaultValue : (value.equals(IConstant.TRUE));
 	}
@@ -28,8 +27,7 @@ public class HCjarHelper {
 	 * @param map
 	 * @param header
 	 */
-	public static final void removeHeaderStartWith(final Map<String, Object> map,
-			final String header) {
+	public static final void removeHeaderStartWith(final Map<String, Object> map, final String header) {
 		final Iterator<Map.Entry<String, Object>> keys = map.entrySet().iterator();
 		while (keys.hasNext()) {
 			final Map.Entry<String, Object> entry = keys.next();
@@ -43,13 +41,11 @@ public class HCjarHelper {
 		return getMSBXXXListenerAtIdx(map, HCjar.ROBOT_ITEM_HEADER, idx);
 	}
 
-	private static String getMSBXXXNameAtIdx(final Map<String, Object> map, final String keyName,
-			final int idx) {
+	private static String getMSBXXXNameAtIdx(final Map<String, Object> map, final String keyName, final int idx) {
 		return (String) map.get(keyName + idx + "." + HCjar.PROCESSOR_NAME);
 	}
 
-	private static String getMSBXXXListenerAtIdx(final Map<String, Object> map,
-			final String keyName, final int idx) {
+	private static String getMSBXXXListenerAtIdx(final Map<String, Object> map, final String keyName, final int idx) {
 		return (String) map.get(keyName + idx + "." + HCjar.PROCESSOR_LISTENER);
 	}
 
@@ -100,8 +96,7 @@ public class HCjarHelper {
 	 *            仅加载绑定的，或全部
 	 * @return
 	 */
-	public static Vector<String>[] getDevicesSrc(final Map<String, Object> map,
-			final WorkingDeviceList list) {
+	public static Vector<String>[] getDevicesSrc(final Map<String, Object> map, final WorkingDeviceList list) {
 		final Vector<String> names = new Vector<String>();
 		final Vector<String> src = new Vector<String>();
 

@@ -30,8 +30,8 @@ public class MouseMovingTipTimer extends HCTimer {
 	static final int interMS = 600;
 	static final int interDirtyMS = interMS - 200;
 
-	public MouseMovingTipTimer(final ScriptEditPanel scriptPanel, final HCTextPane jtaScript,
-			final AbstractDocument jtaDocment, final int fontHeight) {
+	public MouseMovingTipTimer(final ScriptEditPanel scriptPanel, final HCTextPane jtaScript, final AbstractDocument jtaDocment,
+			final int fontHeight) {
 		super("MouseMovingTipTimer", interMS, false);// 由原来的1000=>600
 		if (L.isInWorkshop) {
 			LogManager.log("create MouseMovingTipTimer");
@@ -71,8 +71,7 @@ public class MouseMovingTipTimer extends HCTimer {
 					return;
 				}
 
-				final boolean isOn = codeHelper.mouseMovOn(scriptPanel, jtaScript, jtaDocment,
-						fontHeight, true, caretPosition);
+				final boolean isOn = codeHelper.mouseMovOn(scriptPanel, jtaScript, jtaDocment, fontHeight, true, caretPosition);
 				if (isOn) {
 					lastShowX = x;
 					lastShowY = y;

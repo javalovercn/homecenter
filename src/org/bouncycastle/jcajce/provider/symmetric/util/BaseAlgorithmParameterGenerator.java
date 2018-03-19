@@ -9,29 +9,22 @@ import java.security.SecureRandom;
 import org.bouncycastle.jcajce.util.BCJcaJceHelper;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
 
-public abstract class BaseAlgorithmParameterGenerator
-    extends AlgorithmParameterGeneratorSpi
-{
-    private final JcaJceHelper helper = new BCJcaJceHelper();
+public abstract class BaseAlgorithmParameterGenerator extends AlgorithmParameterGeneratorSpi {
+	private final JcaJceHelper helper = new BCJcaJceHelper();
 
-    protected SecureRandom  random;
-    protected int           strength = 1024;
+	protected SecureRandom random;
+	protected int strength = 1024;
 
-    public BaseAlgorithmParameterGenerator()
-    {
-    }
+	public BaseAlgorithmParameterGenerator() {
+	}
 
-    protected final AlgorithmParameters createParametersInstance(String algorithm)
-        throws NoSuchAlgorithmException, NoSuchProviderException
-    {
-        return helper.createAlgorithmParameters(algorithm);
-    }
+	protected final AlgorithmParameters createParametersInstance(String algorithm)
+			throws NoSuchAlgorithmException, NoSuchProviderException {
+		return helper.createAlgorithmParameters(algorithm);
+	}
 
-    protected void engineInit(
-        int             strength,
-        SecureRandom    random)
-    {
-        this.strength = strength;
-        this.random = random;
-    }
+	protected void engineInit(int strength, SecureRandom random) {
+		this.strength = strength;
+		this.random = random;
+	}
 }

@@ -23,9 +23,10 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.Encodable;
 
 /**
- * This is designed to parse the SignedPublicKeyAndChallenge created by the
- * KEYGEN tag included by Mozilla based browsers.
- *  <pre>
+ * This is designed to parse the SignedPublicKeyAndChallenge created by the KEYGEN tag included by
+ * Mozilla based browsers.
+ * 
+ * <pre>
  *  PublicKeyAndChallenge ::= SEQUENCE {
  *    spki SubjectPublicKeyInfo,
  *    challenge IA5STRING
@@ -36,142 +37,110 @@ import org.bouncycastle.util.Encodable;
  *    signatureAlgorithm AlgorithmIdentifier,
  *    signature BIT STRING
  *  }
- *  </pre>
+ * </pre>
  */
-public class SignedPublicKeyAndChallenge
-    implements Encodable
-{
-    protected final org.bouncycastle.asn1.mozilla.SignedPublicKeyAndChallenge          spkacSeq;
+public class SignedPublicKeyAndChallenge implements Encodable {
+	protected final org.bouncycastle.asn1.mozilla.SignedPublicKeyAndChallenge spkacSeq;
 
-    public SignedPublicKeyAndChallenge(byte[] bytes)
-    {
-        spkacSeq = org.bouncycastle.asn1.mozilla.SignedPublicKeyAndChallenge.getInstance(bytes);
-    }
+	public SignedPublicKeyAndChallenge(byte[] bytes) {
+		spkacSeq = org.bouncycastle.asn1.mozilla.SignedPublicKeyAndChallenge.getInstance(bytes);
+	}
 
-    protected SignedPublicKeyAndChallenge(org.bouncycastle.asn1.mozilla.SignedPublicKeyAndChallenge struct)
-    {
-        this.spkacSeq = struct;
-    }
+	protected SignedPublicKeyAndChallenge(org.bouncycastle.asn1.mozilla.SignedPublicKeyAndChallenge struct) {
+		this.spkacSeq = struct;
+	}
 
-    /**
-     * Return the underlying ASN.1 structure for this challenge.
-     *
-     * @return a SignedPublicKeyAndChallenge object.
-     */
-    public org.bouncycastle.asn1.mozilla.SignedPublicKeyAndChallenge toASN1Structure()
-    {
-         return spkacSeq;
-    }
+	/**
+	 * Return the underlying ASN.1 structure for this challenge.
+	 *
+	 * @return a SignedPublicKeyAndChallenge object.
+	 */
+	public org.bouncycastle.asn1.mozilla.SignedPublicKeyAndChallenge toASN1Structure() {
+		return spkacSeq;
+	}
 
-    /**
-     * @deprecated use toASN1Structure
-     */
-    public ASN1Primitive toASN1Primitive()
-    {
-        return spkacSeq.toASN1Primitive();
-    }
+	/**
+	 * @deprecated use toASN1Structure
+	 */
+	public ASN1Primitive toASN1Primitive() {
+		return spkacSeq.toASN1Primitive();
+	}
 
-    public PublicKeyAndChallenge getPublicKeyAndChallenge()
-    {
-        return spkacSeq.getPublicKeyAndChallenge();
-    }
+	public PublicKeyAndChallenge getPublicKeyAndChallenge() {
+		return spkacSeq.getPublicKeyAndChallenge();
+	}
 
-    public boolean isSignatureValid(ContentVerifierProvider verifierProvider)
-        throws OperatorCreationException, IOException
-    {
-        ContentVerifier verifier = verifierProvider.get(spkacSeq.getSignatureAlgorithm());
+	public boolean isSignatureValid(ContentVerifierProvider verifierProvider) throws OperatorCreationException, IOException {
+		ContentVerifier verifier = verifierProvider.get(spkacSeq.getSignatureAlgorithm());
 
-        OutputStream sOut = verifier.getOutputStream();
-        DEROutputStream dOut = new DEROutputStream(sOut);
+		OutputStream sOut = verifier.getOutputStream();
+		DEROutputStream dOut = new DEROutputStream(sOut);
 
-        dOut.writeObject(spkacSeq.getPublicKeyAndChallenge());
+		dOut.writeObject(spkacSeq.getPublicKeyAndChallenge());
 
-        sOut.close();
+		sOut.close();
 
-        return verifier.verify(spkacSeq.getSignature().getOctets());
-    }
+		return verifier.verify(spkacSeq.getSignature().getOctets());
+	}
 
-    /**
-     * @deprecated use ContentVerifierProvider method
-     */
-    public boolean verify()
-        throws NoSuchAlgorithmException, SignatureException, 
-               NoSuchProviderException, InvalidKeyException
-    {
-        return verify((String)null);
-    }
+	/**
+	 * @deprecated use ContentVerifierProvider method
+	 */
+	public boolean verify() throws NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
+		return verify((String) null);
+	}
 
-    /**
-     * @deprecated use ContentVerifierProvider method
-     */
-    public boolean verify(String provider)
-        throws NoSuchAlgorithmException, SignatureException, 
-               NoSuchProviderException, InvalidKeyException
-    {
-        Signature sig = null;
-        if (provider == null)
-        {
-            sig = Signature.getInstance(spkacSeq.getSignatureAlgorithm().getAlgorithm().getId());
-        }
-        else
-        {
-            sig = Signature.getInstance(spkacSeq.getSignatureAlgorithm().getAlgorithm().getId(), provider);
-        }
-        PublicKey pubKey = this.getPublicKey(provider);
-        sig.initVerify(pubKey);
-        try
-        {
-            sig.update(spkacSeq.getPublicKeyAndChallenge().getEncoded());
+	/**
+	 * @deprecated use ContentVerifierProvider method
+	 */
+	public boolean verify(String provider)
+			throws NoSuchAlgorithmException, SignatureException, NoSuchProviderException, InvalidKeyException {
+		Signature sig = null;
+		if (provider == null) {
+			sig = Signature.getInstance(spkacSeq.getSignatureAlgorithm().getAlgorithm().getId());
+		} else {
+			sig = Signature.getInstance(spkacSeq.getSignatureAlgorithm().getAlgorithm().getId(), provider);
+		}
+		PublicKey pubKey = this.getPublicKey(provider);
+		sig.initVerify(pubKey);
+		try {
+			sig.update(spkacSeq.getPublicKeyAndChallenge().getEncoded());
 
-            return sig.verify(spkacSeq.getSignature().getBytes());
-        }
-        catch (Exception e)
-        {
-            throw new InvalidKeyException("error encoding public key");
-        }
-    }
+			return sig.verify(spkacSeq.getSignature().getBytes());
+		} catch (Exception e) {
+			throw new InvalidKeyException("error encoding public key");
+		}
+	}
 
-    public SubjectPublicKeyInfo getSubjectPublicKeyInfo()
-    {
-        return spkacSeq.getPublicKeyAndChallenge().getSubjectPublicKeyInfo();
-    }
+	public SubjectPublicKeyInfo getSubjectPublicKeyInfo() {
+		return spkacSeq.getPublicKeyAndChallenge().getSubjectPublicKeyInfo();
+	}
 
-    public String getChallenge()
-    {
-        return spkacSeq.getPublicKeyAndChallenge().getChallenge().getString();
-    }
+	public String getChallenge() {
+		return spkacSeq.getPublicKeyAndChallenge().getChallenge().getString();
+	}
 
-    /**
-     * @deprecated use JcaSignedPublicKeyAndChallenge.getPublicKey()
-     */
-    public PublicKey getPublicKey(String provider)
-        throws NoSuchAlgorithmException, NoSuchProviderException, 
-               InvalidKeyException
-    {
-        SubjectPublicKeyInfo subjectPKInfo = spkacSeq.getPublicKeyAndChallenge().getSubjectPublicKeyInfo();
-        try
-        {
-            DERBitString bStr = new DERBitString(subjectPKInfo);
-            X509EncodedKeySpec xspec = new X509EncodedKeySpec(bStr.getOctets());
-            
+	/**
+	 * @deprecated use JcaSignedPublicKeyAndChallenge.getPublicKey()
+	 */
+	public PublicKey getPublicKey(String provider) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
+		SubjectPublicKeyInfo subjectPKInfo = spkacSeq.getPublicKeyAndChallenge().getSubjectPublicKeyInfo();
+		try {
+			DERBitString bStr = new DERBitString(subjectPKInfo);
+			X509EncodedKeySpec xspec = new X509EncodedKeySpec(bStr.getOctets());
 
-            AlgorithmIdentifier keyAlg = subjectPKInfo.getAlgorithm();
+			AlgorithmIdentifier keyAlg = subjectPKInfo.getAlgorithm();
 
-            KeyFactory factory =
-                KeyFactory.getInstance(keyAlg.getAlgorithm().getId(),provider);
+			KeyFactory factory = KeyFactory.getInstance(keyAlg.getAlgorithm().getId(), provider);
 
-            return factory.generatePublic(xspec);
-                           
-        }
-        catch (Exception e)
-        {
-            throw new InvalidKeyException("error encoding public key");
-        }
-    }
+			return factory.generatePublic(xspec);
 
-    public byte[] getEncoded()
-        throws IOException
-    {
-        return toASN1Structure().getEncoded();
-    }
+		} catch (Exception e) {
+			throw new InvalidKeyException("error encoding public key");
+		}
+	}
+
+	public byte[] getEncoded() throws IOException {
+		return toASN1Structure().getEncoded();
+	}
 }

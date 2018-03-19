@@ -6,21 +6,16 @@ import java.io.OutputStream;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DEROutputStream;
 
-class CMPUtil
-{
-    static void derEncodeToStream(ASN1Encodable obj, OutputStream stream)
-    {
-        DEROutputStream dOut = new DEROutputStream(stream);
+class CMPUtil {
+	static void derEncodeToStream(ASN1Encodable obj, OutputStream stream) {
+		DEROutputStream dOut = new DEROutputStream(stream);
 
-        try
-        {
-            dOut.writeObject(obj);
+		try {
+			dOut.writeObject(obj);
 
-            dOut.close();
-        }
-        catch (IOException e)
-        {
-            throw new CMPRuntimeException("unable to DER encode object: " + e.getMessage(), e);
-        }
-    }
+			dOut.close();
+		} catch (IOException e) {
+			throw new CMPRuntimeException("unable to DER encode object: " + e.getMessage(), e);
+		}
+	}
 }

@@ -37,22 +37,24 @@ import org.jrubyparser.SourcePosition;
  * AssignmentVisitor.multiAssign checks for this (this is never visited directly)
  */
 public class StarNode extends Node {
-    /**
-     * Constructor for StarNode.
-     * @param position the position
-     */
-    public StarNode(SourcePosition position) {
-        super(position);
-    }
+	/**
+	 * Constructor for StarNode.
+	 * 
+	 * @param position
+	 *            the position
+	 */
+	public StarNode(SourcePosition position) {
+		super(position);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.STARNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.STARNODE;
+	}
 
-    /**
-     * @see Node#accept(NodeVisitor)
-     */
-    public <T> T accept(NodeVisitor<T> visitor) {
-    	return null; // never visited, should be fine
-    }
+	/**
+	 * @see Node#accept(NodeVisitor)
+	 */
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return null; // never visited, should be fine
+	}
 }

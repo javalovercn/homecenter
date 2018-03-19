@@ -34,98 +34,101 @@ import org.jrubyparser.SourcePosition;
 /**
  * Represents a while statement. This could be the both versions:
  *
- * while &lt;condition&gt;
- *    &lt;body&gt;
- * end
+ * while &lt;condition&gt; &lt;body&gt; end
  *
  * and
  *
  * &lt;body&gt; 'while' &lt;condition&gt;
  */
 public class WhileNode extends Node {
-    private Node conditionNode;
-    private Node bodyNode;
-    private boolean evaluateAtStart;
+	private Node conditionNode;
+	private Node bodyNode;
+	private boolean evaluateAtStart;
 
-    public boolean containsNonlocalFlow = false;
+	public boolean containsNonlocalFlow = false;
 
-    public WhileNode(SourcePosition position, Node conditionNode, Node bodyNode) {
-        this(position, conditionNode, bodyNode, true);
-    }
+	public WhileNode(SourcePosition position, Node conditionNode, Node bodyNode) {
+		this(position, conditionNode, bodyNode, true);
+	}
 
-    public WhileNode(SourcePosition position, Node conditionNode, Node bodyNode,
-            boolean evalAtStart) {
-        super(position);
+	public WhileNode(SourcePosition position, Node conditionNode, Node bodyNode, boolean evalAtStart) {
+		super(position);
 
-        assert conditionNode != null : "conditionNode is not null";
-        //assert bodyNode != null : "bodyNode is not null";
+		assert conditionNode != null : "conditionNode is not null";
+		//assert bodyNode != null : "bodyNode is not null";
 
-        this.conditionNode = adopt(conditionNode);
-        this.bodyNode = adopt(bodyNode);
-        this.evaluateAtStart = evalAtStart;
-    }
+		this.conditionNode = adopt(conditionNode);
+		this.bodyNode = adopt(bodyNode);
+		this.evaluateAtStart = evalAtStart;
+	}
 
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-        WhileNode other = (WhileNode) node;
+		WhileNode other = (WhileNode) node;
 
-        return getBody().isSame(other.getBody()) && getCondition().isSame(other.getCondition()) &&
-                evaluateAtStart() == other.evaluateAtStart();
-    }
+		return getBody().isSame(other.getBody()) && getCondition().isSame(other.getCondition())
+				&& evaluateAtStart() == other.evaluateAtStart();
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.WHILENODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.WHILENODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitWhileNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitWhileNode(this);
+	}
 
-    /**
-     * Gets the bodyNode.
-     * @return Returns a Node
-     */
-    public Node getBody() {
-        return bodyNode;
-    }
+	/**
+	 * Gets the bodyNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getBody() {
+		return bodyNode;
+	}
 
-    @Deprecated
-    public Node getBodyNode() {
-        return getBody();
-    }
+	@Deprecated
+	public Node getBodyNode() {
+		return getBody();
+	}
 
-    public void setBody(Node body) {
-        this.bodyNode = adopt(body);
-    }
+	public void setBody(Node body) {
+		this.bodyNode = adopt(body);
+	}
 
-    /**
-     * Gets the conditionNode.
-     * @return Returns a Node
-     */
-    public Node getCondition() {
-        return conditionNode;
-    }
+	/**
+	 * Gets the conditionNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getCondition() {
+		return conditionNode;
+	}
 
-    @Deprecated
-    public Node getConditionNode() {
-        return getCondition();
-    }
+	@Deprecated
+	public Node getConditionNode() {
+		return getCondition();
+	}
 
-    public void setCondition(Node condition) {
-        this.conditionNode = adopt(condition);
-    }
+	public void setCondition(Node condition) {
+		this.conditionNode = adopt(condition);
+	}
 
-    /**
-     * Determine whether this is while or do while
-     * @return true if you are a while, false if do while
-     */
-    public boolean evaluateAtStart() {
-        return evaluateAtStart;
-    }
+	/**
+	 * Determine whether this is while or do while
+	 * 
+	 * @return true if you are a while, false if do while
+	 */
+	public boolean evaluateAtStart() {
+		return evaluateAtStart;
+	}
 }

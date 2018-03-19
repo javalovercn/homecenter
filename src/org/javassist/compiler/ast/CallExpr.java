@@ -24,24 +24,26 @@ import org.javassist.compiler.TokenId;
  * Method call expression.
  */
 public class CallExpr extends Expr {
-    private MemberResolver.Method method;  // cached result of lookupMethod()
+	private MemberResolver.Method method; // cached result of lookupMethod()
 
-    private CallExpr(ASTree _head, ASTList _tail) {
-        super(TokenId.CALL, _head, _tail);
-        method = null;
-    }
+	private CallExpr(ASTree _head, ASTList _tail) {
+		super(TokenId.CALL, _head, _tail);
+		method = null;
+	}
 
-    public void setMethod(MemberResolver.Method m) {
-        method = m;
-    }
+	public void setMethod(MemberResolver.Method m) {
+		method = m;
+	}
 
-    public MemberResolver.Method getMethod() {
-        return method;
-    }
+	public MemberResolver.Method getMethod() {
+		return method;
+	}
 
-    public static CallExpr makeCall(ASTree target, ASTree args) {
-        return new CallExpr(target, new ASTList(args));
-    }
+	public static CallExpr makeCall(ASTree target, ASTree args) {
+		return new CallExpr(target, new ASTList(args));
+	}
 
-    public void accept(Visitor v) throws CompileError { v.atCallExpr(this); }
+	public void accept(Visitor v) throws CompileError {
+		v.atCallExpr(this);
+	}
 }

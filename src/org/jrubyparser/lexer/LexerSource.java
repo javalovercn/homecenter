@@ -38,134 +38,155 @@ import org.jrubyparser.SourcePosition;
 import org.jrubyparser.parser.ParserConfiguration;
 
 /**
- * This class is what feeds the lexer.  It is primarily a wrapper around a
- * Reader that can unread() data back onto the source.  Originally, I thought
- * about using the PushBackReader to handle read/unread, but I realized that
- * some extremely pathological case could overflow the pushback buffer.  Better
- * safe than sorry.  I could have combined this implementation with a 
- * PushbackBuffer, but the added complexity did not seem worth it.
+ * This class is what feeds the lexer. It is primarily a wrapper around a Reader that can unread()
+ * data back onto the source. Originally, I thought about using the PushBackReader to handle
+ * read/unread, but I realized that some extremely pathological case could overflow the pushback
+ * buffer. Better safe than sorry. I could have combined this implementation with a PushbackBuffer,
+ * but the added complexity did not seem worth it.
  * 
  */
 public abstract class LexerSource {
 	// Last position we gave out
-    private SourcePosition lastPosition;
+	private SourcePosition lastPosition;
 
-    // The name of this source (e.g. a filename: foo.rb)
-    private final String sourceName;
-    
-    // Number of newlines read from the reader
-    protected int line = 0;
-    
-    // How many bytes into the source are we?
-    protected int offset = 0;
+	// The name of this source (e.g. a filename: foo.rb)
+	private final String sourceName;
 
-    /**
-     * Create our food-source for the lexer
-     * 
-     * @param sourceName is the file we are reading
-     * @param line starting line number for source (used by eval)
-     */
-    protected LexerSource(String sourceName, int line) {
-        this.sourceName = sourceName;
-        lastPosition = new SourcePosition("", line, line);
-        this.line = line;
-    }
+	// Number of newlines read from the reader
+	protected int line = 0;
 
-    /**
-     * What file are we lexing?
-     * @return the files name
-     */
-    public String getFilename() {
-    	return sourceName;
-    }
-    
-    /**
-     * What line are we at?
-     * @return the line number 0...line_size-1
-     */
-    public int getLine() {
-        return line;
-    }
-    
-    /**
-     * The location of the last byte we read from the source.
-     * 
-     * @return current location of source
-     */
-    public int getOffset() {
-        return (offset <= 0 ? 0 : offset);
-    }
+	// How many bytes into the source are we?
+	protected int offset = 0;
 
-    /**
-     * Where is the reader within the source {filename,row}
-     * 
-     * @param startPosition to calc position from
-     * @param inclusive include start position into new position
-     * @return the current position
-     */
-    public SourcePosition getPosition(SourcePosition startPosition, boolean inclusive) {
-        if (startPosition == null) {
-            lastPosition = new SourcePosition(getFilename(), lastPosition.getEndLine(),
-                    getLine(), lastPosition.getEndOffset(), getOffset());
-        } else if (inclusive) {
-            lastPosition = new SourcePosition(getFilename(), startPosition.getStartLine(),
-                    getLine(), startPosition.getStartOffset(), getOffset());
-        } else {
-            lastPosition = new SourcePosition(getFilename(), startPosition.getEndLine(),
-                    getLine(), startPosition.getEndOffset(), getOffset());
-        }
+	/**
+	 * Create our food-source for the lexer
+	 * 
+	 * @param sourceName
+	 *            is the file we are reading
+	 * @param line
+	 *            starting line number for source (used by eval)
+	 */
+	protected LexerSource(String sourceName, int line) {
+		this.sourceName = sourceName;
+		lastPosition = new SourcePosition("", line, line);
+		this.line = line;
+	}
 
-        return lastPosition;
-    }
-    
-    /**
-     * Where is the reader within the source {filename,row}
-     * 
-     * @return the current position
-     */
-    public SourcePosition getPosition() {
-        return new SourcePosition(getFilename(), lastPosition.getEndLine(),
-                    getLine(), lastPosition.getEndOffset(), getOffset());
-    }
-    
+	/**
+	 * What file are we lexing?
+	 * 
+	 * @return the files name
+	 */
+	public String getFilename() {
+		return sourceName;
+	}
 
-    /**
-     * Create a source.
-     * 
-     * @param name the name of the source (e.g a filename: foo.rb)
-     * @param content the data of the source
-     * @param configuration the configuration
-     * @return the new source
-     */
-    public static LexerSource getSource(String name, Reader content,
-            ParserConfiguration configuration) {
-        return new ReaderLexerSource(name, content, configuration.getLineNumber());
-    }
+	/**
+	 * What line are we at?
+	 * 
+	 * @return the line number 0...line_size-1
+	 */
+	public int getLine() {
+		return line;
+	}
 
-    /**
-     * Match marker against input consumering lexer source as it goes...Unless it does not match
-     * then it reverts lexer source back to point when this method was invoked.
-     * 
-     * @param marker to match against
-     * @param indent eat any leading whitespace
-     * @param withNewline includes a check that marker is followed by newline or EOF
-     * @return true if marker matches...false otherwise
-     * @throws IOException if an error occurred reading from underlying IO source
-     */
-    public abstract boolean matchMarker(String marker, boolean indent, boolean withNewline) throws IOException;
+	/**
+	 * The location of the last byte we read from the source.
+	 * 
+	 * @return current location of source
+	 */
+	public int getOffset() {
+		return (offset <= 0 ? 0 : offset);
+	}
 
-    public abstract int read() throws IOException;
-    public abstract String readUntil(char c) throws IOException;
-    public abstract String readLineBytes() throws IOException;
-    public abstract int skipUntil(int c) throws IOException;
-    public abstract void unread(int c);
-    public abstract void unreadMany(CharSequence line);
-    public abstract boolean peek(int c) throws IOException;
-    public abstract boolean lastWasBeginOfLine();
-    public abstract boolean wasBeginOfLine();
-    public abstract int chompReadAhead();
-    public abstract boolean isANewLine();
-    // Various places where we call LexerSource.unread(), the nextCharIsOnANewline value gets inaccurate (column/line too, but I don't care about those)
-    public abstract void setIsANewLine(boolean nextCharIsOnANewLine);
-    public abstract void setOffset(int offset);
+	/**
+	 * Where is the reader within the source {filename,row}
+	 * 
+	 * @param startPosition
+	 *            to calc position from
+	 * @param inclusive
+	 *            include start position into new position
+	 * @return the current position
+	 */
+	public SourcePosition getPosition(SourcePosition startPosition, boolean inclusive) {
+		if (startPosition == null) {
+			lastPosition = new SourcePosition(getFilename(), lastPosition.getEndLine(), getLine(), lastPosition.getEndOffset(),
+					getOffset());
+		} else if (inclusive) {
+			lastPosition = new SourcePosition(getFilename(), startPosition.getStartLine(), getLine(), startPosition.getStartOffset(),
+					getOffset());
+		} else {
+			lastPosition = new SourcePosition(getFilename(), startPosition.getEndLine(), getLine(), startPosition.getEndOffset(),
+					getOffset());
+		}
+
+		return lastPosition;
+	}
+
+	/**
+	 * Where is the reader within the source {filename,row}
+	 * 
+	 * @return the current position
+	 */
+	public SourcePosition getPosition() {
+		return new SourcePosition(getFilename(), lastPosition.getEndLine(), getLine(), lastPosition.getEndOffset(), getOffset());
+	}
+
+	/**
+	 * Create a source.
+	 * 
+	 * @param name
+	 *            the name of the source (e.g a filename: foo.rb)
+	 * @param content
+	 *            the data of the source
+	 * @param configuration
+	 *            the configuration
+	 * @return the new source
+	 */
+	public static LexerSource getSource(String name, Reader content, ParserConfiguration configuration) {
+		return new ReaderLexerSource(name, content, configuration.getLineNumber());
+	}
+
+	/**
+	 * Match marker against input consumering lexer source as it goes...Unless it does not match
+	 * then it reverts lexer source back to point when this method was invoked.
+	 * 
+	 * @param marker
+	 *            to match against
+	 * @param indent
+	 *            eat any leading whitespace
+	 * @param withNewline
+	 *            includes a check that marker is followed by newline or EOF
+	 * @return true if marker matches...false otherwise
+	 * @throws IOException
+	 *             if an error occurred reading from underlying IO source
+	 */
+	public abstract boolean matchMarker(String marker, boolean indent, boolean withNewline) throws IOException;
+
+	public abstract int read() throws IOException;
+
+	public abstract String readUntil(char c) throws IOException;
+
+	public abstract String readLineBytes() throws IOException;
+
+	public abstract int skipUntil(int c) throws IOException;
+
+	public abstract void unread(int c);
+
+	public abstract void unreadMany(CharSequence line);
+
+	public abstract boolean peek(int c) throws IOException;
+
+	public abstract boolean lastWasBeginOfLine();
+
+	public abstract boolean wasBeginOfLine();
+
+	public abstract int chompReadAhead();
+
+	public abstract boolean isANewLine();
+
+	// Various places where we call LexerSource.unread(), the nextCharIsOnANewline value gets inaccurate (column/line too, but I don't care about those)
+	public abstract void setIsANewLine(boolean nextCharIsOnANewLine);
+
+	public abstract void setOffset(int offset);
 }

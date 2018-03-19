@@ -1,5 +1,14 @@
 package hc.server;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.Vector;
+
 import hc.core.ContextManager;
 import hc.core.HCConnection;
 import hc.core.HCTimer;
@@ -19,18 +28,8 @@ import hc.util.HttpUtil;
 import hc.util.ResourceUtil;
 import hc.util.TokenManager;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.util.Vector;
-
 public class KeepaliveManager {
-	public final long KEEPALIVE_MS = Long
-			.parseLong(RootConfig.getInstance().getProperty(RootConfig.p_KeepAliveMS));
+	public final long KEEPALIVE_MS = Long.parseLong(RootConfig.getInstance().getProperty(RootConfig.p_KeepAliveMS));
 
 	/**
 	 * 每小时刷新alive变量到Root服务器
@@ -64,33 +63,29 @@ public class KeepaliveManager {
 
 	public final boolean buildRelay() {
 		// 完全Relay
-		Vector relays = (Vector) RootServerConnector.getNewRelayServers(IConstant.getUUID(),
-				TokenManager.getToken());
+		Vector relays = (Vector) RootServerConnector.getNewRelayServers(IConstant.getUUID(), TokenManager.getToken());
 		if (relays == null || relays.size() == 0) {
 			if (isReportRelayDisable == false) {
 				isReportRelayDisable = true;
-				final String msg = (String) ResourceUtil.get(1035);// Off-Line
-																	// mode, net
-																	// relay is
-																	// not
-																	// available!
-				TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), msg, IConstant.ERROR, null,
-						0);
+				final String msg = ResourceUtil.get(1035);// Off-Line
+															// mode, net
+															// relay is
+															// not
+															// available!
+				TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), msg, IConstant.ERROR, null, 0);
 				LogManager.errToLog(msg);
 			}
 
 			LogManager.errToLog("No HomeCenter root relay server.");
-			RootServerConnector.notifyLineOffType(null,
-					RootServerConnector.LOFF_NO_ROOT_RELAY_Err_STR);
+			RootServerConnector.notifyLineOffType(null, RootServerConnector.LOFF_NO_ROOT_RELAY_Err_STR);
 			return false;
 		} else {
 			if (isReportRelayDisable) {
-				final String msg = (String) ResourceUtil.get(1036);// network is
-																	// fine,
-																	// relay is
-																	// available!
-				TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), msg, IConstant.INFO, null,
-						0);
+				final String msg = ResourceUtil.get(1036);// network is
+															// fine,
+															// relay is
+															// available!
+				TrayMenuUtil.displayMessage(ResourceUtil.getInfoI18N(), msg, IConstant.INFO, null, 0);
 				LogManager.log(msg);
 			}
 			isReportRelayDisable = false;
@@ -144,13 +139,11 @@ public class KeepaliveManager {
 			final String port = ipAndPorts[1];
 
 			// 原为backPort
-			LogManager.log(
-					"try connect relay server " + HttpUtil.replaceIPWithHC(ip) + ", port:" + port);
+			LogManager.log("try connect relay server " + HttpUtil.replaceIPWithHC(ip) + ", port:" + port);
 
 			IPAndPort ipport = new IPAndPort(ip, Integer.parseInt(port));
 
-			ipport = SIPManager.proccReg(hcConnection, ipport,
-					MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST, SIPManager.REG_WAITING_MS,
+			ipport = SIPManager.proccReg(hcConnection, ipport, MsgBuilder.DATA_E_TAG_RELAY_REG_SUB_FIRST, SIPManager.REG_WAITING_MS,
 					(byte[]) coreSS.context.doExtBiz(IContext.BIZ_GET_TOKEN, null));
 			if (ipport != null) {
 				hcConnection.relayIpPort = ipport;
@@ -168,21 +161,17 @@ public class KeepaliveManager {
 				// 保持UDP不断，不需要回应的，由于内网连接时，本逻辑是disable状态。
 				if (hcConnection.isBuildedUPDChannel && hcConnection.isDoneUDPChannelCheck) {
 					// if(isSendUDPCheckAlive == false){//本行代码，仅供模拟手机端UDP断线效果
-					hcConnection.udpSender.sendUDP(MsgBuilder.E_TAG_ONLY_SUB_TAG_MSG,
-							MsgBuilder.DATA_SUB_TAG_MSG_UDP_CHECK_ALIVE, zeroUDPBS, 0, 0, 0, false);
+					hcConnection.udpSender.sendUDP(MsgBuilder.E_TAG_ONLY_SUB_TAG_MSG, MsgBuilder.DATA_SUB_TAG_MSG_UDP_CHECK_ALIVE,
+							zeroUDPBS, 0, 0, 0, false);
 					// isSendUDPCheckAlive = true;
 					// }
 				}
 				// 保持TCP不断，同时需要回应，并检测联线状态
-				coreSS.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT,
-						MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_SERVERING);
-				L.V = L.WShop ? false
-						: LogManager.log("[keepalive] try DATA_ROOT_LINE_WATCHER_ON_SERVERING");
+				coreSS.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_SERVERING);
+				L.V = L.WShop ? false : LogManager.log("[keepalive] try DATA_ROOT_LINE_WATCHER_ON_SERVERING");
 			} else {
-				coreSS.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT,
-						MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_RELAY);
-				L.V = L.WShop ? false
-						: LogManager.log("[keepalive] try DATA_ROOT_LINE_WATCHER_ON_RELAY");
+				coreSS.context.sendWithoutLockForKeepAliveOnly(null, MsgBuilder.E_TAG_ROOT, MsgBuilder.DATA_ROOT_LINE_WATCHER_ON_RELAY);
+				L.V = L.WShop ? false : LogManager.log("[keepalive] try DATA_ROOT_LINE_WATCHER_ON_RELAY");
 			}
 		} catch (final Exception e) {
 			coreSS.notifyLineOff(false, false);
@@ -193,12 +182,10 @@ public class KeepaliveManager {
 
 	private final byte[] zeroUDPBS = new byte[0];
 
-	public final HCTimer keepalive = new HCTimer("KeepAlive", KEEPALIVE_MS, false, true,
-			ThreadPriorityManager.KEEP_ALIVE_PRIORITY) {
+	public final HCTimer keepalive = new HCTimer("KeepAlive", KEEPALIVE_MS, false, true, ThreadPriorityManager.KEEP_ALIVE_PRIORITY) {
 		private final int ErrorNeedNatDelay = 30 * 1000;// 比如连接Socket出错，而非Http。两分钟
-		private final int lineWatcherMS = RootConfig.getInstance()
-				.getIntProperty(RootConfig.p_enableLineWatcher);// 60 * 1000 *
-																// 5;
+		private final int lineWatcherMS = RootConfig.getInstance().getIntProperty(RootConfig.p_enableLineWatcher);// 60 * 1000 *
+																													// 5;
 
 		private final boolean isOnRelay() {
 			if (SIPManager.isOnRelay(hcConnection) && hcConnection.sipContext.isClose() == false) {
@@ -211,16 +198,14 @@ public class KeepaliveManager {
 
 		@Override
 		public final void doBiz() {
-			final int mode = coreSS.context.cmStatus;
+			final int mode = coreSS.context.getStatus();
 			if (mode == ContextManager.STATUS_EXIT) {
 				return;
 			} else if (mode == ContextManager.STATUS_NEED_NAT) {
 				hcConnection.isSendLive = false;
 
 				final boolean isConn = isOnRelay();
-				L.V = L.WShop ? false
-						: LogManager.log("[keepalive] keepalive onRelay : " + isConn
-								+ ", at coreSS : " + coreSS.hashCode());
+				L.V = L.WShop ? false : LogManager.log("[keepalive] keepalive onRelay : " + isConn + ", at coreSS : " + coreSS.hashCode());
 
 				if (isConn == false) {
 					// if(getIntervalMS() == KEEPALIVE_MS){
@@ -248,18 +233,14 @@ public class KeepaliveManager {
 					// setIntervalMS(lineWatcherMS);
 					if (hcConnection.isSendLive) {
 						// 检查上次发送包是否正常收到，必须要加=，不能仅>，因为在单机极速环境下，出现相同情形
-						final long diffMS = Math
-								.abs(coreSS.context.rootTagListener.getServerReceiveMS()
-										- hcConnection.sendLineMS);
+						final long diffMS = Math.abs(coreSS.context.rootTagListener.getServerReceiveMS() - hcConnection.sendLineMS);
 						if (diffMS < lineWatcherMS) {
 							// 通
 							// LogManager.log("Received last line watcher
 							// package");
 						} else {
 							// 不通
-							LogManager.log(
-									"[keepalive] remote lineoff detected by keepalive, diffMS(abs) : "
-											+ diffMS);
+							LogManager.log("[keepalive] remote lineoff detected by keepalive, diffMS(abs) : " + diffMS);
 							coreSS.notifyLineOff(false, false);
 							return;
 						}
@@ -326,8 +307,7 @@ class TCPTestThread extends Thread {
 			final int bytesRcvd = in.read(zeroLenbs, 0, zeroLenbs.length);
 			if (bytesRcvd == zeroLenbs.length) {
 				synchronized (sorted) {
-					LogManager.log("success receive TCP test speed echo from IP : " + tcpTestIP
-							+ ", port : " + tcpTestPort);
+					LogManager.log("success receive TCP test speed echo from IP : " + tcpTestIP + ", port : " + tcpTestPort);
 					sorted.add(tcpInfo);
 				}
 			}
@@ -357,17 +337,14 @@ class UDPTestThread extends Thread {
 
 		try {
 			final InetAddress inetAddr = InetAddress.getByName(udpTestIP);
-			final InetSocketAddress isocket = new InetSocketAddress(inetAddr,
-					Integer.parseInt(udpTestPort));
+			final InetSocketAddress isocket = new InetSocketAddress(inetAddr, Integer.parseInt(udpTestPort));
 			final DatagramSocket udpSocket = new DatagramSocket();
 			udpSocket.connect(isocket);
 
-			final byte[] helloServer = { 'h', 'e', 'l', 'l', 'o', ',', 's', 'e', 'r', 'v', 'e',
-					'r' };
+			final byte[] helloServer = { 'h', 'e', 'l', 'l', 'o', ',', 's', 'e', 'r', 'v', 'e', 'r' };
 			final int size = helloServer.length + MsgBuilder.LEN_UDP_CONTROLLER_HEAD;
 			byte[] bf = new byte[size];
-			ByteUtil.integerToTwoBytes(MsgBuilder.E_UDP_CONTROLLER_TEST_SPEED, bf,
-					MsgBuilder.LEN_UDP_CONTROLLER_HEAD);
+			ByteUtil.integerToTwoBytes(MsgBuilder.E_UDP_CONTROLLER_TEST_SPEED, bf, MsgBuilder.LEN_UDP_CONTROLLER_HEAD);
 			for (int i = MsgBuilder.LEN_UDP_CONTROLLER_HEAD; i < bf.length; i++) {
 				bf[i] = helloServer[i - MsgBuilder.LEN_UDP_CONTROLLER_HEAD];
 			}

@@ -23,8 +23,7 @@ public class CapHelper {
 		try {
 			final Class[] paraTypes = { IMsgNotifier.class };
 			final Object[] para = { cn };
-			ClassUtil.invoke(getCapManagerClass(), getCapManagerClass(), "addListener", paraTypes,
-					para, true);
+			ClassUtil.invoke(getCapManagerClass(), getCapManagerClass(), "addListener", paraTypes, para, true);
 			// CapManager.addListener(capNotify);
 		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);

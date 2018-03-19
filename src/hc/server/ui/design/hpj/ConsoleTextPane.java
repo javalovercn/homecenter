@@ -15,8 +15,7 @@ public class ConsoleTextPane {
 	ScriptEditPanel sep;
 	private int lastOffset;
 
-	private static final SimpleAttributeSet ERR_LIGHTER = ResourceUtil.buildAttrSet(Color.RED,
-			false);
+	private static final SimpleAttributeSet ERR_LIGHTER = ResourceUtil.buildAttrSet(Color.RED, false);
 
 	final JTextPane textPane = new JTextPane();
 	private final Document textPaneDoc = textPane.getDocument();

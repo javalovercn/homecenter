@@ -36,63 +36,62 @@ import org.jrubyparser.StaticScope;
 import org.jrubyparser.util.ILocalVariableVisitor;
 
 /**
- * Represents the top of the AST.  This is a node not present in MRI.  It was created to
- * hold the top-most static scope in an easy to grab way and it also exists to hold BEGIN
- * and END nodes.  These can then be interpreted/compiled in the same places as the rest
- * of the code.
+ * Represents the top of the AST. This is a node not present in MRI. It was created to hold the
+ * top-most static scope in an easy to grab way and it also exists to hold BEGIN and END nodes.
+ * These can then be interpreted/compiled in the same places as the rest of the code.
  *
  */
 // TODO: Store BEGIN and END information into this node
 public class RootNode extends Node implements ILocalScope {
-    private StaticScope staticScope;
-    private Node bodyNode;
+	private StaticScope staticScope;
+	private Node bodyNode;
 
-    public RootNode(SourcePosition position, StaticScope scope, Node bodyNode) {
-        super(position);
+	public RootNode(SourcePosition position, StaticScope scope, Node bodyNode) {
+		super(position);
 
-        this.staticScope = scope;
-        this.bodyNode = adopt(bodyNode);
-    }
+		this.staticScope = scope;
+		this.bodyNode = adopt(bodyNode);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.ROOTNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.ROOTNODE;
+	}
 
-    /**
-     * The static scoping relationships that should get set first thing before interpretation
-     * of the code represented by this AST.  Actually, we use getScope first since that also
-     * can contain a live dynamic scope.  We rely on this method only for interpreting a root
-     * node from a serialized format.
-     *
-     * @return the top static scope for the AST
-     */
-    public StaticScope getStaticScope() {
-        return staticScope;
-    }
+	/**
+	 * The static scoping relationships that should get set first thing before interpretation of the
+	 * code represented by this AST. Actually, we use getScope first since that also can contain a
+	 * live dynamic scope. We rely on this method only for interpreting a root node from a
+	 * serialized format.
+	 *
+	 * @return the top static scope for the AST
+	 */
+	public StaticScope getStaticScope() {
+		return staticScope;
+	}
 
-    /**
-     * First real AST node to be interpreted
-     *
-     * @return real top AST node
-     */
-    public Node getBody() {
-        return bodyNode;
-    }
+	/**
+	 * First real AST node to be interpreted
+	 *
+	 * @return real top AST node
+	 */
+	public Node getBody() {
+		return bodyNode;
+	}
 
-    @Deprecated
-    public Node getBodyNode() {
-        return getBody();
-    }
+	@Deprecated
+	public Node getBodyNode() {
+		return getBody();
+	}
 
-    public void setBody(Node body) {
-        this.bodyNode = adopt(body);
-    }
+	public void setBody(Node body) {
+		this.bodyNode = adopt(body);
+	}
 
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitRootNode(this);
-    }
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitRootNode(this);
+	}
 
-    public List<ILocalVariable> getVariableReferencesNamed(String name) {
-        return ILocalVariableVisitor.findOccurrencesIn(this, name);
-    }
+	public List<ILocalVariable> getVariableReferencesNamed(String name) {
+		return ILocalVariableVisitor.findOccurrencesIn(this, name);
+	}
 }

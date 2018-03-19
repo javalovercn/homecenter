@@ -15,14 +15,12 @@ public class VerTextPanel extends JPanel {
 	VerTextField verTextField = new VerTextField();
 	final String nodeDesc;
 
-	public VerTextPanel(final String nodeDesc, final boolean withBorder,
-			final boolean withSpaceDesc, final boolean isLableStrong) {
+	public VerTextPanel(final String nodeDesc, final boolean withBorder, final boolean withSpaceDesc, final boolean isLableStrong) {
 		this.nodeDesc = nodeDesc;
 
-		final JLabel verLabel = new JLabel(
-				isLableStrong ? "<html><STRONG>Version</STRONG> : </html>" : "Version : ");
-		final JLabel tipLabel = new JLabel("<html>" + "1. version of the current " + nodeDesc
-				+ ".<BR>" + "2. valid char are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 and dot.</html>");
+		final JLabel verLabel = new JLabel(isLableStrong ? "<html><STRONG>Version</STRONG> : </html>" : "Version : ");
+		final JLabel tipLabel = new JLabel("<html>" + "1. version of the current " + nodeDesc + ".<BR>"
+				+ "2. valid char are 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 and dot.</html>");
 		verTextField.setColumns(20);
 
 		if (withSpaceDesc) {

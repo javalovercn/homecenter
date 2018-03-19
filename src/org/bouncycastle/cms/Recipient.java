@@ -1,5 +1,4 @@
 package org.bouncycastle.cms;
 
-public interface Recipient
-{
+public interface Recipient {
 }

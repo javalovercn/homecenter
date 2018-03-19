@@ -12,12 +12,12 @@ import hc.util.I18NStoreableHashMapWithModifyFlag;
 import hc.util.ResourceUtil;
 
 /**
- * An implementation of an item in a menu. A menu item is essentially a button
- * sitting in a list. <BR>
+ * An implementation of an item in a menu. A menu item is essentially a button sitting in a list.
  * <BR>
- * A menu presented on the mobile client is composed of menu items of project
- * level and session level, items of session level are visible only to owned
- * session and will automatically gone after logout or line-off. <BR>
+ * <BR>
+ * A menu presented on the mobile client is composed of menu items of project level and session
+ * level, items of session level are visible only to owned session and will automatically gone after
+ * logout or line-off. <BR>
  * <BR>
  * The menu items in [Items Tree] in designer are project level, invoking
  * {@link ProjectContext#getMenuItemBy(String, String)} to get it.
@@ -95,9 +95,8 @@ public class MenuItem {
 	 */
 	private static final String CFG_SCHEME = HCURL.CFG_PROTOCAL;// 注意：此cfg不是cmd://config
 
-	MenuItem(final String name, final int type, final String image, final String url,
-			final I18NStoreableHashMapWithModifyFlag i18nName, final String listener,
-			final String extendMap) {
+	MenuItem(final String name, final int type, final String image, final String url, final I18NStoreableHashMapWithModifyFlag i18nName,
+			final String listener, final String extendMap) {
 		this.itemName = name;
 		this.itemType = type;
 		this.itemImage = image;
@@ -111,8 +110,8 @@ public class MenuItem {
 	 * change the scripts for current menu item. <BR>
 	 * <BR>
 	 * <STRONG>Important :</STRONG><BR>
-	 * the scripts of menu item works in session level, no matter which is added
-	 * to set of project level or session level.
+	 * the scripts of menu item works in session level, no matter which is added to set of project
+	 * level or session level.
 	 * 
 	 * @param scripts
 	 * @see ProjectContext#insertMenuItemToProjectLevel(MenuItem, int)
@@ -139,36 +138,32 @@ public class MenuItem {
 	/**
 	 * creates a <code>MenuItem</code> with the specified parameters. <BR>
 	 * <BR>
-	 * to set internationalization texts, see
-	 * {@link #setText(String[], String[])}
+	 * to set internationalization texts, see {@link #setText(String[], String[])}
 	 * 
 	 * @param text
 	 *            the text of the item.
 	 * @param scheme
 	 *            one of {@link #CMD_SCHEME}, {@link #FORM_SCHEME}.
 	 * @param elementID
-	 *            for example, a menu item for Mlet is
-	 *            "<code>form://MyForm</code>", then the elementID is
-	 *            "<code>MyForm</code>".
+	 *            for example, a menu item for Mlet is "<code>form://MyForm</code>", then the
+	 *            elementID is "<code>MyForm</code>".
 	 * @param icon
 	 *            the best image size is 128 X 128 for current version.
 	 * @param scripts
 	 *            the response scripts for the menu item.
 	 * @since 7.20
 	 */
-	public MenuItem(final String text, final String scheme, final String elementID,
-			final BufferedImage icon, final String scripts) {
-		this(text, getTypeFromScheme(scheme), "", checkAndBuild(scheme, elementID),
-				new I18NStoreableHashMapWithModifyFlag(), scripts, "");
+	public MenuItem(final String text, final String scheme, final String elementID, final BufferedImage icon, final String scripts) {
+		this(text, getTypeFromScheme(scheme), "", checkAndBuild(scheme, elementID), new I18NStoreableHashMapWithModifyFlag(), scripts, "");
 		setIcon(icon);
 	}
 
 	/**
-	 * if the MenuItem is set to disable, then the <code>icon</code> will be
-	 * gray on mobile immediately. <BR>
+	 * if the MenuItem is set to disable, then the <code>icon</code> will be gray on mobile
+	 * immediately. <BR>
 	 * <BR>
-	 * if the MenuItem is added in project level, then the change will apply to
-	 * all mobile clients. <BR>
+	 * if the MenuItem is added in project level, then the change will apply to all mobile clients.
+	 * <BR>
 	 * <BR>
 	 * actions on a disabled MenuItem will be invalid.
 	 * 
@@ -213,8 +208,7 @@ public class MenuItem {
 	private static String checkAndBuild(final String scheme, final String elementID) {
 		if (CMD_SCHEME.equals(scheme) || FORM_SCHEME.equals(scheme)) {
 		} else {
-			throw new IllegalArgumentException(
-					"scheme must be one of [" + CMD_SCHEME + "], [" + FORM_SCHEME + "].");
+			throw new IllegalArgumentException("scheme must be one of [" + CMD_SCHEME + "], [" + FORM_SCHEME + "].");
 		}
 
 		return HCURL.buildStandardURL(scheme, elementID);
@@ -224,13 +218,12 @@ public class MenuItem {
 	 * 
 	 * if the MenuItem is displayed on mobile, then it will be refreshed. <BR>
 	 * <BR>
-	 * if the MenuItem is added in project level, then the change will apply to
-	 * all mobile clients. <BR>
+	 * if the MenuItem is added in project level, then the change will apply to all mobile clients.
+	 * <BR>
 	 * <BR>
 	 * <STRONG>Important</STRONG> : <BR>
-	 * if there is no match in map, which is put by
-	 * {@link #setText(String[], String[])}, {@link #setText(Map)} or designer,
-	 * then the <code>text</code> is used for menu item.
+	 * if there is no match in map, which is put by {@link #setText(String[], String[])},
+	 * {@link #setText(Map)} or designer, then the <code>text</code> is used for menu item.
 	 * 
 	 * @param text
 	 * @see #setText(String[], String[])
@@ -261,18 +254,18 @@ public class MenuItem {
 	/**
 	 * if the MenuItem is displayed on mobile, then it will be refreshed. <BR>
 	 * <BR>
-	 * if the MenuItem is added in project level, then the change will apply to
-	 * all mobile clients. <BR>
+	 * if the MenuItem is added in project level, then the change will apply to all mobile clients.
 	 * <BR>
-	 * for example, <code>locales</code> is {"en-US", "fr-FR"},
-	 * <code>texts</code> is {"Hello", "Bonjour"}.
+	 * <BR>
+	 * for example, <code>locales</code> is {"en-US", "fr-FR"}, <code>texts</code> is {"Hello",
+	 * "Bonjour"}.
 	 * 
 	 * @param locales
 	 *            the array for locale
 	 * @param texts
 	 *            the array for text
-	 * @return false means <code>locales</code> is null, <code>texts</code> is
-	 *         null or array lengths are not equal.
+	 * @return false means <code>locales</code> is null, <code>texts</code> is null or array lengths
+	 *         are not equal.
 	 * @see #setText(Map)
 	 * @see #setText(String)
 	 * @since 7.20
@@ -303,11 +296,10 @@ public class MenuItem {
 	/**
 	 * if the MenuItem is displayed on mobile, then it will be refreshed. <BR>
 	 * <BR>
-	 * if the MenuItem is added in project level, then the change will apply to
-	 * all mobile clients. <BR>
+	 * if the MenuItem is added in project level, then the change will apply to all mobile clients.
 	 * <BR>
-	 * for example, <code>map</code> is {"en-US" -&gt; "Hello", "fr-FR" -&gt;
-	 * "Bonjour"}.
+	 * <BR>
+	 * for example, <code>map</code> is {"en-US" -&gt; "Hello", "fr-FR" -&gt; "Bonjour"}.
 	 * 
 	 * @param map
 	 *            the map text for key locales.
@@ -332,14 +324,13 @@ public class MenuItem {
 	/**
 	 * set icon of MenuItem.<BR>
 	 * <BR>
-	 * if the MenuItem is displayed on mobile, then it will be refreshed
-	 * immediately. <BR>
+	 * if the MenuItem is displayed on mobile, then it will be refreshed immediately. <BR>
 	 * <BR>
-	 * if the MenuItem is added in project level, then the change will apply to
-	 * all mobile clients. <BR>
+	 * if the MenuItem is added in project level, then the change will apply to all mobile clients.
 	 * <BR>
-	 * if the MenuItem is set to disable, then the <code>icon</code> will be
-	 * gray on mobile immediately.
+	 * <BR>
+	 * if the MenuItem is set to disable, then the <code>icon</code> will be gray on mobile
+	 * immediately.
 	 * 
 	 * @param icon
 	 *            the best image size is 128 X 128 for current version.
@@ -359,8 +350,7 @@ public class MenuItem {
 		icon = ResourceUtil.standardMenuIconForAllPlatform(icon, UIUtil.ICON_MAX, false);
 
 		final HCByteArrayOutputStream byteArrayOutputStream = new HCByteArrayOutputStream();
-		byteArrayOutputStream.reset(
-				ByteUtil.byteArrayCacher.getFree(icon.getWidth() * 2 * icon.getHeight() * 2), 0);
+		byteArrayOutputStream.reset(ByteUtil.byteArrayCacher.getFree(icon.getWidth() * 2 * icon.getHeight() * 2), 0);
 		itemImage = ServerUIUtil.imageToBase64(icon, byteArrayOutputStream);
 		ByteUtil.byteArrayCacher.cycle(byteArrayOutputStream.buf);
 

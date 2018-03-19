@@ -9,11 +9,10 @@ import java.util.Vector;
 import javax.swing.JPanel;
 
 /**
- * <code>ScriptPanel</code> is JComponent to load JavaScript and execute
- * JavaScript on mobile client. <BR>
+ * <code>ScriptPanel</code> is JComponent to load JavaScript and execute JavaScript on mobile
+ * client. <BR>
  * <BR>
- * <code>ScriptPanel</code> can be used in <code>HTMLMlet</code> and
- * <code>Dialog</code>. <BR>
+ * <code>ScriptPanel</code> can be used in <code>HTMLMlet</code> and <code>Dialog</code>. <BR>
  * <BR>
  * <STRONG>Important</STRONG> : <BR>
  * permission of <code>ScriptPanel</code> is required for project.
@@ -24,8 +23,7 @@ public class ScriptPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * this action is recommended for HTML <code>div</code> or
-	 * <code>canvas</code>. <BR>
+	 * this action is recommended for HTML <code>div</code> or <code>canvas</code>. <BR>
 	 * <BR>
 	 * Note : it is NOT recommended for HTML <code>button</code>.
 	 * 
@@ -35,8 +33,7 @@ public class ScriptPanel extends JPanel {
 	public static final String MOUSE_DRAGGED = JSCore.MOUSE_DRAGGED;
 
 	/**
-	 * this action is recommended for HTML <code>div</code> or
-	 * <code>canvas</code>. <BR>
+	 * this action is recommended for HTML <code>div</code> or <code>canvas</code>. <BR>
 	 * <BR>
 	 * Note : it is NOT recommended for HTML <code>button</code>.
 	 * 
@@ -47,8 +44,7 @@ public class ScriptPanel extends JPanel {
 	public static final String MOUSE_CLICKED = JSCore.MOUSE_CLICKED;
 
 	/**
-	 * this action is recommended for HTML <code>div</code> or
-	 * <code>canvas</code>. <BR>
+	 * this action is recommended for HTML <code>div</code> or <code>canvas</code>. <BR>
 	 * <BR>
 	 * Note : it is NOT recommended for HTML <code>button</code>.
 	 * 
@@ -58,8 +54,7 @@ public class ScriptPanel extends JPanel {
 	public static final String MOUSE_ENTERED = JSCore.MOUSE_ENTERED;
 
 	/**
-	 * this action is recommended for HTML <code>div</code> or
-	 * <code>canvas</code>. <BR>
+	 * this action is recommended for HTML <code>div</code> or <code>canvas</code>. <BR>
 	 * <BR>
 	 * Note : it is NOT recommended for HTML <code>button</code>.
 	 * 
@@ -69,8 +64,7 @@ public class ScriptPanel extends JPanel {
 	public static final String MOUSE_EXITED = JSCore.MOUSE_EXITED;
 
 	/**
-	 * this action is recommended for HTML <code>div</code> or
-	 * <code>canvas</code>. <BR>
+	 * this action is recommended for HTML <code>div</code> or <code>canvas</code>. <BR>
 	 * <BR>
 	 * Note : it is NOT recommended for HTML <code>button</code>.
 	 * 
@@ -80,8 +74,7 @@ public class ScriptPanel extends JPanel {
 	public static final String MOUSE_PRESSED = JSCore.MOUSE_PRESSED;
 
 	/**
-	 * this action is recommended for HTML <code>div</code> or
-	 * <code>canvas</code>. <BR>
+	 * this action is recommended for HTML <code>div</code> or <code>canvas</code>. <BR>
 	 * <BR>
 	 * Note : it is NOT recommended for HTML <code>button</code>.
 	 * 
@@ -91,8 +84,8 @@ public class ScriptPanel extends JPanel {
 	public static final String MOUSE_RELEASED = JSCore.MOUSE_RELEASED;
 
 	/**
-	 * this action is recommended to notify text of HTML <code>textarea</code>
-	 * or <code>input</code> with type = 'text|password'.
+	 * this action is recommended to notify text of HTML <code>textarea</code> or <code>input</code>
+	 * with type = 'text|password'.
 	 * 
 	 * @see #onEvent(String, String, String[])
 	 * @since 7.36
@@ -100,8 +93,8 @@ public class ScriptPanel extends JPanel {
 	public static final String NOTIFY = JSCore.NOTIFY;
 
 	/**
-	 * this action is recommended for changing HTML <code>select</code> or
-	 * <code>input</code> with type = 'range'.
+	 * this action is recommended for changing HTML <code>select</code> or <code>input</code> with
+	 * type = 'range'.
 	 * 
 	 * @see #onEvent(String, String, String[])
 	 * @since 7.36
@@ -109,8 +102,8 @@ public class ScriptPanel extends JPanel {
 	public static final String CHANGE = JSCore.CHANGE;
 
 	/**
-	 * this action is recommended for clicking HTML <code>button</code> or
-	 * <code>input</code> with type = 'checkbox|radio'. <BR>
+	 * this action is recommended for clicking HTML <code>button</code> or <code>input</code> with
+	 * type = 'checkbox|radio'. <BR>
 	 * <BR>
 	 * Note : it is NOT recommended for <code>div</code> {@link #MOUSE_CLICKED}
 	 * 
@@ -146,8 +139,8 @@ public class ScriptPanel extends JPanel {
 			this.sizeHeightForXML = size;
 
 			if (innerHTMLToDeliver != null) {// 完成初始id的构造，所以要在scriptToDeliver之前
-				sizeHeightForXML.setInnerHTMLImplForScriptPanel(mlet, this,
-						innerHTMLToDeliver.jsOrStyles, innerHTMLToDeliver.isCacheEnabled);
+				sizeHeightForXML.setInnerHTMLImplForScriptPanel(mlet, this, innerHTMLToDeliver.jsOrStyles,
+						innerHTMLToDeliver.isCacheEnabled);
 				innerHTMLToDeliver = null;
 			}
 
@@ -155,8 +148,7 @@ public class ScriptPanel extends JPanel {
 				final int count = loadedScriptToDeliver.size();
 				for (int i = 0; i < count; i++) {
 					final CacheString cs = loadedScriptToDeliver.elementAt(i);
-					sizeHeightForXML.loadScriptImplForScriptPanel(mlet, cs.jsOrStyles,
-							cs.isCacheEnabled);
+					sizeHeightForXML.loadScriptImplForScriptPanel(mlet, cs.jsOrStyles, cs.isCacheEnabled);
 				}
 				loadedScriptToDeliver.clear();
 				loadedScriptToDeliver = null;
@@ -176,29 +168,25 @@ public class ScriptPanel extends JPanel {
 
 	/**
 	 * load script for current <code>ScriptPanel</code>. <BR>
-	 * it is full script, HTML
-	 * (<code>&lt;script type="text/javascript"&gt;</code>) can NOT be included.
-	 * <BR>
+	 * it is full script, HTML (<code>&lt;script type="text/javascript"&gt;</code>) can NOT be
+	 * included. <BR>
 	 * <BR>
 	 * <STRONG>Warning</STRONG> : <BR>
 	 * 1. <code>window.onload</code> will NOT be triggered, please invoke it by
 	 * {@link #executeScript(String)}<BR>
-	 * 2. all id of elements of HTML created by server is begin with
-	 * '<STRONG>HC</STRONG>'. <BR>
+	 * 2. all id of elements of HTML created by server is begin with '<STRONG>HC</STRONG>'. <BR>
 	 * <BR>
 	 * <STRONG>Important</STRONG> : <BR>
 	 * permission of <code>ScriptPanel</code> is required for project. <BR>
 	 * <BR>
 	 * About cache :<BR>
 	 * don't worry about script too large for re-translating to mobile, <BR>
-	 * the cache subsystem of HomeCenter will intelligence analysis to determine
-	 * whether transmission or loading cache from mobile (if script is too
-	 * small, it will not be cached). What you should do is put more into one
-	 * script, because if there is too much pieces of cache in a project, the
-	 * system will automatically clear the cache and restart caching. <BR>
+	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether
+	 * transmission or loading cache from mobile (if script is too small, it will not be cached).
+	 * What you should do is put more into one script, because if there is too much pieces of cache
+	 * in a project, the system will automatically clear the cache and restart caching. <BR>
 	 * <BR>
-	 * to disable cache for current script, see
-	 * {@link #loadScript(String, boolean)}.
+	 * to disable cache for current script, see {@link #loadScript(String, boolean)}.
 	 * 
 	 * @param script
 	 * @since 7.36
@@ -209,15 +197,13 @@ public class ScriptPanel extends JPanel {
 
 	/**
 	 * load script for current <code>ScriptPanel</code>. <BR>
-	 * it is full script, HTML
-	 * (<code>&lt;script type="text/javascript"&gt;</code>) can NOT be included.
-	 * <BR>
+	 * it is full script, HTML (<code>&lt;script type="text/javascript"&gt;</code>) can NOT be
+	 * included. <BR>
 	 * <BR>
 	 * <STRONG>Warning</STRONG> : <BR>
 	 * 1. <code>window.onload</code> will NOT be triggered, please invoke it by
 	 * {@link #executeScript(String)}<BR>
-	 * 2. all id of elements of HTML created by server is begin with
-	 * '<STRONG>HC</STRONG>'.
+	 * 2. all id of elements of HTML created by server is begin with '<STRONG>HC</STRONG>'.
 	 * 
 	 * @param script
 	 * @param enableCache
@@ -248,27 +234,24 @@ public class ScriptPanel extends JPanel {
 	 * 1. this <code>ScriptPanel</code> will be translated to
 	 * <code>&lt;div id='HC_*'&gt;&lt;/div&gt;</code>,<BR>
 	 * 2. when invoke
-	 * <code>setInnerHTML("&lt;div id='myScriptDiv'&gt;some canvas html&lt;/div&gt;")</code>,
-	 * <BR>
+	 * <code>setInnerHTML("&lt;div id='myScriptDiv'&gt;some canvas html&lt;/div&gt;")</code>, <BR>
 	 * 3. the result is :
 	 * <code>&lt;div id='HC_*'&gt;&lt;div id='myScriptDiv'&gt;some canvas html&lt;/div&gt;&lt;/div&gt;</code>.
 	 * <BR>
 	 * <BR>
-	 * <STRONG>Warning</STRONG> : all id of elements of HTML created by server
-	 * is begin with '<STRONG>HC</STRONG>'. <BR>
+	 * <STRONG>Warning</STRONG> : all id of elements of HTML created by server is begin with
+	 * '<STRONG>HC</STRONG>'. <BR>
 	 * <BR>
-	 * Note : there is maybe more ScriptPanels in a <code>Dialog</code> or
-	 * <code>HTMLMlet</code>, make sure that IDs are unique among them. <BR>
+	 * Note : there is maybe more ScriptPanels in a <code>Dialog</code> or <code>HTMLMlet</code>,
+	 * make sure that IDs are unique among them. <BR>
 	 * <BR>
 	 * About cache :<BR>
 	 * don't worry about inner HTML too large for re-translating to mobile, <BR>
-	 * the cache subsystem of HomeCenter will intelligence analysis to determine
-	 * whether transmission or loading cache from mobile (if inner HTML is too
-	 * small, it will not be cached). If there is too much caches, system will
-	 * clear all caches and restart caching. <BR>
+	 * the cache subsystem of HomeCenter will intelligence analysis to determine whether
+	 * transmission or loading cache from mobile (if inner HTML is too small, it will not be
+	 * cached). If there is too much caches, system will clear all caches and restart caching. <BR>
 	 * <BR>
-	 * to disable cache for inner HTML, see
-	 * {@link #setInnerHTML(String, boolean)}.
+	 * to disable cache for inner HTML, see {@link #setInnerHTML(String, boolean)}.
 	 * 
 	 * @param html
 	 *            the inner HTML, for example :
@@ -298,9 +281,7 @@ public class ScriptPanel extends JPanel {
 				sizeHeightForXML.setInnerHTMLForScriptPanel(mlet, this, html, enableCache);
 			} else {
 				if (innerHTMLToDeliver != null) {
-					LogManager.errToLog(
-							"the older innerHTML will be thrown away for the newest innerHTML!\n"
-									+ html);
+					LogManager.errToLog("the older innerHTML will be thrown away for the newest innerHTML!\n" + html);
 				}
 				innerHTMLToDeliver = new CacheString(html, enableCache);
 			}
@@ -310,14 +291,14 @@ public class ScriptPanel extends JPanel {
 	/**
 	 * execute script on current <code>ScriptPanel</code>. <BR>
 	 * <BR>
-	 * in general, please initialize this panel by {@link #setInnerHTML(String)}
-	 * and {@link #loadScript(String)} first. <BR>
+	 * in general, please initialize this panel by {@link #setInnerHTML(String)} and
+	 * {@link #loadScript(String)} first. <BR>
 	 * <BR>
 	 * to receive event of input in panel, please overrides
 	 * {@link #onEvent(String, String, String[])}. <BR>
 	 * <BR>
-	 * <STRONG>Warning</STRONG> : all id of elements of HTML created by server
-	 * is begin with '<STRONG>HC</STRONG>'. <BR>
+	 * <STRONG>Warning</STRONG> : all id of elements of HTML created by server is begin with
+	 * '<STRONG>HC</STRONG>'. <BR>
 	 * <BR>
 	 * <STRONG>Important</STRONG> : <BR>
 	 * permission of <code>ScriptPanel</code> is required for project.
@@ -349,8 +330,8 @@ public class ScriptPanel extends JPanel {
 				context = ProjectContext.getProjectContext();
 			}
 
-			AIPersistentManager.processDiffNotify(false, null, this, context,
-					AIPersistentManager.EXEC_SCRIPT, AIPersistentManager.EMPTY_DIFF_TEXT);
+			AIPersistentManager.processDiffNotify(false, null, this, context, AIPersistentManager.EXEC_SCRIPT,
+					AIPersistentManager.EMPTY_DIFF_TEXT);
 		}
 	}
 
@@ -360,19 +341,17 @@ public class ScriptPanel extends JPanel {
 	 * <code>&lt;button id='mybutton' onclick="javascript:window.hcserver.click('mybutton');" /&gt;</code>
 	 * <BR>
 	 * <BR>
-	 * when user click the button, the event will be dispatched to this method,
+	 * when user click the button, the event will be dispatched to this method, <BR>
+	 * the parameter of <code>id</code> is 'mybutton' and parameter of <code>action</code> is
+	 * {@link #CLICK}. <BR>
 	 * <BR>
-	 * the parameter of <code>id</code> is 'mybutton' and parameter of
-	 * <code>action</code> is {@link #CLICK}. <BR>
-	 * <BR>
-	 * <STRONG>Warning</STRONG> : all id of elements of HTML created by server
-	 * is begin with '<STRONG>HC</STRONG>'. <BR>
+	 * <STRONG>Warning</STRONG> : all id of elements of HTML created by server is begin with
+	 * '<STRONG>HC</STRONG>'. <BR>
 	 * <BR>
 	 * Note :<BR>
-	 * if there is more than one ScriptPanels in a <code>Dialog</code> or
-	 * <code>HTMLMlet</code>, the events of other ScriptPanel may be dispatched
-	 * to this method, you should return <code>false</code> to tell server that
-	 * the event is NOT for current ScriptPanel. <BR>
+	 * if there is more than one ScriptPanels in a <code>Dialog</code> or <code>HTMLMlet</code>, the
+	 * events of other ScriptPanel may be dispatched to this method, you should return
+	 * <code>false</code> to tell server that the event is NOT for current ScriptPanel. <BR>
 	 * <BR>
 	 * <CENTER><STRONG>Table of Actions</STRONG> (NOT all)</CENTER><BR>
 	 * <table border='1'>
@@ -407,8 +386,7 @@ public class ScriptPanel extends JPanel {
 	 * <tr>
 	 * <td>select</td>
 	 * <td>onchange</td>
-	 * <td>window.hcserver.change(id,
-	 * document.getElementById(id).selectedIndex);</td>
+	 * <td>window.hcserver.change(id, document.getElementById(id).selectedIndex);</td>
 	 * <td>{@link #CHANGE}</td>
 	 * </tr>
 	 * 
@@ -471,8 +449,8 @@ public class ScriptPanel extends JPanel {
 	 * <tr>
 	 * <td>div | canvas</td>
 	 * <td>touchmove</td>
-	 * <td>window.hcserver.mouseDragged(id, e.touches[0].clientX - leftDiv,
-	 * e.touches[0].clientY - topDiv);</td>
+	 * <td>window.hcserver.mouseDragged(id, e.touches[0].clientX - leftDiv, e.touches[0].clientY -
+	 * topDiv);</td>
 	 * <td>{@link #MOUSE_DRAGGED}</td>
 	 * </tr>
 	 * 
@@ -481,13 +459,12 @@ public class ScriptPanel extends JPanel {
 	 * @param id
 	 * @param action
 	 *            one of following (not all) : <BR>
-	 *            {@link #CLICK}, {@link #CHANGE}, {@link #NOTIFY},
-	 *            {@link #MOUSE_CLICKED}, {@link #MOUSE_DRAGGED},
-	 *            {@link #MOUSE_ENTERED}, {@link #MOUSE_EXITED},
+	 *            {@link #CLICK}, {@link #CHANGE}, {@link #NOTIFY}, {@link #MOUSE_CLICKED},
+	 *            {@link #MOUSE_DRAGGED}, {@link #MOUSE_ENTERED}, {@link #MOUSE_EXITED},
 	 *            {@link #MOUSE_PRESSED}, {@link #MOUSE_RELEASED}.
 	 * @param values
-	 * @return true means the event is consumed; false means the event will be
-	 *         dispatched to other <code>ScriptPanel</code>.
+	 * @return true means the event is consumed; false means the event will be dispatched to other
+	 *         <code>ScriptPanel</code>.
 	 * @since 7.36
 	 */
 	public boolean onEvent(final String id, final String action, final String[] values) {// 注意：此方法禁止final

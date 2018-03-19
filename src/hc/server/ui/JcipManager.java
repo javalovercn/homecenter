@@ -37,27 +37,24 @@ public class JcipManager {
 		LogManager.errToLog("fail to search CtrlResponse : " + screenID);
 	}
 
-	private static void onClick(final J2SESession coreSS, final Jcip jcip,
-			final ServCtrlCanvas ctrlCanvas) {
+	private static void onClick(final J2SESession coreSS, final Jcip jcip, final ServCtrlCanvas ctrlCanvas) {
 		final CtrlResponse cr = ctrlCanvas.cr;
 		final String keyValue = jcip.getString();
 
 		final ProjectContext context = ServerUIAPIAgent.getProjectContextFromCtrl(cr);
-		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS,
-				ServerUIAPIAgent.getProjResponserMaybeNull(context), new ReturnableRunnable() {
+		ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(context),
+				new ReturnableRunnable() {
 					@Override
 					public Object run() throws Throwable {
 						final int key = Integer.parseInt(keyValue);
 						cr.click(key);
 
-						if (AIPersistentManager.isEnableAnalyseFlow
-								&& AIPersistentManager.isEnableHCAI()) {
+						if (AIPersistentManager.isEnableAnalyseFlow && AIPersistentManager.isEnableHCAI()) {
 							final FormData data = AIObjectCache.getFormData();
 							data.uiType = FormData.UI_TYPE_CTRLRESP;
 							data.uiObject = cr;
 							data.ctrlClickKey = key;
-							data.snap(context.getProjectID(), context.getClientLocale(),
-									AnalysableData.DIRECT_IN);
+							data.snap(context.getProjectID(), context.getClientLocale(), AnalysableData.DIRECT_IN);
 							AIPersistentManager.processFormData(data);
 						}
 						return null;
@@ -65,8 +62,7 @@ public class JcipManager {
 				});
 	}
 
-	public static void appendArray(final StringBuilder sb, final String[] strs,
-			final boolean withDouhao) {
+	public static void appendArray(final StringBuilder sb, final String[] strs, final boolean withDouhao) {
 		sb.append('[');
 		for (int i = 0; i < strs.length; i++) {
 			if (i != 0) {

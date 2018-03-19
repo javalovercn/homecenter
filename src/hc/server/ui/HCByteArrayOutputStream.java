@@ -41,8 +41,7 @@ public class HCByteArrayOutputStream extends OutputStream {
 
 	@Override
 	public synchronized void write(final byte b[], final int off, final int len) {
-		if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length)
-				|| ((off + len) < 0)) {
+		if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) > b.length) || ((off + len) < 0)) {
 			throw new IndexOutOfBoundsException();
 		} else if (len == 0) {
 			return;
@@ -67,9 +66,8 @@ public class HCByteArrayOutputStream extends OutputStream {
 	}
 
 	/**
-	 * Creates a newly allocated byte array. Its size is the current size of
-	 * this output stream and the valid contents of the buffer have been copied
-	 * into it.
+	 * Creates a newly allocated byte array. Its size is the current size of this output stream and
+	 * the valid contents of the buffer have been copied into it.
 	 * 
 	 * @return the current contents of this output stream, as a byte array.
 	 * @see java.io.ByteArrayOutputStream#size()
@@ -87,8 +85,7 @@ public class HCByteArrayOutputStream extends OutputStream {
 		return new String(buf, offset, size());
 	}
 
-	public synchronized String toString(final String charsetName)
-			throws UnsupportedEncodingException {
+	public synchronized String toString(final String charsetName) throws UnsupportedEncodingException {
 		return new String(buf, offset, size(), charsetName);
 	}
 

@@ -9,9 +9,8 @@ public final class HCImageInputStream extends HCFileInputStream {
 	private final double longitude;
 	private final double altitude;
 
-	HCImageInputStream(final InputStream is, final float azimuth, final float pitch,
-			final float roll, final String format, final double latitude, final double longitude,
-			final double altitude) {
+	HCImageInputStream(final InputStream is, final float azimuth, final float pitch, final float roll, final String format,
+			final double latitude, final double longitude, final double altitude) {
 		super(is, format, nullFileName);
 		this.azimuth = azimuth;
 		this.pitch = pitch;

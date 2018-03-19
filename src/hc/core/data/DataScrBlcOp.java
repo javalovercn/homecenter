@@ -19,7 +19,8 @@ public class DataScrBlcOp extends HCData {
 		return ByteUtil.twoBytesToInteger(bs, x_index);
 	}
 
-	public void setBlockPara(final int x, final int y, final int width, final int height, final int dx, final int dy) {
+	public void setBlockPara(final int x, final int y, final int width,
+			final int height, final int dx, final int dy) {
 		ByteUtil.integerToTwoBytes(x, bs, x_index);
 		ByteUtil.integerToTwoBytes(y, bs, y_index);
 		ByteUtil.integerToTwoBytes(width, bs, w_index);
@@ -39,7 +40,7 @@ public class DataScrBlcOp extends HCData {
 	public int getHeight() {
 		return ByteUtil.twoBytesToInteger(bs, h_index);
 	}
-	
+
 	public int getDX() {
 		return ByteUtil.twoBytesToInteger(bs, dx_index);
 	}
@@ -47,6 +48,5 @@ public class DataScrBlcOp extends HCData {
 	public int getDY() {
 		return ByteUtil.twoBytesToInteger(bs, dy_index);
 	}
-
 
 }

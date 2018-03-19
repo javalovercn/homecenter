@@ -10,14 +10,11 @@ public class KeySM extends TableSM {
 	public KeySM(final AIPersistentManager mgr, final RLabelKeySM rLabelKeySM) throws SQLException {
 		super("KEY_LIST", mgr);
 
-		query = mgr.getConnection()
-				.prepareStatement("SELECT id FROM " + tableName + " WHERE keyValue = ?;");
-		insert = mgr.getConnection()
-				.prepareStatement("INSERT INTO " + tableName + " (id, keyValue) VALUES (?, ?);");
+		query = mgr.getConnection().prepareStatement("SELECT id FROM " + tableName + " WHERE keyValue = ?;");
+		insert = mgr.getConnection().prepareStatement("INSERT INTO " + tableName + " (id, keyValue) VALUES (?, ?);");
 		queryLableID = mgr.getConnection()
-				.prepareStatement("SELECT labelID " + "FROM " + rLabelKeySM.tableName
-						+ " LEFT JOIN " + tableName + " ON " + rLabelKeySM.tableName + ".keyID = "
-						+ tableName + ".id " + "WHERE " + tableName + ".keyValue = ?" + "GROUP BY "
+				.prepareStatement("SELECT labelID " + "FROM " + rLabelKeySM.tableName + " LEFT JOIN " + tableName + " ON "
+						+ rLabelKeySM.tableName + ".keyID = " + tableName + ".id " + "WHERE " + tableName + ".keyValue = ?" + "GROUP BY "
 						+ rLabelKeySM.tableName + ".labelID;");
 	}
 

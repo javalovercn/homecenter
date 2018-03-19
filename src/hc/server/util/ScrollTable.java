@@ -71,9 +71,7 @@ public class ScrollTable extends JTable {
 				int colWidth = 0;
 				for (int row = 0; row < getRowCount(); row++) {
 					final int prefWidth = getCellRenderer(row, col)
-							.getTableCellRendererComponent(this, getValueAt(row, col), false, false,
-									row, col)
-							.getPreferredSize().width;
+							.getTableCellRendererComponent(this, getValueAt(row, col), false, false, row, col).getPreferredSize().width;
 					colWidth = Math.max(colWidth, prefWidth + getIntercellSpacing().width);
 				}
 

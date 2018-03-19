@@ -27,9 +27,9 @@
  ***** END LICENSE BLOCK *****/
 package org.jrubyparser.ast;
 
-/** 
+/**
  * A marker for literal nodes.
  */
 public interface ILiteralNode {
-    // only a marker interface
+	// only a marker interface
 }

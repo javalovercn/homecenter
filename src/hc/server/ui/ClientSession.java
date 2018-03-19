@@ -39,11 +39,10 @@ import hc.util.ThreadConfig;
 
 /**
  * a {@link ClientSession} instance will be created before
- * {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}, and will be released by server
- * after {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}. <BR>
+ * {@link ProjectContext#EVENT_SYS_MOBILE_LOGIN}, and will be released by server after
+ * {@link ProjectContext#EVENT_SYS_MOBILE_LOGOUT}. <BR>
  * <BR>
- * invoking {@link ProjectContext#getClientSession()} to get this instance for
- * current session. <BR>
+ * invoking {@link ProjectContext#getClientSession()} to get this instance for current session. <BR>
  * <BR>
  * it is thread safe for attribute set/get.
  * 
@@ -84,8 +83,7 @@ public final class ClientSession {
 				return;
 			}
 
-			final MemberIDInputDialog inputMemberIDDialog = new MemberIDInputDialog(
-					memberIDSetStatus, threadWait);
+			final MemberIDInputDialog inputMemberIDDialog = new MemberIDInputDialog(memberIDSetStatus, threadWait);
 			ctx.sendDialogWhenInSession(inputMemberIDDialog);
 
 			synchronized (threadWait) {
@@ -104,14 +102,11 @@ public final class ClientSession {
 	/**
 	 * returns the last known latitude.<BR>
 	 * <BR>
-	 * project permission [<STRONG>location of mobile</STRONG>] is required.
+	 * project permission [<STRONG>location of mobile</STRONG>] is required. <BR>
 	 * <BR>
+	 * if no permission (project or mobile) or no GPS signal, then return -1.0; <BR>
 	 * <BR>
-	 * if no permission (project or mobile) or no GPS signal, then return -1.0;
-	 * <BR>
-	 * <BR>
-	 * to set location updates frequency, see
-	 * {@link ProjectContext#setLocationUpdates(long)}.
+	 * to set location updates frequency, see {@link ProjectContext#setLocationUpdates(long)}.
 	 * 
 	 * @return
 	 * @see #getLocationLongitude()
@@ -149,15 +144,12 @@ public final class ClientSession {
 	 * for image format, see {@link HCImageInputStream#getImageFormat()}. <BR>
 	 * <BR>
 	 * <STRONG>Know more</STRONG> : <BR>
-	 * 1. it will block current thread for result, but not block server
-	 * receiving result.<BR>
-	 * 2. mobile client will not display alert/question/dialog when taking
-	 * photograph.
+	 * 1. it will block current thread for result, but not block server receiving result.<BR>
+	 * 2. mobile client will not display alert/question/dialog when taking photograph.
 	 * 
-	 * @return null means canceled by user or exception, it returns full stream
-	 *         or null, never part. <BR>
-	 * 		To get image format, invoke
-	 *         {@link HCImageInputStream#getImageFormat()}.
+	 * @return null means canceled by user or exception, it returns full stream or null, never part.
+	 *         <BR>
+	 *         To get image format, invoke {@link HCImageInputStream#getImageFormat()}.
 	 * @see #takePhotographWithLocationFromClient()
 	 * @since 7.72
 	 */
@@ -169,21 +161,17 @@ public final class ClientSession {
 	 * take a photograph with GPS location from mobile client. <BR>
 	 * <BR>
 	 * to get location, see {@link HCImageInputStream#getImageLongitude()}. <BR>
-	 * project permission [location of mobile] is <STRONG>NOT</STRONG> required.
-	 * <BR>
+	 * project permission [location of mobile] is <STRONG>NOT</STRONG> required. <BR>
 	 * <BR>
 	 * for image format, see {@link HCImageInputStream#getImageFormat()}. <BR>
 	 * <BR>
 	 * <STRONG>Know more</STRONG> : <BR>
-	 * 1. it will block current thread for result, but not block server
-	 * receiving result.<BR>
-	 * 2. mobile client will not display alert/question/dialog when taking
-	 * photograph.
+	 * 1. it will block current thread for result, but not block server receiving result.<BR>
+	 * 2. mobile client will not display alert/question/dialog when taking photograph.
 	 * 
-	 * @return null means canceled by user or exception, it returns full stream
-	 *         or null, never part. <BR>
-	 * 		To get image format, invoke
-	 *         {@link HCImageInputStream#getImageFormat()}.
+	 * @return null means canceled by user or exception, it returns full stream or null, never part.
+	 *         <BR>
+	 *         To get image format, invoke {@link HCImageInputStream#getImageFormat()}.
 	 * @see #takePhotographFromClient()
 	 * @since 7.72
 	 */
@@ -212,8 +200,7 @@ public final class ClientSession {
 
 						final byte[] bs = sb.toString().getBytes();
 						StringBuilderCacher.cycle(sb);
-						return streamBuilder.buildInputStream(StreamBuilder.S_CLASS_TRANS_IMAGE, bs,
-								0, bs.length, true);
+						return streamBuilder.buildInputStream(StreamBuilder.S_CLASS_TRANS_IMAGE, bs, 0, bs.length, true);
 					}
 				});
 
@@ -234,16 +221,14 @@ public final class ClientSession {
 				double imageAltitude = -1.0;
 
 				{
-					final String[] keys = StringUtil.splitToArray(block,
-							StreamBlockBuilder.HEADER_SPLITTER);
+					final String[] keys = StringUtil.splitToArray(block, StreamBlockBuilder.HEADER_SPLITTER);
 					if (StreamBlockBuilder.HEADER_IMAGE_FORMAT.equals(keys[0])) {
 						imageFormat = keys[1];
 					}
 				}
 				{
 					block = StreamBlockBuilder.readHeaderBlock(baseIS, lengthBS);
-					final String[] keys = StringUtil.splitToArray(block,
-							StreamBlockBuilder.HEADER_SPLITTER);
+					final String[] keys = StringUtil.splitToArray(block, StreamBlockBuilder.HEADER_SPLITTER);
 					if (StreamBlockBuilder.HEADER_IMAGE_AZIMUTH.equals(keys[0])) {
 						try {
 							imageAzimuth = Float.parseFloat(keys[1]);
@@ -254,8 +239,7 @@ public final class ClientSession {
 				}
 				{
 					block = StreamBlockBuilder.readHeaderBlock(baseIS, lengthBS);
-					final String[] keys = StringUtil.splitToArray(block,
-							StreamBlockBuilder.HEADER_SPLITTER);
+					final String[] keys = StringUtil.splitToArray(block, StreamBlockBuilder.HEADER_SPLITTER);
 					if (StreamBlockBuilder.HEADER_IMAGE_PITCH.equals(keys[0])) {
 						try {
 							imagePitch = Float.parseFloat(keys[1]);
@@ -266,8 +250,7 @@ public final class ClientSession {
 				}
 				{
 					block = StreamBlockBuilder.readHeaderBlock(baseIS, lengthBS);
-					final String[] keys = StringUtil.splitToArray(block,
-							StreamBlockBuilder.HEADER_SPLITTER);
+					final String[] keys = StringUtil.splitToArray(block, StreamBlockBuilder.HEADER_SPLITTER);
 					if (StreamBlockBuilder.HEADER_IMAGE_ROLL.equals(keys[0])) {
 						try {
 							imageRoll = Float.parseFloat(keys[1]);
@@ -278,8 +261,7 @@ public final class ClientSession {
 				}
 				{
 					block = StreamBlockBuilder.readHeaderBlock(baseIS, lengthBS);
-					final String[] keys = StringUtil.splitToArray(block,
-							StreamBlockBuilder.HEADER_SPLITTER);
+					final String[] keys = StringUtil.splitToArray(block, StreamBlockBuilder.HEADER_SPLITTER);
 					if (StreamBlockBuilder.HEADER_IMAGE_LATITUDE.equals(keys[0])) {
 						try {
 							imageLatitude = Double.parseDouble(keys[1]);
@@ -290,8 +272,7 @@ public final class ClientSession {
 				}
 				{
 					block = StreamBlockBuilder.readHeaderBlock(baseIS, lengthBS);
-					final String[] keys = StringUtil.splitToArray(block,
-							StreamBlockBuilder.HEADER_SPLITTER);
+					final String[] keys = StringUtil.splitToArray(block, StreamBlockBuilder.HEADER_SPLITTER);
 					if (StreamBlockBuilder.HEADER_IMAGE_LONGITUDE.equals(keys[0])) {
 						try {
 							imageLongitude = Double.parseDouble(keys[1]);
@@ -302,8 +283,7 @@ public final class ClientSession {
 				}
 				{
 					block = StreamBlockBuilder.readHeaderBlock(baseIS, lengthBS);
-					final String[] keys = StringUtil.splitToArray(block,
-							StreamBlockBuilder.HEADER_SPLITTER);
+					final String[] keys = StringUtil.splitToArray(block, StreamBlockBuilder.HEADER_SPLITTER);
 					if (StreamBlockBuilder.HEADER_IMAGE_ALTITUDE.equals(keys[0])) {
 						try {
 							imageAltitude = Double.parseDouble(keys[1]);
@@ -316,8 +296,8 @@ public final class ClientSession {
 				block = StreamBlockBuilder.readHeaderBlock(baseIS, lengthBS);
 				if (StreamBlockBuilder.HEADER_TAG_STREAM_CONTENT.equals(block)) {
 					final InputStream bis = buildISFromStream(baseIS, lengthBS);
-					return HCInputStreamBuilder.buildImageStream(bis, imageAzimuth, imagePitch,
-							imageRoll, imageFormat, imageLatitude, imageLongitude, imageAltitude);
+					return HCInputStreamBuilder.buildImageStream(bis, imageAzimuth, imagePitch, imageRoll, imageFormat, imageLatitude,
+							imageLongitude, imageAltitude);
 				}
 			} while (false);
 		} catch (final IOException e) {
@@ -333,14 +313,12 @@ public final class ClientSession {
 		return null;
 	}
 
-	private final InputStream buildISFromStream(final HCInputStream baseIS, final byte[] lengthBS)
-			throws IOException {
+	private final InputStream buildISFromStream(final HCInputStream baseIS, final byte[] lengthBS) throws IOException {
 		final int dataLen = StreamBlockBuilder.readBlockLength(baseIS, lengthBS);
 
 		if (IOBuffer.isStreamSize(dataLen)) {
 			final ProjectContext projectContext = ProjectContext.getProjectContext();
-			final File tmp_sub_for_hc_sys = StoreDirManager
-					.getTmpSubForUserManagedByHcSys(projectContext);
+			final File tmp_sub_for_hc_sys = StoreDirManager.getTmpSubForUserManagedByHcSys(projectContext);
 			final File tempFile = ResourceUtil.createRandomFileWithExt(tmp_sub_for_hc_sys, null);
 			final byte[] bs = ByteUtil.byteArrayCacher.getFree(1024 * 200);
 			try {
@@ -370,19 +348,18 @@ public final class ClientSession {
 	 * record a audio from mobile client. <BR>
 	 * <BR>
 	 * for audio format, see {@link HCAudioInputStream#getAudioFormat()}.<BR>
-	 * 1. Android client, the audio format is <code>3gp</code>.<BR>
-	 * 2. iOS client, the audio format is <code>m4a</code>. <BR>
+	 * 1. Android client, the audio format current is <code>3gp</code>, other formats will be
+	 * supported in the future.<BR>
+	 * 2. iOS client, the audio format current is <code>m4a</code>, other formats will be supported
+	 * in the future. <BR>
 	 * <BR>
 	 * <STRONG>Know more</STRONG> : <BR>
-	 * 1. it will block current thread for result, but not block server
-	 * receiving result.<BR>
-	 * 2. mobile client will not display alert/question/dialog when recording
-	 * audio.
+	 * 1. it will block current thread for result, but not block server receiving result.<BR>
+	 * 2. mobile client will not display alert/question/dialog when recording audio.
 	 * 
-	 * @return null means canceled by user or exception, it returns full stream
-	 *         or null, never part. <BR>
-	 * 		To get audio format, use
-	 *         {@link HCAudioInputStream#getAudioFormat()}.
+	 * @return null means canceled by user or exception, it returns full stream or null, never part.
+	 *         <BR>
+	 *         To get audio format, use {@link HCAudioInputStream#getAudioFormat()}.
 	 * @see #recordAudioWithLocationFromClient()
 	 * @since 7.72
 	 */
@@ -394,21 +371,19 @@ public final class ClientSession {
 	 * record a audio with GPS location from mobile client. <BR>
 	 * <BR>
 	 * to get location, see {@link HCAudioInputStream#getAudioLongitude()}. <BR>
-	 * project permission [location of mobile] is <STRONG>NOT</STRONG> required.
-	 * <BR>
+	 * project permission [location of mobile] is <STRONG>NOT</STRONG> required. <BR>
 	 * <BR>
 	 * for audio format, see {@link HCAudioInputStream#getAudioFormat()}.<BR>
-	 * 1. Android client, the audio format is <code>3gp</code>.<BR>
-	 * 2. iOS client, the audio format is <code>m4a</code>. <BR>
+	 * 1. Android client, the audio format current is <code>3gp</code>, other formats will be
+	 * supported in the future.<BR>
+	 * 2. iOS client, the audio format current is <code>m4a</code>, other formats will be supported
+	 * in the future. <BR>
 	 * <BR>
 	 * <STRONG>Know more</STRONG> : <BR>
-	 * 1. it will block current thread for result, but not block server
-	 * receiving result.<BR>
-	 * 2. mobile client will not display alert/question/dialog when recording
-	 * audio.
+	 * 1. it will block current thread for result, but not block server receiving result.<BR>
+	 * 2. mobile client will not display alert/question/dialog when recording audio.
 	 * 
-	 * @return null means canceled by user or exception, it returns full stream
-	 *         or null, never part.
+	 * @return null means canceled by user or exception, it returns full stream or null, never part.
 	 * @see #recordAudioFromClient()
 	 * @since 7.72
 	 */
@@ -445,8 +420,7 @@ public final class ClientSession {
 
 						final byte[] bs = sb.toString().getBytes();
 						StringBuilderCacher.cycle(sb);
-						return streamBuilder.buildInputStream(StreamBuilder.S_CLASS_TRANS_AUDIO, bs,
-								0, bs.length, true);
+						return streamBuilder.buildInputStream(StreamBuilder.S_CLASS_TRANS_AUDIO, bs, 0, bs.length, true);
 					}
 				});
 
@@ -464,54 +438,42 @@ public final class ClientSession {
 				double imageAltitude = -1.0;
 
 				{
-					final String[] keys = StringUtil.splitToArray(block,
-							StreamBlockBuilder.HEADER_SPLITTER);
+					final String[] keys = StringUtil.splitToArray(block, StreamBlockBuilder.HEADER_SPLITTER);
 					if (StreamBlockBuilder.HEADER_AUDIO_FORMAT.equals(keys[0])) {
 						audioFormat = keys[1];
-						L.V = L.WShop ? false
-								: LogManager.log("receive record audio format : " + audioFormat);
+						L.V = L.WShop ? false : LogManager.log("receive record audio format : " + audioFormat);
 					}
 				}
 				{
 					block = StreamBlockBuilder.readHeaderBlock(baseIS, lengthBS);
-					final String[] keys = StringUtil.splitToArray(block,
-							StreamBlockBuilder.HEADER_SPLITTER);
+					final String[] keys = StringUtil.splitToArray(block, StreamBlockBuilder.HEADER_SPLITTER);
 					if (StreamBlockBuilder.HEADER_IMAGE_LATITUDE.equals(keys[0])) {
 						imageLatitude = Double.parseDouble(keys[1]);
-						L.V = L.WShop ? false
-								: LogManager
-										.log("receive record audio latitude : " + imageLatitude);
+						L.V = L.WShop ? false : LogManager.log("receive record audio latitude : " + imageLatitude);
 					}
 				}
 				{
 					block = StreamBlockBuilder.readHeaderBlock(baseIS, lengthBS);
-					final String[] keys = StringUtil.splitToArray(block,
-							StreamBlockBuilder.HEADER_SPLITTER);
+					final String[] keys = StringUtil.splitToArray(block, StreamBlockBuilder.HEADER_SPLITTER);
 					if (StreamBlockBuilder.HEADER_IMAGE_LONGITUDE.equals(keys[0])) {
 						imageLongitude = Double.parseDouble(keys[1]);
-						L.V = L.WShop ? false
-								: LogManager
-										.log("receive record audio longitude : " + imageLongitude);
+						L.V = L.WShop ? false : LogManager.log("receive record audio longitude : " + imageLongitude);
 					}
 				}
 				{
 					block = StreamBlockBuilder.readHeaderBlock(baseIS, lengthBS);
-					final String[] keys = StringUtil.splitToArray(block,
-							StreamBlockBuilder.HEADER_SPLITTER);
+					final String[] keys = StringUtil.splitToArray(block, StreamBlockBuilder.HEADER_SPLITTER);
 					if (StreamBlockBuilder.HEADER_IMAGE_ALTITUDE.equals(keys[0])) {
 						imageAltitude = Double.parseDouble(keys[1]);
-						L.V = L.WShop ? false
-								: LogManager.log("receive record audio altitude : " + audioFormat);
+						L.V = L.WShop ? false : LogManager.log("receive record audio altitude : " + audioFormat);
 					}
 				}
 
 				block = StreamBlockBuilder.readHeaderBlock(baseIS, lengthBS);
 				if (StreamBlockBuilder.HEADER_TAG_STREAM_CONTENT.equals(block)) {
 					final InputStream bis = buildISFromStream(baseIS, lengthBS);
-					L.V = L.WShop ? false
-							: LogManager.log("sucessful receive record audio stream.");
-					return HCInputStreamBuilder.buildAudioStream(bis, audioFormat, imageLatitude,
-							imageLongitude, imageAltitude);
+					L.V = L.WShop ? false : LogManager.log("sucessful receive record audio stream.");
+					return HCInputStreamBuilder.buildAudioStream(bis, audioFormat, imageLatitude, imageLongitude, imageAltitude);
 				}
 			} while (false);
 		} catch (final IOException e) {
@@ -575,20 +537,17 @@ public final class ClientSession {
 	 * open a file from mobile client. <BR>
 	 * <BR>
 	 * <STRONG>Know more</STRONG> : <BR>
-	 * 1. it will block current thread for result, but not block server
-	 * receiving result.<BR>
-	 * 2. mobile client will not display alert/question/dialog when opening
-	 * file.<BR>
+	 * 1. it will block current thread for result, but not block server receiving result.<BR>
+	 * 2. mobile client will not display alert/question/dialog when opening file.<BR>
 	 * 3. in iOS, voice memos can't be accessed.
 	 * 
 	 * @param type
-	 *            file type (recommend, the return file depends on user choice),
-	 *            one of {@link #TYPE_IMAGE}, {@link #TYPE_AUDIO},
-	 *            {@link #TYPE_VIDEO} and {@link #TYPE_ALL}.
-	 * @return null means canceled by user or exception, it returns full stream
-	 *         or null, never part. <BR>
-	 * 		To get file extension of result, use
-	 *         {@link HCFileInputStream#getFileExtension()}.
+	 *            file type (recommend, the return file depends on user choice), one of
+	 *            {@link #TYPE_IMAGE}, {@link #TYPE_AUDIO}, {@link #TYPE_VIDEO} and
+	 *            {@link #TYPE_ALL}.
+	 * @return null means canceled by user or exception, it returns full stream or null, never part.
+	 *         <BR>
+	 *         To get file extension of result, use {@link HCFileInputStream#getFileExtension()}.
 	 * @see #getOneFileFromClient(String)
 	 * @see #openMultipleFilesFromClient(String)
 	 * @see #getOneAudioFileMaybeByRecording()
@@ -616,20 +575,17 @@ public final class ClientSession {
 	 * it is equals with {@link #openOneFileFromClient(String)}.<BR>
 	 * <BR>
 	 * <STRONG>Know more</STRONG> : <BR>
-	 * 1. it will block current thread for result, but not block server
-	 * receiving result.<BR>
-	 * 2. mobile client will not display alert/question/dialog when opening
-	 * file.<BR>
+	 * 1. it will block current thread for result, but not block server receiving result.<BR>
+	 * 2. mobile client will not display alert/question/dialog when opening file.<BR>
 	 * 3. in iOS, voice memos can't be accessed.
 	 * 
 	 * @param type
-	 *            file type (recommend, the return file depends on user choice),
-	 *            one of {@link #TYPE_IMAGE}, {@link #TYPE_AUDIO},
-	 *            {@link #TYPE_VIDEO} and {@link #TYPE_ALL}.
-	 * @return null means canceled by user or exception, it returns full stream
-	 *         or null, never part. <BR>
-	 * 		To get file extension of result, use
-	 *         {@link HCFileInputStream#getFileExtension()}.
+	 *            file type (recommend, the return file depends on user choice), one of
+	 *            {@link #TYPE_IMAGE}, {@link #TYPE_AUDIO}, {@link #TYPE_VIDEO} and
+	 *            {@link #TYPE_ALL}.
+	 * @return null means canceled by user or exception, it returns full stream or null, never part.
+	 *         <BR>
+	 *         To get file extension of result, use {@link HCFileInputStream#getFileExtension()}.
 	 * @see #openOneFileFromClient(String)
 	 * @see #getOneAudioFileMaybeByRecording()
 	 * @see #getOneImageFileMaybeByTakingPhotograph()
@@ -645,20 +601,16 @@ public final class ClientSession {
 	}
 
 	/**
-	 * get a audio file from mobile client, user can choose recording or not.
-	 * <BR>
+	 * get a audio file from mobile client, user can choose recording or not. <BR>
 	 * <BR>
 	 * <STRONG>Know more</STRONG> : <BR>
-	 * 1. it will block current thread for result, but not block server
-	 * receiving result.<BR>
-	 * 2. mobile client will not display alert/question/dialog when opening
-	 * file.<BR>
+	 * 1. it will block current thread for result, but not block server receiving result.<BR>
+	 * 2. mobile client will not display alert/question/dialog when opening file.<BR>
 	 * 3. in iOS, voice memos can't be accessed.
 	 * 
-	 * @return null means canceled by user or exception, it returns full stream
-	 *         or null, never part. <BR>
-	 * 		To get file extension of result, use
-	 *         {@link HCFileInputStream#getFileExtension()}.
+	 * @return null means canceled by user or exception, it returns full stream or null, never part.
+	 *         <BR>
+	 *         To get file extension of result, use {@link HCFileInputStream#getFileExtension()}.
 	 * @since 7.72
 	 */
 	public final HCFileInputStream getOneAudioFileMaybeByRecording() {
@@ -676,24 +628,19 @@ public final class ClientSession {
 
 		final String result = sb.toString();
 		StringBuilderCacher.cycle(sb);
-		return (HCFileInputStream) receiveFileFromClient(
-				StreamBuilder.S_CLASS_TRANS_FILE_MAYBE_ACTION, false, result);
+		return (HCFileInputStream) receiveFileFromClient(StreamBuilder.S_CLASS_TRANS_FILE_MAYBE_ACTION, false, result);
 	}
 
 	/**
-	 * get a image file from mobile client, user can choose taking photograph or
-	 * not. <BR>
+	 * get a image file from mobile client, user can choose taking photograph or not. <BR>
 	 * <BR>
 	 * <STRONG>Know more</STRONG> : <BR>
-	 * 1. it will block current thread for result, but not block server
-	 * receiving result.<BR>
-	 * 2. mobile client will not display alert/question/dialog when opening
-	 * file.<BR>
+	 * 1. it will block current thread for result, but not block server receiving result.<BR>
+	 * 2. mobile client will not display alert/question/dialog when opening file.<BR>
 	 * 
-	 * @return null means canceled by user or exception, it returns full stream
-	 *         or null, never part. <BR>
-	 * 		To get file extension of result, use
-	 *         {@link HCFileInputStream#getFileExtension()}.
+	 * @return null means canceled by user or exception, it returns full stream or null, never part.
+	 *         <BR>
+	 *         To get file extension of result, use {@link HCFileInputStream#getFileExtension()}.
 	 * @see #getOneFileFromClient(String)
 	 * @since 7.72
 	 */
@@ -712,28 +659,24 @@ public final class ClientSession {
 
 		final String result = sb.toString();
 		StringBuilderCacher.cycle(sb);
-		return (HCFileInputStream) receiveFileFromClient(
-				StreamBuilder.S_CLASS_TRANS_FILE_MAYBE_ACTION, false, result);
+		return (HCFileInputStream) receiveFileFromClient(StreamBuilder.S_CLASS_TRANS_FILE_MAYBE_ACTION, false, result);
 	}
 
 	/**
 	 * open multiple files from mobile client. <BR>
 	 * <BR>
 	 * <STRONG>Know more</STRONG> : <BR>
-	 * 1. it will block current thread for result, but not block server
-	 * receiving result.<BR>
-	 * 2. mobile client will not display alert/question/dialog when opening
-	 * file.<BR>
+	 * 1. it will block current thread for result, but not block server receiving result.<BR>
+	 * 2. mobile client will not display alert/question/dialog when opening file.<BR>
 	 * 3. in iOS, voice memos can't be accessed.
 	 * 
 	 * @param type
-	 *            file type (recommend, the return file depends on user choice),
-	 *            one of {@link #TYPE_IMAGE}, {@link #TYPE_AUDIO},
-	 *            {@link #TYPE_VIDEO} and {@link #TYPE_ALL}.
-	 * @return null means canceled by user or exception, it returns full stream
-	 *         or null, never part. <BR>
-	 * 		To get file extension of result, use
-	 *         {@link HCFileInputStream#getFileExtension()}.
+	 *            file type (recommend, the return file depends on user choice), one of
+	 *            {@link #TYPE_IMAGE}, {@link #TYPE_AUDIO}, {@link #TYPE_VIDEO} and
+	 *            {@link #TYPE_ALL}.
+	 * @return null means canceled by user or exception, it returns full stream or null, never part.
+	 *         <BR>
+	 *         To get file extension of result, use {@link HCFileInputStream#getFileExtension()}.
 	 * @see #openOneFileFromClient(String)
 	 * @see #getOneFileFromClient(String)
 	 * @see #getOneAudioFileMaybeByRecording()
@@ -761,20 +704,17 @@ public final class ClientSession {
 	 * it is equals with {@link #openMultipleFilesFromClient(String)}.<BR>
 	 * <BR>
 	 * <STRONG>Know more</STRONG> : <BR>
-	 * 1. it will block current thread for result, but not block server
-	 * receiving result.<BR>
-	 * 2. mobile client will not display alert/question/dialog when opening
-	 * file.<BR>
+	 * 1. it will block current thread for result, but not block server receiving result.<BR>
+	 * 2. mobile client will not display alert/question/dialog when opening file.<BR>
 	 * 3. in iOS, voice memos can't be accessed.
 	 * 
 	 * @param type
-	 *            file type (recommend, the return file depends on user choice),
-	 *            one of {@link #TYPE_IMAGE}, {@link #TYPE_AUDIO},
-	 *            {@link #TYPE_VIDEO} and {@link #TYPE_ALL}.
-	 * @return null means canceled by user or exception, it returns full stream
-	 *         or null, never part. <BR>
-	 * 		To get file extension of result, use
-	 *         {@link HCFileInputStream#getFileExtension()}.
+	 *            file type (recommend, the return file depends on user choice), one of
+	 *            {@link #TYPE_IMAGE}, {@link #TYPE_AUDIO}, {@link #TYPE_VIDEO} and
+	 *            {@link #TYPE_ALL}.
+	 * @return null means canceled by user or exception, it returns full stream or null, never part.
+	 *         <BR>
+	 *         To get file extension of result, use {@link HCFileInputStream#getFileExtension()}.
 	 * @see #getOneFileFromClient(String)
 	 * @see #getOneAudioFileMaybeByRecording()
 	 * @see #getOneImageFileMaybeByTakingPhotograph()
@@ -830,8 +770,7 @@ public final class ClientSession {
 	 * @param typePass
 	 * @return
 	 */
-	private final Object receiveFileFromClient(final String eClass, final boolean isMultple,
-			final String typePass) {
+	private final Object receiveFileFromClient(final String eClass, final boolean isMultple, final String typePass) {
 		final byte[] typeBS = ByteUtil.getBytes(typePass, IConstant.UTF_8);
 		final StreamBuilder streamBuilder = new StreamBuilder(j2seCoreSSMaybeNull);
 
@@ -839,8 +778,7 @@ public final class ClientSession {
 				.runAndWaitInSysThread(new ReturnableRunnable() {
 					@Override
 					public Object run() throws Throwable {
-						return streamBuilder.buildInputStream(eClass, typeBS, 0, typeBS.length,
-								true);
+						return streamBuilder.buildInputStream(eClass, typeBS, 0, typeBS.length, true);
 					}
 				});
 
@@ -858,16 +796,14 @@ public final class ClientSession {
 				String fileName = "";
 
 				{
-					final String[] keys = StringUtil.splitToArray(block,
-							StreamBlockBuilder.HEADER_SPLITTER);
+					final String[] keys = StringUtil.splitToArray(block, StreamBlockBuilder.HEADER_SPLITTER);
 					if (StreamBlockBuilder.HEADER_FILE_EXTSION.equals(keys[0])) {
 						fileType = keys[1];
 					}
 				}
 				{
 					block = StreamBlockBuilder.readHeaderBlock(baseIS, lengthBS);
-					final String[] keys = StringUtil.splitToArray(block,
-							StreamBlockBuilder.HEADER_SPLITTER);
+					final String[] keys = StringUtil.splitToArray(block, StreamBlockBuilder.HEADER_SPLITTER);
 					if (StreamBlockBuilder.HEADER_FILE_NAME.equals(keys[0])) {
 						fileName = keys[1];
 					}
@@ -916,10 +852,8 @@ public final class ClientSession {
 	 * scan QR code on client and wait for result. <BR>
 	 * <BR>
 	 * <STRONG>Know more</STRONG> : <BR>
-	 * 1. it will block current thread for result, but not block server
-	 * receiving result.<BR>
-	 * 2. mobile client will not display alert/question/dialog when scanning
-	 * code.
+	 * 1. it will block current thread for result, but not block server receiving result.<BR>
+	 * 2. mobile client will not display alert/question/dialog when scanning code.
 	 * 
 	 * @return null means canceled by user or exception.
 	 * @since 7.72
@@ -937,8 +871,8 @@ public final class ClientSession {
 		ServerUIAPIAgent.runInSysThread(new Runnable() {
 			@Override
 			public void run() {
-				HCURLUtil.sendCmd(j2seCoreSSMaybeNull, HCURL.DATA_CMD_SendPara,
-						HCURL.DATA_PARA_SCAN_QR_CODE, IConstant.toString(isFromMobileDialog()));
+				HCURLUtil.sendCmd(j2seCoreSSMaybeNull, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_SCAN_QR_CODE,
+						IConstant.toString(isFromMobileDialog()));
 			}
 		});
 
@@ -1091,14 +1025,11 @@ public final class ClientSession {
 	/**
 	 * returns the last known longitude.<BR>
 	 * <BR>
-	 * project permission [<STRONG>location of mobile</STRONG>] is required.
+	 * project permission [<STRONG>location of mobile</STRONG>] is required. <BR>
 	 * <BR>
+	 * if no permission (project or mobile) or no GPS signal, then return -1.0; <BR>
 	 * <BR>
-	 * if no permission (project or mobile) or no GPS signal, then return -1.0;
-	 * <BR>
-	 * <BR>
-	 * to set location updates frequency, see
-	 * {@link ProjectContext#setLocationUpdates(long)}.
+	 * to set location updates frequency, see {@link ProjectContext#setLocationUpdates(long)}.
 	 * 
 	 * @return
 	 * @see #getLocationLatitude()
@@ -1124,8 +1055,8 @@ public final class ClientSession {
 	}
 
 	/**
-	 * returns the attribute with the given name, or null if there is no
-	 * attribute by that name. <BR>
+	 * returns the attribute with the given name, or null if there is no attribute by that name.
+	 * <BR>
 	 * It is thread safe.
 	 * 
 	 * @param name
@@ -1140,14 +1071,13 @@ public final class ClientSession {
 	}
 
 	/**
-	 * returns the attribute with the given name, or <code>defaultValue</code>
-	 * if there is no attribute by that name.
+	 * returns the attribute with the given name, or <code>defaultValue</code> if there is no
+	 * attribute by that name.
 	 * 
 	 * @param name
 	 * @param defaultValue
 	 *            the default value for name.
-	 * @return <code>defaultValue</code> if this map contains no attribute for
-	 *         the name
+	 * @return <code>defaultValue</code> if this map contains no attribute for the name
 	 * @see #getIntAttribute(String, int)
 	 * @see #getBooleanAttribute(String, boolean)
 	 * @see #getStringAttribute(String, String)
@@ -1224,8 +1154,7 @@ public final class ClientSession {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1348,8 +1277,7 @@ public final class ClientSession {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1405,8 +1333,7 @@ public final class ClientSession {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1462,8 +1389,7 @@ public final class ClientSession {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1519,8 +1445,7 @@ public final class ClientSession {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1576,8 +1501,7 @@ public final class ClientSession {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1605,8 +1529,8 @@ public final class ClientSession {
 	}
 
 	/**
-	 * if name is not exists, return null; if the attribute of name is not
-	 * String object, return obj.toString()
+	 * if name is not exists, return null; if the attribute of name is not String object, return
+	 * obj.toString()
 	 * 
 	 * @param name
 	 * @return
@@ -1625,8 +1549,8 @@ public final class ClientSession {
 	}
 
 	/**
-	 * if name is not exists, then return defaultValue; if the attribute of name
-	 * is not String object, return obj.toString()
+	 * if name is not exists, then return defaultValue; if the attribute of name is not String
+	 * object, return obj.toString()
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1658,8 +1582,7 @@ public final class ClientSession {
 	 *            the name of attribute.
 	 * @param obj
 	 *            the value of the attribute.
-	 * @return the previous object of the specified name, or null if it did not
-	 *         have one
+	 * @return the previous object of the specified name, or null if it did not have one
 	 * @see #setIntAttribute(String, int)
 	 * @see #setBooleanAttribute(String, boolean)
 	 * @see #setStringAttribute(String, String)
@@ -1712,8 +1635,7 @@ public final class ClientSession {
 	 * @param length
 	 * @see #setByteArrayAttribute(String, byte[])
 	 */
-	public final void setByteArrayAttribute(final String name, final byte[] bs, final int offset,
-			final int length) {
+	public final void setByteArrayAttribute(final String name, final byte[] bs, final int offset, final int length) {
 		final byte[] outbs = new byte[length];
 		System.arraycopy(bs, offset, outbs, 0, length);
 		attribute_map.put(name, outbs);
@@ -1794,8 +1716,8 @@ public final class ClientSession {
 	 * 
 	 * @param name
 	 *            the name that needs to be removed
-	 * @return the attribute to which the name had been mapped, or null if the
-	 *         name did not have a mapping
+	 * @return the attribute to which the name had been mapped, or null if the name did not have a
+	 *         mapping
 	 * @since 7.7
 	 */
 	public final Object removeAttribute(final String name) {
@@ -1807,8 +1729,8 @@ public final class ClientSession {
 	 * 
 	 * @param name
 	 *            the name that needs to be removed
-	 * @return the attribute to which the name had been mapped, or null if the
-	 *         name did not have a mapping
+	 * @return the attribute to which the name had been mapped, or null if the name did not have a
+	 *         mapping
 	 * @since 7.7
 	 */
 	public final Object clearAttribute(final String name) {

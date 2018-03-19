@@ -32,12 +32,12 @@ import org.jrubyparser.ast.StrNode;
 import org.jrubyparser.rewriter.ReWriteVisitor;
 
 public class HereDocReWriteVisitor extends ReWriteVisitor {
-	
+
 	public HereDocReWriteVisitor(ReWriterContext config) {
 		super(config);
 	}
-	
-    @Override
+
+	@Override
 	public Object visitStrNode(StrNode iVisited) {
 		print(iVisited.getValue().toString());
 		return null;

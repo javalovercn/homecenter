@@ -34,19 +34,21 @@ import org.jrubyparser.SourcePosition;
  * Represents a 'retry' statement.
  */
 public class RetryNode extends Node {
-    public RetryNode(SourcePosition position) {
-        super(position);
-    }
+	public RetryNode(SourcePosition position) {
+		super(position);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.RETRYNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.RETRYNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitRetryNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitRetryNode(this);
+	}
 }

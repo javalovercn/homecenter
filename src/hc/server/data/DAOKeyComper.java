@@ -40,8 +40,8 @@ public class DAOKeyComper implements IDao {
 		return p;
 	}
 
-	static String[] images = { "/hc/res/esc_16.png", "/hc/res/tab_16.png", "/hc/res/ctrl_s_16.png",
-			"/hc/res/ctrl_o_16.png", "/hc/res/ctrlad_16.png" };
+	static String[] images = { "/hc/res/esc_16.png", "/hc/res/tab_16.png", "/hc/res/ctrl_s_16.png", "/hc/res/ctrl_o_16.png",
+			"/hc/res/ctrlad_16.png" };
 
 	// 四个常用和六个标准图标
 	static String[] key_images = null;
@@ -151,8 +151,7 @@ public class DAOKeyComper implements IDao {
 					final String imageurl = items[1];
 
 					final Vector vect = KeyComper.convertStr(k);
-					if (vect == null || vect.size() == 0
-							|| (comper.addMap(vect, imageurl) == false)) {
+					if (vect == null || vect.size() == 0 || (comper.addMap(vect, imageurl) == false)) {
 						LogManager.err("Unknows data : [" + v + "]");
 						break;
 					}
@@ -161,8 +160,7 @@ public class DAOKeyComper implements IDao {
 
 			// 删除不用的图标
 			{
-				final File file = new File(ResourceUtil.getBaseDir(),
-						"." + StoreDirManager.ICO_DIR);
+				final File file = new File(ResourceUtil.getBaseDir(), "." + StoreDirManager.ICO_DIR);
 				final File[] icons = file.listFiles();
 				final int userSize = comper.size();
 				for (int i = 0; i < icons.length; i++) {

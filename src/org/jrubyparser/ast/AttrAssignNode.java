@@ -35,142 +35,148 @@ import org.jrubyparser.SourcePosition;
  * Node that represents an assignment of either an array element or attribute.
  */
 public class AttrAssignNode extends Node implements INameNode, IArgumentNode {
-    protected Node receiver;
-    private String name;
-    private Node arg;
-    private boolean hasParens;
+	protected Node receiver;
+	private String name;
+	private Node arg;
+	private boolean hasParens;
 
-    public AttrAssignNode(SourcePosition position, Node receiver, String name, Node arg) {
-        super(position);
+	public AttrAssignNode(SourcePosition position, Node receiver, String name, Node arg) {
+		super(position);
 
-        assert receiver != null : "receiverNode is not null";
-        // TODO: At least ParserSupport.attrset passes argsNode as null.  ImplicitNil is wrong magic for
-        // setupArgs since it will IRubyObject[] { nil }.  So we need to figure out a nice fast
-        // null pattern for setupArgs.
-        // assert argsNode != null : "receiverNode is not null";
+		assert receiver != null : "receiverNode is not null";
+		// TODO: At least ParserSupport.attrset passes argsNode as null.  ImplicitNil is wrong magic for
+		// setupArgs since it will IRubyObject[] { nil }.  So we need to figure out a nice fast
+		// null pattern for setupArgs.
+		// assert argsNode != null : "receiverNode is not null";
 
-        this.receiver = adopt(receiver);
-        this.name = name;
-        this.arg = adopt(arg);
-    }
+		this.receiver = adopt(receiver);
+		this.name = name;
+		this.arg = adopt(arg);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		AttrAssignNode other = (AttrAssignNode) node;
 
-        AttrAssignNode other = (AttrAssignNode) node;
+		if (!isNameMatch(other.getName()))
+			return false;
+		if (!getReceiver().isSame(other.getReceiver()))
+			return false;
 
-        if (!isNameMatch(other.getName())) return false;
-        if (!getReceiver().isSame(other.getReceiver())) return false;
+		if (getArgs() == null && other.getArgs() == null)
+			return true;
+		if (getArgs() == null || other.getArgs() == null)
+			return false;
 
-        if (getArgs() == null && other.getArgs() == null) return true;
-        if (getArgs() == null || other.getArgs() == null) return false;
+		return getArgs().isSame(other.getArgs());
+	}
 
-        return getArgs().isSame(other.getArgs());
-    }
+	public NodeType getNodeType() {
+		return NodeType.ATTRASSIGNNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param visitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitAttrAssignNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.ATTRASSIGNNODE;
-    }
+	public String getLexicalName() {
+		return getName();
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param visitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitAttrAssignNode(this);
-    }
+	/**
+	 * Gets the name. name is the name of the method called
+	 * 
+	 * @return name
+	 */
+	public String getName() {
+		return name;
+	}
 
-    public String getLexicalName() {
-        return getName();
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    /**
-     * Gets the name.
-     * name is the name of the method called
-     * @return name
-     */
-    public String getName() {
-        return name;
-    }
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+		return thisName != null && thisName.equals(name);
+	}
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+	/**
+	 * Gets the receiverNode. receiverNode is the object on which the method is being called
+	 * 
+	 * @return receiverNode
+	 */
+	@Deprecated
+	public Node getReceiverNode() {
+		return getReceiver();
+	}
 
-        return thisName != null && thisName.equals(name);
-    }
+	public Node getReceiver() {
+		return receiver;
+	}
 
-    /**
-     * Gets the receiverNode.
-     * receiverNode is the object on which the method is being called
-     * @return receiverNode
-     */
-    @Deprecated
-    public Node getReceiverNode() {
-        return getReceiver();
-    }
+	/**
+	 * Gets the argsNode. argsNode representing the method's arguments' value for this call.
+	 * 
+	 * @return argsNode
+	 */
+	@Deprecated
+	public Node getArgsNode() {
+		return getArgs();
+	}
 
-    public Node getReceiver() {
-        return receiver;
-    }
+	public Node getArgs() {
+		return arg;
+	}
 
-    /**
-     * Gets the argsNode.
-     * argsNode representing the method's arguments' value for this call.
-     * @return argsNode
-     */
-    @Deprecated
-    public Node getArgsNode() {
-        return getArgs();
-    }
+	/**
+	 * Set the argsNode
+	 *
+	 * @param argsNode
+	 *            set the arguments for this node.
+	 * @return itself
+	 */
+	@Deprecated
+	public Node setArgsNode(Node argsNode) {
+		setArgs(argsNode);
 
-    public Node getArgs() {
-        return arg;
-    }
+		return this;
+	}
 
+	public void setArgs(Node argsNode) {
+		this.arg = adopt(argsNode);
+	}
 
-    /**
-     * Set the argsNode
-     *
-     * @param argsNode set the arguments for this node.
-     * @return itself
-     */
-    @Deprecated
-    public Node setArgsNode(Node argsNode) {
-        setArgs(argsNode);
+	public boolean hasParens() {
+		return hasParens;
+	}
 
-        return this;
-    }
+	public void setHasParens(boolean hasParens) {
+		this.hasParens = hasParens;
+	}
 
-    public void setArgs(Node argsNode) {
-        this.arg = adopt(argsNode);
-    }
+	public SourcePosition getNamePosition() {
+		return getPosition().fromBeginning(getName().length());
+	}
 
-    public boolean hasParens() {
-        return hasParens;
-    }
-
-    public void setHasParens(boolean hasParens) {
-        this.hasParens = hasParens;
-    }
-
-    public SourcePosition getNamePosition() {
-        return getPosition().fromBeginning(getName().length());
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getNamePosition();
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getNamePosition();
+	}
 }

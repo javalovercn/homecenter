@@ -32,11 +32,9 @@ public class SafeDataManager {
 	public static final String USER_DATA = "user_data";
 	public static final String USER_DATA_SAFE = USER_DATA + "_safe";
 
-	final static String[] excluds = { ".dex", ".png", ".ico", ".log", ".txt", ".har", ".harbak",
-			".hc", ".pem", ".command", ".bat", ".sh", ".pfx", "starter.properties",
-			ResourceUtil.EXT_JAR, ResourceUtil.EXT_APK };
-	final static String[] excludsDir = { USER_DATA_SAFE, "dex_optimized",
-			StoreDirManager.LOGS_DIR_NAME };// dex_optimized为android Server下目录
+	final static String[] excluds = { ".dex", ".png", ".ico", ".log", ".txt", ".har", ".harbak", ".hc", ".pem", ".command", ".bat", ".sh",
+			".pfx", "starter.properties", ResourceUtil.EXT_JAR, ResourceUtil.EXT_APK };
+	final static String[] excludsDir = { USER_DATA_SAFE, "dex_optimized", StoreDirManager.LOGS_DIR_NAME };// dex_optimized为android Server下目录
 
 	static final File SAFE_DATA_DIR = new File(ResourceUtil.getBaseDir(), USER_DATA_SAFE);
 
@@ -129,8 +127,8 @@ public class SafeDataManager {
 		restoreImpl(restoreSrc, workBaseDir, excluds, excludsDir);
 	}
 
-	public static final void restoreImpl(final File parentSrc, final File parentTarget,
-			final String[] excluesExtentions, final String[] excludeDirs) {
+	public static final void restoreImpl(final File parentSrc, final File parentTarget, final String[] excluesExtentions,
+			final String[] excludeDirs) {
 		final File[] oldTargetLists = parentTarget.listFiles();
 		final boolean hasExcludes = excluesExtentions != null;
 		final boolean hasExcludeDirs = excludeDirs != null;
@@ -217,8 +215,7 @@ public class SafeDataManager {
 		L.V = L.WShop ? false : LogManager.log("[SafeDataManager] successful disableSafeBackup");
 	}
 
-	public static void enableSafeBackup(final boolean startSafeBackupNow,
-			final boolean isEnabledThenDoNothing) {
+	public static void enableSafeBackup(final boolean startSafeBackupNow, final boolean isEnabledThenDoNothing) {
 		if (isDisableSafeBackupForWin) {
 			return;
 		}
@@ -245,8 +242,7 @@ public class SafeDataManager {
 	private static void buildTimer() {
 		isEnableSafeBackup = true;
 		final long ms = (LinkProjectManager.hasAlive() ? 1 : 4) * HCTimer.ONE_MINUTE
-				* PropertiesManager.getIntValue(PropertiesManager.p_SafeDataBackupIntervalMinutes,
-						30);
+				* PropertiesManager.getIntValue(PropertiesManager.p_SafeDataBackupIntervalMinutes, 30);
 		if (autoSafeBackupTimer == null) {
 			autoSafeBackupTimer = new HCTimer("autoSafeBackupTimer", ms, false) {
 				@Override
@@ -261,8 +257,7 @@ public class SafeDataManager {
 		autoSafeBackupTimer.setEnable(true);
 	}
 
-	public static void startSafeBackupProcess(final boolean isForceBackup,
-			final boolean isWaitForDone) {
+	public static void startSafeBackupProcess(final boolean isForceBackup, final boolean isWaitForDone) {
 		if (isDisableSafeBackupForWin) {
 			return;
 		}
@@ -284,9 +279,7 @@ public class SafeDataManager {
 	private static void startSafeBackupProcessImpl(final boolean isForceBackup) {
 		synchronized (lock) {
 			if (isEnableSafeBackup == false) {
-				L.V = L.WShop ? false
-						: LogManager.log(
-								"[SafeDataManager] cancel startSafeBackupProcess, because of disableSafeBackup");
+				L.V = L.WShop ? false : LogManager.log("[SafeDataManager] cancel startSafeBackupProcess, because of disableSafeBackup");
 				return;
 			}
 
@@ -379,19 +372,15 @@ public class SafeDataManager {
 				try {
 					synchronized (lock) {
 						// backup project only
-						final File projectSrc = new File(
-								StoreDirManager.getUserDataBaseDir(projectID));
-						final File backProjTemp = new File(
-								new File(backTempDir, SafeDataManager.USER_DATA),
+						final File projectSrc = new File(StoreDirManager.getUserDataBaseDir(projectID));
+						final File backProjTemp = new File(new File(backTempDir, SafeDataManager.USER_DATA),
 								HttpUtil.encodeFileName(projectID));
-						final File backProjStore = new File(
-								new File(backStoreDir, SafeDataManager.USER_DATA),
+						final File backProjStore = new File(new File(backStoreDir, SafeDataManager.USER_DATA),
 								HttpUtil.encodeFileName(projectID));
 
 						backProjTemp.mkdirs();
 
-						final SafeDataMover mov = new SafeDataMover(projectSrc, backProjTemp, null,
-								null);
+						final SafeDataMover mov = new SafeDataMover(projectSrc, backProjTemp, null, null);
 						mov.syncFirst();
 
 						boolean isChanged = true;

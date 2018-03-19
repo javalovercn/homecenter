@@ -32,30 +32,30 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 public class SplatNode extends Node {
-    private Node node;
+	private Node node;
 
-    public SplatNode(SourcePosition position, Node node) {
-        super(position);
+	public SplatNode(SourcePosition position, Node node) {
+		super(position);
 
-        assert node != null : "node is not null";
+		assert node != null : "node is not null";
 
-        this.node = adopt(node);
-    }
+		this.node = adopt(node);
+	}
 
-    @Override
-    public boolean isSame(Node other) {
-        return super.isSame(other) && getValue().isSame(((SplatNode) other).getValue());
-    }
+	@Override
+	public boolean isSame(Node other) {
+		return super.isSame(other) && getValue().isSame(((SplatNode) other).getValue());
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.SPLATNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.SPLATNODE;
+	}
 
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitSplatNode(this);
-    }
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitSplatNode(this);
+	}
 
-    public Node getValue() {
-        return node;
-    }
+	public Node getValue() {
+		return node;
+	}
 }

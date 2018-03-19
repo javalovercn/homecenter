@@ -14,8 +14,7 @@ public class ThreadConfig {
 
 	private static final Integer SYS_CONFIG = 100000;// 该值以下，不作系统级权限要求
 
-	private static final HashMap<Long, HashMap<Integer, Object>> threadTable = new HashMap<Long, HashMap<Integer, Object>>(
-			16);
+	private static final HashMap<Long, HashMap<Integer, Object>> threadTable = new HashMap<Long, HashMap<Integer, Object>>(16);
 
 	public static synchronized void putValue(final Integer tag, final Object value) {
 		if (tag >= SYS_CONFIG) {
@@ -64,8 +63,7 @@ public class ThreadConfig {
 		putValue(tag, value ? Boolean.TRUE : Boolean.FALSE);
 	}
 
-	public static boolean isTrue(final Integer tag, final boolean valueWhenNull,
-			final boolean isRemoveAfterGet) {
+	public static boolean isTrue(final Integer tag, final boolean valueWhenNull, final boolean isRemoveAfterGet) {
 		final Object obj = getValue(tag, isRemoveAfterGet);
 		if (obj == null) {
 			return valueWhenNull;

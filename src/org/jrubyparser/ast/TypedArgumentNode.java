@@ -12,15 +12,15 @@ import org.jrubyparser.SourcePosition;
  * @author enebo
  */
 public class TypedArgumentNode extends ArgumentNode {
-    private Node typeNode;
-    
-    public TypedArgumentNode(SourcePosition position, String identifier, Node typeNode) {
-        super(position, identifier);
-        
-        this.typeNode = adopt(typeNode);
-    }
-    
-    public Node getTypeNode() {
-        return typeNode;
-    }
+	private Node typeNode;
+
+	public TypedArgumentNode(SourcePosition position, String identifier, Node typeNode) {
+		super(position, identifier);
+
+		this.typeNode = adopt(typeNode);
+	}
+
+	public Node getTypeNode() {
+		return typeNode;
+	}
 }

@@ -31,12 +31,9 @@ public class DeploySocket {
 
 	public static final String TEST_PASSWORD = "Hello world";
 
-	static final byte[] ERR_NO_JRUBY = ByteUtil.getBytes("JRuby is installing and NOT ready!",
-			IConstant.UTF_8);
-	static final byte[] ERR_EJECT_CONN = ByteUtil
-			.getBytes("refuse connect for too many error password.", IConstant.UTF_8);
-	static final byte[] ERR_IS_BUSY = ByteUtil.getBytes(
-			"server is busy or can't deploy now, please try late or close locking window!",
+	static final byte[] ERR_NO_JRUBY = ByteUtil.getBytes("JRuby is installing and NOT ready!", IConstant.UTF_8);
+	static final byte[] ERR_EJECT_CONN = ByteUtil.getBytes("refuse connect for too many error password.", IConstant.UTF_8);
+	static final byte[] ERR_IS_BUSY = ByteUtil.getBytes("server is busy or can't deploy now, please try late or close locking window!",
 			IConstant.UTF_8);
 	static final byte[] ERR_VERIFY_MD5 = ByteUtil.getBytes("fail verify md5", IConstant.UTF_8);
 	static final byte[] ERR_PASSWORD = ByteUtil.getBytes("password is error!", IConstant.UTF_8);
@@ -80,8 +77,8 @@ public class DeploySocket {
 		cache.cycle(head);
 	}
 
-	public final void sendData(final byte[] bs, final int offset, final int len,
-			final boolean isEncrypt, final boolean isEncode, final byte[] pwd) throws IOException {
+	public final void sendData(final byte[] bs, final int offset, final int len, final boolean isEncrypt, final boolean isEncode,
+			final byte[] pwd) throws IOException {
 		if (isEncrypt) {
 			superXor(bs, offset, len, pwd, isEncode);
 		}
@@ -115,8 +112,7 @@ public class DeploySocket {
 	 * @return
 	 * @throws IOException
 	 */
-	public final byte[] receiveData(final byte[] bs, final int len, final byte[] passwords)
-			throws IOException {
+	public final byte[] receiveData(final byte[] bs, final int len, final byte[] passwords) throws IOException {
 		dis.readFully(bs, 0, len);
 		if (passwords != null) {
 			superXor(bs, 0, len, passwords, false);
@@ -136,8 +132,7 @@ public class DeploySocket {
 		return dis.readByte();
 	}
 
-	private final void superXor(final byte[] src, final int offset, final int s_len,
-			final byte[] keys, final boolean isEncode) {
+	private final void superXor(final byte[] src, final int offset, final int s_len, final byte[] keys, final boolean isEncode) {
 		final int k_len = keys.length;
 		if (k_len == 0) {// 密码为空
 			return;
@@ -160,8 +155,7 @@ public class DeploySocket {
 			}
 		}
 		final int factorBigOne = 4;
-		final int factor_temp = (s_len <= 10) ? factorBigOne * 4
-				: ((s_len <= 20) ? factorBigOne * 2 : factorBigOne);
+		final int factor_temp = (s_len <= 10) ? factorBigOne * 4 : ((s_len <= 20) ? factorBigOne * 2 : factorBigOne);
 		int modeK = isEncode ? 0 : ((factor_temp * s_len - 1) % k_len);
 		int t = isEncode ? 0 : (factor_temp - 1);
 		for (; t >= 0 && t < factor_temp;) {
@@ -169,8 +163,8 @@ public class DeploySocket {
 			for (; i >= offset && i < endIdx;) {
 				final byte maskKey = keys[(t + (modeK)) % k_len];
 				final int maskKeyInt = maskKey & (0xFF);
-				final int storeIdx = ((factor_temp + t + (t == 0 ? i : i << 1) + maskKeyInt
-						+ (factor_temp == 0 ? 0 : modeK)) % s_len) + offset;
+				final int storeIdx = ((factor_temp + t + (t == 0 ? i : i << 1) + maskKeyInt + (factor_temp == 0 ? 0 : modeK)) % s_len)
+						+ offset;
 				// if(storeIdx < offset || storeIdx >= (offset + s_len)){
 				// LogManager.logInTest("storeIdx : " + storeIdx + ", modeK:" +
 				// modeK + ", k_len:" + k_len + ", maskKey:" + (maskKey & 0xFF)

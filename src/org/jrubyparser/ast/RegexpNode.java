@@ -36,56 +36,61 @@ import org.jrubyparser.RegexpOptions;
  * Represents a simple regular expression literal.
  */
 public class RegexpNode extends Node implements ILiteralNode {
-    private String value;
-    private RegexpOptions options;
+	private String value;
+	private RegexpOptions options;
 
-    public RegexpNode(SourcePosition position, String value, RegexpOptions options) {
-        super(position);
+	public RegexpNode(SourcePosition position, String value, RegexpOptions options) {
+		super(position);
 
-        this.value = value;
-        this.options = options;
-    }
+		this.value = value;
+		this.options = options;
+	}
 
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-        RegexpNode other = (RegexpNode) node;
-        if (getValue() == null && other.getValue() == null) {
-            if (getOptions() == null && other.getOptions() == null) return true;
-            if (getOptions() == null || other.getOptions() == null) return false;
-        } else if (getValue() == null || other.getValue() == null) {
-            return false;
-        } else if (getOptions() == null && other.getOptions() == null) {
-            return getValue().equals(other.getValue());
-        } else if (getOptions() == null || other.getOptions() == null) {
-            return false;
-        }
+		RegexpNode other = (RegexpNode) node;
+		if (getValue() == null && other.getValue() == null) {
+			if (getOptions() == null && other.getOptions() == null)
+				return true;
+			if (getOptions() == null || other.getOptions() == null)
+				return false;
+		} else if (getValue() == null || other.getValue() == null) {
+			return false;
+		} else if (getOptions() == null && other.getOptions() == null) {
+			return getValue().equals(other.getValue());
+		} else if (getOptions() == null || other.getOptions() == null) {
+			return false;
+		}
 
-        return getValue().equals(other.getValue()) && getOptions().equals(other.getOptions());
-    }
+		return getValue().equals(other.getValue()) && getOptions().equals(other.getOptions());
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.REGEXPNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.REGEXPNODE;
+	}
 
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitRegexpNode(this);
-    }
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitRegexpNode(this);
+	}
 
-    /**
-     * Gets the options.
-     * @return the options
-     */
-    public RegexpOptions getOptions() {
-        return options;
-    }
+	/**
+	 * Gets the options.
+	 * 
+	 * @return the options
+	 */
+	public RegexpOptions getOptions() {
+		return options;
+	}
 
-    /**
-     * Gets the value.
-     * @return Returns a ByteList
-     */
-    public String getValue() {
-        return value;
-    }
+	/**
+	 * Gets the value.
+	 * 
+	 * @return Returns a ByteList
+	 */
+	public String getValue() {
+		return value;
+	}
 }

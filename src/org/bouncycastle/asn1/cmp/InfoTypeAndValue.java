@@ -9,9 +9,9 @@ import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.DERSequence;
 
 /**
- * Example InfoTypeAndValue contents include, but are not limited
- * to, the following (un-comment in this ASN.1 module and use as
- * appropriate for a given environment):
+ * Example InfoTypeAndValue contents include, but are not limited to, the following (un-comment in
+ * this ASN.1 module and use as appropriate for a given environment):
+ * 
  * <pre>
  *   id-it-caProtEncCert    OBJECT IDENTIFIER ::= {id-it 1}
  *      CAProtEncCertValue      ::= CMPCertificate
@@ -51,82 +51,67 @@ import org.bouncycastle.asn1.DERSequence;
  *      id-it   OBJECT IDENTIFIER ::= {id-pkix 4}
  * </pre>
  */
-public class InfoTypeAndValue
-    extends ASN1Object
-{
-    private ASN1ObjectIdentifier infoType;
-    private ASN1Encodable       infoValue;
+public class InfoTypeAndValue extends ASN1Object {
+	private ASN1ObjectIdentifier infoType;
+	private ASN1Encodable infoValue;
 
-    private InfoTypeAndValue(ASN1Sequence seq)
-    {
-        infoType = ASN1ObjectIdentifier.getInstance(seq.getObjectAt(0));
+	private InfoTypeAndValue(ASN1Sequence seq) {
+		infoType = ASN1ObjectIdentifier.getInstance(seq.getObjectAt(0));
 
-        if (seq.size() > 1)
-        {
-            infoValue = (ASN1Encodable)seq.getObjectAt(1);
-        }
-    }
+		if (seq.size() > 1) {
+			infoValue = (ASN1Encodable) seq.getObjectAt(1);
+		}
+	}
 
-    public static InfoTypeAndValue getInstance(Object o)
-    {
-        if (o instanceof InfoTypeAndValue)
-        {
-            return (InfoTypeAndValue)o;
-        }
+	public static InfoTypeAndValue getInstance(Object o) {
+		if (o instanceof InfoTypeAndValue) {
+			return (InfoTypeAndValue) o;
+		}
 
-        if (o != null)
-        {
-            return new InfoTypeAndValue(ASN1Sequence.getInstance(o));
-        }
+		if (o != null) {
+			return new InfoTypeAndValue(ASN1Sequence.getInstance(o));
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    public InfoTypeAndValue(
-        ASN1ObjectIdentifier infoType)
-    {
-        this.infoType = infoType;
-        this.infoValue = null;
-    }
+	public InfoTypeAndValue(ASN1ObjectIdentifier infoType) {
+		this.infoType = infoType;
+		this.infoValue = null;
+	}
 
-    public InfoTypeAndValue(
-        ASN1ObjectIdentifier infoType,
-        ASN1Encodable optionalValue)
-    {
-        this.infoType = infoType;
-        this.infoValue = optionalValue;
-    }
+	public InfoTypeAndValue(ASN1ObjectIdentifier infoType, ASN1Encodable optionalValue) {
+		this.infoType = infoType;
+		this.infoValue = optionalValue;
+	}
 
-    public ASN1ObjectIdentifier getInfoType()
-    {
-        return infoType;
-    }
+	public ASN1ObjectIdentifier getInfoType() {
+		return infoType;
+	}
 
-    public ASN1Encodable getInfoValue()
-    {
-        return infoValue;
-    }
+	public ASN1Encodable getInfoValue() {
+		return infoValue;
+	}
 
-    /**
-     * <pre>
-     * InfoTypeAndValue ::= SEQUENCE {
-     *                         infoType               OBJECT IDENTIFIER,
-     *                         infoValue              ANY DEFINED BY infoType  OPTIONAL
-     * }
-     * </pre>
-     * @return a basic ASN.1 object representation.
-     */
-    public ASN1Primitive toASN1Primitive()
-    {
-        ASN1EncodableVector v = new ASN1EncodableVector();
+	/**
+	 * <pre>
+	 * InfoTypeAndValue ::= SEQUENCE {
+	 *                         infoType               OBJECT IDENTIFIER,
+	 *                         infoValue              ANY DEFINED BY infoType  OPTIONAL
+	 * }
+	 * </pre>
+	 * 
+	 * @return a basic ASN.1 object representation.
+	 */
+	public ASN1Primitive toASN1Primitive() {
+		ASN1EncodableVector v = new ASN1EncodableVector();
 
-        v.add(infoType);
+		v.add(infoType);
 
-        if (infoValue != null)
-        {
-            v.add(infoValue);
-        }
+		if (infoValue != null) {
+			v.add(infoValue);
+		}
 
-        return new DERSequence(v);
-    }
+		return new DERSequence(v);
+	}
 }

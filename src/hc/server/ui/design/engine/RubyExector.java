@@ -28,8 +28,7 @@ import hc.util.ThreadConfig;
 public class RubyExector {
 	public static final String JAVA_MAO_MAO = "Java::";
 	private static final String IMPORT = "import ";
-	private static final Pattern IMPORT_PATTERN = Pattern
-			.compile("^\\s*(import(\\s+))([a-zA-Z0-9:_\\.]+)\\s*(#.*?)?$", Pattern.MULTILINE);
+	private static final Pattern IMPORT_PATTERN = Pattern.compile("^\\s*(import(\\s+))([a-zA-Z0-9:_\\.]+)\\s*(#.*?)?$", Pattern.MULTILINE);
 
 	/**
 	 * 将java.lang.String转为JavaLangString
@@ -87,8 +86,7 @@ public class RubyExector {
 				if (imports == null) {
 					imports = new ScriptPositionList();
 				}
-				final ScriptPosition p = imports.addPosition(false, matcher.start(1),
-						matcher.end(3), matcher.group(3), true);
+				final ScriptPosition p = imports.addPosition(false, matcher.start(1), matcher.end(3), matcher.group(3), true);
 				final String constantName = toJavaConstant(p);
 				p.extItem2 = constantName;
 			}
@@ -175,23 +173,20 @@ public class RubyExector {
 						}
 						{
 							final char beforeByte = chars[idx - 1];
-							if (beforeByte >= 'a' && beforeByte <= 'z'
-									|| beforeByte >= 'A' && beforeByte <= 'Z'
-									|| beforeByte >= '0' && beforeByte <= '9' || beforeByte == '_'
-									|| beforeByte == '.' || beforeByte == ':') {
+							if (beforeByte >= 'a' && beforeByte <= 'z' || beforeByte >= 'A' && beforeByte <= 'Z'
+									|| beforeByte >= '0' && beforeByte <= '9' || beforeByte == '_' || beforeByte == '.'
+									|| beforeByte == ':') {
 								continue;
 							}
 						}
 						if (afterIdx < charsLen) {// 文尾
 							final char afterByte = chars[afterIdx];
-							if (afterByte >= 'a' && afterByte <= 'z'
-									|| afterByte >= 'A' && afterByte <= 'Z'
+							if (afterByte >= 'a' && afterByte <= 'z' || afterByte >= 'A' && afterByte <= 'Z'
 									|| afterByte >= '0' && afterByte <= '9' || afterByte == '_') {
 								continue;
 							}
 						}
-						classRefPositions.addPosition(false, idx, startIdx, shortClassName,
-								constantName, false);
+						classRefPositions.addPosition(false, idx, startIdx, shortClassName, constantName, false);
 					}
 				}
 			}
@@ -201,8 +196,7 @@ public class RubyExector {
 				int jointIdx = 0;
 				StringBuilder sb = null;
 				ScriptPosition spIm = (imports.count == imIdx ? null : imports.positions[imIdx++]);
-				ScriptPosition spCons = (classRefPositions.count == consIdx ? null
-						: classRefPositions.positions[consIdx++]);
+				ScriptPosition spCons = (classRefPositions.count == consIdx ? null : classRefPositions.positions[consIdx++]);
 				while (true) {
 					if (spIm == null && spCons == null) {
 						if (sb == null) {
@@ -235,8 +229,7 @@ public class RubyExector {
 
 						sb.append(spCons.extItem1);
 
-						spCons = (classRefPositions.count == consIdx ? null
-								: classRefPositions.positions[consIdx++]);
+						spCons = (classRefPositions.count == consIdx ? null : classRefPositions.positions[consIdx++]);
 					}
 				}
 			}
@@ -253,14 +246,13 @@ public class RubyExector {
 		}
 	}
 
-	public static final Object runAndWaitInProjectOrSessionPoolWithRepErr(final J2SESession coreSS,
-			final CallContext runCtx, final StringValue script, final String scriptName,
-			final Map map, final HCJRubyEngine hcje, final ProjectContext context,
+	public static final Object runAndWaitInProjectOrSessionPoolWithRepErr(final J2SESession coreSS, final CallContext runCtx,
+			final StringValue script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context,
 			final Class requireReturnClass) {
 		Object out = null;
 		try {
-			out = requireReturnClass.cast(RubyExector.runAndWaitInProjectOrSessionPool(coreSS,
-					runCtx, script, scriptName, map, hcje, context));
+			out = requireReturnClass
+					.cast(RubyExector.runAndWaitInProjectOrSessionPool(coreSS, runCtx, script, scriptName, map, hcje, context));
 		} catch (final Throwable e) {
 			e.printStackTrace();
 			// 不return，因为需要后续报告错误。
@@ -270,21 +262,18 @@ public class RubyExector {
 			if (runCtx.isError) {
 				message = runCtx.getMessage();
 			} else {
-				message = "expected return Class : " + requireReturnClass.getName()
-						+ ", but return null";
+				message = "expected return Class : " + requireReturnClass.getName() + ", but return null";
 			}
 			LogManager.errToLog("parse script error : [" + message + "], for script : \n" + script);
-			LogManager.err("Error instance " + requireReturnClass.getSimpleName() + " in project ["
-					+ context.getProjectID() + "].");
+			LogManager.err("Error instance " + requireReturnClass.getSimpleName() + " in project [" + context.getProjectID() + "].");
 			// Fail to add HAR message
 			notifyMobileErrorScript(coreSS, context, scriptName);
 		}
 		return out;
 	}
 
-	public static final Object runAndWaitInProjectOrSessionPool(final J2SESession coreSS,
-			final CallContext callCtx, final StringValue script, final String scriptName,
-			final Map map, final HCJRubyEngine hcje, final ProjectContext context) {
+	public static final Object runAndWaitInProjectOrSessionPool(final J2SESession coreSS, final CallContext callCtx,
+			final StringValue script, final String scriptName, final Map map, final HCJRubyEngine hcje, final ProjectContext context) {
 		// RubyExector.parse(callCtx, script, scriptName, hcje, true);
 
 		if (callCtx.isError) {
@@ -300,8 +289,7 @@ public class RubyExector {
 		};
 
 		if (coreSS != null) {
-			final SessionContext mobileSession = ServerUIAPIAgent.getProjResponserMaybeNull(context)
-					.getMobileSession(coreSS);
+			final SessionContext mobileSession = ServerUIAPIAgent.getProjResponserMaybeNull(context).getMobileSession(coreSS);
 			if (mobileSession != null) {
 				return mobileSession.recycleRes.threadPool.runAndWait(run);
 			} else {
@@ -315,17 +303,15 @@ public class RubyExector {
 		}
 	}
 
-	public static synchronized final void parse(final CallContext callCtx, final StringValue sv,
-			final String scriptName, final HCJRubyEngine hcje, final boolean isReportException) {
+	public static synchronized final void parse(final CallContext callCtx, final StringValue sv, final String scriptName,
+			final HCJRubyEngine hcje, final boolean isReportException) {
 		try {
 			hcje.parse(sv, scriptName);
 		} catch (final Throwable e) {
 			if (isReportException) {
-				final String errorMsg = "project [" + hcje.projectIDMaybeBeginWithIDE
-						+ "] script error : " + e.toString();
+				final String errorMsg = "project [" + hcje.projectIDMaybeBeginWithIDE + "] script error : " + e.toString();
 				LogManager.errToLog(errorMsg);
-				ExceptionReporter.printStackTrace(e, sv.value, errorMsg,
-						ExceptionReporter.INVOKE_NORMAL);
+				ExceptionReporter.printStackTrace(e, sv.value, errorMsg, ExceptionReporter.INVOKE_NORMAL);
 			}
 
 			final String err = hcje.errorWriter.getMessage();
@@ -349,8 +335,8 @@ public class RubyExector {
 	 * @param hcje
 	 * @return
 	 */
-	public static final Object runAndWaitOnEngine(final CallContext callCtx, final StringValue sv,
-			final String scriptName, final Map map, final HCJRubyEngine hcje) {
+	public static final Object runAndWaitOnEngine(final CallContext callCtx, final StringValue sv, final String scriptName, final Map map,
+			final HCJRubyEngine hcje) {
 		try {
 			return runAndWaitOnEngine(sv, scriptName, map, hcje);
 
@@ -370,8 +356,7 @@ public class RubyExector {
 			ExceptionReporter.printStackTraceFromHAR(e, sv.value, err);
 			err = StringUtil.replace(err, "\n", "");// 去掉换行
 			err = StringUtil.replace(err, "\t", "");// 去掉缩进
-			System.err.println("------------------error on JRuby script : [" + err
-					+ "] ------------------\n" + sv.value
+			System.err.println("------------------error on JRuby script : [" + err + "] ------------------\n" + sv.value
 					+ "\n--------------------end error on script---------------------");
 			if (callCtx != null) {
 				callCtx.setError(err, sv.value, e);
@@ -384,8 +369,8 @@ public class RubyExector {
 		}
 	}
 
-	public static Object runAndWaitOnEngine(final StringValue sv, final String scriptName,
-			final Map map, final HCJRubyEngine hcje) throws Throwable {
+	public static Object runAndWaitOnEngine(final StringValue sv, final String scriptName, final Map map, final HCJRubyEngine hcje)
+			throws Throwable {
 		if (map == null) {
 		} else {
 			// LogManager.errToLog("$_hcmap is deprecated, there are serious
@@ -423,15 +408,28 @@ public class RubyExector {
 		return map;
 	}
 
-	public static void initActive(final HCJRubyEngine hcje) {
-		final String script = "#init TestEngine\n" + "str_class = java.lang.String\n";// 初始引擎及调试之用
+	/**
+	 * 注意：此方法既在工程线程池内调用，也在系统级线程池调用
+	 * @param hcje
+	 * @param isPrintLog
+	 */
+	public static void initActive(final HCJRubyEngine hcje, final boolean isPrintLog) {
+		final String script;
+		if (isPrintLog) {
+			script = "require 'java'\n"
+					+ "puts 'done initActive project : [" + hcje.projectIDMaybeBeginWithIDE + "] in JRuby.'\n"
+					+ "JavaStrClass = java.lang.String\n";// 初始引擎及调试之用
+		} else {
+			script = "require 'java'\n#init TestEngine\nJavaStrClass = java.lang.String\n";
+		}
+		if(isPrintLog){
+			LogManager.log("ready initActive project : [" + hcje.projectIDMaybeBeginWithIDE + "] in JRuby.");
+		}
 		final String scriptName = null;
-		// parse(null, script, scriptName, hcje, false);
 		runAndWaitOnEngine(null, new StringValue(script), scriptName, null, hcje);
 	}
 
-	private static final void notifyMobileErrorScript(final J2SESession coreSS,
-			final ProjectContext ctx, final String title) {
+	private static final void notifyMobileErrorScript(final J2SESession coreSS, final ProjectContext ctx, final String title) {
 		if (coreSS == null) {
 			return;
 		}
@@ -440,9 +438,8 @@ public class RubyExector {
 		msg = StringUtil.replace(msg, "{title}", title);
 
 		final J2SESession[] coreSSS = { coreSS };
-		ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS,
-				ResourceUtil.get(coreSS, IConstant.ERROR), msg, ProjectContext.MESSAGE_ERROR, null,
-				0);
+		ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(coreSSS, ResourceUtil.get(coreSS, IConstant.ERROR), msg,
+				ProjectContext.MESSAGE_ERROR, null, 0);
 	}
 
 }

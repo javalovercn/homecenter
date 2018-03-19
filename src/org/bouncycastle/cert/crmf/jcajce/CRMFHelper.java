@@ -44,407 +44,278 @@ import org.bouncycastle.cms.CMSAlgorithm;
 import org.bouncycastle.jcajce.util.AlgorithmParametersUtils;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
 
-class CRMFHelper
-{
-    protected static final Map BASE_CIPHER_NAMES = new HashMap();
-    protected static final Map CIPHER_ALG_NAMES = new HashMap();
-    protected static final Map DIGEST_ALG_NAMES = new HashMap();
-    protected static final Map KEY_ALG_NAMES = new HashMap();
-    protected static final Map MAC_ALG_NAMES = new HashMap();
+class CRMFHelper {
+	protected static final Map BASE_CIPHER_NAMES = new HashMap();
+	protected static final Map CIPHER_ALG_NAMES = new HashMap();
+	protected static final Map DIGEST_ALG_NAMES = new HashMap();
+	protected static final Map KEY_ALG_NAMES = new HashMap();
+	protected static final Map MAC_ALG_NAMES = new HashMap();
 
-    static
-    {
-        BASE_CIPHER_NAMES.put(PKCSObjectIdentifiers.des_EDE3_CBC,  "DESEDE");
-        BASE_CIPHER_NAMES.put(NISTObjectIdentifiers.id_aes128_CBC,  "AES");
-        BASE_CIPHER_NAMES.put(NISTObjectIdentifiers.id_aes192_CBC,  "AES");
-        BASE_CIPHER_NAMES.put(NISTObjectIdentifiers.id_aes256_CBC,  "AES");
-        
-        CIPHER_ALG_NAMES.put(CMSAlgorithm.DES_EDE3_CBC,  "DESEDE/CBC/PKCS5Padding");
-        CIPHER_ALG_NAMES.put(CMSAlgorithm.AES128_CBC,  "AES/CBC/PKCS5Padding");
-        CIPHER_ALG_NAMES.put(CMSAlgorithm.AES192_CBC,  "AES/CBC/PKCS5Padding");
-        CIPHER_ALG_NAMES.put(CMSAlgorithm.AES256_CBC,  "AES/CBC/PKCS5Padding");
-        CIPHER_ALG_NAMES.put(new ASN1ObjectIdentifier(PKCSObjectIdentifiers.rsaEncryption.getId()), "RSA/ECB/PKCS1Padding");
-        
-        DIGEST_ALG_NAMES.put(OIWObjectIdentifiers.idSHA1, "SHA1");
-        DIGEST_ALG_NAMES.put(NISTObjectIdentifiers.id_sha224, "SHA224");
-        DIGEST_ALG_NAMES.put(NISTObjectIdentifiers.id_sha256, "SHA256");
-        DIGEST_ALG_NAMES.put(NISTObjectIdentifiers.id_sha384, "SHA384");
-        DIGEST_ALG_NAMES.put(NISTObjectIdentifiers.id_sha512, "SHA512");
+	static {
+		BASE_CIPHER_NAMES.put(PKCSObjectIdentifiers.des_EDE3_CBC, "DESEDE");
+		BASE_CIPHER_NAMES.put(NISTObjectIdentifiers.id_aes128_CBC, "AES");
+		BASE_CIPHER_NAMES.put(NISTObjectIdentifiers.id_aes192_CBC, "AES");
+		BASE_CIPHER_NAMES.put(NISTObjectIdentifiers.id_aes256_CBC, "AES");
 
-        MAC_ALG_NAMES.put(IANAObjectIdentifiers.hmacSHA1, "HMACSHA1");
-        MAC_ALG_NAMES.put(PKCSObjectIdentifiers.id_hmacWithSHA1, "HMACSHA1");
-        MAC_ALG_NAMES.put(PKCSObjectIdentifiers.id_hmacWithSHA224, "HMACSHA224");
-        MAC_ALG_NAMES.put(PKCSObjectIdentifiers.id_hmacWithSHA256, "HMACSHA256");
-        MAC_ALG_NAMES.put(PKCSObjectIdentifiers.id_hmacWithSHA384, "HMACSHA384");
-        MAC_ALG_NAMES.put(PKCSObjectIdentifiers.id_hmacWithSHA512, "HMACSHA512");
+		CIPHER_ALG_NAMES.put(CMSAlgorithm.DES_EDE3_CBC, "DESEDE/CBC/PKCS5Padding");
+		CIPHER_ALG_NAMES.put(CMSAlgorithm.AES128_CBC, "AES/CBC/PKCS5Padding");
+		CIPHER_ALG_NAMES.put(CMSAlgorithm.AES192_CBC, "AES/CBC/PKCS5Padding");
+		CIPHER_ALG_NAMES.put(CMSAlgorithm.AES256_CBC, "AES/CBC/PKCS5Padding");
+		CIPHER_ALG_NAMES.put(new ASN1ObjectIdentifier(PKCSObjectIdentifiers.rsaEncryption.getId()), "RSA/ECB/PKCS1Padding");
 
-        KEY_ALG_NAMES.put(PKCSObjectIdentifiers.rsaEncryption, "RSA");
-        KEY_ALG_NAMES.put(X9ObjectIdentifiers.id_dsa, "DSA");
-    }
+		DIGEST_ALG_NAMES.put(OIWObjectIdentifiers.idSHA1, "SHA1");
+		DIGEST_ALG_NAMES.put(NISTObjectIdentifiers.id_sha224, "SHA224");
+		DIGEST_ALG_NAMES.put(NISTObjectIdentifiers.id_sha256, "SHA256");
+		DIGEST_ALG_NAMES.put(NISTObjectIdentifiers.id_sha384, "SHA384");
+		DIGEST_ALG_NAMES.put(NISTObjectIdentifiers.id_sha512, "SHA512");
 
-    private JcaJceHelper helper;
+		MAC_ALG_NAMES.put(IANAObjectIdentifiers.hmacSHA1, "HMACSHA1");
+		MAC_ALG_NAMES.put(PKCSObjectIdentifiers.id_hmacWithSHA1, "HMACSHA1");
+		MAC_ALG_NAMES.put(PKCSObjectIdentifiers.id_hmacWithSHA224, "HMACSHA224");
+		MAC_ALG_NAMES.put(PKCSObjectIdentifiers.id_hmacWithSHA256, "HMACSHA256");
+		MAC_ALG_NAMES.put(PKCSObjectIdentifiers.id_hmacWithSHA384, "HMACSHA384");
+		MAC_ALG_NAMES.put(PKCSObjectIdentifiers.id_hmacWithSHA512, "HMACSHA512");
 
-    CRMFHelper(JcaJceHelper helper)
-    {
-        this.helper = helper;
-    }
+		KEY_ALG_NAMES.put(PKCSObjectIdentifiers.rsaEncryption, "RSA");
+		KEY_ALG_NAMES.put(X9ObjectIdentifiers.id_dsa, "DSA");
+	}
 
-    PublicKey toPublicKey(SubjectPublicKeyInfo subjectPublicKeyInfo)
-        throws CRMFException
-    {
-        try
-        {
-            X509EncodedKeySpec xspec = new X509EncodedKeySpec(subjectPublicKeyInfo.getEncoded());
-            AlgorithmIdentifier keyAlg = subjectPublicKeyInfo.getAlgorithm();
+	private JcaJceHelper helper;
 
-            return createKeyFactory(keyAlg.getAlgorithm()).generatePublic(xspec);
-        }
-        catch (Exception e)
-        {
-            throw new CRMFException("invalid key: " + e.getMessage(), e);
-        }
-    }
+	CRMFHelper(JcaJceHelper helper) {
+		this.helper = helper;
+	}
 
-    Cipher createCipher(ASN1ObjectIdentifier algorithm)
-        throws CRMFException
-    {
-        try
-        {
-            String cipherName = (String)CIPHER_ALG_NAMES.get(algorithm);
+	PublicKey toPublicKey(SubjectPublicKeyInfo subjectPublicKeyInfo) throws CRMFException {
+		try {
+			X509EncodedKeySpec xspec = new X509EncodedKeySpec(subjectPublicKeyInfo.getEncoded());
+			AlgorithmIdentifier keyAlg = subjectPublicKeyInfo.getAlgorithm();
 
-            if (cipherName != null)
-            {
-                try
-                {
-                    // this is reversed as the Sun policy files now allow unlimited strength RSA
-                    return helper.createCipher(cipherName);
-                }
-                catch (NoSuchAlgorithmException e)
-                {
-                    // Ignore
-                }
-            }
-            return helper.createCipher(algorithm.getId());
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new CRMFException("cannot create cipher: " + e.getMessage(), e);
-        }
-    }
-    
-    public KeyGenerator createKeyGenerator(ASN1ObjectIdentifier algorithm)
-        throws CRMFException
-    {
-        try
-        {
-            String cipherName = (String)BASE_CIPHER_NAMES.get(algorithm);
+			return createKeyFactory(keyAlg.getAlgorithm()).generatePublic(xspec);
+		} catch (Exception e) {
+			throw new CRMFException("invalid key: " + e.getMessage(), e);
+		}
+	}
 
-            if (cipherName != null)
-            {
-                try
-                {
-                    // this is reversed as the Sun policy files now allow unlimited strength RSA
-                    return helper.createKeyGenerator(cipherName);
-                }
-                catch (NoSuchAlgorithmException e)
-                {
-                    // Ignore
-                }
-            }
-            return helper.createKeyGenerator(algorithm.getId());
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new CRMFException("cannot create key generator: " + e.getMessage(), e);
-        }
-    }
+	Cipher createCipher(ASN1ObjectIdentifier algorithm) throws CRMFException {
+		try {
+			String cipherName = (String) CIPHER_ALG_NAMES.get(algorithm);
 
+			if (cipherName != null) {
+				try {
+					// this is reversed as the Sun policy files now allow unlimited strength RSA
+					return helper.createCipher(cipherName);
+				} catch (NoSuchAlgorithmException e) {
+					// Ignore
+				}
+			}
+			return helper.createCipher(algorithm.getId());
+		} catch (GeneralSecurityException e) {
+			throw new CRMFException("cannot create cipher: " + e.getMessage(), e);
+		}
+	}
 
+	public KeyGenerator createKeyGenerator(ASN1ObjectIdentifier algorithm) throws CRMFException {
+		try {
+			String cipherName = (String) BASE_CIPHER_NAMES.get(algorithm);
 
-    Cipher createContentCipher(final Key sKey, final AlgorithmIdentifier encryptionAlgID)
-        throws CRMFException
-    {
-        return (Cipher)execute(new JCECallback()
-        {
-            public Object doInJCE()
-                throws CRMFException, InvalidAlgorithmParameterException,
-                InvalidKeyException, InvalidParameterSpecException, NoSuchAlgorithmException,
-                NoSuchPaddingException, NoSuchProviderException
-            {
-                Cipher cipher = createCipher(encryptionAlgID.getAlgorithm());
-                ASN1Primitive sParams = (ASN1Primitive)encryptionAlgID.getParameters();
-                ASN1ObjectIdentifier encAlg = encryptionAlgID.getAlgorithm();
+			if (cipherName != null) {
+				try {
+					// this is reversed as the Sun policy files now allow unlimited strength RSA
+					return helper.createKeyGenerator(cipherName);
+				} catch (NoSuchAlgorithmException e) {
+					// Ignore
+				}
+			}
+			return helper.createKeyGenerator(algorithm.getId());
+		} catch (GeneralSecurityException e) {
+			throw new CRMFException("cannot create key generator: " + e.getMessage(), e);
+		}
+	}
 
-                if (sParams != null && !(sParams instanceof ASN1Null))
-                {
-                    try
-                    {
-                        AlgorithmParameters params = createAlgorithmParameters(encryptionAlgID.getAlgorithm());
+	Cipher createContentCipher(final Key sKey, final AlgorithmIdentifier encryptionAlgID) throws CRMFException {
+		return (Cipher) execute(new JCECallback() {
+			public Object doInJCE() throws CRMFException, InvalidAlgorithmParameterException, InvalidKeyException,
+					InvalidParameterSpecException, NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException {
+				Cipher cipher = createCipher(encryptionAlgID.getAlgorithm());
+				ASN1Primitive sParams = (ASN1Primitive) encryptionAlgID.getParameters();
+				ASN1ObjectIdentifier encAlg = encryptionAlgID.getAlgorithm();
 
-                        try
-                        {
-                            AlgorithmParametersUtils.loadParameters(params, sParams);
-                        }
-                        catch (IOException e)
-                        {
-                            throw new CRMFException("error decoding algorithm parameters.", e);
-                        }
+				if (sParams != null && !(sParams instanceof ASN1Null)) {
+					try {
+						AlgorithmParameters params = createAlgorithmParameters(encryptionAlgID.getAlgorithm());
 
-                        cipher.init(Cipher.DECRYPT_MODE, sKey, params);
-                    }
-                    catch (NoSuchAlgorithmException e)
-                    {
-                        if (encAlg.equals(CMSAlgorithm.DES_EDE3_CBC)
-                            || encAlg.equals(CMSAlgorithm.IDEA_CBC)
-                            || encAlg.equals(CMSAlgorithm.AES128_CBC)
-                            || encAlg.equals(CMSAlgorithm.AES192_CBC)
-                            || encAlg.equals(CMSAlgorithm.AES256_CBC))
-                        {
-                            cipher.init(Cipher.DECRYPT_MODE, sKey, new IvParameterSpec(
-                                ASN1OctetString.getInstance(sParams).getOctets()));
-                        }
-                        else
-                        {
-                            throw e;
-                        }
-                    }
-                }
-                else
-                {
-                    if (encAlg.equals(CMSAlgorithm.DES_EDE3_CBC)
-                        || encAlg.equals(CMSAlgorithm.IDEA_CBC)
-                        || encAlg.equals(CMSAlgorithm.CAST5_CBC))
-                    {
-                        cipher.init(Cipher.DECRYPT_MODE, sKey, new IvParameterSpec(new byte[8]));
-                    }
-                    else
-                    {
-                        cipher.init(Cipher.DECRYPT_MODE, sKey);
-                    }
-                }
+						try {
+							AlgorithmParametersUtils.loadParameters(params, sParams);
+						} catch (IOException e) {
+							throw new CRMFException("error decoding algorithm parameters.", e);
+						}
 
-                return cipher;
-            }
-        });
-    }
-    
-    AlgorithmParameters createAlgorithmParameters(ASN1ObjectIdentifier algorithm)
-        throws NoSuchAlgorithmException, NoSuchProviderException
-    {
-        String algorithmName = (String)BASE_CIPHER_NAMES.get(algorithm);
+						cipher.init(Cipher.DECRYPT_MODE, sKey, params);
+					} catch (NoSuchAlgorithmException e) {
+						if (encAlg.equals(CMSAlgorithm.DES_EDE3_CBC) || encAlg.equals(CMSAlgorithm.IDEA_CBC)
+								|| encAlg.equals(CMSAlgorithm.AES128_CBC) || encAlg.equals(CMSAlgorithm.AES192_CBC)
+								|| encAlg.equals(CMSAlgorithm.AES256_CBC)) {
+							cipher.init(Cipher.DECRYPT_MODE, sKey, new IvParameterSpec(ASN1OctetString.getInstance(sParams).getOctets()));
+						} else {
+							throw e;
+						}
+					}
+				} else {
+					if (encAlg.equals(CMSAlgorithm.DES_EDE3_CBC) || encAlg.equals(CMSAlgorithm.IDEA_CBC)
+							|| encAlg.equals(CMSAlgorithm.CAST5_CBC)) {
+						cipher.init(Cipher.DECRYPT_MODE, sKey, new IvParameterSpec(new byte[8]));
+					} else {
+						cipher.init(Cipher.DECRYPT_MODE, sKey);
+					}
+				}
 
-        if (algorithmName != null)
-        {
-            try
-            {
-                // this is reversed as the Sun policy files now allow unlimited strength RSA
-                return helper.createAlgorithmParameters(algorithmName);
-            }
-            catch (NoSuchAlgorithmException e)
-            {
-                // Ignore
-            }
-        }
-        return helper.createAlgorithmParameters(algorithm.getId());
-    }
-    
-    KeyFactory createKeyFactory(ASN1ObjectIdentifier algorithm)
-        throws CRMFException
-    {
-        try
-        {
-            String algName = (String)KEY_ALG_NAMES.get(algorithm);
+				return cipher;
+			}
+		});
+	}
 
-            if (algName != null)
-            {
-                try
-                {
-                    // this is reversed as the Sun policy files now allow unlimited strength RSA
-                    return helper.createKeyFactory(algName);
-                }
-                catch (NoSuchAlgorithmException e)
-                {
-                    // Ignore
-                }
-            }
-            return helper.createKeyFactory(algorithm.getId());
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new CRMFException("cannot create cipher: " + e.getMessage(), e);
-        }
-    }
+	AlgorithmParameters createAlgorithmParameters(ASN1ObjectIdentifier algorithm) throws NoSuchAlgorithmException, NoSuchProviderException {
+		String algorithmName = (String) BASE_CIPHER_NAMES.get(algorithm);
 
-    MessageDigest createDigest(ASN1ObjectIdentifier algorithm)
-        throws CRMFException
-    {
-        try
-        {
-            String digestName = (String)DIGEST_ALG_NAMES.get(algorithm);
+		if (algorithmName != null) {
+			try {
+				// this is reversed as the Sun policy files now allow unlimited strength RSA
+				return helper.createAlgorithmParameters(algorithmName);
+			} catch (NoSuchAlgorithmException e) {
+				// Ignore
+			}
+		}
+		return helper.createAlgorithmParameters(algorithm.getId());
+	}
 
-            if (digestName != null)
-            {
-                try
-                {
-                    // this is reversed as the Sun policy files now allow unlimited strength RSA
-                    return helper.createDigest(digestName);
-                }
-                catch (NoSuchAlgorithmException e)
-                {
-                    // Ignore
-                }
-            }
-            return helper.createDigest(algorithm.getId());
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new CRMFException("cannot create cipher: " + e.getMessage(), e);
-        }
-    }
+	KeyFactory createKeyFactory(ASN1ObjectIdentifier algorithm) throws CRMFException {
+		try {
+			String algName = (String) KEY_ALG_NAMES.get(algorithm);
 
-    Mac createMac(ASN1ObjectIdentifier algorithm)
-        throws CRMFException
-    {
-        try
-        {
-            String macName = (String)MAC_ALG_NAMES.get(algorithm);
+			if (algName != null) {
+				try {
+					// this is reversed as the Sun policy files now allow unlimited strength RSA
+					return helper.createKeyFactory(algName);
+				} catch (NoSuchAlgorithmException e) {
+					// Ignore
+				}
+			}
+			return helper.createKeyFactory(algorithm.getId());
+		} catch (GeneralSecurityException e) {
+			throw new CRMFException("cannot create cipher: " + e.getMessage(), e);
+		}
+	}
 
-            if (macName != null)
-            {
-                try
-                {
-                    // this is reversed as the Sun policy files now allow unlimited strength RSA
-                    return helper.createMac(macName);
-                }
-                catch (NoSuchAlgorithmException e)
-                {
-                    // Ignore
-                }
-            }
-            return helper.createMac(algorithm.getId());
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new CRMFException("cannot create mac: " + e.getMessage(), e);
-        }
-    }
+	MessageDigest createDigest(ASN1ObjectIdentifier algorithm) throws CRMFException {
+		try {
+			String digestName = (String) DIGEST_ALG_NAMES.get(algorithm);
 
-    AlgorithmParameterGenerator createAlgorithmParameterGenerator(ASN1ObjectIdentifier algorithm)
-        throws GeneralSecurityException
-    {
-        String algorithmName = (String)BASE_CIPHER_NAMES.get(algorithm);
+			if (digestName != null) {
+				try {
+					// this is reversed as the Sun policy files now allow unlimited strength RSA
+					return helper.createDigest(digestName);
+				} catch (NoSuchAlgorithmException e) {
+					// Ignore
+				}
+			}
+			return helper.createDigest(algorithm.getId());
+		} catch (GeneralSecurityException e) {
+			throw new CRMFException("cannot create cipher: " + e.getMessage(), e);
+		}
+	}
 
-        if (algorithmName != null)
-        {
-            try
-            {
-                // this is reversed as the Sun policy files now allow unlimited strength RSA
-                return helper.createAlgorithmParameterGenerator(algorithmName);
-            }
-            catch (NoSuchAlgorithmException e)
-            {
-                // Ignore
-            }
-        }
-        return helper.createAlgorithmParameterGenerator(algorithm.getId());
-    }
+	Mac createMac(ASN1ObjectIdentifier algorithm) throws CRMFException {
+		try {
+			String macName = (String) MAC_ALG_NAMES.get(algorithm);
 
-    AlgorithmParameters generateParameters(ASN1ObjectIdentifier encryptionOID, SecretKey encKey, SecureRandom rand)
-        throws CRMFException
-    {
-        try
-        {
-            AlgorithmParameterGenerator pGen = createAlgorithmParameterGenerator(encryptionOID);
+			if (macName != null) {
+				try {
+					// this is reversed as the Sun policy files now allow unlimited strength RSA
+					return helper.createMac(macName);
+				} catch (NoSuchAlgorithmException e) {
+					// Ignore
+				}
+			}
+			return helper.createMac(algorithm.getId());
+		} catch (GeneralSecurityException e) {
+			throw new CRMFException("cannot create mac: " + e.getMessage(), e);
+		}
+	}
 
-            if (encryptionOID.equals(CMSAlgorithm.RC2_CBC))
-            {
-                byte[]  iv = new byte[8];
+	AlgorithmParameterGenerator createAlgorithmParameterGenerator(ASN1ObjectIdentifier algorithm) throws GeneralSecurityException {
+		String algorithmName = (String) BASE_CIPHER_NAMES.get(algorithm);
 
-                rand.nextBytes(iv);
+		if (algorithmName != null) {
+			try {
+				// this is reversed as the Sun policy files now allow unlimited strength RSA
+				return helper.createAlgorithmParameterGenerator(algorithmName);
+			} catch (NoSuchAlgorithmException e) {
+				// Ignore
+			}
+		}
+		return helper.createAlgorithmParameterGenerator(algorithm.getId());
+	}
 
-                try
-                {
-                    pGen.init(new RC2ParameterSpec(encKey.getEncoded().length * 8, iv), rand);
-                }
-                catch (InvalidAlgorithmParameterException e)
-                {
-                    throw new CRMFException("parameters generation error: " + e, e);
-                }
-            }
+	AlgorithmParameters generateParameters(ASN1ObjectIdentifier encryptionOID, SecretKey encKey, SecureRandom rand) throws CRMFException {
+		try {
+			AlgorithmParameterGenerator pGen = createAlgorithmParameterGenerator(encryptionOID);
 
-            return pGen.generateParameters();
-        }
-        catch (NoSuchAlgorithmException e)
-        {
-            return null;
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new CRMFException("exception creating algorithm parameter generator: " + e, e);
-        }
-    }
+			if (encryptionOID.equals(CMSAlgorithm.RC2_CBC)) {
+				byte[] iv = new byte[8];
 
-    AlgorithmIdentifier getAlgorithmIdentifier(ASN1ObjectIdentifier encryptionOID, AlgorithmParameters params)
-        throws CRMFException
-    {
-        ASN1Encodable asn1Params;
-        if (params != null)
-        {
-            try
-            {
-                asn1Params = AlgorithmParametersUtils.extractParameters(params);
-            }
-            catch (IOException e)
-            {
-                throw new CRMFException("cannot encode parameters: " + e.getMessage(), e);
-            }
-        }
-        else
-        {
-            asn1Params = DERNull.INSTANCE;
-        }
+				rand.nextBytes(iv);
 
-        return new AlgorithmIdentifier(
-            encryptionOID,
-            asn1Params);
-    }
-    
-    static Object execute(JCECallback callback) throws CRMFException
-    {
-        try
-        {
-            return callback.doInJCE();
-        }
-        catch (NoSuchAlgorithmException e)
-        {
-            throw new CRMFException("can't find algorithm.", e);
-        }
-        catch (InvalidKeyException e)
-        {
-            throw new CRMFException("key invalid in message.", e);
-        }
-        catch (NoSuchProviderException e)
-        {
-            throw new CRMFException("can't find provider.", e);
-        }
-        catch (NoSuchPaddingException e)
-        {
-            throw new CRMFException("required padding not supported.", e);
-        }
-        catch (InvalidAlgorithmParameterException e)
-        {
-            throw new CRMFException("algorithm parameters invalid.", e);
-        }
-        catch (InvalidParameterSpecException e)
-        {
-            throw new CRMFException("MAC algorithm parameter spec invalid.", e);
-        }
-    }
-    
-    static interface JCECallback
-    {
-        Object doInJCE()
-            throws CRMFException, InvalidAlgorithmParameterException, InvalidKeyException, InvalidParameterSpecException,
-            NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException;
-    }
+				try {
+					pGen.init(new RC2ParameterSpec(encKey.getEncoded().length * 8, iv), rand);
+				} catch (InvalidAlgorithmParameterException e) {
+					throw new CRMFException("parameters generation error: " + e, e);
+				}
+			}
+
+			return pGen.generateParameters();
+		} catch (NoSuchAlgorithmException e) {
+			return null;
+		} catch (GeneralSecurityException e) {
+			throw new CRMFException("exception creating algorithm parameter generator: " + e, e);
+		}
+	}
+
+	AlgorithmIdentifier getAlgorithmIdentifier(ASN1ObjectIdentifier encryptionOID, AlgorithmParameters params) throws CRMFException {
+		ASN1Encodable asn1Params;
+		if (params != null) {
+			try {
+				asn1Params = AlgorithmParametersUtils.extractParameters(params);
+			} catch (IOException e) {
+				throw new CRMFException("cannot encode parameters: " + e.getMessage(), e);
+			}
+		} else {
+			asn1Params = DERNull.INSTANCE;
+		}
+
+		return new AlgorithmIdentifier(encryptionOID, asn1Params);
+	}
+
+	static Object execute(JCECallback callback) throws CRMFException {
+		try {
+			return callback.doInJCE();
+		} catch (NoSuchAlgorithmException e) {
+			throw new CRMFException("can't find algorithm.", e);
+		} catch (InvalidKeyException e) {
+			throw new CRMFException("key invalid in message.", e);
+		} catch (NoSuchProviderException e) {
+			throw new CRMFException("can't find provider.", e);
+		} catch (NoSuchPaddingException e) {
+			throw new CRMFException("required padding not supported.", e);
+		} catch (InvalidAlgorithmParameterException e) {
+			throw new CRMFException("algorithm parameters invalid.", e);
+		} catch (InvalidParameterSpecException e) {
+			throw new CRMFException("MAC algorithm parameter spec invalid.", e);
+		}
+	}
+
+	static interface JCECallback {
+		Object doInJCE() throws CRMFException, InvalidAlgorithmParameterException, InvalidKeyException, InvalidParameterSpecException,
+				NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException;
+	}
 }

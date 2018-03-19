@@ -22,8 +22,7 @@ public final class MessagePool {
 	}
 
 	public final void recycle(final Message msg, final Workbench workbench) {
-		workbench.V = workbench.O ? false
-				: workbench.log("success recycle message :" + msg.toString());
+		workbench.V = workbench.O ? false : workbench.log("success recycle message :" + msg.toString());
 
 		msg.clear();
 

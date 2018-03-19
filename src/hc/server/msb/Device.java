@@ -12,54 +12,45 @@ import hc.server.ui.design.J2SESession;
 import hc.server.ui.design.SessionContext;
 
 /**
- * A <code>Device</code> means a real equipment controlled by <code>Robot</code>
- * or data source from cloud.
+ * A <code>Device</code> means a real equipment controlled by <code>Robot</code> or data source from
+ * cloud.
  * <UL>
  * <LI>In most cases, a real device provides one function. <BR>
- * For example, a air condition provides temperature control function, if a air
- * condition also provides lighting (equal a smart bulb), you should design two
- * <code>Device</code> to provide each one of functions.</LI>
+ * For example, a air condition provides temperature control function, if a air condition also
+ * provides lighting (equal a smart bulb), you should design two <code>Device</code> to provide each
+ * one of functions.</LI>
  * <LI>A <code>Device</code> may be a agent to a virtual service.</LI>
- * <LI>A <code>Device</code> is means not only a real device. After
- * {@link #connect()}, there are maybe two or more same model real devices
- * managed by a instance of <code>Device</code>.</LI>
- * <LI>To drive <code>Device</code>, invoke
- * {@link Robot#dispatch(Message, boolean)} or
+ * <LI>A <code>Device</code> is means not only a real device. After {@link #connect()}, there are
+ * maybe two or more same model real devices managed by a instance of <code>Device</code>.</LI>
+ * <LI>To drive <code>Device</code>, invoke {@link Robot#dispatch(Message, boolean)} or
  * {@link Robot#waitFor(Message, long)}</LI>
- * <LI>The {@link Message#getDevID()} returns real device ID, if
- * <code>Message</code> is received in <code>Device</code> or dispatched from
- * <code>Device</code>.</LI>
- * <LI>The {@link Message#getDevID()} returns <i>Reference Device ID</i> (not
- * real device ID), if the <code>Message</code> is received in
- * <code>Robot</code> or dispatched from <code>Robot</code>.</LI>
- * <LI>After active and apply HAR project, <i>Reference Device ID</i> of
- * <code>Robot</code> must refer to real device ID (a <code>Robot</code> can
- * works well without any <code>Device</code>). If fail on auto-bind
- * ({@link Robot#getDeviceCompatibleDescription(String)} for more), the binding
+ * <LI>The {@link Message#getDevID()} returns real device ID, if <code>Message</code> is received in
+ * <code>Device</code> or dispatched from <code>Device</code>.</LI>
+ * <LI>The {@link Message#getDevID()} returns <i>Reference Device ID</i> (not real device ID), if
+ * the <code>Message</code> is received in <code>Robot</code> or dispatched from
+ * <code>Robot</code>.</LI>
+ * <LI>After active and apply HAR project, <i>Reference Device ID</i> of <code>Robot</code> must
+ * refer to real device ID (a <code>Robot</code> can works well without any <code>Device</code>). If
+ * fail on auto-bind ({@link Robot#getDeviceCompatibleDescription(String)} for more), the binding
  * dialog will be shown.</LI>
- * <LI>A real device ID may be referenced by more than one <i>Reference Device
- * ID</i>. <BR>
- * For example, a temperature device initiative publish current temperature to
- * all robots by {@link #dispatch(Message, boolean)}, and the Message will be
- * cloned (not deep).</LI>
- * <LI><code>Robot</code> is the only way to drive <code>Device</code>, even if
- * the <code>Device</code> is not in same HAR project. <BR>
- * To access <code>Robot</code> instance from <code>Mlet</code> or
- * <code>CtrlResponse</code>, please invoke
- * {@link ProjectContext#getRobot(String)} and drive <code>Device</code> via
+ * <LI>A real device ID may be referenced by more than one <i>Reference Device ID</i>. <BR>
+ * For example, a temperature device initiative publish current temperature to all robots by
+ * {@link #dispatch(Message, boolean)}, and the Message will be cloned (not deep).</LI>
+ * <LI><code>Robot</code> is the only way to drive <code>Device</code>, even if the
+ * <code>Device</code> is not in same HAR project. <BR>
+ * To access <code>Robot</code> instance from <code>Mlet</code> or <code>CtrlResponse</code>, please
+ * invoke {@link ProjectContext#getRobot(String)} and drive <code>Device</code> via
  * {@link Robot#operate(long, Object)}.</li>
- * <LI><code>Message</code> is an intermediary between <code>Robot</code> and
- * <code>Device</code> (maybe <code>Converter</code>). <BR>
- * <code>Message</code> is never used outside of <code>Robot</code>,
- * <code>Converter</code> and <code>Device</code>. In other words, you can't get
- * a instance of <code>Message</code> from <code>Mlet</code> or
- * <code>CtrlResponse</code>.</LI>
- * <LI>Because the <code>Device</code> can communicate with the
- * <code>Robot</code> which is not in the same HAR project. It may be a good
- * practice to put only one <code>Device</code> in a HAR project. If the device
- * need to be substituted or upgraded, what you should do is upgrade HAR project
- * with the newer. Re-binding will not be executed in this case if real device
- * ID is same. For more, see <code>Converter</code>.</LI>
+ * <LI><code>Message</code> is an intermediary between <code>Robot</code> and <code>Device</code>
+ * (maybe <code>Converter</code>). <BR>
+ * <code>Message</code> is never used outside of <code>Robot</code>, <code>Converter</code> and
+ * <code>Device</code>. In other words, you can't get a instance of <code>Message</code> from
+ * <code>Mlet</code> or <code>CtrlResponse</code>.</LI>
+ * <LI>Because the <code>Device</code> can communicate with the <code>Robot</code> which is not in
+ * the same HAR project. It may be a good practice to put only one <code>Device</code> in a HAR
+ * project. If the device need to be substituted or upgraded, what you should do is upgrade HAR
+ * project with the newer. Re-binding will not be executed in this case if real device ID is same.
+ * For more, see <code>Converter</code>.</LI>
  * </UL>
  * 
  * @see Robot
@@ -91,20 +82,17 @@ public abstract class Device extends Processor {
 	/**
 	 * response a message from robot. <BR>
 	 * <BR>
-	 * the general procedure to response a <code>Message</code> passively is as
-	 * following: <br>
-	 * 1. <code><code>Message</code> newMsg =
-	 * this.getFreeMessage(msg.getDevID());</code> <br>
+	 * the general procedure to response a <code>Message</code> passively is as following: <br>
+	 * 1. <code><code>Message</code> newMsg = this.getFreeMessage(msg.getDevID());</code> <br>
 	 * 2. set header or body of <code>newMsg</code> <br>
-	 * 3. dispatch(newMsg, <strong>false</strong>);//false is required, because
-	 * it is passively. <br>
-	 * 4. it is allowed to dispatch an initiative <code>Message</code> in this
-	 * method.
+	 * 3. dispatch(newMsg, <strong>false</strong>);//false is required, because it is passively.
+	 * <br>
+	 * 4. it is allowed to dispatch an initiative <code>Message</code> in this method.
 	 * 
 	 * @param msg
 	 *            dispatched from {@link Robot#dispatch(Message, boolean)} or
-	 *            {@link Robot#waitFor(Message, long)} (it is also may be
-	 *            converted by a <code>Converter</code>)
+	 *            {@link Robot#waitFor(Message, long)} (it is also may be converted by a
+	 *            <code>Converter</code>)
 	 * @see Device#dispatch(Message, boolean)
 	 */
 	@Override
@@ -140,8 +128,8 @@ public abstract class Device extends Processor {
 			connectedDevices = connect();// in user thread group
 		} finally {
 			if (isUseCmdGroup) {
-				final SessionContext sessionContext = ServerUIAPIAgent
-						.getProjResponserMaybeNull(__context).getSessionContextFromCurrThread();
+				final SessionContext sessionContext = ServerUIAPIAgent.getProjResponserMaybeNull(__context)
+						.getSessionContextFromCurrThread();
 				J2SESession coreSS;
 				if (sessionContext == null || (coreSS = sessionContext.j2seSocketSession) == null) {
 					if (L.isInWorkshop) {
@@ -172,10 +160,9 @@ public abstract class Device extends Processor {
 	 * get a free <code>Message</code> from recycling message pool.
 	 * 
 	 * @param from_dev_id
-	 *            the real device ID that the message is dispatched
-	 *            <STRONG>from</STRONG>. <br>
-	 * 			The message may be converted by <code>Converter</code> or not
-	 *            depends on binding (after active current project).
+	 *            the real device ID that the message is dispatched <STRONG>from</STRONG>. <br>
+	 *            The message may be converted by <code>Converter</code> or not depends on binding
+	 *            (after active current project).
 	 * @return a free <code>Message</code>
 	 */
 	protected Message getFreeMessage(final String from_dev_id) {// 不能去掉，因为生成API时，由于没有附加生成Processor
@@ -185,27 +172,24 @@ public abstract class Device extends Processor {
 	/**
 	 * dispatch <code>Message</code> to robot(s). <br>
 	 * <br>
-	 * <strong>the <code>msg</code> can't be dispatched more than one
-	 * time.</strong> <br>
+	 * <strong>the <code>msg</code> can't be dispatched more than one time.</strong> <br>
 	 * <br>
-	 * to print log of creating/converting/transferring/recycling of message,
-	 * please enable [Option/Developer/log MSB message].
+	 * to print log of creating/converting/transferring/recycling of message, please enable
+	 * [Option/Developer/log MSB message].
 	 * 
 	 * @param msg
-	 *            the <code>Message</code> will be dispatched to robot(s). To
-	 *            get instance of the <code>msg</code>, call
-	 *            {@link #getFreeMessage(String)}.
+	 *            the <code>Message</code> will be dispatched to robot(s). To get instance of the
+	 *            <code>msg</code>, call {@link #getFreeMessage(String)}.
 	 * @param isInitiative
 	 *            <br>
-	 * 			if true, initiative to report status of <code>Device</code> to
-	 *            robot(s). If the device ID is binded to multiple robots, the
-	 *            <code>msg</code> will be cloned and dispatched to all these
-	 *            robots (NOT deep clone. copy keys of property/body and the
+	 *            if true, initiative to report status of <code>Device</code> to robot(s). If the
+	 *            device ID is binded to multiple robots, the <code>msg</code> will be cloned and
+	 *            dispatched to all these robots (NOT deep clone. copy keys of property/body and the
 	 *            corresponding values). <br>
-	 * 			if false, answer passively, passive mode is normally used in
-	 *            method {@link Device#response(Message)}, the <code>msg</code>
-	 *            will be dispatched ONLY to the request robot, even if the real
-	 *            device ID is binded to multiple <i>Reference Device ID</i>.
+	 *            if false, answer passively, passive mode is normally used in method
+	 *            {@link Device#response(Message)}, the <code>msg</code> will be dispatched ONLY to
+	 *            the request robot, even if the real device ID is binded to multiple <i>Reference
+	 *            Device ID</i>.
 	 * @see Robot#dispatch(Message, boolean)
 	 * @since 7.0
 	 */
@@ -214,34 +198,29 @@ public abstract class Device extends Processor {
 
 		if (isInitiative) {
 			final HashMap<String, HashMap<String, Vector<String>>> hashMap = workbench// for
-																						// debug
+					// debug
 					.nameMapper.searchBindIDFromDevice.get(project_id);
 			if (hashMap == null) {
 				// 注意：以下不能用workbench.log
-				LogManager.warning("{" + project_id + "/" + name
-						+ "} is never used, skip dispatch initiative message.");
+				LogManager.warning("{" + project_id + "/" + name + "} is never used, skip dispatch initiative message.");
 				return;
 			}
 			msg.ctrl_bind_ids = hashMap.get(name).get(msg.ctrl_dev_id);
 			// 注意：要置于dispatch之前
 			workbench.V = workbench.O ? false
-					: workbench.log("{" + project_id + "/" + name + "} dispatch initiatively : "
-							+ msg.toString());
+					: workbench.log("{" + project_id + "/" + name + "} dispatch initiatively : " + msg.toString());
 			workbench.dispatch(msg, false, procType);
 		} else {
 			msg.ctrl_bind_id = preMsg.ctrl_bind_id;
 			msg.ctrl_dev_id = workbench.nameMapper.bind2ReferID.get(msg.ctrl_bind_id).refer_id;
 			// 注意：要置于__response之前
-			workbench.V = workbench.O ? false
-					: workbench.log("{" + project_id + "/" + name + "} dispatch passively : "
-							+ msg.toString());
+			workbench.V = workbench.O ? false : workbench.log("{" + project_id + "/" + name + "} dispatch passively : " + msg.toString());
 			super.__response(msg, false);
 		}
 	}
 
 	/**
-	 * return an instance of {@link DeviceCompatibleDescription} about this
-	 * device.
+	 * return an instance of {@link DeviceCompatibleDescription} about this device.
 	 * 
 	 * @return
 	 */
@@ -383,15 +362,13 @@ public abstract class Device extends Processor {
 	 * @param existsCmds
 	 * @return such as "pretype{random}#{index}#cmds"
 	 */
-	private final String[] splitCommands(final String pretype, final String commands,
-			final String[] existsCmds) {
+	private final String[] splitCommands(final String pretype, final String commands, final String[] existsCmds) {
 		final Random r = new Random();
 		String newpretype = pretype + r.nextInt(100) + "#";
 		int count = 0;
 		while (checkExist(newpretype, existsCmds)) {
 			count++;
-			newpretype = pretype + r.nextInt(count < 100 ? 100 : (count < 1000 ? 1000 : 10000))
-					+ "#";
+			newpretype = pretype + r.nextInt(count < 100 ? 100 : (count < 1000 ? 1000 : 10000)) + "#";
 		}
 
 		final char[] chars = commands.toCharArray();
@@ -401,8 +378,7 @@ public abstract class Device extends Processor {
 		int charLen = chars.length;
 		char indx_char = '1';
 		while (offset < chars.length) {
-			final String tryOneCommand = newpretype + indx_char + "#"
-					+ new String(chars, offset, charLen);
+			final String tryOneCommand = newpretype + indx_char + "#" + new String(chars, offset, charLen);
 			try {
 				final byte[] utfBS = tryOneCommand.getBytes("UTF-8");
 				if (utfBS.length > 32) {
@@ -524,18 +500,16 @@ public abstract class Device extends Processor {
 	 * <BR>
 	 * the message will be logged. <BR>
 	 * <BR>
-	 * this method is invoked when an error is raised or device is turned to OK
-	 * from error. <BR>
+	 * this method is invoked when an error is raised or device is turned to OK from error. <BR>
 	 * it is NOT required if there is no error on device.
 	 * 
 	 * @param isOK
-	 *            true : device turn to OK from error; false : device turn to
-	 *            error from OK.
+	 *            true : device turn to OK from error; false : device turn to error from OK.
 	 * @param statusCode
 	 *            the error/status code, 0 means OK. if unknown, set it to -1.
 	 * @param message
-	 *            the description of status message, the project name and device
-	 *            name is not required.
+	 *            the description of status message, the project name and device name is not
+	 *            required.
 	 * @since 7.0
 	 */
 	public void reportStatus(final boolean isOK, final int statusCode, final String message) {
@@ -545,21 +519,18 @@ public abstract class Device extends Processor {
 				LogManager.info(okmessage);
 				LogManager.log(okmessage);
 			} else {
-				final String okmessage = "[device] " + message + " [" + project_id + "/" + name
-						+ "]";
+				final String okmessage = "[device] " + message + " [" + project_id + "/" + name + "]";
 				LogManager.info(okmessage);
 				LogManager.log(okmessage);
 			}
 		} else {
-			final String fullMessage = "[device] " + message + " [" + project_id + "/" + name + "/"
-					+ statusCode + "]";
+			final String fullMessage = "[device] " + message + " [" + project_id + "/" + name + "/" + statusCode + "]";
 			LogManager.err(fullMessage);
 		}
 	}
 
 	/**
-	 * connect to the real device(s). One or more real devices may be managed by
-	 * this instance. <br>
+	 * connect to the real device(s). One or more real devices may be managed by this instance. <br>
 	 * <br>
 	 * this method is invoked by server <STRONG>before</STRONG>
 	 * {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}. <br>
@@ -568,18 +539,16 @@ public abstract class Device extends Processor {
 	 * {@link ProjectContext#run(Runnable)} and the task should be finished when
 	 * {@link #disconnect()}. <br>
 	 * <BR>
-	 * <STRONG>Warning : </STRONG>this method will <STRONG>block</STRONG> thread
-	 * of HomeCenter server. <BR>
+	 * <STRONG>Warning : </STRONG>this method will <STRONG>block</STRONG> thread of HomeCenter
+	 * server. <BR>
 	 * <BR>
 	 * About binding <BR>
-	 * 1. before binding, please turn on this/these same model real devices
-	 * first. <BR>
-	 * 2. this method is invoked by server before binding, and it returns an
-	 * array of IDs of real devices of this same model. <BR>
+	 * 1. before binding, please turn on this/these same model real devices first. <BR>
+	 * 2. this method is invoked by server before binding, and it returns an array of IDs of real
+	 * devices of this same model. <BR>
 	 * 3. user may be required to input token of device, see
 	 * {@link ProjectContext#isInstallingFromClient()}, <BR>
-	 * 4. to save the token of device, see
-	 * {@link ProjectContext#saveProperties()}.
+	 * 4. to save the token of device, see {@link ProjectContext#saveProperties()}.
 	 * 
 	 * @return the string array of real devices ID of the same model of device.
 	 * @see #disconnect()

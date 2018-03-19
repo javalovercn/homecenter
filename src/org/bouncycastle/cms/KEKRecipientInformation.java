@@ -7,32 +7,24 @@ import org.bouncycastle.asn1.cms.KEKRecipientInfo;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 
 /**
- * the RecipientInfo class for a recipient who has been sent a message
- * encrypted using a secret key known to the other side.
+ * the RecipientInfo class for a recipient who has been sent a message encrypted using a secret key
+ * known to the other side.
  */
-public class KEKRecipientInformation
-    extends RecipientInformation
-{
-    private KEKRecipientInfo      info;
+public class KEKRecipientInformation extends RecipientInformation {
+	private KEKRecipientInfo info;
 
-    KEKRecipientInformation(
-        KEKRecipientInfo        info,
-        AlgorithmIdentifier     messageAlgorithm,
-        CMSSecureReadable       secureReadable,
-        AuthAttributesProvider  additionalData)
-    {
-        super(info.getKeyEncryptionAlgorithm(), messageAlgorithm, secureReadable, additionalData);
+	KEKRecipientInformation(KEKRecipientInfo info, AlgorithmIdentifier messageAlgorithm, CMSSecureReadable secureReadable,
+			AuthAttributesProvider additionalData) {
+		super(info.getKeyEncryptionAlgorithm(), messageAlgorithm, secureReadable, additionalData);
 
-        this.info = info;
+		this.info = info;
 
-        KEKIdentifier kekId = info.getKekid();
+		KEKIdentifier kekId = info.getKekid();
 
-        this.rid = new KEKRecipientId(kekId.getKeyIdentifier().getOctets());
-    }
+		this.rid = new KEKRecipientId(kekId.getKeyIdentifier().getOctets());
+	}
 
-    protected RecipientOperator getRecipientOperator(Recipient recipient)
-        throws CMSException, IOException
-    {
-        return ((KEKRecipient)recipient).getRecipientOperator(keyEncAlg, messageAlgorithm, info.getEncryptedKey().getOctets());
-    }
+	protected RecipientOperator getRecipientOperator(Recipient recipient) throws CMSException, IOException {
+		return ((KEKRecipient) recipient).getRecipientOperator(keyEncAlg, messageAlgorithm, info.getEncryptedKey().getOctets());
+	}
 }

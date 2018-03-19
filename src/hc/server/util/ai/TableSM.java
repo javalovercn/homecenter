@@ -36,8 +36,7 @@ public abstract class TableSM {
 	}
 
 	private final void createTableIfNotExists() {
-		final String sql = "CREATE TABLE IF NOT EXISTS " + this.tableName + " "
-				+ getCreateTableBody();
+		final String sql = "CREATE TABLE IF NOT EXISTS " + this.tableName + " " + getCreateTableBody();
 		try {
 			final Statement state = mgr.getConnection().createStatement();
 			state.execute(sql);
@@ -48,8 +47,7 @@ public abstract class TableSM {
 
 		final String indexColumn = getIndexColumn();
 		if (indexColumn != null) {
-			final String idxSql = "CREATE INDEX IF NOT EXISTS IDX_" + tableName + " ON " + tableName
-					+ " (" + indexColumn + ")";
+			final String idxSql = "CREATE INDEX IF NOT EXISTS IDX_" + tableName + " ON " + tableName + " (" + indexColumn + ")";
 
 			try {
 				final Statement state = mgr.getConnection().createStatement();

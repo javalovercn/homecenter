@@ -33,76 +33,82 @@ import org.jrubyparser.ast.Node;
 
 public class Change {
 
-    private Node oldNode;
-    private Node newNode;
-    private int oldCost;
-    private int newCost;
+	private Node oldNode;
+	private Node newNode;
+	private int oldCost;
+	private int newCost;
 
-    /**
-     * Each changed node in the diff is represented by a Change object.
-     * It should hold enough information to locate the change, and determine
-     * whether the change was an insertion, deletion or modification.
-     *
-     * @param newNode the new version of the node
-     * @param newCost the complexity/depth of the node that was changed
-     * @param oldNode the old version of the node
-     * @param oldCost the complexity/depth of the original node
-     */
-    public Change(Node newNode, int newCost, Node oldNode, int oldCost) {
-        setNewNode(newNode);
-        setOldNode(oldNode);
-        setNewCost(newCost);
-        setOldCost(oldCost);
-    }
+	/**
+	 * Each changed node in the diff is represented by a Change object. It should hold enough
+	 * information to locate the change, and determine whether the change was an insertion, deletion
+	 * or modification.
+	 *
+	 * @param newNode
+	 *            the new version of the node
+	 * @param newCost
+	 *            the complexity/depth of the node that was changed
+	 * @param oldNode
+	 *            the old version of the node
+	 * @param oldCost
+	 *            the complexity/depth of the original node
+	 */
+	public Change(Node newNode, int newCost, Node oldNode, int oldCost) {
+		setNewNode(newNode);
+		setOldNode(oldNode);
+		setNewCost(newCost);
+		setOldCost(oldCost);
+	}
 
-    public final void setNewNode(Node newNode) {
-        this.newNode = newNode;
-    }
+	public final void setNewNode(Node newNode) {
+		this.newNode = newNode;
+	}
 
-    public final void setOldNode(Node oldNode) {
-        this.oldNode = oldNode;
-    }
+	public final void setOldNode(Node oldNode) {
+		this.oldNode = oldNode;
+	}
 
-    public final void setNewCost(int newCost) {
-        this.newCost = newCost;
-    }
+	public final void setNewCost(int newCost) {
+		this.newCost = newCost;
+	}
 
-    public final void setOldCost(int oldCost) {
-        this.oldCost = oldCost;
-    }
+	public final void setOldCost(int oldCost) {
+		this.oldCost = oldCost;
+	}
 
-    public Node getOldNode() {
-        return oldNode;
-    }
+	public Node getOldNode() {
+		return oldNode;
+	}
 
-    public Node getNewNode() {
-        return newNode;
-    }
+	public Node getNewNode() {
+		return newNode;
+	}
 
-    public int getOldCost() {
-        return oldCost;
-    }
+	public int getOldCost() {
+		return oldCost;
+	}
 
-    public int getNewCost() {
-        return newCost;
-    }
+	public int getNewCost() {
+		return newCost;
+	}
 
-    public int getTotalCost() {
-        return newCost + oldCost;
-    }
+	public int getTotalCost() {
+		return newCost + oldCost;
+	}
 
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder(60);
-        builder.append("\nChange: ");
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder(60);
+		builder.append("\nChange: ");
 
-        if (getOldNode() != null) {
-            builder.append("\nOld Node: ").append(getOldNode()).append(" Complexity: ").append(getOldCost()).append(" Position: ").append(getOldNode().getPosition()).append("\n");
-        }
-        if (getNewNode() != null) {
-            builder.append("\nNew Node: ").append(getNewNode()).append(" Complexity: ").append(getNewCost()).append(" Position: ").append(getNewNode().getPosition()).append("\n");
-        }
+		if (getOldNode() != null) {
+			builder.append("\nOld Node: ").append(getOldNode()).append(" Complexity: ").append(getOldCost()).append(" Position: ")
+					.append(getOldNode().getPosition()).append("\n");
+		}
+		if (getNewNode() != null) {
+			builder.append("\nNew Node: ").append(getNewNode()).append(" Complexity: ").append(getNewCost()).append(" Position: ")
+					.append(getNewNode().getPosition()).append("\n");
+		}
 
-        return builder.toString();
-    }
+		return builder.toString();
+	}
 }

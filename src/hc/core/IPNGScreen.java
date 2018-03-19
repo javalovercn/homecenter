@@ -4,11 +4,14 @@ public interface IPNGScreen extends IScreen {
 
 	/**
 	 * 
-	 * @param x 远程绝对坐标
-	 * @param y 远程绝对坐标
+	 * @param x
+	 *            远程绝对坐标
+	 * @param y
+	 *            远程绝对坐标
 	 * @param w
 	 * @param h
-	 * @param bs 存储PNG数据的数组
+	 * @param bs
+	 *            存储PNG数据的数组
 	 * @param offset
 	 * @param len
 	 */

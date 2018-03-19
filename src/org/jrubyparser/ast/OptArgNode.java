@@ -36,74 +36,78 @@ import org.jrubyparser.SourcePosition;
  * @author enebo
  */
 public class OptArgNode extends Node implements IParameter {
-    private Node value;
+	private Node value;
 
-    public OptArgNode(SourcePosition position, Node value) {
-        super(position);
-        this.value = adopt(value);
-    }
+	public OptArgNode(SourcePosition position, Node value) {
+		super(position);
+		this.value = adopt(value);
+	}
 
-    @Override
-    public boolean isSame(Node node) {
-        if (super.isSame(node)) return false;
+	@Override
+	public boolean isSame(Node node) {
+		if (super.isSame(node))
+			return false;
 
-        OptArgNode other = (OptArgNode) node;
+		OptArgNode other = (OptArgNode) node;
 
-        return isNameMatch(other.getName()) && getValue().isSame(other.getValue());
-    }
+		return isNameMatch(other.getName()) && getValue().isSame(other.getValue());
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.OPTARGNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.OPTARGNODE;
+	}
 
-    public Node getValue() {
-        return value;
-    }
+	public Node getValue() {
+		return value;
+	}
 
-    @Override
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitOptArgNode(this);
-    }
+	@Override
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitOptArgNode(this);
+	}
 
-    public String getLexicalName() {
-        return getName();
-    }
+	public String getLexicalName() {
+		return getName();
+	}
 
-    public String getName() {
-        if (value instanceof INameNode) return ((INameNode) value).getName();
+	public String getName() {
+		if (value instanceof INameNode)
+			return ((INameNode) value).getName();
 
-        return null;
-    }
+		return null;
+	}
 
-    public void setName(String newName) {
-        if (value instanceof INameNode) ((INameNode) value).setName(newName);
-    }
+	public void setName(String newName) {
+		if (value instanceof INameNode)
+			((INameNode) value).setName(newName);
+	}
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-        return thisName != null && thisName.equals(name);
-    }
+		return thisName != null && thisName.equals(name);
+	}
 
-    public SourcePosition getNamePosition() {
-        if (value instanceof INameNode) return ((INameNode) value).getNamePosition();
+	public SourcePosition getNamePosition() {
+		if (value instanceof INameNode)
+			return ((INameNode) value).getNamePosition();
 
-        return getPosition();
-    }
+		return getPosition();
+	}
 
-    public SourcePosition getLexicalNamePosition() {
-        return getNamePosition();
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getNamePosition();
+	}
 
-    public ILocalVariable getDeclaration() {
-        return this;
-    }
+	public ILocalVariable getDeclaration() {
+		return this;
+	}
 
-    public List<ILocalVariable> getOccurrences() {
-        return getDefinedScope().getVariableReferencesNamed(getName());
-    }
+	public List<ILocalVariable> getOccurrences() {
+		return getDefinedScope().getVariableReferencesNamed(getName());
+	}
 
-    public IScope getDefinedScope() {
-        return getClosestIScope();
-    }
+	public IScope getDefinedScope() {
+		return getClosestIScope();
+	}
 }

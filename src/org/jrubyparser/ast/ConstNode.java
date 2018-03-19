@@ -35,65 +35,67 @@ import org.jrubyparser.SourcePosition;
  * The access to a Constant.
  */
 public class ConstNode extends Node implements INameNode {
-    private String name;
+	private String name;
 
-    public ConstNode(SourcePosition position, String name) {
-        super(position);
-        this.name = name;
-    }
+	public ConstNode(SourcePosition position, String name) {
+		super(position);
+		this.name = name;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param other
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node other) {
+		return super.isSame(other) && isNameMatch(((ConstNode) other).getName());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param other to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node other) {
-        return super.isSame(other) && isNameMatch(((ConstNode) other).getName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.CONSTNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitConstNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.CONSTNODE;
-    }
+	public String getLexicalName() {
+		return getName();
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitConstNode(this);
-    }
+	/**
+	 * Gets the name.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getName() {
+		return name;
+	}
 
-    public String getLexicalName() {
-        return getName();
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    /**
-     * Gets the name.
-     * @return Returns a String
-     */
-    public String getName() {
-        return name;
-    }
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+		return thisName != null && thisName.equals(name);
+	}
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+	public SourcePosition getNamePosition() {
+		return getPosition();
+	}
 
-        return thisName != null && thisName.equals(name);
-    }
-
-    public SourcePosition getNamePosition() {
-        return getPosition();
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getPosition();
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getPosition();
+	}
 }

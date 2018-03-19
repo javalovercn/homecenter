@@ -7,13 +7,10 @@ import java.io.IOException;
  * authentication failure during finalisation of an AEAD cipher. For use in streams that need to
  * expose invalid ciphertext errors.
  */
-public class InvalidCipherTextIOException
-    extends CipherIOException
-{
-    private static final long serialVersionUID = 1L;
+public class InvalidCipherTextIOException extends CipherIOException {
+	private static final long serialVersionUID = 1L;
 
-    public InvalidCipherTextIOException(String message, Throwable cause)
-    {
-        super(message, cause);
-    }
+	public InvalidCipherTextIOException(String message, Throwable cause) {
+		super(message, cause);
+	}
 }

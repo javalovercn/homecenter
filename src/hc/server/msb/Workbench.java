@@ -1,39 +1,35 @@
 package hc.server.msb;
 
-import hc.core.HCTimer;
-import hc.core.util.LogManager;
-import hc.server.ui.design.LinkProjectStore;
-import hc.util.ResourceUtil;
-
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+import hc.core.HCTimer;
+import hc.core.util.LogManager;
+import hc.server.ui.design.LinkProjectStore;
+import hc.util.ResourceUtil;
 
 /**
- * A Machine Service Bus (MSB, a smart module is a abstract machine) is a
- * infrastructure that unifies and connects machines, services, and resources
- * within a network. It also supports intelligently directed communication and
- * mediated relationships among loosely coupled and decoupled machines and smart
- * modules. <br>
+ * A Machine Service Bus (MSB, a smart module is a abstract machine) is a infrastructure that
+ * unifies and connects machines, services, and resources within a network. It also supports
+ * intelligently directed communication and mediated relationships among loosely coupled and
+ * decoupled machines and smart modules. <br>
  * <br>
- * a <code>Message</code> may be consumed by multiple
- * <code>Device</code>/<code>Robot</code> in <b>different</b> HAR projects. <br>
- * So a <code>Message</code> can't be modified after
- * {@link #dispatch(Message, boolean, int)},
- * {@link #waitFor(Message, long, boolean, int, Processor)}, in other words, it
- * can't be modified in {@link Device#response(Message)},
- * {@link Converter#downConvert(Message, Message)},
- * {@link Converter#upConvert(Message, Message)}},
- * {@link Robot#response(Message)}. <br>
+ * a <code>Message</code> may be consumed by multiple <code>Device</code>/<code>Robot</code> in
+ * <b>different</b> HAR projects. <br>
+ * So a <code>Message</code> can't be modified after {@link #dispatch(Message, boolean, int)},
+ * {@link #waitFor(Message, long, boolean, int, Processor)}, in other words, it can't be modified in
+ * {@link Device#response(Message)}, {@link Converter#downConvert(Message, Message)},
+ * {@link Converter#upConvert(Message, Message)}}, {@link Robot#response(Message)}. <br>
  * <br>
- * In a classic user case, a machine (air conditioning) <i>A</i> is substituted
- * by other model air conditioning <i>B</i>, then a transformation
- * <code>Converter</code> (or <b>a HAR project contains only one
- * <code>Converter</code></b>) may be plugged-in to transform old
- * <code>Message</code> for air conditioning <i>B</i>.
+ * In a classic user case, a machine (air conditioning) <i>A</i> is substituted by other model air
+ * conditioning <i>B</i>, then a transformation <code>Converter</code> (or <b>a HAR project contains
+ * only one <code>Converter</code></b>) may be plugged-in to transform old <code>Message</code> for
+ * air conditioning <i>B</i>.
  */
 public class Workbench {
 	final static MessagePool messagePool = new MessagePool();
@@ -70,9 +66,9 @@ public class Workbench {
 
 	private int workbench_status = STATUS_BUILDING;
 
-	final ConcurrentHashMap<String, HashMap<String, Processor>> projID_robotName_Proc = new ConcurrentHashMap<String, HashMap<String, Processor>>();
-	final ConcurrentHashMap<String, HashMap<String, Processor>> projID_convName_Proc = new ConcurrentHashMap<String, HashMap<String, Processor>>();
-	final ConcurrentHashMap<String, HashMap<String, Processor>> projID_devName_Proc = new ConcurrentHashMap<String, HashMap<String, Processor>>();
+	final ConcurrentMap<String, HashMap<String, Processor>> projID_robotName_Proc = new ConcurrentHashMap<String, HashMap<String, Processor>>();
+	final ConcurrentMap<String, HashMap<String, Processor>> projID_convName_Proc = new ConcurrentHashMap<String, HashMap<String, Processor>>();
+	final ConcurrentMap<String, HashMap<String, Processor>> projID_devName_Proc = new ConcurrentHashMap<String, HashMap<String, Processor>>();
 
 	protected static final int TYPE_DEVICE_PROC = 0;
 	protected static final int TYPE_CONVERTER_PROC = 1;
@@ -87,7 +83,7 @@ public class Workbench {
 			final int type = proc.procType;
 			final String projID = proc.project_id;
 			HashMap<String, Processor> names_proc = null;
-			ConcurrentHashMap<String, HashMap<String, Processor>> projID_XXX_proc = null;
+			ConcurrentMap<String, HashMap<String, Processor>> projID_XXX_proc = null;
 
 			if (type == TYPE_CONVERTER_PROC) {
 				V = O ? false : log("remove Converter : " + proc.getIoTDesc());
@@ -113,8 +109,7 @@ public class Workbench {
 		return false;
 	}
 
-	final private void shutdownProcessor(
-			final ConcurrentHashMap<String, HashMap<String, Processor>> proj_xxx_proc) {
+	final private void shutdownProcessor(final ConcurrentMap<String, HashMap<String, Processor>> proj_xxx_proc) {
 		final Iterator<String> it = proj_xxx_proc.keySet().iterator();
 		while (it.hasNext()) {
 			final String projID = it.next();
@@ -127,8 +122,7 @@ public class Workbench {
 		}
 	}
 
-	final private void clearProcessor(
-			final ConcurrentHashMap<String, HashMap<String, Processor>> proj_xxx_proc) {
+	final private void clearProcessor(final ConcurrentMap<String, HashMap<String, Processor>> proj_xxx_proc) {
 		proj_xxx_proc.clear();
 	}
 
@@ -154,9 +148,7 @@ public class Workbench {
 		System.gc();
 	}
 
-	final private void startAllProcesor(
-			final ConcurrentHashMap<String, HashMap<String, Processor>> proj_xxx_proc,
-			final boolean isFinish) {
+	final private void startAllProcesor(final ConcurrentMap<String, HashMap<String, Processor>> proj_xxx_proc, final boolean isFinish) {
 		final Iterator<String> it = proj_xxx_proc.keySet().iterator();
 		while (it.hasNext()) {
 			final String projID = it.next();
@@ -210,7 +202,7 @@ public class Workbench {
 		final int type = proc.procType;
 		final String projID = proc.project_id;
 		HashMap<String, Processor> names_proc = null;
-		ConcurrentHashMap<String, HashMap<String, Processor>> projID_XXX_proc = null;
+		ConcurrentMap<String, HashMap<String, Processor>> projID_XXX_proc = null;
 
 		if (type == TYPE_CONVERTER_PROC) {
 			V = O ? false : log("add Converter : " + proc.getIoTDesc());
@@ -282,21 +274,18 @@ public class Workbench {
 				if (cbi != null) {
 					final Processor proc = projID_convName_Proc.get(cbi.proj_id).get(cbi.name);
 					if (proc == null) {
-						LogManager.err("fail to transfer message to Converter : [" + cbi.proj_id
-								+ "]/{" + cbi.name + "}");
+						LogManager.err("fail to transfer message to Converter : [" + cbi.proj_id + "]/{" + cbi.name + "}");
 					} else {
 						proc.pushInFromWorkbench(msg);
 					}
 					return;
 				}
 
-				final RealDeviceInfo rdbi = nameMapper.bind2RealDeviceBindInfo
-						.get(msg.ctrl_bind_id);
+				final RealDeviceInfo rdbi = nameMapper.bind2RealDeviceBindInfo.get(msg.ctrl_bind_id);
 				if (rdbi != null) {
 					final Processor proc = projID_devName_Proc.get(rdbi.proj_id).get(rdbi.dev_name);
 					if (proc == null) {
-						LogManager.err("fail to transfer message to Device : [" + rdbi.proj_id
-								+ "]/{" + rdbi.dev_name + "}");
+						LogManager.err("fail to transfer message to Device : [" + rdbi.proj_id + "]/{" + rdbi.dev_name + "}");
 					} else {
 						proc.pushInFromWorkbench(msg);
 					}
@@ -304,14 +293,11 @@ public class Workbench {
 				}
 			} else if (fromProcType == TYPE_CONVERTER_PROC) {
 				if (isDown) {
-					final RealDeviceInfo rdbi = nameMapper.bind2RealDeviceBindInfo
-							.get(msg.ctrl_bind_id);
+					final RealDeviceInfo rdbi = nameMapper.bind2RealDeviceBindInfo.get(msg.ctrl_bind_id);
 					if (rdbi != null) {
-						final Processor proc = projID_devName_Proc.get(rdbi.proj_id)
-								.get(rdbi.dev_name);
+						final Processor proc = projID_devName_Proc.get(rdbi.proj_id).get(rdbi.dev_name);
 						if (proc == null) {
-							LogManager.err("fail to transfer message to Device : [" + rdbi.proj_id
-									+ "]/{" + rdbi.dev_name + "}");
+							LogManager.err("fail to transfer message to Device : [" + rdbi.proj_id + "]/{" + rdbi.dev_name + "}");
 						} else {
 							proc.pushInFromWorkbench(msg);
 						}
@@ -324,11 +310,9 @@ public class Workbench {
 
 					final RobotReferBindInfo rrbi = nameMapper.bind2ReferID.get(msg.ctrl_bind_id);
 					if (rrbi != null) {
-						final Processor proc = projID_robotName_Proc.get(rrbi.proj_id)
-								.get(rrbi.robot_name);
+						final Processor proc = projID_robotName_Proc.get(rrbi.proj_id).get(rrbi.robot_name);
 						if (proc == null) {
-							LogManager.err("fail to transfer message to Robot : [" + rrbi.proj_id
-									+ "]/{" + rrbi.robot_name + "}");
+							LogManager.err("fail to transfer message to Robot : [" + rrbi.proj_id + "]/{" + rrbi.robot_name + "}");
 						} else {
 							proc.pushInFromWorkbench(msg);
 						}
@@ -353,20 +337,15 @@ public class Workbench {
 								clone = cloneFromMessage(msg);
 								clone.ctrl_bind_id = bind_id;
 								clone.ctrl_dev_id = nameMapper.bind2ReferID.get(bind_id).refer_id;
-								V = O ? false
-										: log("clone publish message : " + clone.toString()
-												+ "\n\tfrom :" + msg.toString());
+								V = O ? false : log("clone publish message : " + clone.toString() + "\n\tfrom :" + msg.toString());
 							}
 
 							// 主动模式，复制到全部
-							final ConverterInfo cbi = nameMapper.bind2ConverterBindInfo
-									.get(bind_id);
+							final ConverterInfo cbi = nameMapper.bind2ConverterBindInfo.get(bind_id);
 							if (cbi != null) {
-								final Processor proc = projID_convName_Proc.get(cbi.proj_id)
-										.get(cbi.name);
+								final Processor proc = projID_convName_Proc.get(cbi.proj_id).get(cbi.name);
 								if (proc == null) {
-									LogManager.err("fail to transfer message to Converter : ["
-											+ cbi.proj_id + "]/{" + cbi.name + "}");
+									LogManager.err("fail to transfer message to Converter : [" + cbi.proj_id + "]/{" + cbi.name + "}");
 								} else {
 									proc.pushInFromWorkbench(clone);
 								}
@@ -377,11 +356,9 @@ public class Workbench {
 
 							final RobotReferBindInfo rrbi = nameMapper.bind2ReferID.get(bind_id);
 							if (rrbi != null) {
-								final Processor proc = projID_robotName_Proc.get(rrbi.proj_id)
-										.get(rrbi.robot_name);
+								final Processor proc = projID_robotName_Proc.get(rrbi.proj_id).get(rrbi.robot_name);
 								if (proc == null) {
-									LogManager.err("fail to transfer message to Robot : ["
-											+ rrbi.proj_id + "]/{" + rrbi.robot_name + "}");
+									LogManager.err("fail to transfer message to Robot : [" + rrbi.proj_id + "]/{" + rrbi.robot_name + "}");
 								} else {
 									proc.pushInFromWorkbench(clone);
 								}
@@ -400,8 +377,7 @@ public class Workbench {
 					if (cbi != null) {
 						final Processor proc = projID_convName_Proc.get(cbi.proj_id).get(cbi.name);
 						if (proc == null) {// 曾经部署工程，删除一个无用Processor后，再次部署，由于取消/中止新的绑定，从而导致两者不一致
-							LogManager.err("fail to transfer message to Converter : [" + cbi.proj_id
-									+ "]/{" + cbi.name + "}");
+							LogManager.err("fail to transfer message to Converter : [" + cbi.proj_id + "]/{" + cbi.name + "}");
 						} else {
 							proc.pushInFromWorkbench(msg);
 						}
@@ -414,11 +390,9 @@ public class Workbench {
 
 					final RobotReferBindInfo rrbi = nameMapper.bind2ReferID.get(bind_id);
 					if (rrbi != null) {
-						final Processor proc = projID_robotName_Proc.get(rrbi.proj_id)
-								.get(rrbi.robot_name);
+						final Processor proc = projID_robotName_Proc.get(rrbi.proj_id).get(rrbi.robot_name);
 						if (proc == null) {
-							LogManager.err("fail to transfer message to Robot : [" + rrbi.proj_id
-									+ "]/{" + rrbi.robot_name + "}");
+							LogManager.err("fail to transfer message to Robot : [" + rrbi.proj_id + "]/{" + rrbi.robot_name + "}");
 						} else {
 							proc.pushInFromWorkbench(msg);
 						}
@@ -430,10 +404,8 @@ public class Workbench {
 			err("a unused MSB message [" + msg.toString() + "]");
 			final StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
 			for (int i = 0; i < stackTraceElements.length; ++i) {
-				err(stackTraceElements[i].toString() + "ClassName: "
-						+ stackTraceElements[i].getClassName() + "FileName: "
-						+ stackTraceElements[i].getFileName() + "LineNumber: "
-						+ stackTraceElements[i].getLineNumber() + "MethodName: "
+				err(stackTraceElements[i].toString() + "ClassName: " + stackTraceElements[i].getClassName() + "FileName: "
+						+ stackTraceElements[i].getFileName() + "LineNumber: " + stackTraceElements[i].getLineNumber() + "MethodName: "
 						+ stackTraceElements[i].getMethodName());
 			}
 			messagePool.recycle(msg, this);
@@ -507,8 +479,7 @@ public class Workbench {
 	}
 
 	final Hashtable<Long, Message> lastUncycleMessage = new Hashtable<Long, Message>(40);
-	final Hashtable<Integer, WaitingForMessage> waiting = new Hashtable<Integer, WaitingForMessage>(
-			40);
+	final Hashtable<Integer, WaitingForMessage> waiting = new Hashtable<Integer, WaitingForMessage>(40);
 	private final int SYNC_INIT_ID = 1;
 	private int synch_no = SYNC_INIT_ID;
 	protected final int FORWARDED_SYNC_ID = Integer.MAX_VALUE;
@@ -518,25 +489,21 @@ public class Workbench {
 	 * process a <code>Message</code> synchronous and waiting for response.
 	 * 
 	 * @param msg
-	 *            the object must be got from {@link #getFreeMessage()}, and
-	 *            processed by this method only one time. the object will be
-	 *            auto recycled by server.
+	 *            the object must be got from {@link #getFreeMessage()}, and processed by this
+	 *            method only one time. the object will be auto recycled by server.
 	 * @param isDownward
 	 *            <br>
-	 * 			true : from smart module to device, or <b>control flow</b> to
-	 *            device.<br>
-	 * 			false (Upward) : from device to smart module, or <b>status
-	 *            flow</b> from device.
+	 *            true : from smart module to device, or <b>control flow</b> to device.<br>
+	 *            false (Upward) : from device to smart module, or <b>status flow</b> from device.
 	 * @param fromProcType
 	 * @param processor
 	 * @return null if it is not processed by all <code>Device</code>.<br>
-	 * 		You must call {@link #recycle(Message)} to recycle the return
-	 *         object after finish business.
+	 *         You must call {@link #recycle(Message)} to recycle the return object after finish
+	 *         business.
 	 * @see #waitFor(Message, long, boolean, int, Processor)
 	 * @see #dispatch(Message, boolean, int)
 	 */
-	private final Message process(final Message msg, final boolean isDownward,
-			final int fromProcType, final Processor processor) {
+	private final Message process(final Message msg, final boolean isDownward, final int fromProcType, final Processor processor) {
 		return waitFor(msg, 0, isDownward, fromProcType, processor);
 	}
 
@@ -544,26 +511,22 @@ public class Workbench {
 	 * process a <code>Message</code> synchronous and waiting for response.
 	 * 
 	 * @param msg
-	 *            the object must be got from {@link #getFreeMessage()}, and
-	 *            processed by this method only one time. the object will be
-	 *            auto recycled by server.
+	 *            the object must be got from {@link #getFreeMessage()}, and processed by this
+	 *            method only one time. the object will be auto recycled by server.
 	 * @param timeout
 	 *            the maximum time to wait in milliseconds.
 	 * @param downward
 	 *            <br>
-	 * 			true : from smart module to device, or <b>control flow</b> to
-	 *            device.<br>
-	 * 			false (upward) : from device to smart module, or <b>status
-	 *            flow</b> from device.
+	 *            true : from smart module to device, or <b>control flow</b> to device.<br>
+	 *            false (upward) : from device to smart module, or <b>status flow</b> from device.
 	 * @param fromProcType
 	 * @param processor
-	 * @return null if it is not processed by all <code>Device</code> or the
-	 *         time is out.
+	 * @return null if it is not processed by all <code>Device</code> or the time is out.
 	 * @see #process(Message, boolean, int, Processor)
 	 * @see #dispatch(Message, boolean, int)
 	 */
-	protected final Message waitFor(final Message msg, final long timeout, final boolean downward,
-			final int fromProcType, final Processor processor) {
+	protected final Message waitFor(final Message msg, final long timeout, final boolean downward, final int fromProcType,
+			final Processor processor) {
 		final long thread_id = Thread.currentThread().getId();
 
 		final Message old = lastUncycleMessage.remove(thread_id);
@@ -585,35 +548,28 @@ public class Workbench {
 		}
 		final WaitingForMessage oldwm = waiting.put(msg.ctrl_sync_id, wm);
 		if (oldwm != null) {
-			V = O ? false
-					: log("override header_sync_id, force finish process for thread ID:"
-							+ oldwm.dispatch_thread_id);
+			V = O ? false : log("override header_sync_id, force finish process for thread ID:" + oldwm.dispatch_thread_id);
 			oldwm.wakeUp();
 		}
 		return wm.waiting(msg, timeout, thread_id, this, fromProcType, processor);
 	}
 
 	/**
-	 * dispatch a <code>Message</code> and process it in asynchronous and NO
-	 * waiting.
+	 * dispatch a <code>Message</code> and process it in asynchronous and NO waiting.
 	 * 
 	 * @param msg
-	 *            the object must be got from {@link #getFreeMessage()}, and
-	 *            send by this method only one time. the object will be auto
-	 *            recycled by server.
+	 *            the object must be got from {@link #getFreeMessage()}, and send by this method
+	 *            only one time. the object will be auto recycled by server.
 	 * @param isDownward
 	 *            <br>
-	 * 			true : from smart module to device, or <b>control flow</b> to
-	 *            device.<br>
-	 * 			false (Upward) : from device to smart module, or <b>status
-	 *            flow</b> from device.
+	 *            true : from smart module to device, or <b>control flow</b> to device.<br>
+	 *            false (Upward) : from device to smart module, or <b>status flow</b> from device.
 	 * @param fromProcType
 	 * @return
 	 * @see #process(Message, boolean, int, Processor)
 	 * @see #waitFor(Message, long, boolean, int, Processor)
 	 */
-	protected final void dispatch(final Message msg, final boolean isDownward,
-			final int fromProcType) {
+	protected final void dispatch(final Message msg, final boolean isDownward, final int fromProcType) {
 		msg.ctrl_is_downward = isDownward;
 		msg.ctrl_dispatch_thread_id = Thread.currentThread().getId();
 		todo(msg, fromProcType);
@@ -626,8 +582,8 @@ public class Workbench {
 	 * {@link #waitFor(Message, long, boolean, int, Processor)}.
 	 * 
 	 * @param msg
-	 *            the object which is not returned from above methods should be
-	 *            auto recycled by Server.
+	 *            the object which is not returned from above methods should be auto recycled by
+	 *            Server.
 	 */
 	protected final void recycle(final Message msg, final long thread_id) {
 		if (msg == null) {
@@ -649,8 +605,8 @@ class WaitingForMessage {
 		}
 	}
 
-	public final Message waiting(final Message msg, final long timeout, final long thread_id,
-			final Workbench workbench, final int fromProcType, final Processor processor) {
+	public final Message waiting(final Message msg, final long timeout, final long thread_id, final Workbench workbench,
+			final int fromProcType, final Processor processor) {
 		dispatch_thread_id = thread_id;
 
 		workbench.V = workbench.O ? false : workbench.log("waiting response on :" + msg.toString());
@@ -671,13 +627,10 @@ class WaitingForMessage {
 		final Message out = result;
 		if (out != null) {
 			workbench.V = workbench.O ? false
-					: workbench.log("{" + processor.project_id + "/" + processor.name
-							+ "} wait a result :" + out.toString());
+					: workbench.log("{" + processor.project_id + "/" + processor.name + "} wait a result :" + out.toString());
 			workbench.lastUncycleMessage.put(dispatch_thread_id, out);
 		} else {
-			workbench.V = workbench.O ? false
-					: workbench.log("{" + processor.project_id + "/" + processor.name
-							+ "} wait no result!!!");
+			workbench.V = workbench.O ? false : workbench.log("{" + processor.project_id + "/" + processor.name + "} wait no result!!!");
 		}
 
 		// 准备回收

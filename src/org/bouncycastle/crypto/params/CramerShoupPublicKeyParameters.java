@@ -3,7 +3,7 @@ package org.bouncycastle.crypto.params;
 import java.math.BigInteger;
 
 public class CramerShoupPublicKeyParameters extends CramerShoupKeyParameters {
-	
+
 	private BigInteger c, d, h; // public key group elements
 
 	public CramerShoupPublicKeyParameters(CramerShoupParameters params, BigInteger c, BigInteger d, BigInteger h) {
@@ -17,11 +17,11 @@ public class CramerShoupPublicKeyParameters extends CramerShoupKeyParameters {
 	public BigInteger getC() {
 		return c;
 	}
-	
+
 	public BigInteger getD() {
 		return d;
 	}
-	
+
 	public BigInteger getH() {
 		return h;
 	}

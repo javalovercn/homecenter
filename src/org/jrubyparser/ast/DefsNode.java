@@ -39,43 +39,46 @@ import org.jrubyparser.util.ILocalVariableVisitor;
  * Represents a singleton method definition.
  */
 public class DefsNode extends MethodDefNode {
-    private Node receiverNode;
+	private Node receiverNode;
 
-    public DefsNode(SourcePosition position, Node receiverNode, MethodNameNode nameNode, ArgsNode argsNode,
-            StaticScope scope, Node bodyNode) {
-        super(position, nameNode, argsNode, scope, bodyNode);
+	public DefsNode(SourcePosition position, Node receiverNode, MethodNameNode nameNode, ArgsNode argsNode, StaticScope scope,
+			Node bodyNode) {
+		super(position, nameNode, argsNode, scope, bodyNode);
 
-        assert receiverNode != null : "receiverNode is not null";
+		assert receiverNode != null : "receiverNode is not null";
 
-        this.receiverNode = adopt(receiverNode);
-    }
+		this.receiverNode = adopt(receiverNode);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.DEFSNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.DEFSNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitDefsNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitDefsNode(this);
+	}
 
-    /**
-     * Gets the receiverNode.
-     * @return Returns a Node
-     */
-    public Node getReceiver() {
-        return receiverNode;
-    }
+	/**
+	 * Gets the receiverNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getReceiver() {
+		return receiverNode;
+	}
 
-    @Deprecated
-    public Node getReceiverNode() {
-        return getReceiver();
-    }
+	@Deprecated
+	public Node getReceiverNode() {
+		return getReceiver();
+	}
 
-    public List<ILocalVariable> getVariableReferencesNamed(String name) {
-        return ILocalVariableVisitor.findOccurrencesIn(this, name);
-    }
+	public List<ILocalVariable> getVariableReferencesNamed(String name) {
+		return ILocalVariableVisitor.findOccurrencesIn(this, name);
+	}
 }

@@ -32,90 +32,99 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- * Block passed explicitly as an argument in a method call.
- * A block passing argument in a method call (last argument prefixed by an ampersand).
+ * Block passed explicitly as an argument in a method call. A block passing argument in a method
+ * call (last argument prefixed by an ampersand).
  */
 public class BlockPassNode extends Node {
-    private Node bodyNode;
+	private Node bodyNode;
 
-    /** Used by the arg_blk_pass and new_call, new_fcall and new_super
-     * methods in ParserSupport to temporary save the args node.
-     */
-    private Node argsNode;
+	/**
+	 * Used by the arg_blk_pass and new_call, new_fcall and new_super methods in ParserSupport to
+	 * temporary save the args node.
+	 */
+	private Node argsNode;
 
-    public BlockPassNode(SourcePosition position, Node bodyNode) {
-        super(position);
-        this.bodyNode = adopt(bodyNode);
-    }
+	public BlockPassNode(SourcePosition position, Node bodyNode) {
+		super(position);
+		this.bodyNode = adopt(bodyNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		BlockPassNode other = (BlockPassNode) node;
 
-        BlockPassNode other = (BlockPassNode) node;
+		if (getArgs() == null && other.getArgs() == null)
+			return getBody().isSame(other.getBody());
+		if (getArgs() == null || other.getArgs() == null)
+			return false;
 
-        if (getArgs() == null && other.getArgs() == null) return getBody().isSame(other.getBody());
-        if (getArgs() == null || other.getArgs() == null) return false;
+		return getArgs().isSame(other.getArgs()) && getBody().isSame(other.getBody());
+	}
 
-        return getArgs().isSame(other.getArgs()) && getBody().isSame(other.getBody());
-    }
+	public NodeType getNodeType() {
+		return NodeType.BLOCKPASSNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitBlockPassNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.BLOCKPASSNODE;
-    }
+	/**
+	 * Gets the bodyNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	@Deprecated
+	public Node getBodyNode() {
+		return getBody();
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitBlockPassNode(this);
-    }
+	public Node getBody() {
+		return bodyNode;
+	}
 
-    /**
-     * Gets the bodyNode.
-     * @return Returns a Node
-     */
-    @Deprecated
-    public Node getBodyNode() {
-        return getBody();
-    }
+	/**
+	 * Gets the argsNode.
+	 * 
+	 * @return Returns a IListNode
+	 */
+	@Deprecated
+	public Node getArgsNode() {
+		return getArgs();
+	}
 
-    public Node getBody() {
-        return bodyNode;
-    }
+	public Node getArgs() {
+		return argsNode;
+	}
 
-    /**
-     * Gets the argsNode.
-     * @return Returns a IListNode
-     */
-    @Deprecated
-    public Node getArgsNode() {
-        return getArgs();
-    }
+	/**
+	 * Sets the argsNode.
+	 * 
+	 * @param argsNode
+	 *            The argsNode to set
+	 */
+	@Deprecated
+	public void setArgsNode(Node argsNode) {
+		setArgs(argsNode);
+	}
 
-    public Node getArgs() {
-        return argsNode;
-    }
-
-    /**
-     * Sets the argsNode.
-     * @param argsNode The argsNode to set
-     */
-    @Deprecated
-    public void setArgsNode(Node argsNode) {
-        setArgs(argsNode);
-    }
-
-    public void setArgs(Node argsNode) {
-        this.argsNode = adopt(argsNode);
-    }
+	public void setArgs(Node argsNode) {
+		this.argsNode = adopt(argsNode);
+	}
 }

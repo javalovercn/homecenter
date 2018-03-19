@@ -29,34 +29,35 @@ package org.jrubyparser.ast;
 
 import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
+
 /**
  *
  * @author enebo
  */
 public class ArgAuxillaryNode extends Node {
-    private String name;
-    private int offset;
+	private String name;
+	private int offset;
 
-    public ArgAuxillaryNode(SourcePosition position, String name, int offset) {
-        super(position);
-        this.name = name;
-        this.offset = offset;
-    }
+	public ArgAuxillaryNode(SourcePosition position, String name, int offset) {
+		super(position);
+		this.name = name;
+		this.offset = offset;
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.ARGAUXILIARYNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.ARGAUXILIARYNODE;
+	}
 
-    public int getOffset() {
-        return offset;
-    }
+	public int getOffset() {
+		return offset;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    @Override
-    public <T> T accept(NodeVisitor<T> visitor) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+	@Override
+	public <T> T accept(NodeVisitor<T> visitor) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }

@@ -21,26 +21,30 @@ import java.util.HashMap;
 import org.javassist.compiler.ast.Declarator;
 
 public final class SymbolTable extends HashMap {
-    private SymbolTable parent;
+	private SymbolTable parent;
 
-    public SymbolTable() { this(null); }
+	public SymbolTable() {
+		this(null);
+	}
 
-    public SymbolTable(SymbolTable p) {
-        super();
-        parent = p;
-    }
+	public SymbolTable(SymbolTable p) {
+		super();
+		parent = p;
+	}
 
-    public SymbolTable getParent() { return parent; }
+	public SymbolTable getParent() {
+		return parent;
+	}
 
-    public Declarator lookup(String name) {
-        Declarator found = (Declarator)get(name);
-        if (found == null && parent != null)
-            return parent.lookup(name);
-        else
-            return found;
-    }
+	public Declarator lookup(String name) {
+		Declarator found = (Declarator) get(name);
+		if (found == null && parent != null)
+			return parent.lookup(name);
+		else
+			return found;
+	}
 
-    public void append(String name, Declarator value) {
-        put(name, value);
-    }
+	public void append(String name, Declarator value) {
+		put(name, value);
+	}
 }

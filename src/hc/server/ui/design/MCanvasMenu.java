@@ -86,8 +86,7 @@ public abstract class MCanvasMenu extends MUIView {
 		}
 	}
 
-	public final String buildItemAddJcip(final J2SESession coreSS, final MenuItem menuItem,
-			final MenuItem afterItem) {
+	public final String buildItemAddJcip(final J2SESession coreSS, final MenuItem menuItem, final MenuItem afterItem) {
 		// updateMenuItem(final Image icon, final String label, final String
 		// url){
 		final String afterURL = (afterItem == null) ? Jcip.NULL_URL : getURL(coreSS, afterItem);
@@ -189,8 +188,7 @@ public abstract class MCanvasMenu extends MUIView {
 					public void run() {
 						final LongTimeSystemEventListenerException exception = new LongTimeSystemEventListenerException(
 								"long time task in SystemEventListener, maybe you need ProjectContext.run().");
-						ExceptionReporter.printStackTrace(exception, "",
-								LongTimeSystemEventListenerException.class.getName(),
+						ExceptionReporter.printStackTrace(exception, "", LongTimeSystemEventListenerException.class.getName(),
 								ExceptionReporter.INVOKE_NORMAL);
 					}
 				});

@@ -113,16 +113,14 @@ public class KeyComper {
 				if (char_imgs[j - 1] == '\\') {
 					continue;
 				} else {
-					v.addElement(String.valueOf(char_imgs, offset, j - offset)
-							.replaceAll("\\\\", "").trim());// 去掉+间可能的空格
+					v.addElement(String.valueOf(char_imgs, offset, j - offset).replaceAll("\\\\", "").trim());// 去掉+间可能的空格
 					offset = j + 1;
 				}
 			}
 		}
 
 		if (offset != char_imgs.length) {
-			v.addElement(String.valueOf(char_imgs, offset, char_imgs.length - offset)
-					.replaceAll("\\\\", "").trim());// 去掉+间可能的空格
+			v.addElement(String.valueOf(char_imgs, offset, char_imgs.length - offset).replaceAll("\\\\", "").trim());// 去掉+间可能的空格
 		}
 
 		return v;
@@ -136,8 +134,7 @@ public class KeyComper {
 	 */
 	public static void actionKeys(final String keyDesc) {
 		// CCoreUtil.checkAccess();
-		keyAction(J2SESession.NULL_J2SESESSION_FOR_PROJECT, robot, convert(convertStr(keyDesc)),
-				keyDesc);
+		keyAction(J2SESession.NULL_J2SESESSION_FOR_PROJECT, robot, convert(convertStr(keyDesc)), keyDesc);
 	}
 
 	/**
@@ -147,13 +144,10 @@ public class KeyComper {
 	 * @param keysDesc
 	 *            描述如：Shift+A
 	 */
-	public static void keyAction(final J2SESession coreSS, final Robot robot2,
-			final Vector<Integer> vInt, final String keysDesc) {
+	public static void keyAction(final J2SESession coreSS, final Robot robot2, final Vector<Integer> vInt, final String keysDesc) {
 		synchronized (robot2) {
 			if (isAndroidServer) {
-				PlatformManager.getService().doExtBiz(
-						PlatformService.BIZ_BIND_FORCE_ANDROID_KEYCODE,
-						Boolean.valueOf(isAndroidServer));
+				PlatformManager.getService().doExtBiz(PlatformService.BIZ_BIND_FORCE_ANDROID_KEYCODE, Boolean.valueOf(isAndroidServer));
 			}
 
 			for (int i = 0; i < vInt.size(); i++) {
@@ -165,8 +159,7 @@ public class KeyComper {
 			}
 
 			if (isAndroidServer) {
-				PlatformManager.getService()
-						.doExtBiz(PlatformService.BIZ_BIND_FORCE_ANDROID_KEYCODE, Boolean.FALSE);
+				PlatformManager.getService().doExtBiz(PlatformService.BIZ_BIND_FORCE_ANDROID_KEYCODE, Boolean.FALSE);
 			}
 		}
 
@@ -227,8 +220,7 @@ public class KeyComper {
 			}
 
 			final boolean startWithJ2SE = upperCase.startsWith(J2SE_KEYEVENT_PREFIX);
-			f = KeyEvent.class
-					.getField(startWithJ2SE ? upperCase : (J2SE_KEYEVENT_PREFIX + upperCase));
+			f = KeyEvent.class.getField(startWithJ2SE ? upperCase : (J2SE_KEYEVENT_PREFIX + upperCase));
 			f.setAccessible(true);
 			int keyCode = (Integer) f.get(null);
 			if (keyCode != -1 && isAndroidServer && (startWithJ2SE == false)) {
@@ -260,7 +252,6 @@ public class KeyComper {
 	}
 
 	private static int getAndroidKeyCode(final String upperCase) {
-		return (Integer) PlatformManager.getService()
-				.doExtBiz(PlatformService.BIZ_GET_ANDROID_KEYCODE, upperCase);
+		return (Integer) PlatformManager.getService().doExtBiz(PlatformService.BIZ_GET_ANDROID_KEYCODE, upperCase);
 	}
 }

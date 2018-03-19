@@ -7,275 +7,217 @@ import java.util.Hashtable;
 
 import org.bouncycastle.util.Integers;
 
-public class TlsExtensionsUtils
-{
-    public static final Integer EXT_encrypt_then_mac = Integers.valueOf(ExtensionType.encrypt_then_mac);
-    public static final Integer EXT_extended_master_secret = Integers.valueOf(ExtensionType.extended_master_secret);
-    public static final Integer EXT_heartbeat = Integers.valueOf(ExtensionType.heartbeat);
-    public static final Integer EXT_max_fragment_length = Integers.valueOf(ExtensionType.max_fragment_length);
-    public static final Integer EXT_server_name = Integers.valueOf(ExtensionType.server_name);
-    public static final Integer EXT_status_request = Integers.valueOf(ExtensionType.status_request);
-    public static final Integer EXT_truncated_hmac = Integers.valueOf(ExtensionType.truncated_hmac);
+public class TlsExtensionsUtils {
+	public static final Integer EXT_encrypt_then_mac = Integers.valueOf(ExtensionType.encrypt_then_mac);
+	public static final Integer EXT_extended_master_secret = Integers.valueOf(ExtensionType.extended_master_secret);
+	public static final Integer EXT_heartbeat = Integers.valueOf(ExtensionType.heartbeat);
+	public static final Integer EXT_max_fragment_length = Integers.valueOf(ExtensionType.max_fragment_length);
+	public static final Integer EXT_server_name = Integers.valueOf(ExtensionType.server_name);
+	public static final Integer EXT_status_request = Integers.valueOf(ExtensionType.status_request);
+	public static final Integer EXT_truncated_hmac = Integers.valueOf(ExtensionType.truncated_hmac);
 
-    public static Hashtable ensureExtensionsInitialised(Hashtable extensions)
-    {
-        return extensions == null ? new Hashtable() : extensions;
-    }
+	public static Hashtable ensureExtensionsInitialised(Hashtable extensions) {
+		return extensions == null ? new Hashtable() : extensions;
+	}
 
-    public static void addEncryptThenMACExtension(Hashtable extensions)
-    {
-        extensions.put(EXT_encrypt_then_mac, createEncryptThenMACExtension());
-    }
+	public static void addEncryptThenMACExtension(Hashtable extensions) {
+		extensions.put(EXT_encrypt_then_mac, createEncryptThenMACExtension());
+	}
 
-    public static void addExtendedMasterSecretExtension(Hashtable extensions)
-    {
-        extensions.put(EXT_extended_master_secret, createExtendedMasterSecretExtension());
-    }
+	public static void addExtendedMasterSecretExtension(Hashtable extensions) {
+		extensions.put(EXT_extended_master_secret, createExtendedMasterSecretExtension());
+	}
 
-    public static void addHeartbeatExtension(Hashtable extensions, HeartbeatExtension heartbeatExtension)
-        throws IOException
-    {
-        extensions.put(EXT_heartbeat, createHeartbeatExtension(heartbeatExtension));
-    }
+	public static void addHeartbeatExtension(Hashtable extensions, HeartbeatExtension heartbeatExtension) throws IOException {
+		extensions.put(EXT_heartbeat, createHeartbeatExtension(heartbeatExtension));
+	}
 
-    public static void addMaxFragmentLengthExtension(Hashtable extensions, short maxFragmentLength)
-        throws IOException
-    {
-        extensions.put(EXT_max_fragment_length, createMaxFragmentLengthExtension(maxFragmentLength));
-    }
+	public static void addMaxFragmentLengthExtension(Hashtable extensions, short maxFragmentLength) throws IOException {
+		extensions.put(EXT_max_fragment_length, createMaxFragmentLengthExtension(maxFragmentLength));
+	}
 
-    public static void addServerNameExtension(Hashtable extensions, ServerNameList serverNameList)
-        throws IOException
-    {
-        extensions.put(EXT_server_name, createServerNameExtension(serverNameList));
-    }
+	public static void addServerNameExtension(Hashtable extensions, ServerNameList serverNameList) throws IOException {
+		extensions.put(EXT_server_name, createServerNameExtension(serverNameList));
+	}
 
-    public static void addStatusRequestExtension(Hashtable extensions, CertificateStatusRequest statusRequest)
-        throws IOException
-    {
-        extensions.put(EXT_status_request, createStatusRequestExtension(statusRequest));
-    }
+	public static void addStatusRequestExtension(Hashtable extensions, CertificateStatusRequest statusRequest) throws IOException {
+		extensions.put(EXT_status_request, createStatusRequestExtension(statusRequest));
+	}
 
-    public static void addTruncatedHMacExtension(Hashtable extensions)
-    {
-        extensions.put(EXT_truncated_hmac, createTruncatedHMacExtension());
-    }
+	public static void addTruncatedHMacExtension(Hashtable extensions) {
+		extensions.put(EXT_truncated_hmac, createTruncatedHMacExtension());
+	}
 
-    public static HeartbeatExtension getHeartbeatExtension(Hashtable extensions)
-        throws IOException
-    {
-        byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_heartbeat);
-        return extensionData == null ? null : readHeartbeatExtension(extensionData);
-    }
+	public static HeartbeatExtension getHeartbeatExtension(Hashtable extensions) throws IOException {
+		byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_heartbeat);
+		return extensionData == null ? null : readHeartbeatExtension(extensionData);
+	}
 
-    public static short getMaxFragmentLengthExtension(Hashtable extensions)
-        throws IOException
-    {
-        byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_max_fragment_length);
-        return extensionData == null ? -1 : readMaxFragmentLengthExtension(extensionData);
-    }
+	public static short getMaxFragmentLengthExtension(Hashtable extensions) throws IOException {
+		byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_max_fragment_length);
+		return extensionData == null ? -1 : readMaxFragmentLengthExtension(extensionData);
+	}
 
-    public static ServerNameList getServerNameExtension(Hashtable extensions)
-        throws IOException
-    {
-        byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_server_name);
-        return extensionData == null ? null : readServerNameExtension(extensionData);
-    }
+	public static ServerNameList getServerNameExtension(Hashtable extensions) throws IOException {
+		byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_server_name);
+		return extensionData == null ? null : readServerNameExtension(extensionData);
+	}
 
-    public static CertificateStatusRequest getStatusRequestExtension(Hashtable extensions)
-        throws IOException
-    {
-        byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_status_request);
-        return extensionData == null ? null : readStatusRequestExtension(extensionData);
-    }
+	public static CertificateStatusRequest getStatusRequestExtension(Hashtable extensions) throws IOException {
+		byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_status_request);
+		return extensionData == null ? null : readStatusRequestExtension(extensionData);
+	}
 
-    public static boolean hasEncryptThenMACExtension(Hashtable extensions) throws IOException
-    {
-        byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_encrypt_then_mac);
-        return extensionData == null ? false : readEncryptThenMACExtension(extensionData);
-    }
+	public static boolean hasEncryptThenMACExtension(Hashtable extensions) throws IOException {
+		byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_encrypt_then_mac);
+		return extensionData == null ? false : readEncryptThenMACExtension(extensionData);
+	}
 
-    public static boolean hasExtendedMasterSecretExtension(Hashtable extensions) throws IOException
-    {
-        byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_extended_master_secret);
-        return extensionData == null ? false : readExtendedMasterSecretExtension(extensionData);
-    }
+	public static boolean hasExtendedMasterSecretExtension(Hashtable extensions) throws IOException {
+		byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_extended_master_secret);
+		return extensionData == null ? false : readExtendedMasterSecretExtension(extensionData);
+	}
 
-    public static boolean hasTruncatedHMacExtension(Hashtable extensions) throws IOException
-    {
-        byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_truncated_hmac);
-        return extensionData == null ? false : readTruncatedHMacExtension(extensionData);
-    }
+	public static boolean hasTruncatedHMacExtension(Hashtable extensions) throws IOException {
+		byte[] extensionData = TlsUtils.getExtensionData(extensions, EXT_truncated_hmac);
+		return extensionData == null ? false : readTruncatedHMacExtension(extensionData);
+	}
 
-    public static byte[] createEmptyExtensionData()
-    {
-        return TlsUtils.EMPTY_BYTES;
-    }
+	public static byte[] createEmptyExtensionData() {
+		return TlsUtils.EMPTY_BYTES;
+	}
 
-    public static byte[] createEncryptThenMACExtension()
-    {
-        return createEmptyExtensionData();
-    }
+	public static byte[] createEncryptThenMACExtension() {
+		return createEmptyExtensionData();
+	}
 
-    public static byte[] createExtendedMasterSecretExtension()
-    {
-        return createEmptyExtensionData();
-    }
+	public static byte[] createExtendedMasterSecretExtension() {
+		return createEmptyExtensionData();
+	}
 
-    public static byte[] createHeartbeatExtension(HeartbeatExtension heartbeatExtension)
-        throws IOException
-    {
-        if (heartbeatExtension == null)
-        {
-            throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
+	public static byte[] createHeartbeatExtension(HeartbeatExtension heartbeatExtension) throws IOException {
+		if (heartbeatExtension == null) {
+			throw new TlsFatalAlert(AlertDescription.internal_error);
+		}
 
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
+		ByteArrayOutputStream buf = new ByteArrayOutputStream();
 
-        heartbeatExtension.encode(buf);
+		heartbeatExtension.encode(buf);
 
-        return buf.toByteArray();
-    }
+		return buf.toByteArray();
+	}
 
-    public static byte[] createMaxFragmentLengthExtension(short maxFragmentLength)
-        throws IOException
-    {
-        TlsUtils.checkUint8(maxFragmentLength);
+	public static byte[] createMaxFragmentLengthExtension(short maxFragmentLength) throws IOException {
+		TlsUtils.checkUint8(maxFragmentLength);
 
-        byte[] extensionData = new byte[1];
-        TlsUtils.writeUint8(maxFragmentLength, extensionData, 0);
-        return extensionData;
-    }
+		byte[] extensionData = new byte[1];
+		TlsUtils.writeUint8(maxFragmentLength, extensionData, 0);
+		return extensionData;
+	}
 
-    public static byte[] createServerNameExtension(ServerNameList serverNameList)
-        throws IOException
-    {
-        if (serverNameList == null)
-        {
-            throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
-        
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
-        
-        serverNameList.encode(buf);
+	public static byte[] createServerNameExtension(ServerNameList serverNameList) throws IOException {
+		if (serverNameList == null) {
+			throw new TlsFatalAlert(AlertDescription.internal_error);
+		}
 
-        return buf.toByteArray();
-    }
+		ByteArrayOutputStream buf = new ByteArrayOutputStream();
 
-    public static byte[] createStatusRequestExtension(CertificateStatusRequest statusRequest)
-        throws IOException
-    {
-        if (statusRequest == null)
-        {
-            throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
+		serverNameList.encode(buf);
 
-        ByteArrayOutputStream buf = new ByteArrayOutputStream();
+		return buf.toByteArray();
+	}
 
-        statusRequest.encode(buf);
+	public static byte[] createStatusRequestExtension(CertificateStatusRequest statusRequest) throws IOException {
+		if (statusRequest == null) {
+			throw new TlsFatalAlert(AlertDescription.internal_error);
+		}
 
-        return buf.toByteArray();
-    }
+		ByteArrayOutputStream buf = new ByteArrayOutputStream();
 
-    public static byte[] createTruncatedHMacExtension()
-    {
-        return createEmptyExtensionData();
-    }
+		statusRequest.encode(buf);
 
-    private static boolean readEmptyExtensionData(byte[] extensionData) throws IOException
-    {
-        if (extensionData == null)
-        {
-            throw new IllegalArgumentException("'extensionData' cannot be null");
-        }
+		return buf.toByteArray();
+	}
 
-        if (extensionData.length != 0)
-        {
-            throw new TlsFatalAlert(AlertDescription.illegal_parameter);
-        }
+	public static byte[] createTruncatedHMacExtension() {
+		return createEmptyExtensionData();
+	}
 
-        return true;
-    }
+	private static boolean readEmptyExtensionData(byte[] extensionData) throws IOException {
+		if (extensionData == null) {
+			throw new IllegalArgumentException("'extensionData' cannot be null");
+		}
 
-    public static boolean readEncryptThenMACExtension(byte[] extensionData) throws IOException
-    {
-        return readEmptyExtensionData(extensionData);
-    }
+		if (extensionData.length != 0) {
+			throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+		}
 
-    public static boolean readExtendedMasterSecretExtension(byte[] extensionData) throws IOException
-    {
-        return readEmptyExtensionData(extensionData);
-    }
+		return true;
+	}
 
-    public static HeartbeatExtension readHeartbeatExtension(byte[] extensionData)
-        throws IOException
-    {
-        if (extensionData == null)
-        {
-            throw new IllegalArgumentException("'extensionData' cannot be null");
-        }
+	public static boolean readEncryptThenMACExtension(byte[] extensionData) throws IOException {
+		return readEmptyExtensionData(extensionData);
+	}
 
-        ByteArrayInputStream buf = new ByteArrayInputStream(extensionData);
+	public static boolean readExtendedMasterSecretExtension(byte[] extensionData) throws IOException {
+		return readEmptyExtensionData(extensionData);
+	}
 
-        HeartbeatExtension heartbeatExtension = HeartbeatExtension.parse(buf);
+	public static HeartbeatExtension readHeartbeatExtension(byte[] extensionData) throws IOException {
+		if (extensionData == null) {
+			throw new IllegalArgumentException("'extensionData' cannot be null");
+		}
 
-        TlsProtocol.assertEmpty(buf);
+		ByteArrayInputStream buf = new ByteArrayInputStream(extensionData);
 
-        return heartbeatExtension;
-    }
+		HeartbeatExtension heartbeatExtension = HeartbeatExtension.parse(buf);
 
-    public static short readMaxFragmentLengthExtension(byte[] extensionData)
-        throws IOException
-    {
-        if (extensionData == null)
-        {
-            throw new IllegalArgumentException("'extensionData' cannot be null");
-        }
+		TlsProtocol.assertEmpty(buf);
 
-        if (extensionData.length != 1)
-        {
-            throw new TlsFatalAlert(AlertDescription.decode_error);
-        }
+		return heartbeatExtension;
+	}
 
-        return TlsUtils.readUint8(extensionData, 0);
-    }
+	public static short readMaxFragmentLengthExtension(byte[] extensionData) throws IOException {
+		if (extensionData == null) {
+			throw new IllegalArgumentException("'extensionData' cannot be null");
+		}
 
-    public static ServerNameList readServerNameExtension(byte[] extensionData)
-        throws IOException
-    {
-        if (extensionData == null)
-        {
-            throw new IllegalArgumentException("'extensionData' cannot be null");
-        }
+		if (extensionData.length != 1) {
+			throw new TlsFatalAlert(AlertDescription.decode_error);
+		}
 
-        ByteArrayInputStream buf = new ByteArrayInputStream(extensionData);
+		return TlsUtils.readUint8(extensionData, 0);
+	}
 
-        ServerNameList serverNameList = ServerNameList.parse(buf);
+	public static ServerNameList readServerNameExtension(byte[] extensionData) throws IOException {
+		if (extensionData == null) {
+			throw new IllegalArgumentException("'extensionData' cannot be null");
+		}
 
-        TlsProtocol.assertEmpty(buf);
+		ByteArrayInputStream buf = new ByteArrayInputStream(extensionData);
 
-        return serverNameList;
-    }
+		ServerNameList serverNameList = ServerNameList.parse(buf);
 
-    public static CertificateStatusRequest readStatusRequestExtension(byte[] extensionData)
-        throws IOException
-    {
-        if (extensionData == null)
-        {
-            throw new IllegalArgumentException("'extensionData' cannot be null");
-        }
+		TlsProtocol.assertEmpty(buf);
 
-        ByteArrayInputStream buf = new ByteArrayInputStream(extensionData);
+		return serverNameList;
+	}
 
-        CertificateStatusRequest statusRequest = CertificateStatusRequest.parse(buf);
+	public static CertificateStatusRequest readStatusRequestExtension(byte[] extensionData) throws IOException {
+		if (extensionData == null) {
+			throw new IllegalArgumentException("'extensionData' cannot be null");
+		}
 
-        TlsProtocol.assertEmpty(buf);
+		ByteArrayInputStream buf = new ByteArrayInputStream(extensionData);
 
-        return statusRequest;
-    }
+		CertificateStatusRequest statusRequest = CertificateStatusRequest.parse(buf);
 
-    public static boolean readTruncatedHMacExtension(byte[] extensionData) throws IOException
-    {
-        return readEmptyExtensionData(extensionData);
-    }
+		TlsProtocol.assertEmpty(buf);
+
+		return statusRequest;
+	}
+
+	public static boolean readTruncatedHMacExtension(byte[] extensionData) throws IOException {
+		return readEmptyExtensionData(extensionData);
+	}
 }

@@ -34,10 +34,8 @@ public class LinkNamePanel extends JPanel {
 	final JCheckBox perm_del = new JCheckBox("delete, exclude private file");
 	final JCheckBox perm_exit = new JCheckBox("exit");
 
-	private final JCheckBox checkReadProperty = new JCheckBox(
-			HCPermissionConstant.READ_SYSTEM_PROPERTIES);
-	private final JCheckBox checkWriteProperty = new JCheckBox(
-			HCPermissionConstant.WRITE_SYSTEM_PROPERTIES);
+	private final JCheckBox checkReadProperty = new JCheckBox(HCPermissionConstant.READ_SYSTEM_PROPERTIES);
+	private final JCheckBox checkWriteProperty = new JCheckBox(HCPermissionConstant.WRITE_SYSTEM_PROPERTIES);
 	final JCheckBox perm_memAccessSystem = new JCheckBox(HCPermissionConstant.MEMBER_ACCESS_SYSTEM);
 
 	private final JCheckBox checkLocation = new JCheckBox(ResourceUtil.LOCATION_OF_MOBILE);
@@ -59,8 +57,7 @@ public class LinkNamePanel extends JPanel {
 	public final String CANCLE = "-1";
 	final JButton resetPermission = new JButton((String) ResourceUtil.get(9090));
 
-	public LinkNamePanel(final String linkName, final String desc,
-			final ContextSecurityConfig csconfig, final LinkProjectStore lpstore) {
+	public LinkNamePanel(final String linkName, final String desc, final ContextSecurityConfig csconfig, final LinkProjectStore lpstore) {
 		this.csc = csconfig;
 		this.lps = lpstore;
 
@@ -245,8 +242,7 @@ public class LinkNamePanel extends JPanel {
 			panel.add(linkNameField, BorderLayout.CENTER);
 
 			composeLinkName.add(panel);
-			composeLinkName.add(new JLabel(
-					"<html>it is folder name for the entrance to current project in your mobile menu.</html>"));
+			composeLinkName.add(new JLabel("<html>it is folder name for the entrance to current project in your mobile menu.</html>"));
 
 			composeLinkName.setBorder(new TitledBorder((String) ResourceUtil.get(8021)));
 		}
@@ -265,8 +261,7 @@ public class LinkNamePanel extends JPanel {
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		{
 			final JComponent[] components = { composeLinkName, composeComment };
-			tabbedPane.addTab((String) ResourceUtil.get(9095),
-					ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER));
+			tabbedPane.addTab((String) ResourceUtil.get(9095), ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER));
 		}
 
 		final JPanel mobilePanel = new JPanel(new GridLayout(1, 4));
@@ -292,12 +287,10 @@ public class LinkNamePanel extends JPanel {
 		sysOtherPropPanel.add(checkSetFactory);
 		// sysOtherPropPanel.add(checkListenAllAWTEvents);
 		// sysOtherPropPanel.add(checkAccessClipboard);
-		final JComponent[] components = { mobilePanel, new JSeparator(SwingConstants.HORIZONTAL),
-				perm_sock_panel, new JSeparator(SwingConstants.HORIZONTAL), osPermPanel,
-				new JSeparator(SwingConstants.HORIZONTAL), sysPropPanel,
+		final JComponent[] components = { mobilePanel, new JSeparator(SwingConstants.HORIZONTAL), perm_sock_panel,
+				new JSeparator(SwingConstants.HORIZONTAL), osPermPanel, new JSeparator(SwingConstants.HORIZONTAL), sysPropPanel,
 				new JSeparator(SwingConstants.HORIZONTAL), sysOtherPropPanel };
-		final JPanel buildNorthPanel = ServerUIUtil.buildNorthPanel(components, 0,
-				BorderLayout.CENTER);
+		final JPanel buildNorthPanel = ServerUIUtil.buildNorthPanel(components, 0, BorderLayout.CENTER);
 
 		{
 			final JPanel permission = new JPanel();
@@ -310,8 +303,7 @@ public class LinkNamePanel extends JPanel {
 			}
 		}
 
-		final int defaultIdx = Integer
-				.parseInt(PropertiesManager.getValue(PropertiesManager.p_ProjModiTabIdx, "0"));
+		final int defaultIdx = Integer.parseInt(PropertiesManager.getValue(PropertiesManager.p_ProjModiTabIdx, "0"));
 		tabbedPane.setSelectedIndex(defaultIdx);
 
 		tabbedPane.addChangeListener(new ChangeListener() {

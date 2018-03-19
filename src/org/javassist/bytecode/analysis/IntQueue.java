@@ -18,40 +18,42 @@ package org.javassist.bytecode.analysis;
 import java.util.NoSuchElementException;
 
 class IntQueue {
-    private static class Entry {
-        private IntQueue.Entry next;
-        private int value;
-        private Entry(int value) {
-            this.value = value;
-        }
-    }
-    private IntQueue.Entry head;
+	private static class Entry {
+		private IntQueue.Entry next;
+		private int value;
 
-    private IntQueue.Entry tail;
+		private Entry(int value) {
+			this.value = value;
+		}
+	}
 
-    void add(int value) {
-        IntQueue.Entry entry = new Entry(value);
-        if (tail != null)
-            tail.next = entry;
-        tail = entry;
+	private IntQueue.Entry head;
 
-        if (head == null)
-            head = entry;
-    }
+	private IntQueue.Entry tail;
 
-    boolean isEmpty() {
-        return head == null;
-    }
+	void add(int value) {
+		IntQueue.Entry entry = new Entry(value);
+		if (tail != null)
+			tail.next = entry;
+		tail = entry;
 
-    int take() {
-        if (head == null)
-            throw new NoSuchElementException();
+		if (head == null)
+			head = entry;
+	}
 
-        int value = head.value;
-        head = head.next;
-        if (head == null)
-            tail = null;
+	boolean isEmpty() {
+		return head == null;
+	}
 
-        return value;
-    }
+	int take() {
+		if (head == null)
+			throw new NoSuchElementException();
+
+		int value = head.value;
+		head = head.next;
+		if (head == null)
+			tail = null;
+
+		return value;
+	}
 }

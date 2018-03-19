@@ -24,13 +24,12 @@ public class ServCtrlCanvas implements ICanvas {
 	@Override
 	public void onStart() {
 		final ProjectContext ctx = ServerUIAPIAgent.getProjectContextFromCtrl(cr);
-		ServerUIAPIAgent.runInSessionThreadPool(coreSS,
-				ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new Runnable() {
-					@Override
-					public void run() {
-						cr.onLoad();
-					}
-				});
+		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new Runnable() {
+			@Override
+			public void run() {
+				cr.onLoad();
+			}
+		});
 	}
 
 	@Override
@@ -44,15 +43,13 @@ public class ServCtrlCanvas implements ICanvas {
 	@Override
 	public void onExit() {
 		final ProjectContext ctx = ServerUIAPIAgent.getProjectContextFromCtrl(cr);
-		ServerUIAPIAgent.runInSessionThreadPool(coreSS,
-				ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new Runnable() {
-					@Override
-					public void run() {
-						cr.onExit();
-					}
-				});
-		MultiUsingManager.exit(coreSS,
-				ServerUIAPIAgent.buildScreenID(ctx.getProjectID(), cr.target));
+		ServerUIAPIAgent.runInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx), new Runnable() {
+			@Override
+			public void run() {
+				cr.onExit();
+			}
+		});
+		MultiUsingManager.exit(coreSS, ServerUIAPIAgent.buildScreenID(ctx.getProjectID(), cr.target));
 	}
 
 	@Override

@@ -32,56 +32,60 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- *	An 'ensure' statement.
+ * An 'ensure' statement.
  */
 public class EnsureNode extends Node {
-    private Node bodyNode;
-    private Node ensureNode;
+	private Node bodyNode;
+	private Node ensureNode;
 
-    public EnsureNode(SourcePosition position, Node bodyNode, Node ensureNode) {
-        super(position);
+	public EnsureNode(SourcePosition position, Node bodyNode, Node ensureNode) {
+		super(position);
 
-        assert bodyNode != null : "bodyNode is not null";
+		assert bodyNode != null : "bodyNode is not null";
 
-        this.bodyNode = adopt(bodyNode);
-        this.ensureNode = adopt(ensureNode);
-    }
+		this.bodyNode = adopt(bodyNode);
+		this.ensureNode = adopt(ensureNode);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.ENSURENODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.ENSURENODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitEnsureNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitEnsureNode(this);
+	}
 
-    /**
-     * Gets the bodyNode.
-     * @return Returns a Node
-     */
-    public Node getBody() {
-        return bodyNode;
-    }
+	/**
+	 * Gets the bodyNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getBody() {
+		return bodyNode;
+	}
 
-    @Deprecated
-    public Node getBodyNode() {
-        return getBody();
-    }
+	@Deprecated
+	public Node getBodyNode() {
+		return getBody();
+	}
 
-    /**
-     * Gets the ensureNode.
-     * @return Returns a Node
-     */
-    public Node getEnsure() {
-        return ensureNode;
-    }
+	/**
+	 * Gets the ensureNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getEnsure() {
+		return ensureNode;
+	}
 
-    @Deprecated
-    public Node getEnsureNode() {
-        return getEnsure();
-    }
+	@Deprecated
+	public Node getEnsureNode() {
+		return getEnsure();
+	}
 }

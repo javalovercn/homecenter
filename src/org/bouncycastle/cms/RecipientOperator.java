@@ -7,42 +7,33 @@ import org.bouncycastle.operator.InputDecryptor;
 import org.bouncycastle.operator.MacCalculator;
 import org.bouncycastle.util.io.TeeInputStream;
 
-public class RecipientOperator
-{
-    private final AlgorithmIdentifier algorithmIdentifier;
-    private final Object operator;
+public class RecipientOperator {
+	private final AlgorithmIdentifier algorithmIdentifier;
+	private final Object operator;
 
-    public RecipientOperator(InputDecryptor decryptor)
-    {
-        this.algorithmIdentifier = decryptor.getAlgorithmIdentifier();
-        this.operator = decryptor;
-    }
+	public RecipientOperator(InputDecryptor decryptor) {
+		this.algorithmIdentifier = decryptor.getAlgorithmIdentifier();
+		this.operator = decryptor;
+	}
 
-    public RecipientOperator(MacCalculator macCalculator)
-    {
-        this.algorithmIdentifier = macCalculator.getAlgorithmIdentifier();
-        this.operator = macCalculator;
-    }
+	public RecipientOperator(MacCalculator macCalculator) {
+		this.algorithmIdentifier = macCalculator.getAlgorithmIdentifier();
+		this.operator = macCalculator;
+	}
 
-    public InputStream getInputStream(InputStream dataIn)
-    {
-        if (operator instanceof InputDecryptor)
-        {
-            return ((InputDecryptor)operator).getInputStream(dataIn);
-        }
-        else
-        {
-            return new TeeInputStream(dataIn, ((MacCalculator)operator).getOutputStream());
-        }
-    }
+	public InputStream getInputStream(InputStream dataIn) {
+		if (operator instanceof InputDecryptor) {
+			return ((InputDecryptor) operator).getInputStream(dataIn);
+		} else {
+			return new TeeInputStream(dataIn, ((MacCalculator) operator).getOutputStream());
+		}
+	}
 
-    public boolean isMacBased()
-    {
-        return operator instanceof MacCalculator;
-    }
+	public boolean isMacBased() {
+		return operator instanceof MacCalculator;
+	}
 
-    public byte[] getMac()
-    {
-        return ((MacCalculator)operator).getMac();
-    }
+	public byte[] getMac() {
+		return ((MacCalculator) operator).getMac();
+	}
 }

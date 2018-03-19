@@ -32,71 +32,73 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- * Global scope node (::FooBar).  This is used to gain access to the global scope (that of the
- * Object class) when referring to a constant or method.
+ * Global scope node (::FooBar). This is used to gain access to the global scope (that of the Object
+ * class) when referring to a constant or method.
  */
 public class Colon3Node extends Node implements INameNode {
-    protected String name;
+	protected String name;
 
-    public Colon3Node(SourcePosition position, String name) {
-        super(position);
-        this.name = name;
-    }
+	public Colon3Node(SourcePosition position, String name) {
+		super(position);
+		this.name = name;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && isNameMatch(((Colon3Node) node).getName());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && isNameMatch(((Colon3Node) node).getName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.COLON3NODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitColon3Node(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.COLON3NODE;
-    }
+	public String getLexicalName() {
+		return getName();
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitColon3Node(this);
-    }
+	/**
+	 * Gets the name.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getName() {
+		return name;
+	}
 
-    public String getLexicalName() {
-        return getName();
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    /**
-     * Gets the name.
-     * @return Returns a String
-     */
-    public String getName() {
-        return name;
-    }
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+		return thisName != null && thisName.equals(name);
+	}
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+	// FIXME: All colon nodes inherit from this and it is unclear to me what should be returned for
+	// the various cases.
+	public SourcePosition getNamePosition() {
+		return getPosition().fromEnd(getName().length());
+	}
 
-        return thisName != null && thisName.equals(name);
-    }
-
-    // FIXME: All colon nodes inherit from this and it is unclear to me what should be returned for
-    // the various cases.
-    public SourcePosition getNamePosition() {
-        return getPosition().fromEnd(getName().length());
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getNamePosition();
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getNamePosition();
+	}
 }

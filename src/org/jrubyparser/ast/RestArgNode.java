@@ -35,37 +35,37 @@ import org.jrubyparser.SourcePosition;
  * The rest argument for a method (def foo(a, *b, c)).
  */
 public class RestArgNode extends ArgumentNode implements IParameter {
-    // index of variable for this arg
-    protected int index;
+	// index of variable for this arg
+	protected int index;
 
-    public RestArgNode(SourcePosition position, String name, int index) {
-        super(position, name);
+	public RestArgNode(SourcePosition position, String name, int index) {
+		super(position, name);
 
-        this.index = index;
-    }
+		this.index = index;
+	}
 
-    // 1.9 only - lvar assign logic returns an Argument node
-    public RestArgNode(SourcePosition position, ArgumentNode argNode) {
-        this(position, argNode.getName(), argNode.getIndex());
-    }
+	// 1.9 only - lvar assign logic returns an Argument node
+	public RestArgNode(SourcePosition position, ArgumentNode argNode) {
+		this(position, argNode.getName(), argNode.getIndex());
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.RESTARG;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.RESTARG;
+	}
 
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitRestArgNode(this);
-    }
+	@Override
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitRestArgNode(this);
+	}
 
-    @Override
-    public int getIndex() {
-        return index;
-    }
+	@Override
+	public int getIndex() {
+		return index;
+	}
 
-    @Override
-    public SourcePosition getNamePosition() {
-        return getPosition().fromEnd(getName().length());
-    }
+	@Override
+	public SourcePosition getNamePosition() {
+		return getPosition().fromEnd(getName().length());
+	}
 }

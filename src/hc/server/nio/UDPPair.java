@@ -22,8 +22,7 @@ public class UDPPair {
 	private static final ByteBufferCacher bbCache = new ByteBufferCacher() {
 		@Override
 		public ByteBuffer buildOne() {
-			return ByteBuffer.allocateDirect(
-					RootConfig.getInstance().getIntProperty(RootConfig.p_DefaultUDPSize));
+			return ByteBuffer.allocateDirect(RootConfig.getInstance().getIntProperty(RootConfig.p_DefaultUDPSize));
 		}
 	};
 	private final static Stack pareCache = new Stack();

@@ -16,8 +16,7 @@ public class NativeOSManager {
 	public final static int OLD_DEFAULT_OS_MASK = OS_WINDOW | OS_LINUX | OS_MAC_OSX | OS_ANDROID;
 
 	public static int getOSMaskFromMap(final Map<String, Object> map, final int idx) {
-		final String osMaskStr = (String) map
-				.get(HCjar.replaceIdxPattern(HCjar.SHARE_NATIVE_FILE_OS_MASK, idx));
+		final String osMaskStr = (String) map.get(HCjar.replaceIdxPattern(HCjar.SHARE_NATIVE_FILE_OS_MASK, idx));
 		int osMask = NativeOSManager.OLD_DEFAULT_OS_MASK;
 		if (osMaskStr != null) {
 			try {

@@ -1,13 +1,13 @@
 package hc.server.ui.design.hpj;
 
-import hc.App;
-import hc.server.ui.design.Designer;
-
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
+
+import hc.App;
+import hc.server.ui.design.Designer;
 
 public class NodeEditPanel extends JPanel {
 	public EditorJumpRunnable jumpRunnable;
@@ -71,5 +71,8 @@ public class NodeEditPanel extends JPanel {
 	}
 
 	public void notifyLostEditPanelFocus() {
+	}
+	
+	public void notifyLostWindowFocus() {
 	}
 }

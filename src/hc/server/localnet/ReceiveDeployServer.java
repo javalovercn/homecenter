@@ -29,8 +29,7 @@ public class ReceiveDeployServer {
 
 			final String ip = ia.getHostAddress();
 			if (HttpUtil.isLocalNetworkIP(ip) == false) {
-				LogManager
-						.log("[Deploy] can't create receive-deploy service on NON local network.");
+				LogManager.log("[Deploy] can't create receive-deploy service on NON local network.");
 				return;
 			}
 
@@ -56,8 +55,7 @@ public class ReceiveDeployServer {
 								final InetSocketAddress isa = (InetSocketAddress) sa;
 								final String remoteIP = isa.getAddress().getHostAddress();
 								if (remoteIP.equals(gateIP)) {
-									LogManager.errToLog(
-											"[Deploy] drap data from gateway : " + gateIP);
+									LogManager.errToLog("[Deploy] drap data from gateway : " + gateIP);
 									socket.close();
 									continue;
 								}
@@ -80,9 +78,7 @@ public class ReceiveDeployServer {
 			t.setDaemon(true);
 			t.start();
 
-			LogManager
-					.log("[Deploy] successful start receive-deploy service from local network at ["
-							+ ip + "/" + port + "].");
+			LogManager.log("[Deploy] successful start receive-deploy service from local network at [" + ip + "/" + port + "].");
 		} catch (final Throwable e) {
 			e.printStackTrace();
 		}
@@ -99,8 +95,7 @@ public class ReceiveDeployServer {
 			} catch (final Throwable e) {
 				e.printStackTrace();
 			}
-			LogManager.log(
-					"[Deploy] stop receive-deploy service, which receives deployment from local network.");
+			LogManager.log("[Deploy] stop receive-deploy service, which receives deployment from local network.");
 		}
 	}
 }

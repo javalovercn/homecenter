@@ -32,49 +32,49 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 public class ArgsPushNode extends Node {
-    private Node firstNode;
-    private Node secondNode;
+	private Node firstNode;
+	private Node secondNode;
 
-    public ArgsPushNode(SourcePosition position, Node firstNode, Node secondNode) {
-        super(position);
+	public ArgsPushNode(SourcePosition position, Node firstNode, Node secondNode) {
+		super(position);
 
-        assert firstNode != null : "ArgsPushNode.first == null";
-        assert secondNode != null : "ArgsPushNode.second == null";
+		assert firstNode != null : "ArgsPushNode.first == null";
+		assert secondNode != null : "ArgsPushNode.second == null";
 
-        this.firstNode = adopt(firstNode);
-        this.secondNode = adopt(secondNode);
-    }
+		this.firstNode = adopt(firstNode);
+		this.secondNode = adopt(secondNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		ArgsPushNode other = (ArgsPushNode) node;
 
-        ArgsPushNode other = (ArgsPushNode) node;
+		return getFirstNode().isSame(other.getFirstNode()) && getSecondNode().isSame(other.getSecondNode());
+	}
 
-        return getFirstNode().isSame(other.getFirstNode()) && getSecondNode().isSame(other.getSecondNode());
-    }
+	public NodeType getNodeType() {
+		return NodeType.ARGSPUSHNODE;
+	}
 
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitArgsPushNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.ARGSPUSHNODE;
-    }
+	public Node getFirstNode() {
+		return firstNode;
+	}
 
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitArgsPushNode(this);
-    }
-
-    public Node getFirstNode() {
-        return firstNode;
-    }
-
-    public Node getSecondNode() {
-        return secondNode;
-    }
+	public Node getSecondNode() {
+		return secondNode;
+	}
 }

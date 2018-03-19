@@ -28,8 +28,8 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 /**
- * This provides static methods to convert an XML text into a JSONObject, and to
- * covert a JSONObject into an XML text.
+ * This provides static methods to convert an XML text into a JSONObject, and to covert a JSONObject
+ * into an XML text.
  * 
  * @author JSON.org
  * @version 2016-08-10
@@ -64,9 +64,8 @@ public class JSONXML {
 	public static final Character SLASH = '/';
 
 	/**
-	 * Creates an iterator for navigating Code Points in a string instead of
-	 * characters. Once Java7 support is dropped, this can be replaced with
-	 * <code>
+	 * Creates an iterator for navigating Code Points in a string instead of characters. Once Java7
+	 * support is dropped, this can be replaced with <code>
 	 * string.codePoints()
 	 * </code> which is available in Java8 and above.
 	 * 
@@ -158,19 +157,16 @@ public class JSONXML {
 		/*
 		 * Valid range from https://www.w3.org/TR/REC-xml/#charsets
 		 * 
-		 * #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] |
-		 * [#x10000-#x10FFFF]
+		 * #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
 		 * 
-		 * any Unicode character, excluding the surrogate blocks, FFFE, and
-		 * FFFF.
+		 * any Unicode character, excluding the surrogate blocks, FFFE, and FFFF.
 		 */
 		// isISOControl is true when (cp >= 0 && cp <= 0x1F) || (cp >= 0x7F &&
 		// cp <= 0x9F)
 		// all ISO control characters are out of range except tabs and new lines
 		return (Character.isISOControl(cp) && cp != 0x9 && cp != 0xA && cp != 0xD) || !(
 		// valid the range of acceptable characters that aren't control
-		(cp >= 0x20 && cp <= 0xD7FF) || (cp >= 0xE000 && cp <= 0xFFFD)
-				|| (cp >= 0x10000 && cp <= 0x10FFFF));
+		(cp >= 0x20 && cp <= 0xD7FF) || (cp >= 0xE000 && cp <= 0xFFFD) || (cp >= 0x10000 && cp <= 0x10FFFF));
 	}
 
 	/**
@@ -229,8 +225,8 @@ public class JSONXML {
 	}
 
 	/**
-	 * Throw an exception if the string contains whitespace. Whitespace is not
-	 * allowed in tagNames and attributes.
+	 * Throw an exception if the string contains whitespace. Whitespace is not allowed in tagNames
+	 * and attributes.
 	 * 
 	 * @param string
 	 *            A string.
@@ -262,8 +258,8 @@ public class JSONXML {
 	 * @return true if the close tag is processed.
 	 * @throws JSONException
 	 */
-	private static boolean parse(final JSONXMLTokener x, final JSONObject context,
-			final String name, final boolean keepStrings) throws JSONException {
+	private static boolean parse(final JSONXMLTokener x, final JSONObject context, final String name, final boolean keepStrings)
+			throws JSONException {
 		char c;
 		int i;
 		JSONObject jsonobject = null;
@@ -361,8 +357,7 @@ public class JSONXML {
 						if (!(token instanceof String)) {
 							throw x.syntaxError("Missing value");
 						}
-						jsonobject.accumulate(string, keepStrings ? unescape((String) token)
-								: stringToValue((String) token));
+						jsonobject.accumulate(string, keepStrings ? unescape((String) token) : stringToValue((String) token));
 						token = null;
 					} else {
 						jsonobject.accumulate(string, "");
@@ -392,8 +387,7 @@ public class JSONXML {
 						} else if (token instanceof String) {
 							string = (String) token;
 							if (string.length() > 0) {
-								jsonobject.accumulate("content",
-										keepStrings ? unescape(string) : stringToValue(string));
+								jsonobject.accumulate("content", keepStrings ? unescape(string) : stringToValue(string));
 							}
 
 						} else if (token == LT) {
@@ -401,8 +395,7 @@ public class JSONXML {
 							if (parse(x, jsonobject, tagName, keepStrings)) {
 								if (jsonobject.length() == 0) {
 									context.accumulate(tagName, "");
-								} else if (jsonobject.length() == 1
-										&& jsonobject.opt("content") != null) {
+								} else if (jsonobject.length() == 1 && jsonobject.opt("content") != null) {
 									context.accumulate(tagName, jsonobject.opt("content"));
 								} else {
 									context.accumulate(tagName, jsonobject);
@@ -419,8 +412,8 @@ public class JSONXML {
 	}
 
 	/**
-	 * This method is the same as {@link JSONObject#stringToValue(String)}
-	 * except that this also tries to unescape String values.
+	 * This method is the same as {@link JSONObject#stringToValue(String)} except that this also
+	 * tries to unescape String values.
 	 * 
 	 * @param string
 	 *            String to convert
@@ -435,15 +428,13 @@ public class JSONXML {
 	}
 
 	/**
-	 * Convert a well-formed (but not necessarily valid) XML string into a
-	 * JSONObject. Some information may be lost in this transformation because
-	 * JSON is a data format and XML is a document format. XML uses elements,
-	 * attributes, and content text, while JSON uses unordered collections of
-	 * name/value pairs and arrays of values. JSON does not does not like to
-	 * distinguish between elements and attributes. Sequences of similar
-	 * elements are represented as JSONArrays. Content text may be placed in a
-	 * "content" member. Comments, prologs, DTDs, and <code>&lt;[ [ ]]></code>
-	 * are ignored.
+	 * Convert a well-formed (but not necessarily valid) XML string into a JSONObject. Some
+	 * information may be lost in this transformation because JSON is a data format and XML is a
+	 * document format. XML uses elements, attributes, and content text, while JSON uses unordered
+	 * collections of name/value pairs and arrays of values. JSON does not does not like to
+	 * distinguish between elements and attributes. Sequences of similar elements are represented as
+	 * JSONArrays. Content text may be placed in a "content" member. Comments, prologs, DTDs, and
+	 * <code>&lt;[ [ ]]></code> are ignored.
 	 * 
 	 * @param string
 	 *            The source string.
@@ -456,31 +447,27 @@ public class JSONXML {
 	}
 
 	/**
-	 * Convert a well-formed (but not necessarily valid) XML string into a
-	 * JSONObject. Some information may be lost in this transformation because
-	 * JSON is a data format and XML is a document format. XML uses elements,
-	 * attributes, and content text, while JSON uses unordered collections of
-	 * name/value pairs and arrays of values. JSON does not does not like to
-	 * distinguish between elements and attributes. Sequences of similar
-	 * elements are represented as JSONArrays. Content text may be placed in a
-	 * "content" member. Comments, prologs, DTDs, and <code>&lt;[ [ ]]></code>
-	 * are ignored.
+	 * Convert a well-formed (but not necessarily valid) XML string into a JSONObject. Some
+	 * information may be lost in this transformation because JSON is a data format and XML is a
+	 * document format. XML uses elements, attributes, and content text, while JSON uses unordered
+	 * collections of name/value pairs and arrays of values. JSON does not does not like to
+	 * distinguish between elements and attributes. Sequences of similar elements are represented as
+	 * JSONArrays. Content text may be placed in a "content" member. Comments, prologs, DTDs, and
+	 * <code>&lt;[ [ ]]></code> are ignored.
 	 * 
-	 * All values are converted as strings, for 1, 01, 29.0 will not be coerced
-	 * to numbers but will instead be the exact value as seen in the XML
-	 * document.
+	 * All values are converted as strings, for 1, 01, 29.0 will not be coerced to numbers but will
+	 * instead be the exact value as seen in the XML document.
 	 * 
 	 * @param string
 	 *            The source string.
 	 * @param keepStrings
-	 *            If true, then values will not be coerced into boolean or
-	 *            numeric values and will instead be left as strings
+	 *            If true, then values will not be coerced into boolean or numeric values and will
+	 *            instead be left as strings
 	 * @return A JSONObject containing the structured data from the XML string.
 	 * @throws JSONException
 	 *             Thrown if there is an errors while parsing the string
 	 */
-	public static JSONObject toJSONObject(final String string, final boolean keepStrings)
-			throws JSONException {
+	public static JSONObject toJSONObject(final String string, final boolean keepStrings) throws JSONException {
 		final JSONObject jo = new JSONObject();
 		final JSONXMLTokener x = new JSONXMLTokener(string);
 		while (x.more() && x.skipPast("<")) {
@@ -611,8 +598,7 @@ public class JSONXML {
 
 		string = (object == null) ? "null" : escape(object.toString());
 		return (tagName == null) ? "\"" + string + "\""
-				: (string.length() == 0) ? "<" + tagName + "/>"
-						: "<" + tagName + ">" + string + "</" + tagName + ">";
+				: (string.length() == 0) ? "<" + tagName + "/>" : "<" + tagName + ">" + string + "</" + tagName + ">";
 
 	}
 }

@@ -40,114 +40,121 @@ import org.jrubyparser.util.VariableHelper;
  * Represents a block.
  */
 public class IterNode extends Node implements IBlockScope {
-    private Node varNode;
-    private Node bodyNode;
+	private Node varNode;
+	private Node bodyNode;
 
-    // What static scoping relationship exists when it comes into being.
-    private StaticScope scope;
+	// What static scoping relationship exists when it comes into being.
+	private StaticScope scope;
 
-    public IterNode(SourcePosition position, Node varNode, StaticScope scope, Node bodyNode) {
-        super(position);
-        this.varNode = adopt(varNode);
-        this.scope = scope;
-        this.bodyNode = adopt(bodyNode);
-    }
+	public IterNode(SourcePosition position, Node varNode, StaticScope scope, Node bodyNode) {
+		super(position);
+		this.varNode = adopt(varNode);
+		this.scope = scope;
+		this.bodyNode = adopt(bodyNode);
+	}
 
-    public IterNode(SourcePosition position, ArgsNode args, Node body, StaticScope scope) {
-        super(position);
+	public IterNode(SourcePosition position, ArgsNode args, Node body, StaticScope scope) {
+		super(position);
 
-        this.varNode = adopt(args);
-        this.bodyNode = adopt(body);
-        this.scope = scope;
-    }
+		this.varNode = adopt(args);
+		this.bodyNode = adopt(body);
+		this.scope = scope;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		IterNode other = (IterNode) node;
 
-        IterNode other = (IterNode) node;
+		if (getBody() == null && other.getBody() == null) {
+			if (getVar() == null && other.getVar() == null)
+				return true;
+			if (getVar() == null || other.getVar() == null)
+				return false;
+		} else if (getBody() == null || other.getBody() == null) {
+			return false;
+		} else if (getVar() == null && other.getVar() == null) {
+			return getBody().isSame(other.getBody());
+		} else if (getVar() == null || other.getVar() == null) {
+			return false;
+		}
 
-        if (getBody() == null && other.getBody() == null) {
-            if (getVar() == null && other.getVar() == null) return true;
-            if (getVar() == null || other.getVar() == null) return false;
-        } else if (getBody() == null || other.getBody() == null) {
-            return false;
-        } else if (getVar() == null && other.getVar() == null) {
-            return getBody().isSame(other.getBody());
-        } else if (getVar() == null || other.getVar() == null) {
-            return false;
-        }
+		return getBody().isSame(other.getBody()) && getVar().isSame(other.getVar());
+	}
 
-        return getBody().isSame(other.getBody()) && getVar().isSame(other.getVar());
-    }
+	public NodeType getNodeType() {
+		return NodeType.ITERNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitIterNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.ITERNODE;
-    }
+	public StaticScope getScope() {
+		return scope;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitIterNode(this);
-    }
+	/**
+	 * Gets the bodyNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getBody() {
+		return bodyNode;
+	}
 
-    public StaticScope getScope() {
-        return scope;
-    }
+	@Deprecated
+	public Node getBodyNode() {
+		return getBody();
+	}
 
-    /**
-     * Gets the bodyNode.
-     * @return Returns a Node
-     */
-    public Node getBody() {
-        return bodyNode;
-    }
+	/**
+	 * Gets the varNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getVar() {
+		return varNode;
+	}
 
-    @Deprecated
-    public Node getBodyNode() {
-        return getBody();
-    }
+	@Deprecated
+	public Node getVarNode() {
+		return getVar();
+	}
 
-    /**
-     * Gets the varNode.
-     * @return Returns a Node
-     */
-    public Node getVar() {
-        return varNode;
-    }
+	/**
+	 * Given a name (presumably retrieve via getNormativeSignatureNameList()) is this parmeter used
+	 * in this method definition?
+	 *
+	 * @param name
+	 *            to be checked
+	 * @return if used or not.
+	 */
+	public boolean isParameterUsed(String name) {
+		// FIXME: Do I need to worry about used vars in parameter initialization?
+		return VariableHelper.isParameterUsed(getBody(), name, false);
+	}
 
-    @Deprecated
-    public Node getVarNode() {
-        return getVar();
-    }
+	public ILocalVariable getParameterNamed(String name) {
+		return VariableHelper.getParameterName(getVar(), name);
+	}
 
-    /**
-     * Given a name (presumably retrieve via getNormativeSignatureNameList()) is this parmeter used
-     * in this method definition?
-     *
-     * @param name to be checked
-     * @return if used or not.
-     */
-    public boolean isParameterUsed(String name) {
-        // FIXME: Do I need to worry about used vars in parameter initialization?
-        return VariableHelper.isParameterUsed(getBody(), name, false);
-    }
-
-    public ILocalVariable getParameterNamed(String name) {
-        return VariableHelper.getParameterName(getVar(), name);
-    }
-
-    public List<ILocalVariable> getVariableReferencesNamed(String name) {
-        return ILocalVariableVisitor.findOccurrencesIn(this, name);
-    }
+	public List<ILocalVariable> getVariableReferencesNamed(String name) {
+		return ILocalVariableVisitor.findOccurrencesIn(this, name);
+	}
 }

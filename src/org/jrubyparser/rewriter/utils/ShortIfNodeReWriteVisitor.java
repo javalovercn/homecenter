@@ -32,17 +32,17 @@ import org.jrubyparser.ast.NewlineNode;
 import org.jrubyparser.rewriter.ReWriteVisitor;
 
 public class ShortIfNodeReWriteVisitor extends ReWriteVisitor {
-	
+
 	public ShortIfNodeReWriteVisitor(ReWriterContext config) {
 		super(config);
 	}
-	
-    @Override
+
+	@Override
 	protected void printNewlineAndIndentation() {
 		print("; ");
 	}
-	
-    @Override
+
+	@Override
 	public Object visitNewlineNode(NewlineNode iVisited) {
 		if (config.getSource().charAt(getEndOffset(iVisited) - 1) == ')') {
 			print('(');

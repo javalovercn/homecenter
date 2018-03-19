@@ -30,24 +30,21 @@ public class MemberIDInputDialog extends BlockSystemDialog {
 		super(threadWait);
 
 		final ProjResponser pr = ServerUIAPIAgent.getProjResponserMaybeNull(getProjectContext());
-		final BufferedImage okImage = (BufferedImage) ServerUIAPIAgent
-				.getClientSessionAttributeForSys(localCoreSS, pr,
-						ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_OK_ICON);
+		final BufferedImage okImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr,
+				ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_OK_ICON);
 		final int fontSizePX = okImage.getHeight();// 不能采用此作为check字号，iPhone下过大
-		loadCSS(SystemHTMLMlet.buildCSS(getButtonHeight(), getFontSizeForButton(),
-				getColorForFontByIntValue(), getColorForBodyByIntValue()));
+		loadCSS(SystemHTMLMlet.buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(),
+				getColorForBodyByIntValue()));
 
 		final int areaFontSize = (int) (fontSizePX * 0.7);
 		final int labelHeight = (int) (fontSizePX * 1.4);
 
 		final JLabel memberID = new JLabel(ResourceUtil.get(localCoreSS, 1039));// 1039=Member
 																				// ID
-		final String descMember = ResourceUtil.buildDescPrefix(localCoreSS,
-				ResourceUtil.get(localCoreSS, 1040));// 1040=a member of family
-														// or group
+		final String descMember = ResourceUtil.buildDescPrefix(localCoreSS, ResourceUtil.get(localCoreSS, 1040));// 1040=a member of family
+																													// or group
 		final ScriptPanel desc = new ScriptPanel();
-		desc.setInnerHTML("<div style=\"padding:0.1em;" + SystemHTMLMlet.LABEL_FOR_DIV_AUTO_NEW_LINE
-				+ "\">" + descMember + "</div>");
+		desc.setInnerHTML("<div style=\"padding:0.1em;" + SystemHTMLMlet.LABEL_FOR_DIV_AUTO_NEW_LINE + "\">" + descMember + "</div>");
 
 		final Dimension itemDimension = new Dimension(getMobileWidth() / 2, labelHeight);
 
@@ -66,8 +63,7 @@ public class MemberIDInputDialog extends BlockSystemDialog {
 		final JButton ok = new JButton(ResourceUtil.getOKI18N(localCoreSS), new ImageIcon(okImage));
 		setButtonStyle(ok);
 
-		final int buttonPanelHeight = Math.max(fontSizePX + getFontSizeForButton(),
-				getButtonHeight());
+		final int buttonPanelHeight = Math.max(fontSizePX + getFontSizeForButton(), getButtonHeight());
 
 		ok.setMinimumSize(new Dimension(10, buttonPanelHeight));
 		ok.setMaximumSize(new Dimension(getMobileWidth(), buttonPanelHeight));
@@ -98,13 +94,12 @@ public class MemberIDInputDialog extends BlockSystemDialog {
 
 				MemberIDInputDialog.this.dismiss();
 
-				final boolean hasSame = (Boolean) ServerUIAPIAgent
-						.runAndWaitInSysThread(new ReturnableRunnable() {
-							@Override
-							public Object run() throws Throwable {
-								return localCoreSS.checkSameMemberIDInSys(memID, false);
-							}
-						});
+				final boolean hasSame = (Boolean) ServerUIAPIAgent.runAndWaitInSysThread(new ReturnableRunnable() {
+					@Override
+					public Object run() throws Throwable {
+						return localCoreSS.checkSameMemberIDInSys(memID, false);
+					}
+				});
 				if (hasSame) {
 					String msg = ResourceUtil.get(localCoreSS, 9272);
 					msg = StringUtil.replace(msg, "{memID}", memID);
@@ -117,25 +112,21 @@ public class MemberIDInputDialog extends BlockSystemDialog {
 					final Runnable noRun = new Runnable() {
 						@Override
 						public void run() {
-							final MemberIDInputDialog inputMemberIDDialog = new MemberIDInputDialog(
-									memberIDSetStatus, threadWait);
+							final MemberIDInputDialog inputMemberIDDialog = new MemberIDInputDialog(memberIDSetStatus, threadWait);
 							getProjectContext().sendDialogWhenInSession(inputMemberIDDialog);
 						}
 					};
-					getProjectContext().sendQuestion(ResourceUtil.getWarnI18N(localCoreSS), msg,
-							null, yesRun, noRun, null);
+					getProjectContext().sendQuestion(ResourceUtil.getWarnI18N(localCoreSS), msg, null, yesRun, noRun, null);
 				} else {
 					updateMemberID(memberIDSetStatus, threadWait, memID);
 				}
 			}
 
-			protected final void updateMemberID(final BooleanValue memberIDSetStatus,
-					final Object threadWait, final String text) {
+			protected final void updateMemberID(final BooleanValue memberIDSetStatus, final Object threadWait, final String text) {
 				ServerUIAPIAgent.runInSysThread(new Runnable() {
 					@Override
 					public void run() {
-						HCURLUtil.sendCmd(localCoreSS, HCURL.DATA_CMD_SendPara,
-								HCURL.DATA_PARA_CHANGE_MEMBER_ID, text);
+						HCURLUtil.sendCmd(localCoreSS, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_CHANGE_MEMBER_ID, text);
 					}
 				});
 				UserThreadResourceUtil.getMobileAgent(localCoreSS).setMemberID(text);

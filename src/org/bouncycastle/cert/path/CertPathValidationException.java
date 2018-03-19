@@ -1,24 +1,19 @@
 package org.bouncycastle.cert.path;
 
-public class CertPathValidationException
-    extends Exception
-{
-    private final Exception cause;
+public class CertPathValidationException extends Exception {
+	private final Exception cause;
 
-    public CertPathValidationException(String msg)
-    {
-        this(msg, null);
-    }
+	public CertPathValidationException(String msg) {
+		this(msg, null);
+	}
 
-    public CertPathValidationException(String msg, Exception cause)
-    {
-        super(msg);
+	public CertPathValidationException(String msg, Exception cause) {
+		super(msg);
 
-        this.cause = cause;
-    }
+		this.cause = cause;
+	}
 
-    public Throwable getCause()
-    {
-        return cause;
-    }
+	public Throwable getCause() {
+		return cause;
+	}
 }

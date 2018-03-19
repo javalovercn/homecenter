@@ -12,16 +12,15 @@ public class HCFileInputStream extends HCInputStream {
 
 	protected static String nullFileName = null;
 
-	protected HCFileInputStream(final InputStream is, final String fileExtension,
-			final String fileName) {
+	protected HCFileInputStream(final InputStream is, final String fileExtension, final String fileName) {
 		super(is);
 		this.fileExtension = fileExtension;
 		this.fileName = fileName;
 	}
 
 	/**
-	 * create random file in <code>TEMP</code> directory (managed by server and
-	 * will be empty at next startup).
+	 * create random file in <code>TEMP</code> directory (managed by server and will be empty at
+	 * next startup).
 	 * 
 	 * @param fileExtension
 	 *            null means no file extension.
@@ -38,8 +37,8 @@ public class HCFileInputStream extends HCInputStream {
 	 * create random file in <code>parent</code> directory.
 	 * 
 	 * @param parent
-	 *            null means create random file in <code>TEMP</code> directory
-	 *            (managed by server and will be empty at next startup).
+	 *            null means create random file in <code>TEMP</code> directory (managed by server
+	 *            and will be empty at next startup).
 	 * @param fileExtension
 	 *            null means no file extension.
 	 * @return
@@ -48,8 +47,7 @@ public class HCFileInputStream extends HCInputStream {
 	 */
 	@Deprecated
 	public final File createRandomFile(final File parent, final String fileExtension) {
-		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), parent,
-				fileExtension);
+		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), parent, fileExtension);
 	}
 
 	/**
@@ -58,20 +56,19 @@ public class HCFileInputStream extends HCInputStream {
 	 * it is equals with {@link #getTempFile(File, String)}.
 	 * 
 	 * @param parent
-	 *            null means create random file in <code>TEMP</code> directory
-	 *            (managed by server and will be empty at next startup).
+	 *            null means create random file in <code>TEMP</code> directory (managed by server
+	 *            and will be empty at next startup).
 	 * @param fileExtension
 	 *            null means no file extension.
 	 * @return
 	 */
 	public final File createTempFile(final File parent, final String fileExtension) {
-		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), parent,
-				fileExtension);
+		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), parent, fileExtension);
 	}
 
 	/**
-	 * create temporary file in <code>TEMP</code> directory (managed by server
-	 * and will be empty at next startup). <BR>
+	 * create temporary file in <code>TEMP</code> directory (managed by server and will be empty at
+	 * next startup). <BR>
 	 * <BR>
 	 * it is equals with {@link #getTempFile(String)}.
 	 * 
@@ -80,8 +77,7 @@ public class HCFileInputStream extends HCInputStream {
 	 * @return
 	 */
 	public final File createTempFile(final String fileExtension) {
-		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), null,
-				fileExtension);
+		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), null, fileExtension);
 	}
 
 	/**
@@ -90,20 +86,19 @@ public class HCFileInputStream extends HCInputStream {
 	 * it is equals with {@link #createTempFile(File, String)}.
 	 * 
 	 * @param parent
-	 *            null means create random file in <code>TEMP</code> directory
-	 *            (managed by server and will be empty at next startup).
+	 *            null means create random file in <code>TEMP</code> directory (managed by server
+	 *            and will be empty at next startup).
 	 * @param fileExtension
 	 *            null means no file extension.
 	 * @return
 	 */
 	public final File getTempFile(final File parent, final String fileExtension) {
-		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), parent,
-				fileExtension);
+		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), parent, fileExtension);
 	}
 
 	/**
-	 * get temporary file in <code>TEMP</code> directory (managed by server and
-	 * will be empty at next startup). <BR>
+	 * get temporary file in <code>TEMP</code> directory (managed by server and will be empty at
+	 * next startup). <BR>
 	 * <BR>
 	 * it is equals with {@link #createTempFile(String)}.
 	 * 
@@ -112,8 +107,7 @@ public class HCFileInputStream extends HCInputStream {
 	 * @return
 	 */
 	public final File getTempFile(final String fileExtension) {
-		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), null,
-				fileExtension);
+		return ResourceUtil.createTempFileForHAR(ProjectContext.getProjectContext(), null, fileExtension);
 	}
 
 	/**

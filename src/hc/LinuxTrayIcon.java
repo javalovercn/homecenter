@@ -132,8 +132,7 @@ public class LinuxTrayIcon extends TransparentFrame implements ITrayIcon {
 	private static Image buildHCTrayIcon(Image image) {
 		Image iconImage = image;
 		if ((image.getWidth(null) > MAX_IMG_SIZE)) {
-			iconImage = ResourceUtil.resizeImage(ResourceUtil.toBufferedImage(image), MAX_IMG_SIZE,
-					MAX_IMG_SIZE);
+			iconImage = ResourceUtil.resizeImage(ResourceUtil.toBufferedImage(image), MAX_IMG_SIZE, MAX_IMG_SIZE);
 		}
 		iconImage = ImageSrc.makeRoundedCorner(ImageSrc.toBufferedImage(iconImage), 16);
 		return iconImage;
@@ -180,8 +179,7 @@ public class LinuxTrayIcon extends TransparentFrame implements ITrayIcon {
 	@Override
 	public void displayMessage(String caption, String text, MessageType messageType) {
 		final Point location = this.getLocation();
-		TipPop.setCornerPosition(location.x, location.y, image.getWidth(null),
-				image.getHeight(null));
+		TipPop.setCornerPosition(location.x, location.y, image.getWidth(null), image.getHeight(null));
 		TipPop.displayMessage(caption, text, messageType);
 	}
 

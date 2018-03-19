@@ -20,8 +20,7 @@ public class UILang {
 	private static Locale locale;
 	private static Locale sysDefaultLocale = Locale.getDefault();
 	private static Properties resources;
-	private static final Hashtable<String, Properties> mobileRes = new Hashtable<String, Properties>(
-			60);
+	private static final Hashtable<String, Properties> mobileRes = new Hashtable<String, Properties>(60);
 
 	static {
 		if (PropertiesManager.isTrue(PropertiesManager.p_ForceEn)) {
@@ -61,11 +60,11 @@ public class UILang {
 
 			mobiR = mobileRes.get(locale);
 		}
-		return (String)mobiR.get(String.valueOf(id));
+		return (String) mobiR.get(String.valueOf(id));
 	}
 
 	public static String getUILang(final int id) {
-		final String result = (String)resources.get(String.valueOf(id));
+		final String result = (String) resources.get(String.valueOf(id));
 		// L.V = L.WShop ? false : LogManager.log("res " + id + " : " + result +
 		// ", locale : " + locale);
 		return result;
@@ -103,8 +102,7 @@ public class UILang {
 		}
 		if (is == null) {
 			try {
-				is = baseClass.getResourceAsStream(
-						UI_LANG_FILE_NAME_PREFIX + userLang.substring(0, 2) + ".properties");
+				is = baseClass.getResourceAsStream(UI_LANG_FILE_NAME_PREFIX + userLang.substring(0, 2) + ".properties");
 			} catch (final Exception e) {
 			}
 			if (is == null) {
@@ -130,8 +128,7 @@ public class UILang {
 		}
 		if (is == null) {
 			try {
-				is = baseClass.getResourceAsStream(
-						UI_LANG_FILE_NAME_PREFIX + userLang.substring(0, 2) + ".properties");
+				is = baseClass.getResourceAsStream(UI_LANG_FILE_NAME_PREFIX + userLang.substring(0, 2) + ".properties");
 			} catch (final Exception e) {
 			}
 			if (is == null) {

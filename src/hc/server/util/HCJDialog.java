@@ -34,8 +34,7 @@ public class HCJDialog extends JDialog {
 		this(owner, title, Dialog.ModalityType.MODELESS);
 	}
 
-	public HCJDialog(final Window owner, final String title,
-			final Dialog.ModalityType modalityType) {
+	public HCJDialog(final Window owner, final String title, final Dialog.ModalityType modalityType) {
 		super(owner, title, modalityType);
 		init(title);
 	}

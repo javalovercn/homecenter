@@ -17,8 +17,7 @@ public class WrapperSecurityManager extends SecurityManager {
 
 	private boolean hasAllPermission() {
 		if (old != null) {
-			final Object out = ClassUtil.invoke(SecurityManager.class, old, "hasAllPermission",
-					nullParaTypes, nullParas, true);
+			final Object out = ClassUtil.invoke(SecurityManager.class, old, "hasAllPermission", nullParaTypes, nullParas, true);
 			if (out != null && out instanceof Boolean) {
 				return ((Boolean) out);
 			}
@@ -53,8 +52,7 @@ public class WrapperSecurityManager extends SecurityManager {
 	@Override
 	protected final ClassLoader currentClassLoader() {
 		if (old != null) {
-			final Object out = ClassUtil.invoke(SecurityManager.class, old, "currentClassLoader",
-					nullParaTypes, nullParas, true);
+			final Object out = ClassUtil.invoke(SecurityManager.class, old, "currentClassLoader", nullParaTypes, nullParas, true);
 			if (out != null && out instanceof ClassLoader) {
 				return (ClassLoader) out;
 			}
@@ -66,8 +64,7 @@ public class WrapperSecurityManager extends SecurityManager {
 	@Override
 	protected final Class<?> currentLoadedClass() {
 		if (old != null) {
-			final Object out = ClassUtil.invoke(SecurityManager.class, old, "currentLoadedClass",
-					nullParaTypes, nullParas, true);
+			final Object out = ClassUtil.invoke(SecurityManager.class, old, "currentLoadedClass", nullParaTypes, nullParas, true);
 			if (out != null && out instanceof Class<?>) {
 				return (Class<?>) out;
 			}
@@ -82,8 +79,7 @@ public class WrapperSecurityManager extends SecurityManager {
 			final Class[] paraTypes = { String.class };
 			final Object[] para = { name };
 
-			final Object out = ClassUtil.invoke(SecurityManager.class, old, "classDepth", paraTypes,
-					para, true);
+			final Object out = ClassUtil.invoke(SecurityManager.class, old, "classDepth", paraTypes, para, true);
 			if (out != null && out instanceof Integer) {
 				return (Integer) out;
 			}
@@ -95,8 +91,7 @@ public class WrapperSecurityManager extends SecurityManager {
 	@Override
 	protected final int classLoaderDepth() {
 		if (old != null) {
-			final Object out = ClassUtil.invoke(SecurityManager.class, old, "classLoaderDepth",
-					nullParaTypes, nullParas, true);
+			final Object out = ClassUtil.invoke(SecurityManager.class, old, "classLoaderDepth", nullParaTypes, nullParas, true);
 			if (out != null && out instanceof Integer) {
 				return (Integer) out;
 			}
@@ -111,8 +106,7 @@ public class WrapperSecurityManager extends SecurityManager {
 			final Class[] paraTypes = { String.class };
 			final Object[] para = { name };
 
-			final Object out = ClassUtil.invoke(SecurityManager.class, old, "inClass", paraTypes,
-					para, true);
+			final Object out = ClassUtil.invoke(SecurityManager.class, old, "inClass", paraTypes, para, true);
 			if (out != null && out instanceof Boolean) {
 				return (Boolean) out;
 			}
@@ -124,8 +118,7 @@ public class WrapperSecurityManager extends SecurityManager {
 	@Override
 	protected final boolean inClassLoader() {
 		if (old != null) {
-			final Object out = ClassUtil.invoke(SecurityManager.class, old, "inClassLoader",
-					nullParaTypes, nullParas, true);
+			final Object out = ClassUtil.invoke(SecurityManager.class, old, "inClassLoader", nullParaTypes, nullParas, true);
 			if (out != null && out instanceof Boolean) {
 				return (Boolean) out;
 			}
@@ -384,8 +377,7 @@ public class WrapperSecurityManager extends SecurityManager {
 		final Class[] paraTypes = { String.class };
 		final Object[] para = { p };
 
-		final Object out = ClassUtil.invoke(SecurityManager.class, SecurityManager.class,
-				"getPackages", paraTypes, para, true);// 静态方法，不用old，而用SecurityManager.class
+		final Object out = ClassUtil.invoke(SecurityManager.class, SecurityManager.class, "getPackages", paraTypes, para, true);// 静态方法，不用old，而用SecurityManager.class
 		if (out != null && out instanceof String[]) {
 			return (String[]) out;
 		}

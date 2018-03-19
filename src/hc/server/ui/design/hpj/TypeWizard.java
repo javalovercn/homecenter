@@ -77,8 +77,7 @@ public class TypeWizard {
 					text = ResourceUtil.buildFirstUpcaseString(text);
 					text += MenuManager.getNextNodeIdx();
 				}
-				final String url = HCURL
-						.buildStandardURL(BaseMenuItemNodeEditPanel.getProtocal(type), text);
+				final String url = HCURL.buildStandardURL(BaseMenuItemNodeEditPanel.getProtocal(type), text);
 				final HCURL hcurl = HCURLUtil.extract(url);
 				wizardEnd = buildItem(type, hcurl);
 				HCURLUtil.hcurlCacher.cycle(hcurl);
@@ -105,18 +104,14 @@ public class TypeWizard {
 		final JLabel[] dispButton = new JLabel[HPNode.WIZARD_SELECTABLE_MENU_ITEM_SIZE];
 		final String nextStepStr = ResourceUtil.get(1029);
 		final JButton ok = new JButton(nextStepStr, new ImageIcon(ImageSrc.OK_ICON));
-		final int[] typeDescs = { HPNode.TYPE_MENU_ITEM_FORM, HPNode.TYPE_MENU_ITEM_CONTROLLER,
-				HPNode.TYPE_MENU_ITEM_CMD, HPNode.TYPE_MENU_ITEM_SCREEN,
-				HPNode.TYPE_MENU_ITEM_IOT };
-		final String[] icons = { "form_22.png", "controller_22.png", "cmd_22.png", "screen_22.png",
-				"iot_22.png" };
-		final String desc = "<html>"
-				+ "<STRONG>form</STRONG> : Mlet/HTMLMlet is implemented by J2SE Swing JComponents.<BR><BR>"
+		final int[] typeDescs = { HPNode.TYPE_MENU_ITEM_FORM, HPNode.TYPE_MENU_ITEM_CONTROLLER, HPNode.TYPE_MENU_ITEM_CMD,
+				HPNode.TYPE_MENU_ITEM_SCREEN, HPNode.TYPE_MENU_ITEM_IOT };
+		final String[] icons = { "form_22.png", "controller_22.png", "cmd_22.png", "screen_22.png", "iot_22.png" };
+		final String desc = "<html>" + "<STRONG>form</STRONG> : Mlet/HTMLMlet is implemented by J2SE Swing JComponents.<BR><BR>"
 				+ "<STRONG>controller</STRONG> : a controller of smart device on mobile.<BR><BR>"
 				+ "<STRONG>cmd</STRONG> : run JRuby script or executable command on server; or open configration form of mobile; or exit/back.<BR><BR>"
 				+ "<STRONG>screen</STRONG> : display desktop of current server on mobile.<BR><BR>"
-				+ "<STRONG>IoT</STRONG> : device, converter, or robot (coordinate zero or multiple devices) for IoT."
-				+ "</html>";
+				+ "<STRONG>IoT</STRONG> : device, converter, or robot (coordinate zero or multiple devices) for IoT." + "</html>";
 
 		final ItemListener itemListener = new ItemListener() {
 			@Override
@@ -136,8 +131,7 @@ public class TypeWizard {
 						break;
 					}
 				}
-				if (type == HPNode.TYPE_MENU_ITEM_CONTROLLER
-						|| type == HPNode.TYPE_MENU_ITEM_SCREEN) {
+				if (type == HPNode.TYPE_MENU_ITEM_CONTROLLER || type == HPNode.TYPE_MENU_ITEM_SCREEN) {
 					final String ok_text = ResourceUtil.get(IContext.OK);
 					if (ok.getText().equals(ok_text) == false) {
 						ok.setText(ok_text);
@@ -154,14 +148,12 @@ public class TypeWizard {
 			@Override
 			public void run() {
 				if (type == HPNode.TYPE_MENU_ITEM_CONTROLLER) {
-					final String url = buildDefaultTypeURL(HCURL.CONTROLLER_PROTOCAL)
-							+ MenuManager.getNextNodeIdx();
+					final String url = buildDefaultTypeURL(HCURL.CONTROLLER_PROTOCAL) + MenuManager.getNextNodeIdx();
 					final HCURL hcurl = HCURLUtil.extract(url);
 					wizardEnd = buildItem(HPNode.TYPE_MENU_ITEM_CONTROLLER, hcurl);
 					dialog.dispose();
 				} else if (type == HPNode.TYPE_MENU_ITEM_SCREEN) {
-					wizardEnd = buildItem(HPNode.TYPE_MENU_ITEM_SCREEN,
-							HCURLUtil.extract(HCURL.URL_HOME_SCREEN));
+					wizardEnd = buildItem(HPNode.TYPE_MENU_ITEM_SCREEN, HCURLUtil.extract(HCURL.URL_HOME_SCREEN));
 					dialog.dispose();
 				} else {
 					// 进入下一步
@@ -173,12 +165,9 @@ public class TypeWizard {
 						// when current item is clicked.");
 						// cmd - My Command "do some response biz in server side
 						// when current item is clicked from mobile side");
-						final String[] subItems = { "command", HCURL.DATA_CMD_EXIT,
-								HCURL.DATA_CMD_CONFIG };
-						final String[] desc = {
-								"running JRuby script in server side by clicking it from mobile menu.",
-								"return to root menu or exit client.",
-								"open mobile configration panel by clicking it from mobile menu." };
+						final String[] subItems = { "command", HCURL.DATA_CMD_EXIT, HCURL.DATA_CMD_CONFIG };
+						final String[] desc = { "running JRuby script in server side by clicking it from mobile menu.",
+								"return to root menu or exit client.", "open mobile configration panel by clicking it from mobile menu." };
 						selectSub(dialog, ok, subItems, desc);
 					} else if (type == HPNode.TYPE_MENU_ITEM_FORM) {
 						// screen -Desktop "enter disktop screen of PC in mobile
@@ -201,8 +190,7 @@ public class TypeWizard {
 				}
 			}
 		}, App.getThreadPoolToken()));
-		final JButton cancel = new JButton(ResourceUtil.get(1018),
-				new ImageIcon(ImageSrc.CANCEL_ICON));
+		final JButton cancel = new JButton(ResourceUtil.get(1018), new ImageIcon(ImageSrc.CANCEL_ICON));
 		cancel.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -213,8 +201,7 @@ public class TypeWizard {
 		for (int i = 0; i < rbs.length; i++) {
 			final int radioIdx = i;
 			rbs[i] = new JRadioButton();
-			dispButton[i] = new JLabel(HPMenuItem.getTypeDesc(typeDescs[i]),
-					Designer.loadImg(icons[i]), SwingConstants.LEADING);
+			dispButton[i] = new JLabel(HPMenuItem.getTypeDesc(typeDescs[i]), Designer.loadImg(icons[i]), SwingConstants.LEADING);
 			dispButton[i].addMouseListener(new MouseListener() {
 				@Override
 				public void mouseReleased(final MouseEvent e) {
@@ -265,24 +252,24 @@ public class TypeWizard {
 
 				_panel.add(_subPanel, BorderLayout.CENTER);
 			}
-			container.add(_panel, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
-					GridBagConstraints.CENTER, GridBagConstraints.BOTH, insets, 0, 0));
+			container.add(_panel,
+					new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, insets, 0, 0));
 		}
 		{
 			final JPanel separatorPane = new JPanel();
 			separatorPane.setLayout(new BoxLayout(separatorPane, BoxLayout.PAGE_AXIS));
 			final JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
 			separatorPane.add(separator);
-			container.add(separatorPane, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0,
-					GridBagConstraints.CENTER, GridBagConstraints.BOTH, insets, 0, 0));
+			container.add(separatorPane,
+					new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, insets, 0, 0));
 		}
 		{
 			final JPanel subPanel = new JPanel();
 			subPanel.setLayout(new GridLayout(1, 2, 5, 5));
 			subPanel.add(cancel);
 			subPanel.add(ok);
-			container.add(subPanel, new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0,
-					GridBagConstraints.LINE_END, GridBagConstraints.NONE, insets, 0, 0));
+			container.add(subPanel,
+					new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE, insets, 0, 0));
 		}
 
 		dialog.getRootPane().registerKeyboardAction(new HCActionListener(new Runnable() {
@@ -302,8 +289,7 @@ public class TypeWizard {
 		dialog.pack();
 
 		dialog.setLocationRelativeTo(relativeTo);
-		dialog.applyComponentOrientation(
-				ComponentOrientation.getOrientation(UILang.getUsedLocale()));
+		dialog.applyComponentOrientation(ComponentOrientation.getOrientation(UILang.getUsedLocale()));
 		dialog.setVisible(true);
 
 		if (type == 0) {
@@ -328,16 +314,14 @@ public class TypeWizard {
 			menuItem.listener = ScriptModelManager.buildDefaultScript(type, hcurl);
 			return menuItem;
 		} else {
-			final HPMenuItem menuItem = new HPMenuItem(type,
-					"new node " + MenuManager.getNextNodeIdx());
+			final HPMenuItem menuItem = new HPMenuItem(type, "new node " + MenuManager.getNextNodeIdx());
 			menuItem.url = hcurl.url;
 			menuItem.listener = ScriptModelManager.buildDefaultScript(type, hcurl);
 			return menuItem;
 		}
 	}
 
-	private static void selectSub(final Window owner, final Component relativeObj,
-			final String[] items, final String[] desc) {
+	private static void selectSub(final Window owner, final Component relativeObj, final String[] items, final String[] desc) {
 		final JDialog dialog;
 		if (owner instanceof Dialog) {
 			dialog = new HCJDialog((Dialog) owner, "Choose Sub Type", true);
@@ -348,8 +332,7 @@ public class TypeWizard {
 		final JPanel panel = new JPanel(new GridLayout(1, items.length));
 		panel.setBorder(new TitledBorder("Sub Type:"));
 		final JRadioButton[] rbs = new JRadioButton[items.length];
-		final JButton ok = new JButton(ResourceUtil.get(IContext.OK),
-				new ImageIcon(ImageSrc.OK_ICON));
+		final JButton ok = new JButton(ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
 		final ActionListener actionListen = new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -358,8 +341,7 @@ public class TypeWizard {
 		});
 		ok.addActionListener(actionListen);
 
-		final JButton cancel = new JButton(ResourceUtil.get(1018),
-				new ImageIcon(ImageSrc.CANCEL_ICON));
+		final JButton cancel = new JButton(ResourceUtil.get(1018), new ImageIcon(ImageSrc.CANCEL_ICON));
 		cancel.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
@@ -400,24 +382,24 @@ public class TypeWizard {
 				_panel.add(_subPanel, BorderLayout.CENTER);
 			}
 
-			container.add(_panel, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
-					GridBagConstraints.CENTER, GridBagConstraints.BOTH, insets, 0, 0));
+			container.add(_panel,
+					new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, insets, 0, 0));
 		}
 		{
 			final JPanel separatorPane = new JPanel();
 			separatorPane.setLayout(new BoxLayout(separatorPane, BoxLayout.PAGE_AXIS));
 			final JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
 			separatorPane.add(separator);
-			container.add(separatorPane, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0,
-					GridBagConstraints.CENTER, GridBagConstraints.BOTH, insets, 0, 0));
+			container.add(separatorPane,
+					new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH, insets, 0, 0));
 		}
 		{
 			final JPanel subPanel = new JPanel();
 			subPanel.setLayout(new GridLayout(1, 2, 5, 5));
 			subPanel.add(cancel);
 			subPanel.add(ok);
-			container.add(subPanel, new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0,
-					GridBagConstraints.LINE_END, GridBagConstraints.NONE, insets, 0, 0));
+			container.add(subPanel,
+					new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE, insets, 0, 0));
 		}
 
 		dialog.getRootPane().registerKeyboardAction(new HCActionListener(new Runnable() {
@@ -451,8 +433,7 @@ public class TypeWizard {
 		type = HPNode.TYPE_MENU_ITEM_IOT;// 有可能被直接调用，故再次赋值
 		wizardEnd = null;
 
-		final String[] subItems = { HCURL.DATA_IOT_ROBOT, HCURL.DATA_IOT_CONVERTER,
-				HCURL.DATA_IOT_DEVICE };
+		final String[] subItems = { HCURL.DATA_IOT_ROBOT, HCURL.DATA_IOT_CONVERTER, HCURL.DATA_IOT_DEVICE };
 		final String[] desc = { "real robot or AI module, which controls one or multiple devices.",
 				"convert message between device and robot, if device is NOT supported by robot directly.",
 				"drive the real device and controlled by robot." };

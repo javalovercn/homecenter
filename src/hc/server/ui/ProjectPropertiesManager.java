@@ -55,12 +55,10 @@ public class ProjectPropertiesManager {
 		}
 	}
 
-	public ProjectPropertiesManager(final PropertiesMap sysMap, final ProjectContext projectContext,
-			final String projectID) {
+	public ProjectPropertiesManager(final PropertiesMap sysMap, final ProjectContext projectContext, final String projectID) {
 		propertie = new Properties();
 
-		propertiesFile = projectContext.getPrivateFile(
-				StoreDirManager.HC_SYS_FOR_USER_PRIVATE_DIR + StoreDirManager.PROJ_PROPERTIES);
+		propertiesFile = projectContext.getPrivateFile(StoreDirManager.HC_SYS_FOR_USER_PRIVATE_DIR + StoreDirManager.PROJ_PROPERTIES);
 
 		final boolean exists = propertiesFile.exists();
 		if (exists == false) {

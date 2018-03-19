@@ -82,9 +82,8 @@ public class J2SESIPContext extends ISIPContext {
 			}
 
 			@Override
-			public final void sendUDP(final byte ctrlTag, final byte subCtrlTag,
-					final byte[] jcip_bs, int offset, final int j_len, final int mtuLen,
-					final boolean isFlushNow) {
+			public final void sendUDP(final byte ctrlTag, final byte subCtrlTag, final byte[] jcip_bs, int offset, final int j_len,
+					final int mtuLen, final boolean isFlushNow) {
 				int len = j_len;
 				final int len_msg_data = (mtuLen == 0 ? real_len_upd_data : mtuLen);
 				final int split_num = len / len_msg_data + ((len % len_msg_data > 0) ? 1 : 0);
@@ -104,8 +103,7 @@ public class J2SESIPContext extends ISIPContext {
 
 						// 以下逻辑要与J2MEContext同步
 						// Message.setSendUUID(bs, selfUUID, selfUUID.length);
-						HCMessage.setMsgBody(bs, MsgBuilder.INDEX_UDP_MSG_DATA, jcip_bs, offset,
-								realLen);
+						HCMessage.setMsgBody(bs, MsgBuilder.INDEX_UDP_MSG_DATA, jcip_bs, offset, realLen);
 						// 生成序列号
 						groupID = HCMessage.setSplitPara(bs, groupID, SplitNo++, split_num);
 
@@ -127,8 +125,8 @@ public class J2SESIPContext extends ISIPContext {
 						if (realLen == 0 || ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN) {
 
 						} else {
-							CUtil.superXor(hcConnection, hcConnection.OneTimeCertKey, bs,
-									MsgBuilder.INDEX_UDP_MSG_DATA, realLen, null, true, true);// 不作在线更新RandomKey
+							CUtil.superXor(hcConnection, hcConnection.OneTimeCertKey, bs, MsgBuilder.INDEX_UDP_MSG_DATA, realLen, null,
+									true, true);// 不作在线更新RandomKey
 						}
 						if (ctrlTag != MsgBuilder.E_TAG_ACK) {
 							resender.needAckAtSend(p, HCMessage.getAndSetAutoMsgID(bs));
@@ -227,8 +225,7 @@ public class J2SESIPContext extends ISIPContext {
 	}
 
 	@Override
-	public Object buildSocket(final int localPort, final String targetServer,
-			final int targetPort) {
+	public Object buildSocket(final int localPort, final String targetServer, final int targetPort) {
 		try {
 			return buildSocketInnal(localPort, targetServer, targetPort);
 		} catch (final Exception e) {
@@ -236,24 +233,21 @@ public class J2SESIPContext extends ISIPContext {
 				isFailed = true;
 
 				SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_ERROR_CONNECTION,
-						(String) ResourceUtil.get(1000) + "<BR><BR>" + (new Date().toLocaleString())
-								+ "<BR>TCP IP : " + HttpUtil.replaceIPWithHC(targetServer)
-								+ ", port : " + targetPort
+						(String) ResourceUtil.get(1000) + "<BR><BR>" + (new Date().toLocaleString()) + "<BR>TCP IP : "
+								+ HttpUtil.replaceIPWithHC(targetServer) + ", port : " + targetPort
 								// + "<BR>Exception : " + e.getMessage()//出现null
 								+ "<BR><BR>Please contact administrator!",
-						(String) ResourceUtil.get(IConstant.ERROR), 60000 * 5,
-						App.getSysIcon(App.SYS_ERROR_ICON));
+						(String) ResourceUtil.get(IConstant.ERROR), 60000 * 5, App.getSysIcon(App.SYS_ERROR_ICON));
 
-				LogManager.errToLog("Fail build socket to " + HttpUtil.replaceIPWithHC(targetServer)
-						+ ", port : " + targetPort + " from localPort: " + localPort);
+				LogManager.errToLog("Fail build socket to " + HttpUtil.replaceIPWithHC(targetServer) + ", port : " + targetPort
+						+ " from localPort: " + localPort);
 				LogManager.errToLog("Fail build socket Exception : " + e.getMessage());
 			}
 		}
 		return null;
 	}
 
-	protected Object buildSocketInnal(final int localPort, final String targetServer,
-			final int targetPort) throws Exception {
+	protected Object buildSocketInnal(final int localPort, final String targetServer, final int targetPort) throws Exception {
 		Socket s = null;
 
 		// 优先采用PointToPoint
@@ -287,8 +281,7 @@ public class J2SESIPContext extends ISIPContext {
 			} catch (final Throwable f) {
 			}
 			if (s == null) {
-				LogManager.errToLog("No response from server or no networkInterface to "
-						+ HttpUtil.replaceIPWithHC(targetServer));
+				LogManager.errToLog("No response from server or no networkInterface to " + HttpUtil.replaceIPWithHC(targetServer));
 				throw new Exception();
 			}
 		}
@@ -327,20 +320,18 @@ public class J2SESIPContext extends ISIPContext {
 		// LogManager.log("SndBuf:" + s.getSendBufferSize());
 		// LogManager.log("RcvBuf:" + s.getReceiveBufferSize());
 
-		LogManager.log("Succ build socket to " + HttpUtil.replaceIPWithHC(targetServer) + ", port:"
-				+ targetPort + " from local" + s.getLocalAddress() + ":" + s.getLocalPort());
+		LogManager.log("Succ build socket to " + HttpUtil.replaceIPWithHC(targetServer) + ", port:" + targetPort + " from local"
+				+ s.getLocalAddress() + ":" + s.getLocalPort());
 
 		isFailed = false;
 
 		return s;
 	}
 
-	private Socket newSocket(final String targetServer, final int targetPort,
-			final InetAddress localAddress, final int localPort) {
+	private Socket newSocket(final String targetServer, final int targetPort, final InetAddress localAddress, final int localPort) {
 		outputInetAddress = localAddress;
 		try {
-			return new Socket(InetAddress.getByName(targetServer), targetPort, localAddress,
-					localPort);
+			return new Socket(InetAddress.getByName(targetServer), targetPort, localAddress, localPort);
 		} catch (final Throwable e) {
 			// 无法到达，可能选用了错误的
 			// java.net.ConnectException: Connection refused: connect

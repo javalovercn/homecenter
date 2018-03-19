@@ -32,8 +32,7 @@ public class LinkPropertiesOption {
 	 * 将各语言显示存储为proper的bug，修复一次
 	 */
 	public static final void fixDisplayToOpValue() {
-		final String opDisp = PropertiesManager.getValue(PropertiesManager.p_OpNewLinkedInProjVer,
-				OP_NEXT_START_UP);
+		final String opDisp = PropertiesManager.getValue(PropertiesManager.p_OpNewLinkedInProjVer, OP_NEXT_START_UP);
 		String opValue = null;
 
 		if (opDisp.equals(getDispOpNextStartUp())) {

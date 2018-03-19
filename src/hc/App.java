@@ -187,8 +187,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		if (jreVer == null) {
 			if (ResourceUtil.isAndroidServerPlatform()) {
 				try {
-					jreVer = Float.parseFloat(
-							System.getProperty(CCoreUtil.SYS_ANDROID_SERVER_JAVA_VERSION));
+					jreVer = Float.parseFloat(System.getProperty(CCoreUtil.SYS_ANDROID_SERVER_JAVA_VERSION));
 					return jreVer.floatValue();
 				} catch (final Throwable e) {
 					ExceptionReporter.printStackTrace(e);
@@ -268,8 +267,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 							final ThreadPool tp = (ThreadPool) poolVectorLocal.elementAt(i);
 							if (tp.getThreadGroup() == tg) {
 								final int poolType = tp.poolType;
-								if (poolType == ThreadPool.TYPE_SESSION || (isThrowForProjAlso
-										&& poolType == ThreadPool.TYPE_PROJECT)) {
+								if (poolType == ThreadPool.TYPE_SESSION || (isThrowForProjAlso && poolType == ThreadPool.TYPE_PROJECT)) {
 									return IConstant.BOOL_TRUE;
 								} else {
 									return IConstant.BOOL_FALSE;
@@ -283,8 +281,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 				return IConstant.BOOL_FALSE;
 			}
 		};
-		return (Boolean) ContextManager.getThreadPool().runAndWait(runForInSessionProjPool,
-				threadPoolToken);
+		return (Boolean) ContextManager.getThreadPool().runAndWait(runForInSessionProjPool, threadPoolToken);
 	}
 
 	private static void execMain(final String args[]) {
@@ -298,8 +295,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		}
 
 		if (ResourceUtil.isJ2SELimitFunction() && getJREVer() < 1.7) {
-			JOptionPane.showMessageDialog(null, "JRE/JDK 1.7 or above is required!", "Error",
-					JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "JRE/JDK 1.7 or above is required!", "Error", JOptionPane.ERROR_MESSAGE);
 			CCoreUtil.globalExit();
 		}
 
@@ -369,9 +365,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 					break;
 				}
 				if (arg.equals(TAG_INI_DEBUG_ON)) {
-					System.err.println(
-							"main method arguments [debugOn] is deprecated, you may need option/developer/Logger."
-									+ "\nyou should remove main method arguments : 'debugOn serverOn verify'");
+					System.err.println("main method arguments [debugOn] is deprecated, you may need option/developer/Logger."
+							+ "\nyou should remove main method arguments : 'debugOn serverOn verify'");
 					LogManager.INI_DEBUG_ON = true;
 					System.out.println(TAG_INI_DEBUG_ON);
 				} else if (arg.equals(TAG_SERVER_MODE)) {
@@ -395,8 +390,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		}
 
 		if (PropertiesManager.getValue(PropertiesManager.p_SetupVersion) == null) {
-			PropertiesManager.setValue(PropertiesManager.p_SetupVersion,
-					StarterManager.getHCVersion());
+			PropertiesManager.setValue(PropertiesManager.p_SetupVersion, StarterManager.getHCVersion());
 		}
 		PropertiesManager.remove(PropertiesManager.p_jrubyJarFile);
 		PropertiesManager.remove(PropertiesManager.p_IsMobiMenu);
@@ -425,8 +419,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			}
 
 			final Thread t = new Thread("printAllThreadStack") {
-				final long sleepMS = Long.valueOf(
-						PropertiesManager.getValue(PropertiesManager.p_DebugStackMS, "20000"));
+				final long sleepMS = Long.valueOf(PropertiesManager.getValue(PropertiesManager.p_DebugStackMS, "20000"));
 
 				@Override
 				public void run() {
@@ -454,8 +447,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 
 		CCoreUtil.setSecurityChecker(new HCSecurityChecker());
 
-		final ThreadPool threadPool = DEBUG_THREAD_POOL_ON ? new DebugThreadPool()
-				: new AppThreadPool();
+		final ThreadPool threadPool = DEBUG_THREAD_POOL_ON ? new DebugThreadPool() : new AppThreadPool();
 		threadPool.setName("mainThreadPool");
 		ContextManager.setThreadPool(threadPool, threadPoolToken);
 
@@ -469,8 +461,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 					// start Image Fetcher daemon thread, because
 					// HCLimitSecurityManager may block create thread in
 					// user-level thread.
-					final ImageIcon ico = new ImageIcon(
-							ResourceUtil.getResource("hc/res/hc_32.png"));
+					final ImageIcon ico = new ImageIcon(ResourceUtil.getResource("hc/res/hc_32.png"));
 					ico.getIconHeight();
 				} catch (final Throwable e) {
 				}
@@ -490,8 +481,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 
 		if (RootConfig.getInstance() == null) {
 			SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_ERROR_CONNECTION,
-					ResourceUtil.get(1000) + "<BR><BR>" + (new Date().toLocaleString()),
-					ResourceUtil.get(IConstant.ERROR), 60000 * 5,
+					ResourceUtil.get(1000) + "<BR><BR>" + (new Date().toLocaleString()), ResourceUtil.get(IConstant.ERROR), 60000 * 5,
 					App.getSysIcon(App.SYS_ERROR_ICON));
 			RootConfig.reset(true);
 		}
@@ -531,8 +521,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		final String ver7_7 = "7.7";
 		final boolean isLower7_7;
 		{// 专门处理低7.4的版本逻辑
-			final String clearRMSCacheVersion = PropertiesManager
-					.getValue(PropertiesManager.p_clearRMSCacheVersion, "1.0");
+			final String clearRMSCacheVersion = PropertiesManager.getValue(PropertiesManager.p_clearRMSCacheVersion, "1.0");
 			if (isLower7_7 = StringUtil.lower(clearRMSCacheVersion, ver7_7)) {
 				ResourceUtil.clearDir(StoreDirManager.RMS_DIR);
 
@@ -551,8 +540,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 
 		MSBException.init();
 		ExceptionViewer.init();
-		ExceptionViewer.notifyPopup(
-				PropertiesManager.isTrue(PropertiesManager.p_isEnableMSBExceptionDialog));
+		ExceptionViewer.notifyPopup(PropertiesManager.isTrue(PropertiesManager.p_isEnableMSBExceptionDialog));
 
 		HCAjaxX509TrustManager.initSSLSocketFactory();
 
@@ -579,14 +567,12 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		ResourceUtil.doCopyShortcutForMac();// 要在skin之后
 
 		PropertiesManager.remove(PropertiesManager.p_IAgree);
-		final String agreeVersion = PropertiesManager.getValue(PropertiesManager.p_AgreeVersion,
-				"1.0");
+		final String agreeVersion = PropertiesManager.getValue(PropertiesManager.p_AgreeVersion, "1.0");
 		if (StringUtil.higher(getLastAgreeVersion(), agreeVersion)) {
 			final IBiz biz = new IBiz() {
 				@Override
 				public void start() {
-					PropertiesManager.setValue(PropertiesManager.p_AgreeVersion,
-							getLastAgreeVersion());
+					PropertiesManager.setValue(PropertiesManager.p_AgreeVersion, getLastAgreeVersion());
 					PropertiesManager.saveFile();
 
 					initServer();
@@ -662,8 +648,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			CUtil.setCertKey(newCertKey);
 		}
 
-		CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), newCertKey, 0,
-				CCoreUtil.CERT_KEY_LEN);
+		CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), newCertKey, 0, CCoreUtil.CERT_KEY_LEN);
 		PropertiesManager.updateCertKey(newCertKey);
 		PropertiesManager.saveFile();
 	}
@@ -698,8 +683,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		}
 
 		if (PropertiesManager.getValue(PropertiesManager.p_RMSServerUID) == null) {
-			PropertiesManager.setValue(PropertiesManager.p_RMSServerUID,
-					StringUtil.genUID(ResourceUtil.getStartMS()));
+			PropertiesManager.setValue(PropertiesManager.p_RMSServerUID, StringUtil.genUID(ResourceUtil.getStartMS()));
 			PropertiesManager.saveFile();
 		}
 
@@ -716,27 +700,22 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		// ContextManager.setSimulate(errorStunEnv != null &&
 		// errorStunEnv.equals("true"));
 
-		final String valueDefaultFontSize = PropertiesManager
-				.getValue(PropertiesManager.C_SYSTEM_DEFAULT_FONT_SIZE, IConstant.TRUE);
+		final String valueDefaultFontSize = PropertiesManager.getValue(PropertiesManager.C_SYSTEM_DEFAULT_FONT_SIZE, IConstant.TRUE);
 		if (IConstant.TRUE.equals(valueDefaultFontSize)) {
 		} else {
 			// 初始化字体
-			final GraphicsEnvironment environment = GraphicsEnvironment
-					.getLocalGraphicsEnvironment();// GraphicsEnvironment是一个抽象类，不能实例化，只能用其中的静态方法获取一个实例
+			final GraphicsEnvironment environment = GraphicsEnvironment.getLocalGraphicsEnvironment();// GraphicsEnvironment是一个抽象类，不能实例化，只能用其中的静态方法获取一个实例
 			final String[] fontNames = environment.getAvailableFontFamilyNames();// 获取系统字体
 
 			final JMenu l = new JMenu();
 			final String defaultFontName = l.getFont().getName();// "Dialog";
-			final String fontName = PropertiesManager.getValue(PropertiesManager.C_FONT_NAME,
-					defaultFontName);
+			final String fontName = PropertiesManager.getValue(PropertiesManager.C_FONT_NAME, defaultFontName);
 			final String defaultFontSize = String.valueOf(l.getFont().getSize());// 16;
-			final String fontSize = PropertiesManager.getValue(PropertiesManager.C_FONT_SIZE,
-					defaultFontSize);
+			final String fontSize = PropertiesManager.getValue(PropertiesManager.C_FONT_SIZE, defaultFontSize);
 			for (int i = 0; i < fontNames.length; i++) {
 				if (fontNames[i].equals(fontName)) {
 					try {
-						initGlobalFontSetting(
-								new Font(fontName, Font.PLAIN, Integer.parseInt(fontSize)));
+						initGlobalFontSetting(new Font(fontName, Font.PLAIN, Integer.parseInt(fontSize)));
 					} catch (final Throwable e) {
 						// 由于某些皮肤包导致本错误
 						LogManager.err("initGlobalFontSetting error : " + e.toString());
@@ -869,29 +848,27 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 					String msg = ResourceUtil.get(9191);
 					msg = StringUtil.replace(msg, "{curr}", "6");
 					msg = StringUtil.replace(msg, "{to}", "7");
-					final JPanel panel = buildMessagePanel("<html>" + msg + "</html>",
-							getSysIcon(SYS_WARN_ICON));
+					final JPanel panel = buildMessagePanel("<html>" + msg + "</html>", getSysIcon(SYS_WARN_ICON));
 					final ActionListener okListener = new ActionListener() {
 						@Override
 						public void actionPerformed(final ActionEvent e) {
 							IDArrayGroup.checkAndAdd(msgMinJre7);
 						}
 					};
-					showCenterPanelMain(panel, 0, 0, ResourceUtil.get(IConstant.WARN), false, null,
-							null, okListener, null, null, false, true, null, false, true);
+					showCenterPanelMain(panel, 0, 0, ResourceUtil.get(IConstant.WARN), false, null, null, okListener, null, null, false,
+							true, null, false, true);
 				}
 			}
 		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
-			App.showMessageDialog(null,
-					"Error connect to server! please try again after few minutes.",
-					ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE);
+			App.showMessageDialog(null, "Error connect to server! please try again after few minutes.", ResourceUtil.getErrorI18N(),
+					JOptionPane.ERROR_MESSAGE);
 
 		}
 	}
 
-	public static void showAgreeLicense(final String title, final boolean isBCLLicense,
-			final String license_url, final IBiz biz, final IBiz cancelBiz, final boolean logoHC) {
+	public static void showAgreeLicense(final String title, final boolean isBCLLicense, final String license_url, final IBiz biz,
+			final IBiz cancelBiz, final boolean logoHC) {
 		final JDialog dialog = new HCJDialog();
 		dialog.setModal(true);
 		dialog.setTitle(title);
@@ -910,9 +887,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			String accept = ResourceUtil.get(9114);
 			accept = StringUtil.replace(accept, "{iagree}", iagree);
 			final JLabel label = new JLabel(accept,
-					(logoHC ? new ImageIcon(
-							ImageIO.read(ResourceUtil.getResource("hc/res/hc_32.png"))) : null),
-					SwingConstants.LEADING);
+					(logoHC ? new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/hc_32.png"))) : null), SwingConstants.LEADING);
 			c.add(label, "North");
 		} catch (final IOException e) {
 			ExceptionReporter.printStackTrace(e);
@@ -923,16 +898,13 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			if (isBCLLicense) {
 				try {
 					final URL bclurl = ResourceUtil.getBCLURL();
-					final BufferedReader in = new BufferedReader(
-							new InputStreamReader(bclurl.openStream()));
+					final BufferedReader in = new BufferedReader(new InputStreamReader(bclurl.openStream()));
 					area.read(in, null);
 				} catch (final Throwable e) {
 				}
 			} else {
-				final URL url = new URL(
-						HttpUtil.replaceSimuURL(license_url, PropertiesManager.isSimu()));
-				final BufferedReader in = new BufferedReader(
-						new InputStreamReader(url.openStream()));
+				final URL url = new URL(HttpUtil.replaceSimuURL(license_url, PropertiesManager.isSimu()));
+				final BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
 				area.read(in, null);
 			}
 
@@ -962,9 +934,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 				@Override
 				public void run() {
 					final String[] options = { "O K" };
-					App.showOptionDialog(null, "Cant connect server, please try late!",
-							ResourceUtil.getProductName(), JOptionPane.DEFAULT_OPTION,
-							JOptionPane.ERROR_MESSAGE, null, options, options[0]);
+					App.showOptionDialog(null, "Cant connect server, please try late!", ResourceUtil.getProductName(),
+							JOptionPane.DEFAULT_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);
 					dialog.dispose();
 					PlatformManager.getService().exitSystem();
 				}
@@ -972,16 +943,15 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			return;
 		}
 		dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-		final java.awt.event.ActionListener exitActionListener = new HCActionListener(
-				new Runnable() {
-					@Override
-					public void run() {
-						dialog.dispose();
-						if (cancelBiz != null) {
-							cancelBiz.start();
-						}
-					}
-				}, threadPoolToken);
+		final java.awt.event.ActionListener exitActionListener = new HCActionListener(new Runnable() {
+			@Override
+			public void run() {
+				dialog.dispose();
+				if (cancelBiz != null) {
+					cancelBiz.start();
+				}
+			}
+		}, threadPoolToken);
 		dialog.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(final WindowEvent e) {// 仅指点X
@@ -991,8 +961,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 				}
 			}
 		});
-		dialog.getRootPane().registerKeyboardAction(exitActionListener,
-				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+		dialog.getRootPane().registerKeyboardAction(exitActionListener, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+				JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 		final JCheckBox check = new JCheckBox(iagree);
 		check.requestFocusInWindow();
@@ -1039,8 +1009,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 
 	public static void addBorderGap(final Container main, final JPanel c) {
 		main.setLayout(new GridBagLayout());
-		main.add(c, new GridBagConstraints(0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-				GridBagConstraints.BOTH, new Insets(10, 10, 10, 10), 0, 0));
+		main.add(c, new GridBagConstraints(0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+				new Insets(10, 10, 10, 10), 0, 0));
 	}
 
 	public static BufferedImage SYS_LOGO;
@@ -1124,15 +1094,12 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param delay
 	 *            延时显示，如果当前有正在显示的CenterPanel，则当前对话关闭后，才后加载显示
 	 */
-	public static Window showCenterPanelMain(final JPanel panel, final int width, final int height,
-			final String title, final boolean isAddCancle, final JButton jbOK,
-			final String cancelButText, final ActionListener listener,
-			final ActionListener cancelListener, final JFrame owner, final boolean model,
-			final boolean isNewJFrame, final Component relativeToComponent,
-			final boolean isResizable, final boolean delay) {
-		return showCenterOKDisposeDelayMode(panel, width, height, title, isAddCancle, jbOK,
-				cancelButText, listener, cancelListener, true, owner, model, isNewJFrame,
-				relativeToComponent, isResizable, delay);
+	public static Window showCenterPanelMain(final JPanel panel, final int width, final int height, final String title,
+			final boolean isAddCancle, final JButton jbOK, final String cancelButText, final ActionListener listener,
+			final ActionListener cancelListener, final JFrame owner, final boolean model, final boolean isNewJFrame,
+			final Component relativeToComponent, final boolean isResizable, final boolean delay) {
+		return showCenterOKDisposeDelayMode(panel, width, height, title, isAddCancle, jbOK, cancelButText, listener, cancelListener, true,
+				owner, model, isNewJFrame, relativeToComponent, isResizable, delay);
 	}
 
 	/**
@@ -1157,24 +1124,19 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param isDelayMode
 	 * @return
 	 */
-	public static Window showCenterOKDisposeDelayMode(final JPanel panel, final int width,
-			final int height, final String title, final boolean isAddCancle, JButton jbOK,
-			final String cancelButText, final ActionListener listener,
-			final ActionListener cancelListener, final boolean isOkDispose, final JFrame owner,
-			final boolean model, final boolean isNewJFrame, final Component relativeToObj,
-			final boolean isResizable, final boolean isDelayMode) {
-		if(ResourceUtil.isNonUIServer()) {
+	public static Window showCenterOKDisposeDelayMode(final JPanel panel, final int width, final int height, final String title,
+			final boolean isAddCancle, JButton jbOK, final String cancelButText, final ActionListener listener,
+			final ActionListener cancelListener, final boolean isOkDispose, final JFrame owner, final boolean model,
+			final boolean isNewJFrame, final Component relativeToObj, final boolean isResizable, final boolean isDelayMode) {
+		if (ResourceUtil.isNonUIServer()) {
 			return null;
 		}
-		
-		final JButton jbCancle = new JButton(
-				((cancelButText == null) ? (String) ResourceUtil.get(IContext.CANCEL)
-						: cancelButText),
+
+		final JButton jbCancle = new JButton(((cancelButText == null) ? (String) ResourceUtil.get(IContext.CANCEL) : cancelButText),
 				new ImageIcon(ImageSrc.CANCEL_ICON));
 		final UIActionListener cancelAction = new UIActionListener() {
 			@Override
-			public void actionPerformed(final Window window, final JButton ok,
-					final JButton cancel) {
+			public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
 				window.dispose();// 注意：要先关闭，因为Listener逻辑可能会打开新窗口
 
 				if (cancelListener != null) {
@@ -1191,14 +1153,12 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			}
 		};
 		if (jbOK == null) {
-			final JButton okButton = new JButton(ResourceUtil.get(IContext.OK),
-					new ImageIcon(ImageSrc.OK_ICON));
+			final JButton okButton = new JButton(ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
 			jbOK = okButton;
 		}
 		final UIActionListener jbOKAction = new UIActionListener() {
 			@Override
-			public void actionPerformed(final Window window, final JButton ok,
-					final JButton cancel) {
+			public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
 				if (isOkDispose) {// 有可能OK时，仅执行逻辑
 					window.dispose();// 注意：要先关闭，因为Listener逻辑可能会打开新窗口
 				}
@@ -1215,9 +1175,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			}
 		};
 
-		return showCenterDelayMode(panel, width, height, title, isAddCancle, jbOK, jbCancle,
-				jbOKAction, cancelAction, owner, model, isNewJFrame, relativeToObj, isResizable,
-				isDelayMode);
+		return showCenterDelayMode(panel, width, height, title, isAddCancle, jbOK, jbCancle, jbOKAction, cancelAction, owner, model,
+				isNewJFrame, relativeToObj, isResizable, isDelayMode);
 	}
 
 	/**
@@ -1231,9 +1190,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param isResizable
 	 * @return
 	 */
-	public static Window showCenterPanelWindowWithoutButton(final JPanel panel, final int width,
-			final int height, final Window dialog, final Component relativeTo,
-			final boolean isResizable) {
+	public static Window showCenterPanelWindowWithoutButton(final JPanel panel, final int width, final int height, final Window dialog,
+			final Component relativeTo, final boolean isResizable) {
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
 				@Override
@@ -1256,8 +1214,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 						rootPane = ((JDialog) dialog).getRootPane();
 					}
 					if (rootPane != null) {
-						rootPane.registerKeyboardAction(quitAction,
-								KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+						rootPane.registerKeyboardAction(quitAction, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 								JComponent.WHEN_IN_FOCUSED_WINDOW);
 					}
 
@@ -1274,8 +1231,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 						{
 							final JPanel insetPanel = new JPanel(new GridBagLayout());
 							final GridBagConstraints gc = new GridBagConstraints();
-							gc.insets = new Insets(ClientDesc.hgap, ClientDesc.vgap,
-									ClientDesc.hgap, ClientDesc.vgap);
+							gc.insets = new Insets(ClientDesc.hgap, ClientDesc.vgap, ClientDesc.hgap, ClientDesc.vgap);
 							gc.fill = GridBagConstraints.BOTH;
 							gc.anchor = GridBagConstraints.CENTER;
 							gc.weightx = 1.0;
@@ -1322,16 +1278,12 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 
 					if (relativeTo != null) {
 						dialog.setLocationRelativeTo(relativeTo);
-						dialog.applyComponentOrientation(
-								ComponentOrientation.getOrientation(UILang.getUsedLocale()));
+						dialog.applyComponentOrientation(ComponentOrientation.getOrientation(UILang.getUsedLocale()));
 					} else {
-						dialog.applyComponentOrientation(
-								ComponentOrientation.getOrientation(UILang.getUsedLocale()));
+						dialog.applyComponentOrientation(ComponentOrientation.getOrientation(UILang.getUsedLocale()));
 						final int width_d = dialog.getWidth(), height_d = dialog.getHeight();
-						final int w = (Toolkit.getDefaultToolkit().getScreenSize().width - width_d)
-								/ 2;
-						final int h = (Toolkit.getDefaultToolkit().getScreenSize().height
-								- height_d) / 2;
+						final int w = (Toolkit.getDefaultToolkit().getScreenSize().width - width_d) / 2;
+						final int h = (Toolkit.getDefaultToolkit().getScreenSize().height - height_d) / 2;
 						dialog.setLocation(w, h);
 					}
 
@@ -1344,21 +1296,18 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		return dialog;
 	}
 
-	public static Window showCenterNoOwner(final JPanel panel, final int width, final int height,
-			final boolean isAddCancle, final JButton jbCancle, final JButton jbOK,
-			final boolean isSwapOKCancel, final UIActionListener cancelAction,
-			final UIActionListener jbOKAction, final Window dialog, final Component relativeTo,
-			final boolean isResizable) {// 不能带isRelayMode参数，因为按钮可能无关逻辑
-		return showCenterDelayMode(panel, width, height, isAddCancle, jbCancle, jbOK,
-				isSwapOKCancel, cancelAction, jbOKAction, dialog, relativeTo, isResizable, false);
+	public static Window showCenterNoOwner(final JPanel panel, final int width, final int height, final boolean isAddCancle,
+			final JButton jbCancle, final JButton jbOK, final boolean isSwapOKCancel, final UIActionListener cancelAction,
+			final UIActionListener jbOKAction, final Window dialog, final Component relativeTo, final boolean isResizable) {// 不能带isRelayMode参数，因为按钮可能无关逻辑
+		return showCenterDelayMode(panel, width, height, isAddCancle, jbCancle, jbOK, isSwapOKCancel, cancelAction, jbOKAction, dialog,
+				relativeTo, isResizable, false);
 	}
 
-	private static Window showCenterDelayMode(final JPanel panel, final int width, final int height,
-			final boolean isAddCancle, final JButton jbCancle, final JButton jbOK,
-			final boolean isSwapOKCancel, final UIActionListener cancelAction,
-			final UIActionListener jbOKAction, final Window dialog, final Component relativeTo,
-			final boolean isResizable, final boolean isDelayMode) {
-		if(ResourceUtil.isNonUIServer()) {
+	private static Window showCenterDelayMode(final JPanel panel, final int width, final int height, final boolean isAddCancle,
+			final JButton jbCancle, final JButton jbOK, final boolean isSwapOKCancel, final UIActionListener cancelAction,
+			final UIActionListener jbOKAction, final Window dialog, final Component relativeTo, final boolean isResizable,
+			final boolean isDelayMode) {
+		if (ResourceUtil.isNonUIServer()) {
 			return null;
 		}
 		try {
@@ -1398,8 +1347,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 						rootPane = ((JDialog) dialog).getRootPane();
 					}
 					if (rootPane != null) {
-						rootPane.registerKeyboardAction(quitAction,
-								KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+						rootPane.registerKeyboardAction(quitAction, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
 								JComponent.WHEN_IN_FOCUSED_WINDOW);
 					}
 					final JPanel bottomPanel = new JPanel();
@@ -1408,14 +1356,11 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 					final Insets insets = new Insets(5, 5, 5, 5);
 
 					final Border panelBorder = panel.getBorder();
-					final boolean isPanelTitledBorded = (panelBorder != null
-							&& panelBorder instanceof TitledBorder);
+					final boolean isPanelTitledBorded = (panelBorder != null && panelBorder instanceof TitledBorder);
 					if (isPanelTitledBorded == false) {
 						final JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
-						bottomPanel.add(separator,
-								new GridBagConstraints(0, 0, GridBagConstraints.REMAINDER, 1, 1.0,
-										0.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
-										insets, 0, 0));
+						bottomPanel.add(separator, new GridBagConstraints(0, 0, GridBagConstraints.REMAINDER, 1, 1.0, 0.0,
+								GridBagConstraints.CENTER, GridBagConstraints.BOTH, insets, 0, 0));
 					}
 					if (isAddCancle) {
 						final JPanel subPanel = new JPanel();
@@ -1433,15 +1378,11 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 							subPanel.add(jbCancle);
 							subPanel.add(jbOK);
 						}
-						bottomPanel.add(subPanel,
-								new GridBagConstraints(0, isPanelTitledBorded ? 0 : 1, 1, 1, 1.0,
-										0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
-										insets, 0, 0));
+						bottomPanel.add(subPanel, new GridBagConstraints(0, isPanelTitledBorded ? 0 : 1, 1, 1, 1.0, 0.0,
+								GridBagConstraints.LINE_END, GridBagConstraints.NONE, insets, 0, 0));
 					} else {
-						bottomPanel.add(jbOK,
-								new GridBagConstraints(0, isPanelTitledBorded ? 0 : 1, 1, 1, 1.0,
-										0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
-										insets, 0, 0));
+						bottomPanel.add(jbOK, new GridBagConstraints(0, isPanelTitledBorded ? 0 : 1, 1, 1, 1.0, 0.0,
+								GridBagConstraints.LINE_END, GridBagConstraints.NONE, insets, 0, 0));
 					}
 
 					{
@@ -1457,8 +1398,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 						{
 							final JPanel insetPanel = new JPanel(new GridBagLayout());
 							final GridBagConstraints gc = new GridBagConstraints();
-							gc.insets = new Insets(ClientDesc.hgap, ClientDesc.vgap,
-									ClientDesc.hgap, ClientDesc.vgap);
+							gc.insets = new Insets(ClientDesc.hgap, ClientDesc.vgap, ClientDesc.hgap, ClientDesc.vgap);
 							gc.fill = GridBagConstraints.BOTH;
 							gc.anchor = GridBagConstraints.CENTER;
 							gc.weightx = 1.0;
@@ -1513,16 +1453,12 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 
 					if (relativeTo != null) {
 						dialog.setLocationRelativeTo(relativeTo);
-						dialog.applyComponentOrientation(
-								ComponentOrientation.getOrientation(UILang.getUsedLocale()));
+						dialog.applyComponentOrientation(ComponentOrientation.getOrientation(UILang.getUsedLocale()));
 					} else {
-						dialog.applyComponentOrientation(
-								ComponentOrientation.getOrientation(UILang.getUsedLocale()));
+						dialog.applyComponentOrientation(ComponentOrientation.getOrientation(UILang.getUsedLocale()));
 						final int width_d = dialog.getWidth(), height_d = dialog.getHeight();
-						final int w = (Toolkit.getDefaultToolkit().getScreenSize().width - width_d)
-								/ 2;
-						final int h = (Toolkit.getDefaultToolkit().getScreenSize().height
-								- height_d) / 2;
+						final int w = (Toolkit.getDefaultToolkit().getScreenSize().width - width_d) / 2;
+						final int h = (Toolkit.getDefaultToolkit().getScreenSize().height - height_d) / 2;
 						dialog.setLocation(w, h);
 					}
 
@@ -1603,36 +1539,29 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		}
 	}
 
-	public static Window showCenter(final JPanel panel, final int width, final int height,
-			final String title, final boolean isAddCancle, final JButton jbOK,
-			final JButton jbCancle, final UIActionListener jbOKAction,
-			final UIActionListener cancelAction, final JFrame owner, final boolean model,
-			final boolean isNewJFrame, final Component relativeTo, final boolean isResizable) {
-		return showCenterDelayMode(panel, width, height, title, isAddCancle, jbOK, jbCancle,
-				jbOKAction, cancelAction, owner, model, isNewJFrame, relativeTo, isResizable,
-				false);
+	public static Window showCenter(final JPanel panel, final int width, final int height, final String title, final boolean isAddCancle,
+			final JButton jbOK, final JButton jbCancle, final UIActionListener jbOKAction, final UIActionListener cancelAction,
+			final JFrame owner, final boolean model, final boolean isNewJFrame, final Component relativeTo, final boolean isResizable) {
+		return showCenterDelayMode(panel, width, height, title, isAddCancle, jbOK, jbCancle, jbOKAction, cancelAction, owner, model,
+				isNewJFrame, relativeTo, isResizable, false);
 	}
 
-	private static Window showCenterDelayMode(final JPanel panel, final int width, final int height,
-			final String title, final boolean isAddCancle, final JButton jbOK,
-			final JButton jbCancle, final UIActionListener jbOKAction,
-			final UIActionListener cancelAction, final JFrame owner, final boolean model,
-			final boolean isNewJFrame, final Component relativeTo, final boolean isResizable,
-			final boolean isDelayMode) {
-		if(ResourceUtil.isNonUIServer()) {
+	private static Window showCenterDelayMode(final JPanel panel, final int width, final int height, final String title,
+			final boolean isAddCancle, final JButton jbOK, final JButton jbCancle, final UIActionListener jbOKAction,
+			final UIActionListener cancelAction, final JFrame owner, final boolean model, final boolean isNewJFrame,
+			final Component relativeTo, final boolean isResizable, final boolean isDelayMode) {
+		if (ResourceUtil.isNonUIServer()) {
 			return null;
 		}
 		final Window dialog;
 
 		dialog = App.buildCloseableWindow(isNewJFrame, owner, title, model);
-		return showCenterDelayMode(panel, width, height, isAddCancle, jbCancle, jbOK, false,
-				cancelAction, jbOKAction, dialog, relativeTo, isResizable, isDelayMode);
+		return showCenterDelayMode(panel, width, height, isAddCancle, jbCancle, jbOK, false, cancelAction, jbOKAction, dialog, relativeTo,
+				isResizable, isDelayMode);
 	}
 
-	public static void showCenterPanel(final JPanel panel, final int width, final int height,
-			final String title) {
-		showCenterPanelMain(panel, width, height, title, false, null, null, null, null, null, false,
-				false, null, false, false);
+	public static void showCenterPanel(final JPanel panel, final int width, final int height, final String title) {
+		showCenterPanelMain(panel, width, height, title, false, null, null, null, null, null, false, false, null, false, false);
 	}
 
 	/**
@@ -1643,10 +1572,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param initialSelectionValue
 	 * @return null meaning the user canceled the input
 	 */
-	public static String showInputDialog(final Component parentComponent, final Object message,
-			final Object initialSelectionValue) {
-		return (String) showInputDialog(parentComponent, message,
-				getOptionPaneTitle("OptionPane.inputDialogTitle", parentComponent),
+	public static String showInputDialog(final Component parentComponent, final Object message, final Object initialSelectionValue) {
+		return (String) showInputDialog(parentComponent, message, getOptionPaneTitle("OptionPane.inputDialogTitle", parentComponent),
 				JOptionPane.QUESTION_MESSAGE, null, null, initialSelectionValue);
 	}
 
@@ -1659,10 +1586,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param messageType
 	 * @return null meaning the user canceled the input
 	 */
-	public static String showInputDialog(final Component parentComponent, final Object message,
-			final String title, final int messageType) {
-		return (String) showInputDialog(parentComponent, message, title, messageType, null, null,
-				null);
+	public static String showInputDialog(final Component parentComponent, final Object message, final String title, final int messageType) {
+		return (String) showInputDialog(parentComponent, message, title, messageType, null, null, null);
 	}
 
 	/**
@@ -1677,27 +1602,25 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param initialSelectionValue
 	 * @return null meaning the user canceled the input
 	 */
-	public static Object showInputDialog(final Component parentComponent, final Object message,
-			final String title, final int messageType, final Icon icon,
-			final Object[] selectionValues, final Object initialSelectionValue) {
-		if(ResourceUtil.isNonUIServer()) {
+	public static Object showInputDialog(final Component parentComponent, final Object message, final String title, final int messageType,
+			final Icon icon, final Object[] selectionValues, final Object initialSelectionValue) {
+		if (ResourceUtil.isNonUIServer()) {
 			return null;
 		}
-		
+
 		CCoreUtil.checkAccess();
 		ProcessingWindowManager.disposeProcessingWindow();
 
 		return ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() throws Throwable {
-				return JOptionPane.showInputDialog(parentComponent, message, title, messageType,
-						icon, selectionValues, initialSelectionValue);
+				return JOptionPane.showInputDialog(parentComponent, message, title, messageType, icon, selectionValues,
+						initialSelectionValue);
 			}
 		});
 	}
 
-	public static final String[] showHARInputDialog(final String title, final String[] fieldName,
-			final String[] fieldDesc) {
+	public static final String[] showHARInputDialog(final String title, final String[] fieldName, final String[] fieldDesc) {
 		final String[] value = new String[fieldName.length];
 		for (int i = 0; i < value.length; i++) {
 			value[i] = "";
@@ -1758,8 +1681,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 						}
 					}
 				});
-				App.showCenterPanelMain(panel, 0, 0, title, false, null, null, listener, null, null,
-						true, false, null, false, false);
+				App.showCenterPanelMain(panel, 0, 0, title, false, null, null, listener, null, null, true, false, null, false, false);
 
 				ProcessingWindowManager.resume();
 
@@ -1784,13 +1706,10 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param title
 	 * @return
 	 */
-	public static int showOptionDialog(final Component parentComponent, final Object message,
-			final String title) {
-		final Object[] options = { ResourceUtil.get(1032), ResourceUtil.get(1033),
-				ResourceUtil.get(1018) };
-		return showOptionDialog(parentComponent, message, title,
-				JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null, options,
-				options[0]);
+	public static int showOptionDialog(final Component parentComponent, final Object message, final String title) {
+		final Object[] options = { ResourceUtil.get(1032), ResourceUtil.get(1033), ResourceUtil.get(1018) };
+		return showOptionDialog(parentComponent, message, title, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null,
+				options, options[0]);
 	}
 
 	/**
@@ -1802,10 +1721,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param optionType
 	 * @return
 	 */
-	public static int showConfirmDialog(final Component parentComponent, final Object message,
-			final String title, final int optionType) {
-		return showConfirmDialog(parentComponent, message, title, optionType,
-				JOptionPane.QUESTION_MESSAGE);
+	public static int showConfirmDialog(final Component parentComponent, final Object message, final String title, final int optionType) {
+		return showConfirmDialog(parentComponent, message, title, optionType, JOptionPane.QUESTION_MESSAGE);
 	}
 
 	/**
@@ -1818,8 +1735,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param messageType
 	 * @return
 	 */
-	public static int showConfirmDialog(final Component parentComponent, final Object message,
-			final String title, final int optionType, final int messageType) {
+	public static int showConfirmDialog(final Component parentComponent, final Object message, final String title, final int optionType,
+			final int messageType) {
 		return showConfirmDialog(parentComponent, message, title, optionType, messageType, null);
 	}
 
@@ -1834,12 +1751,12 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param icon
 	 * @return
 	 */
-	public static int showConfirmDialog(final Component parentComponent, final Object message,
-			final String title, final int optionType, final int messageType, final Icon icon) {
-		if(ResourceUtil.isNonUIServer()) {
+	public static int showConfirmDialog(final Component parentComponent, final Object message, final String title, final int optionType,
+			final int messageType, final Icon icon) {
+		if (ResourceUtil.isNonUIServer()) {
 			return 0;
 		}
-		
+
 		CCoreUtil.checkAccess();
 
 		ProcessingWindowManager.disposeProcessingWindow();
@@ -1847,8 +1764,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		return (Integer) ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() throws Throwable {
-				return JOptionPane.showConfirmDialog(parentComponent, message, title, optionType,
-						messageType, icon);
+				return JOptionPane.showConfirmDialog(parentComponent, message, title, optionType, messageType, icon);
 			}
 		});
 	}
@@ -1866,33 +1782,29 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param initialValue
 	 * @return
 	 */
-	public static int showOptionDialog(final Component parentComponent, final Object message,
-			final String title, final int optionType, final int messageType, final Icon icon,
-			final Object[] options, final Object initialValue) {
-		if(ResourceUtil.isNonUIServer()) {
+	public static int showOptionDialog(final Component parentComponent, final Object message, final String title, final int optionType,
+			final int messageType, final Icon icon, final Object[] options, final Object initialValue) {
+		if (ResourceUtil.isNonUIServer()) {
 			return 0;
 		}
-		
+
 		ProcessingWindowManager.disposeProcessingWindow();
 
 		return (Integer) ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() throws Throwable {
-				return JOptionPane.showOptionDialog(parentComponent, message, title, optionType,
-						messageType, icon, options, initialValue);
+				return JOptionPane.showOptionDialog(parentComponent, message, title, optionType, messageType, icon, options, initialValue);
 			}
 		});
 	}
 
-	private static String getOptionPaneTitle(final String uiTitle,
-			final Component parentComponent) {
+	private static String getOptionPaneTitle(final String uiTitle, final Component parentComponent) {
 		final Class[] paraTypes = { Object.class, Component.class };
 		final Object[] paras = { uiTitle, parentComponent };
 
 		String title = null;
 		try {
-			title = (String) ClassUtil.invoke(UIManager.class, UIManager.class, "getString",
-					paraTypes, paras, true);
+			title = (String) ClassUtil.invoke(UIManager.class, UIManager.class, "getString", paraTypes, paras, true);
 		} catch (final Throwable e) {
 		}
 		if (title == null) {
@@ -1902,26 +1814,20 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	}
 
 	public static void showMessageDialog(final Component parentComponent, final Object message) {
-		showMessageDialog(parentComponent, message,
-				getOptionPaneTitle("OptionPane.messageDialogTitle", parentComponent),
+		showMessageDialog(parentComponent, message, getOptionPaneTitle("OptionPane.messageDialogTitle", parentComponent),
 				JOptionPane.INFORMATION_MESSAGE);
 	}
 
-	public static void showMessageDialog(final Component parentComponent, final Object message,
-			final String title, final int messageType) {
+	public static void showMessageDialog(final Component parentComponent, final Object message, final String title, final int messageType) {
 		showMessageDialog(parentComponent, message, title, messageType, null);
 	}
 
-	public static void showInforMessageDialog(final Component parent, final String msg,
-			final String title) {
-		App.showMessageDialog(parent, msg, title, App.INFORMATION_MESSAGE,
-				App.getSysIcon(App.SYS_INFO_ICON));
+	public static void showInforMessageDialog(final Component parent, final String msg, final String title) {
+		App.showMessageDialog(parent, msg, title, App.INFORMATION_MESSAGE, App.getSysIcon(App.SYS_INFO_ICON));
 	}
 
-	public static void showErrorMessageDialog(final Component parent, final String msg,
-			final String title) {
-		App.showMessageDialog(parent, msg, title, App.ERROR_MESSAGE,
-				App.getSysIcon(App.SYS_ERROR_ICON));
+	public static void showErrorMessageDialog(final Component parent, final String msg, final String title) {
+		App.showMessageDialog(parent, msg, title, App.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 	}
 
 	/**
@@ -1933,12 +1839,12 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 	 * @param messageType
 	 * @param icon
 	 */
-	public static void showMessageDialog(final Component parentComponent, final Object message,
-			final String title, final int messageType, final Icon icon) {
-		if(ResourceUtil.isNonUIServer()) {
+	public static void showMessageDialog(final Component parentComponent, final Object message, final String title, final int messageType,
+			final Icon icon) {
+		if (ResourceUtil.isNonUIServer()) {
 			return;
 		}
-		
+
 		CCoreUtil.checkAccess();
 		ProcessingWindowManager.disposeProcessingWindow();
 
@@ -1962,9 +1868,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		if (title == null) {// Android Server下可能为null
 			title = "message";
 		}
-		return title + " in project ["
-				+ ContextSecurityManager.getConfig(Thread.currentThread().getThreadGroup()).projID
-				+ "]";
+		return title + " in project [" + ContextSecurityManager.getConfig(Thread.currentThread().getThreadGroup()).projID + "]";
 	}
 
 	public static final int ERROR_MESSAGE = JOptionPane.ERROR_MESSAGE;
@@ -1978,17 +1882,15 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		showHARMessageDialog(message, appendProjectIDForTitle(title), INFORMATION_MESSAGE);
 	}
 
-	public static void showHARMessageDialog(final String message, final String title,
-			final int messageType) {
+	public static void showHARMessageDialog(final String message, final String title, final int messageType) {
 		showHARMessageDialog(message, title, messageType, null);
 	}
 
-	public static void showHARMessageDialog(final String message, final String title,
-			final int messageType, final Icon icon) {
-		if(ResourceUtil.isNonUIServer()) {
+	public static void showHARMessageDialog(final String message, final String title, final int messageType, final Icon icon) {
+		if (ResourceUtil.isNonUIServer()) {
 			return;
 		}
-		
+
 		synchronized (displayHARMsg) {
 			if (displayHARMsg.contains(message)) {
 				return;
@@ -2014,8 +1916,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 					}
 				};
 
-				App.showCenterPanelMain(panel, 0, 0, title, false, null, null, listener, listener,
-						null, false, true, null, false, true);// isDelay
+				App.showCenterPanelMain(panel, 0, 0, title, false, null, null, listener, listener, null, false, true, null, false, true);// isDelay
 			}
 		}, threadPoolToken);
 
@@ -2031,9 +1932,15 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		return ResourceUtil.get(9075);
 	}
 
-	public static void showInputPWDDialog(final String uuid, final String pwd1, final String pwd2,
-			final boolean isRegister) {
+	public static void showInputPWDDialog(final String uuid, final String pwd1, final String pwd2, final boolean isRegister) {
 		final String passwdStr = ResourceUtil.get(9030);
+
+		final String title;
+		if (isRegister) {
+			title = ResourceUtil.get(9279);//9279=New Account
+		} else {
+			title = passwdStr;
+		}
 
 		final JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());
@@ -2048,35 +1955,22 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		uuidPanelflow.add(jluuid);
 		uuidPanelflow.add(new JLabel(VerifyEmailManager.getEmailI18N()));
 		uuidPanelflow.add(new JLabel(":"));
-		panel.add(uuidPanelflow, new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
+		panel.add(uuidPanelflow,
+				new GridBagConstraints(0, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
 
 		final int columns = 20;
 		final JTextField jtfuuid = new JTextField(uuid, columns);
 		jtfuuid.setEditable(isRegister);
 		jtfuuid.setForeground(Color.BLUE);
 		jtfuuid.setHorizontalAlignment(SwingConstants.RIGHT);
-		// JPanel uuidPanel = new JPanel();
-		// uuidPanel.setLayout(new FlowLayout());
-		// uuidPanel.add(jtfuuid);
-		// uuidPanel.add(new JLabel(ImageSrc.DONE_ICON)));//UUID OK图标
-		// if (isToLogin && false) {
-		// JButton payButton = new JButton("I am VIP");
-		// payButton.addActionListener(new HCActionListener(new Runnable() {
-		// @Override
-		// public void actionPerformed(ActionEvent e) {
-		// showUnlock();
-		// }
-		// });
-		// uuidPanel.add(payButton);
-		// }
-		panel.add(jtfuuid, new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
+		jtfuuid.setToolTipText(ResourceUtil.get(9278));//9278=create new account, such as an email.
+		panel.add(jtfuuid,
+				new GridBagConstraints(1, 0, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
 
 		final JLabel jlPassword = new JLabel(passwdStr);
 		jlPassword.setIcon(new ImageIcon(ImageSrc.PASSWORD_ICON));
-		final String inputPwdTip = "<html>input new password for new account.<BR>"
-				+ getPasswordLocalStoreTip() + "</html>";
+		final String newPwdForAccount = ResourceUtil.get(9277);//9277=input new password for new account.
+		final String inputPwdTip = "<html>" + newPwdForAccount + "<BR>" + getPasswordLocalStoreTip() + "</html>";
 		if (isRegister) {
 			jlPassword.setToolTipText(inputPwdTip);
 		}
@@ -2091,15 +1985,18 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		passwd2.enableInputMethods(true);
 		passwd2.setHorizontalAlignment(SwingUtilities.RIGHT);
 
+		passwd1.setToolTipText(newPwdForAccount);
+		passwd2.setToolTipText(newPwdForAccount);
+
 		final JPanel pwJpanel = new JPanel();
 		pwJpanel.setLayout(new FlowLayout());
 		pwJpanel.add(jlPassword);
 		pwJpanel.add(new JLabel(":"));
-		panel.add(pwJpanel, new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
+		panel.add(pwJpanel,
+				new GridBagConstraints(0, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
 		Component subItem = passwd1;
-		panel.add(subItem, new GridBagConstraints(1, 1, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
+		panel.add(subItem,
+				new GridBagConstraints(1, 1, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
 
 		final JPanel doublepw = new JPanel();
 		doublepw.setLayout(new FlowLayout());
@@ -2117,12 +2014,12 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 
 		doublepw.add(new JLabel(":"));
 
-		panel.add(doublepw, new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
+		panel.add(doublepw,
+				new GridBagConstraints(0, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, insets, 0, 0));
 
 		subItem = passwd2;
-		panel.add(subItem, new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0,
-				GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
+		panel.add(subItem,
+				new GridBagConstraints(1, 2, 1, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
 		// if (isToLogin) {
 		// // 增加安全说明文字
 		// String url = "http://homecenter.mobi/msg/know.php?lang="
@@ -2155,35 +2052,30 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			} catch (final Exception e) {
 			}
 
-			final String desc = "<html>" + getPasswordLocalStoreTip() + "<BR><BR>"
-					+ ResourceUtil.get(9248) + "</html>";// 9248 : new password
-															// to client
+			final String desc = "<html>" + getPasswordLocalStoreTip() + "<BR><BR>" + ResourceUtil.get(9248) + "</html>";// 9248 : new password
+																														// to client
 			final JLabel passwordTip = new JLabel(desc, new ImageIcon(img), SwingConstants.LEADING);
 
 			// JPanel subPanel = new JPanel(new BorderLayout());
 			// subPanel.add(forgetPwd, BorderLayout.CENTER);
 			// subPanel.setBorder(new TitledBorder(""));
-			panel.add(passwordTip, new GridBagConstraints(0, 3, 2, 1, 0.0, 0.0,
-					GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
+			panel.add(passwordTip,
+					new GridBagConstraints(0, 3, 2, 1, 0.0, 0.0, GridBagConstraints.LINE_START, GridBagConstraints.BOTH, insets, 0, 0));
 		}
-		final JButton jbCancle = new JButton(ResourceUtil.get(1018),
-				new ImageIcon(ImageSrc.CANCEL_ICON));
+		final JButton jbCancle = new JButton(ResourceUtil.get(1018), new ImageIcon(ImageSrc.CANCEL_ICON));
 		final UIActionListener cancelAction = new UIActionListener() {
 			@Override
-			public void actionPerformed(final Window window, final JButton ok,
-					final JButton cancel) {
+			public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
 				window.dispose();
 				if (isRegister) {
 					PlatformManager.getService().exitSystem();
 				}
 			}
 		};
-		final JButton jbOK = new JButton(ResourceUtil.get(IContext.OK),
-				new ImageIcon(ImageSrc.OK_ICON));
+		final JButton jbOK = new JButton(ResourceUtil.get(IContext.OK), new ImageIcon(ImageSrc.OK_ICON));
 		final UIActionListener jbOKAction = new UIActionListener() {
 			@Override
-			public void actionPerformed(final Window window, final JButton ok,
-					final JButton cancel) {
+			public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
 				try {
 					final String email = jtfuuid.getText();
 					if (ResourceUtil.checkEmailID(email, window) == false) {
@@ -2202,9 +2094,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 							SafeDataManager.startSafeBackupProcess(true, false);
 						}
 					} else {
-						App.showMessageDialog(window,
-								StringUtil.replace(ResourceUtil.get(9077), "{min}",
-										"" + App.MIN_PWD_LEN), // 含密码不一致
+						App.showMessageDialog(window, StringUtil.replace(ResourceUtil.get(9077), "{min}", "" + App.MIN_PWD_LEN), // 含密码不一致
 								ResourceUtil.get(9076), JOptionPane.ERROR_MESSAGE);
 					}
 				} catch (final UnsupportedEncodingException e) {
@@ -2213,8 +2103,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			}
 		};
 
-		showCenter(panel, 0, 0, passwdStr, true, jbOK, jbCancle, jbOKAction, cancelAction, null,
-				false, false, null, false);
+		showCenter(panel, 0, 0, title, true, jbOK, jbCancle, jbOKAction, cancelAction, null, false, false, null, false);
 		if (isRegister) {
 			jtfuuid.requestFocusInWindow();
 		} else {
@@ -2272,27 +2161,24 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
 		for (int i = 0; i < coreSSS.length; i++) {
 			final CoreSession coreSession = coreSSS[i];
-			if (coreSession.context.cmStatus <= ContextManager.STATUS_READY_TO_LINE_ON) {
+			if (coreSession.context.getStatus() <= ContextManager.STATUS_READY_TO_LINE_ON) {
 				final HCConnection hcConnection = coreSession.getHCConnection();
 				final IEncrypter en = hcConnection.getUserEncryptor();
 				hcConnection.userPassword = ByteUtil.cloneBS(IConstant.getPasswordBS());
 				if (en != null) {
-					LogManager.log(
-							"password is changed, call user encryptor.notifyExit methoad for status ["
-									+ ContextManager.STATUS_READY_TO_LINE_ON + "].");
+					LogManager.log("password is changed, call user encryptor.notifyExit methoad for status ["
+							+ ContextManager.STATUS_READY_TO_LINE_ON + "].");
 					try {
 						en.notifyExit(IConstant.serverSide);
 					} catch (final Throwable e) {
 						e.printStackTrace();
 					}
 				}
-				LogManager.log("reload user encryptor for status ["
-						+ ContextManager.STATUS_READY_TO_LINE_ON + "].");
+				LogManager.log("reload user encryptor for status [" + ContextManager.STATUS_READY_TO_LINE_ON + "].");
 				hcConnection.loadEncryptor(hcConnection.userPassword);
-			} else if (coreSession.context.cmStatus == ContextManager.STATUS_SERVER_SELF) {
+			} else if (coreSession.context.getStatus() == ContextManager.STATUS_SERVER_SELF) {
 				L.V = L.WShop ? false : LogManager.log("trans new password to client!");
-				HCURLUtil.sendCmd(coreSession, HCURL.DATA_CMD_SendPara,
-						HCURL.DATA_PARA_CHANGE_PASSWORD, pwd);
+				HCURLUtil.sendCmd(coreSession, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_CHANGE_PASSWORD, pwd);
 			}
 		}
 
@@ -2362,10 +2248,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 					ContextManager.getThreadPool().run(new Runnable() {
 						@Override
 						public void run() {
-							App.showConfirmDialog(null,
-									ex.getClass().getName() + " : \n" + ex.getMessage(),
-									"Apply UI LookAndFeel Error", JOptionPane.CLOSED_OPTION,
-									JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+							App.showConfirmDialog(null, ex.getClass().getName() + " : \n" + ex.getMessage(), "Apply UI LookAndFeel Error",
+									JOptionPane.CLOSED_OPTION, JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
 						}
 					}, getRootThreadGroup());
 				}
@@ -2390,8 +2274,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 				showDonate.dispose();
 			}
 		};
-		showDonate.getRootPane().registerKeyboardAction(exitActionListener,
-				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+		showDonate.getRootPane().registerKeyboardAction(exitActionListener, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+				JComponent.WHEN_IN_FOCUSED_WINDOW);
 		showDonate.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		showDonate.addWindowListener(new WindowAdapter() {
 			@Override
@@ -2431,8 +2315,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			public void run() {
 				final String emailID = donateID.getText().trim();
 				if (ResourceUtil.validEmail(emailID) == false) {
-					App.showMessageDialog(showDonate, ResourceUtil.get(9073),
-							ResourceUtil.get(IConstant.ERROR), JOptionPane.ERROR_MESSAGE);
+					App.showMessageDialog(showDonate, ResourceUtil.get(9073), ResourceUtil.get(IConstant.ERROR), JOptionPane.ERROR_MESSAGE);
 					donateID.selectAll();
 					return;
 				}
@@ -2441,8 +2324,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 
 				final String result = RootServerConnector.bindDonateKey(emailID, donateToken);
 				if (result == null) {
-					App.showMessageDialog(null, "Error connect to server! try again.",
-							ResourceUtil.getErrorI18N(), JOptionPane.ERROR_MESSAGE);
+					App.showMessageDialog(null, "Error connect to server! try again.", ResourceUtil.getErrorI18N(),
+							JOptionPane.ERROR_MESSAGE);
 					return;
 				} else if (result.equals(RootServerConnector.ROOT_AJAX_OK)) {
 					showDonate.dispose();
@@ -2450,19 +2333,15 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 					TokenManager.changeTokenFromUI(true, emailID, donateToken, true);
 
 					final JPanel jpanel = new JPanel();
-					jpanel.add(new JLabel(
-							"<html>success active VIP token. Login ID is [<STRONG>" + emailID
-									+ "</STRONG>]</html>",
+					jpanel.add(new JLabel("<html>success active VIP token. Login ID is [<STRONG>" + emailID + "</STRONG>]</html>",
 							new ImageIcon(ImageSrc.OK_ICON), SwingConstants.LEFT));
 					App.showCenterPanel(jpanel, 0, 0, "Success");
 
 					return;
 				} else {
 					final JPanel jpanel = new JPanel();
-					jpanel.add(new JLabel(
-							"<html><STRONG>Invalid Token</STRONG><BR><BR>Please check the token again, "
-									+ "<BR>or email help@homecenter.mobi</html>",
-							App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
+					jpanel.add(new JLabel("<html><STRONG>Invalid Token</STRONG><BR><BR>Please check the token again, "
+							+ "<BR>or email help@homecenter.mobi</html>", App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEFT));
 					App.showCenterPanel(jpanel, 0, 0, "Unknow Status");
 				}
 			}
@@ -2477,8 +2356,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		jPanel3.add(jbOK, null);
 		JButton toVIP = null;
 		try {
-			toVIP = new JButton("buy token to be VIP",
-					new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/vip_22.png"))));
+			toVIP = new JButton("buy token to be VIP", new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/vip_22.png"))));
 			toVIP.addActionListener(new HCActionListener(new Runnable() {
 				@Override
 				public void run() {
@@ -2514,8 +2392,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			@Override
 			public boolean watch() {
 				final CoreSession coreSS = SessionManager.getPreparedSocketSession();
-				if (coreSS != null && coreSS.context != null
-						&& coreSS.context.cmStatus == ContextManager.STATUS_READY_TO_LINE_ON) {
+				if (coreSS != null && coreSS.isContextStatus(ContextManager.STATUS_READY_TO_LINE_ON)) {
 					showLockWarning();
 					return true;
 				} else {
@@ -2547,40 +2424,35 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		// final String targetURL = "https://forums.oracle.com/thread/1279871";
 		Icon cong_icon = null;
 		try {
-			cong_icon = new ImageIcon(
-					ImageIO.read(ResourceUtil.getResource("hc/res/art_cong.png")));
+			cong_icon = new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/art_cong.png")));
 		} catch (final IOException e1) {
 		}
 		final int panelWidth = 500;
 		final JPanel congPanel = new JPanel(new BorderLayout());
-		final JLabel congLabel = new JLabel(
-				"<html><body style=\"width:" + (panelWidth - cong_icon.getIconWidth()) + "\">"
-						+ StringUtil.replace(ResourceUtil.get(9065), "{uuid}", IConstant.getUUID())
-						+ "<BR><BR>" + ResourceUtil.get(9089) + "</body></html>");
+		final JLabel congLabel = new JLabel("<html><body style=\"width:" + (panelWidth - cong_icon.getIconWidth()) + "\">"
+				+ StringUtil.replace(ResourceUtil.get(9065), "{uuid}", IConstant.getUUID()) + "<BR><BR>" + ResourceUtil.get(9089)
+				+ "</body></html>");
 		congPanel.add(congLabel, BorderLayout.CENTER);
 		congPanel.add(new JLabel(cong_icon), BorderLayout.WEST);
 
-		final boolean isLockWarn = RootConfig.getInstance()
-				.isTrue(RootConfig.p_Lock_Warn_First_Login);
+		final boolean isLockWarn = RootConfig.getInstance().isTrue(RootConfig.p_Lock_Warn_First_Login);
 
 		if (isLockWarn) {
 			congPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
 		}
 
 		// LogManager.log("os.version : " + System.getProperty("os.name"));
-		if (isLockWarn && (ResourceUtil.isWindowsXP() || ResourceUtil.isWindows2003()
-				|| ResourceUtil.isWindows2008() || ResourceUtil.isWindowsVista())) {
+		if (isLockWarn && (ResourceUtil.isWindowsXP() || ResourceUtil.isWindows2003() || ResourceUtil.isWindows2008()
+				|| ResourceUtil.isWindowsVista())) {
 			lockPanel.add(congPanel, BorderLayout.NORTH);
 
 			final JLabel lockLabel = new JLabel("<html><body style=\"width:" + panelWidth + "\">"
 					+ "<STRONG>Important : </STRONG><BR><BR>In " + System.getProperty("os.name")
 					+ " (<STRONG>not</STRONG> Windows 7 64bit or other), when mobile is accessing desktop, "
-					+ "press Win + L to lock screen(or screen save is triggered), mobile phone will display full black. "
-					+
+					+ "press Win + L to lock screen(or screen save is triggered), mobile phone will display full black. " +
 					// "<BR>for more, click <a href=''>" + targetURL + "</a>" +
-					"<BR><BR>Windows 7 (Fedora 19) works well in lock mode."
-					+ "<BR><BR>Strongly recommended to install Windows 7." + "</body></html>",
-					SwingConstants.LEFT);
+					"<BR><BR>Windows 7 (Fedora 19) works well in lock mode." + "<BR><BR>Strongly recommended to install Windows 7."
+					+ "</body></html>", SwingConstants.LEFT);
 			lockLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
 			lockPanel.add(lockLabel, BorderLayout.CENTER);
 			// lockLabel.addMouseListener(new MouseAdapter(){
@@ -2637,8 +2509,8 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			}
 		};
 
-		App.showCenterOKDisposeDelayMode(lockPanel, 0, 0, ResourceUtil.getInfoI18N(), false, null,
-				null, closeListener, closeListener, true, null, false, false, null, false, false);
+		App.showCenterOKDisposeDelayMode(lockPanel, 0, 0, ResourceUtil.getInfoI18N(), false, null, null, closeListener, closeListener, true,
+				null, false, false, null, false, false);
 	}
 
 	public static void printThreadStackForProjectContext(final String name) {
@@ -2651,8 +2523,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		}, threadPoolToken);
 	}
 
-	public static Window buildCloseableWindow(final boolean newFrame, final JFrame owner,
-			final String title, final boolean model) {
+	public static Window buildCloseableWindow(final boolean newFrame, final JFrame owner, final String title, final boolean model) {
 		if (newFrame) {
 			class CloseableFrame extends HCJFrame implements ClosableWindow {
 				public CloseableFrame(final String title) {
@@ -2710,8 +2581,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		final JCheckBox enableReportException = new JCheckBox(ResourceUtil.get(9168));
 		enableReportException.setToolTipText(ResourceUtil.get(9169));
 
-		final String isOldReportException = PropertiesManager
-				.getValue(PropertiesManager.p_isReportException, IConstant.FALSE);
+		final String isOldReportException = PropertiesManager.getValue(PropertiesManager.p_isReportException, IConstant.FALSE);
 		enableReportException.setSelected(isOldReportException.equals(IConstant.TRUE));
 
 		if (withActionListener) {
@@ -2719,8 +2589,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 				@Override
 				public void run() {
 					final boolean isSelected = enableReportException.isSelected();
-					PropertiesManager.setValue(PropertiesManager.p_isReportException,
-							isSelected ? IConstant.TRUE : IConstant.FALSE);
+					PropertiesManager.setValue(PropertiesManager.p_isReportException, isSelected ? IConstant.TRUE : IConstant.FALSE);
 					if (isSelected) {
 						ExceptionReporter.start();
 					} else {
@@ -2748,18 +2617,15 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 					final JPanel panel = new JPanel(new BorderLayout());
 					final String notRestart = ResourceUtil.get(9156);
 					final String firstHAR = ResourceUtil.get(9079);
-					panel.add(
-							new JLabel("<html>" + firstHAR + "<BR><BR>" + notRestart + "</html>",
-									getSysIcon(SYS_QUES_ICON), SwingConstants.LEADING),
-							BorderLayout.CENTER);
+					panel.add(new JLabel("<html>" + firstHAR + "<BR><BR>" + notRestart + "</html>", getSysIcon(SYS_QUES_ICON),
+							SwingConstants.LEADING), BorderLayout.CENTER);
 
-					showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), true, null, null,
-							new HCActionListener(new Runnable() {
-								@Override
-								public void run() {
-									LinkMenuManager.startDesigner(true);
-								}
-							}, getThreadPoolToken()), null, null, false, true, null, false, false);
+					showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), true, null, null, new HCActionListener(new Runnable() {
+						@Override
+						public void run() {
+							LinkMenuManager.startDesigner(true);
+						}
+					}, getThreadPoolToken()), null, null, false, true, null, false, false);
 				}
 			});
 		}

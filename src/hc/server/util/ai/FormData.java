@@ -15,8 +15,7 @@ public class FormData extends AnalysableData {
 
 	@Override
 	public final boolean isSameWithPre(final AnalysableData pre) {
-		if (pre.threadID == threadID && pre.direct == direct && movingMsg != null
-				&& ((FormData) pre).movingMsg == movingMsg) {
+		if (pre.threadID == threadID && pre.direct == direct && movingMsg != null && ((FormData) pre).movingMsg == movingMsg) {
 			return true;
 		}
 

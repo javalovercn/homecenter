@@ -45,7 +45,7 @@ public class ExitManager {
 			}
 			isStartingExitSystem = true;
 		}
-		
+
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
@@ -203,8 +203,7 @@ public class ExitManager {
 
 			@Override
 			public void run() {
-				LogManager.log(
-						"ready " + (App.EXIT_MAX_DELAY_MS / 1000) + "-seconds to force exit...");
+				LogManager.log("ready " + (App.EXIT_MAX_DELAY_MS / 1000) + "-seconds to force exit...");
 				try {
 					Thread.sleep(App.EXIT_MAX_DELAY_MS);
 				} catch (final Exception e) {
@@ -215,15 +214,11 @@ public class ExitManager {
 					LogManager.exit();
 
 					if (LogManager.INI_DEBUG_ON) {
-						System.out.println(
-								"-------------------------------------------------------------------------------------------");
-						System.out.println(
-								"------------------------before force exit, print all thread stack----------------------");
-						System.out.println(
-								"-------------------------------------------------------------------------------------------");
+						System.out.println("-------------------------------------------------------------------------------------------");
+						System.out.println("------------------------before force exit, print all thread stack----------------------");
+						System.out.println("-------------------------------------------------------------------------------------------");
 						ClassUtil.printThreadStack(null);
-						System.out.println(
-								"-------------------------------------------------------------------------------------------");
+						System.out.println("-------------------------------------------------------------------------------------------");
 					}
 				} catch (final Throwable e) {
 				}

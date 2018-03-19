@@ -33,8 +33,7 @@ public class DiskManager {
 			public void doBiz() {
 				if (isLowDiskFreeSpace()) {
 					try {
-						TrayMenuUtil.displayMessage(ResourceUtil.getWarnI18N(), buildWarnMsg(null),
-								IConstant.WARN, null, 0);
+						TrayMenuUtil.displayMessage(ResourceUtil.getWarnI18N(), buildWarnMsg(null), IConstant.WARN, null, 0);
 					} catch (final Throwable e) {
 						e.printStackTrace();
 					}
@@ -83,8 +82,7 @@ public class DiskManager {
 
 	private static void sendWarnToSession(final J2SESession oneSession) {
 		final J2SESession[] toArray = { oneSession };
-		ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(toArray,
-				ResourceUtil.getWarnI18N(oneSession), buildWarnMsg(oneSession),
+		ServerUIAPIAgent.sendMessageViaCoreSSInUserOrSys(toArray, ResourceUtil.getWarnI18N(oneSession), buildWarnMsg(oneSession),
 				ProjectContext.MESSAGE_WARN, null, 0);
 	}
 }

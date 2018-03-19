@@ -32,16 +32,14 @@ public class AcceptReadThread extends Thread {
 		public ByteBuffer buildOne() {
 			// 不能合并与udpBBCache
 			// 因为此可能遇到大TCP包，如超过10K以上，为了获得性能而保留。
-			return ByteBuffer.allocateDirect(
-					RootConfig.getInstance().getIntProperty(RootConfig.p_RelayDirectBFSize));
+			return ByteBuffer.allocateDirect(RootConfig.getInstance().getIntProperty(RootConfig.p_RelayDirectBFSize));
 		}
 	};
 
 	public static final ByteBufferCacher udpBBCache = new ByteBufferCacher() {
 		@Override
 		public ByteBuffer buildOne() {
-			return ByteBuffer.allocateDirect(
-					RootConfig.getInstance().getIntProperty(RootConfig.p_DefaultUDPSize));
+			return ByteBuffer.allocateDirect(RootConfig.getInstance().getIntProperty(RootConfig.p_DefaultUDPSize));
 		}
 	};
 
@@ -64,8 +62,8 @@ public class AcceptReadThread extends Thread {
 		}
 	}
 
-	public AcceptReadThread(final CoreSession coreSS, final String ip, final int localPort,
-			final int udpSpeedPort, final ActionRead ar) throws Exception {
+	public AcceptReadThread(final CoreSession coreSS, final String ip, final int localPort, final int udpSpeedPort, final ActionRead ar)
+			throws Exception {
 		super("Acceptor");
 		this.coreSS = coreSS;
 		this.read = ar;
@@ -88,8 +86,7 @@ public class AcceptReadThread extends Thread {
 		udpSpeedChannel = DatagramChannel.open();
 		udpSpeedChannel.configureBlocking(false);
 		udpSpeedChannel.socket().bind(new InetSocketAddress(ip, udpSpeedPort));
-		udpSpeedKey = udpSpeedChannel.register(connectSelector, SelectionKey.OP_READ,
-				udpManagerAtt);
+		udpSpeedKey = udpSpeedChannel.register(connectSelector, SelectionKey.OP_READ, udpManagerAtt);
 
 		super.setPriority(ThreadPriorityManager.DATA_TRANS_PRIORITY);
 
@@ -221,8 +218,7 @@ public class AcceptReadThread extends Thread {
 								final UDPPair up = (UDPPair) attach;
 
 								try {
-									final SocketAddress sa = ((DatagramChannel) key.channel())
-											.receive(udpBB);
+									final SocketAddress sa = ((DatagramChannel) key.channel()).receive(udpBB);
 									if (sa == null) {
 										// 没有数据，返回
 										continue;
@@ -230,8 +226,7 @@ public class AcceptReadThread extends Thread {
 									if (up.addr == null) {
 										// 收到第一个包，表明通道建立。以标识或检查非法数据包
 										LogManager.log("UDP incoming / rebuild at port : "
-												+ ((DatagramChannel) key.channel()).socket()
-														.getLocalPort());
+												+ ((DatagramChannel) key.channel()).socket().getLocalPort());
 										up.addr = sa;
 										// }else if(writeToAddr == null){
 										// //接收方无的情形，或者接收方没建立通道，不能进行下一下的数据包转发，
@@ -272,29 +267,21 @@ public class AcceptReadThread extends Thread {
 									udpSpeedChannel.send(udpCtrlBB, sa);
 								} else if (tag == MsgBuilder.E_UDP_CONTROLLER_SET_ADDR_NULL) {
 									final int bufferDatalen = udpCtrlBB.remaining();
-									final int startIdxUUID = coreSS
-											.getUDPController().UUID_STARD_IDX;
+									final int startIdxUUID = coreSS.getUDPController().UUID_STARD_IDX;
 
 									final boolean isServer = (bs[MsgBuilder.LEN_UDP_CONTROLLER_HEAD] == 1);
-									final boolean result = SessionConnector
-											.resetXXSideUDPAddressNull(bs, startIdxUUID,
-													bufferDatalen - startIdxUUID, isServer,
-													bs[coreSS
-															.getUDPController().UDP_RANDOM_HEADER_STARD_IDX],
-													bs[coreSS
-															.getUDPController().UDP_RANDOM_HEADER_STARD_IDX
-															+ 1]);
+									final boolean result = SessionConnector.resetXXSideUDPAddressNull(bs, startIdxUUID,
+											bufferDatalen - startIdxUUID, isServer,
+											bs[coreSS.getUDPController().UDP_RANDOM_HEADER_STARD_IDX],
+											bs[coreSS.getUDPController().UDP_RANDOM_HEADER_STARD_IDX + 1]);
 
 									// 回应成功setNullAddr
 									udpCtrlBB.limit(1);
-									bs[0] = (result
-											? MsgBuilder.DATA_UDP_CONTROLLER_SET_ADDR_NULL_SUCC
+									bs[0] = (result ? MsgBuilder.DATA_UDP_CONTROLLER_SET_ADDR_NULL_SUCC
 											: MsgBuilder.DATA_UDP_CONTROLLER_SET_ADDR_NULL_NOT_FOUND);
 									udpSpeedChannel.send(udpCtrlBB, sa);
 
-									LogManager.log("UDP setAddrNull for uuid["
-											+ new String(bs, startIdxUUID,
-													bufferDatalen - startIdxUUID)
+									LogManager.log("UDP setAddrNull for uuid[" + new String(bs, startIdxUUID, bufferDatalen - startIdxUUID)
 											+ "], from " + sa.toString());
 								}
 							} catch (final Throwable e) {
@@ -324,8 +311,7 @@ public class AcceptReadThread extends Thread {
 									// OP_WRITE");
 
 									// 关闭OP_WRITE
-									final SelectionKey currChannelkey = currChannel
-											.keyFor(connectSelector);
+									final SelectionKey currChannelkey = currChannel.keyFor(connectSelector);
 									currChannelkey.interestOps(SelectionKey.OP_READ);
 								} else {
 									// 准备输出数据
@@ -427,8 +413,7 @@ public class AcceptReadThread extends Thread {
 
 				incomingSocket.setSoLinger(true, 3);
 
-				LogManager.log("Accept new SocketChannel socket:" + incomingSocket.hashCode()
-						+ ", remotePort:" + incomingSocket.getPort());
+				LogManager.log("Accept new SocketChannel socket:" + incomingSocket.hashCode() + ", remotePort:" + incomingSocket.getPort());
 
 				// KeepAlive_Tag
 				incomingSocket.setKeepAlive(true);

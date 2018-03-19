@@ -34,12 +34,14 @@ package org.jrubyparser.ast;
 public interface BinaryOperatorNode {
 	/**
 	 * Gets the firstNode.
+	 * 
 	 * @return Returns a Node
 	 */
 	public abstract Node getFirst();
 
 	/**
 	 * Gets the secondNode.
+	 * 
 	 * @return Returns a Node
 	 */
 	public abstract Node getSecond();

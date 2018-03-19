@@ -32,20 +32,22 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 public class OpAsgnAndNode extends BinaryOperatorBaseNode {
-    public OpAsgnAndNode(SourcePosition position, Node headNode, Node valueNode) {
-        super(position, headNode, valueNode);
-    }
+	public OpAsgnAndNode(SourcePosition position, Node headNode, Node valueNode) {
+		super(position, headNode, valueNode);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.OPASGNANDNODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.OPASGNANDNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitOpAsgnAndNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitOpAsgnAndNode(this);
+	}
 }

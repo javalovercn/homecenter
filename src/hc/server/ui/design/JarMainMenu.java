@@ -41,24 +41,21 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 	final Map<String, Object> map;
 	final I18NStoreableHashMapWithModifyFlag projNameI18nMap;
 
-	public JarMainMenu(final int menuIdx, final Map<String, Object> map, final boolean isRoot,
-			final MobiUIResponsor baseRep, final String linkMenuName, final ProjResponser resp) {
+	public JarMainMenu(final int menuIdx, final Map<String, Object> map, final boolean isRoot, final MobiUIResponsor baseRep,
+			final String linkMenuName, final ProjResponser resp) {
 		super((String) map.get(HCjar.PROJ_ID), resp);
 
 		projectMenu = new MobiMenu(projectID, resp);
 		this.isRoot = isRoot;
 		this.baseRe = baseRep;
 		this.linkName = linkMenuName;
-		this.linkOrProjectName = (linkMenuName == null || linkMenuName.length() == 0)
-				? (String) map.get(HCjar.PROJ_NAME)
-				: linkMenuName;
+		this.linkOrProjectName = (linkMenuName == null || linkMenuName.length() == 0) ? (String) map.get(HCjar.PROJ_NAME) : linkMenuName;
 
 		// menuName = linkMenuName;//HCjar.getMenuName(map, menuIdx);
 		projNameI18nMap = HCjar.buildI18nMapFromSerial((String) map.get(HCjar.PROJ_I18N_NAME));
 
 		menuId = (String) map.get(HCjar.replaceIdxPattern(HCjar.MENU_ID, menuIdx));
-		menuColNum = Integer
-				.parseInt((String) map.get(HCjar.replaceIdxPattern(HCjar.MENU_COL_NUM, menuIdx)));
+		menuColNum = Integer.parseInt((String) map.get(HCjar.replaceIdxPattern(HCjar.MENU_COL_NUM, menuIdx)));
 		this.menuIdx = menuIdx;
 
 		this.map = map;
@@ -71,8 +68,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 
 	@Override
 	public final String toString() {
-		return this.getClass().getSimpleName() + ":"
-				+ ((linkName != null && linkName.length() > 0) ? linkName : linkOrProjectName);
+		return this.getClass().getSimpleName() + ":" + ((linkName != null && linkName.length() > 0) ? linkName : linkOrProjectName);
 	}
 
 	public static final int FOLD_TYPE = 0;
@@ -80,8 +76,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 	private final void initMenuItemArray() {
 		if (isRoot) {
 			// 添加LinkProject文件夹
-			final Iterator<LinkProjectStore> it = LinkProjectManager
-					.getLinkProjsIteratorInUserSysThread(false);
+			final Iterator<LinkProjectStore> it = LinkProjectManager.getLinkProjsIteratorInUserSysThread(false);
 			while (it.hasNext()) {
 				final LinkProjectStore lps = it.next();
 				if (lps.isActive() == false) {
@@ -91,8 +86,8 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 				final Map<String, Object> subProjmap = getProjectMap(lps);
 				if (LinkProjectManager.hasMenuItemNumForMap(subProjmap)) {
 				} else {
-					LogManager.warning("there is no menu item in [" + lps.getProjectID()
-							+ "], skip build folder for [" + lps.getProjectID() + "].");
+					LogManager.warning(
+							"there is no menu item in [" + lps.getProjectID() + "], skip build folder for [" + lps.getProjectID() + "].");
 					// 如果工程内没有菜单项，则不显示。含事件或未来其它
 					continue;
 				}
@@ -100,8 +95,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 			}
 		}
 
-		final Object menuItemObj = map
-				.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, menuIdx));
+		final Object menuItemObj = map.get(HCjar.replaceIdxPattern(HCjar.MENU_CHILD_COUNT, menuIdx));
 
 		if (menuItemObj != null) {
 			final int itemCount = Integer.parseInt((String) menuItemObj);
@@ -119,8 +113,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 				final String listen = (String) map.get(header + HCjar.ITEM_LISTENER);
 				final String extend_map = (String) map.get(header + HCjar.ITEM_EXTENDMAP);
 
-				projectMenu.addModifiableItem(ServerUIAPIAgent.buildMobiMenuItem(name, type, image,
-						url, i18nName, listen, extend_map));
+				projectMenu.addModifiableItem(ServerUIAPIAgent.buildMobiMenuItem(name, type, image, url, i18nName, listen, extend_map));
 			}
 		}
 	}
@@ -155,8 +148,8 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 
 			if (LinkProjectManager.hasMenuItemNumForMap(l_map)) {
 			} else {
-				LogManager.warning("there is no menu item in [" + lps.getProjectID()
-						+ "], skip build folder for [" + lps.getProjectID() + "].");
+				LogManager.warning(
+						"there is no menu item in [" + lps.getProjectID() + "], skip build folder for [" + lps.getProjectID() + "].");
 				// 如果工程内没有菜单项，则不显示。含事件或未来其它
 				continue;
 			}
@@ -169,8 +162,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 	public final String getIconLabel(final J2SESession coreSS, final MenuItem menuItem) {
 		final String mobileLocale = UserThreadResourceUtil.getMobileLocaleFrom(coreSS);
 
-		final I18NStoreableHashMapWithModifyFlag storeMap = ServerUIAPIAgent
-				.getMobiMenuItem_I18nName(menuItem);
+		final I18NStoreableHashMapWithModifyFlag storeMap = ServerUIAPIAgent.getMobiMenuItem_I18nName(menuItem);
 		if (storeMap != null) {
 			try {
 				final String mapLang = ProjectContext.matchLocale(mobileLocale, storeMap);
@@ -185,8 +177,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 	}
 
 	@Override
-	public final String[] getIconLabels(final J2SESession coreSS,
-			final Vector<MenuItem> menuItems) {
+	public final String[] getIconLabels(final J2SESession coreSS, final Vector<MenuItem> menuItems) {
 
 		final String[] out = new String[menuItems.size()];
 		for (int i = 0; i < out.length; i++) {
@@ -196,10 +187,8 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 		return out;
 	}
 
-	public final String getBitmapBase64ForMobile(final J2SESession coreSS, final BufferedImage bi,
-			final String unChangedBase64) {
-		final boolean menuTrueColor = UserThreadResourceUtil.getMobileAgent(coreSS)
-				.isMenuTrueColor();
+	public final String getBitmapBase64ForMobile(final J2SESession coreSS, final BufferedImage bi, final String unChangedBase64) {
+		final boolean menuTrueColor = UserThreadResourceUtil.getMobileAgent(coreSS).isMenuTrueColor();
 
 		if (unChangedBase64 != null && (menuTrueColor || coreSS.isOnRelay() == false)) {
 			return unChangedBase64;
@@ -249,8 +238,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 	@Override
 	public final String getIcon(final J2SESession coreSS, final MenuItem item) {
 		final SessionMobiMenu sessionMobiMenu = coreSS.getMenu(projectID);
-		final String imgData = ServerUIAPIAgent.getMobiMenuItem_Image(this, coreSS, item,
-				sessionMobiMenu.targetMobileIconSize);// items[i][ITEM_IMG_IDX];
+		final String imgData = ServerUIAPIAgent.getMobiMenuItem_Image(this, coreSS, item, sessionMobiMenu.targetMobileIconSize);// items[i][ITEM_IMG_IDX];
 		return imgData;
 	}
 
@@ -327,8 +315,7 @@ public class JarMainMenu extends MCanvasMenu implements ICanvas {
 			// LogManager.log(ScreenCapturer.OP_STR + "exit/back project : [" +
 			// projectID + "]");//可能引起退出工程岐义
 
-			baseRe.enterContext((J2SESession) SessionThread.getWithCheckSecurityX(),
-					baseRe.findRootContextID());
+			baseRe.enterContext((J2SESession) SessionThread.getWithCheckSecurityX(), baseRe.findRootContextID());
 			// 千万别执行如下，确保每次手机连接使用同一服务实例，从而共享数据状态
 			// backServer = null;
 		}

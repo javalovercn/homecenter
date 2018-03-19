@@ -35,15 +35,15 @@ import org.jrubyparser.SourcePosition;
  * Represents a &amp;&amp; (and) operator.
  */
 public class AndNode extends BinaryOperatorBaseNode {
-    public AndNode(SourcePosition position, Node firstNode, Node secondNode) {
-        super(position, firstNode, secondNode);
-    }
+	public AndNode(SourcePosition position, Node firstNode, Node secondNode) {
+		super(position, firstNode, secondNode);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.ANDNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.ANDNODE;
+	}
 
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitAndNode(this);
-    }
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitAndNode(this);
+	}
 }

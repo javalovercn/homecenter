@@ -51,67 +51,81 @@ import org.jrubyparser.parser.RubyParser;
  * Serves as a simple facade for all the parsing magic.
  */
 public class Parser {
-    private volatile long totalTime;
-    private volatile int totalBytes;
+	private volatile long totalTime;
+	private volatile int totalBytes;
 
-    public Parser() {}
+	public Parser() {
+	}
 
-    public long getTotalTime() {
-        return totalTime;
-    }
+	public long getTotalTime() {
+		return totalTime;
+	}
 
-    public int getTotalBytes() {
-        return totalBytes;
-    }
+	public int getTotalBytes() {
+		return totalBytes;
+	}
 
-    // TODO: Add rewriter parsing in here.
-    
-    public Node parse(String file, Reader content, ParserConfiguration configuration)
-            throws SyntaxException {
-        long startTime = System.nanoTime();
+	// TODO: Add rewriter parsing in here.
 
-        RubyParser parser;
-        if (configuration.getVersion() == CompatVersion.RUBY1_8) {
-            parser = new Ruby18Parser();            
-        } else if (configuration.getVersion() == CompatVersion.RUBY1_9) {
-            parser = new Ruby19Parser();
-        } else if (configuration.getVersion() == CompatVersion.RUBY2_0) {
-            parser = new Ruby20Parser();
-        } else {
-            parser = new Ruby23Parser();
-        }
+	public Node parse(String file, Reader content, ParserConfiguration configuration) throws SyntaxException {
+		long startTime = System.nanoTime();
 
-        // TODO: Warning interface from configuration?
-        parser.setWarnings(new NullWarnings());
-        
-        LexerSource lexerSource = LexerSource.getSource(file, content, configuration);
+		RubyParser parser;
+		if (configuration.getVersion() == CompatVersion.RUBY1_8) {
+			parser = new Ruby18Parser();
+		} else if (configuration.getVersion() == CompatVersion.RUBY1_9) {
+			parser = new Ruby19Parser();
+		} else if (configuration.getVersion() == CompatVersion.RUBY2_0) {
+			parser = new Ruby20Parser();
+		} else {
+			parser = new Ruby23Parser();
+		}
 
-        Node ast = null;
-        try {
-            ParserResult result = parser.parse(configuration, lexerSource);
-            
-            // We want some amount of extra syntax-only elements properly added to the AST tree
-            if (configuration.getSyntax() != ParserConfiguration.SyntaxGathering.NONE) result.weaveInExtraSyntax();
-            
-            ast = result.getAST();
-        } catch(IOException e) {
-            // TODO: What should this raise something for IDEs?
-        }
-        
-        totalTime += System.nanoTime() - startTime;
-        totalBytes += lexerSource.getOffset();
+		// TODO: Warning interface from configuration?
+		parser.setWarnings(new NullWarnings());
 
-        return ast;
-    }
+		LexerSource lexerSource = LexerSource.getSource(file, content, configuration);
 
-    public static class NullWarnings implements IRubyWarnings {
-        public boolean isVerbose() { return false; }
+		Node ast = null;
+		try {
+			ParserResult result = parser.parse(configuration, lexerSource);
 
-        public void warn(ID id, String message, Object... data) {}
-        public void warning(ID id, String message, Object... data) {}
-        public void warn(ID id, SourcePosition position, String message, Object... data) {}
-        public void warn(ID id, String fileName, int lineNumber, String message, Object... data) {}
-        public void warning(ID id, SourcePosition position, String message, Object... data) {}
-        public void warning(ID id, String fileName, int lineNumber, String message, Object...data) {}
-    }
+			// We want some amount of extra syntax-only elements properly added to the AST tree
+			if (configuration.getSyntax() != ParserConfiguration.SyntaxGathering.NONE)
+				result.weaveInExtraSyntax();
+
+			ast = result.getAST();
+		} catch (IOException e) {
+			// TODO: What should this raise something for IDEs?
+		}
+
+		totalTime += System.nanoTime() - startTime;
+		totalBytes += lexerSource.getOffset();
+
+		return ast;
+	}
+
+	public static class NullWarnings implements IRubyWarnings {
+		public boolean isVerbose() {
+			return false;
+		}
+
+		public void warn(ID id, String message, Object... data) {
+		}
+
+		public void warning(ID id, String message, Object... data) {
+		}
+
+		public void warn(ID id, SourcePosition position, String message, Object... data) {
+		}
+
+		public void warn(ID id, String fileName, int lineNumber, String message, Object... data) {
+		}
+
+		public void warning(ID id, SourcePosition position, String message, Object... data) {
+		}
+
+		public void warning(ID id, String fileName, int lineNumber, String message, Object... data) {
+		}
+	}
 }

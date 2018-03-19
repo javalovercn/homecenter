@@ -42,9 +42,7 @@ public class J2SEClassBuilder {
 		{
 			builder.append("\tpublic static java.util.ArrayList<String> getList() {\n");
 			{
-				builder.append(
-						"\t\tfinal java.util.ArrayList<String> out = new java.util.ArrayList<String>("
-								+ list.size() + ");\n");
+				builder.append("\t\tfinal java.util.ArrayList<String> out = new java.util.ArrayList<String>(" + list.size() + ");\n");
 				{
 					final int size = list.size();
 					for (int i = 0; i < size; i++) {
@@ -64,8 +62,7 @@ public class J2SEClassBuilder {
 
 		final String fileContent = builder.toString();
 		{
-			final String pathname = "./" + packageName.replace('.', '/') + "/" + className
-					+ ".java";
+			final String pathname = "./" + packageName.replace('.', '/') + "/" + className + ".java";
 			final File file = new File(pathname);
 			file.delete();
 
@@ -83,8 +80,7 @@ public class J2SEClassBuilder {
 				bufferedReader.close();
 				bufferedWriter.close();
 
-				System.out
-						.println("successful create file " + pathname + ", total : " + list.size());
+				System.out.println("successful create file " + pathname + ", total : " + list.size());
 			} catch (final IOException e) {
 				ExceptionReporter.printStackTrace(e);
 			} finally {
@@ -113,8 +109,7 @@ public class J2SEClassBuilder {
 						continue;
 					}
 
-					entryName = entryName.replace("/", ".").substring(0,
-							entryName.lastIndexOf("."));
+					entryName = entryName.replace("/", ".").substring(0, entryName.lastIndexOf("."));
 					if (entryName.startsWith("java.") || entryName.startsWith("javax.")) {
 					} else {
 						continue;
@@ -124,8 +119,7 @@ public class J2SEClassBuilder {
 					if (entryName.startsWith("META-INF")) {
 						continue;
 					}
-					entryName = entryName.replace("/", ".").substring(0,
-							entryName.lastIndexOf("."));
+					entryName = entryName.replace("/", ".").substring(0, entryName.lastIndexOf("."));
 					if (entryName.startsWith("java.") || entryName.startsWith("javax.")) {
 					} else {
 						continue;
@@ -147,8 +141,7 @@ public class J2SEClassBuilder {
 		return myClassName;
 	}
 
-	public static java.util.ArrayList<String> getClassAndResByJar(final File jarPath,
-			final boolean needRes) {
+	public static java.util.ArrayList<String> getClassAndResByJar(final File jarPath, final boolean needRes) {
 		final java.util.ArrayList<String> myClassAndRes = new ArrayList<String>();
 		try {
 			final JarFile jarFile = new JarFile(jarPath, false);
@@ -164,8 +157,7 @@ public class J2SEClassBuilder {
 						continue;
 					}
 
-					entryName = entryName.replace("/", ".").substring(0,
-							entryName.lastIndexOf("."));
+					entryName = entryName.replace("/", ".").substring(0, entryName.lastIndexOf("."));
 					myClassAndRes.add(entryName);
 				} else if (needRes) {
 					if (entryName.endsWith("/")) {// 仅表示为包名或包路径

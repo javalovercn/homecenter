@@ -30,250 +30,206 @@ import org.bouncycastle.asn1.x509.Time;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.operator.ContentSigner;
 
-public class CertificateRequestMessageBuilder
-{
-    private final BigInteger certReqId;
+public class CertificateRequestMessageBuilder {
+	private final BigInteger certReqId;
 
-    private ExtensionsGenerator extGenerator;
-    private CertTemplateBuilder templateBuilder;
-    private List controls;
-    private ContentSigner popSigner;
-    private PKMACBuilder pkmacBuilder;
-    private char[] password;
-    private GeneralName sender;
-    private POPOPrivKey popoPrivKey;
-    private ASN1Null popRaVerified;
+	private ExtensionsGenerator extGenerator;
+	private CertTemplateBuilder templateBuilder;
+	private List controls;
+	private ContentSigner popSigner;
+	private PKMACBuilder pkmacBuilder;
+	private char[] password;
+	private GeneralName sender;
+	private POPOPrivKey popoPrivKey;
+	private ASN1Null popRaVerified;
 
-    public CertificateRequestMessageBuilder(BigInteger certReqId)
-    {
-        this.certReqId = certReqId;
+	public CertificateRequestMessageBuilder(BigInteger certReqId) {
+		this.certReqId = certReqId;
 
-        this.extGenerator = new ExtensionsGenerator();
-        this.templateBuilder = new CertTemplateBuilder();
-        this.controls = new ArrayList();
-    }
+		this.extGenerator = new ExtensionsGenerator();
+		this.templateBuilder = new CertTemplateBuilder();
+		this.controls = new ArrayList();
+	}
 
-    public CertificateRequestMessageBuilder setPublicKey(SubjectPublicKeyInfo publicKey)
-    {
-        if (publicKey != null)
-        {
-            templateBuilder.setPublicKey(publicKey);
-        }
+	public CertificateRequestMessageBuilder setPublicKey(SubjectPublicKeyInfo publicKey) {
+		if (publicKey != null) {
+			templateBuilder.setPublicKey(publicKey);
+		}
 
-        return this;
-    }
+		return this;
+	}
 
-    public CertificateRequestMessageBuilder setIssuer(X500Name issuer)
-    {
-        if (issuer != null)
-        {
-            templateBuilder.setIssuer(issuer);
-        }
+	public CertificateRequestMessageBuilder setIssuer(X500Name issuer) {
+		if (issuer != null) {
+			templateBuilder.setIssuer(issuer);
+		}
 
-        return this;
-    }
+		return this;
+	}
 
-    public CertificateRequestMessageBuilder setSubject(X500Name subject)
-    {
-        if (subject != null)
-        {
-            templateBuilder.setSubject(subject);
-        }
+	public CertificateRequestMessageBuilder setSubject(X500Name subject) {
+		if (subject != null) {
+			templateBuilder.setSubject(subject);
+		}
 
-        return this;
-    }
+		return this;
+	}
 
-    public CertificateRequestMessageBuilder setSerialNumber(BigInteger serialNumber)
-    {
-        if (serialNumber != null)
-        {
-            templateBuilder.setSerialNumber(new ASN1Integer(serialNumber));
-        }
+	public CertificateRequestMessageBuilder setSerialNumber(BigInteger serialNumber) {
+		if (serialNumber != null) {
+			templateBuilder.setSerialNumber(new ASN1Integer(serialNumber));
+		}
 
-        return this;
-    }
+		return this;
+	}
 
-    /**
-     * Request a validity period for the certificate. Either, but not both, of the date parameters may be null.
-     *
-     * @param notBeforeDate not before date for certificate requested.
-     * @param notAfterDate not after date for the certificate requested.
-     *
-     * @return the current builder.
-     */
-    public CertificateRequestMessageBuilder setValidity(Date notBeforeDate, Date notAfterDate)
-    {
-        templateBuilder.setValidity(new OptionalValidity(createTime(notBeforeDate), createTime(notAfterDate)));
+	/**
+	 * Request a validity period for the certificate. Either, but not both, of the date parameters
+	 * may be null.
+	 *
+	 * @param notBeforeDate
+	 *            not before date for certificate requested.
+	 * @param notAfterDate
+	 *            not after date for the certificate requested.
+	 *
+	 * @return the current builder.
+	 */
+	public CertificateRequestMessageBuilder setValidity(Date notBeforeDate, Date notAfterDate) {
+		templateBuilder.setValidity(new OptionalValidity(createTime(notBeforeDate), createTime(notAfterDate)));
 
-        return this;
-    }
+		return this;
+	}
 
-    private Time createTime(Date date)
-    {
-        if (date != null)
-        {
-            return new Time(date);
-        }
+	private Time createTime(Date date) {
+		if (date != null) {
+			return new Time(date);
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    public CertificateRequestMessageBuilder addExtension(
-        ASN1ObjectIdentifier oid,
-        boolean              critical,
-        ASN1Encodable        value)
-        throws CertIOException
-    {
-        CRMFUtil.addExtension(extGenerator, oid, critical, value);
+	public CertificateRequestMessageBuilder addExtension(ASN1ObjectIdentifier oid, boolean critical, ASN1Encodable value)
+			throws CertIOException {
+		CRMFUtil.addExtension(extGenerator, oid, critical, value);
 
-        return this;
-    }
+		return this;
+	}
 
-    public CertificateRequestMessageBuilder addExtension(
-        ASN1ObjectIdentifier oid,
-        boolean              critical,
-        byte[]               value)
-    {
-        extGenerator.addExtension(oid, critical, value);
+	public CertificateRequestMessageBuilder addExtension(ASN1ObjectIdentifier oid, boolean critical, byte[] value) {
+		extGenerator.addExtension(oid, critical, value);
 
-        return this;
-    }
+		return this;
+	}
 
-    public CertificateRequestMessageBuilder addControl(Control control)
-    {
-        controls.add(control);
+	public CertificateRequestMessageBuilder addControl(Control control) {
+		controls.add(control);
 
-        return this;
-    }
+		return this;
+	}
 
-    public CertificateRequestMessageBuilder setProofOfPossessionSigningKeySigner(ContentSigner popSigner)
-    {
-        if (popoPrivKey != null || popRaVerified != null)
-        {
-            throw new IllegalStateException("only one proof of possession allowed");
-        }
+	public CertificateRequestMessageBuilder setProofOfPossessionSigningKeySigner(ContentSigner popSigner) {
+		if (popoPrivKey != null || popRaVerified != null) {
+			throw new IllegalStateException("only one proof of possession allowed");
+		}
 
-        this.popSigner = popSigner;
+		this.popSigner = popSigner;
 
-        return this;
-    }
+		return this;
+	}
 
-    public CertificateRequestMessageBuilder setProofOfPossessionSubsequentMessage(SubsequentMessage msg)
-    {
-        if (popSigner != null || popRaVerified != null)
-        {
-            throw new IllegalStateException("only one proof of possession allowed");
-        }
+	public CertificateRequestMessageBuilder setProofOfPossessionSubsequentMessage(SubsequentMessage msg) {
+		if (popSigner != null || popRaVerified != null) {
+			throw new IllegalStateException("only one proof of possession allowed");
+		}
 
-        this.popoPrivKey = new POPOPrivKey(msg);
+		this.popoPrivKey = new POPOPrivKey(msg);
 
-        return this;
-    }
+		return this;
+	}
 
-    public CertificateRequestMessageBuilder setProofOfPossessionRaVerified()
-    {
-        if (popSigner != null || popoPrivKey != null)
-        {
-            throw new IllegalStateException("only one proof of possession allowed");
-        }
+	public CertificateRequestMessageBuilder setProofOfPossessionRaVerified() {
+		if (popSigner != null || popoPrivKey != null) {
+			throw new IllegalStateException("only one proof of possession allowed");
+		}
 
-        this.popRaVerified = DERNull.INSTANCE;
+		this.popRaVerified = DERNull.INSTANCE;
 
-        return this;
-    }
+		return this;
+	}
 
-    public CertificateRequestMessageBuilder setAuthInfoPKMAC(PKMACBuilder pkmacBuilder, char[] password)
-    {
-        this.pkmacBuilder = pkmacBuilder;
-        this.password = password;
+	public CertificateRequestMessageBuilder setAuthInfoPKMAC(PKMACBuilder pkmacBuilder, char[] password) {
+		this.pkmacBuilder = pkmacBuilder;
+		this.password = password;
 
-        return this;
-    }
+		return this;
+	}
 
-    public CertificateRequestMessageBuilder setAuthInfoSender(X500Name sender)
-    {
-        return setAuthInfoSender(new GeneralName(sender));
-    }
+	public CertificateRequestMessageBuilder setAuthInfoSender(X500Name sender) {
+		return setAuthInfoSender(new GeneralName(sender));
+	}
 
-    public CertificateRequestMessageBuilder setAuthInfoSender(GeneralName sender)
-    {
-        this.sender = sender;
+	public CertificateRequestMessageBuilder setAuthInfoSender(GeneralName sender) {
+		this.sender = sender;
 
-        return this;
-    }
+		return this;
+	}
 
-    public CertificateRequestMessage build()
-        throws CRMFException
-    {
-        ASN1EncodableVector v = new ASN1EncodableVector();
+	public CertificateRequestMessage build() throws CRMFException {
+		ASN1EncodableVector v = new ASN1EncodableVector();
 
-        v.add(new ASN1Integer(certReqId));
+		v.add(new ASN1Integer(certReqId));
 
-        if (!extGenerator.isEmpty())
-        {
-            templateBuilder.setExtensions(extGenerator.generate());
-        }
+		if (!extGenerator.isEmpty()) {
+			templateBuilder.setExtensions(extGenerator.generate());
+		}
 
-        v.add(templateBuilder.build());
+		v.add(templateBuilder.build());
 
-        if (!controls.isEmpty())
-        {
-            ASN1EncodableVector controlV = new ASN1EncodableVector();
+		if (!controls.isEmpty()) {
+			ASN1EncodableVector controlV = new ASN1EncodableVector();
 
-            for (Iterator it = controls.iterator(); it.hasNext();)
-            {
-                Control control = (Control)it.next();
+			for (Iterator it = controls.iterator(); it.hasNext();) {
+				Control control = (Control) it.next();
 
-                controlV.add(new AttributeTypeAndValue(control.getType(), control.getValue()));
-            }
+				controlV.add(new AttributeTypeAndValue(control.getType(), control.getValue()));
+			}
 
-            v.add(new DERSequence(controlV));
-        }
+			v.add(new DERSequence(controlV));
+		}
 
-        CertRequest request = CertRequest.getInstance(new DERSequence(v));
+		CertRequest request = CertRequest.getInstance(new DERSequence(v));
 
-        v = new ASN1EncodableVector();
+		v = new ASN1EncodableVector();
 
-        v.add(request);
+		v.add(request);
 
-        if (popSigner != null)
-        {
-            CertTemplate template = request.getCertTemplate();
+		if (popSigner != null) {
+			CertTemplate template = request.getCertTemplate();
 
-            if (template.getSubject() == null || template.getPublicKey() == null)
-            {
-                SubjectPublicKeyInfo pubKeyInfo = request.getCertTemplate().getPublicKey();
-                ProofOfPossessionSigningKeyBuilder builder = new ProofOfPossessionSigningKeyBuilder(pubKeyInfo);
+			if (template.getSubject() == null || template.getPublicKey() == null) {
+				SubjectPublicKeyInfo pubKeyInfo = request.getCertTemplate().getPublicKey();
+				ProofOfPossessionSigningKeyBuilder builder = new ProofOfPossessionSigningKeyBuilder(pubKeyInfo);
 
-                if (sender != null)
-                {
-                    builder.setSender(sender);
-                }
-                else
-                {
-                    PKMACValueGenerator pkmacGenerator = new PKMACValueGenerator(pkmacBuilder);
+				if (sender != null) {
+					builder.setSender(sender);
+				} else {
+					PKMACValueGenerator pkmacGenerator = new PKMACValueGenerator(pkmacBuilder);
 
-                    builder.setPublicKeyMac(pkmacGenerator, password);
-                }
+					builder.setPublicKeyMac(pkmacGenerator, password);
+				}
 
-                v.add(new ProofOfPossession(builder.build(popSigner)));
-            }
-            else
-            {
-                ProofOfPossessionSigningKeyBuilder builder = new ProofOfPossessionSigningKeyBuilder(request);
+				v.add(new ProofOfPossession(builder.build(popSigner)));
+			} else {
+				ProofOfPossessionSigningKeyBuilder builder = new ProofOfPossessionSigningKeyBuilder(request);
 
-                v.add(new ProofOfPossession(builder.build(popSigner)));
-            }
-        }
-        else if (popoPrivKey != null)
-        {
-            v.add(new ProofOfPossession(ProofOfPossession.TYPE_KEY_ENCIPHERMENT, popoPrivKey));
-        }
-        else if (popRaVerified != null)
-        {
-            v.add(new ProofOfPossession());
-        }
+				v.add(new ProofOfPossession(builder.build(popSigner)));
+			}
+		} else if (popoPrivKey != null) {
+			v.add(new ProofOfPossession(ProofOfPossession.TYPE_KEY_ENCIPHERMENT, popoPrivKey));
+		} else if (popRaVerified != null) {
+			v.add(new ProofOfPossession());
+		}
 
-        return new CertificateRequestMessage(CertReqMsg.getInstance(new DERSequence(v)));
-    }
+		return new CertificateRequestMessage(CertReqMsg.getInstance(new DERSequence(v)));
+	}
 }

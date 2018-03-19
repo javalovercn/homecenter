@@ -1,8 +1,8 @@
 package hc.server.util.ai;
 
 public class Matcher {
-	public static int matchRecord(final byte[] recordRS, int startIdx, final Query query,
-			final MatchScore score, int matchSequenceNum, final int queryIdx) {
+	public static int matchRecord(final byte[] recordRS, int startIdx, final Query query, final MatchScore score, int matchSequenceNum,
+			final int queryIdx) {
 		final int recordSizeidx = startIdx + 1;
 		final byte recordSize = recordRS[startIdx];
 		final int itemNum = query.itemNum;
@@ -29,8 +29,7 @@ public class Matcher {
 					if (startIdx == recordRS.length) {
 						return startIdx;
 					}
-					final int outIdx = matchRecord(recordRS, startIdx, query, score,
-							matchSequenceNum, i + 1);
+					final int outIdx = matchRecord(recordRS, startIdx, query, score, matchSequenceNum, i + 1);
 					if (outIdx == 0) {
 						return startIdx;
 					} else {
@@ -46,8 +45,7 @@ public class Matcher {
 		return 0;
 	}
 
-	public static void matchRecord(final byte[] recordRS, final Query query,
-			final MatchScore score) {
+	public static void matchRecord(final byte[] recordRS, final Query query, final MatchScore score) {
 		final int length = recordRS.length;
 		for (int j = 0; j < length;) {
 			final int shiftIdx = matchRecord(recordRS, j, query, score, 0, 0);

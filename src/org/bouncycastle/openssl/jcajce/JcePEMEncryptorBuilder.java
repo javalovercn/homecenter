@@ -10,69 +10,57 @@ import org.bouncycastle.jcajce.util.ProviderJcaJceHelper;
 import org.bouncycastle.openssl.PEMEncryptor;
 import org.bouncycastle.openssl.PEMException;
 
-public class JcePEMEncryptorBuilder
-{
-    private final String algorithm;
+public class JcePEMEncryptorBuilder {
+	private final String algorithm;
 
-    private JcaJceHelper helper = new DefaultJcaJceHelper();
-    private SecureRandom random;
+	private JcaJceHelper helper = new DefaultJcaJceHelper();
+	private SecureRandom random;
 
-    public JcePEMEncryptorBuilder(String algorithm)
-    {
-        this.algorithm = algorithm;
-    }
+	public JcePEMEncryptorBuilder(String algorithm) {
+		this.algorithm = algorithm;
+	}
 
-    public JcePEMEncryptorBuilder setProvider(Provider provider)
-    {
-        this.helper = new ProviderJcaJceHelper(provider);
+	public JcePEMEncryptorBuilder setProvider(Provider provider) {
+		this.helper = new ProviderJcaJceHelper(provider);
 
-        return this;
-    }
+		return this;
+	}
 
-    public JcePEMEncryptorBuilder setProvider(String providerName)
-    {
-        this.helper = new NamedJcaJceHelper(providerName);
+	public JcePEMEncryptorBuilder setProvider(String providerName) {
+		this.helper = new NamedJcaJceHelper(providerName);
 
-        return this;
-    }
+		return this;
+	}
 
-    public JcePEMEncryptorBuilder setSecureRandom(SecureRandom random)
-    {
-        this.random = random;
+	public JcePEMEncryptorBuilder setSecureRandom(SecureRandom random) {
+		this.random = random;
 
-        return this;
-    }
+		return this;
+	}
 
-    public PEMEncryptor build(final char[] password)
-    {
-        if (random == null)
-        {
-            random = new SecureRandom();
-        }
+	public PEMEncryptor build(final char[] password) {
+		if (random == null) {
+			random = new SecureRandom();
+		}
 
-        int ivLength = algorithm.startsWith("AES-") ? 16 : 8;
+		int ivLength = algorithm.startsWith("AES-") ? 16 : 8;
 
-        final byte[] iv = new byte[ivLength];
+		final byte[] iv = new byte[ivLength];
 
-        random.nextBytes(iv);
+		random.nextBytes(iv);
 
-        return new PEMEncryptor()
-        {
-            public String getAlgorithm()
-            {
-                return algorithm;
-            }
+		return new PEMEncryptor() {
+			public String getAlgorithm() {
+				return algorithm;
+			}
 
-            public byte[] getIV()
-            {
-                return iv;
-            }
+			public byte[] getIV() {
+				return iv;
+			}
 
-            public byte[] encrypt(byte[] encoding)
-                throws PEMException
-            {
-                return PEMUtilities.crypt(true, helper, encoding, password, algorithm, iv);
-            }
-        };
-    }
+			public byte[] encrypt(byte[] encoding) throws PEMException {
+				return PEMUtilities.crypt(true, helper, encoding, password, algorithm, iv);
+			}
+		};
+	}
 }

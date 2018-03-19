@@ -35,95 +35,99 @@ import org.jrubyparser.SourcePosition;
  * Represents a range literal.
  */
 public class DotNode extends Node {
-    private Node beginNode;
-    private Node endNode;
-    private boolean exclusive;
-    private boolean isLiteral;
+	private Node beginNode;
+	private Node endNode;
+	private boolean exclusive;
+	private boolean isLiteral;
 
-    public DotNode(SourcePosition position, Node beginNode, Node endNode, boolean exclusive,
-            boolean isLiteral) {
-        super(position);
+	public DotNode(SourcePosition position, Node beginNode, Node endNode, boolean exclusive, boolean isLiteral) {
+		super(position);
 
-        assert beginNode != null : "beginNode is not null";
-        assert endNode != null : "endNode is not null";
+		assert beginNode != null : "beginNode is not null";
+		assert endNode != null : "endNode is not null";
 
-        this.beginNode = adopt(beginNode);
-        this.endNode = adopt(endNode);
-        this.exclusive = exclusive;
-        this.isLiteral = isLiteral;
-    }
+		this.beginNode = adopt(beginNode);
+		this.endNode = adopt(endNode);
+		this.exclusive = exclusive;
+		this.isLiteral = isLiteral;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		DotNode other = (DotNode) node;
 
-        DotNode other = (DotNode) node;
+		return getBegin().isSame(other.getBegin()) && getEnd().isSame(other.getEnd()) && isExclusive() == other.isExclusive();
+	}
 
-        return getBegin().isSame(other.getBegin()) && getEnd().isSame(other.getEnd()) && isExclusive() == other.isExclusive();
-    }
+	public NodeType getNodeType() {
+		return NodeType.DOTNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitDotNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.DOTNODE;
-    }
+	/**
+	 * Gets the beginNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getBegin() {
+		return beginNode;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitDotNode(this);
-    }
+	@Deprecated
+	public Node getBeginNode() {
+		return getBegin();
+	}
 
-    /**
-     * Gets the beginNode.
-     * @return Returns a Node
-     */
-    public Node getBegin() {
-        return beginNode;
-    }
+	/**
+	 * Gets the endNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getEnd() {
+		return endNode;
+	}
 
-    @Deprecated
-    public Node getBeginNode() {
-        return getBegin();
-    }
+	@Deprecated
+	public Node getEndNode() {
+		return getEnd();
+	}
 
-    /**
-     * Gets the endNode.
-     * @return Returns a Node
-     */
-    public Node getEnd() {
-        return endNode;
-    }
+	/**
+	 * Gets the exclusive.
+	 * 
+	 * @return Returns a boolean
+	 */
+	public boolean isExclusive() {
+		return exclusive;
+	}
 
-    @Deprecated
-    public Node getEndNode() {
-        return getEnd();
-    }
-
-    /**
-     * Gets the exclusive.
-     * @return Returns a boolean
-     */
-    public boolean isExclusive() {
-        return exclusive;
-    }
-
-    /**
-     * Is this a literal node.  MRI has a literal node type and we currently don't.
-     * We provide this attribute so we can detect that this should be a literal to
-     * match MRI semantics of literal DOT nodes.
-     *
-     * @return true is literal
-     */
-    public boolean isLiteral() {
-        return isLiteral;
-    }
+	/**
+	 * Is this a literal node. MRI has a literal node type and we currently don't. We provide this
+	 * attribute so we can detect that this should be a literal to match MRI semantics of literal
+	 * DOT nodes.
+	 *
+	 * @return true is literal
+	 */
+	public boolean isLiteral() {
+		return isLiteral;
+	}
 }

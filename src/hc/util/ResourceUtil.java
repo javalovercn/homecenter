@@ -170,8 +170,7 @@ public class ResourceUtil {
 	}
 
 	public static final boolean isSunJvm() {
-		return containsIgnoreCase(JAVA_VENDOR, "Sun")
-				&& containsIgnoreCase(JAVA_VENDOR, "Microsystems");
+		return containsIgnoreCase(JAVA_VENDOR, "Sun") && containsIgnoreCase(JAVA_VENDOR, "Microsystems");
 	}
 
 	public static final boolean isIbmJvm() {
@@ -203,13 +202,49 @@ public class ResourceUtil {
 			} catch (final Exception e) {
 			} finally {
 				if (screenDeviceScale == null) {
-					screenDeviceScale = PropertiesManager
-							.getIntValue(PropertiesManager.p_screenDeviceScale, 1);
+					screenDeviceScale = PropertiesManager.getIntValue(PropertiesManager.p_screenDeviceScale, 1);
 				}
 			}
 		}
 
 		return screenDeviceScale;
+	}
+
+	public final static boolean isSameContent(final InputStream is1, final InputStream is2) {
+		final byte[] src1BS = new byte[2048];
+		final byte[] src2BS = new byte[src1BS.length];//注意：请勿使用cache byte
+
+		try {
+			while (true) {
+				final int len1 = is1.read(src1BS);
+				final int len2 = is2.read(src2BS);
+				if (len1 != len2) {
+					return false;
+				}
+
+				if (len1 == -1) {
+					return true;
+				}
+
+				for (int i = 0; i < len1; i++) {
+					if (src1BS[i] != src2BS[i]) {
+						return false;
+					}
+				}
+			}
+		} catch (final Throwable e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				is1.close();
+			} catch (final Throwable e) {
+			}
+			try {
+				is2.close();
+			} catch (final Throwable e) {
+			}
+		}
+		return false;
 	}
 
 	public static String[] reverseStringArray(final String[] src) {
@@ -285,8 +320,7 @@ public class ResourceUtil {
 		return -1;
 	}
 
-	public static AbstractDocument.DefaultDocumentEvent getDocumentEventType(
-			final UndoableEdit edit) {
+	public static AbstractDocument.DefaultDocumentEvent getDocumentEventType(final UndoableEdit edit) {
 		if (edit instanceof AbstractDocument.DefaultDocumentEvent) {
 			return (AbstractDocument.DefaultDocumentEvent) edit;
 		}
@@ -295,8 +329,7 @@ public class ResourceUtil {
 			if (documentEvent == null) {
 				if (isDoneForDocumentEventTypeWrapper == false) {
 					// 以下是Java 9的实现
-					final Class claz = Class.forName(
-							"javax.swing.text.AbstractDocument$DefaultDocumentEventUndoableWrapper");
+					final Class claz = Class.forName("javax.swing.text.AbstractDocument$DefaultDocumentEventUndoableWrapper");
 					// final DefaultDocumentEvent dde;
 					isDoneForDocumentEventTypeWrapper = true;
 					documentEvent = claz.getDeclaredField("dde");
@@ -362,8 +395,8 @@ public class ResourceUtil {
 		// Print suppressed exceptions, if any
 		// Throwable[] se = t.getSuppressed();
 		try {
-			final Throwable[] se = (Throwable[]) ClassUtil.invokeWithExceptionOut(Throwable.class,
-					t, "getSuppressed", ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
+			final Throwable[] se = (Throwable[]) ClassUtil.invokeWithExceptionOut(Throwable.class, t, "getSuppressed",
+					ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, false);
 			if (se != null) {
 				for (int i = 0; i < se.length; i++) {
 					printStackTrace(se[i]);
@@ -380,8 +413,7 @@ public class ResourceUtil {
 	}
 
 	public static Color toDarker(final Color color, final float factor) {
-		return new Color(Math.max((int) (color.getRed() * factor), 0),
-				Math.max((int) (color.getGreen() * factor), 0),
+		return new Color(Math.max((int) (color.getRed() * factor), 0), Math.max((int) (color.getGreen() * factor), 0),
 				Math.max((int) (color.getBlue() * factor), 0), color.getAlpha());
 	}
 
@@ -394,8 +426,7 @@ public class ResourceUtil {
 	 *            true : 可能存在相等的lang，比如he=iw
 	 * @return
 	 */
-	public static String matchLocale(final String locale, final Map map,
-			final boolean isMaybeEqualLang) {
+	public static String matchLocale(final String locale, final Map map, final boolean isMaybeEqualLang) {
 		String out = (String) map.get(locale);
 		if (out != null) {
 			return out;
@@ -411,8 +442,7 @@ public class ResourceUtil {
 					if (part0.equals(LangUtil.equalLocale[i])) {
 						isEqualLang = true;
 
-						out = (String) map
-								.get(LangUtil.buildEqualLocale(parts, LangUtil.equalLocaleTo[i]));
+						out = (String) map.get(LangUtil.buildEqualLocale(parts, LangUtil.equalLocaleTo[i]));
 						if (out != null) {
 							return out;
 						}
@@ -424,8 +454,7 @@ public class ResourceUtil {
 					if (part0.equals(LangUtil.equalLocaleTo[i])) {
 						isEqualLang = true;
 
-						out = (String) map
-								.get(LangUtil.buildEqualLocale(parts, LangUtil.equalLocale[i]));
+						out = (String) map.get(LangUtil.buildEqualLocale(parts, LangUtil.equalLocale[i]));
 						if (out != null) {
 							return out;
 						}
@@ -533,16 +562,13 @@ public class ResourceUtil {
 			return true;
 		}
 
-		if (obj instanceof String || obj instanceof Boolean || obj instanceof Long
-				|| obj instanceof Byte || obj instanceof Short || obj instanceof Integer
-				|| obj instanceof Float || obj instanceof Double || obj instanceof Character) {
+		if (obj instanceof String || obj instanceof Boolean || obj instanceof Long || obj instanceof Byte || obj instanceof Short
+				|| obj instanceof Integer || obj instanceof Float || obj instanceof Double || obj instanceof Character) {
 			return true;
 		}
 
-		if (obj instanceof String[] || obj instanceof Boolean[] || obj instanceof Long[]
-				|| obj instanceof Byte[] || obj instanceof Short[] || obj instanceof Integer[]
-				|| obj instanceof Float[] || obj instanceof Double[]
-				|| obj instanceof Character[]) {
+		if (obj instanceof String[] || obj instanceof Boolean[] || obj instanceof Long[] || obj instanceof Byte[] || obj instanceof Short[]
+				|| obj instanceof Integer[] || obj instanceof Float[] || obj instanceof Double[] || obj instanceof Character[]) {
 			return true;
 		}
 
@@ -575,8 +601,7 @@ public class ResourceUtil {
 			int startIdx = 0;
 			while (startIdx < ivLen) {
 				final int leftMax = ivLen - startIdx;
-				System.arraycopy(srcBS, 0, newIV, startIdx,
-						leftMax < srcBS.length ? leftMax : srcBS.length);
+				System.arraycopy(srcBS, 0, newIV, startIdx, leftMax < srcBS.length ? leftMax : srcBS.length);
 				startIdx += srcBS.length;
 			}
 			return newIV;
@@ -623,8 +648,7 @@ public class ResourceUtil {
 	}
 
 	public static boolean isDemoMaintenance() {
-		return isDemoServer()
-				&& PropertiesManager.isTrue(PropertiesManager.p_isDemoMaintenance, false);
+		return isDemoServer() && PropertiesManager.isTrue(PropertiesManager.p_isDemoMaintenance, false);
 	}
 
 	/**
@@ -635,9 +659,7 @@ public class ResourceUtil {
 	 * @return true means OK
 	 */
 	public static boolean copy(final File from, final File to) {
-		L.V = L.WShop ? false
-				: LogManager.log(
-						"copy file : " + from.getAbsolutePath() + ", to : " + to.getAbsolutePath());
+		L.V = L.WShop ? false : LogManager.log("copy file : " + from.getAbsolutePath() + ", to : " + to.getAbsolutePath());
 
 		FileInputStream in = null;
 		FileOutputStream out = null;
@@ -686,26 +708,27 @@ public class ResourceUtil {
 		try {
 			ios = new FileInputStream(file);
 			length = (int) file.length();
-		}catch (final Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 			return null;
 		}
-		
+
 		return getContent(ios, length);
 	}
 
 	/**
 	 * 
 	 * @param ios
-	 * @param length 0 means unknow.
+	 * @param length
+	 *            0 means unknow.
 	 * @return
 	 */
 	public static byte[] getContent(final InputStream ios, int length) {
 		ByteArrayOutputStream ous = null;
-		if(length == 0) {
+		if (length == 0) {
 			length = 1024 * 200;
 		}
-		
+
 		final byte[] buffer = ByteUtil.byteArrayCacher.getFree(4096);
 		try {
 			ous = new ByteArrayOutputStream(length);
@@ -738,8 +761,7 @@ public class ResourceUtil {
 			final URLConnection con = url.openConnection();
 			con.setConnectTimeout(10 * 1000);
 			con.setReadTimeout(10 * 1000);
-			return getStringFromInputStream(con.getInputStream(), IConstant.UTF_8, keepReturnChar,
-					false);
+			return getStringFromInputStream(con.getInputStream(), IConstant.UTF_8, keepReturnChar, false);
 		} catch (final Throwable e) {
 			e.printStackTrace();
 		}
@@ -822,8 +844,8 @@ public class ResourceUtil {
 
 	static final String rem_format1 = "//";
 
-	public static String getStringFromInputStream(final InputStream is, final String charset,
-			final boolean keepReturnChar, final boolean removeRem) {
+	public static String getStringFromInputStream(final InputStream is, final String charset, final boolean keepReturnChar,
+			final boolean removeRem) {
 		BufferedReader br = null;
 		final StringBuilder sb = StringBuilderCacher.getFree();
 
@@ -923,15 +945,11 @@ public class ResourceUtil {
 		return ResourceUtil.get(9186);
 	}
 
-	public static boolean refreshHideCheckBox(final JCheckBox checkBox,
-			final JMenuItem hideIDForErrCert) {
+	public static boolean refreshHideCheckBox(final JCheckBox checkBox, final JMenuItem hideIDForErrCert) {
 		final boolean isHide = DefaultManager.isHideIDForErrCert();
-		final String tip = "<html>" + ResourceUtil.get(9236)
-				+ (isHide ? getHideText() : getShowText()) + "<BR><BR>" + "<STRONG>" + getHideText()
-				+ "</STRONG>&nbsp;" + getHideTip() + "<BR>" + "<STRONG>" + getShowText()
-				+ "</STRONG>&nbsp;" + getShowTip() + "<BR><BR>"
-				+ StringUtil.replace(ResourceUtil.get(9212), "{disable}", ResourceUtil.get(1021))
-				+ "</html>";
+		final String tip = "<html>" + ResourceUtil.get(9236) + (isHide ? getHideText() : getShowText()) + "<BR><BR>" + "<STRONG>"
+				+ getHideText() + "</STRONG>&nbsp;" + getHideTip() + "<BR>" + "<STRONG>" + getShowText() + "</STRONG>&nbsp;" + getShowTip()
+				+ "<BR><BR>" + StringUtil.replace(ResourceUtil.get(9212), "{disable}", ResourceUtil.get(1021)) + "</html>";
 
 		final String hideCheckText;
 		if (isHide) {
@@ -984,8 +1002,7 @@ public class ResourceUtil {
 		// 每小时刷新alive变量到Root服务器
 		// 采用58秒，能保障两小时内可刷新两次。
 
-		long refreshMS = isRootRelay ? (1000 * 60 * 5)
-				: RootConfig.getInstance().getLongProperty(RootConfig.p_RootDelNotAlive);
+		long refreshMS = isRootRelay ? (1000 * 60 * 5) : RootConfig.getInstance().getLongProperty(RootConfig.p_RootDelNotAlive);
 		if (refreshMS > HCTimer.ONE_DAY || refreshMS < HCTimer.ONE_MINUTE) {
 			refreshMS = HCTimer.ONE_DAY;
 		}
@@ -1000,7 +1017,7 @@ public class ResourceUtil {
 					if (isRootRelay) {
 						// 服务器出现错误，需要进行重启服务
 						LogManager.errToLog("fail notify Root Server Alive");
-//						coreSS.context.notifyShutdown();
+						//						coreSS.context.notifyShutdown();
 						LogManager.flush();
 						System.exit(1);
 					} else {
@@ -1018,8 +1035,7 @@ public class ResourceUtil {
 	 *            true : is hide , false : is show
 	 */
 	public static void setHideIDForErrCertAndSave(final boolean isHide) {
-		PropertiesManager.setValue(PropertiesManager.p_HideIDForErrCert,
-				isHide ? IConstant.TRUE : IConstant.FALSE);
+		PropertiesManager.setValue(PropertiesManager.p_HideIDForErrCert, isHide ? IConstant.TRUE : IConstant.FALSE);
 		PropertiesManager.saveFile();
 
 		SafeDataManager.startSafeBackupProcess(true, false);
@@ -1038,15 +1054,13 @@ public class ResourceUtil {
 
 	public final static Object moveToDoubleArraySize(final Object srcArray) {
 		final int length = Array.getLength(srcArray);
-		final Object newArray = Array.newInstance(srcArray.getClass().getComponentType(),
-				length * 2);
+		final Object newArray = Array.newInstance(srcArray.getClass().getComponentType(), length * 2);
 		System.arraycopy(srcArray, 0, newArray, 0, length);
 		return newArray;
 	}
 
 	public final static BufferedImage toBufferedImage(final Icon icon) {
-		final BufferedImage bi = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(),
-				BufferedImage.TYPE_INT_ARGB);
+		final BufferedImage bi = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
 		final Graphics g = bi.createGraphics();
 		icon.paintIcon(null, g, 0, 0);
 		g.dispose();
@@ -1064,8 +1078,7 @@ public class ResourceUtil {
 	}
 
 	public static void delProjOptimizeDir(final String projID) {
-		PlatformManager.getService().doExtBiz(PlatformService.BIZ_DEL_HAR_OPTIMIZE_DIR,
-				USER_PROJ + projID);
+		PlatformManager.getService().doExtBiz(PlatformService.BIZ_DEL_HAR_OPTIMIZE_DIR, USER_PROJ + projID);
 	}
 
 	public static int[] getSimuScreenSize() {
@@ -1083,8 +1096,7 @@ public class ResourceUtil {
 	}
 
 	public static boolean validEmail(final String email) {
-		final String email_pattern = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
-				+ "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+		final String email_pattern = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@" + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
 		final Pattern pattern = Pattern.compile(email_pattern);
 		final Matcher m = pattern.matcher(email);
 		return m.find();
@@ -1092,14 +1104,11 @@ public class ResourceUtil {
 
 	public static boolean checkEmailID(final String donateIDStr, final Component parent) {
 		if (donateIDStr.startsWith("0") == false && ResourceUtil.validEmail(donateIDStr) == false) {// 保留旧HomeCenterID支持
-			App.showMessageDialog(parent, ResourceUtil.get(9073), ResourceUtil.get(IConstant.ERROR),
-					JOptionPane.ERROR_MESSAGE);
+			App.showMessageDialog(parent, ResourceUtil.get(9073), ResourceUtil.get(IConstant.ERROR), JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 		if (IConstant.checkUUID(donateIDStr) == false) {
-			App.showMessageDialog(parent,
-					StringUtil.replace(ResourceUtil.get(9072), "{max}",
-							"" + MsgBuilder.LEN_MAX_UUID_VALUE),
+			App.showMessageDialog(parent, StringUtil.replace(ResourceUtil.get(9072), "{max}", "" + MsgBuilder.LEN_MAX_UUID_VALUE),
 					ResourceUtil.get(IConstant.ERROR), JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
@@ -1261,8 +1270,7 @@ public class ResourceUtil {
 	}
 
 	public static void buildAcceleratorKeyOnAction(final Action action, final int keyCode) {
-		action.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(keyCode,
-				Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
+		action.putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(keyCode, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()));
 	}
 
 	public static String toMD5(final byte tmp[]) {
@@ -1315,8 +1323,7 @@ public class ResourceUtil {
 			if (coreSS == null) {
 				return get(id);
 			}
-			return UILang.getUILang(
-					UserThreadResourceUtil.getMobileLocaleFrom((J2SESession) coreSS), id);
+			return UILang.getUILang(UserThreadResourceUtil.getMobileLocaleFrom((J2SESession) coreSS), id);
 		}
 		return null;
 	}
@@ -1338,10 +1345,8 @@ public class ResourceUtil {
 
 		out = new I18NStoreableHashMapWithModifyFlag(32);
 		try {
-			final Pattern pattern = Pattern
-					.compile(UILang.UI_LANG_FILE_NAME + "(\\w+)\\.properties$");
-			final URL url = UILang.class
-					.getResource(UILang.UI_LANG_FILE_NAME_PREFIX + "en_US.properties");
+			final Pattern pattern = Pattern.compile(UILang.UI_LANG_FILE_NAME + "(\\w+)\\.properties$");
+			final URL url = UILang.class.getResource(UILang.UI_LANG_FILE_NAME_PREFIX + "en_US.properties");
 			final URI uri = url.toURI();
 			if (uri != null && uri.getScheme().equals("jar")) {// 此条件支持android服务器
 				Object pathurl;
@@ -1373,8 +1378,7 @@ public class ResourceUtil {
 		return out;
 	}
 
-	private static void addItem(final int id, final I18NStoreableHashMapWithModifyFlag out,
-			final Pattern pattern, final String path) {
+	private static void addItem(final int id, final I18NStoreableHashMapWithModifyFlag out, final Pattern pattern, final String path) {
 		final Matcher matcher = pattern.matcher(path);
 		if (matcher.find()) {
 			final String local_ = matcher.group(1);
@@ -1537,8 +1541,7 @@ public class ResourceUtil {
 	// PlatformManager.getService().addSystemLib(file);
 	// }
 
-	public static BufferedImage resizeImage(final BufferedImage bufferedimage, final int w,
-			final int h) {
+	public static BufferedImage resizeImage(final BufferedImage bufferedimage, final int w, final int h) {
 		return PlatformManager.getService().resizeImage(bufferedimage, w, h);
 	}
 
@@ -1585,8 +1588,8 @@ public class ResourceUtil {
 	}
 
 	public static String getUserAgentForHAD() {
-		return PlatformManager.getService().getOsNameAndVersion() + " J2SE/" + App.getJREVer()
-				+ " HomeCenter/" + StarterManager.getHCVersion() + " JRuby/" + getJRubyVersion();// 如果没安装，则返回null；可能联机升级，所以不cache
+		return PlatformManager.getService().getOsNameAndVersion() + " J2SE/" + App.getJREVer() + " HomeCenter/"
+				+ StarterManager.getHCVersion() + " JRuby/" + getJRubyVersion();// 如果没安装，则返回null；可能联机升级，所以不cache
 	}
 
 	public static boolean isWindowsOS() {
@@ -1664,14 +1667,13 @@ public class ResourceUtil {
 		} catch (final Exception e) {
 		}
 		if (thirdlibs.isEmpty()) {
-			App.showMessageDialog(null, "Can NOT connect HomeCenter, please try after few seconds!",
-					"Error Connect", JOptionPane.ERROR_MESSAGE);
+			App.showMessageDialog(null, "Can NOT connect HomeCenter, please try after few seconds!", "Error Connect",
+					JOptionPane.ERROR_MESSAGE);
 		}
 		return thirdlibs;
 	}
 
-	public static void loadFromURL(final Properties thirdlibs, String url, final String userAgent)
-			throws Exception {
+	public static void loadFromURL(final Properties thirdlibs, String url, final String userAgent) throws Exception {
 		url = HttpUtil.replaceSimuURL(url, PropertiesManager.isSimu());
 		final String libs = HttpUtil.getAjax(url, userAgent);
 		if (libs == null) {
@@ -1688,8 +1690,7 @@ public class ResourceUtil {
 		BufferedImage img;
 		Graphics2D graphics2d;
 		(graphics2d = (img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)).createGraphics())
-				.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-						RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+				.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		graphics2d.rotate(Math.toRadians(degree), w / 2, h / 2);
 		graphics2d.drawImage(bufferedimage, 0, 0, null);
 		graphics2d.dispose();
@@ -1707,8 +1708,8 @@ public class ResourceUtil {
 		final int h = bufferedimage.getHeight();
 		BufferedImage img;
 		Graphics2D graphics2d;
-		(graphics2d = (img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)).createGraphics())
-				.drawImage(bufferedimage, 0, 0, w, h, w, 0, 0, h, null);
+		(graphics2d = (img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)).createGraphics()).drawImage(bufferedimage, 0, 0, w, h, w,
+				0, 0, h, null);
 		graphics2d.dispose();
 		return img;
 	}
@@ -1727,8 +1728,7 @@ public class ResourceUtil {
 			return (BufferedImage) img;
 		}
 
-		final BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null),
-				BufferedImage.TYPE_INT_ARGB);
+		final BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
 
 		final Graphics2D g = bimage.createGraphics();
 		g.drawImage(img, 0, 0, null);
@@ -1790,10 +1790,9 @@ public class ResourceUtil {
 	}
 
 	public static String createRandomVariable(final int length, final int startR) {
-		final char[] chars = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-				'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e',
-				'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-				'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_' };
+		final char[] chars = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
+				'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u',
+				'v', 'w', 'x', 'y', 'z', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '_' };
 		final int charsLen = chars.length;
 
 		final char[] out = new char[length];
@@ -1895,8 +1894,7 @@ public class ResourceUtil {
 	}
 
 	private static String convertMD5BytesToString(final byte[] result) {
-		final char hexDigits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c',
-				'd', 'e', 'f' };
+		final char hexDigits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 		final int j = result.length;
 		final char str[] = new char[j * 2];
 		int k = 0;
@@ -1912,8 +1910,7 @@ public class ResourceUtil {
 	public static final String EXT_DEX_JAR = ".dex.jar";
 	public static final String EXT_JAR = ".jar";
 
-	public static final boolean deleteDirectoryNow(final File directory,
-			final boolean isRemoveDirAlso) {
+	public static final boolean deleteDirectoryNow(final File directory, final boolean isRemoveDirAlso) {
 		// CCoreUtil.checkAccess();//projectCtx.removeDB is using
 
 		if (directory.exists()) {
@@ -1946,17 +1943,15 @@ public class ResourceUtil {
 
 	public static int getIntervalSecondsForNextStartup() {
 		try {
-			return Integer.parseInt(
-					PropertiesManager.getValue(PropertiesManager.p_intervalSecondsNextStartup,
-							DefaultManager.INTERVAL_SECONDS_FOR_NEXT_STARTUP));
+			return Integer.parseInt(PropertiesManager.getValue(PropertiesManager.p_intervalSecondsNextStartup,
+					DefaultManager.INTERVAL_SECONDS_FOR_NEXT_STARTUP));
 		} catch (final Exception e) {
 			return 5;
 		}
 	}
 
 	public static int getSecondsForPreloadJRuby() {
-		final String preloadAfterStartup = PropertiesManager.getValue(
-				PropertiesManager.p_preloadAfterStartup,
+		final String preloadAfterStartup = PropertiesManager.getValue(PropertiesManager.p_preloadAfterStartup,
 				DefaultManager.PRELOAD_AFTER_STARTUP_FOR_INPUT);
 		int seconds = 0;
 		try {
@@ -1974,8 +1969,7 @@ public class ResourceUtil {
 		return writeToFile(bfile, 0, bfile.length, fileName);
 	}
 
-	public static boolean writeToFile(final byte[] bfile, final int off, final int len,
-			final File fileName) {
+	public static boolean writeToFile(final byte[] bfile, final int off, final int len, final File fileName) {
 		BufferedOutputStream bos = null;
 		FileOutputStream fos = null;
 		try {
@@ -2008,8 +2002,7 @@ public class ResourceUtil {
 	 * @return
 	 */
 	public static final boolean canCtrlWiFi(final J2SESession coreSS) {
-		return UserThreadResourceUtil.getMobileAgent(coreSS).ctrlWiFi()
-				|| WiFiDeviceManager.getInstance(coreSS).canCreateWiFiAccount();
+		return UserThreadResourceUtil.getMobileAgent(coreSS).ctrlWiFi() || WiFiDeviceManager.getInstance(coreSS).canCreateWiFiAccount();
 	}
 
 	public static String getLibNameForAllPlatforms(final String libName) {
@@ -2052,8 +2045,7 @@ public class ResourceUtil {
 	}
 
 	public static URL getBCLURL() {
-		return getResource(
-				"hc/res/" + PlatformManager.getService().doExtBiz(PlatformService.BIZ_BCL, null));
+		return getResource("hc/res/" + PlatformManager.getService().doExtBiz(PlatformService.BIZ_BCL, null));
 	}
 
 	private final static long startMS = System.currentTimeMillis();
@@ -2136,8 +2128,7 @@ public class ResourceUtil {
 	 * @return true, className包含系统保留的包名
 	 */
 	public static boolean checkSysPackageName(final String className) {
-		return className.startsWith("hc.", 0) || className.startsWith("java.", 0)
-				|| className.startsWith("javax.", 0);
+		return className.startsWith("hc.", 0) || className.startsWith("java.", 0) || className.startsWith("javax.", 0);
 	}
 
 	/**
@@ -2203,8 +2194,7 @@ public class ResourceUtil {
 	 * @param loader
 	 *            使用指定的类加载器来检查类
 	 */
-	public static final void checkHCStackTraceInclude(final String callerClass,
-			final ClassLoader loader) {
+	public static final void checkHCStackTraceInclude(final String callerClass, final ClassLoader loader) {
 		checkHCStackTraceInclude(callerClass, loader, null);
 	}
 
@@ -2216,8 +2206,7 @@ public class ResourceUtil {
 	 *            使用指定的类加载器来检查类
 	 * @param moreMsg
 	 */
-	public static final void checkHCStackTraceInclude(final String callerClass,
-			final ClassLoader loader, final String moreMsg) {
+	public static final void checkHCStackTraceInclude(final String callerClass, final ClassLoader loader, final String moreMsg) {
 		checkHCStackTraceInclude(callerClass, loader, moreMsg, null);
 	}
 
@@ -2229,11 +2218,10 @@ public class ResourceUtil {
 	 *            使用指定的类加载器来检查类
 	 * @param moreMsg
 	 */
-	public static final void checkHCStackTraceInclude(final String callerClass,
-			final ClassLoader loader, final String moreMsg, final String hclimitSecurityClassName) {
+	public static final void checkHCStackTraceInclude(final String callerClass, final ClassLoader loader, final String moreMsg,
+			final String hclimitSecurityClassName) {
 		final StackTraceElement[] el = Thread.currentThread().getStackTrace();// index越小，距本方法越近
-		final ClassLoader checkLoader = (loader == null ? ResourceUtil.class.getClassLoader()
-				: loader);
+		final ClassLoader checkLoader = (loader == null ? ResourceUtil.class.getClassLoader() : loader);
 		boolean isFromCallerClass = false;
 		int countInvokehclimitSecurityClass = 0;
 
@@ -2254,8 +2242,7 @@ public class ResourceUtil {
 			}
 			if (className.equals("org.jruby.embed.internal.EmbedEvalUnitImpl")) {// 动态解释执行
 				if (PropertiesManager.isSimu()) {
-					LogManager.errToLog("Illegal class [" + className
-							+ "] is NOT allowed in stack trace in ClassLoader["
+					LogManager.errToLog("Illegal class [" + className + "] is NOT allowed in stack trace in ClassLoader["
 							+ checkLoader.toString() + "].");
 				}
 				if (moreMsg != null) {
@@ -2267,8 +2254,7 @@ public class ResourceUtil {
 				Class.forName(className, false, checkLoader);
 			} catch (final Exception e) {
 				if (PropertiesManager.isSimu()) {
-					LogManager.errToLog("Illegal class [" + className
-							+ "] is NOT allowed in stack trace in ClassLoader["
+					LogManager.errToLog("Illegal class [" + className + "] is NOT allowed in stack trace in ClassLoader["
 							+ checkLoader.toString() + "].");
 				}
 				// panel
@@ -2288,8 +2274,7 @@ public class ResourceUtil {
 		if (callerClass != null && isFromCallerClass == false) {
 			if (PropertiesManager.isSimu()) {
 				LogManager.errToLog(
-						"Class [" + callerClass + "] should be in stack trace in ClassLoader["
-								+ checkLoader.toString() + "], but NOT.");
+						"Class [" + callerClass + "] should be in stack trace in ClassLoader[" + checkLoader.toString() + "], but NOT.");
 			}
 			if (moreMsg != null) {
 				LogManager.errToLog(moreMsg);
@@ -2389,8 +2374,7 @@ public class ResourceUtil {
 	 *            the time, in milliseconds, before the call aborts
 	 * @return
 	 */
-	public static NetworkInterface searchReachableNetworkInterface(final String host,
-			final int timeout) {
+	public static NetworkInterface searchReachableNetworkInterface(final String host, final int timeout) {
 		try {
 			final InetAddress ia = InetAddress.getByName(host);
 			final Enumeration<NetworkInterface> e = NetworkInterface.getNetworkInterfaces();
@@ -2406,8 +2390,7 @@ public class ResourceUtil {
 	}
 
 	public static boolean canCreateWiFiAccountOnPlatform(final WiFiDeviceManager platManager) {
-		return platManager != null && platManager.hasWiFiModule()
-				&& platManager.canCreateWiFiAccount();
+		return platManager != null && platManager.hasWiFiModule() && platManager.canCreateWiFiAccount();
 	}
 
 	/**
@@ -2458,22 +2441,17 @@ public class ResourceUtil {
 					final String keyStr = (String) key;
 					if (keyStr.endsWith(".focusInputMap")) {
 						final InputMap im = (InputMap) defaultsUI.get(keyStr);// "TextField.focusInputMap"
-						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.META_DOWN_MASK),
-								DefaultEditorKit.copyAction);
-						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.META_DOWN_MASK),
-								DefaultEditorKit.pasteAction);
-						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.META_DOWN_MASK),
-								DefaultEditorKit.cutAction);
-						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.META_DOWN_MASK),
-								DefaultEditorKit.selectAllAction);
+						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.META_DOWN_MASK), DefaultEditorKit.copyAction);
+						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_V, KeyEvent.META_DOWN_MASK), DefaultEditorKit.pasteAction);
+						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.META_DOWN_MASK), DefaultEditorKit.cutAction);
+						im.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.META_DOWN_MASK), DefaultEditorKit.selectAllAction);
 					}
 				}
 			}
 		}
 	}
 
-	public static BufferedImage standardMenuIconForAllPlatform(BufferedImage bi, final int toSize,
-			final boolean roundWithSize) {
+	public static BufferedImage standardMenuIconForAllPlatform(BufferedImage bi, final int toSize, final boolean roundWithSize) {
 		final int cornDegree = 30;
 
 		if (bi.getWidth() != toSize || bi.getHeight() != toSize) {
@@ -2490,8 +2468,7 @@ public class ResourceUtil {
 
 	public static String getElementIDFromTarget(final String target) {
 		try {
-			return target
-					.substring(target.indexOf(HCURL.HTTP_SPLITTER) + HCURL.HTTP_SPLITTER.length());
+			return target.substring(target.indexOf(HCURL.HTTP_SPLITTER) + HCURL.HTTP_SPLITTER.length());
 		} catch (final Throwable e) {
 			throw new MissingFormatArgumentException("invalid target : " + target);
 		}
@@ -2517,8 +2494,8 @@ public class ResourceUtil {
 	}
 
 	public static boolean needAccepLicense(final String licenseURL) {
-		return PropertiesManager.isTrue(PropertiesManager.p_isAcceptAllHARLicenses, false) == false
-				&& licenseURL != null && licenseURL.length() > 0;
+		return PropertiesManager.isTrue(PropertiesManager.p_isAcceptAllHARLicenses, false) == false && licenseURL != null
+				&& licenseURL.length() > 0;
 	}
 
 	public static String getJRubyVersion() {
@@ -2560,8 +2537,8 @@ public class ResourceUtil {
 	}
 
 	public static boolean isSystemMletOrDialog(final Mlet mlet) {
-		return (mlet instanceof SystemHTMLMlet) || (mlet instanceof DialogHTMLMlet)
-				&& ((DialogHTMLMlet) mlet).dialog instanceof SystemDialog;
+		return (mlet instanceof SystemHTMLMlet)
+				|| (mlet instanceof DialogHTMLMlet) && ((DialogHTMLMlet) mlet).dialog instanceof SystemDialog;
 	}
 
 	public static final String SHUTDOWN_COMPACT = "SHUTDOWN COMPACT";
@@ -2608,17 +2585,14 @@ public class ResourceUtil {
 		}
 	}
 
-	public static File createTempFileForHAR(final ProjectContext ctx, File parent,
-			final String fileExtension) {
+	public static File createTempFileForHAR(final ProjectContext ctx, File parent, final String fileExtension) {
 		if (parent == null) {
 			parent = StoreDirManager.getTmpSubForUserManagedByHcSys(ctx);
 		}
 		try {
-			return File.createTempFile("tmp", fileExtension == null ? null : ("." + fileExtension),
-					parent);
+			return File.createTempFile("tmp", fileExtension == null ? null : ("." + fileExtension), parent);
 		} catch (final Exception e) {
-			return createRandomFileWithExt(parent,
-					fileExtension == null ? null : ("." + fileExtension));
+			return createRandomFileWithExt(parent, fileExtension == null ? null : ("." + fileExtension));
 		}
 	}
 }

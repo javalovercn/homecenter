@@ -48,8 +48,7 @@ import javax.swing.border.TitledBorder;
 public class VerifyEmailManager {
 	public static JButton buildVerifyEmailButton() {
 		final String verifiedEmail = getVerifyEmailButtonText();
-		final JButton jbVerifyEmail = new JButton(verifiedEmail,
-				new ImageIcon(ImageSrc.ACCOUNT_LOCK_ICON));
+		final JButton jbVerifyEmail = new JButton(verifiedEmail, new ImageIcon(ImageSrc.ACCOUNT_LOCK_ICON));
 		return jbVerifyEmail;
 	}
 
@@ -103,8 +102,8 @@ public class VerifyEmailManager {
 				sendEmailFrame = null;
 			}
 		};
-		sendEmailFrame.getRootPane().registerKeyboardAction(exitActionListener,
-				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+		sendEmailFrame.getRootPane().registerKeyboardAction(exitActionListener, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+				JComponent.WHEN_IN_FOCUSED_WINDOW);
 		sendEmailFrame.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		sendEmailFrame.addWindowListener(new WindowAdapter() {
 			@Override
@@ -162,8 +161,7 @@ public class VerifyEmailManager {
 				}
 
 				final String token = PropertiesManager.getValue(PropertiesManager.p_Token);
-				if (RootServerConnector.submitEmail(emailID, token,
-						tokenForVerifyEmailHideRealToken) == null) {
+				if (RootServerConnector.submitEmail(emailID, token, tokenForVerifyEmailHideRealToken) == null) {
 					App.showMessageDialog(sendEmailFrame, ResourceUtil.get(9205));
 					return;
 				} else {
@@ -177,14 +175,12 @@ public class VerifyEmailManager {
 						@Override
 						public void run() {
 							final String waiting = (String) ResourceUtil.get(9203);
-							final String[] working = { waiting, "." + waiting + ".",
-									".." + waiting + "..", "..." + waiting + "...",
+							final String[] working = { waiting, "." + waiting + ".", ".." + waiting + "..", "..." + waiting + "...",
 									".." + waiting + "..", "." + waiting + "." };
 							final int length = working.length;
 							int idx = 0;
 							HCJFrame sendEmailFrameSnap;
-							while (verifiedStatus[0] == 1
-									&& (sendEmailFrameSnap = sendEmailFrame) != null
+							while (verifiedStatus[0] == 1 && (sendEmailFrameSnap = sendEmailFrame) != null
 									&& sendEmailFrameSnap.isVisible()) {
 								synchronized (verifiedStatus) {
 									if (verifiedStatus[0] == 1) {
@@ -203,8 +199,7 @@ public class VerifyEmailManager {
 						@Override
 						public void run() {
 							HCJFrame sendEmailFrameSnap;
-							while ((sendEmailFrameSnap = sendEmailFrame) != null
-									&& sendEmailFrameSnap.isVisible()) {
+							while ((sendEmailFrameSnap = sendEmailFrame) != null && sendEmailFrameSnap.isVisible()) {
 								final String result = waitForCheckEmail(emailID, token);
 								if (result == null || result.equals(V_NOT_REQUEST)) {
 									try {
@@ -224,9 +219,7 @@ public class VerifyEmailManager {
 										}
 									});
 
-									TokenManager.changeTokenFromUI(
-											PropertiesManager.isTrue(
-													PropertiesManager.p_isDonateOrVIPNowOrEver),
+									TokenManager.changeTokenFromUI(PropertiesManager.isTrue(PropertiesManager.p_isDonateOrVIPNowOrEver),
 											emailID, token, true);
 
 									break;
@@ -267,9 +260,8 @@ public class VerifyEmailManager {
 		allPanel.add(mainPanel, BorderLayout.CENTER);
 
 		final JPanel bottomPanel = new JPanel(new GridBagLayout());
-		bottomPanel.add(jbClose,
-				new GridBagConstraints(0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_END,
-						GridBagConstraints.NONE, new Insets(5, 5, 5, 5), 0, 0));
+		bottomPanel.add(jbClose, new GridBagConstraints(0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+				new Insets(5, 5, 5, 5), 0, 0));
 		allPanel.add(bottomPanel, BorderLayout.SOUTH);
 
 		sendEmailFrame.add(allPanel);
@@ -313,8 +305,8 @@ public class VerifyEmailManager {
 				showEmail.dispose();
 			}
 		};
-		showEmail.getRootPane().registerKeyboardAction(exitActionListener,
-				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+		showEmail.getRootPane().registerKeyboardAction(exitActionListener, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+				JComponent.WHEN_IN_FOCUSED_WINDOW);
 		showEmail.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
 		showEmail.addWindowListener(new WindowAdapter() {
 			@Override
@@ -355,8 +347,8 @@ public class VerifyEmailManager {
 			public void run() {
 				final String emailID = jtfuuid.getText().trim();
 				if (ResourceUtil.validEmail(emailID) == false) {
-					App.showMessageDialog(null, (String) ResourceUtil.get(9073),
-							(String) ResourceUtil.get(IConstant.ERROR), JOptionPane.ERROR_MESSAGE);
+					App.showMessageDialog(null, (String) ResourceUtil.get(9073), (String) ResourceUtil.get(IConstant.ERROR),
+							JOptionPane.ERROR_MESSAGE);
 					return;
 				}
 
@@ -376,10 +368,8 @@ public class VerifyEmailManager {
 		jPanel3.add(jbExit);
 		jPanel3.add(jbOK);
 		final JPanel lineEndPanel = new JPanel(new GridBagLayout());
-		lineEndPanel.add(jPanel3, new GridBagConstraints(0, 0, 1, 1, 1.0, 0.0,
-				GridBagConstraints.LINE_END, GridBagConstraints.NONE,
-				new Insets(ClientDesc.hgap, ClientDesc.hgap, ClientDesc.hgap, ClientDesc.hgap), 0,
-				0));
+		lineEndPanel.add(jPanel3, new GridBagConstraints(0, 0, 1, 1, 1.0, 0.0, GridBagConstraints.LINE_END, GridBagConstraints.NONE,
+				new Insets(ClientDesc.hgap, ClientDesc.hgap, ClientDesc.hgap, ClientDesc.hgap), 0, 0));
 		allPanel.add(lineEndPanel, BorderLayout.SOUTH);
 
 		showEmail.add(allPanel);
@@ -419,8 +409,7 @@ public class VerifyEmailManager {
 																			// this
 																			// server
 																			// again!";
-				final JLabel label = new JLabel(
-						StringUtil.replace(emailOnOther, "{email}", IConstant.getUUID()));
+				final JLabel label = new JLabel(StringUtil.replace(emailOnOther, "{email}", IConstant.getUUID()));
 				final StringBuffer sb = new StringBuffer();
 				sb.append("<html>");
 				sb.append("<BR/>");
@@ -443,9 +432,8 @@ public class VerifyEmailManager {
 						startVerifyProcess();
 					}
 				}, threadPoolToken);
-				App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), true,
-						jbVerifyEmail, null, verifyListener, null, (JFrame) null, false, true, null,
-						false, true);
+				App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), true, jbVerifyEmail, null, verifyListener, null,
+						(JFrame) null, false, true, null, false, true);
 			}
 		});
 	}
@@ -468,18 +456,15 @@ public class VerifyEmailManager {
 
 	private static void showConfirmEmailDialog(final String emailID) {
 		final JPanel panel = new JPanel(new BorderLayout());
-		final JLabel label = new JLabel("" + "<html>"
-				+ StringUtil.replace((String) ResourceUtil.get(9200), "{email}", emailID)
-				+ "</html>");
+		final JLabel label = new JLabel(
+				"" + "<html>" + StringUtil.replace((String) ResourceUtil.get(9200), "{email}", emailID) + "</html>");
 		panel.add(label, BorderLayout.CENTER);
 
 		final ActionListener okListener = new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
 				final String token = PropertiesManager.getValue(PropertiesManager.p_Token);
-				TokenManager.changeTokenFromUI(
-						PropertiesManager.isTrue(PropertiesManager.p_isDonateOrVIPNowOrEver),
-						emailID, token, false);
+				TokenManager.changeTokenFromUI(PropertiesManager.isTrue(PropertiesManager.p_isDonateOrVIPNowOrEver), emailID, token, false);
 				VerifyEmailManager.startVerifyMailSendProcess(emailID);// 重启服务时，会检查并通知重新验证
 			}
 		}, App.getThreadPoolToken());
@@ -490,8 +475,8 @@ public class VerifyEmailManager {
 			}
 		}, App.getThreadPoolToken());
 
-		App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), true, null, null,
-				okListener, cancelListener, null, false, true, null, false, true);
+		App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getInfoI18N(), true, null, null, okListener, cancelListener, null, false, true,
+				null, false, true);
 	}
 
 	private static void setVerifyOKStatus(final JButton sendBtn, final JLabel verifyStatus) {

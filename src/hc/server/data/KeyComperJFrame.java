@@ -28,8 +28,7 @@ public class KeyComperJFrame extends SingleJFrame {
 				panel.notifyCancle();
 				dispose();
 			}
-		}, threadPoolToken), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-				JComponent.WHEN_IN_FOCUSED_WINDOW);
+		}, threadPoolToken), KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
 
 		panel.setInFrame(this);
 		setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);

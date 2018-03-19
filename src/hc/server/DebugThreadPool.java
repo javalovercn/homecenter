@@ -33,8 +33,7 @@ public class DebugThreadPool extends AppThreadPool {
 									"-----------------un-recycle thread (reported by DebugThreadPool.class). to disable this, remove program argument : debugThreadPoolOn-------------------");
 							while (it.hasNext()) {
 								final RecycleThread rt = it.next();
-								System.out.println(rt.toString() + " out time MS:"
-										+ (System.currentTimeMillis() - outList.get(rt)));
+								System.out.println(rt.toString() + " out time MS:" + (System.currentTimeMillis() - outList.get(rt)));
 								final Thread thread = outStack.get(rt);
 								final StackTraceElement[] ste = thread.getStackTrace();
 								final int steSize = ste.length;
@@ -42,8 +41,7 @@ public class DebugThreadPool extends AppThreadPool {
 									System.out.println("  \tat " + ste[i]);
 								}
 							}
-							System.out.println(
-									"------------------------------------------------------------");
+							System.out.println("------------------------------------------------------------");
 						}
 					}
 				}

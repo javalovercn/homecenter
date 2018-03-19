@@ -36,17 +36,17 @@ import org.jrubyparser.StaticScope;
  * A pre-execution construction (BEGIN { ... }).
  */
 public class PreExe19Node extends PreExeNode {
-    public PreExe19Node(SourcePosition position, StaticScope scope, Node body) {
-        super(position, scope, body);
-    }
+	public PreExe19Node(SourcePosition position, StaticScope scope, Node body) {
+		super(position, scope, body);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.PREEXENODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.PREEXENODE;
+	}
 
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitPreExeNode(this);
-    }
+	@Override
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitPreExeNode(this);
+	}
 }

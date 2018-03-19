@@ -23,17 +23,15 @@ import java.util.TimeZone;
 
 /**
  * <p>
- * This implementation of the JobCalendar may be used (you don't have to) as a
- * base class for more sophisticated one's. It merely implements the base
- * functionality required by each JobCalendar.
+ * This implementation of the JobCalendar may be used (you don't have to) as a base class for more
+ * sophisticated one's. It merely implements the base functionality required by each JobCalendar.
  * </p>
  *
  * <p>
- * Regarded as base functionality is the treatment of base calendars. Base
- * calendar allow you to chain (stack) as much calendars as you may need. For
- * example to exclude weekends you may use WeeklyJobCalendar. In order to
- * exclude holidays as well you may define a WeeklyJobCalendar instance to be
- * the base calendar for HolidayJobCalendar instance.
+ * Regarded as base functionality is the treatment of base calendars. Base calendar allow you to
+ * chain (stack) as much calendars as you may need. For example to exclude weekends you may use
+ * WeeklyJobCalendar. In order to exclude holidays as well you may define a WeeklyJobCalendar
+ * instance to be the base calendar for HolidayJobCalendar instance.
  * </p>
  *
  * @see hc.server.util.calendar.JobCalendar
@@ -61,8 +59,8 @@ public class BaseJobCalendar implements JobCalendar, Serializable, Cloneable {
 
 	/**
 	 * @param timeZone
-	 *            The time zone to use for this JobCalendar, <code>null</code>
-	 *            if <code>{@link TimeZone#getDefault()}</code> should be used
+	 *            The time zone to use for this JobCalendar, <code>null</code> if
+	 *            <code>{@link TimeZone#getDefault()}</code> should be used
 	 */
 	public BaseJobCalendar(final TimeZone timeZone) {
 		setTimeZone(timeZone);
@@ -70,8 +68,8 @@ public class BaseJobCalendar implements JobCalendar, Serializable, Cloneable {
 
 	/**
 	 * @param timeZone
-	 *            The time zone to use for this JobCalendar, <code>null</code>
-	 *            if <code>{@link TimeZone#getDefault()}</code> should be used
+	 *            The time zone to use for this JobCalendar, <code>null</code> if
+	 *            <code>{@link TimeZone#getDefault()}</code> should be used
 	 */
 	public BaseJobCalendar(final JobCalendar baseCalendar, final TimeZone timeZone) {
 		setBaseJobCalendar(baseCalendar);
@@ -115,8 +113,8 @@ public class BaseJobCalendar implements JobCalendar, Serializable, Cloneable {
 
 	/**
 	 * <p>
-	 * Return the description given to the <code>JobCalendar</code> instance by
-	 * its creator (if any).
+	 * Return the description given to the <code>JobCalendar</code> instance by its creator (if
+	 * any).
 	 * </p>
 	 *
 	 * @return null if no description was set.
@@ -128,9 +126,9 @@ public class BaseJobCalendar implements JobCalendar, Serializable, Cloneable {
 
 	/**
 	 * <p>
-	 * Set a description for the <code>JobCalendar</code> instance - may be
-	 * useful for remembering/displaying the purpose of the calendar, though the
-	 * description has no meaning to Quartz.
+	 * Set a description for the <code>JobCalendar</code> instance - may be useful for
+	 * remembering/displaying the purpose of the calendar, though the description has no meaning to
+	 * Quartz.
 	 * </p>
 	 */
 	@Override
@@ -139,23 +137,21 @@ public class BaseJobCalendar implements JobCalendar, Serializable, Cloneable {
 	}
 
 	/**
-	 * Returns the time zone for which this <code>JobCalendar</code> will be
-	 * resolved.
+	 * Returns the time zone for which this <code>JobCalendar</code> will be resolved.
 	 *
-	 * @return This JobCalendar's timezone, <code>null</code> if JobCalendar
-	 *         should use the <code>{@link TimeZone#getDefault()}</code>
+	 * @return This JobCalendar's timezone, <code>null</code> if JobCalendar should use the
+	 *         <code>{@link TimeZone#getDefault()}</code>
 	 */
 	public TimeZone getTimeZone() {
 		return timeZone;
 	}
 
 	/**
-	 * Sets the time zone for which this <code>JobCalendar</code> will be
-	 * resolved.
+	 * Sets the time zone for which this <code>JobCalendar</code> will be resolved.
 	 *
 	 * @param timeZone
-	 *            The time zone to use for this JobCalendar, <code>null</code>
-	 *            if <code>{@link TimeZone#getDefault()}</code> should be used
+	 *            The time zone to use for this JobCalendar, <code>null</code> if
+	 *            <code>{@link TimeZone#getDefault()}</code> should be used
 	 */
 	public void setTimeZone(final TimeZone timeZone) {
 		this.timeZone = timeZone;
@@ -163,9 +159,9 @@ public class BaseJobCalendar implements JobCalendar, Serializable, Cloneable {
 
 	/**
 	 * <p>
-	 * Check if date/time represented by timeStamp is included. If included
-	 * return true. The implementation of BaseJobCalendar simply calls the base
-	 * calendars isTimeIncluded() method if base calendar is set.
+	 * Check if date/time represented by timeStamp is included. If included return true. The
+	 * implementation of BaseJobCalendar simply calls the base calendars isTimeIncluded() method if
+	 * base calendar is set.
 	 * </p>
 	 *
 	 * @see hc.server.util.calendar.JobCalendar#isTimeIncluded(long)
@@ -188,9 +184,9 @@ public class BaseJobCalendar implements JobCalendar, Serializable, Cloneable {
 
 	/**
 	 * <p>
-	 * Determine the next time (in milliseconds) that is 'included' by the
-	 * JobCalendar after the given time. Return the original value if timeStamp
-	 * is included. Return 0 if all days are excluded.
+	 * Determine the next time (in milliseconds) that is 'included' by the JobCalendar after the
+	 * given time. Return the original value if timeStamp is included. Return 0 if all days are
+	 * excluded.
 	 * </p>
 	 *
 	 * @see hc.server.util.calendar.JobCalendar#getNextIncludedTime(long)
@@ -210,9 +206,8 @@ public class BaseJobCalendar implements JobCalendar, Serializable, Cloneable {
 	}
 
 	/**
-	 * Build a <code>{@link java.util.Calendar}</code> for the given timeStamp.
-	 * The new JobCalendar will use the <code>BaseJobCalendar</code> time zone
-	 * if it is not <code>null</code>.
+	 * Build a <code>{@link java.util.Calendar}</code> for the given timeStamp. The new JobCalendar
+	 * will use the <code>BaseJobCalendar</code> time zone if it is not <code>null</code>.
 	 */
 	protected java.util.Calendar createJavaCalendar(final long timeStamp) {
 		final java.util.Calendar calendar = createJavaCalendar();
@@ -221,25 +216,21 @@ public class BaseJobCalendar implements JobCalendar, Serializable, Cloneable {
 	}
 
 	/**
-	 * Build a <code>{@link java.util.Calendar}</code> with the current time.
-	 * The new JobCalendar will use the <code>BaseJobCalendar</code> time zone
-	 * if it is not <code>null</code>.
+	 * Build a <code>{@link java.util.Calendar}</code> with the current time. The new JobCalendar
+	 * will use the <code>BaseJobCalendar</code> time zone if it is not <code>null</code>.
 	 */
 	protected java.util.Calendar createJavaCalendar() {
-		return (getTimeZone() == null) ? java.util.Calendar.getInstance()
-				: java.util.Calendar.getInstance(getTimeZone());
+		return (getTimeZone() == null) ? java.util.Calendar.getInstance() : java.util.Calendar.getInstance(getTimeZone());
 	}
 
 	/**
-	 * Returns the start of the given day as a
-	 * <code>{@link java.util.Calendar}</code>. This calculation will take the
-	 * <code>BaseJobCalendar</code> time zone into account if it is not
+	 * Returns the start of the given day as a <code>{@link java.util.Calendar}</code>. This
+	 * calculation will take the <code>BaseJobCalendar</code> time zone into account if it is not
 	 * <code>null</code>.
 	 *
 	 * @param timeInMillis
 	 *            A time containing the desired date for the start-of-day time
-	 * @return A <code>{@link java.util.Calendar}</code> set to the start of the
-	 *         given day.
+	 * @return A <code>{@link java.util.Calendar}</code> set to the start of the given day.
 	 */
 	protected java.util.Calendar getStartOfDayJavaCalendar(final long timeInMillis) {
 		final java.util.Calendar startOfDay = createJavaCalendar(timeInMillis);
@@ -251,14 +242,13 @@ public class BaseJobCalendar implements JobCalendar, Serializable, Cloneable {
 	}
 
 	/**
-	 * Returns the end of the given day <code>{@link java.util.Calendar}</code>.
-	 * This calculation will take the <code>BaseJobCalendar</code> time zone
-	 * into account if it is not <code>null</code>.
+	 * Returns the end of the given day <code>{@link java.util.Calendar}</code>. This calculation
+	 * will take the <code>BaseJobCalendar</code> time zone into account if it is not
+	 * <code>null</code>.
 	 *
 	 * @param timeInMillis
 	 *            a time containing the desired date for the end-of-day time.
-	 * @return A <code>{@link java.util.Calendar}</code> set to the end of the
-	 *         given day.
+	 * @return A <code>{@link java.util.Calendar}</code> set to the end of the given day.
 	 */
 	protected java.util.Calendar getEndOfDayJavaCalendar(final long timeInMillis) {
 		final java.util.Calendar endOfDay = createJavaCalendar(timeInMillis);

@@ -156,8 +156,7 @@ public class JPTrayIcon implements PlatformTrayIcon {
 	}
 
 	@Override
-	public void displayMessage(final String caption, final String text,
-			final MessageType messageType) {
+	public void displayMessage(final String caption, final String text, final MessageType messageType) {
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
@@ -203,8 +202,7 @@ public class JPTrayIcon implements PlatformTrayIcon {
 			trayIcon.removeTrayMouseListener(mouseListener);
 		}
 		if (popmenu != null) {
-			popmenu.applyComponentOrientation(
-					ComponentOrientation.getOrientation(UILang.getUsedLocale()));
+			popmenu.applyComponentOrientation(ComponentOrientation.getOrientation(UILang.getUsedLocale()));
 
 			this.menu = popmenu;
 			this.menu.addPopupMenuListener(popupListener);
@@ -259,8 +257,7 @@ public class JPTrayIcon implements PlatformTrayIcon {
 		@Override
 		public void mouseReleased(final MouseEvent evt) {
 			if (menu != null) {
-				if (evt.isPopupTrigger()
-						|| (evt.getButton() == MouseEvent.BUTTON3 && evt.getClickCount() == 1)) {
+				if (evt.isPopupTrigger() || (evt.getButton() == MouseEvent.BUTTON3 && evt.getClickCount() == 1)) {
 					showJPopupMenu(evt);
 				}
 			}

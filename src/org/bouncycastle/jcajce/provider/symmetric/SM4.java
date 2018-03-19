@@ -22,141 +22,101 @@ import org.bouncycastle.jcajce.provider.symmetric.util.BaseMac;
 import org.bouncycastle.jcajce.provider.symmetric.util.BlockCipherProvider;
 import org.bouncycastle.jcajce.provider.symmetric.util.IvAlgorithmParameters;
 
-public final class SM4
-{
-    private SM4()
-    {
-    }
-    
-    public static class ECB
-        extends BaseBlockCipher
-    {
-        public ECB()
-        {
-            super(new BlockCipherProvider()
-            {
-                public BlockCipher get()
-                {
-                    return new SM4Engine();
-                }
-            });
-        }
-    }
+public final class SM4 {
+	private SM4() {
+	}
 
-    public static class KeyGen
-        extends BaseKeyGenerator
-    {
-        public KeyGen()
-        {
-            super("SM4", 128, new CipherKeyGenerator());
-        }
-    }
+	public static class ECB extends BaseBlockCipher {
+		public ECB() {
+			super(new BlockCipherProvider() {
+				public BlockCipher get() {
+					return new SM4Engine();
+				}
+			});
+		}
+	}
 
-    public static class CMAC
-        extends BaseMac
-    {
-        public CMAC()
-        {
-            super(new CMac(new SM4Engine()));
-        }
-    }
+	public static class KeyGen extends BaseKeyGenerator {
+		public KeyGen() {
+			super("SM4", 128, new CipherKeyGenerator());
+		}
+	}
 
-    public static class GMAC
-        extends BaseMac
-    {
-        public GMAC()
-        {
-            super(new GMac(new GCMBlockCipher(new SM4Engine())));
-        }
-    }
+	public static class CMAC extends BaseMac {
+		public CMAC() {
+			super(new CMac(new SM4Engine()));
+		}
+	}
 
-    public static class Poly1305
-        extends BaseMac
-    {
-        public Poly1305()
-        {
-            super(new org.bouncycastle.crypto.macs.Poly1305(new SM4Engine()));
-        }
-    }
+	public static class GMAC extends BaseMac {
+		public GMAC() {
+			super(new GMac(new GCMBlockCipher(new SM4Engine())));
+		}
+	}
 
-    public static class Poly1305KeyGen
-        extends BaseKeyGenerator
-    {
-        public Poly1305KeyGen()
-        {
-            super("Poly1305-SM4", 256, new Poly1305KeyGenerator());
-        }
-    }
+	public static class Poly1305 extends BaseMac {
+		public Poly1305() {
+			super(new org.bouncycastle.crypto.macs.Poly1305(new SM4Engine()));
+		}
+	}
 
-    public static class AlgParamGen
-        extends BaseAlgorithmParameterGenerator
-    {
-        protected void engineInit(
-            AlgorithmParameterSpec genParamSpec,
-            SecureRandom random)
-            throws InvalidAlgorithmParameterException
-        {
-            throw new InvalidAlgorithmParameterException("No supported AlgorithmParameterSpec for SM4 parameter generation.");
-        }
+	public static class Poly1305KeyGen extends BaseKeyGenerator {
+		public Poly1305KeyGen() {
+			super("Poly1305-SM4", 256, new Poly1305KeyGenerator());
+		}
+	}
 
-        protected AlgorithmParameters engineGenerateParameters()
-        {
-            byte[] iv = new byte[16];
+	public static class AlgParamGen extends BaseAlgorithmParameterGenerator {
+		protected void engineInit(AlgorithmParameterSpec genParamSpec, SecureRandom random) throws InvalidAlgorithmParameterException {
+			throw new InvalidAlgorithmParameterException("No supported AlgorithmParameterSpec for SM4 parameter generation.");
+		}
 
-            if (random == null)
-            {
-                random = new SecureRandom();
-            }
+		protected AlgorithmParameters engineGenerateParameters() {
+			byte[] iv = new byte[16];
 
-            random.nextBytes(iv);
+			if (random == null) {
+				random = new SecureRandom();
+			}
 
-            AlgorithmParameters params;
+			random.nextBytes(iv);
 
-            try
-            {
-                params = createParametersInstance("SM4");
-                params.init(new IvParameterSpec(iv));
-            }
-            catch (Exception e)
-            {
-                throw new RuntimeException(e.getMessage());
-            }
+			AlgorithmParameters params;
 
-            return params;
-        }
-    }
+			try {
+				params = createParametersInstance("SM4");
+				params.init(new IvParameterSpec(iv));
+			} catch (Exception e) {
+				throw new RuntimeException(e.getMessage());
+			}
 
-    public static class AlgParams
-        extends IvAlgorithmParameters
-    {
-        protected String engineToString()
-        {
-            return "SM4 IV";
-        }
-    }
+			return params;
+		}
+	}
 
-    public static class Mappings
-        extends SymmetricAlgorithmProvider
-    {
-        private static final String PREFIX = SM4.class.getName();
+	public static class AlgParams extends IvAlgorithmParameters {
+		protected String engineToString() {
+			return "SM4 IV";
+		}
+	}
 
-        public Mappings()
-        {
-        }
+	public static class Mappings extends SymmetricAlgorithmProvider {
+		private static final String PREFIX = SM4.class.getName();
 
-        public void configure(ConfigurableProvider provider)
-        {
-            provider.addAlgorithm("AlgorithmParameters.SM4", PREFIX + "$AlgParams");
+		public Mappings() {
+		}
 
-            provider.addAlgorithm("AlgorithmParameterGenerator.SM4", PREFIX + "$AlgParamGen");
+		public void configure(ConfigurableProvider provider) {
+			provider.addAlgorithm("AlgorithmParameters.SM4", PREFIX + "$AlgParams");
 
-            provider.addAlgorithm("Cipher.SM4", PREFIX + "$ECB");
+			provider.addAlgorithm("AlgorithmParameterGenerator.SM4", PREFIX + "$AlgParamGen");
 
-            provider.addAlgorithm("KeyGenerator.SM4", PREFIX + "$KeyGen");
+			provider.addAlgorithm("Cipher.SM4", PREFIX + "$ECB");
 
-            addCMacAlgorithm(provider, "SM4", PREFIX + "$CMAC", PREFIX + "$KeyGen");
-            addGMacAlgorithm(provider, "SM4", PREFIX + "$GMAC", PREFIX + "$KeyGen");
-            addPoly1305Algorithm(provider, "SM4", PREFIX + "$Poly1305", PREFIX + "$Poly1305KeyGen");
-        }
-    }
+			provider.addAlgorithm("KeyGenerator.SM4", PREFIX + "$KeyGen");
+
+			addCMacAlgorithm(provider, "SM4", PREFIX + "$CMAC", PREFIX + "$KeyGen");
+			addGMacAlgorithm(provider, "SM4", PREFIX + "$GMAC", PREFIX + "$KeyGen");
+			addPoly1305Algorithm(provider, "SM4", PREFIX + "$Poly1305", PREFIX + "$Poly1305KeyGen");
+		}
+	}
 }

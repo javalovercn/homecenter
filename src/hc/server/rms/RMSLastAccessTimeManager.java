@@ -13,8 +13,7 @@ import java.util.Iterator;
 import java.util.Vector;
 
 public class RMSLastAccessTimeManager {
-	final static PropertiesMap map = new PropertiesMap(
-			PropertiesManager.p_PROJ_CACHE_LAST_ACCESS_TIME);
+	final static PropertiesMap map = new PropertiesMap(PropertiesManager.p_PROJ_CACHE_LAST_ACCESS_TIME);
 	final static ThreadGroup token = App.getThreadPoolToken();
 
 	public static void doNothing() {

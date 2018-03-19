@@ -19,8 +19,7 @@ public class UPnPDeviceHandler extends DefaultHandler {
 	private String element;
 	private String mode = _DESC;
 
-	public void startElement(String uri, String localName, String qName, Attributes attributes)
-			throws SAXException {
+	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 		element = localName;
 		if (mode == _DESC && element.equalsIgnoreCase("serviceList")) {
 			mode = _SERVERTYPE_MODE;
@@ -31,8 +30,7 @@ public class UPnPDeviceHandler extends DefaultHandler {
 		element = "";
 		if (localName.equalsIgnoreCase("service")) {
 			String serviceType = upnpDevice.SERVICETYPE;
-			if (serviceType != null && serviceType
-					.startsWith("urn:schemas-upnp-org:service:WANCommonInterfaceConfig", 0))
+			if (serviceType != null && serviceType.startsWith("urn:schemas-upnp-org:service:WANCommonInterfaceConfig", 0))
 				upnpDevice.isGateWay = true;
 			mode = _CTRL_MODE;
 		}

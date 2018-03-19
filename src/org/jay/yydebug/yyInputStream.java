@@ -2571,143 +2571,158 @@ import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-/** used to reroute standard input from a {@link java.awt.TextArea}.
-    Feeds all read methods from listening to typed keys.
-	Should not deadlock because one should generally not
-    read from within the event thread.
+
+/**
+ * used to reroute standard input from a {@link java.awt.TextArea}. Feeds all read methods from
+ * listening to typed keys. Should not deadlock because one should generally not read from within
+ * the event thread.
  */
 public class yyInputStream extends InputStream implements KeyListener {
 	/**
-	 * change log by HomeCenter
-	 * change awt to Swing, for example, Frame=>JFrame, Label => JLabel
+	 * change log by HomeCenter change awt to Swing, for example, Frame=>JFrame, Label => JLabel
 	 */
-	
-  /** line edit buffer.
-    */
-  protected final StringBuffer line = new StringBuffer();
-  /** completed lines, ready to be read.
-      Invariant: null after {@link #close}.
-    */
-  protected ArrayList queue = new ArrayList();
-  
-  @Override
-public synchronized int available () throws IOException {
-	if (queue == null) throw new IOException("closed");
-	return queue.isEmpty() ? 0 : ((byte[])queue.get(0)).length;
-  }
 
-  @Override
-public synchronized void close () throws IOException {
-	if (queue == null) throw new IOException("closed");
-	queue = null;
-  }
+	/**
+	 * line edit buffer.
+	 */
+	protected final StringBuffer line = new StringBuffer();
+	/**
+	 * completed lines, ready to be read. Invariant: null after {@link #close}.
+	 */
+	protected ArrayList queue = new ArrayList();
 
-  @Override
-public synchronized int read () throws IOException {
-	if (queue == null) throw new IOException("closed");
-	while (queue.isEmpty())
-	  try {
-		wait();
-	  } catch (final InterruptedException ie) {
-		throw new IOException("interrupted");
-	  }
-
-	final byte[] buf = (byte[])queue.get(0);
-	switch (buf.length) {
-	case 0:
-	  return -1;
-	case 1:
-	  queue.remove(0);
-	  break;
-	default:
-	  final byte[] nbuf = new byte[buf.length-1];
-	  System.arraycopy(buf, 1, nbuf, 0, nbuf.length);
-	  queue.set(0, nbuf); notifyAll(); // others could be waiting...
+	@Override
+	public synchronized int available() throws IOException {
+		if (queue == null)
+			throw new IOException("closed");
+		return queue.isEmpty() ? 0 : ((byte[]) queue.get(0)).length;
 	}
-	return buf[0] & 255;
-  }
 
-  @Override
-public synchronized int read(final byte[] b, final int off, final int len) throws IOException {
-	if (queue == null) throw new IOException("closed");
-	while (queue.isEmpty())
-	  try {
-		wait();
-	  } catch (final InterruptedException ie) {
-		throw new IOException("interrupted");
-	  }
-
-	final byte[] buf = (byte[])queue.get(0);
-	if (buf.length == 0) return -1;
-
-	if (buf.length <= len) {
-	  System.arraycopy(buf, 0, b, off, buf.length);
-	  queue.remove(0);
-	  return buf.length;
+	@Override
+	public synchronized void close() throws IOException {
+		if (queue == null)
+			throw new IOException("closed");
+		queue = null;
 	}
-	
-	System.arraycopy(buf, 0, b, off, len);
-	final byte[] nbuf = new byte[buf.length-len];
-	System.arraycopy(buf, len, nbuf, 0, nbuf.length);
-	queue.set(0, nbuf); notifyAll(); // others could be waiting...
-	return len;
-  }
-  /** returns 0: cannot skip on a terminal.
-    */
-  @Override
-public long skip (final long len) {
-    return 0;
-  }
-  /** this one ensures that you can only type at the end.
-      This is executed within the event thread.
-    */
-  @Override
-public void keyPressed (final KeyEvent ke) {
-    final JTextArea ta = (JTextArea)ke.getComponent();
-	final int pos = ta.getText().length();
-	ta.select(pos, pos);
-	ta.setCaretPosition(pos);
-  }
-  
-  // BUG: Rhapsody DR2 seems to not send some keys to keyTyped()
-  //	e.g. German keyboard + is dropped, but numeric pad + is processed
 
-  @Override
-public void keyTyped (final KeyEvent ke) {
-    final JTextArea ta = (JTextArea)ke.getComponent();
-    final char ch = ke.getKeyChar();
+	@Override
+	public synchronized int read() throws IOException {
+		if (queue == null)
+			throw new IOException("closed");
+		while (queue.isEmpty())
+			try {
+				wait();
+			} catch (final InterruptedException ie) {
+				throw new IOException("interrupted");
+			}
 
-    switch (ch) {
-      case '\n': case '\r':		// \n|\r -> \n, release line
-		line.append('\n');
-		break;
+		final byte[] buf = (byte[]) queue.get(0);
+		switch (buf.length) {
+		case 0:
+			return -1;
+		case 1:
+			queue.remove(0);
+			break;
+		default:
+			final byte[] nbuf = new byte[buf.length - 1];
+			System.arraycopy(buf, 1, nbuf, 0, nbuf.length);
+			queue.set(0, nbuf);
+			notifyAll(); // others could be waiting...
+		}
+		return buf[0] & 255;
+	}
 
-      case 'D'&31:			// ^D: release line
-		ta.append("^D"); ta.setCaretPosition(ta.getText().length());
-		break;
+	@Override
+	public synchronized int read(final byte[] b, final int off, final int len) throws IOException {
+		if (queue == null)
+			throw new IOException("closed");
+		while (queue.isEmpty())
+			try {
+				wait();
+			} catch (final InterruptedException ie) {
+				throw new IOException("interrupted");
+			}
 
-      case '\b':			// \b: erase char, if any
-		final int len = line.length();
-		if (len > 0) line.setLength(len-1);
-		return;
+		final byte[] buf = (byte[]) queue.get(0);
+		if (buf.length == 0)
+			return -1;
 
-      case 'U'&31:			// ^U: erase line, if any
+		if (buf.length <= len) {
+			System.arraycopy(buf, 0, b, off, buf.length);
+			queue.remove(0);
+			return buf.length;
+		}
+
+		System.arraycopy(buf, 0, b, off, len);
+		final byte[] nbuf = new byte[buf.length - len];
+		System.arraycopy(buf, len, nbuf, 0, nbuf.length);
+		queue.set(0, nbuf);
+		notifyAll(); // others could be waiting...
+		return len;
+	}
+
+	/**
+	 * returns 0: cannot skip on a terminal.
+	 */
+	@Override
+	public long skip(final long len) {
+		return 0;
+	}
+
+	/**
+	 * this one ensures that you can only type at the end. This is executed within the event thread.
+	 */
+	@Override
+	public void keyPressed(final KeyEvent ke) {
+		final JTextArea ta = (JTextArea) ke.getComponent();
+		final int pos = ta.getText().length();
+		ta.select(pos, pos);
+		ta.setCaretPosition(pos);
+	}
+
+	// BUG: Rhapsody DR2 seems to not send some keys to keyTyped()
+	//	e.g. German keyboard + is dropped, but numeric pad + is processed
+
+	@Override
+	public void keyTyped(final KeyEvent ke) {
+		final JTextArea ta = (JTextArea) ke.getComponent();
+		final char ch = ke.getKeyChar();
+
+		switch (ch) {
+		case '\n':
+		case '\r': // \n|\r -> \n, release line
+			line.append('\n');
+			break;
+
+		case 'D' & 31: // ^D: release line
+			ta.append("^D");
+			ta.setCaretPosition(ta.getText().length());
+			break;
+
+		case '\b': // \b: erase char, if any
+			final int len = line.length();
+			if (len > 0)
+				line.setLength(len - 1);
+			return;
+
+		case 'U' & 31: // ^U: erase line, if any
+			line.setLength(0);
+			ta.append("^U\n");
+			ta.setCaretPosition(ta.getText().length());
+			return;
+
+		default:
+			line.append(ch);
+			return;
+		}
+		synchronized (this) {
+			queue.add(line.toString().getBytes());
+			notifyAll(); // there could be several reading threads 
+		}
 		line.setLength(0);
-		ta.append("^U\n"); ta.setCaretPosition(ta.getText().length());
-		return;
+	}
 
-      default:
-		line.append(ch);
-		return;
-    }
-    synchronized (this) {
-      queue.add(line.toString().getBytes());
-      notifyAll(); // there could be several reading threads 
-    }
-    line.setLength(0);
-  }
-
-  @Override
-public void keyReleased (final KeyEvent ke) {
-  }
+	@Override
+	public void keyReleased(final KeyEvent ke) {
+	}
 }

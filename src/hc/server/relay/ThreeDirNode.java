@@ -121,8 +121,7 @@ public class ThreeDirNode {
 	 *            = idx + bs.length
 	 * @return
 	 */
-	public final boolean delNode(final SessionConnector sc, final byte[] bs, int idx,
-			final int endIdx) {
+	public final boolean delNode(final SessionConnector sc, final byte[] bs, int idx, final int endIdx) {
 		final int cpmResult = bs[idx] - singleByte;
 		if (cpmResult == 0) {
 			if ((++idx) == endIdx) {
@@ -256,8 +255,7 @@ public class ThreeDirNode {
 	 *            = idx + bs.length
 	 * @return
 	 */
-	public final void addNodeData(final byte[] bs, int idx, final int endIdx,
-			final SessionConnector data) {
+	public final void addNodeData(final byte[] bs, int idx, final int endIdx, final SessionConnector data) {
 		ThreeDirNode current = this;
 		while (true) {
 			final byte currByte = bs[idx];

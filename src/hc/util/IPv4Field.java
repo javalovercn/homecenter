@@ -70,8 +70,7 @@ public class IPv4Field extends JTextField {
 				if (("0123456789".indexOf(keyChar) >= 0)) {
 					if (selText == null) {
 						final String afterInputStr = text + keyChar;
-						final int ipInt = (text.length() == 0 ? 0
-								: Integer.parseInt(afterInputStr));
+						final int ipInt = (text.length() == 0 ? 0 : Integer.parseInt(afterInputStr));
 
 						if (ipInt > 255) {
 							e.setKeyChar('\0');
@@ -100,21 +99,18 @@ public class IPv4Field extends JTextField {
 				final int textLength = text.length();
 				if (isNotSeleted && (keyCode == KeyEvent.VK_LEFT) && (caretPos == 0)) {
 					field.firePropertyChange(LEFT, 0, 1);
-				} else if (isNotSeleted && (keyCode == KeyEvent.VK_RIGHT)
-						&& (caretPos == textLength)) {
+				} else if (isNotSeleted && (keyCode == KeyEvent.VK_RIGHT) && (caretPos == textLength)) {
 					field.firePropertyChange(RIGHT, 0, 1);
 				} else if (isNotSeleted && (keyCode == KeyEvent.VK_BACK_SPACE) && (caretPos == 0)) {
 					field.firePropertyChange(BACK_SPACE, 0, 1);
-				} else if (isNotSeleted && (keyCode == KeyEvent.VK_DELETE)
-						&& (caretPos == textLength)) {
+				} else if (isNotSeleted && (keyCode == KeyEvent.VK_DELETE) && (caretPos == textLength)) {
 					field.firePropertyChange(DELETE, 0, 1);
 				} else if ((keyCode == KeyEvent.VK_ENTER)) {
 					field.firePropertyChange(ENTER, 0, 1);
 				} else if (("0123456789".indexOf(keyChar) >= 0)) {
 					if (isNotSeleted) {
 						final String afterInputStr = text + keyChar;
-						final int ipInt = (text.length() == 0 ? 0
-								: Integer.parseInt(afterInputStr));
+						final int ipInt = (text.length() == 0 ? 0 : Integer.parseInt(afterInputStr));
 
 						if (ipInt > 25 || afterInputStr.length() == 3) {
 							field.firePropertyChange(RIGHT, 0, 1);
@@ -151,14 +147,11 @@ public class IPv4Field extends JTextField {
 
 		for (int i = 0; i < fields.length; i++) {
 			if (i == 0) {
-				this.fields[i]
-						.addPropertyChangeListener(new JumpListener(null, this.fields[(i + 1)]));
+				this.fields[i].addPropertyChangeListener(new JumpListener(null, this.fields[(i + 1)]));
 			} else if (i == (fields.length - 1)) {
-				this.fields[i]
-						.addPropertyChangeListener(new JumpListener(this.fields[(i - 1)], null));
+				this.fields[i].addPropertyChangeListener(new JumpListener(this.fields[(i - 1)], null));
 			} else {
-				this.fields[i].addPropertyChangeListener(
-						new JumpListener(this.fields[(i - 1)], this.fields[(i + 1)]));
+				this.fields[i].addPropertyChangeListener(new JumpListener(this.fields[(i - 1)], this.fields[(i + 1)]));
 			}
 		}
 	}
@@ -239,8 +232,7 @@ public class IPv4Field extends JTextField {
 
 			if ((this.preField != null) && ((name == LEFT) || (name == BACK_SPACE))) {
 				this.preField.requestFocus();
-			} else if ((this.nextField != null)
-					&& ((name == RIGHT) || (name == DELETE) || (name == ENTER))) {
+			} else if ((this.nextField != null) && ((name == RIGHT) || (name == DELETE) || (name == ENTER))) {
 				this.nextField.requestFocus();
 			}
 		}

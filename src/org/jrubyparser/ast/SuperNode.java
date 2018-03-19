@@ -35,96 +35,102 @@ import org.jrubyparser.SourcePosition;
  * A call to super(...) with arguments to a method.
  */
 public class SuperNode extends Node implements BlockAcceptingNode, IArgumentNode {
-    private Node argsNode;
-    private Node iterNode;
-    private boolean hasParens = false;
+	private Node argsNode;
+	private Node iterNode;
+	private boolean hasParens = false;
 
-    public SuperNode(SourcePosition position, Node argsNode) {
-        this(position, argsNode, null);
-    }
+	public SuperNode(SourcePosition position, Node argsNode) {
+		this(position, argsNode, null);
+	}
 
-    public SuperNode(SourcePosition position, Node argsNode, Node iterNode) {
-        super(position);
-        this.argsNode = adopt(argsNode);
-        this.iterNode = adopt(iterNode);
-    }
+	public SuperNode(SourcePosition position, Node argsNode, Node iterNode) {
+		super(position);
+		this.argsNode = adopt(argsNode);
+		this.iterNode = adopt(iterNode);
+	}
 
-    @Override
-    public boolean isSame(Node node) {
-         if (!super.isSame(node)) return false;
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-         SuperNode other = (SuperNode) node;
+		SuperNode other = (SuperNode) node;
 
-         if (getArgs() == null && other.getArgs() == null) {
-             if (getIter() == null && other.getIter() == null) return true;
-             if (getIter() == null || other.getIter() == null) return false;
+		if (getArgs() == null && other.getArgs() == null) {
+			if (getIter() == null && other.getIter() == null)
+				return true;
+			if (getIter() == null || other.getIter() == null)
+				return false;
 
-             return getIter().isSame(other.getIter());
-         } else if (getArgs() == null || other.getArgs() == null) {
-             return false;
-         } else if (getIter() == null && other.getIter() == null) {
-             return getArgs().isSame(other.getArgs());
-         } else if (getIter() == null || other.getIter() == null) {
-             return false;
-         }
+			return getIter().isSame(other.getIter());
+		} else if (getArgs() == null || other.getArgs() == null) {
+			return false;
+		} else if (getIter() == null && other.getIter() == null) {
+			return getArgs().isSame(other.getArgs());
+		} else if (getIter() == null || other.getIter() == null) {
+			return false;
+		}
 
-         return getArgs().isSame(other.getArgs()) && getIter().isSame(other.getIter());
-    }
+		return getArgs().isSame(other.getArgs()) && getIter().isSame(other.getIter());
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.SUPERNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.SUPERNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitSuperNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitSuperNode(this);
+	}
 
-    /**
-     * Gets the argsNode.
-     * @return Returns a Node
-     */
-    @Deprecated
-    public Node getArgsNode() {
-        return argsNode;
-    }
+	/**
+	 * Gets the argsNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	@Deprecated
+	public Node getArgsNode() {
+		return argsNode;
+	}
 
-    @Deprecated
-    public Node getIterNode() {
-        return getIter();
-    }
+	@Deprecated
+	public Node getIterNode() {
+		return getIter();
+	}
 
-    public Node getIter() {
-        return iterNode;
-    }
+	public Node getIter() {
+		return iterNode;
+	}
 
-    @Deprecated
-    public Node setIterNode(Node iterNode) {
-        setIter(iterNode);
+	@Deprecated
+	public Node setIterNode(Node iterNode) {
+		setIter(iterNode);
 
-        return this;
-    }
+		return this;
+	}
 
-    public void setIter(Node iter) {
-        this.iterNode = adopt(iter);
-    }
+	public void setIter(Node iter) {
+		this.iterNode = adopt(iter);
+	}
 
-    public Node getArgs() {
-        return argsNode;
-    }
+	public Node getArgs() {
+		return argsNode;
+	}
 
-    public boolean hasParens() {
-        return hasParens;
-    }
+	public boolean hasParens() {
+		return hasParens;
+	}
 
-    public void setArgs(Node argsNode) {
-        this.argsNode = adopt(argsNode);
-    }
+	public void setArgs(Node argsNode) {
+		this.argsNode = adopt(argsNode);
+	}
 
-    public void setHasParens(boolean hasParens) {
-        this.hasParens = hasParens;
-    }
+	public void setHasParens(boolean hasParens) {
+		this.hasParens = hasParens;
+	}
 }

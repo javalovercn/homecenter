@@ -23,8 +23,7 @@ public class RelayActionRead extends ActionRead {
 
 	@Override
 	public boolean isTop(final SocketChannel channel) {
-		if (RelayManager.isShutdowning || RelayManager.disableRelay
-				|| (RelayManager.size >= max_session_num)) {
+		if (RelayManager.isShutdowning || RelayManager.disableRelay || (RelayManager.size >= max_session_num)) {
 			return true;
 		}
 		return false;

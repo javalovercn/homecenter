@@ -41,8 +41,7 @@ public class HCSecurityChecker implements SecurityChecker {
 		}
 
 		if (ContextSecurityManager.getConfig(g) != null) {
-			throw new HCSecurityException(
-					HCLimitSecurityManager.HC_FAIL_TO_ACCESS_HOME_CENTER_NON_PUBLIC_API);
+			throw new HCSecurityException(HCLimitSecurityManager.HC_FAIL_TO_ACCESS_HOME_CENTER_NON_PUBLIC_API);
 		}
 
 		if (token == null && isEventDispatchThread == false) {

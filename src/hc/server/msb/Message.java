@@ -6,26 +6,23 @@ import java.util.Set;
 import java.util.Vector;
 
 /**
- * <code>Message</code> is medium between <code>Robot</code> and
- * <code>Device</code>. <br>
+ * <code>Message</code> is medium between <code>Robot</code> and <code>Device</code>. <br>
  * <br>
- * <code>Message</code> is never used outside of <code>Robot</code>,
- * <code>Converter</code> and <code>Device</code>. <BR>
+ * <code>Message</code> is never used outside of <code>Robot</code>, <code>Converter</code> and
+ * <code>Device</code>. <BR>
  * To drive <code>Device</code>, please via <code>Robot</code>. <BR>
  * To get <code>Robot</code> instance and operate it, please invoke
- * <code>ProjectContext.getRobot(String)</code> and
- * <code>Robot.operate(long, Object)</code>. <br>
+ * <code>ProjectContext.getRobot(String)</code> and <code>Robot.operate(long, Object)</code>. <br>
  * <br>
- * There are two parts of a <code>Message</code>, <i>header</i> is for control
- * data and <i>body</i> is for business data. <BR>
+ * There are two parts of a <code>Message</code>, <i>header</i> is for control data and <i>body</i>
+ * is for business data. <BR>
  * <BR>
- * To get an instance of <code>Message</code>, invoke
- * <code>Robot.getFreeMessage(String)</code> or
+ * To get an instance of <code>Message</code>, invoke <code>Robot.getFreeMessage(String)</code> or
  * <code>Device.getFreeMessage(String)</code>. <br>
  * <br>
  * <STRONG>Important</STRONG> : <BR>
- * Don't keep any reference of <code>Message</code> in any threads and
- * instances, it will be auto recycled and cleaned after being consumed.
+ * Don't keep any reference of <code>Message</code> in any threads and instances, it will be auto
+ * recycled and cleaned after being consumed.
  */
 public final class Message {
 
@@ -51,8 +48,8 @@ public final class Message {
 	Vector<String> ctrl_bind_ids;
 
 	/**
-	 * ID of the device in IoT(Internet of Things) network to indicate from
-	 * other same model devices. If unknown, please keep empty string.
+	 * ID of the device in IoT(Internet of Things) network to indicate from other same model
+	 * devices. If unknown, please keep empty string.
 	 */
 	String ctrl_dev_id;
 
@@ -73,9 +70,7 @@ public final class Message {
 			if (ctrl_sync_id != 0) {
 				final WaitingForMessage oldwm = workbench.waiting.remove(ctrl_sync_id);
 				if (oldwm != null) {
-					workbench.V = workbench.O ? false
-							: workbench.log("force stop waitFor task on thread :"
-									+ oldwm.dispatch_thread_id);
+					workbench.V = workbench.O ? false : workbench.log("force stop waitFor task on thread :" + oldwm.dispatch_thread_id);
 					oldwm.wakeUp();
 				}
 			}
@@ -93,9 +88,7 @@ public final class Message {
 					// (=header_dispatch_thread_id)");
 					wm.result = this;
 				} else {
-					workbench.V = workbench.O ? false
-							: workbench
-									.log("WaitingForMessage result (!=header_dispatch_thread_id)");
+					workbench.V = workbench.O ? false : workbench.log("WaitingForMessage result (!=header_dispatch_thread_id)");
 				}
 				wm.wakeUp();
 				return true;
@@ -204,8 +197,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -332,8 +324,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -391,8 +382,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -450,8 +440,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -509,8 +498,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -568,8 +556,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -598,8 +585,8 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists, return null; if the map of name is not String
-	 * object, return obj.toString()
+	 * if name is not exists, return null; if the map of name is not String object, return
+	 * obj.toString()
 	 * 
 	 * @param name
 	 * @return
@@ -619,8 +606,8 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists, then return defaultValue; if the map of name is
-	 * not String object, return obj.toString()
+	 * if name is not exists, then return defaultValue; if the map of name is not String object,
+	 * return obj.toString()
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -642,8 +629,8 @@ public final class Message {
 	}
 
 	/**
-	 * returns the value to which the specified name is mapped, or null if this
-	 * map contains no mapping for the name.
+	 * returns the value to which the specified name is mapped, or null if this map contains no
+	 * mapping for the name.
 	 * 
 	 * @param name
 	 * @return
@@ -740,8 +727,7 @@ public final class Message {
 	 * @param length
 	 * @see #setByteArrayHeader(String, byte[])
 	 */
-	public final void setByteArrayHeader(final String name, final byte[] bs, final int offset,
-			final int length) {
+	public final void setByteArrayHeader(final String name, final byte[] bs, final int offset, final int length) {
 		if (ctrl_isInWorkbench) {
 			throw new MSBException(MSBException.UN_MODIFIED, this, null);
 		}
@@ -1067,8 +1053,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1134,8 +1119,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not short array object, then return
-	 * defaultValue.
+	 * if name is not exists or not short array object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1175,8 +1159,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not float array object, then return
-	 * defaultValue.
+	 * if name is not exists or not float array object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1216,8 +1199,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not double array object, then return
-	 * defaultValue.
+	 * if name is not exists or not double array object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1237,8 +1219,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not boolean array object, then return
-	 * defaultValue.
+	 * if name is not exists or not boolean array object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1258,8 +1239,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not String array object, then return
-	 * defaultValue.
+	 * if name is not exists or not String array object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1327,8 +1307,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1386,8 +1365,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1445,8 +1423,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1504,8 +1481,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1563,8 +1539,7 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists or not convertible object, then return
-	 * defaultValue.
+	 * if name is not exists or not convertible object, then return defaultValue.
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1594,8 +1569,8 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists, return null; if the map of name is not String
-	 * object, return obj.toString()
+	 * if name is not exists, return null; if the map of name is not String object, return
+	 * obj.toString()
 	 * 
 	 * @param name
 	 * @return
@@ -1615,8 +1590,8 @@ public final class Message {
 	}
 
 	/**
-	 * if name is not exists, then return defaultValue; if the map of name is
-	 * not String object, return obj.toString()
+	 * if name is not exists, then return defaultValue; if the map of name is not String object,
+	 * return obj.toString()
 	 * 
 	 * @param name
 	 * @param defaultValue
@@ -1638,8 +1613,8 @@ public final class Message {
 	}
 
 	/**
-	 * returns the value to which the specified name is mapped, or null if this
-	 * map contains no mapping for the name.
+	 * returns the value to which the specified name is mapped, or null if this map contains no
+	 * mapping for the name.
 	 * 
 	 * @param name
 	 * @return
@@ -1749,8 +1724,7 @@ public final class Message {
 	 * @param length
 	 * @see #setByteArrayBody(String, byte[])
 	 */
-	public final void setByteArrayBody(final String name, final byte[] bs, final int offset,
-			final int length) {
+	public final void setByteArrayBody(final String name, final byte[] bs, final int offset, final int length) {
 		if (ctrl_isInWorkbench) {
 			throw new MSBException(MSBException.UN_MODIFIED, this, null);
 		}
@@ -1785,8 +1759,7 @@ public final class Message {
 	 * @param length
 	 * @see #setShortArrayBody(String, short[])
 	 */
-	public final void setShortArrayBody(final String name, final short[] bs, final int offset,
-			final int length) {
+	public final void setShortArrayBody(final String name, final short[] bs, final int offset, final int length) {
 		if (ctrl_isInWorkbench) {
 			throw new MSBException(MSBException.UN_MODIFIED, this, null);
 		}
@@ -1797,8 +1770,7 @@ public final class Message {
 
 	/**
 	 * set <code>value</code> for the <code>name</code> in body.<BR>
-	 * to copy to new int array , please invoke
-	 * {@link #setIntArrayBody(String, int[], int, int)}.
+	 * to copy to new int array , please invoke {@link #setIntArrayBody(String, int[], int, int)}.
 	 * 
 	 * @param name
 	 * @param value
@@ -1821,8 +1793,7 @@ public final class Message {
 	 * @param length
 	 * @see #setIntArrayBody(String, int[])
 	 */
-	public final void setIntArrayBody(final String name, final int[] bs, final int offset,
-			final int length) {
+	public final void setIntArrayBody(final String name, final int[] bs, final int offset, final int length) {
 		if (ctrl_isInWorkbench) {
 			throw new MSBException(MSBException.UN_MODIFIED, this, null);
 		}
@@ -1857,8 +1828,7 @@ public final class Message {
 	 * @param length
 	 * @see #setFloatArrayBody(String, float[])
 	 */
-	public final void setFloatArrayBody(final String name, final float[] bs, final int offset,
-			final int length) {
+	public final void setFloatArrayBody(final String name, final float[] bs, final int offset, final int length) {
 		if (ctrl_isInWorkbench) {
 			throw new MSBException(MSBException.UN_MODIFIED, this, null);
 		}
@@ -1893,8 +1863,7 @@ public final class Message {
 	 * @param length
 	 * @see #setCharArrayBody(String, char[])
 	 */
-	public final void setCharArrayBody(final String name, final char[] bs, final int offset,
-			final int length) {
+	public final void setCharArrayBody(final String name, final char[] bs, final int offset, final int length) {
 		if (ctrl_isInWorkbench) {
 			throw new MSBException(MSBException.UN_MODIFIED, this, null);
 		}
@@ -1929,8 +1898,7 @@ public final class Message {
 	 * @param length
 	 * @see #setLongArrayBody(String, long[])
 	 */
-	public final void setLongArrayBody(final String name, final long[] bs, final int offset,
-			final int length) {
+	public final void setLongArrayBody(final String name, final long[] bs, final int offset, final int length) {
 		if (ctrl_isInWorkbench) {
 			throw new MSBException(MSBException.UN_MODIFIED, this, null);
 		}
@@ -1965,8 +1933,7 @@ public final class Message {
 	 * @param length
 	 * @see #setDoubleArrayBody(String, double[])
 	 */
-	public final void setDoubleArrayBody(final String name, final double[] bs, final int offset,
-			final int length) {
+	public final void setDoubleArrayBody(final String name, final double[] bs, final int offset, final int length) {
 		if (ctrl_isInWorkbench) {
 			throw new MSBException(MSBException.UN_MODIFIED, this, null);
 		}
@@ -2001,8 +1968,7 @@ public final class Message {
 	 * @param length
 	 * @see #setBooleanArrayBody(String, boolean[])
 	 */
-	public final void setBooleanArrayBody(final String name, final boolean[] bs, final int offset,
-			final int length) {
+	public final void setBooleanArrayBody(final String name, final boolean[] bs, final int offset, final int length) {
 		if (ctrl_isInWorkbench) {
 			throw new MSBException(MSBException.UN_MODIFIED, this, null);
 		}
@@ -2037,8 +2003,7 @@ public final class Message {
 	 * @param length
 	 * @see #setStringArrayBody(String, String[])
 	 */
-	public final void setStringArrayBody(final String name, final String[] bs, final int offset,
-			final int length) {
+	public final void setStringArrayBody(final String name, final String[] bs, final int offset, final int length) {
 		if (ctrl_isInWorkbench) {
 			throw new MSBException(MSBException.UN_MODIFIED, this, null);
 		}
@@ -2156,8 +2121,7 @@ public final class Message {
 					sb.append(",");
 				}
 				final Object objectHeader = getObjectHeader(p);
-				sb.append(p + "=" + objectHeader + "(" + objectHeader.getClass().getSimpleName()
-						+ ")");
+				sb.append(p + "=" + objectHeader + "(" + objectHeader.getClass().getSimpleName() + ")");
 			}
 		}
 		sb.append("], body:[");

@@ -40,109 +40,115 @@ import org.jrubyparser.util.MethodDefVisitor;
  * A class statement (name, superClass, body). Classes bodies also define their own scope.
  */
 public class ClassNode extends Node implements IScopingNode, ILocalScope, IModuleScope {
-    private Colon3Node cpath;
-    private StaticScope scope;
-    private Node bodyNode;
-    private Node superNode;
+	private Colon3Node cpath;
+	private StaticScope scope;
+	private Node bodyNode;
+	private Node superNode;
 
-    public ClassNode(SourcePosition position, Colon3Node cpath, StaticScope scope, Node bodyNode, Node superNode) {
-        super(position);
+	public ClassNode(SourcePosition position, Colon3Node cpath, StaticScope scope, Node bodyNode, Node superNode) {
+		super(position);
 
-        assert cpath != null : "cpath is not null";
-        assert scope != null : "scope is not null";
+		assert cpath != null : "cpath is not null";
+		assert scope != null : "scope is not null";
 
-        this.cpath = (Colon3Node) adopt(cpath);
-        this.scope = scope;
-        this.bodyNode = adopt(bodyNode);
-        this.superNode = adopt(superNode);
-    }
+		this.cpath = (Colon3Node) adopt(cpath);
+		this.scope = scope;
+		this.bodyNode = adopt(bodyNode);
+		this.superNode = adopt(superNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		ClassNode other = (ClassNode) node;
 
-        ClassNode other = (ClassNode) node;
+		if (getSuper() == null && other.getSuper() == null)
+			return getCPath().isSame(other.getCPath());
+		if (getSuper() == null || other.getSuper() == null)
+			return false;
 
-        if (getSuper() == null && other.getSuper() == null) return getCPath().isSame(other.getCPath());
-        if (getSuper() == null || other.getSuper() == null) return false;
+		return getSuper().isSame(other.getSuper()) && getCPath().isSame(other.getCPath());
+	}
 
-        return getSuper().isSame(other.getSuper()) && getCPath().isSame(other.getCPath());
-    }
+	public NodeType getNodeType() {
+		return NodeType.CLASSNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitClassNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.CLASSNODE;
-    }
+	/**
+	 * Gets the body of this class.
+	 *
+	 * @return the contents
+	 */
+	public Node getBody() {
+		return bodyNode;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitClassNode(this);
-    }
+	@Deprecated
+	public Node getBodyNode() {
+		return getBody();
+	}
 
-    /**
-     * Gets the body of this class.
-     *
-     * @return the contents
-     */
-    public Node getBody() {
-        return bodyNode;
-    }
+	/**
+	 * Get the static scoping information.
+	 *
+	 * @return the scoping info
+	 */
+	public StaticScope getScope() {
+		return scope;
+	}
 
-    @Deprecated
-    public Node getBodyNode() {
-        return getBody();
-    }
+	/**
+	 * Gets the className.
+	 * 
+	 * @return Returns representation of class path+name
+	 */
+	public Colon3Node getCPath() {
+		return cpath;
+	}
 
-    /**
-     * Get the static scoping information.
-     *
-     * @return the scoping info
-     */
-    public StaticScope getScope() {
-        return scope;
-    }
+	/**
+	 * Gets the superNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getSuper() {
+		return superNode;
+	}
 
-    /**
-     * Gets the className.
-     * @return Returns representation of class path+name
-     */
-    public Colon3Node getCPath() {
-        return cpath;
-    }
+	@Deprecated
+	public Node getSuperNode() {
+		return getSuper();
+	}
 
-    /**
-     * Gets the superNode.
-     * @return Returns a Node
-     */
-    public Node getSuper() {
-        return superNode;
-    }
+	/**
+	 * Returns a list of all Method Nodes included in the module's ast.
+	 *
+	 * @return Returns a List of MethodDefNodes
+	 */
+	public List<MethodDefNode> getMethodDefs() {
+		return MethodDefVisitor.findMethodsIn(this);
+	}
 
-    @Deprecated
-    public Node getSuperNode() {
-        return getSuper();
-    }
-
-    /**
-     * Returns a list of all Method Nodes included in the module's ast.
-     *
-     * @return Returns a List of MethodDefNodes
-     */
-    public List<MethodDefNode> getMethodDefs() {
-        return MethodDefVisitor.findMethodsIn(this);
-    }
-
-    public List<ILocalVariable> getVariableReferencesNamed(String name) {
-        return ILocalVariableVisitor.findOccurrencesIn(this, name);
-    }
+	public List<ILocalVariable> getVariableReferencesNamed(String name) {
+		return ILocalVariableVisitor.findOccurrencesIn(this, name);
+	}
 }

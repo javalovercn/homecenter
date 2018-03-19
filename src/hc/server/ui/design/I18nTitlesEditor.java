@@ -82,8 +82,7 @@ public class I18nTitlesEditor extends JPanel {
 		editPanel.add(new JLabel(VALUE + " :"));
 		valueField = new JTextField("", textFieldColumnNum);
 		editPanel.add(valueField);
-		addBtn = new JButton(
-				(String) ResourceUtil.get(9016) + "/" + (String) ResourceUtil.get(9017),
+		addBtn = new JButton((String) ResourceUtil.get(9016) + "/" + (String) ResourceUtil.get(9017),
 				new ImageIcon(ImageSrc.ADD_SMALL_ICON));
 		editPanel.add(addBtn);
 
@@ -92,15 +91,13 @@ public class I18nTitlesEditor extends JPanel {
 			public void run() {
 				final String lang = langRegion.getText();
 				if (lang.length() < 2) {
-					App.showMessageDialog(Designer.getInstance(),
-							"language must be two or more letters!", "Error", App.ERROR_MESSAGE);
+					App.showMessageDialog(Designer.getInstance(), "language must be two or more letters!", "Error", App.ERROR_MESSAGE);
 					return;
 				}
 
 				final String valueText = valueField.getText();
 				if (valueText.length() == 0) {
-					App.showMessageDialog(Designer.getInstance(), "value can NOT be empty!",
-							"Error", App.ERROR_MESSAGE);
+					App.showMessageDialog(Designer.getInstance(), "value can NOT be empty!", "Error", App.ERROR_MESSAGE);
 					return;
 				}
 
@@ -109,8 +106,7 @@ public class I18nTitlesEditor extends JPanel {
 			}
 		}));
 
-		removeBtn = new JButton((String) ResourceUtil.get(9018),
-				new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
+		removeBtn = new JButton((String) ResourceUtil.get(9018), new ImageIcon(ImageSrc.REMOVE_SMALL_ICON));
 		removeBtn.setEnabled(false);
 		removeBtn.addActionListener(new HCActionListener(new Runnable() {
 			@Override
@@ -195,15 +191,11 @@ public class I18nTitlesEditor extends JPanel {
 
 		final JPanel descPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		descPanel.setBorder(new TitledBorder("Description :"));
-		descPanel.add(new JLabel("<html>"
-				+ "1. the aboves are equivalent with MenuItem.<STRONG>setText(Map)</STRONG> programmatically.<BR>"
-				+ "2. <STRONG>en" + SPLIT_LANG_COUNTRY
-				+ "US</STRONG> is for United States only.<BR>"
-				+ "3. <STRONG>en</STRONG> is for all english language country, if <STRONG>en"
-				+ SPLIT_LANG_COUNTRY + "??</STRONG> is NOT found.<BR>"
-				+ "4. <STRONG>language</STRONG> : ISO 639 alpha-2 or alpha-3 codes,<BR>"
-				+ "5. <STRONG>country / region</STRONG> : ISO 3166 alpha-2 or a UN M.49 numeric-3 area code, <BR>"
-				+ "</html>"));
+		descPanel.add(new JLabel("<html>" + "1. the aboves are equivalent with MenuItem.<STRONG>setText(Map)</STRONG> programmatically.<BR>"
+				+ "2. <STRONG>en" + SPLIT_LANG_COUNTRY + "US</STRONG> is for United States only.<BR>"
+				+ "3. <STRONG>en</STRONG> is for all english language country, if <STRONG>en" + SPLIT_LANG_COUNTRY
+				+ "??</STRONG> is NOT found.<BR>" + "4. <STRONG>language</STRONG> : ISO 639 alpha-2 or alpha-3 codes,<BR>"
+				+ "5. <STRONG>country / region</STRONG> : ISO 3166 alpha-2 or a UN M.49 numeric-3 area code, <BR>" + "</html>"));
 
 		this.setLayout(new BorderLayout());
 		this.add(editPanel, BorderLayout.NORTH);
@@ -237,11 +229,10 @@ public class I18nTitlesEditor extends JPanel {
 		SwingUtilities.invokeLater(refreshTableRunnable);
 	}
 
-	public final static void showEditor(final I18NStoreableHashMapWithModifyFlag map,
-			final ActionListener listener, final Component relativeTo, final JFrame parent) {
+	public final static void showEditor(final I18NStoreableHashMapWithModifyFlag map, final ActionListener listener,
+			final Component relativeTo, final JFrame parent) {
 		final I18nTitlesEditor editor = new I18nTitlesEditor(map);
-		App.showCenterPanelMain(editor, 0, 0,
-				"Editor for " + BaseMenuItemNodeEditPanel.I18N_BTN_TEXT, true, null, null,
+		App.showCenterPanelMain(editor, 0, 0, "Editor for " + BaseMenuItemNodeEditPanel.I18N_BTN_TEXT, true, null, null,
 				new ActionListener() {
 					@Override
 					public void actionPerformed(final ActionEvent e) {

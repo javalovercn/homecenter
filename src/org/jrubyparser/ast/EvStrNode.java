@@ -31,57 +31,63 @@ package org.jrubyparser.ast;
 import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
-/** Represents an #{} expression in a string. This Node is always a subnode
- * of a DStrNode, DXStrNode or a DRegexpNode.
+/**
+ * Represents an #{} expression in a string. This Node is always a subnode of a DStrNode, DXStrNode
+ * or a DRegexpNode.
  *
- * Before this Node is evaluated it contains the code as a String (value). After
- * the first evaluation this String is parsed into the evaluatedNode Node.
+ * Before this Node is evaluated it contains the code as a String (value). After the first
+ * evaluation this String is parsed into the evaluatedNode Node.
  */
 public class EvStrNode extends Node {
-    private Node body;
+	private Node body;
 
-    public EvStrNode(SourcePosition position, Node body) {
-        super(position);
-        this.body = adopt(body);
-    }
+	public EvStrNode(SourcePosition position, Node body) {
+		super(position);
+		this.body = adopt(body);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.EVSTRNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.EVSTRNODE;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		EvStrNode other = (EvStrNode) node;
 
-        EvStrNode other = (EvStrNode) node;
+		if (getBody() == null && other.getBody() == null)
+			return true;
+		if (getBody() == null || other.getBody() == null)
+			return false;
 
-        if (getBody() == null && other.getBody() == null) return true;
-        if (getBody() == null || other.getBody() == null) return false;
+		return getBody().isSame(other.getBody());
+	}
 
-        return getBody().isSame(other.getBody());
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitEvStrNode(this);
+	}
 
-
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitEvStrNode(this);
-    }
-
-    /**
-     * Gets the evaluatedNode.
-     * @return Returns a Node
-     */
-    public Node getBody() {
-        return body;
-    }
+	/**
+	 * Gets the evaluatedNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getBody() {
+		return body;
+	}
 }

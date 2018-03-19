@@ -11,8 +11,7 @@ public class HCShareFileResource extends HPNode {
 		this.ID = name;
 	}
 
-	public HCShareFileResource(final int type, final String name, final File file)
-			throws Throwable {
+	public HCShareFileResource(final int type, final String name, final File file) throws Throwable {
 		this(type, name);
 		this.ID = String.valueOf(MenuManager.getNextNodeIdx());
 		content = loadContent(file);

@@ -42,9 +42,8 @@ public abstract class Processor {
 
 	final void __response(final Message msg, final boolean isDownward) {
 		if (msg == preMsg) {
-			throw new MSBException(this.getClass().getSimpleName() + " response/forward "
-					+ Message.class.getSimpleName() + " should be a instance from getFreeMessage",
-					msg, this);
+			throw new MSBException(this.getClass().getSimpleName() + " response/forward " + Message.class.getSimpleName()
+					+ " should be a instance from getFreeMessage", msg, this);
 		}
 
 		final int header_sync_id = preMsg.ctrl_sync_id;
@@ -63,10 +62,9 @@ public abstract class Processor {
 
 	/**
 	 * @param dev_id
-	 *            the device ID of new free <code>Message</code>, which will be
-	 *            dispatched to. It is <i>Reference Device ID</i>, if it is
-	 *            dispatched from <code>Robot</code>; it is real device ID, if
-	 *            it is dispatched from <code>Device</code>.
+	 *            the device ID of new free <code>Message</code>, which will be dispatched to. It is
+	 *            <i>Reference Device ID</i>, if it is dispatched from <code>Robot</code>; it is
+	 *            real device ID, if it is dispatched from <code>Device</code>.
 	 * @return
 	 */
 	final Message getFreeMessageInProc(final String dev_id) {
@@ -77,10 +75,8 @@ public abstract class Processor {
 			}
 			synchronized (this) {
 				if (isFinishStarted == false) {
-					LogManager.warning("waiting for project [" + project_id
-							+ "] to ACTIVE in Device/Robot [" + name + "]...");
-					LogManager.warning(
-							"if your programe is blocked, please invoke getFreeMessage in ProjectContext.run().");
+					LogManager.warning("waiting for project [" + project_id + "] to ACTIVE in Device/Robot [" + name + "]...");
+					LogManager.warning("if your programe is blocked, please invoke getFreeMessage in ProjectContext.run().");
 
 					try {
 						this.wait();
@@ -96,9 +92,7 @@ public abstract class Processor {
 		final Message msg = Workbench.messagePool.getFreeMessage();
 		msg.ctrl_dev_id = dev_id;
 
-		workbench.V = workbench.O ? false
-				: workbench.log(
-						"{" + project_id + "/" + name + "} get free message : " + msg.toString());
+		workbench.V = workbench.O ? false : workbench.log("{" + project_id + "/" + name + "} get free message : " + msg.toString());
 
 		return msg;
 	}
@@ -186,8 +180,7 @@ public abstract class Processor {
 
 		if (procType == Workbench.TYPE_ROBOT_PROC || procType == Workbench.TYPE_DEVICE_PROC) {
 			workbench.V = workbench.O ? false
-					: workbench.log("enter {" + project_id + "/" + name
-							+ "} method response(Message), message : " + msg.toString());
+					: workbench.log("enter {" + project_id + "/" + name + "} method response(Message), message : " + msg.toString());
 		}
 
 		response(msg);
@@ -196,43 +189,40 @@ public abstract class Processor {
 	/**
 	 * start up the device or smart module. <br>
 	 * <br>
-	 * the start-up is in a thread owned by this <code>Device</code>, so it is
-	 * no necessary to create new thread. <br>
+	 * the start-up is in a thread owned by this <code>Device</code>, so it is no necessary to
+	 * create new thread. <br>
 	 * <br>
-	 * this start-up process may be never finished (if some error on hardware),
-	 * and HomeCenter Server will shutdown, the method <i>interrupt</i> of this
-	 * initial thread is invoked by Server. <br>
+	 * this start-up process may be never finished (if some error on hardware), and HomeCenter
+	 * Server will shutdown, the method <i>interrupt</i> of this initial thread is invoked by
+	 * Server. <br>
 	 * <br>
-	 * this method is invoked by server after
-	 * {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}, so it is no necessary to
-	 * execute in JRuby on event {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}
+	 * this method is invoked by server after {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}, so it
+	 * is no necessary to execute in JRuby on event {@link ProjectContext#EVENT_SYS_PROJ_STARTUP}
 	 */
 	abstract void __startup();
 
 	/**
 	 * shut down the device or smart module. <br>
 	 * <br>
-	 * the shut-down is in a thread owned by this <code>Device</code>, so it is
-	 * no necessary to create new thread. <br>
+	 * the shut-down is in a thread owned by this <code>Device</code>, so it is no necessary to
+	 * create new thread. <br>
 	 * <br>
-	 * this method is invoked by server after
-	 * {@link ProjectContext#EVENT_SYS_PROJ_SHUTDOWN}, so it is no necessary to
-	 * execute in JRuby on event {@link ProjectContext#EVENT_SYS_PROJ_SHUTDOWN}
+	 * this method is invoked by server after {@link ProjectContext#EVENT_SYS_PROJ_SHUTDOWN}, so it
+	 * is no necessary to execute in JRuby on event {@link ProjectContext#EVENT_SYS_PROJ_SHUTDOWN}
 	 */
 	abstract void __shutdown();
 
 	/**
 	 * call {@link #getFreeMessage()} to get new instance. <br>
-	 * call {@link #__response(Message, boolean)} to dispatch a
-	 * <code>Message</code> to server. <br>
+	 * call {@link #__response(Message, boolean)} to dispatch a <code>Message</code> to server. <br>
 	 * <br>
-	 * <Strong>Note : </Strong>it is <Strong>not</Strong> allowed to keep any
-	 * references of <code>Message</code> in the instance of Processor.
+	 * <Strong>Note : </Strong>it is <Strong>not</Strong> allowed to keep any references of
+	 * <code>Message</code> in the instance of Processor.
 	 * 
 	 * @param msg
-	 *            it is NOT allowed to modified any parts, because it may be
-	 *            consumed by other object.<br>
-	 * 			the message will be auto recycled by HomeCenter server.
+	 *            it is NOT allowed to modified any parts, because it may be consumed by other
+	 *            object.<br>
+	 *            the message will be auto recycled by HomeCenter server.
 	 */
 	public abstract void response(Message msg);
 

@@ -29,8 +29,7 @@ public class TipPop {
 		}
 	};
 
-	public static synchronized void setCornerPosition(final int trayLocX, final int trayLocY,
-			final int trayWidth, final int trayHeight) {
+	public static synchronized void setCornerPosition(final int trayLocX, final int trayLocY, final int trayWidth, final int trayHeight) {
 		final CornerPosition position = MessageTipFrame.converTo(trayLocX, trayLocY);
 
 		if (instanceMessageFrame == null) {
@@ -50,8 +49,7 @@ public class TipPop {
 		}
 	}
 
-	public static synchronized void displayMessage(final String caption, final String msg,
-			final MessageType messageType) {
+	public static synchronized void displayMessage(final String caption, final String msg, final MessageType messageType) {
 		if (instanceMessageFrame == null) {
 			instanceMessageFrame = new MessageTipFrame();
 		} else {
@@ -73,8 +71,7 @@ class BorderPanel extends JPanel {
 	final int startX, startY, endX, endY;
 	final MessageTipFrame mtf;
 
-	BorderPanel(final MessageTipFrame mtf, final int startX, final int startY, final int endX,
-			final int endY) {
+	BorderPanel(final MessageTipFrame mtf, final int startX, final int startY, final int endX, final int endY) {
 		this.mtf = mtf;
 
 		this.startX = startX;

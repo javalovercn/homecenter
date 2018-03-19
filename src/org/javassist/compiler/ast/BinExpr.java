@@ -21,22 +21,23 @@ import org.javassist.compiler.CompileError;
 /**
  * Binary expression.
  *
- * <p>If the operator is +, the right node might be null.
- * See TypeChecker.atBinExpr().
+ * <p>
+ * If the operator is +, the right node might be null. See TypeChecker.atBinExpr().
  */
 public class BinExpr extends Expr {
-    /* operator must be either of:
-     * ||, &&, |, ^, &, ==, !=, <=, >=, <, >,
-     * <<, >>, >>>, +, -, *, /, %
-     */
+	/*
+	 * operator must be either of: ||, &&, |, ^, &, ==, !=, <=, >=, <, >, <<, >>, >>>, +, -, *, /, %
+	 */
 
-    private BinExpr(int op, ASTree _head, ASTList _tail) {
-        super(op, _head, _tail);
-    }
+	private BinExpr(int op, ASTree _head, ASTList _tail) {
+		super(op, _head, _tail);
+	}
 
-    public static BinExpr makeBin(int op, ASTree oprand1, ASTree oprand2) {
-        return new BinExpr(op, oprand1, new ASTList(oprand2));
-    }
+	public static BinExpr makeBin(int op, ASTree oprand1, ASTree oprand2) {
+		return new BinExpr(op, oprand1, new ASTList(oprand2));
+	}
 
-    public void accept(Visitor v) throws CompileError { v.atBinExpr(this); }
+	public void accept(Visitor v) throws CompileError {
+		v.atBinExpr(this);
+	}
 }

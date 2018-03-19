@@ -6,25 +6,19 @@ import hc.server.ui.design.HCPermissionConstant;
 public class SocketDesc {
 	public static final String SPLIT = ",";
 	public static final String ACCEPT_TIP = "<html>accept TCP connect (server mode) or UDP data (maybe client mode) from remote."
-			+ "<br>Related API :"
-			+ "<br> <STRONG>·</STRONG> <STRONG>java.net.ServerSocket</STRONG>.accept()"
+			+ "<br>Related API :" + "<br> <STRONG>·</STRONG> <STRONG>java.net.ServerSocket</STRONG>.accept()"
 			+ "<br> <STRONG>·</STRONG> <STRONG>java.net.DatagramSocket</STRONG>.receive(DatagramPacket p)"
 			+ "<br> <STRONG>·</STRONG> <STRONG>java.net.MulticastSocket</STRONG>.joinGroup(InetAddress mcastaddr)/leaveGroup(InetAddress mcastaddr)"
-			+ "<br>Permissions may be required :" + "<br> <STRONG>·</STRONG> "
-			+ HCPermissionConstant.READ_SYSTEM_PROPERTIES + "</html>";
+			+ "<br>Permissions may be required :" + "<br> <STRONG>·</STRONG> " + HCPermissionConstant.READ_SYSTEM_PROPERTIES + "</html>";
 	public static final String CONNECT_TIP = "<html>make a TCP connect (client mode) or send UDP data (maybe server mode) to remote."
-			+ "<br>Related API :"
-			+ "<br> <STRONG>·</STRONG> <STRONG>java.net.Socket</STRONG>.Socket(...)"
+			+ "<br>Related API :" + "<br> <STRONG>·</STRONG> <STRONG>java.net.Socket</STRONG>.Socket(...)"
 			+ "<br> <STRONG>·</STRONG> <STRONG>java.net.DatagramSocket</STRONG>.send(DatagramPacket p)"
 			+ "<br> <STRONG>·</STRONG> <STRONG>java.net.MulticastSocket</STRONG>.send(DatagramPacket p, byte ttl)/joinGroup(InetAddress mcastaddr)/leaveGroup(InetAddress mcastaddr)"
-			+ "<br>Permissions may be required :" + "<br> <STRONG>·</STRONG> "
-			+ HCPermissionConstant.READ_SYSTEM_PROPERTIES + "</html>";
+			+ "<br>Permissions may be required :" + "<br> <STRONG>·</STRONG> " + HCPermissionConstant.READ_SYSTEM_PROPERTIES + "</html>";
 	public static final String LISTEN_TIP = "<html>listen on localhost or construct an instance of DatagramSocket for UDP."
-			+ "<br>Related API :"
-			+ "<br> <STRONG>·</STRONG> <STRONG>java.net.ServerSocket</STRONG>.ServerSocket(...)"
+			+ "<br>Related API :" + "<br> <STRONG>·</STRONG> <STRONG>java.net.ServerSocket</STRONG>.ServerSocket(...)"
 			+ "<br> <STRONG>·</STRONG> <STRONG>java.net.DatagramSocket</STRONG>.DatagramSocket(...)"
-			+ "<br> <STRONG>·</STRONG> <STRONG>java.net.MulticastSocket</STRONG>.MulticastSocket(...)"
-			+ "</html>";
+			+ "<br> <STRONG>·</STRONG> <STRONG>java.net.MulticastSocket</STRONG>.MulticastSocket(...)" + "</html>";
 	public static final String RESOLVE_TIP = "resolve host/ip name service lookups. "
 			+ "The \"resolve\" is automatically added when any of the other three are specified.";
 
@@ -38,8 +32,7 @@ public class SocketDesc {
 	public static final String STR_LISTEN = "listen";
 	public static final String STR_RESOLVE = "resolve";
 
-	public static final String defaultAction = STR_ACCEPT + SPLIT + STR_CONNECT + SPLIT + STR_LISTEN
-			+ SPLIT + STR_RESOLVE;
+	public static final String defaultAction = STR_ACCEPT + SPLIT + STR_CONNECT + SPLIT + STR_LISTEN + SPLIT + STR_RESOLVE;
 
 	public static final String LOCAL_HOST_FOR_SOCK_PERMISSION = "localhost";
 
@@ -81,8 +74,7 @@ public class SocketDesc {
 	public static final String encode(final SocketDesc socket) {
 		final StringBuilder sb = StringBuilderCacher.getFree();
 
-		final String[] items = { socket.host, socket.ip, socket.port, socket.portFrom,
-				socket.portTo, String.valueOf(socket.action) };
+		final String[] items = { socket.host, socket.ip, socket.port, socket.portFrom, socket.portTo, String.valueOf(socket.action) };
 		for (int i = 0; i < items.length; i++) {
 			if (i != 0) {
 				sb.append(SPLIT);
@@ -98,8 +90,7 @@ public class SocketDesc {
 		return out;
 	}
 
-	public SocketDesc(final String host, final String ip, final String port, final String portFrom,
-			final String portTo, String action) {
+	public SocketDesc(final String host, final String ip, final String port, final String portFrom, final String portTo, String action) {
 		this.host = (host == null ? "" : host);
 		this.ip = (ip == null ? "" : ip);
 		this.port = (port == null ? "" : port);
@@ -247,8 +238,7 @@ public class SocketDesc {
 	}
 
 	public final boolean isIPMode() {
-		return (forceIP
-				|| (host.length() == 0) && (((ip.length() == 0) || (ip.length() == 3)) == false));
+		return (forceIP || (host.length() == 0) && (((ip.length() == 0) || (ip.length() == 3)) == false));
 	}
 
 	private boolean forcePort = false;

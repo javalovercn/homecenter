@@ -31,31 +31,32 @@ package org.jrubyparser.util.diff;
 import java.util.List;
 
 /**
- * The DeepDiff class attaches the subnode-diff (the result of diffing the
- * children of Nodes which have already been diffed) to the Change object
- * holding the nodes that the subnodes are contained within.
+ * The DeepDiff class attaches the subnode-diff (the result of diffing the children of Nodes which
+ * have already been diffed) to the Change object holding the nodes that the subnodes are contained
+ * within.
  */
 public class DeepDiff extends Change {
-    private List<Change> subdiff;
+	private List<Change> subdiff;
 
-    public DeepDiff(Change change, List<Change> subdiff) {
-        super(change.getNewNode(), change.getNewCost(), change.getOldNode(), change.getOldCost());
-        
-        this.subdiff = subdiff;
-    }
+	public DeepDiff(Change change, List<Change> subdiff) {
+		super(change.getNewNode(), change.getNewCost(), change.getOldNode(), change.getOldCost());
 
-    public List<Change> getSubdiff() {
-        return subdiff;
-    }
+		this.subdiff = subdiff;
+	}
 
-    @Override
-    public String toString() {
-        if (getSubdiff() == null) return super.toString();
-        
-        StringBuilder builder = new StringBuilder(150);
+	public List<Change> getSubdiff() {
+		return subdiff;
+	}
 
-        builder.append(super.toString()).append("\n").append("Subdiff: [ ").append(getSubdiff()).append(" ]\n");
+	@Override
+	public String toString() {
+		if (getSubdiff() == null)
+			return super.toString();
 
-        return builder.toString();
-    }
+		StringBuilder builder = new StringBuilder(150);
+
+		builder.append(super.toString()).append("\n").append("Subdiff: [ ").append(getSubdiff()).append(" ]\n");
+
+		return builder.toString();
+	}
 }

@@ -8,18 +8,14 @@ import java.security.NoSuchProviderException;
 import org.bouncycastle.jcajce.util.BCJcaJceHelper;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
 
-public abstract class BaseAlgorithmParameterGeneratorSpi
-    extends AlgorithmParameterGeneratorSpi
-{
-    private final JcaJceHelper helper = new BCJcaJceHelper();
+public abstract class BaseAlgorithmParameterGeneratorSpi extends AlgorithmParameterGeneratorSpi {
+	private final JcaJceHelper helper = new BCJcaJceHelper();
 
-    public BaseAlgorithmParameterGeneratorSpi()
-    {
-    }
+	public BaseAlgorithmParameterGeneratorSpi() {
+	}
 
-    protected final AlgorithmParameters createParametersInstance(String algorithm)
-        throws NoSuchAlgorithmException, NoSuchProviderException
-    {
-        return helper.createAlgorithmParameters(algorithm);
-    }
+	protected final AlgorithmParameters createParametersInstance(String algorithm)
+			throws NoSuchAlgorithmException, NoSuchProviderException {
+		return helper.createAlgorithmParameters(algorithm);
+	}
 }

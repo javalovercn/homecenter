@@ -98,8 +98,7 @@ public class J2SESessionManager extends SessionManager {
 				final J2SESession coreSS = (J2SESession) sessionListThreadSafe.elementAt(i);
 				if (coreSS.isIdelSession) {
 					if (L.isInWorkshop) {
-						LogManager.log("there is an idle session [" + coreSS.hashCode()
-								+ "] on server, skip start new idle.");
+						LogManager.log("there is an idle session [" + coreSS.hashCode() + "] on server, skip start new idle.");
 					}
 					return;
 				}
@@ -112,8 +111,7 @@ public class J2SESessionManager extends SessionManager {
 	private final static void startJ2SESession() {
 		final J2SESession socketSession = new J2SESession();
 		if (L.isInWorkshop) {
-			LogManager.log("creating idle session for client login, session hashCode : "
-					+ socketSession.hashCode());
+			LogManager.log("creating idle session for client login, session hashCode : " + socketSession.hashCode());
 		} else {
 			LogManager.log("creating idle session for client login.");
 		}
@@ -129,8 +127,7 @@ public class J2SESessionManager extends SessionManager {
 		socketSession.keepaliveManager.keepalive.doNowAsynchronous();
 	}
 
-	public final static void stopAllSession(final boolean notifyLineOff,
-			final boolean notifyRelineon, final boolean isForce) {
+	public final static void stopAllSession(final boolean notifyLineOff, final boolean notifyRelineon, final boolean isForce) {
 		CCoreUtil.checkAccess();
 
 		final CoreSession[] coreSSS = SessionManager.getAllSocketSessions();
@@ -140,12 +137,11 @@ public class J2SESessionManager extends SessionManager {
 		}
 	}
 
-	public final static void stopSession(final CoreSession coreSS, final boolean notifyLineOff,
-			final boolean notifyRelineon, final boolean isForce) {
+	public final static void stopSession(final CoreSession coreSS, final boolean notifyLineOff, final boolean notifyRelineon,
+			final boolean isForce) {
 		if (notifyLineOff) {
 			try {
-				RootServerConnector.notifyLineOffType(coreSS,
-						RootServerConnector.LOFF_ServerReq_STR);
+				RootServerConnector.notifyLineOffType(coreSS, RootServerConnector.LOFF_ServerReq_STR);
 			} catch (final Throwable e) {// Anroid环境下，有可能不连接服务器时，产生异常。需catch。
 			}
 		}
@@ -169,8 +165,8 @@ public class J2SESessionManager extends SessionManager {
 		}
 	}
 
-	public static void dispatchRobotEventSynchronized(final ProjResponser resp, final Robot robot,
-			final RobotEvent event, final MutableArray mutableArray) {
+	public static void dispatchRobotEventSynchronized(final ProjResponser resp, final Robot robot, final RobotEvent event,
+			final MutableArray mutableArray) {
 		final Object[] arraySnap = mutableArray.array;
 		final Object[] array = sessionListThreadSafe.toArray(arraySnap);
 

@@ -32,33 +32,33 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- * This represents extra syntax which has no value to a runtime but is necessary to preserve
- * syntax in the case of rewriting or any other syntactical analysis.  Comments and potentially
- * other pieces of syntax may subclass this so it is easier to process those in a visitor.
+ * This represents extra syntax which has no value to a runtime but is necessary to preserve syntax
+ * in the case of rewriting or any other syntactical analysis. Comments and potentially other pieces
+ * of syntax may subclass this so it is easier to process those in a visitor.
  */
 public class SyntaxNode extends Node {
-    // text for this region of syntax
-    private String content;
+	// text for this region of syntax
+	private String content;
 
-    public SyntaxNode(SourcePosition position, String content) {
-        super(position);
+	public SyntaxNode(SourcePosition position, String content) {
+		super(position);
 
-        this.content = content;
-    }
+		this.content = content;
+	}
 
-    //TODO : Should I have an #isSame() method?
+	//TODO : Should I have an #isSame() method?
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.SYNTAXNODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.SYNTAXNODE;
+	}
 
-    @Override
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitSyntaxNode(this);
-    }
+	@Override
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitSyntaxNode(this);
+	}
 
-    public String getContent() {
-        return content;
-    }
+	public String getContent() {
+		return content;
+	}
 }

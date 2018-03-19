@@ -42,8 +42,7 @@ public class LinkMenuManager {
 			showLinkPanel(frame, true, null);
 		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
-			App.showConfirmDialog(null, "load link panel error : " + e.toString(), "Error",
-					JOptionPane.ERROR_MESSAGE);
+			App.showConfirmDialog(null, "load link panel error : " + e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -61,8 +60,7 @@ public class LinkMenuManager {
 			currLink = null;
 		} catch (final Throwable e) {
 			ExceptionReporter.printStackTrace(e);
-			App.showConfirmDialog(null, "load link panel error : " + e.toString(), "Error",
-					JOptionPane.ERROR_MESSAGE);
+			App.showConfirmDialog(null, "load link panel error : " + e.toString(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -94,8 +92,7 @@ public class LinkMenuManager {
 				ContextManager.getThreadPool().run(new Runnable() {
 					@Override
 					public void run() {
-						App.showConfirmDialog(null, "Cant load Designer", "Error",
-								JOptionPane.CLOSED_OPTION, JOptionPane.ERROR_MESSAGE);
+						App.showConfirmDialog(null, "Cant load Designer", "Error", JOptionPane.CLOSED_OPTION, JOptionPane.ERROR_MESSAGE);
 					}
 				});
 			}
@@ -107,8 +104,7 @@ public class LinkMenuManager {
 	 * @param newFrame
 	 * @param relativeTo
 	 */
-	public static synchronized void showLinkPanel(final JFrame parent, final boolean newFrame,
-			final Component relativeTo) {
+	public static synchronized void showLinkPanel(final JFrame parent, final boolean newFrame, final Component relativeTo) {
 		if (LinkProjectStatus.tryEnterStatus(parent, LinkProjectStatus.MANAGER_IMPORT) == false) {
 			return;
 		}
@@ -116,7 +112,7 @@ public class LinkMenuManager {
 			currLink.toFront();
 		} else {
 			LinkProjectManager.reloadLinkProjects();
-	
+
 			final LinkProjectPanel linkp = new LinkProjectPanel(parent, newFrame, relativeTo);
 			currLink = linkp.toShow();
 		}

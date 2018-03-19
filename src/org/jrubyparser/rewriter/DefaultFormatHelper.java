@@ -31,7 +31,7 @@ package org.jrubyparser.rewriter;
 import org.jrubyparser.rewriter.utils.Indenter;
 
 public class DefaultFormatHelper implements FormatHelper {
-	
+
 	private static final String empty = "";
 	private static final String oneSpace = " ";
 	Indenter indentor = new Indenter(2, ' ');
@@ -55,7 +55,7 @@ public class DefaultFormatHelper implements FormatHelper {
 	public String afterMethodArguments() {
 		return empty;
 	}
-	
+
 	public String hashAssignment() {
 		return " => ";
 	}
@@ -67,7 +67,7 @@ public class DefaultFormatHelper implements FormatHelper {
 	public String afterHashContent() {
 		return empty;
 	}
-	
+
 	public String matchOperator() {
 		return " =~ ";
 	}
@@ -79,7 +79,7 @@ public class DefaultFormatHelper implements FormatHelper {
 	public String beforeIterBrackets() {
 		return oneSpace;
 	}
-	
+
 	public String afterAssignment() {
 		return oneSpace;
 	}

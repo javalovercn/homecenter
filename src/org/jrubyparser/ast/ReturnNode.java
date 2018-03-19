@@ -35,47 +35,52 @@ import org.jrubyparser.SourcePosition;
  * Represents a return statement.
  */
 public class ReturnNode extends Node {
-    private Node valueNode;
+	private Node valueNode;
 
-    public ReturnNode(SourcePosition position, Node valueNode) {
-        super(position);
+	public ReturnNode(SourcePosition position, Node valueNode) {
+		super(position);
 
-        this.valueNode = adopt(valueNode);
-    }
+		this.valueNode = adopt(valueNode);
+	}
 
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
-        ReturnNode other = (ReturnNode) node;
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
+		ReturnNode other = (ReturnNode) node;
 
-        if (getValue() == null && other.getValue() == null) return true;
-        if (getValue() == null || other.getValue() == null) return false;
+		if (getValue() == null && other.getValue() == null)
+			return true;
+		if (getValue() == null || other.getValue() == null)
+			return false;
 
-        return getValue().isSame(other.getValue());
-    }
+		return getValue().isSame(other.getValue());
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.RETURNNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.RETURNNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitReturnNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitReturnNode(this);
+	}
 
-    public Node getValue() {
-        return valueNode;
-    }
+	public Node getValue() {
+		return valueNode;
+	}
 
-    @Deprecated
-    public Node getValueNode() {
-        return getValue();
-    }
+	@Deprecated
+	public Node getValueNode() {
+		return getValue();
+	}
 
-    public void setValue(Node value) {
-        this.valueNode = adopt(value);
-    }
+	public void setValue(Node value) {
+		this.valueNode = adopt(value);
+	}
 }

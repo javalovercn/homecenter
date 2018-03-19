@@ -66,8 +66,8 @@ public interface PlatformService {
 	/**
 	 * 
 	 * @param files
-	 *            null for last 3rdClassLoader; if not null, create new instance
-	 *            for 3rd class loader.
+	 *            null for last 3rdClassLoader; if not null, create new instance for 3rd class
+	 *            loader.
 	 * @return
 	 */
 	public ClassLoader get3rdAndServClassLoader(File[] files);
@@ -83,8 +83,7 @@ public interface PlatformService {
 	 * @param loadOpID
 	 * @return
 	 */
-	public ClassLoader loadClasses(File[] filePaths, ClassLoader parent, boolean isDex,
-			String loadOpID);
+	public ClassLoader loadClasses(File[] filePaths, ClassLoader parent, boolean isDex, String loadOpID);
 
 	public BufferedImage makeRoundedCorner(BufferedImage image, int cornerRadius);
 
@@ -116,8 +115,7 @@ public interface PlatformService {
 	 */
 	public void startExitSystem();
 
-	public PlatformTrayIcon buildPlatformTrayIcon(final Image image, String toolTip,
-			final JPopupMenu menu);
+	public PlatformTrayIcon buildPlatformTrayIcon(final Image image, String toolTip, final JPopupMenu menu);
 
 	public File getBaseDir();
 

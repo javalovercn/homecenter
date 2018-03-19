@@ -35,21 +35,23 @@ import org.jrubyparser.SourcePosition;
  * A string which contains some dynamic elements which needs to be evaluated (introduced by #).
  */
 public class DStrNode extends ListNode implements ILiteralNode {
-    public DStrNode(SourcePosition position) {
-        super(position);
-    }
+	public DStrNode(SourcePosition position) {
+		super(position);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.DSTRNODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.DSTRNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitDStrNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	@Override
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitDStrNode(this);
+	}
 }

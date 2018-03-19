@@ -24,18 +24,16 @@ public class CodeContext {
 		this(codeHelper, contextNode, rowIdx, false, true);
 	}
 
-	public CodeContext(final boolean isForRow, final CodeHelper codeHelper, final Node contextNode,
-			final int rowIdx) {
+	public CodeContext(final boolean isForRow, final CodeHelper codeHelper, final Node contextNode, final int rowIdx) {
 		this(codeHelper, contextNode, rowIdx, false, isForRow);
 	}
 
-	public CodeContext(final CodeHelper codeHelper, final Node contextNode, final int rowIdx,
-			final boolean isParseScripts) {
+	public CodeContext(final CodeHelper codeHelper, final Node contextNode, final int rowIdx, final boolean isParseScripts) {
 		this(codeHelper, contextNode, rowIdx, isParseScripts, false);
 	}
 
-	public CodeContext(final CodeHelper codeHelper, final Node contextNode, final int rowIdx,
-			final boolean isParseScripts, final boolean isForRow) {
+	public CodeContext(final CodeHelper codeHelper, final Node contextNode, final int rowIdx, final boolean isParseScripts,
+			final boolean isForRow) {
 		this.codeHelper = codeHelper;
 		this.contextNode = contextNode;
 		this.rowIdx = rowIdx;
@@ -57,8 +55,8 @@ public class CodeContext {
 	/**
 	 * import Java::hc.server.util.json.JSONObject $aa = JSONObject.new()
 	 * 
-	 * $aa = $aa.put("aa", "") $str = "World" $str = $str $i = 100 $aa.put($str,
-	 * "").<edit> 获得某个变量Node的上一行Node，以免进入循环search。
+	 * $aa = $aa.put("aa", "") $str = "World" $str = $str $i = 100 $aa.put($str, "").<edit>
+	 * 获得某个变量Node的上一行Node，以免进入循环search。
 	 * 
 	 * @param node
 	 * @return
@@ -134,8 +132,7 @@ public class CodeContext {
 		return jrubyClassDesc;
 	}
 
-	private final Node searchBottomNode(final Node startNode, final int rowIdxAtScript,
-			final boolean isForRow) {
+	private final Node searchBottomNode(final Node startNode, final int rowIdxAtScript, final boolean isForRow) {
 		if (startNode == null) {
 			return null;
 		}
@@ -165,17 +162,16 @@ public class CodeContext {
 				}
 			}
 
-			if (isForRow && ((sub.getPosition().getEndLine() < rowIdxAtScript)
-					|| (sub.getPosition().getStartLine() == rowIdxAtScript))) {// 有可能跨多行且当前编辑行初始为空，所以不能使用&&
-																				// sub.getPosition().getEndLine()
-																				// ==
-																				// rowIdxAtScript
-																				// +
-																				// 1，比如：a=1\n\na
-																				// =
-																				// 1
-																				// +
-																				// a<edit>
+			if (isForRow && ((sub.getPosition().getEndLine() < rowIdxAtScript) || (sub.getPosition().getStartLine() == rowIdxAtScript))) {// 有可能跨多行且当前编辑行初始为空，所以不能使用&&
+																																			// sub.getPosition().getEndLine()
+																																			// ==
+																																			// rowIdxAtScript
+																																			// +
+																																			// 1，比如：a=1\n\na
+																																			// =
+																																			// 1
+																																			// +
+																																			// a<edit>
 				final Node deepSub = searchBottomNode(sub, rowIdxAtScript, isForRow);
 				if (deepSub == null) {
 					return sub;

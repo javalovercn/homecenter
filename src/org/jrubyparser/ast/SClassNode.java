@@ -46,100 +46,105 @@ import org.jrubyparser.util.MethodDefVisitor;
  * </pre>
  */
 public class SClassNode extends Node implements ILocalScope, IModuleScope {
-    private Node receiverNode;
-    private StaticScope scope;
-    private Node bodyNode;
+	private Node receiverNode;
+	private StaticScope scope;
+	private Node bodyNode;
 
-    public SClassNode(SourcePosition position, Node recvNode, StaticScope scope, Node bodyNode) {
-        super(position);
+	public SClassNode(SourcePosition position, Node recvNode, StaticScope scope, Node bodyNode) {
+		super(position);
 
-        assert scope != null : "scope is not null";
-        assert recvNode != null : "receiverNode is not null";
+		assert scope != null : "scope is not null";
+		assert recvNode != null : "receiverNode is not null";
 
-        this.receiverNode = adopt(recvNode);
-        this.scope = scope;
-        this.bodyNode = adopt(bodyNode);
-    }
+		this.receiverNode = adopt(recvNode);
+		this.scope = scope;
+		this.bodyNode = adopt(bodyNode);
+	}
 
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-        SClassNode other = (SClassNode) node;
+		SClassNode other = (SClassNode) node;
 
-        if (getBody() == null && other.getBody() == null) return true;
-        if (getBody() == null || other.getBody() == null) return false;
+		if (getBody() == null && other.getBody() == null)
+			return true;
+		if (getBody() == null || other.getBody() == null)
+			return false;
 
-        return getReceiver().isSame(other.getReceiver());
-    }
+		return getReceiver().isSame(other.getReceiver());
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.SCLASSNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.SCLASSNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitSClassNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitSClassNode(this);
+	}
 
-    /**
-     * Gets the body of this class.
-     *
-     * @return the contents
-     */
-    public Node getBody() {
-        return bodyNode;
-    }
+	/**
+	 * Gets the body of this class.
+	 *
+	 * @return the contents
+	 */
+	public Node getBody() {
+		return bodyNode;
+	}
 
-    @Deprecated
-    public Node getBodyNode() {
-        return getBody();
-    }
+	@Deprecated
+	public Node getBodyNode() {
+		return getBody();
+	}
 
-    public void setBody(Node body) {
-        this.bodyNode = adopt(body);
-    }
-    /**
-     * Gets the scope of this class
-     *
-     * @return the scope
-     */
-    public StaticScope getScope() {
-        return scope;
-    }
+	public void setBody(Node body) {
+		this.bodyNode = adopt(body);
+	}
 
-    /**
-     * Gets the receiverNode.
-     * @return Returns a Node
-     */
-    public Node getReceiver() {
-        return receiverNode;
-    }
+	/**
+	 * Gets the scope of this class
+	 *
+	 * @return the scope
+	 */
+	public StaticScope getScope() {
+		return scope;
+	}
 
-    @Deprecated
-    public Node getReceiverNode() {
-        return getReceiver();
-    }
+	/**
+	 * Gets the receiverNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getReceiver() {
+		return receiverNode;
+	}
 
-    public void setReceiver(Node receiver) {
-        this.receiverNode = adopt(receiver);
-    }
+	@Deprecated
+	public Node getReceiverNode() {
+		return getReceiver();
+	}
 
-    /**
-     * Returns a list of all Method Nodes included in the module's ast.
-     *
-     * @return Returns a List of MethodDefNodes
-     */
-    public List<MethodDefNode> getMethodDefs() {
-        return MethodDefVisitor.findMethodsIn(this);
-    }
+	public void setReceiver(Node receiver) {
+		this.receiverNode = adopt(receiver);
+	}
 
+	/**
+	 * Returns a list of all Method Nodes included in the module's ast.
+	 *
+	 * @return Returns a List of MethodDefNodes
+	 */
+	public List<MethodDefNode> getMethodDefs() {
+		return MethodDefVisitor.findMethodsIn(this);
+	}
 
-    public List<ILocalVariable> getVariableReferencesNamed(String name) {
-        return ILocalVariableVisitor.findOccurrencesIn(this, name);
-    }
+	public List<ILocalVariable> getVariableReferencesNamed(String name) {
+		return ILocalVariableVisitor.findOccurrencesIn(this, name);
+	}
 }
-

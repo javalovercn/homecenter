@@ -19,8 +19,7 @@ public class ConsoleWriter extends Writer {
 		writeImpl(cbuf, off, len, false);
 	}
 
-	private final void writeImpl(final char[] cbuf, final int off, final int len,
-			final boolean isError) {
+	private final void writeImpl(final char[] cbuf, final int off, final int len, final boolean isError) {
 		final ScriptEditPanel sep = ctp.sep;
 		if (sep != null) {
 			sep.showConsole(true);
@@ -29,8 +28,7 @@ public class ConsoleWriter extends Writer {
 		ctp.write(cbuf, off, len, isError);
 	}
 
-	public final void writeError(final char[] cbuf, final int off, final int len)
-			throws IOException {
+	public final void writeError(final char[] cbuf, final int off, final int len) throws IOException {
 		writeImpl(cbuf, off, len, true);
 	}
 

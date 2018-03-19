@@ -30,8 +30,8 @@ public class ConverterWrapper extends Processor {
 				msg.cloneHeaderTo(target);
 				target.ctrl_dev_id = preMsg.ctrl_dev_id;
 				workbench.V = workbench.O ? false
-						: workbench.log("{" + project_id + "/" + name + "} upConvert from :"
-								+ msg.toString() + "\n\tto free message :" + target.toString());
+						: workbench.log("{" + project_id + "/" + name + "} upConvert from :" + msg.toString() + "\n\tto free message :"
+								+ target.toString());
 				fp.__forward(target);
 			} catch (final Throwable e) {
 				workbench.err("fail upProcess on Converter [" + name + "] at " + msg.toString());
@@ -44,8 +44,8 @@ public class ConverterWrapper extends Processor {
 				msg.cloneHeaderTo(target);
 				target.ctrl_dev_id = preMsg.ctrl_dev_id;
 				workbench.V = workbench.O ? false
-						: workbench.log("{" + project_id + "/" + name + "} downConvert from :"
-								+ msg.toString() + "\n\tto free message :" + target.toString());
+						: workbench.log("{" + project_id + "/" + name + "} downConvert from :" + msg.toString() + "\n\tto free message :"
+								+ target.toString());
 				fp.__forward(target);
 			} catch (final Throwable e) {
 				workbench.err("fail downProcess on Converter [" + name + "] at " + msg.toString());

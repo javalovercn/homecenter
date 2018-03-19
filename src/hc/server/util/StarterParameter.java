@@ -58,8 +58,7 @@ public class StarterParameter {
 		return dServer;
 	}
 
-	public static boolean buildNIOs(final InetAddress ia, final String networkName,
-			final boolean buildNIO) {
+	public static boolean buildNIOs(final InetAddress ia, final String networkName, final boolean buildNIO) {
 		// try {
 		// ia = InetAddress.getByName("0.0.0.0");
 		// } catch (UnknownHostException e) {
@@ -97,8 +96,7 @@ public class StarterParameter {
 		UPnPUtil.hcgd = null;
 
 		final String rootIP = RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServer);
-		final int rootPort = Integer
-				.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServerPort));
+		final int rootPort = Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServerPort));
 
 		// 暂停stun IP
 		// LogManager.log("try connect homecenter.mobi [" + rootIP + ":" +
@@ -106,12 +104,10 @@ public class StarterParameter {
 		// publicShowIP = getStunIP(rootIP, rootPort);
 
 		// SIPManager.resetAllConnection();
-		String networkInterfacename = PropertiesManager
-				.getValue(PropertiesManager.p_selectedNetwork, HttpUtil.AUTO_DETECT_NETWORK);
+		String networkInterfacename = PropertiesManager.getValue(PropertiesManager.p_selectedNetwork, HttpUtil.AUTO_DETECT_NETWORK);
 		InetAddress ia = null;
 		if (networkInterfacename.equals(HttpUtil.AUTO_DETECT_NETWORK)) {
-			final String host = (PropertiesManager.isSimu() == false)
-					? RootServerConnector.HOST_HOMECENTER_MOBI
+			final String host = (PropertiesManager.isSimu() == false) ? RootServerConnector.HOST_HOMECENTER_MOBI
 					: RootServerConnector.IP_192_168_1_102;
 			ia = ResourceUtil.searchReachableInetAddress(host);
 		} else {
@@ -125,16 +121,15 @@ public class StarterParameter {
 		if (ia == null) {
 			ia = HttpUtil.getLocal();
 		}
-		if (PropertiesManager.isTrue(PropertiesManager.p_ForceRelay)
-				|| RootConfig.getInstance().isTrue(RootConfig.p_forceRelay)) {
+		if (PropertiesManager.isTrue(PropertiesManager.p_ForceRelay) || RootConfig.getInstance().isTrue(RootConfig.p_forceRelay)) {
 			if (!PropertiesManager.isTrue(PropertiesManager.p_DisableHomeWireless)) {
 				buildNIOs(ia, networkInterfacename, false);
 			} else {
 				LogManager.log("Disable home direct server.");
 			}
 		} else {
-			if ((!PropertiesManager.isTrue(PropertiesManager.p_DisableDirect)) && StarterParameter
-					.checkDirectPublic(ia, StarterParameter.publicShowIP, false)) {
+			if ((!PropertiesManager.isTrue(PropertiesManager.p_DisableDirect))
+					&& StarterParameter.checkDirectPublic(ia, StarterParameter.publicShowIP, false)) {
 				// localUPnPIP = publicShowIP; homeWirelessIpPort.ip =
 				// publicShowIP
 				StarterParameter.relayServerUPnPIP = StarterParameter.publicShowIP;
@@ -154,24 +149,18 @@ public class StarterParameter {
 					final boolean b = buildNIOs(ia, networkInterfacename, true);
 
 					// startUPnP(ia, 0 0原为localPort成员变量
-					final String[] ups = UPnPUtil.startUPnP(ia, 0,
-							StarterParameter
-									.getUPnPPortFromP(PropertiesManager.p_DirectUPnPExtPort),
+					final String[] ups = UPnPUtil.startUPnP(ia, 0, StarterParameter.getUPnPPortFromP(PropertiesManager.p_DirectUPnPExtPort),
 							TokenManager.getToken());
 					StarterParameter.homeWirelessIpPort.port = Integer.parseInt(ups[1]);
 					StarterParameter.homeWirelessIpPort.ip = ups[0];
 
-					final String[] relayUPnP = UPnPUtil.startUPnP(ia,
-							StarterParameter.relayServerLocalPort,
-							StarterParameter
-									.getUPnPPortFromP(PropertiesManager.p_RelayServerUPnPExtPort),
-							TokenManager.getRelayToken());
+					final String[] relayUPnP = UPnPUtil.startUPnP(ia, StarterParameter.relayServerLocalPort,
+							StarterParameter.getUPnPPortFromP(PropertiesManager.p_RelayServerUPnPExtPort), TokenManager.getRelayToken());
 					StarterParameter.relayServerUPnPPort = Integer.parseInt(relayUPnP[1]);
 					StarterParameter.relayServerUPnPIP = relayUPnP[0];
 
 					PropertiesManager.setValue(PropertiesManager.p_DirectUPnPExtPort, ups[1]);
-					PropertiesManager.setValue(PropertiesManager.p_RelayServerUPnPExtPort,
-							relayUPnP[1]);
+					PropertiesManager.setValue(PropertiesManager.p_RelayServerUPnPExtPort, relayUPnP[1]);
 					PropertiesManager.saveFile();
 
 					return b;
@@ -207,8 +196,7 @@ public class StarterParameter {
 			client.setSoTimeout(4000);
 
 			final byte[] msg = RootServerConnector.getCheckAliveCmdBS();
-			final DatagramPacket sendPack = new DatagramPacket(msg, msg.length, targetAddr,
-					RootServerConnector.MULTICAST_PORT);
+			final DatagramPacket sendPack = new DatagramPacket(msg, msg.length, targetAddr, RootServerConnector.MULTICAST_PORT);
 			client.send(sendPack);
 			receiveBS = ByteUtil.byteArrayCacher.getFree(1024);
 			sendPack.setData(receiveBS, 0, 1024);
@@ -266,16 +254,13 @@ public class StarterParameter {
 
 					final int len = recvPack.getLength();
 					L.V = L.WShop ? false
-							: LogManager.log("[multicast] receice query from : "
-									+ recvPack.getAddress().toString() + ", port : "
+							: LogManager.log("[multicast] receice query from : " + recvPack.getAddress().toString() + ", port : "
 									+ recvPack.getPort());
 					if (RootServerConnector.isQueryDirectServerIPCmd(bs, 0, len)) {// query:user@email.com
 						final byte[] queryBS = RootServerConnector.getQueryDirectServerCmdBS();
 						final byte[] uuidBS = IConstant.getUUIDBS();
-						if (ByteUtil.isSame(bs, queryBS.length, len - queryBS.length, uuidBS, 0,
-								uuidBS.length)) {
-							L.V = L.WShop ? false
-									: LogManager.log("[multicast] query direct server IP/Port.");
+						if (ByteUtil.isSame(bs, queryBS.length, len - queryBS.length, uuidBS, 0, uuidBS.length)) {
+							L.V = L.WShop ? false : LogManager.log("[multicast] query direct server IP/Port.");
 							sendDirectServerIP(bs, recvPack);
 						}
 					} else if (RootServerConnector.isCheckAliveCmd(bs, 0, len)) {
@@ -287,8 +272,7 @@ public class StarterParameter {
 			private final MulticastSocket buildMulticastSocket(final String ip) {
 				try {
 					final InetAddress inetRemoteAddr = InetAddress.getByName(ip);
-					final MulticastSocket server = new MulticastSocket(
-							RootServerConnector.MULTICAST_PORT);
+					final MulticastSocket server = new MulticastSocket(RootServerConnector.MULTICAST_PORT);
 					final NetInterAddresses preferNI = null;// HttpUtil.getPreferNetworkInterface()
 					final MulticastSocket out = tryJoinGroup(server, inetRemoteAddr, preferNI);
 					if (out != null) {
@@ -299,24 +283,21 @@ public class StarterParameter {
 				return null;
 			}
 
-			final MulticastSocket tryJoinGroup(final MulticastSocket server, final InetAddress addr,
-					final NetInterAddresses ni) {
+			final MulticastSocket tryJoinGroup(final MulticastSocket server, final InetAddress addr, final NetInterAddresses ni) {
 				try {
 					if (ni != null) {
 						server.setNetworkInterface(ni.ni);
 						server.setInterface(ni.getWLANInetAddress());
 						final int port = RootServerConnector.MULTICAST_PORT;
 						server.joinGroup(addr);
-						LogManager.log("[multicast] success join group address : " + addr.toString()
-								+ ", port : " + port + ", from networkInterface : "
-								+ ni.ni.toString());
+						LogManager.log("[multicast] success join group address : " + addr.toString() + ", port : " + port
+								+ ", from networkInterface : " + ni.ni.toString());
 						return server;
 					} else {
 						final Vector<NetInterAddresses> list = HttpUtil.getWLANNetworkInterfaces();
 						final int size = list.size();
 						for (int i = 0; i < size; i++) {
-							final MulticastSocket out = tryJoinGroup(server, addr,
-									list.elementAt(i));
+							final MulticastSocket out = tryJoinGroup(server, addr, list.elementAt(i));
 							if (out != null) {
 								return out;
 							}
@@ -352,9 +333,8 @@ public class StarterParameter {
 				try {
 					server.send(recvPack);
 					L.V = L.WShop ? false
-							: LogManager.log("[multicast] successful send direct server ip/port to "
-									+ recvPack.getAddress().toString() + ", port : "
-									+ recvPack.getPort());
+							: LogManager.log("[multicast] successful send direct server ip/port to " + recvPack.getAddress().toString()
+									+ ", port : " + recvPack.getPort());
 				} catch (final Throwable ex) {
 					ex.printStackTrace();
 				}
@@ -402,8 +382,7 @@ public class StarterParameter {
 	public static String relayUPnPToken;
 	public static String publicShowIP = "";
 
-	public static boolean checkDirectPublic(final InetAddress iaddress, String ip,
-			final boolean useUPnP) {
+	public static boolean checkDirectPublic(final InetAddress iaddress, String ip, final boolean useUPnP) {
 		String[] ups = null;
 		ServerSocket upnplisten = null;
 		try {
@@ -457,10 +436,8 @@ public class StarterParameter {
 		bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = MsgBuilder.DATA_ROOT_UPNP_TEST;
 		// bs[MsgBuilder.INDEX_PACKET_SPLIT] = MsgBuilder.DATA_PACKET_NOT_SPLIT;
 
-		final Socket socket = buildSocket(0,
-				RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServer),
-				Integer.parseInt(
-						RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServerPort)));
+		final Socket socket = buildSocket(0, RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServer),
+				Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_RootRelayServerPort)));
 		if (socket == null) {
 			// 增加null判断，以减少大量后续的错误
 			return false;
@@ -495,12 +472,10 @@ public class StarterParameter {
 		}
 	}
 
-	private static Socket buildSocket(final int localPort, final String targetServer,
-			final int targetPort) {
+	private static Socket buildSocket(final int localPort, final String targetServer, final int targetPort) {
 		try {
 			final InetAddress localAddress = ResourceUtil.searchReachableInetAddress(targetServer);
-			final Socket socket = new Socket(InetAddress.getByName(targetServer), targetPort,
-					localAddress, localPort);
+			final Socket socket = new Socket(InetAddress.getByName(targetServer), targetPort, localAddress, localPort);
 			socket.setSoTimeout(6000);
 			return socket;
 		} catch (final Throwable e) {
@@ -509,8 +484,7 @@ public class StarterParameter {
 		return null;
 	}
 
-	public static boolean checkServerOnline(final String remoteIP, final int remotePort,
-			final byte[] uuid) {
+	public static boolean checkServerOnline(final String remoteIP, final int remotePort, final byte[] uuid) {
 		byte[] bs = null;
 		Socket socket = null;
 		try {

@@ -36,6 +36,7 @@ import org.jrubyparser.lexer.LexerSource;
  * Common interface specifying the contract of Ruby parsers (1.8.6 + 1.9)
  */
 public interface RubyParser {
-    public ParserResult parse(ParserConfiguration configuration, LexerSource source) throws IOException;
-    public void setWarnings(IRubyWarnings warnings);
+	public ParserResult parse(ParserConfiguration configuration, LexerSource source) throws IOException;
+
+	public void setWarnings(IRubyWarnings warnings);
 }

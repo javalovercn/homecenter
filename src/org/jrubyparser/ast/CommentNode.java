@@ -32,29 +32,29 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- * Representation of a comment.  Note that comments are not part of evaluation so you do
- * not get the ability to visit this node as part of evaluation.  In theory we could add
- * this if we envisioned some wacky annotation system, but we have no crazy ideas yet.
+ * Representation of a comment. Note that comments are not part of evaluation so you do not get the
+ * ability to visit this node as part of evaluation. In theory we could add this if we envisioned
+ * some wacky annotation system, but we have no crazy ideas yet.
  *
  */
 public class CommentNode extends SyntaxNode {
 
-    public CommentNode(SourcePosition position, String content) {
-        super(position, content);
-    }
+	public CommentNode(SourcePosition position, String content) {
+		super(position, content);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.COMMENTNODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.COMMENTNODE;
+	}
 
-    @Override
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitCommentNode(this);
-    }
+	@Override
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitCommentNode(this);
+	}
 
-    @Override
-    public String toString() {
-        return "Comment: " + getContent();
-    }
+	@Override
+	public String toString() {
+		return "Comment: " + getContent();
+	}
 }

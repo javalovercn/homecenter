@@ -32,73 +32,76 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 public class Match2Node extends Node {
-    private Node receiverNode;
-    private Node valueNode;
+	private Node receiverNode;
+	private Node valueNode;
 
-    public Match2Node(SourcePosition position, Node receiverNode, Node valueNode) {
-        super(position);
+	public Match2Node(SourcePosition position, Node receiverNode, Node valueNode) {
+		super(position);
 
-        assert receiverNode != null : "receiverNode is not null";
-        assert valueNode != null : "valueNode is not null";
+		assert receiverNode != null : "receiverNode is not null";
+		assert valueNode != null : "valueNode is not null";
 
-        this.receiverNode = adopt(receiverNode);
-        this.valueNode = adopt(valueNode);
-    }
+		this.receiverNode = adopt(receiverNode);
+		this.valueNode = adopt(valueNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+		Match2Node other = (Match2Node) node;
 
-        Match2Node other = (Match2Node) node;
+		return getValue().isSame(other.getValue()) && getReceiver().isSame(other.getReceiver());
+	}
 
-        return getValue().isSame(other.getValue()) && getReceiver().isSame(other.getReceiver());
-    }
+	public NodeType getNodeType() {
+		return NodeType.MATCH2NODE;
+	}
 
+	/**
+	 * Gets the receiverNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getReceiver() {
+		return receiverNode;
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.MATCH2NODE;
-    }
+	@Deprecated
+	public Node getReceiverNode() {
+		return getReceiver();
+	}
 
-    /**
-     * Gets the receiverNode.
-     * @return Returns a Node
-     */
-    public Node getReceiver() {
-        return receiverNode;
-    }
+	/**
+	 * Gets the valueNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getValue() {
+		return valueNode;
+	}
 
-    @Deprecated
-    public Node getReceiverNode() {
-        return getReceiver();
-    }
+	@Deprecated
+	public Node getValueNode() {
+		return getValue();
+	}
 
-
-    /**
-     * Gets the valueNode.
-     * @return Returns a Node
-     */
-    public Node getValue() {
-        return valueNode;
-    }
-
-    @Deprecated
-    public Node getValueNode() {
-        return getValue();
-    }
-
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitMatch2Node(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitMatch2Node(this);
+	}
 
 }

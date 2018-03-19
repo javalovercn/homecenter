@@ -3,32 +3,33 @@ package hc.core.util;
 public abstract class RepeatManager {
 	long lastMS;
 	int occurCounter;
-	
-	public final void reset(){
+
+	public final void reset() {
 		lastMS = 0;
 		occurCounter = 0;
 	}
-	
-	public final long getLastMS(){
+
+	public final long getLastMS() {
 		return lastMS;
 	}
-	
-	public final int getCount(){
+
+	public final int getCount() {
 		return occurCounter;
 	}
-	
+
 	/**
 	 * true means processed and need reset.
+	 * 
 	 * @return
 	 */
 	public abstract boolean repeatAction();
-	
-	public final void occur(){
-		if(lastMS == 0){
+
+	public final void occur() {
+		if (lastMS == 0) {
 			lastMS = System.currentTimeMillis();
 		}
 		occurCounter++;
-		if(repeatAction()){
+		if (repeatAction()) {
 			reset();
 		}
 	}

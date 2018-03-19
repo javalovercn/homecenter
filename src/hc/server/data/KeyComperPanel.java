@@ -80,12 +80,10 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 	private int[] buildComboKeyCodes() {
 		if (ResourceUtil.isMacOSX()) {
 			// 增加Mac command键
-			final int[] out = { KeyEvent.VK_UNDEFINED, KeyEvent.VK_META, KeyEvent.VK_CONTROL,
-					KeyEvent.VK_ALT, KeyEvent.VK_SHIFT };
+			final int[] out = { KeyEvent.VK_UNDEFINED, KeyEvent.VK_META, KeyEvent.VK_CONTROL, KeyEvent.VK_ALT, KeyEvent.VK_SHIFT };
 			return out;
 		} else {
-			final int[] out = { KeyEvent.VK_UNDEFINED, KeyEvent.VK_CONTROL, KeyEvent.VK_ALT,
-					KeyEvent.VK_SHIFT };
+			final int[] out = { KeyEvent.VK_UNDEFINED, KeyEvent.VK_CONTROL, KeyEvent.VK_ALT, KeyEvent.VK_SHIFT };
 			return out;
 		}
 	}
@@ -101,34 +99,29 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 
 	private static int[] buildKeyCodes() {
 		// 重要：如果以下添加，请同步添加到AndroidPlatformService.convertToAndroidKeyCodeAdAPI
-		final int[] kc = { KeyEvent.VK_0, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3,
-				KeyEvent.VK_4, KeyEvent.VK_5, KeyEvent.VK_6, KeyEvent.VK_7, KeyEvent.VK_8,
-				KeyEvent.VK_9,
+		final int[] kc = { KeyEvent.VK_0, KeyEvent.VK_1, KeyEvent.VK_2, KeyEvent.VK_3, KeyEvent.VK_4, KeyEvent.VK_5, KeyEvent.VK_6,
+				KeyEvent.VK_7, KeyEvent.VK_8, KeyEvent.VK_9,
 
-				KeyEvent.VK_A, KeyEvent.VK_B, KeyEvent.VK_C, KeyEvent.VK_D, KeyEvent.VK_E,
-				KeyEvent.VK_F, KeyEvent.VK_G, KeyEvent.VK_H, KeyEvent.VK_I, KeyEvent.VK_J,
-				KeyEvent.VK_K, KeyEvent.VK_L, KeyEvent.VK_M, KeyEvent.VK_N, KeyEvent.VK_O,
-				KeyEvent.VK_P, KeyEvent.VK_Q, KeyEvent.VK_R, KeyEvent.VK_S, KeyEvent.VK_T,
-				KeyEvent.VK_U, KeyEvent.VK_V, KeyEvent.VK_W, KeyEvent.VK_X, KeyEvent.VK_Y,
-				KeyEvent.VK_Z,
+				KeyEvent.VK_A, KeyEvent.VK_B, KeyEvent.VK_C, KeyEvent.VK_D, KeyEvent.VK_E, KeyEvent.VK_F, KeyEvent.VK_G, KeyEvent.VK_H,
+				KeyEvent.VK_I, KeyEvent.VK_J, KeyEvent.VK_K, KeyEvent.VK_L, KeyEvent.VK_M, KeyEvent.VK_N, KeyEvent.VK_O, KeyEvent.VK_P,
+				KeyEvent.VK_Q, KeyEvent.VK_R, KeyEvent.VK_S, KeyEvent.VK_T, KeyEvent.VK_U, KeyEvent.VK_V, KeyEvent.VK_W, KeyEvent.VK_X,
+				KeyEvent.VK_Y, KeyEvent.VK_Z,
 
-				KeyEvent.VK_F1, KeyEvent.VK_F2, KeyEvent.VK_F3, KeyEvent.VK_F4, KeyEvent.VK_F5,
-				KeyEvent.VK_F6, KeyEvent.VK_F7, KeyEvent.VK_F8, KeyEvent.VK_F9, KeyEvent.VK_F10,
-				KeyEvent.VK_F11, KeyEvent.VK_F12,
+				KeyEvent.VK_F1, KeyEvent.VK_F2, KeyEvent.VK_F3, KeyEvent.VK_F4, KeyEvent.VK_F5, KeyEvent.VK_F6, KeyEvent.VK_F7,
+				KeyEvent.VK_F8, KeyEvent.VK_F9, KeyEvent.VK_F10, KeyEvent.VK_F11, KeyEvent.VK_F12,
 
-				KeyEvent.VK_WINDOWS, KeyEvent.VK_CONTEXT_MENU, KeyEvent.VK_SPACE,
-				KeyEvent.VK_CAPS_LOCK, KeyEvent.VK_TAB, KeyEvent.VK_ESCAPE, KeyEvent.VK_PRINTSCREEN,
-				KeyEvent.VK_NUM_LOCK, KeyEvent.VK_PAUSE,
+				KeyEvent.VK_WINDOWS, KeyEvent.VK_CONTEXT_MENU, KeyEvent.VK_SPACE, KeyEvent.VK_CAPS_LOCK, KeyEvent.VK_TAB,
+				KeyEvent.VK_ESCAPE, KeyEvent.VK_PRINTSCREEN, KeyEvent.VK_NUM_LOCK, KeyEvent.VK_PAUSE,
 
-				KeyEvent.VK_INSERT, KeyEvent.VK_HOME, KeyEvent.VK_PAGE_UP, KeyEvent.VK_DELETE,
-				KeyEvent.VK_END, KeyEvent.VK_PAGE_DOWN, KeyEvent.VK_BACK_SPACE, KeyEvent.VK_ENTER,
+				KeyEvent.VK_INSERT, KeyEvent.VK_HOME, KeyEvent.VK_PAGE_UP, KeyEvent.VK_DELETE, KeyEvent.VK_END, KeyEvent.VK_PAGE_DOWN,
+				KeyEvent.VK_BACK_SPACE, KeyEvent.VK_ENTER,
 
 				KeyEvent.VK_UP, KeyEvent.VK_LEFT, KeyEvent.VK_DOWN, KeyEvent.VK_RIGHT,
 
 				KeyEvent.VK_MINUS, KeyEvent.VK_EQUALS, // 因为+是个特殊字符，所以关闭
-														// KeyEvent.VK_PLUS,
-				KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET, KeyEvent.VK_BACK_SLASH,
-				KeyEvent.VK_SEMICOLON, KeyEvent.VK_COMMA, KeyEvent.VK_PERIOD, KeyEvent.VK_SLASH
+				// KeyEvent.VK_PLUS,
+				KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET, KeyEvent.VK_BACK_SLASH, KeyEvent.VK_SEMICOLON, KeyEvent.VK_COMMA,
+				KeyEvent.VK_PERIOD, KeyEvent.VK_SLASH
 				// 无 %, &, *, ', ", ?, `, ~, <, >, {, }, |
 		};
 		return kc;
@@ -136,8 +129,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 
 	public static String getHCKeyText(final int keyCode) {
 		final String finalBestText = KeyEvent.getKeyText(keyCode);
-		if ((keyCode != KeyEvent.VK_META || keyCode != KeyEvent.VK_ALT)
-				&& finalBestText.length() == 1) {
+		if ((keyCode != KeyEvent.VK_META || keyCode != KeyEvent.VK_ALT) && finalBestText.length() == 1) {
 			//  因为后期的版本可能支持最优表意字符，如Mac下的option
 			return finalBestText;
 		}
@@ -190,8 +182,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 			return "";
 
 		case KeyEvent.VK_META:
-			return (ResourceUtil.isMacOSX()) ? ResourceUtil.getMacOSCommandKeyText()
-					: finalBestText;// 8984就是Mac的command键
+			return (ResourceUtil.isMacOSX()) ? ResourceUtil.getMacOSCommandKeyText() : finalBestText;// 8984就是Mac的command键
 
 		case KeyEvent.VK_ALT:
 			return (ResourceUtil.isMacOSX()) ? ResourceUtil.getMacOSOptionKeyText() : finalBestText;// 8984就是Mac的command键
@@ -241,8 +232,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 	JButton jbSave = new JButton("", new ImageIcon(ImageSrc.OK_ICON));
 	JButton jbCancel = new JButton("", new ImageIcon(ImageSrc.CANCEL_ICON));
 	JButton jbAdd = new JButton(ADD_TAG, addIcon);
-	JButton jbBuildImage = new JButton((String) ResourceUtil.get(9021),
-			new ImageIcon(ImageSrc.BUILD_SMALL_ICON));
+	JButton jbBuildImage = new JButton((String) ResourceUtil.get(9021), new ImageIcon(ImageSrc.BUILD_SMALL_ICON));
 
 	BorderLayout borderLayout1 = new BorderLayout();
 	JPanel jPanel1 = new JPanel();
@@ -287,9 +277,8 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 		});
 		table.getColumnModel().getColumn(2).setCellRenderer(new DefaultTableCellRenderer() {
 			@Override
-			public Component getTableCellRendererComponent(final JTable table, final Object value,
-					final boolean isSelected, final boolean hasFocus, final int row,
-					final int column) {
+			public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+					final boolean hasFocus, final int row, final int column) {
 				if (isSelected || row == table.getSelectedRow()) {
 					this.setForeground(table.getSelectionForeground());
 					this.setBackground(table.getSelectionBackground());
@@ -302,11 +291,9 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 				if (cell != null && cell.length() > 0) {
 					if (icons[row] == null) {
 						try {
-							BufferedImage bImageFromConvert = ImageIO
-									.read(ResourceUtil.getAbsPathInputStream(cell));
+							BufferedImage bImageFromConvert = ImageIO.read(ResourceUtil.getAbsPathInputStream(cell));
 							if (bImageFromConvert.getWidth() != 16) {
-								bImageFromConvert = ResourceUtil.resizeImage(bImageFromConvert, 16,
-										16);
+								bImageFromConvert = ResourceUtil.resizeImage(bImageFromConvert, 16, 16);
 							}
 							icons[row] = new ImageIcon(bImageFromConvert);
 							setHorizontalAlignment(CENTER);
@@ -325,12 +312,10 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 		});
 		table.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
 			@Override
-			public Component getTableCellRendererComponent(final JTable table, final Object value,
-					final boolean isSelected, final boolean hasFocus, final int row,
-					final int column) {
+			public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
+					final boolean hasFocus, final int row, final int column) {
 				setHorizontalAlignment(CENTER);
-				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
-						column);
+				return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			}
 		});
 		final ListSelectionModel rowSM = table.getSelectionModel();
@@ -379,16 +364,15 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 
 		jpImage.add(jcbImage, null);
 		jpImage.add(new JLabel(" "));
-		jbBuildImage.setToolTipText(
-				"create new icon from the selected key(s), the icon will display in mobile for clicking");
+		jbBuildImage.setToolTipText("create new icon from the selected key(s), the icon will display in mobile for clicking");
 		jpImage.add(jbBuildImage, null);
 		jpImage.add(new JLabel(" "));
 		jpImage.setBorder(new TitledBorder((String) ResourceUtil.get(9025)));
 		final JPanel jpTop = new JPanel();
 		jpTop.setBorder(new TitledBorder((String) ResourceUtil.get(9023)));
 		jpTop.setLayout(new GridBagLayout());
-		jpTop.add(jPanel1, new GridBagConstraints(0, 0, 2, 1, 1.0, 1.0, GridBagConstraints.CENTER,
-				GridBagConstraints.BOTH, new Insets(2, 2, 2, 2), 0, 0));
+		jpTop.add(jPanel1, new GridBagConstraints(0, 0, 2, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+				new Insets(2, 2, 2, 2), 0, 0));
 		{
 			final JPanel panel = new JPanel();
 			panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
@@ -397,11 +381,10 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 			addPanel.setBorder(new TitledBorder(MODIFY_TAG));
 			addPanel.add(jbAdd);
 
-			jpTop.add(panel, new GridBagConstraints(0, 1, 1, 1, 0.9, 1.0, GridBagConstraints.CENTER,
-					GridBagConstraints.BOTH, new Insets(2, 2, 2, 2), 0, 0));
-			jpTop.add(addPanel,
-					new GridBagConstraints(1, 1, 1, 1, 0.1, 1.0, GridBagConstraints.CENTER,
-							GridBagConstraints.BOTH, new Insets(2, 2, 2, 2), 0, 0));
+			jpTop.add(panel, new GridBagConstraints(0, 1, 1, 1, 0.9, 1.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+					new Insets(2, 2, 2, 2), 0, 0));
+			jpTop.add(addPanel, new GridBagConstraints(1, 1, 1, 1, 0.1, 1.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+					new Insets(2, 2, 2, 2), 0, 0));
 		}
 
 		final JPanel jpCenter = new JPanel();
@@ -418,8 +401,8 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 
 		final JPanel bottomSet = new JPanel();
 		bottomSet.setLayout(new GridBagLayout());
-		bottomSet.add(bottom, new GridBagConstraints(0, 0, 1, 1, 1.0, 1.0,
-				GridBagConstraints.CENTER, GridBagConstraints.BOTH, new Insets(2, 2, 2, 2), 0, 0));
+		bottomSet.add(bottom, new GridBagConstraints(0, 0, 1, 1, 1.0, 1.0, GridBagConstraints.CENTER, GridBagConstraints.BOTH,
+				new Insets(2, 2, 2, 2), 0, 0));
 		this.add(bottomSet, BorderLayout.SOUTH);
 
 		final int addButtonSize = (needSave) ? 5 : 3;
@@ -438,13 +421,13 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 		jbTest.addActionListener(new HCActionListener(new Runnable() {
 			@Override
 			public void run() {
-				final int out = App.showConfirmDialog(KeyComperPanel.this, ResourceUtil.get(9167),
-						"Test Key Input?", JOptionPane.OK_CANCEL_OPTION);
+				final int out = App.showConfirmDialog(KeyComperPanel.this, ResourceUtil.get(9167), "Test Key Input?",
+						JOptionPane.OK_CANCEL_OPTION);
 				if (out == JOptionPane.OK_OPTION) {
 					final String keyDesc = body[table.getSelectedRow()][1];
 					if (keyDesc == null) {
-						App.showMessageDialog(KeyComperPanel.this, "It can't be null!", "Error",
-								JOptionPane.ERROR_MESSAGE, App.getSysIcon(App.SYS_ERROR_ICON));
+						App.showMessageDialog(KeyComperPanel.this, "It can't be null!", "Error", JOptionPane.ERROR_MESSAGE,
+								App.getSysIcon(App.SYS_ERROR_ICON));
 						return;
 					}
 					KeyComper.actionKeys(keyDesc);
@@ -532,14 +515,12 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 	int size;
 
 	JFrame inFrame;
-	public static final char[] DIRECT_KEYS = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
-			'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A',
-			'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
-			'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+	public static final char[] DIRECT_KEYS = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r',
+			's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',
+			'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 
-			'`', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '=', '~', '!', '@', '#',
-			'$', '%', '^', '&', '*', '(', ')', '_', '+', '\t', '\n', '[', ']', '\\', '{', '}', '|',
-			';', ':', '\'', '"', ',', '<', '.', '>', '/', '?', ' ' };
+			'`', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '=', '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_',
+			'+', '\t', '\n', '[', ']', '\\', '{', '}', '|', ';', ':', '\'', '"', ',', '<', '.', '>', '/', '?', ' ' };
 
 	public static final int getCharKeyCode(final char ch) {
 		switch (ch) {
@@ -686,8 +667,7 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 				final int[] tmpMap = mapKey[j];
 				for (int k = 0; k < tmpMap.length; k++) {
 					// 由于用户手写，可能使用小写，所以要转为大写
-					if (keyArrs[i].toUpperCase()
-							.equals(fromKeyCodeToDesc(tmpMap[k]).toUpperCase())) {
+					if (keyArrs[i].toUpperCase().equals(fromKeyCodeToDesc(tmpMap[k]).toUpperCase())) {
 						jcbs[j].setSelectedIndex(k);
 						break;
 					}
@@ -855,22 +835,19 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 	 * @param pad
 	 * @return
 	 */
-	private static int searchBestFontSizeForImage(final int width, final int height,
-			final Font tryFont, final Graphics2D g, final String str, final int failBigSize,
-			final int pad) {
+	private static int searchBestFontSizeForImage(final int width, final int height, final Font tryFont, final Graphics2D g,
+			final String str, final int failBigSize, final int pad) {
 		final FontRenderContext frc = g.getFontRenderContext();
 		final Rectangle2D r2d = tryFont.getStringBounds(str, frc);
 		final int drawStrWidth = (int) r2d.getWidth();
 		final int drawStrHeight = (int) r2d.getHeight();
 		if (drawStrWidth + pad > width || drawStrHeight + pad > height) {
-			return searchBestFontSizeForImage(width, height,
-					new Font(tryFont.getName(), tryFont.getStyle(), tryFont.getSize() - 1), g, str,
+			return searchBestFontSizeForImage(width, height, new Font(tryFont.getName(), tryFont.getStyle(), tryFont.getSize() - 1), g, str,
 					tryFont.getSize(), pad);
 		} else if (failBigSize > 0) {
 			return tryFont.getSize();
 		} else {
-			return searchBestFontSizeForImage(width, height,
-					new Font(tryFont.getName(), tryFont.getStyle(), tryFont.getSize() + 1), g, str,
+			return searchBestFontSizeForImage(width, height, new Font(tryFont.getName(), tryFont.getStyle(), tryFont.getSize() + 1), g, str,
 					0, pad);
 		}
 	}
@@ -958,8 +935,8 @@ public class KeyComperPanel extends DataEditorPanel implements ActionListener {
 		final int type = bufferedimage.getColorModel().getTransparency();
 		BufferedImage img;
 		Graphics2D graphics2d;
-		(graphics2d = (img = new BufferedImage(w, h, type)).createGraphics()).setRenderingHint(
-				RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		(graphics2d = (img = new BufferedImage(w, h, type)).createGraphics()).setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		graphics2d.rotate(Math.toRadians(degree), w / 2, h / 2);
 		graphics2d.drawImage(bufferedimage, 0, 0, null);
 		graphics2d.dispose();

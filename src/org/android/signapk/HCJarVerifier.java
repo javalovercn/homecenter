@@ -30,34 +30,34 @@ public class HCJarVerifier extends AbstractJarVerifier {
 
 	@Override
 	public X509Certificate[] verifyJar(final File jarFile, X509Certificate[] trustedSigner) {
-		if(trustedSigner == null){
+		if (trustedSigner == null) {
 			trustedSigner = new X509Certificate[0];
 		}
-		
+
 		final int signedLength = trustedSigner.length;
-		
-		try{
+
+		try {
 			final ZipFile jf = new ZipFile(jarFile, ZipFile.OPEN_READ);
 			final HashMap<String, byte[]> metaEntries = JarVerifier.readMetaEntries(jf, true);
 			final byte[] mfBS = metaEntries.get(JarFile.MANIFEST_NAME);
-			if(mfBS == null){
+			if (mfBS == null) {
 				return new X509Certificate[0];
 			}
-			
+
 			final ByteArrayInputStream bis = new ByteArrayInputStream(mfBS);
 			final org.android.signapk.JarVerifier myJarVerifier = new org.android.signapk.JarVerifier("", new Manifest(bis), metaEntries);
-			
+
 			myJarVerifier.readCertificates();
 			myJarVerifier.verifyEntry(jf);
-			
+
 			final Certificate[] newCerts = myJarVerifier.getCerificateHCAPI("META-INF/CERT.SF");
-			
+
 			if ((newCerts == null) || (newCerts.length == 0)) {
-				if(signedLength > 0){
+				if (signedLength > 0) {
 					return null;
 				}
 			} else {
-				if(signedLength > 0){
+				if (signedLength > 0) {
 					boolean signedByHC = false;
 					for (int i = 0; i < newCerts.length && signedByHC == false; i++) {
 						for (int j = 0; j < signedLength; j++) {
@@ -67,28 +67,28 @@ public class HCJarVerifier extends AbstractJarVerifier {
 							}
 						}
 					}
-					
+
 					if (!signedByHC) {
 						return null;
 					}
 				}
 			}
-			
-			if(newCerts == null){
+
+			if (newCerts == null) {
 				return new X509Certificate[0];
-			}else{
+			} else {
 				final int len = newCerts.length;
 				final X509Certificate[] x509 = new X509Certificate[len];
 				for (int i = 0; i < len; i++) {
-					x509[i] = (X509Certificate)newCerts[i];
+					x509[i] = (X509Certificate) newCerts[i];
 				}
 				return x509;
 			}
-		}catch (final Throwable e) {
-			if(L.isInWorkshop){
+		} catch (final Throwable e) {
+			if (L.isInWorkshop) {
 				e.printStackTrace();//no display verified error
 			}
-//			throw new SecurityException("fail to verify signature : " + jarFile.getAbsolutePath());
+			//			throw new SecurityException("fail to verify signature : " + jarFile.getAbsolutePath());
 		}
 		return null;
 	}

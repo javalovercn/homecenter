@@ -7,7 +7,7 @@
 ### Sample mobile UI
 ![screenshot](http://homecenter.mobi/images/sc_mlet.png)
 
-to implement the cross-platform UI for Android/iPhone, write with JRuby/Java/J2SE/CSS as [here](https://github.com/javalovercn/homecenter/blob/master/docs/develop%20cloud%20app%20with%20J2SE%2BCSS%20for%20iPhone%20and%20Android.md).
+to implement the cross-platform UI for Android/iPhone, write with J2SE+CSS as [here](https://github.com/javalovercn/homecenter/blob/master/docs/develop%20cloud%20app%20with%20J2SE%2BCSS%20for%20iPhone%20and%20Android.md).
 
 ***
 ### License
@@ -21,7 +21,7 @@ to implement the cross-platform UI for Android/iPhone, write with JRuby/Java/J2S
 ***
 ### Features
 
-1. HomeCenter server runs not only on Oracle JDK/JRE (OpenJDK), but also Android (because of ["J2SE for Android"](https://github.com/javalovercn/j2se_for_android)).
+1. HomeCenter server runs not only on JDK/JRE, but also Android (because of ["J2SE for Android"](https://github.com/javalovercn/j2se_for_android)).
 2. double click to run, no configuration.
 3. the component HTMLMlet (codes above) will be translated to HTML5+JavaScript+CSS for Android/iPhone client on air, user inputs will be translated to J2SE Event and dispatch to their listeners.
 4. focus business/UI with Java/J2SE technology.
@@ -30,11 +30,12 @@ to implement the cross-platform UI for Android/iPhone, write with JRuby/Java/J2S
 7. code editor supports Java 8 API, Ruby 2.2.0 and CSS 2.2 (part) documents, hint of code and resource file(in user jar) will be auto completion.
 8. built-in Lucene, Quartz and HSQLDB, see [API](https://homecenter.mobi/download/javadoc/index.html) for more.
 9. mobile voice command API drives IoT and your business.
-10. stratify IoT, Robot+Converter+Device(device is required to open source or provide API), provides powerful device adaptability and data format conversion.
-11. HAR project is self-signed and be upgraded automatically if the newer on web.
-12. a powerful tool for building your voice, mobility, automation, intelligence life.
-13. exception is automatically reported to Email or website if end user enable reporting exception.
-14. build-in SecurityManager limits project running in an optional, security computing and networking environment.
+10. family members or work group not only share the same service account, but also differentiate services based on the member ID.
+11. stratify IoT, Robot+Converter+Device(device is required to open source or provide API), provides powerful device adaptability and data format conversion.
+12. HAR project is self-signed and be upgraded automatically if the newer on web.
+13. a powerful tool for building your voice, mobility, automation, intelligence life.
+14. exception is automatically reported to Email or website if end user enable reporting exception.
+15. build-in SecurityManager limits project running in an optional, security computing and networking environment.
 
 ***
 ### How to use

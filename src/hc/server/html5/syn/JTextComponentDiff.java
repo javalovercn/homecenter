@@ -28,8 +28,7 @@ public class JTextComponentDiff extends JComponentDiff {
 
 	}
 
-	public static void sendModifyText(final int hcCode, final DifferTodo todo,
-			final JTextComponent textCompSrc, String value) {
+	public static void sendModifyText(final int hcCode, final DifferTodo todo, final JTextComponent textCompSrc, String value) {
 		value = JSUtil.replaceShuanYinHao(value);
 
 		if (JPanelDiff.isTextMultLinesEditor(textCompSrc)) {

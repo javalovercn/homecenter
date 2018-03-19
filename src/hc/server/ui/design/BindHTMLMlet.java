@@ -46,8 +46,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 	final ArrayList<ConverterInfo> allConverters;
 
 	final ArrayList<String> projectIDList;
-	final HashMap<String, Vector<BindDeviceNode[]>> robotsOfProj = new HashMap<String, Vector<BindDeviceNode[]>>(
-			2);
+	final HashMap<String, Vector<BindDeviceNode[]>> robotsOfProj = new HashMap<String, Vector<BindDeviceNode[]>>(2);
 	final BindRobotSource source;
 	final Vector<BindDeviceNode> bindedOrNotList = new Vector<BindDeviceNode>(20);
 	final BindDeviceNode[] bdnArrayType = new BindDeviceNode[0];
@@ -62,11 +61,9 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 
 	final int emptyItem = 1;
 
-	public BindHTMLMlet(final BindRobotSource source, final Object token, final String nextOne,
-			final BufferedImage okImage, final BufferedImage cancelImage, final String okDesc,
-			final String cancelDesc, final boolean isUnbindDefault, final String robotsDesc,
-			final String convDesc, final String devDesc, final Boolean[] waitLock,
-			final String empty) {
+	public BindHTMLMlet(final BindRobotSource source, final Object token, final String nextOne, final BufferedImage okImage,
+			final BufferedImage cancelImage, final String okDesc, final String cancelDesc, final boolean isUnbindDefault,
+			final String robotsDesc, final String convDesc, final String devDesc, final Boolean[] waitLock, final String empty) {
 		final boolean isEnableSelectList = false;
 		clearDesc = "[        " + empty + "        ]";
 		this.waitLock = waitLock;
@@ -99,15 +96,13 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 					final Vector<BindDeviceNode> oneRobotBDN = new Vector<BindDeviceNode>();
 
 					try {
-						final ArrayList<DeviceBindInfo> refList = BindManager
-								.getReferenceDeviceListByRobotName(source, projID, robotID);
+						final ArrayList<DeviceBindInfo> refList = BindManager.getReferenceDeviceListByRobotName(source, projID, robotID);
 						final int refSize = refList.size();
 
 						for (int k = 0; k < refSize; k++) {
 							final DeviceBindInfo di = refList.get(k);
 
-							final BindDeviceNode bdn = BindManager.buildDataNodeForRefDevInRobot(
-									source.respo, projID, robotID, di, source);
+							final BindDeviceNode bdn = BindManager.buildDataNodeForRefDevInRobot(source.respo, projID, robotID, di, source);
 							oneRobotBDN.add(bdn);
 							bindedOrNotList.add(bdn);
 						}
@@ -127,8 +122,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 		this.allDevices = allDevices;
 		this.allConverters = allConverters;
 
-		final Vector<String> robotsList = isUnbindDefault ? getRobotsInUT(false)
-				: getAllRobotsInUT();
+		final Vector<String> robotsList = isUnbindDefault ? getRobotsInUT(false) : getAllRobotsInUT();
 		robotBox = new JComboBox(robotsList);// java 6不支持<String>
 		converterBox = new JComboBox(getAllConverterInUT());
 		deviceBox = new JComboBox(getAllDeviceInUT());
@@ -139,8 +133,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 		listAllBtn = new JRadioButton("list all");
 
 		final int fontSizePX = Math.max(okImage.getHeight(), getFontSizeForNormal());// 有可能字体偏大，导致UI美观问题
-		loadCSS(buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(),
-				getColorForBodyByIntValue()), false);
+		loadCSS(buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(), getColorForBodyByIntValue()), false);
 
 		final int labelHeight = (int) (fontSizePX * 1.4);
 
@@ -149,11 +142,9 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 			final String checkStyle = "vertical-align:middle;font-weight:bold;";
 
 			setCSS(listNotBindBtn, null, checkStyle);
-			setCSSForToggle(listNotBindBtn, null,
-					"width: " + checkBoxHeight + "px; height: " + checkBoxHeight + "px;");
+			setCSSForToggle(listNotBindBtn, null, "width: " + checkBoxHeight + "px; height: " + checkBoxHeight + "px;");
 			setCSS(listAllBtn, null, checkStyle);
-			setCSSForToggle(listAllBtn, null,
-					"width: " + checkBoxHeight + "px; height: " + checkBoxHeight + "px;");
+			setCSSForToggle(listAllBtn, null, "width: " + checkBoxHeight + "px; height: " + checkBoxHeight + "px;");
 		}
 
 		listNotBindBtn.addActionListener(new ActionListener() {
@@ -168,8 +159,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				final Vector<String> allRobotsInUT = getAllRobotsInUT();
-				robotBox.setModel(
-						new BindComboBoxModel(BindComboBoxModel.TYPE_ROBOT, allRobotsInUT));
+				robotBox.setModel(new BindComboBoxModel(BindComboBoxModel.TYPE_ROBOT, allRobotsInUT));
 				updateBoxs(allRobotsInUT);
 			}
 		});
@@ -200,13 +190,10 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 		final String labelDivStyle = "overflow:hidden;";
 		final String labelStyle = "display:block;vertical-align:middle;font-weight:bold;";
 
-		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker()
-				.getRGB();
-		final int areaFontColor = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker()
-				.getRGB();
-		final String areaStyle = "width:100%;height:100%;" + "overflow-y:auto;"
-				+ "background-color:#" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#"
-				+ HTMLMlet.toHexColor(areaFontColor, false) + ";";
+		final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
+		final int areaFontColor = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker().getRGB();
+		final String areaStyle = "width:100%;height:100%;" + "overflow-y:auto;" + "background-color:#"
+				+ HTMLMlet.toHexColor(areaBackColor, false) + ";color:#" + HTMLMlet.toHexColor(areaFontColor, false) + ";";
 
 		final int mobileWidth = getMobileWidth();
 
@@ -340,8 +327,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 			bottomButtonPanel.add(cancel);
 		}
 		bottomButtonPanel.add(ok);
-		final int buttonPanelHeight = Math.max(fontSizePX + getFontSizeForButton(),
-				getButtonHeight());
+		final int buttonPanelHeight = Math.max(fontSizePX + getFontSizeForButton(), getButtonHeight());
 		bottomButtonPanel.setPreferredSize(new Dimension(mobileWidth, buttonPanelHeight));
 
 		setButtonEnable(cancel, !isUnbindDefault);// 必须绑定
@@ -381,8 +367,7 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 		}
 	}
 
-	private JLabel buildLabel(final String robotsDesc, final String labelDivStyle,
-			final String labelStyle) {
+	private JLabel buildLabel(final String robotsDesc, final String labelDivStyle, final String labelStyle) {
 		final JLabel label = new JLabel(robotsDesc);
 		setCSSForDiv(label, null, labelDivStyle);
 		setCSS(label, null, labelStyle);
@@ -470,10 +455,8 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 			public Object run() throws Throwable {
 				DeviceCompatibleDescription compDesc;
 				try {
-					compDesc = source.getDeviceCompatibleDescByRobotName(bdn.projID, bdn.lever2Name,
-							bdn.ref_dev_ID);
-					final DataDeviceCapDesc devDesc = source.getDataForDeviceCompatibleDesc(pr,
-							compDesc);
+					compDesc = source.getDeviceCompatibleDescByRobotName(bdn.projID, bdn.lever2Name, bdn.ref_dev_ID);
+					final DataDeviceCapDesc devDesc = source.getDataForDeviceCompatibleDesc(pr, compDesc);
 					return buildStrForCap(devDesc);
 				} catch (final Exception e) {
 					e.printStackTrace();
@@ -500,10 +483,8 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 
 		bdn.convBind = cInfo;
 
-		final DataDeviceCapDesc upDesc = source.getDataForDeviceCompatibleDesc(pr,
-				cInfo.upDeviceCompatibleDescriptionCache);
-		final DataDeviceCapDesc downDesc = source.getDataForDeviceCompatibleDesc(pr,
-				cInfo.downDeviceCompatibleDescriptionCache);
+		final DataDeviceCapDesc upDesc = source.getDataForDeviceCompatibleDesc(pr, cInfo.upDeviceCompatibleDescriptionCache);
+		final DataDeviceCapDesc downDesc = source.getDataForDeviceCompatibleDesc(pr, cInfo.downDeviceCompatibleDescriptionCache);
 
 		return buildStrForCap(upDesc, downDesc);
 	}
@@ -524,22 +505,18 @@ public class BindHTMLMlet extends SystemHTMLMlet {
 
 		bdn.realDevBind = rdi;
 
-		final DataDeviceCapDesc dev = source.getDataForDeviceCompatibleDesc(pr,
-				rdi.deviceCompatibleDescriptionCache);
+		final DataDeviceCapDesc dev = source.getDataForDeviceCompatibleDesc(pr, rdi.deviceCompatibleDescriptionCache);
 		return buildStrForCap(dev);
 	}
 
 	private final String buildStrForCap(final DataDeviceCapDesc devDesc) {
-		return "Description :\n" + devDesc.desc + "\nVersion :\n" + devDesc.ver + "\nCompatible :\n"
-				+ devDesc.capList;
+		return "Description :\n" + devDesc.desc + "\nVersion :\n" + devDesc.ver + "\nCompatible :\n" + devDesc.capList;
 	}
 
-	private final String buildStrForCap(final DataDeviceCapDesc upDataDCD,
-			final DataDeviceCapDesc downDataDCD) {
-		return "Up Description :\n" + upDataDCD.desc + "\nUp Version :\n" + upDataDCD.ver
-				+ "\nUp Compatible :\n" + upDataDCD.capList + "\n\nDown Description :\n"
-				+ downDataDCD.desc + "\nDown Version :\n" + downDataDCD.ver
-				+ "\nDown Compatible :\n" + downDataDCD.capList;
+	private final String buildStrForCap(final DataDeviceCapDesc upDataDCD, final DataDeviceCapDesc downDataDCD) {
+		return "Up Description :\n" + upDataDCD.desc + "\nUp Version :\n" + upDataDCD.ver + "\nUp Compatible :\n" + upDataDCD.capList
+				+ "\n\nDown Description :\n" + downDataDCD.desc + "\nDown Version :\n" + downDataDCD.ver + "\nDown Compatible :\n"
+				+ downDataDCD.capList;
 	}
 
 	final boolean isAllBinded() {

@@ -34,70 +34,76 @@ import org.jrubyparser.SourcePosition;
  * Base class of any node which can be assigned to.
  */
 public abstract class AssignableNode extends Node {
-    private Node valueNode;
-    
-    public AssignableNode(SourcePosition position) {
-        super(position);
-    }
-    
-    public AssignableNode(SourcePosition position, Node valueNode) {
-        super(position);
-        
-        this.valueNode = adopt(valueNode);
-    }
+	private Node valueNode;
 
+	public AssignableNode(SourcePosition position) {
+		super(position);
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+	public AssignableNode(SourcePosition position, Node valueNode) {
+		super(position);
 
-        AssignableNode other = (AssignableNode) node;
-        if (getValue() == null && other.getValue() == null) return true;
-        if (getValue() == null || other.getValue() == null) return false;
-        
-        return getValue().isSame(other.getValue());
-    }
+		this.valueNode = adopt(valueNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-    /**
-     * Gets the valueNode.
-     * @return Returns a Node
-     */
-    public Node getValue() {
-        return valueNode;
-    }
-    
-    @Deprecated
-    public Node getValueNode() {
-        return getValue();
-    }
-    
-    /**
-     * Sets the valueNode.
-     * @param valueNode The valueNode to set
-     */
-    public void setValue(Node valueNode) {
-        this.valueNode = adopt(valueNode);
-    }
-    
-    @Deprecated
-    public void setValueNode(Node valueNode) {
-        setValue(valueNode);
-    }
-    
-    public SourcePosition getLeftHandSidePosition() {
-        if (!(this instanceof INameNode)) throw new UnsupportedOperationException("getLeftHandSidePosition() needs impl");
+		AssignableNode other = (AssignableNode) node;
+		if (getValue() == null && other.getValue() == null)
+			return true;
+		if (getValue() == null || other.getValue() == null)
+			return false;
 
-        SourcePosition position = getPosition();
+		return getValue().isSame(other.getValue());
+	}
 
-        return new SourcePosition(position.getFile(), position.getStartLine(), position.getEndLine(),
-                position.getStartOffset(), position.getStartOffset() + ((INameNode) this).getName().length());
-        
-    }
+	/**
+	 * Gets the valueNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getValue() {
+		return valueNode;
+	}
+
+	@Deprecated
+	public Node getValueNode() {
+		return getValue();
+	}
+
+	/**
+	 * Sets the valueNode.
+	 * 
+	 * @param valueNode
+	 *            The valueNode to set
+	 */
+	public void setValue(Node valueNode) {
+		this.valueNode = adopt(valueNode);
+	}
+
+	@Deprecated
+	public void setValueNode(Node valueNode) {
+		setValue(valueNode);
+	}
+
+	public SourcePosition getLeftHandSidePosition() {
+		if (!(this instanceof INameNode))
+			throw new UnsupportedOperationException("getLeftHandSidePosition() needs impl");
+
+		SourcePosition position = getPosition();
+
+		return new SourcePosition(position.getFile(), position.getStartLine(), position.getEndLine(), position.getStartOffset(),
+				position.getStartOffset() + ((INameNode) this).getName().length());
+
+	}
 }

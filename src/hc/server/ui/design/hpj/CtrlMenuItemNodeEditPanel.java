@@ -80,8 +80,7 @@ public class CtrlMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 						if (e.getStateChange() == ItemEvent.SELECTED) {
 							ctrl_panel.buildSplitPanel(JSplitPane.HORIZONTAL_SPLIT);
 							ctrl_panel.updateUI();
-							PropertiesManager.setValue(PropertiesManager.p_DesignerCtrlHOrV,
-									IConstant.TRUE);
+							PropertiesManager.setValue(PropertiesManager.p_DesignerCtrlHOrV, IConstant.TRUE);
 							PropertiesManager.saveFile();
 						}
 					}
@@ -92,8 +91,7 @@ public class CtrlMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 						if (e.getStateChange() == ItemEvent.SELECTED) {
 							ctrl_panel.buildSplitPanel(JSplitPane.VERTICAL_SPLIT);
 							ctrl_panel.updateUI();
-							PropertiesManager.setValue(PropertiesManager.p_DesignerCtrlHOrV,
-									IConstant.FALSE);
+							PropertiesManager.setValue(PropertiesManager.p_DesignerCtrlHOrV, IConstant.FALSE);
 							PropertiesManager.saveFile();
 						}
 					}
@@ -127,8 +125,7 @@ public class CtrlMenuItemNodeEditPanel extends BaseMenuItemNodeEditPanel {
 		add(iconPanel, BorderLayout.NORTH);
 		add(design_panel, BorderLayout.CENTER);
 
-		final String isV = PropertiesManager.getValue(PropertiesManager.p_DesignerCtrlHOrV,
-				IConstant.TRUE);
+		final String isV = PropertiesManager.getValue(PropertiesManager.p_DesignerCtrlHOrV, IConstant.TRUE);
 		if (isV.equals(IConstant.TRUE)) {
 			h_button.setSelected(true);
 		} else {

@@ -32,14 +32,11 @@ public class FileSelector {
 	public static final int NATIVE_FILTER = 6;
 	public static final int PNG_FILTER = 7;
 
-	private static FileNameExtensionFilter imageFilter = new FileNameExtensionFilter("image file",
-			ImageIO.getReaderFileSuffixes());
+	private static FileNameExtensionFilter imageFilter = new FileNameExtensionFilter("image file", ImageIO.getReaderFileSuffixes());
 	private static String[] musicFile = { "au" };
-	private static FileNameExtensionFilter musicFilter = new FileNameExtensionFilter("music file",
-			musicFile);
+	private static FileNameExtensionFilter musicFilter = new FileNameExtensionFilter("music file", musicFile);
 	private static String[] jarFile = { "jar" };
-	private static FileNameExtensionFilter jarFilter = new FileNameExtensionFilter("jar file",
-			jarFile);
+	private static FileNameExtensionFilter jarFilter = new FileNameExtensionFilter("jar file", jarFile);
 	private static FileFilter nativeFilter = new FileFilter() {
 		@Override
 		public boolean accept(final File f) {
@@ -55,17 +52,13 @@ public class FileSelector {
 		}
 	};
 	private static String[] harFile = { "har" };
-	private static FileNameExtensionFilter harFilter = new FileNameExtensionFilter(
-			"har (HomeCenter archive) file", harFile);
+	private static FileNameExtensionFilter harFilter = new FileNameExtensionFilter("har (HomeCenter archive) file", harFile);
 	private static String[] pngFile = { "png" };
-	private static FileNameExtensionFilter pngFilter = new FileNameExtensionFilter("PNG file",
-			pngFile);
+	private static FileNameExtensionFilter pngFilter = new FileNameExtensionFilter("PNG file", pngFile);
 	private static String[] dirFile = { "directory" };
-	private static FileNameExtensionFilter dirFilter = new FileNameExtensionFilter("directory",
-			dirFile);
+	private static FileNameExtensionFilter dirFilter = new FileNameExtensionFilter("directory", dirFile);
 
-	public static File selectImageFile(final Component parent, final int type,
-			final boolean isOpen) {
+	public static File selectImageFile(final Component parent, final int type, final boolean isOpen) {
 		FileFilter fnef = null;
 
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
@@ -104,8 +97,7 @@ public class FileSelector {
 			SwingUtilities.invokeAndWait(new Runnable() {
 				@Override
 				public void run() {
-					out[0] = (isOpen ? chooser.showOpenDialog(parent)
-							: chooser.showSaveDialog(parent));
+					out[0] = (isOpen ? chooser.showOpenDialog(parent) : chooser.showSaveDialog(parent));
 				}
 			});
 		} catch (final Exception e) {
@@ -113,8 +105,7 @@ public class FileSelector {
 		}
 		final int ans = out[0];
 		if (ans == JFileChooser.APPROVE_OPTION) {
-			PropertiesManager.setValue(PropertiesManager.p_FileChooserDir,
-					chooser.getCurrentDirectory().getAbsolutePath());
+			PropertiesManager.setValue(PropertiesManager.p_FileChooserDir, chooser.getCurrentDirectory().getAbsolutePath());
 			PropertiesManager.saveFile();
 			return chooser.getSelectedFile();
 		}

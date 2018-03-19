@@ -33,9 +33,8 @@ public class VoiceCommand {
 	 * return the text of voice command.<BR>
 	 * <BR>
 	 * <font color="red"><STRONG>Important</STRONG> :</font><BR>
-	 * in JRuby, the object String will be converted to JRuby string, if you are
-	 * familiar with Java String, please use methods in this class, for example
-	 * {@link #indexOfText(String)}.
+	 * in JRuby, the object String will be converted to JRuby string, if you are familiar with Java
+	 * String, please use methods in this class, for example {@link #indexOfText(String)}.
 	 * 
 	 * @return
 	 * @since 7.47
@@ -48,8 +47,7 @@ public class VoiceCommand {
 	/**
 	 * returns the latitude of current session mobile. <BR>
 	 * <BR>
-	 * <STRONG>Warning :</STRONG>location may not be available and return -1.0
-	 * <BR>
+	 * <STRONG>Warning :</STRONG>location may not be available and return -1.0 <BR>
 	 * <BR>
 	 * for more, see {@link ClientSession#getLocationLatitude()}.
 	 * 
@@ -92,8 +90,7 @@ public class VoiceCommand {
 	/**
 	 * returns the longitude of current session mobile. <BR>
 	 * <BR>
-	 * <STRONG>Warning :</STRONG>location may not be available and return -1.0
-	 * <BR>
+	 * <STRONG>Warning :</STRONG>location may not be available and return -1.0 <BR>
 	 * <BR>
 	 * for more, see {@link ClientSession#getLocationLongitude()}.
 	 * 
@@ -314,8 +311,7 @@ public class VoiceCommand {
 	 * @param len
 	 * @return
 	 */
-	public final boolean regionMatchesText(final int toffset, final String other, final int ooffset,
-			final int len) {
+	public final boolean regionMatchesText(final int toffset, final String other, final int ooffset, final int len) {
 		return this.text.regionMatches(toffset, other, ooffset, len);
 	}
 
@@ -329,8 +325,8 @@ public class VoiceCommand {
 	 * @param len
 	 * @return
 	 */
-	public final boolean regionMatchesText(final boolean ignoreCase, final int toffset,
-			final String other, final int ooffset, final int len) {
+	public final boolean regionMatchesText(final boolean ignoreCase, final int toffset, final String other, final int ooffset,
+			final int len) {
 		return text.regionMatches(ignoreCase, toffset, other, ooffset, len);
 	}
 

@@ -87,18 +87,15 @@ public class ProcessingWindowManager {
 	 * @param back
 	 *            回转对象，长度为1。如果传入为null，表示不需要返回Window实例
 	 */
-	public static void showCenterMessageOnTop(final Frame parent, final boolean isModal,
-			final String msg, final Window[] back) {
+	public static void showCenterMessageOnTop(final Frame parent, final boolean isModal, final String msg, final Window[] back) {
 		final JPanel panel = new JPanel(new BorderLayout());
 		panel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.RAISED));
-		panel.add(new JLabel(msg, App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING),
-				BorderLayout.CENTER);
+		panel.add(new JLabel(msg, App.getSysIcon(App.SYS_INFO_ICON), SwingConstants.LEADING), BorderLayout.CENTER);
 
 		showCenterMessageOnTop(parent, isModal, panel, back);
 	}
 
-	public static void showCenterMessageOnTop(final Frame parent, final boolean isModal,
-			final JPanel panel, final Window[] back) {
+	public static void showCenterMessageOnTop(final Frame parent, final boolean isModal, final JPanel panel, final Window[] back) {
 		final Window waiting;
 		final Container contentPane;
 
@@ -161,8 +158,7 @@ public class ProcessingWindowManager {
 												// EDT
 				@Override
 				public void run() {
-					frame.applyComponentOrientation(
-							ComponentOrientation.getOrientation(UILang.getUsedLocale()));
+					frame.applyComponentOrientation(ComponentOrientation.getOrientation(UILang.getUsedLocale()));
 					final int width = frame.getWidth(), height = frame.getHeight();
 					final int w = (Toolkit.getDefaultToolkit().getScreenSize().width - width) / 2;
 					final int h = (Toolkit.getDefaultToolkit().getScreenSize().height - height) / 2;

@@ -114,8 +114,7 @@ public class J2SEPlatformService implements PlatformService {
 			if (codeAttribute == null) {
 				return null;
 			}
-			final LocalVariableAttribute attr = (LocalVariableAttribute) codeAttribute
-					.getAttribute(LocalVariableAttribute.tag);
+			final LocalVariableAttribute attr = (LocalVariableAttribute) codeAttribute.getAttribute(LocalVariableAttribute.tag);
 			if (attr == null) {
 				return null;
 			}
@@ -220,8 +219,7 @@ public class J2SEPlatformService implements PlatformService {
 	}
 
 	@Override
-	public ClassLoader loadClasses(final File[] filePaths, final ClassLoader parent,
-			final boolean isDex, final String loadOpID) {
+	public ClassLoader loadClasses(final File[] filePaths, final ClassLoader parent, final boolean isDex, final String loadOpID) {
 		if (filePaths == null || filePaths.length == 0) {
 			return parent;
 		}
@@ -251,8 +249,7 @@ public class J2SEPlatformService implements PlatformService {
 		g2.drawImage(image, 0, 0, null);
 
 		final Area clear = new Area(new Rectangle(0, 0, w, h));
-		clear.subtract(
-				new Area(new RoundRectangle2D.Float(0, 0, w, h, cornerRadius, cornerRadius)));
+		clear.subtract(new Area(new RoundRectangle2D.Float(0, 0, w, h, cornerRadius, cornerRadius)));
 		g2.setComposite(AlphaComposite.Clear);
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2.fill(clear);
@@ -264,8 +261,7 @@ public class J2SEPlatformService implements PlatformService {
 
 	@Override
 	public BufferedImage composeImage(final BufferedImage base, final BufferedImage cover) {
-		final BufferedImage bi = new BufferedImage(base.getWidth(), base.getHeight(),
-				BufferedImage.TYPE_INT_ARGB);
+		final BufferedImage bi = new BufferedImage(base.getWidth(), base.getHeight(), BufferedImage.TYPE_INT_ARGB);
 		final Graphics2D g2d = bi.createGraphics();
 		g2d.setComposite(AlphaComposite.SrcOver);
 		g2d.drawImage(base, 0, 0, null);
@@ -343,8 +339,7 @@ public class J2SEPlatformService implements PlatformService {
 	}
 
 	@Override
-	public PlatformTrayIcon buildPlatformTrayIcon(final Image image, final String productTip,
-			final JPopupMenu menu) {
+	public PlatformTrayIcon buildPlatformTrayIcon(final Image image, final String productTip, final JPopupMenu menu) {
 		return new JPTrayIcon(image, productTip, menu);
 	}
 
@@ -358,8 +353,7 @@ public class J2SEPlatformService implements PlatformService {
 
 	@Override
 	public Object createRobotPeer(final Robot robot) throws Throwable {
-		final GraphicsDevice defaultScreenDevice = GraphicsEnvironment.getLocalGraphicsEnvironment()
-				.getDefaultScreenDevice();
+		final GraphicsDevice defaultScreenDevice = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
 		final Toolkit defaultToolkit = Toolkit.getDefaultToolkit();
 		final Class cf = Class.forName("sun.awt.ComponentFactory");// 允许出错，由外部拦截
 		final Method m = cf.getMethod("createRobot", Robot.class, GraphicsDevice.class);
@@ -377,8 +371,7 @@ public class J2SEPlatformService implements PlatformService {
 			final Class capManagerClass = CapHelper.getCapManagerClass();
 			final Class[] paraTypes = { JPopupMenu.class, ThreadGroup.class };
 			final Object[] para = { popupTi, threadPoolToken };
-			ClassUtil.invoke(capManagerClass, capManagerClass, "buildCaptureMenu", paraTypes, para,
-					true);
+			ClassUtil.invoke(capManagerClass, capManagerClass, "buildCaptureMenu", paraTypes, para, true);
 		}
 	}
 
@@ -392,8 +385,7 @@ public class J2SEPlatformService implements PlatformService {
 			final Class capManagerClass = CapHelper.getCapManagerClass();
 			final Class[] paraTypes = ClassUtil.NULL_PARA_TYPES;
 			final Object[] para = ClassUtil.NULL_PARAS;
-			ClassUtil.invoke(capManagerClass, capManagerClass, "startCapture", paraTypes, para,
-					true);
+			ClassUtil.invoke(capManagerClass, capManagerClass, "startCapture", paraTypes, para, true);
 		}
 	}
 
@@ -404,8 +396,7 @@ public class J2SEPlatformService implements PlatformService {
 			final Class capManagerClass = CapHelper.getCapManagerClass();
 			final Class[] paraTypes = ClassUtil.NULL_PARA_TYPES;
 			final Object[] para = ClassUtil.NULL_PARAS;
-			ClassUtil.invoke(capManagerClass, capManagerClass, "stopCapture", paraTypes, para,
-					true);
+			ClassUtil.invoke(capManagerClass, capManagerClass, "stopCapture", paraTypes, para, true);
 		}
 	}
 
@@ -435,8 +426,7 @@ public class J2SEPlatformService implements PlatformService {
 	public void addSystemLib(final File jardexFile, final boolean isReload) {
 		if (added3rdLibs.contains(jardexFile)) {
 			if (isReload == false) {
-				LogManager.log("jar lib is added to ClassLoader, skip loading. ["
-						+ jardexFile.getAbsolutePath() + "]");
+				LogManager.log("jar lib is added to ClassLoader, skip loading. [" + jardexFile.getAbsolutePath() + "]");
 			}
 			return;
 		}
@@ -451,8 +441,7 @@ public class J2SEPlatformService implements PlatformService {
 			addJar(loader, jardexFile);
 		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
-			App.showMessageDialog(null, e.toString(), "fail to load jar lib!!!",
-					JOptionPane.ERROR_MESSAGE);
+			App.showMessageDialog(null, e.toString(), "fail to load jar lib!!!", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -470,13 +459,12 @@ public class J2SEPlatformService implements PlatformService {
 		BufferedImage img;
 		Graphics2D graphics2d;
 		graphics2d = (img = new BufferedImage(w, h, type)).createGraphics();
-		
+
 		graphics2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
 		graphics2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		graphics2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-				
-		graphics2d.drawImage(bufferedimage, 0, 0, w, h, 0, 0, bufferedimage.getWidth(),
-				bufferedimage.getHeight(), null);
+
+		graphics2d.drawImage(bufferedimage, 0, 0, w, h, 0, 0, bufferedimage.getWidth(), bufferedimage.getHeight(), null);
 		graphics2d.dispose();
 		return img;
 	}
@@ -493,8 +481,7 @@ public class J2SEPlatformService implements PlatformService {
 			wifiDeviceManager = new WiFiDeviceManager() {
 
 				@Override
-				public InputStream listenFromWiFiMulticast(final String multicastIP,
-						final int port) {
+				public InputStream listenFromWiFiMulticast(final String multicastIP, final int port) {
 					return null;
 				}
 
@@ -524,19 +511,16 @@ public class J2SEPlatformService implements PlatformService {
 				}
 
 				@Override
-				public void broadcastWiFiAccountAsSSID(final String[] commands,
-						final String cmdGroup) {
+				public void broadcastWiFiAccountAsSSID(final String[] commands, final String cmdGroup) {
 				}
 
 				@Override
-				public OutputStream createWiFiMulticastStream(final String multicastIP,
-						final int port) {
+				public OutputStream createWiFiMulticastStream(final String multicastIP, final int port) {
 					return null;
 				}
 
 				@Override
-				public void startWiFiAP(final String ssid, final String pwd,
-						final String securityOption) {
+				public void startWiFiAP(final String ssid, final String pwd, final String securityOption) {
 				}
 
 				@Override

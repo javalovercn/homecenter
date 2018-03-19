@@ -42,8 +42,7 @@ public class NodeEditPanelManager {
 		return node.type == HPNode.TYPE_MENU_ITEM_FORM;
 	}
 
-	public final NodeEditPanel switchNodeEditPanel(final int nodeType, final HPNode hpnode,
-			final Designer designer) {
+	public final NodeEditPanel switchNodeEditPanel(final int nodeType, final HPNode hpnode, final Designer designer) {
 		NodeEditPanel nep = null;
 		if (HPNode.isNodeType(nodeType, HPNode.MASK_MENU)) {
 			nep = getInstance(MenuListEditPanel.class);
@@ -67,8 +66,7 @@ public class NodeEditPanelManager {
 			nep = getInstance(NativeNodeEditPanel.class);
 		} else if (nodeType == HPNode.MASK_EVENT_ITEM) {
 			nep = getInstance(EventNodeEditPanel.class);
-		} else if (nodeType == HPNode.MASK_MSB_ROBOT || nodeType == HPNode.MASK_MSB_CONVERTER
-				|| nodeType == HPNode.MASK_MSB_DEVICE) {
+		} else if (nodeType == HPNode.MASK_MSB_ROBOT || nodeType == HPNode.MASK_MSB_CONVERTER || nodeType == HPNode.MASK_MSB_DEVICE) {
 			nep = getInstance(ProcessorNodeEditPanel.class);
 		} else {
 			nep = noneNodeEditPanel;

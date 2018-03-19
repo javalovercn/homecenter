@@ -12,70 +12,57 @@ import org.bouncycastle.pkix.PKIXIdentity;
 /**
  * Holder class for public/private key based identity information.
  */
-public class JcaPKIXIdentity
-    extends PKIXIdentity
-{
-    private final PrivateKey privKey;
-    private final X509Certificate[] certs;
+public class JcaPKIXIdentity extends PKIXIdentity {
+	private final PrivateKey privKey;
+	private final X509Certificate[] certs;
 
-    private static PrivateKeyInfo getPrivateKeyInfo(PrivateKey privateKey)
-    {
-         try
-         {
-             return PrivateKeyInfo.getInstance(privateKey.getEncoded());
-         }
-         catch (Exception e)             // for a HSM getEncoded() may do anything...
-         {
-             return null;
-         }
-    }
+	private static PrivateKeyInfo getPrivateKeyInfo(PrivateKey privateKey) {
+		try {
+			return PrivateKeyInfo.getInstance(privateKey.getEncoded());
+		} catch (Exception e) // for a HSM getEncoded() may do anything...
+		{
+			return null;
+		}
+	}
 
-    private static X509CertificateHolder[] getCertificates(X509Certificate[] certs)
-    {
-        X509CertificateHolder[] certHldrs = new X509CertificateHolder[certs.length];
+	private static X509CertificateHolder[] getCertificates(X509Certificate[] certs) {
+		X509CertificateHolder[] certHldrs = new X509CertificateHolder[certs.length];
 
-        try
-        {
-            for (int i = 0; i != certHldrs.length; i++)
-            {
-                certHldrs[i] = new JcaX509CertificateHolder(certs[i]);
-            }
+		try {
+			for (int i = 0; i != certHldrs.length; i++) {
+				certHldrs[i] = new JcaX509CertificateHolder(certs[i]);
+			}
 
-            return certHldrs;
-        }
-        catch (CertificateEncodingException e)
-        {
-            throw new IllegalArgumentException("Unable to process certificates: " + e.getMessage());
-        }
-    }
+			return certHldrs;
+		} catch (CertificateEncodingException e) {
+			throw new IllegalArgumentException("Unable to process certificates: " + e.getMessage());
+		}
+	}
 
-    public JcaPKIXIdentity(PrivateKey privKey, X509Certificate[] certs)
-    {
-        super(getPrivateKeyInfo(privKey), getCertificates(certs));
+	public JcaPKIXIdentity(PrivateKey privKey, X509Certificate[] certs) {
+		super(getPrivateKeyInfo(privKey), getCertificates(certs));
 
-        this.privKey = privKey;
-        this.certs = new X509Certificate[certs.length];
+		this.privKey = privKey;
+		this.certs = new X509Certificate[certs.length];
 
-        System.arraycopy(certs, 0, this.certs, 0, certs.length);
-    }
+		System.arraycopy(certs, 0, this.certs, 0, certs.length);
+	}
 
-    /**
-     * Return the private key for this identity.
-     *
-     * @return the identity's private key.
-     */
-    public PrivateKey getPrivateKey()
-    {
-        return privKey;
-    }
+	/**
+	 * Return the private key for this identity.
+	 *
+	 * @return the identity's private key.
+	 */
+	public PrivateKey getPrivateKey() {
+		return privKey;
+	}
 
-    /**
-     * Return the certificate associated with the private key.
-     *
-     * @return the primary certificate.
-     */
-    public X509Certificate getX509Certificate()
-    {
-        return certs[0];
-    }
+	/**
+	 * Return the certificate associated with the private key.
+	 *
+	 * @return the primary certificate.
+	 */
+	public X509Certificate getX509Certificate() {
+		return certs[0];
+	}
 }

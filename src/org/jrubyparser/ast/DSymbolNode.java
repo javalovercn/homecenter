@@ -35,32 +35,34 @@ import org.jrubyparser.SourcePosition;
  * Node representing symbol in a form like ':"3jane"'.
  */
 public class DSymbolNode extends ListNode {
-    /**
-     * For mutating from a DStr to a DSym (we just create a new one with same contents).
-     *
-     * @param position the position
-     * @param node to be copied
-     */
-    public DSymbolNode(SourcePosition position, DStrNode node) {
-        super(position);
+	/**
+	 * For mutating from a DStr to a DSym (we just create a new one with same contents).
+	 *
+	 * @param position
+	 *            the position
+	 * @param node
+	 *            to be copied
+	 */
+	public DSymbolNode(SourcePosition position, DStrNode node) {
+		super(position);
 
-        assert node != null : "node is not null";
+		assert node != null : "node is not null";
 
-        addAll(node);
-    }
+		addAll(node);
+	}
 
-    public DSymbolNode(SourcePosition position) {
-        super(position);
-    }
+	public DSymbolNode(SourcePosition position) {
+		super(position);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.DSYMBOLNODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.DSYMBOLNODE;
+	}
 
-    @Override
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitDSymbolNode(this);
-    }
+	@Override
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitDSymbolNode(this);
+	}
 
 }

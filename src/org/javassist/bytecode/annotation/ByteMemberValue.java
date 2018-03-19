@@ -21,7 +21,6 @@ import java.lang.reflect.Method;
 import org.javassist.ClassPool;
 import org.javassist.bytecode.ConstPool;
 
-
 /**
  * Byte constant value.
  *
@@ -29,77 +28,79 @@ import org.javassist.bytecode.ConstPool;
  * @author Shigeru Chiba
  */
 public class ByteMemberValue extends MemberValue {
-    int valueIndex;
+	int valueIndex;
 
-    /**
-     * Constructs a byte constant value.  The initial value is specified
-     * by the constant pool entry at the given index.
-     *
-     * @param index     the index of a CONSTANT_Integer_info structure.
-     */
-    public ByteMemberValue(int index, ConstPool cp) {
-        super('B', cp);
-        this.valueIndex = index;
-    }
+	/**
+	 * Constructs a byte constant value. The initial value is specified by the constant pool entry
+	 * at the given index.
+	 *
+	 * @param index
+	 *            the index of a CONSTANT_Integer_info structure.
+	 */
+	public ByteMemberValue(int index, ConstPool cp) {
+		super('B', cp);
+		this.valueIndex = index;
+	}
 
-    /**
-     * Constructs a byte constant value.
-     *
-     * @param b         the initial value.
-     */
-    public ByteMemberValue(byte b, ConstPool cp) {
-        super('B', cp);
-        setValue(b);
-    }
+	/**
+	 * Constructs a byte constant value.
+	 *
+	 * @param b
+	 *            the initial value.
+	 */
+	public ByteMemberValue(byte b, ConstPool cp) {
+		super('B', cp);
+		setValue(b);
+	}
 
-    /**
-     * Constructs a byte constant value.  The initial value is 0.
-     */
-    public ByteMemberValue(ConstPool cp) {
-        super('B', cp);
-        setValue((byte)0);
-    }
+	/**
+	 * Constructs a byte constant value. The initial value is 0.
+	 */
+	public ByteMemberValue(ConstPool cp) {
+		super('B', cp);
+		setValue((byte) 0);
+	}
 
-    Object getValue(ClassLoader cl, ClassPool cp, Method m) {
-        return Byte.valueOf(getValue());
-    }
+	Object getValue(ClassLoader cl, ClassPool cp, Method m) {
+		return Byte.valueOf(getValue());
+	}
 
-    Class getType(ClassLoader cl) {
-        return byte.class;
-    }
+	Class getType(ClassLoader cl) {
+		return byte.class;
+	}
 
-    /**
-     * Obtains the value of the member.
-     */
-    public byte getValue() {
-        return (byte)cp.getIntegerInfo(valueIndex);
-    }
+	/**
+	 * Obtains the value of the member.
+	 */
+	public byte getValue() {
+		return (byte) cp.getIntegerInfo(valueIndex);
+	}
 
-    /**
-     * Sets the value of the member.
-     */
-    public void setValue(byte newValue) {
-        valueIndex = cp.addIntegerInfo(newValue);
-    }
+	/**
+	 * Sets the value of the member.
+	 */
+	public void setValue(byte newValue) {
+		valueIndex = cp.addIntegerInfo(newValue);
+	}
 
-    /**
-     * Obtains the string representation of this object.
-     */
-    public String toString() {
-        return Byte.toString(getValue());
-    }
+	/**
+	 * Obtains the string representation of this object.
+	 */
+	public String toString() {
+		return Byte.toString(getValue());
+	}
 
-    /**
-     * Writes the value.
-     */
-    public void write(AnnotationsWriter writer) throws IOException {
-        writer.constValueIndex(getValue());
-    }
+	/**
+	 * Writes the value.
+	 */
+	public void write(AnnotationsWriter writer) throws IOException {
+		writer.constValueIndex(getValue());
+	}
 
-    /**
-     * Accepts a visitor.
-     */
-    public void accept(MemberValueVisitor visitor) {
-        visitor.visitByteMemberValue(this);
-    }
+	/**
+	 * Accepts a visitor.
+	 */
+	public void accept(MemberValueVisitor visitor) {
+		visitor.visitByteMemberValue(this);
+	}
 }

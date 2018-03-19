@@ -12,8 +12,8 @@ public class Location {
 	public Location() {
 	}
 
-	public Location(final double latitude, final double longitude, final double altitude,
-			final double course, final double speed, final boolean isGPS, final boolean isFresh) {
+	public Location(final double latitude, final double longitude, final double altitude, final double course, final double speed,
+			final boolean isGPS, final boolean isFresh) {
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.altitude = altitude;

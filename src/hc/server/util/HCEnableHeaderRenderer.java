@@ -14,10 +14,8 @@ public class HCEnableHeaderRenderer implements TableCellRenderer {
 	}
 
 	@Override
-	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-			boolean hasFocus, int row, int column) {
-		Component comp = oldRend.getTableCellRendererComponent(table, value, isSelected, hasFocus,
-				row, column);
+	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+		Component comp = oldRend.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 		comp.setEnabled(isEnable);
 		return comp;
 	}

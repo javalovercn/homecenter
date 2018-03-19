@@ -32,26 +32,26 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 public class ArgsCatNode extends BinaryOperatorBaseNode {
-    public ArgsCatNode(SourcePosition position, Node firstNode, Node secondNode) {
-        super(position, firstNode, secondNode);
-    }
+	public ArgsCatNode(SourcePosition position, Node firstNode, Node secondNode) {
+		super(position, firstNode, secondNode);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.ARGSCATNODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.ARGSCATNODE;
+	}
 
-    public <T> T accept(NodeVisitor<T> visitor) {
-        return visitor.visitArgsCatNode(this);
-    }
+	public <T> T accept(NodeVisitor<T> visitor) {
+		return visitor.visitArgsCatNode(this);
+	}
 
-    @Deprecated
-    public Node getFirstNode() {
-        return getFirst();
-    }
+	@Deprecated
+	public Node getFirstNode() {
+		return getFirst();
+	}
 
-    @Deprecated
-    public Node getSecondNode() {
-        return getSecond();
-    }
+	@Deprecated
+	public Node getSecondNode() {
+		return getSecond();
+	}
 }

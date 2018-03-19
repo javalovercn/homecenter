@@ -33,7 +33,7 @@ import java.util.HashMap;
 import org.jrubyparser.StaticScope;
 
 public class LocalVariables {
-	
+
 	private final HashMap<Integer, String> localVariablesMap = new HashMap<Integer, String>();
 
 	public void addLocalVariable(int count, String name) {

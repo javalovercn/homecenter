@@ -31,13 +31,12 @@ public class RubyMethodItem {
 		}
 	}
 
-	public RubyMethodItem(final String method, final boolean isPublic, final String rt,
-			final Class c) {
+	public RubyMethodItem(final String method, final boolean isPublic, final String rt, final Class c) {
 		this(method, method, isPublic, false, rt, c);
 	}
 
-	public RubyMethodItem(final String method, final String methodForDoc, final boolean isPublic,
-			final boolean isConstant, final RubyClassAndDoc returnType) {
+	public RubyMethodItem(final String method, final String methodForDoc, final boolean isPublic, final boolean isConstant,
+			final RubyClassAndDoc returnType) {
 		this.methodOrField = method;
 		this.methodOrFieldForDoc = methodForDoc;
 		this.isPublic = isPublic;
@@ -45,8 +44,8 @@ public class RubyMethodItem {
 		this.isConstant = isConstant;
 	}
 
-	private RubyMethodItem(final String method, final String methodForDoc, final boolean isPublic,
-			final boolean isConstant, String rt, final Class c) {
+	private RubyMethodItem(final String method, final String methodForDoc, final boolean isPublic, final boolean isConstant, String rt,
+			final Class c) {
 		this.methodOrField = method;
 		this.methodOrFieldForDoc = methodForDoc;
 		this.isPublic = isPublic;
@@ -74,8 +73,7 @@ public class RubyMethodItem {
 					// rt + " => " + returnType.docShortName);
 				} else {
 					L.V = L.WShop ? false
-							: LogManager.log("[RubyReturn] unkown return type : " + rt
-									+ ", for method : " + method + ", class : "
+							: LogManager.log("[RubyReturn] unkown return type : " + rt + ", for method : " + method + ", class : "
 									+ ((c != null) ? c.getName() : ""));
 				}
 			}

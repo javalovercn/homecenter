@@ -63,8 +63,7 @@ public class LuceneManager {
 		}
 	}
 
-	private final static HashMap<String, Analyzer> localeAnalyzer = new HashMap<String, Analyzer>(
-			50);
+	private final static HashMap<String, Analyzer> localeAnalyzer = new HashMap<String, Analyzer>(50);
 
 	/**
 	 * 
@@ -107,8 +106,7 @@ public class LuceneManager {
 		}
 	}
 
-	private static final Analyzer buildAnalyzerForLocale(final String locale,
-			final String locale_full) {
+	private static final Analyzer buildAnalyzerForLocale(final String locale, final String locale_full) {
 		if (LangUtil.isSameLang(locale, "ar", true)) {
 			return new ArabicAnalyzer();
 		} else if (LangUtil.isSameLang(locale, "bg", true)) {
@@ -192,11 +190,9 @@ public class LuceneManager {
 		} else if (LangUtil.isSameLang(locale, "tr", true)) {
 			return new TurkishAnalyzer();
 		} else if (locale_full.equals("zh") == false
-				&& (LangUtil.isSameLang(locale_full, "zh-CN", true)
-						|| LangUtil.isSameLang(locale_full, "zh-Hans", true))) {
+				&& (LangUtil.isSameLang(locale_full, "zh-CN", true) || LangUtil.isSameLang(locale_full, "zh-Hans", true))) {
 			return new SmartChineseAnalyzer();
-		} else if (LangUtil.isSameLang(locale, "zh", true)
-				|| LangUtil.isSameLang(locale, "ja", true)
+		} else if (LangUtil.isSameLang(locale, "zh", true) || LangUtil.isSameLang(locale, "ja", true)
 				|| LangUtil.isSameLang(locale, "ko", true)) {
 			return new CJKAnalyzer();
 		}

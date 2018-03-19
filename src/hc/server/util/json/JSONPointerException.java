@@ -25,8 +25,8 @@ SOFTWARE.
 */
 
 /**
- * The JSONPointerException is thrown by {@link JSONPointer} if an error occurs
- * during evaluating a pointer.
+ * The JSONPointerException is thrown by {@link JSONPointer} if an error occurs during evaluating a
+ * pointer.
  * 
  * @author JSON.org
  * @version 2016-05-13

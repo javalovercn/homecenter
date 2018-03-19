@@ -43,13 +43,12 @@ public class ScriptPositionList {
 	 *            excludes
 	 * @param isAddedBySerial
 	 */
-	public final ScriptPosition addPosition(final boolean isAddStringExcludesPosi,
-			final int startIdx, final int endIdx, final boolean isAddedBySerial) {
+	public final ScriptPosition addPosition(final boolean isAddStringExcludesPosi, final int startIdx, final int endIdx,
+			final boolean isAddedBySerial) {
 		return addPosition(isAddStringExcludesPosi, startIdx, endIdx, null, isAddedBySerial);
 	}
 
-	public final ScriptPosition addPosition(final boolean isAddStringExcludesPosi,
-			final int startIdx, final int endIdx, final String item,
+	public final ScriptPosition addPosition(final boolean isAddStringExcludesPosi, final int startIdx, final int endIdx, final String item,
 			final boolean isAddedBySerial) {
 		return addPosition(isAddStringExcludesPosi, startIdx, endIdx, item, null, isAddedBySerial);
 	}
@@ -62,9 +61,8 @@ public class ScriptPositionList {
 	 * @param item
 	 * @param isAddedBySerial
 	 */
-	public final ScriptPosition addPosition(final boolean isAddStringExcludesPosi,
-			final int startIdx, final int endIdx, final String item, final String extItem,
-			final boolean isAddedBySerial) {
+	public final ScriptPosition addPosition(final boolean isAddStringExcludesPosi, final int startIdx, final int endIdx, final String item,
+			final String extItem, final boolean isAddedBySerial) {
 		final ScriptPosition p = getFree();
 		p.startIdx = startIdx;
 		p.endIdx = endIdx;// exclude

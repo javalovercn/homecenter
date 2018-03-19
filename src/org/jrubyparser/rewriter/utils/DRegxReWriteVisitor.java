@@ -30,14 +30,13 @@ package org.jrubyparser.rewriter.utils;
 
 import org.jrubyparser.rewriter.ReWriteVisitor;
 
-
 public class DRegxReWriteVisitor extends ReWriteVisitor {
-	
+
 	public DRegxReWriteVisitor(ReWriterContext config) {
 		super(config);
 	}
-	
-    @Override
+
+	@Override
 	protected boolean inDRegxNode() {
 		return true;
 	}

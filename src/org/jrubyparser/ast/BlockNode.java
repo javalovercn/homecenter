@@ -35,23 +35,24 @@ import org.jrubyparser.SourcePosition;
  * Represents a block of nodes (read that as list).
  */
 public class BlockNode extends ListNode {
-    public BlockNode(SourcePosition position) {
-        super(position);
-    }
+	public BlockNode(SourcePosition position) {
+		super(position);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.BLOCKNODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.BLOCKNODE;
+	}
 
-    /**
-     * RubyMethod used by visitors.
-     * accepts the visitor
-     * @param iVisitor the visitor to accept
-     **/
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitBlockNode(this);
-    }
+	/**
+	 * RubyMethod used by visitors. accepts the visitor
+	 * 
+	 * @param iVisitor
+	 *            the visitor to accept
+	 **/
+	@Override
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitBlockNode(this);
+	}
 
 }

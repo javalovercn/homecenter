@@ -35,27 +35,29 @@ import org.jrubyparser.SourcePosition;
  * Represents an array. This could be an array literal, quoted words or some args stuff.
  */
 public class ArrayNode extends ListNode implements ILiteralNode {
-    public ArrayNode(SourcePosition position, Node firstNode) {
-        super(position, firstNode);
+	public ArrayNode(SourcePosition position, Node firstNode) {
+		super(position, firstNode);
 
-        assert firstNode != null : "ArrayNode.first == null";
-    }
+		assert firstNode != null : "ArrayNode.first == null";
+	}
 
-    public ArrayNode(SourcePosition position) {
-        super(position);
-    }
+	public ArrayNode(SourcePosition position) {
+		super(position);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.ARRAYNODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.ARRAYNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitArrayNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	@Override
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitArrayNode(this);
+	}
 }

@@ -23,133 +23,92 @@ import org.bouncycastle.operator.GenericKey;
 import org.bouncycastle.operator.OperatorException;
 import org.bouncycastle.operator.SymmetricKeyWrapper;
 
-public class JceSymmetricKeyWrapper
-    extends SymmetricKeyWrapper
-{
-    private OperatorHelper helper = new OperatorHelper(new DefaultJcaJceHelper());
-    private SecureRandom random;
-    private SecretKey wrappingKey;
+public class JceSymmetricKeyWrapper extends SymmetricKeyWrapper {
+	private OperatorHelper helper = new OperatorHelper(new DefaultJcaJceHelper());
+	private SecureRandom random;
+	private SecretKey wrappingKey;
 
-    public JceSymmetricKeyWrapper(SecretKey wrappingKey)
-    {
-        super(determineKeyEncAlg(wrappingKey));
+	public JceSymmetricKeyWrapper(SecretKey wrappingKey) {
+		super(determineKeyEncAlg(wrappingKey));
 
-        this.wrappingKey = wrappingKey;
-    }
+		this.wrappingKey = wrappingKey;
+	}
 
-    public JceSymmetricKeyWrapper setProvider(Provider provider)
-    {
-        this.helper = new OperatorHelper(new ProviderJcaJceHelper(provider));
+	public JceSymmetricKeyWrapper setProvider(Provider provider) {
+		this.helper = new OperatorHelper(new ProviderJcaJceHelper(provider));
 
-        return this;
-    }
+		return this;
+	}
 
-    public JceSymmetricKeyWrapper setProvider(String providerName)
-    {
-        this.helper = new OperatorHelper(new NamedJcaJceHelper(providerName));
+	public JceSymmetricKeyWrapper setProvider(String providerName) {
+		this.helper = new OperatorHelper(new NamedJcaJceHelper(providerName));
 
-        return this;
-    }
+		return this;
+	}
 
-    public JceSymmetricKeyWrapper setSecureRandom(SecureRandom random)
-    {
-        this.random = random;
+	public JceSymmetricKeyWrapper setSecureRandom(SecureRandom random) {
+		this.random = random;
 
-        return this;
-    }
+		return this;
+	}
 
-    public byte[] generateWrappedKey(GenericKey encryptionKey)
-        throws OperatorException
-    {
-        Key contentEncryptionKeySpec = OperatorUtils.getJceKey(encryptionKey);
+	public byte[] generateWrappedKey(GenericKey encryptionKey) throws OperatorException {
+		Key contentEncryptionKeySpec = OperatorUtils.getJceKey(encryptionKey);
 
-        Cipher keyEncryptionCipher = helper.createSymmetricWrapper(this.getAlgorithmIdentifier().getAlgorithm());
+		Cipher keyEncryptionCipher = helper.createSymmetricWrapper(this.getAlgorithmIdentifier().getAlgorithm());
 
-        try
-        {
-            keyEncryptionCipher.init(Cipher.WRAP_MODE, wrappingKey, random);
+		try {
+			keyEncryptionCipher.init(Cipher.WRAP_MODE, wrappingKey, random);
 
-            return keyEncryptionCipher.wrap(contentEncryptionKeySpec);
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new OperatorException("cannot wrap key: " + e.getMessage(), e);
-        }
-    }
+			return keyEncryptionCipher.wrap(contentEncryptionKeySpec);
+		} catch (GeneralSecurityException e) {
+			throw new OperatorException("cannot wrap key: " + e.getMessage(), e);
+		}
+	}
 
-    private static AlgorithmIdentifier determineKeyEncAlg(SecretKey key)
-    {
-        return determineKeyEncAlg(key.getAlgorithm(), key.getEncoded().length * 8);
-    }
+	private static AlgorithmIdentifier determineKeyEncAlg(SecretKey key) {
+		return determineKeyEncAlg(key.getAlgorithm(), key.getEncoded().length * 8);
+	}
 
-    static AlgorithmIdentifier determineKeyEncAlg(String algorithm, int keySizeInBits)
-    {
-        if (algorithm.startsWith("DES") || algorithm.startsWith("TripleDES"))
-        {
-            return new AlgorithmIdentifier(PKCSObjectIdentifiers.id_alg_CMS3DESwrap, DERNull.INSTANCE);
-        }
-        else if (algorithm.startsWith("RC2"))
-        {
-            return new AlgorithmIdentifier(new ASN1ObjectIdentifier(
-                    "1.2.840.113549.1.9.16.3.7"), new ASN1Integer(58));
-        }
-        else if (algorithm.startsWith("AES"))
-        {
-            ASN1ObjectIdentifier wrapOid;
+	static AlgorithmIdentifier determineKeyEncAlg(String algorithm, int keySizeInBits) {
+		if (algorithm.startsWith("DES") || algorithm.startsWith("TripleDES")) {
+			return new AlgorithmIdentifier(PKCSObjectIdentifiers.id_alg_CMS3DESwrap, DERNull.INSTANCE);
+		} else if (algorithm.startsWith("RC2")) {
+			return new AlgorithmIdentifier(new ASN1ObjectIdentifier("1.2.840.113549.1.9.16.3.7"), new ASN1Integer(58));
+		} else if (algorithm.startsWith("AES")) {
+			ASN1ObjectIdentifier wrapOid;
 
-            if (keySizeInBits == 128)
-            {
-                wrapOid = NISTObjectIdentifiers.id_aes128_wrap;
-            }
-            else if (keySizeInBits == 192)
-            {
-                wrapOid = NISTObjectIdentifiers.id_aes192_wrap;
-            }
-            else if (keySizeInBits == 256)
-            {
-                wrapOid = NISTObjectIdentifiers.id_aes256_wrap;
-            }
-            else
-            {
-                throw new IllegalArgumentException("illegal keysize in AES");
-            }
+			if (keySizeInBits == 128) {
+				wrapOid = NISTObjectIdentifiers.id_aes128_wrap;
+			} else if (keySizeInBits == 192) {
+				wrapOid = NISTObjectIdentifiers.id_aes192_wrap;
+			} else if (keySizeInBits == 256) {
+				wrapOid = NISTObjectIdentifiers.id_aes256_wrap;
+			} else {
+				throw new IllegalArgumentException("illegal keysize in AES");
+			}
 
-            return new AlgorithmIdentifier(wrapOid); // parameters absent
-        }
-        else if (algorithm.startsWith("SEED"))
-        {
-            // parameters absent
-            return new AlgorithmIdentifier(
-                    KISAObjectIdentifiers.id_npki_app_cmsSeed_wrap);
-        }
-        else if (algorithm.startsWith("Camellia"))
-        {
-            ASN1ObjectIdentifier wrapOid;
+			return new AlgorithmIdentifier(wrapOid); // parameters absent
+		} else if (algorithm.startsWith("SEED")) {
+			// parameters absent
+			return new AlgorithmIdentifier(KISAObjectIdentifiers.id_npki_app_cmsSeed_wrap);
+		} else if (algorithm.startsWith("Camellia")) {
+			ASN1ObjectIdentifier wrapOid;
 
-            if (keySizeInBits == 128)
-            {
-                wrapOid = NTTObjectIdentifiers.id_camellia128_wrap;
-            }
-            else if (keySizeInBits == 192)
-            {
-                wrapOid = NTTObjectIdentifiers.id_camellia192_wrap;
-            }
-            else if (keySizeInBits == 256)
-            {
-                wrapOid = NTTObjectIdentifiers.id_camellia256_wrap;
-            }
-            else
-            {
-                throw new IllegalArgumentException(
-                        "illegal keysize in Camellia");
-            }
+			if (keySizeInBits == 128) {
+				wrapOid = NTTObjectIdentifiers.id_camellia128_wrap;
+			} else if (keySizeInBits == 192) {
+				wrapOid = NTTObjectIdentifiers.id_camellia192_wrap;
+			} else if (keySizeInBits == 256) {
+				wrapOid = NTTObjectIdentifiers.id_camellia256_wrap;
+			} else {
+				throw new IllegalArgumentException("illegal keysize in Camellia");
+			}
 
-            return new AlgorithmIdentifier(wrapOid); // parameters must be
-                                                     // absent
-        }
-        else
-        {
-            throw new IllegalArgumentException("unknown algorithm");
-        }
-    }
+			return new AlgorithmIdentifier(wrapOid); // parameters must be
+														// absent
+		} else {
+			throw new IllegalArgumentException("unknown algorithm");
+		}
+	}
 }

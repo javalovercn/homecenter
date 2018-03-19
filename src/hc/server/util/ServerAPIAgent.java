@@ -22,13 +22,11 @@ public class ServerAPIAgent {
 		ContextManager.getThreadPool().run(run, threadToken);
 	}
 
-	public static final VoiceCommand buildVoiceCommand(final String text,
-			final J2SESession j2seCoreSS, final ProjResponser pr) {
+	public static final VoiceCommand buildVoiceCommand(final String text, final J2SESession j2seCoreSS, final ProjResponser pr) {
 		return new VoiceCommand(text, j2seCoreSS, pr);
 	}
 
-	static final HCTimer addQuartzLongTimeWarn(final String projID, final String schedulerName,
-			final String jobName) {
+	static final HCTimer addQuartzLongTimeWarn(final String projID, final String schedulerName, final String jobName) {
 		return (HCTimer) ContextManager.getThreadPool().runAndWait(new ReturnableRunnable() {
 			@Override
 			public Object run() throws Throwable {

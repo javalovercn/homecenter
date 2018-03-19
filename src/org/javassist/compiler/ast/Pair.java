@@ -19,34 +19,44 @@ package org.javassist.compiler.ast;
 import org.javassist.compiler.CompileError;
 
 /**
- * A node of a a binary tree.  This class provides concrete methods
- * overriding abstract methods in ASTree.
+ * A node of a a binary tree. This class provides concrete methods overriding abstract methods in
+ * ASTree.
  */
 public class Pair extends ASTree {
-    protected ASTree left, right;
+	protected ASTree left, right;
 
-    public Pair(ASTree _left, ASTree _right) {
-        left = _left;
-        right = _right;
-    }
+	public Pair(ASTree _left, ASTree _right) {
+		left = _left;
+		right = _right;
+	}
 
-    public void accept(Visitor v) throws CompileError { v.atPair(this); }
+	public void accept(Visitor v) throws CompileError {
+		v.atPair(this);
+	}
 
-    public String toString() {
-        StringBuffer sbuf = new StringBuffer();
-        sbuf.append("(<Pair> ");
-        sbuf.append(left == null ? "<null>" : left.toString());
-        sbuf.append(" . ");
-        sbuf.append(right == null ? "<null>" : right.toString());
-        sbuf.append(')');
-        return sbuf.toString();
-    }
+	public String toString() {
+		StringBuffer sbuf = new StringBuffer();
+		sbuf.append("(<Pair> ");
+		sbuf.append(left == null ? "<null>" : left.toString());
+		sbuf.append(" . ");
+		sbuf.append(right == null ? "<null>" : right.toString());
+		sbuf.append(')');
+		return sbuf.toString();
+	}
 
-    public ASTree getLeft() { return left; }
+	public ASTree getLeft() {
+		return left;
+	}
 
-    public ASTree getRight() { return right; }
+	public ASTree getRight() {
+		return right;
+	}
 
-    public void setLeft(ASTree _left) { left = _left; }
+	public void setLeft(ASTree _left) {
+		left = _left;
+	}
 
-    public void setRight(ASTree _right) { right = _right; }
+	public void setRight(ASTree _right) {
+		right = _right;
+	}
 }

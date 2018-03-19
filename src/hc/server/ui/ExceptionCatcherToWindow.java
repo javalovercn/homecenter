@@ -53,8 +53,7 @@ public class ExceptionCatcherToWindow {
 		} else {
 			synchronized (this) {
 				if (isShowing) {
-					L.V = L.WShop ? false
-							: LogManager.log("isShowing Error/Stack now, skip next Throwable.");
+					L.V = L.WShop ? false : LogManager.log("isShowing Error/Stack now, skip next Throwable.");
 					return;
 				} else {
 					isShowing = true;
@@ -83,8 +82,8 @@ public class ExceptionCatcherToWindow {
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
-				App.showCenterPanelMain(buildPanel(), 0, 0, ResourceUtil.getErrorI18N(), false,
-						null, null, null, null, null, false, true, null, true, true);
+				App.showCenterPanelMain(buildPanel(), 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, null, false, true,
+						null, true, true);
 			}
 		}, token);
 	}
@@ -108,25 +107,22 @@ public class ExceptionCatcherToWindow {
 		ContextManager.getThreadPool().run(new Runnable() {
 			@Override
 			public void run() {
-				App.showCenterPanelMain(buildPanel(), 0, 0, ResourceUtil.getErrorI18N(), false,
-						App.buildDefaultOKButton(), null, null, null, parent, true, false, null,
-						true, false);
+				App.showCenterPanelMain(buildPanel(), 0, 0, ResourceUtil.getErrorI18N(), false, App.buildDefaultOKButton(), null, null,
+						null, parent, true, false, null, true, false);
 			}
 		}, token);
 	}
 
 	private final JPanel buildErrorMessagePanel() {
 		final JPanel panel = new JPanel(new BorderLayout());
-		final JLabel label = new JLabel((String) ResourceUtil.get(9238),
-				App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING);
+		final JLabel label = new JLabel((String) ResourceUtil.get(9238), App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING);
 		panel.add(label, BorderLayout.CENTER);
 		return panel;
 	}
 
 	private final JPanel buildErrorStackPanel() {
 		final JPanel panel = new JPanel(new BorderLayout());
-		final JLabel label = new JLabel(getCauseMessage(t), App.getSysIcon(App.SYS_ERROR_ICON),
-				SwingConstants.LEADING);
+		final JLabel label = new JLabel(getCauseMessage(t), App.getSysIcon(App.SYS_ERROR_ICON), SwingConstants.LEADING);
 		final JTextArea area = new JTextArea(buildStackString());
 		area.setEditable(false);
 		panel.add(label, BorderLayout.NORTH);
@@ -149,11 +145,9 @@ public class ExceptionCatcherToWindow {
 	private final String buildStackString() {
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		if (jrubyScript != null) {
-			sb.append(
-					"------------------------------begin error script-------------------------------\n");
+			sb.append("------------------------------begin error script-------------------------------\n");
 			sb.append(jrubyScript);
-			sb.append(
-					"\n-------------------------------end error script-------------------------------\n");
+			sb.append("\n-------------------------------end error script-------------------------------\n");
 		}
 		ClassUtil.buildOneStackWithCause(t, sb, false, true);
 		final String out = sb.toString();

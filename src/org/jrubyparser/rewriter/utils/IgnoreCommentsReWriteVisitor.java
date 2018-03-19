@@ -31,13 +31,13 @@ package org.jrubyparser.rewriter.utils;
 import org.jrubyparser.ast.CommentNode;
 import org.jrubyparser.rewriter.ReWriteVisitor;
 
-public class IgnoreCommentsReWriteVisitor extends ReWriteVisitor {	
-    public IgnoreCommentsReWriteVisitor(ReWriterContext config) {
-        super(config);
-    }
+public class IgnoreCommentsReWriteVisitor extends ReWriteVisitor {
+	public IgnoreCommentsReWriteVisitor(ReWriterContext config) {
+		super(config);
+	}
 
-    @Override
-    public Object visitCommentNode(CommentNode iVisited) {
-        return null;
-    }
+	@Override
+	public Object visitCommentNode(CommentNode iVisited) {
+		return null;
+	}
 }

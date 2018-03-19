@@ -35,36 +35,39 @@ import org.jrubyparser.SourcePosition;
  * Represents a 'break' statement.
  */
 public class BreakNode extends Node {
-    private Node valueNode;
+	private Node valueNode;
 
-    public BreakNode(SourcePosition position, Node valueNode) {
-        super(position);
+	public BreakNode(SourcePosition position, Node valueNode) {
+		super(position);
 
-        this.valueNode = adopt(valueNode);
-    }
+		this.valueNode = adopt(valueNode);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.BREAKNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.BREAKNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitBreakNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitBreakNode(this);
+	}
 
-    /**
-     * Gets the valueNode.
-     * @return Returns a Node
-     */
-    public Node getValue() {
-        return valueNode;
-    }
+	/**
+	 * Gets the valueNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getValue() {
+		return valueNode;
+	}
 
-    @Deprecated
-    public Node getValueNode() {
-        return getValue();
-    }
+	@Deprecated
+	public Node getValueNode() {
+		return getValue();
+	}
 }

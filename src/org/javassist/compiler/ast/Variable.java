@@ -22,18 +22,22 @@ import org.javassist.compiler.CompileError;
  * Variable.
  */
 public class Variable extends Symbol {
-    protected Declarator declarator;
+	protected Declarator declarator;
 
-    public Variable(String sym, Declarator d) {
-        super(sym);
-        declarator = d;
-    }
+	public Variable(String sym, Declarator d) {
+		super(sym);
+		declarator = d;
+	}
 
-    public Declarator getDeclarator() { return declarator; }
+	public Declarator getDeclarator() {
+		return declarator;
+	}
 
-    public String toString() {
-        return identifier + ":" + declarator.getType();
-    }
+	public String toString() {
+		return identifier + ":" + declarator.getType();
+	}
 
-    public void accept(Visitor v) throws CompileError { v.atVariable(this); }
+	public void accept(Visitor v) throws CompileError {
+		v.atVariable(this);
+	}
 }

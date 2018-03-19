@@ -17,9 +17,10 @@ import org.bouncycastle.jcajce.util.ProviderJcaJceHelper;
 import org.bouncycastle.mozilla.SignedPublicKeyAndChallenge;
 
 /**
- * This is designed to parse the SignedPublicKeyAndChallenge created by the
- * KEYGEN tag included by Mozilla based browsers.
- *  <pre>
+ * This is designed to parse the SignedPublicKeyAndChallenge created by the KEYGEN tag included by
+ * Mozilla based browsers.
+ * 
+ * <pre>
  *  PublicKeyAndChallenge ::= SEQUENCE {
  *    spki SubjectPublicKeyInfo,
  *    challenge IA5STRING
@@ -30,52 +31,40 @@ import org.bouncycastle.mozilla.SignedPublicKeyAndChallenge;
  *    signatureAlgorithm AlgorithmIdentifier,
  *    signature BIT STRING
  *  }
- *  </pre>
+ * </pre>
  */
-public class JcaSignedPublicKeyAndChallenge
-    extends SignedPublicKeyAndChallenge
-{
-    JcaJceHelper helper = new DefaultJcaJceHelper();
+public class JcaSignedPublicKeyAndChallenge extends SignedPublicKeyAndChallenge {
+	JcaJceHelper helper = new DefaultJcaJceHelper();
 
-    private JcaSignedPublicKeyAndChallenge(org.bouncycastle.asn1.mozilla.SignedPublicKeyAndChallenge struct, JcaJceHelper helper)
-    {
-        super(struct);
-        this.helper = helper;
-    }
+	private JcaSignedPublicKeyAndChallenge(org.bouncycastle.asn1.mozilla.SignedPublicKeyAndChallenge struct, JcaJceHelper helper) {
+		super(struct);
+		this.helper = helper;
+	}
 
-    public JcaSignedPublicKeyAndChallenge(byte[] bytes)
-    {
-        super(bytes);
-    }
+	public JcaSignedPublicKeyAndChallenge(byte[] bytes) {
+		super(bytes);
+	}
 
-    public JcaSignedPublicKeyAndChallenge setProvider(String providerName)
-    {
-        return new JcaSignedPublicKeyAndChallenge(this.spkacSeq, new NamedJcaJceHelper(providerName));
-    }
+	public JcaSignedPublicKeyAndChallenge setProvider(String providerName) {
+		return new JcaSignedPublicKeyAndChallenge(this.spkacSeq, new NamedJcaJceHelper(providerName));
+	}
 
-    public JcaSignedPublicKeyAndChallenge setProvider(Provider provider)
-    {
-        return new JcaSignedPublicKeyAndChallenge(this.spkacSeq, new ProviderJcaJceHelper(provider));
-    }
+	public JcaSignedPublicKeyAndChallenge setProvider(Provider provider) {
+		return new JcaSignedPublicKeyAndChallenge(this.spkacSeq, new ProviderJcaJceHelper(provider));
+	}
 
-    public PublicKey getPublicKey()
-        throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException
-    {
-        try
-        {
-            SubjectPublicKeyInfo subjectPublicKeyInfo = spkacSeq.getPublicKeyAndChallenge().getSubjectPublicKeyInfo();
-            X509EncodedKeySpec xspec = new X509EncodedKeySpec(subjectPublicKeyInfo.getEncoded());
-            
+	public PublicKey getPublicKey() throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
+		try {
+			SubjectPublicKeyInfo subjectPublicKeyInfo = spkacSeq.getPublicKeyAndChallenge().getSubjectPublicKeyInfo();
+			X509EncodedKeySpec xspec = new X509EncodedKeySpec(subjectPublicKeyInfo.getEncoded());
 
-            AlgorithmIdentifier keyAlg = subjectPublicKeyInfo.getAlgorithm();
+			AlgorithmIdentifier keyAlg = subjectPublicKeyInfo.getAlgorithm();
 
-            KeyFactory factory = helper.createKeyFactory(keyAlg.getAlgorithm().getId());
+			KeyFactory factory = helper.createKeyFactory(keyAlg.getAlgorithm().getId());
 
-            return factory.generatePublic(xspec);
-        }
-        catch (Exception e)
-        {
-            throw new InvalidKeyException("error encoding public key");
-        }
-    }
+			return factory.generatePublic(xspec);
+		} catch (Exception e) {
+			throw new InvalidKeyException("error encoding public key");
+		}
+	}
 }

@@ -4,23 +4,17 @@ import java.security.SecureRandom;
 
 import org.bouncycastle.crypto.KeyGenerationParameters;
 
-public class GMSSKeyGenerationParameters
-    extends KeyGenerationParameters
-{
+public class GMSSKeyGenerationParameters extends KeyGenerationParameters {
 
-    private GMSSParameters params;
+	private GMSSParameters params;
 
-    public GMSSKeyGenerationParameters(
-        SecureRandom random,
-        GMSSParameters params)
-    {
-        // XXX key size?
-        super(random, 1);
-        this.params = params;
-    }
+	public GMSSKeyGenerationParameters(SecureRandom random, GMSSParameters params) {
+		// XXX key size?
+		super(random, 1);
+		this.params = params;
+	}
 
-    public GMSSParameters getParameters()
-    {
-        return params;
-    }
+	public GMSSParameters getParameters() {
+		return params;
+	}
 }

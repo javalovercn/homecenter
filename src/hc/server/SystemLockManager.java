@@ -50,13 +50,10 @@ public class SystemLockManager {
 		} else {
 			if (System.currentTimeMillis() - SystemLockManager.getLastErrMS() < LOCK_MS) {
 				SingleMessageNotify.showOnce(SingleMessageNotify.TYPE_LOCK_CERT,
-						"system is locking now!!!<BR><BR>error password or certification more than "
-								+ MAXTIMES + " times.",
+						"system is locking now!!!<BR><BR>error password or certification more than " + MAXTIMES + " times.",
 						"Lock System Now!!", 1000 * 60 * 1, App.getSysIcon(App.SYS_WARN_ICON));
-				LogManager.errToLog(
-						"error password or certification more than " + MAXTIMES + " times.");
-				coreSS.context.send(MsgBuilder.E_AFTER_CERT_STATUS,
-						String.valueOf(IContext.BIZ_SERVER_AFTER_UNKNOW_STATUS));
+				LogManager.errToLog("error password or certification more than " + MAXTIMES + " times.");
+				coreSS.context.send(MsgBuilder.E_AFTER_CERT_STATUS, String.valueOf(IContext.BIZ_SERVER_AFTER_UNKNOW_STATUS));
 				J2SEContext.sleepAfterError();
 				coreSS.notifyLineOff(true, false);
 
@@ -104,8 +101,7 @@ public class SystemLockManager {
 	}
 
 	public static int getConfigErrTry() {
-		return (PropertiesManager.getValue(PropertiesManager.PWD_ERR_TRY) == null)
-				? DefaultManager.ERR_TRY_TIMES
+		return (PropertiesManager.getValue(PropertiesManager.PWD_ERR_TRY) == null) ? DefaultManager.ERR_TRY_TIMES
 				: Integer.parseInt(PropertiesManager.getValue(PropertiesManager.PWD_ERR_TRY));
 	}
 

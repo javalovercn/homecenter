@@ -21,19 +21,19 @@ import hc.core.util.XorPackage;
 public final class HCConnection {
 	private static long globalConnectID = 1;
 	private static final Object hcConnectionClassLock = new Object();
-	
+
 	private final boolean isInWorkshop = L.isInWorkshop;
-	
-	private static long getConnectionID(){
+
+	private static long getConnectionID() {
 		synchronized (hcConnectionClassLock) {
 			return globalConnectID++;
 		}
 	}
-	
-	public final void setOnRelay(final boolean isRelay){
+
+	public final void setOnRelay(final boolean isRelay) {
 		sipContext.isOnRelay = isRelay;
 	}
-	
+
 	public final long connectionID = getConnectionID();
 	private final ByteArrayCacher cache = ByteUtil.byteArrayCacher;
 	public int workingFactor = CUtil.getInitFactor();
@@ -45,19 +45,20 @@ public final class HCConnection {
 	public byte[] userPassword = clonePwd();
 	private final Object sendLock = new Object();
 	private boolean isRelayModeSendSlow = true;
-    public final SenderSlowCounter sendSlowPackageCounter = new SenderSlowCounter();
-    
-	public final void setIContext(IContext ctx){
+	public final SenderSlowCounter sendSlowPackageCounter = new SenderSlowCounter();
+
+	public final void setIContext(IContext ctx) {
 		this.iContext = ctx;
 	}
 
 	public final byte[] clonePwd() {
 		final byte[] passwordBS = IConstant.getPasswordBS();
-		if(passwordBS == null){
+		if (passwordBS == null) {
 			return null;
 		}
 		return ByteUtil.cloneBS(passwordBS);
 	}
+
 	public IEncrypter userEncryptor = loadEncryptor(userPassword);
 	public byte[] OneTimeCertKey;
 	public boolean isInitialCloseReceiveForJ2ME = false;
@@ -66,64 +67,64 @@ public final class HCConnection {
 
 	final ConnectionRebuilder connectionRebuilder = new ConnectionRebuilder();
 	long xorPackageID = 0;
-	
+
 	public byte[] package_tcp_bs;
 	public int package_tcp_id;
 	public int package_tcp_last_store_idx = MsgBuilder.INDEX_MSG_DATA;
 	public int packaeg_tcp_num;
 	public int packaeg_tcp_appended_num;
-	
-	//------------------以下是KeepAlive段------------------
-	//不能初始为0，极端初次条件下可能认为，长时无接收。
+
+	// ------------------以下是KeepAlive段------------------
+	// 不能初始为0，极端初次条件下可能认为，长时无接收。
 	public long receiveMS = System.currentTimeMillis();
 	public long sendLineMS;
 	public boolean isSendLive = false;
-	public long startTime ;
+	public long startTime;
 
 	public Object updateOneTimeKeysRunnable;
 	private final Object oneTimeReceiveNotifyLock = new Object();
-	
-	public final void waitOneTimeReceiveNotifyLock(){
+
+	public final void waitOneTimeReceiveNotifyLock() {
 		synchronized (oneTimeReceiveNotifyLock) {
 			try {
-				oneTimeReceiveNotifyLock.wait();//时间长短不定，故不限定
+				oneTimeReceiveNotifyLock.wait();// 时间长短不定，故不限定
 			} catch (final InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
 	}
-	
-	public final void notifyOneTimeReceiveNotifyLock(){
+
+	public final void notifyOneTimeReceiveNotifyLock() {
 		synchronized (oneTimeReceiveNotifyLock) {
 			oneTimeReceiveNotifyLock.notify();
 		}
 	}
-	
+
 	private final byte splitPackageSubTag = 0;
 	public boolean isSecondCertKeyError = false;
 	public byte[] SERVER_READY_TO_CHECK;
-	
+
 	private boolean hasReceiveUncheckCert = false;
 	public byte[] random_for_server;
 
 	/**
 	 * 收到新证书，但未验证服务器
 	 */
-	public final void receiveUncheckCert(){
+	public final void receiveUncheckCert() {
 		hasReceiveUncheckCert = true;
 	}
-	
+
 	private UDPController udpController;
-	
-	public final UDPController getUDPController(){
+
+	public final UDPController getUDPController() {
 		synchronized (this) {
-			if(udpController == null){
+			if (udpController == null) {
 				udpController = new UDPController();
 			}
 			return udpController;
 		}
 	}
-	
+
 	public final ReceiveServer getReceiveServer() {
 		return rServer;
 	}
@@ -132,69 +133,77 @@ public final class HCConnection {
 		return udpReceivServer;
 	}
 
-	public final void setReceiver(final ReceiveServer rs, final UDPReceiveServer udpRS){
+	public final void setReceiver(final ReceiveServer rs,
+			final UDPReceiveServer udpRS) {
 		rServer = rs;
 		udpReceivServer = udpRS;
 	}
-	
-	public final void setUDPChannelPort(final int udpPort){
+
+	public final void setUDPChannelPort(final int udpPort) {
 		relayIpPort.udpPort = udpPort;
 	}
-	
-	//获得远程中继的UDP控制器端口
-	public final int getUDPControllerPort(){
-		//注意与NIOServer生成时，保持一致
+
+	// 获得远程中继的UDP控制器端口
+	public final int getUDPControllerPort() {
+		// 注意与NIOServer生成时，保持一致
 		return relayIpPort.port - 1;
 	}
-	
-	public final boolean hasReceiveUncheckCert(){
+
+	public final boolean hasReceiveUncheckCert() {
 		return hasReceiveUncheckCert;
 	}
-	
-	public final void resetReceiveUncheckCert(){
+
+	public final void resetReceiveUncheckCert() {
 		hasReceiveUncheckCert = false;
 	}
-	
-	//-------------------UpdateOneTime-------------------
+
+	// -------------------UpdateOneTime-------------------
 	public boolean isStopRunning = false;
 	public byte[] oneTime = new byte[CCoreUtil.CERT_KEY_LEN];
-	private final int updateMinMinutes = RootConfig.getInstance().getIntProperty(RootConfig.p_UpdateOneTimeMinMinutes);
+	private final int updateMinMinutes = RootConfig.getInstance()
+			.getIntProperty(RootConfig.p_UpdateOneTimeMinMinutes);
 	public boolean isReceivedOneTimeInSecuChannalFromMobile = false;
-	
-	public final int getUpdateMinMinutes(){
-		if(updateMinMinutes <= 0 || updateMinMinutes > 20){
+
+	public final int getUpdateMinMinutes() {
+		if (updateMinMinutes <= 0 || updateMinMinutes > 20) {
 			return 20;
 		}
 		return updateMinMinutes;
 	}
-	
-	public final boolean isUsingUDPAtMobile(){
-		return (IConstant.serverSide == false) && isBuildedUPDChannel && isDoneUDPChannelCheck;
+
+	public final boolean isUsingUDPAtMobile() {
+		return (IConstant.serverSide == false) && isBuildedUPDChannel
+				&& isDoneUDPChannelCheck;
 	}
-	
-	final void sendImpl(final byte event_type, final String body, final short cmStatus) {
+
+	final void sendImpl(final byte event_type, final String body,
+			final short cmStatus) {
 		try {
 			final byte[] jcip_bs = body.getBytes(IConstant.UTF_8);
-			sendWrapActionImpl(event_type, jcip_bs, 0, jcip_bs.length, cmStatus);
+			sendWrapActionImpl(event_type, jcip_bs, 0, jcip_bs.length,
+					cmStatus);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private final Object BIGLOCK = new Object();
 	private final Object LOCK = new Object();
-	
+
 	public final short checkBitLen = MsgBuilder.EXT_BYTE_NUM;
 	private byte checkTotal;
 	private byte checkAND;
 	private byte checkMINUS;
-	
+
 	public final void setOutputStream(final Object tcpOrUDPSocket) {
-		if(tcpOrUDPSocket != null){
-			L.V = L.WShop ? false : LogManager.log("[Change] HCConnection Send outputStream : " + tcpOrUDPSocket.hashCode());
+		if (tcpOrUDPSocket != null) {
+			L.V = L.WShop ? false
+					: LogManager
+							.log("[Change] HCConnection Send outputStream : "
+									+ tcpOrUDPSocket.hashCode());
 		}
-		
-		this.outStream = (DataOutputStream)tcpOrUDPSocket;
+
+		this.outStream = (DataOutputStream) tcpOrUDPSocket;
 		isRelayModeSendSlow = sipContext.isOnRelay;
 	}
 
@@ -202,70 +211,87 @@ public final class HCConnection {
 
 	public final Object getOutputStream() {
 		CCoreUtil.checkAccess();
-		
+
 		return outStream;
 	}
-	
-	public HCConnection(){//注意：此实例被用作KeepAlive和UpdateOneTime的锁
+
+	public HCConnection() {// 注意：此实例被用作KeepAlive和UpdateOneTime的锁
 	}
-	
-	public final void sendWrapActionImpl(final byte ctrlTag, final byte[] jcip_bs, final int offset, final int len, final short cmStatus) {
+
+	public final void sendWrapActionImpl(final byte ctrlTag,
+			final byte[] jcip_bs, final int offset, final int len,
+			final short cmStatus) {
 		Exception hasException = null;
-		
-		if(isBuildedUPDChannel && isDoneUDPChannelCheck
-				&& (ctrlTag != MsgBuilder.E_GOTO_URL && ctrlTag != MsgBuilder.E_INPUT_EVENT && ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN)){
-			udpSender.sendUDP(ctrlTag, MsgBuilder.NULL_CTRL_SUB_TAG, jcip_bs, offset, len, 0, false);
+
+		if (isBuildedUPDChannel && isDoneUDPChannelCheck
+				&& (ctrlTag != MsgBuilder.E_GOTO_URL
+						&& ctrlTag != MsgBuilder.E_INPUT_EVENT
+						&& ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN)) {
+			udpSender.sendUDP(ctrlTag, MsgBuilder.NULL_CTRL_SUB_TAG, jcip_bs,
+					offset, len, 0, false);
 			return;
 		}
-		
+
 		final int minSize = len + MsgBuilder.MIN_LEN_MSG;
-		
-		if(minSize > MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT){//大消息块
+
+		if (minSize > MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT) {// 大消息块
 			synchronized (BIGLOCK) {
-				if(bigMsgBlobBS.length < MsgBuilder.MAX_LEN_TCP_PACKAGE_BLOCK_BUF){
-					bigMsgBlobBS = new byte[MsgBuilder.MAX_LEN_TCP_PACKAGE_BLOCK_BUF];//分配更大处理内存，由于TCP_PACKAGE_SPLIT_EXT_BUF_SIZE，所以不checkBitLen
+				if (bigMsgBlobBS.length < MsgBuilder.MAX_LEN_TCP_PACKAGE_BLOCK_BUF) {
+					bigMsgBlobBS = new byte[MsgBuilder.MAX_LEN_TCP_PACKAGE_BLOCK_BUF];// 分配更大处理内存，由于TCP_PACKAGE_SPLIT_EXT_BUF_SIZE，所以不checkBitLen
 				}
-				
+
 				final byte[] bs = bigMsgBlobBS;
-				
-				if(++tcp_package_split_next_id > MAX_ID_TCP_PACKAGE_SPLIT){
-					tcp_package_split_next_id = 1;//重置块号计数器
+
+				if (++tcp_package_split_next_id > MAX_ID_TCP_PACKAGE_SPLIT) {
+					tcp_package_split_next_id = 1;// 重置块号计数器
 				}
-				
+
 				int leftLen = len;
 				int splitIdx = offset;
-				int totalPackageNum = len / MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT;
-				if(totalPackageNum * MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT < len){
+				int totalPackageNum = len
+						/ MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT;
+				if (totalPackageNum
+						* MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT < len) {
 					totalPackageNum++;
 				}
-				while(leftLen > 0) {
-					final int eachLen = leftLen>MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT?MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT:leftLen;
-					System.arraycopy(jcip_bs, splitIdx, bs, MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen);
-					HCMessage.setMsgTcpSplitCtrlData(bs, MsgBuilder.INDEX_MSG_DATA, ctrlTag, splitPackageSubTag, tcp_package_split_next_id, totalPackageNum);
-					final int splitPackageLen = eachLen + MsgBuilder.LEN_TCP_PACKAGE_SPLIT_DATA_BLOCK_LEN;
+				while (leftLen > 0) {
+					final int eachLen = leftLen > MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT
+							? MsgBuilder.MAX_LEN_TCP_PACKAGE_SPLIT
+							: leftLen;
+					System.arraycopy(jcip_bs, splitIdx, bs,
+							MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen);
+					HCMessage.setMsgTcpSplitCtrlData(bs,
+							MsgBuilder.INDEX_MSG_DATA, ctrlTag,
+							splitPackageSubTag, tcp_package_split_next_id,
+							totalPackageNum);
+					final int splitPackageLen = eachLen
+							+ MsgBuilder.LEN_TCP_PACKAGE_SPLIT_DATA_BLOCK_LEN;
 					HCMessage.setMsgLen(bs, splitPackageLen);
 					bs[MsgBuilder.INDEX_CTRL_TAG] = MsgBuilder.E_PACKAGE_SPLIT_TCP;
-					bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = 0;//因为大消息（big msg）会占用此位，所以要重置。
-				
-	    			//因为有可能大数据占用过多时间，导致keepalive不能发送数据，每次循环加锁
-					if(isInWorkshop){
-						if(outStream == null){
+					bs[MsgBuilder.INDEX_CTRL_SUB_TAG] = 0;// 因为大消息（big
+															// msg）会占用此位，所以要重置。
+
+					// 因为有可能大数据占用过多时间，导致keepalive不能发送数据，每次循环加锁
+					if (isInWorkshop) {
+						if (outStream == null) {
 							return;
 						}
 					}
 					splitIdx += eachLen;
 					leftLen -= eachLen;
-					final int splitSendLen = MsgBuilder.TCP_SPLIT_STORE_IDX + eachLen;
+					final int splitSendLen = MsgBuilder.TCP_SPLIT_STORE_IDX
+							+ eachLen;
 					int sendWithCheckLen = splitSendLen;
-					
-					if(isInWorkshop){
-						LogManager.log("Send [" + ctrlTag + "], len:" + eachLen + " from " + outStream.hashCode());
+
+					if (isInWorkshop) {
+						LogManager.log("Send [" + ctrlTag + "], len:" + eachLen
+								+ " from " + outStream.hashCode());
 					}
-					
+
 					synchronized (sendLock) {
 						sendWithCheckLen += checkBitLen;
 						{
-							final byte oneByte = bs[0];//INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
+							final byte oneByte = bs[0];// INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
 							checkTotal += oneByte;
 							checkAND ^= checkTotal;
 							checkAND += oneByte;
@@ -282,58 +308,73 @@ public final class HCConnection {
 						}
 						bs[splitSendLen] = checkAND;
 						bs[splitSendLen + 1] = checkMINUS;
-						
-						ByteUtil.longToEightBytes(++xorPackageID, bs, splitSendLen + 2);
-						
-						L.V = L.WShop ? false : LogManager.log("send XorPackage : " + xorPackageID);
+
+						ByteUtil.longToEightBytes(++xorPackageID, bs,
+								splitSendLen + 2);
+
+						L.V = L.WShop ? false
+								: LogManager.log(
+										"send XorPackage : " + xorPackageID);
 					}
-						
-//					LogManager.log("dataLen : " + (splitSendLen - MsgBuilder.INDEX_MSG_DATA) + ", data : " + ByteUtil.toHex(bs, 0, sendWithCheckLen));
-						
-		    		//加密
-		    		//			    LogManager.log("Xor len:" + eachLen);
-	    			CUtil.superXor(this, OneTimeCertKey, bs, MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen, null, true, true);//考虑前段数据较长，不用加密更为安全，所以不从TCP_SPLIT_STORE_IDX开始加密
 
-//    			    LogManager.log("Send BIGMSG split ID : " + tcp_package_split_next_id + "[" + ctrlTag + "], len:" + eachLen);
-					cloneXorPackage(bs, sendWithCheckLen, xorPackageID);//极端情形下，有可能未入clone，但签收已到，所以要先于write/flush
+					// LogManager.log("dataLen : " + (splitSendLen -
+					// MsgBuilder.INDEX_MSG_DATA) + ", data : " +
+					// ByteUtil.toHex(bs, 0, sendWithCheckLen));
 
-					try{
+					// 加密
+					// LogManager.log("Xor len:" + eachLen);
+					CUtil.superXor(this, OneTimeCertKey, bs,
+							MsgBuilder.TCP_SPLIT_STORE_IDX, eachLen, null, true,
+							true);// 考虑前段数据较长，不用加密更为安全，所以不从TCP_SPLIT_STORE_IDX开始加密
+
+					// LogManager.log("Send BIGMSG split ID : " +
+					// tcp_package_split_next_id + "[" + ctrlTag + "], len:" +
+					// eachLen);
+					cloneXorPackage(bs, sendWithCheckLen, xorPackageID);// 极端情形下，有可能未入clone，但签收已到，所以要先于write/flush
+
+					try {
 						outStream.write(bs, 0, sendWithCheckLen);
-						if(leftLen <= 0){
+						if (leftLen <= 0) {
 							outStream.flush();
 						}
-					}catch (Exception e) {
+					} catch (Exception e) {
 						hasException = e;
 						LogManager.errToLog("send exception : " + e.toString());
 					}
 				}
 			}
-		}else{//普通大小消息块
-			final boolean isXor = !(len == 0 || ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN);
-			final int minSizeAndCheckLen = isXor?(minSize + checkBitLen):minSize;
+		} else {// 普通大小消息块
+			final boolean isXor = !(len == 0
+					|| ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN);
+			final int minSizeAndCheckLen = isXor ? (minSize + checkBitLen)
+					: minSize;
 			synchronized (LOCK) {
-				if(blobBS.length < minSizeAndCheckLen){
+				if (blobBS.length < minSizeAndCheckLen) {
 					blobBS = new byte[minSizeAndCheckLen];
 				}
-				
+
 				final byte[] bs = blobBS;
-				
-	//			LogManager.log("sendWrap blobBS.length:" + blobBS.length + ", jcip_bs.length:" + jcip_bs.length + ", offset:" + offset + ", len:" + len);
-				HCMessage.setMsgBody(bs, MsgBuilder.INDEX_MSG_DATA, jcip_bs, offset, len);
+
+				// LogManager.log("sendWrap blobBS.length:" + blobBS.length + ",
+				// jcip_bs.length:" + jcip_bs.length + ", offset:" + offset + ",
+				// len:" + len);
+				HCMessage.setMsgBody(bs, MsgBuilder.INDEX_MSG_DATA, jcip_bs,
+						offset, len);
 				bs[MsgBuilder.INDEX_CTRL_TAG] = ctrlTag;
-				
-				if(isInWorkshop && outStream == null){
+
+				if (isInWorkshop && outStream == null) {
 					return;
 				}
-				
-				if(isInWorkshop){
-					LogManager.log("Send [" + ctrlTag + "], len:" + len + " from " + outStream.hashCode());
+
+				if (isInWorkshop) {
+					LogManager.log("Send [" + ctrlTag + "], len:" + len
+							+ " from " + outStream.hashCode());
 				}
-				
+
 				synchronized (sendLock) {
-					if(isXor){
+					if (isXor) {
 						{
-							final byte oneByte = bs[0];//INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
+							final byte oneByte = bs[0];// INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
 							checkTotal += oneByte;
 							checkAND ^= checkTotal;
 							checkAND += oneByte;
@@ -350,116 +391,131 @@ public final class HCConnection {
 						}
 						bs[minSize] = checkAND;
 						bs[minSize + 1] = checkMINUS;
-						
-						ByteUtil.longToEightBytes(++xorPackageID, bs, minSize + 2);
 
-			    		//加密
-			    		//			    LogManager.log("Xor len:" + len);
-		    			CUtil.superXor(this, OneTimeCertKey, bs, MsgBuilder.INDEX_MSG_DATA, len, null, true, true);
+						ByteUtil.longToEightBytes(++xorPackageID, bs,
+								minSize + 2);
 
-						cloneXorPackage(bs, minSizeAndCheckLen, xorPackageID);//极端情形下，有可能未入clone，但签收已到，所以要先于write/flush
+						// 加密
+						// LogManager.log("Xor len:" + len);
+						CUtil.superXor(this, OneTimeCertKey, bs,
+								MsgBuilder.INDEX_MSG_DATA, len, null, true,
+								true);
+
+						cloneXorPackage(bs, minSizeAndCheckLen, xorPackageID);// 极端情形下，有可能未入clone，但签收已到，所以要先于write/flush
 					}
 
-					try{
+					try {
 						outStream.write(bs, 0, minSizeAndCheckLen);
 						outStream.flush();
-					}catch (Exception e) {
+					} catch (Exception e) {
 						hasException = e;
 					}
-					
+
 				}
 			}
 		}
-		
-		if(hasException != null){
-			if(isInWorkshop){
+
+		if (hasException != null) {
+			if (isInWorkshop) {
 				LogManager.errToLog("==============>send had exception!");
 			}
-			if(CUtil.ONE_TIME_CERT_KEY_IS_NULL.equals(hasException.getMessage())){//e.getMessage()有可能为null
+			if (CUtil.ONE_TIME_CERT_KEY_IS_NULL
+					.equals(hasException.getMessage())) {// e.getMessage()有可能为null
 				LogManager.errToLog(CUtil.ONE_TIME_CERT_KEY_IS_NULL);
 				return;
-			}else if(isInWorkshop){
+			} else if (isInWorkshop) {
 				LogManager.errToLog("[workshop] Error sendWrapAction(bigData)");
 				ExceptionReporter.printStackTrace(hasException);
 			}
 			connectionRebuilder.notifyBuildNewConnection(true, cmStatus);
 		}
 	}
-	
 
-	public void reset(){
+	public void reset() {
 		udpReceivServer.setUdpServerSocket(null);
 
 		isDoneUDPChannelCheck = false;
 		isBuildedUPDChannel = false;
 	}
-	
+
 	public boolean isDoneUDPChannelCheck = false;
 	public boolean isBuildedUPDChannel = false;
-	
+
 	public UDPPacketResender udpSender = null;
 	private final LinkedSet xorPackageSet = new LinkedSet();
-	
+
 	public final void ackXorPackage(final byte[] bs, final CoreSession coreSS) {
-		final long ackPakcageID = ByteUtil.eightBytesToLong(bs, MsgBuilder.INDEX_MSG_DATA);
-		if(ackXorPackage(ackPakcageID)){
-			L.V = L.WShop ? false : LogManager.log("successful ack XorPackageID : " + ackPakcageID);
-		}else{
+		final long ackPakcageID = ByteUtil.eightBytesToLong(bs,
+				MsgBuilder.INDEX_MSG_DATA);
+		if (ackXorPackage(ackPakcageID)) {
+			L.V = L.WShop ? false
+					: LogManager.log(
+							"successful ack XorPackageID : " + ackPakcageID);
+		} else {
 			LogManager.errToLog("error ack package!");
 			coreSS.notifyLineOff(false, false);
 		}
 	}
 
-	
-	private final boolean ackXorPackage(final long xorPackageID){
+	private final boolean ackXorPackage(final long xorPackageID) {
 		synchronized (xorPackageSet) {
 			XorPackage xp;
-			while((xp = (XorPackage)xorPackageSet.getFirst()) != null){
+			while ((xp = (XorPackage) xorPackageSet.getFirst()) != null) {
 				final int len = xp.len;
-				final long xpID = ByteUtil.eightBytesToLong(xp.bs, len - MsgBuilder.XOR_PACKAGE_ID_LEN);
-				if(xpID < xorPackageID){
+				final long xpID = ByteUtil.eightBytesToLong(xp.bs,
+						len - MsgBuilder.XOR_PACKAGE_ID_LEN);
+				if (xpID < xorPackageID) {
 					cache.cycle(xp.bs);
 					XorPackage.cycle(xp);
 					continue;
-				}else if(xpID == xorPackageID){
+				} else if (xpID == xorPackageID) {
 					cache.cycle(xp.bs);
 					XorPackage.cycle(xp);
 					return true;
-				}else{
-					L.V = L.WShop ? false : LogManager.log("ack XorPackage ID : " + xpID + ", should ID : " + xorPackageID);
+				} else {
+					L.V = L.WShop ? false
+							: LogManager.log("ack XorPackage ID : " + xpID
+									+ ", should ID : " + xorPackageID);
 					return false;
 				}
 			}
 		}
-		
-		L.V = L.WShop ? false : LogManager.log("no ack XorPackage in set, should ID : " + xorPackageID);
+
+		L.V = L.WShop ? false
+				: LogManager.log("no ack XorPackage in set, should ID : "
+						+ xorPackageID);
 		return false;
 	}
-	
-	public final void resendUnReachablePackage(){
-		synchronized (sendLock) {//注意：要外于xorPackageSet，不影响keepalive
+
+	public final void resendUnReachablePackage() {
+		synchronized (sendLock) {// 注意：要外于xorPackageSet，不影响keepalive
 			synchronized (xorPackageSet) {
 				final Vector v = xorPackageSet.toVector();
 				final int size = v.size();
 				for (int i = 0; i < size; i++) {
-					final XorPackage xp = (XorPackage)v.elementAt(i);
-					L.V = L.WShop ? false : LogManager.log("[ConnectionRebuilder] re-send XorPackage ID : " + xp.packageID + " in resendUnReachablePackage.");
-					try{
+					final XorPackage xp = (XorPackage) v.elementAt(i);
+					L.V = L.WShop ? false
+							: LogManager.log(
+									"[ConnectionRebuilder] re-send XorPackage ID : "
+											+ xp.packageID
+											+ " in resendUnReachablePackage.");
+					try {
 						outStream.write(xp.bs, 0, xp.len);
 						outStream.flush();
-					}catch (Exception ex) {
+					} catch (Exception ex) {
 					}
 				}
 			}
 		}
 	}
-	
-	private final void cloneXorPackage(final byte[] bs, final int len, final long packageID){
+
+	private final void cloneXorPackage(final byte[] bs, final int len,
+			final long packageID) {
 		final XorPackage xp = XorPackage.getFree();
-		
+
 		final byte[] cpBS = cache.getFree(len);
 		System.arraycopy(bs, 0, cpBS, 0, len);
-		
+
 		xp.bs = cpBS;
 		xp.len = len;
 		xp.packageID = packageID;
@@ -468,102 +524,116 @@ public final class HCConnection {
 			xorPackageSet.addTail(xp);
 		}
 
-		if(isRelayModeSendSlow){
-			if(sendSlowPackageCounter.addOne() > MsgBuilder.sendSlowMaxUnackPackageNum){
-				L.V = L.WShop ? false : LogManager.log("force send slow when package is too long to receive.");
-				try{
+		if (isRelayModeSendSlow) {
+			if (sendSlowPackageCounter
+					.addOne() > MsgBuilder.sendSlowMaxUnackPackageNum) {
+				L.V = L.WShop ? false
+						: LogManager.log(
+								"force send slow when package is too long to receive.");
+				try {
 					Thread.sleep(50);
-				}catch (Exception e) {
+				} catch (Exception e) {
 				}
 			}
 		}
 	}
-	
-	public final void release(){
+
+	public final void release() {
 		iContext = null;
 		connectionRebuilder.isReleased = true;
-		
+
 		synchronized (xorPackageSet) {
 			XorPackage xp;
-			while((xp = (XorPackage)xorPackageSet.getFirst()) != null){
+			while ((xp = (XorPackage) xorPackageSet.getFirst()) != null) {
 				cache.cycle(xp.bs);
 				XorPackage.cycle(xp);
 			}
 		}
-		if(rServer != null){
+		if (rServer != null) {
 			rServer.shutDown();
 		}
 		HCTimer.remove(sipContext.resender.resenderTimer);
 		HCTimer.remove(sipContext.ackbatchTimer);
 	}
-	
+
 	private Object inputStreamForNullRServer;
-	
-	public final void setReceiveServerInputStream(final Object inputStream, final boolean isShutDown, final boolean isCloseOld){
-		if(inputStream != null){
-			L.V = L.WShop ? false : LogManager.log("[Change] Receive inputStream :" + inputStream.hashCode());
+
+	public final void setReceiveServerInputStream(final Object inputStream,
+			final boolean isShutDown, final boolean isCloseOld) {
+		if (inputStream != null) {
+			L.V = L.WShop ? false
+					: LogManager.log("[Change] Receive inputStream :"
+							+ inputStream.hashCode());
 		}
-		
-		if(rServer != null){
-			if(isShutDown){
+
+		if (rServer != null) {
+			if (isShutDown) {
 				rServer.shutDown();
 			}
 			rServer.setUdpServerSocket(inputStream, isCloseOld);
-		}else{
-			inputStreamForNullRServer = inputStream;//重建连接，没有ReceiveServer，所以为null
+		} else {
+			inputStreamForNullRServer = inputStream;// 重建连接，没有ReceiveServer，所以为null
 		}
 	}
-	
-	public final Object getReceiveServerInputStream(){
-		if(rServer != null){
+
+	public final Object getReceiveServerInputStream() {
+		if (rServer != null) {
 			return rServer.dataInputStream;
-		}else{
+		} else {
 			return inputStreamForNullRServer;
 		}
 	}
-	
+
 	/**
 	 * 仅限发送控制短数据。
+	 * 
 	 * @param ctrlTag
-	 * @param bsModi 数据会被加密进程混淆、修改
+	 * @param bsModi
+	 *            数据会被加密进程混淆、修改
 	 * @param data_len
 	 */
-	public final void sendImpl(final byte ctrlTag, byte[] bsModi, final int data_len, final short cmStatus) {
+	public final void sendImpl(final byte ctrlTag, byte[] bsModi,
+			final int data_len, final short cmStatus) {
 		Exception hasException = null;
-		
-		if(isBuildedUPDChannel && isDoneUDPChannelCheck
-					&& (ctrlTag != MsgBuilder.E_GOTO_URL && ctrlTag != MsgBuilder.E_INPUT_EVENT && ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN)){
-			udpSender.sendUDP(ctrlTag, bsModi[MsgBuilder.INDEX_CTRL_SUB_TAG], bsModi, MsgBuilder.INDEX_MSG_DATA, data_len, 0, false);
+
+		if (isBuildedUPDChannel && isDoneUDPChannelCheck
+				&& (ctrlTag != MsgBuilder.E_GOTO_URL
+						&& ctrlTag != MsgBuilder.E_INPUT_EVENT
+						&& ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN)) {
+			udpSender.sendUDP(ctrlTag, bsModi[MsgBuilder.INDEX_CTRL_SUB_TAG],
+					bsModi, MsgBuilder.INDEX_MSG_DATA, data_len, 0, false);
 			return;
 		}
 
 		HCMessage.setMsgLen(bsModi, data_len);
-		
+
 		bsModi[MsgBuilder.INDEX_CTRL_TAG] = ctrlTag;
 		boolean isNeedRecyle = false;
-		
-		final boolean isXor = ! (ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN || data_len == 0);
+
+		final boolean isXor = !(ctrlTag <= MsgBuilder.UN_XOR_MSG_TAG_MIN
+				|| data_len == 0);
 		final int sendLenWithoutCheck = data_len + MsgBuilder.INDEX_MSG_DATA;
 		int sendWithCheckLen = sendLenWithoutCheck;
-		if(isXor){
+		if (isXor) {
 			sendWithCheckLen += checkBitLen;
-			
-			if(bsModi.length < sendWithCheckLen){
+
+			if (bsModi.length < sendWithCheckLen) {
 				byte[] cycleBS = cache.getFree(sendWithCheckLen);
 				System.arraycopy(bsModi, 0, cycleBS, 0, sendLenWithoutCheck);
 				bsModi = cycleBS;
 				isNeedRecyle = true;
 			}
 		}
-		
-		if(isInWorkshop){
-			LogManager.log("Send [" + ctrlTag + "], len:" + data_len + " from " + outStream.hashCode());
+
+		if (isInWorkshop) {
+			LogManager.log("Send [" + ctrlTag + "], len:" + data_len + " from "
+					+ outStream.hashCode());
 		}
-		
+
 		synchronized (sendLock) {
-			if(isXor){
+			if (isXor) {
 				{
-					final byte oneByte = bsModi[0];//INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
+					final byte oneByte = bsModi[0];// INDEX_CTRL_SUB_TAG可能不被使用，而存在脏数据
 					checkTotal += oneByte;
 					checkAND ^= checkTotal;
 					checkAND += oneByte;
@@ -580,32 +650,34 @@ public final class HCConnection {
 				}
 				bsModi[sendLenWithoutCheck] = checkAND;
 				bsModi[sendLenWithoutCheck + 1] = checkMINUS;
-				
-				ByteUtil.longToEightBytes(++xorPackageID, bsModi, sendLenWithoutCheck + 2);
-				
-	    		//加密
-//		    		LogManager.log("Xor len:" + data_len);
-	    		CUtil.superXor(this, OneTimeCertKey, bsModi, MsgBuilder.INDEX_MSG_DATA, data_len, null, true, true);
 
-				cloneXorPackage(bsModi, sendWithCheckLen, xorPackageID);//极端情形下，有可能未入clone，但签收已到，所以要先于write/flush
+				ByteUtil.longToEightBytes(++xorPackageID, bsModi,
+						sendLenWithoutCheck + 2);
+
+				// 加密
+				// LogManager.log("Xor len:" + data_len);
+				CUtil.superXor(this, OneTimeCertKey, bsModi,
+						MsgBuilder.INDEX_MSG_DATA, data_len, null, true, true);
+
+				cloneXorPackage(bsModi, sendWithCheckLen, xorPackageID);// 极端情形下，有可能未入clone，但签收已到，所以要先于write/flush
 			}
 
-//			LogManager.log("Send [" + ctrlTag + "], len:" + data_len);
-			try{
+			// LogManager.log("Send [" + ctrlTag + "], len:" + data_len);
+			try {
 				outStream.write(bsModi, 0, sendWithCheckLen);
 				outStream.flush();
-			}catch (Exception e) {
+			} catch (Exception e) {
 				hasException = e;
 			}
-			
-		}//end synchronized
-		
-		if(isNeedRecyle){
+
+		} // end synchronized
+
+		if (isNeedRecyle) {
 			cache.cycle(bsModi);
 		}
-		
-		if(hasException != null){
-			if(isInWorkshop){
+
+		if (hasException != null) {
+			if (isInWorkshop) {
 				LogManager.errToLog("==============>send had exception!");
 			}
 			connectionRebuilder.notifyBuildNewConnection(true, cmStatus);
@@ -619,29 +691,33 @@ public final class HCConnection {
 	byte[] blobBS = new byte[40 * 1024];
 	int tcp_package_split_next_id = 1;
 	private final int MAX_ID_TCP_PACKAGE_SPLIT = 1 << 23;
-	
+
 	final void sendImpl(final byte ctrlTag) {
-		if(isBuildedUPDChannel && isDoneUDPChannelCheck
-				&& (ctrlTag != MsgBuilder.E_GOTO_URL && ctrlTag != MsgBuilder.E_INPUT_EVENT && ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN)){
-			udpSender.sendUDP(ctrlTag, MsgBuilder.NULL_CTRL_SUB_TAG, oneTagBS, MsgBuilder.MIN_LEN_MSG, 0, 0, false);
+		if (isBuildedUPDChannel && isDoneUDPChannelCheck
+				&& (ctrlTag != MsgBuilder.E_GOTO_URL
+						&& ctrlTag != MsgBuilder.E_INPUT_EVENT
+						&& ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN)) {
+			udpSender.sendUDP(ctrlTag, MsgBuilder.NULL_CTRL_SUB_TAG, oneTagBS,
+					MsgBuilder.MIN_LEN_MSG, 0, 0, false);
 			return;
 		}
-	    
-		if(isInWorkshop){
-			LogManager.log("Send [" + ctrlTag + "], len:" + 0 + ", isCheckOn : false from " + outStream.hashCode());
+
+		if (isInWorkshop) {
+			LogManager.log("Send [" + ctrlTag + "], len:" + 0
+					+ ", isCheckOn : false from " + outStream.hashCode());
 		}
-		
+
 		synchronized (oneTagBS) {
 			oneTagBS[MsgBuilder.INDEX_CTRL_TAG] = ctrlTag;
 
-//				LogManager.log("Send [" + ctrlTag + "], len:" + 0);
+			// LogManager.log("Send [" + ctrlTag + "], len:" + 0);
 			synchronized (sendLock) {
-				try{
+				try {
 					outStream.write(oneTagBS, 0, MsgBuilder.MIN_LEN_MSG);
 					outStream.flush();
-				}catch (Exception e) {
+				} catch (Exception e) {
 					LogManager.log("Exception:" + e.getMessage());
-//					connectionRebuilder.buildNewConnection(true, cmStatus);
+					// connectionRebuilder.buildNewConnection(true, cmStatus);
 				}
 			}
 		}
@@ -649,54 +725,65 @@ public final class HCConnection {
 
 	/**
 	 * 仅限发送控制短数据
+	 * 
 	 * @param os
 	 * @param ctrlTag
 	 * @param subTag
 	 */
-	final void sendImpl(OutputStream os, final byte ctrlTag, final byte subTag) {//不能拦截os为null的异常，因为KeepaliveManager.java保活需要此异常
-		if(isBuildedUPDChannel && isDoneUDPChannelCheck
-				&& (ctrlTag != MsgBuilder.E_GOTO_URL && ctrlTag != MsgBuilder.E_INPUT_EVENT && ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN)){
-			udpSender.sendUDP(ctrlTag, subTag, zeroLenbs, MsgBuilder.MIN_LEN_MSG, 0, 0, false);
+	final void sendImpl(OutputStream os, final byte ctrlTag,
+			final byte subTag) {// 不能拦截os为null的异常，因为KeepaliveManager.java保活需要此异常
+		if (isBuildedUPDChannel && isDoneUDPChannelCheck
+				&& (ctrlTag != MsgBuilder.E_GOTO_URL
+						&& ctrlTag != MsgBuilder.E_INPUT_EVENT
+						&& ctrlTag > MsgBuilder.UN_XOR_MSG_TAG_MIN)) {
+			udpSender.sendUDP(ctrlTag, subTag, zeroLenbs,
+					MsgBuilder.MIN_LEN_MSG, 0, 0, false);
 			return;
 		}
 
 		synchronized (zeroLenbs) {
 			zeroLenbs[MsgBuilder.INDEX_CTRL_TAG] = ctrlTag;
 			zeroLenbs[MsgBuilder.INDEX_CTRL_SUB_TAG] = subTag;
-		    
-			if(os == null){
+
+			if (os == null) {
 				os = outStream;
 			}
-			
-			if(isInWorkshop){
-				LogManager.log("Send [" + ctrlTag + "], len:" + 0 + ", isCheckOn : false from " + os.hashCode());
+
+			if (isInWorkshop) {
+				LogManager.log("Send [" + ctrlTag + "], len:" + 0
+						+ ", isCheckOn : false from " + os.hashCode());
 			}
-			
-//				LogManager.log("Send [" + ctrlTag + "], subTage:" + subTag);
+
+			// LogManager.log("Send [" + ctrlTag + "], subTage:" + subTag);
 			synchronized (sendLock) {
-				try{
+				try {
 					os.write(zeroLenbs, 0, MsgBuilder.MIN_LEN_MSG);
 					os.flush();
-				}catch (Exception e) {
+				} catch (Exception e) {
 					LogManager.log("Exception:" + e.getMessage());
-//					connectionRebuilder.buildNewConnection(true, cmStatus);
+					// connectionRebuilder.buildNewConnection(true, cmStatus);
 				}
 			}
 		}
 	}
 
-	public final IEncrypter loadEncryptor(final byte[] pwdBS){
+	public final IEncrypter loadEncryptor(final byte[] pwdBS) {
 		final String encryptClass = getEncryptorClass();
-		if(encryptClass != null){
+		if (encryptClass != null) {
 			try {
-				final Class c = IConstant.serverSide?(Class)RootBuilder.getInstance().doBiz(RootBuilder.ROOT_GET_CLASS_FROM_3RD_AND_SERV_LIBS, encryptClass):Class.forName(encryptClass);
-				final IEncrypter en = (IEncrypter)c.newInstance();
+				final Class c = IConstant.serverSide ? (Class) RootBuilder
+						.getInstance()
+						.doBiz(RootBuilder.ROOT_GET_CLASS_FROM_3RD_AND_SERV_LIBS,
+								encryptClass)
+						: Class.forName(encryptClass);
+				final IEncrypter en = (IEncrypter) c.newInstance();
 				en.setUUID(IConstant.getUUIDBS());
 				en.setPassword(pwdBS);
 				en.initEncrypter(!IConstant.serverSide);
-				
-//				LogManager.log("Enable user Encryptor [" + encryptClass + "]");
-				
+
+				// LogManager.log("Enable user Encryptor [" + encryptClass +
+				// "]");
+
 				userEncryptor = en;
 				return en;
 			} catch (final Throwable e) {
@@ -704,36 +791,35 @@ public final class HCConnection {
 				ExceptionReporter.printStackTrace(e);
 				userEncryptor = null;
 			}
-		}else{
-//			LogManager.log("Disable user Encryptor");
+		} else {
+			// LogManager.log("Disable user Encryptor");
 		}
 		return null;
 	}
-	
-	public final void shutdownEncryptor(){
-		if(userEncryptor != null){
-			try{
+
+	public final void shutdownEncryptor() {
+		if (userEncryptor != null) {
+			try {
 				userEncryptor.notifyExit(!IConstant.serverSide);
-			}catch (final Throwable e) {
+			} catch (final Throwable e) {
 				e.printStackTrace();
 			}
 		}
 	}
-	
-	public final IEncrypter getUserEncryptor(){
+
+	public final IEncrypter getUserEncryptor() {
 		return userEncryptor;
 	}
-	
+
 	public static String getEncryptorClass() {
 		CCoreUtil.checkAccess();
-		
-		return (String)IConstant.getInstance().getObject("encryptClass");
+
+		return (String) IConstant.getInstance().getObject("encryptClass");
 	}
-	
-	
+
 	public final void resetCheck() {
 		resetReceiveUncheckCert();
-		if(SERVER_READY_TO_CHECK != null){
+		if (SERVER_READY_TO_CHECK != null) {
 			SERVER_READY_TO_CHECK = null;
 		}
 		isSecondCertKeyError = false;

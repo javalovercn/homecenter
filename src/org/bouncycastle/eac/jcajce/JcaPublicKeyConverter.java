@@ -30,183 +30,143 @@ import org.bouncycastle.math.field.Polynomial;
 import org.bouncycastle.math.field.PolynomialExtensionField;
 import org.bouncycastle.util.Arrays;
 
-public class JcaPublicKeyConverter
-{
-    private EACHelper helper = new DefaultEACHelper();
+public class JcaPublicKeyConverter {
+	private EACHelper helper = new DefaultEACHelper();
 
-    public JcaPublicKeyConverter setProvider(String providerName)
-    {
-        this.helper = new NamedEACHelper(providerName);
+	public JcaPublicKeyConverter setProvider(String providerName) {
+		this.helper = new NamedEACHelper(providerName);
 
-        return this;
-    }
+		return this;
+	}
 
-    public JcaPublicKeyConverter setProvider(Provider provider)
-    {
-        this.helper = new ProviderEACHelper(provider);
+	public JcaPublicKeyConverter setProvider(Provider provider) {
+		this.helper = new ProviderEACHelper(provider);
 
-        return this;
-    }
+		return this;
+	}
 
-    public PublicKey getKey(PublicKeyDataObject publicKeyDataObject)
-        throws EACException, InvalidKeySpecException
-    {
-        if (publicKeyDataObject.getUsage().on(EACObjectIdentifiers.id_TA_ECDSA))
-        {
-            return getECPublicKeyPublicKey((ECDSAPublicKey)publicKeyDataObject);
-        }
-        else
-        {
-            RSAPublicKey pubKey = (RSAPublicKey)publicKeyDataObject;
-            RSAPublicKeySpec pubKeySpec = new RSAPublicKeySpec(pubKey.getModulus(), pubKey.getPublicExponent());
+	public PublicKey getKey(PublicKeyDataObject publicKeyDataObject) throws EACException, InvalidKeySpecException {
+		if (publicKeyDataObject.getUsage().on(EACObjectIdentifiers.id_TA_ECDSA)) {
+			return getECPublicKeyPublicKey((ECDSAPublicKey) publicKeyDataObject);
+		} else {
+			RSAPublicKey pubKey = (RSAPublicKey) publicKeyDataObject;
+			RSAPublicKeySpec pubKeySpec = new RSAPublicKeySpec(pubKey.getModulus(), pubKey.getPublicExponent());
 
-            try
-            {
-                KeyFactory factk = helper.createKeyFactory("RSA");
+			try {
+				KeyFactory factk = helper.createKeyFactory("RSA");
 
-                return factk.generatePublic(pubKeySpec);
-            }
-            catch (NoSuchProviderException e)
-            {
-                throw new EACException("cannot find provider: " + e.getMessage(), e);
-            }
-            catch (NoSuchAlgorithmException e)
-            {
-                throw new EACException("cannot find algorithm ECDSA: " + e.getMessage(), e);
-            }
-        }
-    }
+				return factk.generatePublic(pubKeySpec);
+			} catch (NoSuchProviderException e) {
+				throw new EACException("cannot find provider: " + e.getMessage(), e);
+			} catch (NoSuchAlgorithmException e) {
+				throw new EACException("cannot find algorithm ECDSA: " + e.getMessage(), e);
+			}
+		}
+	}
 
-    private PublicKey getECPublicKeyPublicKey(ECDSAPublicKey key)
-        throws EACException, InvalidKeySpecException
-    {
-        ECParameterSpec spec = getParams(key);
-        java.security.spec.ECPoint publicPoint = getPublicPoint(key);
-        ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(publicPoint, spec);
+	private PublicKey getECPublicKeyPublicKey(ECDSAPublicKey key) throws EACException, InvalidKeySpecException {
+		ECParameterSpec spec = getParams(key);
+		java.security.spec.ECPoint publicPoint = getPublicPoint(key);
+		ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(publicPoint, spec);
 
-        KeyFactory factk;
-        try
-        {
-            factk = helper.createKeyFactory("ECDSA");
-        }
-        catch (NoSuchProviderException e)
-        {
-            throw new EACException("cannot find provider: " + e.getMessage(), e);
-        }
-        catch (NoSuchAlgorithmException e)
-        {
-            throw new EACException("cannot find algorithm ECDSA: " + e.getMessage(), e);
-        }
+		KeyFactory factk;
+		try {
+			factk = helper.createKeyFactory("ECDSA");
+		} catch (NoSuchProviderException e) {
+			throw new EACException("cannot find provider: " + e.getMessage(), e);
+		} catch (NoSuchAlgorithmException e) {
+			throw new EACException("cannot find algorithm ECDSA: " + e.getMessage(), e);
+		}
 
-        return factk.generatePublic(pubKeySpec);
-    }
+		return factk.generatePublic(pubKeySpec);
+	}
 
-    private java.security.spec.ECPoint getPublicPoint(ECDSAPublicKey key)
-    {
-        if (!key.hasParameters())
-        {
-            throw new IllegalArgumentException("Public key does not contains EC Params");
-        }
+	private java.security.spec.ECPoint getPublicPoint(ECDSAPublicKey key) {
+		if (!key.hasParameters()) {
+			throw new IllegalArgumentException("Public key does not contains EC Params");
+		}
 
-        BigInteger p = key.getPrimeModulusP();
-        ECCurve.Fp curve = new ECCurve.Fp(p, key.getFirstCoefA(), key.getSecondCoefB(), key.getOrderOfBasePointR(), key.getCofactorF());
+		BigInteger p = key.getPrimeModulusP();
+		ECCurve.Fp curve = new ECCurve.Fp(p, key.getFirstCoefA(), key.getSecondCoefB(), key.getOrderOfBasePointR(), key.getCofactorF());
 
-        ECPoint.Fp pubY = (ECPoint.Fp)curve.decodePoint(key.getPublicPointY());
+		ECPoint.Fp pubY = (ECPoint.Fp) curve.decodePoint(key.getPublicPointY());
 
-        return new java.security.spec.ECPoint(pubY.getAffineXCoord().toBigInteger(), pubY.getAffineYCoord().toBigInteger());
-    }
+		return new java.security.spec.ECPoint(pubY.getAffineXCoord().toBigInteger(), pubY.getAffineYCoord().toBigInteger());
+	}
 
-    private ECParameterSpec getParams(ECDSAPublicKey key)
-    {
-        if (!key.hasParameters())
-        {
-            throw new IllegalArgumentException("Public key does not contains EC Params");
-        }
+	private ECParameterSpec getParams(ECDSAPublicKey key) {
+		if (!key.hasParameters()) {
+			throw new IllegalArgumentException("Public key does not contains EC Params");
+		}
 
-        BigInteger p = key.getPrimeModulusP();
-        ECCurve.Fp curve = new ECCurve.Fp(p, key.getFirstCoefA(), key.getSecondCoefB(), key.getOrderOfBasePointR(), key.getCofactorF());
+		BigInteger p = key.getPrimeModulusP();
+		ECCurve.Fp curve = new ECCurve.Fp(p, key.getFirstCoefA(), key.getSecondCoefB(), key.getOrderOfBasePointR(), key.getCofactorF());
 
-        ECPoint G = curve.decodePoint(key.getBasePointG());
+		ECPoint G = curve.decodePoint(key.getBasePointG());
 
-        BigInteger order = key.getOrderOfBasePointR();
-        BigInteger coFactor = key.getCofactorF();
+		BigInteger order = key.getOrderOfBasePointR();
+		BigInteger coFactor = key.getCofactorF();
 
-        EllipticCurve jcaCurve = convertCurve(curve);
+		EllipticCurve jcaCurve = convertCurve(curve);
 
-        return new ECParameterSpec(jcaCurve, new java.security.spec.ECPoint(G.getAffineXCoord().toBigInteger(), G.getAffineYCoord().toBigInteger()), order, coFactor.intValue());
-    }
+		return new ECParameterSpec(jcaCurve,
+				new java.security.spec.ECPoint(G.getAffineXCoord().toBigInteger(), G.getAffineYCoord().toBigInteger()), order,
+				coFactor.intValue());
+	}
 
-    public PublicKeyDataObject getPublicKeyDataObject(ASN1ObjectIdentifier usage, PublicKey publicKey)
-    {
-        if (publicKey instanceof java.security.interfaces.RSAPublicKey)
-        {
-            java.security.interfaces.RSAPublicKey pubKey = (java.security.interfaces.RSAPublicKey)publicKey;
+	public PublicKeyDataObject getPublicKeyDataObject(ASN1ObjectIdentifier usage, PublicKey publicKey) {
+		if (publicKey instanceof java.security.interfaces.RSAPublicKey) {
+			java.security.interfaces.RSAPublicKey pubKey = (java.security.interfaces.RSAPublicKey) publicKey;
 
-            return new RSAPublicKey(usage, pubKey.getModulus(), pubKey.getPublicExponent());
-        }
-        else
-        {
-            ECPublicKey pubKey = (ECPublicKey)publicKey;
-            java.security.spec.ECParameterSpec params = pubKey.getParams();
+			return new RSAPublicKey(usage, pubKey.getModulus(), pubKey.getPublicExponent());
+		} else {
+			ECPublicKey pubKey = (ECPublicKey) publicKey;
+			java.security.spec.ECParameterSpec params = pubKey.getParams();
 
-            return new ECDSAPublicKey(
-                usage,
-                ((ECFieldFp)params.getCurve().getField()).getP(),
-                params.getCurve().getA(), params.getCurve().getB(),
-                convertPoint(convertCurve(params.getCurve(), params.getOrder(), params.getCofactor()), params.getGenerator()).getEncoded(),
-                params.getOrder(),
-                convertPoint(convertCurve(params.getCurve(), params.getOrder(), params.getCofactor()), pubKey.getW()).getEncoded(),
-                params.getCofactor());
-        }
-    }
+			return new ECDSAPublicKey(usage, ((ECFieldFp) params.getCurve().getField()).getP(), params.getCurve().getA(),
+					params.getCurve().getB(),
+					convertPoint(convertCurve(params.getCurve(), params.getOrder(), params.getCofactor()), params.getGenerator())
+							.getEncoded(),
+					params.getOrder(),
+					convertPoint(convertCurve(params.getCurve(), params.getOrder(), params.getCofactor()), pubKey.getW()).getEncoded(),
+					params.getCofactor());
+		}
+	}
 
-    private static org.bouncycastle.math.ec.ECPoint convertPoint(
-        ECCurve curve,
-        java.security.spec.ECPoint point)
-    {
-        return curve.createPoint(point.getAffineX(), point.getAffineY());
-    }
+	private static org.bouncycastle.math.ec.ECPoint convertPoint(ECCurve curve, java.security.spec.ECPoint point) {
+		return curve.createPoint(point.getAffineX(), point.getAffineY());
+	}
 
-    private static ECCurve convertCurve(
-        EllipticCurve ec, BigInteger order, int coFactor)
-    {
-        ECField field = ec.getField();
-        BigInteger a = ec.getA();
-        BigInteger b = ec.getB();
+	private static ECCurve convertCurve(EllipticCurve ec, BigInteger order, int coFactor) {
+		ECField field = ec.getField();
+		BigInteger a = ec.getA();
+		BigInteger b = ec.getB();
 
-        if (field instanceof ECFieldFp)
-        {
-            return new ECCurve.Fp(((ECFieldFp)field).getP(), a, b, order, BigInteger.valueOf(coFactor));
-        }
-        else
-        {
-            throw new IllegalStateException("not implemented yet!!!");
-        }
-    }
+		if (field instanceof ECFieldFp) {
+			return new ECCurve.Fp(((ECFieldFp) field).getP(), a, b, order, BigInteger.valueOf(coFactor));
+		} else {
+			throw new IllegalStateException("not implemented yet!!!");
+		}
+	}
 
-    private static EllipticCurve convertCurve(
-        ECCurve curve)
-    {
-        ECField field = convertField(curve.getField());
-        BigInteger a = curve.getA().toBigInteger(), b = curve.getB().toBigInteger();
+	private static EllipticCurve convertCurve(ECCurve curve) {
+		ECField field = convertField(curve.getField());
+		BigInteger a = curve.getA().toBigInteger(), b = curve.getB().toBigInteger();
 
-        // TODO: the Sun EC implementation doesn't currently handle the seed properly
-        // so at the moment it's set to null. Should probably look at making this configurable
-        return new EllipticCurve(field, a, b, null);
-    }
+		// TODO: the Sun EC implementation doesn't currently handle the seed properly
+		// so at the moment it's set to null. Should probably look at making this configurable
+		return new EllipticCurve(field, a, b, null);
+	}
 
-    private static ECField convertField(FiniteField field)
-    {
-        if (ECAlgorithms.isFpField(field))
-        {
-            return new ECFieldFp(field.getCharacteristic());
-        }
-        else //if (ECAlgorithms.isF2mField(curveField))
-        {
-            Polynomial poly = ((PolynomialExtensionField)field).getMinimalPolynomial();
-            int[] exponents = poly.getExponentsPresent();
-            int[] ks = Arrays.reverse(Arrays.copyOfRange(exponents, 1, exponents.length - 1));
-            return new ECFieldF2m(poly.getDegree(), ks);
-        }
-    }
+	private static ECField convertField(FiniteField field) {
+		if (ECAlgorithms.isFpField(field)) {
+			return new ECFieldFp(field.getCharacteristic());
+		} else //if (ECAlgorithms.isF2mField(curveField))
+		{
+			Polynomial poly = ((PolynomialExtensionField) field).getMinimalPolynomial();
+			int[] exponents = poly.getExponentsPresent();
+			int[] ks = Arrays.reverse(Arrays.copyOfRange(exponents, 1, exponents.length - 1));
+			return new ECFieldF2m(poly.getDegree(), ks);
+		}
+	}
 }

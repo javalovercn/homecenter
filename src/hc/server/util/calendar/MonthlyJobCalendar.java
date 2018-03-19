@@ -22,9 +22,8 @@ import java.util.TimeZone;
 
 /**
  * <p>
- * This implementation of the JobCalendar excludes a set of days of the month.
- * You may use it to exclude every first day of each month for example. But you
- * may define any day of a month.
+ * This implementation of the JobCalendar excludes a set of days of the month. You may use it to
+ * exclude every first day of each month for example. But you may define any day of a month.
  * </p>
  *
  * @see hc.server.util.calendar.JobCalendar
@@ -72,9 +71,9 @@ public class MonthlyJobCalendar extends BaseJobCalendar implements JobCalendar, 
 
 	/**
 	 * <p>
-	 * Get the array which defines the exclude-value of each day of month. Only
-	 * the first 31 elements of the array are relevant, with the 0 index element
-	 * representing the first day of the month.
+	 * Get the array which defines the exclude-value of each day of month. Only the first 31
+	 * elements of the array are relevant, with the 0 index element representing the first day of
+	 * the month.
 	 * </p>
 	 */
 	public boolean[] getDaysExcluded() {
@@ -91,8 +90,7 @@ public class MonthlyJobCalendar extends BaseJobCalendar implements JobCalendar, 
 	 */
 	public boolean isDayExcluded(final int day) {
 		if ((day < 1) || (day > MAX_DAYS_IN_MONTH)) {
-			throw new IllegalArgumentException(
-					"The day parameter must be in the range of 1 to " + MAX_DAYS_IN_MONTH);
+			throw new IllegalArgumentException("The day parameter must be in the range of 1 to " + MAX_DAYS_IN_MONTH);
 		}
 
 		return excludeDays[day - 1];
@@ -100,9 +98,8 @@ public class MonthlyJobCalendar extends BaseJobCalendar implements JobCalendar, 
 
 	/**
 	 * <p>
-	 * Redefine the array of days excluded. The array must non-null and of size
-	 * greater or equal to 31. The 0 index element represents the first day of
-	 * the month.
+	 * Redefine the array of days excluded. The array must non-null and of size greater or equal to
+	 * 31. The 0 index element represents the first day of the month.
 	 * </p>
 	 */
 	public void setDaysExcluded(final boolean[] days) {
@@ -111,8 +108,7 @@ public class MonthlyJobCalendar extends BaseJobCalendar implements JobCalendar, 
 		}
 
 		if (days.length < MAX_DAYS_IN_MONTH) {
-			throw new IllegalArgumentException("The days parameter must have a length of at least "
-					+ MAX_DAYS_IN_MONTH + " elements.");
+			throw new IllegalArgumentException("The days parameter must have a length of at least " + MAX_DAYS_IN_MONTH + " elements.");
 		}
 
 		excludeDays = days;
@@ -121,8 +117,7 @@ public class MonthlyJobCalendar extends BaseJobCalendar implements JobCalendar, 
 
 	/**
 	 * <p>
-	 * Redefine a certain day of the month to be excluded (true) or included
-	 * (false).
+	 * Redefine a certain day of the month to be excluded (true) or included (false).
 	 * </p>
 	 *
 	 * @param day
@@ -130,8 +125,7 @@ public class MonthlyJobCalendar extends BaseJobCalendar implements JobCalendar, 
 	 */
 	public void setDayExcluded(final int day, final boolean exclude) {
 		if ((day < 1) || (day > MAX_DAYS_IN_MONTH)) {
-			throw new IllegalArgumentException(
-					"The day parameter must be in the range of 1 to " + MAX_DAYS_IN_MONTH);
+			throw new IllegalArgumentException("The day parameter must be in the range of 1 to " + MAX_DAYS_IN_MONTH);
 		}
 
 		excludeDays[day - 1] = exclude;
@@ -155,8 +149,7 @@ public class MonthlyJobCalendar extends BaseJobCalendar implements JobCalendar, 
 
 	/**
 	 * <p>
-	 * Determine whether the given time (in milliseconds) is 'included' by the
-	 * JobCalendar.
+	 * Determine whether the given time (in milliseconds) is 'included' by the JobCalendar.
 	 * </p>
 	 *
 	 * <p>
@@ -183,9 +176,9 @@ public class MonthlyJobCalendar extends BaseJobCalendar implements JobCalendar, 
 
 	/**
 	 * <p>
-	 * Determine the next time (in milliseconds) that is 'included' by the
-	 * JobCalendar after the given time. Return the original value if timeStamp
-	 * is included. Return 0 if all days are excluded.
+	 * Determine the next time (in milliseconds) that is 'included' by the JobCalendar after the
+	 * given time. Return the original value if timeStamp is included. Return 0 if all days are
+	 * excluded.
 	 * </p>
 	 *
 	 * <p>

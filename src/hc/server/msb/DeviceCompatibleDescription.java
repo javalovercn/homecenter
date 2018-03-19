@@ -32,8 +32,8 @@ public abstract class DeviceCompatibleDescription {
 	 * for example, return "\"Sun AirCond Type1\", sun-aircond-type2". <BR>
 	 * <BR>
 	 * <STRONG>Important : </STRONG> <BR>
-	 * 1. "Sun_AirCond_Type1", "Sun-AirCond-Type1" and "SUN AirCond Type1" are
-	 * treated as equivalent for auto-bind.
+	 * 1. "Sun_AirCond_Type1", "Sun-AirCond-Type1" and "SUN AirCond Type1" are treated as equivalent
+	 * for auto-bind.
 	 * 
 	 * @return the compatible type/model list of this <code>Device</code>
 	 * @see Robot#getDeviceCompatibleDescription(String)

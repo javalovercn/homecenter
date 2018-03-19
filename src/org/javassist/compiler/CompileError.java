@@ -20,34 +20,36 @@ import org.javassist.CannotCompileException;
 import org.javassist.NotFoundException;
 
 public class CompileError extends Exception {
-    private Lex lex;
-    private String reason;
+	private Lex lex;
+	private String reason;
 
-    public CompileError(String s, Lex l) {
-        reason = s;
-        lex = l;
-    }
+	public CompileError(String s, Lex l) {
+		reason = s;
+		lex = l;
+	}
 
-    public CompileError(String s) {
-        reason = s;
-        lex = null;
-    }
+	public CompileError(String s) {
+		reason = s;
+		lex = null;
+	}
 
-    public CompileError(CannotCompileException e) {
-        this(e.getReason());
-    }
+	public CompileError(CannotCompileException e) {
+		this(e.getReason());
+	}
 
-    public CompileError(NotFoundException e) {
-        this("cannot find " + e.getMessage());
-    }
+	public CompileError(NotFoundException e) {
+		this("cannot find " + e.getMessage());
+	}
 
-    public Lex getLex() { return lex; }
+	public Lex getLex() {
+		return lex;
+	}
 
-    public String getMessage() {
-        return reason;
-    }
+	public String getMessage() {
+		return reason;
+	}
 
-    public String toString() {
-        return "compile error: " + reason;
-    }
+	public String toString() {
+		return "compile error: " + reason;
+	}
 }

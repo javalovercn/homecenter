@@ -32,31 +32,33 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- * Dynamic backquote string. Backquote strings are eXecuted using the shell, hence the X
- * or maybe the X is due to the %x general quote syntax?
+ * Dynamic backquote string. Backquote strings are eXecuted using the shell, hence the X or maybe
+ * the X is due to the %x general quote syntax?
  */
 public class DXStrNode extends ListNode implements ILiteralNode {
-    public DXStrNode(SourcePosition position, DStrNode node) {
-        super(position);
-        addAll(node);
-    }
+	public DXStrNode(SourcePosition position, DStrNode node) {
+		super(position);
+		addAll(node);
+	}
 
-    public DXStrNode(SourcePosition position) {
-        super(position);
-    }
+	public DXStrNode(SourcePosition position) {
+		super(position);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.DXSTRNODE;
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.DXSTRNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitDXStrNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	@Override
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitDXStrNode(this);
+	}
 
 }

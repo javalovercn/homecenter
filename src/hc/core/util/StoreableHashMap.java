@@ -13,9 +13,10 @@ public class StoreableHashMap extends Hashtable {
 	private static final String SPLIT_CHAR = ";";
 	private static final String FAN_SPLIT = "&#-1x";
 	private static final String EQUAL = "=";
-	//用于value是数组型的
+	// 用于value是数组型的
 	protected static final String ARRAY_SPLIT = "^";
-	protected static final String DOUBLE_ARRAY_SPLIT = ARRAY_SPLIT + ARRAY_SPLIT;
+	protected static final String DOUBLE_ARRAY_SPLIT = ARRAY_SPLIT
+			+ ARRAY_SPLIT;
 
 	public StoreableHashMap() {
 		super();
@@ -26,52 +27,53 @@ public class StoreableHashMap extends Hashtable {
 	}
 
 	protected final String getValueDefault(String key, String defaultValue) {
-		String v = (String)get(key);
-		return (v == null)?defaultValue:v;
+		String v = (String) get(key);
+		return (v == null) ? defaultValue : v;
 	}
 
 	public final String toSerial() {
-		if(size() == 0){
+		if (size() == 0) {
 			return "";
 		}
-		
+
 		StringBuffer sb = StringBufferCacher.getFree();
 		Enumeration en = this.keys();
 		boolean isAppended = false;
-		try{
-			while(en.hasMoreElements()){
-				if(isAppended){
+		try {
+			while (en.hasMoreElements()) {
+				if (isAppended) {
 					sb.append(SPLIT);
-				}else{
+				} else {
 					isAppended = true;
 				}
-				String key = (String)en.nextElement();
-				String v = (String)get(key);
+				String key = (String) en.nextElement();
+				String v = (String) get(key);
 				sb.append(key);
 				sb.append(EQUAL);
 				final int splitIdx = v.indexOf(SPLIT_CHAR);
-				if(splitIdx >= 0){
+				if (splitIdx >= 0) {
 					v = replace(v, SPLIT_CHAR, FAN_SPLIT, 0);
 				}
 				sb.append(v);
 			}
-		}catch (NoSuchElementException e) {
+		} catch (NoSuchElementException e) {
 		}
-		
+
 		final String out = sb.toString();
 		StringBufferCacher.cycle(sb);
-		
+
 		return out;
 	}
-	
-	private final String replace(final String src, final String replaceFrom, final String replaceWith, int startIdx){
+
+	private final String replace(final String src, final String replaceFrom,
+			final String replaceWith, int startIdx) {
 		final StringBuffer sb = StringBufferCacher.getFree();
-		
+
 		int oldStartIdx = startIdx;
 		startIdx = src.indexOf(replaceFrom, oldStartIdx);
 		final int relaceLen = replaceFrom.length();
-		while(startIdx >= 0){
-			if(oldStartIdx < startIdx){
+		while (startIdx >= 0) {
+			if (oldStartIdx < startIdx) {
 				sb.append(src.substring(oldStartIdx, startIdx));
 			}
 			sb.append(replaceWith);
@@ -80,28 +82,28 @@ public class StoreableHashMap extends Hashtable {
 			startIdx = src.indexOf(replaceFrom, oldStartIdx);
 		}
 		final int src_length = src.length();
-		if(oldStartIdx < src_length){
+		if (oldStartIdx < src_length) {
 			sb.append(src.substring(oldStartIdx, src_length));
 		}
-		
+
 		final String out = sb.toString();
 		StringBufferCacher.cycle(sb);
 		return out;
 	}
 
 	public final void restore(String serial) {
-		if(serial == null || serial.length() == 0){
+		if (serial == null || serial.length() == 0) {
 			return;
 		}
-		
+
 		Vector lists = StringUtil.split(serial, SPLIT);
 		final int size = lists.size();
 		for (int i = 0; i < size; i++) {
-			String item = (String)lists.elementAt(i);
+			String item = (String) lists.elementAt(i);
 			final int splitIdx = item.indexOf(EQUAL);
 			String key = item.substring(0, splitIdx);
 			String value = item.substring(splitIdx + 1);
-			if(value.indexOf(FAN_SPLIT) >= 0){
+			if (value.indexOf(FAN_SPLIT) >= 0) {
 				value = replace(value, FAN_SPLIT, SPLIT_CHAR, 0);
 			}
 			put(key, value);
@@ -109,14 +111,14 @@ public class StoreableHashMap extends Hashtable {
 	}
 
 	protected final boolean isTrue(String key) {
-		String v = (String)get(key);
-		if(v == null){
+		String v = (String) get(key);
+		if (v == null) {
 			return false;
-		}else if(v.equals(IConstant.TRUE)){
+		} else if (v.equals(IConstant.TRUE)) {
 			return true;
-		}else{
+		} else {
 			return false;
 		}
 	}
-	
+
 }

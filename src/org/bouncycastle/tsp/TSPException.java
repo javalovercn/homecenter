@@ -1,28 +1,22 @@
 package org.bouncycastle.tsp;
 
-public class TSPException
-    extends Exception
-{
-    Throwable underlyingException;
+public class TSPException extends Exception {
+	Throwable underlyingException;
 
-    public TSPException(String message)
-    {
-        super(message);
-    }
+	public TSPException(String message) {
+		super(message);
+	}
 
-    public TSPException(String message, Throwable e)
-    {
-        super(message);
-        underlyingException = e;
-    }
+	public TSPException(String message, Throwable e) {
+		super(message);
+		underlyingException = e;
+	}
 
-    public Exception getUnderlyingException()
-    {
-        return (Exception)underlyingException;
-    }
+	public Exception getUnderlyingException() {
+		return (Exception) underlyingException;
+	}
 
-    public Throwable getCause()
-    {
-        return underlyingException;
-    }
+	public Throwable getCause() {
+		return underlyingException;
+	}
 }

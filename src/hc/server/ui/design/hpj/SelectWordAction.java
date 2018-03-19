@@ -14,8 +14,7 @@ import javax.swing.text.StyledDocument;
 import javax.swing.text.TextAction;
 
 public class SelectWordAction extends TextAction {
-	public static final SimpleAttributeSet BG_SELECTED_VAR = ScriptEditPanel
-			.buildBackground(Color.decode("#D4D4D4"));
+	public static final SimpleAttributeSet BG_SELECTED_VAR = ScriptEditPanel.buildBackground(Color.decode("#D4D4D4"));
 
 	public SelectWordAction() {
 		super("Select Word");
@@ -32,8 +31,7 @@ public class SelectWordAction extends TextAction {
 				final int line = ScriptEditPanel.getLineOfOffset(doc, offset);
 				final int lineStartIdx = ScriptEditPanel.getLineStartOffset(doc, line);
 				final int lineEndIdx = ScriptEditPanel.getLineEndOffset(doc, line);
-				final char[] lineChar = doc.getText(lineStartIdx, lineEndIdx - lineStartIdx)
-						.toCharArray();
+				final char[] lineChar = doc.getText(lineStartIdx, lineEndIdx - lineStartIdx).toCharArray();
 				int clickStartIdx = offset - lineStartIdx;
 				int clickEndIdx = clickStartIdx;
 				for (; clickStartIdx >= 0; clickStartIdx--) {
@@ -48,8 +46,7 @@ public class SelectWordAction extends TextAction {
 				}
 
 				final int startIdx = clickStartIdx + 1;
-				final String selectedText = String.valueOf(lineChar, startIdx,
-						clickEndIdx - startIdx);
+				final String selectedText = String.valueOf(lineChar, startIdx, clickEndIdx - startIdx);
 
 				final int selectionStartIdx = lineStartIdx + startIdx;
 				final int selectionEndIdx = lineStartIdx + clickEndIdx;
@@ -70,8 +67,7 @@ public class SelectWordAction extends TextAction {
 							final int start = m.start();
 							final int end = m.end();
 							if (start != selectionStartIdx) {
-								styleDoc.setCharacterAttributes(start, end - start, BG_SELECTED_VAR,
-										false);
+								styleDoc.setCharacterAttributes(start, end - start, BG_SELECTED_VAR, false);
 							}
 						}
 						pane.selectedWordsMS = System.currentTimeMillis();
@@ -84,8 +80,7 @@ public class SelectWordAction extends TextAction {
 	}
 
 	private final boolean isAllowChar(final char c) {
-		if (c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'
-				|| c == '$' || c == '@') {// 后两项为变量用
+		if (c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_' || c == '$' || c == '@') {// 后两项为变量用
 			return true;
 		}
 		return false;

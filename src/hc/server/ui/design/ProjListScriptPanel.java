@@ -16,8 +16,7 @@ public class ProjListScriptPanel extends ScriptPanel {
 	private final void refreshActiveColumns() {
 		final int length = projList.dataRowNum;
 		for (int i = 0; i < length; i++) {
-			final LinkEditData led = (LinkEditData) projList.data
-					.elementAt(i)[projList.IDX_OBJ_STORE];
+			final LinkEditData led = (LinkEditData) projList.data.elementAt(i)[projList.IDX_OBJ_STORE];
 			final String base64ProjID = ByteUtil.serialHexString(led.lps.getProjectID());
 			refreshCheckBox(projMgrDialog.ACTIVE_PREFIX + base64ProjID, led.lps.isActive());
 		}
@@ -26,8 +25,7 @@ public class ProjListScriptPanel extends ScriptPanel {
 	final void refreshRootColumns() {
 		final int length = projList.dataRowNum;
 		for (int i = 0; i < length; i++) {
-			final LinkEditData led = (LinkEditData) projList.data
-					.elementAt(i)[projList.IDX_OBJ_STORE];
+			final LinkEditData led = (LinkEditData) projList.data.elementAt(i)[projList.IDX_OBJ_STORE];
 			final String base64ProjID = ByteUtil.serialHexString(led.lps.getProjectID());
 			refreshCheckBox(projMgrDialog.ROOT_PREFIX + base64ProjID, led.lps.isRoot());
 		}
@@ -65,8 +63,7 @@ public class ProjListScriptPanel extends ScriptPanel {
 				projID = ByteUtil.unserialHexString(projID);
 				final int selectedIdx = projMgrDialog.searchIdxByProjectID(projID);
 				if (selectedIdx >= 0) {
-					final LinkEditData led = (LinkEditData) projList.data
-							.elementAt(selectedIdx)[projList.IDX_OBJ_STORE];
+					final LinkEditData led = (LinkEditData) projList.data.elementAt(selectedIdx)[projList.IDX_OBJ_STORE];
 					final LinkProjectStore lps = led.lps;
 					projList.clickOnRoot(led, lps, !lps.isRoot());
 
@@ -79,8 +76,7 @@ public class ProjListScriptPanel extends ScriptPanel {
 				projID = ByteUtil.unserialHexString(projID);
 				final int selectedIdx = projMgrDialog.searchIdxByProjectID(projID);
 				if (selectedIdx >= 0) {
-					final LinkEditData led = (LinkEditData) projList.data
-							.elementAt(selectedIdx)[projList.IDX_OBJ_STORE];
+					final LinkEditData led = (LinkEditData) projList.data.elementAt(selectedIdx)[projList.IDX_OBJ_STORE];
 					final LinkProjectStore lps = led.lps;
 					projList.clickOnActive(led, lps, !lps.isActive());
 

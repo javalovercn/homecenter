@@ -32,24 +32,23 @@ import java.util.EmptyStackException;
 import java.util.Stack;
 
 public class BooleanStateStack {
-	
+
 	private final Stack<Boolean> states = new Stack<Boolean>();
 	private final boolean defaultValue;
-	
 
 	public BooleanStateStack(boolean b, boolean defaultValue) {
 		set(b);
 		this.defaultValue = defaultValue;
 	}
-	
+
 	public void set(boolean b) {
 		states.push(Boolean.valueOf(b));
 	}
-	
+
 	public void revert() {
 		states.pop();
 	}
-	
+
 	public boolean isTrue() {
 		try {
 			return ((Boolean) states.peek()).booleanValue();

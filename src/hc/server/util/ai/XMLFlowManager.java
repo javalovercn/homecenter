@@ -15,12 +15,11 @@ public class XMLFlowManager extends TableSM {
 	public XMLFlowManager(final AIPersistentManager mgr) throws SQLException {
 		super("XML_FLOW", mgr);
 
-		getIDPreparedState = mgr.getConnection().prepareStatement("SELECT id FROM " + tableName
-				+ " WHERE " + "screenID = ? AND referLableID = ? AND jsCmd = ? AND locKey = ?;");
-		isReachMax = mgr.getConnection().prepareStatement("SELECT COUNT(jsCmd) FROM " + tableName
-				+ " WHERE " + "screenID = ? AND jsCmd = ? AND locKey = ?;");
-		getScreenIDPreparedState = mgr.getConnection()
-				.prepareStatement("SELECT screenID FROM " + tableName + " WHERE referLableID = ?;");
+		getIDPreparedState = mgr.getConnection().prepareStatement(
+				"SELECT id FROM " + tableName + " WHERE " + "screenID = ? AND referLableID = ? AND jsCmd = ? AND locKey = ?;");
+		isReachMax = mgr.getConnection()
+				.prepareStatement("SELECT COUNT(jsCmd) FROM " + tableName + " WHERE " + "screenID = ? AND jsCmd = ? AND locKey = ?;");
+		getScreenIDPreparedState = mgr.getConnection().prepareStatement("SELECT screenID FROM " + tableName + " WHERE referLableID = ?;");
 	}
 
 	public final String getScreenID(final int labelID) throws SQLException {
@@ -38,8 +37,8 @@ public class XMLFlowManager extends TableSM {
 
 	@Override
 	public String getCreateTableBody() {
-		return "(" + "id INTEGER," + "referLableID INTEGER," + "jsCmd varchar(50), "
-				+ "locKey varchar(300), " + "screenID varchar(100)" + ")";
+		return "(" + "id INTEGER," + "referLableID INTEGER," + "jsCmd varchar(50), " + "locKey varchar(300), " + "screenID varchar(100)"
+				+ ")";
 	}
 
 	@Override
@@ -53,8 +52,7 @@ public class XMLFlowManager extends TableSM {
 		mgr.labelSM.deleteScreenIDFromXML(screenID);
 
 		if (deleteScreenPreparedState == null) {
-			deleteScreenPreparedState = mgr.getConnection()
-					.prepareStatement("DELETE FROM " + tableName + " WHERE screenID = ?;");
+			deleteScreenPreparedState = mgr.getConnection().prepareStatement("DELETE FROM " + tableName + " WHERE screenID = ?;");
 		}
 		deleteScreenPreparedState.setString(1, screenID);
 		deleteScreenPreparedState.executeUpdate();
@@ -68,8 +66,7 @@ public class XMLFlowManager extends TableSM {
 	 * @param referLableID
 	 * @return -1 means not found.
 	 */
-	public final int searchXMLData(final String jsCmd, final String locKey, final String screenID,
-			final int referLableID) {
+	public final int searchXMLData(final String jsCmd, final String locKey, final String screenID, final int referLableID) {
 		final int id = -1;
 		try {
 			getIDPreparedState.setString(1, screenID);
@@ -91,8 +88,7 @@ public class XMLFlowManager extends TableSM {
 		return id;
 	}
 
-	public final boolean isReachMax(final String jsCmd, final String locKey,
-			final String screenID) {
+	public final boolean isReachMax(final String jsCmd, final String locKey, final String screenID) {
 		try {
 			isReachMax.setString(1, screenID);
 			isReachMax.setString(2, jsCmd);
@@ -102,9 +98,7 @@ public class XMLFlowManager extends TableSM {
 			if (rs.next()) {
 				final int count = rs.getInt(1);
 				if (count > AIUtil.MAX_LABLE_NUM_IN_SAME_LOC) {
-					L.V = L.WShop ? false
-							: LogManager.warning("too many records for locKey = " + locKey
-									+ " AND screenID = " + screenID);
+					L.V = L.WShop ? false : LogManager.warning("too many records for locKey = " + locKey + " AND screenID = " + screenID);
 					return true;
 				}
 			}
@@ -117,13 +111,11 @@ public class XMLFlowManager extends TableSM {
 
 	private PreparedStatement appendPreparedState;
 
-	public final void appendXMLData(final int id, final String jsCmd, final String locKey,
-			final String screenID, final int referLableID) {
+	public final void appendXMLData(final int id, final String jsCmd, final String locKey, final String screenID, final int referLableID) {
 		try {
 			if (appendPreparedState == null) {
-				appendPreparedState = mgr.getConnection().prepareStatement("INSERT INTO "
-						+ tableName
-						+ " (id, jsCmd, locKey, screenID, referLableID) VALUES (?, ?, ?, ?, ?);");
+				appendPreparedState = mgr.getConnection().prepareStatement(
+						"INSERT INTO " + tableName + " (id, jsCmd, locKey, screenID, referLableID) VALUES (?, ?, ?, ?, ?);");
 			}
 			appendPreparedState.setInt(1, id);
 			appendPreparedState.setString(2, jsCmd);

@@ -46,9 +46,8 @@ public class SessionConnector {
 	// 投入使用，则状态为false；回收后，则状态为true
 	public boolean isFreeStatus = true;
 
-	public static boolean resetXXSideUDPAddressNull(final byte[] bs, final int offset,
-			final int len, final boolean isServer, final byte udpRandomHead0,
-			final byte udpRandomHead1) {
+	public static boolean resetXXSideUDPAddressNull(final byte[] bs, final int offset, final int len, final boolean isServer,
+			final byte udpRandomHead0, final byte udpRandomHead1) {
 		final SessionConnector sc;
 
 		synchronized (RelayManager.tdn) {
@@ -92,8 +91,7 @@ public class SessionConnector {
 	 * @param serverOrClientReset
 	 *            如果writetarget为空，则通过本参数来指明为输出到服务端或客户端
 	 */
-	public final void appendWriteSet(final SocketChannel writetarget, final ByteBuffer bb,
-			final boolean serverOrClientReset) {
+	public final void appendWriteSet(final SocketChannel writetarget, final ByteBuffer bb, final boolean serverOrClientReset) {
 		if (serverSide == writetarget) {
 			sizeWriteToServerBackSet++;
 			writeToServerBackSet.addTail(bb);
@@ -128,8 +126,7 @@ public class SessionConnector {
 	 * @param serverOrClientReset
 	 * @return 返回999999999，表示错误
 	 */
-	public final int getWriteSetSize(final SocketChannel writetarget,
-			final boolean serverOrClientReset) {
+	public final int getWriteSetSize(final SocketChannel writetarget, final boolean serverOrClientReset) {
 		if (serverSide == writetarget) {
 			return sizeWriteToServerBackSet;
 		} else if (clientSide == writetarget) {
@@ -202,8 +199,7 @@ public class SessionConnector {
 		}
 	}
 
-	public final void setKey(final SocketChannel channel, final SelectionKey sk,
-			final boolean isFromServer) {
+	public final void setKey(final SocketChannel channel, final SelectionKey sk, final boolean isFromServer) {
 		if (isFromServer) {
 			if (serverSide != null) {
 				if (L.isLogInRelay) {

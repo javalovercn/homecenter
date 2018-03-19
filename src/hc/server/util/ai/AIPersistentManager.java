@@ -102,8 +102,8 @@ public class AIPersistentManager {
 	 * @param voice
 	 * @return
 	 */
-	public static ProjectTargetForAI query(final J2SESession coreSS, final String locale,
-			final String voice, final String[] projIDS, final int projNum) {
+	public static ProjectTargetForAI query(final J2SESession coreSS, final String locale, final String voice, final String[] projIDS,
+			final int projNum) {
 		final List<String> keys = LuceneManager.tokenizeString(locale, voice);
 		if (keys == null) {
 			return null;
@@ -117,8 +117,7 @@ public class AIPersistentManager {
 
 				for (int i = 0; i < projNum; i++) {
 					final String projectID = projIDS[i];
-					final AIPersistentManager mgr = AIPersistentManager
-							.getManagerByProjectIDInDelay(projectID);
+					final AIPersistentManager mgr = AIPersistentManager.getManagerByProjectIDInDelay(projectID);
 
 					try {
 						mgr.keySM.queryLableID(query);
@@ -128,8 +127,7 @@ public class AIPersistentManager {
 							for (int j = 0; j < size; j++) {
 								final MatchScore ms = score.get(j);
 								final int labelID = ms.labelData.id;
-								final String target = mgr.labelSM.getTarget(labelID,
-										ms.labelData.lableSrc);
+								final String target = mgr.labelSM.getTarget(labelID, ms.labelData.lableSrc);
 								if (target != null) {// null 无效类型
 									tss.addScreenScore(projectID, target, ms);
 								}
@@ -138,8 +136,7 @@ public class AIPersistentManager {
 							for (int j = 0; j < size; j++) {
 								final MatchScore ms = score.get(j);
 								final int labelID = ms.labelData.id;
-								final String target = mgr.labelSM.getTitleTarget(labelID,
-										ms.labelData.lableSrc);
+								final String target = mgr.labelSM.getTitleTarget(labelID, ms.labelData.lableSrc);
 								if (target != null) {// null 无效类型
 									tss.addKeyOnly(projectID, target, ms.fromKey);
 								}
@@ -233,8 +230,7 @@ public class AIPersistentManager {
 			if (searchURL(coreSS, screenScore, url)) {// 大小写不敏感，原为大小写敏感
 				break;
 			} else {
-				final AIPersistentManager mgr = AIPersistentManager
-						.getManagerByProjectIDInDelay(screenScore.projectID);
+				final AIPersistentManager mgr = AIPersistentManager.getManagerByProjectIDInDelay(screenScore.projectID);
 				try {
 					L.V = L.WShop ? false : LogManager.log("delete screen ID : " + url);
 					mgr.itemTitleSM.deleteScreenID(url);
@@ -250,13 +246,11 @@ public class AIPersistentManager {
 			return null;
 		}
 
-		final ProjectTargetForAI target = new ProjectTargetForAI(screenScore.projectID,
-				screenScore.target);
+		final ProjectTargetForAI target = new ProjectTargetForAI(screenScore.projectID, screenScore.target);
 		return target;
 	}
 
-	public static final void processProjectNameAndItemName(final J2SESession coreSS,
-			final MobiUIResponsor resp) {
+	public static final void processProjectNameAndItemName(final J2SESession coreSS, final MobiUIResponsor resp) {
 		delayExecutor.addWatcher(new AIExecBiz() {
 			@Override
 			public void doBiz() {
@@ -269,8 +263,7 @@ public class AIPersistentManager {
 		});
 	}
 
-	private static final boolean searchURL(final J2SESession coreSS, final ScreenScore screenScore,
-			final String url) {
+	private static final boolean searchURL(final J2SESession coreSS, final ScreenScore screenScore, final String url) {
 		final String sessionProjID = screenScore.projectID;
 		final SessionMobiMenu sessionMobiMenu = coreSS.getMenu(sessionProjID);
 		if (sessionMobiMenu == null) {
@@ -322,8 +315,7 @@ public class AIPersistentManager {
 		return getConnection(defaultFile.getAbsolutePath(), "root", "123456");
 	}
 
-	public static Connection getConnection(final String absolutePath, final String user,
-			final String password) throws SQLException {
+	public static Connection getConnection(final String absolutePath, final String user, final String password) throws SQLException {
 		final String url = "jdbc:hsqldb:file:" + absolutePath;
 
 		final Properties props = new Properties();
@@ -346,8 +338,7 @@ public class AIPersistentManager {
 				for (int i = 0; i < projID.length; i++) {
 					final String projectID = projID[i];
 					if (projectID != null) {// 可能为null
-						PropertiesManager
-								.addDelFile(AIPersistentManager.buildAIDirForProj(projectID));
+						PropertiesManager.addDelFile(AIPersistentManager.buildAIDirForProj(projectID));
 						removeManagerByProjectID(projectID);
 						// AIPersistentManager.removeAndCloseDB(projectID);//有可能用户不重启
 					}
@@ -376,13 +367,11 @@ public class AIPersistentManager {
 		}
 	}
 
-	final static HashMap<String, AIPersistentManager> projectMap = new HashMap<String, AIPersistentManager>(
-			6);
+	final static HashMap<String, AIPersistentManager> projectMap = new HashMap<String, AIPersistentManager>(6);
 
 	// 注意：在工程关闭前退出。参见ExitManager.exit/HCTimer.shutDown
 	// 请不要将实现移到各工程的sequenceExecutor，因为需要Query及共用数据库
-	final static HCConditionWatcher delayExecutor = new HCConditionWatcher("AIPersistent",
-			ThreadPriorityManager.AI_BACKGROUND);
+	final static HCConditionWatcher delayExecutor = new HCConditionWatcher("AIPersistent", ThreadPriorityManager.AI_BACKGROUND);
 
 	public static void waitForAllDone() {
 		delayExecutor.waitForAllDone();
@@ -406,8 +395,7 @@ public class AIPersistentManager {
 	 *            可能为String或String[]
 	 * @param ctx
 	 */
-	public static void processCtrl(final String labelLocale, final String ctrlID,
-			final Object textOrArray, final ProjectContext ctx) {
+	public static void processCtrl(final String labelLocale, final String ctrlID, final Object textOrArray, final ProjectContext ctx) {
 		delayExecutor.addWatcher(new AIExecBiz() {
 			@Override
 			public void doBiz() {
@@ -424,18 +412,16 @@ public class AIPersistentManager {
 				}
 			}
 
-			private final void processAttribute(final String labelLocale, final String ctrlID,
-					final String statusAtt, final AIPersistentManager mgr) {
-				int labelID = mgr.labelSM.getID(LabelManager.LABEL_SRC_CTRL_ATTRIBUTE, labelLocale,
-						statusAtt);
+			private final void processAttribute(final String labelLocale, final String ctrlID, final String statusAtt,
+					final AIPersistentManager mgr) {
+				int labelID = mgr.labelSM.getID(LabelManager.LABEL_SRC_CTRL_ATTRIBUTE, labelLocale, statusAtt);
 				if (labelID == -1) {
 					final List<String> keys = LuceneManager.tokenizeString(labelLocale, statusAtt);
 					if (keys == null) {
 						return;
 					}
 
-					labelID = mgr.labelSM.appendData(LabelManager.LABEL_SRC_CTRL_ATTRIBUTE,
-							labelLocale, statusAtt, keys);
+					labelID = mgr.labelSM.appendData(LabelManager.LABEL_SRC_CTRL_ATTRIBUTE, labelLocale, statusAtt, keys);
 
 					final int id = mgr.identitySM.getNextID(mgr.ctrlSM.tableName);
 					mgr.ctrlSM.appendCtrlData(id, labelID, ctrlID);
@@ -474,8 +460,7 @@ public class AIPersistentManager {
 	public static final String setTextComponentText = "setTextComponentText";
 	public static final String setTextAreaText = "setTextAreaText";
 
-	public static void processJComponentToolTip(final J2SESession coreSS, final ProjectContext ctx,
-			final HTMLMlet mlet) {
+	public static void processJComponentToolTip(final J2SESession coreSS, final ProjectContext ctx, final HTMLMlet mlet) {
 		delayExecutor.addWatcher(new AIExecBiz() {
 			@Override
 			public void doBiz() {
@@ -487,12 +472,10 @@ public class AIPersistentManager {
 				});
 			}
 
-			private final void processJComponentToolTip(final J2SESession coreSS,
-					final JComponent jcomp) {
+			private final void processJComponentToolTip(final J2SESession coreSS, final JComponent jcomp) {
 				final String toolTip = jcomp.getToolTipText();
 				if (toolTip != null && toolTip.length() > 0) {
-					processLabel(coreSS, jcomp, ctx, "", toolTip,
-							LabelManager.LABEL_SRC_XML_TOOLTIP);
+					processLabel(coreSS, jcomp, ctx, "", toolTip, LabelManager.LABEL_SRC_XML_TOOLTIP);
 				}
 
 				if (jcomp instanceof JPanel) {
@@ -511,10 +494,10 @@ public class AIPersistentManager {
 		});
 	}
 
-	public static void processDiffNotify(final boolean isJLabel, final J2SESession coreSS,
-			final Component comp, final ProjectContext ctx, final String cmd, final String text) {// in
-																									// user
-																									// thread
+	public static void processDiffNotify(final boolean isJLabel, final J2SESession coreSS, final Component comp, final ProjectContext ctx,
+			final String cmd, final String text) {// in
+																																															// user
+																																															// thread
 		delayExecutor.addWatcher(new AIExecBiz() {
 			@Override
 			public void doBiz() {
@@ -528,9 +511,8 @@ public class AIPersistentManager {
 		});
 	}
 
-	private static void buildFlowRecord(final Component comp, final String labelLocale,
-			final String screenID, final String locKey, final ProjectContext ctx, final String cmd,
-			String text, final int labelSrc) {
+	private static void buildFlowRecord(final Component comp, final String labelLocale, final String screenID, final String locKey,
+			final ProjectContext ctx, final String cmd, String text, final int labelSrc) {
 		final AIPersistentManager mgr = getManagerByProjectIDInDelay(ctx.getProjectID());
 		if (mgr.xmlSM.isReachMax(cmd, locKey, screenID)) {
 			return;
@@ -654,8 +636,7 @@ public class AIPersistentManager {
 				}
 			}
 			if (last == 0) {
-				PropertiesManager.setValue(PropertiesManager.p_compackAIDBLastMS,
-						String.valueOf(System.currentTimeMillis()));
+				PropertiesManager.setValue(PropertiesManager.p_compackAIDBLastMS, String.valueOf(System.currentTimeMillis()));
 				PropertiesManager.saveFile();
 			} else {
 				final long diff = System.currentTimeMillis() - last;
@@ -677,14 +658,12 @@ public class AIPersistentManager {
 
 								final File file = projs[i];
 								if (file.isDirectory()) {
-									final String projID = convertToProjectNameFromDir(
-											file.getName());
+									final String projID = convertToProjectNameFromDir(file.getName());
 
 									delayExecutor.addWatcher(new AIExecBiz() {
 										@Override
 										public void doBiz() {
-											final AIPersistentManager aip = getManagerByProjectIDInDelay(
-													projID);
+											final AIPersistentManager aip = getManagerByProjectIDInDelay(projID);
 											aip.compact();
 											projectMap.remove(projID);// 注意：连接已关闭，实例的preparestatement已失效
 										}
@@ -695,8 +674,7 @@ public class AIPersistentManager {
 							delayExecutor.addWatcher(new AIExecBiz() {
 								@Override
 								public void doBiz() {
-									PropertiesManager.setValue(
-											PropertiesManager.p_compackAIDBLastMS,
+									PropertiesManager.setValue(PropertiesManager.p_compackAIDBLastMS,
 											String.valueOf(System.currentTimeMillis()));
 									PropertiesManager.saveFile();
 								}
@@ -799,16 +777,14 @@ public class AIPersistentManager {
 			{
 				final ResultSet rs = state.executeQuery("select rowid, rowdata from HC;");
 				while (rs.next()) {
-					System.out
-							.println("rowid : " + rs.getInt(1) + ", rowdata : " + rs.getString(2));
+					System.out.println("rowid : " + rs.getInt(1) + ", rowdata : " + rs.getString(2));
 				}
 				rs.close();
 			}
 			{
 				final ResultSet rs = state.executeQuery("select rowid, rowdata from HC2;");
 				while (rs.next()) {
-					System.out
-							.println("rowid : " + rs.getInt(1) + ", rowdata : " + rs.getString(2));
+					System.out.println("rowid : " + rs.getInt(1) + ", rowdata : " + rs.getString(2));
 				}
 				rs.close();
 			}
@@ -847,16 +823,14 @@ public class AIPersistentManager {
 			{
 				final ResultSet rs = state.executeQuery("select rowid, rowdata from HC;");
 				while (rs.next()) {
-					System.out
-							.println("rowid : " + rs.getInt(1) + ", rowdata : " + rs.getString(2));
+					System.out.println("rowid : " + rs.getInt(1) + ", rowdata : " + rs.getString(2));
 				}
 				rs.close();
 			}
 			{
 				final ResultSet rs = state.executeQuery("select rowid, rowdata from HC2;");
 				while (rs.next()) {
-					System.out
-							.println("rowid : " + rs.getInt(1) + ", rowdata : " + rs.getString(2));
+					System.out.println("rowid : " + rs.getInt(1) + ", rowdata : " + rs.getString(2));
 				}
 				rs.close();
 			}
@@ -867,8 +841,8 @@ public class AIPersistentManager {
 		}
 	}
 
-	private static void processLabel(final J2SESession coreSS, final Component comp,
-			final ProjectContext ctx, final String cmd, final String text, final int labelSrc) {
+	private static void processLabel(final J2SESession coreSS, final Component comp, final ProjectContext ctx, final String cmd,
+			final String text, final int labelSrc) {
 		final StringBuilder sb = StringBuilderCacher.getFree();
 		final Mlet mlet = buildComponentLocKey(comp, sb);
 		if (mlet == null) {

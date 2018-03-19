@@ -19,8 +19,7 @@ public class QuartzThreadPool implements ThreadPool {
 	final Object lock;
 	final ProjResponser resp;
 
-	public QuartzThreadPool(final ProjectContext ctx, final J2SESession j2seSession,
-			final String domain) {
+	public QuartzThreadPool(final ProjectContext ctx, final J2SESession j2seSession, final String domain) {
 		this.ctx = ctx;
 		this.j2seSession = j2seSession;
 		this.domain = domain;
@@ -34,8 +33,7 @@ public class QuartzThreadPool implements ThreadPool {
 			counter++;
 		}
 		if (L.isInWorkshop) {
-			LogManager.log(
-					"scheduler [" + domain + "] is consuming thread for job, total : " + counter);
+			LogManager.log("scheduler [" + domain + "] is consuming thread for job, total : " + counter);
 		}
 
 		final Runnable printCounterRunnable = new Runnable() {
@@ -52,8 +50,7 @@ public class QuartzThreadPool implements ThreadPool {
 						}
 					}
 					if (L.isInWorkshop) {
-						LogManager.log("scheduler [" + domain
-								+ "] revert job thread, consuming total : " + counter);
+						LogManager.log("scheduler [" + domain + "] revert job thread, consuming total : " + counter);
 					}
 				}
 			}
@@ -85,8 +82,7 @@ public class QuartzThreadPool implements ThreadPool {
 			for (int i = 0; i < ste.length; i++) {
 				final StackTraceElement ele = ste[i];
 				final String stackClassName = ele.getClassName();
-				if (QuartzRunnableJob.class.getName().equals(stackClassName)
-						|| QuartzJRubyJob.class.getName().equals(stackClassName)) {
+				if (QuartzRunnableJob.class.getName().equals(stackClassName) || QuartzJRubyJob.class.getName().equals(stackClassName)) {
 					isStackUseOneThread = true;
 					break;
 				}
@@ -102,9 +98,8 @@ public class QuartzThreadPool implements ThreadPool {
 				synchronized (lock) {
 					if (counter > shutingDownJob) {
 						if (L.isInWorkshop) {
-							LogManager.log("scheduler [" + domain
-									+ "] is shutdown and wait for job finish, consuming total : "
-									+ counter + ", shutingdownJob : " + shutingDownJob);
+							LogManager.log("scheduler [" + domain + "] is shutdown and wait for job finish, consuming total : " + counter
+									+ ", shutingdownJob : " + shutingDownJob);
 						}
 						try {
 							lock.wait();

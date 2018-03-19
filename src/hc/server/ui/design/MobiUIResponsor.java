@@ -78,8 +78,7 @@ public class MobiUIResponsor extends BaseResponsor {
 
 	final void setPublishLocationMS(final long newMS) {
 		if (newMS < 1000) {
-			LogManager.error(
-					"illegal argument publish location ms : " + newMS + ", must bigger than 1000.");
+			LogManager.error("illegal argument publish location ms : " + newMS + ", must bigger than 1000.");
 			return;
 		}
 
@@ -91,8 +90,7 @@ public class MobiUIResponsor extends BaseResponsor {
 				@Override
 				public void run() {
 					applyLocationUpdatsToAllSessions();
-					L.V = L.WShop ? false
-							: LogManager.log("successful setPublishLocationMS : " + newMS);
+					L.V = L.WShop ? false : LogManager.log("successful setPublishLocationMS : " + newMS);
 				}
 			}, threadToken);
 		}
@@ -129,8 +127,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	private final void changePublishLocationMS(final CoreSession j2seCoreSS) {
 		if (hasLocationOfMobile) {// 由多个工程共同决定
 			final long minMS = publishLocationMS;// 由多个工程决定最小值
-			HCURLUtil.sendCmd(j2seCoreSS, HCURL.DATA_CMD_PUBLISH_LOCATION_MS, "value",
-					String.valueOf(minMS));
+			HCURLUtil.sendCmd(j2seCoreSS, HCURL.DATA_CMD_PUBLISH_LOCATION_MS, "value", String.valueOf(minMS));
 		}
 	}
 
@@ -144,8 +141,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		return null;
 	}
 
-	public final synchronized ProjectTargetForAI query(final J2SESession coreSS,
-			final String locale, final String voice) {
+	public final synchronized ProjectTargetForAI query(final J2SESession coreSS, final String locale, final String voice) {
 		if (AIPersistentManager.isEnableHCAI()) {
 			return AIPersistentManager.query(coreSS, locale, voice, projIDs, responserSize);
 		} else {
@@ -161,8 +157,8 @@ public class MobiUIResponsor extends BaseResponsor {
 			final VoiceCommand vc = ServerAPIAgent.buildVoiceCommand(voiceText, coreSS, projResp);
 			final boolean isConsumed = projResp.dispatchVoiceCommandAndWait(coreSS, vc);
 			if (isConsumed) {
-				LogManager.log(ILog.OP_STR + "successful process voice command [" + vc.getText()
-						+ "] in project [" + projResp.projectID + "].");
+				LogManager.log(
+						ILog.OP_STR + "successful process voice command [" + vc.getText() + "] in project [" + projResp.projectID + "].");
 				return true;
 			}
 		}
@@ -176,8 +172,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		for (int i = 0; i < responserSize; i++) {
 			final ProjResponser projResp = responsors[i];
 			if (projResp.hasLocationOfMobile) {
-				fireSystemEventListenerInSequence(j2seCoreSS, projResp, projResp.context,
-						ProjectContext.EVENT_SYS_MOBILE_LOCATION);
+				fireSystemEventListenerInSequence(j2seCoreSS, projResp, projResp.context, ProjectContext.EVENT_SYS_MOBILE_LOCATION);
 			}
 		}
 	}
@@ -205,8 +200,7 @@ public class MobiUIResponsor extends BaseResponsor {
 			// 每次重算，因为可能追加了工程
 			totalRobotRefDevices = 0;
 			for (int i = 0; i < responserSize; i++) {
-				totalRobotRefDevices += bindRobotSource
-						.getTotalReferenceDeviceNumByProject(projIDs[i]);
+				totalRobotRefDevices += bindRobotSource.getTotalReferenceDeviceNumByProject(projIDs[i]);
 			}
 			return totalRobotRefDevices > 0;
 		} catch (final Exception e) {
@@ -222,8 +216,7 @@ public class MobiUIResponsor extends BaseResponsor {
 			}
 
 			final String serialProjs = StringUtil.toSerialBySplit(projList);
-			HCURLUtil.sendCmd(socketSession, HCURL.DATA_CMD_SendPara,
-					HCURL.DATA_PARA_NOTIFY_PROJ_LIST, serialProjs);// 将最新的工程名列表，通知到手机的cache
+			HCURLUtil.sendCmd(socketSession, HCURL.DATA_CMD_SendPara, HCURL.DATA_PARA_NOTIFY_PROJ_LIST, serialProjs);// 将最新的工程名列表，通知到手机的cache
 			// 以下逻辑置于用户下线时操作，以节省用户时间。
 			// CacheManager.checkAndDelCacheOverflow(ServerUIAPIAgent.getMobileUID());//可能超载，只限于服务器端
 		}
@@ -232,8 +225,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	/**
 	 * 重新从lps仓库中寻找未添加的工程，不启动，不运行
 	 */
-	public final synchronized ProjResponser[] appendNewHarProject(
-			final boolean isInstallFromClient) {
+	public final synchronized ProjResponser[] appendNewHarProject(final boolean isInstallFromClient) {
 		final Vector<LinkProjectStore> appendLPS = new Vector<LinkProjectStore>();
 
 		final int oldRespSize = responserSize;
@@ -243,8 +235,7 @@ public class MobiUIResponsor extends BaseResponsor {
 			return projResp;
 		}
 
-		final Iterator<LinkProjectStore> lpsIt = LinkProjectManager
-				.getLinkProjsIteratorInUserSysThread(true);
+		final Iterator<LinkProjectStore> lpsIt = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		while (lpsIt.hasNext()) {
 			final LinkProjectStore lps = lpsIt.next();
 			if (!lps.isActive()) {
@@ -324,8 +315,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		maps = new Map[responserSize];
 		responsors = new ProjResponser[responserSize];
 
-		final Iterator<LinkProjectStore> lpsIt = LinkProjectManager
-				.getLinkProjsIteratorInUserSysThread(true);
+		final Iterator<LinkProjectStore> lpsIt = LinkProjectManager.getLinkProjsIteratorInUserSysThread(true);
 		int count = 0;
 		boolean hasRoot = false;
 		while (lpsIt.hasNext()) {
@@ -417,13 +407,11 @@ public class MobiUIResponsor extends BaseResponsor {
 		});
 	}
 
-	private final void buildProjResp(final String projID, final LinkProjectStore lps, final int i,
-			final boolean isInstallFromClient) {
+	private final void buildProjResp(final String projID, final LinkProjectStore lps, final int i, final boolean isInstallFromClient) {
 		final ProjResponser pr = new ProjResponser(projID, maps[i], this, lps);
 		responsors[i] = pr;
 		if (isInstallFromClient) {
-			ServerUIAPIAgent.setSysAttribute(pr, ServerUIAPIAgent.KEY_IS_INSTALL_FROM_CLIENT,
-					Boolean.TRUE);
+			ServerUIAPIAgent.setSysAttribute(pr, ServerUIAPIAgent.KEY_IS_INSTALL_FROM_CLIENT, Boolean.TRUE);
 		}
 	}
 
@@ -444,8 +432,7 @@ public class MobiUIResponsor extends BaseResponsor {
 					public void run() {
 						DeviceBinderWizard out = null;
 						try {
-							out = DeviceBinderWizard.getInstance(bindSource, false, owner,
-									bindSource.respo, threadPoolToken);
+							out = DeviceBinderWizard.getInstance(bindSource, false, owner, bindSource.respo, threadPoolToken);
 						} catch (final Throwable e) {
 							ExceptionReporter.printStackTrace(e);
 							isDoneBind[0] = false;
@@ -456,8 +443,7 @@ public class MobiUIResponsor extends BaseResponsor {
 						final DeviceBinderWizard binder = out;
 						final UIActionListener jbOKAction = new UIActionListener() {
 							@Override
-							public void actionPerformed(final Window window, final JButton ok,
-									final JButton cancel) {
+							public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
 								window.dispose();
 
 								isDoneBind[0] = true;
@@ -467,8 +453,7 @@ public class MobiUIResponsor extends BaseResponsor {
 						};
 						final UIActionListener cancelAction = new UIActionListener() {
 							@Override
-							public void actionPerformed(final Window window, final JButton ok,
-									final JButton cancel) {
+							public void actionPerformed(final Window window, final JButton ok, final JButton cancel) {
 								window.dispose();
 
 								// 以下代码，请与上行的DeviceBinderWizard.getInstance保持一致
@@ -545,10 +530,8 @@ public class MobiUIResponsor extends BaseResponsor {
 		currContext.setCurrContext(socketSession, projectID);
 	}
 
-	private static void changeMobileProjectID(final J2SESession socketSession,
-			final String projID) {
-		final int recordNum = CacheManager.getRecordNum(projID,
-				UserThreadResourceUtil.getMobileSoftUID(socketSession));
+	private static void changeMobileProjectID(final J2SESession socketSession, final String projID) {
+		final int recordNum = CacheManager.getRecordNum(projID, UserThreadResourceUtil.getMobileSoftUID(socketSession));
 		final String splitter = projID + StringUtil.SPLIT_LEVEL_2_JING + recordNum;
 		// System.out.println("CLASS_CHANGE_PROJECT_ID : " + splitter);
 		HCURLUtil.sendEClass(socketSession, HCURLUtil.CLASS_CHANGE_PROJECT_ID, splitter);
@@ -604,20 +587,17 @@ public class MobiUIResponsor extends BaseResponsor {
 
 	}
 
-	public final synchronized void processProjectNameAndItemNameImpl(final J2SESession coreSS)
-			throws SQLException {
+	public final synchronized void processProjectNameAndItemNameImpl(final J2SESession coreSS) throws SQLException {
 		final String locale = UserThreadResourceUtil.getMobileLocaleFrom(coreSS);
 
 		for (int i = 0; i < responserSize; i++) {
 			final ProjResponser resp = responsors[i];
 			final String projectID = resp.projectID;
-			final AIPersistentManager aimgr = AIPersistentManager
-					.getManagerByProjectIDInDelayFromResp(projectID);
+			final AIPersistentManager aimgr = AIPersistentManager.getManagerByProjectIDInDelayFromResp(projectID);
 			final String title = resp.jarMainMenu.getTitle(coreSS);
 			if (aimgr.projTitleSM.hasTitle(locale, title) == false) {
 				final List<String> keys = LuceneManager.tokenizeString(locale, title);
-				final int labelID = aimgr.labelSM.appendData(LabelManager.LABEL_SRC_PROJ, locale,
-						title, keys);
+				final int labelID = aimgr.labelSM.appendData(LabelManager.LABEL_SRC_PROJ, locale, title, keys);
 				aimgr.projTitleSM.appendTitleData(labelID, locale, title);
 			}
 
@@ -631,8 +611,7 @@ public class MobiUIResponsor extends BaseResponsor {
 				final String itemURL = urls[j];
 				if (aimgr.itemTitleSM.hasTitle(itemURL, locale, itemLabel) == false) {
 					final List<String> keys = LuceneManager.tokenizeString(locale, itemLabel);
-					final int labelID = aimgr.labelSM.appendData(LabelManager.LABEL_SRC_ITEM,
-							locale, itemLabel, keys);
+					final int labelID = aimgr.labelSM.appendData(LabelManager.LABEL_SRC_ITEM, locale, itemLabel, keys);
 					aimgr.itemTitleSM.appendTitleData(labelID, locale, itemLabel, itemURL);
 				}
 			}
@@ -710,10 +689,8 @@ public class MobiUIResponsor extends BaseResponsor {
 			fireSystemEventInSequence(j2seCoreSS, event);
 
 			if (event == ProjectContext.EVENT_SYS_MOBILE_LOGIN) {
-				UserThreadResourceUtil.getMobileAgent(j2seCoreSS)
-						.set(ConfigManager.UI_IS_BACKGROUND, IConstant.FALSE);
-				fireSystemEventInSequence(j2seCoreSS,
-						ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
+				UserThreadResourceUtil.getMobileAgent(j2seCoreSS).set(ConfigManager.UI_IS_BACKGROUND, IConstant.FALSE);
+				fireSystemEventInSequence(j2seCoreSS, ProjectContext.EVENT_SYS_MOBILE_BACKGROUND_OR_FOREGROUND);
 
 				if (AIPersistentManager.isEnableHCAI()) {
 					AIPersistentManager.processProjectNameAndItemName(j2seCoreSS, this);
@@ -728,8 +705,7 @@ public class MobiUIResponsor extends BaseResponsor {
 			ContextManager.getThreadPool().run(new Runnable() {// 上面动作异步
 				@Override
 				public void run() {
-					final int sleepMS = ResourceUtil.getIntervalSecondsForNextStartup() * 1000
-							+ 2000;
+					final int sleepMS = ResourceUtil.getIntervalSecondsForNextStartup() * 1000 + 2000;
 					try {
 						Thread.sleep(sleepMS);// 时间不定，releaseClientSession所以为虚操作
 					} catch (final Throwable e) {
@@ -739,14 +715,13 @@ public class MobiUIResponsor extends BaseResponsor {
 			});
 			for (int i = 0; i < responserSize; i++) {
 				final ProjResponser projResponser = responsors[i];
-				ServerUIAPIAgent.addSequenceWatcherInProjContextForSessionFirst(j2seCoreSS,
-						projResponser, new ReturnableRunnable() {
-							@Override
-							public Object run() throws Throwable {
-								j2seCoreSS.shutdowScheduler(projResponser.context);
-								return null;
-							}
-						});
+				ServerUIAPIAgent.addSequenceWatcherInProjContextForSessionFirst(j2seCoreSS, projResponser, new ReturnableRunnable() {
+					@Override
+					public Object run() throws Throwable {
+						j2seCoreSS.shutdowScheduler(projResponser.context);
+						return null;
+					}
+				});
 			}
 		} else if (event == ProjectContext.EVENT_SYS_PROJ_SHUTDOWN) {
 			sendFinishAllNotify();
@@ -795,8 +770,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	 * 
 	 * @param resp
 	 */
-	public final void fireSystemEventListenerOnAppendProject(final ProjResponser[] resp,
-			final ArrayList<LinkProjectStore> appendLPS) {
+	public final void fireSystemEventListenerOnAppendProject(final ProjResponser[] resp, final ArrayList<LinkProjectStore> appendLPS) {
 		final int size = resp.length;
 
 		for (int i = 0; i < appendLPS.size(); i++) {
@@ -817,10 +791,8 @@ public class MobiUIResponsor extends BaseResponsor {
 			final String event = ProjectContext.EVENT_SYS_PROJ_STARTUP;
 			for (int i = 0; i < size; i++) {
 				final ProjResponser projResponser = resp[i];
-				projResponser.onScriptEventInSequence(J2SESession.NULL_J2SESESSION_FOR_PROJECT,
-						event);// 注意：必须为NULL_J2SESESSION_FOR_PROJECT
-				fireSystemEventListenerInSequence(J2SESession.NULL_J2SESESSION_FOR_PROJECT,
-						projResponser, projResponser.context, event);
+				projResponser.onScriptEventInSequence(J2SESession.NULL_J2SESESSION_FOR_PROJECT, event);// 注意：必须为NULL_J2SESESSION_FOR_PROJECT
+				fireSystemEventListenerInSequence(J2SESession.NULL_J2SESESSION_FOR_PROJECT, projResponser, projResponser.context, event);
 			}
 		}
 
@@ -839,8 +811,7 @@ public class MobiUIResponsor extends BaseResponsor {
 		}
 	}
 
-	private final void applyToSession(final J2SESession coreSS, final ProjResponser[] resp,
-			final int size) {
+	private final void applyToSession(final J2SESession coreSS, final ProjResponser[] resp, final int size) {
 		if (coreSS.isEventMobileLoginDone) {
 			final String event = ProjectContext.EVENT_SYS_MOBILE_LOGIN;
 
@@ -849,8 +820,7 @@ public class MobiUIResponsor extends BaseResponsor {
 
 				setClientSessionForProjResponser(coreSS, projResponser);
 				projResponser.onScriptEventInSequence(coreSS, event);
-				fireSystemEventListenerInSequence(coreSS, projResponser, projResponser.context,
-						event);
+				fireSystemEventListenerInSequence(coreSS, projResponser, projResponser.context, event);
 			}
 		}
 	}
@@ -862,13 +832,12 @@ public class MobiUIResponsor extends BaseResponsor {
 	 * @param ctx
 	 * @param event
 	 */
-	private final void fireSystemEventListenerInSequence(final J2SESession coreSS,
-			final ProjResponser resp, final ProjectContext ctx, final String event) {
+	private final void fireSystemEventListenerInSequence(final J2SESession coreSS, final ProjResponser resp, final ProjectContext ctx,
+			final String event) {
 		final ReturnableRunnable runnable = new ReturnableRunnable() {
 			@Override
 			public Object run() throws Throwable {
-				final Enumeration<SystemEventListener> sels = ServerUIAPIAgent
-						.getSystemEventListener(coreSS, ctx);
+				final Enumeration<SystemEventListener> sels = ServerUIAPIAgent.getSystemEventListener(coreSS, ctx);
 				try {
 					while (sels.hasMoreElements()) {
 						final SystemEventListener sel = sels.nextElement();
@@ -884,14 +853,12 @@ public class MobiUIResponsor extends BaseResponsor {
 				if (ProjectContext.EVENT_SYS_PROJ_STARTUP == event) {
 					resp.jarMainMenu.projectMenu.notifyEnableFlushMenu();// 完成初始状态，后续转为增量方式
 					if (L.isInWorkshop) {
-						LogManager.log("change project level menu [" + resp.projectID
-								+ "] to increment mode.");
+						LogManager.log("change project level menu [" + resp.projectID + "] to increment mode.");
 					}
 				} else if (ProjectContext.EVENT_SYS_MOBILE_LOGIN == event) {
 					coreSS.getMenu(resp.projectID).notifyEnableFlushMenu();// 完成初始状态，后续转为增量方式
 					if (L.isInWorkshop) {
-						LogManager.log("change session level menu [" + resp.projectID
-								+ "] to increment mode.");
+						LogManager.log("change session level menu [" + resp.projectID + "] to increment mode.");
 					}
 				}
 
@@ -989,8 +956,7 @@ public class MobiUIResponsor extends BaseResponsor {
 	final void setClientSessionForProjResponser(final J2SESession coreSS, final ProjResponser pr) {
 		pr.initSessionContext(coreSS);
 
-		final SessionMobiMenu menu = new SessionMobiMenu(coreSS, pr, pr.isRoot,
-				pr.jarMainMenu.projectMenu);
+		final SessionMobiMenu menu = new SessionMobiMenu(coreSS, pr, pr.isRoot, pr.jarMainMenu.projectMenu);
 		coreSS.setSessionMenu(pr.projectID, menu);
 
 		if (L.isInWorkshop) {
@@ -1010,8 +976,7 @@ public class MobiUIResponsor extends BaseResponsor {
 						final String projectID = resp.context.getProjectID();
 						resp.removeMobileContext(coreSS);
 						if (L.isInWorkshop) {
-							LogManager
-									.log("release clientSession for project [" + projectID + "].");
+							LogManager.log("release clientSession for project [" + projectID + "].");
 						}
 					} catch (final Throwable e) {
 						e.printStackTrace();

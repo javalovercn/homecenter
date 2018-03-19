@@ -32,71 +32,74 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- *	access to a global variable.
+ * access to a global variable.
  */
 public class GlobalVarNode extends Node implements IGlobalVariable {
-    private String name;
+	private String name;
 
-    public GlobalVarNode(SourcePosition position, String name) {
-        super(position);
+	public GlobalVarNode(SourcePosition position, String name) {
+		super(position);
 
-        if (name.startsWith("$")) name = name.substring(1);
+		if (name.startsWith("$"))
+			name = name.substring(1);
 
-        this.name = name;
-    }
+		this.name = name;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && isNameMatch(((GlobalVarNode) node).getName());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && isNameMatch(((GlobalVarNode) node).getName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.GLOBALVARNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitGlobalVarNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.GLOBALVARNODE;
-    }
+	public String getLexicalName() {
+		return "$" + getName();
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitGlobalVarNode(this);
-    }
+	/**
+	 * Gets the name.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getName() {
+		return name;
+	}
 
-    public String getLexicalName() {
-        return "$" + getName();
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    /**
-     * Gets the name.
-     * @return Returns a String
-     */
-    public String getName() {
-        return name;
-    }
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+		return thisName != null && thisName.equals(name);
+	}
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+	public SourcePosition getNamePosition() {
+		return getPosition().fromEnd(getName().length());
+	}
 
-        return thisName != null && thisName.equals(name);
-    }
-
-    public SourcePosition getNamePosition() {
-        return getPosition().fromEnd(getName().length());
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getPosition();
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getPosition();
+	}
 }

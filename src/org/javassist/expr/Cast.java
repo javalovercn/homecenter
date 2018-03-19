@@ -16,7 +16,6 @@
 
 package org.javassist.expr;
 
-
 import org.javassist.*;
 import org.javassist.bytecode.*;
 import org.javassist.compiler.*;
@@ -26,142 +25,137 @@ import org.javassist.compiler.ast.ASTList;
  * Explicit type cast.
  */
 public class Cast extends Expr {
-    /**
-     * Undocumented constructor.  Do not use; internal-use only.
-     */
-    protected Cast(int pos, CodeIterator i, CtClass declaring, MethodInfo m) {
-        super(pos, i, declaring, m);
-    }
+	/**
+	 * Undocumented constructor. Do not use; internal-use only.
+	 */
+	protected Cast(int pos, CodeIterator i, CtClass declaring, MethodInfo m) {
+		super(pos, i, declaring, m);
+	}
 
-    /**
-     * Returns the method or constructor containing the type cast
-     * expression represented by this object.
-     */
-    public CtBehavior where() { return super.where(); }
+	/**
+	 * Returns the method or constructor containing the type cast expression represented by this
+	 * object.
+	 */
+	public CtBehavior where() {
+		return super.where();
+	}
 
-    /**
-     * Returns the line number of the source line containing the
-     * type-cast expression.
-     *
-     * @return -1       if this information is not available.
-     */
-    public int getLineNumber() {
-        return super.getLineNumber();
-    }
+	/**
+	 * Returns the line number of the source line containing the type-cast expression.
+	 *
+	 * @return -1 if this information is not available.
+	 */
+	public int getLineNumber() {
+		return super.getLineNumber();
+	}
 
-    /**
-     * Returns the source file containing the type-cast expression.
-     *
-     * @return null     if this information is not available.
-     */
-    public String getFileName() {
-        return super.getFileName();
-    }
+	/**
+	 * Returns the source file containing the type-cast expression.
+	 *
+	 * @return null if this information is not available.
+	 */
+	public String getFileName() {
+		return super.getFileName();
+	}
 
-    /**
-     * Returns the <code>CtClass</code> object representing
-     * the type specified by the cast.
-     */
-    public CtClass getType() throws NotFoundException {
-        ConstPool cp = getConstPool();
-        int pos = currentPos;
-        int index = iterator.u16bitAt(pos + 1);
-        String name = cp.getClassInfo(index);
-        return thisClass.getClassPool().getCtClass(name);
-    }
+	/**
+	 * Returns the <code>CtClass</code> object representing the type specified by the cast.
+	 */
+	public CtClass getType() throws NotFoundException {
+		ConstPool cp = getConstPool();
+		int pos = currentPos;
+		int index = iterator.u16bitAt(pos + 1);
+		String name = cp.getClassInfo(index);
+		return thisClass.getClassPool().getCtClass(name);
+	}
 
-    /**
-     * Returns the list of exceptions that the expression may throw.
-     * This list includes both the exceptions that the try-catch statements
-     * including the expression can catch and the exceptions that
-     * the throws declaration allows the method to throw.
-     */
-    public CtClass[] mayThrow() {
-        return super.mayThrow();
-    }
+	/**
+	 * Returns the list of exceptions that the expression may throw. This list includes both the
+	 * exceptions that the try-catch statements including the expression can catch and the
+	 * exceptions that the throws declaration allows the method to throw.
+	 */
+	public CtClass[] mayThrow() {
+		return super.mayThrow();
+	}
 
-    /**
-     * Replaces the explicit cast operator with the bytecode derived from
-     * the given source text.
-     *
-     * <p>$0 is available but the value is <code>null</code>.
-     *
-     * @param statement         a Java statement except try-catch.
-     */
-    public void replace(String statement) throws CannotCompileException {
-        thisClass.getClassFile();   // to call checkModify().
-        ConstPool constPool = getConstPool();
-        int pos = currentPos;
-        int index = iterator.u16bitAt(pos + 1);
+	/**
+	 * Replaces the explicit cast operator with the bytecode derived from the given source text.
+	 *
+	 * <p>
+	 * $0 is available but the value is <code>null</code>.
+	 *
+	 * @param statement
+	 *            a Java statement except try-catch.
+	 */
+	public void replace(String statement) throws CannotCompileException {
+		thisClass.getClassFile(); // to call checkModify().
+		ConstPool constPool = getConstPool();
+		int pos = currentPos;
+		int index = iterator.u16bitAt(pos + 1);
 
-        Javac jc = new Javac(thisClass);
-        ClassPool cp = thisClass.getClassPool();
-        CodeAttribute ca = iterator.get();
+		Javac jc = new Javac(thisClass);
+		ClassPool cp = thisClass.getClassPool();
+		CodeAttribute ca = iterator.get();
 
-        try {
-            CtClass[] params
-                = new CtClass[] { cp.get(javaLangObject) };
-            CtClass retType = getType();
+		try {
+			CtClass[] params = new CtClass[] { cp.get(javaLangObject) };
+			CtClass retType = getType();
 
-            int paramVar = ca.getMaxLocals();
-            jc.recordParams(javaLangObject, params, true, paramVar,
-                            withinStatic());
-            int retVar = jc.recordReturnType(retType, true);
-            jc.recordProceed(new ProceedForCast(index, retType));
+			int paramVar = ca.getMaxLocals();
+			jc.recordParams(javaLangObject, params, true, paramVar, withinStatic());
+			int retVar = jc.recordReturnType(retType, true);
+			jc.recordProceed(new ProceedForCast(index, retType));
 
-            /* Is $_ included in the source code?
-             */
-            checkResultValue(retType, statement);
+			/*
+			 * Is $_ included in the source code?
+			 */
+			checkResultValue(retType, statement);
 
-            Bytecode bytecode = jc.getBytecode();
-            storeStack(params, true, paramVar, bytecode);
-            jc.recordLocalVariables(ca, pos);
+			Bytecode bytecode = jc.getBytecode();
+			storeStack(params, true, paramVar, bytecode);
+			jc.recordLocalVariables(ca, pos);
 
-            bytecode.addConstZero(retType);
-            bytecode.addStore(retVar, retType);     // initialize $_
+			bytecode.addConstZero(retType);
+			bytecode.addStore(retVar, retType); // initialize $_
 
-            jc.compileStmnt(statement);
-            bytecode.addLoad(retVar, retType);
+			jc.compileStmnt(statement);
+			bytecode.addLoad(retVar, retType);
 
-            replace0(pos, bytecode, 3);
-        }
-        catch (CompileError e) { throw new CannotCompileException(e); }
-        catch (NotFoundException e) { throw new CannotCompileException(e); }
-        catch (BadBytecode e) {
-            throw new CannotCompileException("broken method");
-        }
-    }
+			replace0(pos, bytecode, 3);
+		} catch (CompileError e) {
+			throw new CannotCompileException(e);
+		} catch (NotFoundException e) {
+			throw new CannotCompileException(e);
+		} catch (BadBytecode e) {
+			throw new CannotCompileException("broken method");
+		}
+	}
 
-    /* <type> $proceed(Object obj)
-     */
-    static class ProceedForCast implements ProceedHandler {
-        int index;
-        CtClass retType;
+	/*
+	 * <type> $proceed(Object obj)
+	 */
+	static class ProceedForCast implements ProceedHandler {
+		int index;
+		CtClass retType;
 
-        ProceedForCast(int i, CtClass t) {
-            index = i;
-            retType = t;
-        }
+		ProceedForCast(int i, CtClass t) {
+			index = i;
+			retType = t;
+		}
 
-        public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args)
-            throws CompileError
-        {
-            if (gen.getMethodArgsLength(args) != 1)
-                throw new CompileError(Javac.proceedName
-                        + "() cannot take more than one parameter "
-                        + "for cast");
+		public void doit(JvstCodeGen gen, Bytecode bytecode, ASTList args) throws CompileError {
+			if (gen.getMethodArgsLength(args) != 1)
+				throw new CompileError(Javac.proceedName + "() cannot take more than one parameter " + "for cast");
 
-            gen.atMethodArgs(args, new int[1], new int[1], new String[1]);
-            bytecode.addOpcode(Opcode.CHECKCAST);
-            bytecode.addIndex(index);
-            gen.setType(retType);
-        }
-        
-        public void setReturnType(JvstTypeChecker c, ASTList args)
-            throws CompileError
-        {
-            c.atMethodArgs(args, new int[1], new int[1], new String[1]);
-            c.setType(retType);
-        }
-    }
+			gen.atMethodArgs(args, new int[1], new int[1], new String[1]);
+			bytecode.addOpcode(Opcode.CHECKCAST);
+			bytecode.addIndex(index);
+			gen.setType(retType);
+		}
+
+		public void setReturnType(JvstTypeChecker c, ASTList args) throws CompileError {
+			c.atMethodArgs(args, new int[1], new int[1], new String[1]);
+			c.setType(retType);
+		}
+	}
 }

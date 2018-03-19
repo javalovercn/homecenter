@@ -35,111 +35,120 @@ import org.jrubyparser.SourcePosition;
  * Represents a when condition
  */
 public class WhenNode extends Node {
-    protected Node expressionNodes;
-    protected Node bodyNode;
-    private Node nextCase;
+	protected Node expressionNodes;
+	protected Node bodyNode;
+	private Node nextCase;
 
-    public WhenNode(SourcePosition position, Node expressionNodes, Node bodyNode, Node nextCase) {
-        super(position);
+	public WhenNode(SourcePosition position, Node expressionNodes, Node bodyNode, Node nextCase) {
+		super(position);
 
-        this.expressionNodes = adopt(expressionNodes);
-        this.bodyNode = adopt(bodyNode);
-        this.nextCase = adopt(nextCase);
-    }
+		this.expressionNodes = adopt(expressionNodes);
+		this.bodyNode = adopt(bodyNode);
+		this.nextCase = adopt(nextCase);
+	}
 
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
 
-        WhenNode other = (WhenNode) node;
+		WhenNode other = (WhenNode) node;
 
-            if (getBody() == null && other.getBody() == null) {
-                if (getExpression() == null && other.getExpression() == null) {
-                    if (getNextCase() == null && other.getNextCase() == null) return true;
-                    if (getNextCase() == null || other.getNextCase() == null) return false;
+		if (getBody() == null && other.getBody() == null) {
+			if (getExpression() == null && other.getExpression() == null) {
+				if (getNextCase() == null && other.getNextCase() == null)
+					return true;
+				if (getNextCase() == null || other.getNextCase() == null)
+					return false;
 
-                    return getNextCase().isSame(other.getNextCase());
-                } else if (getExpression() == null || other.getExpression() == null) {
-                    return false;
-                } else if (getNextCase() == null && other.getNextCase() == null) {
-                    return getExpression().isSame(other.getExpression());
-                } else if (getNextCase() == null || other.getNextCase() == null) {
-                    return false;
-                } else {
-                    return getNextCase().isSame(other.getNextCase()) && getExpression().isSame(other.getExpression());
-                }
-            } else if (getBody() == null || other.getBody() == null) {
-                return false;
-            } else if (getExpression() == null && other.getExpression() == null) {
-                if (getNextCase() == null && other.getNextCase() == null) {
-                    return getExpression().isSame(other.getExpression());
-                } else if (getNextCase() == null || other.getNextCase() == null) {
-                    return false;
-                } else {
-                    return getNextCase().isSame(other.getNextCase()) && getBody().isSame(other.getBody());
-                }
-            } else if (getExpression() == null || other.getExpression() == null) {
-                return false;
-            } else if (getNextCase() == null && other.getNextCase() == null) {
-                return getExpression().isSame(other.getExpression()) && getBody().isSame(other.getBody());
-            } else if (getNextCase() == null || other.getNextCase() == null) {
-                return false;
-            }
+				return getNextCase().isSame(other.getNextCase());
+			} else if (getExpression() == null || other.getExpression() == null) {
+				return false;
+			} else if (getNextCase() == null && other.getNextCase() == null) {
+				return getExpression().isSame(other.getExpression());
+			} else if (getNextCase() == null || other.getNextCase() == null) {
+				return false;
+			} else {
+				return getNextCase().isSame(other.getNextCase()) && getExpression().isSame(other.getExpression());
+			}
+		} else if (getBody() == null || other.getBody() == null) {
+			return false;
+		} else if (getExpression() == null && other.getExpression() == null) {
+			if (getNextCase() == null && other.getNextCase() == null) {
+				return getExpression().isSame(other.getExpression());
+			} else if (getNextCase() == null || other.getNextCase() == null) {
+				return false;
+			} else {
+				return getNextCase().isSame(other.getNextCase()) && getBody().isSame(other.getBody());
+			}
+		} else if (getExpression() == null || other.getExpression() == null) {
+			return false;
+		} else if (getNextCase() == null && other.getNextCase() == null) {
+			return getExpression().isSame(other.getExpression()) && getBody().isSame(other.getBody());
+		} else if (getNextCase() == null || other.getNextCase() == null) {
+			return false;
+		}
 
-            return getNextCase().isSame(other.getNextCase()) && getExpression().isSame(other.getExpression()) && getBody().isSame(other.getBody());
-    }
+		return getNextCase().isSame(other.getNextCase()) && getExpression().isSame(other.getExpression())
+				&& getBody().isSame(other.getBody());
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.WHENNODE;
-    }
+	public NodeType getNodeType() {
+		return NodeType.WHENNODE;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitWhenNode(this);
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitWhenNode(this);
+	}
 
-    /**
-     * Gets the bodyNode.
-     * @return Returns a INode
-     */
-    public Node getBody() {
-        return bodyNode;
-    }
+	/**
+	 * Gets the bodyNode.
+	 * 
+	 * @return Returns a INode
+	 */
+	public Node getBody() {
+		return bodyNode;
+	}
 
-    @Deprecated
-    public Node getBodyNode() {
-        return getBody();
-    }
+	@Deprecated
+	public Node getBodyNode() {
+		return getBody();
+	}
 
-    public void setBody(Node body) {
-        this.bodyNode = adopt(body);
-    }
+	public void setBody(Node body) {
+		this.bodyNode = adopt(body);
+	}
 
-    /**
-     * Gets the next case node (if any).
-     * @return the next case node
-     */
-    public Node getNextCase() {
-        return nextCase;
-    }
+	/**
+	 * Gets the next case node (if any).
+	 * 
+	 * @return the next case node
+	 */
+	public Node getNextCase() {
+		return nextCase;
+	}
 
-    /**
-     * Get the expressionNode(s).
-     * @return the expression
-     */
-    public Node getExpression() {
-        return expressionNodes;
-    }
+	/**
+	 * Get the expressionNode(s).
+	 * 
+	 * @return the expression
+	 */
+	public Node getExpression() {
+		return expressionNodes;
+	}
 
-    @Deprecated
-    public Node getExpressionNode() {
-        return getExpression();
-    }
+	@Deprecated
+	public Node getExpressionNode() {
+		return getExpression();
+	}
 
-    public void setExpression(Node expression) {
-        this. expressionNodes = adopt(expression);
-    }
+	public void setExpression(Node expression) {
+		this.expressionNodes = adopt(expression);
+	}
 }

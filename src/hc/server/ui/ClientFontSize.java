@@ -8,8 +8,8 @@ public class ClientFontSize {
 	int buttonHeight;
 	int dialogBorderRadius;
 
-	public final boolean updateFontSize(final int maxWH, final int fontSizeForLarge,
-			final int fontSizeForNormal, final int fontSizeForSmall, final int fontSizeForButton) {
+	public final boolean updateFontSize(final int maxWH, final int fontSizeForLarge, final int fontSizeForNormal,
+			final int fontSizeForSmall, final int fontSizeForButton) {
 		boolean isEquals = true;
 		// isEquals &= (this.fontSizeForLarge == fontSizeForLarge);
 		isEquals &= (this.fontSizeForNormal == fontSizeForNormal);

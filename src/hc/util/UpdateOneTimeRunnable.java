@@ -35,8 +35,7 @@ public class UpdateOneTimeRunnable implements Runnable {
 			// }
 			// }
 
-			CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), hcConnection.oneTime, 0,
-					CCoreUtil.CERT_KEY_LEN);
+			CCoreUtil.generateRandomKey(ResourceUtil.getStartMS(), hcConnection.oneTime, 0, CCoreUtil.CERT_KEY_LEN);
 			// LogManager.log("OneTime:" +
 			// CUtil.toHexString(CUtil.OneTimeCertKey));
 

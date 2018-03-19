@@ -65,8 +65,7 @@ public class JSEventCenterDriver extends EventCenterDriver {
 						}
 					}
 
-					if (processingThread.isIdle()
-							|| processingThread.getThread().getState() == State.WAITING) {
+					if (processingThread.isIdle() || processingThread.getThread().getState() == State.WAITING) {
 						break;
 					}
 				}

@@ -63,9 +63,8 @@ public class CtrlPanel extends JPanel {
 				resetPressXY();
 				for (int i = 0; i < itemsOnCanvas.length; i++) {
 					final CtrlItem ci = itemsOnCanvas[i];
-					if (ci != null && x > (ci.center_x - ci.halfWidth)
-							&& x < (ci.center_x + ci.halfWidth) && y > (ci.center_y - ci.halfHeight)
-							&& y < (ci.center_y + ci.halfHeight)) {
+					if (ci != null && x > (ci.center_x - ci.halfWidth) && x < (ci.center_x + ci.halfWidth)
+							&& y > (ci.center_y - ci.halfHeight) && y < (ci.center_y + ci.halfHeight)) {
 						setCurrSelectedItem(i);
 						repaint();
 						pressMouseX = x;
@@ -161,8 +160,7 @@ public class CtrlPanel extends JPanel {
 			}
 		}
 
-		final Dimension newDimension = new Dimension(
-				maxWidth / BLOCK_WIDTH * BLOCK_WIDTH + BLOCK_WIDTH + HALF_BLOCK_WIDTH,
+		final Dimension newDimension = new Dimension(maxWidth / BLOCK_WIDTH * BLOCK_WIDTH + BLOCK_WIDTH + HALF_BLOCK_WIDTH,
 				maxHeight / BLOCK_WIDTH * BLOCK_WIDTH + BLOCK_WIDTH + HALF_BLOCK_WIDTH);
 		// System.out.println("MaxWidth : " + newDimension.width + ", MaxHeight
 		// : " + newDimension.height);
@@ -183,8 +181,7 @@ public class CtrlPanel extends JPanel {
 		g.setColor(Color.LIGHT_GRAY);
 		for (int i = START_IDX; i < width;) {
 			if ((((i - START_IDX) % BLOCK_WIDTH) != 0) && (((i + START_IDX) % BLOCK_WIDTH) != 0)
-					&& (((i + START_IDX) % HALF_BLOCK_WIDTH == 0)
-							|| ((i - START_IDX) % HALF_BLOCK_WIDTH == 0))) {
+					&& (((i + START_IDX) % HALF_BLOCK_WIDTH == 0) || ((i - START_IDX) % HALF_BLOCK_WIDTH == 0))) {
 			} else {
 				g.drawLine(i, START_IDX, i, height);
 			}
@@ -222,19 +219,16 @@ public class CtrlPanel extends JPanel {
 		{
 			final int lineWidth = 4;
 			final int halfLineWidth = lineWidth / 2;
-			final BasicStroke bs = new BasicStroke(lineWidth, BasicStroke.CAP_SQUARE,
-					BasicStroke.JOIN_ROUND);
+			final BasicStroke bs = new BasicStroke(lineWidth, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_ROUND);
 			final Graphics2D g2d = (Graphics2D) g;
 			final Stroke oldStrok = g2d.getStroke();
 			final Object oldRender = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);
 			g2d.setStroke(bs);
-			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-					RenderingHints.VALUE_ANTIALIAS_ON);
+			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			final int arcSize = 30;
 			for (int j = START_IDX; j < height;) {
 				for (int i = START_IDX; i < width;) {
-					g2d.drawRoundRect(i + halfLineWidth, j + halfLineWidth,
-							BLOCK_WIDTH - lineWidth - 2 * START_IDX,
+					g2d.drawRoundRect(i + halfLineWidth, j + halfLineWidth, BLOCK_WIDTH - lineWidth - 2 * START_IDX,
 							BLOCK_WIDTH - lineWidth - 2 * START_IDX, arcSize, arcSize);
 					i += BLOCK_WIDTH;
 				}
@@ -248,8 +242,7 @@ public class CtrlPanel extends JPanel {
 			final CtrlItem ci = itemsOnCanvas[i];
 			if (ci != null) {
 				final BufferedImage bi = totalPanel.canvas_images[i];
-				g.drawImage(bi, ci.center_x - bi.getWidth() / 2, ci.center_y - bi.getHeight() / 2,
-						null);
+				g.drawImage(bi, ci.center_x - bi.getWidth() / 2, ci.center_y - bi.getHeight() / 2, null);
 			}
 		}
 
@@ -258,27 +251,21 @@ public class CtrlPanel extends JPanel {
 			final BufferedImage bi = totalPanel.canvas_images[currSelectKeyValue];
 			final int halfX = bi.getWidth() / 2;
 			final int halfY = bi.getHeight() / 2;
-			drawSelectedBox(g, ci.center_x - halfX, ci.center_y - halfY, ci.center_x + halfX,
-					ci.center_y + halfY);
+			drawSelectedBox(g, ci.center_x - halfX, ci.center_y - halfY, ci.center_x + halfX, ci.center_y + halfY);
 		}
 	}
 
-	private void drawSelectedBox(final Graphics g, final int startX, final int startY,
-			final int endX, final int endY) {
+	private void drawSelectedBox(final Graphics g, final int startX, final int startY, final int endX, final int endY) {
 		final int width = endX - startX, height = endY - startY;
 		g.setColor(Color.DARK_GRAY);
 
 		final int litterBoxWidth = 4;
 		final int halfLitterBoxWidth = litterBoxWidth / 2;
 		{
-			g.drawRect(startX - halfLitterBoxWidth, startY - halfLitterBoxWidth, litterBoxWidth,
-					litterBoxWidth);
-			g.drawRect(startX - halfLitterBoxWidth + width, startY - halfLitterBoxWidth,
-					litterBoxWidth, litterBoxWidth);
-			g.drawRect(startX - halfLitterBoxWidth, startY - halfLitterBoxWidth + height,
-					litterBoxWidth, litterBoxWidth);
-			g.drawRect(startX - halfLitterBoxWidth + width, startY - halfLitterBoxWidth + height,
-					litterBoxWidth, litterBoxWidth);
+			g.drawRect(startX - halfLitterBoxWidth, startY - halfLitterBoxWidth, litterBoxWidth, litterBoxWidth);
+			g.drawRect(startX - halfLitterBoxWidth + width, startY - halfLitterBoxWidth, litterBoxWidth, litterBoxWidth);
+			g.drawRect(startX - halfLitterBoxWidth, startY - halfLitterBoxWidth + height, litterBoxWidth, litterBoxWidth);
+			g.drawRect(startX - halfLitterBoxWidth + width, startY - halfLitterBoxWidth + height, litterBoxWidth, litterBoxWidth);
 		}
 
 		g.drawLine(startX + halfLitterBoxWidth, startY, endX - halfLitterBoxWidth, startY);
@@ -316,8 +303,7 @@ public class CtrlPanel extends JPanel {
 		if (center_x - halfWidthAndStart < 0) {
 			// 出左边界
 			ci.center_x = halfWidthAndStart;
-		} else if (center_x > panelHalfWidth - START_IDX - CELL_WIDTH
-				&& center_x <= panelHalfWidth + CELL_WIDTH + CELL_WIDTH) {
+		} else if (center_x > panelHalfWidth - START_IDX - CELL_WIDTH && center_x <= panelHalfWidth + CELL_WIDTH + CELL_WIDTH) {
 			// 调中
 			ci.center_x = panelHalfWidth;
 		} else if ((center_x + halfImgWidth) / BLOCK_WIDTH > areaXIdx) {
@@ -368,13 +354,11 @@ public class CtrlPanel extends JPanel {
 			}
 			final CtrlItem ctrlItem = itemsOnCanvas[currSelectKeyValue];
 
-			findBestLocationItem(ctrlItem, oriCenterX + (x - pressMouseX),
-					oriCenterY + (y - pressMouseY));
+			findBestLocationItem(ctrlItem, oriCenterX + (x - pressMouseX), oriCenterY + (y - pressMouseY));
 
 			repaint();// totalPanel.panel_canvas.
 			totalPanel.baseMenuItemPanel.notifyModified(true);
-			totalPanel.ctrlMap.updateButtonOnCanvas(currSelectKeyValue, ctrlItem.center_x,
-					ctrlItem.center_y);
+			totalPanel.ctrlMap.updateButtonOnCanvas(currSelectKeyValue, ctrlItem.center_x, ctrlItem.center_y);
 			return true;
 		}
 		return false;

@@ -62,8 +62,8 @@ public class MessageTipFrame extends HCJFrame {// LinuxTrayIcon下需要改为HC
 		}
 	};
 
-	public void setCornerPosition(final CornerPosition p, final int trayLocX, final int trayLocY,
-			final int trayWidth, final int trayHeight) {
+	public void setCornerPosition(final CornerPosition p, final int trayLocX, final int trayLocY, final int trayWidth,
+			final int trayHeight) {
 		this.trayLocX = trayLocX;
 		this.trayLocY = trayLocY;
 		this.trayWidth = trayWidth;
@@ -79,8 +79,8 @@ public class MessageTipFrame extends HCJFrame {// LinuxTrayIcon下需要改为HC
 		box.setLayout(new GridBagLayout());
 
 		final Insets insets = new Insets(0, 0, 0, 0);
-		final GridBagConstraints c = new GridBagConstraints(0, 0, 1, 1, 0.5, 0.5,
-				GridBagConstraints.CENTER, GridBagConstraints.NONE, insets, 0, 0);
+		final GridBagConstraints c = new GridBagConstraints(0, 0, 1, 1, 0.5, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE,
+				insets, 0, 0);
 
 		if (p == CornerPosition.LEFT_TOP || p == CornerPosition.RIGHT_TOP) {
 			if (p == CornerPosition.LEFT_TOP) {
@@ -145,9 +145,7 @@ public class MessageTipFrame extends HCJFrame {// LinuxTrayIcon下需要改为HC
 				RightDown = ImageIO.read(ResourceUtil.getResource("hc/res/tip_foot.png"));
 			} catch (final IOException e) {
 			}
-			final BufferedImage LeftTop = (RightDown != null)
-					? ResourceUtil.rotateImage(RightDown, 180)
-					: null;
+			final BufferedImage LeftTop = (RightDown != null) ? ResourceUtil.rotateImage(RightDown, 180) : null;
 			footLeftTop = new JLabel(new ImageIcon(LeftTop));
 			footLeftTop.setOpaque(false);
 			footRightTop = new JLabel(new ImageIcon(ResourceUtil.flipHorizontalJ2D(LeftTop)));
@@ -256,11 +254,9 @@ public class MessageTipFrame extends HCJFrame {// LinuxTrayIcon下需要改为HC
 				try {
 					JLabel closeLabel;
 					if (isNextMode) {
-						closeLabel = new JLabel(new ImageIcon(
-								ImageIO.read(ResourceUtil.getResource("hc/res/tip_next.png"))));
+						closeLabel = new JLabel(new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/tip_next.png"))));
 					} else {
-						closeLabel = new JLabel(new ImageIcon(
-								ImageIO.read(ResourceUtil.getResource("hc/res/tip_close.png"))));
+						closeLabel = new JLabel(new ImageIcon(ImageIO.read(ResourceUtil.getResource("hc/res/tip_close.png"))));
 					}
 					titlePanel.add(closeLabel, BorderLayout.LINE_END);
 					closeLabel.addMouseListener(new MouseListener() {
@@ -292,16 +288,14 @@ public class MessageTipFrame extends HCJFrame {// LinuxTrayIcon下需要改为HC
 					ExceptionReporter.printStackTrace(e);
 				}
 
-				titlePanel.applyComponentOrientation(
-						ComponentOrientation.getOrientation(UILang.getUsedLocale()));
+				titlePanel.applyComponentOrientation(ComponentOrientation.getOrientation(UILang.getUsedLocale()));
 				box.add(titlePanel, c);//
 			}
 
 			c.gridx += 1;
 			c.anchor = GridBagConstraints.LINE_END;
 			c.fill = GridBagConstraints.VERTICAL;
-			box.add(new BorderPanel(this, TipPop.BORDER_WIDTH, 0, TipPop.BORDER_WIDTH,
-					TipPop.BORDER_WIDTH), c);
+			box.add(new BorderPanel(this, TipPop.BORDER_WIDTH, 0, TipPop.BORDER_WIDTH, TipPop.BORDER_WIDTH), c);
 		}
 
 		c.gridx = 0;
@@ -321,8 +315,7 @@ public class MessageTipFrame extends HCJFrame {// LinuxTrayIcon下需要改为HC
 		c.gridx += 1;
 		c.anchor = GridBagConstraints.LINE_END;
 		c.fill = GridBagConstraints.VERTICAL;
-		box.add(new BorderPanel(this, TipPop.BORDER_WIDTH, 0, TipPop.BORDER_WIDTH,
-				TipPop.BORDER_WIDTH), c);
+		box.add(new BorderPanel(this, TipPop.BORDER_WIDTH, 0, TipPop.BORDER_WIDTH, TipPop.BORDER_WIDTH), c);
 
 		c.gridx = 0;
 		c.gridy += 1;
@@ -333,8 +326,7 @@ public class MessageTipFrame extends HCJFrame {// LinuxTrayIcon下需要改为HC
 		c.gridx += 1;
 		c.anchor = GridBagConstraints.PAGE_END;
 		c.fill = GridBagConstraints.HORIZONTAL;
-		box.add(new BorderPanel(this, 0, TipPop.BORDER_WIDTH, TipPop.BORDER_WIDTH,
-				TipPop.BORDER_WIDTH), c);
+		box.add(new BorderPanel(this, 0, TipPop.BORDER_WIDTH, TipPop.BORDER_WIDTH, TipPop.BORDER_WIDTH), c);
 
 		c.gridx += 1;
 		c.anchor = GridBagConstraints.LAST_LINE_END;

@@ -31,7 +31,8 @@ package org.jrubyparser.ast;
 import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
-/** Represents an operator assignment to an element.
+/**
+ * Represents an operator assignment to an element.
  *
  * This could be for example:
  *
@@ -41,118 +42,126 @@ import org.jrubyparser.SourcePosition;
  * </pre>
  */
 public class OpElementAsgnNode extends Node {
-    private Node receiverNode;
-    private Node argsNode;
-    private Node valueNode;
-    private String name;
+	private Node receiverNode;
+	private Node argsNode;
+	private Node valueNode;
+	private String name;
 
-    public OpElementAsgnNode(SourcePosition position, Node receiverNode, String operatorName, Node argsNode, Node valueNode) {
-        super(position);
+	public OpElementAsgnNode(SourcePosition position, Node receiverNode, String operatorName, Node argsNode, Node valueNode) {
+		super(position);
 
-        assert receiverNode != null : "receiverNode is not null";
-        assert valueNode != null : "valueNode is not null";
+		assert receiverNode != null : "receiverNode is not null";
+		assert valueNode != null : "valueNode is not null";
 
-        this.receiverNode = adopt(receiverNode);
-        this.argsNode = adopt(argsNode);
-        this.valueNode = adopt(valueNode);
-        this.name = operatorName;
-    }
+		this.receiverNode = adopt(receiverNode);
+		this.argsNode = adopt(argsNode);
+		this.valueNode = adopt(valueNode);
+		this.name = operatorName;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
+		OpElementAsgnNode other = (OpElementAsgnNode) node;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
-        OpElementAsgnNode other = (OpElementAsgnNode) node;
+		boolean truth = getReceiver().isSame(other.getReceiver()) && getValue().isSame(other.getValue())
+				&& getOperatorName().equals(other.getOperatorName());
 
-        boolean truth = getReceiver().isSame(other.getReceiver()) && getValue().isSame(other.getValue()) &&
-                getOperatorName().equals(other.getOperatorName());
+		if (getArgs() == null && other.getArgs() == null)
+			return truth;
+		if (getArgs() == null && other.getArgs() == null)
+			return false;
 
-        if (getArgs() == null && other.getArgs() == null) return truth;
-        if (getArgs() == null && other.getArgs() == null) return false;
+		return truth && getArgs().isSame(other.getArgs());
 
-        return truth && getArgs().isSame(other.getArgs());
+	}
 
-    }
+	public NodeType getNodeType() {
+		return NodeType.OPELEMENTASGNNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitOpElementAsgnNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.OPELEMENTASGNNODE;
-    }
+	/**
+	 * Gets the argsNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	@Deprecated
+	public Node getArgsNode() {
+		return getArgs();
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitOpElementAsgnNode(this);
-    }
+	public Node getArgs() {
+		return argsNode;
+	}
 
-    /**
-     * Gets the argsNode.
-     * @return Returns a Node
-     */
-    @Deprecated
-    public Node getArgsNode() {
-        return getArgs();
-    }
+	public void setArgs(Node args) {
+		this.argsNode = adopt(args);
+	}
 
-    public Node getArgs() {
-        return argsNode;
-    }
+	/**
+	 * Gets the operatorName.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getOperatorName() {
+		return name;
+	}
 
-    public void setArgs(Node args) {
-        this.argsNode = adopt(args);
-    }
+	public void setOperatorName(String name) {
+		this.name = name;
+	}
 
-    /**
-     * Gets the operatorName.
-     * @return Returns a String
-     */
-    public String getOperatorName() {
-        return name;
-    }
+	/**
+	 * Gets the receiverNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	@Deprecated
+	public Node getReceiverNode() {
+		return getReceiver();
+	}
 
-    public void setOperatorName(String name) {
-        this.name = name;
-    }
+	public Node getReceiver() {
+		return receiverNode;
+	}
 
-    /**
-     * Gets the receiverNode.
-     * @return Returns a Node
-     */
-    @Deprecated
-    public Node getReceiverNode() {
-        return getReceiver();
-    }
+	public void setReceiver(Node receiver) {
+		this.receiverNode = adopt(receiver);
+	}
 
-    public Node getReceiver() {
-        return receiverNode;
-    }
+	/**
+	 * Gets the valueNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	@Deprecated
+	public Node getValueNode() {
+		return valueNode;
+	}
 
-    public void setReceiver(Node receiver) {
-        this.receiverNode = adopt(receiver);
-    }
+	public Node getValue() {
+		return valueNode;
+	}
 
-    /**
-     * Gets the valueNode.
-     * @return Returns a Node
-     */
-    @Deprecated
-    public Node getValueNode() {
-        return valueNode;
-    }
-
-    public Node getValue() {
-        return valueNode;
-    }
-
-    public void setValue(Node value) {
-        this.valueNode = adopt(value);
-    }
+	public void setValue(Node value) {
+		this.valueNode = adopt(value);
+	}
 }

@@ -26,8 +26,7 @@ public class CodeInvokeCounter {
 	static final File invokeCounter = new File(StoreDirManager.CFG_DIR, "ide_member_usage.txt");
 	static final String splitter = StringUtil.SPLIT_LEVEL_2_JING;
 
-	final HashMap<String, HashMap<String, IntValue>> itemCounter = new HashMap<String, HashMap<String, IntValue>>(
-			128);
+	final HashMap<String, HashMap<String, IntValue>> itemCounter = new HashMap<String, HashMap<String, IntValue>>(128);
 
 	public final synchronized void addOne(final CodeItem item) {
 		if (item.fmClass.startsWith(PRE_UN_INVOKE_COUNT, 0)) {
@@ -35,14 +34,12 @@ public class CodeInvokeCounter {
 		}
 
 		if ((++item.invokeCounter.value) == Integer.MAX_VALUE) {
-			final Iterator<Entry<String, HashMap<String, IntValue>>> iter = itemCounter.entrySet()
-					.iterator();
+			final Iterator<Entry<String, HashMap<String, IntValue>>> iter = itemCounter.entrySet().iterator();
 			while (iter.hasNext()) {
 				final Entry<String, HashMap<String, IntValue>> entry = iter.next();
 				final HashMap<String, IntValue> methodMap = entry.getValue();
 
-				final Iterator<Entry<String, IntValue>> methodIter = methodMap.entrySet()
-						.iterator();
+				final Iterator<Entry<String, IntValue>> methodIter = methodMap.entrySet().iterator();
 				while (methodIter.hasNext()) {
 					final Entry<String, IntValue> methodEntry = methodIter.next();
 					final IntValue counter = methodEntry.getValue();
@@ -70,8 +67,7 @@ public class CodeInvokeCounter {
 	public final synchronized void loadLastSave() {
 		try {
 			final InputStream is = new FileInputStream(invokeCounter);
-			final BufferedReader reader = new BufferedReader(
-					new InputStreamReader(is, IConstant.UTF_8));
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(is, IConstant.UTF_8));
 			String str = null;
 			while (true) {
 				str = reader.readLine();
@@ -124,15 +120,13 @@ public class CodeInvokeCounter {
 			final OutputStream is = new FileOutputStream(invokeCounter);
 			writer = new BufferedWriter(new OutputStreamWriter(is, IConstant.UTF_8));
 
-			final Iterator<Entry<String, HashMap<String, IntValue>>> iter = itemCounter.entrySet()
-					.iterator();
+			final Iterator<Entry<String, HashMap<String, IntValue>>> iter = itemCounter.entrySet().iterator();
 			while (iter.hasNext()) {
 				final Entry<String, HashMap<String, IntValue>> entry = iter.next();
 				final String className = entry.getKey();
 				final HashMap<String, IntValue> methodMap = entry.getValue();
 
-				final Iterator<Entry<String, IntValue>> methodIter = methodMap.entrySet()
-						.iterator();
+				final Iterator<Entry<String, IntValue>> methodIter = methodMap.entrySet().iterator();
 				while (methodIter.hasNext()) {
 					final Entry<String, IntValue> methodEntry = methodIter.next();
 					final IntValue counter = methodEntry.getValue();
@@ -164,8 +158,7 @@ public class CodeInvokeCounter {
 	}
 
 	public final boolean isRecordableItemType(final int itemType) {
-		return itemType == CodeItem.TYPE_CLASS || itemType == CodeItem.TYPE_METHOD
-				|| itemType == CodeItem.TYPE_FIELD || itemType == CodeItem.TYPE_CSS_VAR
-				|| itemType == CodeItem.TYPE_CSS;
+		return itemType == CodeItem.TYPE_CLASS || itemType == CodeItem.TYPE_METHOD || itemType == CodeItem.TYPE_FIELD
+				|| itemType == CodeItem.TYPE_CSS_VAR || itemType == CodeItem.TYPE_CSS;
 	}
 }

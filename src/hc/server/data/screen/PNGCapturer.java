@@ -41,8 +41,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		screenIDforCaptureChars = screenIDForCap.toCharArray();
 	}
 
-	public final boolean isMatchScreenIDForCapture(final byte[] bs, final int offset,
-			final int len) {
+	public final boolean isMatchScreenIDForCapture(final byte[] bs, final int offset, final int len) {
 		if (screenIDForCapture.length == len) {
 			for (int i = 0, j = offset; i < len;) {
 				if (screenIDForCapture[i++] != bs[j++]) {
@@ -62,8 +61,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 
 	private int getBlockSize() {
 		try {
-			return Integer.parseInt(
-					RootConfig.getInstance().getProperty(RootConfig.p_ScreenCapMinBlockSize));
+			return Integer.parseInt(RootConfig.getInstance().getProperty(RootConfig.p_ScreenCapMinBlockSize));
 		} catch (final Throwable e) {
 			return 240;
 		}
@@ -87,8 +85,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	final boolean isScreenCap;
 	final int fixColorMask;
 
-	public PNGCapturer(final J2SESession coreSS, final int w, final int h,
-			final boolean isScreenCap, final int fixMask) {
+	public PNGCapturer(final J2SESession coreSS, final int w, final int h, final boolean isScreenCap, final int fixMask) {
 		super();
 		this.coreSS = coreSS;
 		this.ic = coreSS.context;
@@ -137,8 +134,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 
 	protected void enableStopCap(final boolean sc) {
 		// 多次调用，也只出现一次
-		LogManager.log(ILog.OP_STR + ((!isStopCap && sc) ? "pause" : "resume") + " Screen [" + title
-				+ "]");
+		LogManager.log(ILog.OP_STR + ((!isStopCap && sc) ? "pause" : "resume") + " Screen [" + title + "]");
 
 		synchronized (WAITING) {
 			this.isStopCap = sc;
@@ -207,8 +203,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 	 * @param maxCapWidth
 	 * @param isAutoRefresh
 	 */
-	protected void sendPNG(final Rectangle capRect, final int maxCapWidth,
-			final boolean isAutoRefresh) {
+	protected void sendPNG(final Rectangle capRect, final int maxCapWidth, final boolean isAutoRefresh) {
 		// if(isAutoRefresh == false){
 		// LogManager.log("Cap x : " + capRect.x + ", y : " + capRect.y + ", w :
 		// " + capRect.width + ", h : " + capRect.height);
@@ -252,8 +247,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 				}
 				// 比较色块
 				{
-					int diffTopLeftX = -1, diffTopLeftY = -1, diffDownRightX = -1,
-							diffDownRightY = -1;
+					int diffTopLeftX = -1, diffTopLeftY = -1, diffDownRightX = -1, diffDownRightY = -1;
 					// 刷新方式，则检查缓存是否发生变化，如果没有变化，则不进行数据传输
 					for (int n = 0; n < tailHeight; n++) {
 						int clientSnapIdx = (j + n) * maxCapWidth + (i);
@@ -294,8 +288,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 					}
 
 					// 发现差异色块
-					if (diffDownRightX != -1
-							&& (diffDownRightX > diffTopLeftX || diffDownRightY > diffTopLeftY)) {
+					if (diffDownRightX != -1 && (diffDownRightX > diffTopLeftX || diffDownRightY > diffTopLeftY)) {
 						// 复制差异块到rgb数组中
 						final int copyWidth = diffDownRightX - diffTopLeftX + 1;
 						final int copyHeight = diffDownRightY - diffTopLeftY + 1;
@@ -308,15 +301,14 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 							// copyWidth + ", height:" + copyHeight);
 							int idxCopy = 0;
 							for (int kY = 0; kY < copyHeight; kY++) {
-								int clientSnapIdx = (j + diffTopLeftY + kY) * maxCapWidth
-										+ (i + diffTopLeftX);
+								int clientSnapIdx = (j + diffTopLeftY + kY) * maxCapWidth + (i + diffTopLeftX);
 								for (int kX = 0; kX < copyWidth; kX++) {
 									rgb[idxCopy++] = clientSnap[clientSnapIdx++];
 								}
 							}
 						}
-						sendBlock(i + diffTopLeftX, j + diffTopLeftY, rgb, copyWidth * copyHeight,
-								copyWidth, copyHeight, isAutoRefresh, MsgBuilder.E_IMAGE_PNG);
+						sendBlock(i + diffTopLeftX, j + diffTopLeftY, rgb, copyWidth * copyHeight, copyWidth, copyHeight, isAutoRefresh,
+								MsgBuilder.E_IMAGE_PNG);
 					}
 				}
 				i += tailWidth;
@@ -326,8 +318,8 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 		// }
 	}
 
-	void sendBlock(final int clientX, final int clientY, final int[] rgb, final int rgb_length,
-			final int width, final int height, final boolean isAutoRefresh, final byte tag) {
+	void sendBlock(final int clientX, final int clientY, final int[] rgb, final int rgb_length, final int width, final int height,
+			final boolean isAutoRefresh, final byte tag) {
 		// LogManager.log("Send Block: clientX:" + clientX + ", clientY:"
 		// + clientY + ", width:" + width + ", height:" + height);
 		final BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -358,8 +350,7 @@ public abstract class PNGCapturer extends Thread implements ICanvas {
 			final int pngDataLen = byteArrayOutputStream.size();
 			dataPNG.setTargetID(pngDataLen, screenIDForCapture, 0, screenIDForCapture.length);
 
-			final int dataTransLen = pngDataLen + DataPNG.HEAD_LENGTH + 1
-					+ screenIDForCapture.length;
+			final int dataTransLen = pngDataLen + DataPNG.HEAD_LENGTH + 1 + screenIDForCapture.length;
 			// LogManager.log("Trans dataPNG size pngDataLen :" + pngDataLen);
 			dataPNG.setPNGDataLen(pngDataLen, clientX, clientY, width, height);
 

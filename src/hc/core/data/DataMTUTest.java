@@ -12,7 +12,7 @@ public class DataMTUTest extends HCData {
 		return ByteUtil.twoBytesToInteger(bs, LEN_INDEX) + 2;
 	}
 
-	public void setDataLen(int dataLen){
+	public void setDataLen(int dataLen) {
 		LogManager.log("try MTU : " + dataLen);
 		int realLen = dataLen - 2 - MsgBuilder.INDEX_MSG_DATA;
 		ByteUtil.integerToTwoBytes(realLen, bs, LEN_INDEX);
@@ -20,19 +20,20 @@ public class DataMTUTest extends HCData {
 			bs[data_index + i] = 'a';
 		}
 	}
-	
+
 	/**
 	 * 数据区完整传送返回true；
+	 * 
 	 * @return
 	 */
-	public boolean passData(){
+	public boolean passData() {
 		int realLen = ByteUtil.twoBytesToInteger(bs, LEN_INDEX);
 		for (int i = 0; i < realLen; i++) {
-			if(bs[data_index + i] != 'a'){
+			if (bs[data_index + i] != 'a') {
 				return false;
 			}
 		}
 		return true;
 	}
-	
+
 }

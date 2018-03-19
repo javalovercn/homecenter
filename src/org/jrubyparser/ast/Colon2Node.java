@@ -35,51 +35,56 @@ import org.jrubyparser.SourcePosition;
  * Represents a '::' constant access or method call (Java::JavaClass).
  */
 public abstract class Colon2Node extends Colon3Node implements INameNode {
-    protected Node leftNode;
+	protected Node leftNode;
 
-    public Colon2Node(SourcePosition position, Node leftNode, String name) {
-        super(position, name);
-        this.leftNode = adopt(leftNode);
-    }
+	public Colon2Node(SourcePosition position, Node leftNode, String name) {
+		super(position, name);
+		this.leftNode = adopt(leftNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		if (!super.isSame(node))
+			return false;
+		Colon2Node other = (Colon2Node) node;
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        if (!super.isSame(node)) return false;
-        Colon2Node other = (Colon2Node) node;
+		if (getLeftNode() == null && other.getLeftNode() == null)
+			return isNameMatch(other.getName());
+		if (getLeftNode() == null || other.getLeftNode() == null)
+			return false;
 
-        if (getLeftNode() == null && other.getLeftNode() == null) return isNameMatch(other.getName());
-        if (getLeftNode() == null || other.getLeftNode() == null) return false;
+		return getLeftNode().isSame(other.getLeftNode()) && isNameMatch(other.getName());
+	}
 
-        return getLeftNode().isSame(other.getLeftNode()) && isNameMatch(other.getName());
-    }
+	@Override
+	public NodeType getNodeType() {
+		return NodeType.COLON2NODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	@Override
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitColon2Node(this);
+	}
 
-    @Override
-    public NodeType getNodeType() {
-        return NodeType.COLON2NODE;
-    }
-
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    @Override
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitColon2Node(this);
-    }
-
-    /**
-     * Gets the leftNode.
-     * @return Returns a Node
-     */
-    public Node getLeftNode() {
-        return leftNode;
-    }
- }
+	/**
+	 * Gets the leftNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	public Node getLeftNode() {
+		return leftNode;
+	}
+}

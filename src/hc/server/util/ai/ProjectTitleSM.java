@@ -10,16 +10,14 @@ public class ProjectTitleSM extends TableSM {
 	public ProjectTitleSM(final AIPersistentManager mgr) throws SQLException {
 		super("PROJ_TITLE", mgr);
 
-		search = mgr.getConnection().prepareStatement(
-				"SELECT id FROM " + tableName + " WHERE labelLocale = ? AND projectTitle = ?;");
-		appendPreparedState = mgr.getConnection().prepareStatement("INSERT INTO " + tableName
-				+ " (id, referLableID, labelLocale, projectTitle) VALUES (?, ?, ?, ?);");
+		search = mgr.getConnection().prepareStatement("SELECT id FROM " + tableName + " WHERE labelLocale = ? AND projectTitle = ?;");
+		appendPreparedState = mgr.getConnection()
+				.prepareStatement("INSERT INTO " + tableName + " (id, referLableID, labelLocale, projectTitle) VALUES (?, ?, ?, ?);");
 	}
 
 	@Override
 	public String getCreateTableBody() {
-		return "(" + "id INTEGER," + "referLableID INTEGER," + "labelLocale varchar(20),"
-				+ "projectTitle varchar(50)" + ")";
+		return "(" + "id INTEGER," + "referLableID INTEGER," + "labelLocale varchar(20)," + "projectTitle varchar(50)" + ")";
 	}
 
 	@Override
@@ -27,8 +25,7 @@ public class ProjectTitleSM extends TableSM {
 		return null;
 	}
 
-	public final boolean hasTitle(final String labelLocale, final String title)
-			throws SQLException {
+	public final boolean hasTitle(final String labelLocale, final String title) throws SQLException {
 		search.setString(1, labelLocale);
 		search.setString(2, title);
 
@@ -36,8 +33,7 @@ public class ProjectTitleSM extends TableSM {
 		return rs.next();
 	}
 
-	public final void appendTitleData(final int referLableID, final String labelLocale,
-			final String projectTitle) throws SQLException {
+	public final void appendTitleData(final int referLableID, final String labelLocale, final String projectTitle) throws SQLException {
 		final int id = mgr.identitySM.getNextID(tableName);
 
 		appendPreparedState.setInt(1, id);

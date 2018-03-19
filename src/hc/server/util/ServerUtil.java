@@ -16,22 +16,19 @@ import hc.util.ResourceUtil;
 
 public class ServerUtil {
 
-	public static ClassLoader buildProjClassPath(final File deployPath,
-			final ClassLoader jrubyClassLoader, final String projID) {
+	public static ClassLoader buildProjClassPath(final File deployPath, final ClassLoader jrubyClassLoader, final String projID) {
 		CCoreUtil.checkAccess();
 
 		final Vector<File> jars = new Vector<File>();
 		final String[] subFileNames = deployPath.list();
 		for (int i = 0; subFileNames != null && i < subFileNames.length; i++) {
 			final String lowerCaseFileName = subFileNames[i].toLowerCase();
-			if (lowerCaseFileName.endsWith(ResourceUtil.EXT_JAR)
-					&& (lowerCaseFileName.endsWith(ResourceUtil.EXT_DEX_JAR) == false)) {
+			if (lowerCaseFileName.endsWith(ResourceUtil.EXT_JAR) && (lowerCaseFileName.endsWith(ResourceUtil.EXT_DEX_JAR) == false)) {
 				jars.add(new File(deployPath, subFileNames[i]));
 			}
 		}
 		final File[] jars_arr = new File[jars.size()];
-		return PlatformManager.getService().loadClasses(jars.toArray(jars_arr), jrubyClassLoader,
-				false, ResourceUtil.USER_PROJ + projID);
+		return PlatformManager.getService().loadClasses(jars.toArray(jars_arr), jrubyClassLoader, false, ResourceUtil.USER_PROJ + projID);
 	}
 
 	public static ClassLoader buildProjClassLoader(final File libAbsPath, final String projID) {
@@ -60,8 +57,8 @@ public class ServerUtil {
 			final String message = "Error to get JRuby/3rdLibs ClassLoader!";
 			LogManager.errToLog(message);
 			final JPanel panel = App.buildMessagePanel(message, App.getSysIcon(App.SYS_ERROR_ICON));
-			App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null,
-					null, null, null, false, true, null, false, false);// JFrame
+			App.showCenterPanelMain(panel, 0, 0, ResourceUtil.getErrorI18N(), false, null, null, null, null, null, false, true, null, false,
+					false);// JFrame
 		} else {
 			LogManager.log("Successful (re) create JRuby engine classLoader.");
 		}
@@ -74,8 +71,7 @@ public class ServerUtil {
 
 		final PlatformService service = PlatformManager.getService();
 
-		service.setJRubyHome(PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer),
-				jruby.getAbsolutePath());
+		service.setJRubyHome(PropertiesManager.getValue(PropertiesManager.p_jrubyJarVer), jruby.getAbsolutePath());
 		final File[] files;
 		if (ResourceUtil.isAndroidServerPlatform()) {
 			final File[] rubotoFile = service.getRubotoAndDxFiles();// in J2SE,

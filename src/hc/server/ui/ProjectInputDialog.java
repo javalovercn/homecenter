@@ -23,8 +23,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 public class ProjectInputDialog extends SystemDialog {
-	public ProjectInputDialog(final String title, final String[] fieldNames,
-			final String[] fieldDescs, final String[] out) {
+	public ProjectInputDialog(final String title, final String[] fieldNames, final String[] fieldDescs, final String[] out) {
 		final int fieldNum = fieldNames.length;
 
 		for (int i = 0; i < fieldNum; i++) {
@@ -32,12 +31,11 @@ public class ProjectInputDialog extends SystemDialog {
 		}
 
 		final ProjResponser pr = ServerUIAPIAgent.getProjResponserMaybeNull(getProjectContext());
-		final BufferedImage okImage = (BufferedImage) ServerUIAPIAgent
-				.getClientSessionAttributeForSys(localCoreSS, pr,
-						ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_OK_ICON);
+		final BufferedImage okImage = (BufferedImage) ServerUIAPIAgent.getClientSessionAttributeForSys(localCoreSS, pr,
+				ClientSessionForSys.STR_CLIENT_SESSION_ATTRIBUTE_OK_ICON);
 		final int fontSizePX = okImage.getHeight();// 不能采用此作为check字号，iPhone下过大
-		loadCSS(SystemHTMLMlet.buildCSS(getButtonHeight(), getFontSizeForButton(),
-				getColorForFontByIntValue(), getColorForBodyByIntValue()));
+		loadCSS(SystemHTMLMlet.buildCSS(getButtonHeight(), getFontSizeForButton(), getColorForFontByIntValue(),
+				getColorForBodyByIntValue()));
 
 		final int areaFontSize = (int) (fontSizePX * 0.7);
 		final int labelHeight = (int) (fontSizePX * 1.4);
@@ -104,10 +102,8 @@ public class ProjectInputDialog extends SystemDialog {
 			area.setPreferredSize(new Dimension(halfMobileW, labelHeight * 5));
 
 			area.setText(sbStr);
-			final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker()
-					.getRGB();
-			final int areaFontColor = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker()
-					.getRGB();
+			final int areaBackColor = new Color(HTMLMlet.getColorForBodyByIntValue(), true).darker().getRGB();
+			final int areaFontColor = new Color(HTMLMlet.getColorForFontByIntValue(), true).darker().getRGB();
 			setCSS(area, null, "width:100%;height:100%;" + "overflow-y:auto;" +
 			// "font-size:" + areaFontSize + "px;" +
 					"background-color:#" + HTMLMlet.toHexColor(areaBackColor, false) + ";color:#"
@@ -122,8 +118,7 @@ public class ProjectInputDialog extends SystemDialog {
 		final JButton ok = new JButton(ResourceUtil.getOKI18N(localCoreSS), new ImageIcon(okImage));
 		setButtonStyle(ok);
 
-		final int buttonPanelHeight = Math.max(fontSizePX + getFontSizeForButton(),
-				getButtonHeight());
+		final int buttonPanelHeight = Math.max(fontSizePX + getFontSizeForButton(), getButtonHeight());
 		centerPanel.add(ok, BorderLayout.SOUTH);
 
 		ok.setMinimumSize(new Dimension(10, buttonPanelHeight));

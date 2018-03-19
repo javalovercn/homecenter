@@ -20,8 +20,7 @@ public class CSSUtil {
 	/**
 	 * 注意：暂不支持.class1.class2 {font:red}的定义
 	 */
-	private static Pattern cssClassPattern = Pattern
-			.compile("(?<=(\\s|\\}|\\b))(\\w*)\\.(\\w+)\\s*?\\{(.*?)\\}", Pattern.DOTALL);// 含p.right{text-align:right}
+	private static Pattern cssClassPattern = Pattern.compile("(?<=(\\s|\\}|\\b))(\\w*)\\.(\\w+)\\s*?\\{(.*?)\\}", Pattern.DOTALL);// 含p.right{text-align:right}
 
 	/**
 	 * 
@@ -31,12 +30,11 @@ public class CSSUtil {
 	 * @param docMaybeNull
 	 * @return
 	 */
-	public static String updateCSSClass(final String cssScriptsWithRem,
-			final Vector<Object> cssProjectClasses, final Document docMaybeNull) {
+	public static String updateCSSClass(final String cssScriptsWithRem, final Vector<Object> cssProjectClasses,
+			final Document docMaybeNull) {
 		String sameFullName = null;
 
-		final Matcher m = cssClassPattern
-				.matcher(commentPattern.matcher(cssScriptsWithRem).replaceAll(""));
+		final Matcher m = cssClassPattern.matcher(commentPattern.matcher(cssScriptsWithRem).replaceAll(""));
 		int stringLineNoIdx = 0;
 		int stringLineNo = 0;
 		while (m.find()) {
@@ -53,8 +51,7 @@ public class CSSUtil {
 					e.printStackTrace();
 				}
 			} else {
-				lineNo = StringUtil.getLineNo(cssScriptsWithRem, stringLineNoIdx, stringLineNo,
-						startIdx);
+				lineNo = StringUtil.getLineNo(cssScriptsWithRem, stringLineNoIdx, stringLineNo, startIdx);
 				stringLineNoIdx = startIdx;
 				stringLineNo = lineNo;
 			}
@@ -77,10 +74,8 @@ public class CSSUtil {
 						isAdded = true;
 
 						if (sameFullName == null && checkFullName.equals(compIdx.fullName)) {
-							sameFullName = "<html>Error same CSS define [<strong>" + checkFullName
-									+ "</strong>]." + "<BR><BR>"
-									+ "It is defined at line : <strong>" + compIdx.lineNo
-									+ "</strong> and line : <strong>" + idx.lineNo
+							sameFullName = "<html>Error same CSS define [<strong>" + checkFullName + "</strong>]." + "<BR><BR>"
+									+ "It is defined at line : <strong>" + compIdx.lineNo + "</strong> and line : <strong>" + idx.lineNo
 									+ "</strong></html>";
 						}
 						break;
@@ -93,10 +88,8 @@ public class CSSUtil {
 					for (int j = 0; j < subSize; j++) {
 						final CSSClassIndex compIdx = v.elementAt(j);
 						if (sameFullName == null && checkFullName.equals(compIdx.fullName)) {
-							sameFullName = "<html>Error same CSS define [<strong>" + checkFullName
-									+ "</strong>]." + "<BR><BR>"
-									+ "It is defined at line : <strong>" + compIdx.lineNo
-									+ "</strong> and line : <strong>" + idx.lineNo
+							sameFullName = "<html>Error same CSS define [<strong>" + checkFullName + "</strong>]." + "<BR><BR>"
+									+ "It is defined at line : <strong>" + compIdx.lineNo + "</strong> and line : <strong>" + idx.lineNo
 									+ "</strong></html>";
 							break;
 						}
@@ -164,8 +157,7 @@ public class CSSUtil {
 					if (unSpaceIdx == -1 && (currChar == ' ' || currChar == '\t') == false) {
 						unSpaceIdx = j;
 					}
-					if (commentIdx == -1 && j + 1 < textCharLen && currChar == '/'
-							&& textChars[j + 1] == '*') {
+					if (commentIdx == -1 && j + 1 < textCharLen && currChar == '/' && textChars[j + 1] == '*') {
 						commentIdx = j;
 						if (i == startNo) {
 							isComment = false;// 以首行来判断是否进行comment/uncomment
@@ -174,8 +166,7 @@ public class CSSUtil {
 							break;
 						}
 					}
-					if (isComment == false && j + 1 < textCharLen && currChar == '*'
-							&& textChars[j + 1] == '/') {
+					if (isComment == false && j + 1 < textCharLen && currChar == '*' && textChars[j + 1] == '/') {
 						commentEndIdx = j;
 						break;
 					}
@@ -363,8 +354,7 @@ public class CSSUtil {
 	 * @param charSize
 	 * @return
 	 */
-	private static int appendRemMaybe(final StringBuilder sb, final char[] textChars, int i,
-			final int charSize, final boolean needSpace) {
+	private static int appendRemMaybe(final StringBuilder sb, final char[] textChars, int i, final int charSize, final boolean needSpace) {
 		// 每个property的行尾;号，可能后挂/**/，中间可能有空格
 		while (++i < charSize) {
 			final char nextChar = textChars[i];

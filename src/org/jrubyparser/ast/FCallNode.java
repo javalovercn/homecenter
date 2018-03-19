@@ -35,142 +35,147 @@ import org.jrubyparser.SourcePosition;
  * Represents a method call with self as an implicit receiver.
  */
 public class FCallNode extends Node implements INameNode, IArgumentNode, BlockAcceptingNode {
-    private Node argsNode;
-    protected Node iterNode;
-    protected String name;
-    private boolean hasParens = false;
+	private Node argsNode;
+	protected Node iterNode;
+	protected String name;
+	private boolean hasParens = false;
 
-    public FCallNode(SourcePosition position, String name) {
-        super(position);
+	public FCallNode(SourcePosition position, String name) {
+		super(position);
 
-        this.name = name;
-    }
+		this.name = name;
+	}
 
-    public FCallNode(SourcePosition position, String name, Node argsNode) {
-        this(position, name, argsNode, null);
-    }
+	public FCallNode(SourcePosition position, String name, Node argsNode) {
+		this(position, name, argsNode, null);
+	}
 
-    public FCallNode(SourcePosition position, String name, Node argsNode, Node iterNode) {
-        this(position, name);
-        //        if (argsNode == null) argsNode = new ListNode(position);
+	public FCallNode(SourcePosition position, String name, Node argsNode, Node iterNode) {
+		this(position, name);
+		//        if (argsNode == null) argsNode = new ListNode(position);
 
-        this.argsNode = adopt(argsNode);
-        this.iterNode = adopt(iterNode);
-    }
+		this.argsNode = adopt(argsNode);
+		this.iterNode = adopt(iterNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && isNameMatch(((FCallNode) node).getName());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && isNameMatch(((FCallNode) node).getName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.FCALLNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitFCallNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.FCALLNODE;
-    }
+	public boolean hasParens() {
+		return hasParens;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitFCallNode(this);
-    }
+	public void setHasParens(boolean hasParens) {
+		this.hasParens = hasParens;
+	}
 
-    public boolean hasParens() {
-        return hasParens;
-    }
+	/**
+	 * Get the node that represents a block or a block variable.
+	 * 
+	 * @return the iter node
+	 */
+	@Deprecated
+	public Node getIterNode() {
+		return getIter();
+	}
 
-    public void setHasParens(boolean hasParens) {
-        this.hasParens = hasParens;
-    }
+	public Node getIter() {
+		return iterNode;
+	}
 
-    /**
-     * Get the node that represents a block or a block variable.
-     * @return the iter node
-     */
-    @Deprecated
-    public Node getIterNode() {
-        return getIter();
-    }
+	public Node setIterNode(Node iterNode) {
+		this.iterNode = adopt(iterNode);
 
-    public Node getIter() {
-        return iterNode;
-    }
+		return this;
+	}
 
-    public Node setIterNode(Node iterNode) {
-        this.iterNode = adopt(iterNode);
+	public void setIter(Node iter) {
+		this.iterNode = adopt(iter);
+	}
 
-        return this;
-    }
+	/**
+	 * Gets the argsNode.
+	 * 
+	 * @return Returns a Node
+	 */
+	@Deprecated
+	public Node getArgsNode() {
+		return getArgs();
+	}
 
-    public void setIter(Node iter) {
-        this.iterNode = adopt(iter);
-    }
+	public Node getArgs() {
+		return argsNode;
+	}
 
-    /**
-     * Gets the argsNode.
-     * @return Returns a Node
-     */
-    @Deprecated
-    public Node getArgsNode() {
-        return getArgs();
-    }
+	/**
+	 * Set the argsNode.
+	 *
+	 * @param argsNode
+	 *            set the arguments for this node.
+	 * @return the args node
+	 */
+	@Deprecated
+	public Node setArgsNode(Node argsNode) {
+		setArgs(argsNode);
 
-    public Node getArgs() {
-        return argsNode;
-    }
+		return argsNode;
+	}
 
-    /**
-     * Set the argsNode.
-     *
-     * @param argsNode set the arguments for this node.
-     * @return the args node
-     */
-    @Deprecated
-    public Node setArgsNode(Node argsNode) {
-        setArgs(argsNode);
+	public void setArgs(Node argsNode) {
+		this.argsNode = adopt(argsNode);
+	}
 
-        return argsNode;
-    }
+	public String getLexicalName() {
+		return getName();
+	}
 
-    public void setArgs(Node argsNode) {
-        this.argsNode = adopt(argsNode);
-    }
+	/**
+	 * Gets the name.
+	 * 
+	 * @return Returns a String
+	 */
+	public String getName() {
+		return name;
+	}
 
-    public String getLexicalName() {
-        return getName();
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    /**
-     * Gets the name.
-     * @return Returns a String
-     */
-    public String getName() {
-        return name;
-    }
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+		return thisName != null && thisName.equals(name);
+	}
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+	public SourcePosition getNamePosition() {
+		return getPosition().fromBeginning(getName().length());
+	}
 
-        return thisName != null && thisName.equals(name);
-    }
-
-    public SourcePosition getNamePosition() {
-        return getPosition().fromBeginning(getName().length());
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getNamePosition();
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getNamePosition();
+	}
 }

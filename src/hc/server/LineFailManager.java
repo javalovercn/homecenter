@@ -21,8 +21,8 @@ public class LineFailManager {
 		}
 
 		final JPanel panel = App.buildMessagePanel(msg, App.getSysIcon(App.SYS_ERROR_ICON));
-		lineFailWindow = App.showCenterPanelMain(panel, 0, 0,
-				(String) ResourceUtil.get(IConstant.ERROR), false, null, null, new ActionListener() {
+		lineFailWindow = App.showCenterPanelMain(panel, 0, 0, (String) ResourceUtil.get(IConstant.ERROR), false, null, null,
+				new ActionListener() {
 					@Override
 					public void actionPerformed(final ActionEvent e) {
 						coreSS.context.notifyShutdown();

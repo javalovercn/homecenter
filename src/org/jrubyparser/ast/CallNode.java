@@ -35,168 +35,170 @@ import org.jrubyparser.SourcePosition;
  * A method or operator call.
  */
 public class CallNode extends Node implements INameNode, IArgumentNode, BlockAcceptingNode {
-    private Node receiverNode;
-    private Node argsNode;
-    protected Node iterNode;
-    protected String name;
-    protected String lexicalName;
-    private boolean hasParens = false;
+	private Node receiverNode;
+	private Node argsNode;
+	protected Node iterNode;
+	protected String name;
+	protected String lexicalName;
+	private boolean hasParens = false;
 
-    public CallNode(SourcePosition position, Node receiverNode, String name, Node argsNode) {
-        this(position, receiverNode, name, argsNode, null);
-    }
+	public CallNode(SourcePosition position, Node receiverNode, String name, Node argsNode) {
+		this(position, receiverNode, name, argsNode, null);
+	}
 
-    public CallNode(SourcePosition position, Node receiverNode, String name, Node argsNode,
-            Node iterNode) {
-        super(position);
+	public CallNode(SourcePosition position, Node receiverNode, String name, Node argsNode, Node iterNode) {
+		super(position);
 
-        assert receiverNode != null : "receiverNode is not null";
+		assert receiverNode != null : "receiverNode is not null";
 
-        this.receiverNode = adopt(receiverNode);
-        setArgs(argsNode);
-        this.iterNode = adopt(iterNode);
-        this.name = name;
-        lexicalName = name;
-    }
+		this.receiverNode = adopt(receiverNode);
+		setArgs(argsNode);
+		this.iterNode = adopt(iterNode);
+		this.name = name;
+		lexicalName = name;
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && isNameMatch(((CallNode) node).getName());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && isNameMatch(((CallNode) node).getName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.CALLNODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitCallNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.CALLNODE;
-    }
+	@Deprecated
+	public Node getIterNode() {
+		return getIter();
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitCallNode(this);
-    }
+	public Node getIter() {
+		return iterNode;
+	}
 
-    @Deprecated
-    public Node getIterNode() {
-        return getIter();
-    }
+	public Node setIterNode(Node iterNode) {
+		setIter(iterNode);
 
-    public Node getIter() {
-        return iterNode;
-    }
+		return this;
+	}
 
-    public Node setIterNode(Node iterNode) {
-        setIter(iterNode);
+	public void setIter(Node iter) {
+		this.iterNode = adopt(iter);
+	}
 
-        return this;
-    }
+	/**
+	 * Gets the argsNode representing the method's arguments' value for this call.
+	 * 
+	 * @return argsNode
+	 */
+	@Deprecated
+	public Node getArgsNode() {
+		return getArgs();
+	}
 
-    public void setIter(Node iter) {
-        this.iterNode = adopt(iter);
-    }
+	public Node getArgs() {
+		return argsNode;
+	}
 
-    /**
-     * Gets the argsNode representing the method's arguments' value for this call.
-     * @return argsNode
-     */
-    @Deprecated
-    public Node getArgsNode() {
-        return getArgs();
-    }
+	/**
+	 * Set the argsNode.
+	 *
+	 * @param argsNode
+	 *            set the arguments for this node.
+	 * @return the current argsNode
+	 */
+	@Deprecated
+	public Node setArgsNode(Node argsNode) {
+		setArgs(argsNode);
 
-    public Node getArgs() {
-        return argsNode;
-    }
+		return getArgs();
+	}
 
-    /**
-     * Set the argsNode.
-     *
-     * @param argsNode set the arguments for this node.
-     * @return the current argsNode
-     */
-    @Deprecated
-    public Node setArgsNode(Node argsNode) {
-        setArgs(argsNode);
+	public void setArgs(Node argsNode) {
+		if (argsNode == null) {
+			argsNode = new ListNode(getReceiver().getPosition());
+		}
+		this.argsNode = adopt(argsNode);
+	}
 
-        return getArgs();
-    }
+	public boolean hasParens() {
+		return hasParens;
+	}
 
-    public void setArgs(Node argsNode) {
-        if (argsNode == null) {
-	    argsNode = new ListNode(getReceiver().getPosition());
-        }
-        this.argsNode = adopt(argsNode);
-    }
+	public void setHasParens(boolean hasParens) {
+		this.hasParens = hasParens;
+	}
 
-    public boolean hasParens() {
-        return hasParens;
-    }
+	public String getLexicalName() {
+		return lexicalName;
+	}
 
-    public void setHasParens(boolean hasParens) {
-        this.hasParens = hasParens;
-    }
+	/**
+	 * Gets the name. name is the name of the method called
+	 * 
+	 * @return name
+	 */
+	public String getName() {
+		return name;
+	}
 
-    public String getLexicalName() {
-        return lexicalName;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    /**
-     * Gets the name.
-	 * name is the name of the method called
-     * @return name
-     */
-    public String getName() {
-        return name;
-    }
+	public void setLexicalName(String lexcicalName) {
+		this.lexicalName = lexicalName;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public boolean isNameMatch(String name) {
+		String thisName = getName();
 
-    public void setLexicalName(String lexcicalName) {
-        this.lexicalName = lexicalName;
-    }
+		return thisName != null && thisName.equals(name);
+	}
 
-    public boolean isNameMatch(String name) {
-        String thisName = getName();
+	/**
+	 * Gets the receiverNode. receiverNode is the object on which the method is being called
+	 * 
+	 * @return receiverNode
+	 */
+	@Deprecated
+	public Node getReceiverNode() {
+		return getReceiver();
+	}
 
-        return thisName != null && thisName.equals(name);
-    }
+	public Node getReceiver() {
+		return receiverNode;
+	}
 
-    /**
-     * Gets the receiverNode.
-	 * receiverNode is the object on which the method is being called
-     * @return receiverNode
-     */
-    @Deprecated
-    public Node getReceiverNode() {
-        return getReceiver();
-    }
+	public void setReceiver(Node receiver) {
+		this.receiverNode = adopt(receiver);
+	}
 
-    public Node getReceiver() {
-        return receiverNode;
-    }
+	public SourcePosition getNamePosition() {
+		SourcePosition pos = receiverNode.getPosition();
 
-    public void setReceiver(Node receiver) {
-        this.receiverNode = adopt(receiver);
-    }
+		return new SourcePosition(pos.getFile(), pos.getStartLine(), pos.getEndLine(), pos.getEndOffset(),
+				pos.getEndOffset() + getName().length());
+	}
 
-    public SourcePosition getNamePosition() {
-        SourcePosition pos = receiverNode.getPosition();
-
-        return new SourcePosition(pos.getFile(), pos.getStartLine(), pos.getEndLine(),
-                pos.getEndOffset(), pos.getEndOffset() + getName().length());
-    }
-
-    public SourcePosition getLexicalNamePosition() {
-        return getNamePosition();
-    }
+	public SourcePosition getLexicalNamePosition() {
+		return getNamePosition();
+	}
 }

@@ -111,8 +111,7 @@ public class ProjResponser {
 			isFinishAllSequ = true;
 			lockSequTask.notifyAll();
 		}
-		L.V = L.WShop ? false
-				: LogManager.log("notify all sequence task is done [" + projectID + "].");
+		L.V = L.WShop ? false : LogManager.log("notify all sequence task is done [" + projectID + "].");
 	}
 
 	public final boolean isCSCSocketLimitOn() {
@@ -126,9 +125,7 @@ public class ProjResponser {
 	final void waitForFinishAllSequTask() {
 		synchronized (lockSequTask) {
 			if (isFinishAllSequ == false) {
-				L.V = L.WShop ? false
-						: LogManager.log("wait for all sequence task done when shutdown project ["
-								+ projectID + "].");
+				L.V = L.WShop ? false : LogManager.log("wait for all sequence task done when shutdown project [" + projectID + "].");
 				try {
 					lockSequTask.wait(ThreadPriorityManager.SEQUENCE_TASK_MAX_WAIT_MS);
 				} catch (final InterruptedException e) {
@@ -141,8 +138,7 @@ public class ProjResponser {
 	public final void initSessionContext(final J2SESession coreSS) {
 		if (getMobileSession(coreSS) == null) {// 有可能安装HAR时，因为showInputDialog，已设置完成
 			final SessionContext mc = useFreeMobileContext(coreSS);
-			mc.setClientSession(coreSS,
-					ServerUIAPIAgent.buildClientSession(coreSS, hasLocationOfMobile),
+			mc.setClientSession(coreSS, ServerUIAPIAgent.buildClientSession(coreSS, hasLocationOfMobile),
 					new ClientSessionForSys(coreSS, token));
 		}
 	}
@@ -153,20 +149,18 @@ public class ProjResponser {
 		return mc;
 	}
 
-	public final boolean dispatchVoiceCommandAndWait(final J2SESession coreSS,
-			final VoiceCommand vc) {
+	public final boolean dispatchVoiceCommandAndWait(final J2SESession coreSS, final VoiceCommand vc) {
 		final Assistant assistant = ServerUIAPIAgent.getVoiceAssistant(context);
 		if (assistant != null) {
 			try {
-				return (Boolean) ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, this,
-						new ReturnableRunnable() {
-							@Override
-							public Object run() throws Throwable {
-								synchronized (assistantLock) {
-									return assistant.onVoice(vc);
-								}
-							}
-						});
+				return (Boolean) ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, this, new ReturnableRunnable() {
+					@Override
+					public Object run() throws Throwable {
+						synchronized (assistantLock) {
+							return assistant.onVoice(vc);
+						}
+					}
+				});
 			} catch (final Throwable e) {// 拦截未正常返回的异常
 				e.printStackTrace();
 			}
@@ -275,8 +269,8 @@ public class ProjResponser {
 
 		if (hasNative) {
 			try {
-				ClassUtil.invokeWithExceptionOut(Object.class, jrubyClassLoader, "finalize",
-						ClassUtil.NULL_PARA_TYPES, ClassUtil.NULL_PARAS, true);
+				ClassUtil.invokeWithExceptionOut(Object.class, jrubyClassLoader, "finalize", ClassUtil.NULL_PARA_TYPES,
+						ClassUtil.NULL_PARAS, true);
 			} catch (final Throwable e) {
 			}
 		}
@@ -305,23 +299,17 @@ public class ProjResponser {
 			final String converterName = names.elementAt(itemIdx);
 			final String scriptName = converterName;
 
-			LogManager.log("try build instance for Converter [" + converterName + "] in project ["
-					+ projectID + "]...");
+			LogManager.log("try build instance for Converter [" + converterName + "] in project [" + projectID + "]...");
 
 			// 将转换器名称装入properties
-			ServerUIAPIAgent.setHCSysProperties(context, ServerUIAPIAgent.CONVERT_NAME_PROP,
-					converterName);
+			ServerUIAPIAgent.setHCSysProperties(context, ServerUIAPIAgent.CONVERT_NAME_PROP, converterName);
 			final CallContext callCtx = CallContext.getFree();
-			final Object converter = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(
-					J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtx,
-					new StringValue(src.elementAt(itemIdx)), scriptName, null, hcje, context,
-					Converter.class);
+			final Object converter = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(J2SESession.NULL_J2SESESSION_FOR_PROJECT,
+					callCtx, new StringValue(src.elementAt(itemIdx)), scriptName, null, hcje, context, Converter.class);
 			if (converter != null) {
-				LogManager.log("succesful build instance for Converter [" + converterName
-						+ "] in project [" + projectID + "].");
+				LogManager.log("succesful build instance for Converter [" + converterName + "] in project [" + projectID + "].");
 			} else {
-				final String msg = "Fail instance Converter [" + converterName + "] in project ["
-						+ projectID + "].";
+				final String msg = "Fail instance Converter [" + converterName + "] in project [" + projectID + "].";
 				LogManager.err(msg);
 				throw new HCJRubyException(callCtx, msg);
 			}
@@ -384,22 +372,17 @@ public class ProjResponser {
 			final String devListener = src.elementAt(itemIdx);
 			final String scriptName = devName;
 
-			LogManager.log("try build instance for Device [" + devName + "] in project ["
-					+ projectID + "]...");
+			LogManager.log("try build instance for Device [" + devName + "] in project [" + projectID + "]...");
 
 			// 将设备名称装入properties
-			ServerUIAPIAgent.setHCSysProperties(context, ServerUIAPIAgent.DEVICE_NAME_PROP,
-					devName);
+			ServerUIAPIAgent.setHCSysProperties(context, ServerUIAPIAgent.DEVICE_NAME_PROP, devName);
 			final CallContext callCtx = CallContext.getFree();
-			final Object device = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(
-					J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtx, new StringValue(devListener),
-					scriptName, null, hcje, context, Device.class);
+			final Object device = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtx,
+					new StringValue(devListener), scriptName, null, hcje, context, Device.class);
 			if (device != null) {
-				LogManager.log("successful build instance for Device [" + devName + "] in project ["
-						+ projectID + "].");
+				LogManager.log("successful build instance for Device [" + devName + "] in project [" + projectID + "].");
 			} else {
-				final String msg = "Fail instance Device [" + devName + "] in project [" + projectID
-						+ "].";
+				final String msg = "Fail instance Device [" + devName + "] in project [" + projectID + "].";
 				LogManager.err(msg);
 				throw new HCJRubyException(callCtx, msg);
 			}
@@ -458,22 +441,17 @@ public class ProjResponser {
 			final String robotListener = src.elementAt(itemIdx);
 			final String scriptName = robotName;
 
-			LogManager.log("try build intance for Robot [" + robotName + "] in project ["
-					+ projectID + "]...");
+			LogManager.log("try build intance for Robot [" + robotName + "] in project [" + projectID + "]...");
 
 			// 将设备名称装入properties
-			ServerUIAPIAgent.setHCSysProperties(context, ServerUIAPIAgent.ROBOT_NAME_PROP,
-					robotName);
+			ServerUIAPIAgent.setHCSysProperties(context, ServerUIAPIAgent.ROBOT_NAME_PROP, robotName);
 			final CallContext callCtx = CallContext.getFree();
-			final Object robot = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(
-					J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtx,
+			final Object robot = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(J2SESession.NULL_J2SESESSION_FOR_PROJECT, callCtx,
 					new StringValue(robotListener), scriptName, null, hcje, context, Robot.class);
 			if (robot != null) {
-				LogManager.log("successful build intance for Robot [" + robotName + "] in project ["
-						+ projectID + "].");
+				LogManager.log("successful build intance for Robot [" + robotName + "] in project [" + projectID + "].");
 			} else {
-				final String msg = "Fail instance Robot [" + robotName + "] in project ["
-						+ projectID + "].";
+				final String msg = "Fail instance Robot [" + robotName + "] in project [" + projectID + "].";
 				LogManager.err(msg);
 				throw new HCJRubyException(callCtx, msg);
 			}
@@ -488,8 +466,7 @@ public class ProjResponser {
 		mobiResp.setPublishLocationMS(minTimes);
 	}
 
-	public ProjResponser(final String projID, final Map<String, Object> p_map,
-			final MobiUIResponsor baseRep, final LinkProjectStore lps) {
+	public ProjResponser(final String projID, final Map<String, Object> p_map, final MobiUIResponsor baseRep, final LinkProjectStore lps) {
 		this.projectID = projID;
 		{
 			final String absProjBasePath = StoreDirManager.getUserDataBaseDir(projectID);
@@ -512,15 +489,12 @@ public class ProjResponser {
 		// **注意**：理论上native
 		// lib应加载到userLib，而不是JRubyClassLoader。但是无法获得用户类作为参数，所以简化之
 		final ClassLoader baseClassLoader = ServerUtil.getJRubyClassLoader(false);
-		jrubyClassLoader = hasNative ? buildStubNativeLibClassLoaderWrapper(baseClassLoader)
-				: baseClassLoader;
-		final ClassLoader projClassLoader = ServerUtil.buildProjClassPath(deployPath,
-				jrubyClassLoader, projID);
+		jrubyClassLoader = hasNative ? buildStubNativeLibClassLoaderWrapper(baseClassLoader) : baseClassLoader;
+		final ClassLoader projClassLoader = ServerUtil.buildProjClassPath(deployPath, jrubyClassLoader, projID);
 		final String reportExceptionURL = (String) this.map.get(HCjar.PROJ_EXCEPTION_REPORT_URL);
 		this.hcje = new HCJRubyEngine(null, deployPath.getAbsolutePath(), projClassLoader,
 				reportExceptionURL != null && reportExceptionURL.length() > 0, projID);
-		RubyExector.initActive(hcje);
-
+		
 		final RecycleRes tmpRecycleRes = RecycleProjThreadPool.getFree(projID);
 
 		if (tmpRecycleRes != null) {
@@ -537,14 +511,12 @@ public class ProjResponser {
 				}
 			};
 			ClassUtil.changeParentToNull(threadGroup);
-			final ThreadPool threadPool = new ThreadPool(threadGroup, false,
-					ThreadPool.TYPE_PROJECT) {
+			final ThreadPool threadPool = new ThreadPool(threadGroup, false, ThreadPool.TYPE_PROJECT) {
 				// 每个工程实例下，用一个ThreadPool实例，以方便权限管理
 				@Override
 				public final Thread buildThread(final RecycleThread rt) {
 					final Thread thread = new Thread((ThreadGroup) threadGroup, rt);
-					thread.setName("lmtThread-in-" + ((ThreadGroup) threadGroup).getName() + "-"
-							+ thread.getId());
+					thread.setName("lmtThread-in-" + ((ThreadGroup) threadGroup).getName() + "-" + thread.getId());
 					thread.setPriority(ThreadPriorityManager.PROJ_CONTEXT_THREADPOOL_PRIORITY);
 
 					// 考虑到scheduler,数据库均已关闭，故设置daemon=true
@@ -564,13 +536,12 @@ public class ProjResponser {
 			recycleRes = new RecycleRes(projID + "-Project", threadPool);
 		}
 		recycleRes.threadPool.setName(projID + "-ThreadPool");
-		context = ServerUIUtil.buildProjectContext(projID, (String) map.get(HCjar.PROJ_VER),
-				recycleRes, this, new ProjClassLoaderFinder() {
-					@Override
-					public ClassLoader findProjClassLoader() {
-						return projClassLoader;
-					}
-				}, ServerUIAPIAgent.CRATE_DB_PASSWORD);
+		context = ServerUIUtil.buildProjectContext(projID, (String) map.get(HCjar.PROJ_VER), recycleRes, this, new ProjClassLoaderFinder() {
+			@Override
+			public ClassLoader findProjClassLoader() {
+				return projClassLoader;
+			}
+		}, ServerUIAPIAgent.CRATE_DB_PASSWORD);
 
 		final ContextSecurityConfig csc = ContextSecurityConfig.getContextSecurityConfig(lps);
 		csc.setProjResponser(this);
@@ -592,8 +563,7 @@ public class ProjResponser {
 				if (nativeNum > 0 && hasLoadNativeLibPermission == false) {
 					LogManager.err(
 							"please make sure enable permission in [Project Manager/project id/modify | permission/permission/load native lib]");
-					LogManager.errToLog(
-							"the permissions in [root node/permission/load native lib] are for designing, Not for running.");
+					LogManager.errToLog("the permissions in [root node/permission/load native lib] are for designing, Not for running.");
 				} else {
 					final int currOS = NativeOSManager.getOS();
 					for (int idx = 0; idx < nativeNum; idx++) {
@@ -602,8 +572,7 @@ public class ProjResponser {
 							continue;
 						}
 
-						final String nativeLibName = (String) p_map
-								.get(HCjar.replaceIdxPattern(HCjar.SHARE_NATIVE_FILE_NAME, idx));
+						final String nativeLibName = (String) p_map.get(HCjar.replaceIdxPattern(HCjar.SHARE_NATIVE_FILE_NAME, idx));
 						final File nativeFile = new File(deployPath, nativeLibName);
 						final String absolutePath = nativeFile.getAbsolutePath();
 
@@ -615,9 +584,8 @@ public class ProjResponser {
 						}
 						if (isLoadOK == false) {
 							try {
-								final String script = "import Java::hc.server.util.JavaLangSystemAgent\n"
-										+ "path = \"" + absolutePath + "\"\n"
-										+ "JavaLangSystemAgent.load(path)\n";
+								final String script = "import Java::hc.server.util.JavaLangSystemAgent\n" + "path = \"" + absolutePath
+										+ "\"\n" + "JavaLangSystemAgent.load(path)\n";
 								final StringValue sv = new StringValue(script);
 
 								// 注意：
@@ -632,11 +600,9 @@ public class ProjResponser {
 						}
 
 						if (isLoadOK) {
-							LogManager.log("successful load native lib [" + nativeLibName
-									+ "] in project [" + projID + "].");
+							LogManager.log("successful load native lib [" + nativeLibName + "] in project [" + projID + "].");
 						} else {
-							LogManager.err("Fail to load native lib [" + nativeLibName
-									+ "] in project [" + projID + "]");
+							LogManager.err("Fail to load native lib [" + nativeLibName + "] in project [" + projID + "]");
 						}
 					}
 				}
@@ -644,13 +610,12 @@ public class ProjResponser {
 		}
 
 		final File tmp_sub_for_hc_sys = StoreDirManager.getTmpSubForUserManagedByHcSys(context);
-		ResourceUtil.deleteDirectoryNow(tmp_sub_for_hc_sys, false);// 注意：false
-																	// means
-																	// 不删除顶级tmp目录
+		ResourceUtil.deleteDirectoryNow(tmp_sub_for_hc_sys, false);// 注意：false means 不删除顶级tmp目录
+		
+		RubyExector.initActive(hcje, true);//注意：由于可能未来涉及特权，所以不入projectThreads
 	}
 
-	private final void loadNativeLibByClassLoad(final ClassLoader loader, final String absolutePath)
-			throws Throwable {
+	private final void loadNativeLibByClassLoad(final ClassLoader loader, final String absolutePath) throws Throwable {
 		final Class jrubyClass = Class.forName("stub.StubLib", false, loader);// 加载native到stub的ClassLoader上，而不是JRubyClassLoader
 		L.V = L.WShop ? false : LogManager.log("successful load class [stub.StubLib].");
 
@@ -660,19 +625,15 @@ public class ProjResponser {
 		// isAbsolute)
 		final Class[] paraTypes = { Class.class, String.class, boolean.class };
 		final Object[] para = { jrubyClass, absolutePath, Boolean.TRUE };
-		ClassUtil.invokeWithExceptionOut(classLoader, classLoader, "loadLibrary", paraTypes, para,
-				true);
-		L.V = L.WShop ? false
-				: LogManager.log("successful loadNativeLibByClassLoad : " + absolutePath);
+		ClassUtil.invokeWithExceptionOut(classLoader, classLoader, "loadLibrary", paraTypes, para, true);
+		L.V = L.WShop ? false : LogManager.log("successful loadNativeLibByClassLoad : " + absolutePath);
 	}
 
 	public final void initJarMainMenu() {
-		jarMainMenu = new JarMainMenu(HCjar.MAIN_MENU_IDX, map, isRoot, mobiResp, lpsLinkName,
-				this);// 有可能为空内容
+		jarMainMenu = new JarMainMenu(HCjar.MAIN_MENU_IDX, map, isRoot, mobiResp, lpsLinkName, this);// 有可能为空内容
 	}
 
-	public static final boolean deloyToWorkingDir(final Map<String, Object> deployMap,
-			final File shareResourceTopDir) {
+	public static final boolean deloyToWorkingDir(final Map<String, Object> deployMap, final File shareResourceTopDir) {
 		if (!shareResourceTopDir.exists()) {
 			shareResourceTopDir.mkdirs();
 		}
@@ -687,10 +648,8 @@ public class ProjResponser {
 
 					final int shareRubyNum = Integer.parseInt(str_shareRubyNum);
 					for (int idx = 0; idx < shareRubyNum; idx++) {
-						final String fileName = (String) deployMap
-								.get(HCjar.replaceIdxPattern(HCjar.SHARE_JRUBY_FILE_NAME, idx));
-						final String fileContent = (String) deployMap
-								.get(HCjar.replaceIdxPattern(HCjar.SHARE_JRUBY_FILE_CONTENT, idx));
+						final String fileName = (String) deployMap.get(HCjar.replaceIdxPattern(HCjar.SHARE_JRUBY_FILE_NAME, idx));
+						final String fileContent = (String) deployMap.get(HCjar.replaceIdxPattern(HCjar.SHARE_JRUBY_FILE_CONTENT, idx));
 
 						final File jrubyFile = new File(shareResourceTopDir, fileName);
 
@@ -716,10 +675,8 @@ public class ProjResponser {
 								continue;
 							}
 
-							final String fileName = (String) deployMap.get(
-									HCjar.replaceIdxPattern(HCjar.SHARE_NATIVE_FILE_NAME, idx));
-							final byte[] fileContent = (byte[]) deployMap
-									.get(HCjar.MAP_FILE_PRE + fileName);
+							final String fileName = (String) deployMap.get(HCjar.replaceIdxPattern(HCjar.SHARE_NATIVE_FILE_NAME, idx));
+							final byte[] fileContent = (byte[]) deployMap.get(HCjar.MAP_FILE_PRE + fileName);
 
 							final File file = new File(shareResourceTopDir, fileName);
 
@@ -728,8 +685,7 @@ public class ProjResponser {
 							fos.flush();
 							fos.close();
 
-							L.V = L.WShop ? false
-									: LogManager.log("successful save native lib idx : " + idx);
+							L.V = L.WShop ? false : LogManager.log("successful save native lib idx : " + idx);
 						} catch (final Throwable e) {
 							LogManager.errToLog("fail to save native lib idx : " + idx);
 							ExceptionReporter.printStackTrace(e);
@@ -777,12 +733,10 @@ public class ProjResponser {
 		} else if (isScriptEventToAllProjects(event)) {
 			// 优先执行主菜单的事件
 			final String eventName = event.toString();
-			final String svKey = HCjar.buildEventMapKeyForStringValue(HCjar.MAIN_MENU_IDX,
-					eventName);
+			final String svKey = HCjar.buildEventMapKeyForStringValue(HCjar.MAIN_MENU_IDX, eventName);
 			StringValue sv = (StringValue) map.get(svKey);
 			if (sv == null) {
-				final String script = (String) map
-						.get(HCjar.buildEventMapKey(HCjar.MAIN_MENU_IDX, eventName));
+				final String script = (String) map.get(HCjar.buildEventMapKey(HCjar.MAIN_MENU_IDX, eventName));
 				sv = new StringValue(script);
 				map.put(svKey, sv);
 			}
@@ -790,8 +744,8 @@ public class ProjResponser {
 			if (script != null && script.trim().length() > 0) {
 				final boolean checkHasProjStartScriptErr;
 				if (ProjectContext.EVENT_SYS_MOBILE_LOGIN.equals(eventName)) {
-					checkHasProjStartScriptErr = IConstant.TRUE.equals(ServerUIAPIAgent
-							.getSysAttribute(this, ServerUIAPIAgent.KEY_HAS_ERROR_PS_SCRIPT, true));
+					checkHasProjStartScriptErr = IConstant.TRUE
+							.equals(ServerUIAPIAgent.getSysAttribute(this, ServerUIAPIAgent.KEY_HAS_ERROR_PS_SCRIPT, true));
 				} else {
 					checkHasProjStartScriptErr = false;
 				}
@@ -800,16 +754,12 @@ public class ProjResponser {
 					@Override
 					public Object run() throws Throwable {
 
-						L.V = L.WShop ? false
-								: LogManager.log("start OnEvent : " + event + " for project : "
-										+ context.getProjectID());
+						L.V = L.WShop ? false : LogManager.log("start OnEvent : " + event + " for project : " + context.getProjectID());
 						if (checkHasProjStartScriptErr) {
-							notifyScriptErrorInProjectOrSessionPool(coreSS,
-									ProjectContext.EVENT_SYS_PROJ_STARTUP);
+							notifyScriptErrorInProjectOrSessionPool(coreSS, ProjectContext.EVENT_SYS_PROJ_STARTUP);
 						}
 						final CallContext callCtx = CallContext.getFree();
-						RubyExector.runAndWaitInProjectOrSessionPool(coreSS, callCtx, strValue,
-								eventName, null, hcje, context);// 考虑到PROJ_SHUTDOWN，所以改为阻塞模式
+						RubyExector.runAndWaitInProjectOrSessionPool(coreSS, callCtx, strValue, eventName, null, hcje, context);// 考虑到PROJ_SHUTDOWN，所以改为阻塞模式
 						if (callCtx.isError) {
 							notifyScriptErrorInProjectOrSessionPool(coreSS, eventName);
 							if (mobiResp.ec != null) {
@@ -817,16 +767,13 @@ public class ProjResponser {
 							}
 						}
 						CallContext.cycle(callCtx);
-						L.V = L.WShop ? false
-								: LogManager.log("done OnEvent : " + event + " for project : "
-										+ context.getProjectID());
+						L.V = L.WShop ? false : LogManager.log("done OnEvent : " + event + " for project : " + context.getProjectID());
 						return null;
 					}
 				};
 
 				if (coreSS != null) {
-					ServerUIAPIAgent.addSequenceWatcherInProjContextForSessionFirst(coreSS, this,
-							runnable);
+					ServerUIAPIAgent.addSequenceWatcherInProjContextForSessionFirst(coreSS, this, runnable);
 				} else {
 					ServerUIAPIAgent.addSequenceWatcherInProjContext(context, new BaseWatcher() {
 						@Override
@@ -838,17 +785,15 @@ public class ProjResponser {
 				}
 			} else {// else script null or zero length
 				if (ProjectContext.EVENT_SYS_MOBILE_LOGIN.equals(eventName)) {
-					final Object sysAtt = ServerUIAPIAgent.getSysAttribute(this,
-							ServerUIAPIAgent.KEY_HAS_ERROR_PS_SCRIPT, true);// in
-																			// system
-																			// thread
-																			// level
+					final Object sysAtt = ServerUIAPIAgent.getSysAttribute(this, ServerUIAPIAgent.KEY_HAS_ERROR_PS_SCRIPT, true);// in
+																																	// system
+																																	// thread
+																																	// level
 					if (IConstant.TRUE.equals(sysAtt)) {
 						ServerUIAPIAgent.runInSessionThreadPool(coreSS, this, new Runnable() {
 							@Override
 							public void run() {
-								notifyScriptErrorInProjectOrSessionPool(coreSS,
-										ProjectContext.EVENT_SYS_PROJ_STARTUP);// 补充通知Project_StartUp错误
+								notifyScriptErrorInProjectOrSessionPool(coreSS, ProjectContext.EVENT_SYS_PROJ_STARTUP);// 补充通知Project_StartUp错误
 							}
 						});
 					}
@@ -861,21 +806,17 @@ public class ProjResponser {
 		}
 	}
 
-	private final void notifyScriptErrorInProjectOrSessionPool(final J2SESession coreSSMaybeNull,
-			final String eventName) {
-		if (ProjectContext.EVENT_SYS_MOBILE_LOGIN.equals(eventName)
-				|| ProjectContext.EVENT_SYS_PROJ_STARTUP.equals(eventName)) {
+	private final void notifyScriptErrorInProjectOrSessionPool(final J2SESession coreSSMaybeNull, final String eventName) {
+		if (ProjectContext.EVENT_SYS_MOBILE_LOGIN.equals(eventName) || ProjectContext.EVENT_SYS_PROJ_STARTUP.equals(eventName)) {
 			final String errorI18N = ResourceUtil.getErrorI18N(coreSSMaybeNull);
 			String notExecuted = ResourceUtil.get(coreSSMaybeNull, 9267);
 			notExecuted = StringUtil.replace(notExecuted, "{projID}", projectID);
 			notExecuted = StringUtil.replace(notExecuted, "{eventName}", eventName);
-			if (context.sendMessage(errorI18N, notExecuted, ProjectContext.MESSAGE_ERROR, null,
-					0) == false) {
+			if (context.sendMessage(errorI18N, notExecuted, ProjectContext.MESSAGE_ERROR, null, 0) == false) {
 				ContextManager.getThreadPool().run(new Runnable() {
 					@Override
 					public void run() {
-						ServerUIAPIAgent.setSysAttribute(ProjResponser.this,
-								ServerUIAPIAgent.KEY_HAS_ERROR_PS_SCRIPT, IConstant.TRUE);
+						ServerUIAPIAgent.setSysAttribute(ProjResponser.this, ServerUIAPIAgent.KEY_HAS_ERROR_PS_SCRIPT, IConstant.TRUE);
 					}
 				}, token);
 			}
@@ -908,16 +849,14 @@ public class ProjResponser {
 		final MenuItem item = coreSS.searchMenuItem(projectID, oriURLLower, aliasLowerURL);
 		if (item != null) {
 			if (log) {
-				LogManager.log(ILog.OP_STR + "click/go item : ["
-						+ ServerUIAPIAgent.getMobiMenuItem_Name(item) + "]");
+				LogManager.log(ILog.OP_STR + "click/go item : [" + ServerUIAPIAgent.getMobiMenuItem_Name(item) + "]");
 			}
 		}
 		return item;
 	}
 
 	public final void preLoadJRubyScripts() {
-		L.V = L.WShop ? false
-				: LogManager.log("pre load JRuby scripts for project [" + projectID + "].");
+		L.V = L.WShop ? false : LogManager.log("pre load JRuby scripts for project [" + projectID + "].");
 
 		final JarMainMenu menu = jarMainMenu;
 		if (menu != null) {
@@ -969,8 +908,7 @@ public class ProjResponser {
 	// return false;
 	// }
 
-	public final boolean doBiz(final J2SESession coreSS, final HCURL url,
-			final boolean sendMsgIfFail) {// 因为HCURL要回收，所以不能final
+	public final boolean doBiz(final J2SESession coreSS, final HCURL url, final boolean sendMsgIfFail) {// 因为HCURL要回收，所以不能final
 		if (url.protocal == HCURL.MENU_PROTOCAL) {
 			final String elementID = url.elementID;
 			// if(isMainElementID(elementID)){
@@ -1009,15 +947,13 @@ public class ProjResponser {
 
 						// 由于不占用KeepAlive，不采用后台模式
 						final CallContext callCtx = CallContext.getFree();
-						RubyExector.runAndWaitInProjectOrSessionPool(coreSS, callCtx, sv,
-								scriptName, mapRuby, hcje, context);
+						RubyExector.runAndWaitInProjectOrSessionPool(coreSS, callCtx, sv, scriptName, mapRuby, hcje, context);
 						CallContext.cycle(callCtx);
 					}
 					return true;
 				}
 			}
-		} else if (((url.protocal == HCURL.SCREEN_PROTOCAL)
-				&& (HCURL.REMOTE_HOME_SCREEN.equals(url.getElementIDLower()) == false))// 注意：screen://home必须手机先行调用
+		} else if (((url.protocal == HCURL.SCREEN_PROTOCAL) && (HCURL.REMOTE_HOME_SCREEN.equals(url.getElementIDLower()) == false))// 注意：screen://home必须手机先行调用
 				|| url.protocal == HCURL.FORM_PROTOCAL) {
 			coreSS.notifyCanvasMenuResponse();
 			// 由于可能不同context，所以要进行全遍历，而非假定在前一当前打开的基础上。
@@ -1039,8 +975,7 @@ public class ProjResponser {
 						// 由于可能导致长时间占用Event线程，所以另起线程。同时因为url要回收，所以不能final
 						final boolean isSynchronized = false;
 
-						startMlet(coreSS, sv, mapRuby, urlOri, elementID, title, hcje, context,
-								isSynchronized);
+						startMlet(coreSS, sv, mapRuby, urlOri, elementID, title, hcje, context, isSynchronized);
 					}
 					return true;
 				}
@@ -1071,9 +1006,8 @@ public class ProjResponser {
 								Object obj;
 								final CallContext callCtx = CallContext.getFree();
 								callCtx.targetURL = targetURL;
-								obj = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(coreSS,
-										callCtx, sv, scriptName, mapRuby, hcje, context,
-										CtrlResponse.class);
+								obj = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(coreSS, callCtx, sv, scriptName, mapRuby, hcje,
+										context, CtrlResponse.class);
 								CallContext.cycle(callCtx);
 								if (obj == null) {
 									return;
@@ -1082,10 +1016,8 @@ public class ProjResponser {
 								final CtrlResponse responsor = (CtrlResponse) obj;
 								try {
 									final CtrlMap cmap = new CtrlMap(map);
-									final ProjectContext ctx = ServerUIAPIAgent
-											.getProjectContextFromCtrl(responsor);
-									ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS,
-											ServerUIAPIAgent.getProjResponserMaybeNull(ctx),
+									final ProjectContext ctx = ServerUIAPIAgent.getProjectContextFromCtrl(responsor);
+									ServerUIAPIAgent.runAndWaitInSessionThreadPool(coreSS, ServerUIAPIAgent.getProjResponserMaybeNull(ctx),
 											new ReturnableRunnable() {
 												@Override
 												public Object run() throws Throwable {
@@ -1093,18 +1025,11 @@ public class ProjResponser {
 													final int[] keys = cmap.getButtonsOnCanvas();
 													for (int i = 0; i < keys.length; i++) {
 														final int key = keys[i];
-														final String txt = responsor
-																.getButtonInitText(key);
+														final String txt = responsor.getButtonInitText(key);
 														if (txt != null && txt.length() > 0) {
-															if (AIPersistentManager
-																	.isEnableHCAI()) {
-																final String locale = UserThreadResourceUtil
-																		.getMobileLocaleFrom(
-																				coreSS);
-																AIPersistentManager.processCtrl(
-																		locale,
-																		responsor.getTarget(), txt,
-																		ctx);
+															if (AIPersistentManager.isEnableHCAI()) {
+																final String locale = UserThreadResourceUtil.getMobileLocaleFrom(coreSS);
+																AIPersistentManager.processCtrl(locale, responsor.getTarget(), txt, ctx);
 															}
 														}
 														cmap.setButtonTxt(key, txt);
@@ -1114,15 +1039,11 @@ public class ProjResponser {
 											});
 
 									cmap.setTitle(title);
-									final String screenID = ServerUIAPIAgent
-											.buildScreenID(projectID, targetURL);
+									final String screenID = ServerUIAPIAgent.buildScreenID(projectID, targetURL);
 									cmap.setID(screenID);
-									ServerUIUtil.response(coreSS,
-											new MController(map, cmap.map.toSerial())
-													.buildJcip(coreSS, null));
+									ServerUIUtil.response(coreSS, new MController(map, cmap.map.toSerial()).buildJcip(coreSS, null));
 
-									final ServCtrlCanvas ccanvas = new ServCtrlCanvas(coreSS,
-											responsor);
+									final ServCtrlCanvas ccanvas = new ServCtrlCanvas(coreSS, responsor);
 									ScreenServer.pushScreen(coreSS, ccanvas);
 									MultiUsingManager.enter(coreSS, screenID, targetURL);
 
@@ -1141,8 +1062,7 @@ public class ProjResponser {
 
 		if (sendMsgIfFail) {
 			// 没有找到相应的资源实现，比如:cmd://myCmd, screen://myScreen
-			final String resource = StringUtil.replace(ResourceUtil.get(coreSS, 9122), "{resource}",
-					url.url);
+			final String resource = StringUtil.replace(ResourceUtil.get(coreSS, 9122), "{resource}", url.url);
 			final J2SESession[] coreSSS = { coreSS };
 			ServerUIAPIAgent.sendMovingMsg(coreSSS, resource);
 			LogManager.err(resource);
@@ -1169,11 +1089,10 @@ public class ProjResponser {
 		return PlatformManager.getService().loadClasses(files, cl, true, "stub");
 	}
 
-	public static final boolean bringMletToTop(final J2SESession coreSS, final ProjectContext ctx,
-			final String screenIDLower, final String targetURLLower) {
+	public static final boolean bringMletToTop(final J2SESession coreSS, final ProjectContext ctx, final String screenIDLower,
+			final String targetURLLower) {
 		if (ServerUIAPIAgent.isOnTopHistory(coreSS, ctx, screenIDLower, targetURLLower)
-				|| ServerUIAPIAgent.pushMletURLToHistory(coreSS, ctx, screenIDLower,
-						targetURLLower) == false) {// 已经打开，进行置顶操作
+				|| ServerUIAPIAgent.pushMletURLToHistory(coreSS, ctx, screenIDLower, targetURLLower) == false) {// 已经打开，进行置顶操作
 			return true;
 		}
 		return false;
@@ -1182,8 +1101,7 @@ public class ProjResponser {
 	private static String loadLocalJS(final String name) {
 		try {
 			// 支持源码和jar模式
-			return ResourceUtil.getStringFromInputStream(
-					ResourceUtil.getResourceAsStream("hc/res/js/" + name), IConstant.UTF_8, true,
+			return ResourceUtil.getStringFromInputStream(ResourceUtil.getResourceAsStream("hc/res/js/" + name), IConstant.UTF_8, true,
 					true);
 		} catch (final Exception e) {
 			ExceptionReporter.printStackTrace(e);
@@ -1229,9 +1147,8 @@ public class ProjResponser {
 				// "<!DOCTYPE html>" +//开启会导致：1. 不被视为quirks模式，尽管有box-sizing，
 				"<html dir='ltr'>" + "<head>" + "<meta charset=\"utf-8\" />" + // 注意：某些手机不支持width=device-width，必须width=600
 						"<meta name=\"viewport\" content=\"target-densitydpi=device-dpi, user-scalable=no, width="
-						+ UserThreadResourceUtil.getMletWidthFrom(coreSS) + ", initial-scale="
-						+ scale + ", minimum-scale=" + scale + ", maximum-scale=" + scale + "\"/>"
-						+ "<style type=\"text/css\">"
+						+ UserThreadResourceUtil.getMletWidthFrom(coreSS) + ", initial-scale=" + scale + ", minimum-scale=" + scale
+						+ ", maximum-scale=" + scale + "\"/>" + "<style type=\"text/css\">"
 						+ "  html {-webkit-box-sizing: border-box;-moz-box-sizing: border-box;box-sizing: border-box;}\n"
 						+ "  *, *:before, *:after {-webkit-box-sizing: inherit;-moz-box-sizing: inherit;box-sizing: inherit;}\n"
 						+ "  div > img {vertical-align:middle;}div > input {vertical-align:middle;}div > label{vertical-align:middle;}\n"
@@ -1240,21 +1157,16 @@ public class ProjResponser {
 						// table as following, tested pass in letv mobile.
 						"  input, select, textarea, table, caption{font-family:inherit;font-size:inherit;font-weight: inherit; font-style: inherit; font-variant: inherit;}\n"
 						+ "  button {font-family:inherit;font-weight: inherit; font-style: inherit; font-variant: inherit;font-size:"
-						+ sizeHeight.getFontSizeForButton() + "px;}\n" + "  .HC_DIV_SYS_0 {"
-						+ "font-size:" + sizeHeight.getFontSizeForNormal() + "px;"
-						+ "background-color:#" + colorForBodyByHexString + ";" + "}" + "</style>"
-						+ "</head>"
-						+ "<body style=\"position:relative;margin:0px;background-color:transparent;color:#"
-						+ HTMLMlet.getColorForFontByHexString() + ";\">"
-						+ "<div id=\"HC_DIV_0\" class=\"HC_DIV_SYS_0\"></div>"
-						+ "<div id=\"HC_DIV_loading\" style=\"position:absolute;background-color:#"
-						+ colorForBodyByHexString + ";" + "width:"
-						+ UserThreadResourceUtil.getMletWidthFrom(coreSS) + "px;" + "height:"
+						+ sizeHeight.getFontSizeForButton() + "px;}\n" + "  .HC_DIV_SYS_0 {" + "font-size:"
+						+ sizeHeight.getFontSizeForNormal() + "px;" + "background-color:#" + colorForBodyByHexString + ";" + "}"
+						+ "</style>" + "</head>" + "<body style=\"position:relative;margin:0px;background-color:transparent;color:#"
+						+ HTMLMlet.getColorForFontByHexString() + ";\">" + "<div id=\"HC_DIV_0\" class=\"HC_DIV_SYS_0\"></div>"
+						+ "<div id=\"HC_DIV_loading\" style=\"position:absolute;background-color:#" + colorForBodyByHexString + ";"
+						+ "width:" + UserThreadResourceUtil.getMletWidthFrom(coreSS) + "px;" + "height:"
 						+ UserThreadResourceUtil.getMletHeightFrom(coreSS) + "px;\"></div>"
 						+ "<div id=\"HC_DIV_tip\" style=\"pointer-events:none;font-size:"
 						+ (int) (UserThreadResourceUtil.getMletDPIFrom(coreSS) * 1.4 / 10)
-						+ "px;position:absolute;visibility:hidden;height:auto;top:30px;\">"
-						+ "</div>";
+						+ "px;position:absolute;visibility:hidden;height:auto;top:30px;\">" + "</div>";
 		final String endBody = "</body>" + "</html>";
 
 		initHTML.append(startBody);
@@ -1289,24 +1201,20 @@ public class ProjResponser {
 		final String urlID = CacheManager.ELE_URL_ID_HTML_BODY;
 		final byte[] urlIDbs = CacheManager.ELE_URL_ID_HTML_BODY_BS;
 
-		final CacheComparator bodyCacheComp = new CacheComparator(projID, softUID, urlID, projIDbs,
-				softUidBS, urlIDbs) {
+		final CacheComparator bodyCacheComp = new CacheComparator(projID, softUID, urlID, projIDbs, softUidBS, urlIDbs) {
 			@Override
 			public void sendData(final Object[] paras) {
 				final byte[] bodyBS = (byte[]) paras[0];
 
-				HCURLUtil.sendEClass(coreSS, HCURLUtil.CLASS_BODY_TO_MOBI, bodyBS, 0,
-						bodyBS.length);
+				HCURLUtil.sendEClass(coreSS, HCURLUtil.CLASS_BODY_TO_MOBI, bodyBS, 0, bodyBS.length);
 			}
 		};
 		final Object[] paras = { bs };
 		bodyCacheComp.encodeGetCompare(coreSS, true, bs, 0, bs.length, paras);
 	}
 
-	public static final int getMletComponentCount(final J2SESession coreSS,
-			final ProjectContext ctx, final Mlet mlet) {
-		final SessionContext mobileSession = ServerUIAPIAgent.getProjResponserMaybeNull(ctx)
-				.getMobileSession(coreSS);
+	public static final int getMletComponentCount(final J2SESession coreSS, final ProjectContext ctx, final Mlet mlet) {
+		final SessionContext mobileSession = ServerUIAPIAgent.getProjResponserMaybeNull(ctx).getMobileSession(coreSS);
 		if (mobileSession != null) {
 			final ReturnableRunnable run = new ReturnableRunnable() {
 				@Override
@@ -1321,16 +1229,14 @@ public class ProjResponser {
 		}
 	}
 
-	public static final Mlet startMlet(final J2SESession coreSS, final StringValue listener,
-			final Map<String, String> mapRuby, final String targetURL, final String elementID,
-			final String title, final HCJRubyEngine hcje, final ProjectContext context,
+	public static final Mlet startMlet(final J2SESession coreSS, final StringValue listener, final Map<String, String> mapRuby,
+			final String targetURL, final String elementID, final String title, final HCJRubyEngine hcje, final ProjectContext context,
 			final boolean isSynchronized) {
 		final CallContext runCtx = CallContext.getFree();
 		runCtx.targetURL = targetURL;
 
 		if (isSynchronized) {
-			final Mlet out = pushInMlet(coreSS, runCtx, listener, mapRuby, targetURL, title, hcje,
-					context);
+			final Mlet out = pushInMlet(coreSS, runCtx, listener, mapRuby, targetURL, title, hcje, context);
 			CallContext.cycle(runCtx);
 			return out;
 		} else {
@@ -1346,26 +1252,24 @@ public class ProjResponser {
 	}
 
 	public static boolean isMletMobileEnv(final J2SESession coreSS) {
-		return ConfigManager.OS_J2ME_DESC
-				.equals(UserThreadResourceUtil.getMobileAgent(coreSS).getOS());
+		return ConfigManager.OS_J2ME_DESC.equals(UserThreadResourceUtil.getMobileAgent(coreSS).getOS());
 	}
 
-	public static void sendReceiver(final CoreSession coreSS, final String receiver,
-			final String elementID, final boolean isCancelable) {
-		final String[] paras = { HCURL.DATA_PARA_NOTIFY_RECEIVER,
-				HCURL.DATA_PARA_NOTIFY_RECEIVER_PARA, HCURL.DATA_PARA_NOTIFY_RECEIVER_CANCEL_PARA };
+	public static void sendReceiver(final CoreSession coreSS, final String receiver, final String elementID, final boolean isCancelable) {
+		final String[] paras = { HCURL.DATA_PARA_NOTIFY_RECEIVER, HCURL.DATA_PARA_NOTIFY_RECEIVER_PARA,
+				HCURL.DATA_PARA_NOTIFY_RECEIVER_CANCEL_PARA };
 		final String[] values = { receiver, elementID, IConstant.toString(isCancelable) };
 		HCURLUtil.sendCmd(coreSS, HCURL.DATA_CMD_SendPara, paras, values);
 	}
 
-	private static Mlet pushInMlet(final J2SESession coreSS, final CallContext runCtx,
-			final StringValue listener, final Map<String, String> mapRuby, final String targetURL,
-			final String title, final HCJRubyEngine hcje, final ProjectContext context) {
+	private static Mlet pushInMlet(final J2SESession coreSS, final CallContext runCtx, final StringValue listener,
+			final Map<String, String> mapRuby, final String targetURL, final String title, final HCJRubyEngine hcje,
+			final ProjectContext context) {
 		try {
 			final String scriptName = title;
 
-			final Object obj = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(coreSS,
-					runCtx, listener, scriptName, mapRuby, hcje, context, Mlet.class);
+			final Object obj = RubyExector.runAndWaitInProjectOrSessionPoolWithRepErr(coreSS, runCtx, listener, scriptName, mapRuby, hcje,
+					context, Mlet.class);
 			if (obj == null) {
 				return null;
 			}

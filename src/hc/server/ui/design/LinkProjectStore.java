@@ -73,13 +73,13 @@ public class LinkProjectStore extends StoreableHashMap {
 
 	// 发生了升级，且升级前该工程的editBackFile被修改过。该标识用于是否使用旧编辑或新升级的版本
 	private static final String FIELD_IS_CHANGED_BEFORE_UPGRADE = "chgBfrUpgrade";
-	
+
 	public static final String FIELD_HAS_MENU_ITEM_FOR_INSTALL = "hasMenuItemForInstall";
-	
+
 	public final void setBoolean(final String key, final boolean b) {
 		put(key, IConstant.toString(b));
 	}
-	
+
 	public final boolean isBoolean(final String key) {
 		final Object obj = get(key);
 		return IConstant.TRUE.equals(obj);
@@ -88,8 +88,7 @@ public class LinkProjectStore extends StoreableHashMap {
 	public static final String DEFAULT_UNKOWN_VER = "0.0.1";
 
 	public final boolean isChangedBeforeUpgrade() {
-		if (getValueDefault(FIELD_IS_CHANGED_BEFORE_UPGRADE, IConstant.FALSE)
-				.equals(IConstant.TRUE)) {
+		if (getValueDefault(FIELD_IS_CHANGED_BEFORE_UPGRADE, IConstant.FALSE).equals(IConstant.TRUE)) {
 			return true;
 		}
 		return false;
@@ -211,8 +210,7 @@ public class LinkProjectStore extends StoreableHashMap {
 		setDownloadingVersion(DEFAULT_UNKOWN_VER);
 	}
 
-	public void setDevBindMap(final String[] bind_id, final RealDeviceInfo[] real,
-			final int length) {
+	public void setDevBindMap(final String[] bind_id, final RealDeviceInfo[] real, final int length) {
 		final StringBuffer sb = new StringBuffer();
 
 		for (int i = 0; i < length; i++) {
@@ -243,8 +241,7 @@ public class LinkProjectStore extends StoreableHashMap {
 		put(FIELD_BIND_DEV_MAP, sb.toString());
 	}
 
-	public void setConvBindMap(final String[] bind_id, final ConverterInfo[] cbi,
-			final int length) {
+	public void setConvBindMap(final String[] bind_id, final ConverterInfo[] cbi, final int length) {
 		final StringBuffer sb = new StringBuffer();
 
 		for (int i = 0; i < length; i++) {
@@ -498,8 +495,7 @@ public class LinkProjectStore extends StoreableHashMap {
 		setProjectUpgradeURL((String) map.get(HCjar.PROJ_UPGRADE_URL));
 		setMenuName(HCjar.getMenuName(map, 0));
 
-		ContextSecurityConfig.copyMapsToLPS(this,
-				ContextSecurityConfig.getPermissionFromHARMap(map), isForceUpdatePermission);
+		ContextSecurityConfig.copyMapsToLPS(this, ContextSecurityConfig.getPermissionFromHARMap(map), isForceUpdatePermission);
 	}
 
 	public static X509Certificate deserialX509Certificate(final String src) {

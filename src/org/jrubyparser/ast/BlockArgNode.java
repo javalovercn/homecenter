@@ -34,85 +34,87 @@ import org.jrubyparser.NodeVisitor;
 import org.jrubyparser.SourcePosition;
 
 /**
- *	An explicit block argument (&amp;my_block) in a declaration (at call sites see BlockPassNode).
+ * An explicit block argument (&amp;my_block) in a declaration (at call sites see BlockPassNode).
  */
 public class BlockArgNode extends NamedNode implements IParameter {
-    private int count;
+	private int count;
 
-    public BlockArgNode(SourcePosition position, int count, String name) {
-        super(position, name);
-        this.count = count;
-    }
+	public BlockArgNode(SourcePosition position, int count, String name) {
+		super(position, name);
+		this.count = count;
+	}
 
-    public BlockArgNode(SourcePosition position, ArgumentNode argNode) {
-        this(position, argNode.getIndex(), argNode.getName());
-    }
+	public BlockArgNode(SourcePosition position, ArgumentNode argNode) {
+		this(position, argNode.getIndex(), argNode.getName());
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param other
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node other) {
+		return super.isSame(other) && getLexicalName().equals(((BlockArgNode) other).getLexicalName());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param other to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node other) {
-        return super.isSame(other) && getLexicalName().equals(((BlockArgNode) other).getLexicalName());
-    }
+	public NodeType getNodeType() {
+		return NodeType.BLOCKARGNODE;
+	}
 
+	@Override
+	public String getLexicalName() {
+		return "&" + getName();
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.BLOCKARGNODE;
-    }
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitBlockArgNode(this);
+	}
 
-    @Override
-    public String getLexicalName() {
-        return "&" + getName();
-    }
+	/**
+	 * Gets the count.
+	 * 
+	 * @return Returns a int
+	 */
+	public int getCount() {
+		return count;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitBlockArgNode(this);
-    }
+	// 1.9+
+	@Override
+	public boolean isBlockParameter() {
+		IterNode iter = getInnermostIter();
 
-    /**
-     * Gets the count.
-     * @return Returns a int
-     */
-    public int getCount() {
-        return count;
-    }
+		return iter != null && isDescendentOf(iter.getVar());
+	}
 
-    // 1.9+
-    @Override
-    public boolean isBlockParameter() {
-        IterNode iter = getInnermostIter();
+	public IScope getDefinedScope() {
+		return getClosestIScope(); // argument list elements always belong to closest scope
+	}
 
-        return iter != null && isDescendentOf(iter.getVar());
-    }
+	public List<ILocalVariable> getOccurrences() {
+		return getDefinedScope().getVariableReferencesNamed(getName());
+	}
 
-    public IScope getDefinedScope() {
-        return getClosestIScope(); // argument list elements always belong to closest scope
-    }
+	public ILocalVariable getDeclaration() {
+		return this;
+	}
 
-    public List<ILocalVariable> getOccurrences() {
-        return getDefinedScope().getVariableReferencesNamed(getName());
-    }
+	@Override
+	public SourcePosition getNamePosition() {
+		return getPosition().fromEnd(getName().length());
+	}
 
-    public ILocalVariable getDeclaration() {
-        return this;
-    }
-
-    @Override
-    public SourcePosition getNamePosition() {
-        return getPosition().fromEnd(getName().length());
-    }
-
-    @Override
-    public SourcePosition getLexicalNamePosition() {
-        return getPosition();
-    }
+	@Override
+	public SourcePosition getLexicalNamePosition() {
+		return getPosition();
+	}
 }

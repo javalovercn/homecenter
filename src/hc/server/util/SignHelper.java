@@ -52,11 +52,9 @@ public class SignHelper {
 	 * 
 	 * @return [pubKey, privateKey]
 	 */
-	public static SignItem generateKeys(final String x500Name, final String alias,
-			final Date notBefore, final Date notAfter) {
+	public static SignItem generateKeys(final String x500Name, final String alias, final Date notBefore, final Date notAfter) {
 		try {
-			final KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA",
-					BCProvider.getBCProvider());
+			final KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA", BCProvider.getBCProvider());
 			gen.initialize(1024);
 			final KeyPair pair = gen.generateKeyPair();
 
@@ -64,8 +62,7 @@ public class SignHelper {
 
 			final PublicKey publicKey = pair.getPublic();
 			final PrivateKey privateKey = pair.getPrivate();
-			final X509Certificate x509 = signerSelf(subject, publicKey, privateKey, notBefore,
-					notAfter);
+			final X509Certificate x509 = signerSelf(subject, publicKey, privateKey, notBefore, notAfter);
 
 			return new SignItem(alias, x509, privateKey);
 		} catch (final Throwable e) {
@@ -93,8 +90,7 @@ public class SignHelper {
 
 			if (privateKeyPem.indexOf(PEM_PRIVATE_START) != -1) { // PKCS#8
 																	// format
-				privateKeyPem = privateKeyPem.replace(PEM_PRIVATE_START, "")
-						.replace(PEM_PRIVATE_END, "");
+				privateKeyPem = privateKeyPem.replace(PEM_PRIVATE_START, "").replace(PEM_PRIVATE_END, "");
 				privateKeyPem = privateKeyPem.replaceAll("\\s", "");
 
 				final byte[] pkcs8EncodedKey = Base64.decode(privateKeyPem);
@@ -106,16 +102,13 @@ public class SignHelper {
 				// PKCS#1 或其它
 				final PEMParser pemParser = new PEMParser(new FileReader(file));
 				final Object object = pemParser.readObject();
-				final PEMDecryptorProvider decProv = new JcePEMDecryptorProviderBuilder()
-						.build("".toCharArray());// pass 3_homecenter.mobi.key
-													// PKCS#1
-				final JcaPEMKeyConverter converter = new JcaPEMKeyConverter()
-						.setProvider(BCProvider.getBCProvider());
+				final PEMDecryptorProvider decProv = new JcePEMDecryptorProviderBuilder().build("".toCharArray());// pass 3_homecenter.mobi.key
+																													// PKCS#1
+				final JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider(BCProvider.getBCProvider());
 				KeyPair kp;
 				if (object instanceof PEMEncryptedKeyPair) {
 					// Encrypted key - we will use provided password
-					kp = converter
-							.getKeyPair(((PEMEncryptedKeyPair) object).decryptKeyPair(decProv));
+					kp = converter.getKeyPair(((PEMEncryptedKeyPair) object).decryptKeyPair(decProv));
 				} else {
 					// Unencrypted key - no password needed
 					kp = converter.getKeyPair((PEMKeyPair) object);
@@ -175,29 +168,25 @@ public class SignHelper {
 	 * @param trustedSigner
 	 * @return 当前jar正用的证书，可能多个；如果没有，则长度为0，非空。返回null表示验证失败
 	 */
-	public static X509Certificate[] verifyJar(final File jarFile,
-			final X509Certificate[] trustedSigner) {
+	public static X509Certificate[] verifyJar(final File jarFile, final X509Certificate[] trustedSigner) {
 		X509Certificate[] certs;
 		certs = new HCJarVerifier().verifyJar(jarFile, trustedSigner);
 		if (certs != null) {
 			if (L.isInWorkshop) {
-				LogManager.log("pass verify signature : " + jarFile.getAbsolutePath() + " by "
-						+ HCJarVerifier.class.getSimpleName());
+				LogManager.log("pass verify signature : " + jarFile.getAbsolutePath() + " by " + HCJarVerifier.class.getSimpleName());
 			}
 			return certs;
 		}
 
 		certs = new InnerJarVerifier().verifyJar(jarFile, trustedSigner);
 		if (certs != null) {
-			LogManager.log("pass verify signature : " + jarFile.getAbsolutePath() + " by "
-					+ InnerJarVerifier.class.getSimpleName());
+			LogManager.log("pass verify signature : " + jarFile.getAbsolutePath() + " by " + InnerJarVerifier.class.getSimpleName());
 		}
 
 		return certs;
 	}
 
-	public static void savePfx(final File pfxFile, final String password,
-			final Vector<SignItem> items) throws Exception {
+	public static void savePfx(final File pfxFile, final String password, final Vector<SignItem> items) throws Exception {
 		// PublicKey pk = certificate.getPublicKey();
 		final char[] pwdChars = toPfxPassword(password);
 
@@ -226,9 +215,8 @@ public class SignHelper {
 		}
 	}
 
-	private static X509Certificate signerSelf(final X500Name subject, final PublicKey publicKey,
-			final PrivateKey privateKey, final Date notBefore, final Date notAfter)
-			throws Exception {
+	private static X509Certificate signerSelf(final X500Name subject, final PublicKey publicKey, final PrivateKey privateKey,
+			final Date notBefore, final Date notAfter) throws Exception {
 		// Supported Algorithms
 		// By default, the jarsigner command signs a JAR file using one of the
 		// following algorithms:
@@ -239,25 +227,19 @@ public class SignHelper {
 		// final String signatureAlgorithm = "SHA1with" +
 		// privateKey.getAlgorithm();
 		final String signatureAlgorithm = "SHA512with" + privateKey.getAlgorithm();
-		return signer(subject, publicKey, subject, privateKey, signatureAlgorithm, notBefore,
-				notAfter);
+		return signer(subject, publicKey, subject, privateKey, signatureAlgorithm, notBefore, notAfter);
 	}
 
-	private static X509Certificate signer(final X500Name subject, final PublicKey subjectPublicKey,
-			final X500Name issuer, final PrivateKey issuerPrivateKey,
-			final String signatureAlgorithm, final Date notBefore, final Date notAfter)
+	private static X509Certificate signer(final X500Name subject, final PublicKey subjectPublicKey, final X500Name issuer,
+			final PrivateKey issuerPrivateKey, final String signatureAlgorithm, final Date notBefore, final Date notAfter)
 			throws Exception {
 
-		final BigInteger sn = new BigInteger(
-				new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+		final BigInteger sn = new BigInteger(new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
 
-		final SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo
-				.getInstance(subjectPublicKey.getEncoded());
-		final ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm)
-				.build(issuerPrivateKey);
+		final SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(subjectPublicKey.getEncoded());
+		final ContentSigner signer = new JcaContentSignerBuilder(signatureAlgorithm).build(issuerPrivateKey);
 
-		final X509v3CertificateBuilder builder = new X509v3CertificateBuilder(issuer, sn, notBefore,
-				notAfter, subject, publicKeyInfo);
+		final X509v3CertificateBuilder builder = new X509v3CertificateBuilder(issuer, sn, notBefore, notAfter, subject, publicKeyInfo);
 
 		// builder.addExtension(X509Extensions.SubjectKeyIdentifier, false, new
 		// SubjectKeyIdentifierStructure(pubKey));
@@ -273,8 +255,8 @@ public class SignHelper {
 	// Date notBefore = new Date();
 	// Date notAfter = new Date(notBefore.getTime() + 365L * 24 * 60 * 60 *
 	// 1000);
-	public X509Certificate createCACert(final PublicKey publicKey, final PrivateKey privateKey,
-			final Date notBefore, final Date notAfter, final String x500Name) throws Exception {
+	public X509Certificate createCACert(final PublicKey publicKey, final PrivateKey privateKey, final Date notBefore, final Date notAfter,
+			final String x500Name) throws Exception {
 		// C=CN/ST=HuNan/L=ShaoYang/O=HomeCenter.MOBI CA/OU=HomeCenter.MOBI
 		// CA/CN=homecenter.mobi
 		// C=CountryCode/O=Organization/OU=OrganizationUnit/CN=CommonName
@@ -282,16 +264,14 @@ public class SignHelper {
 															// O=MockServer,
 															// L=London,
 															// ST=England, C=UK"
-		final X509Certificate cert = signerSelf(issuerName, publicKey, privateKey, notBefore,
-				notAfter);
+		final X509Certificate cert = signerSelf(issuerName, publicKey, privateKey, notBefore, notAfter);
 		cert.checkValidity(new Date());
 		cert.verify(publicKey);
 
 		return cert;
 	}
 
-	public static boolean sign(final File filePfx, final String password, final File inJar,
-			final File outJar) throws Exception {
+	public static boolean sign(final File filePfx, final String password, final File inJar, final File outJar) throws Exception {
 		if (inJar.equals(outJar)) {
 			throw new Exception("inJar must unique to outJar");
 		}
@@ -312,11 +292,9 @@ public class SignHelper {
 	 * 
 	 * @param filePfx
 	 * @param strPassword
-	 * @return return null or three object [X509Certificate[], PrivateKey[],
-	 *         String[alias]]
+	 * @return return null or three object [X509Certificate[], PrivateKey[], String[alias]]
 	 */
-	public static SignItem[] getContentformPfx(final File filePfx, final String strPassword)
-			throws Exception {
+	public static SignItem[] getContentformPfx(final File filePfx, final String strPassword) throws Exception {
 		FileInputStream fis = null;
 		try {
 			final KeyStore ks = KeyStore.getInstance("PKCS12");// 不能使用bcProvider

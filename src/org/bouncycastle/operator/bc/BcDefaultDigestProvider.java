@@ -25,120 +25,89 @@ import org.bouncycastle.crypto.digests.SHA384Digest;
 import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.operator.OperatorCreationException;
 
-public class BcDefaultDigestProvider
-    implements BcDigestProvider
-{
-    private static final Map lookup = createTable();
+public class BcDefaultDigestProvider implements BcDigestProvider {
+	private static final Map lookup = createTable();
 
-    private static Map createTable()
-    {
-        Map table = new HashMap();
+	private static Map createTable() {
+		Map table = new HashMap();
 
-        table.put(OIWObjectIdentifiers.idSHA1, new BcDigestProvider()
-        {
-            public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
-            {
-                return new SHA1Digest();
-            }
-        });
-        table.put(NISTObjectIdentifiers.id_sha224, new BcDigestProvider()
-        {
-            public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
-            {
-                return new SHA224Digest();
-            }
-        });
-        table.put(NISTObjectIdentifiers.id_sha256, new BcDigestProvider()
-        {
-            public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
-            {
-                return new SHA256Digest();
-            }
-        });
-        table.put(NISTObjectIdentifiers.id_sha384, new BcDigestProvider()
-        {
-            public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
-            {
-                return new SHA384Digest();
-            }
-        });
-        table.put(NISTObjectIdentifiers.id_sha512, new BcDigestProvider()
-        {
-            public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
-            {
-                return new SHA512Digest();
-            }
-        });
-        table.put(PKCSObjectIdentifiers.md5, new BcDigestProvider()
-        {
-            public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
-            {
-                return new MD5Digest();
-            }
-        });
-        table.put(PKCSObjectIdentifiers.md4, new BcDigestProvider()
-        {
-            public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
-            {
-                return new MD4Digest();
-            }
-        });
-        table.put(PKCSObjectIdentifiers.md2, new BcDigestProvider()
-        {
-            public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
-            {
-                return new MD2Digest();
-            }
-        });
-        table.put(CryptoProObjectIdentifiers.gostR3411, new BcDigestProvider()
-        {
-            public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
-            {
-                return new GOST3411Digest();
-            }
-        });
-        table.put(TeleTrusTObjectIdentifiers.ripemd128, new BcDigestProvider()
-        {
-            public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
-            {
-                return new RIPEMD128Digest();
-            }
-        });
-        table.put(TeleTrusTObjectIdentifiers.ripemd160, new BcDigestProvider()
-        {
-            public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
-            {
-                return new RIPEMD160Digest();
-            }
-        });
-        table.put(TeleTrusTObjectIdentifiers.ripemd256, new BcDigestProvider()
-        {
-            public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
-            {
-                return new RIPEMD256Digest();
-            }
-        });
+		table.put(OIWObjectIdentifiers.idSHA1, new BcDigestProvider() {
+			public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier) {
+				return new SHA1Digest();
+			}
+		});
+		table.put(NISTObjectIdentifiers.id_sha224, new BcDigestProvider() {
+			public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier) {
+				return new SHA224Digest();
+			}
+		});
+		table.put(NISTObjectIdentifiers.id_sha256, new BcDigestProvider() {
+			public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier) {
+				return new SHA256Digest();
+			}
+		});
+		table.put(NISTObjectIdentifiers.id_sha384, new BcDigestProvider() {
+			public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier) {
+				return new SHA384Digest();
+			}
+		});
+		table.put(NISTObjectIdentifiers.id_sha512, new BcDigestProvider() {
+			public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier) {
+				return new SHA512Digest();
+			}
+		});
+		table.put(PKCSObjectIdentifiers.md5, new BcDigestProvider() {
+			public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier) {
+				return new MD5Digest();
+			}
+		});
+		table.put(PKCSObjectIdentifiers.md4, new BcDigestProvider() {
+			public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier) {
+				return new MD4Digest();
+			}
+		});
+		table.put(PKCSObjectIdentifiers.md2, new BcDigestProvider() {
+			public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier) {
+				return new MD2Digest();
+			}
+		});
+		table.put(CryptoProObjectIdentifiers.gostR3411, new BcDigestProvider() {
+			public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier) {
+				return new GOST3411Digest();
+			}
+		});
+		table.put(TeleTrusTObjectIdentifiers.ripemd128, new BcDigestProvider() {
+			public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier) {
+				return new RIPEMD128Digest();
+			}
+		});
+		table.put(TeleTrusTObjectIdentifiers.ripemd160, new BcDigestProvider() {
+			public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier) {
+				return new RIPEMD160Digest();
+			}
+		});
+		table.put(TeleTrusTObjectIdentifiers.ripemd256, new BcDigestProvider() {
+			public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier) {
+				return new RIPEMD256Digest();
+			}
+		});
 
-        return Collections.unmodifiableMap(table);
-    }
+		return Collections.unmodifiableMap(table);
+	}
 
-    public static final BcDigestProvider INSTANCE = new BcDefaultDigestProvider();
+	public static final BcDigestProvider INSTANCE = new BcDefaultDigestProvider();
 
-    private BcDefaultDigestProvider()
-    {
+	private BcDefaultDigestProvider() {
 
-    }
+	}
 
-    public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
-        throws OperatorCreationException
-    {
-        BcDigestProvider extProv = (BcDigestProvider)lookup.get(digestAlgorithmIdentifier.getAlgorithm());
+	public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier) throws OperatorCreationException {
+		BcDigestProvider extProv = (BcDigestProvider) lookup.get(digestAlgorithmIdentifier.getAlgorithm());
 
-        if (extProv == null)
-        {
-            throw new OperatorCreationException("cannot recognise digest");
-        }
+		if (extProv == null) {
+			throw new OperatorCreationException("cannot recognise digest");
+		}
 
-        return extProv.get(digestAlgorithmIdentifier);
-    }
+		return extProv.get(digestAlgorithmIdentifier);
+	}
 }

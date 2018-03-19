@@ -1,11 +1,9 @@
 package org.bouncycastle.openssl;
 
-public interface PEMEncryptor
-{
-    String getAlgorithm();
+public interface PEMEncryptor {
+	String getAlgorithm();
 
-    byte[] getIV();
+	byte[] getIV();
 
-    byte[] encrypt(byte[] encoding)
-        throws PEMException;
+	byte[] encrypt(byte[] encoding) throws PEMException;
 }

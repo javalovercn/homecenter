@@ -6,106 +6,87 @@ import java.util.Enumeration;
 /**
  * A DER encoded set object
  */
-public class DERSet
-    extends ASN1Set
-{
-    private int bodyLength = -1;
+public class DERSet extends ASN1Set {
+	private int bodyLength = -1;
 
-    /**
-     * create an empty set
-     */
-    public DERSet()
-    {
-    }
+	/**
+	 * create an empty set
+	 */
+	public DERSet() {
+	}
 
-    /**
-     * create a set containing one object
-     * @param obj the object to go in the set
-     */
-    public DERSet(
-        ASN1Encodable obj)
-    {
-        super(obj);
-    }
+	/**
+	 * create a set containing one object
+	 * 
+	 * @param obj
+	 *            the object to go in the set
+	 */
+	public DERSet(ASN1Encodable obj) {
+		super(obj);
+	}
 
-    /**
-     * create a set containing a vector of objects.
-     * @param v the vector of objects to make up the set.
-     */
-    public DERSet(
-        ASN1EncodableVector v)
-    {
-        super(v, true);
-    }
-    
-    /**
-     * create a set containing an array of objects.
-     * @param a the array of objects to make up the set.
-     */
-    public DERSet(
-        ASN1Encodable[]   a)
-    {
-        super(a, true);
-    }
+	/**
+	 * create a set containing a vector of objects.
+	 * 
+	 * @param v
+	 *            the vector of objects to make up the set.
+	 */
+	public DERSet(ASN1EncodableVector v) {
+		super(v, true);
+	}
 
-    DERSet(
-        ASN1EncodableVector v,
-        boolean                  doSort)
-    {
-        super(v, doSort);
-    }
+	/**
+	 * create a set containing an array of objects.
+	 * 
+	 * @param a
+	 *            the array of objects to make up the set.
+	 */
+	public DERSet(ASN1Encodable[] a) {
+		super(a, true);
+	}
 
-    private int getBodyLength()
-        throws IOException
-    {
-        if (bodyLength < 0)
-        {
-            int length = 0;
+	DERSet(ASN1EncodableVector v, boolean doSort) {
+		super(v, doSort);
+	}
 
-            for (Enumeration e = this.getObjects(); e.hasMoreElements();)
-            {
-                Object    obj = e.nextElement();
+	private int getBodyLength() throws IOException {
+		if (bodyLength < 0) {
+			int length = 0;
 
-                length += ((ASN1Encodable)obj).toASN1Primitive().toDERObject().encodedLength();
-            }
+			for (Enumeration e = this.getObjects(); e.hasMoreElements();) {
+				Object obj = e.nextElement();
 
-            bodyLength = length;
-        }
+				length += ((ASN1Encodable) obj).toASN1Primitive().toDERObject().encodedLength();
+			}
 
-        return bodyLength;
-    }
+			bodyLength = length;
+		}
 
-    int encodedLength()
-        throws IOException
-    {
-        int length = getBodyLength();
+		return bodyLength;
+	}
 
-        return 1 + StreamUtil.calculateBodyLength(length) + length;
-    }
+	int encodedLength() throws IOException {
+		int length = getBodyLength();
 
-    /*
-     * A note on the implementation:
-     * <p>
-     * As DER requires the constructed, definite-length model to
-     * be used for structured types, this varies slightly from the
-     * ASN.1 descriptions given. Rather than just outputting SET,
-     * we also have to specify CONSTRUCTED, and the objects length.
-     */
-    void encode(
-        ASN1OutputStream out)
-        throws IOException
-    {
-        ASN1OutputStream        dOut = out.getDERSubStream();
-        int                     length = getBodyLength();
+		return 1 + StreamUtil.calculateBodyLength(length) + length;
+	}
 
-        out.write(BERTags.SET | BERTags.CONSTRUCTED);
-        out.writeLength(length);
+	/*
+	 * A note on the implementation: <p> As DER requires the constructed, definite-length model to
+	 * be used for structured types, this varies slightly from the ASN.1 descriptions given. Rather
+	 * than just outputting SET, we also have to specify CONSTRUCTED, and the objects length.
+	 */
+	void encode(ASN1OutputStream out) throws IOException {
+		ASN1OutputStream dOut = out.getDERSubStream();
+		int length = getBodyLength();
 
-        for (Enumeration e = this.getObjects(); e.hasMoreElements();)
-        {
-            Object    obj = e.nextElement();
+		out.write(BERTags.SET | BERTags.CONSTRUCTED);
+		out.writeLength(length);
 
-            dOut.writeObject((ASN1Encodable)obj);
-        }
-    }
+		for (Enumeration e = this.getObjects(); e.hasMoreElements();) {
+			Object obj = e.nextElement();
+
+			dOut.writeObject((ASN1Encodable) obj);
+		}
+	}
 }

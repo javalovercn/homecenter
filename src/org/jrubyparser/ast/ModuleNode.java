@@ -40,87 +40,89 @@ import org.jrubyparser.util.MethodDefVisitor;
  * Represents a module definition.
  */
 public class ModuleNode extends Node implements IScopingNode, ILocalScope, IModuleScope {
-    private Colon3Node cpath;
-    private StaticScope scope;
-    private Node bodyNode;
+	private Colon3Node cpath;
+	private StaticScope scope;
+	private Node bodyNode;
 
-    public ModuleNode(SourcePosition position, Colon3Node cpath, StaticScope scope, Node bodyNode) {
-        super(position);
+	public ModuleNode(SourcePosition position, Colon3Node cpath, StaticScope scope, Node bodyNode) {
+		super(position);
 
-        assert cpath != null : "cpath is not null";
-        assert scope != null : "scope is not null";
+		assert cpath != null : "cpath is not null";
+		assert scope != null : "scope is not null";
 
-        this.cpath = (Colon3Node) adopt(cpath);
-        this.scope = scope;
-        this.bodyNode = adopt(bodyNode);
-    }
+		this.cpath = (Colon3Node) adopt(cpath);
+		this.scope = scope;
+		this.bodyNode = adopt(bodyNode);
+	}
 
+	/**
+	 * Checks node for 'sameness' for diffing.
+	 *
+	 * @param node
+	 *            to be compared to
+	 * @return Returns a boolean
+	 */
+	@Override
+	public boolean isSame(Node node) {
+		return super.isSame(node) && getCPath().isSame(((ModuleNode) node).getCPath());
+	}
 
-    /**
-     * Checks node for 'sameness' for diffing.
-     *
-     * @param node to be compared to
-     * @return Returns a boolean
-     */
-    @Override
-    public boolean isSame(Node node) {
-        return super.isSame(node) && getCPath().isSame(((ModuleNode) node).getCPath());
-    }
+	public NodeType getNodeType() {
+		return NodeType.MODULENODE;
+	}
 
+	/**
+	 * Accept for the visitor pattern.
+	 * 
+	 * @param iVisitor
+	 *            the visitor
+	 **/
+	public <T> T accept(NodeVisitor<T> iVisitor) {
+		return iVisitor.visitModuleNode(this);
+	}
 
-    public NodeType getNodeType() {
-        return NodeType.MODULENODE;
-    }
+	/**
+	 * Gets the body of this class.
+	 *
+	 * @return the contents
+	 */
+	public Node getBody() {
+		return bodyNode;
+	}
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
-    public <T> T accept(NodeVisitor<T> iVisitor) {
-        return iVisitor.visitModuleNode(this);
-    }
+	@Deprecated
+	public Node getBodyNode() {
+		return getBody();
+	}
 
-    /**
-     * Gets the body of this class.
-     *
-     * @return the contents
-     */
-    public Node getBody() {
-        return bodyNode;
-    }
+	/**
+	 * Get the static scoping information.
+	 *
+	 * @return the scoping info
+	 */
+	public StaticScope getScope() {
+		return scope;
+	}
 
-    @Deprecated
-    public Node getBodyNode() {
-        return getBody();
-    }
+	/**
+	 * Gets the name.
+	 * 
+	 * @return Representation of the module path+name
+	 */
+	public Colon3Node getCPath() {
+		return cpath;
+	}
 
-    /**
-     * Get the static scoping information.
-     *
-     * @return the scoping info
-     */
-    public StaticScope getScope() {
-        return scope;
-    }
+	/**
+	 * Returns a list of all Method Nodes included in the module's ast.
+	 *
+	 * @return Returns a List of MethodDefNodes
+	 */
+	public List<MethodDefNode> getMethodDefs() {
+		return MethodDefVisitor.findMethodsIn(this);
+	}
 
-    /**
-     * Gets the name.
-     * @return Representation of the module path+name
-     */
-    public Colon3Node getCPath() {
-        return cpath;
-    }
-
-    /**
-     * Returns a list of all Method Nodes included in the module's ast.
-     *
-     * @return Returns a List of MethodDefNodes
-     */
-    public List<MethodDefNode> getMethodDefs() {
-        return MethodDefVisitor.findMethodsIn(this);
-    }
-
-    public List<ILocalVariable> getVariableReferencesNamed(String name) {
-        return ILocalVariableVisitor.findOccurrencesIn(this, name);
-    }
+	public List<ILocalVariable> getVariableReferencesNamed(String name) {
+		return ILocalVariableVisitor.findOccurrencesIn(this, name);
+	}
 }

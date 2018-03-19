@@ -35,175 +35,143 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.OutputEncryptor;
 import org.bouncycastle.operator.jcajce.JceGenericKey;
 
-public class JceOpenSSLPKCS8EncryptorBuilder
-{
-    public static final String AES_128_CBC = NISTObjectIdentifiers.id_aes128_CBC.getId();
-    public static final String AES_192_CBC = NISTObjectIdentifiers.id_aes192_CBC.getId();
-    public static final String AES_256_CBC = NISTObjectIdentifiers.id_aes256_CBC.getId();
+public class JceOpenSSLPKCS8EncryptorBuilder {
+	public static final String AES_128_CBC = NISTObjectIdentifiers.id_aes128_CBC.getId();
+	public static final String AES_192_CBC = NISTObjectIdentifiers.id_aes192_CBC.getId();
+	public static final String AES_256_CBC = NISTObjectIdentifiers.id_aes256_CBC.getId();
 
-    public static final String DES3_CBC = PKCSObjectIdentifiers.des_EDE3_CBC.getId();
+	public static final String DES3_CBC = PKCSObjectIdentifiers.des_EDE3_CBC.getId();
 
-    public static final String PBE_SHA1_RC4_128 = PKCSObjectIdentifiers.pbeWithSHAAnd128BitRC4.getId();
-    public static final String PBE_SHA1_RC4_40 = PKCSObjectIdentifiers.pbeWithSHAAnd40BitRC4.getId();
-    public static final String PBE_SHA1_3DES = PKCSObjectIdentifiers.pbeWithSHAAnd3_KeyTripleDES_CBC.getId();
-    public static final String PBE_SHA1_2DES = PKCSObjectIdentifiers.pbeWithSHAAnd2_KeyTripleDES_CBC.getId();
-    public static final String PBE_SHA1_RC2_128 = PKCSObjectIdentifiers.pbeWithSHAAnd128BitRC2_CBC.getId();
-    public static final String PBE_SHA1_RC2_40 = PKCSObjectIdentifiers.pbeWithSHAAnd40BitRC2_CBC.getId();
+	public static final String PBE_SHA1_RC4_128 = PKCSObjectIdentifiers.pbeWithSHAAnd128BitRC4.getId();
+	public static final String PBE_SHA1_RC4_40 = PKCSObjectIdentifiers.pbeWithSHAAnd40BitRC4.getId();
+	public static final String PBE_SHA1_3DES = PKCSObjectIdentifiers.pbeWithSHAAnd3_KeyTripleDES_CBC.getId();
+	public static final String PBE_SHA1_2DES = PKCSObjectIdentifiers.pbeWithSHAAnd2_KeyTripleDES_CBC.getId();
+	public static final String PBE_SHA1_RC2_128 = PKCSObjectIdentifiers.pbeWithSHAAnd128BitRC2_CBC.getId();
+	public static final String PBE_SHA1_RC2_40 = PKCSObjectIdentifiers.pbeWithSHAAnd40BitRC2_CBC.getId();
 
-    private JcaJceHelper helper = new DefaultJcaJceHelper();
+	private JcaJceHelper helper = new DefaultJcaJceHelper();
 
-    private AlgorithmParameters params;
-    private ASN1ObjectIdentifier algOID;
-    byte[] salt;
-    int iterationCount;
-    private Cipher cipher;
-    private SecureRandom random;
-    private AlgorithmParameterGenerator paramGen;
-    private char[] password;
+	private AlgorithmParameters params;
+	private ASN1ObjectIdentifier algOID;
+	byte[] salt;
+	int iterationCount;
+	private Cipher cipher;
+	private SecureRandom random;
+	private AlgorithmParameterGenerator paramGen;
+	private char[] password;
 
-    private SecretKey key;
+	private SecretKey key;
 
-    public JceOpenSSLPKCS8EncryptorBuilder(ASN1ObjectIdentifier algorithm)
-    {
-        algOID = algorithm;
+	public JceOpenSSLPKCS8EncryptorBuilder(ASN1ObjectIdentifier algorithm) {
+		algOID = algorithm;
 
-        this.iterationCount = 2048;
-    }
+		this.iterationCount = 2048;
+	}
 
-    public JceOpenSSLPKCS8EncryptorBuilder setRandom(SecureRandom random)
-    {
-        this.random = random;
+	public JceOpenSSLPKCS8EncryptorBuilder setRandom(SecureRandom random) {
+		this.random = random;
 
-        return this;
-    }
+		return this;
+	}
 
-    public JceOpenSSLPKCS8EncryptorBuilder setPasssword(char[] password)
-    {
-        this.password = password;
+	public JceOpenSSLPKCS8EncryptorBuilder setPasssword(char[] password) {
+		this.password = password;
 
-        return this;
-    }
+		return this;
+	}
 
-    public JceOpenSSLPKCS8EncryptorBuilder setIterationCount(int iterationCount)
-    {
-        this.iterationCount = iterationCount;
+	public JceOpenSSLPKCS8EncryptorBuilder setIterationCount(int iterationCount) {
+		this.iterationCount = iterationCount;
 
-        return this;
-    }
+		return this;
+	}
 
-    public JceOpenSSLPKCS8EncryptorBuilder setProvider(String providerName)
-    {
-        helper = new NamedJcaJceHelper(providerName);
+	public JceOpenSSLPKCS8EncryptorBuilder setProvider(String providerName) {
+		helper = new NamedJcaJceHelper(providerName);
 
-        return this;
-    }
+		return this;
+	}
 
-    public JceOpenSSLPKCS8EncryptorBuilder setProvider(Provider provider)
-    {
-        helper = new ProviderJcaJceHelper(provider);
+	public JceOpenSSLPKCS8EncryptorBuilder setProvider(Provider provider) {
+		helper = new ProviderJcaJceHelper(provider);
 
-        return this;
-    }
+		return this;
+	}
 
-    public OutputEncryptor build()
-        throws OperatorCreationException
-    {
-        final AlgorithmIdentifier algID;
+	public OutputEncryptor build() throws OperatorCreationException {
+		final AlgorithmIdentifier algID;
 
-        salt = new byte[20];
+		salt = new byte[20];
 
-        if (random == null)
-        {
-            random = new SecureRandom();
-        }
+		if (random == null) {
+			random = new SecureRandom();
+		}
 
-        random.nextBytes(salt);
+		random.nextBytes(salt);
 
-        try
-        {
-            this.cipher = helper.createCipher(algOID.getId());
+		try {
+			this.cipher = helper.createCipher(algOID.getId());
 
-            if (PEMUtilities.isPKCS5Scheme2(algOID))
-            {
-                this.paramGen = helper.createAlgorithmParameterGenerator(algOID.getId());
-            }
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new OperatorCreationException(algOID + " not available: " + e.getMessage(), e);
-        }
+			if (PEMUtilities.isPKCS5Scheme2(algOID)) {
+				this.paramGen = helper.createAlgorithmParameterGenerator(algOID.getId());
+			}
+		} catch (GeneralSecurityException e) {
+			throw new OperatorCreationException(algOID + " not available: " + e.getMessage(), e);
+		}
 
-        if (PEMUtilities.isPKCS5Scheme2(algOID))
-        {
-            params = paramGen.generateParameters();
+		if (PEMUtilities.isPKCS5Scheme2(algOID)) {
+			params = paramGen.generateParameters();
 
-            try
-            {
-                KeyDerivationFunc scheme = new KeyDerivationFunc(algOID, ASN1Primitive.fromByteArray(params.getEncoded()));
-                KeyDerivationFunc func = new KeyDerivationFunc(PKCSObjectIdentifiers.id_PBKDF2, new PBKDF2Params(salt, iterationCount));
+			try {
+				KeyDerivationFunc scheme = new KeyDerivationFunc(algOID, ASN1Primitive.fromByteArray(params.getEncoded()));
+				KeyDerivationFunc func = new KeyDerivationFunc(PKCSObjectIdentifiers.id_PBKDF2, new PBKDF2Params(salt, iterationCount));
 
-                ASN1EncodableVector v = new ASN1EncodableVector();
+				ASN1EncodableVector v = new ASN1EncodableVector();
 
-                v.add(func);
-                v.add(scheme);
+				v.add(func);
+				v.add(scheme);
 
-                algID = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBES2, PBES2Parameters.getInstance(new DERSequence(v)));
-            }
-            catch (IOException e)
-            {
-                throw new OperatorCreationException(e.getMessage(), e);
-            }
+				algID = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBES2, PBES2Parameters.getInstance(new DERSequence(v)));
+			} catch (IOException e) {
+				throw new OperatorCreationException(e.getMessage(), e);
+			}
 
-            try
-            {
-                key = PEMUtilities.generateSecretKeyForPKCS5Scheme2(helper, algOID.getId(), password, salt, iterationCount);
+			try {
+				key = PEMUtilities.generateSecretKeyForPKCS5Scheme2(helper, algOID.getId(), password, salt, iterationCount);
 
-                cipher.init(Cipher.ENCRYPT_MODE, key, params);
-            }
-            catch (GeneralSecurityException e)
-            {
-                throw new OperatorCreationException(e.getMessage(), e);
-            }
-        }
-        else if (PEMUtilities.isPKCS12(algOID))
-        {
-            ASN1EncodableVector v = new ASN1EncodableVector();
+				cipher.init(Cipher.ENCRYPT_MODE, key, params);
+			} catch (GeneralSecurityException e) {
+				throw new OperatorCreationException(e.getMessage(), e);
+			}
+		} else if (PEMUtilities.isPKCS12(algOID)) {
+			ASN1EncodableVector v = new ASN1EncodableVector();
 
-            v.add(new DEROctetString(salt));
-            v.add(new ASN1Integer(iterationCount));
+			v.add(new DEROctetString(salt));
+			v.add(new ASN1Integer(iterationCount));
 
-            algID = new AlgorithmIdentifier(algOID, PKCS12PBEParams.getInstance(new DERSequence(v)));
+			algID = new AlgorithmIdentifier(algOID, PKCS12PBEParams.getInstance(new DERSequence(v)));
 
-            try
-            {
-                cipher.init(Cipher.ENCRYPT_MODE, new PKCS12KeyWithParameters(password, salt, iterationCount));
-            }
-            catch (GeneralSecurityException e)
-            {
-                throw new OperatorCreationException(e.getMessage(), e);
-            }
-        }
-        else
-        {
-            throw new OperatorCreationException("unknown algorithm: " + algOID, null);
-        }
+			try {
+				cipher.init(Cipher.ENCRYPT_MODE, new PKCS12KeyWithParameters(password, salt, iterationCount));
+			} catch (GeneralSecurityException e) {
+				throw new OperatorCreationException(e.getMessage(), e);
+			}
+		} else {
+			throw new OperatorCreationException("unknown algorithm: " + algOID, null);
+		}
 
-        return new OutputEncryptor()
-        {
-            public AlgorithmIdentifier getAlgorithmIdentifier()
-            {
-                return algID;
-            }
+		return new OutputEncryptor() {
+			public AlgorithmIdentifier getAlgorithmIdentifier() {
+				return algID;
+			}
 
-            public OutputStream getOutputStream(OutputStream encOut)
-            {
-                return new CipherOutputStream(encOut, cipher);
-            }
+			public OutputStream getOutputStream(OutputStream encOut) {
+				return new CipherOutputStream(encOut, cipher);
+			}
 
-            public GenericKey getKey()
-            {
-                return new JceGenericKey(algID, key);
-            }
-        };
-    }
+			public GenericKey getKey() {
+				return new JceGenericKey(algID, key);
+			}
+		};
+	}
 }
