@@ -195,10 +195,10 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 			}
 
 			final String ver = System.getProperty("java.version");
-			final Pattern pattern = Pattern.compile("^(\\d+\\.\\d+)");// 1.10
+			final Pattern pattern = Pattern.compile("(\\d+(\\.\\d+)?)");
 			final Matcher matcher = pattern.matcher(ver);
 			if (matcher.find()) {
-				jreVer = Float.parseFloat(matcher.group(1));
+				jreVer = Float.parseFloat(matcher.group());
 			} else {
 				try {
 					final Integer verint = Integer.parseInt(ver);
@@ -2430,8 +2430,7 @@ public class App {// 注意：本类名被工程HCAndroidServer的ServerMainActi
 		final int panelWidth = 500;
 		final JPanel congPanel = new JPanel(new BorderLayout());
 		final JLabel congLabel = new JLabel("<html><body style=\"width:" + (panelWidth - cong_icon.getIconWidth()) + "\">"
-				+ StringUtil.replace(ResourceUtil.get(9065), "{uuid}", IConstant.getUUID()) + "<BR><BR>" + ResourceUtil.get(9089)
-				+ "</body></html>");
+				+ StringUtil.replace(ResourceUtil.get(9065), "{uuid}", IConstant.getUUID()) + "</body></html>");//"<BR><BR>" + ResourceUtil.get(9089), 9089=If you want load HAR project or design for IoT, <BR>please wait for a moment, system is downloading JRuby engine.
 		congPanel.add(congLabel, BorderLayout.CENTER);
 		congPanel.add(new JLabel(cong_icon), BorderLayout.WEST);
 
